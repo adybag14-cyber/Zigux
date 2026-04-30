@@ -21,6 +21,7 @@ This document records the shared Phase 14 smoke lane that verifies the current b
 - `PHASE14_FULL_BUNDLE_DEPENDENCY_COUNT=5`
 - `PHASE14_FOCUSED_SHARD_DEPENDENCY_COUNT=1`
 - `PHASE14_FOCUSED_SHARD_ONLY_ARTIFACT=phase14-end-to-end-smoke-tests`
+- `PHASE14_WORKFLOW_SMOKE_PATH=make-wrapper`
 - survey provenance captured against verified `master` head `d439e5349fe57b8f59f7229cc02fa77eb825c154`
 - shared smoke boundary:
   - `scripts/zigux/validate-phase14.py`
@@ -71,7 +72,7 @@ This lane stays narrow on purpose. It does not add a new bridge. It verifies tha
 - `zigux/tests/phase14_build.zig` now exposes exactly one dedicated `phase14-smoke` shard for the shared smoke survey, while the four anchor-local artifacts still replay only through the heavier `test` bundle.
 - `zigux/tests/phase14_build.zig` now also keeps the routing boundary explicit: the full `test` bundle depends on all five compile artifacts exactly once, while `phase14_smoke_step` depends only on `run_phase14_end_to_end_smoke_tests.step`.
 - `zigux/Makefile` now exposes `make -C zigux phase14-validate` before the full `make -C zigux phase14` replay and also keeps `make -C zigux phase14-smoke` available as the focused shared smoke shard.
-- `.github/workflows/zigux-bootstrap.yml` now runs the validator-backed shared smoke packet, the focused smoke shard, and the full Phase 14 build command, so the shared packet gets both a fast contract check and the existing end-to-end replay.
+- `.github/workflows/zigux-bootstrap.yml` now runs the validator-backed shared smoke packet, the focused `make -C zigux phase14-smoke` wrapper path, and the full Phase 14 build command, so the shared packet gets both a fast contract check and the exact wrapper-backed smoke replay path a reviewer would use locally.
 - `Documentation/zigux/freeze-map.md` still names the four Phase 14 anchors, which keeps the smoke packet grounded in the roadmap's study-only and freeze posture rather than implying a bridge-first expansion.
 - `Documentation/zigux/review-checklist.md` now carries a dedicated prompt for the shared Phase 14 smoke packet so later edits have to keep the four anchor-local manifests, survey notes, and shared replay contract aligned.
 - `zigux/tests/phase14_end_to_end_smoke_survey.zig` now treats the shared note's quoted shared-lane marker plus per-anchor surveyed commits as machine-checked evidence, so future shared or anchor-manifest refreshes cannot silently leave the shared smoke note behind.
