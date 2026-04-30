@@ -239,6 +239,7 @@ test "phase 5 kretprobe contributor docs stay aligned with the shipped review su
     try expectContains(survey_note, "phase5_build.zig");
     try expectContains(survey_note, "separate Phase 9 runtime starter");
     try expectContains(survey_note, "PHASE5_LANE_KEY=P5-L17");
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "/workspace/agent_files/") == null);
     {
         const surveyed_commit_line = try std.fmt.allocPrint(
             std.testing.allocator,
