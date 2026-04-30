@@ -313,6 +313,7 @@ test "phase11 dw_wdt stop and restart stay bounded to reset-control and non-stop
     try std.testing.expect(unstoppable_summary.stop_path_hardware_running_after_stop);
     try std.testing.expect(!unstoppable_summary.stop_clears_enable_bit);
     try std.testing.expect(!unstoppable_summary.stop_clears_interrupt_status);
+    try std.testing.expect(unstoppable_summary.stop_preserves_pending_interrupt_without_reset);
     try std.testing.expect(!unstoppable_summary.stop_uses_reset_pulse);
     try std.testing.expect(unstoppable_summary.stop_preserves_running_marker_without_reset);
     try std.testing.expect(unstoppable_summary.restart_path_running_before_restart);
@@ -339,6 +340,7 @@ test "phase11 dw_wdt stop and restart stay bounded to reset-control and non-stop
     try std.testing.expect(!stoppable_summary.stop_path_hardware_running_after_stop);
     try std.testing.expect(stoppable_summary.stop_clears_enable_bit);
     try std.testing.expect(stoppable_summary.stop_clears_interrupt_status);
+    try std.testing.expect(!stoppable_summary.stop_preserves_pending_interrupt_without_reset);
     try std.testing.expect(stoppable_summary.stop_uses_reset_pulse);
     try std.testing.expect(!stoppable_summary.stop_preserves_running_marker_without_reset);
     try std.testing.expect(!stoppable_summary.restart_path_running_before_restart);
@@ -349,6 +351,14 @@ test "phase11 dw_wdt stop and restart stay bounded to reset-control and non-stop
     try std.testing.expect(stoppable_summary.restart_clears_timeout_range);
     try std.testing.expect(!stoppable_summary.restart_kicks_running_watchdog);
     try std.testing.expect(stoppable_summary.restart_enables_stopped_watchdog);
+
+    var quiet_unstoppable = try dw_wdt.DwWdtLab.initFixedTops(65_536, false);
+    const quiet_unstoppable_summary = try quiet_unstoppable.summarizeTeardownLifecycle(.{
+        .restart_watchdog_running = true,
+        .stop_interrupt_pending = false,
+    });
+    try std.testing.expect(!quiet_unstoppable_summary.stop_clears_interrupt_status);
+    try std.testing.expect(!quiet_unstoppable_summary.stop_preserves_pending_interrupt_without_reset);
 
     var restart_lab = try dw_wdt.DwWdtLab.initFixedTops(65_536, false);
     runtime = restart_lab.armRestart();
