@@ -7,7 +7,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling survey for Z
 - `PHASE8_STATUS=active`
 - `PHASE8_SLICE=libbpf-segment-survey`
 - scope: segment manifest plus five landed helper-first starter slices, one deferred resource boundary, one deferred interrupt-routing boundary, and one blocked object-model follow-on
-- survey checkpoint: refreshed against inspected `master` head `a6fab7a6b89bdd0d0ee3c0892eaab1ad264ecb89`
+- survey checkpoint: refreshed against inspected `master` head `8ebd7dd5d0c57420da1d4f958093fc6ea6684ec9`
 - product boundary:
   - `tools/lib/bpf/zigux_segments/manifest.json`
   - `tools/lib/bpf/zigux_segments/cpu_mask.zig`
@@ -122,7 +122,7 @@ The current tests check:
 
 ## Latest verification snapshot
 
-- verified against inspected `master` head `a6fab7a6b89bdd0d0ee3c0892eaab1ad264ecb89`
+- verified against inspected `master` head `8ebd7dd5d0c57420da1d4f958093fc6ea6684ec9`
 - `zig test zigux/tests/phase8_libbpf_segments.zig`
   - all `3/3` focused libbpf segment tests passed
 - `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all`
