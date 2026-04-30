@@ -51,6 +51,12 @@ Phase 5 notes
 - `python3 scripts/zigux/validate-phase5.py` and `make -C zigux phase5-validate` now fail fast if the shared Phase 5 sample packet drifts out of sync across `samples/zigux/README.md`, the four sample-backed survey notes, the four manifests, `zigux/tests/phase5_build.zig`, `zigux/Makefile`, and the bootstrap workflow.
 - `zigux/tests/phase5_build.zig` and `make -C zigux phase5` now gate the current bytestream FIFO, kobject, kretprobe, and trace-events reference samples together through that same validator-first lane, so future Phase 5 work stays reviewable as one bounded contributor packet instead of ad hoc per-sample CI claims.
 
+Phase 6 notes
+- `Documentation/zigux/phase6-base64-slice.md`, `Documentation/zigux/phase6-bsearch-slice.md`, `Documentation/zigux/phase6-checksum-slice.md`, and `Documentation/zigux/phase6-hexdump-slice.md` keep the current base64, bsearch, checksum, and hexdump helper packet explicit as a bounded leaf-helper tranche.
+- `Documentation/zigux/phase6-helper-parity-catalog.md` and `zigux/tests/phase6_helper_parity_manifest.json` are the shared reviewer-facing and machine-readable catalogs for that same packet.
+- `python3 scripts/zigux/check-phase6-base64-c-parity.py` and `python3 scripts/zigux/check-phase6-bsearch-c-parity.py` keep the external C parity replays reviewable beside the shared validator-first lane.
+- `make -C zigux phase6-validate`, `make -C zigux phase6`, and `make -C zigux phase6-base64-perf` keep the current Phase 6 shared gate, bundled helper tests, and bounded per-helper perf entrypoints explicit from the top-level docs index.
+
 Phase 10 notes
 - `Documentation/zigux/README.md` now exposes the shared Phase 10 closure note plus the same nine published Phase 10 docs named by the shared closure packet, including `Documentation/zigux/phase10-virtio-core-survey.md` and `Documentation/zigux/phase10-virtio-mmio-slice.md`, so the top-level docs index does not undercount the live parity-evidence bundle.
 - `Documentation/zigux/phase10-closure-evidence.md` now records the exact current roadmap-aligned virtio lab bundle and keeps Phase 10 explicit as active rather than prematurely closed while `drivers/virtio/virtio_mmio.zig`, its bounded MMIO starter test, and the remaining risky transport gaps stay visible together.
