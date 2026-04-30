@@ -184,9 +184,13 @@ required_ledger_markers = [
     "Documentation/zigux/phase10-closure-evidence.md",
     "scripts/zigux/validate-phase10-closure.py",
     "zigux/tests/phase10_closure_manifest.json",
+    "Documentation/zigux/phase10-virtio-core-survey.md",
     "Documentation/zigux/phase10-virtio-ring-survey.md",
+    "Documentation/zigux/phase10-virtio-input-survey.md",
     "Documentation/zigux/phase10-virtio-mmio-survey.md",
+    "zigux/tests/phase10_virtio_core_manifest.json",
     "zigux/tests/phase10_virtio_ring_manifest.json",
+    "zigux/tests/phase10_virtio_input_manifest.json",
     "zigux/tests/phase10_virtio_mmio_manifest.json",
     "PHASE10_LEDGER_STATUS=active",
     "PHASE10_LEDGER_TRANCHE=virtio-lab-bundle",
@@ -228,14 +232,11 @@ required_core_survey_test_markers = [
     'if (std.mem.eql(u8, gap.id, "phase10-core-probe-remove-lifecycle")) {',
 ]
 required_ring_survey_markers = [
-    "remaining blocked MMIO lifecycle-and-IRQ boundary against the roadmap",
-    "no smaller ready transport follow-up remains ahead of the still-blocked lifecycle and IRQ packet",
+    "remaining MMIO follow-up ladder against the roadmap",
     "phase10-mmio-queue-register-helper",
 ]
 required_ring_survey_test_markers = [
-    'test "phase10 virtio ring survey manifest records the live queue-discipline packet and parked MMIO blocker after landed config-write" {',
-    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "no smaller ready transport follow-up remains ahead of the still-blocked lifecycle and IRQ packet") != null);',
-    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "remaining MMIO follow-up ladder against the roadmap") == null);',
+    'test "phase10 virtio ring survey manifest records the live queue-discipline and MMIO ladder through landed config-write" {',
 ]
 required_input_survey_test_markers = [
     'test "phase10 virtio input survey manifest records the live starter and remaining gap" {',
@@ -338,7 +339,6 @@ forbidden_stale_mmio_slice_markers = [
     "add one small config-window write-planning helper next",
 ]
 forbidden_stale_ring_markers = [
-    "remaining MMIO follow-up ladder against the roadmap",
     "remaining queue-wrapper gap",
     "queue-wrapper gap",
 ]
