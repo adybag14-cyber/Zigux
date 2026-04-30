@@ -131,13 +131,16 @@ It also stays underneath the freeze-map study boundary for `kernel/workqueue.c`,
 
 ## Gates
 
-1. run the release-discipline validator
+1. run the validator self-test first
+- `python3 scripts/zigux/validate-phase9.py --self-test`
+
+2. run the release-discipline validator
 - `python3 scripts/zigux/validate-phase9.py`
 
-2. run the shared Phase 9 runtime survey bundle
+3. run the shared Phase 9 runtime survey bundle
 - `zig build test --build-file zigux/tests/phase9_build.zig`
 
-3. run the convenience targets
+4. run the convenience targets
 - `make -C zigux phase9-validate`
 - `make -C zigux phase9`
 
