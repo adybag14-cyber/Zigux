@@ -302,6 +302,21 @@ fn expectedDecodeValueForTest(ch: u8, variant: Variant) ?u8 {
     };
 }
 
+fn expectTailHelperRoundTrip(
+    variant: Variant,
+    tail: []const u8,
+    padded_tail: []const u8,
+    expected: []const u8,
+) !void {
+    var tail_out: [2]u8 = undefined;
+
+    try std.testing.expectEqual(expected.len, try validateTail(tail, variant));
+    try std.testing.expectEqual(expected.len, try decodeTail(tail_out[0..], tail, variant));
+    try std.testing.expectEqualSlices(u8, expected, tail_out[0..expected.len]);
+
+    try std.testing.expectEqual(expected.len, try bytes(padded_tail, true, variant));
+}
+
 test "chars matches padded and unpadded output sizes" {
     try std.testing.expectEqual(@as(usize, 0), chars(0, true));
     try std.testing.expectEqual(@as(usize, 4), chars(1, true));
@@ -414,6 +429,25 @@ test "decode and bytes cover one-byte and two-byte variant tails" {
     try std.testing.expectEqualSlices(u8, &urlsafe_two, out[0..2]);
     try std.testing.expectEqual(@as(usize, 2), try decode(out[0..], ",,A=", true, .imap));
     try std.testing.expectEqualSlices(u8, &urlsafe_two, out[0..2]);
+}
+
+test "decodeTail and validateTail preserve canonical tail semantics across variants" {
+    var invalid_std_tail_buf: [2]u8 = undefined;
+    var invalid_urlsafe_tail_buf: [2]u8 = undefined;
+    var invalid_imap_tail_buf: [2]u8 = undefined;
+
+    try expectTailHelperRoundTrip(.std, "Zg", "Zg==", "f");
+    try expectTailHelperRoundTrip(.std, "Zm8", "Zm8=", "fo");
+    try expectTailHelperRoundTrip(.urlsafe, "-w", "-w==", &[_]u8{0xfb});
+    try expectTailHelperRoundTrip(.urlsafe, "__A", "__A=", &[_]u8{ 0xff, 0xf0 });
+    try expectTailHelperRoundTrip(.imap, "+w", "+w==", &[_]u8{0xfb});
+    try expectTailHelperRoundTrip(.imap, ",,A", ",,A=", &[_]u8{ 0xff, 0xf0 });
+
+    try std.testing.expectError(DecodeError.InvalidInput, validateTail("Z=", .std));
+    try std.testing.expectError(DecodeError.InvalidInput, validateTail("=m8", .std));
+    try std.testing.expectError(DecodeError.InvalidInput, decodeTail(invalid_std_tail_buf[0..], "Z=", .std));
+    try std.testing.expectError(DecodeError.InvalidInput, decodeTail(invalid_urlsafe_tail_buf[0..], "__B", .urlsafe));
+    try std.testing.expectError(DecodeError.InvalidInput, decodeTail(invalid_imap_tail_buf[0..], ",,B", .imap));
 }
 
 test "decode accepts exact-fit buffers and rejects one-byte-short buffers" {
