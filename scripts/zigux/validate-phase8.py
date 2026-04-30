@@ -29,6 +29,7 @@ REQUIRED_FILES = [
     "zigux/tests/phase8_help_only_build.zig",
     "zigux/tests/phase8_kallsyms_only_build.zig",
     "zigux/tests/phase8_libbpf_segments_only_build.zig",
+    "zigux/tests/phase8_bridge_boundary_survey.zig",
     "zigux/tests/phase8_exec_cmd.zig",
     "zigux/tests/phase8_help.zig",
     "zigux/tests/phase8_kallsyms.zig",
@@ -125,6 +126,7 @@ required_tests_readme_markers = [
     "zigux/tests/phase8_help_only_build.zig",
     "zigux/tests/phase8_kallsyms_only_build.zig",
     "zigux/tests/phase8_libbpf_segments_only_build.zig",
+    "zigux/tests/phase8_bridge_boundary_survey.zig",
     "zigux/tests/phase8_exec_cmd.zig",
     "zigux/tests/phase8_help.zig",
     "zigux/tests/phase8_kallsyms.zig",
@@ -209,6 +211,8 @@ required_phase8_build_markers = [
     "phase8-pin-path-tests",
     "phase8_file_path_handle_bridge.zig",
     "phase8-file-path-handle-bridge-tests",
+    "phase8_bridge_boundary_survey.zig",
+    "phase8-bridge-boundary-survey-tests",
     "phase8_libbpf_segments.zig",
     "phase8-libbpf-segment-tests",
     "phase8_bpf_type_names.zig",
@@ -237,6 +241,17 @@ required_phase8_libbpf_segments_only_build_markers = [
     "phase8_libbpf_segments.zig",
     "phase8-libbpf-segment-tests",
     "Run focused Phase 8 libbpf segment survey tests",
+]
+
+required_phase8_bridge_boundary_survey_markers = [
+    'test "phase 8 bridge boundary survey stays wired into the shared packet"',
+    'test "phase 8 bridge boundary survey still matches the live helper surfaces"',
+    "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
+    "zigux/tests/phase8_build.zig",
+    "tools/lib/subcmd/exec-cmd.zig",
+    "tools/lib/subcmd/help.zig",
+    "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+    "phase8-bridge-boundary-survey-tests",
 ]
 
 required_survey_markers = [
@@ -574,13 +589,12 @@ required_manifest_markers = [
     '"zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"',
     '"kind": "helper_first"',
     '"tools/lib/bpf/libbpf.c:4956-4987"',
-    "path construction",
-    "text parsing",
+    '"tools/lib/bpf/libbpf.c:4976-4994"',
     '"slug": "map-reuse-compatibility"',
     '"tools/lib/bpf/libbpf.c:5220-5251"',
-    "DEVMAP readonly-flag exception",
+    '"why_now": "The reused-map compatibility comparison is a pure field-and-flag check that extends the existing file-path bridge packet without claiming bpffs reopen flow, fd duplication, or pinned-map side effects, and it preserves libbpf\'s bounded DEVMAP readonly-flag exception as an explicit helper contract."',
     '"slug": "file-path-and-handle-bridge"',
-    '"slug": "file-path-and-handle-bridge",\n      "status": "deferred_high_risk"',
+    '"status": "deferred_high_risk"',
     '"zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"',
     '"kind": "resource_boundary"',
     '"tools/lib/bpf/libbpf.c:5112-5157"',
@@ -616,6 +630,7 @@ def required_marker_count() -> int:
         + len(required_phase8_help_only_build_markers)
         + len(required_phase8_kallsyms_only_build_markers)
         + len(required_phase8_libbpf_segments_only_build_markers)
+        + len(required_phase8_bridge_boundary_survey_markers)
         + len(required_survey_markers)
         + len(required_bridge_boundary_markers)
         + len(required_exec_cmd_slice_markers)
@@ -659,6 +674,7 @@ def validate(root: Path) -> tuple[list[str], list[str], list[str]]:
     phase8_help_only_build = read_text(root, "zigux/tests/phase8_help_only_build.zig")
     phase8_kallsyms_only_build = read_text(root, "zigux/tests/phase8_kallsyms_only_build.zig")
     phase8_libbpf_segments_only_build = read_text(root, "zigux/tests/phase8_libbpf_segments_only_build.zig")
+    phase8_bridge_boundary_survey = read_text(root, "zigux/tests/phase8_bridge_boundary_survey.zig")
     phase8_survey = read_text(root, "Documentation/zigux/phase8-libbpf-segment-survey.md")
     phase8_bridge_boundary = read_text(root, "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md")
     phase8_exec_cmd_slice = read_text(root, "Documentation/zigux/phase8-exec-cmd-slice.md")
@@ -719,6 +735,9 @@ def validate(root: Path) -> tuple[list[str], list[str], list[str]]:
     for marker in required_phase8_libbpf_segments_only_build_markers:
         if marker not in phase8_libbpf_segments_only_build:
             missing_markers.append(f"phase8_libbpf_segments_only_build:{marker}")
+    for marker in required_phase8_bridge_boundary_survey_markers:
+        if marker not in phase8_bridge_boundary_survey:
+            missing_markers.append(f"phase8_bridge_boundary_survey:{marker}")
     for marker in required_survey_markers:
         if marker not in phase8_survey:
             missing_markers.append(f"phase8_survey:{marker}")
@@ -965,6 +984,26 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
 
+        phase8_bridge_boundary_survey_path = tmp_root / "zigux/tests/phase8_bridge_boundary_survey.zig"
+        original_phase8_bridge_boundary_survey = phase8_bridge_boundary_survey_path.read_text(encoding="utf-8")
+        phase8_bridge_boundary_survey_path.write_text(
+            original_phase8_bridge_boundary_survey.replace(
+                "phase8-bridge-boundary-survey-tests",
+                "phase8-bridge-boundary-tests",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "phase8_bridge_boundary_survey_marker",
+            tmp_root,
+            "phase8_bridge_boundary_survey:phase8-bridge-boundary-survey-tests",
+        )
+        phase8_bridge_boundary_survey_path.write_text(
+            original_phase8_bridge_boundary_survey,
+            encoding="utf-8",
+        )
+
         kallsyms_helper_path = tmp_root / "tools/lib/symbol/kallsyms.zig"
         original_kallsyms_helper = kallsyms_helper_path.read_text(encoding="utf-8")
         kallsyms_helper_path.write_text(
@@ -1024,7 +1063,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE8_VALIDATOR_SELF_TEST=pass")
-    print("PHASE8_VALIDATOR_SELF_TEST_CASE_COUNT=9")
+    print("PHASE8_VALIDATOR_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
