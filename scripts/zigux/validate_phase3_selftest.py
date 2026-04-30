@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import tempfile
+from dataclasses import replace
 from pathlib import Path
 
 from phase3_catalog import Phase3Paths, discover_phase3_slices
@@ -12,6 +13,11 @@ from validate_phase3_core import (
     ABI_REQUIRED_EXPECTED_CONSTANTS,
     ABI_REQUIRED_MANIFEST_FILES,
     ABI_REQUIRED_SOURCE_MARKERS,
+    ABI_EXPORT_UAPI_BUILD_FILE_REL,
+    ABI_LOW_LEVEL_BUILD_FILE_REL,
+    ABI_POLICY_UNSAFE_BUILD_FILE_REL,
+    BUILD_FILE_REL,
+    build_smoke_commands,
     select_slices,
     validate_export_uapi_boundary,
     validate_policy_unsafe_boundary,
@@ -110,6 +116,13 @@ def run_self_test() -> int:
             raise AssertionError("expected missing slug to fail")
 
         assert validate_manifest(entries[0]) == []
+        abi_entry = replace(entries[0], slug="abi", build_step="phase3-dump")
+        assert build_smoke_commands(abi_entry) == (
+            ("phase3-dump", BUILD_FILE_REL),
+            ("phase3-low-level-wrappers-test", ABI_LOW_LEVEL_BUILD_FILE_REL),
+            ("phase3-export-uapi-test", ABI_EXPORT_UAPI_BUILD_FILE_REL),
+            ("phase3-policy-unsafe-test", ABI_POLICY_UNSAFE_BUILD_FILE_REL),
+        )
         assert validate_slices(
             root,
             entries,
