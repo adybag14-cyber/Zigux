@@ -416,3 +416,27 @@ test "runtime bitmap sample keeps zero-length mutations and invalid copy sources
     try exited_source.exit();
     try std.testing.expectError(error.InvalidSourceLifecycle, module.copyFrom(&exited_source));
 }
+
+test "runtime bitmap sample keeps bit-list bounds and repeat-init lifecycle explicit in the direct sample leg" {
+    var out_of_bounds = RuntimeBitmapSample{};
+    try std.testing.expectError(
+        error.BitRangeOutOfBounds,
+        out_of_bounds.initFromBitList("0, 5, 64, 128"),
+    );
+
+    var module = RuntimeBitmapSample{};
+    try module.initFromBitList("0, 5, 64, 70");
+
+    const summary = module.summary();
+    try std.testing.expectEqual(@as(u32, 0), summary.first_set);
+    try std.testing.expectEqual(@as(u32, 1), summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 4), summary.weight);
+    try std.testing.expectEqual(RuntimeBitmapSample.bitmap_nbits, summary.nbits);
+    try std.testing.expect(module.isSet(0));
+    try std.testing.expect(module.isSet(5));
+    try std.testing.expect(module.isSet(bitmap_view.bits_per_long));
+    try std.testing.expect(module.isSet(bitmap_view.bits_per_long + 6));
+    try std.testing.expectEqual(@as(usize, 1), module.init_runs);
+    try std.testing.expectEqual(ModuleStage.initialized, module.stage());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.initFromBitList("1"));
+}
