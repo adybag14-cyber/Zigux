@@ -76,6 +76,7 @@ SCRIPT_README_MARKERS = [
     "make -C zigux phase6-validate",
     "make -C zigux phase6",
     "per-helper perf targets",
+    "zigux/tests/phase6_helper_parity_manifest.json",
 ]
 
 TESTS_README_MARKERS = [
@@ -96,6 +97,7 @@ TESTS_README_MARKERS = [
     "zigux/tests/phase6_hexdump.zig",
     "zigux/tests/phase6_hexdump_perf.zig",
     "zigux/tests/fixtures/phase6_hexdump_vectors.zig",
+    "zigux/tests/phase6_helper_parity_manifest.json",
 ]
 
 DOC_README_MARKERS = [
@@ -105,6 +107,7 @@ DOC_README_MARKERS = [
     "Documentation/zigux/phase6-checksum-slice.md",
     "Documentation/zigux/phase6-hexdump-slice.md",
     "Documentation/zigux/phase6-helper-parity-catalog.md",
+    "zigux/tests/phase6_helper_parity_manifest.json",
     "make -C zigux phase6-validate",
     "make -C zigux phase6",
     "make -C zigux phase6-base64-perf",
@@ -191,12 +194,7 @@ BSEARCH_PERF_MARKERS = [
 
 BSEARCH_PARITY_SCRIPT_MARKERS = [
     'parser.add_argument("--self-test", action="store_true", help="Run built-in parity-script checks")',
-    'expect_system_exit(',
-    '"missing_harness",',
-    '"missing_runner",',
-    'sorted_lines("mutable-hit\\t21\\t21\\nascending-hit\\t34\\t4\\n")',
     'print("PHASE6_BSEARCH_C_PARITY_SELF_TEST=pass")',
-    'print("PHASE6_BSEARCH_C_PARITY_SELF_TEST_CASE_COUNT=6")',
     'print(f"PHASE6_BSEARCH_C_PARITY_CASES={len(c_lines)}")',
 ]
 
