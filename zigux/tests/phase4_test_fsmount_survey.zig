@@ -1,5 +1,5 @@
 const std = @import("std");
-const current_surveyed_commit = "ba75bc5abc49c80e366570e64141f5339fa48509";
+const current_surveyed_commit = "583b867b78648430c5b500d7d2bb7b8a08cb05da";
 
 const SurveySummary = struct {
     test_fsmount_c_lines: usize,
@@ -127,14 +127,14 @@ test "phase4 test_fsmount survey manifest records the landed survey packet and r
         io_instance.io(),
         "Documentation/zigux/README.md",
         std.testing.allocator,
-        .limited(32 * 1024),
+        .limited(64 * 1024),
     );
     defer std.testing.allocator.free(doc_readme);
     const script_readme = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "scripts/zigux/README.md",
         std.testing.allocator,
-        .limited(32 * 1024),
+        .limited(64 * 1024),
     );
     defer std.testing.allocator.free(script_readme);
 
