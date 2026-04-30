@@ -199,6 +199,7 @@ The current lane state is:
 - landed `phase15-roadmap-handoff-evidence-followup`
 - landed `phase15-readme-governance-index`
 - landed `phase15-maintenance-mode-handoff-sync`
+- landed `phase15-scorecard-review-packet-field-sync`
 - blocked `phase15-deep-core-status-change-blocker`
 
 This keeps the lane honest: Zigux now has a reviewable Phase 15 scorecard for the frozen anchors, a concrete reporting block that says where Architecture Council evidence belongs, reserved packet templates at those paths, one explicit retained stay-in-C closeout state for anchors that leave active discussion without leaving C, a visible roadmap-handoff note, a top-level docs index for the Phase 15 governance bundle, shared bootstrap replay for the landed governance bundle, and one explicit maintenance-mode handoff note. It still does not claim a scheduler slice, allocator slice, new RCU bridge, or direct skbuff rewrite.
@@ -226,14 +227,17 @@ That closes the old shared-CI follow-up for this scorecard packet and leaves `ph
 
 Before a freeze-in-C anchor can enter active status-review discussion, the scorecard record must carry one Architecture Council decision record that names:
 
-- the decision record ID and the lane owner responsible for the proposed seam
+- the current roadmap phase, the decision record ID, and the lane owner responsible for the proposed seam
 - the current validation gate set and the rollback owner who would return the anchor to C-only operation
 - the evidence archive path that preserves linked surveys and blocker follow-ups, benchmark notes, and replay commands
 - the latest blocker disposition stating whether the anchor remains blocked, is ready for narrower follow-up, or has been rejected for status change
+- the automatic return-to-blocked trigger that sends the anchor back to blocked review posture when the packet goes stale or incomplete
+- the indefinite-C policy link, or an explicit note saying why the packet is not yet entering that policy posture
 - the retained discussion state showing whether the anchor closes review as `retired_from_active_discussion`
 - the reopen triggers that name which evidence changes can reopen the stay-in-C discussion later without implying approval
+- the written rationale for why the current product state needs council attention now
 
-A frozen anchor leaves active discussion only after the Architecture Council sign-off, validation evidence links, rollback ownership, evidence archive path, latest blocker disposition, retained discussion state, and reopen triggers are all recorded together in the scorecard.
+A frozen anchor leaves active discussion only after the current roadmap phase, Architecture Council sign-off, validation evidence links, rollback ownership, evidence archive path, latest blocker disposition, automatic return-to-blocked trigger, indefinite-C policy link or applicability note, retained discussion state, reopen triggers, and written rationale are all recorded together in the scorecard.
 
 If any one of those fields is missing, stale, or contradicted by the linked evidence, the anchor remains in the freeze-in-C set and the review closes with an explicit stay-in-C outcome.
 
@@ -280,7 +284,7 @@ The scorecard's reserved evidence-archive paths now exist as template packet fil
 - `Documentation/zigux/phase15-evidence-archives/kernel-rcu-tree.md`
 - `Documentation/zigux/phase15-evidence-archives/net-core-skbuff.md`
 
-Each template keeps the current status bucket, requested decision bucket, decision record ID, ownership, validation gate summary, linked evidence, benchmark-notes status, replay command, latest blocker disposition, retained discussion state, reopen triggers, explicit non-goals, and written rationale visible in one place without claiming that any Architecture Council approval has already happened.
+Each template keeps the current status bucket, requested decision bucket, decision record ID, ownership, validation gate summary, linked evidence, benchmark-notes status, replay command, latest blocker disposition, automatic return-to-blocked trigger, indefinite-C policy link, retained discussion state, reopen triggers, explicit non-goals, and written rationale visible in one place without claiming that any Architecture Council approval has already happened.
 
 ## Non-goals
 
