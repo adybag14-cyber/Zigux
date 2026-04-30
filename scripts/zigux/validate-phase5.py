@@ -118,6 +118,7 @@ required_doc_readme_markers = [
 required_checklist_markers = [
     "phase5_build.zig",
     "descriptor, manifest-backed survey, sample-backed survey note",
+    "direct `zig test samples/zigux/...` replays and the paired `zig test zigux/tests/..._survey.zig` replays stay explicit",
     "kobject",
     "kretprobe",
     "trace-events",
