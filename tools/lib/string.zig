@@ -350,6 +350,16 @@ test "trimSpaces and strim trim trailing whitespace before an embedded NUL" {
     try std.testing.expectEqualSlices(u8, &[_]u8{ ' ', 'o', 'k', 0, '\t', 0, 'x' }, &strim_trailing_cstr_buf);
 }
 
+test "trimSpaces and strim empty whitespace-only C strings without touching tail bytes" {
+    var trim_whitespace_cstr_buf = [_]u8{ ' ', '\t', 0, 'x', '\n' };
+    try std.testing.expectEqualStrings("", trimSpaces(&trim_whitespace_cstr_buf));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0, '\t', 0, 'x', '\n' }, &trim_whitespace_cstr_buf);
+
+    var strim_whitespace_cstr_buf = [_]u8{ ' ', '\n', 0, 'x', '\t' };
+    try std.testing.expectEqualStrings("", strim(&strim_whitespace_cstr_buf));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0, '\n', 0, 'x', '\t' }, &strim_whitespace_cstr_buf);
+}
+
 test "streq matches C-string equality semantics" {
     try std.testing.expect(strEq("zigux", "zigux"));
     try std.testing.expect(streq("zigux", "zigux"));
