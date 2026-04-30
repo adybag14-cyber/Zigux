@@ -90,7 +90,7 @@ The current Phase 6 perf packet is intentionally mixed. Three helpers now carry 
 
 ### hexdump
 
-- `zigux/tests/phase6_hexdump_perf.zig` replays two deterministic formatter cases: `16B-plain` at `40_000` reps and `32B-ascii-g2` at `10_000` reps.
+- `zigux/tests/phase6_hexdump_perf.zig` now replays two deterministic formatter cases from `zigux/tests/fixtures/phase6_hexdump_vectors.zig`: `16B-plain` at `40_000` reps and `32B-ascii-g2` at `10_000` reps.
 - the current numeric threshold is `max_slowdown_pct = 175` for both formatter cases, checked against the committed `fixtures.prepareExpectedLine(...)` reference path.
 - the harness also records helper and reference nanoseconds per call, helper and reference nanoseconds per byte, the observed `slowdown_pct`, and the required formatted line length.
 
@@ -101,7 +101,7 @@ The committed Phase 6 fixture corpus is deterministic today because every shippe
 - `zigux/tests/fixtures/phase6_base64_vectors.zig` is the current static base64 corpus with 22 standard encode vectors, 18 variant encode vectors, 22 standard decode vectors, 12 variant decode vectors, and 16 invalid decode vectors.
 - `zigux/tests/fixtures/phase6_base64_c_harness.c`, `zigux/tests/phase6_base64_c_casegen.zig`, and `zigux/tests/phase6_base64_c_parity.zig` replay that same representative base64 surface through `python3 scripts/zigux/check-phase6-base64-c-parity.py`; `python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test` now keeps the parity script's missing-path guards, generated build template, and sorted-output normalization reviewable without a live toolchain replay, and the committed case generator still rebuilds the C include payload from `zigux/tests/fixtures/phase6_base64_vectors.zig` before the current `PHASE6_BASE64_C_PARITY_CASES=90` spot check runs.
 - `zigux/tests/fixtures/phase6_checksum_vectors.zig` is the current static checksum corpus with 5 compute vectors, 2 composition vectors, 3 seeded vectors, 1 pseudo-header vector, 4 carry-discipline vectors, and 6 imported KUnit random-prefix vectors.
-- `zigux/tests/fixtures/phase6_hexdump_vectors.zig` is the current static hexdump corpus with 9 parity vectors, 4 overflow vectors, and 9 required-length vectors, and it normalizes non-canonical formatter inputs through `normalizedRowsize()` and `normalizedGroupsizeForLen()` before expected-text generation.
+- `zigux/tests/fixtures/phase6_hexdump_vectors.zig` is the current static hexdump corpus with 9 parity vectors, 4 overflow vectors, 9 required-length vectors, and 2 perf replay cases, and it normalizes non-canonical formatter inputs through `normalizedRowsize()` and `normalizedGroupsizeForLen()` before expected-text generation.
 - `zigux/tests/phase6_bsearch.zig` keeps the bsearch corpus inline as sorted integer and symbol tables rather than a generated fixture file, `python3 scripts/zigux/check-phase6-bsearch-c-parity.py --self-test` now keeps the parity script's missing-path and output-normalization helpers reviewable without a live toolchain replay, and `python3 scripts/zigux/check-phase6-bsearch-c-parity.py` currently passes with `PHASE6_BSEARCH_C_PARITY_CASES=17`.
 - No generated Phase 6 fixture artifact is committed today; current corpus determinism comes from these committed literals, normalization helpers, and sorted external parity replays.
 
