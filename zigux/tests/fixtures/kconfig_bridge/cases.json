@@ -122,6 +122,8 @@
       "config": "rand/.config",
       "arch": "x86",
       "allconfig": "seed/allrandom.config",
+      "seed": "0xC0FFEE",
+      "probability": "10:20:30",
       "expected": "randconfig_expected.json"
     },
     {
