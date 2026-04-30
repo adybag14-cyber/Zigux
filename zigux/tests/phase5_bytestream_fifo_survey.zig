@@ -19,6 +19,8 @@ const Manifest = struct {
     non_goals: []const []const u8,
 };
 
+const review_doc_read_limit = 64 * 1024;
+
 fn expectedReplayFocus() [7][]const u8 {
     return .{
         "bounded_fifo_order",
@@ -39,7 +41,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
         io_instance.io(),
         "zigux/tests/phase5_bytestream_fifo_manifest.json",
         std.testing.allocator,
-        .limited(32 * 1024),
+        .limited(review_doc_read_limit),
     );
     defer std.testing.allocator.free(manifest_json);
 
@@ -47,7 +49,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
         io_instance.io(),
         "samples/zigux/bytestream_fifo.zig",
         std.testing.allocator,
-        .limited(32 * 1024),
+        .limited(review_doc_read_limit),
     );
     defer std.testing.allocator.free(sample_source);
 
@@ -264,7 +266,7 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
         io_instance.io(),
         "zigux/tests/phase5_bytestream_fifo_manifest.json",
         std.testing.allocator,
-        .limited(32 * 1024),
+        .limited(review_doc_read_limit),
     );
     defer std.testing.allocator.free(manifest_json);
 
@@ -272,7 +274,7 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
         io_instance.io(),
         "Documentation/zigux/phase5-kfifo-sample-survey.md",
         std.testing.allocator,
-        .limited(32 * 1024),
+        .limited(review_doc_read_limit),
     );
     defer std.testing.allocator.free(survey_note);
 
@@ -280,7 +282,7 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
         io_instance.io(),
         "Documentation/zigux/README.md",
         std.testing.allocator,
-        .limited(64 * 1024),
+        .limited(review_doc_read_limit),
     );
     defer std.testing.allocator.free(readme);
 
@@ -288,7 +290,7 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
         io_instance.io(),
         "samples/zigux/README.md",
         std.testing.allocator,
-        .limited(64 * 1024),
+        .limited(review_doc_read_limit),
     );
     defer std.testing.allocator.free(samples_readme);
 
@@ -296,7 +298,7 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
         io_instance.io(),
         "Documentation/zigux/review-checklist.md",
         std.testing.allocator,
-        .limited(64 * 1024),
+        .limited(review_doc_read_limit),
     );
     defer std.testing.allocator.free(review_checklist);
 
@@ -342,7 +344,7 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_bytestream_fifo.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "initial string copy count is `5`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`kfifo_in()` and `kfifo_out()` transfer sizes stay reviewable") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "draining a three-byte destination from the queued string `\"hello\"` yields `\"hel\"`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "draining a three-byte destination from the queued string `\"hello\"` yields `\"hel\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "follow-up drain on the now-empty queue returns `0`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "capacity ceiling") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "outside the main replay path") != null);

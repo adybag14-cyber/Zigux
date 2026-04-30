@@ -18,6 +18,8 @@ const Manifest = struct {
     non_goals: []const []const u8,
 };
 
+const review_doc_read_limit = 64 * 1024;
+
 test "phase 5 trace-events manifest records the exact bounded checks" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -26,7 +28,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
         io_instance.io(),
         "zigux/tests/phase5_trace_events_sample_manifest.json",
         std.testing.allocator,
-        .limited(32 * 1024),
+        .limited(review_doc_read_limit),
     );
     defer std.testing.allocator.free(manifest_json);
 
@@ -258,7 +260,7 @@ test "phase 5 trace-events contributor docs stay aligned with the shipped review
         io_instance.io(),
         "zigux/tests/phase5_trace_events_sample_manifest.json",
         std.testing.allocator,
-        .limited(32 * 1024),
+        .limited(review_doc_read_limit),
     );
     defer std.testing.allocator.free(manifest_json);
 
@@ -271,7 +273,7 @@ test "phase 5 trace-events contributor docs stay aligned with the shipped review
         io_instance.io(),
         "Documentation/zigux/phase5-trace-events-sample-survey.md",
         std.testing.allocator,
-        .limited(32 * 1024),
+        .limited(review_doc_read_limit),
     );
     defer std.testing.allocator.free(survey_note);
 
@@ -279,7 +281,7 @@ test "phase 5 trace-events contributor docs stay aligned with the shipped review
         io_instance.io(),
         "Documentation/zigux/README.md",
         std.testing.allocator,
-        .limited(64 * 1024),
+        .limited(review_doc_read_limit),
     );
     defer std.testing.allocator.free(readme);
 
@@ -287,7 +289,7 @@ test "phase 5 trace-events contributor docs stay aligned with the shipped review
         io_instance.io(),
         "samples/zigux/README.md",
         std.testing.allocator,
-        .limited(64 * 1024),
+        .limited(review_doc_read_limit),
     );
     defer std.testing.allocator.free(sample_root_readme);
 
@@ -295,7 +297,7 @@ test "phase 5 trace-events contributor docs stay aligned with the shipped review
         io_instance.io(),
         "Documentation/zigux/review-checklist.md",
         std.testing.allocator,
-        .limited(64 * 1024),
+        .limited(32 * 1024),
     );
     defer std.testing.allocator.free(review_checklist);
 

@@ -18,6 +18,8 @@ const Manifest = struct {
     non_goals: []const []const u8,
 };
 
+const review_doc_read_limit = 64 * 1024;
+
 test "phase 5 kobject manifest records the exact bounded checks" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -26,7 +28,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
         io_instance.io(),
         "zigux/tests/phase5_kobject_example_manifest.json",
         std.testing.allocator,
-        .limited(32 * 1024),
+        .limited(review_doc_read_limit),
     );
     defer std.testing.allocator.free(manifest_json);
 
@@ -196,7 +198,7 @@ test "phase 5 kobject contributor docs stay aligned with the shipped review surf
         io_instance.io(),
         "zigux/tests/phase5_kobject_example_manifest.json",
         std.testing.allocator,
-        .limited(32 * 1024),
+        .limited(review_doc_read_limit),
     );
     defer std.testing.allocator.free(manifest_json);
 
@@ -209,7 +211,7 @@ test "phase 5 kobject contributor docs stay aligned with the shipped review surf
         io_instance.io(),
         "Documentation/zigux/phase5-kobject-sample-survey.md",
         std.testing.allocator,
-        .limited(32 * 1024),
+        .limited(review_doc_read_limit),
     );
     defer std.testing.allocator.free(survey_note);
 
@@ -217,7 +219,7 @@ test "phase 5 kobject contributor docs stay aligned with the shipped review surf
         io_instance.io(),
         "Documentation/zigux/review-checklist.md",
         std.testing.allocator,
-        .limited(32 * 1024),
+        .limited(review_doc_read_limit),
     );
     defer std.testing.allocator.free(review_checklist);
 

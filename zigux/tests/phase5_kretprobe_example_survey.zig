@@ -18,6 +18,8 @@ const Manifest = struct {
     non_goals: []const []const u8,
 };
 
+const review_doc_read_limit = 64 * 1024;
+
 fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
@@ -30,7 +32,7 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
         io_instance.io(),
         "zigux/tests/phase5_kretprobe_example_manifest.json",
         std.testing.allocator,
-        .limited(32 * 1024),
+        .limited(review_doc_read_limit),
     );
     defer std.testing.allocator.free(manifest_json);
 
@@ -190,7 +192,7 @@ test "phase 5 kretprobe contributor docs stay aligned with the shipped review su
         io_instance.io(),
         "zigux/tests/phase5_kretprobe_example_manifest.json",
         std.testing.allocator,
-        .limited(32 * 1024),
+        .limited(review_doc_read_limit),
     );
     defer std.testing.allocator.free(manifest_json);
 
@@ -203,7 +205,7 @@ test "phase 5 kretprobe contributor docs stay aligned with the shipped review su
         io_instance.io(),
         "Documentation/zigux/phase5-kretprobe-sample-survey.md",
         std.testing.allocator,
-        .limited(32 * 1024),
+        .limited(review_doc_read_limit),
     );
     defer std.testing.allocator.free(survey_note);
 
@@ -211,7 +213,7 @@ test "phase 5 kretprobe contributor docs stay aligned with the shipped review su
         io_instance.io(),
         "Documentation/zigux/README.md",
         std.testing.allocator,
-        .limited(64 * 1024),
+        .limited(review_doc_read_limit),
     );
     defer std.testing.allocator.free(readme);
 
@@ -219,7 +221,7 @@ test "phase 5 kretprobe contributor docs stay aligned with the shipped review su
         io_instance.io(),
         "samples/zigux/README.md",
         std.testing.allocator,
-        .limited(64 * 1024),
+        .limited(review_doc_read_limit),
     );
     defer std.testing.allocator.free(sample_root_readme);
 
@@ -227,7 +229,7 @@ test "phase 5 kretprobe contributor docs stay aligned with the shipped review su
         io_instance.io(),
         "Documentation/zigux/review-checklist.md",
         std.testing.allocator,
-        .limited(64 * 1024),
+        .limited(32 * 1024),
     );
     defer std.testing.allocator.free(review_checklist);
 
