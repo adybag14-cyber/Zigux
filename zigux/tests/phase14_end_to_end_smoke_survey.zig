@@ -370,9 +370,14 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     }
     for (smoke_manifest.value.compile_shards) |shard| {
         try std.testing.expect(std.mem.indexOf(u8, smoke_note, shard.artifact_name) != null);
+        try std.testing.expect(std.mem.indexOf(u8, smoke_note, shard.root_source_file) != null);
         try std.testing.expect(std.mem.indexOf(u8, smoke_note, shard.coverage_mode) != null);
         if (shard.dedicated_step.len > 0) {
             try std.testing.expect(std.mem.indexOf(u8, smoke_note, shard.dedicated_step) != null);
+        }
+        if (shard.bridge_import.len > 0) {
+            try std.testing.expect(std.mem.indexOf(u8, smoke_note, shard.bridge_import) != null);
+            try std.testing.expect(std.mem.indexOf(u8, smoke_note, shard.bridge_source_file) != null);
         }
     }
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "only the shared smoke survey has a dedicated shard today") != null);
