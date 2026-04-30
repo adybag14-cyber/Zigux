@@ -230,18 +230,54 @@ survey_note_expectations = {
     "phase5_bytestream_fifo_manifest.json": {
         "note_path": ROOT / "Documentation" / "zigux" / "phase5-kfifo-sample-survey.md",
         "survey_test": "phase5_bytestream_fifo_survey.zig",
+        "survey_test_path": ROOT / "zigux" / "tests" / "phase5_bytestream_fifo_survey.zig",
+        "survey_test_markers": [
+            'test "phase 5 bytestream fifo contributor docs stay aligned with the shipped review surface"',
+            "sample-backed survey note",
+            "samples/zigux/README.md",
+            "Documentation/zigux/review-checklist.md",
+            "phase5_build.zig",
+            "Build Summary: 17/17 steps succeeded; 27/27 tests passed",
+        ],
     },
     "phase5_kobject_example_manifest.json": {
         "note_path": ROOT / "Documentation" / "zigux" / "phase5-kobject-sample-survey.md",
         "survey_test": "phase5_kobject_example_survey.zig",
+        "survey_test_path": ROOT / "zigux" / "tests" / "phase5_kobject_example_survey.zig",
+        "survey_test_markers": [
+            'test "phase 5 kobject contributor docs stay aligned with the shipped review surface"',
+            "sample-backed survey note",
+            "samples/zigux/README.md",
+            "Documentation/zigux/review-checklist.md",
+            "phase5_build.zig",
+            "Build Summary: 17/17 steps succeeded; 27/27 tests passed",
+        ],
     },
     "phase5_kretprobe_example_manifest.json": {
         "note_path": ROOT / "Documentation" / "zigux" / "phase5-kretprobe-sample-survey.md",
         "survey_test": "phase5_kretprobe_example_survey.zig",
+        "survey_test_path": ROOT / "zigux" / "tests" / "phase5_kretprobe_example_survey.zig",
+        "survey_test_markers": [
+            'test "phase 5 kretprobe contributor docs stay aligned with the shipped review surface"',
+            "sample-backed survey note",
+            "samples/zigux/README.md",
+            "Documentation/zigux/review-checklist.md",
+            "phase5_build.zig",
+            "Build Summary: 17/17 steps succeeded; 27/27 tests passed",
+        ],
     },
     "phase5_trace_events_sample_manifest.json": {
         "note_path": ROOT / "Documentation" / "zigux" / "phase5-trace-events-sample-survey.md",
         "survey_test": "phase5_trace_events_sample_survey.zig",
+        "survey_test_path": ROOT / "zigux" / "tests" / "phase5_trace_events_sample_survey.zig",
+        "survey_test_markers": [
+            'test "phase 5 trace-events contributor docs stay aligned with the shipped review surface"',
+            "sample-backed survey note",
+            "samples/zigux/README.md",
+            "Documentation/zigux/review-checklist.md",
+            "phase5_build.zig",
+            "Build Summary: 17/17 steps succeeded; 27/27 tests passed",
+        ],
     },
 }
 
@@ -260,6 +296,7 @@ for manifest_name, expected in manifest_expectations.items():
 
     survey_expectation = survey_note_expectations[manifest_name]
     survey_note = survey_expectation["note_path"].read_text(encoding="utf-8")
+    survey_test = survey_expectation["survey_test_path"].read_text(encoding="utf-8")
     required_survey_markers = [
         "PHASE5_STATUS=active",
         f"PHASE5_LANE_KEY={expected['lane_key']}",
@@ -274,6 +311,11 @@ for manifest_name, expected in manifest_expectations.items():
     for marker in required_survey_markers:
         if marker not in survey_note:
             missing_markers.append(f"{survey_expectation['note_path'].relative_to(ROOT)}:{marker}")
+    for marker in survey_expectation["survey_test_markers"]:
+        if marker not in survey_test:
+            missing_markers.append(
+                f"{survey_expectation['survey_test_path'].relative_to(ROOT)}:{marker}"
+            )
 
 if missing_markers:
     print("PHASE5_VALIDATION=fail")
@@ -287,5 +329,5 @@ print("PHASE5_VALIDATION=pass")
 print(f"PHASE5_REQUIRED_FILE_COUNT={len(required_files)}")
 print(
     "PHASE5_REQUIRED_MARKER_COUNT="
-    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_checklist_markers) + len(required_sample_root_markers) + len(required_phase5_build_markers) + sum(9 for _ in survey_note_expectations)}"
+    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_checklist_markers) + len(required_sample_root_markers) + len(required_phase5_build_markers) + sum(9 + len(expectation['survey_test_markers']) for expectation in survey_note_expectations.values())}"
 )
