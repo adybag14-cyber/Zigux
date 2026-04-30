@@ -23,7 +23,7 @@ The Phase 14 roadmap names `kernel/rcu/tree_bridge.zig` as the long-term destina
 
 That tension matters because the live anchor is already 4,931 lines and it does not stand alone. `kernel/rcu/tree_plugin.h` adds another 1,369 lines of plugin and flavor glue, `kernel/rcu/tree_exp.h` adds 1,118 lines of expedited-GP coordination, `kernel/rcu/tree_nocb.h` adds 1,702 lines of callback-offload logic, and even nearby `kernel/rcu/update.c` still depends on the existing state machine. The upstream design references also stay large and specific: `Documentation/RCU/Design/Requirements/Requirements.rst` is 2,873 lines and `Documentation/RCU/Design/Memory-Ordering/Tree-RCU-Memory-Ordering.rst` adds another 648 lines of ordering detail.
 
-The honest move for this lane is therefore not to start `kernel/rcu/tree_bridge.zig`. It is to make the blocked state reviewable and record the first stay-in-C checklist seams so future runs can compare the roadmap target against the current freeze boundary without overstating progress.
+The honest move for this lane is therefore not to start `kernel/rcu/tree_bridge.zig`. It is to make the blocked state reviewable and record the first stay-in-C checklist seams so future runs can compare the roadmap target against the current freeze boundary without overstating progress or sneaking in a placeholder wrapper.
 
 ## Roadmap boundary map
 
@@ -128,6 +128,7 @@ Any future Architecture Council reopen attempt for `kernel/rcu/tree_bridge.zig` 
 If any of the following happens, the lane rolls straight back to the current blocked freeze posture instead of lingering in an implied review state:
 
 - any `kernel/rcu/tree_bridge.zig` claim or status review that lacks the Architecture Council reopen record
+- any placeholder, empty, or metadata-only `kernel/rcu/tree_bridge.zig` wrapper that appears without the same reopen record and evidence packet
 - `missing parity scorecard evidence, benchmark notes, or replay command in the active review packet`
 - `freeze-map, survey note, or manifest drift that drops the blocked bridge disposition or rollback owner`
 
@@ -159,6 +160,7 @@ This keeps the lane honest: Zigux now has an explicit reviewable record that `ke
 This survey slice does not claim:
 
 - a `kernel/rcu/tree_bridge.zig` implementation
+- a placeholder or empty `kernel/rcu/tree_bridge.zig` wrapper whose only purpose is to imply bridge momentum
 - grace-period start or completion parity
 - expedited-GP CPU selection, IPI, or stall handling parity
 - NOCB bypass, wakeup, or callback-offload ownership
