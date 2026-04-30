@@ -26,7 +26,7 @@ The live Phase 9 tree had already identified `lib/atomic64_test.c` as the runtim
 - guarded lifecycle transitions for `cold`, `initialized`, `selftest_complete`, and `exited`
 - a 64-bit counter path using `zigux/helpers/atomic.zig`
 - a selftest summary that groups the C anchor into arithmetic, bitwise, returning, swap, and guard-operation families
-- a helper-local sample proof that `selftest_complete` still permits bounded counter replay and keeps `RuntimeAtomic64Summary` explicit until exit
+- a direct post-selftest mutation replay proof that `selftest_complete` still permits bounded counter replay and keeps `RuntimeAtomic64Summary` explicit until exit
 - the bounded guard-return trio from `lib/atomic64_test.c`: `add_unless`, `inc_not_zero`, and `dec_if_positive`
 - a narrow differential gate under `zigux/tests/runtime_atomic64_diff.zig` for selected exchange, cmpxchg, `add_unless`, `inc_not_zero`, and `dec_if_positive` expectations
 - a landed sample-side loader scaffold under `samples/zigux/runtime_atomic64_loader.zig` plus a shared runtime-loader request binding under `zigux/kernel/runtime_loader.zig`
