@@ -126,6 +126,21 @@ pub const QueueBrokenSummary = struct {
     unpublished_chain_count: u16,
 };
 
+pub const BrokenQueueRecoverySummary = struct {
+    anchor: []const u8,
+    queue_index: u16,
+    descriptor_count: u16,
+    layout: QueueLayout,
+    broken_before_recovery: bool,
+    callback_enabled_after_recovery: bool,
+    avail_idx_shadow_after_recovery: u16,
+    last_used_idx_after_recovery: u16,
+    last_polled_used_idx_after_recovery: u16,
+    outstanding_chain_count_after_recovery: u16,
+    pending_used_chain_count_after_recovery: u16,
+    notification_count_after_recovery: usize,
+};
+
 pub const VirtioRingLab = struct {
     const Self = @This();
     const QueueSlot = struct {
@@ -364,6 +379,28 @@ pub const VirtioRingLab = struct {
         };
     }
 
+    pub fn recoverBrokenQueue(self: *Self, queue_index: u16) !BrokenQueueRecoverySummary {
+        const slot = try self.checkedQueueSlot(queue_index);
+        if (!slot.broken) return error.QueueNotBroken;
+
+        const broken_before_recovery = slot.broken;
+        const reset_summary = try self.resetQueue(queue_index);
+        return .{
+            .anchor = descriptor().anchor,
+            .queue_index = queue_index,
+            .descriptor_count = reset_summary.descriptor_count,
+            .layout = reset_summary.layout,
+            .broken_before_recovery = broken_before_recovery,
+            .callback_enabled_after_recovery = reset_summary.callback_enabled,
+            .avail_idx_shadow_after_recovery = reset_summary.avail_idx_shadow,
+            .last_used_idx_after_recovery = reset_summary.last_used_idx,
+            .last_polled_used_idx_after_recovery = reset_summary.last_polled_used_idx,
+            .outstanding_chain_count_after_recovery = reset_summary.outstanding_chain_count,
+            .pending_used_chain_count_after_recovery = reset_summary.pending_used_chain_count,
+            .notification_count_after_recovery = reset_summary.notification_count,
+        };
+    }
+
     pub fn resetGuardSummary(self: *const Self, queue_index: u16) !QueueResetGuardSummary {
         const index = try checkedQueueIndex(queue_index);
         const slot = self.queues[index];
@@ -456,3 +493,59 @@ pub const VirtioRingLab = struct {
         return slot;
     }
 };
+
+test "phase10 virtio ring recovers a drained broken queue without dropping shape metadata" {
+    var ring = VirtioRingLab{};
+    try ring.defineQueue(0, 8, .packed_ring, true, true);
+
+    try ring.publishDescriptorChain(0);
+    _ = try ring.prepareKick(0);
+    try ring.recordUsedChains(0, 1);
+    _ = try ring.pollUsedBuffers(0);
+    _ = try ring.breakQueue(0);
+
+    const recovery = try ring.recoverBrokenQueue(0);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", recovery.anchor);
+    try std.testing.expectEqual(@as(u16, 0), recovery.queue_index);
+    try std.testing.expectEqual(@as(u16, 8), recovery.descriptor_count);
+    try std.testing.expectEqual(QueueLayout.packed_ring, recovery.layout);
+    try std.testing.expect(recovery.broken_before_recovery);
+    try std.testing.expect(recovery.callback_enabled_after_recovery);
+    try std.testing.expectEqual(@as(u16, 0), recovery.avail_idx_shadow_after_recovery);
+    try std.testing.expectEqual(@as(u16, 0), recovery.last_used_idx_after_recovery);
+    try std.testing.expectEqual(@as(u16, 0), recovery.last_polled_used_idx_after_recovery);
+    try std.testing.expectEqual(@as(u16, 0), recovery.outstanding_chain_count_after_recovery);
+    try std.testing.expectEqual(@as(u16, 0), recovery.pending_used_chain_count_after_recovery);
+    try std.testing.expectEqual(@as(usize, 0), recovery.notification_count_after_recovery);
+
+    const broken_summary = try ring.brokenSummary(0);
+    try std.testing.expect(!broken_summary.broken);
+
+    const shape = try ring.queueShapeSummary(0);
+    try std.testing.expectEqual(@as(u16, 8), shape.descriptor_count);
+    try std.testing.expectEqual(QueueLayout.packed_ring, shape.layout);
+    try std.testing.expect(shape.uses_event_idx);
+    try std.testing.expect(shape.uses_indirect_descriptors);
+}
+
+test "phase10 virtio ring rejects broken-queue recovery when the queue is not broken" {
+    var ring = VirtioRingLab{};
+    try ring.defineQueue(1, 8, .split, true, false);
+
+    try std.testing.expectError(error.QueueNotBroken, ring.recoverBrokenQueue(1));
+}
+
+test "phase10 virtio ring rejects broken-queue recovery while debt still remains" {
+    var ring = VirtioRingLab{};
+    try ring.defineQueue(2, 8, .split, true, false);
+
+    try ring.publishDescriptorChain(2);
+    _ = try ring.breakQueue(2);
+    try std.testing.expectError(error.QueueResetRequiresDrainedQueue, ring.recoverBrokenQueue(2));
+
+    _ = try ring.unbreakQueue(2);
+    _ = try ring.prepareKick(2);
+    try ring.recordUsedChains(2, 1);
+    _ = try ring.breakQueue(2);
+    try std.testing.expectError(error.QueueResetRequiresDrainedQueue, ring.recoverBrokenQueue(2));
+}
