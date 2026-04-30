@@ -186,7 +186,7 @@ phase11-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_build.zig --summary all
 
 phase11-hvc-survey:
-	cd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/phase11_hvc_console_survey.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) build hvc-console-survey --build-file zigux/tests/phase11_build.zig --summary all
 
 phase11: phase11-validate phase11-test phase11-hvc-survey
 
