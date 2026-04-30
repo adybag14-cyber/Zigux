@@ -58,6 +58,14 @@ The survey manifest now records:
 
 This keeps the lane explicit without overstating progress: Zigux now has a reviewable Phase 12 probe snapshot starter plus the bounded queue-recovery summary follow-up, the queue-resume summary follow-up, the newer header-shape follow-up, the receive-path follow-up, and the mergeable-refill follow-up, but it still does not claim DMA-backed queue setup, NAPI, control-virtqueue commands, or a usable net-driver lifecycle.
 
+## Rollback And Reversible Delivery
+
+- owner: `Network Driver Lane`
+- rollback owner: `Network Driver Lane`
+- fallback path: keep `drivers/net/virtio_net.c` as the source of truth, keep the bounded `drivers/net/virtio_net.zig` probe snapshot plus queue-recovery, queue-resume, `hdr_len`, receive-path, and mergeable-refill helpers reviewable in isolation, and drop the direct `phase12-virtio-net-tests` plus `phase12-virtio-net-survey-tests` entries out of `zigux/tests/phase12_build.zig` if the shared packet regresses.
+- reversible delivery evidence: this Phase 12 packet only adds one bounded `drivers/net/virtio_net.zig` starter, its paired `zigux/tests/phase12_virtio_net.zig` and `zigux/tests/phase12_virtio_net_survey.zig` review gates, and this survey note around the existing C anchor, so the lane can be narrowed again without inventing DMA-backed queue setup, NAPI execution, control-virtqueue command helpers, or `net_device` lifecycle parity.
+- rollback drill: run `make -C zigux phase12-validate`; if the virtio_net packet is the only failing slice, repair `Documentation/zigux/phase12-virtio-net-survey.md` or `zigux/tests/phase12_virtio_net_survey.zig` first when only the reviewability record drifted, otherwise remove the `phase12-virtio-net-tests` and `phase12-virtio-net-survey-tests` entries from `zigux/tests/phase12_build.zig`, keep `drivers/net/virtio_net.c` plus the bounded Zig starter unchanged, then rerun `make -C zigux phase12-validate` followed by `zig build test --build-file zigux/tests/phase12_build.zig --summary all` so the shared Phase 12 tranche stays truthful while the survey packet is repaired.
+
 ## Non-goals
 
 This survey slice does not claim:
