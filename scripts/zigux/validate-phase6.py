@@ -191,7 +191,7 @@ BASE64_CASEGEN_MARKERS = [
 BASE64_C_HARNESS_MARKERS = [
     "BASE64_IMAP = 2,",
     '[BASE64_IMAP] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+,",',
-    '[BASE64_IMAP] = BASE64_REV_INIT(\'+\', \,\'),',
+    "[BASE64_IMAP] = BASE64_REV_INIT('+', ','),",
     '#include "phase6_base64_c_generated_cases.inc"',
     'printf("enc\\t%s\\t%d\\t", variant_name(c->variant), c->padding ? 1 : 0);',
     'printf("dec\\t%s\\t%d\\t%d\\t", variant_name(c->variant), c->padding ? 1 : 0, bytes_result);',
