@@ -359,6 +359,44 @@ PHASE4_PERF_BASELINE_MANIFEST_EXPECTATIONS = {
     },
 }
 
+PHASE4_RUNTIME_ATOMIC64_MANIFEST_EXPECTATIONS = {
+    'lane_key': 'P4-L01',
+    'phase': 'Phase 4',
+    'anchor': 'lib/atomic64_test.c',
+    'roadmap_destinations': ['zigux/tests/atomic64_diff.zig'],
+    'survey_summary': {
+        'roadmap_atomic64_diff_present': True,
+        'phase4_validation_matrix_present': True,
+        'phase4_build_present': True,
+        'phase4_validator_runtime_atomic64_diff_present': True,
+        'phase4_validator_atomic64_diff_present': True,
+    },
+    'threshold_plan': {
+        'owner': 'ABI and Runtime Team',
+        'rollback_owner': 'ABI and Runtime Team',
+        'posture': 'threshold_pending_until_runtime_atomic64_scope_widens',
+        'status': 'pending_scope_widening',
+        'benchmark_command': 'unapproved_until_runtime_atomic64_scope_widens',
+        'acceptable_limit': 'unapproved_until_runtime_atomic64_scope_widens',
+    },
+}
+
+PHASE4_RUNTIME_ATOMIC64_MATRIX_NOTE_EXPECTATIONS = {
+    'id': 'phase4-validation-matrix-note',
+    'status': 'starter_landed',
+    'kind': 'ownership_note',
+    'zigux_destination': 'Documentation/zigux/phase4-validation-matrix.md',
+    'why_now_fragments': [
+        'rollback owner',
+        'threshold posture',
+        'threshold_pending_until_runtime_atomic64_scope_widens',
+        'manifest-backed pending threshold plan',
+        'reversible-delivery evidence',
+        '`lib/atomic64_test.c` anchor',
+        'shared `phase4_build.zig` entrypoint',
+    ],
+}
+
 REQUIRED_ARTIFACT_DIFF_MARKERS = [
     'def emit_result(matched: bool, details: dict[str, object]) -> int:',
     'def run_self_test() -> int:',
@@ -579,6 +617,60 @@ def check_roadmap_gap_alignment(
     return missing
 
 
+def check_runtime_atomic64_manifest_alignment(manifest: object) -> list[str]:
+    missing = collect_json_mismatches(
+        PHASE4_RUNTIME_ATOMIC64_MANIFEST_EXPECTATIONS,
+        manifest,
+        'phase4_runtime_atomic64_manifest',
+    )
+    if not isinstance(manifest, dict):
+        return missing
+
+    gaps = manifest.get('gaps')
+    if not isinstance(gaps, list):
+        return missing + ['phase4_runtime_atomic64_manifest.gaps:type']
+
+    matrix_note = next(
+        (
+            gap
+            for gap in gaps
+            if isinstance(gap, dict)
+            and gap.get('id')
+            == PHASE4_RUNTIME_ATOMIC64_MATRIX_NOTE_EXPECTATIONS['id']
+        ),
+        None,
+    )
+    if matrix_note is None:
+        return missing + [
+            'phase4_runtime_atomic64_manifest.gaps:missing:phase4-validation-matrix-note'
+        ]
+
+    for key in ('status', 'kind', 'zigux_destination'):
+        expected = PHASE4_RUNTIME_ATOMIC64_MATRIX_NOTE_EXPECTATIONS[key]
+        actual = matrix_note.get(key)
+        if actual != expected:
+            missing.append(
+                f'phase4_runtime_atomic64_manifest.gaps.phase4-validation-matrix-note.{key}:{actual!r}'
+            )
+
+    why_now = matrix_note.get('why_now')
+    if not isinstance(why_now, str):
+        missing.append(
+            'phase4_runtime_atomic64_manifest.gaps.phase4-validation-matrix-note.why_now:type'
+        )
+        return missing
+
+    for fragment in PHASE4_RUNTIME_ATOMIC64_MATRIX_NOTE_EXPECTATIONS[
+        'why_now_fragments'
+    ]:
+        if fragment not in why_now:
+            missing.append(
+                'phase4_runtime_atomic64_manifest.gaps.phase4-validation-matrix-note.why_now:'
+                + fragment
+            )
+    return missing
+
+
 def validate_root(root: Path) -> list[str]:
     missing_files = [path for path in REQUIRED_FILES if not (root / path).exists()]
     if missing_files:
@@ -597,7 +689,7 @@ def validate_root(root: Path) -> list[str]:
     runtime_atomic64_diff_survey = read_text(
         root, 'zigux/tests/phase4_runtime_atomic64_diff_survey.zig'
     )
-    runtime_atomic64_manifest = read_text(
+    runtime_atomic64_manifest = read_json(
         root, 'zigux/tests/phase4_runtime_atomic64_diff_manifest.json'
     )
     bitmap_diff = read_text(root, 'zigux/tests/bitmap_diff.zig')
@@ -653,8 +745,7 @@ def validate_root(root: Path) -> list[str]:
     )
     if not roadmap_atomic64_diff_present:
         missing_markers.append('file:zigux/tests/atomic64_diff.zig')
-    if '"roadmap_atomic64_diff_present": true' not in runtime_atomic64_manifest:
-        missing_markers.append('runtime_atomic64_manifest:"roadmap_atomic64_diff_present": true')
+    missing_markers.extend(check_runtime_atomic64_manifest_alignment(runtime_atomic64_manifest))
 
     test_fsmount_manifest = read_json(root, 'zigux/tests/phase4_test_fsmount_manifest.json')
     missing_markers.extend(
@@ -806,7 +897,49 @@ def write_fixture_tree(root: Path) -> None:
             REQUIRED_RUNTIME_ATOMIC64_SURVEY_MARKERS
         )
         + '\nroadmap_atomic64_diff_present = true\n',
-        'zigux/tests/phase4_runtime_atomic64_diff_manifest.json': '{\n  "roadmap_atomic64_diff_present": true\n}\n',
+        'zigux/tests/phase4_runtime_atomic64_diff_manifest.json': json.dumps(
+            {
+                **PHASE4_RUNTIME_ATOMIC64_MANIFEST_EXPECTATIONS,
+                'surveyed_commit': '0' * 40,
+                'survey_summary': {
+                    **PHASE4_RUNTIME_ATOMIC64_MANIFEST_EXPECTATIONS['survey_summary'],
+                    'atomic64_test_c_lines': 277,
+                    'runtime_atomic64_diff_lines': 561,
+                    'roadmap_atomic64_wrapper_targets_runtime_diff': True,
+                    'runtime_atomic64_diff_present': True,
+                    'post_selftest_replay_present': True,
+                    'phase4_build_uses_atomic64_wrapper': True,
+                    'phase9_build_present': True,
+                    'phase9_build_uses_runtime_atomic64_diff': True,
+                    'runtime_atomic64_sample_present': True,
+                    'tests_readme_runtime_atomic64_diff_present': True,
+                },
+                'threshold_plan': {
+                    **PHASE4_RUNTIME_ATOMIC64_MANIFEST_EXPECTATIONS['threshold_plan'],
+                    'scope': 'add, sub, bitwise, exchange, cmpxchg, add_unless, inc_not_zero, dec_if_positive, and selftest-family plus post-selftest replay set',
+                    'why_not_approved_yet': 'The live gate is still a bounded rollback-readiness slice, so Phase 4 keeps correctness-only coverage until a broader atomic64 benchmark entrypoint is explicitly added and reviewed.',
+                },
+                'gaps': [
+                    {
+                        'id': 'phase4-runtime-atomic64-diff-gate',
+                        'status': 'starter_landed',
+                        'kind': 'bounded_gate',
+                        'zigux_destination': 'zigux/tests/runtime_atomic64_diff.zig',
+                        'why_now': 'bounded replay is live',
+                    },
+                    {
+                        'id': 'phase4-validation-matrix-note',
+                        'status': 'starter_landed',
+                        'kind': 'ownership_note',
+                        'zigux_destination': 'Documentation/zigux/phase4-validation-matrix.md',
+                        'why_now': 'The validation matrix already names the rollback owner, the exact `threshold_pending_until_runtime_atomic64_scope_widens` threshold posture, the manifest-backed pending threshold plan in this survey packet, and the reversible-delivery evidence that keeps the current `lib/atomic64_test.c` anchor plus the shared `phase4_build.zig` entrypoint explicit for the live runtime atomic64 gate.',
+                    },
+                ],
+            },
+            indent=2,
+            sort_keys=True,
+        )
+        + '\n',
         'zigux/tests/phase4_test_fsmount_survey.zig': 'phase4-test-fsmount-survey-tests\n',
         'zigux/tests/phase4_test_fsmount_manifest.json': json.dumps(
             PHASE4_TEST_FSMOUNT_MANIFEST_EXPECTATIONS, indent=2, sort_keys=True
