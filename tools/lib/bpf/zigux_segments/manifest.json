@@ -110,7 +110,7 @@
         "tools/lib/bpf/libbpf.c:5220-5251"
       ],
       "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
-      "why_now": "The reused-map-name chooser and compatibility comparison are pure helper steps that extend the existing file-path bridge packet without claiming bpffs reopen flow, fd duplication, or pinned-map side effects, and they preserve libbpf's bounded DEVMAP readonly-flag exception as an explicit helper contract."
+      "why_now": "The reused-map compatibility comparison is a pure field-and-flag check that extends the existing file-path bridge packet without claiming bpffs reopen flow, fd duplication, or pinned-map side effects, and it preserves libbpf's bounded DEVMAP readonly-flag exception as an explicit helper contract."
     },
     {
       "id": "P8-L15-S09",
