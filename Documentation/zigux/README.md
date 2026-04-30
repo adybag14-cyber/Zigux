@@ -97,3 +97,8 @@ Phase 12 notes
 - the same top-level Phase 12 packet now also keeps the bounded `drivers/nvme/host/pci.zig` queue planner, PRP buffer-shape helper, and pointer-selection helper visible from the docs index.
 - the active Phase 12 storage-driver survey packet now keeps the bounded `drivers/scsi/virtio_scsi.zig` queue-layout, recovery, probe snapshot, host-limit summary, queue-depth summary, and io-queue-map starters visible from the top-level docs index.
 - `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `scripts/zigux/validate-phase12.py`, `make -C zigux phase12-validate`, and `make -C zigux phase12` now keep that same storage-driver survey packet reviewable through the shared Phase 12 tranche.
+
+Phase 13 notes
+- `Documentation/zigux/phase13-roadmap-traceability.md` now maps the four shared-helper roadmap anchors `fs/libfs.c`, `lib/devres.c`, `security/landlock/ruleset.c`, and `security/landlock/syscalls.c` to the live Zigux evidence so the current Phase 13 packet is visible from the docs root.
+- `Documentation/zigux/phase13-libfs-survey.md`, `Documentation/zigux/phase13-devres-survey.md`, `Documentation/zigux/phase13-landlock-ruleset-survey.md`, and `Documentation/zigux/phase13-landlock-syscalls-survey.md` plus the four `zigux/tests/phase13_*_manifest.json` files now keep the current helper-first boundaries explicit instead of implying broader runtime parity.
+- `zigux/tests/phase13_build.zig`, `make -C zigux phase13`, and `make -C zigux phase13-validate` are the published shared replay path for the current Phase 13 packet.
