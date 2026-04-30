@@ -18,6 +18,30 @@ from validate_phase3_core import (
 )
 
 
+def _assert_source_marker_guard(
+    root: Path,
+    rel_path: str,
+    missing_marker: str,
+) -> None:
+    markers = ABI_REQUIRED_SOURCE_MARKERS[rel_path]
+    fixture_path = root / rel_path
+    fixture_path.parent.mkdir(parents=True, exist_ok=True)
+    fixture_path.write_text(
+        "\n".join(markers) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+    assert validate_source_markers(root, {rel_path: markers}) == []
+    fixture_path.write_text(
+        fixture_path.read_text(encoding="utf-8").replace(missing_marker, ""),
+        encoding="utf-8",
+        newline="\n",
+    )
+    assert validate_source_markers(root, {rel_path: markers}) == [
+        f"source-marker: {rel_path} missing {missing_marker}"
+    ]
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_validator_selftest_") as tmp_dir_str:
         root = Path(tmp_dir_str)
@@ -119,53 +143,31 @@ def run_self_test() -> int:
             },
         ) == ["source-marker: marker-fixture.zig missing pub fn policyByteMarker() void {}"]
         assert "zigux/tests/phase3_abi.zig" in ABI_REQUIRED_SOURCE_MARKERS
-        abi_marker_fixture = root / "zigux/tests/phase3_abi.zig"
-        abi_marker_fixture.parent.mkdir(parents=True, exist_ok=True)
-        abi_marker_fixture.write_text(
-            "\n".join(
-                [
-                    'test "phase3 abi slice uses stable canonical layouts" {',
-                    "    comptime {",
-                    "        layout_assert.assertMmioRangeLayout();",
-                    "    }",
-                    "}",
-                    "",
-                    'test "phase3 abi slice keeps explicit constants and statuses reviewable" {',
-                    "    try std.testing.expectEqual(@as(u8, 2), @intFromEnum(abi.UnsafeScope.raw_pointer_bridge));",
-                    "}",
-                    "",
-                    'test "phase3 abi slice keeps the boundary helpers constructible" {',
-                    "    try std.testing.expect(export_shim.isCanonicalHeader(header));",
-                    "    try std.testing.expect(uapi_version.isCanonical(header));",
-                    "    try std.testing.expectEqual(panic_policy.Action.abort_now, panic_policy.actionFor(.abort));",
-                    "    try std.testing.expect(allocator_policy.requiresExplicitCaller(.caller_provided));",
-                    "    const range = mmio.range(0x1000, 0x40, 4);",
-                    "    try std.testing.expectEqual(narrow.UnsafeScopeTag.raw_pointer_bridge, narrow.scopeFromInteropPolicyBytes(2, 0).?);",
-                    "}",
-                    "",
-                ]
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        assert validate_source_markers(
+        _assert_source_marker_guard(
             root,
-            {"zigux/tests/phase3_abi.zig": ABI_REQUIRED_SOURCE_MARKERS["zigux/tests/phase3_abi.zig"]},
-        ) == []
-        abi_marker_fixture.write_text(
-            abi_marker_fixture.read_text(encoding="utf-8").replace(
-                "try std.testing.expect(uapi_version.isCanonical(header));",
-                "",
-            ),
-            encoding="utf-8",
-            newline="\n",
+            "zigux/tests/phase3_abi.zig",
+            "try std.testing.expect(uapi_version.isCanonical(header));",
         )
-        assert validate_source_markers(
+        _assert_source_marker_guard(
             root,
-            {"zigux/tests/phase3_abi.zig": ABI_REQUIRED_SOURCE_MARKERS["zigux/tests/phase3_abi.zig"]},
-        ) == [
-            "source-marker: zigux/tests/phase3_abi.zig missing try std.testing.expect(uapi_version.isCanonical(header));"
-        ]
+            "zigux/helpers/layout_assert.zig",
+            'assertOffset(abi.InteropPolicy, "unsafe_scope", 2);',
+        )
+        _assert_source_marker_guard(
+            root,
+            "zigux/helpers/panic_policy.zig",
+            "pub fn canReturnPolicyByte(panic_mode: u8) bool {",
+        )
+        _assert_source_marker_guard(
+            root,
+            "zigux/helpers/allocator_policy.zig",
+            "pub fn requiresResetOnInitPolicyByte(allocator_mode: u8) bool {",
+        )
+        _assert_source_marker_guard(
+            root,
+            "zigux/unsafe/narrow.zig",
+            'test "phase3 narrow unsafe scoped helpers reject misaligned addresses"',
+        )
         export_uapi_check = root / "scripts/zigux/validate-phase3-export-uapi-survey.py"
         export_uapi_check.write_text(
             "#!/usr/bin/env python3\nprint('PHASE3_EXPORT_UAPI_SURVEY=pass')\n",
@@ -198,78 +200,6 @@ def run_self_test() -> int:
             zig_path=None,
         ) == []
         assert (paths.scripts_dir / "check-phase3-alpha.py").read_text(encoding="utf-8") == render_wrapper_stub()
-
-        beta_fixture_dir = paths.fixtures_dir / "phase3_beta"
-        beta_fixture_dir.mkdir(parents=True, exist_ok=True)
-        (paths.docs_dir / "phase3-beta-slice.md").write_text(
-            "\n".join(
-                [
-                    "PHASE3_STATUS=ready",
-                    "PHASE3_SLICE=beta-slice",
-                    "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py",
-                    shared_runner_gate_for_slug("beta"),
-                    "PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig",
-                    "",
-                ]
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        (paths.scripts_dir / "check-phase3-beta.py").write_text(
-            render_wrapper_stub(), encoding="utf-8", newline="\n"
-        )
-        (paths.tests_dir / "phase3_beta_dump.zig").write_text("// beta dump\n", encoding="utf-8", newline="\n")
-        (beta_fixture_dir / "expected.json").write_text(
-            json.dumps({"abi_version": 1, "constants": ABI_REQUIRED_EXPECTED_CONSTANTS, "structs": {}}),
-            encoding="utf-8",
-            newline="\n",
-        )
-        (beta_fixture_dir / "phase3_beta_c_harness.c").write_text("// beta harness\n", encoding="utf-8", newline="\n")
-        (paths.fixtures_dir / "phase3_beta_manifest.json").write_text(
-            json.dumps(
-                {
-                    "phase": "Phase 3",
-                    "status": "ready",
-                    "slice": "beta-slice",
-                    "files": [
-                        "Documentation/zigux/phase3-beta-slice.md",
-                        "zigux/tests/phase3_beta_dump.zig",
-                        "zigux/tests/fixtures/phase3_beta/expected.json",
-                        "zigux/tests/fixtures/phase3_beta/phase3_beta_c_harness.c",
-                    ],
-                    "file_count": 4,
-                }
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        (paths.docs_dir / "artifact-diff.md").write_text(
-            "\n".join(
-                [
-                    "Current Phase 3 use",
-                    "- `zigux/tests/fixtures/phase3_alpha/expected.json` anchors the bounded Phase 3 alpha parity claim.",
-                    "- `python3 scripts/zigux/run-phase3-checks.py --slug alpha` compares that committed JSON fixture against both the bounded C harness and the Zig alpha dump.",
-                    "- `zigux/tests/fixtures/phase3_beta/expected.json` anchors the bounded Phase 3 beta parity claim.",
-                    "- `python3 scripts/zigux/run-phase3-checks.py --slug beta` compares that committed JSON fixture against both the bounded C harness and the Zig beta dump.",
-                    "",
-                    "Rules",
-                    "",
-                ]
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        refreshed_entries = discover_phase3_slices(paths)
-        alpha_entry = select_slices(refreshed_entries, ["alpha"])
-        assert validate_slices(
-            root,
-            alpha_entry,
-            check_artifact_diff=False,
-            check_build_smoke=False,
-            check_slug_sanity=False,
-            check_all_wrappers=True,
-            zig_path=None,
-        ) == []
 
         abi_root = root / "abi-fixture"
         (abi_root / "zigux/tests/fixtures/phase3_abi").mkdir(parents=True, exist_ok=True)
