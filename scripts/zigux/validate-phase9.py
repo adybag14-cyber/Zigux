@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
+import re
 import sys
 import tempfile
 
@@ -64,6 +66,50 @@ def read_text(root: Path, rel_path: str) -> str:
 
 def collect_missing_files(root: Path) -> list[str]:
     return [rel_path for rel_path in REQUIRED_FILES if not (root / rel_path).exists()]
+
+
+def extract_markdown_surveyed_commit(text: str, label: str) -> tuple[str | None, str | None]:
+    match = re.search(r"`PHASE9_SURVEYED_COMMIT=([0-9a-f]{40})`", text)
+    if not match:
+        return None, f"{label}:missing_or_invalid_surveyed_commit_marker"
+    return match.group(1), None
+
+
+def validate_atomic64_surveyed_commit_consistency(
+    manifest_text: str,
+    survey_text: str,
+    module_slice_text: str,
+) -> list[str]:
+    missing_markers: list[str] = []
+    try:
+        manifest = json.loads(manifest_text)
+    except json.JSONDecodeError:
+        return ["atomic64_consistency:manifest_json_decode_failed"]
+
+    manifest_commit = manifest.get("surveyed_commit")
+    if not isinstance(manifest_commit, str) or not re.fullmatch(r"[0-9a-f]{40}", manifest_commit):
+        missing_markers.append("atomic64_consistency:manifest_invalid_surveyed_commit")
+        return missing_markers
+
+    survey_commit, survey_error = extract_markdown_surveyed_commit(
+        survey_text,
+        "atomic64_survey",
+    )
+    if survey_error:
+        missing_markers.append(survey_error)
+    elif survey_commit != manifest_commit:
+        missing_markers.append("atomic64_consistency:survey_doc_commit_mismatch")
+
+    module_commit, module_error = extract_markdown_surveyed_commit(
+        module_slice_text,
+        "atomic64_module_slice",
+    )
+    if module_error:
+        missing_markers.append(module_error)
+    elif module_commit != manifest_commit:
+        missing_markers.append("atomic64_consistency:module_slice_commit_mismatch")
+
+    return missing_markers
 
 required_make_markers = [
     "PHONY += phase9-validate phase9-test phase9",
@@ -305,8 +351,8 @@ required_loader_gap_manifest_markers = [
 
 required_atomic64_survey_markers = [
     "manifest-backed delivery catalog and ownership map",
-    "`PHASE9_SURVEYED_COMMIT=5dab7ee45d2664801211fb9e2ccba28e1a127071`",
-    "the current survey packet is pinned to `master` commit `5dab7ee45d2664801211fb9e2ccba28e1a127071`",
+    "`PHASE9_SURVEYED_COMMIT=",
+    "the current survey packet is pinned to `master` commit `",
     "Delivery ownership map",
     "zigux/tests/runtime_atomic64_manifest.json",
     "zigux/tests/runtime_atomic64_survey.zig",
@@ -348,7 +394,8 @@ required_atomic64_manifest_markers = [
 required_atomic64_survey_test_markers = [
     'const DeliveryEvidence = struct {',
     'const OwnershipEntry = struct {',
-    'const surveyed_commit = "5dab7ee45d2664801211fb9e2ccba28e1a127071";',
+    'fn expectSurveyedCommitMarker(document: []const u8, commit: []const u8) !void {',
+    'fn expectPinnedCommitSentence(document: []const u8, commit: []const u8) !void {',
     'manifest.delivery_evidence_catalog.len',
     'manifest.ownership_map.len',
     'std.mem.eql(u8, entry.id, "runtime-atomic64-manifest")',
@@ -358,6 +405,9 @@ required_atomic64_survey_test_markers = [
     'std.mem.eql(u8, entry.surface, "samples/zigux/runtime_atomic64.zig")',
     'std.mem.indexOf(u8, entry.role, "ownership map")',
     'std.mem.indexOf(u8, entry.owns, "argv-policy")',
+    'expectSurveyedCommitMarker(survey_doc, manifest.surveyed_commit);',
+    'expectPinnedCommitSentence(survey_doc, manifest.surveyed_commit);',
+    'expectSurveyedCommitMarker(module_slice, manifest.surveyed_commit);',
 ]
 
 required_bitmap_survey_markers = [
@@ -519,7 +569,7 @@ required_trace_events_survey_test_markers = [
     'std.mem.indexOf(u8, check.expected, "exit_runs")',
     'std.mem.eql(u8, gap.id, "runtime-trace-events-freeze-map-boundary")',
     'std.mem.eql(u8, entry.id, "runtime-trace-events-manifest")',
-    'std.mem.eql(u8, entry.surface, "zigux/tests/runtime_trace_events_manifest.json")',
+    'std.mem.eql(u8, entry.surface, "zigux/tests/runtime_traceEvents_manifest.json")',
     'std.mem.indexOf(u8, gap.why_now, "`kernel/trace/ring_buffer.c`")',
     'std.mem.indexOf(u8, survey_doc, "Documentation/zigux/freeze-map.md")',
     'std.mem.indexOf(u8, survey_doc, "`kernel/trace/ring_buffer.c`")',
@@ -583,7 +633,7 @@ def required_marker_count() -> int:
         + 2
         + len(required_trace_events_survey_markers)
         + len(required_trace_events_module_slice_markers)
-        + len(required_trace_events_manifest_markers)
+        + len(required_traceEvents_manifest_markers)
         + len(required_trace_events_survey_test_markers)
         + len(required_trace_events_sample_markers)
         + len(required_trace_events_module_markers)
@@ -675,6 +725,13 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     for marker in required_atomic64_survey_test_markers:
         if marker not in atomic64_survey_test:
             missing_markers.append(f"atomic64_survey_test:{marker}")
+    missing_markers.extend(
+        validate_atomic64_surveyed_commit_consistency(
+            atomic64_manifest,
+            atomic64_survey,
+            atomic64_module_slice,
+        )
+    )
     for marker in required_bitmap_survey_markers:
         if marker not in bitmap_survey:
             missing_markers.append(f"bitmap_survey:{marker}")
