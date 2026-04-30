@@ -296,6 +296,57 @@ test "phase11 dw_wdt live resource order preserves imported running-state regist
     try std.testing.expect(order.install_restart_handler_after_registration);
 }
 
+test "phase11 dw_wdt timeout topology summary keeps fixed, custom, and fallback TOP sourcing explicit" {
+    const fixed_summary = try dw_wdt.DwWdtLab.timeoutTopologySummary(65_536, false, .{
+        .component_uses_fixed_top = true,
+    });
+    try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.c", fixed_summary.anchor);
+    try std.testing.expectEqual(dw_wdt.TimeoutTopologySelection.fixed_component, fixed_summary.selection);
+    try std.testing.expectEqual(dw_wdt.TopSource.fixed, fixed_summary.top_source);
+    try std.testing.expect(!fixed_summary.custom_tops_requested);
+    try std.testing.expect(!fixed_summary.custom_tops_applied);
+    try std.testing.expect(!fixed_summary.fell_back_to_fixed_tops);
+    try std.testing.expectEqual(@as(u32, 1), fixed_summary.min_timeout_sec);
+    try std.testing.expectEqual(@as(u32, 32_768_000), fixed_summary.max_hw_heartbeat_ms);
+
+    const custom_tops = [_]u32{
+        20_000, 4_000,  8_000,  12_000,
+        16_000, 24_000, 28_000, 32_000,
+        36_000, 40_000, 44_000, 48_000,
+        52_000, 56_000, 60_000, 64_000,
+    };
+    const custom_summary = try dw_wdt.DwWdtLab.timeoutTopologySummary(1_000, true, .{
+        .component_uses_fixed_top = false,
+        .custom_tops = custom_tops,
+    });
+    try std.testing.expectEqual(dw_wdt.TimeoutTopologySelection.custom_component, custom_summary.selection);
+    try std.testing.expectEqual(dw_wdt.TopSource.custom, custom_summary.top_source);
+    try std.testing.expect(custom_summary.custom_tops_requested);
+    try std.testing.expect(custom_summary.custom_tops_applied);
+    try std.testing.expect(!custom_summary.fell_back_to_fixed_tops);
+    try std.testing.expectEqual(@as(u32, 4), custom_summary.min_timeout_sec);
+    try std.testing.expectEqual(@as(u32, 64_000), custom_summary.max_hw_heartbeat_ms);
+
+    const fallback_summary = try dw_wdt.DwWdtLab.timeoutTopologySummary(32_768, false, .{
+        .component_uses_fixed_top = false,
+    });
+    try std.testing.expectEqual(dw_wdt.TimeoutTopologySelection.fixed_fallback, fallback_summary.selection);
+    try std.testing.expectEqual(dw_wdt.TopSource.fixed, fallback_summary.top_source);
+    try std.testing.expect(!fallback_summary.custom_tops_requested);
+    try std.testing.expect(!fallback_summary.custom_tops_applied);
+    try std.testing.expect(fallback_summary.fell_back_to_fixed_tops);
+    try std.testing.expectEqual(@as(u32, 2), fallback_summary.min_timeout_sec);
+    try std.testing.expectEqual(@as(u32, 65_536_000), fallback_summary.max_hw_heartbeat_ms);
+}
+
+test "phase11 dw_wdt timeout topology still rejects a custom array with no valid timeout window" {
+    const zero_tops = [_]u32{0} ** dw_wdt.num_tops;
+    try std.testing.expectError(error.NoValidTop, dw_wdt.DwWdtLab.timeoutTopologySummary(1_000, false, .{
+        .component_uses_fixed_top = false,
+        .custom_tops = zero_tops,
+    }));
+}
+
 test "phase11 dw_wdt stop and restart stay bounded to reset-control and non-stoppable semantics" {
     var unstoppable = try dw_wdt.DwWdtLab.initFixedTops(65_536, false);
     _ = try unstoppable.start();
