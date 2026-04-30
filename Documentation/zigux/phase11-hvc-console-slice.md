@@ -9,6 +9,7 @@ The starter stays intentionally narrow:
 - models CRLF write framing for the bounded console print path
 - records retry-after-`-EAGAIN`, partial-write, full-write, and fatal-drop flush progress without claiming backend I/O
 - summarizes the setup-state and final-close wait boundary, including the `HVC_CLOSE_WAIT`-shaped final-close gate, without claiming tty registration
+- adds a tiny final-close teardown summary that keeps tty detachment, `HUPCL`-gated `dtr_rts` shutdown, `notifier_del` ownership, resize-work cancellation, and `tty_wait_until_sent()` intent reviewable without claiming notifier execution or tty-core teardown timing
 - adds a tiny tty-registration handoff summary that keeps `setup_hvc_console()`-adjacent close-wait ownership, notifier boundaries, and khvcd wakeup intent reviewable without claiming worker execution
 - adds a tiny khvcd polling-contract summary that keeps notifier-driven versus polling-driven wakeups, bounded reschedule intent, and teardown-facing host-I/O boundaries reviewable without claiming worker execution
 - adds a tiny khvcd worker-entry summary that keeps wake-before-sleep decisions, xmon-forced read polling, mutex-backed list walks, and timeout-backoff choices reviewable without claiming live worker execution
@@ -20,6 +21,6 @@ The starter stays intentionally narrow:
 
 This slice does not claim tty-driver registration, khvcd polling or execution, sysrq handling, notifier callback execution, hotplug discovery, or live hypervisor-backed reads and writes yet.
 
-`Documentation/zigux/phase11-hvc-console-validation-matrix.md` now records the first kernel-integration validation matrix for tty registration, close-wait teardown parity, the landed khvcd polling-contract evidence, the khvcd worker-entry boundary, the khvcd sleep-and-reschedule handoff, the `__hvc_poll()` drain-order handoff, the `hvc_hangup()` disconnect handoff, and the `hvc_remove()` teardown handoff without widening into host-backed I/O.
+`Documentation/zigux/phase11-hvc-console-validation-matrix.md` now records the first kernel-integration validation matrix for close-wait teardown parity, the final-close teardown handoff, tty registration, the landed khvcd polling-contract evidence, the khvcd worker-entry boundary, the khvcd sleep-and-reschedule handoff, the `__hvc_poll()` drain-order handoff, the `hvc_hangup()` disconnect handoff, and the `hvc_remove()` teardown handoff without widening into host-backed I/O.
 
 The next honest bounded step inside the same Phase 11 lane is to leave this starter parked unless another comparably small host-free notifier or sysrq handoff becomes obvious; otherwise avoid widening straight into live khvcd worker behavior or host-backed teardown.
