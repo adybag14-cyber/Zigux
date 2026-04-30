@@ -476,10 +476,24 @@ required_kretprobe_manifest_markers = [
 ]
 
 required_kretprobe_survey_test_markers = [
+    'const DeliveryEvidence = struct {',
+    'const LoaderGap = struct {',
+    'const OwnershipEntry = struct {',
+    'const surveyed_commit = "b17ed4c6675c9ffb24f11ab6d927db2af3082b1c";',
+    'test "phase 9 runtime kretprobe survey keeps lifecycle and loader rollback markers explicit" {',
+    'try std.testing.expectEqualStrings(surveyed_commit, manifest.surveyed_commit);',
+    'try std.testing.expectEqual(@as(usize, 3), manifest.delivery_evidence_catalog.len);',
+    'try std.testing.expectEqual(@as(usize, 5), manifest.ownership_map.len);',
+    'try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`PHASE9_LANE_KEY=P9-L13`") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, survey_doc, surveyed_commit) != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, survey_doc, "RuntimeKretprobeSummary") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, survey_doc, "released_without_substrate") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, module_doc, "`PHASE9_LANE_KEY=P9-L13`") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, module_doc, surveyed_commit) != null);',
+    'std.mem.eql(u8, check.id, "loader-rollback-state")',
     'std.mem.indexOf(u8, check.expected, "released_without_substrate")',
-    'std.mem.indexOf(u8, check.expected, "phase9-runtime-kretprobe-loader-tests")',
-    'std.mem.indexOf(u8, survey_doc, "released_without_substrate")',
-    'std.mem.indexOf(u8, survey_doc, "phase9-runtime-kretprobe-loader-tests")',
+    'std.mem.eql(u8, gap.id, "runtime-kretprobe-shared-loader-controls")',
+    'std.mem.indexOf(u8, gap.why_now, "command-name, argv-policy, or environment-derived activation handling")',
 ]
 
 required_trace_events_survey_markers = [
