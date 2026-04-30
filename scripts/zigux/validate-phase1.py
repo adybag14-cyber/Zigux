@@ -579,12 +579,12 @@ required_bitmap_manifest_markers = [
     '"zero_bit_unit_test_contract": "Direct Zig unit coverage keeps zero-length helper calls explicit and side-effect free so zero(), fill(), copy(), copyClearTail(), orBits(), xorBits(), scans, and formatting all leave caller-owned buffers untouched when nbits is zero."',
 ]
 required_bitmap_closure_markers = [
-    'tools/lib/bitmap.zig` closure includes committed C-backed parity coverage for allocator-backed bitmap sizing, zero-allocation state, contiguous-range rendering, the empty-bitmap buffer-preservation contract, and the truncation path that must preserve a trailing terminator slot.',
-    'tools/lib/bitmap.zig` direct Zig unit coverage now keeps `bitmapFree()` aligned by proving optional bitmap handles reset to null after release while the shared C-backed fixture covers allocator-backed sizing and zero-allocation state.',
+    "tools/lib/bitmap.zig` closure includes committed C-backed parity coverage for allocator-backed bitmap sizing, zero-allocation state, contiguous-range rendering, the empty-bitmap buffer-preservation contract, and the truncation path that must preserve the trailing terminator slot.",
+    "tools/lib/bitmap.zig` direct Zig unit coverage keeps `bitmapAlloc()`, `bitmapZalloc()`, and `bitmapFree()` honest by proving optional bitmap handles size through `bitsToWords()`, zero-filled allocation stays intact, and released optionals reset to `null`.",
+    'bitmap range unit-test anchor: `tools/lib/bitmap.zig:test "bitmap range helpers preserve edges across whole-word spans"`',
+    'bitmap copy unit-test anchor: `tools/lib/bitmap.zig:test "bitmap copyClearTail clears out-of-range bits in the last copied word"`',
+    'bitmap bitwise unit-test anchor: `tools/lib/bitmap.zig:test "bitmap and andnot equal intersects subset"`',
     'bitmap direct unit-test anchor: `tools/lib/bitmap.zig:test "bitmap allocation helpers size zero fill and reset optionals"`',
-    'bitmap empty-bitmap review note: `bitmap_scnprintf` must leave a non-empty caller buffer untouched when no bits are set, matching the C helper contract',
-    'bitmap allocator review note: `bitmap_alloc()` and `bitmap_zalloc()` must size partial-word bitmaps through `BITS_TO_LONGS(nbits)`, while `bitmapFree()` optional-reset behavior remains direct Zig-only coverage because the C helper frees raw pointers in place',
-    'PHASE1_BITMAP_FIXTURE=zigux/tests/fixtures/phase1_helpers.json',
     'PHASE1_BITMAP_REVIEW=bitmap parity covers allocator-backed sizing, zero-allocation state, contiguous-range rendering, empty-bitmap buffer preservation, and truncation that preserves the terminator slot',
     'PHASE1_BITMAP_UNIT_REVIEW=bitmap allocation helpers keep bitmapFree optional handles null after release while shared parity covers allocator-backed sizing and zero-allocation state',
 ]
