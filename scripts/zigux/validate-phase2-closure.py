@@ -202,8 +202,10 @@ required_closure_markers = [
     'PHASE2_ARTIFACT_DIFF_CONTRACT=python3 scripts/zigux/check-artifact-diff-contract.py',
     'dep parsing keeps the first source across concatenated target entries',
     'dep parsing unescapes escaped hash and colon tokens once',
+    'dependency file error messages keep C helper wording',
     'output writer maps print and flush failures to fixdep output-write errors',
-    'PHASE2_FIXDEP_EVIDENCE=artifact fixtures plus direct concatenated-target, escaped-token, and output-write unit anchors are required for closure',
+    'preserving a primary error ignores late output flush failures',
+    'PHASE2_FIXDEP_EVIDENCE=artifact fixtures plus direct concatenated-target, escaped-token, dependency-file-error, output-write, and primary-error-preservation unit anchors are required for closure',
     'PHASE2_ROLLBACK=keep C kbuild tools authoritative and remove failing Zigux bridge/tool from workflow wiring',
 ]
 required_workflow_markers = [
