@@ -632,6 +632,8 @@ def validate_kconfig_checker_gate(checker_script: Path) -> list[str]:
         'confdata_repeat_artifact_compare': ('compare_json_artifacts(actual, repeat)',),
         'confdata_rebuild_compile': ('compile_tool(zig, CONFDATA_BRIDGE, confdata_rebuild_exe)',),
         'confdata_rebuild_compare': ('compare_json_artifacts(actual, rebuild)',),
+        'randconfig_seed_env': ("env['KCONFIG_SEED'] = case['seed']",),
+        'randconfig_probability_env': ("env['KCONFIG_PROBABILITY'] = case['probability']",),
         'determinism_marker': ("print('KCONFIG_BRIDGE_DETERMINISM=pass')",),
     }
 
