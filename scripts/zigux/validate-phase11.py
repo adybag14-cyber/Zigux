@@ -30,6 +30,7 @@ FILES = [
     "scripts/zigux/check-phase11-build-inventory.py",
     "scripts/zigux/validate-phase11.py",
     "scripts/zigux/README.md",
+    "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase11-dw-wdt-survey.md",
     "Documentation/zigux/phase11-dw-wdt-slice.md",
@@ -95,6 +96,16 @@ README_MARKERS = [
     "phase11_uapi_header_parity_manifest.json",
     "dedicated hvc_console survey note and validation matrix",
     "exact shared-versus-dedicated replay commands and observed outcome lines",
+]
+DOCS_README_MARKERS = [
+    "Phase 11 notes",
+    "Documentation/zigux/phase11-gpio-wdt-validation-matrix.md",
+    "Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md",
+    "Documentation/zigux/phase11-dw-wdt-validation-matrix.md",
+    "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
+    "Documentation/zigux/phase11-uapi-header-parity-survey.md",
+    "the active Phase 11 simple-driver packet now keeps the four roadmap-backed driver lanes visible from the top-level docs index",
+    "python3 scripts/zigux/validate-phase11.py`, `zigux/tests/fixtures/phase11_build_inventory.json`, `make -C zigux phase11-validate`, and `make -C zigux phase11` now define the shared Phase 11 reviewability path",
 ]
 CHECKLIST_MARKERS = [
     "if the change is a Phase 11 simple-driver slice, do `scripts/zigux/validate-phase11.py`, `zigux/tests/phase11_build.zig`, the four driver-local Phase 11 manifests, and `zigux/tests/phase11_uapi_header_parity_manifest.json` still agree on the same bounded simple-driver scope, shared replay contract, and explicit ready-next versus blocked follow-up posture?",
@@ -256,6 +267,23 @@ def run_self_test() -> int:
         )
         workflow_path.write_text(original_workflow, encoding="utf-8")
 
+        docs_readme_path = tmp_root / "Documentation/zigux/README.md"
+        original_docs_readme = docs_readme_path.read_text(encoding="utf-8")
+        docs_readme_path.write_text(
+            original_docs_readme.replace(
+                "Phase 11 notes\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "docs_readme_phase11_section",
+            tmp_root,
+            "docs_readme:Phase 11 notes",
+        )
+        docs_readme_path.write_text(original_docs_readme, encoding="utf-8")
+
         gpio_test_path = tmp_root / "zigux/tests/phase11_gpio_wdt.zig"
         original_gpio_test = gpio_test_path.read_text(encoding="utf-8")
         gpio_test_path.write_text(
@@ -399,7 +427,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE11_VALIDATOR_SELF_TEST=pass")
-    print("PHASE11_VALIDATOR_SELF_TEST_CASE_COUNT=11")
+    print("PHASE11_VALIDATOR_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
@@ -449,6 +477,7 @@ for name, source, markers in [
     ("make", text("zigux/Makefile"), MAKE_MARKERS),
     ("workflow", text(".github/workflows/zigux-bootstrap.yml"), WORKFLOW_MARKERS),
     ("script_readme", text("scripts/zigux/README.md"), README_MARKERS),
+    ("docs_readme", text("Documentation/zigux/README.md"), DOCS_README_MARKERS),
     ("review_checklist", text("Documentation/zigux/review-checklist.md"), CHECKLIST_MARKERS),
     ("phase11_build", text("zigux/tests/phase11_build.zig"), BUILD_MARKERS),
 ]:
