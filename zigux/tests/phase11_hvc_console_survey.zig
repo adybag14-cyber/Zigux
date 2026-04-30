@@ -356,6 +356,47 @@ test "phase11 hvc console survey records the current shared-build boundary exact
     try std.testing.expect(std.mem.indexOf(u8, build_zig, "run_phase11_hvc_console_survey_tests.step") == null);
 }
 
+test "phase11 hvc console survey keeps the survey note and validation matrix aligned with the parked starter" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase11-hvc-console-survey.md",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    const validation_matrix = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
+        std.testing.allocator,
+        .limited(24 * 1024),
+    );
+    defer std.testing.allocator.free(validation_matrix);
+
+    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase11_hvc_console_manifest.json",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(manifest_json);
+
+    const parsed_manifest = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    defer parsed_manifest.deinit();
+    const manifest = parsed_manifest.value;
+
+    try expectSurveyedCommitProvenance(survey_note, manifest.surveyed_commit);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, manifest.surveyed_commit) != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "PHASE11_HVC_CONSOLE_STATUS=remove_handoff_landed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Phase 11 simple-production-driver gap has been closed by the bounded starter") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "remaining unported work is now tty-driver registration, khvcd worker execution, sysrq integration, notifier callback execution, and host-backed transport or teardown validation") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "`hvc_remove()` handoff") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "host-free khvcd, notifier, or sysrq split") != null);
+}
+
 test "phase11 hvc console survey keeps a bounded winsize layout proof" {
     comptime {
         layout_assert.assertSize(WinsizeLayout, 8);
