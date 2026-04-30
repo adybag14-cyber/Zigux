@@ -285,3 +285,46 @@ test "phase 8 docs keep the bounded fdinfo map_extra parsing explicit" {
     try expectContains(survey_note, "`map_flags`, and `map_extra`");
     try expectContains(survey_note, "explicit `map_flags` and `map_extra` bases");
 }
+
+test "phase 8 docs and manifest keep the deferred file-path resource boundary explicit" {
+    const survey_note = try readWorkspaceFile(
+        std.testing.allocator,
+        "Documentation/zigux/phase8-libbpf-segment-survey.md",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    const bridge_note = try readWorkspaceFile(
+        std.testing.allocator,
+        "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(bridge_note);
+
+    const manifest_json = try readWorkspaceFile(
+        std.testing.allocator,
+        "tools/lib/bpf/zigux_segments/manifest.json",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(manifest_json);
+
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    defer parsed.deinit();
+
+    const bridge_segment = findSegmentBySlug(parsed.value.segments, "file-path-and-handle-bridge") orelse return error.MissingFilePathHandleBridgeSegment;
+    try std.testing.expectEqualStrings("deferred_high_risk", bridge_segment.status);
+    try std.testing.expectEqualStrings("resource_boundary", bridge_segment.kind);
+    try std.testing.expectEqualStrings("tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig", bridge_segment.zigux_destination);
+    try std.testing.expectEqual(@as(usize, 2), bridge_segment.anchor_ranges.len);
+    try expectContains(bridge_segment.why_now, "token-preparation planner");
+    try expectContains(bridge_segment.why_now, "real bpffs path opens");
+    try expectContains(bridge_segment.why_now, "fd ownership");
+
+    try expectContains(survey_note, "file-path-and-handle-bridge");
+    try expectContains(survey_note, "real procfs reads");
+    try expectContains(survey_note, "bpffs opens");
+    try expectContains(survey_note, "fd close or ownership semantics");
+    try expectContains(bridge_note, "skip_optional_missing_delegation");
+    try expectContains(bridge_note, "bpf_obj_get()` reopen flows");
+    try expectContains(bridge_note, "FD duplication or replacement behavior");
+}
