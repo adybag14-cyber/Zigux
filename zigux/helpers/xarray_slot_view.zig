@@ -19,7 +19,7 @@ pub fn isValid(view: abi.XaSlotView) bool {
 
 fn entriesPtr(view: abi.XaSlotView) [*]const usize {
     std.debug.assert(isValid(view));
-    return narrow.constSliceAt(usize, view.slots_addr, view.slot_count).ptr;
+    return narrow.constSliceAt(usize, .raw_pointer_bridge, view.slots_addr, view.slot_count) catch unreachable;
 }
 
 pub fn entryAt(view: abi.XaSlotView, index: u32) usize {

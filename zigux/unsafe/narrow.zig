@@ -80,17 +80,25 @@ pub fn recognizesInteropPolicyBytes(unsafe_scope: u8, reserved: u8) bool {
     return scopeFromInteropPolicyBytes(unsafe_scope, reserved) != null;
 }
 
-pub fn pointerAt(comptime T: type, base: usize, offset: usize) *volatile T {
-    return @ptrFromInt(byteOffset(base, offset));
+pub fn pointerAt(comptime T: type, scope: UnsafeScopeTag, base: usize, offset: usize) ScopeError!*volatile T {
+    return scopedPointerAt(T, scope, base, offset);
 }
 
-pub fn constSliceAt(comptime T: type, base: usize, len: usize) []const T {
+fn rawConstSliceAt(comptime T: type, base: usize, len: usize) []const T {
     const ptr: [*]const T = @ptrFromInt(base);
     return ptr[0..len];
 }
 
-pub fn constPointerAt(comptime T: type, addr: usize) *const T {
+fn rawConstPointerAt(comptime T: type, addr: usize) *const T {
     return @ptrFromInt(addr);
+}
+
+pub fn constSliceAt(comptime T: type, scope: UnsafeScopeTag, base: usize, len: usize) ScopeError![]const T {
+    return scopedConstSliceAt(T, scope, base, len);
+}
+
+pub fn constPointerAt(comptime T: type, scope: UnsafeScopeTag, addr: usize) ScopeError!*const T {
+    return scopedConstPointerAt(T, scope, addr);
 }
 
 pub fn scopedPointerAt(comptime T: type, scope: UnsafeScopeTag, base: usize, offset: usize) ScopeError!*volatile T {
@@ -104,26 +112,26 @@ pub fn scopedConstSliceAt(comptime T: type, scope: UnsafeScopeTag, base: usize, 
     if (!permitsRawPointerBridge(scope)) return error.UnsafeScopeDenied;
     try ensureAddressAlignedFor(T, base);
     _ = try checkedSpanEnd(T, base, len);
-    return constSliceAt(T, base, len);
+    return rawConstSliceAt(T, base, len);
 }
 
 pub fn scopedConstPointerAt(comptime T: type, scope: UnsafeScopeTag, addr: usize) ScopeError!*const T {
     if (!permitsRawPointerBridge(scope)) return error.UnsafeScopeDenied;
     try ensureAddressAlignedFor(T, addr);
-    return constPointerAt(T, addr);
+    return rawConstPointerAt(T, addr);
 }
 
 test "phase3 narrow unsafe wrappers stay bounded" {
     var value: u32 = 0;
     const base = addressOf(&value);
-    const ptr = pointerAt(u32, base, 0);
+    const ptr = try pointerAt(u32, .volatile_mmio, base, 0);
     ptr.* = 11;
     try std.testing.expectEqual(@as(u32, 11), value);
 
-    const slice = constSliceAt(u32, base, 1);
+    const slice = try constSliceAt(u32, .raw_pointer_bridge, base, 1);
     try std.testing.expectEqual(@as(u32, 11), slice[0]);
 
-    const const_ptr = constPointerAt(u32, base);
+    const const_ptr = try constPointerAt(u32, .raw_pointer_bridge, base);
     try std.testing.expectEqual(@as(u32, 11), const_ptr.*);
 }
 
@@ -188,16 +196,19 @@ test "phase3 scoped unsafe helpers require the declared scope" {
     var value: u32 = 11;
     const base = addressOf(&value);
 
+    try std.testing.expectError(error.UnsafeScopeDenied, pointerAt(u32, .none, base, 0));
     try std.testing.expectError(error.UnsafeScopeDenied, scopedPointerAt(u32, .none, base, 0));
-    const mmio_ptr = try scopedPointerAt(u32, .volatile_mmio, base, 0);
+    const mmio_ptr = try pointerAt(u32, .volatile_mmio, base, 0);
     mmio_ptr.* = 17;
     try std.testing.expectEqual(@as(u32, 17), value);
 
+    try std.testing.expectError(error.UnsafeScopeDenied, constSliceAt(u32, .volatile_mmio, base, 1));
     try std.testing.expectError(error.UnsafeScopeDenied, scopedConstSliceAt(u32, .volatile_mmio, base, 1));
-    const raw_slice = try scopedConstSliceAt(u32, .raw_pointer_bridge, base, 1);
+    const raw_slice = try constSliceAt(u32, .raw_pointer_bridge, base, 1);
     try std.testing.expectEqual(@as(u32, 17), raw_slice[0]);
 
+    try std.testing.expectError(error.UnsafeScopeDenied, constPointerAt(u32, .volatile_mmio, base));
     try std.testing.expectError(error.UnsafeScopeDenied, scopedConstPointerAt(u32, .volatile_mmio, base));
-    const raw_ptr = try scopedConstPointerAt(u32, .raw_pointer_bridge, base);
+    const raw_ptr = try constPointerAt(u32, .raw_pointer_bridge, base);
     try std.testing.expectEqual(@as(u32, 17), raw_ptr.*);
 }

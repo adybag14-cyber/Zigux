@@ -22,7 +22,7 @@ pub fn isValid(view: abi.IdrSlotView) bool {
 
 fn entriesPtr(view: abi.IdrSlotView) [*]const usize {
     std.debug.assert(isValid(view));
-    return narrow.constSliceAt(usize, view.slots_addr, view.slot_count).ptr;
+    return narrow.constSliceAt(usize, .raw_pointer_bridge, view.slots_addr, view.slot_count) catch unreachable;
 }
 
 pub fn entryAt(view: abi.IdrSlotView, index: u32) usize {

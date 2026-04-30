@@ -17,11 +17,11 @@ pub fn isValid(view: abi.ListView) bool {
 
 fn headPtr(view: abi.ListView) *const abi.ListHeadRef {
     std.debug.assert(isValid(view));
-    return narrow.constPointerAt(abi.ListHeadRef, view.head_addr);
+    return narrow.constPointerAt(abi.ListHeadRef, .raw_pointer_bridge, view.head_addr) catch unreachable;
 }
 
 fn nodePtr(addr: usize) *const abi.ListHeadRef {
-    return narrow.constPointerAt(abi.ListHeadRef, addr);
+    return narrow.constPointerAt(abi.ListHeadRef, .raw_pointer_bridge, addr) catch unreachable;
 }
 
 pub fn isEmpty(view: abi.ListView) bool {
