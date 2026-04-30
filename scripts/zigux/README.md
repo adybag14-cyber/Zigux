@@ -94,10 +94,10 @@ Phase 5 flow
 - `samples/zigux/README.md` stays in that same validation surface so the four approved Phase 5 reference samples remain visibly distinct from the later `runtime_*` starters that share the directory.
 
 Phase 6 flow
-- `validate-phase6.py` keeps the shared Phase 6 leaf-helper bundle aligned before replay by checking the published notes, the workflow, `zigux/Makefile`, and `zigux/tests/phase6_build.zig`.
+- `validate-phase6.py` keeps the shared Phase 6 leaf-helper bundle aligned before replay by checking the published notes, the shared manifest, the workflow, `zigux/Makefile`, and `zigux/tests/phase6_build.zig`.
 - `make -C zigux phase6-validate` is the fail-fast catalog check for the current base64, bsearch, checksum, and hexdump packet.
 - `make -C zigux phase6` and the per-helper perf targets keep the shared leaf-helper lane reviewable through one bundle instead of ad hoc helper-local checks.
-- `Documentation/zigux/phase6-helper-parity-catalog.md` is the shared inventory note for that same bundle and should move together with any Phase 6 helper, perf, fixture, or slice-note ownership change.
+- `Documentation/zigux/phase6-helper-parity-catalog.md` and `zigux/tests/phase6_helper_parity_manifest.json` are the shared reviewer-facing and machine-readable inventory surfaces for that same bundle and should move together with any Phase 6 helper, perf, fixture, or slice-note ownership change.
 - `python3 scripts/zigux/check-phase6-base64-c-parity.py` replays a representative external C-vs-Zig base64 spot check so portability-sensitive helper drift is reviewable beyond the shared Zig-only tests.
 - `python3 scripts/zigux/check-phase6-bsearch-c-parity.py` replays a representative external C-vs-Zig bsearch spot check so portability-sensitive helper drift is reviewable beyond the shared Zig-only tests.
 - the current published slice notes for `Documentation/zigux/phase6-base64-slice.md`, `Documentation/zigux/phase6-bsearch-slice.md`, `Documentation/zigux/phase6-checksum-slice.md`, and `Documentation/zigux/phase6-hexdump-slice.md` are part of that same shared validation surface.
