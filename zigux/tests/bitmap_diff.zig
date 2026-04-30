@@ -50,6 +50,22 @@ fn expectPrintedList(map: []const Word, nbits: usize, expected: []const u8) !voi
     try std.testing.expectEqualStrings(expected, buffer[0..len]);
 }
 
+fn expectCurrentFillPrefix(
+    map: []Word,
+    prefix_bits: usize,
+    expected_weight: usize,
+    expected_list: []const u8,
+) !void {
+    bitmap.zero(map, bitmap_nbits);
+    fillPrefix(map, prefix_bits);
+    try std.testing.expectEqual(expected_weight, weight(map, bitmap_nbits));
+    try std.testing.expectEqual(@as(usize, 0), firstSet(map, bitmap_nbits));
+    try std.testing.expectEqual(expected_weight, firstZero(map, bitmap_nbits));
+    try expectPrintedList(map, bitmap_nbits, expected_list);
+    try expectSet(map, expected_weight - 1);
+    try expectClear(map, expected_weight);
+}
+
 fn findNthSet(map: []const Word, nbits: usize, nth: usize) usize {
     var bit = firstSet(map, nbits);
     var seen: usize = 0;
@@ -85,7 +101,8 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
     try expectClear(&map, 8);
     try expectSet(&map, 9);
 
-    // test_fill_set bitmap_fill rounds 35 bits to one full word
+    // The shipped Zig helper still keeps bitmap_fill(35) at the requested
+    // prefix length; the rounded lib/test_bitmap.c anchor remains survey-only.
     try std.testing.expectEqual(bits_per_long, roundedPrefixLen(35));
     fillPrefix(&map, 35);
     try std.testing.expectEqual(@as(usize, 35), weight(&map, bitmap_nbits));
@@ -131,31 +148,20 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
     try expectSet(&map, bits_per_long * 2);
 }
 
-test "bitmap diff survey keeps rounded fill drift explicit against lib/test_bitmap.c" {
+test "bitmap diff survey keeps the current rounded fill drifts explicit against lib/test_bitmap.c" {
     var map = [_]Word{0} ** word_count;
 
     // The kernel anchor rounds fill(35) to one whole word, but the shipped
     // Zig helper still sets only the first 35 bits. Keep that gap measurable
     // here until tools/lib/bitmap.zig changes.
     try std.testing.expectEqual(bits_per_long, roundedPrefixLen(35));
-    fillPrefix(&map, 35);
-    try std.testing.expectEqual(@as(usize, 35), weight(&map, bitmap_nbits));
-    try std.testing.expectEqual(@as(usize, 35), firstZero(&map, bitmap_nbits));
-    try expectPrintedList(&map, bitmap_nbits, "0-34");
-    try expectSet(&map, 34);
-    try expectClear(&map, 35);
+    try expectCurrentFillPrefix(&map, 35, 35, "0-34");
     try expectClear(&map, bits_per_long - 1);
 
-    bitmap.zero(&map, bitmap_nbits);
     // The same drift is still present for fill(115): the kernel anchor rounds
     // to two whole words, while the current Zig helper stops at bit 114.
     try std.testing.expectEqual(bits_per_long * 2, roundedPrefixLen(115));
-    fillPrefix(&map, 115);
-    try std.testing.expectEqual(@as(usize, 115), weight(&map, bitmap_nbits));
-    try std.testing.expectEqual(@as(usize, 115), firstZero(&map, bitmap_nbits));
-    try expectPrintedList(&map, bitmap_nbits, "0-114");
-    try expectSet(&map, 114);
-    try expectClear(&map, 115);
+    try expectCurrentFillPrefix(&map, 115, 115, "0-114");
     try expectClear(&map, bits_per_long * 2 - 1);
 }
 
@@ -200,22 +206,6 @@ test "bitmap diff gate records exact full-width fill and zero endpoints" {
     try std.testing.expectEqual(@as(usize, 0), firstZero(&map, bitmap_nbits));
     try expectClear(&map, 0);
     try expectClear(&map, bitmap_nbits - 1);
-}
-
-test "bitmap diff survey keeps the unresolved 115-bit fill drift against lib/test_bitmap.c explicit" {
-    var map = [_]Word{0} ** word_count;
-
-    bitmap.zero(&map, bitmap_nbits);
-    // The current Zig helper fills only the requested 115 bits instead of
-    // rounding the filled prefix to the first two full words like lib/test_bitmap.c.
-    bitmap.fill(&map, 115);
-    try expectPrintedList(&map, bitmap_nbits, "0-114");
-    try std.testing.expectEqual(@as(usize, 115), weight(&map, bitmap_nbits));
-    try std.testing.expectEqual(@as(usize, 0), firstSet(&map, bitmap_nbits));
-    try std.testing.expectEqual(@as(usize, 115), firstZero(&map, bitmap_nbits));
-    try expectSet(&map, 114);
-    try expectClear(&map, 115);
-    try expectClear(&map, bits_per_long * 2 - 1);
 }
 
 test "bitmap diff gate records exact bounded copy checks" {
