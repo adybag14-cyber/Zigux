@@ -949,6 +949,23 @@ def run_self_test() -> int:
         )
         kallsyms_helper_path.write_text(original_kallsyms_helper, encoding="utf-8")
 
+        type_names_helper_path = tmp_root / "tools/lib/bpf/zigux_segments/type_names.zig"
+        original_type_names_helper = type_names_helper_path.read_text(encoding="utf-8")
+        type_names_helper_path.write_text(
+            original_type_names_helper.replace(
+                'try std.testing.expectEqualStrings("netfilter", libbpfBpfProgTypeStr(32).?);',
+                'try std.testing.expectEqualStrings("tracing", libbpfBpfProgTypeStr(32).?);',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "type_names_helper_marker",
+            tmp_root,
+            'type_names_helper:try std.testing.expectEqualStrings("netfilter", libbpfBpfProgTypeStr(32).?);',
+        )
+        type_names_helper_path.write_text(original_type_names_helper, encoding="utf-8")
+
         libbpf_segments_test_path = tmp_root / "zigux/tests/phase8_libbpf_segments.zig"
         original_libbpf_segments_test = libbpf_segments_test_path.read_text(encoding="utf-8")
         libbpf_segments_test_path.write_text(
@@ -974,7 +991,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE8_VALIDATOR_SELF_TEST=pass")
-    print("PHASE8_VALIDATOR_SELF_TEST_CASE_COUNT=7")
+    print("PHASE8_VALIDATOR_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
