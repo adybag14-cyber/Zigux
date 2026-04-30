@@ -126,8 +126,18 @@ def run_self_test() -> int:
             'bench:exact_checksums.PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM=3484000',
         )
 
+        manifest_path = tmp_root / 'zigux' / 'tests' / 'fixtures' / 'phase1_helper_manifest.json'
+        manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+        manifest['helper_count'] = 12
+        manifest_path.write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
+        expect_missing_marker(
+            'manifest_helper_count',
+            tmp_root,
+            'manifest:helper_count=13',
+        )
+
     print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass')
-    print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=3')
+    print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=4')
     return 0
 
 
