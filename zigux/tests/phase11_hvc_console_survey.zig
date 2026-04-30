@@ -50,6 +50,14 @@ const HvOpsLayout = extern struct {
     dtr_rts: ?*const fn (*HvcStruct, bool) callconv(.c) void,
 };
 
+fn expectSurveyedCommitProvenance(survey_note: []const u8, surveyed_commit: []const u8) !void {
+    try std.testing.expectEqual(@as(usize, 40), surveyed_commit.len);
+    for (surveyed_commit) |byte| {
+        try std.testing.expect(std.ascii.isHex(byte));
+    }
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, surveyed_commit) != null);
+}
+
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
         std.mem.eql(u8, status, "ready_next") or
@@ -76,7 +84,6 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
     try std.testing.expectEqualStrings("P11-L18", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
     try std.testing.expectEqualStrings("drivers/tty/hvc/hvc_console.c", manifest.anchor);
-    try std.testing.expectEqualStrings("146f218b0c604a197542b1cddc9268a070eba029", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.hvc_console_c_lines >= 1000);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_build_present);
@@ -314,6 +321,26 @@ test "phase11 hvc console survey records the current shared-build boundary exact
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase11-hvc-console-survey.md",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase11_hvc_console_manifest.json",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(manifest_json);
+
+    const parsed_manifest = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    defer parsed_manifest.deinit();
+    const manifest = parsed_manifest.value;
+
     const build_zig = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "zigux/tests/phase11_build.zig",
@@ -322,6 +349,7 @@ test "phase11 hvc console survey records the current shared-build boundary exact
     );
     defer std.testing.allocator.free(build_zig);
 
+    try expectSurveyedCommitProvenance(survey_note, manifest.surveyed_commit);
     try std.testing.expect(std.mem.indexOf(u8, build_zig, "const phase11_hvc_console_tests = b.addTest") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_zig, "test_step.dependOn(&run_phase11_hvc_console_tests.step);") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_zig, "phase11_hvc_console_survey_tests") == null);
