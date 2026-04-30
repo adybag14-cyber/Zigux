@@ -47,8 +47,6 @@ SURVEY_MARKERS = [
     "## Readiness Gate",
     "make -C zigux phase15",
     "zig build test --build-file zigux/tests/phase15_build.zig",
-    "shared replay surface is currently red on current `master`",
-    "phase15-review-process-replay-drift",
 ]
 
 BUILD_MARKERS = [
@@ -192,23 +190,13 @@ else:
     ]:
         if repo_evidence.get(key) is not True:
             missing.append(f"manifest:repo_evidence:{key}")
-    if repo_evidence.get("phase15_replay_green_on_current_master") is not False:
+    if repo_evidence.get("phase15_replay_green_on_current_master") is not True:
         missing.append("manifest:repo_evidence:phase15_replay_green_on_current_master")
     if repo_evidence.get("deep_core_status_change_ready") is not False:
         missing.append("manifest:repo_evidence:deep_core_status_change_ready")
 
 remaining_gaps = manifest.get("remaining_gaps")
 expected_gaps = {
-    "phase15-review-process-replay-drift": {
-        "status": "blocked_on_shared_replay_drift",
-        "zigux_destination": "zigux/tests/phase15_architecture_council_review_process.zig",
-        "phrases": [
-            "P15-L08",
-            "P15-L11",
-            "09606ab3a477c4f3817ab4e00f699e4729c096d2",
-            "7f4ee0a5eb4bd171e94c279d44b7818ce2ac6a7f",
-        ],
-    },
     "phase15-deep-core-status-change-blocker": {
         "status": "blocked_on_stay_in_c_evidence",
         "zigux_destination": "Documentation/zigux/phase15-parity-scorecard.md",
@@ -248,19 +236,6 @@ else:
     for gap_id in expected_gaps:
         if gap_id not in seen_gap_ids:
             missing.append(f"manifest:remaining_gaps:missing:{gap_id}")
-
-next_step = manifest.get("next_step")
-if not isinstance(next_step, str):
-    missing.append("manifest:next_step")
-else:
-    for phrase in [
-        "neighboring replay-repair lane",
-        "phase15_architecture_council_review_process.zig",
-        "zig build test --build-file zigux/tests/phase15_build.zig",
-        "make -C zigux phase15",
-    ]:
-        if phrase not in next_step:
-            missing.append(f"manifest:next_step:{phrase}")
 
 review_process_manifest = load_json("zigux/tests/phase15_architecture_council_review_process_manifest.json")
 if review_process_manifest.get("phase") != "Phase 15":
@@ -365,4 +340,4 @@ print(
     "PHASE15_REQUIRED_MARKER_COUNT="
     f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(SURVEY_MARKERS) + len(BUILD_MARKERS)}"
 )
-print("PHASE15_REMAINING_BLOCKERS=phase15-review-process-replay-drift,phase15-deep-core-status-change-blocker")
+print("PHASE15_REMAINING_BLOCKERS=phase15-deep-core-status-change-blocker")
