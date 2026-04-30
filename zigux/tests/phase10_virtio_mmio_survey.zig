@@ -76,7 +76,7 @@ test "phase10 virtio mmio survey manifest records the landed config-write rung a
     try std.testing.expectEqualStrings("P10-L18", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 10", manifest.phase);
     try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", manifest.anchor);
-    try std.testing.expectEqualStrings("8bda4f7c3b6270f184ec382c9cc830a54de67723", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("81356ba2b96caf155f2c8788b3ede1fbb4c96d74", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.virtio_mmio_c_lines >= 800);
     try std.testing.expectEqual(@as(usize, 8), manifest.survey_summary.preexisting_phase10_test_files);
