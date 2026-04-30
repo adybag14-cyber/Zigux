@@ -254,6 +254,10 @@ if find_bit_review.get('and_unit_test_anchor') != 'tools/lib/find_bit.zig:test "
     missing_markers.append('manifest:find_bit.and_unit_test_anchor')
 if find_bit_review.get('and_unit_test_contract') != 'Direct Zig unit coverage keeps same-word shared-bit start masking aligned so inclusive starts can return the current shared bit, later starts skip earlier same-word overlaps, and tail-clamped AND scans still stop at nbits.':
     missing_markers.append('manifest:find_bit.and_unit_test_contract')
+if find_bit_review.get('mask_unit_test_anchor') != 'tools/lib/find_bit.zig:test "word helpers keep linux-style mask and sizing boundaries"':
+    missing_markers.append('manifest:find_bit.mask_unit_test_anchor')
+if find_bit_review.get('mask_unit_test_contract') != 'Direct Zig unit coverage keeps bitsToWords(), firstWordMask(), and lastWordMask() aligned with Linux-style whole-word, partial-word, and wrapped-start boundaries so exported mask helpers remain reviewable without relying only on indirect scan coverage.':
+    missing_markers.append('manifest:find_bit.mask_unit_test_contract')
 if find_bit_review.get('boundary_unit_test_anchor') != 'tools/lib/find_bit.zig:test "empty and boundary scans return nbits"':
     missing_markers.append('manifest:find_bit.boundary_unit_test_anchor')
 if find_bit_review.get('boundary_unit_test_contract') != 'Direct Zig unit coverage keeps empty and out-of-range scan boundaries aligned by returning nbits for zero-length bitmaps, start-at-nbits searches, and fully set zero-bit windows that must not report past the declared range.':
