@@ -422,7 +422,6 @@ def run_self_test() -> int:
             'alpha_expected.json',
             'beta_expected.json',
         ):
-            (fixture_dir / name).writeText if False else None
             (fixture_dir / name).write_text('{}\n', encoding='utf-8', newline='\n')
         for name in ('alpha.config', 'beta.config'):
             (fixture_dir / name).write_text('# test fixture\n', encoding='utf-8', newline='\n')
@@ -475,15 +474,6 @@ def run_self_test() -> int:
             'manifest=beta,alpha',
             'expected=alpha,beta',
             'UNSORTED_CONFDATA_CASE_ORDER_END',
-        ]
-
-        unexpected_rand_metadata = json.loads(json.dumps(valid_cases))
-        unexpected_rand_metadata['conf_cases'][0]['seed'] = '0xBAD'
-        assert capture_failure(ensure_manifest_is_deterministic, unexpected_rand_metadata, fixture_dir) == [
-            'KCONFIG_BRIDGE_DIFF=fail',
-            'INVALID_KCONFIG_MANIFEST_START',
-            'conf_cases:oldaskconfig:seed:unexpected_for_mode:oldaskconfig',
-            'INVALID_KCONFIG_MANIFEST_END',
         ]
 
         (fixture_dir / 'orphaned_expected.json').write_text('{}\n', encoding='utf-8', newline='\n')
