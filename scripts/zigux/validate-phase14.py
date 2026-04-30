@@ -342,6 +342,23 @@ for marker in [
     if marker not in survey_note:
         missing.append(f"survey:{marker}")
 
+for shard in compile_shards:
+    if not isinstance(shard, dict):
+        continue
+    artifact_name = shard.get("artifact_name")
+    root_source_file = shard.get("root_source_file")
+    bridge_import = shard.get("bridge_import")
+    bridge_source_file = shard.get("bridge_source_file")
+    if isinstance(artifact_name, str) and artifact_name and artifact_name not in survey_note:
+        missing.append(f"survey:compile_shard:artifact_name:{artifact_name}")
+    if isinstance(root_source_file, str) and root_source_file and root_source_file not in survey_note:
+        missing.append(f"survey:compile_shard:root_source_file:{root_source_file}")
+    if isinstance(bridge_import, str) and bridge_import:
+        if bridge_import not in survey_note:
+            missing.append(f"survey:compile_shard:bridge_import:{bridge_import}")
+        if isinstance(bridge_source_file, str) and bridge_source_file and bridge_source_file not in survey_note:
+            missing.append(f"survey:compile_shard:bridge_source_file:{bridge_source_file}")
+
 if actual_build_test_names != expected_build_test_names:
     missing.append("phase14_build:build_test_names_mismatch")
 if len(actual_depend_steps) != len(expected_build_test_names):
