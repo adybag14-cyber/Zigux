@@ -4,11 +4,11 @@ This survey note now serves as the archival checkpoint for the original Phase 11
 
 The live repo state is now:
 
-- reviewed against live `master` `146f218b0c604a197542b1cddc9268a070eba029`
+- reviewed against live `master` `46ecd8c9c39d3add3bc762ab137686d6f23e1935`
 - `drivers/tty/hvc/hvc_console.zig` and `zigux/tests/phase11_hvc_console.zig` now land the first bounded starter around setup-state slot validation, a tiny `drivers/tty/hvc/hvc_console.h` parity snapshot for console limits plus `hv_ops` and exported `hvc_*` surface metadata, CRLF write framing, zero-progress or `-EAGAIN` retry intent, teardown gating, final-close wait summaries, a tiny final-close teardown summary, a tiny tty-registration handoff summary, a khvcd polling-contract summary, a khvcd worker-entry summary, a tiny khvcd sleep-and-reschedule handoff summary, a tiny `__hvc_poll()` drain-order summary, a tiny `hvc_hangup()` disconnect summary, and a tiny `hvc_remove()` handoff summary
 - `zigux/tests/phase11_hvc_console_survey.zig` now carries two driver-local `layout_assert` checkpoints: one for `struct winsize`, pinning size 8, alignment 2, and offsets 0, 2, 4, and 6 for the resize path fields, and one for `struct hv_ops`, pinning the callback-table layout at size 72, alignment 8, and pointer offsets 0 through 64 so the hvc header ABI stays reviewable inside the current hvc lane without claiming `struct hvc_struct`, tty-core, or live hypervisor ownership
 - `Documentation/zigux/phase11-hvc-console-slice.md` records the active starter scope, while `Documentation/zigux/phase11-hvc-console-validation-matrix.md` now names the current shared gate, records that the dedicated hvc survey replay is still separate from `zigux/tests/phase11_build.zig`, and keeps the landed final-close teardown handoff, tty-registration handoff, khvcd polling-contract, khvcd worker-entry, khvcd sleep-and-reschedule handoff, `__hvc_poll()` drain-order, `hvc_hangup()` disconnect, and `hvc_remove()` handoff evidence explicit
-- this survey note remains as the checkpoint for the original gap that the bounded starter closed
+- this survey note remains as the checkpoint that the Phase 11 simple-production-driver gap has been closed by the bounded starter
 - the remaining unported work is now tty-driver registration, khvcd worker execution, sysrq integration, notifier callback execution, and host-backed transport or teardown validation
 
 This lane is no longer survey-only, but the archival survey still does not claim tty-driver registration, hvc polling kthread worker execution, notifier callback execution, sysrq handling, early-console registration, or live hypervisor I/O.
