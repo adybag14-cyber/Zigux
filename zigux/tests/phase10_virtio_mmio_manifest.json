@@ -57,7 +57,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase10_virtio_ring_survey.zig",
-      "why_now": "The existing ring survey keeps the queue-wrapper roadmap gap explicit, which the MMIO lane depends on before transport-facing work can honestly begin."
+      "why_now": "The existing ring survey keeps the landed queue-discipline surface and the remaining MMIO ladder explicit, which the MMIO lane depends on before broader transport-facing work can honestly begin."
     },
     {
       "id": "phase10-virtio-ring-lab-helper",
@@ -85,14 +85,14 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase10-virtio-mmio-survey.md",
-      "why_now": "The lane needs a Phase 10 note that records the current MMIO transport scope and the reasons the broader transport lifecycle work is still blocked even after the register-window, queue-register, queue-notify, queue-address, and config-window helpers landed."
+      "why_now": "The lane needs a Phase 10 note that records the current MMIO transport scope and the reasons the broader transport lifecycle work is still blocked even after the register-window, queue-register, queue-notify, queue-address, config-window, and config-write helpers landed."
     },
     {
       "id": "phase10-virtio-mmio-slice-note",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase10-virtio-mmio-slice.md",
-      "why_now": "The MMIO helper needs its slice note to stay focused on the bounded register-window, queue-register, queue-notify, queue-address, and config-window surface rather than the full transport driver."
+      "why_now": "The MMIO helper needs its slice note to stay focused on the bounded register-window, queue-register, queue-notify, queue-address, config-window, and config-write surface rather than the full transport driver."
     },
     {
       "id": "phase10-callback-delay-helper",
@@ -134,7 +134,7 @@
       "status": "starter_landed",
       "kind": "transport_wrapper",
       "zigux_destination": "drivers/virtio/virtio_mmio.zig",
-      "why_now": "With queue-address planning now landed, the next honest bounded MMIO follow-up was a tiny config-window snapshot helper, and the live helper now records read-only config-window snapshots against the current config-generation without claiming config writes, queue setup, IRQ delivery, or lifecycle glue."
+      "why_now": "With queue-address planning now landed, the next honest bounded MMIO follow-up was a tiny config-window snapshot helper, and the live helper still records those read-side snapshots against the current config-generation as the base that the now-landed config-write planning helper builds on without claiming queue setup, IRQ delivery, or lifecycle glue."
     },
     {
       "id": "phase10-mmio-config-write-helper",
