@@ -137,7 +137,7 @@ pub const RuntimeLoadRequest = struct {
     }
 
     pub fn keepsLifecyclePayloadConsistent(self: RuntimeLoadRequest) bool {
-        return switch (self.payload) {
+        const counters_ordered = switch (self.payload) {
             .atomic64 => |payload| payload.init_runs >= 1 and
                 payload.selftest_runs <= payload.init_runs and
                 payload.exit_runs <= payload.init_runs,
@@ -147,6 +147,16 @@ pub const RuntimeLoadRequest = struct {
             .kretprobe => |payload| payload.init_runs >= 1 and
                 payload.selftest_runs <= payload.init_runs and
                 payload.exit_runs <= payload.init_runs,
+        };
+        if (!counters_ordered) return false;
+
+        return switch (self.handoff_stage) {
+            .waiting_on_runtime_substrate, .released_without_substrate => switch (self.payload) {
+                .atomic64 => |payload| payload.exit_runs == 0,
+                .bitmap => |payload| payload.exit_runs == 0,
+                .kretprobe => |payload| payload.exit_runs == 0,
+            },
+            .idle, .prepared => true,
         };
     }
 
@@ -464,6 +474,40 @@ test "runtime loader request rejects implicit init-exit and stage handoff contra
     try std.testing.expect(empty_command_name.keepsInitExitContractExplicit());
     try std.testing.expect(empty_command_name.keepsLifecyclePayloadConsistent());
     try std.testing.expect(!empty_command_name.keepsSharedHandoffContractExplicit());
+
+    const released_with_exit_counter = RuntimeLoadRequest{
+        .module_name = "runtime_kretprobe",
+        .command_name = null,
+        .anchor = "samples/kprobes/kretprobe_example.c",
+        .entry_symbol = "zigux_runtime_kretprobe_init",
+        .exit_symbol = "zigux_runtime_kretprobe_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .handoff_stage = .released_without_substrate,
+        .allocator_handoff = allocatorHandoffFor(.kernel_heap),
+        .payload = .{
+            .kretprobe = .{
+                .register_api = "register_kretprobe",
+                .unregister_api = "unregister_kretprobe",
+                .symbol_name = "do_sys_openat2",
+                .maxactive = 20,
+                .private_data_bytes = 24,
+                .active_instances = 0,
+                .skipped_kernel_threads = 0,
+                .nmissed = 0,
+                .last_retval = 0,
+                .last_duration_ns = 0,
+                .init_runs = 1,
+                .selftest_runs = 0,
+                .exit_runs = 1,
+                .entry_timestamp_armed = false,
+            },
+        },
+    };
+    try std.testing.expect(released_with_exit_counter.keepsInitExitContractExplicit());
+    try std.testing.expect(released_with_exit_counter.keepsStageConsistentWithRuntimeSubstrate());
+    try std.testing.expect(!released_with_exit_counter.keepsLifecyclePayloadConsistent());
+    try std.testing.expect(!released_with_exit_counter.keepsSharedHandoffContractExplicit());
 
     const no_substrate = (RuntimeLoadRequest{
         .module_name = "runtime_atomic64",
