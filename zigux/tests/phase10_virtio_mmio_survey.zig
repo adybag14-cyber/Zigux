@@ -87,7 +87,7 @@ test "phase10 virtio mmio survey manifest records the landed config-write rung a
     try std.testing.expectEqualStrings("P10-L18", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 10", manifest.phase);
     try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", manifest.anchor);
-    try std.testing.expectEqualStrings("81356ba2b96caf155f2c8788b3ede1fbb4c96d74", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("436e1b0f84c53777c5f24668ef847c5dda019ad3", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.virtio_mmio_c_lines >= 800);
     try std.testing.expectEqual(@as(usize, 8), manifest.survey_summary.preexisting_phase10_test_files);
@@ -268,6 +268,7 @@ test "phase10 virtio mmio survey manifest records the landed config-write rung a
             try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "config-write planning helper") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "previous and planned values") != null or std.mem.indexOf(u8, gap.why_now, "byte, halfword, and word") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "underlying config window unchanged") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase10-mmio-lifecycle-and-irq-paths")) {
