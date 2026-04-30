@@ -76,6 +76,8 @@ required_closure_markers = [
     'PHASE1_RBTREE_CACHED_UNIT_REVIEW=rbtree RootCached leftmost tracking stays aligned across addCached, eraseCached, and replaceNodeCached so the cached first node matches the underlying tree root',
     'rbtree cached duplicate-minima unit-test anchor: `tools/lib/rbtree.zig:test "rbtree cached root tracks duplicate minima through erase and non-leftmost replace"`',
     'PHASE1_RBTREE_CACHED_DUPLICATE_UNIT_REVIEW=rbtree RootCached duplicate minima stay aligned when eraseCached promotes the next equal-key minimum and replaceNodeCached leaves the cached first node unchanged for non-leftmost replacement',
+    'rbtree cached findAdd unit-test anchor: `tools/lib/rbtree.zig:test "rbtree findAddCached preserves duplicate ownership and leftmost cache"`',
+    'PHASE1_RBTREE_CACHED_FINDADD_UNIT_REVIEW=rbtree findAddCached returns the original equal-key resident node, still links new distinct keys into the cached tree, and keeps the cached first node aligned with the underlying tree root',
     'rbtree iterator unit-test anchor: `tools/lib/rbtree.zig:test "rbtree iterateMatches streams only the duplicate range"`',
     'PHASE1_RBTREE_ITERATE_UNIT_REVIEW=rbtree iterateMatches yields only the equal-key duplicate range and cleanly reports no match for missing keys',
     'rbtree reverse unit-test anchor: `tools/lib/rbtree.zig:test "rbtree iterateMatchesReverse streams only the duplicate range in reverse"`',
@@ -291,6 +293,10 @@ if rbtree_review.get('cached_duplicate_unit_test_anchor') != 'tools/lib/rbtree.z
     missing_markers.append('manifest:rbtree.cached_duplicate_unit_test_anchor')
 if rbtree_review.get('cached_duplicate_unit_test_contract') != 'Direct Zig unit coverage keeps RootCached duplicate minima aligned so eraseCached() promotes the next equal-key minimum and replaceNodeCached() leaves the cached first node unchanged when a non-leftmost node is replaced.':
     missing_markers.append('manifest:rbtree.cached_duplicate_unit_test_contract')
+if rbtree_review.get('cached_find_add_unit_test_anchor') != 'tools/lib/rbtree.zig:test "rbtree findAddCached preserves duplicate ownership and leftmost cache"':
+    missing_markers.append('manifest:rbtree.cached_find_add_unit_test_anchor')
+if rbtree_review.get('cached_find_add_unit_test_contract') != 'Direct Zig unit coverage keeps findAddCached() aligned so equal-key probes return the original resident node, distinct inserts still link into the cached tree, and RootCached continues to expose the same leftmost node as the underlying tree root.':
+    missing_markers.append('manifest:rbtree.cached_find_add_unit_test_contract')
 if rbtree_review.get('iterator_unit_test_anchor') != 'tools/lib/rbtree.zig:test "rbtree iterateMatches streams only the duplicate range"':
     missing_markers.append('manifest:rbtree.iterator_unit_test_anchor')
 if rbtree_review.get('iterator_unit_test_contract') != 'Direct Zig unit coverage keeps iterateMatches() aligned so duplicate-key iteration yields only the equal-key range and cleanly reports no match for missing keys.':
