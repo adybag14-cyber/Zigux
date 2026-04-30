@@ -63,16 +63,12 @@ RELEASE_MARKERS = [
     "PHASE13_SHARED_MAKE_TARGET_PRESENT=yes",
     "PHASE13_SHARED_REPLAY_STEP_COUNT=7",
     "PHASE13_RELEASE_CLOSED=no",
-    "The current release packet also carries one active shared-replay blocker on `master`:",
-    "`python3 scripts/zigux/validate-phase13-release.py` and `make -C zigux phase13-validate` currently pass",
-    "`make -C zigux phase13-test` and `make -C zigux phase13` currently fail because `zigux/tests/phase13_landlock_ruleset.zig` ends with a syntax error at the current `P13-L12` ruleset packet tail (`expected statement, found 'EOF'`)",
-    "that failure belongs to the dedicated Landlock ruleset helper lane, so this release-note packet records it as an active tranche blocker instead of pretending the shared replay is green",
     "The current manifest lane ownership carried by the release packet is:",
     "`fs/libfs.c` through `zigux/tests/phase13_libfs_manifest.json` lane `P13-L04`",
     "`lib/devres.c` through `zigux/tests/phase13_devres_manifest.json` lane `P13-L03`",
     "`security/landlock/ruleset.c` through `zigux/tests/phase13_landlock_ruleset_manifest.json` lane `P13-L12`",
     "`security/landlock/syscalls.c` through `zigux/tests/phase13_landlock_syscalls_manifest.json` lane `P13-L16`",
-    "adjacent notifier-list reviewability evidence through `zigux/tests/phase13_notifier_list_manifest.json` lane `P13-L17`",
+    "adjacent notifier-list reviewability evidence through `zigux/tests/phase13_notifier_list_manifest.json` lane `",
     "lib/devres.c`: helper slice landed, dedicated tests present, roadmap traceability present, manifest-backed survey present, and helper-first MMIO or resource planners keep live DMA-backed mappings and scatterlist ownership explicitly blocked",
     "The current release packet also carries one active shared-replay blocker on `master`:",
     "`python3 scripts/zigux/validate-phase13-release.py` and `make -C zigux phase13-validate` currently pass",
@@ -295,6 +291,16 @@ for blocked in ["blocked_on_dma_state", "blocked_on_scatterlist_state"]:
 notifier_manifest = load_json("zigux/tests/phase13_notifier_list_manifest.json")
 if notifier_manifest.get("phase") != "Phase 13":
     missing.append("zigux/tests/phase13_notifier_list_manifest.json:phase")
+notifier_lane_key = notifier_manifest.get("lane_key")
+if notifier_lane_key != "P13-L13":
+    missing.append("zigux/tests/phase13_notifier_list_manifest.json:lane_key")
+expected_notifier_lane_line = (
+    "adjacent notifier-list reviewability evidence through "
+    "`zigux/tests/phase13_notifier_list_manifest.json` lane "
+    f"`{notifier_lane_key}`"
+)
+if expected_notifier_lane_line not in release_text:
+    missing.append("release:notifier_manifest_lane_alignment")
 
 if missing:
     print("PHASE13_RELEASE_VALIDATION=fail")
