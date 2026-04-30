@@ -19,7 +19,7 @@ Latest verification snapshot:
 
 - lane key remains `P11-L11` and the surveyed head is now `d5f892924271cc8b2507989d2a6831029ca03e91` while keeping the same bounded DesignWare starter scope
 - latest carried-forward shared replay status remains `PHASE11_VALIDATION=pass` for the landed starter packet
-- `zig test zigux/tests/phase11_dw_wdt.zig`
+- `zig test --dep dw_wdt -Mroot=zigux/tests/phase11_dw_wdt.zig -Mdw_wdt=drivers/watchdog/dw_wdt.zig`
 - `zig test zigux/tests/phase11_dw_wdt_survey.zig`
 - `python3 scripts/zigux/validate-phase11.py`
-- observed outcome: the focused survey replay stayed green on the refreshed surveyed head, and the carried-forward shared Phase 11 starter status remains `PHASE11_VALIDATION=pass` for the same bounded `dw_wdt` scope
+- observed outcome: the focused `dw_wdt` driver replay now uses the module-backed command that matches the live shared build wiring, and the paired survey replay stayed green for the same bounded `dw_wdt` scope
