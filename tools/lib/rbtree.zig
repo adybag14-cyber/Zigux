@@ -247,6 +247,29 @@ pub fn addCached(node: *Node, root: *RootCached, less: LessFn) ?*Node {
     return if (leftmost) node else null;
 }
 
+pub fn findAddCached(node: *Node, root: *RootCached, cmp: CmpNodeFn) ?*Node {
+    var link = &root.root.node;
+    var parent: ?*Node = null;
+    var leftmost = true;
+
+    while (link.*) |current| {
+        parent = current;
+        const order = cmp(node, current);
+        if (order < 0) {
+            link = &current.left;
+        } else if (order > 0) {
+            link = &current.right;
+            leftmost = false;
+        } else {
+            return current;
+        }
+    }
+
+    linkNode(node, parent, link);
+    insertColorCached(node, root, leftmost);
+    return null;
+}
+
 pub fn findAdd(node: *Node, root: *Root, cmp: CmpNodeFn) ?*Node {
     var link = &root.node;
     var parent: ?*Node = null;
@@ -1518,4 +1541,67 @@ test "rbtree cached root tracks duplicate minima through erase and non-leftmost 
     const after_replace: *const Entry = @fieldParentPtr("node", firstCached(&root).?);
     try std.testing.expectEqual(@as(i32, 10), after_replace.key);
     try std.testing.expectEqual(@as(usize, 1), after_replace.serial);
+}
+
+test "rbtree findAddCached preserves duplicate ownership and leftmost cache" {
+    const Entry = struct {
+        key: i32,
+        serial: usize,
+        node: Node = Node.init(),
+    };
+
+    const cmp = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) i32 {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            if (lhs_entry.key < rhs_entry.key) return -1;
+            if (lhs_entry.key > rhs_entry.key) return 1;
+            return 0;
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 10, .serial = 0 },
+        .{ .key = 20, .serial = 1 },
+        .{ .key = 5, .serial = 2 },
+        .{ .key = 10, .serial = 3 },
+        .{ .key = 3, .serial = 4 },
+    };
+    var root = RootCached.init();
+
+    try std.testing.expectEqual(@as(?*Node, null), findAddCached(&entries[0].node, &root, cmp));
+    try expectValidTree(&root.root);
+    try std.testing.expectEqual(@as(?*Node, &entries[0].node), firstCached(&root));
+
+    try std.testing.expectEqual(@as(?*Node, null), findAddCached(&entries[1].node, &root, cmp));
+    try expectValidTree(&root.root);
+    try std.testing.expectEqual(@as(?*Node, &entries[0].node), firstCached(&root));
+
+    try std.testing.expectEqual(@as(?*Node, null), findAddCached(&entries[2].node, &root, cmp));
+    try expectValidTree(&root.root);
+    try std.testing.expectEqual(@as(?*Node, &entries[2].node), firstCached(&root));
+
+    const existing = findAddCached(&entries[3].node, &root, cmp) orelse return error.TestUnexpectedResult;
+    try expectValidTree(&root.root);
+    try std.testing.expectEqual(@as(?*Node, &entries[2].node), firstCached(&root));
+    const existing_entry: *const Entry = @fieldParentPtr("node", existing);
+    try std.testing.expectEqual(@as(i32, 10), existing_entry.key);
+    try std.testing.expectEqual(@as(usize, 0), existing_entry.serial);
+
+    try std.testing.expectEqual(@as(?*Node, null), findAddCached(&entries[4].node, &root, cmp));
+    try expectValidTree(&root.root);
+    try std.testing.expectEqual(@as(?*Node, &entries[4].node), firstCached(&root));
+
+    var order: [4]i32 = undefined;
+    var count: usize = 0;
+    var current = first(&root.root);
+    while (current) |node| : (current = next(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        order[count] = entry.key;
+        count += 1;
+    }
+
+    try std.testing.expectEqual(@as(usize, 4), count);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 3, 5, 10, 20 }, order[0..count]);
+    try std.testing.expectEqual(first(&root.root), firstCached(&root));
 }
