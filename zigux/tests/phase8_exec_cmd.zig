@@ -512,6 +512,28 @@ test "phase 8 exec-cmd keeps the deferred execl handoff helper below launch beha
     try std.testing.expectEqual(@as(?[]const u8, null), deferred.argv[4]);
 }
 
+test "phase 8 exec-cmd keeps the deferred execl empty-tail handoff shape" {
+    const config = exec_cmd.Config{
+        .exec_name = "perf",
+        .prefix = "/usr/libexec/perf-core",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var deferred = try exec_cmd.buildDeferredExeclCall(
+        std.testing.allocator,
+        config,
+        "version",
+        &[_]?[]const u8{null},
+    );
+    defer deferred.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 3), deferred.argv.len);
+    try std.testing.expectEqualStrings("perf", deferred.argv[0].?);
+    try std.testing.expectEqualStrings("version", deferred.argv[1].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), deferred.argv[2]);
+}
+
 test "phase 8 exec-cmd keeps the deferred execv handoff helper below launch behavior" {
     const config = exec_cmd.Config{
         .exec_name = "perf",
