@@ -38,6 +38,20 @@ const LegacyManifest = struct {
     segments: []const LegacySegment,
 };
 
+const SnapshotEntry = struct {
+    path: []const u8,
+    bytes: usize,
+    sha256: []const u8,
+};
+
+const SnapshotFixture = struct {
+    lane_key: []const u8,
+    phase: []const u8,
+    surveyed_commit: []const u8,
+    tracked_file_count: usize,
+    files: []const SnapshotEntry,
+};
+
 const Phase12LegacyPair = struct {
     phase12_gap_id: []const u8,
     legacy_slug: []const u8,
@@ -137,6 +151,59 @@ fn pathExists(io: std.Io, path: []const u8) !bool {
         else => return err,
     };
     return true;
+}
+
+test "phase12 libbpf reviewability gate pins the committed snapshot fixture packet" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase12_libbpf_manifest.json",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(manifest_json);
+
+    const manifest_parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{
+        .ignore_unknown_fields = true,
+    });
+    defer manifest_parsed.deinit();
+
+    const snapshot_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/fixtures/phase12_libbpf_snapshot.json",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(snapshot_json);
+
+    const snapshot_parsed = try std.json.parseFromSlice(SnapshotFixture, std.testing.allocator, snapshot_json, .{
+        .ignore_unknown_fields = true,
+    });
+    defer snapshot_parsed.deinit();
+
+    const expected_paths = [_][]const u8{
+        "zigux/tests/phase12_libbpf_manifest.json",
+        "zigux/tests/phase12_libbpf_segments.zig",
+        "zigux/tests/phase12_libbpf_reviewability.zig",
+        "Documentation/zigux/phase12-libbpf-segment-survey.md",
+        "tools/lib/bpf/zigux_segments/manifest.json",
+    };
+
+    const manifest = manifest_parsed.value;
+    const snapshot = snapshot_parsed.value;
+    try std.testing.expectEqualStrings(manifest.lane_key, snapshot.lane_key);
+    try std.testing.expectEqualStrings(manifest.phase, snapshot.phase);
+    try std.testing.expectEqualStrings(manifest.surveyed_commit, snapshot.surveyed_commit);
+    try std.testing.expectEqual(expected_paths.len, snapshot.tracked_file_count);
+    try std.testing.expectEqual(expected_paths.len, snapshot.files.len);
+
+    for (snapshot.files, expected_paths) |entry, expected_path| {
+        try std.testing.expectEqualStrings(expected_path, entry.path);
+        try std.testing.expect(entry.bytes > 0);
+        try std.testing.expectEqual(@as(usize, 64), entry.sha256.len);
+    }
 }
 
 test "phase12 libbpf reviewability gate matches the current zigux_segments file state" {
