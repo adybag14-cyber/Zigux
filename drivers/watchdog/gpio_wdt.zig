@@ -49,6 +49,22 @@ pub const ConfigSnapshot = struct {
     max_hw_heartbeat_ms: u32,
 };
 
+pub const WatchdogMetadataSummary = struct {
+    anchor: []const u8,
+    identity: []const u8,
+    hw_algo: HardwareAlgorithm,
+    always_running: bool,
+    supports_set_timeout: bool,
+    supports_magic_close: bool,
+    supports_keepalive_ping: bool,
+    start_op_ready: bool,
+    stop_op_ready: bool,
+    ping_op_ready: bool,
+    min_timeout_sec: u32,
+    default_timeout_sec: u32,
+    max_hw_heartbeat_ms: u32,
+};
+
 pub const ProbeSummary = struct {
     anchor: []const u8,
     hw_algo: HardwareAlgorithm,
@@ -250,6 +266,24 @@ pub const GpioWatchdogLab = struct {
             .hw_algo = self.hw_algo,
             .hw_margin_ms = self.hw_margin_ms,
             .always_running = self.always_running,
+            .min_timeout_sec = soft_timeout_min,
+            .default_timeout_sec = soft_timeout_default,
+            .max_hw_heartbeat_ms = self.hw_margin_ms,
+        };
+    }
+
+    pub fn watchdogMetadataSummary(self: *const Self) WatchdogMetadataSummary {
+        return .{
+            .anchor = descriptor().anchor,
+            .identity = "GPIO Watchdog",
+            .hw_algo = self.hw_algo,
+            .always_running = self.always_running,
+            .supports_set_timeout = true,
+            .supports_magic_close = true,
+            .supports_keepalive_ping = true,
+            .start_op_ready = true,
+            .stop_op_ready = true,
+            .ping_op_ready = true,
             .min_timeout_sec = soft_timeout_min,
             .default_timeout_sec = soft_timeout_default,
             .max_hw_heartbeat_ms = self.hw_margin_ms,
