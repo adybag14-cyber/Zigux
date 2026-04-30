@@ -238,6 +238,8 @@ MARKER_GROUPS = {
     "parity_checker": (
         "scripts/zigux/check-phase1-parity.py",
         [
+            "print('PHASE1_PARITY=pass')",
+            "print('PHASE1_PARITY_DETERMINISM=pass')",
             "print('PHASE1_PARITY_SELF_TEST=pass')",
             "print('PHASE1_PARITY_SELF_TEST_CASE_COUNT=7')",
         ],
