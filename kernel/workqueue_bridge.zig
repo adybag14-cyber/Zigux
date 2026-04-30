@@ -41,6 +41,7 @@ pub const AuditGuard = enum {
     flush_barrier_insert_under_pool_lock,
     in_flight_color_release_completion,
     drain_reflush_and_cancel_sync,
+    disable_depth_and_delayed_cancel_sync,
     callback_execution_outside_pool_lock,
     idle_sleep_transition,
     mayday_lock_then_pool_lock,
@@ -195,6 +196,15 @@ const audit_checkpoints = [_]AuditCheckpoint{
         .ownership = .stay_in_c,
     },
     .{
+        .id = "disable-depth-and-delayed-cancel-sync",
+        .anchor_symbol = "__cancel_work/clear_pending_if_disabled/__cancel_work_sync",
+        .summary = "Keep disable-depth accounting, delayed-timer cancellation, and BH-versus-sleepable completion rules under the existing pending-bit and flush discipline.",
+        .guard = .disable_depth_and_delayed_cancel_sync,
+        .observed_fields = &[_][]const u8{ "WORK_OFFQ_DISABLE_MASK", "offqd.disable", "WORK_CANCEL_DELAYED", "WORK_OFFQ_BH" },
+        .blocked_by = "__cancel_work() folds WORK_CANCEL_DISABLE into offqd.disable before set_work_pool_and_clear_pending(), clear_pending_if_disabled() only clears PENDING when the disable mask is already carried in off-queue data, __cancel_work_sync() always takes the disable path before choosing might_sleep() versus the BH warning and only then flushes live execution, and cancel_delayed_work_sync() reaches that same path with WORK_CANCEL_DELAYED set, so Zigux should audit disable-depth and delayed-cancel completion ownership instead of claiming live parity.",
+        .ownership = .stay_in_c,
+    },
+    .{
         .id = "process-one-work-execution-window",
         .anchor_symbol = "process_one_work",
         .summary = "Keep the callback execution window under the existing unlock, relock, and in-flight accounting discipline.",
@@ -288,7 +298,7 @@ pub const WorkqueueBridgeLab = struct {
     }
 
     pub fn nextAuditFocus() []const u8 {
-        return "Audit disable_work(), disable_work_sync(), and cancel_delayed_work_sync() before any wrapper claims delayed cancellation or disable-depth parity.";
+        return "Audit disable_delayed_work(), disable_delayed_work_sync(), and enable_delayed_work() before any wrapper claims delayed alias parity or re-enable ownership.";
     }
 };
 
@@ -313,8 +323,8 @@ test "workqueue bridge boundary map records stay-in-c decisions" {
     try std.testing.expectEqualStrings("boundary_map_only", map.posture);
     try std.testing.expectEqual(@as(usize, 5), map.areas.len);
     try std.testing.expectEqual(@as(usize, 2), WorkqueueBridgeLab.stayInCDecisionCount());
-    try std.testing.expect(std.mem.indexOf(u8, WorkqueueBridgeLab.nextAuditFocus(), "disable_work()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, WorkqueueBridgeLab.nextAuditFocus(), "cancel_delayed_work_sync()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, WorkqueueBridgeLab.nextAuditFocus(), "disable_delayed_work()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, WorkqueueBridgeLab.nextAuditFocus(), "enable_delayed_work()") != null);
 
     try std.testing.expectEqualStrings("submission-routing", map.areas[0].id);
     try std.testing.expect(map.areas[0].ownership == .boundary_map_only);
@@ -336,11 +346,11 @@ test "workqueue bridge concurrency audit stays review-only" {
 
     try std.testing.expectEqualStrings("kernel/workqueue.c", audit.anchor);
     try std.testing.expectEqualStrings("boundary_map_only", audit.posture);
-    try std.testing.expectEqual(@as(usize, 14), audit.checkpoints.len);
+    try std.testing.expectEqual(@as(usize, 15), audit.checkpoints.len);
     try std.testing.expectEqual(@as(usize, 5), audit.blocked_live_behaviors.len);
-    try std.testing.expectEqual(@as(usize, 14), WorkqueueBridgeLab.auditCheckpointCount());
-    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "disable_work()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "cancel_delayed_work_sync()") != null);
+    try std.testing.expectEqual(@as(usize, 15), WorkqueueBridgeLab.auditCheckpointCount());
+    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "disable_delayed_work()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "enable_delayed_work()") != null);
 
     try std.testing.expectEqualStrings("manager-role-serialization", audit.checkpoints[0].id);
     try std.testing.expect(audit.checkpoints[0].guard == .pool_lock_released_and_reacquired);
@@ -394,20 +404,27 @@ test "workqueue bridge concurrency audit stays review-only" {
     try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[9].blocked_by, "__WQ_DRAINING") != null);
     try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[9].blocked_by, "re-enables the work item") != null);
 
-    try std.testing.expectEqualStrings("process-one-work-execution-window", audit.checkpoints[10].id);
-    try std.testing.expect(audit.checkpoints[10].guard == .callback_execution_outside_pool_lock);
-    try std.testing.expectEqualStrings("pwq->nr_in_flight", audit.checkpoints[10].observed_fields[3]);
+    try std.testing.expectEqualStrings("disable-depth-and-delayed-cancel-sync", audit.checkpoints[10].id);
+    try std.testing.expect(audit.checkpoints[10].guard == .disable_depth_and_delayed_cancel_sync);
+    try std.testing.expectEqualStrings("WORK_OFFQ_DISABLE_MASK", audit.checkpoints[10].observed_fields[0]);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[10].blocked_by, "clear_pending_if_disabled()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[10].blocked_by, "might_sleep()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[10].blocked_by, "WORK_CANCEL_DELAYED") != null);
 
-    try std.testing.expectEqualStrings("worker-thread-idle-sleep-handoff", audit.checkpoints[11].id);
-    try std.testing.expect(audit.checkpoints[11].guard == .idle_sleep_transition);
-    try std.testing.expectEqualStrings("pool->lock", audit.checkpoints[11].observed_fields[2]);
+    try std.testing.expectEqualStrings("process-one-work-execution-window", audit.checkpoints[11].id);
+    try std.testing.expect(audit.checkpoints[11].guard == .callback_execution_outside_pool_lock);
+    try std.testing.expectEqualStrings("pwq->nr_in_flight", audit.checkpoints[11].observed_fields[3]);
 
-    try std.testing.expectEqualStrings("scheduler-running-hooks", audit.checkpoints[12].id);
-    try std.testing.expect(audit.checkpoints[12].guard == .scheduler_callback_under_pool_lock);
-    try std.testing.expectEqualStrings("pool->nr_running", audit.checkpoints[12].observed_fields[1]);
+    try std.testing.expectEqualStrings("worker-thread-idle-sleep-handoff", audit.checkpoints[12].id);
+    try std.testing.expect(audit.checkpoints[12].guard == .idle_sleep_transition);
+    try std.testing.expectEqualStrings("pool->lock", audit.checkpoints[12].observed_fields[2]);
 
-    try std.testing.expectEqualStrings("rescuer-mayday-handoff", audit.checkpoints[13].id);
-    try std.testing.expect(audit.checkpoints[13].guard == .mayday_lock_then_pool_lock);
-    try std.testing.expectEqualStrings("pwq->mayday_cursor", audit.checkpoints[13].observed_fields[2]);
-    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[13].blocked_by, "kicks regular workers") != null);
+    try std.testing.expectEqualStrings("scheduler-running-hooks", audit.checkpoints[13].id);
+    try std.testing.expect(audit.checkpoints[13].guard == .scheduler_callback_under_pool_lock);
+    try std.testing.expectEqualStrings("pool->nr_running", audit.checkpoints[13].observed_fields[1]);
+
+    try std.testing.expectEqualStrings("rescuer-mayday-handoff", audit.checkpoints[14].id);
+    try std.testing.expect(audit.checkpoints[14].guard == .mayday_lock_then_pool_lock);
+    try std.testing.expectEqualStrings("pwq->mayday_cursor", audit.checkpoints[14].observed_fields[2]);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[14].blocked_by, "kicks regular workers") != null);
 }
