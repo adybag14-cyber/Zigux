@@ -129,6 +129,21 @@ def validate_atomic64_surveyed_commit_consistency(
         "atomic64_module_slice",
     )
 
+
+def validate_bitmap_surveyed_commit_consistency(
+    manifest_text: str,
+    survey_text: str,
+    module_slice_text: str,
+) -> list[str]:
+    return validate_doc_manifest_surveyed_commit_consistency(
+        "bitmap",
+        manifest_text,
+        survey_text,
+        module_slice_text,
+        "bitmap_survey",
+        "bitmap_module_slice",
+    )
+
 required_make_markers = [
     "PHONY += phase9-validate phase9-test phase9",
     "phase9-validate:",
@@ -369,7 +384,7 @@ required_loader_gap_manifest_markers = [
 
 required_atomic64_survey_markers = [
     "manifest-backed delivery catalog and ownership map",
-    "`PHASE9_SURVEYED_COMMIT=`,
+    "`PHASE9_SURVEYED_COMMIT=",
     "the current survey packet is pinned to `master` commit `",
     "Delivery ownership map",
     "zigux/tests/runtime_atomic64_manifest.json",
@@ -468,6 +483,7 @@ required_bitmap_survey_test_markers = [
 KRETPROBE_LANE_KEY = "P9-L15"
 KRETPROBE_SURVEYED_COMMIT = "9ab58640ce44fd53534dd49e29fcce6e274dc3d0"
 TRACE_EVENTS_SURVEYED_COMMIT = "e7b3b515704dd521630df0b0f62396d033e38e02"
+BITMAP_SURVEYED_COMMIT = "456151afa8a38a088e3cc582187b35fe5c7b0445"
 
 required_kretprobe_survey_markers = [
     f"`PHASE9_LANE_KEY={KRETPROBE_LANE_KEY}`",
@@ -656,7 +672,7 @@ def required_marker_count() -> int:
         + len(required_kretprobe_survey_test_markers)
         + 2
         + len(required_trace_events_survey_markers)
-        + len(required_trace_events_module_slice_markers)
+        + len(required_trace_EVENTS_module_slice_markers)
         + len(required_trace_events_manifest_markers)
         + len(required_trace_events_survey_test_markers)
         + len(required_trace_events_sample_markers)
@@ -768,6 +784,13 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     for marker in required_bitmap_survey_test_markers:
         if marker not in bitmap_survey_test:
             missing_markers.append(f"bitmap_survey_test:{marker}")
+    missing_markers.extend(
+        validate_bitmap_surveyed_commit_consistency(
+            bitmap_manifest,
+            bitmap_survey,
+            bitmap_module_slice,
+        )
+    )
     for marker in required_kretprobe_survey_markers:
         if marker not in kretprobe_survey:
             missing_markers.append(f"kretprobe_survey:{marker}")
@@ -973,6 +996,40 @@ def run_self_test() -> int:
         )
         kretprobe_manifest_path.write_text(original_kretprobe_manifest, encoding="utf-8")
 
+        bitmap_manifest_path = tmp_root / "zigux/tests/runtime_bitmap_manifest.json"
+        original_bitmap_manifest = bitmap_manifest_path.read_text(encoding="utf-8")
+        bitmap_manifest_path.write_text(
+            original_bitmap_manifest.replace(
+                f'"surveyed_commit": "{BITMAP_SURVEYED_COMMIT}"',
+                '"surveyed_commit": "2222222222222222222222222222222222222222"',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "bitmap_manifest_surveyed_commit_consistency",
+            tmp_root,
+            "bitmap_consistency:survey_doc_commit_mismatch",
+        )
+        bitmap_manifest_path.write_text(original_bitmap_manifest, encoding="utf-8")
+
+        bitmap_module_slice_path = tmp_root / "Documentation/zigux/phase9-runtime-bitmap-module-slice.md"
+        original_bitmap_module_slice = bitmap_module_slice_path.read_text(encoding="utf-8")
+        bitmap_module_slice_path.write_text(
+            original_bitmap_module_slice.replace(
+                f"`PHASE9_SURVEYED_COMMIT={BITMAP_SURVEYED_COMMIT}`",
+                "`PHASE9_SURVEYED_COMMIT=`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "bitmap_module_slice_surveyed_commit_pin",
+            tmp_root,
+            "bitmap_module_slice:missing_or_invalid_surveyed_commit_marker",
+        )
+        bitmap_module_slice_path.write_text(original_bitmap_module_slice, encoding="utf-8")
+
         loader_gap_survey_test_path = tmp_root / "zigux/tests/runtime_loader_gap_survey.zig"
         original_loader_gap_survey_test = loader_gap_survey_test_path.read_text(encoding="utf-8")
         loader_gap_survey_test_path.write_text(
@@ -1025,7 +1082,7 @@ def run_self_test() -> int:
         trace_events_manifest_path.write_text(original_trace_events_manifest, encoding="utf-8")
 
     print("PHASE9_VALIDATOR_SELF_TEST=pass")
-    print("PHASE9_VALIDATOR_SELF_TEST_CASE_COUNT=11")
+    print("PHASE9_VALIDATOR_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
