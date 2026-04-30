@@ -12,6 +12,7 @@ const SurveySummary = struct {
     workflow_runs_phase14_validate: bool,
     workflow_runs_phase14_build: bool,
     workflow_runs_phase14_smoke_shard: bool,
+    workflow_runs_phase14_smoke_wrapper: bool,
     review_checklist_has_phase14_smoke_prompt: bool,
     review_checklist_has_productization_prompt: bool,
     review_checklist_has_risk_bundle_prompt: bool,
@@ -155,6 +156,7 @@ test "phase14 shared smoke manifest records the current evidence bundle" {
     try std.testing.expect(manifest.survey_summary.workflow_runs_phase14_validate);
     try std.testing.expect(manifest.survey_summary.workflow_runs_phase14_build);
     try std.testing.expect(manifest.survey_summary.workflow_runs_phase14_smoke_shard);
+    try std.testing.expect(manifest.survey_summary.workflow_runs_phase14_smoke_wrapper);
     try std.testing.expect(manifest.survey_summary.review_checklist_has_phase14_smoke_prompt);
     try std.testing.expect(manifest.survey_summary.review_checklist_has_productization_prompt);
     try std.testing.expect(manifest.survey_summary.review_checklist_has_risk_bundle_prompt);
@@ -283,7 +285,7 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     try std.testing.expect(std.mem.indexOf(u8, workflow, "Run Phase 14 internal bridge tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, workflow, "zig build test --build-file zigux/tests/phase14_build.zig --summary all") != null);
     try std.testing.expect(std.mem.indexOf(u8, workflow, "Run Phase 14 smoke shard") != null);
-    try std.testing.expect(std.mem.indexOf(u8, workflow, "zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all") != null);
+    try std.testing.expect(std.mem.indexOf(u8, workflow, "make -C zigux phase14-smoke") != null);
 
     const checklist = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
