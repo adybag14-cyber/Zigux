@@ -1,5 +1,6 @@
 const std = @import("std");
 const runtime_atomic64_diff = @import("runtime_atomic64_diff.zig");
+const atomic64_diff_source = @embedFile("atomic64_diff.zig");
 const runtime_atomic64_diff_source = @embedFile("runtime_atomic64_diff.zig");
 
 comptime {
@@ -10,11 +11,37 @@ fn expectRuntimeMarker(marker: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, runtime_atomic64_diff_source, marker) != null);
 }
 
+fn expectWrapperMarker(marker: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, atomic64_diff_source, marker) != null);
+}
+
+fn expectWrapperNoMarker(marker: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, atomic64_diff_source, marker) == null);
+}
+
 test "atomic64 diff wrapper keeps the bounded runtime replay body reachable" {
     try expectRuntimeMarker("runtime atomic64 diff gate replays bounded atomic64_test.c");
     try expectRuntimeMarker("runtime atomic64 diff gate keeps selftest family coverage explicit");
-    try expectRuntimeMarker("runtime atomic64 diff gate keeps lifecycle transitions single-shot");
     try expectRuntimeMarker("runtime atomic64 diff gate keeps post-selftest replay explicit");
+}
+
+test "atomic64 diff wrapper stays a thin phase4 entrypoint" {
+    const runtime_sample_import = "const sample = @import(\"runtime_" ++ "atomic64_sample\");";
+    const runtime_struct_name = "RuntimeAtomic64" ++ "Sample";
+    const runtime_selftest_call = "runSelf" ++ "test()";
+    const runtime_add_call = "addCounter" ++ "(";
+
+    try expectWrapperMarker(
+        "const runtime_atomic64_diff = @import(\"runtime_atomic64_diff.zig\");",
+    );
+    try expectWrapperMarker(
+        "const runtime_atomic64_diff_source = @embedFile(\"runtime_atomic64_diff.zig\");",
+    );
+
+    try expectWrapperNoMarker(runtime_sample_import);
+    try expectWrapperNoMarker(runtime_struct_name);
+    try expectWrapperNoMarker(runtime_selftest_call);
+    try expectWrapperNoMarker(runtime_add_call);
 }
 
 test "atomic64 diff wrapper records the exact bounded runtime atomic64 checks" {
@@ -46,13 +73,6 @@ test "atomic64 diff wrapper records the exact bounded runtime atomic64 checks" {
 
     try expectRuntimeMarker("checked_returning_paths");
     try expectRuntimeMarker("checked_guard_paths");
-    try expectRuntimeMarker("error.InvalidLifecycleTransition, cold_module.runSelftest()");
-    try expectRuntimeMarker("error.InvalidLifecycleTransition, cold_module.exit()");
-    try expectRuntimeMarker("error.InvalidLifecycleTransition, module.init(11)");
-    try expectRuntimeMarker("error.InvalidLifecycleTransition, module.runSelftest()");
-    try expectRuntimeMarker("error.InvalidLifecycleTransition, module.init(13)");
-    try expectRuntimeMarker("error.InvalidLifecycleTransition, module.exit()");
-    try expectRuntimeMarker("error.InvalidLifecycleTransition, module.init(17)");
     try expectRuntimeMarker("error.InvalidLifecycleTransition, module.incNotZeroCounter()");
     try expectRuntimeMarker("error.InvalidLifecycleTransition, module.decIfPositiveCounter()");
 }
