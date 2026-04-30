@@ -18,6 +18,7 @@ required_files = [
     ROOT / "scripts" / "zigux" / "check-phase7-rbtree-parity.py",
     ROOT / "scripts" / "zigux" / "README.md",
     ROOT / "Documentation" / "zigux" / "README.md",
+    ROOT / "Documentation" / "zigux" / "review-checklist.md",
     ROOT / "Documentation" / "zigux" / "phase7-string-helpers-slice.md",
     ROOT / "Documentation" / "zigux" / "phase7-cmdline-slice.md",
     ROOT / "Documentation" / "zigux" / "phase7-argv-split-slice.md",
@@ -44,6 +45,7 @@ required_files = [
     ROOT / "lib" / "cmdline.zig",
     ROOT / "lib" / "argv_split.zig",
     ROOT / "lib" / "rbtree.zig",
+    ROOT / "samples" / "zigux" / "README.md",
     ROOT / ".github" / "workflows" / "zigux-bootstrap.yml",
 ]
 
