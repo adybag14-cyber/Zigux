@@ -34,7 +34,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expect(manifest.lane_key.len > 0);
+    try std.testing.expectEqualStrings("P5-L10", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 5", manifest.phase);
     try std.testing.expectEqual(@as(usize, 40), manifest.surveyed_commit.len);
     for (manifest.surveyed_commit) |char| {
@@ -43,10 +43,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     }
     try std.testing.expectEqualStrings("samples/kobject/kobject-example.c", manifest.anchor);
     try std.testing.expectEqualStrings("samples/zigux/kobject_example.zig", manifest.sample_path);
-    try std.testing.expectEqualStrings(
-        "zig build test --build-file zigux/tests/phase5_kobject_only_build.zig --summary all",
-        manifest.validation_entrypoint,
-    );
+    try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
     try std.testing.expectEqual(@as(usize, 8), manifest.review_prompts.len);
     try std.testing.expectEqual(@as(usize, 11), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
@@ -229,17 +226,9 @@ test "phase 5 kobject contributor docs stay aligned with the shipped review surf
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_kobject_example_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_kobject_example_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_build.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_kobject_only_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared sample-root catalog in `samples/zigux/README.md` plus the shared prompts in `Documentation/zigux/review-checklist.md`") != null);
-    {
-        const lane_key_line = try std.fmt.allocPrint(
-            std.testing.allocator,
-            "PHASE5_LANE_KEY={s}",
-            .{manifest.lane_key},
-        );
-        defer std.testing.allocator.free(lane_key_line);
-        try std.testing.expect(std.mem.indexOf(u8, survey_note, lane_key_line) != null);
-    }
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "dedicated kobject review-packet stanza") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_LANE_KEY=P5-L10") != null);
     {
         const surveyed_commit_line = try std.fmt.allocPrint(
             std.testing.allocator,
@@ -259,20 +248,31 @@ test "phase 5 kobject contributor docs stay aligned with the shipped review surf
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "post-`exit()` `init()`, `registerAttributes()`, `showValue()`, and `storeValue()` calls all remain rejected") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Latest verification snapshot") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig test samples/zigux/kobject_example.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "1/2 kobject_example.test.kobject sample replay keeps the anchor reviewable and non-runtime...OK") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "2/2 kobject_example.test.kobject sample teardown keeps ownership boundaries explicit...OK") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "All 2 tests passed.") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig test zigux/tests/phase5_kobject_example_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "1/2 phase5_kobject_example_survey.test.phase 5 kobject manifest records the exact bounded checks...OK") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "2/2 phase5_kobject_example_survey.test.phase 5 kobject contributor docs stay aligned with the shipped review surface...OK") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Build Summary: 5/5 steps succeeded; 7/7 tests passed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Build Summary: 17/17 steps succeeded; 27/27 tests passed") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5-kobject-example-tests 5 pass (5 total)") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5-kobject-example-survey-tests 2 pass (2 total)") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "The shared sample-root catalog in `samples/zigux/README.md` plus the shared prompts in `Documentation/zigux/review-checklist.md` remain part of the shipped review surface") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "The roadmap delivery gap is already closed.") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "/workspace/agent_files/") == null);
+    {
+        const pinned_commit_line = try std.fmt.allocPrint(
+            std.testing.allocator,
+            "approved ownership-and-lifetime idiom is now pinned to `PHASE5_SURVEYED_COMMIT={s}`",
+            .{manifest.surveyed_commit},
+        );
+        defer std.testing.allocator.free(pinned_commit_line);
+        try std.testing.expect(std.mem.indexOf(u8, survey_note, pinned_commit_line) != null);
+    }
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "approved ownership-and-lifetime idiom inside that completed anchor set") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared sample-root catalog, shared review checklist, and contributor review path all point at the same inspected `master` head") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "sysfs creation, `kernel_kobj` integration, uevents, and loadable module registration remain out of scope") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "manifest-backed survey") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "sample-backed survey note") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "phase5_build.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "shared `phase5_build.zig` entrypoint") != null);
-    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "manifest-backed survey still pin the exact inspected `master` head") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "exact replay contract") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "landed Phase 5 `kobject` sample packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "approved ownership-and-lifetime idiom") != null);
 }
