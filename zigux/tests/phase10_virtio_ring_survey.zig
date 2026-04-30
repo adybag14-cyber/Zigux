@@ -72,7 +72,7 @@ test "phase10 virtio ring survey manifest records the live queue-discipline pack
     try std.testing.expectEqualStrings("P10-L08", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 10", manifest.phase);
     try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", manifest.anchor);
-    try std.testing.expectEqualStrings("e42103fc02f544e1bd23a5ec2e5b584734f5af7d", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("800e2edfb5d2d0c80ac45ffee6630a6b13905d0d", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.virtio_ring_c_lines >= 3000);
     try std.testing.expectEqual(@as(usize, 3), manifest.survey_summary.preexisting_phase10_test_files);
