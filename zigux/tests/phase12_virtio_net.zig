@@ -532,6 +532,33 @@ test "phase12 virtio net flags big-packet receive planning for guest gso through
     );
 }
 
+test "phase12 virtio net treats either guest uso feature as guest gso pressure" {
+    var lab = try virtio_net.VirtioNetProbeLab.init(&.{
+        virtio_net.feature_guest_uso4,
+    });
+
+    const snapshot = try lab.captureProbeSnapshot(.{
+        .driver_feature_bits = &.{
+            virtio_net.feature_guest_uso4,
+        },
+        .requested_queue_pairs = 1,
+        .max_queue_pairs = 1,
+        .mtu = virtio_net.ethernet_default_mtu,
+        .xdp_requested = true,
+    });
+
+    try std.testing.expectEqual(virtio_net.ReceiveBufferMode.big_packets, snapshot.receive_buffer_mode);
+    try std.testing.expectEqual(virtio_net.BigPacketReason.guest_gso, snapshot.big_packet_reason);
+    try std.testing.expectEqual(
+        virtio_net.HeaderScatterPolicy.separate_header_sg,
+        snapshot.header_scatter_policy,
+    );
+    try std.testing.expectEqual(
+        virtio_net.XdpConstraint.blocked_by_big_packets,
+        snapshot.xdp_constraint,
+    );
+}
+
 test "phase12 virtio net plans mergeable refill budgets from mtu and header state" {
     var lab = try virtio_net.VirtioNetProbeLab.init(&.{
         virtio_net.feature_mergeable_rx_buffers,
