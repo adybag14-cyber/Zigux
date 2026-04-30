@@ -60,7 +60,7 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
     try std.testing.expectEqualStrings("Validation and Perf Team", manifest.owner);
     try std.testing.expectEqualStrings("Validation and Perf Team", manifest.rollback_owner);
     try std.testing.expectEqualStrings(
-        "1d492880f141d20d8b00ac7e06ea895fc7d345c9",
+        "81356ba2b96caf155f2c8788b3ede1fbb4c96d74",
         manifest.surveyed_commit,
     );
     try std.testing.expectEqual(@as(usize, 2), manifest.surveyed_gates.len);
