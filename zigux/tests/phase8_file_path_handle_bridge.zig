@@ -110,7 +110,8 @@ test "phase 8 file-path-handle bridge parses bounded fdinfo map metadata" {
             "key_size:\t4\n" ++
             "value_size:\t8\n" ++
             "max_entries:\t256\n" ++
-            "map_flags:\t0x20\n",
+            "map_flags:\t0x20\n" ++
+            "map_extra:\t7\n",
     );
 
     try std.testing.expectEqual(@as(u32, 3), info.map_type);
@@ -118,11 +119,13 @@ test "phase 8 file-path-handle bridge parses bounded fdinfo map metadata" {
     try std.testing.expectEqual(@as(u32, 8), info.value_size);
     try std.testing.expectEqual(@as(u32, 256), info.max_entries);
     try std.testing.expectEqual(@as(u32, 0x20), info.map_flags);
+    try std.testing.expectEqual(@as(u64, 7), info.map_extra);
 }
 
 test "phase 8 file-path-handle bridge accepts reordered fields and surrounding whitespace" {
     const info = try file_path_handle_bridge.parseMapInfoFromFdinfo(
         "map_flags:   512\r\n" ++
+            "map_extra:\t0x10\r\n" ++
             "max_entries:\t128\r\n" ++
             "value_size:\t 8\r\n" ++
             "key_size:\t4\r\n" ++
@@ -134,6 +137,7 @@ test "phase 8 file-path-handle bridge accepts reordered fields and surrounding w
     try std.testing.expectEqual(@as(u32, 8), info.value_size);
     try std.testing.expectEqual(@as(u32, 128), info.max_entries);
     try std.testing.expectEqual(@as(u32, 512), info.map_flags);
+    try std.testing.expectEqual(@as(u64, 0x10), info.map_extra);
 }
 
 test "phase 8 file-path-handle bridge keeps reused-map name selection bounded and explicit" {
@@ -160,7 +164,9 @@ test "phase 8 file-path-handle bridge mirrors libbpf zero-init and last-field-wi
         "map_type:\t3\n" ++
             "key_size:\t4\n" ++
             "value_size:\t8\n" ++
+            "map_extra:\t1\n" ++
             "map_type:\t7\n" ++
+            "map_extra:\t5\n" ++
             "map_flags:\t0x20\n" ++
             "map_flags:\t0x40\n",
     );
@@ -170,6 +176,7 @@ test "phase 8 file-path-handle bridge mirrors libbpf zero-init and last-field-wi
     try std.testing.expectEqual(@as(u32, 8), info.value_size);
     try std.testing.expectEqual(@as(u32, 0), info.max_entries);
     try std.testing.expectEqual(@as(u32, 0x40), info.map_flags);
+    try std.testing.expectEqual(@as(u64, 5), info.map_extra);
 }
 
 test "phase 8 file-path-handle bridge keeps malformed fdinfo values explicit" {
@@ -193,6 +200,13 @@ test "phase 8 file-path-handle bridge keeps malformed fdinfo values explicit" {
             "value_size:\t8\n" ++
             "max_entries:\t256\n" ++
             "map_flags:\t0x100000000\n",
+    ));
+    try std.testing.expectError(error.InvalidValue, file_path_handle_bridge.parseMapInfoFromFdinfo(
+        "map_type:\t3\n" ++
+            "key_size:\t4\n" ++
+            "value_size:\t8\n" ++
+            "max_entries:\t256\n" ++
+            "map_extra:\tbad\n",
     ));
 }
 
