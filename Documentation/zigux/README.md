@@ -72,7 +72,12 @@ Phase 11 notes
 - `python3 scripts/zigux/validate-phase11.py`, `zigux/tests/fixtures/phase11_build_inventory.json`, `make -C zigux phase11-validate`, and `make -C zigux phase11` now define the shared Phase 11 reviewability path, with the dedicated `zigux/tests/phase11_hvc_console_survey.zig` archival replay still kept separate from `zigux/tests/phase11_build.zig`.
 
 Phase 12 notes
-- `Documentation/zigux/phase12-virtio-net-survey.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `Documentation/zigux/phase12-virtio-scsi-slice.md`, and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` are the current shared Phase 12 notes for the complex-driver and heavy-helper tranche.
+- `Documentation/zigux/phase12-virtio-net-survey.md`
+- `Documentation/zigux/phase12-nvme-pci-survey.md`
+- `Documentation/zigux/phase12-nvme-pci-slice.md`
+- `Documentation/zigux/phase12-virtio-scsi-survey.md`
+- `Documentation/zigux/phase12-virtio-scsi-slice.md`
+- `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`
 - the active Phase 12 network-driver survey packet now keeps the bounded `drivers/net/virtio_net.zig` probe snapshot, queue-recovery summary, queue-resume summary, `hdr_len`, receive-path, and mergeable-refill helpers visible from the top-level docs index.
 - the same top-level Phase 12 packet now also keeps the bounded `drivers/nvme/host/pci.zig` queue planner, PRP buffer-shape helper, and pointer-selection helper visible from the docs index.
 - the active Phase 12 storage-driver survey packet now keeps the bounded `drivers/scsi/virtio_scsi.zig` queue-layout, recovery, probe snapshot, host-limit summary, queue-depth summary, and io-queue-map starters visible from the top-level docs index.
