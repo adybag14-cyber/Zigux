@@ -48,6 +48,12 @@ def run_self_test() -> int:
         (paths.scripts_dir / "check-phase3-alpha.py").write_text(
             render_wrapper_stub(), encoding="utf-8", newline="\n"
         )
+        (paths.scripts_dir / "validate_phase3_core.py").write_text(
+            "# alpha validator core\n", encoding="utf-8", newline="\n"
+        )
+        (paths.scripts_dir / "validate_phase3_selftest.py").write_text(
+            "# alpha validator selftest\n", encoding="utf-8", newline="\n"
+        )
         (paths.tests_dir / "phase3_alpha_dump.zig").write_text("// alpha dump\n", encoding="utf-8", newline="\n")
         (fixture_dir / "expected.json").write_text(
             json.dumps({"abi_version": 1, "constants": ABI_REQUIRED_EXPECTED_CONSTANTS, "structs": {}}),
@@ -63,11 +69,13 @@ def run_self_test() -> int:
                     "slice": "alpha-slice",
                     "files": [
                         "Documentation/zigux/phase3-alpha-slice.md",
+                        "scripts/zigux/validate_phase3_core.py",
+                        "scripts/zigux/validate_phase3_selftest.py",
                         "zigux/tests/phase3_alpha_dump.zig",
                         "zigux/tests/fixtures/phase3_alpha/expected.json",
                         "zigux/tests/fixtures/phase3_alpha/phase3_alpha_c_harness.c",
                     ],
-                    "file_count": 4,
+                    "file_count": 6,
                 }
             ),
             encoding="utf-8",
@@ -85,6 +93,13 @@ def run_self_test() -> int:
 
         entry = entries[0]
         assert validate_manifest(entry) == []
+        assert validate_manifest(
+            entry,
+            required_files=(
+                "scripts/zigux/validate_phase3_core.py",
+                "scripts/zigux/validate_phase3_selftest.py",
+            ),
+        ) == []
         assert validate_source_markers(root, {}) == []
         assert validate_slices(
             root,
