@@ -2,6 +2,7 @@ const std = @import("std");
 const runtime_atomic64_diff = @import("runtime_atomic64_diff.zig");
 const atomic64_diff_source = @embedFile("atomic64_diff.zig");
 const runtime_atomic64_diff_source = @embedFile("runtime_atomic64_diff.zig");
+const phase4_runtime_atomic64_manifest_source = @embedFile("phase4_runtime_atomic64_diff_manifest.json");
 
 comptime {
     _ = runtime_atomic64_diff;
@@ -17,6 +18,10 @@ fn expectWrapperMarker(marker: []const u8) !void {
 
 fn expectWrapperNoMarker(marker: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, atomic64_diff_source, marker) == null);
+}
+
+fn expectManifestMarker(marker: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, phase4_runtime_atomic64_manifest_source, marker) != null);
 }
 
 test "atomic64 diff wrapper keeps the bounded runtime replay body reachable" {
@@ -42,6 +47,15 @@ test "atomic64 diff wrapper stays a thin phase4 entrypoint" {
     try expectWrapperNoMarker(runtime_struct_name);
     try expectWrapperNoMarker(runtime_selftest_call);
     try expectWrapperNoMarker(runtime_add_call);
+}
+
+test "atomic64 diff wrapper keeps roadmap entrypoint and rollback evidence aligned" {
+    try expectManifestMarker("\"zigux/tests/atomic64_diff.zig\"");
+    try expectManifestMarker("\"roadmap_atomic64_wrapper_targets_runtime_diff\": true");
+    try expectManifestMarker("\"phase4_build_uses_atomic64_wrapper\": true");
+    try expectManifestMarker("\"phase4_validator_atomic64_diff_present\": true");
+    try expectManifestMarker("\"phase9_build_uses_runtime_atomic64_diff\": true");
+    try expectManifestMarker("\"id\": \"phase4-roadmap-path-alignment\"");
 }
 
 test "atomic64 diff wrapper records the exact bounded runtime atomic64 checks" {
