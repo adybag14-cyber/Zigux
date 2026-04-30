@@ -155,15 +155,13 @@ The bounded `kconfig` bridge closure packet remains closed because the shared fi
   `conf bridge emits savedefconfig mode argument before kconfig`
   `conf bridge escapes low control bytes in argv and env values`
 - helper-local anchors in `scripts/zigux/kconfig/confdata_bridge.zig`:
-  `confdata bridge decodes escaped quoted strings`
   `confdata bridge decodes escaped control sequences in quoted strings`
-  `confdata bridge accepts CRLF config lines`
+  `confdata bridge keeps empty quoted strings as string values`
   `confdata bridge keeps explicit n assignments as tristate values`
   `confdata bridge skips malformed quoted strings`
+  `confdata bridge distinguishes integer, hex, and fallback scalar values`
   `confdata bridge keeps quoted payloads before trailing suffix bytes`
-  `confdata bridge keeps the last assignment for duplicate symbols`
-  `confdata bridge recognizes explicit plus-signed integers and hex values`
-  `confdata bridge recognizes explicit minus-signed hex values`
+  `confdata bridge accepts CRLF config lines`
   `confdata bridge rejects empty config path arguments`
   `confdata bridge escapes low control bytes in emitted json`
 
@@ -173,7 +171,7 @@ The bounded `kconfig` bridge closure packet remains closed because the shared fi
 - `PHASE2_KCONFIG_BRIDGE_ARGUMENT_CASES=zigux/tests/fixtures/kconfig_bridge/defconfig_expected.json,zigux/tests/fixtures/kconfig_bridge/savedefconfig_expected.json`
 - `PHASE2_KCONFIG_BRIDGE_LOW_CONTROL_CASE=zigux/tests/fixtures/kconfig_bridge/escaped_low_control_bytes_expected.json`
 - `PHASE2_KCONFIG_BRIDGE_MANIFEST_POLICY=check-kconfig-bridge.py rejects uncovered modes, malformed manifests, duplicate fixture references, orphaned fixture files, and non-canonical confdata names before replay`
-- `PHASE2_KCONFIG_BRIDGE_EVIDENCE=artifact fixtures plus conf bridge mode coverage, allconfig env, mode-arg, manifest-determinism, confdata escaped-control decode, empty-path rejection, and low-control JSON emission anchors are required for closure`
+- `PHASE2_KCONFIG_BRIDGE_EVIDENCE=artifact fixtures plus conf bridge mode coverage, allconfig env, mode-arg, manifest-determinism, confdata escaped-control decode, empty-string, explicit-n, malformed-quote, signed-numeric, quoted-suffix, CRLF, empty-path rejection, and low-control JSON emission anchors are required for closure`
 
 ## Linux-Style Entry Point
 
