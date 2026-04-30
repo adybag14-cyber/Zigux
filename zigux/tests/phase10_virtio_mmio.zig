@@ -212,6 +212,38 @@ test "phase10 virtio mmio snapshots a bounded config window without writes" {
     try std.testing.expectError(error.ConfigWindowOutOfRange, window.snapshotConfigWindow(15, .half));
 }
 
+test "phase10 virtio mmio plans bounded config-window writes without side effects" {
+    var window = virtio_mmio.VirtioMmioRegisterWindowLab.initWithQueueMaximumsAndConfigWindow(
+        .{ 0, 0 },
+        11,
+        .{ 8, 16 },
+        .{ 0x34, 0x12, 0x78, 0x56, 0xbc, 0x9a, 0xf0, 0xde, 0x11, 0x22, 0x33, 0x44, 0, 0, 0, 0 },
+    );
+
+    var plan = try window.planConfigWrite(0, .half, 0xabcd);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", plan.anchor);
+    try std.testing.expectEqual(@as(u32, 0), plan.offset);
+    try std.testing.expectEqual(virtio_mmio.ConfigWindowWidth.half, plan.width);
+    try std.testing.expectEqual(@as(u32, 11), plan.generation);
+    try std.testing.expectEqual(@as(u32, 0x1234), plan.previous_value);
+    try std.testing.expectEqual(@as(u32, 0xabcd), plan.planned_value);
+
+    var config = try window.snapshotConfigWindow(0, .half);
+    try std.testing.expectEqual(@as(u32, 0xabcd), config.value);
+    try std.testing.expectEqual(@as(u32, 11), config.generation);
+
+    plan = try window.planConfigWrite(2, .word, 0x11223344);
+    try std.testing.expectEqual(@as(u32, 0x9abc5678), plan.previous_value);
+    try std.testing.expectEqual(@as(u32, 0x11223344), plan.planned_value);
+
+    config = try window.snapshotConfigWindow(2, .word);
+    try std.testing.expectEqual(@as(u32, 0x11223344), config.value);
+
+    try std.testing.expectError(error.ConfigWriteValueTooWide, window.planConfigWrite(8, .byte, 0x100));
+    try std.testing.expectError(error.ConfigWriteValueTooWide, window.planConfigWrite(8, .half, 0x1_0000));
+    try std.testing.expectError(error.ConfigWindowOutOfRange, window.planConfigWrite(15, .half, 0xabcd));
+}
+
 test "phase10 virtio mmio acknowledges only pending bounded interrupt bits" {
     var window = virtio_mmio.VirtioMmioRegisterWindowLab.init(.{ 0, 0 }, 0);
 
