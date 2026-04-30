@@ -307,10 +307,13 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "net-driver lifecycle") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "make -C zigux phase12") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "surveyed `master` snapshot `c23f1e76c2c0cdb2526d252689e68cc4dbee505d`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "lane key refreshed to `P12-L04`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "focused replay stays bounded to `zigux/tests/phase12_virtio_net_survey.zig`, `zigux/tests/phase12_build.zig`, and `zigux/tests/phase12_virtio_net.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "reviewed against surveyed `master` snapshot `c23f1e76c2c0cdb2526d252689e68cc4dbee505d` without widening past the current probe snapshot, queue-recovery summary, queue-resume summary, `hdr_len`, receive-path, and mergeable-refill helpers") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "current `master` head") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "next tiny `hdr_len` follow-up") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "most likely a tiny mergeable-refill or minimum-buffer summary") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "already-landed queue-recovery, queue-resume, `hdr_len`, receive-path, and mergeable-refill follow-ups") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "ready-next `phase12-virtio-net-queue-recovery-followup`") == null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "lane key refreshed to `P12-L04`") == null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "latest carried-forward focused replay remains the existing Phase 12 virtio_net survey and build packet") == null);
 }
