@@ -241,7 +241,7 @@ test "phase10 virtio mmio plans bounded config-window writes without side effect
     try std.testing.expectEqual(@as(u32, 0xabcd), plan.planned_value);
 
     var config = try window.snapshotConfigWindow(0, .half);
-    try std.testing.expectEqual(@as(u32, 0xabcd), config.value);
+    try std.testing.expectEqual(@as(u32, 0x1234), config.value);
     try std.testing.expectEqual(@as(u32, 11), config.generation);
 
     plan = try window.planConfigWrite(2, .word, 0x11223344);
@@ -249,7 +249,7 @@ test "phase10 virtio mmio plans bounded config-window writes without side effect
     try std.testing.expectEqual(@as(u32, 0x11223344), plan.planned_value);
 
     config = try window.snapshotConfigWindow(2, .word);
-    try std.testing.expectEqual(@as(u32, 0x11223344), config.value);
+    try std.testing.expectEqual(@as(u32, 0x9abc5678), config.value);
 
     try std.testing.expectError(error.ConfigWriteValueTooWide, window.planConfigWrite(8, .byte, 0x100));
     try std.testing.expectError(error.ConfigWriteValueTooWide, window.planConfigWrite(8, .half, 0x1_0000));
