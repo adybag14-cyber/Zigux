@@ -20,20 +20,7 @@ Recommended Zigux destinations:
 Shared tranche entrypoints already present on `master`:
 - `zigux/tests/phase13_build.zig`
 - `zigux/Makefile` via `make -C zigux phase13`
-
-Current shared replay inventory recorded in `zigux/tests/phase13_build.zig`:
-- `phase13-libfs-tests`
-- `phase13-devres-tests`
-- `phase13-landlock-ruleset-tests`
-- `phase13-landlock-syscalls-tests`
-- `phase13-libfs-reviewability-tests`
-- `phase13-devres-reviewability-tests`
-- `phase13-notifier-list-reviewability-tests`
-
-Adjacent Phase 13 reviewability evidence already present on `master`:
-- `zigux/tests/phase13_notifier_list_reviewability.zig`
-- `zigux/tests/phase13_notifier_list_manifest.json`
-- `Documentation/zigux/phase13-notifier-list-survey.md`
+- `lib/devres.c` is represented by real helper code, real tests, a manifest-backed survey packet, and explicit blocked DMA/scatterlist boundary evidence
 
 ## Anchor-to-repo map
 
@@ -44,7 +31,7 @@ Current repo evidence:
 - dedicated tests: `zigux/tests/phase13_libfs.zig`
 - reviewability gate: `zigux/tests/phase13_libfs_reviewability.zig`
 - manifest: `zigux/tests/phase13_libfs_manifest.json`
-- manifest `surveyed_commit`: `de4608e6d7660ef469a327e5053a7a2dc932be71`
+- manifest `surveyed_commit`: `ff87456109937e1ffbe7f2a91a79c2661874ef88`
 - shared build entry: `zigux/tests/phase13_build.zig`
 - slice notes: `Documentation/zigux/phase13-libfs-slice.md`
 - survey note: `Documentation/zigux/phase13-libfs-survey.md`
@@ -53,12 +40,13 @@ Current lane state recorded in the manifest:
 - landed `phase13-libfs-helper-starter`
 - landed `phase13-libfs-reviewability-gate`
 - landed `phase13-libfs-dcache-cursor-preconditions`
-- ready-next `phase13-libfs-dcache-cursor-reposition-bookkeeping`
+- landed `phase13-libfs-dcache-cursor-reposition-bookkeeping`
+- landed `phase13-libfs-dcache-dir-close-release-bookkeeping`
 - blocked `phase13-libfs-dcache-cursor-helpers`
 - blocked `phase13-libfs-inode-and-pseudofs-lifecycle`
 
 Traceability summary:
-- this anchor is the most fully traced Phase 13 slice right now because the roadmap anchor, helper implementation, dedicated tests, manifest, slice note, survey note, and shared tranche build are all present and mutually named.
+- this anchor stays roadmap-aligned and manifest-backed, and the helper packet now includes the tiny `dcache_dir_close()` release-bookkeeping boundary while still refusing to claim broader cursor traversal, inode lifecycle, or pseudo-filesystem ownership.
 
 ### `lib/devres.c`
 
@@ -67,20 +55,18 @@ Current repo evidence:
 - dedicated tests: `zigux/tests/phase13_devres.zig`
 - reviewability gate: `zigux/tests/phase13_devres_reviewability.zig`
 - manifest: `zigux/tests/phase13_devres_manifest.json`
-- manifest `surveyed_commit`: `7f50505d85ecd5e25afa9d833310cc24002de8ae`
+- manifest `surveyed_commit`: `46cfce733c7aac677f2fbed9682667866f42aa0b`
 - shared build entry: `zigux/tests/phase13_build.zig`
 - slice note: `Documentation/zigux/phase13-devres-slice.md`
 - survey note: `Documentation/zigux/phase13-devres-survey.md`
 
 Current lane state recorded in the manifest:
-- landed `phase13-build-gate`
-- landed `phase13-make-target`
 - landed `phase13-devres-starter`
 - landed `phase13-devres-tests`
-- landed `phase13-devres-slice-note`
 - landed `phase13-devres-reviewability-gate`
 - landed `phase13-devres-survey-note`
 - landed `phase13-devres-managed-ioremap-lifetime`
+- landed `phase13-devres-managed-ioremap-np-wrapper`
 - landed `phase13-devres-managed-resource-planner`
 - landed `phase13-devres-devicetree-iomap-planner`
 - landed `phase13-devres-ioport-lifetime-planner`
@@ -93,7 +79,7 @@ Current lane state recorded in the manifest:
 - blocked `phase13-devres-live-arch-memtype-state`
 
 Traceability summary:
-- `lib/devres.c` is represented by real helper code, real tests, a manifest-backed survey packet, and explicit blocked DMA/scatterlist boundary evidence, so it is no longer the asymmetric Phase 13 anchor even though its live MMIO, device-tree, DMA, scatterlist, and arch-memtype behavior remain intentionally out of scope.
+- this anchor stays roadmap-aligned and manifest-backed, and the helper packet now covers managed ioremap, resource-planner, ioport, direct non-posted wrapper, and arch write-combine bookkeeping helpers while still refusing to claim live MMIO side effects, live DMA-backed mappings, scatterlist ownership, live device-tree walking, or global arch-memtype mutation.
 
 ### `security/landlock/ruleset.c`
 
@@ -101,22 +87,17 @@ Current repo evidence:
 - implementation anchor: `security/landlock/ruleset.zig`
 - dedicated tests: `zigux/tests/phase13_landlock_ruleset.zig`
 - manifest: `zigux/tests/phase13_landlock_ruleset_manifest.json`
-- manifest `surveyed_commit`: `4ee5cca6c2c1219fc6f267d3817d1dd0ef37e066`
-- shared build entry: `zigux/tests/phase13_build.zig`
-- slice note: `Documentation/zigux/phase13-landlock-ruleset-slice.md`
+- manifest `surveyed_commit`: `c2e6f75f05a6f935d21d06d21494d71883a5fa49`
+- slice notes: `Documentation/zigux/phase13-landlock-ruleset-slice.md`
 - survey note: `Documentation/zigux/phase13-landlock-ruleset-survey.md`
 
 Current lane state recorded in the manifest:
-- landed `phase13-landlock-ruleset-starter`
-- landed `phase13-landlock-rule-layer-merge-followup`
-- landed `phase13-landlock-tree-search-followup`
-- landed `phase13-landlock-tree-link-followup`
 - landed `phase13-landlock-rule-materialization-followup`
 - landed `phase13-landlock-rule-release-followup`
 - blocked `phase13-landlock-live-tree-state-blocker`
 
 Traceability summary:
-- this anchor is roadmap-aligned and manifest-backed, with the current repo explicitly separating the helper-only in-memory lab from the still-blocked live Landlock tree-state, release ownership, and hierarchy-lifetime work.
+- this anchor stays helper-first and reviewable: the current ruleset helper lab now includes canonical layer-shape validation around `create_rule()`-style copied or appended layer stacks beside the earlier materialization and release planners, while the still-blocked live Landlock tree-state, release ownership, and hierarchy-lifetime work remains outside this pure in-memory slice.
 
 ### `security/landlock/syscalls.c`
 
@@ -124,13 +105,17 @@ Current repo evidence:
 - implementation anchor: `security/landlock/syscalls.zig`
 - dedicated tests: `zigux/tests/phase13_landlock_syscalls.zig`
 - manifest: `zigux/tests/phase13_landlock_syscalls_manifest.json`
-- manifest `surveyed_commit`: `05a762ea272fa488b877178987418c54c030b239`
+- manifest `surveyed_commit`: `0f61a47e39976da9038ec4e47c255f4927de634b`
 - shared build entry: `zigux/tests/phase13_build.zig`
 - slice note: `Documentation/zigux/phase13-landlock-syscalls-slice.md`
 - survey note: `Documentation/zigux/phase13-landlock-syscalls-survey.md`
 
 Current lane state recorded in the manifest:
 - landed `phase13-landlock-syscalls-starter`
+- landed `phase13-landlock-syscalls-test-gate`
+- landed `phase13-landlock-syscalls-slice-note`
+- landed `phase13-landlock-syscalls-survey-note`
+- landed `phase13-landlock-copy-min-struct-followup`
 - landed `phase13-landlock-add-rule-followup`
 - landed `phase13-landlock-ruleset-fd-mode-followup`
 - landed `phase13-landlock-path-fd-followup`
@@ -140,28 +125,4 @@ Current lane state recorded in the manifest:
 - landed `phase13-landlock-ruleset-release-followup`
 
 Traceability summary:
-- this anchor is also roadmap-aligned and manifest-backed, with the current repo keeping the syscall helper slice explicit about ABI, create-ruleset, add-rule, ruleset-FD lookup, path-FD lookup, path-beneath handoff, net-port handoff, ruleset-FD creation handoff, and ruleset release planning while still blocking live path import, credential mutation, and enforcement claims.
-
-## Phase 13 traceability status
-
-What is fully traceable today:
-- the roadmap-to-repo path for `libfs`, `devres`, `landlock/ruleset`, and `landlock/syscalls`
-- the shared Phase 13 tranche entrypoints through `zigux/tests/phase13_build.zig` and `make -C zigux phase13`
-- the exact shared replay inventory of seven named test or reviewability steps inside `zigux/tests/phase13_build.zig`
-- the per-anchor manifest `surveyed_commit` anchors for `libfs`, `devres`, `landlock/ruleset`, and `landlock/syscalls`
-- the current landed versus blocked follow-ups for all four manifest-backed roadmap anchors
-
-What is additionally reviewable today without being a new roadmap anchor:
-- the shared `phase13_notifier_list_reviewability` packet records how the existing Phase 3 `list` and `hlist` ABI footholds, the current `list_view` and `hlist_view` helpers, and the chrdev-local notifier planner relate to the still-missing generic notifier ABI and helper surface
-- this packet lives in `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/tests/phase13_notifier_list_manifest.json`, and `Documentation/zigux/phase13-notifier-list-survey.md`
-- it should be read as Phase 13 reviewability evidence around preexisting shared-helper surfaces, not as a fifth roadmap anchor beside `libfs`, `devres`, or the two Landlock slices
-
-What stays intentionally blocked today:
-- `fs/libfs.c` still keeps the ready-next dcache-cursor reposition bookkeeping step separate from the blocked dcache-cursor helpers and inode or pseudofs lifecycle work, so the current helper packet does not overstate broader inode-state handling
-- `lib/devres.c` still keeps live MMIO side effects, live DMA-backed mappings, live scatterlist ownership, live device-tree walking, and live arch memtype state out of scope even though its helper-first survey packet is now manifest-backed
-- `security/landlock/ruleset.c` still keeps live Landlock tree-state ownership, rule-release ownership, and hierarchy-lifetime behavior outside the current in-memory helper lab even though the ruleset anchor is manifest-backed
-- `security/landlock/syscalls.c` still keeps live path import, credential mutation, and enforcement claims out of scope even though the syscall helper slice already records the current bounded handoff planning
-
-## Next bounded step
-
-If the Phase 13 traceability lane reopens, the next honest follow-up is to keep this note aligned with the shared release-discipline packet and any future manifest-backed status changes inside the four roadmap anchors, without widening into new helper behavior.
+- this anchor stays roadmap-aligned and manifest-backed, and the helper packet now covers ABI sizing, bounded user-struct copy discipline, create-ruleset validation, restrict-self logging translation, add-rule planning, ruleset-FD lookup, path-FD lookup, path-beneath handoff, net-port handoff, ruleset-FD creation handoff, and ruleset release planning while still refusing to claim live user-memory access, live FD ownership, anonymous inode internals, credential updates, domain merges, or syscall enforcement.
