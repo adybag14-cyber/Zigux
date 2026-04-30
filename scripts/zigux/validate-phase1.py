@@ -235,6 +235,13 @@ MARKER_GROUPS = {
             '"PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM"',
         ],
     ),
+    "parity_checker": (
+        "scripts/zigux/check-phase1-parity.py",
+        [
+            "print('PHASE1_PARITY_SELF_TEST=pass')",
+            "print('PHASE1_PARITY_SELF_TEST_CASE_COUNT=7')",
+        ],
+    ),
     "phase1_tests": (
         "zigux/tests/phase1_helpers.zig",
         [
