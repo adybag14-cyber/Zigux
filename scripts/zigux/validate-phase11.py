@@ -269,7 +269,7 @@ def run_self_test() -> int:
         expect_missing_marker(
             "gpio_teardown_summary_surface",
             tmp_root,
-            "phase11_gpio_wdt_tests:const toggle_teardown = try toggle_watchdog.summarizeTeardown(false);",
+            "phase11_gpio_wdt_tests:    const toggle_teardown = try toggle_watchdog.summarizeTeardown(false);",
         )
         gpio_test_path.write_text(original_gpio_test, encoding="utf-8")
 
@@ -303,7 +303,7 @@ def run_self_test() -> int:
         expect_missing_marker(
             "dw_teardown_failure_mode_surface",
             tmp_root,
-            "phase11_dw_wdt_tests:try std.testing.expect(stoppable_summary.stop_uses_reset_pulse);",
+            "phase11_dw_wdt_tests:    try std.testing.expect(stoppable_summary.stop_uses_reset_pulse);",
         )
         dw_test_path.write_text(original_dw_test, encoding="utf-8")
 
@@ -320,7 +320,7 @@ def run_self_test() -> int:
         expect_missing_marker(
             "bcm2835_remove_failure_mode_surface",
             tmp_root,
-            "phase11_bcm2835_wdt_tests:try std.testing.expect(conflict.poweroff_handler_left_in_place);",
+            "phase11_bcm2835_wdt_tests:    try std.testing.expect(conflict.poweroff_handler_left_in_place);",
         )
         bcm2835_test_path.write_text(original_bcm2835_test, encoding="utf-8")
 
@@ -337,9 +337,24 @@ def run_self_test() -> int:
             tmp_root,
             "phase11_hvc_console_tests:    try std.testing.expect(!stale_hangup.notifier_hangup_pending);",
         )
+        hvc_test_path.write_text(original_hvc_test, encoding="utf-8")
+
+        hvc_test_path.write_text(
+            original_hvc_test.replace(
+                "    try std.testing.expect(!detached_remove.tty_vhangup_requested);\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "hvc_detached_remove_teardown_surface",
+            tmp_root,
+            "phase11_hvc_console_tests:    try std.testing.expect(!detached_remove.tty_vhangup_requested);",
+        )
 
     print("PHASE11_VALIDATOR_SELF_TEST=pass")
-    print("PHASE11_VALIDATOR_SELF_TEST_CASE_COUNT=7")
+    print("PHASE11_VALIDATOR_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
@@ -629,4 +644,102 @@ for marker in [
     if marker not in gpio_matrix_doc:
         missing.append(f"phase11_gpio_wdt_docs:matrix:{marker}")
 for marker in [
-    'test "phase11 gpio_wdt stop requests distinguish nowayout gating from always-running hardware
+    'test "phase11 gpio_wdt stop requests distinguish nowayout gating from always-running hardware" {',
+    "    try std.testing.expectEqual(gpio_wdt.StopDisposition.blocked_by_nowayout, blocked.disposition);",
+    "    const toggle_teardown = try toggle_watchdog.summarizeTeardown(false);",
+    "    try std.testing.expect(toggle_teardown.disable_returns_toggle_line_to_input);",
+    "    try std.testing.expect(level_teardown.disable_keeps_level_line_output);",
+    "    try std.testing.expect(prestarted_call.register_device_requested);",
+]:
+    if marker not in gpio_test_text:
+        missing.append(f"phase11_gpio_wdt_tests:{marker}")
+
+bcm2835_manifest = load_manifest("phase11_bcm2835_wdt_manifest.json")
+bcm2835_commit = str(bcm2835_manifest.get("surveyed_commit", ""))
+bcm2835_survey_doc = text(BCM2835_WDT_DOC_PATHS["survey"])
+bcm2835_slice_doc = text(BCM2835_WDT_DOC_PATHS["slice"])
+bcm2835_matrix_doc = text(BCM2835_WDT_DOC_PATHS["matrix"])
+bcm2835_test_text = text("zigux/tests/phase11_bcm2835_wdt.zig")
+for marker in [
+    f"reviewed against live `master` `{bcm2835_commit}`",
+    "a tiny platform-registration or PM-base handoff summary",
+    "a tiny remove-time ownership summary",
+    "The next honest bounded step inside the same Phase 11 family is not another review-only handoff.",
+]:
+    if marker not in bcm2835_survey_doc:
+        missing.append(f"phase11_bcm2835_wdt_docs:survey:{marker}")
+for marker in [
+    "adds a tiny platform-registration and PM-base handoff summary for parent attachment, PM base availability, drvdata handoff readiness, register-device intent, and poweroff ownership reviewability",
+    "adds a tiny remove-time teardown summary for devm-managed watchdog cleanup while clearing the shared poweroff handler only when the bcm2835 lane currently owns it",
+    "This slice does not claim platform-driver registration, watchdog-core registration, MMIO access, delayed restart behavior, module parameter wiring beyond bookkeeping, live remove-time poweroff-handler release logic, or live poweroff integration yet.",
+]:
+    if marker not in bcm2835_slice_doc:
+        missing.append(f"phase11_bcm2835_wdt_docs:slice:{marker}")
+for marker in [
+    "| platform registration and PM-base handoff | `platformHandoffSummary()` now records parent attachment, PM-base availability, drvdata handoff readiness, register-device intent, and poweroff claim-vs-conflict reviewability without claiming platform-driver execution or live MMIO |",
+    "| remove-time teardown boundary | `removeSummary()` records that watchdog teardown stays devm-managed while the explicit remove callback only clears the shared poweroff handler if the bcm2835 lane owns it, leaving conflicting ownership in place |",
+    "current shared replay wiring on `master` includes both `phase11-bcm2835-wdt-tests` and `phase11-bcm2835-wdt-survey-tests`",
+]:
+    if marker not in bcm2835_matrix_doc:
+        missing.append(f"phase11_bcm2835_wdt_docs:matrix:{marker}")
+for marker in [
+    'test "phase11 bcm2835_wdt platform handoff summary keeps parent and PM-base prerequisites reviewable" {',
+    "    try std.testing.expect(ready.pm_base_handoff_ready);",
+    "    try std.testing.expect(!blocked.pm_base_handoff_ready);",
+    'test "phase11 bcm2835_wdt remove summary only clears the shared poweroff handler when bcm2835 owns it" {',
+    "    try std.testing.expect(conflict.poweroff_handler_left_in_place);",
+    "    try std.testing.expect(!absent.poweroff_handler_left_in_place);",
+]:
+    if marker not in bcm2835_test_text:
+        missing.append(f"phase11_bcm2835_wdt_tests:{marker}")
+
+dw_manifest = load_manifest("phase11_dw_wdt_manifest.json")
+dw_commit = str(dw_manifest.get("surveyed_commit", ""))
+dw_survey_doc = text(DW_WDT_DOC_PATHS["survey"])
+dw_slice_doc = text(DW_WDT_DOC_PATHS["slice"])
+dw_matrix_doc = text(DW_WDT_DOC_PATHS["matrix"])
+dw_test_text = text("zigux/tests/phase11_dw_wdt.zig")
+for marker in [
+    f"`master` `{dw_commit}`",
+    "an explicit `summarizeTeardownLifecycle()` stop-and-restart helper",
+    "latest carried-forward shared replay status remains `PHASE11_VALIDATION=pass` for the landed starter packet",
+]:
+    if marker not in dw_survey_doc:
+        missing.append(f"phase11_dw_wdt_docs:survey:{marker}")
+for marker in [
+    "keeps the DesignWare non-stoppable stop semantics explicit when reset control is unavailable",
+    "adds a tiny platform-resource preflight plus live resource-order summary that keeps the timer-clock choice, optional APB clock presence, reset-control availability, and optional pretimeout-IRQ wiring, plus the bounded tclk, optional pclk, reset, irq, and registration sequencing reviewable before any live devm calls",
+    "adds an explicit `summarizeTeardownLifecycle()` helper so reset-control-backed stop pulses, non-stoppable stop fallout, reset-mode restart forcing, and restart-from-stopped enablement stay reviewable before any live platform remove or PM teardown work",
+]:
+    if marker not in dw_slice_doc:
+        missing.append(f"phase11_dw_wdt_docs:slice:{marker}")
+for marker in [
+    "| platform-resource ordering surface | `platformResourcePreflightSummary()` plus `liveResourceOrderSummary()` keep timer-clock choice, optional APB clock presence, reset-control availability, optional pretimeout-IRQ wiring, and the bounded tclk, optional pclk, reset, irq, and registration sequencing reviewable before any live devm calls |",
+    "| stop and restart failure-mode boundary | `stop()`, `armRestart()`, and `summarizeTeardownLifecycle()` keep the non-stoppable stop failure-mode boundary explicit when reset control is unavailable while still recording the stoppable path, interrupt-status clearing, restart arming, reset-mode restart forcing, and restart-from-stopped enablement without claiming reboot-side effects |",
+    "current shared replay wiring on `master` includes both `phase11-dw-wdt-tests` and `phase11-dw-wdt-survey-tests`",
+]:
+    if marker not in dw_matrix_doc:
+        missing.append(f"phase11_dw_wdt_docs:matrix:{marker}")
+for marker in [
+    'test "phase11 dw_wdt platform resource preflight keeps clock choice and optional resources reviewable" {',
+    'test "phase11 dw_wdt live resource order keeps tclk, optional pclk, reset, irq, and registration sequencing explicit" {',
+    'test "phase11 dw_wdt stop and restart stay bounded to reset-control and non-stoppable semantics" {',
+    "    try std.testing.expect(!unstoppable_summary.stop_uses_reset_pulse);",
+    "    try std.testing.expect(stoppable_summary.stop_uses_reset_pulse);",
+]:
+    if marker not in dw_test_text:
+        missing.append(f"phase11_dw_wdt_tests:{marker}")
+
+if missing:
+    print("PHASE11_VALIDATION=fail")
+    print("PHASE11_VALIDATION_MISSING_START")
+    for item in missing:
+        print(item)
+    print("PHASE11_VALIDATION_MISSING_END")
+    sys.exit(1)
+
+print("PHASE11_VALIDATION=pass")
+print(f"PHASE11_REQUIRED_FILE_COUNT={len(FILES)}")
+print(f"PHASE11_STARTER_STATUS_COUNT={starter_total}")
+print(f"PHASE11_READY_NEXT_STATUS_COUNT={ready_total}")
+print(f"PHASE11_BLOCKED_STATUS_COUNT={blocked_total}")
