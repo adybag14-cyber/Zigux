@@ -139,8 +139,24 @@ def run_self_test() -> int:
             'zigux/tests/phase7_argv_split_survey.zig: try std.testing.expectEqual(@as(usize, 0), ready_next_count);',
         )
 
+        rbtree_survey_path = tmp_root / "zigux" / "tests" / "phase7_rbtree_survey.zig"
+        original_rbtree_survey = rbtree_survey_path.read_text(encoding="utf-8")
+        rbtree_survey_path.write_text(
+            original_rbtree_survey.replace(
+                'try std.testing.expect(std.mem.indexOf(u8, rbtree_tests, "phase 7 rbtree eraseInit detaches erased nodes for reuse") != null);',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "rbtree_eraseinit_review_surface",
+            tmp_root,
+            'zigux/tests/phase7_rbtree_survey.zig: try std.testing.expect(std.mem.indexOf(u8, rbtree_tests, "phase 7 rbtree eraseInit detaches erased nodes for reuse") != null);',
+        )
+
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=3")
+    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=4")
     return 0
 
 
@@ -407,6 +423,12 @@ required_phase7_cmdline_doc_markers = [
 
 required_phase7_rbtree_survey_markers = [
     "zigux/tests/phase7_rbtree_manifest.json",
+    'try std.testing.expect(std.mem.indexOf(u8, rbtree_helper, "pub fn iterateMatches") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, rbtree_helper, "pub fn eraseInit") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, rbtree_tests, "phase 7 rbtree eraseInit detaches erased nodes for reuse") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, rbtree_tests, "phase 7 rbtree postorder traversal matches committed parity fixture") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, rbtree_slice, "erase-and-detach reuse semantics via `eraseInit()`") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, rbtree_slice, "a machine-checked manifest that records the `lib/rbtree.c` anchor and the landed Phase 7 review surfaces") != null);',
 ]
 
 required_phase7_rbtree_test_markers = [
@@ -680,123 +702,5 @@ for root_path, import_path in re.findall(
     phase7_build_paths.add(import_path)
 
 for root_path in re.findall(
-    r'createStandaloneTestRoot\(\s*b,\s*target,\s*optimize,\s*"([^"]+)"',
-    phase7_build,
-    re.S,
-):
-    phase7_build_paths.add(root_path)
-if phase7_build_paths != expected_phase7_build_paths:
-    print("PHASE7_VALIDATION=fail")
-    print("PHASE7_BUILD_PATH_DRIFT_START")
-    missing_paths = sorted(expected_phase7_build_paths - phase7_build_paths)
-    unexpected_paths = sorted(phase7_build_paths - expected_phase7_build_paths)
-    for rel_path in missing_paths:
-        print(f"missing:{rel_path}")
-    for rel_path in unexpected_paths:
-        print(f"unexpected:{rel_path}")
-    print("PHASE7_BUILD_PATH_DRIFT_END")
-    sys.exit(1)
-
-missing_build_inputs = []
-for rel_path in sorted(expected_phase7_build_paths):
-    resolved = (PHASE7_BUILD_PATH.parent / rel_path).resolve()
-    if not resolved.exists():
-        missing_build_inputs.append(str(resolved.relative_to(ROOT)))
-
-if missing_build_inputs:
-    print("PHASE7_VALIDATION=fail")
-    print("PHASE7_BUILD_INPUTS_MISSING_START")
-    for rel_path in missing_build_inputs:
-        print(rel_path)
-    print("PHASE7_BUILD_INPUTS_MISSING_END")
-    sys.exit(1)
-
-missing_imports = sorted(
-    name
-    for name, pattern in expected_phase7_import_calls.items()
-    if not re.search(pattern, phase7_build, re.S)
-)
-if missing_imports:
-    print("PHASE7_VALIDATION=fail")
-    print("PHASE7_BUILD_IMPORT_DRIFT_START")
-    for name in missing_imports:
-        print(name)
-    print("PHASE7_BUILD_IMPORT_DRIFT_END")
-    sys.exit(1)
-
-missing_run_labels = sorted(label for label in expected_phase7_run_labels if label not in phase7_build)
-if missing_run_labels:
-    print("PHASE7_VALIDATION=fail")
-    print("PHASE7_BUILD_RUN_LABEL_DRIFT_START")
-    for label in missing_run_labels:
-        print(label)
-    print("PHASE7_BUILD_RUN_LABEL_DRIFT_END")
-    sys.exit(1)
-
-run_call_pattern = re.compile(
-    r'const\s+\w+\s*=\s*addTestRun\(\s*'
-    r'b,\s*"([^"]+)",\s*\w+,\s*(null|repo_root)\s*,?\s*\)',
-    re.S,
-)
-actual_run_cwds = {label: cwd for label, cwd in run_call_pattern.findall(phase7_build)}
-if actual_run_cwds != expected_phase7_run_cwds:
-    print("PHASE7_VALIDATION=fail")
-    print("PHASE7_BUILD_CWD_DRIFT_START")
-    for label in sorted(expected_phase7_run_cwds):
-        actual = actual_run_cwds.get(label)
-        expected = expected_phase7_run_cwds[label]
-        if actual != expected:
-            print(f"{label}: expected={expected} actual={actual or 'missing'}")
-    for label in sorted(actual_run_cwds):
-        if label not in expected_phase7_run_cwds:
-            print(f"{label}: unexpected={actual_run_cwds[label]}")
-    print("PHASE7_BUILD_CWD_DRIFT_END")
-    sys.exit(1)
-
-unexpected_build_hits = [
-    marker for marker in unexpected_phase7_build_markers if marker in phase7_build
-]
-if unexpected_build_hits:
-    print("PHASE7_VALIDATION=fail")
-    print("PHASE7_BUILD_STALE_MARKERS_START")
-    for marker in unexpected_build_hits:
-        print(marker)
-    print("PHASE7_BUILD_STALE_MARKERS_END")
-    sys.exit(1)
-
-for target_name, expected_lines in expected_make_expansions.items():
-    result = subprocess.run(
-        ["make", "-n", "-C", str(ROOT / "zigux"), target_name],
-        check=False,
-        capture_output=True,
-        text=True,
-    )
-    if result.returncode != 0:
-        print("PHASE7_VALIDATION=fail")
-        print("PHASE7_MAKE_WRAPPER_CHECK_FAILED_START")
-        print(f"{target_name}: returncode={result.returncode}")
-        stderr = result.stderr.strip()
-        if stderr:
-            print(stderr)
-        print("PHASE7_MAKE_WRAPPER_CHECK_FAILED_END")
-        sys.exit(1)
-
-    wrapper_output = result.stdout
-    missing_wrapper_lines = [
-        line for line in expected_lines if line not in wrapper_output
-    ]
-    if missing_wrapper_lines:
-        print("PHASE7_VALIDATION=fail")
-        print("PHASE7_MAKE_WRAPPER_DRIFT_START")
-        print(f"{target_name}: missing expected wrapper expansion")
-        for line in missing_wrapper_lines:
-            print(line)
-        print("PHASE7_MAKE_WRAPPER_DRIFT_END")
-        sys.exit(1)
-
-print("PHASE7_VALIDATION=pass")
-print(f"PHASE7_REQUIRED_FILE_COUNT={len(required_files)}")
-print(
-    "PHASE7_REQUIRED_MARKER_COUNT="
-    f"{sum(len(markers) for _, _, markers in checks)}"
-)
+    r'createStandaloneTestRoot\(\s*b,\s*target,
+... truncated
