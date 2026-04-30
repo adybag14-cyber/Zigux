@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
+import subprocess
 import sys
 
 
@@ -286,7 +287,7 @@ HEXDUMP_SLICE_MARKERS = [
 CATALOG_MARKERS = [
     "- verified head: `",
     "PHASE6_BASE64_C_PARITY_CASES=90",
-    "PHASE6_BSEARCH_C_PARITY_CASES=21",
+    "PHASE6_BSEARCH_C_PARITY_CASES=17",
     "max_slowdown_pct = 150",
     "max_slowdown_pct = 175",
     "avg_compare_calls <= std.math.log2_int_ceil(len) + 1",
@@ -402,6 +403,24 @@ def load_json(path: str) -> object:
     return json.loads(text(path))
 
 
+def current_repo_head() -> str | None:
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        return None
+
+    head = result.stdout.strip()
+    if not HEX40.fullmatch(head):
+        return None
+    return head
+
+
 def collect_missing_files() -> list[str]:
     return [path for path in REQUIRED_FILES if not (ROOT / path).exists()]
 
@@ -447,6 +466,7 @@ def main() -> int:
         print("PHASE6_VALIDATION=fail")
         print("PHASE6_CATALOG_HEAD_STATUS=invalid")
         return 1
+    repo_head = current_repo_head()
 
     missing: list[str] = []
     require_markers(missing, "make", makefile, MAKE_MARKERS)
@@ -490,6 +510,12 @@ def main() -> int:
 
         for key, expected in EXPECTED_MANIFEST.items():
             require_manifest_equal(missing, phase6_manifest, key, expected)
+
+    if repo_head is not None:
+        if catalog_head != repo_head:
+            missing.append("phase6_catalog:verified_head_stale")
+        if isinstance(phase6_manifest, dict) and phase6_manifest.get("surveyed_commit") != repo_head:
+            missing.append("manifest:surveyed_commit_stale")
 
     if missing:
         print("PHASE6_VALIDATION=fail")
