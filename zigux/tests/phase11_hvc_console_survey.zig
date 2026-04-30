@@ -1,4 +1,5 @@
 const std = @import("std");
+const layout_assert = @import("layout_assert");
 const SurveySummary = struct {
     hvc_console_c_lines: usize,
     preexisting_phase11_build_present: bool,
@@ -35,6 +36,20 @@ const WinsizeLayout = extern struct {
     ws_ypixel: u16,
 };
 
+const HvcStruct = opaque {};
+
+const HvOpsLayout = extern struct {
+    get_chars: ?*const fn (u32, [*]u8, usize) callconv(.c) isize,
+    put_chars: ?*const fn (u32, [*]const u8, usize) callconv(.c) isize,
+    flush: ?*const fn (u32, bool) callconv(.c) c_int,
+    notifier_add: ?*const fn (*HvcStruct, c_int) callconv(.c) c_int,
+    notifier_del: ?*const fn (*HvcStruct, c_int) callconv(.c) void,
+    notifier_hangup: ?*const fn (*HvcStruct, c_int) callconv(.c) void,
+    tiocmget: ?*const fn (*HvcStruct) callconv(.c) c_int,
+    tiocmset: ?*const fn (*HvcStruct, c_uint, c_uint) callconv(.c) c_int,
+    dtr_rts: ?*const fn (*HvcStruct, bool) callconv(.c) void,
+};
+
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
         std.mem.eql(u8, status, "ready_next") or
@@ -61,7 +76,7 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
     try std.testing.expectEqualStrings("P11-L18", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
     try std.testing.expectEqualStrings("drivers/tty/hvc/hvc_console.c", manifest.anchor);
-    try std.testing.expectEqualStrings("34d2750ba817c2cc9862df2b48c44a6155b300fe", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("146f218b0c604a197542b1cddc9268a070eba029", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.hvc_console_c_lines >= 1000);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_build_present);
@@ -71,7 +86,7 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
     try std.testing.expect(manifest.survey_summary.hvc_console_test_present);
     try std.testing.expect(manifest.survey_summary.hvc_console_survey_gate_present);
     try std.testing.expect(manifest.survey_summary.hvc_console_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 14), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -86,6 +101,7 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
     var saw_remove_handoff = false;
     var saw_header_parity = false;
     var saw_winsize_layout_assert = false;
+    var saw_hv_ops_layout_assert = false;
     var saw_driver_tests = false;
     var saw_validation_matrix = false;
     var saw_tty_block = false;
@@ -213,6 +229,16 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "offsets 0, 2, 4, and 6") != null);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase11-hvc-console-hv-ops-layout-assert")) {
+            saw_hv_ops_layout_assert = true;
+            try std.testing.expectEqualStrings("zigux/tests/phase11_hvc_console_survey.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "struct hv_ops") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "layout_assert") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "callback-table order") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "offsets 0 through 64") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase11-hvc-console-driver-tests")) {
             saw_driver_tests = true;
             try std.testing.expectEqualStrings("zigux/tests/phase11_hvc_console.zig", gap.zigux_destination);
@@ -265,7 +291,7 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 13), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 14), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 0), blocked_count);
     try std.testing.expect(saw_build_gate);
@@ -278,6 +304,7 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
     try std.testing.expect(saw_remove_handoff);
     try std.testing.expect(saw_header_parity);
     try std.testing.expect(saw_winsize_layout_assert);
+    try std.testing.expect(saw_hv_ops_layout_assert);
     try std.testing.expect(saw_driver_tests);
     try std.testing.expect(saw_validation_matrix);
     try std.testing.expect(saw_tty_block);
@@ -303,11 +330,27 @@ test "phase11 hvc console survey records the current shared-build boundary exact
 
 test "phase11 hvc console survey keeps a bounded winsize layout proof" {
     comptime {
-        if (@sizeOf(WinsizeLayout) != 8) @compileError("WinsizeLayout size drifted");
-        if (@alignOf(WinsizeLayout) != 2) @compileError("WinsizeLayout alignment drifted");
-        if (@offsetOf(WinsizeLayout, "ws_row") != 0) @compileError("WinsizeLayout.ws_row offset drifted");
-        if (@offsetOf(WinsizeLayout, "ws_col") != 2) @compileError("WinsizeLayout.ws_col offset drifted");
-        if (@offsetOf(WinsizeLayout, "ws_xpixel") != 4) @compileError("WinsizeLayout.ws_xpixel offset drifted");
-        if (@offsetOf(WinsizeLayout, "ws_ypixel") != 6) @compileError("WinsizeLayout.ws_ypixel offset drifted");
+        layout_assert.assertSize(WinsizeLayout, 8);
+        layout_assert.assertAlign(WinsizeLayout, 2);
+        layout_assert.assertOffset(WinsizeLayout, "ws_row", 0);
+        layout_assert.assertOffset(WinsizeLayout, "ws_col", 2);
+        layout_assert.assertOffset(WinsizeLayout, "ws_xpixel", 4);
+        layout_assert.assertOffset(WinsizeLayout, "ws_ypixel", 6);
+    }
+}
+
+test "phase11 hvc console survey keeps a bounded hv_ops layout proof" {
+    comptime {
+        layout_assert.assertSize(HvOpsLayout, 72);
+        layout_assert.assertAlign(HvOpsLayout, 8);
+        layout_assert.assertOffset(HvOpsLayout, "get_chars", 0);
+        layout_assert.assertOffset(HvOpsLayout, "put_chars", 8);
+        layout_assert.assertOffset(HvOpsLayout, "flush", 16);
+        layout_assert.assertOffset(HvOpsLayout, "notifier_add", 24);
+        layout_assert.assertOffset(HvOpsLayout, "notifier_del", 32);
+        layout_assert.assertOffset(HvOpsLayout, "notifier_hangup", 40);
+        layout_assert.assertOffset(HvOpsLayout, "tiocmget", 48);
+        layout_assert.assertOffset(HvOpsLayout, "tiocmset", 56);
+        layout_assert.assertOffset(HvOpsLayout, "dtr_rts", 64);
     }
 }
