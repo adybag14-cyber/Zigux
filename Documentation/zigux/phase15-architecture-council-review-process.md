@@ -5,9 +5,9 @@ This document records the bounded Phase 15 governance lane around the Architectu
 ## Status
 
 - `PHASE15_STATUS=review_process_slice_landed`
-- `PHASE15_SLICE=architecture-council-review-process-checklist-roadmap-phase-rationale-return-to-blocked-sync`
-- scope: one review-process note, one dedicated manifest and Zig test, the shared Phase 15 build wiring, and one bounded return-to-blocked review-rule follow-up that keeps the already-landed roadmap-phase and written-rationale checklist sync inside the same explicit Architecture Council packet
-- survey provenance refreshed against verified `master` head `7095a02f382e919b535b5e5c3fa8985ded58268e`
+- `PHASE15_SLICE=architecture-council-review-process-maintenance-provenance-refresh`
+- scope: one review-process note, one dedicated manifest and Zig test, and one maintenance-mode provenance refresh that keeps the current surveyed head, handoff lane, and shared replay wording tied to the same explicit Architecture Council packet
+- survey provenance refreshed against verified `master` head `a22b2a1b9e6949853429ea0d1140ebaa1bc98961`
 - product boundary:
   - `Documentation/zigux/phase15-architecture-council-review-process.md`
   - `Documentation/zigux/phase15-handoff-next-steps-survey.md`
@@ -112,7 +112,7 @@ If multiple triggers are cited together, each trigger's minimum evidence must st
 - roadmap handoff: the Architecture Council review process stays honest only while it remains visibly tied to the same Phase 15 governance bundle as the freeze map, parity scorecard, indefinite-C policy, shared replay gate, and parked maintenance-mode next step
 - bootstrap ledger anchor: `docs(zigux): add documentation root, review checklist, and freeze map`
 - current repo handoff: the original documentation-root and freeze-map landing is now carried forward by `Documentation/zigux/README.md`, this review-process note, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `zigux/tests/phase15_build.zig`, and `make -C zigux phase15`
-- current bounded lane: `P15-L08` keeps the review-process handoff synced against the current parked maintenance-mode handoff packet by verifying that the no-approval posture, the linked lane-owner plus rollback-owner evidence, and the shared replay entrypoints still match the parity scorecard, the anchor templates, and the current Phase 15 handoff survey on current `master`, without reopening nearby policy or deep-core work
+- current bounded lane: `P15-L10` keeps the review-process handoff synced against the current parked maintenance-mode handoff packet by refreshing the surveyed-head provenance and keeping the no-approval posture, linked lane-owner plus rollback-owner evidence, and shared replay entrypoints aligned with the parity scorecard, the anchor templates, and the current Phase 15 handoff survey on current `master`, without reopening nearby policy or deep-core work
 - maintenance-mode next step: wait for one of the named reopen triggers, a shared Phase 15 replay drift, or the deep-core blocker posture to change before opening another Phase 15 slice
 
 ## Maintenance-Mode Handoff
