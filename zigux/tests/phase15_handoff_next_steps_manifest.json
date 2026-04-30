@@ -1,7 +1,7 @@
 {
-  "lane_key": "P15-L12",
+  "lane_key": "P15-L10",
   "phase": "Phase 15",
-  "surveyed_commit": "7095a02f382e919b535b5e5c3fa8985ded58268e",
+  "surveyed_commit": "ef7b33b6922d05e5ef514fb4efa588316ce6dda8",
   "roadmap_phase_title": "Full-Parity Blockers and Long-Term Governance",
   "roadmap_requirements": [
     "freeze map",
@@ -33,7 +33,7 @@
     }
   ],
   "pending_next_steps": [
-    "Leave the tranche in maintenance mode unless the shared Phase 15 replay drifts again, a named reopen trigger fires, or the deep-core blocker posture changes enough to justify a narrower follow-up.",
-    "If one of those conditions becomes true, rerun the focused handoff guard plus the shared Phase 15 build before editing neighboring governance packets."
+    "Leave this handoff lane parked while the shared Phase 15 replay remains green and the deep-core blocker posture remains unchanged.",
+    "Return to this handoff lane only after a named reopen trigger fires, the shared Phase 15 replay drifts again, or the blocker list changes enough to justify a new parked-next-step synthesis."
   ]
 }
