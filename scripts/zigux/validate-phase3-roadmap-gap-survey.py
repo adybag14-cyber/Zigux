@@ -21,6 +21,7 @@ REQUIRED_SURVEY_MARKERS = (
     "PHASE3_CURRENT_BITMAP_CPUMASK=zigux/helpers/bitmap_view.zig,zigux/helpers/cpumask_view.zig",
     "PHASE3_CURRENT_LIST_HLIST=zigux/helpers/list_view.zig,zigux/helpers/hlist_view.zig",
     "PHASE3_CURRENT_RBTREE_STATUS=phase7-helper-exists-but-phase3-interop-slice-is-missing",
+    "PHASE3_CURRENT_RBTREE_EVIDENCE=tools/lib/rbtree.zig,Documentation/zigux/phase1-closure.md,Documentation/zigux/phase7-rbtree-slice.md,zigux/tests/phase7_rbtree.zig",
     "PHASE3_REPO_REALITY=chrdev-plan-growth-exceeds-roadmap-anchors",
     "PHASE3_INTEROP_GAP=rbtree-interop-slice-still-missing",
     "PHASE3_NEXT_BOUNDED_STEP=roadmap-backed-rbtree-interop-survey-or-slice-before-more-chrdev-growth",
@@ -38,6 +39,7 @@ REQUIRED_SURVEY_PATHS = (
     "zigux/helpers/hlist_view.zig",
     "zigux/helpers/cdev_add_plan.zig",
     "zigux/helpers/chrdev_open_plan.zig",
+    "Documentation/zigux/phase1-closure.md",
     "Documentation/zigux/phase7-rbtree-slice.md",
     "lib/rbtree.zig",
     "zigux/tests/phase7_rbtree.zig",
@@ -60,12 +62,14 @@ REQUIRED_DOCS_README_SNIPPETS = (
     "`scripts/zigux/validate-phase3-roadmap-gap-survey.py`",
     "`make -C zigux phase3-validate`",
     "current export shim and current `zigux/uapi/version.zig` boundary",
+    "existing Phase 1 and Phase 7 `rbtree` evidence",
 )
 
 REQUIRED_SCRIPTS_README_SNIPPETS = (
     "`validate-phase3-roadmap-gap-survey.py`",
     "`Documentation/zigux/phase3-roadmap-gap-survey.md`",
     "current export shim and current `zigux/uapi/version.zig` boundary",
+    "Phase 1 plus Phase 7 `rbtree` evidence",
 )
 
 
