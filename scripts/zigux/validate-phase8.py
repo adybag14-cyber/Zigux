@@ -932,6 +932,26 @@ def run_self_test() -> int:
         )
         phase8_build_path.write_text(original_phase8_build, encoding="utf-8")
 
+        phase8_exec_cmd_only_build_path = tmp_root / "zigux/tests/phase8_exec_cmd_only_build.zig"
+        original_phase8_exec_cmd_only_build = phase8_exec_cmd_only_build_path.read_text(encoding="utf-8")
+        phase8_exec_cmd_only_build_path.write_text(
+            original_phase8_exec_cmd_only_build.replace(
+                '        .name = "phase8-exec-cmd-tests",\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "phase8_exec_cmd_only_build_artifact_name",
+            tmp_root,
+            "phase8_exec_cmd_only_build:phase8-exec-cmd-tests",
+        )
+        phase8_exec_cmd_only_build_path.write_text(
+            original_phase8_exec_cmd_only_build,
+            encoding="utf-8",
+        )
+
         kallsyms_helper_path = tmp_root / "tools/lib/symbol/kallsyms.zig"
         original_kallsyms_helper = kallsyms_helper_path.read_text(encoding="utf-8")
         kallsyms_helper_path.write_text(
@@ -991,7 +1011,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE8_VALIDATOR_SELF_TEST=pass")
-    print("PHASE8_VALIDATOR_SELF_TEST_CASE_COUNT=8")
+    print("PHASE8_VALIDATOR_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
