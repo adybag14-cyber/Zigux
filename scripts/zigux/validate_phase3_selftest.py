@@ -21,6 +21,7 @@ from validate_phase3_core import (
     build_smoke_commands,
     select_slices,
     validate_export_uapi_boundary,
+    validate_low_level_wrapper_exports,
     validate_policy_unsafe_boundary,
     validate_manifest,
     validate_slices,
@@ -185,6 +186,43 @@ def run_self_test() -> int:
                 )
             },
         ) == ["source-marker: marker-fixture.zig missing pub fn policyByteMarker() void {}"]
+
+        low_level_export_fixture = root / "low-level-export-fixture.zig"
+        low_level_export_fixture.write_text(
+            "\n".join(
+                [
+                    "pub fn load() void {}",
+                    "pub fn store() void {}",
+                    "pub fn exchange() void {}",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert validate_low_level_wrapper_exports(
+            root,
+            {"low-level-export-fixture.zig": ("load", "store", "exchange")},
+        ) == []
+        low_level_export_fixture.write_text(
+            "\n".join(
+                [
+                    "pub fn load() void {}",
+                    "pub fn store() void {}",
+                    "pub fn unexpected() void {}",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert validate_low_level_wrapper_exports(
+            root,
+            {"low-level-export-fixture.zig": ("load", "store", "exchange")},
+        ) == [
+            "low-level-export: low-level-export-fixture.zig exports unexpected public helpers: unexpected",
+            "low-level-export: low-level-export-fixture.zig is missing documented public helpers: exchange",
+        ]
 
         assert (
             "PHASE3_ATOMIC_SCOPE=load-store-exchange-compare-exchange-fetch-add-fetch-sub-fetch-and-fetch-or-fetch-xor"
