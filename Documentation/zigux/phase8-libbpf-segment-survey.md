@@ -128,7 +128,7 @@ The current tests check:
 - `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all`
   - `Build Summary: 3/3 steps succeeded; 3/3 tests passed`
 - `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
-  - `Build Summary: 20/20 steps succeeded; 68/68 tests passed`
+  - `Build Summary: 20/20 steps succeeded; 70/70 tests passed`
 - `python3 scripts/zigux/validate-phase8.py`
   - `PHASE8_VALIDATION=pass`
 
