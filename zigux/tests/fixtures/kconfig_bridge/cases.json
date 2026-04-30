@@ -9,14 +9,6 @@
       "expected": "oldaskconfig_expected.json"
     },
     {
-      "name": "olddefconfig",
-      "mode": "olddefconfig",
-      "kconfig": "Kconfig",
-      "config": ".config",
-      "arch": "x86_64",
-      "expected": "olddefconfig_expected.json"
-    },
-    {
       "name": "oldconfig",
       "mode": "oldconfig",
       "kconfig": "Kconfig",
@@ -25,36 +17,12 @@
       "expected": "oldconfig_expected.json"
     },
     {
-      "name": "listnewconfig",
-      "mode": "listnewconfig",
+      "name": "syncconfig",
+      "mode": "syncconfig",
       "kconfig": "Kconfig",
-      "config": "pending/.config",
-      "arch": "s390",
-      "expected": "listnewconfig_expected.json"
-    },
-    {
-      "name": "helpnewconfig",
-      "mode": "helpnewconfig",
-      "kconfig": "Kconfig",
-      "config": "help/.config",
-      "arch": "powerpc64le",
-      "expected": "helpnewconfig_expected.json"
-    },
-    {
-      "name": "yes2modconfig",
-      "mode": "yes2modconfig",
-      "kconfig": "Kconfig",
-      "config": "rewrite/.config",
-      "arch": "x86",
-      "expected": "yes2modconfig_expected.json"
-    },
-    {
-      "name": "mod2yesconfig",
-      "mode": "mod2yesconfig",
-      "kconfig": "Kconfig",
-      "config": "promote/.config",
-      "arch": "loongarch",
-      "expected": "mod2yesconfig_expected.json"
+      "config": "out/.config",
+      "arch": "riscv64",
+      "expected": "syncconfig_expected.json"
     },
     {
       "name": "defconfig",
@@ -73,14 +41,6 @@
       "arch": "arm64",
       "mode_arg": "arch/arm64/configs/minimal_defconfig",
       "expected": "savedefconfig_expected.json"
-    },
-    {
-      "name": "mod2noconfig",
-      "mode": "mod2noconfig",
-      "kconfig": "Kconfig",
-      "config": "demote/.config",
-      "arch": "mips",
-      "expected": "mod2noconfig_expected.json"
     },
     {
       "name": "allnoconfig",
@@ -127,12 +87,52 @@
       "expected": "randconfig_expected.json"
     },
     {
-      "name": "syncconfig",
-      "mode": "syncconfig",
+      "name": "listnewconfig",
+      "mode": "listnewconfig",
       "kconfig": "Kconfig",
-      "config": "out/.config",
-      "arch": "riscv64",
-      "expected": "syncconfig_expected.json"
+      "config": "pending/.config",
+      "arch": "s390",
+      "expected": "listnewconfig_expected.json"
+    },
+    {
+      "name": "helpnewconfig",
+      "mode": "helpnewconfig",
+      "kconfig": "Kconfig",
+      "config": "help/.config",
+      "arch": "powerpc64le",
+      "expected": "helpnewconfig_expected.json"
+    },
+    {
+      "name": "olddefconfig",
+      "mode": "olddefconfig",
+      "kconfig": "Kconfig",
+      "config": ".config",
+      "arch": "x86_64",
+      "expected": "olddefconfig_expected.json"
+    },
+    {
+      "name": "yes2modconfig",
+      "mode": "yes2modconfig",
+      "kconfig": "Kconfig",
+      "config": "rewrite/.config",
+      "arch": "x86",
+      "expected": "yes2modconfig_expected.json"
+    },
+    {
+      "name": "mod2yesconfig",
+      "mode": "mod2yesconfig",
+      "kconfig": "Kconfig",
+      "config": "promote/.config",
+      "arch": "loongarch",
+      "expected": "mod2yesconfig_expected.json"
+    },
+    {
+      "name": "mod2noconfig",
+      "mode": "mod2noconfig",
+      "kconfig": "Kconfig",
+      "config": "demote/.config",
+      "arch": "mips",
+      "expected": "mod2noconfig_expected.json"
     }
   ],
   "confdata_cases": [
