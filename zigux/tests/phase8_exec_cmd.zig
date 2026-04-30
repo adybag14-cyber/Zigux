@@ -1,1 +1,436 @@
-Y29uc3Qgc3RkID0gQGltcG9ydCgic3RkIik7CmNvbnN0IGJ1aWxkX29wdGlvbnMgPSBAaW1wb3J0KCJidWlsZF9vcHRpb25zIik7CmNvbnN0IGV4ZWNfY21kID0gQGltcG9ydCgiZXhlY19jbWQiKTsKCmZuIGV4cGVjdENvbnRhaW5zKGhheXN0YWNrOiBbXWNvbnN0IHU4LCBuZWVkbGU6IFtdY29uc3QgdTgpICF2b2lkIHsKICAgIHRyeSBzdGQudGVzdGluZy5leHBlY3Qoc3RkLm1lbS5pbmRleE9mKHU4LCBoYXlzdGFjaywgbmVlZGxlKSAhPSBudWxsKTsKfQoKZm4gcmVhZFdvcmtzcGFjZUZpbGUoYWxsb2NhdG9yOiBzdGQubWVtLkFsbG9jYXRvciwgcGF0aDogW11jb25zdCB1OCwgbGltaXQ6IHVzaXplKSAhW111OCB7CiAgICBjb25zdCBmdWxsX3BhdGggPSB0cnkgc3RkLmZzLnBhdGguam9pbihhbGxvY2F0b3IsICYueyBidWlsZF9vcHRpb25zLnJlcG9fcm9vdCwgcGF0aCB9KTsKICAgIGRlZmVyIGFsbG9jYXRvci5mcmVlKGZ1bGxfcGF0aCk7CgogICAgdmFyIGlvX2luc3RhbmNlOiBzdGQuSW8uVGhyZWFkZWQgPSAuaW5pdChhbGxvY2F0b3IsIC57fSk7CiAgICBkZWZlciBpb19pbnN0YW5jZS5kZWluaXQoKTsKCiAgICByZXR1cm4gc3RkLklvLkRpci5jd2QoKS5yZWFkRmlsZUFsbG9jKAogICAgICAgIGlvX2luc3RhbmNlLmlvKCksCiAgICAgICAgZnVsbF9wYXRoLAogICAgICAgIGFsbG9jYXRvciwKICAgICAgICAubGltaXRlZChsaW1pdCksCiAgICApOwp9Cgp0ZXN0ICJwaGFzZSA4IGV4ZWMtY21kIG1vZHVsZSBpbXBvcnRzIGNsZWFubHkiIHsKICAgIF8gPSBleGVjX2NtZDsKfQoKdGVzdCAicGhhc2UgOCBleGVjLWNtZCBwYXJrZWQgc2xpY2UgY292ZXJzIHBhdGggcmVzb2x1dGlvbiBhbmQgbnVsbC10ZXJtaW5hdGVkIGFyZ3YgcHJlcGFyYXRpb24iIHsKICAgIGNvbnN0IGNvbmZpZyA9IGV4ZWNfY21kLkNvbmZpZ3sKICAgICAgICAuZXhlY19uYW1lID0gInBlcmYiLAogICAgICAgIC5wcmVmaXggPSAiL3Vzci9saWJleGVjL3BlcmYtY29yZSIsCiAgICAgICAgLmV4ZWNfcGF0aCA9ICJsaWJleGVjL3BlcmYtY29yZSIsCiAgICAgICAgLmV4ZWNfcGF0aF9lbnYgPSAiUEVSRl9FWEVDX1BBVEgiLAogICAgfTsKCiAgICBjb25zdCByZXNvbHZlZCA9IHRyeSBleGVjX2NtZC5nZXRBcmd2RXhlY1BhdGgoCiAgICAgICAgc3RkLnRlc3RpbmcuYWxsb2NhdG9yLAogICAgICAgIGNvbmZpZywKICAgICAgICBudWxsLAogICAgICAgICIvY3VzdG9tL3BlcmYiLAogICAgKTsKICAgIGRlZmVyIHN0ZC50ZXN0aW5nLmFsbG9jYXRvci5mcmVlKHJlc29sdmVkKTsKICAgIHRyeSBzdGQudGVzdGluZy5leHBlY3RFcXVhbFN0cmluZ3MoIi9jdXN0b20vcGVyZiIsIHJlc29sdmVkKTsKCiAgICBjb25zdCBleHBsaWNpdF9lbXB0eSA9IHRyeSBleGVjX2NtZC5nZXRBcmd2RXhlY1BhdGgoCiAgICAgICAgc3RkLnRlc3RpbmcuYWxsb2NhdG9yLAogICAgICAgIGNvbmZpZywKICAgICAgICAiIiwKICAgICAgICAiL2lnbm9yZWQiLAogICAgKTsKICAgIGRlZmVyIHN0ZC50ZXN0aW5nLmFsbG9jYXRvci5mcmVlKGV4cGxpY2l0X2VtcHR5KTsKICAgIHRyeSBzdGQudGVzdGluZy5leHBlY3RFcXVhbFN0cmluZ3MoIiIsIGV4cGxpY2l0X2VtcHR5KTsKCiAgICBjb25zdCBzZWFyY2hfcGF0aCA9IHRyeSBleGVjX2NtZC5idWlsZFNlYXJjaFBhdGgoCiAgICAgICAgc3RkLnRlc3RpbmcuYWxsb2NhdG9yLAogICAgICAgICIvcmVwbyIsCiAgICAgICAgInRvb2xzL2JpbiIsCiAgICAgICAgInNjcmlwdHMiLAogICAgICAgICIvdXNyL2JpbiIsCiAgICApOwogICAgZGVmZXIgc3RkLnRlc3RpbmcuYWxsb2NhdG9yLmZyZWUoc2VhcmNoX3BhdGgpOwogICAgdHJ5IHN0ZC50ZXN0aW5nLmV4cGVjdEVxdWFsU3RyaW5ncygiL3JlcG8vdG9vbHMvYmluOi9yZXBvL3NjcmlwdHM6L3Vzci9iaW4iLCBzZWFyY2hfcGF0aCk7CgogICAgdmFyIGFyZ3YwID0gKHRyeSBleGVjX2NtZC5leHRyYWN0QXJndjBQYXRoKHN0ZC50ZXN0aW5nLmFsbG9jYXRvciwgIi9yZXBvL2Jpbi9wZXJmIikpIG9yZWxzZSB1bnJlYWNoYWJsZTsKICAgIGRlZmVyIGFyZ3YwLmRlaW5pdChzdGQudGVzdGluZy5hbGxvY2F0b3IpOwogICAgdHJ5IHN0ZC50ZXN0aW5nLmV4cGVjdEVxdWFsU3RyaW5ncygiL3JlcG8vYmluIiwgYXJndjAuYXJndjBfcGF0aC4/KTsKICAgIHRyeSBzdGQudGVzdGluZy5leHBlY3RFcXVhbFN0cmluZ3MoInBlcmYiLCBhcmd2MC5jb21tYW5kX25hbWUpOwoKICAgIHZhciByb290X2FyZ3YwID0gKHRyeSBleGVjX2NtZC5leHRyYWN0QXJndjBQYXRoKHN0ZC50ZXN0aW5nLmFsbG9jYXRvciwgIi9wZXJmIikpIG9yZWxzZSB1bnJlYWNoYWJsZTsKICAgIGRlZmVyIHJvb3RfYXJndjAuZGVpbml0KHN0ZC50ZXN0aW5nLmFsbG9jYXRvcik7CiAgICB0cnkgc3RkLnRlc3RpbmcuZXhwZWN0KHJvb3RfYXJndjAuYXJndjBfcGF0aCAhPSBudWxsKTsKICAgIHRyeSBzdGQudGVzdGluZy5leHBlY3RFcXVhbChAYXModXNpemUsIDApLCByb290X2FyZ3YwLmFyZ3YwX3BhdGguPy5sZW4pOwogICAgdHJ5IHN0ZC50ZXN0aW5nLmV4cGVjdEVxdWFsU3RyaW5ncygicGVyZiIsIHJvb3RfYXJndjAuY29tbWFuZF9uYW1lKTsKCiAgICBjb25zdCByb290X3NlYXJjaF9wYXRoID0gdHJ5IGV4ZWNfY21kLmJ1aWxkU2VhcmNoUGF0aCgKICAgICAgICBzdGQudGVzdGluZy5hbGxvY2F0b3IsCiAgICAgICAgIi9yZXBvIiwKICAgICAgICAidG9vbHMvYmluIiwKICAgICAgICByb290X2FyZ3YwLmFyZ3YwX3BhdGguPywKICAgICAgICAiL3Vzci9iaW4iLAogICAgKTsKICAgIGRlZmVyIHN0ZC50ZXN0aW5nLmFsbG9jYXRvci5mcmVlKHJvb3Rfc2VhcmNoX3BhdGgpOwogICAgdHJ5IHN0ZC50ZXN0aW5nLmV4cGVjdEVxdWFsU3RyaW5ncygiL3JlcG8vdG9vbHMvYmluOi91c3IvYmluIiwgcm9vdF9zZWFyY2hfcGF0aCk7CgogICAgY29uc3QgcHJlcGFyZWQgPSB0cnkgZXhlY19jbWQucHJlcGFyZUV4ZWNDbWQoCiAgICAgICAgc3RkLnRlc3RpbmcuYWxsb2NhdG9yLAogICAgICAgIGNvbmZpZywKICAgICAgICAmW19dW11jb25zdCB1OHsgInJlY29yZCIsICItYSIgfSwKICAgICk7CiAgICBkZWZlciBzdGQudGVzdGluZy5hbGxvY2F0b3IuZnJlZShwcmVwYXJlZCk7CiAgICB0cnkgc3RkLnRlc3RpbmcuZXhwZWN0RXF1YWxTdHJpbmdzKCJwZXJmIiwgcHJlcGFyZWRbMF0uPyk7CiAgICB0cnkgc3RkLnRlc3RpbmcuZXhwZWN0RXF1YWxTdHJpbmdzKCJyZWNvcmQiLCBwcmVwYXJlZFsxXS4/KTsKICAgIHRyeSBzdGQudGVzdGluZy5leHBlY3RFcXVhbFN0cmluZ3MoIi1hIiwgcHJlcGFyZWRbMl0uPyk7CiAgICB0cnkgc3RkLnRlc3RpbmcuZXhwZWN0RXF1YWwoQGFzKD9bXWNvbnN0IHU4LCBudWxsKSwgcHJlcGFyZWRbM10pOwp9Cgp0ZXN0ICJwaGFzZSA4IGV4ZWMtY21kIGVudmlyb25tZW50IHdyYXBwZXIgcHJvcGFnYXRlcyBQUkVGSVgsIGV4ZWMgcGF0aCwgYW5kIFBBVEggdXBkYXRlcyIgewogICAgY29uc3QgY29uZmlnID0gZXhlY19jbWQuQ29uZmlnewogICAgICAgIC5leGVjX25hbWUgPSAicGVyZiIsCiAgICAgICAgLnByZWZpeCA9ICIvdXNyL2xpYmV4ZWMvcGVyZi1jb3JlIiwKICAgICAgICAuZXhlY19wYXRoID0gImxpYmV4ZWMvcGVyZi1jb3JlIiwKICAgICAgICAuZXhlY19wYXRoX2VudiA9ICJQRVJGX0VYRUNfUEFUSCIsCiAgICB9OwoKICAgIHZhciBlbnYgPSBleGVjX2NtZC5FbnZNYXAuaW5pdChzdGQudGVzdGluZy5hbGxvY2F0b3IpOwogICAgZGVmZXIgZW52LmRlaW5pdCgpOwoKICAgIHZhciBzdGF0ZSA9IGV4ZWNfY21kLkV4ZWNDbWRTdGF0ZXt9OwogICAgZGVmZXIgc3RhdGUuZGVpbml0KHN0ZC50ZXN0aW5nLmFsbG9jYXRvcik7CgogICAgdHJ5IGV4ZWNfY21kLmV4ZWNDbWRJbml0KCZlbnYsIGNvbmZpZyk7CiAgICB0cnkgZXhlY19jbWQuc2V0QXJndkV4ZWNQYXRoKHN0ZC50ZXN0aW5nLmFsbG9jYXRvciwgJmVudiwgJnN0YXRlLCBjb25maWcsICJ0b29scy9iaW4iKTsKICAgIHRyeSBleGVjX2NtZC5zZXRBcmd2MFBhdGgoc3RkLnRlc3RpbmcuYWxsb2NhdG9yLCAmc3RhdGUsICJzY3JpcHRzIik7CiAgICB0cnkgZW52LnNldCgiUEFUSCIsICIvdXNyL2JpbjovYmluIik7CgogICAgY29uc3QgdXBkYXRlZCA9IHRyeSBleGVjX2NtZC5zZXR1cFBhdGgoCiAgICAgICAgc3RkLnRlc3RpbmcuYWxsb2NhdG9yLAogICAgICAgICZlbnYsCiAgICAgICAgc3RhdGUsCiAgICAgICAgY29uZmlnLAogICAgICAgICIvcmVwbyIsCiAgICApOwogICAgZGVmZXIgc3RkLnRlc3RpbmcuYWxsb2NhdG9yLmZyZWUodXBkYXRlZCk7CgogICAgdHJ5IHN0ZC50ZXN0aW5nLmV4cGVjdEVxdWFsU3RyaW5ncygiL3Vzci9saWJleGVjL3BlcmYtY29yZSIsIGVudi5nZXQoIlBSRUZJWCIpLj8pOwogICAgdHJ5IHN0ZC50ZXN0aW5nLmV4cGVjdEVxdWFsU3RyaW5ncygidG9vbHMvYmluIiwgZW52LmdldCgiUEVSRl9FWEVDX1BBVEgiKS4/KTsKICAgIHRyeSBzdGQudGVzdGluZy5leHBlY3RFcXVhbFN0cmluZ3MoCiAgICAgICAgIi9yZXBvL3Rvb2xzL2JpbjovcmVwby9zY3JpcHRzOi91c3IvYmluOi9iaW4iLAogICAgICAgIHVwZGF0ZWQsCiAgICApOwogICAgdHJ5IHN0ZC50ZXN0aW5nLmV4cGVjdEVxdWFsU3RyaW5ncyh1cGRhdGVkLCBlbnYuZ2V0KCJQQVRIIikuPyk7CgogICAgdmFyIHJvb3RfZW52ID0gZXhlY19jbWQuRW52TWFwLmluaXQoc3RkLnRlc3RpbmcuYWxsb2NhdG9yKTsKICAgIGRlZmVyIHJvb3RfZW52LmRlaW5pdCgpOwoKICAgIHZhciByb290X3N0YXRlID0gZXhlY19jbWQuRXhlY0NtZFN0YXRle307CiAgICBkZWZlciByb290X3N0YXRlLmRlaW5pdChzdGQudGVzdGluZy5hbGxvY2F0b3IpOwoKICAgIHRyeSBleGVjX2NtZC5leGVjQ21kSW5pdCgmcm9vdF9lbnYsIGNvbmZpZyk7CiAgICB0cnkgZXhlY19jbWQuc2V0QXJndkV4ZWNQYXRoKHN0ZC50ZXN0aW5nLmFsbG9jYXRvciwgJnJvb3RfZW52LCAmcm9vdF9zdGF0ZSwgY29uZmlnLCAidG9vbHMvYmluIik7CiAgICB0cnkgZXhlY19jbWQuc2V0QXJndjBQYXRoKHN0ZC50ZXN0aW5nLmFsbG9jYXRvciwgJnJvb3Rfc3RhdGUsICJzY3JpcHRzIik7CiAgICB0cnkgcm9vdF9lbnYuc2V0KCJQQVRIIiwgIi91c3IvYmluIik7CgogICAgY29uc3Qgcm9vdF91cGRhdGVkID0gdHJ5IGV4ZWNfY21kLnNldHVwUGF0aCgKICAgICAgICBzdGQudGVzdGluZy5hbGxvY2F0b3IsCiAgICAgICAgJnJvb3RfZW52LAogICAgICAgIHJvb3Rfc3RhdGUsCiAgICAgICAgY29uZmlnLAogICAgICAgICIvIiwKICAgICk7CiAgICBkZWZlciBzdGQudGVzdGluZy5hbGxvY2F0b3IuZnJlZShyb290X3VwZGF0ZWQpOwoKICAgIHRyeSBzdGQudGVzdGluZy5leHBlY3RFcXVhbFN0cmluZ3MoCiAgICAgICAgIi8vdG9vbHMvYmluOi8vc2NyaXB0czovdXNyL2JpbiIsCiAgICAgICAgcm9vdF91cGRhdGVkLAogICAgKTsKICAgIHRyeSBzdGQudGVzdGluZy5leHBlY3RFcXVhbFN0cmluZ3Mocm9vdF91cGRhdGVkLCByb290X2Vudi5nZXQoIlBBVEgiKS4/KTsKCiAgICB2YXIgZXhwbGljaXRfZW1wdHlfZW52ID0gZXhlY19jbWQuRW52TWFwLmluaXQoc3RkLnRlc3RpbmcuYWxsb2NhdG9yKTsKICAgIGRlZmVyIGV4cGxpY2l0X2VtcHR5X2Vudi5kZWluaXQoKTsKCiAgICB2YXIgZXhwbGljaXRfZW1wdHlfc3RhdGUgPSBleGVjX2NtZC5FeGVjQ21kU3RhdGV7fTsKICAgIGRlZmVyIGV4cGxpY2l0X2VtcHR5X3N0YXRlLmRlaW5pdChzdGQudGVzdGluZy5hbGxvY2F0b3IpOwoKICAgIHRyeSBleGVjX2NtZC5leGVjQ21kSW5pdCgmZXhwbGljaXRfZW1wdHlfZW52LCBjb25maWcpOwogICAgdHJ5IGV4ZWNfY21kLnNldEFyZ3ZFeGVjUGF0aCgKICAgICAgICBzdGQudGVzdGluZy5hbGxvY2F0b3IsCiAgICAgICAgJmV4cGxpY2l0X2VtcHR5X2VudiwKICAgICAgICAmZXhwbGljaXRfZW1wdHlfc3RhdGUsCiAgICAgICAgY29uZmlnLAogICAgICAgICIiLAogICAgKTsKICAgIHRyeSBleGVjX2NtZC5zZXRBcmd2MFBhdGgoc3RkLnRlc3RpbmcuYWxsb2NhdG9yLCAmZXhwbGljaXRfZW1wdHlfc3RhdGUsICJzY3JpcHRzIik7CiAgICB0cnkgZXhwbGljaXRfZW1wdHlfZW52LnNldCgiUEFUSCIsICIvdXNyL2JpbiIpOwoKICAgIGNvbnN0IGV4cGxpY2l0X2VtcHR5X3BhdGggPSB0cnkgZXhlY19jbWQuc2V0dXBQYXRoKAogICAgICAgIHN0ZC50ZXN0aW5nLmFsbG9jYXRvciwKICAgICAgICAmZXhwbGljaXRfZW1wdHlfZW52LAogICAgICAgIGV4cGxpY2l0X2VtcHR5X3N0YXRlLAogICAgICAgIGNvbmZpZywKICAgICAgICAiL3JlcG8iLAogICAgKTsKICAgIGRlZmVyIHN0ZC50ZXN0aW5nLmFsbG9jYXRvci5mcmVlKGV4cGxpY2l0X2VtcHR5X3BhdGgpOwoKICAgIHRyeSBzdGQudGVzdGluZy5leHBlY3RFcXVhbFN0cmluZ3MoIiIsIGV4cGxpY2l0X2VtcHR5X2Vudi5nZXQoIlBFUkZfRVhFQ19QQVRIIikuPyk7CiAgICB0cnkgc3RkLnRlc3RpbmcuZXhwZWN0RXF1YWxTdHJpbmdzKCIvcmVwby9zY3JpcHRzOi91c3IvYmluIiwgZXhwbGljaXRfZW1wdHlfcGF0aCk7CiAgICB0cnkgc3RkLnRlc3RpbmcuZXhwZWN0RXF1YWxTdHJpbmdzKGV4cGxpY2l0X2VtcHR5X3BhdGgsIGV4cGxpY2l0X2VtcHR5X2Vudi5nZXQoIlBBVEgiKS4/KTsKCiAgICB2YXIgaW5oZXJpdGVkX2VtcHR5X2V4ZWNfZW52ID0gZXhlY19jbWQuRW52TWFwLmluaXQoc3RkLnRlc3RpbmcuYWxsb2NhdG9yKTsKICAgIGRlZmVyIGluaGVyaXRlZF9lbXB0eV9leGVjX2Vudi5kZWluaXQoKTsKCiAgICB2YXIgaW5oZXJpdGVkX2VtcHR5X2V4ZWNfc3RhdGUgPSBleGVjX2NtZC5FeGVjQ21kU3RhdGV7fTsKICAgIGRlZmVyIGluaGVyaXRlZF9lbXB0eV9leGVjX3N0YXRlLmRlaW5pdChzdGQudGVzdGluZy5hbGxvY2F0b3IpOwoKICAgIHRyeSBleGVjX2NtZC5leGVjQ21kSW5pdCgmaW5oZXJpdGVkX2VtcHR5X2V4ZWNfZW52LCBjb25maWcpOwogICAgdHJ5IGluaGVyaXRlZF9lbXB0eV9leGVjX2Vudi5zZXQoIlBFUkZfRVhFQ19QQVRIIiwgIiIpOwogICAgdHJ5IGluaGVyaXRlZF9lbXB0eV9leGVjX2Vudi5zZXQoIlBBVEgiLCAiL3Vzci9iaW4iKTsKCiAgICBjb25zdCBpbmhlcml0ZWRfZW1wdHlfZXhlY19wYXRoID0gdHJ5IGV4ZWNfY21kLnNldHVwUGF0aCgKICAgICAgICBzdGQudGVzdGluZy5hbGxvY2F0b3IsCiAgICAgICAgJmluaGVyaXRlZF9lbXB0eV9leGVjX2VudiwKICAgICAgICBpbmhlcml0ZWRfZW1wdHlfZXhlY19zdGF0ZSwKICAgICAgICBjb25maWcsCiAgICAgICAgIi9yZXBvIiwKICAgICk7CiAgICBkZWZlciBzdGQudGVzdGluZy5hbGxvY2F0b3IuZnJlZShpbmhlcml0ZWRfZW1wdHlfZXhlY19wYXRoKTsKCiAgICB0cnkgc3RkLnRlc3RpbmcuZXhwZWN0RXF1YWxTdHJpbmdzKCIiLCBpbmhlcml0ZWRfZW1wdHlfZXhlY19lbnYuZ2V0KCJQRVJGX0VYRUNfUEFUSCIpLj8pOwogICAgdHJ5IHN0ZC50ZXN0aW5nLmV4cGVjdEVxdWFsU3RyaW5ncygKICAgICAgICAiL3Vzci9saWJleGVjL3BlcmYtY29yZS9saWJleGVjL3BlcmYtY29yZTovdXNyL2JpbiIsCiAgICAgICAgaW5oZXJpdGVkX2VtcHR5X2V4ZWNfcGF0aCwKICAgICk7CiAgICB0cnkgc3RkLnRlc3RpbmcuZXhwZWN0RXF1YWxTdHJpbmdzKAogICAgICAgIGluaGVyaXRlZF9lbXB0eV9leGVjX3BhdGgsCiAgICAgICAgaW5oZXJpdGVkX2VtcHR5X2V4ZWNfZW52LmdldCgiUEFUSCIpLj8sCiAgICApOwoKICAgIHZhciBpbmhlcml0ZWRfcmVsYXRpdmVfZXhlY19lbnYgPSBleGVjX2NtZC5FbnZNYXAuaW5pdChzdGQudGVzdGluZy5hbGxvY2F0b3IpOwogICAgZGVmZXIgaW5oZXJpdGVkX3JlbGF0aXZlX2V4ZWNfZW52LmRlaW5pdCgpOwoKICAgIHZhciBpbmhlcml0ZWRfcmVsYXRpdmVfZXhlY19zdGF0ZSA9IGV4ZWNfY21kLkV4ZWNDbWRTdGF0ZXt9OwogICAgZGVmZXIgaW5oZXJpdGVkX3JlbGF0aXZlX2V4ZWNfc3RhdGUuZGVpbml0KHN0ZC50ZXN0aW5nLmFsbG9jYXRvcik7CgogICAgdHJ5IGV4ZWNfY21kLmV4ZWNDbWRJbml0KCZpbmhlcml0ZWRfcmVsYXRpdmVfZXhlY19lbnYsIGNvbmZpZyk7CiAgICB0cnkgaW5oZXJpdGVkX3JlbGF0aXZlX2V4ZWNfZW52LnNldCgiUEVSRl9FWEVDX1BBVEgiLCAicmVsYXRpdmUvYmluIik7CiAgICB0cnkgaW5oZXJpdGVkX3JlbGF0aXZlX2V4ZWNfZW52LnNldCgiUEFUSCIsICIvdXNyL2JpbiIpOwoKICAgIGNvbnN0IGluaGVyaXRlZF9yZWxhdGl2ZV9leGVjX3BhdGggPSB0cnkgZXhlY19jbWQuc2V0dXBQYXRoKAogICAgICAgIHN0ZC50ZXN0aW5nLmFsbG9jYXRvciwKICAgICAgICAmaW5oZXJpdGVkX3JlbGF0aXZlX2V4ZWNfZW52LAogICAgICAgIGluaGVyaXRlZF9yZWxhdGl2ZV9leGVjX3N0YXRlLAogICAgICAgIGNvbmZpZywKICAgICAgICAiL3JlcG8iLAogICAgKTsKICAgIGRlZmVyIHN0ZC50ZXN0aW5nLmFsbG9jYXRvci5mcmVlKGluaGVyaXRlZF9yZWxhdGl2ZV9leGVjX3BhdGgpOwoKICAgIHRyeSBzdGQudGVzdGluZy5leHBlY3RFcXVhbFN0cmluZ3MoCiAgICAgICAgInJlbGF0aXZlL2JpbiIsCiAgICAgICAgaW5oZXJpdGVkX3JlbGF0aXZlX2V4ZWNfZW52LmdldCgiUEVSRl9FWEVDX1BBVEgiKS4/LAogICAgKTsKICAgIHRyeSBzdGQudGVzdGluZy5leHBlY3RFcXVhbFN0cmluZ3MoCiAgICAgICAgIi9yZXBvL3JlbGF0aXZlL2JpbjovdXNyL2JpbiIsCiAgICAgICAgaW5oZXJpdGVkX3JlbGF0aXZlX2V4ZWNfcGF0aCwKICAgICk7CiAgICB0cnkgc3RkLnRlc3RpbmcuZXhwZWN0RXF1YWxTdHJpbmdzKAogICAgICAgIGluaGVyaXRlZF9yZWxhdGl2ZV9leGVjX3BhdGgsCiAgICAgICAgaW5oZXJpdGVkX3JlbGF0aXZlX2V4ZWNfZW52LmdldCgiUEFUSCIpLj8sCiAgICApOwoKICAgIHZhciBpbmhlcml0ZWRfZW1wdHlfZW52ID0gZXhlY19jbWQuRW52TWFwLmluaXQoc3RkLnRlc3RpbmcuYWxsb2NhdG9yKTsKICAgIGRlZmVyIGluaGVyaXRlZF9lbXB0eV9lbnYuZGVpbml0KCk7CgogICAgdmFyIGluaGVyaXRlZF9lbXB0eV9zdGF0ZSA9IGV4ZWNfY21kLkV4ZWNDbWRTdGF0ZXt9OwogICAgZGVmZXIgaW5oZXJpdGVkX2VtcHR5X3N0YXRlLmRlaW5pdChzdGQudGVzdGluZy5hbGxvY2F0b3IpOwoKICAgIHRyeSBleGVjX2NtZC5leGVjQ21kSW5pdCgmaW5oZXJpdGVkX2VtcHR5X2VudiwgY29uZmlnKTsKICAgIHRyeSBleGVjX2NtZC5zZXRBcmd2RXhlY1BhdGgoc3RkLnRlc3RpbmcuYWxsb2NhdG9yLCAmaW5oZXJpdGVkX2VtcHR5X2VudiwgJmluaGVyaXRlZF9lbXB0eV9zdGF0ZSwgY29uZmlnLCAidG9vbHMvYmluIik7CiAgICB0cnkgaW5oZXJpdGVkX2VtcHR5X2Vudi5zZXQoIlBBVEgiLCAiIik7CgogICAgY29uc3QgaW5oZXJpdGVkX2VtcHR5ID0gdHJ5IGV4ZWNfY21kLnNldHVwUGF0aCgKICAgICAgICBzdGQudGVzdGluZy5hbGxvY2F0b3IsCiAgICAgICAgJmluaGVyaXRlZF9lbXB0eV9lbnYsCiAgICAgICAgaW5oZXJpdGVkX2VtcHR5X3N0YXRlLAogICAgICAgIGNvbmZpZywKICAgICAgICAiL3JlcG8iLAogICAgKTsKICAgIGRlZmVyIHN0ZC50ZXN0aW5nLmFsbG9jYXRvci5mcmVlKGluaGVyaXRlZF9lbXB0eSk7CgogICAgdHJ5IHN0ZC50ZXN0aW5nLmV4cGVjdEVxdWFsU3RyaW5ncygiL3JlcG8vdG9vbHMvYmluOiIsIGluaGVyaXRlZF9lbXB0eSk7CiAgICB0cnkgc3RkLnRlc3RpbmcuZXhwZWN0RXF1YWxTdHJpbmdzKGluaGVyaXRlZF9lbXB0eSwgaW5oZXJpdGVkX2VtcHR5X2Vudi5nZXQoIlBBVEgiKS4/KTsKfQoKdGVzdCAicGhhc2UgOCBleGVjLWNtZCBzZXR1cFBhdGhXaXRoUHdkIHJldXNlcyBsb2dpY2FsIFBXRCBvbmx5IHdoZW4gdGhlIGluamVjdGVkIHN0YXQgcHJvb2YgbWF0Y2hlcyIgewogICAgY29uc3QgY29uZmlnID0gZXhlY19jbWQuQ29uZmlnewogICAgICAgIC5leGVjX25hbWUgPSAicGVyZiIsCiAgICAgICAgLnByZWZpeCA9ICIvdXNyL2xpYmV4ZWMvcGVyZi1jb3JlIiwKICAgICAgICAuZXhlY19wYXRoID0gImxpYmV4ZWMvcGVyZi1jb3JlIiwKICAgICAgICAuZXhlY19wYXRoX2VudiA9ICJQRVJGX0VYRUNfUEFUSCIsCiAgICB9OwoKICAgIGNvbnN0IGN3ZF9pZGVudGl0eSA9IGV4ZWNfY21kLkZpbGVJZGVudGl0eXsgLmRldmljZSA9IDExLCAuaW5vZGUgPSA3IH07CiAgICBjb25zdCBtYXRjaGluZ19wd2RfaWRlbnRpdHkgPSBleGVjX2NtZC5GaWxlSWRlbnRpdHl7IC5kZXZpY2UgPSAxMSwgLmlub2RlID0gNyB9OwogICAgY29uc3QgZGlmZmVyZW50X3B3ZF9pZGVudGl0eSA9IGV4ZWNfY21kLkZpbGVJZGVudGl0eXsgLmRldmljZSA9IDk5LCAuaW5vZGUgPSA3IH07CgogICAgdmFyIG1hdGNoaW5nX2VudiA9IGV4ZWNfY21kLkVudk1hcC5pbml0KHN0ZC50ZXN0aW5nLmFsbG9jYXRvcik7CiAgICBkZWZlciBtYXRjaGluZ19lbnYuZGVpbml0KCk7CgogICAgdmFyIG1hdGNoaW5nX3N0YXRlID0gZXhlY19jbWQuRXhlY0NtZFN0YXRle307CiAgICBkZWZlciBtYXRjaGluZ19zdGF0ZS5kZWluaXQoc3RkLnRlc3RpbmcuYWxsb2NhdG9yKTsKCiAgICB0cnkgZXhlY19jbWQuZXhlY0NtZEluaXQoJm1hdGNoaW5nX2VudiwgY29uZmlnKTsKICAgIHRyeSBleGVjX2NtZC5zZXRBcmd2RXhlY1BhdGgoc3RkLnRlc3RpbmcuYWxsb2NhdG9yLCAmbWF0Y2hpbmdfZW52LCAmbWF0Y2hpbmdfc3RhdGUsIGNvbmZpZywgInRvb2xzL2JpbiIpOwogICAgdHJ5IGV4ZWNfY21kLnNldEFyZ3YwUGF0aChzdGQudGVzdGluZy5hbGxvY2F0b3IsICZtYXRjaGluZ19zdGF0ZSwgInNjcmlwdHMiKTsKICAgIHRyeSBtYXRjaGluZ19lbnYuc2V0KCJQQVRIIiwgIi91c3IvYmluIik7CgogICAgY29uc3QgbWF0Y2hpbmcgPSB0cnkgZXhlY19jbWQuc2V0dXBQYXRoV2l0aFB3ZCgKICAgICAgICBzdGQudGVzdGluZy5hbGxvY2F0b3IsCiAgICAgICAgJm1hdGNoaW5nX2VudiwKICAgICAgICBtYXRjaGluZ19zdGF0ZSwKICAgICAgICBjb25maWcsCiAgICAgICAgIi9yZXBvIiwKICAgICAgICAiL2xvZ2ljYWwvcmVwbyIsCiAgICAgICAgY3dkX2lkZW50aXR5LAogICAgICAgIG1hdGNoaW5nX3B3ZF9pZGVudGl0eSwKICAgICk7CiAgICBkZWZlciBzdGQudGVzdGluZy5hbGxvY2F0b3IuZnJlZShtYXRjaGluZyk7CgogICAgdHJ5IHN0ZC50ZXN0aW5nLmV4cGVjdEVxdWFsU3RyaW5ncygKICAgICAgICAiL2xvZ2ljYWwvcmVwby90b29scy9iaW46L2xvZ2ljYWwvcmVwby9zY3JpcHRzOi91c3IvYmluIiwKICAgICAgICBtYXRjaGluZywKICAgICk7CiAgICB0cnkgc3RkLnRlc3RpbmcuZXhwZWN0RXF1YWxTdHJpbmdzKG1hdGNoaW5nLCBtYXRjaGluZ19lbnYuZ2V0KCJQQVRIIikuPyk7CgogICAgdmFyIGRpZmZlcmVudF9lbnYgPSBleGVjX2NtZC5FbnZNYXAuaW5pdChzdGQudGVzdGluZy5hbGxvY2F0b3IpOwogICAgZGVmZXIgZGlmZmVyZW50X2Vudi5kZWluaXQoKTsKCiAgICB2YXIgZGlmZmVyZW50X3N0YXRlID0gZXhlY19jbWQuRXhlY0NtZFN0YXRle307CiAgICBkZWZlciBkaWZmZXJlbnRfc3RhdGUuZGVpbml0KHN0ZC50ZXN0aW5nLmFsbG9jYXRvcik7CgogICAgdHJ5IGV4ZWNfY21kLmV4ZWNDbWRJbml0KCZkaWZmZXJlbnRfZW52LCBjb25maWcpOwogICAgdHJ5IGV4ZWNfY21kLnNldEFyZ3ZFeGVjUGF0aChzdGQudGVzdGluZy5hbGxvY2F0b3IsICZkaWZmZXJlbnRfZW52LCAmZGlmZmVyZW50X3N0YXRlLCBjb25maWcsICJ0b29scy9iaW4iKTsKICAgIHRyeSBleGVjX2NtZC5zZXRBcmd2MFBhdGgoc3RkLnRlc3RpbmcuYWxsb2NhdG9yLCAmZGlmZmVyZW50X3N0YXRlLCAic2NyaXB0cyIpOwogICAgdHJ5IGRpZmZlcmVudF9lbnYuc2V0KCJQQVRIIiwgIi91c3IvYmluIik7CgogICAgY29uc3QgZGlmZmVyZW50ID0gdHJ5IGV4ZWNfY21kLnNldHVwUGF0aFdpdGhQd2QoCiAgICAgICAgc3RkLnRlc3RpbmcuYWxsb2NhdG9yLAogICAgICAgICZkaWZmZXJlbnRfZW52LAogICAgICAgIGRpZmZm
+const std = @import("std");
+const build_options = @import("build_options");
+const exec_cmd = @import("exec_cmd");
+
+fn expectContains(haystack: []const u8, needle: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+}
+
+fn readWorkspaceFile(allocator: std.mem.Allocator, path: []const u8, limit: usize) ![]u8 {
+    const full_path = try std.fs.path.join(allocator, &.{ build_options.repo_root, path });
+    defer allocator.free(full_path);
+
+    var io_instance: std.Io.Threaded = .init(allocator, .{});
+    defer io_instance.deinit();
+
+    return std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        full_path,
+        allocator,
+        .limited(limit),
+    );
+}
+
+test "phase 8 exec-cmd module imports cleanly" {
+    _ = exec_cmd;
+}
+
+test "phase 8 exec-cmd starter slice covers path resolution and null-terminated argv preparation" {
+    const config = exec_cmd.Config{
+        .exec_name = "perf",
+        .prefix = "/usr/libexec/perf-core",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    const resolved = try exec_cmd.getArgvExecPath(
+        std.testing.allocator,
+        config,
+        null,
+        "/custom/perf",
+    );
+    defer std.testing.allocator.free(resolved);
+    try std.testing.expectEqualStrings("/custom/perf", resolved);
+
+    const explicit_empty = try exec_cmd.getArgvExecPath(
+        std.testing.allocator,
+        config,
+        "",
+        "/ignored",
+    );
+    defer std.testing.allocator.free(explicit_empty);
+    try std.testing.expectEqualStrings("", explicit_empty);
+
+    const search_path = try exec_cmd.buildSearchPath(
+        std.testing.allocator,
+        "/repo",
+        "tools/bin",
+        "scripts",
+        "/usr/bin",
+    );
+    defer std.testing.allocator.free(search_path);
+    try std.testing.expectEqualStrings("/repo/tools/bin:/repo/scripts:/usr/bin", search_path);
+
+    var argv0 = (try exec_cmd.extractArgv0Path(std.testing.allocator, "/repo/bin/perf")) orelse unreachable;
+    defer argv0.deinit(std.testing.allocator);
+    try std.testing.expectEqualStrings("/repo/bin", argv0.argv0_path.?);
+    try std.testing.expectEqualStrings("perf", argv0.command_name);
+
+    const prepared = try exec_cmd.prepareExecCmd(
+        std.testing.allocator,
+        config,
+        &[_][]const u8{ "record", "-a" },
+    );
+    defer std.testing.allocator.free(prepared);
+    try std.testing.expectEqualStrings("perf", prepared[0].?);
+    try std.testing.expectEqualStrings("record", prepared[1].?);
+    try std.testing.expectEqualStrings("-a", prepared[2].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), prepared[3]);
+}
+
+test "phase 8 exec-cmd environment wrapper propagates PREFIX, exec path, and PATH updates" {
+    const config = exec_cmd.Config{
+        .exec_name = "perf",
+        .prefix = "/usr/libexec/perf-core",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var env = exec_cmd.EnvMap.init(std.testing.allocator);
+    defer env.deinit();
+
+    var state = exec_cmd.ExecCmdState{};
+    defer state.deinit(std.testing.allocator);
+
+    try exec_cmd.execCmdInit(&env, config);
+    try exec_cmd.setArgvExecPath(std.testing.allocator, &env, &state, config, "tools/bin");
+    try exec_cmd.setArgv0Path(std.testing.allocator, &state, "scripts");
+    try env.set("PATH", "/usr/bin:/bin");
+
+    const updated = try exec_cmd.setupPath(
+        std.testing.allocator,
+        &env,
+        state,
+        config,
+        "/repo",
+    );
+    defer std.testing.allocator.free(updated);
+
+    try std.testing.expectEqualStrings("/usr/libexec/perf-core", env.get("PREFIX").?);
+    try std.testing.expectEqualStrings("tools/bin", env.get("PERF_EXEC_PATH").?);
+    try std.testing.expectEqualStrings(
+        "/repo/tools/bin:/repo/scripts:/usr/bin:/bin",
+        updated,
+    );
+    try std.testing.expectEqualStrings(updated, env.get("PATH").?);
+
+    var explicit_empty_env = exec_cmd.EnvMap.init(std.testing.allocator);
+    defer explicit_empty_env.deinit();
+
+    var explicit_empty_state = exec_cmd.ExecCmdState{};
+    defer explicit_empty_state.deinit(std.testing.allocator);
+
+    try exec_cmd.execCmdInit(&explicit_empty_env, config);
+    try exec_cmd.setArgvExecPath(
+        std.testing.allocator,
+        &explicit_empty_env,
+        &explicit_empty_state,
+        config,
+        "",
+    );
+    try exec_cmd.setArgv0Path(std.testing.allocator, &explicit_empty_state, "scripts");
+    try explicit_empty_env.set("PATH", "/usr/bin");
+
+    const explicit_empty_path = try exec_cmd.setupPath(
+        std.testing.allocator,
+        &explicit_empty_env,
+        explicit_empty_state,
+        config,
+        "/repo",
+    );
+    defer std.testing.allocator.free(explicit_empty_path);
+
+    try std.testing.expectEqualStrings("", explicit_empty_env.get("PERF_EXEC_PATH").?);
+    try std.testing.expectEqualStrings("/repo/scripts:/usr/bin", explicit_empty_path);
+    try std.testing.expectEqualStrings(explicit_empty_path, explicit_empty_env.get("PATH").?);
+
+    var inherited_empty_env = exec_cmd.EnvMap.init(std.testing.allocator);
+    defer inherited_empty_env.deinit();
+
+    var inherited_empty_state = exec_cmd.ExecCmdState{};
+    defer inherited_empty_state.deinit(std.testing.allocator);
+
+    try exec_cmd.execCmdInit(&inherited_empty_env, config);
+    try exec_cmd.setArgvExecPath(
+        std.testing.allocator,
+        &inherited_empty_env,
+        &inherited_empty_state,
+        config,
+        "tools/bin",
+    );
+    try inherited_empty_env.set("PATH", "");
+
+    const inherited_empty = try exec_cmd.setupPath(
+        std.testing.allocator,
+        &inherited_empty_env,
+        inherited_empty_state,
+        config,
+        "/repo",
+    );
+    defer std.testing.allocator.free(inherited_empty);
+
+    try std.testing.expectEqualStrings("/repo/tools/bin:", inherited_empty);
+    try std.testing.expectEqualStrings(inherited_empty, inherited_empty_env.get("PATH").?);
+}
+
+test "phase 8 exec-cmd setupPathWithPwd reuses logical PWD only when the injected stat proof matches" {
+    const config = exec_cmd.Config{
+        .exec_name = "perf",
+        .prefix = "/usr/libexec/perf-core",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    const cwd_identity = exec_cmd.FileIdentity{ .device = 11, .inode = 7 };
+    const matching_pwd_identity = exec_cmd.FileIdentity{ .device = 11, .inode = 7 };
+    const different_pwd_identity = exec_cmd.FileIdentity{ .device = 99, .inode = 7 };
+
+    var matching_env = exec_cmd.EnvMap.init(std.testing.allocator);
+    defer matching_env.deinit();
+
+    var matching_state = exec_cmd.ExecCmdState{};
+    defer matching_state.deinit(std.testing.allocator);
+
+    try exec_cmd.execCmdInit(&matching_env, config);
+    try exec_cmd.setArgvExecPath(std.testing.allocator, &matching_env, &matching_state, config, "tools/bin");
+    try exec_cmd.setArgv0Path(std.testing.allocator, &matching_state, "scripts");
+    try matching_env.set("PATH", "/usr/bin");
+
+    const matching = try exec_cmd.setupPathWithPwd(
+        std.testing.allocator,
+        &matching_env,
+        matching_state,
+        config,
+        "/repo",
+        "/logical/repo",
+        cwd_identity,
+        matching_pwd_identity,
+    );
+    defer std.testing.allocator.free(matching);
+
+    try std.testing.expectEqualStrings(
+        "/logical/repo/tools/bin:/logical/repo/scripts:/usr/bin",
+        matching,
+    );
+    try std.testing.expectEqualStrings(matching, matching_env.get("PATH").?);
+
+    var different_env = exec_cmd.EnvMap.init(std.testing.allocator);
+    defer different_env.deinit();
+
+    var different_state = exec_cmd.ExecCmdState{};
+    defer different_state.deinit(std.testing.allocator);
+
+    try exec_cmd.execCmdInit(&different_env, config);
+    try exec_cmd.setArgvExecPath(std.testing.allocator, &different_env, &different_state, config, "tools/bin");
+    try exec_cmd.setArgv0Path(std.testing.allocator, &different_state, "scripts");
+    try different_env.set("PATH", "/usr/bin");
+
+    const different = try exec_cmd.setupPathWithPwd(
+        std.testing.allocator,
+        &different_env,
+        different_state,
+        config,
+        "/repo",
+        "/logical/repo",
+        cwd_identity,
+        different_pwd_identity,
+    );
+    defer std.testing.allocator.free(different);
+
+    try std.testing.expectEqualStrings(
+        "/repo/tools/bin:/repo/scripts:/usr/bin",
+        different,
+    );
+    try std.testing.expectEqualStrings(different, different_env.get("PATH").?);
+}
+
+test "phase 8 exec-cmd chooses the logical PWD only when the caller proves it matches cwd" {
+    try std.testing.expectEqualStrings(
+        "/repo",
+        exec_cmd.choosePwdCwd("/repo", null, false),
+    );
+    try std.testing.expectEqualStrings(
+        "/logical/repo",
+        exec_cmd.choosePwdCwd("/repo", "/logical/repo", true),
+    );
+    try std.testing.expectEqualStrings(
+        "/repo",
+        exec_cmd.choosePwdCwd("/repo", "/other", false),
+    );
+
+    const cwd_identity = exec_cmd.FileIdentity{ .device = 11, .inode = 7 };
+    const matching_pwd_identity = exec_cmd.FileIdentity{ .device = 11, .inode = 7 };
+    const different_pwd_identity = exec_cmd.FileIdentity{ .device = 99, .inode = 7 };
+
+    try std.testing.expect(exec_cmd.sameFileLocation(cwd_identity, matching_pwd_identity));
+    try std.testing.expect(!exec_cmd.sameFileLocation(cwd_identity, different_pwd_identity));
+    try std.testing.expectEqualStrings(
+        "/logical/repo",
+        exec_cmd.choosePwdCwdFromFileIdentity(
+            "/repo",
+            "/logical/repo",
+            cwd_identity,
+            matching_pwd_identity,
+        ),
+    );
+    try std.testing.expectEqualStrings(
+        "/repo",
+        exec_cmd.choosePwdCwdFromFileIdentity(
+            "/repo",
+            "/logical/repo",
+            cwd_identity,
+            different_pwd_identity,
+        ),
+    );
+    try std.testing.expect(!exec_cmd.samePathIdentity(cwd_identity, null));
+    try std.testing.expectEqualStrings(
+        "/repo",
+        exec_cmd.choosePwdCwdFromIdentities(
+            "/repo",
+            "/logical/repo",
+            cwd_identity,
+            null,
+        ),
+    );
+}
+
+test "phase 8 exec-cmd keeps the trailing null slot for empty subcommand tails" {
+    const config = exec_cmd.Config{
+        .exec_name = "perf",
+        .prefix = "/usr/libexec/perf-core",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    const prepared = try exec_cmd.prepareExecCmd(std.testing.allocator, config, &.{});
+    defer std.testing.allocator.free(prepared);
+
+    try std.testing.expectEqual(@as(usize, 2), prepared.len);
+    try std.testing.expectEqualStrings("perf", prepared[0].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), prepared[1]);
+}
+
+test "phase 8 exec-cmd models the pure execl-style argv collector and guard" {
+    const collected = try exec_cmd.collectExeclArgs(
+        std.testing.allocator,
+        "record",
+        &[_]?[]const u8{ "-a", "--stdio", null, "--ignored" },
+    );
+    defer std.testing.allocator.free(collected);
+
+    try std.testing.expectEqual(@as(usize, 4), collected.len);
+    try std.testing.expectEqualStrings("record", collected[0].?);
+    try std.testing.expectEqualStrings("-a", collected[1].?);
+    try std.testing.expectEqualStrings("--stdio", collected[2].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), collected[3]);
+
+    var overflowing_tail: [31]?[]const u8 = undefined;
+    for (overflowing_tail[0..30]) |*slot| {
+        slot.* = "x";
+    }
+    overflowing_tail[30] = null;
+
+    try std.testing.expectError(
+        error.TooManyArguments,
+        exec_cmd.collectExeclArgs(std.testing.allocator, "record", &overflowing_tail),
+    );
+
+    try std.testing.expectError(
+        error.MissingNullTerminator,
+        exec_cmd.collectExeclArgs(
+            std.testing.allocator,
+            "record",
+            &[_]?[]const u8{ "-a", "--stdio" },
+        ),
+    );
+}
+
+test "phase 8 exec-cmd keeps the deferred execl handoff helper below launch behavior" {
+    const config = exec_cmd.Config{
+        .exec_name = "perf",
+        .prefix = "/usr/libexec/perf-core",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var deferred = try exec_cmd.buildDeferredExeclCall(
+        std.testing.allocator,
+        config,
+        "record",
+        &[_]?[]const u8{ "-a", "--stdio", null, "--ignored" },
+    );
+    defer deferred.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 5), deferred.argv.len);
+    try std.testing.expectEqualStrings("perf", deferred.argv[0].?);
+    try std.testing.expectEqualStrings("record", deferred.argv[1].?);
+    try std.testing.expectEqualStrings("-a", deferred.argv[2].?);
+    try std.testing.expectEqualStrings("--stdio", deferred.argv[3].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), deferred.argv[4]);
+}
+
+test "phase 8 exec-cmd docs keep the deferred execution boundary explicit" {
+    const slice_note = try readWorkspaceFile(
+        std.testing.allocator,
+        "Documentation/zigux/phase8-exec-cmd-slice.md",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(slice_note);
+
+    try expectContains(slice_note, "PHASE8_STATUS=parked");
+    try expectContains(slice_note, "PHASE8_SLICE=exec-cmd-tooling-parked");
+    try expectContains(slice_note, "tools/lib/subcmd/exec-cmd.zig");
+    try expectContains(slice_note, "zigux/tests/phase8_exec_cmd.zig");
+    try expectContains(slice_note, "deferred execution");
+    try expectContains(slice_note, "Phase 14");
+    try expectContains(slice_note, "kernel/workqueue.c");
+    try expectContains(slice_note, "`execv_cmd()`");
+    try expectContains(slice_note, "`execvp()`");
+    try expectContains(slice_note, "scheduler-facing transport ownership");
+}
+
+test "phase 8 exec-cmd review checklist keeps deferred handoff review wording aligned" {
+    const review_checklist = try readWorkspaceFile(
+        std.testing.allocator,
+        "Documentation/zigux/review-checklist.md",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(review_checklist);
+
+    try expectContains(review_checklist, "parked Phase 8 `exec-cmd` helper packet");
+    try expectContains(review_checklist, "Documentation/zigux/phase8-exec-cmd-slice.md");
+    try expectContains(review_checklist, "zigux/tests/phase8_exec_cmd.zig");
+    try expectContains(review_checklist, "deferred execution helper-only");
+    try expectContains(review_checklist, "kernel/workqueue.c");
+    try expectContains(review_checklist, "`execv_cmd()`");
+    try expectContains(review_checklist, "`execl_cmd()`");
+    try expectContains(review_checklist, "direct `execvp()` side effects");
+    try expectContains(review_checklist, "queue ownership");
+    try expectContains(review_checklist, "scheduler-facing transport claims");
+}
+
+test "phase 8 exec-cmd evidence still matches the live C helper anchors" {
+    const exec_cmd_c = try readWorkspaceFile(
+        std.testing.allocator,
+        "tools/lib/subcmd/exec-cmd.c",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(exec_cmd_c);
+
+    try expectContains(exec_cmd_c, "static const char *get_pwd_cwd(char *buf, size_t sz)");
+    try expectContains(exec_cmd_c, "pwd_stat.st_dev == cwd_stat.st_dev");
+    try expectContains(exec_cmd_c, "pwd_stat.st_ino == cwd_stat.st_ino");
+    try expectContains(exec_cmd_c, "char *get_argv_exec_path(void)");
+    try expectContains(exec_cmd_c, "if (argv_exec_path)");
+    try expectContains(exec_cmd_c, "env = getenv(subcmd_config.exec_path_env);");
+    try expectContains(exec_cmd_c, "if (env && *env)");
+    try expectContains(exec_cmd_c, "void setup_path(void)");
+    try expectContains(exec_cmd_c, "add_path(&new_path, tmp);");
+    try expectContains(exec_cmd_c, "add_path(&new_path, argv0_path);");
+    try expectContains(exec_cmd_c, "static const char **prepare_exec_cmd(const char **argv)");
+    try expectContains(exec_cmd_c, "int execv_cmd(const char **argv)");
+    try expectContains(exec_cmd_c, "execvp(subcmd_config.exec_name, (char **)nargv);");
+    try expectContains(exec_cmd_c, "int execl_cmd(const char *cmd,...)");
+    try expectContains(exec_cmd_c, "while (argc < MAX_ARGS)");
+    try expectContains(exec_cmd_c, "if (MAX_ARGS <= argc)");
+}
