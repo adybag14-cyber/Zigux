@@ -1,5 +1,5 @@
 {
-  "lane_key": "P5-L13",
+  "lane_key": "P5-L19",
   "phase": "Phase 5",
   "surveyed_commit": "173027a7fa074960e08d67a64f8807730cf3c07a",
   "anchor": "samples/trace_events/trace-events-sample.c",
@@ -8,7 +8,7 @@
   "review_prompts": [
     "descriptor keeps the Linux anchor path explicit and leaves requires_runtime_substrate false while provides_selfcheck stays true",
     "the manifest keeps surveyed_commit pinned to the exact inspected master head and the sample-backed survey note carries the same PHASE5_SURVEYED_COMMIT marker instead of a floating branch label so reviewability stays tied to one bounded repo state",
-    "the sample-backed survey note, samples/zigux/README.md, Documentation/zigux/README.md, and Documentation/zigux/review-checklist.md still describe the same bounded trace-events replay contract and keep this Phase 5 sample separate from the Phase 9 runtime pilot",
+    "the sample-backed survey note, samples/zigux/README.md, Documentation/zigux/README.md, and Documentation/zigux/review-checklist.md still describe the same approved payload-and-callback idiom, keep the bounded trace-events replay contract reviewable and repeatable, and keep this Phase 5 sample separate from the Phase 9 runtime pilot",
     "the manifest and survey test still describe the exact selected-string-slot, payload-length, main-iteration, callback-iteration, vararg-payload, lifecycle-summary, message, relative-location, callback-path, and teardown contract run through phase5_build.zig",
     "the public lifecycle summary still exposes stage plus init or replay or exit counts, registration depth, and total event calls so ownership progression stays reviewable without private field access",
     "the in-memory replay still keeps the array payload, selected string, and iter-format message reviewable instead of hiding them behind runtime thread state",
