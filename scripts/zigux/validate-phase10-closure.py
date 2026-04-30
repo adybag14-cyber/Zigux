@@ -228,11 +228,14 @@ required_core_survey_test_markers = [
     'if (std.mem.eql(u8, gap.id, "phase10-core-probe-remove-lifecycle")) {',
 ]
 required_ring_survey_markers = [
-    "remaining MMIO follow-up ladder against the roadmap",
+    "remaining blocked MMIO lifecycle-and-IRQ boundary against the roadmap",
+    "no smaller ready transport follow-up remains ahead of the still-blocked lifecycle and IRQ packet",
     "phase10-mmio-queue-register-helper",
 ]
 required_ring_survey_test_markers = [
-    'test "phase10 virtio ring survey manifest records the live queue-discipline and MMIO ladder through landed config-write" {',
+    'test "phase10 virtio ring survey manifest records the live queue-discipline packet and parked MMIO blocker after landed config-write" {',
+    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "no smaller ready transport follow-up remains ahead of the still-blocked lifecycle and IRQ packet") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "remaining MMIO follow-up ladder against the roadmap") == null);',
 ]
 required_input_survey_test_markers = [
     'test "phase10 virtio input survey manifest records the live starter and remaining gap" {',
@@ -335,6 +338,7 @@ forbidden_stale_mmio_slice_markers = [
     "add one small config-window write-planning helper next",
 ]
 forbidden_stale_ring_markers = [
+    "remaining MMIO follow-up ladder against the roadmap",
     "remaining queue-wrapper gap",
     "queue-wrapper gap",
 ]
