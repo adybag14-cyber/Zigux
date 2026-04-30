@@ -6,8 +6,8 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `sam
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-kretprobe-survey`
-- `PHASE9_LANE_KEY=P9-L10`
-- `PHASE9_SURVEYED_COMMIT=a0bf6e9e3c43e1fc51c0d85ae74c065439ac22da`
+- `PHASE9_LANE_KEY=P9-L15`
+- `PHASE9_SURVEYED_COMMIT=9ab58640ce44fd53534dd49e29fcce6e274dc3d0`
 - scope: survey manifest, manifest-backed delivery catalog and ownership map, a direct embedded sample replay, dedicated survey and diff gates, the bounded loader-handoff scaffold, explicit no-substrate rollback evidence, the landed shared loader-request binding, explicit `phase9-runtime-kretprobe-{sample,module,diff,loader,survey}-tests` shared-build legs, and the lane-level note that records the remaining broader runtime-control blocker plus the exact Phase 9 roadmap gap it still leaves open
 - product boundary:
   - `samples/zigux/runtime_kretprobe.zig`
@@ -26,7 +26,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `sam
 
 The roadmap names `samples/kprobes/kretprobe_example.c` twice: first as a Phase 5 sample-reference anchor and later as a Phase 9 runtime pilot anchor. This lane stays strictly inside the Phase 9 reading of that roadmap entry.
 
-The survey artifacts now stay anchored to the `P9-L10` manifest, catalog, and ownership lane that owns this runtime kretprobe packet, even though later neighboring runs landed the `runtime_kretprobe` starter, dedicated module tests, diff gate, loader-handoff scaffold, and the shared runtime-loader request binding. That keeps the ownership history honest while still recording the full live review surface.
+This `P9-L15` verification pass keeps the survey artifacts anchored to the current manifest, catalog, and ownership lane for the runtime kretprobe packet after replaying the current sample, module, diff, loader, and survey behavior against `master` head `9ab58640ce44fd53534dd49e29fcce6e274dc3d0`. That keeps the ownership history honest while still recording the full live review surface.
 
 The live repo now has a bounded `runtime_kretprobe` starter, a direct embedded sample replay, dedicated module tests, a dedicated diff gate, a bounded loader-handoff scaffold, a shared loader-request binding under `zigux/kernel/runtime_loader.zig`, and shared Phase 9 build coverage, so this survey note keeps that shipped packet reviewable through a manifest-backed delivery catalog and ownership map instead of leaving the sample and shared-build surface implied.
 
@@ -85,6 +85,15 @@ This keeps the lane concrete without pretending that Zigux already has real `reg
 It also keeps the roadmap comparison explicit: this packet now has the landed selftest-hook marker, direct sample replay, and starter lifecycle evidence, but the `first loadable Zigux runtime modules` and `runtime module lifecycle parity` steps remain open until the broader shared runtime-loader controls can drive a real registration path.
 
 The manifest-backed review prompts for this lane now also keep one rollback question explicit: does the current packet still name the no-substrate fallback path, or did a code change silently turn the bounded handoff into an implied live loader?
+
+## Latest verification snapshot
+
+- verified against `master` head `9ab58640ce44fd53534dd49e29fcce6e274dc3d0`
+- direct sample replay in the lane-local scratch packet passed: `zig test samples/zigux/runtime_kretprobe.zig`
+- formatting stayed clean for the shipped sample: `zig fmt --check samples/zigux/runtime_kretprobe.zig`
+- the focused packet build passed after wiring the same imports the repo build expects: `zig build test --build-file zigux/tests/phase9_kretprobe_only_build.zig --summary all`
+- the focused build replay covered the dedicated `phase9-runtime-kretprobe-sample-tests`, `phase9-runtime-kretprobe-module-tests`, `phase9-runtime-kretprobe-diff-tests`, `phase9-runtime-kretprobe-loader-tests`, and `phase9-runtime-kretprobe-survey-tests` legs together
+- observed current bounded behavior stayed unchanged: the sample selftest path still reaches `selftest_complete`, the loader still hands off through `waiting_on_runtime_substrate` plus `released_without_substrate`, and the broader shared runtime-loader control surface remains the only blocker to real execution
 
 ## Gates
 
