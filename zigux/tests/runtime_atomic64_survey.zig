@@ -51,8 +51,6 @@ const Manifest = struct {
     non_goals: []const []const u8,
 };
 
-const surveyed_commit = "5dab7ee45d2664801211fb9e2ccba28e1a127071";
-
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
         std.mem.eql(u8, status, "ready_next") or
@@ -65,6 +63,22 @@ fn isLowerHexSha(value: []const u8) bool {
         if (!std.ascii.isHex(byte) or std.ascii.isUpper(byte)) return false;
     }
     return true;
+}
+
+fn expectSurveyedCommitMarker(document: []const u8, commit: []const u8) !void {
+    const marker = try std.fmt.allocPrint(std.testing.allocator, "`PHASE9_SURVEYED_COMMIT={s}`", .{commit});
+    defer std.testing.allocator.free(marker);
+    try std.testing.expect(std.mem.indexOf(u8, document, marker) != null);
+}
+
+fn expectPinnedCommitSentence(document: []const u8, commit: []const u8) !void {
+    const sentence = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "the current survey packet is pinned to `master` commit `{s}`",
+        .{commit},
+    );
+    defer std.testing.allocator.free(sentence);
+    try std.testing.expect(std.mem.indexOf(u8, document, sentence) != null);
 }
 
 test "phase 9 runtime atomic64 survey manifest records the landed diff gate and remaining blocker" {
@@ -85,7 +99,6 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P9-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 9", manifest.phase);
-    try std.testing.expectEqualStrings(surveyed_commit, manifest.surveyed_commit);
     try std.testing.expect(isLowerHexSha(manifest.surveyed_commit));
     try std.testing.expectEqualStrings("lib/atomic64_test.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
@@ -417,9 +430,30 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
     try std.testing.expect(saw_freeze_map_boundary_check);
 }
 
-test "phase 9 runtime atomic64 module slice note stays aligned with the landed loader-backed review packet" {
+test "phase 9 runtime atomic64 docs stay aligned with the manifest-backed surveyed commit" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
+
+    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/runtime_atomic64_manifest.json",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(manifest_json);
+
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    defer parsed.deinit();
+
+    const manifest = parsed.value;
+
+    const survey_doc = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase9-runtime-atomic64-survey.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(survey_doc);
 
     const module_slice = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
@@ -431,7 +465,6 @@ test "phase 9 runtime atomic64 module slice note stays aligned with the landed l
 
     const required_markers = [_][]const u8{
         "`PHASE9_LANE_KEY=P9-L01`",
-        "`PHASE9_SURVEYED_COMMIT=5dab7ee45d2664801211fb9e2ccba28e1a127071`",
         "the bounded guard-return trio from `lib/atomic64_test.c`: `add_unless`, `inc_not_zero`, and `dec_if_positive`",
         "a narrow differential gate under `zigux/tests/runtime_atomic64_diff.zig` for selected exchange, cmpxchg, `add_unless`, `inc_not_zero`, and `dec_if_positive` expectations",
         "a landed sample-side loader scaffold under `samples/zigux/runtime_atomic64_loader.zig` plus a shared runtime-loader request binding under `zigux/kernel/runtime_loader.zig`",
@@ -442,10 +475,13 @@ test "phase 9 runtime atomic64 module slice note stays aligned with the landed l
         try std.testing.expect(std.mem.indexOf(u8, module_slice, marker) != null);
     }
 
+    try expectSurveyedCommitMarker(survey_doc, manifest.surveyed_commit);
+    try expectPinnedCommitSentence(survey_doc, manifest.surveyed_commit);
+    try expectSurveyedCommitMarker(module_slice, manifest.surveyed_commit);
+
     try std.testing.expect(std.mem.indexOf(
         u8,
         module_slice,
         "most likely `dec_if_positive`",
     ) == null);
 }
-
