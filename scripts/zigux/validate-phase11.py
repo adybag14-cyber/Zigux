@@ -361,6 +361,7 @@ hvc_commit = str(hvc_manifest.get("surveyed_commit", ""))
 hvc_survey_doc = text(HVC_DOC_PATHS["survey"])
 hvc_slice_doc = text(HVC_DOC_PATHS["slice"])
 hvc_matrix_doc = text(HVC_DOC_PATHS["matrix"])
+hvc_test_text = text("zigux/tests/phase11_hvc_console.zig")
 for marker in [
     f"reviewed against live `master` `{hvc_commit}`",
     "dedicated hvc survey replay is still separate from `zigux/tests/phase11_build.zig`",
@@ -390,6 +391,30 @@ for marker in [
 ]:
     if marker not in hvc_matrix_doc:
         missing.append(f"phase11_hvc_console_docs:matrix:{marker}")
+for marker in [
+    "khvcd timeout underflow is now pinned in the focused hvc replay",
+    "timeout_ms = 0",
+    "`__hvc_poll()` hangup pressure is now pinned separately from the throttled and detached cases",
+    "read_hangup_pending",
+    "remove-time detached teardown is now pinned separately from the attached path",
+    "tty_attached = false",
+]:
+    if marker not in hvc_matrix_doc:
+        missing.append(f"phase11_hvc_console_docs:failure_modes:{marker}")
+for marker in [
+    'test "phase11 hvc console keeps khvcd worker-entry sleep and backoff boundaries reviewable" {',
+    "        .timeout_ms = 0,",
+    "    try std.testing.expectEqual(@as(u32, 11), clamped_worker.sleep_timeout_ms);",
+    'test "phase11 hvc console keeps __hvc_poll drain ordering and wakeup boundaries reviewable" {',
+    "    try std.testing.expect(hangup_drain.read_hangup_pending);",
+    "    try std.testing.expect(hangup_drain.read_poll_armed_without_irq);",
+    'test "phase11 hvc console keeps hvc_remove handoff boundaries reviewable" {',
+    "        .tty_attached = false,",
+    "    try std.testing.expect(!detached_remove.tty_vhangup_requested);",
+    "    try std.testing.expect(!detached_remove.tty_kref_put_after_vhangup);",
+]:
+    if marker not in hvc_test_text:
+        missing.append(f"phase11_hvc_console_tests:{marker}")
 
 gpio_manifest = load_manifest("phase11_gpio_wdt_manifest.json")
 gpio_survey_doc = text(GPIO_WDT_DOC_PATHS["survey"])
