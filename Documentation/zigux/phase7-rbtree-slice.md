@@ -20,6 +20,8 @@ This document records the bounded Phase 7 runtime leaf-helper slice for Zigux ar
 
 Phase 7 explicitly calls out `lib/rbtree.c` as one of the first reusable in-kernel leaf libraries that should move into the Zigux product path.
 
+This current slice keeps the work bounded to runtime-safe leaf helpers with explicit integration with validation substrate through `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_survey.zig`, `zigux/tests/phase7_build.zig`, and `scripts/zigux/check-phase7-rbtree-parity.py`.
+
 This slice stays intentionally narrow and ports the first practical runtime-safe red-black tree surface:
 
 - root and node initialization
