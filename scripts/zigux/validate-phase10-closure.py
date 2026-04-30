@@ -484,6 +484,21 @@ for field in ("docs", "manifests", "drivers", "tests", "exact_checks"):
         if field != "exact_checks" and not (ROOT / rel).exists():
             missing_markers.append(f"manifest_file:{rel}")
 
+expected_list_count_fields = {
+    "docs": "doc_count",
+    "manifests": "manifest_count",
+    "drivers": "driver_count",
+    "tests": "test_count",
+}
+for list_field, count_field in expected_list_count_fields.items():
+    listed = manifest.get(list_field)
+    if isinstance(listed, list):
+        recorded_count = manifest.get(count_field)
+        if recorded_count != len(listed):
+            missing_markers.append(
+                f"manifest:{count_field}:expected_{len(listed)}_from_{list_field}"
+            )
+
 expected_exact_checks = {
     "python3 scripts/zigux/validate-phase10-closure.py",
     "zig build test --build-file zigux/tests/phase10_build.zig --summary all",
@@ -694,6 +709,38 @@ def has_gap_status(phase_manifest: object, gap_id: str, status: str) -> bool:
         if gap.get("id") == gap_id and gap.get("status") == status:
             return True
     return False
+
+
+def gap_ids_with_status(phase_manifest: object, status: str) -> list[str]:
+    if not isinstance(phase_manifest, dict):
+        return []
+    gaps = phase_manifest.get("gaps")
+    if not isinstance(gaps, list):
+        return []
+
+    matches: list[str] = []
+    for gap in gaps:
+        if not isinstance(gap, dict):
+            continue
+        if gap.get("status") != status:
+            continue
+        gap_id = gap.get("id")
+        if isinstance(gap_id, str):
+            matches.append(gap_id)
+    return matches
+
+
+ready_next_gaps = {
+    "core": gap_ids_with_status(core_manifest, "ready_next"),
+    "ring": gap_ids_with_status(ring_manifest, "ready_next"),
+    "input": gap_ids_with_status(input_manifest, "ready_next"),
+    "mmio": gap_ids_with_status(mmio_manifest, "ready_next"),
+}
+for lane_name, gap_ids in ready_next_gaps.items():
+    if gap_ids:
+        missing_markers.append(
+            f"manifest:ready_transport_followups:unexpected_{lane_name}_ready_next:{','.join(gap_ids)}"
+        )
 
 
 if not has_gap_status(core_manifest, "phase10-config-generation-summary-helper", "starter_landed"):
