@@ -217,6 +217,10 @@ def run_self_test() -> int:
         assert 'test "phase3 low-level wrappers keep the narrow unsafe scope contract explicit"' in low_level_markers
         mmio_markers = ABI_REQUIRED_SOURCE_MARKERS["zigux/helpers/mmio.zig"]
         assert 'test "phase3 mmio wrapper rejects overflowed scoped accesses"' in mmio_markers
+        interop_markers = ABI_REQUIRED_SOURCE_MARKERS["zigux/helpers/interop_policy.zig"]
+        assert "pub fn initializesOwnedState(self: DecodedInteropPolicy) bool {" in interop_markers
+        assert "pub fn requiresResetOnInit(self: DecodedInteropPolicy) bool {" in interop_markers
+        assert 'test "phase3 interop policy decoder keeps allocator init requirements explicit"' in interop_markers
         narrow_markers = ABI_REQUIRED_SOURCE_MARKERS["zigux/unsafe/narrow.zig"]
         assert "pub fn checkedSpanEnd(comptime T: type, base: usize, len: usize) ScopeError!usize {" in narrow_markers
         assert 'test "phase3 narrow unsafe scoped helpers reject overflowed address math"' in narrow_markers
