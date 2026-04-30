@@ -22,6 +22,7 @@ FILES = [
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase12-virtio-net-survey.md",
     "Documentation/zigux/phase12-nvme-pci-survey.md",
+    "Documentation/zigux/phase12-nvme-pci-slice.md",
     "Documentation/zigux/phase12-virtio-scsi-slice.md",
     "Documentation/zigux/phase12-virtio-scsi-survey.md",
     "Documentation/zigux/phase12-libbpf-segment-survey.md",
