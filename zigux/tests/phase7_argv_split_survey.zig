@@ -126,6 +126,10 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try std.testing.expect(saw_helper);
     try std.testing.expect(saw_survey_gate);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_helper, "pub fn argvFree") != null);
+    try std.testing.expect(std.mem.indexOf(u8, argv_split_helper, "leading_nul_expected") != null);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_tests, "phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable") != null);
+    try std.testing.expect(std.mem.indexOf(u8, argv_split_tests, "phase 7 argvFree keeps the blank-input sentinel teardown safe and repeatable") != null);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "`argv_free()` via `argvFree()`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "leading-NUL truncation to zero argv entries before any later bytes are considered") != null);
+    try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "repeated blank-input `argvFree()` teardown safety so the shared empty sentinel state survives explicit release without allocator backing") != null);
 }
