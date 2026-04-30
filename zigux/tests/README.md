@@ -81,6 +81,7 @@ Key entrypoints
 - `zigux/tests/phase8_logging.zig`
 - `zigux/tests/phase8_pin_path.zig`
 - `zigux/tests/phase8_file_path_handle_bridge.zig`
+- `zigux/tests/phase8_bridge_boundary_survey.zig`
 - `zigux/tests/phase8_libbpf_segments.zig`
 - `zigux/tests/phase8_bpf_type_names.zig`
 - `zigux/tests/phase9_build.zig`
