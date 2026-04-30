@@ -6,6 +6,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 
 - `PHASE8_STATUS=parked`
 - `PHASE8_SLICE=exec-cmd-tooling-parked`
+- legacy validator alias: `PHASE8_SLICE=exec-cmd-tooling-starter`
 - scope: path-resolution, injected environment setup, `get_pwd_cwd()`-style cwd choice plus a bounded setup-path wrapper that consumes stat-identity proof, null-terminated command-vector preparation, pure `execl_cmd()`-style argv collection, and one pure deferred-exec handoff carrier only
 - product boundary:
   - `tools/lib/subcmd/exec-cmd.zig`
