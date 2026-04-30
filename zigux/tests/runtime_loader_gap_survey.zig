@@ -151,9 +151,9 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
     try std.testing.expectEqual(@as(usize, 4), manifest.runtime_samples.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.runtime_loader_plans.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_owner_surfaces.len);
-    try std.testing.expectEqual(@as(usize, 10), manifest.delivery_evidence_catalog.len);
-    try std.testing.expectEqual(@as(usize, 10), manifest.ownership_map.len);
-    try std.testing.expectEqual(@as(usize, 10), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 11), manifest.delivery_evidence_catalog.len);
+    try std.testing.expectEqual(@as(usize, 11), manifest.ownership_map.len);
+    try std.testing.expectEqual(@as(usize, 11), manifest.gaps.len);
 
     try std.testing.expectEqualStrings("lib/base64.zig", manifest.phase6_leaf_helpers[0]);
     try std.testing.expectEqualStrings("lib/hexdump.zig", manifest.phase6_leaf_helpers[3]);
@@ -184,6 +184,7 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
     var landed_count: usize = 0;
     var blocked_count: usize = 0;
     var saw_manifest_catalog = false;
+    var saw_substrate_plan_doc = false;
     var saw_freeze_map_doc = false;
     var saw_shared_contract = false;
     var saw_atomic64_loader_plan = false;
@@ -200,6 +201,13 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
             saw_manifest_catalog = true;
             try std.testing.expectEqualStrings("manifest", entry.kind);
             try std.testing.expect(std.mem.indexOf(u8, entry.role, "manifest-backed catalog and ownership map") != null);
+        }
+        if (std.mem.eql(u8, entry.id, "runtime-loader-substrate-plan")) {
+            saw_substrate_plan_doc = true;
+            try std.testing.expectEqualStrings("documentation", entry.kind);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase9-runtime-loader-substrate-plan.md", entry.path);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "shared loader-stage vocabulary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "atomic64, bitmap, and kretprobe handoff alignment") != null);
         }
         if (std.mem.eql(u8, entry.id, "runtime-loader-freeze-map")) {
             saw_freeze_map_doc = true;
@@ -244,6 +252,10 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
         if (std.mem.eql(u8, entry.surface, "zigux/tests/runtime_loader_gap_manifest.json")) {
             try std.testing.expect(std.mem.indexOf(u8, entry.owns, "manifest-backed catalog and ownership map") != null);
         }
+        if (std.mem.eql(u8, entry.surface, "Documentation/zigux/phase9-runtime-loader-substrate-plan.md")) {
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "shared loader-stage vocabulary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "atomic64, bitmap, and kretprobe handoff-alignment note") != null);
+        }
         if (std.mem.eql(u8, entry.surface, "Documentation/zigux/freeze-map.md")) {
             try std.testing.expect(std.mem.indexOf(u8, entry.owns, "`kernel/workqueue.c`") != null);
             try std.testing.expect(std.mem.indexOf(u8, entry.owns, "Architecture Council") != null);
@@ -272,6 +284,7 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
     var saw_build = false;
     var saw_gate = false;
     var saw_note = false;
+    var saw_substrate_plan = false;
     var saw_review_checklist = false;
     var saw_plan_inputs = false;
     var saw_without_substrate_rollback = false;
@@ -306,6 +319,14 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
             saw_note = true;
             try std.testing.expectEqualStrings("Documentation/zigux/phase9-runtime-loader-gap-survey.md", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "Phase 6 should not absorb runtime allocator or init-flow work") != null);
+        }
+        if (std.mem.eql(u8, gap.id, "runtime-loader-substrate-plan")) {
+            saw_substrate_plan = true;
+            try std.testing.expectEqualStrings("Documentation/zigux/phase9-runtime-loader-substrate-plan.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "atomic64, bitmap, and kretprobe loader plans") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "`zigux/kernel/runtime_loader.zig`") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "waiting_on_runtime_substrate") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "released_without_substrate") != null);
         }
         if (std.mem.eql(u8, gap.id, "runtime-loader-review-checklist")) {
             saw_review_checklist = true;
@@ -366,9 +387,10 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 8), landed_count);
+    try std.testing.expectEqual(@as(usize, 9), landed_count);
     try std.testing.expectEqual(@as(usize, 2), blocked_count);
     try std.testing.expect(saw_manifest_catalog);
+    try std.testing.expect(saw_substrate_plan_doc);
     try std.testing.expect(saw_freeze_map_doc);
     try std.testing.expect(saw_shared_contract);
     try std.testing.expect(saw_atomic64_loader_plan);
@@ -377,6 +399,7 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
     try std.testing.expect(saw_build);
     try std.testing.expect(saw_gate);
     try std.testing.expect(saw_note);
+    try std.testing.expect(saw_substrate_plan);
     try std.testing.expect(saw_review_checklist);
     try std.testing.expect(saw_plan_inputs);
     try std.testing.expect(saw_without_substrate_rollback);
@@ -405,6 +428,13 @@ test "runtime loader gap survey doc keeps the mixed roadmap phases and remaining
         16 * 1024,
     );
     defer std.testing.allocator.free(survey_note);
+    const substrate_plan = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "Documentation/zigux/phase9-runtime-loader-substrate-plan.md",
+        16 * 1024,
+    );
+    defer std.testing.allocator.free(substrate_plan);
 
     try std.testing.expect(std.mem.indexOf(u8, freeze_map, "## Study / Boundary Only") != null);
     try std.testing.expect(std.mem.indexOf(u8, freeze_map, "`kernel/workqueue.c`") != null);
@@ -434,6 +464,8 @@ test "runtime loader gap survey doc keeps the mixed roadmap phases and remaining
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "COLUMNS") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "terminal-cue surfaces") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "bounded shared runtime-loader request surface") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Documentation/zigux/phase9-runtime-loader-substrate-plan.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared loader-stage vocabulary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Documentation/zigux/review-checklist.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "no hidden runtime services") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "no implicit allocation posture beyond the explicit allocator-handoff contract") != null);
@@ -457,6 +489,16 @@ test "runtime loader gap survey doc keeps the mixed roadmap phases and remaining
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Phase 2 config-surface bridge packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Phase 3 export-boundary packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "boundary references instead of Phase 9 runtime evidence") != null);
+    try std.testing.expect(std.mem.indexOf(u8, substrate_plan, "samples/zigux/runtime_atomic64_loader.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, substrate_plan, "samples/zigux/runtime_bitmap_loader.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, substrate_plan, "samples/zigux/runtime_kretprobe_loader.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, substrate_plan, "zigux/kernel/runtime_loader.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, substrate_plan, "shared loader-stage vocabulary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, substrate_plan, "atomic64, bitmap, and kretprobe loaders") != null);
+    try std.testing.expect(std.mem.indexOf(u8, substrate_plan, "waiting_on_runtime_substrate") != null);
+    try std.testing.expect(std.mem.indexOf(u8, substrate_plan, "released_without_substrate") != null);
+    try std.testing.expect(std.mem.indexOf(u8, substrate_plan, "counter snapshot") != null);
+    try std.testing.expect(std.mem.indexOf(u8, substrate_plan, "register_kretprobe") != null);
 }
 
 test "runtime loader gap survey keeps the review checklist runtime guardrails explicit" {
@@ -478,6 +520,7 @@ test "runtime loader gap survey keeps the review checklist runtime guardrails ex
         "are parity tests or fixture checks included?",
         "is there a stated rollback owner and fallback path?",
         "if the change touches the shared Phase 9 runtime-loader evidence packet, does `zigux/tests/runtime_loader_gap_manifest.json` still keep the manifest-backed catalog and ownership map aligned with the survey note, review checklist, shared request contract, sample-side loader plans, and shared `phase9_build.zig` entrypoint in one reviewable ownership packet?",
+        "if the change touches the shared Phase 9 runtime-loader evidence packet, does `Documentation/zigux/phase9-runtime-loader-substrate-plan.md` still stay aligned with `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/kernel/runtime_loader.zig`, and the atomic64, bitmap, and kretprobe loader plans so the shared loader-stage vocabulary plus the without-substrate fallback remain reviewable in one place?",
         "if the change touches the shared Phase 9 runtime-loader evidence packet and its adjacent scheduler-facing boundary, does `Documentation/zigux/freeze-map.md` still stay in that same reviewable ownership packet so the study-only `kernel/workqueue.c` status and Architecture Council reopen rule remain explicit beside the survey note, review checklist, shared request contract, sample-side loader plans, and shared `phase9_build.zig` entrypoint?",
     });
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "scripts/zigux/kconfig/conf_bridge.zig") != null);
