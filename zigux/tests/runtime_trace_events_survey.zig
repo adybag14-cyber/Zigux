@@ -248,7 +248,7 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "exit_runs") != null);
         }
         if (std.mem.eql(u8, check.id, "main-thread-payload-surface")) {
-            saw_Main_payload_surface = true;
+            saw_main_payload_surface = true;
             try std.testing.expectEqualStrings("payload_contract", check.kind);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "foo_bar") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "count % 5 array-shape details") != null);
