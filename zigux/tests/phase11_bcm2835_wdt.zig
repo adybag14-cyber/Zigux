@@ -216,16 +216,20 @@ test "phase11 bcm2835_wdt remove summary only clears the shared poweroff handler
     try std.testing.expect(owned.watchdog_teardown_managed_by_devm);
     try std.testing.expect(owned.remove_callback_scope_limited_to_poweroff_owner);
     try std.testing.expect(owned.clear_poweroff_handler_requested);
+    try std.testing.expect(!owned.clear_poweroff_handler_blocked_by_conflict);
+    try std.testing.expect(!owned.clear_poweroff_handler_skipped_without_system_power_controller);
     try std.testing.expect(!owned.poweroff_handler_left_in_place);
 
     const conflict = watchdog.removeSummary(true, true, false);
     try std.testing.expect(conflict.system_power_controller);
     try std.testing.expect(conflict.poweroff_handler_present);
     try std.testing.expect(!conflict.poweroff_handler_owned_by_driver);
-    try std.testing.expect(conflict.remove_callback_ready);
+    try std.testing.expect(conflict.removeCallback_ready);
     try std.testing.expect(conflict.watchdog_teardown_managed_by_devm);
     try std.testing.expect(conflict.remove_callback_scope_limited_to_poweroff_owner);
     try std.testing.expect(!conflict.clear_poweroff_handler_requested);
+    try std.testing.expect(conflict.clear_poweroff_handler_blocked_by_conflict);
+    try std.testing.expect(!conflict.clear_poweroff_handler_skipped_without_system_power_controller);
     try std.testing.expect(conflict.poweroff_handler_left_in_place);
 
     const not_controller = watchdog.removeSummary(false, true, true);
@@ -236,6 +240,8 @@ test "phase11 bcm2835_wdt remove summary only clears the shared poweroff handler
     try std.testing.expect(not_controller.watchdog_teardown_managed_by_devm);
     try std.testing.expect(not_controller.remove_callback_scope_limited_to_poweroff_owner);
     try std.testing.expect(!not_controller.clear_poweroff_handler_requested);
+    try std.testing.expect(!not_controller.clear_poweroff_handler_blocked_by_conflict);
+    try std.testing.expect(not_controller.clear_poweroff_handler_skipped_without_system_power_controller);
     try std.testing.expect(not_controller.poweroff_handler_left_in_place);
 
     const absent = watchdog.removeSummary(true, false, false);
@@ -246,5 +252,7 @@ test "phase11 bcm2835_wdt remove summary only clears the shared poweroff handler
     try std.testing.expect(absent.watchdog_teardown_managed_by_devm);
     try std.testing.expect(absent.remove_callback_scope_limited_to_poweroff_owner);
     try std.testing.expect(!absent.clear_poweroff_handler_requested);
+    try std.testing.expect(!absent.clear_poweroff_handler_blocked_by_conflict);
+    try std.testing.expect(!absent.clear_poweroff_handler_skipped_without_system_power_controller);
     try std.testing.expect(!absent.poweroff_handler_left_in_place);
 }
