@@ -4,6 +4,7 @@ const SurveySummary = struct {
     phase6_leaf_helper_count: usize,
     runtime_sample_count: usize,
     runtime_loader_plan_count: usize,
+    runtime_sample_only_blocked_count: usize,
     phase8_command_environment_surface_count: usize,
     cross_phase_non_owner_surface_count: usize,
     shared_runtime_loader_present: bool,
@@ -39,6 +40,15 @@ const NonOwnerSurface = struct {
     why_non_owner: []const u8,
 };
 
+const SampleOnlyBlockedRuntimeSurface = struct {
+    sample_path: []const u8,
+    blocked_loader_path: []const u8,
+    blocker_manifest: []const u8,
+    blocker_gap_id: []const u8,
+    blocker_freeze_anchor: []const u8,
+    why_blocked: []const u8,
+};
+
 const Phase8ControlSurfaceMarkers = struct {
     exec_cmd_surface: []const u8,
     help_surface: []const u8,
@@ -62,6 +72,7 @@ const Manifest = struct {
     phase8_control_surface_markers: Phase8ControlSurfaceMarkers,
     runtime_samples: []const []const u8,
     runtime_loader_plans: []const []const u8,
+    runtime_sample_only_blocked: []const SampleOnlyBlockedRuntimeSurface,
     non_owner_surfaces: []const NonOwnerSurface,
     delivery_evidence_catalog: []const DeliveryEvidence,
     ownership_map: []const OwnershipEntry,
@@ -129,6 +140,7 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
     try std.testing.expectEqual(@as(usize, 4), manifest.survey_summary.phase6_leaf_helper_count);
     try std.testing.expectEqual(@as(usize, 4), manifest.survey_summary.runtime_sample_count);
     try std.testing.expectEqual(@as(usize, 3), manifest.survey_summary.runtime_loader_plan_count);
+    try std.testing.expectEqual(@as(usize, 1), manifest.survey_summary.runtime_sample_only_blocked_count);
     try std.testing.expectEqual(@as(usize, 2), manifest.survey_summary.phase8_command_environment_surface_count);
     try std.testing.expect(manifest.survey_summary.shared_runtime_loader_present);
     try std.testing.expect(manifest.survey_summary.allocator_policy_present);
@@ -150,10 +162,11 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
     try std.testing.expectEqual(@as(usize, 4), manifest.survey_summary.cross_phase_non_owner_surface_count);
     try std.testing.expectEqual(@as(usize, 4), manifest.runtime_samples.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.runtime_loader_plans.len);
+    try std.testing.expectEqual(@as(usize, 1), manifest.runtime_sample_only_blocked.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_owner_surfaces.len);
     try std.testing.expectEqual(@as(usize, 11), manifest.delivery_evidence_catalog.len);
     try std.testing.expectEqual(@as(usize, 11), manifest.ownership_map.len);
-    try std.testing.expectEqual(@as(usize, 11), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 12), manifest.gaps.len);
 
     try std.testing.expectEqualStrings("lib/base64.zig", manifest.phase6_leaf_helpers[0]);
     try std.testing.expectEqualStrings("lib/hexdump.zig", manifest.phase6_leaf_helpers[3]);
@@ -164,6 +177,13 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
     try std.testing.expectEqualStrings("samples/zigux/runtime_atomic64_loader.zig", manifest.runtime_loader_plans[0]);
     try std.testing.expectEqualStrings("samples/zigux/runtime_bitmap_loader.zig", manifest.runtime_loader_plans[1]);
     try std.testing.expectEqualStrings("samples/zigux/runtime_kretprobe_loader.zig", manifest.runtime_loader_plans[2]);
+    try std.testing.expectEqualStrings("samples/zigux/runtime_trace_events.zig", manifest.runtime_sample_only_blocked[0].sample_path);
+    try std.testing.expectEqualStrings("samples/zigux/runtime_trace_events_loader.zig", manifest.runtime_sample_only_blocked[0].blocked_loader_path);
+    try std.testing.expectEqualStrings("zigux/tests/runtime_trace_events_manifest.json", manifest.runtime_sample_only_blocked[0].blocker_manifest);
+    try std.testing.expectEqualStrings("runtime-trace-events-substrate-handoff", manifest.runtime_sample_only_blocked[0].blocker_gap_id);
+    try std.testing.expectEqualStrings("kernel/trace/ring_buffer.c", manifest.runtime_sample_only_blocked[0].blocker_freeze_anchor);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.runtime_sample_only_blocked[0].why_blocked, "sample-only") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.runtime_sample_only_blocked[0].why_blocked, "polling and event-loop substrate") != null);
     try std.testing.expectEqualStrings("scripts/zigux/kconfig/conf_bridge.zig", manifest.non_owner_surfaces[0].surface);
     try std.testing.expectEqualStrings("Phase 2", manifest.non_owner_surfaces[0].owning_phase);
     try std.testing.expectEqualStrings("config_surface_bridge", manifest.non_owner_surfaces[0].boundary_kind);
@@ -288,6 +308,7 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
     var saw_review_checklist = false;
     var saw_plan_inputs = false;
     var saw_without_substrate_rollback = false;
+    var saw_trace_events_sample_only_boundary = false;
     var saw_workqueue_freeze_blocker = false;
     var saw_command_env_blocker = false;
     var saw_allocator_blocker = false;
@@ -350,6 +371,15 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "released_without_substrate") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "fallback posture") != null);
         }
+        if (std.mem.eql(u8, gap.id, "runtime-loader-trace-events-sample-only-boundary")) {
+            saw_trace_events_sample_only_boundary = true;
+            try std.testing.expectEqualStrings("blocked_on_runtime_substrate", gap.status);
+            try std.testing.expectEqualStrings("samples/zigux/runtime_trace_events_loader.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "samples/zigux/runtime_trace_events.zig") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "`kernel/trace/ring_buffer.c`") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "polling and event-loop substrate") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "tracepoint-registration lifecycle wiring") != null);
+        }
         if (std.mem.eql(u8, gap.id, "runtime-loader-workqueue-freeze-map-boundary")) {
             saw_workqueue_freeze_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_runtime_substrate", gap.status);
@@ -388,9 +418,9 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
     }
 
     try std.testing.expectEqual(@as(usize, 9), landed_count);
-    try std.testing.expectEqual(@as(usize, 2), blocked_count);
+    try std.testing.expectEqual(@as(usize, 3), blocked_count);
     try std.testing.expect(saw_manifest_catalog);
-    try std.testing.expect(saw_substrate_plan_doc);
+    try std.testing.expect(saw_substratePlanDoc);
     try std.testing.expect(saw_freeze_map_doc);
     try std.testing.expect(saw_shared_contract);
     try std.testing.expect(saw_atomic64_loader_plan);
@@ -403,6 +433,7 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
     try std.testing.expect(saw_review_checklist);
     try std.testing.expect(saw_plan_inputs);
     try std.testing.expect(saw_without_substrate_rollback);
+    try std.testing.expect(saw_trace_events_sample_only_boundary);
     try std.testing.expect(saw_workqueue_freeze_blocker);
     try std.testing.expect(saw_command_env_blocker);
     try std.testing.expect(saw_allocator_blocker);
@@ -473,6 +504,11 @@ test "runtime loader gap survey doc keeps the mixed roadmap phases and remaining
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Delivery ownership map") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "manifest-backed catalog") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "three sample-side loader plans") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "samples/zigux/runtime_trace_events.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "samples/zigux/runtime_trace_events_loader.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "sample-only blocked runtime pilot") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/runtime_trace_events_manifest.json") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "kernel/trace/ring_buffer.c") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "samples/zigux/runtime_atomic64_loader.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "atomic64 loader-plan projection") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "bitmap loader-plan projection") != null);
@@ -521,6 +557,7 @@ test "runtime loader gap survey keeps the review checklist runtime guardrails ex
         "is there a stated rollback owner and fallback path?",
         "if the change touches the shared Phase 9 runtime-loader evidence packet, does `zigux/tests/runtime_loader_gap_manifest.json` still keep the manifest-backed catalog and ownership map aligned with the survey note, review checklist, shared request contract, sample-side loader plans, and shared `phase9_build.zig` entrypoint in one reviewable ownership packet?",
         "if the change touches the shared Phase 9 runtime-loader evidence packet, does `Documentation/zigux/phase9-runtime-loader-substrate-plan.md` still stay aligned with `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/kernel/runtime_loader.zig`, and the atomic64, bitmap, and kretprobe loader plans so the shared loader-stage vocabulary plus the without-substrate fallback remain reviewable in one place?",
+        "if the change touches the shared Phase 9 runtime-loader evidence packet, does it still model `samples/zigux/runtime_trace_events.zig` as an intentionally sample-only blocked pilot and keep `zigux/tests/runtime_trace_events_manifest.json` plus the missing `samples/zigux/runtime_trace_events_loader.zig` path explicit rather than making the fourth runtime pilot look accidentally untracked?",
         "if the change touches the shared Phase 9 runtime-loader evidence packet and its adjacent scheduler-facing boundary, does `Documentation/zigux/freeze-map.md` still stay in that same reviewable ownership packet so the study-only `kernel/workqueue.c` status and Architecture Council reopen rule remain explicit beside the survey note, review checklist, shared request contract, sample-side loader plans, and shared `phase9_build.zig` entrypoint?",
     });
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "scripts/zigux/kconfig/conf_bridge.zig") != null);
