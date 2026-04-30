@@ -51,6 +51,7 @@ It is a small substrate that makes future ports measurable:
 - `python3 scripts/zigux/validate-phase3.py`
 - bounded ABI replay when unrelated Phase 3 slices are still in flight:
   `python3 scripts/zigux/validate-phase3.py --slug abi`
+- the shared validator now also fails early if the curated substrate packet drifts at the source level, including the canonical marker set in `include/zigux/abi.h`, `include/linux/zigux.h`, and `zigux/bindings/abi.zig`
 
 2. check C-vs-Zig ABI layout parity
 - `python3 scripts/zigux/run-phase3-checks.py --slug abi`
@@ -82,6 +83,7 @@ It is a small substrate that makes future ports measurable:
 
 - `include/zigux/abi.h` is the authoritative C-facing layout surface for this slice.
 - `zigux/bindings/abi.zig` must mirror it with `extern struct` layout, not approximate it.
+- `python3 scripts/zigux/validate-phase3.py` now audits the core source markers in `include/zigux/abi.h`, `include/linux/zigux.h`, and `zigux/bindings/abi.zig` before the focused ABI dump replay runs, so ledger-backed boundary drift fails before fixture parity is replayed.
 - new boundary structs require committed fixture updates under `zigux/tests/fixtures/phase3_abi/`.
 - export shims must return explicit status codes instead of hidden failure behavior.
 - future bindings generators are allowed later, but this slice stays curated and reviewable.
