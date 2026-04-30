@@ -202,3 +202,13 @@ test "phase3 policy gate enforces the declared unsafe scope" {
     try std.testing.expectError(error.MisalignedAccess, narrow.scopedConstSliceAt(u32, .raw_pointer_bridge, base + 1, 1));
     try std.testing.expectError(error.MisalignedAccess, narrow.scopedConstPointerAt(u32, .raw_pointer_bridge, base + 1));
 }
+
+test "phase3 policy gate rejects overflowed unsafe address math" {
+    const max = std.math.maxInt(usize);
+
+    try std.testing.expectError(error.AddressOverflow, narrow.checkedByteOffset(max, 1));
+    try std.testing.expectError(error.AddressOverflow, narrow.checkedSpanBytes(u32, max));
+    try std.testing.expectError(error.AddressOverflow, narrow.checkedSpanEnd(u32, 4, max));
+    try std.testing.expectError(error.AddressOverflow, narrow.scopedPointerAt(u32, .volatile_mmio, max, 1));
+    try std.testing.expectError(error.AddressOverflow, narrow.scopedConstSliceAt(u32, .raw_pointer_bridge, 4, max));
+}
