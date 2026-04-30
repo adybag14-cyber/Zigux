@@ -120,6 +120,16 @@
       "phase10-virtio-input-queue-callback-preflight-helper"
     ]
   },
+  "landed_mmio_helper_evidence": {
+    "zigux/tests/phase10_virtio_mmio_manifest.json": [
+      "phase10-mmio-register-window-helper",
+      "phase10-mmio-queue-register-helper",
+      "phase10-mmio-queue-notify-helper",
+      "phase10-mmio-queue-address-helper",
+      "phase10-mmio-config-window-helper",
+      "phase10-mmio-config-write-helper"
+    ]
+  },
   "blocked_transport_gaps": {
     "zigux/tests/phase10_virtio_input_manifest.json": "phase10-virtio-input-registration-lifecycle",
     "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-lifecycle-and-irq-paths"
