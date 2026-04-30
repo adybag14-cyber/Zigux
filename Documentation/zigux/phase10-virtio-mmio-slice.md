@@ -17,7 +17,7 @@ This document tracks the bounded `drivers/virtio/virtio_mmio.c` lab helper under
 
 The Phase 10 roadmap names `drivers/virtio/virtio_mmio.c` as a primary transport anchor, but it also says to prove virtqueue wrappers before widening into MMIO or other risky transport work.
 
-The live repo now has the virtio core, ring, and input lab footholds plus the earlier MMIO survey lane. This slice now records the next honest follow-on after the config-window helper: an in-memory config-write planning helper that keeps previous and planned byte, halfword, and word values reviewable against the current config-generation without pretending to own full config-space parity, queue setup, shared interrupt delivery, probe and remove lifecycle, or DMA-facing transport work.
+The live repo now has the virtio core, ring, and input lab footholds plus the earlier MMIO survey lane. This slice now records the next honest follow-on after the config-window helper: an in-memory config-write planning helper that keeps previous and planned byte, halfword, and word values reviewable against the current config-generation while leaving the underlying config window unchanged and without pretending to own full config-space parity, queue setup, shared interrupt delivery, probe and remove lifecycle, or DMA-facing transport work.
 
 ## Landed starter surface
 
@@ -31,7 +31,7 @@ The live repo now has the virtio core, ring, and input lab footholds plus the ea
 - queue-notify snapshots that require a configured ready queue, return the selected queue identity, and count in-memory notify events without claiming device-side side effects
 - version-scoped queue-address planning that records either legacy guest-page-size, queue-align, and queue-PFN values or modern DESC, AVAIL, and USED addresses while the queue is configured but not yet ready
 - read-only config-window snapshots that return a bounded byte, halfword, or word from a tiny in-memory config window together with the current config-generation
-- in-memory config-write planning that records previous and planned byte, halfword, and word values for bounded config-window updates without claiming device-side application
+- in-memory config-write planning that records previous and planned byte, halfword, and word values for bounded config-window updates while leaving the underlying config window unchanged and without claiming device-side application
 - explicit status writes that reject reset-through-the-wrong-path and keep reset on its own helper branch
 - dedicated reset bookkeeping that clears in-memory queue size, queue ready state, queue notify counts, and queue-address planning state without claiming queue teardown parity
 - in-memory config-generation snapshots and increment bookkeeping
