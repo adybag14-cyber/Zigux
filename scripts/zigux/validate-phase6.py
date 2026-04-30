@@ -11,7 +11,7 @@ required_files = [
     ROOT / "scripts" / "zigux" / "validate-phase6.py",
     ROOT / "scripts" / "zigux" / "check-phase6-base64-c-parity.py",
     ROOT / "scripts" / "zigux" / "check-phase6-bsearch-c-parity.py",
-    ROOT / "scripts" / "zigux" / "README.md",
+    ROOT / "scripts" / "README.md",
     ROOT / "Documentation" / "zigux" / "README.md",
     ROOT / "Documentation" / "zigux" / "phase6-helper-parity-catalog.md",
     ROOT / "Documentation" / "zigux" / "phase6-base64-slice.md",
@@ -58,6 +58,10 @@ doc_readme = (ROOT / "Documentation" / "zigux" / "README.md").read_text(encoding
 phase6_catalog = (ROOT / "Documentation" / "zigux" / "phase6-helper-parity-catalog.md").read_text(encoding="utf-8")
 phase6_manifest = json.loads((ROOT / "zigux" / "tests" / "phase6_helper_parity_manifest.json").read_text(encoding="utf-8"))
 phase6_build = (ROOT / "zigux" / "tests" / "phase6_build.zig").read_text(encoding="utf-8")
+phase6_base64 = (ROOT / "zigux" / "tests" / "phase6_base64.zig").read_text(encoding="utf-8")
+phase6_base64_c_parity = (ROOT / "zigux" / "tests" / "phase6_base64_c_parity.zig").read_text(encoding="utf-8")
+phase6_base64_c_casegen = (ROOT / "zigux" / "tests" / "phase6_base64_c_casegen.zig").read_text(encoding="utf-8")
+phase6_base64_slice = (ROOT / "Documentation" / "zigux" / "phase6-base64-slice.md").read_text(encoding="utf-8")
 phase6_base64_perf = (ROOT / "zigux" / "tests" / "phase6_base64_perf.zig").read_text(encoding="utf-8")
 phase6_checksum_perf = (ROOT / "zigux" / "tests" / "phase6_checksum_perf.zig").read_text(encoding="utf-8")
 phase6_checksum_vectors = (ROOT / "zigux" / "tests" / "fixtures" / "phase6_checksum_vectors.zig").read_text(encoding="utf-8")
@@ -169,6 +173,36 @@ required_phase6_base64_perf_markers = [
     "try std.testing.expect(decode_slowdown_pct <= case.max_decode_slowdown_pct);",
 ]
 
+required_phase6_base64_markers = [
+    'test "phase 6 base64 exact-fit buffers work across fixture vectors" {',
+    'test "phase 6 base64 decode rejects invalid kernel-style vectors" {',
+    'base64.DecodeError.InvalidInput',
+    'base64.DecodeError.DestinationTooSmall',
+    "for (fixtures.variant_decode_cases) |case| {",
+]
+
+required_phase6_base64_c_parity_markers = [
+    'try writer.print("enc\\tstd\\t{}\\t", .{@intFromBool(case.padding)});',
+    'try writer.print("dec\\tstd\\t{}\\t{}\\t", .{ @intFromBool(case.padding), exact_len });',
+    'try writer.print("inv\\t{s}\\t{}\\t", .{ case.variant_name, @intFromBool(case.padding) });',
+    'try writer.print("\\t{s}\\t{s}\\n", .{ errorName(bytes_result), errorName(decode_result) });',
+]
+
+required_phase6_base64_c_casegen_markers = [
+    "Generated from zigux/tests/fixtures/phase6_base64_vectors.zig.",
+    "static const struct encode_case encode_cases[] = {",
+    "static const struct decode_case decode_cases[] = {",
+    "static const struct invalid_case invalid_cases[] = {",
+    'variantEnum(case.variant_name)',
+]
+
+required_phase6_base64_slice_markers = [
+    "exact-fit encode and decode buffers across the shared standard and variant fixture surface, plus one-byte-short rejection before writes",
+    "regenerates the committed C include payload through `zigux/tests/phase6_base64_c_casegen.zig`",
+    "invalid-input rejection for malformed, embedded-NUL, and variant-mismatched decode inputs",
+    "exhaustive reverse-map classification across all 256 byte values for the standard, URL-safe, and IMAP decode variants",
+]
+
 required_phase6_checksum_perf_markers = [
     "fn referencePartial(bytes: []const u8, seed: u32) u32",
     "var slowdown_samples: [3]u64 = undefined;",
@@ -204,6 +238,10 @@ require_markers("script_readme", script_readme, required_script_readme_markers, 
 require_markers("tests_readme", tests_readme, required_tests_readme_markers, issues)
 require_markers("doc_readme", doc_readme, required_doc_readme_markers, issues)
 require_markers("phase6_build", phase6_build, required_phase6_build_markers, issues)
+require_markers("phase6_base64", phase6_base64, required_phase6_base64_markers, issues)
+require_markers("phase6_base64_c_parity", phase6_base64_c_parity, required_phase6_base64_c_parity_markers, issues)
+require_markers("phase6_base64_c_casegen", phase6_base64_c_casegen, required_phase6_base64_c_casegen_markers, issues)
+require_markers("phase6_base64_slice", phase6_base64_slice, required_phase6_base64_slice_markers, issues)
 require_markers("phase6_base64_perf", phase6_base64_perf, required_phase6_base64_perf_markers, issues)
 require_markers("phase6_checksum_perf", phase6_checksum_perf, required_phase6_checksum_perf_markers, issues)
 require_markers("phase6_checksum_vectors", phase6_checksum_vectors, required_phase6_checksum_vector_markers, issues)
