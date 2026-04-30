@@ -120,6 +120,42 @@ def run_self_test() -> int:
             zig_path=None,
         ) == []
 
+        artifact_diff_path = paths.docs_dir / "artifact-diff.md"
+        artifact_diff_path.write_text(
+            "\n".join(
+                [
+                    "# Artifact Diff Policy",
+                    "",
+                    "Current Phase 3 use",
+                    "- stale line",
+                    "",
+                    "Rules",
+                    "- keep fixtures reviewable",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert validate_slices(
+            root,
+            select_slices(entries, ["alpha"]),
+            check_artifact_diff=False,
+            check_build_smoke=False,
+            check_slug_sanity=False,
+            check_all_wrappers=True,
+            zig_path=None,
+        ) == []
+        assert validate_slices(
+            root,
+            select_slices(entries, ["alpha"]),
+            check_artifact_diff=True,
+            check_build_smoke=False,
+            check_slug_sanity=False,
+            check_all_wrappers=True,
+            zig_path=None,
+        ) == ["doc-sync: artifact-diff-phase3-stale\tDocumentation/zigux/artifact-diff.md"]
+
         source_marker_fixture = root / "marker-fixture.zig"
         source_marker_fixture.write_text(
             "pub fn boundaryMarker() void {}\n",
