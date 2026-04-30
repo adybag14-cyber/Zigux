@@ -27,6 +27,9 @@ pub const RuntimeBitmapSummary = struct {
     first_zero: u32,
     weight: u32,
     nbits: u32,
+    init_runs: usize,
+    selftest_runs: usize,
+    exit_runs: usize,
 };
 
 pub const SelftestSummary = struct {
@@ -195,6 +198,9 @@ pub const RuntimeBitmapSample = struct {
             .first_zero = bounded.first_zero,
             .weight = bounded.weight,
             .nbits = bitmap_nbits,
+            .init_runs = self.init_runs,
+            .selftest_runs = self.selftest_runs,
+            .exit_runs = self.exit_runs,
         };
     }
 
