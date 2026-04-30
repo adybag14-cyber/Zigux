@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 const std = @import("std");
+const next_arg_vectors = @import("next_arg_vectors");
 
 pub fn getOption(str: *[]const u8, pint: ?*i32) u8 {
     const current = str.*;
@@ -321,59 +322,7 @@ const GetOptionsCase = struct {
     expected: []const i32,
 };
 
-const NextArgCase = struct {
-    input: []const u8,
-    expected_param: []const u8,
-    expected_value: ?[]const u8,
-    expected_rest: []const u8,
-};
-
-const next_arg_cases = [_]NextArgCase{
-    .{
-        .input = "root=\"/dev/sda 1\" ro",
-        .expected_param = "root",
-        .expected_value = "/dev/sda 1",
-        .expected_rest = "ro",
-    },
-    .{
-        .input = "\"noparam value\" next",
-        .expected_param = "noparam value",
-        .expected_value = null,
-        .expected_rest = "next",
-    },
-    .{
-        .input = "console=ttyS0,115200n8 panic=-1",
-        .expected_param = "console",
-        .expected_value = "ttyS0,115200n8",
-        .expected_rest = "panic=-1",
-    },
-    .{
-        .input = "rdinit=\"\" quiet",
-        .expected_param = "rdinit",
-        .expected_value = "",
-        .expected_rest = "quiet",
-    },
-    .{
-        .input = "key=alpha=beta tail",
-        .expected_param = "key",
-        .expected_value = "alpha=beta",
-        .expected_rest = "tail",
-    },
-    .{
-        .input = "mode=\"fast boot\"",
-        .expected_param = "mode",
-        .expected_value = "fast boot",
-        .expected_rest = "",
-    },
-    .{
-        .input = "=bad next",
-        .expected_param = "=bad",
-        .expected_value = null,
-        .expected_rest = "next",
-    },
-};
-
-fn expectNextArgFixture(case: NextArgCase) !void {
+fn expectNextArgFixture(case: next_arg_vectors.NextArgCase) !void {
     var buffer = [_]u8{0} ** 128;
     try std.testing.expect(case.input.len <= buffer.len);
     @memcpy(buffer[0..case.input.len], case.input);
@@ -531,7 +480,7 @@ test "nextArg preserves leading equals sentinels and trims trailing spaces" {
 }
 
 test "nextArg matches serialized edge fixtures" {
-    for (next_arg_cases) |case| {
+    for (next_arg_vectors.next_arg_cases) |case| {
         try expectNextArgFixture(case);
     }
 }
