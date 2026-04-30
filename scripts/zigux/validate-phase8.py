@@ -190,8 +190,11 @@ required_phase8_build_markers = [
     "../../tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
     "../../tools/lib/bpf/zigux_segments/type_names.zig",
     "phase8_exec_cmd.zig",
+    "phase8-exec-cmd-tests",
     "phase8_help.zig",
+    "phase8-help-tests",
     "phase8_kallsyms.zig",
+    "phase8-kallsyms-tests",
     "phase8_cpu_mask.zig",
     "phase8-cpu-mask-tests",
     "phase8_logging.zig",
@@ -201,6 +204,7 @@ required_phase8_build_markers = [
     "phase8_file_path_handle_bridge.zig",
     "phase8-file-path-handle-bridge-tests",
     "phase8_libbpf_segments.zig",
+    "phase8-libbpf-segment-tests",
     "phase8_bpf_type_names.zig",
     "phase8-bpf-type-names-tests",
 ]
@@ -913,6 +917,21 @@ def run_self_test() -> int:
         )
         phase8_build_path.write_text(original_phase8_build, encoding="utf-8")
 
+        phase8_build_path.write_text(
+            original_phase8_build.replace(
+                '        .name = "phase8-help-tests",\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "phase8_build_help_artifact_name",
+            tmp_root,
+            "phase8_build:phase8-help-tests",
+        )
+        phase8_build_path.write_text(original_phase8_build, encoding="utf-8")
+
         kallsyms_helper_path = tmp_root / "tools/lib/symbol/kallsyms.zig"
         original_kallsyms_helper = kallsyms_helper_path.read_text(encoding="utf-8")
         kallsyms_helper_path.write_text(
@@ -955,7 +974,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE8_VALIDATOR_SELF_TEST=pass")
-    print("PHASE8_VALIDATOR_SELF_TEST_CASE_COUNT=6")
+    print("PHASE8_VALIDATOR_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
