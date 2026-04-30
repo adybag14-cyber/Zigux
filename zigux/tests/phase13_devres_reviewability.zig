@@ -67,14 +67,14 @@ test "phase13 devres manifest records the current iomap/mmio safety surface and 
     try std.testing.expectEqualStrings("P13-L03", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("lib/devres.c", manifest.anchor);
-    try std.testing.expectEqualStrings("26e5f8101d3546c7942c93757ecc3fdfaa6ee264", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("40d20bc7880f228d2add1a6c73487db2df9571e4", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.devres_c_lines >= 390);
-    try std.testing.expectEqualStrings("3f74e747aa08fd80bf4db8d7b085aa5293bb53ef", manifest.survey_summary.previous_surveyed_commit);
-    try std.testing.expectEqualStrings("6343f013ad5ca0d9e4208ff119b3f34c10a0f4a1947f23618081eee40a86be17", manifest.survey_summary.devres_helper_sha256);
-    try std.testing.expectEqualStrings("d76ad9b32893079c91bd0b33f1be5f168fa9c3551ba3b5e6ea5428c796eb1826", manifest.survey_summary.devres_test_sha256);
-    try std.testing.expect(manifest.survey_summary.devres_helper_matches_previous_surveyed_commit);
-    try std.testing.expect(manifest.survey_summary.devres_test_matches_previous_surveyed_commit);
+    try std.testing.expectEqualStrings("26e5f8101d3546c7942c93757ecc3fdfaa6ee264", manifest.survey_summary.previous_surveyed_commit);
+    try std.testing.expectEqualStrings("2bbad8cad014471312865a57a249412b29af4574d8a6918f8bb66f4948973eda", manifest.survey_summary.devres_helper_sha256);
+    try std.testing.expectEqualStrings("7dc45ab99f46d5424e3d757f720e58654aaea326b13db1af601be88c3cbff476", manifest.survey_summary.devres_test_sha256);
+    try std.testing.expect(!manifest.survey_summary.devres_helper_matches_previous_surveyed_commit);
+    try std.testing.expect(!manifest.survey_summary.devres_test_matches_previous_surveyed_commit);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_make_target_present);
     try std.testing.expect(manifest.survey_summary.preexisting_devres_zig_present);
@@ -82,7 +82,7 @@ test "phase13 devres manifest records the current iomap/mmio safety surface and 
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_slice_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_reviewability_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_survey_present);
-    try std.testing.expectEqual(@as(usize, 18), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 19), manifest.gaps.len);
 
     const descriptor = devres.DevresHelperLab.descriptor();
     try std.testing.expectEqualStrings("lib/devres.c", descriptor.anchor);
@@ -90,6 +90,7 @@ test "phase13 devres manifest records the current iomap/mmio safety surface and 
     try std.testing.expect(descriptor.provides_ioremap_plain_wrapper_planning);
     try std.testing.expect(descriptor.provides_ioremap_uc_wrapper_planning);
     try std.testing.expect(descriptor.provides_ioremap_wc_wrapper_planning);
+    try std.testing.expect(descriptor.provides_ioremap_np_wrapper_planning);
     try std.testing.expect(descriptor.provides_release_pointer_match);
     try std.testing.expect(descriptor.provides_ioport_lifetime_planning);
     try std.testing.expect(descriptor.provides_ioremap_resource_planning);
@@ -116,14 +117,14 @@ test "phase13 devres manifest records the current iomap/mmio safety surface and 
     try expectContains(survey_note, "## Status");
     try expectContains(survey_note, "- `PHASE13_STATUS=active`");
     try expectContains(survey_note, "- `PHASE13_SLICE=devres-helper-iomap-mmio-safety-reviewability`");
-    try expectContains(survey_note, "- `PHASE13_SURVEYED_COMMIT=26e5f8101d3546c7942c93757ecc3fdfaa6ee264`");
+    try expectContains(survey_note, "- `PHASE13_SURVEYED_COMMIT=40d20bc7880f228d2add1a6c73487db2df9571e4`");
     try expectContains(survey_note, "- product boundary:");
     try expectContains(survey_note, "- `lib/devres.zig`");
     try expectContains(survey_note, "- `zigux/tests/phase13_devres_manifest.json`");
     try expectContains(survey_note, "- `Documentation/zigux/phase13-devres-survey.md`");
-    try expectContains(survey_note, "byte-for-byte unchanged on current `master`");
-    try expectContains(survey_note, "sha256 6343f013ad5ca0d9e4208ff119b3f34c10a0f4a1947f23618081eee40a86be17");
-    try expectContains(survey_note, "sha256 d76ad9b32893079c91bd0b33f1be5f168fa9c3551ba3b5e6ea5428c796eb1826");
+    try expectContains(survey_note, "adding the direct non-posted managed wrapper instead of staying byte-for-byte unchanged");
+    try expectContains(survey_note, "sha256 2bbad8cad014471312865a57a249412b29af4574d8a6918f8bb66f4948973eda");
+    try expectContains(survey_note, "sha256 7dc45ab99f46d5424e3d757f720e58654aaea326b13db1af601be88c3cbff476");
 
     var starter_landed_count: usize = 0;
     var blocked_live_mmio_count: usize = 0;
@@ -139,6 +140,7 @@ test "phase13 devres manifest records the current iomap/mmio safety surface and 
     var saw_reviewability_gate = false;
     var saw_survey_note = false;
     var saw_ioremap_lifetime = false;
+    var saw_ioremap_np = false;
     var saw_ioremap_resource = false;
     var saw_of_iomap = false;
     var saw_ioport = false;
@@ -215,7 +217,15 @@ test "phase13 devres manifest records the current iomap/mmio safety surface and 
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "devm_ioremap()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "devm_ioremap_uc") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "devm_ioremap_wc") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "devm_ioremap_np") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "devm_iounmap") != null);
+        }
+        if (std.mem.eql(u8, gap.id, "phase13-devres-managed-ioremap-np-wrapper")) {
+            saw_ioremap_np = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("lib/devres.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "devm_ioremap_np") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "non-posted") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase13-devres-managed-resource-planner")) {
             saw_ioremap_resource = true;
@@ -296,7 +306,7 @@ test "phase13 devres manifest records the current iomap/mmio safety surface and 
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 13), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 14), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_live_mmio_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_dma_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_scatterlist_count);
@@ -310,6 +320,7 @@ test "phase13 devres manifest records the current iomap/mmio safety surface and 
     try std.testing.expect(saw_reviewability_gate);
     try std.testing.expect(saw_survey_note);
     try std.testing.expect(saw_ioremap_lifetime);
+    try std.testing.expect(saw_ioremap_np);
     try std.testing.expect(saw_ioremap_resource);
     try std.testing.expect(saw_of_iomap);
     try std.testing.expect(saw_ioport);
