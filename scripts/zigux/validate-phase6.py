@@ -229,6 +229,9 @@ CHECKSUM_SLICE_MARKERS = [
 ]
 
 HEXDUMP_TEST_MARKERS = [
+    'test "phase 6 hexdump exposes uppercase whole-buffer encoding" {',
+    'test "phase 6 hexdump exposes append-style whole-buffer encoding" {',
+    'test "phase 6 hexdump directly covers nibble, byte-pack, and decode helpers" {',
     'test "phase 6 hexdump replays serialized fixture vectors" {',
     'test "phase 6 hexdump overflow contract matches truncation expectations" {',
     'test "phase 6 hexdump covers normalization and empty-buffer edge cases" {',
@@ -248,6 +251,11 @@ HEXDUMP_PERF_MARKERS = [
 
 HEXDUMP_SLICE_MARKERS = [
     "`PHASE6_SLICE=hexdump-leaf-helper`",
+    "uppercase whole-buffer hex encoding for a representative byte packet",
+    "append-style whole-buffer encoding that can chain lowercase and uppercase segments without recomputing offsets",
+    "direct nibble helper coverage for lowercase and uppercase hex digits",
+    "direct byte-pack helper coverage for lowercase and uppercase output plus the short-buffer contract",
+    "mixed-case hex digit decoding",
     "native-endian grouped output for 2, 4, and 8 byte cases",
     "fixtures.prepareExpectedLine(...)",
     "max_slowdown_pct = 175",
