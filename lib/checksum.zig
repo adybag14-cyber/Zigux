@@ -67,6 +67,19 @@ pub fn tcpUdpNofold(sum: u32, saddr: u32, daddr: u32, len: u16, proto: u8) u32 {
     return normalize(result);
 }
 
+pub fn tcpUdpV6Nofold(sum: u32, saddr: [16]u8, daddr: [16]u8, len: u32, proto: u8) u32 {
+    var result = normalize(sum);
+    var trailer = [_]u8{0} ** 8;
+
+    appendBigEndianU32(trailer[0..4], len);
+    trailer[7] = proto;
+
+    result = blockAdd(result, partial(&saddr, 0), 0);
+    result = blockAdd(result, partial(&daddr, 0), 0);
+    result = blockAdd(result, partial(&trailer, 0), 0);
+    return normalize(result);
+}
+
 pub fn partial(bytes: []const u8, seed: u32) u32 {
     var sum = normalize(seed);
     var index: usize = 0;
@@ -194,6 +207,24 @@ test "tcpUdpNofold matches the shared pseudo-header fixture parity" {
 
         const expected = blockAdd(partial(&pseudo_header, 0), payload_partial, pseudo_header.len);
         const actual = tcpUdpNofold(payload_partial, case.saddr, case.daddr, @intCast(case.payload.len), case.proto);
+
+        try std.testing.expectEqual(normalize(expected), actual);
+        try std.testing.expectEqual(case.expected_compute, fold(actual));
+    }
+}
+
+test "tcpUdpV6Nofold matches the shared IPv6 pseudo-header fixture parity" {
+    for (fixtures.ipv6_pseudo_header_cases) |case| {
+        const payload_partial = partial(case.payload, 0);
+
+        var pseudo_header = [_]u8{0} ** 40;
+        @memcpy(pseudo_header[0..16], &case.saddr);
+        @memcpy(pseudo_header[16..32], &case.daddr);
+        appendBigEndianU32(pseudo_header[32..36], @intCast(case.payload.len));
+        pseudo_header[39] = case.proto;
+
+        const expected = blockAdd(partial(&pseudo_header, 0), payload_partial, pseudo_header.len);
+        const actual = tcpUdpV6Nofold(payload_partial, case.saddr, case.daddr, @intCast(case.payload.len), case.proto);
 
         try std.testing.expectEqual(normalize(expected), actual);
         try std.testing.expectEqual(case.expected_compute, fold(actual));

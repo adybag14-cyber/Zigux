@@ -55,6 +55,7 @@ The current checksum helper surface exercised by this slice covers:
 - `replace2`
 - `replace`
 - `tcpUdpNofold`
+- `tcpUdpV6Nofold`
 - `partial`
 - `compute`
 
@@ -66,6 +67,7 @@ The current tests check:
 - carry-discipline edge cases on the helper-local surface
 - six imported KUnit random-prefix prefix lengths through the committed fixture corpus
 - pseudo-header accumulation parity for representative TCP/UDP-style checksum folding
+- IPv6 pseudo-header accumulation parity for representative UDP and TCP-style checksum folding
 - incremental checksum replacement parity for payload word updates, 16-bit IPv4 header field replacement, 32-bit IPv4 address replacement, and diff-based checksum repair
 - shared fixture-backed checksum vectors stored in `zigux/tests/fixtures/phase6_checksum_vectors.zig` and consumed directly by both `lib/checksum.zig` and `zigux/tests/phase6_checksum.zig`
 - a replayable perf-sanity harness reports representative checksum cost per call and per byte while rechecking parity against the widened-accumulator `referencePartial` path on deterministic 64-byte and 1501-byte payloads

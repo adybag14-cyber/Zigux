@@ -126,7 +126,33 @@ test "pseudo header accumulation matches the fixture-backed reference checksum" 
         @memcpy(pseudo_and_payload[0..12], &pseudo_header);
         @memcpy(pseudo_and_payload[12..combined_len], case.payload);
 
-        try std.testing.expectEqual(combined_partial, helper_partial);
+        try std.testing.expectEqual(checksum.partial("", combined_partial), helper_partial);
+        try std.testing.expectEqual(case.expected_compute, actual);
+        try std.testing.expectEqual(referenceInternetChecksum(pseudo_and_payload[0..combined_len]), actual);
+    }
+}
+
+test "IPv6 pseudo header accumulation matches the fixture-backed reference checksum" {
+    for (fixtures.ipv6_pseudo_header_cases) |case| {
+        const payload_partial = checksum.partial(case.payload, 0);
+
+        var pseudo_header = [_]u8{0} ** 40;
+        @memcpy(pseudo_header[0..16], &case.saddr);
+        @memcpy(pseudo_header[16..32], &case.daddr);
+        appendBigEndianU32(pseudo_header[32..36], @intCast(case.payload.len));
+        pseudo_header[39] = case.proto;
+
+        const pseudo_partial = checksum.partial(&pseudo_header, 0);
+        const combined_partial = checksum.blockAdd(pseudo_partial, payload_partial, pseudo_header.len);
+        const helper_partial = checksum.tcpUdpV6Nofold(payload_partial, case.saddr, case.daddr, @intCast(case.payload.len), case.proto);
+        const actual = checksum.fold(helper_partial);
+
+        var pseudo_and_payload: [96]u8 = undefined;
+        const combined_len = pseudo_header.len + case.payload.len;
+        @memcpy(pseudo_and_payload[0..pseudo_header.len], &pseudo_header);
+        @memcpy(pseudo_and_payload[pseudo_header.len..combined_len], case.payload);
+
+        try std.testing.expectEqual(checksum.partial("", combined_partial), helper_partial);
         try std.testing.expectEqual(case.expected_compute, actual);
         try std.testing.expectEqual(referenceInternetChecksum(pseudo_and_payload[0..combined_len]), actual);
     }
