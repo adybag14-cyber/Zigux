@@ -4,7 +4,7 @@ This document starts a bounded Phase 7 runtime leaf-helper slice for Zigux.
 
 ## Status
 
-- `PHASE7_STATUS=landed`
+- `PHASE7_STATUS=parked`
 - `PHASE7_SLICE=string-helpers-runtime-leaf`
 - scope: first low-risk runtime-safe string helper batch only
 - lane state: helper slice plus shared deterministic escape fixtures, shared wrapper-entrypoint coverage, small allocator-backed `parse_int_array()` and `parse_int_array_user()` starters, one log-safe `kstrdup_quotable()` duplication helper, one ownership-safe `kstrdup_and_replace()` duplication helper, and one sequential string-array allocator plus teardown starter landed; parked unless a new `string_helpers.c` parity issue appears
@@ -27,6 +27,10 @@ Phase 7 is where Zigux starts moving from earlier standalone helper ports into r
 - can be validated with a focused Zig gate before deeper formatting, escaping, or allocation-backed helpers are attempted
 
 This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane. Current `master` keeps string-helper reviewability in the helper and test bundle under `lib/string_helpers.zig`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_survey.zig`, and `zigux/tests/phase7_build.zig`, while the four Phase 5 `samples/zigux/` anchors remain `bytestream_fifo`, `kobject_example`, `kretprobe_example`, and `trace_events_sample`.
+
+Review note:
+- helper-local test runs cannot import that fixture from outside the helper module path; keep both packets aligned when those serialized cases change
+- no `samples/zigux/*string*` Phase 5 reference sample is expected here; `samples/zigux/README.md` remains the shared sample-root catalog while this leaf-helper evidence stays under the separate Phase 7 helper bundle
 
 ## Gates
 
