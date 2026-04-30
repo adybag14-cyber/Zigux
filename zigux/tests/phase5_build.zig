@@ -1,8 +1,26 @@
 const std = @import("std");
 
+fn addTestRun(
+    b: *std.Build,
+    name: []const u8,
+    root_module: *std.Build.Module,
+    cwd: ?std.Build.LazyPath,
+) *std.Build.Step.Run {
+    const tests = b.addTest(.{
+        .name = name,
+        .root_module = root_module,
+    });
+    const run = b.addRunArtifact(tests);
+    if (cwd) |path| {
+        run.setCwd(path);
+    }
+    return run;
+}
+
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
+    const repo_root = b.path("../..");
 
     const bytestream_fifo_sample_module = b.createModule(.{
         .root_source_file = b.path("../../samples/zigux/bytestream_fifo.zig"),
@@ -70,47 +88,55 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
-    const phase5_bytestream_fifo_tests = b.addTest(.{
-        .name = "phase5-bytestream-fifo-tests",
-        .root_module = phase5_bytestream_fifo_module,
-    });
-    const run_phase5_bytestream_fifo_tests = b.addRunArtifact(phase5_bytestream_fifo_tests);
-    const phase5_bytestream_fifo_survey_tests = b.addTest(.{
-        .name = "phase5-bytestream-fifo-survey-tests",
-        .root_module = phase5_bytestream_fifo_survey_module,
-    });
-    const run_phase5_bytestream_fifo_survey_tests = b.addRunArtifact(phase5_bytestream_fifo_survey_tests);
+    const run_phase5_bytestream_fifo_tests = addTestRun(
+        b,
+        "phase5-bytestream-fifo-tests",
+        phase5_bytestream_fifo_module,
+        null,
+    );
+    const run_phase5_bytestream_fifo_survey_tests = addTestRun(
+        b,
+        "phase5-bytestream-fifo-survey-tests",
+        phase5_bytestream_fifo_survey_module,
+        repo_root,
+    );
 
-    const phase5_kobject_example_tests = b.addTest(.{
-        .name = "phase5-kobject-example-tests",
-        .root_module = phase5_kobject_example_module,
-    });
-    const run_phase5_kobject_example_tests = b.addRunArtifact(phase5_kobject_example_tests);
-    const phase5_kobject_example_survey_tests = b.addTest(.{
-        .name = "phase5-kobject-example-survey-tests",
-        .root_module = phase5_kobject_example_survey_module,
-    });
-    const run_phase5_kobject_example_survey_tests = b.addRunArtifact(phase5_kobject_example_survey_tests);
-    const phase5_kretprobe_example_tests = b.addTest(.{
-        .name = "phase5-kretprobe-example-tests",
-        .root_module = phase5_kretprobe_example_module,
-    });
-    const run_phase5_kretprobe_example_tests = b.addRunArtifact(phase5_kretprobe_example_tests);
-    const phase5_kretprobe_example_survey_tests = b.addTest(.{
-        .name = "phase5-kretprobe-example-survey-tests",
-        .root_module = phase5_kretprobe_example_survey_module,
-    });
-    const run_phase5_kretprobe_example_survey_tests = b.addRunArtifact(phase5_kretprobe_example_survey_tests);
-    const phase5_trace_events_sample_tests = b.addTest(.{
-        .name = "phase5-trace-events-sample-tests",
-        .root_module = phase5_trace_events_sample_module,
-    });
-    const run_phase5_trace_events_sample_tests = b.addRunArtifact(phase5_trace_events_sample_tests);
-    const phase5_trace_events_sample_survey_tests = b.addTest(.{
-        .name = "phase5-trace-events-sample-survey-tests",
-        .root_module = phase5_trace_events_sample_survey_module,
-    });
-    const run_phase5_trace_events_sample_survey_tests = b.addRunArtifact(phase5_trace_events_sample_survey_tests);
+    const run_phase5_kobject_example_tests = addTestRun(
+        b,
+        "phase5-kobject-example-tests",
+        phase5_kobject_example_module,
+        null,
+    );
+    const run_phase5_kobject_example_survey_tests = addTestRun(
+        b,
+        "phase5-kobject-example-survey-tests",
+        phase5_kobject_example_survey_module,
+        repo_root,
+    );
+    const run_phase5_kretprobe_example_tests = addTestRun(
+        b,
+        "phase5-kretprobe-example-tests",
+        phase5_kretprobe_example_module,
+        null,
+    );
+    const run_phase5_kretprobe_example_survey_tests = addTestRun(
+        b,
+        "phase5-kretprobe-example-survey-tests",
+        phase5_kretprobe_example_survey_module,
+        repo_root,
+    );
+    const run_phase5_trace_events_sample_tests = addTestRun(
+        b,
+        "phase5-trace-events-sample-tests",
+        phase5_trace_events_sample_module,
+        null,
+    );
+    const run_phase5_trace_events_sample_survey_tests = addTestRun(
+        b,
+        "phase5-trace-events-sample-survey-tests",
+        phase5_trace_events_sample_survey_module,
+        repo_root,
+    );
 
     const test_step = b.step("test", "Run Phase 5 reference sample checks");
     test_step.dependOn(&run_phase5_bytestream_fifo_tests.step);
