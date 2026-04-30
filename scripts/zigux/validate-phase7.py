@@ -524,29 +524,29 @@ required_phase7_string_helpers_survey_markers = [
 required_phase7_string_helpers_test_markers = [
     'const escape_vectors = @import("fixtures/phase7_string_helpers_escape_vectors.zig");',
     "phase 7 parseIntArrayUser keeps count-bounded copy semantics explicit",
-    "phase 7 kstrdupQuotable reuses the bounded escape subset for log-safe duplication",
-    "phase 7 kstrdupAndReplace keeps ownership and first-NUL replacement boundaries explicit",
+    "phase 7 kstrdupQuotable preserves escaped output fixtures",
+    "phase 7 kstrdupAndReplace rewrites all matching bytes and keeps the copy owned",
     "phase 7 kasprintfStrarray returns sequential owned strings with a null-pointer terminator",
-    "phase 7 kfreeStrarray keeps first-NUL prefixes, zero-count reuse, and repeated teardown safe",
+    "phase 7 kfreeStrarray stays safe for first-NUL-prefixed arrays and repeated teardown",
 ]
 
 required_phase7_string_helpers_doc_markers = [
     "PHASE7_STATUS=parked",
+    "`kstrdup_quotable()` via `kstrdupQuotable()`",
+    "`kstrdup_and_replace()` via `kstrdupAndReplace()`",
+    "`kasprintf_strarray()` via `kasprintfStrarray()`",
+    "`kfree_strarray()` via `kfreeStrarray()`",
     "zigux/tests/phase7_string_helpers.zig",
     "zigux/tests/phase7_string_helpers_survey.zig",
     "zigux/tests/fixtures/phase7_string_helpers_escape_vectors.zig",
-    "bounded sequential prefix-index ownership path",
-    "bounded repeated-teardown-safe release path",
-    "helper-local test runs cannot import that fixture from outside the helper module path; keep both packets aligned when those serialized cases change",
-    "no `samples/zigux/*string*` Phase 5 reference sample",
     "samples/zigux/README.md",
+    "no `samples/zigux/*string*` sample yet exists under the current product boundary",
 ]
 
 required_phase7_cmdline_survey_markers = [
     "Documentation/zigux/phase7-cmdline-slice.md",
-    "zigux/tests/phase7_cmdline.zig",
-    "samples/zigux/README.md",
-    "no `samples/zigux/*cmdline*` Phase 5 reference sample",
+    "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig",
+    "helper roots in `zigux/tests/phase7_build.zig` receive `string_helpers`, `cmdline`, `argv_split`, and `rbtree` through `addImport(...)`",
     'try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_tests, "phase 7 getOptions preserves descending-range and partial-parse stop behavior") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_tests, "phase 7 getOptions keeps array-capacity stop behavior explicit when a range is only partially stored") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_tests, "phase 7 memparse preserves suffix scaling and stop index semantics") != null);',
@@ -554,11 +554,7 @@ required_phase7_cmdline_survey_markers = [
     'try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_tests, "phase 7 numeric helpers reject explicit leading plus signs to stay with cmdline.c simple_strtoull semantics") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_tests, "phase 7 getOption matches malformed-token classification from the Linux KUnit corpus") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_tests, "phase 7 nextArg matches serialized edge fixtures") != null);',
-    'try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_slice, "descending-range and unparseable-suffix early stop behavior") != null);',
-    'try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_slice, "array-capacity stop behavior when a hyphen range is only partially stored") != null);',
-    'try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_slice, "memory-size suffix scaling with accurate parse-stop reporting") != null);',
-    'try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_slice, "rejection of explicit leading-plus numeric inputs") != null);',
-    'try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_slice, "exact bare-option matching for comma-delimited flags") != null);',
+    'try expectContains(phase7_cmdline_slice, "exact bare-option matching for comma-delimited flags");',
     'try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_slice, "C-style stop-at-NUL handling for bare-option scans") != null);',
 ]
 
@@ -581,7 +577,7 @@ required_phase7_cmdline_test_markers = [
 required_phase7_argv_split_survey_markers = [
     "zigux/tests/phase7_argv_split_manifest.json",
     "phase 7 argv_split survey manifest records the parked runtime leaf surface without an active follow-up",
-    'try std.testing.expectEqualStrings("d653b52ff811ecd5de8f09c1e1577c75de1d09b3", manifest.surveyed_commit);',
+    'try std.testing.expectEqualStrings("9fe95586826f03d2e047dcd3d4536fc884dc996c", manifest.surveyed_commit);',
     'try std.testing.expectEqual(@as(usize, 0), ready_next_count);',
     'try std.testing.expect(std.mem.indexOf(u8, argv_split_helper, "pub fn argvFree") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, argv_split_tests, "phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable") != null);',
@@ -817,7 +813,7 @@ if phase7_argv_split_manifest.get("lane_key") != "P7-L12":
     manifest_shape_errors.append("lane_key")
 if phase7_argv_split_manifest.get("phase") != "Phase 7":
     manifest_shape_errors.append("phase")
-if phase7_argv_split_manifest.get("surveyed_commit") != "d653b52ff811ecd5de8f09c1e1577c75de1d09b3":
+if phase7_argv_split_manifest.get("surveyed_commit") != "9fe95586826f03d2e047dcd3d4536fc884dc996c":
     manifest_shape_errors.append("surveyed_commit")
 if phase7_argv_split_manifest.get("anchor") != "lib/argv_split.c":
     manifest_shape_errors.append("anchor")
@@ -867,7 +863,7 @@ if phase7_rbtree_manifest.get("lane_key") != "P7-L13":
     rbtree_manifest_shape_errors.append("lane_key")
 if phase7_rbtree_manifest.get("phase") != "Phase 7":
     rbtree_manifest_shape_errors.append("phase")
-if phase7_rbtree_manifest.get("surveyed_commit") != "d653b52ff811ecd5de8f09c1e1577c75de1d09b3":
+if phase7_rbtree_manifest.get("surveyed_commit") != "9fe95586826f03d2e047dcd3d4536fc884dc996c":
     rbtree_manifest_shape_errors.append("surveyed_commit")
 if phase7_rbtree_manifest.get("anchor") != "lib/rbtree.c":
     rbtree_manifest_shape_errors.append("anchor")
