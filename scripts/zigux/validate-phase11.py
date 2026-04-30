@@ -433,6 +433,45 @@ for marker in [
     if marker not in gpio_test_text:
         missing.append(f"phase11_gpio_wdt_tests:{marker}")
 
+bcm2835_manifest = load_manifest("phase11_bcm2835_wdt_manifest.json")
+bcm2835_commit = str(bcm2835_manifest.get("surveyed_commit", ""))
+bcm2835_survey_doc = text(BCM2835_WDT_DOC_PATHS["survey"])
+bcm2835_slice_doc = text(BCM2835_WDT_DOC_PATHS["slice"])
+bcm2835_matrix_doc = text(BCM2835_WDT_DOC_PATHS["matrix"])
+bcm2835_test_text = text("zigux/tests/phase11_bcm2835_wdt.zig")
+for marker in [
+    f"reviewed against live `master` `{bcm2835_commit}`",
+    "already ships the bounded bcm2835 starter for watchdog metadata, timeout tick encoding, running-bit detection, bounded start and stop register transitions, restart intent, halt-partition bookkeeping, a tiny probe-time summary, a small registration-facing handoff or poweroff ownership summary, a tiny platform-registration or PM-base handoff summary, and a tiny remove-time ownership summary",
+    "does not claim watchdog-core registration, PM base wiring, live remove-time poweroff-handler release behavior, or hardware-backed execution",
+    "The next honest bounded step inside the same Phase 11 family is not another review-only handoff.",
+]:
+    if marker not in bcm2835_survey_doc:
+        missing.append(f"phase11_bcm2835_wdt_docs:survey:{marker}")
+for marker in [
+    "adds a tiny platform-registration and PM-base handoff summary for parent attachment, PM base availability, drvdata handoff readiness, register-device intent, and poweroff ownership reviewability",
+    "adds a tiny remove-time teardown summary for devm-managed watchdog cleanup while clearing the shared poweroff handler only when the bcm2835 lane currently owns it",
+    "This slice does not claim platform-driver registration, watchdog-core registration, MMIO access, delayed restart behavior, module parameter wiring beyond bookkeeping, live remove-time poweroff-handler release logic, or live poweroff integration yet.",
+]:
+    if marker not in bcm2835_slice_doc:
+        missing.append(f"phase11_bcm2835_wdt_docs:slice:{marker}")
+for marker in [
+    "PHASE11_BCM2835_WDT_STATUS=platform_handoff_landed",
+    "| platform registration and PM-base handoff | `platformHandoffSummary()` now records parent attachment, PM-base availability, drvdata handoff readiness, register-device intent, and poweroff claim-vs-conflict reviewability without claiming platform-driver execution or live MMIO |",
+    "| remove-time teardown boundary | `removeSummary()` records that watchdog teardown stays devm-managed while the explicit remove callback only clears the shared poweroff handler if the bcm2835 lane owns it, leaving conflicting ownership in place |",
+    "current shared replay wiring on `master` includes both `phase11-bcm2835-wdt-tests` and `phase11-bcm2835-wdt-survey-tests`",
+]:
+    if marker not in bcm2835_matrix_doc:
+        missing.append(f"phase11_bcm2835_wdt_docs:matrix:{marker}")
+for marker in [
+    'test "phase11 bcm2835_wdt platform handoff summary keeps parent and PM-base prerequisites reviewable" {',
+    "const ready = watchdog.platformHandoffSummary(true, true, true, true, false);",
+    'test "phase11 bcm2835_wdt remove summary only clears the shared poweroff handler when bcm2835 owns it" {',
+    "const conflict = watchdog.removeSummary(true, true, false);",
+    "try std.testing.expect(conflict.poweroff_handler_left_in_place);",
+]:
+    if marker not in bcm2835_test_text:
+        missing.append(f"phase11_bcm2835_wdt_tests:{marker}")
+
 dw_manifest = load_manifest("phase11_dw_wdt_manifest.json")
 dw_commit = str(dw_manifest.get("surveyed_commit", ""))
 dw_survey_doc = text(DW_WDT_DOC_PATHS["survey"])
