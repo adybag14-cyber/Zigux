@@ -6,7 +6,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling survey for Z
 
 - `PHASE8_STATUS=active`
 - `PHASE8_SLICE=libbpf-segment-survey`
-- scope: segment manifest plus six landed helper-first starter slices, one deferred resource boundary, one deferred interrupt-routing boundary, and one blocked object-model follow-on
+- scope: segment manifest plus six landed helper-first starter slices, one deferred resource boundary, one deferred interrupt-routing boundary, one blocked object-model follow-on, and two deferred loader-facing follow-ons
 - survey checkpoint: refreshed against inspected `master` head `947afb025ea5b439199bcad058ed43fbe98b1aa7`
 - product boundary:
   - `tools/lib/bpf/zigux_segments/manifest.json`
