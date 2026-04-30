@@ -53,6 +53,11 @@ Zig toolchain gate
 - `check-zig-toolchain.py` verifies that the selected Zig binary exists and satisfies the configured minimum version.
 - `check-zig-toolchain.py --self-test` runs built-in parser and version-ordering coverage without needing a local Zig install.
 
+Phase 13 flow
+- `validate-phase13-release.py` keeps `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `Documentation/zigux/phase13-devres-survey.md`, `zigux/tests/phase13_devres_manifest.json`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_build.zig`, and `zigux/Makefile` aligned so the current release packet stays reviewable around the four manifest-backed roadmap anchors and the explicit helper-only `devres` boundary around live DMA-backed mappings and scatterlist ownership.
+- `make -C zigux phase13-validate` is the published fast validator entrypoint for that packet.
+- `make -C zigux phase13` routes through the validator before the shared replay.
+
 Phase 2 flow
 - `artifact_diff.py --self-test` exercises the shared text, JSON, SHA-256, and missing-file comparison paths before the bounded Phase 2 artifact lanes run.
 - `check-artifact-diff-contract.py` keeps the outward artifact-diff CLI surface reviewable inside the closed Phase 2 packet so missing-file, malformed-JSON, and SHA-256 contract drift cannot hide behind the helper's built-in self-test.
