@@ -55,9 +55,9 @@ test "phase 15 indefinite-C policy manifest records current policy, exception, a
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P15-L14", manifest.lane_key);
+    try std.testing.expectEqualStrings("P15-L15", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("6c113560cecc015f78c4e9234a85414954401180", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("b3c55a2889c9ecf17b47c9689eef223d84d1c078", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("policy for code that remains in C indefinitely", manifest.roadmap_requirement);
     try std.testing.expectEqual(@as(usize, 4), manifest.anchors.len);
     try std.testing.expectEqual(@as(usize, 8), manifest.supporting_artifacts.len);
@@ -267,7 +267,7 @@ test "phase 15 indefinite-C policy note preserves stay-in-C boundary language" {
     try std.testing.expect(std.mem.indexOf(u8, policy_note, "## Reopen Trigger Catalog") != null);
     try std.testing.expect(std.mem.indexOf(u8, policy_note, "## Current Policy Gap") != null);
     try std.testing.expect(std.mem.indexOf(u8, policy_note, "## Maintenance-Mode Handoff") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "PHASE15_LANE_KEY=P15-L14") != null);
+    try std.testing.expect(std.mem.indexOf(u8, policy_note, "PHASE15_LANE_KEY=P15-L15") != null);
     try std.testing.expect(std.mem.indexOf(u8, policy_note, "retired_from_active_discussion") != null);
     try std.testing.expect(std.mem.indexOf(u8, policy_note, "no silent exception path") != null);
     try std.testing.expect(std.mem.indexOf(u8, policy_note, "Architecture Council reopen request") != null);
