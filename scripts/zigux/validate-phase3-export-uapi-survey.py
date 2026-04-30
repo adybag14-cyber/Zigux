@@ -208,7 +208,7 @@ def run_self_test() -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Check that the published Phase 3 export-shim and UAPI boundary survey stays aligned with the live repo.")
     parser.add_argument("--self-test", action="store_true", help="Run isolated checker tests without reading the repo.")
-    args = parse_args()
+    args = parser.parse_args()
     if args.self_test:
         return run_self_test()
     issues = validate(ROOT)
