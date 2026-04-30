@@ -75,41 +75,59 @@ def extract_markdown_surveyed_commit(text: str, label: str) -> tuple[str | None,
     return match.group(1), None
 
 
-def validate_atomic64_surveyed_commit_consistency(
+def validate_doc_manifest_surveyed_commit_consistency(
+    family: str,
     manifest_text: str,
     survey_text: str,
     module_slice_text: str,
+    survey_label: str,
+    module_label: str,
 ) -> list[str]:
     missing_markers: list[str] = []
     try:
         manifest = json.loads(manifest_text)
     except json.JSONDecodeError:
-        return ["atomic64_consistency:manifest_json_decode_failed"]
+        return [f"{family}_consistency:manifest_json_decode_failed"]
 
     manifest_commit = manifest.get("surveyed_commit")
     if not isinstance(manifest_commit, str) or not re.fullmatch(r"[0-9a-f]{40}", manifest_commit):
-        missing_markers.append("atomic64_consistency:manifest_invalid_surveyed_commit")
+        missing_markers.append(f"{family}_consistency:manifest_invalid_surveyed_commit")
         return missing_markers
 
     survey_commit, survey_error = extract_markdown_surveyed_commit(
         survey_text,
-        "atomic64_survey",
+        survey_label,
     )
     if survey_error:
         missing_markers.append(survey_error)
     elif survey_commit != manifest_commit:
-        missing_markers.append("atomic64_consistency:survey_doc_commit_mismatch")
+        missing_markers.append(f"{family}_consistency:survey_doc_commit_mismatch")
 
     module_commit, module_error = extract_markdown_surveyed_commit(
         module_slice_text,
-        "atomic64_module_slice",
+        module_label,
     )
     if module_error:
         missing_markers.append(module_error)
     elif module_commit != manifest_commit:
-        missing_markers.append("atomic64_consistency:module_slice_commit_mismatch")
+        missing_markers.append(f"{family}_consistency:module_slice_commit_mismatch")
 
     return missing_markers
+
+
+def validate_atomic64_surveyed_commit_consistency(
+    manifest_text: str,
+    survey_text: str,
+    module_slice_text: str,
+) -> list[str]:
+    return validate_doc_manifest_surveyed_commit_consistency(
+        "atomic64",
+        manifest_text,
+        survey_text,
+        module_slice_text,
+        "atomic64_survey",
+        "atomic64_module_slice",
+    )
 
 required_make_markers = [
     "PHONY += phase9-validate phase9-test phase9",
@@ -351,7 +369,7 @@ required_loader_gap_manifest_markers = [
 
 required_atomic64_survey_markers = [
     "manifest-backed delivery catalog and ownership map",
-    "`PHASE9_SURVEYED_COMMIT=",
+    "`PHASE9_SURVEYED_COMMIT=`,
     "the current survey packet is pinned to `master` commit `",
     "Delivery ownership map",
     "zigux/tests/runtime_atomic64_manifest.json",
@@ -762,6 +780,16 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     for marker in required_kretprobe_module_slice_markers:
         if marker not in kretprobe_module_slice:
             missing_markers.append(f"kretprobe_module_slice:{marker}")
+    missing_markers.extend(
+        validate_doc_manifest_surveyed_commit_consistency(
+            "kretprobe",
+            kretprobe_manifest,
+            kretprobe_survey,
+            kretprobe_module_slice,
+            "kretprobe_survey",
+            "kretprobe_module_slice",
+        )
+    )
     for marker in required_trace_events_survey_markers:
         if marker not in trace_events_survey:
             missing_markers.append(f"trace_events_survey:{marker}")
@@ -780,6 +808,16 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     for marker in required_trace_events_module_markers:
         if marker not in trace_events_module:
             missing_markers.append(f"trace_events_module:{marker}")
+    missing_markers.extend(
+        validate_doc_manifest_surveyed_commit_consistency(
+            "trace_events",
+            trace_events_manifest,
+            trace_events_survey,
+            trace_events_module_slice,
+            "trace_events_survey",
+            "trace_events_module_slice",
+        )
+    )
     return [], missing_markers
 
 
@@ -918,6 +956,23 @@ def run_self_test() -> int:
         )
         kretprobe_module_slice_path.write_text(original_kretprobe_module_slice, encoding="utf-8")
 
+        kretprobe_manifest_path = tmp_root / "zigux/tests/runtime_kretprobe_manifest.json"
+        original_kretprobe_manifest = kretprobe_manifest_path.read_text(encoding="utf-8")
+        kretprobe_manifest_path.write_text(
+            original_kretprobe_manifest.replace(
+                f'"surveyed_commit": "{KRETPROBE_SURVEYED_COMMIT}"',
+                '"surveyed_commit": "0000000000000000000000000000000000000000"',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "kretprobe_manifest_surveyed_commit_consistency",
+            tmp_root,
+            "kretprobe_consistency:survey_doc_commit_mismatch",
+        )
+        kretprobe_manifest_path.write_text(original_kretprobe_manifest, encoding="utf-8")
+
         loader_gap_survey_test_path = tmp_root / "zigux/tests/runtime_loader_gap_survey.zig"
         original_loader_gap_survey_test = loader_gap_survey_test_path.read_text(encoding="utf-8")
         loader_gap_survey_test_path.write_text(
@@ -952,8 +1007,25 @@ def run_self_test() -> int:
         )
         review_checklist_path.write_text(original_review_checklist, encoding="utf-8")
 
+        trace_events_manifest_path = tmp_root / "zigux/tests/runtime_trace_events_manifest.json"
+        original_trace_events_manifest = trace_events_manifest_path.read_text(encoding="utf-8")
+        trace_events_manifest_path.write_text(
+            original_trace_events_manifest.replace(
+                f'"surveyed_commit": "{TRACE_EVENTS_SURVEYED_COMMIT}"',
+                '"surveyed_commit": "1111111111111111111111111111111111111111"',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "trace_events_manifest_surveyed_commit_consistency",
+            tmp_root,
+            "trace_events_consistency:survey_doc_commit_mismatch",
+        )
+        trace_events_manifest_path.write_text(original_trace_events_manifest, encoding="utf-8")
+
     print("PHASE9_VALIDATOR_SELF_TEST=pass")
-    print("PHASE9_VALIDATOR_SELF_TEST_CASE_COUNT=9")
+    print("PHASE9_VALIDATOR_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
