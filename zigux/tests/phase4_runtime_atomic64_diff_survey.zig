@@ -8,8 +8,11 @@ const SurveySummary = struct {
     runtime_atomic64_diff_present: bool,
     post_selftest_replay_present: bool,
     phase4_build_present: bool,
+    phase4_build_uses_atomic64_wrapper: bool,
     phase9_build_present: bool,
+    phase9_build_uses_runtime_atomic64_diff: bool,
     phase4_validator_runtime_atomic64_diff_present: bool,
+    phase4_validator_atomic64_diff_present: bool,
     runtime_atomic64_sample_present: bool,
     phase4_validation_matrix_present: bool,
     tests_readme_runtime_atomic64_diff_present: bool,
@@ -107,8 +110,11 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate, 
     try std.testing.expect(manifest.survey_summary.runtime_atomic64_diff_present);
     try std.testing.expect(manifest.survey_summary.post_selftest_replay_present);
     try std.testing.expect(manifest.survey_summary.phase4_build_present);
+    try std.testing.expect(manifest.survey_summary.phase4_build_uses_atomic64_wrapper);
     try std.testing.expect(manifest.survey_summary.phase9_build_present);
+    try std.testing.expect(manifest.survey_summary.phase9_build_uses_runtime_atomic64_diff);
     try std.testing.expect(manifest.survey_summary.phase4_validator_runtime_atomic64_diff_present);
+    try std.testing.expect(manifest.survey_summary.phase4_validator_atomic64_diff_present);
     try std.testing.expect(manifest.survey_summary.runtime_atomic64_sample_present);
     try std.testing.expect(manifest.survey_summary.phase4_validation_matrix_present);
     try std.testing.expect(manifest.survey_summary.tests_readme_runtime_atomic64_diff_present);
@@ -225,9 +231,20 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate, 
         .post_selftest_replay_present = std.mem.indexOf(u8, runtime_atomic64_diff, "runtime atomic64 diff gate keeps post-selftest replay explicit") != null,
         .phase4_build_present = std.mem.indexOf(u8, phase4_build, "atomic64_diff.zig") != null and
             std.mem.indexOf(u8, phase4_build, "phase4-runtime-atomic64-diff-tests") != null,
+        .phase4_build_uses_atomic64_wrapper = std.mem.indexOf(
+            u8,
+            phase4_build,
+            ".root_source_file = b.path(\"atomic64_diff.zig\")",
+        ) != null,
         .phase9_build_present = std.mem.indexOf(u8, phase9_build, "runtime_atomic64_diff.zig") != null and
             std.mem.indexOf(u8, phase9_build, "phase9-runtime-atomic64-diff-tests") != null,
+        .phase9_build_uses_runtime_atomic64_diff = std.mem.indexOf(
+            u8,
+            phase9_build,
+            ".root_source_file = b.path(\"runtime_atomic64_diff.zig\")",
+        ) != null,
         .phase4_validator_runtime_atomic64_diff_present = std.mem.indexOf(u8, phase4_validator, "zigux/tests/runtime_atomic64_diff.zig") != null,
+        .phase4_validator_atomic64_diff_present = std.mem.indexOf(u8, phase4_validator, "zigux/tests/atomic64_diff.zig") != null,
         .runtime_atomic64_sample_present = std.mem.indexOf(u8, runtime_atomic64_sample, "provides_selftest_hook = true") != null and
             std.mem.indexOf(u8, runtime_atomic64_sample, "pub fn addCounter") != null,
         .phase4_validation_matrix_present = std.mem.indexOf(u8, phase4_validation_matrix, "zigux/tests/runtime_atomic64_diff.zig") != null and
@@ -282,6 +299,7 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate, 
             saw_shared_build = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/phase4_build.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "roadmap-named atomic64 wrapper") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "bitmap gate") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rollback surface") != null);
         }
@@ -304,10 +322,10 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate, 
             try std.testing.expectEqualStrings("zigux/tests/atomic64_diff.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "canonical entrypoint") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "@import(\"runtime_atomic64_diff.zig\")") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "runtime_atomic64_diff.zig") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "phase4_build.zig") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "validate-phase4.py") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "phase9_build.zig") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shared `phase4_build.zig` replay now runs that wrapper") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "`validate-phase4.py` tracks both") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "`phase9_build.zig` still compiles `runtime_atomic64_diff.zig` directly") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "wrapper-versus-runtime-body split") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase4-broader-atomic64-surface")) {
