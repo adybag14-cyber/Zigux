@@ -251,10 +251,18 @@ HEXDUMP_TEST_MARKERS = [
 HEXDUMP_PERF_MARKERS = [
     "phase6-hexdump-perf",
     "fn median3(a: u64, b: u64, c: u64) u64",
-    "max_slowdown_pct = 175",
+    "for (fixtures.perf_cases) |case| {",
+    "fn runPerfCase(case: fixtures.PerfCase, io: std.Io) !PerfResult {",
     "fixtures.prepareExpectedLine(expected_buf[0..], case.len, case.rowsize, case.groupsize, case.ascii);",
     "const slowdown_pct = median3(",
     "try std.testing.expect(slowdown_pct <= case.max_slowdown_pct);",
+]
+
+HEXDUMP_FIXTURE_MARKERS = [
+    "pub const PerfCase = struct {",
+    'pub const perf_cases = [_]PerfCase{',
+    '.{ .label = "16B-plain", .len = 16, .rowsize = 16, .groupsize = 1, .ascii = false, .reps = 40_000, .max_slowdown_pct = 175 },',
+    '.{ .label = "32B-ascii-g2", .len = 32, .rowsize = 32, .groupsize = 2, .ascii = true, .reps = 10_000, .max_slowdown_pct = 175 },',
 ]
 
 HEXDUMP_SLICE_MARKERS = [
@@ -266,6 +274,7 @@ HEXDUMP_SLICE_MARKERS = [
     "mixed-case hex digit decoding",
     "native-endian grouped output for 2, 4, and 8 byte cases",
     "fixtures.prepareExpectedLine(...)",
+    "shared `zigux/tests/fixtures/phase6_hexdump_vectors.zig` perf-case table",
     "max_slowdown_pct = 175",
 ]
 
@@ -458,6 +467,7 @@ def main() -> int:
         ("phase6_checksum_slice", "Documentation/zigux/phase6-checksum-slice.md", CHECKSUM_SLICE_MARKERS),
         ("phase6_hexdump", "zigux/tests/phase6_hexdump.zig", HEXDUMP_TEST_MARKERS),
         ("phase6_hexdump_perf", "zigux/tests/phase6_hexdump_perf.zig", HEXDUMP_PERF_MARKERS),
+        ("phase6_hexdump_vectors", "zigux/tests/fixtures/phase6_hexdump_vectors.zig", HEXDUMP_FIXTURE_MARKERS),
         ("phase6_hexdump_slice", "Documentation/zigux/phase6-hexdump-slice.md", HEXDUMP_SLICE_MARKERS),
     ]
 
