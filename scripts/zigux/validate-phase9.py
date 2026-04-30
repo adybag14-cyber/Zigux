@@ -873,8 +873,25 @@ def run_self_test() -> int:
         )
         loader_gap_survey_test_path.write_text(original_loader_gap_survey_test, encoding="utf-8")
 
+        review_checklist_path = tmp_root / "Documentation/zigux/review-checklist.md"
+        original_review_checklist = review_checklist_path.read_text(encoding="utf-8")
+        review_checklist_path.write_text(
+            original_review_checklist.replace(
+                "if the change touches the shared Phase 9 runtime-loader evidence packet, do `scripts/zigux/kconfig/conf_bridge.zig`, `scripts/zigux/kconfig/confdata_bridge.zig`, `rust/exports.c`, and `zigux/kernel/export_shim.zig` still stay explicit as Phase 2 or Phase 3 non-owner references instead of being silently counted as Phase 9 runtime evidence?\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "loader_gap_review_checklist_non_owner_boundary",
+            tmp_root,
+            "review_checklist:if the change touches the shared Phase 9 runtime-loader evidence packet, do `scripts/zigux/kconfig/conf_bridge.zig`, `scripts/zigux/kconfig/confdata_bridge.zig`, `rust/exports.c`, and `zigux/kernel/export_shim.zig` still stay explicit as Phase 2 or Phase 3 non-owner references instead of being silently counted as Phase 9 runtime evidence?",
+        )
+        review_checklist_path.write_text(original_review_checklist, encoding="utf-8")
+
     print("PHASE9_VALIDATOR_SELF_TEST=pass")
-    print("PHASE9_VALIDATOR_SELF_TEST_CASE_COUNT=8")
+    print("PHASE9_VALIDATOR_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
