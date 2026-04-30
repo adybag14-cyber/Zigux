@@ -260,6 +260,25 @@ def run_self_test() -> int:
         )
         cmdline_doc_path.write_text(original_cmdline_doc, encoding="utf-8")
 
+        string_helpers_survey_path = tmp_root / "zigux" / "tests" / "phase7_string_helpers_survey.zig"
+        original_string_helpers_survey = string_helpers_survey_path.read_text(encoding="utf-8")
+        string_helpers_survey_path.write_text(
+            original_string_helpers_survey.replace(
+                'try expectContains(string_helpers_tests, "phase 7 kasprintfStrarray returns sequential owned strings with a null-pointer terminator");',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "string_helpers_string_array_review_surface",
+            tmp_root,
+            'zigux/tests/phase7_string_helpers_survey.zig: phase 7 kasprintfStrarray returns sequential owned strings with a null-pointer terminator',
+        )
+        string_helpers_survey_path.write_text(
+            original_string_helpers_survey, encoding="utf-8"
+        )
+
         rbtree_survey_path = tmp_root / "zigux" / "tests" / "phase7_rbtree_survey.zig"
         original_rbtree_survey = rbtree_survey_path.read_text(encoding="utf-8")
         rbtree_survey_path.write_text(
@@ -298,7 +317,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=9")
+    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
@@ -473,9 +492,13 @@ required_phase7_string_helpers_survey_markers = [
     "Documentation/zigux/phase7-string-helpers-slice.md",
     "samples/zigux/README.md",
     "no `samples/zigux/*string*` Phase 5 reference sample",
+    "`kstrdup_quotable()` over the bounded escape-then-duplicate path",
     "`kstrdup_and_replace()` over the bounded duplicate-then-rewrite ownership-safe path",
+    "`kasprintf_strarray()` over the bounded sequential prefix-index ownership path",
     "`kfree_strarray()` over the bounded repeated-teardown-safe release path",
+    "phase 7 kstrdupQuotable reuses the bounded escape subset for log-safe duplication",
     "phase 7 kstrdupAndReplace keeps ownership and first-NUL replacement boundaries explicit",
+    "phase 7 kasprintfStrarray returns sequential owned strings with a null-pointer terminator",
     "phase 7 kfreeStrarray keeps first-NUL prefixes, zero-count reuse, and repeated teardown safe",
 ]
 
@@ -515,7 +538,7 @@ required_phase7_cmdline_test_markers = [
     "phase 7 memparse preserves suffix scaling and stop index semantics",
     "phase 7 parseOptionStr matches only exact bare options",
     "phase 7 numeric helpers reject explicit leading plus signs to stay with cmdline.c simple_strtoull semantics",
-    'try std.testing.expect(!cmdline.parseOptionStr("quiet,debug\x00,nohlt", "nohlt"));',
+    'try std.testing.expect(!cmdline.parseOptionStr("quiet,debug\\x00,nohlt", "nohlt"));',
     "phase 7 getOption matches malformed-token classification from the Linux KUnit corpus",
     "phase 7 getOption matches leading-integer pointer advance from the Linux KUnit corpus",
     "phase 7 getOption matches trailing-integer pointer advance from the Linux KUnit corpus",
