@@ -170,7 +170,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "zero sentinel") != null);
         }
         if (std.mem.eql(u8, check.id, "bitmask-and-rel-loc")) {
-            saw_rel_loc_check = true;
+            saw_rel_loc_CHECK = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "0xdeadbeef") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "relative-location") != null);
         }
@@ -279,7 +279,7 @@ test "phase 5 trace-events contributor docs stay aligned with the shipped review
         io_instance.io(),
         "Documentation/zigux/README.md",
         std.testing.allocator,
-        .limited(32 * 1024),
+        .limited(64 * 1024),
     );
     defer std.testing.allocator.free(readme);
 
@@ -287,7 +287,7 @@ test "phase 5 trace-events contributor docs stay aligned with the shipped review
         io_instance.io(),
         "samples/zigux/README.md",
         std.testing.allocator,
-        .limited(32 * 1024),
+        .limited(64 * 1024),
     );
     defer std.testing.allocator.free(sample_root_readme);
 
@@ -295,7 +295,7 @@ test "phase 5 trace-events contributor docs stay aligned with the shipped review
         io_instance.io(),
         "Documentation/zigux/review-checklist.md",
         std.testing.allocator,
-        .limited(32 * 1024),
+        .limited(64 * 1024),
     );
     defer std.testing.allocator.free(review_checklist);
 
