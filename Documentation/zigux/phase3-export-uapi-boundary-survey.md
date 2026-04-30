@@ -4,7 +4,7 @@ This note records the current export-shim and UAPI boundary for the bounded Phas
 
 ## Status
 
-- `PHASE3_SURVEYED_COMMIT=058d42ec1c42e212e3a91b7a1593c39d23d25941`
+- `PHASE3_SURVEYED_COMMIT=b7ce6cc40f8b7819c5c840af28f0d361a167a3ec`
 - `PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig`
 - `PHASE3_EXPORT_SHIM_SCOPE=explicit-status-plus-boundary-header`
 - `PHASE3_EXPORT_SHIM_STATUS=normalize-and-compatibility-helpers-landed`
@@ -31,7 +31,7 @@ It does require the live repo to say clearly what is already part of the permane
 
 ## Live Repo Reality
 
-This survey is pinned to verified `master` head `058d42ec1c42e212e3a91b7a1593c39d23d25941` for the directly coupled export/UAPI packet, so the note stays tied to one inspected boundary snapshot instead of a floating branch label.
+This survey is pinned to verified `master` head `b7ce6cc40f8b7819c5c840af28f0d361a167a3ec` for the directly coupled export/UAPI packet, so the note stays tied to one inspected boundary snapshot instead of a floating branch label.
 
 The current tree already carries the first bounded export and UAPI boundary surface:
 
