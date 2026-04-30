@@ -131,6 +131,9 @@ required_tests_readme_markers = [
     "zigux/tests/phase8_libbpf_segments.zig",
     "zigux/tests/phase8_bpf_type_names.zig",
     "scripts/zigux/validate-phase8.py",
+    "Documentation/zigux/phase8-exec-cmd-slice.md",
+    "Documentation/zigux/review-checklist.md",
+    "deferred execution helper-only",
     "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
 ]
 
