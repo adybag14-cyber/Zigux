@@ -90,6 +90,14 @@ TRACEABILITY_MARKERS = [
     "`lib/devres.c` is represented by real helper code, real tests, a manifest-backed survey packet, and explicit blocked DMA/scatterlist boundary evidence",
 ]
 
+DOCS_ROOT_MARKERS = [
+    "Phase 13 notes",
+    "`Documentation/zigux/phase13-roadmap-traceability.md` now maps the four shared-helper roadmap anchors `fs/libfs.c`, `lib/devres.c`, `security/landlock/ruleset.c`, and `security/landlock/syscalls.c` to the live Zigux evidence so the current Phase 13 packet is visible from the docs root.",
+    "`Documentation/zigux/phase13-libfs-survey.md`, `Documentation/zigux/phase13-devres-survey.md`, `Documentation/zigux/phase13-landlock-ruleset-survey.md`, and `Documentation/zigux/phase13-landlock-syscalls-survey.md` plus the four `zigux/tests/phase13_*_manifest.json` files now keep the current helper-first boundaries explicit instead of implying broader runtime parity.",
+    "`make -C zigux phase13-validate` is the current validator-first entrypoint for the shared Phase 13 release-discipline packet.",
+    "`zigux/tests/phase13_build.zig` and `make -C zigux phase13` remain the published shared replay path, but that replay is currently blocked on `master` because `zigux/tests/phase13_landlock_ruleset.zig` still ends with the `P13-L12` syntax error recorded by `Documentation/zigux/phase13-release-notes-survey.md`.",
+]
+
 SCRIPT_README_MARKERS = [
     "Current bootstrap helpers",
     "`validate-phase13-release.py`",
@@ -169,6 +177,7 @@ if missing_files:
 
 missing: list[str] = []
 for name, source, markers in [
+    ("docs_root", text("Documentation/zigux/README.md"), DOCS_ROOT_MARKERS),
     ("scripts_readme", text("scripts/zigux/README.md"), SCRIPT_README_MARKERS),
     ("make", text("zigux/Makefile"), MAKE_MARKERS),
     ("workflow", text(".github/workflows/zigux-bootstrap.yml"), WORKFLOW_MARKERS),
@@ -308,7 +317,7 @@ print("PHASE13_RELEASE_VALIDATION=pass")
 print(f"PHASE13_RELEASE_REQUIRED_FILE_COUNT={len(FILES)}")
 print(
     "PHASE13_RELEASE_REQUIRED_MARKER_COUNT="
-    f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(RELEASE_MARKERS) + len(TRACEABILITY_MARKERS) + len(SCRIPT_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS)}"
+    f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(RELEASE_MARKERS) + len(TRACEABILITY_MARKERS) + len(DOCS_ROOT_MARKERS) + len(SCRIPT_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS)}"
 )
 print(f"PHASE13_RELEASE_BUILD_TEST_COUNT={len(build_names)}")
 print(f"PHASE13_RELEASE_BUILD_DEPEND_STEP_COUNT={len(depend_steps)}")
