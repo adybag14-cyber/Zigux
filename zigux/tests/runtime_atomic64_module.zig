@@ -17,9 +17,12 @@ test "runtime atomic64 sample enforces lifecycle transitions and keeps a 64-bit 
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
 
     try module.init(0x1111_1111_2222_2222);
+    const initialized_summary = module.summary();
     try std.testing.expectEqual(sample.ModuleStage.initialized, module.stage());
     try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_2222), module.snapshotCounter());
-    try std.testing.expectEqual(@as(usize, 1), module.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), initialized_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_summary.exit_runs);
 
     const subtract_result = try module.subCounter(0x22);
     try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_2222), subtract_result.previous);
@@ -100,18 +103,24 @@ test "runtime atomic64 sample enforces lifecycle transitions and keeps a 64-bit 
     try std.testing.expectEqual(@as(i64, -1), negative_guard.snapshotCounter());
 
     const summary = try module.runSelftest();
+    const post_selftest_summary = module.summary();
     try std.testing.expectEqual(sample.ModuleStage.selftest_complete, module.stage());
     try std.testing.expectEqualStrings("lib/atomic64_test.c", summary.anchor);
     try std.testing.expectEqual(@as(usize, 5), summary.operation_families.len);
     try std.testing.expect(summary.checked_returning_paths);
     try std.testing.expect(summary.checked_guard_paths);
     try std.testing.expectEqual(@as(i64, 13), module.snapshotCounter());
-    try std.testing.expectEqual(@as(usize, 1), module.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), post_selftest_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), post_selftest_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), post_selftest_summary.exit_runs);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
 
     try module.exit();
+    const exited_summary = module.summary();
     try std.testing.expectEqual(sample.ModuleStage.exited, module.stage());
-    try std.testing.expectEqual(@as(usize, 1), module.exit_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited_summary.exit_runs);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.init(23));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.swapCounter(7));
