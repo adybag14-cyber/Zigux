@@ -205,6 +205,8 @@ def validate_kconfig_bridge_manifest_shape(cases_path: Path) -> list[str]:
 
 
 required_files = [
+    ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml',
+    ROOT / 'Documentation' / 'zigux' / 'artifact-diff.md',
     ROOT / 'Documentation' / 'zigux' / 'phase2-closure.md',
     ROOT / 'scripts' / 'zigux' / 'artifact_diff.py',
     ROOT / 'scripts' / 'zigux' / 'check-artifact-diff-contract.py',
@@ -222,7 +224,9 @@ required_files = [
     ROOT / 'scripts' / 'zigux' / 'mk_elfconfig.zig',
     ROOT / 'scripts' / 'zigux' / 'kconfig' / 'conf_bridge.zig',
     ROOT / 'scripts' / 'zigux' / 'kconfig' / 'confdata_bridge.zig',
+    ROOT / 'scripts' / 'zigux' / 'README.md',
     ROOT / 'zigux' / 'Makefile',
+    ROOT / 'zigux-alpha' / 'BOOTSTRAP_COMMIT_LEDGER.md',
     FIXDEP_CASES,
     FIXDEP_DIR / 'sample_concatenated_expected.txt',
     FIXDEP_DIR / 'sample_output_write_expected.txt',

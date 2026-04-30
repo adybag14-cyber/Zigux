@@ -767,6 +767,8 @@ def validate_phase2_tooling_manifests(tool_manifest_path: Path, cross_targets_pa
     return issues
 
 required_files = [
+    ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml',
+    ROOT / 'Documentation' / 'zigux' / 'artifact-diff.md',
     ROOT / 'scripts' / 'zigux' / 'artifact_diff.py',
     ROOT / 'scripts' / 'zigux' / 'check-artifact-diff-contract.py',
     ROOT / 'scripts' / 'zigux' / 'fixdep.zig',
@@ -781,8 +783,11 @@ required_files = [
     ROOT / 'scripts' / 'zigux' / 'check-mk-elfconfig-diff.py',
     ROOT / 'scripts' / 'zigux' / 'kconfig' / 'conf_bridge.zig',
     ROOT / 'scripts' / 'zigux' / 'kconfig' / 'confdata_bridge.zig',
+    ROOT / 'scripts' / 'zigux' / 'README.md',
     PHASE2_TOOL_MANIFEST,
     PHASE2_CROSS_TARGETS,
+    ROOT / 'zigux' / 'Makefile',
+    ROOT / 'zigux-alpha' / 'BOOTSTRAP_COMMIT_LEDGER.md',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'fixdep' / 'cases.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'fixdep' / 'sample.d',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'fixdep' / 'sample.c',
