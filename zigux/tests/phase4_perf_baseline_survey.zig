@@ -60,7 +60,7 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
     try std.testing.expectEqualStrings("Validation and Perf Team", manifest.owner);
     try std.testing.expectEqualStrings("Validation and Perf Team", manifest.rollback_owner);
     try std.testing.expectEqualStrings(
-        "81356ba2b96caf155f2c8788b3ede1fbb4c96d74",
+        "1d492880f141d20d8b00ac7e06ea895fc7d345c9",
         manifest.surveyed_commit,
     );
     try std.testing.expectEqual(@as(usize, 2), manifest.surveyed_gates.len);
@@ -132,10 +132,11 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
             std.mem.indexOf(u8, phase4_matrix, "phase4-perf-baseline-survey-tests") != null and
             std.mem.indexOf(u8, phase4_matrix, "make -C zigux phase4-perf-baseline-survey") != null and
             std.mem.indexOf(u8, phase4_matrix, "perf_thresholds_unapproved_until_bounded_phase4_benchmarks_land") != null and
-            std.mem.indexOf(u8, phase4_matrix, "benchmark command and acceptable limit are still unapproved for both landed gates") != null and
+            std.mem.indexOf(u8, phase4_matrix, "benchmark command is still unapproved for both landed gates") != null and
+            std.mem.indexOf(u8, phase4_matrix, "acceptable limit is still unapproved for both landed gates") != null and
             std.mem.indexOf(u8, phase4_matrix, "land one bounded benchmark command and one acceptable limit per gate before Phase 4 claims perf coverage") != null,
-        .benchmark_command_unapproved = std.mem.indexOf(u8, phase4_matrix, "benchmark command and acceptable limit are still unapproved for both landed gates") != null,
-        .acceptable_limit_unapproved = std.mem.indexOf(u8, phase4_matrix, "benchmark command and acceptable limit are still unapproved for both landed gates") != null,
+        .benchmark_command_unapproved = std.mem.indexOf(u8, phase4_matrix, "benchmark command is still unapproved for both landed gates") != null,
+        .acceptable_limit_unapproved = std.mem.indexOf(u8, phase4_matrix, "acceptable limit is still unapproved for both landed gates") != null,
     };
     try std.testing.expectEqualDeep(live_summary, manifest.survey_summary);
 
