@@ -157,6 +157,41 @@ test "runtime kretprobe sample keeps selftest and outstanding-instance paths exp
     try outstanding.exit();
 }
 
+test "runtime kretprobe sample keeps post-selftest replay explicit at the module boundary" {
+    var module = sample.RuntimeKretprobeSample{};
+    try module.retargetSymbol("do_exit");
+    try module.init();
+
+    _ = try module.runSelftest();
+    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, module.stage());
+
+    try std.testing.expect(try module.entryHandler(true, 500));
+    const replay = try module.retHandler(23, 575);
+    try std.testing.expectEqual(@as(usize, 23), replay.retval);
+    try std.testing.expectEqual(@as(i64, 75), replay.duration_ns);
+    try module.recordMissedInstance();
+
+    const summary = module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, summary.stage);
+    try std.testing.expectEqualStrings("do_exit", summary.symbol_name);
+    try std.testing.expectEqual(sample.RuntimeKretprobeSample.default_maxactive, summary.maxactive);
+    try std.testing.expectEqual(@as(usize, 0), summary.active_instances);
+    try std.testing.expectEqual(@as(usize, 1), summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), summary.exit_runs);
+    try std.testing.expectEqual(@as(usize, 1), summary.skipped_kernel_threads);
+    try std.testing.expectEqual(@as(usize, 2), summary.nmissed);
+    try std.testing.expectEqual(@as(usize, 23), summary.last_retval);
+    try std.testing.expectEqual(@as(i64, 75), summary.last_duration_ns);
+    try std.testing.expect(!summary.entry_timestamp_armed);
+
+    try module.exit();
+    try std.testing.expectEqual(sample.ModuleStage.exited, module.stage());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.entryHandler(true, 640));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.retHandler(1, 700));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.recordMissedInstance());
+}
+
 test "runtime kretprobe sample rejects maxactive values outside the bounded starter contract" {
     var module = sample.RuntimeKretprobeSample{ .maxactive = sample.RuntimeKretprobeSample.default_maxactive + 1 };
     try std.testing.expectError(error.InvalidMaxactive, module.init());
