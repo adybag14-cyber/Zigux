@@ -524,23 +524,23 @@ required_phase7_string_helpers_survey_markers = [
 required_phase7_string_helpers_test_markers = [
     'const escape_vectors = @import("fixtures/phase7_string_helpers_escape_vectors.zig");',
     "phase 7 parseIntArrayUser keeps count-bounded copy semantics explicit",
-    "phase 7 kstrdupQuotable preserves escaped output fixtures",
-    "phase 7 kstrdupAndReplace rewrites all matching bytes and keeps the copy owned",
+    "phase 7 kstrdupQuotable reuses the bounded escape subset for log-safe duplication",
+    "phase 7 kstrdupAndReplace keeps ownership and first-NUL replacement boundaries explicit",
     "phase 7 kasprintfStrarray returns sequential owned strings with a null-pointer terminator",
-    "phase 7 kfreeStrarray stays safe for first-NUL-prefixed arrays and repeated teardown",
+    "phase 7 kfreeStrarray keeps first-NUL prefixes, zero-count reuse, and repeated teardown safe",
 ]
 
 required_phase7_string_helpers_doc_markers = [
     "PHASE7_STATUS=parked",
-    "`kstrdup_quotable()` via `kstrdupQuotable()`",
-    "`kstrdup_and_replace()` via `kstrdupAndReplace()`",
-    "`kasprintf_strarray()` via `kasprintfStrarray()`",
-    "`kfree_strarray()` via `kfreeStrarray()`",
+    "`kstrdup_quotable()` over the bounded escape-then-duplicate path",
+    "`kstrdup_and_replace()` over the bounded duplicate-then-rewrite ownership-safe path",
+    "`kasprintf_strarray()` over the bounded sequential prefix-index ownership path",
+    "`kfree_strarray()` over the bounded repeated-teardown-safe release path",
     "zigux/tests/phase7_string_helpers.zig",
     "zigux/tests/phase7_string_helpers_survey.zig",
     "zigux/tests/fixtures/phase7_string_helpers_escape_vectors.zig",
     "samples/zigux/README.md",
-    "no `samples/zigux/*string*` sample yet exists under the current product boundary",
+    "no `samples/zigux/*string*` Phase 5 reference sample is expected here",
 ]
 
 required_phase7_cmdline_survey_markers = [
@@ -554,7 +554,7 @@ required_phase7_cmdline_survey_markers = [
     'try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_tests, "phase 7 numeric helpers reject explicit leading plus signs to stay with cmdline.c simple_strtoull semantics") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_tests, "phase 7 getOption matches malformed-token classification from the Linux KUnit corpus") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_tests, "phase 7 nextArg matches serialized edge fixtures") != null);',
-    'try expectContains(phase7_cmdline_slice, "exact bare-option matching for comma-delimited flags");',
+    'try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_slice, "exact bare-option matching for comma-delimited flags") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_slice, "C-style stop-at-NUL handling for bare-option scans") != null);',
 ]
 
