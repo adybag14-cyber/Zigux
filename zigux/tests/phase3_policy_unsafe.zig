@@ -67,6 +67,8 @@ test "phase3 policy decoder validates the whole interop record" {
     try std.testing.expect(decoded.canReturn());
     try std.testing.expect(decoded.requiresExplicitCaller());
     try std.testing.expect(!decoded.permitsGlobalFallback());
+    try std.testing.expect(!decoded.initializesOwnedState());
+    try std.testing.expect(!decoded.requiresResetOnInit());
     try std.testing.expect(decoded.permitsRawPointerBridge());
     try std.testing.expect(!decoded.permitsVolatileMmio());
     try std.testing.expect(interop_policy.recognizes(.{
@@ -75,6 +77,28 @@ test "phase3 policy decoder validates the whole interop record" {
         .unsafe_scope = @intFromEnum(abi.UnsafeScope.none),
         .reserved = 0,
     }));
+}
+
+test "phase3 policy decoder keeps allocator init and reset requirements reviewable" {
+    const kernel_heap = try interop_policy.decode(.{
+        .panic_mode = @intFromEnum(abi.PanicMode.abort),
+        .allocator_mode = @intFromEnum(abi.AllocatorMode.kernel_heap),
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.none),
+        .reserved = 0,
+    });
+    try std.testing.expect(kernel_heap.permitsGlobalFallback());
+    try std.testing.expect(kernel_heap.initializesOwnedState());
+    try std.testing.expect(!kernel_heap.requiresResetOnInit());
+
+    const arena = try interop_policy.decode(.{
+        .panic_mode = @intFromEnum(abi.PanicMode.warn),
+        .allocator_mode = @intFromEnum(abi.AllocatorMode.arena),
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.raw_pointer_bridge),
+        .reserved = 0,
+    });
+    try std.testing.expect(arena.permitsGlobalFallback());
+    try std.testing.expect(arena.initializesOwnedState());
+    try std.testing.expect(arena.requiresResetOnInit());
 }
 
 test "phase3 policy decoder rejects partial or reserved policy bytes" {
