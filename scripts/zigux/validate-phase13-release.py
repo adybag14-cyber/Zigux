@@ -65,7 +65,7 @@ RELEASE_MARKERS = [
     "PHASE13_RELEASE_CLOSED=no",
     "The current manifest lane ownership carried by the release packet is:",
     "`fs/libfs.c` through `zigux/tests/phase13_libfs_manifest.json` lane `P13-L04`",
-    "`lib/devres.c` through `zigux/tests/phase13_devres_manifest.json` lane `P13-L08`",
+    "`lib/devres.c` through `zigux/tests/phase13_devres_manifest.json` lane `P13-L03`",
     "`security/landlock/ruleset.c` through `zigux/tests/phase13_landlock_ruleset_manifest.json` lane `P13-L12`",
     "`security/landlock/syscalls.c` through `zigux/tests/phase13_landlock_syscalls_manifest.json` lane `P13-L16`",
     "adjacent notifier-list reviewability evidence through `zigux/tests/phase13_notifier_list_manifest.json` lane `P13-L17`",
@@ -255,7 +255,7 @@ if len(depend_steps) != 7:
 
 for manifest_path, lane_key, anchor in [
     ("zigux/tests/phase13_libfs_manifest.json", "P13-L04", "fs/libfs.c"),
-    ("zigux/tests/phase13_devres_manifest.json", "P13-L08", "lib/devres.c"),
+    ("zigux/tests/phase13_devres_manifest.json", "P13-L03", "lib/devres.c"),
     ("zigux/tests/phase13_landlock_ruleset_manifest.json", "P13-L12", "security/landlock/ruleset.c"),
     ("zigux/tests/phase13_landlock_syscalls_manifest.json", "P13-L16", "security/landlock/syscalls.c"),
 ]:
