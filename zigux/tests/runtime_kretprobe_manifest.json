@@ -19,7 +19,7 @@
   "review_prompts": [
     "the review packet still keeps the Linux anchor, bounded lifecycle-summary surface, and the current released_without_substrate rollback path explicit instead of implying a real register or unregister handoff",
     "the manifest-backed delivery_evidence_catalog and ownership_map still keep the survey note, module-slice note, sample starter, survey gate, module gate, diff gate, loader scaffold, shared loader binding, shared loader-gap note, and shared Phase 9 build entrypoint in one reviewable packet",
-    "the shared Phase 9 build entrypoint still names the dedicated phase9-runtime-kretprobe-module-tests, phase9-runtime-kretprobe-diff-tests, phase9-runtime-kretprobe-loader-tests, and phase9-runtime-kretprobe-survey-tests legs instead of leaving the shipped replay surface implicit",
+    "the shared Phase 9 build entrypoint still names the dedicated phase9-runtime-kretprobe-sample-tests, phase9-runtime-kretprobe-module-tests, phase9-runtime-kretprobe-diff-tests, phase9-runtime-kretprobe-loader-tests, and phase9-runtime-kretprobe-survey-tests legs instead of leaving the shipped replay surface implicit",
     "sample or loader-behavior changes update the manifest-backed exact checks alongside runtime_kretprobe_module.zig, runtime_kretprobe_diff.zig, and the survey docs instead of leaving reviewers to infer the new contract from code alone",
     "the survey packet keeps the broader shared runtime-loader command-name, argv-policy, and environment-derived activation handling blocked so the kretprobe pilot remains pre-execution",
     "the survey packet still compares the landed selftest-hook starter against the remaining `first loadable Zigux runtime modules` and `runtime module lifecycle parity` roadmap steps instead of treating this bounded pilot module as Phase 9 closure"
@@ -38,7 +38,7 @@
     {
       "id": "shared-build-leg-surface",
       "kind": "shared_build_contract",
-      "expected": "the shared Phase 9 build keeps dedicated phase9-runtime-kretprobe-module-tests, phase9-runtime-kretprobe-diff-tests, phase9-runtime-kretprobe-loader-tests, and phase9-runtime-kretprobe-survey-tests legs explicit so the shipped replay packet stays first-class review evidence"
+      "expected": "the shared Phase 9 build keeps dedicated phase9-runtime-kretprobe-sample-tests, phase9-runtime-kretprobe-module-tests, phase9-runtime-kretprobe-diff-tests, phase9-runtime-kretprobe-loader-tests, and phase9-runtime-kretprobe-survey-tests legs explicit so the shipped replay packet stays first-class review evidence"
     },
     {
       "id": "delivery-ownership-packet",
@@ -97,7 +97,7 @@
       "id": "phase9-kretprobe-build-gate",
       "kind": "validation",
       "path": "zigux/tests/phase9_build.zig",
-      "role": "keeps the dedicated phase9-runtime-kretprobe-module-tests, phase9-runtime-kretprobe-diff-tests, phase9-runtime-kretprobe-loader-tests, and phase9-runtime-kretprobe-survey-tests legs replayable as one shared Phase 9 entrypoint"
+      "role": "keeps the dedicated phase9-runtime-kretprobe-sample-tests, phase9-runtime-kretprobe-module-tests, phase9-runtime-kretprobe-diff-tests, phase9-runtime-kretprobe-loader-tests, and phase9-runtime-kretprobe-survey-tests legs replayable as one shared Phase 9 entrypoint"
     },
     {
       "id": "runtime-kretprobe-sample",
@@ -151,7 +151,7 @@
     },
     {
       "surface": "zigux/tests/phase9_build.zig",
-      "owns": "the shared Phase 9 runtime entrypoint that replays the dedicated kretprobe module, diff, loader, and survey legs together"
+      "owns": "the shared Phase 9 runtime entrypoint that replays the dedicated kretprobe sample, module, diff, loader, and survey legs together"
     },
     {
       "surface": "samples/zigux/runtime_kretprobe.zig",
@@ -176,7 +176,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase9_build.zig",
-      "why_now": "The shared Phase 9 build step is the narrowest honest place to keep the runtime kretprobe packet reviewable, and it now stays explicit about the dedicated phase9-runtime-kretprobe-module-tests, phase9-runtime-kretprobe-diff-tests, phase9-runtime-kretprobe-loader-tests, and phase9-runtime-kretprobe-survey-tests legs instead of leaving the shipped replay surface implicit."
+      "why_now": "The shared Phase 9 build step is the narrowest honest place to keep the runtime kretprobe packet reviewable, and it now stays explicit about the dedicated phase9-runtime-kretprobe-sample-tests, phase9-runtime-kretprobe-module-tests, phase9-runtime-kretprobe-diff-tests, phase9-runtime-kretprobe-loader-tests, and phase9-runtime-kretprobe-survey-tests legs instead of leaving the shipped replay surface implicit."
     },
     {
       "id": "runtime-kretprobe-survey-gate",
