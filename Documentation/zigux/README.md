@@ -75,6 +75,16 @@ Phase 8 notes
 - the active Phase 8 packet keeps `tools/lib/subcmd/exec-cmd.zig`, `tools/lib/subcmd/help.zig`, `tools/lib/symbol/kallsyms.zig`, and the helper-first `tools/lib/bpf/zigux_segments/cpu_mask.zig`, `tools/lib/bpf/zigux_segments/logging.zig`, `tools/lib/bpf/zigux_segments/pin_path.zig`, and `tools/lib/bpf/zigux_segments/type_names.zig` explicit as bounded tooling-side parity work rather than new process-launch, procfs, bpffs, or object-lifecycle claims.
 - `python3 scripts/zigux/validate-phase8.py`, `make -C zigux phase8-validate`, `make -C zigux phase8`, `zigux/tests/phase8_help_only_build.zig`, and `zigux/tests/phase8_kallsyms_only_build.zig` now keep the current Phase 8 flow reviewable across the focused subcmd, symbol, and segmented libbpf shards plus the shared tooling bundle.
 
+Phase 9 notes
+- `Documentation/zigux/phase9-runtime-loader-gap-survey.md` and `Documentation/zigux/review-checklist.md` keep the shared runtime-loader ownership packet explicit for the current runtime pilots.
+- the `Documentation/zigux/phase9-runtime-trace-events-{survey,module-slice}.md`, `zigux/tests/runtime_trace_events_manifest.json`, and `zigux/tests/runtime_trace_events_survey.zig` bundle now keeps the `Documentation/zigux/freeze-map.md` boundary explicit.
+- `python3 scripts/zigux/validate-phase9.py --self-test`, `python3 scripts/zigux/validate-phase9.py`, `make -C zigux phase9-validate`, and `zigux/tests/phase9_build.zig` are the current shared review path for Phase 9 runtime evidence.
+- the Phase 9 runtime packet keeps its manifest-backed catalog and ownership map explicit instead of relying on ad hoc survey drift.
+- the current runtime pilot notes keep the roadmap selftest-hook markers and bounded lifecycle-parity posture visible instead of implying a loadable module path.
+- existing atomic64, bitmap, or kretprobe loader plans stay tied to `Documentation/zigux/phase9-runtime-loader-gap-survey.md` rather than being mistaken for live runtime substrate closure.
+- `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig` remain Phase 2 or Phase 3 non-owner references around the shared Phase 9 packet.
+- the current docs-root summary keeps those non-owner references visibly separate from direct Phase 9 runtime evidence.
+
 Phase 10 notes
 - `Documentation/zigux/README.md` now exposes the shared Phase 10 closure note plus the same nine published Phase 10 docs named by the shared closure packet, including `Documentation/zigux/phase10-virtio-core-survey.md` and `Documentation/zigux/phase10-virtio-mmio-slice.md`, so the top-level docs index does not undercount the live parity-evidence bundle.
 - `Documentation/zigux/phase10-closure-evidence.md` now records the exact current roadmap-aligned virtio lab bundle and keeps Phase 10 explicit as active rather than prematurely closed while `drivers/virtio/virtio_mmio.zig`, its bounded MMIO starter test, and the remaining risky transport gaps stay visible together.
