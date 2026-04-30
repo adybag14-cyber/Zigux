@@ -498,6 +498,19 @@ test "buildSearchPath rewrites relative entries against the working directory" {
         "/opt/perf/bin:/usr/local/bin:/usr/bin:/bin",
         fallback,
     );
+
+    const root_cwd = try buildSearchPath(
+        std.testing.allocator,
+        "/",
+        "tools/bin",
+        "scripts",
+        "/usr/bin",
+    );
+    defer std.testing.allocator.free(root_cwd);
+    try std.testing.expectEqualStrings(
+        "//tools/bin://scripts:/usr/bin",
+        root_cwd,
+    );
 }
 
 test "prepareExecCmd prepends the configured executable name and preserves a trailing null slot" {
