@@ -40,6 +40,7 @@ phase2-kconfig:
 	cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig
 
 phase2-cross:
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py --self-test
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py
 
 phase2: phase2-validate phase2-tools phase2-kconfig phase2-cross
