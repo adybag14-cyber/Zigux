@@ -33,6 +33,15 @@
       "expected": "short_inline_reference_dump_types_expected.json"
     },
     {
+      "name": "clustered_short_inline_reference",
+      "argv": [
+        "-dwrfoo.symref",
+        "-Tout.symtypes",
+        "-p"
+      ],
+      "expected": "clustered_short_inline_reference_expected.json"
+    },
+    {
       "name": "long_options",
       "argv": [
         "--debug",
