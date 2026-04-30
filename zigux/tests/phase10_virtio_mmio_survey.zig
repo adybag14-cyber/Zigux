@@ -11,6 +11,7 @@ const SurveySummary = struct {
     preexisting_virtio_ring_zig_present: bool,
     preexisting_virtio_ring_doc_present: bool,
     preexisting_virtio_ring_survey_present: bool,
+    preexisting_virtio_ring_reset_reuse_present: bool,
     preexisting_virtio_input_zig_present: bool,
     preexisting_virtio_input_test_present: bool,
     preexisting_virtio_input_survey_present: bool,
@@ -90,7 +91,7 @@ test "phase10 virtio mmio survey manifest records the landed config-write rung a
     try std.testing.expectEqualStrings("81356ba2b96caf155f2c8788b3ede1fbb4c96d74", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.virtio_mmio_c_lines >= 800);
-    try std.testing.expectEqual(@as(usize, 8), manifest.survey_summary.preexisting_phase10_test_files);
+    try std.testing.expectEqual(@as(usize, 9), manifest.survey_summary.preexisting_phase10_test_files);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_core_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_core_survey_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase10_build_present);
@@ -99,12 +100,14 @@ test "phase10 virtio mmio survey manifest records the landed config-write rung a
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_ring_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_ring_doc_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_ring_survey_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_virtio_ring_reset_reuse_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_input_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_input_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_input_survey_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_mmio_zig_present);
     try std.testing.expect(manifest.gaps.len >= 13);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, manifest.surveyed_commit) != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10_virtio_ring_reset_reuse.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-mmio-config-write-helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-mmio-lifecycle-and-irq-paths") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "PHASE10_SLICE=virtio-mmio-config-write-helper") != null);
