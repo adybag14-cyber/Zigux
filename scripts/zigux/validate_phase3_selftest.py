@@ -101,6 +101,21 @@ def run_self_test() -> int:
             ),
         ) == []
         assert validate_source_markers(root, {}) == []
+        source_marker_fixture = root / "marker-fixture.zig"
+        source_marker_fixture.write_text(
+            "pub fn boundaryMarker() void {}\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert validate_source_markers(
+            root,
+            {
+                "marker-fixture.zig": (
+                    "pub fn boundaryMarker() void {}",
+                    "pub fn policyByteMarker() void {}",
+                )
+            },
+        ) == ["source-marker: marker-fixture.zig missing pub fn policyByteMarker() void {}"]
         assert validate_slices(
             root,
             entries,
