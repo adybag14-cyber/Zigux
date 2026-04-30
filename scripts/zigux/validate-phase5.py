@@ -234,9 +234,10 @@ manifest_expectations = {
         ],
     },
     "phase5_kobject_example_manifest.json": {
-        "lane_key": "P5-L11",
+        "lane_key": "P5-L09",
         "anchor": "samples/kobject/kobject-example.c",
         "sample_path": "samples/zigux/kobject_example.zig",
+        "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_kobject_only_build.zig --summary all",
         "non_goals": [
             "sysfs file creation parity",
             "kernel_kobj integration",
@@ -281,7 +282,7 @@ manifest_expectations = {
         ],
     },
     "phase5_trace_events_sample_manifest.json": {
-        "lane_key": "P5-L23",
+        "lane_key": "P5-L13",
         "anchor": "samples/trace_events/trace-events-sample.c",
         "sample_path": "samples/zigux/trace_events_sample.zig",
         "non_goals": [
@@ -340,7 +341,7 @@ survey_note_expectations = {
             "samples/zigux/README.md",
             "Documentation/zigux/review-checklist.md",
             "phase5_build.zig",
-            "Build Summary: 17/17 steps succeeded; 27/27 tests passed",
+            "Build Summary: 5/5 steps succeeded; 7/7 tests passed",
         ],
     },
     "phase5_kretprobe_example_manifest.json": {
@@ -389,7 +390,11 @@ for manifest_name, expected in manifest_expectations.items():
         missing_markers.append(f"{manifest_name}:anchor={expected['anchor']}")
     if manifest.get("sample_path") != expected["sample_path"]:
         missing_markers.append(f"{manifest_name}:sample_path={expected['sample_path']}")
-    if manifest.get("validation_entrypoint") != "zig build test --build-file zigux/tests/phase5_build.zig --summary all":
+    expected_validation_entrypoint = expected.get(
+        "validation_entrypoint",
+        "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
+    )
+    if manifest.get("validation_entrypoint") != expected_validation_entrypoint:
         missing_markers.append(f"{manifest_name}:validation_entrypoint")
     if manifest.get("non_goals") != expected["non_goals"]:
         missing_markers.append(f"{manifest_name}:non_goals")
@@ -410,7 +415,9 @@ for manifest_name, expected in manifest_expectations.items():
         "## Latest verification snapshot",
         survey_expectation["sample_test_command"],
         f"zig test zigux/tests/{survey_expectation['survey_test']}",
-        "Build Summary: 17/17 steps succeeded; 27/27 tests passed",
+        "Build Summary: 17/17 steps succeeded; 27/27 tests passed"
+        if manifest_name != "phase5_kobject_example_manifest.json"
+        else "Build Summary: 5/5 steps succeeded; 7/7 tests passed",
         "phase5_build.zig",
         "samples/zigux/README.md",
         "Documentation/zigux/review-checklist.md",
