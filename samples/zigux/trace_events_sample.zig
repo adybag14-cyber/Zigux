@@ -287,6 +287,14 @@ test "trace-events sample replay keeps the anchor reviewable and non-runtime" {
     try std.testing.expectEqual(@as(usize, 0), lifecycle.exit_run_count);
     try std.testing.expectEqual(@as(usize, 0), lifecycle.registration_depth);
     try std.testing.expectEqual(@as(usize, 8), lifecycle.total_event_calls);
+    try sample.exit();
+    const exited_lifecycle = sample.lifecycleSummary();
+    try std.testing.expectEqual(SampleStage.exited, exited_lifecycle.stage);
+    try std.testing.expectEqual(@as(usize, 1), exited_lifecycle.init_run_count);
+    try std.testing.expectEqual(@as(usize, 1), exited_lifecycle.replay_run_count);
+    try std.testing.expectEqual(@as(usize, 1), exited_lifecycle.exit_run_count);
+    try std.testing.expectEqual(@as(usize, 0), exited_lifecycle.registration_depth);
+    try std.testing.expectEqual(@as(usize, 8), exited_lifecycle.total_event_calls);
 }
 
 test "trace-events sample replays every modulo-selected string and formatted message" {
