@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import json
 from pathlib import Path
+import re
 import sys
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -60,7 +61,11 @@ required_workflow_markers = [
     'include/linux/zigux.h',
     'include/zigux/**',
     '.github/workflows/zigux-bootstrap.yml',
+    'Self-test Zig installer',
+    'python3 scripts/zigux/install-zig.py --self-test',
     'python3 scripts/zigux/install-zig.py --dest .zig-toolchain',
+    'Self-test Zig toolchain checker',
+    'python3 scripts/zigux/check-zig-toolchain.py --self-test',
     'Validate Phase 6 leaf helper gates',
     'make -C zigux phase6-validate',
     'Run Phase 6 leaf helper tests',
@@ -90,14 +95,33 @@ if missing_workflow_markers:
     sys.exit(1)
 
 toolchain_policy_command = 'python3 scripts/zigux/check-zig-toolchain.py'
+toolchain_policy_self_test_command = 'python3 scripts/zigux/check-zig-toolchain.py --self-test'
 toolchain_policy_step = 'Check Zig toolchain policy'
-workflow_toolchain_policy_command_count = workflow.count(toolchain_policy_command)
+toolchain_policy_self_test_step = 'Self-test Zig toolchain checker'
+workflow_toolchain_policy_command_count = len(
+    re.findall(r'^\s*run:\s+python3 scripts/zigux/check-zig-toolchain\.py\s*$', workflow, flags=re.MULTILINE)
+)
 workflow_toolchain_policy_step_count = workflow.count(toolchain_policy_step)
-if workflow_toolchain_policy_command_count != 2 or workflow_toolchain_policy_step_count != 2:
+workflow_toolchain_policy_self_test_command_count = workflow.count(toolchain_policy_self_test_command)
+workflow_toolchain_policy_self_test_step_count = workflow.count(toolchain_policy_self_test_step)
+if (
+    workflow_toolchain_policy_command_count != 2
+    or workflow_toolchain_policy_step_count != 2
+    or workflow_toolchain_policy_self_test_command_count != 1
+    or workflow_toolchain_policy_self_test_step_count != 1
+):
     print('BOOTSTRAP_VALIDATION=fail')
     print('MISSING_WORKFLOW_TOOLCHAIN_POLICY_WIRING_START')
     print(f'workflow:toolchain_policy_command_count={workflow_toolchain_policy_command_count},expected=2')
     print(f'workflow:toolchain_policy_step_count={workflow_toolchain_policy_step_count},expected=2')
+    print(
+        'workflow:toolchain_policy_self_test_command_count='
+        f'{workflow_toolchain_policy_self_test_command_count},expected=1'
+    )
+    print(
+        'workflow:toolchain_policy_self_test_step_count='
+        f'{workflow_toolchain_policy_self_test_step_count},expected=1'
+    )
     print('MISSING_WORKFLOW_TOOLCHAIN_POLICY_WIRING_END')
     sys.exit(1)
 

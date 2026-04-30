@@ -49,6 +49,9 @@ jobs:
         with:
           python-version: '3.x'
 
+      - name: Self-test Zig installer
+        run: python3 scripts/zigux/install-zig.py --self-test
+
       - name: Install Zig
         run: python3 scripts/zigux/install-zig.py --dest .zig-toolchain
 
@@ -57,6 +60,9 @@ jobs:
 
       - name: Validate bootstrap files
         run: python3 scripts/zigux/validate-bootstrap.py
+
+      - name: Self-test Zig toolchain checker
+        run: python3 scripts/zigux/check-zig-toolchain.py --self-test
 
       - name: Validate Phase 1 helper files
         run: python3 scripts/zigux/validate-phase1.py
@@ -144,6 +150,9 @@ jobs:
 
       - name: Check bounded genksyms bridge parity
         run: python3 scripts/zigux/check-genksyms-bridge.py
+
+      - name: Self-test bounded genksyms CRC checker
+        run: python3 scripts/zigux/check-genksyms-crc-diff.py --self-test
 
       - name: Check bounded genksyms CRC artifact parity and determinism
         run: python3 scripts/zigux/check-genksyms-crc-diff.py
