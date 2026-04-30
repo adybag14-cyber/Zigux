@@ -275,6 +275,14 @@ MANIFEST_SPECS = {
             "scripts/zigux/validate-phase12.py",
             "zigux/Makefile",
         ],
+        "raw_fallback_current_markers": [
+            "current_shared_validator_command: `python3 scripts/zigux/validate-phase12.py`",
+            "current_shared_validator_result: `PHASE12_VALIDATION=pass`",
+            "current_shared_validator_missing_markers: `[]`",
+            "current_shared_build_command: `zig build test --build-file zigux/tests/phase12_build.zig --summary all`",
+            "current_focused_survey_command: `zig test zigux/tests/phase12_virtio_scsi_survey.zig`",
+            "current_focused_survey_result: `All 1 tests passed.`",
+        ],
     },
     "phase12_libbpf_manifest.json": {
         "lane_key": "P12-L16",
@@ -504,6 +512,7 @@ elif (
         missing.append("phase12_build_fixture:expected_test_count_mismatch")
 
 expected_summary_line = build_inventory.get("expected_summary_line")
+current_phase12_build_summary: str | None = None
 if not isinstance(expected_summary_line, str):
     missing.append("phase12_build_fixture:expected_summary_line")
 elif isinstance(expected_step_count, int) and isinstance(expected_test_count, int):
@@ -511,6 +520,7 @@ elif isinstance(expected_step_count, int) and isinstance(expected_test_count, in
         f"Build Summary: {expected_step_count}/{expected_step_count} steps succeeded; "
         f"{expected_test_count}/{expected_test_count} tests passed"
     )
+    current_phase12_build_summary = actual_expected_summary_line
     if expected_summary_line != actual_expected_summary_line:
         missing.append("phase12_build_fixture:expected_summary_line_mismatch")
 
@@ -628,6 +638,16 @@ for manifest_name, spec in MANIFEST_SPECS.items():
                 break
             raw_url = f"https://raw.githubusercontent.com/adybag14-cyber/Zigux/{surveyed_commit}/{raw_path}"
             expect_catalog_marker(catalog_text, raw_url, f"{manifest_name}:raw_fallback_raw:{raw_path}", missing)
+        for marker in spec.get("raw_fallback_current_markers", []):
+            expect_catalog_marker(catalog_text, str(marker), f"{manifest_name}:raw_fallback_current:{marker}", missing)
+        if isinstance(current_phase12_build_summary, str):
+            build_summary_marker = f"current_shared_build_result: `{current_phase12_build_summary}`"
+            expect_catalog_marker(
+                catalog_text,
+                build_summary_marker,
+                f"{manifest_name}:raw_fallback_current:{build_summary_marker}",
+                missing,
+            )
 
 expect_libbpf_snapshot_fixture(
     phase12_libbpf_snapshot_fixture,
