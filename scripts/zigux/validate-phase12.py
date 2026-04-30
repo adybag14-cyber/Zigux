@@ -311,6 +311,17 @@ MANIFEST_SPECS = {
             "current_focused_survey_command: `zig test zigux/tests/phase12_virtio_scsi_survey.zig`",
             "current_focused_survey_result: `not replayed in this run because the attached Zig toolchain was unavailable`",
         ],
+        "raw_fallback_rollback_markers": [
+            "## Rollback And Reversible Delivery",
+            "owner: `Storage Driver Lane`",
+            "rollback owner: `Storage Driver Lane`",
+            "fallback path: keep `drivers/scsi/virtio_scsi.c` as the source of truth",
+            "phase12-virtio-scsi-tests",
+            "phase12-virtio-scsi-survey-tests",
+            "rollback drill: run `python3 scripts/zigux/validate-phase12.py`",
+            "make -C zigux phase12-validate",
+            "zig build test --build-file zigux/tests/phase12_build.zig --summary all",
+        ],
     },
     "phase12_libbpf_manifest.json": {
         "lane_key": "P12-L16",
@@ -666,6 +677,8 @@ for manifest_name, spec in MANIFEST_SPECS.items():
                 break
             raw_url = f"https://raw.githubusercontent.com/adybag14-cyber/Zigux/{surveyed_commit}/{raw_path}"
             expect_catalog_marker(catalog_text, raw_url, f"{manifest_name}:raw_fallback_raw:{raw_path}", missing)
+        for marker in spec.get("raw_fallback_rollback_markers", []):
+            expect_catalog_marker(catalog_text, str(marker), f"{manifest_name}:raw_fallback_rollback:{marker}", missing)
         for marker in spec.get("raw_fallback_current_markers", []):
             expect_catalog_marker(catalog_text, str(marker), f"{manifest_name}:raw_fallback_current:{marker}", missing)
         if (
