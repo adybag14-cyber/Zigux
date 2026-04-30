@@ -45,6 +45,49 @@ def expected_metric_keys(expectations: dict[str, object]) -> set[str]:
     )
 
 
+def validate_expectations_shape(expectations: dict[str, object]) -> None:
+    iterations = expectations.get('iterations')
+    exact_checksums = expectations.get('exact_checksums')
+    checksums = expectations.get('checksums')
+
+    if not isinstance(iterations, dict):
+        raise SystemExit('phase1-bench:expectations:iterations:expected_object')
+    if not isinstance(exact_checksums, dict):
+        raise SystemExit('phase1-bench:expectations:exact_checksums:expected_object')
+    if not isinstance(checksums, list):
+        raise SystemExit('phase1-bench:expectations:checksums:expected_list')
+
+    reserved_key = 'PHASE1_BENCH'
+    metric_groups = {
+        'iterations': set(iterations),
+        'exact_checksums': set(exact_checksums),
+        'checksums': set(checksums),
+    }
+    for group_name, keys in metric_groups.items():
+        for key in keys:
+            if not isinstance(key, str):
+                raise SystemExit(f'phase1-bench:expectations:{group_name}:non_string_key')
+            if key == reserved_key:
+                raise SystemExit(f'phase1-bench:expectations:{group_name}:reserved_key:{key}')
+            if not key.startswith('PHASE1_BENCH_'):
+                raise SystemExit(f'phase1-bench:expectations:{group_name}:bad_prefix:{key}')
+
+    overlap = metric_groups['iterations'] & metric_groups['exact_checksums']
+    if overlap:
+        overlap_key = sorted(overlap)[0]
+        raise SystemExit(f'phase1-bench:expectations:overlap:iterations_exact_checksums:{overlap_key}')
+
+    overlap = metric_groups['iterations'] & metric_groups['checksums']
+    if overlap:
+        overlap_key = sorted(overlap)[0]
+        raise SystemExit(f'phase1-bench:expectations:overlap:iterations_checksums:{overlap_key}')
+
+    overlap = metric_groups['exact_checksums'] & metric_groups['checksums']
+    if overlap:
+        overlap_key = sorted(overlap)[0]
+        raise SystemExit(f'phase1-bench:expectations:overlap:exact_checksums_checksums:{overlap_key}')
+
+
 def unexpected_phase1_bench_keys(
     parsed: dict[str, str], expectations: dict[str, object]
 ) -> list[str]:
@@ -125,8 +168,57 @@ def run_self_test() -> int:
     assert_equal('find_zig_explicit', find_zig('/tmp/zig-self-test'), '/tmp/zig-self-test')
     assert_equal('status_passthrough', parsed['PHASE1_BENCH'], 'pass')
 
+    validate_expectations_shape(expectations)
+
+    invalid_overlap = {
+        **expectations,
+        'checksums': ['PHASE1_BENCH_SAMPLE_CHECKSUM'],
+    }
+    try:
+        validate_expectations_shape(invalid_overlap)
+    except SystemExit as exc:
+        assert_equal(
+            'invalid_overlap',
+            str(exc),
+            'phase1-bench:expectations:overlap:exact_checksums_checksums:PHASE1_BENCH_SAMPLE_CHECKSUM',
+        )
+    else:
+        raise SystemExit('phase1-bench:self-test:invalid_overlap:unexpected_pass')
+
+    invalid_prefix = {
+        **expectations,
+        'iterations': {
+            'BENCH_SAMPLE_ITERATIONS': 7,
+        },
+    }
+    try:
+        validate_expectations_shape(invalid_prefix)
+    except SystemExit as exc:
+        assert_equal(
+            'invalid_prefix',
+            str(exc),
+            'phase1-bench:expectations:iterations:bad_prefix:BENCH_SAMPLE_ITERATIONS',
+        )
+    else:
+        raise SystemExit('phase1-bench:self-test:invalid_prefix:unexpected_pass')
+
+    invalid_reserved = {
+        **expectations,
+        'checksums': ['PHASE1_BENCH'],
+    }
+    try:
+        validate_expectations_shape(invalid_reserved)
+    except SystemExit as exc:
+        assert_equal(
+            'invalid_reserved',
+            str(exc),
+            'phase1-bench:expectations:checksums:reserved_key:PHASE1_BENCH',
+        )
+    else:
+        raise SystemExit('phase1-bench:self-test:invalid_reserved:unexpected_pass')
+
     print('PHASE1_BENCH_SELF_TEST=pass')
-    print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=6')
+    print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=9')
     return 0
 
 
@@ -141,6 +233,7 @@ def main() -> int:
 
     zig = find_zig(args.zig)
     expectations = json.loads(EXPECTATIONS.read_text(encoding='utf-8'))
+    validate_expectations_shape(expectations)
 
     result = run(
         [zig, 'build', 'bench', '--build-file', 'zigux/tests/build.zig', '-Doptimize=ReleaseSafe'],
