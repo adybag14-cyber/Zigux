@@ -131,6 +131,19 @@ def run_self_test() -> int:
         )
         workflow_path.write_text(original_workflow, encoding='utf-8')
 
+        mutated_workflow = original_workflow.replace(
+            'python3 scripts/zigux/check-phase1-parity.py --self-test',
+            '',
+            1,
+        )
+        workflow_path.write_text(mutated_workflow, encoding='utf-8')
+        expect_missing_marker(
+            'workflow_parity_self_test_hook',
+            tmp_root,
+            'workflow:python3 scripts/zigux/check-phase1-parity.py --self-test',
+        )
+        workflow_path.write_text(original_workflow, encoding='utf-8')
+
         expectations_path = tmp_root / 'zigux' / 'tests' / 'fixtures' / 'phase1_bench_expectations.json'
         expectations = json.loads(expectations_path.read_text(encoding='utf-8'))
         expectations['exact_checksums']['PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM'] = 1
@@ -180,7 +193,7 @@ def run_self_test() -> int:
         )
 
     print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass')
-    print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=7')
+    print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=8')
     return 0
 
 
@@ -268,6 +281,7 @@ required_closure_markers = [
     'string memparse unit-test anchor: `tools/lib/string.zig:test "memparse forwards the header-level string helper surface"`',
     'PHASE1_STRING_MEMPARSE_UNIT_REVIEW=string memparse forwards decimal, hexadecimal, suffix-bearing, and invalid inputs through the shared command-line parser without changing the parsed value or rest pointer contract',
     'PHASE1_PARITY_GATE=python3 scripts/zigux/check-phase1-parity.py',
+    'PHASE1_PARITY_SELF_TEST_GATE=python3 scripts/zigux/check-phase1-parity.py --self-test',
     'PHASE1_UNIT_GATE=zig build test --build-file zigux/tests/build.zig',
     'PHASE1_BENCH_GATE=zig build bench --build-file zigux/tests/build.zig',
     'PHASE1_BENCH_CHECK_GATE=python3 scripts/zigux/check-phase1-bench.py',
@@ -287,6 +301,7 @@ required_workflow_markers = [
     'python3 scripts/zigux/install-zig.py --dest .zig-toolchain',
     'run: zig version',
     'python3 scripts/zigux/validate-phase1-closure.py',
+    'python3 scripts/zigux/check-phase1-parity.py --self-test',
     'python3 scripts/zigux/check-phase1-bench.py',
     'python3 scripts/zigux/check-phase1-bench.py --self-test',
     'zig build bench --build-file zigux/tests/build.zig',
