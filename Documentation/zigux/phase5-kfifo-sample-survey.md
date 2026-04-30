@@ -127,6 +127,8 @@ The exact verification commands and observed results were:
   - observed result: `phase5-bytestream-fifo-tests 5 pass (5 total)`
   - observed result: `phase5-bytestream-fifo-survey-tests 2 pass (2 total)`
 
+This focused review-path recheck keeps the current bytestream packet honest after the survey typo and commit-marker drift were corrected. The shared `phase5_build.zig` entrypoint remains the bundle-level replay path, and `zigux/tests/phase5_bytestream_fifo_manifest.json` now carries the same `surveyed_commit` value as this note instead of drifting to a different inspected head.
+
 Those live runs confirmed that the shipped bytestream FIFO sample still matches the exact bounded checks above: the embedded 32-byte queue reaches length `15` after the initial replay setup, drains `"hello"` first, drains and requeues `0` and `1`, skips `2`, peeks `3`, preserves the truncated replay preview prefix `[3,4,5,6,7,8,9,0]`, preserves the exact 32-byte snapshot and final drain sequence `[3,4,5,6,7,8,9,0,1,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42]`, and keeps the helper-only preview truncation, reset, and lifecycle guards green under the shared Phase 5 build entrypoint.
 
 ## Contributor refresh prompts for the landed sample
