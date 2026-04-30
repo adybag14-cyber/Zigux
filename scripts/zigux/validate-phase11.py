@@ -390,3 +390,65 @@ for marker in [
 ]:
     if marker not in hvc_matrix_doc:
         missing.append(f"phase11_hvc_console_docs:matrix:{marker}")
+
+dw_manifest = load_manifest("phase11_dw_wdt_manifest.json")
+dw_commit = str(dw_manifest.get("surveyed_commit", ""))
+dw_survey_doc = text(DW_WDT_DOC_PATHS["survey"])
+dw_slice_doc = text(DW_WDT_DOC_PATHS["slice"])
+dw_matrix_doc = text(DW_WDT_DOC_PATHS["matrix"])
+dw_test_text = text("zigux/tests/phase11_dw_wdt.zig")
+for marker in [
+    f"re-reading `master` `{dw_commit}`",
+    "ships the bounded DesignWare starter for fixed TOP timeout windows",
+    "explicit `summarizeTeardownLifecycle()` stop-and-restart helper",
+    "This lane still does not claim platform-driver registration, live clock or reset acquisition, IRQ registration, suspend or resume handling, debugfs support, live MMIO access, or hardware validation coverage.",
+    "The next honest larger move is still blocked on platform-driver scaffold work such as live clock or reset acquisition, IRQ registration, watchdog registration execution, PM handling, and a hardware-validation plan.",
+]:
+    if marker not in dw_survey_doc:
+        missing.append(f"phase11_dw_wdt_docs:survey:{marker}")
+for marker in [
+    "keeps the DesignWare non-stoppable stop semantics explicit when reset control is unavailable",
+    "adds a tiny platform-resource preflight plus live resource-order summary",
+    "adds an explicit `summarizeTeardownLifecycle()` helper so reset-control-backed stop pulses, non-stoppable stop fallout, reset-mode restart forcing, and restart-from-stopped enablement stay reviewable before any live platform remove or PM teardown work",
+    "This slice does not claim platform-driver registration, clock or reset acquisition, IRQ registration, suspend or resume handling, debugfs support, custom devicetree TOP arrays beyond the bounded in-memory ordering helper, live MMIO access, or hardware validation coverage yet.",
+]:
+    if marker not in dw_slice_doc:
+        missing.append(f"phase11_dw_wdt_docs:slice:{marker}")
+for marker in [
+    "PHASE11_DW_WDT_STATUS=validation_matrix_landed",
+    "non-stoppable stop failure-mode boundary",
+    "`summarizeTeardownLifecycle()` helper for the stop-and-restart failure-mode packet",
+    "current shared replay wiring on `master` includes both `phase11-dw-wdt-tests` and `phase11-dw-wdt-survey-tests`",
+    "keep the ordering surface stable until a later lane writes the first real platform-driver call packet and its hardware-validation plan",
+]:
+    if marker not in dw_matrix_doc:
+        missing.append(f"phase11_dw_wdt_docs:matrix:{marker}")
+for marker in [
+    'test "phase11 dw_wdt registration handoff keeps watchdog info, parent, and timeout bookkeeping reviewable" {',
+    'test "phase11 dw_wdt platform resource preflight keeps clock choice and optional resources reviewable" {',
+    'test "phase11 dw_wdt live resource order keeps tclk, optional pclk, reset, irq, and registration sequencing explicit" {',
+    'test "phase11 dw_wdt stop and restart stay bounded to reset-control and non-stoppable semantics" {',
+    "const unstoppable_summary = try unstoppable.summarizeTeardownLifecycle(.{",
+    "try std.testing.expect(stoppable_summary.stop_uses_reset_pulse);",
+]:
+    if marker not in dw_test_text:
+        missing.append(f"phase11_dw_wdt_tests:{marker}")
+
+if missing:
+    print("PHASE11_VALIDATION=fail")
+    print("PHASE11_VALIDATION_MISSING_START")
+    for item in missing:
+        print(item)
+    print("PHASE11_VALIDATION_MISSING_END")
+    sys.exit(1)
+
+print("PHASE11_VALIDATION=pass")
+print(f"PHASE11_REQUIRED_FILE_COUNT={len(FILES)}")
+print(f"PHASE11_SHARED_BUILD_TEST_COUNT={len(expected_build_test_names)}")
+print(f"PHASE11_SHARED_BUILD_DEPEND_STEP_COUNT={len(expected_depend_steps)}")
+print(f"PHASE11_SHARED_BUILD_MODULE_ROOT_COUNT={len(expected_module_roots)}")
+print(f"PHASE11_SHARED_BUILD_IMPORT_COUNT={len(expected_module_imports)}")
+print(f"PHASE11_SHARED_BUILD_TEST_ROOT_COUNT={len(expected_test_root_modules)}")
+print(f"PHASE11_STARTER_STATUS_COUNT={starter_total}")
+print(f"PHASE11_READY_NEXT_STATUS_COUNT={ready_total}")
+print(f"PHASE11_BLOCKED_STATUS_COUNT={blocked_total}")
