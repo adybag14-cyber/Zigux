@@ -233,6 +233,9 @@ survey_note_expectations = {
         "survey_test_path": ROOT / "zigux" / "tests" / "phase5_bytestream_fifo_survey.zig",
         "survey_test_markers": [
             'test "phase 5 bytestream fifo contributor docs stay aligned with the shipped review surface"',
+            "zigux/tests/phase5_bytestream_fifo_manifest.json",
+            "Documentation/zigux/phase5-kfifo-sample-survey.md",
+            "samples/zigux/bytestream_fifo.zig",
             "sample-backed survey note",
             "samples/zigux/README.md",
             "Documentation/zigux/review-checklist.md",
@@ -246,6 +249,9 @@ survey_note_expectations = {
         "survey_test_path": ROOT / "zigux" / "tests" / "phase5_kobject_example_survey.zig",
         "survey_test_markers": [
             'test "phase 5 kobject contributor docs stay aligned with the shipped review surface"',
+            "zigux/tests/phase5_kobject_example_manifest.json",
+            "Documentation/zigux/phase5-kobject-sample-survey.md",
+            "samples/zigux/kobject_example.zig",
             "sample-backed survey note",
             "samples/zigux/README.md",
             "Documentation/zigux/review-checklist.md",
@@ -259,6 +265,9 @@ survey_note_expectations = {
         "survey_test_path": ROOT / "zigux" / "tests" / "phase5_kretprobe_example_survey.zig",
         "survey_test_markers": [
             'test "phase 5 kretprobe contributor docs stay aligned with the shipped review surface"',
+            "zigux/tests/phase5_kretprobe_example_manifest.json",
+            "Documentation/zigux/phase5-kretprobe-sample-survey.md",
+            "samples/zigux/kretprobe_example.zig",
             "sample-backed survey note",
             "samples/zigux/README.md",
             "Documentation/zigux/review-checklist.md",
@@ -272,6 +281,9 @@ survey_note_expectations = {
         "survey_test_path": ROOT / "zigux" / "tests" / "phase5_trace_events_sample_survey.zig",
         "survey_test_markers": [
             'test "phase 5 trace-events contributor docs stay aligned with the shipped review surface"',
+            "zigux/tests/phase5_trace_events_sample_manifest.json",
+            "Documentation/zigux/phase5-trace-events-sample-survey.md",
+            "samples/zigux/trace_events_sample.zig",
             "sample-backed survey note",
             "samples/zigux/README.md",
             "Documentation/zigux/review-checklist.md",
