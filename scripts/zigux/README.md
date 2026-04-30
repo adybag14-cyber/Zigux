@@ -90,12 +90,13 @@ Phase 5 flow
 - `zigux/tests/phase5_build.zig` is the shared build entrypoint for the bytestream FIFO, kobject, kretprobe, and trace-events sample packets, including their paired direct-sample and manifest-backed survey replays.
 - `samples/zigux/README.md` is the contributor-facing sample-root catalog for the approved Phase 5 anchors and the explicit boundary that keeps later `runtime_*` starters out of the sample-pattern lane.
 
-Phase 7 flow
-- `validate-phase7.py --self-test` exercises the Phase 7 marker-sync and wrapper-contract checks before any live runtime-helper replay claims stay green.
-- `validate-phase7.py` and `check-phase7-rbtree-parity.py` keep the shipped `Documentation/zigux/phase7-string-helpers-slice.md`, `Documentation/zigux/phase7-cmdline-slice.md`, `Documentation/zigux/phase7-argv-split-slice.md`, and `Documentation/zigux/phase7-rbtree-slice.md` packet aligned with the shared validator and parity gate.
-- `make -C zigux phase7-validate` is the validator-first entrypoint for the current Phase 7 review surface.
-- `make -C zigux phase7-test`, `make -C zigux phase7`, and `zig build test --build-file zigux/tests/phase7_build.zig --summary all` are the published replay commands after the validator gate passes.
-- `zigux/tests/phase7_build.zig` is the current shared Phase 7 build handoff, and the current Phase 7 build handoff is intentionally split: helper roots use explicit `addImport(...)` aliases while `zigux/tests/phase7_string_helpers_survey.zig` and `zigux/tests/phase7_cmdline_survey.zig` stay standalone, `zigux/tests/phase7_argv_split_manifest.json` and `zigux/tests/phase7_rbtree_manifest.json` stay read from repo-root survey runs, helper-only string and cmdline slices keep their roadmap-backed review notes explicit, and `phase7_build.zig` keeps setting those survey runs to `repo_root`.
+Phase 8 flow
+- `validate-phase8.py` keeps the parked repo-hosted tooling packet aligned across `Documentation/zigux/phase8-exec-cmd-slice.md`, `Documentation/zigux/phase8-help-slice.md`, `Documentation/zigux/phase8-kallsyms-slice.md`, `Documentation/zigux/phase8-libbpf-segment-survey.md`, and `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md` so the shared review surface stays explicit.
+- `make -C zigux phase8-validate` is the validator-first entrypoint for the current Phase 8 flow.
+- `zigux/tests/phase8_help_only_build.zig`, `zigux/tests/phase8_kallsyms_only_build.zig`, `zigux/tests/phase8_libbpf_segments_only_build.zig`, and `zigux/tests/phase8_build.zig` keep the focused and shared replay paths visible in one place.
+- `tools/lib/subcmd/exec-cmd.zig`, the deferred execution notes around `execvp()`, and the separate `kernel/workqueue.c` freeze boundary remain helper-only review surfaces rather than new process-launch claims.
+- the segmented libbpf packet stays bounded to helper-first slices such as `tools/lib/bpf/zigux_segments/cpu_mask.zig` and `tools/lib/bpf/zigux_segments/type_names.zig` plus the shared `phase8-libbpf-segment-survey.md` and `phase8-userspace-kernel-bridge-boundary-survey.md` notes.
+- `make -C zigux phase8-test` and `zig build test --build-file zigux/tests/phase8_build.zig --summary all` remain the shared replay path after the validator passes.
 
 Phase 13 flow
 - `validate-phase13-release.py` keeps `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/Makefile`, and `zigux/tests/phase13_build.zig` aligned as one shared release-discipline packet instead of leaving the Phase 13 review path split across isolated docs or build wiring.
