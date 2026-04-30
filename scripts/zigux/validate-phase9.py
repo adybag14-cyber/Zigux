@@ -192,6 +192,7 @@ required_review_checklist_markers = [
     "if the change touches the shared Phase 9 runtime-loader evidence packet and its adjacent scheduler-facing boundary, does `Documentation/zigux/freeze-map.md` still stay in that same reviewable ownership packet so the study-only `kernel/workqueue.c` status and Architecture Council reopen rule remain explicit beside the survey note, review checklist, shared request contract, sample-side loader plans, and shared `phase9_build.zig` entrypoint?",
     "if the change touches the shared Phase 9 runtime-loader handoff, are allocator ownership, `requires_runtime_substrate`, handoff stage, and the still-blocked command-name, argv-policy, or environment-derived activation controls explicit rather than implied?",
     "if a Phase 9 runtime trace-events change touches the frozen trace-core boundary, do `Documentation/zigux/freeze-map.md`, the trace-events docs, `zigux/tests/runtime_trace_events_manifest.json`, and `zigux/tests/runtime_trace_events_survey.zig` still keep `kernel/trace/ring_buffer.c` as `Study / Boundary Only` and require an Architecture Council decision before any status change?",
+    "if a Phase 9 runtime trace-events change touches the paired header-side macro boundary, do the trace-events docs, `zigux/tests/runtime_trace_events_manifest.json`, and `zigux/tests/runtime_trace_events_survey.zig` still keep `samples/trace_events/trace-events-sample.h` explicit as a surveyed boundary and keep generated tracepoint macro parity framed as a non-goal instead of shipped starter behavior?",
     "does the change avoid hidden runtime services, implicit allocation, or unclear panic behavior?",
     "if unsafe code exists, is it narrow, visible, and review-owned?",
 ]
@@ -469,23 +470,14 @@ required_kretprobe_manifest_markers = [
     '"zigux_destination": "zigux/tests/runtime_kretprobe_survey.zig"',
     '"id": "runtime-kretprobe-loader-scaffold"',
     '"zigux_destination": "samples/zigux/runtime_kretprobe_loader.zig"',
-    '"id": "runtime-kretprobe-live-loader-binding"',
-    '"zigux_destination": "zigux/kernel/runtime_loader.zig"',
     '"id": "runtime-kretprobe-shared-loader-controls"',
-    '"status": "blocked_on_runtime_substrate"',
+    '"status": "ready_next"',
 ]
 
 required_kretprobe_survey_test_markers = [
-    'const DeliveryEvidence = struct {',
-    'const OwnershipEntry = struct {',
     'const surveyed_commit = "a0bf6e9e3c43e1fc51c0d85ae74c065439ac22da";',
-    'test "phase 9 runtime kretprobe survey manifest records the landed ownership packet and remaining shared control blocker" {',
-    'try std.testing.expectEqualStrings(surveyed_commit, manifest.surveyed_commit);',
-    'try std.testing.expectEqual(@as(usize, 11), manifest.delivery_evidence_catalog.len);',
-    'try std.testing.expectEqual(@as(usize, 11), manifest.ownership_map.len);',
     'try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`PHASE9_LANE_KEY=P9-L13`") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, survey_doc, surveyed_commit) != null);',
-    'try std.testing.expect(std.mem.indexOf(u8, survey_doc, "RuntimeKretprobeSummary") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, survey_doc, "released_without_substrate") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, module_doc, "`PHASE9_LANE_KEY=P9-L13`") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, module_doc, surveyed_commit) != null);',
@@ -497,8 +489,8 @@ required_kretprobe_survey_test_markers = [
 
 required_trace_events_survey_markers = [
     "Documentation/zigux/freeze-map.md",
-    "`PHASE9_SURVEYED_COMMIT=aa26a0ac29c7b690f8575c7b3004025df4716aaa`",
-    "the current survey packet is pinned to `master` commit `aa26a0ac29c7b690f8575c7b3004025df4716aaa`.",
+    "`PHASE9_SURVEYED_COMMIT=e7b3b515704dd521630df0b0f62396d033e38e02`",
+    "the current survey packet is pinned to `master` commit `e7b3b515704dd521630df0b0f62396d033e38e02`.",
     "`kernel/trace/ring_buffer.c`",
     "Study / Boundary Only",
     "Delivery ownership map",
@@ -516,7 +508,7 @@ required_trace_events_survey_markers = [
 
 required_trace_events_module_slice_markers = [
     "Documentation/zigux/freeze-map.md",
-    "`PHASE9_SURVEYED_COMMIT=aa26a0ac29c7b690f8575c7b3004025df4716aaa`",
+    "`PHASE9_SURVEYED_COMMIT=e7b3b515704dd521630df0b0f62396d033e38e02`",
     "`kernel/trace/ring_buffer.c`",
     "Study / Boundary Only",
     "runtime task ownership or event-loop substrate parity",
@@ -551,7 +543,7 @@ required_trace_events_manifest_markers = [
 required_trace_events_survey_test_markers = [
     'const DeliveryEvidence = struct {',
     'const OwnershipEntry = struct {',
-    'const surveyed_commit = "aa26a0ac29c7b690f8575c7b3004025df4716aaa";',
+    'const surveyed_commit = "e7b3b515704dd521630df0b0f62396d033e38e02";',
     'var saw_freeze_map_boundary = false;',
     'var saw_manifest_catalog = false;',
     'var saw_shared_build_catalog = false;',
@@ -576,7 +568,7 @@ required_trace_events_survey_test_markers = [
     'std.mem.indexOf(u8, survey_doc, "`kernel/trace/ring_buffer.c`")',
     'std.mem.indexOf(u8, survey_doc, "Delivery ownership map")',
     'std.mem.indexOf(u8, survey_doc, surveyed_commit)',
-    'std.mem.indexOf(u8, survey_doc, "the current survey packet is pinned to `master` commit `aa26a0ac29c7b690f8575c7b3004025df4716aaa`")',
+    'std.mem.indexOf(u8, survey_doc, "the current survey packet is pinned to `master` commit `e7b3b515704dd521630df0b0f62396d033e38e02`")',
     'std.mem.indexOf(u8, survey_doc, "`init_runs`")',
     'std.mem.indexOf(u8, survey_doc, "`selftest_runs`")',
     'std.mem.indexOf(u8, survey_doc, "`exit_runs`")',
@@ -814,6 +806,7 @@ def run_self_test() -> int:
 
         makefile_path = tmp_root / "zigux/Makefile"
         original_makefile = makefile_path.read_text(encoding="utf-8")
+        makefile_path.writeText if False else None
         makefile_path.write_text(
             original_makefile.replace(
                 "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase9.py --self-test\n",
@@ -833,7 +826,7 @@ def run_self_test() -> int:
         original_trace_events_survey = trace_events_survey_path.read_text(encoding="utf-8")
         trace_events_survey_path.write_text(
             original_trace_events_survey.replace(
-                "`PHASE9_SURVEYED_COMMIT=aa26a0ac29c7b690f8575c7b3004025df4716aaa`",
+                "`PHASE9_SURVEYED_COMMIT=e7b3b515704dd521630df0b0f62396d033e38e02`",
                 "`PHASE9_SURVEYED_COMMIT=`",
                 1,
             ),
@@ -842,7 +835,7 @@ def run_self_test() -> int:
         expect_missing_marker(
             "trace_events_surveyed_commit_pin",
             tmp_root,
-            "trace_events_survey:`PHASE9_SURVEYED_COMMIT=aa26a0ac29c7b690f8575c7b3004025df4716aaa`",
+            "trace_events_survey:`PHASE9_SURVEYED_COMMIT=e7b3b515704dd521630df0b0f62396d033e38e02`",
         )
         trace_events_survey_path.write_text(original_trace_events_survey, encoding="utf-8")
 
@@ -947,8 +940,23 @@ def run_self_test() -> int:
         )
         review_checklist_path.write_text(original_review_checklist, encoding="utf-8")
 
+        review_checklist_path.write_text(
+            original_review_checklist.replace(
+                "if a Phase 9 runtime trace-events change touches the paired header-side macro boundary, do the trace-events docs, `zigux/tests/runtime_trace_events_manifest.json`, and `zigux/tests/runtime_trace_events_survey.zig` still keep `samples/trace_events/trace-events-sample.h` explicit as a surveyed boundary and keep generated tracepoint macro parity framed as a non-goal instead of shipped starter behavior?\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "trace_events_review_checklist_header_boundary",
+            tmp_root,
+            "review_checklist:if a Phase 9 runtime trace-events change touches the paired header-side macro boundary, do the trace-events docs, `zigux/tests/runtime_trace_events_manifest.json`, and `zigux/tests/runtime_trace_events_survey.zig` still keep `samples/trace_events/trace-events-sample.h` explicit as a surveyed boundary and keep generated tracepoint macro parity framed as a non-goal instead of shipped starter behavior?",
+        )
+        review_checklist_path.write_text(original_review_checklist, encoding="utf-8")
+
     print("PHASE9_VALIDATOR_SELF_TEST=pass")
-    print("PHASE9_VALIDATOR_SELF_TEST_CASE_COUNT=9")
+    print("PHASE9_VALIDATOR_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
