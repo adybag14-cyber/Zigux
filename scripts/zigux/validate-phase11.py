@@ -84,6 +84,8 @@ WORKFLOW_MARKERS = [
     "python3 scripts/zigux/validate-phase11.py --self-test",
     "Validate Phase 11 simple-driver bundle",
     "make -C zigux phase11-validate",
+    "Run dedicated Phase 11 hvc_console survey",
+    "make -C zigux phase11-hvc-survey",
     "Run Phase 11 watchdog and console tests",
     "zig build test --build-file zigux/tests/phase11_build.zig --summary all",
 ]
@@ -93,11 +95,13 @@ README_MARKERS = [
     "validate-phase11.py --self-test",
     "Phase 11 flow",
     "make -C zigux phase11-validate",
+    "make -C zigux phase11-hvc-survey",
     "phase11_build_inventory.json",
     "phase11_gpio_wdt_manifest.json",
     "phase11_uapi_header_parity_manifest.json",
     "dedicated hvc_console survey note and validation matrix",
     "exact shared-versus-dedicated replay commands and observed outcome lines",
+    "bootstrap workflow now replays the dedicated `phase11-hvc-survey` archival gate separately from the shared `phase11_build.zig` replay",
 ]
 DOCS_README_MARKERS = [
     "Phase 11 notes",
@@ -677,6 +681,7 @@ for marker in [
     "leave this helper parked unless another comparably small host-free notifier or sysrq split becomes obvious",
     "the shared Phase 11 gate for this lane remains `zigux/tests/phase11_build.zig`",
     "the dedicated archival survey gate remains `zigux/tests/phase11_hvc_console_survey.zig`",
+    "the bootstrap workflow now runs `make -C zigux phase11-hvc-survey` as a separate archival replay after `make -C zigux phase11-validate` and before the broader shared Phase 11 test shard",
 ]:
     if marker not in hvc_matrix_doc:
         missing.append(f"phase11_hvc_console_docs:matrix:{marker}")
