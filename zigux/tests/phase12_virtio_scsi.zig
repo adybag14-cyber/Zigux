@@ -136,6 +136,46 @@ test "phase12 virtio scsi recovery io queue map summary mirrors the frozen topol
     try std.testing.expectError(error.TransportNotFrozen, lab.recoveryIoQueueMapSummary());
 }
 
+test "phase12 virtio scsi recovery queue depth summary mirrors the frozen clamp" {
+    var lab = virtio_scsi.VirtioScsiQueueLab.init();
+    try std.testing.expectError(error.TransportNotFrozen, lab.recoveryQueueDepthSummary());
+    try std.testing.expectError(error.QueueDepthSummaryUnavailable, blk: {
+        _ = try lab.planQueueLayout(4, 1);
+        _ = try lab.freezeForTransportReset();
+        break :blk lab.recoveryQueueDepthSummary();
+    });
+    _ = try lab.restoreAfterTransportReset();
+
+    const captured = try lab.captureQueueDepthSummary(.{
+        .host_limit = .{
+            .probe = .{
+                .num_queues = 6,
+                .requested_poll_queues = 2,
+                .cmd_per_lun = 13,
+                .max_target = 9,
+                .max_lun = 4,
+                .max_sectors = 1024,
+            },
+            .synthetic_can_queue = 7,
+        },
+        .requested_depth = 12,
+    });
+    try std.testing.expectEqual(@as(u32, 7), captured.clamped_queue_depth);
+
+    _ = try lab.freezeForTransportReset();
+    const summary = try lab.recoveryQueueDepthSummary();
+    try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", summary.anchor);
+    try std.testing.expectEqual(@as(u32, 12), summary.requested_depth);
+    try std.testing.expectEqual(@as(u32, 7), summary.effective_can_queue);
+    try std.testing.expectEqual(@as(u32, 7), summary.effective_cmd_per_lun);
+    try std.testing.expectEqual(@as(u32, 7), summary.clamped_queue_depth);
+    try std.testing.expect(summary.tracks_queue_depth);
+    try std.testing.expect(summary.requires_change_queue_depth_restore);
+
+    _ = try lab.restoreAfterTransportReset();
+    try std.testing.expectError(error.TransportNotFrozen, lab.recoveryQueueDepthSummary());
+}
+
 test "phase12 virtio scsi recovery io queue map summary collapses without poll queues" {
     var lab = virtio_scsi.VirtioScsiQueueLab.init();
     _ = try lab.planQueueLayout(2, 0);
