@@ -112,13 +112,22 @@ else:
     ]:
         if repo_evidence.get(key) is not True:
             missing.append(f"manifest:repo_evidence:{key}")
-    if repo_evidence.get("phase15_replay_green_on_current_master") is not True:
+    if repo_evidence.get("phase15_replay_green_on_current_master") is not False:
         missing.append("manifest:repo_evidence:phase15_replay_green_on_current_master")
     if repo_evidence.get("deep_core_status_change_ready") is not False:
         missing.append("manifest:repo_evidence:deep_core_status_change_ready")
 
 remaining_gaps = manifest.get("remaining_gaps")
 expected_gaps = {
+    "phase15-shared-replay-drift-blocker": {
+        "status": "ready_next",
+        "zigux_destination": "zigux/tests/phase15_build.zig",
+        "phrases": [
+            "README.md dropped the dedicated Phase 15 notes pointer",
+            "phase15_parity_scorecard.zig is truncated",
+            "shared Phase 15 replay surface",
+        ],
+    },
     "phase15-deep-core-status-change-blocker": {
         "status": "blocked_on_stay_in_c_evidence",
         "zigux_destination": "Documentation/zigux/phase15-parity-scorecard.md",
@@ -173,4 +182,7 @@ print(
     "PHASE15_REQUIRED_MARKER_COUNT="
     f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(SURVEY_MARKERS) + len(BUILD_MARKERS)}"
 )
-print("PHASE15_REMAINING_BLOCKERS=phase15-deep-core-status-change-blocker")
+print(
+    "PHASE15_REMAINING_BLOCKERS="
+    "phase15-shared-replay-drift-blocker,phase15-deep-core-status-change-blocker"
+)
