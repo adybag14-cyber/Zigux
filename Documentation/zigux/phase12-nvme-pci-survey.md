@@ -5,9 +5,9 @@ This survey note records the current bounded Phase 12 checkpoint around `drivers
 ## Status
 
 - `PHASE12_STATUS=active`
-- `PHASE12_LANE_KEY=P12-L05`
+- `PHASE12_LANE_KEY=P12-L08`
 - `PHASE12_SLICE=nvme-pci-survey`
-- `PHASE12_SURVEYED_COMMIT=078b6f5ebaf9e533ec1d81b675add2736bec077a`
+- `PHASE12_SURVEYED_COMMIT=9dab85059c6f56865ef2f981d2303049775c5001`
 - scope: archival survey manifest, dedicated survey gate, shared Phase 12 build and make-target wiring, and a lane note that compares the landed `pci.zig` starter against the remaining roadmap gap and the current Phase 12 tranche state
 - product boundary:
   - `drivers/nvme/host/pci.zig`
@@ -30,7 +30,7 @@ This survey keeps that difference explicit so the lane does not overclaim produc
 
 - `drivers/nvme/host/pci.c` is present on `master` and remains a high-risk complex-driver anchor whose live behavior stretches far beyond the current Zigux starter.
 - the live repo now ships `drivers/nvme/host/pci.zig`, `zigux/tests/phase12_nvme_pci.zig`, `Documentation/zigux/phase12-nvme-pci-slice.md`, shared `zigux/tests/phase12_build.zig` wiring, and the tranche-level `phase12` make target in `zigux/Makefile`.
-- the broader Phase 12 tranche has now been re-verified at current `master` snapshot `078b6f5ebaf9e533ec1d81b675add2736bec077a`, where the same three bounded complex-driver starters are still the truthful footing: `drivers/net/virtio_net.zig`, `drivers/scsi/virtio_scsi.zig`, and `drivers/nvme/host/pci.zig`, so NVMe PCI should keep being compared against peer driver starters rather than against survey scaffolding or unrelated lane churn.
+- the broader Phase 12 tranche has now been re-verified at current `master` snapshot `9dab85059c6f56865ef2f981d2303049775c5001`, where the same three bounded complex-driver starters are still the truthful footing: `drivers/net/virtio_net.zig`, `drivers/scsi/virtio_scsi.zig`, and `drivers/nvme/host/pci.zig`, so NVMe PCI should keep being compared against peer driver starters rather than against survey scaffolding or unrelated lane churn.
 - that refreshed head did not widen the NVMe PCI starter beyond the earlier queue-planner, PRP buffer-shape, and pointer-selection packet, which means the survey's roadmap gap remains transport- and recovery-heavy rather than merely stale.
 - the landed starter stays intentionally narrow: it validates queue geometry, computes combined queue bytes and rounded DMA page demand, assigns monotonic admin and I/O queue identifiers, derives doorbell offsets, freezes queue planning across reset generations, records one tiny PRP buffer-shape summary with first-page offset, rounded span, and page-list bound checks, and now also records one tiny PRP-versus-SGL selection summary around page-gap forcing, user-command forcing, integrity-segment forcing, admin-queue limitations, and average-segment threshold preference before any live DMA-backed queue work.
 - that footing is useful, but it still does not cover PRP or SGL descriptor allocation, Host Memory Buffer policy, blk-mq request submission, live PCI queue creation, IRQ routing, MMIO access, or recovery parity.
@@ -80,7 +80,7 @@ This survey slice does not claim:
 - `zig fmt --check drivers/nvme/host/pci.zig zigux/tests/phase12_nvme_pci.zig zigux/tests/phase12_nvme_pci_survey.zig`
 - `zig test zigux/tests/phase12_nvme_pci_survey.zig`
 - `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
-- current `master` snapshot `078b6f5ebaf9e533ec1d81b675add2736bec077a` passed the shared Phase 12 replay with `Build Summary: 17/17 steps succeeded; 53/53 tests passed`, including `phase12-nvme-pci-tests 9 pass (9 total)` and `phase12-nvme-pci-survey-tests 1 pass (1 total)`.
+- current `master` snapshot `9dab85059c6f56865ef2f981d2303049775c5001` passed the shared Phase 12 replay with `Build Summary: 17/17 steps succeeded; 53/53 tests passed`, including `phase12-nvme-pci-tests 9 pass (9 total)` and `phase12-nvme-pci-survey-tests 1 pass (1 total)`.
 
 ## Next bounded step
 
