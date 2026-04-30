@@ -155,6 +155,26 @@ PHASE12_PACKET_MARKERS = {
     ),
 }
 SURVEY_NOTE_MARKERS = {
+    "phase12_virtio_net_manifest.json": (
+        "## Rollback And Reversible Delivery",
+        "owner: `Network Driver Lane`",
+        "rollback owner: `Network Driver Lane`",
+        "fallback path: keep `drivers/net/virtio_net.c` as the source of truth",
+        "phase12-virtio-net-tests",
+        "phase12-virtio-net-survey-tests",
+        "rollback drill: run `make -C zigux phase12-validate`",
+        "zig build test --build-file zigux/tests/phase12_build.zig --summary all",
+    ),
+    "phase12_nvme_pci_manifest.json": (
+        "## Rollback And Reversible Delivery",
+        "owner: `Storage Driver Lane`",
+        "rollback owner: `Storage Driver Lane`",
+        "fallback path: keep `drivers/nvme/host/pci.c` as the source of truth",
+        "phase12-nvme-pci-tests",
+        "phase12-nvme-pci-survey-tests",
+        "rollback drill: run `make -C zigux phase12-validate`",
+        "zig build test --build-file zigux/tests/phase12_build.zig --summary all",
+    ),
     "phase12_libbpf_manifest.json": (
         "## Rollback And Reversible Delivery",
         "owner: `BPF Tooling Lane`",
