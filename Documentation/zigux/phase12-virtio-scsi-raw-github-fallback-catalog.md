@@ -93,13 +93,31 @@ This packet is archival rather than live-head truth. During the `P12-L10` docs a
 
 ## Current replay note
 
-These fields are historical replay metadata for this pinned fallback packet. They can lag the live `master` head until `P12-L09` or `P12-L12` refreshes the exact inspected-head evidence again, and they should not be read as the current shared Phase 12 validator state for newer commits.
+These fields are the most recent bounded replay note recorded for this pinned fallback packet. They can lag the live `master` head again after future repo movement, but they should still describe the exact last checked public head and the current runtime limits of that replay.
 
-- current_master_replay_head: `76c198da79ae69383b5efaa5e2be3489de6f3e2e`
+- current_master_replay_head: `9dab85059c6f56865ef2f981d2303049775c5001`
 - current_shared_validator_command: `python3 scripts/zigux/validate-phase12.py`
-- current_shared_validator_result: `PHASE12_VALIDATION=pass`
-- current_shared_validator_missing_markers: `[]`
+- current_shared_validator_result: `PHASE12_VALIDATION=fail`
+- current_shared_validator_missing_markers:
+  - `docs_root_readme:Phase 12 notes`
+  - `docs_root_readme:Documentation/zigux/phase12-virtio-net-survey.md`
+  - `docs_root_readme:Documentation/zigux/phase12-nvme-pci-survey.md`
+  - `docs_root_readme:Documentation/zigux/phase12-nvme-pci-slice.md`
+  - `docs_root_readme:Documentation/zigux/phase12-virtio-scsi-survey.md`
+  - `docs_root_readme:Documentation/zigux/phase12-virtio-scsi-slice.md`
+  - `docs_root_readme:Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`
+  - `docs_root_readme:the active Phase 12 network-driver survey packet now keeps the bounded `drivers/net/virtio_net.zig` probe snapshot, queue-recovery summary, queue-resume summary, `hdr_len`, receive-path, and mergeable-refill helpers visible from the top-level docs index`
+  - `docs_root_readme:the same top-level Phase 12 packet now also keeps the bounded `drivers/nvme/host/pci.zig` queue planner, PRP buffer-shape helper, and pointer-selection helper visible from the docs index`
+  - `docs_root_readme:the active Phase 12 storage-driver survey packet now keeps the bounded `drivers/scsi/virtio_scsi.zig` queue-layout, recovery, probe snapshot, host-limit summary, queue-depth summary, and io-queue-map starters visible from the top-level docs index`
+  - `docs_root_readme:`zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `scripts/zigux/validate-phase12.py`, `make -C zigux phase12-validate`, and `make -C zigux phase12` now keep that same storage-driver survey packet reviewable through the shared Phase 12 tranche`
+  - `review_checklist:if the change is a Phase 12 complex-driver or heavy-helper slice, do `scripts/zigux/validate-phase12.py`, `zigux/tests/phase12_build.zig`, the four Phase 12 manifests, and the four Phase 12 survey notes still agree on the same bounded tranche, exact surveyed commits, approved roadmap destinations, shared replay contract, and explicit DMA versus object-model blocker posture?`
+  - `review_checklist:if the change touches the shared Phase 12 degraded-workflow packet, do the workflow path, README notes, review checklist, and `zigux/tests/phase12_virtio_scsi_survey.zig` still agree that `make -C zigux phase12` runs the validator before the shared Zig replay?`
+  - `review_checklist:if the change touches the shared Phase 12 tooling path, do `scripts/zigux/check-phase12-build-inventory.py`, `zigux/tests/phase12_build.zig`, `zigux/tests/fixtures/phase12_build_inventory.json`, and the shared Phase 12 manifests still agree on the exact shared build inventory instead of leaving the replay shape implicit?`
+  - `review_checklist:if the change touches the shared Phase 12 libbpf snapshot packet, do `scripts/zigux/check-phase12-libbpf-snapshot.py`, `zigux/tests/fixtures/phase12_libbpf_snapshot.json`, `zigux/tests/phase12_libbpf_manifest.json`, `zigux/tests/phase12_libbpf_segments.zig`, `zigux/tests/phase12_libbpf_reviewability.zig`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, and `tools/lib/bpf/zigux_segments/manifest.json` still agree on the same bounded five-file reproducibility packet and exact surveyed commit instead of leaving repeat-run stability in run memory only?`
+  - `phase12_build_fixture:expected_test_count_mismatch`
+  - `phase12_nvme_pci_manifest.json:survey_note:surveyed_commit`
+  - `phase12_libbpf_snapshot_fixture:sha256:tools/lib/bpf/zigux_segments/manifest.json`
 - current_shared_build_command: `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
-- current_shared_build_result: `Build Summary: 17/17 steps succeeded; 52/52 tests passed`
+- current_shared_build_result: `not replayed in this run because the attached Zig toolchain was unavailable`
 - current_focused_survey_command: `zig test zigux/tests/phase12_virtio_scsi_survey.zig`
-- current_focused_survey_result: `All 1 tests passed.`
+- current_focused_survey_result: `not replayed in this run because the attached Zig toolchain was unavailable`
