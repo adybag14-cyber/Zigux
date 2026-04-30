@@ -177,7 +177,7 @@ TEST_MARKERS = [
     'test "phase10 virtio input plans multitouch slots from ABS_MT_SLOT metadata" {',
     'test "phase10 virtio input teardown summary keeps reset cleanup and identity preservation explicit" {',
     'test "phase10 virtio input records registration preflight once identity and capability intent are staged" {',
-    'test "phase10 virtio input registration preflight requires multitouch slot intent when multitouch is enabled" {',
+    'test "phase10 virtio input registration preflight infers multitouch slot intent from staged ABS_MT_SLOT metadata" {',
     'test "phase10 virtio input records queue-callback preflight once registration and queue intent are staged" {',
     'test "phase10 virtio input reset clears queue plan and returns to default bus identity" {',
 ]
