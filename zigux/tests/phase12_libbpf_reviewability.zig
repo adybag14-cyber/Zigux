@@ -497,6 +497,16 @@ test "phase12 libbpf reviewability gate cross-checks the legacy segment catalog"
         try std.testing.expectEqualStrings(pair.expected_destination, phase12_gap.zigux_destination);
         try std.testing.expectEqualStrings(pair.expected_status, legacy_segment.status);
         try std.testing.expectEqualStrings(pair.expected_destination, legacy_segment.zigux_destination);
+        try std.testing.expect(legacy_segment.why_now.len > 0);
+
+        if (std.mem.eql(u8, pair.legacy_slug, "cpu-mask-parsing")) {
+            try std.testing.expect(std.mem.indexOf(u8, legacy_segment.why_now, "chunk-reader interface") != null);
+            try std.testing.expect(std.mem.indexOf(u8, legacy_segment.why_now, "perf-buffer CPU-budget clamp") != null);
+        } else if (std.mem.eql(u8, pair.legacy_slug, "fdinfo-map-info-helpers")) {
+            try std.testing.expect(std.mem.indexOf(u8, legacy_segment.why_now, "token-preparation recovery classification") != null);
+        } else if (std.mem.eql(u8, pair.legacy_slug, "map-reuse-compatibility")) {
+            try std.testing.expect(std.mem.indexOf(u8, legacy_segment.why_now, "reused-map-name chooser") != null);
+        }
 
         if (std.mem.eql(u8, pair.expected_status, "starter_landed")) {
             try std.testing.expect(exists);
