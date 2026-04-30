@@ -362,6 +362,12 @@ test "phase12 libbpf reviewability gate still compiles the landed helper foundat
         .bpffs_open,
         -@as(i32, @intFromEnum(linux_errno.ACCES)),
     );
+    const missing_pinned_map = file_path_handle_bridge.classifyReusePinnedMapOpenFailure(
+        -@as(i32, @intFromEnum(linux_errno.NOENT)),
+    );
+    const denied_pinned_map = file_path_handle_bridge.classifyReusePinnedMapOpenFailure(
+        -@as(i32, @intFromEnum(linux_errno.PERM)),
+    );
     try std.testing.expectEqualStrings("v1.8", logging.libbpfVersionString());
     try std.testing.expectEqualStrings(
         "Internal error in libbpf",
@@ -379,6 +385,18 @@ test "phase12 libbpf reviewability gate still compiles the landed helper foundat
     );
     try std.testing.expect(!mandatory_failure.shouldContinueWithoutToken());
     try std.testing.expectEqualStrings("", mandatory_failure.message_suffix);
+    try std.testing.expectEqual(
+        file_path_handle_bridge.ReusePinnedMapOpenFailureDisposition.skip_missing_pinned_map,
+        missing_pinned_map.disposition,
+    );
+    try std.testing.expect(missing_pinned_map.shouldContinueWithoutReuse());
+    try std.testing.expectEqual(file_path_handle_bridge.TokenPreparationLogLevel.debug, missing_pinned_map.log_level);
+    try std.testing.expectEqual(
+        file_path_handle_bridge.ReusePinnedMapOpenFailureDisposition.fail,
+        denied_pinned_map.disposition,
+    );
+    try std.testing.expect(!denied_pinned_map.shouldContinueWithoutReuse());
+    try std.testing.expectEqual(file_path_handle_bridge.TokenPreparationLogLevel.warn, denied_pinned_map.log_level);
     try std.testing.expectEqualStrings(
         "/sys/fs/bpf/demo_map",
         try pin_path.buildValidatedSanitizedMapPinPath(&path_buffer, null, "demo.map"),
