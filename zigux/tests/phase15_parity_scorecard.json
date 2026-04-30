@@ -1,7 +1,7 @@
 {
-  "lane_key": "P15-L11",
+  "lane_key": "P15-L09",
   "phase": "Phase 15",
-  "surveyed_commit": "f67968bf32ee3c04b376d99a42cd16c757fef4b1",
+  "surveyed_commit": "306be3109b5960918e693d2f7268446eda39b97d",
   "review_process": {
     "decision_record_required": true,
     "required_record_fields": [
@@ -37,6 +37,13 @@
     "bootstrap_ledger_anchor": "docs(zigux): add documentation root, review checklist, and freeze map",
     "current_repo_handoff": "Documentation root and freeze-map governance are now carried forward by the landed Phase 15 review-process note, parity scorecard, evidence-archive templates, dedicated Zig manifest and test, shared phase15_build.zig gate, make -C zigux phase15 target, and the shared bootstrap workflow replay.",
     "maintenance_mode_next_step": "Wait for one of the named reopen triggers to fit the evidence packet again or for the deep-core blocker posture to change enough to justify another bounded follow-up."
+  },
+  "current_parity_tracking_gap": {
+    "roadmap_requirement": "parity scorecard",
+    "current_gap": "No missing local governance artifact remains; the maintenance-mode gap is keeping the scorecard lane identity, roadmap wording, and replay-backed evidence packet current.",
+    "repo_state": "The freeze map, Architecture Council review process, parity scorecard, indefinite-C policy, dedicated manifest and Zig test, docs-root index, shared phase15_build.zig replay, and make -C zigux phase15 replay are all present on current master.",
+    "closure_signal": "This closes the current roadmap-vs-repo parity-tracking gap for the Phase 15 parity scorecard requirement.",
+    "remaining_blocker": "The only remaining blocked work is the existing deep-core status-change blocker rather than another missing parity-tracking artifact."
   },
   "anchors": [
     {
