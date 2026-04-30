@@ -106,6 +106,17 @@ REQUIRED_UAPI_FILES = (
     UAPI_VERSION_REL,
 )
 
+SURVEYED_PACKET_PATHS = (
+    EXPORT_SHIM_REL,
+    UAPI_VERSION_REL,
+    "include/linux/zigux.h",
+    "include/zigux/abi.h",
+    ABI_SLICE_REL,
+    "zigux/tests/phase3_export_uapi_build.zig",
+    EXPORT_UAPI_TEST_REL,
+    "zigux/tests/fixtures/phase3_abi_manifest.json",
+)
+
 
 def _read_text(root: Path, rel: str, issues: list[str]) -> str:
     path = root / rel
@@ -149,6 +160,26 @@ def _current_head_commit(root: Path) -> str | None:
     return head if HEX40.fullmatch(head) else None
 
 
+def _packet_drift_since_commit(root: Path, commit: str) -> list[str]:
+    git_dir = root / ".git"
+    if not git_dir.exists():
+        return []
+    result = subprocess.run(
+        ["git", "diff", "--name-only", commit, "HEAD", "--", *SURVEYED_PACKET_PATHS],
+        cwd=root,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        return [f"surveyed_commit_diff_error:{commit}"]
+    return [
+        f"surveyed_commit_packet_drift:{rel}"
+        for rel in result.stdout.splitlines()
+        if rel.strip()
+    ]
+
+
 def validate(root: Path) -> list[str]:
     issues: list[str] = []
 
@@ -174,9 +205,7 @@ def validate(root: Path) -> list[str]:
         elif not HEX40.fullmatch(surveyed_commit):
             issues.append(f"invalid_surveyed_commit:{surveyed_commit}")
         else:
-            current_head = _current_head_commit(root)
-            if current_head is not None and surveyed_commit != current_head:
-                issues.append(f"surveyed_commit_mismatch:{surveyed_commit}!={current_head}")
+            issues.extend(_packet_drift_since_commit(root, surveyed_commit))
 
     for rel in REQUIRED_SURVEY_PATHS:
         if not (root / rel).exists():
@@ -362,15 +391,22 @@ def run_self_test() -> int:
             for issue in issues
         )
 
-        survey_path.write_text(
-            survey_path.read_text(encoding="utf-8").replace(
-                f"PHASE3_SURVEYED_COMMIT={head}",
-                "PHASE3_SURVEYED_COMMIT=0123456789abcdef0123456789abcdef01234567",
-            ),
+        export_shim_path = root / EXPORT_SHIM_REL
+        export_shim_path.write_text(
+            export_shim_path.read_text(encoding="utf-8") + "\n// drift\n",
             encoding="utf-8",
         )
+        subprocess.run(["git", "add", EXPORT_SHIM_REL], cwd=root, check=True, capture_output=True, text=True)
+        subprocess.run(
+            ["git", "commit", "-m", "packet drift"],
+            cwd=root,
+            check=True,
+            capture_output=True,
+            text=True,
+            env=env,
+        )
         issues = validate(root)
-        assert f"surveyed_commit_mismatch:0123456789abcdef0123456789abcdef01234567!={head}" in issues
+        assert f"surveyed_commit_packet_drift:{EXPORT_SHIM_REL}" in issues
 
     print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")
     return 0
