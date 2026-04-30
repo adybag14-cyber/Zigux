@@ -346,6 +346,14 @@ test "phase 9 runtime kretprobe docs keep the ownership packet and shared-build 
     );
     defer std.testing.allocator.free(module_doc);
 
+    const module_test = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "zigux/tests/runtime_kretprobe_module.zig",
+        24 * 1024,
+    );
+    defer std.testing.allocator.free(module_test);
+
     const required_survey_markers = [_][]const u8{
         "surveyed inspected `master` head: `b17ed4c6675c9ffb24f11ab6d927db2af3082b1c`",
         "manifest-backed delivery catalog and ownership map",
@@ -377,13 +385,19 @@ test "phase 9 runtime kretprobe docs keep the ownership packet and shared-build 
         "phase9-runtime-kretprobe-survey-tests",
         "manifest-backed survey packet",
         "this shared build keeps the dedicated kretprobe sample, module, diff, loader, and survey legs explicit",
+        "direct post-selftest replay proof",
         "rather than reopening already-landed sample, survey, manifest, loader, module, or diff scaffolding",
     };
     for (required_module_markers) |marker| {
         try std.testing.expect(std.mem.indexOf(u8, module_doc, marker) != null);
     }
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "RuntimeKretprobeSummary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "direct post-selftest replay proof") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "selftest_complete") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "`nmissed` replay") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, surveyed_commit) != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_test, "test \"runtime kretprobe sample keeps post-selftest replay explicit at the module boundary\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_test, "try std.testing.expectEqual(@as(usize, 2), summary.nmissed);") != null);
 }
