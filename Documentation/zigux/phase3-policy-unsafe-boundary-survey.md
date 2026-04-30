@@ -28,7 +28,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_ABI_SLICE_DOC_BLOB_SHA=2aba404045daca63246680a2a33a2c0b5dcad8a9`
 - `PHASE3_POLICY_UNSAFE_BUILD_BLOB_SHA=4613c79a8d082b2dd3fe9502b7dcdb03ef181bb2`
 - `PHASE3_POLICY_UNSAFE_TEST_BLOB_SHA=9db79153aa4400b663bb228e87327f8f2f4662c6`
-- `PHASE3_ABI_MANIFEST_BLOB_SHA=a1a7938f6121ff6208d83dba8a46449bf615346a`
+- `PHASE3_ABI_MANIFEST_BLOB_SHA=df3f1f6208774d020278e54abf65e2ffea38a5bf`
 - `PHASE3_POLICY_UNSAFE_GATE=zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig`
 - `PHASE3_BOUNDARY_GAP=no-second-boundary-helper-consumes-decoded-policy-beyond-focused-replay`
 - `PHASE3_NEXT_BOUNDED_STEP=keep-the-policy-and-unsafe-surface-narrow-until-one-roadmap-backed-boundary-helper-needs-a-typed-interop-policy-consumer`
