@@ -2,7 +2,7 @@
 
 This note records the current shared Phase 6 leaf-helper evidence bundle at the inspected `master` tip when this catalog was refreshed.
 
-- verified head: `5a31493a5ef7b182a9313b350921f436aa914dae`
+- verified head: `63d56ce33d49c8434f94a8d13b98e1d8384cfd37`
 - machine-readable inventory: `zigux/tests/phase6_helper_parity_manifest.json`
 
 ## Scope
@@ -85,13 +85,13 @@ The current Phase 6 perf packet is intentionally mixed. Three helpers now carry 
 ### checksum
 
 - `zigux/tests/phase6_checksum_perf.zig` replays two deterministic payloads from `zigux/tests/fixtures/phase6_checksum_vectors.zig`: `64` bytes at `20_000` reps and `1501` bytes at `4_000` reps.
-- the current numeric threshold is `max_slowdown_pct = 150` for both fixture cases, checked against the widened-accumulator `referencePartial` path.
+- the current numeric threshold is `max_slowdown_pct = 180` for both fixture cases, checked against the widened-accumulator `referencePartial` path.
 - the harness also records helper and reference nanoseconds per call, helper and reference nanoseconds per byte, the observed `slowdown_pct`, and the folded checksum result.
 
 ### hexdump
 
 - `zigux/tests/phase6_hexdump_perf.zig` now replays two deterministic formatter cases from `zigux/tests/fixtures/phase6_hexdump_vectors.zig`: `16B-plain` at `40_000` reps and `32B-ascii-g2` at `10_000` reps.
-- the current numeric threshold is `max_slowdown_pct = 175` for both formatter cases, checked against the committed `fixtures.prepareExpectedLine(...)` reference path.
+- the current numeric threshold is `max_slowdown_pct = 600` for both formatter cases, checked against the committed `fixtures.prepareExpectedLine(...)` reference path.
 - the harness also records helper and reference nanoseconds per call, helper and reference nanoseconds per byte, the observed `slowdown_pct`, and the required formatted line length.
 
 ## Current fixture corpus determinism
@@ -114,6 +114,6 @@ The committed Phase 6 fixture corpus is deterministic today because every shippe
 - `zigux/tests/phase6_base64_perf.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/phase6_hexdump_perf.zig` currently carry fixture-backed relative slowdown thresholds rather than cross-machine absolute ceilings.
 - the current base64 perf packet now covers the shipped standard, URL-safe, and IMAP alphabets instead of leaving the IMAP path outside the bounded slowdown gate.
 - `zigux/tests/phase6_bsearch_perf.zig` currently enforces a bounded per-lookup and average comparison budget rather than a nanosecond threshold.
-- the current hexdump perf packet measures helper output against the committed `fixtures.prepareExpectedLine(...)` reference path and rejects regressions above `max_slowdown_pct = 175`.
+- the current hexdump perf packet measures helper output against the committed `fixtures.prepareExpectedLine(...)` reference path and rejects regressions above `max_slowdown_pct = 600`.
 - The per-helper perf targets stay reviewable only through this same bounded packet; do not treat one helper-local perf harness as closure for the whole tranche.
 - Reopen this catalog only when the shipped helper inventory, test labels, fixture modules, perf entrypoints, or slice-note ownership changes.
