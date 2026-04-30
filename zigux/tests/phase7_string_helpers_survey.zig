@@ -20,7 +20,7 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
         io_instance.io(),
         "Documentation/zigux/README.md",
         std.testing.allocator,
-        .limited(32 * 1024),
+        .limited(64 * 1024),
     );
     defer std.testing.allocator.free(docs_readme);
 
