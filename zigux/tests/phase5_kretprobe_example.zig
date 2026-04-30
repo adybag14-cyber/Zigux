@@ -34,7 +34,7 @@ test "phase 5 kretprobe sample replays the bounded skip, return, and summary pat
     try std.testing.expectEqual(@as(usize, 42), replay.return_value);
     try std.testing.expectEqual(@as(i64, 75), replay.duration_ns);
     try std.testing.expectEqual(@as(usize, 1), replay.nmissed);
-    try std.testing.expectEqual(@as(usize, sample.KretprobeExampleSample.default_maxactive), replay.maxactive);
+    try std.testing.expectEqual(module.maxactiveBudget(), replay.maxactive);
     try std.testing.expectEqualSlices(sample.SampleFocus, &expected_focus, replay.checked_focus);
     try std.testing.expectEqual(sample.SampleStage.replay_complete, module.stage());
     try std.testing.expectEqual(@as(usize, 1), module.replay_runs);
@@ -49,7 +49,7 @@ test "phase 5 kretprobe sample keeps symbol retargeting and handler boundaries e
     try module.retargetSymbol("do_sys_openat2");
     try module.init();
     try std.testing.expectEqualStrings("do_sys_openat2", module.symbol_name);
-    try std.testing.expectEqual(sample.KretprobeExampleSample.default_maxactive, module.maxactive);
+    try std.testing.expectEqual(sample.KretprobeExampleSample.default_maxactive, module.maxactiveBudget());
     try std.testing.expectEqual(@as(usize, @sizeOf(i64)), module.privateDataSizeBytes());
     try std.testing.expect(!(try module.entryHandler(false, 11)));
     try std.testing.expectEqual(@as(usize, 1), module.skipped_kernel_threads);
@@ -65,6 +65,20 @@ test "phase 5 kretprobe sample keeps symbol retargeting and handler boundaries e
 
     try module.recordMissedInstance();
     try std.testing.expectEqual(@as(usize, 1), module.nmissed);
+}
+
+test "phase 5 kretprobe sample keeps the maxactive ceiling immutable" {
+    var module = sample.KretprobeExampleSample{};
+
+    try std.testing.expectEqual(sample.KretprobeExampleSample.default_maxactive, module.maxactiveBudget());
+    try module.init();
+
+    const before_replay_budget = module.maxactiveBudget();
+    try std.testing.expectEqual(sample.KretprobeExampleSample.default_maxactive, before_replay_budget);
+
+    const replay = try module.runAnchorReplay();
+    try std.testing.expectEqual(before_replay_budget, replay.maxactive);
+    try std.testing.expectEqual(sample.KretprobeExampleSample.default_maxactive, module.maxactiveBudget());
 }
 
 test "phase 5 kretprobe sample makes ownership and teardown boundaries explicit" {
