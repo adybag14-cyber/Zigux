@@ -47,6 +47,30 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
 
+    const rbtree_helper = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "lib/rbtree.zig",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(rbtree_helper);
+
+    const rbtree_tests = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase7_rbtree.zig",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(rbtree_tests);
+
+    const rbtree_slice = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase7-rbtree-slice.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(rbtree_slice);
+
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P7-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 7", manifest.phase);
@@ -111,4 +135,10 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     try std.testing.expect(saw_helper);
     try std.testing.expect(saw_survey_gate);
     try std.testing.expect(saw_parity_follow_up);
+    try std.testing.expect(std.mem.indexOf(u8, rbtree_helper, "pub fn iterateMatches") != null);
+    try std.testing.expect(std.mem.indexOf(u8, rbtree_helper, "pub fn eraseInit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, rbtree_tests, "phase 7 rbtree eraseInit detaches erased nodes for reuse") != null);
+    try std.testing.expect(std.mem.indexOf(u8, rbtree_tests, "phase 7 rbtree postorder traversal matches committed parity fixture") != null);
+    try std.testing.expect(std.mem.indexOf(u8, rbtree_slice, "erase-and-detach reuse semantics via `eraseInit()`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, rbtree_slice, "a machine-checked manifest that records the `lib/rbtree.c` anchor and the landed Phase 7 review surfaces") != null);
 }
