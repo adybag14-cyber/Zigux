@@ -262,6 +262,23 @@ def run_self_test() -> int:
             original_argv_split_tests, encoding="utf-8"
         )
 
+        argv_split_survey_path.write_text(
+            original_argv_split_survey.replace(
+                'try std.testing.expect(std.mem.indexOf(u8, argv_split_tests, "phase 7 argvSplitWithArgc reports the split length through the optional out parameter") != null);',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_argc_review_surface",
+            tmp_root,
+            'zigux/tests/phase7_argv_split_survey.zig: try std.testing.expect(std.mem.indexOf(u8, argv_split_tests, "phase 7 argvSplitWithArgc reports the split length through the optional out parameter") != null);',
+        )
+        argv_split_survey_path.write_text(
+            original_argv_split_survey, encoding="utf-8"
+        )
+
         cmdline_doc_path = tmp_root / "Documentation" / "zigux" / "phase7-cmdline-slice.md"
         original_cmdline_doc = cmdline_doc_path.read_text(encoding="utf-8")
         cmdline_doc_path.write_text(
@@ -355,7 +372,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=12")
+    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
@@ -605,8 +622,10 @@ required_phase7_argv_split_survey_markers = [
     'try std.testing.expectEqualStrings("9fe95586826f03d2e047dcd3d4536fc884dc996c", manifest.surveyed_commit);',
     'try std.testing.expectEqual(@as(usize, 0), ready_next_count);',
     'try std.testing.expect(std.mem.indexOf(u8, argv_split_helper, "pub fn argvFree") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, argv_split_tests, "phase 7 argvSplitWithArgc reports the split length through the optional out parameter") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, argv_split_tests, "phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "`argv_free()` via `argvFree()`") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "optional argc reporting that stays in sync with the returned argv length") != null);',
 ]
 
 required_phase7_argv_split_doc_markers = [
