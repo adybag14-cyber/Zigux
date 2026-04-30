@@ -115,6 +115,13 @@ The honest Phase 14 move here is therefore not to start a `ring_buffer.zig` file
 - The same kill-switch pattern appears in `tracing_resize_ring_buffer()`, where a snapshot resize failure also tries to restore the main buffer and sets `tracing_disabled = 1` if the restore cannot be completed. That repetition is a useful Phase 14 signal: the snapshot rollback rule is a shared trace-array integrity contract, not an incidental quirk of one tracefs file operation.
 - The snapshot documentation explains why that caution exists. `Documentation/trace/ftrace.rst` describes snapshot mode as a swap between the current trace buffer and a spare snapshot buffer while tracing continues, so the rollback path is guarding a coupled buffer-pair contract that should remain study-only instead of being split across any future Zig wrapper seam.
 
+## Tracing-disabled Recovery Audit
+
+- The documented user-facing recovery knobs are narrower than the rollback kill-switch. `Documentation/trace/ftrace.rst` says `tracing_on` can re-enable tracing after ordinary `tracing_off()` or `traceoff` trigger use, and `trace.c` repeats that quick-start guidance next to `current_tracer`, but those controls only describe normal buffer recording state.
+- The runtime guard for `tracing_disabled` is stronger. `tracing_check_open_get_tr()` returns `-ENODEV` when `tracing_disabled` is set, and the same `-ENODEV` gate appears in other tracefs entry points, so the tracefs control plane stops looking like a temporarily paused tracer and instead behaves like tracing infrastructure that is unavailable to user space.
+- The state transition evidence also points at a one-way failure path during a live session. `trace.c` initializes `tracing_disabled = 1`, clears it to `0` only after `tracer_alloc_buffers()` succeeds during setup, and then sets it back to `1` in the snapshot rollback failure paths inside both `tracing_resize_ring_buffer()` and `buffer_subbuf_size_write()`.
+- The current evidence therefore does not show a documented user-visible recovery path after `tracing_disabled = 1` is raised by those rollback failures. The ordinary `echo 1 > tracing_on` guidance is about resuming an already-live tracer, not reviving this kill-switch state, so the honest Phase 14 boundary remains "treat the failure as terminal until reboot or re-initialization" rather than implying a wrapper-safe control seam.
+
 ## Recorded gaps
 
 The current lane state is:
@@ -134,6 +141,7 @@ The current lane state is:
 - landed `phase14-ring-buffer-read-page-allocation-contract-followup`
 - landed `phase14-ring-buffer-subbuf-order-reconfig-followup`
 - landed `phase14-ring-buffer-snapshot-rollback-failure-followup`
+- landed `phase14-ring-buffer-tracing-disabled-recovery-followup`
 - blocked `phase14-ring-buffer-zig-port-blocker`
 
 This keeps the lane honest: Zigux now has an explicit reviewable record that `kernel/trace/ring_buffer.c` belongs in the study-only set for now, and that the repo still does not ship `kernel/trace/ring_buffer.zig`.
@@ -160,4 +168,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Keep the Phase 14 ring-buffer packet parked unless it drifts again or a future study-only step can stay narrower than the existing resize, rollback, reader-page, and mapped-reader audits; the next honest follow-up would be a bounded review of whether any documented user-visible recovery path exists after `tracing_disabled = 1` without widening into bridge code or generic tracefs UX changes.
+Keep the Phase 14 ring-buffer packet parked unless it drifts again or a future study-only step can stay narrower than the existing resize, rollback, reader-page, mapped-reader, and kill-switch-recovery audits; the next honest follow-up would need another concrete source-of-truth drift or a still-narrower tracefs evidence gap instead of reopening bridge code or generic tracing UX work.
