@@ -47,7 +47,7 @@ The current tests check:
 - mixed single-value and ranged fragments
 - `+`-prefixed single-value and ranged fragments that stay non-negative
 - newline-terminated, repeated-delimiter, and leading-whitespace-at-token-start inputs
-- chunked reader input that splits ranges, delimiters, and leading `sscanf()`-style whitespace across buffer boundaries
+- chunked reader input that splits `+`-prefixed ranges, delimiters, and leading `sscanf()`-style whitespace across buffer boundaries
 - sparse masks with unset gaps preserved
 - explicit error handling for empty, malformed, and trailing-whitespace-only ranges
 - reader contract failures such as zero-length chunks, oversized counts, and injected read errors
