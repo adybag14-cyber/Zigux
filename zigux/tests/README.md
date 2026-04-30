@@ -101,6 +101,22 @@ Key entrypoints
 - `zigux/tests/phase10_virtio_input_manifest.json`
 - `zigux/tests/phase10_virtio_mmio_manifest.json`
 - `zigux/tests/phase10_closure_manifest.json`
+- `zigux/tests/phase11_build.zig`
+- `zigux/tests/phase11_gpio_wdt.zig`
+- `zigux/tests/phase11_gpio_wdt_manifest.json`
+- `zigux/tests/phase11_gpio_wdt_survey.zig`
+- `zigux/tests/phase11_bcm2835_wdt.zig`
+- `zigux/tests/phase11_bcm2835_wdt_manifest.json`
+- `zigux/tests/phase11_bcm2835_wdt_survey.zig`
+- `zigux/tests/phase11_dw_wdt.zig`
+- `zigux/tests/phase11_dw_wdt_manifest.json`
+- `zigux/tests/phase11_dw_wdt_survey.zig`
+- `zigux/tests/phase11_hvc_console.zig`
+- `zigux/tests/phase11_hvc_console_manifest.json`
+- `zigux/tests/phase11_hvc_console_survey.zig`
+- `zigux/tests/phase11_uapi_header_parity_manifest.json`
+- `zigux/tests/phase11_uapi_header_parity_survey.zig`
+- `zigux/tests/fixtures/phase11_build_inventory.json`
 - `zigux/tests/phase3_abi.zig`
 - `zigux/tests/phase14_build.zig`
 - `zigux/tests/phase14_ring_buffer_survey.zig`
@@ -153,6 +169,10 @@ Phase 10 guidance
 - keep the current Phase 10 lab bundle reviewable through `zigux/tests/phase10_build.zig`, the four lane survey manifests plus the shared `zigux/tests/phase10_closure_manifest.json`, instead of treating individual virtio starter files as independent closure signals
 - if the Phase 10 evidence bundle changes, update `zigux/tests/phase10_closure_manifest.json` and `Documentation/zigux/phase10-closure-evidence.md` together so the shared closure gate stays truthful about what is implemented versus still survey-backed
 - keep `scripts/zigux/validate-phase10.py` aligned with `zigux/tests/phase10_virtio_input_manifest.json` and `zigux/tests/phase10_virtio_input_survey.zig` so the landed queue-callback preflight helper, the landed registration-preflight helper summary, and the registration-lifecycle blocker all stay explicit together
+
+Phase 11 guidance
+- keep the current Phase 11 simple-driver packet reviewable through `zigux/tests/phase11_build.zig`, `scripts/zigux/validate-phase11.py`, `make -C zigux phase11-validate`, and `zigux/tests/fixtures/phase11_build_inventory.json` instead of widening into ad hoc driver-local bootstrap claims.
+- keep the shared-versus-dedicated replay boundary explicit: `zigux/tests/phase11_build.zig` remains the shared replay for the landed starter packet, while `zigux/tests/phase11_hvc_console_survey.zig` remains the dedicated archival replay for the exact shared-versus-dedicated delivery contract.
 
 Phase 12 guidance
 - `check-phase12-build-inventory.py` and `validate-phase12.py` keep the shared Phase 12 complex-driver and heavy-helper tranche aligned before replay by checking the workflow wiring, `zigux/Makefile`, `zigux/tests/phase12_build.zig`, the shared build inventory snapshot in `zigux/tests/fixtures/phase12_build_inventory.json`, the four manifests `zigux/tests/phase12_virtio_net_manifest.json`, `zigux/tests/phase12_nvme_pci_manifest.json`, `zigux/tests/phase12_virtio_scsi_manifest.json`, and `zigux/tests/phase12_libbpf_manifest.json`, plus the survey notes pinned to each manifest's exact `surveyed_commit`.
