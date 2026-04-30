@@ -7,7 +7,7 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 - `PHASE5_STATUS=active`
 - `PHASE5_SLICE=kobject-reference-sample-starter`
 - `PHASE5_LANE_KEY=P5-L11`
-- `PHASE5_SURVEYED_COMMIT=d9a76f93ff1ad1fe97ba899a4e1667206e44064a`
+- `PHASE5_SURVEYED_COMMIT=cf0d4837bfff261fd64c5e67718800c844a74199`
 - scope: roadmap-vs-repo sample delivery, approved ownership-and-lifetime guidance, and exact bounded checks for the landed `samples/zigux/` kobject-style replay
 - product boundary:
   - `Documentation/zigux/phase5-kobject-sample-survey.md`
@@ -66,13 +66,14 @@ The exact checks currently recorded in `zigux/tests/phase5_kobject_example_manif
 
 ## Latest verification snapshot
 
-Current sample behavior was re-verified against `master` commit `d9a76f93ff1ad1fe97ba899a4e1667206e44064a` on 2026-04-29 with the attached Zig toolchain.
+Current sample behavior was re-verified against `master` commit `cf0d4837bfff261fd64c5e67718800c844a74199` on 2026-04-30 with the attached Zig toolchain.
 
 The exact verification commands and observed results were:
 
 - `zig test samples/zigux/kobject_example.zig`
-  - observed result: `1/1 kobject_example.test.kobject sample replay keeps the anchor reviewable and non-runtime...OK`
-  - observed result: `All 1 tests passed.`
+  - observed result: `1/2 kobject_example.test.kobject sample replay keeps the anchor reviewable and non-runtime...OK`
+  - observed result: `2/2 kobject_example.test.kobject sample teardown keeps ownership boundaries explicit...OK`
+  - observed result: `All 2 tests passed.`
 - `zig test zigux/tests/phase5_kobject_example_survey.zig`
   - observed result: `1/2 phase5_kobject_example_survey.test.phase 5 kobject manifest records the exact bounded checks...OK`
   - observed result: `2/2 phase5_kobject_example_survey.test.phase 5 kobject contributor docs stay aligned with the shipped review surface...OK`
@@ -102,7 +103,7 @@ When a contributor updates `samples/zigux/kobject_example.zig` or its directly c
 The roadmap delivery gap is already closed. The more precise ongoing review job is:
 
 - the repo now has a reviewable Phase 5 `kobject_example` sample plus manifest-backed checks for registration, a single replay-side ownership claim, attribute order, shared `0664` attribute mode, initialized-only abandonment, dispatch, parse failures, and teardown
-- this approved ownership-and-lifetime idiom is now pinned to `PHASE5_SURVEYED_COMMIT=d9a76f93ff1ad1fe97ba899a4e1667206e44064a` so the survey note, manifest-backed checks, shared sample-root catalog, shared review checklist, and contributor review path all point at the same inspected `master` head
+- this approved ownership-and-lifetime idiom is now pinned to `PHASE5_SURVEYED_COMMIT=cf0d4837bfff261fd64c5e67718800c844a74199` so the survey note, manifest-backed checks, shared sample-root catalog, shared review checklist, and contributor review path all point at the same inspected `master` head
 - the full four-anchor Phase 5 reference-sample set is already landed on current `master`, so this note should describe the kobject slice as one approved ownership-and-lifetime idiom inside that completed anchor set rather than as a placeholder for a still-missing tranche item
 - contributor guidance still needs to keep the in-memory directory, unnamed-group shape, attribute-array order, initialized-only abandonment path, and pre-registration ownership boundary visibly separate from real sysfs or module substrate claims and from the later runtime pilot families
 
