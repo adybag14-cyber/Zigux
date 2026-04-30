@@ -2,25 +2,10 @@ const std = @import("std");
 const hexdump = @import("hexdump");
 const fixtures = @import("phase6_hexdump_vectors");
 
-const PerfCase = struct {
-    label: []const u8,
-    len: usize,
-    rowsize: usize,
-    groupsize: usize,
-    ascii: bool,
-    reps: usize,
-    max_slowdown_pct: u16,
-};
-
-const perf_cases = [_]PerfCase{
-    .{ .label = "16B-plain", .len = 16, .rowsize = 16, .groupsize = 1, .ascii = false, .reps = 40_000, .max_slowdown_pct = 175 },
-    .{ .label = "32B-ascii-g2", .len = 32, .rowsize = 32, .groupsize = 2, .ascii = true, .reps = 10_000, .max_slowdown_pct = 175 },
-};
-
 pub fn main(init: std.process.Init) !void {
     const io = init.io;
 
-    for (perf_cases) |case| {
+    for (fixtures.perf_cases) |case| {
         const result = try runPerfCase(case, io);
         std.debug.print(
             "phase6-hexdump-perf {s} len={} rowsize={} groupsize={} ascii={} reps={} helper_ns_per_call={} helper_ns_per_byte={d:.2} reference_ns_per_call={} reference_ns_per_byte={d:.2} slowdown_pct={} required={} sink=0x{x:0>8}\n",
@@ -110,7 +95,7 @@ fn median3(a: u64, b: u64, c: u64) u64 {
     return a + b + c - @min(a, @min(b, c)) - @max(a, @max(b, c));
 }
 
-fn runPerfCase(case: PerfCase, io: std.Io) !PerfResult {
+fn runPerfCase(case: fixtures.PerfCase, io: std.Io) !PerfResult {
     var actual: [fixtures.test_hexdump_buf_size]u8 = undefined;
     var expected_buf: [fixtures.test_hexdump_buf_size]u8 = undefined;
 
