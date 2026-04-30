@@ -69,8 +69,8 @@ const Manifest = struct {
     gaps: []const Gap,
 };
 
-const expected_lane_key = "P15-L08";
-const expected_surveyed_commit = "7095a02f382e919b535b5e5c3fa8985ded58268e";
+const expected_lane_key = "P15-L10";
+const expected_surveyed_commit = "a22b2a1b9e6949853429ea0d1140ebaa1bc98961";
 
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
