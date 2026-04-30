@@ -20,6 +20,9 @@ FILES = [
     "Documentation/zigux/phase11-dw-wdt-survey.md",
     "Documentation/zigux/phase11-dw-wdt-slice.md",
     "Documentation/zigux/phase11-dw-wdt-validation-matrix.md",
+    "Documentation/zigux/phase11-bcm2835-wdt-survey.md",
+    "Documentation/zigux/phase11-bcm2835-wdt-slice.md",
+    "Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md",
     "Documentation/zigux/phase11-gpio-wdt-survey.md",
     "Documentation/zigux/phase11-gpio-wdt-slice.md",
     "Documentation/zigux/phase11-gpio-wdt-validation-matrix.md",
@@ -42,6 +45,7 @@ FILES = [
     "zigux/tests/phase11_dw_wdt_survey.zig",
     "zigux/tests/phase11_hvc_console_survey.zig",
     "zigux/tests/phase11_uapi_header_parity_survey.zig",
+    "zigux/tests/phase11_bcm2835_wdt.zig",
     "zigux/tests/fixtures/phase11_build_inventory.json",
 ]
 
@@ -141,6 +145,11 @@ DW_WDT_DOC_PATHS = {
     "survey": "Documentation/zigux/phase11-dw-wdt-survey.md",
     "slice": "Documentation/zigux/phase11-dw-wdt-slice.md",
     "matrix": "Documentation/zigux/phase11-dw-wdt-validation-matrix.md",
+}
+BCM2835_WDT_DOC_PATHS = {
+    "survey": "Documentation/zigux/phase11-bcm2835-wdt-survey.md",
+    "slice": "Documentation/zigux/phase11-bcm2835-wdt-slice.md",
+    "matrix": "Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md",
 }
 
 
@@ -331,6 +340,47 @@ for marker in [
 ]:
     if marker not in gpio_matrix_doc:
         missing.append(f"phase11_gpio_wdt_docs:matrix:{marker}")
+
+bcm_manifest = load_manifest("phase11_bcm2835_wdt_manifest.json")
+bcm_commit = str(bcm_manifest.get("surveyed_commit", ""))
+bcm_survey_doc = text(BCM2835_WDT_DOC_PATHS["survey"])
+bcm_slice_doc = text(BCM2835_WDT_DOC_PATHS["slice"])
+bcm_matrix_doc = text(BCM2835_WDT_DOC_PATHS["matrix"])
+bcm_test_doc = text("zigux/tests/phase11_bcm2835_wdt.zig")
+for marker in [
+    f"reviewed against live `master` `{bcm_commit}`",
+    "a tiny remove-time ownership summary",
+    "This lane is no longer survey-only, but the archival survey still keeps its original `P11-L05` identity",
+    "live platform registration, PM base plumbing, or shared poweroff-handler coordination should stay blocked until the lane carries an explicit hardware-validation plan",
+]:
+    if marker not in bcm_survey_doc:
+        missing.append(f"phase11_bcm2835_wdt_docs:survey:{marker}")
+for marker in [
+    "adds a tiny platform-registration and PM-base handoff summary",
+    "adds a tiny remove-time teardown summary for devm-managed watchdog cleanup while clearing the shared poweroff handler only when the bcm2835 lane currently owns it",
+    "This slice does not claim platform-driver registration, watchdog-core registration, MMIO access",
+    "The remaining gap is a later hardware-facing decision about whether to model any live platform registration or PM base plumbing",
+]:
+    if marker not in bcm_slice_doc:
+        missing.append(f"phase11_bcm2835_wdt_docs:slice:{marker}")
+for marker in [
+    "PHASE11_BCM2835_WDT_STATUS=platform_handoff_landed",
+    "platform registration and PM-base handoff",
+    "remove-time teardown boundary",
+    "phase11-bcm2835-wdt-tests",
+    "phase11-bcm2835-wdt-survey-tests",
+    "keep the remove-time teardown scope tied to the same later live platform decision",
+]:
+    if marker not in bcm_matrix_doc:
+        missing.append(f"phase11_bcm2835_wdt_docs:matrix:{marker}")
+for marker in [
+    'test "phase11 bcm2835_wdt keeps watchdog metadata and ops surface reviewable"',
+    'test "phase11 bcm2835_wdt registration summary records watchdog registration and poweroff ownership outcomes"',
+    'test "phase11 bcm2835_wdt platform handoff summary keeps parent and PM-base prerequisites reviewable"',
+    'test "phase11 bcm2835_wdt remove summary only clears the shared poweroff handler when bcm2835 owns it"',
+]:
+    if marker not in bcm_test_doc:
+        missing.append(f"phase11_bcm2835_wdt_tests:{marker}")
 
 dw_manifest = load_manifest("phase11_dw_wdt_manifest.json")
 dw_commit = str(dw_manifest.get("surveyed_commit", ""))
