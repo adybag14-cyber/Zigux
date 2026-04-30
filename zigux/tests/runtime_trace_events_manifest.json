@@ -11,8 +11,10 @@
   "validation_entrypoint": "zig build test --build-file zigux/tests/phase9_build.zig --summary all",
   "survey_summary": {
     "trace_events_sample_c_lines": 153,
+    "trace_events_sample_header_lines": 640,
     "preexisting_runtime_trace_events_test_files": 3,
     "preexisting_runtime_trace_events_sample_present": true,
+    "preexisting_trace_events_header_present": true,
     "runtime_trace_events_loader_present": false,
     "preexisting_phase9_build_present": true,
     "preexisting_runtime_trace_events_doc_present": true,
@@ -22,6 +24,7 @@
     "the review packet still keeps the Linux anchor, shipped selftest hook, bounded diagnostics-summary surface, and loader-free blocker explicit instead of implying a live trace-events loader or ring-buffer parity",
     "the manifest, survey gate, module gate, diff gate, survey note still agree on lifecycle stage, registration balance, explicit main-thread and function-thread event totals, replay run counters, payload-summary visibility, and the frozen runtime-substrate boundary",
     "the manifest-backed delivery catalog and ownership map still keep the sample, module gate, diff gate, survey gate, shared build entrypoint, survey note, module-slice note, and freeze-map boundary in one reviewable packet",
+    "the packet keeps `samples/trace_events/trace-events-sample.h` visible as a header-side macro boundary, records its current surveyed size, and does not turn that survey evidence into a generated tracepoint macro parity claim",
     "the lane still treats `Documentation/zigux/freeze-map.md` as authoritative for the study-only `kernel/trace/ring_buffer.c` boundary and carries no Architecture Council status-change request or parity scorecard claim",
     "broader runtime task ownership, polling and event-loop substrate, thread creation, and tracepoint-registration lifecycle wiring stay blocked until a separate runtime-substrate lane lands a real handoff"
   ],
@@ -154,6 +157,11 @@
       "id": "failed-exit-rollback",
       "kind": "rollback_contract",
       "expected": "error.OutstandingRegistration leaves the module in the initialized stage with registration depth, replay run counters, explicit per-thread event totals, and the latest bounded main-thread and function-thread payload literals intact until the registration is unwound and the selftest-to-exit path resumes"
+    },
+    {
+      "id": "trace-header-boundary",
+      "kind": "header_boundary",
+      "expected": "the survey packet keeps samples/trace_events/trace-events-sample.h explicit as the header-side macro surface, records the current 640-line surveyed boundary, and treats generated tracepoint macro parity as a non-goal rather than shipped starter behavior"
     },
     {
       "id": "freeze-map-boundary",
