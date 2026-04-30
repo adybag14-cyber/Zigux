@@ -539,6 +539,23 @@ def run_self_test() -> int:
         )
         input_manifest_path.write_text(original_input_manifest, encoding="utf-8")
 
+        mmio_manifest_path = tmp_root / "zigux/tests/phase10_virtio_mmio_manifest.json"
+        original_mmio_manifest = mmio_manifest_path.read_text(encoding="utf-8")
+        mmio_manifest_path.write_text(
+            original_mmio_manifest.replace(
+                "\"phase10-mmio-lifecycle-and-irq-paths\"",
+                "\"phase10-mmio-lifecycle-and-irq-paths-drift\"",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "mmio_manifest_blocked_gap_id",
+            tmp_root,
+            "mmio_manifest:gap:phase10-mmio-lifecycle-and-irq-paths",
+        )
+        mmio_manifest_path.write_text(original_mmio_manifest, encoding="utf-8")
+
         tests_readme_path = tmp_root / "zigux/tests/README.md"
         original_tests_readme = tests_readme_path.read_text(encoding="utf-8")
         tests_readme_path.write_text(
@@ -591,7 +608,7 @@ def run_self_test() -> int:
         doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
 
     print("PHASE10_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_VALIDATOR_SELF_TEST_CASE_COUNT=6")
+    print("PHASE10_VALIDATOR_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
