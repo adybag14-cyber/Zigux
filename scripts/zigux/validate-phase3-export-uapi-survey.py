@@ -24,7 +24,7 @@ REQUIRED_SURVEY_MARKERS = (
     "PHASE3_UAPI_STATUS=version-header-and-compatibility-surface-landed",
     "PHASE3_EXPORT_UAPI_GATE=zig build phase3-export-uapi-test --build-file zigux/tests/phase3_export_uapi_build.zig",
     "PHASE3_BOUNDARY_GAP=broader-curated-uapi-shims-still-deferred",
-    "PHASE3_NEXT_BOUNDED_STEP=keep-boundary-header-surface-narrow-until-one-roadmap-backed-interop-slice-needs-another-curated-uapi-or-export-entry",
+    "PHASE3_NEXT_BOUNDED_STEP=keep-boundary-header-surface-narrow-until-the-roadmap-backed-rbtree-interop-survey-or-slice-needs-another-curated-uapi-or-export-entry",
 )
 
 REQUIRED_SURVEY_SNIPPETS = (
