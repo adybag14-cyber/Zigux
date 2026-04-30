@@ -846,6 +846,20 @@ def run_self_test() -> int:
         missing = validate_root(tmp_root)
         assert 'make:scripts/zigux/validate-phase4.py --self-test' in missing, missing
 
+        write_fixture_tree(tmp_root)
+        perf_baseline_manifest = tmp_root / 'zigux/tests/phase4_perf_baseline_manifest.json'
+        perf_baseline_data = json.loads(perf_baseline_manifest.read_text(encoding='utf-8'))
+        perf_baseline_data['survey_summary']['benchmark_command_unapproved'] = False
+        perf_baseline_manifest.write_text(
+            json.dumps(perf_baseline_data, indent=2, sort_keys=True) + '\n',
+            encoding='utf-8',
+        )
+        missing = validate_root(tmp_root)
+        assert (
+            'phase4_perf_baseline_manifest.survey_summary.benchmark_command_unapproved:False'
+            in missing
+        ), missing
+
     print('PHASE4_VALIDATOR_SELF_TEST=pass')
     return 0
 
