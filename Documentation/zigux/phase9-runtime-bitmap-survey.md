@@ -27,6 +27,10 @@ The Phase 9 roadmap explicitly names `lib/test_bitmap.c` as a runtime pilot-modu
 
 The live repo originally needed a survey-shaped review anchor that could record what the runtime bitmap lane had already shipped versus what still depends on a shared runtime substrate. This note stays in place after the bounded starter sample, direct sample-test leg, direct loader-test leg, module gate, diff gate, loader scaffold, and shared loader-request binding landed, so the lane can keep comparing the current pilot-module surface against the roadmap without pretending that Zigux already has a real loadable bitmap module.
 
+The shared runtime-loader blocker that still governs this bitmap packet also sits underneath the freeze map's study boundary. `Documentation/zigux/freeze-map.md` keeps `kernel/workqueue.c` in `Study / Boundary Only`, so this lane may ship a bounded in-memory starter, sample-side loader scaffold, shared loader-request binding, and direct bitmap replay evidence, but it must not imply workqueue parity, scheduler transport ownership, or any Architecture Council-approved status change for that study-only anchor.
+
+No parity scorecard entry or Architecture Council status-change request is attached to this Phase 9 runtime bitmap lane. The evidence here remains limited to the runtime starter, loader scaffold, shared request binding, module and diff gates, and the still-blocked shared loader-control posture that keeps the packet pre-execution.
+
 ## Survey findings
 
 - `lib/test_bitmap.c` is present on `master` at 1567 lines.
@@ -46,6 +50,7 @@ Against the Phase 9 roadmap requirements, the current runtime bitmap lane now re
 - a landed dedicated differential gate in `zigux/tests/runtime_bitmap_diff.zig`
 - a landed shared runtime-loader request binding under `zigux/kernel/runtime_loader.zig` that can consume the bitmap loader handoff shape, staged entry and exit symbols, allocator posture, and bitmap payload summary
 - a remaining blocked shared runtime control surface under `zigux/kernel/runtime_loader.zig`, because command-name, argv-policy, and environment-derived activation handling still have no shared owner and true runtime execution or lifecycle parity remains out of scope
+- the same shared runtime-loader blocker also stays under the freeze-map study boundary for `kernel/workqueue.c`, so the bitmap packet keeps workqueue parity and any scheduler-facing status change out of scope unless the Architecture Council explicitly reopens that anchor
 
 This keeps the survey honest about the difference between the shipped in-memory pilot and the still-missing loadable runtime substrate.
 
@@ -103,6 +108,7 @@ When a contributor updates `samples/zigux/runtime_bitmap.zig` or its directly co
 - if `initFromBitList()` changes its separator parsing, out-of-bounds handling, or repeat-init lifecycle guard, is that stricter direct-sample contract refreshed in the manifest-backed exact checks instead of being left implicit in code?
 - does the review packet still keep this bounded starter visibly separate from the still-blocked shared runtime-loader control surface rather than implying a loadable module or real command-path parity?
 - do the docs and tests still say clearly that real runtime execution, shared loader controls, and full `lib/test_bitmap.c` parity remain out of scope, with `Documentation/zigux/phase9-runtime-loader-gap-survey.md` still owning the blocked command-name, argv-policy, and environment-derived activation-control posture?
+- does the bitmap packet still treat `Documentation/zigux/freeze-map.md` as authoritative for the study-only `kernel/workqueue.c` boundary, with no parity scorecard entry or Architecture Council status-change request attached to this scheduler-facing anchor?
 
 ## Recorded gaps
 
@@ -138,7 +144,9 @@ This survey slice still does not claim:
 - a kernel-loadable `samples/zigux/runtime_bitmap.zig` module
 - direct parity for the full `lib/test_bitmap.c` surface beyond the bounded starter and diff gate
 - shared runtime-loader command-name, argv-policy, or environment-activation controls
+- parity or ownership for `kernel/workqueue.c`
+- any freeze-map status change for the scheduler-facing workqueue boundary without an Architecture Council decision
 
 ## Next bounded step
 
-Stay in the Phase 9 runtime bitmap lane and keep future work narrowly aimed at the remaining broader shared runtime-loader control surface or real lifecycle-parity blocker, rather than reopening already-landed survey, sample, loader-scaffold, shared binding, module-gate, or diff-gate scaffolding.
+Stay in the Phase 9 runtime bitmap lane and keep future work narrowly aimed at the remaining broader shared runtime-loader control surface or real lifecycle-parity blocker, rather than reopening already-landed survey, sample, loader-scaffold, shared binding, module-gate, or diff-gate scaffolding, while keeping the separate `kernel/workqueue.c` freeze-map boundary in study-only status unless the Architecture Council explicitly reopens it.
