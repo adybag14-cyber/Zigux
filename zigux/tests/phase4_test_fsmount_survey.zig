@@ -20,6 +20,8 @@ const Gap = struct {
 const Manifest = struct {
     lane_key: []const u8,
     phase: []const u8,
+    owner: []const u8,
+    rollback_owner: []const u8,
     surveyed_commit: []const u8,
     anchor: []const u8,
     roadmap_destinations: []const []const u8,
@@ -61,6 +63,8 @@ test "phase4 test_fsmount survey manifest records the landed survey packet and r
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P4-L19", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 4", manifest.phase);
+    try std.testing.expectEqualStrings("Validation and Perf Team", manifest.owner);
+    try std.testing.expectEqualStrings("Validation and Perf Team", manifest.rollback_owner);
     try std.testing.expectEqualStrings("samples/vfs/test-fsmount.c", manifest.anchor);
     try std.testing.expectEqualStrings("make M=samples/vfs", manifest.current_replay);
     try std.testing.expectEqual(@as(usize, 1), manifest.roadmap_destinations.len);
