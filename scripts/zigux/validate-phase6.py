@@ -61,6 +61,8 @@ phase6_build = (ROOT / "zigux" / "tests" / "phase6_build.zig").read_text(encodin
 phase6_base64 = (ROOT / "zigux" / "tests" / "phase6_base64.zig").read_text(encoding="utf-8")
 phase6_base64_c_parity = (ROOT / "zigux" / "tests" / "phase6_base64_c_parity.zig").read_text(encoding="utf-8")
 phase6_base64_c_casegen = (ROOT / "zigux" / "tests" / "phase6_base64_c_casegen.zig").read_text(encoding="utf-8")
+phase6_base64_c_harness = (ROOT / "zigux" / "tests" / "fixtures" / "phase6_base64_c_harness.c").read_text(encoding="utf-8")
+phase6_base64_c_parity_script = (ROOT / "scripts" / "zigux" / "check-phase6-base64-c-parity.py").read_text(encoding="utf-8")
 phase6_base64_slice = (ROOT / "Documentation" / "zigux" / "phase6-base64-slice.md").read_text(encoding="utf-8")
 phase6_base64_perf = (ROOT / "zigux" / "tests" / "phase6_base64_perf.zig").read_text(encoding="utf-8")
 phase6_bsearch = (ROOT / "zigux" / "tests" / "phase6_bsearch.zig").read_text(encoding="utf-8")
@@ -205,6 +207,27 @@ required_phase6_base64_c_casegen_markers = [
     "static const struct decode_case decode_cases[] = {",
     "static const struct invalid_case invalid_cases[] = {",
     'variantEnum(case.variant_name)',
+]
+
+required_phase6_base64_c_harness_markers = [
+    '#include "phase6_base64_c_generated_cases.inc"',
+    "static const int8_t base64_rev_maps[][256] = {",
+    'printf("enc\\t%s\\t%d\\t", variant_name(c->variant), c->padding ? 1 : 0);',
+    'printf("dec\\t%s\\t%d\\t%d\\t", variant_name(c->variant), c->padding ? 1 : 0, bytes_result);',
+    'printf("\\t%s\\t%s\\n", bytes_result < 0 ? "InvalidInput" : "ok", decode_result < 0 ? "InvalidInput" : "ok");',
+]
+
+required_phase6_base64_c_parity_script_markers = [
+    'C_HARNESS = ROOT / "zigux" / "tests" / "fixtures" / "phase6_base64_c_harness.c"',
+    'CASE_GENERATOR = ROOT / "zigux" / "tests" / "phase6_base64_c_casegen.zig"',
+    'GENERATED_INCLUDE = ROOT / "zigux" / "tests" / "fixtures" / "phase6_base64_c_generated_cases.inc"',
+    'ZIG_RUNNER = ROOT / "zigux" / "tests" / "phase6_base64_c_parity.zig"',
+    'generated_cases = run_checked([zig, "run", str(CASE_GENERATOR)]).stdout',
+    'GENERATED_INCLUDE.write_text(generated_cases, encoding="utf-8")',
+    'c_lines = sorted(c_run.stdout.strip().splitlines())',
+    'zig_lines = sorted(zig_run.stdout.strip().splitlines())',
+    'print("PHASE6_BASE64_C_PARITY=pass")',
+    'print(f"PHASE6_BASE64_C_PARITY_CASES={len(c_lines)}")',
 ]
 
 required_phase6_base64_slice_markers = [
@@ -353,6 +376,8 @@ require_markers("phase6_build", phase6_build, required_phase6_build_markers, iss
 require_markers("phase6_base64", phase6_base64, required_phase6_base64_markers, issues)
 require_markers("phase6_base64_c_parity", phase6_base64_c_parity, required_phase6_base64_c_parity_markers, issues)
 require_markers("phase6_base64_c_casegen", phase6_base64_c_casegen, required_phase6_base64_c_casegen_markers, issues)
+require_markers("phase6_base64_c_harness", phase6_base64_c_harness, required_phase6_base64_c_harness_markers, issues)
+require_markers("phase6_base64_c_parity_script", phase6_base64_c_parity_script, required_phase6_base64_c_parity_script_markers, issues)
 require_markers("phase6_base64_slice", phase6_base64_slice, required_phase6_base64_slice_markers, issues)
 require_markers("phase6_base64_perf", phase6_base64_perf, required_phase6_base64_perf_markers, issues)
 require_markers("phase6_bsearch", phase6_bsearch, required_phase6_bsearch_markers, issues)
