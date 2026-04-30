@@ -99,6 +99,9 @@ pub fn toSharedRequest(plan: RuntimeBitmapLoadPlan) runtime_loader.RuntimeLoadRe
                 .first_zero = plan.summary.first_zero,
                 .weight = plan.summary.weight,
                 .nbits = plan.summary.nbits,
+                .init_runs = plan.summary.init_runs,
+                .selftest_runs = plan.summary.selftest_runs,
+                .exit_runs = plan.summary.exit_runs,
             },
         },
     }).waitingOnRuntimeSubstrate();
@@ -124,6 +127,9 @@ test "runtime bitmap loader prepares a bounded handoff plan from the sample cont
     try std.testing.expectEqual(@as(u32, 0), plan.summary.first_set);
     try std.testing.expectEqual(@as(u32, 1), plan.summary.first_zero);
     try std.testing.expectEqual(@as(u32, 4), plan.summary.weight);
+    try std.testing.expectEqual(@as(usize, 1), plan.summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), plan.summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), plan.summary.exit_runs);
 }
 
 test "runtime bitmap loader keeps unavailable substrate and lifecycle guards explicit" {
@@ -140,6 +146,9 @@ test "runtime bitmap loader keeps unavailable substrate and lifecycle guards exp
     const pending_plan = try loader.requestRuntimeLoad();
     try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
     try std.testing.expectEqual(runtime_bitmap_sample.ModuleStage.initialized, pending_plan.handoff_stage);
+    try std.testing.expectEqual(@as(usize, 1), pending_plan.summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), pending_plan.summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), pending_plan.summary.exit_runs);
 
     try loader.releaseWithoutSubstrate();
     try std.testing.expectEqual(LoaderStage.released_without_substrate, loader.stage());
@@ -172,9 +181,15 @@ test "runtime bitmap loader snapshots the prepared bitmap summary before later s
     try std.testing.expectEqual(prepared.summary.first_zero, pending_plan.summary.first_zero);
     try std.testing.expectEqual(prepared.summary.weight, pending_plan.summary.weight);
     try std.testing.expectEqual(prepared.summary.nbits, pending_plan.summary.nbits);
+    try std.testing.expectEqual(prepared.summary.init_runs, pending_plan.summary.init_runs);
+    try std.testing.expectEqual(prepared.summary.selftest_runs, pending_plan.summary.selftest_runs);
+    try std.testing.expectEqual(prepared.summary.exit_runs, pending_plan.summary.exit_runs);
     try std.testing.expectEqual(@as(u32, 0), pending_plan.summary.first_set);
     try std.testing.expectEqual(@as(u32, 1), pending_plan.summary.first_zero);
     try std.testing.expectEqual(@as(u32, 4), pending_plan.summary.weight);
+    try std.testing.expectEqual(@as(usize, 1), pending_plan.summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), pending_plan.summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), pending_plan.summary.exit_runs);
 }
 
 test "runtime bitmap loader emits the shared runtime-loader request shape" {
@@ -202,6 +217,9 @@ test "runtime bitmap loader emits the shared runtime-loader request shape" {
     try std.testing.expectEqual(@as(u32, 1), request.payload.bitmap.first_zero);
     try std.testing.expectEqual(@as(u32, 4), request.payload.bitmap.weight);
     try std.testing.expectEqual(runtime_bitmap_sample.RuntimeBitmapSample.bitmap_nbits, request.payload.bitmap.nbits);
+    try std.testing.expectEqual(@as(usize, 1), request.payload.bitmap.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), request.payload.bitmap.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), request.payload.bitmap.exit_runs);
     try std.testing.expectEqual(runtime_loader.LoaderStage.waiting_on_runtime_substrate, request.handoff_stage);
     try std.testing.expectEqual(runtime_loader.LoaderStage.waiting_on_runtime_substrate, loader.stage());
     try std.testing.expectEqual(runtime_loader.LoaderLane.bitmap, std.meta.activeTag(request.payload));
@@ -234,6 +252,9 @@ test "runtime bitmap loader can release the shared runtime-loader request withou
     try std.testing.expectEqual(@as(u32, 1), released.payload.bitmap.first_zero);
     try std.testing.expectEqual(@as(u32, 4), released.payload.bitmap.weight);
     try std.testing.expectEqual(runtime_bitmap_sample.RuntimeBitmapSample.bitmap_nbits, released.payload.bitmap.nbits);
+    try std.testing.expectEqual(@as(usize, 1), released.payload.bitmap.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), released.payload.bitmap.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), released.payload.bitmap.exit_runs);
     try std.testing.expectEqualStrings("zigux_runtime_bitmap_init", released.entry_symbol);
     try std.testing.expectEqualStrings("zigux_runtime_bitmap_exit", released.exit_symbol);
     try std.testing.expectError(error.InvalidLoaderState, loader.requestSharedRuntimeLoad());
