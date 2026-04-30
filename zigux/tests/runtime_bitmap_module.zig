@@ -19,9 +19,8 @@ test "runtime bitmap sample enforces lifecycle transitions and bitmap mutations"
 
     try module.initWithSetBits(&.{ 0, 5, second_word_base, second_word_base + 6 });
     try std.testing.expectEqual(sample.ModuleStage.initialized, module.stage());
-    try std.testing.expectEqual(@as(usize, 1), module.init_runs);
-
     var summary = module.summary();
+    try std.testing.expectEqual(@as(usize, 1), summary.init_runs);
     try std.testing.expectEqual(@as(u32, 0), summary.first_set);
     try std.testing.expectEqual(@as(u32, 1), summary.first_zero);
     try std.testing.expectEqual(@as(u32, 4), summary.weight);
@@ -56,8 +55,10 @@ test "runtime bitmap sample enforces lifecycle transitions and bitmap mutations"
     try std.testing.expectEqual(sample.OperationFamily.iteration_and_ranges, selftest.operation_families[3]);
     try std.testing.expect(selftest.checked_range_mutations);
     try std.testing.expect(selftest.checked_iteration_paths);
-    try std.testing.expectEqual(@as(usize, 1), module.selftest_runs);
     const summary_after_selftest = module.summary();
+    try std.testing.expectEqual(@as(usize, 1), summary_after_selftest.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), summary_after_selftest.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), summary_after_selftest.exit_runs);
     try std.testing.expectEqual(summary_before_selftest.first_set, summary_after_selftest.first_set);
     try std.testing.expectEqual(summary_before_selftest.first_zero, summary_after_selftest.first_zero);
     try std.testing.expectEqual(summary_before_selftest.weight, summary_after_selftest.weight);
@@ -68,8 +69,10 @@ test "runtime bitmap sample enforces lifecycle transitions and bitmap mutations"
     const summary_before_exit = module.summary();
     try module.exit();
     try std.testing.expectEqual(sample.ModuleStage.exited, module.stage());
-    try std.testing.expectEqual(@as(usize, 1), module.exit_runs);
     const summary_after_exit = module.summary();
+    try std.testing.expectEqual(@as(usize, 1), summary_after_exit.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), summary_after_exit.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), summary_after_exit.exit_runs);
     try std.testing.expectEqual(summary_before_exit.first_set, summary_after_exit.first_set);
     try std.testing.expectEqual(summary_before_exit.first_zero, summary_after_exit.first_zero);
     try std.testing.expectEqual(summary_before_exit.weight, summary_after_exit.weight);
@@ -176,7 +179,9 @@ test "runtime bitmap sample keeps parse-and-print and bit-list guards explicit a
     try std.testing.expect(parsed.isSet(5));
     try std.testing.expect(parsed.isSet(64));
     try std.testing.expect(parsed.isSet(70));
-    try std.testing.expectEqual(@as(usize, 1), parsed.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), parsed_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), parsed_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), parsed_summary.exit_runs);
     try std.testing.expectEqual(sample.ModuleStage.initialized, parsed.stage());
 
     var empty = sample.RuntimeBitmapSample{};
