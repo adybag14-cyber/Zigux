@@ -76,16 +76,25 @@ pub fn copyAndExtend(dst: []Word, src: []const Word, count: usize, size: usize) 
 
 pub fn empty(src: []const Word, nbits: usize) bool {
     assertBitmapLen(src, nbits);
+    if (nbits == 0) {
+        return true;
+    }
     return find_bit.findFirstBit(src, nbits) == nbits;
 }
 
 pub fn full(src: []const Word, nbits: usize) bool {
     assertBitmapLen(src, nbits);
+    if (nbits == 0) {
+        return true;
+    }
     return find_bit.findFirstZeroBit(src, nbits) == nbits;
 }
 
 pub fn weight(src: []const Word, nbits: usize) usize {
     assertBitmapLen(src, nbits);
+    if (nbits == 0) {
+        return 0;
+    }
 
     var total: usize = 0;
     const lim = nbits / bits_per_long;
@@ -134,6 +143,9 @@ pub fn andBits(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize
     assertBitmapLen(dst, nbits);
     assertBitmapLen(src1, nbits);
     assertBitmapLen(src2, nbits);
+    if (nbits == 0) {
+        return false;
+    }
 
     const lim = nbits / bits_per_long;
     var result: Word = 0;
@@ -156,6 +168,9 @@ pub fn andNotBits(dst: []Word, src1: []const Word, src2: []const Word, nbits: us
     assertBitmapLen(dst, nbits);
     assertBitmapLen(src1, nbits);
     assertBitmapLen(src2, nbits);
+    if (nbits == 0) {
+        return false;
+    }
 
     const lim = nbits / bits_per_long;
     var result: Word = 0;
@@ -177,6 +192,9 @@ pub fn andNotBits(dst: []Word, src1: []const Word, src2: []const Word, nbits: us
 pub fn equal(src1: []const Word, src2: []const Word, nbits: usize) bool {
     assertBitmapLen(src1, nbits);
     assertBitmapLen(src2, nbits);
+    if (nbits == 0) {
+        return true;
+    }
 
     const lim = nbits / bits_per_long;
     for (0..lim) |idx| {
@@ -198,6 +216,9 @@ pub fn equal(src1: []const Word, src2: []const Word, nbits: usize) bool {
 pub fn intersects(src1: []const Word, src2: []const Word, nbits: usize) bool {
     assertBitmapLen(src1, nbits);
     assertBitmapLen(src2, nbits);
+    if (nbits == 0) {
+        return false;
+    }
 
     const lim = nbits / bits_per_long;
     for (0..lim) |idx| {
@@ -219,6 +240,9 @@ pub fn intersects(src1: []const Word, src2: []const Word, nbits: usize) bool {
 pub fn subset(src1: []const Word, src2: []const Word, nbits: usize) bool {
     assertBitmapLen(src1, nbits);
     assertBitmapLen(src2, nbits);
+    if (nbits == 0) {
+        return true;
+    }
 
     const lim = nbits / bits_per_long;
     for (0..lim) |idx| {
@@ -306,6 +330,9 @@ fn appendUnsigned(buffer: []u8, written: *usize, value: usize) void {
 
 pub fn scnprintf(bitmap: []const Word, nbits: usize, buffer: []u8) usize {
     assertBitmapLen(bitmap, nbits);
+    if (nbits == 0) {
+        return 0;
+    }
 
     var written: usize = 0;
     var first = true;
