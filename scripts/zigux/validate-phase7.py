@@ -332,6 +332,10 @@ required_phase7_string_helpers_survey_markers = [
     "Documentation/zigux/phase7-string-helpers-slice.md",
     "samples/zigux/README.md",
     "no `samples/zigux/*string*` Phase 5 reference sample",
+    "`kstrdup_and_replace()` over the bounded duplicate-then-rewrite ownership-safe path",
+    "`kfree_strarray()` over the bounded repeated-teardown-safe release path",
+    "phase 7 kstrdupAndReplace keeps ownership and first-NUL replacement boundaries explicit",
+    "phase 7 kfreeStrarray keeps first-NUL prefixes, zero-count reuse, and repeated teardown safe",
 ]
 
 required_phase7_string_helpers_test_markers = [
