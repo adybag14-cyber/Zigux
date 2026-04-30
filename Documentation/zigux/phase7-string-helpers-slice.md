@@ -79,7 +79,7 @@ The current tests check:
 - truncation, exact-fit, and padding behavior for fixed-size destinations
 - bounded termination checks that only scan the requested byte window
 - bounded ASCII case conversion that stops at the first NUL
-- deterministic SI and binary `string_get_size()` formatting with a block-size multiplier
+- deterministic SI and binary `string_get_size()` formatting with a block-size multiplier, Linux-style rounding, odd block-size scaling, and huge-value saturation into the documented unit suffixes
 - `STRING_UNITS_NO_SPACE` and `STRING_UNITS_NO_BYTES` formatting flags plus snprintf-style truncation accounting for `string_get_size()`
 - deterministic space, octal, hex, special, and combined unescape cases derived from `lib/tests/string_helpers_kunit.c`
 - shared deterministic escape fixtures under `zigux/tests/fixtures/phase7_string_helpers_escape_vectors.zig` so the dedicated Phase 7 gate replays the landed escape-space, special, null, octal, hex, dictionary-limited, and passthrough-filter cases from one reviewable source
