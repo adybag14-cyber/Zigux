@@ -31,7 +31,7 @@ It does require the live repo to say clearly what is already part of the permane
 
 ## Live Repo Reality
 
-This survey is pinned to verified `master` packet head `f554c0dcef173a5fcd48d86ca5150f0e25988d0e` so the note stays tied to one inspected boundary snapshot instead of a floating branch label.
+This survey is pinned to verified `master` head `f554c0dcef173a5fcd48d86ca5150f0e25988d0e` for the directly coupled export/UAPI packet, so the note stays tied to one inspected boundary snapshot instead of a floating branch label.
 
 The current tree already carries the first bounded export and UAPI boundary surface:
 
