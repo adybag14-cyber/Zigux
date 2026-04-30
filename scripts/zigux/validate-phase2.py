@@ -12,6 +12,7 @@ PHASE2_TOOL_MANIFEST = ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase2_tool_mani
 PHASE2_CROSS_TARGETS = ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase2_cross_targets.json'
 CONF_BRIDGE = ROOT / 'scripts' / 'zigux' / 'kconfig' / 'conf_bridge.zig'
 CHECK_KCONFIG_BRIDGE = ROOT / 'scripts' / 'zigux' / 'check-kconfig-bridge.py'
+CHECK_PHASE2_CROSS = ROOT / 'scripts' / 'zigux' / 'check-phase2-cross.py'
 GENKSYMS_BRIDGE_CASES = GENKSYMS_BRIDGE_DIR / 'cases.json'
 EXPECTED_PHASE2_TOOL_MANIFEST_TOOLS = [
     'scripts/zigux/fixdep.zig',
@@ -701,6 +702,25 @@ def validate_artifact_diff_contract_gate(checker_script: Path) -> list[str]:
     return issues
 
 
+def validate_phase2_cross_checker_gate(checker_script: Path) -> list[str]:
+    source = checker_script.read_text(encoding='utf-8')
+    required_markers = {
+        'self_test_arg': "parser.add_argument('--self-test'",
+        'self_test_pass_marker': "print('PHASE2_CROSS_SELF_TEST=pass')",
+        'self_test_case_count_marker': "print('PHASE2_CROSS_SELF_TEST_CASE_COUNT=7')",
+        'tool_count_mismatch_guard': 'phase2-cross:tool_count_mismatch',
+        'target_count_mismatch_guard': 'phase2-cross:target_count_mismatch',
+        'duplicate_target_guard': 'phase2-cross:duplicate_target:',
+        'unexpected_target_guard': 'phase2-cross:unexpected_target:',
+    }
+
+    issues: list[str] = []
+    for issue_name, marker in required_markers.items():
+        if marker not in source:
+            issues.append(f'phase2_cross_checker:{issue_name}')
+    return issues
+
+
 def validate_phase2_tooling_manifests(tool_manifest_path: Path, cross_targets_path: Path) -> list[str]:
     issues: list[str] = []
 
@@ -861,6 +881,15 @@ if kconfig_checker_issues:
     print('MISSING_PHASE2_KCONFIG_CHECKER_GATES_END')
     sys.exit(1)
 
+phase2_cross_checker_issues = validate_phase2_cross_checker_gate(CHECK_PHASE2_CROSS)
+if phase2_cross_checker_issues:
+    print('PHASE2_VALIDATION=fail')
+    print('MISSING_PHASE2_CROSS_CHECKER_GATES_START')
+    for item in phase2_cross_checker_issues:
+        print(item)
+    print('MISSING_PHASE2_CROSS_CHECKER_GATES_END')
+    sys.exit(1)
+
 fixdep_checker_issues = validate_fixdep_checker_gate(ROOT / 'scripts' / 'zigux' / 'check-fixdep-diff.py')
 if fixdep_checker_issues:
     print('PHASE2_VALIDATION=fail')
@@ -917,6 +946,7 @@ required_workflow_markers = [
     'python3 scripts/zigux/check-genksyms-crc-diff.py',
     'python3 scripts/zigux/check-kconfig-bridge.py --self-test',
     'python3 scripts/zigux/check-kconfig-bridge.py',
+    'python3 scripts/zigux/check-phase2-cross.py --self-test',
     'python3 scripts/zigux/check-phase2-cross.py --target',
     'python3 scripts/zigux/check-mk-elfconfig-diff.py',
     'python3 scripts/zigux/artifact_diff.py --self-test',
@@ -956,6 +986,7 @@ required_script_markers = [
     'check-genksyms-crc-diff.py',
     'check-kconfig-bridge.py --self-test',
     'check-kconfig-bridge.py',
+    'check-phase2-cross.py --self-test',
     'check-phase2-cross.py',
     'genksyms.zig',
     'genksyms_crc.zig',
@@ -972,6 +1003,9 @@ required_makefile_markers = [
     'phase2-kconfig:',
     'scripts/zigux/check-kconfig-bridge.py --self-test',
     'scripts/zigux/check-kconfig-bridge.py',
+    'phase2-cross:',
+    'scripts/zigux/check-phase2-cross.py --self-test',
+    'scripts/zigux/check-phase2-cross.py',
 ]
 
 missing_markers = []
