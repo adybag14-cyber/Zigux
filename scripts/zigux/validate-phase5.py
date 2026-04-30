@@ -208,6 +208,12 @@ manifest_expectations = {
         "lane_key": "P5-L04",
         "anchor": "samples/kfifo/bytestream-example.c",
         "sample_path": "samples/zigux/bytestream_fifo.zig",
+        "non_goals": [
+            "procfs parity",
+            "kfifo_from_user or kfifo_to_user parity",
+            "loadable module registration",
+            "locking or blocking semantics",
+        ],
         "exact_check_ids": [
             "initial-fill-len",
             "first-drain",
@@ -230,6 +236,12 @@ manifest_expectations = {
         "lane_key": "P5-L11",
         "anchor": "samples/kobject/kobject-example.c",
         "sample_path": "samples/zigux/kobject_example.zig",
+        "non_goals": [
+            "sysfs file creation parity",
+            "kernel_kobj integration",
+            "uevent delivery",
+            "loadable module registration",
+        ],
         "exact_check_ids": [
             "directory-name",
             "attribute-order",
@@ -248,6 +260,12 @@ manifest_expectations = {
         "lane_key": "P5-L17",
         "anchor": "samples/kprobes/kretprobe_example.c",
         "sample_path": "samples/zigux/kretprobe_example.zig",
+        "non_goals": [
+            "register_kretprobe parity",
+            "unregister_kretprobe parity",
+            "pt_regs or regs_return_value parity",
+            "loadable module wiring",
+        ],
         "exact_check_ids": [
             "default-symbol",
             "pre-init-retargeting",
@@ -265,6 +283,12 @@ manifest_expectations = {
         "lane_key": "P5-L23",
         "anchor": "samples/trace_events/trace-events-sample.c",
         "sample_path": "samples/zigux/trace_events_sample.zig",
+        "non_goals": [
+            "CREATE_TRACE_POINTS parity",
+            "tracepoint macro parity from trace-events-sample.h",
+            "kernel thread scheduling or timeout parity",
+            "module registration or unregister wiring parity",
+        ],
         "exact_check_ids": [
             "descriptor-anchor",
             "message-and-string-shape",
@@ -366,6 +390,8 @@ for manifest_name, expected in manifest_expectations.items():
         missing_markers.append(f"{manifest_name}:sample_path={expected['sample_path']}")
     if manifest.get("validation_entrypoint") != "zig build test --build-file zigux/tests/phase5_build.zig --summary all":
         missing_markers.append(f"{manifest_name}:validation_entrypoint")
+    if manifest.get("non_goals") != expected["non_goals"]:
+        missing_markers.append(f"{manifest_name}:non_goals")
     exact_check_ids = [check.get("id") for check in manifest.get("exact_checks", []) if isinstance(check, dict)]
     expected_exact_check_ids = expected["exact_check_ids"]
     if exact_check_ids != expected_exact_check_ids:
@@ -409,5 +435,5 @@ print("PHASE5_VALIDATION=pass")
 print(f"PHASE5_REQUIRED_FILE_COUNT={len(required_files)}")
 print(
     "PHASE5_REQUIRED_MARKER_COUNT="
-    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_checklist_markers) + len(required_sample_root_markers) + len(required_phase5_build_markers) + sum(9 + len(expectation['survey_test_markers']) for expectation in survey_note_expectations.values()) + sum(len(expectation['exact_check_ids']) for expectation in manifest_expectations.values())}"
+    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_checklist_markers) + len(required_sample_root_markers) + len(required_phase5_build_markers) + sum(9 + len(expectation['survey_test_markers']) for expectation in survey_note_expectations.values()) + sum(len(expectation['exact_check_ids']) + len(expectation['non_goals']) for expectation in manifest_expectations.values())}"
 )
