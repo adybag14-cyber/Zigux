@@ -6,8 +6,8 @@ This sample-backed survey note tracks the bounded Phase 5 reference-sample surve
 
 - `PHASE5_STATUS=active`
 - `PHASE5_SLICE=trace-events-reference-sample-starter`
-- `PHASE5_LANE_KEY=P5-L20`
-- `PHASE5_SURVEYED_COMMIT=6cafaa3fc0283d6b4c341371a66768bc4a0e4a14`
+- `PHASE5_LANE_KEY=P5-L23`
+- `PHASE5_SURVEYED_COMMIT=419faaa4112f0209c473e46d5eb1ba800715a4d2`
 - scope: roadmap-vs-repo sample delivery, approved payload and callback idiom guidance, contributor refresh cues, and exact bounded checks for the landed `samples/zigux/` trace-events replay
 - product boundary:
   - `Documentation/zigux/phase5-trace-events-sample-survey.md`
@@ -69,7 +69,7 @@ The exact checks currently recorded in `zigux/tests/phase5_trace_events_sample_m
 
 ## Latest verification snapshot
 
-- inspected `master` head: `6cafaa3fc0283d6b4c341371a66768bc4a0e4a14`
+- inspected `master` head: `419faaa4112f0209c473e46d5eb1ba800715a4d2`
 - attached Zig toolchain: `0.17.0-dev.87+9b177a7d2`
 - exact commands and observed results:
   - `zig test samples/zigux/trace_events_sample.zig`
@@ -112,7 +112,7 @@ The current gap is no longer "Zigux has no trace-events sample guidance." The mo
 - the repo now has a reviewable Phase 5 `trace_events_sample` reference sample plus manifest-backed checks for payload shape, string selection, selected-string slot cues, payload-length cues, main-path and callback-path iteration cues, formatted messages, bounded family counts, lifecycle-summary counts, the exact `checked_focus` review surface, vararg-payload coverage, relative-location coverage, callback-path coverage, and teardown
 - this sample must remain visibly separate from the later Phase 9 runtime `trace-events` starter so contributors do not over-claim runtime substrate coverage
 - the Phase 5 roadmap's four named sample anchors are now all represented by bounded `samples/zigux/` reference readings, but that does not close the separate Phase 9 runtime pilot tranche
-- this approved payload-and-callback idiom is now pinned to `PHASE5_SURVEYED_COMMIT=6cafaa3fc0283d6b4c341371a66768bc4a0e4a14` so the sample-backed survey note, latest verification snapshot, sample-root catalog boundary, and manifest-backed survey all point at the same inspected `master` head
+- this approved payload-and-callback idiom is now pinned to `PHASE5_SURVEYED_COMMIT=419faaa4112f0209c473e46d5eb1ba800715a4d2` so the sample-backed survey note, latest verification snapshot, sample-root catalog boundary, and manifest-backed survey all point at the same inspected `master` head
 
 ## Review gates for this survey
 
