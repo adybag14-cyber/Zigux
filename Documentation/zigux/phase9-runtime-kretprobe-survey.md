@@ -6,7 +6,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `sam
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-kretprobe-survey`
-- `PHASE9_LANE_KEY=P9-L13`
+- `PHASE9_LANE_KEY=P9-L10`
 - `PHASE9_SURVEYED_COMMIT=a0bf6e9e3c43e1fc51c0d85ae74c065439ac22da`
 - scope: survey manifest, manifest-backed delivery catalog and ownership map, a direct embedded sample replay, dedicated survey and diff gates, the bounded loader-handoff scaffold, explicit no-substrate rollback evidence, the landed shared loader-request binding, explicit `phase9-runtime-kretprobe-{sample,module,diff,loader,survey}-tests` shared-build legs, and the lane-level note that records the remaining broader runtime-control blocker plus the exact Phase 9 roadmap gap it still leaves open
 - product boundary:
@@ -26,7 +26,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `sam
 
 The roadmap names `samples/kprobes/kretprobe_example.c` twice: first as a Phase 5 sample-reference anchor and later as a Phase 9 runtime pilot anchor. This lane stays strictly inside the Phase 9 reading of that roadmap entry.
 
-The survey artifacts stay anchored to the original `P9-L13` survey lane even though later neighboring runs landed the `runtime_kretprobe` starter, dedicated module tests, diff gate, loader-handoff scaffold, and the shared runtime-loader request binding. That keeps the survey history honest while still recording the full live review surface.
+The survey artifacts now stay anchored to the `P9-L10` manifest, catalog, and ownership lane that owns this runtime kretprobe packet, even though later neighboring runs landed the `runtime_kretprobe` starter, dedicated module tests, diff gate, loader-handoff scaffold, and the shared runtime-loader request binding. That keeps the ownership history honest while still recording the full live review surface.
 
 The live repo now has a bounded `runtime_kretprobe` starter, a direct embedded sample replay, dedicated module tests, a dedicated diff gate, a bounded loader-handoff scaffold, a shared loader-request binding under `zigux/kernel/runtime_loader.zig`, and shared Phase 9 build coverage, so this survey note keeps that shipped packet reviewable through a manifest-backed delivery catalog and ownership map instead of leaving the sample and shared-build surface implied.
 
