@@ -116,7 +116,9 @@ pub fn toSharedRequest(plan: RuntimeKretprobeLoadPlan) runtime_loader.RuntimeLoa
                 .nmissed = plan.summary.nmissed,
                 .last_retval = plan.summary.last_retval,
                 .last_duration_ns = plan.summary.last_duration_ns,
+                .init_runs = plan.summary.init_runs,
                 .selftest_runs = plan.summary.selftest_runs,
+                .exit_runs = plan.summary.exit_runs,
                 .entry_timestamp_armed = plan.summary.entry_timestamp_armed,
             },
         },
@@ -260,7 +262,9 @@ test "runtime kretprobe loader emits the shared runtime-loader request shape" {
     try std.testing.expect(request.allocator_handoff.initializes_owned_state);
     try std.testing.expect(!request.allocator_handoff.requires_reset_on_init);
     try std.testing.expectEqualStrings("register_kretprobe", request.payload.kretprobe.register_api);
+    try std.testing.expectEqual(@as(usize, 1), request.payload.kretprobe.init_runs);
     try std.testing.expectEqual(@as(usize, 1), request.payload.kretprobe.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), request.payload.kretprobe.exit_runs);
     try std.testing.expectEqual(runtime_loader.LoaderStage.waiting_on_runtime_substrate, request.handoff_stage);
 }
 
@@ -294,7 +298,9 @@ test "runtime kretprobe loader can release the shared runtime-loader request wit
     try std.testing.expectEqual(@as(usize, 20), released.payload.kretprobe.maxactive);
     try std.testing.expectEqual(@sizeOf(runtime_kretprobe_sample.InstancePrivateData), released.payload.kretprobe.private_data_bytes);
     try std.testing.expectEqual(@as(usize, 1), released.payload.kretprobe.nmissed);
+    try std.testing.expectEqual(@as(usize, 1), released.payload.kretprobe.init_runs);
     try std.testing.expectEqual(@as(usize, 1), released.payload.kretprobe.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), released.payload.kretprobe.exit_runs);
     try std.testing.expectEqual(@as(usize, 42), released.payload.kretprobe.last_retval);
     try std.testing.expectEqual(@as(i64, 75), released.payload.kretprobe.last_duration_ns);
     try std.testing.expectEqualStrings("zigux_runtime_kretprobe_init", released.entry_symbol);
