@@ -10,6 +10,7 @@ const PerfCase = struct {
 const perf_cases = [_]PerfCase{
     .{ .label = "256", .len = 256, .reps = 2_000 },
     .{ .label = "4096", .len = 4096, .reps = 500 },
+    .{ .label = "65536", .len = 65536, .reps = 64 },
 };
 
 var compare_calls: usize = 0;
