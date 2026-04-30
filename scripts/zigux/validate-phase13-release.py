@@ -70,6 +70,11 @@ RELEASE_MARKERS = [
     "`security/landlock/syscalls.c` through `zigux/tests/phase13_landlock_syscalls_manifest.json` lane `P13-L16`",
     "adjacent notifier-list reviewability evidence through `zigux/tests/phase13_notifier_list_manifest.json` lane `P13-L17`",
     "lib/devres.c`: helper slice landed, dedicated tests present, roadmap traceability present, manifest-backed survey present, and helper-first MMIO or resource planners keep live DMA-backed mappings and scatterlist ownership explicitly blocked",
+    "The current release packet also carries one active shared-replay blocker on `master`:",
+    "`python3 scripts/zigux/validate-phase13-release.py` and `make -C zigux phase13-validate` currently pass",
+    "`make -C zigux phase13-test` and `make -C zigux phase13` currently fail because `zigux/tests/phase13_landlock_ruleset.zig` ends with a syntax error",
+    "`expected statement, found 'EOF'`",
+    "that failure belongs to the dedicated Landlock ruleset helper lane",
     "phase13_notifier_list_reviewability.zig",
     "zig build test --build-file zigux/tests/phase13_build.zig --summary all",
 ]
@@ -102,6 +107,7 @@ REVIEW_CHECKLIST_MARKERS = [
     "if the change touches the shared Phase 13 release-discipline packet, do `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/validate-phase13-release.py`, `zigux/Makefile`, and `zigux/tests/phase13_build.zig` still agree",
     "`make -C zigux phase13` routes through `make -C zigux phase13-validate` before the shared replay",
     "and that the shared replay still names the same seven steps?",
+    "if the shared replay is currently blocked on `master`, does `Documentation/zigux/phase13-release-notes-survey.md` still name the exact blocker, the owning lane, and the fact that `phase13-validate` is green while `phase13-test` is not?",
     "if the change touches the shared Phase 13 release-discipline packet, do `zigux/tests/phase13_libfs_manifest.json`, `zigux/tests/phase13_devres_manifest.json`, `zigux/tests/phase13_landlock_ruleset_manifest.json`, `zigux/tests/phase13_landlock_syscalls_manifest.json`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_devres_reviewability.zig`, and `zigux/tests/phase13_notifier_list_reviewability.zig` still back the same four manifest-backed roadmap anchors plus the adjacent notifier-list reviewability packet",
     "while keeping live DMA-backed mappings and scatterlist ownership blocked rather than implied?",
 ]
