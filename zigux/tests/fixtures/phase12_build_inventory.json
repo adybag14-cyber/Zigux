@@ -180,8 +180,8 @@
     }
   ],
   "expected_step_count": 17,
-  "expected_test_count": 52,
-  "expected_summary_line": "Build Summary: 17/17 steps succeeded; 52/52 tests passed",
+  "expected_test_count": 53,
+  "expected_summary_line": "Build Summary: 17/17 steps succeeded; 53/53 tests passed",
   "forbidden_markers": [],
   "dedicated_survey_replays": []
 }
