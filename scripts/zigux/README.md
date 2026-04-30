@@ -123,13 +123,13 @@ Phase 8 flow
 - `make -C zigux phase8-test` and `zig build test --build-file zigux/tests/phase8_build.zig --summary all` remain the shared replay path after the validator passes.
 
 Phase 9 flow
-- `validate-phase9.py` keeps the shipped runtime pilot packet aligned across `scripts/zigux/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_loader_gap_survey.zig`, `zigux/tests/phase9_build.zig`, and the current runtime starter notes and manifests before replay claims stay green.
-- `validate-phase9.py --self-test` exercises the shared Phase 9 marker walk in a compact synthetic tree and fails if the published loader-gap review packet, manifest-backed catalog and ownership map, selftest-hook markers, or bounded lifecycle-parity posture drifts.
+- `validate-phase9.py --self-test` exercises the shared runtime marker walk in a compact synthetic tree before the live runtime packet is trusted.
+- `validate-phase9.py` keeps the current runtime pilot packet aligned across `scripts/zigux/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, the four runtime survey families, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_loader_gap_survey.zig`, `zigux/tests/phase9_build.zig`, `zigux/Makefile`, and the bootstrap workflow so the manifest-backed catalog and ownership map stay reviewable.
 - `make -C zigux phase9-validate` is the validator-first entrypoint for the current Phase 9 flow.
-- `zigux/tests/phase9_build.zig` is the shared build entrypoint for the current runtime pilot packet and keeps the loader-gap survey, runtime starter surveys, and shared review path explicit in one place.
-- `Documentation/zigux/phase9-runtime-loader-gap-survey.md` remains the shared runtime-loader ownership note for the current packet.
-- `Documentation/zigux/review-checklist.md` stays adjacent to that shared runtime-loader evidence packet so review keeps the manifest-backed catalog and ownership map visible instead of relying on ad hoc survey drift.
-- the current runtime pilot notes keep the roadmap selftest-hook markers and bounded lifecycle-parity posture explicit instead of implying a loadable module path that the runtime substrate does not support yet.
+- `make -C zigux phase9` and `zig build test --build-file zigux/tests/phase9_build.zig --summary all` are the shared replay path after the validator passes.
+- `Documentation/zigux/phase9-runtime-loader-gap-survey.md` remains the shared loader-gap review note for the runtime packet.
+- the current Phase 9 review surface keeps the roadmap's selftest-hook markers explicit across the shipped sample, manifest-backed survey, and shared build entrypoint.
+- the current runtime starter remains a bounded lifecycle-parity posture rather than a claim of live loadable-module execution.
 
 Phase 10 flow
 - `validate-phase10.py` keeps the wider Phase 10 flow aligned across `scripts/zigux/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-survey.md`, `zigux/tests/README.md`, `zigux/tests/phase10_build.zig`, `zigux/tests/phase10_virtio_input_manifest.json`, `zigux/tests/phase10_virtio_mmio_manifest.json`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_mmio.zig`, `zigux/tests/phase10_virtio_input.zig`, `zigux/tests/phase10_virtio_input_survey.zig`, and `zigux/tests/phase10_virtio_mmio.zig` so the current Phase 10 input-plus-MMIO starter packet stays reviewable through one shared validation surface instead of drifting into isolated file-local claims.
