@@ -1,7 +1,7 @@
 {
   "lane_key": "P11-L03",
   "phase": "Phase 11",
-  "surveyed_commit": "0342b9a3c7cb89ec0d1e8bdf835ebd204bf964e4",
+  "surveyed_commit": "be0f31bf64cdc200e2129992d1fed491b60fed2a",
   "anchor": "drivers/watchdog/gpio_wdt.c",
   "roadmap_destinations": [
     "drivers/watchdog/*.zig",
