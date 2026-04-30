@@ -118,17 +118,19 @@ pub fn memparse(ptr: []const u8, ret_index: ?*usize) u64 {
 }
 
 pub fn parseOptionStr(str: []const u8, option: []const u8) bool {
+    var remaining = cStringPrefix(str);
     const needle = cStringPrefix(option);
-    if (needle.len == 0) {
-        return false;
+    while (remaining.len != 0) {
+        if (remaining.len >= needle.len and std.mem.eql(u8, remaining[0..needle.len], needle)) {
+            if (remaining.len == needle.len or remaining[needle.len] == ',') {
+                return true;
+            }
+        }
+
+        const comma = std.mem.indexOfScalar(u8, remaining, ',') orelse return false;
+        remaining = remaining[comma + 1 ..];
     }
 
-    var it = std.mem.splitScalar(u8, cStringPrefix(str), ',');
-    while (it.next()) |segment| {
-        if (std.mem.eql(u8, segment, needle)) {
-            return true;
-        }
-    }
     return false;
 }
 
@@ -508,12 +510,17 @@ test "numeric parsing rejects an explicit leading plus sign" {
     try std.testing.expectEqual(@as(usize, 0), mem_index);
 }
 
+test "parseOptionStr matches C empty-option edge behavior around commas" {
+    try std.testing.expect(parseOptionStr(",debug", ""));
+    try std.testing.expect(parseOptionStr("quiet,,debug", ""));
+    try std.testing.expect(!parseOptionStr("", ""));
+    try std.testing.expect(!parseOptionStr("quiet,", ""));
+}
+
 test "parseOptionStr matches only exact bare options before NUL" {
     try std.testing.expect(parseOptionStr("quiet,debug,nohlt", "debug"));
     try std.testing.expect(!parseOptionStr("quiet,debug=1,nohlt", "debug"));
     try std.testing.expect(!parseOptionStr("quiet,debug\x00,nohlt", "nohlt"));
-    try std.testing.expect(!parseOptionStr("", ""));
-    try std.testing.expect(!parseOptionStr("quiet,", ""));
 }
 
 test "nextArg preserves leading equals sentinels and trims trailing spaces" {
