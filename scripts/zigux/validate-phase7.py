@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import json
 from pathlib import Path
 import re
 import subprocess
@@ -59,7 +60,12 @@ doc_readme = (ROOT / "Documentation" / "zigux" / "README.md").read_text(encoding
 phase7_build = (ROOT / "zigux" / "tests" / "phase7_build.zig").read_text(encoding="utf-8")
 phase7_string_helpers_survey = (ROOT / "zigux" / "tests" / "phase7_string_helpers_survey.zig").read_text(encoding="utf-8")
 phase7_cmdline_survey = (ROOT / "zigux" / "tests" / "phase7_cmdline_survey.zig").read_text(encoding="utf-8")
+phase7_argv_split_doc = (ROOT / "Documentation" / "zigux" / "phase7-argv-split-slice.md").read_text(encoding="utf-8")
+phase7_argv_split_manifest = json.loads(
+    (ROOT / "zigux" / "tests" / "phase7_argv_split_manifest.json").read_text(encoding="utf-8")
+)
 phase7_argv_split_survey = (ROOT / "zigux" / "tests" / "phase7_argv_split_survey.zig").read_text(encoding="utf-8")
+phase7_argv_split_tests = (ROOT / "zigux" / "tests" / "phase7_argv_split.zig").read_text(encoding="utf-8")
 phase7_rbtree_survey = (ROOT / "zigux" / "tests" / "phase7_rbtree_survey.zig").read_text(encoding="utf-8")
 phase7_cmdline_doc = (ROOT / "Documentation" / "zigux" / "phase7-cmdline-slice.md").read_text(encoding="utf-8")
 phase7_rbtree_doc = (ROOT / "Documentation" / "zigux" / "phase7-rbtree-slice.md").read_text(encoding="utf-8")
@@ -204,6 +210,23 @@ required_phase7_argv_split_survey_markers = [
     "zigux/tests/phase7_argv_split_manifest.json",
 ]
 
+required_phase7_argv_split_doc_markers = [
+    "PHASE7_STATUS=parked",
+    "`argv_free()` via `argvFree()`",
+    "zigux/tests/phase7_argv_split.zig",
+    "zigux/tests/phase7_argv_split_survey.zig",
+    "zigux/tests/phase7_argv_split_manifest.json",
+    "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
+    "machine-checked survey record",
+]
+
+required_phase7_argv_split_test_markers = [
+    'const phase7_vectors = @import("fixtures/phase7_argv_split_vectors.zig");',
+    "phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable",
+    "phase 7 argvSplit deinit stays safe when called after teardown already cleared the result",
+    "phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup",
+]
+
 required_phase7_cmdline_doc_markers = [
     "PHASE7_STATUS=parked",
     "zigux/tests/phase7_cmdline.zig",
@@ -293,7 +316,9 @@ checks = [
     ("zigux/tests/phase7_build.zig", phase7_build, required_phase7_build_markers),
     ("zigux/tests/phase7_string_helpers_survey.zig", phase7_string_helpers_survey, required_phase7_string_helpers_survey_markers),
     ("zigux/tests/phase7_cmdline_survey.zig", phase7_cmdline_survey, required_phase7_cmdline_survey_markers),
+    ("Documentation/zigux/phase7-argv-split-slice.md", phase7_argv_split_doc, required_phase7_argv_split_doc_markers),
     ("zigux/tests/phase7_argv_split_survey.zig", phase7_argv_split_survey, required_phase7_argv_split_survey_markers),
+    ("zigux/tests/phase7_argv_split.zig", phase7_argv_split_tests, required_phase7_argv_split_test_markers),
     ("zigux/tests/phase7_rbtree_survey.zig", phase7_rbtree_survey, required_phase7_rbtree_survey_markers),
     ("Documentation/zigux/phase7-cmdline-slice.md", phase7_cmdline_doc, required_phase7_cmdline_doc_markers),
     ("Documentation/zigux/phase7-rbtree-slice.md", phase7_rbtree_doc, required_phase7_rbtree_doc_markers),
@@ -311,6 +336,63 @@ if missing_markers:
     for label, marker in missing_markers:
         print(f"{label}: {marker}")
     print("MISSING_PHASE7_MARKERS_END")
+    sys.exit(1)
+
+expected_argv_split_gap_destinations = {
+    "phase7-build-gate": "zigux/tests/phase7_build.zig",
+    "phase7-argv-split-helper": "lib/argv_split.zig",
+    "phase7-argv-split-dedicated-tests": "zigux/tests/phase7_argv_split.zig",
+    "phase7-argv-split-shared-fixtures": "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
+    "phase7-argv-split-slice-note": "Documentation/zigux/phase7-argv-split-slice.md",
+    "phase7-argv-split-survey-gate": "zigux/tests/phase7_argv_split_survey.zig",
+}
+
+manifest_shape_errors: list[str] = []
+if phase7_argv_split_manifest.get("lane_key") != "P7-L12":
+    manifest_shape_errors.append("lane_key")
+if phase7_argv_split_manifest.get("phase") != "Phase 7":
+    manifest_shape_errors.append("phase")
+if phase7_argv_split_manifest.get("anchor") != "lib/argv_split.c":
+    manifest_shape_errors.append("anchor")
+if phase7_argv_split_manifest.get("roadmap_destinations") != ["lib/argv_split.zig"]:
+    manifest_shape_errors.append("roadmap_destinations")
+
+survey_summary = phase7_argv_split_manifest.get("survey_summary", {})
+expected_summary = {
+    "argv_split_c_lines": 95,
+    "preexisting_phase7_test_files": 1,
+    "preexisting_phase7_fixture_modules": 1,
+    "preexisting_phase7_build_present": True,
+    "preexisting_phase7_doc_present": True,
+    "preexisting_phase7_helper_present": True,
+}
+for key, expected_value in expected_summary.items():
+    if survey_summary.get(key) != expected_value:
+        manifest_shape_errors.append(f"survey_summary:{key}")
+
+gaps = phase7_argv_split_manifest.get("gaps")
+if not isinstance(gaps, list):
+    manifest_shape_errors.append("gaps")
+else:
+    for gap_id, destination in expected_argv_split_gap_destinations.items():
+        matches = [gap for gap in gaps if gap.get("id") == gap_id]
+        if len(matches) != 1:
+            manifest_shape_errors.append(f"gaps:{gap_id}")
+            continue
+        gap = matches[0]
+        if gap.get("status") != "starter_landed":
+            manifest_shape_errors.append(f"gaps:{gap_id}:status")
+        if gap.get("zigux_destination") != destination:
+            manifest_shape_errors.append(f"gaps:{gap_id}:zigux_destination")
+        if not gap.get("why_now"):
+            manifest_shape_errors.append(f"gaps:{gap_id}:why_now")
+
+if manifest_shape_errors:
+    print("PHASE7_VALIDATION=fail")
+    print("PHASE7_ARGV_SPLIT_MANIFEST_SHAPE_START")
+    for item in manifest_shape_errors:
+        print(item)
+    print("PHASE7_ARGV_SPLIT_MANIFEST_SHAPE_END")
     sys.exit(1)
 
 phase7_build_paths = set(re.findall(r'b\.path\("([^"]+)"\)', phase7_build))
