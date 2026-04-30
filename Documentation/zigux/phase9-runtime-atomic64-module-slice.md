@@ -7,7 +7,7 @@ This document tracks the first bounded Phase 9 runtime atomic64 starter under `s
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-atomic64-module-starter`
 - `PHASE9_LANE_KEY=P9-L01`
-- `PHASE9_SURVEYED_COMMIT=5dab7ee45d2664801211fb9e2ccba28e1a127071`
+- `PHASE9_SURVEYED_COMMIT=ec212774877e381425fad3b587e305e5e54f92a2`
 - scope: lifecycle starter, direct sample-test and direct loader-test shared-build wiring, adjacent loader scaffold, shared loader-request binding, selftest summary, and survey-manifest closure only
 - product boundary:
   - `samples/zigux/runtime_atomic64.zig`
@@ -28,9 +28,11 @@ The live Phase 9 tree had already identified `lib/atomic64_test.c` as the runtim
 - guarded lifecycle transitions for `cold`, `initialized`, `selftest_complete`, and `exited`
 - a 64-bit counter path using `zigux/helpers/atomic.zig`
 - a selftest summary that groups the C anchor into arithmetic, bitwise, returning, swap, and guard-operation families
+- lifecycle counter proofs in `zigux/tests/runtime_atomic64_module.zig` and the single-shot lifecycle path in `zigux/tests/runtime_atomic64_diff.zig` that now read `init_runs`, `selftest_runs`, and `exit_runs` through `RuntimeAtomic64Summary` instead of private sample fields
 - a direct post-selftest mutation replay proof that `selftest_complete` still permits bounded counter replay and keeps `RuntimeAtomic64Summary` explicit until exit
 - the bounded guard-return trio from `lib/atomic64_test.c`: `add_unless`, `inc_not_zero`, and `dec_if_positive`
 - a narrow differential gate under `zigux/tests/runtime_atomic64_diff.zig` for bounded add, sub, bitwise, swap, compare-swap, and guard-return expectations drawn from `lib/atomic64_test.c`
+- a narrow differential gate under `zigux/tests/runtime_atomic64_diff.zig` for selected exchange, cmpxchg, `add_unless`, `inc_not_zero`, and `dec_if_positive` expectations, with the broader bounded add, sub, and bitwise replay kept alongside that core lifecycle-facing review surface
 - a landed sample-side loader scaffold under `samples/zigux/runtime_atomic64_loader.zig` plus a shared runtime-loader request binding under `zigux/kernel/runtime_loader.zig`
 - dedicated Phase 9 tests, including direct `phase9-runtime-atomic64-sample-tests` and `phase9-runtime-atomic64-loader-tests` legs, and a `make -C zigux phase9` entry
 

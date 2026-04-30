@@ -1,7 +1,7 @@
 {
   "lane_key": "P9-L01",
   "phase": "Phase 9",
-  "surveyed_commit": "5dab7ee45d2664801211fb9e2ccba28e1a127071",
+  "surveyed_commit": "ec212774877e381425fad3b587e305e5e54f92a2",
   "anchor": "lib/atomic64_test.c",
   "roadmap_destinations": [
     "zigux/tests/runtime_*",
@@ -20,6 +20,7 @@
     "descriptor keeps the Linux anchor path explicit, leaves requires_runtime_substrate true while provides_selftest_hook stays true, and still names the bounded in-memory counter starter rather than implying a loadable module",
     "the manifest-backed delivery_evidence_catalog and ownership_map still keep the survey note, module-slice note, direct phase9-runtime-atomic64-sample-tests leg, direct phase9-runtime-atomic64-loader-tests leg, module tests, diff gate, loader scaffold, shared runtime-loader request binding, and blocked shared-loader note in one reviewable packet",
     "sample-behavior changes update the manifest-backed exact checks alongside runtime_atomic64_module.zig and runtime_atomic64_diff.zig instead of leaving reviewers to infer the new contract from code alone",
+    "module-lifecycle review stays on the public RuntimeAtomic64Summary surface so init_runs, selftest_runs, and exit_runs remain explicit without direct harness reads of private sample counters",
     "the review packet keeps the Phase 9 runtime atomic64 starter distinct from the still-blocked shared runtime-loader control surface instead of implying loadable-module or command-path parity",
     "docs and tests still keep real runtime execution, shared loader controls, and the full lib/atomic64_test.c surface out of scope for this bounded runtime starter",
     "the atomic64 packet still treats Documentation/zigux/freeze-map.md as authoritative for the study-only kernel/workqueue.c boundary and carries no parity scorecard entry or Architecture Council status-change request for that scheduler-facing anchor"
@@ -34,6 +35,11 @@
       "id": "initial-lifecycle-and-summary",
       "kind": "lifecycle_contract",
       "expected": "init seeds the 64-bit counter, keeps stage initialized, records init_runs 1, and runSelftest is rejected while the sample is still cold"
+    },
+    {
+      "id": "summary-backed-lifecycle-counters",
+      "kind": "review_surface",
+      "expected": "runtime_atomic64_module.zig and the single-shot lifecycle path in runtime_atomic64_diff.zig prove init_runs, selftest_runs, and exit_runs through RuntimeAtomic64Summary instead of direct harness reads of private sample counters"
     },
     {
       "id": "bitwise-surface",

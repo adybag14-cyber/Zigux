@@ -109,8 +109,8 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
     try std.testing.expect(manifest.survey_summary.preexisting_samples_zigux_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_doc_present);
-    try std.testing.expect(manifest.review_prompts.len >= 6);
-    try std.testing.expectEqual(@as(usize, 13), manifest.exact_checks.len);
+    try std.testing.expect(manifest.review_prompts.len >= 7);
+    try std.testing.expectEqual(@as(usize, 14), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 11), manifest.delivery_evidence_catalog.len);
     try std.testing.expectEqual(@as(usize, 11), manifest.ownership_map.len);
     try std.testing.expect(manifest.gaps.len >= 7);
@@ -118,6 +118,7 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
 
     var saw_descriptor_contract = false;
     var saw_initial_lifecycle = false;
+    var saw_summary_backed_lifecycle_counters = false;
     var saw_bitwise_surface = false;
     var saw_swap_compare_surface = false;
     var saw_guard_surface = false;
@@ -239,6 +240,14 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
             try std.testing.expectEqualStrings("lifecycle_contract", check.kind);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "runSelftest is rejected while the sample is still cold") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "init_runs 1") != null);
+        }
+        if (std.mem.eql(u8, check.id, "summary-backed-lifecycle-counters")) {
+            saw_summary_backed_lifecycle_counters = true;
+            try std.testing.expectEqualStrings("review_surface", check.kind);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "RuntimeAtomic64Summary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "runtime_atomic64_module.zig") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "runtime_atomic64_diff.zig") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "private sample counters") != null);
         }
         if (std.mem.eql(u8, check.id, "bitwise-surface")) {
             saw_bitwise_surface = true;
@@ -406,6 +415,7 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
     try std.testing.expect(saw_shared_loader_controls_blocker);
     try std.testing.expect(saw_descriptor_contract);
     try std.testing.expect(saw_initial_lifecycle);
+    try std.testing.expect(saw_summary_backed_lifecycle_counters);
     try std.testing.expect(saw_bitwise_surface);
     try std.testing.expect(saw_swap_compare_surface);
     try std.testing.expect(saw_guard_surface);
@@ -465,6 +475,7 @@ test "phase 9 runtime atomic64 docs stay aligned with the manifest-backed survey
 
     const required_markers = [_][]const u8{
         "`PHASE9_LANE_KEY=P9-L01`",
+        "lifecycle counter proofs in `zigux/tests/runtime_atomic64_module.zig` and the single-shot lifecycle path in `zigux/tests/runtime_atomic64_diff.zig` that now read `init_runs`, `selftest_runs`, and `exit_runs` through `RuntimeAtomic64Summary` instead of private sample fields",
         "the bounded guard-return trio from `lib/atomic64_test.c`: `add_unless`, `inc_not_zero`, and `dec_if_positive`",
         "a narrow differential gate under `zigux/tests/runtime_atomic64_diff.zig` for bounded add, sub, bitwise, swap, compare-swap, and guard-return expectations drawn from `lib/atomic64_test.c`",
         "a landed sample-side loader scaffold under `samples/zigux/runtime_atomic64_loader.zig` plus a shared runtime-loader request binding under `zigux/kernel/runtime_loader.zig`",
