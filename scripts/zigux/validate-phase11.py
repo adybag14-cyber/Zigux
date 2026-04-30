@@ -4,7 +4,10 @@ from __future__ import annotations
 from pathlib import Path
 import json
 import re
+import shutil
+import subprocess
 import sys
+import tempfile
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -68,11 +71,14 @@ MAKE_MARKERS = [
     "PHONY += phase11-validate phase11-test phase11",
     "phase11-validate:",
     "scripts/zigux/check-phase11-build-inventory.py",
+    "scripts/zigux/validate-phase11.py --self-test",
     "scripts/zigux/validate-phase11.py",
     "$(ZIG) build test --build-file zigux/tests/phase11_build.zig --summary all",
     "phase11: phase11-validate phase11-test",
 ]
 WORKFLOW_MARKERS = [
+    "Self-test Phase 11 simple-driver validator",
+    "python3 scripts/zigux/validate-phase11.py --self-test",
     "Validate Phase 11 simple-driver bundle",
     "make -C zigux phase11-validate",
     "Run Phase 11 watchdog and console tests",
@@ -81,6 +87,7 @@ WORKFLOW_MARKERS = [
 README_MARKERS = [
     "check-phase11-build-inventory.py",
     "validate-phase11.py",
+    "validate-phase11.py --self-test",
     "Phase 11 flow",
     "make -C zigux phase11-validate",
     "phase11_build_inventory.json",
@@ -173,6 +180,120 @@ def text(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
 
 
+def clone_fixture_root(destination_root: Path) -> None:
+    for rel_path in FILES:
+        source = ROOT / rel_path
+        target = destination_root / rel_path
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, target)
+
+
+def run_validator(root: Path) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [sys.executable, str(root / "scripts/zigux/validate-phase11.py")],
+        cwd=str(root),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+
+def expect_missing_marker(label: str, root: Path, expected_marker: str) -> None:
+    result = run_validator(root)
+    if result.returncode == 0:
+        raise SystemExit(f"phase11-self-test:{label}:unexpected_pass")
+    if expected_marker not in result.stdout:
+        actual = result.stdout.strip() or "none"
+        raise SystemExit(
+            f"phase11-self-test:{label}:expected_missing_marker:{expected_marker}:actual:{actual}"
+        )
+
+
+def run_self_test() -> int:
+    with tempfile.TemporaryDirectory(prefix="zigux_phase11_validator_selftest_") as tmp_dir:
+        tmp_root = Path(tmp_dir)
+        clone_fixture_root(tmp_root)
+
+        baseline = run_validator(tmp_root)
+        if baseline.returncode != 0:
+            raise SystemExit(
+                "phase11-self-test:baseline_failed:"
+                f"{baseline.stdout.strip() or baseline.stderr.strip() or 'no_output'}"
+            )
+
+        makefile_path = tmp_root / "zigux/Makefile"
+        original_makefile = makefile_path.read_text(encoding="utf-8")
+        makefile_path.write_text(
+            original_makefile.replace(
+                "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase11.py --self-test\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "makefile_self_test_hook",
+            tmp_root,
+            "make:scripts/zigux/validate-phase11.py --self-test",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        workflow_path = tmp_root / ".github/workflows/zigux-bootstrap.yml"
+        original_workflow = workflow_path.read_text(encoding="utf-8")
+        workflow_path.write_text(
+            original_workflow.replace(
+                "      - name: Self-test Phase 11 simple-driver validator\n"
+                "        run: python3 scripts/zigux/validate-phase11.py --self-test\n\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "workflow_self_test_step",
+            tmp_root,
+            "workflow:Self-test Phase 11 simple-driver validator",
+        )
+        workflow_path.write_text(original_workflow, encoding="utf-8")
+
+        gpio_test_path = tmp_root / "zigux/tests/phase11_gpio_wdt.zig"
+        original_gpio_test = gpio_test_path.read_text(encoding="utf-8")
+        gpio_test_path.write_text(
+            original_gpio_test.replace(
+                "    const toggle_teardown = try toggle_watchdog.summarizeTeardown(false);\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "gpio_teardown_summary_surface",
+            tmp_root,
+            "phase11_gpio_wdt_tests:const toggle_teardown = try toggle_watchdog.summarizeTeardown(false);",
+        )
+        gpio_test_path.write_text(original_gpio_test, encoding="utf-8")
+
+        hvc_test_path = tmp_root / "zigux/tests/phase11_hvc_console.zig"
+        original_hvc_test = hvc_test_path.read_text(encoding="utf-8")
+        hvc_test_path.write_text(
+            original_hvc_test.replace(
+                "    try std.testing.expectEqual(@as(u32, 11), clamped_worker.sleep_timeout_ms);\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "hvc_worker_timeout_clamp_surface",
+            tmp_root,
+            "phase11_hvc_console_tests:    try std.testing.expectEqual(@as(u32, 11), clamped_worker.sleep_timeout_ms);",
+        )
+
+    print("PHASE11_VALIDATOR_SELF_TEST=pass")
+    print("PHASE11_VALIDATOR_SELF_TEST_CASE_COUNT=4")
+    return 0
+
+
 def load_manifest(name: str) -> dict[str, object]:
     return json.loads(text(f"zigux/tests/{name}"))
 
@@ -199,6 +320,10 @@ def count_statuses(manifest: dict[str, object], match: str) -> int:
         elif status == match:
             total += 1
     return total
+
+
+if "--self-test" in sys.argv[1:]:
+    raise SystemExit(run_self_test())
 
 
 missing_files = [path for path in FILES if not (ROOT / path).exists()]
