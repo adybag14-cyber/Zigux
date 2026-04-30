@@ -1,6 +1,6 @@
 const std = @import("std");
 
-const current_surveyed_commit = "aa3ce7d42fc084d834264b2f0980d03ddb7b3154";
+const current_surveyed_commit = "d7c67f13bab842e26bc2a1016c31722776b7fd3b";
 
 const CompanionFile = struct {
     path: []const u8,
