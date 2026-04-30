@@ -34,7 +34,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_risky_transport");
 }
 
-test "phase10 virtio ring survey manifest records the live queue-discipline and MMIO ladder through landed config-write" {
+test "phase10 virtio ring survey manifest records the live queue-discipline packet and parked MMIO blocker after landed config-write" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -87,6 +87,8 @@ test "phase10 virtio ring survey manifest records the live queue-discipline and 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-mmio-queue-address-helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-mmio-config-window-helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-mmio-config-write-helper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "no smaller ready transport follow-up remains ahead of the still-blocked lifecycle and IRQ packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "remaining MMIO follow-up ladder against the roadmap") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "kernel/workqueue.c") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "kernel/trace/ring_buffer.c") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/*.zig") != null);
