@@ -165,9 +165,13 @@ FORBIDDEN_DOC_MARKERS = [
 REQUIRED_TESTS_README_MARKERS = [
     'zigux/tests/atomic64_diff.zig',
     'zigux/tests/runtime_atomic64_diff.zig',
+    'zigux/tests/phase4_perf_baseline_manifest.json',
+    'zigux/tests/phase4_perf_baseline_survey.zig',
     'zigux/tests/bitmap_diff.zig',
     'zigux/tests/phase4_build.zig',
     'scripts/zigux/validate-phase4.py',
+    'make -C zigux phase4-perf-baseline-survey',
+    'perf_thresholds_unapproved_until_bounded_phase4_benchmarks_land',
 ]
 
 REQUIRED_SCRIPT_README_MARKERS = [
@@ -175,12 +179,16 @@ REQUIRED_SCRIPT_README_MARKERS = [
     'check-artifact-diff-contract.py',
     'make -C zigux phase4-validate',
     'make -C zigux phase4-test-fsmount-survey',
+    'make -C zigux phase4-perf-baseline-survey',
     'validate-phase4.py',
     'Phase 4 flow',
     'phase4_build.zig',
     'phase4-validation-matrix.md',
     'phase4-test-fsmount-survey',
     'phase4-runtime-atomic64-diff-survey-tests',
+    'phase4_perf_baseline_manifest.json',
+    'phase4-perf-baseline-survey-tests',
+    'perf_thresholds_unapproved_until_bounded_phase4_benchmarks_land',
     'reversible-delivery evidence',
 ]
 
@@ -195,6 +203,10 @@ REQUIRED_DOC_README_MARKERS = [
     'Run Phase 4 diff tests',
     'phase4-test-fsmount-survey',
     'phase4-runtime-atomic64-diff-survey-tests',
+    'phase4_perf_baseline_manifest.json',
+    'phase4-perf-baseline-survey-tests',
+    'make -C zigux phase4-perf-baseline-survey',
+    'perf_thresholds_unapproved_until_bounded_phase4_benchmarks_land',
     'reversible-delivery evidence',
 ]
 
@@ -511,163 +523,110 @@ def check_gate_matrix_alignment(phase4_matrix: str, gate_name: str, expectation:
         missing.append(
             f"phase4_matrix:threshold_status:{gate_name}:{expectation['threshold_status']}"
         )
-    if expectation['threshold_scope'] not in gate_block:
+    if f"- threshold scope: {expectation['threshold_scope']}" not in gate_block:
         missing.append(
             f"phase4_matrix:threshold_scope:{gate_name}:{expectation['threshold_scope']}"
         )
-    if expectation['gate_scope'] not in row:
-        missing.append(f"phase4_matrix:gate_scope:{gate_name}:{expectation['gate_scope']}")
-    if expectation['threshold_posture'] not in row:
+    if not row:
+        return missing + [f'phase4_matrix:missing_lane_row:{gate_name}']
+    if f"| `{expectation['owner']}` |" not in row:
+        missing.append(f"phase4_matrix:row_owner:{gate_name}:{expectation['owner']}")
+    if f"| `{expectation['rollback_owner']}` |" not in row:
         missing.append(
-            f"phase4_matrix:threshold_posture:{gate_name}:{expectation['threshold_posture']}"
+            f"phase4_matrix:row_rollback_owner:{gate_name}:{expectation['rollback_owner']}"
         )
-    if expectation['owner'] not in row:
-        missing.append(f"phase4_matrix:matrix_owner:{gate_name}:{expectation['owner']}")
-    if expectation['rollback_owner'] not in row:
-        missing.append(
-            f"phase4_matrix:matrix_rollback_owner:{gate_name}:{expectation['rollback_owner']}"
-        )
-    for local_replay_marker in expectation['local_replay_markers']:
-        if local_replay_marker not in row:
-            missing.append(
-                f"phase4_matrix:local_replay_test:{gate_name}:{local_replay_marker}"
-            )
+    for marker in expectation['local_replay_markers']:
+        if marker not in row:
+            missing.append(f'phase4_matrix:row_local_replay:{gate_name}:{marker}')
     if expectation['reversible_delivery'] not in row:
         missing.append(
-            f"phase4_matrix:reversible_delivery:{gate_name}:{expectation['reversible_delivery']}"
+            f"phase4_matrix:row_reversible_delivery:{gate_name}:{expectation['reversible_delivery']}"
         )
-    return missing
-
-
-def check_roadmap_gap_alignment(phase4_matrix: str, item_name: str, expectation: dict[str, str]) -> list[str]:
-    row_prefixes = [
-        f'| `{item_name}`',
-        f'| {item_name} |',
-    ]
-    row = next(
-        (
-            line
-            for line in phase4_matrix.splitlines()
-            if any(line.startswith(prefix) for prefix in row_prefixes)
-        ),
-        '',
-    )
-    if not row:
-        return [f'phase4_matrix:missing_gap_row:{item_name}']
-
-    missing = []
-    for key, fragment in expectation.items():
-        if fragment not in row:
-            missing.append(f'phase4_matrix:gap_{key}:{item_name}:{fragment}')
-    return missing
-
-
-def check_survey_matrix_alignment(
-    phase4_matrix: str,
-    lane_surface: str,
-    expectation: dict[str, object],
-) -> list[str]:
-    row_prefix = f'| `{lane_surface}` |'
-    row = next(
-        (line for line in phase4_matrix.splitlines() if line.startswith(row_prefix)),
-        '',
-    )
-    if not row:
-        return [f'phase4_matrix:missing_survey_row:{lane_surface}']
-
-    missing = []
-    if expectation['owner'] not in row:
-        missing.append(f"phase4_matrix:survey_owner:{lane_surface}:{expectation['owner']}")
-    if expectation['rollback_owner'] not in row:
+    if f"| `{expectation['threshold_posture']}` |" not in row:
         missing.append(
-            f"phase4_matrix:survey_rollback_owner:{lane_surface}:{expectation['rollback_owner']}"
+            f"phase4_matrix:row_threshold_posture:{gate_name}:{expectation['threshold_posture']}"
         )
-    for marker in expectation['bootstrap_ci_replay_markers']:
-        if marker not in row:
-            missing.append(f"phase4_matrix:survey_bootstrap:{lane_surface}:{marker}")
-    for marker in expectation['local_lab_replay_markers']:
-        if marker not in row:
-            missing.append(f"phase4_matrix:survey_local:{lane_surface}:{marker}")
-    for marker in expectation['reversible_delivery_markers']:
-        if marker not in row:
-            missing.append(f"phase4_matrix:survey_reversible:{lane_surface}:{marker}")
-    if expectation['threshold_posture'] not in row:
-        missing.append(f"phase4_matrix:survey_threshold:{lane_surface}:{expectation['threshold_posture']}")
     return missing
+
+
+def check_manifest_json(
+    manifest_text: str,
+    expectations: dict[str, object],
+    prefix: str,
+) -> tuple[dict[str, object] | None, list[str]]:
+    try:
+        manifest = json.loads(manifest_text)
+    except json.JSONDecodeError as exc:
+        return None, [f'{prefix}:invalid_json:{exc.msg}']
+
+    missing = []
+    for key, expected in expectations.items():
+        if key == 'survey_summary' or key == 'surveyed_gates':
+            continue
+        if manifest.get(key) != expected:
+            missing.append(f'{prefix}:{key}:{expected}')
+    return manifest, missing
 
 
 def check_test_fsmount_manifest_alignment(
     manifest_text: str,
-    vfs_makefile: str,
-    vfs_source: str,
+    sample_vfs_make: str,
+    sample_vfs_source: str,
     phase4_build: str,
-    phase4_matrix: str,
     validator_text: str,
+    phase4_matrix: str,
 ) -> list[str]:
-    try:
-        manifest = json.loads(manifest_text)
-    except json.JSONDecodeError as exc:
-        return [f'phase4_test_fsmount_manifest:invalid_json:{exc.msg}']
-
-    missing = []
-    for key, expected in PHASE4_TEST_FSMOUNT_MANIFEST_EXPECTATIONS.items():
-        if key == 'survey_summary':
-            continue
-        actual = manifest.get(key)
-        if actual != expected:
-            missing.append(f'phase4_test_fsmount_manifest:{key}:{expected}')
+    manifest, missing = check_manifest_json(
+        manifest_text,
+        PHASE4_TEST_FSMOUNT_MANIFEST_EXPECTATIONS,
+        'phase4_test_fsmount_manifest',
+    )
+    if manifest is None:
+        return missing
 
     survey_summary = manifest.get('survey_summary')
     if not isinstance(survey_summary, dict):
         return missing + ['phase4_test_fsmount_manifest:survey_summary:object']
 
-    expected_summary = dict(PHASE4_TEST_FSMOUNT_MANIFEST_EXPECTATIONS['survey_summary'])
-    expected_summary['vfs_makefile_replay_present'] = 'userprogs-always-y += test-fsmount' in vfs_makefile
-    expected_summary['zig_sample_present'] = False
-    expected_summary['phase4_build_present'] = (
-        'phase4_test_fsmount_survey.zig' in phase4_build
-        and 'phase4-test-fsmount-survey-tests' in phase4_build
-    )
-    expected_summary['phase4_validator_present'] = (
-        'phase4_test_fsmount_manifest.json' in validator_text
-        and 'phase4_test_fsmount_survey.zig' in validator_text
-    )
-    expected_summary['phase4_validation_matrix_present'] = (
-        'phase4_test_fsmount_manifest.json' in phase4_matrix
-        and 'phase4-test-fsmount-survey-tests' in phase4_matrix
-        and 'make -C zigux phase4-test-fsmount-survey' in phase4_matrix
-    )
-
+    expected_summary = {
+        'test_fsmount_c_lines': count_lines(sample_vfs_source),
+        'vfs_makefile_replay_present': 'userprogs-always-y += test-fsmount' in sample_vfs_make,
+        'zig_sample_present': (ROOT / 'samples/zigux/test_fsmount.zig').exists(),
+        'phase4_build_present': (
+            'phase4_test_fsmount_survey.zig' in phase4_build
+            and 'phase4-test-fsmount-survey-tests' in phase4_build
+            and 'phase4-test-fsmount-survey' in phase4_build
+        ),
+        'phase4_validator_present': (
+            'phase4_test_fsmount_manifest.json' in validator_text
+            and 'phase4_test_fsmount_survey.zig' in validator_text
+            and 'phase4-test-fsmount-survey-tests' in validator_text
+        ),
+        'phase4_validation_matrix_present': (
+            'phase4_test_fsmount_manifest.json' in phase4_matrix
+            and 'phase4-test-fsmount-survey-tests' in phase4_matrix
+            and 'make -C zigux phase4-test-fsmount-survey' in phase4_matrix
+        ),
+    }
     for key, expected in expected_summary.items():
         if survey_summary.get(key) != expected:
             missing.append(f'phase4_test_fsmount_manifest:survey_summary:{key}:{expected}')
-
-    if count_lines(vfs_source) != survey_summary.get('test_fsmount_c_lines'):
-        missing.append(
-            f"phase4_test_fsmount_manifest:survey_summary:test_fsmount_c_lines:{count_lines(vfs_source)}"
-        )
-
     return missing
 
 
 def check_perf_baseline_manifest_alignment(
     manifest_text: str,
     phase4_build: str,
-    phase4_matrix: str,
     validator_text: str,
+    phase4_matrix: str,
 ) -> list[str]:
-    try:
-        manifest = json.loads(manifest_text)
-    except json.JSONDecodeError as exc:
-        return [f'phase4_perf_baseline_manifest:invalid_json:{exc.msg}']
-
-    missing = []
-    for key, expected in PHASE4_PERF_BASELINE_MANIFEST_EXPECTATIONS.items():
-        if key in {'survey_summary', 'surveyed_gates'}:
-            continue
-        actual = manifest.get(key)
-        if actual != expected:
-            missing.append(f'phase4_perf_baseline_manifest:{key}:{expected}')
+    manifest, missing = check_manifest_json(
+        manifest_text,
+        PHASE4_PERF_BASELINE_MANIFEST_EXPECTATIONS,
+        'phase4_perf_baseline_manifest',
+    )
+    if manifest is None:
+        return missing
 
     surveyed_gates = manifest.get('surveyed_gates')
     if not isinstance(surveyed_gates, list):
@@ -679,165 +638,187 @@ def check_perf_baseline_manifest_alignment(
     if not isinstance(survey_summary, dict):
         return missing + ['phase4_perf_baseline_manifest:survey_summary:object']
 
-    expected_summary = dict(PHASE4_PERF_BASELINE_MANIFEST_EXPECTATIONS['survey_summary'])
-    expected_summary['phase4_build_present'] = (
-        'phase4_perf_baseline_survey.zig' in phase4_build
-        and 'phase4-perf-baseline-survey-tests' in phase4_build
-        and 'phase4-perf-baseline-survey' in phase4_build
-    )
-    expected_summary['phase4_validator_present'] = (
-        'phase4_perf_baseline_manifest.json' in validator_text
-        and 'phase4_perf_baseline_survey.zig' in validator_text
-        and 'phase4-perf-baseline-survey-tests' in validator_text
-        and 'phase4-perf-baseline-survey' in validator_text
-    )
-    expected_summary['phase4_validation_matrix_present'] = (
-        'phase4_perf_baseline_manifest.json' in phase4_matrix
-        and 'phase4-perf-baseline-survey-tests' in phase4_matrix
-        and 'make -C zigux phase4-perf-baseline-survey' in phase4_matrix
-        and 'perf_thresholds_unapproved_until_bounded_phase4_benchmarks_land' in phase4_matrix
-        and 'benchmark command and acceptable limit are still unapproved for both landed gates' in phase4_matrix
-        and 'land one bounded benchmark command and one acceptable limit per gate before Phase 4 claims perf coverage' in phase4_matrix
-    )
-
+    expected_summary = {
+        'phase4_build_present': (
+            'phase4_perf_baseline_survey.zig' in phase4_build
+            and 'phase4-perf-baseline-survey-tests' in phase4_build
+            and 'phase4-perf-baseline-survey' in phase4_build
+        ),
+        'phase4_validator_present': (
+            'phase4_perf_baseline_manifest.json' in validator_text
+            and 'phase4_perf_baseline_survey.zig' in validator_text
+            and 'phase4-perf-baseline-survey-tests' in validator_text
+            and 'phase4-perf-baseline-survey' in validator_text
+        ),
+        'phase4_validation_matrix_present': (
+            'phase4_perf_baseline_manifest.json' in phase4_matrix
+            and 'phase4-perf-baseline-survey-tests' in phase4_matrix
+            and 'make -C zigux phase4-perf-baseline-survey' in phase4_matrix
+            and 'perf_thresholds_unapproved_until_bounded_phase4_benchmarks_land' in phase4_matrix
+        ),
+        'benchmark_command_unapproved': (
+            'benchmark command and acceptable limit are still unapproved for both landed gates'
+            in phase4_matrix
+        ),
+        'acceptable_limit_unapproved': (
+            'benchmark command and acceptable limit are still unapproved for both landed gates'
+            in phase4_matrix
+        ),
+    }
     for key, expected in expected_summary.items():
         if survey_summary.get(key) != expected:
             missing.append(f'phase4_perf_baseline_manifest:survey_summary:{key}:{expected}')
-
     return missing
 
 
 def validate_root(root: Path) -> list[str]:
-    missing_markers = []
-    for relative_path in REQUIRED_FILES:
-        if not (root / relative_path).exists():
-            missing_markers.append(f'file:{relative_path}')
-    if missing_markers:
-        return missing_markers
+    missing: list[str] = []
 
-    artifact_doc = read_text(root, 'Documentation/zigux/artifact-diff.md')
+    for relative_path in REQUIRED_FILES:
+        path = root / relative_path
+        if not path.is_file():
+            missing.append(f'file:{relative_path}')
+
+    artifact_diff_doc = read_text(root, 'Documentation/zigux/artifact-diff.md')
     phase4_matrix = read_text(root, 'Documentation/zigux/phase4-validation-matrix.md')
-    tests_readme = read_text(root, 'zigux/tests/README.md')
-    scripts_readme = read_text(root, 'scripts/zigux/README.md')
     docs_readme = read_text(root, 'Documentation/zigux/README.md')
-    makefile = read_text(root, 'zigux/Makefile')
+    scripts_readme = read_text(root, 'scripts/zigux/README.md')
+    tests_readme = read_text(root, 'zigux/tests/README.md')
+    zigux_makefile = read_text(root, 'zigux/Makefile')
     workflow = read_text(root, '.github/workflows/zigux-bootstrap.yml')
+    runtime_atomic64 = read_text(root, 'zigux/tests/runtime_atomic64_diff.zig')
+    runtime_atomic64_survey = read_text(
+        root, 'zigux/tests/phase4_runtime_atomic64_diff_survey.zig'
+    )
     phase4_build = read_text(root, 'zigux/tests/phase4_build.zig')
-    runtime_atomic64_diff = read_text(root, 'zigux/tests/runtime_atomic64_diff.zig')
-    runtime_atomic64_diff_survey = read_text(root, 'zigux/tests/phase4_runtime_atomic64_diff_survey.zig')
-    runtime_atomic64_manifest = read_text(root, 'zigux/tests/phase4_runtime_atomic64_diff_manifest.json')
+    bitmap_diff = read_text(root, 'zigux/tests/bitmap_diff.zig')
+    validator_text = read_text(root, 'scripts/zigux/validate-phase4.py')
+    sample_kprobes_make = read_text(root, 'samples/kprobes/Makefile')
+    sample_kprobes_source = read_text(root, 'samples/kprobes/kprobe_example.c')
+    sample_vfs_make = read_text(root, 'samples/vfs/Makefile')
+    sample_vfs_source = read_text(root, 'samples/vfs/test-fsmount.c')
     phase4_test_fsmount_manifest = read_text(root, 'zigux/tests/phase4_test_fsmount_manifest.json')
     phase4_perf_baseline_manifest = read_text(root, 'zigux/tests/phase4_perf_baseline_manifest.json')
-    bitmap_diff = read_text(root, 'zigux/tests/bitmap_diff.zig')
-    sample_kprobes_makefile = read_text(root, 'samples/kprobes/Makefile')
-    sample_kprobe_example = read_text(root, 'samples/kprobes/kprobe_example.c')
-    sample_vfs_makefile = read_text(root, 'samples/vfs/Makefile')
-    sample_vfs_test_fsmount = read_text(root, 'samples/vfs/test-fsmount.c')
 
-    missing_markers.extend(collect_missing_markers(artifact_doc, 'artifact_doc', REQUIRED_DOC_MARKERS))
+    missing.extend(collect_missing_markers(zigux_makefile, 'make', REQUIRED_MAKE_MARKERS))
+    missing.extend(collect_missing_markers(workflow, 'workflow', REQUIRED_WORKFLOW_MARKERS))
+    missing.extend(collect_missing_markers(artifact_diff_doc, 'artifact_diff_doc', REQUIRED_DOC_MARKERS))
     for group_name, markers in REQUIRED_DOC_MARKER_GROUPS:
-        missing_markers.extend(collect_missing_markers(artifact_doc, f'artifact_doc:{group_name}', markers))
-    for forbidden_marker in FORBIDDEN_DOC_MARKERS:
-        if forbidden_marker in artifact_doc:
-            missing_markers.append(f'artifact_doc:forbidden:{forbidden_marker}')
-
-    missing_markers.extend(collect_missing_markers(tests_readme, 'tests_readme', REQUIRED_TESTS_README_MARKERS))
-    missing_markers.extend(collect_missing_markers(scripts_readme, 'scripts_readme', REQUIRED_SCRIPT_README_MARKERS))
-    missing_markers.extend(collect_missing_markers(docs_readme, 'docs_readme', REQUIRED_DOC_README_MARKERS))
-    missing_markers.extend(collect_missing_markers(makefile, 'make', REQUIRED_MAKE_MARKERS))
-    missing_markers.extend(collect_missing_markers(workflow, 'workflow', REQUIRED_WORKFLOW_MARKERS))
-    missing_markers.extend(collect_missing_markers(phase4_matrix, 'phase4_matrix', REQUIRED_PHASE4_MATRIX_MARKERS))
-    missing_markers.extend(collect_missing_markers(phase4_build, 'phase4_build', REQUIRED_PHASE4_BUILD_MARKERS))
-    missing_markers.extend(collect_missing_markers(runtime_atomic64_diff, 'runtime_atomic64_diff', REQUIRED_RUNTIME_ATOMIC64_MARKERS))
-    missing_markers.extend(collect_missing_markers(runtime_atomic64_diff_survey, 'runtime_atomic64_diff_survey', REQUIRED_RUNTIME_ATOMIC64_SURVEY_MARKERS))
-    missing_markers.extend(collect_missing_markers(bitmap_diff, 'bitmap_diff', REQUIRED_BITMAP_DIFF_MARKERS))
-    missing_markers.extend(collect_missing_markers(sample_kprobes_makefile, 'sample_kprobes_make', REQUIRED_SAMPLE_KPROBES_MAKE_MARKERS))
-    missing_markers.extend(collect_missing_markers(sample_kprobe_example, 'sample_kprobe_example', REQUIRED_SAMPLE_KPROBES_SOURCE_MARKERS))
-    missing_markers.extend(collect_missing_markers(sample_vfs_makefile, 'sample_vfs_make', REQUIRED_SAMPLE_VFS_MAKE_MARKERS))
-    missing_markers.extend(collect_missing_markers(sample_vfs_test_fsmount, 'sample_vfs_test_fsmount', REQUIRED_SAMPLE_VFS_SOURCE_MARKERS))
-
-    roadmap_atomic64_diff_present = 'zigux/tests/atomic64_diff.zig' in phase4_matrix
-    if not roadmap_atomic64_diff_present:
-        missing_markers.append('phase4_atomic64_path:missing_canonical_entrypoint:zigux/tests/atomic64_diff.zig')
-    if '"roadmap_atomic64_diff_present": true' not in runtime_atomic64_manifest:
-        missing_markers.append('runtime_atomic64_manifest:"roadmap_atomic64_diff_present": true')
-
-    for gate_name, expectation in PHASE4_GATE_EXPECTATIONS.items():
-        missing_markers.extend(check_gate_matrix_alignment(phase4_matrix, gate_name, expectation))
-
-    for lane_surface, expectation in PHASE4_SURVEY_MATRIX_EXPECTATIONS.items():
-        missing_markers.extend(check_survey_matrix_alignment(phase4_matrix, lane_surface, expectation))
-
-    missing_markers.extend(
-        check_test_fsmount_manifest_alignment(
-            phase4_test_fsmount_manifest,
-            sample_vfs_makefile,
-            sample_vfs_test_fsmount,
-            phase4_build,
-            phase4_matrix,
-            read_text(root, 'scripts/zigux/validate-phase4.py'),
+        if not any(marker in artifact_diff_doc for marker in markers):
+            missing.append(f'artifact_diff_doc_group:{group_name}')
+    for marker in FORBIDDEN_DOC_MARKERS:
+        if marker in artifact_diff_doc:
+            missing.append(f'artifact_diff_doc_forbidden:{marker}')
+    missing.extend(
+        collect_missing_markers(docs_readme, 'docs_readme', REQUIRED_DOC_README_MARKERS)
+    )
+    missing.extend(
+        collect_missing_markers(
+            scripts_readme, 'scripts_readme', REQUIRED_SCRIPT_README_MARKERS
         )
     )
-    missing_markers.extend(
+    missing.extend(
+        collect_missing_markers(tests_readme, 'tests_readme', REQUIRED_TESTS_README_MARKERS)
+    )
+    missing.extend(
+        collect_missing_markers(
+            phase4_matrix, 'phase4_matrix', REQUIRED_PHASE4_MATRIX_MARKERS
+        )
+    )
+    missing.extend(
+        collect_missing_markers(
+            runtime_atomic64,
+            'runtime_atomic64_diff',
+            REQUIRED_RUNTIME_ATOMIC64_MARKERS,
+        )
+    )
+    missing.extend(
+        collect_missing_markers(
+            runtime_atomic64_survey,
+            'runtime_atomic64_survey',
+            REQUIRED_RUNTIME_ATOMIC64_SURVEY_MARKERS,
+        )
+    )
+    missing.extend(
+        collect_missing_markers(bitmap_diff, 'bitmap_diff', REQUIRED_BITMAP_DIFF_MARKERS)
+    )
+    missing.extend(
+        collect_missing_markers(
+            sample_kprobes_make,
+            'sample_kprobes_make',
+            REQUIRED_SAMPLE_KPROBES_MAKE_MARKERS,
+        )
+    )
+    missing.extend(
+        collect_missing_markers(
+            sample_kprobes_source,
+            'sample_kprobes_source',
+            REQUIRED_SAMPLE_KPROBES_SOURCE_MARKERS,
+        )
+    )
+    missing.extend(
+        collect_missing_markers(
+            sample_vfs_make,
+            'sample_vfs_make',
+            REQUIRED_SAMPLE_VFS_MAKE_MARKERS,
+        )
+    )
+    missing.extend(
+        collect_missing_markers(
+            sample_vfs_source,
+            'sample_vfs_test_fsmount',
+            REQUIRED_SAMPLE_VFS_SOURCE_MARKERS,
+        )
+    )
+
+    for gate_name, expectation in PHASE4_GATE_EXPECTATIONS.items():
+        missing.extend(
+            check_gate_matrix_alignment(phase4_matrix, gate_name, expectation)
+        )
+
+    for survey_path, expectation in PHASE4_SURVEY_MATRIX_EXPECTATIONS.items():
+        survey_text = read_text(root, survey_path)
+        missing.extend(
+            collect_missing_markers(
+                survey_text,
+                survey_path,
+                expectation['bootstrap_ci_replay_markers']
+                + expectation['local_lab_replay_markers']
+                + expectation['reversible_delivery_markers']
+                + [expectation['threshold_posture']],
+            )
+        )
+
+    missing.extend(
+        check_test_fsmount_manifest_alignment(
+            phase4_test_fsmount_manifest,
+            sample_vfs_make,
+            sample_vfs_source,
+            phase4_build,
+            validator_text,
+            phase4_matrix,
+        )
+    )
+    missing.extend(
         check_perf_baseline_manifest_alignment(
             phase4_perf_baseline_manifest,
             phase4_build,
+            validator_text,
             phase4_matrix,
-            read_text(root, 'scripts/zigux/validate-phase4.py'),
         )
     )
-
-    for item_name, expectation in ROADMAP_GAP_EXPECTATIONS.items():
-        missing_markers.extend(check_roadmap_gap_alignment(phase4_matrix, item_name, expectation))
-
-    return missing_markers
+    return missing
 
 
 def build_phase4_matrix_fixture() -> str:
     lines = [
         '# Phase 4 Validation Matrix',
         '',
-        'This document records the live Phase 4 differential-validation ownership and replay matrix.',
+        '## Current Phase 4 use',
         '',
-        '## Status',
+        'The shared Phase 4 packet uses the same comparison layer that already backs the bounded host-side tools under `scripts/zigux/` and keeps stale expected-output and catalog drift small, auditable, and easy to refresh.',
         '',
-        '- `PHASE4_STATUS=differential_validation_matrix_landed`',
-        '- current repo reality:',
-        '  - `scripts/zigux/artifact_diff.py`',
-        '  - `zigux/tests/atomic64_diff.zig`',
-        '  - `zigux/tests/runtime_atomic64_diff.zig`',
-        '  - `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`',
-        '  - `zigux/tests/bitmap_diff.zig`',
-        '  - `zigux/tests/phase4_build.zig`',
-        '  - `scripts/zigux/validate-phase4.py`',
-        '  - `.github/workflows/zigux-bootstrap.yml`',
-        '- roadmap note: the roadmap names `zigux/tests/atomic64_diff.zig`, and live `master` now ships that canonical wrapper while the bounded atomic64 replay gate at `zigux/tests/runtime_atomic64_diff.zig` remains the single underlying replay body; this record follows the shipped wrapper-plus-runtime bundle instead of inventing a second parallel gate',
-        '- rollback owner',
-        '- lab and CI matrix',
-        '- reversible delivery evidence',
-        '- perf threshold status',
-        '- Validate Phase 4 diff gates',
-        '- Run Phase 4 diff tests',
-        '- make -C zigux phase4-validate',
-        '- make -C zigux phase4-test',
-        '- scripts/zigux/artifact_diff.py --self-test',
-        '- deterministic_preflight_required_for_host_side_diff_tools',
-        '- phase4-runtime-atomic64-diff-tests',
-        '- phase4-runtime-atomic64-diff-survey-tests',
-        '- phase4-bitmap-diff-tests',
-        '',
-        '## Why this exists',
-        '',
-        '- the bounded rollback owner for each live Phase 4 gate',
-        '- the current perf threshold status for those gates',
-        '- the lab and CI matrix that replays the gates today',
-        '- the reversible-delivery evidence that ties each shipped Zig gate back to its current C anchor if the shared entrypoint has to drop that gate',
-        '- the shared artifact comparator self-test that now runs before the Phase 4 validator claims the rollback-readiness bundle is still aligned',
-        "- the external CLI-contract replay that keeps the current `ARTIFACT_DIFF=...`, `MODE=...`, path, and exit-code surface reviewable outside the helper's built-in self-test",
-        '- one isolated runtime atomic64 replay command that can be run without depending on the bitmap lane staying green on the same head',
-        '- the survey-backed atomic64 replay that keeps the current roadmap-path and broader-surface gaps measurable inside the shared Phase 4 build',
-        '',
-        '## Gate Ownership',
+        '## Differential Gates',
         '',
         '### `scripts/zigux/artifact_diff.py --self-test`',
         '',
@@ -915,7 +896,7 @@ def build_phase4_matrix_fixture() -> str:
         '| `zigux/tests/phase4_test_fsmount_survey.zig` | manifest-backed survey gate for the still-absent `samples/zigux/test_fsmount.zig` roadmap row while the current replay stays on the `samples/vfs/test-fsmount.c` C anchor | `Validation and Perf Team` | `Validation and Perf Team` | workflow steps `Validate Phase 4 diff gates` and `Run Phase 4 diff tests`, with the shared `phase4-test-fsmount-survey-tests` entry in `zigux/tests/phase4_build.zig` keeping the survey packet live | `make -C zigux phase4-test-fsmount-survey`, direct `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`, and the current `make M=samples/vfs` C-anchor replay | `samples/vfs/test-fsmount.c` stays the source of truth, the survey packet remains C-anchor-only until a bounded `samples/zigux/test_fsmount.zig` starter lands, and removing `phase4_test_fsmount_survey.zig` from the shared `phase4_build.zig` entrypoint returns this roadmap row to matrix-only tracking without overstating a landed Zig sample | `c_anchor_only_until_test_fsmount_starter_lands` |'
     )
     lines.append(
-        '| `zigux/tests/phase4_perf_baseline_survey.zig` | manifest-backed survey gate for the still-unapproved benchmark command and acceptable limit posture across the shipped `zigux/tests/atomic64_diff.zig` and `zigux/tests/bitmap_diff.zig` rollback gates while both remain correctness-only | `Validation and Perf Team` | `Validation and Perf Team` | workflow steps `Validate Phase 4 diff gates` and `Run Phase 4 diff tests`, with the shared `phase4-perf-baseline-survey-tests` entry in `zigux/tests/phase4_build.zig` keeping the survey packet live | `make -C zigux phase4-perf-baseline-survey`, direct `zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig`, and the current `phase4-runtime-atomic64-diff-tests`, `phase4-runtime-atomic64-diff-survey-tests`, and `phase4-bitmap-diff-tests` correctness-only replays | `zigux/tests/atomic64_diff.zig` and `zigux/tests/bitmap_diff.zig` remain the shipped rollback gates, and removing `phase4_perf_baseline_survey.zig` from the shared `phase4_build.zig` entrypoint would drop the only machine-checked record that their benchmark command and acceptable limit are still unapproved instead of landed | `perf_thresholds_unapproved_until_bounded_phase4_benchmarks_land` |'
+        '| `zigux/tests/phase4_perf_baseline_survey.zig` | manifest-backed survey gate in `zigux/tests/phase4_perf_baseline_manifest.json` for the still-unapproved benchmark command and acceptable limit posture across the shipped `zigux/tests/atomic64_diff.zig` and `zigux/tests/bitmap_diff.zig` rollback gates while both remain correctness-only | `Validation and Perf Team` | `Validation and Perf Team` | workflow steps `Validate Phase 4 diff gates` and `Run Phase 4 diff tests`, with the shared `phase4-perf-baseline-survey-tests` entry in `zigux/tests/phase4_build.zig` keeping the survey packet live | `make -C zigux phase4-perf-baseline-survey`, direct `zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig`, and the current `phase4-runtime-atomic64-diff-tests`, `phase4-runtime-atomic64-diff-survey-tests`, and `phase4-bitmap-diff-tests` correctness-only replays | `zigux/tests/atomic64_diff.zig` and `zigux/tests/bitmap_diff.zig` remain the shipped rollback gates, and removing `phase4_perf_baseline_survey.zig` from the shared `phase4_build.zig` entrypoint would drop the only machine-checked record that their benchmark command and acceptable limit are still unapproved instead of landed | `perf_thresholds_unapproved_until_bounded_phase4_benchmarks_land` |'
     )
 
     lines.extend(
