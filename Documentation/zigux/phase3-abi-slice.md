@@ -107,7 +107,7 @@ Allocator policy:
 
 Whole-policy decode policy:
 - `zigux/helpers/interop_policy.zig` now treats `InteropPolicy` as one typed boundary record instead of three unrelated byte checks
-- reserved bits, panic mode, allocator mode, and unsafe scope now fail through one explicit decode path before boundary code decides caller ownership, return behavior, or unsafe permissions
+- reserved bits, panic mode, allocator mode, and unsafe scope now fail through one explicit decode path before boundary code decides caller ownership, return behavior, allocator-owned initialization or reset requirements, or unsafe permissions
 - focused replay gate: `zigux/tests/phase3_policy_unsafe.zig` now verifies both successful whole-record decoding and rejection of partial or reserved policy bytes
 
 Unsafe policy:
