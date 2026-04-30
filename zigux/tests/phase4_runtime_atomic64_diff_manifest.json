@@ -14,8 +14,11 @@
     "runtime_atomic64_diff_present": true,
     "post_selftest_replay_present": true,
     "phase4_build_present": true,
+    "phase4_build_uses_atomic64_wrapper": true,
     "phase9_build_present": true,
+    "phase9_build_uses_runtime_atomic64_diff": true,
     "phase4_validator_runtime_atomic64_diff_present": true,
+    "phase4_validator_atomic64_diff_present": true,
     "runtime_atomic64_sample_present": true,
     "phase4_validation_matrix_present": true,
     "tests_readme_runtime_atomic64_diff_present": true
@@ -50,7 +53,7 @@
       "status": "starter_landed",
       "kind": "shared_replay",
       "zigux_destination": "zigux/tests/phase4_build.zig",
-      "why_now": "The shared phase4_build.zig entrypoint already keeps the runtime atomic64 gate and the bitmap gate in the same replay path, which is the current measurable rollback surface for local and CI runs."
+      "why_now": "The shared phase4_build.zig entrypoint already keeps the roadmap-named atomic64 wrapper plus the bitmap gate in the same replay path, which is the current measurable rollback surface for local and CI runs."
     },
     {
       "id": "phase4-validation-matrix-note",
@@ -64,7 +67,7 @@
       "status": "starter_landed",
       "kind": "roadmap_note",
       "zigux_destination": "zigux/tests/atomic64_diff.zig",
-      "why_now": "The Phase 4 roadmap still names zigux/tests/atomic64_diff.zig, and master now carries that canonical entrypoint as a thin wrapper with `@import(\"runtime_atomic64_diff.zig\")` while the shipped replay bundle continues to run through zigux/tests/runtime_atomic64_diff.zig across validate-phase4.py, phase4_build.zig, and phase9_build.zig. This survey should record that the roadmap-facing path now lands as a thin entrypoint instead of keeping the same alignment step open."
+      "why_now": "The Phase 4 roadmap still names zigux/tests/atomic64_diff.zig, and master now keeps that canonical entrypoint as a thin wrapper with `@import(\"runtime_atomic64_diff.zig\")`. The shared `phase4_build.zig` replay now runs that wrapper, `validate-phase4.py` tracks both `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig`, and `phase9_build.zig` still compiles `runtime_atomic64_diff.zig` directly for the later runtime packet. This survey should machine-check that exact wrapper-versus-runtime-body split instead of describing the alignment step loosely."
     },
     {
       "id": "phase4-broader-atomic64-surface",
