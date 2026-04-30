@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
+import subprocess
 import sys
 
 
@@ -388,6 +389,24 @@ def load_json(path: str) -> object:
     return json.loads(text(path))
 
 
+def current_git_head() -> str | None:
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            check=True,
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+        )
+    except (OSError, subprocess.CalledProcessError):
+        return None
+
+    head = result.stdout.strip()
+    if not HEX40.fullmatch(head):
+        return None
+    return head
+
+
 def collect_missing_files() -> list[str]:
     return [path for path in REQUIRED_FILES if not (ROOT / path).exists()]
 
@@ -433,6 +452,7 @@ def main() -> int:
         print("PHASE6_VALIDATION=fail")
         print("PHASE6_CATALOG_HEAD_STATUS=invalid")
         return 1
+    live_head = current_git_head()
 
     missing: list[str] = []
     require_markers(missing, "make", makefile, MAKE_MARKERS)
@@ -476,6 +496,11 @@ def main() -> int:
         for key, expected in EXPECTED_MANIFEST.items():
             require_manifest_equal(missing, phase6_manifest, key, expected)
 
+    if live_head is not None and catalog_head != live_head:
+        missing.append("phase6_catalog:verified_head_stale")
+    if live_head is not None and phase6_manifest.get("surveyed_commit") != live_head:
+        missing.append("manifest:surveyed_commit_stale")
+
     if missing:
         print("PHASE6_VALIDATION=fail")
         print("PHASE6_MISSING_START")
@@ -512,6 +537,8 @@ def main() -> int:
     print("PHASE6_VALIDATION=pass")
     print(f"PHASE6_REQUIRED_MARKER_COUNT={total_marker_count}")
     print(f"PHASE6_CATALOG_VERIFIED_HEAD={catalog_head}")
+    if live_head is not None:
+        print(f"PHASE6_LIVE_HEAD={live_head}")
     return 0
 
 
