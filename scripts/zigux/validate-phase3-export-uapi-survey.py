@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
+import re
 import tempfile
 
 
@@ -16,6 +17,7 @@ UAPI_VERSION_REL = "zigux/uapi/version.zig"
 UAPI_ROOT_REL = "zigux/uapi"
 ABI_SLICE_REL = "Documentation/zigux/phase3-abi-slice.md"
 EXPORT_UAPI_TEST_REL = "zigux/tests/phase3_export_uapi.zig"
+HEX40 = re.compile(r"^[0-9a-f]{40}$")
 
 REQUIRED_SURVEY_MARKERS = (
     "PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig",
@@ -34,6 +36,7 @@ REQUIRED_SURVEY_SNIPPETS = (
     "zigux/tests/phase3_export_uapi.zig",
     "zigux/tests/fixtures/phase3_abi_manifest.json",
     "keep canonical-size header checks separate from broader future-compatible header acceptance",
+    "verified `master` head",
 )
 
 REQUIRED_SURVEY_PATHS = (
@@ -118,6 +121,15 @@ def _collect_relative_files(root: Path, rel: str) -> list[str]:
     return sorted(path.relative_to(root).as_posix() for path in base.rglob("*") if path.is_file())
 
 
+def _surveyed_commit_from_text(text: str) -> str | None:
+    prefix = "PHASE3_SURVEYED_COMMIT="
+    for line in text.splitlines():
+        stripped = line.strip().strip("- ").strip("`")
+        if stripped.startswith(prefix):
+            return stripped[len(prefix) :]
+    return None
+
+
 def validate(root: Path) -> list[str]:
     issues: list[str] = []
 
@@ -137,6 +149,11 @@ def validate(root: Path) -> list[str]:
         for snippet in REQUIRED_SURVEY_SNIPPETS:
             if snippet not in survey:
                 issues.append(f"missing_survey_snippet:{snippet}")
+        surveyed_commit = _surveyed_commit_from_text(survey)
+        if surveyed_commit is None:
+            issues.append("missing_surveyed_commit")
+        elif not HEX40.fullmatch(surveyed_commit):
+            issues.append(f"invalid_surveyed_commit:{surveyed_commit}")
 
     for rel in REQUIRED_SURVEY_PATHS:
         if not (root / rel).exists():
@@ -213,7 +230,14 @@ def run_self_test() -> int:
         )
         survey_path = root / SURVEY_REL
         survey_path.write_text(
-            "\n".join((*REQUIRED_SURVEY_MARKERS, *REQUIRED_SURVEY_SNIPPETS)) + "\n",
+            "\n".join(
+                (
+                    *REQUIRED_SURVEY_MARKERS,
+                    "PHASE3_SURVEYED_COMMIT=0123456789abcdef0123456789abcdef01234567",
+                    *REQUIRED_SURVEY_SNIPPETS,
+                )
+            )
+            + "\n",
             encoding="utf-8",
         )
         (root / DOCS_README_REL).write_text("\n".join(REQUIRED_DOCS_README_SNIPPETS) + "\n", encoding="utf-8")
@@ -228,7 +252,35 @@ def run_self_test() -> int:
         assert any(issue.startswith("missing_survey_snippet:") for issue in issues)
 
         survey_path.write_text(
-            "\n".join((*REQUIRED_SURVEY_MARKERS, *REQUIRED_SURVEY_SNIPPETS)) + "\n",
+            "\n".join(
+                (
+                    *REQUIRED_SURVEY_MARKERS,
+                    "PHASE3_SURVEYED_COMMIT=0123456789abcdef0123456789abcdef01234567",
+                    *REQUIRED_SURVEY_SNIPPETS,
+                )
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        survey_path.write_text(
+            survey_path.read_text(encoding="utf-8").replace(
+                "PHASE3_SURVEYED_COMMIT=0123456789abcdef0123456789abcdef01234567",
+                "PHASE3_SURVEYED_COMMIT=not-a-sha",
+            ),
+            encoding="utf-8",
+        )
+        issues = validate(root)
+        assert "invalid_surveyed_commit:not-a-sha" in issues
+
+        survey_path.write_text(
+            "\n".join(
+                (
+                    *REQUIRED_SURVEY_MARKERS,
+                    "PHASE3_SURVEYED_COMMIT=0123456789abcdef0123456789abcdef01234567",
+                    *REQUIRED_SURVEY_SNIPPETS,
+                )
+            )
+            + "\n",
             encoding="utf-8",
         )
         extra_uapi = root / UAPI_ROOT_REL / "extra.zig"
@@ -238,7 +290,14 @@ def run_self_test() -> int:
 
         extra_uapi.unlink()
         survey_path.write_text(
-            "\n".join((*REQUIRED_SURVEY_MARKERS, *REQUIRED_SURVEY_SNIPPETS[:-1])) + "\n",
+            "\n".join(
+                (
+                    *REQUIRED_SURVEY_MARKERS,
+                    "PHASE3_SURVEYED_COMMIT=0123456789abcdef0123456789abcdef01234567",
+                    *REQUIRED_SURVEY_SNIPPETS[:-1],
+                )
+            )
+            + "\n",
             encoding="utf-8",
         )
         issues = validate(root)
@@ -265,6 +324,7 @@ def main() -> int:
         return 1
     print("PHASE3_EXPORT_UAPI_SURVEY=pass")
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
