@@ -461,6 +461,24 @@ pub fn writeCommandSectionsForTerminal(
     }
 }
 
+const CommandSourceFixtureDir = struct {
+    path: []const u8,
+    entries: []const DirectoryEntry,
+};
+
+const CommandSourceFixture = struct {
+    dirs: []const CommandSourceFixtureDir,
+
+    fn populate(self: *@This(), cmds: *CmdNames, path: []const u8, prefix: []const u8) !void {
+        for (self.dirs) |dir| {
+            if (std.mem.eql(u8, dir.path, path)) {
+                try addExecutableEntries(cmds, dir.entries, prefix);
+                return;
+            }
+        }
+    }
+};
+
 test "addCmdName owns a copied slice and preserves the requested length" {
     var cmds = CmdNames.init(std.testing.allocator);
     defer cmds.deinit();
@@ -576,24 +594,6 @@ test "addExecutableEntry models load_command_list filtering without directory I/
 }
 
 test "loadCommandListsFromSource keeps exec-path priority and filters duplicates across PATH" {
-    const FixtureDir = struct {
-        path: []const u8,
-        entries: []const DirectoryEntry,
-    };
-
-    const FixtureSource = struct {
-        dirs: []const FixtureDir,
-
-        fn populate(self: *@This(), cmds: *CmdNames, path: []const u8, prefix: []const u8) !void {
-            for (self.dirs) |dir| {
-                if (std.mem.eql(u8, dir.path, path)) {
-                    try addExecutableEntries(cmds, dir.entries, prefix);
-                    return;
-                }
-            }
-        }
-    };
-
     const exec_entries = [_]DirectoryEntry{
         .{ .name = "perf-stat", .is_executable = true },
         .{ .name = "perf-report.exe", .is_executable = true },
@@ -608,7 +608,7 @@ test "loadCommandListsFromSource keeps exec-path priority and filters duplicates
         .{ .name = "perf-trace", .is_executable = true },
     };
 
-    var source = FixtureSource{
+    var source = CommandSourceFixture{
         .dirs = &.{
             .{ .path = "/opt/perf/bin", .entries = &exec_entries },
             .{ .path = "/usr/bin", .entries = &other_entries },
@@ -627,7 +627,7 @@ test "loadCommandListsFromSource keeps exec-path priority and filters duplicates
         &main_cmds,
         &other_cmds,
         &source,
-        FixtureSource.populate,
+        CommandSourceFixture.populate,
     );
 
     try std.testing.expectEqual(@as(usize, 2), main_cmds.count());
@@ -639,24 +639,6 @@ test "loadCommandListsFromSource keeps exec-path priority and filters duplicates
 }
 
 test "loadCommandListsFromEnvPath preserves raw PATH splitting and exec-path filtering" {
-    const FixtureDir = struct {
-        path: []const u8,
-        entries: []const DirectoryEntry,
-    };
-
-    const FixtureSource = struct {
-        dirs: []const FixtureDir,
-
-        fn populate(self: *@This(), cmds: *CmdNames, path: []const u8, prefix: []const u8) !void {
-            for (self.dirs) |dir| {
-                if (std.mem.eql(u8, dir.path, path)) {
-                    try addExecutableEntries(cmds, dir.entries, prefix);
-                    return;
-                }
-            }
-        }
-    };
-
     const exec_entries = [_]DirectoryEntry{
         .{ .name = "perf-stat", .is_executable = true },
         .{ .name = "perf-report.exe", .is_executable = true },
@@ -666,7 +648,7 @@ test "loadCommandListsFromEnvPath preserves raw PATH splitting and exec-path fil
         .{ .name = "perf-trace", .is_executable = true },
     };
 
-    var source = FixtureSource{
+    var source = CommandSourceFixture{
         .dirs = &.{
             .{ .path = "", .entries = &.{} },
             .{ .path = "/opt/perf/bin", .entries = &exec_entries },
@@ -687,7 +669,7 @@ test "loadCommandListsFromEnvPath preserves raw PATH splitting and exec-path fil
         &main_cmds,
         &other_cmds,
         &source,
-        FixtureSource.populate,
+        CommandSourceFixture.populate,
     );
 
     try std.testing.expectEqual(@as(usize, 2), main_cmds.count());
@@ -698,24 +680,6 @@ test "loadCommandListsFromEnvPath preserves raw PATH splitting and exec-path fil
 }
 
 test "loadCommandListsFromEnvPath keeps PATH-only fallback stable when exec-path lookup is unavailable" {
-    const FixtureDir = struct {
-        path: []const u8,
-        entries: []const DirectoryEntry,
-    };
-
-    const FixtureSource = struct {
-        dirs: []const FixtureDir,
-
-        fn populate(self: *@This(), cmds: *CmdNames, path: []const u8, prefix: []const u8) !void {
-            for (self.dirs) |dir| {
-                if (std.mem.eql(u8, dir.path, path)) {
-                    try addExecutableEntries(cmds, dir.entries, prefix);
-                    return;
-                }
-            }
-        }
-    };
-
     const current_dir_entries = [_]DirectoryEntry{
         .{ .name = "perf-current", .is_executable = true },
         .{ .name = "perf-report.exe", .is_executable = true },
@@ -727,7 +691,7 @@ test "loadCommandListsFromEnvPath keeps PATH-only fallback stable when exec-path
         .{ .name = "README.md", .is_executable = true },
     };
 
-    var source = FixtureSource{
+    var source = CommandSourceFixture{
         .dirs = &.{
             .{ .path = "", .entries = &current_dir_entries },
             .{ .path = "/usr/bin", .entries = &usr_bin_entries },
@@ -747,7 +711,7 @@ test "loadCommandListsFromEnvPath keeps PATH-only fallback stable when exec-path
         &main_cmds,
         &other_cmds,
         &source,
-        FixtureSource.populate,
+        CommandSourceFixture.populate,
     );
 
     try std.testing.expectEqual(@as(usize, 0), main_cmds.count());
@@ -758,24 +722,6 @@ test "loadCommandListsFromEnvPath keeps PATH-only fallback stable when exec-path
 }
 
 test "loadCommandListsFromEnvPath reuses the shared loader for custom prefixes" {
-    const FixtureDir = struct {
-        path: []const u8,
-        entries: []const DirectoryEntry,
-    };
-
-    const FixtureSource = struct {
-        dirs: []const FixtureDir,
-
-        fn populate(self: *@This(), cmds: *CmdNames, path: []const u8, prefix: []const u8) !void {
-            for (self.dirs) |dir| {
-                if (std.mem.eql(u8, dir.path, path)) {
-                    try addExecutableEntries(cmds, dir.entries, prefix);
-                    return;
-                }
-            }
-        }
-    };
-
     const exec_entries = [_]DirectoryEntry{
         .{ .name = "zigux-run", .is_executable = true },
         .{ .name = "perf-report", .is_executable = true },
@@ -785,7 +731,7 @@ test "loadCommandListsFromEnvPath reuses the shared loader for custom prefixes" 
         .{ .name = "zigux-report.exe", .is_executable = true },
     };
 
-    var source = FixtureSource{
+    var source = CommandSourceFixture{
         .dirs = &.{
             .{ .path = "", .entries = &.{} },
             .{ .path = "/opt/zigux/bin", .entries = &exec_entries },
@@ -806,7 +752,7 @@ test "loadCommandListsFromEnvPath reuses the shared loader for custom prefixes" 
         &main_cmds,
         &other_cmds,
         &source,
-        FixtureSource.populate,
+        CommandSourceFixture.populate,
     );
 
     try std.testing.expectEqual(@as(usize, 1), main_cmds.count());
