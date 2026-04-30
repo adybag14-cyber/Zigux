@@ -567,6 +567,25 @@ test "runtime loader gap survey proves the shared request surface and existing l
         "pub fn keepsAllocatorInitFlowConsistent",
         "pub fn keepsSharedHandoffContractExplicit",
     };
+    const allocator_handoff_surface = [_][]const u8{
+        "requires_explicit_caller",
+        "permits_global_fallback",
+        "initializes_owned_state",
+        "requires_reset_on_init",
+        "pub fn keepsInitFlowConsistent",
+        "allocatorHandoffFor(.kernel_heap).init_flow",
+        "request.allocator_handoff.initializes_owned_state",
+        "!request.allocator_handoff.requires_reset_on_init",
+        "released.allocator_handoff.initializes_owned_state",
+        "!released.allocator_handoff.requires_reset_on_init",
+    };
+    const released_without_substrate_surface = [_][]const u8{
+        "pub fn releaseSharedRuntimeLoadWithoutSubstrate",
+        "pub fn releasedWithoutSubstrate",
+        "try std.testing.expect(released.isReleasedWithoutSubstrate());",
+        "try std.testing.expect(!released.isWaitingOnRuntimeSubstrate());",
+        "try std.testing.expectEqual(runtime_loader.LoaderStage.released_without_substrate, released.handoff_stage);",
+    };
     const absent_command_env_surface = [_][]const u8{
         "argv_policy",
         "activation_env",
@@ -575,6 +594,12 @@ test "runtime loader gap survey proves the shared request surface and existing l
     try expectContainsAll(atomic64_loader, &shared_loader_surface);
     try expectContainsAll(bitmap_loader, &shared_loader_surface);
     try expectContainsAll(kretprobe_loader, &shared_loader_surface);
+    try expectContainsAll(atomic64_loader, &allocator_handoff_surface);
+    try expectContainsAll(bitmap_loader, &allocator_handoff_surface);
+    try expectContainsAll(kretprobe_loader, &allocator_handoff_surface);
+    try expectContainsAll(atomic64_loader, &released_without_substrate_surface);
+    try expectContainsAll(bitmap_loader, &released_without_substrate_surface);
+    try expectContainsAll(kretprobe_loader, &released_without_substrate_surface);
     try expectContainsNone(atomic64_loader, &absent_command_env_surface);
     try expectContainsNone(bitmap_loader, &absent_command_env_surface);
     try expectContainsNone(kretprobe_loader, &absent_command_env_surface);
@@ -616,6 +641,7 @@ test "runtime loader gap survey proves the shared request surface and existing l
         "pub fn allocatorHandoffFor",
     });
     try expectContainsAll(runtime_loader_file, &shared_request_surface);
+    try expectContainsAll(runtime_loader_file, &allocator_handoff_surface);
 
     try expectContainsAll(bitmap_loader, &.{
         "pub const RuntimeBitmapLoadPlan = struct",
