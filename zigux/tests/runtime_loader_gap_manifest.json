@@ -9,6 +9,7 @@
     "phase6_leaf_helper_count": 4,
     "runtime_sample_count": 4,
     "runtime_loader_plan_count": 3,
+    "runtime_sample_only_blocked_count": 1,
     "phase8_command_environment_surface_count": 2,
     "cross_phase_non_owner_surface_count": 4,
     "shared_runtime_loader_present": true,
@@ -51,6 +52,16 @@
     "samples/zigux/runtime_atomic64_loader.zig",
     "samples/zigux/runtime_bitmap_loader.zig",
     "samples/zigux/runtime_kretprobe_loader.zig"
+  ],
+  "runtime_sample_only_blocked": [
+    {
+      "sample_path": "samples/zigux/runtime_trace_events.zig",
+      "blocked_loader_path": "samples/zigux/runtime_trace_events_loader.zig",
+      "blocker_manifest": "zigux/tests/runtime_trace_events_manifest.json",
+      "blocker_gap_id": "runtime-trace-events-substrate-handoff",
+      "blocker_freeze_anchor": "kernel/trace/ring_buffer.c",
+      "why_blocked": "The fourth Phase 9 pilot remains intentionally sample-only because the trace-events packet keeps the trace core at a study-only freeze boundary and still blocks runtime task ownership, polling and event-loop substrate, thread creation, and tracepoint-registration lifecycle wiring."
+    }
   ],
   "non_owner_surfaces": [
     {
@@ -212,7 +223,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
-      "why_now": "The repo already had runtime starter samples and three loader-plan files, but it still lacked one shared note that says Phase 6 should not absorb runtime allocator or init-flow work."
+      "why_now": "The repo already had runtime starter samples, three loader-plan files, and one sample-only blocked trace-events pilot, but it still lacked one shared note that says Phase 6 should not absorb runtime allocator or init-flow work."
     },
     {
       "id": "runtime-loader-substrate-plan",
@@ -241,6 +252,13 @@
       "kind": "runtime_loader_scaffold",
       "zigux_destination": "samples/zigux/runtime_*_loader.zig",
       "why_now": "Each landed sample-side loader already carries an explicit without-substrate rollback path that releases the shared request from waiting_on_runtime_substrate to released_without_substrate, so the validation packet should catalog that fallback posture instead of leaving it implicit in loader-local tests."
+    },
+    {
+      "id": "runtime-loader-trace-events-sample-only-boundary",
+      "status": "blocked_on_runtime_substrate",
+      "kind": "runtime_substrate_boundary",
+      "zigux_destination": "samples/zigux/runtime_trace_events_loader.zig",
+      "why_now": "The fourth Phase 9 runtime pilot is still `samples/zigux/runtime_trace_events.zig`, but its loader plan remains intentionally absent because the trace-events packet keeps `kernel/trace/ring_buffer.c` at a study-only boundary and still blocks runtime task ownership, polling and event-loop substrate, thread creation, and tracepoint-registration lifecycle wiring."
     },
     {
       "id": "runtime-loader-workqueue-freeze-map-boundary",
