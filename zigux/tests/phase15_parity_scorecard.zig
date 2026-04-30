@@ -247,6 +247,9 @@ test "phase 15 parity scorecard docs keep the parity-tracking survey aligned" {
     try expectContains(scorecard_doc, "That closes the current parity-tracking gap for the roadmap requirement `parity scorecard`.");
     try expectContains(scorecard_doc, "lane identity, roadmap wording, and replay-backed evidence packet current");
     try expectContains(scorecard_doc, "shared replay path");
+    try expectContains(scorecard_doc, "required review-process record fields tracked in the manifest: `12`");
+    try expectContains(scorecard_doc, "landed scorecard gaps: `19 / 20`");
+    try expectContains(scorecard_doc, "blocked scorecard gaps: `1 / 20`");
     try expectContains(scorecard_doc, "the current roadmap phase, the decision record ID, and the lane owner");
     try expectContains(scorecard_doc, "the automatic return-to-blocked trigger that sends the anchor back to blocked review posture");
     try expectContains(scorecard_doc, "the indefinite-C policy link, or an explicit note saying why the packet is not yet entering that policy posture");
