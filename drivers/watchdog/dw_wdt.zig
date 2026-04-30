@@ -39,6 +39,12 @@ pub const TimerClockSelection = enum {
     unnamed_default,
 };
 
+pub const TimeoutTopologySelection = enum {
+    fixed_component,
+    custom_component,
+    fixed_fallback,
+};
+
 pub const ModuleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
@@ -149,6 +155,22 @@ pub const LiveResourceOrderSummary = struct {
     install_restart_handler_after_registration: bool,
 };
 
+pub const TimeoutTopologyOptions = struct {
+    component_uses_fixed_top: bool = true,
+    custom_tops: ?[num_tops]u32 = null,
+};
+
+pub const TimeoutTopologySummary = struct {
+    anchor: []const u8,
+    selection: TimeoutTopologySelection,
+    top_source: TopSource,
+    custom_tops_requested: bool,
+    custom_tops_applied: bool,
+    fell_back_to_fixed_tops: bool,
+    min_timeout_sec: u32,
+    max_hw_heartbeat_ms: u32,
+};
+
 pub const TeardownLifecycleRequest = struct {
     restart_watchdog_running: bool = true,
     stop_interrupt_pending: bool = true,
@@ -245,6 +267,45 @@ pub const DwWdtLab = struct {
 
         _ = try self.setTimeout(default_timeout_sec);
         return self;
+    }
+
+    pub fn initFromTopology(
+        rate_hz: u32,
+        has_reset_control: bool,
+        options: TimeoutTopologyOptions,
+    ) !Self {
+        if (options.component_uses_fixed_top) {
+            return initFixedTops(rate_hz, has_reset_control);
+        }
+        if (options.custom_tops) |tops| {
+            return initCustomTops(rate_hz, has_reset_control, tops);
+        }
+        return initFixedTops(rate_hz, has_reset_control);
+    }
+
+    pub fn timeoutTopologySummary(
+        rate_hz: u32,
+        has_reset_control: bool,
+        options: TimeoutTopologyOptions,
+    ) !TimeoutTopologySummary {
+        var watchdog = try initFromTopology(rate_hz, has_reset_control, options);
+        const used_custom_tops = !options.component_uses_fixed_top and options.custom_tops != null;
+        const fell_back_to_fixed_tops = !options.component_uses_fixed_top and options.custom_tops == null;
+        return .{
+            .anchor = descriptor().anchor,
+            .selection = if (options.component_uses_fixed_top)
+                .fixed_component
+            else if (used_custom_tops)
+                .custom_component
+            else
+                .fixed_fallback,
+            .top_source = watchdog.top_source,
+            .custom_tops_requested = options.custom_tops != null,
+            .custom_tops_applied = used_custom_tops,
+            .fell_back_to_fixed_tops = fell_back_to_fixed_tops,
+            .min_timeout_sec = watchdog.getMinTimeout(),
+            .max_hw_heartbeat_ms = watchdog.getMaxTimeoutMs(),
+        };
     }
 
     pub fn configSnapshot(self: *const Self) ConfigSnapshot {
