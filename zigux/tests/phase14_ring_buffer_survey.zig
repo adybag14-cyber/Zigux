@@ -67,7 +67,7 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
     try std.testing.expectEqualStrings("P14-L05", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
     try std.testing.expectEqualStrings("kernel/trace/ring_buffer.c", manifest.anchor);
-    try std.testing.expectEqualStrings("7addb3a576d8a83a542f84a83957289cfe2f72e5", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("09229747a3bcc072af1948f4c9ec5127c84f6d41", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.ring_buffer_c_lines >= 8000);
     try std.testing.expect(manifest.survey_summary.ring_buffer_design_doc_lines >= 900);
@@ -82,7 +82,7 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_ring_buffer_survey_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_ring_buffer_survey_note_present);
     try std.testing.expectEqual(@as(usize, 6), manifest.decision_checklist.len);
-    try std.testing.expectEqual(@as(usize, 15), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 16), manifest.gaps.len);
 
     var landed_count: usize = 0;
     var blocked_count: usize = 0;
@@ -95,6 +95,7 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
     var saw_read_page_extraction_followup = false;
     var saw_read_page_allocation_contract_followup = false;
     var saw_subbuf_order_reconfig_followup = false;
+    var saw_snapshot_rollback_failure_followup = false;
     var saw_port_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -175,6 +176,14 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "buffer_subbuf_size_write()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "tracing_buffers_read()") != null);
         }
+        if (std.mem.eql(u8, gap.id, "phase14-ring-buffer-snapshot-rollback-failure-followup")) {
+            saw_snapshot_rollback_failure_followup = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase14-ring-buffer-survey.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "buffer_subbuf_size_write()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "tracing_resize_ring_buffer()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "tracing_disabled") != null);
+        }
         if (std.mem.eql(u8, gap.id, "phase14-ring-buffer-zig-port-blocker")) {
             saw_port_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_stay_in_c_evidence", gap.status);
@@ -186,7 +195,7 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 14), landed_count);
+    try std.testing.expectEqual(@as(usize, 15), landed_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_boundary_checklist);
     try std.testing.expect(saw_overwrite_audit);
@@ -197,6 +206,7 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
     try std.testing.expect(saw_read_page_extraction_followup);
     try std.testing.expect(saw_read_page_allocation_contract_followup);
     try std.testing.expect(saw_subbuf_order_reconfig_followup);
+    try std.testing.expect(saw_snapshot_rollback_failure_followup);
     try std.testing.expect(saw_port_blocker);
 }
 
@@ -271,9 +281,12 @@ test "phase 14 ring-buffer survey note records the refreshed commit pin and land
     defer std.testing.allocator.free(survey_note);
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_LANE_KEY=P14-L05") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_SURVEYED_COMMIT=7addb3a576d8a83a542f84a83957289cfe2f72e5") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_SURVEYED_COMMIT=09229747a3bcc072af1948f4c9ec5127c84f6d41") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Sub-buffer order reconfiguration audit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Snapshot rollback failure-path audit") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "buffer_subbuf_size_write()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "tracing_buffers_read()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "disables tracing outright") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "tracing_disabled = 1") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "tracing_resize_ring_buffer()") != null);
 }
