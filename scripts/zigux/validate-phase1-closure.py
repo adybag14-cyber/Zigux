@@ -38,6 +38,7 @@ closure = (ROOT / 'Documentation' / 'zigux' / 'phase1-closure.md').read_text(enc
 workflow = (ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml').read_text(encoding='utf-8')
 tests_build = (ROOT / 'zigux' / 'tests' / 'build.zig').read_text(encoding='utf-8')
 ledger = (ROOT / 'zigux-alpha' / 'BOOTSTRAP_COMMIT_LEDGER.md').read_text(encoding='utf-8')
+bench_checker = (ROOT / 'scripts' / 'zigux' / 'check-phase1-bench.py').read_text(encoding='utf-8')
 manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_helper_manifest.json').read_text(encoding='utf-8'))
 bench_expectations = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_bench_expectations.json').read_text(encoding='utf-8'))
 
@@ -106,6 +107,7 @@ required_closure_markers = [
     'PHASE1_UNIT_GATE=zig build test --build-file zigux/tests/build.zig',
     'PHASE1_BENCH_GATE=zig build bench --build-file zigux/tests/build.zig',
     'PHASE1_BENCH_CHECK_GATE=python3 scripts/zigux/check-phase1-bench.py',
+    'PHASE1_BENCH_SELF_TEST_GATE=python3 scripts/zigux/check-phase1-bench.py --self-test',
     'PHASE1_CLOSURE_GATE=python3 scripts/zigux/validate-phase1-closure.py',
     'PHASE1_FIND_BIT_BENCH_REVIEW=find_bit benchmark smoke pins deterministic next-bit, whole-family, tail-window, and same-word start-mask checksums so helper-local scan regressions cannot hide behind a generic positive checksum',
     'PHASE1_FIND_BIT_BENCH_KEYS=PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM,PHASE1_BENCH_FIND_BIT_FAMILY_CHECKSUM,PHASE1_BENCH_FIND_TAIL_WINDOW_CHECKSUM,PHASE1_BENCH_FIND_SAME_WORD_CHECKSUM',
@@ -122,6 +124,7 @@ required_workflow_markers = [
     'run: zig version',
     'python3 scripts/zigux/validate-phase1-closure.py',
     'python3 scripts/zigux/check-phase1-bench.py',
+    'python3 scripts/zigux/check-phase1-bench.py --self-test',
     'zig build bench --build-file zigux/tests/build.zig',
 ]
 required_build_markers = [
@@ -130,6 +133,11 @@ required_build_markers = [
 ]
 required_ledger_markers = [
     'docs(zigux): close bounded phase-1 helper tranche',
+]
+required_bench_checker_markers = [
+    "parser.add_argument('--self-test'",
+    "print('PHASE1_BENCH_SELF_TEST=pass')",
+    "print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=6')",
 ]
 
 missing_markers = []
@@ -145,6 +153,9 @@ for marker in required_build_markers:
 for marker in required_ledger_markers:
     if marker not in ledger:
         missing_markers.append(f'ledger:{marker}')
+for marker in required_bench_checker_markers:
+    if marker not in bench_checker:
+        missing_markers.append(f'bench_checker:{marker}')
 
 if 'mlugg/setup-zig@' in workflow:
     missing_markers.append('workflow:remove mlugg/setup-zig@')
@@ -410,4 +421,7 @@ if missing_markers:
 
 print('PHASE1_CLOSURE_VALIDATION=pass')
 print(f'PHASE1_CLOSURE_REQUIRED_FILE_COUNT={len(required_files)}')
-print(f'PHASE1_CLOSURE_REQUIRED_MARKER_COUNT={len(required_closure_markers) + len(required_workflow_markers) + len(required_build_markers) + len(required_ledger_markers)}')
+print(
+    'PHASE1_CLOSURE_REQUIRED_MARKER_COUNT='
+    f"{len(required_closure_markers) + len(required_workflow_markers) + len(required_build_markers) + len(required_ledger_markers) + len(required_bench_checker_markers)}"
+)
