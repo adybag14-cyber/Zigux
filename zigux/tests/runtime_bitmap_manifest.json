@@ -22,7 +22,8 @@
     "sample-behavior changes update the manifest-backed exact checks alongside runtime_bitmap_module.zig and runtime_bitmap_diff.zig instead of leaving reviewers to infer the new contract from code alone",
     "the review packet keeps the Phase 9 runtime bitmap starter distinct from the still-blocked shared runtime-loader control surface instead of implying loadable-module or command-path parity",
     "docs and tests still keep real runtime execution, shared loader controls, and full lib/test_bitmap.c parity out of scope for this bounded runtime starter",
-    "the bitmap packet still treats Documentation/zigux/phase9-runtime-loader-gap-survey.md as the owner of blocked shared command-name, argv-policy, and environment-derived activation control rather than implying that the bitmap starter itself has crossed into real runtime execution"
+    "the bitmap packet still treats Documentation/zigux/phase9-runtime-loader-gap-survey.md as the owner of blocked shared command-name, argv-policy, and environment-derived activation control rather than implying that the bitmap starter itself has crossed into real runtime execution",
+    "the bitmap packet still treats Documentation/zigux/freeze-map.md as authoritative for the study-only kernel/workqueue.c boundary and carries no parity scorecard entry or Architecture Council status-change request for that scheduler-facing anchor"
   ],
   "exact_checks": [
     {
@@ -84,6 +85,11 @@
       "id": "loader-build-leg",
       "kind": "shared_build_contract",
       "expected": "the shared Phase 9 build keeps the dedicated phase9-runtime-bitmap-loader-tests leg alongside the direct phase9-runtime-bitmap-sample-tests leg so the loader scaffold remains first-class review evidence"
+    },
+    {
+      "id": "shared-loader-freeze-map-boundary",
+      "kind": "governance_boundary",
+      "expected": "the bitmap survey packet keeps Documentation/zigux/freeze-map.md and the study-only kernel/workqueue.c boundary explicit, with no parity scorecard entry or Architecture Council status-change request attached to this lane"
     },
     {
       "id": "diff-fill-set-case",
@@ -267,6 +273,8 @@
     "a loadable Zigux runtime bitmap module",
     "true runtime execution or lifecycle parity through a shared loader path",
     "the full lib/test_bitmap.c surface beyond the bounded starter and diff cases",
-    "shared runtime-loader command-name, argv-policy, or environment activation controls"
+    "shared runtime-loader command-name, argv-policy, or environment activation controls",
+    "parity or ownership for kernel/workqueue.c",
+    "any freeze-map status change for kernel/workqueue.c without an Architecture Council decision"
   ]
 }
