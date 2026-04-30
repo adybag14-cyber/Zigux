@@ -108,8 +108,8 @@
     "surveyed_commits": {
       "core": "3232d0c7296f86e9f5822d0f8b87030f79449c08",
       "ring": "800e2edfb5d2d0c80ac45ffee6630a6b13905d0d",
-      "input": "8f33ebe9e9d7a4d15cf1cc1eac2cfc6b72447ef7",
-      "mmio": "305ace5bd4819ec3d7d2623f0fb6e6f73303fe22"
+      "input": "fda9b64a5beee1dad9545d0bffd585d0adae8c4b",
+      "mmio": "fda9b64a5beee1dad9545d0bffd585d0adae8c4b"
     }
   },
   "ready_transport_followups": {},
