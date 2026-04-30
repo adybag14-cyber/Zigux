@@ -111,12 +111,17 @@ test "phase 7 memparse preserves suffix scaling and stop index semantics" {
     try std.testing.expectEqual(@as(usize, 1), index);
 }
 
+test "phase 7 parseOptionStr matches C empty-option edge behavior around commas" {
+    try std.testing.expect(cmdline.parseOptionStr(",debug", ""));
+    try std.testing.expect(cmdline.parseOptionStr("quiet,,debug", ""));
+    try std.testing.expect(!cmdline.parseOptionStr("", ""));
+    try std.testing.expect(!cmdline.parseOptionStr("quiet,", ""));
+}
+
 test "phase 7 parseOptionStr matches only exact bare options" {
     try std.testing.expect(cmdline.parseOptionStr("quiet,debug,nohlt", "debug"));
     try std.testing.expect(!cmdline.parseOptionStr("quiet,debug=1,nohlt", "debug"));
     try std.testing.expect(!cmdline.parseOptionStr("quiet,debug\x00,nohlt", "nohlt"));
-    try std.testing.expect(!cmdline.parseOptionStr("", ""));
-    try std.testing.expect(!cmdline.parseOptionStr("quiet,", ""));
 }
 
 test "phase 7 getOption keeps bare 0x in octal-style zero parsing" {
