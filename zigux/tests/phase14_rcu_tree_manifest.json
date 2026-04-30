@@ -203,35 +203,35 @@
       "status": "starter_landed",
       "kind": "boundary_audit",
       "zigux_destination": "Documentation/zigux/phase14-rcu-tree-survey.md",
-      "why_now": "The survey now records `rcu_is_watching()`, `rcu_watching_snap_save()`, and `invoke_rcu_core()` as a landed stay-in-C audit so idle-watch transitions, dyntick snapshot ordering, and core wakeup routing remain reviewable without implying active `kernel/rcu/tree_bridge.zig` delivery."
+      "why_now": "The survey now records `rcu_is_watching()`, `rcu_watching_snap_save()`, and `invoke_rcu_core()` as a landed stay-in-C audit so idle-watch transitions, dyntick snapshot ordering, and core re-entry remain reviewable without opening a placeholder wrapper path."
     },
     {
       "id": "phase14-rcu-tree-public-wait-and-barrier-followup",
       "status": "starter_landed",
       "kind": "boundary_audit",
       "zigux_destination": "Documentation/zigux/phase14-rcu-tree-survey.md",
-      "why_now": "The survey now records `synchronize_rcu()`, `poll_state_synchronize_rcu_full()`, and `rcu_barrier()` as a landed stay-in-C audit so public wait, polling-cookie sequencing, and callback-barrier draining remain reviewable without implying active `kernel/rcu/tree_bridge.zig` delivery."
+      "why_now": "The survey now records `synchronize_rcu()`, `poll_state_synchronize_rcu_full()`, and `rcu_barrier()` as a landed stay-in-C audit so public wait, polling-cookie, and callback-barrier ownership remain reviewable without implying a bridge candidate."
     },
     {
       "id": "phase14-rcu-tree-cpu-hotplug-followup",
       "status": "starter_landed",
       "kind": "boundary_audit",
       "zigux_destination": "Documentation/zigux/phase14-rcu-tree-survey.md",
-      "why_now": "The survey now records `rcutree_prepare_cpu()`, `rcutree_report_cpu_dead()`, and `rcutree_migrate_callbacks()` as a landed stay-in-C audit so CPU hotplug enrollment, teardown, and callback migration remain reviewable without implying active `kernel/rcu/tree_bridge.zig` delivery."
+      "why_now": "The survey now records `rcutree_prepare_cpu()`, `rcutree_report_cpu_dead()`, and `rcutree_migrate_callbacks()` as a landed stay-in-C audit so CPU hotplug enrollment, teardown, and callback migration remain reviewable without weakening the freeze boundary."
     },
     {
       "id": "phase14-rcu-tree-rollback-threshold-guardrail",
       "status": "starter_landed",
-      "kind": "policy",
-      "zigux_destination": "Documentation/zigux/phase14-rcu-tree-survey.md",
-      "why_now": "The survey now records the explicit reopen evidence threshold, rollback owner, and automatic return-to-blocked triggers so the lane cannot quietly drift from freeze-in-C survey status into implied `kernel/rcu/tree_bridge.zig` momentum."
+      "kind": "rollback_guardrail",
+      "zigux_destination": "zigux/tests/phase14_rcu_tree_manifest.json",
+      "why_now": "The manifest now carries the rollback-threshold guardrail so any future Architecture Council reopen record for `kernel/rcu/tree_bridge.zig` must travel with the same parity evidence, replay commands, blocker disposition, placeholder wrapper warnings, and rollback owner instead of drifting into implied bridge momentum."
     },
     {
       "id": "phase14-rcu-tree-bridge-blocker",
       "status": "blocked_on_stay_in_c_evidence",
-      "kind": "blocked_delivery",
+      "kind": "freeze_map",
       "zigux_destination": "kernel/rcu/tree_bridge.zig",
-      "why_now": "The roadmap destination stays blocked because the current packet still shows grace-period sequencing, expedited waits, public wait and callback-barrier APIs, NOCB offload, idle-watch transitions, quiescent-state propagation, callback lifecycle handling, and CPU hotplug or callback migration as live freeze-in-C behavior rather than a narrow bridge seam."
+      "why_now": "The roadmap destination remains blocked because Tree RCU still couples grace-period publication, expedited waits, NOCB offload, idle-watch transitions, quiescent-state propagation, callback lifecycle behavior, public wait-and-barrier APIs, CPU hotplug migration, and memory-ordering policy tightly enough that a Phase 14 bridge claim or placeholder wrapper would overstate progress."
     }
   ]
 }
