@@ -298,6 +298,25 @@ def run_self_test() -> int:
             original_string_helpers_survey, encoding="utf-8"
         )
 
+        string_helpers_tests_path = tmp_root / "zigux" / "tests" / "phase7_string_helpers.zig"
+        original_string_helpers_tests = string_helpers_tests_path.read_text(encoding="utf-8")
+        string_helpers_tests_path.write_text(
+            original_string_helpers_tests.replace(
+                "phase 7 stringEscapeMem reports truncated output length without forcing a terminator",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "string_helpers_escape_truncation_review_surface",
+            tmp_root,
+            "zigux/tests/phase7_string_helpers.zig: phase 7 stringEscapeMem reports truncated output length without forcing a terminator",
+        )
+        string_helpers_tests_path.write_text(
+            original_string_helpers_tests, encoding="utf-8"
+        )
+
         rbtree_survey_path = tmp_root / "zigux" / "tests" / "phase7_rbtree_survey.zig"
         original_rbtree_survey = rbtree_survey_path.read_text(encoding="utf-8")
         rbtree_survey_path.write_text(
@@ -336,7 +355,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=11")
+    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
@@ -523,11 +542,17 @@ required_phase7_string_helpers_survey_markers = [
 
 required_phase7_string_helpers_test_markers = [
     'const escape_vectors = @import("fixtures/phase7_string_helpers_escape_vectors.zig");',
+    "phase 7 stringGetSize covers SI, binary, and formatting flag cases",
+    "phase 7 stringGetSize returns snprintf-style length on truncation",
     "phase 7 parseIntArrayUser keeps count-bounded copy semantics explicit",
     "phase 7 kstrdupQuotable reuses the bounded escape subset for log-safe duplication",
     "phase 7 kstrdupAndReplace keeps ownership and first-NUL replacement boundaries explicit",
     "phase 7 kasprintfStrarray returns sequential owned strings with a null-pointer terminator",
     "phase 7 kfreeStrarray keeps first-NUL prefixes, zero-count reuse, and repeated teardown safe",
+    "phase 7 stringUnescape covers deterministic Linux escape fixtures",
+    "phase 7 string helper wrappers keep shared any-flag and C-string ownership rules",
+    "phase 7 stringEscapeMem covers the bounded escape subset",
+    "phase 7 stringEscapeMem reports truncated output length without forcing a terminator",
 ]
 
 required_phase7_string_helpers_doc_markers = [
