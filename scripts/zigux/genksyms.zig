@@ -533,6 +533,30 @@ test "genksyms bridge rejects ambiguous abbreviated long options" {
     }
 }
 
+test "genksyms bridge treats an empty long option name as ambiguous" {
+    const outcome = try parseArgs(std.testing.allocator, &.{"--=value"});
+    switch (outcome) {
+        .failure => |failure| switch (failure) {
+            .ambiguous_option => |details| {
+                defer std.testing.allocator.free(details.possibilities);
+                try std.testing.expectEqualStrings("--=value", details.option);
+                try std.testing.expectEqual(@as(usize, 9), details.possibilities.len);
+                try std.testing.expectEqualStrings("debug", details.possibilities[0]);
+                try std.testing.expectEqualStrings("warnings", details.possibilities[1]);
+                try std.testing.expectEqualStrings("quiet", details.possibilities[2]);
+                try std.testing.expectEqualStrings("dump", details.possibilities[3]);
+                try std.testing.expectEqualStrings("reference", details.possibilities[4]);
+                try std.testing.expectEqualStrings("dump-types", details.possibilities[5]);
+                try std.testing.expectEqualStrings("preserve", details.possibilities[6]);
+                try std.testing.expectEqualStrings("version", details.possibilities[7]);
+                try std.testing.expectEqualStrings("help", details.possibilities[8]);
+            },
+            else => return error.UnexpectedFailure,
+        },
+        .command => return error.UnexpectedCommand,
+    }
+}
+
 test "genksyms bridge accepts explicit option terminator" {
     const args = &.{ "--debug", "--", "--leftover", "positional" };
     const outcome = try parseArgs(std.testing.allocator, args);
