@@ -257,14 +257,12 @@ test "phase11 dw_wdt survey manifest and validation matrix record the landed lif
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_survey_gate);
     try std.testing.expect(saw_driver_gap);
-    try std.testing.expect(saw_driverTests);
-    try std.testing.expect(saw_headerBoundary);
-    try std.testing.expect(sawSliceNote);
-    try std.testing.expect(sawValidationMatrix);
-    try std.testing.expect(sawProbeSummary);
-    try std.testing.expect(sawRegistrationGap);
-    try std.testing.expect(sawResourceGap);
-    try std.testing.expect(sawPlatformBlocker);
+    try std.testing.expect(saw_driver_tests);
+    try std.testing.expect(saw_header_boundary);
+    try std.testing.expect(saw_slice_note);
+    try std.testing.expect(saw_validation_matrix);
+    try std.testing.expect(saw_probe_summary);
+    try std.testing.expect(saw_registration_gap);
+    try std.testing.expect(saw_resource_gap);
+    try std.testing.expect(saw_platform_blocker);
 }
-
-...
