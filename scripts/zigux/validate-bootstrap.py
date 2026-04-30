@@ -4,6 +4,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[2]
 required_files = [
+    ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml',
     ROOT / 'zigux-alpha' / 'README.md',
     ROOT / 'zigux-alpha' / 'ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md',
     ROOT / 'Documentation' / 'zigux' / 'README.md',
@@ -15,6 +16,7 @@ required_files = [
     ROOT / 'scripts' / 'zigux' / 'zig-toolchain-policy.json',
     ROOT / 'scripts' / 'zigux' / 'validate-phase6.py',
     ROOT / 'zigux' / 'tests' / 'README.md',
+    ROOT / 'zigux' / 'Makefile',
 ]
 
 missing = [str(path.relative_to(ROOT)) for path in required_files if not path.exists()]
