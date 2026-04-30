@@ -152,7 +152,7 @@ def validate_expected_fixdep_cases(cases_path: Path) -> list[str]:
     return issues
 
 
-def validate_kconfig_bridge_manifest_shape(cases_path: Path) -> list[str]:
+def validate_kconfig_bridge_manifest(cases_path: Path) -> list[str]:
     data = json.loads(cases_path.read_text(encoding='utf-8'))
     issues: list[str] = []
 
@@ -164,42 +164,185 @@ def validate_kconfig_bridge_manifest_shape(cases_path: Path) -> list[str]:
     for name in unexpected_top_level:
         issues.append(f'kconfig_bridge:manifest:unexpected_top_level:{name}')
 
-    for group_name in sorted(expected_top_level):
-        group = data.get(group_name)
-        if not isinstance(group, list):
-            issues.append(f'kconfig_bridge:manifest:{group_name}:expected_list')
-            continue
-        if not group:
-            issues.append(f'kconfig_bridge:manifest:{group_name}:empty')
-
     conf_cases = data.get('conf_cases')
-    if isinstance(conf_cases, list):
-        if len(conf_cases) != 16:
-            issues.append(f'kconfig_bridge:manifest:conf_cases:expected_len:16:actual:{len(conf_cases)}')
-        by_name = {
-            case.get('name'): case
-            for case in conf_cases
-            if isinstance(case, dict) and isinstance(case.get('name'), str)
-        }
-        for name in ('oldaskconfig', 'listnewconfig', 'helpnewconfig', 'mod2yesconfig', 'defconfig', 'savedefconfig', 'allnoconfig', 'randconfig', 'syncconfig'):
-            if name not in by_name:
-                issues.append(f'kconfig_bridge:manifest:missing_conf_case:{name}')
-        for name in ('defconfig', 'savedefconfig'):
-            case = by_name.get(name)
-            if case is None:
-                continue
-            if not isinstance(case.get('mode_arg'), str) or not case.get('mode_arg'):
-                issues.append(f'kconfig_bridge:manifest:{name}:missing_mode_arg')
-        for name in ('allnoconfig', 'randconfig'):
-            case = by_name.get(name)
-            if case is None:
-                continue
-            if not isinstance(case.get('allconfig'), str) or not case.get('allconfig'):
-                issues.append(f'kconfig_bridge:manifest:{name}:missing_allconfig')
+    if not isinstance(conf_cases, list):
+        issues.append('kconfig_bridge:manifest:conf_cases:expected_list')
+        conf_cases = []
+    elif not conf_cases:
+        issues.append('kconfig_bridge:manifest:conf_cases:empty')
 
     confdata_cases = data.get('confdata_cases')
-    if isinstance(confdata_cases, list) and len(confdata_cases) != 14:
-        issues.append(f'kconfig_bridge:manifest:confdata_cases:expected_len:14:actual:{len(confdata_cases)}')
+    if not isinstance(confdata_cases, list):
+        issues.append('kconfig_bridge:manifest:confdata_cases:expected_list')
+        confdata_cases = []
+    elif not confdata_cases:
+        issues.append('kconfig_bridge:manifest:confdata_cases:empty')
+
+    expected_conf_cases = [
+        {
+            'name': 'oldaskconfig',
+            'mode': 'oldaskconfig',
+            'kconfig': 'Kconfig',
+            'config': '.config',
+            'arch': 'x86_64',
+            'expected': 'oldaskconfig_expected.json',
+        },
+        {
+            'name': 'oldconfig',
+            'mode': 'oldconfig',
+            'kconfig': 'Kconfig',
+            'config': 'old/.config',
+            'arch': 'x86_64',
+            'expected': 'oldconfig_expected.json',
+        },
+        {
+            'name': 'syncconfig',
+            'mode': 'syncconfig',
+            'kconfig': 'Kconfig',
+            'config': 'out/.config',
+            'arch': 'riscv64',
+            'expected': 'syncconfig_expected.json',
+        },
+        {
+            'name': 'defconfig',
+            'mode': 'defconfig',
+            'kconfig': 'Kconfig',
+            'config': 'out/.config',
+            'arch': 'arm64',
+            'mode_arg': 'arch/arm64/configs/defconfig',
+            'expected': 'defconfig_expected.json',
+        },
+        {
+            'name': 'savedefconfig',
+            'mode': 'savedefconfig',
+            'kconfig': 'Kconfig',
+            'config': 'out/.config',
+            'arch': 'arm64',
+            'mode_arg': 'arch/arm64/configs/minimal_defconfig',
+            'expected': 'savedefconfig_expected.json',
+        },
+        {
+            'name': 'allnoconfig',
+            'mode': 'allnoconfig',
+            'kconfig': 'Kconfig',
+            'config': 'none/.config',
+            'arch': 'arm64',
+            'allconfig': 'arch/arm64/configs/tiny.config',
+            'expected': 'allnoconfig_expected.json',
+        },
+        {
+            'name': 'allyesconfig',
+            'mode': 'allyesconfig',
+            'kconfig': 'Kconfig',
+            'config': 'yes/.config',
+            'arch': 'riscv64',
+            'expected': 'allyesconfig_expected.json',
+        },
+        {
+            'name': 'allmodconfig',
+            'mode': 'allmodconfig',
+            'kconfig': 'Kconfig',
+            'config': 'mod/.config',
+            'arch': 'arm',
+            'expected': 'allmodconfig_expected.json',
+        },
+        {
+            'name': 'alldefconfig',
+            'mode': 'alldefconfig',
+            'kconfig': 'Kconfig',
+            'config': 'build/.config',
+            'arch': 'arm64',
+            'expected': 'alldefconfig_expected.json',
+        },
+        {
+            'name': 'randconfig',
+            'mode': 'randconfig',
+            'kconfig': 'Kconfig',
+            'config': 'rand/.config',
+            'arch': 'x86',
+            'allconfig': 'seed/allrandom.config',
+            'seed': '0xC0FFEE',
+            'probability': '10:20:30',
+            'expected': 'randconfig_expected.json',
+        },
+        {
+            'name': 'listnewconfig',
+            'mode': 'listnewconfig',
+            'kconfig': 'Kconfig',
+            'config': 'pending/.config',
+            'arch': 's390',
+            'expected': 'listnewconfig_expected.json',
+        },
+        {
+            'name': 'helpnewconfig',
+            'mode': 'helpnewconfig',
+            'kconfig': 'Kconfig',
+            'config': 'help/.config',
+            'arch': 'powerpc64le',
+            'expected': 'helpnewconfig_expected.json',
+        },
+        {
+            'name': 'olddefconfig',
+            'mode': 'olddefconfig',
+            'kconfig': 'Kconfig',
+            'config': '.config',
+            'arch': 'x86_64',
+            'expected': 'olddefconfig_expected.json',
+        },
+        {
+            'name': 'yes2modconfig',
+            'mode': 'yes2modconfig',
+            'kconfig': 'Kconfig',
+            'config': 'rewrite/.config',
+            'arch': 'x86',
+            'expected': 'yes2modconfig_expected.json',
+        },
+        {
+            'name': 'mod2yesconfig',
+            'mode': 'mod2yesconfig',
+            'kconfig': 'Kconfig',
+            'config': 'promote/.config',
+            'arch': 'loongarch',
+            'expected': 'mod2yesconfig_expected.json',
+        },
+        {
+            'name': 'mod2noconfig',
+            'mode': 'mod2noconfig',
+            'kconfig': 'Kconfig',
+            'config': 'demote/.config',
+            'arch': 'mips',
+            'expected': 'mod2noconfig_expected.json',
+        },
+    ]
+    expected_confdata_cases = [
+        {'name': 'duplicate_assignments', 'input': 'duplicate_assignments.config', 'expected': 'duplicate_assignments_expected.json'},
+        {'name': 'empty_string', 'input': 'empty_string.config', 'expected': 'empty_string_expected.json'},
+        {'name': 'escaped_control_sequences', 'input': 'escaped_control_sequences.config', 'expected': 'escaped_control_sequences_expected.json'},
+        {'name': 'escaped_low_control_bytes', 'input': 'escaped_low_control_bytes.config', 'expected': 'escaped_low_control_bytes_expected.json'},
+        {'name': 'escaped_strings', 'input': 'escaped_strings.config', 'expected': 'escaped_strings_expected.json'},
+        {'name': 'explicit_n_tristate', 'input': 'explicit_n_tristate.config', 'expected': 'explicit_n_tristate_expected.json'},
+        {'name': 'ignore_non_config_lines', 'input': 'ignore_non_config_lines.config', 'expected': 'ignore_non_config_lines_expected.json'},
+        {'name': 'malformed_quoted_string', 'input': 'malformed_quoted_string.config', 'expected': 'malformed_quoted_string_expected.json'},
+        {'name': 'negative_signed_numeric_kinds', 'input': 'negative_signed_numeric_kinds.config', 'expected': 'negative_signed_numeric_kinds_expected.json'},
+        {'name': 'numeric_kinds', 'input': 'numeric_kinds.config', 'expected': 'numeric_kinds_expected.json'},
+        {'name': 'quoted_suffix_bytes', 'input': 'quoted_suffix_bytes.config', 'expected': 'quoted_suffix_bytes_expected.json'},
+        {'name': 'sample', 'input': 'sample.config', 'expected': 'sample_expected.json'},
+        {'name': 'sample_crlf', 'input': 'sample_crlf.config', 'expected': 'sample_crlf_expected.json'},
+        {'name': 'signed_numeric_kinds', 'input': 'signed_numeric_kinds.config', 'expected': 'signed_numeric_kinds_expected.json'},
+    ]
+
+    expected_mode_order = [case['mode'] for case in expected_conf_cases]
+    manifest_mode_order = [case.get('mode') for case in conf_cases if isinstance(case, dict) and case.get('mode')]
+    if manifest_mode_order != expected_mode_order:
+        issues.append(
+            'kconfig_bridge:conf_case_order=' + ','.join(manifest_mode_order) +
+            ',expected=' + ','.join(expected_mode_order)
+        )
+
+    if conf_cases != expected_conf_cases:
+        issues.append('kconfig_bridge:conf_cases:expected_exact_manifest')
+    if confdata_cases != expected_confdata_cases:
+        issues.append('kconfig_bridge:confdata_cases:expected_exact_manifest')
 
     return issues
 
@@ -455,7 +598,7 @@ if len(target_manifest_targets) != 3:
 if target_manifest_targets != EXPECTED_CROSS_TARGETS:
     missing_markers.append('targets:list=x86_64-linux-musl,aarch64-linux-musl,riscv64-linux-musl')
 
-missing_markers.extend(validate_kconfig_bridge_manifest_shape(KCONFIG_BRIDGE_DIR / 'cases.json'))
+missing_markers.extend(validate_kconfig_bridge_manifest(KCONFIG_BRIDGE_DIR / 'cases.json'))
 missing_markers.extend(fixdep_case_issues)
 
 if missing_markers:
