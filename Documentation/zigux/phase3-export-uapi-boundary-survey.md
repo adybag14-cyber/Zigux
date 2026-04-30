@@ -4,7 +4,7 @@ This note records the current export-shim and UAPI boundary for the bounded Phas
 
 ## Status
 
-- `PHASE3_SURVEYED_COMMIT=f11569d38143cfcfa204ff63c744cb9780575081`
+- `PHASE3_SURVEYED_COMMIT=36126f196d7207f7d4d4346bb1cc18b554521937`
 - `PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig`
 - `PHASE3_EXPORT_SHIM_SCOPE=explicit-status-plus-boundary-header`
 - `PHASE3_EXPORT_SHIM_STATUS=normalize-and-compatibility-helpers-landed`
@@ -31,17 +31,17 @@ It does require the live repo to say clearly what is already part of the permane
 
 ## Live Repo Reality
 
-This survey is pinned to verified `master` head `f11569d38143cfcfa204ff63c744cb9780575081` so the note stays tied to one inspected boundary snapshot instead of a floating branch label.
+This survey is pinned to verified `master` head `36126f196d7207f7d4d4346bb1cc18b554521937` so the note stays tied to one inspected boundary snapshot instead of a floating branch label.
 
 The current tree already carries the first bounded export and UAPI boundary surface:
 
-- `zigux/kernel/export_shim.zig` exposes explicit `ok`, `errno`, `isOk`, `normalize`, `header`, and `isCompatibleHeader` helpers around the curated `ExportStatus` and `BoundaryHeader` ABI types
+- `zigux/kernel/export_shim.zig` exposes explicit `ok`, `errno`, `isOk`, `normalize`, `header`, `isCompatibleHeader`, and `isCanonicalHeader` helpers around the curated `ExportStatus` and `BoundaryHeader` ABI types
 - the export shim and `zigux/uapi/version.zig` now carry the same shared boundary-header construction and compatibility contract without widening the packet beyond the existing ABI types
 - the export shim and `zigux/uapi/version.zig` now also keep canonical-size header checks separate from broader future-compatible header acceptance, so the packet distinguishes exact current-shape replay from forward-compatible boundary tolerance without widening the UAPI surface
 - `zigux/uapi/version.zig` now exports `abi_version`, `header_size`, `Header`, `boundaryHeader`, `isCurrentAbiVersion`, `isCompatibleSize`, `isCanonicalSize`, `isCompatible`, and `isCanonical`
 - `zigux/tests/phase3_export_uapi.zig` now keeps the narrow kernel-side export shim aligned with the UAPI packet's named current-version and current-size predicates, so the shared boundary rule stays reviewable without widening the kernel shim itself
 - `Documentation/zigux/phase3-abi-slice.md` now describes the export shim as explicit-status-plus-boundary-header and the UAPI surface as version-and-boundary-header
-- `zigux/tests/phase3_export_uapi.zig` now proves that both helpers accept the same shared boundary header, expose the same named version and size predicates, and reject undersized or version-mismatched headers identically
+- `zigux/tests/phase3_export_uapi.zig` now proves that both helpers accept the same shared boundary header, expose the same named version and size predicates, distinguish canonical headers from broader future-compatible headers, and reject undersized or version-mismatched headers identically
 
 This is real roadmap-backed progress.
 It is also still a narrow starting point rather than broad UAPI closure.
@@ -67,7 +67,7 @@ The remaining gap for this specific boundary packet is broader curated UAPI cove
 
 - `zigux/uapi/` still contains only `version.zig`
 - there is no second curated public boundary helper or constant pack under `zigux/uapi/`
-- the shared header support is now explicit and now includes named version and size predicates, but the export shim and UAPI surface still stop well short of a broader public entrypoint or shim family
+- the shared header support is now explicit and now includes named version and size predicates plus canonical-versus-compatible header checks, but the export shim and UAPI surface still stop well short of a broader public entrypoint or shim family
 
 That repo reality is consistent with the bounded ABI substrate, but it is still short of the roadmap's eventual broader permanent boundary destination.
 
