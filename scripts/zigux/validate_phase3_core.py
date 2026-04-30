@@ -181,7 +181,9 @@ COMMON_DOC_MARKERS = (
 
 ASSERT_RE = re.compile(r"assert(?:Size|Offset)\(abi\.([A-Za-z0-9_]+),")
 DUMP_LAYOUT_RE = re.compile(r'writeLayoutPrefix\(writer,\s*"([^"]+)"')
+DUMP_GENERIC_LAYOUT_RE = re.compile(r'writeStructLayout\(writer,\s*"([^"]+)"')
 EXPECTED_LAYOUT_RE = re.compile(r'\\"(zigux_[a-z0-9_]+)\\":\{\\\"size\\\":%zu')
+HARNESS_GENERIC_LAYOUT_RE = re.compile(r'\{"(zigux_[a-z0-9_]+)",\s*sizeof\(struct')
 
 
 def select_slices(entries: list[Phase3Slice], selected_slugs: list[str]) -> list[Phase3Slice]:
@@ -266,11 +268,19 @@ def _asserted_abi_layout_count(root: Path) -> int:
 
 
 def _dump_layout_keys(path: Path) -> list[str]:
-    return DUMP_LAYOUT_RE.findall(path.read_text(encoding="utf-8"))
+    text = path.read_text(encoding="utf-8")
+    keys = DUMP_LAYOUT_RE.findall(text)
+    if keys:
+        return keys
+    return DUMP_GENERIC_LAYOUT_RE.findall(text)
 
 
 def _harness_layout_keys(path: Path) -> list[str]:
-    return EXPECTED_LAYOUT_RE.findall(path.read_text(encoding="utf-8"))
+    text = path.read_text(encoding="utf-8")
+    keys = EXPECTED_LAYOUT_RE.findall(text)
+    if keys:
+        return keys
+    return HARNESS_GENERIC_LAYOUT_RE.findall(text)
 
 
 def validate_abi_expected_fixture(root: Path) -> list[str]:
