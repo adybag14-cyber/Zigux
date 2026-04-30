@@ -505,7 +505,7 @@ def run_self_test() -> int:
         issues = validate(root)
         assert f"surveyed_blob_drift:{MMIO_REL}" in issues
 
-    print("PHASE3_POLICY_UNSAFE_SURVEY=pass")
+    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass")
     return 0
 
 
