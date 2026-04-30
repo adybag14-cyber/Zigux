@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import argparse
 import json
 from pathlib import Path
 import re
@@ -116,14 +117,10 @@ def render_inventory() -> dict[str, object]:
     }
 
 
-def main() -> int:
-    expected = load_json(FIXTURE_PATH)
-    _ = expected
-    generated = render_inventory()
-
+def compare_inventory(inventory: dict[str, object]) -> subprocess.CompletedProcess[str]:
     with tempfile.TemporaryDirectory(prefix="zigux_phase12_inventory_") as tmp_dir_str:
         actual_path = Path(tmp_dir_str) / "phase12_build_inventory.json"
-        actual_path.write_text(json.dumps(generated, indent=2) + "\n", encoding="utf-8")
+        actual_path.write_text(json.dumps(inventory, indent=2) + "\n", encoding="utf-8")
         result = subprocess.run(
             [
                 sys.executable,
@@ -137,6 +134,59 @@ def main() -> int:
             text=True,
             capture_output=True,
         )
+    return result
+
+
+def run_self_test() -> int:
+    load_json(FIXTURE_PATH)
+
+    first = render_inventory()
+    second = render_inventory()
+    if first != second:
+        raise SystemExit("phase12-build-inventory:self-test:repeat_run_stability")
+    if not first["build_test_names"]:
+        raise SystemExit("phase12-build-inventory:self-test:build_test_names_empty")
+    if len(first["build_test_names"]) != len(first["test_root_modules"]):
+        raise SystemExit("phase12-build-inventory:self-test:test_root_module_count")
+    if len(first["shared_test_depend_steps"]) != len(first["build_test_names"]):
+        raise SystemExit("phase12-build-inventory:self-test:depend_step_count")
+
+    matched_result = compare_inventory(first)
+    if matched_result.returncode != 0:
+        raise SystemExit("phase12-build-inventory:self-test:fixture_match")
+    if "ARTIFACT_DIFF=pass" not in matched_result.stdout:
+        raise SystemExit("phase12-build-inventory:self-test:fixture_match_stdout")
+
+    drifted = dict(first)
+    drifted["expected_summary_line"] = "Build Summary: 0/0 steps succeeded; 0/0 tests passed"
+    mismatched_result = compare_inventory(drifted)
+    if mismatched_result.returncode == 0:
+        raise SystemExit("phase12-build-inventory:self-test:fixture_drift_exit")
+    if "ARTIFACT_DIFF=fail" not in mismatched_result.stdout:
+        raise SystemExit("phase12-build-inventory:self-test:fixture_drift_stdout")
+
+    print("PHASE12_BUILD_INVENTORY_SELF_TEST=pass")
+    print("PHASE12_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=7")
+    return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        description="Rebuild and compare the bounded Phase 12 build inventory fixture."
+    )
+    parser.add_argument(
+        "--self-test",
+        action="store_true",
+        help="Run built-in repeat-run and artifact-diff drift checks",
+    )
+    args = parser.parse_args(argv)
+
+    if args.self_test:
+        return run_self_test()
+
+    load_json(FIXTURE_PATH)
+    generated = render_inventory()
+    result = compare_inventory(generated)
 
     if result.stdout:
         sys.stdout.write(result.stdout)
