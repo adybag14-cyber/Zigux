@@ -268,7 +268,7 @@ test "phase12 virtio_scsi survey manifest records the landed queue-depth summary
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-make-target")) {
-            saw_makeTarget = true;
+            saw_make_target = true;
             try std.testing.expectEqualStrings("zigux/Makefile", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "make target") != null);
@@ -391,7 +391,7 @@ test "phase12 virtio_scsi survey manifest records the landed queue-depth summary
     try std.testing.expectEqual(@as(usize, 14), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
-    try std.testing.expect(saw_makeTarget);
+    try std.testing.expect(saw_make_target);
     try std.testing.expect(saw_core_foundation);
     try std.testing.expect(saw_ring_foundation);
     try std.testing.expect(saw_survey_gate);
