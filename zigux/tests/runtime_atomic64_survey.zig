@@ -8,6 +8,17 @@ const SurveySummary = struct {
     preexisting_phase9_doc_present: bool,
 };
 
+const GovernanceRecord = struct {
+    lane_owner: []const u8,
+    status_bucket: []const u8,
+    validation_gate: []const u8,
+    rollback_owner: []const u8,
+    freeze_map_authority: []const u8,
+    study_boundary_anchor: []const u8,
+    boundary_status: []const u8,
+    reopen_rule: []const u8,
+};
+
 const Gap = struct {
     id: []const u8,
     status: []const u8,
@@ -42,6 +53,7 @@ const Manifest = struct {
     roadmap_destinations: []const []const u8,
     sample_path: []const u8,
     validation_entrypoint: []const u8,
+    governance_record: GovernanceRecord,
     survey_summary: SurveySummary,
     review_prompts: []const []const u8,
     exact_checks: []const ExactCheck,
@@ -104,13 +116,21 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expectEqualStrings("samples/zigux/runtime_atomic64.zig", manifest.sample_path);
     try std.testing.expectEqualStrings("zig build test --build-file zigux/tests/phase9_build.zig --summary all", manifest.validation_entrypoint);
+    try std.testing.expectEqualStrings("Documentation/zigux/phase9-runtime-atomic64-survey.md", manifest.governance_record.lane_owner);
+    try std.testing.expectEqualStrings("port_after_substrate", manifest.governance_record.status_bucket);
+    try std.testing.expectEqualStrings("zig build test --build-file zigux/tests/phase9_build.zig --summary all", manifest.governance_record.validation_gate);
+    try std.testing.expectEqualStrings("zigux/tests/runtime_atomic64_survey.zig", manifest.governance_record.rollback_owner);
+    try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", manifest.governance_record.freeze_map_authority);
+    try std.testing.expectEqualStrings("kernel/workqueue.c", manifest.governance_record.study_boundary_anchor);
+    try std.testing.expectEqualStrings("Study / Boundary Only", manifest.governance_record.boundary_status);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.governance_record.reopen_rule, "Architecture Council decision required") != null);
     try std.testing.expect(manifest.survey_summary.atomic64_test_c_lines >= 200);
     try std.testing.expectEqual(@as(usize, 3), manifest.survey_summary.preexisting_runtime_test_files);
     try std.testing.expect(manifest.survey_summary.preexisting_samples_zigux_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_doc_present);
-    try std.testing.expect(manifest.review_prompts.len >= 6);
-    try std.testing.expectEqual(@as(usize, 13), manifest.exact_checks.len);
+    try std.testing.expect(manifest.review_prompts.len >= 7);
+    try std.testing.expectEqual(@as(usize, 14), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 11), manifest.delivery_evidence_catalog.len);
     try std.testing.expectEqual(@as(usize, 11), manifest.ownership_map.len);
     try std.testing.expect(manifest.gaps.len >= 7);
@@ -129,6 +149,7 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
     var saw_freeze_map_boundary_check = false;
     var saw_diff_add_bitwise = false;
     var saw_diff_swap_guard = false;
+    var saw_governance_record_check = false;
     var saw_manifest_catalog = false;
     var saw_module_slice_catalog = false;
     var saw_shared_build_catalog = false;
@@ -140,11 +161,15 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
     var saw_atomic64_sample_ownership = false;
     var saw_module_slice_ownership = false;
     var saw_freeze_map_prompt = false;
+    var saw_governance_prompt = false;
 
     for (manifest.review_prompts) |prompt| {
         try std.testing.expect(prompt.len > 0);
         if (std.mem.indexOf(u8, prompt, "Documentation/zigux/freeze-map.md") != null) {
             saw_freeze_map_prompt = true;
+        }
+        if (std.mem.indexOf(u8, prompt, "governance_record") != null) {
+            saw_governance_prompt = true;
         }
     }
 
@@ -295,6 +320,14 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "kernel/workqueue.c") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "Architecture Council") != null);
         }
+        if (std.mem.eql(u8, check.id, "governance-record")) {
+            saw_governance_record_check = true;
+            try std.testing.expectEqualStrings("governance_record", check.kind);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "lane owner Documentation/zigux/phase9-runtime-atomic64-survey.md") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "status bucket port_after_substrate") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "rollback owner zigux/tests/runtime_atomic64_survey.zig") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "Study / Boundary Only") != null);
+        }
         if (std.mem.eql(u8, check.id, "diff-add-and-bitwise-cases")) {
             saw_diff_add_bitwise = true;
             try std.testing.expectEqualStrings("differential_validation", check.kind);
@@ -428,6 +461,8 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
     try std.testing.expect(saw_module_slice_ownership);
     try std.testing.expect(saw_freeze_map_prompt);
     try std.testing.expect(saw_freeze_map_boundary_check);
+    try std.testing.expect(saw_governance_prompt);
+    try std.testing.expect(saw_governance_record_check);
 }
 
 test "phase 9 runtime atomic64 docs stay aligned with the manifest-backed surveyed commit" {
@@ -473,6 +508,21 @@ test "phase 9 runtime atomic64 docs stay aligned with the manifest-backed survey
 
     for (required_markers) |marker| {
         try std.testing.expect(std.mem.indexOf(u8, module_slice, marker) != null);
+    }
+
+    const required_survey_markers = [_][]const u8{
+        "`PHASE9_LANE_OWNER=Documentation/zigux/phase9-runtime-atomic64-survey.md`",
+        "`PHASE9_STATUS_BUCKET=port_after_substrate`",
+        "`PHASE9_VALIDATION_GATE=zig build test --build-file zigux/tests/phase9_build.zig --summary all`",
+        "`PHASE9_ROLLBACK_OWNER=zigux/tests/runtime_atomic64_survey.zig`",
+        "`PHASE9_FREEZE_MAP_AUTHORITY=Documentation/zigux/freeze-map.md`",
+        "`PHASE9_STUDY_BOUNDARY=kernel/workqueue.c`",
+        "`PHASE9_BOUNDARY_STATUS=Study / Boundary Only`",
+        "`PHASE9_REOPEN_RULE=Architecture Council decision required before any status change for the scheduler-facing workqueue boundary`",
+    };
+
+    for (required_survey_markers) |marker| {
+        try std.testing.expect(std.mem.indexOf(u8, survey_doc, marker) != null);
     }
 
     try expectSurveyedCommitMarker(survey_doc, manifest.surveyed_commit);
