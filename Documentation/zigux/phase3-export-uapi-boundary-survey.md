@@ -18,7 +18,7 @@ This note records the current export-shim and UAPI boundary for the bounded Phas
 - `PHASE3_ABI_SLICE_DOC_BLOB_SHA=2aba404045daca63246680a2a33a2c0b5dcad8a9`
 - `PHASE3_EXPORT_UAPI_BUILD_BLOB_SHA=17778c41309a0bfb1c2c026622938059c2dd41f9`
 - `PHASE3_EXPORT_UAPI_TEST_BLOB_SHA=fe3eaa894573e3a1313b46a16ee4bdf92e3694b5`
-- `PHASE3_ABI_MANIFEST_BLOB_SHA=a1a7938f6121ff6208d83dba8a46449bf615346a`
+- `PHASE3_ABI_MANIFEST_BLOB_SHA=df3f1f6208774d020278e54abf65e2ffea38a5bf`
 - `PHASE3_EXPORT_UAPI_GATE=zig build phase3-export-uapi-test --build-file zigux/tests/phase3_export_uapi_build.zig`
 - `PHASE3_BOUNDARY_GAP=broader-curated-uapi-shims-still-deferred`
 - `PHASE3_NEXT_BOUNDED_STEP=keep-boundary-header-surface-narrow-until-one-roadmap-backed-interop-slice-needs-another-curated-uapi-or-export-entry`
