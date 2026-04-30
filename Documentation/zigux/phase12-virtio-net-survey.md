@@ -83,5 +83,5 @@ Keep this lane parked unless the survey packet drifts again or the roadmap-appro
 
 Latest verification snapshot:
 
-- lane key refreshed to `P12-L04` while keeping the same bounded virtio_net survey-packet scope
-- latest carried-forward focused replay remains the existing Phase 12 virtio_net survey and build packet, with this run only refreshing the published lane key and surveyed-commit evidence on current `master`
+- lane key refreshed to `P12-L01` while keeping the same bounded virtio_net survey-packet scope
+- latest carried-forward focused replay remains the existing Phase 12 virtio_net survey and build packet, with this run only refreshing the published lane key while keeping the existing surveyed-commit evidence pinned to the last packet-local verification head
