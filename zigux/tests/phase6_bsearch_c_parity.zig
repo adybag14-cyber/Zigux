@@ -18,6 +18,18 @@ fn compareDescendingU32(key: *const u32, item: *const u32) callconv(.c) i32 {
     return compareU32(item, key);
 }
 
+fn compareOpaqueU32(key: *const anyopaque, item: *const anyopaque) callconv(.c) i32 {
+    const typed_key: *const u32 = @ptrCast(@alignCast(key));
+    const typed_item: *const u32 = @ptrCast(@alignCast(item));
+    return compareU32(typed_key, typed_item);
+}
+
+fn compareOpaqueDescendingU32(key: *const anyopaque, item: *const anyopaque) callconv(.c) i32 {
+    const typed_key: *const u32 = @ptrCast(@alignCast(key));
+    const typed_item: *const u32 = @ptrCast(@alignCast(item));
+    return compareDescendingU32(typed_key, typed_item);
+}
+
 fn compareSymbolName(key: *const []const u8, item: *const Symbol) callconv(.c) i32 {
     return switch (std.mem.order(u8, key.*, item.name)) {
         .lt => -1,
@@ -60,6 +72,9 @@ pub fn main(init: std.process.Init) !void {
     try writeDuplicateCase(writer, "duplicate-hit-begin", 7, bsearch.searchIndex(u32, u32, &@as(u32, 7), duplicate_at_beginning[0..], compareU32));
     try writeDuplicateCase(writer, "duplicate-hit-middle", 7, bsearch.searchIndex(u32, u32, &@as(u32, 7), duplicate_in_middle[0..], compareU32));
     try writeDuplicateCase(writer, "duplicate-hit-end", 18, bsearch.searchIndex(u32, u32, &@as(u32, 18), duplicate_at_end[0..], compareU32));
+    try writeIndexCase(writer, "raw-hit", 34, bsearch.bsearchIndex(&@as(u32, 34), @ptrCast(values[0..].ptr), values.len, @sizeOf(u32), compareOpaqueU32));
+    try writeIndexCase(writer, "raw-miss", 20, bsearch.bsearchIndex(&@as(u32, 20), @ptrCast(values[0..].ptr), values.len, @sizeOf(u32), compareOpaqueU32));
+    try writeIndexCase(writer, "raw-descending-hit", 34, bsearch.bsearchIndex(&@as(u32, 34), @ptrCast(descending_values[0..].ptr), descending_values.len, @sizeOf(u32), compareOpaqueDescendingU32));
 
     const kmalloc = bsearch.search([]const u8, Symbol, &@as([]const u8, "kmalloc"), symbols[0..], compareSymbolName);
     if (kmalloc) |item| {
@@ -82,6 +97,16 @@ pub fn main(init: std.process.Init) !void {
         try writer.print("mutable-hit\t21\t{}\n", .{mutable_values[3]});
     } else {
         try writer.writeAll("mutable-hit\t21\tnull\n");
+    }
+
+    var raw_mutable_values = [_]u32{ 3, 8, 13, 21, 34, 55, 89 };
+    const raw_found_mutable = bsearch.bsearchMutable(&@as(u32, 21), @ptrCast(raw_mutable_values[0..].ptr), raw_mutable_values.len, @sizeOf(u32), compareOpaqueU32);
+    if (raw_found_mutable) |item| {
+        const typed_item: *u32 = @ptrCast(@alignCast(item));
+        typed_item.* = 22;
+        try writer.print("raw-mutable-hit\t21\t{}\n", .{raw_mutable_values[3]});
+    } else {
+        try writer.writeAll("raw-mutable-hit\t21\tnull\n");
     }
 
     try stdout.flush();
