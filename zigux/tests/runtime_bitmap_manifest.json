@@ -71,6 +71,11 @@
       "expected": "zero-length setRange and clearRange leave the bitmap summary unchanged, and copyFrom rejects cold or exited sources with InvalidSourceLifecycle"
     },
     {
+      "id": "bit-list-guards",
+      "kind": "input_validation",
+      "expected": "initFromBitList rejects trailing or doubled separators, rejects out-of-bounds bit lists, and refuses a second initFromBitList call with InvalidLifecycleTransition after the first parse succeeds"
+    },
+    {
       "id": "loader-request-surface",
       "kind": "runtime_loader_contract",
       "expected": "the loader scaffold keeps entry symbol zigux_runtime_bitmap_init, exit symbol zigux_runtime_bitmap_exit, waiting_on_runtime_substrate handoff, released_without_substrate fallback, helper_owned allocator flow, and the four-field bitmap payload summary machine-checkable through the shared runtime-loader request surface"
