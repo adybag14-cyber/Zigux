@@ -107,14 +107,17 @@ required_closure_markers = [
     "samples/zigux/",
     "zigux/tests/phase5_build.zig",
     "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
+    "Documentation/zigux/phase9-runtime-loader-substrate-plan.md",
     "zigux/tests/runtime_loader_gap_manifest.json",
     "zigux/tests/runtime_loader_gap_survey.zig",
+    "zigux/tests/runtime_trace_events_manifest.json",
     "zigux/tests/phase9_build.zig",
     "zigux/kernel/runtime_loader.zig",
     "zigux/helpers/allocator_policy.zig",
     "samples/zigux/runtime_atomic64_loader.zig",
     "samples/zigux/runtime_bitmap_loader.zig",
     "samples/zigux/runtime_kretprobe_loader.zig",
+    "samples/zigux/runtime_trace_events.zig",
     "PHASE10_CLOSURE_GATE=python3 scripts/zigux/validate-phase10-closure.py",
     "PHASE10_BUILD_GATE=zig build test --build-file zigux/tests/phase10_build.zig --summary all",
     "PHASE10_VALIDATE_ENTRYPOINT=make -C zigux phase10-validate",
@@ -212,7 +215,7 @@ required_ledger_markers = [
 ]
 required_checklist_markers = [
     "if the change is a Phase 10 virtio slice, do `Documentation/zigux/phase10-closure-evidence.md`, its roadmap parity scoreboard, `zigux/tests/phase10_closure_manifest.json`, the four Phase 10 survey manifests, the landed ring queue-discipline helper ladder, the landed `Documentation/zigux/phase10-virtio-mmio-slice.md` plus `zigux/tests/phase10_virtio_mmio.zig` starter pair, the shared `zigux/tests/phase10_build.zig` entrypoint, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` still agree on the same bounded lab-only scope, exact replay commands, and explicit MMIO blocker posture?",
-    "if the change touches the Phase 10 scoreboard or closure packet, do the Phase 5 sample lane and the current Phase 9 runtime loader-gap ownership packet still stay outside the Phase 10 virtio parity readout so `samples/zigux/`, `zigux/tests/phase5_build.zig`, `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_loader_gap_survey.zig`, `zigux/tests/phase9_build.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/helpers/allocator_policy.zig`, `samples/zigux/runtime_atomic64_loader.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and `samples/zigux/runtime_kretprobe_loader.zig` are not silently counted as driver-local virtio evidence?",
+    "if the change touches the Phase 10 scoreboard or closure packet, do the Phase 5 sample lane and the current Phase 9 runtime loader-gap ownership packet still stay outside the Phase 10 virtio parity readout so `samples/zigux/`, `zigux/tests/phase5_build.zig`, `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `Documentation/zigux/phase9-runtime-loader-substrate-plan.md`, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_loader_gap_survey.zig`, `zigux/tests/runtime_trace_events_manifest.json`, `zigux/tests/phase9_build.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/helpers/allocator_policy.zig`, `samples/zigux/runtime_atomic64_loader.zig`, `samples/zigux/runtime_bitmap_loader.zig`, `samples/zigux/runtime_kretprobe_loader.zig`, and the sample-only `samples/zigux/runtime_trace_events.zig` blocker surface are not silently counted as driver-local virtio evidence?",
     "if the change widens a Phase 10 virtio transport-facing path, do `Documentation/zigux/freeze-map.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-closure-evidence.md`, and the ring/input/MMIO survey manifests still keep the risky transport posture explicit instead of silently widening MMIO, queue setup or reset, IRQ, registration, DMA, or probe/remove lifecycle claims?",
     "if the change touches the Phase 10 freeze-boundary packet, do `Documentation/zigux/phase10-closure-evidence.md`, `zigux/tests/phase10_closure_manifest.json`, and `Documentation/zigux/review-checklist.md` still keep `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` explicitly owned by the separate Phase 14 boundary-map and concurrency-audit lane, with `kernel/workqueue_bridge.zig` and `kernel/trace/ring_buffer.zig` named only as future Phase 14 destinations rather than Phase 10 virtio evidence?",
 ]
@@ -592,14 +595,17 @@ expected_cross_phase_scoreboard_boundary = {
         "status": "out_of_scope",
         "evidence": [
             "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
+            "Documentation/zigux/phase9-runtime-loader-substrate-plan.md",
             "zigux/tests/runtime_loader_gap_manifest.json",
             "zigux/tests/runtime_loader_gap_survey.zig",
+            "zigux/tests/runtime_trace_events_manifest.json",
             "zigux/tests/phase9_build.zig",
             "zigux/kernel/runtime_loader.zig",
             "zigux/helpers/allocator_policy.zig",
             "samples/zigux/runtime_atomic64_loader.zig",
             "samples/zigux/runtime_bitmap_loader.zig",
-            "samples/zigux/runtime_kretprobe_loader.zig"
+            "samples/zigux/runtime_kretprobe_loader.zig",
+            "samples/zigux/runtime_trace_events.zig"
         ]
     }
 }
