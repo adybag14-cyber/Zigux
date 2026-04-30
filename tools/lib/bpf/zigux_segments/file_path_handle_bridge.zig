@@ -101,12 +101,17 @@ fn parseDecimalField(
 
 fn parseFlagField(line: []const u8, destination: *u32) FilePathHandleBridgeError!bool {
     const value_text = fieldValue(line, "map_flags") orelse return false;
-    const parsed = std.fmt.parseInt(i64, value_text, 0) catch return error.InvalidValue;
-    if (parsed < 0) {
-        return error.InvalidValue;
-    }
-
-    destination.* = std.math.cast(u32, parsed) orelse return error.InvalidValue;
+    const digits = if (std.mem.startsWith(u8, value_text, "0x") or std.mem.startsWith(u8, value_text, "0X"))
+        value_text[2..]
+    else
+        value_text;
+    const base: u8 = if (digits.ptr != value_text.ptr)
+        16
+    else if (value_text.len > 1 and value_text[0] == '0')
+        8
+    else
+        10;
+    destination.* = std.fmt.parseUnsigned(u32, digits, base) catch return error.InvalidValue;
     return true;
 }
 
@@ -380,6 +385,20 @@ test "parseMapInfoFromFdinfo tolerates reordered fields and surrounding whitespa
     try std.testing.expectEqual(@as(u32, 128), info.max_entries);
     try std.testing.expectEqual(@as(u32, 512), info.map_flags);
     try std.testing.expectEqual(@as(u64, 0x20), info.map_extra);
+}
+
+test "parseMapInfoFromFdinfo keeps libbpf-style numeric bases explicit" {
+    const info = try parseMapInfoFromFdinfo(
+        "map_type:\t1\r\n" ++
+            "key_size:\t4\r\n" ++
+            "value_size:\t8\r\n" ++
+            "max_entries:\t16\r\n" ++
+            "map_flags:\t010\r\n" ++
+            "map_extra:\t0X2A\r\n",
+    );
+
+    try std.testing.expectEqual(@as(u32, 8), info.map_flags);
+    try std.testing.expectEqual(@as(u64, 42), info.map_extra);
 }
 
 test "parseMapInfoFromFdinfo mirrors libbpf's zero-init and last-field-wins fallback" {
