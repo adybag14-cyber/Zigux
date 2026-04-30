@@ -1,15 +1,16 @@
 {
   "lane_key": "P4-L04",
   "phase": "Phase 4",
-  "surveyed_commit": "7a2f4daf23350001ec9ef0df873361b1d0701dc5",
+  "surveyed_commit": "1d98894fd1d07e6a14004187e3ec8f5285a39187",
   "anchor": "lib/atomic64_test.c",
   "roadmap_destinations": [
     "zigux/tests/atomic64_diff.zig"
   ],
   "survey_summary": {
     "atomic64_test_c_lines": 277,
-    "runtime_atomic64_diff_lines": 504,
+    "runtime_atomic64_diff_lines": 544,
     "roadmap_atomic64_diff_present": true,
+    "roadmap_atomic64_wrapper_targets_runtime_diff": true,
     "runtime_atomic64_diff_present": true,
     "post_selftest_replay_present": true,
     "phase4_build_present": true,
@@ -63,7 +64,7 @@
       "status": "starter_landed",
       "kind": "roadmap_note",
       "zigux_destination": "zigux/tests/atomic64_diff.zig",
-      "why_now": "The Phase 4 roadmap still names zigux/tests/atomic64_diff.zig, and master now carries that canonical entrypoint while the shipped replay bundle continues to run through zigux/tests/runtime_atomic64_diff.zig across validate-phase4.py, phase4_build.zig, and phase9_build.zig. This survey should record that the roadmap-facing path now lands as a thin entrypoint instead of keeping the same alignment step open."
+      "why_now": "The Phase 4 roadmap still names zigux/tests/atomic64_diff.zig, and master now carries that canonical entrypoint as a thin wrapper with `@import(\"runtime_atomic64_diff.zig\")` while the shipped replay bundle continues to run through zigux/tests/runtime_atomic64_diff.zig across validate-phase4.py, phase4_build.zig, and phase9_build.zig. This survey should record that the roadmap-facing path now lands as a thin entrypoint instead of keeping the same alignment step open."
     },
     {
       "id": "phase4-broader-atomic64-surface",
