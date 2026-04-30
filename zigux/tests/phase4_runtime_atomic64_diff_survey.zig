@@ -139,6 +139,8 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate, 
     try std.testing.expect(
         std.mem.indexOf(u8, manifest.threshold_plan.scope, "selftest-family plus post-selftest replay set") != null,
     );
+    try std.testing.expect(std.mem.indexOf(u8, manifest.threshold_plan.scope, "sub") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.threshold_plan.scope, "bitwise") != null);
     try std.testing.expect(
         std.mem.indexOf(u8, manifest.threshold_plan.why_not_approved_yet, "correctness-only coverage") != null,
     );
@@ -282,6 +284,8 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate, 
             saw_live_gate = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/runtime_atomic64_diff.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "sub") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "bitwise") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "exchange, cmpxchg, add_unless, inc_not_zero, dec_if_positive") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "selftest-family") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "post-selftest replay") != null);
@@ -332,6 +336,8 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate, 
             saw_broader_surface_gap = true;
             try std.testing.expectEqualStrings("blocked_on_broader_atomic64_surface", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/runtime_atomic64_diff.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "sub") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "bitwise") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "full wider atomic64_test.c surface") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "perf threshold") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "post-selftest replay") != null);
