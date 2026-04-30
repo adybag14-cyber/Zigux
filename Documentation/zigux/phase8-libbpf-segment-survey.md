@@ -125,9 +125,9 @@ The current tests check:
 - provenance and anchor alignment rechecked against inspected `master` head `0b7d0fabb8871bdf2061b3fc566c53d1bea6213d`
 - focused Zig replay rerun against inspected `master` head `0b7d0fabb8871bdf2061b3fc566c53d1bea6213d`
 - `zig test zigux/tests/phase8_libbpf_segments.zig`
-  - all `4/4` focused libbpf segment tests passed
+  - all `5/5` focused libbpf segment tests passed
 - `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all`
-  - `Build Summary: 3/3 steps succeeded; 4/4 tests passed`
+  - `Build Summary: 3/3 steps succeeded; 5/5 tests passed`
 - `python3 scripts/zigux/validate-phase8.py`
   - `PHASE8_VALIDATION=pass`
 - `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
