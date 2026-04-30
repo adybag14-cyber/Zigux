@@ -102,6 +102,8 @@ required_script_readme_markers = [
     "validate-phase8.py",
     "Phase 8 flow",
     "make -C zigux phase8-validate",
+    "phase8_help_only_build.zig",
+    "phase8_kallsyms_only_build.zig",
     "phase8_libbpf_segments_only_build.zig",
     "phase8_build.zig",
     "phase8-exec-cmd-slice.md",
@@ -120,6 +122,8 @@ required_script_readme_markers = [
 required_tests_readme_markers = [
     "zigux/tests/phase8_build.zig",
     "zigux/tests/phase8_exec_cmd_only_build.zig",
+    "zigux/tests/phase8_help_only_build.zig",
+    "zigux/tests/phase8_kallsyms_only_build.zig",
     "zigux/tests/phase8_libbpf_segments_only_build.zig",
     "zigux/tests/phase8_exec_cmd.zig",
     "zigux/tests/phase8_help.zig",
@@ -150,6 +154,8 @@ required_doc_readme_markers = [
     "python3 scripts/zigux/validate-phase8.py",
     "make -C zigux phase8-validate",
     "make -C zigux phase8",
+    "zigux/tests/phase8_help_only_build.zig",
+    "zigux/tests/phase8_kallsyms_only_build.zig",
 ]
 
 required_review_checklist_markers = [
@@ -350,6 +356,7 @@ required_help_slice_markers = [
     "PHASE8_SLICE=help-command-source-and-terminal-starter",
     "tools/lib/subcmd/help.zig",
     "zigux/tests/phase8_help.zig",
+    "zigux/tests/phase8_help_only_build.zig",
     "stable command-list manipulation logic",
     "raw `PATH` string splitting that preserves empty colon-delimited segments",
     "section-level output stays testable",
@@ -390,6 +397,7 @@ required_kallsyms_slice_markers = [
     "PHASE8_SLICE=kallsyms-parse-wrapper-starter",
     "tools/lib/symbol/kallsyms.zig",
     "zigux/tests/phase8_kallsyms.zig",
+    "zigux/tests/phase8_kallsyms_only_build.zig",
     "chunked overlong-line handling",
     "stops buffering after the bounded callback surface is full",
     "kallsymsParse()",
