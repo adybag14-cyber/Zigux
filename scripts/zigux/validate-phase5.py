@@ -346,6 +346,155 @@ manifest_expectations = {
     },
 }
 
+review_prompt_expectations = {
+    "phase5_bytestream_fifo_manifest.json": [
+        {
+            "id": "descriptor_storage",
+            "markers": [
+                "requires_runtime_substrate false",
+                "fixed embedded storage",
+            ],
+        },
+        {
+            "id": "surveyed_commit_sync",
+            "markers": [
+                "surveyed_commit",
+                "PHASE5_SURVEYED_COMMIT",
+                "floating branch label",
+            ],
+        },
+        {
+            "id": "helper_surface",
+            "markers": [
+                "phase5_bytestream_fifo.zig",
+                "preview truncation",
+                "capacity ceiling",
+            ],
+        },
+        {
+            "id": "sample_root_boundary",
+            "markers": [
+                "samples/zigux/README.md",
+                "four Phase 5 reference samples",
+                "runtime starters",
+                "review-packet stanza",
+                "helper-only review surface",
+                "out-of-scope runtime claims",
+            ],
+        },
+    ],
+    "phase5_kobject_example_manifest.json": [
+        {
+            "id": "attribute_contract",
+            "markers": [
+                "foo/baz/bar attribute order",
+                "0664 attribute mode pattern",
+            ],
+        },
+        {
+            "id": "docs_sync",
+            "markers": [
+                "sample-backed survey note",
+                "sample-root catalog",
+                "review checklist",
+                "phase5_build.zig",
+            ],
+        },
+        {
+            "id": "group_boundary",
+            "markers": [
+                "unnamed attribute group",
+                "initialized-only exit summary",
+                "post-exit",
+            ],
+        },
+        {
+            "id": "pre_registration",
+            "markers": [
+                "initialized-but-not-registered stage",
+                "registerAttributes claims ownership",
+            ],
+        },
+    ],
+    "phase5_kretprobe_example_manifest.json": [
+        {
+            "id": "surveyed_commit_sync",
+            "markers": [
+                "surveyed_commit",
+                "exact inspected master head",
+                "floating branch label",
+            ],
+        },
+        {
+            "id": "docs_sync",
+            "markers": [
+                "sample-backed survey note",
+                "shared sample-root catalog",
+                "top-level Phase 5 README note",
+                "shared review checklist",
+                "Phase 9 runtime starter",
+            ],
+        },
+        {
+            "id": "private_data",
+            "markers": [
+                "private entry timestamp",
+                "my_data",
+            ],
+        },
+        {
+            "id": "maxactive_budget",
+            "markers": [
+                "maxactive budget",
+                "fixed helper-backed reviewable ceiling",
+            ],
+        },
+    ],
+    "phase5_trace_events_sample_manifest.json": [
+        {
+            "id": "surveyed_commit_sync",
+            "markers": [
+                "surveyed_commit",
+                "exact inspected master head",
+                "floating branch label",
+            ],
+        },
+        {
+            "id": "docs_sync",
+            "markers": [
+                "sample-backed survey note",
+                "samples/zigux/README.md",
+                "Documentation/zigux/README.md",
+                "Documentation/zigux/review-checklist.md",
+                "approved payload-and-callback idiom",
+                "reviewable and repeatable",
+                "Phase 9 runtime pilot",
+            ],
+        },
+        {
+            "id": "payload_contract",
+            "markers": [
+                "selected-string-slot",
+                "payload-length",
+                "main-iteration",
+                "callback-iteration",
+                "vararg-payload",
+                "lifecycle-summary",
+                "relative-location",
+                "callback-path",
+            ],
+        },
+        {
+            "id": "exit_boundary",
+            "markers": [
+                "after `exit()`",
+                "replayFunctionIteration",
+                "unregisterFunctionCallback",
+            ],
+        },
+    ],
+}
+
 survey_note_expectations = {
     "phase5_bytestream_fifo_manifest.json": {
         "sample_test_command": "zig test samples/zigux/bytestream_fifo.zig",
@@ -432,6 +581,32 @@ def require_exact_check_ids(
         missing.append(f"{label}:exact_check_ids")
 
 
+def require_review_prompt_groups(
+    missing: list[str],
+    label: str,
+    manifest: dict[str, object],
+    expected_groups: list[dict[str, object]],
+) -> None:
+    review_prompts = manifest.get("review_prompts")
+    if not isinstance(review_prompts, list) or not review_prompts or not all(
+        isinstance(prompt, str) and prompt for prompt in review_prompts
+    ):
+        missing.append(f"{label}:review_prompts")
+        return
+
+    for group in expected_groups:
+        group_id = group["id"]
+        markers = group["markers"]
+        if not isinstance(group_id, str) or not isinstance(markers, list):
+            missing.append(f"{label}:review_prompts")
+            return
+        if not any(
+            isinstance(prompt, str) and all(isinstance(marker, str) and marker in prompt for marker in markers)
+            for prompt in review_prompts
+        ):
+            missing.append(f"{label}:review_prompt:{group_id}")
+
+
 def total_marker_count() -> int:
     marker_count = (
         len(required_make_markers)
@@ -447,7 +622,7 @@ def total_marker_count() -> int:
         marker_count += 6  # phase, lane, anchor, sample path, entrypoint, surveyed commit shape
         marker_count += len(spec["non_goals"])
         marker_count += len(spec["exact_check_ids"])
-        marker_count += 3  # review prompts list shape, lane marker sync, build-summary sync
+        marker_count += 3 + len(review_prompt_expectations[manifest_name])
         marker_count += 1 if spec["survey_note_path"] else 0
         marker_count += 4 if manifest_name in survey_note_expectations else 0
     return marker_count
@@ -501,12 +676,12 @@ def validate_phase5(root: Path) -> dict[str, object]:
         )
         require_manifest_string_list(missing, label, manifest_obj, "non_goals", spec["non_goals"])
         require_exact_check_ids(missing, label, manifest_obj, spec["exact_check_ids"])
-
-        review_prompts = manifest_obj.get("review_prompts")
-        if not isinstance(review_prompts, list) or not review_prompts or not all(
-            isinstance(prompt, str) and prompt for prompt in review_prompts
-        ):
-            missing.append(f"{label}:review_prompts")
+        require_review_prompt_groups(
+            missing,
+            label,
+            manifest_obj,
+            review_prompt_expectations[manifest_name],
+        )
 
         note_spec = survey_note_expectations[manifest_name]
         survey_note = text(root, spec["survey_note_path"])
@@ -615,6 +790,55 @@ def run_self_test() -> int:
             print("PHASE5_VALIDATOR_SELF_TEST_REASON=survey-build-summary-gap")
             return 1
 
+        root_manifest = json.loads(
+            (ROOT / "zigux/tests/phase5_trace_events_sample_manifest.json").read_text(encoding="utf-8")
+        )
+        root_manifest["surveyed_commit"] = SELF_TEST_HEAD
+        manifest_path.write_text(json.dumps(root_manifest, indent=2) + "\n", encoding="utf-8")
+        note_text = (
+            ROOT / manifest_expectations["phase5_trace_events_sample_manifest.json"]["survey_note_path"]
+        ).read_text(encoding="utf-8")
+        note_text = re.sub(
+            r"PHASE5_SURVEYED_COMMIT=[0-9a-f]{40}",
+            f"PHASE5_SURVEYED_COMMIT={SELF_TEST_HEAD}",
+            note_text,
+        )
+        note_path.write_text(note_text, encoding="utf-8")
+
+        for index, prompt in enumerate(root_manifest["review_prompts"]):
+            if "selected-string-slot" in prompt and "callback-path" in prompt:
+                root_manifest["review_prompts"][index] = prompt.replace(
+                    "callback-path, and teardown contract",
+                    "teardown contract",
+                )
+                break
+        else:
+            print("PHASE5_VALIDATOR_SELF_TEST=fail")
+            print("PHASE5_VALIDATOR_SELF_TEST_REASON=review-prompt-seed-missing")
+            return 1
+
+        manifest_path.write_text(json.dumps(root_manifest, indent=2) + "\n", encoding="utf-8")
+        prompt_result = validate_phase5(tmp_root)
+        if prompt_result["ok"] or "phase5_trace_events_sample_manifest:review_prompt:payload_contract" not in prompt_result["missing"]:
+            print("PHASE5_VALIDATOR_SELF_TEST=fail")
+            print("PHASE5_VALIDATOR_SELF_TEST_REASON=review-prompt-gap")
+            return 1
+
+        root_manifest = json.loads(
+            (ROOT / "zigux/tests/phase5_trace_events_sample_manifest.json").read_text(encoding="utf-8")
+        )
+        root_manifest["surveyed_commit"] = SELF_TEST_HEAD
+        manifest_path.write_text(json.dumps(root_manifest, indent=2) + "\n", encoding="utf-8")
+        note_text = (
+            ROOT / manifest_expectations["phase5_trace_events_sample_manifest.json"]["survey_note_path"]
+        ).read_text(encoding="utf-8")
+        note_text = re.sub(
+            r"PHASE5_SURVEYED_COMMIT=[0-9a-f]{40}",
+            f"PHASE5_SURVEYED_COMMIT={SELF_TEST_HEAD}",
+            note_text,
+        )
+        note_path.write_text(note_text, encoding="utf-8")
+
         note_text = note_path.read_text(encoding="utf-8").replace(
             survey_note_expectations["phase5_trace_events_sample_manifest.json"]["sample_test_command"],
             "zig test samples/zigux/trace_events_sample_missing.zig",
@@ -627,7 +851,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE5_VALIDATOR_SELF_TEST=pass")
-    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=4")
+    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=5")
     return 0
 
 
