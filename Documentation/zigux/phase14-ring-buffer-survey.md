@@ -7,9 +7,9 @@ This document records the bounded Phase 14 survey lane around `kernel/trace/ring
 - `PHASE14_LANE_KEY=P14-L05`
 - `PHASE14_STATUS=study_only`
 - `PHASE14_SLICE=ring-buffer-survey-gap`
-- `PHASE14_SURVEYED_COMMIT=7addb3a576d8a83a542f84a83957289cfe2f72e5`
+- `PHASE14_SURVEYED_COMMIT=09229747a3bcc072af1948f4c9ec5127c84f6d41`
 - scope: the dedicated Phase 14 ring-buffer survey gate, its manifest, the shared Phase 14 build wiring, and this lane note that keeps the roadmap gap explicit without shipping a Zig bridge
-- survey provenance refreshed against verified `master` head `7addb3a576d8a83a542f84a83957289cfe2f72e5`
+- survey provenance refreshed against verified `master` head `09229747a3bcc072af1948f4c9ec5127c84f6d41`
 - product boundary:
   - `zigux/tests/phase14_ring_buffer_survey.zig`
   - `zigux/tests/phase14_ring_buffer_manifest.json`
@@ -107,6 +107,14 @@ The honest Phase 14 move here is therefore not to start a `ring_buffer.zig` file
 - The tracefs control path keeps that same contract intact instead of introducing a friendlier outer API. `buffer_subbuf_size_write()` stops tracing, converts the requested kilobyte size into an order, updates the main buffer through `ring_buffer_subbuf_order_set()`, and then attempts the same change on the snapshot buffer when one exists; if the snapshot resize fails it tries to roll the main buffer back to `old_order`, and if that rollback also fails it disables tracing outright rather than claiming a partially resized state is safe.
 - `tracing_buffers_read()` closes the loop on open file descriptors. It re-reads the current `ring_buffer_subbuf_size_get()` result for each read, frees any cached spare page when `page_size != info->spare_size`, and only then allocates a new read page and refreshes `spare_cpu` or `spare_size`, which confirms that resize-time reader-page invalidation is shared between the core buffer transaction and the tracefs caller contract instead of being an isolated helper concern.
 
+## Snapshot rollback failure-path audit
+
+- `buffer_subbuf_size_write()` does not treat snapshot rollback failure as a local tracefs annoyance. It stops tracing before the resize starts, updates the main buffer first, then tries to apply the same sub-buffer order to the snapshot buffer, which means a failure already leaves the live and snapshot halves of the trace array on different layouts unless the rollback succeeds.
+- The rollback itself is still part of the same C-owned safety policy. When the snapshot resize fails, `buffer_subbuf_size_write()` immediately calls `ring_buffer_subbuf_order_set()` again on the main buffer with `old_order`, so the tracefs write path is explicitly trying to restore one shared snapshot-compatible layout rather than letting the two buffers drift independently.
+- The rare emergency case is global, not per-instance. If that rollback call also fails, the code sets `tracing_disabled = 1`, and the later `tracing_start_tr(tr)` path returns early when `tracing_disabled` is set, so the buffer-size write can leave tracing permanently off instead of pretending a mixed-order snapshot state is still safe to run.
+- The same kill-switch pattern appears in `tracing_resize_ring_buffer()`, where a snapshot resize failure also tries to restore the main buffer and sets `tracing_disabled = 1` if the restore cannot be completed. That repetition is a useful Phase 14 signal: the snapshot rollback rule is a shared trace-array integrity contract, not an incidental quirk of one tracefs file operation.
+- The snapshot documentation explains why that caution exists. `Documentation/trace/ftrace.rst` describes snapshot mode as a swap between the current trace buffer and a spare snapshot buffer while tracing continues, so the rollback path is guarding a coupled buffer-pair contract that should remain study-only instead of being split across any future Zig wrapper seam.
+
 ## Recorded gaps
 
 The current lane state is:
@@ -125,6 +133,7 @@ The current lane state is:
 - landed `phase14-ring-buffer-read-page-extraction-followup`
 - landed `phase14-ring-buffer-read-page-allocation-contract-followup`
 - landed `phase14-ring-buffer-subbuf-order-reconfig-followup`
+- landed `phase14-ring-buffer-snapshot-rollback-failure-followup`
 - blocked `phase14-ring-buffer-zig-port-blocker`
 
 This keeps the lane honest: Zigux now has an explicit reviewable record that `kernel/trace/ring_buffer.c` belongs in the study-only set for now, and that the repo still does not ship `kernel/trace/ring_buffer.zig`.
@@ -151,4 +160,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Keep the Phase 14 ring-buffer packet parked unless it drifts again or a future study-only step can stay narrower than the existing resize, reader-page, and mapped-reader audits; the next honest follow-up would be a bounded review of the rare rollback path that disables tracing when snapshot sub-buffer reconfiguration cannot be restored cleanly.
+Keep the Phase 14 ring-buffer packet parked unless it drifts again or a future study-only step can stay narrower than the existing resize, rollback, reader-page, and mapped-reader audits; the next honest follow-up would be a bounded review of whether any documented user-visible recovery path exists after `tracing_disabled = 1` without widening into bridge code or generic tracefs UX changes.
