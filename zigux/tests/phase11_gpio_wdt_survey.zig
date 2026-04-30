@@ -69,7 +69,7 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
     try std.testing.expectEqualStrings("P11-L03", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
     try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.c", manifest.anchor);
-    try std.testing.expectEqualStrings("0342b9a3c7cb89ec0d1e8bdf835ebd204bf964e4", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("be0f31bf64cdc200e2129992d1fed491b60fed2a", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.gpio_wdt_c_lines >= 190);
     try std.testing.expectEqual(@as(usize, 2), manifest.survey_summary.preexisting_phase11_test_files);
