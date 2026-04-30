@@ -86,7 +86,13 @@ const ValidateExtraArgError = error{
     EmptyModeArg,
 };
 
-const ParseRequestArgsError = ValidateExtraArgError || error{
+const ValidateRequiredArgError = error{
+    EmptyKconfig,
+    EmptyConfig,
+    EmptyArch,
+};
+
+const ParseRequestArgsError = ValidateExtraArgError || ValidateRequiredArgError || error{
     InvalidArity,
     UnsupportedMode,
 };
@@ -170,6 +176,18 @@ fn validateExtraArg(mode: Mode, extra_arg: ?[]const u8) ValidateExtraArgError!vo
     }
 }
 
+fn validateRequiredArgs(kconfig: []const u8, config: []const u8, arch: []const u8) ValidateRequiredArgError!void {
+    if (kconfig.len == 0) {
+        return error.EmptyKconfig;
+    }
+    if (config.len == 0) {
+        return error.EmptyConfig;
+    }
+    if (arch.len == 0) {
+        return error.EmptyArch;
+    }
+}
+
 fn parseRequestArgs(args: []const []const u8) ParseRequestArgsError!Request {
     if (args.len < 4 or args.len > 6) {
         return error.InvalidArity;
@@ -185,6 +203,7 @@ fn parseRequestArgs(args: []const []const u8) ParseRequestArgsError!Request {
 
     const extra_arg = if (args.len > kconfig_index + 3) args[kconfig_index + 3] else null;
     try validateExtraArg(mode, extra_arg);
+    try validateRequiredArgs(args[kconfig_index], args[kconfig_index + 1], args[kconfig_index + 2]);
 
     return .{
         .mode = mode,
@@ -234,6 +253,27 @@ pub fn main(init: std.process.Init) !void {
             var stderr_buffer: [160]u8 = undefined;
             var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
             try stderr_writer.interface.writeAll("Error: mode argument must not be empty\n");
+            try stderr_writer.interface.flush();
+            std.process.exit(1);
+        },
+        error.EmptyKconfig => {
+            var stderr_buffer: [160]u8 = undefined;
+            var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
+            try stderr_writer.interface.writeAll("Error: Kconfig path must not be empty\n");
+            try stderr_writer.interface.flush();
+            std.process.exit(1);
+        },
+        error.EmptyConfig => {
+            var stderr_buffer: [160]u8 = undefined;
+            var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
+            try stderr_writer.interface.writeAll("Error: .config path must not be empty\n");
+            try stderr_writer.interface.flush();
+            std.process.exit(1);
+        },
+        error.EmptyArch => {
+            var stderr_buffer: [160]u8 = undefined;
+            var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
+            try stderr_writer.interface.writeAll("Error: arch must not be empty\n");
             try stderr_writer.interface.flush();
             std.process.exit(1);
         },
@@ -658,6 +698,12 @@ test "conf bridge rejects empty extra arguments" {
     try std.testing.expectError(error.EmptyModeArg, validateExtraArg(.savedefconfig, ""));
 }
 
+test "conf bridge rejects empty required positional arguments" {
+    try std.testing.expectError(error.EmptyKconfig, validateRequiredArgs("", ".config", "x86_64"));
+    try std.testing.expectError(error.EmptyConfig, validateRequiredArgs("Kconfig", "", "x86_64"));
+    try std.testing.expectError(error.EmptyArch, validateRequiredArgs("Kconfig", ".config", ""));
+}
+
 test "conf bridge defaults to oldaskconfig when mode is omitted" {
     const args = [_][]const u8{
         "conf_bridge",
@@ -700,6 +746,34 @@ test "conf bridge rejects unsupported explicit modes" {
     };
 
     try std.testing.expectError(error.UnsupportedMode, parseRequestArgs(&args));
+}
+
+test "conf bridge rejects empty required args while parsing requests" {
+    const missing_kconfig = [_][]const u8{
+        "conf_bridge",
+        "oldconfig",
+        "",
+        ".config",
+        "x86_64",
+    };
+    const missing_config = [_][]const u8{
+        "conf_bridge",
+        "Kconfig",
+        "",
+        "x86_64",
+    };
+    const missing_arch = [_][]const u8{
+        "conf_bridge",
+        "defconfig",
+        "Kconfig",
+        ".config",
+        "",
+        "arch/x86/configs/defconfig",
+    };
+
+    try std.testing.expectError(error.EmptyKconfig, parseRequestArgs(&missing_kconfig));
+    try std.testing.expectError(error.EmptyConfig, parseRequestArgs(&missing_config));
+    try std.testing.expectError(error.EmptyArch, parseRequestArgs(&missing_arch));
 }
 
 test "conf bridge mode text and flag stay aligned with enum tags" {
