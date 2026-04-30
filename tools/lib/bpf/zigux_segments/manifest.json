@@ -76,7 +76,7 @@
         "tools/lib/bpf/libbpf.c:14379-14480"
       ],
       "zigux_destination": "tools/lib/bpf/zigux_segments/cpu_mask.zig",
-      "why_now": "The CPU mask parser is self-contained text processing that future perf-buffer and feature probes can share, which makes it a good first real port after the survey scaffold."
+      "why_now": "The CPU mask parser is self-contained text processing that future perf-buffer and feature probes can share, and the landed helper now also carries the bounded chunk-reader interface plus the same automatic perf-buffer CPU-budget clamp that libbpf applies before it opens per-CPU buffers, which makes it a good first real port after the survey scaffold."
     },
     {
       "id": "P8-L15-S04",
@@ -99,7 +99,7 @@
         "tools/lib/bpf/libbpf.c:4976-4994"
       ],
       "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
-      "why_now": "The proc fdinfo path construction, bounded map-info text parsing including map_extra, and reused-map-name chooser inside bpf_map__reuse_fd() can land as pure helpers without claiming procfs fopen or fclose behavior, pinned-map reuse side effects, token lifecycle parity, or fd ownership."
+      "why_now": "The proc fdinfo path construction, bounded map-info text parsing including map_extra, and token-preparation recovery classification can land as pure helpers without claiming procfs fopen or fclose behavior, pinned-map reuse side effects, token lifecycle parity, or fd ownership."
     },
     {
       "id": "P8-L15-S11",
@@ -110,7 +110,7 @@
         "tools/lib/bpf/libbpf.c:5220-5251"
       ],
       "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
-      "why_now": "The reused-map compatibility comparison is a pure field-and-flag check that extends the existing file-path bridge packet without claiming bpffs reopen flow, fd duplication, or pinned-map side effects, and it preserves libbpf's bounded DEVMAP readonly-flag exception as an explicit helper contract."
+      "why_now": "The reused-map-name chooser and compatibility comparison are pure helper steps that extend the existing file-path bridge packet without claiming bpffs reopen flow, fd duplication, or pinned-map side effects, and they preserve libbpf's bounded DEVMAP readonly-flag exception as an explicit helper contract."
     },
     {
       "id": "P8-L15-S09",
