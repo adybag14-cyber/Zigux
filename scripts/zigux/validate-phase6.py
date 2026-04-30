@@ -169,6 +169,44 @@ BASE64_PARITY_SCRIPT_MARKERS = [
     'print(f"PHASE6_BASE64_C_PARITY_CASES={len(c_lines)}")',
 ]
 
+BASE64_C_PARITY_RUNNER_MARKERS = [
+    'const fixtures = @import("fixtures/phase6_base64_vectors.zig");',
+    "for (fixtures.standard_cases) |case| {",
+    "for (fixtures.variant_cases) |case| {",
+    "for (fixtures.standard_decode_cases) |case| {",
+    "for (fixtures.variant_decode_cases) |case| {",
+    "for (fixtures.invalid_decode_cases) |case| {",
+    'if (std.mem.eql(u8, name, "imap")) {',
+]
+
+BASE64_CASEGEN_MARKERS = [
+    'try writer.writeAll("/* Generated from zigux/tests/fixtures/phase6_base64_vectors.zig. */\\n\\n");',
+    "for (fixtures.variant_cases, 0..) |case, idx| {",
+    "for (fixtures.variant_decode_cases, 0..) |case, idx| {",
+    'try writer.writeAll("static const struct invalid_case invalid_cases[] = {\\n");',
+    'if (std.mem.eql(u8, name, "imap")) return "BASE64_IMAP";',
+    'return if (value) "true" else "false";',
+]
+
+BASE64_C_HARNESS_MARKERS = [
+    "BASE64_IMAP = 2,",
+    '[BASE64_IMAP] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+,",',
+    '[BASE64_IMAP] = BASE64_REV_INIT(\'+\', \,\'),',
+    '#include "phase6_base64_c_generated_cases.inc"',
+    'printf("enc\\t%s\\t%d\\t", variant_name(c->variant), c->padding ? 1 : 0);',
+    'printf("dec\\t%s\\t%d\\t%d\\t", variant_name(c->variant), c->padding ? 1 : 0, bytes_result);',
+    'printf("\\t%s\\t%s\\n", bytes_result < 0 ? "InvalidInput" : "ok", decode_result < 0 ? "InvalidInput" : "ok");',
+]
+
+BASE64_VECTORS_MARKERS = [
+    "pub const standard_cases = [_]EncodeCase{",
+    '.{ .input = &variant_sample, .expected = "APv,f4A", .padding = false, .variant_name = "imap" },',
+    '.{ .input = "APv,f4A", .expected = &variant_sample, .padding = false, .variant_name = "imap" },',
+    '.{ .input = ",,A", .expected = &variant_two_byte_sample, .padding = false, .variant_name = "imap" },',
+    '.{ .input = "+x", .padding = false, .variant_name = "imap" },',
+    'pub const perf_cases = [_]PerfCase{',
+]
+
 BASE64_SLICE_MARKERS = [
     "`PHASE6_SLICE=base64-leaf-helper`",
     "python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test",
@@ -434,6 +472,10 @@ MARKER_FILE_CONTENTS = {
     "zigux/tests/phase6_base64.zig": BASE64_TEST_MARKERS,
     "zigux/tests/phase6_base64_perf.zig": BASE64_PERF_MARKERS,
     "scripts/zigux/check-phase6-base64-c-parity.py": BASE64_PARITY_SCRIPT_MARKERS,
+    "zigux/tests/phase6_base64_c_parity.zig": BASE64_C_PARITY_RUNNER_MARKERS,
+    "zigux/tests/phase6_base64_c_casegen.zig": BASE64_CASEGEN_MARKERS,
+    "zigux/tests/fixtures/phase6_base64_c_harness.c": BASE64_C_HARNESS_MARKERS,
+    "zigux/tests/fixtures/phase6_base64_vectors.zig": BASE64_VECTORS_MARKERS,
     "Documentation/zigux/phase6-base64-slice.md": BASE64_SLICE_MARKERS,
     "zigux/tests/phase6_bsearch.zig": BSEARCH_TEST_MARKERS,
     "zigux/tests/phase6_bsearch_perf.zig": BSEARCH_PERF_MARKERS,
@@ -488,6 +530,10 @@ def total_marker_count() -> int:
         + len(BASE64_TEST_MARKERS)
         + len(BASE64_PERF_MARKERS)
         + len(BASE64_PARITY_SCRIPT_MARKERS)
+        + len(BASE64_C_PARITY_RUNNER_MARKERS)
+        + len(BASE64_CASEGEN_MARKERS)
+        + len(BASE64_C_HARNESS_MARKERS)
+        + len(BASE64_VECTORS_MARKERS)
         + len(BASE64_SLICE_MARKERS)
         + len(BSEARCH_TEST_MARKERS)
         + len(BSEARCH_PERF_MARKERS)
@@ -558,6 +604,10 @@ def validate_phase6(root: Path) -> dict[str, object]:
         ("phase6_base64", "zigux/tests/phase6_base64.zig", BASE64_TEST_MARKERS),
         ("phase6_base64_perf", "zigux/tests/phase6_base64_perf.zig", BASE64_PERF_MARKERS),
         ("phase6_base64_c_parity_script", "scripts/zigux/check-phase6-base64-c-parity.py", BASE64_PARITY_SCRIPT_MARKERS),
+        ("phase6_base64_c_parity_runner", "zigux/tests/phase6_base64_c_parity.zig", BASE64_C_PARITY_RUNNER_MARKERS),
+        ("phase6_base64_c_casegen", "zigux/tests/phase6_base64_c_casegen.zig", BASE64_CASEGEN_MARKERS),
+        ("phase6_base64_c_harness", "zigux/tests/fixtures/phase6_base64_c_harness.c", BASE64_C_HARNESS_MARKERS),
+        ("phase6_base64_vectors", "zigux/tests/fixtures/phase6_base64_vectors.zig", BASE64_VECTORS_MARKERS),
         ("phase6_base64_slice", "Documentation/zigux/phase6-base64-slice.md", BASE64_SLICE_MARKERS),
         ("phase6_bsearch", "zigux/tests/phase6_bsearch.zig", BSEARCH_TEST_MARKERS),
         ("phase6_bsearch_perf", "zigux/tests/phase6_bsearch_perf.zig", BSEARCH_PERF_MARKERS),
@@ -684,12 +734,27 @@ def run_self_test() -> int:
                 raise AssertionError("surveyed_commit mismatch unexpectedly passed")
             if "manifest:surveyed_commit_mismatch" not in fail_result["missing"]:
                 raise AssertionError(f"expected mismatch marker, got: {fail_result['missing']}")
+
+            write_self_test_tree(root)
+            vectors_path = root / "zigux/tests/fixtures/phase6_base64_vectors.zig"
+            vectors_text = vectors_path.read_text(encoding="utf-8")
+            vectors_marker = '.{ .input = ",,A", .expected = &variant_two_byte_sample, .padding = false, .variant_name = "imap" },'
+            if vectors_marker not in vectors_text:
+                raise AssertionError("expected base64 vectors marker missing from positive fixture")
+            vectors_path.write_text(vectors_text.replace(vectors_marker, "", 1), encoding="utf-8")
+
+            base64_fail_result = validate_phase6(root)
+            if base64_fail_result["ok"]:
+                raise AssertionError("base64 vector marker removal unexpectedly passed")
+            if f"phase6_base64_vectors:missing:{vectors_marker}" not in base64_fail_result["missing"]:
+                raise AssertionError(f"expected base64 vector marker failure, got: {base64_fail_result['missing']}")
     except AssertionError as exc:
         print("PHASE6_VALIDATOR_SELF_TEST=fail")
         print(f"PHASE6_VALIDATOR_SELF_TEST_REASON={exc}")
         return 1
 
     print("PHASE6_VALIDATOR_SELF_TEST=pass")
+    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=2")
     return 0
 
 
