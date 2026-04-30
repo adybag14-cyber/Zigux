@@ -71,13 +71,15 @@ FILES = [
 ]
 
 MAKE_MARKERS = [
-    "PHONY += phase11-validate phase11-test phase11",
+    "PHONY += phase11-validate phase11-test phase11-hvc-survey phase11",
     "phase11-validate:",
     "scripts/zigux/check-phase11-build-inventory.py",
     "scripts/zigux/validate-phase11.py --self-test",
     "scripts/zigux/validate-phase11.py",
     "$(ZIG) build test --build-file zigux/tests/phase11_build.zig --summary all",
-    "phase11: phase11-validate phase11-test",
+    "phase11-hvc-survey:",
+    "$(ZIG) build hvc-console-survey --build-file zigux/tests/phase11_build.zig --summary all",
+    "phase11: phase11-validate phase11-test phase11-hvc-survey",
 ]
 WORKFLOW_MARKERS = [
     "Self-test Phase 11 simple-driver validator",
@@ -86,6 +88,8 @@ WORKFLOW_MARKERS = [
     "make -C zigux phase11-validate",
     "Run Phase 11 watchdog and console tests",
     "zig build test --build-file zigux/tests/phase11_build.zig --summary all",
+    "Run dedicated Phase 11 hvc survey replay",
+    "make -C zigux phase11-hvc-survey",
 ]
 README_MARKERS = [
     "check-phase11-build-inventory.py",
@@ -93,6 +97,7 @@ README_MARKERS = [
     "validate-phase11.py --self-test",
     "Phase 11 flow",
     "make -C zigux phase11-validate",
+    "make -C zigux phase11-hvc-survey",
     "phase11_build_inventory.json",
     "phase11_gpio_wdt_manifest.json",
     "phase11_uapi_header_parity_manifest.json",
@@ -266,6 +271,22 @@ def run_self_test() -> int:
             "workflow_self_test_step",
             tmp_root,
             "workflow:Self-test Phase 11 simple-driver validator",
+        )
+        workflow_path.write_text(original_workflow, encoding="utf-8")
+
+        workflow_path.write_text(
+            original_workflow.replace(
+                "      - name: Run dedicated Phase 11 hvc survey replay\n"
+                "        run: make -C zigux phase11-hvc-survey\n\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "workflow_hvc_survey_step",
+            tmp_root,
+            "workflow:Run dedicated Phase 11 hvc survey replay",
         )
         workflow_path.write_text(original_workflow, encoding="utf-8")
 
