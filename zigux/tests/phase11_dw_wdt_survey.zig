@@ -375,7 +375,7 @@ test "phase11 dw_wdt notes stay pinned to the manifest commit and validation-mat
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "summarizeTeardownLifecycle()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase11-dw-wdt-validation-matrix.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Latest verification snapshot") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`zig test --dep dw_wdt -Mroot=zigux/tests/phase11_dw_wdt.zig -Mdw_wdt=drivers/watchdog/dw_wdt.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`zig test zigux/tests/phase11_dw_wdt.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`zig test zigux/tests/phase11_dw_wdt_survey.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`python3 scripts/zigux/validate-phase11.py`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`PHASE11_VALIDATION=pass`") != null);
