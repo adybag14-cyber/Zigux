@@ -9,6 +9,7 @@ pub const UnsafeScopeTag = enum(u8) {
 pub const ScopeError = error{
     UnsafeScopeDenied,
     MisalignedAccess,
+    AddressOverflow,
 };
 
 pub fn addressOf(ptr: anytype) usize {
@@ -17,6 +18,18 @@ pub fn addressOf(ptr: anytype) usize {
 
 pub fn byteOffset(base: usize, offset: usize) usize {
     return base + offset;
+}
+
+pub fn checkedByteOffset(base: usize, offset: usize) ScopeError!usize {
+    return std.math.add(usize, base, offset) catch error.AddressOverflow;
+}
+
+pub fn checkedSpanBytes(comptime T: type, len: usize) ScopeError!usize {
+    return std.math.mul(usize, len, @sizeOf(T)) catch error.AddressOverflow;
+}
+
+pub fn checkedSpanEnd(comptime T: type, base: usize, len: usize) ScopeError!usize {
+    return checkedByteOffset(base, try checkedSpanBytes(T, len));
 }
 
 pub fn isAddressAlignedFor(comptime T: type, addr: usize) bool {
@@ -82,7 +95,7 @@ pub fn constPointerAt(comptime T: type, addr: usize) *const T {
 
 pub fn scopedPointerAt(comptime T: type, scope: UnsafeScopeTag, base: usize, offset: usize) ScopeError!*volatile T {
     if (!permitsVolatileMmio(scope)) return error.UnsafeScopeDenied;
-    const addr = byteOffset(base, offset);
+    const addr = try checkedByteOffset(base, offset);
     try ensureAddressAlignedFor(T, addr);
     return @ptrFromInt(addr);
 }
@@ -90,6 +103,7 @@ pub fn scopedPointerAt(comptime T: type, scope: UnsafeScopeTag, base: usize, off
 pub fn scopedConstSliceAt(comptime T: type, scope: UnsafeScopeTag, base: usize, len: usize) ScopeError![]const T {
     if (!permitsRawPointerBridge(scope)) return error.UnsafeScopeDenied;
     try ensureAddressAlignedFor(T, base);
+    _ = try checkedSpanEnd(T, base, len);
     return constSliceAt(T, base, len);
 }
 
@@ -138,6 +152,16 @@ test "phase3 narrow unsafe scoped helpers reject misaligned addresses" {
     try std.testing.expectError(error.MisalignedAccess, scopedPointerAt(u32, .volatile_mmio, base, 1));
     try std.testing.expectError(error.MisalignedAccess, scopedConstSliceAt(u32, .raw_pointer_bridge, base + 1, 1));
     try std.testing.expectError(error.MisalignedAccess, scopedConstPointerAt(u32, .raw_pointer_bridge, base + 1));
+}
+
+test "phase3 narrow unsafe scoped helpers reject overflowed address math" {
+    const max = std.math.maxInt(usize);
+
+    try std.testing.expectError(error.AddressOverflow, checkedByteOffset(max, 1));
+    try std.testing.expectError(error.AddressOverflow, checkedSpanBytes(u32, max));
+    try std.testing.expectError(error.AddressOverflow, checkedSpanEnd(u32, 4, max));
+    try std.testing.expectError(error.AddressOverflow, scopedPointerAt(u32, .volatile_mmio, max, 1));
+    try std.testing.expectError(error.AddressOverflow, scopedConstSliceAt(u32, .raw_pointer_bridge, 4, max));
 }
 
 test "phase3 narrow unsafe interop policy decoding stays explicit" {
