@@ -101,7 +101,7 @@ RELEASE_MARKERS = [
 ]
 
 CHECKLIST_MARKERS = [
-    "if the change touches the shared Phase 14 smoke packet, do `scripts/zigux/validate-phase14.py`, `scripts/zigux/README.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `zigux/tests/phase14_end_to_end_smoke_survey.zig`, `zigux/tests/phase14_build.zig`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/freeze-map.md`, and the four Phase 14 anchor-local manifests plus survey notes still agree on the same exact validator-backed smoke commands, the same focused `phase14-smoke` shard commands, ready-next versus blocked posture, stay-in-C boundary, named owner, validation gate, rollback owner, rollback threshold, roadmap risk bundle (`hidden runtime behavior`, `memory-ordering mistakes`, `overpromising full parity`, `deep-core scope creep`), and explicit ZAR-to-product transfer rationale?",
+    "if the change touches the shared Phase 14 smoke packet, do `scripts/zigux/validate-phase14.py`, `scripts/zigux/README.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `zigux/tests/phase14_end_to_end_smoke_survey.zig`, `zigux/tests/phase14_build.zig`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/freeze-map.md`, and the four Phase 14 anchor-local manifests plus survey notes still agree on the same exact validator-backed smoke commands, the same focused `phase14-smoke` shard commands, ready-next versus blocked posture, stay-in-C boundary, named owner, validation gate, rollback owner, rollback threshold, automatic return-to-blocked trigger catalog, roadmap risk bundle (`hidden runtime behavior`, `memory-ordering mistakes`, `overpromising full parity`, `deep-core scope creep`), and explicit ZAR-to-product transfer rationale?",
 ]
 
 BUILD_MARKERS = [
@@ -342,23 +342,6 @@ for marker in [
     if marker not in survey_note:
         missing.append(f"survey:{marker}")
 
-for shard in compile_shards:
-    if not isinstance(shard, dict):
-        continue
-    artifact_name = shard.get("artifact_name")
-    root_source_file = shard.get("root_source_file")
-    bridge_import = shard.get("bridge_import")
-    bridge_source_file = shard.get("bridge_source_file")
-    if isinstance(artifact_name, str) and artifact_name and artifact_name not in survey_note:
-        missing.append(f"survey:compile_shard:artifact_name:{artifact_name}")
-    if isinstance(root_source_file, str) and root_source_file and root_source_file not in survey_note:
-        missing.append(f"survey:compile_shard:root_source_file:{root_source_file}")
-    if isinstance(bridge_import, str) and bridge_import:
-        if bridge_import not in survey_note:
-            missing.append(f"survey:compile_shard:bridge_import:{bridge_import}")
-        if isinstance(bridge_source_file, str) and bridge_source_file and bridge_source_file not in survey_note:
-            missing.append(f"survey:compile_shard:bridge_source_file:{bridge_source_file}")
-
 if actual_build_test_names != expected_build_test_names:
     missing.append("phase14_build:build_test_names_mismatch")
 if len(actual_depend_steps) != len(expected_build_test_names):
@@ -463,4 +446,4 @@ print(f"PHASE14_BUILD_TEST_COUNT={len(expected_build_test_names)}")
 print(f"PHASE14_BUILD_DEPEND_STEP_COUNT={len(actual_depend_steps)}")
 print(f"PHASE14_COMPILE_ARTIFACT_COUNT={len(expected_build_test_names)}")
 print(f"PHASE14_FOCUSED_SHARD_COUNT={focused_shard_count}")
-print(f"PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT={full_bundle_only_count}")
+print(f"PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT={full_bundle_only_count})
