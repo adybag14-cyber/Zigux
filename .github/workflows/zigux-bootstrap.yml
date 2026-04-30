@@ -106,6 +106,9 @@ jobs:
       - name: Audit Phase 3 documentation sync
         run: python3 scripts/zigux/phase3_catalog.py --audit-doc-sync
 
+      - name: Check Phase 3 slug sanity
+        run: python3 scripts/zigux/phase3_catalog.py --check-slug-sanity
+
       - name: Self-test Phase 3 shared helper
         run: python3 scripts/zigux/phase3_check_lib.py --self-test
 
