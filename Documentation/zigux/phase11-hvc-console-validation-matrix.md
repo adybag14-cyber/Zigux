@@ -53,7 +53,7 @@ Without this matrix, the slice preserves the parked boundary but does not keep t
 
 - the shared Phase 11 gate for this lane remains `zigux/tests/phase11_build.zig`
 - the dedicated archival survey gate remains `zigux/tests/phase11_hvc_console_survey.zig`
-- the dedicated survey replay still passes separately from the shared Phase 11 replay and remains the archival checkpoint for this lane
+- the dedicated survey replay still passes separately from the shared Phase 11 replay and remains the archival checkpoint for this lane: `make -C zigux phase11-hvc-survey` now routes through the dedicated `hvc-console-survey` step in `zigux/tests/phase11_build.zig`, while `make -C zigux phase11` continues to route through the shared `zigux/tests/phase11_build.zig` packet plus that same archival replay
 - this bounded worker-entry, sleep-handoff, drain-order, hangup-disconnect, and remove-handoff evidence stays inside the existing starter, test, survey, manifest, and note files rather than adding a new Phase 11 entry point
 
 ## Review Rules
