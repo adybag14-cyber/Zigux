@@ -449,8 +449,8 @@ required_bitmap_survey_test_markers = [
 ]
 
 required_kretprobe_survey_markers = [
-    "`PHASE9_LANE_KEY=P9-L13`",
-    "`PHASE9_SURVEYED_COMMIT=a0bf6e9e3c43e1fc51c0d85ae74c065439ac22da`",
+    "`PHASE9_LANE_KEY=P9-L15`",
+    "`PHASE9_SURVEYED_COMMIT=9ab58640ce44fd53534dd49e29fcce6e274dc3d0`",
     "RuntimeKretprobeSummary",
     "released_without_substrate",
     "command-name, argv-policy, or environment-derived activation handling",
@@ -458,8 +458,8 @@ required_kretprobe_survey_markers = [
 ]
 
 required_kretprobe_module_slice_markers = [
-    "`PHASE9_LANE_KEY=P9-L13`",
-    "`PHASE9_SURVEYED_COMMIT=a0bf6e9e3c43e1fc51c0d85ae74c065439ac22da`",
+    "`PHASE9_LANE_KEY=P9-L15`",
+    "`PHASE9_SURVEYED_COMMIT=9ab58640ce44fd53534dd49e29fcce6e274dc3d0`",
     "RuntimeKretprobeSummary",
     "released_without_substrate",
 ]
@@ -471,19 +471,19 @@ required_kretprobe_manifest_markers = [
     '"id": "runtime-kretprobe-loader-scaffold"',
     '"zigux_destination": "samples/zigux/runtime_kretprobe_loader.zig"',
     '"id": "runtime-kretprobe-shared-loader-controls"',
-    '"status": "ready_next"',
+    '"status": "blocked_on_runtime_substrate"',
 ]
 
 required_kretprobe_survey_test_markers = [
-    'const surveyed_commit = "a0bf6e9e3c43e1fc51c0d85ae74c065439ac22da";',
-    'try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`PHASE9_LANE_KEY=P9-L13`") != null);',
+    'const surveyed_commit = "9ab58640ce44fd53534dd49e29fcce6e274dc3d0";',
+    'try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`PHASE9_LANE_KEY=P9-L15`") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, survey_doc, surveyed_commit) != null);',
     'try std.testing.expect(std.mem.indexOf(u8, survey_doc, "released_without_substrate") != null);',
-    'try std.testing.expect(std.mem.indexOf(u8, module_doc, "`PHASE9_LANE_KEY=P9-L13`") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, module_doc, "`PHASE9_LANE_KEY=P9-L15`") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, module_doc, surveyed_commit) != null);',
-    'try std.testing.expect(std.mem.indexOf(u8, module_doc, "released_without_substrate") != null);',
     'std.mem.eql(u8, check.id, "loader-rollback-surface")',
     'std.mem.eql(u8, gap.id, "runtime-kretprobe-shared-loader-controls")',
+    'std.mem.indexOf(u8, gap.why_now, "pre-execution")',
     'std.mem.eql(u8, entry.id, "runtime-kretprobe-loader-scaffold")',
 ]
 
@@ -892,7 +892,7 @@ def run_self_test() -> int:
         original_kretprobe_module_slice = kretprobe_module_slice_path.read_text(encoding="utf-8")
         kretprobe_module_slice_path.write_text(
             original_kretprobe_module_slice.replace(
-                "`PHASE9_SURVEYED_COMMIT=a0bf6e9e3c43e1fc51c0d85ae74c065439ac22da`",
+                "`PHASE9_SURVEYED_COMMIT=9ab58640ce44fd53534dd49e29fcce6e274dc3d0`",
                 "`PHASE9_SURVEYED_COMMIT=`",
                 1,
             ),
@@ -901,7 +901,7 @@ def run_self_test() -> int:
         expect_missing_marker(
             "kretprobe_module_slice_surveyed_commit_pin",
             tmp_root,
-            "kretprobe_module_slice:`PHASE9_SURVEYED_COMMIT=a0bf6e9e3c43e1fc51c0d85ae74c065439ac22da`",
+            "kretprobe_module_slice:`PHASE9_SURVEYED_COMMIT=9ab58640ce44fd53534dd49e29fcce6e274dc3d0`",
         )
         kretprobe_module_slice_path.write_text(original_kretprobe_module_slice, encoding="utf-8")
 
