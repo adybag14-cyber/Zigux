@@ -92,7 +92,9 @@
       "mask_unit_test_anchor": "tools/lib/find_bit.zig:test \"word helpers keep linux-style mask and sizing boundaries\"",
       "mask_unit_test_contract": "Direct Zig unit coverage keeps bitsToWords(), firstWordMask(), and lastWordMask() aligned with Linux-style whole-word, partial-word, and wrapped-start boundaries so exported mask helpers remain reviewable without relying only on indirect scan coverage.",
       "boundary_unit_test_anchor": "tools/lib/find_bit.zig:test \"empty and boundary scans return nbits\"",
-      "boundary_unit_test_contract": "Direct Zig unit coverage keeps empty and out-of-range scan boundaries aligned by returning nbits for zero-length bitmaps, start-at-nbits searches, and fully set zero-bit windows that must not report past the declared range."
+      "boundary_unit_test_contract": "Direct Zig unit coverage keeps empty and out-of-range scan boundaries aligned by returning nbits for zero-length bitmaps, start-at-nbits searches, and fully set zero-bit windows that must not report past the declared range.",
+      "alias_unit_test_anchor": "tools/lib/find_bit.zig:test \"find underscore aliases preserve scan semantics\"",
+      "alias_unit_test_contract": "Direct Zig unit coverage keeps find_first_bit(), find_first_and_bit(), find_first_zero_bit(), find_next_bit(), find_next_and_bit(), and find_next_zero_bit() aligned with the camelCase scan helpers across the same caller-selected bit windows and tail clamps."
     },
     "tools/lib/rbtree.zig": {
       "fixture": "zigux/tests/fixtures/phase1_helpers.json",
