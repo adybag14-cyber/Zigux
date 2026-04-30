@@ -103,3 +103,11 @@ Phase 13 flow
 - `make -C zigux phase13-validate` runs that dedicated release validator before the broader shared replay.
 - `make -C zigux phase13` routes through the validator before the shared replay, so the local convenience path matches the release-facing review contract.
 - `Documentation/zigux/phase13-devres-survey.md`, `zigux/tests/phase13_devres_manifest.json`, and `zigux/tests/phase13_devres_reviewability.zig` keep the helper-first `devres` packet explicit about live DMA-backed mappings and scatterlist ownership staying blocked rather than implied.
+
+Phase 14 flow
+- `validate-phase14.py` keeps the shared Phase 14 smoke packet aligned across `scripts/zigux/README.md`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/freeze-map.md`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, `zigux/tests/phase14_build.zig`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `zigux/tests/phase14_end_to_end_smoke_survey.zig`, and the four anchor-local manifests plus survey notes so the shared stay-in-C boundary remains reviewable as one validator-backed packet.
+- `make -C zigux phase14-validate` is the validator-first entrypoint for the shared Phase 14 smoke packet before any broader replay claims stay green.
+- `make -C zigux phase14-smoke` is the focused smoke-shard replay contract and intentionally routes through the shared `zigux/tests/phase14_build.zig` entrypoint instead of bypassing the reviewable wrapper path.
+- `zigux/tests/phase14_build.zig` is the shared Phase 14 build entrypoint: it keeps the focused smoke-shard replay contract explicit, records the same shared Phase 14 smoke packet boundary, and leaves the deeper bridge or survey slices under the broader bundle.
+- the shared packet keeps the roadmap stay-in-C boundary explicit by recording the named owner, validation gate, rollback owner, and roadmap risk bundle (`hidden runtime behavior`, `memory-ordering mistakes`, `overpromising full parity`, `deep-core scope creep`) beside the focused wrapper path.
+- the same packet also keeps the rollback threshold, fallback path, and automatic return-to-blocked trigger catalog explicit so the shared smoke path fails closed before it overstates Phase 14 delivery.
