@@ -449,7 +449,7 @@ required_bitmap_survey_test_markers = [
 
 required_kretprobe_survey_markers = [
     "`PHASE9_LANE_KEY=P9-L13`",
-    "`PHASE9_SURVEYED_COMMIT=b17ed4c6675c9ffb24f11ab6d927db2af3082b1c`",
+    "`PHASE9_SURVEYED_COMMIT=a0bf6e9e3c43e1fc51c0d85ae74c065439ac22da`",
     "RuntimeKretprobeSummary",
     "released_without_substrate",
     "command-name, argv-policy, or environment-derived activation handling",
@@ -458,7 +458,7 @@ required_kretprobe_survey_markers = [
 
 required_kretprobe_module_slice_markers = [
     "`PHASE9_LANE_KEY=P9-L13`",
-    "`PHASE9_SURVEYED_COMMIT=b17ed4c6675c9ffb24f11ab6d927db2af3082b1c`",
+    "`PHASE9_SURVEYED_COMMIT=a0bf6e9e3c43e1fc51c0d85ae74c065439ac22da`",
     "RuntimeKretprobeSummary",
     "released_without_substrate",
 ]
@@ -478,7 +478,7 @@ required_kretprobe_manifest_markers = [
 required_kretprobe_survey_test_markers = [
     'const DeliveryEvidence = struct {',
     'const OwnershipEntry = struct {',
-    'const surveyed_commit = "b17ed4c6675c9ffb24f11ab6d927db2af3082b1c";',
+    'const surveyed_commit = "a0bf6e9e3c43e1fc51c0d85ae74c065439ac22da";',
     'test "phase 9 runtime kretprobe survey manifest records the landed ownership packet and remaining shared control blocker" {',
     'try std.testing.expectEqualStrings(surveyed_commit, manifest.surveyed_commit);',
     'try std.testing.expectEqual(@as(usize, 11), manifest.delivery_evidence_catalog.len);',
@@ -489,10 +489,10 @@ required_kretprobe_survey_test_markers = [
     'try std.testing.expect(std.mem.indexOf(u8, survey_doc, "released_without_substrate") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, module_doc, "`PHASE9_LANE_KEY=P9-L13`") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, module_doc, surveyed_commit) != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, module_doc, "released_without_substrate") != null);',
     'std.mem.eql(u8, check.id, "loader-rollback-surface")',
-    'std.mem.indexOf(u8, check.expected, "released_without_substrate")',
     'std.mem.eql(u8, gap.id, "runtime-kretprobe-shared-loader-controls")',
-    'std.mem.indexOf(u8, gap.why_now, "pre-execution")',
+    'std.mem.eql(u8, entry.id, "runtime-kretprobe-loader-scaffold")',
 ]
 
 required_trace_events_survey_markers = [
@@ -900,7 +900,7 @@ def run_self_test() -> int:
         original_kretprobe_module_slice = kretprobe_module_slice_path.read_text(encoding="utf-8")
         kretprobe_module_slice_path.write_text(
             original_kretprobe_module_slice.replace(
-                "`PHASE9_SURVEYED_COMMIT=b17ed4c6675c9ffb24f11ab6d927db2af3082b1c`",
+                "`PHASE9_SURVEYED_COMMIT=a0bf6e9e3c43e1fc51c0d85ae74c065439ac22da`",
                 "`PHASE9_SURVEYED_COMMIT=`",
                 1,
             ),
@@ -909,7 +909,7 @@ def run_self_test() -> int:
         expect_missing_marker(
             "kretprobe_module_slice_surveyed_commit_pin",
             tmp_root,
-            "kretprobe_module_slice:`PHASE9_SURVEYED_COMMIT=b17ed4c6675c9ffb24f11ab6d927db2af3082b1c`",
+            "kretprobe_module_slice:`PHASE9_SURVEYED_COMMIT=a0bf6e9e3c43e1fc51c0d85ae74c065439ac22da`",
         )
         kretprobe_module_slice_path.write_text(original_kretprobe_module_slice, encoding="utf-8")
 
