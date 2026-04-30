@@ -162,6 +162,16 @@ test "phase12 virtio_scsi survey manifest records the landed queue-depth summary
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12_libbpf_snapshot_fixture:sha256:zigux/tests/phase12_libbpf_segments.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig test zigux/tests/phase12_virtio_scsi_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "passes `1/1` tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Rollback And Reversible Delivery") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "owner: `Storage Driver Lane`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "rollback owner: `Storage Driver Lane`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "fallback path: keep `drivers/scsi/virtio_scsi.c` as the source of truth") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "drop the direct `phase12-virtio-scsi-tests` plus `phase12-virtio-scsi-survey-tests` entries out of `zigux/tests/phase12_build.zig` if the shared packet regresses") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "reversible delivery evidence: this Phase 12 packet only adds one bounded `drivers/scsi/virtio_scsi.zig` starter") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "without inventing DMA-backed request ownership, `Scsi_Host` lifecycle parity, or blk-mq runtime claims") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "rollback drill: run `make -C zigux phase12-validate`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "remove the `phase12-virtio-scsi-tests` and `phase12-virtio-scsi-survey-tests` entries from `zigux/tests/phase12_build.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "ready-next `phase12-virtio-scsi-host-limit-summary-followup`") == null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "transport freeze or restore boundary") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "blocks queue-depth capture while transport is still frozen") != null);
