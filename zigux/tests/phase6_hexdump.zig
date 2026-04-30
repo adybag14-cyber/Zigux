@@ -174,3 +174,18 @@ test "phase 6 hexdump proves exact 4-byte grouped ascii output" {
         std.mem.sliceTo(linebuf[0..], 0),
     );
 }
+
+test "phase 6 hexdump proves exact 8-byte grouped ascii output" {
+    var linebuf: [test_hexdump_buf_size]u8 = undefined;
+    const required = hexdump.hexDumpToBuffer(test_data_b[0..16], 16, 8, linebuf[0..], true);
+
+    try std.testing.expectEqual(@as(usize, 51), required);
+    try std.testing.expectEqualSlices(
+        u8,
+        if (@import("builtin").cpu.arch.endian() == .big)
+            "be32db7b0a1893b2 70bac4247d83349b  .2.{....p..$}.4."
+        else
+            "b293180a7bdb32be 9b34837d24c4ba70  .2.{....p..$}.4.",
+        std.mem.sliceTo(linebuf[0..], 0),
+    );
+}
