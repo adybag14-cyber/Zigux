@@ -23,6 +23,7 @@ ABI_LOW_LEVEL_BUILD_FILE_REL = "zigux/tests/phase3_low_level_wrappers_build.zig"
 ABI_EXPORT_UAPI_BUILD_FILE_REL = "zigux/tests/phase3_export_uapi_build.zig"
 ABI_POLICY_UNSAFE_BUILD_FILE_REL = "zigux/tests/phase3_policy_unsafe_build.zig"
 ABI_EXPORT_UAPI_SURVEY_CHECK_REL = "scripts/zigux/validate-phase3-export-uapi-survey.py"
+ABI_POLICY_UNSAFE_SURVEY_CHECK_REL = "scripts/zigux/validate-phase3-policy-unsafe-survey.py"
 ABI_REQUIRED_MANIFEST_FILES = (
     "include/zigux/abi.h",
     "include/linux/zigux.h",
@@ -49,6 +50,8 @@ ABI_REQUIRED_MANIFEST_FILES = (
     "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c",
     "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
+    "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md",
+    ABI_POLICY_UNSAFE_SURVEY_CHECK_REL,
     "scripts/zigux/validate_phase3_core.py",
     "scripts/zigux/validate_phase3_selftest.py",
 )
@@ -383,6 +386,36 @@ def validate_export_uapi_boundary(root: Path) -> list[str]:
     return issues
 
 
+def validate_policy_unsafe_boundary(root: Path) -> list[str]:
+    check_path = root / ABI_POLICY_UNSAFE_SURVEY_CHECK_REL
+    if not check_path.exists():
+        return [f"policy-unsafe-gate: missing {ABI_POLICY_UNSAFE_SURVEY_CHECK_REL}"]
+
+    result = subprocess.run(
+        ["python3", str(check_path)],
+        cwd=str(root),
+        text=True,
+        capture_output=True,
+    )
+    if result.returncode == 0:
+        return []
+
+    issues: list[str] = []
+    for line in result.stdout.splitlines():
+        stripped = line.strip()
+        if not stripped or stripped == "PHASE3_POLICY_UNSAFE_SURVEY=fail":
+            continue
+        issues.append(f"policy-unsafe-gate: {stripped}")
+    stderr = result.stderr.strip()
+    if stderr:
+        issues.append(f"policy-unsafe-gate: stderr: {stderr.splitlines()[-1]}")
+    if not issues:
+        issues.append(
+            f"policy-unsafe-gate: {ABI_POLICY_UNSAFE_SURVEY_CHECK_REL} exited with status {result.returncode}"
+        )
+    return issues
+
+
 def _asserted_abi_layout_count(root: Path) -> int:
     text = (root / "zigux/tests/phase3_abi.zig").read_text(encoding="utf-8")
     names: list[str] = []
@@ -531,6 +564,7 @@ def validate_slices(
             issues.extend(validate_low_level_wrapper_exports(root))
             issues.extend(validate_abi_expected_fixture(root))
             issues.extend(validate_export_uapi_boundary(root))
+            issues.extend(validate_policy_unsafe_boundary(root))
         if check_build_smoke:
             issues.extend(_validate_build_smoke(root, entry, zig_path))
 
