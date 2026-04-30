@@ -44,6 +44,9 @@ def clone_fixture_root(destination_root: Path) -> None:
         helper_path.touch()
 
 
+def count_exact_line(text: str, expected: str) -> int:
+    return sum(1 for line in text.splitlines() if line.strip() == expected)
+
 
 def run_validator(root: Path) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
@@ -321,6 +324,13 @@ required_workflow_markers = [
     'python3 scripts/zigux/check-phase1-bench.py --self-test',
     'zig build bench --build-file zigux/tests/build.zig',
 ]
+required_workflow_exact_lines = {
+    'run: python3 scripts/zigux/validate-phase1-closure.py': 1,
+    'run: python3 scripts/zigux/validate-phase1-closure.py --self-test': 1,
+    'run: python3 scripts/zigux/check-phase1-parity.py --self-test': 1,
+    'run: python3 scripts/zigux/check-phase1-bench.py': 1,
+    'run: python3 scripts/zigux/check-phase1-bench.py --self-test': 1,
+}
 required_build_markers = [
     'phase1_bench.zig',
     'const bench_step = b.step("bench", "Run Phase 1 helper benchmark smoke");',
@@ -341,6 +351,12 @@ for marker in required_closure_markers:
 for marker in required_workflow_markers:
     if marker not in workflow:
         missing_markers.append(f'workflow:{marker}')
+for line, expected_count in required_workflow_exact_lines.items():
+    actual_count = count_exact_line(workflow, line)
+    if actual_count != expected_count:
+        missing_markers.append(
+            f'workflow_exact:{line}:expected_count={expected_count}:actual_count={actual_count}'
+        )
 for marker in required_build_markers:
     if marker not in tests_build:
         missing_markers.append(f'build:{marker}')
