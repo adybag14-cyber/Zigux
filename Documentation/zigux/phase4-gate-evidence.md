@@ -8,7 +8,7 @@ This note records one exact readback snapshot for the current Phase 4 rollback-o
 - `PHASE4_EVIDENCE_MODE=github_connector_readback`
 - `PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions`
 - `PHASE4_VALIDATION_MATRIX_BLOB_SHA=58104151fdea65e0374da5fd4e4215dd1619b8bb`
-- `PHASE4_VALIDATOR_BLOB_SHA=ee8e7a8427864541f6a467e1b958fa07b6724e1c`
+- `PHASE4_VALIDATOR_BLOB_SHA=7482e53a6c0d219f1dab3a7cdb4ea46ddac11cf9`
 - `PHASE4_BUILD_BLOB_SHA=57f4c3809387cac39e3153b9bbad17ca92ce3684`
 - `PHASE4_MAKEFILE_BLOB_SHA=d6647d5cdec91d1e303e32684df806c80177a295`
 - `PHASE4_WORKFLOW_BLOB_SHA=6dea89d478138342f10e490289cf74243d085550`
