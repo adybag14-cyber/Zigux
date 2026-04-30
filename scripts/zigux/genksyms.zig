@@ -574,6 +574,17 @@ test "genksyms bridge reports missing short option argument in getopt style" {
     }
 }
 
+test "genksyms bridge reports missing short dump-types argument in getopt style" {
+    const outcome = try parseArgs(std.testing.allocator, &.{"-T"});
+    switch (outcome) {
+        .failure => |failure| switch (failure) {
+            .missing_option_argument => |option| try std.testing.expectEqualStrings("T", option),
+            else => return error.UnexpectedFailure,
+        },
+        .command => return error.UnexpectedCommand,
+    }
+}
+
 test "genksyms bridge rejects unexpected long option arguments in getopt style" {
     const outcome = try parseArgs(std.testing.allocator, &.{"--debug=extra"});
     switch (outcome) {
