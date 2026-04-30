@@ -150,11 +150,17 @@ ABI_REQUIRED_SOURCE_MARKERS = {
     ),
     "zigux/tests/phase3_low_level_wrappers.zig": (
         'test "phase3 low-level wrappers stay inside the documented ABI surface"',
+        "atomic.fetchSub(u32, &value, 4, .seq_cst)",
+        "atomic.fetchOr(u32, &value, 0b1000, .seq_cst)",
+        "atomic.fetchAnd(u32, &value, 0b0111, .seq_cst)",
+        "atomic.fetchXor(u32, &value, 0b1111, .seq_cst)",
         "atomic.compareExchange(u32, &value, 12, 21, .seq_cst, .seq_cst)",
         "barrier.full();",
         "const desc = mmio.range(base, 12, 4);",
         "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write16Scoped(.none, base, 0, 0x99));",
         "try mmio.write32Scoped(.volatile_mmio, base, 4, 0xaabbccdd);",
+        'test "phase3 low-level wrapper ABI range shape stays stable"',
+        'test "phase3 low-level wrappers keep the narrow unsafe scope contract explicit"',
     ),
     "zigux/tests/phase3_policy_unsafe.zig": (
         'test "phase3 policy helpers stay ABI aligned"',
