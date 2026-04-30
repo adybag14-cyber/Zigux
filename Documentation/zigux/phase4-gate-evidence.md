@@ -12,9 +12,9 @@ This note records one exact readback snapshot for the current Phase 4 rollback-o
 - `PHASE4_BUILD_BLOB_SHA=57f4c3809387cac39e3153b9bbad17ca92ce3684`
 - `PHASE4_MAKEFILE_BLOB_SHA=f6a1156a2a50fd2289ed3f5b82e67bf41d692ac7`
 - `PHASE4_WORKFLOW_BLOB_SHA=54519b03d21d7fce9481c7b3f6f679b04b203bb6`
-- `PHASE4_TEST_FSMOUNT_MANIFEST_BLOB_SHA=2f51e5ef82f73625f1ab05a20c708052d2530b8a`
-- `PHASE4_PERF_BASELINE_MANIFEST_BLOB_SHA=8220078f700770066785bdf312f45915ef60895b`
-- `PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=63363c777ff231be4e40368ef70607f036d42823`
+- `PHASE4_TEST_FSMOUNT_MANIFEST_BLOB_SHA=df55e1ae2900e937b6423244aed0c76f220c6186`
+- `PHASE4_PERF_BASELINE_MANIFEST_BLOB_SHA=2ba09b7853b74b98c775a4469ceea5bab91c7464`
+- `PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=7bf849a0a5422e27b8648422e7c17bda075ec018`
 
 ## Roadmap Contract
 
@@ -98,20 +98,18 @@ The current packet stayed aligned across the following readbacks on `master`:
 
 - `Documentation/zigux/phase4-validation-matrix.md` still names the current rollback owners, threshold posture, workflow step names, local replay commands, and reversible-delivery evidence for the two shipped rollback gates plus the two manifest-backed survey gates.
 - `scripts/zigux/validate-phase4.py` still requires the matrix note, workflow markers, `zigux/Makefile` hooks, `zigux/tests/phase4_build.zig`, `zigux/tests/atomic64_diff.zig`, `zigux/tests/runtime_atomic64_diff.zig`, `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`, `zigux/tests/phase4_test_fsmount_manifest.json`, `zigux/tests/phase4_test_fsmount_survey.zig`, `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`, and `zigux/tests/bitmap_diff.zig` together.
-- the three Phase 4 survey manifests plus their matching survey tests still pin the older inspected provenance snapshot `583b867b78648430c5b500d7d2bb7b8a08cb05da` even though current `master` now resolves to `cad3cc7d9a8f0f01ad66427d1473041128662f6c`, and compare evidence from `583b867b78648430c5b500d7d2bb7b8a08cb05da...master` shows `Documentation/zigux/phase4-gate-evidence.md`, `zigux/tests/phase4_runtime_atomic64_diff_manifest.json`, `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`, `zigux/tests/phase4_test_fsmount_manifest.json`, `zigux/tests/phase4_test_fsmount_survey.zig`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig` all changed after that older snapshot.
+- the three Phase 4 survey manifests plus their matching survey tests now pin the current live provenance snapshot `ef7b33b6922d05e5ef514fb4efa588316ce6dda8` on `master`, and the refreshed manifest blob pins above record that updated packet state directly.
 - `zigux/Makefile` still exposes `phase4-validate`, `phase4-test`, `phase4-runtime-atomic64-diff`, `phase4-test-fsmount-survey`, `phase4-perf-baseline-survey`, and `phase4-bitmap-diff`.
 - `.github/workflows/zigux-bootstrap.yml` still drives `make -C zigux phase4-validate` in `Validate Phase 4 diff gates` and `make -C zigux phase4-test` in `Run Phase 4 diff tests`.
 - `zigux/tests/phase4_build.zig` still exposes `phase4-runtime-atomic64-diff-tests`, `phase4-runtime-atomic64-diff-survey-tests`, `phase4-test-fsmount-survey-tests`, `phase4-perf-baseline-survey-tests`, and `phase4-bitmap-diff-tests`.
 
 ## Current Conclusion
 
-The current live Phase 4 rollback-ownership and lab-matrix packet is still aligned at the gate-definition level, but its manifest-backed survey provenance is no longer current.
+The current live Phase 4 rollback-ownership and lab-matrix packet is aligned at both the gate-definition and manifest-backed survey-provenance levels again.
 
-The immediate same-lane repair is now:
+This pass refreshed the three `surveyed_commit` fields, the paired survey-side `current_surveyed_commit` constants, and the manifest blob pins in this evidence note to the live `master` head `ef7b33b6922d05e5ef514fb4efa588316ce6dda8`.
 
-- refresh `surveyed_commit` and the paired survey-side `current_surveyed_commit` constants from `583b867b78648430c5b500d7d2bb7b8a08cb05da` to `cad3cc7d9a8f0f01ad66427d1473041128662f6c` across the three Phase 4 survey packets before treating the packet as fully current again
-
-The remaining roadmap-backed gaps are still the already-documented bounded ones:
+The remaining roadmap-backed gaps are still the same bounded ones:
 
 - `samples/zigux/kprobe_example.zig` is still absent and remains C-anchor-only
 - `samples/zigux/test_fsmount.zig` is still absent and remains C-anchor-only through the manifest-backed survey gate
