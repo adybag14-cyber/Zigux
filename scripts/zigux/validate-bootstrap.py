@@ -80,6 +80,8 @@ required_workflow_markers = [
     'zigux/tests/phase10_build.zig',
     'Run Phase 11 watchdog and console tests',
     'zigux/tests/phase11_build.zig',
+    'Run dedicated Phase 11 hvc survey replay',
+    'make -C zigux phase11-hvc-survey',
     'Run Phase 12 complex driver tests',
     'zigux/tests/phase12_build.zig',
     'Run Phase 13 shared helper tests',
