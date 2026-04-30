@@ -37,6 +37,7 @@ No parity scorecard entry or Architecture Council status-change request is attac
 - concrete main-thread payload literals for the current bounded `foo_bar`, template, conditional, template-print, and relative-location replay path, including the exported `iter=%d` format template
 - the same main-thread replay now also keeps the Linux sample's `count % 5` array-shape replay explicit by recording the bounded vararg array length and its zero terminator alongside the selected random string
 - concrete function-callback payload labels for the current bounded replay path
+- a paired header-side macro boundary note that keeps `samples/trace_events/trace-events-sample.h` visible as a 640-line surveyed boundary and survey-only macro surface rather than a generated tracepoint macro parity claim
 - a helper-local sample proof that `selftest_complete` still permits bounded replay while preserving registration balance, per-thread event totals, and payload-summary visibility until `exit()`
 - a helper-local failed-exit rollback proof showing that `error.OutstandingRegistration` leaves the module in the initialized stage with its current counters and payload summary intact until the registration is unwound and the normal selftest-to-exit path resumes
 - dedicated Phase 9 module and diff tests that assert those lifecycle, registration, diagnostics-summary, explicit per-thread event-total, replay run-counter, and payload-literal expectations through the shared `zigux/tests/phase9_build.zig` gate, with the diff gate now cross-checking the stable replay summary against the concrete main-thread and function-thread payload labels plus the selftest-path `init_runs`, `selftest_runs`, and `exit_runs` counters instead of treating raw payload structs as the only machine-checkable source
@@ -49,7 +50,7 @@ This slice does not yet claim:
 
 - a kernel-loadable Zigux trace-events module
 - a partial or placeholder `samples/zigux/runtime_trace_events_loader.zig` handoff before the blocked scheduler-facing runtime substrate exists
-- `CREATE_TRACE_POINTS` or tracepoint macro parity
+- generated tracepoint macro parity for `samples/trace_events/trace-events-sample.h`
 - runtime task ownership or event-loop substrate parity
 - polling-backed wake or dispatch behavior
 - real kernel thread scheduling or timeout behavior
