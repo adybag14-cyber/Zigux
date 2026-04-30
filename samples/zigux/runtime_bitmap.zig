@@ -325,9 +325,11 @@ test "runtime bitmap sample selftest keeps the bounded review contract explicit"
     try std.testing.expectEqual(OperationFamily.iteration_and_ranges, selftest.operation_families[3]);
     try std.testing.expect(selftest.checked_range_mutations);
     try std.testing.expect(selftest.checked_iteration_paths);
-    try std.testing.expectEqual(@as(usize, 1), module.selftest_runs);
 
     const summary_after_selftest = module.summary();
+    try std.testing.expectEqual(@as(usize, 1), summary_after_selftest.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), summary_after_selftest.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), summary_after_selftest.exit_runs);
     try std.testing.expectEqual(summary_before_selftest.first_set, summary_after_selftest.first_set);
     try std.testing.expectEqual(summary_before_selftest.first_zero, summary_after_selftest.first_zero);
     try std.testing.expectEqual(summary_before_selftest.weight, summary_after_selftest.weight);
@@ -377,12 +379,14 @@ test "runtime bitmap sample keeps exit lifecycle and post-exit snapshot explicit
     try module.exit();
 
     try std.testing.expectEqual(ModuleStage.exited, module.stage());
-    try std.testing.expectEqual(@as(usize, 1), module.exit_runs);
     try std.testing.expect(module.isSet(12));
     try std.testing.expect(module.isSet(bitmap_view.bits_per_long + 6));
     try std.testing.expect(!module.isSet(bitmap_view.bits_per_long));
 
     const summary_after_exit = module.summary();
+    try std.testing.expectEqual(@as(usize, 1), summary_after_exit.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), summary_after_exit.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), summary_after_exit.exit_runs);
     try std.testing.expectEqual(summary_before_exit.first_set, summary_after_exit.first_set);
     try std.testing.expectEqual(summary_before_exit.first_zero, summary_after_exit.first_zero);
     try std.testing.expectEqual(summary_before_exit.weight, summary_after_exit.weight);
@@ -453,7 +457,9 @@ test "runtime bitmap sample keeps bit-list bounds, separators, and repeat-init l
     try std.testing.expect(module.isSet(5));
     try std.testing.expect(module.isSet(bitmap_view.bits_per_long));
     try std.testing.expect(module.isSet(bitmap_view.bits_per_long + 6));
-    try std.testing.expectEqual(@as(usize, 1), module.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), summary.exit_runs);
     try std.testing.expectEqual(ModuleStage.initialized, module.stage());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.initFromBitList("1"));
 }
