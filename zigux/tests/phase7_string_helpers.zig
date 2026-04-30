@@ -108,6 +108,30 @@ test "phase 7 stringGetSize covers SI, binary, and formatting flag cases" {
     const multiplied_len = string_helpers.stringGetSize(10, 512, string_helpers.STRING_UNITS_10, &out);
     try std.testing.expectEqual(@as(usize, 7), multiplied_len);
     try std.testing.expectEqualStrings("5.12 kB", cStringPrefix(&out));
+
+    const rounded_si_len = string_helpers.stringGetSize(1100, 1, string_helpers.STRING_UNITS_10, &out);
+    try std.testing.expectEqual(@as(usize, 7), rounded_si_len);
+    try std.testing.expectEqualStrings("1.10 kB", cStringPrefix(&out));
+
+    const rounded_binary_len = string_helpers.stringGetSize(1100, 1, string_helpers.STRING_UNITS_2, &out);
+    try std.testing.expectEqual(@as(usize, 8), rounded_binary_len);
+    try std.testing.expectEqualStrings("1.07 KiB", cStringPrefix(&out));
+
+    const weird_block_si_len = string_helpers.stringGetSize(3000, 1900, string_helpers.STRING_UNITS_10, &out);
+    try std.testing.expectEqual(@as(usize, 7), weird_block_si_len);
+    try std.testing.expectEqualStrings("5.70 MB", cStringPrefix(&out));
+
+    const weird_block_binary_len = string_helpers.stringGetSize(3000, 1900, string_helpers.STRING_UNITS_2, &out);
+    try std.testing.expectEqual(@as(usize, 8), weird_block_binary_len);
+    try std.testing.expectEqualStrings("5.44 MiB", cStringPrefix(&out));
+
+    const huge_si_len = string_helpers.stringGetSize(std.math.maxInt(u64), 4096, string_helpers.STRING_UNITS_10, &out);
+    try std.testing.expectEqual(@as(usize, 7), huge_si_len);
+    try std.testing.expectEqualStrings("75.6 ZB", cStringPrefix(&out));
+
+    const huge_binary_len = string_helpers.stringGetSize(std.math.maxInt(u64), 4096, string_helpers.STRING_UNITS_2, &out);
+    try std.testing.expectEqual(@as(usize, 8), huge_binary_len);
+    try std.testing.expectEqualStrings("64.0 ZiB", cStringPrefix(&out));
 }
 
 test "phase 7 stringGetSize returns snprintf-style length on truncation" {
