@@ -170,7 +170,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "zero sentinel") != null);
         }
         if (std.mem.eql(u8, check.id, "bitmask-and-rel-loc")) {
-            saw_rel_loc_CHECK = true;
+            saw_rel_loc_check = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "0xdeadbeef") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "relative-location") != null);
         }
