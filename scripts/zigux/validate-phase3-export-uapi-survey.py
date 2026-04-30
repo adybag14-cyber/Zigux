@@ -14,6 +14,8 @@ MAKEFILE_REL = "zigux/Makefile"
 EXPORT_SHIM_REL = "zigux/kernel/export_shim.zig"
 UAPI_VERSION_REL = "zigux/uapi/version.zig"
 UAPI_ROOT_REL = "zigux/uapi"
+ABI_SLICE_REL = "Documentation/zigux/phase3-abi-slice.md"
+EXPORT_UAPI_TEST_REL = "zigux/tests/phase3_export_uapi.zig"
 
 REQUIRED_SURVEY_MARKERS = (
     "PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig",
@@ -31,6 +33,7 @@ REQUIRED_SURVEY_SNIPPETS = (
     "zigux/tests/phase3_export_uapi_build.zig",
     "zigux/tests/phase3_export_uapi.zig",
     "zigux/tests/fixtures/phase3_abi_manifest.json",
+    "keep canonical-size header checks separate from broader future-compatible header acceptance",
 )
 
 REQUIRED_SURVEY_PATHS = (
@@ -79,6 +82,21 @@ REQUIRED_UAPI_VERSION_SNIPPETS = (
     'test "phase3 uapi boundary header distinguishes canonical and future-compatible shapes"',
 )
 
+REQUIRED_ABI_SLICE_SNIPPETS = (
+    "export shim reality today: `zigux/kernel/export_shim.zig` stays a narrow explicit-status helper, and it now exposes a small local boundary-header surface that keeps exact canonical-size replay separate from broader future-compatible header acceptance without widening the public export namespace further",
+    "UAPI reality today: `zigux/uapi/version.zig` now exposes the ABI version plus an explicit boundary-header constructor whose exact canonical-size replay stays separate from broader future-compatible compatibility, which is still bounded but makes the public boundary less ad hoc than a version constant alone",
+)
+
+REQUIRED_EXPORT_UAPI_TEST_SNIPPETS = (
+    "try std.testing.expect(export_shim.isCanonicalHeader(header));",
+    "try std.testing.expect(uapi_version.isCanonical(header));",
+    "const future_compatible_header: abi.BoundaryHeader = .{",
+    "try std.testing.expect(!export_shim.isCanonicalHeader(future_compatible_header));",
+    "try std.testing.expect(!uapi_version.isCanonical(future_compatible_header));",
+    "try std.testing.expect(export_shim.isCompatibleHeader(future_compatible_header));",
+    "try std.testing.expect(uapi_version.isCompatible(future_compatible_header));",
+)
+
 REQUIRED_UAPI_FILES = (
     UAPI_VERSION_REL,
 )
@@ -109,6 +127,8 @@ def validate(root: Path) -> list[str]:
     makefile = _read_text(root, MAKEFILE_REL, issues)
     export_shim = _read_text(root, EXPORT_SHIM_REL, issues)
     uapi_version = _read_text(root, UAPI_VERSION_REL, issues)
+    abi_slice = _read_text(root, ABI_SLICE_REL, issues)
+    export_uapi_test = _read_text(root, EXPORT_UAPI_TEST_REL, issues)
 
     if survey:
         for marker in REQUIRED_SURVEY_MARKERS:
@@ -147,6 +167,16 @@ def validate(root: Path) -> list[str]:
             if snippet not in uapi_version:
                 issues.append(f"missing_uapi_version_snippet:{snippet}")
 
+    if abi_slice:
+        for snippet in REQUIRED_ABI_SLICE_SNIPPETS:
+            if snippet not in abi_slice:
+                issues.append(f"missing_abi_slice_snippet:{snippet}")
+
+    if export_uapi_test:
+        for snippet in REQUIRED_EXPORT_UAPI_TEST_SNIPPETS:
+            if snippet not in export_uapi_test:
+                issues.append(f"missing_export_uapi_test_snippet:{snippet}")
+
     uapi_files = _collect_relative_files(root, UAPI_ROOT_REL)
     expected_uapi_files = sorted(REQUIRED_UAPI_FILES)
     for rel in expected_uapi_files:
@@ -176,6 +206,11 @@ def run_self_test() -> int:
             else:
                 path.write_text("// ok\n", encoding="utf-8")
 
+        (root / ABI_SLICE_REL).write_text("\n".join(REQUIRED_ABI_SLICE_SNIPPETS) + "\n", encoding="utf-8")
+        (root / EXPORT_UAPI_TEST_REL).write_text(
+            "\n".join(REQUIRED_EXPORT_UAPI_TEST_SNIPPETS) + "\n",
+            encoding="utf-8",
+        )
         survey_path = root / SURVEY_REL
         survey_path.write_text(
             "\n".join((*REQUIRED_SURVEY_MARKERS, *REQUIRED_SURVEY_SNIPPETS)) + "\n",
@@ -200,6 +235,17 @@ def run_self_test() -> int:
         extra_uapi.write_text("// drift\n", encoding="utf-8")
         issues = validate(root)
         assert f"unexpected_uapi_file:{UAPI_ROOT_REL}/extra.zig" in issues
+
+        extra_uapi.unlink()
+        survey_path.write_text(
+            "\n".join((*REQUIRED_SURVEY_MARKERS, *REQUIRED_SURVEY_SNIPPETS[:-1])) + "\n",
+            encoding="utf-8",
+        )
+        issues = validate(root)
+        assert any(
+            issue == f"missing_survey_snippet:{REQUIRED_SURVEY_SNIPPETS[-1]}"
+            for issue in issues
+        )
 
     print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")
     return 0
