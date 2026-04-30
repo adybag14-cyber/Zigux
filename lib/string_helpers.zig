@@ -252,6 +252,22 @@ pub fn kstrdupQuotable(allocator: std.mem.Allocator, src: ?[]const u8) !?[:0]u8 
     return dst[0..escaped_len :0];
 }
 
+pub fn kstrdupQuotableCmdlineBuffer(allocator: std.mem.Allocator, src: ?[]const u8) !?[:0]u8 {
+    const input = src orelse return null;
+    const buf = try allocator.dupe(u8, input);
+    defer allocator.free(buf);
+
+    var end = buf.len;
+    while (end > 0 and buf[end - 1] == 0) : (end -= 1) {}
+    for (buf[0..end]) |*ch| {
+        if (ch.* == 0) {
+            ch.* = ' ';
+        }
+    }
+
+    return kstrdupQuotable(allocator, buf[0..end]);
+}
+
 pub fn kstrdupAndReplace(allocator: std.mem.Allocator, src: ?[]const u8, old: u8, new: u8) !?[:0]u8 {
     const input = src orelse return null;
     const prefix = cStringPrefix(input);
@@ -801,6 +817,22 @@ test "kstrdupQuotable allocates an escaped printable C string" {
     try std.testing.expectEqual(@as(u8, 0), quoted[quoted.len]);
 
     try std.testing.expectEqual(@as(?[:0]u8, null), try kstrdupQuotable(std.testing.allocator, null));
+}
+
+test "kstrdupQuotableCmdlineBuffer collapses interior NULs before escaping" {
+    const quoted = (try kstrdupQuotableCmdlineBuffer(std.testing.allocator, "alpha\x00beta\x00\x00")).?;
+    defer std.testing.allocator.free(quoted);
+    try std.testing.expectEqualStrings("alpha beta", quoted);
+
+    const escaped = (try kstrdupQuotableCmdlineBuffer(std.testing.allocator, "A\n\x00B\t\x00\x00")).?;
+    defer std.testing.allocator.free(escaped);
+    try std.testing.expectEqualStrings("A\\x0a B\\x09", escaped);
+
+    const empty = (try kstrdupQuotableCmdlineBuffer(std.testing.allocator, "\x00\x00")).?;
+    defer std.testing.allocator.free(empty);
+    try std.testing.expectEqualStrings("", empty);
+
+    try std.testing.expectEqual(@as(?[:0]u8, null), try kstrdupQuotableCmdlineBuffer(std.testing.allocator, null));
 }
 
 test "kstrdupAndReplace duplicates the prefix before replacing bytes in place" {
