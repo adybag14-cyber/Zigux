@@ -395,6 +395,7 @@ required_kretprobe_survey_markers = [
 ]
 
 required_kretprobe_manifest_markers = [
+    'phase9-runtime-kretprobe-sample-tests',
     '"id": "runtime-kretprobe-survey-gate"',
     '"zigux_destination": "zigux/tests/runtime_kretprobe_survey.zig"',
     '"id": "runtime-kretprobe-loader-scaffold"',
@@ -408,6 +409,9 @@ required_kretprobe_manifest_markers = [
 required_kretprobe_survey_test_markers = [
     'const surveyed_commit = "b17ed4c6675c9ffb24f11ab6d927db2af3082b1c";',
     'try std.testing.expectEqualStrings(surveyed_commit, manifest.surveyed_commit);',
+    'std.mem.indexOf(u8, check.expected, "phase9-runtime-kretprobe-sample-tests")',
+    'std.mem.indexOf(u8, entry.role, "phase9-runtime-kretprobe-sample-tests")',
+    'std.mem.indexOf(u8, gap.why_now, "phase9-runtime-kretprobe-sample-tests")',
     'std.mem.indexOf(u8, check.expected, "released_without_substrate")',
     'std.mem.indexOf(u8, check.expected, "command-name")',
     'std.mem.indexOf(u8, survey_doc, "RuntimeKretprobeSummary")',
