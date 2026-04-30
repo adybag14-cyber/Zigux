@@ -20,6 +20,7 @@ Recommended Zigux destinations:
 Shared tranche entrypoints already present on `master`:
 - `zigux/tests/phase13_build.zig`
 - `zigux/Makefile` via `make -C zigux phase13`
+- `lib/devres.c` is represented by real helper code, real tests, a manifest-backed survey packet, and explicit blocked DMA/scatterlist boundary evidence
 
 ## Anchor-to-repo map
 
@@ -47,6 +48,39 @@ Current lane state recorded in the manifest:
 Traceability summary:
 - this anchor stays roadmap-aligned and manifest-backed, and the helper packet now includes the tiny `dcache_dir_close()` release-bookkeeping boundary while still refusing to claim broader cursor traversal, inode lifecycle, or pseudo-filesystem ownership.
 
+### `lib/devres.c`
+
+Current repo evidence:
+- implementation anchor: `lib/devres.zig`
+- dedicated tests: `zigux/tests/phase13_devres.zig`
+- reviewability gate: `zigux/tests/phase13_devres_reviewability.zig`
+- manifest: `zigux/tests/phase13_devres_manifest.json`
+- manifest `surveyed_commit`: `46cfce733c7aac677f2fbed9682667866f42aa0b`
+- shared build entry: `zigux/tests/phase13_build.zig`
+- slice note: `Documentation/zigux/phase13-devres-slice.md`
+- survey note: `Documentation/zigux/phase13-devres-survey.md`
+
+Current lane state recorded in the manifest:
+- landed `phase13-devres-starter`
+- landed `phase13-devres-tests`
+- landed `phase13-devres-reviewability-gate`
+- landed `phase13-devres-survey-note`
+- landed `phase13-devres-managed-ioremap-lifetime`
+- landed `phase13-devres-managed-ioremap-np-wrapper`
+- landed `phase13-devres-managed-resource-planner`
+- landed `phase13-devres-devicetree-iomap-planner`
+- landed `phase13-devres-ioport-lifetime-planner`
+- landed `phase13-devres-arch-phys-wc-token-planner`
+- landed `phase13-devres-arch-io-memtype-planner`
+- blocked `phase13-devres-live-mmio-side-effects`
+- blocked `phase13-devres-live-dma-mappings`
+- blocked `phase13-devres-live-scatterlist-ownership`
+- blocked `phase13-devres-live-device-tree-walk`
+- blocked `phase13-devres-live-arch-memtype-state`
+
+Traceability summary:
+- this anchor stays roadmap-aligned and manifest-backed, and the helper packet now covers managed ioremap, resource-planner, ioport, direct non-posted wrapper, and arch write-combine bookkeeping helpers while still refusing to claim live MMIO side effects, live DMA-backed mappings, scatterlist ownership, live device-tree walking, or global arch-memtype mutation.
+
 ### `security/landlock/ruleset.c`
 
 Current repo evidence:
@@ -63,3 +97,30 @@ Current lane state recorded in the manifest:
 
 Traceability summary:
 - this anchor stays helper-first and reviewable: the current ruleset helper lab now includes canonical layer-shape validation around `create_rule()`-style copied or appended layer stacks beside the earlier materialization and release planners, while the still-blocked live Landlock tree-state, release ownership, and hierarchy-lifetime work remains outside this pure in-memory slice.
+
+### `security/landlock/syscalls.c`
+
+Current repo evidence:
+- implementation anchor: `security/landlock/syscalls.zig`
+- dedicated tests: `zigux/tests/phase13_landlock_syscalls.zig`
+- manifest: `zigux/tests/phase13_landlock_syscalls_manifest.json`
+- manifest `surveyed_commit`: `c8c16be55d6f9ae1adc2860fde3aabf9d64cf95d`
+- shared build entry: `zigux/tests/phase13_build.zig`
+- slice note: `Documentation/zigux/phase13-landlock-syscalls-slice.md`
+- survey note: `Documentation/zigux/phase13-landlock-syscalls-survey.md`
+
+Current lane state recorded in the manifest:
+- landed `phase13-landlock-syscalls-starter`
+- landed `phase13-landlock-syscalls-test-gate`
+- landed `phase13-landlock-syscalls-slice-note`
+- landed `phase13-landlock-syscalls-survey-note`
+- landed `phase13-landlock-copy-min-struct-followup`
+- landed `phase13-landlock-add-rule-followup`
+- landed `phase13-landlock-ruleset-fd-mode-followup`
+- landed `phase13-landlock-path-fd-followup`
+- landed `phase13-landlock-path-beneath-handoff-followup`
+- landed `phase13-landlock-net-port-import-followup`
+- landed `phase13-landlock-ruleset-fd-creation-handoff-followup`
+
+Traceability summary:
+- this anchor stays roadmap-aligned and manifest-backed, and the helper packet now covers ABI sizing, bounded user-struct copy discipline, create-ruleset validation, restrict-self logging translation, add-rule planning, ruleset-FD lookup, path-FD lookup, path-beneath handoff, net-port handoff, and ruleset-FD creation handoff planning while still refusing to claim live user-memory access, live FD ownership, anonymous inode internals, credential updates, domain merges, or syscall enforcement.
