@@ -764,13 +764,32 @@ def run_self_test() -> int:
                 raise AssertionError("base64 vector marker removal unexpectedly passed")
             if f"phase6_base64_vectors:missing:{vectors_marker}" not in base64_fail_result["missing"]:
                 raise AssertionError(f"expected base64 vector marker failure, got: {base64_fail_result['missing']}")
+
+            write_self_test_tree(root)
+            checksum_perf_path = root / "zigux/tests/phase6_checksum_perf.zig"
+            checksum_perf_text = checksum_perf_path.read_text(encoding="utf-8")
+            checksum_perf_marker = "try std.testing.expect(slowdown_pct <= case.max_slowdown_pct);"
+            if checksum_perf_marker not in checksum_perf_text:
+                raise AssertionError("expected checksum perf marker missing from positive fixture")
+            checksum_perf_path.write_text(
+                checksum_perf_text.replace(checksum_perf_marker, "", 1),
+                encoding="utf-8",
+            )
+
+            checksum_perf_fail_result = validate_phase6(root)
+            if checksum_perf_fail_result["ok"]:
+                raise AssertionError("checksum perf marker removal unexpectedly passed")
+            if f"phase6_checksum_perf:missing:{checksum_perf_marker}" not in checksum_perf_fail_result["missing"]:
+                raise AssertionError(
+                    f"expected checksum perf marker failure, got: {checksum_perf_fail_result['missing']}"
+                )
     except AssertionError as exc:
         print("PHASE6_VALIDATOR_SELF_TEST=fail")
         print(f"PHASE6_VALIDATOR_SELF_TEST_REASON={exc}")
         return 1
 
     print("PHASE6_VALIDATOR_SELF_TEST=pass")
-    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=3")
+    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=4")
     return 0
 
 
