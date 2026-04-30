@@ -90,6 +90,8 @@ required_closure_markers = [
     'PHASE1_STRING_ALIAS_UNIT_REVIEW=string trimSpaces and strim trim trailing whitespace before the first embedded NUL while preserving bytes beyond that terminator',
     'string prefix unit-test anchor: `tools/lib/string.zig:test "strstarts matches kernel prefix semantics"`',
     'PHASE1_STRING_PREFIX_UNIT_REVIEW=string strStarts and strstarts keep kernel-style prefix checks aligned for exact, empty-prefix, shorter-input, and case-sensitive comparisons',
+    'string prefix-length unit-test anchor: `tools/lib/string.zig:test "strHasPrefix returns the matched prefix length with C-string semantics"`',
+    'PHASE1_STRING_PREFIX_LENGTH_UNIT_REVIEW=string strHasPrefix and str_has_prefix return the matched C-string prefix length for exact and embedded-NUL prefixes while rejecting mismatches and longer prefixes',
     'string suffix unit-test anchor: `tools/lib/string.zig:test "str_ends_with matches kernel suffix semantics"`',
     'PHASE1_STRING_SUFFIX_UNIT_REVIEW=string strEndsWith and str_ends_with keep kernel-style suffix checks aligned for exact, empty-suffix, shorter-input, and case-sensitive comparisons',
     'PHASE1_PARITY_GATE=python3 scripts/zigux/check-phase1-parity.py',
@@ -332,6 +334,10 @@ if string_review.get('prefix_unit_test_anchor') != 'tools/lib/string.zig:test "s
     missing_markers.append('manifest:string.prefix_unit_test_anchor')
 if string_review.get('prefix_unit_test_contract') != 'Direct Zig unit coverage keeps strStarts and strstarts aligned with kernel-style prefix semantics for exact, empty-prefix, shorter-input, and case-sensitive comparisons.':
     missing_markers.append('manifest:string.prefix_unit_test_contract')
+if string_review.get('prefix_length_unit_test_anchor') != 'tools/lib/string.zig:test "strHasPrefix returns the matched prefix length with C-string semantics"':
+    missing_markers.append('manifest:string.prefix_length_unit_test_anchor')
+if string_review.get('prefix_length_unit_test_contract') != 'Direct Zig unit coverage keeps strHasPrefix and str_has_prefix aligned by returning the matched C-string prefix length for exact and embedded-NUL prefixes while rejecting mismatches and longer prefixes.':
+    missing_markers.append('manifest:string.prefix_length_unit_test_contract')
 if string_review.get('suffix_unit_test_anchor') != 'tools/lib/string.zig:test "str_ends_with matches kernel suffix semantics"':
     missing_markers.append('manifest:string.suffix_unit_test_anchor')
 if string_review.get('suffix_unit_test_contract') != 'Direct Zig unit coverage keeps strEndsWith and str_ends_with aligned with kernel-style suffix semantics for exact, empty-suffix, shorter-input, and case-sensitive comparisons.':
