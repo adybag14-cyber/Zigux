@@ -89,3 +89,9 @@ Phase 5 flow
 - `make -C zigux phase5` and `zig build test --build-file zigux/tests/phase5_build.zig --summary all` are the shared replay surface for the four roadmap-backed reference samples after the validator gate passes.
 - `zigux/tests/phase5_build.zig` is the shared build entrypoint for the bytestream FIFO, kobject, kretprobe, and trace-events sample packets, including their paired direct-sample and manifest-backed survey replays.
 - `samples/zigux/README.md` is the contributor-facing sample-root catalog for the approved Phase 5 anchors and the explicit boundary that keeps later `runtime_*` starters out of the sample-pattern lane.
+
+Phase 13 flow
+- `validate-phase13-release.py` keeps `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/Makefile`, and `zigux/tests/phase13_build.zig` aligned as one shared release-discipline packet instead of leaving the Phase 13 review path split across isolated docs or build wiring.
+- `make -C zigux phase13-validate` runs that dedicated release validator before the broader shared replay.
+- `make -C zigux phase13` routes through the validator before the shared replay, so the local convenience path matches the release-facing review contract.
+- `Documentation/zigux/phase13-devres-survey.md`, `zigux/tests/phase13_devres_manifest.json`, and `zigux/tests/phase13_devres_reviewability.zig` keep the helper-first `devres` packet explicit about live DMA-backed mappings and scatterlist ownership staying blocked rather than implied.
