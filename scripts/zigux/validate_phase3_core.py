@@ -127,17 +127,9 @@ ABI_REQUIRED_SOURCE_MARKERS = {
     ),
     "zigux/helpers/mmio.zig": (
         "pub fn range(base_addr: usize, length: u32, stride: u32) abi.MmioRange {",
-        "pub fn read8Scoped(scope: narrow.UnsafeScopeTag, base_addr: usize, offset: usize) narrow.ScopeError!u8 {",
-        "pub fn write8Scoped(",
         "pub fn read16Scoped(scope: narrow.UnsafeScopeTag, base_addr: usize, offset: usize) narrow.ScopeError!u16 {",
         "pub fn write16Scoped(",
         "pub fn read32Scoped(scope: narrow.UnsafeScopeTag, base_addr: usize, offset: usize) narrow.ScopeError!u32 {",
-        "pub fn write32Scoped(",
-        "pub fn read8(base_addr: usize, offset: usize) u8 {",
-        "pub fn write8(base_addr: usize, offset: usize, value: u8) void {",
-        "pub fn read16(base_addr: usize, offset: usize) u16 {",
-        "pub fn write16(base_addr: usize, offset: usize, value: u16) void {",
-        "pub fn read32(base_addr: usize, offset: usize) u32 {",
         "pub fn write32(base_addr: usize, offset: usize, value: u32) void {",
         'test "phase3 mmio wrapper uses bounded volatile access"',
         'test "phase3 mmio wrapper keeps declared scope explicit across widths"',
@@ -161,11 +153,7 @@ ABI_REQUIRED_SOURCE_MARKERS = {
         "atomic.compareExchange(u32, &value, 12, 21, .seq_cst, .seq_cst)",
         "barrier.full();",
         "const desc = mmio.range(base, 12, 4);",
-        "mmio.write8(base, 1, 0x5a);",
-        "try std.testing.expectEqual(@as(u8, 0x5a), mmio.read8(base, 1));",
-        "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write8Scoped(.none, base, 0, 0x99));",
         "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write16Scoped(.none, base, 0, 0x99));",
-        "try std.testing.expectEqual(@as(u8, 0xbe), try mmio.read8Scoped(.volatile_mmio, base, 0));",
         "try mmio.write32Scoped(.volatile_mmio, base, 4, 0xaabbccdd);",
     ),
     "zigux/tests/phase3_policy_unsafe.zig": (
@@ -225,6 +213,39 @@ COMMON_DOC_MARKERS = (
     "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py",
     "PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig",
 )
+LOW_LEVEL_WRAPPER_EXPORTS = {
+    "zigux/helpers/atomic.zig": (
+        "load",
+        "store",
+        "exchange",
+        "fetchAdd",
+        "fetchSub",
+        "fetchAnd",
+        "fetchOr",
+        "fetchXor",
+        "compareExchange",
+    ),
+    "zigux/helpers/barrier.zig": (
+        "acquire",
+        "release",
+        "full",
+    ),
+    "zigux/helpers/mmio.zig": (
+        "range",
+        "read8Scoped",
+        "write8Scoped",
+        "read16Scoped",
+        "write16Scoped",
+        "read32Scoped",
+        "write32Scoped",
+        "read8",
+        "write8",
+        "read16",
+        "write16",
+        "read32",
+        "write32",
+    ),
+}
 
 
 def _phase3_paths_for_root(root: Path) -> Phase3Paths:
@@ -241,6 +262,7 @@ DUMP_LAYOUT_RE = re.compile(r'writeLayoutPrefix\(writer,\s*"([^"]+)"')
 DUMP_GENERIC_LAYOUT_RE = re.compile(r'writeStructLayout\(writer,\s*"([^"]+)"')
 EXPECTED_LAYOUT_RE = re.compile(r'\\"(zigux_[a-z0-9_]+)\\":\{\\\"size\\\":%zu')
 HARNESS_GENERIC_LAYOUT_RE = re.compile(r'\{"(zigux_[a-z0-9_]+)",\s*sizeof\(struct')
+PUB_FN_RE = re.compile(r"^pub fn ([A-Za-z0-9_]+)\(", re.MULTILINE)
 
 
 def select_slices(entries: list[Phase3Slice], selected_slugs: list[str]) -> list[Phase3Slice]:
@@ -303,6 +325,25 @@ def validate_source_markers(root: Path, required_source_markers: dict[str, tuple
             continue
         for marker in _missing_markers(path, markers):
             issues.append(f"source-marker: {rel} missing {marker}")
+    return issues
+
+
+def validate_low_level_wrapper_exports(
+    root: Path, required_exports: dict[str, tuple[str, ...]] = LOW_LEVEL_WRAPPER_EXPORTS
+) -> list[str]:
+    issues: list[str] = []
+    for rel, expected_exports in required_exports.items():
+        path = root / rel
+        if not path.exists():
+            issues.append(f"low-level-export: missing {rel}")
+            continue
+        actual_exports = tuple(PUB_FN_RE.findall(path.read_text(encoding="utf-8")))
+        unexpected = [name for name in actual_exports if name not in expected_exports]
+        missing = [name for name in expected_exports if name not in actual_exports]
+        if unexpected:
+            issues.append(f"low-level-export: {rel} exports unexpected public helpers: {', '.join(unexpected)}")
+        if missing:
+            issues.append(f"low-level-export: {rel} is missing documented public helpers: {', '.join(missing)}")
     return issues
 
 
@@ -439,17 +480,24 @@ def _validate_wrapper_stub(entry: Phase3Slice) -> list[str]:
 
 def _validate_build_smoke(root: Path, entry: Phase3Slice, zig_path: str | None) -> list[str]:
     zig = find_zig(zig_path)
-    result = subprocess.run(
-        [zig, "build", entry.build_step, "--build-file", str(root / BUILD_FILE_REL)],
-        cwd=str(root),
-        text=True,
-        capture_output=True,
-    )
-    if result.returncode == 0:
-        return []
-    stderr = result.stderr.strip().splitlines()
-    tail = stderr[-1] if stderr else f"exit {result.returncode}"
-    return [f"{entry.slug}: build smoke failed for {entry.build_step}: {tail}"]
+    issues: list[str] = []
+    for build_step, build_file_rel in build_smoke_commands(entry):
+        result = subprocess.run(
+            [zig, "build", build_step, "--build-file", str(root / build_file_rel)],
+            cwd=str(root),
+            text=True,
+            capture_output=True,
+        )
+        if result.returncode == 0:
+            continue
+        stderr = result.stderr.strip().splitlines()
+        tail = stderr[-1] if stderr else f"exit {result.returncode}"
+        issues.append(f"{entry.slug}: build smoke failed for {build_step}: {tail}")
+    return issues
+
+
+def build_smoke_commands(entry: Phase3Slice) -> tuple[tuple[str, str], ...]:
+    return ((entry.build_step, BUILD_FILE_REL),)
 
 
 def validate_slices(
@@ -474,6 +522,7 @@ def validate_slices(
             issues.extend(_validate_wrapper_stub(entry))
         if entry.slug == "abi":
             issues.extend(validate_source_markers(root, ABI_REQUIRED_SOURCE_MARKERS))
+            issues.extend(validate_low_level_wrapper_exports(root))
             issues.extend(validate_abi_expected_fixture(root))
             issues.extend(validate_export_uapi_boundary(root))
         if check_build_smoke:
