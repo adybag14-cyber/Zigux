@@ -49,7 +49,7 @@ The current bounded Phase 10 evidence set is:
 - `PHASE10_TEST_COUNT=9`
 - `PHASE10_HAS_VIRTIO_MMIO_ZIG=yes`
 
-The shared closure manifest now carries explicit landed-helper evidence for both the core config summaries and the input preflight pair, so the scoreboard does not reduce the current `virtio_input` packet to only its remaining lifecycle blocker.
+The shared closure manifest now carries explicit landed-helper evidence for the core config summaries, the ring queue-discipline ladder, and the input preflight pair, so the scoreboard does not reduce the current Phase 10 packet to only its remaining transport blockers.
 
 ## Roadmap Parity Scoreboard
 
@@ -162,7 +162,7 @@ This means the current evidence bundle is reviewable, but Phase 10 is not global
 - the blocked transport claim set stays explicit: `queue_setup_reset_paths`, `irq_parity`, `dma_paths`, `input_registration_lifecycle`, and `probe_remove_lifecycle`
 - the current lane manifests may only point at `drivers/virtio/*.zig` and `zigux/helpers/` as roadmap destinations while the freeze-boundary status remains aligned
 - `Documentation/zigux/freeze-map.md` and `Documentation/zigux/review-checklist.md` remain the shared guardrails for transport-facing claims in this tranche
-- the shared closure manifest now records the landed input preflight pair and MMIO helper ladder directly alongside the core helper evidence, so the current manifest-backed transport boundary stays explicit because the core survey records the landed `phase10-config-generation-summary-helper` and `phase10-config-delivery-disposition-helper`, the input manifest-backed packet records the landed `phase10-virtio-input-registration-preflight-helper` and `phase10-virtio-input-queue-callback-preflight-helper`, the MMIO manifest-backed packet records the landed `phase10-mmio-register-window-helper`, `phase10-mmio-queue-register-helper`, `phase10-mmio-queue-notify-helper`, `phase10-mmio-queue-address-helper`, `phase10-mmio-config-window-helper`, and `phase10-mmio-config-write-helper`, and only `phase10-virtio-input-registration-lifecycle` plus `phase10-mmio-lifecycle-and-irq-paths` remain constrained
+- the shared closure manifest now records the landed ring queue-discipline ladder, input preflight pair, and MMIO helper ladder directly alongside the core helper evidence, so the current manifest-backed transport boundary stays explicit because the core survey records the landed `phase10-config-generation-summary-helper` and `phase10-config-delivery-disposition-helper`, the ring manifest-backed packet records the landed `phase10-virtqueue-shape-helper`, `phase10-used-buffer-polling-helper`, `phase10-callback-disable-helper`, `phase10-callback-enable-helper`, `phase10-callback-enable-prepare-helper`, `phase10-callback-delay-helper`, `phase10-notify-prepare-helper`, `phase10-queue-reset-guard-helper`, and `phase10-queue-reset-helper`, the input manifest-backed packet records the landed `phase10-virtio-input-registration-preflight-helper` and `phase10-virtio-input-queue-callback-preflight-helper`, the MMIO manifest-backed packet records the landed `phase10-mmio-register-window-helper`, `phase10-mmio-queue-register-helper`, `phase10-mmio-queue-notify-helper`, `phase10-mmio-queue-address-helper`, `phase10-mmio-config-window-helper`, and `phase10-mmio-config-write-helper`, and only `phase10-virtio-input-registration-lifecycle` plus `phase10-mmio-lifecycle-and-irq-paths` remain constrained
 
 ## Boundary
 
