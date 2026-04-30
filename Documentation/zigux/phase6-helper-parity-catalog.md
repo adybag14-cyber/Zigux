@@ -77,7 +77,7 @@ The current Phase 6 perf packet is intentionally mixed. Three helpers now carry 
 
 ### bsearch
 
-- `zigux/tests/phase6_bsearch_perf.zig` replays two representative sorted slices: `256` entries at `2_000` reps and `4096` entries at `500` reps.
+- `zigux/tests/phase6_bsearch_perf.zig` replays three representative sorted slices: `256` entries at `2_000` reps, `4096` entries at `500` reps, and `65536` entries at `64` reps.
 - the machine-checked threshold is algorithmic rather than time-based: every replayed lookup must stay within `std.math.log2_int_ceil(len) + 1` comparator calls, and the run still requires `avg_compare_calls <= std.math.log2_int_ceil(len) + 1`.
 - the query corpus is deterministic by construction: each replay starts with fixed edge, midpoint, and miss probes before the remaining seeded interior lookups exercise the average-path budget.
 - the harness still prints `ns_per_lookup`, but no stable nanosecond ceiling is claimed today.
