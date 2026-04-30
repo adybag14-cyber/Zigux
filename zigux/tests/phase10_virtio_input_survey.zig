@@ -48,11 +48,21 @@ test "phase10 virtio input survey manifest records the live starter and remainin
         .limited(32 * 1024),
     );
     defer std.testing.allocator.free(manifest_json);
+    const closure_manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase10_closure_manifest.json",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(closure_manifest_json);
 
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
+    const closure_parsed = try std.json.parseFromSlice(std.json.Value, std.testing.allocator, closure_manifest_json, .{});
+    defer closure_parsed.deinit();
 
     const manifest = parsed.value;
+    const closure_manifest = closure_parsed.value;
     try std.testing.expectEqualStrings("P10-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 10", manifest.phase);
     try std.testing.expectEqualStrings("drivers/virtio/virtio_input.c", manifest.anchor);
@@ -69,6 +79,27 @@ test "phase10 virtio input survey manifest records the live starter and remainin
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_input_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_input_module_note_present);
     try std.testing.expect(manifest.gaps.len >= 14);
+    try std.testing.expect(closure_manifest == .object);
+
+    const landed_input_helper_evidence = closure_manifest.object.get("landed_input_helper_evidence") orelse return error.TestUnexpectedResult;
+    try std.testing.expect(landed_input_helper_evidence == .object);
+    const input_helper_evidence = landed_input_helper_evidence.object.get("zigux/tests/phase10_virtio_input_manifest.json") orelse return error.TestUnexpectedResult;
+    try std.testing.expect(input_helper_evidence == .array);
+    const expected_landed_input_helpers = [_][]const u8{
+        "phase10-virtio-input-registration-preflight-helper",
+        "phase10-virtio-input-queue-callback-preflight-helper",
+    };
+    try std.testing.expectEqual(expected_landed_input_helpers.len, input_helper_evidence.array.items.len);
+    for (expected_landed_input_helpers, 0..) |helper_id, index| {
+        try std.testing.expect(input_helper_evidence.array.items[index] == .string);
+        try std.testing.expectEqualStrings(helper_id, input_helper_evidence.array.items[index].string);
+    }
+
+    const blocked_transport_gaps = closure_manifest.object.get("blocked_transport_gaps") orelse return error.TestUnexpectedResult;
+    try std.testing.expect(blocked_transport_gaps == .object);
+    const input_blocked_gap = blocked_transport_gaps.object.get("zigux/tests/phase10_virtio_input_manifest.json") orelse return error.TestUnexpectedResult;
+    try std.testing.expect(input_blocked_gap == .string);
+    try std.testing.expectEqualStrings("phase10-virtio-input-registration-lifecycle", input_blocked_gap.string);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
