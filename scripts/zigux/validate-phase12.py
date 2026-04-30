@@ -199,7 +199,7 @@ PHASE12_LIBBPF_SNAPSHOT_FIXTURE = "zigux/tests/fixtures/phase12_libbpf_snapshot.
 
 MANIFEST_SPECS = {
     "phase12_virtio_net_manifest.json": {
-        "lane_key": "P12-L01",
+        "lane_key": "P12-L04",
         "anchor": "drivers/net/virtio_net.c",
         "gap_count": 14,
         "roadmap_destinations": ["drivers/net/virtio_net.zig", "zigux/tests/"],
