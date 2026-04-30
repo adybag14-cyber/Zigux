@@ -83,6 +83,16 @@ test "phase 7 ASCII case helpers stop at NUL and respect destination bounds" {
 
 test "phase 7 stringGetSize covers SI, binary, and formatting flag cases" {
     var out = [_]u8{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+    const format_cases = [_]struct {
+        flags: u32,
+        expected_si: []const u8,
+        expected_binary: []const u8,
+    }{
+        .{ .flags = 0, .expected_si = "8.39 MB", .expected_binary = "8.00 MiB" },
+        .{ .flags = string_helpers.STRING_UNITS_NO_SPACE, .expected_si = "8.39MB", .expected_binary = "8.00MiB" },
+        .{ .flags = string_helpers.STRING_UNITS_NO_SPACE | string_helpers.STRING_UNITS_NO_BYTES, .expected_si = "8.39M", .expected_binary = "8.00Mi" },
+        .{ .flags = string_helpers.STRING_UNITS_NO_BYTES, .expected_si = "8.39 M", .expected_binary = "8.00 Mi" },
+    };
 
     const zero_len = string_helpers.stringGetSize(0, 1, string_helpers.STRING_UNITS_10, &out);
     try std.testing.expectEqual(@as(usize, 3), zero_len);
@@ -132,6 +142,18 @@ test "phase 7 stringGetSize covers SI, binary, and formatting flag cases" {
     const huge_binary_len = string_helpers.stringGetSize(std.math.maxInt(u64), 4096, string_helpers.STRING_UNITS_2, &out);
     try std.testing.expectEqual(@as(usize, 8), huge_binary_len);
     try std.testing.expectEqualStrings("64.0 ZiB", cStringPrefix(&out));
+
+    for (format_cases) |case| {
+        @memset(&out, 0);
+        const si_case_len = string_helpers.stringGetSize(16384, 512, string_helpers.STRING_UNITS_10 | case.flags, &out);
+        try std.testing.expectEqual(case.expected_si.len, si_case_len);
+        try std.testing.expectEqualStrings(case.expected_si, cStringPrefix(&out));
+
+        @memset(&out, 0);
+        const binary_case_len = string_helpers.stringGetSize(16384, 512, string_helpers.STRING_UNITS_2 | case.flags, &out);
+        try std.testing.expectEqual(case.expected_binary.len, binary_case_len);
+        try std.testing.expectEqualStrings(case.expected_binary, cStringPrefix(&out));
+    }
 }
 
 test "phase 7 stringGetSize returns snprintf-style length on truncation" {
