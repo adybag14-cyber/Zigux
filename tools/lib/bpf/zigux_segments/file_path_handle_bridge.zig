@@ -110,6 +110,16 @@ fn parseFlagField(line: []const u8, destination: *u32) FilePathHandleBridgeError
     return true;
 }
 
+fn parseExtendedField(
+    line: []const u8,
+    key: []const u8,
+    destination: *u64,
+) FilePathHandleBridgeError!bool {
+    const value_text = fieldValue(line, key) orelse return false;
+    destination.* = std.fmt.parseUnsigned(u64, value_text, 0) catch return error.InvalidValue;
+    return true;
+}
+
 pub fn buildFdinfoPath(buffer: []u8, pid: u32, fd: i32) FilePathHandleBridgeError![]u8 {
     if (pid == 0) {
         return error.InvalidPid;
@@ -206,6 +216,7 @@ pub fn parseMapInfoFromFdinfo(input: []const u8) FilePathHandleBridgeError!FdInf
         if (try parseDecimalField(line, "value_size", &info.value_size)) continue;
         if (try parseDecimalField(line, "max_entries", &info.max_entries)) continue;
         if (try parseFlagField(line, &info.map_flags)) continue;
+        if (try parseExtendedField(line, "map_extra", &info.map_extra)) continue;
     }
 
     return info;
@@ -340,7 +351,8 @@ test "parseMapInfoFromFdinfo keeps the bounded key-value parsing behavior" {
             "key_size:\t8\n" ++
             "value_size:\t16\n" ++
             "max_entries:\t64\n" ++
-            "map_flags:\t0x400\n",
+            "map_flags:\t0x400\n" ++
+            "map_extra:\t0x80\n",
     );
 
     try std.testing.expectEqual(@as(u32, 2), info.map_type);
@@ -348,6 +360,7 @@ test "parseMapInfoFromFdinfo keeps the bounded key-value parsing behavior" {
     try std.testing.expectEqual(@as(u32, 16), info.value_size);
     try std.testing.expectEqual(@as(u32, 64), info.max_entries);
     try std.testing.expectEqual(@as(u32, 0x400), info.map_flags);
+    try std.testing.expectEqual(@as(u64, 0x80), info.map_extra);
 }
 
 test "parseMapInfoFromFdinfo tolerates reordered fields and surrounding whitespace" {
@@ -371,7 +384,9 @@ test "parseMapInfoFromFdinfo mirrors libbpf's zero-init and last-field-wins fall
         "map_type:\t1\n" ++
             "key_size:\t4\n" ++
             "map_type:\t2\n" ++
-            "value_size:\t8\n",
+            "value_size:\t8\n" ++
+            "map_extra:\t7\n" ++
+            "map_extra:\t9\n",
     );
 
     try std.testing.expectEqual(@as(u32, 2), info.map_type);
@@ -379,6 +394,7 @@ test "parseMapInfoFromFdinfo mirrors libbpf's zero-init and last-field-wins fall
     try std.testing.expectEqual(@as(u32, 8), info.value_size);
     try std.testing.expectEqual(@as(u32, 0), info.max_entries);
     try std.testing.expectEqual(@as(u32, 0), info.map_flags);
+    try std.testing.expectEqual(@as(u64, 9), info.map_extra);
 }
 
 test "parseMapInfoFromFdinfo keeps malformed values explicit" {
@@ -389,6 +405,34 @@ test "parseMapInfoFromFdinfo keeps malformed values explicit" {
             "max_entries:\t16\n" ++
             "map_flags:\t32\n",
     ));
+    try std.testing.expectError(error.InvalidValue, parseMapInfoFromFdinfo(
+        "map_type:\t1\n" ++
+            "key_size:\t4\n" ++
+            "value_size:\t8\n" ++
+            "max_entries:\t16\n" ++
+            "map_extra:\t-1\n",
+    ));
+}
+
+test "parseMapInfoFromFdinfo keeps map_extra available for reuse-compatibility checks" {
+    const expected = FdInfoMapInfo{
+        .map_type = 1,
+        .key_size = 4,
+        .value_size = 8,
+        .max_entries = 32,
+        .map_flags = 0,
+        .map_extra = 0x120,
+    };
+    const actual = try parseMapInfoFromFdinfo(
+        "map_type:\t1\n" ++
+            "key_size:\t4\n" ++
+            "value_size:\t8\n" ++
+            "max_entries:\t32\n" ++
+            "map_flags:\t0\n" ++
+            "map_extra:\t0x120\n",
+    );
+
+    try std.testing.expect(isMapReuseCompatible(expected, actual));
 }
 
 test "normalizeReuseCompatibilityMapFlags mirrors libbpf's DEVMAP readonly-prog exception" {
