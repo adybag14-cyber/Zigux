@@ -300,7 +300,7 @@ pub const VirtioNetProbeLab = struct {
             has_host_udp_tunnel_gso,
         );
         const guest_gso = has_guest_tso4 or has_guest_tso6 or has_guest_ecn or has_guest_ufo or
-            (has_guest_uso4 and has_guest_uso6);
+            has_guest_uso4 or has_guest_uso6;
         const receive_buffer_mode = summarizeReceiveBufferMode(
             mergeable_rx_buffers,
             request.mtu,
