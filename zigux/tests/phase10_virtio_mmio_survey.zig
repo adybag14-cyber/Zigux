@@ -69,10 +69,21 @@ test "phase10 virtio mmio survey manifest records the landed config-write rung a
     );
     defer std.testing.allocator.free(slice_note);
 
+    const closure_manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase10_closure_manifest.json",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(closure_manifest_json);
+
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
+    const closure_parsed = try std.json.parseFromSlice(std.json.Value, std.testing.allocator, closure_manifest_json, .{});
+    defer closure_parsed.deinit();
 
     const manifest = parsed.value;
+    const closure_manifest = closure_parsed.value;
     try std.testing.expectEqualStrings("P10-L18", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 10", manifest.phase);
     try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", manifest.anchor);
@@ -100,6 +111,39 @@ test "phase10 virtio mmio survey manifest records the landed config-write rung a
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "in-memory config-write planning") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "phase10-mmio-lifecycle-and-irq-paths") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "add one small config-window write-planning helper next") == null);
+    try std.testing.expect(closure_manifest == .object);
+
+    const landed_mmio_helper_evidence = closure_manifest.object.get("landed_mmio_helper_evidence") orelse return error.TestUnexpectedResult;
+    try std.testing.expect(landed_mmio_helper_evidence == .object);
+    const mmio_helper_evidence = landed_mmio_helper_evidence.object.get("zigux/tests/phase10_virtio_mmio_manifest.json") orelse return error.TestUnexpectedResult;
+    try std.testing.expect(mmio_helper_evidence == .array);
+    const expected_landed_mmio_helpers = [_][]const u8{
+        "phase10-mmio-register-window-helper",
+        "phase10-mmio-queue-register-helper",
+        "phase10-mmio-queue-notify-helper",
+        "phase10-mmio-queue-address-helper",
+        "phase10-mmio-config-window-helper",
+        "phase10-mmio-config-write-helper",
+    };
+    try std.testing.expectEqual(expected_landed_mmio_helpers.len, mmio_helper_evidence.array.items.len);
+    for (expected_landed_mmio_helpers, 0..) |helper_id, index| {
+        try std.testing.expect(mmio_helper_evidence.array.items[index] == .string);
+        try std.testing.expectEqualStrings(helper_id, mmio_helper_evidence.array.items[index].string);
+    }
+
+    const blocked_transport_gaps = closure_manifest.object.get("blocked_transport_gaps") orelse return error.TestUnexpectedResult;
+    try std.testing.expect(blocked_transport_gaps == .object);
+    const mmio_blocked_gap = blocked_transport_gaps.object.get("zigux/tests/phase10_virtio_mmio_manifest.json") orelse return error.TestUnexpectedResult;
+    try std.testing.expect(mmio_blocked_gap == .string);
+    try std.testing.expectEqualStrings("phase10-mmio-lifecycle-and-irq-paths", mmio_blocked_gap.string);
+
+    const roadmap_parity_scoreboard = closure_manifest.object.get("roadmap_parity_scoreboard") orelse return error.TestUnexpectedResult;
+    try std.testing.expect(roadmap_parity_scoreboard == .object);
+    const mmio_wrappers_scoreboard = roadmap_parity_scoreboard.object.get("mmio_wrappers") orelse return error.TestUnexpectedResult;
+    try std.testing.expect(mmio_wrappers_scoreboard == .object);
+    const mmio_wrappers_status = mmio_wrappers_scoreboard.object.get("status") orelse return error.TestUnexpectedResult;
+    try std.testing.expect(mmio_wrappers_status == .string);
+    try std.testing.expectEqualStrings("starter_landed", mmio_wrappers_status.string);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
