@@ -450,6 +450,29 @@ test "genksyms bridge parses repeated short flags and arguments" {
     }
 }
 
+test "genksyms bridge parses clustered short flags before inline reference argument" {
+    const args = &.{ "-dwrfoo.symref", "-Tout.symtypes", "-p" };
+    const outcome = try parseArgs(std.testing.allocator, args);
+    switch (outcome) {
+        .command => |command| switch (command) {
+            .request => |request| {
+                defer std.testing.allocator.free(request.reference_files);
+                defer std.testing.allocator.free(request.rendered_args);
+                try std.testing.expectEqual(@as(usize, 1), request.debug_level);
+                try std.testing.expect(request.warnings);
+                try std.testing.expect(request.preserve);
+                try std.testing.expectEqualStrings("out.symtypes", request.dump_types_file.?);
+                try std.testing.expectEqual(@as(usize, 1), request.reference_files.len);
+                try std.testing.expectEqualStrings("foo.symref", request.reference_files[0]);
+                try std.testing.expectEqualSlices([]const u8, args, request.raw_args);
+                try std.testing.expectEqualSlices([]const u8, args, request.rendered_args);
+            },
+            else => return error.UnexpectedCommand,
+        },
+        .failure => return error.UnexpectedFailure,
+    }
+}
+
 test "genksyms bridge parses long options and quiet override" {
     const outcome = try parseArgs(std.testing.allocator, &.{ "--debug", "--warnings", "--quiet", "--reference=foo.symref", "--dump-types", "types.symtypes", "--preserve" });
     switch (outcome) {
@@ -545,17 +568,6 @@ test "genksyms bridge reports missing short option argument in getopt style" {
     switch (outcome) {
         .failure => |failure| switch (failure) {
             .missing_option_argument => |option| try std.testing.expectEqualStrings("r", option),
-            else => return error.UnexpectedFailure,
-        },
-        .command => return error.UnexpectedCommand,
-    }
-}
-
-test "genksyms bridge reports missing short dump-types argument in getopt style" {
-    const outcome = try parseArgs(std.testing.allocator, &.{"-T"});
-    switch (outcome) {
-        .failure => |failure| switch (failure) {
-            .missing_option_argument => |option| try std.testing.expectEqualStrings("T", option),
             else => return error.UnexpectedFailure,
         },
         .command => return error.UnexpectedCommand,
