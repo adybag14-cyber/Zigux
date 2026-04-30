@@ -391,6 +391,48 @@ for marker in [
     if marker not in hvc_matrix_doc:
         missing.append(f"phase11_hvc_console_docs:matrix:{marker}")
 
+gpio_manifest = load_manifest("phase11_gpio_wdt_manifest.json")
+gpio_survey_doc = text(GPIO_WDT_DOC_PATHS["survey"])
+gpio_slice_doc = text(GPIO_WDT_DOC_PATHS["slice"])
+gpio_matrix_doc = text(GPIO_WDT_DOC_PATHS["matrix"])
+gpio_test_text = text("zigux/tests/phase11_gpio_wdt.zig")
+for marker in [
+    "This survey note now tracks the landed Phase 11 `gpio_wdt` starter anchored to `drivers/watchdog/gpio_wdt.c`.",
+    "a tiny nowayout-aware teardown-facing stop helper that separates watchdog-core policy blocking from hardware `always-running` behavior",
+    "an explicit `summarizeTeardown()` helper for eternal-ping disable ordering plus toggle-versus-level teardown fallout",
+    "a tiny `registerDeviceCallSummary()` helper, so the lane now exposes the exact watchdog metadata, timeout, parent, `nowayout`, and stop-on-reboot state that would reach the first bounded `devm_watchdog_register_device()` request without claiming a live call",
+    "The next honest bounded step inside the same lane is to leave this starter parked unless fresh repo inspection finds another comparably small teardown or failure-mode drift inside `gpio_wdt`.",
+]:
+    if marker not in gpio_survey_doc:
+        missing.append(f"phase11_gpio_wdt_docs:survey:{marker}")
+for marker in [
+    "adds an explicit `summarizeTeardown()` helper so eternal-ping disable ordering, toggle-versus-level disable fallout, and `always-running` versus `nowayout` stop failure modes stay reviewable before any unregister path exists",
+    "distinguishes watchdog-core `nowayout` stop blocking from the driver's own `always-running` hardware behavior so teardown-facing stop review does not blur policy gating with hardware gating",
+    "adds one tiny `registerDeviceCallSummary()` helper so the starter records the exact watchdog metadata, timeout, parent, `nowayout`, and stop-on-reboot state that would reach the first bounded `devm_watchdog_register_device()` request without claiming the live call itself",
+    "The next honest bounded step inside the same Phase 11 lane is to leave the starter parked unless fresh repo inspection finds another comparably small teardown or failure-mode drift inside `gpio_wdt`.",
+]:
+    if marker not in gpio_slice_doc:
+        missing.append(f"phase11_gpio_wdt_docs:slice:{marker}")
+for marker in [
+    "PHASE11_GPIO_WDT_STATUS=teardown_and_register_device_surface_landed",
+    "| teardown-facing stop and failure-mode evidence | `requestStop()` keeps nowayout blocking, non-`always_running` disable, and `always_running` keepalive outcomes reviewable as teardown-facing metadata immediately adjacent to the current register-device planning boundary |",
+    "| explicit disable-order teardown summary | `summarizeTeardown()` now keeps `gpio_wdt_disable()`-style eternal-ping ordering, toggle-mode return-to-input behavior, level-mode asserted-output behavior, and `always-running` versus `nowayout` stop fallout reviewable without claiming a live unregister path |",
+    "| register-device call surface | `registerDeviceCallSummary()` now records the exact watchdog metadata, timeout bounds, driver-data ownership, parent linkage, `nowayout`, stop-on-reboot, startup state, and explicit `register_device_requested` marker that would reach the first bounded `devm_watchdog_register_device()` request without claiming the live call or descriptor path |",
+    "current shared replay wiring on `master` includes both `phase11-gpio-wdt-tests` and `phase11-gpio-wdt-survey-tests`",
+]:
+    if marker not in gpio_matrix_doc:
+        missing.append(f"phase11_gpio_wdt_docs:matrix:{marker}")
+for marker in [
+    'test "phase11 gpio_wdt stop requests distinguish nowayout gating from always-running hardware" {',
+    "const blocked = blocked_watchdog.requestStop(true);",
+    'test "phase11 gpio_wdt teardown summary keeps disable ordering and failure modes reviewable" {',
+    "const toggle_teardown = try toggle_watchdog.summarizeTeardown(false);",
+    'test "phase11 gpio_wdt register-device call summary keeps the first bounded request explicit" {',
+    "const prestarted_call = prestarted_watchdog.registerDeviceCallSummary(true);",
+]:
+    if marker not in gpio_test_text:
+        missing.append(f"phase11_gpio_wdt_tests:{marker}")
+
 dw_manifest = load_manifest("phase11_dw_wdt_manifest.json")
 dw_commit = str(dw_manifest.get("surveyed_commit", ""))
 dw_survey_doc = text(DW_WDT_DOC_PATHS["survey"])
