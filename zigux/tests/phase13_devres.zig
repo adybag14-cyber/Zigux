@@ -10,6 +10,7 @@ test "phase13 devres descriptor stays anchored to lib/devres.c" {
     try std.testing.expect(descriptor.provides_ioremap_plain_wrapper_planning);
     try std.testing.expect(descriptor.provides_ioremap_uc_wrapper_planning);
     try std.testing.expect(descriptor.provides_ioremap_wc_wrapper_planning);
+    try std.testing.expect(descriptor.provides_ioremap_np_wrapper_planning);
     try std.testing.expect(descriptor.provides_release_pointer_match);
     try std.testing.expect(descriptor.provides_ioport_lifetime_planning);
     try std.testing.expect(descriptor.provides_ioremap_resource_planning);
@@ -145,6 +146,35 @@ test "phase13 devres write-combined ioremap wrapper frees the release record on 
     });
 
     try std.testing.expectEqual(devres.ManagedIoremapKind.write_combined, result.kind);
+    try std.testing.expectEqual(@as(?usize, null), result.mapped_address);
+    try std.testing.expect(!result.added_to_devres);
+    try std.testing.expect(!result.release_record_retained);
+    try std.testing.expect(result.release_record_freed);
+    try std.testing.expect(!result.should_unmap_on_detach);
+}
+
+test "phase13 devres non-posted ioremap wrapper forces the non-posted lifetime path" {
+    const result = try devres.DevresHelperLab.planManagedIoremapAcquireNp(.{
+        .release_record_allocated = true,
+        .mapped_address = 0x2800,
+    });
+
+    try std.testing.expectEqualStrings("lib/devres.c", result.anchor);
+    try std.testing.expectEqual(devres.ManagedIoremapKind.non_posted, result.kind);
+    try std.testing.expectEqual(@as(?usize, 0x2800), result.mapped_address);
+    try std.testing.expect(result.added_to_devres);
+    try std.testing.expect(result.release_record_retained);
+    try std.testing.expect(!result.release_record_freed);
+    try std.testing.expect(result.should_unmap_on_detach);
+}
+
+test "phase13 devres non-posted ioremap wrapper frees the release record on map failure" {
+    const result = try devres.DevresHelperLab.planManagedIoremapAcquireNp(.{
+        .release_record_allocated = true,
+        .mapped_address = null,
+    });
+
+    try std.testing.expectEqual(devres.ManagedIoremapKind.non_posted, result.kind);
     try std.testing.expectEqual(@as(?usize, null), result.mapped_address);
     try std.testing.expect(!result.added_to_devres);
     try std.testing.expect(!result.release_record_retained);
