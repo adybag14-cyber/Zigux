@@ -79,6 +79,10 @@ phase8_bpf_type_names_test = (ROOT / "zigux" / "tests" / "phase8_bpf_type_names.
 phase8_exec_cmd_test = (ROOT / "zigux" / "tests" / "phase8_exec_cmd.zig").read_text(encoding="utf-8")
 phase8_help_test = (ROOT / "zigux" / "tests" / "phase8_help.zig").read_text(encoding="utf-8")
 phase8_kallsyms_test = (ROOT / "zigux" / "tests" / "phase8_kallsyms.zig").read_text(encoding="utf-8")
+phase8_logging_test = (ROOT / "zigux" / "tests" / "phase8_logging.zig").read_text(encoding="utf-8")
+phase8_pin_path_test = (ROOT / "zigux" / "tests" / "phase8_pin_path.zig").read_text(encoding="utf-8")
+logging_helper = (ROOT / "tools" / "lib" / "bpf" / "zigux_segments" / "logging.zig").read_text(encoding="utf-8")
+pin_path_helper = (ROOT / "tools" / "lib" / "bpf" / "zigux_segments" / "pin_path.zig").read_text(encoding="utf-8")
 type_names_helper = (ROOT / "tools" / "lib" / "bpf" / "zigux_segments" / "type_names.zig").read_text(encoding="utf-8")
 
 
@@ -397,6 +401,53 @@ required_cpu_mask_markers = [
     "per-CPU perf-buffer routing",
 ]
 
+required_logging_survey_markers = [
+    "invalid log-level text stays explicit while callers still receive the default `info` minimum level",
+    "the bounded major, minor, and version-string helpers match the current `tools/lib/bpf/libbpf_version.h` tuple",
+    "libbpf-specific custom error text stays stable and unmapped custom codes fall back cleanly",
+]
+
+required_phase8_logging_markers = [
+    'test "phase 8 logging segment keeps libbpf log-level parsing bounded and explicit"',
+    'test "phase 8 logging segment reports the bounded libbpf version helpers"',
+    'test "phase 8 logging segment keeps libbpf-specific error text stable"',
+    'logging.resolveMinPrintLevel("warn")',
+    "logging.libbpfVersionString()",
+    "logging.libbpfCustomErrorMessage(4007).?",
+]
+
+required_logging_helper_markers = [
+    'pub const libbpf_log_level_env_var = "LIBBPF_LOG_LEVEL";',
+    "pub fn resolveMinPrintLevel(env_value: ?[]const u8) ResolvedMinLevel {",
+    "pub fn formatInvalidLogLevelWarning(",
+    'test "formatInvalidLogLevelWarning matches libbpf\'s explicit invalid envvar guidance"',
+    'test "formatInvalidLogLevelWarning keeps buffer exhaustion explicit"',
+]
+
+required_pin_path_survey_markers = [
+    "default and caller-provided pin roots join cleanly with map names",
+    "`.` characters inside pin roots and map names sanitize to `_` the same way bpffs pin-name helpers do in libbpf",
+    "buffer exhaustion during pin-path assembly stays explicit",
+]
+
+required_phase8_pin_path_markers = [
+    'test "phase 8 pin-path segment keeps map-path joining bounded and explicit"',
+    'test "phase 8 pin-path segment sanitizes dots the same way bpffs pin names do"',
+    'test "phase 8 pin-path segment keeps validation and path-shape checks bounded"',
+    'test "phase 8 pin-path segment keeps overflow failures explicit"',
+    'test "phase 8 pin-path segment resolves stored versus requested pin paths"',
+    'test "phase 8 pin-path segment resolves stored versus requested unpin paths"',
+]
+
+required_pin_path_helper_markers = [
+    'pub const default_bpf_fs_path = "/sys/fs/bpf";',
+    "pub fn buildValidatedSanitizedMapPinPath(buffer: []u8, root_path: ?[]const u8, map_name: []const u8) PinPathError![]u8 {",
+    "pub fn resolveMapPinRequest(",
+    "pub fn resolveMapUnpinRequest(",
+    'test "pin-path helpers resolve stored and requested map pin paths without widening into syscalls"',
+    'test "pin-path helpers resolve stored and requested unpin paths explicitly"',
+]
+
 required_type_name_markers = [
     "libbpf-type-name-segment",
     "tools/lib/bpf/zigux_segments/type_names.zig",
@@ -543,6 +594,24 @@ for marker in required_phase8_kallsyms_markers:
 for marker in required_cpu_mask_markers:
     if marker not in phase8_cpu_mask:
         missing_markers.append(f"phase8_cpu_mask:{marker}")
+for marker in required_logging_survey_markers:
+    if marker not in phase8_survey:
+        missing_markers.append(f"phase8_survey_logging:{marker}")
+for marker in required_phase8_logging_markers:
+    if marker not in phase8_logging_test:
+        missing_markers.append(f"phase8_logging:{marker}")
+for marker in required_logging_helper_markers:
+    if marker not in logging_helper:
+        missing_markers.append(f"logging_helper:{marker}")
+for marker in required_pin_path_survey_markers:
+    if marker not in phase8_survey:
+        missing_markers.append(f"phase8_survey_pin_path:{marker}")
+for marker in required_phase8_pin_path_markers:
+    if marker not in phase8_pin_path_test:
+        missing_markers.append(f"phase8_pin_path:{marker}")
+for marker in required_pin_path_helper_markers:
+    if marker not in pin_path_helper:
+        missing_markers.append(f"pin_path_helper:{marker}")
 for marker in required_type_name_markers:
     if marker not in phase8_type_names:
         missing_markers.append(f"phase8_type_names:{marker}")
@@ -596,5 +665,5 @@ print("PHASE8_VALIDATION=pass")
 print(f"PHASE8_REQUIRED_FILE_COUNT={len(required_files)}")
 print(
     "PHASE8_REQUIRED_MARKER_COUNT="
-    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_review_checklist_markers) + len(required_phase8_build_markers) + len(required_phase8_exec_cmd_only_build_markers) + len(required_phase8_help_only_build_markers) + len(required_phase8_kallsyms_only_build_markers) + len(required_phase8_libbpf_segments_only_build_markers) + len(required_survey_markers) + len(required_bridge_boundary_markers) + len(required_exec_cmd_slice_markers) + len(required_phase8_exec_cmd_markers) + len(required_help_slice_markers) + len(required_phase8_help_markers) + len(required_kallsyms_slice_markers) + len(required_phase8_kallsyms_markers) + len(required_cpu_mask_markers) + len(required_type_name_markers) + len(required_phase8_bpf_type_names_markers) + len(required_type_names_helper_markers) + len(required_manifest_markers)}"
+    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_review_checklist_markers) + len(required_phase8_build_markers) + len(required_phase8_exec_cmd_only_build_markers) + len(required_phase8_help_only_build_markers) + len(required_phase8_kallsyms_only_build_markers) + len(required_phase8_libbpf_segments_only_build_markers) + len(required_survey_markers) + len(required_bridge_boundary_markers) + len(required_exec_cmd_slice_markers) + len(required_phase8_exec_cmd_markers) + len(required_help_slice_markers) + len(required_phase8_help_markers) + len(required_kallsyms_slice_markers) + len(required_phase8_kallsyms_markers) + len(required_cpu_mask_markers) + len(required_logging_survey_markers) + len(required_phase8_logging_markers) + len(required_logging_helper_markers) + len(required_pin_path_survey_markers) + len(required_phase8_pin_path_markers) + len(required_pin_path_helper_markers) + len(required_type_name_markers) + len(required_phase8_bpf_type_names_markers) + len(required_type_names_helper_markers) + len(required_manifest_markers)}"
 )
