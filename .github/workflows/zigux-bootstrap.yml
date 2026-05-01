@@ -82,6 +82,9 @@ jobs:
       - name: Validate Phase 2 fixdep files
         run: python3 scripts/zigux/validate-phase2.py
 
+      - name: Self-test bounded fixdep checker
+        run: python3 scripts/zigux/check-fixdep-diff.py --self-test
+
       - name: Self-test bounded Phase 2 cross-target checker
         run: python3 scripts/zigux/check-phase2-cross.py --self-test
 
