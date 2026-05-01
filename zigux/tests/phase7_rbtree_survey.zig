@@ -83,6 +83,14 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     );
     defer std.testing.allocator.free(rbtree_slice);
 
+    const rbtree_parity_checker = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "scripts/zigux/check-phase7-rbtree-parity.py",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(rbtree_parity_checker);
+
     const manifest = parsed.value;
     try expectContains(roadmap, "## Phase 7: In-Kernel Leaf Libraries");
     try expectContains(roadmap, "lib/rbtree.c");
@@ -171,6 +179,7 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     try expectContains(rbtree_slice, "`make -C zigux phase7-validate`");
     try expectContains(rbtree_slice, "prove the shared Phase 7 validator packet still fails closed before the helper replay runs");
     try expectContains(rbtree_slice, "`zig build test --build-file zigux/tests/phase7_build.zig --summary all`");
+    try expectContains(rbtree_parity_checker, 'SOURCE = ROOT / "lib" / "rbtree.c"');
     try std.testing.expect(std.mem.indexOf(u8, rbtree_slice, "detached-node ownership discipline after `erase()` and `replaceNode()`, where callers must still run `clearNode()` before `emptyNode()` becomes true") != null);
     try std.testing.expect(std.mem.indexOf(u8, rbtree_slice, "detached-node clearing semantics") != null);
     try std.testing.expect(std.mem.indexOf(u8, rbtree_slice, "duplicate-aware find-or-insert behavior via `findAdd()`") != null);
