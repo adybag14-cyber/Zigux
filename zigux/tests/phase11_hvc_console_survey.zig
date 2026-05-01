@@ -58,6 +58,74 @@ fn expectSurveyedCommitProvenance(survey_note: []const u8, surveyed_commit: []co
     try std.testing.expect(std.mem.indexOf(u8, survey_note, surveyed_commit) != null);
 }
 
+fn assertOptionalFnSignature(
+    comptime MaybeFn: type,
+    comptime ExpectedReturn: type,
+    comptime ExpectedParams: []const type,
+) void {
+    const child = switch (@typeInfo(MaybeFn)) {
+        .optional => |optional_info| optional_info.child,
+        else => @compileError(std.fmt.comptimePrint(
+            "expected optional function pointer type, found {s}",
+            .{ @typeName(MaybeFn) },
+        )),
+    };
+    const ptr_info = switch (@typeInfo(child)) {
+        .pointer => |pointer_info| pointer_info,
+        else => @compileError(std.fmt.comptimePrint(
+            "expected pointer child for {s}",
+            .{ @typeName(MaybeFn) },
+        )),
+    };
+    if (ptr_info.size != .one) {
+        @compileError(std.fmt.comptimePrint(
+            "expected single-pointer callback type for {s}",
+            .{ @typeName(MaybeFn) },
+        ));
+    }
+    const fn_info = switch (@typeInfo(ptr_info.child)) {
+        .@"fn" => |function_info| function_info,
+        else => @compileError(std.fmt.comptimePrint(
+            "expected function pointer child for {s}",
+            .{ @typeName(MaybeFn) },
+        )),
+    };
+    if (fn_info.calling_convention != .c) {
+        @compileError(std.fmt.comptimePrint(
+            "expected C calling convention for {s}",
+            .{ @typeName(MaybeFn) },
+        ));
+    }
+    if (fn_info.params.len != ExpectedParams.len) {
+        @compileError(std.fmt.comptimePrint(
+            "expected {d} parameters for {s}, found {d}",
+            .{ ExpectedParams.len, @typeName(MaybeFn), fn_info.params.len },
+        ));
+    }
+    inline for (ExpectedParams, 0..) |ExpectedParam, index| {
+        const actual = fn_info.params[index].type orelse @compileError(std.fmt.comptimePrint(
+            "missing parameter type at index {d} for {s}",
+            .{ index, @typeName(MaybeFn) },
+        ));
+        if (actual != ExpectedParam) {
+            @compileError(std.fmt.comptimePrint(
+                "parameter {d} mismatch for {s}: expected {s}, found {s}",
+                .{ index, @typeName(MaybeFn), @typeName(ExpectedParam), @typeName(actual) },
+            ));
+        }
+    }
+    const actual_return = fn_info.return_type orelse @compileError(std.fmt.comptimePrint(
+        "missing return type for {s}",
+        .{ @typeName(MaybeFn) },
+    ));
+    if (actual_return != ExpectedReturn) {
+        @compileError(std.fmt.comptimePrint(
+            "return type mismatch for {s}: expected {s}, found {s}",
+            .{ @typeName(MaybeFn), @typeName(ExpectedReturn), @typeName(actual_return) },
+        ));
+    }
+}
+
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
         std.mem.eql(u8, status, "ready_next") or
@@ -93,7 +161,7 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
     try std.testing.expect(manifest.survey_summary.hvc_console_test_present);
     try std.testing.expect(manifest.survey_summary.hvc_console_survey_gate_present);
     try std.testing.expect(manifest.survey_summary.hvc_console_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 14), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 15), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -109,6 +177,7 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
     var saw_header_parity = false;
     var saw_winsize_layout_assert = false;
     var saw_hv_ops_layout_assert = false;
+    var saw_hv_ops_signature_assert = false;
     var saw_driver_tests = false;
     var saw_validation_matrix = false;
     var saw_tty_block = false;
@@ -249,6 +318,16 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "offsets 0 through 64") != null);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase11-hvc-console-hv-ops-signature-assert")) {
+            saw_hv_ops_signature_assert = true;
+            try std.testing.expectEqualStrings("zigux/tests/phase11_hvc_console_survey.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "struct hv_ops") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "C calling convention") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "get_chars") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dtr_rts") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase11-hvc-console-driver-tests")) {
             saw_driver_tests = true;
             try std.testing.expectEqualStrings("zigux/tests/phase11_hvc_console.zig", gap.zigux_destination);
@@ -305,7 +384,7 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 14), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 15), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 0), blocked_count);
     try std.testing.expect(saw_build_gate);
@@ -319,6 +398,7 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
     try std.testing.expect(saw_header_parity);
     try std.testing.expect(saw_winsize_layout_assert);
     try std.testing.expect(saw_hv_ops_layout_assert);
+    try std.testing.expect(saw_hv_ops_signature_assert);
     try std.testing.expect(saw_driver_tests);
     try std.testing.expect(saw_validation_matrix);
     try std.testing.expect(saw_tty_block);
@@ -443,5 +523,19 @@ test "phase11 hvc console survey keeps a bounded hv_ops layout proof" {
         layout_assert.assertOffset(HvOpsLayout, "tiocmget", 48);
         layout_assert.assertOffset(HvOpsLayout, "tiocmset", 56);
         layout_assert.assertOffset(HvOpsLayout, "dtr_rts", 64);
+    }
+}
+
+test "phase11 hvc console survey keeps bounded hv_ops callback signature proofs" {
+    comptime {
+        assertOptionalFnSignature(@FieldType(HvOpsLayout, "get_chars"), isize, &.{ u32, [*]u8, usize });
+        assertOptionalFnSignature(@FieldType(HvOpsLayout, "put_chars"), isize, &.{ u32, [*]const u8, usize });
+        assertOptionalFnSignature(@FieldType(HvOpsLayout, "flush"), c_int, &.{ u32, bool });
+        assertOptionalFnSignature(@FieldType(HvOpsLayout, "notifier_add"), c_int, &.{ *HvcStruct, c_int });
+        assertOptionalFnSignature(@FieldType(HvOpsLayout, "notifier_del"), void, &.{ *HvcStruct, c_int });
+        assertOptionalFnSignature(@FieldType(HvOpsLayout, "notifier_hangup"), void, &.{ *HvcStruct, c_int });
+        assertOptionalFnSignature(@FieldType(HvOpsLayout, "tiocmget"), c_int, &.{ *HvcStruct });
+        assertOptionalFnSignature(@FieldType(HvOpsLayout, "tiocmset"), c_int, &.{ *HvcStruct, c_uint, c_uint });
+        assertOptionalFnSignature(@FieldType(HvOpsLayout, "dtr_rts"), void, &.{ *HvcStruct, bool });
     }
 }
