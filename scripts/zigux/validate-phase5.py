@@ -137,6 +137,8 @@ required_checklist_markers = [
     "ships no `samples/zigux/*cmdline*` Phase 5 reference sample",
     "`Documentation/zigux/phase7-cmdline-slice.md`",
     "`lib/cmdline.zig`, `zigux/tests/phase7_cmdline.zig`, and `zigux/tests/phase7_build.zig`",
+    "`samples/zigux/runtime_bitmap.zig` plus `samples/zigux/runtime_bitmap_loader.zig`",
+    "separate Phase 9 runtime bitmap survey packet",
 ]
 
 required_sample_root_markers = [
