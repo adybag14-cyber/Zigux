@@ -145,6 +145,16 @@ pub const RuleReleasePlan = struct {
     would_free_rule_allocation: bool,
 };
 
+pub const CapacityInvariantPlan = struct {
+    anchor: []const u8,
+    rule_num_layers_fits_max_layers: bool,
+    creation_num_layers_fits_max_layers: bool,
+    layer_level_fits_max_layers: bool,
+    layer_access_carries_initially_denied_fs_access: bool,
+    ruleset_num_rules_reaches_max: bool,
+    rule_storage_slots_match_max_layers: bool,
+};
+
 pub const RulesetHelperLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -337,6 +347,18 @@ pub const RulesetHelperLab = struct {
             .may_sleep = true,
             .would_release_object_reference = rule_present and key_type == .inode,
             .would_free_rule_allocation = rule_present,
+        };
+    }
+
+    pub fn planCapacityInvariants() CapacityInvariantPlan {
+        return .{
+            .anchor = descriptor().anchor,
+            .rule_num_layers_fits_max_layers = std.math.maxInt(usize) >= max_num_layers,
+            .creation_num_layers_fits_max_layers = std.math.maxInt(u32) >= max_num_layers,
+            .layer_level_fits_max_layers = std.math.maxInt(u16) >= max_num_layers,
+            .layer_access_carries_initially_denied_fs_access = std.math.maxInt(u32) >= initially_denied_fs_access,
+            .ruleset_num_rules_reaches_max = max_num_rules == std.math.maxInt(u32),
+            .rule_storage_slots_match_max_layers = std.mem.zeroes([max_num_layers]Layer).len == max_num_layers,
         };
     }
 
