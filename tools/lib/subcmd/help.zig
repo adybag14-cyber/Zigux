@@ -265,6 +265,9 @@ pub fn loadCommandListsFromSource(
 
     if (exec_path) |path| {
         try populate_dir(source_context, main_cmds, path, actual_prefix);
+    }
+
+    if (main_cmds.count() != 0) {
         main_cmds.sort();
         main_cmds.uniq();
     }
@@ -636,6 +639,45 @@ test "loadCommandListsFromSource keeps exec-path priority and filters duplicates
 
     try std.testing.expectEqual(@as(usize, 1), other_cmds.count());
     try std.testing.expectEqualStrings("trace", other_cmds.names.items[0].name);
+}
+
+test "loadCommandListsFromSource normalizes a caller-seeded main list before PATH exclusion" {
+    const other_entries = [_]DirectoryEntry{
+        .{ .name = "perf-report.exe", .is_executable = true },
+        .{ .name = "perf-stat", .is_executable = true },
+    };
+
+    var source = CommandSourceFixture{
+        .dirs = &.{
+            .{ .path = "/usr/bin", .entries = &other_entries },
+        },
+    };
+
+    var main_cmds = CmdNames.init(std.testing.allocator);
+    defer main_cmds.deinit();
+    try main_cmds.addCmdName("trace", 5);
+    try main_cmds.addCmdName("report", 6);
+    try main_cmds.addCmdName("trace", 5);
+
+    var other_cmds = CmdNames.init(std.testing.allocator);
+    defer other_cmds.deinit();
+
+    try loadCommandListsFromSource(
+        null,
+        null,
+        &.{"/usr/bin"},
+        &main_cmds,
+        &other_cmds,
+        &source,
+        CommandSourceFixture.populate,
+    );
+
+    try std.testing.expectEqual(@as(usize, 2), main_cmds.count());
+    try std.testing.expectEqualStrings("report", main_cmds.names.items[0].name);
+    try std.testing.expectEqualStrings("trace", main_cmds.names.items[1].name);
+
+    try std.testing.expectEqual(@as(usize, 1), other_cmds.count());
+    try std.testing.expectEqualStrings("stat", other_cmds.names.items[0].name);
 }
 
 test "loadCommandListsFromEnvPath preserves raw PATH splitting and exec-path filtering" {
