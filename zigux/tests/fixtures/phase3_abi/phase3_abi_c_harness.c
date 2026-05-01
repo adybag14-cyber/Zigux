@@ -52,11 +52,25 @@ static const struct layout_field zigux_interop_policy_fields[] = {
     {"reserved", offsetof(struct zigux_interop_policy, reserved)},
 };
 
+static const struct layout_field zigux_bitmap_view_fields[] = {
+    {"words_addr", offsetof(struct zigux_bitmap_view, words_addr)},
+    {"nbits", offsetof(struct zigux_bitmap_view, nbits)},
+    {"word_count", offsetof(struct zigux_bitmap_view, word_count)},
+};
+
+static const struct layout_field zigux_cpumask_view_fields[] = {
+    {"bits_addr", offsetof(struct zigux_cpumask_view, bits_addr)},
+    {"nr_cpu_ids", offsetof(struct zigux_cpumask_view, nr_cpu_ids)},
+    {"reserved", offsetof(struct zigux_cpumask_view, reserved)},
+};
+
 static const struct layout_desc layouts[] = {
     {"zigux_boundary_header", sizeof(struct zigux_boundary_header), _Alignof(struct zigux_boundary_header), ARRAY_SIZE(zigux_boundary_header_fields), zigux_boundary_header_fields},
     {"zigux_export_status", sizeof(struct zigux_export_status), _Alignof(struct zigux_export_status), ARRAY_SIZE(zigux_export_status_fields), zigux_export_status_fields},
     {"zigux_mmio_range", sizeof(struct zigux_mmio_range), _Alignof(struct zigux_mmio_range), ARRAY_SIZE(zigux_mmio_range_fields), zigux_mmio_range_fields},
     {"zigux_interop_policy", sizeof(struct zigux_interop_policy), _Alignof(struct zigux_interop_policy), ARRAY_SIZE(zigux_interop_policy_fields), zigux_interop_policy_fields},
+    {"zigux_bitmap_view", sizeof(struct zigux_bitmap_view), _Alignof(struct zigux_bitmap_view), ARRAY_SIZE(zigux_bitmap_view_fields), zigux_bitmap_view_fields},
+    {"zigux_cpumask_view", sizeof(struct zigux_cpumask_view), _Alignof(struct zigux_cpumask_view), ARRAY_SIZE(zigux_cpumask_view_fields), zigux_cpumask_view_fields},
 };
 
 int main(void)
