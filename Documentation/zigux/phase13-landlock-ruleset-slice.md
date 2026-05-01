@@ -7,7 +7,7 @@ The current helper lab stays intentionally narrow:
 - models the empty-ruleset rejection and single-layer initialization path of `landlock_create_ruleset()` without claiming allocation, mutex setup, refcounts, or anonymous-fd plumbing
 - unions filesystem, network, and scope access masks across a layer stack so the lane can describe the handled-access summary that later ruleset and domain checks rely on
 - mirrors the per-layer request initialization done by `landlock_init_layer_masks()`, including the always-denied-by-default filesystem access bit when any filesystem mask is active
-- captures the `landlock_unmask_layers()` bit-clearing behavior that marks requested accesses as satisfied across layer positions
+- captures the `landlock_unmask_layers()` bit-clearing behavior and rejects duplicate or out-of-order layer shapes so the helper lab enforces the same ordered-layer invariant before any live ruleset state exists
 - adds one in-memory `insert_rule()` planner that distinguishes the no-match insertion path from matching-rule access extension and merged-layer append behavior without allocating tree nodes or touching object references
 - adds one follow-on in-memory tree-search planner around `get_root()`, `walker_node`, and parent or insertion-side selection so the no-match search outcome is reviewable before any `rb_link_node()` or `rb_insert_color()` work is attempted
 - adds one tiny tree-link planner for the no-match branch so the `rb_link_node()` and `rb_insert_color()` handoff is reviewable as an explicit root or left or right link mode before any live rb-tree mutation or object ownership is claimed
