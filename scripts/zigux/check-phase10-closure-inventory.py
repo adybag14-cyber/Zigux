@@ -59,6 +59,12 @@ CLOSURE_NOTE_MARKERS = [
     "PHASE10_MANIFEST_COUNT=4",
     "PHASE10_DRIVER_COUNT=4",
     "PHASE10_TEST_COUNT=9",
+    "PHASE10_CLOSURE_INVENTORY_GATE=python3 scripts/zigux/check-phase10-closure-inventory.py",
+    "PHASE10_CLOSURE_GATE=python3 scripts/zigux/validate-phase10-closure.py",
+    "PHASE10_BUILD_GATE=zig build test --build-file zigux/tests/phase10_build.zig --summary all",
+    "PHASE10_VALIDATE_ENTRYPOINT=make -C zigux phase10-validate",
+    "PHASE10_TEST_ENTRYPOINT=make -C zigux phase10-test",
+    "PHASE10_COMBINED_ENTRYPOINT=make -C zigux phase10",
 ]
 
 LEDGER_MARKERS = [
@@ -216,6 +222,23 @@ def run_self_test() -> int:
         expect_missing_file("missing_core_lab_gate", root, "zigux/tests/phase10_virtio_core.zig")
         write_fixture(root)
 
+        closure_note_path = root / CLOSURE_NOTE
+        original_closure_note = closure_note_path.read_text(encoding="utf-8")
+        closure_note_path.write_text(
+            original_closure_note.replace(
+                "PHASE10_CLOSURE_INVENTORY_GATE=python3 scripts/zigux/check-phase10-closure-inventory.py",
+                "PHASE10_CLOSURE_INVENTORY_GATE=missing",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "closure_inventory_gate_marker",
+            root,
+            "closure:PHASE10_CLOSURE_INVENTORY_GATE=python3 scripts/zigux/check-phase10-closure-inventory.py",
+        )
+        closure_note_path.write_text(original_closure_note, encoding="utf-8")
+
         manifest_path = root / CLOSURE_MANIFEST
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["docs"] = EXPECTED_DOCS[:-1]
@@ -261,7 +284,7 @@ def run_self_test() -> int:
         expect_missing_marker("manifest_tests_inventory", root, "manifest:tests")
 
     print("PHASE10_CLOSURE_INVENTORY_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_INVENTORY_SELF_TEST_CASE_COUNT=7")
+    print("PHASE10_CLOSURE_INVENTORY_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
