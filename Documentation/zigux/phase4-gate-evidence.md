@@ -7,14 +7,14 @@ This note records one exact readback snapshot for the current Phase 4 rollback-o
 - `PHASE4_EVIDENCE_DATE=2026-05-01`
 - `PHASE4_EVIDENCE_MODE=github_connector_readback`
 - `PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions`
-- `PHASE4_VALIDATION_MATRIX_BLOB_SHA=58104151fdea65e0374da5fd4e4215dd1619b8bb`
+- `PHASE4_VALIDATION_MATRIX_BLOB_SHA=b0fb575a17081c9f8b59bbefd77e0f1d872b9a15`
 - `PHASE4_VALIDATOR_BLOB_SHA=7482e53a6c0d219f1dab3a7cdb4ea46ddac11cf9`
 - `PHASE4_BUILD_BLOB_SHA=57f4c3809387cac39e3153b9bbad17ca92ce3684`
 - `PHASE4_MAKEFILE_BLOB_SHA=e051b3c564efa85fdc1e0f4c083415de3eca0a88`
 - `PHASE4_WORKFLOW_BLOB_SHA=cc2c75b2bdfa65c4de7198b6625080caf5622589`
 - `PHASE4_TEST_FSMOUNT_MANIFEST_BLOB_SHA=df55e1ae2900e937b6423244aed0c76f220c6186`
 - `PHASE4_PERF_BASELINE_MANIFEST_BLOB_SHA=2ba09b7853b74b98c775a4469ceea5bab91c7464`
-- `PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=38efef203cfa190f846a537564f276f319552660`
+- `PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=d21c77e9d3841d7115e9cdd3e414cd242490c3d1`
 
 ## Roadmap Contract
 
@@ -90,7 +90,7 @@ The current roadmap-backed destinations for that packet remain:
 - bootstrap CI replay: workflow steps `Validate Phase 4 diff gates` and `Run Phase 4 diff tests`
 - local replay: `make -C zigux phase4-validate`, `make -C zigux phase4-test`, and the isolated `make -C zigux phase4-bitmap-diff`
 - build-entry evidence: `zigux/tests/phase4_build.zig` still wires `bitmap_diff.zig` and `phase4-bitmap-diff-tests`
-- matrix evidence: `Documentation/zigux/phase4-validation-matrix.md` still keeps the current rounded two-word `bitmap_fill(..., 115)` mismatch survey-only instead of overstating parity
+- matrix evidence: `Documentation/zigux/phase4-validation-matrix.md` still keeps the current rounded two-word `bitmap_fill(..., 115)` mismatch survey-only instead of overstating parity, and it now also calls out the shipped all-set and all-clear start-state printlist anchors that the bitmap gate replays before the later `bitmap_scnprintf()` summary checks
 
 ## Exact Readback Evidence
 
@@ -98,6 +98,7 @@ The current packet stayed aligned across the following readbacks on `master`:
 
 - `Documentation/zigux/phase4-validation-matrix.md` still names the current rollback owners, threshold posture, workflow step names, local replay commands, and reversible-delivery evidence for the two shipped rollback gates plus the two manifest-backed survey gates.
 - `scripts/zigux/validate-phase4.py` still requires the matrix note, workflow markers, `zigux/Makefile` hooks, `zigux/tests/phase4_build.zig`, `zigux/tests/atomic64_diff.zig`, `zigux/tests/runtime_atomic64_diff.zig`, `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`, `zigux/tests/phase4_test_fsmount_manifest.json`, `zigux/tests/phase4_test_fsmount_survey.zig`, `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`, and `zigux/tests/bitmap_diff.zig` together.
+- `zigux/tests/bitmap_diff.zig` now also keeps the all-set and all-clear start-state printlist anchors explicit for both the 23-bit and 1024-bit views before the later `bitmap_scnprintf()` summary replay, so the bitmap row in the matrix should describe that start-state evidence rather than only the later `1-3,7,10-11` rendering case.
 - the atomic64 survey manifest plus `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` now pin the shared surveyed snapshot `ec9aa1b15a34e581625da1056956ecb5dd6cd76a` consistently, and the refreshed manifest blob pin above records that aligned atomic64 packet state directly.
 - direct compare evidence from `ec9aa1b15a34e581625da1056956ecb5dd6cd76a...master` may still show newer unrelated work on `master`, so this note should be read as an atomic64-packet alignment readback rather than a branch-tip provenance claim for the rest of Phase 4.
 - `zigux/Makefile` still exposes `phase4-validate`, `phase4-test`, `phase4-runtime-atomic64-diff`, `phase4-test-fsmount-survey`, `phase4-perf-baseline-survey`, and `phase4-bitmap-diff`.
