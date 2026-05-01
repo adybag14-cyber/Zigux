@@ -348,8 +348,8 @@ MARKER_GROUPS = {
             "unsigned long tail_bitmap[2] = {0, 1UL << 9};",
             "unsigned long tail_zero_bitmap[2] = {~0UL, BITMAP_LAST_WORD_MASK(BITS_PER_LONG + 5)};",
             "unsigned long tail_and_mixed[2] = {0, (1UL << 3) | (1UL << 9)};",
-            '\\"tail_clamped_first\\":%lu,',
-            '\\"tail_and_mixed_next\\":%lu',
+            '\"tail_clamped_first\":%lu,',
+            '\"tail_and_mixed_next\":%lu',
         ],
     ),
     "find_bit_manifest": (
@@ -588,6 +588,44 @@ def validate_manifest_shape() -> list[str]:
                 issues.append("phase1_manifest:tools/lib/string.zig:memparse_unit_test_anchor:mismatch")
             if string_note.get("memparse_unit_test_contract") != "Direct Zig unit coverage keeps memparse aligned by forwarding decimal, hexadecimal, suffix-bearing, and invalid inputs through the shared command-line parser without changing the parsed value or rest pointer contract.":
                 issues.append("phase1_manifest:tools/lib/string.zig:memparse_unit_test_contract:mismatch")
+        rbtree_note = notes.get("tools/lib/rbtree.zig")
+        if isinstance(rbtree_note, dict):
+            if rbtree_note.get("summary") != "Committed C-backed parity coverage includes ordered forward and reverse traversal plus replaceNode, eraseInit, postorder traversal, and detached-node state checks, while Linux-style rb_* alias parity remains explicitly out of scope for this closed Phase 1 tranche.":
+                issues.append("phase1_manifest:tools/lib/rbtree.zig:summary:mismatch")
+            if rbtree_note.get("alias_gap_note") != "Linux-style rb_* alias surface parity is still missing for the already-ported entry points, and that remaining surface stays explicitly out of scope for the closed Phase 1 tranche until a later bounded repair lands.":
+                issues.append("phase1_manifest:tools/lib/rbtree.zig:alias_gap_note:mismatch")
+            if rbtree_note.get("unit_test_anchor") != 'tools/lib/rbtree.zig:test "rbtree findAdd keeps the first duplicate and inserts new keys"':
+                issues.append("phase1_manifest:tools/lib/rbtree.zig:unit_test_anchor:mismatch")
+            if rbtree_note.get("unit_test_contract") != "Direct Zig unit coverage keeps findAdd duplicate handling aligned so the first equal key stays resident while new distinct keys still link into the tree.":
+                issues.append("phase1_manifest:tools/lib/rbtree.zig:unit_test_contract:mismatch")
+            if rbtree_note.get("search_unit_test_anchor") != 'tools/lib/rbtree.zig:test "rbtree nextMatch walks the duplicate range in order"':
+                issues.append("phase1_manifest:tools/lib/rbtree.zig:search_unit_test_anchor:mismatch")
+            if rbtree_note.get("search_unit_test_contract") != "Direct Zig unit coverage keeps find(), findFirst(), and nextMatch() aligned so duplicate-key lookups start at the leftmost match and walk through the final equal node without drifting into a later key.":
+                issues.append("phase1_manifest:tools/lib/rbtree.zig:search_unit_test_contract:mismatch")
+            if rbtree_note.get("duplicate_search_unit_test_anchor") != 'tools/lib/rbtree.zig:test "rbtree duplicate search stays aligned after erase and same-key replace"':
+                issues.append("phase1_manifest:tools/lib/rbtree.zig:duplicate_search_unit_test_anchor:mismatch")
+            if rbtree_note.get("duplicate_search_unit_test_contract") != "Direct Zig unit coverage keeps duplicate-key search aligned after erase() and same-key replaceNode() so findFirst(), findLast(), and duplicate-range iterators continue to report the surviving equal-key window in both directions.":
+                issues.append("phase1_manifest:tools/lib/rbtree.zig:duplicate_search_unit_test_contract:mismatch")
+            if rbtree_note.get("cached_unit_test_anchor") != 'tools/lib/rbtree.zig:test "rbtree cached root keeps leftmost in sync across add erase and replace"':
+                issues.append("phase1_manifest:tools/lib/rbtree.zig:cached_unit_test_anchor:mismatch")
+            if rbtree_note.get("cached_unit_test_contract") != "Direct Zig unit coverage keeps RootCached leftmost tracking aligned so addCached(), eraseCached(), and replaceNodeCached() continue to expose the same first node as the underlying tree root.":
+                issues.append("phase1_manifest:tools/lib/rbtree.zig:cached_unit_test_contract:mismatch")
+            if rbtree_note.get("cached_duplicate_unit_test_anchor") != 'tools/lib/rbtree.zig:test "rbtree cached root tracks duplicate minima through erase and non-leftmost replace"':
+                issues.append("phase1_manifest:tools/lib/rbtree.zig:cached_duplicate_unit_test_anchor:mismatch")
+            if rbtree_note.get("cached_duplicate_unit_test_contract") != "Direct Zig unit coverage keeps RootCached duplicate minima aligned so eraseCached() promotes the next equal-key minimum and replaceNodeCached() leaves the cached first node unchanged when a non-leftmost node is replaced.":
+                issues.append("phase1_manifest:tools/lib/rbtree.zig:cached_duplicate_unit_test_contract:mismatch")
+            if rbtree_note.get("cached_find_add_unit_test_anchor") != 'tools/lib/rbtree.zig:test "rbtree findAddCached preserves duplicate ownership and leftmost cache"':
+                issues.append("phase1_manifest:tools/lib/rbtree.zig:cached_find_add_unit_test_anchor:mismatch")
+            if rbtree_note.get("cached_find_add_unit_test_contract") != "Direct Zig unit coverage keeps findAddCached() aligned so equal-key probes return the original resident node, distinct inserts still link into the cached tree, and RootCached continues to expose the same leftmost node as the underlying tree root.":
+                issues.append("phase1_manifest:tools/lib/rbtree.zig:cached_find_add_unit_test_contract:mismatch")
+            if rbtree_note.get("iterator_unit_test_anchor") != 'tools/lib/rbtree.zig:test "rbtree iterateMatches streams only the duplicate range"':
+                issues.append("phase1_manifest:tools/lib/rbtree.zig:iterator_unit_test_anchor:mismatch")
+            if rbtree_note.get("iterator_unit_test_contract") != "Direct Zig unit coverage keeps iterateMatches() aligned so duplicate-key iteration yields only the equal-key range and cleanly reports no match for missing keys.":
+                issues.append("phase1_manifest:tools/lib/rbtree.zig:iterator_unit_test_contract:mismatch")
+            if rbtree_note.get("reverse_unit_test_anchor") != 'tools/lib/rbtree.zig:test "rbtree iterateMatchesReverse streams only the duplicate range in reverse"':
+                issues.append("phase1_manifest:tools/lib/rbtree.zig:reverse_unit_test_anchor:mismatch")
+            if rbtree_note.get("reverse_unit_test_contract") != "Direct Zig unit coverage keeps findLast(), prevMatch(), and iterateMatchesReverse() aligned so reverse duplicate-key lookups start at the rightmost match, walk back through the equal-key range, and cleanly report no match for missing keys.":
+                issues.append("phase1_manifest:tools/lib/rbtree.zig:reverse_unit_test_contract:mismatch")
 
     return issues
 
