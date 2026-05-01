@@ -97,6 +97,7 @@ No additional helper should be called Phase 1 work unless this document and the 
 - `tools/lib/rbtree.zig` direct Zig unit coverage also keeps `RootCached` duplicate minima aligned so erasing the first equal key promotes the next duplicate minimum while non-leftmost replacement leaves the cached first node unchanged.
 - `tools/lib/rbtree.zig` direct Zig unit coverage also keeps `findAddCached()` aligned so equal-key probes return the original resident node, distinct inserts still link into the cached tree, and `RootCached` continues to expose the same leftmost node as the underlying tree root.
 - `tools/lib/rbtree.zig` direct Zig review notes keep the remaining `rb_*` alias gap explicit so the closed Phase 1 tranche cannot be misread as already covering the header-level alias surface.
+- `tools/lib/rbtree.zig` direct Zig closure validation also fails closed if `tools/lib/rbtree.zig` grows Linux-style `rb_*` aliases before this closed Phase 1 tranche is deliberately reopened.
 - `tools/lib/rbtree.zig` direct Zig unit coverage also keeps `iterateMatches()` aligned so duplicate-key iteration yields only the equal-key range and cleanly reports no match for missing keys.
 - `tools/lib/rbtree.zig` direct Zig unit coverage also keeps `findLast()`, `prevMatch()`, and `iterateMatchesReverse()` aligned so reverse duplicate-key lookups start at the rightmost match, walk back through the equal-key range, and cleanly report no match for missing keys.
 - rbtree fixture authority: `zigux/tests/fixtures/phase1_helpers.json`
@@ -121,6 +122,7 @@ No additional helper should be called Phase 1 work unless this document and the 
 - `PHASE1_RBTREE_ITERATE_UNIT_REVIEW=rbtree iterateMatches yields only the equal-key duplicate range and cleanly reports no match for missing keys`
 - `PHASE1_RBTREE_REVERSE_UNIT_REVIEW=rbtree findLast, prevMatch, and iterateMatchesReverse keep reverse duplicate-key lookup walks aligned from the rightmost match back through the equal-key range while still reporting no match for missing keys`
 - `PHASE1_RBTREE_ALIAS_GAP_NOTE=the closed Phase 1 rbtree tranche still excludes Linux-style rb_* alias parity for the already-ported entry points, and that remaining surface stays explicitly out of scope until a later bounded repair lands`
+- `PHASE1_RBTREE_ALIAS_GAP_GATE=phase1 closure validation fails closed if tools/lib/rbtree.zig grows Linux-style rb_* aliases before the closed helper tranche is deliberately reopened`
 
 - `tools/lib/string.zig` closure includes committed C-backed parity coverage for Linux-style bool parsing, C-string-aware `strlcpy` length and truncation behavior, in-place whitespace and replacement helpers including embedded-NUL `remove_spaces` handling, and first-mismatch `memchrInv` detection.
 - `tools/lib/string.zig` direct Zig unit coverage also keeps `strlcpy` aligned with C-string semantics by stopping at the first embedded NUL, preserving truncation behavior, and leaving zero-sized destinations untouched.
