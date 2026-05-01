@@ -87,7 +87,7 @@ The exact checks currently recorded in `zigux/tests/phase5_trace_events_sample_m
     - `All 2 tests passed.`
   - `zig build test --build-file zigux/tests/phase5_build.zig --summary all`
     - `Build Summary: 17/17 steps succeeded; 28/28 tests passed`
-    - `phase5-bytestream-fifo-tests 4 pass (4 total)`
+    - `phase5-bytestream-fifo-tests 5 pass (5 total)`
     - `phase5-bytestream-fifo-survey-tests 2 pass (2 total)`
     - `phase5-kobject-example-tests 3 pass (3 total)`
     - `phase5-kobject-example-survey-tests 2 pass (2 total)`
