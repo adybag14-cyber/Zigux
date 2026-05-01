@@ -139,6 +139,9 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/fixtures/phase7_rbtree.json", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "eraseInit ownership reset") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "duplicate-key lookup ranges") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "reverse traversal") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "postorder behavior") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
