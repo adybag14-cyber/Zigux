@@ -4,7 +4,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 
 ## Status
 
-- `PHASE3_SURVEYED_COMMIT=cdcdd05ab1b8028fbf170ee0e9ff4c09f06c1a34`
+- `PHASE3_SURVEYED_COMMIT=d98de73c030327767b1f870fbf819aa251daaa8a`
 - `PHASE3_LAYOUT_ASSERT_PATH=zigux/helpers/layout_assert.zig`
 - `PHASE3_LAYOUT_ASSERT_SCOPE=canonical-bindings`
 - `PHASE3_LAYOUT_ASSERT_STATUS=canonical-layout-assertions-landed`
@@ -27,7 +27,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_MMIO_BLOB_SHA=031bb804a25982da8d3de2a944777b49b21a3405`
 - `PHASE3_ABI_SLICE_DOC_BLOB_SHA=3fd88b4a1685d5d3207debc72634c993fd9e16ce`
 - `PHASE3_POLICY_UNSAFE_BUILD_BLOB_SHA=4613c79a8d082b2dd3fe9502b7dcdb03ef181bb2`
-- `PHASE3_POLICY_UNSAFE_TEST_BLOB_SHA=42c7838b999482421066da2b1387ed8dec8297ec`
+- `PHASE3_POLICY_UNSAFE_TEST_BLOB_SHA=33db1f474ec888915b9db038cac637f775687ee3`
 - `PHASE3_ABI_MANIFEST_BLOB_SHA=f6716ac6e498c0bfd9264ab93b37db96d2e27c93`
 - `PHASE3_POLICY_UNSAFE_GATE=zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig`
 - `PHASE3_BOUNDARY_GAP=no-second-boundary-helper-consumes-decoded-policy-beyond-focused-replay`
@@ -49,7 +49,7 @@ It does require the current tree to say clearly which policy rules are already l
 
 ## Live Repo Reality
 
-This survey still records the last verified `master` head `cdcdd05ab1b8028fbf170ee0e9ff4c09f06c1a34` as a fallback baseline for the directly coupled policy-and-unsafe packet, and it now treats the packet-local blob IDs for the curated helper, build, test, manifest, and slice-note files as the primary drift anchors so follow-on policy-only edits do not read as false survey failures.
+This survey is pinned to verified `master` head `d98de73c030327767b1f870fbf819aa251daaa8a` for the directly coupled policy-and-unsafe packet, and it now also records packet-local blob IDs for the curated helper, build, test, manifest, and slice-note files so shallow history alone does not turn a reviewable packet into a false validation failure.
 
 The current tree already carries a real bounded policy-and-unsafe substrate:
 
@@ -61,7 +61,7 @@ The current tree already carries a real bounded policy-and-unsafe substrate:
 - `zigux/helpers/mmio.zig` routes scoped MMIO helpers back through that same narrow unsafe layer, so volatile pointer formation stays attached to the declared unsafe scope instead of widening into a generic raw-pointer helper family
 - `zigux/tests/phase3_policy_unsafe_build.zig` and `zigux/tests/phase3_policy_unsafe.zig` now keep `layout_assert`, panic, allocator, typed `InteropPolicy` decoding, unsafe-byte decoding, and declared-scope enforcement on their own focused replay path rather than leaving that packet visible only through the broader `phase3_abi.zig` bundle
 - `zigux/tests/fixtures/phase3_abi_manifest.json`, `Documentation/zigux/phase3-abi-slice.md`, and `scripts/zigux/validate-phase3.py` already treat that focused replay as part of the bounded ABI substrate packet
-- current `master` also extends that same focused replay to pin the newer allocator-init/reset expectations in `zigux/helpers/interop_policy.zig` plus the narrow-overflow guard set in `zigux/unsafe/narrow.zig` through `narrow.checkedByteOffset()`, `narrow.checkedSpanBytes()`, `narrow.checkedSpanEnd()`, `narrow.scopedPointerAt()`, and `narrow.scopedConstSliceAt()`, so this note can no longer stay pinned to the older pre-guard packet
+- current `master` also extends that same focused replay to pin the newer allocator-init/reset expectations in `zigux/helpers/interop_policy.zig` and the new overflow-guard behavior in `zigux/unsafe/narrow.zig`, so this note can no longer stay pinned to the older pre-guard packet
 
 This is real roadmap-backed progress.
 It is also still a narrow boundary packet rather than a full runtime policy substrate.
