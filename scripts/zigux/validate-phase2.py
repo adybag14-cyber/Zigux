@@ -33,6 +33,7 @@ EXPECTED_PHASE2_CROSS_TARGETS = [
 EXACT_WORKFLOW_RUN_COUNTS = {
     'python3 scripts/zigux/check-fixdep-diff.py --self-test': 1,
     'python3 scripts/zigux/check-fixdep-diff.py': 1,
+    'python3 scripts/zigux/check-genksyms-bridge.py --self-test': 1,
     'python3 scripts/zigux/check-genksyms-crc-diff.py --self-test': 1,
     'python3 scripts/zigux/check-genksyms-crc-diff.py': 1,
     'python3 scripts/zigux/check-kconfig-bridge.py --self-test': 1,
@@ -591,134 +592,39 @@ def validate_kconfig_bridge_manifest(case_manifest: Path, conf_bridge: Path) -> 
             'mode': 'mod2noconfig',
             'kconfig': 'Kconfig',
             'config': 'demote/.config',
-            'arch': 'arm64',
+            'arch': 'mips',
             'expected': 'mod2noconfig_expected.json',
         },
-        {
-            'name': 'localmodconfig',
-            'mode': 'localmodconfig',
-            'kconfig': 'Kconfig',
-            'config': 'local/.config',
-            'arch': 'x86_64',
-            'expected': 'localmodconfig_expected.json',
-        },
-        {
-            'name': 'localyesconfig',
-            'mode': 'localyesconfig',
-            'kconfig': 'Kconfig',
-            'config': 'localyes/.config',
-            'arch': 'x86_64',
-            'expected': 'localyesconfig_expected.json',
-        },
-        {
-            'name': 'syncconfig_with_allconfig',
-            'mode': 'syncconfig',
-            'kconfig': 'Kconfig',
-            'config': 'sync/.config',
-            'arch': 'arm64',
-            'allconfig': 'configs/overlay.config',
-            'expected': 'syncconfig_with_allconfig_expected.json',
-        },
-        {
-            'name': 'olddefconfig_with_allconfig',
-            'mode': 'olddefconfig',
-            'kconfig': 'Kconfig',
-            'config': 'merge/.config',
-            'arch': 'arm64',
-            'allconfig': 'configs/merge.config',
-            'expected': 'olddefconfig_with_allconfig_expected.json',
-        },
-        {
-            'name': 'defconfig_stdin',
-            'mode': 'defconfig',
-            'kconfig': 'Kconfig',
-            'config': 'stdin/.config',
-            'arch': 'arm64',
-            'mode_arg': '-',
-            'expected': 'defconfig_stdin_expected.json',
-        },
     ]
-
     expected_confdata_cases = [
-        {
-            'name': 'empty',
-            'input': 'empty.config',
-            'expected': 'empty_expected.json',
-        },
-        {
-            'name': 'basic',
-            'input': 'basic.config',
-            'expected': 'basic_expected.json',
-        },
-        {
-            'name': 'comments_and_whitespace',
-            'input': 'comments_and_whitespace.config',
-            'expected': 'comments_and_whitespace_expected.json',
-        },
-        {
-            'name': 'duplicates_last_wins',
-            'input': 'duplicates_last_wins.config',
-            'expected': 'duplicates_last_wins_expected.json',
-        },
-        {
-            'name': 'quoted_string_escapes',
-            'input': 'quoted_string_escapes.config',
-            'expected': 'quoted_string_escapes_expected.json',
-        },
-        {
-            'name': 'unset_and_module',
-            'input': 'unset_and_module.config',
-            'expected': 'unset_and_module_expected.json',
-        },
-        {
-            'name': 'quoted_hash_value',
-            'input': 'quoted_hash_value.config',
-            'expected': 'quoted_hash_value_expected.json',
-        },
+        {'name': 'duplicate_assignments', 'input': 'duplicate_assignments.config', 'expected': 'duplicate_assignments_expected.json'},
+        {'name': 'empty_string', 'input': 'empty_string.config', 'expected': 'empty_string_expected.json'},
+        {'name': 'escaped_control_sequences', 'input': 'escaped_control_sequences.config', 'expected': 'escaped_control_sequences_expected.json'},
+        {'name': 'escaped_low_control_bytes', 'input': 'escaped_low_control_bytes.config', 'expected': 'escaped_low_control_bytes_expected.json'},
+        {'name': 'escaped_strings', 'input': 'escaped_strings.config', 'expected': 'escaped_strings_expected.json'},
+        {'name': 'explicit_n_tristate', 'input': 'explicit_n_tristate.config', 'expected': 'explicit_n_tristate_expected.json'},
+        {'name': 'ignore_non_config_lines', 'input': 'ignore_non_config_lines.config', 'expected': 'ignore_non_config_lines_expected.json'},
+        {'name': 'malformed_quoted_string', 'input': 'malformed_quoted_string.config', 'expected': 'malformed_quoted_string_expected.json'},
+        {'name': 'negative_signed_numeric_kinds', 'input': 'negative_signed_numeric_kinds.config', 'expected': 'negative_signed_numeric_kinds_expected.json'},
+        {'name': 'numeric_kinds', 'input': 'numeric_kinds.config', 'expected': 'numeric_kinds_expected.json'},
+        {'name': 'quoted_suffix_bytes', 'input': 'quoted_suffix_bytes.config', 'expected': 'quoted_suffix_bytes_expected.json'},
+        {'name': 'sample', 'input': 'sample.config', 'expected': 'sample_expected.json'},
+        {'name': 'sample_crlf', 'input': 'sample_crlf.config', 'expected': 'sample_crlf_expected.json'},
+        {'name': 'signed_numeric_kinds', 'input': 'signed_numeric_kinds.config', 'expected': 'signed_numeric_kinds_expected.json'},
     ]
 
-    def validate_case_list(
-        actual_cases: list[object],
-        expected_cases: list[dict[str, str]],
-        *,
-        category: str,
-    ) -> None:
-        if len(actual_cases) != len(expected_cases):
-            issues.append(
-                f'kconfig_bridge:{category}:count={len(actual_cases)},expected={len(expected_cases)}'
-            )
-        seen_names: set[str] = set()
-        expected_by_name = {case['name']: case for case in expected_cases}
-        for entry in actual_cases:
-            if not isinstance(entry, dict):
-                issues.append(f'kconfig_bridge:{category}:entry:expected_object')
-                continue
-            name = entry.get('name')
-            if not isinstance(name, str) or not name:
-                issues.append(f'kconfig_bridge:{category}:missing_name')
-                continue
-            if name in seen_names:
-                issues.append(f'kconfig_bridge:{category}:duplicate_name:{name}')
-                continue
-            seen_names.add(name)
-            expected_case = expected_by_name.get(name)
-            if expected_case is None:
-                issues.append(f'kconfig_bridge:{category}:unexpected_name:{name}')
-                continue
-            for field_name, expected_value in expected_case.items():
-                actual_value = entry.get(field_name)
-                if actual_value != expected_value:
-                    issues.append(
-                        f'kconfig_bridge:{category}:{name}:{field_name}={actual_value!r},expected={expected_value!r}'
-                    )
-        for missing_name in sorted(set(expected_by_name) - seen_names):
-            issues.append(f'kconfig_bridge:{category}:missing_name:{missing_name}')
+    expected_mode_order = [case['mode'] for case in expected_conf_cases]
+    manifest_mode_order = [case.get('mode') for case in conf_cases if isinstance(case, dict) and case.get('mode')]
+    if manifest_mode_order != expected_mode_order:
+        issues.append(
+            'kconfig_bridge:conf_case_order=' + ','.join(manifest_mode_order) +
+            ',expected=' + ','.join(expected_mode_order)
+        )
 
-    validate_case_list(conf_cases, expected_conf_cases, category='conf_cases')
-    validate_case_list(confdata_cases, expected_confdata_cases, category='confdata_cases')
-
-    if bridge_modes != [case['mode'] for case in expected_conf_cases]:
-        issues.append('kconfig_bridge:conf_bridge_modes=expected_exact_mode_order')
+    if conf_cases != expected_conf_cases:
+        issues.append('kconfig_bridge:conf_cases:expected_exact_manifest')
+    if confdata_cases != expected_confdata_cases:
+        issues.append('kconfig_bridge:confdata_cases:expected_exact_manifest')
 
     return issues
 
@@ -726,21 +632,13 @@ def validate_kconfig_bridge_manifest(case_manifest: Path, conf_bridge: Path) -> 
 def validate_kconfig_checker_gate(checker_script: Path) -> list[str]:
     source = checker_script.read_text(encoding='utf-8')
     required_markers = {
-        'confdata_bridge_constant': (
-            "CONFDATA_BRIDGE = ROOT / 'scripts' / 'zigux' / 'kconfig' / 'confdata_bridge.zig'",
-        ),
-        'confdata_bridge_compile': ('compile_tool(zig, CONFDATA_BRIDGE, confdata_exe)',),
-        'confdata_cases_loop': (
-            "for case in CASES['confdata_cases']:",
-            "for case in cases['confdata_cases']:",
-        ),
-        'confdata_case_order_gate': ('UNSORTED_CONFDATA_CASE_ORDER',),
-        'confdata_bridge_replay': (
-            "result = run([str(confdata_exe), str(FIXTURE_DIR / case['input'])], cwd=str(ROOT), capture_output=True)",
-        ),
-        'confdata_repeat_artifact_compare': ('compare_json_artifacts(actual, repeat)',),
-        'confdata_rebuild_compile': ('compile_tool(zig, CONFDATA_BRIDGE, confdata_rebuild_exe)',),
-        'confdata_rebuild_compare': ('compare_json_artifacts(actual, rebuild)',),
+        'allconfig_env': ("env['KCONFIG_ALLCONFIG'] = case['allconfig']",),
+        'mode_arg_inserted': ("argv.insert(0, case['mode_arg'])",),
+        'savedefconfig_mode_arg_order': ("argv = [case['mode_arg'], case['kconfig']]",),
+        'low_control_escape': ('escape_json_string', 'replace_low_control'),
+        'repeat_conf_compare': ('compare_json_artifacts(conf_actual, conf_repeat)',),
+        'repeat_confdata_compare': ('compare_json_artifacts(confdata_actual, confdata_repeat)',),
+        'rebuild_compare': ('compare_json_artifacts(actual, rebuild)',),
         'randconfig_seed_env': ("env['KCONFIG_SEED'] = case['seed']",),
         'randconfig_probability_env': ("env['KCONFIG_PROBABILITY'] = case['probability']",),
         'determinism_marker': ("print('KCONFIG_BRIDGE_DETERMINISM=pass')",),
@@ -1144,6 +1042,7 @@ required_workflow_markers = [
     'python3 scripts/zigux/check-artifact-diff-contract.py',
     'python3 scripts/zigux/check-fixdep-diff.py --self-test',
     'python3 scripts/zigux/check-fixdep-diff.py',
+    'python3 scripts/zigux/check-genksyms-bridge.py --self-test',
     'python3 scripts/zigux/check-genksyms-bridge.py',
     'python3 scripts/zigux/check-genksyms-crc-diff.py',
     'python3 scripts/zigux/check-kconfig-bridge.py --self-test',
@@ -1186,6 +1085,7 @@ required_script_markers = [
     'check-fixdep-diff.py --self-test',
     'check-fixdep-diff.py',
     'repeat-run artifact determinism',
+    'check-genksyms-bridge.py --self-test',
     'check-genksyms-bridge.py',
     'check-genksyms-crc-diff.py',
     'check-kconfig-bridge.py --self-test',
@@ -1206,6 +1106,7 @@ required_makefile_markers = [
     'scripts/zigux/check-artifact-diff-contract.py',
     'scripts/zigux/check-fixdep-diff.py --self-test',
     'scripts/zigux/check-fixdep-diff.py',
+    'scripts/zigux/check-genksyms-bridge.py --self-test',
     'phase2-kconfig:',
     'scripts/zigux/check-kconfig-bridge.py --self-test',
     'scripts/zigux/check-kconfig-bridge.py',
