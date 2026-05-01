@@ -65,14 +65,20 @@ SCRIPT_README_MARKERS = [
     "validate-phase10.py",
     "Phase 10 flow",
     "make -C zigux phase10-validate",
-    "Phase 10 input-plus-MMIO starter packet",
+    "Phase 10 ring-plus-input-plus-MMIO lab packet",
     "phase10_build.zig",
+    "phase10_virtio_ring_manifest.json",
+    "phase10_virtio_ring_reset_reuse.zig",
     "phase10_virtio_input_manifest.json",
     "phase10_virtio_mmio_manifest.json",
+    "phase10-virtio-ring-slice.md",
     "phase10-virtio-input-slice.md",
     "phase10-virtio-input-survey.md",
+    "ring manifest-backed packet",
+    "ring reset-reuse replay",
     "blocked registration-lifecycle contract",
-    "queue-callback preflight helper is landed",
+    "queue-callback preflight helper",
+    "bounded MMIO interrupt-ack rung",
 ]
 
 FORBIDDEN_SCRIPT_README_MARKERS = [
@@ -107,7 +113,6 @@ DOC_README_MARKERS = [
     "phase10-virtio-ring-slice.md",
     "phase10-virtio-mmio-slice.md",
     "phase10-virtio-input-slice.md",
-    "phase10-virtio-input-survey.md",
     "registration-preflight helper",
     "queue-callback preflight helper",
     "registration-lifecycle blocker",
@@ -760,6 +765,23 @@ def run_self_test() -> int:
         )
         mmio_manifest_path.write_text(original_mmio_manifest, encoding="utf-8")
 
+        scripts_readme_path = tmp_root / "scripts/zigux/README.md"
+        original_scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
+        scripts_readme_path.write_text(
+            original_scripts_readme.replace(
+                "`zigux/tests/phase10_virtio_ring_manifest.json`, ",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "scripts_readme_phase10_ring_manifest_entry",
+            tmp_root,
+            "script_readme:phase10_virtio_ring_manifest.json",
+        )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
         tests_readme_path = tmp_root / "zigux/tests/README.md"
         original_tests_readme = tests_readme_path.read_text(encoding="utf-8")
         tests_readme_path.write_text(
@@ -812,7 +834,7 @@ def run_self_test() -> int:
         doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
 
     print("PHASE10_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_VALIDATOR_SELF_TEST_CASE_COUNT=10")
+    print("PHASE10_VALIDATOR_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
