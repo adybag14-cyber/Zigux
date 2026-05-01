@@ -10,6 +10,7 @@ The starter stays intentionally narrow:
 - preserves the `always-running` stop behavior so the lab model does not pretend the watchdog can be disabled when the platform contract forbids it
 - adds an explicit `summarizeTeardown()` helper so eternal-ping disable ordering, toggle-versus-level disable fallout, and `always-running` versus `nowayout` stop failure modes stay reviewable before any unregister path exists
 - reports a probe-time summary for requested GPIO line mode, `always-running` startup behavior, `nowayout`, timeout init, parent linkage, and stop-on-reboot bookkeeping before watchdog registration
+- keeps the `GPIO Watchdog` watchdog-info identity plus the bounded `WDIOF_SETTIMEOUT`, `WDIOF_MAGICCLOSE`, and `WDIOF_KEEPALIVEPING` contract explicit through a small metadata summary instead of leaving that starter surface implicit inside the later register-device packet
 - distinguishes watchdog-core `nowayout` stop blocking from the driver's own `always-running` hardware behavior so teardown-facing stop review does not blur policy gating with hardware gating
 - adds a tiny registration-facing handoff summary so the starter records what startup state, stop policy, timeout init, and reboot bookkeeping reach `devm_watchdog_register_device()` without claiming the registration call itself
 - records the first chosen registration surface and validation focus so the lane stays explicitly parked at watchdog-device metadata planning instead of overclaiming a real register-device call
