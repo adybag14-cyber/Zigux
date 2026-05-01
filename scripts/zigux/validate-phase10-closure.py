@@ -20,6 +20,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase10-virtio-ring-survey.md",
     "Documentation/zigux/phase10-virtio-input-survey.md",
     "Documentation/zigux/phase10-virtio-mmio-survey.md",
+    "scripts/zigux/check-phase10-closure-inventory.py",
     "zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
     "zigux/Makefile",
     ".github/workflows/zigux-bootstrap.yml",
@@ -48,6 +49,7 @@ CLOSURE_MARKERS = [
     "PHASE10_ROADMAP_MMIO_WRAPPERS=starter_landed",
     "PHASE10_ROADMAP_LAB_ONLY_DRIVER_VALIDATION=starter_landed",
     "PHASE10_ROADMAP_DUAL_IMPLEMENTATIONS_FOR_RISKY_AREAS=blocked_on_risky_transport",
+    "PHASE10_CLOSURE_INVENTORY_GATE=python3 scripts/zigux/check-phase10-closure-inventory.py",
     "PHASE10_CLOSURE_GATE=python3 scripts/zigux/validate-phase10-closure.py",
     "PHASE10_BUILD_GATE=zig build test --build-file zigux/tests/phase10_build.zig --summary all",
     "PHASE10_VALIDATE_ENTRYPOINT=make -C zigux phase10-validate",
@@ -99,6 +101,7 @@ LEDGER_MARKERS = [
     "PHASE10_LEDGER_STATUS=active",
     "PHASE10_LEDGER_TRANCHE=virtio-lab-bundle",
     "PHASE10_LEDGER_EVIDENCE=Documentation/zigux/phase10-closure-evidence.md",
+    "PHASE10_LEDGER_INVENTORY_VALIDATE=scripts/zigux/check-phase10-closure-inventory.py",
     "PHASE10_LEDGER_VALIDATE=scripts/zigux/validate-phase10-closure.py",
     "PHASE10_LEDGER_ROADMAP_SCOREBOARD_SOURCE=zigux/tests/phase10_closure_manifest.json",
     "PHASE10_LEDGER_SURVEY_CORE_COMMIT=bc71a85e989bb3d4f0a7d19067f4f1f47527c505",
@@ -111,17 +114,20 @@ LEDGER_MARKERS = [
     "PHASE10_LEDGER_ROADMAP_DUAL_IMPLEMENTATIONS_FOR_RISKY_AREAS=blocked_on_risky_transport",
     "PHASE10_LEDGER_MAKEFILE=zigux/Makefile",
     "PHASE10_LEDGER_WORKFLOW=.github/workflows/zigux-bootstrap.yml",
-    "PHASE10_LEDGER_EXACT_CHECK_1=python3 scripts/zigux/validate-phase10-closure.py",
-    "PHASE10_LEDGER_EXACT_CHECK_2=zig build test --build-file zigux/tests/phase10_build.zig --summary all",
-    "PHASE10_LEDGER_EXACT_CHECK_3=make -C zigux phase10-validate",
-    "PHASE10_LEDGER_EXACT_CHECK_4=make -C zigux phase10-test",
-    "PHASE10_LEDGER_EXACT_CHECK_5=make -C zigux phase10",
+    "PHASE10_LEDGER_EXACT_CHECK_1=python3 scripts/zigux/check-phase10-closure-inventory.py",
+    "PHASE10_LEDGER_EXACT_CHECK_2=python3 scripts/zigux/validate-phase10-closure.py",
+    "PHASE10_LEDGER_EXACT_CHECK_3=zig build test --build-file zigux/tests/phase10_build.zig --summary all",
+    "PHASE10_LEDGER_EXACT_CHECK_4=make -C zigux phase10-validate",
+    "PHASE10_LEDGER_EXACT_CHECK_5=make -C zigux phase10-test",
+    "PHASE10_LEDGER_EXACT_CHECK_6=make -C zigux phase10",
     "PHASE10_LEDGER_NEXT_STEP=leave_parked_unless_phase10-mmio-lifecycle-and-irq-paths_splits_smaller",
     "PHASE10_LEDGER_BLOCKERS=phase10-virtio-input-registration-lifecycle,phase10-mmio-lifecycle-and-irq-paths",
 ]
 
 MAKEFILE_MARKERS = [
     "PHONY += phase10-validate phase10-test phase10",
+    "scripts/zigux/check-phase10-closure-inventory.py --self-test",
+    "scripts/zigux/check-phase10-closure-inventory.py",
     "scripts/zigux/validate-phase10.py --self-test",
     "scripts/zigux/validate-phase10.py",
     "scripts/zigux/validate-phase10-closure.py --self-test",
@@ -396,6 +402,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
 
     exact_checks = manifest.get("exact_checks")
     expected_exact_checks = [
+        "python3 scripts/zigux/check-phase10-closure-inventory.py",
         "python3 scripts/zigux/validate-phase10-closure.py",
         "zig build test --build-file zigux/tests/phase10_build.zig --summary all",
         "make -C zigux phase10-validate",
@@ -510,6 +517,7 @@ def write_fixture(root: Path) -> None:
         },
         "ready_transport_followups": {},
         "exact_checks": [
+            "python3 scripts/zigux/check-phase10-closure-inventory.py",
             "python3 scripts/zigux/validate-phase10-closure.py",
             "zig build test --build-file zigux/tests/phase10_build.zig --summary all",
             "make -C zigux phase10-validate",
@@ -670,8 +678,39 @@ def run_self_test() -> int:
         )
         write_fixture(fixture_root)
 
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["exact_checks"] = [
+            "python3 scripts/zigux/validate-phase10-closure.py",
+            "zig build test --build-file zigux/tests/phase10_build.zig --summary all",
+            "make -C zigux phase10-validate",
+            "make -C zigux phase10-test",
+            "make -C zigux phase10",
+        ]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "exact_checks_inventory_guard",
+            fixture_root,
+            "manifest:exact_checks",
+        )
+        write_fixture(fixture_root)
+
         closure_path = fixture_root / "Documentation/zigux/phase10-closure-evidence.md"
         original_closure = closure_path.read_text(encoding="utf-8")
+        closure_path.write_text(
+            original_closure.replace(
+                "PHASE10_CLOSURE_INVENTORY_GATE=python3 scripts/zigux/check-phase10-closure-inventory.py",
+                "PHASE10_CLOSURE_INVENTORY_GATE=missing",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "closure_inventory_gate",
+            fixture_root,
+            "closure:PHASE10_CLOSURE_INVENTORY_GATE=python3 scripts/zigux/check-phase10-closure-inventory.py",
+        )
+        write_fixture(fixture_root)
+
         closure_path.write_text(
             original_closure.replace(
                 "PHASE10_ROADMAP_LAB_ONLY_DRIVER_VALIDATION=starter_landed",
@@ -738,7 +777,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=14")
+    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
