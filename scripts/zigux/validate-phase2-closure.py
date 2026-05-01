@@ -14,6 +14,7 @@ FIXDEP_CASES = FIXDEP_DIR / 'cases.json'
 CHECK_KCONFIG_BRIDGE = ROOT / 'scripts' / 'zigux' / 'check-kconfig-bridge.py'
 CHECK_FIXDEP = ROOT / 'scripts' / 'zigux' / 'check-fixdep-diff.py'
 CHECK_ARTIFACT_DIFF_CONTRACT = ROOT / 'scripts' / 'zigux' / 'check-artifact-diff-contract.py'
+CHECK_PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT = ROOT / 'scripts' / 'zigux' / 'check-phase2-genksyms-bridge-selftest-alignment.py'
 EXPECTED_TOOL_MANIFEST_TOOLS = [
     'scripts/zigux/fixdep.zig',
     'scripts/zigux/genksyms.zig',
@@ -34,6 +35,8 @@ EXACT_WORKFLOW_RUN_COUNTS = {
     'python3 scripts/zigux/check-fixdep-diff.py': 1,
     'python3 scripts/zigux/check-genksyms-bridge.py --self-test': 1,
     'python3 scripts/zigux/check-genksyms-bridge.py': 1,
+    'python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test': 1,
+    'python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py': 1,
     'python3 scripts/zigux/check-genksyms-crc-diff.py --self-test': 1,
     'python3 scripts/zigux/check-genksyms-crc-diff.py': 1,
     'python3 scripts/zigux/check-kconfig-bridge.py --self-test': 1,
@@ -42,6 +45,12 @@ EXACT_WORKFLOW_RUN_COUNTS = {
     'python3 scripts/zigux/check-phase2-cross.py --target ${{ matrix.zig_target }}': 1,
     'python3 scripts/zigux/check-mk-elfconfig-diff.py --self-test': 1,
     'python3 scripts/zigux/check-mk-elfconfig-diff.py': 1,
+}
+EXACT_MAKEFILE_RUN_COUNTS = {
+    'scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test': 1,
+    'scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py': 1,
+    'scripts/zigux/validate-phase2.py': 1,
+    'scripts/zigux/validate-phase2-closure.py': 1,
 }
 
 
@@ -529,6 +538,16 @@ def validate_exact_workflow_runs(workflow_text: str, expected_commands: dict[str
     return issues
 
 
+def validate_exact_makefile_runs(makefile_text: str, expected_commands: dict[str, int]) -> list[str]:
+    issues: list[str] = []
+    stripped_lines = [line.strip() for line in makefile_text.splitlines()]
+    for command, expected_count in expected_commands.items():
+        count = sum(1 for line in stripped_lines if line.endswith(command))
+        if count != expected_count:
+            issues.append(f'makefile_exact_run:{command}:count={count}:expected={expected_count}')
+    return issues
+
+
 required_files = [
     ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml',
     ROOT / 'Documentation' / 'zigux' / 'artifact-diff.md',
@@ -537,6 +556,7 @@ required_files = [
     ROOT / 'scripts' / 'zigux' / 'check-artifact-diff-contract.py',
     ROOT / 'scripts' / 'zigux' / 'check-fixdep-diff.py',
     ROOT / 'scripts' / 'zigux' / 'check-genksyms-bridge.py',
+    ROOT / 'scripts' / 'zigux' / 'check-phase2-genksyms-bridge-selftest-alignment.py',
     ROOT / 'scripts' / 'zigux' / 'check-genksyms-crc-diff.py',
     ROOT / 'scripts' / 'zigux' / 'check-kconfig-bridge.py',
     ROOT / 'scripts' / 'zigux' / 'check-mk-elfconfig-diff.py',
@@ -670,6 +690,8 @@ required_workflow_markers = [
     'python3 scripts/zigux/check-artifact-diff-contract.py',
     'python3 scripts/zigux/check-fixdep-diff.py',
     'python3 scripts/zigux/check-genksyms-bridge.py',
+    'python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test',
+    'python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py',
     'python3 scripts/zigux/check-genksyms-crc-diff.py',
     'python3 scripts/zigux/check-kconfig-bridge.py --self-test',
     'python3 scripts/zigux/check-kconfig-bridge.py',
@@ -729,6 +751,8 @@ required_makefile_markers = [
     'check-phase2-cross.py --self-test',
     'check-fixdep-diff.py',
     'check-genksyms-bridge.py',
+    'check-phase2-genksyms-bridge-selftest-alignment.py --self-test',
+    'check-phase2-genksyms-bridge-selftest-alignment.py',
     'check-genksyms-crc-diff.py',
     'check-kconfig-bridge.py',
     'check-mk-elfconfig-diff.py',
@@ -797,6 +821,7 @@ missing_markers.extend(validate_artifact_diff_contract_gate(CHECK_ARTIFACT_DIFF_
 missing_markers.extend(validate_mk_elfconfig_checker_gate(ROOT / 'scripts' / 'zigux' / 'check-mk-elfconfig-diff.py'))
 missing_markers.extend(fixdep_case_issues)
 missing_markers.extend(validate_exact_workflow_runs(workflow, EXACT_WORKFLOW_RUN_COUNTS))
+missing_markers.extend(validate_exact_makefile_runs(makefile, EXACT_MAKEFILE_RUN_COUNTS))
 
 if missing_markers:
     print('PHASE2_CLOSURE_VALIDATION=fail')
