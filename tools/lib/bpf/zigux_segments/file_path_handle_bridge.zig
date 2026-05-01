@@ -62,6 +62,23 @@ pub const ReusePinnedMapOpenFailurePlan = struct {
     }
 };
 
+pub const ReusePinnedMapResolutionDisposition = enum {
+    reused,
+    incompatible_map,
+    reuse_fd_failed,
+};
+
+pub const ReusePinnedMapResolution = struct {
+    disposition: ReusePinnedMapResolutionDisposition,
+    result_code: i32,
+    should_close_pin_fd: bool,
+    should_mark_map_pinned: bool,
+
+    pub fn succeeded(self: ReusePinnedMapResolution) bool {
+        return self.result_code == 0;
+    }
+};
+
 pub const TokenPreparationPlan = struct {
     disposition: TokenPreparationDisposition,
     bpffs_path: []const u8,
@@ -234,6 +251,33 @@ pub fn chooseReusedMapName(requested_name: []const u8, info_name: []const u8) []
     return info_name;
 }
 
+pub fn resolveReusePinnedMapAttempt(is_compatible: bool, reuse_fd_result: i32) ReusePinnedMapResolution {
+    if (!is_compatible) {
+        return .{
+            .disposition = .incompatible_map,
+            .result_code = -@as(i32, @intFromEnum(linux_errno.INVAL)),
+            .should_close_pin_fd = true,
+            .should_mark_map_pinned = false,
+        };
+    }
+
+    if (reuse_fd_result != 0) {
+        return .{
+            .disposition = .reuse_fd_failed,
+            .result_code = reuse_fd_result,
+            .should_close_pin_fd = true,
+            .should_mark_map_pinned = false,
+        };
+    }
+
+    return .{
+        .disposition = .reused,
+        .result_code = 0,
+        .should_close_pin_fd = true,
+        .should_mark_map_pinned = true,
+    };
+}
+
 pub fn parseMapInfoFromFdinfo(input: []const u8) FilePathHandleBridgeError!FdInfoMapInfo {
     var info = FdInfoMapInfo{
         .map_type = 0,
@@ -386,6 +430,29 @@ test "chooseReusedMapName falls back to the kernel info name when truncation rul
         "",
         chooseReusedMapName("process_pinned_map", ""),
     );
+}
+
+test "resolveReusePinnedMapAttempt keeps mismatch, reuse failure, and success ownership explicit" {
+    const incompatible = resolveReusePinnedMapAttempt(false, 0);
+    try std.testing.expectEqual(ReusePinnedMapResolutionDisposition.incompatible_map, incompatible.disposition);
+    try std.testing.expectEqual(-@as(i32, @intFromEnum(linux_errno.INVAL)), incompatible.result_code);
+    try std.testing.expect(incompatible.should_close_pin_fd);
+    try std.testing.expect(!incompatible.should_mark_map_pinned);
+    try std.testing.expect(!incompatible.succeeded());
+
+    const reuse_failed = resolveReusePinnedMapAttempt(true, -@as(i32, @intFromEnum(linux_errno.PERM)));
+    try std.testing.expectEqual(ReusePinnedMapResolutionDisposition.reuse_fd_failed, reuse_failed.disposition);
+    try std.testing.expectEqual(-@as(i32, @intFromEnum(linux_errno.PERM)), reuse_failed.result_code);
+    try std.testing.expect(reuse_failed.should_close_pin_fd);
+    try std.testing.expect(!reuse_failed.should_mark_map_pinned);
+    try std.testing.expect(!reuse_failed.succeeded());
+
+    const reused = resolveReusePinnedMapAttempt(true, 0);
+    try std.testing.expectEqual(ReusePinnedMapResolutionDisposition.reused, reused.disposition);
+    try std.testing.expectEqual(@as(i32, 0), reused.result_code);
+    try std.testing.expect(reused.should_close_pin_fd);
+    try std.testing.expect(reused.should_mark_map_pinned);
+    try std.testing.expect(reused.succeeded());
 }
 
 test "parseMapInfoFromFdinfo keeps the bounded key-value parsing behavior" {
