@@ -376,6 +376,18 @@ test "empty and boundary scans return nbits" {
     try std.testing.expectEqual(@as(usize, bits_per_long * 2), findNextZeroBit(&[_]Word{ ~@as(Word, 0), ~@as(Word, 0) }, bits_per_long * 2, bits_per_long * 2));
 }
 
+test "zero-sized scans ignore populated backing words" {
+    const lhs = [_]Word{ (@as(Word, 1) << 5) | (@as(Word, 1) << 17), ~@as(Word, 0) };
+    const rhs = [_]Word{ (@as(Word, 1) << 5), @as(Word, 1) << 1 };
+
+    try std.testing.expectEqual(@as(usize, 0), findFirstBit(&lhs, 0));
+    try std.testing.expectEqual(@as(usize, 0), findFirstAndBit(&lhs, &rhs, 0));
+    try std.testing.expectEqual(@as(usize, 0), findFirstZeroBit(&lhs, 0));
+    try std.testing.expectEqual(@as(usize, 0), findNextBit(&lhs, 0, 0));
+    try std.testing.expectEqual(@as(usize, 0), findNextAndBit(&lhs, &rhs, 0, bits_per_long));
+    try std.testing.expectEqual(@as(usize, 0), findNextZeroBit(&lhs, 0, 1));
+}
+
 test "find underscore aliases preserve scan semantics" {
     const nbits = bits_per_long + 5;
     const lhs = [_]Word{ (@as(Word, 1) << 2) | (@as(Word, 1) << 7), (@as(Word, 1) << 1) | (@as(Word, 1) << 8) };
