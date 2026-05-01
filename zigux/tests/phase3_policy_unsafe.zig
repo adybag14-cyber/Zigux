@@ -128,6 +128,32 @@ test "phase3 policy decoder rejects partial or reserved policy bytes" {
     }));
 }
 
+test "phase3 policy encoder keeps a canonical interop record" {
+    const encoded = interop_policy.encode(.warn, .arena, .raw_pointer_bridge);
+    try std.testing.expectEqual(@as(u8, @intFromEnum(abi.PanicMode.warn)), encoded.panic_mode);
+    try std.testing.expectEqual(@as(u8, @intFromEnum(abi.AllocatorMode.arena)), encoded.allocator_mode);
+    try std.testing.expectEqual(@as(u8, @intFromEnum(abi.UnsafeScope.raw_pointer_bridge)), encoded.unsafe_scope);
+    try std.testing.expectEqual(@as(u8, 0), encoded.reserved);
+
+    const decoded = try interop_policy.decode(encoded);
+    try std.testing.expect(decoded.canReturn());
+    try std.testing.expect(decoded.permitsGlobalFallback());
+    try std.testing.expect(decoded.initializesOwnedState());
+    try std.testing.expect(decoded.requiresResetOnInit());
+    try std.testing.expect(decoded.permitsRawPointerBridge());
+    try std.testing.expect(!decoded.permitsVolatileMmio());
+}
+
+test "phase3 policy init helper round trips through decode without widening scope" {
+    const decoded = interop_policy.init(.abort, .caller_provided, .none);
+    const encoded = decoded.toInteropPolicy();
+    const round_trip = try interop_policy.decode(encoded);
+    try std.testing.expectEqual(decoded.panic_mode, round_trip.panic_mode);
+    try std.testing.expectEqual(decoded.allocator_mode, round_trip.allocator_mode);
+    try std.testing.expectEqual(decoded.unsafe_scope, round_trip.unsafe_scope);
+    try std.testing.expectEqual(@as(u8, @intFromEnum(abi.UnsafeScope.none)), encoded.unsafe_scope);
+}
+
 test "phase3 narrow unsafe helpers stay explicit" {
     try std.testing.expectEqual(@intFromEnum(abi.UnsafeScope.none), @intFromEnum(narrow.UnsafeScopeTag.none));
     try std.testing.expectEqual(@intFromEnum(abi.UnsafeScope.volatile_mmio), @intFromEnum(narrow.UnsafeScopeTag.volatile_mmio));
