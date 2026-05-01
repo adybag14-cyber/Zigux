@@ -553,6 +553,16 @@ def run_self_test() -> int:
         write_fixture(fixture_root)
 
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["blocked_transport_gaps"]["zigux/tests/phase10_virtio_mmio_manifest.json"] = "phase10-mmio-config-write-helper"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "parked_mmio_blocker_guard",
+            fixture_root,
+            "manifest:blocked_transport_gaps",
+        )
+        write_fixture(fixture_root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["survey_provenance"]["surveyed_commits"]["mmio"] = "deadbeef"
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         expect_missing_marker(
@@ -630,7 +640,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=9")
+    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
