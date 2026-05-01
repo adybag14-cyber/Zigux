@@ -34,6 +34,7 @@ pub const ModuleDescriptor = struct {
     provides_add_rule_planning: bool,
     provides_ruleset_fd_planning: bool,
     provides_ruleset_fd_creation_planning: bool,
+    provides_ruleset_fops_planning: bool,
     provides_path_fd_planning: bool,
     provides_path_beneath_handoff_planning: bool,
     provides_net_port_handoff_planning: bool,
@@ -209,6 +210,22 @@ pub const CreateRulesetFdPlan = struct {
     releases_ruleset_on_fd_failure: bool,
 };
 
+pub const RulesetFopsOperation = enum {
+    release,
+    read,
+    write,
+};
+
+pub const RulesetFopsPlan = struct {
+    anchor: []const u8,
+    operation: RulesetFopsOperation,
+    enables_mode: u32,
+    drops_ruleset_reference: bool,
+    returns_zero: bool,
+    returns_einval: bool,
+    mutates_ruleset_state: bool,
+};
+
 pub const PathFdRequest = struct {
     fd_present: bool = true,
     is_ruleset_fd: bool = false,
@@ -268,6 +285,7 @@ pub const SyscallsHelperLab = struct {
             .provides_add_rule_planning = true,
             .provides_ruleset_fd_planning = true,
             .provides_ruleset_fd_creation_planning = true,
+            .provides_ruleset_fops_planning = true,
             .provides_path_fd_planning = true,
             .provides_path_beneath_handoff_planning = true,
             .provides_net_port_handoff_planning = true,
@@ -531,6 +549,38 @@ pub const SyscallsHelperLab = struct {
             .installs_dummy_write_handler = true,
             .transfers_ruleset_to_fd_on_success = true,
             .releases_ruleset_on_fd_failure = true,
+        };
+    }
+
+    pub fn planRulesetFops(operation: RulesetFopsOperation) RulesetFopsPlan {
+        return switch (operation) {
+            .release => .{
+                .anchor = descriptor().anchor,
+                .operation = .release,
+                .enables_mode = 0,
+                .drops_ruleset_reference = true,
+                .returns_zero = true,
+                .returns_einval = false,
+                .mutates_ruleset_state = false,
+            },
+            .read => .{
+                .anchor = descriptor().anchor,
+                .operation = .read,
+                .enables_mode = fmode_can_read,
+                .drops_ruleset_reference = false,
+                .returns_zero = false,
+                .returns_einval = true,
+                .mutates_ruleset_state = false,
+            },
+            .write => .{
+                .anchor = descriptor().anchor,
+                .operation = .write,
+                .enables_mode = fmode_can_write,
+                .drops_ruleset_reference = false,
+                .returns_zero = false,
+                .returns_einval = true,
+                .mutates_ruleset_state = false,
+            },
         };
     }
 
