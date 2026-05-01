@@ -48,7 +48,7 @@ The sample intentionally stays small:
 - it models only the bounded array payload, selected string, public selected-string slot and payload-length cues, public main-path and callback-path iteration cues, `iter=%d` message, `0xdeadbeef` bitmask word, conditional-family coverage, and one single-live register-then-unregister callback idiom in memory
 - it now makes the replay summary itself carry explicit `vararg_payload_path_checked`, `relative_location_path_checked`, and `function_callback_path_checked` flags so reviewers do not have to infer those paths from private sample state
 - it now exposes `lifecycleSummary()` so the public review surface can read stage plus init, replay, and exit counts, registration depth, and total event calls without private field access
-- it uses a tiny `init()` -> `replayMainIteration()` -> `registerFunctionCallback()` -> `replayFunctionIteration()` -> `unregisterFunctionCallback()` -> `exit()` lifecycle so ownership and teardown stay explicit
+- it uses a tiny `init()` -> `replayMainIteration()` -> `registerFunctionCallback()` -> `replayFunctionIteration()` -> `unregisterFunctionCallback()` -> `exit()` lifecycle so ownership and teardown stay explicit, including unregister-underflow rejection before a callback is armed and `OutstandingRegistration` rejection if `exit()` is attempted while one callback is still live
 - it provides one bounded self-check through `runAnchorReplay()` instead of implying a runtime-ready trace-events module
 
 The exact checks currently recorded in `zigux/tests/phase5_trace_events_sample_manifest.json` and exercised through `zigux/tests/phase5_build.zig` are:
@@ -65,6 +65,7 @@ The exact checks currently recorded in `zigux/tests/phase5_trace_events_sample_m
 - the replay summary keeps the exact `checked_focus` order `payload_shape`, `string_selection`, `formatted_message`, `conditional_event_families`, `function_callback_registration`, and `ownership_and_lifetime` so the approved review surface stays visible without reading private sample state
 - the function-callback replay requires registration first, marks that callback path as checked, and restores the registration balance to zero before the sample completes
 - the in-memory callback lane rejects a second `registerFunctionCallback()` call while already registered so the Phase 5 sample keeps one live callback registration before balance returns to zero
+- before balance returns to zero, the same ownership lane also rejects `unregisterFunctionCallback()` underflow before registration and rejects `exit()` with `OutstandingRegistration` while a callback remains armed
 - after `exit()` the sample rejects later `replayMainIteration()`, `registerFunctionCallback()`, `replayFunctionIteration()`, and `unregisterFunctionCallback()` calls
 
 ## Latest verification snapshot
@@ -101,6 +102,7 @@ When a contributor updates `samples/zigux/trace_events_sample.zig` or its direct
 - do the sample self-check and `zigux/tests/phase5_trace_events_sample.zig` still assert the exact `checked_focus` list and order instead of only its length?
 - does the in-memory replay still keep the array payload, selected string, selected-string slot, payload length, and `iter=%d` message reviewable instead of hiding them behind runtime thread state?
 - does function-callback replay stay a single-live register-then-unregister idiom, including rejection of a second `registerFunctionCallback()` call while one callback is already registered, rather than implying `kthread_run()`, thread scheduling, or tracepoint enablement parity?
+- before callback balance returns to zero, does the sample still reject `unregisterFunctionCallback()` underflow and reject `exit()` with `OutstandingRegistration` while a callback remains armed, so the ownership boundary is explicit before teardown?
 - after `exit()`, do `replayMainIteration()`, `registerFunctionCallback()`, `replayFunctionIteration()`, and `unregisterFunctionCallback()` all stay rejected so the teardown boundary is fully reviewable instead of only partially implied?
 - do the sample-backed survey note, `samples/zigux/README.md`, and `Documentation/zigux/review-checklist.md` still point reviewers back to the descriptor, manifest-backed survey, sample-backed survey note, shared sample-root catalog, and shared `phase5_build.zig` entrypoint for this exact replay contract?
 - if the sample behavior changes, is the manifest updated alongside the replay contract instead of leaving reviewers to infer the new boundary from code alone?
