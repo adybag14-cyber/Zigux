@@ -17,10 +17,12 @@ MAKEFILE_MARKERS = [
     "phase9-validate:",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase9.py --self-test\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-validation-flow.py --self-test\n",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-loader-substrate-plan.py --self-test\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-loader-non-owner-boundary.py --self-test\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase9.py\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-validation-flow.py\n",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-loader-substrate-plan.py\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-loader-non-owner-boundary.py\n",
     "phase9: phase9-validate phase9-test",
@@ -37,10 +39,12 @@ WORKFLOW_MARKERS = [
 SURVEY_MARKERS = [
     "- `python3 scripts/zigux/validate-phase9.py --self-test`\n",
     "- `python3 scripts/zigux/check-phase9-validation-flow.py --self-test`\n",
+    "- `python3 scripts/zigux/check-phase9-loader-substrate-plan.py --self-test`\n",
     "- `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test`\n",
     "- `python3 scripts/zigux/check-phase9-loader-non-owner-boundary.py --self-test`\n",
     "- `python3 scripts/zigux/validate-phase9.py`\n",
     "- `python3 scripts/zigux/check-phase9-validation-flow.py`\n",
+    "- `python3 scripts/zigux/check-phase9-loader-substrate-plan.py`\n",
     "- `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py`\n",
     "- `python3 scripts/zigux/check-phase9-loader-non-owner-boundary.py`\n",
     "- `make -C zigux phase9-validate`\n",
@@ -85,10 +89,12 @@ def write_fixture_tree(root: Path) -> None:
                 "phase9-validate:",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase9.py --self-test",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-validation-flow.py --self-test",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-loader-substrate-plan.py --self-test",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-loader-non-owner-boundary.py --self-test",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase9.py",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-validation-flow.py",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-loader-substrate-plan.py",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-loader-non-owner-boundary.py",
                 "",
@@ -130,12 +136,14 @@ def write_fixture_tree(root: Path) -> None:
                 "",
                 "2. run the shared Phase 9 validation-flow self-test and the dedicated runtime-loader packet self-tests",
                 "- `python3 scripts/zigux/check-phase9-validation-flow.py --self-test`",
+                "- `python3 scripts/zigux/check-phase9-loader-substrate-plan.py --self-test`",
                 "- `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test`",
                 "- `python3 scripts/zigux/check-phase9-loader-non-owner-boundary.py --self-test`",
                 "",
                 "3. run the release-discipline validator and the dedicated runtime-loader packet checks",
                 "- `python3 scripts/zigux/validate-phase9.py`",
                 "- `python3 scripts/zigux/check-phase9-validation-flow.py`",
+                "- `python3 scripts/zigux/check-phase9-loader-substrate-plan.py`",
                 "- `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py`",
                 "- `python3 scripts/zigux/check-phase9-loader-non-owner-boundary.py`",
                 "",
@@ -194,16 +202,16 @@ def run_self_test() -> int:
         original_survey = survey_path.read_text(encoding="utf-8")
         survey_path.write_text(
             original_survey.replace(
-                "- `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py`\n",
+                "- `python3 scripts/zigux/check-phase9-loader-substrate-plan.py`\n",
                 "",
                 1,
             ),
             encoding="utf-8",
         )
         expect_missing_marker(
-            "survey_loader_commit_gate",
+            "survey_loader_substrate_gate",
             tmp_root,
-            "survey:- `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py`\n",
+            "survey:- `python3 scripts/zigux/check-phase9-loader-substrate-plan.py`\n",
         )
         survey_path.write_text(original_survey, encoding="utf-8")
 
@@ -237,9 +245,39 @@ def run_self_test() -> int:
             tmp_root,
             "survey:- `python3 scripts/zigux/check-phase9-loader-non-owner-boundary.py --self-test`\n",
         )
+        survey_path.write_text(original_survey, encoding="utf-8")
+
+        makefile_path.write_text(
+            original_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-loader-substrate-plan.py --self-test\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "makefile_loader_substrate_self_test_hook",
+            tmp_root,
+            "makefile:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-loader-substrate-plan.py --self-test\n",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        survey_path.write_text(
+            original_survey.replace(
+                "- `python3 scripts/zigux/check-phase9-loader-substrate-plan.py --self-test`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "survey_loader_substrate_self_test_gate",
+            tmp_root,
+            "survey:- `python3 scripts/zigux/check-phase9-loader-substrate-plan.py --self-test`\n",
+        )
 
     print("PHASE9_VALIDATION_FLOW_SELF_TEST=pass")
-    print("PHASE9_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=4")
+    print("PHASE9_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
@@ -273,7 +311,9 @@ def main() -> int:
         return 1
 
     print("PHASE9_VALIDATION_FLOW=pass")
-    print(f"PHASE9_VALIDATION_FLOW_MARKER_COUNT={len(MAKEFILE_MARKERS) + len(WORKFLOW_MARKERS) + len(SURVEY_MARKERS)}")
+    print(
+        f"PHASE9_VALIDATION_FLOW_MARKER_COUNT={len(MAKEFILE_MARKERS) + len(WORKFLOW_MARKERS) + len(SURVEY_MARKERS)}"
+    )
     return 0
 
 
