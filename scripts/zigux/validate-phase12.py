@@ -318,6 +318,14 @@ MANIFEST_SPECS = {
             "current_focused_survey_command: `zig test zigux/tests/phase12_virtio_scsi_survey.zig`",
             "current_focused_survey_result: `",
         ],
+        "raw_fallback_latest_recheck_markers": [
+            "## Latest repo-head recheck",
+            "This section preserves the last connector-era `master` comparison that was intentionally written back into this archival packet.",
+            "- rechecked_public_master_head: `",
+            "- verification_method: connector-backed current-`master` reads of ",
+            "- observed_behavior: current `master` still keeps this lane's degraded-readback contract archival rather than live-head truth;",
+            "- replay_limit: this runtime could not clone the repository directly (`CONNECT tunnel failed, response 403`), so this recheck records exact live file-state evidence rather than a fresh local rerun of `python3 scripts/zigux/validate-phase12.py` or `zig test zigux/tests/phase12_virtio_scsi_survey.zig`.",
+        ],
         "raw_fallback_rollback_markers": [
             "## Rollback And Reversible Delivery",
             "owner: `Storage Driver Lane`",
@@ -686,6 +694,8 @@ for manifest_name, spec in MANIFEST_SPECS.items():
             expect_catalog_marker(catalog_text, str(marker), f"{manifest_name}:raw_fallback_rollback:{marker}", missing)
         for marker in spec.get("raw_fallback_current_markers", []):
             expect_catalog_marker(catalog_text, str(marker), f"{manifest_name}:raw_fallback_current:{marker}", missing)
+        for marker in spec.get("raw_fallback_latest_recheck_markers", []):
+            expect_catalog_marker(catalog_text, str(marker), f"{manifest_name}:raw_fallback_latest_recheck:{marker}", missing)
 
 expect_libbpf_snapshot_fixture(
     phase12_libbpf_snapshot_fixture,
