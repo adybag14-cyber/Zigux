@@ -124,6 +124,8 @@ pub const TeardownSummary = struct {
     hw_algo: HardwareAlgorithm,
     always_running: bool,
     nowayout: bool,
+    running_before_teardown: bool,
+    teardown_skipped_without_running: bool,
     stop_allowed_by_watchdog_core: bool,
     driver_stop_invoked: bool,
     disable_requested: bool,
@@ -415,7 +417,26 @@ pub const GpioWatchdogLab = struct {
 
     pub fn summarizeTeardown(self: *Self, nowayout: bool) !TeardownSummary {
         if (!self.running) {
-            _ = try self.start();
+            const idle = self.runtimeSnapshot();
+            return .{
+                .anchor = descriptor().anchor,
+                .hw_algo = self.hw_algo,
+                .always_running = self.always_running,
+                .nowayout = nowayout,
+                .running_before_teardown = false,
+                .teardown_skipped_without_running = true,
+                .stop_allowed_by_watchdog_core = false,
+                .driver_stop_invoked = false,
+                .disable_requested = false,
+                .disable_performs_eternal_ping = false,
+                .disable_returns_toggle_line_to_input = false,
+                .disable_keeps_level_line_output = false,
+                .stop_keeps_running_for_always_running = false,
+                .final_running = idle.running,
+                .final_line_state = idle.line_state,
+                .final_line_is_output = idle.line_is_output,
+                .disable_count = idle.disable_count,
+            };
         }
 
         const stop_summary = self.requestStop(nowayout);
@@ -426,6 +447,8 @@ pub const GpioWatchdogLab = struct {
             .hw_algo = self.hw_algo,
             .always_running = self.always_running,
             .nowayout = nowayout,
+            .running_before_teardown = true,
+            .teardown_skipped_without_running = false,
             .stop_allowed_by_watchdog_core = stop_summary.stop_allowed_by_watchdog_core,
             .driver_stop_invoked = stop_summary.driver_stop_invoked,
             .disable_requested = disable_requested,
