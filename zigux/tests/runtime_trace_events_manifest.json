@@ -1,7 +1,7 @@
 {
   "lane_key": "P9-L12",
   "phase": "Phase 9",
-  "surveyed_commit": "5479b799a33cb071c449ff6cb4345ac8f4a3186f",
+  "surveyed_commit": "17ebcd4ca4ab5c9cf126042ab8997b2de79a7c66",
   "anchor": "samples/trace_events/trace-events-sample.c",
   "roadmap_destinations": [
     "zigux/tests/runtime_*",
@@ -22,7 +22,7 @@
   },
   "review_prompts": [
     "the review packet still keeps the Linux anchor, shipped selftest hook, bounded diagnostics-summary surface, and loader-free blocker explicit instead of implying a live trace-events loader or ring-buffer parity",
-    "the manifest, survey gate, module gate, diff gate, survey note still agree on lifecycle stage, registration balance, explicit main-thread and function-thread event totals, replay run counters, payload-summary visibility, and the frozen runtime-substrate boundary",
+    "the manifest, survey gate, module gate, diff gate, and survey note still agree on lifecycle stage, registration balance, explicit foo_bar_reg and foo_bar_unreg labels, explicit main-thread and function-thread event totals, replay run counters, count-gated conditional replay, payload-summary visibility, and the frozen runtime-substrate boundary",
     "the manifest-backed delivery catalog and ownership map still keep the sample, module gate, diff gate, survey gate, shared build entrypoint, survey note, module-slice note, and freeze-map boundary in one reviewable packet",
     "the packet keeps `samples/trace_events/trace-events-sample.h` visible as a header-side macro boundary, records its current surveyed size, and does not turn that survey evidence into a generated tracepoint macro parity claim",
     "the lane still treats `Documentation/zigux/freeze-map.md` as authoritative for the study-only `kernel/trace/ring_buffer.c` boundary and carries no Architecture Council status-change request or parity scorecard claim",
@@ -146,12 +146,12 @@
     {
       "id": "function-callback-balance",
       "kind": "registration_contract",
-      "expected": "registerFunctionThread, emitFunctionIteration, and unregisterFunctionThread keep registration depth, function-callback labels, underflow protection, and callback replay visibility explicit without claiming scheduler-backed thread parity"
+      "expected": "registerFunctionThread, emitFunctionIteration, and unregisterFunctionThread keep registration depth, explicit foo_bar_reg and foo_bar_unreg labels, underflow protection, and callback replay visibility explicit without claiming scheduler-backed thread parity"
     },
     {
       "id": "selftest-family-order",
       "kind": "selftest_contract",
-      "expected": "runSelftest returns five event families in order: foo_bar, template, conditional, relative_location, and function_callback while keeping the 6 main-thread, 2 function-thread, and 8 total-event replay counts explicit"
+      "expected": "runSelftest returns five event families in order: foo_bar, template, conditional, relative_location, and function_callback while keeping both the cold selftest 6 main-thread, 2 function-thread, and 8 total-event replay counts plus the mixed replay 10 main-thread, 4 function-thread, and 14 total-event counts explicit after direct pilot activity"
     },
     {
       "id": "failed-exit-rollback",
