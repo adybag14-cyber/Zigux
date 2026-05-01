@@ -5,8 +5,8 @@ This document tracks the bounded `drivers/virtio/virtio_mmio.c` lab helper under
 ## Status
 
 - `PHASE10_STATUS=active`
-- `PHASE10_SLICE=virtio-mmio-config-write-helper`
-- scope: bounded MMIO register offsets, device-feature page selection, driver-feature page writes, queue-select and queue-size planning, queue-ready bookkeeping, queue-notify snapshots, version-scoped queue-address planning, read-only config-window snapshots, in-memory config-write planning, status and reset bookkeeping, config-generation tracking, interrupt-status acknowledge bookkeeping, dedicated Phase 10 MMIO tests, and a slice note only
+- `PHASE10_SLICE=virtio-mmio-interrupt-summary-helper`
+- scope: bounded MMIO register offsets, device-feature page selection, driver-feature page writes, queue-select and queue-size planning, queue-ready bookkeeping, queue-notify snapshots, version-scoped queue-address planning, read-only config-window snapshots, in-memory config-write planning, bounded interrupt-state summaries, status and reset bookkeeping, config-generation tracking, interrupt-status acknowledge bookkeeping, dedicated Phase 10 MMIO tests, and a slice note only
 - product boundary:
   - `drivers/virtio/virtio_mmio.zig`
   - `zigux/tests/phase10_virtio_mmio.zig`
@@ -17,7 +17,7 @@ This document tracks the bounded `drivers/virtio/virtio_mmio.c` lab helper under
 
 The Phase 10 roadmap names `drivers/virtio/virtio_mmio.c` as a primary transport anchor, but it also says to prove virtqueue wrappers before widening into MMIO or other risky transport work.
 
-The live repo now has the virtio core, ring, and input lab footholds plus the earlier MMIO survey lane. This slice now records the next honest follow-on after the config-window helper: an in-memory config-write planning helper that keeps previous and planned byte, halfword, and word values reviewable against the current config-generation without pretending to own full config-space parity, queue setup, shared interrupt delivery, probe and remove lifecycle, or DMA-facing transport work.
+The live repo now has the virtio core, ring, and input lab footholds plus the earlier MMIO survey lane. This slice now records the next honest follow-on after the config-write helper: a bounded interrupt-state summary that keeps the reviewable queue and config interrupt bits plus reset-local cleanup explicit in memory without pretending to own shared IRQ delivery, queue setup, probe and remove lifecycle, or DMA-facing transport work.
 
 ## Landed starter surface
 
@@ -32,8 +32,9 @@ The live repo now has the virtio core, ring, and input lab footholds plus the ea
 - version-scoped queue-address planning that records either legacy guest-page-size, queue-align, and queue-PFN values or modern DESC, AVAIL, and USED addresses while the queue is configured but not yet ready
 - read-only config-window snapshots that return a bounded byte, halfword, or word from a tiny in-memory config window together with the current config-generation
 - in-memory config-write planning that records previous and planned byte, halfword, and word values for bounded config-window updates without claiming device-side application
+- bounded interrupt-state summaries that record whether queue and config interrupt bits are pending, whether the line would still read asserted, and which bits remain after explicit acknowledgements
 - explicit status writes that reject reset-through-the-wrong-path and keep reset on its own helper branch
-- dedicated reset bookkeeping that clears in-memory queue size, queue ready state, queue notify counts, and queue-address planning state without claiming queue teardown parity
+- dedicated reset bookkeeping that clears in-memory queue size, queue ready state, queue notify counts, queue-address planning state, and pending bounded interrupt bits without claiming queue teardown or IRQ-delivery parity
 - in-memory config-generation snapshots and increment bookkeeping
 - interrupt-status bookkeeping plus bounded interrupt acknowledge behavior for the reviewable queue and config interrupt bits only
 - dedicated Phase 10 tests and build wiring for the helper
@@ -47,6 +48,7 @@ This slice does not yet claim:
 - full queue-address programming side effects across legacy PFN or modern DESC, AVAIL, and USED windows
 - full config-space write parity or device-side application through `VIRTIO_MMIO_CONFIG`
 - full config-field parity across the broader transport surface
+- shared IRQ delivery, interrupt-handler parity, or transport-backed interrupt masking
 - probe, remove, freeze, restore, or command-line device creation parity
 - DMA-facing virtqueue setup, teardown, or interrupt delivery
 
@@ -60,4 +62,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Leave the MMIO lane parked unless a future inspection can split `phase10-mmio-lifecycle-and-irq-paths` into a smaller transport-safe observation helper without claiming queue setup, IRQ delivery, probe, or remove parity.
+Leave the MMIO lane parked unless a future inspection can split the remaining `phase10-mmio-lifecycle-and-irq-paths` blocker into another transport-safe observation helper beyond this interrupt-state summary, without claiming queue setup, shared IRQ delivery, probe, or remove parity.
