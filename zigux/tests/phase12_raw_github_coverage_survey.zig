@@ -1,0 +1,113 @@
+const std = @import("std");
+
+const Anchor = struct {
+    id: []const u8,
+    anchor: []const u8,
+    roadmap_destination: []const u8,
+    survey_note_path: []const u8,
+    public_read_status: []const u8,
+    raw_fallback_catalog_path: []const u8,
+};
+
+const Manifest = struct {
+    lane_key: []const u8,
+    phase: []const u8,
+    scope: []const u8,
+    public_read_boundary: []const u8,
+    last_replayed_public_head: []const u8,
+    roadmap_anchor_count: usize,
+    commit_pinned_raw_fallback_catalog_count: usize,
+    shared_tree_only_anchor_count: usize,
+    anchors: []const Anchor,
+};
+
+test "phase12 raw GitHub coverage survey keeps the roadmap-wide public-read split explicit" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase12_raw_github_coverage_manifest.json",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(manifest_json);
+
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase12-raw-github-coverage-survey.md",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    const raw_fallback_catalog = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(raw_fallback_catalog);
+
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    defer parsed.deinit();
+
+    const manifest = parsed.value;
+    try std.testing.expectEqualStrings("P12-L07", manifest.lane_key);
+    try std.testing.expectEqualStrings("Phase 12", manifest.phase);
+    try std.testing.expectEqualStrings(
+        "raw GitHub fallback catalog survey public-read coverage gaps vs roadmap",
+        manifest.scope,
+    );
+    try std.testing.expectEqualStrings(
+        "read_only_public_github_tree_and_raw_paths_only",
+        manifest.public_read_boundary,
+    );
+    try std.testing.expectEqualStrings(
+        "a8daee106057a542aa03f2983662bec7c06584bb",
+        manifest.last_replayed_public_head,
+    );
+    try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_anchor_count);
+    try std.testing.expectEqual(@as(usize, 1), manifest.commit_pinned_raw_fallback_catalog_count);
+    try std.testing.expectEqual(@as(usize, 3), manifest.shared_tree_only_anchor_count);
+    try std.testing.expectEqual(@as(usize, 4), manifest.anchors.len);
+
+    var shared_tree_only_count: usize = 0;
+    var commit_pinned_count: usize = 0;
+    var saw_virtio_scsi = false;
+    for (manifest.anchors) |anchor| {
+        if (std.mem.eql(u8, anchor.public_read_status, "shared_tree_only")) {
+            shared_tree_only_count += 1;
+            try std.testing.expectEqual(@as(usize, 0), anchor.raw_fallback_catalog_path.len);
+        } else if (std.mem.eql(u8, anchor.public_read_status, "commit_pinned_raw_catalog")) {
+            commit_pinned_count += 1;
+            try std.testing.expect(std.mem.indexOf(u8, anchor.raw_fallback_catalog_path, "virtio-scsi-raw-github-fallback-catalog.md") != null);
+        } else {
+            return error.UnexpectedStatus;
+        }
+
+        if (std.mem.eql(u8, anchor.id, "virtio_scsi")) {
+            saw_virtio_scsi = true;
+            try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", anchor.anchor);
+        }
+    }
+
+    try std.testing.expectEqual(@as(usize, 3), shared_tree_only_count);
+    try std.testing.expectEqual(@as(usize, 1), commit_pinned_count);
+    try std.testing.expect(saw_virtio_scsi);
+
+    for ([_][]const u8{
+        "drivers/net/virtio_net.c",
+        "drivers/nvme/host/pci.c",
+        "drivers/scsi/virtio_scsi.c",
+        "tools/lib/bpf/libbpf.c",
+        "one anchor keeps a commit-pinned raw fallback catalog",
+        "three anchors remain shared-tree-only fallback reads",
+        "a8daee106057a542aa03f2983662bec7c06584bb",
+        "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md",
+    }) |marker| {
+        try std.testing.expect(std.mem.indexOf(u8, survey_note, marker) != null);
+    }
+
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md") != null);
+}
