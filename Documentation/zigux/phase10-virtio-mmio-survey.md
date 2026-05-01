@@ -65,16 +65,16 @@ This survey slice does not yet claim:
 
 ## Gates
 
-1. run the dedicated Phase 10 build
-- `zig build test --build-file zigux/tests/phase10_build.zig`
-
-2. run the convenience target
-- `make -C zigux phase10`
-
-3. run the dedicated validation guards
+1. run the dedicated validation guards
 - `python3 scripts/zigux/validate-phase10.py`
 - `python3 scripts/zigux/validate-phase10-closure.py`
 - `make -C zigux phase10-validate`
+
+2. run the dedicated Phase 10 build
+- `zig build test --build-file zigux/tests/phase10_build.zig`
+
+3. run the convenience target
+- `make -C zigux phase10`
 
 ## Next bounded step
 
