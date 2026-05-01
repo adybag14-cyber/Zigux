@@ -78,6 +78,20 @@ fn findNthSet(map: []const Word, nbits: usize, nth: usize) usize {
     return nbits;
 }
 
+test "bitmap diff gate records exact starting printlist anchors" {
+    var map = [_]Word{0} ** word_count;
+
+    bitmap.fill(&map, bitmap_nbits);
+    // test_zero_clear starts from a known all-bits-set state in both truncated and full-width views
+    try expectPrintedList(&map, 23, "0-22");
+    try expectPrintedList(&map, bitmap_nbits, "0-1023");
+
+    bitmap.zero(&map, bitmap_nbits);
+    // test_fill_set starts from a known empty state in both truncated and full-width views
+    try expectPrintedList(&map, 23, "");
+    try expectPrintedList(&map, bitmap_nbits, "");
+}
+
 test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
     var map = [_]Word{0} ** word_count;
 
