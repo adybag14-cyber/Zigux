@@ -19,6 +19,29 @@ pub const ParsedSymbol = struct {
 
 pub const ProcessSymbolFn = *const fn (?*anyopaque, [:0]const u8, u8, u64) i32;
 
+const ProcessSymbolCallbackState = struct {
+    context: ?*anyopaque,
+    process_symbol: ProcessSymbolFn,
+    result: i32 = 0,
+
+    fn process(self: *@This(), symbol: ParsedSymbol) anyerror!void {
+        var name_buffer: [KSYM_NAME_LEN + 1:0]u8 = undefined;
+        @memcpy(name_buffer[0..symbol.name.len], symbol.name);
+        name_buffer[symbol.name.len] = 0;
+
+        const callback_result = self.process_symbol(
+            self.context,
+            name_buffer[0..symbol.name.len :0],
+            symbol.symbol_type,
+            symbol.start,
+        );
+        if (callback_result != 0) {
+            self.result = callback_result;
+            return error.StopParsing;
+        }
+    }
+};
+
 pub fn kallsyms2ElfBinding(symbol_type: u8) u8 {
     if (symbol_type == 'W') {
         return elf_stb_weak;
@@ -238,35 +261,38 @@ pub fn kallsymsParseContents(
     context: ?*anyopaque,
     process_symbol: ProcessSymbolFn,
 ) !i32 {
-    const CallbackState = struct {
-        context: ?*anyopaque,
-        process_symbol: ProcessSymbolFn,
-        result: i32 = 0,
-
-        fn process(self: *@This(), symbol: ParsedSymbol) anyerror!void {
-            var name_buffer: [KSYM_NAME_LEN + 1:0]u8 = undefined;
-            @memcpy(name_buffer[0..symbol.name.len], symbol.name);
-            name_buffer[symbol.name.len] = 0;
-
-            const callback_result = self.process_symbol(
-                self.context,
-                name_buffer[0..symbol.name.len :0],
-                symbol.symbol_type,
-                symbol.start,
-            );
-            if (callback_result != 0) {
-                self.result = callback_result;
-                return error.StopParsing;
-            }
-        }
-    };
-
-    var callback_state = CallbackState{
+    var callback_state = ProcessSymbolCallbackState{
         .context = context,
         .process_symbol = process_symbol,
     };
 
-    forEachParsedLine(contents, &callback_state, CallbackState.process) catch |err| switch (err) {
+    forEachParsedLine(contents, &callback_state, ProcessSymbolCallbackState.process) catch |err| switch (err) {
+        error.StopParsing => return callback_state.result,
+        else => return err,
+    };
+
+    return callback_state.result;
+}
+
+pub fn kallsymsParseReader(
+    allocator: std.mem.Allocator,
+    reader: anytype,
+    scratch_buffer: []u8,
+    context: ?*anyopaque,
+    process_symbol: ProcessSymbolFn,
+) !i32 {
+    var callback_state = ProcessSymbolCallbackState{
+        .context = context,
+        .process_symbol = process_symbol,
+    };
+
+    forEachParsedReader(
+        allocator,
+        reader,
+        scratch_buffer,
+        &callback_state,
+        ProcessSymbolCallbackState.process,
+    ) catch |err| switch (err) {
         error.StopParsing => return callback_state.result,
         else => return err,
     };
@@ -282,31 +308,8 @@ pub fn kallsymsParseInDir(
     context: ?*anyopaque,
     process_symbol: ProcessSymbolFn,
 ) !i32 {
-    const CallbackState = struct {
-        context: ?*anyopaque,
-        process_symbol: ProcessSymbolFn,
-        result: i32 = 0,
-
-        fn process(self: *@This(), symbol: ParsedSymbol) anyerror!void {
-            var name_buffer: [KSYM_NAME_LEN + 1:0]u8 = undefined;
-            @memcpy(name_buffer[0..symbol.name.len], symbol.name);
-            name_buffer[symbol.name.len] = 0;
-
-            const callback_result = self.process_symbol(
-                self.context,
-                name_buffer[0..symbol.name.len :0],
-                symbol.symbol_type,
-                symbol.start,
-            );
-            if (callback_result != 0) {
-                self.result = callback_result;
-                return error.StopParsing;
-            }
-        }
-    };
-
     var scratch_buffer: [default_reader_chunk_len]u8 = undefined;
-    var callback_state = CallbackState{
+    var callback_state = ProcessSymbolCallbackState{
         .context = context,
         .process_symbol = process_symbol,
     };
@@ -318,7 +321,7 @@ pub fn kallsymsParseInDir(
         sub_path,
         &scratch_buffer,
         &callback_state,
-        CallbackState.process,
+        ProcessSymbolCallbackState.process,
     ) catch |err| switch (err) {
         error.StopParsing => return callback_state.result,
         else => return err,
@@ -793,6 +796,58 @@ test "kallsymsParse wrappers preserve the C-shaped callback contract and bounded
     try std.testing.expectEqualStrings("weak_handler", contents_state.names.items[1]);
     try std.testing.expectEqual(@as(u8, 'W'), contents_state.symbol_types.items[1]);
     try std.testing.expectEqual(@as(u64, 0xffffffff81000200), contents_state.starts.items[1]);
+
+    const SliceReader = struct {
+        bytes: []const u8,
+        index: usize = 0,
+
+        pub fn read(self: *@This(), dest: []u8) !usize {
+            if (self.index >= self.bytes.len) {
+                return 0;
+            }
+
+            const amt = @min(dest.len, self.bytes.len - self.index);
+            @memcpy(dest[0..amt], self.bytes[self.index .. self.index + amt]);
+            self.index += amt;
+            return amt;
+        }
+    };
+
+    var reader_state = CallbackState.init();
+    defer reader_state.deinit(std.testing.allocator);
+
+    var reader = SliceReader{ .bytes = contents };
+    var reader_scratch_buffer: [13]u8 = undefined;
+    const reader_result = try kallsymsParseReader(
+        std.testing.allocator,
+        &reader,
+        &reader_scratch_buffer,
+        &reader_state,
+        CallbackState.collect,
+    );
+
+    try std.testing.expectEqual(@as(i32, 23), reader_result);
+    try std.testing.expectEqual(@as(usize, 2), reader_state.names.items.len);
+    try std.testing.expectEqualStrings("startup_64", reader_state.names.items[0]);
+    try std.testing.expectEqualStrings("weak_handler", reader_state.names.items[1]);
+    try std.testing.expectEqual(@as(u8, 'W'), reader_state.symbol_types.items[1]);
+    try std.testing.expectEqual(@as(u64, 0xffffffff81000200), reader_state.starts.items[1]);
+
+    var empty_reader = SliceReader{ .bytes = contents };
+    var empty_reader_scratch_buffer: [0]u8 = .{};
+    var empty_reader_state = CallbackState.init();
+    defer empty_reader_state.deinit(std.testing.allocator);
+
+    try std.testing.expectError(
+        error.EmptyScratchBuffer,
+        kallsymsParseReader(
+            std.testing.allocator,
+            &empty_reader,
+            &empty_reader_scratch_buffer,
+            &empty_reader_state,
+            CallbackState.collectWithoutStop,
+        ),
+    );
 
     var temp_dir = std.testing.tmpDir(.{});
     defer temp_dir.cleanup();
