@@ -30,7 +30,8 @@ The live repo already has the parse-first `kallsyms.zig` starter, the injected c
 3. run the dedicated Phase 8 tooling gate
 - `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
 
-4. run the convenience target
+4. run the convenience targets
+- `make -C zigux phase8-kallsyms-test`
 - `make -C zigux phase8`
 
 ## Current parity surface
