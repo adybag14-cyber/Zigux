@@ -179,13 +179,24 @@ pub const QueueResumeSummary = struct {
     requires_rss_reapply: bool,
 };
 
+pub const ReceiveRefillRoomPath = enum {
+    recycled_room,
+    fresh_small_room,
+    fresh_mergeable_room,
+    fresh_big_packet_room,
+};
+
 pub const MergeableReceiveRefillSummary = struct {
     anchor: []const u8,
     rx_queue_entries: u16,
     uses_mergeable_buffers: bool,
     packet_budget_bytes: u32,
     min_buf_len_bytes: u32,
+    target_room_bytes: u32,
     required_headroom_bytes: u16,
+    recycled_room_bytes: u32,
+    room_path: ReceiveRefillRoomPath,
+    reuses_recycled_room: bool,
     big_packet_reason: BigPacketReason,
 };
 
@@ -382,11 +393,12 @@ pub const VirtioNetProbeLab = struct {
     pub fn planMergeableReceiveRefill(
         self: *Self,
         rx_queue_entries: u16,
+        recycled_room_bytes: u32,
     ) !MergeableReceiveRefillSummary {
         if (rx_queue_entries == 0) return error.InvalidRxQueueEntries;
 
         const snapshot = self.last_snapshot orelse return error.ProbeSnapshotUnavailable;
-        return summarizeMergeableReceiveRefill(snapshot, rx_queue_entries);
+        return summarizeMergeableReceiveRefill(snapshot, rx_queue_entries, recycled_room_bytes);
     }
 
     fn checkedMulU16(lhs: u16, rhs: u16) !u16 {
@@ -497,6 +509,7 @@ pub const VirtioNetProbeLab = struct {
     fn summarizeMergeableReceiveRefill(
         snapshot: ProbeSnapshot,
         rx_queue_entries: u16,
+        recycled_room_bytes: u32,
     ) MergeableReceiveRefillSummary {
         const packet_payload_bytes: u16 = switch (snapshot.big_packet_reason) {
             .guest_gso => ip_max_mtu,
@@ -512,6 +525,15 @@ pub const VirtioNetProbeLab = struct {
             @max(@max(per_buffer_budget, hdr_len_bytes) - hdr_len_bytes, good_packet_len)
         else
             good_packet_len;
+        const target_room_bytes = min_buf_len_bytes + snapshot.required_headroom_bytes;
+        const reuses_recycled_room = recycled_room_bytes >= target_room_bytes;
+        const room_path: ReceiveRefillRoomPath = if (reuses_recycled_room)
+            .recycled_room
+        else switch (snapshot.receive_buffer_mode) {
+            .small => .fresh_small_room,
+            .mergeable => .fresh_mergeable_room,
+            .big_packets => .fresh_big_packet_room,
+        };
 
         return .{
             .anchor = descriptor().anchor,
@@ -519,7 +541,11 @@ pub const VirtioNetProbeLab = struct {
             .uses_mergeable_buffers = snapshot.mergeable_rx_buffers,
             .packet_budget_bytes = packet_budget_bytes,
             .min_buf_len_bytes = min_buf_len_bytes,
+            .target_room_bytes = target_room_bytes,
             .required_headroom_bytes = snapshot.required_headroom_bytes,
+            .recycled_room_bytes = recycled_room_bytes,
+            .room_path = room_path,
+            .reuses_recycled_room = reuses_recycled_room,
             .big_packet_reason = snapshot.big_packet_reason,
         };
     }
