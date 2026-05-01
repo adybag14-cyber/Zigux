@@ -61,6 +61,18 @@ fn validateRawComparator(comptime Compare: type) void {
     }
 }
 
+fn advanceSearchWindow(start: *usize, count: *usize, pivot_index: usize, result: i32) bool {
+    if (result == 0) {
+        return true;
+    }
+    if (result > 0) {
+        start.* = pivot_index + 1;
+        count.* -= 1;
+    }
+    count.* >>= 1;
+    return false;
+}
+
 pub fn bsearchIndex(
     key: *const anyopaque,
     base: [*]const u8,
@@ -75,16 +87,9 @@ pub fn bsearchIndex(
     while (count > 0) {
         const pivot_index = start + (count >> 1);
         const pivot_ptr: *const anyopaque = @ptrCast(base + (pivot_index * size));
-        const result = compare(key, pivot_ptr);
-
-        if (result == 0) {
+        if (advanceSearchWindow(&start, &count, pivot_index, compare(key, pivot_ptr))) {
             return pivot_index;
         }
-        if (result > 0) {
-            start = pivot_index + 1;
-            count -= 1;
-        }
-        count >>= 1;
     }
 
     return null;
@@ -128,16 +133,9 @@ pub fn searchIndex(
     while (num > 0) {
         const pivot_index = base + (num >> 1);
         const pivot: *const T = &items[pivot_index];
-        const result = compare(key, pivot);
-
-        if (result == 0) {
+        if (advanceSearchWindow(&base, &num, pivot_index, compare(key, pivot))) {
             return pivot_index;
         }
-        if (result > 0) {
-            base = pivot_index + 1;
-            num -= 1;
-        }
-        num >>= 1;
     }
 
     return null;
