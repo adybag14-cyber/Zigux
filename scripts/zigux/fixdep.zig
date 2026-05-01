@@ -181,6 +181,23 @@ const Processor = struct {
         return error.ReadDependencyFile;
     }
 
+    fn normalizeReadDependencyFailure(
+        self: *Processor,
+        path: []const u8,
+        err: anyerror,
+        reader_err: ?anyerror,
+    ) anyerror!void {
+        if (!shouldNormalizeDependencyFileFailure(err)) {
+            return err;
+        }
+
+        const actual_err = if (err == error.ReadFailed and reader_err != null)
+            reader_err.?
+        else
+            err;
+        return self.rememberFileError(path, actual_err, .read);
+    }
+
     fn parseConfigFile(self: *Processor, writer: anytype, text: []const u8) !void {
         var index: usize = 0;
         while (std.mem.indexOfPos(u8, text, index, "CONFIG_")) |start| {
@@ -222,9 +239,9 @@ const Processor = struct {
         };
 
         var reader = file.reader(self.io, &.{});
-        return reader.interface.allocRemaining(self.arena.allocator(), .limited(max_file_bytes)) catch |err| switch (err) {
-            error.ReadFailed => return self.rememberFileError(path, reader.err.?, .read),
-            error.OutOfMemory, error.StreamTooLong => |e| return e,
+        return reader.interface.allocRemaining(self.arena.allocator(), .limited(max_file_bytes)) catch |err| {
+            try self.normalizeReadDependencyFailure(path, err, reader.err);
+            unreachable;
         };
     }
 
@@ -791,6 +808,23 @@ test "missing dependency path is preserved for later error reporting" {
     try std.testing.expectEqualStrings("missing#dep.h", processor.last_file_error_path);
     try std.testing.expectEqual(error.FileNotFound, processor.last_file_error.?);
     try std.testing.expectEqual(DependencyFileFailure.open, processor.last_file_error_kind);
+}
+
+test "direct dependency read errors stay on the C-style read path" {
+    var processor = Processor.init(std.testing.allocator, std.testing.io);
+    defer processor.deinit();
+
+    try std.testing.expectError(
+        error.ReadDependencyFile,
+        processor.normalizeReadDependencyFailure("dirdep", error.IsDir, null),
+    );
+    try std.testing.expectEqualStrings("dirdep", processor.last_file_error_path);
+    try std.testing.expectEqual(error.IsDir, processor.last_file_error.?);
+    try std.testing.expectEqual(DependencyFileFailure.read, processor.last_file_error_kind);
+    try std.testing.expectError(
+        error.OutOfMemory,
+        processor.normalizeReadDependencyFailure("dirdep", error.OutOfMemory, null),
+    );
 }
 
 test "output writer maps print and flush failures to fixdep output-write errors" {
