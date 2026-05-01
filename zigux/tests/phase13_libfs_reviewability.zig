@@ -30,7 +30,7 @@ const Manifest = struct {
     gaps: []const Gap,
 };
 
-const expected_surveyed_commit = "ba74bb197b16b020ec02b876efdd154663c6a146";
+const expected_surveyed_commit = "ba15a15ff4f0becd063b9b12aeea73df5307e6ef";
 
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
