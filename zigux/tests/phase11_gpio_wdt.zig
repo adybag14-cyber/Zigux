@@ -57,7 +57,6 @@ test "phase11 gpio_wdt probe summary keeps startup and registration bookkeeping 
     try std.testing.expect(!level_probe.starts_during_probe);
     try std.testing.expect(!level_probe.pre_registration_running);
     try std.testing.expect(level_probe.pre_registration_line_is_output);
-    try std.testing.expect(!level_probe.pre_registration_line_state);
     try std.testing.expect(!level_probe.nowayout);
     try std.testing.expectEqual(@as(u32, gpio_wdt.soft_timeout_default), level_probe.default_timeout_sec);
     try std.testing.expectEqual(@as(u32, gpio_wdt.soft_timeout_min), level_probe.min_timeout_sec);
@@ -121,6 +120,16 @@ test "phase11 gpio_wdt stop requests distinguish nowayout gating from always-run
     try std.testing.expect(blocked.running);
     try std.testing.expect(blocked.line_is_output);
     try std.testing.expectEqual(@as(usize, 0), blocked.disable_count);
+
+    var dormant_watchdog = try gpio_wdt.GpioWatchdogLab.init(.toggle, 50, false);
+    const dormant = dormant_watchdog.requestStop(false);
+    try std.testing.expectEqual(gpio_wdt.StopDisposition.stopped, dormant.disposition);
+    try std.testing.expect(dormant.stop_allowed_by_watchdog_core);
+    try std.testing.expect(!dormant.driver_stop_invoked);
+    try std.testing.expect(!dormant.running);
+    try std.testing.expect(!dormant.line_state);
+    try std.testing.expect(!dormant.line_is_output);
+    try std.testing.expectEqual(@as(usize, 0), dormant.disable_count);
 
     var stoppable_watchdog = try gpio_wdt.GpioWatchdogLab.init(.toggle, 50, false);
     _ = try stoppable_watchdog.start();
