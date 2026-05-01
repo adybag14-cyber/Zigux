@@ -850,8 +850,34 @@ def run_self_test() -> int:
             print("PHASE5_VALIDATOR_SELF_TEST_REASON=survey-note-evidence-gap")
             return 1
 
+        note_text = (
+            ROOT / manifest_expectations["phase5_trace_events_sample_manifest.json"]["survey_note_path"]
+        ).read_text(encoding="utf-8")
+        note_text = re.sub(
+            r"PHASE5_SURVEYED_COMMIT=[0-9a-f]{40}",
+            f"PHASE5_SURVEYED_COMMIT={SELF_TEST_HEAD}",
+            note_text,
+        )
+        note_path.write_text(note_text, encoding="utf-8")
+
+        sample_root_path = tmp_root / "samples/zigux/README.md"
+        sample_root_text = sample_root_path.read_text(encoding="utf-8").replace(
+            "current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample",
+            "current `master` keeps the cmdline helper bundle separate from Phase 5 reference samples",
+            1,
+        )
+        sample_root_path.write_text(sample_root_text, encoding="utf-8")
+        sample_root_result = validate_phase5(tmp_root)
+        if sample_root_result["ok"] or (
+            "sample_root_readme:missing:current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample"
+            not in sample_root_result["missing"]
+        ):
+            print("PHASE5_VALIDATOR_SELF_TEST=fail")
+            print("PHASE5_VALIDATOR_SELF_TEST_REASON=sample-root-cmdline-boundary-gap")
+            return 1
+
     print("PHASE5_VALIDATOR_SELF_TEST=pass")
-    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=5")
+    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
