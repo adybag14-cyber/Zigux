@@ -20,7 +20,7 @@ This document records the bounded Phase 7 runtime leaf-helper slice for Zigux ar
 
 Phase 7 explicitly calls out `lib/rbtree.c` as one of the first reusable in-kernel leaf libraries that should move into the Zigux product path.
 
-This current slice keeps the work bounded to runtime-safe leaf helpers with explicit integration with validation substrate through `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_survey.zig`, `zigux/tests/phase7_build.zig`, and `scripts/zigux/check-phase7-rbtree-parity.py`.
+This current slice keeps the work bounded to runtime-safe leaf helpers with explicit integration with validation substrate through `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-build-inventory.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_survey.zig`, `zigux/tests/phase7_build.zig`, and `scripts/zigux/check-phase7-rbtree-parity.py`.
 
 This slice stays intentionally narrow and ports the first practical runtime-safe red-black tree surface:
 
@@ -36,8 +36,9 @@ This slice stays intentionally narrow and ports the first practical runtime-safe
 
 ## Gates
 
-1. prove the shared Phase 7 validator packet and make-wrapper gate still fail closed before the helper replay runs
+1. prove the shared Phase 7 validator packet plus the build-inventory and make-wrapper gates still fail closed before the helper replay runs
 - `python3 scripts/zigux/validate-phase7.py --self-test`
+- `python3 scripts/zigux/check-phase7-build-inventory.py`
 - `python3 scripts/zigux/check-phase7-make-wrapper.py`
 - `make -C zigux phase7-validate`
 
@@ -54,6 +55,8 @@ This slice stays intentionally narrow and ports the first practical runtime-safe
 - `python3 scripts/zigux/check-phase7-rbtree-parity.py`
 
 This lane is parked after the bounded helper surface compiled cleanly, the shared Phase 7 validator packet now remains the published fail-closed handoff before helper replay, the focused module tests passed, the shared Phase 7 helper gate continued to import and exercise the live `rbtree` slice, the survey record captures the fully landed parity surface, and the committed parity fixture now locks ordered insert, standalone erase traversal, erase-plus-replace traversal, duplicate-range lookup, reverse traversal, and postorder behavior against the C helper surface.
+
+The shared build-inventory gate stays in that same review packet, so the committed `zigux/tests/fixtures/phase7_build_inventory.json` snapshot and the published `make -C zigux phase7-validate` wrapper path remain explicit instead of living only in the broader shared Phase 7 notes.
 
 ## Current parity surface
 
