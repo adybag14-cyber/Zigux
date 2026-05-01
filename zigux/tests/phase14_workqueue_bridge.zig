@@ -217,7 +217,7 @@ test "phase14 workqueue bridge manifest records the boundary-map foothold and re
             try std.testing.expectEqualStrings("ready_next", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue_delayed_work_on()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "mod_delayed_work_on()") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "__queue_delayed_work()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "clear_pending_if_disabled()") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase14-workqueue-live-execution-blocker")) {
             saw_blocker = true;
