@@ -16,6 +16,10 @@ pub const DecodedInteropPolicy = struct {
     allocator_mode: abi.AllocatorMode,
     unsafe_scope: narrow.UnsafeScopeTag,
 
+    pub fn action(self: DecodedInteropPolicy) panic_policy.Action {
+        return panic_policy.actionFor(self.panic_mode);
+    }
+
     pub fn canReturn(self: DecodedInteropPolicy) bool {
         return panic_policy.canReturn(self.panic_mode);
     }
@@ -94,12 +98,42 @@ test "phase3 interop policy decoder keeps the boundary typed" {
         .unsafe_scope = @intFromEnum(abi.UnsafeScope.volatile_mmio),
         .reserved = 0,
     });
+    try std.testing.expectEqual(panic_policy.Action.warn_and_return, decoded.action());
     try std.testing.expect(decoded.canReturn());
     try std.testing.expect(decoded.permitsGlobalFallback());
     try std.testing.expect(decoded.initializesOwnedState());
     try std.testing.expect(!decoded.requiresResetOnInit());
     try std.testing.expect(decoded.permitsVolatileMmio());
     try std.testing.expect(!decoded.permitsRawPointerBridge());
+}
+
+test "phase3 interop policy decoder keeps the panic action explicit" {
+    const abort_policy = try decode(.{
+        .panic_mode = @intFromEnum(abi.PanicMode.abort),
+        .allocator_mode = @intFromEnum(abi.AllocatorMode.caller_provided),
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.none),
+        .reserved = 0,
+    });
+    try std.testing.expectEqual(panic_policy.Action.abort_now, abort_policy.action());
+    try std.testing.expect(!abort_policy.canReturn());
+
+    const bug_policy = try decode(.{
+        .panic_mode = @intFromEnum(abi.PanicMode.bug),
+        .allocator_mode = @intFromEnum(abi.AllocatorMode.kernel_heap),
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.volatile_mmio),
+        .reserved = 0,
+    });
+    try std.testing.expectEqual(panic_policy.Action.bug_check, bug_policy.action());
+    try std.testing.expect(!bug_policy.canReturn());
+
+    const warn_policy = try decode(.{
+        .panic_mode = @intFromEnum(abi.PanicMode.warn),
+        .allocator_mode = @intFromEnum(abi.AllocatorMode.arena),
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.raw_pointer_bridge),
+        .reserved = 0,
+    });
+    try std.testing.expectEqual(panic_policy.Action.warn_and_return, warn_policy.action());
+    try std.testing.expect(warn_policy.canReturn());
 }
 
 test "phase3 interop policy decoder keeps allocator init requirements explicit" {
@@ -142,6 +176,7 @@ test "phase3 interop policy keeps canonical abi encoding explicit" {
 test "phase3 interop policy encode helper preserves explicit policy behavior" {
     const policy = encode(.abort, .kernel_heap, .volatile_mmio);
     const decoded = try decode(policy);
+    try std.testing.expectEqual(panic_policy.Action.abort_now, decoded.action());
     try std.testing.expect(!decoded.canReturn());
     try std.testing.expect(decoded.permitsGlobalFallback());
     try std.testing.expect(decoded.initializesOwnedState());
