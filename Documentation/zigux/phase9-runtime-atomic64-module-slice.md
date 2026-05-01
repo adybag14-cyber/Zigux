@@ -7,7 +7,7 @@ This document tracks the first bounded Phase 9 runtime atomic64 starter under `s
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-atomic64-module-starter`
 - `PHASE9_LANE_KEY=P9-L01`
-- `PHASE9_SURVEYED_COMMIT=0b7d0fabb8871bdf2061b3fc566c53d1bea6213d`
+- `PHASE9_SURVEYED_COMMIT=0ce4ac9c92aaa08d8678e2060dc8f1a22e287a85`
 - scope: lifecycle starter, direct sample-test and direct loader-test shared-build wiring, adjacent loader scaffold, shared loader-request binding, selftest summary, and survey-manifest closure only
 - product boundary:
   - `samples/zigux/runtime_atomic64.zig`
