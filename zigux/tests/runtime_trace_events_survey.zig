@@ -435,7 +435,14 @@ test "phase 9 runtime trace-events docs keep the task and event-loop substrate g
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`exit_runs`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "array-shape replay explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "latest bounded main-thread and function-thread payload literals") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "zig test --dep runtime_trace_events_sample") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "-Mroot=zigux/tests/runtime_trace_events_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "-Mruntime_trace_events_sample=samples/zigux/runtime_trace_events.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "make -C zigux phase9-trace-events-survey") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "phase9-runtime-trace-events-sample-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "phase9-runtime-trace-events-module-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "phase9-runtime-trace-events-diff-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "phase9-runtime-trace-events-survey-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`PHASE9_SURVEYED_COMMIT=") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "failed-exit rollback proof") != null);
