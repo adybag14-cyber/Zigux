@@ -28,6 +28,8 @@ REQUIRED_MARKERS = [
 
 REQUIRED_SURVEY_ALIGNMENT_MARKERS = [
     SHARED_SURVEYED_COMMIT,
+    "phase4_test_fsmount_survey.zig",
+    "phase4_perf_baseline_survey.zig",
     "phase4_runtime_atomic64_diff_survey.zig",
 ]
 
@@ -139,7 +141,7 @@ def write_fixture_tree(root: Path) -> None:
         "",
         "## Exact Readback Evidence",
         "",
-        f"- synthetic fixture keeps shared surveyed snapshot `{SHARED_SURVEYED_COMMIT}` explicit through `phase4_runtime_atomic64_diff_survey.zig`.",
+        f"- synthetic fixture keeps shared surveyed snapshot `{SHARED_SURVEYED_COMMIT}` explicit through `phase4_runtime_atomic64_diff_survey.zig`, `phase4_test_fsmount_survey.zig`, and `phase4_perf_baseline_survey.zig`.",
         "",
         "## Current Conclusion",
         "",
@@ -215,6 +217,21 @@ def run_self_test() -> int:
         )
         missing = validate_root(root)
         assert f"phase4_gate_evidence:{SHARED_SURVEYED_COMMIT}" in missing, missing
+
+        write_fixture_tree(root)
+        gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
+        gate_evidence.write_text(
+            gate_evidence.read_text(encoding="utf-8").replace(
+                "phase4_test_fsmount_survey.zig",
+                "phase4_test_fsmount_survey_missing.zig",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert (
+            "phase4_gate_evidence:phase4_test_fsmount_survey.zig" in missing
+        ), missing
 
         write_fixture_tree(root)
         checker = root / "scripts/zigux/check-phase4-gate-evidence.py"
