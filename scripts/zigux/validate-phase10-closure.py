@@ -15,6 +15,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/freeze-map.md",
+    "Documentation/zigux/phase10-virtio-core-slice.md",
     "Documentation/zigux/phase10-virtio-core-survey.md",
     "Documentation/zigux/phase10-virtio-ring-survey.md",
     "Documentation/zigux/phase10-virtio-input-survey.md",
@@ -24,6 +25,7 @@ REQUIRED_FILES = [
     ".github/workflows/zigux-bootstrap.yml",
     "zigux/tests/phase10_build.zig",
     "zigux/tests/phase10_closure_manifest.json",
+    "zigux/tests/phase10_virtio_core_manifest.json",
     "zigux/tests/phase10_virtio_core_survey.zig",
     "zigux/tests/phase10_virtio_ring_survey.zig",
     "zigux/tests/phase10_virtio_input_survey.zig",
@@ -535,6 +537,18 @@ def expect_missing_marker(label: str, root: Path, marker: str) -> None:
         )
 
 
+def expect_missing_file(label: str, root: Path, expected_file: str) -> None:
+    missing_files, missing_markers = validate(root)
+    if missing_markers:
+        raise SystemExit(
+            f"phase10-closure-self-test:{label}:unexpected_markers:{','.join(missing_markers)}"
+        )
+    if expected_file not in missing_files:
+        raise SystemExit(
+            f"phase10-closure-self-test:{label}:expected_file:{expected_file}:actual:{','.join(missing_files) if missing_files else 'none'}"
+        )
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase10_closure_") as tmp_dir:
         fixture_root = Path(tmp_dir) / "repo"
@@ -547,6 +561,24 @@ def run_self_test() -> int:
                 f"files={','.join(missing_files) if missing_files else 'none'}:"
                 f"markers={','.join(missing_markers) if missing_markers else 'none'}"
             )
+
+        core_slice_path = fixture_root / "Documentation/zigux/phase10-virtio-core-slice.md"
+        core_slice_path.unlink()
+        expect_missing_file(
+            "core_slice_required_file",
+            fixture_root,
+            "Documentation/zigux/phase10-virtio-core-slice.md",
+        )
+        write_fixture(fixture_root)
+
+        core_manifest_path = fixture_root / "zigux/tests/phase10_virtio_core_manifest.json"
+        core_manifest_path.unlink()
+        expect_missing_file(
+            "core_manifest_required_file",
+            fixture_root,
+            "zigux/tests/phase10_virtio_core_manifest.json",
+        )
+        write_fixture(fixture_root)
 
         input_path = fixture_root / "zigux/tests/phase10_virtio_input_survey.zig"
         original_input = input_path.read_text(encoding="utf-8")
@@ -706,7 +738,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=12")
+    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
