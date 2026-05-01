@@ -1,5 +1,5 @@
 const std = @import("std");
-const current_surveyed_commit = "42ef377bbd638a9b5535a93a82743d20b0d87067";
+const current_surveyed_commit = "ec9aa1b15a34e581625da1056956ecb5dd6cd76a";
 
 const SurveySummary = struct {
     atomic64_test_c_lines: usize,
@@ -167,7 +167,7 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate, 
         io_instance.io(),
         std.testing.allocator,
         "zigux/tests/atomic64_diff.zig",
-        8 * 1024,
+        16 * 1024,
     );
     defer std.testing.allocator.free(atomic64_diff);
     const phase4_build = try readWorkspaceFile(
