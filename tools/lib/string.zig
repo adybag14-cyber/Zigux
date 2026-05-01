@@ -295,10 +295,6 @@ fn checkBytes8(buf: []const u8, value: u8) ?usize {
     return null;
 }
 
-fn firstDifferingByteIndex(word: u64, repeated: u64) usize {
-    return @ctz(word ^ repeated) / 8;
-}
-
 pub fn memchrInv(buf: []const u8, value: u8) ?usize {
     if (buf.len <= 16) {
         return checkBytes8(buf, value);
@@ -319,7 +315,7 @@ pub fn memchrInv(buf: []const u8, value: u8) ?usize {
     while (word_start + 8 <= buf.len) : (word_start += 8) {
         const word = std.mem.readInt(u64, buf[word_start .. word_start + 8][0..8], .little);
         if (word != repeated) {
-            return word_start + firstDifferingByteIndex(word, repeated);
+            return word_start + checkBytes8(buf[word_start .. word_start + 8], value).?;
         }
     }
 
