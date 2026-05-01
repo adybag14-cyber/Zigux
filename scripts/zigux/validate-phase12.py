@@ -301,18 +301,17 @@ MANIFEST_SPECS = {
             "zigux/Makefile",
         ],
         "raw_fallback_current_markers": [
-            "current_master_replay_head: `9dab85059c6f56865ef2f981d2303049775c5001`",
+            "## Last bounded replay note",
+            "These fields record the last bounded replay note captured for this pinned fallback packet.",
+            "They are historical replay evidence, not live-head truth for newer `master` commits",
+            "current_master_replay_head: `",
             "current_shared_validator_command: `python3 scripts/zigux/validate-phase12.py`",
-            "current_shared_validator_result: `PHASE12_VALIDATION=fail`",
+            "current_shared_validator_result: `PHASE12_VALIDATION=",
             "current_shared_validator_missing_markers:",
-            "docs_root_readme:Phase 12 notes",
-            "phase12_build_fixture:expected_test_count_mismatch",
-            "phase12_nvme_pci_manifest.json:survey_note:surveyed_commit",
-            "phase12_libbpf_snapshot_fixture:sha256:tools/lib/bpf/zigux_segments/manifest.json",
             "current_shared_build_command: `zig build test --build-file zigux/tests/phase12_build.zig --summary all`",
-            "current_shared_build_result: `not replayed in this run because the attached Zig toolchain was unavailable`",
+            "current_shared_build_result: `",
             "current_focused_survey_command: `zig test zigux/tests/phase12_virtio_scsi_survey.zig`",
-            "current_focused_survey_result: `not replayed in this run because the attached Zig toolchain was unavailable`",
+            "current_focused_survey_result: `",
         ],
         "raw_fallback_rollback_markers": [
             "## Rollback And Reversible Delivery",
@@ -554,7 +553,6 @@ elif (
         missing.append("phase12_build_fixture:expected_test_count_mismatch")
 
 expected_summary_line = build_inventory.get("expected_summary_line")
-current_phase12_build_summary: str | None = None
 if not isinstance(expected_summary_line, str):
     missing.append("phase12_build_fixture:expected_summary_line")
 elif isinstance(expected_step_count, int) and isinstance(expected_test_count, int):
@@ -562,7 +560,6 @@ elif isinstance(expected_step_count, int) and isinstance(expected_test_count, in
         f"Build Summary: {expected_step_count}/{expected_step_count} steps succeeded; "
         f"{expected_test_count}/{expected_test_count} tests passed"
     )
-    current_phase12_build_summary = actual_expected_summary_line
     if expected_summary_line != actual_expected_summary_line:
         missing.append("phase12_build_fixture:expected_summary_line_mismatch")
 
@@ -684,18 +681,6 @@ for manifest_name, spec in MANIFEST_SPECS.items():
             expect_catalog_marker(catalog_text, str(marker), f"{manifest_name}:raw_fallback_rollback:{marker}", missing)
         for marker in spec.get("raw_fallback_current_markers", []):
             expect_catalog_marker(catalog_text, str(marker), f"{manifest_name}:raw_fallback_current:{marker}", missing)
-        if (
-            isinstance(current_phase12_build_summary, str)
-            and "current_shared_build_result: `not replayed in this run because the attached Zig toolchain was unavailable`"
-            not in catalog_text
-        ):
-            build_summary_marker = f"current_shared_build_result: `{current_phase12_build_summary}`"
-            expect_catalog_marker(
-                catalog_text,
-                build_summary_marker,
-                f"{manifest_name}:raw_fallback_current:{build_summary_marker}",
-                missing,
-            )
 
 expect_libbpf_snapshot_fixture(
     phase12_libbpf_snapshot_fixture,
