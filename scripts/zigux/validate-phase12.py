@@ -246,7 +246,7 @@ MANIFEST_SPECS = {
         "survey_count_markers": [("starter_landed_count", "starter_landed"), ("blocked_count", "blocked_on_dma_transport")],
     },
     "phase12_nvme_pci_manifest.json": {
-        "lane_key": "P12-L08",
+        "lane_key": "P12-L07",
         "anchor": "drivers/nvme/host/pci.c",
         "gap_count": 12,
         "roadmap_destinations": ["drivers/nvme/host/pci.zig", "zigux/tests/", "Documentation/zigux/"],
@@ -352,11 +352,14 @@ MANIFEST_SPECS = {
     },
 }
 
+
 def text(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
 
+
 def load_manifest(name: str) -> dict[str, object]:
     return json.loads(text(f"zigux/tests/{name}"))
+
 
 def count_transitive_tests(path: Path, seen: set[Path]) -> int:
     resolved_path = path.resolve()
@@ -398,6 +401,7 @@ def derive_expected_test_count(
         total += count_transitive_tests(module_paths[entry["root_module"]], seen)
     return total
 
+
 def count_statuses(manifest: dict[str, object], match: str) -> int:
     total = 0
     for gap in manifest.get("gaps", []):
@@ -407,6 +411,7 @@ def count_statuses(manifest: dict[str, object], match: str) -> int:
         if status == match:
             total += 1
     return total
+
 
 def destination_allowed(destination: str, spec: dict[str, object]) -> bool:
     roadmap_destinations = tuple(str(item) for item in spec["roadmap_destinations"])
@@ -418,6 +423,7 @@ def destination_allowed(destination: str, spec: dict[str, object]) -> bool:
         if destination == allowed:
             return True
     return False
+
 
 def expect_catalog_marker(catalog_text: str, marker: str, missing_key: str, missing: list[str]) -> None:
     if marker not in catalog_text:
@@ -461,6 +467,7 @@ def expect_libbpf_snapshot_fixture(
             missing.append(f"phase12_libbpf_snapshot_fixture:bytes:{expected_path}")
         if entry.get("sha256") != hashlib.sha256(file_bytes).hexdigest():
             missing.append(f"phase12_libbpf_snapshot_fixture:sha256:{expected_path}")
+
 
 missing_files = [path for path in FILES if not (ROOT / path).exists()]
 if missing_files:
@@ -650,7 +657,7 @@ for manifest_name, spec in MANIFEST_SPECS.items():
             missing.append(f"{manifest_name}:status_total:{status_name}")
 
     for index, gap in enumerate(gaps):
-        if not isinstance(gap, dict):
+        if not isinstance(gaps, dict):
             missing.append(f"{manifest_name}:gap:{index}")
             continue
         gap_id = gap.get("id")
