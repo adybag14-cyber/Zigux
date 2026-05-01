@@ -21,6 +21,7 @@ This document records the shared boot/runtime loader gap that still separates th
   - `samples/zigux/runtime_atomic64_loader.zig`
   - `samples/zigux/runtime_bitmap_loader.zig`
   - `samples/zigux/runtime_kretprobe_loader.zig`
+  - `samples/zigux/runtime_trace_events.zig`
   - `zigux/helpers/allocator_policy.zig`
 
 ## Why this slice exists
@@ -71,7 +72,7 @@ The manifest-backed catalog for this slice now names which file owns each part o
 - `samples/zigux/runtime_atomic64_loader.zig` owns the atomic64 loader-plan projection and without-substrate rollback path into the shared runtime request surface
 - `samples/zigux/runtime_bitmap_loader.zig` owns the bitmap loader-plan projection and without-substrate rollback path into the shared runtime request surface
 - `samples/zigux/runtime_kretprobe_loader.zig` owns the kretprobe loader-plan projection and without-substrate rollback path into the shared runtime request surface
-- `zigux/tests/runtime_trace_events_manifest.json` owns the sample-only blocked trace-events loader boundary so the shared loader-gap packet does not treat that missing loader path as an accidental omission
+- `samples/zigux/runtime_trace_events.zig` plus `zigux/tests/runtime_trace_events_manifest.json` own the sample-only blocked trace-events loader boundary so the shared loader-gap packet does not treat that missing loader path as an accidental omission
 
 ## Current blocker posture
 
