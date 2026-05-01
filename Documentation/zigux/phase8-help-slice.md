@@ -29,7 +29,7 @@ This lane keeps the shipped `help.zig` starter slice aligned with the stable com
 - `zig build test --build-file zigux/tests/phase8_help_only_build.zig --summary all`
 
 3. run the dedicated Phase 8 tooling gate
-- `zig build test --build-file zigux/tests/phase8_build.zig`
+- `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
 
 4. run the convenience target
 - `make -C zigux phase8`
