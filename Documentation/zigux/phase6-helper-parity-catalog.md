@@ -43,6 +43,7 @@ This shared catalog exists so reviewers can confirm, in one place, that the road
 
 - helper: `lib/bsearch.zig`
 - tests: `zigux/tests/phase6_bsearch.zig`
+- shared portability coverage: `zigux/tests/phase6_bsearch.zig` now exercises both typed and raw runtime-selected comparator pointers across native and C ABI paths
 - perf: `zigux/tests/phase6_bsearch_perf.zig`
 - external parity: `scripts/zigux/check-phase6-bsearch-c-parity.py`
 - fixtures: `zigux/tests/phase6_bsearch_c_parity.zig`, `zigux/tests/fixtures/phase6_bsearch_c_harness.c`
