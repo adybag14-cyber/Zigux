@@ -335,6 +335,35 @@ test "phase 8 exec-cmd setupPathWithPwd reuses logical PWD only when the injecte
         different,
     );
     try std.testing.expectEqualStrings(different, different_env.get("PATH").?);
+
+    var empty_pwd_env = exec_cmd.EnvMap.init(std.testing.allocator);
+    defer empty_pwd_env.deinit();
+
+    var empty_pwd_state = exec_cmd.ExecCmdState{};
+    defer empty_pwd_state.deinit(std.testing.allocator);
+
+    try exec_cmd.execCmdInit(&empty_pwd_env, config);
+    try exec_cmd.setArgvExecPath(std.testing.allocator, &empty_pwd_env, &empty_pwd_state, config, "tools/bin");
+    try exec_cmd.setArgv0Path(std.testing.allocator, &empty_pwd_state, "scripts");
+    try empty_pwd_env.set("PATH", "/usr/bin");
+
+    const empty_pwd = try exec_cmd.setupPathWithPwd(
+        std.testing.allocator,
+        &empty_pwd_env,
+        empty_pwd_state,
+        config,
+        "/repo",
+        "",
+        cwd_identity,
+        matching_pwd_identity,
+    );
+    defer std.testing.allocator.free(empty_pwd);
+
+    try std.testing.expectEqualStrings(
+        "/repo/tools/bin:/repo/scripts:/usr/bin",
+        empty_pwd,
+    );
+    try std.testing.expectEqualStrings(empty_pwd, empty_pwd_env.get("PATH").?);
 }
 
 test "phase 8 exec-cmd chooses the logical PWD only when the caller proves it matches cwd" {
@@ -349,6 +378,10 @@ test "phase 8 exec-cmd chooses the logical PWD only when the caller proves it ma
     try std.testing.expectEqualStrings(
         "/repo",
         exec_cmd.choosePwdCwd("/repo", "/other", false),
+    );
+    try std.testing.expectEqualStrings(
+        "/repo",
+        exec_cmd.choosePwdCwd("/repo", "", true),
     );
 
     const cwd_identity = exec_cmd.FileIdentity{ .device = 11, .inode = 7 };
