@@ -1,5 +1,5 @@
 const std = @import("std");
-const current_surveyed_commit = "ec9aa1b15a34e581625da1056956ecb5dd6cd76a";
+const current_surveyed_commit = "42ef377bbd638a9b5535a93a82743d20b0d87067";
 
 const SurveySummary = struct {
     atomic64_test_c_lines: usize,
