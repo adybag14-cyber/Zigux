@@ -233,6 +233,12 @@ ABI_REQUIRED_EXPECTED_CONSTANTS = {
     "unsafe_scope_volatile_mmio": 1,
     "unsafe_scope_raw_pointer_bridge": 2,
 }
+ABI_EXPECTED_LAYOUT_KEYS = (
+    "zigux_boundary_header",
+    "zigux_export_status",
+    "zigux_mmio_range",
+    "zigux_interop_policy",
+)
 
 COMMON_DOC_MARKERS = (
     "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py",
@@ -491,6 +497,7 @@ def validate_abi_expected_fixture(root: Path) -> list[str]:
     expected_keys = list(structs.keys())
     dump_keys = _dump_layout_keys(dump_path)
     harness_keys = _harness_layout_keys(harness_path)
+    allowed_keys = set(ABI_EXPECTED_LAYOUT_KEYS)
     asserted_count = _asserted_abi_layout_count(root)
 
     if len(expected_keys) != len(dump_keys):
@@ -509,6 +516,21 @@ def validate_abi_expected_fixture(root: Path) -> list[str]:
         issues.append("abi-fixture: expected.json and phase3_abi_dump.zig layout keys drift")
     if set(expected_keys) != set(harness_keys):
         issues.append("abi-fixture: expected.json and phase3_abi_c_harness.c layout keys drift")
+    if set(expected_keys) != allowed_keys:
+        issues.append(
+            "abi-fixture: expected.json layout keys must stay bounded to "
+            + ", ".join(sorted(ABI_EXPECTED_LAYOUT_KEYS))
+        )
+    if set(dump_keys) != allowed_keys:
+        issues.append(
+            "abi-fixture: phase3_abi_dump.zig layout keys must stay bounded to "
+            + ", ".join(sorted(ABI_EXPECTED_LAYOUT_KEYS))
+        )
+    if set(harness_keys) != allowed_keys:
+        issues.append(
+            "abi-fixture: phase3_abi_c_harness.c layout keys must stay bounded to "
+            + ", ".join(sorted(ABI_EXPECTED_LAYOUT_KEYS))
+        )
     return issues
 
 
