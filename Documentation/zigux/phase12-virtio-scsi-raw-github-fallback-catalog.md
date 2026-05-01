@@ -9,7 +9,7 @@ This catalog records the exact read-only GitHub fallback coverage verified for t
 - verified_master_head: `7d653d8c5e57207763c07c1b1d020b514738c7f3`
 - verification_scope: commit-pinned raw file reads plus the three public tree entry points needed to inspect the bounded `virtio_scsi` lane
 
-This packet is archival rather than live-head truth. During the `P12-L10` docs audit, public `master` had already advanced to `745048713f8298d12300fd9c329ad965683abe78`, so the URLs, byte counts, and hashes below should be read as the last commit-pinned fallback evidence, not as the newest repo state. Exact head and hash refreshes belong to the dedicated fallback-evidence lanes.
+This packet is archival rather than live-head truth. As of the latest `P12-L03` degraded-mode recheck, public `master` had already advanced to `7384183d7b913bdf9a89e67c4d57f14afad9ad4a`, so the URLs, byte counts, and hashes below should be read as the last commit-pinned fallback evidence, not as the newest repo state. Exact head and hash refreshes belong to the dedicated fallback-evidence lanes.
 
 ## Tree entry points
 
@@ -129,3 +129,10 @@ These fields record the last bounded replay note captured for this pinned fallba
 - current_shared_build_result: `not replayed in this run because the attached Zig toolchain was unavailable`
 - current_focused_survey_command: `zig test zigux/tests/phase12_virtio_scsi_survey.zig`
 - current_focused_survey_result: `not replayed in this run because the attached Zig toolchain was unavailable`
+
+## Latest repo-head recheck
+
+- rechecked_public_master_head: `7384183d7b913bdf9a89e67c4d57f14afad9ad4a`
+- verification_method: connector-backed current-`master` reads of `scripts/zigux/validate-phase12.py` (`24ce71311df31c1493f8b7291fb217dbbeed7692`), `zigux/tests/phase12_virtio_scsi_manifest.json` (`22a53ac0e2718c3767e8df76453ca80217e9f5a9`), `zigux/tests/phase12_virtio_scsi_survey.zig` (`d0481e122088609673b0cd33d7792e3024487e09`), `Documentation/zigux/phase12-virtio-scsi-survey.md` (`f00ffd7311fbebc409525f18f3e01b8960017a56`), `zigux/Makefile` (`0aa9dbef7a2def666fd9fd875de78e92b0d45b3e`), `zigux/tests/phase12_build.zig` (`19dbde1542a3766cdc8817ac78cd194d89be6ec3`), `Documentation/zigux/README.md` (`6a553f4034da3b20c9365616858aa4dbcf659059`), and `Documentation/zigux/review-checklist.md` (`eb287e5d2f7e9f3648f8cbbf043084de7c1696e1`)
+- observed_behavior: current `master` still keeps this lane's degraded-readback contract archival rather than live-head truth; the packet remains pinned to verified head `7d653d8c5e57207763c07c1b1d020b514738c7f3`, the preserved bounded replay note remains pinned to `9dab85059c6f56865ef2f981d2303049775c5001`, and the shared Phase 12 docs, checklist, build, and Makefile surfaces still advertise the validator-first `make -C zigux phase12` flow.
+- replay_limit: this runtime could not clone the repository directly (`CONNECT tunnel failed, response 403`), so this recheck records exact live file-state evidence rather than a fresh local rerun of `python3 scripts/zigux/validate-phase12.py` or `zig test zigux/tests/phase12_virtio_scsi_survey.zig`.
