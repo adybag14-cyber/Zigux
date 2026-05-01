@@ -79,7 +79,7 @@
     {
       "id": "loader-request-surface",
       "kind": "runtime_loader_contract",
-      "expected": "the loader scaffold keeps entry symbol zigux_runtime_bitmap_init, exit symbol zigux_runtime_bitmap_exit, waiting_on_runtime_substrate handoff, released_without_substrate fallback, helper_owned allocator flow, and the four-field bitmap payload summary machine-checkable through the shared runtime-loader request surface"
+      "expected": "the loader scaffold keeps entry symbol zigux_runtime_bitmap_init, exit symbol zigux_runtime_bitmap_exit, waiting_on_runtime_substrate handoff, released_without_substrate fallback, helper_owned allocator flow, explicit shared command-name preservation, and the four-field bitmap payload summary machine-checkable through the shared runtime-loader request surface"
     },
     {
       "id": "loader-build-leg",
@@ -160,7 +160,7 @@
       "id": "runtime-bitmap-loader-scaffold",
       "kind": "runtime_substrate_scaffold",
       "path": "samples/zigux/runtime_bitmap_loader.zig",
-      "role": "owns the entry and exit symbol names, waiting_on_runtime_substrate handoff, released_without_substrate fallback, and bitmap payload summary for the sample-side loader projection"
+      "role": "owns the entry and exit symbol names, waiting_on_runtime_substrate handoff, released_without_substrate fallback, explicit shared command-name preservation, and bitmap payload summary for the sample-side loader projection"
     },
     {
       "id": "runtime-bitmap-shared-loader-binding",
@@ -210,7 +210,7 @@
     },
     {
       "surface": "samples/zigux/runtime_bitmap_loader.zig",
-      "owns": "the sample-side loader projection, waiting_on_runtime_substrate handoff, released_without_substrate fallback, and bitmap payload summary"
+      "owns": "the sample-side loader projection, waiting_on_runtime_substrate handoff, released_without_substrate fallback, explicit shared command-name preservation, and bitmap payload summary"
     },
     {
       "surface": "zigux/kernel/runtime_loader.zig",
