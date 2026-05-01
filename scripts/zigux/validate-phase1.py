@@ -205,6 +205,8 @@ MARKER_GROUPS = {
             "PHASE1_FIND_BIT_ALIAS_UNIT_REVIEW=",
             "PHASE1_STRING_MEMPARSE_UNIT_REVIEW=",
             "PHASE1_RBTREE_CACHED_FINDADD_UNIT_REVIEW=",
+            "PHASE1_RBTREE_BENCH_REVIEW=rbtree benchmark smoke pins ordered traversal, duplicate-range, cached-leftmost, findAdd, and postorder-safe checksum surfaces so duplicate-owner and erase-while-walking regressions cannot hide behind the broader tree checksum alone",
+            "PHASE1_RBTREE_BENCH_KEYS=PHASE1_BENCH_RBTREE_CHECKSUM,PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM,PHASE1_BENCH_RBTREE_CACHED_CHECKSUM,PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM,PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM",
         ],
     ),
     "bench": (
@@ -222,6 +224,7 @@ MARKER_GROUPS = {
             "PHASE1_BENCH_FIND_SAME_WORD_CHECKSUM",
             "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM",
             "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM",
+            "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM",
         ],
     ),
     "bench_expectations": (
@@ -233,6 +236,7 @@ MARKER_GROUPS = {
             '"PHASE1_BENCH_FIND_SAME_WORD_CHECKSUM"',
             '"PHASE1_BENCH_RBTREE_CACHED_CHECKSUM"',
             '"PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM"',
+            '"PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM"',
         ],
     ),
     "parity_checker": (
