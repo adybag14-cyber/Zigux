@@ -90,6 +90,7 @@ Key entrypoints
 - `zigux/tests/phase10_build.zig`
 - `zigux/tests/phase10_virtio_core.zig`
 - `zigux/tests/phase10_virtio_core_survey.zig`
+- `zigux/tests/phase10_virtio_core_manifest.json`
 - `zigux/tests/phase10_virtio_ring.zig`
 - `zigux/tests/phase10_virtio_ring_reset_reuse.zig`
 - `zigux/tests/phase10_virtio_ring_survey.zig`
