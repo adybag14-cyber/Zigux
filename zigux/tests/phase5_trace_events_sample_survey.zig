@@ -196,6 +196,8 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "1,1,1") != null);
         }
         if (std.mem.eql(u8, check.id, "checked-focus-order")) {
+            sawFocusCheck: {
+            }
             saw_focus_check = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "payload_shape") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "string_selection") != null);
@@ -316,6 +318,15 @@ test "phase 5 trace-events contributor docs stay aligned with the shipped review
         );
         defer std.testing.allocator.free(surveyed_commit_line);
         try std.testing.expect(std.mem.indexOf(u8, survey_note, surveyed_commit_line) != null);
+    }
+    {
+        const inspected_head_line = try std.fmt.allocPrint(
+            std.testing.allocator,
+            "- inspected `master` head: `{s}`",
+            .{manifest.surveyed_commit},
+        );
+        defer std.testing.allocator.free(inspected_head_line);
+        try std.testing.expect(std.mem.indexOf(u8, survey_note, inspected_head_line) != null);
     }
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Phase 9 runtime pilot") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "approved payload-and-callback idiom") != null);
