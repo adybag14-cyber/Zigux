@@ -3,8 +3,8 @@ from __future__ import annotations
 
 import argparse
 import json
-import re
 from pathlib import Path
+import re
 import sys
 import tempfile
 
@@ -192,7 +192,7 @@ BASE64_CASEGEN_MARKERS = [
 BASE64_C_HARNESS_MARKERS = [
     "BASE64_IMAP = 2,",
     '[BASE64_IMAP] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+,",',
-    '[BASE64_IMAP] = BASE64_REV_INIT(\'+\', \',\'),',
+    "[BASE64_IMAP] = BASE64_REV_INIT('+', ','),",
     '#include "phase6_base64_c_generated_cases.inc"',
     'printf("enc\\t%s\\t%d\\t", variant_name(c->variant), c->padding ? 1 : 0);',
     'printf("dec\\t%s\\t%d\\t%d\\t", variant_name(c->variant), c->padding ? 1 : 0, bytes_result);',
@@ -251,8 +251,8 @@ BSEARCH_C_PARITY_RUNNER_MARKERS = [
     'try writeIndexCase(writer, "descending-hit", 34, bsearch.searchIndex(u32, u32, &@as(u32, 34), descending_values[0..], compareDescendingU32));',
     'try writeDuplicateCase(writer, "duplicate-hit-middle", 7, bsearch.searchIndex(u32, u32, &@as(u32, 7), duplicate_in_middle[0..], compareU32));',
     'try writeIndexCase(writer, "raw-descending-hit", 34, bsearch.bsearchIndex(&@as(u32, 34), @ptrCast(descending_values[0..].ptr), descending_values.len, @sizeOf(u32), compareOpaqueDescendingU32));',
-    'try writeRuntimeTypedCases(writer, values[0..], descending_values[0..]);',
-    'try writeRuntimeRawCases(writer, values[0..], descending_values[0..]);',
+    "try writeRuntimeTypedCases(writer, values[0..], descending_values[0..]);",
+    "try writeRuntimeRawCases(writer, values[0..], descending_values[0..]);",
     'try writer.print("raw-mutable-hit\\t21\\t{}\\n", .{raw_mutable_values[3]});',
 ]
 
@@ -276,10 +276,12 @@ BSEARCH_SLICE_MARKERS = [
 ]
 
 CHECKSUM_TEST_MARKERS = [
+    'test "phase 6 checksum module imports cleanly" {',
     'test "fixture-backed compute parity covers the current checksum vectors" {',
     'test "partial sums compose across the fixture split matrix" {',
     'test "seeded partial accumulation matches the fixture-backed reference" {',
     'test "kunit-inspired carry discipline stays stable on the helper surface" {',
+    'test "kunit random-prefix parity stays stable on the helper surface" {',
     'test "pseudo header accumulation matches the fixture-backed reference checksum" {',
     'test "IPv6 pseudo header accumulation matches the fixture-backed reference checksum" {',
     'test "incremental checksum replacements match full recomputation" {',
@@ -508,12 +510,16 @@ def load_json(root: Path, path: str) -> object:
 
 
 def collect_missing_files(root: Path) -> list[str]:
-    return [path for path in REQUIRED_FILES if not (root / path).exists()]
+    missing: list[str] = []
+    for relpath in REQUIRED_FILES:
+        if not (root / relpath).exists():
+            missing.append(relpath)
+    return missing
 
 
-def require_markers(missing: list[str], label: str, content: str, markers: list[str]) -> None:
+def require_markers(missing: list[str], label: str, haystack: str, markers: list[str]) -> None:
     for marker in markers:
-        if marker not in content:
+        if marker not in haystack:
             missing.append(f"{label}:missing:{marker}")
 
 
@@ -811,6 +817,45 @@ def run_self_test() -> int:
                 raise AssertionError(f"expected base64 vector marker failure, got: {base64_fail_result['missing']}")
 
             write_self_test_tree(root)
+            checksum_path = root / "zigux/tests/phase6_checksum.zig"
+            checksum_text = checksum_path.read_text(encoding="utf-8")
+            checksum_import_marker = 'test "phase 6 checksum module imports cleanly" {'
+            if checksum_import_marker not in checksum_text:
+                raise AssertionError("expected checksum import marker missing from positive fixture")
+            checksum_path.write_text(
+                checksum_text.replace(checksum_import_marker, "", 1),
+                encoding="utf-8",
+            )
+
+            checksum_import_fail_result = validate_phase6(root)
+            if checksum_import_fail_result["ok"]:
+                raise AssertionError("checksum import marker removal unexpectedly passed")
+            if f"phase6_checksum:missing:{checksum_import_marker}" not in checksum_import_fail_result["missing"]:
+                raise AssertionError(
+                    f"expected checksum import marker failure, got: {checksum_import_fail_result['missing']}"
+                )
+
+            write_self_test_tree(root)
+            checksum_path = root / "zigux/tests/phase6_checksum.zig"
+            checksum_text = checksum_path.read_text(encoding="utf-8")
+            checksum_random_prefix_marker = 'test "kunit random-prefix parity stays stable on the helper surface" {'
+            if checksum_random_prefix_marker not in checksum_text:
+                raise AssertionError("expected checksum random-prefix marker missing from positive fixture")
+            checksum_path.write_text(
+                checksum_text.replace(checksum_random_prefix_marker, "", 1),
+                encoding="utf-8",
+            )
+
+            checksum_random_prefix_fail_result = validate_phase6(root)
+            if checksum_random_prefix_fail_result["ok"]:
+                raise AssertionError("checksum random-prefix marker removal unexpectedly passed")
+            if f"phase6_checksum:missing:{checksum_random_prefix_marker}" not in checksum_random_prefix_fail_result["missing"]:
+                raise AssertionError(
+                    "expected checksum random-prefix marker failure, got: "
+                    f"{checksum_random_prefix_fail_result['missing']}"
+                )
+
+            write_self_test_tree(root)
             checksum_perf_path = root / "zigux/tests/phase6_checksum_perf.zig"
             checksum_perf_text = checksum_perf_path.read_text(encoding="utf-8")
             checksum_perf_marker = "try std.testing.expect(slowdown_pct <= case.max_slowdown_pct);"
@@ -967,7 +1012,7 @@ def run_self_test() -> int:
         return 1
 
     print("PHASE6_VALIDATOR_SELF_TEST=pass")
-    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=13")
+    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
