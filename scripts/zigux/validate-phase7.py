@@ -571,6 +571,37 @@ required_doc_readme_markers = [
     "python3 scripts/zigux/check-phase7-rbtree-parity.py",
 ]
 
+required_phase7_string_helpers_survey_markers = [
+    "This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.",
+    "phase 7 kasprintfStrarray returns sequential owned strings with a null-pointer terminator",
+    "phase 7 stringEscapeMem reports truncated output length without forcing a terminator",
+]
+
+required_phase7_string_helpers_test_markers = [
+    "phase 7 parseIntArray keeps the counted get_options contract explicit",
+    "phase 7 kasprintfStrarray returns sequential owned strings with a null-pointer terminator",
+    "phase 7 stringEscapeMem reports truncated output length without forcing a terminator",
+]
+
+required_phase7_string_helpers_doc_markers = [
+    "zigux/tests/fixtures/phase7_string_helpers_escape_vectors.zig",
+    "integration with validation substrate through `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_survey.zig`, and `zigux/tests/phase7_build.zig`.",
+    "`parse_int_array()` over the bounded allocator-backed starter path",
+    "`kfree_strarray()` over the bounded repeated-teardown-safe release path",
+]
+
+required_phase7_cmdline_survey_markers = [
+    'try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_tests, "phase 7 getOptions preserves descending-range and partial-parse stop behavior") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_tests, "phase 7 nextArg matches serialized edge fixtures") != null);',
+    'try expectContains(phase7_build, "phase7-cmdline-survey-tests");',
+]
+
+required_phase7_cmdline_test_markers = [
+    "phase 7 getOptions preserves descending-range and partial-parse stop behavior",
+    "phase 7 getOptions keeps array-capacity stop behavior explicit when a range is only partially stored",
+    "phase 7 nextArg matches serialized edge fixtures",
+]
+
 required_phase7_cmdline_doc_markers = [
     "PHASE7_STATUS=parked",
     "zigux/tests/phase7_cmdline.zig",
@@ -589,6 +620,32 @@ required_phase7_cmdline_doc_markers = [
     "C-style stop-at-NUL handling for bare-option scans",
     "serialized `next_arg()` edge cases covering quoted values, quoted bare tokens, empty quoted values, unquoted punctuation-rich values, first-equals splitting, leading-equals sentinel handling, trailing-space trimming after `key=value`, and empty-rest termination",
     "helper-local test runs cannot import that fixture from outside the helper module path; keep both packets aligned when those serialized cases change",
+]
+
+required_phase7_argv_split_doc_markers = [
+    "zigux/tests/phase7_argv_split_manifest.json",
+    "keep the roadmap survey record machine-checked from `repo_root`",
+    "optional argc reporting that stays in sync with the returned argv length",
+    "repeated blank-input `argvFree()` teardown safety so the shared empty sentinel state survives explicit release without allocator backing",
+]
+
+required_phase7_argv_split_helper_markers = [
+    "pub const ArgvSplitResult = struct {",
+    "pub fn argvFree(allocator: std.mem.Allocator, result: *ArgvSplitResult) void {",
+    "const leading_nul_expected = [_][]const u8{};",
+]
+
+required_phase7_argv_split_survey_markers = [
+    'try std.testing.expectEqual(@as(usize, 0), ready_next_count);',
+    'try std.testing.expect(std.mem.indexOf(u8, argv_split_tests, "phase 7 argvSplitWithArgc reports the split length through the optional out parameter") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "The manifest-backed survey packet stays rooted at `repo_root` through `zigux/tests/phase7_build.zig`") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, phase7_build, "phase7-argv-split-survey-tests") != null);',
+]
+
+required_phase7_argv_split_test_markers = [
+    "phase 7 argvSplitWithArgc reports the split length through the optional out parameter",
+    "phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable",
+    "phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup",
 ]
 
 required_phase7_rbtree_survey_markers = [
@@ -611,6 +668,12 @@ required_phase7_rbtree_test_markers = [
     "phase 7 rbtree iterateMatches streams duplicate-key ranges",
     "phase 7 rbtree findAdd inserts new nodes and returns existing duplicates",
     "phase 7 rbtree postorder traversal matches committed parity fixture",
+]
+
+required_phase7_rbtree_doc_markers = [
+    "integration with validation substrate through `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_survey.zig`, `zigux/tests/phase7_build.zig`, and `scripts/zigux/check-phase7-rbtree-parity.py`.",
+    "erase-and-detach reuse semantics via `eraseInit()`",
+    "a machine-checked manifest that records the `lib/rbtree.c` anchor and the landed Phase 7 review surfaces",
 ]
 
 expected_phase7_build_paths = {
@@ -680,6 +743,44 @@ expected_phase7_test_step_dependencies = {
     "run_rbtree_tests",
     "run_rbtree_survey_tests",
 }
+
+required_phase7_build_markers = [
+    "fn createImportedTestRoot(",
+    "fn createStandaloneTestRoot(",
+    "fn addTestRun(",
+    "run.setCwd(path);",
+    'const repo_root = b.path("../..");',
+    "Helper tests keep the shipped lib imports explicit, while survey tests stay standalone.",
+    "../../lib/string_helpers.zig",
+    "../../lib/cmdline.zig",
+    "../../lib/argv_split.zig",
+    "../../lib/rbtree.zig",
+    "phase7_string_helpers.zig",
+    "phase7_string_helpers_survey.zig",
+    "phase7_cmdline.zig",
+    "phase7_cmdline_survey.zig",
+    "phase7_argv_split.zig",
+    "phase7_argv_split_survey.zig",
+    "phase7_rbtree.zig",
+    "phase7_rbtree_survey.zig",
+    "phase7-string-helpers-tests",
+    "phase7-string-helpers-survey-tests",
+    "phase7-cmdline-tests",
+    "phase7-cmdline-survey-tests",
+    "phase7-argv-split-tests",
+    "phase7-argv-split-survey-tests",
+    "phase7-rbtree-tests",
+    "phase7-rbtree-survey-tests",
+    "string_helpers_root_module,\n        null,",
+    "cmdline_root_module,\n        null,",
+    "cmdline_survey_root_module,\n        repo_root,",
+    "argv_split_root_module,\n        null,",
+    "argv_split_survey_root_module,\n        repo_root,",
+    "string_helpers_survey_root_module,\n        repo_root,",
+    "rbtree_root_module,\n        null,",
+    "rbtree_survey_root_module,\n        repo_root,",
+    'b.step("test", "Run Phase 7 runtime helper tests")',
+]
 
 unexpected_phase7_build_markers = [
     "../../tools/lib/",
