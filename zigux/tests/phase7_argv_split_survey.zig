@@ -32,6 +32,10 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "ready_next");
 }
 
+fn expectContains(haystack: []const u8, needle: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+}
+
 test "phase 7 argv_split survey manifest records the parked runtime leaf surface without an active follow-up" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -134,6 +138,10 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try std.testing.expect(std.mem.indexOf(u8, argv_split_tests, "phase 7 argvSplit deinit clears exported storage and argv views") != null);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_tests, "phase 7 argvSplit deinit stays safe when called after teardown already cleared the result") != null);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_tests, "phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup") != null);
+    try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "integration with validation substrate through `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, and `zigux/tests/phase7_build.zig`.") != null);
+    try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "prove the shared Phase 7 validator packet still fails closed before the helper replay runs") != null);
+    try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "`python3 scripts/zigux/validate-phase7.py --self-test`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "`make -C zigux phase7-validate`") != null);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "`argv_free()` via `argvFree()`") != null);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "optional argc reporting that stays in sync with the returned argv length") != null);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "leading-NUL truncation to zero argv entries before any later bytes are considered") != null);
