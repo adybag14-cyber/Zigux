@@ -120,6 +120,13 @@ test "phase13 devres manifest records the current iomap/mmio safety surface and 
 
     try std.testing.expectEqual(@as(usize, 2), std.mem.count(u8, devres_source, "touches_live_dma"));
     try std.testing.expectEqual(@as(usize, 2), std.mem.count(u8, devres_source, "touches_live_scatterlist"));
+    try expectNotContains(devres_source, "devres_alloc_node");
+    try expectNotContains(devres_source, "devres_add");
+    try expectNotContains(devres_source, "devm_request_mem_region");
+    try expectNotContains(devres_source, "ioremap(");
+    try expectNotContains(devres_source, "iounmap(");
+    try expectNotContains(devres_source, "ioport_map(");
+    try expectNotContains(devres_source, "ioport_unmap(");
     try expectNotContains(devres_source, "dmam_alloc_coherent");
     try expectNotContains(devres_source, "dmam_free_coherent");
     try expectNotContains(devres_source, "dma_map_resource");
@@ -127,6 +134,20 @@ test "phase13 devres manifest records the current iomap/mmio safety surface and 
     try expectNotContains(devres_source, "dma_map_sgtable");
     try expectNotContains(devres_source, "struct scatterlist");
     try expectNotContains(devres_source, "sg_table");
+
+    const slice_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase13-devres-slice.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(slice_note);
+
+    try expectContains(slice_note, "pure helper-first foothold anchored to `lib/devres.c`");
+    try expectContains(slice_note, "without claiming any live MMIO side effects");
+    try expectContains(slice_note, "without pretending to read a live device tree");
+    try expectContains(slice_note, "does not expose `dmam_*`, `dma_map_*`, `dma_unmap_*`, `dma_map_sgtable()`, `struct scatterlist`, `sg_table`, or `sg_*` traversal behavior at all");
+    try expectContains(slice_note, "does not claim live `devres_alloc_node()` ownership");
 
     const survey_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
@@ -149,6 +170,7 @@ test "phase13 devres manifest records the current iomap/mmio safety surface and 
     try expectContains(survey_note, "sha256 7dc45ab99f46d5424e3d757f720e58654aaea326b13db1af601be88c3cbff476");
     try expectContains(survey_note, "the dedicated `zigux/tests/phase13_devres.zig` replay remains hash-stable");
     try expectContains(survey_note, "only the `touches_live_dma` and `touches_live_scatterlist` descriptor markers");
+    try expectContains(survey_note, "`devres_alloc_node()` ownership, `devres_add()` installation, `devm_request_mem_region()` side effects");
 
     var starter_landed_count: usize = 0;
     var blocked_live_mmio_count: usize = 0;
