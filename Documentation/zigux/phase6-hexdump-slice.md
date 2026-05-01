@@ -64,7 +64,7 @@ The current tests check:
 - serialized required-length vectors for `hexDumpLineLength` and zero-buffer `hexDumpToBuffer`
 - kernel-style one-line hex and ASCII formatting
 - native-endian grouped output for 2, 4, and 8 byte cases, including the previously missing 4-byte review gate
-- exact grouped ASCII output for native-endian 4-byte and 8-byte formatter cases on the representative 16-byte packet
+- exact grouped ASCII output for native-endian 2-byte, 4-byte, and 8-byte formatter cases on the representative 16-byte packet
 - normalization behavior for rowsize and groupsize fallback cases lifted from `lib/test_hexdump.c`
 - shared normalization ownership stays in `zigux/tests/fixtures/phase6_hexdump_vectors.zig`, where `normalizedRowsize()`, `normalizedGroupsizeForLen()`, and `prepareExpectedLine(...)` keep the parity, overflow, required-length, and perf replays on one committed corpus path
 - empty-buffer required-length behavior for normalized fallback paths
