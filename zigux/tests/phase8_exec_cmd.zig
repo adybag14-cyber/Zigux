@@ -182,6 +182,36 @@ test "phase 8 exec-cmd environment wrapper propagates PREFIX, exec path, and PAT
     try std.testing.expectEqualStrings("/repo/tools/bin:", inherited_empty);
     try std.testing.expectEqualStrings(inherited_empty, inherited_empty_env.get("PATH").?);
 
+    var inherited_missing_env = exec_cmd.EnvMap.init(std.testing.allocator);
+    defer inherited_missing_env.deinit();
+
+    var inherited_missing_state = exec_cmd.ExecCmdState{};
+    defer inherited_missing_state.deinit(std.testing.allocator);
+
+    try exec_cmd.execCmdInit(&inherited_missing_env, config);
+    try exec_cmd.setArgvExecPath(
+        std.testing.allocator,
+        &inherited_missing_env,
+        &inherited_missing_state,
+        config,
+        "tools/bin",
+    );
+
+    const inherited_missing = try exec_cmd.setupPath(
+        std.testing.allocator,
+        &inherited_missing_env,
+        inherited_missing_state,
+        config,
+        "/repo",
+    );
+    defer std.testing.allocator.free(inherited_missing);
+
+    try std.testing.expectEqualStrings(
+        "/repo/tools/bin:/usr/local/bin:/usr/bin:/bin",
+        inherited_missing,
+    );
+    try std.testing.expectEqualStrings(inherited_missing, inherited_missing_env.get("PATH").?);
+
     var inherited_relative_env = exec_cmd.EnvMap.init(std.testing.allocator);
     defer inherited_relative_env.deinit();
 
