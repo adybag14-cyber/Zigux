@@ -128,11 +128,18 @@ static void run_memparse_section(void)
 
 static void run_parse_option_section(void)
 {
+    const char nul_stop_input[] = {
+        'q', 'u', 'i', 'e', 't', ',',
+        'd', 'e', 'b', 'u', 'g', '\0',
+        ',', 'n', 'o', 'h', 'l', 't', '\0',
+    };
+
     printf("\"parse_option_str\":{");
     printf("\"empty_between_commas\":%s,", parse_option_str("quiet,,debug", "") ? "true" : "false");
     printf("\"empty_trailing_comma\":%s,", parse_option_str("quiet,", "") ? "true" : "false");
     printf("\"exact_bare_option\":%s,", parse_option_str("quiet,debug,nohlt", "debug") ? "true" : "false");
-    printf("\"assignment_not_bare\":%s", parse_option_str("quiet,debug=1,nohlt", "debug") ? "true" : "false");
+    printf("\"assignment_not_bare\":%s,", parse_option_str("quiet,debug=1,nohlt", "debug") ? "true" : "false");
+    printf("\"nul_stop_bare_scan\":%s", parse_option_str(nul_stop_input, "nohlt") ? "true" : "false");
     printf("}");
 }
 
