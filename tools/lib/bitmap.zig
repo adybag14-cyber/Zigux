@@ -8,6 +8,10 @@ pub fn bitsToWords(nbits: usize) usize {
     return find_bit.bitsToWords(nbits);
 }
 
+pub fn bitmapSize(nbits: usize) usize {
+    return bitsToWords(nbits) * @sizeOf(Word);
+}
+
 pub fn firstWordMask(start: usize) Word {
     return find_bit.firstWordMask(start);
 }
@@ -480,6 +484,10 @@ pub fn __bitmap_xor(dst: []Word, bitmap1: []const Word, bitmap2: []const Word, b
     xorBits(dst, bitmap1, bitmap2, bits);
 }
 
+pub fn bitmap_size(nbits: usize) usize {
+    return bitmapSize(nbits);
+}
+
 test "bitmap set clear weight and empty full helpers" {
     var map = [_]Word{ 0, 0, 0 };
     setRange(&map, 1, 3);
@@ -696,6 +704,14 @@ test "bitmap allocation helpers size zero fill and reset optionals" {
     try std.testing.expect(plain == null);
     bitmapFree(allocator, &zeroed);
     try std.testing.expect(zeroed == null);
+}
+
+test "bitmap size helpers round up to full words in bytes" {
+    try std.testing.expectEqual(@as(usize, 0), bitmapSize(0));
+    try std.testing.expectEqual(@as(usize, @sizeOf(Word)), bitmapSize(1));
+    try std.testing.expectEqual(@as(usize, @sizeOf(Word)), bitmapSize(bits_per_long));
+    try std.testing.expectEqual(@as(usize, @sizeOf(Word) * 2), bitmapSize(bits_per_long + 1));
+    try std.testing.expectEqual(bitmapSize(bits_per_long + 5), bitmap_size(bits_per_long + 5));
 }
 
 test "bitmap zero-bit helpers stay explicit no-ops" {
