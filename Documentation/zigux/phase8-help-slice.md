@@ -18,9 +18,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 
 The Phase 8 roadmap explicitly names `tools/lib/subcmd/help.c` as a userspace-adjacent tooling anchor and recommends `tools/lib/subcmd/*.zig` as the first Zigux destination for this tranche.
 
-This lane keeps the shipped `help.zig` parked slice aligned with the roadmap's helper-first expansion rule by proving the stable command-list manipulation logic and section-output behavior from `help.c` inside a real repo-hosted tooling anchor.
-
-That makes the current parked packet an honest Phase 8 step toward serious repo-hosted tooling with output-stable tooling behavior, while direct directory walking, environment inspection, and raw terminal probing remain deferred.
+This lane keeps the shipped `help.zig` parked slice aligned with the stable command-list manipulation logic from `help.c`, because that surface is still easier to validate honestly than terminal-size probing, directory walking, environment inspection, or output emission.
 
 ## Gates
 
@@ -49,6 +47,7 @@ The current parked slice covers:
 - `is_in_cmdlist()` membership checks
 - injected command-entry filtering that strips the `perf-` prefix and optional `.exe` suffix before storage
 - injected command-source loading that models `load_command_list()` exec-path priority, PATH de-duplication, and cross-list exclusion without direct `readdir()` or `stat()` calls
+- injected command-source loading also re-normalizes any caller-seeded main command list before PATH-side exclusion, so upstream precomputed exec-path entries stay on the same sort, uniq, and de-duplication path as direct discovery
 - raw `PATH` string splitting that preserves empty colon-delimited segments, including a fully empty `PATH` string, before reusing the same prefix-aware command-source loader, keeping the env-`PATH` helper on the exact same sort, uniq, and exclusion path as the shared source helper
 - injected `get_term_dimensions()`-adjacent resolution that prefers explicit `LINES` and `COLUMNS` values before fallback terminal dimensions or the default `25x80`
 - `pretty_print_string_list()`-adjacent column and row planning without direct terminal I/O
@@ -63,6 +62,7 @@ The current tests check:
 - sorted exclusions remove matching entries without disturbing survivors
 - executable-entry filtering ignores non-prefixed, non-executable, and prefix-only candidates while stripping `.exe` suffixes
 - command-source loading keeps the exec-path list stable, skips the exec-path directory when it also appears on PATH, removes commands already present in the exec-path list, and preserves the `perf-` default prefix behavior
+- command-source loading keeps caller-seeded main command lists sorted and de-duplicated before PATH-side exclusion, preventing already-known commands from leaking back in when exec-path discovery is unavailable or precomputed upstream
 - raw `PATH` splitting keeps a fully empty string plus leading, repeated, and trailing empty segments explicit so later injected population can follow the same branch shape as `help.c`, and the env-`PATH` wrapper keeps custom-prefix filtering on the same shared helper path as the direct source loader
 - terminal-dimensions resolution only accepts non-zero `LINES` plus `COLUMNS` pairs, otherwise falls back to injected terminal sizes or the `25x80` default
 - membership and longest-name tracking stay aligned with stored entries
