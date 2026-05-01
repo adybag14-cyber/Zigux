@@ -132,6 +132,25 @@ def run_self_test() -> int:
         gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
         gate_evidence.write_text(
             gate_evidence.read_text(encoding="utf-8").replace(
+                "## Current Conclusion\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert "phase4_gate_evidence:## Current Conclusion" in missing, missing
+
+        write_fixture_tree(root)
+        tests_readme = root / "zigux/tests/README.md"
+        tests_readme.unlink()
+        missing = validate_root(root)
+        assert "file:zigux/tests/README.md" in missing, missing
+
+        write_fixture_tree(root)
+        gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
+        gate_evidence.write_text(
+            gate_evidence.read_text(encoding="utf-8").replace(
                 "PHASE4_DOC_README_BLOB_SHA=",
                 "PHASE4_DOC_README_BLOB_SHA=broken",
                 1,
