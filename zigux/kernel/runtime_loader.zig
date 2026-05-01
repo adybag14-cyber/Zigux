@@ -471,8 +471,11 @@ test "runtime loader request preserves explicit command names across runtime-lan
         try std.testing.expect(request.command_name != null);
         try std.testing.expect(request.keepsCommandNameExplicit());
         try std.testing.expect(request.keepsInitExitContractExplicit());
+        try std.testing.expect(!request.isWaitingOnRuntimeSubstrate());
+        try std.testing.expect(!request.isReleasedWithoutSubstrate());
+        try std.testing.expect(!request.keepsStageConsistentWithRuntimeSubstrate());
         try std.testing.expect(request.keepsLifecyclePayloadConsistent());
-        try std.testing.expect(request.keepsSharedHandoffContractExplicit());
+        try std.testing.expect(!request.keepsSharedHandoffContractExplicit());
 
         const waiting = request.waitingOnRuntimeSubstrate();
         try std.testing.expect(waiting.command_name != null);
