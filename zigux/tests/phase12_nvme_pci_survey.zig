@@ -19,6 +19,7 @@ const SurveySummary = struct {
     nvme_pci_slice_note_present: bool,
     nvme_pci_survey_gate_present: bool,
     nvme_pci_survey_note_present: bool,
+    nvme_pci_raw_fallback_map_present: bool,
 };
 
 const Gap = struct {
@@ -81,6 +82,7 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
     try std.testing.expect(manifest.survey_summary.nvme_pci_slice_note_present);
     try std.testing.expect(manifest.survey_summary.nvme_pci_survey_gate_present);
     try std.testing.expect(manifest.survey_summary.nvme_pci_survey_note_present);
+    try std.testing.expect(manifest.survey_summary.nvme_pci_raw_fallback_map_present);
     try std.testing.expectEqual(@as(usize, 12), manifest.gaps.len);
 
     const slice_note = try std.Io.Dir.cwd().readFileAlloc(
@@ -124,6 +126,8 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-nvme-pci-tests 11 pass (11 total)") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig fmt --check drivers/nvme/host/pci.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-nvme-pci-raw-github-fallback-map.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "dedicated survey gate now treats that pinned fallback map as part of this packet's reviewability surface") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Within that same recorded survey-note gap") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_map, "PHASE12_LANE_KEY=P12-L07") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_map, current_surveyed_commit) != null);
@@ -131,6 +135,7 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_map, "## Tree Readback Roots") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_map, "## Raw Pinned URLs") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_map, "## Non-goals") != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_map, "The dedicated `zigux/tests/phase12_nvme_pci_survey.zig` gate reads this note back as part of the archived reviewability surface") != null);
 
     const expected_tree_urls = [_][]const u8{
         "https://github.com/adybag14-cyber/Zigux/tree/master/drivers/nvme/host",
@@ -245,6 +250,8 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
             saw_survey_note = true;
             try std.testing.expectEqualStrings("Documentation/zigux/phase12-nvme-pci-survey.md", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "pinned raw-read fallback map") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "borrow another lane's fallback catalog") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-nvme-pci-prp-shape-helper")) {
