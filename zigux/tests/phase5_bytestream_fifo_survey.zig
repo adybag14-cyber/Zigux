@@ -361,7 +361,8 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "1/3 bytestream_fifo.test.bytestream fifo sample replays the Linux anchor result sequence...OK") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "3/3 bytestream_fifo.test.bytestream fifo sample keeps ownership and lifetime guards explicit...OK") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "All 3 tests passed.") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Build Summary: 17/17 steps succeeded; 28/28 tests passed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "blocked outside this lane by `phase5_kobject_example_survey` contributor-doc drift on current head") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`phase5-bytestream-fifo-tests` and `phase5-bytestream-fifo-survey-tests` legs passed") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig test zigux/tests/phase5_bytestream_fifo_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "All 2 tests passed.") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "surveyed_commit") != null);
