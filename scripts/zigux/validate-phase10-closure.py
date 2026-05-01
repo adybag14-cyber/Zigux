@@ -40,7 +40,11 @@ CLOSURE_MARKERS = [
     "PHASE10_DRIVER_COUNT=4",
     "PHASE10_TEST_COUNT=9",
     "PHASE10_HAS_VIRTIO_MMIO_ZIG=yes",
+    "PHASE10_ROADMAP_PARITY_SCOREBOARD=present",
+    "PHASE10_ROADMAP_SCOREBOARD_ROW_COUNT=4",
+    "PHASE10_ROADMAP_VIRTQUEUE_WRAPPERS=starter_landed",
     "PHASE10_ROADMAP_MMIO_WRAPPERS=starter_landed",
+    "PHASE10_ROADMAP_LAB_ONLY_DRIVER_VALIDATION=starter_landed",
     "PHASE10_ROADMAP_DUAL_IMPLEMENTATIONS_FOR_RISKY_AREAS=blocked_on_risky_transport",
     "PHASE10_CLOSURE_GATE=python3 scripts/zigux/validate-phase10-closure.py",
     "PHASE10_BUILD_GATE=zig build test --build-file zigux/tests/phase10_build.zig --summary all",
@@ -89,6 +93,11 @@ LEDGER_MARKERS = [
     "PHASE10_LEDGER_TRANCHE=virtio-lab-bundle",
     "PHASE10_LEDGER_EVIDENCE=Documentation/zigux/phase10-closure-evidence.md",
     "PHASE10_LEDGER_VALIDATE=scripts/zigux/validate-phase10-closure.py",
+    "PHASE10_LEDGER_ROADMAP_SCOREBOARD_SOURCE=zigux/tests/phase10_closure_manifest.json",
+    "PHASE10_LEDGER_ROADMAP_VIRTQUEUE_WRAPPERS=starter_landed",
+    "PHASE10_LEDGER_ROADMAP_MMIO_WRAPPERS=starter_landed",
+    "PHASE10_LEDGER_ROADMAP_LAB_ONLY_DRIVER_VALIDATION=starter_landed",
+    "PHASE10_LEDGER_ROADMAP_DUAL_IMPLEMENTATIONS_FOR_RISKY_AREAS=blocked_on_risky_transport",
     "PHASE10_LEDGER_MAKEFILE=zigux/Makefile",
     "PHASE10_LEDGER_WORKFLOW=.github/workflows/zigux-bootstrap.yml",
     "PHASE10_LEDGER_EXACT_CHECK_1=python3 scripts/zigux/validate-phase10-closure.py",
@@ -446,20 +455,37 @@ def run_self_test() -> int:
         original_closure = closure_path.read_text(encoding="utf-8")
         closure_path.write_text(
             original_closure.replace(
-                "shared closure validator now also fails closed if the MMIO interrupt-ack rung disappears from the closure packet",
-                "shared closure validator coverage sentence removed",
+                "PHASE10_ROADMAP_LAB_ONLY_DRIVER_VALIDATION=starter_landed",
+                "PHASE10_ROADMAP_LAB_ONLY_DRIVER_VALIDATION=missing",
                 1,
             ),
             encoding="utf-8",
         )
         expect_missing_marker(
-            "closure_interrupt_ack_sentence",
+            "closure_roadmap_scoreboard",
             fixture_root,
-            "closure:shared closure validator now also fails closed if the MMIO interrupt-ack rung disappears from the closure packet",
+            "closure:PHASE10_ROADMAP_LAB_ONLY_DRIVER_VALIDATION=starter_landed",
+        )
+        write_fixture(fixture_root)
+
+        ledger_path = fixture_root / "zigux-alpha/PHASE10_CLOSURE_LEDGER.md"
+        original_ledger = ledger_path.read_text(encoding="utf-8")
+        ledger_path.write_text(
+            original_ledger.replace(
+                "PHASE10_LEDGER_ROADMAP_LAB_ONLY_DRIVER_VALIDATION=starter_landed",
+                "PHASE10_LEDGER_ROADMAP_LAB_ONLY_DRIVER_VALIDATION=missing",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "ledger_roadmap_scoreboard",
+            fixture_root,
+            "ledger:PHASE10_LEDGER_ROADMAP_LAB_ONLY_DRIVER_VALIDATION=starter_landed",
         )
 
     print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=3")
+    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=4")
     return 0
 
 
