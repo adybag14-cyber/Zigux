@@ -1,16 +1,17 @@
 const std = @import("std");
 const abi = @import("abi_bindings");
+const uapi_version = @import("uapi_version");
 
 pub fn header(flags: u16) abi.BoundaryHeader {
-    return abi.defaultHeader(flags);
+    return uapi_version.boundaryHeader(flags);
 }
 
 pub fn isCompatibleHeader(boundary_header: abi.BoundaryHeader) bool {
-    return boundary_header.abi_version == abi.ABI_VERSION and boundary_header.size >= @sizeOf(abi.BoundaryHeader);
+    return uapi_version.isCompatible(boundary_header);
 }
 
 pub fn isCanonicalHeader(boundary_header: abi.BoundaryHeader) bool {
-    return boundary_header.abi_version == abi.ABI_VERSION and boundary_header.size == @sizeOf(abi.BoundaryHeader);
+    return uapi_version.isCanonical(boundary_header);
 }
 
 pub fn normalize(status: abi.ExportStatus) abi.ExportStatus {
@@ -62,6 +63,7 @@ test "phase3 export shim keeps failure encoding explicit" {
     try std.testing.expectEqual(abi.ABI_VERSION, hdr.abi_version);
     try std.testing.expectEqual(@as(u16, 0x10), hdr.flags);
     try std.testing.expect(isCompatibleHeader(hdr));
+    try std.testing.expectEqual(hdr, uapi_version.boundaryHeader(0x10));
 }
 
 test "phase3 export shim normalizes explicit status decoding" {
