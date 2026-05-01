@@ -40,7 +40,7 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P5-L17", manifest.lane_key);
+    try std.testing.expectEqualStrings("P5-L22", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 5", manifest.phase);
     try std.testing.expectEqual(@as(usize, 40), manifest.surveyed_commit.len);
     for (manifest.surveyed_commit) |byte| {
@@ -241,7 +241,7 @@ test "phase 5 kretprobe contributor docs stay aligned with the shipped review su
     try expectContains(survey_note, "phase5_kretprobe_example_survey.zig");
     try expectContains(survey_note, "phase5_build.zig");
     try expectContains(survey_note, "separate Phase 9 runtime starter");
-    try expectContains(survey_note, "PHASE5_LANE_KEY=P5-L17");
+    try expectContains(survey_note, "PHASE5_LANE_KEY=P5-L22");
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "/workspace/agent_files/") == null);
     {
         const surveyed_commit_line = try std.fmt.allocPrint(
