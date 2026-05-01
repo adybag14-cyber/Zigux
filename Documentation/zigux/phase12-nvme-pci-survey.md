@@ -23,7 +23,7 @@ This survey note records the current bounded Phase 12 checkpoint around `drivers
 
 The Phase 12 roadmap explicitly names `drivers/nvme/host/pci.c` as a complex production-driver target, and the live repo now has a first bounded `drivers/nvme/host/pci.zig` starter.
 
-That starter is real progress, but it is still only a narrow queue-and-data-pointer planning slice. The Linux anchor is 4,293 lines and mixes quirk parsing, admin-queue bring-up, MSI and MSI-X planning, blk-mq queue mapping, PRP and SGL setup, Host Memory Buffer controls, timeout and reset policy, PCI queue creation, completion polling, and suspend or teardown flows.
+That starter is real progress, but it is still only a narrow queue-and-data-pointer planning slice with one bounded PRP metadata summary. The Linux anchor is 4,293 lines and mixes quirk parsing, admin-queue bring-up, MSI and MSI-X planning, blk-mq queue mapping, PRP and SGL setup, Host Memory Buffer controls, timeout and reset policy, PCI queue creation, completion polling, and suspend or teardown flows.
 
 This survey keeps that difference explicit so the lane does not overclaim production-driver progress.
 
@@ -34,11 +34,11 @@ This lane now also carries a tiny public-read fallback map in `Documentation/zig
 - `drivers/nvme/host/pci.c` is present on `master` and remains a high-risk complex-driver anchor whose live behavior stretches far beyond the current Zigux starter.
 - the live repo now ships `drivers/nvme/host/pci.zig`, `zigux/tests/phase12_nvme_pci.zig`, `Documentation/zigux/phase12-nvme-pci-slice.md`, shared `zigux/tests/phase12_build.zig` wiring, and the tranche-level `phase12` make target in `zigux/Makefile`.
 - the broader Phase 12 tranche is still published from packet-local verification head `8b69e4dfd04553afeb08c0ecbf3060f800e7ecd1`, where the same three bounded complex-driver starters are the truthful footing: `drivers/net/virtio_net.zig`, `drivers/scsi/virtio_scsi.zig`, and `drivers/nvme/host/pci.zig`. That keeps NVMe PCI compared against peer driver starters rather than survey scaffolding or unrelated lane churn without claiming the pinned survey head is the current `master` tip.
-- that pinned verification head did not widen the NVMe PCI starter beyond the earlier queue-planner, PRP buffer-shape, and pointer-selection packet, which means the survey's roadmap gap remains transport- and recovery-heavy rather than merely stale.
+- that pinned verification head did not widen the NVMe PCI starter beyond the earlier queue-planner, PRP buffer-shape, PRP metadata, and pointer-selection packet, which means the survey's roadmap gap remains transport- and recovery-heavy rather than merely stale.
 - the older cross-lane breakage previously carried forward in this note no longer matches the live file contents on current `master`: rereading `scripts/zigux/validate-phase12.py` and `zigux/tests/phase12_virtio_net_survey.zig` shows the exact stale `SyntaxError: '{' was never closed` and `expected ')', found 'EOF'` claims are not present in the current shared sources, so this survey should stop presenting that historical failure report as live Phase 12 truth without a fresh owner-lane replay.
-- the landed starter stays intentionally narrow: it validates queue geometry, computes combined queue bytes and rounded DMA page demand, assigns monotonic admin and I/O queue identifiers, derives doorbell offsets, freezes queue planning across reset generations, records one tiny PRP buffer-shape summary with first-page offset, rounded span, and page-list bound checks, and now also records one tiny PRP-versus-SGL selection summary around page-gap forcing, user-command forcing, integrity-segment forcing, admin-queue limitations, and average-segment threshold preference before any live DMA-backed queue work.
+- the landed starter stays intentionally narrow: it validates queue geometry, computes combined queue bytes and rounded DMA page demand, assigns monotonic admin and I/O queue identifiers, derives doorbell offsets, freezes queue planning across reset generations, records one tiny PRP buffer-shape summary with first-page offset, rounded span, and page-list bound checks, records one tiny PRP metadata summary with command-inline data-pointer count, PRP-list-covered pages, extra descriptor DMA footprint, and reset-time descriptor rebuild need, and now also records one tiny PRP-versus-SGL selection summary around page-gap forcing, user-command forcing, integrity-segment forcing, admin-queue limitations, and average-segment threshold preference before any live DMA-backed queue work.
 - that footing is useful, but it still does not cover PRP or SGL descriptor allocation, Host Memory Buffer policy, blk-mq request submission, live PCI queue creation, IRQ routing, MMIO access, or recovery parity.
-- the next honest driver-facing step is to keep this lane on survey or validation work until the roadmap-approved DMA-safe transport substrate exists for a truthful follow-up beyond the queue planner, PRP buffer-shape helper, and pointer-selection helper.
+- the next honest driver-facing step is to keep this lane on survey or validation work until the roadmap-approved DMA-safe transport substrate exists for a truthful follow-up beyond the queue planner, PRP buffer-shape helper, PRP metadata helper, and pointer-selection helper.
 
 ## Recorded gaps
 
@@ -57,7 +57,9 @@ The survey manifest now records:
 - the landed `phase12-nvme-pci-pointer-selection-helper`
 - the still-blocked `phase12-nvme-pci-live-queue-and-dma`
 
-This keeps the lane concrete and reviewable without overstating progress: the queue-planner plus PRP-shape plus pointer-selection starters are real, but the transport-heavy roadmap work is still intentionally blocked.
+Within that same recorded starter packet, the current live code, tests, and slice note also keep the bounded PRP metadata helper reviewable without claiming live descriptor allocation or transport work.
+
+This keeps the lane concrete and reviewable without overstating progress: the queue-planner plus PRP-shape plus PRP-metadata plus pointer-selection starters are real, but the transport-heavy roadmap work is still intentionally blocked.
 
 ## Rollback And Reversible Delivery
 
@@ -97,8 +99,8 @@ This survey slice does not claim:
 - a fresh live reread of `scripts/zigux/validate-phase12.py` and `zigux/tests/phase12_virtio_net_survey.zig` shows the older shared-lane syntax and EOF failures recorded by this survey are stale historical evidence rather than current repo truth.
 - the same archived packet now also carries `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` so public readback can stay pinned to the same bounded NVMe file family without widening into the separate `virtio_scsi` current-replay catalog.
 - this NVMe lane did not rerun the shared Phase 12 validator or shared Zig replay in the current pass, so the next shared-tranche status update belongs to the owner of the validator or virtio_net survey packet rather than to this note.
-- even on the archived packet-local replay, the shared bundle still reached `phase12-nvme-pci-tests 9 pass (9 total)` and `phase12-nvme-pci-survey-tests 1 pass (1 total)` before the unrelated cross-lane stop recorded at the time.
+- even on the archived packet-local replay, the shared bundle still reached `phase12-nvme-pci-tests 11 pass (11 total)` and `phase12-nvme-pci-survey-tests 1 pass (1 total)` before the unrelated cross-lane stop recorded at the time.
 
 ## Next bounded step
 
-Stay in the Phase 12 nvme PCI lane on survey or validation work until the roadmap-approved DMA-safe transport substrate exists for a truthful follow-up beyond the current queue planner, PRP buffer-shape helper, and pointer-selection helper. If this note reopens before then, refresh only the current-head pin, the exact replay evidence for this packet, or the pinned raw-read fallback map, and leave shared-validator or shared-build status refreshes to their own Phase 12 lanes.
+Stay in the Phase 12 nvme PCI lane on survey or validation work until the roadmap-approved DMA-safe transport substrate exists for a truthful follow-up beyond the current queue planner, PRP buffer-shape helper, PRP metadata helper, and pointer-selection helper. If this note reopens before then, refresh only the current-head pin, the exact replay evidence for this packet, or the pinned raw-read fallback map, and leave shared-validator or shared-build status refreshes to their own Phase 12 lanes.
