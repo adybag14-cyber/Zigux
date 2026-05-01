@@ -1,7 +1,7 @@
 {
   "lane_key": "P5-L24",
   "phase": "Phase 5",
-  "surveyed_commit": "f0276491744b936652e4017387c586b433d0cb89",
+  "surveyed_commit": "bc64354437727e63caed13a39203148016399d07",
   "anchor": "samples/trace_events/trace-events-sample.c",
   "sample_path": "samples/zigux/trace_events_sample.zig",
   "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
