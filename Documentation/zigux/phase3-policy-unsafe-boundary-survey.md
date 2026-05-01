@@ -4,7 +4,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 
 ## Status
 
-- `PHASE3_SURVEYED_COMMIT=35de373c5565db4812301928efbb3d558c22c7f5`
+- `PHASE3_SURVEYED_COMMIT=d1ce5f1c1c1902d62d24ebb3165c9839b41c66e6`
 - `PHASE3_LAYOUT_ASSERT_PATH=zigux/helpers/layout_assert.zig`
 - `PHASE3_LAYOUT_ASSERT_SCOPE=canonical-bindings`
 - `PHASE3_LAYOUT_ASSERT_STATUS=canonical-layout-assertions-landed`
@@ -19,7 +19,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_ALLOCATOR_POLICY_BLOB_SHA=61355af4c5498283ca9e235634c3e0a56d2caca6`
 - `PHASE3_INTEROP_POLICY_PATH=zigux/helpers/interop_policy.zig`
 - `PHASE3_INTEROP_POLICY_SCOPE=whole-record-decode-explicit-mode-and-scope-validation`
-- `PHASE3_INTEROP_POLICY_BLOB_SHA=43abf6f25b2e3083b3f99f9a39312061b19c510a`
+- `PHASE3_INTEROP_POLICY_BLOB_SHA=55d02b54a95e45c9ad1f5ca8b829f3023ca4531d`
 - `PHASE3_UNSAFE_PATH=zigux/unsafe/narrow.zig`
 - `PHASE3_UNSAFE_SCOPE=narrow-mmio-and-raw-pointer-bridge`
 - `PHASE3_UNSAFE_BLOB_SHA=543239eec61a02701f14622cacf39f6bf104621e`
@@ -49,7 +49,7 @@ It does require the current tree to say clearly which policy rules are already l
 
 ## Live Repo Reality
 
-This survey is pinned to verified `master` head `35de373c5565db4812301928efbb3d558c22c7f5` for the directly coupled policy-and-unsafe packet, and it now also records packet-local blob IDs for the curated helper, build, test, manifest, and slice-note files so shallow history alone does not turn a reviewable packet into a false validation failure.
+This survey is pinned to verified `master` head `d1ce5f1c1c1902d62d24ebb3165c9839b41c66e6` for the directly coupled policy-and-unsafe packet, and it now also records packet-local blob IDs for the curated helper, build, test, manifest, and slice-note files so shallow history alone does not turn a reviewable packet into a false validation failure.
 
 The current tree already carries a real bounded policy-and-unsafe substrate:
 
