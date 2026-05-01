@@ -53,6 +53,32 @@ The survey manifest now records:
 
 This keeps the lane concrete and reviewable without overstating MMIO progress: the queue-facing footholds are real, the bounded register-window, queue-register, queue-notify, queue-address, config-window, config-write, and interrupt-ack steps are now landed, and the broader transport-facing lifecycle and IRQ work is still intentionally blocked.
 
+## Freeze Boundary
+
+- `PHASE10_FREEZE_MAP=Documentation/zigux/freeze-map.md`
+- `PHASE10_FREEZE_BOUNDARY_STATUS=aligned`
+- `PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=yes`
+- `PHASE10_ARCHITECTURE_COUNCIL_REOPEN_ATTACHED=no`
+- `PHASE10_ALLOWED_EVIDENCE_KINDS=driver_local_lab_slices,survey_manifests,shared_validation_gates`
+- `PHASE10_FORBIDDEN_TRANSPORT_CLAIMS=queue_setup_reset_paths,irq_parity,dma_paths,input_registration_lifecycle,probe_remove_lifecycle`
+
+The roadmap keeps this lane inside `drivers/virtio/*.zig`, while the freeze map still keeps the deep-core anchors in C and the study-only transport-adjacent anchors in the separate Phase 14 family:
+
+- `kernel/sched/core.c`
+- `mm/page_alloc.c`
+- `kernel/rcu/tree.c`
+- `net/core/skbuff.c`
+- `kernel/workqueue.c`
+- `kernel/trace/ring_buffer.c`
+
+The study-only anchors therefore remain outside this MMIO lane and stay owned by the separate Phase 14 packet with `boundary maps`, `concurrency audits`, `explicit stay-in-C decisions where warranted`, and `wrapper-first or study-only posture` kept explicit before any future status change is even discussed.
+
+This MMIO survey therefore records an aligned freeze-boundary reading rather than a status-change request:
+
+- no Architecture Council reopen request is attached to this Phase 10 MMIO lane
+- no parity scorecard entry here reopens `kernel/workqueue.c` or `kernel/trace/ring_buffer.c`
+- the allowed evidence stays limited to driver-local lab slices, survey manifests, and shared validation gates inside `drivers/virtio/*.zig`
+
 ## Non-goals
 
 This survey slice does not yet claim:
@@ -63,6 +89,7 @@ This survey slice does not yet claim:
 - interrupt-handler parity from `vm_interrupt()`
 - probe, remove, or command-line device creation parity
 - DMA-facing queue plumbing
+- any reopen of the Phase 14 study-only anchors `kernel/workqueue.c` or `kernel/trace/ring_buffer.c`; this lane stays inside `drivers/virtio/*.zig` and does not use the landed interrupt-ack rung as a pretext for broader transport claims
 
 ## Gates
 
@@ -79,4 +106,4 @@ This survey slice does not yet claim:
 
 ## Next bounded step
 
-Leave the MMIO lane parked unless a future inspection can split `phase10-mmio-lifecycle-and-irq-paths` into a smaller transport-safe observation helper without claiming queue setup, IRQ delivery, probe, or remove parity.
+Leave the MMIO lane parked unless a future inspection can split `phase10-mmio-lifecycle-and-irq-paths` into a smaller transport-safe observation helper without claiming queue setup, IRQ delivery, probe, or remove parity or reopening the separate Phase 14 study-only boundary packet.
