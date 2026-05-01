@@ -61,6 +61,31 @@ fn compareU32Counted(key: *const u32, item: *const u32) i32 {
     return compareU32(key, item);
 }
 
+fn compareDescendingU32Counted(key: *const u32, item: *const u32) i32 {
+    counted_compare_calls += 1;
+    return compareDescendingU32(key, item);
+}
+
+fn compareOpaqueU32Counted(key: *const anyopaque, item: *const anyopaque) i32 {
+    counted_compare_calls += 1;
+    return compareOpaqueU32(key, item);
+}
+
+fn compareOpaqueDescendingU32Counted(key: *const anyopaque, item: *const anyopaque) i32 {
+    counted_compare_calls += 1;
+    return compareOpaqueDescendingU32(key, item);
+}
+
+fn compareCOpaqueU32Counted(key: *const anyopaque, item: *const anyopaque) callconv(.c) i32 {
+    counted_compare_calls += 1;
+    return compareCOpaqueU32(key, item);
+}
+
+fn compareCOpaqueDescendingU32Counted(key: *const anyopaque, item: *const anyopaque) callconv(.c) i32 {
+    counted_compare_calls += 1;
+    return compareCOpaqueDescendingU32(key, item);
+}
+
 test "phase 6 bsearch module imports cleanly" {
     _ = bsearch;
 }
@@ -194,6 +219,72 @@ test "phase 6 bsearch keeps representative lookup work inside a binary-search bu
     counted_compare_calls = 0;
     try std.testing.expectEqual(@as(?usize, null), bsearch.searchIndex(u32, u32, &@as(u32, 50), values[0..], compareU32Counted));
     try std.testing.expect(counted_compare_calls <= 4);
+}
+
+test "phase 6 bsearch keeps runtime-selected typed and raw comparator paths inside the same comparison budget" {
+    const ascending = [_]u32{ 3, 8, 13, 21, 34, 55, 89 };
+    const descending = [_]u32{ 89, 55, 34, 21, 13, 8, 3 };
+    const budget = std.math.log2_int_ceil(usize, ascending.len) + 1;
+
+    const typed_cases = [_]struct {
+        key: u32,
+        values: []const u32,
+        compare: bsearch.Comparator(u32, u32),
+        expected: ?usize,
+    }{
+        .{ .key = 34, .values = ascending[0..], .compare = compareU32Counted, .expected = 4 },
+        .{ .key = 34, .values = descending[0..], .compare = compareDescendingU32Counted, .expected = 2 },
+        .{ .key = 20, .values = ascending[0..], .compare = compareU32Counted, .expected = null },
+        .{ .key = 20, .values = descending[0..], .compare = compareDescendingU32Counted, .expected = null },
+    };
+
+    for (typed_cases) |case| {
+        counted_compare_calls = 0;
+        try std.testing.expectEqual(case.expected, bsearch.searchIndex(u32, u32, &case.key, case.values, case.compare));
+        try std.testing.expect(counted_compare_calls <= budget);
+    }
+
+    const raw_cases = [_]struct {
+        key: u32,
+        values: []const u32,
+        compare: bsearch.RawComparator,
+        expected: ?usize,
+    }{
+        .{ .key = 34, .values = ascending[0..], .compare = compareOpaqueU32Counted, .expected = 4 },
+        .{ .key = 34, .values = descending[0..], .compare = compareOpaqueDescendingU32Counted, .expected = 2 },
+        .{ .key = 20, .values = ascending[0..], .compare = compareOpaqueU32Counted, .expected = null },
+        .{ .key = 20, .values = descending[0..], .compare = compareOpaqueDescendingU32Counted, .expected = null },
+    };
+
+    for (raw_cases) |case| {
+        counted_compare_calls = 0;
+        try std.testing.expectEqual(
+            case.expected,
+            bsearch.bsearchIndex(&case.key, @ptrCast(case.values.ptr), case.values.len, @sizeOf(u32), case.compare),
+        );
+        try std.testing.expect(counted_compare_calls <= budget);
+    }
+
+    const c_raw_cases = [_]struct {
+        key: u32,
+        values: []const u32,
+        compare: bsearch.CRawComparator,
+        expected: ?usize,
+    }{
+        .{ .key = 34, .values = ascending[0..], .compare = compareCOpaqueU32Counted, .expected = 4 },
+        .{ .key = 34, .values = descending[0..], .compare = compareCOpaqueDescendingU32Counted, .expected = 2 },
+        .{ .key = 20, .values = ascending[0..], .compare = compareCOpaqueU32Counted, .expected = null },
+        .{ .key = 20, .values = descending[0..], .compare = compareCOpaqueDescendingU32Counted, .expected = null },
+    };
+
+    for (c_raw_cases) |case| {
+        counted_compare_calls = 0;
+        try std.testing.expectEqual(
+            case.expected,
+            bsearch.bsearchIndex(&case.key, @ptrCast(case.values.ptr), case.values.len, @sizeOf(u32), case.compare),
+        );
+        try std.testing.expect(counted_compare_calls <= budget);
+    }
 }
 
 test "phase 6 bsearch accepts runtime-selected comparator function pointers" {
