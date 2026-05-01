@@ -828,13 +828,36 @@ def run_self_test() -> int:
                     "expected base64 parity self-test case-count marker failure, got: "
                     f"{base64_self_test_case_count_fail_result['missing']}"
                 )
+
+            write_self_test_tree(root)
+            bsearch_parity_script_path = root / "scripts/zigux/check-phase6-bsearch-c-parity.py"
+            bsearch_parity_script_text = bsearch_parity_script_path.read_text(encoding="utf-8")
+            bsearch_self_test_case_count_marker = 'print("PHASE6_BSEARCH_C_PARITY_SELF_TEST_CASE_COUNT=6")'
+            if bsearch_self_test_case_count_marker not in bsearch_parity_script_text:
+                raise AssertionError("expected bsearch parity self-test case-count marker missing from positive fixture")
+            bsearch_parity_script_path.write_text(
+                bsearch_parity_script_text.replace(bsearch_self_test_case_count_marker, "", 1),
+                encoding="utf-8",
+            )
+
+            bsearch_self_test_case_count_fail_result = validate_phase6(root)
+            if bsearch_self_test_case_count_fail_result["ok"]:
+                raise AssertionError("bsearch parity self-test case-count marker removal unexpectedly passed")
+            if (
+                f"phase6_bsearch_c_parity_script:missing:{bsearch_self_test_case_count_marker}"
+                not in bsearch_self_test_case_count_fail_result["missing"]
+            ):
+                raise AssertionError(
+                    "expected bsearch parity self-test case-count marker failure, got: "
+                    f"{bsearch_self_test_case_count_fail_result['missing']}"
+                )
     except AssertionError as exc:
         print("PHASE6_VALIDATOR_SELF_TEST=fail")
         print(f"PHASE6_VALIDATOR_SELF_TEST_REASON={exc}")
         return 1
 
     print("PHASE6_VALIDATOR_SELF_TEST=pass")
-    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=6")
+    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
