@@ -163,7 +163,11 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     try std.testing.expect(std.mem.indexOf(u8, rbtree_tests, "phase 7 rbtree findAdd inserts new nodes and returns existing duplicates") != null);
     try std.testing.expect(std.mem.indexOf(u8, rbtree_tests, "phase 7 rbtree postorder traversal matches committed parity fixture") != null);
     try expectContains(rbtree_slice, "runtime-safe leaf helpers");
-    try expectContains(rbtree_slice, "integration with validation substrate through `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_survey.zig`, `zigux/tests/phase7_build.zig`, and `scripts/zigux/check-phase7-rbtree-parity.py`");
+    try expectContains(rbtree_slice, "integration with validation substrate through `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_survey.zig`, `zigux/tests/phase7_build.zig`, and `scripts/zigux/check-phase7-rbtree-parity.py`.");
+    try expectContains(rbtree_slice, "`python3 scripts/zigux/validate-phase7.py --self-test`");
+    try expectContains(rbtree_slice, "`make -C zigux phase7-validate`");
+    try expectContains(rbtree_slice, "prove the shared Phase 7 validator packet still fails closed before the helper replay runs");
+    try expectContains(rbtree_slice, "`zig build test --build-file zigux/tests/phase7_build.zig --summary all`");
     try std.testing.expect(std.mem.indexOf(u8, rbtree_slice, "detached-node ownership discipline after `erase()` and `replaceNode()`, where callers must still run `clearNode()` before `emptyNode()` becomes true") != null);
     try std.testing.expect(std.mem.indexOf(u8, rbtree_slice, "detached-node clearing semantics") != null);
     try std.testing.expect(std.mem.indexOf(u8, rbtree_slice, "duplicate-aware find-or-insert behavior via `findAdd()`") != null);
