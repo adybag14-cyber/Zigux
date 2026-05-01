@@ -170,7 +170,7 @@ def run_self_test() -> int:
         raise SystemExit("phase12-libbpf-snapshot:self-test:fixture_drift_stdout")
 
     print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST=pass")
-    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT=10")
+    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
