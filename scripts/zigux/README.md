@@ -84,7 +84,7 @@ Phase 3 flow
 
 Phase 5 flow
 - `validate-phase5.py` keeps the shipped Phase 5 contributor packet aligned across `samples/zigux/README.md`, the four sample-backed survey notes, the four manifest-backed surveys, `zigux/tests/phase5_build.zig`, `zigux/Makefile`, and the bootstrap workflow before any shared sample replay claims stay green.
-- `validate-phase5.py --self-test` exercises the marker-sync checks for the sample-backed survey packet and fails if a manifest-side `surveyed_commit` drift stops matching the paired survey note.
+- `validate-phase5.py --self-test` exercises the sample-backed packet drift checks in a temporary fixture tree and now fails if `surveyed_commit` sync, survey-build-summary evidence, manifest review-prompt groups, or the recorded sample-test command drift out of the shared Phase 5 contributor packet.
 - `make -C zigux phase5-validate` is the validator-first entrypoint for the approved sample ports, reviewable Zigux idioms, contributor guidance, and `Documentation/zigux` material that Phase 5 ships today.
 - `make -C zigux phase5` and `zig build test --build-file zigux/tests/phase5_build.zig --summary all` are the shared replay surface for the four roadmap-backed reference samples after the validator gate passes.
 - `zigux/tests/phase5_build.zig` is the shared build entrypoint for the bytestream FIFO, kobject, kretprobe, and trace-events sample packets, including their paired direct-sample and manifest-backed survey replays.
