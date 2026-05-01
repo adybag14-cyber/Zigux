@@ -202,6 +202,34 @@ test "phase11 hvc console keeps final-close teardown sequencing reviewable" {
     }));
 }
 
+test "phase11 hvc console keeps notifier-add failure close cleanup boundaries reviewable" {
+    var console = try hvc_console.HvcConsoleLab.init(13);
+    _ = console.instantiate(0xd0);
+
+    const failed_open_cleanup = try console.summarizeCloseTeardown(.{
+        .close = .{
+            .port_initialized = false,
+            .open_count_before_close = 1,
+        },
+        .hupcl = true,
+        .dtr_rts_present = true,
+        .notifier_del_present = true,
+    });
+    try std.testing.expectEqual(@as(usize, 13), failed_open_cleanup.slot_index);
+    try std.testing.expectEqual(@as(u32, 0xd0), failed_open_cleanup.vtermno);
+    try std.testing.expect(failed_open_cleanup.adapter_present);
+    try std.testing.expect(failed_open_cleanup.final_close);
+    try std.testing.expect(!failed_open_cleanup.close_skipped);
+    try std.testing.expect(failed_open_cleanup.tty_detached);
+    try std.testing.expect(!failed_open_cleanup.dtr_rts_drop_requested);
+    try std.testing.expect(!failed_open_cleanup.notifier_del_pending);
+    try std.testing.expect(!failed_open_cleanup.cancel_resize_pending);
+    try std.testing.expect(!failed_open_cleanup.wait_until_sent_required);
+    try std.testing.expectEqual(@as(usize, 100), failed_open_cleanup.close_wait_hz_divisor);
+    try std.testing.expect(!failed_open_cleanup.clears_port_initialized);
+    try std.testing.expect(failed_open_cleanup.keeps_console_binding);
+}
+
 test "phase11 hvc console keeps hvc_hangup disconnect boundaries reviewable" {
     var console = try hvc_console.HvcConsoleLab.init(9);
     _ = console.instantiate(0x90);
