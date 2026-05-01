@@ -201,6 +201,10 @@ pub const CreateRulesetFdPlan = struct {
     label: []const u8,
     flags: u32,
     invokes_anon_inode_getfd: bool,
+    installs_release_handler: bool,
+    release_handler_puts_ruleset: bool,
+    installs_dummy_read_handler: bool,
+    installs_dummy_write_handler: bool,
     transfers_ruleset_to_fd_on_success: bool,
     releases_ruleset_on_fd_failure: bool,
 };
@@ -521,6 +525,10 @@ pub const SyscallsHelperLab = struct {
             .label = ruleset_fd_label,
             .flags = ruleset_fd_flags,
             .invokes_anon_inode_getfd = true,
+            .installs_release_handler = true,
+            .release_handler_puts_ruleset = true,
+            .installs_dummy_read_handler = true,
+            .installs_dummy_write_handler = true,
             .transfers_ruleset_to_fd_on_success = true,
             .releases_ruleset_on_fd_failure = true,
         };
