@@ -529,6 +529,7 @@ required_closure_markers = [
     f'PHASE2_FIXDEP_CASE_COUNT={fixdep_case_count}',
     'PHASE2_FIXDEP_OUTPUT_WRITE_CASE=zigux/tests/fixtures/fixdep/sample_output_write_expected.stderr.txt',
     'PHASE2_GENKSYMS_BRIDGE_GATE=python3 scripts/zigux/check-genksyms-bridge.py',
+    'PHASE2_GENKSYMS_BRIDGE_DETERMINISM=check-genksyms-bridge.py replays C and Zig bridge outputs twice before comparing artifacts',
     'PHASE2_GENKSYMS_BRIDGE_CASE_COUNT=26',
     'PHASE2_GENKSYMS_BRIDGE_INLINE_SHORT_CASE=zigux/tests/fixtures/genksyms_bridge/short_inline_reference_dump_types_expected.json',
     'PHASE2_GENKSYMS_BRIDGE_CLUSTERED_SHORT_INLINE_CASE=zigux/tests/fixtures/genksyms_bridge/clustered_short_inline_reference_expected.json',
