@@ -219,4 +219,7 @@ test "phase12 libbpf survey note records rollback and current surveyed head" {
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-libbpf-segment-survey-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-libbpf-reviewability-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig build test --build-file zigux/tests/phase12_build.zig --summary all") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "the bounded file-path-and-handle helper packet now also mirrors the libbpf token-preparation recovery split more faithfully") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "the legacy Phase 8 segment catalog now records two important same-file boundaries") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "perf-buffer-online-cpu-routing stays deferred even though the bounded parser helper already lives in `cpu_mask.zig`") != null);
 }
