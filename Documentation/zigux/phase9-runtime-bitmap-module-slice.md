@@ -8,7 +8,7 @@ This document tracks the first bounded Phase 9 runtime bitmap starter under `sam
 - `PHASE9_SLICE=runtime-bitmap-module-starter`
 - `PHASE9_LANE_KEY=P9-L08`
 - `PHASE9_SURVEYED_COMMIT=0ce4ac9c92aaa08d8678e2060dc8f1a22e287a85`
-- scope: lifecycle starter, bitmap range mutation and copy behavior, bounded differential coverage, bounded parse-and-print replay, adjacent loader scaffold plus shared loader-request binding, dedicated Phase 9 test wiring, and adjacent manifest plus survey packet alignment only
+- scope: lifecycle starter, bitmap range mutation and copy behavior, bounded differential coverage, bounded parse-and-print replay including duplicate bit-list normalization and empty formatting, adjacent loader scaffold plus shared loader-request binding, dedicated Phase 9 test wiring, and adjacent manifest plus survey packet alignment only
 - product boundary:
   - `samples/zigux/runtime_bitmap.zig`
   - `samples/zigux/runtime_bitmap_loader.zig`
@@ -31,7 +31,7 @@ The live repo already had an atomic64 starter under the same Phase 9 review path
 - guarded lifecycle transitions for `cold`, `initialized`, `selftest_complete`, and `exited`
 - a bounded two-word runtime bitmap backing store with explicit `setRange`, `clearRange`, `copyFrom`, source-lifecycle guard behavior, and a direct post-selftest mutation replay proof that stays reviewable before exit
 - summary checks that reuse `zigux/helpers/bitmap_view.zig` for `first_set`, `first_zero`, and `weight`
-- a bounded parse-and-print replay that keeps direct sample bit-list parsing and formatting reviewable through `initFromBitList()` and `formatSetBits()` without claiming a broader runtime parsing or printing surface
+- a bounded parse-and-print replay that keeps direct sample bit-list parsing and formatting reviewable through `initFromBitList()` and `formatSetBits()`, including duplicate bit-list normalization to canonical set-bit output plus empty parse-and-print replay, without claiming a broader runtime parsing or printing surface
 - a table-driven differential gate that replays a few `lib/test_bitmap.c` expectations for set, clear, summary, and copy behavior
 - a tiny sample-side loader handoff scaffold that names bounded entry and exit symbols, pins the full `first_set`, `first_zero`, `weight`, and `nbits` handoff summary, and emits both waiting and released shared runtime-loader request shapes for the no-substrate path without claiming a real module loader
 - a shared runtime-loader request binding in `zigux/kernel/runtime_loader.zig` that now consumes the bitmap handoff shape, allocator posture, and staged entry or exit symbols without claiming live execution
