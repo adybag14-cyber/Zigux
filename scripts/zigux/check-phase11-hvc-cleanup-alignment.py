@@ -1,0 +1,273 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+from pathlib import Path
+import json
+import os
+import re
+import subprocess
+import sys
+import tempfile
+
+
+HEX40 = re.compile(r"^[0-9a-f]{40}$")
+DEFAULT_ROOT = Path(__file__).resolve().parent
+FIXTURE_COMMIT = "a5fdfc2f82f52a4babccc9dca60e8b1ba6228b59"
+
+REQUIRED_FILES = {
+    "manifest": "zigux/tests/phase11_hvc_console_manifest.json",
+    "survey": "Documentation/zigux/phase11-hvc-console-survey.md",
+    "slice": "Documentation/zigux/phase11-hvc-console-slice.md",
+    "matrix": "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
+}
+
+SURVEY_MARKERS = [
+    "reviewed against live `master` `{commit}`",
+    "The next honest bounded step inside the same Phase 11 lane is to leave the starter parked unless fresh repo inspection finds another comparably small host-free notifier, sysrq, or khvcd handoff that is not already covered by the `struct winsize` and `struct hv_ops` checkpoints; otherwise avoid widening straight into live tty teardown, notifier execution, sysrq handling, live khvcd worker behavior, `struct hvc_struct`, or host-backed teardown.",
+]
+
+SLICE_MARKERS = [
+    "`hvc_cleanup()` tty-port release handoff summary",
+    "The next honest bounded step inside the same Phase 11 lane is to leave this starter parked unless another comparably small host-free notifier, sysrq, or khvcd handoff becomes obvious; otherwise avoid widening straight into live tty teardown, live khvcd worker behavior, or host-backed teardown.",
+]
+
+MATRIX_MARKERS = [
+    "PHASE11_HVC_CONSOLE_STATUS=cleanup_handoff_landed",
+    "the dedicated archival survey gate remains `zigux/tests/phase11_hvc_console_survey.zig`",
+    "host-free khvcd, notifier, remove, or cleanup handoff",
+]
+
+
+def resolve_root() -> Path:
+    args = sys.argv[1:]
+    if "--root" in args:
+        index = args.index("--root")
+        try:
+            return Path(args[index + 1]).resolve()
+        except IndexError as exc:
+            raise SystemExit("--root requires a path") from exc
+    env_root = Path(os.environ["ZIGUX_PHASE11_ROOT"]).resolve() if "ZIGUX_PHASE11_ROOT" in os.environ else None
+    if env_root is not None:
+        return env_root
+    return DEFAULT_ROOT
+
+
+def read_text(root: Path, rel_path: str) -> str:
+    return (root / rel_path).read_text(encoding="utf-8")
+
+
+def load_manifest(root: Path) -> dict[str, object]:
+    return json.loads(read_text(root, REQUIRED_FILES["manifest"]))
+
+
+def validate(root: Path) -> list[str]:
+    missing: list[str] = []
+
+    for label, rel_path in REQUIRED_FILES.items():
+        if not (root / rel_path).exists():
+            missing.append(f"missing:{label}:{rel_path}")
+    if missing:
+        return missing
+
+    manifest = load_manifest(root)
+    lane_key = manifest.get("lane_key")
+    phase = manifest.get("phase")
+    commit = str(manifest.get("surveyed_commit", ""))
+
+    if lane_key != "P11-L18":
+        missing.append("manifest:lane_key")
+    if phase != "Phase 11":
+        missing.append("manifest:phase")
+    if not HEX40.fullmatch(commit):
+        missing.append("manifest:surveyed_commit")
+
+    survey = read_text(root, REQUIRED_FILES["survey"])
+    slice_note = read_text(root, REQUIRED_FILES["slice"])
+    matrix = read_text(root, REQUIRED_FILES["matrix"])
+
+    for marker in SURVEY_MARKERS:
+        expected = marker.format(commit=commit)
+        if expected not in survey:
+            missing.append(f"survey:{expected}")
+
+    for marker in SLICE_MARKERS:
+        if marker not in slice_note:
+            missing.append(f"slice:{marker}")
+
+    if commit and commit not in matrix:
+        missing.append("matrix:surveyed_commit")
+    for marker in MATRIX_MARKERS:
+        if marker not in matrix:
+            missing.append(f"matrix:{marker}")
+
+    return missing
+
+
+def run_validator(root: Path) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [sys.executable, str(root / "scripts/zigux/check-phase11-hvc-cleanup-alignment.py"), "--root", str(root)],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+
+def clone_fixture_root(destination_root: Path) -> None:
+    script_target = destination_root / "scripts/zigux/check-phase11-hvc-cleanup-alignment.py"
+    script_target.parent.mkdir(parents=True, exist_ok=True)
+    script_target.write_text((DEFAULT_ROOT / "check-phase11-hvc-cleanup-alignment.py").read_text(encoding="utf-8"), encoding="utf-8")
+
+    (destination_root / REQUIRED_FILES["manifest"]).parent.mkdir(parents=True, exist_ok=True)
+    (destination_root / REQUIRED_FILES["manifest"]).write_text(
+        json.dumps(
+            {
+                "lane_key": "P11-L18",
+                "phase": "Phase 11",
+                "surveyed_commit": FIXTURE_COMMIT,
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (destination_root / REQUIRED_FILES["survey"]).parent.mkdir(parents=True, exist_ok=True)
+    (destination_root / REQUIRED_FILES["survey"]).write_text(
+        "\n".join(
+            [
+                "# Phase 11 HVC Console Survey",
+                f"- reviewed against live `master` `{FIXTURE_COMMIT}`",
+                "- `hvc_cleanup()` remains bounded",
+                "- The next honest bounded step inside the same Phase 11 lane is to leave the starter parked unless fresh repo inspection finds another comparably small host-free notifier, sysrq, or khvcd handoff that is not already covered by the `struct winsize` and `struct hv_ops` checkpoints; otherwise avoid widening straight into live tty teardown, notifier execution, sysrq handling, live khvcd worker behavior, `struct hvc_struct`, or host-backed teardown.",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    (destination_root / REQUIRED_FILES["slice"]).parent.mkdir(parents=True, exist_ok=True)
+    (destination_root / REQUIRED_FILES["slice"]).write_text(
+        "\n".join(
+            [
+                "# Phase 11 HVC Console Slice",
+                "- `hvc_cleanup()` tty-port release handoff summary",
+                "- The next honest bounded step inside the same Phase 11 lane is to leave this starter parked unless another comparably small host-free notifier, sysrq, or khvcd handoff becomes obvious; otherwise avoid widening straight into live tty teardown, live khvcd worker behavior, or host-backed teardown.",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    (destination_root / REQUIRED_FILES["matrix"]).parent.mkdir(parents=True, exist_ok=True)
+    (destination_root / REQUIRED_FILES["matrix"]).write_text(
+        "\n".join(
+            [
+                "# Phase 11 HVC Console Validation Matrix",
+                "",
+                "- `PHASE11_HVC_CONSOLE_STATUS=cleanup_handoff_landed`",
+                f"- reviewed against live `master` `{FIXTURE_COMMIT}`",
+                "- the dedicated archival survey gate remains `zigux/tests/phase11_hvc_console_survey.zig`",
+                "- host-free khvcd, notifier, remove, or cleanup handoff",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+
+def expect_missing(label: str, root: Path, needle: str) -> None:
+    result = run_validator(root)
+    if result.returncode == 0:
+        raise SystemExit(f"phase11-hvc-cleanup-self-test:{label}:unexpected_pass")
+    if needle not in result.stdout:
+        actual = result.stdout.strip() or "none"
+        raise SystemExit(
+            f"phase11-hvc-cleanup-self-test:{label}:expected:{needle}:actual:{actual}"
+        )
+
+
+def run_self_test() -> int:
+    with tempfile.TemporaryDirectory(prefix="zigux_phase11_hvc_cleanup_") as tmp_dir:
+        tmp_root = Path(tmp_dir)
+        clone_fixture_root(tmp_root)
+
+        baseline = run_validator(tmp_root)
+        if baseline.returncode != 0:
+            raise SystemExit(
+                "phase11-hvc-cleanup-self-test:baseline_failed:"
+                f"{baseline.stdout.strip() or baseline.stderr.strip() or 'no_output'}"
+            )
+
+        manifest_path = tmp_root / REQUIRED_FILES["manifest"]
+        original_manifest = manifest_path.read_text(encoding="utf-8")
+        manifest_path.write_text(
+            original_manifest.replace(
+                f'"surveyed_commit": "{FIXTURE_COMMIT}"',
+                '"surveyed_commit": "1234567890abcdef1234567890abcdef12345678"',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing("matrix_commit_sync", tmp_root, "matrix:surveyed_commit")
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
+        matrix_path = tmp_root / REQUIRED_FILES["matrix"]
+        original_matrix = matrix_path.read_text(encoding="utf-8")
+        matrix_path.write_text(
+            original_matrix.replace(
+                "PHASE11_HVC_CONSOLE_STATUS=cleanup_handoff_landed",
+                "PHASE11_HVC_CONSOLE_STATUS=remove_handoff_landed",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "cleanup_status",
+            tmp_root,
+            "matrix:PHASE11_HVC_CONSOLE_STATUS=cleanup_handoff_landed",
+        )
+        matrix_path.write_text(original_matrix, encoding="utf-8")
+
+        survey_path = tmp_root / REQUIRED_FILES["survey"]
+        original_survey = survey_path.read_text(encoding="utf-8")
+        survey_path.write_text(
+            original_survey.replace(
+                "host-free notifier, sysrq, or khvcd handoff",
+                "host-free notifier or sysrq handoff",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing("survey_next_step", tmp_root, "survey:The next honest bounded step inside the same Phase 11 lane is to leave the starter parked unless fresh repo inspection finds another comparably small host-free notifier, sysrq, or khvcd handoff that is not already covered by the `struct winsize` and `struct hv_ops` checkpoints; otherwise avoid widening straight into live tty teardown, notifier execution, sysrq handling, live khvcd worker behavior, `struct hvc_struct`, or host-backed teardown.")
+        survey_path.write_text(original_survey, encoding="utf-8")
+
+        slice_path = tmp_root / REQUIRED_FILES["slice"]
+        original_slice = slice_path.read_text(encoding="utf-8")
+        slice_path.write_text(
+            original_slice.replace(
+                "host-free notifier, sysrq, or khvcd handoff becomes obvious; otherwise avoid widening straight into live tty teardown, live khvcd worker behavior, or host-backed teardown.",
+                "host-free notifier or sysrq handoff becomes obvious; otherwise avoid widening straight into live khvcd worker behavior or host-backed teardown.",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing("slice_next_step", tmp_root, "slice:The next honest bounded step inside the same Phase 11 lane is to leave this starter parked unless another comparably small host-free notifier, sysrq, or khvcd handoff becomes obvious; otherwise avoid widening straight into live tty teardown, live khvcd worker behavior, or host-backed teardown.")
+
+    print("PHASE11_HVC_CLEANUP_ALIGNMENT_SELF_TEST=pass")
+    print("PHASE11_HVC_CLEANUP_ALIGNMENT_SELF_TEST_CASE_COUNT=4")
+    return 0
+
+
+if "--self-test" in sys.argv[1:]:
+    raise SystemExit(run_self_test())
+
+
+ROOT = resolve_root()
+problems = validate(ROOT)
+if problems:
+    print("PHASE11_HVC_CLEANUP_ALIGNMENT=fail")
+    print("PHASE11_HVC_CLEANUP_ALIGNMENT_MISSING_START")
+    for problem in problems:
+        print(problem)
+    print("PHASE11_HVC_CLEANUP_ALIGNMENT_MISSING_END")
+    raise SystemExit(1)
+
+print("PHASE11_HVC_CLEANUP_ALIGNMENT=pass")
+print(f"PHASE11_HVC_CLEANUP_ALIGNMENT_ROOT={ROOT}")
