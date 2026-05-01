@@ -170,8 +170,8 @@ test "phase3 narrow unsafe helpers stay explicit" {
     var words = [_]u32{ 7, 11 };
     const base = narrow.addressOf(&words[0]);
     try std.testing.expectEqual(base + @sizeOf(u32), narrow.byteOffset(base, @sizeOf(u32)));
-    try std.testing.expectEqual(@as(u32, 7), narrow.constSliceAt(u32, base, words.len)[0]);
-    try std.testing.expectEqual(@as(u32, 11), narrow.constPointerAt(u32, base + @sizeOf(u32)).*);
+    try std.testing.expectEqual(@as(u32, 7), (try narrow.constSliceAt(u32, .raw_pointer_bridge, base, words.len))[0]);
+    try std.testing.expectEqual(@as(u32, 11), (try narrow.constPointerAt(u32, .raw_pointer_bridge, base + @sizeOf(u32))).*);
 }
 
 test "phase3 policy gate decodes interop-policy unsafe bytes explicitly" {
