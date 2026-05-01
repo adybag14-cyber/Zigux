@@ -79,13 +79,29 @@ MAKEFILE_MARKERS = [
 MAKEFILE_RUN_COUNTS = {
     'scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test': 1,
     'scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py': 1,
+    'scripts/zigux/validate-phase2.py': 1,
+    'scripts/zigux/validate-phase2-closure.py': 1,
 }
+MAKEFILE_ORDERED_COMMANDS = [
+    'scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test',
+    'scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py',
+    'scripts/zigux/validate-phase2.py',
+    'scripts/zigux/validate-phase2-closure.py',
+]
 WORKFLOW_RUN_COUNTS = {
     'python3 scripts/zigux/check-genksyms-bridge.py --self-test': 1,
     'python3 scripts/zigux/check-genksyms-bridge.py': 1,
     'python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test': 1,
     'python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py': 1,
+    'python3 scripts/zigux/validate-phase2.py': 1,
+    'python3 scripts/zigux/validate-phase2-closure.py': 1,
 }
+WORKFLOW_ORDERED_COMMANDS = [
+    'python3 scripts/zigux/validate-phase2.py',
+    'python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test',
+    'python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py',
+    'python3 scripts/zigux/validate-phase2-closure.py',
+]
 
 
 def resolve_root() -> Path:
@@ -121,13 +137,43 @@ def validate_cases(root: Path) -> list[str]:
     return issues
 
 
+def validate_ordered_commands(
+    stripped_lines: list[str],
+    ordered_commands: list[str],
+    prefix: str,
+    *,
+    exact_line,
+) -> list[str]:
+    issues: list[str] = []
+    positions: dict[str, int] = {}
+    for command in ordered_commands:
+        line = exact_line(command)
+        try:
+            positions[command] = stripped_lines.index(line)
+        except ValueError:
+            continue
+    for before, after in zip(ordered_commands, ordered_commands[1:]):
+        if before in positions and after in positions and positions[before] >= positions[after]:
+            issues.append(f'{prefix}_order:{before}:before:{after}')
+    return issues
+
+
 def validate_workflow(workflow_text: str) -> list[str]:
     issues: list[str] = []
+    stripped_lines = [line.strip() for line in workflow_text.splitlines()]
     for command, expected_count in WORKFLOW_RUN_COUNTS.items():
         expected_line = f'run: {command}'
-        count = sum(1 for line in workflow_text.splitlines() if line.strip() == expected_line)
+        count = sum(1 for line in stripped_lines if line == expected_line)
         if count != expected_count:
             issues.append(f'workflow:{command}:count={count}:expected={expected_count}')
+    issues.extend(
+        validate_ordered_commands(
+            stripped_lines,
+            WORKFLOW_ORDERED_COMMANDS,
+            'workflow',
+            exact_line=lambda command: f'run: {command}',
+        )
+    )
     return issues
 
 
@@ -138,6 +184,14 @@ def validate_makefile(makefile_text: str) -> list[str]:
         count = sum(1 for line in stripped_lines if line.endswith(command))
         if count != expected_count:
             issues.append(f'makefile_run:{command}:count={count}:expected={expected_count}')
+    issues.extend(
+        validate_ordered_commands(
+            stripped_lines,
+            MAKEFILE_ORDERED_COMMANDS,
+            'makefile',
+            exact_line=lambda command: command,
+        )
+    )
     return issues
 
 
@@ -206,9 +260,22 @@ def clone_fixture_root(destination_root: Path) -> None:
     (destination_root / REQUIRED_FILES['closure_doc']).write_text('\n'.join(CLOSURE_DOC_MARKERS) + '\n', encoding='utf-8')
     (destination_root / REQUIRED_FILES['closure_validator']).write_text('\n'.join(CLOSURE_VALIDATOR_MARKERS) + '\n', encoding='utf-8')
     (destination_root / REQUIRED_FILES['validator']).write_text('\n'.join(VALIDATOR_MARKERS) + '\n', encoding='utf-8')
-    workflow_lines = [f'run: {command}' for command in WORKFLOW_RUN_COUNTS]
+    workflow_lines = [
+        'run: python3 scripts/zigux/check-genksyms-bridge.py --self-test',
+        'run: python3 scripts/zigux/check-genksyms-bridge.py',
+        'run: python3 scripts/zigux/validate-phase2.py',
+        'run: python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test',
+        'run: python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py',
+        'run: python3 scripts/zigux/validate-phase2-closure.py',
+    ]
     (destination_root / REQUIRED_FILES['workflow']).write_text('\n'.join(workflow_lines) + '\n', encoding='utf-8')
-    makefile_lines = [*MAKEFILE_MARKERS, *MAKEFILE_RUN_COUNTS]
+    makefile_lines = [
+        *MAKEFILE_MARKERS,
+        'scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test',
+        'scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py',
+        'scripts/zigux/validate-phase2.py',
+        'scripts/zigux/validate-phase2-closure.py',
+    ]
     (destination_root / REQUIRED_FILES['makefile']).write_text('\n'.join(makefile_lines) + '\n', encoding='utf-8')
     (destination_root / REQUIRED_FILES['cases']).write_text(
         json.dumps({'cases': [{'name': name} for name in EXPECTED_CASE_NAMES]}, indent=2) + '\n',
@@ -279,6 +346,33 @@ def run_self_test() -> int:
         )
         workflow_path.write_text(original_workflow, encoding='utf-8')
 
+        workflow_lines = original_workflow.splitlines()
+        self_test_line = 'run: python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test'
+        live_line = 'run: python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py'
+        self_test_index = workflow_lines.index(self_test_line)
+        live_index = workflow_lines.index(live_line)
+        workflow_lines[self_test_index], workflow_lines[live_index] = workflow_lines[live_index], workflow_lines[self_test_index]
+        workflow_path.write_text('\n'.join(workflow_lines) + '\n', encoding='utf-8')
+        expect_issue(
+            'workflow_alignment_order',
+            tmp_root,
+            'workflow_order:python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test:before:python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py',
+        )
+        workflow_path.write_text(original_workflow, encoding='utf-8')
+
+        workflow_lines = original_workflow.splitlines()
+        closure_line = 'run: python3 scripts/zigux/validate-phase2-closure.py'
+        closure_index = workflow_lines.index(closure_line)
+        live_index = workflow_lines.index(live_line)
+        workflow_lines[closure_index], workflow_lines[live_index] = workflow_lines[live_index], workflow_lines[closure_index]
+        workflow_path.write_text('\n'.join(workflow_lines) + '\n', encoding='utf-8')
+        expect_issue(
+            'workflow_closure_order',
+            tmp_root,
+            'workflow_order:python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py:before:python3 scripts/zigux/validate-phase2-closure.py',
+        )
+        workflow_path.write_text(original_workflow, encoding='utf-8')
+
         makefile_path = tmp_root / REQUIRED_FILES['makefile']
         original_makefile = makefile_path.read_text(encoding='utf-8')
         makefile_path.write_text(
@@ -308,6 +402,33 @@ def run_self_test() -> int:
         )
         makefile_path.write_text(original_makefile, encoding='utf-8')
 
+        makefile_lines = original_makefile.splitlines()
+        self_test_line = 'scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test'
+        live_line = 'scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py'
+        self_test_index = makefile_lines.index(self_test_line)
+        live_index = makefile_lines.index(live_line)
+        makefile_lines[self_test_index], makefile_lines[live_index] = makefile_lines[live_index], makefile_lines[self_test_index]
+        makefile_path.write_text('\n'.join(makefile_lines) + '\n', encoding='utf-8')
+        expect_issue(
+            'makefile_alignment_order',
+            tmp_root,
+            'makefile_order:scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test:before:scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py',
+        )
+        makefile_path.write_text(original_makefile, encoding='utf-8')
+
+        makefile_lines = original_makefile.splitlines()
+        validator_line = 'scripts/zigux/validate-phase2.py'
+        validator_index = makefile_lines.index(validator_line)
+        live_index = makefile_lines.index(live_line)
+        makefile_lines[validator_index], makefile_lines[live_index] = makefile_lines[live_index], makefile_lines[validator_index]
+        makefile_path.write_text('\n'.join(makefile_lines) + '\n', encoding='utf-8')
+        expect_issue(
+            'makefile_validator_order',
+            tmp_root,
+            'makefile_order:scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py:before:scripts/zigux/validate-phase2.py',
+        )
+        makefile_path.write_text(original_makefile, encoding='utf-8')
+
         cases_path = tmp_root / REQUIRED_FILES['cases']
         cases_payload = json.loads(cases_path.read_text(encoding='utf-8'))
         cases_payload['cases'].pop()
@@ -333,7 +454,7 @@ def run_self_test() -> int:
         expect_issue('validator_case_count_marker', tmp_root, f'validator:{VALIDATOR_MARKERS[2]}')
 
     print('PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST=pass')
-    print('PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=9')
+    print('PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=13')
     return 0
 
 
