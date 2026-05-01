@@ -141,7 +141,10 @@ It also stays underneath the freeze-map study boundary for `kernel/workqueue.c`,
 3. run the shared Phase 9 runtime survey bundle
 - `zig build test --build-file zigux/tests/phase9_build.zig`
 
-4. run the convenience targets
+4. run the focused loader-gap replay
+- `make -C zigux phase9-loader-gap-survey`
+
+5. run the convenience targets
 - `make -C zigux phase9-validate`
 - `make -C zigux phase9`
 
