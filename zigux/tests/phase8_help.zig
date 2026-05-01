@@ -368,6 +368,9 @@ test "phase 8 help docs keep the parked stable-output boundary explicit" {
     try expectContains(slice_note, "PHASE8_SLICE=help-command-source-and-terminal-starter");
     try expectContains(slice_note, "tools/lib/subcmd/help.zig");
     try expectContains(slice_note, "zigux/tests/phase8_help.zig");
+    try expectContains(slice_note, "helper-first expansion rule");
+    try expectContains(slice_note, "serious repo-hosted tooling");
+    try expectContains(slice_note, "output-stable tooling behavior");
     try expectContains(slice_note, "stable command-list manipulation logic");
     try expectContains(slice_note, "section-level output stays testable");
     try expectContains(slice_note, "list_commands()");
@@ -389,6 +392,7 @@ test "phase 8 help review checklist keeps the parked stable-output packet review
     try expectContains(review_checklist, "`load_command_list()`");
     try expectContains(review_checklist, "`pretty_print_string_list()`");
     try expectContains(review_checklist, "`list_commands()`");
+    try expectContains(review_checklist, "helper-first, output-stable tooling behavior");
     try expectContains(review_checklist, "`opendir()` or `readdir()` parity");
     try expectContains(review_checklist, "raw `ioctl()` terminal probing");
 }
