@@ -81,7 +81,7 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
     try std.testing.expectEqualStrings("P11-L08", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
     try std.testing.expectEqualStrings("drivers/watchdog/bcm2835_wdt.c", manifest.anchor);
-    try std.testing.expectEqualStrings("f7a9b7b0e3289ce6ec35cf82ab13c63c01118d00", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("06163086af90205c3621cd505909e5d2c8c5c0c7", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.bcm2835_wdt_c_lines >= 240);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_build_present);
@@ -109,7 +109,7 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "devm-managed") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "remove-time teardown boundary") != null);
 
-    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "reviewed against live `master` `f7a9b7b0e3289ce6ec35cf82ab13c63c01118d00`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "reviewed against live `master` `06163086af90205c3621cd505909e5d2c8c5c0c7`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "bcm2835 starter for watchdog metadata, timeout tick encoding, running-bit detection") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "tiny platform-registration or PM-base handoff summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`zigux/tests/phase11_build.zig` runs the gpio starter checks, the bcm2835 starter checks, and the bcm2835 survey check together") != null);
