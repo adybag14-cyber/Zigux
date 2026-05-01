@@ -257,6 +257,30 @@ test "phase 15 indefinite-C policy note preserves stay-in-C boundary language" {
     );
     defer std.testing.allocator.free(scorecard);
 
+    const docs_root = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/README.md",
+        std.testing.allocator,
+        .limited(48 * 1024),
+    );
+    defer std.testing.allocator.free(docs_root);
+
+    const phase15_build = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase15_build.zig",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(phase15_build);
+
+    const makefile = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/Makefile",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(makefile);
+
     try std.testing.expect(std.mem.indexOf(u8, policy_note, "## When the indefinite-C policy applies") != null);
     try std.testing.expect(std.mem.indexOf(u8, policy_note, "## Required recorded fields") != null);
     try std.testing.expect(std.mem.indexOf(u8, policy_note, "## Allowed work after an indefinite-C outcome") != null);
@@ -302,6 +326,18 @@ test "phase 15 indefinite-C policy note preserves stay-in-C boundary language" {
     try std.testing.expect(std.mem.indexOf(u8, policy_note, "zigux/Makefile") != null);
     try std.testing.expect(std.mem.indexOf(u8, policy_note, "no bounded scheduler seam is approved yet") != null);
     try std.testing.expect(std.mem.indexOf(u8, policy_note, "next future target: wait for one of the named reopen triggers or the deep-core blocker posture to change before opening another Phase 15 slice") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, docs_root, "Phase 15 notes") != null);
+    try std.testing.expect(std.mem.indexOf(u8, docs_root, "`Documentation/zigux/phase15-indefinite-c-policy.md`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, docs_root, "the current roadmap-versus-repo indefinite-C policy gap is closed locally") != null);
+    try std.testing.expect(std.mem.indexOf(u8, docs_root, "`zig build test --build-file zigux/tests/phase15_build.zig` plus `make -C zigux phase15` replay path") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, phase15_build, "phase15_indefinite_c_policy.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase15_build, "phase15-indefinite-c-policy-tests") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "phase15-test:") != null);
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "build test --build-file zigux/tests/phase15_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "phase15: phase15-validate phase15-test") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, freeze_map, "product source of truth") != null);
     try std.testing.expect(std.mem.indexOf(u8, freeze_map, "no silent exception path") != null);
