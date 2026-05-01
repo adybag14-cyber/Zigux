@@ -87,8 +87,6 @@ TESTS_README_MARKERS = [
     "zigux/tests/phase10_virtio_input_manifest.json",
     "zigux/tests/phase10_virtio_input_survey.zig",
     "zigux/tests/phase10_virtio_mmio.zig",
-    "queue-reset guard helper",
-    "notify-prepare helper",
     "registration-preflight helper",
     "queue-callback preflight helper",
     "registration-lifecycle blocker",
