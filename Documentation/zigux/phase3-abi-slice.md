@@ -19,6 +19,9 @@ This document starts the first bounded Phase 3 slice for Zigux.
 - `PHASE3_ATOMIC_SCOPE=load-store-exchange-compare-exchange-fetch-add-fetch-sub-fetch-and-fetch-or-fetch-xor`
 - `PHASE3_BARRIER_SCOPE=acquire-release-full`
 - `PHASE3_MMIO_SCOPE=range-read8-read16-read32-write8-write16-write32-plus-scoped-read8-write8-read16-write16-read32-write32`
+- `PHASE3_ROADMAP_ANCHORS=rust-exports-lib-bitmap-lib-rbtree-lib-cpumask`
+- `PHASE3_CURRENT_INTEROP_FAMILIES=bitmap-cpumask-list-hlist-errptr-xarray-idr-ida-dev-region-cdev-chrdev`
+- `PHASE3_CURRENT_INTEROP_GAP=repo-now-carries-curated-phase3-parity-slices-beyond-the-original-roadmap-anchor-set`
 - scope: first permanent C/Zigux boundary only
 - product boundary:
   - `include/linux/zigux.h`
@@ -44,6 +47,29 @@ It is a small substrate that makes future ports measurable:
 - explicit atomic, barrier, and MMIO wrappers
 - one narrow unsafe layer
 - one C-vs-Zig layout gate
+
+## Current Interop Gap
+
+The roadmap still describes the Phase 3 boundary through a narrow anchor set:
+
+- `rust/exports.c`
+- `lib/bitmap.c`
+- `lib/rbtree.c`
+- `lib/cpumask.c`
+
+Current repo reality is broader than that original anchor list.
+The live curated Phase 3 packet now also carries parity slices for:
+
+- bitmap and cpumask boundary views
+- list and hlist traversal views
+- err-pointer, xarray, idr, and ida planning views
+- dev-region, cdev, and chrdev planning and notification chains
+
+That is real repo-backed interop progress, but it is also the current survey gap:
+
+- the roadmap wording is still narrower than the committed Phase 3 fixture catalog and build graph under `zigux/tests/build.zig`
+- the repo already treats those extra curated parity slices as current interop reality through `zigux/bindings/abi.zig`, the committed Phase 3 fixture manifests, and the `Documentation/zigux/artifact-diff.md` Phase 3 catalog
+- future Phase 3 work should therefore prefer documenting and validating this larger current catalog honestly before adding still more bindings families
 
 ## Gates
 
