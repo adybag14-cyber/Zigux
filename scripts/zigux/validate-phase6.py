@@ -192,7 +192,7 @@ BASE64_CASEGEN_MARKERS = [
 BASE64_C_HARNESS_MARKERS = [
     "BASE64_IMAP = 2,",
     '[BASE64_IMAP] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+,",',
-    "[BASE64_IMAP] = BASE64_REV_INIT('+', ','),",
+    '[BASE64_IMAP] = BASE64_REV_INIT(+, ,),',
     '#include "phase6_base64_c_generated_cases.inc"',
     'printf("enc\\t%s\\t%d\\t", variant_name(c->variant), c->padding ? 1 : 0);',
     'printf("dec\\t%s\\t%d\\t%d\\t", variant_name(c->variant), c->padding ? 1 : 0, bytes_result);',
@@ -787,6 +787,25 @@ def run_self_test() -> int:
                 )
 
             write_self_test_tree(root)
+            checksum_vectors_path = root / "zigux/tests/fixtures/phase6_checksum_vectors.zig"
+            checksum_vectors_text = checksum_vectors_path.read_text(encoding="utf-8")
+            checksum_vectors_marker = '.name = "udp pseudo header",'
+            if checksum_vectors_marker not in checksum_vectors_text:
+                raise AssertionError("expected checksum fixture marker missing from positive fixture")
+            checksum_vectors_path.write_text(
+                checksum_vectors_text.replace(checksum_vectors_marker, "", 1),
+                encoding="utf-8",
+            )
+
+            checksum_vectors_fail_result = validate_phase6(root)
+            if checksum_vectors_fail_result["ok"]:
+                raise AssertionError("checksum fixture marker removal unexpectedly passed")
+            if f"phase6_checksum_vectors:missing:{checksum_vectors_marker}" not in checksum_vectors_fail_result["missing"]:
+                raise AssertionError(
+                    f"expected checksum fixture marker failure, got: {checksum_vectors_fail_result['missing']}"
+                )
+
+            write_self_test_tree(root)
             manifest_path = root / "zigux/tests/phase6_helper_parity_manifest.json"
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
             exact_checks = manifest.get("exact_checks")
@@ -905,7 +924,7 @@ def run_self_test() -> int:
         return 1
 
     print("PHASE6_VALIDATOR_SELF_TEST=pass")
-    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=10")
+    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
