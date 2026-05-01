@@ -383,9 +383,11 @@ def run_self_test() -> int:
         )
         assert "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md" in ABI_REQUIRED_MANIFEST_FILES
         assert "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md" in ABI_REQUIRED_MANIFEST_FILES
+        assert "Documentation/zigux/phase3-roadmap-gap-survey.md" in ABI_REQUIRED_MANIFEST_FILES
         assert "Documentation/zigux/review-checklist.md" in ABI_REQUIRED_MANIFEST_FILES
         assert ABI_POLICY_UNSAFE_SURVEY_CHECK_REL in ABI_REQUIRED_MANIFEST_FILES
         assert "scripts/zigux/validate-phase3-low-level-wrapper-survey.py" in ABI_REQUIRED_MANIFEST_FILES
+        assert "scripts/zigux/validate-phase3-roadmap-gap-survey.py" in ABI_REQUIRED_MANIFEST_FILES
         assert "scripts/zigux/validate_phase3_header_binding_markers.py" in ABI_REQUIRED_MANIFEST_FILES
         assert any(
             "shared Phase 3 ABI substrate packet" in marker for marker in ABI_REVIEW_CHECKLIST_MARKERS
