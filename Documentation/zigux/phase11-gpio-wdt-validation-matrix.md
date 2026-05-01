@@ -4,7 +4,7 @@ This document records the first bounded hardware-validation matrix for the Zigux
 
 ## Status
 
-- `PHASE11_GPIO_WDT_STATUS=teardown_and_register_device_surface_landed`
+- `PHASE11_GPIO_WDT_STATUS=metadata_teardown_and_register_device_surface_landed`
 - scope: keep the current `gpio_wdt` starter honest about what is already validated, name the explicit teardown evidence plus the first bounded register-device call evidence, and avoid overclaiming live GPIO, platform registration, or reboot integration before those behaviors exist in Zigux
 - current repo reality:
   - `drivers/watchdog/gpio_wdt.zig`
@@ -16,9 +16,10 @@ This document records the first bounded hardware-validation matrix for the Zigux
 
 ## Why This Exists
 
-The bounded starter now covers `hw_algo` parsing, heartbeat-margin validation, start or ping or stop transitions, a small probe-time summary, a nowayout-aware stop helper, an explicit `summarizeTeardown()` helper, a metadata-only registration plan, and the first bounded register-device call summary. The live repo still needed one reviewable note that explains:
+The bounded starter now covers `hw_algo` parsing, heartbeat-margin validation, an explicit watchdog metadata summary, start or ping or stop transitions, a small probe-time summary, a nowayout-aware stop helper, an explicit `summarizeTeardown()` helper, a metadata-only registration plan, and the first bounded register-device call summary. The live repo still needed one reviewable note that explains:
 
 - which parts of the lane are already exercised by the shared Phase 11 gate
+- which direct watchdog-info identity and option flags are already preserved as starter-local evidence
 - which teardown-facing stop outcomes are already preserved as test-backed evidence
 - which disable-order and failure-mode checkpoints are now explicit in one helper instead of implied by end-state assertions alone
 - which registration-facing checkpoints are now explicit call-surface evidence rather than live behavior
@@ -31,6 +32,7 @@ Without this matrix, the slice and survey named the right next step but did not 
 | lane surface | current evidence | shared gate today | next bounded follow-up | out of scope for now |
 | --- | --- | --- | --- | --- |
 | property parsing and bounded timeout window | `drivers/watchdog/gpio_wdt.zig` validates `toggle` versus `level` mode selection plus the same bounded heartbeat-margin window used by `drivers/watchdog/gpio_wdt.c` through `init()` and `initFromPropertyString()` | `zig build test --build-file zigux/tests/phase11_build.zig --summary all` via `zigux/tests/phase11_gpio_wdt.zig` in `.github/workflows/zigux-bootstrap.yml` | keep the same property and timeout evidence wired into any later registration-facing surface | live GPIO descriptor lookup, module parameter wiring, and platform-driver execution |
+| direct watchdog metadata surface | `watchdogMetadataSummary()` now keeps the `GPIO Watchdog` identity, `WDIOF_SETTIMEOUT`, `WDIOF_MAGICCLOSE`, and `WDIOF_KEEPALIVEPING` contract explicit alongside the starter-local start or stop or ping readiness before the lane widens into descriptor-backed registration work | `zig build test --build-file zigux/tests/phase11_build.zig --summary all` via the metadata assertions in `zigux/tests/phase11_gpio_wdt.zig` | keep the same watchdog-info evidence stable while later lane work decides whether descriptor-backed preflight or registration execution is the next honest widening | live watchdog-core registration, descriptor acquisition, and hardware-backed metadata wiring |
 | in-memory start, ping, and bounded runtime transitions | `GpioWatchdogLab.start()`, `ping()`, and `stop()` keep toggle-state, pulse-count, disable-count, and always-running outcomes reviewable without claiming hardware-backed toggling | `zig build test --build-file zigux/tests/phase11_build.zig --summary all` via the transition checks in `zigux/tests/phase11_gpio_wdt.zig` | keep the same runtime transition evidence stable while later lane work decides whether descriptor acquisition or probe ordering is the next bounded widening after the call surface | live GPIO value changes, reboot hooks, and watchdog-core side effects |
 | teardown-facing stop and failure-mode evidence | `requestStop()` keeps nowayout blocking, non-`always_running` disable, and `always_running` keepalive outcomes reviewable as teardown-facing metadata immediately adjacent to the current register-device planning boundary | `zig build test --build-file zigux/tests/phase11_build.zig --summary all` via the stop-policy checks in `zigux/tests/phase11_gpio_wdt.zig` | keep the same teardown-facing stop evidence and nowayout failure-mode evidence stable while a later lane decides whether descriptor-backed preflight or richer unregister planning is the next honest boundary | real unregister paths, reboot glue, `devm_watchdog_register_device()`, and hardware-backed teardown |
 | explicit disable-order teardown summary | `summarizeTeardown()` now keeps `gpio_wdt_disable()`-style eternal-ping ordering, toggle-mode return-to-input behavior, level-mode asserted-output behavior, and `always-running` versus `nowayout` stop fallout reviewable without claiming a live unregister path | `zig build test --build-file zigux/tests/phase11_build.zig --summary all` via the teardown-summary checks in `zigux/tests/phase11_gpio_wdt.zig` | leave this helper parked unless a later lane can isolate another comparably small teardown or failure-mode split beside it | real unregister callbacks, descriptor release ordering, reboot glue, and hardware-backed teardown |
@@ -52,7 +54,7 @@ Without this matrix, the slice and survey named the right next step but did not 
 ## Latest Verification Snapshot
 
 - lane key: `P11-L01`
-- inspected `master` head: `530282b229a59280b795c77a82c7e528ffb6cddd`
+- inspected `master` head: `ae87eabf15b3ac6c526e97e239754f97b3e222c0`
 - focused compile replay:
   - `zig build test --build-file build.zig --summary all` in the bounded scratch packet replayed the live `drivers/watchdog/gpio_wdt.zig` module plus `zigux/tests/phase11_gpio_wdt.zig` and `zigux/tests/phase11_gpio_wdt_survey.zig`
   - result: `5/5` build steps succeeded and `11/11` tests passed
