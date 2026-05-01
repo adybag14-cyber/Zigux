@@ -5,7 +5,7 @@ This document tracks the bounded `drivers/virtio/virtio_mmio.c` lab helper under
 ## Status
 
 - `PHASE10_STATUS=active`
-- `PHASE10_SLICE=virtio-mmio-interrupt-summary-helper`
+- `PHASE10_SLICE=virtio-mmio-interrupt-ack-helper`
 - scope: bounded MMIO register offsets, device-feature page selection, driver-feature page writes, queue-select and queue-size planning, queue-ready bookkeeping, queue-notify snapshots, version-scoped queue-address planning, read-only config-window snapshots, in-memory config-write planning, bounded interrupt-state summaries, status and reset bookkeeping, config-generation tracking, interrupt-status acknowledge bookkeeping, dedicated Phase 10 MMIO tests, and a slice note only
 - product boundary:
   - `drivers/virtio/virtio_mmio.zig`
@@ -17,7 +17,7 @@ This document tracks the bounded `drivers/virtio/virtio_mmio.c` lab helper under
 
 The Phase 10 roadmap names `drivers/virtio/virtio_mmio.c` as a primary transport anchor, but it also says to prove virtqueue wrappers before widening into MMIO or other risky transport work.
 
-The live repo now has the virtio core, ring, and input lab footholds plus the earlier MMIO survey lane. This slice now records the next honest follow-on after the config-write helper: a bounded interrupt-state summary that keeps the reviewable queue and config interrupt bits plus reset-local cleanup explicit in memory without pretending to own shared IRQ delivery, queue setup, probe and remove lifecycle, or DMA-facing transport work.
+The live repo now has the virtio core, ring, and input lab footholds plus the earlier MMIO survey lane. This slice now records the landed interrupt-state summary plus interrupt-ack rung after the earlier config-write helper, keeping the reviewable queue and config interrupt bits plus reset-local cleanup explicit in memory without pretending to own shared IRQ delivery, queue setup, probe and remove lifecycle, or DMA-facing transport work.
 
 ## Landed starter surface
 
