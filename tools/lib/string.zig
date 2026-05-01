@@ -539,6 +539,14 @@ test "memparse forwards the header-level string helper surface" {
     try std.testing.expectEqual(@as(u64, 0x20 << 20), hexadecimal.value);
     try std.testing.expectEqualStrings("", hexadecimal.rest);
 
+    const octal = memparse("010K");
+    try std.testing.expectEqual(@as(u64, 8 << 10), octal.value);
+    try std.testing.expectEqualStrings("", octal.rest);
+
+    const positive = memparse("+32");
+    try std.testing.expectEqual(@as(u64, 32), positive.value);
+    try std.testing.expectEqualStrings("", positive.rest);
+
     const invalid = memparse("xyz");
     try std.testing.expectEqual(@as(u64, 0), invalid.value);
     try std.testing.expectEqualStrings("xyz", invalid.rest);
