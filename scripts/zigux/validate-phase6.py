@@ -390,6 +390,7 @@ CATALOG_MARKERS = [
     "max_slowdown_pct = 550",
     "max_slowdown_pct = 600",
     "avg_compare_calls <= std.math.log2_int_ceil(len) + 1",
+    "PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=11",
 ]
 
 EXPECTED_BASE64_DETERMINISM = {
@@ -566,25 +567,20 @@ MARKER_FILE_CONTENTS = {
     "Documentation/zigux/phase6-hexdump-slice.md": HEXDUMP_SLICE_MARKERS,
 }
 
-
 def text(root: Path, path: str) -> str:
     return (root / path).read_text(encoding="utf-8")
-
 
 def require_markers(missing: list[str], label: str, content: str, markers: list[str]) -> None:
     for marker in markers:
         if marker not in content:
             missing.append(f"{label}:missing:{marker}")
 
-
 def require_manifest_equal(missing: list[str], manifest: dict[str, object], key: str, expected: object) -> None:
     if manifest.get(key) != expected:
         missing.append(f"manifest:{key}")
 
-
 def total_marker_count() -> int:
     return sum(len(markers) for markers in MARKER_FILE_CONTENTS.values()) + len(CATALOG_MARKERS)
-
 
 def parse_catalog_head(content: str) -> tuple[str | None, str]:
     match = re.search(r"- verified head: `([0-9a-f]{40}|[^`]+)`", content)
@@ -594,7 +590,6 @@ def parse_catalog_head(content: str) -> tuple[str | None, str]:
     if not HEX40.fullmatch(head):
         return head, "invalid"
     return head, "ok"
-
 
 def validate_phase6(root: Path) -> dict[str, object]:
     missing_files = [path for path in REQUIRED_FILES if not (root / path).exists()]
@@ -691,7 +686,6 @@ def validate_phase6(root: Path) -> dict[str, object]:
         "catalog_head_status": "ok",
     }
 
-
 def report_validation(result: dict[str, object]) -> int:
     missing_files = result["missing_files"]
     if missing_files:
@@ -722,16 +716,13 @@ def report_validation(result: dict[str, object]) -> int:
     print(f"PHASE6_CATALOG_VERIFIED_HEAD={result['catalog_head']}")
     return 0
 
-
 def write_file(root: Path, path: str, content: str) -> None:
     target = root / path
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(content, encoding="utf-8")
 
-
 def render_marker_file(markers: list[str]) -> str:
     return "\n".join(markers) + "\n"
-
 
 def write_self_test_tree(root: Path) -> None:
     for path in REQUIRED_FILES:
@@ -768,7 +759,6 @@ def write_self_test_tree(root: Path) -> None:
         "zigux/tests/phase6_helper_parity_manifest.json",
         json.dumps(manifest, indent=2) + "\n",
     )
-
 
 def run_self_test() -> int:
     try:
@@ -819,6 +809,20 @@ def run_self_test() -> int:
             catalog_fail_result = validate_phase6(root)
             if catalog_fail_result["ok"] or f"phase6_catalog:missing:{catalog_marker}" not in catalog_fail_result["missing"]:
                 raise AssertionError(f"expected catalog drift failure, got: {catalog_fail_result}")
+
+            write_self_test_tree(root)
+            catalog_path = root / "Documentation/zigux/phase6-helper-parity-catalog.md"
+            catalog_text = catalog_path.read_text(encoding="utf-8")
+            validator_count_marker = "PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=11"
+            catalog_path.write_text(
+                catalog_text.replace(validator_count_marker, "", 1),
+                encoding="utf-8",
+            )
+            validator_count_fail_result = validate_phase6(root)
+            if validator_count_fail_result["ok"] or f"phase6_catalog:missing:{validator_count_marker}" not in validator_count_fail_result["missing"]:
+                raise AssertionError(
+                    f"expected catalog validator-count drift failure, got: {validator_count_fail_result}"
+                )
 
             write_self_test_tree(root)
             catalog_path = root / "Documentation/zigux/phase6-helper-parity-catalog.md"
@@ -899,22 +903,19 @@ def run_self_test() -> int:
         return 1
 
     print("PHASE6_VALIDATOR_SELF_TEST=pass")
-    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=11")
+    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=12")
     return 0
-
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Validate the bounded Phase 6 leaf-helper packet.")
     parser.add_argument("--self-test", action="store_true", help="Run built-in validator checks")
     return parser.parse_args(argv)
 
-
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     if args.self_test:
         return run_self_test()
     return report_validation(validate_phase6(ROOT))
-
 
 if __name__ == "__main__":
     sys.exit(main())
