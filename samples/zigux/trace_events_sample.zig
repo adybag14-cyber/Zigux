@@ -183,6 +183,7 @@ pub const TraceEventsReferenceSample = struct {
     pub fn replayFunctionIteration(self: *Self, count: i32) !void {
         try self.ensureMutable();
         if (self.registration_depth == 0) return error.FunctionCallbackNotRegistered;
+        if (count < 0) return error.InvalidIterationCount;
 
         self.last_function_count = count;
         self.saw_function_callback_path = true;
@@ -344,6 +345,7 @@ test "trace-events sample keeps callback registration single-live" {
     try sample.init();
     try sample.registerFunctionCallback();
     try std.testing.expectError(error.CallbackAlreadyRegistered, sample.registerFunctionCallback());
+    try std.testing.expectError(error.InvalidIterationCount, sample.replayFunctionIteration(-1));
     try sample.replayFunctionIteration(5);
     try sample.unregisterFunctionCallback();
     try std.testing.expectEqual(@as(usize, 0), sample.registration_depth);
