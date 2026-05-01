@@ -131,10 +131,14 @@ This keeps the survey useful after the first starter, direct sample-test leg, di
 ## Gates
 
 1. run the dedicated Phase 9 survey gate
-- `zig build test --build-file zigux/tests/phase9_build.zig`
-- this shared build now includes the direct `phase9-runtime-bitmap-sample-tests` and `phase9-runtime-bitmap-loader-tests` legs alongside the bitmap survey, module, diff, and shared runtime-loader checks
+- `zig test zigux/tests/runtime_bitmap_survey.zig`
+- this dedicated gate keeps the manifest-backed ownership packet, exact checks, and adjacent blocked shared-loader note reviewable without requiring the broader shared build
 
-2. run the convenience target
+2. run the shared Phase 9 runtime survey bundle
+- `zig build test --build-file zigux/tests/phase9_build.zig`
+- this shared build now includes the direct `phase9-runtime-bitmap-sample-tests` and `phase9-runtime-bitmap-loader-tests` legs alongside the bitmap survey, module, diff, loader, and shared runtime-loader checks
+
+3. run the convenience target
 - `make -C zigux phase9`
 
 ## Non-goals
