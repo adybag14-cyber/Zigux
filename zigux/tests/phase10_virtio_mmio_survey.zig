@@ -132,9 +132,12 @@ test "phase10 virtio mmio survey manifest records the landed config-write rung a
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "wrapper-first or study-only posture") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/*.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "bounded interrupt-state summaries") != null);
-    try std.testing.expect(std.mem.indexOf(u8, slice_note, "bounded interrupt acknowledge behavior") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "interrupt acknowledge") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "PHASE10_SLICE=virtio-mmio-interrupt-ack-helper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "landed interrupt-state summary plus interrupt-ack rung") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "phase10-mmio-lifecycle-and-irq-paths") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "add one small config-window write-planning helper next") == null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "next honest follow-on after the config-write helper") == null);
     try std.testing.expect(closure_manifest == .object);
 
     const landed_mmio_helper_evidence = closure_manifest.object.get("landed_mmio_helper_evidence") orelse return error.TestUnexpectedResult;
