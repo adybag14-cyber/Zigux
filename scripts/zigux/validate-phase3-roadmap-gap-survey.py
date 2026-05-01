@@ -153,16 +153,36 @@ def run_self_test() -> int:
 
         survey_path = root / SURVEY_REL
         survey_path.write_text("\n".join(REQUIRED_SURVEY_MARKERS) + "\n", encoding="utf-8")
-        (root / DOCS_README_REL).write_text("\n".join(REQUIRED_DOCS_README_SNIPPETS) + "\n", encoding="utf-8")
-        (root / SCRIPTS_README_REL).write_text("\n".join(REQUIRED_SCRIPTS_README_SNIPPETS) + "\n", encoding="utf-8")
+        docs_readme_path = root / DOCS_README_REL
+        docs_readme_path.write_text("\n".join(REQUIRED_DOCS_README_SNIPPETS) + "\n", encoding="utf-8")
+        scripts_readme_path = root / SCRIPTS_README_REL
+        scripts_readme_path.write_text("\n".join(REQUIRED_SCRIPTS_README_SNIPPETS) + "\n", encoding="utf-8")
 
         assert validate(root) == []
 
         survey_path.write_text(REQUIRED_SURVEY_MARKERS[0] + "\n", encoding="utf-8")
         issues = validate(root)
         assert any(issue.startswith("missing_survey_marker:") for issue in issues)
-
         survey_path.write_text("\n".join(REQUIRED_SURVEY_MARKERS) + "\n", encoding="utf-8")
+
+        removed_docs_snippet = REQUIRED_DOCS_README_SNIPPETS[0]
+        docs_readme_path.write_text("\n".join(REQUIRED_DOCS_README_SNIPPETS[1:]) + "\n", encoding="utf-8")
+        issues = validate(root)
+        assert f"missing_docs_readme_snippet:{removed_docs_snippet}" in issues
+        docs_readme_path.write_text("\n".join(REQUIRED_DOCS_README_SNIPPETS) + "\n", encoding="utf-8")
+
+        removed_scripts_snippet = REQUIRED_SCRIPTS_README_SNIPPETS[0]
+        scripts_readme_path.write_text("\n".join(REQUIRED_SCRIPTS_README_SNIPPETS[1:]) + "\n", encoding="utf-8")
+        issues = validate(root)
+        assert f"missing_scripts_readme_snippet:{removed_scripts_snippet}" in issues
+        scripts_readme_path.write_text("\n".join(REQUIRED_SCRIPTS_README_SNIPPETS) + "\n", encoding="utf-8")
+
+        missing_path = root / "zigux" / "uapi" / "version.zig"
+        missing_path.unlink()
+        issues = validate(root)
+        assert "missing_repo_path:zigux/uapi/version.zig" in issues
+        missing_path.write_text("// ok\n", encoding="utf-8")
+
         stale_phase3_doc = root / "Documentation" / "zigux" / "phase3-rbtree-slice.md"
         stale_phase3_doc.write_text("# stale\n", encoding="utf-8")
         issues = validate(root)
