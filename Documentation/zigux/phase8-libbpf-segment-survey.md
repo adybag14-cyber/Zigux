@@ -122,10 +122,13 @@ The current tests check:
 2. run the dedicated shared Phase 8 tooling replay
 - `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
 
-3. run the focused libbpf survey replay
+3. run the direct focused libbpf survey replay
+- `zig test zigux/tests/phase8_libbpf_segments.zig`
+
+4. run the focused libbpf survey build replay
 - `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all`
 
-4. run the convenience target
+5. run the convenience target
 - `make -C zigux phase8`
 
 ## Latest verification snapshot
