@@ -58,7 +58,8 @@ pub fn argvSplitWithArgc(
     argcp: ?*usize,
 ) !ArgvSplitResult {
     const current = cStringPrefix(text);
-    if (countArgc(current) == 0) {
+    const argc = countArgc(current);
+    if (argc == 0) {
         if (argcp) |count_out| {
             count_out.* = 0;
         }
@@ -71,8 +72,7 @@ pub fn argvSplitWithArgc(
 
     var storage = try allocator.dupeZ(u8, current);
     errdefer allocator.free(storage);
-    // Mirror the C helper's "copy first, then parse" contract for mutable callers.
-    const argc = countArgc(storage);
+    // `current` is already trimmed to the first NUL, so its argc stays valid after the copy.
 
     var argv = try allocator.alloc([:0]u8, argc);
     errdefer allocator.free(argv);
