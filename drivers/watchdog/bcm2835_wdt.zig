@@ -109,6 +109,7 @@ pub const RemoveSummary = struct {
     clear_poweroff_handler_requested: bool,
     clear_poweroff_handler_blocked_by_conflict: bool,
     clear_poweroff_handler_skipped_without_system_power_controller: bool,
+    clear_poweroff_handler_skipped_without_handler: bool,
     poweroff_handler_left_in_place: bool,
 };
 
@@ -265,6 +266,8 @@ pub const Bcm2835WatchdogLab = struct {
             system_power_controller and poweroff_handler_present and !poweroff_handler_owned_by_driver;
         const clear_poweroff_handler_skipped_without_system_power_controller =
             !system_power_controller and poweroff_handler_present;
+        const clear_poweroff_handler_skipped_without_handler =
+            system_power_controller and !poweroff_handler_present;
         return .{
             .anchor = descriptor().anchor,
             .system_power_controller = system_power_controller,
@@ -277,6 +280,8 @@ pub const Bcm2835WatchdogLab = struct {
             .clear_poweroff_handler_blocked_by_conflict = clear_poweroff_handler_blocked_by_conflict,
             .clear_poweroff_handler_skipped_without_system_power_controller =
                 clear_poweroff_handler_skipped_without_system_power_controller,
+            .clear_poweroff_handler_skipped_without_handler =
+                clear_poweroff_handler_skipped_without_handler,
             .poweroff_handler_left_in_place = poweroff_handler_present and !clear_poweroff_handler_requested,
         };
     }
