@@ -6,7 +6,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 
 - `PHASE8_STATUS=active`
 - `PHASE8_SLICE=libbpf-cpu-mask-starter`
-- scope: injected CPU-mask string parsing, chunk-reader ingestion, and set-bit counting only
+- scope: injected CPU-mask string parsing, chunk-reader ingestion, set-bit counting, and bounded perf-buffer auto-CPU sizing only
 - product boundary:
   - `tools/lib/bpf/zigux_segments/cpu_mask.zig`
   - `zigux/tests/phase8_cpu_mask.zig`
@@ -41,6 +41,7 @@ The current starter slice covers:
 - an injected chunk-reader interface that can assemble buffered sysfs-style input without touching real file descriptors
 - dense `[]bool` mask materialization for future tooling callers
 - counted possible-CPU reporting over the parsed mask
+- a bounded auto-CPU count clamp that mirrors libbpf's perf-buffer map-budget sizing without widening into `/sys` reads, online CPU filtering, perf-event-array updates, or perf FD registration
 
 The current tests check:
 
@@ -51,6 +52,7 @@ The current tests check:
 - sparse masks with unset gaps preserved
 - explicit error handling for empty, malformed, and trailing-whitespace-only ranges
 - reader contract failures such as zero-length chunks, oversized counts, and injected read errors
+- the bounded auto-CPU count clamp keeps possible-CPU sizing inside the map entry budget while still treating zero as the uncapped case
 
 ## Non-goals
 
