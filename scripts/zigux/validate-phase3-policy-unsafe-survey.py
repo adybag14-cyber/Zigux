@@ -9,7 +9,8 @@ import subprocess
 import tempfile
 
 
-ROOT = Path(__file__).resolve().parents[2]
+_HERE = Path(__file__).resolve()
+ROOT = _HERE.parents[2] if len(_HERE.parents) > 2 else _HERE.parent
 SURVEY_REL = "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md"
 MAKEFILE_REL = "zigux/Makefile"
 ABI_SLICE_REL = "Documentation/zigux/phase3-abi-slice.md"
@@ -22,7 +23,10 @@ ALLOCATOR_POLICY_REL = "zigux/helpers/allocator_policy.zig"
 INTEROP_POLICY_REL = "zigux/helpers/interop_policy.zig"
 UNSAFE_NARROW_REL = "zigux/unsafe/narrow.zig"
 MMIO_REL = "zigux/helpers/mmio.zig"
+
 HEX40 = re.compile(r"^[0-9a-f]{40}$")
+PLACEHOLDER_SHA = "0123456789abcdef0123456789abcdef01234567"
+PLACEHOLDER_COMMIT = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 
 REQUIRED_SURVEY_MARKERS = (
     "PHASE3_LAYOUT_ASSERT_PATH=zigux/helpers/layout_assert.zig",
@@ -101,6 +105,7 @@ REQUIRED_INTEROP_POLICY_SNIPPETS = (
     "pub fn decode(policy: abi.InteropPolicy) DecodeError!DecodedInteropPolicy {",
     "pub fn recognizes(policy: abi.InteropPolicy) bool {",
     'test "phase3 interop policy decoder keeps the boundary typed"',
+    'test "phase3 interop policy decoder keeps allocator init requirements explicit"',
     'test "phase3 interop policy decoder rejects invalid bytes and reserved bits"',
 )
 
@@ -112,6 +117,7 @@ REQUIRED_UNSAFE_SNIPPETS = (
     "pub fn scopedConstPointerAt(comptime T: type, scope: UnsafeScopeTag, addr: usize) ScopeError!*const T {",
     'test "phase3 narrow unsafe interop policy decoding stays explicit"',
     'test "phase3 scoped unsafe helpers require the declared scope"',
+    'test "phase3 narrow unsafe scoped helpers reject overflowed address math"',
 )
 
 REQUIRED_MMIO_SNIPPETS = (
@@ -126,9 +132,11 @@ REQUIRED_MMIO_SNIPPETS = (
 REQUIRED_POLICY_UNSAFE_TEST_SNIPPETS = (
     'test "phase3 policy helpers stay ABI aligned"',
     'test "phase3 policy decoder validates the whole interop record"',
+    'test "phase3 policy decoder keeps allocator init and reset requirements reviewable"',
     'test "phase3 policy decoder rejects partial or reserved policy bytes"',
     'test "phase3 policy gate decodes interop-policy unsafe bytes explicitly"',
     'test "phase3 policy gate enforces the declared unsafe scope"',
+    'test "phase3 policy gate rejects overflowed unsafe address math"',
 )
 
 REQUIRED_ABI_SLICE_SNIPPETS = (
@@ -136,18 +144,6 @@ REQUIRED_ABI_SLICE_SNIPPETS = (
     "focused replay gate: `zigux/tests/phase3_policy_unsafe.zig` now keeps `layout_assert`, panic, allocator, whole-record interop-policy decoding, unsafe-byte decoding, and declared-scope enforcement aligned on its own compile-and-test path",
 )
 
-SURVEYED_PACKET_PATHS = (
-    LAYOUT_ASSERT_REL,
-    PANIC_POLICY_REL,
-    ALLOCATOR_POLICY_REL,
-    INTEROP_POLICY_REL,
-    UNSAFE_NARROW_REL,
-    MMIO_REL,
-    POLICY_UNSAFE_BUILD_REL,
-    POLICY_UNSAFE_TEST_REL,
-    MANIFEST_REL,
-    ABI_SLICE_REL,
-)
 SURVEYED_PACKET_BLOB_MARKERS = {
     "PHASE3_LAYOUT_ASSERT_BLOB_SHA": LAYOUT_ASSERT_REL,
     "PHASE3_PANIC_POLICY_BLOB_SHA": PANIC_POLICY_REL,
@@ -160,9 +156,8 @@ SURVEYED_PACKET_BLOB_MARKERS = {
     "PHASE3_POLICY_UNSAFE_TEST_BLOB_SHA": POLICY_UNSAFE_TEST_REL,
     "PHASE3_ABI_MANIFEST_BLOB_SHA": MANIFEST_REL,
 }
-REQUIRED_SURVEY_BLOB_MARKERS = tuple(SURVEYED_PACKET_BLOB_MARKERS)
-PLACEHOLDER_SHA = "0123456789abcdef0123456789abcdef01234567"
-PLACEHOLDER_COMMIT = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+SURVEYED_PACKET_PATHS = tuple(SURVEYED_PACKET_BLOB_MARKERS.values())
 
 
 def _read_text(root: Path, rel: str, issues: list[str]) -> str:
@@ -174,8 +169,10 @@ def _read_text(root: Path, rel: str, issues: list[str]) -> str:
         return ""
 
 
-def _surveyed_commit_from_text(text: str) -> str | None:
-    return _marker_value_from_text(text, "PHASE3_SURVEYED_COMMIT")
+def _check_snippets(text: str, snippets: tuple[str, ...], prefix: str, issues: list[str]) -> None:
+    for snippet in snippets:
+        if snippet not in text:
+            issues.append(f"{prefix}:{snippet}")
 
 
 def _marker_value_from_text(text: str, marker: str) -> str | None:
@@ -187,9 +184,12 @@ def _marker_value_from_text(text: str, marker: str) -> str | None:
     return None
 
 
+def _surveyed_commit_from_text(text: str) -> str | None:
+    return _marker_value_from_text(text, "PHASE3_SURVEYED_COMMIT")
+
+
 def _has_local_commit(root: Path, commit: str) -> bool:
-    git_dir = root / ".git"
-    if not git_dir.exists():
+    if not (root / ".git").exists():
         return False
     result = subprocess.run(
         ["git", "cat-file", "-e", f"{commit}^{{commit}}"],
@@ -202,11 +202,11 @@ def _has_local_commit(root: Path, commit: str) -> bool:
 
 
 def _packet_drift_since_commit(root: Path, commit: str) -> list[str]:
-    git_dir = root / ".git"
-    if not git_dir.exists():
+    if not (root / ".git").exists():
         return []
     if not _has_local_commit(root, commit):
         return [f"surveyed_commit_unavailable_locally:{commit}"]
+
     result = subprocess.run(
         ["git", "diff", "--name-only", commit, "HEAD", "--", *SURVEYED_PACKET_PATHS],
         cwd=root,
@@ -216,16 +216,11 @@ def _packet_drift_since_commit(root: Path, commit: str) -> list[str]:
     )
     if result.returncode != 0:
         return [f"surveyed_commit_diff_error:{commit}"]
-    return [
-        f"surveyed_commit_packet_drift:{rel}"
-        for rel in result.stdout.splitlines()
-        if rel.strip()
-    ]
+    return [f"surveyed_commit_packet_drift:{rel}" for rel in result.stdout.splitlines() if rel.strip()]
 
 
 def _packet_drift_by_blob_sha(root: Path, survey: str) -> list[str]:
-    git_dir = root / ".git"
-    if not git_dir.exists():
+    if not (root / ".git").exists():
         return []
 
     issues: list[str] = []
@@ -235,10 +230,12 @@ def _packet_drift_by_blob_sha(root: Path, survey: str) -> list[str]:
         if expected_blob is None:
             continue
         saw_blob_marker = True
+
         path = root / rel
         if not path.exists():
             issues.append(f"current_blob_unavailable:{rel}")
             continue
+
         result = subprocess.run(
             ["git", "hash-object", "--no-filters", str(path)],
             cwd=root,
@@ -249,39 +246,14 @@ def _packet_drift_by_blob_sha(root: Path, survey: str) -> list[str]:
         if result.returncode != 0:
             issues.append(f"current_blob_unavailable:{rel}")
             continue
+
         current_blob = result.stdout.strip()
         if not HEX40.fullmatch(current_blob):
             issues.append(f"invalid_current_blob_sha:{rel}:{current_blob}")
-            continue
-        if current_blob != expected_blob:
+        elif current_blob != expected_blob:
             issues.append(f"surveyed_blob_drift:{rel}")
 
     return issues if saw_blob_marker else []
-
-
-def _blob_marker_lines() -> list[str]:
-    return [f"- `{marker}={PLACEHOLDER_SHA}`" for marker in REQUIRED_SURVEY_BLOB_MARKERS]
-
-
-def _replace_blob_markers_with_head(root: Path, survey_path: Path) -> None:
-    survey_text = survey_path.read_text(encoding="utf-8")
-    for marker, rel in SURVEYED_PACKET_BLOB_MARKERS.items():
-        path = root / rel
-        blob_sha = subprocess.run(
-            ["git", "hash-object", "--no-filters", str(path)],
-            cwd=root,
-            check=True,
-            capture_output=True,
-            text=True,
-        ).stdout.strip()
-        survey_text = survey_text.replace(f"{marker}={PLACEHOLDER_SHA}", f"{marker}={blob_sha}")
-    survey_path.write_text(survey_text, encoding="utf-8", newline="\n")
-
-
-def _check_snippets(text: str, snippets: tuple[str, ...], prefix: str, issues: list[str]) -> None:
-    for snippet in snippets:
-        if snippet not in text:
-            issues.append(f"{prefix}:{snippet}")
 
 
 def validate(root: Path) -> list[str]:
@@ -300,13 +272,15 @@ def validate(root: Path) -> list[str]:
 
     if survey:
         _check_snippets(survey, REQUIRED_SURVEY_MARKERS, "missing_survey_marker", issues)
-        for marker in REQUIRED_SURVEY_BLOB_MARKERS:
+        for marker in SURVEYED_PACKET_BLOB_MARKERS:
             value = _marker_value_from_text(survey, marker)
             if value is None:
                 issues.append(f"missing_survey_marker:{marker}=")
             elif not HEX40.fullmatch(value):
                 issues.append(f"invalid_survey_blob_sha:{marker}:{value}")
+
         _check_snippets(survey, REQUIRED_SURVEY_SNIPPETS, "missing_survey_snippet", issues)
+
         surveyed_commit = _surveyed_commit_from_text(survey)
         if surveyed_commit is None:
             issues.append("missing_surveyed_commit")
@@ -316,9 +290,7 @@ def validate(root: Path) -> list[str]:
             blob_issues = _packet_drift_by_blob_sha(root, survey)
             if blob_issues:
                 issues.extend(blob_issues)
-            elif all(_marker_value_from_text(survey, marker) is not None for marker in SURVEYED_PACKET_BLOB_MARKERS):
-                pass
-            else:
+            elif not all(_marker_value_from_text(survey, marker) is not None for marker in SURVEYED_PACKET_BLOB_MARKERS):
                 issues.extend(_packet_drift_since_commit(root, surveyed_commit))
 
     for rel in REQUIRED_SURVEY_PATHS:
@@ -353,9 +325,28 @@ def _write(root: Path, rel: str, text: str) -> None:
     path.write_text(text, encoding="utf-8", newline="\n")
 
 
+def _blob_marker_lines() -> list[str]:
+    return [f"- `{marker}={PLACEHOLDER_SHA}`" for marker in SURVEYED_PACKET_BLOB_MARKERS]
+
+
+def _replace_blob_markers_with_head(root: Path, survey_path: Path) -> None:
+    survey_text = survey_path.read_text(encoding="utf-8")
+    for marker, rel in SURVEYED_PACKET_BLOB_MARKERS.items():
+        blob_sha = subprocess.run(
+            ["git", "hash-object", "--no-filters", str(root / rel)],
+            cwd=root,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+        survey_text = survey_text.replace(f"{marker}={PLACEHOLDER_SHA}", f"{marker}={blob_sha}")
+    survey_path.write_text(survey_text, encoding="utf-8", newline="\n")
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_policy_unsafe_survey_") as tmp_dir_str:
         root = Path(tmp_dir_str)
+
         _write(
             root,
             SURVEY_REL,
@@ -385,9 +376,10 @@ def run_self_test() -> int:
                     f"This survey is pinned to verified `master` head `{PLACEHOLDER_COMMIT}`.",
                     "The packet names zigux/helpers/layout_assert.zig, zigux/helpers/panic_policy.zig, zigux/helpers/allocator_policy.zig, zigux/helpers/interop_policy.zig, zigux/unsafe/narrow.zig, zigux/helpers/mmio.zig, zigux/tests/phase3_policy_unsafe_build.zig, and zigux/tests/phase3_policy_unsafe.zig, and it keeps the typed interop-policy boundary explicit.",
                     "",
+                    *_blob_marker_lines(),
                 ]
-                + _blob_marker_lines()
-            ),
+            )
+            + "\n",
         )
         _write(
             root,
@@ -397,32 +389,32 @@ def run_self_test() -> int:
         _write(
             root,
             LAYOUT_ASSERT_REL,
-            "pub fn assertInteropPolicyLayout() void {}\npub fn assertMmioRangeLayout() void {}\ntest \"phase3 layout assertions cover canonical bindings\" {}\n",
+            'pub fn assertInteropPolicyLayout() void {}\npub fn assertMmioRangeLayout() void {}\ntest "phase3 layout assertions cover canonical bindings" {}\n',
         )
         _write(
             root,
             PANIC_POLICY_REL,
-            "pub fn modeFromInteropPolicyByte(panic_mode: u8) ?abi.PanicMode { _ = panic_mode; }\npub fn recognizesInteropPolicyByte(panic_mode: u8) bool { _ = panic_mode; }\npub fn canReturnPolicyByte(panic_mode: u8) bool { _ = panic_mode; }\ntest \"phase3 panic policy stays explicit\" {}\n",
+            'pub fn modeFromInteropPolicyByte(panic_mode: u8) ?abi.PanicMode { _ = panic_mode; }\npub fn recognizesInteropPolicyByte(panic_mode: u8) bool { _ = panic_mode; }\npub fn canReturnPolicyByte(panic_mode: u8) bool { _ = panic_mode; }\ntest "phase3 panic policy stays explicit" {}\n',
         )
         _write(
             root,
             ALLOCATOR_POLICY_REL,
-            "pub fn modeFromInteropPolicyByte(allocator_mode: u8) ?abi.AllocatorMode { _ = allocator_mode; }\npub fn permitsGlobalFallbackPolicyByte(allocator_mode: u8) bool { _ = allocator_mode; }\npub fn initializesOwnedStatePolicyByte(allocator_mode: u8) bool { _ = allocator_mode; }\npub fn requiresResetOnInitPolicyByte(allocator_mode: u8) bool { _ = allocator_mode; }\ntest \"phase3 allocator policy stays explicit\" {}\n",
+            'pub fn modeFromInteropPolicyByte(allocator_mode: u8) ?abi.AllocatorMode { _ = allocator_mode; }\npub fn permitsGlobalFallbackPolicyByte(allocator_mode: u8) bool { _ = allocator_mode; }\npub fn initializesOwnedStatePolicyByte(allocator_mode: u8) bool { _ = allocator_mode; }\npub fn requiresResetOnInitPolicyByte(allocator_mode: u8) bool { _ = allocator_mode; }\ntest "phase3 allocator policy stays explicit" {}\n',
         )
         _write(
             root,
             INTEROP_POLICY_REL,
-            "pub const DecodedInteropPolicy = struct {};\npub fn decode(policy: abi.InteropPolicy) DecodeError!DecodedInteropPolicy { _ = policy; }\npub fn recognizes(policy: abi.InteropPolicy) bool { _ = policy; }\ntest \"phase3 interop policy decoder keeps the boundary typed\" {}\ntest \"phase3 interop policy decoder rejects invalid bytes and reserved bits\" {}\n",
+            'pub const DecodedInteropPolicy = struct {};\npub fn decode(policy: abi.InteropPolicy) DecodeError!DecodedInteropPolicy { _ = policy; }\npub fn recognizes(policy: abi.InteropPolicy) bool { _ = policy; }\ntest "phase3 interop policy decoder keeps the boundary typed" {}\ntest "phase3 interop policy decoder keeps allocator init requirements explicit" {}\ntest "phase3 interop policy decoder rejects invalid bytes and reserved bits" {}\n',
         )
         _write(
             root,
             UNSAFE_NARROW_REL,
-            "pub const UnsafeScopeTag = enum(u8) { none = 0, volatile_mmio = 1, raw_pointer_bridge = 2 };\npub fn scopeFromInteropPolicyBytes(unsafe_scope: u8, reserved: u8) ?UnsafeScopeTag { _ = unsafe_scope; _ = reserved; }\npub fn scopedPointerAt(comptime T: type, scope: UnsafeScopeTag, base: usize, offset: usize) ScopeError!*volatile T { _ = T; _ = scope; _ = base; _ = offset; }\npub fn scopedConstSliceAt(comptime T: type, scope: UnsafeScopeTag, base: usize, len: usize) ScopeError![]const T { _ = T; _ = scope; _ = base; _ = len; }\npub fn scopedConstPointerAt(comptime T: type, scope: UnsafeScopeTag, addr: usize) ScopeError!*const T { _ = T; _ = scope; _ = addr; }\ntest \"phase3 narrow unsafe interop policy decoding stays explicit\" {}\ntest \"phase3 scoped unsafe helpers require the declared scope\" {}\n",
+            'pub const UnsafeScopeTag = enum(u8) { none = 0, volatile_mmio = 1, raw_pointer_bridge = 2 };\npub fn scopeFromInteropPolicyBytes(unsafe_scope: u8, reserved: u8) ?UnsafeScopeTag { _ = unsafe_scope; _ = reserved; }\npub fn scopedPointerAt(comptime T: type, scope: UnsafeScopeTag, base: usize, offset: usize) ScopeError!*volatile T { _ = T; _ = scope; _ = base; _ = offset; }\npub fn scopedConstSliceAt(comptime T: type, scope: UnsafeScopeTag, base: usize, len: usize) ScopeError![]const T { _ = T; _ = scope; _ = base; _ = len; }\npub fn scopedConstPointerAt(comptime T: type, scope: UnsafeScopeTag, addr: usize) ScopeError!*const T { _ = T; _ = scope; _ = addr; }\ntest "phase3 narrow unsafe interop policy decoding stays explicit" {}\ntest "phase3 scoped unsafe helpers require the declared scope" {}\ntest "phase3 narrow unsafe scoped helpers reject overflowed address math" {}\n',
         )
         _write(
             root,
             MMIO_REL,
-            "pub fn read16Scoped(scope: narrow.UnsafeScopeTag, base_addr: usize, offset: usize) narrow.ScopeError!u16 { _ = scope; _ = base_addr; _ = offset; }\npub fn write16Scoped() void {}\npub fn read32Scoped(scope: narrow.UnsafeScopeTag, base_addr: usize, offset: usize) narrow.ScopeError!u32 { _ = scope; _ = base_addr; _ = offset; }\npub fn write32Scoped() void {}\ntest \"phase3 mmio wrapper keeps declared scope explicit across widths\" {}\ntest \"phase3 mmio wrapper rejects misaligned scoped accesses\" {}\n",
+            'pub fn read16Scoped(scope: narrow.UnsafeScopeTag, base_addr: usize, offset: usize) narrow.ScopeError!u16 { _ = scope; _ = base_addr; _ = offset; }\npub fn write16Scoped() void {}\npub fn read32Scoped(scope: narrow.UnsafeScopeTag, base_addr: usize, offset: usize) narrow.ScopeError!u32 { _ = scope; _ = base_addr; _ = offset; }\npub fn write32Scoped() void {}\ntest "phase3 mmio wrapper keeps declared scope explicit across widths" {}\ntest "phase3 mmio wrapper rejects misaligned scoped accesses" {}\n',
         )
         _write(
             root,
@@ -431,9 +423,11 @@ def run_self_test() -> int:
                 [
                     'test "phase3 policy helpers stay ABI aligned" {}',
                     'test "phase3 policy decoder validates the whole interop record" {}',
+                    'test "phase3 policy decoder keeps allocator init and reset requirements reviewable" {}',
                     'test "phase3 policy decoder rejects partial or reserved policy bytes" {}',
                     'test "phase3 policy gate decodes interop-policy unsafe bytes explicitly" {}',
                     'test "phase3 policy gate enforces the declared unsafe scope" {}',
+                    'test "phase3 policy gate rejects overflowed unsafe address math" {}',
                     "",
                 ]
             ),
@@ -474,10 +468,7 @@ def run_self_test() -> int:
         ).stdout.strip()
         survey_path = root / SURVEY_REL
         survey_path.write_text(
-            survey_path.read_text(encoding="utf-8").replace(
-                PLACEHOLDER_COMMIT,
-                head,
-            ),
+            survey_path.read_text(encoding="utf-8").replace(PLACEHOLDER_COMMIT, head),
             encoding="utf-8",
             newline="\n",
         )
@@ -497,13 +488,33 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        _write(
-            root,
-            MMIO_REL,
-            (root / MMIO_REL).read_text(encoding="utf-8") + "// drift\n",
-        )
+        _write(root, MMIO_REL, (root / MMIO_REL).read_text(encoding="utf-8") + "// drift\n")
         issues = validate(root)
         assert f"surveyed_blob_drift:{MMIO_REL}" in issues
+
+        _write(
+            root,
+            POLICY_UNSAFE_TEST_REL,
+            "\n".join(
+                [
+                    'test "phase3 policy helpers stay ABI aligned" {}',
+                    'test "phase3 policy decoder validates the whole interop record" {}',
+                    'test "phase3 policy decoder rejects partial or reserved policy bytes" {}',
+                    'test "phase3 policy gate decodes interop-policy unsafe bytes explicitly" {}',
+                    'test "phase3 policy gate enforces the declared unsafe scope" {}',
+                    "",
+                ]
+            ),
+        )
+        issues = validate(root)
+        assert (
+            'missing_policy_unsafe_test_snippet:test "phase3 policy decoder keeps allocator init and reset requirements reviewable"'
+            in issues
+        )
+        assert (
+            'missing_policy_unsafe_test_snippet:test "phase3 policy gate rejects overflowed unsafe address math"'
+            in issues
+        )
 
     print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass")
     return 0
@@ -512,12 +523,13 @@ def run_self_test() -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate the dedicated Phase 3 policy and unsafe boundary survey.")
     parser.add_argument("--self-test", action="store_true", help="Run isolated validator checks.")
+    parser.add_argument("root", nargs="?", help="Optional repo root override.")
     args = parser.parse_args()
 
     if args.self_test:
         return run_self_test()
 
-    issues = validate(ROOT)
+    issues = validate(Path(args.root).resolve() if args.root else ROOT)
     if issues:
         print("PHASE3_POLICY_UNSAFE_SURVEY=fail")
         for issue in issues:
