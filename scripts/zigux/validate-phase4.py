@@ -216,6 +216,7 @@ REQUIRED_DOC_README_MARKERS = [
 REQUIRED_PHASE4_MATRIX_MARKERS = [
     'scripts/zigux/artifact_diff.py --self-test',
     'python3 scripts/zigux/check-artifact-diff-contract.py',
+    'Documentation/zigux/phase4-gate-evidence.md',
     'deterministic_preflight_required_for_host_side_diff_tools',
     'roadmap names `zigux/tests/atomic64_diff.zig`',
     'canonical wrapper while the bounded atomic64 replay gate at `zigux/tests/runtime_atomic64_diff.zig` remains the single underlying replay body',
@@ -251,6 +252,8 @@ REQUIRED_PHASE4_MATRIX_MARKERS = [
     'the current anchor remains `samples/vfs/test-fsmount.c` through `samples/vfs/Makefile` and `userprogs-always-y += test-fsmount`',
     'reserve `Validation and Perf Team` as both survey owner and rollback owner while the current replay stays on the C anchor via `make M=samples/vfs`; the Zig lab matrix remains C-anchor-only and no hard timing threshold is approved before a bounded Zig sample lands',
     'benchmark command and acceptable limit are still unapproved for both landed gates',
+    'paired exact readback note',
+    'inspected `master` head',
 ]
 
 ROADMAP_GAP_EXPECTATIONS = {
@@ -507,9 +510,9 @@ def read_json(root: Path, relative_path: str) -> object:
     return json.loads(read_text(root, relative_path))
 
 
-def git_blob_sha1(data: bytes) -> str:
-    header = f'blob {len(data)}\0'.encode('utf-8')
-    return hashlib.sha1(header + data).hexdigest()
+def git_blob_sha1(contents: bytes) -> str:
+    header = f'blob {len(contents)}\0'.encode('utf-8')
+    return hashlib.sha1(header + contents).hexdigest()
 
 
 def collect_missing_markers(text: str, prefix: str, markers: list[str]) -> list[str]:
@@ -521,172 +524,159 @@ def collect_missing_markers(text: str, prefix: str, markers: list[str]) -> list[
 
 
 def collect_json_mismatches(expected: object, actual: object, prefix: str) -> list[str]:
+    missing: list[str] = []
     if isinstance(expected, dict):
         if not isinstance(actual, dict):
-            return [f'{prefix}:type:{type(actual).__name__}']
-        missing: list[str] = []
-        for key, value in expected.items():
-            child_prefix = f'{prefix}.{key}'
+            return [f'{prefix}:type']
+        for key, expected_value in expected.items():
             if key not in actual:
-                missing.append(f'{child_prefix}:missing')
+                missing.append(f'{prefix}:missing:{key}')
                 continue
-            missing.extend(collect_json_mismatches(value, actual[key], child_prefix))
+            missing.extend(
+                collect_json_mismatches(expected_value, actual[key], f'{prefix}.{key}')
+            )
         return missing
     if isinstance(expected, list):
         if not isinstance(actual, list):
-            return [f'{prefix}:type:{type(actual).__name__}']
+            return [f'{prefix}:type']
         if len(expected) != len(actual):
-            return [f'{prefix}:length:{len(actual)}']
-        missing: list[str] = []
-        for index, value in enumerate(expected):
+            missing.append(f'{prefix}:length:{len(actual)}')
+            return missing
+        for index, expected_value in enumerate(expected):
             missing.extend(
-                collect_json_mismatches(value, actual[index], f'{prefix}[{index}]')
+                collect_json_mismatches(
+                    expected_value, actual[index], f'{prefix}[{index}]'
+                )
             )
         return missing
-    if actual != expected:
-        return [f'{prefix}:{actual!r}']
-    return []
+    if expected != actual:
+        missing.append(f'{prefix}:{actual!r}')
+    return missing
 
 
 def check_gate_matrix_alignment(
-    phase4_matrix: str, gate_name: str, expectation: dict[str, object]
+    matrix_text: str, gate_name: str, expectation: dict[str, object]
 ) -> list[str]:
-    gate_heading = f"### `zigux/tests/{gate_name}`"
-    gate_heading_index = phase4_matrix.find(gate_heading)
-    if gate_heading_index == -1:
-        return [f'phase4_matrix:missing_gate_heading:{gate_name}']
+    missing: list[str] = []
+    gate_marker = f'### `zigux/tests/{gate_name}`'
+    if gate_marker not in matrix_text:
+        return [f'phase4_matrix:missing_gate_header:{gate_name}']
+    section = matrix_text.split(gate_marker, 1)[1]
+    next_header_index = section.find('\n### `')
+    next_major_index = section.find('\n## ')
+    cut_candidates = [
+        index for index in (next_header_index, next_major_index) if index != -1
+    ]
+    if cut_candidates:
+        section = section[: min(cut_candidates)]
 
-    next_heading_index = phase4_matrix.find(
-        '\n### `zigux/tests/', gate_heading_index + len(gate_heading)
-    )
-    matrix_heading_index = phase4_matrix.find(
-        '\n## Lab And CI Matrix', gate_heading_index + len(gate_heading)
-    )
-    gate_block_end = matrix_heading_index
-    if next_heading_index != -1 and next_heading_index < matrix_heading_index:
-        gate_block_end = next_heading_index
-    gate_block = phase4_matrix[gate_heading_index:gate_block_end]
+    required_pairs = {
+        'owner': expectation['owner'],
+        'rollback owner': expectation['rollback_owner'],
+        'fallback path': expectation['fallback_path'],
+        'perf threshold status': expectation['threshold_status'],
+    }
+    for label, value in required_pairs.items():
+        needle = f'- {label}: {value}'
+        if needle not in section:
+            missing.append(f'phase4_matrix:{gate_name}:{label}')
 
-    row_prefix = f"| `zigux/tests/{gate_name}` |"
-    row = next(
-        (line for line in phase4_matrix.splitlines() if line.startswith(row_prefix)),
-        '',
-    )
-
-    missing = []
-    if f"- owner: `{expectation['owner']}`" not in gate_block:
-        missing.append(f"phase4_matrix:owner:{gate_name}:{expectation['owner']}")
-    if f"- rollback owner: `{expectation['rollback_owner']}`" not in gate_block:
-        missing.append(
-            f"phase4_matrix:rollback_owner:{gate_name}:{expectation['rollback_owner']}"
-        )
-    if f"- fallback path: {expectation['fallback_path']}" not in gate_block:
-        missing.append(
-            f"phase4_matrix:fallback_path:{gate_name}:{expectation['fallback_path']}"
-        )
-    exact_check_markers = expectation.get('exact_check_markers')
-    if exact_check_markers is not None:
-        if '- exact bounded checks:' not in gate_block:
-            missing.append(f'phase4_matrix:missing_exact_checks_heading:{gate_name}')
-        for marker in exact_check_markers:
-            if marker not in gate_block:
-                missing.append(f'phase4_matrix:exact_check_marker:{gate_name}:{marker}')
     rollback_evidence_gap = expectation.get('rollback_evidence_gap')
     if rollback_evidence_gap is not None:
-        if f'- current rollback evidence gap: {rollback_evidence_gap}' not in gate_block:
-            missing.append(
-                f'phase4_matrix:rollback_evidence_gap:{gate_name}:{rollback_evidence_gap}'
-            )
-    if f"- perf threshold status: {expectation['threshold_status']}" not in gate_block:
-        missing.append(
-            f"phase4_matrix:threshold_status:{gate_name}:{expectation['threshold_status']}"
-        )
-    if expectation['threshold_scope'] not in gate_block:
-        missing.append(
-            f"phase4_matrix:threshold_scope:{gate_name}:{expectation['threshold_scope']}"
-        )
-    if expectation['gate_scope'] not in row:
-        missing.append(f"phase4_matrix:gate_scope:{gate_name}:{expectation['gate_scope']}")
-    if expectation['threshold_posture'] not in row:
-        missing.append(
-            f"phase4_matrix:threshold_posture:{gate_name}:{expectation['threshold_posture']}"
-        )
-    if expectation['owner'] not in row:
-        missing.append(f"phase4_matrix:matrix_owner:{gate_name}:{expectation['owner']}")
-    if expectation['rollback_owner'] not in row:
-        missing.append(
-            f"phase4_matrix:matrix_rollback_owner:{gate_name}:{expectation['rollback_owner']}"
-        )
-    for local_replay_marker in expectation['local_replay_markers']:
-        if local_replay_marker not in row:
-            missing.append(
-                f"phase4_matrix:local_replay_test:{gate_name}:{local_replay_marker}"
-            )
-    if expectation['reversible_delivery'] not in row:
-        missing.append(
-            f"phase4_matrix:reversible_delivery:{gate_name}:{expectation['reversible_delivery']}"
-        )
+        needle = f'- current rollback evidence gap: {rollback_evidence_gap}'
+        if needle not in section:
+            missing.append(f'phase4_matrix:{gate_name}:rollback_evidence_gap')
+
+    exact_checks_line = next(
+        (line for line in section.splitlines() if line.startswith('- exact bounded checks: ')),
+        None,
+    )
+    if exact_checks_line is None:
+        missing.append(f'phase4_matrix:{gate_name}:exact_bounded_checks')
+    else:
+        for marker in expectation['exact_check_markers']:
+            if marker not in exact_checks_line:
+                missing.append(f'phase4_matrix:{gate_name}:exact_check:{marker}')
+
+    table_row = next(
+        (
+            line
+            for line in matrix_text.splitlines()
+            if line.startswith(f'| `zigux/tests/{gate_name}` |')
+        ),
+        None,
+    )
+    if table_row is None:
+        missing.append(f'phase4_matrix:missing_table_row:{gate_name}')
+        return missing
+
+    table_markers = [
+        expectation['gate_scope'],
+        expectation['owner'],
+        expectation['rollback_owner'],
+        expectation['threshold_posture'],
+        expectation['reversible_delivery'],
+        'Validate Phase 4 diff gates',
+        'Run Phase 4 diff tests',
+    ] + expectation['local_replay_markers']
+    for marker in table_markers:
+        if marker not in table_row:
+            missing.append(f'phase4_matrix:{gate_name}:table:{marker}')
     return missing
 
 
 def check_survey_matrix_alignment(
-    phase4_matrix: str, survey_path: str, expectation: dict[str, object]
+    matrix_text: str, survey_path: str, expectation: dict[str, object]
 ) -> list[str]:
-    row_prefix = f"| `{survey_path}` |"
     row = next(
-        (line for line in phase4_matrix.splitlines() if line.startswith(row_prefix)),
-        '',
+        (
+            line
+            for line in matrix_text.splitlines()
+            if line.startswith(f'| `{survey_path}` |')
+        ),
+        None,
     )
-    if not row:
+    if row is None:
         return [f'phase4_matrix:missing_survey_row:{survey_path}']
 
-    missing = []
-    if expectation['owner'] not in row:
-        missing.append(f"phase4_matrix:survey_owner:{survey_path}:{expectation['owner']}")
-    if expectation['rollback_owner'] not in row:
-        missing.append(
-            f"phase4_matrix:survey_rollback_owner:{survey_path}:{expectation['rollback_owner']}"
-        )
+    missing: list[str] = []
+    for marker in [
+        expectation['owner'],
+        expectation['rollback_owner'],
+        expectation['threshold_posture'],
+    ]:
+        if marker not in row:
+            missing.append(f'phase4_matrix:{survey_path}:{marker}')
     for marker in expectation['bootstrap_ci_replay_markers']:
         if marker not in row:
-            missing.append(f'phase4_matrix:survey_bootstrap:{survey_path}:{marker}')
+            missing.append(f'phase4_matrix:{survey_path}:bootstrap:{marker}')
     for marker in expectation['local_lab_replay_markers']:
         if marker not in row:
-            missing.append(f'phase4_matrix:survey_local_replay:{survey_path}:{marker}')
+            missing.append(f'phase4_matrix:{survey_path}:local:{marker}')
     for marker in expectation['reversible_delivery_markers']:
         if marker not in row:
-            missing.append(
-                f'phase4_matrix:survey_reversible_delivery:{survey_path}:{marker}'
-            )
-    if expectation['threshold_posture'] not in row:
-        missing.append(
-            f"phase4_matrix:survey_threshold_posture:{survey_path}:{expectation['threshold_posture']}"
-        )
+            missing.append(f'phase4_matrix:{survey_path}:reversible:{marker}')
     return missing
 
 
 def check_roadmap_gap_alignment(
-    phase4_matrix: str, item_name: str, expectation: dict[str, str]
+    matrix_text: str, item_name: str, expectation: dict[str, str]
 ) -> list[str]:
-    row_prefixes = [
-        f'| `{item_name}`',
-        f'| {item_name} |',
-    ]
     row = next(
         (
             line
-            for line in phase4_matrix.splitlines()
-            if any(line.startswith(prefix) for prefix in row_prefixes)
+            for line in matrix_text.splitlines()
+            if line.startswith(f'| `{item_name}` |')
         ),
-        '',
+        None,
     )
-    if not row:
+    if row is None:
         return [f'phase4_matrix:missing_gap_row:{item_name}']
 
-    missing = []
-    for key, fragment in expectation.items():
-        if fragment not in row:
-            missing.append(f'phase4_matrix:gap_{key}:{item_name}:{fragment}')
+    missing: list[str] = []
+    for label, expected_value in expectation.items():
+        if expected_value not in row:
+            missing.append(f'phase4_matrix:{item_name}:{label}')
     return missing
 
 
@@ -699,17 +689,45 @@ def check_runtime_atomic64_manifest_alignment(manifest: object) -> list[str]:
     if not isinstance(manifest, dict):
         return missing
 
+    threshold_plan = manifest.get('threshold_plan')
+    if isinstance(threshold_plan, dict):
+        scope = threshold_plan.get('scope')
+        if scope != PHASE4_GATE_EXPECTATIONS['atomic64_diff.zig']['threshold_scope']:
+            missing.append(f'phase4_runtime_atomic64_manifest.threshold_plan.scope:{scope!r}')
+    else:
+        missing.append('phase4_runtime_atomic64_manifest.threshold_plan:type')
+
+    survey_summary = manifest.get('survey_summary')
+    if isinstance(survey_summary, dict):
+        extra_summary_expectations = {
+            'roadmap_atomic64_wrapper_targets_runtime_diff': True,
+            'runtime_atomic64_diff_present': True,
+            'post_selftest_replay_present': True,
+            'phase4_build_uses_atomic64_wrapper': True,
+            'phase9_build_present': True,
+            'phase9_build_uses_runtime_atomic64_diff': True,
+            'runtime_atomic64_sample_present': True,
+            'tests_readme_runtime_atomic64_diff_present': True,
+        }
+        for key, expected_value in extra_summary_expectations.items():
+            actual_value = survey_summary.get(key)
+            if actual_value != expected_value:
+                missing.append(
+                    f'phase4_runtime_atomic64_manifest.survey_summary.{key}:{actual_value!r}'
+                )
+    else:
+        missing.append('phase4_runtime_atomic64_manifest.survey_summary:type')
+
     gaps = manifest.get('gaps')
     if not isinstance(gaps, list):
         return missing + ['phase4_runtime_atomic64_manifest.gaps:type']
 
     matrix_note = next(
         (
-            gap
-            for gap in gaps
-            if isinstance(gap, dict)
-            and gap.get('id')
-            == PHASE4_RUNTIME_ATOMIC64_MATRIX_NOTE_EXPECTATIONS['id']
+            item
+            for item in gaps
+            if isinstance(item, dict)
+            and item.get('id') == PHASE4_RUNTIME_ATOMIC64_MATRIX_NOTE_EXPECTATIONS['id']
         ),
         None,
     )
