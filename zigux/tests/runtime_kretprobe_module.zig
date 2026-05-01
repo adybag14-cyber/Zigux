@@ -25,22 +25,26 @@ test "runtime kretprobe sample enforces lifecycle transitions and return-probe b
     try std.testing.expectError(error.InvalidLifecycleTransition, module.retHandler(1, 10));
     try std.testing.expectError(error.InvalidSymbolName, module.retargetSymbol(""));
     try std.testing.expectError(error.SymbolNameTooLong, module.retargetSymbol(too_long_symbol[0..]));
+    try std.testing.expectError(error.InvalidMaxactive, module.configureMaxactive(0));
+    try std.testing.expectError(error.InvalidMaxactive, module.configureMaxactive(sample.RuntimeKretprobeSample.default_maxactive + 1));
 
     try module.retargetSymbol("do_sys_openat2");
+    try module.configureMaxactive(3);
     try module.init();
     try std.testing.expectEqual(sample.ModuleStage.initialized, module.stage());
     try std.testing.expectEqual(@as(usize, 1), module.init_runs);
     try std.testing.expectEqualStrings("do_sys_openat2", module.symbol_name);
-    try std.testing.expectEqual(sample.RuntimeKretprobeSample.default_maxactive, module.maxactive);
+    try std.testing.expectEqual(@as(usize, 3), module.maxactive);
     const initialized_summary = module.summary();
     try std.testing.expectEqual(sample.ModuleStage.initialized, initialized_summary.stage);
     try std.testing.expectEqual(@as(usize, 1), initialized_summary.init_runs);
     try std.testing.expectEqual(@as(usize, 0), initialized_summary.selftest_runs);
     try std.testing.expectEqual(@as(usize, 0), initialized_summary.exit_runs);
     try std.testing.expectEqualStrings("do_sys_openat2", initialized_summary.symbol_name);
-    try std.testing.expectEqual(sample.RuntimeKretprobeSample.default_maxactive, initialized_summary.maxactive);
+    try std.testing.expectEqual(@as(usize, 3), initialized_summary.maxactive);
     try std.testing.expectEqual(@as(usize, 0), initialized_summary.active_instances);
     try std.testing.expect(!initialized_summary.entry_timestamp_armed);
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.configureMaxactive(2));
 
     try std.testing.expect(!(try module.entryHandler(false, 11)));
     try std.testing.expectEqual(@as(usize, 1), module.skipped_kernel_threads);
@@ -214,8 +218,20 @@ test "runtime kretprobe sample keeps post-selftest replay explicit at the module
 }
 
 test "runtime kretprobe sample rejects maxactive values outside the bounded starter contract" {
-    var module = sample.RuntimeKretprobeSample{ .maxactive = sample.RuntimeKretprobeSample.default_maxactive + 1 };
-    try std.testing.expectError(error.InvalidMaxactive, module.init());
+    var module = sample.RuntimeKretprobeSample{};
+    try std.testing.expectError(error.InvalidMaxactive, module.configureMaxactive(0));
+    try std.testing.expectError(error.InvalidMaxactive, module.configureMaxactive(sample.RuntimeKretprobeSample.default_maxactive + 1));
+}
+
+test "runtime kretprobe sample keeps maxactive configuration explicit before init" {
+    var module = sample.RuntimeKretprobeSample{};
+    try module.configureMaxactive(1);
+    try std.testing.expectEqual(@as(usize, 1), module.maxactive);
+
+    try module.init();
+    const initialized_summary = module.summary();
+    try std.testing.expectEqual(@as(usize, 1), initialized_summary.maxactive);
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.configureMaxactive(2));
 }
 
 test "runtime kretprobe sample keeps the Linux KSYM_NAME_LEN symbol cap explicit" {
