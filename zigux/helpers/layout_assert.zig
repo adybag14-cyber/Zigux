@@ -62,11 +62,29 @@ pub fn assertMmioRangeLayout() void {
     assertOffset(abi.MmioRange, "stride", @sizeOf(usize) + 4);
 }
 
+pub fn assertBitmapViewLayout() void {
+    assertSize(abi.BitmapView, @sizeOf(usize) + 8);
+    assertAlign(abi.BitmapView, @alignOf(usize));
+    assertOffset(abi.BitmapView, "words_addr", 0);
+    assertOffset(abi.BitmapView, "nbits", @sizeOf(usize));
+    assertOffset(abi.BitmapView, "word_count", @sizeOf(usize) + 4);
+}
+
+pub fn assertCpuMaskViewLayout() void {
+    assertSize(abi.CpuMaskView, @sizeOf(usize) + 8);
+    assertAlign(abi.CpuMaskView, @alignOf(usize));
+    assertOffset(abi.CpuMaskView, "bits_addr", 0);
+    assertOffset(abi.CpuMaskView, "nr_cpu_ids", @sizeOf(usize));
+    assertOffset(abi.CpuMaskView, "reserved", @sizeOf(usize) + 4);
+}
+
 test "phase3 layout assertions cover canonical bindings" {
     comptime {
         assertBoundaryHeaderLayout();
         assertExportStatusLayout();
         assertInteropPolicyLayout();
         assertMmioRangeLayout();
+        assertBitmapViewLayout();
+        assertCpuMaskViewLayout();
     }
 }
