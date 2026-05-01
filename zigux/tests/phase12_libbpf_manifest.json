@@ -45,7 +45,8 @@
     "preexisting_phase12_build_present": true,
     "preexisting_phase12_libbpf_survey_present": true,
     "preexisting_phase12_survey_note_present": true,
-    "preexisting_phase12_reviewability_gate_present": true
+    "preexisting_phase12_reviewability_gate_present": true,
+    "preexisting_phase12_packet_checker_present": true
   },
   "gaps": [
     {
