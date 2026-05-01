@@ -31,6 +31,7 @@ test "phase 8 perf-buffer poll docs keep the bounded wait-result helper explicit
     try expectContains(note, "ready-buffer bookkeeping");
     try expectContains(note, "ordered `perf_buffer__process_records()` pass");
     try expectContains(note, "first failing ready buffer");
+    try expectContains(note, "reject impossible post-wait buffer state combinations");
     try expectContains(note, "no standalone timer helper");
     try expectContains(note, "no standalone clockevent helper");
 }
@@ -97,4 +98,19 @@ test "phase 8 perf-buffer poll helper keeps ready-buffer processing fail-fast be
     try std.testing.expectEqual(@as(usize, 2), success.completed_count);
     try std.testing.expectEqual(@as(?usize, null), success.first_error_index);
     try std.testing.expectEqual(@as(?i32, null), success.first_error);
+}
+
+test "phase 8 perf-buffer poll helper rejects impossible post-wait buffer state" {
+    try std.testing.expectError(
+        perf_buffer_poll.PollError.TimeoutObservationHasReadyBuffer,
+        perf_buffer_poll.summarizePoll(0, .timed_out, &.{.{ .error_code = -11 }}),
+    );
+    try std.testing.expectError(
+        perf_buffer_poll.PollError.InterruptedObservationHasReadyBuffer,
+        perf_buffer_poll.summarizePoll(-1, .interrupted, &.{.{ .ready = true }}),
+    );
+    try std.testing.expectError(
+        perf_buffer_poll.PollError.FailedObservationHasBufferState,
+        perf_buffer_poll.summarizePoll(5, .{ .failed = -22 }, &.{.{ .error_code = -22 }}),
+    );
 }
