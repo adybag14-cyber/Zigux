@@ -375,6 +375,7 @@ test "phase 5 trace-events contributor docs stay aligned with the shipped review
     try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "phase5_trace_events_sample_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "phase5_trace_events_sample_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "phase5-trace-events-sample-survey.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "approved payload-and-callback idiom") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "Phase 9 runtime pilot claim") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "manifest-backed survey") != null);
