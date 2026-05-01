@@ -98,6 +98,7 @@ Phase 2 is only considered closed when all of the following are green:
 - `PHASE2_FIXDEP_DETERMINISM=check-fixdep-diff.py replays C and Zig outputs twice before comparing artifacts`
 - `PHASE2_FIXDEP_FULL_READ_POLICY=fixdep.zig reads dependency files at full C-helper size and maps short writes to fixdep output errors`
 - `PHASE2_GENKSYMS_CRC_SELF_TEST=python3 scripts/zigux/check-genksyms-crc-diff.py --self-test`
+- `PHASE2_GENKSYMS_CRC_GATE=python3 scripts/zigux/check-genksyms-crc-diff.py`
 - `PHASE2_GENKSYMS_CRC_DETERMINISM=check-genksyms-crc-diff.py replays C and Zig outputs twice before comparing artifacts`
 - `PHASE2_MK_ELFCONFIG_SELF_TEST=python3 scripts/zigux/check-mk-elfconfig-diff.py --self-test`
 - `PHASE2_GENKSYMS_BRIDGE_SELF_TEST=python3 scripts/zigux/check-genksyms-bridge.py --self-test`
