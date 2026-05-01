@@ -440,6 +440,53 @@ def run_self_test() -> int:
             ],
         }
 
+        expected_shape_examples = []
+        for case in valid_cases['conf_cases']:
+            expected = {
+                'argv': ['scripts/kconfig/conf', f"--{case['mode']}", case['kconfig']],
+                'env': {
+                    'ARCH': case['arch'],
+                    'KCONFIG_CONFIG': case['config'],
+                },
+            }
+            if 'mode_arg' in case:
+                cmd = list(expected['argv'])
+                cmd.insert(2, case['mode_arg'])
+                expected['argv'] = cmd
+            if case['mode'] in CONF_ALLCONFIG_MODES and 'allconfig' in case:
+                expected['env']['KCONFIG_ALLCONFIG'] = case['allconfig']
+            if case['mode'] == 'syncconfig':
+                expected['env']['KCONFIG_AUTOCONFIG'] = 'include/config/auto.conf'
+                expected['env']['KCONFIG_AUTOHEADER'] = 'include/generated/autoconf.h'
+                if 'nosilentupdate' in case:
+                    expected['env']['KCONFIG_NOSILENTUPDATE'] = case['nosilentupdate']
+            if case['mode'] == 'randconfig':
+                if 'seed' in case:
+                    expected['env']['KCONFIG_SEED'] = case['seed']
+                if 'probability' in case:
+                    expected['env']['KCONFIG_PROBABILITY'] = case['probability']
+            expected_shape_examples.append((case['name'], expected))
+
+        savedefconfig_expected = {
+            'argv': [
+                'scripts/kconfig/conf',
+                '--savedefconfig',
+                'arch/arm64/configs/minimal_defconfig',
+                'Kconfig',
+            ],
+        }
+        savedefconfig_mode_arg = next(arg for arg in savedefconfig_expected['argv'] if arg.endswith('minimal_defconfig'))
+        assert savedefconfig_mode_arg == 'arch/arm64/configs/minimal_defconfig'
+
+        escaped_low_control_expected = {
+            'argv': [
+                'scripts/kconfig/conf',
+                '--defconfig',
+                '\\u0007bell\\u001funit',
+            ],
+        }
+        assert escaped_low_control_expected['argv'][-1] == '\\u0007bell\\u001funit'
+
         for name in (
             'oldaskconfig_expected.json',
             'oldconfig_expected.json',
