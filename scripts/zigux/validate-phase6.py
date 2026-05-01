@@ -357,6 +357,7 @@ CATALOG_MARKERS = [
     "- verified head: `",
     "PHASE6_BASE64_C_PARITY_CASES=96",
     "PHASE6_BSEARCH_C_PARITY_CASES=29",
+    "shared portability coverage: `zigux/tests/phase6_bsearch.zig` now exercises both typed and raw runtime-selected comparator pointers across native and C ABI paths",
     "max_slowdown_pct = 150",
     "max_slowdown_pct = 175",
     "max_slowdown_pct = 550",
@@ -510,15 +511,14 @@ def collect_missing_files(root: Path) -> list[str]:
     return [path for path in REQUIRED_FILES if not (root / path).exists()]
 
 
-def require_markers(missing: list[str], label: str, source: str, markers: list[str]) -> None:
+def require_markers(missing: list[str], label: str, content: str, markers: list[str]) -> None:
     for marker in markers:
-        if marker not in source:
+        if marker not in content:
             missing.append(f"{label}:missing:{marker}")
 
 
 def require_manifest_equal(missing: list[str], manifest: dict[str, object], key: str, expected: object) -> None:
-    actual = manifest.get(key)
-    if actual != expected:
+    if manifest.get(key) != expected:
         missing.append(f"manifest:{key}")
 
 
