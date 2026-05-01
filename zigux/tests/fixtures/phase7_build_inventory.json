@@ -1,0 +1,80 @@
+{
+  "repo_root_path": "../..",
+  "imported_helpers": [
+    {
+      "root_path": "phase7_string_helpers.zig",
+      "import_name": "string_helpers",
+      "helper_path": "../../lib/string_helpers.zig"
+    },
+    {
+      "root_path": "phase7_cmdline.zig",
+      "import_name": "cmdline",
+      "helper_path": "../../lib/cmdline.zig"
+    },
+    {
+      "root_path": "phase7_argv_split.zig",
+      "import_name": "argv_split",
+      "helper_path": "../../lib/argv_split.zig"
+    },
+    {
+      "root_path": "phase7_rbtree.zig",
+      "import_name": "rbtree",
+      "helper_path": "../../lib/rbtree.zig"
+    }
+  ],
+  "standalone_surveys": [
+    "phase7_cmdline_survey.zig",
+    "phase7_argv_split_survey.zig",
+    "phase7_string_helpers_survey.zig",
+    "phase7_rbtree_survey.zig"
+  ],
+  "expected_build_paths": [
+    "../..",
+    "../../lib/argv_split.zig",
+    "../../lib/cmdline.zig",
+    "../../lib/rbtree.zig",
+    "../../lib/string_helpers.zig",
+    "phase7_argv_split.zig",
+    "phase7_argv_split_survey.zig",
+    "phase7_cmdline.zig",
+    "phase7_cmdline_survey.zig",
+    "phase7_rbtree.zig",
+    "phase7_rbtree_survey.zig",
+    "phase7_string_helpers.zig",
+    "phase7_string_helpers_survey.zig"
+  ],
+  "run_labels": [
+    "phase7-string-helpers-tests",
+    "phase7-cmdline-tests",
+    "phase7-cmdline-survey-tests",
+    "phase7-argv-split-tests",
+    "phase7-argv-split-survey-tests",
+    "phase7-string-helpers-survey-tests",
+    "phase7-rbtree-tests",
+    "phase7-rbtree-survey-tests"
+  ],
+  "run_cwds": {
+    "phase7-string-helpers-tests": null,
+    "phase7-cmdline-tests": null,
+    "phase7-cmdline-survey-tests": "repo_root",
+    "phase7-argv-split-tests": null,
+    "phase7-argv-split-survey-tests": "repo_root",
+    "phase7-string-helpers-survey-tests": "repo_root",
+    "phase7-rbtree-tests": null,
+    "phase7-rbtree-survey-tests": "repo_root"
+  },
+  "shared_test_depend_steps": [
+    "run_string_helpers_tests",
+    "run_cmdline_tests",
+    "run_cmdline_survey_tests",
+    "run_argv_split_tests",
+    "run_argv_split_survey_tests",
+    "run_string_helpers_survey_tests",
+    "run_rbtree_tests",
+    "run_rbtree_survey_tests"
+  ],
+  "unexpected_build_markers": [
+    "../../tools/lib/",
+    "zigux/tests/build.zig"
+  ]
+}
