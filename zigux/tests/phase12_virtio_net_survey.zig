@@ -282,6 +282,8 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "bounded receive-path follow-up") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "bounded mergeable-refill follow-up") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "still-blocked `phase12-virtio-net-runtime-data-path`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig test zigux/tests/phase12_virtio_net_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "first rollback and drift check before broader shared Phase 12 validation") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, driver_file, "pub const VirtioNetProbeLab = struct") != null);
     try std.testing.expect(std.mem.indexOf(u8, driver_file, "pub fn captureProbeSnapshot") != null);
