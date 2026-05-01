@@ -339,6 +339,7 @@ test "phase11 gpio_wdt register-device call summary keeps the first bounded requ
     try std.testing.expectEqual(gpio_wdt.ProbeStartMode.register_only, dormant_call.start_mode);
     try std.testing.expect(!dormant_call.always_running);
     try std.testing.expect(!dormant_call.nowayout);
+    try std.testing.expect(!dormant_call.nowayout_applied);
     try std.testing.expectEqual(@as(u32, 500), dormant_call.max_hw_heartbeat_ms);
     try std.testing.expect(!dormant_call.reaches_registration_running);
     try std.testing.expect(!dormant_call.reaches_registration_line_state);
