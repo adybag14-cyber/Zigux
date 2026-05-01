@@ -60,7 +60,7 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P12-L08", manifest.lane_key);
+    try std.testing.expectEqualStrings("P12-L07", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
     try std.testing.expectEqualStrings("drivers/nvme/host/pci.c", manifest.anchor);
     try std.testing.expectEqualStrings(current_surveyed_commit, manifest.surveyed_commit);
@@ -111,7 +111,7 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "page-gap forcing") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "average-segment threshold preference") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, current_surveyed_commit) != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_LANE_KEY=P12-L08") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_LANE_KEY=P12-L07") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "packet-local verification head") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "current `master` tip") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "landed `phase12-nvme-pci-pointer-selection-helper`") != null);
@@ -124,7 +124,7 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig fmt --check drivers/nvme/host/pci.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-nvme-pci-raw-github-fallback-map.md") != null);
 
-    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_map, "PHASE12_LANE_KEY=P12-L08") != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_map, "PHASE12_LANE_KEY=P12-L07") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_map, current_surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_map, "It does not claim a live-head replay catalog.") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_map, "## Tree Readback Roots") != null);
