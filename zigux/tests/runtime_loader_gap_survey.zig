@@ -642,13 +642,29 @@ test "runtime loader gap survey proves the shared request surface and existing l
     const shared_request_surface = [_][]const u8{
         "pub const RuntimeLoadRequest = struct",
         "pub fn keepsCommandNameExplicit",
+        "pub fn keepsInitExitContractExplicit",
         "pub fn isWaitingOnRuntimeSubstrate",
         "pub fn isReleasedWithoutSubstrate",
         "pub fn waitingOnRuntimeSubstrate",
         "pub fn releasedWithoutSubstrate",
+        "pub fn keepsStageConsistentWithRuntimeSubstrate",
         "pub fn keepsAllocatorInitFlowConsistent",
         "pub fn keepsLifecyclePayloadConsistent",
         "pub fn keepsSharedHandoffContractExplicit",
+    };
+    const allocator_handoff_surface = [_][]const u8{
+        "pub const AllocatorHandoff = struct",
+        "mode: abi.AllocatorMode",
+        "init_flow: allocator_policy.InitFlow",
+        "requires_explicit_caller",
+        "permits_global_fallback",
+        "initializes_owned_state",
+        "requires_reset_on_init",
+        "pub fn keepsInitFlowConsistent",
+        "allocator_policy.requiresExplicitCaller(mode)",
+        "allocator_policy.permitsGlobalFallback(mode)",
+        "allocator_policy.initializesOwnedState(mode)",
+        "allocator_policy.requiresResetOnInit(mode)",
     };
     const absent_command_env_surface = [_][]const u8{
         "argv_policy",
@@ -693,11 +709,11 @@ test "runtime loader gap survey proves the shared request surface and existing l
         "COLUMNS",
     });
     try expectContainsAll(runtime_loader_file, &.{
-        "pub const AllocatorHandoff = struct",
         "pub const LoaderPayload = union(LoaderLane)",
         "allocator_handoff",
         "pub fn allocatorHandoffFor",
     });
+    try expectContainsAll(runtime_loader_file, &allocator_handoff_surface);
     try expectContainsAll(runtime_loader_file, &shared_request_surface);
 
     try expectContainsAll(bitmap_loader, &.{
