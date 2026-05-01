@@ -174,6 +174,10 @@ def find_item(items: list[dict[str, object]], key: str, value: str) -> dict[str,
     return None
 
 
+def has_valid_commit(value: object) -> bool:
+    return isinstance(value, str) and len(value) == 40
+
+
 def check_packet(root: Path) -> list[str]:
     missing: list[str] = []
     for rel_path in TRACKED_PATHS:
@@ -194,8 +198,10 @@ def check_packet(root: Path) -> list[str]:
         missing.append("manifest:lane_key")
     if manifest.get("phase") != "Phase 12":
         missing.append("manifest:phase")
+    if manifest.get("anchor") != "tools/lib/bpf/libbpf.c":
+        missing.append("manifest:anchor")
     surveyed_commit = manifest.get("surveyed_commit")
-    if not isinstance(surveyed_commit, str) or len(surveyed_commit) != 40:
+    if not has_valid_commit(surveyed_commit):
         missing.append("manifest:surveyed_commit")
         surveyed_commit = ""
 
@@ -203,6 +209,10 @@ def check_packet(root: Path) -> list[str]:
         missing.append("legacy_manifest:lane_key")
     if legacy_manifest.get("phase") != "Phase 8":
         missing.append("legacy_manifest:phase")
+    if legacy_manifest.get("anchor") != "tools/lib/bpf/libbpf.c":
+        missing.append("legacy_manifest:anchor")
+    if not has_valid_commit(legacy_manifest.get("surveyed_commit")):
+        missing.append("legacy_manifest:surveyed_commit")
 
     if snapshot.get("lane_key") != manifest.get("lane_key"):
         missing.append("snapshot:lane_key")
@@ -283,6 +293,7 @@ def build_self_test_tree(root: Path) -> None:
         "lane_key": "P12-L16",
         "phase": "Phase 12",
         "surveyed_commit": surveyed_commit,
+        "anchor": "tools/lib/bpf/libbpf.c",
         "gaps": [
             {"id": gap_id, "status": status, "zigux_destination": destination}
             for gap_id, status, destination in PHASE12_GAP_SPECS
@@ -291,6 +302,8 @@ def build_self_test_tree(root: Path) -> None:
     legacy_manifest = {
         "lane_key": "P8-L15",
         "phase": "Phase 8",
+        "surveyed_commit": "36414e38da67a51209095d0c06170f81e80258eb",
+        "anchor": "tools/lib/bpf/libbpf.c",
         "segments": [
             {"slug": slug, "status": status, "zigux_destination": destination}
             for slug, status, destination in LEGACY_SEGMENT_SPECS
@@ -415,8 +428,41 @@ def run_self_test() -> int:
         if "legacy_segment_status:map-reuse-compatibility" not in missing:
             raise SystemExit("phase12-libbpf-packet:self-test:legacy_status_detection")
 
+        build_self_test_tree(root)
+        manifest_path = root / TRACKED_PATHS[0]
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["anchor"] = "tools/lib/bpf/libbpf_alt.c"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        missing = check_packet(root)
+        if "manifest:anchor" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:manifest_anchor_detection")
+
+        build_self_test_tree(root)
+        legacy_manifest_path = root / TRACKED_PATHS[4]
+        legacy_manifest = json.loads(legacy_manifest_path.read_text(encoding="utf-8"))
+        legacy_manifest["anchor"] = "tools/lib/bpf/libbpf_alt.c"
+        legacy_manifest_path.write_text(
+            json.dumps(legacy_manifest, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        missing = check_packet(root)
+        if "legacy_manifest:anchor" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:legacy_anchor_detection")
+
+        build_self_test_tree(root)
+        legacy_manifest_path = root / TRACKED_PATHS[4]
+        legacy_manifest = json.loads(legacy_manifest_path.read_text(encoding="utf-8"))
+        legacy_manifest["surveyed_commit"] = "deadbeef"
+        legacy_manifest_path.write_text(
+            json.dumps(legacy_manifest, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        missing = check_packet(root)
+        if "legacy_manifest:surveyed_commit" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:legacy_surveyed_commit_detection")
+
         print("PHASE12_LIBBPF_PACKET_SELF_TEST=pass")
-        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=7")
+        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
