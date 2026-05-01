@@ -27,6 +27,10 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase6-bsearch-slice.md",
     "Documentation/zigux/phase6-checksum-slice.md",
     "Documentation/zigux/phase6-hexdump-slice.md",
+    "lib/base64.zig",
+    "lib/bsearch.zig",
+    "lib/checksum.zig",
+    "lib/hexdump.zig",
     "zigux/Makefile",
     "zigux/tests/README.md",
     "zigux/tests/phase6_base64.zig",
@@ -157,6 +161,37 @@ PHASE6_BUILD_MARKERS = [
     'b.step("bsearch-perf", "Run the Phase 6 bsearch performance sanity harness")',
     'b.step("checksum-perf", "Run the Phase 6 checksum performance sanity harness")',
     'b.step("hexdump-perf", "Run the Phase 6 hexdump performance sanity harness")',
+]
+
+BASE64_HELPER_MARKERS = [
+    "pub const Variant = enum {",
+    "pub fn chars(nbytes: usize, padding: bool) usize {",
+    "pub fn encode(dst: []u8, src: []const u8, padding: bool, variant: Variant) EncodeError!usize {",
+    "pub fn decode(dst: []u8, src: []const u8, padding: bool, variant: Variant) DecodeError!usize {",
+]
+
+BSEARCH_HELPER_MARKERS = [
+    "pub fn Comparator(comptime Key: type, comptime T: type) type {",
+    "pub const RawComparator = *const fn (*const anyopaque, *const anyopaque) i32;",
+    "pub fn bsearchIndex(",
+    "pub fn searchIndex(",
+    "pub fn searchMutable(",
+]
+
+CHECKSUM_HELPER_MARKERS = [
+    "pub fn add(sum: u32, addend: u32) u32 {",
+    "pub fn replaceByDiff(sum: u16, diff: u32) u16 {",
+    "pub fn tcpUdpNofold(sum: u32, saddr: u32, daddr: u32, len: u16, proto: u8) u32 {",
+    "pub fn tcpUdpV6Nofold(sum: u32, saddr: [16]u8, daddr: [16]u8, len: u32, proto: u8) u32 {",
+    "pub fn compute(bytes: []const u8) u16 {",
+]
+
+HEXDUMP_HELPER_MARKERS = [
+    'pub const hex_asc = "0123456789abcdef";',
+    "pub fn hexBytePack(buf: []u8, byte: u8) HexError![]u8 {",
+    "pub fn bin2hexUpper(dst: []u8, src: []const u8) HexError![]u8 {",
+    "pub fn hexDumpLineLength(",
+    "pub fn hexDumpToBuffer(",
 ]
 
 BASE64_TEST_MARKERS = [
@@ -543,6 +578,10 @@ MARKER_FILE_CONTENTS = {
     "Documentation/zigux/README.md": DOC_README_MARKERS,
     "Documentation/zigux/phase6-perf-gate-survey.md": PERF_SURVEY_MARKERS,
     "zigux/tests/phase6_build.zig": PHASE6_BUILD_MARKERS,
+    "lib/base64.zig": BASE64_HELPER_MARKERS,
+    "lib/bsearch.zig": BSEARCH_HELPER_MARKERS,
+    "lib/checksum.zig": CHECKSUM_HELPER_MARKERS,
+    "lib/hexdump.zig": HEXDUMP_HELPER_MARKERS,
     "zigux/tests/phase6_base64.zig": BASE64_TEST_MARKERS,
     "zigux/tests/phase6_base64_perf.zig": BASE64_PERF_MARKERS,
     "scripts/zigux/check-phase6-base64-c-parity.py": BASE64_PARITY_SCRIPT_MARKERS,
@@ -624,6 +663,10 @@ def validate_phase6(root: Path) -> dict[str, object]:
     require_markers(missing, "phase6_catalog", phase6_catalog, CATALOG_MARKERS)
 
     file_marker_specs = [
+        ("base64_helper", "lib/base64.zig", BASE64_HELPER_MARKERS),
+        ("bsearch_helper", "lib/bsearch.zig", BSEARCH_HELPER_MARKERS),
+        ("checksum_helper", "lib/checksum.zig", CHECKSUM_HELPER_MARKERS),
+        ("hexdump_helper", "lib/hexdump.zig", HEXDUMP_HELPER_MARKERS),
         ("phase6_base64", "zigux/tests/phase6_base64.zig", BASE64_TEST_MARKERS),
         ("phase6_base64_perf", "zigux/tests/phase6_base64_perf.zig", BASE64_PERF_MARKERS),
         ("phase6_base64_c_parity_script", "scripts/zigux/check-phase6-base64-c-parity.py", BASE64_PARITY_SCRIPT_MARKERS),
@@ -825,6 +868,18 @@ def run_self_test() -> int:
                 )
 
             write_self_test_tree(root)
+            helper_path = root / "lib/checksum.zig"
+            helper_text = helper_path.read_text(encoding="utf-8")
+            helper_marker = "pub fn tcpUdpV6Nofold(sum: u32, saddr: [16]u8, daddr: [16]u8, len: u32, proto: u8) u32 {"
+            helper_path.write_text(
+                helper_text.replace(helper_marker, "", 1),
+                encoding="utf-8",
+            )
+            helper_fail_result = validate_phase6(root)
+            if helper_fail_result["ok"] or f"checksum_helper:missing:{helper_marker}" not in helper_fail_result["missing"]:
+                raise AssertionError(f"expected checksum helper drift failure, got: {helper_fail_result}")
+
+            write_self_test_tree(root)
             catalog_path = root / "Documentation/zigux/phase6-helper-parity-catalog.md"
             catalog_text = catalog_path.read_text(encoding="utf-8")
             verified_head_line = f"- verified head: `{SELF_TEST_HEAD}`"
@@ -903,7 +958,7 @@ def run_self_test() -> int:
         return 1
 
     print("PHASE6_VALIDATOR_SELF_TEST=pass")
-    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=12")
+    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=13")
     return 0
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
