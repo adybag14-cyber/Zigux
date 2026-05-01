@@ -1,7 +1,9 @@
 const std = @import("std");
 
 pub const supported_feature_pages: usize = 2;
-pub const supported_interrupt_bits: u32 = 0x3;
+pub const queue_interrupt_bit: u32 = 0x1;
+pub const config_interrupt_bit: u32 = 0x2;
+pub const supported_interrupt_bits: u32 = queue_interrupt_bit | config_interrupt_bit;
 pub const supported_queues: usize = 2;
 pub const supported_config_window_bytes: usize = 16;
 
@@ -127,6 +129,14 @@ pub const InterruptAckSummary = struct {
     acknowledged_bits: u32,
     pending_bits_before_ack: u32,
     pending_bits_after_ack: u32,
+};
+
+pub const InterruptSummary = struct {
+    anchor: []const u8,
+    pending_bits: u32,
+    queue_interrupt_pending: bool,
+    config_interrupt_pending: bool,
+    line_asserted: bool,
 };
 
 const QueueRegisterState = struct {
@@ -425,6 +435,7 @@ pub const VirtioMmioRegisterWindowLab = struct {
         self.status = 0;
         self.selected_queue = 0;
         self.legacy_guest_page_size = 0;
+        self.interrupt_status = 0;
         self.notification_count = 0;
         self.pending_config_write = null;
         for (&self.queues) |*queue_state| {
@@ -482,6 +493,16 @@ pub const VirtioMmioRegisterWindowLab = struct {
             .acknowledged_bits = acknowledged_bits,
             .pending_bits_before_ack = pending_before_ack,
             .pending_bits_after_ack = self.interrupt_status,
+        };
+    }
+
+    pub fn interruptSummary(self: *const Self) InterruptSummary {
+        return .{
+            .anchor = descriptor().anchor,
+            .pending_bits = self.interrupt_status,
+            .queue_interrupt_pending = (self.interrupt_status & queue_interrupt_bit) != 0,
+            .config_interrupt_pending = (self.interrupt_status & config_interrupt_bit) != 0,
+            .line_asserted = self.interrupt_status != 0,
         };
     }
 
