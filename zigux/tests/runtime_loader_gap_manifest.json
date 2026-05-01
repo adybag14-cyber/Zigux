@@ -89,6 +89,32 @@
       "why_non_owner": "The Zig export shim stays in the Phase 3 export-boundary packet and is recorded here only as a boundary reference instead of Phase 9 runtime evidence."
     }
   ],
+  "module_metadata_depmod_boundaries": [
+    {
+      "surface": ".modinfo",
+      "boundary_kind": "module_metadata",
+      "status": "blocked_on_depmod_bridge",
+      "why_non_owner": "The current Phase 9 runtime pilot packet does not claim ELF module metadata parity, so `.modinfo` stays recorded only as a blocked boundary until a real depmod bridge exists."
+    },
+    {
+      "surface": "MODULE_ALIAS()",
+      "boundary_kind": "module_alias",
+      "status": "blocked_on_depmod_bridge",
+      "why_non_owner": "Alias declarations remain outside the current runtime starter packet because no live depmod bridge yet translates Phase 9 runtime evidence into published module-alias metadata."
+    },
+    {
+      "surface": "modules.alias",
+      "boundary_kind": "depmod_output",
+      "status": "blocked_on_depmod_bridge",
+      "why_non_owner": "The shared runtime-loader packet still stops before depmod output generation, so `modules.alias` remains a named blocked boundary instead of implied runtime evidence."
+    },
+    {
+      "surface": "scripts/depmod.sh",
+      "boundary_kind": "depmod_bridge",
+      "status": "blocked_on_depmod_bridge",
+      "why_non_owner": "The Phase 9 runtime pilot packet still has no shipped bridge into `scripts/depmod.sh`, so depmod replay and module catalog publication remain explicitly blocked."
+    }
+  ],
   "delivery_evidence_catalog": [
     {
       "id": "runtime-loader-gap-note",
