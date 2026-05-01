@@ -32,6 +32,12 @@ const Manifest = struct {
     surveyed_commit: []const u8,
     anchor: []const u8,
     roadmap_destinations: []const []const u8,
+    freeze_map: []const u8,
+    freeze_boundary_status: []const u8,
+    risky_transport_posture: []const u8,
+    forbidden_transport_claims: []const []const u8,
+    architecture_council_reopen_required: bool,
+    architecture_council_reopen_attached: bool,
     survey_summary: SurveySummary,
     gaps: []const Gap,
 };
@@ -90,6 +96,17 @@ test "phase10 virtio mmio survey manifest records the landed config-write rung a
     try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", manifest.anchor);
     try std.testing.expectEqualStrings("0945df1cf664a3582d7241f859183a13f3f04adb", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
+    try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", manifest.freeze_map);
+    try std.testing.expectEqualStrings("aligned", manifest.freeze_boundary_status);
+    try std.testing.expectEqualStrings("blocked_on_risky_transport", manifest.risky_transport_posture);
+    try std.testing.expectEqual(@as(usize, 5), manifest.forbidden_transport_claims.len);
+    try std.testing.expectEqualStrings("queue_setup_reset_paths", manifest.forbidden_transport_claims[0]);
+    try std.testing.expectEqualStrings("irq_parity", manifest.forbidden_transport_claims[1]);
+    try std.testing.expectEqualStrings("dma_paths", manifest.forbidden_transport_claims[2]);
+    try std.testing.expectEqualStrings("input_registration_lifecycle", manifest.forbidden_transport_claims[3]);
+    try std.testing.expectEqualStrings("probe_remove_lifecycle", manifest.forbidden_transport_claims[4]);
+    try std.testing.expect(manifest.architecture_council_reopen_required);
+    try std.testing.expect(!manifest.architecture_council_reopen_attached);
     try std.testing.expect(manifest.survey_summary.virtio_mmio_c_lines >= 800);
     try std.testing.expectEqual(@as(usize, 9), manifest.survey_summary.preexisting_phase10_test_files);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_core_zig_present);
@@ -127,7 +144,7 @@ test "phase10 virtio mmio survey manifest records the landed config-write rung a
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "wrapper-first or study-only posture") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/*.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "bounded interrupt-state summaries") != null);
-    try std.testing.expect(std.mem.indexOf(u8, slice_note, "interrupt-status acknowledge behavior") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "interrupt acknowledge behavior") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "phase10-mmio-lifecycle-and-irq-paths") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "add one small config-window write-planning helper next") == null);
     try std.testing.expect(closure_manifest == .object);
