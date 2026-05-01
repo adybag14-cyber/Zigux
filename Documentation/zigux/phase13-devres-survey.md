@@ -19,7 +19,7 @@ This lane stays inside the Phase 13 shared-helper tranche and records the curren
 
 Current repo state on `master`:
 
-- reviewed against live `master` `aa01b37be5500e6a1e4f959c9fe07f0e39d39bfb`
+- reviewed against `master` commit `aa01b37be5500e6a1e4f959c9fe07f0e39d39bfb` immediately before this evidence-refresh series landed
 - `lib/devres.zig` already anchors a helper-first `DevresHelperLab` on `lib/devres.c`
 - compared against the earlier surveyed head `66b55d8a9a800345097f3c04b9f95130b1f8d0b8`, the current helper packet now advances by rejecting full-width inclusive MMIO resource spans that would overflow size math before request-region or remap planning begins; the refreshed `lib/devres.zig` helper surface now hashes to `sha256 11b2d4e475b7d21c1086679a438a851f1f12df15aa655b75e8a78fee7427bc21`
 - compared against that same earlier surveyed head, the dedicated `zigux/tests/phase13_devres.zig` replay remains hash-stable at `sha256 7dc45ab99f46d5424e3d757f720e58654aaea326b13db1af601be88c3cbff476` while still covering the direct non-posted wrapper path
