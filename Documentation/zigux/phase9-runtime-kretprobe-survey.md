@@ -6,9 +6,9 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `sam
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-kretprobe-survey`
-- `PHASE9_LANE_KEY=P9-L15`
-- `PHASE9_SURVEYED_COMMIT=c35ea44cfcb4c8139327a786875b442c4399796c`
-- scope: survey manifest, manifest-backed delivery catalog and ownership map, a direct embedded sample replay, dedicated survey and diff gates, the bounded loader-handoff scaffold, explicit shared `command_name` preservation, explicit no-substrate rollback evidence, the landed shared loader-request binding, explicit `phase9-runtime-kretprobe-{sample,module,diff,loader,survey}-tests` shared-build legs, and the lane-level note that records the remaining broader runtime-control blocker plus the exact Phase 9 roadmap gap it still leaves open
+- `PHASE9_LANE_KEY=P9-L16`
+- `PHASE9_SURVEYED_COMMIT=fe8a43ea2e186da0da152198b571dff57ea3c38c`
+- scope: survey manifest, manifest-backed delivery catalog and ownership map, a direct embedded sample replay, dedicated survey and diff gates, the bounded pre-init `configureMaxactive()` starter contract, the bounded loader-handoff scaffold, explicit shared `command_name` preservation, explicit no-substrate rollback evidence, the landed shared loader-request binding, explicit `phase9-runtime-kretprobe-{sample,module,diff,loader,survey}-tests` shared-build legs, and the lane-level note that records the remaining broader runtime-control blocker plus the exact Phase 9 roadmap gap it still leaves open
 - product boundary:
   - `samples/zigux/runtime_kretprobe.zig`
   - `samples/zigux/runtime_kretprobe_loader.zig`
@@ -26,7 +26,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `sam
 
 The roadmap names `samples/kprobes/kretprobe_example.c` twice: first as a Phase 5 sample-reference anchor and later as a Phase 9 runtime pilot anchor. This lane stays strictly inside the Phase 9 reading of that roadmap entry.
 
-This `P9-L15` verification pass keeps the survey artifacts anchored to the current manifest, catalog, and ownership lane for the runtime kretprobe packet after replaying the current sample, module, diff, loader, and survey behavior against `master` head `c35ea44cfcb4c8139327a786875b442c4399796c`. That keeps the ownership history honest while still recording the full live review surface.
+This `P9-L16` verification pass keeps the survey artifacts anchored to the current manifest, catalog, and ownership lane for the runtime kretprobe packet after replaying the current sample, module, diff, loader, and survey behavior against `master` head `fe8a43ea2e186da0da152198b571dff57ea3c38c`. That keeps the ownership history honest while still recording the full live review surface.
 
 The live repo now has a bounded `runtime_kretprobe` starter, a direct embedded sample replay, dedicated module tests, a dedicated diff gate, a bounded loader-handoff scaffold, a shared loader-request binding under `zigux/kernel/runtime_loader.zig`, and shared Phase 9 build coverage, so this survey note keeps that shipped packet reviewable through a manifest-backed delivery catalog and ownership map instead of leaving the sample and shared-build surface implied.
 
@@ -37,6 +37,7 @@ The live repo now has a bounded `runtime_kretprobe` starter, a direct embedded s
 - the live repo now ships `samples/zigux/runtime_kretprobe.zig`, `samples/zigux/runtime_kretprobe_loader.zig`, `zigux/tests/runtime_kretprobe_module.zig`, `zigux/tests/runtime_kretprobe_diff.zig`, `zigux/tests/runtime_kretprobe_survey.zig`, a shared loader-request binding in `zigux/kernel/runtime_loader.zig`, and the shared `zigux/tests/phase9_build.zig` coverage for this lane.
 - against the Phase 9 roadmap feature list, the live packet now lands the explicit selftest-hook surface, direct embedded sample replay, and reviewable starter lifecycle transitions, but it still does not satisfy `first loadable Zigux runtime modules` or `runtime module lifecycle parity` because the shared runtime-loader control surface and real `register_kretprobe()` or `unregister_kretprobe()` execution remain blocked.
 - the current bounded symbol surface remains sample-side rather than Kconfig-backed: `samples/zigux/runtime_kretprobe.zig` still defaults `symbol_name` to `kernel_clone`, only allows retargeting before init, and does not expose any `CONFIG_` or `Kconfig` gate in this packet.
+- the bounded starter now keeps the Linux sample's `maxactive` contract explicit before init: `configureMaxactive()` only accepts values in the starter-owned `1...default_maxactive` range while the module is still `cold`, and the dedicated module plus diff gates keep that pre-init pressure reviewable without implying live module-parameter ownership.
 - the bounded starter keeps the Linux sample's fixed `KSYM_NAME_LEN` symbol buffer explicit by rejecting symbol retargets at or above 512 bytes, so the pilot does not silently widen the module-parameter contract while runtime loading is still blocked.
 - the bounded starter keeps per-instance private entry timestamps explicit under concurrent active probes, matching the Linux anchor's `struct my_data` shape more closely without claiming real `kretprobe_instance` substrate support.
 - the bounded starter exposes a stable `RuntimeKretprobeSummary` surface for lifecycle stage, `init_runs`, `selftest_runs`, `exit_runs`, active-instance state, and the latest bounded probe results, so selftest and post-exit review does not depend on reading sample internals directly.
@@ -89,12 +90,12 @@ The manifest-backed review prompts for this lane now also keep one rollback ques
 
 ## Latest verification snapshot
 
-- verified against `master` head `c35ea44cfcb4c8139327a786875b442c4399796c`
+- verified against `master` head `fe8a43ea2e186da0da152198b571dff57ea3c38c`
 - direct sample replay in the lane-local scratch packet passed: `zig test samples/zigux/runtime_kretprobe.zig`
 - formatting stayed clean for the shipped sample: `zig fmt --check samples/zigux/runtime_kretprobe.zig`
 - the dedicated survey packet stays directly replayable through the shipped standalone survey gate: `zig test zigux/tests/runtime_kretprobe_survey.zig`
 - the shared Phase 9 runtime build still passes the dedicated `phase9-runtime-kretprobe-sample-tests`, `phase9-runtime-kretprobe-module-tests`, `phase9-runtime-kretprobe-diff-tests`, `phase9-runtime-kretprobe-loader-tests`, and `phase9-runtime-kretprobe-survey-tests` legs inside `zig build test --build-file zigux/tests/phase9_build.zig --summary all`, but the broader entrypoint is currently red outside this lane because `phase9-runtime-loader-non-owner-boundary-survey-tests` hits `error.StreamTooLong`
-- observed current bounded behavior stayed unchanged where this packet owns behavior: the sample selftest path still reaches `selftest_complete`, the failed-exit rollback path keeps lifecycle state and summary facts stable until the outstanding return path is replayed, the loader still hands off through `waiting_on_runtime_substrate` plus `released_without_substrate`, the synthetic `perf-runtime-kretprobe` command name still survives the shared handoff unchanged, and the broader shared runtime-loader control surface remains the only blocker to real execution
+- observed current bounded behavior stayed unchanged where this packet owns behavior: the sample selftest path still reaches `selftest_complete`, the failed-exit rollback path keeps lifecycle state and summary facts stable until the outstanding return path is replayed, the pre-init `configureMaxactive()` surface still rejects zero, over-cap, and post-init retunes, the loader still hands off through `waiting_on_runtime_substrate` plus `released_without_substrate`, the synthetic `perf-runtime-kretprobe` command name still survives the shared handoff unchanged, and the broader shared runtime-loader control surface remains the only blocker to real execution
 
 ## Gates
 
