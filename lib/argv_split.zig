@@ -227,6 +227,7 @@ test "argvSplit reuses the exported empty argv view for blank input" {
     try std.testing.expectEqual(@as(usize, 0), argc);
     try std.testing.expectEqual(@as(usize, 0), split.argv.len);
     try std.testing.expectEqual(@as(usize, 1), split.argv_null_terminated.len);
+    try std.testing.expectEqual(empty_argv_null_terminated.ptr, split.argv_null_terminated.ptr);
     try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
 }
 
@@ -240,6 +241,7 @@ test "argvSplit reuses the exported empty storage view for blank input without a
     try std.testing.expectEqual(@as(usize, 0), argc);
     try std.testing.expectEqual(@as(usize, 0), split.storage.len);
     try std.testing.expectEqual(@as(u8, 0), split.storage[split.storage.len]);
+    try std.testing.expectEqual(empty_storage_view.ptr, split.storage.ptr);
     try std.testing.expectEqual(@as(usize, 0), split.argv.len);
     try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
 }
