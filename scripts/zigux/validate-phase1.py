@@ -517,6 +517,8 @@ def validate_manifest_shape() -> list[str]:
             if string_note.get("memparse_unit_test_contract") != "Direct Zig unit coverage keeps memparse aligned by forwarding decimal, hexadecimal, suffix-bearing, and invalid inputs through the shared command-line parser without changing the parsed value or rest pointer contract.":
                 issues.append("phase1_manifest:tools/lib/string.zig:memparse_unit_test_contract:mismatch")
 
+    return issues
+
 
 missing_files = [path for path in REQUIRED_FILES if not (ROOT / path).exists()]
 if missing_files:
