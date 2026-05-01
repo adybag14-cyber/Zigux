@@ -85,6 +85,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     var saw_docs_prompt = false;
     var saw_sample_root_prompt = false;
     var saw_storage_prompt = false;
+    var saw_runtime_boundary_prompt = false;
     var saw_exact_sequence = false;
     var saw_snapshot = false;
     var saw_capacity = false;
@@ -155,6 +156,11 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
         }
         if (std.mem.indexOf(u8, prompt, "fixed embedded backing") != null) {
             saw_storage_prompt = true;
+        }
+        if (std.mem.indexOf(u8, prompt, "approved in-memory FIFO idiom") != null and
+            std.mem.indexOf(u8, prompt, "runtime-substrate claim") != null)
+        {
+            saw_runtime_boundary_prompt = true;
         }
     }
 
@@ -242,6 +248,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expect(saw_docs_prompt);
     try std.testing.expect(saw_sample_root_prompt);
     try std.testing.expect(saw_storage_prompt);
+    try std.testing.expect(saw_runtime_boundary_prompt);
     try std.testing.expect(saw_exact_sequence);
     try std.testing.expect(saw_snapshot);
     try std.testing.expect(saw_capacity);
@@ -321,7 +328,7 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
 
     const pinned_commit_line = try std.fmt.allocPrint(
         std.testing.allocator,
-        "approved FIFO idiom is now pinned to `PHASE5_SURVEYED_COMMIT={s}`",
+        "approved in-memory FIFO idiom is now pinned to `PHASE5_SURVEYED_COMMIT={s}`",
         .{manifest.surveyed_commit},
     );
     defer std.testing.allocator.free(pinned_commit_line);
@@ -360,6 +367,10 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "surveyed_commit") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "floating branch label") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, pinned_commit_line) != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "The roadmap delivery gap is already closed.") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "approved in-memory FIFO idiom inside that completed anchor set") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared sample-root catalog, shared review checklist, and contributor refresh path all point at the same inspected `master` head") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "without reopening the closed Phase 5 sample-delivery gap") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, readme, "phase5-kfifo-sample-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, readme, "samples/zigux/README.md") != null);
