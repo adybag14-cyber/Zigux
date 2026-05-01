@@ -61,10 +61,11 @@ This slice does not yet claim:
 ## Gates
 
 1. run the focused trace-events survey replay
+- `zig test --dep runtime_trace_events_sample -Mroot=zigux/tests/runtime_trace_events_survey.zig -Mruntime_trace_events_sample=samples/zigux/runtime_trace_events.zig`
 - `make -C zigux phase9-trace-events-survey`
-- this focused replay keeps the dedicated trace-events survey packet reviewable without implying a loader path while the trace-core freeze boundary stays study-only
+- this focused replay keeps the dedicated trace-events survey packet reviewable with the shipped sample import, and the make target wraps that same focused survey gate without implying a loader path while the trace-core freeze boundary stays study-only
 
-2. run the dedicated Phase 9 build
+2. run the shared Phase 9 build
 - `zig build test --build-file zigux/tests/phase9_build.zig`
 - this shared build includes `phase9-runtime-trace-events-sample-tests`, `phase9-runtime-trace-events-module-tests`, `phase9-runtime-trace-events-diff-tests`, and `phase9-runtime-trace-events-survey-tests`
 
