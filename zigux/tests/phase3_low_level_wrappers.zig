@@ -57,7 +57,10 @@ test "phase3 low-level wrappers stay inside the documented ABI surface" {
     try std.testing.expectError(error.MisalignedAccess, mmio.write32Scoped(.volatile_mmio, base, 2, 0x99));
     try std.testing.expectError(error.MisalignedAccess, mmio.read32Scoped(.volatile_mmio, base, 2));
     try std.testing.expectError(error.AddressOverflow, mmio.write8Scoped(.volatile_mmio, std.math.maxInt(usize), 1, 0x99));
+    try std.testing.expectError(error.AddressOverflow, mmio.read8Scoped(.volatile_mmio, std.math.maxInt(usize), 1));
     try std.testing.expectError(error.AddressOverflow, mmio.write16Scoped(.volatile_mmio, std.math.maxInt(usize), 1, 0x99));
+    try std.testing.expectError(error.AddressOverflow, mmio.read16Scoped(.volatile_mmio, std.math.maxInt(usize), 1));
+    try std.testing.expectError(error.AddressOverflow, mmio.write32Scoped(.volatile_mmio, std.math.maxInt(usize), 4, 0x99));
     try std.testing.expectError(error.AddressOverflow, mmio.read32Scoped(.volatile_mmio, std.math.maxInt(usize), 4));
     try mmio.write8Scoped(.volatile_mmio, base, 0, 0xbe);
     try std.testing.expectEqual(@as(u8, 0xbe), try mmio.read8Scoped(.volatile_mmio, base, 0));
