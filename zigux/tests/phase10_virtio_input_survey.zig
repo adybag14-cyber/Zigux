@@ -48,6 +48,13 @@ test "phase10 virtio input survey manifest records the live starter and remainin
         .limited(32 * 1024),
     );
     defer std.testing.allocator.free(manifest_json);
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase10-virtio-input-survey.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
     const closure_manifest_json = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "zigux/tests/phase10_closure_manifest.json",
@@ -79,6 +86,7 @@ test "phase10 virtio input survey manifest records the live starter and remainin
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_input_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_input_module_note_present);
     try std.testing.expect(manifest.gaps.len >= 14);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, manifest.surveyed_commit) != null);
     try std.testing.expect(closure_manifest == .object);
 
     const landed_input_helper_evidence = closure_manifest.object.get("landed_input_helper_evidence") orelse return error.TestUnexpectedResult;
