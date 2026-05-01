@@ -31,7 +31,10 @@ def run_contract_case(args: list[str], expected_exit: int, expected_lines: list[
 
 
 def main() -> int:
+    covered_cases: list[str] = []
+
     run_contract_case(['--self-test'], 0, ['ARTIFACT_DIFF_SELF_TEST=pass'])
+    covered_cases.append('helper_self_test')
 
     with tempfile.TemporaryDirectory(prefix='zigux_artifact_diff_contract_') as tmp_dir_str:
         tmp_dir = Path(tmp_dir_str)
@@ -59,6 +62,7 @@ def main() -> int:
                 f'ACTUAL={actual}',
             ],
         )
+        covered_cases.append('text_pass')
 
         actual.write_text('alpha\nBETA\n', encoding='utf-8', newline='\n')
         run_contract_case(
@@ -71,6 +75,7 @@ def main() -> int:
                 f'ACTUAL={actual}',
             ],
         )
+        covered_cases.append('text_mismatch')
         actual.write_text('alpha\nbeta\n', encoding='utf-8', newline='\n')
 
         run_contract_case(
@@ -85,6 +90,7 @@ def main() -> int:
                 'ACTUAL_EXISTS=True',
             ],
         )
+        covered_cases.append('text_missing_expected')
 
         run_contract_case(
             ['--mode', 'text', str(expected), str(missing)],
@@ -98,6 +104,7 @@ def main() -> int:
                 'ACTUAL_EXISTS=False',
             ],
         )
+        covered_cases.append('text_missing_actual')
 
         run_contract_case(
             ['--mode', 'text', str(missing), str(other_missing)],
@@ -111,6 +118,7 @@ def main() -> int:
                 'ACTUAL_EXISTS=False',
             ],
         )
+        covered_cases.append('text_missing_both')
 
         expected_json.write_text('{"alpha": 1, "beta": [2, 3]}\n', encoding='utf-8', newline='\n')
         actual_json.write_text('{\n  "beta": [2, 3],\n  "alpha": 1\n}\n', encoding='utf-8', newline='\n')
@@ -128,6 +136,7 @@ def main() -> int:
                 f'ACTUAL={actual_json}',
             ],
         )
+        covered_cases.append('json_pass')
 
         run_contract_case(
             ['--mode', 'json', str(expected_json), str(actual_json_mismatch)],
@@ -139,6 +148,7 @@ def main() -> int:
                 f'ACTUAL={actual_json_mismatch}',
             ],
         )
+        covered_cases.append('json_mismatch')
 
         run_contract_case(
             ['--mode', 'json', str(invalid_expected_json), str(actual_json)],
@@ -151,6 +161,7 @@ def main() -> int:
                 f'EXPECTED_JSON_ERROR={invalid_expected_json}:2:1: Expecting property name enclosed in double quotes',
             ],
         )
+        covered_cases.append('json_invalid_expected')
 
         run_contract_case(
             ['--mode', 'json', str(expected_json), str(invalid_actual_json)],
@@ -163,6 +174,7 @@ def main() -> int:
                 f'ACTUAL_JSON_ERROR={invalid_actual_json}:2:1: Expecting property name enclosed in double quotes',
             ],
         )
+        covered_cases.append('json_invalid_actual')
 
         run_contract_case(
             ['--mode', 'json', str(invalid_expected_json), str(invalid_actual_json)],
@@ -175,6 +187,7 @@ def main() -> int:
                 f'EXPECTED_JSON_ERROR={invalid_expected_json}:2:1: Expecting property name enclosed in double quotes',
             ],
         )
+        covered_cases.append('json_invalid_both')
 
         blob_a.write_bytes(b'zigux-artifact-diff')
         blob_b.write_bytes(b'zigux-artifact-diff')
@@ -189,6 +202,7 @@ def main() -> int:
                 'SHA256=0051a1ffdd63accde60d9c9893094b287388cecb4fcc734a204ea5a36a5c3576',
             ],
         )
+        covered_cases.append('sha256_pass')
 
         blob_b.write_bytes(b'zigux-artifact-DRIFT')
         run_contract_case(
@@ -203,8 +217,11 @@ def main() -> int:
                 'ACTUAL_SHA256=bfc83f8f1f4369ce3cfabfdff0699ae3bf7a15b89f1702b690e56c6f35f1ee94',
             ],
         )
+        covered_cases.append('sha256_drift')
 
     print('ARTIFACT_DIFF_CONTRACT=pass')
+    print(f'ARTIFACT_DIFF_CONTRACT_CASE_COUNT={len(covered_cases)}')
+    print('ARTIFACT_DIFF_CONTRACT_CASES=' + ','.join(covered_cases))
     return 0
 
 
