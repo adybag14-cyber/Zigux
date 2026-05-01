@@ -282,7 +282,7 @@ BSEARCH_C_PARITY_RUNNER_MARKERS = [
 BSEARCH_C_HARNESS_MARKERS = [
     "static int compare_descending_u32(const void *key, const void *elt)",
     'print_index_case("descending-hit", key, descending_values, inline_bsearch(&key, descending_values, sizeof(descending_values) / sizeof(descending_values[0]), sizeof(descending_values[0]), compare_descending_u32));',
-    'print_duplicate_case("duplicate-hit-middle", key, inline_bsearch(&key, duplicate_in_middle, sizeof(duplicate_in_middle) / sizeof(duplicate_in_middle[0]), sizeof(duplicate_in_middle[0]), compare_u32));',
+    'print_duplicate_case("duplicate-hit-middle", key, duplicate_in_middle, inline_bsearch(&key, duplicate_in_middle, sizeof(duplicate_in_middle) / sizeof(duplicate_in_middle[0]), sizeof(duplicate_in_middle[0]), compare_u32));',
     'print_index_case("raw-descending-hit", key, descending_values, inline_bsearch(&key, descending_values, sizeof(descending_values) / sizeof(descending_values[0]), sizeof(descending_values[0]), compare_descending_u32));',
     "print_runtime_typed_cases(values, sizeof(values) / sizeof(values[0]), descending_values, sizeof(descending_values) / sizeof(descending_values[0]));",
     "print_runtime_raw_cases(values, sizeof(values) / sizeof(values[0]), descending_values, sizeof(descending_values) / sizeof(descending_values[0]));",
@@ -852,13 +852,24 @@ def run_self_test() -> int:
             if determinism_fail_result["ok"] or "manifest:determinism_evidence:checksum" not in determinism_fail_result["missing"]:
                 raise AssertionError(f"expected checksum determinism drift failure, got: {determinism_fail_result}")
 
+            write_self_test_tree(root)
+            manifest_path = root / "zigux/tests/phase6_helper_parity_manifest.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            manifest["determinism_evidence"]["generated_fixture_artifacts_committed"] = True
+            manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+            generated_fixture_flag_fail_result = validate_phase6(root)
+            if generated_fixture_flag_fail_result["ok"] or "manifest:determinism_evidence:generated_fixture_artifacts_committed" not in generated_fixture_flag_fail_result["missing"]:
+                raise AssertionError(
+                    f"expected generated fixture flag drift failure, got: {generated_fixture_flag_fail_result}"
+                )
+
     except AssertionError as exc:
         print("PHASE6_VALIDATOR_SELF_TEST=fail")
         print(f"PHASE6_VALIDATOR_SELF_TEST_REASON={exc}")
         return 1
 
     print("PHASE6_VALIDATOR_SELF_TEST=pass")
-    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=7")
+    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
