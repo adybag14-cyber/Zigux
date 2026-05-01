@@ -12,6 +12,7 @@ import tempfile
 _HERE = Path(__file__).resolve()
 ROOT = _HERE.parents[2] if len(_HERE.parents) > 2 else _HERE.parent
 SURVEY_REL = "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"
+MAKEFILE_REL = "zigux/Makefile"
 ABI_SLICE_REL = "Documentation/zigux/phase3-abi-slice.md"
 MANIFEST_REL = "zigux/tests/fixtures/phase3_abi_manifest.json"
 ATOMIC_REL = "zigux/helpers/atomic.zig"
@@ -54,6 +55,7 @@ REQUIRED_SURVEY_SNIPPETS = (
 )
 
 REQUIRED_SURVEY_PATHS = (
+    MAKEFILE_REL,
     ATOMIC_REL,
     BARRIER_REL,
     MMIO_REL,
@@ -61,6 +63,12 @@ REQUIRED_SURVEY_PATHS = (
     LOW_LEVEL_TEST_REL,
     MANIFEST_REL,
     ABI_SLICE_REL,
+)
+
+REQUIRED_MAKEFILE_SNIPPETS = (
+    "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
+    "scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",
+    "$(ZIG) build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
 )
 
 REQUIRED_ATOMIC_SNIPPETS = (
@@ -203,6 +211,7 @@ def validate(root: Path) -> list[str]:
     issues: list[str] = []
 
     survey = _read_text(root, SURVEY_REL, issues)
+    makefile = _read_text(root, MAKEFILE_REL, issues)
     atomic = _read_text(root, ATOMIC_REL, issues)
     barrier = _read_text(root, BARRIER_REL, issues)
     mmio = _read_text(root, MMIO_REL, issues)
@@ -218,6 +227,8 @@ def validate(root: Path) -> list[str]:
         if not (root / rel).exists():
             issues.append(f"missing_repo_path:{rel}")
 
+    if makefile:
+        _check_snippets(makefile, REQUIRED_MAKEFILE_SNIPPETS, "missing_makefile_snippet", issues)
     if atomic:
         _check_snippets(atomic, REQUIRED_ATOMIC_SNIPPETS, "missing_atomic_snippet", issues)
     if barrier:
@@ -302,6 +313,11 @@ def run_self_test() -> int:
                 ]
             )
             + "\n",
+        )
+        _write(
+            root,
+            MAKEFILE_REL,
+            "\n".join(REQUIRED_MAKEFILE_SNIPPETS) + "\n",
         )
         _write(
             root,
@@ -409,6 +425,17 @@ def run_self_test() -> int:
         assert (
             "missing_low_level_test_snippet:try std.testing.expectEqual(@as(u64, 0xfedc_ba98_7654_3210), "
             "try mmio.read64Scoped(.volatile_mmio, base64, 0));"
+            in issues
+        )
+
+        _write(
+            root,
+            MAKEFILE_REL,
+            "\n".join(REQUIRED_MAKEFILE_SNIPPETS[:-1]) + "\n",
+        )
+        issues = validate(root)
+        assert (
+            "missing_makefile_snippet:$(ZIG) build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig"
             in issues
         )
 
