@@ -249,7 +249,7 @@ pub const Bcm2835WatchdogLab = struct {
             .system_power_controller = system_power_controller,
             .poweroff_handler_present = poweroff_handler_present,
             .poweroff_handler_claimed = registration.poweroff_handler_claimed and pm_base_handoff_ready,
-            .poweroff_handler_conflict = registration.poweroff_handler_conflict and pm_base_handoff_ready,
+            .poweroff_handler_conflict = registration.poweroff_handler_conflict,
         };
     }
 
