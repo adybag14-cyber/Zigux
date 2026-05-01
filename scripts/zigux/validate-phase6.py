@@ -22,6 +22,7 @@ REQUIRED_FILES = [
     "scripts/zigux/README.md",
     "Documentation/zigux/README.md",
     "Documentation/zigux/phase6-helper-parity-catalog.md",
+    "Documentation/zigux/phase6-perf-gate-survey.md",
     "Documentation/zigux/phase6-base64-slice.md",
     "Documentation/zigux/phase6-bsearch-slice.md",
     "Documentation/zigux/phase6-checksum-slice.md",
@@ -103,6 +104,7 @@ TESTS_README_MARKERS = [
     "zigux/tests/phase6_hexdump_perf.zig",
     "zigux/tests/fixtures/phase6_hexdump_vectors.zig",
     "zigux/tests/phase6_helper_parity_manifest.json",
+    "refresh `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, and `zigux/tests/phase6_helper_parity_manifest.json` whenever the shipped Phase 6 helper inventory, perf entrypoints, fixtures, or shared slice notes change",
 ]
 
 DOC_README_MARKERS = [
@@ -112,12 +114,33 @@ DOC_README_MARKERS = [
     "Documentation/zigux/phase6-checksum-slice.md",
     "Documentation/zigux/phase6-hexdump-slice.md",
     "Documentation/zigux/phase6-helper-parity-catalog.md",
+    "Documentation/zigux/phase6-perf-gate-survey.md",
     "zigux/tests/phase6_helper_parity_manifest.json",
     "make -C zigux phase6-validate",
     "make -C zigux phase6",
     "make -C zigux phase6-base64-perf",
     "python3 scripts/zigux/check-phase6-base64-c-parity.py",
     "python3 scripts/zigux/check-phase6-bsearch-c-parity.py",
+]
+
+PERF_SURVEY_MARKERS = [
+    "# Phase 6 Perf Gate Survey",
+    "The current bounded Phase 6 perf packet still stops at the four roadmap-backed leaf helpers:",
+    "`lib/base64.zig`",
+    "`lib/bsearch.zig`",
+    "`lib/checksum.zig`",
+    "`lib/hexdump.zig`",
+    "`make -C zigux phase6-base64-perf`",
+    "`make -C zigux phase6-bsearch-perf`",
+    "`make -C zigux phase6-checksum-perf`",
+    "`make -C zigux phase6-hexdump-perf`",
+    "max_encode_slowdown_pct = 190",
+    "max_decode_slowdown_pct = 320",
+    "std.math.log2_int_ceil(len) + 1",
+    "max_slowdown_pct = 150",
+    "16B-ascii-g8",
+    "max_slowdown_pct = 600",
+    "perf gates for math-sensitive helpers",
 ]
 
 PHASE6_BUILD_MARKERS = [
@@ -181,10 +204,10 @@ BASE64_C_PARITY_RUNNER_MARKERS = [
 ]
 
 BASE64_CASEGEN_MARKERS = [
-    'try writer.writeAll("/* Generated from zigux/tests/fixtures/phase6_base64_vectors.zig. */\n\n");',
+    'try writer.writeAll("/* Generated from zigux/tests/fixtures/phase6_base64_vectors.zig. */\\n\\n");',
     "for (fixtures.variant_cases, 0..) |case, idx| {",
     "for (fixtures.variant_decode_cases, 0..) |case, idx| {",
-    'try writer.writeAll("static const struct invalid_case invalid_cases[] = {\n");',
+    'try writer.writeAll("static const struct invalid_case invalid_cases[] = {\\n");',
     'if (std.mem.eql(u8, name, "imap")) return "BASE64_IMAP";',
     'return if (value) "true" else "false";',
 ]
@@ -194,9 +217,9 @@ BASE64_C_HARNESS_MARKERS = [
     '[BASE64_IMAP] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+,",',
     "[BASE64_IMAP] = BASE64_REV_INIT('+', ','),",
     '#include "phase6_base64_c_generated_cases.inc"',
-    'printf("enc\t%s\t%d\t", variant_name(c->variant), c->padding ? 1 : 0);',
-    'printf("dec\t%s\t%d\t%d\t", variant_name(c->variant), c->padding ? 1 : 0, bytes_result);',
-    'printf("\t%s\t%s\n", bytes_result < 0 ? "InvalidInput" : "ok", decode_result < 0 ? "InvalidInput" : "ok");',
+    'printf("enc\\t%s\\t%d\\t", variant_name(c->variant), c->padding ? 1 : 0);',
+    'printf("dec\\t%s\\t%d\\t%d\\t", variant_name(c->variant), c->padding ? 1 : 0, bytes_result);',
+    'printf("\\t%s\\t%s\\n", bytes_result < 0 ? "InvalidInput" : "ok", decode_result < 0 ? "InvalidInput" : "ok");',
 ]
 
 BASE64_VECTORS_MARKERS = [
@@ -253,7 +276,7 @@ BSEARCH_C_PARITY_RUNNER_MARKERS = [
     'try writeIndexCase(writer, "raw-descending-hit", 34, bsearch.bsearchIndex(&@as(u32, 34), @ptrCast(descending_values[0..].ptr), descending_values.len, @sizeOf(u32), compareOpaqueDescendingU32));',
     "try writeRuntimeTypedCases(writer, values[0..], descending_values[0..]);",
     "try writeRuntimeRawCases(writer, values[0..], descending_values[0..]);",
-    'try writer.print("raw-mutable-hit\t21\t{}\n", .{raw_mutable_values[3]});',
+    'try writer.print("raw-mutable-hit\\t21\\t{}\\n", .{raw_mutable_values[3]});',
 ]
 
 BSEARCH_C_HARNESS_MARKERS = [
@@ -263,7 +286,7 @@ BSEARCH_C_HARNESS_MARKERS = [
     'print_index_case("raw-descending-hit", key, descending_values, inline_bsearch(&key, descending_values, sizeof(descending_values) / sizeof(descending_values[0]), sizeof(descending_values[0]), compare_descending_u32));',
     "print_runtime_typed_cases(values, sizeof(values) / sizeof(values[0]), descending_values, sizeof(descending_values) / sizeof(descending_values[0]));",
     "print_runtime_raw_cases(values, sizeof(values) / sizeof(values[0]), descending_values, sizeof(descending_values) / sizeof(descending_values[0]));",
-    'printf("raw-mutable-hit\t21\t%u\n", raw_mutable_values[3]);',
+    'printf("raw-mutable-hit\\t21\\t%u\\n", raw_mutable_values[3]);',
 ]
 
 BSEARCH_SLICE_MARKERS = [
@@ -443,9 +466,10 @@ EXPECTED_MANIFEST = {
         "scripts/zigux/validate-phase6.py",
         ".github/workflows/zigux-bootstrap.yml",
         "Documentation/zigux/README.md",
+        "Documentation/zigux/phase6-helper-parity-catalog.md",
+        "Documentation/zigux/phase6-perf-gate-survey.md",
         "scripts/zigux/README.md",
         "zigux/tests/README.md",
-        "Documentation/zigux/phase6-helper-parity-catalog.md",
         "zigux/tests/phase6_helper_parity_manifest.json",
     ],
     "perf_posture": {
@@ -478,6 +502,7 @@ MARKER_FILE_CONTENTS = {
     "scripts/zigux/README.md": SCRIPT_README_MARKERS,
     "zigux/tests/README.md": TESTS_README_MARKERS,
     "Documentation/zigux/README.md": DOC_README_MARKERS,
+    "Documentation/zigux/phase6-perf-gate-survey.md": PERF_SURVEY_MARKERS,
     "zigux/tests/phase6_build.zig": PHASE6_BUILD_MARKERS,
     "zigux/tests/phase6_base64.zig": BASE64_TEST_MARKERS,
     "zigux/tests/phase6_base64_perf.zig": BASE64_PERF_MARKERS,
@@ -508,21 +533,9 @@ def text(root: Path, path: str) -> str:
     return (root / path).read_text(encoding="utf-8")
 
 
-def load_json(root: Path, path: str) -> object:
-    return json.loads(text(root, path))
-
-
-def collect_missing_files(root: Path) -> list[str]:
-    missing: list[str] = []
-    for relpath in REQUIRED_FILES:
-        if not (root / relpath).exists():
-            missing.append(relpath)
-    return missing
-
-
-def require_markers(missing: list[str], label: str, haystack: str, markers: list[str]) -> None:
+def require_markers(missing: list[str], label: str, content: str, markers: list[str]) -> None:
     for marker in markers:
-        if marker not in haystack:
+        if marker not in content:
             missing.append(f"{label}:missing:{marker}")
 
 
@@ -532,85 +545,49 @@ def require_manifest_equal(missing: list[str], manifest: dict[str, object], key:
 
 
 def total_marker_count() -> int:
-    return (
-        len(MAKE_MARKERS)
-        + len(WORKFLOW_MARKERS)
-        + len(SCRIPT_README_MARKERS)
-        + len(TESTS_README_MARKERS)
-        + len(DOC_README_MARKERS)
-        + len(PHASE6_BUILD_MARKERS)
-        + len(CATALOG_MARKERS)
-        + len(BASE64_TEST_MARKERS)
-        + len(BASE64_PERF_MARKERS)
-        + len(BASE64_PARITY_SCRIPT_MARKERS)
-        + len(BASE64_C_PARITY_RUNNER_MARKERS)
-        + len(BASE64_CASEGEN_MARKERS)
-        + len(BASE64_C_HARNESS_MARKERS)
-        + len(BASE64_VECTORS_MARKERS)
-        + len(BASE64_SLICE_MARKERS)
-        + len(BSEARCH_TEST_MARKERS)
-        + len(BSEARCH_PERF_MARKERS)
-        + len(BSEARCH_PARITY_SCRIPT_MARKERS)
-        + len(BSEARCH_C_PARITY_RUNNER_MARKERS)
-        + len(BSEARCH_C_HARNESS_MARKERS)
-        + len(BSEARCH_SLICE_MARKERS)
-        + len(CHECKSUM_TEST_MARKERS)
-        + len(CHECKSUM_PERF_MARKERS)
-        + len(CHECKSUM_FIXTURE_MARKERS)
-        + len(CHECKSUM_SLICE_MARKERS)
-        + len(HEXDUMP_TEST_MARKERS)
-        + len(HEXDUMP_PERF_MARKERS)
-        + len(HEXDUMP_FIXTURE_MARKERS)
-        + len(HEXDUMP_SLICE_MARKERS)
-    )
+    return sum(len(markers) for markers in MARKER_FILE_CONTENTS.values()) + len(CATALOG_MARKERS)
+
+
+def parse_catalog_head(content: str) -> tuple[str | None, str]:
+    match = re.search(r"- verified head: `([0-9a-f]{40}|[^`]+)`", content)
+    if match is None:
+        return None, "missing"
+    head = match.group(1)
+    if not HEX40.fullmatch(head):
+        return head, "invalid"
+    return head, "ok"
 
 
 def validate_phase6(root: Path) -> dict[str, object]:
-    missing_files = collect_missing_files(root)
+    missing_files = [path for path in REQUIRED_FILES if not (root / path).exists()]
     if missing_files:
         return {
             "ok": False,
             "missing_files": missing_files,
             "missing": [],
-            "catalog_head": None,
-            "catalog_head_status": "ok",
+            "catalog_head": "",
+            "catalog_head_status": "missing_files",
         }
 
-    makefile = text(root, "zigux/Makefile")
-    workflow = text(root, ".github/workflows/zigux-bootstrap.yml")
-    script_readme = text(root, "scripts/zigux/README.md")
-    tests_readme = text(root, "zigux/tests/README.md")
-    doc_readme = text(root, "Documentation/zigux/README.md")
-    phase6_build = text(root, "zigux/tests/phase6_build.zig")
     phase6_catalog = text(root, "Documentation/zigux/phase6-helper-parity-catalog.md")
-    phase6_manifest = load_json(root, "zigux/tests/phase6_helper_parity_manifest.json")
-
-    catalog_head_match = re.search(r"- verified head: `([^`]+)`", phase6_catalog)
-    if catalog_head_match is None:
+    catalog_head, catalog_head_status = parse_catalog_head(phase6_catalog)
+    if catalog_head_status != "ok":
         return {
             "ok": False,
             "missing_files": [],
             "missing": [],
-            "catalog_head": None,
-            "catalog_head_status": "missing",
-        }
-    catalog_head = catalog_head_match.group(1)
-    if not HEX40.fullmatch(catalog_head):
-        return {
-            "ok": False,
-            "missing_files": [],
-            "missing": [],
-            "catalog_head": catalog_head,
-            "catalog_head_status": "invalid",
+            "catalog_head": catalog_head or "",
+            "catalog_head_status": catalog_head_status,
         }
 
     missing: list[str] = []
-    require_markers(missing, "make", makefile, MAKE_MARKERS)
-    require_markers(missing, "workflow", workflow, WORKFLOW_MARKERS)
-    require_markers(missing, "script_readme", script_readme, SCRIPT_README_MARKERS)
-    require_markers(missing, "tests_readme", tests_readme, TESTS_README_MARKERS)
-    require_markers(missing, "doc_readme", doc_readme, DOC_README_MARKERS)
-    require_markers(missing, "phase6_build", phase6_build, PHASE6_BUILD_MARKERS)
+    require_markers(missing, "make", text(root, "zigux/Makefile"), MAKE_MARKERS)
+    require_markers(missing, "workflow", text(root, ".github/workflows/zigux-bootstrap.yml"), WORKFLOW_MARKERS)
+    require_markers(missing, "script_readme", text(root, "scripts/zigux/README.md"), SCRIPT_README_MARKERS)
+    require_markers(missing, "tests_readme", text(root, "zigux/tests/README.md"), TESTS_README_MARKERS)
+    require_markers(missing, "doc_readme", text(root, "Documentation/zigux/README.md"), DOC_README_MARKERS)
+    require_markers(missing, "phase6_perf_survey", text(root, "Documentation/zigux/phase6-perf-gate-survey.md"), PERF_SURVEY_MARKERS)
+    require_markers(missing, "phase6_build", text(root, "zigux/tests/phase6_build.zig"), PHASE6_BUILD_MARKERS)
     require_markers(missing, "phase6_catalog", phase6_catalog, CATALOG_MARKERS)
 
     file_marker_specs = [
@@ -637,21 +614,21 @@ def validate_phase6(root: Path) -> dict[str, object]:
         ("phase6_hexdump_vectors", "zigux/tests/fixtures/phase6_hexdump_vectors.zig", HEXDUMP_FIXTURE_MARKERS),
         ("phase6_hexdump_slice", "Documentation/zigux/phase6-hexdump-slice.md", HEXDUMP_SLICE_MARKERS),
     ]
-
     for label, path, markers in file_marker_specs:
         require_markers(missing, label, text(root, path), markers)
 
-    if not isinstance(phase6_manifest, dict):
+    manifest = json.loads(text(root, "zigux/tests/phase6_helper_parity_manifest.json"))
+    if not isinstance(manifest, dict):
         missing.append("manifest:root")
     else:
-        surveyed_commit = phase6_manifest.get("surveyed_commit")
+        surveyed_commit = manifest.get("surveyed_commit")
         if not isinstance(surveyed_commit, str) or not HEX40.fullmatch(surveyed_commit):
             missing.append("manifest:surveyed_commit")
         elif surveyed_commit != catalog_head:
             missing.append("manifest:surveyed_commit_mismatch")
 
         for key, expected in EXPECTED_MANIFEST.items():
-            require_manifest_equal(missing, phase6_manifest, key, expected)
+            require_manifest_equal(missing, manifest, key, expected)
 
     return {
         "ok": not missing,
@@ -731,8 +708,8 @@ def run_self_test() -> int:
     try:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
-            write_self_test_tree(root)
 
+            write_self_test_tree(root)
             pass_result = validate_phase6(root)
             if not pass_result["ok"]:
                 raise AssertionError(f"positive case failed: {pass_result}")
@@ -741,12 +718,18 @@ def run_self_test() -> int:
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
             manifest["surveyed_commit"] = SELF_TEST_MUTATED_HEAD
             manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-
             fail_result = validate_phase6(root)
-            if fail_result["ok"]:
-                raise AssertionError("surveyed_commit mismatch unexpectedly passed")
-            if "manifest:surveyed_commit_mismatch" not in fail_result["missing"]:
-                raise AssertionError(f"expected mismatch marker, got: {fail_result['missing']}")
+            if fail_result["ok"] or "manifest:surveyed_commit_mismatch" not in fail_result["missing"]:
+                raise AssertionError(f"expected surveyed_commit mismatch, got: {fail_result}")
+
+            write_self_test_tree(root)
+            perf_path = root / "Documentation/zigux/phase6-perf-gate-survey.md"
+            perf_text = perf_path.read_text(encoding="utf-8")
+            perf_marker = "max_slowdown_pct = 600"
+            perf_path.write_text(perf_text.replace(perf_marker, "", 1), encoding="utf-8")
+            perf_fail_result = validate_phase6(root)
+            if perf_fail_result["ok"] or f"phase6_perf_survey:missing:{perf_marker}" not in perf_fail_result["missing"]:
+                raise AssertionError(f"expected perf survey drift failure, got: {perf_fail_result}")
 
             write_self_test_tree(root)
             script_readme_path = root / "scripts/zigux/README.md"
@@ -755,267 +738,42 @@ def run_self_test() -> int:
                 script_readme_text.replace("Phase 6 flow", "Phase Six flow", 1),
                 encoding="utf-8",
             )
-
             readme_fail_result = validate_phase6(root)
-            if readme_fail_result["ok"]:
-                raise AssertionError("script README marker drift unexpectedly passed")
-            if "script_readme:missing:Phase 6 flow" not in readme_fail_result["missing"]:
-                raise AssertionError(f"expected script README marker failure, got: {readme_fail_result['missing']}")
+            if readme_fail_result["ok"] or "script_readme:missing:Phase 6 flow" not in readme_fail_result["missing"]:
+                raise AssertionError(f"expected script README drift failure, got: {readme_fail_result}")
 
             write_self_test_tree(root)
             catalog_path = root / "Documentation/zigux/phase6-helper-parity-catalog.md"
             catalog_text = catalog_path.read_text(encoding="utf-8")
             verified_head_line = f"- verified head: `{SELF_TEST_HEAD}`"
-            if verified_head_line not in catalog_text:
-                raise AssertionError("expected verified-head marker missing from positive catalog")
             catalog_path.write_text(
                 catalog_text.replace(verified_head_line, "- verified tip: `missing-head-marker`", 1),
                 encoding="utf-8",
             )
-
             missing_head_result = validate_phase6(root)
-            if missing_head_result["ok"]:
-                raise AssertionError("missing catalog verified-head marker unexpectedly passed")
-            if missing_head_result["catalog_head_status"] != "missing":
-                raise AssertionError(
-                    "expected missing catalog-head status, got: "
-                    f"{missing_head_result['catalog_head_status']}"
-                )
-
-            write_self_test_tree(root)
-            catalog_path = root / "Documentation/zigux/phase6-helper-parity-catalog.md"
-            catalog_text = catalog_path.read_text(encoding="utf-8")
-            if verified_head_line not in catalog_text:
-                raise AssertionError("expected verified-head marker missing from invalid-head fixture")
-            catalog_path.write_text(
-                catalog_text.replace(
-                    verified_head_line,
-                    "- verified head: `0123456789abcdef0123456789abcdef0123456g`",
-                    1,
-                ),
-                encoding="utf-8",
-            )
-
-            invalid_head_result = validate_phase6(root)
-            if invalid_head_result["ok"]:
-                raise AssertionError("invalid catalog verified-head value unexpectedly passed")
-            if invalid_head_result["catalog_head_status"] != "invalid":
-                raise AssertionError(
-                    "expected invalid catalog-head status, got: "
-                    f"{invalid_head_result['catalog_head_status']}"
-                )
-
-            write_self_test_tree(root)
-            vectors_path = root / "zigux/tests/fixtures/phase6_base64_vectors.zig"
-            vectors_text = vectors_path.read_text(encoding="utf-8")
-            vectors_marker = '.{ .input = ",,A", .expected = &variant_two_byte_sample, .padding = false, .variant_name = "imap" },'
-            if vectors_marker not in vectors_text:
-                raise AssertionError("expected base64 vectors marker missing from positive fixture")
-            vectors_path.write_text(vectors_text.replace(vectors_marker, "", 1), encoding="utf-8")
-
-            base64_fail_result = validate_phase6(root)
-            if base64_fail_result["ok"]:
-                raise AssertionError("base64 vector marker removal unexpectedly passed")
-            if f"phase6_base64_vectors:missing:{vectors_marker}" not in base64_fail_result["missing"]:
-                raise AssertionError(f"expected base64 vector marker failure, got: {base64_fail_result['missing']}")
-
-            write_self_test_tree(root)
-            checksum_path = root / "zigux/tests/phase6_checksum.zig"
-            checksum_text = checksum_path.read_text(encoding="utf-8")
-            checksum_import_marker = 'test "phase 6 checksum module imports cleanly" {'
-            if checksum_import_marker not in checksum_text:
-                raise AssertionError("expected checksum import marker missing from positive fixture")
-            checksum_path.write_text(
-                checksum_text.replace(checksum_import_marker, "", 1),
-                encoding="utf-8",
-            )
-
-            checksum_import_fail_result = validate_phase6(root)
-            if checksum_import_fail_result["ok"]:
-                raise AssertionError("checksum import marker removal unexpectedly passed")
-            if f"phase6_checksum:missing:{checksum_import_marker}" not in checksum_import_fail_result["missing"]:
-                raise AssertionError(
-                    f"expected checksum import marker failure, got: {checksum_import_fail_result['missing']}"
-                )
-
-            write_self_test_tree(root)
-            checksum_path = root / "zigux/tests/phase6_checksum.zig"
-            checksum_text = checksum_path.read_text(encoding="utf-8")
-            checksum_random_prefix_marker = 'test "kunit random-prefix parity stays stable on the helper surface" {'
-            if checksum_random_prefix_marker not in checksum_text:
-                raise AssertionError("expected checksum random-prefix marker missing from positive fixture")
-            checksum_path.write_text(
-                checksum_text.replace(checksum_random_prefix_marker, "", 1),
-                encoding="utf-8",
-            )
-
-            checksum_random_prefix_fail_result = validate_phase6(root)
-            if checksum_random_prefix_fail_result["ok"]:
-                raise AssertionError("checksum random-prefix marker removal unexpectedly passed")
-            if f"phase6_checksum:missing:{checksum_random_prefix_marker}" not in checksum_random_prefix_fail_result["missing"]:
-                raise AssertionError(
-                    "expected checksum random-prefix marker failure, got: "
-                    f"{checksum_random_prefix_fail_result['missing']}"
-                )
-
-            write_self_test_tree(root)
-            checksum_perf_path = root / "zigux/tests/phase6_checksum_perf.zig"
-            checksum_perf_text = checksum_perf_path.read_text(encoding="utf-8")
-            checksum_perf_marker = "try std.testing.expect(slowdown_pct <= case.max_slowdown_pct);"
-            if checksum_perf_marker not in checksum_perf_text:
-                raise AssertionError("expected checksum perf marker missing from positive fixture")
-            checksum_perf_path.write_text(
-                checksum_perf_text.replace(checksum_perf_marker, "", 1),
-                encoding="utf-8",
-            )
-
-            checksum_perf_fail_result = validate_phase6(root)
-            if checksum_perf_fail_result["ok"]:
-                raise AssertionError("checksum perf marker removal unexpectedly passed")
-            if f"phase6_checksum_perf:missing:{checksum_perf_marker}" not in checksum_perf_fail_result["missing"]:
-                raise AssertionError(
-                    f"expected checksum perf marker failure, got: {checksum_perf_fail_result['missing']}"
-                )
-
-            write_self_test_tree(root)
-            checksum_vectors_path = root / "zigux/tests/fixtures/phase6_checksum_vectors.zig"
-            checksum_vectors_text = checksum_vectors_path.read_text(encoding="utf-8")
-            checksum_vectors_marker = '.name = "udp pseudo header",'
-            if checksum_vectors_marker not in checksum_vectors_text:
-                raise AssertionError("expected checksum fixture marker missing from positive fixture")
-            checksum_vectors_path.write_text(
-                checksum_vectors_text.replace(checksum_vectors_marker, "", 1),
-                encoding="utf-8",
-            )
-
-            checksum_vectors_fail_result = validate_phase6(root)
-            if checksum_vectors_fail_result["ok"]:
-                raise AssertionError("checksum fixture marker removal unexpectedly passed")
-            if f"phase6_checksum_vectors:missing:{checksum_vectors_marker}" not in checksum_vectors_fail_result["missing"]:
-                raise AssertionError(
-                    f"expected checksum fixture marker failure, got: {checksum_vectors_fail_result['missing']}"
-                )
+            if missing_head_result["ok"] or missing_head_result["catalog_head_status"] != "missing":
+                raise AssertionError(f"expected missing catalog head failure, got: {missing_head_result}")
 
             write_self_test_tree(root)
             manifest_path = root / "zigux/tests/phase6_helper_parity_manifest.json"
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-            exact_checks = manifest.get("exact_checks")
-            if not isinstance(exact_checks, list):
-                raise AssertionError(f"expected exact_checks list, got: {exact_checks!r}")
-            dropped_check = "python3 scripts/zigux/check-phase6-bsearch-c-parity.py --self-test"
-            if dropped_check not in exact_checks:
-                raise AssertionError(f"expected review command missing from positive manifest: {dropped_check}")
-            manifest["exact_checks"] = [check for check in exact_checks if check != dropped_check]
+            shared_gates = manifest.get("shared_gates")
+            if not isinstance(shared_gates, list):
+                raise AssertionError(f"expected shared_gates list, got: {shared_gates!r}")
+            dropped_gate = "Documentation/zigux/phase6-perf-gate-survey.md"
+            manifest["shared_gates"] = [gate for gate in shared_gates if gate != dropped_gate]
             manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+            manifest_fail_result = validate_phase6(root)
+            if manifest_fail_result["ok"] or "manifest:shared_gates" not in manifest_fail_result["missing"]:
+                raise AssertionError(f"expected shared_gates drift failure, got: {manifest_fail_result}")
 
-            exact_checks_fail_result = validate_phase6(root)
-            if exact_checks_fail_result["ok"]:
-                raise AssertionError("manifest exact_checks drift unexpectedly passed")
-            if "manifest:exact_checks" not in exact_checks_fail_result["missing"]:
-                raise AssertionError(
-                    f"expected manifest exact_checks failure, got: {exact_checks_fail_result['missing']}"
-                )
-
-            write_self_test_tree(root)
-            base64_parity_script_path = root / "scripts/zigux/check-phase6-base64-c-parity.py"
-            base64_parity_script_text = base64_parity_script_path.read_text(encoding="utf-8")
-            base64_self_test_case_count_marker = 'print("PHASE6_BASE64_C_PARITY_SELF_TEST_CASE_COUNT=7")'
-            if base64_self_test_case_count_marker not in base64_parity_script_text:
-                raise AssertionError("expected base64 parity self-test case-count marker missing from positive fixture")
-            base64_parity_script_path.write_text(
-                base64_parity_script_text.replace(base64_self_test_case_count_marker, "", 1),
-                encoding="utf-8",
-            )
-
-            base64_self_test_case_count_fail_result = validate_phase6(root)
-            if base64_self_test_case_count_fail_result["ok"]:
-                raise AssertionError("base64 parity self-test case-count marker removal unexpectedly passed")
-            if (
-                f"phase6_base64_c_parity_script:missing:{base64_self_test_case_count_marker}"
-                not in base64_self_test_case_count_fail_result["missing"]
-            ):
-                raise AssertionError(
-                    "expected base64 parity self-test case-count marker failure, got: "
-                    f"{base64_self_test_case_count_fail_result['missing']}"
-                )
-
-            write_self_test_tree(root)
-            bsearch_parity_script_path = root / "scripts/zigux/check-phase6-bsearch-c-parity.py"
-            bsearch_parity_script_text = bsearch_parity_script_path.read_text(encoding="utf-8")
-            bsearch_self_test_case_count_marker = 'print("PHASE6_BSEARCH_C_PARITY_SELF_TEST_CASE_COUNT=6")'
-            if bsearch_self_test_case_count_marker not in bsearch_parity_script_text:
-                raise AssertionError("expected bsearch parity self-test case-count marker missing from positive fixture")
-            bsearch_parity_script_path.write_text(
-                bsearch_parity_script_text.replace(bsearch_self_test_case_count_marker, "", 1),
-                encoding="utf-8",
-            )
-
-            bsearch_self_test_case_count_fail_result = validate_phase6(root)
-            if bsearch_self_test_case_count_fail_result["ok"]:
-                raise AssertionError("bsearch parity self-test case-count marker removal unexpectedly passed")
-            if (
-                f"phase6_bsearch_c_parity_script:missing:{bsearch_self_test_case_count_marker}"
-                not in bsearch_self_test_case_count_fail_result["missing"]
-            ):
-                raise AssertionError(
-                    "expected bsearch parity self-test case-count marker failure, got: "
-                    f"{bsearch_self_test_case_count_fail_result['missing']}"
-                )
-
-            write_self_test_tree(root)
-            bsearch_perf_path = root / "zigux/tests/phase6_bsearch_perf.zig"
-            bsearch_perf_text = bsearch_perf_path.read_text(encoding="utf-8")
-            bsearch_avg_budget_marker = (
-                "try std.testing.expect(avg_compare_calls <= @as(f64, @floatFromInt(max_compare_budget)));"
-            )
-            if bsearch_avg_budget_marker not in bsearch_perf_text:
-                raise AssertionError("expected bsearch average budget marker missing from positive fixture")
-            bsearch_perf_path.write_text(
-                bsearch_perf_text.replace(bsearch_avg_budget_marker, "", 1),
-                encoding="utf-8",
-            )
-
-            bsearch_avg_budget_fail_result = validate_phase6(root)
-            if bsearch_avg_budget_fail_result["ok"]:
-                raise AssertionError("bsearch average budget marker removal unexpectedly passed")
-            if (
-                f"phase6_bsearch_perf:missing:{bsearch_avg_budget_marker}"
-                not in bsearch_avg_budget_fail_result["missing"]
-            ):
-                raise AssertionError(
-                    "expected bsearch average budget marker failure, got: "
-                    f"{bsearch_avg_budget_fail_result['missing']}"
-                )
-
-            write_self_test_tree(root)
-            hexdump_vectors_path = root / "zigux/tests/fixtures/phase6_hexdump_vectors.zig"
-            hexdump_vectors_text = hexdump_vectors_path.read_text(encoding="utf-8")
-            hexdump_grouped_ascii_marker = '.{ .label = "16B-ascii-g4", .len = 16, .rowsize = 16, .groupsize = 4, .ascii = true, .reps = 20_000, .max_slowdown_pct = 550 },'
-            if hexdump_grouped_ascii_marker not in hexdump_vectors_text:
-                raise AssertionError("expected hexdump grouped-ascii perf marker missing from positive fixture")
-            hexdump_vectors_path.write_text(
-                hexdump_vectors_text.replace(hexdump_grouped_ascii_marker, "", 1),
-                encoding="utf-8",
-            )
-
-            hexdump_grouped_ascii_fail_result = validate_phase6(root)
-            if hexdump_grouped_ascii_fail_result["ok"]:
-                raise AssertionError("hexdump grouped-ascii perf marker removal unexpectedly passed")
-            if (
-                f"phase6_hexdump_vectors:missing:{hexdump_grouped_ascii_marker}"
-                not in hexdump_grouped_ascii_fail_result["missing"]
-            ):
-                raise AssertionError(
-                    "expected hexdump grouped-ascii perf marker failure, got: "
-                    f"{hexdump_grouped_ascii_fail_result['missing']}"
-                )
     except AssertionError as exc:
         print("PHASE6_VALIDATOR_SELF_TEST=fail")
         print(f"PHASE6_VALIDATOR_SELF_TEST_REASON={exc}")
         return 1
 
     print("PHASE6_VALIDATOR_SELF_TEST=pass")
-    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=15")
+    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=5")
     return 0
 
 
