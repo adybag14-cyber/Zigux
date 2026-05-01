@@ -162,7 +162,7 @@
       "id": "shared-runtime-loader-contract",
       "kind": "runtime_substrate",
       "path": "zigux/kernel/runtime_loader.zig",
-      "role": "owns the shared request contract plus allocator, command-name, atomic64, bitmap, kretprobe, and init or exit handoff fields"
+      "role": "owns the shared request contract plus allocator, command-name, staged entry or exit, and kretprobe registration-label handoff fields"
     },
     {
       "id": "atomic64-loader-plan",
@@ -270,7 +270,7 @@
       "status": "starter_landed",
       "kind": "runtime_loader_scaffold",
       "zigux_destination": "samples/zigux/runtime_*_loader.zig",
-      "why_now": "The atomic64, bitmap, and kretprobe starter lanes now publish entry and exit symbol names, requires_runtime_substrate flags, selftest-hook markers, and handoff-stage checks that a future shared runtime loader must consume."
+      "why_now": "The atomic64, bitmap, and kretprobe starter lanes now publish staged init and exit symbol names, requires_runtime_substrate flags, selftest-hook markers, and handoff-stage checks, while the kretprobe loader also keeps `register_kretprobe` and `unregister_kretprobe` as metadata-only registration labels that a future shared runtime loader must consume without implying a live registration path."
     },
     {
       "id": "runtime-loader-without-substrate-rollback",
@@ -312,7 +312,7 @@
       "status": "starter_landed",
       "kind": "runtime_substrate",
       "zigux_destination": "zigux/kernel/runtime_loader.zig",
-      "why_now": "The shared runtime-loader request surface now carries staged entry and exit symbol names from both sample-side loader plans, so the common lifecycle contract is explicit even though no real runtime execution path exists yet."
+      "why_now": "The shared runtime-loader request surface now carries staged entry and exit symbol names from all three landed sample-side loader plans, and the kretprobe lane keeps `register_kretprobe` plus `unregister_kretprobe` as metadata-only registration labels, so the common lifecycle contract is explicit even though no real runtime execution or registration path exists yet."
     }
   ]
 }
