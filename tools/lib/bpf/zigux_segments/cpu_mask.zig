@@ -33,6 +33,12 @@ fn isLeadingWhitespace(byte: u8) bool {
     return byte == ' ' or byte == '\t' or byte == '\x0b' or byte == '\x0c' or byte == '\r';
 }
 
+fn trimLeadingTokenWhitespace(token: []const u8) []const u8 {
+    var start: usize = 0;
+    while (start < token.len and isLeadingWhitespace(token[start])) : (start += 1) {}
+    return token[start..];
+}
+
 fn parseCpuIndex(token: []const u8) ParseCpuMaskError!usize {
     const parsed = std.fmt.parseInt(isize, token, 10) catch return error.InvalidCpuRange;
     if (parsed < 0) {
@@ -48,8 +54,8 @@ fn parseRangeToken(token: []const u8) ParseCpuMaskError!struct { start: usize, e
     }
 
     if (std.mem.indexOfScalar(u8, token, '-')) |dash_index| {
-        const start_text = token[0..dash_index];
-        const end_text = token[dash_index + 1 ..];
+        const start_text = trimLeadingTokenWhitespace(token[0..dash_index]);
+        const end_text = trimLeadingTokenWhitespace(token[dash_index + 1 ..]);
         if (start_text.len == 0 or end_text.len == 0) {
             return error.InvalidCpuRange;
         }
@@ -63,7 +69,7 @@ fn parseRangeToken(token: []const u8) ParseCpuMaskError!struct { start: usize, e
         return .{ .start = start, .end = end };
     }
 
-    const cpu = try parseCpuIndex(token);
+    const cpu = try parseCpuIndex(trimLeadingTokenWhitespace(token));
     return .{ .start = cpu, .end = cpu };
 }
 
@@ -200,6 +206,23 @@ test "parseCpuMaskString accepts the C helper's signed decimal token syntax when
     try std.testing.expect(parsed.values[5]);
 }
 
+test "parseCpuMaskString keeps sscanf-style whitespace after range dashes in parity with the C helper" {
+    const parsed = try parseCpuMaskString(std.testing.allocator, "0- 3,+5-\t6,+8-\r9\n");
+    defer parsed.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 10), parsed.values.len);
+    try std.testing.expect(parsed.values[0]);
+    try std.testing.expect(parsed.values[1]);
+    try std.testing.expect(parsed.values[2]);
+    try std.testing.expect(parsed.values[3]);
+    try std.testing.expect(!parsed.values[4]);
+    try std.testing.expect(parsed.values[5]);
+    try std.testing.expect(parsed.values[6]);
+    try std.testing.expect(!parsed.values[7]);
+    try std.testing.expect(parsed.values[8]);
+    try std.testing.expect(parsed.values[9]);
+}
+
 test "parseCpuMaskString rejects empty and malformed ranges" {
     try std.testing.expectError(error.EmptyCpuRange, parseCpuMaskString(std.testing.allocator, ",\n"));
     try std.testing.expectError(error.InvalidCpuRange, parseCpuMaskString(std.testing.allocator, ",\n\r"));
@@ -230,7 +253,7 @@ test "parseCpuMaskFromReader accepts chunked sysfs-style input" {
     };
 
     var state = ReaderState{
-        .chunks = &.{ "+0-2,", "\n+4", ",6\n" },
+        .chunks = &.{ "+0-\t2,", "\n+4", ",6-\r7\n" },
     };
     var scratch: [8]u8 = undefined;
     const parsed = try parseCpuMaskFromReader(std.testing.allocator, &scratch, .{
@@ -239,8 +262,8 @@ test "parseCpuMaskFromReader accepts chunked sysfs-style input" {
     });
     defer parsed.deinit(std.testing.allocator);
 
-    try std.testing.expectEqual(@as(usize, 7), parsed.values.len);
-    try std.testing.expectEqual(@as(usize, 5), parsed.countSet());
+    try std.testing.expectEqual(@as(usize, 8), parsed.values.len);
+    try std.testing.expectEqual(@as(usize, 6), parsed.countSet());
     try std.testing.expect(parsed.values[0]);
     try std.testing.expect(parsed.values[1]);
     try std.testing.expect(parsed.values[2]);
@@ -248,6 +271,7 @@ test "parseCpuMaskFromReader accepts chunked sysfs-style input" {
     try std.testing.expect(parsed.values[4]);
     try std.testing.expect(!parsed.values[5]);
     try std.testing.expect(parsed.values[6]);
+    try std.testing.expect(parsed.values[7]);
 }
 
 test "parseCpuMaskFromReader rejects invalid reader contracts" {
