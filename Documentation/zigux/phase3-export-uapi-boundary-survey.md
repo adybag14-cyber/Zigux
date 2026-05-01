@@ -23,6 +23,8 @@ This note records the current export-shim and UAPI boundary for the bounded Phas
 - `PHASE3_EXPORT_UAPI_TEST_BLOB_SHA=bc64f9e607cba33c86288446bf378d4da88432d3`
 - `PHASE3_ABI_MANIFEST_BLOB_SHA=f6716ac6e498c0bfd9264ab93b37db96d2e27c93`
 - `PHASE3_EXPORT_UAPI_GATE=zig build phase3-export-uapi-test --build-file zigux/tests/phase3_export_uapi_build.zig`
+- `PHASE3_ABI_BUILD_SMOKE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi --check-build-smoke`
+- `PHASE3_ABI_BUILD_SMOKE_STATUS=shared-validator-replays-export-uapi-boundary`
 - `PHASE3_BOUNDARY_GAP=broader-curated-uapi-shims-still-deferred`
 - `PHASE3_NEXT_BOUNDED_STEP=keep-boundary-header-surface-narrow-until-one-roadmap-backed-interop-slice-needs-another-curated-uapi-or-export-entry`
 
@@ -56,6 +58,7 @@ The current tree already carries the first bounded export and UAPI boundary surf
 - `Documentation/zigux/phase3-abi-slice.md` now describes the export shim as explicit-status-plus-boundary-header, the C helper header as the shared ABI relay, and the UAPI surface as version-and-boundary-header
 - `zigux/tests/phase3_export_uapi.zig` now proves that both helpers accept the same shared boundary header, expose the same named version and size predicates, distinguish canonical headers from broader future-compatible headers, and reject undersized or version-mismatched headers identically
 - `zigux/uapi/version.zig` now also keeps the forward-compatible constructor explicit through `compatibleHeader(size, flags)`, so future-size replay does not have to fall back to ad hoc struct literals when the boundary packet wants to stay narrow but still reviewable
+- `scripts/zigux/validate_phase3_core.py` now routes `python3 scripts/zigux/validate-phase3.py --slug abi --check-build-smoke` through the shared `phase3-dump`, `phase3-low-level-wrappers-test`, `phase3-export-uapi-test`, and `phase3-policy-unsafe-test` replays, so the export/UAPI boundary is part of the shared ABI build-smoke proof rather than only a boundary-local survey gate
 - `scripts/zigux/validate-phase3-export-uapi-survey.py` now rejects drift in the directly coupled export/UAPI packet by checking the recorded packet-local blob IDs first and only falling back to `PHASE3_SURVEYED_COMMIT` when older survey notes do not yet carry those fingerprints, so the survey stays anchored to boundary-local evidence even on shallow checkouts
 - that same survey validator now also fails if the C-facing helper header stops carrying the shared ABI include or the local `zigux_status_ok()` and `zigux_status_err()` relay helpers, so the export/UAPI packet no longer leaves its C-side relay implicit
 
@@ -72,6 +75,7 @@ More specifically, it is still evidence for commit-train entry `26`, `feat(zigux
 - the original substrate ledger entry already named `zigux/kernel/export_shim.zig` and `zigux/uapi/version.zig` as part of the permanent Phase 3 boundary
 - current `master` now adds focused replay evidence for that same boundary through `zigux/tests/phase3_export_uapi_build.zig` and `zigux/tests/phase3_export_uapi.zig`
 - the same ledger packet also includes `include/linux/zigux.h`, and the dedicated export/UAPI survey now treats that helper header as first-class packet evidence instead of a side reference outside the reviewable boundary note
+- current `master` now also keeps that same ledger entry reviewable through the ABI-only build-smoke replay at `python3 scripts/zigux/validate-phase3.py --slug abi --check-build-smoke`, where `scripts/zigux/validate_phase3_core.py` compiles the shared dump plus the focused export/UAPI, low-level-wrapper, and policy/unsafe build steps inside one bounded substrate packet
 - current `master` also keeps that same ledger entry reviewable through the restored `python3 scripts/zigux/validate-phase3.py` gate and the tightened `python3 scripts/zigux/validate-phase3-export-uapi-survey.py` survey gate, so packet-local drift now fails at the survey layer before the boundary snapshot can quietly age out
 - `zigux/tests/fixtures/phase3_abi_manifest.json` now carries those focused replay paths inside the same ABI substrate packet rather than presenting them as a broader UAPI tranche
 
