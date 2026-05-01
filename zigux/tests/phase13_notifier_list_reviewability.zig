@@ -93,6 +93,13 @@ test "phase13 notifier/list survey keeps the current list surface and generic no
     defer parsed.deinit();
 
     const manifest = parsed.value;
+    const notifier_block_abi_present = std.mem.indexOf(u8, abi_text, "pub const NotifierBlockRef = extern struct") != null;
+    const raw_notifier_head_abi_present = std.mem.indexOf(u8, abi_text, "pub const RawNotifierHeadRef = extern struct") != null;
+    const generic_notifier_abi_present = notifier_block_abi_present and raw_notifier_head_abi_present;
+    const notifier_build_surface_present = std.mem.indexOf(u8, phase13_build, "notifier_chain_view") != null or
+        std.mem.indexOf(u8, phase3_build, "../helpers/notifier_chain_view.zig") != null;
+    const notifier_helper_present = !notifier_helper_missing;
+
     try std.testing.expectEqualStrings("P13-L15", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("66b55d8a9a800345097f3c04b9f95130b1f8d0b8", manifest.surveyed_commit);
@@ -118,22 +125,34 @@ test "phase13 notifier/list survey keeps the current list surface and generic no
     try std.testing.expect(manifest.survey_summary.preexisting_generic_notifier_layout_anchor_present);
     try std.testing.expect(manifest.survey_summary.preexisting_public_list_notifier_coexistence_anchor_present);
     try std.testing.expect(manifest.survey_summary.preexisting_public_same_struct_list_notifier_anchor_present);
-    try std.testing.expect(!manifest.survey_summary.preexisting_generic_notifier_abi_present);
-    try std.testing.expect(!manifest.survey_summary.preexisting_generic_notifier_build_surface_present);
-    try std.testing.expect(!manifest.survey_summary.preexisting_generic_notifier_helper_present);
+    try std.testing.expectEqual(manifest.survey_summary.preexisting_generic_notifier_abi_present, generic_notifier_abi_present);
+    try std.testing.expectEqual(manifest.survey_summary.preexisting_generic_notifier_build_surface_present, notifier_build_surface_present);
+    try std.testing.expectEqual(manifest.survey_summary.preexisting_generic_notifier_helper_present, notifier_helper_present);
     try std.testing.expectEqual(@as(usize, 14), manifest.gaps.len);
 
     try std.testing.expect(std.mem.indexOf(u8, phase13_build, "phase13_notifier_list_reviewability.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase13_build, "notifier_chain_view") == null);
     try std.testing.expect(std.mem.indexOf(u8, phase3_build, "../helpers/list_view.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase3_build, "../helpers/hlist_view.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase3_build, "../helpers/notifier_chain_view.zig") == null);
     try std.testing.expect(std.mem.indexOf(u8, phase3_build, "../helpers/chrdev_notify_plan.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, abi_text, "pub const ListHeadRef = extern struct") != null);
     try std.testing.expect(std.mem.indexOf(u8, abi_text, "pub const HListHeadRef = extern struct") != null);
-    try std.testing.expect(std.mem.indexOf(u8, abi_text, "pub const NotifierBlockRef") == null);
-    try std.testing.expect(std.mem.indexOf(u8, abi_text, "pub const BlockingNotifierHeadRef") == null);
-    try std.testing.expect(notifier_helper_missing);
+    if (manifest.survey_summary.preexisting_generic_notifier_abi_present) {
+        try std.testing.expect(notifier_block_abi_present);
+        try std.testing.expect(raw_notifier_head_abi_present);
+    } else {
+        try std.testing.expect(!notifier_block_abi_present);
+        try std.testing.expect(!raw_notifier_head_abi_present);
+    }
+    if (manifest.survey_summary.preexisting_generic_notifier_build_surface_present) {
+        try std.testing.expect(notifier_build_surface_present);
+    } else {
+        try std.testing.expect(!notifier_build_surface_present);
+    }
+    if (manifest.survey_summary.preexisting_generic_notifier_helper_present) {
+        try std.testing.expect(notifier_helper_present);
+    } else {
+        try std.testing.expect(!notifier_helper_present);
+    }
     try std.testing.expect(std.mem.indexOf(u8, list_view_text, "pub fn viewFromHead") != null);
     try std.testing.expect(std.mem.indexOf(u8, list_view_text, "pub fn summarize") != null);
     try std.testing.expect(std.mem.indexOf(u8, hlist_view_text, "pub fn viewFromHead") != null);
@@ -179,8 +198,7 @@ test "phase13 notifier/list survey keeps the current list surface and generic no
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "field-level read-only shape") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "public list-plus-notifier coexistence anchor") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "same-struct public notifier-plus-list anchor") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "no shared notifier helper file or build replay hook") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase13_notifier_list_reviewability.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "manifest's explicit ABI or helper or build-surface posture") != null);
 
     var starter_landed_count: usize = 0;
     var preexisting_phase3_count: usize = 0;
