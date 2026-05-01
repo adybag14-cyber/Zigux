@@ -107,6 +107,9 @@ test "phase 7 memparse preserves suffix scaling and stop index semantics" {
     try std.testing.expectEqual(@as(u64, 1 << 30), cmdline.memparse("1G", &index));
     try std.testing.expectEqual(@as(usize, 2), index);
 
+    try std.testing.expectEqual(@as(u64, 0), cmdline.memparse("G5", &index));
+    try std.testing.expectEqual(@as(usize, 1), index);
+
     try std.testing.expectEqual(@as(u64, 0), cmdline.memparse("0xK", &index));
     try std.testing.expectEqual(@as(usize, 1), index);
 }
@@ -136,7 +139,7 @@ test "phase 7 numeric helpers reject explicit leading plus signs to stay with cm
     var rest: []const u8 = "+7,panic";
     var value: i32 = -1;
     try std.testing.expectEqual(@as(u8, 0), cmdline.getOption(&rest, &value));
-    try std.testing.expectEqual(@as(i32, -1), value);
+    try std.testing.expectEqual(@as(i32, 0), value);
     try std.testing.expectEqualStrings("+7,panic", rest);
 
     var index: usize = 0;
@@ -145,6 +148,14 @@ test "phase 7 numeric helpers reject explicit leading plus signs to stay with cm
 
     try std.testing.expectEqual(@as(u64, 0), cmdline.memparse("+0x10", &index));
     try std.testing.expectEqual(@as(usize, 0), index);
+}
+
+test "phase 7 getOption zeroes the output slot for non-empty invalid tokens" {
+    var rest: []const u8 = "d=eEc";
+    var value: i32 = -1;
+    try std.testing.expectEqual(@as(u8, 0), cmdline.getOption(&rest, &value));
+    try std.testing.expectEqual(@as(i32, 0), value);
+    try std.testing.expectEqualStrings("d=eEc", rest);
 }
 
 test "phase 7 nextArg matches serialized edge fixtures" {
