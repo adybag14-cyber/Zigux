@@ -8,7 +8,7 @@ This document records the current release-discipline reading for the active Phas
 - `PHASE13_TRANCHE=shared-helper-bundle`
 - `PHASE13_RELEASE_SURVEY=present`
 - `PHASE13_RELEASE_VALIDATOR=present`
-- scope: roadmap traceability, shared helper replay entrypoints, the four manifest-backed survey packets already present on `master`, the adjacent notifier-list reviewability packet, and the explicit helper-only `devres` DMA/scatterlist boundary
+- scope: roadmap traceability, shared helper replay entrypoints, the four manifest-backed survey packets already present on `master`, the adjacent notifier-list reviewability packet plus its landed read-only generic notifier foothold, and the explicit helper-only `devres` DMA/scatterlist boundary
 - product boundary:
   - `scripts/zigux/validate-phase13-release.py`
   - `scripts/zigux/README.md`
@@ -68,6 +68,7 @@ The current Phase 13 release-facing reading is:
 - `security/landlock/ruleset.c`: helper slice landed, dedicated tests present, roadmap traceability present, manifest-backed survey present
 - `security/landlock/syscalls.c`: helper slice landed, dedicated tests present, roadmap traceability present, manifest-backed survey present
 - the shared bootstrap workflow replays the same validator-plus-build contract through `Validate Phase 13 release-discipline packet` and `Run Phase 13 shared helper tests`
+- the adjacent notifier-list packet now stays visible as roadmap-adjacent release evidence, and its shared replay surface includes the landed read-only generic notifier foothold through `zigux/bindings/notifier_abi.zig` and `zigux/helpers/notifier_chain_view.zig`
 
 - `PHASE13_ROADMAP_ANCHOR_COUNT=4`
 - `PHASE13_MANIFEST_BACKED_SURVEY_COUNT=4`
@@ -76,7 +77,7 @@ The current Phase 13 release-facing reading is:
 - `PHASE13_VALIDATE_ENTRYPOINT=make -C zigux phase13-validate`
 - `PHASE13_SHARED_BUILD_PRESENT=yes`
 - `PHASE13_SHARED_MAKE_TARGET_PRESENT=yes`
-- `PHASE13_SHARED_REPLAY_STEP_COUNT=7`
+- `PHASE13_SHARED_REPLAY_STEP_COUNT=8`
 - `PHASE13_RELEASE_CLOSED=no`
 
 The current release packet also carries one active Phase 13 boundary reminder on `master`:
@@ -91,7 +92,7 @@ The current manifest lane ownership carried by the release packet is:
 - `lib/devres.c` through `zigux/tests/phase13_devres_manifest.json` lane `P13-L05`
 - `security/landlock/ruleset.c` through `zigux/tests/phase13_landlock_ruleset_manifest.json` lane `P13-L12`
 - `security/landlock/syscalls.c` through `zigux/tests/phase13_landlock_syscalls_manifest.json` lane `P13-L16`
-- adjacent notifier-list reviewability evidence through `zigux/tests/phase13_notifier_list_manifest.json` lane `P13-L17`
+- adjacent notifier-list reviewability evidence through `zigux/tests/phase13_notifier_list_manifest.json` lane `P13-L18`
 
 The current shared replay inventory is:
 
@@ -102,12 +103,15 @@ The current shared replay inventory is:
 - `phase13-libfs-reviewability-tests`
 - `phase13-devres-reviewability-tests`
 - `phase13-notifier-list-reviewability-tests`
+- `phase13-notifier-chain-view-tests`
 
 The adjacent notifier-list reviewability packet remains useful release evidence, but it is not counted as a fifth roadmap anchor:
 
 - `Documentation/zigux/phase13-notifier-list-survey.md`
 - `zigux/tests/phase13_notifier_list_reviewability.zig`
 - `zigux/tests/phase13_notifier_list_manifest.json`
+- `zigux/bindings/notifier_abi.zig`
+- `zigux/helpers/notifier_chain_view.zig`
 
 ## Evidence set
 
@@ -166,7 +170,7 @@ This survey does not claim:
 - live MMIO mappings, live device-resource teardown parity, or generic devres group ownership
 - live DMA-backed helpers, live scatterlist ownership, or detach-time scatter-gather cleanup beyond the current blocked boundary markers
 - live Landlock enforcement, live tree-state ownership transfer, or broader syscall-enforcement parity
-- notifier ABI parity beyond the current preexisting list or hlist reviewability packet
+- notifier registration, callback execution, SRCU, blocking-notifier semantics, or a fifth roadmap anchor beyond the current read-only generic notifier foothold and adjacent reviewability packet
 
 ## Next bounded step
 
