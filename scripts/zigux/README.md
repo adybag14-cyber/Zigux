@@ -117,7 +117,7 @@ Phase 7 flow
 Phase 8 flow
 - `validate-phase8.py` keeps the parked repo-hosted tooling packet aligned across `Documentation/zigux/phase8-exec-cmd-slice.md`, `Documentation/zigux/phase8-help-slice.md`, `Documentation/zigux/phase8-kallsyms-slice.md`, `Documentation/zigux/phase8-libbpf-segment-survey.md`, and `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md` so the shared review surface stays explicit.
 - `make -C zigux phase8-validate` is the validator-first entrypoint for the current Phase 8 flow.
-- `zigux/tests/phase8_help_only_build.zig`, `zigux/tests/phase8_kallsyms_only_build.zig`, `zigux/tests/phase8_libbpf_segments_only_build.zig`, and `zigux/tests/phase8_build.zig` keep the focused and shared replay paths visible in one place.
+- `zigux/tests/phase8_exec_cmd_only_build.zig`, `zigux/tests/phase8_help_only_build.zig`, `zigux/tests/phase8_kallsyms_only_build.zig`, `zigux/tests/phase8_libbpf_segments_only_build.zig`, and `zigux/tests/phase8_build.zig` keep the focused and shared replay paths visible in one place.
 - `tools/lib/subcmd/exec-cmd.zig`, the deferred execution notes around `execvp()`, and the separate `kernel/workqueue.c` freeze boundary remain helper-only review surfaces rather than new process-launch claims.
 - the segmented libbpf packet stays bounded to helper-first slices such as `tools/lib/bpf/zigux_segments/cpu_mask.zig` and `tools/lib/bpf/zigux_segments/type_names.zig` plus the shared `phase8-libbpf-segment-survey.md` and `phase8-userspace-kernel-bridge-boundary-survey.md` notes.
 - `make -C zigux phase8-test` and `zig build test --build-file zigux/tests/phase8_build.zig --summary all` remain the shared replay path after the validator passes.
