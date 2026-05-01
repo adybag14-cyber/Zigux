@@ -127,7 +127,7 @@ MODULE_SLICE_MARKERS = [
 ]
 
 MMIO_SLICE_MARKERS = [
-    "PHASE10_SLICE=virtio-mmio-config-write-helper",
+    "PHASE10_SLICE=virtio-mmio-interrupt-summary-helper",
     "in-memory config-write planning",
     "phase10-mmio-lifecycle-and-irq-paths",
 ]
