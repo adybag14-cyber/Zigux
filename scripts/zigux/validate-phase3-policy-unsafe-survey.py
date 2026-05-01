@@ -133,10 +133,16 @@ REQUIRED_POLICY_UNSAFE_TEST_SNIPPETS = (
     'test "phase3 policy helpers stay ABI aligned"',
     'test "phase3 policy decoder validates the whole interop record"',
     'test "phase3 policy decoder keeps allocator init and reset requirements reviewable"',
+    "allocator_policy.initializesOwnedStatePolicyByte(@intFromEnum(abi.AllocatorMode.kernel_heap))",
+    "allocator_policy.requiresResetOnInitPolicyByte(@intFromEnum(abi.AllocatorMode.arena))",
     'test "phase3 policy decoder rejects partial or reserved policy bytes"',
+    "try std.testing.expectError(error.InvalidPanicMode, interop_policy.decode(.{",
+    "try std.testing.expectError(error.InvalidAllocatorMode, interop_policy.decode(.{",
     'test "phase3 policy gate decodes interop-policy unsafe bytes explicitly"',
     'test "phase3 policy gate enforces the declared unsafe scope"',
     'test "phase3 policy gate rejects overflowed unsafe address math"',
+    "try std.testing.expectError(error.AddressOverflow, narrow.checkedByteOffset(max, 1));",
+    "try std.testing.expectError(error.AddressOverflow, narrow.scopedPointerAt(u32, .volatile_mmio, max, 1));",
 )
 
 REQUIRED_ABI_SLICE_SNIPPETS = (
@@ -422,12 +428,18 @@ def run_self_test() -> int:
             "\n".join(
                 [
                     'test "phase3 policy helpers stay ABI aligned" {}',
+                    'allocator_policy.initializesOwnedStatePolicyByte(@intFromEnum(abi.AllocatorMode.kernel_heap))',
+                    'allocator_policy.requiresResetOnInitPolicyByte(@intFromEnum(abi.AllocatorMode.arena))',
                     'test "phase3 policy decoder validates the whole interop record" {}',
                     'test "phase3 policy decoder keeps allocator init and reset requirements reviewable" {}',
                     'test "phase3 policy decoder rejects partial or reserved policy bytes" {}',
+                    'try std.testing.expectError(error.InvalidPanicMode, interop_policy.decode(.{',
+                    'try std.testing.expectError(error.InvalidAllocatorMode, interop_policy.decode(.{',
                     'test "phase3 policy gate decodes interop-policy unsafe bytes explicitly" {}',
                     'test "phase3 policy gate enforces the declared unsafe scope" {}',
                     'test "phase3 policy gate rejects overflowed unsafe address math" {}',
+                    'try std.testing.expectError(error.AddressOverflow, narrow.checkedByteOffset(max, 1));',
+                    'try std.testing.expectError(error.AddressOverflow, narrow.scopedPointerAt(u32, .volatile_mmio, max, 1));',
                     "",
                 ]
             ),
@@ -509,6 +521,14 @@ def run_self_test() -> int:
         issues = validate(root)
         assert (
             'missing_policy_unsafe_test_snippet:test "phase3 policy decoder keeps allocator init and reset requirements reviewable"'
+            in issues
+        )
+        assert (
+            'missing_policy_unsafe_test_snippet:try std.testing.expectError(error.InvalidPanicMode, interop_policy.decode(.{'
+            in issues
+        )
+        assert (
+            'missing_policy_unsafe_test_snippet:try std.testing.expectError(error.AddressOverflow, narrow.checkedByteOffset(max, 1));'
             in issues
         )
         assert (
