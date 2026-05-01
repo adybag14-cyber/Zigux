@@ -308,6 +308,11 @@ test "argvFree mirrors argv_free release ownership and stays safe after teardown
     try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
 
     argvFree(std.testing.allocator, &split);
+    try std.testing.expectEqual(@as(usize, 0), split.storage.len);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[split.storage.len]);
+    try std.testing.expectEqual(@as(usize, 0), split.argv.len);
+    try std.testing.expectEqual(@as(usize, 1), split.argv_null_terminated.len);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
 }
 
 test "argvSplit frees intermediate allocations when allocator failure interrupts setup" {
