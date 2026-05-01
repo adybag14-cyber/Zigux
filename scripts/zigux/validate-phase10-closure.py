@@ -521,6 +521,16 @@ def run_self_test() -> int:
 
         manifest_path = fixture_root / "zigux/tests/phase10_closure_manifest.json"
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["landed_input_helper_evidence"] = {}
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "landed_input_helper_manifest_guard",
+            fixture_root,
+            "manifest:landed_input_helper_evidence",
+        )
+        write_fixture(fixture_root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["landed_mmio_helper_evidence"]["zigux/tests/phase10_virtio_mmio_manifest.json"].pop()
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         expect_missing_marker(
@@ -620,7 +630,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=8")
+    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
