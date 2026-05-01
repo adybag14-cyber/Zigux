@@ -18,6 +18,7 @@ FILES = [
     "scripts/zigux/README.md",
     "Documentation/zigux/README.md",
     "Documentation/zigux/phase10-virtio-ring-slice.md",
+    "Documentation/zigux/phase10-virtio-ring-survey.md",
     "Documentation/zigux/phase10-virtio-input-slice.md",
     "Documentation/zigux/phase10-virtio-input-module-slice.md",
     "Documentation/zigux/phase10-virtio-input-survey.md",
@@ -29,6 +30,7 @@ FILES = [
     "zigux/tests/phase10_build.zig",
     "zigux/tests/phase10_virtio_ring.zig",
     "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
+    "zigux/tests/phase10_virtio_ring_survey.zig",
     "zigux/tests/phase10_virtio_ring_manifest.json",
     "zigux/tests/phase10_virtio_input.zig",
     "zigux/tests/phase10_virtio_input_survey.zig",
@@ -125,6 +127,11 @@ RING_SLICE_MARKERS = [
     "Do not reopen `virtio_ring.zig` for more speculative in-memory queue work",
 ]
 
+RING_SURVEY_MARKERS = [
+    "phase10-mmio-config-write-helper",
+    "no smaller ready transport follow-up remains ahead of the still-blocked lifecycle and IRQ packet",
+]
+
 SLICE_MARKERS = [
     "python3 scripts/zigux/validate-phase10.py",
     "make -C zigux phase10-validate",
@@ -180,6 +187,14 @@ RING_TEST_MARKERS = [
 
 RING_RESET_REUSE_TEST_MARKERS = [
     'test "phase10 virtio ring drained reset clears the broken flag so the queue can be reused" {',
+]
+
+RING_SURVEY_TEST_MARKERS = [
+    'test "phase10 virtio ring survey manifest records the live queue-discipline packet and parked MMIO blocker after landed config-write" {',
+    'try std.testing.expectEqualStrings("800e2edfb5d2d0c80ac45ffee6630a6b13905d0d", manifest.surveyed_commit);',
+    'try std.testing.expectEqual(@as(usize, 0), ready_next_count);',
+    'if (std.mem.eql(u8, gap.id, "phase10-mmio-config-write-helper")) {',
+    'if (std.mem.eql(u8, gap.id, "phase10-mmio-lifecycle-and-irq-paths")) {',
 ]
 
 MMIO_TEST_MARKERS = [
@@ -254,6 +269,7 @@ def required_marker_count() -> int:
         + len(TESTS_README_MARKERS)
         + len(DOC_README_MARKERS)
         + len(RING_SLICE_MARKERS)
+        + len(RING_SURVEY_MARKERS)
         + len(SLICE_MARKERS)
         + len(SURVEY_MARKERS)
         + len(MODULE_SLICE_MARKERS)
@@ -264,6 +280,7 @@ def required_marker_count() -> int:
         + len(MMIO_HELPER_MARKERS)
         + len(RING_TEST_MARKERS)
         + len(RING_RESET_REUSE_TEST_MARKERS)
+        + len(RING_SURVEY_TEST_MARKERS)
         + len(TEST_MARKERS)
         + len(MMIO_TEST_MARKERS)
         + len(SURVEY_TEST_MARKERS)
@@ -286,6 +303,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         ("tests_readme", read_text(root, "zigux/tests/README.md"), TESTS_README_MARKERS),
         ("doc_readme", read_text(root, "Documentation/zigux/README.md"), DOC_README_MARKERS),
         ("ring_slice_doc", read_text(root, "Documentation/zigux/phase10-virtio-ring-slice.md"), RING_SLICE_MARKERS),
+        ("ring_survey_doc", read_text(root, "Documentation/zigux/phase10-virtio-ring-survey.md"), RING_SURVEY_MARKERS),
         ("slice_doc", read_text(root, "Documentation/zigux/phase10-virtio-input-slice.md"), SLICE_MARKERS),
         ("survey_doc", read_text(root, "Documentation/zigux/phase10-virtio-input-survey.md"), SURVEY_MARKERS),
         ("module_slice", read_text(root, "Documentation/zigux/phase10-virtio-input-module-slice.md"), MODULE_SLICE_MARKERS),
@@ -296,6 +314,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         ("mmio_helper", read_text(root, "drivers/virtio/virtio_mmio.zig"), MMIO_HELPER_MARKERS),
         ("ring_tests", read_text(root, "zigux/tests/phase10_virtio_ring.zig"), RING_TEST_MARKERS),
         ("ring_reset_reuse_tests", read_text(root, "zigux/tests/phase10_virtio_ring_reset_reuse.zig"), RING_RESET_REUSE_TEST_MARKERS),
+        ("ring_survey_tests", read_text(root, "zigux/tests/phase10_virtio_ring_survey.zig"), RING_SURVEY_TEST_MARKERS),
         ("tests", read_text(root, "zigux/tests/phase10_virtio_input.zig"), TEST_MARKERS),
         ("mmio_tests", read_text(root, "zigux/tests/phase10_virtio_mmio.zig"), MMIO_TEST_MARKERS),
         ("survey_test", read_text(root, "zigux/tests/phase10_virtio_input_survey.zig"), SURVEY_TEST_MARKERS),
@@ -717,6 +736,23 @@ def run_self_test() -> int:
         )
         ring_reset_reuse_path.write_text(original_ring_reset_reuse, encoding="utf-8")
 
+        ring_survey_path = tmp_root / "Documentation/zigux/phase10-virtio-ring-survey.md"
+        original_ring_survey = ring_survey_path.read_text(encoding="utf-8")
+        ring_survey_path.write_text(
+            original_ring_survey.replace(
+                "phase10-mmio-config-write-helper",
+                "phase10-mmio-config-write-helper-drift",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "ring_survey_config_write_marker",
+            tmp_root,
+            "ring_survey_doc:phase10-mmio-config-write-helper",
+        )
+        ring_survey_path.write_text(original_ring_survey, encoding="utf-8")
+
         input_manifest_path = tmp_root / "zigux/tests/phase10_virtio_input_manifest.json"
         original_input_manifest = input_manifest_path.read_text(encoding="utf-8")
         input_manifest_path.write_text(
@@ -835,7 +871,7 @@ def run_self_test() -> int:
         doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
 
     print("PHASE10_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_VALIDATOR_SELF_TEST_CASE_COUNT=11")
+    print("PHASE10_VALIDATOR_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
