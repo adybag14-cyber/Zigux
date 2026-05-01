@@ -199,12 +199,16 @@ test "bitmap diff survey keeps the current rounded fill drifts explicit against 
     // here until tools/lib/bitmap.zig changes.
     try std.testing.expectEqual(bits_per_long, roundedPrefixLen(35));
     try expectCurrentFillPrefix(&map, 35, 35, "0-34");
+    try std.testing.expectEqual(@as(usize, 34), findNthSet(&map, bitmap_nbits, 34));
+    try std.testing.expectEqual(bitmap_nbits, findNthSet(&map, bitmap_nbits, 35));
     try expectClear(&map, bits_per_long - 1);
 
     // The same drift is still present for fill(115): the kernel anchor rounds
     // to two whole words, while the current Zig helper stops at bit 114.
     try std.testing.expectEqual(bits_per_long * 2, roundedPrefixLen(115));
     try expectCurrentFillPrefix(&map, 115, 115, "0-114");
+    try std.testing.expectEqual(@as(usize, 114), findNthSet(&map, bitmap_nbits, 114));
+    try std.testing.expectEqual(bitmap_nbits, findNthSet(&map, bitmap_nbits, 115));
     try expectClear(&map, bits_per_long * 2 - 1);
 }
 
