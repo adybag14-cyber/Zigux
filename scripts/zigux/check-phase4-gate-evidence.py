@@ -244,6 +244,40 @@ def run_self_test() -> int:
             for marker in missing
         ), missing
 
+        write_fixture_tree(root)
+        gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
+        gate_evidence.write_text(
+            gate_evidence.read_text(encoding="utf-8").replace(
+                "PHASE4_TEST_FSMOUNT_SURVEY_BLOB_SHA=",
+                "PHASE4_TEST_FSMOUNT_SURVEY_BLOB_SHA=broken",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert any(
+            marker.startswith(
+                "phase4_gate_evidence:PHASE4_TEST_FSMOUNT_SURVEY_BLOB_SHA:"
+            )
+            for marker in missing
+        ), missing
+
+        write_fixture_tree(root)
+        gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
+        gate_evidence.write_text(
+            gate_evidence.read_text(encoding="utf-8").replace(
+                "PHASE4_TESTS_README_BLOB_SHA=",
+                "PHASE4_TESTS_README_BLOB_SHA=broken",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert any(
+            marker.startswith("phase4_gate_evidence:PHASE4_TESTS_README_BLOB_SHA:")
+            for marker in missing
+        ), missing
+
     print("PHASE4_GATE_EVIDENCE_SELF_TEST=pass")
     return 0
 
