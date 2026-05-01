@@ -99,6 +99,9 @@ test "phase10 virtio input survey manifest records the live starter and remainin
     const input_helper_evidence = landed_input_helper_evidence.object.get("zigux/tests/phase10_virtio_input_manifest.json") orelse return error.TestUnexpectedResult;
     try std.testing.expect(input_helper_evidence == .array);
     const expected_landed_input_helpers = [_][]const u8{
+        "phase10-virtio-input-capability-setup-helper",
+        "phase10-virtio-input-multitouch-slot-helper",
+        "phase10-virtio-input-teardown-observation-helper",
         "phase10-virtio-input-registration-preflight-helper",
         "phase10-virtio-input-queue-callback-preflight-helper",
     };
