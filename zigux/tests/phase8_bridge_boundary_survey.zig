@@ -1,5 +1,7 @@
 const std = @import("std");
 
+const shared_surveyed_commit = "36414e38da67a51209095d0c06170f81e80258eb";
+
 fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
@@ -41,6 +43,14 @@ test "phase 8 bridge boundary survey stays wired into the shared packet" {
     );
     defer std.testing.allocator.free(bridge_note);
 
+    const libbpf_survey_note = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "Documentation/zigux/phase8-libbpf-segment-survey.md",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(libbpf_survey_note);
+
     const phase8_build = try readWorkspaceFile(
         io_instance.io(),
         std.testing.allocator,
@@ -68,6 +78,11 @@ test "phase 8 bridge boundary survey stays wired into the shared packet" {
     try expectContains(tests_readme, "zigux/tests/phase8_build.zig");
 
     try expectContains(bridge_note, "PHASE8_SLICE=userspace-kernel-bridge-boundary-survey");
+    try expectContains(bridge_note, "surveyed_commit=" ++ shared_surveyed_commit);
+    try expectContains(
+        libbpf_survey_note,
+        "survey checkpoint: refreshed against inspected `master` head `" ++ shared_surveyed_commit ++ "`",
+    );
     try expectContains(bridge_note, "tools/lib/subcmd/exec-cmd.zig");
     try expectContains(bridge_note, "tools/lib/subcmd/help.zig");
     try expectContains(bridge_note, "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig");
@@ -137,7 +152,20 @@ test "phase 8 bridge boundary survey still matches the live helper surfaces" {
     );
     defer std.testing.allocator.free(file_path_handle_bridge_helper);
 
+    const libbpf_survey_note = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "Documentation/zigux/phase8-libbpf-segment-survey.md",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(libbpf_survey_note);
+
     try expectContains(bridge_note, "path-resolution");
+    try expectContains(bridge_note, "surveyed_commit=" ++ shared_surveyed_commit);
+    try expectContains(
+        libbpf_survey_note,
+        "survey checkpoint: refreshed against inspected `master` head `" ++ shared_surveyed_commit ++ "`",
+    );
     try expectContains(bridge_note, "choosePwdCwdFromIdentities()");
     try expectContains(bridge_note, "setupPathWithPwd()");
     try expectContains(bridge_note, "collectExeclArgs()");
