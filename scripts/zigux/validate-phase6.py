@@ -205,7 +205,7 @@ BASE64_VECTORS_MARKERS = [
     '.{ .input = "APv,f4A", .expected = &variant_sample, .padding = false, .variant_name = "imap" },',
     '.{ .input = ",,A", .expected = &variant_two_byte_sample, .padding = false, .variant_name = "imap" },',
     '.{ .input = "+x", .padding = false, .variant_name = "imap" },',
-    'pub const perf_cases = [_]PerfCase{',
+    "pub const perf_cases = [_]PerfCase{",
 ]
 
 BASE64_SLICE_MARKERS = [
@@ -851,13 +851,36 @@ def run_self_test() -> int:
                     "expected bsearch parity self-test case-count marker failure, got: "
                     f"{bsearch_self_test_case_count_fail_result['missing']}"
                 )
+
+            write_self_test_tree(root)
+            hexdump_vectors_path = root / "zigux/tests/fixtures/phase6_hexdump_vectors.zig"
+            hexdump_vectors_text = hexdump_vectors_path.read_text(encoding="utf-8")
+            hexdump_grouped_ascii_marker = '.{ .label = "16B-ascii-g4", .len = 16, .rowsize = 16, .groupsize = 4, .ascii = true, .reps = 20_000, .max_slowdown_pct = 550 },'
+            if hexdump_grouped_ascii_marker not in hexdump_vectors_text:
+                raise AssertionError("expected hexdump grouped-ascii perf marker missing from positive fixture")
+            hexdump_vectors_path.write_text(
+                hexdump_vectors_text.replace(hexdump_grouped_ascii_marker, "", 1),
+                encoding="utf-8",
+            )
+
+            hexdump_grouped_ascii_fail_result = validate_phase6(root)
+            if hexdump_grouped_ascii_fail_result["ok"]:
+                raise AssertionError("hexdump grouped-ascii perf marker removal unexpectedly passed")
+            if (
+                f"phase6_hexdump_vectors:missing:{hexdump_grouped_ascii_marker}"
+                not in hexdump_grouped_ascii_fail_result["missing"]
+            ):
+                raise AssertionError(
+                    "expected hexdump grouped-ascii perf marker failure, got: "
+                    f"{hexdump_grouped_ascii_fail_result['missing']}"
+                )
     except AssertionError as exc:
         print("PHASE6_VALIDATOR_SELF_TEST=fail")
         print(f"PHASE6_VALIDATOR_SELF_TEST_REASON={exc}")
         return 1
 
     print("PHASE6_VALIDATOR_SELF_TEST=pass")
-    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=8")
+    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
