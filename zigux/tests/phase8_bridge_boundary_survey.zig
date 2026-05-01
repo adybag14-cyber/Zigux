@@ -76,6 +76,7 @@ test "phase 8 bridge boundary survey stays wired into the shared packet" {
     try expectContains(tests_readme, "zigux/tests/phase8_bridge_boundary_survey.zig");
     try expectContains(tests_readme, "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md");
     try expectContains(tests_readme, "zigux/tests/phase8_build.zig");
+    try expectContains(tests_readme, "zigux/tests/phase8_perf_buffer_poll.zig");
 
     try expectContains(bridge_note, "PHASE8_SLICE=userspace-kernel-bridge-boundary-survey");
     try expectContains(bridge_note, "surveyed_commit=" ++ shared_surveyed_commit);
