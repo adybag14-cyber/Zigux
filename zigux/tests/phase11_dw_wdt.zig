@@ -194,6 +194,7 @@ test "phase11 dw_wdt registration handoff imports running state before registrat
     try std.testing.expectEqual(@as(u32, 16), handoff.timeout_sec);
     try std.testing.expectEqual(@as(u32, 8), handoff.pretimeout_sec);
     try std.testing.expect(!handoff.nowayout);
+    try std.testing.expect(!handoff.nowayout_applied);
     try std.testing.expect(handoff.parent_attached);
     try std.testing.expect(handoff.watchdog_drvdata_set);
     try std.testing.expect(handoff.timeout_init_requested);
