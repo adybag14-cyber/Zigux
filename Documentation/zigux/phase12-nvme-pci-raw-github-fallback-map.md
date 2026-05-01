@@ -1,0 +1,53 @@
+# Phase 12 NVMe PCI Raw GitHub Fallback Map
+
+This note records the smallest public-read fallback packet for lane `P12-L08`.
+
+It does not claim a live-head replay catalog. It only maps the archived Phase 12 NVMe PCI survey packet to stable GitHub tree views and raw blob URLs pinned to `8b69e4dfd04553afeb08c0ecbf3060f800e7ecd1`.
+
+## Scope
+
+- `PHASE12_LANE_KEY=P12-L08`
+- `PHASE12_SURVEYED_COMMIT=8b69e4dfd04553afeb08c0ecbf3060f800e7ecd1`
+- bounded packet:
+  - `drivers/nvme/host/pci.c`
+  - `drivers/nvme/host/pci.zig`
+  - `zigux/tests/phase12_nvme_pci.zig`
+  - `zigux/tests/phase12_nvme_pci_manifest.json`
+  - `zigux/tests/phase12_nvme_pci_survey.zig`
+  - `zigux/tests/phase12_build.zig`
+  - `Documentation/zigux/phase12-nvme-pci-slice.md`
+  - `Documentation/zigux/phase12-nvme-pci-survey.md`
+  - `scripts/zigux/validate-phase12.py`
+  - `zigux/Makefile`
+
+## Tree Readback Roots
+
+- `https://github.com/adybag14-cyber/Zigux/tree/master/drivers/nvme/host`
+- `https://github.com/adybag14-cyber/Zigux/tree/master/Documentation/zigux`
+- `https://github.com/adybag14-cyber/Zigux/tree/master/zigux/tests`
+
+## Raw Pinned URLs
+
+- `https://raw.githubusercontent.com/adybag14-cyber/Zigux/8b69e4dfd04553afeb08c0ecbf3060f800e7ecd1/drivers/nvme/host/pci.c`
+- `https://raw.githubusercontent.com/adybag14-cyber/Zigux/8b69e4dfd04553afeb08c0ecbf3060f800e7ecd1/drivers/nvme/host/pci.zig`
+- `https://raw.githubusercontent.com/adybag14-cyber/Zigux/8b69e4dfd04553afeb08c0ecbf3060f800e7ecd1/zigux/tests/phase12_nvme_pci.zig`
+- `https://raw.githubusercontent.com/adybag14-cyber/Zigux/8b69e4dfd04553afeb08c0ecbf3060f800e7ecd1/zigux/tests/phase12_nvme_pci_manifest.json`
+- `https://raw.githubusercontent.com/adybag14-cyber/Zigux/8b69e4dfd04553afeb08c0ecbf3060f800e7ecd1/zigux/tests/phase12_nvme_pci_survey.zig`
+- `https://raw.githubusercontent.com/adybag14-cyber/Zigux/8b69e4dfd04553afeb08c0ecbf3060f800e7ecd1/zigux/tests/phase12_build.zig`
+- `https://raw.githubusercontent.com/adybag14-cyber/Zigux/8b69e4dfd04553afeb08c0ecbf3060f800e7ecd1/Documentation/zigux/phase12-nvme-pci-slice.md`
+- `https://raw.githubusercontent.com/adybag14-cyber/Zigux/8b69e4dfd04553afeb08c0ecbf3060f800e7ecd1/Documentation/zigux/phase12-nvme-pci-survey.md`
+- `https://raw.githubusercontent.com/adybag14-cyber/Zigux/8b69e4dfd04553afeb08c0ecbf3060f800e7ecd1/scripts/zigux/validate-phase12.py`
+- `https://raw.githubusercontent.com/adybag14-cyber/Zigux/8b69e4dfd04553afeb08c0ecbf3060f800e7ecd1/zigux/Makefile`
+
+## Use
+
+- Start with the tree readback roots when the connector can still show the current repo structure but a lane reviewer needs a public fallback path.
+- Use the raw pinned URLs when the exact archived Phase 12 NVMe PCI packet text matters more than the moving `master` tip.
+- Leave current-head replay evidence to the owner lanes for the shared validator, the shared build, or a dedicated driver-local current-replay catalog.
+
+## Non-goals
+
+- no `current_master_replay_head`
+- no shared-validator outcome snapshot
+- no shared-build outcome snapshot
+- no claim that `8b69e4dfd04553afeb08c0ecbf3060f800e7ecd1` is the current `master` tip
