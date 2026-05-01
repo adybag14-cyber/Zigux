@@ -1,7 +1,7 @@
 {
   "lane_key": "P10-L03",
   "phase": "Phase 10",
-  "surveyed_commit": "3232d0c7296f86e9f5822d0f8b87030f79449c08",
+  "surveyed_commit": "fff48ae79aea16379f402e92c46f02f3772fb789",
   "anchor": "drivers/virtio/virtio.c",
   "roadmap_destinations": [
     "drivers/virtio/*.zig",
