@@ -51,6 +51,8 @@ Current bootstrap helpers
 - `validate-phase3-export-uapi-survey.py`
 - `validate-phase3-low-level-wrapper-survey.py`
 - `validate-phase3-policy-unsafe-survey.py`
+- `validate_phase3_header_binding_markers.py`
+- `validate_phase3_selftest.py`
 - `run-phase3-checks.py`
 - `phase3_catalog.py`
 - `check-phase1-parity.py`
@@ -113,6 +115,7 @@ Phase 3 flow
 - `validate-phase3-policy-unsafe-survey.py --self-test` exercises the policy, narrow-unsafe, and MMIO survey-marker checks without needing the full repo tree, and it now emits its own `PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass` token so isolated validator coverage stays distinguishable from a live survey replay.
 - `validate-phase3.py` now requires the focused `phase3-policy-unsafe` build and test files plus the published `PHASE3_POLICY_UNSAFE_GATE` ABI-slice marker, so the landed policy and unsafe substrate no longer hides only inside the broader ABI replay and keeps the dedicated interop-policy unsafe-byte decoding gate reviewable on its own.
 - the same validator now keeps `zigux/helpers/layout_assert.zig`, `zigux/helpers/panic_policy.zig`, `zigux/helpers/allocator_policy.zig`, `zigux/helpers/mmio.zig`, `zigux/unsafe/narrow.zig`, `zigux/tests/phase3_policy_unsafe.zig`, and `zigux/tests/phase3_policy_unsafe_build.zig` aligned with `zigux/tests/fixtures/phase3_abi_manifest.json` and `Documentation/zigux/phase3-abi-slice.md`, so allocator-owned init and reset requirements plus the scoped narrow-unsafe and MMIO helper path cannot drift out of the published packet silently.
+- `validate_phase3_header_binding_markers.py` keeps the shared ABI header and bindings packet fail-closed across `include/zigux/abi.h`, `include/linux/zigux.h`, and `zigux/bindings/abi.zig`, and `validate_phase3_selftest.py` keeps the dedicated Phase 3 source-marker and survey-gate replay packet executable on its own, so the broader ABI validator does not hide those helper-local checks behind import-only coverage.
 - the same validator surface now also carries the latest focused policy evidence: `zigux/tests/phase3_policy_unsafe.zig` covers overflow-checked unsafe address math, and the Phase 3 source-audit self-test keeps the layout-assert, panic-policy, allocator-policy, and narrow-unsafe markers reviewable even when the full repo tree is not under replay.
 - the same validator now also treats the focused low-level wrapper gate as a real anti-regression surface instead of a presence-only file list: it restores the shared self-test import path, checks the exact exported atomic, barrier, and MMIO helper surface against the published Phase 3 ABI slice, and still checks the scoped `read16`, `write16`, `read32`, and `write32` MMIO entry points plus the low-level replay’s strong compare-exchange success and mismatch coverage, weak compare-exchange retry and mismatch coverage, barrier probe, denied-scope, and allowed scoped-MMIO assertions so width-specific, scope-specific, or undocumented wrapper-surface drift fails before Phase 3 review claims stay green.
 
