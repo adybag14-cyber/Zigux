@@ -190,6 +190,13 @@ test "phase4 test_fsmount survey manifest records the landed survey packet and r
         .limited(64 * 1024),
     );
     defer std.testing.allocator.free(script_readme);
+    const tests_readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/README.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(tests_readme);
 
     const zig_sample_present = blk: {
         std.Io.Dir.cwd().access(io_instance.io(), "samples/zigux/test_fsmount.zig", .{}) catch |err| switch (err) {
@@ -288,4 +295,8 @@ test "phase4 test_fsmount survey manifest records the landed survey packet and r
     try std.testing.expect(std.mem.indexOf(u8, doc_readme, "phase4-test-fsmount-survey-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, script_readme, "make -C zigux phase4-test-fsmount-survey") != null);
     try std.testing.expect(std.mem.indexOf(u8, script_readme, "phase4-test-fsmount-survey-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "zigux/tests/phase4_test_fsmount_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "zigux/tests/phase4_test_fsmount_manifest.json") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "make -C zigux phase4-test-fsmount-survey") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "c_anchor_only_until_test_fsmount_starter_lands") != null);
 }
