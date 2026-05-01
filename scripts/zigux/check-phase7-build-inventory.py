@@ -34,8 +34,7 @@ def load_fixture() -> dict[str, object]:
     return json.loads(FIXTURE_PATH.read_text(encoding="utf-8"))
 
 
-def render_inventory() -> dict[str, object]:
-    build_text = BUILD_PATH.read_text(encoding="utf-8")
+def render_inventory_from_text(build_text: str) -> dict[str, object]:
     imported_helpers = [
         {
             "root_path": root_path,
@@ -66,6 +65,10 @@ def render_inventory() -> dict[str, object]:
         "shared_test_depend_steps": DEPEND_STEP_RE.findall(build_text),
         "unexpected_build_markers": UNEXPECTED_BUILD_MARKERS,
     }
+
+
+def render_inventory(build_path: Path = BUILD_PATH) -> dict[str, object]:
+    return render_inventory_from_text(build_path.read_text(encoding="utf-8"))
 
 
 def print_mismatch(expected: dict[str, object], actual: dict[str, object]) -> None:
@@ -100,8 +103,27 @@ def run_self_test() -> int:
     if first["expected_build_paths"] != sorted(first["expected_build_paths"]):
         raise SystemExit("phase7-build-inventory:self-test:path_sorting")
 
+    build_text = BUILD_PATH.read_text(encoding="utf-8")
+    cwd_drift_text, replacements = re.subn(
+        r'("phase7-argv-split-survey-tests",\s*argv_split_survey_root_module,\s*)repo_root(\s*,\s*\))',
+        r"\1null\2",
+        build_text,
+        count=1,
+        flags=re.S,
+    )
+    if replacements != 1:
+        raise SystemExit("phase7-build-inventory:self-test:cwd_drift_rewrite")
+
+    cwd_drift = render_inventory_from_text(cwd_drift_text)
+    if cwd_drift == fixture:
+        raise SystemExit("phase7-build-inventory:self-test:cwd_drift_detection")
+    if first["run_cwds"].get("phase7-argv-split-survey-tests") != "repo_root":
+        raise SystemExit("phase7-build-inventory:self-test:argv_split_repo_root_baseline")
+    if cwd_drift["run_cwds"].get("phase7-argv-split-survey-tests") is not None:
+        raise SystemExit("phase7-build-inventory:self-test:argv_split_repo_root_drift")
+
     print("PHASE7_BUILD_INVENTORY_SELF_TEST=pass")
-    print("PHASE7_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=5")
+    print("PHASE7_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
