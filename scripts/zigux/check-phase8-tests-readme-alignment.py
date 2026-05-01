@@ -15,6 +15,7 @@ REQUIRED_FILES = {
     "tests_readme": "zigux/tests/README.md",
     "perf_slice": "Documentation/zigux/phase8-perf-buffer-poll-slice.md",
     "shared_build": "zigux/tests/phase8_build.zig",
+    "makefile": "zigux/Makefile",
 }
 
 TESTS_README_MARKERS = [
@@ -36,6 +37,12 @@ SHARED_BUILD_MARKERS = [
     "../../tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
     "phase8_perf_buffer_poll.zig",
     "phase8-perf-buffer-poll-tests",
+]
+
+MAKEFILE_MARKERS = [
+    "phase8-validate:",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-tests-readme-alignment.py --self-test\n",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-tests-readme-alignment.py\n",
 ]
 
 
@@ -73,6 +80,7 @@ def validate(root: Path) -> list[str]:
     tests_readme = read_text(root, REQUIRED_FILES["tests_readme"])
     perf_slice = read_text(root, REQUIRED_FILES["perf_slice"])
     shared_build = read_text(root, REQUIRED_FILES["shared_build"])
+    makefile = read_text(root, REQUIRED_FILES["makefile"])
 
     for marker in TESTS_README_MARKERS:
         if marker not in tests_readme:
@@ -85,6 +93,10 @@ def validate(root: Path) -> list[str]:
     for marker in SHARED_BUILD_MARKERS:
         if marker not in shared_build:
             missing.append(f"shared_build:{marker}")
+
+    for marker in MAKEFILE_MARKERS:
+        if marker not in makefile:
+            missing.append(f"makefile:{marker}")
 
     return missing
 
@@ -146,6 +158,22 @@ def clone_fixture_root(destination_root: Path) -> None:
                 'const perf_buffer_poll_root = "../../tools/lib/bpf/zigux_segments/perf_buffer_poll.zig";',
                 'const perf_buffer_poll_test = "phase8_perf_buffer_poll.zig";',
                 'const perf_buffer_poll_name = "phase8-perf-buffer-poll-tests";',
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    makefile = destination_root / REQUIRED_FILES["makefile"]
+    makefile.parent.mkdir(parents=True, exist_ok=True)
+    makefile.write_text(
+        "\n".join(
+            [
+                "phase8-validate:",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase8.py --self-test",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-tests-readme-alignment.py --self-test",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase8.py",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-tests-readme-alignment.py",
                 "",
             ]
         ),
@@ -240,9 +268,41 @@ def run_self_test() -> int:
             tmp_root,
             "shared_build:../../tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
         )
+        shared_build_path.write_text(original_shared_build, encoding="utf-8")
+
+        makefile_path = tmp_root / REQUIRED_FILES["makefile"]
+        original_makefile = makefile_path.read_text(encoding="utf-8")
+        makefile_path.write_text(
+            original_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-tests-readme-alignment.py --self-test\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "makefile_self_test_hook",
+            tmp_root,
+            "makefile:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-tests-readme-alignment.py --self-test\n",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        makefile_path.write_text(
+            original_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-tests-readme-alignment.py\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "makefile_live_hook",
+            tmp_root,
+            "makefile:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-tests-readme-alignment.py\n",
+        )
 
     print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=4")
+    print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
