@@ -149,14 +149,15 @@ These prompts are intentionally sample-backed rather than generic. They tie revi
 
 ## Recorded gap vs roadmap
 
-The current gap is not missing Phase 5 sample delivery for `kfifo`. The more precise lane posture is:
+The roadmap delivery gap is already closed. The more precise ongoing review job is:
 
 - all four roadmap anchors now have bounded non-runtime `samples/zigux/` reference samples on current `master`
 - `samples/zigux/README.md` now records that shipped anchor set plainly so reviewers can keep the bytestream FIFO slice distinct from the separate later Phase 9 runtime pilots
-- this approved FIFO idiom is now pinned to `PHASE5_SURVEYED_COMMIT=9dab85059c6f56865ef2f981d2303049775c5001` so the survey note, manifest-backed checks, and contributor refresh path all point at the same inspected `master` head
-- the landed bytestream FIFO sample still intentionally does not claim procfs, user-copy, locking, or module registration support
+- this approved in-memory FIFO idiom is now pinned to `PHASE5_SURVEYED_COMMIT=9dab85059c6f56865ef2f981d2303049775c5001` so the survey note, manifest-backed checks, shared sample-root catalog, shared review checklist, and contributor refresh path all point at the same inspected `master` head
+- the full four-anchor Phase 5 reference-sample set is already landed on current `master`, so this note should describe the bytestream FIFO slice as one approved in-memory FIFO idiom inside that completed anchor set rather than as a placeholder for a still-missing tranche item
+- contributor guidance still needs to keep the explicit fixed-storage boundary, transfer-count contract, preview and snapshot checks, and non-goals visibly separate from procfs, user-copy, locking, and module-registration claims
 
-This slice keeps the `kfifo` survey aligned with the live Phase 5 sample set and the roadmap-approved boundary for the shipped bytestream FIFO replay, including its explicit fixed-storage and transfer-count contract, so future work can leave this lane parked unless a real same-family drift appears.
+This slice keeps the landed bytestream FIFO sample reviewable by recording the exact lifecycle, queue-order replay, transfer-count contract, preview and snapshot checks, fixed embedded storage boundary, and non-goal cues reviewers should check before approving future edits, without reopening the closed Phase 5 sample-delivery gap.
 
 ## Review gates for this survey
 
