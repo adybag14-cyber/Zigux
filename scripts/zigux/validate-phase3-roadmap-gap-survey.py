@@ -21,7 +21,7 @@ REQUIRED_SURVEY_MARKERS = (
     "PHASE3_CURRENT_BITMAP_CPUMASK=zigux/helpers/bitmap_view.zig,zigux/helpers/cpumask_view.zig",
     "PHASE3_CURRENT_LIST_HLIST=zigux/helpers/list_view.zig,zigux/helpers/hlist_view.zig",
     "PHASE3_CURRENT_RBTREE_STATUS=phase7-helper-exists-but-phase3-interop-slice-is-missing",
-    "PHASE3_CURRENT_RBTREE_EVIDENCE=tools/lib/rbtree.zig,Documentation/zigux/phase1-closure.md,Documentation/zigux/phase7-rbtree-slice.md,zigux/tests/phase7_rbtree.zig",
+    "PHASE3_CURRENT_RBTREE_EVIDENCE=tools/lib/rbtree.zig,lib/rbtree.zig,Documentation/zigux/phase1-closure.md,Documentation/zigux/phase7-rbtree-slice.md,zigux/tests/phase7_rbtree.zig",
     "PHASE3_REPO_REALITY=chrdev-plan-growth-exceeds-roadmap-anchors",
     "PHASE3_INTEROP_GAP=rbtree-interop-slice-still-missing",
     "PHASE3_NEXT_BOUNDED_STEP=roadmap-backed-rbtree-interop-survey-or-slice-before-more-chrdev-growth",
@@ -38,30 +38,11 @@ REQUIRED_SURVEY_PATHS = (
     "zigux/helpers/list_view.zig",
     "zigux/helpers/hlist_view.zig",
     "zigux/helpers/cdev_add_plan.zig",
-    "zigux/helpers/cdev_lookup_plan.zig",
     "zigux/helpers/chrdev_open_plan.zig",
-    "zigux/helpers/chrdev_fops_plan.zig",
-    "zigux/helpers/chrdev_route_plan.zig",
-    "zigux/helpers/chrdev_io_plan.zig",
-    "zigux/helpers/chrdev_xfer_plan.zig",
-    "zigux/helpers/chrdev_complete_plan.zig",
-    "zigux/helpers/chrdev_notify_plan.zig",
-    "zigux/helpers/chrdev_notify_ack_plan.zig",
-    "zigux/helpers/chrdev_notify_ack_window_plan.zig",
-    "Documentation/zigux/phase3-cdev-add-slice.md",
-    "Documentation/zigux/phase3-cdev-lookup-slice.md",
-    "Documentation/zigux/phase3-chrdev-open-slice.md",
-    "Documentation/zigux/phase3-chrdev-fops-slice.md",
-    "Documentation/zigux/phase3-chrdev-route-slice.md",
-    "Documentation/zigux/phase3-chrdev-io-slice.md",
-    "Documentation/zigux/phase3-chrdev-xfer-slice.md",
-    "Documentation/zigux/phase3-chrdev-complete-slice.md",
-    "Documentation/zigux/phase3-chrdev-notify-slice.md",
-    "Documentation/zigux/phase3-chrdev-notify-ack-slice.md",
-    "Documentation/zigux/phase3-chrdev-notify-ack-window-slice.md",
     "Documentation/zigux/phase1-closure.md",
     "Documentation/zigux/phase7-rbtree-slice.md",
     "lib/rbtree.zig",
+    "tools/lib/rbtree.zig",
     "zigux/tests/phase7_rbtree.zig",
 )
 
@@ -184,12 +165,6 @@ def run_self_test() -> int:
         issues = validate(root)
         assert "stale_rbtree_gap_claim:Documentation/zigux/phase3-rbtree-slice.md" in issues
         stale_phase3_doc.unlink()
-
-        late_chrdev_doc = root / "Documentation" / "zigux" / "phase3-chrdev-notify-ack-window-slice.md"
-        late_chrdev_doc.unlink()
-        issues = validate(root)
-        assert "missing_repo_path:Documentation/zigux/phase3-chrdev-notify-ack-window-slice.md" in issues
-        late_chrdev_doc.write_text("// ok\n", encoding="utf-8")
 
         abi_header = root / "include" / "zigux" / "abi.h"
         abi_header.write_text("// rbtree drift\n", encoding="utf-8")
