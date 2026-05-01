@@ -133,6 +133,7 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
     try std.testing.expectEqual(@as(usize, 0), firstZero(&map, bitmap_nbits));
     try std.testing.expectEqual(bitmap_nbits - bits_per_long, weight(&map, bitmap_nbits));
     try std.testing.expectEqual(@as(usize, bits_per_long), firstSet(&map, bitmap_nbits));
+    try expectPrintedList(&map, bitmap_nbits, "64-1023");
     try expectClear(&map, 35);
     try expectClear(&map, bits_per_long - 1);
     try expectSet(&map, bits_per_long);
@@ -144,6 +145,7 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
     try std.testing.expectEqual(@as(usize, 0), firstZero(&map, bitmap_nbits));
     try std.testing.expectEqual(bitmap_nbits - roundedPrefixLen(115), weight(&map, bitmap_nbits));
     try std.testing.expectEqual(@as(usize, bits_per_long * 2), firstSet(&map, bitmap_nbits));
+    try expectPrintedList(&map, bitmap_nbits, "128-1023");
     try expectClear(&map, 114);
     try expectSet(&map, bits_per_long * 2);
 }
