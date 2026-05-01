@@ -185,6 +185,24 @@ test "phase11 bcm2835_wdt platform handoff summary keeps parent and PM-base prer
     try std.testing.expect(ready.poweroff_handler_claimed);
     try std.testing.expect(!ready.poweroff_handler_conflict);
 
+    const conflict = watchdog.platformHandoffSummary(true, false, true, true, true);
+    try std.testing.expect(conflict.bootloader_running);
+    try std.testing.expect(!conflict.nowayout);
+    try std.testing.expect(conflict.parent_attached);
+    try std.testing.expect(conflict.parent_supplies_pm_base);
+    try std.testing.expect(conflict.pm_base_required);
+    try std.testing.expect(conflict.pm_base_handoff_ready);
+    try std.testing.expect(conflict.watchdog_drvdata_set);
+    try std.testing.expect(conflict.watchdog_parent_set);
+    try std.testing.expect(conflict.timeout_init_requested);
+    try std.testing.expect(conflict.register_device_requested);
+    try std.testing.expect(conflict.stop_on_reboot);
+    try std.testing.expectEqual(@as(u32, bcm2835_wdt.restart_priority), conflict.restart_priority);
+    try std.testing.expect(conflict.system_power_controller);
+    try std.testing.expect(conflict.poweroff_handler_present);
+    try std.testing.expect(!conflict.poweroff_handler_claimed);
+    try std.testing.expect(conflict.poweroff_handler_conflict);
+
     const blocked = watchdog.platformHandoffSummary(false, false, true, false, true);
     try std.testing.expect(!blocked.bootloader_running);
     try std.testing.expect(!blocked.nowayout);
