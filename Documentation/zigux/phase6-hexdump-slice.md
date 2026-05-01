@@ -70,8 +70,8 @@ The current tests check:
 - empty-buffer required-length behavior for normalized fallback paths
 - truncation behavior while still reporting the full required line length
 - exact `required + 1` caller-buffer coverage for the non-truncating formatter path, keeping the grouped plain and grouped ASCII fast path aligned with the same fixture output and NUL-termination contract as the roomy replay
-- a replayable perf-sanity harness reports representative dump cost per call and per byte for plain, grouped, and ASCII formatter paths through the shared `zigux/tests/fixtures/phase6_hexdump_vectors.zig` perf-case table, including the native-endian 4-byte grouped ASCII branch
-- the same perf harness now measures helper output against the committed `fixtures.prepareExpectedLine(...)` reference path, keeping `16B-plain` at `max_slowdown_pct = 175` while the grouped ASCII `32B-ascii-g2` and `16B-ascii-g4` replays use `max_slowdown_pct = 550`
+- a replayable perf-sanity harness reports representative dump cost per call and per byte for plain, grouped, and ASCII formatter paths through the shared `zigux/tests/fixtures/phase6_hexdump_vectors.zig` perf-case table, including the native-endian 4-byte and 8-byte grouped ASCII branches
+- the same perf harness now measures helper output against the committed `fixtures.prepareExpectedLine(...)` reference path, keeping `16B-plain` at `max_slowdown_pct = 175` while the grouped ASCII `32B-ascii-g2` and `16B-ascii-g4` replays use `max_slowdown_pct = 550` and the wider native-endian `16B-ascii-g8` replay uses `max_slowdown_pct = 600`
 
 This is enough evidence to leave the bounded hexdump helper lane parked unless a concrete new parity gap appears in the live repo.
 
