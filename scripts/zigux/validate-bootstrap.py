@@ -86,6 +86,14 @@ required_workflow_markers = [
     'zigux/tests/phase12_build.zig',
     'Run Phase 13 shared helper tests',
     'zigux/tests/phase13_build.zig',
+    'Validate Phase 14 shared smoke packet',
+    'make -C zigux phase14-validate',
+    'Run Phase 14 smoke shard',
+    'make -C zigux phase14-smoke',
+    'Run Phase 14 internal bridge tests',
+    'zigux/tests/phase14_build.zig',
+    'Run Phase 15 governance tests',
+    'make -C zigux phase15',
 ]
 missing_workflow_markers = [marker for marker in required_workflow_markers if marker not in workflow]
 if missing_workflow_markers:
@@ -201,6 +209,15 @@ required_make_markers = [
     'scripts/zigux/validate-phase6.py',
     'phase6-test:',
     'zigux/tests/phase6_build.zig',
+    'phase14-validate:',
+    'scripts/zigux/validate-phase14.py',
+    'phase14-smoke:',
+    'phase14-test:',
+    'zigux/tests/phase14_build.zig',
+    'phase15-validate:',
+    'scripts/zigux/validate-phase15.py',
+    'phase15-test:',
+    'zigux/tests/phase15_build.zig',
 ]
 missing_make_markers = [marker for marker in required_make_markers if marker not in makefile]
 if missing_make_markers:
