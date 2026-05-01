@@ -5,7 +5,8 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 ## Status
 
 - `PHASE8_STATUS=parked`
-- `PHASE8_SLICE=kallsyms-parse-wrapper-starter`
+- `PHASE8_SLICE=kallsyms-parse-wrapper-parked`
+- legacy validator alias: `PHASE8_SLICE=kallsyms-parse-wrapper-starter`
 - scope: symbol-type helpers, injected line parsing, chunked reader iteration, thin reader or path adapters, and direct callback wrappers over contents, reader-backed parsing, and file-backed parsing only
 - product boundary:
   - `tools/lib/symbol/kallsyms.zig`
