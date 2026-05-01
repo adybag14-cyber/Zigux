@@ -142,7 +142,7 @@ It also stays underneath the freeze-map study boundary for `kernel/workqueue.c`,
 - `python3 scripts/zigux/validate-phase9.py`
 
 3. run the shared Phase 9 runtime survey bundle
-- `zig build test --build-file zigux/tests/phase9_build.zig`
+- `zig build test --build-file zigux/tests/phase9_build.zig --summary all`
 
 4. run the focused loader-gap replay
 - `make -C zigux phase9-loader-gap-survey`
