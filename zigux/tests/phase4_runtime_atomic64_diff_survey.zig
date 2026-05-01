@@ -303,9 +303,9 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate, 
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "`PHASE4_PERF_BASELINE_SURVEY_BLOB_SHA=8c2fbdb1debc254133a79d3b7884f8d6e4c9a08c`") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "`PHASE4_DOC_README_BLOB_SHA=42d713fb271dc01f22afe24a4d5af20a65683d7d`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "`PHASE4_SCRIPT_README_BLOB_SHA=b1e188748e818d1f0d1dc20f7ff48323ddeef10d`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "`PHASE4_TESTS_README_BLOB_SHA=3e63f0cd7d443f80921353e7b250bc6a9bb5d36d`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "`PHASE4_DOC_README_BLOB_SHA=03a116340a604240c546468d47afd221a4ce33ce`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "`PHASE4_SCRIPT_README_BLOB_SHA=9c2820016b8b789a143670ce554e30eb472251c2`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "`PHASE4_TESTS_README_BLOB_SHA=7b9bb2ff4d8df02b7afcb44308492ef885f86144`") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, current_surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "phase4_runtime_atomic64_diff_survey.zig") != null);
 
