@@ -20,7 +20,7 @@ This document records the bounded Phase 7 runtime leaf-helper slice for Zigux ar
 
 Phase 7 explicitly calls out `lib/rbtree.c` as one of the first reusable in-kernel leaf libraries that should move into the Zigux product path.
 
-This current slice keeps the work bounded to runtime-safe leaf helpers with explicit integration with validation substrate through `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_survey.zig`, `zigux/tests/phase7_build.zig`, and `scripts/zigux/check-phase7-rbtree-parity.py`.
+This current slice keeps the work bounded to runtime-safe leaf helpers with explicit integration with validation substrate through `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_survey.zig`, `zigux/tests/phase7_build.zig`, and `scripts/zigux/check-phase7-rbtree-parity.py`.
 
 This slice stays intentionally narrow and ports the first practical runtime-safe red-black tree surface:
 
@@ -36,8 +36,9 @@ This slice stays intentionally narrow and ports the first practical runtime-safe
 
 ## Gates
 
-1. prove the shared Phase 7 validator packet still fails closed before the helper replay runs
+1. prove the shared Phase 7 validator packet and make-wrapper gate still fail closed before the helper replay runs
 - `python3 scripts/zigux/validate-phase7.py --self-test`
+- `python3 scripts/zigux/check-phase7-make-wrapper.py`
 - `make -C zigux phase7-validate`
 
 2. run the focused Zig module tests
