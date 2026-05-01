@@ -97,7 +97,7 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P9-L01", manifest.lane_key);
+    try std.testing.expectEqualStrings("P9-L02", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 9", manifest.phase);
     try std.testing.expect(isLowerHexSha(manifest.surveyed_commit));
     try std.testing.expectEqualStrings("lib/atomic64_test.c", manifest.anchor);
@@ -110,7 +110,7 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_doc_present);
     try std.testing.expect(manifest.review_prompts.len >= 6);
-    try std.testing.expectEqual(@as(usize, 13), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 14), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 11), manifest.delivery_evidence_catalog.len);
     try std.testing.expectEqual(@as(usize, 11), manifest.ownership_map.len);
     try std.testing.expect(manifest.gaps.len >= 7);
@@ -125,6 +125,7 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
     var saw_post_selftest_replay = false;
     var saw_exit_lifecycle = false;
     var saw_loader_request_surface = false;
+    var saw_loader_command_name_preservation = false;
     var saw_loader_build_leg = false;
     var saw_freeze_map_boundary_check = false;
     var saw_diff_add_bitwise = false;
@@ -282,6 +283,13 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "released_without_substrate") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "kernel_heap") != null);
         }
+        if (std.mem.eql(u8, check.id, "loader-command-name-preservation")) {
+            saw_loader_command_name_preservation = true;
+            try std.testing.expectEqualStrings("runtime_loader_contract", check.kind);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "perf-runtime-atomic64") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "releasedWithoutSubstrate") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "argv-policy") != null);
+        }
         if (std.mem.eql(u8, check.id, "loader-build-leg")) {
             saw_loader_build_leg = true;
             try std.testing.expectEqualStrings("shared_build_contract", check.kind);
@@ -428,6 +436,7 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
     try std.testing.expect(saw_module_slice_ownership);
     try std.testing.expect(saw_freeze_map_prompt);
     try std.testing.expect(saw_freeze_map_boundary_check);
+    try std.testing.expect(saw_loader_command_name_preservation);
 }
 
 test "phase 9 runtime atomic64 docs stay aligned with the manifest-backed surveyed commit" {
@@ -464,15 +473,16 @@ test "phase 9 runtime atomic64 docs stay aligned with the manifest-backed survey
     defer std.testing.allocator.free(module_slice);
 
     const required_markers = [_][]const u8{
-        "`PHASE9_LANE_KEY=P9-L01`",
+        "`PHASE9_LANE_KEY=P9-L02`",
         "`Documentation/zigux/freeze-map.md` keeps `kernel/workqueue.c` in `Study / Boundary Only`",
         "No parity scorecard entry or Architecture Council status-change request is attached to this runtime atomic64 starter packet.",
         "the bounded guard-return trio from `lib/atomic64_test.c`: `add_unless`, `inc_not_zero`, and `dec_if_positive`",
         "a narrow differential gate under `zigux/tests/runtime_atomic64_diff.zig` for bounded add, sub, bitwise, swap, compare-swap, and guard-return expectations drawn from `lib/atomic64_test.c`",
         "a landed sample-side loader scaffold under `samples/zigux/runtime_atomic64_loader.zig` plus a shared runtime-loader request binding under `zigux/kernel/runtime_loader.zig`",
+        "a bounded shared `command_name` preservation check in `samples/zigux/runtime_atomic64_loader.zig` that keeps a synthetic non-null loader request reviewable through both `waiting_on_runtime_substrate` and `released_without_substrate` without claiming live argv policy or runtime execution",
         "this shared build includes the direct `phase9-runtime-atomic64-sample-tests` and `phase9-runtime-atomic64-loader-tests` legs alongside the atomic64 module, diff, survey, loader, and shared runtime-loader checks",
         "any freeze-map status change for the scheduler-facing workqueue boundary without an Architecture Council decision",
-        "keep future work narrowly aimed at the remaining runtime substrate handoff or lifecycle-parity blocker, rather than reopening already-landed starter or differential scaffolds",
+        "keep future work narrowly aimed at the remaining runtime substrate handoff or broader shared loader-control blocker, rather than reopening already-landed starter, loader-request, or differential scaffolds",
     };
 
     for (required_markers) |marker| {
