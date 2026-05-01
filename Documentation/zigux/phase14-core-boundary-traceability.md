@@ -40,8 +40,8 @@ This note stays narrow on purpose. It does not add a bridge, reopen a freeze dec
 
 - manifest: `zigux/tests/phase14_rcu_tree_manifest.json`
 - survey note: `Documentation/zigux/phase14-rcu-tree-survey.md`
-- lane key: `P14-L16`
-- surveyed commit: `4c889233d157960514b241bcd5aff7cac5fda312`
+- lane key: `P14-L15`
+- surveyed commit: `e2075a1902926ea5f25f724134e48f04108e9240`
 - blocked gap: `phase14-rcu-tree-bridge-blocker`
 - retained-in-C boundary: grace-period sequence publication, expedited funnel or stall behavior, NOCB wakeups, quiescent-state propagation, callback enqueue, and callback batch invocation still remain in C because they share the live `rcu_node` hierarchy, offload state, and memory-ordering guarantees.
 
