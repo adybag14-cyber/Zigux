@@ -532,3 +532,23 @@ test "phase 9 runtime bitmap module slice note stays aligned with the landed loa
         "parse, print, region-allocation, or performance-path differentials",
     ) == null);
 }
+
+test "phase 9 runtime bitmap direct sample keeps empty parse-and-print replay explicit" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const sample_source = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "samples/zigux/runtime_bitmap.zig",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(sample_source);
+
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, "var empty = RuntimeBitmapSample{};") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, "try empty.initFromBitList(\"  \");") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, "const empty_summary = empty.summary();") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, "const empty_formatted = try empty.formatSetBits(std.testing.allocator);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, "try std.testing.expectEqualStrings(\"\", empty_formatted);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, "try std.testing.expectEqual(@as(?u32, null), empty.nthSetBit(0));") != null);
+}
