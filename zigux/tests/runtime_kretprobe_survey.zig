@@ -51,8 +51,6 @@ const Manifest = struct {
     non_goals: []const []const u8,
 };
 
-const surveyed_commit = "fe8a43ea2e186da0da152198b571dff57ea3c38c";
-
 fn readWorkspaceFile(
     io: anytype,
     allocator: std.mem.Allocator,
@@ -76,6 +74,22 @@ fn isLowerHexSha(value: []const u8) bool {
     return true;
 }
 
+fn expectSurveyedCommitMarker(document: []const u8, commit: []const u8) !void {
+    const marker = try std.fmt.allocPrint(std.testing.allocator, "`PHASE9_SURVEYED_COMMIT={s}`", .{commit});
+    defer std.testing.allocator.free(marker);
+    try std.testing.expect(std.mem.indexOf(u8, document, marker) != null);
+}
+
+fn expectPinnedCommitSentence(document: []const u8, commit: []const u8) !void {
+    const sentence = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "the current survey packet is pinned to `master` commit `{s}`",
+        .{commit},
+    );
+    defer std.testing.allocator.free(sentence);
+    try std.testing.expect(std.mem.indexOf(u8, document, sentence) != null);
+}
+
 test "phase 9 runtime kretprobe survey manifest records the landed ownership packet and remaining shared control blocker" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -94,7 +108,6 @@ test "phase 9 runtime kretprobe survey manifest records the landed ownership pac
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P9-L16", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 9", manifest.phase);
-    try std.testing.expectEqualStrings(surveyed_commit, manifest.surveyed_commit);
     try std.testing.expect(isLowerHexSha(manifest.surveyed_commit));
     try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
@@ -358,6 +371,19 @@ test "phase 9 runtime kretprobe docs keep the ownership packet and shared-build 
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
+    const manifest_json = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "zigux/tests/runtime_kretprobe_manifest.json",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(manifest_json);
+
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    defer parsed.deinit();
+
+    const manifest = parsed.value;
+
     const survey_doc = try readWorkspaceFile(
         io_instance.io(),
         std.testing.allocator,
@@ -384,7 +410,6 @@ test "phase 9 runtime kretprobe docs keep the ownership packet and shared-build 
 
     const required_survey_markers = [_][]const u8{
         "`PHASE9_LANE_KEY=P9-L16`",
-        "`PHASE9_SURVEYED_COMMIT=fe8a43ea2e186da0da152198b571dff57ea3c38c`",
         "manifest-backed delivery catalog and ownership map",
         "Latest verification snapshot",
         "zig test samples/zigux/runtime_kretprobe.zig",
@@ -419,7 +444,6 @@ test "phase 9 runtime kretprobe docs keep the ownership packet and shared-build 
 
     const required_module_markers = [_][]const u8{
         "`PHASE9_LANE_KEY=P9-L16`",
-        "`PHASE9_SURVEYED_COMMIT=fe8a43ea2e186da0da152198b571dff57ea3c38c`",
         "phase9-runtime-kretprobe-sample-tests",
         "phase9-runtime-kretprobe-module-tests",
         "phase9-runtime-kretprobe-diff-tests",
@@ -436,10 +460,6 @@ test "phase 9 runtime kretprobe docs keep the ownership packet and shared-build 
     for (required_module_markers) |marker| {
         try std.testing.expect(std.mem.indexOf(u8, module_doc, marker) != null);
     }
-    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`PHASE9_LANE_KEY=P9-L16`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`PHASE9_SURVEYED_COMMIT=fe8a43ea2e186da0da152198b571dff57ea3c38c`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, module_doc, "`PHASE9_LANE_KEY=P9-L16`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, module_doc, "`PHASE9_SURVEYED_COMMIT=fe8a43ea2e186da0da152198b571dff57ea3c38c`") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "RuntimeKretprobeSummary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "configureMaxactive()") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "configureMaxactive()") != null);
@@ -448,8 +468,11 @@ test "phase 9 runtime kretprobe docs keep the ownership packet and shared-build 
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "selftest_complete") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "`nmissed` replay") != null);
 
-    try std.testing.expect(std.mem.indexOf(u8, survey_doc, surveyed_commit) != null);
-    try std.testing.expect(std.mem.indexOf(u8, module_doc, surveyed_commit) != null);
+    try expectSurveyedCommitMarker(survey_doc, manifest.surveyed_commit);
+    try expectPinnedCommitSentence(survey_doc, manifest.surveyed_commit);
+    try expectSurveyedCommitMarker(module_doc, manifest.surveyed_commit);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, manifest.surveyed_commit) != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, manifest.surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, module_test, "test \"runtime kretprobe sample keeps post-selftest replay explicit at the module boundary\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_test, "try std.testing.expectEqual(@as(usize, 2), summary.nmissed);") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_test, "try std.testing.expectError(error.OutstandingProbeInstance, outstanding.exit());") != null);
