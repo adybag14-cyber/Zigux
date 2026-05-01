@@ -36,7 +36,7 @@ This current slice therefore stays inside helpers that:
 - `zig test lib/cmdline.zig`
 
 3. run the shared Phase 7 helper gate
-- `zig build test --build-file zigux/tests/phase7_build.zig`
+- `zig build test --build-file zigux/tests/phase7_build.zig --summary all`
 
 4. keep the helper-only review note replay inside the shared gate
 - `zigux/tests/phase7_cmdline_survey.zig`
