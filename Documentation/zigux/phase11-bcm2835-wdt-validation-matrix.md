@@ -5,8 +5,10 @@ This document records the first bounded hardware-validation matrix for the Zigux
 ## Status
 
 - `PHASE11_BCM2835_WDT_STATUS=platform_handoff_landed`
-- reviewed against live `master` `ba15a15ff4f0becd063b9b12aeea73df5307e6ef`
+- reviewed against live `master` `e39cf065b8a2a10319dd0db9388736045e014cf2`
 - scope: keep the current `bcm2835_wdt` starter honest about what is already validated, name the current platform-handoff evidence, and avoid overclaiming live platform registration, PM wiring, or poweroff coordination before those behaviors exist in Zigux
+- latest focused replay: `zig test zigux/tests/phase11_bcm2835_wdt_survey.zig` passes on current `master`
+- latest shared replay: `zig build test --build-file zigux/tests/phase11_build.zig --summary all` passes on current `master`, including `phase11-bcm2835-wdt-tests` and `phase11-bcm2835-wdt-survey-tests`
 - current repo reality:
   - `drivers/watchdog/bcm2835_wdt.zig`
   - `zigux/tests/phase11_bcm2835_wdt.zig`
@@ -41,6 +43,9 @@ Without this matrix, the slice and survey named the right next step but did not 
 - current shared replay wiring on `master` includes both `phase11-bcm2835-wdt-tests` and `phase11-bcm2835-wdt-survey-tests`
 - exact shared command:
   - `zig build test --build-file zigux/tests/phase11_build.zig --summary all`
+- latest shared replay result:
+  - `phase11-bcm2835-wdt-tests` and `phase11-bcm2835-wdt-survey-tests` both passed during the current replay
+  - the full shared command also passed on current `master`
 - included bcm2835 artifacts:
   - `phase11-bcm2835-wdt-tests`
   - `phase11-bcm2835-wdt-survey-tests`
