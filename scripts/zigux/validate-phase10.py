@@ -113,6 +113,7 @@ DOC_README_MARKERS = [
     "phase10-virtio-ring-slice.md",
     "phase10-virtio-mmio-slice.md",
     "phase10-virtio-input-slice.md",
+    "phase10-virtio-input-survey.md",
     "registration-preflight helper",
     "queue-callback preflight helper",
     "registration-lifecycle blocker",
