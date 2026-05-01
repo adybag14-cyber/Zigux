@@ -73,6 +73,8 @@ REQUIRED_MAKEFILE_SNIPPETS = (
 
 REQUIRED_ATOMIC_SNIPPETS = (
     "pub fn load(comptime T: type, ptr: *const T, comptime order: std.builtin.AtomicOrder) T {",
+    "pub fn fetchAdd(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {",
+    "pub fn fetchSub(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {",
     "pub fn fetchAnd(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {",
     "pub fn fetchOr(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {",
     "pub fn fetchXor(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {",
@@ -104,6 +106,8 @@ REQUIRED_MMIO_SNIPPETS = (
 
 REQUIRED_LOW_LEVEL_TEST_SNIPPETS = (
     'test "phase3 low-level wrappers stay inside the documented ABI surface"',
+    "atomic.fetchAdd(u32, &value, 2, .seq_cst)",
+    "atomic.fetchSub(u32, &value, 4, .seq_cst)",
     "atomic.fetchAnd(u32, &value, 0b0111, .seq_cst)",
     "atomic.fetchOr(u32, &value, 0b1000, .seq_cst)",
     "atomic.fetchXor(u32, &value, 0b1111, .seq_cst)",
@@ -306,7 +310,7 @@ def run_self_test() -> int:
                     "The packet keeps it explicit that no relaxed-order barrier variants are shipped in the current packet.",
                     "The packet keeps it explicit that no broader kernel-style atomic helper family is shipped in the current packet.",
                     "The packet keeps it explicit that no MMIO family wider than the direct and scoped 8-bit, 16-bit, 32-bit, and 64-bit accessors is shipped in the current packet.",
-                    "`zigux/tests/phase3_low_level_wrappers.zig` now keeps the strong and weak compare-exchange replay, barrier probe, denied-scope checks, width-specific direct and scoped 32-bit and 64-bit MMIO coverage, misalignment failures, overflow failures, and the shared `MmioRange` layout assertion reviewable without having to infer them from the broader `phase3_abi` bundle alone.",
+                    "`zigux/tests/phase3_low_level_wrappers.zig` now keeps the strong and weak compare-exchange replay, barrier probe, denied-scope checks, width-specific direct and scoped 32-bit and 64-bit MMIO coverage, misalignment failures, overflow failures, and the shared `MmioRange` layout assertion reviewable without having to infer them from the broader `phase3_abi` bundle alone",
                     "This is real roadmap-backed progress.",
                     "",
                     *_blob_marker_lines(),
@@ -409,6 +413,28 @@ def run_self_test() -> int:
         _write(root, MMIO_REL, (root / MMIO_REL).read_text(encoding="utf-8") + "// drift\n")
         issues = validate(root)
         assert f"surveyed_blob_drift:{MMIO_REL}" in issues
+
+        _write(
+            root,
+            ATOMIC_REL,
+            "\n".join(
+                snippet
+                for snippet in REQUIRED_ATOMIC_SNIPPETS
+                if snippet
+                != "pub fn fetchSub(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {"
+            )
+            + "\n",
+        )
+        issues = validate(root)
+        assert (
+            "missing_atomic_snippet:pub fn fetchSub(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {"
+            in issues
+        )
+        _write(
+            root,
+            ATOMIC_REL,
+            "\n".join(REQUIRED_ATOMIC_SNIPPETS) + "\n",
+        )
 
         _write(
             root,
