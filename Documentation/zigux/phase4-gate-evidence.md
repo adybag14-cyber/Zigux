@@ -12,8 +12,8 @@ This note records one exact readback snapshot for the current Phase 4 rollback-o
 - `PHASE4_BUILD_BLOB_SHA=57f4c3809387cac39e3153b9bbad17ca92ce3684`
 - `PHASE4_MAKEFILE_BLOB_SHA=e051b3c564efa85fdc1e0f4c083415de3eca0a88`
 - `PHASE4_WORKFLOW_BLOB_SHA=cc2c75b2bdfa65c4de7198b6625080caf5622589`
-- `PHASE4_TEST_FSMOUNT_MANIFEST_BLOB_SHA=df55e1ae2900e937b6423244aed0c76f220c6186`
-- `PHASE4_PERF_BASELINE_MANIFEST_BLOB_SHA=2ba09b7853b74b98c775a4469ceea5bab91c7464`
+- `PHASE4_TEST_FSMOUNT_MANIFEST_BLOB_SHA=a89fc1d8093a9f23850c1623c843f4add3efd8e4`
+- `PHASE4_PERF_BASELINE_MANIFEST_BLOB_SHA=44058ac9597848ac0fab37b0ac3c7385b67e2297`
 - `PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=38efef203cfa190f846a537564f276f319552660`
 
 ## Roadmap Contract
@@ -100,6 +100,7 @@ The current packet stayed aligned across the following readbacks on `master`:
 - `scripts/zigux/validate-phase4.py` still requires the matrix note, workflow markers, `zigux/Makefile` hooks, `zigux/tests/phase4_build.zig`, `zigux/tests/atomic64_diff.zig`, `zigux/tests/runtime_atomic64_diff.zig`, `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`, `zigux/tests/phase4_test_fsmount_manifest.json`, `zigux/tests/phase4_test_fsmount_survey.zig`, `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`, and `zigux/tests/bitmap_diff.zig` together.
 - `zigux/tests/bitmap_diff.zig` now also keeps the all-set and all-clear start-state printlist anchors explicit for both the 23-bit and 1024-bit views before the later `bitmap_scnprintf()` summary replay, so the bitmap row in the matrix should describe that start-state evidence rather than only the later `1-3,7,10-11` rendering case.
 - the atomic64 survey manifest plus `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` now pin the shared surveyed snapshot `ec9aa1b15a34e581625da1056956ecb5dd6cd76a` consistently, and the refreshed manifest blob pin above records that aligned atomic64 packet state directly.
+- the `test_fsmount` and perf-baseline survey manifests plus their paired survey tests now pin that same shared surveyed snapshot `ec9aa1b15a34e581625da1056956ecb5dd6cd76a`, so the reversible-delivery packet no longer disagrees with the atomic64 manifest it cross-checks.
 - direct compare evidence from `ec9aa1b15a34e581625da1056956ecb5dd6cd76a...master` may still show newer unrelated work on `master`, so this note should be read as an atomic64-packet alignment readback rather than a branch-tip provenance claim for the rest of Phase 4.
 - `zigux/Makefile` still exposes `phase4-validate`, `phase4-test`, `phase4-runtime-atomic64-diff`, `phase4-test-fsmount-survey`, `phase4-perf-baseline-survey`, and `phase4-bitmap-diff`.
 - `.github/workflows/zigux-bootstrap.yml` still drives `make -C zigux phase4-validate` in `Validate Phase 4 diff gates` and `make -C zigux phase4-test` in `Run Phase 4 diff tests`.
@@ -107,9 +108,9 @@ The current packet stayed aligned across the following readbacks on `master`:
 
 ## Current Conclusion
 
-The current Phase 4 atomic64 rollback packet is internally aligned at both the gate-definition and manifest-backed survey-provenance levels again, and it now reflects the live surveyed snapshot `ec9aa1b15a34e581625da1056956ecb5dd6cd76a` that the current atomic64 survey test expects.
+The current Phase 4 rollback-ownership survey packet is internally aligned again at both the gate-definition and manifest-backed survey-provenance levels, and the coupled atomic64, `test_fsmount`, and perf-baseline survey files now all reflect the shared surveyed snapshot `ec9aa1b15a34e581625da1056956ecb5dd6cd76a`.
 
-This pass refreshed the atomic64 packet's `surveyed_commit` field, the paired survey-side `current_surveyed_commit` constant, and the manifest blob pin in this evidence note to the shared surveyed snapshot `ec9aa1b15a34e581625da1056956ecb5dd6cd76a`.
+This pass refreshed the `test_fsmount` and perf-baseline packets' `surveyed_commit` fields, their paired survey-side `current_surveyed_commit` constants, and the two manifest blob pins in this evidence note so those roadmap-gap surveys stay on the same inspected Phase 4 snapshot as the already-aligned atomic64 packet.
 
 The remaining roadmap-backed gaps are still the same bounded ones:
 
