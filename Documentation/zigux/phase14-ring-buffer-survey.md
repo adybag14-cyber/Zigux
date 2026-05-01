@@ -122,6 +122,13 @@ The honest Phase 14 move here is therefore not to start a `ring_buffer.zig` file
 - The state transition evidence also points at a one-way failure path during a live session. `trace.c` initializes `tracing_disabled = 1`, clears it to `0` only after `tracer_alloc_buffers()` succeeds during setup, and then sets it back to `1` in the snapshot rollback failure paths inside both `tracing_resize_ring_buffer()` and `buffer_subbuf_size_write()`.
 - The current evidence therefore does not show a documented user-visible recovery path after `tracing_disabled = 1` is raised by those rollback failures. The ordinary `echo 1 > tracing_on` guidance is about resuming an already-live tracer, not reviving this kill-switch state, so the honest Phase 14 boundary remains "treat the failure as terminal until reboot or re-initialization" rather than implying a wrapper-safe control seam.
 
+## Mapped-reader duplicate and final-unmap lifetime audit
+
+- `ring_buffer_map_dup()` is not a harmless bookkeeping helper. It exists specifically for duplicated VMAs such as `fork()`, and it reuses `__rb_inc_dec_mapped()` to increment both `user_mapped` and `mapped` under `mapping_lock`, `buffer->mutex`, and `reader_lock`, which means duplicate mappings extend the same shared mapped-reader lifetime instead of creating an independent wrapper-safe session.
+- That shared lifetime keeps resize and remap policy pinned in C. The first successful `ring_buffer_map()` increments `resize_disabled`, builds `subbuf_ids`, and allocates the meta-page, while duplicate mappings only bump the mapped counters; there is no second setup path that would let a later wrapper treat one mapping as separately owned.
+- The last-unmap path also stays coupled to the same kernel-owned teardown. `ring_buffer_unmap()` takes the fast decrement path while `user_mapped > 1`, but when the final user mapping goes away it drops `mapped` to match `user_mapped = 0`, frees `subbuf_ids`, frees the meta-page, and only then decrements `resize_disabled`, so resize remains blocked until the very last shared mapping disappears.
+- The docs and implementation line up on why this should stay study-only. `Documentation/trace/ring-buffer-map.rst` warns that concurrent mapped readers compete for one unpredictable shared stream, and the VMA-dup plus final-unmap rules show that the kernel deliberately treats those readers as one shared lifetime contract rather than as isolated consumer handles that a Zig bridge could own piecemeal.
+
 ## Recorded gaps
 
 The current lane state is:
@@ -142,6 +149,7 @@ The current lane state is:
 - landed `phase14-ring-buffer-subbuf-order-reconfig-followup`
 - landed `phase14-ring-buffer-snapshot-rollback-failure-followup`
 - landed `phase14-ring-buffer-tracing-disabled-recovery-followup`
+- landed `phase14-ring-buffer-map-dup-unmap-lifetime-followup`
 - blocked `phase14-ring-buffer-zig-port-blocker`
 
 This keeps the lane honest: Zigux now has an explicit reviewable record that `kernel/trace/ring_buffer.c` belongs in the study-only set for now, and that the repo still does not ship `kernel/trace/ring_buffer.zig`.
