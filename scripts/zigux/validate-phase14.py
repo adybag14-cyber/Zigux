@@ -88,8 +88,7 @@ RELEASE_MARKERS = [
     "PHASE14_ANCHOR_PACKET_COUNT=4",
     "PHASE14_COMPILE_ARTIFACT_COUNT=5",
     "PHASE14_FOCUSED_SHARD_COUNT=1",
-    "PHASE14_ANCHOR_LOCAL_STEP_COUNT=1",
-    "PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=3",
+    "PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=4",
     "PHASE14_FULL_BUNDLE_DEPENDENCY_COUNT=5",
     "PHASE14_FOCUSED_SHARD_DEPENDENCY_COUNT=1",
     "PHASE14_FOCUSED_SHARD_ONLY_ARTIFACT=phase14-end-to-end-smoke-tests",
@@ -116,7 +115,6 @@ BUILD_MARKERS = [
     "phase14-ring-buffer-survey-tests",
     "phase14-rcu-tree-survey-tests",
     "phase14-end-to-end-smoke-tests",
-    "phase14_workqueue_bridge_step.dependOn(&run_phase14_workqueue_bridge_tests.step);",
     "test_step.dependOn(&run_phase14_workqueue_bridge_tests.step);",
     "test_step.dependOn(&run_phase14_skbuff_bridge_tests.step);",
     "test_step.dependOn(&run_phase14_ring_buffer_survey_tests.step);",
@@ -132,7 +130,7 @@ FREEZE_MAP_MARKERS = [
     "Architecture Council",
 ]
 
-ALLOWED_COVERAGE_MODES = {"full_bundle_only", "focused_and_full_bundle", "anchor_local_step_and_full_bundle"}
+ALLOWED_COVERAGE_MODES = {"full_bundle_only", "focused_and_full_bundle"}
 PRODUCTIZATION_KEYS = {
     "owner": "Core-Adjacent Pod",
     "status_bucket": "study_only",
@@ -282,7 +280,6 @@ actual_depend_steps = BUILD_DEPEND_STEP_RE.findall(build_text)
 actual_smoke_depend_steps = BUILD_SMOKE_DEPEND_STEP_RE.findall(build_text)
 expected_build_test_names: list[str] = []
 focused_shard_count = 0
-anchor_local_step_count = 0
 full_bundle_only_count = 0
 
 for index, shard in enumerate(compile_shards):
@@ -306,10 +303,6 @@ for index, shard in enumerate(compile_shards):
         focused_shard_count += 1
         if not dedicated_step:
             missing.append(f"manifest:compile_shards:{artifact_name}:dedicated_step")
-    elif coverage_mode == "anchor_local_step_and_full_bundle":
-        anchor_local_step_count += 1
-        if not dedicated_step:
-            missing.append(f"manifest:compile_shards:{artifact_name}:dedicated_step")
     else:
         full_bundle_only_count += 1
         if dedicated_step:
@@ -319,9 +312,6 @@ for index, shard in enumerate(compile_shards):
         missing.append(f"phase14_build:artifact_name:{artifact_name}")
     if root_source_file not in build_text:
         missing.append(f"phase14_build:root_source_file:{root_source_file}")
-    if dedicated_step:
-        if dedicated_step not in build_text:
-            missing.append(f"phase14_build:dedicated_step:{dedicated_step}")
     if isinstance(smoke_commands, list):
         for command in smoke_commands:
             if isinstance(command, str) and command and command not in text("Documentation/zigux/phase14-end-to-end-smoke-survey.md"):
@@ -357,12 +347,10 @@ if "ZAR runtime research" not in survey_note:
 
 expected_compile_count_marker = f"PHASE14_COMPILE_ARTIFACT_COUNT={len(expected_build_test_names)}"
 expected_focused_count_marker = f"PHASE14_FOCUSED_SHARD_COUNT={focused_shard_count}"
-expected_anchor_local_step_count_marker = f"PHASE14_ANCHOR_LOCAL_STEP_COUNT={anchor_local_step_count}"
 expected_full_bundle_count_marker = f"PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT={full_bundle_only_count}"
 for marker in [
     expected_compile_count_marker,
     expected_focused_count_marker,
-    expected_anchor_local_step_count_marker,
     expected_full_bundle_count_marker,
 ]:
     if marker not in survey_note:
@@ -385,9 +373,7 @@ if actual_smoke_depend_steps != ["run_phase14_end_to_end_smoke_tests"]:
     missing.append("phase14_build:smoke_route_mismatch")
 if focused_shard_count != 1:
     missing.append(f"manifest:focused_shard_count={focused_shard_count}")
-if anchor_local_step_count != 1:
-    missing.append(f"manifest:anchor_local_step_count={anchor_local_step_count}")
-if full_bundle_only_count != len(expected_build_test_names) - focused_shard_count - anchor_local_step_count:
+if full_bundle_only_count != len(expected_build_test_names) - focused_shard_count:
     missing.append(f"manifest:full_bundle_only_count={full_bundle_only_count}")
 
 for index, packet in enumerate(anchor_packets):
@@ -474,5 +460,4 @@ print(f"PHASE14_BUILD_TEST_COUNT={len(expected_build_test_names)}")
 print(f"PHASE14_BUILD_DEPEND_STEP_COUNT={len(actual_depend_steps)}")
 print(f"PHASE14_COMPILE_ARTIFACT_COUNT={len(expected_build_test_names)}")
 print(f"PHASE14_FOCUSED_SHARD_COUNT={focused_shard_count}")
-print(f"PHASE14_ANCHOR_LOCAL_STEP_COUNT={anchor_local_step_count}")
 print(f"PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT={full_bundle_only_count}")
