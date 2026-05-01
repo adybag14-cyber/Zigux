@@ -253,6 +253,13 @@ test "phase 8 docs keep the deferred irq routing and timer boundary explicit" {
     );
     defer std.testing.allocator.free(survey_note);
 
+    const bridge_note = try readWorkspaceFile(
+        std.testing.allocator,
+        "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(bridge_note);
+
     const cpu_mask_note = try readWorkspaceFile(
         std.testing.allocator,
         "Documentation/zigux/phase8-libbpf-cpu-mask-slice.md",
@@ -282,6 +289,10 @@ test "phase 8 docs keep the deferred irq routing and timer boundary explicit" {
     try expectContains(survey_note, "interrupt-routing-sensitive timing boundary");
     try expectContains(survey_note, "no standalone timer helper");
     try expectContains(survey_note, "no standalone clockevent helper");
+    try expectContains(bridge_note, "perf_buffer__poll(timeout_ms)");
+    try expectContains(bridge_note, "no standalone timer helper");
+    try expectContains(bridge_note, "no standalone clockevent helper");
+    try expectContains(bridge_note, "manifest-backed slice");
     try expectContains(cpu_mask_note, "bounded perf-buffer auto-CPU sizing only");
     try expectContains(cpu_mask_note, "`+N` and `+N-+M` signed-decimal token forms");
     try expectContains(cpu_mask_note, "a bounded auto-CPU count clamp that mirrors libbpf's perf-buffer map-budget sizing");
