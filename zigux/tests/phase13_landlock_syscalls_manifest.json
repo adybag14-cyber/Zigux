@@ -1,7 +1,7 @@
 {
-  "lane_key": "P13-L16",
+  "lane_key": "P13-L14",
   "phase": "Phase 13",
-  "surveyed_commit": "09229747ad125661be1d17d3d55d87ef11cd33e4",
+  "surveyed_commit": "9c17b0790799d8240ef9f964903f5ce2db64af89",
   "anchor": "security/landlock/syscalls.c",
   "roadmap_destinations": [
     "security/landlock/syscalls.zig",
@@ -109,6 +109,13 @@
       "kind": "security_helper_pilot",
       "zigux_destination": "security/landlock/syscalls.zig",
       "why_now": "The syscall helper now includes one tiny in-memory planner around `anon_inode_getfd()` that keeps the fixed `[landlock-ruleset]` label, `O_RDWR | O_CLOEXEC` flags, and the `landlock_put_ruleset()` failure release discipline explicit before any live file operations wiring or FD ownership is attempted."
+    },
+    {
+      "id": "phase13-landlock-restrict-self-credential-handoff-followup",
+      "status": "starter_landed",
+      "kind": "security_helper_pilot",
+      "zigux_destination": "security/landlock/syscalls.zig",
+      "why_now": "The syscall helper now includes one tiny in-memory planner around `prepare_creds()`, `landlock_merge_ruleset()`, optional sibling-thread synchronization, and `commit_creds()` so Zigux keeps the bounded restrict-self credential handoff order explicit before any live credential mutation or domain ownership is attempted."
     }
   ]
 }
