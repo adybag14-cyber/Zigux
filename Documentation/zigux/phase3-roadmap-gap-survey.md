@@ -13,7 +13,7 @@ This note records the current Phase 3 ABI and interop gap between the roadmap co
 - `PHASE3_CURRENT_BITMAP_CPUMASK=zigux/helpers/bitmap_view.zig,zigux/helpers/cpumask_view.zig`
 - `PHASE3_CURRENT_LIST_HLIST=zigux/helpers/list_view.zig,zigux/helpers/hlist_view.zig`
 - `PHASE3_CURRENT_RBTREE_STATUS=phase7-helper-exists-but-phase3-interop-slice-is-missing`
-- `PHASE3_CURRENT_RBTREE_EVIDENCE=tools/lib/rbtree.zig,lib/rbtree.zig,Documentation/zigux/phase1-closure.md,Documentation/zigux/phase7-rbtree-slice.md,zigux/tests/phase7_rbtree.zig`
+- `PHASE3_CURRENT_RBTREE_EVIDENCE=tools/lib/rbtree.zig,lib/rbtree.zig,Documentation/zigux/phase1-closure.md,Documentation/zigux/phase7-rbtree-slice.md,zigux/tests/phase7_rbtree.zig,zigux/tests/phase7_rbtree_survey.zig,zigux/tests/phase7_rbtree_manifest.json`
 - `PHASE3_REPO_REALITY=chrdev-plan-growth-exceeds-roadmap-anchors`
 - `PHASE3_INTEROP_GAP=rbtree-interop-slice-still-missing`
 - `PHASE3_NEXT_BOUNDED_STEP=roadmap-backed-rbtree-interop-survey-or-slice-before-more-chrdev-growth`
@@ -60,7 +60,7 @@ The live tree also contains additional bounded interop helpers beyond the roadma
 The repo also already carries real `rbtree` evidence outside the still-missing Phase 3 boundary-facing packet:
 
 - `tools/lib/rbtree.zig` and `Documentation/zigux/phase1-closure.md` record the earlier host-helper parity and direct unit coverage
-- `lib/rbtree.zig`, `Documentation/zigux/phase7-rbtree-slice.md`, and `zigux/tests/phase7_rbtree.zig` record the later runtime-helper packet
+- `lib/rbtree.zig`, `Documentation/zigux/phase7-rbtree-slice.md`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_survey.zig`, and `zigux/tests/phase7_rbtree_manifest.json` record the later runtime-helper packet and its survey-backed review surface
 - that evidence matters because the remaining Phase 3 gap is not "no rbtree work exists"; it is specifically that no Phase 3 interop-facing `zigux/helpers/rbtree_*`, `zigux/tests/phase3_rbtree_*`, or `Documentation/zigux/phase3-rbtree-*.md` packet exists yet
 
 The largest adjacent growth, though, is now the `chrdev_*` planning ladder. Current `master` no longer stops at one or two exploratory helpers here:
@@ -83,7 +83,7 @@ Why this remains a real gap:
 - the current repo has no `zigux/helpers/rbtree_*` Phase 3 interop helper family
 - the current repo has no `Documentation/zigux/phase3-rbtree-*.md` slice note
 - the current repo has no `zigux/tests/phase3_rbtree_*.zig` parity packet
-- the existing `tools/lib/rbtree.zig` Phase 1 helper evidence and `lib/rbtree.zig` Phase 7 runtime-helper evidence are useful anchors, but neither is a substitute for a Phase 3 boundary-facing interop slice
+- the existing Phase 1 host-helper evidence and the later Phase 7 helper packet are useful anchors, but neither is a substitute for a Phase 3 boundary-facing interop slice
 
 There is also a smaller but still explicit boundary gap around UAPI scope:
 
