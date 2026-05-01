@@ -171,7 +171,7 @@ test "phase4 test_fsmount survey manifest records the landed survey packet and r
     var saw_anchor_gap = false;
     var saw_sample_gap = false;
 
-    for (manifest.gaps) |gap| {
+    for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
         try std.testing.expect(gap.kind.len > 0);
         try std.testing.expect(gap.why_now.len > 0);
@@ -213,6 +213,10 @@ test "phase4 test_fsmount survey manifest records the landed survey packet and r
             try std.testing.expectEqualStrings("samples/zigux/test_fsmount.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "still absent") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "starter under `samples/zigux/`") != null);
+        }
+
+        for (manifest.gaps[i + 1 ..]) |other| {
+            try std.testing.expect(!std.mem.eql(u8, gap.id, other.id));
         }
     }
 
