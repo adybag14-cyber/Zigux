@@ -132,7 +132,7 @@ test "phase14 shared smoke manifest records the current evidence bundle" {
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P14-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
-    try std.testing.expectEqualStrings("1db760b53145b5610e21413d73db5dd45fef909c", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("d686e50d78ade5c8ec517438b9715f2a0d7103b3", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Core-Adjacent Pod", manifest.productization.owner);
     try std.testing.expectEqualStrings("study_only", manifest.productization.status_bucket);
     try std.testing.expectEqualStrings(
@@ -190,7 +190,7 @@ test "phase14 shared smoke manifest records the current evidence bundle" {
     try std.testing.expect(manifest.survey_summary.scripts_readme_records_rollback_threshold);
     try std.testing.expect(manifest.survey_summary.scripts_readme_records_fallback_path);
     try std.testing.expect(manifest.survey_summary.scripts_readme_records_return_to_blocked_triggers);
-    try std.testing.expect(manifest.survey_summary.scripts_readme_records_boundary_map);
+    try std.testing.expect(manifest.survey_summary.scripts_readme_records_BOUNDARY_MAP);
     try std.testing.expect(manifest.survey_summary.scripts_readme_records_concurrency_audit_scope);
     try std.testing.expect(manifest.survey_summary.freeze_map_lists_workqueue_c);
     try std.testing.expect(manifest.survey_summary.freeze_map_lists_skbuff_c);
