@@ -37,7 +37,6 @@ fn roundedPrefixLen(prefix_bits: usize) usize {
 }
 
 fn fillPrefix(map: []Word, prefix_bits: usize) void {
-    bitmap.zero(map, bitmap_nbits);
     bitmap.fill(map[0..bitmap.bitsToWords(prefix_bits)], prefix_bits);
 }
 
@@ -145,6 +144,7 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
     // The shipped Zig helper still keeps bitmap_fill(35) at the requested
     // prefix length; the rounded lib/test_bitmap.c anchor remains survey-only.
     try std.testing.expectEqual(bits_per_long, roundedPrefixLen(35));
+    bitmap.zero(&map, bitmap_nbits);
     fillPrefix(&map, 35);
     try std.testing.expectEqual(@as(usize, 35), weight(&map, bitmap_nbits));
     try std.testing.expectEqual(@as(usize, 0), firstSet(&map, bitmap_nbits));
