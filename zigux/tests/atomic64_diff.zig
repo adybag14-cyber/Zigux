@@ -3,7 +3,6 @@ const runtime_atomic64_diff = @import("runtime_atomic64_diff.zig");
 const atomic64_diff_source = @embedFile("atomic64_diff.zig");
 const runtime_atomic64_diff_source = @embedFile("runtime_atomic64_diff.zig");
 const phase4_runtime_atomic64_manifest_source = @embedFile("phase4_runtime_atomic64_diff_manifest.json");
-const phase4_validation_matrix_source = @embedFile("../../Documentation/zigux/phase4-validation-matrix.md");
 const phase4_build_source = @embedFile("phase4_build.zig");
 const phase9_build_source = @embedFile("phase9_build.zig");
 
@@ -27,8 +26,27 @@ fn expectManifestMarker(marker: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, phase4_runtime_atomic64_manifest_source, marker) != null);
 }
 
+fn expectWorkspaceMarker(path: []const u8, marker: []const u8, limit: usize) !void {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const source = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        path,
+        std.testing.allocator,
+        .limited(limit),
+    );
+    defer std.testing.allocator.free(source);
+
+    try std.testing.expect(std.mem.indexOf(u8, source, marker) != null);
+}
+
 fn expectPhase4MatrixMarker(marker: []const u8) !void {
-    try std.testing.expect(std.mem.indexOf(u8, phase4_validation_matrix_source, marker) != null);
+    try expectWorkspaceMarker(
+        "Documentation/zigux/phase4-validation-matrix.md",
+        marker,
+        32 * 1024,
+    );
 }
 
 fn expectPhase4BuildMarker(marker: []const u8) !void {
@@ -49,8 +67,10 @@ test "atomic64 diff wrapper keeps the bounded runtime replay body reachable" {
 test "atomic64 diff wrapper stays a thin phase4 entrypoint" {
     const runtime_sample_import = "const sample = @import(\"runtime_" ++ "atomic64_sample\");";
     const runtime_struct_name = "RuntimeAtomic64" ++ "Sample";
-    const runtime_selftest_call = "runSelf" ++ "test()";
-    const runtime_add_call = "addCounter" ++ "(";
+    const runtime_selftest_replay =
+        "const summary = try module.runSelf" ++ "test();";
+    const runtime_post_selftest_add =
+        "const add_result = try module.add" ++ "Counter(";
 
     try expectWrapperMarker(
         "const runtime_atomic64_diff = @import(\"runtime_atomic64_diff.zig\");",
@@ -61,8 +81,8 @@ test "atomic64 diff wrapper stays a thin phase4 entrypoint" {
 
     try expectWrapperNoMarker(runtime_sample_import);
     try expectWrapperNoMarker(runtime_struct_name);
-    try expectWrapperNoMarker(runtime_selftest_call);
-    try expectWrapperNoMarker(runtime_add_call);
+    try expectWrapperNoMarker(runtime_selftest_replay);
+    try expectWrapperNoMarker(runtime_post_selftest_add);
 }
 
 test "atomic64 diff wrapper keeps roadmap entrypoint and rollback evidence aligned" {
@@ -147,6 +167,15 @@ test "atomic64 diff wrapper records the exact bounded runtime atomic64 checks" {
     try expectRuntimeMarker("error.InvalidLifecycleTransition, cold_module.exit()");
     try expectRuntimeMarker("error.InvalidLifecycleTransition, module.init(11)");
     try expectRuntimeMarker("error.InvalidLifecycleTransition, module.init(13)");
+    try expectRuntimeMarker("error.InvalidLifecycleTransition, module.addCounter(1)");
+    try expectRuntimeMarker("error.InvalidLifecycleTransition, module.subCounter(1)");
+    try expectRuntimeMarker("error.InvalidLifecycleTransition, module.swapCounter(7)");
+    try expectRuntimeMarker("error.InvalidLifecycleTransition, module.compareSwapCounter(");
+    try expectRuntimeMarker("error.InvalidLifecycleTransition, module.orCounter(1)");
+    try expectRuntimeMarker("error.InvalidLifecycleTransition, module.andCounter(1)");
+    try expectRuntimeMarker("error.InvalidLifecycleTransition, module.xorCounter(1)");
+    try expectRuntimeMarker("error.InvalidLifecycleTransition, module.andNotCounter(1)");
+    try expectRuntimeMarker("error.InvalidLifecycleTransition, module.addUnlessCounter(");
     try expectRuntimeMarker("error.InvalidLifecycleTransition, module.exit()");
     try expectRuntimeMarker("error.InvalidLifecycleTransition, module.init(17)");
     try expectRuntimeMarker("error.InvalidLifecycleTransition, module.incNotZeroCounter()");
