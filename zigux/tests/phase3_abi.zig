@@ -14,11 +14,23 @@ test "phase3 abi slice uses stable canonical layouts" {
         layout_assert.assertExportStatusLayout();
         layout_assert.assertInteropPolicyLayout();
         layout_assert.assertMmioRangeLayout();
+        layout_assert.assertBitmapViewLayout();
+        layout_assert.assertCpuMaskViewLayout();
         layout_assert.assertSize(abi.MmioRange, @sizeOf(usize) + 8);
         layout_assert.assertAlign(abi.MmioRange, @alignOf(usize));
         layout_assert.assertOffset(abi.MmioRange, "base_addr", 0);
         layout_assert.assertOffset(abi.MmioRange, "length", @sizeOf(usize));
         layout_assert.assertOffset(abi.MmioRange, "stride", @sizeOf(usize) + 4);
+        layout_assert.assertSize(abi.BitmapView, @sizeOf(usize) + 8);
+        layout_assert.assertAlign(abi.BitmapView, @alignOf(usize));
+        layout_assert.assertOffset(abi.BitmapView, "words_addr", 0);
+        layout_assert.assertOffset(abi.BitmapView, "nbits", @sizeOf(usize));
+        layout_assert.assertOffset(abi.BitmapView, "word_count", @sizeOf(usize) + 4);
+        layout_assert.assertSize(abi.CpuMaskView, @sizeOf(usize) + 8);
+        layout_assert.assertAlign(abi.CpuMaskView, @alignOf(usize));
+        layout_assert.assertOffset(abi.CpuMaskView, "bits_addr", 0);
+        layout_assert.assertOffset(abi.CpuMaskView, "nr_cpu_ids", @sizeOf(usize));
+        layout_assert.assertOffset(abi.CpuMaskView, "reserved", @sizeOf(usize) + 4);
     }
 }
 
