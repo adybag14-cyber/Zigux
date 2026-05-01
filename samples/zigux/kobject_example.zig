@@ -7,6 +7,13 @@ pub const SampleStage = enum(u8) {
     exited,
 };
 
+pub const OwnershipState = enum {
+    cold_uninitialized,
+    initialized_without_registered_attributes,
+    registered_attributes_owned,
+    released_after_exit,
+};
+
 pub const SampleFocus = enum {
     bounded_attribute_roundtrip,
     shared_attribute_dispatch,
@@ -38,6 +45,8 @@ pub const ReplaySummary = struct {
     ordered_attr_modes: [3]AttributeMode,
     stage_before_replay: SampleStage,
     stage_after_replay: SampleStage,
+    ownership_before_replay: OwnershipState,
+    ownership_after_replay: OwnershipState,
     attr_count: usize,
     attributes_are_accessible_after_replay: bool,
     register_runs_after_replay: usize,
@@ -60,6 +69,8 @@ pub const ExitDisposition = enum {
 pub const ExitSummary = struct {
     stage_before_exit: SampleStage,
     stage_after_exit: SampleStage,
+    ownership_before_exit: OwnershipState,
+    ownership_after_exit: OwnershipState,
     active_attr_count_before_exit: usize,
     active_attr_count_after_exit: usize,
     attributes_were_accessible: bool,
@@ -109,6 +120,15 @@ pub const KobjectExampleSample = struct {
 
     pub fn stage(self: *const Self) SampleStage {
         return self.stage_state;
+    }
+
+    pub fn ownershipState(self: *const Self) OwnershipState {
+        return switch (self.stage()) {
+            .cold => .cold_uninitialized,
+            .initialized => .initialized_without_registered_attributes,
+            .registered => .registered_attributes_owned,
+            .exited => .released_after_exit,
+        };
     }
 
     pub fn activeAttrCount(self: *const Self) usize {
@@ -193,6 +213,8 @@ pub const KobjectExampleSample = struct {
             .ordered_attr_modes = attrModes(),
             .stage_before_replay = .initialized,
             .stage_after_replay = self.stage(),
+            .ownership_before_replay = .initialized_without_registered_attributes,
+            .ownership_after_replay = self.ownershipState(),
             .attr_count = self.activeAttrCount(),
             .attributes_are_accessible_after_replay = self.attributesAreAccessible(),
             .register_runs_after_replay = self.register_runs,
@@ -234,6 +256,12 @@ pub const KobjectExampleSample = struct {
         return .{
             .stage_before_exit = stage_before_exit,
             .stage_after_exit = self.stage(),
+            .ownership_before_exit = switch (stage_before_exit) {
+                .initialized => .initialized_without_registered_attributes,
+                .registered => .registered_attributes_owned,
+                else => unreachable,
+            },
+            .ownership_after_exit = self.ownershipState(),
             .active_attr_count_before_exit = active_attr_count_before_exit,
             .active_attr_count_after_exit = self.activeAttrCount(),
             .attributes_were_accessible = attributes_were_accessible,
@@ -268,6 +296,8 @@ test "kobject sample replay keeps the anchor reviewable and non-runtime" {
     try std.testing.expectEqual(@as(AttributeMode, 0o664), replay.ordered_attr_modes[2]);
     try std.testing.expectEqual(SampleStage.initialized, replay.stage_before_replay);
     try std.testing.expectEqual(SampleStage.registered, replay.stage_after_replay);
+    try std.testing.expectEqual(OwnershipState.initialized_without_registered_attributes, replay.ownership_before_replay);
+    try std.testing.expectEqual(OwnershipState.registered_attributes_owned, replay.ownership_after_replay);
     try std.testing.expectEqual(@as(usize, 3), replay.attr_count);
     try std.testing.expect(replay.attributes_are_accessible_after_replay);
     try std.testing.expectEqual(@as(usize, 1), replay.register_runs_after_replay);
@@ -288,10 +318,17 @@ test "kobject sample replay keeps the anchor reviewable and non-runtime" {
 test "kobject sample teardown keeps ownership boundaries explicit" {
     var initialized_sample = KobjectExampleSample{};
     try initialized_sample.init();
+    try std.testing.expectEqual(OwnershipState.initialized_without_registered_attributes, initialized_sample.ownershipState());
+    try std.testing.expect(!initialized_sample.attributesAreAccessible());
+    try std.testing.expectEqual(@as(usize, 0), initialized_sample.activeAttrCount());
+    try std.testing.expectError(error.InvalidLifecycleTransition, initialized_sample.showValue("foo"));
+    try std.testing.expectError(error.InvalidLifecycleTransition, initialized_sample.storeValue("foo", "1\n"));
 
     const initialized_exit = try initialized_sample.exit();
     try std.testing.expectEqual(SampleStage.initialized, initialized_exit.stage_before_exit);
     try std.testing.expectEqual(SampleStage.exited, initialized_exit.stage_after_exit);
+    try std.testing.expectEqual(OwnershipState.initialized_without_registered_attributes, initialized_exit.ownership_before_exit);
+    try std.testing.expectEqual(OwnershipState.released_after_exit, initialized_exit.ownership_after_exit);
     try std.testing.expectEqual(@as(usize, 0), initialized_exit.active_attr_count_before_exit);
     try std.testing.expectEqual(@as(usize, 0), initialized_exit.active_attr_count_after_exit);
     try std.testing.expect(!initialized_exit.attributes_were_accessible);
@@ -308,10 +345,15 @@ test "kobject sample teardown keeps ownership boundaries explicit" {
     var registered_sample = KobjectExampleSample{};
     try registered_sample.init();
     try registered_sample.registerAttributes();
+    try std.testing.expectEqual(OwnershipState.registered_attributes_owned, registered_sample.ownershipState());
+    try std.testing.expect(registered_sample.attributesAreAccessible());
+    try std.testing.expectEqual(@as(usize, 3), registered_sample.activeAttrCount());
 
     const registered_exit = try registered_sample.exit();
     try std.testing.expectEqual(SampleStage.registered, registered_exit.stage_before_exit);
     try std.testing.expectEqual(SampleStage.exited, registered_exit.stage_after_exit);
+    try std.testing.expectEqual(OwnershipState.registered_attributes_owned, registered_exit.ownership_before_exit);
+    try std.testing.expectEqual(OwnershipState.released_after_exit, registered_exit.ownership_after_exit);
     try std.testing.expectEqual(@as(usize, 3), registered_exit.active_attr_count_before_exit);
     try std.testing.expectEqual(@as(usize, 0), registered_exit.active_attr_count_after_exit);
     try std.testing.expect(registered_exit.attributes_were_accessible);
