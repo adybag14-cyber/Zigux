@@ -31,6 +31,8 @@ def run_contract_case(args: list[str], expected_exit: int, expected_lines: list[
 
 
 def main() -> int:
+    run_contract_case(['--self-test'], 0, ['ARTIFACT_DIFF_SELF_TEST=pass'])
+
     with tempfile.TemporaryDirectory(prefix='zigux_artifact_diff_contract_') as tmp_dir_str:
         tmp_dir = Path(tmp_dir_str)
         expected = tmp_dir / 'expected.txt'
