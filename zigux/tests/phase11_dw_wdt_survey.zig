@@ -118,7 +118,9 @@ test "phase11 dw_wdt survey manifest and validation matrix record the landed lif
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "IRQ pretimeout bookkeeping") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "imported running-state handoff evidence") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "non-stoppable stop failure-mode boundary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "remove-time teardown handoff boundary") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "summarizeTeardownLifecycle()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "summarizeRemoveHandoff()") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "zig build test --build-file zigux/tests/phase11_build.zig --summary all") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "zig test --dep dw_wdt -Mroot=zigux/tests/phase11_dw_wdt.zig -Mdw_wdt=drivers/watchdog/dw_wdt.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "zig test zigux/tests/phase11_dw_wdt_survey.zig") != null);
@@ -163,6 +165,7 @@ test "phase11 dw_wdt survey manifest and validation matrix record the landed lif
             saw_survey_gate = true;
             try std.testing.expectEqualStrings("zigux/tests/phase11_dw_wdt_survey.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remove-handoff teardown evidence") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "validation-matrix status") != null);
         }
 
@@ -172,6 +175,8 @@ test "phase11 dw_wdt survey manifest and validation matrix record the landed lif
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "fixed TOP timeout windows") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "probe-time summary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "summarizeRemoveHandoff()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "debugfs clear") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-dw-wdt-driver-tests")) {
@@ -179,6 +184,7 @@ test "phase11 dw_wdt survey manifest and validation matrix record the landed lif
             try std.testing.expectEqualStrings("zigux/tests/phase11_dw_wdt.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "non-stoppable stop semantics") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remove-handoff teardown parity") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-dw-wdt-watchdog-header-boundary")) {
@@ -195,6 +201,7 @@ test "phase11 dw_wdt survey manifest and validation matrix record the landed lif
             saw_slice_note = true;
             try std.testing.expectEqualStrings("Documentation/zigux/phase11-dw-wdt-slice.md", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remove-handoff teardown packet") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-dw-wdt-validation-matrix")) {
@@ -205,6 +212,7 @@ test "phase11 dw_wdt survey manifest and validation matrix record the landed lif
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "fixed-TOP timeout evidence") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "IRQ pretimeout bookkeeping") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "non-stoppable stop failure-mode coverage") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remove-handoff teardown parity") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "exact replay commands") != null);
         }
 
@@ -240,6 +248,7 @@ test "phase11 dw_wdt survey manifest and validation matrix record the landed lif
             try std.testing.expectEqualStrings("zigux/tests/phase11_dw_wdt.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("blocked_on_driver_scaffold", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "Platform-driver registration") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remove-handoff teardown packet") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "platform-resource preflight") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "suspend and resume handling") != null);
         }
