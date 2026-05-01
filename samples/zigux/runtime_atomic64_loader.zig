@@ -190,6 +190,7 @@ test "runtime atomic64 loader emits the shared runtime-loader request shape" {
     try std.testing.expect(request.keepsInitExitContractExplicit());
     try std.testing.expect(request.keepsStageConsistentWithRuntimeSubstrate());
     try std.testing.expect(request.keepsAllocatorInitFlowConsistent());
+    try std.testing.expect(request.keepsLifecyclePayloadConsistent());
     try std.testing.expect(request.keepsSharedHandoffContractExplicit());
     try std.testing.expectEqual(runtime_loader.allocatorHandoffFor(.kernel_heap).init_flow, request.allocator_handoff.init_flow);
     try std.testing.expect(request.allocator_handoff.initializes_owned_state);
@@ -220,6 +221,7 @@ test "runtime atomic64 loader can release the shared runtime-loader request with
     try std.testing.expect(released.keepsInitExitContractExplicit());
     try std.testing.expect(released.keepsStageConsistentWithRuntimeSubstrate());
     try std.testing.expect(released.keepsAllocatorInitFlowConsistent());
+    try std.testing.expect(released.keepsLifecyclePayloadConsistent());
     try std.testing.expect(released.keepsSharedHandoffContractExplicit());
     try std.testing.expectEqual(runtime_loader.allocatorHandoffFor(.kernel_heap).init_flow, released.allocator_handoff.init_flow);
     try std.testing.expect(released.allocator_handoff.initializes_owned_state);
