@@ -19,7 +19,7 @@ This template reserves the Architecture Council packet path named by the Phase 1
 
 - lane owner: `ABI and Runtime Team`
 - rollback owner: `Architecture Council + ABI and Runtime Team`
-- rollback threshold: `pending_until_architecture_council_request_names_status_change_abort_boundary`
+- rollback threshold: `If the decision record, scorecard evidence, benchmark notes, replay command, rollback owner, or narrowed RCU follow-up stops being explicit, or if the candidate seam widens back across grace-period sequencing, expedited-GP behavior, or NOCB wakeup ownership, return this anchor to blocked review posture.`
 
 ## Validation Gate Summary
 
