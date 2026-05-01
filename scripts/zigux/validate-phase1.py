@@ -409,6 +409,7 @@ MARKER_GROUPS = {
 }
 
 WORKFLOW_EXACT_LINES = {
+    "run: python3 scripts/zigux/validate-phase1.py": 1,
     "run: python3 scripts/zigux/validate-phase1-closure.py": 1,
     "run: python3 scripts/zigux/validate-phase1-closure.py --self-test": 1,
     "run: python3 scripts/zigux/check-phase1-bench.py": 1,
