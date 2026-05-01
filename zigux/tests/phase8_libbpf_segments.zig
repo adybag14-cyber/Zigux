@@ -260,6 +260,20 @@ test "phase 8 docs keep the deferred irq routing and timer boundary explicit" {
     );
     defer std.testing.allocator.free(cpu_mask_note);
 
+    const cpu_mask_helper = try readWorkspaceFile(
+        std.testing.allocator,
+        "tools/lib/bpf/zigux_segments/cpu_mask.zig",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(cpu_mask_helper);
+
+    const cpu_mask_test = try readWorkspaceFile(
+        std.testing.allocator,
+        "zigux/tests/phase8_cpu_mask.zig",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(cpu_mask_test);
+
     try expectContains(
         survey_note,
         "- survey checkpoint: refreshed against inspected `master` head `" ++ current_surveyed_commit ++ "`",
@@ -268,9 +282,18 @@ test "phase 8 docs keep the deferred irq routing and timer boundary explicit" {
     try expectContains(survey_note, "interrupt-routing-sensitive timing boundary");
     try expectContains(survey_note, "no standalone timer helper");
     try expectContains(survey_note, "no standalone clockevent helper");
+    try expectContains(cpu_mask_note, "bounded perf-buffer auto-CPU sizing only");
+    try expectContains(cpu_mask_note, "`+N` and `+N-+M` signed-decimal token forms");
+    try expectContains(cpu_mask_note, "a bounded auto-CPU count clamp that mirrors libbpf's perf-buffer map-budget sizing");
+    try expectContains(cpu_mask_note, "the bounded auto-CPU count clamp keeps possible-CPU sizing inside the map entry budget while still treating zero as the uncapped case");
     try expectContains(cpu_mask_note, "`libbpf_num_possible_cpus()` caching");
     try expectContains(cpu_mask_note, "`perf_buffer__new()` online CPU selection");
     try expectContains(cpu_mask_note, "per-CPU perf-buffer routing");
+    try expectContains(cpu_mask_helper, "pub fn derivePerfBufferAutoCpuCount(possible_cpu_count: usize, map_max_entries: u32) usize {");
+    try expectContains(cpu_mask_helper, "test \"parseCpuMaskString accepts the C helper's signed decimal token syntax when values stay non-negative\"");
+    try expectContains(cpu_mask_helper, "test \"derivePerfBufferAutoCpuCount keeps perf-buffer auto sizing within the map budget\"");
+    try expectContains(cpu_mask_test, "test \"phase 8 cpu mask starter slice accepts plus-prefixed CPU tokens like the live C helper\"");
+    try expectContains(cpu_mask_test, "test \"phase 8 cpu mask reader interface keeps failures explicit\"");
 }
 
 test "phase 8 docs keep the bounded fdinfo map_extra parsing explicit" {
