@@ -86,6 +86,7 @@ test "phase 5 trace-events sample keeps payload and callback boundaries explicit
     try std.testing.expectError(error.FunctionCallbackNotRegistered, module.replayFunctionIteration(0));
     try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionCallback());
     try module.registerFunctionCallback();
+    try std.testing.expectError(error.InvalidIterationCount, module.replayFunctionIteration(-1));
     try std.testing.expectError(error.CallbackAlreadyRegistered, module.registerFunctionCallback());
     try module.replayFunctionIteration(3);
     try std.testing.expectEqual(@as(i32, 3), module.last_function_count);
