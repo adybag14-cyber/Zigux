@@ -76,10 +76,14 @@ This survey slice does not claim:
 
 ## Gates
 
-1. run the dedicated Phase 12 build
+1. run the shared Phase 12 validator-first path
+- `python3 scripts/zigux/validate-phase12.py`
+- `make -C zigux phase12-validate`
+
+2. run the dedicated Phase 12 build
 - `zig build test --build-file zigux/tests/phase12_build.zig`
 
-2. run the convenience target
+3. run the convenience target
 - `make -C zigux phase12`
 
 ## Next bounded step
