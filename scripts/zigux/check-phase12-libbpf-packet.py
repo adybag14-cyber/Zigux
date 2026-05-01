@@ -29,6 +29,8 @@ SURVEY_NOTE_MARKERS = [
     "python3 scripts/zigux/validate-phase12.py",
     "make -C zigux phase12-validate",
     "zig build test --build-file zigux/tests/phase12_build.zig --summary all",
+    "automatic perf-buffer CPU-budget clamp explicit before any per-CPU buffer opens happen",
+    "optional probes still degrade gracefully, mandatory probes still fail hard",
 ]
 
 SEGMENT_TEST_MARKERS = [
@@ -350,6 +352,40 @@ def run_self_test() -> int:
             raise SystemExit("phase12-libbpf-packet:self-test:missing_marker_detection")
 
         build_self_test_tree(root)
+        survey_note_path = root / TRACKED_PATHS[3]
+        original = survey_note_path.read_text(encoding="utf-8")
+        survey_note_path.write_text(
+            original.replace(
+                "automatic perf-buffer CPU-budget clamp explicit before any per-CPU buffer opens happen\n",
+                "",
+            ),
+            encoding="utf-8",
+        )
+        missing = check_packet(root)
+        if (
+            "survey_note:automatic perf-buffer CPU-budget clamp explicit before any per-CPU buffer opens happen"
+            not in missing
+        ):
+            raise SystemExit("phase12-libbpf-packet:self-test:perf_buffer_clamp_marker_detection")
+
+        build_self_test_tree(root)
+        survey_note_path = root / TRACKED_PATHS[3]
+        original = survey_note_path.read_text(encoding="utf-8")
+        survey_note_path.write_text(
+            original.replace(
+                "optional probes still degrade gracefully, mandatory probes still fail hard\n",
+                "",
+            ),
+            encoding="utf-8",
+        )
+        missing = check_packet(root)
+        if (
+            "survey_note:optional probes still degrade gracefully, mandatory probes still fail hard"
+            not in missing
+        ):
+            raise SystemExit("phase12-libbpf-packet:self-test:recovery_split_marker_detection")
+
+        build_self_test_tree(root)
         snapshot_path = root / "zigux/tests/fixtures/phase12_libbpf_snapshot.json"
         snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
         snapshot["tracked_file_count"] = len(TRACKED_PATHS) + 1
@@ -380,7 +416,7 @@ def run_self_test() -> int:
             raise SystemExit("phase12-libbpf-packet:self-test:legacy_status_detection")
 
         print("PHASE12_LIBBPF_PACKET_SELF_TEST=pass")
-        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=5")
+        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
