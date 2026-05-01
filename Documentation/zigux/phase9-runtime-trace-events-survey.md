@@ -87,12 +87,16 @@ This keeps the survey useful after the first starter slice lands without pretend
 
 ## Gates
 
-1. run the dedicated Phase 9 survey and starter gates
-- `zig build test --build-file zigux/tests/phase9_build.zig`
+1. run the focused trace-events survey replays
+- `zig test --dep runtime_trace_events_sample -Mroot=zigux/tests/runtime_trace_events_survey.zig -Mruntime_trace_events_sample=samples/zigux/runtime_trace_events.zig`
 - `make -C zigux phase9-trace-events-survey`
-- this shared gate now includes `phase9-runtime-trace-events-sample-tests`, so the direct selftest and failed-exit rollback proof ship under the same Phase 9 runtime packet as the module and diff gates
+- the standalone replay keeps the dedicated trace-events survey packet reviewable with the shipped sample import, and the make target wraps that same focused survey gate without implying a loader path while the trace-core freeze boundary stays study-only
 
-2. run the convenience target
+2. run the shared Phase 9 runtime packet replay
+- `zig build test --build-file zigux/tests/phase9_build.zig`
+- this shared build now includes `phase9-runtime-trace-events-sample-tests`, `phase9-runtime-trace-events-module-tests`, `phase9-runtime-trace-events-diff-tests`, and `phase9-runtime-trace-events-survey-tests` so the starter, diff, and survey evidence stay explicit in one shared packet
+
+3. run the convenience target
 - `make -C zigux phase9`
 
 ## Non-goals
