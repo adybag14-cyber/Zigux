@@ -1,5 +1,5 @@
 {
-  "lane_key": "P9-L01",
+  "lane_key": "P9-L02",
   "phase": "Phase 9",
   "surveyed_commit": "8f7994d3c1f41fae739096997380a0f48f9eeb33",
   "anchor": "lib/atomic64_test.c",
@@ -21,6 +21,7 @@
     "the manifest-backed delivery_evidence_catalog and ownership_map still keep the survey note, module-slice note, direct phase9-runtime-atomic64-sample-tests leg, direct phase9-runtime-atomic64-loader-tests leg, module tests, diff gate, loader scaffold, shared runtime-loader request binding, and blocked shared-loader note in one reviewable packet",
     "sample-behavior changes update the manifest-backed exact checks alongside runtime_atomic64_module.zig and runtime_atomic64_diff.zig instead of leaving reviewers to infer the new contract from code alone",
     "the review packet keeps the Phase 9 runtime atomic64 starter distinct from the still-blocked shared runtime-loader control surface instead of implying loadable-module or command-path parity",
+    "the loader scaffold may keep a synthetic non-null shared command_name reviewable as field-preservation evidence, but docs and tests must still leave broader argv-policy and environment-derived activation control inside the blocked shared runtime-loader packet",
     "docs and tests still keep real runtime execution, shared loader controls, and the full lib/atomic64_test.c surface out of scope for this bounded runtime starter",
     "the atomic64 packet still treats Documentation/zigux/freeze-map.md as authoritative for the study-only kernel/workqueue.c boundary and carries no parity scorecard entry or Architecture Council status-change request for that scheduler-facing anchor"
   ],
@@ -69,6 +70,11 @@
       "id": "loader-request-surface",
       "kind": "runtime_loader_contract",
       "expected": "the loader scaffold keeps entry symbol zigux_runtime_atomic64_init, exit symbol zigux_runtime_atomic64_exit, waiting_on_runtime_substrate handoff, released_without_substrate fallback, kernel_heap allocator flow, and the four-field atomic64 payload summary machine-checkable through the shared runtime-loader request surface"
+    },
+    {
+      "id": "loader-command-name-preservation",
+      "kind": "runtime_loader_contract",
+      "expected": "the loader scaffold keeps the synthetic perf-runtime-atomic64 command_name explicit through toSharedRequest and releasedWithoutSubstrate without implying live argv-policy or environment-derived activation ownership"
     },
     {
       "id": "loader-build-leg",
@@ -144,7 +150,7 @@
       "id": "runtime-atomic64-loader-scaffold",
       "kind": "runtime_substrate_scaffold",
       "path": "samples/zigux/runtime_atomic64_loader.zig",
-      "role": "owns the entry and exit symbol names, waiting_on_runtime_substrate handoff, released_without_substrate fallback, and atomic64 payload summary for the sample-side loader projection"
+      "role": "owns the entry and exit symbol names, explicit shared command_name preservation, waiting_on_runtime_substrate handoff, released_without_substrate fallback, and atomic64 payload summary for the sample-side loader projection"
     },
     {
       "id": "runtime-atomic64-shared-loader-binding",
@@ -194,7 +200,7 @@
     },
     {
       "surface": "samples/zigux/runtime_atomic64_loader.zig",
-      "owns": "the sample-side loader projection, waiting_on_runtime_substrate handoff, released_without_substrate fallback, and atomic64 payload summary"
+      "owns": "the sample-side loader projection, explicit shared command_name preservation, waiting_on_runtime_substrate handoff, released_without_substrate fallback, and atomic64 payload summary"
     },
     {
       "surface": "zigux/kernel/runtime_loader.zig",
