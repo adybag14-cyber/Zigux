@@ -5,6 +5,15 @@ const current_surveyed_commit = "2df10deb8b6f2ab013ee2f289a49e6aa33180656";
 const SurveySummary = struct {
     libbpf_c_lines: usize,
     preexisting_phase8_test_files: usize,
+    preexisting_phase8_build_present: bool,
+    preexisting_phase8_libbpf_manifest_present: bool,
+    preexisting_phase8_libbpf_survey_present: bool,
+    preexisting_phase8_libbpf_note_present: bool,
+    preexisting_type_names_zig_present: bool,
+    preexisting_cpu_mask_zig_present: bool,
+    preexisting_logging_zig_present: bool,
+    preexisting_pin_path_zig_present: bool,
+    preexisting_file_path_handle_bridge_zig_present: bool,
     preexisting_phase12_build_present: bool,
     preexisting_phase12_libbpf_survey_present: bool,
     preexisting_phase12_survey_note_present: bool,
@@ -64,6 +73,15 @@ test "phase12 libbpf survey manifest records the bounded heavy-helper packet" {
     try std.testing.expectEqualStrings("tools/lib/bpf/libbpf.c", manifest.anchor);
     try std.testing.expect(manifest.survey_summary.libbpf_c_lines >= 14000);
     try std.testing.expectEqual(@as(usize, 7), manifest.survey_summary.preexisting_phase8_test_files);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase8_build_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase8_libbpf_manifest_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase8_libbpf_survey_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase8_libbpf_note_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_type_names_zig_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_cpu_mask_zig_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_logging_zig_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_pin_path_zig_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_file_path_handle_bridge_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_libbpf_survey_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_survey_note_present);
