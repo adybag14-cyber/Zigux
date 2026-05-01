@@ -116,7 +116,7 @@
         "rbtree.erase_init_node_empty",
         "rbtree.cleared_node_empty"
       ],
-      "summary": "Committed C-backed parity coverage includes ordered forward and reverse traversal plus replaceNode, eraseInit, postorder traversal, and detached-node state checks.",
+      "summary": "Committed C-backed parity coverage includes ordered forward and reverse traversal plus replaceNode, eraseInit, postorder traversal, detached-node state checks, duplicate-range replay, and cached-root replay. The current helper-local gap is Linux-style `rb_*` alias surface parity for the already-ported entry points.",
       "unit_test_anchor": "tools/lib/rbtree.zig:test \"rbtree findAdd keeps the first duplicate and inserts new keys\"",
       "unit_test_contract": "Direct Zig unit coverage keeps findAdd duplicate handling aligned so the first equal key stays resident while new distinct keys still link into the tree.",
       "search_unit_test_anchor": "tools/lib/rbtree.zig:test \"rbtree nextMatch walks the duplicate range in order\"",
