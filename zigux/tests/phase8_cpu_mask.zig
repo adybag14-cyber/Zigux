@@ -92,6 +92,12 @@ test "phase 8 cpu mask reader interface accepts chunked sysfs-style input" {
     try std.testing.expect(parsed.values[8]);
 }
 
+test "phase 8 cpu mask starter slice keeps perf-buffer auto CPU sizing bounded without claiming routing parity" {
+    try std.testing.expectEqual(@as(usize, 8), cpu_mask.derivePerfBufferAutoCpuCount(8, 0));
+    try std.testing.expectEqual(@as(usize, 4), cpu_mask.derivePerfBufferAutoCpuCount(8, 4));
+    try std.testing.expectEqual(@as(usize, 8), cpu_mask.derivePerfBufferAutoCpuCount(8, 16));
+}
+
 test "phase 8 cpu mask reader interface keeps failures explicit" {
     const ReaderError = error{InjectedReadFailure};
     const ReaderState = struct {
