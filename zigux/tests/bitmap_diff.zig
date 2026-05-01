@@ -6,22 +6,46 @@ const Word = bitmap.Word;
 const bits_per_long = bitmap.bits_per_long;
 const bitmap_nbits: usize = 1024;
 const word_count: usize = bitmap.bitsToWords(bitmap_nbits);
-const exp1 = [_]Word{
-    0x1,
-    0x2,
-    0x0000ffff,
-    0xffff0000,
-    0x55555555,
-    0xaaaaaaaa,
-    0x11111111,
-    0x22222222,
-    0xffffffff,
-    0xfffffffe,
-    0x3333333311111111,
-    0xffffffff77777777,
-    0x0,
-    0x00008000,
-    0x80000000,
+const exp1 = switch (bits_per_long) {
+    64 => [_]Word{
+        0x1,
+        0x2,
+        0x0000ffff,
+        0xffff0000,
+        0x55555555,
+        0xaaaaaaaa,
+        0x11111111,
+        0x22222222,
+        0xffffffff,
+        0xfffffffe,
+        0x3333333311111111,
+        0xffffffff77777777,
+        0x0,
+        0x00008000,
+        0x80000000,
+    },
+    // Keep the same mixed-word scan density on 32-bit hosts by spelling the
+    // wide C anchor words as adjacent low/high unsigned-long chunks.
+    32 => [_]Word{
+        0x1,
+        0x2,
+        0x0000ffff,
+        0xffff0000,
+        0x55555555,
+        0xaaaaaaaa,
+        0x11111111,
+        0x22222222,
+        0xffffffff,
+        0xfffffffe,
+        0x11111111,
+        0x33333333,
+        0x77777777,
+        0xffffffff,
+        0x0,
+        0x00008000,
+        0x80000000,
+    },
+    else => @compileError("bitmap_diff exp1 expects 32-bit or 64-bit unsigned-long hosts"),
 };
 
 fn expectSet(map: []const Word, bit: usize) !void {
