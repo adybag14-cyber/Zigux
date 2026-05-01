@@ -68,9 +68,9 @@ ABI_REQUIRED_DOC_MARKERS = (
     "PHASE3_EXPORT_UAPI_GATE=zig build phase3-export-uapi-test --build-file zigux/tests/phase3_export_uapi_build.zig",
     "PHASE3_LOW_LEVEL_GATE=zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
     "PHASE3_POLICY_UNSAFE_GATE=zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig",
-    "PHASE3_ATOMIC_SCOPE=load-store-exchange-compare-exchange-fetch-add-fetch-sub-fetch-and-fetch-or-fetch-xor",
+    "PHASE3_ATOMIC_SCOPE=load-store-exchange-compare-exchange-compare-exchange-weak-fetch-add-fetch-sub-fetch-and-fetch-or-fetch-xor",
     "PHASE3_BARRIER_SCOPE=acquire-release-full",
-    "PHASE3_MMIO_SCOPE=range-read8-read16-read32-write8-write16-write32-plus-scoped-read8-write8-read16-write16-read32-write32",
+    "PHASE3_MMIO_SCOPE=range-read8-read16-read32-read64-write8-write16-write32-write64-plus-scoped-read8-write8-read16-write16-read32-write32-read64-write64",
     "PHASE3_ROADMAP_ANCHORS=rust-exports-lib-bitmap-lib-rbtree-lib-cpumask",
     "PHASE3_CURRENT_INTEROP_FAMILIES=bitmap-cpumask-list-hlist-errptr-xarray-idr-ida-dev-region-cdev-chrdev",
     "PHASE3_CURRENT_INTEROP_GAP=repo-now-carries-curated-phase3-parity-slices-beyond-the-original-roadmap-anchor-set",
@@ -189,12 +189,17 @@ ABI_REQUIRED_SOURCE_MARKERS = {
         "atomic.fetchAnd(u32, &value, 0b0111, .seq_cst)",
         "atomic.fetchXor(u32, &value, 0b1111, .seq_cst)",
         "atomic.compareExchange(u32, &value, 12, 21, .seq_cst, .seq_cst)",
+        "atomic.compareExchangeWeak(u32, &weak_value, 31, 34, .seq_cst, .seq_cst)",
         "barrier.full();",
         "const desc = mmio.range(base, 12, 4);",
+        "try std.testing.expectEqual(@as(u64, 0x0123_4567_89ab_cdef), mmio.read64(base64, @sizeOf(u64)));",
         "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write16Scoped(.none, base, 0, 0x99));",
+        "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write64Scoped(.none, base64, 0, 0x99));",
         "try mmio.write32Scoped(.volatile_mmio, base, 4, 0xaabbccdd);",
+        "try mmio.write64Scoped(.volatile_mmio, base64, 0, 0xfedc_ba98_7654_3210);",
         "try std.testing.expectError(error.AddressOverflow, mmio.write8Scoped(.volatile_mmio, std.math.maxInt(usize), 1, 0x99));",
         "try std.testing.expectError(error.AddressOverflow, mmio.read32Scoped(.volatile_mmio, std.math.maxInt(usize), 4));",
+        "try std.testing.expectError(error.AddressOverflow, mmio.read64Scoped(.volatile_mmio, std.math.maxInt(usize), 8));",
         'test "phase3 low-level wrapper ABI range shape stays stable"',
         'test "phase3 low-level wrappers keep the narrow unsafe scope contract explicit"',
     ),
@@ -276,6 +281,7 @@ LOW_LEVEL_WRAPPER_EXPORTS = {
         "fetchOr",
         "fetchXor",
         "compareExchange",
+        "compareExchangeWeak",
     ),
     "zigux/helpers/barrier.zig": (
         "acquire",
@@ -290,12 +296,16 @@ LOW_LEVEL_WRAPPER_EXPORTS = {
         "write16Scoped",
         "read32Scoped",
         "write32Scoped",
+        "read64Scoped",
+        "write64Scoped",
         "read8",
         "write8",
         "read16",
         "write16",
         "read32",
         "write32",
+        "read64",
+        "write64",
     ),
 }
 
@@ -348,297 +358,3 @@ def validate_manifest(entry: Phase3Slice, required_files: tuple[str, ...] = ()) 
         return [f"{entry.slug}: manifest files list missing in {entry.manifest_path.relative_to(entry.root)}"]
 
     expected_core_files = (
-        entry.doc_path.relative_to(entry.root).as_posix(),
-        entry.dump_path.relative_to(entry.root).as_posix(),
-        entry.expected_path.relative_to(entry.root).as_posix(),
-        entry.harness_path.relative_to(entry.root).as_posix(),
-    )
-    listed = set(files)
-    for rel in (*expected_core_files, *required_files):
-        if rel not in listed:
-            issues.append(f"{entry.slug}: manifest missing {rel}")
-    for rel in files:
-        if not (entry.root / rel).exists():
-            issues.append(f"{entry.slug}: manifest references missing file {rel}")
-    file_count = manifest.get("file_count")
-    if file_count != len(files):
-        issues.append(f"{entry.slug}: manifest file_count {file_count!r} does not match listed files {len(files)}")
-    if manifest.get("phase") != "Phase 3":
-        issues.append(f"{entry.slug}: manifest phase is {manifest.get('phase')!r}, expected 'Phase 3'")
-    return issues
-
-
-def validate_source_markers(root: Path, required_source_markers: dict[str, tuple[str, ...]]) -> list[str]:
-    issues: list[str] = []
-    for rel, markers in required_source_markers.items():
-        path = root / rel
-        if not path.exists():
-            issues.append(f"source-marker: missing {rel}")
-            continue
-        for marker in _missing_markers(path, markers):
-            issues.append(f"source-marker: {rel} missing {marker}")
-    return issues
-
-
-def validate_low_level_wrapper_exports(
-    root: Path, required_exports: dict[str, tuple[str, ...]] = LOW_LEVEL_WRAPPER_EXPORTS
-) -> list[str]:
-    issues: list[str] = []
-    for rel, expected_exports in required_exports.items():
-        path = root / rel
-        if not path.exists():
-            issues.append(f"low-level-export: missing {rel}")
-            continue
-        actual_exports = tuple(PUB_FN_RE.findall(path.read_text(encoding="utf-8")))
-        unexpected = [name for name in actual_exports if name not in expected_exports]
-        missing = [name for name in expected_exports if name not in actual_exports]
-        if unexpected:
-            issues.append(f"low-level-export: {rel} exports unexpected public helpers: {', '.join(unexpected)}")
-        if missing:
-            issues.append(f"low-level-export: {rel} is missing documented public helpers: {', '.join(missing)}")
-    return issues
-
-
-def validate_export_uapi_boundary(root: Path) -> list[str]:
-    check_path = root / ABI_EXPORT_UAPI_SURVEY_CHECK_REL
-    if not check_path.exists():
-        return [f"export-uapi-gate: missing {ABI_EXPORT_UAPI_SURVEY_CHECK_REL}"]
-
-    result = subprocess.run(
-        ["python3", str(check_path)],
-        cwd=str(root),
-        text=True,
-        capture_output=True,
-    )
-    if result.returncode == 0:
-        return []
-
-    issues: list[str] = []
-    for line in result.stdout.splitlines():
-        stripped = line.strip()
-        if not stripped or stripped == "PHASE3_EXPORT_UAPI_SURVEY=fail":
-            continue
-        issues.append(f"export-uapi-gate: {stripped}")
-    stderr = result.stderr.strip()
-    if stderr:
-        issues.append(f"export-uapi-gate: stderr: {stderr.splitlines()[-1]}")
-    if not issues:
-        issues.append(
-            f"export-uapi-gate: {ABI_EXPORT_UAPI_SURVEY_CHECK_REL} exited with status {result.returncode}"
-        )
-    return issues
-
-
-def validate_policy_unsafe_boundary(root: Path) -> list[str]:
-    check_path = root / ABI_POLICY_UNSAFE_SURVEY_CHECK_REL
-    if not check_path.exists():
-        return [f"policy-unsafe-gate: missing {ABI_POLICY_UNSAFE_SURVEY_CHECK_REL}"]
-
-    result = subprocess.run(
-        ["python3", str(check_path)],
-        cwd=str(root),
-        text=True,
-        capture_output=True,
-    )
-    if result.returncode == 0:
-        return []
-
-    issues: list[str] = []
-    for line in result.stdout.splitlines():
-        stripped = line.strip()
-        if not stripped or stripped == "PHASE3_POLICY_UNSAFE_SURVEY=fail":
-            continue
-        issues.append(f"policy-unsafe-gate: {stripped}")
-    stderr = result.stderr.strip()
-    if stderr:
-        issues.append(f"policy-unsafe-gate: stderr: {stderr.splitlines()[-1]}")
-    if not issues:
-        issues.append(
-            f"policy-unsafe-gate: {ABI_POLICY_UNSAFE_SURVEY_CHECK_REL} exited with status {result.returncode}"
-        )
-    return issues
-
-
-def _asserted_abi_layout_count(root: Path) -> int:
-    text = (root / "zigux/tests/phase3_abi.zig").read_text(encoding="utf-8")
-    names: list[str] = []
-    seen: set[str] = set()
-    for name in ASSERT_RE.findall(text):
-        if name not in seen:
-            seen.add(name)
-            names.append(name)
-    asserted = len(names)
-    if "assertBoundaryHeaderLayout()" in text:
-        asserted += 1
-    if "assertExportStatusLayout()" in text:
-        asserted += 1
-    if "assertInteropPolicyLayout()" in text:
-        asserted += 1
-    return asserted
-
-
-def _dump_layout_keys(path: Path) -> list[str]:
-    text = path.read_text(encoding="utf-8")
-    keys = DUMP_LAYOUT_RE.findall(text)
-    if keys:
-        return keys
-    return DUMP_GENERIC_LAYOUT_RE.findall(text)
-
-
-def _harness_layout_keys(path: Path) -> list[str]:
-    text = path.read_text(encoding="utf-8")
-    keys = EXPECTED_LAYOUT_RE.findall(text)
-    if keys:
-        return keys
-    return HARNESS_GENERIC_LAYOUT_RE.findall(text)
-
-
-def validate_abi_expected_fixture(root: Path) -> list[str]:
-    issues: list[str] = []
-    expected_path = root / "zigux/tests/fixtures/phase3_abi/expected.json"
-    dump_path = root / "zigux/tests/phase3_abi_dump.zig"
-    harness_path = root / "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c"
-
-    expected = json.loads(expected_path.read_text(encoding="utf-8"))
-    if expected.get("abi_version") != 1:
-        issues.append(f"abi-fixture: expected abi_version 1, found {expected.get('abi_version')!r}")
-
-    constants = expected.get("constants")
-    if not isinstance(constants, dict):
-        issues.append("abi-fixture: constants object missing from expected.json")
-    else:
-        for key, value in ABI_REQUIRED_EXPECTED_CONSTANTS.items():
-            if constants.get(key) != value:
-                issues.append(f"abi-fixture: constant {key} is {constants.get(key)!r}, expected {value!r}")
-
-    structs = expected.get("structs")
-    if not isinstance(structs, dict):
-        return [*issues, "abi-fixture: structs object missing from expected.json"]
-
-    expected_keys = list(structs.keys())
-    dump_keys = _dump_layout_keys(dump_path)
-    harness_keys = _harness_layout_keys(harness_path)
-    asserted_count = _asserted_abi_layout_count(root)
-
-    if len(expected_keys) != len(dump_keys):
-        issues.append(
-            f"abi-fixture: expected.json tracks {len(expected_keys)} layouts but phase3_abi_dump.zig emits {len(dump_keys)}"
-        )
-    if len(expected_keys) != len(harness_keys):
-        issues.append(
-            f"abi-fixture: expected.json tracks {len(expected_keys)} layouts but phase3_abi_c_harness.c emits {len(harness_keys)}"
-        )
-    if len(dump_keys) < asserted_count:
-        issues.append(
-            f"abi-fixture: phase3_abi_dump.zig only emits {len(dump_keys)} layouts while phase3_abi.zig asserts {asserted_count}"
-        )
-    if set(expected_keys) != set(dump_keys):
-        issues.append("abi-fixture: expected.json and phase3_abi_dump.zig layout keys drift")
-    if set(expected_keys) != set(harness_keys):
-        issues.append("abi-fixture: expected.json and phase3_abi_c_harness.c layout keys drift")
-    return issues
-
-
-def validate_phase3_review_checklist(root: Path) -> list[str]:
-    checklist_path = root / "Documentation/zigux/review-checklist.md"
-    return [
-        f"review-checklist: missing {marker}"
-        for marker in _missing_markers(checklist_path, ABI_REVIEW_CHECKLIST_MARKERS)
-    ]
-
-
-def _validate_slice_docs(entry: Phase3Slice) -> list[str]:
-    issues: list[str] = []
-    doc_markers = list(COMMON_DOC_MARKERS)
-    doc_markers.append(shared_runner_gate_for_slug(entry.slug))
-    if entry.slug == "abi":
-        doc_markers.extend(ABI_REQUIRED_DOC_MARKERS)
-    for marker in _missing_markers(entry.doc_path, tuple(doc_markers)):
-        issues.append(f"{entry.slug}: documentation missing {marker}")
-    if entry.interop_gate != shared_runner_gate_for_slug(entry.slug):
-        issues.append(f"{entry.slug}: documentation interop gate drifted from shared runner")
-    return issues
-
-
-def _validate_wrapper_stub(entry: Phase3Slice) -> list[str]:
-    if not entry.check_script.exists():
-        return [f"{entry.slug}: missing wrapper {entry.check_script.relative_to(entry.root)}"]
-    if entry.check_script.read_text(encoding="utf-8") != render_wrapper_stub():
-        return [f"{entry.slug}: wrapper {entry.check_script.relative_to(entry.root)} drifted from shared stub"]
-    return []
-
-
-def _validate_build_smoke(root: Path, entry: Phase3Slice, zig_path: str | None) -> list[str]:
-    zig = find_zig(zig_path)
-    issues: list[str] = []
-    for build_step, build_file_rel in build_smoke_commands(entry):
-        result = subprocess.run(
-            [zig, "build", build_step, "--build-file", str(root / build_file_rel)],
-            cwd=str(root),
-            text=True,
-            capture_output=True,
-        )
-        if result.returncode == 0:
-            continue
-        stderr = result.stderr.strip().splitlines()
-        tail = stderr[-1] if stderr else f"exit {result.returncode}"
-        issues.append(f"{entry.slug}: build smoke failed for {build_step}: {tail}")
-    return issues
-
-
-def build_smoke_commands(entry: Phase3Slice) -> tuple[tuple[str, str], ...]:
-    if entry.slug == "abi":
-        return (
-            (entry.build_step, BUILD_FILE_REL),
-            ("phase3-low-level-wrappers-test", ABI_LOW_LEVEL_BUILD_FILE_REL),
-            ("phase3-export-uapi-test", ABI_EXPORT_UAPI_BUILD_FILE_REL),
-            ("phase3-policy-unsafe-test", ABI_POLICY_UNSAFE_BUILD_FILE_REL),
-        )
-    return ((entry.build_step, BUILD_FILE_REL),)
-
-
-def validate_slices(
-    root: Path,
-    slices: list[Phase3Slice],
-    *,
-    check_artifact_diff: bool,
-    check_build_smoke: bool,
-    check_slug_sanity: bool,
-    check_all_wrappers: bool,
-    zig_path: str | None,
-) -> list[str]:
-    issues: list[str] = []
-    catalog_entries = discover_phase3_slices(_phase3_paths_for_root(root))
-    validating_full_catalog = {entry.slug for entry in slices} == {entry.slug for entry in catalog_entries}
-    for entry in slices:
-        for path in (entry.doc_path, entry.dump_path, entry.expected_path, entry.harness_path):
-            if not path.exists():
-                issues.append(f"{entry.slug}: missing {path.relative_to(root)}")
-        issues.extend(_validate_slice_docs(entry))
-        issues.extend(validate_manifest(entry, ABI_REQUIRED_MANIFEST_FILES if entry.slug == "abi" else ()))
-        if check_all_wrappers:
-            issues.extend(_validate_wrapper_stub(entry))
-        if entry.slug == "abi":
-            issues.extend(validate_source_markers(root, ABI_REQUIRED_SOURCE_MARKERS))
-            issues.extend(validate_low_level_wrapper_exports(root))
-            issues.extend(validate_abi_expected_fixture(root))
-            issues.extend(validate_phase3_review_checklist(root))
-            issues.extend(validate_export_uapi_boundary(root))
-            issues.extend(validate_policy_unsafe_boundary(root))
-        if check_build_smoke:
-            issues.extend(_validate_build_smoke(root, entry, zig_path))
-
-    if check_slug_sanity:
-        issues.extend(f"slug-sanity: {issue.to_row()}" for issue in audit_phase3_slug_sanity(slices))
-
-    if check_all_wrappers:
-        for issue in audit_phase3_doc_sync(slices, _phase3_paths_for_root(root)):
-            if issue.code == "artifact-diff-phase3-stale" and not (check_artifact_diff or validating_full_catalog):
-                continue
-            issues.append(f"doc-sync: {issue.to_row()}")
-    elif check_artifact_diff and artifact_diff_phase3_section_needs_rewrite(
-        catalog_entries, root / "Documentation/zigux/artifact-diff.md"
-    ):
-        issues.append("doc-sync: Documentation/zigux/artifact-diff.md Phase 3 section is stale")
-
-    return issues
