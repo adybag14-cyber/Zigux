@@ -58,6 +58,14 @@ fn countLines(text: []const u8) usize {
     return lines;
 }
 
+fn expectSurveyedCommitProvenance(survey_note: []const u8, surveyed_commit: []const u8) !void {
+    try std.testing.expectEqual(@as(usize, 40), surveyed_commit.len);
+    for (surveyed_commit) |byte| {
+        try std.testing.expect(std.ascii.isHex(byte));
+    }
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, surveyed_commit) != null);
+}
+
 test "phase11 dw_wdt survey manifest and validation matrix record the landed lifecycle evidence packet" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -77,6 +85,22 @@ test "phase11 dw_wdt survey manifest and validation matrix record the landed lif
         .limited(32 * 1024),
     );
     defer std.testing.allocator.free(matrix_doc);
+
+    const survey_doc = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase11-dw-wdt-survey.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(survey_doc);
+
+    const slice_doc = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase11-dw-wdt-slice.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(slice_doc);
 
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
@@ -125,6 +149,19 @@ test "phase11 dw_wdt survey manifest and validation matrix record the landed lif
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "zig test --dep dw_wdt -Mroot=zigux/tests/phase11_dw_wdt.zig -Mdw_wdt=drivers/watchdog/dw_wdt.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "zig test zigux/tests/phase11_dw_wdt_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "python3 scripts/zigux/validate-phase11.py") != null);
+
+    try expectSurveyedCommitProvenance(survey_doc, manifest.surveyed_commit);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "bounded DesignWare starter for fixed TOP timeout windows") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "a tiny platform-resource preflight plus live resource-order summary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "Documentation/zigux/phase11-dw-wdt-validation-matrix.md` now centralizes") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "latest carried-forward shared replay status remains `PHASE11_VALIDATION=pass`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "This lane still does not claim platform-driver registration") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, slice_doc, "keeps the DesignWare non-stoppable stop semantics explicit when reset control is unavailable") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_doc, "platform-resource preflight plus live resource-order summary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_doc, "summarizeTeardownLifecycle()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_doc, "summarizeRemoveHandoff()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_doc, "This slice does not claim platform-driver registration") != null);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
