@@ -48,9 +48,13 @@ This helper does not yet claim:
 
 ## Gates
 
-1. `zig test tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
-2. `zig test zigux/tests/phase8_perf_buffer_poll.zig`
-3. `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
+The shared review path now fail-closes through the dedicated tests-readme alignment checker before the focused helper and shared build replays run, so this slice stays tied to the same validator-first Phase 8 tooling packet as the docs root, tests root, Makefile, workflow, and broader segmented libbpf notes.
+
+1. `python3 scripts/zigux/check-phase8-tests-readme-alignment.py`
+2. `make -C zigux phase8-validate`
+3. `zig test tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
+4. `zig test zigux/tests/phase8_perf_buffer_poll.zig`
+5. `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
 
 ## Next bounded step
 
