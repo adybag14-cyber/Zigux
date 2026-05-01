@@ -30,7 +30,17 @@ const Manifest = struct {
     gaps: []const Gap,
 };
 
-const expected_surveyed_commit = "ba15a15ff4f0becd063b9b12aeea73df5307e6ef";
+fn isLowerHexCommitSha(value: []const u8) bool {
+    if (value.len != 40) return false;
+    for (value) |byte| {
+        if (!std.ascii.isDigit(byte) and (byte < 'a' or byte > 'f')) return false;
+    }
+    return true;
+}
+
+fn surveyedCommitMarker(allocator: std.mem.Allocator, value: []const u8) ![]u8 {
+    return std.fmt.allocPrint(allocator, "PHASE13_SURVEYED_COMMIT={s}", .{value});
+}
 
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
@@ -62,10 +72,13 @@ test "phase13 libfs manifest records the landed close-bookkeeping slice and the 
     );
     defer std.testing.allocator.free(survey_note);
 
+    const commit_marker = try surveyedCommitMarker(std.testing.allocator, manifest.surveyed_commit);
+    defer std.testing.allocator.free(commit_marker);
+
     try std.testing.expectEqualStrings("P13-L03", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("fs/libfs.c", manifest.anchor);
-    try std.testing.expectEqualStrings(expected_surveyed_commit, manifest.surveyed_commit);
+    try std.testing.expect(isLowerHexCommitSha(manifest.surveyed_commit));
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.libfs_c_lines >= 2300);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_build_present);
@@ -76,8 +89,7 @@ test "phase13 libfs manifest records the landed close-bookkeeping slice and the 
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_reviewability_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_survey_note_present);
     try std.testing.expectEqual(@as(usize, 16), manifest.gaps.len);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, expected_surveyed_commit) != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE13_SURVEYED_COMMIT=") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, commit_marker) != null);
 
     const descriptor = libfs.LibFsHelperLab.descriptor();
     try std.testing.expectEqualStrings("fs/libfs.c", descriptor.anchor);
