@@ -7,7 +7,7 @@ This note records one exact readback snapshot for the current Phase 4 rollback-o
 - `PHASE4_EVIDENCE_DATE=2026-05-01`
 - `PHASE4_EVIDENCE_MODE=github_connector_readback`
 - `PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions`
-- `PHASE4_INSPECTED_MASTER_HEAD=35eb95b11c10c9b6b6c6d37768588d1eaf9acb97`
+- `PHASE4_INSPECTED_MASTER_HEAD=f6217dc6da34066360e99ffdcca9956af652bd57`
 - `PHASE4_VALIDATION_MATRIX_BLOB_SHA=ba053c6b14e8672a631975e704b32b3ddaea3425`
 - `PHASE4_VALIDATOR_BLOB_SHA=7482e53a6c0d219f1dab3a7cdb4ea46ddac11cf9`
 - `PHASE4_BUILD_BLOB_SHA=57f4c3809387cac39e3153b9bbad17ca92ce3684`
@@ -101,7 +101,7 @@ The current roadmap-backed destinations for that packet remain:
 
 The current packet stayed aligned across the following readbacks on `master`:
 
-- the inspected branch tip for this pass was `35eb95b11c10c9b6b6c6d37768588d1eaf9acb97`, and the exact blob pins above match the live gate-definition files read from that `master` head.
+- the inspected branch tip for this pass was `f6217dc6da34066360e99ffdcca9956af652bd57`, and the exact blob pins above still match the live Phase 4 gate-definition files read from that newer `master` head even though the intervening repo movement landed outside this rollback-readiness packet.
 - `Documentation/zigux/phase4-validation-matrix.md` still names the current rollback owners, threshold posture, workflow step names, local replay commands, and reversible-delivery evidence for the two shipped rollback gates plus the two manifest-backed survey gates.
 - `scripts/zigux/validate-phase4.py` still requires the matrix note, workflow markers, `zigux/Makefile` hooks, `zigux/tests/phase4_build.zig`, `zigux/tests/atomic64_diff.zig`, `zigux/tests/runtime_atomic64_diff.zig`, `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`, `zigux/tests/phase4_test_fsmount_manifest.json`, `zigux/tests/phase4_test_fsmount_survey.zig`, `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`, and `zigux/tests/bitmap_diff.zig` together.
 - direct validator replay on that same source snapshot returned `PHASE4_VALIDATOR_SELF_TEST=pass`, `PHASE4_VALIDATION=pass`, `PHASE4_REQUIRED_FILE_COUNT=22`, and `PHASE4_REQUIRED_MARKER_COUNT=229`.
@@ -114,7 +114,7 @@ The current packet stayed aligned across the following readbacks on `master`:
 
 ## Current Conclusion
 
-The current Phase 4 rollback-ownership survey packet is internally aligned at the inspected `master` head `35eb95b11c10c9b6b6c6d37768588d1eaf9acb97`, and the direct validator replay on that same snapshot passed both the self-test and the live gate-definition check.
+The current Phase 4 rollback-ownership survey packet is internally aligned at the inspected `master` head `f6217dc6da34066360e99ffdcca9956af652bd57`, and the direct validator replay on that same snapshot passed both the self-test and the live gate-definition check.
 
 This pass refreshed the `test_fsmount` and perf-baseline packets' `surveyed_commit` fields, their paired survey-side `current_surveyed_commit` constants, and the two manifest blob pins in this evidence note so those roadmap-gap surveys stay on the same inspected Phase 4 snapshot as the already-aligned atomic64 packet.
 
