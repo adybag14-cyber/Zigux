@@ -271,7 +271,7 @@ def run_self_test() -> int:
             tmp_root,
             "workflow:Self-test Phase 11 simple-driver validator",
         )
-        workflow_path.writeText(original_workflow, encoding="utf-8")
+        workflow_path.write_text(original_workflow, encoding="utf-8")
 
         workflow_path.write_text(
             original_workflow.replace(
