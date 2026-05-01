@@ -11,7 +11,7 @@
   "survey_summary": {
     "devres_c_lines": 399,
     "previous_surveyed_commit": "26e5f8101d3546c7942c93757ecc3fdfaa6ee264",
-    "devres_helper_sha256": "2bbad8cad014471312865a57a249412b29af4574d8a6918f8bb66f4948973eda",
+    "devres_helper_sha256": "bf273f9916faea71d56c5ecc75907bb5ccf693685e03d9fe448af3f6e4da50b6",
     "devres_test_sha256": "7dc45ab99f46d5424e3d757f720e58654aaea326b13db1af601be88c3cbff476",
     "devres_helper_matches_previous_surveyed_commit": false,
     "devres_test_matches_previous_surveyed_commit": false,
@@ -92,7 +92,7 @@
       "status": "starter_landed",
       "kind": "resource_helper_wrapper",
       "zigux_destination": "lib/devres.zig",
-      "why_now": "The helper lab now models __devm_ioremap_resource(), devm_ioremap_resource(), devm_ioremap_resource_uc(), and devm_ioremap_resource_wc() around memory-resource validation, pretty-name construction, request-region gating, remap cleanup, and non-posted resolution."
+      "why_now": "The helper lab now models __devm_ioremap_resource(), devm_ioremap_resource(), devm_ioremap_resource_uc(), and devm_ioremap_resource_wc() around memory-resource validation, overflow-safe inclusive size calculation, pretty-name construction, request-region gating, remap cleanup, and non-posted resolution."
     },
     {
       "id": "phase13-devres-devicetree-iomap-planner",
