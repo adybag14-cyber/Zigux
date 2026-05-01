@@ -25,6 +25,9 @@ This note records one exact readback snapshot for the current Phase 4 rollback-o
 - `PHASE4_VALIDATION=pass`
 - `PHASE4_REQUIRED_FILE_COUNT=22`
 - `PHASE4_REQUIRED_MARKER_COUNT=232`
+- `PHASE4_GATE_EVIDENCE_SELF_TEST=pass`
+- `PHASE4_GATE_EVIDENCE_CHECK=pass`
+- `PHASE4_GATE_EVIDENCE_TARGET_COUNT=14`
 
 ## Roadmap Contract
 
@@ -49,11 +52,14 @@ The current packet stayed aligned across the following readbacks on `master`:
 - `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` now also keeps this exact readback note explicit by requiring the sibling manifest pins, the three index-surface pins, and the shared surveyed snapshot `ec9aa1b15a34e581625da1056956ecb5dd6cd76a` instead of leaving that evidence packet as prose-only maintenance.
 - the `test_fsmount` and perf-baseline survey manifests plus their paired survey tests still pin that same shared surveyed snapshot `ec9aa1b15a34e581625da1056956ecb5dd6cd76a`, so the rollback packet now keeps the manifest-backed survey trio aligned alongside the atomic64 packet.
 - the dedicated `scripts/zigux/check-phase4-gate-evidence.py` replay is now wired into `make -C zigux phase4-validate` beside the older validator subset, so review can prove exactly which survey surfaces and index surfaces were inspected without depending on audit-only prose to carry those hashes.
+- this note now also records the dedicated checker's own status tokens `PHASE4_GATE_EVIDENCE_SELF_TEST=pass`, `PHASE4_GATE_EVIDENCE_CHECK=pass`, and `PHASE4_GATE_EVIDENCE_TARGET_COUNT=14`, so the broader blob-ledger pass result is explicit evidence instead of living only in the surrounding narrative.
 - `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` still expose the same Phase 4 rollback-readiness packet, and the new dedicated checker means those three index surfaces are now part of the same fail-closed blob ledger instead of living only as summary guides under this note.
 
 ## Current Conclusion
 
 The current Phase 4 rollback-ownership survey packet is aligned at two validator-backed layers: the direct `validate-phase4.py` replay still passes for the matrix, validator, build, workflow, and manifest subset, and the dedicated `check-phase4-gate-evidence.py` path now fail-closes the survey-file plus index-surface blob pins recorded in this note.
+
+This note now carries both validator layers' pass tokens directly, so the machine-checked Phase 4 proof shape is visible from the evidence ledger itself instead of being inferred from prose around the checker.
 
 That means the current README surfaces remain truthful summaries for the packet, and this note is now a fully checked blob ledger for the broader survey and index surfaces instead of the only audit-only record for them.
 
