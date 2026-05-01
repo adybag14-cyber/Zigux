@@ -52,7 +52,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_arch_memtype_state");
 }
 
-test "phase13 devres manifest records the current iomap/mmio safety surface and explicit blockers" {
+test "phase13 devres manifest records the current helper boundary and explicit dma/scatterlist blockers" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -157,14 +157,16 @@ test "phase13 devres manifest records the current iomap/mmio safety surface and 
     );
     defer std.testing.allocator.free(survey_note);
 
+    try expectContains(survey_note, "# Phase 13 devres helper DMA/scatterlist boundary survey");
     try expectContains(survey_note, "## Status");
     try expectContains(survey_note, "- `PHASE13_STATUS=active`");
-    try expectContains(survey_note, "- `PHASE13_SLICE=devres-helper-iomap-mmio-safety-reviewability`");
+    try expectContains(survey_note, "- `PHASE13_SLICE=devres-helper-dma-scatterlist-boundary-reviewability`");
     try expectContains(survey_note, "- `PHASE13_SURVEYED_COMMIT=aa01b37be5500e6a1e4f959c9fe07f0e39d39bfb`");
     try expectContains(survey_note, "- product boundary:");
     try expectContains(survey_note, "- `lib/devres.zig`");
     try expectContains(survey_note, "- `zigux/tests/phase13_devres_manifest.json`");
     try expectContains(survey_note, "- `Documentation/zigux/phase13-devres-survey.md`");
+    try expectContains(survey_note, "helper-first iomap or resource planners plus explicit DMA/scatterlist blockers pinned to the current repo state");
     try expectContains(survey_note, "rejecting full-width inclusive MMIO resource spans that would overflow size math before request-region or remap planning begins");
     try expectContains(survey_note, "sha256 11b2d4e475b7d21c1086679a438a851f1f12df15aa655b75e8a78fee7427bc21");
     try expectContains(survey_note, "sha256 7dc45ab99f46d5424e3d757f720e58654aaea326b13db1af601be88c3cbff476");
