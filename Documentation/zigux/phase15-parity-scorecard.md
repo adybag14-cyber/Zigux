@@ -8,7 +8,7 @@ This document records the bounded Phase 15 governance lane for the deep-core fre
 - `PHASE15_STATUS=freeze_in_c_governance`
 - `PHASE15_SLICE=current-parity-tracking-gap-survey`
 - scope: a reviewable scorecard that captures council inputs, evidence thresholds, validation gates, rollback ownership, rollback thresholds, evidence-archive reporting, reserved per-anchor decision-record templates, retained stay-in-C closeout state, explicit per-anchor owner tracking for the active freeze-in-C anchors, and one explicit roadmap-vs-repo parity-tracking gap survey now that the landed Phase 15 governance bundle already replays in the shared workflow
-- survey provenance refreshed against verified `master` head `90d95d183d1072f1e8a030eec05e1e60abf443ac`
+- survey provenance refreshed against verified `master` head `ba15a15ff4f0becd063b9b12aeea73df5307e6ef`
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/review-checklist.md`
@@ -250,7 +250,7 @@ If any one of those fields is missing, stale, or contradicted by the linked evid
 
 When a freeze-in-C anchor closes review without a status change, the scorecard records one retained discussion state: `retired_from_active_discussion`.
 
-That retained state does not mean the blocker disappeared. It means the active discussion is closed for now, the anchor remains governed as in-C, and the evidence archive still has to preserve the decision record, linked evidence, benchmark-note status, replay command, latest blocker disposition, rollback threshold, and latest blocker disposition that justified the closeout.
+That retained state does not mean the blocker disappeared. It means the active discussion is closed for now, the anchor remains governed as in-C, and the evidence archive still has to preserve the decision record, linked evidence, benchmark-note status, replay command, rollback threshold, and latest blocker disposition that justified the closeout.
 
 Each closeout packet must also record the reopen triggers that would bring the anchor back into active discussion. The minimum catalog is:
 
