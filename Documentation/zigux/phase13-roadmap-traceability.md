@@ -109,7 +109,7 @@ Current repo evidence:
 - implementation anchor: `security/landlock/syscalls.zig`
 - dedicated tests: `zigux/tests/phase13_landlock_syscalls.zig`
 - manifest: `zigux/tests/phase13_landlock_syscalls_manifest.json`
-- manifest `surveyed_commit`: `09229747ad125661be1d17d3d55d87ef11cd33e4`
+- manifest `surveyed_commit`: `9c17b0790799d8240ef9f964903f5ce2db64af89`
 - shared build entry: `zigux/tests/phase13_build.zig`
 - slice note: `Documentation/zigux/phase13-landlock-syscalls-slice.md`
 - survey note: `Documentation/zigux/phase13-landlock-syscalls-survey.md`
