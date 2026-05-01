@@ -28,7 +28,7 @@ The exported `libbpf_bpf_{attach,link,map,prog}_type_str()` helpers are a good f
 - `zig test tools/lib/bpf/zigux_segments/type_names.zig`
 
 2. run the dedicated Phase 8 tooling gate
-- `zig build test --build-file zigux/tests/phase8_build.zig`
+- `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
 
 3. run the convenience target
 - `make -C zigux phase8`
