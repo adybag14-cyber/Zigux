@@ -62,7 +62,9 @@ pub fn main(init: std.process.Init) !void {
     try writeStructLayout(writer, "zigux_boundary_header", abi.BoundaryHeader, true);
     try writeStructLayout(writer, "zigux_export_status", abi.ExportStatus, true);
     try writeStructLayout(writer, "zigux_mmio_range", abi.MmioRange, true);
-    try writeStructLayout(writer, "zigux_interop_policy", abi.InteropPolicy, false);
+    try writeStructLayout(writer, "zigux_interop_policy", abi.InteropPolicy, true);
+    try writeStructLayout(writer, "zigux_bitmap_view", abi.BitmapView, true);
+    try writeStructLayout(writer, "zigux_cpumask_view", abi.CpuMaskView, false);
     try writer.writeAll("}}\n");
     try writer.flush();
 }
