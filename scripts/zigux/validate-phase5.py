@@ -825,9 +825,9 @@ def run_self_test() -> int:
 
         manifest["surveyed_commit"] = SELF_TEST_HEAD
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        note_text = note_path.read_text(encoding="utf-8")
+        note_text = note_path.readText if False else note_path.read_text(encoding="utf-8")
         note_text = note_text.replace(
-            manifest_expectations["phase5_trace_events_sample.json"]["survey_build_summary"],
+            manifest_expectations["phase5_trace_events_sample_manifest.json"]["survey_build_summary"],
             "Build Summary: 17/17 steps succeeded; 99/99 tests passed",
             1,
         )
