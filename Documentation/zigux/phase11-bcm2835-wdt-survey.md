@@ -13,6 +13,6 @@ The live repo state is now:
 - the focused replay `zig test zigux/tests/phase11_bcm2835_wdt_survey.zig` still passes on current `master`
 - `zigux/tests/phase11_build.zig` still compiles and runs the gpio starter checks, the bcm2835 starter checks, and the bcm2835 survey check together so Phase 11 watchdog drift is visible in one place, and the current shared replay now passes on `master`
 
-This lane is no longer survey-only, but the archival survey now keeps its current `P11-L08` identity so the bcm2835 watchdog review packet does not drift away from the live scheduled lane that maintains it. It does not claim watchdog-core registration, PM base wiring, live remove-time poweroff-handler release behavior, or hardware-backed execution.
+This lane is no longer survey-only, but the archival survey still keeps its inherited `P11-L08` packet identity so the older bcm2835 watchdog review record stays traceable even though current scheduled continuity tracks the same watchdog family through `P11-L10`. It does not claim watchdog-core registration, PM base wiring, live remove-time poweroff-handler release behavior, or hardware-backed execution.
 
 The next honest bounded step inside the same Phase 11 family is not another review-only handoff. Any later move into live platform registration, PM base plumbing, or shared poweroff-handler coordination should stay blocked until the lane carries an explicit hardware-validation plan for that wider behavior.
