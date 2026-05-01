@@ -7,14 +7,15 @@ This document records the bounded Phase 14 survey lane `P14-L16` around `kernel/
 - `PHASE14_STATUS=freeze_in_c`
 - `PHASE14_SLICE=rcu-tree-survey-gap`
 - `PHASE14_LANE_KEY=P14-L16`
-- `PHASE14_SURVEYED_COMMIT=4c889233d157960514b241bcd5aff7cac5fda312`
-- scope: the dedicated Phase 14 RCU tree survey gate, its manifest, the shared Phase 14 build wiring, and this lane note that compares the roadmap destination against the current freeze boundary without shipping a bridge
-- survey provenance refreshed against verified `master` head `4c889233d157960514b241bcd5aff7cac5fda312`
+- `PHASE14_SURVEYED_COMMIT=e2075a1902926ea5f25f724134e48f04108e9240`
+- scope: the dedicated Phase 14 RCU tree survey gate, its manifest, the shared Phase 14 build wiring, the shared review checklist entry for this boundary packet, and this lane note that compares the roadmap destination against the current freeze boundary without shipping a bridge
+- survey provenance refreshed against verified `master` head `e2075a1902926ea5f25f724134e48f04108e9240`
 - product boundary:
   - `zigux/tests/phase14_rcu_tree_survey.zig`
   - `zigux/tests/phase14_rcu_tree_manifest.json`
   - `zigux/tests/phase14_build.zig`
   - `Documentation/zigux/phase14-rcu-tree-survey.md`
+  - `Documentation/zigux/review-checklist.md`
   - `Documentation/zigux/freeze-map.md`
 
 ## Why this slice exists
@@ -110,6 +111,15 @@ This run closes one more bounded stay-in-C follow-up without changing the underl
 
 The net result is still survey-only: CPU hotplug enrollment, teardown, and callback migration remain explicitly in C, not as a new opening for `kernel/rcu/tree_bridge.zig`.
 
+## Shared review checklist follow-up
+
+This run closes one more bounded boundary-map gap without changing the underlying freeze decision.
+
+- `Documentation/zigux/review-checklist.md` now has to name the Phase 14 RCU tree survey packet directly instead of only relying on this survey note and the manifest to carry the blocked bridge posture.
+- that shared checklist entry keeps the exact same reviewable packet explicit: the surveyed commit pin, the `blocked_on_stay_in_c_evidence` boundary-map status for `kernel/rcu/tree_bridge.zig`, the rollback threshold, the automatic return-to-blocked triggers, and the explicit non-goal that the repo still ships no placeholder bridge wrapper.
+
+The net result is still survey-only: the shared review checklist now helps guard the same blocked boundary-map packet, not a new opening for `kernel/rcu/tree_bridge.zig`.
+
 ## Rollback threshold guardrail
 
 This run adds one narrow rollback-threshold guardrail so the lane cannot quietly drift from "blocked survey" into "bridge momentum."
@@ -150,6 +160,7 @@ The current lane state is:
 - landed `phase14-rcu-tree-idle-watch-followup`
 - landed `phase14-rcu-tree-public-wait-and-barrier-followup`
 - landed `phase14-rcu-tree-cpu-hotplug-followup`
+- landed `phase14-rcu-tree-review-checklist-followup`
 - landed `phase14-rcu-tree-rollback-threshold-guardrail`
 - blocked `phase14-rcu-tree-bridge-blocker`
 
