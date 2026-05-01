@@ -15,6 +15,28 @@ TRACKED_PATHS = [
     "tools/lib/bpf/zigux_segments/manifest.json",
 ]
 
+MANIFEST_ROLLBACK_CONTRACT = {
+    "owner": "BPF Tooling Lane",
+    "rollback_owner": "BPF Tooling Lane",
+    "fallback_path": "tools/lib/bpf/libbpf.c",
+    "reversible_delivery_evidence": [
+        "zigux/tests/phase12_libbpf_segments.zig",
+        "zigux/tests/phase12_libbpf_reviewability.zig",
+        "Documentation/zigux/phase12-libbpf-segment-survey.md",
+    ],
+    "rollback_drill": [
+        "python3 scripts/zigux/check-phase12-build-inventory.py --self-test",
+        "python3 scripts/zigux/check-phase12-build-inventory.py",
+        "python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test",
+        "python3 scripts/zigux/check-phase12-libbpf-snapshot.py",
+        "python3 scripts/zigux/check-phase12-libbpf-packet.py --self-test",
+        "python3 scripts/zigux/check-phase12-libbpf-packet.py",
+        "python3 scripts/zigux/validate-phase12.py",
+        "make -C zigux phase12-validate",
+        "zig build test --build-file zigux/tests/phase12_build.zig --summary all",
+    ],
+}
+
 SURVEY_NOTE_MARKERS = [
     "## Rollback And Reversible Delivery",
     "owner: `BPF Tooling Lane`",
@@ -178,6 +200,21 @@ def has_valid_commit(value: object) -> bool:
     return isinstance(value, str) and len(value) == 40
 
 
+def check_manifest_rollback_contract(rollback_contract: object, missing: list[str]) -> None:
+    if not isinstance(rollback_contract, dict):
+        missing.append("manifest:rollback_contract")
+        return
+
+    for key in ("owner", "rollback_owner", "fallback_path"):
+        if rollback_contract.get(key) != MANIFEST_ROLLBACK_CONTRACT[key]:
+            missing.append(f"manifest:rollback_contract:{key}")
+
+    for key in ("reversible_delivery_evidence", "rollback_drill"):
+        value = rollback_contract.get(key)
+        if not isinstance(value, list) or value != MANIFEST_ROLLBACK_CONTRACT[key]:
+            missing.append(f"manifest:rollback_contract:{key}")
+
+
 def check_packet(root: Path) -> list[str]:
     missing: list[str] = []
     for rel_path in TRACKED_PATHS:
@@ -200,6 +237,7 @@ def check_packet(root: Path) -> list[str]:
         missing.append("manifest:phase")
     if manifest.get("anchor") != "tools/lib/bpf/libbpf.c":
         missing.append("manifest:anchor")
+    check_manifest_rollback_contract(manifest.get("rollback_contract"), missing)
     surveyed_commit = manifest.get("surveyed_commit")
     if not has_valid_commit(surveyed_commit):
         missing.append("manifest:surveyed_commit")
@@ -294,6 +332,7 @@ def build_self_test_tree(root: Path) -> None:
         "phase": "Phase 12",
         "surveyed_commit": surveyed_commit,
         "anchor": "tools/lib/bpf/libbpf.c",
+        "rollback_contract": MANIFEST_ROLLBACK_CONTRACT,
         "gaps": [
             {"id": gap_id, "status": status, "zigux_destination": destination}
             for gap_id, status, destination in PHASE12_GAP_SPECS
@@ -367,6 +406,7 @@ def run_self_test() -> int:
         build_self_test_tree(root)
         survey_note_path = root / TRACKED_PATHS[3]
         original = survey_note_path.read_text(encoding="utf-8")
+        survey_note_path.writeText if False else None
         survey_note_path.write_text(
             original.replace(
                 "automatic perf-buffer CPU-budget clamp explicit before any per-CPU buffer opens happen\n",
@@ -417,6 +457,15 @@ def run_self_test() -> int:
             raise SystemExit("phase12-libbpf-packet:self-test:manifest_lane_detection")
 
         build_self_test_tree(root)
+        manifest_path = root / TRACKED_PATHS[0]
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["rollback_contract"]["fallback_path"] = "tools/lib/bpf/libbpf_alt.c"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        missing = check_packet(root)
+        if "manifest:rollback_contract:fallback_path" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:rollback_contract_detection")
+
+        build_self_test_tree(root)
         legacy_manifest_path = root / TRACKED_PATHS[4]
         legacy_manifest = json.loads(legacy_manifest_path.read_text(encoding="utf-8"))
         legacy_manifest["segments"][4]["status"] = "deferred_high_risk"
@@ -462,7 +511,7 @@ def run_self_test() -> int:
             raise SystemExit("phase12-libbpf-packet:self-test:legacy_surveyed_commit_detection")
 
         print("PHASE12_LIBBPF_PACKET_SELF_TEST=pass")
-        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=10")
+        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
