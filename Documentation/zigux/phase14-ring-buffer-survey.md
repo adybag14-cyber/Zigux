@@ -7,9 +7,9 @@ This document records the bounded Phase 14 survey lane around `kernel/trace/ring
 - `PHASE14_LANE_KEY=P14-L08`
 - `PHASE14_STATUS=study_only`
 - `PHASE14_SLICE=ring-buffer-survey-gap`
-- `PHASE14_SURVEYED_COMMIT=98aa9bb7dd14ed6063f954b0a23c19a537af51a5`
+- `PHASE14_SURVEYED_COMMIT=fec3212dd627d6ae7ab442fc323399538b978346`
 - scope: the dedicated Phase 14 ring-buffer survey gate, its manifest, the shared Phase 14 build wiring, and this lane note that keeps the roadmap gap explicit without shipping a Zig bridge
-- survey provenance refreshed against verified `master` head `98aa9bb7dd14ed6063f954b0a23c19a537af51a5`
+- survey provenance refreshed against verified `master` head `fec3212dd627d6ae7ab442fc323399538b978346`
 - product boundary:
   - `zigux/tests/phase14_ring_buffer_survey.zig`
   - `zigux/tests/phase14_ring_buffer_manifest.json`
