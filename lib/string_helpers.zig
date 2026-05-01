@@ -29,6 +29,7 @@ pub const STRING_UNITS_NO_BYTES: u32 = 1 << 31;
 
 pub const ParseIntArrayError = std.mem.Allocator.Error || error{NoEntry};
 const empty_kasprintf_strarray_null_terminated: []const ?[*:0]const u8 = &.{null};
+const empty_kasprintf_strarray_raw: []const ?[*:0]u8 = &.{null};
 
 pub const KasprintfStrarrayResult = struct {
     names: [][:0]u8,
@@ -54,6 +55,41 @@ pub const KasprintfStrarrayResult = struct {
         return self.names_null_terminated.ptr;
     }
 };
+
+pub fn kasprintfStrarrayRaw(
+    allocator: std.mem.Allocator,
+    prefix: []const u8,
+    n: usize,
+) ![]?[*:0]u8 {
+    const current = cStringPrefix(prefix);
+    if (n == 0) {
+        return try allocator.dupe(?[*:0]u8, empty_kasprintf_strarray_raw);
+    }
+
+    var names = try allocator.alloc(?[*:0]u8, n + 1);
+    errdefer allocator.free(names);
+    @memset(names, null);
+
+    var allocated: usize = 0;
+    errdefer kfreeStrarrayRaw(allocator, names, allocated);
+
+    while (allocated < n) : (allocated += 1) {
+        names[allocated] = (try allocPrintCString(allocator, "{s}-{d}", .{ current, allocated })).ptr;
+    }
+    names[n] = null;
+    return names;
+}
+
+pub fn kfreeStrarrayRaw(allocator: std.mem.Allocator, array: ?[]?[*:0]u8, count: usize) void {
+    const values = array orelse return;
+    const limit = @min(count, values.len);
+    for (values[0..limit]) |item| {
+        if (item) |ptr| {
+            allocator.free(std.mem.span(ptr));
+        }
+    }
+    allocator.free(values);
+}
 
 pub fn sysfsStreq(s1: []const u8, s2: []const u8) bool {
     return std.mem.eql(u8, sysfsComparablePrefix(s1), sysfsComparablePrefix(s2));
@@ -269,7 +305,6 @@ pub fn kasprintfStrarray(
     prefix: []const u8,
     n: usize,
 ) !KasprintfStrarrayResult {
-    const current = cStringPrefix(prefix);
     if (n == 0) {
         return .{
             .names = &.{},
@@ -280,19 +315,17 @@ pub fn kasprintfStrarray(
     var names = try allocator.alloc([:0]u8, n);
     errdefer allocator.free(names);
 
+    const raw = try kasprintfStrarrayRaw(allocator, prefix, n);
+    defer kfreeStrarrayRaw(allocator, raw, n);
+
     var names_null_terminated = try allocator.alloc(?[*:0]const u8, n + 1);
     errdefer allocator.free(names_null_terminated);
 
-    var allocated: usize = 0;
-    errdefer {
-        for (names[0..allocated]) |name| {
-            allocator.free(name);
-        }
-    }
-
-    while (allocated < n) : (allocated += 1) {
-        names[allocated] = try allocPrintCString(allocator, "{s}-{d}", .{ current, allocated });
-        names_null_terminated[allocated] = names[allocated].ptr;
+    for (raw[0..n], 0..) |item, index| {
+        const ptr = item orelse unreachable;
+        const name = std.mem.span(ptr);
+        names[index] = try allocator.dupeZ(u8, name);
+        names_null_terminated[index] = names[index].ptr;
     }
     names_null_terminated[n] = null;
 
