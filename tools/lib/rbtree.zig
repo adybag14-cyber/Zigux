@@ -897,17 +897,22 @@ test "rbtree postorder and empty node helpers behave" {
     }
     try expectValidTree(&root);
 
+    var postorder: [3]i32 = undefined;
     var count: usize = 0;
     var current = firstPostorder(&root);
     while (current) |node| : (current = nextPostorder(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        postorder[count] = entry.key;
         count += 1;
     }
 
     try std.testing.expectEqual(@as(usize, 3), count);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 1, 3, 2 }, postorder[0..count]);
 
-    var detached = Node.init();
-    clearNode(&detached);
-    try std.testing.expect(emptyNode(&detached));
+    clearNode(&entries[1].node);
+    try std.testing.expect(emptyNode(&entries[1].node));
+    try std.testing.expectEqual(@as(?*Node, null), next(&entries[1].node));
+    try std.testing.expectEqual(@as(?*Node, null), prev(&entries[1].node));
 }
 
 test "rbtree iteratePostorder streams the full postorder walk once" {
@@ -925,10 +930,9 @@ test "rbtree iteratePostorder streams the full postorder walk once" {
     }.compare;
 
     var entries = [_]Entry{
-        .{ .key = 4 },
         .{ .key = 2 },
-        .{ .key = 5 },
         .{ .key = 1 },
+        .{ .key = 4 },
         .{ .key = 3 },
     };
     var root = Root.init();
@@ -938,17 +942,17 @@ test "rbtree iteratePostorder streams the full postorder walk once" {
     }
     try expectValidTree(&root);
 
-    var iterator = iteratePostorder(&root);
-    var order: [5]i32 = undefined;
+    var order: [4]i32 = undefined;
     var count: usize = 0;
+    var iterator = iteratePostorder(&root);
     while (iterator.next()) |node| {
         const entry: *const Entry = @fieldParentPtr("node", node);
         order[count] = entry.key;
         count += 1;
     }
 
-    try std.testing.expectEqual(@as(usize, 5), count);
-    try std.testing.expectEqualSlices(i32, &[_]i32{ 1, 3, 2, 5, 4 }, order[0..count]);
+    try std.testing.expectEqual(@as(usize, 4), count);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 1, 3, 4, 2 }, order[0..count]);
     try std.testing.expectEqual(@as(?*Node, null), iterator.next());
 }
 
@@ -967,13 +971,10 @@ test "rbtree iteratePostorderSafe caches the next node before invalidation" {
     }.compare;
 
     var entries = [_]Entry{
-        .{ .key = 4 },
         .{ .key = 2 },
-        .{ .key = 6 },
         .{ .key = 1 },
+        .{ .key = 4 },
         .{ .key = 3 },
-        .{ .key = 5 },
-        .{ .key = 7 },
     };
     var root = Root.init();
 
@@ -982,24 +983,19 @@ test "rbtree iteratePostorderSafe caches the next node before invalidation" {
     }
     try expectValidTree(&root);
 
-    var iterator = iteratePostorderSafe(&root);
-    var order: [7]i32 = undefined;
+    var order: [4]i32 = undefined;
     var count: usize = 0;
+    var iterator = iteratePostorderSafe(&root);
     while (iterator.next()) |node| {
         const entry: *const Entry = @fieldParentPtr("node", node);
         order[count] = entry.key;
         count += 1;
-
-        clearNode(@constCast(node));
+        erase(node, &root);
     }
 
-    try std.testing.expectEqual(@as(usize, 7), count);
-    try std.testing.expectEqualSlices(i32, &[_]i32{ 1, 3, 2, 5, 7, 6, 4 }, order[0..count]);
-    try std.testing.expectEqual(@as(?*Node, null), iterator.next());
-
-    for (&entries) |*entry| {
-        try std.testing.expect(emptyNode(&entry.node));
-    }
+    try std.testing.expectEqual(@as(usize, 4), count);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 1, 3, 4, 2 }, order[0..count]);
+    try std.testing.expectEqual(@as(?*Node, null), root.node);
 }
 
 test "rbtree findAdd keeps the first duplicate and inserts new keys" {
@@ -1024,7 +1020,7 @@ test "rbtree findAdd keeps the first duplicate and inserts new keys" {
         .{ .key = 20, .serial = 1 },
         .{ .key = 5, .serial = 2 },
         .{ .key = 10, .serial = 3 },
-        .{ .key = 15, .serial = 4 },
+        .{ .key = 3, .serial = 4 },
     };
     var root = Root.init();
 
@@ -1054,7 +1050,7 @@ test "rbtree findAdd keeps the first duplicate and inserts new keys" {
     }
 
     try std.testing.expectEqual(@as(usize, 4), count);
-    try std.testing.expectEqualSlices(i32, &[_]i32{ 5, 10, 15, 20 }, order[0..count]);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 3, 5, 10, 20 }, order[0..count]);
 }
 
 test "rbtree find returns the matching key or null" {
@@ -1616,6 +1612,39 @@ test "rbtree cached root tracks duplicate minima through erase and non-leftmost 
     const after_replace: *const Entry = @fieldParentPtr("node", firstCached(&root).?);
     try std.testing.expectEqual(@as(i32, 10), after_replace.key);
     try std.testing.expectEqual(@as(usize, 1), after_replace.serial);
+}
+
+test "rbtree cached root clears and reseeds after singleton erase" {
+    const Entry = struct {
+        key: i32,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var first_entry = Entry{ .key = 10 };
+    var second_entry = Entry{ .key = 6 };
+    var root = RootCached.init();
+
+    try std.testing.expectEqual(@as(?*Node, &first_entry.node), addCached(&first_entry.node, &root, less));
+    try expectValidTree(&root.root);
+    try std.testing.expectEqual(@as(?*Node, &first_entry.node), firstCached(&root));
+
+    eraseCached(&first_entry.node, &root);
+    try expectValidTree(&root.root);
+    try std.testing.expectEqual(@as(?*Node, null), root.root.node);
+    try std.testing.expectEqual(@as(?*Node, null), firstCached(&root));
+
+    try std.testing.expectEqual(@as(?*Node, &second_entry.node), addCached(&second_entry.node, &root, less));
+    try expectValidTree(&root.root);
+    try std.testing.expectEqual(@as(?*Node, &second_entry.node), firstCached(&root));
+    try std.testing.expectEqual(first(&root.root), firstCached(&root));
 }
 
 test "rbtree findAddCached preserves duplicate ownership and leftmost cache" {
