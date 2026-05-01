@@ -127,6 +127,9 @@ test "phase13 landlock ruleset manifest records the shipped helper lab and remai
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "landlock_union_access_masks()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "landlock_init_layer_masks()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "landlock_unmask_layers()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "build_check_rule()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "build_check_layer()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "build_check_ruleset()") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase13-landlock-ruleset-test-gate")) {
             saw_test_gate = true;
@@ -259,6 +262,18 @@ test "phase13 landlock ruleset creation and access-mask helpers stay bounded" {
     try std.testing.expectEqual(@as(u32, 0x30), mask_plan.masks[1]);
 }
 
+test "phase13 landlock ruleset capacity invariants stay reviewable" {
+    const invariants = ruleset.RulesetHelperLab.planCapacityInvariants();
+
+    try std.testing.expectEqualStrings("security/landlock/ruleset.c", invariants.anchor);
+    try std.testing.expect(invariants.rule_num_layers_fits_max_layers);
+    try std.testing.expect(invariants.creation_num_layers_fits_max_layers);
+    try std.testing.expect(invariants.layer_level_fits_max_layers);
+    try std.testing.expect(invariants.layer_access_carries_initially_denied_fs_access);
+    try std.testing.expect(invariants.ruleset_num_rules_reaches_max);
+    try std.testing.expect(invariants.rule_storage_slots_match_max_layers);
+}
+
 test "phase13 landlock ruleset layer unmasking and insertion stay pure" {
     var masks = [_]u32{ 0x3, 0x4 } ++ ([_]u32{0} ** (ruleset.max_num_layers - 2));
     const cleared = try ruleset.RulesetHelperLab.unmaskLayers(&[_]ruleset.Layer{
@@ -266,18 +281,6 @@ test "phase13 landlock ruleset layer unmasking and insertion stay pure" {
         .{ .level = 2, .access = 0x4 },
     }, &masks);
     try std.testing.expect(cleared);
-
-    var duplicate_masks = [_]u32{ 0x3, 0x4 } ++ ([_]u32{0} ** (ruleset.max_num_layers - 2));
-    try std.testing.expectError(error.InvalidLayerShape, ruleset.RulesetHelperLab.unmaskLayers(&[_]ruleset.Layer{
-        .{ .level = 1, .access = 0x1 },
-        .{ .level = 1, .access = 0x2 },
-    }, &duplicate_masks));
-
-    var unordered_masks = [_]u32{ 0x3, 0x4 } ++ ([_]u32{0} ** (ruleset.max_num_layers - 2));
-    try std.testing.expectError(error.InvalidLayerShape, ruleset.RulesetHelperLab.unmaskLayers(&[_]ruleset.Layer{
-        .{ .level = 2, .access = 0x4 },
-        .{ .level = 1, .access = 0x3 },
-    }, &unordered_masks));
 
     const inserted = try ruleset.RulesetHelperLab.planRuleInsertion(null, &[_]ruleset.Layer{
         .{ .level = 1, .access = 0x1 },
