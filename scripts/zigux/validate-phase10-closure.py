@@ -161,6 +161,19 @@ SURVEY_TEXT_MARKERS = {
         "phase10-mmio-config-write-helper",
         "phase10-mmio-interrupt-ack-helper",
         "phase10-mmio-lifecycle-and-irq-paths",
+        "PHASE10_FREEZE_MAP=Documentation/zigux/freeze-map.md",
+        "PHASE10_FREEZE_BOUNDARY_STATUS=aligned",
+        "PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=yes",
+        "PHASE10_ARCHITECTURE_COUNCIL_REOPEN_ATTACHED=no",
+        "PHASE10_ALLOWED_EVIDENCE_KINDS=driver_local_lab_slices,survey_manifests,shared_validation_gates",
+        "PHASE10_FORBIDDEN_TRANSPORT_CLAIMS=queue_setup_reset_paths,irq_parity,dma_paths,input_registration_lifecycle,probe_remove_lifecycle",
+        "kernel/workqueue.c",
+        "kernel/trace/ring_buffer.c",
+        "boundary maps",
+        "concurrency audits",
+        "explicit stay-in-C decisions where warranted",
+        "wrapper-first or study-only posture",
+        "drivers/virtio/*.zig",
     ],
 }
 
@@ -192,6 +205,19 @@ TEST_MARKERS = {
         '"phase10-mmio-interrupt-ack-helper",',
         'if (std.mem.eql(u8, gap.id, "phase10-mmio-interrupt-ack-helper")) {',
         'try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-mmio-interrupt-ack-helper") != null);',
+        'try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_FREEZE_MAP=Documentation/zigux/freeze-map.md") != null);',
+        'try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_FREEZE_BOUNDARY_STATUS=aligned") != null);',
+        'try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=yes") != null);',
+        'try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_ARCHITECTURE_COUNCIL_REOPEN_ATTACHED=no") != null);',
+        'try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_ALLOWED_EVIDENCE_KINDS=driver_local_lab_slices,survey_manifests,shared_validation_gates") != null);',
+        'try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_FORBIDDEN_TRANSPORT_CLAIMS=queue_setup_reset_paths,irq_parity,dma_paths,input_registration_lifecycle,probe_remove_lifecycle") != null);',
+        'try std.testing.expect(std.mem.indexOf(u8, survey_note, "kernel/workqueue.c") != null);',
+        'try std.testing.expect(std.mem.indexOf(u8, survey_note, "kernel/trace/ring_buffer.c") != null);',
+        'try std.testing.expect(std.mem.indexOf(u8, survey_note, "boundary maps") != null);',
+        'try std.testing.expect(std.mem.indexOf(u8, survey_note, "concurrency audits") != null);',
+        'try std.testing.expect(std.mem.indexOf(u8, survey_note, "explicit stay-in-C decisions where warranted") != null);',
+        'try std.testing.expect(std.mem.indexOf(u8, survey_note, "wrapper-first or study-only posture") != null);',
+        'try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/*.zig") != null);',
     ],
 }
 
@@ -544,9 +570,43 @@ def run_self_test() -> int:
             fixture_root,
             "ledger:PHASE10_LEDGER_ROADMAP_LAB_ONLY_DRIVER_VALIDATION=starter_landed",
         )
+        write_fixture(fixture_root)
+
+        survey_note_path = fixture_root / "Documentation/zigux/phase10-virtio-mmio-survey.md"
+        original_survey_note = survey_note_path.read_text(encoding="utf-8")
+        survey_note_path.write_text(
+            original_survey_note.replace(
+                "PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=yes",
+                "PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=missing",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "mmio_freeze_boundary_note_guard",
+            fixture_root,
+            "Documentation/zigux/phase10-virtio-mmio-survey.md:PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=yes",
+        )
+        write_fixture(fixture_root)
+
+        mmio_survey_test_path = fixture_root / "zigux/tests/phase10_virtio_mmio_survey.zig"
+        original_mmio_survey_test = mmio_survey_test_path.read_text(encoding="utf-8")
+        mmio_survey_test_path.write_text(
+            original_mmio_survey_test.replace(
+                'try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_ALLOWED_EVIDENCE_KINDS=driver_local_lab_slices,survey_manifests,shared_validation_gates") != null);',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "mmio_freeze_boundary_test_guard",
+            fixture_root,
+            'zigux/tests/phase10_virtio_mmio_survey.zig:try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_ALLOWED_EVIDENCE_KINDS=driver_local_lab_slices,survey_manifests,shared_validation_gates") != null);',
+        )
 
     print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=6")
+    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
