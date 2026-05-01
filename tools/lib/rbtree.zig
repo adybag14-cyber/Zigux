@@ -995,6 +995,69 @@ test "rbtree iteratePostorderSafe caches the next node before node invalidation"
     try std.testing.expectEqualSlices(i32, &[_]i32{ 1, 3, 4, 2 }, order[0..count]);
 }
 
+test "rbtree iteratePostorderSafe survives erase-driven rebalancing" {
+    const Entry = struct {
+        key: i32,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 10 },
+        .{ .key = 5 },
+        .{ .key = 15 },
+        .{ .key = 3 },
+        .{ .key = 7 },
+        .{ .key = 13 },
+        .{ .key = 17 },
+        .{ .key = 1 },
+        .{ .key = 4 },
+        .{ .key = 6 },
+        .{ .key = 8 },
+        .{ .key = 12 },
+        .{ .key = 14 },
+        .{ .key = 16 },
+        .{ .key = 18 },
+    };
+    var root = Root.init();
+
+    for (&entries) |*entry| {
+        add(&entry.node, &root, less);
+    }
+    try expectValidTree(&root);
+
+    var seen = std.AutoHashMap(i32, void).init(std.testing.allocator);
+    defer seen.deinit();
+
+    var count: usize = 0;
+    var iterator = iteratePostorderSafe(&root);
+    while (iterator.next()) |node| {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        try std.testing.expect(!seen.contains(entry.key));
+        try seen.put(entry.key, {});
+        count += 1;
+        eraseInit(@constCast(node), &root);
+        try expectValidTree(&root);
+    }
+
+    try std.testing.expectEqual(entries.len, count);
+    try std.testing.expectEqual(entries.len, seen.count());
+    for (entries) |entry| {
+        try std.testing.expect(seen.contains(entry.key));
+    }
+    try std.testing.expect(emptyRoot(&root));
+    for (&entries) |*entry| {
+        try std.testing.expect(emptyNode(&entry.node));
+    }
+}
+
 test "rbtree findAdd keeps the first duplicate and inserts new keys" {
     const Entry = struct {
         key: i32,
