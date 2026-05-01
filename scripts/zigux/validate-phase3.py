@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import subprocess
+import tempfile
 
 from validate_phase3_core import ROOT, discover_phase3_slices, select_slices, validate_slices
 from validate_phase3_header_binding_markers import (
@@ -53,6 +54,63 @@ def _collect_script_validation_issues(
     return issues
 
 
+def _run_survey_aggregation_self_test() -> int:
+    cases = (
+        (
+            "validate-phase3-export-uapi-survey.py",
+            "PHASE3_EXPORT_UAPI_SURVEY=fail",
+            "export-uapi-survey-gate",
+            "missing_export_uapi_anchor",
+        ),
+        (
+            "validate-phase3-low-level-wrapper-survey.py",
+            "PHASE3_LOW_LEVEL_WRAPPER_SURVEY=fail",
+            "low-level-wrapper-survey-gate",
+            "missing_low_level_anchor",
+        ),
+        (
+            "validate-phase3-policy-unsafe-survey.py",
+            "PHASE3_POLICY_UNSAFE_SURVEY=fail",
+            "policy-unsafe-survey-gate",
+            "missing_policy_unsafe_anchor",
+        ),
+    )
+
+    with tempfile.TemporaryDirectory(prefix="zigux_phase3_survey_aggregation_") as tmp_dir:
+        root = type(ROOT)(tmp_dir)
+        scripts_dir = root / "scripts" / "zigux"
+        scripts_dir.mkdir(parents=True, exist_ok=True)
+
+        for script_name, failure_banner, _, issue_line in cases:
+            script_path = scripts_dir / script_name
+            script_path.write_text(
+                "\n".join(
+                    (
+                        "#!/usr/bin/env python3",
+                        f"print({failure_banner!r})",
+                        f"print({issue_line!r})",
+                        "raise SystemExit(1)",
+                    )
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+        original_root = globals()["ROOT"]
+        globals()["ROOT"] = root
+        try:
+            aggregated: list[str] = []
+            for script_name, failure_banner, issue_prefix, issue_line in cases:
+                issues = _collect_script_validation_issues(script_name, failure_banner, issue_prefix)
+                assert issues == [f"{issue_prefix}: {issue_line}"]
+                aggregated.extend(issues)
+            assert len(aggregated) == len(cases)
+        finally:
+            globals()["ROOT"] = original_root
+
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate the bounded Phase 3 slice catalog and metadata.")
     parser.add_argument("--slug", action="append", default=[], help="Only validate the named Phase 3 slug. Repeat to validate more than one.")
@@ -69,6 +127,9 @@ def main() -> int:
         if result != 0:
             return result
         result = run_header_binding_marker_self_test()
+        if result != 0:
+            return result
+        result = _run_survey_aggregation_self_test()
         if result != 0:
             return result
         result = _run_script_self_test("validate-phase3-export-uapi-survey.py")
@@ -97,9 +158,23 @@ def main() -> int:
     )
     issues.extend(
         _collect_script_validation_issues(
+            "validate-phase3-export-uapi-survey.py",
+            "PHASE3_EXPORT_UAPI_SURVEY=fail",
+            "export-uapi-survey-gate",
+        )
+    )
+    issues.extend(
+        _collect_script_validation_issues(
             "validate-phase3-low-level-wrapper-survey.py",
             "PHASE3_LOW_LEVEL_WRAPPER_SURVEY=fail",
             "low-level-wrapper-survey-gate",
+        )
+    )
+    issues.extend(
+        _collect_script_validation_issues(
+            "validate-phase3-policy-unsafe-survey.py",
+            "PHASE3_POLICY_UNSAFE_SURVEY=fail",
+            "policy-unsafe-survey-gate",
         )
     )
     if issues:
