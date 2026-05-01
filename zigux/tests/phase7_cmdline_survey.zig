@@ -72,6 +72,14 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
     );
     defer std.testing.allocator.free(next_arg_fixture);
 
+    const parity_fixture = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/fixtures/phase7_cmdline.json",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(parity_fixture);
+
     try expectContains(roadmap, "## Phase 7: In-Kernel Leaf Libraries");
     try expectContains(roadmap, "lib/cmdline.c");
     try expectContains(roadmap, "- `lib/cmdline.zig`");
@@ -143,6 +151,8 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
     try expectContains(next_arg_fixture, ".name = \"trailing spaces after key=value trim to empty rest\",");
     try expectContains(next_arg_fixture, ".input = \"=bad next\",");
     try expectContains(next_arg_fixture, ".input = \"mode=fast   \",");
+
+    try expectContains(parity_fixture, "\"nul_stop_bare_scan\": false");
 
     try expectContains(phase7_build, "phase7_cmdline_survey.zig");
     try expectContains(phase7_build, "phase7-cmdline-survey-tests");
