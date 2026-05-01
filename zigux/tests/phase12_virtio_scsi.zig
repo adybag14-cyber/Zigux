@@ -196,6 +196,70 @@ test "phase12 virtio scsi recovery io queue map summary collapses without poll q
     try std.testing.expect(!summary.requires_poll_map_restore);
 }
 
+test "phase12 virtio scsi repeated recovery refreshes frozen topology and queue depth" {
+    var lab = virtio_scsi.VirtioScsiQueueLab.init();
+
+    _ = try lab.captureQueueDepthSummary(.{
+        .host_limit = .{
+            .probe = .{
+                .num_queues = 6,
+                .requested_poll_queues = 2,
+                .cmd_per_lun = 13,
+                .max_target = 9,
+                .max_lun = 4,
+                .max_sectors = 1024,
+            },
+            .synthetic_can_queue = 7,
+        },
+        .requested_depth = 12,
+    });
+    _ = try lab.freezeForTransportReset();
+    _ = try lab.restoreAfterTransportReset();
+
+    const relaid = try lab.planQueueLayout(3, 0);
+    try std.testing.expectEqual(@as(u16, 3), relaid.request_queues);
+    try std.testing.expectEqual(@as(u16, 3), relaid.default_queues);
+    try std.testing.expectEqual(@as(u16, 0), relaid.poll_queues);
+
+    const recaptured = try lab.captureQueueDepthSummary(.{
+        .host_limit = .{
+            .probe = .{
+                .num_queues = 3,
+                .requested_poll_queues = 0,
+                .cmd_per_lun = 4,
+                .max_target = 2,
+                .max_lun = 1,
+                .max_sectors = 512,
+            },
+            .synthetic_can_queue = 5,
+        },
+        .requested_depth = 9,
+    });
+    try std.testing.expectEqual(@as(u32, 5), recaptured.effective_can_queue);
+    try std.testing.expectEqual(@as(u32, 4), recaptured.effective_cmd_per_lun);
+    try std.testing.expectEqual(@as(u32, 4), recaptured.clamped_queue_depth);
+
+    const frozen = try lab.freezeForTransportReset();
+    try std.testing.expectEqual(@as(u16, 1), frozen.recovery_generation);
+    const plan = try lab.recoveryQueuePlan();
+    try std.testing.expectEqual(@as(u16, 3), plan.request_queues);
+    try std.testing.expectEqual(@as(u16, 3), plan.default_queues);
+    try std.testing.expectEqual(@as(u16, 0), plan.poll_queues);
+    try std.testing.expectEqual(@as(?u16, null), plan.first_poll_queue_index);
+
+    const depth = try lab.recoveryQueueDepthSummary();
+    try std.testing.expectEqual(@as(u32, 9), depth.requested_depth);
+    try std.testing.expectEqual(@as(u32, 5), depth.effective_can_queue);
+    try std.testing.expectEqual(@as(u32, 4), depth.effective_cmd_per_lun);
+    try std.testing.expectEqual(@as(u32, 4), depth.clamped_queue_depth);
+
+    const io_map = try lab.recoveryIoQueueMapSummary();
+    try std.testing.expectEqual(@as(u16, 1), io_map.nr_maps);
+    try std.testing.expectEqual(@as(u16, 3), io_map.default_queue_count);
+    try std.testing.expectEqual(@as(u16, 0), io_map.poll_queue_count);
+    try std.testing.expect(!io_map.requires_poll_map_restore);
+}
+
 test "phase12 virtio scsi rejects invalid freeze restore sequencing" {
     var lab = virtio_scsi.VirtioScsiQueueLab.init();
 
