@@ -230,7 +230,15 @@ test "phase 5 kobject contributor docs stay aligned with the shipped review surf
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared sample-root catalog in `samples/zigux/README.md` plus the shared prompts in `Documentation/zigux/review-checklist.md`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "dedicated kobject review-packet stanza") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_LANE_KEY=P5-L07") != null);
+    {
+        const lane_key_line = try std.fmt.allocPrint(
+            std.testing.allocator,
+            "PHASE5_LANE_KEY={s}",
+            .{manifest.lane_key},
+        );
+        defer std.testing.allocator.free(lane_key_line);
+        try std.testing.expect(std.mem.indexOf(u8, survey_note, lane_key_line) != null);
+    }
     {
         const surveyed_commit_line = try std.fmt.allocPrint(
             std.testing.allocator,
