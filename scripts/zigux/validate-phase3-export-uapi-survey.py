@@ -16,6 +16,7 @@ SCRIPTS_README_REL = "scripts/zigux/README.md"
 MAKEFILE_REL = "zigux/Makefile"
 EXPORT_SHIM_REL = "zigux/kernel/export_shim.zig"
 UAPI_VERSION_REL = "zigux/uapi/version.zig"
+LINUX_HEADER_REL = "include/linux/zigux.h"
 UAPI_ROOT_REL = "zigux/uapi"
 ABI_SLICE_REL = "Documentation/zigux/phase3-abi-slice.md"
 EXPORT_UAPI_TEST_REL = "zigux/tests/phase3_export_uapi.zig"
@@ -26,6 +27,8 @@ REQUIRED_SURVEY_MARKERS = (
     "PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig",
     "PHASE3_EXPORT_SHIM_SCOPE=explicit-status-plus-boundary-header",
     "PHASE3_EXPORT_SHIM_STATUS=normalize-and-compatibility-helpers-landed",
+    "PHASE3_C_HEADER_PATH=include/linux/zigux.h",
+    "PHASE3_C_HEADER_STATUS=shared-abi-relay-and-status-helpers-landed",
     "PHASE3_UAPI_ROOT=zigux/uapi",
     "PHASE3_UAPI_SCOPE=version-and-boundary-header",
     "PHASE3_UAPI_STATUS=version-header-and-compatibility-surface-landed",
@@ -39,6 +42,7 @@ REQUIRED_SURVEY_SNIPPETS = (
     "zigux/tests/phase3_export_uapi.zig",
     "zigux/tests/fixtures/phase3_abi_manifest.json",
     "keep canonical-size header checks separate from broader future-compatible header acceptance",
+    "the C-facing helper header still relays the shared `BoundaryHeader` and `ExportStatus` ABI types through `#include <zigux/abi.h>` while broader named C-side boundary-header helpers stay intentionally deferred",
     "last fully resurveyed shared-head anchor",
     "packet-local blob IDs are now the authoritative current boundary evidence",
 )
@@ -46,11 +50,11 @@ REQUIRED_SURVEY_SNIPPETS = (
 REQUIRED_SURVEY_PATHS = (
     EXPORT_SHIM_REL,
     UAPI_VERSION_REL,
-    "Documentation/zigux/phase3-abi-slice.md",
+    ABI_SLICE_REL,
     "include/zigux/abi.h",
-    "include/linux/zigux.h",
+    LINUX_HEADER_REL,
     "zigux/tests/phase3_export_uapi_build.zig",
-    "zigux/tests/phase3_export_uapi.zig",
+    EXPORT_UAPI_TEST_REL,
     "zigux/tests/fixtures/phase3_abi_manifest.json",
 )
 
@@ -81,6 +85,12 @@ REQUIRED_EXPORT_SHIM_SNIPPETS = (
     'test "phase3 export shim separates canonical headers from broader compatibility"',
 )
 
+REQUIRED_LINUX_HEADER_SNIPPETS = (
+    "#include <zigux/abi.h>",
+    "static inline struct zigux_export_status zigux_status_ok(zigux_u16 facility)",
+    "static inline struct zigux_export_status zigux_status_err(zigux_s32 code,",
+)
+
 REQUIRED_UAPI_VERSION_SNIPPETS = (
     "pub const Header = abi.BoundaryHeader;",
     "pub fn boundaryHeader(flags: u16) Header {",
@@ -91,6 +101,7 @@ REQUIRED_UAPI_VERSION_SNIPPETS = (
 
 REQUIRED_ABI_SLICE_SNIPPETS = (
     "export shim reality today: `zigux/kernel/export_shim.zig` stays a narrow explicit-status helper, and it now exposes a small local boundary-header surface that keeps exact canonical-size replay separate from broader future-compatible header acceptance without widening the public export namespace further",
+    "C helper-header reality today: `include/linux/zigux.h` stays inside the same bounded packet as the C-facing relay for the shared `BoundaryHeader` and `ExportStatus` ABI types through `#include <zigux/abi.h>` plus local `zigux_status_ok()` and `zigux_status_err()` helpers, while broader named C-side boundary-header helpers remain intentionally deferred",
     "UAPI reality today: `zigux/uapi/version.zig` now exposes the ABI version plus an explicit boundary-header constructor whose exact canonical-size replay stays separate from broader future-compatible compatibility, which is still bounded but makes the public boundary less ad hoc than a version constant alone",
 )
 
@@ -111,7 +122,7 @@ REQUIRED_UAPI_FILES = (
 SURVEYED_PACKET_PATHS = (
     EXPORT_SHIM_REL,
     UAPI_VERSION_REL,
-    "include/linux/zigux.h",
+    LINUX_HEADER_REL,
     "include/zigux/abi.h",
     ABI_SLICE_REL,
     "zigux/tests/phase3_export_uapi_build.zig",
@@ -121,7 +132,7 @@ SURVEYED_PACKET_PATHS = (
 SURVEYED_PACKET_BLOB_MARKERS = {
     "PHASE3_EXPORT_SHIM_BLOB_SHA": EXPORT_SHIM_REL,
     "PHASE3_UAPI_VERSION_BLOB_SHA": UAPI_VERSION_REL,
-    "PHASE3_LINUX_HEADER_BLOB_SHA": "include/linux/zigux.h",
+    "PHASE3_LINUX_HEADER_BLOB_SHA": LINUX_HEADER_REL,
     "PHASE3_ABI_HEADER_BLOB_SHA": "include/zigux/abi.h",
     "PHASE3_ABI_SLICE_DOC_BLOB_SHA": ABI_SLICE_REL,
     "PHASE3_EXPORT_UAPI_BUILD_BLOB_SHA": "zigux/tests/phase3_export_uapi_build.zig",
@@ -278,6 +289,7 @@ def validate(root: Path) -> list[str]:
     scripts_readme = _read_text(root, SCRIPTS_README_REL, issues)
     makefile = _read_text(root, MAKEFILE_REL, issues)
     export_shim = _read_text(root, EXPORT_SHIM_REL, issues)
+    linux_header = _read_text(root, LINUX_HEADER_REL, issues)
     uapi_version = _read_text(root, UAPI_VERSION_REL, issues)
     abi_slice = _read_text(root, ABI_SLICE_REL, issues)
     export_uapi_test = _read_text(root, EXPORT_UAPI_TEST_REL, issues)
@@ -333,6 +345,11 @@ def validate(root: Path) -> list[str]:
             if snippet not in export_shim:
                 issues.append(f"missing_export_shim_snippet:{snippet}")
 
+    if linux_header:
+        for snippet in REQUIRED_LINUX_HEADER_SNIPPETS:
+            if snippet not in linux_header:
+                issues.append(f"missing_linux_header_snippet:{snippet}")
+
     if uapi_version:
         for snippet in REQUIRED_UAPI_VERSION_SNIPPETS:
             if snippet not in uapi_version:
@@ -372,6 +389,8 @@ def run_self_test() -> int:
             path.parent.mkdir(parents=True, exist_ok=True)
             if rel == EXPORT_SHIM_REL:
                 path.write_text("\n".join(REQUIRED_EXPORT_SHIM_SNIPPETS) + "\n", encoding="utf-8")
+            elif rel == LINUX_HEADER_REL:
+                path.write_text("\n".join(REQUIRED_LINUX_HEADER_SNIPPETS) + "\n", encoding="utf-8")
             elif rel == UAPI_VERSION_REL:
                 path.write_text("\n".join(REQUIRED_UAPI_VERSION_SNIPPETS) + "\n", encoding="utf-8")
             else:
