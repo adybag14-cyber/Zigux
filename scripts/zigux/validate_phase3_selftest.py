@@ -93,6 +93,20 @@ def _write_phase3_slice(
     )
 
 
+def _write_phase3_abi_fixture(paths: Phase3Paths) -> None:
+    _write_phase3_slice(paths, slug="abi")
+    manifest_path = paths.fixtures_dir / "phase3_abi_manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    extra_files = [rel for rel in ABI_REQUIRED_MANIFEST_FILES if rel not in manifest["files"]]
+    for rel in extra_files:
+        path = paths.root / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(f"// fixture for {rel}\n", encoding="utf-8", newline="\n")
+    manifest["files"] = [*manifest["files"], *extra_files]
+    manifest["file_count"] = len(manifest["files"])
+    manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8", newline="\n")
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_validator_selftest_") as tmp_dir_str:
         root = Path(tmp_dir_str)
@@ -136,6 +150,30 @@ def run_self_test() -> int:
             check_all_wrappers=False,
             zig_path=None,
         ) == []
+
+        _write_phase3_abi_fixture(paths)
+        abi_entries = discover_phase3_slices(paths)
+        abi_manifest_entry = next(entry for entry in abi_entries if entry.slug == "abi")
+        abi_manifest_path = paths.fixtures_dir / "phase3_abi_manifest.json"
+        roadmap_gap_doc = "Documentation/zigux/phase3-roadmap-gap-survey.md"
+        roadmap_gap_validator = "scripts/zigux/validate-phase3-roadmap-gap-survey.py"
+
+        assert validate_manifest(abi_manifest_entry, ABI_REQUIRED_MANIFEST_FILES) == []
+
+        abi_manifest = json.loads(abi_manifest_path.read_text(encoding="utf-8"))
+        abi_manifest["files"].remove(roadmap_gap_doc)
+        abi_manifest["file_count"] = len(abi_manifest["files"])
+        abi_manifest_path.write_text(json.dumps(abi_manifest, indent=2) + "\n", encoding="utf-8", newline="\n")
+        assert validate_manifest(abi_manifest_entry, ABI_REQUIRED_MANIFEST_FILES) == [
+            f"abi: manifest missing {roadmap_gap_doc}"
+        ]
+
+        _write_phase3_abi_fixture(paths)
+        (root / roadmap_gap_validator).unlink()
+        assert validate_manifest(abi_manifest_entry, ABI_REQUIRED_MANIFEST_FILES) == [
+            f"abi: manifest references missing file {roadmap_gap_validator}"
+        ]
+        _write_phase3_abi_fixture(paths)
 
         artifact_diff_path = paths.docs_dir / "artifact-diff.md"
         artifact_diff_path.write_text(
@@ -519,6 +557,7 @@ def run_self_test() -> int:
         ]
 
     print("PHASE3_VALIDATOR_SELF_TEST=pass")
+    print("PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
