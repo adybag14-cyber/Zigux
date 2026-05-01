@@ -57,7 +57,12 @@ pub const PollError = error{
     ReadyEventsMissingReadyBuffer,
     TimeoutObservationHasReadyBuffer,
     InterruptedObservationHasReadyBuffer,
+    FailedObservationHasBufferState,
 };
+
+fn hasAnyBufferState(summary: ReadyBufferSummary) bool {
+    return summary.ready_count != 0 or summary.first_error != null;
+}
 
 pub fn classifyObservedWaitResult(wait_result: i32) WaitObservation {
     if (wait_result == 0) {
@@ -138,34 +143,37 @@ pub fn summarizePoll(
 
     return switch (observation) {
         .timed_out => {
-            if (ready.ready_count != 0) return PollError.TimeoutObservationHasReadyBuffer;
+            if (hasAnyBufferState(ready)) return PollError.TimeoutObservationHasReadyBuffer;
             return .{
                 .wait_class = wait_class,
                 .outcome = .timeout,
                 .observed_ready_events = 0,
                 .ready_count = 0,
                 .first_ready_index = null,
-                .first_error = ready.first_error,
+                .first_error = null,
             };
         },
         .interrupted => {
-            if (ready.ready_count != 0) return PollError.InterruptedObservationHasReadyBuffer;
+            if (hasAnyBufferState(ready)) return PollError.InterruptedObservationHasReadyBuffer;
             return .{
                 .wait_class = wait_class,
                 .outcome = .interrupted,
                 .observed_ready_events = 0,
                 .ready_count = 0,
                 .first_ready_index = null,
-                .first_error = ready.first_error,
+                .first_error = null,
             };
         },
-        .failed => |err_code| .{
-            .wait_class = wait_class,
-            .outcome = .failed,
-            .observed_ready_events = 0,
-            .ready_count = ready.ready_count,
-            .first_ready_index = ready.first_ready_index,
-            .first_error = ready.first_error orelse err_code,
+        .failed => |err_code| {
+            if (hasAnyBufferState(ready)) return PollError.FailedObservationHasBufferState;
+            return .{
+                .wait_class = wait_class,
+                .outcome = .failed,
+                .observed_ready_events = 0,
+                .ready_count = 0,
+                .first_ready_index = null,
+                .first_error = err_code,
+            };
         },
         .ready_events => |observed_ready_events| blk: {
             if (ready.ready_count > observed_ready_events) {
@@ -243,7 +251,7 @@ test "summarizePoll keeps bounded ready observations compact and reviewable" {
     try std.testing.expectEqual(@as(?i32, -32), summary.first_error);
 }
 
-test "summarizePoll keeps timeout, interruption, and missing-ready mismatches explicit" {
+test "summarizePoll keeps timeout interruption and missing-ready mismatches explicit" {
     const idle_buffers = [_]BufferObservation{ .{}, .{} };
     const timeout_summary = try summarizePoll(0, .timed_out, &idle_buffers);
     try std.testing.expectEqual(WaitClass.nonblocking, timeout_summary.wait_class);
@@ -285,4 +293,19 @@ test "summarizeProcessRecords keeps perf_buffer__process_records fail-fast order
     try std.testing.expectEqual(@as(usize, 3), success.completed_count);
     try std.testing.expectEqual(@as(?usize, null), success.first_error_index);
     try std.testing.expectEqual(@as(?i32, null), success.first_error);
+}
+
+test "summarizePoll rejects impossible buffer state for timeout interrupt and failed wait results" {
+    try std.testing.expectError(
+        PollError.TimeoutObservationHasReadyBuffer,
+        summarizePoll(0, .timed_out, &.{.{ .error_code = -5 }}),
+    );
+    try std.testing.expectError(
+        PollError.InterruptedObservationHasReadyBuffer,
+        summarizePoll(-1, .interrupted, &.{.{ .ready = true }}),
+    );
+    try std.testing.expectError(
+        PollError.FailedObservationHasBufferState,
+        summarizePoll(5, .{ .failed = -11 }, &.{.{ .error_code = -32 }}),
+    );
 }
