@@ -4,7 +4,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 
 ## Status
 
-- `PHASE3_SURVEYED_COMMIT=d7f70f738c38afb54f6481f01059b7431f314905`
+- `PHASE3_SURVEYED_COMMIT=3f6c46bc81db1f86358a5aad9f44194a4ece35bb`
 - `PHASE3_LAYOUT_ASSERT_PATH=zigux/helpers/layout_assert.zig`
 - `PHASE3_LAYOUT_ASSERT_SCOPE=canonical-bindings`
 - `PHASE3_LAYOUT_ASSERT_STATUS=canonical-layout-assertions-landed`
@@ -27,7 +27,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_MMIO_BLOB_SHA=031bb804a25982da8d3de2a944777b49b21a3405`
 - `PHASE3_ABI_SLICE_DOC_BLOB_SHA=2aba404045daca63246680a2a33a2c0b5dcad8a9`
 - `PHASE3_POLICY_UNSAFE_BUILD_BLOB_SHA=4613c79a8d082b2dd3fe9502b7dcdb03ef181bb2`
-- `PHASE3_POLICY_UNSAFE_TEST_BLOB_SHA=9db79153aa4400b663bb228e87327f8f2f4662c6`
+- `PHASE3_POLICY_UNSAFE_TEST_BLOB_SHA=f6826a59b15176430ddd7fde7f09a90ece3df396`
 - `PHASE3_ABI_MANIFEST_BLOB_SHA=df3f1f6208774d020278e54abf65e2ffea38a5bf`
 - `PHASE3_POLICY_UNSAFE_GATE=zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig`
 - `PHASE3_BOUNDARY_GAP=no-second-boundary-helper-consumes-decoded-policy-beyond-focused-replay`
@@ -49,7 +49,7 @@ It does require the current tree to say clearly which policy rules are already l
 
 ## Live Repo Reality
 
-This survey is pinned to verified `master` head `d7f70f738c38afb54f6481f01059b7431f314905` for the directly coupled policy-and-unsafe packet, and it now also records packet-local blob IDs for the curated helper, build, test, manifest, and slice-note files so shallow history alone does not turn a reviewable packet into a false validation failure.
+This survey is pinned to verified `master` head `3f6c46bc81db1f86358a5aad9f44194a4ece35bb` for the directly coupled policy-and-unsafe packet, and it now also records packet-local blob IDs for the curated helper, build, test, manifest, and slice-note files so shallow history alone does not turn a reviewable packet into a false validation failure.
 
 The current tree already carries a real bounded policy-and-unsafe substrate:
 
