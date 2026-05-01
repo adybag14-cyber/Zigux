@@ -12,18 +12,29 @@ pub fn getOption(str: *[]const u8, pint: ?*i32) u8 {
 
     if (current[0] == '-') {
         if (current.len == 1) {
+            if (pint) |out| {
+                out.* = 0;
+            }
             str.* = current[1..];
             return 0;
         }
 
         const parsed = parseUnsignedPrefix(current[1..]) orelse {
+            if (pint) |out| {
+                out.* = 0;
+            }
             str.* = current[1..];
             return 0;
         };
         parsed_value = -@as(i64, @intCast(parsed.value));
         consumed = 1 + parsed.len;
     } else {
-        const parsed = parseUnsignedPrefix(current) orelse return 0;
+        const parsed = parseUnsignedPrefix(current) orelse {
+            if (pint) |out| {
+                out.* = 0;
+            }
+            return 0;
+        };
         parsed_value = @intCast(parsed.value);
         consumed = parsed.len;
     }
@@ -86,25 +97,26 @@ pub fn getOptions(str: []const u8, nints: usize, ints: []i32) []const u8 {
 }
 
 pub fn memparse(ptr: []const u8, ret_index: ?*usize) u64 {
-    const parsed = parseUnsignedPrefix(ptr) orelse {
+    const parsed = parseUnsignedPrefix(ptr);
+    var value: u64 = 0;
+    var index: usize = 0;
+
+    if (parsed) |result| {
+        value = result.value;
+        index = result.len;
+    } else if (ptr.len != 0 and memSuffixShift(ptr[0]) != 0) {
+        // `memparse()` in `lib/cmdline.c` still consumes a leading size suffix
+        // even when `simple_strtoull()` did not parse any digits.
+        index = 1;
+    } else {
         if (ret_index) |out| {
             out.* = 0;
         }
         return 0;
-    };
+    }
 
-    var value = parsed.value;
-    var index = parsed.len;
-    if (index < ptr.len) {
-        const shift_blocks: u6 = switch (ptr[index]) {
-            'E', 'e' => 6,
-            'P', 'p' => 5,
-            'T', 't' => 4,
-            'G', 'g' => 3,
-            'M', 'm' => 2,
-            'K', 'k' => 1,
-            else => 0,
-        };
+    if (parsed != null and index < ptr.len) {
+        const shift_blocks = memSuffixShift(ptr[index]);
         if (shift_blocks != 0) {
             value <<= shift_blocks * 10;
             index += 1;
@@ -301,6 +313,18 @@ fn isDigitForBase(ch: u8, base: u8) bool {
     return value < base;
 }
 
+fn memSuffixShift(ch: u8) u6 {
+    return switch (ch) {
+        'E', 'e' => 6,
+        'P', 'p' => 5,
+        'T', 't' => 4,
+        'G', 'g' => 3,
+        'M', 'm' => 2,
+        'K', 'k' => 1,
+        else => 0,
+    };
+}
+
 fn truncateToI32(value: i64) i32 {
     const bits: u32 = @truncate(@as(u64, @bitCast(value)));
     return @bitCast(bits);
@@ -494,6 +518,9 @@ test "memparse handles size suffixes and reports where parsing stopped" {
     try std.testing.expectEqual(@as(u64, 16 * 1024), memparse("0x10Krest", &index));
     try std.testing.expectEqual(@as(usize, 5), index);
 
+    try std.testing.expectEqual(@as(u64, 0), memparse("G5", &index));
+    try std.testing.expectEqual(@as(usize, 1), index);
+
     try std.testing.expectEqual(@as(u64, 0), memparse("bad", &index));
     try std.testing.expectEqual(@as(usize, 0), index);
 }
@@ -514,7 +541,7 @@ test "numeric parsing rejects an explicit leading plus sign" {
     var rest: []const u8 = "+7,tail";
     var value: i32 = -1;
     try std.testing.expectEqual(@as(u8, 0), getOption(&rest, &value));
-    try std.testing.expectEqual(@as(i32, -1), value);
+    try std.testing.expectEqual(@as(i32, 0), value);
     try std.testing.expectEqualStrings("+7,tail", rest);
 
     var mem_index: usize = 999;
@@ -523,6 +550,14 @@ test "numeric parsing rejects an explicit leading plus sign" {
 
     try std.testing.expectEqual(@as(u64, 0), memparse("+", &mem_index));
     try std.testing.expectEqual(@as(usize, 0), mem_index);
+}
+
+test "getOption zeroes the output slot for non-empty invalid tokens" {
+    var rest: []const u8 = "d=eEc";
+    var value: i32 = -1;
+    try std.testing.expectEqual(@as(u8, 0), getOption(&rest, &value));
+    try std.testing.expectEqual(@as(i32, 0), value);
+    try std.testing.expectEqualStrings("d=eEc", rest);
 }
 
 test "parseOptionStr matches C empty-option edge behavior around commas" {
