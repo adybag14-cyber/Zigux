@@ -80,7 +80,6 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
-    checksum_module.addImport("phase6_checksum_vectors", checksum_vectors_module);
     const checksum_root_module = b.createModule(.{
         .root_source_file = b.path("phase6_checksum.zig"),
         .target = target,
