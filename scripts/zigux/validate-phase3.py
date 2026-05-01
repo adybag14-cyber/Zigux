@@ -57,6 +57,12 @@ def _collect_script_validation_issues(
 def _run_survey_aggregation_self_test() -> int:
     cases = (
         (
+            "validate-phase3-roadmap-gap-survey.py",
+            "PHASE3_ROADMAP_GAP_SURVEY=fail",
+            "roadmap-gap-survey-gate",
+            "missing_roadmap_anchor",
+        ),
+        (
             "validate-phase3-export-uapi-survey.py",
             "PHASE3_EXPORT_UAPI_SURVEY=fail",
             "export-uapi-survey-gate",
@@ -132,6 +138,9 @@ def main() -> int:
         result = _run_survey_aggregation_self_test()
         if result != 0:
             return result
+        result = _run_script_self_test("validate-phase3-roadmap-gap-survey.py")
+        if result != 0:
+            return result
         result = _run_script_self_test("validate-phase3-export-uapi-survey.py")
         if result != 0:
             return result
@@ -154,6 +163,13 @@ def main() -> int:
             check_slug_sanity=args.check_slug_sanity,
             check_all_wrappers=not args.skip_obsolete_wrapper_check,
             zig_path=args.zig,
+        )
+    )
+    issues.extend(
+        _collect_script_validation_issues(
+            "validate-phase3-roadmap-gap-survey.py",
+            "PHASE3_ROADMAP_GAP_SURVEY=fail",
+            "roadmap-gap-survey-gate",
         )
     )
     issues.extend(
