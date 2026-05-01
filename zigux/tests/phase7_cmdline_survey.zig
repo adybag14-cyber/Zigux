@@ -88,6 +88,7 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
     try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_tests, "phase 7 getOptions preserves descending-range and partial-parse stop behavior") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_tests, "phase 7 getOptions keeps array-capacity stop behavior explicit when a range is only partially stored") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_tests, "phase 7 memparse preserves suffix scaling and stop index semantics") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_tests, "phase 7 parseOptionStr matches C empty-option edge behavior around commas") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_tests, "phase 7 parseOptionStr matches only exact bare options") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_tests, "phase 7 numeric helpers reject explicit leading plus signs to stay with cmdline.c simple_strtoull semantics") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_tests, "phase 7 getOption matches malformed-token classification from the Linux KUnit corpus") != null);
@@ -110,6 +111,8 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
     try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_slice, "rejection of explicit leading-plus numeric inputs") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_slice, "exact bare-option matching for comma-delimited flags") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_slice, "C-style stop-at-NUL handling for bare-option scans") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_slice, "`parse_option_str()` empty-needle parity now mirrors the live C helper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_slice, "empty option names only match empty segments at the start of the scan or between commas") != null);
 
     try expectContains(helper_cmdline, "const next_arg_cases = [_]NextArgCase{");
     try expectContains(helper_cmdline, ".input = \"root=\\\"/dev/sda 1\\\" ro\",");
