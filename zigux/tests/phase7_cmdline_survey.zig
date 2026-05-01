@@ -88,6 +88,8 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
 
     try expectContains(tests_readme, "zigux/tests/phase7_cmdline_survey.zig");
     try expectContains(tests_readme, "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig");
+    try expectContains(tests_readme, "zigux/tests/fixtures/phase7_cmdline_c_harness.c");
+    try expectContains(tests_readme, "scripts/zigux/check-phase7-cmdline-parity.py");
     try expectContains(tests_readme, "helper roots in `zigux/tests/phase7_build.zig` receive `string_helpers`, `cmdline`, `argv_split`, and `rbtree` through `addImport(...)`");
     try expectContains(tests_readme, "cannot import fixtures outside the helper module path");
     try expectContains(tests_readme, "keep the `next_arg()` edge corpus reviewable in both places");
@@ -108,6 +110,8 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
     try expectContains(phase7_cmdline_slice, "zigux/tests/phase7_cmdline.zig");
     try expectContains(phase7_cmdline_slice, "zigux/tests/phase7_cmdline_survey.zig");
     try expectContains(phase7_cmdline_slice, "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig");
+    try expectContains(phase7_cmdline_slice, "zigux/tests/fixtures/phase7_cmdline_c_harness.c");
+    try expectContains(phase7_cmdline_slice, "scripts/zigux/check-phase7-cmdline-parity.py");
     try expectContains(phase7_cmdline_slice, "`python3 scripts/zigux/validate-phase7.py --self-test`");
     try expectContains(phase7_cmdline_slice, "`make -C zigux phase7-validate`");
     try expectContains(phase7_cmdline_slice, "prove the shared Phase 7 validator packet still fails closed before the helper replay runs");
