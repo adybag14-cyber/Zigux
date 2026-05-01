@@ -65,6 +65,7 @@ Phase 5 notes
 
 Phase 6 notes
 - `Documentation/zigux/phase6-base64-slice.md`, `Documentation/zigux/phase6-bsearch-slice.md`, `Documentation/zigux/phase6-checksum-slice.md`, `Documentation/zigux/phase6-hexdump-slice.md`, and `Documentation/zigux/phase6-helper-parity-catalog.md` are the current shared notes for the bounded `lib/base64.zig`, `lib/bsearch.zig`, `lib/checksum.zig`, and `lib/hexdump.zig` leaf-helper packet.
+- `Documentation/zigux/phase6-perf-gate-survey.md` is the shared measurement-gap note for that same packet, keeping the mixed relative-slowdown and comparison-budget posture explicit against the roadmap's perf-gate wording instead of implying a single absolute-threshold story.
 - `zigux/tests/phase6_helper_parity_manifest.json` stays the machine-readable companion for that same packet, keeping the helper inventory, shared gates, perf posture, and fixture posture aligned with the reviewer-facing catalog.
 - `python3 scripts/zigux/validate-phase6.py`, `make -C zigux phase6-validate`, and `make -C zigux phase6` are the published validator-first shared replay path for the current Phase 6 helper tranche.
 - `make -C zigux phase6-base64-perf`, `make -C zigux phase6-bsearch-perf`, `make -C zigux phase6-checksum-perf`, and `make -C zigux phase6-hexdump-perf` keep the current helper-local slowdown and comparison-budget gates explicit instead of implying broader runtime-core performance claims.
