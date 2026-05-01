@@ -349,6 +349,15 @@ test "phase 7 string helper wrappers keep shared any-flag and C-string ownership
     try std.testing.expectEqualSlices(u8, "A\\n", str_any_np[0..str_any_np_len]);
     try std.testing.expectEqual(@as(u8, '?'), str_any_np[str_any_np_len]);
 
+    var zero_sized = [_]u8{ '!', '!', '!', '!' };
+    const zero_sized_len = string_helpers.stringEscapeStr("A\n\x00tail", &zero_sized, 0, string_helpers.ESCAPE_HEX, null);
+    try std.testing.expectEqual(@as(usize, 8), zero_sized_len);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ '!', '!', '!', '!' }, &zero_sized);
+
+    const zero_sized_any_np_len = string_helpers.stringEscapeStrAnyNp("A\n\x00tail", &zero_sized, 0, null);
+    try std.testing.expectEqual(@as(usize, 3), zero_sized_any_np_len);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ '!', '!', '!', '!' }, &zero_sized);
+
     var mem_any_np = [_]u8{ '?', '?', '?', '?', '?' };
     const mem_any_np_len = string_helpers.stringEscapeMemAnyNp("\n", &mem_any_np, null);
     try std.testing.expectEqual(@as(usize, 2), mem_any_np_len);
