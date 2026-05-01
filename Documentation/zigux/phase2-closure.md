@@ -60,6 +60,9 @@ Phase 2 is only considered closed when all of the following are green:
 - `python3 scripts/zigux/check-genksyms-bridge.py --self-test`
 - the checker self-test must stay in the Linux-style `phase2-tools` path before live bridge replay so missing-expected-fixture drift, duplicate expected-fixture wiring, stderr-mode contract drift, and repeat-run compare coverage cannot hide behind a locally passing parity run
 - `python3 scripts/zigux/check-genksyms-bridge.py`
+- `python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test`
+- `python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py`
+- the dedicated alignment checker keeps the bridge checker, shared validator, closure validator, workflow wiring, Makefile route, scripts index, and 26-case manifest packet in sync before closure evidence stays green
 
 5. bounded mk_elfconfig artifact parity and determinism
 - `python3 scripts/zigux/check-mk-elfconfig-diff.py --self-test`
@@ -103,6 +106,8 @@ Phase 2 is only considered closed when all of the following are green:
 - `PHASE2_MK_ELFCONFIG_SELF_TEST=python3 scripts/zigux/check-mk-elfconfig-diff.py --self-test`
 - `PHASE2_GENKSYMS_BRIDGE_SELF_TEST=python3 scripts/zigux/check-genksyms-bridge.py --self-test`
 - `PHASE2_GENKSYMS_BRIDGE_GATE=python3 scripts/zigux/check-genksyms-bridge.py`
+- `PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST=python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test`
+- `PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_GATE=python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py`
 - `PHASE2_GENKSYMS_BRIDGE_DETERMINISM=check-genksyms-bridge.py replays C and Zig bridge outputs twice before comparing artifacts`
 - `PHASE2_MK_ELFCONFIG_GATE=python3 scripts/zigux/check-mk-elfconfig-diff.py`
 - `PHASE2_MK_ELFCONFIG_DETERMINISM=check-mk-elfconfig-diff.py replays C and Zig outputs twice before comparing artifacts`
@@ -141,6 +146,8 @@ The bounded `genksyms` closure packet remains closed because both the shared bri
   `minimal_expected.json`, `debug_reference_types_expected.json`, `short_inline_reference_dump_types_expected.json`, `clustered_short_inline_reference_expected.json`, `long_options_expected.json`, `abbreviated_long_options_expected.json`, `quiet_overrides_warning_expected.json`, `explicit_option_terminator_expected.json`, `positional_passthrough_expected.json`, `lone_dash_passthrough_expected.json`, `explicit_terminator_positional_passthrough_expected.json`, `help_expected.json`, `version_expected.json`, `invalid_option_expected.json`, `missing_reference_argument_expected.json`, `missing_dump_types_argument_expected.json`, `unsupported_long_option_expected.json`, `ambiguous_abbreviated_long_option_expected.json`, `empty_long_option_name_expected.json`, `unexpected_long_option_argument_expected.json`, `abbreviated_unexpected_long_option_argument_expected.json`, `missing_long_reference_argument_expected.json`, `abbreviated_missing_long_reference_argument_expected.json`, `missing_long_dump_types_argument_expected.json`, `abbreviated_missing_long_dump_types_argument_expected.json`, `too_many_reference_files_expected.json`
 - success-path stderr silence:
   `check-genksyms-bridge.py` now captures stderr for every `stdout_json` bridge fixture, rejects any success-path stderr drift for both the bounded C harness and the Zig tool, and replays those stderr captures twice so repeat-run determinism stays explicit instead of assuming quiet success
+- alignment guard:
+  `check-phase2-genksyms-bridge-selftest-alignment.py` now keeps the bridge checker self-test markers, the published scripts index and closure note, the shared validator pair, the workflow route, the Makefile route, and the committed 26-case fixture manifest aligned as one bounded review packet instead of leaving that relationship implicit
 - helper-local anchors in `scripts/zigux/genksyms.zig`:
   `genksyms bridge parses clustered short flags before inline reference argument`
   `genksyms bridge accepts abbreviated unique long options`
