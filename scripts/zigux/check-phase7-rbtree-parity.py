@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[2]
 FIXTURE = ROOT / "zigux" / "tests" / "fixtures" / "phase7_rbtree.json"
 HARNESS = ROOT / "zigux" / "tests" / "fixtures" / "phase7_rbtree_c_harness.c"
 ARTIFACT_DIFF = ROOT / "scripts" / "zigux" / "artifact_diff.py"
-SOURCE = ROOT / "tools" / "lib" / "rbtree.c"
+SOURCE = ROOT / "lib" / "rbtree.c"
 SELF_TEST_PAYLOAD_ENV = "PHASE7_RBTREE_PARITY_SELFTEST_PAYLOAD"
 
 
