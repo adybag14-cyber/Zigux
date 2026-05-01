@@ -19,6 +19,7 @@ test "phase 7 string matching preserves null-terminated search semantics" {
     const values = [_]?[]const u8{ "alpha", "beta", null, "gamma" };
 
     try std.testing.expectEqual(@as(i32, 1), string_helpers.matchString(&values, values.len, "beta"));
+    try std.testing.expectEqual(@as(i32, 1), string_helpers.matchString(&values, values.len, "beta\x00ignored"));
     try std.testing.expectEqual(string_helpers.EINVAL, string_helpers.matchString(&values, values.len, "gamma"));
     try std.testing.expectEqual(@as(i32, 0), string_helpers.sysfsMatchString(&values, values.len, "alpha\n"));
 }
