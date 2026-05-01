@@ -62,6 +62,35 @@ def compare_artifacts(mode: str, expected: Path, actual: Path) -> tuple[bool, di
     return expected_value == actual_value, details
 
 
+def render_result_lines(matched: bool, details: dict[str, object]) -> list[str]:
+    lines = ['ARTIFACT_DIFF=pass' if matched else 'ARTIFACT_DIFF=fail']
+    if 'mode' in details:
+        lines.append(f"MODE={details['mode']}")
+    if 'expected' in details:
+        lines.append(f"EXPECTED={details['expected']}")
+    if 'actual' in details:
+        lines.append(f"ACTUAL={details['actual']}")
+
+    if matched:
+        if 'expected_sha256' in details:
+            lines.append(f"SHA256={details['expected_sha256']}")
+        return lines
+
+    if 'expected_exists' in details:
+        lines.append(f"EXPECTED_EXISTS={details['expected_exists']}")
+    if 'actual_exists' in details:
+        lines.append(f"ACTUAL_EXISTS={details['actual_exists']}")
+    if 'expected_json_error' in details:
+        lines.append(f"EXPECTED_JSON_ERROR={details['expected_json_error']}")
+    if 'actual_json_error' in details:
+        lines.append(f"ACTUAL_JSON_ERROR={details['actual_json_error']}")
+    if 'expected_sha256' in details:
+        lines.append(f"EXPECTED_SHA256={details['expected_sha256']}")
+    if 'actual_sha256' in details:
+        lines.append(f"ACTUAL_SHA256={details['actual_sha256']}")
+    return lines
+
+
 def emit_result(matched: bool, details: dict[str, object]) -> int:
     if not matched:
         print('ARTIFACT_DIFF=fail')
@@ -118,91 +147,108 @@ def run_self_test() -> int:
         matched, details = compare_artifacts('text', text_a, text_b)
         assert matched
         assert details['mode'] == 'text'
-        exit_code, lines = capture_emit_result(matched, details)
-        assert exit_code == 0
-        assert lines == [
+        assert render_result_lines(matched, details) == [
             'ARTIFACT_DIFF=pass',
             'MODE=text',
             f'EXPECTED={text_a}',
             f'ACTUAL={text_b}',
         ]
+        exit_code, lines = capture_emit_result(matched, details)
+        assert exit_code == 0
+        assert lines == render_result_lines(matched, details)
 
         text_b.write_text('alpha\nBETA\n', encoding='utf-8', newline='\n')
         matched, details = compare_artifacts('text', text_a, text_b)
         assert not matched
-        exit_code, lines = capture_emit_result(matched, details)
-        assert exit_code == 1
-        assert lines == [
+        assert render_result_lines(matched, details) == [
             'ARTIFACT_DIFF=fail',
             'MODE=text',
             f'EXPECTED={text_a}',
             f'ACTUAL={text_b}',
         ]
+        exit_code, lines = capture_emit_result(matched, details)
+        assert exit_code == 1
+        assert lines == render_result_lines(matched, details)
 
         json_a.write_text('{"alpha": 1, "beta": [2, 3]}\n', encoding='utf-8', newline='\n')
         json_b.write_text('{\n  "beta": [2, 3],\n  "alpha": 1\n}\n', encoding='utf-8', newline='\n')
         matched, details = compare_artifacts('json', json_a, json_b)
         assert matched
         assert details['mode'] == 'json'
-        exit_code, lines = capture_emit_result(matched, details)
-        assert exit_code == 0
-        assert lines == [
+        assert render_result_lines(matched, details) == [
             'ARTIFACT_DIFF=pass',
             'MODE=json',
             f'EXPECTED={json_a}',
             f'ACTUAL={json_b}',
         ]
+        exit_code, lines = capture_emit_result(matched, details)
+        assert exit_code == 0
+        assert lines == render_result_lines(matched, details)
+
+        json_b.write_text('{"alpha": 1, "beta": [2, 4]}\n', encoding='utf-8', newline='\n')
+        matched, details = compare_artifacts('json', json_a, json_b)
+        assert not matched
+        assert render_result_lines(matched, details) == [
+            'ARTIFACT_DIFF=fail',
+            'MODE=json',
+            f'EXPECTED={json_a}',
+            f'ACTUAL={json_b}',
+        ]
+        exit_code, lines = capture_emit_result(matched, details)
+        assert exit_code == 1
+        assert lines == render_result_lines(matched, details)
 
         invalid_json.write_text('{"alpha": 1,\n', encoding='utf-8', newline='\n')
         matched, details = compare_artifacts('json', invalid_json, json_a)
         assert not matched
         assert str(invalid_json) in details['expected_json_error']
         assert 'line 2 column 1' not in details['expected_json_error']
-        exit_code, lines = capture_emit_result(matched, details)
-        assert exit_code == 1
-        assert lines == [
+        assert render_result_lines(matched, details) == [
             'ARTIFACT_DIFF=fail',
             'MODE=json',
             f'EXPECTED={invalid_json}',
             f'ACTUAL={json_a}',
             f"EXPECTED_JSON_ERROR={details['expected_json_error']}",
         ]
+        exit_code, lines = capture_emit_result(matched, details)
+        assert exit_code == 1
+        assert lines == render_result_lines(matched, details)
 
         matched, details = compare_artifacts('json', json_a, invalid_json)
         assert not matched
         assert str(invalid_json) in details['actual_json_error']
-        exit_code, lines = capture_emit_result(matched, details)
-        assert exit_code == 1
-        assert lines == [
+        assert render_result_lines(matched, details) == [
             'ARTIFACT_DIFF=fail',
             'MODE=json',
             f'EXPECTED={json_a}',
             f'ACTUAL={invalid_json}',
             f"ACTUAL_JSON_ERROR={details['actual_json_error']}",
         ]
+        exit_code, lines = capture_emit_result(matched, details)
+        assert exit_code == 1
+        assert lines == render_result_lines(matched, details)
 
         blob_a.write_bytes(b'zigux-artifact-diff')
         blob_b.write_bytes(b'zigux-artifact-diff')
         matched, details = compare_artifacts('sha256', blob_a, blob_b)
         assert matched
         assert details['expected_sha256'] == details['actual_sha256']
-        exit_code, lines = capture_emit_result(matched, details)
-        assert exit_code == 0
-        assert lines == [
+        assert render_result_lines(matched, details) == [
             'ARTIFACT_DIFF=pass',
             'MODE=sha256',
             f'EXPECTED={blob_a}',
             f'ACTUAL={blob_b}',
             f"SHA256={details['expected_sha256']}",
         ]
+        exit_code, lines = capture_emit_result(matched, details)
+        assert exit_code == 0
+        assert lines == render_result_lines(matched, details)
 
         blob_b.write_bytes(b'zigux-artifact-DRIFT')
         matched, details = compare_artifacts('sha256', blob_a, blob_b)
         assert not matched
         assert details['expected_sha256'] != details['actual_sha256']
-        exit_code, lines = capture_emit_result(matched, details)
-        assert exit_code == 1
-        assert lines == [
+        assert render_result_lines(matched, details) == [
             'ARTIFACT_DIFF=fail',
             'MODE=sha256',
             f'EXPECTED={blob_a}',
@@ -210,14 +256,15 @@ def run_self_test() -> int:
             f"EXPECTED_SHA256={details['expected_sha256']}",
             f"ACTUAL_SHA256={details['actual_sha256']}",
         ]
+        exit_code, lines = capture_emit_result(matched, details)
+        assert exit_code == 1
+        assert lines == render_result_lines(matched, details)
 
         matched, details = compare_artifacts('text', missing, text_a)
         assert not matched
         assert details['expected_exists'] is False
         assert details['actual_exists'] is True
-        exit_code, lines = capture_emit_result(matched, details)
-        assert exit_code == 1
-        assert lines == [
+        assert render_result_lines(matched, details) == [
             'ARTIFACT_DIFF=fail',
             'MODE=text',
             f'EXPECTED={missing}',
@@ -225,6 +272,25 @@ def run_self_test() -> int:
             'EXPECTED_EXISTS=False',
             'ACTUAL_EXISTS=True',
         ]
+        exit_code, lines = capture_emit_result(matched, details)
+        assert exit_code == 1
+        assert lines == render_result_lines(matched, details)
+
+        matched, details = compare_artifacts('text', text_a, missing)
+        assert not matched
+        assert details['expected_exists'] is True
+        assert details['actual_exists'] is False
+        assert render_result_lines(matched, details) == [
+            'ARTIFACT_DIFF=fail',
+            'MODE=text',
+            f'EXPECTED={text_a}',
+            f'ACTUAL={missing}',
+            'EXPECTED_EXISTS=True',
+            'ACTUAL_EXISTS=False',
+        ]
+        exit_code, lines = capture_emit_result(matched, details)
+        assert exit_code == 1
+        assert lines == render_result_lines(matched, details)
 
     print('ARTIFACT_DIFF_SELF_TEST=pass')
     return 0
