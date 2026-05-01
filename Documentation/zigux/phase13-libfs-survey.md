@@ -6,7 +6,7 @@ This document records the bounded Phase 13 survey and reviewability lane around 
 
 - `PHASE13_STATUS=active`
 - `PHASE13_SLICE=libfs-helper-reviewability`
-- `PHASE13_SURVEYED_COMMIT=ba74bb197b16b020ec02b876efdd154663c6a146`
+- `PHASE13_SURVEYED_COMMIT=ba15a15ff4f0becd063b9b12aeea73df5307e6ef`
 - scope: the landed `fs/libfs.zig` helper slice, its dedicated Phase 13 tests, the shared Phase 13 build wiring, and the lane notes that compare the current wrapper footing against the roadmap
 - product boundary:
   - `fs/libfs.zig`
@@ -29,7 +29,7 @@ The live Zigux tree is no longer survey-only here. It already carries a small `f
 
 - `fs/libfs.c` remains broad enough to cross several VFS boundaries at once: dentries, directory iteration, inode bookkeeping, pseudo-filesystem mounting, and generic buffer-copy helpers.
 - the live repo now has a landed `fs/libfs.zig` helper slice plus `zigux/tests/phase13_libfs.zig`, and both the explicit standalone `zig test` entrypoints with `libfs` module wiring plus `zigux/tests/phase13_build.zig` compile that helper and reviewability path.
-- the current survey packet is pinned to inspected `master` head `ba74bb197b16b020ec02b876efdd154663c6a146` so future lane runs can detect note and manifest drift before widening helper coverage.
+- the current survey packet is pinned to inspected `master` head `ba15a15ff4f0becd063b9b12aeea73df5307e6ef` so future lane runs can detect note and manifest drift before widening helper coverage.
 - the current helper slice stays intentionally narrow around `simple_statfs()` defaults, the `always_delete_dentry()` policy, the branch decisions inside `simple_lookup()`, the pure buffer-copy helper trio, the early `dcache_dir_lseek()` and `offset_dir_llseek()` seek-policy surface, one tiny `dcache_readdir()`-adjacent emit planner, one bounded `dcache_dir_open()` / `dcache_readdir()` cursor-precondition planner, one bounded `dcache_dir_close()` release planner, a bounded `simple_transaction_get()` / `simple_transaction_set()` staging-buffer planner, and a pure `simple_transaction_read()` / `simple_transaction_release()` follow-up that only models private-data presence checks, read delegation intent, and release bookkeeping.
 - the reviewability gate and manifest tie the current helper slice, tests, build wire, slice note, and survey note together so future runs can verify the exact Phase 13 lane state before widening helper coverage.
 - directory cursor helpers such as `dcache_dir_open()` and the deeper cursor-backed `dcache_readdir()` traversal remain riskier because they depend on cursor dentries, sibling lists, lock ordering, and reschedule-aware traversal.
@@ -82,7 +82,7 @@ This slice does not claim:
 
 ## Latest verification snapshot
 
-- inspected head: `ba74bb197b16b020ec02b876efdd154663c6a146`
+- inspected head: `ba15a15ff4f0becd063b9b12aeea73df5307e6ef`
 - `zig test fs/libfs.zig`: passed (`0` embedded tests; parse and compile check only)
 - `zig test --dep libfs -Mroot=zigux/tests/phase13_libfs.zig -Mlibfs=fs/libfs.zig`: passed (`22/22` tests)
 - `zig test --dep libfs -Mroot=zigux/tests/phase13_libfs_reviewability.zig -Mlibfs=fs/libfs.zig`: passed (`1/1` tests)
