@@ -1,13 +1,13 @@
-# Phase 13 devres iomap/mmio safety surface survey
+# Phase 13 devres helper DMA/scatterlist boundary survey
 
 This lane stays inside the Phase 13 shared-helper tranche and records the current `lib/devres.c` helper-first boundary without claiming live device-resource teardown, live MMIO mappings, live DMA-backed helpers, live scatter-gather ownership, or generic devres-group ownership.
 
 ## Status
 
 - `PHASE13_STATUS=active`
-- `PHASE13_SLICE=devres-helper-iomap-mmio-safety-reviewability`
+- `PHASE13_SLICE=devres-helper-dma-scatterlist-boundary-reviewability`
 - `PHASE13_SURVEYED_COMMIT=aa01b37be5500e6a1e4f959c9fe07f0e39d39bfb`
-- scope: the landed `lib/devres.zig` helper slice, its dedicated Phase 13 tests and manifest, the shared Phase 13 build wiring, and the lane notes that keep the helper-only iomap/mmio safety surface and explicit DMA/scatterlist blockers pinned to the current repo state
+- scope: the landed `lib/devres.zig` helper slice, its dedicated Phase 13 tests and manifest, the shared Phase 13 build wiring, and the lane notes that keep the helper-first iomap or resource planners plus explicit DMA/scatterlist blockers pinned to the current repo state
 - product boundary:
   - `lib/devres.zig`
   - `zigux/tests/phase13_devres.zig`
@@ -57,4 +57,4 @@ What remains explicitly blocked:
 - live device-tree walking, overlapping resource arbitration, or broader `struct device_node` ownership beyond the pure `devm_of_iomap()` planner boundary
 - live MTRR or arch memtype state mutation beyond the token-style and range-style detach bookkeeping planners
 
-The next honest bounded step for this lane is to keep the survey packet aligned with the helper lab and shared Phase 13 replay. New product work should move in the dedicated helper lanes rather than reopening this now-recorded iomap/mmio safety packet.
+The next honest bounded step for this lane is to keep the survey packet aligned with the helper lab and shared Phase 13 replay. New product work should move in the dedicated helper lanes rather than reopening this now-recorded helper-first DMA/scatterlist boundary packet.
