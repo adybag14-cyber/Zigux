@@ -52,9 +52,13 @@ Phase 2 is only considered closed when all of the following are green:
 - `PHASE2_FIXDEP_OUTPUT_WRITE_CASE=zigux/tests/fixtures/fixdep/sample_output_write_expected.stderr.txt`
 
 3. bounded genksyms CRC artifact parity and determinism
+- `python3 scripts/zigux/check-genksyms-crc-diff.py --self-test`
+- the checker self-test must stay in the Linux-style `phase2-tools` path before live artifact replay so explicit-tool passthrough drift, mismatch-contract drift, and repeat-run compare coverage cannot hide behind local compiler or Zig availability
 - `python3 scripts/zigux/check-genksyms-crc-diff.py`
 
 4. bounded genksyms wrapper-first bridge parity
+- `python3 scripts/zigux/check-genksyms-bridge.py --self-test`
+- the checker self-test must stay in the Linux-style `phase2-tools` path before live bridge replay so missing-expected-fixture drift, duplicate expected-fixture wiring, stderr-mode contract drift, and repeat-run compare coverage cannot hide behind a locally passing parity run
 - `python3 scripts/zigux/check-genksyms-bridge.py`
 
 5. bounded mk_elfconfig artifact parity and determinism
@@ -93,8 +97,10 @@ Phase 2 is only considered closed when all of the following are green:
 - `PHASE2_FIXDEP_GATE=python3 scripts/zigux/check-fixdep-diff.py`
 - `PHASE2_FIXDEP_DETERMINISM=check-fixdep-diff.py replays C and Zig outputs twice before comparing artifacts`
 - `PHASE2_FIXDEP_FULL_READ_POLICY=fixdep.zig reads dependency files at full C-helper size and maps short writes to fixdep output errors`
+- `PHASE2_GENKSYMS_CRC_SELF_TEST=python3 scripts/zigux/check-genksyms-crc-diff.py --self-test`
 - `PHASE2_GENKSYMS_CRC_DETERMINISM=check-genksyms-crc-diff.py replays C and Zig outputs twice before comparing artifacts`
 - `PHASE2_MK_ELFCONFIG_SELF_TEST=python3 scripts/zigux/check-mk-elfconfig-diff.py --self-test`
+- `PHASE2_GENKSYMS_BRIDGE_SELF_TEST=python3 scripts/zigux/check-genksyms-bridge.py --self-test`
 - `PHASE2_GENKSYMS_BRIDGE_GATE=python3 scripts/zigux/check-genksyms-bridge.py`
 - `PHASE2_GENKSYMS_BRIDGE_DETERMINISM=check-genksyms-bridge.py replays C and Zig bridge outputs twice before comparing artifacts`
 - `PHASE2_MK_ELFCONFIG_GATE=python3 scripts/zigux/check-mk-elfconfig-diff.py`
