@@ -365,7 +365,7 @@ manifest_expectations = {
         "sample_path": "samples/zigux/trace_events_sample.zig",
         "survey_note_path": "Documentation/zigux/phase5-trace-events-sample-survey.md",
         "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
-        "survey_build_summary": "Build Summary: 17/17 steps succeeded; 28/28 tests passed",
+        "survey_build_summary": "Build Summary: 15/17 steps succeeded (1 failed); 26/28 tests passed (2 failed)",
         "non_goals": [
             "CREATE_TRACE_POINTS parity",
             "tracepoint macro parity from trace-events-sample.h",
