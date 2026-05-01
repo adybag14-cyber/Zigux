@@ -203,6 +203,7 @@ MARKER_GROUPS = {
             "PHASE1_PARITY_SELF_TEST_GATE=python3 scripts/zigux/check-phase1-parity.py --self-test",
             "PHASE1_BITMAP_ZERO_BIT_UNIT_REVIEW=",
             "PHASE1_FIND_BIT_ALIAS_UNIT_REVIEW=",
+            'find_bit small-bitmap unit-test anchor: `tools/lib/find_bit.zig:test "single-word scans keep linux small-bitmap semantics"`',
             "PHASE1_STRING_MEMPARSE_UNIT_REVIEW=",
             "PHASE1_RBTREE_CACHED_FINDADD_UNIT_REVIEW=",
             "PHASE1_RBTREE_BENCH_REVIEW=rbtree benchmark smoke pins ordered traversal, duplicate-range, cached-leftmost, findAdd, and postorder-safe checksum surfaces so duplicate-owner and erase-while-walking regressions cannot hide behind the broader tree checksum alone",
