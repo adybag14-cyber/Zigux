@@ -149,6 +149,7 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
     try expectContains(string_helpers_slice, "`kfree_strarray()` over the bounded repeated-teardown-safe release path");
     try expectContains(string_helpers_slice, "shared wrapper proofs that `string_unescape_inplace()`, `string_unescape_any()`, and `string_unescape_any_inplace()` preserve `UNESCAPE_ANY`, stop at the first written NUL, and leave trailing storage untouched");
     try expectContains(string_helpers_slice, "`STRING_UNITS_NO_SPACE` and `STRING_UNITS_NO_BYTES` formatting flags plus snprintf-style truncation accounting for `string_get_size()`");
+    try expectContains(string_helpers_slice, "truncation accounting that returns the full would-be escaped length without promising an appended terminator through one dedicated gate assertion");
 
     try expectContains(phase7_build, "phase7_string_helpers_survey.zig");
     try expectContains(phase7_build, "phase7-string-helpers-tests");
@@ -170,6 +171,8 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
     try expectContains(string_helpers_tests, "phase 7 kfreeStrarray keeps first-NUL prefixes, zero-count reuse, and repeated teardown safe");
     try expectContains(string_helpers_tests, "phase 7 string helper wrappers keep shared any-flag and C-string ownership rules");
     try expectContains(string_helpers_tests, "phase 7 stringGetSize returns snprintf-style length on truncation");
+    try expectContains(string_helpers_tests, "phase 7 stringEscapeMem covers the bounded escape subset");
+    try expectContains(string_helpers_tests, "phase 7 stringEscapeMem reports truncated output length without forcing a terminator");
 
     try expectContains(escape_vectors, "pub const unescape_cases");
     try expectContains(escape_vectors, "pub const escape_cases");
