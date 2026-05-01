@@ -144,6 +144,16 @@ LEGACY_SEGMENT_SPECS = [
         "tools/lib/bpf/zigux_segments/cpu_mask.zig",
     ),
     (
+        "perf-buffer-poll-helper",
+        "starter_landed",
+        "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
+    ),
+    (
+        "type-name-helpers",
+        "starter_landed",
+        "tools/lib/bpf/zigux_segments/type_names.zig",
+    ),
+    (
         "fdinfo-map-info-helpers",
         "starter_landed",
         "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
@@ -467,7 +477,10 @@ def run_self_test() -> int:
         build_self_test_tree(root)
         legacy_manifest_path = root / TRACKED_PATHS[4]
         legacy_manifest = json.loads(legacy_manifest_path.read_text(encoding="utf-8"))
-        legacy_manifest["segments"][4]["status"] = "deferred_high_risk"
+        for segment in legacy_manifest["segments"]:
+            if segment["slug"] == "map-reuse-compatibility":
+                segment["status"] = "deferred_high_risk"
+                break
         legacy_manifest_path.write_text(
             json.dumps(legacy_manifest, indent=2) + "\n",
             encoding="utf-8",
@@ -475,6 +488,22 @@ def run_self_test() -> int:
         missing = check_packet(root)
         if "legacy_segment_status:map-reuse-compatibility" not in missing:
             raise SystemExit("phase12-libbpf-packet:self-test:legacy_status_detection")
+
+        build_self_test_tree(root)
+        legacy_manifest_path = root / TRACKED_PATHS[4]
+        legacy_manifest = json.loads(legacy_manifest_path.read_text(encoding="utf-8"))
+        legacy_manifest["segments"] = [
+            segment
+            for segment in legacy_manifest["segments"]
+            if segment["slug"] != "perf-buffer-poll-helper"
+        ]
+        legacy_manifest_path.write_text(
+            json.dumps(legacy_manifest, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        missing = check_packet(root)
+        if "legacy_segment:perf-buffer-poll-helper" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:legacy_segment_presence_detection")
 
         build_self_test_tree(root)
         manifest_path = root / TRACKED_PATHS[0]
@@ -510,7 +539,7 @@ def run_self_test() -> int:
             raise SystemExit("phase12-libbpf-packet:self-test:legacy_surveyed_commit_detection")
 
         print("PHASE12_LIBBPF_PACKET_SELF_TEST=pass")
-        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=11")
+        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
