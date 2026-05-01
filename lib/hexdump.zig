@@ -129,14 +129,19 @@ pub fn hexDumpToBuffer(
     const rowsize = normalizedRowsize(rowsize_input);
     const len = @min(buf.len, rowsize);
     const groupsize = normalizedGroupsize(len, groupsize_input);
+    const required = hexDumpLineLength(buf.len, rowsize_input, groupsize_input, ascii);
 
     if (linebuf.len == 0) {
-        return hexDumpLineLength(buf.len, rowsize_input, groupsize_input, ascii);
+        return required;
     }
 
     if (len == 0) {
         linebuf[0] = 0;
         return 0;
+    }
+
+    if (linebuf.len > required and (ascii or groupsize != 1)) {
+        return hexDumpToFullBuffer(buf[0..len], rowsize, groupsize, linebuf, ascii);
     }
 
     var writer = TruncatingWriter.init(linebuf);
@@ -188,6 +193,60 @@ pub fn hexDumpToBuffer(
 
     writer.finish();
     return writer.required;
+}
+
+fn hexDumpToFullBuffer(
+    buf: []const u8,
+    rowsize: usize,
+    groupsize: usize,
+    linebuf: []u8,
+    ascii: bool,
+) usize {
+    var pos: usize = 0;
+
+    var group_start: usize = 0;
+    while (group_start < buf.len) : (group_start += groupsize) {
+        if (group_start != 0) {
+            linebuf[pos] = ' ';
+            pos += 1;
+        }
+        writeGroupHex(linebuf, &pos, buf[group_start .. group_start + groupsize]);
+    }
+
+    if (ascii) {
+        const ascii_column = rowsize * 2 + rowsize / groupsize + 1;
+        while (pos < ascii_column) : (pos += 1) {
+            linebuf[pos] = ' ';
+        }
+        for (buf) |byte| {
+            linebuf[pos] = if (byte < 0x80 and std.ascii.isPrint(byte)) byte else '.';
+            pos += 1;
+        }
+    }
+
+    linebuf[pos] = 0;
+    return pos;
+}
+
+fn writeGroupHex(linebuf: []u8, pos: *usize, bytes: []const u8) void {
+    if (builtin.cpu.arch.endian() == .little and bytes.len > 1) {
+        var index = bytes.len;
+        while (index > 0) {
+            index -= 1;
+            writeHexByte(linebuf, pos, bytes[index]);
+        }
+        return;
+    }
+
+    for (bytes) |byte| {
+        writeHexByte(linebuf, pos, byte);
+    }
+}
+
+fn writeHexByte(linebuf: []u8, pos: *usize, byte: u8) void {
+    linebuf[pos.*] = hexAscHi(byte);
+    linebuf[pos.* + 1] = hexAscLo(byte);
+    pos.* += 2;
 }
 
 fn normalizedRowsize(rowsize_input: usize) usize {
