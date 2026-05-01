@@ -1,7 +1,7 @@
 {
   "lane_key": "P14-L08",
   "phase": "Phase 14",
-  "surveyed_commit": "98aa9bb7dd14ed6063f954b0a23c19a537af51a5",
+  "surveyed_commit": "fec3212dd627d6ae7ab442fc323399538b978346",
   "anchor": "kernel/trace/ring_buffer.c",
   "roadmap_destinations": [
     "zigux/tests/",
