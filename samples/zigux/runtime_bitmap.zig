@@ -446,6 +446,40 @@ test "runtime bitmap sample keeps zero-length mutations and invalid copy sources
     try std.testing.expectError(error.InvalidSourceLifecycle, module.copyFrom(&exited_source));
 }
 
+test "runtime bitmap sample accepts selftest-complete copy sources in the direct sample leg" {
+    var source = RuntimeBitmapSample{};
+    try source.initWithSetBits(&.{ 4, 7, bitmap_view.bits_per_long + 1, bitmap_view.bits_per_long + 9 });
+    const source_summary_before_selftest = source.summary();
+    _ = try source.runSelftest();
+
+    var mirror = RuntimeBitmapSample{};
+    try mirror.initWithSetBits(&.{});
+    try mirror.copyFrom(&source);
+
+    const mirror_summary = mirror.summary();
+    try std.testing.expectEqual(ModuleStage.initialized, mirror.stage());
+    try std.testing.expectEqual(source_summary_before_selftest.first_set, mirror_summary.first_set);
+    try std.testing.expectEqual(source_summary_before_selftest.first_zero, mirror_summary.first_zero);
+    try std.testing.expectEqual(source_summary_before_selftest.weight, mirror_summary.weight);
+    try std.testing.expectEqual(source_summary_before_selftest.nbits, mirror_summary.nbits);
+    try std.testing.expectEqual(@as(usize, 1), mirror_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), mirror_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), mirror_summary.exit_runs);
+    try std.testing.expect(mirror.isSet(4));
+    try std.testing.expect(mirror.isSet(7));
+    try std.testing.expect(mirror.isSet(bitmap_view.bits_per_long + 1));
+    try std.testing.expect(mirror.isSet(bitmap_view.bits_per_long + 9));
+
+    const formatted = try mirror.formatSetBits(std.testing.allocator);
+    defer std.testing.allocator.free(formatted);
+    try std.testing.expectEqualStrings("4,7,65,73", formatted);
+
+    const selftest = try mirror.runSelftest();
+    try std.testing.expectEqual(ModuleStage.selftest_complete, mirror.stage());
+    try std.testing.expectEqual(@as(usize, 4), selftest.operation_families.len);
+    try std.testing.expectEqual(OperationFamily.copy, selftest.operation_families[1]);
+}
+
 test "runtime bitmap sample keeps bit-list bounds, separators, and repeat-init lifecycle explicit in the direct sample leg" {
     var trailing_comma = RuntimeBitmapSample{};
     try std.testing.expectError(error.InvalidBitList, trailing_comma.initFromBitList("0,"));
