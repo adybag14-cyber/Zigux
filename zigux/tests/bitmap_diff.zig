@@ -6,6 +6,23 @@ const Word = bitmap.Word;
 const bits_per_long = bitmap.bits_per_long;
 const bitmap_nbits: usize = 1024;
 const word_count: usize = bitmap.bitsToWords(bitmap_nbits);
+const exp1 = [_]Word{
+    0x1,
+    0x2,
+    0x0000ffff,
+    0xffff0000,
+    0x55555555,
+    0xaaaaaaaa,
+    0x11111111,
+    0x22222222,
+    0xffffffff,
+    0xfffffffe,
+    0x3333333311111111,
+    0xffffffff77777777,
+    0x0,
+    0x00008000,
+    0x80000000,
+};
 
 fn expectSet(map: []const Word, bit: usize) !void {
     try std.testing.expect(((map[bit / bits_per_long] >> @intCast(bit % bits_per_long)) & 1) == 1);
@@ -90,6 +107,16 @@ test "bitmap diff gate records exact starting printlist anchors" {
     // test_fill_set starts from a known empty state in both truncated and full-width views
     try expectPrintedList(&map, 23, "");
     try expectPrintedList(&map, bitmap_nbits, "");
+}
+
+fn expectNthMatchesSequentialWalk(map: []const Word, nbits: usize) !void {
+    var nth: usize = 0;
+    var bit = firstSet(map, nbits);
+    while (bit < nbits) : (bit = find_bit.findNextBit(map, nbits, bit + 1)) {
+        try std.testing.expectEqual(bit, findNthSet(map, nbits, nth));
+        nth += 1;
+    }
+    try std.testing.expectEqual(nbits, findNthSet(map, nbits, nth));
 }
 
 test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
@@ -445,4 +472,8 @@ test "bitmap diff gate records exact bounded find_nth_bit checks" {
     truncated[1] &= ~(@as(Word, 1) << 16);
     try std.testing.expectEqual(@as(usize, 123), findNthSet(&truncated, nth_nbits - 1, 6));
     try std.testing.expectEqual(nth_nbits - 1, findNthSet(&truncated, nth_nbits - 1, 7));
+
+    // test_find_nth_bit exp1 walk keeps nth lookups aligned with the dense
+    // mixed-word set-bit scan used by the C anchor's sequential replay.
+    try expectNthMatchesSequentialWalk(&exp1, exp1.len * bits_per_long);
 }
