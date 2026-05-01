@@ -77,6 +77,7 @@ REQUIRED_SURVEY_PATHS = (
 REQUIRED_MAKEFILE_SNIPPETS = (
     "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
     "scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test",
+    "$(ZIG) build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig",
 )
 
 REQUIRED_LAYOUT_ASSERT_SNIPPETS = (
@@ -394,7 +395,7 @@ def run_self_test() -> int:
         _write(
             root,
             MAKEFILE_REL,
-            "scripts/zigux/validate-phase3-policy-unsafe-survey.py\nscripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test\n",
+            "scripts/zigux/validate-phase3-policy-unsafe-survey.py\nscripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test\n$(ZIG) build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig\n",
         )
         _write(
             root,
@@ -546,6 +547,17 @@ def run_self_test() -> int:
         )
         assert (
             'missing_policy_unsafe_test_snippet:test "phase3 policy gate rejects overflowed unsafe address math"'
+            in issues
+        )
+
+        _write(
+            root,
+            MAKEFILE_REL,
+            "scripts/zigux/validate-phase3-policy-unsafe-survey.py\nscripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test\n",
+        )
+        issues = validate(root)
+        assert (
+            "missing_makefile_snippet:$(ZIG) build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig"
             in issues
         )
 
