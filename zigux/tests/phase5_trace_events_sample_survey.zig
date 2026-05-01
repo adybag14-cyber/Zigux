@@ -246,7 +246,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     try std.testing.expect(saw_message_check);
     try std.testing.expect(saw_modulo_cycle_check);
     try std.testing.expect(saw_iteration_check);
-    try std.testing.expect(sawArray_shape_check);
+    try std.testing.expect(saw_array_shape_check);
     try std.testing.expect(saw_rel_loc_check);
     try std.testing.expect(saw_vararg_check);
     try std.testing.expect(saw_counts_check);
