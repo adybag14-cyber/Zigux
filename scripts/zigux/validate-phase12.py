@@ -657,7 +657,7 @@ for manifest_name, spec in MANIFEST_SPECS.items():
             missing.append(f"{manifest_name}:status_total:{status_name}")
 
     for index, gap in enumerate(gaps):
-        if not isinstance(gaps, dict):
+        if not isinstance(gap, dict):
             missing.append(f"{manifest_name}:gap:{index}")
             continue
         gap_id = gap.get("id")
