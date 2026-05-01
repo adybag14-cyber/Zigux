@@ -170,8 +170,10 @@ test "phase3 narrow unsafe helpers stay explicit" {
     var words = [_]u32{ 7, 11 };
     const base = narrow.addressOf(&words[0]);
     try std.testing.expectEqual(base + @sizeOf(u32), narrow.byteOffset(base, @sizeOf(u32)));
-    try std.testing.expectEqual(@as(u32, 7), narrow.constSliceAt(u32, base, words.len)[0]);
-    try std.testing.expectEqual(@as(u32, 11), narrow.constPointerAt(u32, base + @sizeOf(u32)).*);
+    try std.testing.expectError(error.UnsafeScopeDenied, narrow.constSliceAt(u32, .volatile_mmio, base, words.len));
+    try std.testing.expectEqual(@as(u32, 7), (try narrow.constSliceAt(u32, .raw_pointer_bridge, base, words.len))[0]);
+    try std.testing.expectError(error.UnsafeScopeDenied, narrow.constPointerAt(u32, .volatile_mmio, base + @sizeOf(u32)));
+    try std.testing.expectEqual(@as(u32, 11), (try narrow.constPointerAt(u32, .raw_pointer_bridge, base + @sizeOf(u32))).*);
 }
 
 test "phase3 policy gate decodes interop-policy unsafe bytes explicitly" {
@@ -223,17 +225,20 @@ test "phase3 policy gate enforces the declared unsafe scope" {
     var value: u32 = 11;
     const base = narrow.addressOf(&value);
 
+    try std.testing.expectError(error.UnsafeScopeDenied, narrow.pointerAt(u32, .none, base, 0));
     try std.testing.expectError(error.UnsafeScopeDenied, narrow.scopedPointerAt(u32, .none, base, 0));
-    const mmio_ptr = try narrow.scopedPointerAt(u32, .volatile_mmio, base, 0);
+    const mmio_ptr = try narrow.pointerAt(u32, .volatile_mmio, base, 0);
     mmio_ptr.* = 17;
     try std.testing.expectEqual(@as(u32, 17), value);
 
+    try std.testing.expectError(error.UnsafeScopeDenied, narrow.constSliceAt(u32, .volatile_mmio, base, 1));
     try std.testing.expectError(error.UnsafeScopeDenied, narrow.scopedConstSliceAt(u32, .volatile_mmio, base, 1));
-    const raw_slice = try narrow.scopedConstSliceAt(u32, .raw_pointer_bridge, base, 1);
+    const raw_slice = try narrow.constSliceAt(u32, .raw_pointer_bridge, base, 1);
     try std.testing.expectEqual(@as(u32, 17), raw_slice[0]);
 
+    try std.testing.expectError(error.UnsafeScopeDenied, narrow.constPointerAt(u32, .volatile_mmio, base));
     try std.testing.expectError(error.UnsafeScopeDenied, narrow.scopedConstPointerAt(u32, .volatile_mmio, base));
-    const raw_ptr = try narrow.scopedConstPointerAt(u32, .raw_pointer_bridge, base);
+    const raw_ptr = try narrow.constPointerAt(u32, .raw_pointer_bridge, base);
     try std.testing.expectEqual(@as(u32, 17), raw_ptr.*);
 
     try std.testing.expectError(error.MisalignedAccess, narrow.scopedPointerAt(u32, .volatile_mmio, base, 1));
