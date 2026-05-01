@@ -480,166 +480,168 @@ phase7_cmdline_doc = (ROOT / "Documentation" / "zigux" / "phase7-cmdline-slice.m
 phase7_rbtree_doc = (ROOT / "Documentation" / "zigux" / "phase7-rbtree-slice.md").read_text(encoding="utf-8")
 
 required_make_markers = [
-    "PHONY += phase7-validate phase7-test phase7",
     "phase7-validate:",
-    "scripts/zigux/validate-phase7.py --self-test",
-    "scripts/zigux/validate-phase7.py",
-    "scripts/zigux/check-phase7-make-wrapper.py --self-test",
-    "scripts/zigux/check-phase7-make-wrapper.py",
-    "scripts/zigux/check-phase7-cmdline-parity.py --self-test",
-    "scripts/zigux/check-phase7-cmdline-parity.py",
-    "scripts/zigux/check-phase7-rbtree-parity.py --self-test",
-    "scripts/zigux/check-phase7-rbtree-parity.py",
     "phase7-test:",
-    "$(ZIG) build test --build-file zigux/tests/phase7_build.zig --summary all",
-    "zigux/tests/phase7_build.zig",
-    "phase7: phase7-validate phase7-test",
+    "phase7:",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-cmdline-parity.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-cmdline-parity.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-rbtree-parity.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-rbtree-parity.py",
+    "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file tests/phase7_build.zig --summary all",
 ]
 
 required_workflow_markers = [
-    "Self-test Phase 7 runtime validator",
-    "python3 scripts/zigux/validate-phase7.py --self-test",
-    "Validate Phase 7 runtime helper gates",
-    "make -C zigux phase7-validate",
-    "Run Phase 7 runtime helper tests",
-    "zig build test --build-file zigux/tests/phase7_build.zig --summary all",
-    "zigux/tests/phase7_build.zig",
+    "- name: Self-test Phase 7 runtime validator",
+    "run: python3 scripts/zigux/validate-phase7.py --self-test",
+    "- name: Validate Phase 7 runtime leaf packet",
+    "run: python3 scripts/zigux/validate-phase7.py",
+    "- name: Self-test Phase 7 make wrapper checker",
+    "run: python3 scripts/zigux/check-phase7-make-wrapper.py --self-test",
+    "- name: Validate Phase 7 make wrapper expansions",
+    "run: python3 scripts/zigux/check-phase7-make-wrapper.py",
+    "- name: Self-test Phase 7 cmdline parity checker",
+    "run: python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test",
+    "- name: Validate Phase 7 cmdline parity fixtures",
+    "run: python3 scripts/zigux/check-phase7-cmdline-parity.py",
+    "- name: Self-test Phase 7 rbtree parity checker",
+    "run: python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test",
+    "- name: Validate Phase 7 rbtree parity fixtures",
+    "run: python3 scripts/zigux/check-phase7-rbtree-parity.py",
+    "- name: Run Phase 7 runtime leaf tests",
+    "run: zig build test --build-file zigux/tests/phase7_build.zig --summary all",
 ]
 
 required_script_readme_markers = [
-    "validate-phase7.py",
-    "validate-phase7.py --self-test",
-    "check-phase7-cmdline-parity.py",
-    "check-phase7-rbtree-parity.py",
-    "Phase 7 flow",
-    "make -C zigux phase7-validate",
-    "make -C zigux phase7-test",
-    "make -C zigux phase7",
-    "zig build test --build-file zigux/tests/phase7_build.zig --summary all",
-    "zigux/tests/phase7_build.zig",
-    "phase7_string_helpers_survey.zig",
-    "phase7_cmdline_survey.zig",
-    "phase7_argv_split_manifest.json",
-    "phase7_rbtree_manifest.json",
-    "phase7-rbtree-slice.md",
-    "helper-only string and cmdline slices keep their roadmap-backed review notes explicit",
-    "setting those survey runs to `repo_root`",
+    "`python3 scripts/zigux/validate-phase7.py --self-test` proves the shared Phase 7 runtime validator still fails closed before the helper replay runs.",
+    "`python3 scripts/zigux/validate-phase7.py` checks the full Phase 7 runtime leaf packet across string helpers, cmdline, argv_split, and rbtree.",
+    "`python3 scripts/zigux/check-phase7-make-wrapper.py --self-test` verifies the Phase 7 wrapper checker catches drift in `zigux/Makefile`.",
+    "`python3 scripts/zigux/check-phase7-make-wrapper.py` ensures `make -C zigux phase7-validate`, `phase7-test`, and `phase7` still expand to the published Phase 7 helper gates.",
+    "`python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test` keeps the committed cmdline parity checker fail-closed before live fixture replay.",
+    "`python3 scripts/zigux/check-phase7-cmdline-parity.py` compares the committed Phase 7 cmdline JSON fixture against `zigux/tests/fixtures/phase7_cmdline_c_harness.c` and `lib/cmdline.zig` outputs.",
+    "`python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test` keeps the committed rbtree parity checker fail-closed before live fixture replay.",
+    "`python3 scripts/zigux/check-phase7-rbtree-parity.py` compares the committed Phase 7 rbtree JSON fixture against `zigux/tests/fixtures/phase7_rbtree_c_harness.c` and `lib/rbtree.zig` outputs.",
 ]
 
 required_tests_readme_markers = [
-    "zigux/tests/phase7_build.zig",
-    "zigux/tests/phase7_string_helpers.zig",
-    "zigux/tests/phase7_string_helpers_survey.zig",
-    "zigux/tests/phase7_cmdline.zig",
-    "zigux/tests/phase7_cmdline_survey.zig",
-    "zigux/tests/phase7_argv_split.zig",
-    "zigux/tests/phase7_argv_split_survey.zig",
-    "zigux/tests/phase7_argv_split_manifest.json",
-    "zigux/tests/phase7_rbtree.zig",
-    "zigux/tests/phase7_rbtree_survey.zig",
-    "zigux/tests/phase7_rbtree_manifest.json",
-    "zigux/tests/fixtures/phase7_string_helpers_escape_vectors.zig",
-    "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig",
-    "zigux/tests/fixtures/phase7_cmdline.json",
-    "zigux/tests/fixtures/phase7_cmdline_c_harness.c",
-    "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
-    "zigux/tests/fixtures/phase7_rbtree.json",
-    "zigux/tests/fixtures/phase7_rbtree_c_harness.c",
-    "scripts/zigux/validate-phase7.py",
-    "scripts/zigux/validate-phase7.py --self-test",
-    "scripts/zigux/check-phase7-cmdline-parity.py",
-    "scripts/zigux/check-phase7-rbtree-parity.py",
-    "helper roots in `zigux/tests/phase7_build.zig` receive `string_helpers`, `cmdline`, `argv_split`, and `rbtree` through `addImport(...)`",
-    "`zigux/tests/phase7_string_helpers_survey.zig` and `zigux/tests/phase7_cmdline_survey.zig` stay standalone so the helper-only string and cmdline slices keep their roadmap-backed review notes explicit without widening into extra helper-local bootstrap rules or later-phase sample claims",
-    "`zigux/tests/phase7_argv_split_survey.zig` and `zigux/tests/phase7_rbtree_survey.zig` rely on repo-root reads of `zigux/tests/phase7_argv_split_manifest.json` and `zigux/tests/phase7_rbtree_manifest.json`",
-    "phase7_build.zig` keeps those survey runs rooted at `repo_root`",
+    "`zigux/tests/phase7_build.zig` is the shared Phase 7 runtime leaf build.",
+    "`zigux/tests/phase7_string_helpers.zig` keeps the dedicated string helper surface reviewable.",
+    "`zigux/tests/phase7_string_helpers_survey.zig` keeps the helper-only roadmap and sample-root boundary machine-checked.",
+    "`zigux/tests/phase7_cmdline.zig` keeps the dedicated cmdline surface reviewable.",
+    "`zigux/tests/phase7_cmdline_survey.zig` keeps the helper-only cmdline handoff machine-checked.",
+    "`zigux/tests/phase7_argv_split.zig` keeps the dedicated argv_split surface reviewable.",
+    "`zigux/tests/phase7_argv_split_survey.zig` keeps the manifest-backed argv_split handoff machine-checked from `repo_root`.",
+    "`zigux/tests/phase7_rbtree.zig` keeps the dedicated rbtree surface reviewable.",
+    "`zigux/tests/phase7_rbtree_survey.zig` keeps the manifest-backed rbtree handoff machine-checked from `repo_root`.",
+    "helper roots in `zigux/tests/phase7_build.zig` receive `string_helpers`, `cmdline`, `argv_split`, and `rbtree` through `addImport(...)`, while survey roots stay standalone under `repo_root` so they can read roadmap, docs, manifests, and sample-root files without pretending those are helper-module imports.",
 ]
 
 required_doc_readme_markers = [
-    "Phase 7 notes",
-    "Documentation/zigux/phase7-string-helpers-slice.md",
-    "Documentation/zigux/phase7-cmdline-slice.md",
-    "Documentation/zigux/phase7-argv-split-slice.md",
-    "Documentation/zigux/phase7-rbtree-slice.md",
-    "python3 scripts/zigux/validate-phase7.py --self-test",
-    "python3 scripts/zigux/validate-phase7.py",
-    "make -C zigux phase7-validate",
-    "make -C zigux phase7-test",
-    "make -C zigux phase7",
-    "zig build test --build-file zigux/tests/phase7_build.zig --summary all",
-    "python3 scripts/zigux/check-phase7-cmdline-parity.py",
-    "python3 scripts/zigux/check-phase7-rbtree-parity.py",
+    "The Phase 7 runtime leaf packet covers `lib/string_helpers.zig`, `lib/cmdline.zig`, `lib/argv_split.zig`, and `lib/rbtree.zig` with dedicated review notes and a shared build gate under `zigux/tests/phase7_build.zig`.",
+    "`samples/zigux/README.md` is the shared Phase 5 sample-root catalog, while the Phase 7 string-helpers slice is intentionally helper-only and current `master` ships no `samples/zigux/*string*` reference sample.",
+    "Any sample-root follow-up should not treat that absence as a missing Phase 5 port while the separate Phase 7 helper bundle already records the landed review surface.",
 ]
 
 required_phase7_string_helpers_survey_markers = [
-    "This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.",
+    "samples/zigux/string_helpers_sample.zig",
+    "phase7_string_helpers.zig",
+    "phase7_string_helpers_survey.zig",
+    "zigux/tests/fixtures/phase7_string_helpers_escape_vectors.zig",
+    "current `master` ships no `samples/zigux/*string*` reference sample",
+    "the shipped string-helper evidence remains the separate Phase 7 helper bundle",
+    "`python3 scripts/zigux/validate-phase7.py --self-test`",
+    "`make -C zigux phase7-validate`",
     "phase 7 kasprintfStrarray returns sequential owned strings with a null-pointer terminator",
     "phase 7 stringEscapeMem reports truncated output length without forcing a terminator",
 ]
 
 required_phase7_string_helpers_test_markers = [
+    "fixtures/phase7_string_helpers_escape_vectors.zig",
     "phase 7 parseIntArray keeps the counted get_options contract explicit",
+    "phase 7 parseIntArrayUser keeps count-bounded copy semantics explicit",
+    "phase 7 kstrdupQuotable reuses the bounded escape subset for log-safe duplication",
+    "phase 7 kstrdupAndReplace keeps ownership and first-NUL replacement boundaries explicit",
     "phase 7 kasprintfStrarray returns sequential owned strings with a null-pointer terminator",
+    "phase 7 string helper wrappers keep shared any-flag and C-string ownership rules",
+    "phase 7 stringGetSize returns snprintf-style length on truncation",
+    "phase 7 stringEscapeMem covers the bounded escape subset",
     "phase 7 stringEscapeMem reports truncated output length without forcing a terminator",
 ]
 
 required_phase7_string_helpers_doc_markers = [
-    "zigux/tests/fixtures/phase7_string_helpers_escape_vectors.zig",
+    "This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.",
     "integration with validation substrate through `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_survey.zig`, and `zigux/tests/phase7_build.zig`.",
+    "prove the shared Phase 7 validator packet still fails closed before the helper replay runs",
     "`parse_int_array()` over the bounded allocator-backed starter path",
-    "`kfree_strarray()` over the bounded repeated-teardown-safe release path",
+    "`parse_int_array_user()` over the bounded copy-and-parse starter path",
+    "`kstrdup_quotable()` over the bounded escape-then-duplicate path",
+    "`kstrdup_and_replace()` over the bounded duplicate-then-rewrite ownership-safe path",
+    "shared wrapper proofs that `string_unescape_inplace()`, `string_unescape_any()`, and `string_unescape_any_inplace()` preserve `UNESCAPE_ANY`, stop at the first written NUL, and leave trailing storage untouched",
+    "`STRING_UNITS_NO_SPACE` and `STRING_UNITS_NO_BYTES` formatting flags plus snprintf-style truncation accounting for `string_get_size()`",
+    "truncation accounting that returns the full would-be escaped length without promising an appended terminator through one dedicated gate assertion",
 ]
 
 required_phase7_cmdline_survey_markers = [
-    'try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_tests, "phase 7 getOptions preserves descending-range and partial-parse stop behavior") != null);',
+    "zigux/tests/phase7_cmdline.zig",
+    "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig",
+    "scripts/zigux/check-phase7-cmdline-parity.py",
+    'try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_tests, "phase 7 parseOptionStr matches only exact bare options") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_tests, "phase 7 numeric helpers reject explicit leading plus signs to stay with cmdline.c simple_strtoull semantics") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_tests, "phase 7 nextArg matches serialized edge fixtures") != null);',
-    'try expectContains(phase7_build, "phase7-cmdline-survey-tests");',
+    "zigux/tests/fixtures/phase7_cmdline.json",
 ]
 
 required_phase7_cmdline_test_markers = [
     "phase 7 getOptions preserves descending-range and partial-parse stop behavior",
     "phase 7 getOptions keeps array-capacity stop behavior explicit when a range is only partially stored",
+    "phase 7 memparse preserves suffix scaling and stop index semantics",
+    "phase 7 parseOptionStr matches C empty-option edge behavior around commas",
+    "phase 7 parseOptionStr matches only exact bare options",
+    "phase 7 numeric helpers reject explicit leading plus signs to stay with cmdline.c simple_strtoull semantics",
+    "phase 7 getOption matches malformed-token classification from the Linux KUnit corpus",
+    "phase 7 getOption matches leading-integer pointer advance from the Linux KUnit corpus",
+    "phase 7 getOption matches trailing-integer pointer advance from the Linux KUnit corpus",
+    "phase 7 getOptions matches malformed-range counting from the Linux KUnit corpus",
     "phase 7 nextArg matches serialized edge fixtures",
 ]
 
 required_phase7_cmdline_doc_markers = [
-    "PHASE7_STATUS=parked",
-    "zigux/tests/phase7_cmdline.zig",
-    "zigux/tests/phase7_cmdline_survey.zig",
-    "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig",
-    "zigux/tests/fixtures/phase7_cmdline.json",
-    "zigux/tests/fixtures/phase7_cmdline_c_harness.c",
-    "scripts/zigux/check-phase7-cmdline-parity.py",
-    "descending-range and unparseable-suffix early stop behavior",
-    "array-capacity stop behavior when a hyphen range is only partially stored and the upper bound remains pending in the remaining cursor",
-    "the full KUnit malformed-token classification corpus now also runs through the shared `zigux/tests/phase7_cmdline.zig` gate instead of only the helper-local `zig test lib/cmdline.zig` path",
-    "KUnit-derived pointer-advance semantics for malformed-prefix, leading-integer, and trailing-integer `get_option()` inputs",
-    "memory-size suffix scaling with accurate parse-stop reporting",
-    "rejection of explicit leading-plus numeric inputs, including autodetected radix forms like `+0x10`",
+    "integration with validation substrate through `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, and `zigux/tests/phase7_build.zig`.",
     "exact bare-option matching for comma-delimited flags",
     "C-style stop-at-NUL handling for bare-option scans",
-    "serialized `next_arg()` edge cases covering quoted values, quoted bare tokens, empty quoted values, unquoted punctuation-rich values, first-equals splitting, leading-equals sentinel handling, trailing-space trimming after `key=value`, and empty-rest termination",
-    "helper-local test runs cannot import that fixture from outside the helper module path; keep both packets aligned when those serialized cases change",
+    "malformed token classification and malformed range counting ported from the in-tree `lib/tests/cmdline_kunit.c` corpus",
+    "KUnit-derived pointer-advance semantics for malformed-prefix, leading-integer, and trailing-integer `get_option()` inputs",
 ]
 
 required_phase7_argv_split_doc_markers = [
-    "zigux/tests/phase7_argv_split_manifest.json",
+    "integration with validation substrate through `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, and `zigux/tests/phase7_build.zig`.",
     "keep the roadmap survey record machine-checked from `repo_root`",
+    "The manifest-backed survey packet stays rooted at `repo_root` through `zigux/tests/phase7_build.zig`",
+    "`argv_free()` via `argvFree()`",
     "optional argc reporting that stays in sync with the returned argv length",
+    "leading-NUL truncation to zero argv entries before any later bytes are considered",
     "repeated blank-input `argvFree()` teardown safety so the shared empty sentinel state survives explicit release without allocator backing",
+    "teardown cleanup that clears the exported storage handle alongside the argv views after `ArgvSplitResult.deinit()`",
+    "repeated teardown safety so an already-cleared `ArgvSplitResult` can be passed through `deinit()` again without freeing the shared empty sentinel state",
+    "allocator-failure cleanup that proves the shared Phase 7 gate also exercises the intermediate allocation teardown path already covered by the direct helper tests",
 ]
 
 required_phase7_argv_split_helper_markers = [
-    "pub const ArgvSplitResult = struct {",
-    "pub fn argvFree(allocator: std.mem.Allocator, result: *ArgvSplitResult) void {",
+    "pub fn argvFree",
     "const leading_nul_expected = [_][]const u8{};",
 ]
 
 required_phase7_argv_split_survey_markers = [
-    'try std.testing.expectEqual(@as(usize, 0), ready_next_count);',
+    "zigux/tests/phase7_argv_split_manifest.json",
     'try std.testing.expect(std.mem.indexOf(u8, argv_split_tests, "phase 7 argvSplitWithArgc reports the split length through the optional out parameter") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, argv_split_tests, "phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, argv_split_tests, "phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "keep the roadmap survey record machine-checked from `repo_root`") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "The manifest-backed survey packet stays rooted at `repo_root` through `zigux/tests/phase7_build.zig`") != null);',
-    'try std.testing.expect(std.mem.indexOf(u8, phase7_build, "phase7-argv-split-survey-tests") != null);',
+    'try std.testing.expectEqual(@as(usize, 0), ready_next_count);',
 ]
 
 required_phase7_argv_split_test_markers = [
@@ -894,7 +896,7 @@ if phase7_argv_split_manifest.get("lane_key") != "P7-L12":
     manifest_shape_errors.append("lane_key")
 if phase7_argv_split_manifest.get("phase") != "Phase 7":
     manifest_shape_errors.append("phase")
-if phase7_argv_split_manifest.get("surveyed_commit") != "9fe95586826f03d2e047dcd3d4536fc884dc996c":
+if phase7_argv_split_manifest.get("surveyed_commit") != "ac615fab1a13cf24fc9a45abf09b1500fb1e2ac9":
     manifest_shape_errors.append("surveyed_commit")
 if phase7_argv_split_manifest.get("anchor") != "lib/argv_split.c":
     manifest_shape_errors.append("anchor")
@@ -944,7 +946,7 @@ if phase7_rbtree_manifest.get("lane_key") != "P7-L13":
     rbtree_manifest_shape_errors.append("lane_key")
 if phase7_rbtree_manifest.get("phase") != "Phase 7":
     rbtree_manifest_shape_errors.append("phase")
-if phase7_rbtree_manifest.get("surveyed_commit") != "9fe95586826f03d2e047dcd3d4536fc884dc996c":
+if phase7_rbtree_manifest.get("surveyed_commit") != "2d4d54a73329556a8d6dab46afef9a4aad341ef9":
     rbtree_manifest_shape_errors.append("surveyed_commit")
 if phase7_rbtree_manifest.get("anchor") != "lib/rbtree.c":
     rbtree_manifest_shape_errors.append("anchor")
