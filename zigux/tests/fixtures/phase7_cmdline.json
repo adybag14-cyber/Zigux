@@ -1,0 +1,70 @@
+{
+  "get_option": {
+    "leading_plus": {
+      "rc": 0,
+      "rest": "+7,panic",
+      "value": 0
+    },
+    "range": {
+      "rc": 3,
+      "rest": "-5",
+      "value": 3
+    }
+  },
+  "get_options": {
+    "limited_capacity": {
+      "rest": "4,8",
+      "values": [
+        3,
+        1,
+        2
+      ]
+    },
+    "validation_only": {
+      "rest": "",
+      "values": [
+        5,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  },
+  "memparse": {
+    "leading_plus": {
+      "stop_index": 0,
+      "value": 0
+    },
+    "suffix_scaling": {
+      "stop_index": 3,
+      "value": 65536
+    }
+  },
+  "next_arg": {
+    "leading_equals": {
+      "param": "=bad",
+      "rest": "next",
+      "value": null
+    },
+    "quoted_value": {
+      "param": "root",
+      "rest": "ro",
+      "value": "/dev/sda 1"
+    },
+    "trimmed_empty_rest": {
+      "param": "mode",
+      "rest": "",
+      "value": "fast"
+    }
+  },
+  "parse_option_str": {
+    "assignment_not_bare": false,
+    "empty_between_commas": true,
+    "empty_trailing_comma": false,
+    "exact_bare_option": true
+  }
+}
