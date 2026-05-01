@@ -243,7 +243,7 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
     var saw_atomic64_gap = false;
     var saw_bitmap_gap = false;
 
-    for (manifest.gaps) |gap| {
+    for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
         try std.testing.expect(gap.kind.len > 0);
         try std.testing.expect(gap.why_now.len > 0);
@@ -283,6 +283,10 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
             try std.testing.expectEqualStrings("ready_next", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/bitmap_diff.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "benchmark command plus one acceptable limit") != null);
+        }
+
+        for (manifest.gaps[i + 1 ..]) |other| {
+            try std.testing.expect(!std.mem.eql(u8, gap.id, other.id));
         }
     }
 
