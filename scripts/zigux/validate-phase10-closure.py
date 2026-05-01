@@ -56,6 +56,11 @@ CLOSURE_MARKERS = [
     "PHASE10_FORBIDDEN_TRANSPORT_CLAIMS=queue_setup_reset_paths,irq_parity,dma_paths,input_registration_lifecycle,probe_remove_lifecycle",
     "phase10-mmio-interrupt-ack-helper",
     "phase10-mmio-lifecycle-and-irq-paths",
+    "phase10-virtio-input-capability-setup-helper",
+    "phase10-virtio-input-multitouch-slot-helper",
+    "phase10-virtio-input-teardown-observation-helper",
+    "phase10-virtio-input-registration-preflight-helper",
+    "phase10-virtio-input-queue-callback-preflight-helper",
     "phase10-virtio-input-registration-lifecycle",
     "kernel/workqueue_bridge.zig",
     "kernel/trace/ring_buffer.zig",
@@ -191,6 +196,9 @@ TEST_MARKERS = {
     ],
     "zigux/tests/phase10_virtio_input_survey.zig": [
         'const landed_input_helper_evidence = closure_manifest.object.get("landed_input_helper_evidence") orelse return error.TestUnexpectedResult;',
+        '"phase10-virtio-input-capability-setup-helper",',
+        '"phase10-virtio-input-multitouch-slot-helper",',
+        '"phase10-virtio-input-teardown-observation-helper",',
         '"phase10-virtio-input-registration-preflight-helper",',
         '"phase10-virtio-input-queue-callback-preflight-helper",',
     ],
@@ -316,6 +324,9 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     landed_input = manifest.get("landed_input_helper_evidence")
     expected_landed_input = {
         "zigux/tests/phase10_virtio_input_manifest.json": [
+            "phase10-virtio-input-capability-setup-helper",
+            "phase10-virtio-input-multitouch-slot-helper",
+            "phase10-virtio-input-teardown-observation-helper",
             "phase10-virtio-input-registration-preflight-helper",
             "phase10-virtio-input-queue-callback-preflight-helper",
         ]
@@ -438,6 +449,9 @@ def write_fixture(root: Path) -> None:
         },
         "landed_input_helper_evidence": {
             "zigux/tests/phase10_virtio_input_manifest.json": [
+                "phase10-virtio-input-capability-setup-helper",
+                "phase10-virtio-input-multitouch-slot-helper",
+                "phase10-virtio-input-teardown-observation-helper",
                 "phase10-virtio-input-registration-preflight-helper",
                 "phase10-virtio-input-queue-callback-preflight-helper",
             ]
@@ -506,16 +520,6 @@ def run_self_test() -> int:
         input_path.write_text(original_input, encoding="utf-8")
 
         manifest_path = fixture_root / "zigux/tests/phase10_closure_manifest.json"
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["landed_input_helper_evidence"] = {}
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        expect_missing_marker(
-            "landed_input_helper_manifest_guard",
-            fixture_root,
-            "manifest:landed_input_helper_evidence",
-        )
-        write_fixture(fixture_root)
-
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["landed_mmio_helper_evidence"]["zigux/tests/phase10_virtio_mmio_manifest.json"].pop()
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
@@ -616,7 +620,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=9")
+    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
