@@ -61,8 +61,11 @@ Current repo evidence:
 - survey note: `Documentation/zigux/phase13-devres-survey.md`
 
 Current lane state recorded in the manifest:
+- landed `phase13-build-gate`
+- landed `phase13-make-target`
 - landed `phase13-devres-starter`
 - landed `phase13-devres-tests`
+- landed `phase13-devres-slice-note`
 - landed `phase13-devres-reviewability-gate`
 - landed `phase13-devres-survey-note`
 - landed `phase13-devres-managed-ioremap-lifetime`
@@ -79,7 +82,7 @@ Current lane state recorded in the manifest:
 - blocked `phase13-devres-live-arch-memtype-state`
 
 Traceability summary:
-- this anchor stays roadmap-aligned and manifest-backed, and the helper packet now covers managed ioremap, resource-planner, ioport, direct non-posted wrapper, and arch write-combine bookkeeping helpers while still refusing to claim live MMIO side effects, live DMA-backed mappings, scatterlist ownership, live device-tree walking, or global arch-memtype mutation.
+- this anchor stays roadmap-aligned and manifest-backed, and the helper packet now covers the shared build gate, make target, dedicated slice note, managed ioremap, resource-planner, ioport, direct non-posted wrapper, and arch write-combine bookkeeping helpers while still refusing to claim live MMIO side effects, live DMA-backed mappings, scatterlist ownership, live device-tree walking, or global arch-memtype mutation.
 
 ### `security/landlock/ruleset.c`
 
