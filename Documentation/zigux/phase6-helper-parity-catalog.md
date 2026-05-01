@@ -73,8 +73,8 @@ The current Phase 6 perf packet is intentionally mixed. Three helpers now carry 
 ### base64
 
 - `zigux/tests/phase6_base64_perf.zig` replays two deterministic payloads: `64B` at `20_000` reps and `1KB` at `4_000` reps.
-- the current numeric thresholds are `max_encode_slowdown_pct = 190` and `max_decode_slowdown_pct = 320` for all six replay cases: padded standard `64B` and `1KB`, unpadded URL-safe `64B` and `1KB`, and unpadded IMAP `64B` and `1KB`.
-- the harness measures those cases against the padded `std.base64.standard` reference path, the unpadded `std.base64.url_safe_no_pad` reference path, and a translated standard-to-IMAP reference path for the IMAP alphabet.
+- the current numeric thresholds are `max_encode_slowdown_pct = 190` and `max_decode_slowdown_pct = 320` for all ten replay cases: padded standard `64B` and `1KB`, padded plus unpadded URL-safe `64B` and `1KB`, and padded plus unpadded IMAP `64B` and `1KB`.
+- the harness measures those cases against the padded `std.base64.standard` reference path, the padded and unpadded `std.base64.url_safe{,_no_pad}` reference paths, and translated padded plus unpadded standard-to-IMAP reference paths for the IMAP alphabet.
 - the harness also rechecks encode parity, decode parity, and round-trip correctness before and after the timed loops while reporting helper and reference nanoseconds per operation plus the observed median-of-three slowdown percentages.
 
 ### bsearch
@@ -114,7 +114,7 @@ The committed Phase 6 fixture corpus is deterministic today because every shippe
 - `python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test` is the current tool-free reviewability check for the bounded base64 external parity script before the live `zig` plus `cc` replay runs.
 - `python3 scripts/zigux/check-phase6-bsearch-c-parity.py --self-test` is the current tool-free reviewability check for the bounded bsearch external parity script before the live `zig` plus `cc` replay runs.
 - `zigux/tests/phase6_base64_perf.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/phase6_hexdump_perf.zig` currently carry fixture-backed relative slowdown thresholds rather than cross-machine absolute ceilings.
-- the current base64 perf packet now covers the shipped standard, URL-safe, and IMAP alphabets instead of leaving the IMAP path outside the bounded slowdown gate.
+- the current base64 perf packet now covers the shipped standard, URL-safe, and IMAP alphabets with both padded and no-padding variant branches under the bounded slowdown gate.
 - `zigux/tests/phase6_bsearch_perf.zig` currently enforces a bounded per-lookup and average comparison budget rather than a nanosecond threshold.
 - the current hexdump perf packet measures helper output against the committed `fixtures.prepareExpectedLine(...)` reference path, keeping `16B-plain` at `max_slowdown_pct = 175` while the grouped ASCII replays use `max_slowdown_pct = 550`.
 - The per-helper perf targets stay reviewable only through this same bounded packet; do not treat one helper-local perf harness as closure for the whole tranche.
