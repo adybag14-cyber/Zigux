@@ -378,6 +378,72 @@ def validate_phase2_cross_checker_gate(checker_script: Path) -> list[str]:
     return issues
 
 
+def validate_genksyms_bridge_checker_gate(checker_script: Path) -> list[str]:
+    source = checker_script.read_text(encoding='utf-8')
+    required_markers = {
+        'self_test_arg': "parser.add_argument('--self-test'",
+        'self_test_pass_marker': "print('PHASE2_GENKSYMS_BRIDGE_SELF_TEST=pass')",
+        'self_test_case_count_marker': "print('PHASE2_GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=5')",
+        'normalize_stderr_mode_guard': 'normalize_stderr:requires_process_json_mode',
+        'missing_expected_fixture_guard': 'expected:missing_fixture:',
+        'orphaned_expected_guard': 'cases.json:orphaned_expected:',
+        'duplicate_expected_guard': 'expected:duplicate_reference:',
+        'repeat_c_compare': "run(diff_base + [str(c_actual), str(c_repeat)], cwd=str(ROOT))",
+        'repeat_zig_compare': "run(diff_base + [str(zig_actual), str(zig_repeat)], cwd=str(ROOT))",
+        'determinism_marker': "print('GENKSYMS_BRIDGE_DETERMINISM=pass')",
+    }
+
+    issues: list[str] = []
+    for issue_name, marker in required_markers.items():
+        if marker not in source:
+            issues.append(f'genksyms_bridge_checker:{issue_name}')
+    return issues
+
+
+def validate_genksyms_crc_checker_gate(checker_script: Path) -> list[str]:
+    source = checker_script.read_text(encoding='utf-8')
+    required_markers = {
+        'self_test_arg': "parser.add_argument('--self-test'",
+        'self_test_pass_marker': "print('GENKSYMS_CRC_SELF_TEST=pass')",
+        'self_test_case_count_marker': "print('GENKSYMS_CRC_SELF_TEST_CASE_COUNT=4')",
+        'explicit_zig_guard': 'genksyms-crc:self-test:explicit_zig_passthrough',
+        'explicit_cc_guard': 'genksyms-crc:self-test:explicit_cc_passthrough',
+        'mismatch_contract_guard': 'genksyms-crc:self-test:mismatch_contract',
+        'repeat_c_compare': "run(diff_base + [str(c_actual), str(c_repeat)], cwd=str(ROOT))",
+        'repeat_zig_compare': "run(diff_base + [str(zig_actual), str(zig_repeat)], cwd=str(ROOT))",
+        'determinism_marker': "print('GENKSYMS_CRC_DETERMINISM=pass')",
+    }
+
+    issues: list[str] = []
+    for issue_name, marker in required_markers.items():
+        if marker not in source:
+            issues.append(f'genksyms_crc_checker:{issue_name}')
+    return issues
+
+
+def validate_mk_elfconfig_checker_gate(checker_script: Path) -> list[str]:
+    source = checker_script.read_text(encoding='utf-8')
+    required_markers = {
+        'self_test_arg': "parser.add_argument('--self-test'",
+        'self_test_pass_marker': "print('MK_ELFCONFIG_SELF_TEST=pass')",
+        'self_test_case_count_marker': "print('MK_ELFCONFIG_SELF_TEST_CASE_COUNT=8')",
+        'duplicate_name_guard': ':duplicate_name:',
+        'duplicate_input_guard': ':duplicate_input_hex:',
+        'duplicate_expected_guard': ':duplicate_expected:',
+        'explicit_tool_guard': 'validate_tool_sources(C_TOOL, ZIG_TOOL)',
+        'explicit_tool_drift_guard': 'explicit_tool_drift',
+        'repeat_c_compare': "run(diff + [str(c_actual), str(c_repeat)], cwd=str(ROOT))",
+        'repeat_zig_compare': "run(diff + [str(zig_actual), str(zig_repeat)], cwd=str(ROOT))",
+        'determinism_marker': "print('MK_ELFCONFIG_DETERMINISM=pass')",
+    }
+
+    issues: list[str] = []
+    for issue_name, marker in required_markers.items():
+        if marker not in source:
+            issues.append(f'mk_elfconfig_checker:{issue_name}')
+    return issues
+
+
 def validate_exact_workflow_runs(workflow_text: str, expected_commands: dict[str, int]) -> list[str]:
     issues: list[str] = []
     for command, expected_count in expected_commands.items():
@@ -644,6 +710,9 @@ if target_manifest_targets != EXPECTED_CROSS_TARGETS:
 
 missing_markers.extend(validate_kconfig_bridge_manifest(KCONFIG_BRIDGE_DIR / 'cases.json'))
 missing_markers.extend(validate_phase2_cross_checker_gate(ROOT / 'scripts' / 'zigux' / 'check-phase2-cross.py'))
+missing_markers.extend(validate_genksyms_bridge_checker_gate(ROOT / 'scripts' / 'zigux' / 'check-genksyms-bridge.py'))
+missing_markers.extend(validate_genksyms_crc_checker_gate(ROOT / 'scripts' / 'zigux' / 'check-genksyms-crc-diff.py'))
+missing_markers.extend(validate_mk_elfconfig_checker_gate(ROOT / 'scripts' / 'zigux' / 'check-mk-elfconfig-diff.py'))
 missing_markers.extend(fixdep_case_issues)
 missing_markers.extend(validate_exact_workflow_runs(workflow, EXACT_WORKFLOW_RUN_COUNTS))
 
