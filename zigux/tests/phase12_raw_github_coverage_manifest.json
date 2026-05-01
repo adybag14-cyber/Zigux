@@ -1,0 +1,44 @@
+{
+  "lane_key": "P12-L07",
+  "phase": "Phase 12",
+  "scope": "raw GitHub fallback catalog survey public-read coverage gaps vs roadmap",
+  "public_read_boundary": "read_only_public_github_tree_and_raw_paths_only",
+  "last_replayed_public_head": "a8daee106057a542aa03f2983662bec7c06584bb",
+  "roadmap_anchor_count": 4,
+  "commit_pinned_raw_fallback_catalog_count": 1,
+  "shared_tree_only_anchor_count": 3,
+  "anchors": [
+    {
+      "id": "virtio_net",
+      "anchor": "drivers/net/virtio_net.c",
+      "roadmap_destination": "drivers/net/virtio_net.zig",
+      "survey_note_path": "Documentation/zigux/phase12-virtio-net-survey.md",
+      "public_read_status": "shared_tree_only",
+      "raw_fallback_catalog_path": ""
+    },
+    {
+      "id": "nvme_pci",
+      "anchor": "drivers/nvme/host/pci.c",
+      "roadmap_destination": "drivers/nvme/host/pci.zig",
+      "survey_note_path": "Documentation/zigux/phase12-nvme-pci-survey.md",
+      "public_read_status": "shared_tree_only",
+      "raw_fallback_catalog_path": ""
+    },
+    {
+      "id": "virtio_scsi",
+      "anchor": "drivers/scsi/virtio_scsi.c",
+      "roadmap_destination": "drivers/scsi/virtio_scsi.zig",
+      "survey_note_path": "Documentation/zigux/phase12-virtio-scsi-survey.md",
+      "public_read_status": "commit_pinned_raw_catalog",
+      "raw_fallback_catalog_path": "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md"
+    },
+    {
+      "id": "libbpf",
+      "anchor": "tools/lib/bpf/libbpf.c",
+      "roadmap_destination": "tools/lib/bpf/zigux_segments/",
+      "survey_note_path": "Documentation/zigux/phase12-libbpf-segment-survey.md",
+      "public_read_status": "shared_tree_only",
+      "raw_fallback_catalog_path": ""
+    }
+  ]
+}
