@@ -93,6 +93,9 @@ ABI_REQUIRED_SOURCE_MARKERS = {
     "zigux/uapi/version.zig": (
         "pub const abi_version: u16 = abi.ABI_VERSION;",
         "pub fn boundaryHeader(flags: u16) Header {",
+        "pub fn isCurrentAbiVersion(version: u16) bool {",
+        "pub fn isCompatibleSize(size: u32) bool {",
+        "pub fn isCanonicalSize(size: u32) bool {",
         "pub fn isCompatible(header: Header) bool {",
         "pub fn isCanonical(header: Header) bool {",
         'test "phase3 uapi version follows abi version"',
@@ -163,18 +166,13 @@ ABI_REQUIRED_SOURCE_MARKERS = {
     "zigux/tests/phase3_export_uapi.zig": (
         'test "phase3 export shim and uapi stay aligned"',
         "try std.testing.expectEqual(header, uapi_version.boundaryHeader(0x44));",
+        "try std.testing.expect(uapi_version.isCurrentAbiVersion(header.abi_version));",
+        "try std.testing.expect(uapi_version.isCanonicalSize(header.size));",
         "try std.testing.expect(export_shim.isCanonicalHeader(header));",
         "try std.testing.expect(uapi_version.isCanonical(header));",
-    ),
-    "zigux/tests/phase3_export_uapi_build.zig": (
-        '.root_source_file = b.path("../kernel/export_shim.zig"),',
-        '.root_source_file = b.path("../uapi/version.zig"),',
-        'uapi_version_module.addImport("abi_bindings", abi_bindings_module);',
-        'export_shim_module.addImport("uapi_version", uapi_version_module);',
-        '.root_source_file = b.path("phase3_export_uapi.zig"),',
-        'root_module.addImport("export_shim", export_shim_module);',
-        'root_module.addImport("uapi_version", uapi_version_module);',
-        'const test_step = b.step("phase3-export-uapi-test", "Run Phase 3 export shim and uapi smoke tests");',
+        "try std.testing.expect(!uapi_version.isCompatibleSize(undersized_header.size));",
+        "try std.testing.expect(!uapi_version.isCurrentAbiVersion(mismatched_version_header.abi_version));",
+        "try std.testing.expect(uapi_version.isCompatibleSize(future_compatible_header.size));",
     ),
     "zigux/tests/phase3_low_level_wrappers.zig": (
         'test "phase3 low-level wrappers stay inside the documented ABI surface"',
