@@ -92,7 +92,7 @@ test "phase 9 runtime kretprobe survey manifest records the landed ownership pac
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P9-L15", manifest.lane_key);
+    try std.testing.expectEqualStrings("P9-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 9", manifest.phase);
     try std.testing.expectEqualStrings(surveyed_commit, manifest.surveyed_commit);
     try std.testing.expect(isLowerHexSha(manifest.surveyed_commit));
@@ -356,7 +356,7 @@ test "phase 9 runtime kretprobe docs keep the ownership packet and shared-build 
     defer std.testing.allocator.free(module_test);
 
     const required_survey_markers = [_][]const u8{
-        "`PHASE9_LANE_KEY=P9-L15`",
+        "`PHASE9_LANE_KEY=P9-L13`",
         "`PHASE9_SURVEYED_COMMIT=9ab58640ce44fd53534dd49e29fcce6e274dc3d0`",
         "manifest-backed delivery catalog and ownership map",
         "Latest verification snapshot",
@@ -385,7 +385,7 @@ test "phase 9 runtime kretprobe docs keep the ownership packet and shared-build 
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "released_without_substrate") != null);
 
     const required_module_markers = [_][]const u8{
-        "`PHASE9_LANE_KEY=P9-L15`",
+        "`PHASE9_LANE_KEY=P9-L13`",
         "`PHASE9_SURVEYED_COMMIT=9ab58640ce44fd53534dd49e29fcce6e274dc3d0`",
         "phase9-runtime-kretprobe-sample-tests",
         "phase9-runtime-kretprobe-module-tests",
@@ -400,9 +400,9 @@ test "phase 9 runtime kretprobe docs keep the ownership packet and shared-build 
     for (required_module_markers) |marker| {
         try std.testing.expect(std.mem.indexOf(u8, module_doc, marker) != null);
     }
-    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`PHASE9_LANE_KEY=P9-L15`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`PHASE9_LANE_KEY=P9-L13`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`PHASE9_SURVEYED_COMMIT=9ab58640ce44fd53534dd49e29fcce6e274dc3d0`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, module_doc, "`PHASE9_LANE_KEY=P9-L15`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "`PHASE9_LANE_KEY=P9-L13`") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "`PHASE9_SURVEYED_COMMIT=9ab58640ce44fd53534dd49e29fcce6e274dc3d0`") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "RuntimeKretprobeSummary") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "direct post-selftest replay proof") != null);
