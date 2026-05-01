@@ -317,7 +317,7 @@ def run_self_test() -> int:
             root,
             {"phase3-policy-unsafe-marker-fixture.zig": overflow_policy_markers},
         ) == []
-        policy_marker_fixture.writeText(
+        policy_marker_fixture.write_text(
             "\n".join([
                 'test "phase3 policy gate rejects overflowed unsafe address math" {}',
                 "try std.testing.expectError(error.AddressOverflow, narrow.checkedByteOffset(max, 1));",
