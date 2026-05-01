@@ -358,8 +358,29 @@ def run_self_test() -> int:
         if "snapshot:tracked_file_count" not in missing:
             raise SystemExit("phase12-libbpf-packet:self-test:tracked_count_detection")
 
+        build_self_test_tree(root)
+        manifest_path = root / TRACKED_PATHS[0]
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["lane_key"] = "P12-L99"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        missing = check_packet(root)
+        if "manifest:lane_key" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:manifest_lane_detection")
+
+        build_self_test_tree(root)
+        legacy_manifest_path = root / TRACKED_PATHS[4]
+        legacy_manifest = json.loads(legacy_manifest_path.read_text(encoding="utf-8"))
+        legacy_manifest["segments"][4]["status"] = "deferred_high_risk"
+        legacy_manifest_path.write_text(
+            json.dumps(legacy_manifest, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        missing = check_packet(root)
+        if "legacy_segment_status:map-reuse-compatibility" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:legacy_status_detection")
+
         print("PHASE12_LIBBPF_PACKET_SELF_TEST=pass")
-        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=3")
+        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=5")
     return 0
 
 
