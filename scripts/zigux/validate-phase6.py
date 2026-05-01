@@ -783,13 +783,33 @@ def run_self_test() -> int:
                 raise AssertionError(
                     f"expected checksum perf marker failure, got: {checksum_perf_fail_result['missing']}"
                 )
+
+            write_self_test_tree(root)
+            manifest_path = root / "zigux/tests/phase6_helper_parity_manifest.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            exact_checks = manifest.get("exact_checks")
+            if not isinstance(exact_checks, list):
+                raise AssertionError(f"expected exact_checks list, got: {exact_checks!r}")
+            dropped_check = "python3 scripts/zigux/check-phase6-bsearch-c-parity.py --self-test"
+            if dropped_check not in exact_checks:
+                raise AssertionError(f"expected review command missing from positive manifest: {dropped_check}")
+            manifest["exact_checks"] = [check for check in exact_checks if check != dropped_check]
+            manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+
+            exact_checks_fail_result = validate_phase6(root)
+            if exact_checks_fail_result["ok"]:
+                raise AssertionError("manifest exact_checks drift unexpectedly passed")
+            if "manifest:exact_checks" not in exact_checks_fail_result["missing"]:
+                raise AssertionError(
+                    f"expected manifest exact_checks failure, got: {exact_checks_fail_result['missing']}"
+                )
     except AssertionError as exc:
         print("PHASE6_VALIDATOR_SELF_TEST=fail")
         print(f"PHASE6_VALIDATOR_SELF_TEST_REASON={exc}")
         return 1
 
     print("PHASE6_VALIDATOR_SELF_TEST=pass")
-    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=4")
+    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=5")
     return 0
 
 
