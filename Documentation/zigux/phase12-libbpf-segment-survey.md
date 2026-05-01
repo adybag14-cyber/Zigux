@@ -6,6 +6,7 @@ This document records the bounded Phase 12 survey lane around `tools/lib/bpf/lib
 
 - `PHASE12_STATUS=active`
 - `PHASE12_SLICE=libbpf-segment-survey`
+- `PHASE12_LANE_KEY=P12-L16`
 - scope: Phase 12 survey manifest, dedicated survey gate, shared build wiring, and a lane note that compares the current `zigux_segments/` footing against the roadmap's heavy-helper consumer plan
 - product boundary:
   - `zigux/tests/phase12_libbpf_manifest.json`
