@@ -303,6 +303,25 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     if ready_transport_followups != {}:
         missing.append("manifest:ready_transport_followups")
 
+    survey_provenance = manifest.get("survey_provenance")
+    expected_survey_provenance = {
+        "source": "manifest_derived",
+        "lane_keys": {
+            "core": "P10-L03",
+            "ring": "P10-L08",
+            "input": "P10-L13",
+            "mmio": "P10-L18",
+        },
+        "surveyed_commits": {
+            "core": "fff48ae79aea16379f402e92c46f02f3772fb789",
+            "ring": "800e2edfb5d2d0c80ac45ffee6630a6b13905d0d",
+            "input": "b24f990e2e5504ac3ed4a1a0f1f97c41e06ddd38",
+            "mmio": "0945df1cf664a3582d7241f859183a13f3f04adb",
+        },
+    }
+    if survey_provenance != expected_survey_provenance:
+        missing.append("manifest:survey_provenance")
+
     exact_checks = manifest.get("exact_checks")
     expected_exact_checks = [
         "python3 scripts/zigux/validate-phase10-closure.py",
@@ -358,6 +377,21 @@ def write_fixture(root: Path) -> None:
             "mmio_wrappers": {"status": "starter_landed"},
             "lab_only_driver_validation": {"status": "starter_landed"},
             "dual_implementations_for_risky_areas": {"status": "blocked_on_risky_transport"},
+        },
+        "survey_provenance": {
+            "source": "manifest_derived",
+            "lane_keys": {
+                "core": "P10-L03",
+                "ring": "P10-L08",
+                "input": "P10-L13",
+                "mmio": "P10-L18",
+            },
+            "surveyed_commits": {
+                "core": "fff48ae79aea16379f402e92c46f02f3772fb789",
+                "ring": "800e2edfb5d2d0c80ac45ffee6630a6b13905d0d",
+                "input": "b24f990e2e5504ac3ed4a1a0f1f97c41e06ddd38",
+                "mmio": "0945df1cf664a3582d7241f859183a13f3f04adb",
+            },
         },
         "landed_mmio_helper_evidence": {
             "zigux/tests/phase10_virtio_mmio_manifest.json": [
@@ -462,6 +496,16 @@ def run_self_test() -> int:
         )
         write_fixture(fixture_root)
 
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["survey_provenance"]["surveyed_commits"]["mmio"] = "deadbeef"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "survey_provenance_commit_guard",
+            fixture_root,
+            "manifest:survey_provenance",
+        )
+        write_fixture(fixture_root)
+
         closure_path = fixture_root / "Documentation/zigux/phase10-closure-evidence.md"
         original_closure = closure_path.read_text(encoding="utf-8")
         closure_path.write_text(
@@ -496,7 +540,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=5")
+    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
