@@ -36,10 +36,14 @@ const Manifest = struct {
 };
 
 const Atomic64ThresholdPlan = struct {
+    owner: []const u8,
+    rollback_owner: []const u8,
     posture: []const u8,
     status: []const u8,
     benchmark_command: []const u8,
     acceptable_limit: []const u8,
+    scope: []const u8,
+    why_not_approved_yet: []const u8,
 };
 
 const Atomic64Manifest = struct {
@@ -130,12 +134,20 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
         Atomic64Manifest,
         std.testing.allocator,
         atomic64_manifest_json,
-        .{},
+        .{ .ignore_unknown_fields = true },
     );
     defer atomic64_parsed.deinit();
     const atomic64_manifest = atomic64_parsed.value;
     try std.testing.expectEqualStrings(current_surveyed_commit, atomic64_manifest.surveyed_commit);
     try std.testing.expect(isLowerHexSha(atomic64_manifest.surveyed_commit));
+    try std.testing.expectEqualStrings(
+        "ABI and Runtime Team",
+        atomic64_manifest.threshold_plan.owner,
+    );
+    try std.testing.expectEqualStrings(
+        "ABI and Runtime Team",
+        atomic64_manifest.threshold_plan.rollback_owner,
+    );
     try std.testing.expectEqualStrings(
         "threshold_pending_until_runtime_atomic64_scope_widens",
         atomic64_manifest.threshold_plan.posture,
@@ -152,6 +164,8 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
         "unapproved_until_runtime_atomic64_scope_widens",
         atomic64_manifest.threshold_plan.acceptable_limit,
     );
+    try std.testing.expect(std.mem.indexOf(u8, atomic64_manifest.threshold_plan.scope, "selftest-family plus post-selftest replay set") != null);
+    try std.testing.expect(std.mem.indexOf(u8, atomic64_manifest.threshold_plan.why_not_approved_yet, "correctness-only coverage") != null);
 
     const phase4_build = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
@@ -174,6 +188,27 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
         .limited(32 * 1024),
     );
     defer std.testing.allocator.free(phase4_matrix);
+    const doc_readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/README.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(doc_readme);
+    const script_readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "scripts/zigux/README.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(script_readme);
+    const tests_readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/README.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(tests_readme);
     const live_summary = SurveySummary{
         .phase4_build_present = std.mem.indexOf(u8, phase4_build, "phase4_perf_baseline_survey.zig") != null and
             std.mem.indexOf(u8, phase4_build, "phase4-perf-baseline-survey-tests") != null and
@@ -264,4 +299,14 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
     try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, "perf_thresholds_unapproved_until_bounded_phase4_benchmarks_land") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, "threshold_pending_until_runtime_atomic64_scope_widens") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, "threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks") != null);
+    try std.testing.expect(std.mem.indexOf(u8, doc_readme, "phase4_perf_baseline_manifest.json") != null);
+    try std.testing.expect(std.mem.indexOf(u8, doc_readme, "make -C zigux phase4-perf-baseline-survey") != null);
+    try std.testing.expect(std.mem.indexOf(u8, doc_readme, "phase4-perf-baseline-survey-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, doc_readme, "perf_thresholds_unapproved_until_bounded_phase4_benchmarks_land") != null);
+    try std.testing.expect(std.mem.indexOf(u8, script_readme, "make -C zigux phase4-perf-baseline-survey") != null);
+    try std.testing.expect(std.mem.indexOf(u8, script_readme, "validate-phase4.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "zigux/tests/phase4_perf_baseline_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "zigux/tests/phase4_perf_baseline_manifest.json") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "make -C zigux phase4-perf-baseline-survey") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "perf_thresholds_unapproved_until_bounded_phase4_benchmarks_land") != null);
 }
