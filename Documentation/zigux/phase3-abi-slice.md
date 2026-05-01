@@ -156,6 +156,7 @@ Low-level wrapper survey:
 
 Current repo-backed boundary survey:
 - export shim reality today: `zigux/kernel/export_shim.zig` stays a narrow explicit-status helper, and it now exposes a small local boundary-header surface that keeps exact canonical-size replay separate from broader future-compatible header acceptance without widening the public export namespace further
+- C helper-header reality today: `include/linux/zigux.h` stays inside the same bounded packet as the C-facing relay for the shared `BoundaryHeader` and `ExportStatus` ABI types through `#include <zigux/abi.h>` plus local `zigux_status_ok()` and `zigux_status_err()` helpers, while broader named C-side boundary-header helpers remain intentionally deferred
 - UAPI reality today: `zigux/uapi/version.zig` now exposes the ABI version plus an explicit boundary-header constructor whose exact canonical-size replay stays separate from broader future-compatible compatibility, which is still bounded but makes the public boundary less ad hoc than a version constant alone
 - focused replay gate: `zigux/tests/phase3_export_uapi.zig` now keeps that export-shim and UAPI version contract on its own compile-and-test path instead of leaving it visible only through the much broader `phase3_abi.zig` bundle
 
