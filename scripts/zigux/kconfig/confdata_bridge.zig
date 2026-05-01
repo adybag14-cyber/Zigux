@@ -111,17 +111,12 @@ fn decodeQuotedString(allocator: std.mem.Allocator, raw_value: []const u8) ![]u8
 fn isDecimalValue(raw_value: []const u8) bool {
     if (raw_value.len == 0) return false;
 
-    var digits = raw_value;
-    if (raw_value[0] == '-') {
-        digits = raw_value[1..];
-    } else if (raw_value[0] == '+') {
-        return false;
-    }
-
+    const digits = if (raw_value[0] == '-') raw_value[1..] else raw_value;
     if (digits.len == 0) return false;
-    if (digits.len > 1 and digits[0] == '0') return false;
+    if (!std.ascii.isDigit(digits[0])) return false;
+    if (digits[0] == '0' and digits.len > 1) return false;
 
-    for (digits) |byte| {
+    for (digits[1..]) |byte| {
         if (!std.ascii.isDigit(byte)) return false;
     }
     return true;
@@ -129,7 +124,7 @@ fn isDecimalValue(raw_value: []const u8) bool {
 
 fn isHexValue(raw_value: []const u8) bool {
     if (raw_value.len < 3) return false;
-    if (raw_value[0] == '+' or raw_value[0] == '-') return false;
+
     if (raw_value[0] != '0' or (raw_value[1] != 'x' and raw_value[1] != 'X')) return false;
 
     for (raw_value[2..]) |byte| {
@@ -639,7 +634,7 @@ test "confdata bridge keeps the last assignment for duplicate symbols" {
     try std.testing.expectEqualStrings("n", summary.entries[2].value);
 }
 
-test "confdata bridge recognizes explicit plus-signed integers and hex values as raw fallback values" {
+test "confdata bridge keeps plus-signed numerics as fallback scalar values" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
         \\CONFIG_POSITIVE_DECIMAL=+42
@@ -660,7 +655,7 @@ test "confdata bridge recognizes explicit plus-signed integers and hex values as
     try std.testing.expectEqual(EntryKind.value, summary.entries[3].kind);
 }
 
-test "confdata bridge recognizes explicit minus-signed hex values as raw fallback values" {
+test "confdata bridge keeps minus-signed hex values as fallback scalar values" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
         \\CONFIG_NEGATIVE_HEX=-0x2A
@@ -676,4 +671,26 @@ test "confdata bridge recognizes explicit minus-signed hex values as raw fallbac
     try std.testing.expectEqual(EntryKind.value, summary.entries[1].kind);
     try std.testing.expectEqualStrings("-0XFF", summary.entries[1].value);
     try std.testing.expectEqual(EntryKind.value, summary.entries[2].kind);
+}
+
+test "confdata bridge keeps plus-signed and leading-zero decimals as fallback scalar values" {
+    const allocator = std.testing.allocator;
+    var summary = try parseConfig(allocator,
+        \\CONFIG_PLUS_DECIMAL=+7
+        \\CONFIG_PADDED_DECIMAL=042
+        \\CONFIG_ZERO=0
+        \\CONFIG_NEGATIVE=-9
+        \\
+    );
+    defer deinitSummary(allocator, &summary);
+
+    try std.testing.expectEqual(@as(usize, 4), summary.entries.len);
+    try std.testing.expectEqual(EntryKind.value, summary.entries[0].kind);
+    try std.testing.expectEqualStrings("+7", summary.entries[0].value);
+    try std.testing.expectEqual(EntryKind.value, summary.entries[1].kind);
+    try std.testing.expectEqualStrings("042", summary.entries[1].value);
+    try std.testing.expectEqual(EntryKind.int, summary.entries[2].kind);
+    try std.testing.expectEqualStrings("0", summary.entries[2].value);
+    try std.testing.expectEqual(EntryKind.int, summary.entries[3].kind);
+    try std.testing.expectEqualStrings("-9", summary.entries[3].value);
 }
