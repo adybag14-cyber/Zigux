@@ -19,7 +19,7 @@ This template reserves the Architecture Council packet path named by the Phase 1
 
 - lane owner: `Architecture Council`
 - rollback owner: `Architecture Council + Validation and Perf Team`
-- rollback threshold: `pending_until_architecture_council_request_names_status_change_abort_boundary`
+- rollback threshold: `If the decision record, scorecard evidence, benchmark notes, replay command, rollback owner, or bounded allocator seam proof stops being explicit, or if the candidate seam widens into watermarks, reclaim interaction, or zone balancing ownership, return this anchor to blocked review posture.`
 
 ## Validation Gate Summary
 
