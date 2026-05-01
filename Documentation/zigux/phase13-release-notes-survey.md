@@ -79,12 +79,11 @@ The current Phase 13 release-facing reading is:
 - `PHASE13_SHARED_REPLAY_STEP_COUNT=7`
 - `PHASE13_RELEASE_CLOSED=no`
 
-The current release packet also carries one active Phase 13 posture reminder on `master`:
+The current release packet also carries one active Phase 13 boundary reminder on `master`:
 
-- `python3 scripts/zigux/validate-phase13-release.py` and `make -C zigux phase13-validate` currently pass
-- the earlier `expected statement, found 'EOF'` note for `zigux/tests/phase13_landlock_ruleset.zig` is stale: the current checked-in ruleset test file is syntactically complete, and its dedicated ruleset helper replay still passes against `security/landlock/ruleset.zig`
+- `python3 scripts/zigux/validate-phase13-release.py`, `make -C zigux phase13-validate`, `zig build test --build-file zigux/tests/phase13_build.zig --summary all`, and `make -C zigux phase13` are the published validator-first and shared replay path for the current packet
+- the earlier `expected statement, found 'EOF'` note for `zigux/tests/phase13_landlock_ruleset.zig` is now historical: the current checked-in ruleset test file is syntactically complete, its dedicated ruleset helper replay still passes against `security/landlock/ruleset.zig`, and the broader shared replay has already been rerun successfully on `master`
 - the remaining live ruleset blocker is the same one already recorded by the manifest-backed survey packet: `rb_replace_node()`, live object ownership transfer, hierarchy lifetime, and workqueue-backed teardown are still outside the current helper-only lane
-- a fresh full `zigux/tests/phase13_build.zig` replay is still the right way to confirm shared Phase 13 green status after that stale EOF marker is removed from the release note
 
 The current manifest lane ownership carried by the release packet is:
 
@@ -171,4 +170,4 @@ This survey does not claim:
 
 ## Next bounded step
 
-If this Phase 13 release-discipline lane reopens, the next honest follow-up is to keep the shared release packet aligned while the dedicated `P13-L12` Landlock ruleset lane restores a fresh branch-tip shared replay, and only then return to separate helper-first `dmam_alloc_coherent()` or scatterlist planner follow-up work without widening this shared note into live DMA-backed helper or scatterlist ownership claims.
+If this Phase 13 release-discipline lane reopens, the next honest follow-up is to keep the shared release packet aligned with the already-green shared replay while the dedicated `P13-L12` Landlock ruleset lane advances its remaining helper-only boundary work, and only then return to separate helper-first `dmam_alloc_coherent()` or scatterlist planner follow-up work without widening this shared note into live DMA-backed helper or scatterlist ownership claims.
