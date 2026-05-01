@@ -922,7 +922,7 @@ def run_self_test() -> int:
             )
             if bsearch_avg_budget_marker not in bsearch_perf_text:
                 raise AssertionError("expected bsearch average budget marker missing from positive fixture")
-            bsearch_perf_path.writeText(
+            bsearch_perf_path.write_text(
                 bsearch_perf_text.replace(bsearch_avg_budget_marker, "", 1),
                 encoding="utf-8",
             )
