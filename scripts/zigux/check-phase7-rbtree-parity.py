@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
+import os
 import shutil
 import subprocess
 import sys
@@ -13,6 +14,7 @@ FIXTURE = ROOT / "zigux" / "tests" / "fixtures" / "phase7_rbtree.json"
 HARNESS = ROOT / "zigux" / "tests" / "fixtures" / "phase7_rbtree_c_harness.c"
 ARTIFACT_DIFF = ROOT / "scripts" / "zigux" / "artifact_diff.py"
 SOURCE = ROOT / "tools" / "lib" / "rbtree.c"
+SELF_TEST_PAYLOAD_ENV = "PHASE7_RBTREE_PARITY_SELFTEST_PAYLOAD"
 
 
 def find_compiler(explicit: str | None) -> str:
@@ -51,8 +53,13 @@ def write_host_shims(root: Path) -> None:
         ),
         encoding="utf-8",
     )
-    (asm_dir / "posix_types.h").write_text('#include <asm-generic/posix_types.h>\n', encoding="utf-8")
-    (asm_dir / "bitsperlong.h").write_text('#define __BITS_PER_LONG (__CHAR_BIT__ * __SIZEOF_LONG__)\n', encoding="utf-8")
+    (asm_dir / "posix_types.h").write_text(
+        '#include <asm-generic/posix_types.h>\n', encoding="utf-8"
+    )
+    (asm_dir / "bitsperlong.h").write_text(
+        '#define __BITS_PER_LONG (__CHAR_BIT__ * __SIZEOF_LONG__)\n',
+        encoding="utf-8",
+    )
 
 
 def include_flags(shim_dir: Path) -> list[str]:
@@ -66,7 +73,17 @@ def include_flags(shim_dir: Path) -> list[str]:
     ]
 
 
-def compile_and_run(exe: Path, actual: Path, compiler: str, flags: list[str]) -> None:
+def compile_and_run(
+    exe: Path,
+    actual: Path,
+    compiler: str,
+    flags: list[str],
+    *,
+    harness: Path = HARNESS,
+    source: Path = SOURCE,
+    cwd: Path = ROOT,
+    env: dict[str, str] | None = None,
+) -> None:
     compile_cmd = [
         compiler,
         "-std=gnu11",
@@ -79,17 +96,131 @@ def compile_and_run(exe: Path, actual: Path, compiler: str, flags: list[str]) ->
         str(exe),
     ]
     compile_cmd.extend(flags)
-    compile_cmd.extend([str(HARNESS), str(SOURCE)])
-    run(compile_cmd, cwd=str(ROOT))
-    result = run([str(exe)], cwd=str(ROOT), capture_output=True)
+    compile_cmd.extend([str(harness), str(source)])
+    run(compile_cmd, cwd=str(cwd), env=env)
+    result = run([str(exe)], cwd=str(cwd), capture_output=True, env=env)
     actual.write_text(result.stdout, encoding="utf-8")
 
 
+def write_fake_compiler(path: Path) -> None:
+    path.write_text(
+        "#!/usr/bin/env python3\n"
+        "from pathlib import Path\n"
+        "import os\n"
+        "import sys\n"
+        "out = Path(sys.argv[sys.argv.index('-o') + 1])\n"
+        f"payload = os.environ[{SELF_TEST_PAYLOAD_ENV!r}]\n"
+        "out.write_text(\n"
+        "    '#!/usr/bin/env python3\\n'\n"
+        "    'import sys\\n'\n"
+        "    'sys.stdout.write(' + repr(payload) + ')\\n',\n"
+        "    encoding='utf-8',\n"
+        ")\n"
+        "out.chmod(0o755)\n",
+        encoding="utf-8",
+    )
+    path.chmod(0o755)
+
+
+def write_fake_artifact_diff(path: Path) -> None:
+    path.write_text(
+        "#!/usr/bin/env python3\n"
+        "from pathlib import Path\n"
+        "import sys\n"
+        "lhs = Path(sys.argv[-2]).read_text(encoding='utf-8')\n"
+        "rhs = Path(sys.argv[-1]).read_text(encoding='utf-8')\n"
+        "raise SystemExit(0 if lhs == rhs else 1)\n",
+        encoding="utf-8",
+    )
+    path.chmod(0o755)
+
+
+def run_self_test() -> int:
+    with tempfile.TemporaryDirectory(prefix="zigux_phase7_rbtree_parity_selftest_") as tmp_dir_str:
+        tmp_dir = Path(tmp_dir_str)
+        fixture = tmp_dir / "expected.json"
+        harness = tmp_dir / "fixture.c"
+        source = tmp_dir / "source.c"
+        fake_compiler = tmp_dir / "fake-cc"
+        fake_artifact_diff = tmp_dir / "artifact_diff.py"
+        payload = '{"selftest":{"ordered":true}}\n'
+        fixture.write_text(payload, encoding="utf-8")
+        harness.write_text("/* self-test fixture */\n", encoding="utf-8")
+        source.write_text("/* self-test source */\n", encoding="utf-8")
+        write_fake_compiler(fake_compiler)
+        write_fake_artifact_diff(fake_artifact_diff)
+
+        shim_dir = tmp_dir / "shim"
+        write_host_shims(shim_dir)
+        env = os.environ.copy()
+        env[SELF_TEST_PAYLOAD_ENV] = payload
+
+        exe = tmp_dir / "phase7_rbtree_selftest"
+        actual = tmp_dir / "actual.json"
+        compile_and_run(
+            exe,
+            actual,
+            str(fake_compiler),
+            include_flags(shim_dir),
+            harness=harness,
+            source=source,
+            cwd=tmp_dir,
+            env=env,
+        )
+        run(
+            [sys.executable, str(fake_artifact_diff), "--mode", "json", str(fixture), str(actual)],
+            cwd=str(tmp_dir),
+            env=env,
+        )
+
+        drift_exe = tmp_dir / "phase7_rbtree_selftest_drift"
+        drift_actual = tmp_dir / "drift.json"
+        env[SELF_TEST_PAYLOAD_ENV] = '{"selftest":{"ordered":false}}\n'
+        compile_and_run(
+            drift_exe,
+            drift_actual,
+            str(fake_compiler),
+            include_flags(shim_dir),
+            harness=harness,
+            source=source,
+            cwd=tmp_dir,
+            env=env,
+        )
+        drift_result = subprocess.run(
+            [sys.executable, str(fake_artifact_diff), "--mode", "json", str(fixture), str(drift_actual)],
+            cwd=str(tmp_dir),
+            capture_output=True,
+            text=True,
+            check=False,
+            env=env,
+        )
+        if drift_result.returncode == 0:
+            raise SystemExit("phase7-rbtree-parity-self-test:drift_not_detected")
+
+    print("PHASE7_RBTREE_PARITY_SELF_TEST=pass")
+    print("PHASE7_RBTREE_PARITY_SELF_TEST_CASE_COUNT=2")
+    return 0
+
+
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Generate and check the Phase 7 rbtree parity fixture.")
-    parser.add_argument("--refresh", action="store_true", help="Refresh the committed JSON fixture from the C harness.")
+    parser = argparse.ArgumentParser(
+        description="Generate and check the Phase 7 rbtree parity fixture."
+    )
+    parser.add_argument(
+        "--refresh",
+        action="store_true",
+        help="Refresh the committed JSON fixture from the C harness.",
+    )
+    parser.add_argument(
+        "--self-test",
+        action="store_true",
+        help="Exercise the checker with a synthetic no-compiler fixture.",
+    )
     parser.add_argument("--cc", help="Explicit C compiler path to use.")
     args = parser.parse_args()
+
+    if args.self_test:
+        return run_self_test()
 
     compiler = find_compiler(args.cc)
 
@@ -109,7 +240,14 @@ def main() -> int:
             print(f"FIXTURE={FIXTURE}")
             return 0
 
-        diff_cmd = [sys.executable, str(ARTIFACT_DIFF), "--mode", "json", str(FIXTURE), str(actual)]
+        diff_cmd = [
+            sys.executable,
+            str(ARTIFACT_DIFF),
+            "--mode",
+            "json",
+            str(FIXTURE),
+            str(actual),
+        ]
         run(diff_cmd, cwd=str(ROOT))
         print("PHASE7_RBTREE_PARITY=pass")
         print(f"FIXTURE={FIXTURE}")
