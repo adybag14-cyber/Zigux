@@ -66,6 +66,16 @@ test "phase 8 exec-cmd starter slice covers path resolution and null-terminated 
     try std.testing.expectEqualStrings("/repo/bin", argv0.argv0_path.?);
     try std.testing.expectEqualStrings("perf", argv0.command_name);
 
+    var trailing_argv0 = (try exec_cmd.extractArgv0Path(std.testing.allocator, "tools/perf/")) orelse unreachable;
+    defer trailing_argv0.deinit(std.testing.allocator);
+    try std.testing.expectEqualStrings("tools/perf", trailing_argv0.argv0_path.?);
+    try std.testing.expectEqual(@as(usize, 0), trailing_argv0.command_name.len);
+
+    var slash_only = (try exec_cmd.extractArgv0Path(std.testing.allocator, "/")) orelse unreachable;
+    defer slash_only.deinit(std.testing.allocator);
+    try std.testing.expectEqual(@as(usize, 0), slash_only.argv0_path.?.len);
+    try std.testing.expectEqual(@as(usize, 0), slash_only.command_name.len);
+
     const prepared = try exec_cmd.prepareExecCmd(
         std.testing.allocator,
         config,
