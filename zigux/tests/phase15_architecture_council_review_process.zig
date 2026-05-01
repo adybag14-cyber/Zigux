@@ -69,7 +69,7 @@ const Manifest = struct {
     gaps: []const Gap,
 };
 
-const expected_lane_key = "P15-L06";
+const expected_lane_key = "P15-L08";
 const expected_surveyed_commit = "98e62218232eaac0eccd3b17fc9dc58378c74fd2";
 
 fn isAllowedStatus(status: []const u8) bool {
@@ -236,7 +236,7 @@ test "phase 15 architecture council review-process note stays aligned with check
     try std.testing.expect(std.mem.indexOf(u8, review_process, "## Reopen Evidence Matrix") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "## Roadmap Handoff Evidence") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "## Maintenance-Mode Handoff") != null);
-    try std.testing.expect(std.mem.indexOf(u8, review_process, "PHASE15_LANE_KEY=P15-L06") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_process, "PHASE15_LANE_KEY=P15-L08") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "current lane posture: `maintenance_mode`") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "make -C zigux phase15") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "retired_from_active_discussion") != null);
