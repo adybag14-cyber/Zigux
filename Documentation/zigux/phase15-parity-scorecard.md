@@ -7,7 +7,7 @@ This document records the bounded Phase 15 governance lane for the deep-core fre
 - `PHASE15_LANE_KEY=P15-L09`
 - `PHASE15_STATUS=freeze_in_c_governance`
 - `PHASE15_SLICE=current-parity-tracking-gap-survey`
-- scope: a reviewable scorecard that captures council inputs, evidence thresholds, validation gates, rollback ownership, evidence-archive reporting, reserved per-anchor decision-record templates, retained stay-in-C closeout state, explicit per-anchor owner tracking for the active freeze-in-C anchors, and one explicit roadmap-vs-repo parity-tracking gap survey now that the landed Phase 15 governance bundle already replays in the shared workflow
+- scope: a reviewable scorecard that captures council inputs, evidence thresholds, validation gates, rollback ownership, rollback thresholds, evidence-archive reporting, reserved per-anchor decision-record templates, retained stay-in-C closeout state, explicit per-anchor owner tracking for the active freeze-in-C anchors, and one explicit roadmap-vs-repo parity-tracking gap survey now that the landed Phase 15 governance bundle already replays in the shared workflow
 - survey provenance refreshed against verified `master` head `90d95d183d1072f1e8a030eec05e1e60abf443ac`
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
@@ -46,7 +46,7 @@ The roadmap-required parity-tracking bundle is already present locally:
 - the dedicated manifest and Zig test keep the scorecard machine-checkable in `zigux/tests/phase15_parity_scorecard.json` and `zigux/tests/phase15_parity_scorecard.zig`
 - `Documentation/zigux/README.md`, `zigux/tests/phase15_build.zig`, and `make -C zigux phase15` keep the same governance bundle visible on the docs root and shared replay path
 
-That means the current parity-tracking gap is narrower and maintenance-only: keep the scorecard's lane identity, surveyed-master provenance, roadmap wording, and replay-backed evidence packet current so the roadmap requirement stays explicitly satisfied instead of drifting into stale metadata.
+That means the current parity-tracking gap is narrower and maintenance-only: keep the scorecard's lane identity, surveyed-master provenance, roadmap wording, rollback-threshold field sync, and replay-backed evidence packet current so the roadmap requirement stays explicitly satisfied instead of drifting into stale metadata.
 
 That closes the current parity-tracking gap for the roadmap requirement `parity scorecard`.
 
@@ -58,7 +58,7 @@ The remaining blocked work is still the already-recorded deep-core status-change
 - anchors with Phase 14 survey evidence linked: `2 / 4`
 - reserved evidence-archive templates present: `4 / 4`
 - anchors with explicit blocker dispositions recorded: `4 / 4`
-- required review-process record fields tracked in the manifest: `12`
+- required review-process record fields tracked in the manifest: `13`
 - reopen-trigger catalog entries tracked in the manifest: `3`
 - repo evidence checks currently green: `15 / 15`
 - landed scorecard gaps: `19 / 20`
@@ -95,6 +95,7 @@ This summary is a reporting layer for the current maintenance-mode packet, not a
   - benchmark notes: `pending_until_bounded_scheduler_seam_exists`
   - replay command: `zig build test --build-file zigux/tests/phase15_build.zig`
   - latest blocker disposition: `blocked_no_bounded_scheduler_seam`
+  - rollback threshold: `If the decision record, scorecard evidence, benchmark notes, replay command, rollback owner, or bounded scheduler seam proof stops being explicit, or if the candidate seam widens into class balancing, hotplug, or wakeup policy ownership, return this anchor to blocked review posture.`
 
 ### `mm/page_alloc.c`
 
@@ -122,6 +123,7 @@ This summary is a reporting layer for the current maintenance-mode packet, not a
   - benchmark notes: `pending_until_bounded_allocator_seam_exists`
   - replay command: `zig build test --build-file zigux/tests/phase15_build.zig`
   - latest blocker disposition: `blocked_no_bounded_allocator_seam`
+  - rollback threshold: `If the decision record, scorecard evidence, benchmark notes, replay command, rollback owner, or bounded allocator seam proof stops being explicit, or if the candidate seam widens into watermarks, reclaim interaction, or zone balancing ownership, return this anchor to blocked review posture.`
 
 ### `kernel/rcu/tree.c`
 
@@ -149,6 +151,7 @@ This summary is a reporting layer for the current maintenance-mode packet, not a
   - benchmark notes: `pending_until_rcu_followup_is_narrower_than_freeze_boundary`
   - replay command: `zig build test --build-file zigux/tests/phase15_build.zig`
   - latest blocker disposition: `blocked_phase14_followup_still_wider_than_allowed_rcu_seam`
+  - rollback threshold: `If the decision record, scorecard evidence, benchmark notes, replay command, rollback owner, or narrowed RCU follow-up stops being explicit, or if the candidate seam widens back across grace-period sequencing, expedited-GP behavior, or NOCB wakeup ownership, return this anchor to blocked review posture.`
 
 ### `net/core/skbuff.c`
 
@@ -176,6 +179,7 @@ This summary is a reporting layer for the current maintenance-mode packet, not a
   - benchmark notes: `pending_until_skbuff_followup_is_narrower_than_lifetime_boundary`
   - replay command: `zig build test --build-file zigux/tests/phase15_build.zig`
   - latest blocker disposition: `blocked_packet_lifetime_boundary_still_too_wide`
+  - rollback threshold: `If the decision record, scorecard evidence, benchmark notes, replay command, rollback owner, or narrowed skbuff follow-up stops being explicit, or if the candidate seam widens back across packet lifetime, destructor ordering, checksum ownership, or segmentation ownership, return this anchor to blocked review posture.`
 
 ## Recorded Gaps
 
@@ -232,12 +236,13 @@ Before a freeze-in-C anchor can enter active status-review discussion, the score
 - the evidence archive path that preserves linked surveys and blocker follow-ups, benchmark notes, and replay commands
 - the latest blocker disposition stating whether the anchor remains blocked, is ready for narrower follow-up, or has been rejected for status change
 - the automatic return-to-blocked trigger that sends the anchor back to blocked review posture when the packet goes stale or incomplete
+- the rollback threshold that names which stale, missing, contradictory, or widened evidence returns the anchor to blocked review posture
 - the indefinite-C policy link, or an explicit note saying why the packet is not yet entering that policy posture
 - the retained discussion state showing whether the anchor closes review as `retired_from_active_discussion`
 - the reopen triggers that name which evidence changes can reopen the stay-in-C discussion later without implying approval
 - the written rationale for why the current product state needs council attention now
 
-A frozen anchor leaves active discussion only after the current roadmap phase, Architecture Council sign-off, validation evidence links, rollback ownership, evidence archive path, latest blocker disposition, automatic return-to-blocked trigger, indefinite-C policy link or applicability note, retained discussion state, reopen triggers, and written rationale are all recorded together in the scorecard.
+A frozen anchor leaves active discussion only after the current roadmap phase, Architecture Council sign-off, validation evidence links, rollback ownership, evidence archive path, latest blocker disposition, automatic return-to-blocked trigger, rollback threshold, indefinite-C policy link or applicability note, retained discussion state, reopen triggers, and written rationale are all recorded together in the scorecard.
 
 If any one of those fields is missing, stale, or contradicted by the linked evidence, the anchor remains in the freeze-in-C set and the review closes with an explicit stay-in-C outcome.
 
@@ -245,7 +250,7 @@ If any one of those fields is missing, stale, or contradicted by the linked evid
 
 When a freeze-in-C anchor closes review without a status change, the scorecard records one retained discussion state: `retired_from_active_discussion`.
 
-That retained state does not mean the blocker disappeared. It means the active discussion is closed for now, the anchor remains governed as in-C, and the evidence archive still has to preserve the decision record, linked evidence, benchmark-note status, replay command, and latest blocker disposition that justified the closeout.
+That retained state does not mean the blocker disappeared. It means the active discussion is closed for now, the anchor remains governed as in-C, and the evidence archive still has to preserve the decision record, linked evidence, benchmark-note status, replay command, latest blocker disposition, rollback threshold, and latest blocker disposition that justified the closeout.
 
 Each closeout packet must also record the reopen triggers that would bring the anchor back into active discussion. The minimum catalog is:
 
@@ -271,6 +276,7 @@ Each frozen anchor now carries one reporting block that reserves:
 - a benchmark-notes status line that says whether performance notes exist yet
 - the replay command reviewers should run before trusting the current packet
 - the latest blocker disposition that keeps the stay-in-C posture explicit
+- the rollback threshold that names which stale, missing, contradictory, or widened evidence returns the anchor to blocked review posture
 - the retained discussion state and one or more named catalog reopen triggers that explain how a closed review stays reviewable later
 
 These reporting fields do not claim a decision record already exists. They standardize where the record will live and what still remains missing until a narrower seam earns Architecture Council review.
@@ -284,7 +290,7 @@ The scorecard's reserved evidence-archive paths now exist as template packet fil
 - `Documentation/zigux/phase15-evidence-archives/kernel-rcu-tree.md`
 - `Documentation/zigux/phase15-evidence-archives/net-core-skbuff.md`
 
-Each template keeps the current status bucket, requested decision bucket, decision record ID, ownership, validation gate summary, linked evidence, benchmark-notes status, replay command, latest blocker disposition, automatic return-to-blocked trigger, indefinite-C policy link, retained discussion state, reopen triggers, explicit non-goals, and written rationale visible in one place without claiming that any Architecture Council approval has already happened.
+Each template keeps the current status bucket, requested decision bucket, decision record ID, ownership, validation gate summary, linked evidence, benchmark-notes status, replay command, latest blocker disposition, automatic return-to-blocked trigger, rollback threshold, indefinite-C policy link, retained discussion state, reopen triggers, explicit non-goals, and written rationale visible in one place without claiming that any Architecture Council approval has already happened.
 
 ## Non-goals
 
