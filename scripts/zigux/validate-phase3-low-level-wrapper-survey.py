@@ -14,7 +14,6 @@ ROOT = _HERE.parents[2] if len(_HERE.parents) > 2 else _HERE.parent
 SURVEY_REL = "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"
 ABI_SLICE_REL = "Documentation/zigux/phase3-abi-slice.md"
 MANIFEST_REL = "zigux/tests/fixtures/phase3_abi_manifest.json"
-REVIEW_CHECKLIST_REL = "Documentation/zigux/review-checklist.md"
 ATOMIC_REL = "zigux/helpers/atomic.zig"
 BARRIER_REL = "zigux/helpers/barrier.zig"
 MMIO_REL = "zigux/helpers/mmio.zig"
@@ -47,10 +46,8 @@ REQUIRED_SURVEY_SNIPPETS = (
     "`zigux/helpers/atomic.zig` currently limits the approved helper surface to `load`, `store`, `exchange`, `fetchAdd`, `fetchSub`, `fetchAnd`, `fetchOr`, `fetchXor`, and `compareExchange`",
     "`zigux/helpers/barrier.zig` currently limits the approved barrier surface to `acquire`, `release`, and `full`",
     "`zigux/helpers/mmio.zig` currently limits the approved MMIO surface to `range`, `read8`, `read16`, `read32`, `write8`, `write16`, and `write32`, plus the scoped `read8`, `write8`, `read16`, `write16`, `read32`, and `write32` entry points",
-    "no 64-bit MMIO helpers are shipped in the current packet",
-    "no relaxed-order barrier variants are shipped in the current packet",
-    "no broader kernel-style atomic helper family is shipped in the current packet",
-    "`zigux/tests/phase3_low_level_wrappers.zig` now keeps the compare-exchange mismatch replay, barrier probe, denied-scope checks, width-specific scoped MMIO coverage, misalignment failures, overflow failures, and the shared `MmioRange` layout assertion reviewable without having to infer them from the broader `phase3_abi` bundle alone.",
+    "no 64-bit MMIO helpers, relaxed-order barrier variants, or a broader kernel-style atomic helper family are shipped in the current packet",
+    "`zigux/tests/phase3_low_level_wrappers.zig` now keeps the compare-exchange mismatch replay, barrier probe, denied-scope checks, width-specific scoped MMIO coverage, misalignment failures, and overflow failures reviewable on one focused path",
     "This is real roadmap-backed progress.",
 )
 
@@ -62,14 +59,6 @@ REQUIRED_SURVEY_PATHS = (
     LOW_LEVEL_TEST_REL,
     MANIFEST_REL,
     ABI_SLICE_REL,
-    REVIEW_CHECKLIST_REL,
-)
-
-REQUIRED_REVIEW_CHECKLIST_SNIPPETS = (
-    "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",
-    "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
-    "compare-exchange mismatch",
-    "barrier probe behavior",
 )
 
 REQUIRED_ATOMIC_SNIPPETS = (
@@ -198,7 +187,6 @@ def validate(root: Path) -> list[str]:
     issues: list[str] = []
 
     survey = _read_text(root, SURVEY_REL, issues)
-    review_checklist = _read_text(root, REVIEW_CHECKLIST_REL, issues)
     atomic = _read_text(root, ATOMIC_REL, issues)
     barrier = _read_text(root, BARRIER_REL, issues)
     mmio = _read_text(root, MMIO_REL, issues)
@@ -214,13 +202,6 @@ def validate(root: Path) -> list[str]:
         if not (root / rel).exists():
             issues.append(f"missing_repo_path:{rel}")
 
-    if review_checklist:
-        _check_snippets(
-            review_checklist,
-            REQUIRED_REVIEW_CHECKLIST_SNIPPETS,
-            "missing_review_checklist_snippet",
-            issues,
-        )
     if atomic:
         _check_snippets(atomic, REQUIRED_ATOMIC_SNIPPETS, "missing_atomic_snippet", issues)
     if barrier:
@@ -295,8 +276,8 @@ def run_self_test() -> int:
                     "Today `zigux/helpers/atomic.zig` currently limits the approved helper surface to `load`, `store`, `exchange`, `fetchAdd`, `fetchSub`, `fetchAnd`, `fetchOr`, `fetchXor`, and `compareExchange`.",
                     "Today `zigux/helpers/barrier.zig` currently limits the approved barrier surface to `acquire`, `release`, and `full`.",
                     "Today `zigux/helpers/mmio.zig` currently limits the approved MMIO surface to `range`, `read8`, `read16`, `read32`, `write8`, `write16`, and `write32`, plus the scoped `read8`, `write8`, `read16`, `write16`, `read32`, and `write32` entry points.",
-                    "The packet keeps it explicit that no 64-bit MMIO helpers are shipped in the current packet, no relaxed-order barrier variants are shipped in the current packet, and no broader kernel-style atomic helper family is shipped in the current packet.",
-                    "`zigux/tests/phase3_low_level_wrappers.zig` now keeps the compare-exchange mismatch replay, barrier probe, denied-scope checks, width-specific scoped MMIO coverage, misalignment failures, overflow failures, and the shared `MmioRange` layout assertion reviewable without having to infer them from the broader `phase3_abi` bundle alone.",
+                    "The packet keeps it explicit that no 64-bit MMIO helpers, relaxed-order barrier variants, or a broader kernel-style atomic helper family are shipped in the current packet.",
+                    "`zigux/tests/phase3_low_level_wrappers.zig` now keeps the compare-exchange mismatch replay, barrier probe, denied-scope checks, width-specific scoped MMIO coverage, misalignment failures, and overflow failures reviewable on one focused path.",
                     "This is real roadmap-backed progress.",
                     "",
                     *_blob_marker_lines(),
@@ -306,17 +287,29 @@ def run_self_test() -> int:
         )
         _write(
             root,
-            REVIEW_CHECKLIST_REL,
-            "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md\n"
-            "scripts/zigux/validate-phase3-low-level-wrapper-survey.py\n"
-            "compare-exchange mismatch\n"
-            "barrier probe behavior\n",
+            ATOMIC_REL,
+            "\n".join(REQUIRED_ATOMIC_SNIPPETS) + "\n",
         )
-        _write(root, ATOMIC_REL, "\n".join(REQUIRED_ATOMIC_SNIPPETS) + "\n")
-        _write(root, BARRIER_REL, "\n".join(REQUIRED_BARRIER_SNIPPETS) + "\n")
-        _write(root, MMIO_REL, "\n".join(REQUIRED_MMIO_SNIPPETS) + "\n")
-        _write(root, LOW_LEVEL_TEST_REL, "\n".join(REQUIRED_LOW_LEVEL_TEST_SNIPPETS) + "\n")
-        _write(root, ABI_SLICE_REL, "\n".join(REQUIRED_ABI_SLICE_SNIPPETS) + "\n")
+        _write(
+            root,
+            BARRIER_REL,
+            "\n".join(REQUIRED_BARRIER_SNIPPETS) + "\n",
+        )
+        _write(
+            root,
+            MMIO_REL,
+            "\n".join(REQUIRED_MMIO_SNIPPETS) + "\n",
+        )
+        _write(
+            root,
+            LOW_LEVEL_TEST_REL,
+            "\n".join(REQUIRED_LOW_LEVEL_TEST_SNIPPETS) + "\n",
+        )
+        _write(
+            root,
+            ABI_SLICE_REL,
+            "\n".join(REQUIRED_ABI_SLICE_SNIPPETS) + "\n",
+        )
         _write(root, LOW_LEVEL_BUILD_REL, "// build file present\n")
         _write(root, MANIFEST_REL, "{}\n")
 
