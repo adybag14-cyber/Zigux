@@ -41,6 +41,7 @@ Current bootstrap helpers
 - `validate-phase14.py`
 - `validate-phase3-roadmap-gap-survey.py`
 - `validate-phase3-export-uapi-survey.py`
+- `validate-phase3-low-level-wrapper-survey.py`
 - `validate-phase3-policy-unsafe-survey.py`
 - `run-phase3-checks.py`
 - `phase3_catalog.py`
