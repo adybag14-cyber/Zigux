@@ -22,6 +22,7 @@ Shared tranche entrypoints already present on `master`:
 - `zigux/Makefile` via `make -C zigux phase13`
 - `Documentation/zigux/phase13-release-notes-survey.md` keeps the active validator-first release reading for those same four roadmap anchors visible instead of leaving the current survey packet implicit outside this traceability note
 - `lib/devres.c` is represented by real helper code, real tests, a manifest-backed survey packet, and explicit blocked DMA/scatterlist boundary evidence
+- the same shared packet also keeps `zigux/tests/phase13_libfs_reviewability.zig`, `zigux/tests/phase13_devres_reviewability.zig`, and the adjacent `zigux/tests/phase13_notifier_list_reviewability.zig` plus `Documentation/zigux/phase13-notifier-list-survey.md` visible as release-facing reviewability evidence without changing the roadmap's four-anchor count
 
 ## Anchor-to-repo map
 
