@@ -192,6 +192,7 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
             try std.testing.expectEqualStrings("Documentation/zigux/phase9-runtime-trace-events-module-slice.md", entry.path);
             try std.testing.expect(std.mem.indexOf(u8, entry.role, "landed starter surface summary") != null);
             try std.testing.expect(std.mem.indexOf(u8, entry.role, "loader-free blocker restatement") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "header-side macro boundary note") != null);
         }
         if (std.mem.eql(u8, entry.id, "runtime-trace-events-freeze-map")) {
             saw_freeze_map_catalog = true;
@@ -222,6 +223,7 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
             saw_module_slice_ownership = true;
             try std.testing.expect(std.mem.indexOf(u8, entry.owns, "landed starter surface summary") != null);
             try std.testing.expect(std.mem.indexOf(u8, entry.owns, "loader-free blocker restatement") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "header-side macro boundary note") != null);
         }
         if (std.mem.eql(u8, entry.surface, "zigux/tests/phase9_build.zig")) {
             try std.testing.expect(std.mem.indexOf(u8, entry.owns, "shared Phase 9 runtime bundle entrypoint") != null);
@@ -469,6 +471,7 @@ test "phase 9 runtime trace-events docs keep the task and event-loop substrate g
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the current survey packet is pinned to `master` commit `5479b799a33cb071c449ff6cb4345ac8f4a3186f`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "landed starter surface summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "loader-free blocker restatement") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "paired header-side macro boundary note") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "runtime task ownership") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "`PHASE9_LANE_KEY=P9-L12`") != null);
