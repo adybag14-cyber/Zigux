@@ -138,19 +138,21 @@ The bounded `fixdep` closure packet remains closed because both the shared artif
 The bounded `genksyms` closure packet remains closed because both the shared bridge fixtures and the helper-local unit lane cover the published getopt-style wrapper behavior:
 
 - shared fixture packet:
-  `minimal_expected.json`, `debug_reference_types_expected.json`, `short_inline_reference_dump_types_expected.json`, `clustered_short_inline_reference_expected.json`, `long_options_expected.json`, `abbreviated_long_options_expected.json`, `quiet_overrides_warning_expected.json`, `explicit_option_terminator_expected.json`, `positional_passthrough_expected.json`, `lone_dash_passthrough_expected.json`, `explicit_terminator_positional_passthrough_expected.json`, `help_expected.json`, `version_expected.json`, `invalid_option_expected.json`, `missing_reference_argument_expected.json`, `missing_dump_types_argument_expected.json`, `unsupported_long_option_expected.json`, `ambiguous_abbreviated_long_option_expected.json`, `empty_long_option_name_expected.json`, `unexpected_long_option_argument_expected.json`, `abbreviated_unexpected_long_option_argument_expected.json`, `missing_long_reference_argument_expected.json`, `abbreviated_missing_long_reference_argument_expected.json`, `missing_long_dump_types_argument_expected.json`, `abbreviated_missing_long_dump_types_argument_expected.json`, `too_many_reference_files_expected.json`
+  `minimal_expected.json`, `debug_reference_types_expected.json`, `short_inline_reference_dump_types_expected.json`, `clustered_short_inline_reference_expected.json`, `long_options_expected.json`, `abbreviated_long_options_expected.json`, `quiet_overrides_warning_expected.json`, `explicit_option_terminator_expected.json`, `positional_passthrough_expected.json`, `lone_dash_passthrough_expected.json`, `explicit_terminator_positional_passthrough_expected.json`, `help_expected.json`, `abbreviated_help_expected.json`, `version_expected.json`, `abbreviated_version_expected.json`, `invalid_option_expected.json`, `missing_reference_argument_expected.json`, `missing_dump_types_argument_expected.json`, `unsupported_long_option_expected.json`, `ambiguous_abbreviated_long_option_expected.json`, `empty_long_option_name_expected.json`, `unexpected_long_option_argument_expected.json`, `abbreviated_unexpected_long_option_argument_expected.json`, `missing_long_reference_argument_expected.json`, `abbreviated_missing_long_reference_argument_expected.json`, `missing_long_dump_types_argument_expected.json`, `abbreviated_missing_long_dump_types_argument_expected.json`, `too_many_reference_files_expected.json`
 - success-path stderr silence:
   `check-genksyms-bridge.py` now captures stderr for every `stdout_json` bridge fixture, rejects any success-path stderr drift for both the bounded C harness and the Zig tool, and replays those stderr captures twice so repeat-run determinism stays explicit instead of assuming quiet success
 - helper-local anchors in `scripts/zigux/genksyms.zig`:
   `genksyms bridge parses clustered short flags before inline reference argument`
   `genksyms bridge accepts abbreviated unique long options`
+  `genksyms bridge accepts abbreviated unique action long options`
   `genksyms bridge treats lone dash as positional passthrough`
   `genksyms bridge permutes prior positionals behind explicit terminator`
   `genksyms bridge reports missing short dump-types argument in getopt style`
   `genksyms bridge canonicalizes abbreviated dump-types missing-argument errors`
   `genksyms bridge rejects reference lists beyond the bounded C harness limit`
 
-- `PHASE2_GENKSYMS_BRIDGE_CASE_COUNT=26`
+- `PHASE2_GENKSYMS_BRIDGE_CASE_COUNT=28`
+- `PHASE2_GENKSYMS_BRIDGE_ACTION_ABBREV_CASES=zigux/tests/fixtures/genksyms_bridge/abbreviated_help_expected.json,zigux/tests/fixtures/genksyms_bridge/abbreviated_version_expected.json`
 - `PHASE2_GENKSYMS_BRIDGE_INLINE_SHORT_CASE=zigux/tests/fixtures/genksyms_bridge/short_inline_reference_dump_types_expected.json`
 - `PHASE2_GENKSYMS_BRIDGE_CLUSTERED_SHORT_INLINE_CASE=zigux/tests/fixtures/genksyms_bridge/clustered_short_inline_reference_expected.json`
 - `PHASE2_GENKSYMS_BRIDGE_MISSING_SHORT_DUMP_TYPES_CASE=zigux/tests/fixtures/genksyms_bridge/missing_dump_types_argument_expected.json`
