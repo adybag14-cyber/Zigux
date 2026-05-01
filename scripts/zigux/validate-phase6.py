@@ -338,6 +338,7 @@ HEXDUMP_FIXTURE_MARKERS = [
     '.{ .label = "16B-plain", .len = 16, .rowsize = 16, .groupsize = 1, .ascii = false, .reps = 40_000, .max_slowdown_pct = 175 },',
     '.{ .label = "32B-ascii-g2", .len = 32, .rowsize = 32, .groupsize = 2, .ascii = true, .reps = 10_000, .max_slowdown_pct = 550 },',
     '.{ .label = "16B-ascii-g4", .len = 16, .rowsize = 16, .groupsize = 4, .ascii = true, .reps = 20_000, .max_slowdown_pct = 550 },',
+    '.{ .label = "16B-ascii-g8", .len = 16, .rowsize = 16, .groupsize = 8, .ascii = true, .reps = 20_000, .max_slowdown_pct = 600 },',
 ]
 
 HEXDUMP_SLICE_MARKERS = [
@@ -350,9 +351,10 @@ HEXDUMP_SLICE_MARKERS = [
     "native-endian grouped output for 2, 4, and 8 byte cases",
     "fixtures.prepareExpectedLine(...)",
     "shared `zigux/tests/fixtures/phase6_hexdump_vectors.zig` perf-case table",
-    "native-endian 4-byte grouped ASCII branch",
+    "native-endian 4-byte and 8-byte grouped ASCII branches",
     "max_slowdown_pct = 175",
     "max_slowdown_pct = 550",
+    "max_slowdown_pct = 600",
 ]
 
 CATALOG_MARKERS = [
@@ -363,6 +365,7 @@ CATALOG_MARKERS = [
     "max_slowdown_pct = 150",
     "max_slowdown_pct = 175",
     "max_slowdown_pct = 550",
+    "max_slowdown_pct = 600",
     "avg_compare_calls <= std.math.log2_int_ceil(len) + 1",
 ]
 
