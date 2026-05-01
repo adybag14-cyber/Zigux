@@ -117,7 +117,7 @@ test "phase11 dw_wdt survey manifest and validation matrix record the landed lif
     try std.testing.expectEqualStrings("P11-L11", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
     try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.c", manifest.anchor);
-    try std.testing.expectEqualStrings("be0f31bf64cdc200e2129992d1fed491b60fed2a", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("b2deef651d140045bdfb1d3675a3c18fde80de0e", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expectEqual(manifest.survey_summary.dw_wdt_c_lines, countLines(anchor_source));
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_build_present);
