@@ -148,6 +148,11 @@
       "expected": "empty_string_expected.json"
     },
     {
+      "name": "empty_symbol_names",
+      "input": "empty_symbol_names.config",
+      "expected": "empty_symbol_names_expected.json"
+    },
+    {
       "name": "escaped_control_sequences",
       "input": "escaped_control_sequences.config",
       "expected": "escaped_control_sequences_expected.json"
