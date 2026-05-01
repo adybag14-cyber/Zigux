@@ -218,6 +218,8 @@ test "phase12 libbpf survey note records rollback and current surveyed head" {
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "repair `scripts/zigux/check-phase12-libbpf-snapshot.py` plus `zigux/tests/fixtures/phase12_libbpf_snapshot.json` first") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-libbpf-segment-survey-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-libbpf-reviewability-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "python3 scripts/zigux/check-phase12-build-inventory.py --self-test") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "python3 scripts/zigux/check-phase12-build-inventory.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "python3 scripts/zigux/check-phase12-libbpf-snapshot.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "python3 scripts/zigux/validate-phase12.py") != null);
