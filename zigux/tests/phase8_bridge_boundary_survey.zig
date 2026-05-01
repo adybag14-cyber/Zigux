@@ -71,6 +71,14 @@ test "phase 8 bridge boundary survey stays wired into the shared packet" {
     try expectContains(bridge_note, "tools/lib/subcmd/exec-cmd.zig");
     try expectContains(bridge_note, "tools/lib/subcmd/help.zig");
     try expectContains(bridge_note, "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig");
+    try expectContains(bridge_note, "choosePwdCwdFromIdentities()");
+    try expectContains(bridge_note, "setupPathWithPwd()");
+    try expectContains(bridge_note, "collectExeclArgs()");
+    try expectContains(bridge_note, "buildDeferredExecvCall()");
+    try expectContains(bridge_note, "buildDeferredExeclCall()");
+    try expectContains(bridge_note, "loadCommandListsFromEnvPath()");
+    try expectContains(bridge_note, "resolveTerminalDimensions()");
+    try expectContains(bridge_note, "writeCommandSectionsForTerminal()");
     try expectContains(bridge_note, "`execv_cmd()`");
     try expectContains(bridge_note, "`execl_cmd()`");
     try expectContains(bridge_note, "`execvp()`");
@@ -129,9 +137,15 @@ test "phase 8 bridge boundary survey still matches the live helper surfaces" {
     defer std.testing.allocator.free(file_path_handle_bridge_helper);
 
     try expectContains(bridge_note, "path-resolution");
+    try expectContains(bridge_note, "choosePwdCwdFromIdentities()");
+    try expectContains(bridge_note, "setupPathWithPwd()");
+    try expectContains(bridge_note, "collectExeclArgs()");
     try expectContains(bridge_note, "raw `PATH` splitting");
-    try expectContains(bridge_note, "`execv_cmd()`-style future handoff packaging");
-    try expectContains(bridge_note, "`execl_cmd()`-style argument collection plus deferred future handoff carriers");
+    try expectContains(bridge_note, "loadCommandListsFromEnvPath()");
+    try expectContains(bridge_note, "resolveTerminalDimensions()");
+    try expectContains(bridge_note, "writeCommandSectionsForTerminal()");
+    try expectContains(bridge_note, "`execv_cmd()`-style future handoff packaging through `buildDeferredExecvCall()`");
+    try expectContains(bridge_note, "`execl_cmd()`-style argument collection plus deferred future handoff carriers through `buildDeferredExeclCall()`");
     try expectContains(bridge_note, "queue ownership");
     try expectContains(bridge_note, "scheduler-facing transport behavior");
     try expectContains(bridge_note, "kernel/workqueue.c");
@@ -141,10 +155,15 @@ test "phase 8 bridge boundary survey still matches the live helper surfaces" {
 
     try expectContains(exec_cmd_helper, "command_name: []const u8");
     try expectContains(exec_cmd_helper, "exec_path_env: []const u8");
+    try expectContains(exec_cmd_helper, "pub fn choosePwdCwdFromIdentities(");
+    try expectContains(exec_cmd_helper, "pub fn setupPathWithPwd(");
+    try expectContains(exec_cmd_helper, "pub fn collectExeclArgs(");
     try expectContains(exec_cmd_helper, "pub fn buildSearchPath(");
     try expectContains(exec_cmd_helper, "pub fn buildDeferredExecvCall(");
     try expectContains(exec_cmd_helper, "pub fn buildDeferredExeclCall(");
+    try expectContains(help_helper, "pub fn loadCommandListsFromEnvPath(");
     try expectContains(help_helper, "pub fn resolveTerminalDimensions(");
+    try expectContains(help_helper, "pub fn writeCommandSectionsForTerminal(");
     try expectContains(file_path_handle_bridge_helper, "pub fn buildCurrentProcessFdinfoPath(");
     try expectContains(file_path_handle_bridge_helper, "pub fn chooseReusedMapName(");
     try expectContains(file_path_handle_bridge_helper, "pub fn planTokenPreparation(");
