@@ -229,8 +229,8 @@ test "phase14 skbuff bridge descriptor stays at boundary-map posture" {
     try std.testing.expectEqual(@as(usize, 11), audit.checkpoints.len);
     try std.testing.expectEqual(@as(usize, 11), audit.blocked_live_behaviors.len);
     try std.testing.expectEqual(@as(usize, 11), skbuff_bridge.SkbuffBridgeLab.auditCheckpointCount());
-    try std.testing.expect(std.mem.indexOf(u8, skbuff_bridge.SkbuffBridgeLab.nextAuditFocus(), "validate_xmit_skb()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, skbuff_bridge.SkbuffBridgeLab.nextAuditFocus(), "transmit-list publication") != null);
+    try std.testing.expect(std.mem.indexOf(u8, skbuff_bridge.SkbuffBridgeLab.nextAuditFocus(), "__dev_direct_xmit()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, skbuff_bridge.SkbuffBridgeLab.nextAuditFocus(), "skb != orig_skb") != null);
     try std.testing.expectEqualStrings("shared-info-refcount-ownership", map.areas[4].id);
     try std.testing.expectEqualStrings("destructor-and-free-path", map.areas[5].id);
     try std.testing.expect(audit.checkpoints[0].guard == .header_write_requires_private_data);
@@ -258,7 +258,7 @@ test "phase14 skbuff bridge survey note records the active lane marker" {
     defer std.testing.allocator.free(survey_note);
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_LANE_KEY=P14-L12") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_SLICE=skbuff-validate-xmit-republish") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_SLICE=skbuff-direct-xmit-identity-drop") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "tail->next = skb") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "validate_xmit_skb()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase14-skbuff-direct-xmit-identity-drop-followup") != null);
