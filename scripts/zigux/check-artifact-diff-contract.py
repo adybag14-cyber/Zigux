@@ -151,6 +151,34 @@ def main() -> int:
         covered_cases.append('json_mismatch')
 
         run_contract_case(
+            ['--mode', 'json', str(missing), str(actual_json)],
+            1,
+            [
+                'ARTIFACT_DIFF=fail',
+                'MODE=json',
+                f'EXPECTED={missing}',
+                f'ACTUAL={actual_json}',
+                'EXPECTED_EXISTS=False',
+                'ACTUAL_EXISTS=True',
+            ],
+        )
+        covered_cases.append('json_missing_expected')
+
+        run_contract_case(
+            ['--mode', 'json', str(expected_json), str(missing)],
+            1,
+            [
+                'ARTIFACT_DIFF=fail',
+                'MODE=json',
+                f'EXPECTED={expected_json}',
+                f'ACTUAL={missing}',
+                'EXPECTED_EXISTS=True',
+                'ACTUAL_EXISTS=False',
+            ],
+        )
+        covered_cases.append('json_missing_actual')
+
+        run_contract_case(
             ['--mode', 'json', str(invalid_expected_json), str(actual_json)],
             1,
             [
@@ -203,6 +231,34 @@ def main() -> int:
             ],
         )
         covered_cases.append('sha256_pass')
+
+        run_contract_case(
+            ['--mode', 'sha256', str(missing), str(blob_b)],
+            1,
+            [
+                'ARTIFACT_DIFF=fail',
+                'MODE=sha256',
+                f'EXPECTED={missing}',
+                f'ACTUAL={blob_b}',
+                'EXPECTED_EXISTS=False',
+                'ACTUAL_EXISTS=True',
+            ],
+        )
+        covered_cases.append('sha256_missing_expected')
+
+        run_contract_case(
+            ['--mode', 'sha256', str(blob_a), str(missing)],
+            1,
+            [
+                'ARTIFACT_DIFF=fail',
+                'MODE=sha256',
+                f'EXPECTED={blob_a}',
+                f'ACTUAL={missing}',
+                'EXPECTED_EXISTS=True',
+                'ACTUAL_EXISTS=False',
+            ],
+        )
+        covered_cases.append('sha256_missing_actual')
 
         blob_b.write_bytes(b'zigux-artifact-DRIFT')
         run_contract_case(
