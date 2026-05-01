@@ -92,6 +92,9 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
     try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_tests, "phase 7 parseOptionStr matches only exact bare options") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_tests, "phase 7 numeric helpers reject explicit leading plus signs to stay with cmdline.c simple_strtoull semantics") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_tests, "phase 7 getOption matches malformed-token classification from the Linux KUnit corpus") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_tests, "phase 7 getOption matches leading-integer pointer advance from the Linux KUnit corpus") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_tests, "phase 7 getOption matches trailing-integer pointer advance from the Linux KUnit corpus") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_tests, "phase 7 getOptions matches malformed-range counting from the Linux KUnit corpus") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_tests, "phase 7 nextArg matches serialized edge fixtures") != null);
 
     try expectContains(phase7_cmdline_slice, "zigux/tests/phase7_cmdline.zig");
@@ -105,6 +108,8 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
     try expectContains(phase7_cmdline_slice, "integration with validation substrate through `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, and `zigux/tests/phase7_build.zig`.");
     try expectContains(phase7_cmdline_slice, "helper-local test runs cannot import that fixture from outside the helper module path");
     try expectContains(phase7_cmdline_slice, "`zig test lib/cmdline.zig` keeps a mirrored `next_arg()` edge corpus beside `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig` because helper-local test runs cannot import that fixture from outside the helper module path; keep both packets aligned when those serialized cases change");
+    try expectContains(phase7_cmdline_slice, "malformed token classification and malformed range counting ported from the in-tree `lib/tests/cmdline_kunit.c` corpus");
+    try expectContains(phase7_cmdline_slice, "KUnit-derived pointer-advance semantics for malformed-prefix, leading-integer, and trailing-integer `get_option()` inputs");
     try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_slice, "descending-range and unparseable-suffix early stop behavior") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_slice, "array-capacity stop behavior when a hyphen range is only partially stored") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_slice, "memory-size suffix scaling with accurate parse-stop reporting") != null);
