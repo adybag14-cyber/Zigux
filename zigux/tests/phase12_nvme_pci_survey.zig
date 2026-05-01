@@ -107,6 +107,7 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
     );
     defer std.testing.allocator.free(raw_fallback_map);
 
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "PRP metadata helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "PRP-versus-SGL selection summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "page-gap forcing") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "average-segment threshold preference") != null);
@@ -115,12 +116,12 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "packet-local verification head") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "current `master` tip") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "landed `phase12-nvme-pci-pointer-selection-helper`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue-planner plus PRP-shape plus pointer-selection starters") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "pointer-selection helper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PRP metadata helper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue-planner plus PRP-shape plus PRP-metadata plus pointer-selection starters") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "SyntaxError") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "stale historical evidence rather than current repo truth") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-nvme-pci-survey-tests") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-nvme-pci-tests 9 pass (9 total)") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-nvme-pci-tests 11 pass (11 total)") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig fmt --check drivers/nvme/host/pci.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-nvme-pci-raw-github-fallback-map.md") != null);
 
@@ -201,7 +202,7 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue planner") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "doorbell offsets") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "PRP buffer-shape summary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "PRP metadata") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-nvme-pci-driver-tests")) {
@@ -210,13 +211,14 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "DMA page rounding") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "reset") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "selection summary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "PRP metadata") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-nvme-pci-slice-note")) {
             saw_slice_note = true;
             try std.testing.expectEqualStrings("Documentation/zigux/phase12-nvme-pci-slice.md", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "PRP metadata helper") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-virtio-net-driver-starter")) {
@@ -269,7 +271,7 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
             try std.testing.expectEqualStrings("blocked_on_dma_transport", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "Host Memory Buffer") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "blk-mq") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "pointer-selection helpers") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "PRP metadata") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
