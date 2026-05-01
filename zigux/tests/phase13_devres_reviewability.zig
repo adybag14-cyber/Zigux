@@ -68,17 +68,17 @@ test "phase13 devres manifest records the current iomap/mmio safety surface and 
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P13-L03", manifest.lane_key);
+    try std.testing.expectEqualStrings("P13-L05", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("lib/devres.c", manifest.anchor);
-    try std.testing.expectEqualStrings("66b55d8a9a800345097f3c04b9f95130b1f8d0b8", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("aa01b37be5500e6a1e4f959c9fe07f0e39d39bfb", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.devres_c_lines >= 390);
-    try std.testing.expectEqualStrings("26e5f8101d3546c7942c93757ecc3fdfaa6ee264", manifest.survey_summary.previous_surveyed_commit);
-    try std.testing.expectEqualStrings("bf273f9916faea71d56c5ecc75907bb5ccf693685e03d9fe448af3f6e4da50b6", manifest.survey_summary.devres_helper_sha256);
+    try std.testing.expectEqualStrings("66b55d8a9a800345097f3c04b9f95130b1f8d0b8", manifest.survey_summary.previous_surveyed_commit);
+    try std.testing.expectEqualStrings("11b2d4e475b7d21c1086679a438a851f1f12df15aa655b75e8a78fee7427bc21", manifest.survey_summary.devres_helper_sha256);
     try std.testing.expectEqualStrings("7dc45ab99f46d5424e3d757f720e58654aaea326b13db1af601be88c3cbff476", manifest.survey_summary.devres_test_sha256);
     try std.testing.expect(!manifest.survey_summary.devres_helper_matches_previous_surveyed_commit);
-    try std.testing.expect(!manifest.survey_summary.devres_test_matches_previous_surveyed_commit);
+    try std.testing.expect(manifest.survey_summary.devres_test_matches_previous_surveyed_commit);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_make_target_present);
     try std.testing.expect(manifest.survey_summary.preexisting_devres_zig_present);
@@ -139,14 +139,15 @@ test "phase13 devres manifest records the current iomap/mmio safety surface and 
     try expectContains(survey_note, "## Status");
     try expectContains(survey_note, "- `PHASE13_STATUS=active`");
     try expectContains(survey_note, "- `PHASE13_SLICE=devres-helper-iomap-mmio-safety-reviewability`");
-    try expectContains(survey_note, "- `PHASE13_SURVEYED_COMMIT=66b55d8a9a800345097f3c04b9f95130b1f8d0b8`");
+    try expectContains(survey_note, "- `PHASE13_SURVEYED_COMMIT=aa01b37be5500e6a1e4f959c9fe07f0e39d39bfb`");
     try expectContains(survey_note, "- product boundary:");
     try expectContains(survey_note, "- `lib/devres.zig`");
     try expectContains(survey_note, "- `zigux/tests/phase13_devres_manifest.json`");
     try expectContains(survey_note, "- `Documentation/zigux/phase13-devres-survey.md`");
-    try expectContains(survey_note, "teaching the managed-resource planner to reject full-width inclusive spans that would overflow size math before request-region or remap planning begins");
-    try expectContains(survey_note, "sha256 bf273f9916faea71d56c5ecc75907bb5ccf693685e03d9fe448af3f6e4da50b6");
+    try expectContains(survey_note, "rejecting full-width inclusive MMIO resource spans that would overflow size math before request-region or remap planning begins");
+    try expectContains(survey_note, "sha256 11b2d4e475b7d21c1086679a438a851f1f12df15aa655b75e8a78fee7427bc21");
     try expectContains(survey_note, "sha256 7dc45ab99f46d5424e3d757f720e58654aaea326b13db1af601be88c3cbff476");
+    try expectContains(survey_note, "the dedicated `zigux/tests/phase13_devres.zig` replay remains hash-stable");
     try expectContains(survey_note, "only the `touches_live_dma` and `touches_live_scatterlist` descriptor markers");
 
     var starter_landed_count: usize = 0;
@@ -356,7 +357,6 @@ test "phase13 devres manifest records the current iomap/mmio safety surface and 
     try std.testing.expect(saw_deviceTreeBlocker);
     try std.testing.expect(saw_arch_memtype_blocker);
 }
-
 
 test "phase13 devres managed-resource planners reject full-width inclusive spans that overflow size math" {
     const full_width = try devres.DevresHelperLab.planManagedIoremapResource(std.testing.allocator, .{
