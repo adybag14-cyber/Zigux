@@ -131,8 +131,14 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try std.testing.expect(std.mem.indexOf(u8, argv_split_tests, "phase 7 argvSplit keeps the final token C-string terminator and trailing argv sentinel aligned") != null);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_tests, "phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable") != null);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_tests, "phase 7 argvFree keeps the blank-input sentinel teardown safe and repeatable") != null);
+    try std.testing.expect(std.mem.indexOf(u8, argv_split_tests, "phase 7 argvSplit deinit clears exported storage and argv views") != null);
+    try std.testing.expect(std.mem.indexOf(u8, argv_split_tests, "phase 7 argvSplit deinit stays safe when called after teardown already cleared the result") != null);
+    try std.testing.expect(std.mem.indexOf(u8, argv_split_tests, "phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup") != null);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "`argv_free()` via `argvFree()`") != null);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "optional argc reporting that stays in sync with the returned argv length") != null);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "leading-NUL truncation to zero argv entries before any later bytes are considered") != null);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "repeated blank-input `argvFree()` teardown safety so the shared empty sentinel state survives explicit release without allocator backing") != null);
+    try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "teardown cleanup that clears the exported storage handle alongside the argv views after `ArgvSplitResult.deinit()`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "repeated teardown safety so an already-cleared `ArgvSplitResult` can be passed through `deinit()` again without freeing the shared empty sentinel state") != null);
+    try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "allocator-failure cleanup that proves the shared Phase 7 gate also exercises the intermediate allocation teardown path already covered by the direct helper tests") != null);
 }
