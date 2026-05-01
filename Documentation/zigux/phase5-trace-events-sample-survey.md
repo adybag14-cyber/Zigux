@@ -53,18 +53,18 @@ The sample intentionally stays small:
 
 The exact checks currently recorded in `zigux/tests/phase5_trace_events_sample_manifest.json` and exercised through `zigux/tests/phase5_build.zig` are:
 
-- the in-memory sample keeps `samples/trace_events/trace-events-sample.c` explicit and stays in the non-runtime sample lane
-- `runAnchorReplay()` formats iter=7, selects Gandalf, and exposes selected-string slot `2` from the Linux random_stringss table for `len = 2`
+- the in-memory sample keeps `samples/trace_events/trace-events-sample.c` explicit and stays in the non-runtime reference-sample lane
+- `runAnchorReplay()` formats `iter=7`, selects `Gandalf`, and exposes selected-string slot `2` from the Linux `random_strings` table for `len = 2`
 - the replay summary now exposes main iteration `7` and function-callback iteration `9` so the Linux `cnt`-driven split between the two thread paths stays reviewable without reading private sample state
 - the replay exposes payload length `2` and keeps the `1,2` payload prefix plus a zero sentinel so the Linux array idiom remains reviewable in memory
 - the sample self-check replays counts `0` through `4` so the full modulo-selected string cycle stays explicit: `Mother Goose`, `Snoopy`, `Gandalf`, `Frodo`, and `One ring to rule them all`
-- the replay records the `0xdeadbeef bitmask word and marks the relative-location payload path as checked in the replay summary
+- the replay records the `0xdeadbeef` bitmask word and marks the relative-location payload path as checked in the replay summary
 - the replay marks the vararg payload path as checked so the `fmt` plus `va_list` `trace_foo_bar` idiom stays explicit in the public replay summary
 - the replay records six main-thread event calls and two function-callback event calls for a total of eight bounded tracepoint-family calls
 - the public `lifecycleSummary()` reports `replay_complete` with init, replay, and exit counts `1,1,0`, zero registration depth, and eight total event calls after `runAnchorReplay()`, then reports `exited` with counts `1,1,1` after `exit()`
-- the replay summary keeps the exact `checked_focus` order `payload_shape`, `string_selection`, `formatted_message`, `conditional_event_families`, `function_callback_registration`, and `ownership_and_lifetime` so the approved review surface stays clear and direct
-the function-callback replay requires registration first, marks that callback path as checked, and restores the registration balance to zero before the sample completes
-- the in-memory callback lane rejects a second registerFunctionCallback() call while already registered so the Phase 5 sample keeps one live callback registration before balance returns to zero
+- the replay summary keeps the exact `checked_focus` order `payload_shape`, `string_selection`, `formatted_message`, `conditional_event_families`, `function_callback_registration`, and `ownership_and_lifetime` so the approved review surface stays visible without reading private sample state
+- the function-callback replay requires registration first, marks that callback path as checked, and restores the registration balance to zero before the sample completes
+- the in-memory callback lane rejects a second `registerFunctionCallback()` call while already registered so the Phase 5 sample keeps one live callback registration before balance returns to zero
 - after `exit()` the sample rejects later `replayMainIteration()`, `registerFunctionCallback()`, `replayFunctionIteration()`, and `unregisterFunctionCallback()` calls
 
 ## Latest verification snapshot
