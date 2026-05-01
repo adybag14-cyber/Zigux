@@ -58,6 +58,32 @@ RBTREE_ALIAS_GAP_NOTE = (
     "and that remaining surface stays explicitly out of scope for the closed Phase 1 tranche until "
     "a later bounded repair lands."
 )
+RBTREE_ALIAS_GAP_GATE = (
+    "PHASE1_RBTREE_ALIAS_GAP_GATE=phase1 closure validation fails closed if tools/lib/rbtree.zig "
+    "grows Linux-style rb_* aliases before the closed helper tranche is deliberately reopened"
+)
+RBTREE_UNEXPECTED_ALIAS_MARKERS = [
+    "pub fn rb_insert_color(",
+    "pub fn rb_erase(",
+    "pub fn rb_erase_init(",
+    "pub fn rb_first(",
+    "pub fn rb_last(",
+    "pub fn rb_next(",
+    "pub fn rb_prev(",
+    "pub fn rb_first_postorder(",
+    "pub fn rb_next_postorder(",
+    "pub fn rb_replace_node(",
+    "pub fn rb_first_cached(",
+    "pub fn rb_insert_color_cached(",
+    "pub fn rb_erase_cached(",
+    "pub fn rb_replace_node_cached(",
+    "pub fn rb_add_cached(",
+    "pub fn rb_add(",
+    "pub fn rb_find_add(",
+    "pub fn rb_find(",
+    "pub fn rb_find_first(",
+    "pub fn rb_next_match(",
+]
 
 REQUIRED_CLOSURE_MARKERS = [
     "PHASE1_STATUS=closed",
@@ -68,6 +94,7 @@ REQUIRED_CLOSURE_MARKERS = [
     "PHASE1_FIND_BIT_LOW_LEVEL_UNIT_REVIEW=find_bit low-level underscore entry points preserve same-word inclusive starts and tail-clamped set, shared-bit, and zero-bit scan behavior across the same caller-selected bit windows as the public helpers",
     "PHASE1_RBTREE_REVIEW=rbtree parity covers ordered traversal, replaceNode, eraseInit, postorder traversal, and detached-node state while Linux-style rb_* alias parity remains explicitly out of scope for this closed tranche",
     "PHASE1_RBTREE_ALIAS_GAP_NOTE=the closed Phase 1 rbtree tranche still excludes Linux-style rb_* alias parity for the already-ported entry points, and that remaining surface stays explicitly out of scope until a later bounded repair lands",
+    RBTREE_ALIAS_GAP_GATE,
     "PHASE1_STRING_MEMPARSE_UNIT_REVIEW=string memparse preserves decimal, hexadecimal, suffix-bearing, and invalid inputs without changing the parsed value or rest pointer contract",
     "PHASE1_FIND_BIT_BENCH_REVIEW=find_bit benchmark smoke pins deterministic next-bit, whole-family, tail-window, same-word, zero-bit, and shared-bit scan checksums plus the live loop counts so helper-local scan regressions cannot hide behind a generic positive checksum or a silently shrunk workload",
     "PHASE1_FIND_BIT_BENCH_KEYS=PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM,PHASE1_BENCH_FIND_BIT_FAMILY_CHECKSUM,PHASE1_BENCH_FIND_TAIL_WINDOW_CHECKSUM,PHASE1_BENCH_FIND_SAME_WORD_CHECKSUM",
@@ -258,7 +285,10 @@ def create_fixture_root(root: Path) -> None:
     write_json(root / "zigux" / "tests" / "fixtures" / "phase1_bench_expectations.json", build_expectations())
     shutil.copyfile(Path(__file__), root / "scripts" / "zigux" / "validate-phase1-closure.py")
     for helper in HELPERS:
-        write_text(root / helper, "// helper fixture\n")
+        content = "// helper fixture\n"
+        if helper == "tools/lib/rbtree.zig":
+            content = "pub fn first(root: *const Root) ?*Node { _ = root; return null; }\n"
+        write_text(root / helper, content)
 
 
 def validate_text(label: str, text: str, markers: list[str], missing: list[str]) -> None:
@@ -321,6 +351,13 @@ def validate_expectations(expectations: dict[str, object], missing: list[str]) -
             missing.append(f"bench:remove_loose_exact_checksum:{key}")
 
 
+def validate_rbtree_alias_gap_source(root: Path, missing: list[str]) -> None:
+    rbtree_source = (root / "tools" / "lib" / "rbtree.zig").read_text(encoding="utf-8")
+    for marker in RBTREE_UNEXPECTED_ALIAS_MARKERS:
+        if marker in rbtree_source:
+            missing.append(f"rbtree_source:unexpected_alias:{marker}")
+
+
 def validate_tree(root: Path) -> tuple[int, list[str]]:
     missing_files = [str(rel) for rel in REQUIRED_FILE_RELS if not (root / rel).exists()]
     if missing_files:
@@ -344,6 +381,7 @@ def validate_tree(root: Path) -> tuple[int, list[str]]:
     validate_text("parity_checker", parity_checker, REQUIRED_PARITY_CHECKER_MARKERS, missing)
     validate_manifest(root, manifest, missing)
     validate_expectations(expectations, missing)
+    validate_rbtree_alias_gap_source(root, missing)
     return (1 if missing else 0), missing
 
 
@@ -368,6 +406,10 @@ def run_self_test() -> int:
 
         closure_path.write_text(original_closure.replace("PHASE1_RBTREE_ALIAS_GAP_NOTE=the closed Phase 1 rbtree tranche still excludes Linux-style rb_* alias parity for the already-ported entry points, and that remaining surface stays explicitly out of scope until a later bounded repair lands", "", 1), encoding="utf-8")
         expect_missing_marker("closure_rbtree_alias_gap_note", tmp_root, "closure:PHASE1_RBTREE_ALIAS_GAP_NOTE=the closed Phase 1 rbtree tranche still excludes Linux-style rb_* alias parity for the already-ported entry points, and that remaining surface stays explicitly out of scope until a later bounded repair lands")
+        closure_path.write_text(original_closure, encoding="utf-8")
+
+        closure_path.write_text(original_closure.replace(RBTREE_ALIAS_GAP_GATE, "", 1), encoding="utf-8")
+        expect_missing_marker("closure_rbtree_alias_gap_gate", tmp_root, f"closure:{RBTREE_ALIAS_GAP_GATE}")
         closure_path.write_text(original_closure, encoding="utf-8")
 
         bench_checker_path = tmp_root / "scripts" / "zigux" / "check-phase1-bench.py"
@@ -402,8 +444,13 @@ def run_self_test() -> int:
         write_json(expectations_path, expectations)
         expect_missing_marker("rbtree_postorder_checksum", tmp_root, "bench:exact_checksums.PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM=1484000")
 
+        rbtree_path = tmp_root / "tools" / "lib" / "rbtree.zig"
+        original_rbtree = rbtree_path.read_text(encoding="utf-8")
+        rbtree_path.write_text(original_rbtree + "\npub fn rb_first(root: *const Root) ?*Node { return first(root); }\n", encoding="utf-8")
+        expect_missing_marker("rbtree_alias_source", tmp_root, "rbtree_source:unexpected_alias:pub fn rb_first(")
+
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=8")
+    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
