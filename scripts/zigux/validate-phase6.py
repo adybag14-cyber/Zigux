@@ -384,7 +384,7 @@ EXPECTED_MANIFEST = {
                 "zigux/tests/phase6_base64_c_casegen.zig",
             ],
             "fixtures": [
-                "zigux/tests/phase6_base64_vectors.zig",
+                "zigux/tests/fixtures/phase6_base64_vectors.zig",
                 "zigux/tests/fixtures/phase6_base64_c_harness.c",
             ],
             "slice_note": "Documentation/zigux/phase6-base64-slice.md",
