@@ -470,6 +470,7 @@ test "phase 9 runtime atomic64 docs stay aligned with the manifest-backed survey
         "the bounded guard-return trio from `lib/atomic64_test.c`: `add_unless`, `inc_not_zero`, and `dec_if_positive`",
         "a narrow differential gate under `zigux/tests/runtime_atomic64_diff.zig` for bounded add, sub, bitwise, swap, compare-swap, and guard-return expectations drawn from `lib/atomic64_test.c`",
         "a landed sample-side loader scaffold under `samples/zigux/runtime_atomic64_loader.zig` plus a shared runtime-loader request binding under `zigux/kernel/runtime_loader.zig`",
+        "this shared build includes the direct `phase9-runtime-atomic64-sample-tests` and `phase9-runtime-atomic64-loader-tests` legs alongside the atomic64 module, diff, survey, loader, and shared runtime-loader checks",
         "any freeze-map status change for the scheduler-facing workqueue boundary without an Architecture Council decision",
         "keep future work narrowly aimed at the remaining runtime substrate handoff or lifecycle-parity blocker, rather than reopening already-landed starter or differential scaffolds",
     };
