@@ -18,7 +18,7 @@
   },
   "review_prompts": [
     "descriptor keeps the Linux anchor path explicit, leaves requires_runtime_substrate true while provides_selftest_hook stays true, and still names the bounded two-word bitmap backing used by the sample",
-    "the manifest-backed delivery_evidence_catalog and ownership_map still keep the survey note, direct phase9-runtime-bitmap-sample-tests leg, direct phase9-runtime-bitmap-loader-tests leg, module tests, diff gate, loader scaffold, shared runtime-loader request binding, and blocked shared-loader note in one reviewable packet",
+    "the manifest-backed delivery_evidence_catalog and ownership_map still keep the survey note, module-slice note, direct phase9-runtime-bitmap-sample-tests leg, direct phase9-runtime-bitmap-loader-tests leg, module tests, diff gate, loader scaffold, shared runtime-loader request binding, and blocked shared-loader note in one reviewable packet",
     "sample-behavior changes update the manifest-backed exact checks alongside runtime_bitmap_module.zig and runtime_bitmap_diff.zig instead of leaving reviewers to infer the new contract from code alone",
     "the review packet keeps the Phase 9 runtime bitmap starter distinct from the still-blocked shared runtime-loader control surface instead of implying loadable-module or command-path parity",
     "docs and tests still keep real runtime execution, shared loader controls, and full lib/test_bitmap.c parity out of scope for this bounded runtime starter",
@@ -115,6 +115,12 @@
       "role": "records the roadmap anchor, shipped starter scope, explicit ownership packet, and remaining shared-loader blocker without implying loadable-module parity"
     },
     {
+      "id": "runtime-bitmap-module-slice",
+      "kind": "documentation",
+      "path": "Documentation/zigux/phase9-runtime-bitmap-module-slice.md",
+      "role": "records the bounded starter surface, loader handoff wording, and shared-build-leg explanation for the shipped runtime bitmap packet"
+    },
+    {
       "id": "runtime-bitmap-manifest",
       "kind": "manifest",
       "path": "zigux/tests/runtime_bitmap_manifest.json",
@@ -173,6 +179,10 @@
     {
       "surface": "Documentation/zigux/phase9-runtime-bitmap-survey.md",
       "owns": "the roadmap anchor note, shipped starter scope, ownership packet summary, and remaining shared-loader blocker wording"
+    },
+    {
+      "surface": "Documentation/zigux/phase9-runtime-bitmap-module-slice.md",
+      "owns": "the bounded starter surface, loader handoff wording, and shared-build-leg explanation for the shipped bitmap packet"
     },
     {
       "surface": "zigux/tests/runtime_bitmap_manifest.json",
