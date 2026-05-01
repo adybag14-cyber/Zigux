@@ -7,7 +7,7 @@ This sample-backed survey note tracks the bounded Phase 5 reference-sample surve
 - `PHASE5_STATUS=active`
 - `PHASE5_SLICE=trace-events-reference-sample-starter`
 - `PHASE5_LANE_KEY=P5-L24`
-- `PHASE5_SURVEYED_COMMIT=d935d20c16156bc5defdb915f44d670d0a505a17`
+- `PHASE5_SURVEYED_COMMIT=f0276491744b936652e4017387c586b433d0cb89`
 - scope: roadmap-vs-repo sample delivery, approved payload and callback idiom guidance, contributor refresh cues, and exact bounded checks for the landed `samples/zigux/` trace-events replay
 - product boundary:
   - `Documentation/zigux/phase5-trace-events-sample-survey.md`
@@ -53,8 +53,8 @@ The sample intentionally stays small:
 
 The exact checks currently recorded in `zigux/tests/phase5_trace_events_sample_manifest.json` and exercised through `zigux/tests/phase5_build.zig` are:
 
-- the in-memory sample keeps `samples/trace_events/trace-events-sample.c` explicit and stays in the non-runtime reference-sample lane
-- `runAnchorReplay()` formats `iter=7`, selects `Gandalf`, and exposes selected-string slot `2` from the Linux `random_strings` table for `len = 2`
+- the in-memory sample keeps `samples/trace_events/trace-events-sample.c` explicit and stays in the non-runtime sample lane
+- `runAnchorReplay()` formats iter=7, selects Gandalf, and exposes selected-string slot `2` from the Linux `random_strings` table for `len = 2`
 - the replay summary now exposes main iteration `7` and function-callback iteration `9` so the Linux `cnt`-driven split between the two thread paths stays reviewable without reading private sample state
 - the replay exposes payload length `2` and keeps the `1,2` payload prefix plus a zero sentinel so the Linux array idiom remains reviewable in memory
 - the sample self-check replays counts `0` through `4` so the full modulo-selected string cycle stays explicit: `Mother Goose`, `Snoopy`, `Gandalf`, `Frodo`, and `One ring to rule them all`
@@ -69,7 +69,7 @@ The exact checks currently recorded in `zigux/tests/phase5_trace_events_sample_m
 
 ## Latest verification snapshot
 
-- inspected `master` head: `d935d20c16156bc5defdb915f44d670d0a505a17`
+- inspected `master` head: `f0276491744b936652e4017387c586b433d0cb89`
 - attached Zig toolchain: `0.17.0-dev.87+9b177a7d2`
 - exact commands and observed results:
   - `zig test samples/zigux/trace_events_sample.zig`
@@ -112,7 +112,7 @@ The current gap is no longer "Zigux has no trace-events sample guidance." The mo
 - the repo now has a reviewable Phase 5 `trace_events_sample` reference sample plus manifest-backed checks for payload shape, string selection, selected-string slot cues, payload-length cues, main-path and callback-path iteration cues, formatted messages, bounded family counts, lifecycle-summary counts, the exact `checked_focus` review surface, vararg-payload coverage, relative-location coverage, callback-path coverage, and teardown
 - this sample must remain visibly separate from the later Phase 9 runtime `trace-events` starter so contributors do not over-claim runtime substrate coverage
 - the Phase 5 roadmap's four named sample anchors are now all represented by bounded `samples/zigux/` reference readings, but that does not close the separate Phase 9 runtime pilot tranche
-- this approved payload-and-callback idiom is now pinned to `PHASE5_SURVEYED_COMMIT=d935d20c16156bc5defdb915f44d670d0a505a17` so the sample-backed survey note, latest verification snapshot, sample-root catalog boundary, and manifest-backed survey all point at the same inspected `master` head
+- this approved payload-and-callback idiom is now pinned to `PHASE5_SURVEYED_COMMIT=f0276491744b936652e4017387c586b433d0cb89` so the sample-backed survey note, latest verification snapshot, sample-root catalog boundary, and manifest-backed survey all point at the same inspected `master` head
 
 ## Review gates for this survey
 
