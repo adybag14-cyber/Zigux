@@ -96,7 +96,15 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
     try std.testing.expect(manifest.survey_summary.bcm2835_wdt_survey_note_present);
     try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);
 
+    const expected_commit_pin = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "reviewed against live `master` `{s}`",
+        .{manifest.surveyed_commit},
+    );
+    defer std.testing.allocator.free(expected_commit_pin);
+
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "PHASE11_BCM2835_WDT_STATUS=platform_handoff_landed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, expected_commit_pin) != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "## Shared Replay Surface") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "phase11-bcm2835-wdt-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "phase11-bcm2835-wdt-survey-tests") != null);
@@ -109,7 +117,7 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "devm-managed") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "remove-time teardown boundary") != null);
 
-    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "reviewed against live `master` `06163086af90205c3621cd505909e5d2c8c5c0c7`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, expected_commit_pin) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "bcm2835 starter for watchdog metadata, timeout tick encoding, running-bit detection") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "tiny platform-registration or PM-base handoff summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`zigux/tests/phase11_build.zig` runs the gpio starter checks, the bcm2835 starter checks, and the bcm2835 survey check together") != null);
