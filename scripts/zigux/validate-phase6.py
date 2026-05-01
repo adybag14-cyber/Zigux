@@ -181,10 +181,10 @@ BASE64_C_PARITY_RUNNER_MARKERS = [
 ]
 
 BASE64_CASEGEN_MARKERS = [
-    'try writer.writeAll("/* Generated from zigux/tests/fixtures/phase6_base64_vectors.zig. */\\n\\n");',
+    'try writer.writeAll("/* Generated from zigux/tests/fixtures/phase6_base64_vectors.zig. */\n\n");',
     "for (fixtures.variant_cases, 0..) |case, idx| {",
     "for (fixtures.variant_decode_cases, 0..) |case, idx| {",
-    'try writer.writeAll("static const struct invalid_case invalid_cases[] = {\\n");',
+    'try writer.writeAll("static const struct invalid_case invalid_cases[] = {\n");',
     'if (std.mem.eql(u8, name, "imap")) return "BASE64_IMAP";',
     'return if (value) "true" else "false";',
 ]
@@ -194,9 +194,9 @@ BASE64_C_HARNESS_MARKERS = [
     '[BASE64_IMAP] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+,",',
     "[BASE64_IMAP] = BASE64_REV_INIT('+', ','),",
     '#include "phase6_base64_c_generated_cases.inc"',
-    'printf("enc\\t%s\\t%d\\t", variant_name(c->variant), c->padding ? 1 : 0);',
-    'printf("dec\\t%s\\t%d\\t%d\\t", variant_name(c->variant), c->padding ? 1 : 0, bytes_result);',
-    'printf("\\t%s\\t%s\\n", bytes_result < 0 ? "InvalidInput" : "ok", decode_result < 0 ? "InvalidInput" : "ok");',
+    'printf("enc\t%s\t%d\t", variant_name(c->variant), c->padding ? 1 : 0);',
+    'printf("dec\t%s\t%d\t%d\t", variant_name(c->variant), c->padding ? 1 : 0, bytes_result);',
+    'printf("\t%s\t%s\n", bytes_result < 0 ? "InvalidInput" : "ok", decode_result < 0 ? "InvalidInput" : "ok");',
 ]
 
 BASE64_VECTORS_MARKERS = [
@@ -253,17 +253,17 @@ BSEARCH_C_PARITY_RUNNER_MARKERS = [
     'try writeIndexCase(writer, "raw-descending-hit", 34, bsearch.bsearchIndex(&@as(u32, 34), @ptrCast(descending_values[0..].ptr), descending_values.len, @sizeOf(u32), compareOpaqueDescendingU32));',
     "try writeRuntimeTypedCases(writer, values[0..], descending_values[0..]);",
     "try writeRuntimeRawCases(writer, values[0..], descending_values[0..]);",
-    'try writer.print("raw-mutable-hit\\t21\\t{}\\n", .{raw_mutable_values[3]});',
+    'try writer.print("raw-mutable-hit\t21\t{}\n", .{raw_mutable_values[3]});',
 ]
 
 BSEARCH_C_HARNESS_MARKERS = [
     "static int compare_descending_u32(const void *key, const void *elt)",
     'print_index_case("descending-hit", key, descending_values, inline_bsearch(&key, descending_values, sizeof(descending_values) / sizeof(descending_values[0]), sizeof(descending_values[0]), compare_descending_u32));',
-    'print_duplicate_case("duplicate-hit-middle", key, duplicate_in_middle, sizeof(duplicate_in_middle) / sizeof(duplicate_in_middle[0]), sizeof(duplicate_in_middle[0]), compare_u32));',
+    'print_duplicate_case("duplicate-hit-middle", key, inline_bsearch(&key, duplicate_in_middle, sizeof(duplicate_in_middle) / sizeof(duplicate_in_middle[0]), sizeof(duplicate_in_middle[0]), compare_u32));',
     'print_index_case("raw-descending-hit", key, descending_values, inline_bsearch(&key, descending_values, sizeof(descending_values) / sizeof(descending_values[0]), sizeof(descending_values[0]), compare_descending_u32));',
     "print_runtime_typed_cases(values, sizeof(values) / sizeof(values[0]), descending_values, sizeof(descending_values) / sizeof(descending_values[0]));",
     "print_runtime_raw_cases(values, sizeof(values) / sizeof(values[0]), descending_values, sizeof(descending_values) / sizeof(descending_values[0]));",
-    'printf("raw-mutable-hit\\t21\\t%u\\n", raw_mutable_values[3]);',
+    'printf("raw-mutable-hit\t21\t%u\n", raw_mutable_values[3]);',
 ]
 
 BSEARCH_SLICE_MARKERS = [
