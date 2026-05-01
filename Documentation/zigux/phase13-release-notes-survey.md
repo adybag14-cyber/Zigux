@@ -36,6 +36,8 @@ This document records the current release-discipline reading for the active Phas
   - `zigux/tests/phase13_libfs_reviewability.zig`
   - `zigux/tests/phase13_devres_reviewability.zig`
   - `zigux/tests/phase13_notifier_list_reviewability.zig`
+  - `zigux/bindings/notifier_abi.zig`
+  - `zigux/helpers/notifier_chain_view.zig`
 
 ## Why this record exists
 
@@ -142,6 +144,8 @@ The current bounded release-evidence set is:
 - `zigux/tests/phase13_libfs_reviewability.zig`
 - `zigux/tests/phase13_devres_reviewability.zig`
 - `zigux/tests/phase13_notifier_list_reviewability.zig`
+- `zigux/bindings/notifier_abi.zig`
+- `zigux/helpers/notifier_chain_view.zig`
 - `zigux/tests/phase13_libfs_manifest.json`
 - `zigux/tests/phase13_devres_manifest.json`
 - `zigux/tests/phase13_landlock_ruleset_manifest.json`
