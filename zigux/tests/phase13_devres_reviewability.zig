@@ -132,8 +132,14 @@ test "phase13 devres manifest records the current helper boundary and explicit d
     try expectNotContains(devres_source, "dma_map_resource");
     try expectNotContains(devres_source, "dma_unmap_resource");
     try expectNotContains(devres_source, "dma_map_sgtable");
+    try expectNotContains(devres_source, "dma_unmap_sgtable");
+    try expectNotContains(devres_source, "dma_map_sg_attrs");
+    try expectNotContains(devres_source, "dma_unmap_sg_attrs");
+    try expectNotContains(devres_source, "dma_map_sg(");
+    try expectNotContains(devres_source, "dma_unmap_sg(");
     try expectNotContains(devres_source, "struct scatterlist");
     try expectNotContains(devres_source, "sg_table");
+    try std.testing.expectEqual(@as(usize, 0), std.mem.count(u8, devres_source, "sg_"));
 
     const slice_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
@@ -172,6 +178,7 @@ test "phase13 devres manifest records the current helper boundary and explicit d
     try expectContains(survey_note, "sha256 7dc45ab99f46d5424e3d757f720e58654aaea326b13db1af601be88c3cbff476");
     try expectContains(survey_note, "the dedicated `zigux/tests/phase13_devres.zig` replay remains hash-stable");
     try expectContains(survey_note, "only the `touches_live_dma` and `touches_live_scatterlist` descriptor markers");
+    try expectContains(survey_note, "`dma_unmap_sgtable`, `dma_map_sg_attrs`, `dma_unmap_sg_attrs`, `struct scatterlist`, `sg_table`, or `sg_` helper entrypoints");
     try expectContains(survey_note, "`devres_alloc_node()` ownership, `devres_add()` installation, `devm_request_mem_region()` side effects");
 
     var starter_landed_count: usize = 0;
