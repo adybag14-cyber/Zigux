@@ -8,6 +8,9 @@ This document records the bounded Phase 14 survey lane around `kernel/workqueue.
 - `PHASE14_SLICE=workqueue-delayed-wrapper-alias-audit`
 - `PHASE14_LANE_KEY=P14-L01`
 - `PHASE14_SURVEYED_COMMIT=542acd7b12c52211ef9a8bd790fa2e2b3367cbf0`
+- `PHASE14_STATUS_BUCKET=study_only`
+- `PHASE14_ROLLBACK_OWNER=Repo Tooling Pod`
+- `PHASE14_REVIEW_BLOCKER_STATUS=blocked_on_stay_in_c_evidence`
 - scope: the landed `kernel/workqueue_bridge.zig` boundary map plus its expanded concurrency audit outline and new flush-color, barrier-insertion, in-flight release, drain-or-cancel, and disable-or-delayed-cancel checkpoints, its dedicated Phase 14 test gate and manifest, the shared Phase 14 build wiring, and the lane notes that compare the new foothold against the roadmap
 - product boundary:
   - `kernel/workqueue_bridge.zig`
@@ -24,6 +27,8 @@ The Phase 14 roadmap explicitly names `kernel/workqueue.c` as a boundary-study t
 That matters because the live `kernel/workqueue.c` anchor is already 8,439 lines, its internal header adds more worker and scheduler coupling, and the nearby `lib/test_workqueue.c` surface still depends on real kernel execution behavior. The file mixes queue submission, pool routing, worker creation and culling, flush and cancel sequencing, delayed work, rescuer handling, CPU hotplug behavior, scheduler callbacks, watchdog-style progress checks, affinity or pod layout choices, and debug or statistics plumbing.
 
 The highest-value honest step in this lane was not to sketch a fake async runtime in Zig. It was to add a reviewable boundary map that names the submission, allocation, flush or cancel, worker-pool, and rescuer or scheduler boundaries while explicitly keeping the coupled concurrency core in C, and the current review task is to keep that study packet aligned as the audit grows.
+
+This packet now states its guardrails directly instead of relying on the shared smoke packet alone: the workqueue bridge remains `study_only`, `kernel/workqueue.c` stays the source of truth, the rollback owner remains `Repo Tooling Pod`, and any future edit that weakens explicit stay-in-C wording for worker pools, scheduler hooks, delayed timers, rescuer execution, or hotplug migration should fall back to blocked maintenance rather than advancing the bridge into new behavior claims.
 
 ## Survey findings
 
@@ -69,6 +74,7 @@ This survey slice does not claim:
 - rescuer execution
 - scheduler hook parity
 - flush, cancel, or draining correctness
+- reclassifying this packet out of `study_only` without fresh stay-in-C evidence and rollback-ready review text
 - a direct `kernel/workqueue.c` port
 
 ## Gates
