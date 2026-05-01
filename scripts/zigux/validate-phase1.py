@@ -296,10 +296,36 @@ MARKER_GROUPS = {
     "bitmap_manifest": (
         "zigux/tests/fixtures/phase1_helper_manifest.json",
         [
+            '"alias_unit_test_anchor"',
+            "bitmap_weight(), bitmap_and(), bitmap_andnot(), bitmap_or(), bitmap_xor(), bitmap_equal(), bitmap_intersects(), bitmap_subset(), bitmap_set(), bitmap_clear(), and bitmap_scnprintf() aligned with the camelCase helpers across the same caller-selected bit window.",
             '"allocator_alias_unit_test_anchor"',
             "bitmap underscore allocator aliases preserve allocation and ownership semantics",
             '"allocator_alias_unit_test_contract"',
             "bitmap_alloc(), bitmap_zalloc(), and bitmap_free() aligned with bitmapAlloc(), bitmapZalloc(), and bitmapFree() for partial-word sizing, zero-filled allocation, and optional-handle reset semantics.",
+            '"range_unit_test_anchor"',
+            "bitmap range helpers preserve edges across whole-word spans",
+            '"range_unit_test_contract"',
+            "Direct Zig unit coverage keeps cross-word setRange() and clearRange() aligned by preserving the first-word start mask, fully covering interior words, clamping the last word, and restoring the whole window to zero on clear.",
+            '"copy_unit_test_anchor"',
+            "bitmap copyClearTail clears out-of-range bits in the last copied word",
+            '"copy_unit_test_contract"',
+            "Direct Zig unit coverage keeps copy() and copyClearTail() aligned by preserving copied source words while forcing tail bits above nbits back to zero in the final copied word.",
+            '"bitwise_unit_test_anchor"',
+            "bitmap and andnot equal intersects subset",
+            '"bitwise_unit_test_contract"',
+            "Direct Zig unit coverage keeps andBits(), andNotBits(), xorBits(), equal(), intersects(), and subset() aligned on the shared caller-selected bit window instead of leaking unrelated tail bits.",
+            '"xor_unit_test_anchor"',
+            "bitmap xor keeps caller-selected bit window",
+            '"xor_unit_test_contract"',
+            "Direct Zig unit coverage keeps xorBits() aligned with the caller-selected bit window by proving partial-word and multiword-tail replays preserve only the in-range bits that callers intentionally clamp.",
+            '"tail_mask_unit_test_anchor"',
+            "bitmap tail-masked helpers ignore out-of-range differences",
+            '"tail_mask_unit_test_contract"',
+            "Direct Zig unit coverage keeps andBits(), andNotBits(), equal(), intersects(), and subset() aligned by masking out-of-range tail differences while preserving the declared in-range window.",
+            '"zero_bit_unit_test_anchor"',
+            "bitmap zero-bit helpers stay explicit no-ops",
+            '"zero_bit_unit_test_contract"',
+            "Direct Zig unit coverage keeps zero-length helper calls explicit and side-effect free so zero(), fill(), copy(), copyClearTail(), orBits(), xorBits(), scans, and formatting all leave caller-owned buffers untouched when nbits is zero.",
         ],
     ),
     "find_bit": (
@@ -383,7 +409,6 @@ MARKER_GROUPS = {
 }
 
 WORKFLOW_EXACT_LINES = {
-    "run: python3 scripts/zigux/validate-phase1.py": 1,
     "run: python3 scripts/zigux/validate-phase1-closure.py": 1,
     "run: python3 scripts/zigux/validate-phase1-closure.py --self-test": 1,
     "run: python3 scripts/zigux/check-phase1-bench.py": 1,
@@ -480,10 +505,38 @@ def validate_manifest_shape() -> list[str]:
                 issues.append(f"phase1_manifest:{helper}:evidence_keys:expected_nonempty_list")
         bitmap_note = notes.get("tools/lib/bitmap.zig")
         if isinstance(bitmap_note, dict):
+            if bitmap_note.get("alias_unit_test_anchor") != 'tools/lib/bitmap.zig:test "bitmap underscore aliases preserve bitmap helper semantics"':
+                issues.append("phase1_manifest:tools/lib/bitmap.zig:alias_unit_test_anchor:mismatch")
+            if bitmap_note.get("alias_unit_test_contract") != "Direct Zig unit coverage keeps bitmap_weight(), bitmap_and(), bitmap_andnot(), bitmap_or(), bitmap_xor(), bitmap_equal(), bitmap_intersects(), bitmap_subset(), bitmap_set(), bitmap_clear(), and bitmap_scnprintf() aligned with the camelCase helpers across the same caller-selected bit window.":
+                issues.append("phase1_manifest:tools/lib/bitmap.zig:alias_unit_test_contract:mismatch")
             if bitmap_note.get("allocator_alias_unit_test_anchor") != 'tools/lib/bitmap.zig:test "bitmap underscore allocator aliases preserve allocation and ownership semantics"':
                 issues.append("phase1_manifest:tools/lib/bitmap.zig:allocator_alias_unit_test_anchor:mismatch")
             if bitmap_note.get("allocator_alias_unit_test_contract") != "Direct Zig unit coverage keeps bitmap_alloc(), bitmap_zalloc(), and bitmap_free() aligned with bitmapAlloc(), bitmapZalloc(), and bitmapFree() for partial-word sizing, zero-filled allocation, and optional-handle reset semantics.":
                 issues.append("phase1_manifest:tools/lib/bitmap.zig:allocator_alias_unit_test_contract:mismatch")
+            if bitmap_note.get("range_unit_test_anchor") != 'tools/lib/bitmap.zig:test "bitmap range helpers preserve edges across whole-word spans"':
+                issues.append("phase1_manifest:tools/lib/bitmap.zig:range_unit_test_anchor:mismatch")
+            if bitmap_note.get("range_unit_test_contract") != "Direct Zig unit coverage keeps cross-word setRange() and clearRange() aligned by preserving the first-word start mask, fully covering interior words, clamping the last word, and restoring the whole window to zero on clear.":
+                issues.append("phase1_manifest:tools/lib/bitmap.zig:range_unit_test_contract:mismatch")
+            if bitmap_note.get("copy_unit_test_anchor") != 'tools/lib/bitmap.zig:test "bitmap copyClearTail clears out-of-range bits in the last copied word"':
+                issues.append("phase1_manifest:tools/lib/bitmap.zig:copy_unit_test_anchor:mismatch")
+            if bitmap_note.get("copy_unit_test_contract") != "Direct Zig unit coverage keeps copy() and copyClearTail() aligned by preserving copied source words while forcing tail bits above nbits back to zero in the final copied word.":
+                issues.append("phase1_manifest:tools/lib/bitmap.zig:copy_unit_test_contract:mismatch")
+            if bitmap_note.get("bitwise_unit_test_anchor") != 'tools/lib/bitmap.zig:test "bitmap and andnot equal intersects subset"':
+                issues.append("phase1_manifest:tools/lib/bitmap.zig:bitwise_unit_test_anchor:mismatch")
+            if bitmap_note.get("bitwise_unit_test_contract") != "Direct Zig unit coverage keeps andBits(), andNotBits(), xorBits(), equal(), intersects(), and subset() aligned on the shared caller-selected bit window instead of leaking unrelated tail bits.":
+                issues.append("phase1_manifest:tools/lib/bitmap.zig:bitwise_unit_test_contract:mismatch")
+            if bitmap_note.get("xor_unit_test_anchor") != 'tools/lib/bitmap.zig:test "bitmap xor keeps caller-selected bit window"':
+                issues.append("phase1_manifest:tools/lib/bitmap.zig:xor_unit_test_anchor:mismatch")
+            if bitmap_note.get("xor_unit_test_contract") != "Direct Zig unit coverage keeps xorBits() aligned with the caller-selected bit window by proving partial-word and multiword-tail replays preserve only the in-range bits that callers intentionally clamp.":
+                issues.append("phase1_manifest:tools/lib/bitmap.zig:xor_unit_test_contract:mismatch")
+            if bitmap_note.get("tail_mask_unit_test_anchor") != 'tools/lib/bitmap.zig:test "bitmap tail-masked helpers ignore out-of-range differences"':
+                issues.append("phase1_manifest:tools/lib/bitmap.zig:tail_mask_unit_test_anchor:mismatch")
+            if bitmap_note.get("tail_mask_unit_test_contract") != "Direct Zig unit coverage keeps andBits(), andNotBits(), equal(), intersects(), and subset() aligned by masking out-of-range tail differences while preserving the declared in-range window.":
+                issues.append("phase1_manifest:tools/lib/bitmap.zig:tail_mask_unit_test_contract:mismatch")
+            if bitmap_note.get("zero_bit_unit_test_anchor") != 'tools/lib/bitmap.zig:test "bitmap zero-bit helpers stay explicit no-ops"':
+                issues.append("phase1_manifest:tools/lib/bitmap.zig:zero_bit_unit_test_anchor:mismatch")
+            if bitmap_note.get("zero_bit_unit_test_contract") != "Direct Zig unit coverage keeps zero-length helper calls explicit and side-effect free so zero(), fill(), copy(), copyClearTail(), orBits(), xorBits(), scans, and formatting all leave caller-owned buffers untouched when nbits is zero.":
+                issues.append("phase1_manifest:tools/lib/bitmap.zig:zero_bit_unit_test_contract:mismatch")
         find_bit_note = notes.get("tools/lib/find_bit.zig")
         if isinstance(find_bit_note, dict):
             if find_bit_note.get("small_bitmap_unit_test_anchor") != 'tools/lib/find_bit.zig:test "single-word scans keep linux small-bitmap semantics"':
