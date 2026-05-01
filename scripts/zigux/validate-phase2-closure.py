@@ -577,13 +577,15 @@ required_closure_markers = [
     'PHASE2_CLOSURE_GATE=python3 scripts/zigux/validate-phase2-closure.py',
     'PHASE2_ARTIFACT_DIFF_SELF_TEST=python3 scripts/zigux/artifact_diff.py --self-test',
     'PHASE2_ARTIFACT_DIFF_CONTRACT=python3 scripts/zigux/check-artifact-diff-contract.py',
+    'dep parsing skips escaped-newline comments before the first target',
+    'dep parsing continues dependency tokens across escaped newlines',
     'dep parsing keeps the first source across concatenated target entries',
     'dep parsing unescapes escaped hash and colon tokens once',
     'dependency file error messages keep C helper wording',
     'missing dependency path is preserved for later error reporting',
     'output writer maps print and flush failures to fixdep output-write errors',
     'preserving a primary error ignores late output flush failures',
-    'PHASE2_FIXDEP_EVIDENCE=artifact fixtures plus direct concatenated-target, escaped-token, dependency-file-error, missing-path-preservation, output-write, and primary-error-preservation unit anchors are required for closure',
+    'PHASE2_FIXDEP_EVIDENCE=artifact fixtures plus direct escaped-newline-comment, dep-continuation, concatenated-target, escaped-token, dependency-file-error, missing-path-preservation, output-write, and primary-error-preservation unit anchors are required for closure',
     'PHASE2_ROLLBACK=keep C kbuild tools authoritative and remove failing Zigux bridge/tool from workflow wiring',
 ]
 required_workflow_markers = [
