@@ -90,6 +90,20 @@ def validate_expectations_shape(expectations: dict[str, object]) -> None:
         overlap_key = sorted(overlap)[0]
         raise SystemExit(f'phase1-bench:expectations:overlap:exact_checksums_checksums:{overlap_key}')
 
+    optional_bitmap_checksum = next(
+        (
+            key
+            for key in sorted(metric_groups['checksums'])
+            if key.startswith('PHASE1_BENCH_BITMAP_')
+        ),
+        None,
+    )
+    if optional_bitmap_checksum is not None:
+        raise SystemExit(
+            'phase1-bench:expectations:checksums:bitmap_exact_required:'
+            f'{optional_bitmap_checksum}'
+        )
+
 
 def unexpected_phase1_bench_keys(
     parsed: dict[str, str], expectations: dict[str, object]
@@ -314,8 +328,24 @@ def run_self_test() -> int:
     else:
         raise SystemExit('phase1-bench:self-test:invalid_reserved:unexpected_pass')
 
+    invalid_bitmap_optional = {
+        **bitmap_expectations,
+        'exact_checksums': {},
+        'checksums': ['PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM'],
+    }
+    try:
+        validate_expectations_shape(invalid_bitmap_optional)
+    except SystemExit as exc:
+        assert_equal(
+            'invalid_bitmap_optional',
+            str(exc),
+            'phase1-bench:expectations:checksums:bitmap_exact_required:PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM',
+        )
+    else:
+        raise SystemExit('phase1-bench:self-test:invalid_bitmap_optional:unexpected_pass')
+
     print('PHASE1_BENCH_SELF_TEST=pass')
-    print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=13')
+    print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=14')
     return 0
 
 
