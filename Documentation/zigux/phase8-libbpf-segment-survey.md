@@ -6,7 +6,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling survey for Z
 
 - `PHASE8_STATUS=active`
 - `PHASE8_SLICE=libbpf-segment-survey`
-- scope: segment manifest plus six landed helper-first starter slices, one deferred resource boundary, one deferred interrupt-routing boundary, one blocked object-model follow-on, and two deferred loader-facing follow-ons
+- scope: segment manifest plus six landed helper-first starter slices, one bounded perf-buffer poll helper slice, one deferred resource boundary, one deferred interrupt-routing boundary, one blocked object-model follow-on, and two deferred loader-facing follow-ons
 - survey checkpoint: refreshed against inspected `master` head `36414e38da67a51209095d0c06170f81e80258eb`
 - product boundary:
   - `tools/lib/bpf/zigux_segments/manifest.json`
@@ -15,6 +15,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling survey for Z
   - `tools/lib/bpf/zigux_segments/pin_path.zig`
   - `tools/lib/bpf/zigux_segments/type_names.zig`
   - `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`
+  - `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
   - `zigux/tests/phase8_cpu_mask.zig`
   - `zigux/tests/phase8_bpf_type_names.zig`
   - `zigux/tests/phase8_file_path_handle_bridge.zig`
@@ -22,6 +23,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling survey for Z
   - `zigux/tests/phase8_pin_path.zig`
   - `zigux/tests/phase8_libbpf_segments.zig`
   - `zigux/tests/phase8_libbpf_segments_only_build.zig`
+  - `zigux/tests/phase8_perf_buffer_poll.zig`
   - `zigux/tests/phase8_build.zig`
 
 ## Why this slice exists
@@ -55,7 +57,7 @@ The manifest currently records eleven bounded segments:
 
 Each segment ID in that manifest now stays under the current `P8-L15-S..` prefix, so the landed helper packet, the focused survey replay, and the lane memory all point at the same bounded Phase 8 catalog instead of carrying older `P8-L13` or `P8-L14` residue.
 
-`cpu-mask-parsing`, `logging-version-and-errno`, `pin-path-helpers`, `type-name-helpers`, `fdinfo-map-info-helpers`, and `map-reuse-compatibility` have now moved from planned work to landed starter slices under `tools/lib/bpf/zigux_segments/cpu_mask.zig`, `tools/lib/bpf/zigux_segments/logging.zig`, `tools/lib/bpf/zigux_segments/pin_path.zig`, `tools/lib/bpf/zigux_segments/type_names.zig`, and `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`. The file-path helper now keeps `bpf_get_map_info_from_fdinfo()` bounded to `/proc/<pid>/fdinfo/<fd>` path construction, fdinfo text parsing for `map_type`, `key_size`, `value_size`, `max_entries`, `map_flags`, and `map_extra`, the reused-map-name chooser inside `bpf_map__reuse_fd()`, and the bounded map reuse compatibility comparison that preserves libbpf's DEVMAP readonly-prog exception without claiming pinned-object reopen flow or FD duplication side effects. `file-path-and-handle-bridge` stays deferred as the remaining resource-boundary cluster around `bpf_object_prepare_token()`, `bpf_object__reuse_map()`, because it still crosses real procfs reads, bpffs opens, token creation, `bpf_obj_get()` reopen flows, and fd close or ownership semantics without yet requiring full ELF or skeleton parity. The new `perf-buffer-online-cpu-routing` segment stays separately deferred next to the landed cpu-mask helper because `perf_buffer__new()` still combines `/sys/devices/system/cpu/online` reads, cached `/sys/devices/system/cpu/possible` counts, online CPU filtering, per-CPU perf-event-array map updates, epoll-backed perf FD registration, and timeout-driven `perf_buffer__poll(timeout_ms)` waits that return ready-buffer counts into one interrupt-routing-sensitive timing boundary. Phase 8 still ships no standalone timer helper and no standalone clockevent helper for that poll path: there is no separate `perf_buffer_poll.zig` packet yet, so the current review surface must keep treating timer- and clockevent-adjacent behavior as deferred routing evidence rather than landed helper parity. The remaining object-adjacent and loader-facing segments stay explicitly blocked or deferred until more model parity exists.
+`cpu-mask-parsing`, `logging-version-and-errno`, `pin-path-helpers`, `type-name-helpers`, `fdinfo-map-info-helpers`, and `map-reuse-compatibility` have now moved from planned work to landed starter slices under `tools/lib/bpf/zigux_segments/cpu_mask.zig`, `tools/lib/bpf/zigux_segments/logging.zig`, `tools/lib/bpf/zigux_segments/pin_path.zig`, `tools/lib/bpf/zigux_segments/type_names.zig`, and `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`. The file-path helper now keeps `bpf_get_map_info_from_fdinfo()` bounded to `/proc/<pid>/fdinfo/<fd>` path construction, fdinfo text parsing for `map_type`, `key_size`, `value_size`, `max_entries`, `map_flags`, and `map_extra`, the reused-map-name chooser inside `bpf_map__reuse_fd()`, and the bounded map reuse compatibility comparison that preserves libbpf's DEVMAP readonly-prog exception without claiming pinned-object reopen flow or FD duplication side effects. `file-path-and-handle-bridge` stays deferred as the remaining resource-boundary cluster around `bpf_object_prepare_token()`, `bpf_object__reuse_map()`, because it still crosses real procfs reads, bpffs opens, token creation, `bpf_obj_get()` reopen flows, and fd close or ownership semantics without yet requiring full ELF or skeleton parity. The separate `perf-buffer-online-cpu-routing` segment stays deferred next to the landed cpu-mask helper because `perf_buffer__new()` still combines `/sys/devices/system/cpu/online` reads, cached `/sys/devices/system/cpu/possible` counts, online CPU filtering, per-CPU perf-event-array map updates, epoll-backed perf FD registration, and timeout-driven `perf_buffer__poll(timeout_ms)` waits that return ready-buffer counts into one interrupt-routing-sensitive timing boundary. Phase 8 still ships no standalone timer helper and no standalone clockevent helper for that broader poll path. The repo now also carries a separate bounded `Documentation/zigux/phase8-perf-buffer-poll-slice.md` packet through `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig` and `zigux/tests/phase8_perf_buffer_poll.zig`, but that helper is limited to wait-result classification and ready-buffer bookkeeping only and still does not claim direct `epoll_wait()` parity, timer or clockevent parity, or broader interrupt-routing behavior. The remaining object-adjacent and loader-facing segments stay explicitly blocked or deferred until more model parity exists.
 
 ## Current landed segment progress
 
@@ -81,6 +83,7 @@ The current starter implementation stays deliberately bounded:
 - the file-path-handle helper accepts reordered or whitespace-padded fdinfo lines, keeps missing fields zero-initialized, lets later duplicate keys overwrite earlier values the same way libbpf's fallback does, and still keeps malformed values explicit for callers
 - the same helper now keeps empty-string token prevention, default `/sys/fs/bpf` optional probing, caller-provided mandatory token paths, and the `skip_optional_missing_delegation` versus `fail` split explicit without claiming real `open()`, `close()`, or `bpf_token_create()` behavior
 - the new helper still does not claim `fopen()`, `fgets()`, `fclose()` ownership, `open()` or `close()` ownership, `bpf_obj_get()` reopen flows, `bpf_token_create()` handle lifecycle parity, or FD duplication and replacement side effects
+- `perf_buffer_poll.zig` keeps the already-observed `timeout_ms` classes, explicit wait-result variants, ready-buffer counts, first-ready indexing, and first-error surfacing reviewable without widening into epoll-backed wait behavior or direct routing parity
 
 The current tests check:
 
@@ -108,6 +111,7 @@ The current tests check:
 - bounded fdinfo map metadata parsing accepts reordered lines plus explicit `map_flags` and `map_extra` bases, keeps omitted fields zero-initialized, resolves duplicate keys last-wins, and still rejects malformed values
 - truncated kernel map names only expand back to the requested full name when the `BPF_OBJ_NAME_LEN - 1` prefix matches, keeping reused-map naming rules explicit without widening into FD duplication or pinned-object side effects
 - the same file-path helper packet now also keeps map reuse compatibility reviewable by proving the DEVMAP readonly-prog exception stays normalized while non-DEVMAP flag mismatches remain explicit
+- the bounded perf-buffer poll helper keeps wait-result classification and ready-buffer bookkeeping explicit without claiming direct `epoll_wait()` parity or broader timer, clockevent, or interrupt-routing behavior
 
 ## Gates
 
@@ -148,7 +152,7 @@ This survey slice does not yet claim:
 - direct `/proc/.../fdinfo` reads, `fopen()` or `fclose()` ownership, `open()` or `close()` ownership, `bpf_obj_get()` reopen flows, or `bpf_token_create()` handle lifecycle parity
 - BTF relocation parity
 - ELF loader parity
-- `perf_buffer__poll(timeout_ms)` timeout parity or ready-buffer count semantics
+- direct `epoll_wait()` parity or broader `perf_buffer__poll(timeout_ms)` routing-loop timeout parity
 - any standalone timer helper or standalone clockevent helper for perf-buffer polling
 - perf-buffer runtime behavior
 - object-model parity for `bpf_object`, `bpf_map`, or `bpf_program`
