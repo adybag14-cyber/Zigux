@@ -618,6 +618,10 @@ required_manifest_markers = [
     '"zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"',
     '"why_now": "The proc fdinfo path construction, bounded map-info text parsing including map_extra, and token-preparation recovery classification can land as pure helpers without claiming procfs fopen or fclose behavior, pinned-map reuse side effects, token lifecycle parity, or fd ownership."',
     '"why_now": "The reused-map compatibility comparison is a pure field-and-flag check that extends the existing file-path bridge packet without claiming bpffs reopen flow, fd duplication, or pinned-map side effects, and it preserves libbpf\'s bounded DEVMAP readonly-flag exception as an explicit helper contract."',
+    '"kind": "resource_boundary"',
+    '"tools/lib/bpf/libbpf.c:5112-5157"',
+    '"tools/lib/bpf/libbpf.c:5255-5286"',
+    '"why_now": "After the fdinfo pathname, reused-map-name chooser, token-preparation planner, and text parser helpers land, the remaining file-path-and-handle bridge is still the smallest libbpf surface that crosses real bpffs path opens, token creation, pinned-object reopen flows, and fd ownership, so it should stay recorded explicitly as a deferred resource boundary instead of being blurred into the larger object-loader buckets."',
 ]
 
 
