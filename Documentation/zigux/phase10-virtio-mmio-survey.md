@@ -71,6 +71,11 @@ This survey slice does not yet claim:
 2. run the convenience target
 - `make -C zigux phase10`
 
+3. run the dedicated validation guards
+- `python3 scripts/zigux/validate-phase10.py`
+- `python3 scripts/zigux/validate-phase10-closure.py`
+- `make -C zigux phase10-validate`
+
 ## Next bounded step
 
 Leave the MMIO lane parked unless a future inspection can split `phase10-mmio-lifecycle-and-irq-paths` into a smaller transport-safe observation helper without claiming queue setup, IRQ delivery, probe, or remove parity.
