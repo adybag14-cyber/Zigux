@@ -19,7 +19,7 @@ This template reserves the Architecture Council packet path named by the Phase 1
 
 - lane owner: `Shared Subsystems Pod`
 - rollback owner: `Architecture Council + Shared Subsystems Pod`
-- rollback threshold: `pending_until_architecture_council_request_names_status_change_abort_boundary`
+- rollback threshold: `If the decision record, scorecard evidence, benchmark notes, replay command, rollback owner, or narrowed skbuff follow-up stops being explicit, or if the candidate seam widens back across packet lifetime, destructor ordering, checksum ownership, or segmentation ownership, return this anchor to blocked review posture.`
 
 ## Validation Gate Summary
 
