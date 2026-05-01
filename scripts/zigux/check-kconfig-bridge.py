@@ -233,7 +233,7 @@ def ensure_manifest_is_deterministic(cases: object, fixture_dir: Path = FIXTURE_
                 referenced_files.add(expected_path)
 
             if group_name == 'conf_cases':
-                allowed_keys = {'name', 'mode', 'kconfig', 'config', 'arch', 'mode_arg', 'allconfig', 'seed', 'probability', 'expected'}
+                allowed_keys = {'name', 'mode', 'kconfig', 'config', 'arch', 'mode_arg', 'allconfig', 'nosilentupdate', 'seed', 'probability', 'expected'}
                 mode = read_nonempty_string(case, 'mode', issues, prefix=case_prefix)
                 read_nonempty_string(case, 'kconfig', issues, prefix=case_prefix)
                 read_nonempty_string(case, 'config', issues, prefix=case_prefix)
@@ -252,6 +252,13 @@ def ensure_manifest_is_deterministic(cases: object, fixture_dir: Path = FIXTURE_
                         issues.append(f'{case_prefix}:allconfig:expected_nonempty_string')
                 elif allconfig is not None:
                     issues.append(f'{case_prefix}:allconfig:unexpected_for_mode:{mode}')
+
+                nosilentupdate = case.get('nosilentupdate')
+                if mode == 'syncconfig':
+                    if nosilentupdate is not None and (not isinstance(nosilentupdate, str) or not nosilentupdate):
+                        issues.append(f'{case_prefix}:nosilentupdate:expected_nonempty_string')
+                elif nosilentupdate is not None:
+                    issues.append(f'{case_prefix}:nosilentupdate:unexpected_for_mode:{mode}')
 
                 seed = case.get('seed')
                 probability = case.get('probability')
@@ -392,6 +399,7 @@ def run_self_test() -> int:
                     'kconfig': 'Kconfig',
                     'config': 'out/.config',
                     'arch': 'riscv64',
+                    'nosilentupdate': '1',
                     'expected': 'syncconfig_expected.json',
                 },
                 {
@@ -549,6 +557,8 @@ def main() -> int:
             if 'allconfig' in case:
                 cmd.append(case['allconfig'])
             env = os.environ.copy()
+            if 'nosilentupdate' in case:
+                env['KCONFIG_NOSILENTUPDATE'] = case['nosilentupdate']
             if 'seed' in case:
                 env['KCONFIG_SEED'] = case['seed']
             if 'probability' in case:
