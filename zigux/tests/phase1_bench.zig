@@ -399,7 +399,13 @@ fn listSortBench() struct { checksum: u64 } {
     return .{ .checksum = checksum };
 }
 
-fn rbtreeBench() struct { checksum: u64, duplicate_checksum: u64, cached_checksum: u64, find_add_checksum: u64 } {
+fn rbtreeBench() struct {
+    checksum: u64,
+    duplicate_checksum: u64,
+    cached_checksum: u64,
+    find_add_checksum: u64,
+    postorder_safe_checksum: u64,
+} {
     const RbEntry = struct {
         key: i32,
         node: rbtree.Node = rbtree.Node.init(),
@@ -447,6 +453,7 @@ fn rbtreeBench() struct { checksum: u64, duplicate_checksum: u64, cached_checksu
     var duplicate_checksum: u64 = 0;
     var cached_checksum: u64 = 0;
     var find_add_checksum: u64 = 0;
+    var postorder_safe_checksum: u64 = 0;
     var iter: usize = 0;
     while (iter < iterations_rbtree) : (iter += 1) {
         var entries = [_]RbEntry{
@@ -479,6 +486,25 @@ fn rbtreeBench() struct { checksum: u64, duplicate_checksum: u64, cached_checksu
             const entry: *const RbEntry = @fieldParentPtr("node", node);
             checksum +%= @intCast(entry.key + 17);
         }
+
+        var safe_entries = [_]RbEntry{
+            .{ .key = 2 },
+            .{ .key = 1 },
+            .{ .key = 4 },
+            .{ .key = 3 },
+        };
+        var safe_root = rbtree.Root.init();
+        for (&safe_entries) |*entry| {
+            rbtree.add(&entry.node, &safe_root, less);
+        }
+        var safe_iterator = rbtree.iteratePostorderSafe(&safe_root);
+        while (safe_iterator.next()) |node| {
+            const entry: *const RbEntry = @fieldParentPtr("node", node);
+            postorder_safe_checksum +%= @intCast(entry.key + 89);
+            rbtree.clearNode(node);
+            postorder_safe_checksum +%= @intFromBool(rbtree.emptyNode(node));
+        }
+        postorder_safe_checksum +%= @intFromBool(safe_iterator.next() == null);
 
         var duplicate_entries = [_]RbDuplicateEntry{
             .{ .key = 10, .serial = 0 },
@@ -583,6 +609,7 @@ fn rbtreeBench() struct { checksum: u64, duplicate_checksum: u64, cached_checksu
         .duplicate_checksum = duplicate_checksum,
         .cached_checksum = cached_checksum,
         .find_add_checksum = find_add_checksum,
+        .postorder_safe_checksum = postorder_safe_checksum,
     };
 }
 
@@ -620,6 +647,7 @@ pub fn main(init: std.process.Init) !void {
     std.debug.assert(rbtree_result.duplicate_checksum != 0);
     std.debug.assert(rbtree_result.cached_checksum != 0);
     std.debug.assert(rbtree_result.find_add_checksum != 0);
+    std.debug.assert(rbtree_result.postorder_safe_checksum != 0);
 
     try stdout_writer.interface.print("PHASE1_BENCH=pass\n", .{});
     try stdout_writer.interface.print("PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS={d}\n", .{iterations_bitmap});
@@ -651,5 +679,6 @@ pub fn main(init: std.process.Init) !void {
     try stdout_writer.interface.print("PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM={d}\n", .{rbtree_result.duplicate_checksum});
     try stdout_writer.interface.print("PHASE1_BENCH_RBTREE_CACHED_CHECKSUM={d}\n", .{rbtree_result.cached_checksum});
     try stdout_writer.interface.print("PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM={d}\n", .{rbtree_result.find_add_checksum});
+    try stdout_writer.interface.print("PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM={d}\n", .{rbtree_result.postorder_safe_checksum});
     try stdout_writer.interface.flush();
 }
