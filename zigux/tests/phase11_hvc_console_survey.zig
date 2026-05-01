@@ -366,7 +366,7 @@ test "phase11 hvc console survey keeps the shared replay separate but exposes an
     try std.testing.expect(std.mem.indexOf(u8, build_zig, "test_step.dependOn(&run_phase11_hvc_console_survey_tests.step);") == null);
 }
 
-test "phase11 hvc console survey keeps the survey note and validation matrix aligned with the parked starter" {
+test "phase11 hvc console survey keeps the survey note, slice note, and validation matrix aligned with the parked starter" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -377,6 +377,14 @@ test "phase11 hvc console survey keeps the survey note and validation matrix ali
         .limited(16 * 1024),
     );
     defer std.testing.allocator.free(survey_note);
+
+    const slice_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase11-hvc-console-slice.md",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(slice_note);
 
     const validation_matrix = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
@@ -399,6 +407,8 @@ test "phase11 hvc console survey keeps the survey note and validation matrix ali
     const manifest = parsed_manifest.value;
 
     try expectSurveyedCommitProvenance(survey_note, manifest.surveyed_commit);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "`hvc_cleanup()` tty-port release handoff summary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "port-reference drop timing") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, manifest.surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "PHASE11_HVC_CONSOLE_STATUS=remove_handoff_landed") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Phase 11 simple-production-driver gap has been closed by the bounded starter") != null);
