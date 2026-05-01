@@ -70,11 +70,15 @@ test "phase 7 blank argvSplit input reuses the empty exported argv view" {
     var fba = std.heap.FixedBufferAllocator.init(&buffer);
     var argc: usize = std.math.maxInt(usize);
     var split = try argv_split.argvSplitWithArgc(fba.allocator(), " \t\n", &argc);
+    var second_split = try argv_split.argvSplitWithArgc(fba.allocator(), "", null);
     defer split.deinit(fba.allocator());
+    defer second_split.deinit(fba.allocator());
 
     try std.testing.expectEqual(@as(usize, 0), argc);
     try std.testing.expectEqual(@as(usize, 0), split.argv.len);
     try std.testing.expectEqual(@as(usize, 1), split.argv_null_terminated.len);
+    try std.testing.expectEqual(split.argv_null_terminated.ptr, second_split.argv_null_terminated.ptr);
+    try std.testing.expectEqual(split.cArgv(), second_split.cArgv());
     try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
 }
 
@@ -83,11 +87,14 @@ test "phase 7 blank argvSplit input reuses the empty storage sentinel without al
     var fba = std.heap.FixedBufferAllocator.init(&buffer);
     var argc: usize = std.math.maxInt(usize);
     var split = try argv_split.argvSplitWithArgc(fba.allocator(), " \t\n", &argc);
+    var second_split = try argv_split.argvSplitWithArgc(fba.allocator(), "", null);
     defer split.deinit(fba.allocator());
+    defer second_split.deinit(fba.allocator());
 
     try std.testing.expectEqual(@as(usize, 0), argc);
     try std.testing.expectEqual(@as(usize, 0), split.storage.len);
     try std.testing.expectEqual(@as(u8, 0), split.storage[split.storage.len]);
+    try std.testing.expectEqual(split.storage.ptr, second_split.storage.ptr);
     try std.testing.expectEqual(@as(usize, 0), split.argv.len);
     try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
 }
