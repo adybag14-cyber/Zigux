@@ -25,7 +25,7 @@ This document records the shared Phase 14 smoke lane that verifies the current b
 - `PHASE14_WORKFLOW_SMOKE_PATH=make-wrapper`
 - `PHASE14_BOUNDARY_MAP=shared-anchor-packet-bundle`
 - `PHASE14_CONCURRENCY_AUDIT_SCOPE=anchor-local-packets-only`
-- `PHASE14_ATTACHED_TOOLCHAIN_FALLBACK=ZIG=<attached-zig-path>`
+- `PHASE14_ATTACHED_TOOLCHAIN_FALLBACK=PYTHON=python3 and ZIG=<attached-zig-path>`
 - survey provenance captured against verified `master` head `efab12eaee3becb91eb2a763529ff250696b0bb0`
 - shared smoke boundary:
   - `scripts/zigux/validate-phase14.py`
@@ -85,7 +85,7 @@ This lane stays narrow on purpose. It does not add a new bridge. It verifies tha
 - `Documentation/zigux/review-checklist.md` now carries a dedicated prompt for the shared Phase 14 smoke packet so later edits have to keep the four anchor-local manifests, survey notes, and shared replay contract aligned.
 - `zigux/tests/phase14_end_to_end_smoke_survey.zig` now treats the shared note's quoted shared-lane marker plus per-anchor surveyed commits as machine-checked evidence, so future shared or anchor-manifest refreshes cannot silently leave the shared smoke note behind.
 - `zigux/tests/phase14_end_to_end_smoke_manifest.json` now also records which compile artifacts are `full_bundle_only` or `focused_and_full_bundle`, so later build-file churn cannot silently undercount dedicated Phase 14 leaf-step coverage.
-- `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, and `scripts/zigux/README.md` now keep the attached-toolchain fallback commands explicit so reviewers in mounted-toolchain environments can rerun the same shared packet without rediscovering the `ZIG=` override from `zigux/Makefile` alone.
+- `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, and `scripts/zigux/README.md` now also record the attached-toolchain fallback commands so reviewers in mounted-toolchain environments can rerun the same shared packet without rediscovering the `PYTHON=python3` plus `ZIG=` overrides from `zigux/Makefile` alone.
 - the shared smoke manifest, note, checklist, and `scripts/zigux/README.md` now also carry one explicit rollback threshold, fallback path, and automatic return-to-blocked trigger catalog, so the packet fails closed if its stay-in-C review contract drifts.
 - `zigux/tests/phase14_end_to_end_smoke_manifest.json` is now the current four-anchor boundary map for the shared packet, because it keeps the workqueue, skbuff, ring-buffer, and RCU anchor manifests pinned together under one reviewable lane.
 - those same four anchor-local packets are the current bounded concurrency-audit scope for this slice: they keep queue, ownership, buffer, and grace-period audit evidence reviewable without claiming live parity or a status change.
