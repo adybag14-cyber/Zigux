@@ -306,6 +306,33 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             if not isinstance(entry, dict) or entry.get("status") != status:
                 missing.append(f"manifest:scoreboard:{key}")
 
+    landed_core = manifest.get("landed_core_helper_evidence")
+    expected_landed_core = {
+        "zigux/tests/phase10_virtio_core_manifest.json": [
+            "phase10-config-generation-summary-helper",
+            "phase10-config-delivery-disposition-helper",
+        ]
+    }
+    if landed_core != expected_landed_core:
+        missing.append("manifest:landed_core_helper_evidence")
+
+    landed_ring = manifest.get("landed_ring_helper_evidence")
+    expected_landed_ring = {
+        "zigux/tests/phase10_virtio_ring_manifest.json": [
+            "phase10-virtqueue-shape-helper",
+            "phase10-used-buffer-polling-helper",
+            "phase10-callback-disable-helper",
+            "phase10-callback-enable-helper",
+            "phase10-callback-enable-prepare-helper",
+            "phase10-callback-delay-helper",
+            "phase10-notify-prepare-helper",
+            "phase10-queue-reset-guard-helper",
+            "phase10-queue-reset-helper",
+        ]
+    }
+    if landed_ring != expected_landed_ring:
+        missing.append("manifest:landed_ring_helper_evidence")
+
     landed_mmio = manifest.get("landed_mmio_helper_evidence")
     expected_landed_mmio = {
         "zigux/tests/phase10_virtio_mmio_manifest.json": [
@@ -436,6 +463,25 @@ def write_fixture(root: Path) -> None:
                 "mmio": "0945df1cf664a3582d7241f859183a13f3f04adb",
             },
         },
+        "landed_core_helper_evidence": {
+            "zigux/tests/phase10_virtio_core_manifest.json": [
+                "phase10-config-generation-summary-helper",
+                "phase10-config-delivery-disposition-helper",
+            ]
+        },
+        "landed_ring_helper_evidence": {
+            "zigux/tests/phase10_virtio_ring_manifest.json": [
+                "phase10-virtqueue-shape-helper",
+                "phase10-used-buffer-polling-helper",
+                "phase10-callback-disable-helper",
+                "phase10-callback-enable-helper",
+                "phase10-callback-enable-prepare-helper",
+                "phase10-callback-delay-helper",
+                "phase10-notify-prepare-helper",
+                "phase10-queue-reset-guard-helper",
+                "phase10-queue-reset-helper",
+            ]
+        },
         "landed_mmio_helper_evidence": {
             "zigux/tests/phase10_virtio_mmio_manifest.json": [
                 "phase10-mmio-register-window-helper",
@@ -527,6 +573,26 @@ def run_self_test() -> int:
             "landed_input_helper_manifest_guard",
             fixture_root,
             "manifest:landed_input_helper_evidence",
+        )
+        write_fixture(fixture_root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["landed_core_helper_evidence"] = {}
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "landed_core_helper_manifest_guard",
+            fixture_root,
+            "manifest:landed_core_helper_evidence",
+        )
+        write_fixture(fixture_root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["landed_ring_helper_evidence"]["zigux/tests/phase10_virtio_ring_manifest.json"].pop()
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "landed_ring_helper_manifest_guard",
+            fixture_root,
+            "manifest:landed_ring_helper_evidence",
         )
         write_fixture(fixture_root)
 
@@ -640,7 +706,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=10")
+    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
