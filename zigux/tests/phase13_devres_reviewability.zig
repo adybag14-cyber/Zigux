@@ -75,7 +75,7 @@ test "phase13 devres manifest records the current iomap/mmio safety surface and 
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.devres_c_lines >= 390);
     try std.testing.expectEqualStrings("26e5f8101d3546c7942c93757ecc3fdfaa6ee264", manifest.survey_summary.previous_surveyed_commit);
-    try std.testing.expectEqualStrings("2bbad8cad014471312865a57a249412b29af4574d8a6918f8bb66f4948973eda", manifest.survey_summary.devres_helper_sha256);
+    try std.testing.expectEqualStrings("bf273f9916faea71d56c5ecc75907bb5ccf693685e03d9fe448af3f6e4da50b6", manifest.survey_summary.devres_helper_sha256);
     try std.testing.expectEqualStrings("7dc45ab99f46d5424e3d757f720e58654aaea326b13db1af601be88c3cbff476", manifest.survey_summary.devres_test_sha256);
     try std.testing.expect(!manifest.survey_summary.devres_helper_matches_previous_surveyed_commit);
     try std.testing.expect(!manifest.survey_summary.devres_test_matches_previous_surveyed_commit);
@@ -144,8 +144,8 @@ test "phase13 devres manifest records the current iomap/mmio safety surface and 
     try expectContains(survey_note, "- `lib/devres.zig`");
     try expectContains(survey_note, "- `zigux/tests/phase13_devres_manifest.json`");
     try expectContains(survey_note, "- `Documentation/zigux/phase13-devres-survey.md`");
-    try expectContains(survey_note, "adding the direct non-posted managed wrapper instead of staying byte-for-byte unchanged");
-    try expectContains(survey_note, "sha256 2bbad8cad014471312865a57a249412b29af4574d8a6918f8bb66f4948973eda");
+    try expectContains(survey_note, "teaching the managed-resource planner to reject full-width inclusive spans that would overflow size math before request-region or remap planning begins");
+    try expectContains(survey_note, "sha256 bf273f9916faea71d56c5ecc75907bb5ccf693685e03d9fe448af3f6e4da50b6");
     try expectContains(survey_note, "sha256 7dc45ab99f46d5424e3d757f720e58654aaea326b13db1af601be88c3cbff476");
     try expectContains(survey_note, "only the `touches_live_dma` and `touches_live_scatterlist` descriptor markers");
 
@@ -256,6 +256,7 @@ test "phase13 devres manifest records the current iomap/mmio safety surface and 
             try std.testing.expectEqualStrings("lib/devres.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "devm_ioremap_resource") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "devm_ioremap_resource_wc") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "overflow-safe inclusive size calculation") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase13-devres-devicetree-iomap-planner")) {
             saw_of_iomap = true;
@@ -354,4 +355,61 @@ test "phase13 devres manifest records the current iomap/mmio safety surface and 
     try std.testing.expect(saw_scatterlist_blocker);
     try std.testing.expect(saw_deviceTreeBlocker);
     try std.testing.expect(saw_arch_memtype_blocker);
+}
+
+
+test "phase13 devres managed-resource planners reject full-width inclusive spans that overflow size math" {
+    const full_width = try devres.DevresHelperLab.planManagedIoremapResource(std.testing.allocator, .{
+        .device_name = "uart6",
+        .resource = .{
+            .start = 0,
+            .end = std.math.maxInt(u64),
+            .is_memory = true,
+            .nonposted = false,
+            .name = "regs",
+        },
+    });
+
+    switch (full_width) {
+        .mapped => return error.ExpectedFailure,
+        .err => |failure| {
+            try std.testing.expectEqual(devres.ErrorStage.invalid_resource, failure.stage);
+            try std.testing.expectEqual(devres.ErrorCode.invalid, failure.error_code);
+            try std.testing.expectEqual(devres.IoremapType.normal, failure.effective_type);
+            try std.testing.expect(!failure.requests_region);
+            try std.testing.expect(!failure.releases_region_on_remap_failure);
+        },
+    }
+
+    const resources = [_]devres.Resource{
+        .{
+            .start = 0,
+            .end = std.math.maxInt(u64),
+            .is_memory = true,
+            .nonposted = false,
+            .name = "wide",
+        },
+    };
+
+    const translated = try devres.DevresHelperLab.planDeviceTreeIomap(std.testing.allocator, .{
+        .device_name = "uart7",
+        .index = 0,
+        .resources = &resources,
+        .report_size = true,
+    });
+
+    switch (translated) {
+        .mapped => return error.ExpectedFailure,
+        .err => |failure| {
+            try std.testing.expectEqualStrings("lib/devres.c", failure.anchor);
+            try std.testing.expectEqual(devres.DeviceTreeIomapStage.address_translation, failure.stage);
+            try std.testing.expectEqual(devres.ErrorCode.invalid, failure.error_code);
+            try std.testing.expectEqual(@as(usize, 0), failure.index);
+            try std.testing.expectEqual(@as(?u64, null), failure.reported_size);
+            try std.testing.expectEqual(devres.IoremapType.normal, failure.effective_type);
+            try std.testing.expect(!failure.requests_region);
+            try std.testing.expect(!failure.releases_region_on_remap_failure);
+            try std.testing.expectEqual(@as(?devres.ErrorStage, null), failure.resource_stage);
+        },
+    }
 }
