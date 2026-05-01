@@ -17,15 +17,21 @@ const SurveySummary = struct {
     review_checklist_has_productization_prompt: bool,
     review_checklist_has_risk_bundle_prompt: bool,
     review_checklist_has_rollback_threshold_prompt: bool,
+    review_checklist_has_fallback_path_prompt: bool,
+    review_checklist_has_return_to_blocked_trigger_prompt: bool,
     review_checklist_has_boundary_map_prompt: bool,
     review_checklist_has_concurrency_audit_prompt: bool,
     smoke_note_records_owner_and_rollback: bool,
     smoke_note_records_risk_bundle: bool,
     smoke_note_records_rollback_threshold: bool,
+    smoke_note_records_fallback_path: bool,
+    smoke_note_records_return_to_blocked_triggers: bool,
     smoke_note_records_transfer_rationale: bool,
     smoke_note_records_boundary_map: bool,
     smoke_note_records_concurrency_audit_scope: bool,
     scripts_readme_records_rollback_threshold: bool,
+    scripts_readme_records_fallback_path: bool,
+    scripts_readme_records_return_to_blocked_triggers: bool,
     scripts_readme_records_boundary_map: bool,
     scripts_readme_records_concurrency_audit_scope: bool,
     freeze_map_lists_workqueue_c: bool,
@@ -167,15 +173,21 @@ test "phase14 shared smoke manifest records the current evidence bundle" {
     try std.testing.expect(manifest.survey_summary.review_checklist_has_productization_prompt);
     try std.testing.expect(manifest.survey_summary.review_checklist_has_risk_bundle_prompt);
     try std.testing.expect(manifest.survey_summary.review_checklist_has_rollback_threshold_prompt);
+    try std.testing.expect(manifest.survey_summary.review_checklist_has_fallback_path_prompt);
+    try std.testing.expect(manifest.survey_summary.review_checklist_has_return_to_blocked_trigger_prompt);
     try std.testing.expect(manifest.survey_summary.review_checklist_has_boundary_map_prompt);
     try std.testing.expect(manifest.survey_summary.review_checklist_has_concurrency_audit_prompt);
     try std.testing.expect(manifest.survey_summary.smoke_note_records_owner_and_rollback);
     try std.testing.expect(manifest.survey_summary.smoke_note_records_risk_bundle);
     try std.testing.expect(manifest.survey_summary.smoke_note_records_rollback_threshold);
+    try std.testing.expect(manifest.survey_summary.smoke_note_records_fallback_path);
+    try std.testing.expect(manifest.survey_summary.smoke_note_records_return_to_blocked_triggers);
     try std.testing.expect(manifest.survey_summary.smoke_note_records_transfer_rationale);
     try std.testing.expect(manifest.survey_summary.smoke_note_records_boundary_map);
     try std.testing.expect(manifest.survey_summary.smoke_note_records_concurrency_audit_scope);
     try std.testing.expect(manifest.survey_summary.scripts_readme_records_rollback_threshold);
+    try std.testing.expect(manifest.survey_summary.scripts_readme_records_fallback_path);
+    try std.testing.expect(manifest.survey_summary.scripts_readme_records_return_to_blocked_triggers);
     try std.testing.expect(manifest.survey_summary.scripts_readme_records_boundary_map);
     try std.testing.expect(manifest.survey_summary.scripts_readme_records_concurrency_audit_scope);
     try std.testing.expect(manifest.survey_summary.freeze_map_lists_workqueue_c);
@@ -314,6 +326,8 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     try std.testing.expect(std.mem.indexOf(u8, checklist, "phase14_end_to_end_smoke_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "named owner") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "rollback owner") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "stated rollback owner and fallback path?") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "automatic return-to-blocked trigger catalog") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "hidden runtime behavior") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "memory-ordering mistakes") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "overpromising full parity") != null);
@@ -339,6 +353,7 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     try std.testing.expect(std.mem.indexOf(u8, script_readme, "overpromising full parity") != null);
     try std.testing.expect(std.mem.indexOf(u8, script_readme, "deep-core scope creep") != null);
     try std.testing.expect(std.mem.indexOf(u8, script_readme, "rollback threshold") != null);
+    try std.testing.expect(std.mem.indexOf(u8, script_readme, "fallback path") != null);
     try std.testing.expect(std.mem.indexOf(u8, script_readme, "automatic return-to-blocked trigger catalog") != null);
     try std.testing.expect(std.mem.indexOf(u8, script_readme, "four-anchor boundary map") != null);
     try std.testing.expect(std.mem.indexOf(u8, script_readme, "bounded concurrency-audit scope") != null);
