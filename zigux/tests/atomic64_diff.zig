@@ -26,8 +26,12 @@ fn expectManifestMarker(marker: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, phase4_runtime_atomic64_manifest_source, marker) != null);
 }
 
-fn expectFileMarker(source: []const u8, marker: []const u8) !void {
-    try std.testing.expect(std.mem.indexOf(u8, source, marker) != null);
+fn expectPhase4BuildMarker(marker: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, phase4_build_source, marker) != null);
+}
+
+fn expectPhase9BuildMarker(marker: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, phase9_build_source, marker) != null);
 }
 
 test "atomic64 diff wrapper keeps the bounded runtime replay body reachable" {
@@ -67,23 +71,15 @@ test "atomic64 diff wrapper keeps roadmap entrypoint and rollback evidence align
     try expectManifestMarker("\"id\": \"phase4-roadmap-path-alignment\"");
 }
 
-test "atomic64 diff wrapper keeps shared replay surfaces aligned" {
-    try expectFileMarker(
-        phase4_build_source,
-        ".root_source_file = b.path(\"atomic64_diff.zig\")",
-    );
-    try expectFileMarker(
-        phase4_build_source,
-        ".name = \"phase4-runtime-atomic64-diff-tests\"",
-    );
-    try expectFileMarker(
-        phase4_build_source,
-        ".name = \"phase4-runtime-atomic64-diff-survey-tests\"",
-    );
-    try expectFileMarker(
-        phase9_build_source,
-        ".root_source_file = b.path(\"runtime_atomic64_diff.zig\")",
-    );
+test "atomic64 diff wrapper checks live phase4 and phase9 build entrypoints directly" {
+    try expectPhase4BuildMarker(".root_source_file = b.path(\"atomic64_diff.zig\")");
+    try expectPhase4BuildMarker("phase4-runtime-atomic64-diff-tests");
+    try expectPhase4BuildMarker("phase4-runtime-atomic64-diff-survey-tests");
+    try expectPhase4BuildMarker("phase4-runtime-atomic64-diff");
+
+    try expectPhase9BuildMarker(".root_source_file = b.path(\"runtime_atomic64_diff.zig\")");
+    try expectPhase9BuildMarker("phase9-runtime-atomic64-diff-tests");
+    try expectPhase9BuildMarker("runtime_atomic64_diff_module");
 }
 
 test "atomic64 diff wrapper records the exact bounded runtime atomic64 checks" {
