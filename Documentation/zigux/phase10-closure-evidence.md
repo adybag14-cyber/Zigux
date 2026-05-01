@@ -49,7 +49,7 @@ The current bounded Phase 10 evidence set is:
 - `PHASE10_TEST_COUNT=9`
 - `PHASE10_HAS_VIRTIO_MMIO_ZIG=yes`
 
-The shared closure manifest now carries explicit landed-helper evidence for the core config summaries, the ring queue-discipline ladder, the input preflight pair, and the MMIO helper ladder through bounded interrupt acknowledgement, so the scoreboard does not reduce the current Phase 10 packet to only its remaining transport blockers.
+The shared closure manifest now carries explicit landed-helper evidence for the core config summaries, the ring queue-discipline ladder, the input preflight pair, and the MMIO helper ladder through bounded interrupt acknowledgement, so the scoreboard does not reduce the current Phase 10 packet to only its remaining transport blockers. The shared closure validator has not yet been widened to assert that newest MMIO interrupt-ack rung, so the machine-checked MMIO closure subset still stops at config-write while the dedicated MMIO manifest and survey keep the landed interrupt-ack evidence explicit.
 
 ## Roadmap Parity Scoreboard
 
@@ -105,6 +105,8 @@ The current Phase 10 tranche is only considered evidence-verified when all of th
 
 5. Linux-style combined Phase 10 entrypoint
 - `make -C zigux phase10`
+
+These checks currently fail closed on the shared closure packet plus the pre-interrupt-ack MMIO ladder. The newer `phase10-mmio-interrupt-ack-helper` rung is still review-backed by `zigux/tests/phase10_closure_manifest.json`, `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-virtio-mmio-survey.md`, and `zigux/tests/phase10_virtio_mmio_manifest.json` until `scripts/zigux/validate-phase10-closure.py` is widened.
 
 - `PHASE10_CLOSURE_GATE=python3 scripts/zigux/validate-phase10-closure.py`
 - `PHASE10_BUILD_GATE=zig build test --build-file zigux/tests/phase10_build.zig --summary all`
@@ -174,4 +176,4 @@ This evidence record does not imply:
 - full `drivers/virtio/virtio_input.c` registration or lifecycle parity
 - Phase 10 roadmap closure as a whole
 
-It only means the current bounded virtio tranche now has an explicit, machine-checkable evidence record instead of relying on scattered documentation alone.
+It only means the current bounded virtio tranche now has an explicit, reviewable evidence record instead of relying on scattered documentation alone.
