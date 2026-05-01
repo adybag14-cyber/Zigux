@@ -258,6 +258,34 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate, 
     };
 
     try std.testing.expectEqualDeep(live_summary, manifest.survey_summary);
+    try std.testing.expect(
+        std.mem.indexOf(
+            u8,
+            phase4_validation_matrix,
+            "`lib/atomic64_test.c` stays the source of truth",
+        ) != null,
+    );
+    try std.testing.expect(
+        std.mem.indexOf(
+            u8,
+            phase4_validation_matrix,
+            "removing `atomic64_diff.zig` from the shared `phase4_build.zig` entrypoint is the documented rollback move",
+        ) != null,
+    );
+    try std.testing.expect(
+        std.mem.indexOf(
+            u8,
+            phase4_validation_matrix,
+            "`runtime_atomic64_diff.zig` remains the single replay body",
+        ) != null,
+    );
+    try std.testing.expect(
+        std.mem.indexOf(
+            u8,
+            phase4_validation_matrix,
+            "the existing Phase 9 runtime atomic64 starter remains the forward path",
+        ) != null,
+    );
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
