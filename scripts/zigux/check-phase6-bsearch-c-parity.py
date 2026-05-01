@@ -13,6 +13,39 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 C_HARNESS = ROOT / "zigux" / "tests" / "fixtures" / "phase6_bsearch_c_harness.c"
 ZIG_RUNNER = ROOT / "zigux" / "tests" / "phase6_bsearch_c_parity.zig"
+EXPECTED_SORTED_LINES = sorted(
+    [
+        "u32-hit\t3\t0",
+        "u32-hit\t21\t3",
+        "u32-hit\t89\t6",
+        "u32-miss\t0\tnull",
+        "u32-miss\t15\tnull",
+        "u32-miss\t90\tnull",
+        "singleton-hit\t21\t0",
+        "singleton-miss\t20\tnull",
+        "empty-miss\t21\tnull",
+        "descending-hit\t34\t2",
+        "descending-miss\t20\tnull",
+        "duplicate-hit-begin\t7\tfound",
+        "duplicate-hit-middle\t7\tfound",
+        "duplicate-hit-end\t18\tfound",
+        "raw-hit\t34\t4",
+        "raw-miss\t20\tnull",
+        "raw-descending-hit\t34\t2",
+        "runtime-typed-hit\t55\t5",
+        "runtime-typed-hit\t34\t2",
+        "runtime-typed-miss\t20\tnull",
+        "runtime-typed-miss\t20\tnull",
+        "runtime-raw-hit\t55\t5",
+        "runtime-raw-hit\t34\t2",
+        "runtime-raw-miss\t20\tnull",
+        "runtime-raw-miss\t20\tnull",
+        "sym-hit\tkmalloc\t0x1400",
+        "sym-miss\tvfree\tnull",
+        "mutable-hit\t21\t22",
+        "raw-mutable-hit\t21\t22",
+    ]
+)
 
 
 def require_tool(name: str, env_name: str) -> str:
@@ -44,30 +77,30 @@ def run_checked(cmd: list[str]) -> subprocess.CompletedProcess[str]:
 def build_zig_build_text() -> str:
     return textwrap.dedent(
         f"""
-        const std = @import("std");
+        const std = @import(\"std\");
 
         pub fn build(b: *std.Build) void {{
             const target = b.standardTargetOptions(.{{}});
             const optimize = b.standardOptimizeOption(.{{}});
 
             const bsearch_module = b.createModule(.{{
-                .root_source_file = .{{ .cwd_relative = "{ROOT / 'lib' / 'bsearch.zig'}" }},
+                .root_source_file = .{{ .cwd_relative = \"{ROOT / 'lib' / 'bsearch.zig'}\" }},
                 .target = target,
                 .optimize = optimize,
             }});
             const root_module = b.createModule(.{{
-                .root_source_file = .{{ .cwd_relative = "{ZIG_RUNNER}" }},
+                .root_source_file = .{{ .cwd_relative = \"{ZIG_RUNNER}\" }},
                 .target = target,
                 .optimize = optimize,
             }});
-            root_module.addImport("bsearch", bsearch_module);
+            root_module.addImport(\"bsearch\", bsearch_module);
 
             const exe = b.addExecutable(.{{
-                .name = "phase6-bsearch-c-parity",
+                .name = \"phase6-bsearch-c-parity\",
                 .root_module = root_module,
             }});
             const run = b.addRunArtifact(exe);
-            const step = b.step("run", "Run Phase 6 bsearch C parity spot check");
+            const step = b.step(\"run\", \"Run Phase 6 bsearch C parity spot check\");
             step.dependOn(&run.step);
         }}
         """
@@ -98,6 +131,13 @@ def expect_system_exit(label: str, callback, expected_message: str) -> None:
     )
 
 
+def validate_expected_surface(lines: list[str], label: str) -> None:
+    if lines != EXPECTED_SORTED_LINES:
+        raise SystemExit(
+            f"phase6-bsearch-c-parity:{label}:unexpected_output:expected={EXPECTED_SORTED_LINES!r}:actual={lines!r}"
+        )
+
+
 def run_self_test() -> int:
     assert_equal("require_tool_env", require_tool("zig", "PHASE6_SELFTEST_TOOL"), "/tmp/zig-self-test")
     expect_system_exit(
@@ -116,13 +156,19 @@ def run_self_test() -> int:
         'root_module.addImport("bsearch", bsearch_module);' in build_text and str(ROOT / "lib" / "bsearch.zig") in build_text,
         True,
     )
-    assert_equal("build_text_runner", str(ZIG_RUNNER) in build_text, True)
     assert_equal(
-        "sorted_lines",
-        sorted_lines("mutable-hit\t21\t21\nascending-hit\t34\t4\n"),
-        ["ascending-hit\t34\t4", "mutable-hit\t21\t21"],
+        "build_text_runner",
+        str(ZIG_RUNNER) in build_text and sorted_lines("mutable-hit\t21\t22\nascending-hit\t34\t4\n") == ["ascending-hit\t34\t4", "mutable-hit\t21\t22"],
+        True,
     )
 
+    validate_expected_surface(EXPECTED_SORTED_LINES, "self-test-positive")
+    expect_system_exit(
+        "missing_case",
+        lambda: validate_expected_surface(EXPECTED_SORTED_LINES[:-1], "self-test-missing-case"),
+        "phase6-bsearch-c-parity:self-test-missing-case:unexpected_output:"
+        f"expected={EXPECTED_SORTED_LINES!r}:actual={EXPECTED_SORTED_LINES[:-1]!r}",
+    )
     print("PHASE6_BSEARCH_C_PARITY_SELF_TEST=pass")
     print("PHASE6_BSEARCH_C_PARITY_SELF_TEST_CASE_COUNT=6")
     return 0
@@ -169,6 +215,8 @@ def main() -> int:
 
     c_lines = sorted_lines(c_run.stdout)
     zig_lines = sorted_lines(zig_run.stdout)
+    validate_expected_surface(c_lines, "c")
+    validate_expected_surface(zig_lines, "zig")
 
     if c_lines != zig_lines:
         print("PHASE6_BSEARCH_C_PARITY=fail")
