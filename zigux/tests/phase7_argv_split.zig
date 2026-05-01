@@ -56,6 +56,15 @@ test "phase 7 argvSplitWithArgc reports the split length through the optional ou
     try std.testing.expectEqual(argc, split.argv.len);
 }
 
+test "phase 7 argvSplit keeps the final token C-string terminator and trailing argv sentinel aligned" {
+    var split = try argv_split.argvSplit(std.testing.allocator, "console=ttyS0 root=/dev/vda");
+    defer split.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(u8, 0), split.storage[split.storage.len]);
+    try std.testing.expectEqualStrings("root=/dev/vda", std.mem.span(split.cArgv()[1].?));
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[split.argv.len]);
+}
+
 test "phase 7 blank argvSplit input reuses the empty exported argv view" {
     var buffer: [4]u8 = undefined;
     var fba = std.heap.FixedBufferAllocator.init(&buffer);
