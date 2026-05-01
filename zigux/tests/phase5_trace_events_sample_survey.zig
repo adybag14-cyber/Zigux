@@ -364,15 +364,15 @@ test "phase 5 trace-events contributor docs stay aligned with the shipped review
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Latest verification snapshot") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig test samples/zigux/trace_events_sample.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig test zigux/tests/phase5_trace_events_sample_survey.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Build Summary: 14/17 steps succeeded (1 failed); 26/26 tests passed") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5-trace-events-sample-tests 5 pass (5 total)") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5-trace-events-sample-survey-tests 2 pass (2 total)") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5-kretprobe-example-survey-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Build Summary: 17/17 steps succeeded; 28/28 tests passed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5-bytestream-fifo-tests 4 pass (4 total)") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5-bytestream-fifo-survey-tests 2 pass (2 total)") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5-kobject-example-tests 3 pass (3 total)") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5-kobject-example-survey-tests 2 pass (2 total)") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5-kretprobe-example-tests 1 pass (1 total)") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5-kretprobe-example-survey-tests 2 pass (2 total)") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5-kobject-example-survey-tests transitive failure") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "unrelated Phase 5 kobject survey source corruption") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase5_kobject_example_survey.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "invalid byte") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5-trace-events-sample-tests 4 pass (4 total)") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5-trace-events-sample-survey-tests 2 pass (2 total)") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "descriptor, manifest-backed survey") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "infer the new boundary from code alone") != null);
     {
