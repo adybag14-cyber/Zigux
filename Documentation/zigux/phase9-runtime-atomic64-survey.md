@@ -41,7 +41,7 @@ No parity scorecard entry or Architecture Council status-change request is attac
 
 ## Latest verification snapshot
 
-On inspected `master` commit `b0298e2977b1ec7f4cc53a9b03ece973bf0deaad`, focused Phase 9 replay still passed with the attached Zig toolchain across the dedicated atomic64 and bitmap sample, loader, and survey legs, keeping the bounded lifecycle, selftest, and first-loadable-module parity packet green without widening into unrelated shared runtime-loader control work.
+On inspected `master` commit `b0298e2977b1ec7f4cc53a9b03ece973bf0deaad`, focused Phase 9 replay still passed with the attached Zig toolchain across the dedicated atomic64 and bitmap sample, loader, and survey legs, keeping the bounded lifecycle, selftest, and pre-execution runtime-pilot packet green without widening into unrelated shared runtime-loader control work.
 
 ## Roadmap snapshot
 
