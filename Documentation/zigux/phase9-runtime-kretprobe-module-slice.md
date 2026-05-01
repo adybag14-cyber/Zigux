@@ -56,11 +56,16 @@ This slice does not yet claim:
 
 ## Gates
 
-1. run the dedicated Phase 9 build
-- `zig build test --build-file zigux/tests/phase9_build.zig --summary all`
-- this shared build keeps the dedicated kretprobe sample, module, diff, loader, and survey legs explicit
+1. run the focused kretprobe survey replay
+- `zig test zigux/tests/runtime_kretprobe_survey.zig`
+- `make -C zigux phase9-kretprobe-survey`
+- this focused replay keeps the manifest-backed kretprobe survey packet reviewable beside the direct sample, module, diff, and loader legs without implying shared runtime-loader controls or loadable-module parity
 
-2. run the convenience target
+2. run the dedicated Phase 9 build
+- `zig build test --build-file zigux/tests/phase9_build.zig --summary all`
+- this shared build keeps the dedicated kretprobe sample, module, diff, loader, and survey legs explicit through `phase9-runtime-kretprobe-sample-tests`, `phase9-runtime-kretprobe-module-tests`, `phase9-runtime-kretprobe-diff-tests`, `phase9-runtime-kretprobe-loader-tests`, and `phase9-runtime-kretprobe-survey-tests`
+
+3. run the convenience target
 - `make -C zigux phase9`
 
 ## Next bounded step
