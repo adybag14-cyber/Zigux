@@ -63,9 +63,9 @@ This slice does not yet claim:
 - direct `parse_cpu_mask_file()` parity
 - real file-descriptor I/O
 - `libbpf_num_possible_cpus()` caching or `READ_ONCE`/`WRITE_ONCE` behavior
-- `perf_buffer__new()` online CPU selection, perf-event-array population, or interrupt-routing-sensitive timing boundary behavior
+- `perf_buffer__new()` online CPU selection, perf-event-array population, or interrupt-routing behavior across the interrupt-routing-sensitive timing boundary
 - direct `perf_buffer__poll(timeout_ms)` timeout handling or ready-buffer count parity
-- any standalone timer helper or standalone clockevent helper for perf-buffer polling
+- no standalone timer helper and no standalone clockevent helper for perf-buffer polling
 - perf-buffer or feature-probe integration
 
 ## Next bounded step

@@ -2,6 +2,73 @@ const std = @import("std");
 
 const current_surveyed_commit = "36414e38da67a51209095d0c06170f81e80258eb";
 
+const expected_companion_files = [_]CompanionFile{
+    .{ .path = "tools/lib/bpf/bpf.c", .lines = 1419 },
+    .{ .path = "tools/lib/bpf/btf.c", .lines = 6360 },
+    .{ .path = "tools/lib/bpf/features.c", .lines = 727 },
+    .{ .path = "tools/lib/bpf/libbpf_utils.c", .lines = 256 },
+    .{ .path = "tools/lib/bpf/linker.c", .lines = 3116 },
+    .{ .path = "tools/lib/bpf/netlink.c", .lines = 938 },
+    .{ .path = "tools/lib/bpf/nlattr.c", .lines = 194 },
+    .{ .path = "tools/lib/bpf/ringbuf.c", .lines = 684 },
+};
+
+const expected_segment_ids = [_][]const u8{
+    "P8-L15-S01",
+    "P8-L15-S02",
+    "P8-L15-S03",
+    "P8-L15-S04",
+    "P8-L15-S08",
+    "P8-L15-S11",
+    "P8-L15-S09",
+    "P8-L15-S10",
+    "P8-L15-S05",
+    "P8-L15-S06",
+    "P8-L15-S07",
+};
+
+const expected_segment_slugs = [_][]const u8{
+    "logging-version-and-errno",
+    "pin-path-helpers",
+    "cpu-mask-parsing",
+    "type-name-helpers",
+    "fdinfo-map-info-helpers",
+    "map-reuse-compatibility",
+    "file-path-and-handle-bridge",
+    "perf-buffer-online-cpu-routing",
+    "skeleton-population",
+    "object-and-elf-loader",
+    "btf-relocation-and-program-load",
+};
+
+const expected_segment_statuses = [_][]const u8{
+    "starter_landed",
+    "starter_landed",
+    "starter_landed",
+    "starter_landed",
+    "starter_landed",
+    "starter_landed",
+    "deferred_high_risk",
+    "deferred_high_risk",
+    "blocked_on_object_model",
+    "deferred_high_risk",
+    "deferred_high_risk",
+};
+
+const expected_segment_kinds = [_][]const u8{
+    "helper_first",
+    "helper_first",
+    "helper_first",
+    "helper_first",
+    "helper_first",
+    "helper_first",
+    "resource_boundary",
+    "interrupt_routing_boundary",
+    "object_adjacent",
+    "core_loader",
+    "verifier_facing",
+};
+
 const CompanionFile = struct {
     path: []const u8,
     lines: usize,
@@ -38,13 +105,6 @@ const AnchorRange = struct {
     start_line: usize,
     end_line: usize,
 };
-
-fn isAllowedStatus(status: []const u8) bool {
-    return std.mem.eql(u8, status, "ready_next") or
-        std.mem.eql(u8, status, "starter_landed") or
-        std.mem.eql(u8, status, "blocked_on_object_model") or
-        std.mem.eql(u8, status, "deferred_high_risk");
-}
 
 fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
@@ -134,24 +194,27 @@ test "phase 8 libbpf segment manifest records the current bounded catalog" {
     try std.testing.expectEqualStrings("Phase 8", manifest.phase);
     try std.testing.expectEqualStrings(current_surveyed_commit, manifest.surveyed_commit);
     try std.testing.expectEqualStrings("tools/lib/bpf/libbpf.c", manifest.anchor);
-    try std.testing.expect(manifest.survey_summary.libbpf_c_lines >= 14000);
+    try std.testing.expectEqual(@as(usize, 14771), manifest.survey_summary.libbpf_c_lines);
     try std.testing.expect(!manifest.survey_summary.preexisting_zigux_segments_present);
     try std.testing.expect(!manifest.survey_summary.preexisting_phase8_libbpf_note_present);
-    try std.testing.expect(manifest.survey_summary.companion_c_files.len >= 5);
-    try std.testing.expect(manifest.segments.len >= 11);
+    try std.testing.expectEqual(expected_companion_files.len, manifest.survey_summary.companion_c_files.len);
+    for (expected_companion_files, manifest.survey_summary.companion_c_files) |expected, actual| {
+        try std.testing.expectEqualStrings(expected.path, actual.path);
+        try std.testing.expectEqual(expected.lines, actual.lines);
+    }
+    try std.testing.expectEqual(expected_segment_ids.len, manifest.segments.len);
 
     var starter_landed_count: usize = 0;
     var blocked_on_object_model_count: usize = 0;
     var deferred_high_risk_count: usize = 0;
 
     for (manifest.segments, 0..) |segment, i| {
-        try std.testing.expect(segment.id.len > 0);
-        try std.testing.expect(std.mem.startsWith(u8, segment.id, "P8-L15-S"));
-        try std.testing.expect(segment.slug.len > 0);
-        try std.testing.expect(segment.kind.len > 0);
+        try std.testing.expectEqualStrings(expected_segment_ids[i], segment.id);
+        try std.testing.expectEqualStrings(expected_segment_slugs[i], segment.slug);
+        try std.testing.expectEqualStrings(expected_segment_statuses[i], segment.status);
+        try std.testing.expectEqualStrings(expected_segment_kinds[i], segment.kind);
         try std.testing.expect(segment.anchor_ranges.len > 0);
         try std.testing.expect(segment.why_now.len > 0);
-        try std.testing.expect(isAllowedStatus(segment.status));
         try std.testing.expect(std.mem.startsWith(u8, segment.zigux_destination, "tools/lib/bpf/zigux_segments/"));
 
         if (std.mem.eql(u8, segment.status, "starter_landed")) starter_landed_count += 1;
@@ -164,9 +227,9 @@ test "phase 8 libbpf segment manifest records the current bounded catalog" {
         }
     }
 
-    try std.testing.expect(starter_landed_count >= 6);
-    try std.testing.expect(blocked_on_object_model_count >= 1);
-    try std.testing.expect(deferred_high_risk_count >= 4);
+    try std.testing.expectEqual(@as(usize, 6), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 1), blocked_on_object_model_count);
+    try std.testing.expectEqual(@as(usize, 4), deferred_high_risk_count);
 
     const cpu_mask_segment = findSegmentBySlug(manifest.segments, "cpu-mask-parsing") orelse return error.MissingCpuMaskSegment;
     try std.testing.expectEqualStrings("starter_landed", cpu_mask_segment.status);

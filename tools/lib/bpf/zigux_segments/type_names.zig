@@ -211,7 +211,7 @@ test "known enum ordinals from tools/include/uapi/linux/bpf.h map to the expecte
     try std.testing.expectEqualStrings("netfilter", libbpfBpfProgTypeStr(32).?);
 }
 
-test "type-name helpers reject out-of-range values the same way as libbpf.c" {
+test "type-name helper keeps negative and oversized ordinals out of range" {
     try std.testing.expectEqual(@as(?[]const u8, null), libbpfBpfAttachTypeStr(-1));
     try std.testing.expectEqual(@as(?[]const u8, null), libbpfBpfAttachTypeStr(@intCast(attach_type_names.len)));
 
