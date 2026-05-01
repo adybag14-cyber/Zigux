@@ -158,6 +158,42 @@ test "runtime bitmap sample keeps zero-length mutations and invalid copy sources
     try std.testing.expectError(error.InvalidSourceLifecycle, module.copyFrom(&exited_source));
 }
 
+test "runtime bitmap sample accepts selftest-complete copy sources at the module boundary" {
+    const second_word_base = sample.RuntimeBitmapSample.bitmap_nbits / 2;
+
+    var source = sample.RuntimeBitmapSample{};
+    try source.initWithSetBits(&.{ 4, 7, second_word_base + 1, second_word_base + 9 });
+    const source_summary_before_selftest = source.summary();
+    _ = try source.runSelftest();
+
+    var mirror = sample.RuntimeBitmapSample{};
+    try mirror.initWithSetBits(&.{});
+    try mirror.copyFrom(&source);
+
+    const mirror_summary = mirror.summary();
+    try std.testing.expectEqual(sample.ModuleStage.initialized, mirror.stage());
+    try std.testing.expectEqual(source_summary_before_selftest.first_set, mirror_summary.first_set);
+    try std.testing.expectEqual(source_summary_before_selftest.first_zero, mirror_summary.first_zero);
+    try std.testing.expectEqual(source_summary_before_selftest.weight, mirror_summary.weight);
+    try std.testing.expectEqual(source_summary_before_selftest.nbits, mirror_summary.nbits);
+    try std.testing.expectEqual(@as(usize, 1), mirror_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), mirror_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), mirror_summary.exit_runs);
+    try std.testing.expect(mirror.isSet(4));
+    try std.testing.expect(mirror.isSet(7));
+    try std.testing.expect(mirror.isSet(second_word_base + 1));
+    try std.testing.expect(mirror.isSet(second_word_base + 9));
+
+    const formatted = try mirror.formatSetBits(std.testing.allocator);
+    defer std.testing.allocator.free(formatted);
+    try std.testing.expectEqualStrings("4,7,65,73", formatted);
+
+    const selftest = try mirror.runSelftest();
+    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, mirror.stage());
+    try std.testing.expectEqual(@as(usize, 4), selftest.operation_families.len);
+    try std.testing.expectEqual(sample.OperationFamily.copy, selftest.operation_families[1]);
+}
+
 test "runtime bitmap sample keeps parse-and-print and bit-list guards explicit at the module boundary" {
     var module = sample.RuntimeBitmapSample{};
     try module.initWithSetBits(&.{ 0, 5, 64, 70 });
