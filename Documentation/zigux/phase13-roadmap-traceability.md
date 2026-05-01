@@ -23,6 +23,7 @@ Shared tranche entrypoints already present on `master`:
 - `Documentation/zigux/phase13-release-notes-survey.md` keeps the active validator-first release reading for those same four roadmap anchors visible instead of leaving the current survey packet implicit outside this traceability note
 - `lib/devres.c` is represented by real helper code, real tests, a manifest-backed survey packet, and explicit blocked DMA/scatterlist boundary evidence
 - the same shared packet also keeps `zigux/tests/phase13_libfs_reviewability.zig`, `zigux/tests/phase13_devres_reviewability.zig`, and the adjacent `zigux/tests/phase13_notifier_list_reviewability.zig` plus `Documentation/zigux/phase13-notifier-list-survey.md` visible as release-facing reviewability evidence without changing the roadmap's four-anchor count
+- the same shared packet also keeps `zigux/bindings/notifier_abi.zig`, `zigux/helpers/notifier_chain_view.zig`, `zigux/tests/phase13_notifier_list_reviewability.zig`, and `Documentation/zigux/phase13-notifier-list-survey.md` visible as roadmap-adjacent release-facing evidence without changing the roadmap's four-anchor count
 
 ## Anchor-to-repo map
 
@@ -137,15 +138,17 @@ The shared Phase 13 replay on `master` also includes one adjacent reviewability 
 
 - reviewability gate: `zigux/tests/phase13_notifier_list_reviewability.zig`
 - manifest: `zigux/tests/phase13_notifier_list_manifest.json`
-- manifest `lane_key`: `P13-L13`
-- manifest `surveyed_commit`: `d7f70f738c38afb54f6481f01059b7431f314905`
+- manifest `lane_key`: `P13-L18`
+- manifest `surveyed_commit`: `66b55d8a9a800345097f3c04b9f95130b1f8d0b8`
 - survey note: `Documentation/zigux/phase13-notifier-list-survey.md`
+- read-only generic notifier ABI foothold: `zigux/bindings/notifier_abi.zig`
+- bounded raw-notifier traversal helper: `zigux/helpers/notifier_chain_view.zig`
 
 Why this packet belongs here but stays outside the anchor count:
 
-- it documents roadmap-adjacent shared-helper footing around preexisting `list_head` or `hlist` ABI surfaces, public generic-notifier header anchors, and the still-missing Zigux-side generic notifier ABI or helper surface
-- it is already part of the shared `zigux/tests/phase13_build.zig` replay, so future runs need to see why that test exists without mistaking it for a new roadmap closure claim
-- it keeps the next honest same-family follow-up explicit: a tiny read-only notifier ABI foothold such as notifier-block or notifier-head references, and only after that a bounded helper-first linkage survey if the roadmap-backed helper tranche still needs it
+- it documents roadmap-adjacent shared-helper footing around preexisting `list_head` or `hlist` ABI surfaces, public generic-notifier header anchors, and the now-landed Zigux-side generic notifier ABI or helper foothold
+- it is already part of the shared `zigux/tests/phase13_build.zig` replay through both `phase13-notifier-list-reviewability-tests` and `phase13-notifier-chain-view-tests`, so future runs need to see why those tests exist without mistaking them for a new roadmap closure claim
+- it keeps the next honest same-family follow-up explicit: preserve this tiny read-only notifier ABI or helper foothold as roadmap-adjacent support evidence, and only widen later work if the shared-helper tranche genuinely needs more than the bounded helper-first linkage survey already landed here
 
 Traceability consequence:
 - the four roadmap anchors above remain the only Phase 13 anchor count for this note
