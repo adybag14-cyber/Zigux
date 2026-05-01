@@ -77,7 +77,9 @@ test "phase 5 kobject manifest records the exact bounded checks" {
         if (std.mem.indexOf(u8, prompt, "foo/baz/bar attribute order") != null) {
             saw_order_prompt = true;
         }
-        if (std.mem.indexOf(u8, prompt, "single register_runs ownership claim") != null) {
+        if (std.mem.indexOf(u8, prompt, "single register_runs ownership claim") != null and
+            std.mem.indexOf(u8, prompt, "explicit ownership-state transition") != null)
+        {
             saw_registration_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "0664 attribute mode pattern") != null) {
@@ -135,6 +137,8 @@ test "phase 5 kobject manifest records the exact bounded checks" {
         if (std.mem.eql(u8, check.id, "registration-step")) {
             saw_registration = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "exactly one register_runs increment") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "initialized_without_registered_attributes") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "registered_attributes_owned") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "leaves the sample registered with attributes accessible") != null);
         }
         if (std.mem.eql(u8, check.id, "static-name-no-uevent-boundary")) {
@@ -146,12 +150,14 @@ test "phase 5 kobject manifest records the exact bounded checks" {
         if (std.mem.eql(u8, check.id, "pre-registration-boundary")) {
             saw_pre_registration = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "active attribute count at zero") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "initialized_without_registered_attributes") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "registerAttributes claims ownership") != null);
         }
         if (std.mem.eql(u8, check.id, "initialized-exit-teardown")) {
             saw_initialized_exit = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "abandoned-before-registration teardown summary") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "registerRuns at zero") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "released_after_exit") != null);
         }
         if (std.mem.eql(u8, check.id, "shared-b-dispatch")) {
             saw_dispatch = true;
@@ -160,6 +166,8 @@ test "phase 5 kobject manifest records the exact bounded checks" {
         if (std.mem.eql(u8, check.id, "exit-boundary")) {
             saw_exit = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "registered exit returns a teardown summary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "registered_attributes_owned") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "released_after_exit") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "rejects later init, registerAttributes, showValue, or storeValue calls") != null);
         }
 
@@ -171,7 +179,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     try std.testing.expect(saw_descriptor_prompt);
     try std.testing.expect(saw_order_prompt);
     try std.testing.expect(saw_mode_prompt);
-    try std.testing.expect(saw_docs_prompt);
+    try std.testing.expect(sawDocs_prompt);
     try std.testing.expect(saw_static_name_prompt);
     try std.testing.expect(saw_group_boundary_prompt);
     try std.testing.expect(saw_pre_registration_prompt);
@@ -254,7 +262,9 @@ test "phase 5 kobject contributor docs stay aligned with the shipped review surf
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "no uevent delivery") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "dynamic kobjects out of scope") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "initialized-but-not-registered stage keeps the active attribute count at `0`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`initialized_without_registered_attributes` ownership state") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "initialized-only `exit()` path returns an `abandoned_before_registration` teardown summary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`released_after_exit` ownership state") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "post-`exit()` `init()`, `registerAttributes()`, `showValue()`, and `storeValue()` calls all remain rejected") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Latest verification snapshot") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "run the focused self-check that keeps the in-memory replay explicit") != null);
