@@ -4,7 +4,7 @@ This note records the current export-shim and UAPI boundary for the bounded Phas
 
 ## Status
 
-- `PHASE3_SURVEYED_COMMIT=a1a5dc6f22c383d6a527583b692b519e3a33ee1b`
+- `PHASE3_SURVEYED_COMMIT=4b7d98e9571cd52c5d4f32a95d6d65dc236b4807`
 - `PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig`
 - `PHASE3_EXPORT_SHIM_SCOPE=explicit-status-plus-boundary-header`
 - `PHASE3_EXPORT_SHIM_STATUS=normalize-and-compatibility-helpers-landed`
@@ -39,7 +39,7 @@ It does require the live repo to say clearly what is already part of the permane
 
 ## Live Repo Reality
 
-This survey is pinned to verified `master` head `a1a5dc6f22c383d6a527583b692b519e3a33ee1b` for the directly coupled export/UAPI packet, and it now also records the packet-local blob IDs for the curated header, helper, build, test, and manifest files so shallow history alone does not turn a reviewable packet into a false validation failure.
+This survey is pinned to verified `master` head `4b7d98e9571cd52c5d4f32a95d6d65dc236b4807` for the directly coupled export/UAPI packet, and it now also records the packet-local blob IDs for the curated header, helper, build, test, and manifest files so shallow history alone does not turn a reviewable packet into a false validation failure.
 
 The current tree already carries the first bounded export and UAPI boundary surface:
 
