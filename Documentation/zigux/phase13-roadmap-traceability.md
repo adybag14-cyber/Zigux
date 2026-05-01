@@ -131,9 +131,10 @@ Current lane state recorded in the manifest:
 - landed `phase13-landlock-net-port-import-followup`
 - landed `phase13-landlock-ruleset-fd-creation-handoff-followup`
 - landed `phase13-landlock-restrict-self-credential-handoff-followup`
+- landed `phase13-landlock-ruleset-fops-followup`
 
 Traceability summary:
-- this anchor stays roadmap-aligned and manifest-backed, and the helper packet now covers the shared build gate, make target, ABI sizing, bounded user-struct copy discipline, create-ruleset validation, restrict-self logging translation, restrict-self credential handoff ordering, add-rule planning, ruleset-FD lookup, path-FD lookup, path-beneath handoff, net-port handoff, and ruleset-FD creation handoff planning while still refusing to claim live user-memory access, live FD ownership, anonymous inode internals, credential updates, domain merges, or syscall enforcement.
+- this anchor stays roadmap-aligned and manifest-backed, and the helper packet now covers the shared build gate, make target, ABI sizing, bounded user-struct copy discipline, create-ruleset validation, restrict-self logging translation, restrict-self credential handoff ordering, add-rule planning, ruleset-FD lookup, path-FD lookup, path-beneath handoff, net-port handoff, ruleset-FD creation handoff planning, and the dedicated ruleset file-operations contract while still refusing to claim live user-memory access, live FD ownership, anonymous inode internals, credential updates, domain merges, or syscall enforcement.
 
 ## Roadmap-adjacent evidence that is not a fifth anchor
 
