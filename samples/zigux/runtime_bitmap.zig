@@ -480,17 +480,42 @@ test "runtime bitmap sample accepts selftest-complete copy sources in the direct
     try std.testing.expectEqual(OperationFamily.copy, selftest.operation_families[1]);
 }
 
-test "runtime bitmap sample keeps bit-list bounds, separators, and repeat-init lifecycle explicit in the direct sample leg" {
+test "runtime bitmap sample keeps bit-list bounds, separators, duplicate normalization, and repeat-init lifecycle explicit in the direct sample leg" {
     var trailing_comma = RuntimeBitmapSample{};
     try std.testing.expectError(error.InvalidBitList, trailing_comma.initFromBitList("0,"));
 
     var doubled_separator = RuntimeBitmapSample{};
     try std.testing.expectError(error.InvalidBitList, doubled_separator.initFromBitList("0,,5"));
+
     var out_of_bounds = RuntimeBitmapSample{};
     try std.testing.expectError(
         error.BitRangeOutOfBounds,
         out_of_bounds.initFromBitList("0, 5, 64, 128"),
     );
+
+    var duplicate_bits = RuntimeBitmapSample{};
+    try duplicate_bits.initFromBitList("70, 5, 70, 0, 64, 5");
+
+    const duplicate_summary = duplicate_bits.summary();
+    try std.testing.expectEqual(@as(u32, 0), duplicate_summary.first_set);
+    try std.testing.expectEqual(@as(u32, 1), duplicate_summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 4), duplicate_summary.weight);
+    try std.testing.expectEqual(RuntimeBitmapSample.bitmap_nbits, duplicate_summary.nbits);
+    try std.testing.expectEqual(@as(usize, 1), duplicate_summary.init_runs);
+    try std.testing.expectEqual(ModuleStage.initialized, duplicate_bits.stage());
+    try std.testing.expect(duplicate_bits.isSet(0));
+    try std.testing.expect(duplicate_bits.isSet(5));
+    try std.testing.expect(duplicate_bits.isSet(bitmap_view.bits_per_long));
+    try std.testing.expect(duplicate_bits.isSet(bitmap_view.bits_per_long + 6));
+    try std.testing.expectEqual(@as(?u32, 0), duplicate_bits.nthSetBit(0));
+    try std.testing.expectEqual(@as(?u32, 5), duplicate_bits.nthSetBit(1));
+    try std.testing.expectEqual(@as(?u32, bitmap_view.bits_per_long), duplicate_bits.nthSetBit(2));
+    try std.testing.expectEqual(@as(?u32, bitmap_view.bits_per_long + 6), duplicate_bits.nthSetBit(3));
+    try std.testing.expectEqual(@as(?u32, null), duplicate_bits.nthSetBit(4));
+
+    const duplicate_formatted = try duplicate_bits.formatSetBits(std.testing.allocator);
+    defer std.testing.allocator.free(duplicate_formatted);
+    try std.testing.expectEqualStrings("0,5,64,70", duplicate_formatted);
 
     var module = RuntimeBitmapSample{};
     try module.initFromBitList("0, 5, 64, 70");
