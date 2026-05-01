@@ -22,6 +22,8 @@ This document records the shared Phase 14 smoke lane that verifies the current b
 - `PHASE14_FOCUSED_SHARD_DEPENDENCY_COUNT=1`
 - `PHASE14_FOCUSED_SHARD_ONLY_ARTIFACT=phase14-end-to-end-smoke-tests`
 - `PHASE14_WORKFLOW_SMOKE_PATH=make-wrapper`
+- `PHASE14_BOUNDARY_MAP=shared-anchor-packet-bundle`
+- `PHASE14_CONCURRENCY_AUDIT_SCOPE=anchor-local-packets-only`
 - survey provenance captured against verified `master` head `efab12eaee3becb91eb2a763529ff250696b0bb0`
 - shared smoke boundary:
   - `scripts/zigux/validate-phase14.py`
@@ -78,6 +80,8 @@ This lane stays narrow on purpose. It does not add a new bridge. It verifies tha
 - `zigux/tests/phase14_end_to_end_smoke_survey.zig` now treats the shared note's quoted shared-lane marker plus per-anchor surveyed commits as machine-checked evidence, so future shared or anchor-manifest refreshes cannot silently leave the shared smoke note behind.
 - `zigux/tests/phase14_end_to_end_smoke_manifest.json` now also records which compile artifacts are `full_bundle_only` versus `focused_and_full_bundle`, so later build-file churn cannot silently overstate the number of dedicated Phase 14 shards.
 - the shared smoke manifest, note, checklist, and `scripts/zigux/README.md` now also carry one explicit rollback threshold, fallback path, and automatic return-to-blocked trigger catalog, so the packet fails closed if its stay-in-C review contract drifts.
+- `zigux/tests/phase14_end_to_end_smoke_manifest.json` is now the current four-anchor boundary map for the shared packet, because it keeps the workqueue, skbuff, ring-buffer, and RCU anchor manifests pinned together under one reviewable lane.
+- those same four anchor-local packets are the current bounded concurrency-audit scope for this slice: they keep queue, ownership, buffer, and grace-period audit evidence reviewable without claiming live parity or a status change.
 
 ## Productization evidence
 
