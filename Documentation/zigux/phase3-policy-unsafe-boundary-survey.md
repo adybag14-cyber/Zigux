@@ -61,7 +61,7 @@ The current tree already carries a real bounded policy-and-unsafe substrate:
 - `zigux/helpers/mmio.zig` routes scoped MMIO helpers back through that same narrow unsafe layer, so volatile pointer formation stays attached to the declared unsafe scope instead of widening into a generic raw-pointer helper family
 - `zigux/tests/phase3_policy_unsafe_build.zig` and `zigux/tests/phase3_policy_unsafe.zig` now keep `layout_assert`, panic, allocator, typed `InteropPolicy` decoding, unsafe-byte decoding, and declared-scope enforcement on their own focused replay path rather than leaving that packet visible only through the broader `phase3_abi.zig` bundle
 - `zigux/tests/fixtures/phase3_abi_manifest.json`, `Documentation/zigux/phase3-abi-slice.md`, and `scripts/zigux/validate-phase3.py` already treat that focused replay as part of the bounded ABI substrate packet
-- current `master` also extends that same focused replay to pin the newer allocator-init/reset expectations in `zigux/helpers/interop_policy.zig` and the new overflow-guard behavior in `zigux/unsafe/narrow.zig`, so this note can no longer stay pinned to the older pre-guard packet
+- current `master` also extends that same focused replay to pin the newer allocator-init/reset expectations in `zigux/helpers/interop_policy.zig` plus the narrow-overflow guard set in `zigux/unsafe/narrow.zig` through `narrow.checkedByteOffset()`, `narrow.checkedSpanBytes()`, `narrow.checkedSpanEnd()`, `narrow.scopedPointerAt()`, and `narrow.scopedConstSliceAt()`, so this note can no longer stay pinned to the older pre-guard packet
 
 This is real roadmap-backed progress.
 It is also still a narrow boundary packet rather than a full runtime policy substrate.
