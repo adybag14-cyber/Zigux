@@ -40,6 +40,14 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "ready_next");
 }
 
+fn isLowerHexSha(value: []const u8) bool {
+    if (value.len != 40) return false;
+    for (value) |byte| {
+        if (!std.ascii.isHex(byte) or std.ascii.isUpper(byte)) return false;
+    }
+    return true;
+}
+
 test "phase4 perf baseline survey manifest keeps the current unapproved threshold posture explicit" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -60,7 +68,9 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
     try std.testing.expectEqualStrings("Phase 4", manifest.phase);
     try std.testing.expectEqualStrings("Validation and Perf Team", manifest.owner);
     try std.testing.expectEqualStrings("Validation and Perf Team", manifest.rollback_owner);
+    try std.testing.expect(isLowerHexSha(current_surveyed_commit));
     try std.testing.expectEqualStrings(current_surveyed_commit, manifest.surveyed_commit);
+    try std.testing.expect(isLowerHexSha(manifest.surveyed_commit));
     try std.testing.expectEqual(@as(usize, 2), manifest.surveyed_gates.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.gaps.len);
 
