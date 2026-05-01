@@ -197,6 +197,13 @@
       "why_now": "The stay-in-C exception path now needs one explicit trigger-to-evidence rule so reopen requests cite the right refreshed packet evidence by path instead of relying on vague trigger names alone."
     },
     {
+      "id": "phase15-indefinite-c-reopen-trigger-catalog",
+      "status": "starter_landed",
+      "kind": "policy",
+      "zigux_destination": "Documentation/zigux/phase15-indefinite-c-policy.md",
+      "why_now": "The retained stay-in-C closeout now needs one explicit landed reopen-trigger catalog entry in the same manifest so the note, manifest, focused test, and shared governance packet keep the same reopen vocabulary instead of silently drifting."
+    },
+    {
       "id": "phase15-deep-core-status-change-blocker",
       "status": "blocked_on_stay_in_c_evidence",
       "kind": "freeze_map",
