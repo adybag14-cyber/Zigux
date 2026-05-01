@@ -69,6 +69,14 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
     );
     defer std.testing.allocator.free(build_file);
 
+    const syntax_lab_file = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase12_virtio_net_syntax_lab.zig",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(syntax_lab_file);
+
     const driver_file = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "drivers/net/virtio_net.zig",
@@ -110,6 +118,14 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
     try std.testing.expect(std.mem.indexOf(u8, build_file, "phase12_virtio_net_module") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_file, "phase12_virtio_net_tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_file, "run_phase12_virtio_net_tests.step") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_file, "phase12_virtio_net_syntax_lab_module") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_file, "phase12-virtio-net-syntax-lab-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_file, "run_phase12_virtio_net_syntax_lab_tests.step") != null);
+    try std.testing.expect(std.mem.indexOf(u8, syntax_lab_file, "const virtio_net = @import(\"virtio_net\");") != null);
+    try std.testing.expect(std.mem.indexOf(u8, syntax_lab_file, "VirtioNetProbeLab.descriptor()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, syntax_lab_file, "QueueResumeScope.data_control_and_rss") != null);
+    try std.testing.expect(std.mem.indexOf(u8, syntax_lab_file, "HeaderShape.hash_report_tunnel") != null);
+    try std.testing.expect(std.mem.indexOf(u8, syntax_lab_file, "MergeableReceiveRefillSummary") != null);
 
     var starter_landed_count: usize = 0;
     var blocked_count: usize = 0;
@@ -281,9 +297,12 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue-resume summary follow-up") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "bounded receive-path follow-up") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "bounded mergeable-refill follow-up") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "syntax-lab compile smoke") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-virtio-net-syntax-lab-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "still-blocked `phase12-virtio-net-runtime-data-path`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig test zigux/tests/phase12_virtio_net_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "first rollback and drift check before broader shared Phase 12 validation") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "build-graph-only compile-smoke proof") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, driver_file, "pub const VirtioNetProbeLab = struct") != null);
     try std.testing.expect(std.mem.indexOf(u8, driver_file, "pub fn captureProbeSnapshot") != null);
