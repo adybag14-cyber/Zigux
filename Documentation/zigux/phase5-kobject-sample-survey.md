@@ -79,7 +79,7 @@ The exact verification commands and observed results were:
   - observed result: `2/2 phase5_kobject_example_survey.test.phase 5 kobject contributor docs stay aligned with the shipped review surface...OK`
   - observed result: `All 2 tests passed.`
 - `zig build test --build-file zigux/tests/phase5_build.zig --summary all`
-  - observed result: `Build Summary: 17/17 steps succeeded; 27/27 tests passed`
+  - observed result: `Build Summary: 17/17 steps succeeded; 28/28 tests passed`
   - observed result: `phase5-kobject-example-tests 5 pass (5 total)`
   - observed result: `phase5-kobject-example-survey-tests 2 pass (2 total)`
 
