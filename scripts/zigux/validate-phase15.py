@@ -12,6 +12,7 @@ HEX40 = re.compile(r"^[0-9a-f]{40}$")
 
 FILES = [
     "scripts/zigux/validate-phase15.py",
+    "Documentation/zigux/README.md",
     "Documentation/zigux/freeze-map.md",
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase15-architecture-council-review-process.md",
@@ -44,11 +45,18 @@ WORKFLOW_MARKERS = [
     "make -C zigux phase15",
 ]
 
+README_MARKERS = [
+    "Phase 15 notes",
+    "remaining broader replay drift on current `master`",
+]
+
 SURVEY_MARKERS = [
     "## Current Repo Readiness",
     "## Readiness Gate",
     "make -C zigux phase15",
     "zig build test --build-file zigux/tests/phase15_build.zig",
+    "docs-root Phase 15 summary still says the handoff includes remaining broader replay drift",
+    "phase15-docs-root-summary-drift-blocker",
 ]
 
 BUILD_MARKERS = [
@@ -156,6 +164,7 @@ missing: list[str] = []
 for name, source, markers in [
     ("make", text("zigux/Makefile"), MAKE_MARKERS),
     ("workflow", text(".github/workflows/zigux-bootstrap.yml"), WORKFLOW_MARKERS),
+    ("readme", text("Documentation/zigux/README.md"), README_MARKERS),
     ("survey", text("Documentation/zigux/phase15-readiness-gate-survey.md"), SURVEY_MARKERS),
     ("build", text("zigux/tests/phase15_build.zig"), BUILD_MARKERS),
     ("review_process", text("Documentation/zigux/phase15-architecture-council-review-process.md"), REVIEW_PROCESS_MARKERS),
@@ -169,7 +178,7 @@ manifest = load_json("zigux/tests/phase15_readiness_gate_manifest.json")
 if manifest.get("phase") != "Phase 15":
     missing.append("manifest:phase")
 lane_key = manifest.get("lane_key")
-if lane_key != "P15-L06":
+if lane_key != "P15-L01":
     missing.append("manifest:lane_key")
 surveyed_commit = manifest.get("surveyed_commit")
 if surveyed_commit != "ef7b33b6922d05e5ef514fb4efa588316ce6dda8":
@@ -194,11 +203,21 @@ else:
             missing.append(f"manifest:repo_evidence:{key}")
     if repo_evidence.get("phase15_replay_green_on_current_master") is not True:
         missing.append("manifest:repo_evidence:phase15_replay_green_on_current_master")
+    if repo_evidence.get("docs_root_phase15_summary_aligned") is not False:
+        missing.append("manifest:repo_evidence:docs_root_phase15_summary_aligned")
     if repo_evidence.get("deep_core_status_change_ready") is not False:
         missing.append("manifest:repo_evidence:deep_core_status_change_ready")
 
 remaining_gaps = manifest.get("remaining_gaps")
 expected_gaps = {
+    "phase15-docs-root-summary-drift-blocker": {
+        "status": "blocked_on_release_evidence_alignment",
+        "zigux_destination": "Documentation/zigux/README.md",
+        "phrases": [
+            "docs-root Phase 15 summary",
+            "remaining broader replay drift",
+        ],
+    },
     "phase15-deep-core-status-change-blocker": {
         "status": "blocked_on_stay_in_c_evidence",
         "zigux_destination": "Documentation/zigux/phase15-parity-scorecard.md",
@@ -471,6 +490,9 @@ print("PHASE15_VALIDATION=pass")
 print(f"PHASE15_REQUIRED_FILE_COUNT={len(FILES)}")
 print(
     "PHASE15_REQUIRED_MARKER_COUNT="
-    f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(SURVEY_MARKERS) + len(BUILD_MARKERS)}"
+    f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(README_MARKERS) + len(SURVEY_MARKERS) + len(BUILD_MARKERS)}"
 )
-print("PHASE15_REMAINING_BLOCKERS=phase15-deep-core-status-change-blocker")
+print(
+    "PHASE15_REMAINING_BLOCKERS="
+    "phase15-docs-root-summary-drift-blocker,phase15-deep-core-status-change-blocker"
+)
