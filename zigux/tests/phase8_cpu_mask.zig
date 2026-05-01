@@ -53,6 +53,23 @@ test "phase 8 cpu mask starter slice accepts plus-prefixed CPU tokens like the l
     try std.testing.expectError(error.InvalidCpuRange, cpu_mask.parseCpuMaskString(std.testing.allocator, "-1"));
 }
 
+test "phase 8 cpu mask starter slice keeps sscanf-style whitespace after range dashes in parity with the live C helper" {
+    const parsed = try cpu_mask.parseCpuMaskString(std.testing.allocator, "0- 3,+5-\t6,+8-\r9\n");
+    defer parsed.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 8), cpu_mask.countPossibleCpus(parsed.values));
+    try std.testing.expect(parsed.values[0]);
+    try std.testing.expect(parsed.values[1]);
+    try std.testing.expect(parsed.values[2]);
+    try std.testing.expect(parsed.values[3]);
+    try std.testing.expect(!parsed.values[4]);
+    try std.testing.expect(parsed.values[5]);
+    try std.testing.expect(parsed.values[6]);
+    try std.testing.expect(!parsed.values[7]);
+    try std.testing.expect(parsed.values[8]);
+    try std.testing.expect(parsed.values[9]);
+}
+
 test "phase 8 cpu mask reader interface accepts chunked sysfs-style input" {
     const ReaderState = struct {
         chunks: []const []const u8,
@@ -72,7 +89,7 @@ test "phase 8 cpu mask reader interface accepts chunked sysfs-style input" {
     };
 
     var state = ReaderState{
-        .chunks = &.{ "+0-3", ",\t+5", "\n +7-+8\n" },
+        .chunks = &.{ "+0-\t3", ",\t+5", "\n +7-\r+8\n" },
     };
     var scratch: [8]u8 = undefined;
     const parsed = try cpu_mask.parseCpuMaskFromReader(std.testing.allocator, &scratch, .{
