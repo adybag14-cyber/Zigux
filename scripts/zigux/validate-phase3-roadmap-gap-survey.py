@@ -21,7 +21,7 @@ REQUIRED_SURVEY_MARKERS = (
     "PHASE3_CURRENT_BITMAP_CPUMASK=zigux/helpers/bitmap_view.zig,zigux/helpers/cpumask_view.zig",
     "PHASE3_CURRENT_LIST_HLIST=zigux/helpers/list_view.zig,zigux/helpers/hlist_view.zig",
     "PHASE3_CURRENT_RBTREE_STATUS=phase7-helper-exists-but-phase3-interop-slice-is-missing",
-    "PHASE3_CURRENT_RBTREE_EVIDENCE=tools/lib/rbtree.zig,lib/rbtree.zig,Documentation/zigux/phase1-closure.md,Documentation/zigux/phase7-rbtree-slice.md,zigux/tests/phase7_rbtree.zig",
+    "PHASE3_CURRENT_RBTREE_EVIDENCE=tools/lib/rbtree.zig,lib/rbtree.zig,Documentation/zigux/phase1-closure.md,Documentation/zigux/phase7-rbtree-slice.md,zigux/tests/phase7_rbtree.zig,zigux/tests/phase7_rbtree_survey.zig,zigux/tests/phase7_rbtree_manifest.json",
     "PHASE3_REPO_REALITY=chrdev-plan-growth-exceeds-roadmap-anchors",
     "PHASE3_INTEROP_GAP=rbtree-interop-slice-still-missing",
     "PHASE3_NEXT_BOUNDED_STEP=roadmap-backed-rbtree-interop-survey-or-slice-before-more-chrdev-growth",
@@ -44,6 +44,8 @@ REQUIRED_SURVEY_PATHS = (
     "lib/rbtree.zig",
     "tools/lib/rbtree.zig",
     "zigux/tests/phase7_rbtree.zig",
+    "zigux/tests/phase7_rbtree_survey.zig",
+    "zigux/tests/phase7_rbtree_manifest.json",
 )
 
 RBTREE_FREE_BOUNDARY_PATHS = (
@@ -142,6 +144,7 @@ def run_self_test() -> int:
         (root / "zigux" / "tests").mkdir(parents=True, exist_ok=True)
         (root / "zigux" / "uapi").mkdir(parents=True, exist_ok=True)
         (root / "lib").mkdir(parents=True, exist_ok=True)
+        (root / "tools" / "lib").mkdir(parents=True, exist_ok=True)
 
         for rel in REQUIRED_SURVEY_PATHS:
             path = root / rel
@@ -167,6 +170,7 @@ def run_self_test() -> int:
         stale_phase3_doc.unlink()
 
         abi_header = root / "include" / "zigux" / "abi.h"
+        abi_header.parent.mkdir(parents=True, exist_ok=True)
         abi_header.write_text("// rbtree drift\n", encoding="utf-8")
         issues = validate(root)
         assert "stale_rbtree_gap_claim_in_boundary:include/zigux/abi.h" in issues
