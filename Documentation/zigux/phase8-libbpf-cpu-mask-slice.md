@@ -25,7 +25,7 @@ The Phase 8 roadmap explicitly names `tools/lib/bpf/libbpf.c` as a tooling ancho
 - `zig test tools/lib/bpf/zigux_segments/cpu_mask.zig`
 
 2. run the dedicated Phase 8 tooling gate
-- `zig build test --build-file zigux/tests/phase8_build.zig`
+- `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
 
 3. run the convenience target
 - `make -C zigux phase8`
