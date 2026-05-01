@@ -767,6 +767,46 @@ test "phase11 hvc console keeps __hvc_poll drain ordering and wakeup boundaries 
     try std.testing.expect(!hangup_drain.wakeup_precedes_flip_push);
     try std.testing.expect(hangup_drain.backend_handoff_pending);
 
+    const flip_room_backpressure = try console.summarizePollDrainOrder(.{
+        .contract = .{
+            .close = .{
+                .open_count_before_close = 1,
+            },
+        },
+        .irq_requested = true,
+        .flip_room_available = false,
+    });
+    try std.testing.expect(flip_room_backpressure.tty_required_for_read_path);
+    try std.testing.expect(!flip_room_backpressure.throttled_read_skipped);
+    try std.testing.expect(!flip_room_backpressure.read_poll_armed_without_irq);
+    try std.testing.expect(flip_room_backpressure.read_poll_pending_after_drain);
+    try std.testing.expect(!flip_room_backpressure.read_hangup_pending);
+    try std.testing.expectEqual(@as(usize, 0), flip_room_backpressure.read_bytes_drained);
+    try std.testing.expect(!flip_room_backpressure.wakeup_before_unlock);
+    try std.testing.expect(!flip_room_backpressure.flip_push_after_unlock);
+    try std.testing.expect(!flip_room_backpressure.wakeup_precedes_flip_push);
+    try std.testing.expect(flip_room_backpressure.backend_handoff_pending);
+
+    const eagain_drain = try console.summarizePollDrainOrder(.{
+        .contract = .{
+            .close = .{
+                .open_count_before_close = 1,
+            },
+        },
+        .irq_requested = true,
+        .read_result = hvc_console.eagain,
+    });
+    try std.testing.expect(eagain_drain.tty_required_for_read_path);
+    try std.testing.expect(!eagain_drain.throttled_read_skipped);
+    try std.testing.expect(!eagain_drain.read_poll_armed_without_irq);
+    try std.testing.expect(eagain_drain.read_poll_pending_after_drain);
+    try std.testing.expect(!eagain_drain.read_hangup_pending);
+    try std.testing.expectEqual(@as(usize, 0), eagain_drain.read_bytes_drained);
+    try std.testing.expect(!eagain_drain.wakeup_before_unlock);
+    try std.testing.expect(!eagain_drain.flip_push_after_unlock);
+    try std.testing.expect(!eagain_drain.wakeup_precedes_flip_push);
+    try std.testing.expect(eagain_drain.backend_handoff_pending);
+
     const detached_drain = try console.summarizePollDrainOrder(.{
         .contract = .{
             .close = .{
