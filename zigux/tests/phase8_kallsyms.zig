@@ -443,7 +443,7 @@ test "phase 8 kallsyms thin reader and path adapters preserve the shipped parser
     );
 }
 
-test "phase 8 kallsyms direct wrappers preserve the C-shaped callback contract across contents and path entrypoints" {
+test "phase 8 kallsyms direct wrappers preserve the C-shaped callback contract across contents, reader, and path entrypoints" {
     const CallbackState = struct {
         names: std.ArrayList([]u8),
         symbol_types: std.ArrayList(u8),
@@ -508,6 +508,58 @@ test "phase 8 kallsyms direct wrappers preserve the C-shaped callback contract a
     try std.testing.expectEqualStrings("weak_handler", contents_state.names.items[1]);
     try std.testing.expectEqual(@as(u8, 'W'), contents_state.symbol_types.items[1]);
     try std.testing.expectEqual(@as(u64, 0xffffffff81000200), contents_state.starts.items[1]);
+
+    const SliceReader = struct {
+        bytes: []const u8,
+        index: usize = 0,
+
+        pub fn read(self: *@This(), dest: []u8) !usize {
+            if (self.index >= self.bytes.len) {
+                return 0;
+            }
+
+            const amt = @min(dest.len, self.bytes.len - self.index);
+            @memcpy(dest[0..amt], self.bytes[self.index .. self.index + amt]);
+            self.index += amt;
+            return amt;
+        }
+    };
+
+    var reader = SliceReader{ .bytes = contents };
+    var reader_scratch_buffer: [13]u8 = undefined;
+    var reader_state = CallbackState.init();
+    defer reader_state.deinit(std.testing.allocator);
+
+    const reader_result = try kallsyms.kallsymsParseReader(
+        std.testing.allocator,
+        &reader,
+        &reader_scratch_buffer,
+        &reader_state,
+        CallbackState.collect,
+    );
+
+    try std.testing.expectEqual(@as(i32, 23), reader_result);
+    try std.testing.expectEqual(@as(usize, 2), reader_state.names.items.len);
+    try std.testing.expectEqualStrings("startup_64", reader_state.names.items[0]);
+    try std.testing.expectEqualStrings("weak_handler", reader_state.names.items[1]);
+    try std.testing.expectEqual(@as(u8, 'W'), reader_state.symbol_types.items[1]);
+    try std.testing.expectEqual(@as(u64, 0xffffffff81000200), reader_state.starts.items[1]);
+
+    var empty_reader = SliceReader{ .bytes = contents };
+    var empty_reader_scratch_buffer: [0]u8 = .{};
+    var empty_reader_state = CallbackState.init();
+    defer empty_reader_state.deinit(std.testing.allocator);
+
+    try std.testing.expectError(
+        error.EmptyScratchBuffer,
+        kallsyms.kallsymsParseReader(
+            std.testing.allocator,
+            &empty_reader,
+            &empty_reader_scratch_buffer,
+            &empty_reader_state,
+            CallbackState.collectWithoutStop,
+        ),
+    );
 
     var temp_dir = std.testing.tmpDir(.{});
     defer temp_dir.cleanup();
@@ -636,6 +688,7 @@ test "phase 8 kallsyms docs keep the parked parser boundary explicit" {
     try expectContains(slice_note, "chunked overlong-line handling");
     try expectContains(slice_note, "stops buffering after the bounded callback surface is full");
     try expectContains(slice_note, "kallsymsParseContents()");
+    try expectContains(slice_note, "kallsymsParseReader()");
     try expectContains(slice_note, "kallsymsParse()");
     try expectContains(slice_note, "kallsymsParseInDir()");
     try expectContains(slice_note, "does not yet claim:");
