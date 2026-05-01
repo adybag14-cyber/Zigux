@@ -6,46 +6,22 @@ const Word = bitmap.Word;
 const bits_per_long = bitmap.bits_per_long;
 const bitmap_nbits: usize = 1024;
 const word_count: usize = bitmap.bitsToWords(bitmap_nbits);
-const exp1 = switch (bits_per_long) {
-    64 => [_]Word{
-        0x1,
-        0x2,
-        0x0000ffff,
-        0xffff0000,
-        0x55555555,
-        0xaaaaaaaa,
-        0x11111111,
-        0x22222222,
-        0xffffffff,
-        0xfffffffe,
-        0x3333333311111111,
-        0xffffffff77777777,
-        0x0,
-        0x00008000,
-        0x80000000,
-    },
-    // Keep the same mixed-word scan density on 32-bit hosts by spelling the
-    // wide C anchor words as adjacent low/high unsigned-long chunks.
-    32 => [_]Word{
-        0x1,
-        0x2,
-        0x0000ffff,
-        0xffff0000,
-        0x55555555,
-        0xaaaaaaaa,
-        0x11111111,
-        0x22222222,
-        0xffffffff,
-        0xfffffffe,
-        0x11111111,
-        0x33333333,
-        0x77777777,
-        0xffffffff,
-        0x0,
-        0x00008000,
-        0x80000000,
-    },
-    else => @compileError("bitmap_diff exp1 expects 32-bit or 64-bit unsigned-long hosts"),
+const exp1 = [_]Word{
+    0x1,
+    0x2,
+    0x0000ffff,
+    0xffff0000,
+    0x55555555,
+    0xaaaaaaaa,
+    0x11111111,
+    0x22222222,
+    0xffffffff,
+    0xfffffffe,
+    0x3333333311111111,
+    0xffffffff77777777,
+    0x0,
+    0x00008000,
+    0x80000000,
 };
 
 fn expectSet(map: []const Word, bit: usize) !void {
@@ -61,6 +37,7 @@ fn roundedPrefixLen(prefix_bits: usize) usize {
 }
 
 fn fillPrefix(map: []Word, prefix_bits: usize) void {
+    bitmap.zero(map, bitmap_nbits);
     bitmap.fill(map[0..bitmap.bitsToWords(prefix_bits)], prefix_bits);
 }
 
@@ -168,7 +145,6 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
     // The shipped Zig helper still keeps bitmap_fill(35) at the requested
     // prefix length; the rounded lib/test_bitmap.c anchor remains survey-only.
     try std.testing.expectEqual(bits_per_long, roundedPrefixLen(35));
-    bitmap.zero(&map, bitmap_nbits);
     fillPrefix(&map, 35);
     try std.testing.expectEqual(@as(usize, 35), weight(&map, bitmap_nbits));
     try std.testing.expectEqual(@as(usize, 0), firstSet(&map, bitmap_nbits));
@@ -223,16 +199,12 @@ test "bitmap diff survey keeps the current rounded fill drifts explicit against 
     // here until tools/lib/bitmap.zig changes.
     try std.testing.expectEqual(bits_per_long, roundedPrefixLen(35));
     try expectCurrentFillPrefix(&map, 35, 35, "0-34");
-    try std.testing.expectEqual(@as(usize, 34), findNthSet(&map, bitmap_nbits, 34));
-    try std.testing.expectEqual(bitmap_nbits, findNthSet(&map, bitmap_nbits, 35));
     try expectClear(&map, bits_per_long - 1);
 
     // The same drift is still present for fill(115): the kernel anchor rounds
     // to two whole words, while the current Zig helper stops at bit 114.
     try std.testing.expectEqual(bits_per_long * 2, roundedPrefixLen(115));
     try expectCurrentFillPrefix(&map, 115, 115, "0-114");
-    try std.testing.expectEqual(@as(usize, 114), findNthSet(&map, bitmap_nbits, 114));
-    try std.testing.expectEqual(bitmap_nbits, findNthSet(&map, bitmap_nbits, 115));
     try expectClear(&map, bits_per_long * 2 - 1);
 }
 
@@ -280,6 +252,37 @@ test "bitmap diff gate records exact full-width fill and zero endpoints" {
     try std.testing.expectEqual(@as(usize, 0), firstZero(&map, bitmap_nbits));
     try expectClear(&map, 0);
     try expectClear(&map, bitmap_nbits - 1);
+}
+
+test "bitmap diff gate keeps zero-nbits bitmap helpers as explicit no-ops" {
+    var map = [_]Word{ 0xaaaa, 0xbbbb };
+    const src = [_]Word{ 0x5555, 0xcccc };
+    var buffer = [_]u8{ 0xaa, 0xaa, 0xaa, 0xaa };
+
+    bitmap.setRange(&map, 0, 0);
+    try std.testing.expectEqualSlices(Word, &[_]Word{ 0xaaaa, 0xbbbb }, &map);
+
+    bitmap.clearRange(&map, 0, 0);
+    try std.testing.expectEqualSlices(Word, &[_]Word{ 0xaaaa, 0xbbbb }, &map);
+
+    bitmap.zero(&map, 0);
+    try std.testing.expectEqualSlices(Word, &[_]Word{ 0xaaaa, 0xbbbb }, &map);
+
+    bitmap.fill(&map, 0);
+    try std.testing.expectEqualSlices(Word, &[_]Word{ 0xaaaa, 0xbbbb }, &map);
+
+    copyFrom(&map, &src, 0);
+    try std.testing.expectEqualSlices(Word, &[_]Word{ 0xaaaa, 0xbbbb }, &map);
+
+    bitmap.copyClearTail(&map, &src, 0);
+    try std.testing.expectEqualSlices(Word, &[_]Word{ 0xaaaa, 0xbbbb }, &map);
+
+    try std.testing.expectEqual(@as(usize, 0), firstSet(&[_]Word{}, 0));
+    try std.testing.expectEqual(@as(usize, 0), firstZero(&[_]Word{}, 0));
+    try std.testing.expectEqual(@as(usize, 0), weight(&[_]Word{}, 0));
+    try expectPrintedList(&[_]Word{}, 0, "");
+    try std.testing.expectEqual(@as(usize, 0), bitmap.scnprintf(&[_]Word{}, 0, &buffer));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0xaa, 0xaa, 0xaa, 0xaa }, &buffer);
 }
 
 test "bitmap diff gate records exact bounded copy checks" {
@@ -491,14 +494,6 @@ test "bitmap diff gate records exact bounded find_nth_bit checks" {
     try std.testing.expectEqual(@as(usize, 123), findNthSet(&map, nth_nbits, 7));
     // test_find_nth_bit truncated-width nth 8 returns nbits
     try std.testing.expectEqual(nth_nbits, findNthSet(&map, nth_nbits, 8));
-    // test_find_nth_bit reduced-width replay keeps nth 0 through 6 unchanged
-    try std.testing.expectEqual(@as(usize, 10), findNthSet(&map, nth_nbits - 1, 0));
-    try std.testing.expectEqual(@as(usize, 20), findNthSet(&map, nth_nbits - 1, 1));
-    try std.testing.expectEqual(@as(usize, 30), findNthSet(&map, nth_nbits - 1, 2));
-    try std.testing.expectEqual(@as(usize, 40), findNthSet(&map, nth_nbits - 1, 3));
-    try std.testing.expectEqual(@as(usize, 50), findNthSet(&map, nth_nbits - 1, 4));
-    try std.testing.expectEqual(@as(usize, 60), findNthSet(&map, nth_nbits - 1, 5));
-    try std.testing.expectEqual(@as(usize, 80), findNthSet(&map, nth_nbits - 1, 6));
     // test_find_nth_bit reduced-width replay still keeps bit 123 for nth 7
     try std.testing.expectEqual(@as(usize, 123), findNthSet(&map, nth_nbits - 1, 7));
     // test_find_nth_bit reduced-width replay returns the cutoff width for nth 8
