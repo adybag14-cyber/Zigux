@@ -542,7 +542,7 @@ review_prompt_expectations = {
 survey_note_expectations = {
     "phase5_bytestream_fifo_manifest.json": {
         "sample_test_command": "zig test samples/zigux/bytestream_fifo.zig",
-        "sample_test_result": "All 3 tests passed.",
+        "sample_test_result": "All 4 tests passed.",
         "survey_test_command": "zig test zigux/tests/phase5_bytestream_fifo_survey.zig",
         "survey_test_result": "All 2 tests passed.",
     },
@@ -565,7 +565,6 @@ survey_note_expectations = {
         "survey_test_result": "All 2 tests passed.",
     },
 }
-
 
 def text(root: Path, path: str) -> str:
     return (root / path).read_text(encoding="utf-8")
