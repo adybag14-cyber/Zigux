@@ -57,7 +57,7 @@ test "phase 15 indefinite-C policy manifest records current policy, exception, a
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P15-L16", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("19997ad498eacc3bbf458721fb9527d5b095ac0b", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("81e215054a4f886d54f87d727c2a3a990f941f1e", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("policy for code that remains in C indefinitely", manifest.roadmap_requirement);
     try std.testing.expectEqual(@as(usize, 4), manifest.anchors.len);
     try std.testing.expectEqual(@as(usize, 8), manifest.supporting_artifacts.len);
@@ -219,7 +219,7 @@ test "phase 15 indefinite-C policy note preserves stay-in-C boundary language" {
 
     const policy_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
-        "Documentation/zigux/phase15-indefinite-c-policy.md",
+        "Documentation/zigux/phase15-indefinite_c_policy.md",
         std.testing.allocator,
         .limited(24 * 1024),
     );
