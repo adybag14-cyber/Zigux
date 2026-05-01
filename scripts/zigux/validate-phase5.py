@@ -493,7 +493,7 @@ review_prompt_expectations = {
                 "fixed helper-backed reviewable ceiling",
             ],
         },
-    },
+    ],
     "phase5_trace_events_sample_manifest.json": [
         {
             "id": "surveyed_commit_sync",
