@@ -374,11 +374,11 @@ def run_self_test() -> int:
         ]
 
         assert (
-            "PHASE3_ATOMIC_SCOPE=load-store-exchange-compare-exchange-fetch-add-fetch-sub-fetch-and-fetch-or-fetch-xor"
+            "PHASE3_ATOMIC_SCOPE=load-store-exchange-compare-exchange-compare-exchange-weak-fetch-add-fetch-sub-fetch-and-fetch-or-fetch-xor"
             in ABI_REQUIRED_DOC_MARKERS
         )
         assert (
-            "PHASE3_MMIO_SCOPE=range-read8-read16-read32-write8-write16-write32-plus-scoped-read8-write8-read16-write16-read32-write32"
+            "PHASE3_MMIO_SCOPE=range-read8-read16-read32-read64-write8-write16-write32-write64-plus-scoped-read8-write8-read16-write16-read32-write32-read64-write64"
             in ABI_REQUIRED_DOC_MARKERS
         )
         assert "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md" in ABI_REQUIRED_MANIFEST_FILES
@@ -392,6 +392,7 @@ def run_self_test() -> int:
         assert "atomic.fetchOr(u32, &value, 0b1000, .seq_cst)" in low_level_markers
         assert "atomic.fetchAnd(u32, &value, 0b0111, .seq_cst)" in low_level_markers
         assert "atomic.fetchXor(u32, &value, 0b1111, .seq_cst)" in low_level_markers
+        assert "const weak_mismatch = atomic.compareExchangeWeak(u32, &weak_value, 31, 55, .seq_cst, .seq_cst);" in low_level_markers
         assert (
             "try std.testing.expectError(error.AddressOverflow, mmio.write8Scoped(.volatile_mmio, std.math.maxInt(usize), 1, 0x99));"
             in low_level_markers
@@ -400,9 +401,19 @@ def run_self_test() -> int:
             "try std.testing.expectError(error.AddressOverflow, mmio.read32Scoped(.volatile_mmio, std.math.maxInt(usize), 4));"
             in low_level_markers
         )
+        assert "mmio.write64(base64, @sizeOf(u64), 0x0123_4567_89ab_cdef);" in low_level_markers
+        assert "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write64Scoped(.none, base64, 0, 0x99));" in low_level_markers
+        assert "try std.testing.expectError(error.MisalignedAccess, mmio.write64Scoped(.volatile_mmio, base64, 4, 0x99));" in low_level_markers
+        assert "try std.testing.expectError(error.AddressOverflow, mmio.write64Scoped(.volatile_mmio, std.math.maxInt(usize), 8, 0x99));" in low_level_markers
+        assert "try mmio.write64Scoped(.volatile_mmio, base64, 0, 0xfedc_ba98_7654_3210);" in low_level_markers
+        assert "try std.testing.expectEqual(@as(u64, 0xfedc_ba98_7654_3210), try mmio.read64Scoped(.volatile_mmio, base64, 0));" in low_level_markers
         assert 'test "phase3 low-level wrapper ABI range shape stays stable"' in low_level_markers
         assert 'test "phase3 low-level wrappers keep the narrow unsafe scope contract explicit"' in low_level_markers
         mmio_markers = ABI_REQUIRED_SOURCE_MARKERS["zigux/helpers/mmio.zig"]
+        assert "pub fn read64Scoped(scope: narrow.UnsafeScopeTag, base_addr: usize, offset: usize) narrow.ScopeError!u64 {" in mmio_markers
+        assert "pub fn write64Scoped(" in mmio_markers
+        assert "pub fn read64(base_addr: usize, offset: usize) u64 {" in mmio_markers
+        assert "pub fn write64(base_addr: usize, offset: usize, value: u64) void {" in mmio_markers
         assert 'test "phase3 mmio wrapper rejects overflowed scoped accesses"' in mmio_markers
         interop_markers = ABI_REQUIRED_SOURCE_MARKERS["zigux/helpers/interop_policy.zig"]
         assert "pub fn initializesOwnedState(self: DecodedInteropPolicy) bool {" in interop_markers
