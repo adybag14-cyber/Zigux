@@ -103,7 +103,7 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
     try expectContains(phase7_cmdline_slice, "`python3 scripts/zigux/validate-phase7.py --self-test`");
     try expectContains(phase7_cmdline_slice, "`make -C zigux phase7-validate`");
     try expectContains(phase7_cmdline_slice, "prove the shared Phase 7 validator packet still fails closed before the helper replay runs");
-    try expectContains(phase7_cmdline_slice, "zig build test --build-file zigux/tests/phase7_build.zig");
+    try expectContains(phase7_cmdline_slice, "zig build test --build-file zigux/tests/phase7_build.zig --summary all");
     try expectContains(phase7_cmdline_slice, "runtime-safe leaf helpers");
     try expectContains(phase7_cmdline_slice, "integration with validation substrate through `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, and `zigux/tests/phase7_build.zig`.");
     try expectContains(phase7_cmdline_slice, "helper-local test runs cannot import that fixture from outside the helper module path");
