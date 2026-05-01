@@ -5,9 +5,9 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 ## Status
 
 - `PHASE5_STATUS=active`
-- `PHASE5_LANE_KEY=P5-L04`
+- `PHASE5_LANE_KEY=P5-L01`
 - `PHASE5_SLICE=kfifo-reference-sample-starter`
-- `PHASE5_SURVEYED_COMMIT=9dab85059c6f56865ef2f981d2303049775c5001`
+- `PHASE5_SURVEYED_COMMIT=13365cbb5a6e11f60a771ff4a3323e14e6b58a28`
 - scope: roadmap-vs-repo sample delivery, approved reference-sample idiom guidance, and exact bounded checks for the first `samples/zigux/` kfifo-style replay
 - product boundary:
   - `Documentation/zigux/phase5-kfifo-sample-survey.md`
@@ -112,7 +112,7 @@ The exact checks currently recorded in `zigux/tests/phase5_bytestream_fifo_manif
 
 ## Latest verification snapshot
 
-Current sample behavior was re-verified against `master` commit `9dab85059c6f56865ef2f981d2303049775c5001` on 2026-04-30 with the attached Zig toolchain.
+Current sample behavior was re-verified against `master` commit `13365cbb5a6e11f60a771ff4a3323e14e6b58a28` on 2026-05-01 with the attached Zig toolchain.
 
 The exact verification commands and observed results were:
 
@@ -155,7 +155,7 @@ The roadmap delivery gap is already closed. The more precise ongoing review job 
 
 - all four roadmap anchors now have bounded non-runtime `samples/zigux/` reference samples on current `master`
 - `samples/zigux/README.md` now records that shipped anchor set plainly so reviewers can keep the bytestream FIFO slice distinct from the separate later Phase 9 runtime pilots
-- this approved in-memory FIFO idiom is now pinned to `PHASE5_SURVEYED_COMMIT=9dab85059c6f56865ef2f981d2303049775c5001` so the survey note, manifest-backed checks, shared sample-root catalog, shared review checklist, and contributor refresh path all point at the same inspected `master` head
+- this approved in-memory FIFO idiom is now pinned to `PHASE5_SURVEYED_COMMIT=13365cbb5a6e11f60a771ff4a3323e14e6b58a28` so the survey note, manifest-backed checks, shared sample-root catalog, shared review checklist, and contributor refresh path all point at the same inspected `master` head
 - the full four-anchor Phase 5 reference-sample set is already landed on current `master`, so this note should describe the bytestream FIFO slice as one approved in-memory FIFO idiom inside that completed anchor set rather than as a placeholder for a still-missing tranche item
 - the same sample-root packet also needs to keep the no-`samples/zigux/*cmdline*` boundary visible so the bytestream survey lane does not accidentally count the separate Phase 7 cmdline helper bundle as a missing Phase 5 sample gap
 - contributor guidance still needs to keep the explicit fixed-storage boundary, transfer-count contract, preview and snapshot checks, and non-goals visibly separate from procfs, user-copy, locking, and module-registration claims
