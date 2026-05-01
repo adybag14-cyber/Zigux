@@ -83,6 +83,20 @@ test "phase3 low-level wrappers stay inside the documented ABI surface" {
     try mmio.write32Scoped(.volatile_mmio, base, 4, 0xaabbccdd);
     try std.testing.expectEqual(@as(u32, 0xaabbccdd), try mmio.read32Scoped(.volatile_mmio, base, 4));
     try std.testing.expectEqual(@as(u32, 0xaabbccdd), regs[1]);
+
+    var regs64 = [_]u64{ 0, 0 };
+    const base64 = narrow.addressOf(&regs64[0]);
+    mmio.write64(base64, @sizeOf(u64), 0x0123_4567_89ab_cdef);
+    try std.testing.expectEqual(@as(u64, 0x0123_4567_89ab_cdef), mmio.read64(base64, @sizeOf(u64)));
+    try std.testing.expectEqual(@as(u64, 0x0123_4567_89ab_cdef), regs64[1]);
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.write64Scoped(.none, base64, 0, 0x99));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.read64Scoped(.raw_pointer_bridge, base64, 0));
+    try std.testing.expectError(error.MisalignedAccess, mmio.write64Scoped(.volatile_mmio, base64, 4, 0x99));
+    try std.testing.expectError(error.MisalignedAccess, mmio.read64Scoped(.volatile_mmio, base64, 4));
+    try std.testing.expectError(error.AddressOverflow, mmio.write64Scoped(.volatile_mmio, std.math.maxInt(usize), 8, 0x99));
+    try std.testing.expectError(error.AddressOverflow, mmio.read64Scoped(.volatile_mmio, std.math.maxInt(usize), 8));
+    try mmio.write64Scoped(.volatile_mmio, base64, 0, 0xfedc_ba98_7654_3210);
+    try std.testing.expectEqual(@as(u64, 0xfedc_ba98_7654_3210), try mmio.read64Scoped(.volatile_mmio, base64, 0));
 }
 
 test "phase3 low-level wrapper ABI range shape stays stable" {
