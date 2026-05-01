@@ -288,6 +288,11 @@ test "phase 8 docs keep the deferred irq routing and timer boundary explicit" {
     try expectContains(cpu_mask_note, "the bounded auto-CPU count clamp keeps possible-CPU sizing inside the map entry budget while still treating zero as the uncapped case");
     try expectContains(cpu_mask_note, "`libbpf_num_possible_cpus()` caching");
     try expectContains(cpu_mask_note, "`perf_buffer__new()` online CPU selection");
+    try expectContains(cpu_mask_note, "perf-buffer-online-cpu-routing");
+    try expectContains(cpu_mask_note, "interrupt-routing-sensitive timing boundary");
+    try expectContains(cpu_mask_note, "`perf_buffer__poll(timeout_ms)` timeout handling");
+    try expectContains(cpu_mask_note, "no standalone timer helper");
+    try expectContains(cpu_mask_note, "no standalone clockevent helper");
     try expectContains(cpu_mask_note, "per-CPU perf-buffer routing");
     try expectContains(cpu_mask_helper, "pub fn derivePerfBufferAutoCpuCount(possible_cpu_count: usize, map_max_entries: u32) usize {");
     try expectContains(cpu_mask_helper, "test \"parseCpuMaskString accepts the C helper's signed decimal token syntax when values stay non-negative\"");
