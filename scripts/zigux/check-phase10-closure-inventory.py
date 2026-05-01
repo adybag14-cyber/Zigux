@@ -12,6 +12,7 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 
 CLOSURE_NOTE = "Documentation/zigux/phase10-closure-evidence.md"
 CLOSURE_MANIFEST = "zigux/tests/phase10_closure_manifest.json"
+CLOSURE_LEDGER = "zigux-alpha/PHASE10_CLOSURE_LEDGER.md"
 
 EXPECTED_DOCS = [
     "Documentation/zigux/phase10-virtio-core-slice.md",
@@ -51,13 +52,30 @@ EXPECTED_TESTS = [
     "zigux/tests/phase10_virtio_mmio_survey.zig",
 ]
 
-REQUIRED_FILES = [CLOSURE_NOTE, CLOSURE_MANIFEST] + EXPECTED_DOCS + EXPECTED_MANIFESTS + EXPECTED_DRIVERS + EXPECTED_TESTS
+REQUIRED_FILES = [CLOSURE_NOTE, CLOSURE_MANIFEST, CLOSURE_LEDGER] + EXPECTED_DOCS + EXPECTED_MANIFESTS + EXPECTED_DRIVERS + EXPECTED_TESTS
 
 CLOSURE_NOTE_MARKERS = [
     "PHASE10_DOC_COUNT=9",
     "PHASE10_MANIFEST_COUNT=4",
     "PHASE10_DRIVER_COUNT=4",
     "PHASE10_TEST_COUNT=9",
+]
+
+LEDGER_MARKERS = [
+    "PHASE10_LEDGER_INVENTORY_VALIDATE=scripts/zigux/check-phase10-closure-inventory.py",
+    "PHASE10_LEDGER_VALIDATE=scripts/zigux/validate-phase10-closure.py",
+    "PHASE10_LEDGER_SHARED_VALIDATE=scripts/zigux/validate-phase10.py",
+    "PHASE10_LEDGER_CORE_LAB_GATE=zigux/tests/phase10_virtio_core.zig",
+    "PHASE10_LEDGER_CORE_SURVEY_GATE=zigux/tests/phase10_virtio_core_survey.zig",
+    "PHASE10_LEDGER_RING_SURVEY_GATE=zigux/tests/phase10_virtio_ring_survey.zig",
+    "PHASE10_LEDGER_INPUT_SURVEY_GATE=zigux/tests/phase10_virtio_input_survey.zig",
+    "PHASE10_LEDGER_MMIO_SURVEY_GATE=zigux/tests/phase10_virtio_mmio_survey.zig",
+    "PHASE10_LEDGER_EXACT_CHECK_1=python3 scripts/zigux/check-phase10-closure-inventory.py",
+    "PHASE10_LEDGER_EXACT_CHECK_2=python3 scripts/zigux/validate-phase10-closure.py",
+    "PHASE10_LEDGER_EXACT_CHECK_3=zig build test --build-file zigux/tests/phase10_build.zig --summary all",
+    "PHASE10_LEDGER_EXACT_CHECK_4=make -C zigux phase10-validate",
+    "PHASE10_LEDGER_EXACT_CHECK_5=make -C zigux phase10-test",
+    "PHASE10_LEDGER_EXACT_CHECK_6=make -C zigux phase10",
 ]
 
 
@@ -79,6 +97,11 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     for marker in CLOSURE_NOTE_MARKERS:
         if marker not in closure_note:
             missing.append(f"closure:{marker}")
+
+    closure_ledger = read_text(root, CLOSURE_LEDGER)
+    for marker in LEDGER_MARKERS:
+        if marker not in closure_ledger:
+            missing.append(f"ledger:{marker}")
 
     manifest = load_json(root, CLOSURE_MANIFEST)
     if not isinstance(manifest, dict):
@@ -110,6 +133,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
 
 def write_fixture(root: Path) -> None:
     closure_note = "\n".join(CLOSURE_NOTE_MARKERS) + "\n"
+    closure_ledger = "\n".join(LEDGER_MARKERS) + "\n"
     closure_manifest = {
         "phase": "Phase 10",
         "status": "active",
@@ -129,6 +153,8 @@ def write_fixture(root: Path) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
         if rel_path == CLOSURE_NOTE:
             path.write_text(closure_note, encoding="utf-8")
+        elif rel_path == CLOSURE_LEDGER:
+            path.write_text(closure_ledger, encoding="utf-8")
         elif rel_path == CLOSURE_MANIFEST:
             path.write_text(json.dumps(closure_manifest, indent=2) + "\n", encoding="utf-8")
         elif rel_path.endswith(".json"):
@@ -182,6 +208,14 @@ def run_self_test() -> int:
         )
         write_fixture(root)
 
+        (root / CLOSURE_LEDGER).unlink()
+        expect_missing_file("missing_closure_ledger", root, CLOSURE_LEDGER)
+        write_fixture(root)
+
+        (root / "zigux/tests/phase10_virtio_core.zig").unlink()
+        expect_missing_file("missing_core_lab_gate", root, "zigux/tests/phase10_virtio_core.zig")
+        write_fixture(root)
+
         manifest_path = root / CLOSURE_MANIFEST
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["docs"] = EXPECTED_DOCS[:-1]
@@ -189,13 +223,45 @@ def run_self_test() -> int:
         expect_missing_marker("manifest_docs_inventory", root, "manifest:docs")
         write_fixture(root)
 
+        ledger_path = root / CLOSURE_LEDGER
+        original_ledger = ledger_path.read_text(encoding="utf-8")
+        ledger_path.write_text(
+            original_ledger.replace(
+                "PHASE10_LEDGER_INVENTORY_VALIDATE=scripts/zigux/check-phase10-closure-inventory.py",
+                "PHASE10_LEDGER_INVENTORY_VALIDATE=missing",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "ledger_inventory_validator_marker",
+            root,
+            "ledger:PHASE10_LEDGER_INVENTORY_VALIDATE=scripts/zigux/check-phase10-closure-inventory.py",
+        )
+        ledger_path.write_text(original_ledger, encoding="utf-8")
+
+        ledger_path.write_text(
+            original_ledger.replace(
+                "PHASE10_LEDGER_EXACT_CHECK_1=python3 scripts/zigux/check-phase10-closure-inventory.py",
+                "PHASE10_LEDGER_EXACT_CHECK_1=python3 scripts/zigux/validate-phase10-closure.py",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "ledger_exact_check_order",
+            root,
+            "ledger:PHASE10_LEDGER_EXACT_CHECK_1=python3 scripts/zigux/check-phase10-closure-inventory.py",
+        )
+        ledger_path.write_text(original_ledger, encoding="utf-8")
+
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["tests"] = EXPECTED_TESTS[:-1] + ["zigux/tests/phase10_virtio_mmio_missing.zig"]
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         expect_missing_marker("manifest_tests_inventory", root, "manifest:tests")
 
     print("PHASE10_CLOSURE_INVENTORY_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_INVENTORY_SELF_TEST_CASE_COUNT=3")
+    print("PHASE10_CLOSURE_INVENTORY_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
@@ -221,7 +287,7 @@ def main() -> int:
 
     print("PHASE10_CLOSURE_INVENTORY=pass")
     print(f"PHASE10_CLOSURE_INVENTORY_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
-    print(f"PHASE10_CLOSURE_INVENTORY_REQUIRED_GROUP_COUNT=4")
+    print("PHASE10_CLOSURE_INVENTORY_REQUIRED_GROUP_COUNT=5")
     return 0
 
 
