@@ -41,6 +41,8 @@ ABI_REQUIRED_MANIFEST_FILES = (
     "zigux/unsafe/narrow.zig",
     ABI_LOW_LEVEL_BUILD_FILE_REL,
     "zigux/tests/phase3_low_level_wrappers.zig",
+    "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",
+    "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     ABI_POLICY_UNSAFE_BUILD_FILE_REL,
     "zigux/tests/phase3_policy_unsafe.zig",
     "zigux/tests/phase3_abi.zig",
@@ -53,6 +55,7 @@ ABI_REQUIRED_MANIFEST_FILES = (
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md",
     ABI_POLICY_UNSAFE_SURVEY_CHECK_REL,
+    "scripts/zigux/validate_phase3_header_binding_markers.py",
     "scripts/zigux/validate_phase3_core.py",
     "scripts/zigux/validate_phase3_selftest.py",
 )
