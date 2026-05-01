@@ -33,6 +33,30 @@ test "phase11 gpio_wdt parses the bounded property surface and reports config li
     try std.testing.expectError(error.WatchdogNotRunning, watchdog.ping());
 }
 
+test "phase11 gpio_wdt watchdog metadata summary keeps the simple-driver contract explicit" {
+    var toggle_watchdog = try gpio_wdt.GpioWatchdogLab.init(.toggle, 250, false);
+    const toggle_metadata = toggle_watchdog.watchdogMetadataSummary();
+    try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.c", toggle_metadata.anchor);
+    try std.testing.expectEqualStrings("GPIO Watchdog", toggle_metadata.identity);
+    try std.testing.expectEqual(gpio_wdt.HardwareAlgorithm.toggle, toggle_metadata.hw_algo);
+    try std.testing.expect(!toggle_metadata.always_running);
+    try std.testing.expect(toggle_metadata.supports_set_timeout);
+    try std.testing.expect(toggle_metadata.supports_magic_close);
+    try std.testing.expect(toggle_metadata.supports_keepalive_ping);
+    try std.testing.expect(toggle_metadata.start_op_ready);
+    try std.testing.expect(toggle_metadata.stop_op_ready);
+    try std.testing.expect(toggle_metadata.ping_op_ready);
+    try std.testing.expectEqual(@as(u32, gpio_wdt.soft_timeout_min), toggle_metadata.min_timeout_sec);
+    try std.testing.expectEqual(@as(u32, gpio_wdt.soft_timeout_default), toggle_metadata.default_timeout_sec);
+    try std.testing.expectEqual(@as(u32, 250), toggle_metadata.max_hw_heartbeat_ms);
+
+    var level_watchdog = try gpio_wdt.GpioWatchdogLab.init(.level, 500, true);
+    const level_metadata = level_watchdog.watchdogMetadataSummary();
+    try std.testing.expectEqual(gpio_wdt.HardwareAlgorithm.level, level_metadata.hw_algo);
+    try std.testing.expect(level_metadata.always_running);
+    try std.testing.expectEqual(@as(u32, 500), level_metadata.max_hw_heartbeat_ms);
+}
+
 test "phase11 gpio_wdt probe summary keeps startup and registration bookkeeping reviewable" {
     var toggle_watchdog = try gpio_wdt.GpioWatchdogLab.init(.toggle, 20, true);
     const toggle_probe = toggle_watchdog.probeSummary(true);
