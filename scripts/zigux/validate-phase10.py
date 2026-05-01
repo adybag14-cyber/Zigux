@@ -769,6 +769,21 @@ def run_self_test() -> int:
         )
         input_manifest_path.write_text(original_input_manifest, encoding="utf-8")
 
+        input_manifest_path.write_text(
+            original_input_manifest.replace(
+                "\"phase10-virtio-input-queue-callback-preflight-helper\",\n      \"status\": \"starter_landed\"",
+                "\"phase10-virtio-input-queue-callback-preflight-helper\",\n      \"status\": \"ready_next\"",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "input_manifest_ready_next_regression",
+            tmp_root,
+            "manifest:ready_next_count=1",
+        )
+        input_manifest_path.write_text(original_input_manifest, encoding="utf-8")
+
         mmio_manifest_path = tmp_root / "zigux/tests/phase10_virtio_mmio_manifest.json"
         original_mmio_manifest = mmio_manifest_path.read_text(encoding="utf-8")
         mmio_manifest_path.write_text(
@@ -798,6 +813,21 @@ def run_self_test() -> int:
             "mmio_manifest_interrupt_ack_gap_id",
             tmp_root,
             "mmio_manifest:gap:phase10-mmio-interrupt-ack-helper",
+        )
+        mmio_manifest_path.write_text(original_mmio_manifest, encoding="utf-8")
+
+        mmio_manifest_path.write_text(
+            original_mmio_manifest.replace(
+                "\"phase10-mmio-interrupt-ack-helper\",\n      \"status\": \"starter_landed\"",
+                "\"phase10-mmio-interrupt-ack-helper\",\n      \"status\": \"ready_next\"",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "mmio_manifest_ready_next_regression",
+            tmp_root,
+            "mmio_manifest:ready_next_count=1",
         )
         mmio_manifest_path.write_text(original_mmio_manifest, encoding="utf-8")
 
@@ -870,7 +900,7 @@ def run_self_test() -> int:
         doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
 
     print("PHASE10_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_VALIDATOR_SELF_TEST_CASE_COUNT=12")
+    print("PHASE10_VALIDATOR_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
