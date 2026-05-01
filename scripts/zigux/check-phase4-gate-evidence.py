@@ -19,6 +19,9 @@ REQUIRED_MARKERS = [
     "PHASE4_VALIDATION=pass",
     "PHASE4_REQUIRED_FILE_COUNT=",
     "PHASE4_REQUIRED_MARKER_COUNT=",
+    "PHASE4_GATE_EVIDENCE_SELF_TEST=pass",
+    "PHASE4_GATE_EVIDENCE_CHECK=pass",
+    "PHASE4_GATE_EVIDENCE_TARGET_COUNT=",
     "## Exact Readback Evidence",
     "## Current Conclusion",
 ]
@@ -84,6 +87,12 @@ def validate_root(root: Path) -> list[str]:
         if evidence_line not in gate_evidence:
             missing.append(f"phase4_gate_evidence:{marker}:{digest}")
 
+    expected_target_count_line = (
+        f"PHASE4_GATE_EVIDENCE_TARGET_COUNT={len(PHASE4_GATE_EVIDENCE_BLOB_TARGETS)}"
+    )
+    if expected_target_count_line not in gate_evidence:
+        missing.append(f"phase4_gate_evidence:{expected_target_count_line}")
+
     return missing
 
 
@@ -122,6 +131,9 @@ def write_fixture_tree(root: Path) -> None:
         "- `PHASE4_VALIDATION=pass`",
         "- `PHASE4_REQUIRED_FILE_COUNT=22`",
         "- `PHASE4_REQUIRED_MARKER_COUNT=232`",
+        "- `PHASE4_GATE_EVIDENCE_SELF_TEST=pass`",
+        "- `PHASE4_GATE_EVIDENCE_CHECK=pass`",
+        f"- `PHASE4_GATE_EVIDENCE_TARGET_COUNT={len(PHASE4_GATE_EVIDENCE_BLOB_TARGETS)}`",
         "",
         "## Exact Readback Evidence",
         "",
@@ -133,7 +145,7 @@ def write_fixture_tree(root: Path) -> None:
     ]
     for marker, relative_path in PHASE4_GATE_EVIDENCE_BLOB_TARGETS.items():
         digest = git_blob_sha1(read_bytes(root, relative_path))
-        gate_evidence_lines.insert(11, f"- `{marker}={digest}`")
+        gate_evidence_lines.insert(14, f"- `{marker}={digest}`")
 
     (root / "Documentation/zigux/phase4-gate-evidence.md").write_text(
         "\n".join(gate_evidence_lines) + "\n",
@@ -173,6 +185,21 @@ def run_self_test() -> int:
         )
         missing = validate_root(root)
         assert "phase4_gate_evidence:PHASE4_VALIDATION=pass" in missing, missing
+
+        write_fixture_tree(root)
+        gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
+        gate_evidence.write_text(
+            gate_evidence.read_text(encoding="utf-8").replace(
+                "PHASE4_GATE_EVIDENCE_CHECK=pass",
+                "PHASE4_GATE_EVIDENCE_CHECK=fail",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert (
+            "phase4_gate_evidence:PHASE4_GATE_EVIDENCE_CHECK=pass" in missing
+        ), missing
 
         write_fixture_tree(root)
         gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
