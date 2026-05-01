@@ -308,7 +308,7 @@ def run_self_test() -> int:
 
         gpio_test_path = tmp_root / "zigux/tests/phase11_gpio_wdt.zig"
         original_gpio_test = gpio_test_path.read_text(encoding="utf-8")
-        gpio_test_path.writeText(
+        gpio_test_path.write_text(
             original_gpio_test.replace(
                 "    const toggle_teardown = try toggle_watchdog.summarizeTeardown(false);\n",
                 "",
