@@ -14,6 +14,8 @@ EXPECTED_MAKE_EXPANSIONS = {
     "phase7-validate": [
         "python3 scripts/zigux/validate-phase7.py --self-test",
         "python3 scripts/zigux/validate-phase7.py",
+        "python3 scripts/zigux/check-phase7-build-inventory.py --self-test",
+        "python3 scripts/zigux/check-phase7-build-inventory.py",
         "python3 scripts/zigux/check-phase7-make-wrapper.py --self-test",
         "python3 scripts/zigux/check-phase7-make-wrapper.py",
         "python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test",
@@ -27,6 +29,8 @@ EXPECTED_MAKE_EXPANSIONS = {
     "phase7": [
         "python3 scripts/zigux/validate-phase7.py --self-test",
         "python3 scripts/zigux/validate-phase7.py",
+        "python3 scripts/zigux/check-phase7-build-inventory.py --self-test",
+        "python3 scripts/zigux/check-phase7-build-inventory.py",
         "python3 scripts/zigux/check-phase7-make-wrapper.py --self-test",
         "python3 scripts/zigux/check-phase7-make-wrapper.py",
         "python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test",
@@ -45,6 +49,8 @@ UNEXPECTED_MAKE_EXPANSIONS = {
     "phase7-test": [
         "python3 scripts/zigux/validate-phase7.py --self-test",
         "python3 scripts/zigux/validate-phase7.py",
+        "python3 scripts/zigux/check-phase7-build-inventory.py --self-test",
+        "python3 scripts/zigux/check-phase7-build-inventory.py",
         "python3 scripts/zigux/check-phase7-make-wrapper.py --self-test",
         "python3 scripts/zigux/check-phase7-make-wrapper.py",
         "python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test",
@@ -78,15 +84,15 @@ def check_root(root: Path, env: dict[str, str] | None = None) -> tuple[bool, lis
                 failures.append(stderr)
             continue
 
-        wrapper_output = result.stdout
+        wrapper_lines = {line.strip() for line in result.stdout.splitlines() if line.strip()}
         for line in expected_lines:
-            if line not in wrapper_output:
+            if line not in wrapper_lines:
                 failures.append(
                     f"{target_name}: missing expected wrapper expansion: {line}"
                 )
 
         for line in UNEXPECTED_MAKE_EXPANSIONS.get(target_name, []):
-            if line in wrapper_output:
+            if line in wrapper_lines:
                 failures.append(
                     f"{target_name}: unexpected wrapper expansion: {line}"
                 )
@@ -154,6 +160,41 @@ def run_self_test() -> int:
                 + (" | ".join(failures) or "no_output")
             )
 
+        missing_build_inventory_selftest = {
+            "phase7-validate": [
+                line
+                for line in EXPECTED_MAKE_EXPANSIONS["phase7-validate"]
+                if line
+                != "python3 scripts/zigux/check-phase7-build-inventory.py --self-test"
+            ],
+            "phase7-test": EXPECTED_MAKE_EXPANSIONS["phase7-test"],
+            "phase7": EXPECTED_MAKE_EXPANSIONS["phase7"],
+        }
+        make_fake_make(fake_make_path, missing_build_inventory_selftest)
+        expect_failure(
+            "missing_build_inventory_selftest",
+            tmp_root,
+            fake_make_env,
+            "phase7-validate: missing expected wrapper expansion: python3 scripts/zigux/check-phase7-build-inventory.py --self-test",
+        )
+
+        missing_build_inventory_live = {
+            "phase7-validate": [
+                line
+                for line in EXPECTED_MAKE_EXPANSIONS["phase7-validate"]
+                if line != "python3 scripts/zigux/check-phase7-build-inventory.py"
+            ],
+            "phase7-test": EXPECTED_MAKE_EXPANSIONS["phase7-test"],
+            "phase7": EXPECTED_MAKE_EXPANSIONS["phase7"],
+        }
+        make_fake_make(fake_make_path, missing_build_inventory_live)
+        expect_failure(
+            "missing_build_inventory_live",
+            tmp_root,
+            fake_make_env,
+            "phase7-validate: missing expected wrapper expansion: python3 scripts/zigux/check-phase7-build-inventory.py",
+        )
+
         missing_cmdline_selftest = {
             "phase7-validate": [
                 line
@@ -207,7 +248,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE7_MAKE_WRAPPER_SELF_TEST=pass")
-    print("PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT=4")
+    print("PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
