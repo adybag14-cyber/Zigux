@@ -312,7 +312,7 @@ manifest_expectations = {
         "sample_path": "samples/zigux/kobject_example.zig",
         "survey_note_path": "Documentation/zigux/phase5-kobject-sample-survey.md",
         "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
-        "survey_build_summary": "Build Summary: 17/17 steps succeeded; 27/27 tests passed",
+        "survey_build_summary": "Build Summary: 17/17 steps succeeded; 28/28 tests passed",
         "non_goals": [
             "sysfs file creation parity",
             "kernel_kobj integration",
@@ -827,7 +827,7 @@ def run_self_test() -> int:
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         note_text = note_path.read_text(encoding="utf-8")
         note_text = note_text.replace(
-            manifest_expectations["phase5_trace_events_sample_manifest.json"]["survey_build_summary"],
+            manifest_expectations["phase5_trace_events_sample.json"]["survey_build_summary"],
             "Build Summary: 17/17 steps succeeded; 99/99 tests passed",
             1,
         )
