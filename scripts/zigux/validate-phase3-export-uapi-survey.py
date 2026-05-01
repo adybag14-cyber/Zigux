@@ -38,6 +38,7 @@ REQUIRED_SURVEY_SNIPPETS = (
     "zigux/tests/phase3_export_uapi_build.zig",
     "zigux/tests/phase3_export_uapi.zig",
     "zigux/tests/fixtures/phase3_abi_manifest.json",
+    "named version and size predicates",
     "keep canonical-size header checks separate from broader future-compatible header acceptance",
     "last fully resurveyed shared-head anchor",
     "packet-local blob IDs are now the authoritative current boundary evidence",
@@ -85,6 +86,9 @@ REQUIRED_EXPORT_SHIM_SNIPPETS = (
 REQUIRED_UAPI_VERSION_SNIPPETS = (
     "pub const Header = abi.BoundaryHeader;",
     "pub fn boundaryHeader(flags: u16) Header {",
+    "pub fn isCurrentAbiVersion(version: u16) bool {",
+    "pub fn isCompatibleSize(size: u32) bool {",
+    "pub fn isCanonicalSize(size: u32) bool {",
     "pub fn isCompatible(header: Header) bool {",
     "pub fn isCanonical(header: Header) bool {",
     'test "phase3 uapi boundary header distinguishes canonical and future-compatible shapes"',
@@ -96,9 +100,14 @@ REQUIRED_ABI_SLICE_SNIPPETS = (
 )
 
 REQUIRED_EXPORT_UAPI_TEST_SNIPPETS = (
+    "try std.testing.expect(uapi_version.isCurrentAbiVersion(header.abi_version));",
+    "try std.testing.expect(uapi_version.isCanonicalSize(header.size));",
     "try std.testing.expect(export_shim.isCanonicalHeader(header));",
     "try std.testing.expect(uapi_version.isCanonical(header));",
+    "try std.testing.expect(!uapi_version.isCompatibleSize(undersized_header.size));",
+    "try std.testing.expect(!uapi_version.isCurrentAbiVersion(mismatched_version_header.abi_version));",
     "const future_compatible_header: abi.BoundaryHeader = .{",
+    "try std.testing.expect(uapi_version.isCompatibleSize(future_compatible_header.size));",
     "try std.testing.expect(!export_shim.isCanonicalHeader(future_compatible_header));",
     "try std.testing.expect(!uapi_version.isCanonical(future_compatible_header));",
     "try std.testing.expect(export_shim.isCompatibleHeader(future_compatible_header));",
