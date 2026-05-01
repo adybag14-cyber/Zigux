@@ -171,6 +171,59 @@ test "phase 8 exec-cmd environment wrapper propagates PREFIX, exec path, and PAT
 
     try std.testing.expectEqualStrings("/repo/tools/bin:", inherited_empty);
     try std.testing.expectEqualStrings(inherited_empty, inherited_empty_env.get("PATH").?);
+
+    var inherited_relative_env = exec_cmd.EnvMap.init(std.testing.allocator);
+    defer inherited_relative_env.deinit();
+
+    var inherited_relative_state = exec_cmd.ExecCmdState{};
+    defer inherited_relative_state.deinit(std.testing.allocator);
+
+    try exec_cmd.execCmdInit(&inherited_relative_env, config);
+    try exec_cmd.setArgv0Path(std.testing.allocator, &inherited_relative_state, "scripts");
+    try inherited_relative_env.set("PERF_EXEC_PATH", "tools/bin");
+    try inherited_relative_env.set("PATH", "/usr/bin");
+
+    const inherited_relative = try exec_cmd.setupPath(
+        std.testing.allocator,
+        &inherited_relative_env,
+        inherited_relative_state,
+        config,
+        "/repo",
+    );
+    defer std.testing.allocator.free(inherited_relative);
+
+    try std.testing.expectEqualStrings("tools/bin", inherited_relative_env.get("PERF_EXEC_PATH").?);
+    try std.testing.expectEqualStrings(
+        "/repo/tools/bin:/repo/scripts:/usr/bin",
+        inherited_relative,
+    );
+    try std.testing.expectEqualStrings(inherited_relative, inherited_relative_env.get("PATH").?);
+
+    var root_cwd_env = exec_cmd.EnvMap.init(std.testing.allocator);
+    defer root_cwd_env.deinit();
+
+    var root_cwd_state = exec_cmd.ExecCmdState{};
+    defer root_cwd_state.deinit(std.testing.allocator);
+
+    try exec_cmd.execCmdInit(&root_cwd_env, config);
+    try exec_cmd.setArgvExecPath(std.testing.allocator, &root_cwd_env, &root_cwd_state, config, "tools/bin");
+    try exec_cmd.setArgv0Path(std.testing.allocator, &root_cwd_state, "scripts");
+    try root_cwd_env.set("PATH", "/usr/bin");
+
+    const root_cwd = try exec_cmd.setupPath(
+        std.testing.allocator,
+        &root_cwd_env,
+        root_cwd_state,
+        config,
+        "/",
+    );
+    defer std.testing.allocator.free(root_cwd);
+
+    try std.testing.expectEqualStrings(
+        "//tools/bin://scripts:/usr/bin",
+        root_cwd,
+    );
+    try std.testing.expectEqualStrings(root_cwd, root_cwd_env.get("PATH").?);
 }
 
 test "phase 8 exec-cmd setupPathWithPwd reuses logical PWD only when the injected stat proof matches" {
