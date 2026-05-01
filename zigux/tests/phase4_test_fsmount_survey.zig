@@ -176,6 +176,13 @@ test "phase4 test_fsmount survey manifest records the landed survey packet and r
         .limited(32 * 1024),
     );
     defer std.testing.allocator.free(phase4_matrix);
+    const phase4_gate_evidence = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase4-gate-evidence.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(phase4_gate_evidence);
     const doc_readme = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/README.md",
@@ -291,6 +298,12 @@ test "phase4 test_fsmount survey manifest records the landed survey packet and r
     try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, "phase4-test-fsmount-survey-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, "make -C zigux phase4-test-fsmount-survey") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, "c_anchor_only_until_test_fsmount_starter_lands") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "PHASE4_EVIDENCE_MODE=github_connector_readback") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "PHASE4_TEST_FSMOUNT_MANIFEST_BLOB_SHA=") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "PHASE4_TEST_FSMOUNT_SURVEY_BLOB_SHA=") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, current_surveyed_commit) != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "phase4_test_fsmount_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, doc_readme, "phase4-test-fsmount-survey") != null);
     try std.testing.expect(std.mem.indexOf(u8, doc_readme, "phase4-test-fsmount-survey-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, script_readme, "make -C zigux phase4-test-fsmount-survey") != null);
