@@ -26,6 +26,8 @@ Phase 7 is where Zigux starts moving from earlier standalone helper ports into r
 - benefit from explicit pointer and termination handling
 - can be validated with a focused Zig gate before deeper formatting, escaping, or allocation-backed helpers are attempted
 
+This current slice keeps the work bounded to runtime-safe leaf helpers with explicit integration with validation substrate through `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_survey.zig`, and `zigux/tests/phase7_build.zig`.
+
 This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane. Current `master` keeps string-helper reviewability in the helper and test bundle under `lib/string_helpers.zig`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_survey.zig`, and `zigux/tests/phase7_build.zig`, while the four Phase 5 `samples/zigux/` anchors remain `bytestream_fifo`, `kobject_example`, `kretprobe_example`, and `trace_events_sample`.
 
 Review note:
@@ -34,13 +36,17 @@ Review note:
 
 ## Gates
 
-1. run the focused Zig Phase 7 helper tests
+1. prove the shared Phase 7 validator packet still fails closed before the helper replay runs
+- `python3 scripts/zigux/validate-phase7.py --self-test`
+- `make -C zigux phase7-validate`
+
+2. run the focused Zig Phase 7 helper tests
 - `zig build test --build-file zigux/tests/phase7_build.zig`
 
-2. keep the helper wired through the Zigux convenience target
+3. keep the helper wired through the Zigux convenience target
 - `make -C zigux phase7`
 
-3. keep the helper-only roadmap and sample-root boundary explicit
+4. keep the helper-only roadmap and sample-root boundary explicit
 - `zigux/tests/phase7_string_helpers_survey.zig`
 
 ## Current parity surface
