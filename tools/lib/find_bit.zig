@@ -359,7 +359,7 @@ test "find underscore aliases preserve scan semantics" {
     try std.testing.expectEqual(findNextZeroBit(&full, nbits, bits_per_long), find_next_zero_bit(&full, nbits, bits_per_long));
 }
 
-test "find low-level underscore entry points preserve scan semantics" {
+test "find low-level underscore entry points preserve same-word and tail-clamped scan semantics" {
     const nbits = bits_per_long + 5;
     const lhs = [_]Word{ (@as(Word, 1) << 2) | (@as(Word, 1) << 7), (@as(Word, 1) << 1) | (@as(Word, 1) << 8) };
     const rhs = [_]Word{ (@as(Word, 1) << 7), (@as(Word, 1) << 1) | (@as(Word, 1) << 9) };
