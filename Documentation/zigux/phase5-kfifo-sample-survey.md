@@ -40,6 +40,7 @@ Fresh repo inspection now shows that `samples/zigux/` carries all four roadmap-a
 
 The `kfifo`-specific gap is no longer missing sample delivery. The remaining work in this lane is to keep the approved idiom, exact checks, and non-goals honest now that the full Phase 5 anchor set is landed, especially where later Phase 9 runtime pilots exist under neighboring Linux sample families.
 The sample-root catalog in `samples/zigux/README.md` is part of that boundary now, because it is the shortest shared place to keep the four Phase 5 reference readings visibly separate from the later runtime starters that live in the same directory.
+The same catalog now also keeps the current no `samples/zigux/*cmdline*` Phase 5 boundary explicit, so the approved bytestream idiom does not drift into the separate Phase 7 cmdline helper bundle rooted in `Documentation/zigux/phase7-cmdline-slice.md`, `lib/cmdline.zig`, `zigux/tests/phase7_cmdline.zig`, and `zigux/tests/phase7_build.zig`.
 
 ## Survey findings
 
@@ -50,6 +51,7 @@ The sample-root catalog in `samples/zigux/README.md` is part of that boundary no
   - procfs and user-copy plumbing through `proc_create`, `kfifo_from_user`, `kfifo_to_user`, and mutex-protected read or write paths
 - the live Zigux repo now ships bounded Phase 5 side-by-side samples under `samples/zigux/` for the `kfifo`, `kobject`, `kretprobe`, and `trace-events` anchors, while still keeping the later Phase 9 runtime starters separate from these non-runtime reference readings.
 - `samples/zigux/README.md` is the shared sample-root catalog for that directory boundary, so drift there is a Phase 5 reviewability problem even when the bytestream sample code itself has not changed.
+- the shared sample-root catalog and docs root both now say plainly that current `master` ships no `samples/zigux/*cmdline*` Phase 5 reference sample, so cmdline review stays in the separate Phase 7 helper bundle instead of reading like another missing sample port.
 - the shared sample-root catalog now also carries a dedicated bytestream FIFO review-packet stanza, so contributors can refresh the exact replay contract, helper-only review surface, and out-of-scope runtime claims without having to infer them from the sample code alone.
 - the generic review checklist already covers the Phase 5 boundary between a reviewable idiom and a runtime-ready module, but contributors still benefit from one sample-backed set of prompts tied directly to the shipped bytestream FIFO slice.
 
@@ -142,7 +144,7 @@ When a contributor updates `samples/zigux/bytestream_fifo.zig` or its directly c
 - does `zigux/tests/phase5_bytestream_fifo.zig` still keep the separate bounded helper test surface explicit so empty-queue null handling, preview truncation, the capacity ceiling, and queue-only reset behavior remain reviewable outside the main replay path?
 - if the sample behavior changes, is the manifest updated alongside the replay expectations instead of leaving reviewers to infer the new contract from code alone?
 - does `Documentation/zigux/review-checklist.md` still point reviewers back to the descriptor, manifest-backed survey, sample-backed survey note, and shared `phase5_build.zig` entrypoint for this exact Phase 5 replay contract?
-- does `samples/zigux/README.md` still separate the four Phase 5 reference samples from the later `runtime_*` starters that share the same directory, and does its dedicated bytestream FIFO review-packet stanza still call out the exact replay contract, helper-only review surface, and out-of-scope runtime claims without turning those runtime files into implied Phase 5 idioms?
+- does `samples/zigux/README.md` still separate the four Phase 5 reference samples from the later `runtime_*` starters that share the same directory, keep the dedicated bytestream FIFO review-packet stanza focused on the exact replay contract, helper-only review surface, and out-of-scope runtime claims, and still say plainly that current `master` ships no `samples/zigux/*string*` or `samples/zigux/*cmdline*` Phase 5 reference sample because those helper families stay under the separate Phase 7 bundles?
 - do the docs and tests still say clearly that procfs, user-copy, locking, and runtime registration remain out of scope for this Phase 5 sample?
 
 These prompts are intentionally sample-backed rather than generic. They tie review back to the concrete descriptor, manifest, and build entrypoint that current `master` already ships.
@@ -155,6 +157,7 @@ The roadmap delivery gap is already closed. The more precise ongoing review job 
 - `samples/zigux/README.md` now records that shipped anchor set plainly so reviewers can keep the bytestream FIFO slice distinct from the separate later Phase 9 runtime pilots
 - this approved in-memory FIFO idiom is now pinned to `PHASE5_SURVEYED_COMMIT=9dab85059c6f56865ef2f981d2303049775c5001` so the survey note, manifest-backed checks, shared sample-root catalog, shared review checklist, and contributor refresh path all point at the same inspected `master` head
 - the full four-anchor Phase 5 reference-sample set is already landed on current `master`, so this note should describe the bytestream FIFO slice as one approved in-memory FIFO idiom inside that completed anchor set rather than as a placeholder for a still-missing tranche item
+- the same sample-root packet also needs to keep the no-`samples/zigux/*cmdline*` boundary visible so the bytestream survey lane does not accidentally count the separate Phase 7 cmdline helper bundle as a missing Phase 5 sample gap
 - contributor guidance still needs to keep the explicit fixed-storage boundary, transfer-count contract, preview and snapshot checks, and non-goals visibly separate from procfs, user-copy, locking, and module-registration claims
 
 This slice keeps the landed bytestream FIFO sample reviewable by recording the exact lifecycle, queue-order replay, transfer-count contract, preview and snapshot checks, fixed embedded storage boundary, and non-goal cues reviewers should check before approving future edits, without reopening the closed Phase 5 sample-delivery gap.
