@@ -16,7 +16,82 @@ ARTIFACT_DIFF = ROOT / 'scripts' / 'zigux' / 'artifact_diff.py'
 C_FIXDEP = ROOT / 'scripts' / 'basic' / 'fixdep.c'
 ZIG_FIXDEP = ROOT / 'scripts' / 'zigux' / 'fixdep.zig'
 FIXTURE_DIR = ROOT / 'zigux' / 'tests' / 'fixtures' / 'fixdep'
-CASES = json.loads((FIXTURE_DIR / 'cases.json').read_text(encoding='utf-8'))
+CASES_PATH = FIXTURE_DIR / 'cases.json'
+EXPECTED_C_FIXDEP = ROOT / 'scripts' / 'basic' / 'fixdep.c'
+EXPECTED_ZIG_FIXDEP = ROOT / 'scripts' / 'zigux' / 'fixdep.zig'
+EXPECTED_CASES = {
+    'sample': {
+        'depfile': 'sample.d',
+        'target': 'sample.o',
+        'cmdline': 'clang -Iinclude -DZIGUX_SAMPLE -c zigux/tests/fixtures/fixdep/sample.c -o sample.o',
+        'expected': 'sample_expected.txt',
+        'expected_exit_code': 0,
+    },
+    'sample_multi_target': {
+        'depfile': 'sample_multi_target.d',
+        'target': 'module/sample2.o',
+        'cmdline': 'clang -Iinclude -DZIGUX_MULTI -c zigux/tests/fixtures/fixdep/sample2.c -o module/sample2.o',
+        'expected': 'sample_multi_target_expected.txt',
+        'expected_exit_code': 0,
+    },
+    'sample_escaped_space': {
+        'depfile': 'sample_escaped_space.d',
+        'target': 'sample_escaped_space.o',
+        'cmdline': 'clang -c zigux/tests/fixtures/fixdep/sample_escaped_space_source.c -o sample_escaped_space.o',
+        'expected': 'sample_escaped_space_expected.txt',
+        'expected_exit_code': 0,
+    },
+    'sample_concatenated': {
+        'depfile': 'sample_concatenated.d',
+        'target': 'sample_concatenated.o',
+        'cmdline': 'clang -c zigux/tests/fixtures/fixdep/sample_concatenated_source.c -o sample_concatenated.o',
+        'expected': 'sample_concatenated_expected.txt',
+        'expected_exit_code': 0,
+    },
+    'sample_comment_only': {
+        'depfile': 'sample_comment_only.d',
+        'target': 'sample_comment_only.o',
+        'cmdline': 'clang -Iinclude -DZIGUX_SAMPLE -c zigux/tests/fixtures/fixdep/sample.c -o sample_comment_only.o',
+        'expected': 'sample_comment_only_expected.txt',
+        'expected_stderr': 'sample_comment_only_expected.stderr.txt',
+        'expected_exit_code': 1,
+    },
+    'sample_comment_only_stdout_full': {
+        'depfile': 'sample_comment_only.d',
+        'target': 'sample_comment_only_stdout_full.o',
+        'cmdline': 'clang -Iinclude -DZIGUX_SAMPLE -c zigux/tests/fixtures/fixdep/sample.c -o sample_comment_only_stdout_full.o',
+        'expected': 'sample_output_write_expected.txt',
+        'expected_stderr': 'sample_comment_only_expected.stderr.txt',
+        'expected_exit_code': 1,
+        'stdout_mode': 'dev_full',
+    },
+    'sample_missing_dep': {
+        'depfile': 'sample_missing_dep.d',
+        'target': 'sample_missing_dep.o',
+        'cmdline': 'clang -c zigux/tests/fixtures/fixdep/sample_missing_dep_source.c -o sample_missing_dep.o',
+        'expected': 'sample_missing_dep_expected.txt',
+        'expected_stderr': 'sample_missing_dep_expected.stderr.txt',
+        'expected_exit_code': 2,
+    },
+    'sample_missing_dep_stdout_full': {
+        'depfile': 'sample_missing_dep.d',
+        'target': 'sample_missing_dep_stdout_full.o',
+        'cmdline': 'clang -c zigux/tests/fixtures/fixdep/sample_missing_dep_source.c -o sample_missing_dep_stdout_full.o',
+        'expected': 'sample_output_write_expected.txt',
+        'expected_stderr': 'sample_missing_dep_expected.stderr.txt',
+        'expected_exit_code': 2,
+        'stdout_mode': 'dev_full',
+    },
+    'sample_output_write': {
+        'depfile': 'sample.d',
+        'target': 'sample_output_write.o',
+        'cmdline': 'clang -Iinclude -DZIGUX_SAMPLE -c zigux/tests/fixtures/fixdep/sample.c -o sample_output_write.o',
+        'expected': 'sample_output_write_expected.txt',
+        'expected_stderr': 'sample_output_write_expected.stderr.txt',
+        'expected_exit_code': 1,
+        'stdout_mode': 'dev_full',
+    },
+}
 
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
@@ -78,6 +153,161 @@ def find_zig(explicit: str | None) -> str:
     if fallback.exists():
         return str(fallback)
     raise FileNotFoundError('no zig executable found; set --zig or ZIG')
+
+
+def load_cases(path: Path) -> object:
+    return json.loads(path.read_text(encoding='utf-8'))
+
+
+def validate_tool_sources(c_fixdep: Path, zig_fixdep: Path) -> None:
+    if c_fixdep != EXPECTED_C_FIXDEP:
+        raise ValueError(f'fixdep:c_tool={c_fixdep},expected={EXPECTED_C_FIXDEP}')
+    if zig_fixdep != EXPECTED_ZIG_FIXDEP:
+        raise ValueError(f'fixdep:zig_tool={zig_fixdep},expected={EXPECTED_ZIG_FIXDEP}')
+
+
+def validate_cases(cases: object) -> list[dict[str, object]]:
+    if not isinstance(cases, list) or not cases:
+        raise ValueError(f'{CASES_PATH}:expected_non_empty_json_list')
+
+    validated: list[dict[str, object]] = []
+    seen_names: set[str] = set()
+    for index, raw_case in enumerate(cases):
+        if not isinstance(raw_case, dict):
+            raise ValueError(f'{CASES_PATH}:entry[{index}]:expected_json_object')
+
+        name = raw_case.get('name')
+        if not isinstance(name, str) or not name:
+            raise ValueError(f'{CASES_PATH}:entry[{index}]:missing_non_empty_name')
+        if name in seen_names:
+            raise ValueError(f'{CASES_PATH}:duplicate_name:{name}')
+        seen_names.add(name)
+
+        expected_case = EXPECTED_CASES.get(name)
+        if expected_case is None:
+            raise ValueError(f'{CASES_PATH}:unexpected_name:{name}')
+
+        validated_case = dict(raw_case)
+        for field_name, expected_value in expected_case.items():
+            actual_value = validated_case.get(field_name, 0 if field_name == 'expected_exit_code' else None)
+            if actual_value != expected_value:
+                raise ValueError(
+                    f'{CASES_PATH}:{name}:{field_name}={actual_value!r},expected={expected_value!r}'
+                )
+
+        depfile = validated_case.get('depfile')
+        if not isinstance(depfile, str) or not depfile:
+            raise ValueError(f'{CASES_PATH}:{name}:missing_non_empty_depfile')
+        if not (FIXTURE_DIR / depfile).exists():
+            raise FileNotFoundError(f'{CASES_PATH}:missing_depfile:{depfile}')
+
+        expected_stdout_name = validated_case.get('expected_stdout', validated_case.get('expected'))
+        if not isinstance(expected_stdout_name, str) or not expected_stdout_name:
+            raise ValueError(f'{CASES_PATH}:{name}:missing_expected_output')
+        if not (FIXTURE_DIR / expected_stdout_name).exists():
+            raise FileNotFoundError(f'{CASES_PATH}:missing_expected_output:{expected_stdout_name}')
+
+        expected_exit_code = int(validated_case.get('expected_exit_code', 0))
+        if expected_exit_code != 0:
+            expected_stderr_name = validated_case.get('expected_stderr')
+            if not isinstance(expected_stderr_name, str) or not expected_stderr_name:
+                raise ValueError(f'{CASES_PATH}:{name}:missing_expected_stderr')
+            if not (FIXTURE_DIR / expected_stderr_name).exists():
+                raise FileNotFoundError(f'{CASES_PATH}:missing_expected_stderr:{expected_stderr_name}')
+
+        stdout_mode = validated_case.get('stdout_mode')
+        if stdout_mode not in (None, 'dev_full'):
+            raise ValueError(f'{CASES_PATH}:{name}:unsupported_stdout_mode:{stdout_mode!r}')
+
+        validated.append(validated_case)
+
+    if len(validated) != len(EXPECTED_CASES):
+        raise ValueError(f'{CASES_PATH}:count={len(validated)},expected={len(EXPECTED_CASES)}')
+
+    missing_names = sorted(set(EXPECTED_CASES) - seen_names)
+    if missing_names:
+        raise ValueError(f'{CASES_PATH}:missing_name:{missing_names[0]}')
+
+    return validated
+
+
+def expect_failure(label: str, callback, expected_message: str) -> None:
+    try:
+        callback()
+    except (ValueError, FileNotFoundError) as exc:
+        actual_message = str(exc)
+        if actual_message != expected_message:
+            raise SystemExit(
+                f'fixdep:self-test:{label}:expected={expected_message!r}:actual={actual_message!r}'
+            ) from exc
+        return
+    raise SystemExit(f'fixdep:self-test:{label}:missing_failure:{expected_message!r}')
+
+
+def run_self_test() -> int:
+    valid_cases = validate_cases(load_cases(CASES_PATH))
+    validate_tool_sources(C_FIXDEP, ZIG_FIXDEP)
+
+    expect_failure(
+        'non_list_cases',
+        lambda: validate_cases({'cases': valid_cases}),
+        f'{CASES_PATH}:expected_non_empty_json_list',
+    )
+    expect_failure(
+        'empty_cases',
+        lambda: validate_cases([]),
+        f'{CASES_PATH}:expected_non_empty_json_list',
+    )
+
+    duplicate_name_cases = [dict(case) for case in valid_cases]
+    duplicate_name_cases[1]['name'] = duplicate_name_cases[0]['name']
+    expect_failure(
+        'duplicate_name',
+        lambda: validate_cases(duplicate_name_cases),
+        f'{CASES_PATH}:duplicate_name:{valid_cases[0]["name"]}',
+    )
+
+    unexpected_name_cases = [dict(case) for case in valid_cases]
+    unexpected_name_cases[0]['name'] = 'unexpected_fixdep_case'
+    expect_failure(
+        'unexpected_name',
+        lambda: validate_cases(unexpected_name_cases),
+        f'{CASES_PATH}:unexpected_name:unexpected_fixdep_case',
+    )
+
+    missing_stderr_cases = [dict(case) for case in valid_cases]
+    missing_stderr_cases[4].pop('expected_stderr', None)
+    expect_failure(
+        'missing_expected_stderr',
+        lambda: validate_cases(missing_stderr_cases),
+        f'{CASES_PATH}:sample_comment_only:expected_stderr=None,expected='"'"'sample_comment_only_expected.stderr.txt'"'"'',
+    )
+
+    unsupported_stdout_mode_cases = [dict(case) for case in valid_cases]
+    unsupported_stdout_mode_cases[5]['stdout_mode'] = 'pipe_full'
+    expect_failure(
+        'unsupported_stdout_mode',
+        lambda: validate_cases(unsupported_stdout_mode_cases),
+        f"{CASES_PATH}:sample_comment_only_stdout_full:stdout_mode='pipe_full',expected='dev_full'",
+    )
+
+    missing_depfile_cases = [dict(case) for case in valid_cases]
+    missing_depfile_cases[0]['depfile'] = 'missing_depfile.d'
+    expect_failure(
+        'missing_depfile',
+        lambda: validate_cases(missing_depfile_cases),
+        f"{CASES_PATH}:sample:depfile='missing_depfile.d',expected='sample.d'",
+    )
+
+    expect_failure(
+        'explicit_tool_drift',
+        lambda: validate_tool_sources(C_FIXDEP.with_name('fixdep-mismatch.c'), ZIG_FIXDEP),
+        f'fixdep:c_tool={C_FIXDEP.with_name("fixdep-mismatch.c")},expected={EXPECTED_C_FIXDEP}',
+    )
+
+    print('FIXDEP_SELF_TEST=pass')
+    print('FIXDEP_SELF_TEST_CASE_COUNT=8')
+    return 0
 
 
 def windows_to_wsl(path: Path) -> str:
@@ -194,13 +424,19 @@ def main() -> int:
     parser = argparse.ArgumentParser(description='Check bounded fixdep C/Zig artifact parity.')
     parser.add_argument('--refresh', action='store_true', help='Refresh the committed expected output from current C fixdep.')
     parser.add_argument('--cc', help='Explicit C compiler path to use.')
+    parser.add_argument('--self-test', action='store_true', help='Run built-in fixdep manifest and explicit-tool checks.')
     parser.add_argument('--zig', help='Explicit zig executable path to use.')
     args = parser.parse_args()
 
+    if args.self_test:
+        return run_self_test()
+
     compiler = args.cc or os.environ.get('CC') or ('gcc' if os.name == 'nt' and shutil.which('wsl') else find_compiler(None))
     zig = find_zig(args.zig)
+    cases = validate_cases(load_cases(CASES_PATH))
+    validate_tool_sources(C_FIXDEP, ZIG_FIXDEP)
 
-    for case in CASES:
+    for case in cases:
         depfile = FIXTURE_DIR / case['depfile']
         expected_stdout = FIXTURE_DIR / case.get('expected_stdout', case['expected'])
         expected_stderr_name = case.get('expected_stderr')
