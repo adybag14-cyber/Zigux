@@ -17,6 +17,63 @@ fn readWorkspaceFile(allocator: std.mem.Allocator, path: []const u8, limit: usiz
     );
 }
 
+const ChunkFixtureState = struct {
+    chunks: []const []const u8,
+    index: usize = 0,
+};
+
+fn nextFixtureChunk(state: *ChunkFixtureState) anyerror!?[]const u8 {
+    if (state.index >= state.chunks.len) {
+        return null;
+    }
+
+    const chunk = state.chunks[state.index];
+    state.index += 1;
+    return chunk;
+}
+
+const OwnedParsedSymbol = struct {
+    name: []u8,
+    symbol_type: u8,
+    start: u64,
+
+    fn deinit(self: *@This(), allocator: std.mem.Allocator) void {
+        allocator.free(self.name);
+        self.* = undefined;
+    }
+};
+
+fn appendOwnedParsedSymbol(list: *std.ArrayList(OwnedParsedSymbol), symbol: kallsyms.ParsedSymbol) !void {
+    try list.append(std.testing.allocator, .{
+        .name = try std.testing.allocator.dupe(u8, symbol.name),
+        .symbol_type = symbol.symbol_type,
+        .start = symbol.start,
+    });
+}
+
+fn deinitOwnedParsedSymbols(list: *std.ArrayList(OwnedParsedSymbol)) void {
+    for (list.items) |*symbol| {
+        symbol.deinit(std.testing.allocator);
+    }
+    list.deinit(std.testing.allocator);
+}
+
+const SliceReader = struct {
+    bytes: []const u8,
+    index: usize = 0,
+
+    pub fn read(self: *@This(), dest: []u8) !usize {
+        if (self.index >= self.bytes.len) {
+            return 0;
+        }
+
+        const amt = @min(dest.len, self.bytes.len - self.index);
+        @memcpy(dest[0..amt], self.bytes[self.index .. self.index + amt]);
+        self.index += amt;
+        return amt;
+    }
+};
+
 test "phase 8 kallsyms module imports cleanly" {
     _ = kallsyms;
 }
@@ -101,41 +158,9 @@ test "phase 8 kallsyms injected parser preserves callback failures" {
 }
 
 test "phase 8 kallsyms chunked reader slice keeps parser behavior across split input" {
-    const ChunkFixtureState = struct {
-        chunks: []const []const u8,
-        index: usize = 0,
-    };
-
-    const ChunkFixture = struct {
-        fn next(state: *ChunkFixtureState) anyerror!?[]const u8 {
-            if (state.index >= state.chunks.len) {
-                return null;
-            }
-
-            const chunk = state.chunks[state.index];
-            state.index += 1;
-            return chunk;
-        }
-    };
-
-    const OwnedParsedSymbol = struct {
-        name: []u8,
-        symbol_type: u8,
-        start: u64,
-
-        fn deinit(self: *@This(), allocator: std.mem.Allocator) void {
-            allocator.free(self.name);
-            self.* = undefined;
-        }
-    };
-
     const Collector = struct {
         fn append(list: *std.ArrayList(OwnedParsedSymbol), symbol: kallsyms.ParsedSymbol) !void {
-            try list.append(std.testing.allocator, .{
-                .name = try std.testing.allocator.dupe(u8, symbol.name),
-                .symbol_type = symbol.symbol_type,
-                .start = symbol.start,
-            });
+            try appendOwnedParsedSymbol(list, symbol);
         }
     };
 
@@ -148,17 +173,12 @@ test "phase 8 kallsyms chunked reader slice keeps parser behavior across split i
     };
 
     var symbols = std.ArrayList(OwnedParsedSymbol).empty;
-    defer {
-        for (symbols.items) |*symbol| {
-            symbol.deinit(std.testing.allocator);
-        }
-        symbols.deinit(std.testing.allocator);
-    }
+    defer deinitOwnedParsedSymbols(&symbols);
 
     try kallsyms.forEachParsedChunked(
         std.testing.allocator,
         &state,
-        ChunkFixture.next,
+        nextFixtureChunk,
         &symbols,
         Collector.append,
     );
@@ -170,45 +190,13 @@ test "phase 8 kallsyms chunked reader slice keeps parser behavior across split i
 }
 
 test "phase 8 kallsyms chunked reader slice preserves callback failures across split input" {
-    const ChunkFixtureState = struct {
-        chunks: []const []const u8,
-        index: usize = 0,
-    };
-
-    const ChunkFixture = struct {
-        fn next(state: *ChunkFixtureState) anyerror!?[]const u8 {
-            if (state.index >= state.chunks.len) {
-                return null;
-            }
-
-            const chunk = state.chunks[state.index];
-            state.index += 1;
-            return chunk;
-        }
-    };
-
-    const OwnedParsedSymbol = struct {
-        name: []u8,
-        symbol_type: u8,
-        start: u64,
-
-        fn deinit(self: *@This(), allocator: std.mem.Allocator) void {
-            allocator.free(self.name);
-            self.* = undefined;
-        }
-    };
-
     const Collector = struct {
         fn stopOnWeakSymbol(list: *std.ArrayList(OwnedParsedSymbol), symbol: kallsyms.ParsedSymbol) anyerror!void {
             if (symbol.symbol_type == 'W') {
                 return error.StopOnWeakSymbol;
             }
 
-            try list.append(std.testing.allocator, .{
-                .name = try std.testing.allocator.dupe(u8, symbol.name),
-                .symbol_type = symbol.symbol_type,
-                .start = symbol.start,
-            });
+            try appendOwnedParsedSymbol(list, symbol);
         }
     };
 
@@ -221,19 +209,14 @@ test "phase 8 kallsyms chunked reader slice preserves callback failures across s
     };
 
     var symbols = std.ArrayList(OwnedParsedSymbol).empty;
-    defer {
-        for (symbols.items) |*symbol| {
-            symbol.deinit(std.testing.allocator);
-        }
-        symbols.deinit(std.testing.allocator);
-    }
+    defer deinitOwnedParsedSymbols(&symbols);
 
     try std.testing.expectError(
         error.StopOnWeakSymbol,
         kallsyms.forEachParsedChunked(
             std.testing.allocator,
             &state,
-            ChunkFixture.next,
+            nextFixtureChunk,
             &symbols,
             Collector.stopOnWeakSymbol,
         ),
@@ -245,41 +228,9 @@ test "phase 8 kallsyms chunked reader slice preserves callback failures across s
 }
 
 test "phase 8 kallsyms chunked reader slice discards oversized tails once the bounded callback surface is full" {
-    const ChunkFixtureState = struct {
-        chunks: []const []const u8,
-        index: usize = 0,
-    };
-
-    const ChunkFixture = struct {
-        fn next(state: *ChunkFixtureState) anyerror!?[]const u8 {
-            if (state.index >= state.chunks.len) {
-                return null;
-            }
-
-            const chunk = state.chunks[state.index];
-            state.index += 1;
-            return chunk;
-        }
-    };
-
-    const OwnedParsedSymbol = struct {
-        name: []u8,
-        symbol_type: u8,
-        start: u64,
-
-        fn deinit(self: *@This(), allocator: std.mem.Allocator) void {
-            allocator.free(self.name);
-            self.* = undefined;
-        }
-    };
-
     const Collector = struct {
         fn append(list: *std.ArrayList(OwnedParsedSymbol), symbol: kallsyms.ParsedSymbol) !void {
-            try list.append(std.testing.allocator, .{
-                .name = try std.testing.allocator.dupe(u8, symbol.name),
-                .symbol_type = symbol.symbol_type,
-                .start = symbol.start,
-            });
+            try appendOwnedParsedSymbol(list, symbol);
         }
     };
 
@@ -303,17 +254,12 @@ test "phase 8 kallsyms chunked reader slice discards oversized tails once the bo
     };
 
     var symbols = std.ArrayList(OwnedParsedSymbol).empty;
-    defer {
-        for (symbols.items) |*symbol| {
-            symbol.deinit(std.testing.allocator);
-        }
-        symbols.deinit(std.testing.allocator);
-    }
+    defer deinitOwnedParsedSymbols(&symbols);
 
     try kallsyms.forEachParsedChunked(
         std.testing.allocator,
         &state,
-        ChunkFixture.next,
+        nextFixtureChunk,
         &symbols,
         Collector.append,
     );
@@ -326,40 +272,9 @@ test "phase 8 kallsyms chunked reader slice discards oversized tails once the bo
 }
 
 test "phase 8 kallsyms thin reader and path adapters preserve the shipped parser contract" {
-    const SliceReader = struct {
-        bytes: []const u8,
-        index: usize = 0,
-
-        pub fn read(self: *@This(), dest: []u8) !usize {
-            if (self.index >= self.bytes.len) {
-                return 0;
-            }
-
-            const amt = @min(dest.len, self.bytes.len - self.index);
-            @memcpy(dest[0..amt], self.bytes[self.index .. self.index + amt]);
-            self.index += amt;
-            return amt;
-        }
-    };
-
-    const OwnedParsedSymbol = struct {
-        name: []u8,
-        symbol_type: u8,
-        start: u64,
-
-        fn deinit(self: *@This(), allocator: std.mem.Allocator) void {
-            allocator.free(self.name);
-            self.* = undefined;
-        }
-    };
-
     const Collector = struct {
         fn append(list: *std.ArrayList(OwnedParsedSymbol), symbol: kallsyms.ParsedSymbol) !void {
-            try list.append(std.testing.allocator, .{
-                .name = try std.testing.allocator.dupe(u8, symbol.name),
-                .symbol_type = symbol.symbol_type,
-                .start = symbol.start,
-            });
+            try appendOwnedParsedSymbol(list, symbol);
         }
     };
 
@@ -371,12 +286,7 @@ test "phase 8 kallsyms thin reader and path adapters preserve the shipped parser
     var stream = SliceReader{ .bytes = contents };
     var scratch_buffer: [11]u8 = undefined;
     var from_reader = std.ArrayList(OwnedParsedSymbol).empty;
-    defer {
-        for (from_reader.items) |*symbol| {
-            symbol.deinit(std.testing.allocator);
-        }
-        from_reader.deinit(std.testing.allocator);
-    }
+    defer deinitOwnedParsedSymbols(&from_reader);
 
     try kallsyms.forEachParsedReader(
         std.testing.allocator,
@@ -404,12 +314,7 @@ test "phase 8 kallsyms thin reader and path adapters preserve the shipped parser
     }
 
     var from_path = std.ArrayList(OwnedParsedSymbol).empty;
-    defer {
-        for (from_path.items) |*symbol| {
-            symbol.deinit(std.testing.allocator);
-        }
-        from_path.deinit(std.testing.allocator);
-    }
+    defer deinitOwnedParsedSymbols(&from_path);
 
     try kallsyms.forEachParsedPath(
         std.testing.allocator,
@@ -508,22 +413,6 @@ test "phase 8 kallsyms direct wrappers preserve the C-shaped callback contract a
     try std.testing.expectEqualStrings("weak_handler", contents_state.names.items[1]);
     try std.testing.expectEqual(@as(u8, 'W'), contents_state.symbol_types.items[1]);
     try std.testing.expectEqual(@as(u64, 0xffffffff81000200), contents_state.starts.items[1]);
-
-    const SliceReader = struct {
-        bytes: []const u8,
-        index: usize = 0,
-
-        pub fn read(self: *@This(), dest: []u8) !usize {
-            if (self.index >= self.bytes.len) {
-                return 0;
-            }
-
-            const amt = @min(dest.len, self.bytes.len - self.index);
-            @memcpy(dest[0..amt], self.bytes[self.index .. self.index + amt]);
-            self.index += amt;
-            return amt;
-        }
-    };
 
     var reader = SliceReader{ .bytes = contents };
     var reader_scratch_buffer: [13]u8 = undefined;
