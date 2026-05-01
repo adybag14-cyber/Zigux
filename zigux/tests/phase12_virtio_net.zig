@@ -577,14 +577,49 @@ test "phase12 virtio net plans mergeable refill budgets from mtu and header stat
         .mtu = 9_000,
     });
 
-    const refill = try lab.planMergeableReceiveRefill(4);
+    const refill = try lab.planMergeableReceiveRefill(4, 2_048);
     try std.testing.expectEqualStrings("drivers/net/virtio_net.c", refill.anchor);
     try std.testing.expectEqual(@as(u16, 4), refill.rx_queue_entries);
     try std.testing.expect(refill.uses_mergeable_buffers);
     try std.testing.expectEqual(@as(u32, 9_038), refill.packet_budget_bytes);
     try std.testing.expectEqual(@as(u32, 2_240), refill.min_buf_len_bytes);
+    try std.testing.expectEqual(@as(u32, 2_260), refill.target_room_bytes);
     try std.testing.expectEqual(@as(u16, 20), refill.required_headroom_bytes);
+    try std.testing.expectEqual(@as(u32, 2_048), refill.recycled_room_bytes);
+    try std.testing.expectEqual(
+        virtio_net.ReceiveRefillRoomPath.fresh_mergeable_room,
+        refill.room_path,
+    );
+    try std.testing.expect(!refill.reuses_recycled_room);
     try std.testing.expectEqual(virtio_net.BigPacketReason.none, refill.big_packet_reason);
+}
+
+test "phase12 virtio net reuses recycled room when refill headroom already fits" {
+    var lab = try virtio_net.VirtioNetProbeLab.init(&.{
+        virtio_net.feature_mergeable_rx_buffers,
+        virtio_net.feature_hash_report,
+        virtio_net.feature_version_1,
+    });
+
+    _ = try lab.captureProbeSnapshot(.{
+        .driver_feature_bits = &.{
+            virtio_net.feature_mergeable_rx_buffers,
+            virtio_net.feature_hash_report,
+            virtio_net.feature_version_1,
+        },
+        .requested_queue_pairs = 1,
+        .max_queue_pairs = 1,
+        .mtu = 9_000,
+    });
+
+    const refill = try lab.planMergeableReceiveRefill(4, 4_096);
+    try std.testing.expectEqual(@as(u32, 2_260), refill.target_room_bytes);
+    try std.testing.expectEqual(@as(u32, 4_096), refill.recycled_room_bytes);
+    try std.testing.expectEqual(
+        virtio_net.ReceiveRefillRoomPath.recycled_room,
+        refill.room_path,
+    );
+    try std.testing.expect(refill.reuses_recycled_room);
 }
 
 test "phase12 virtio net rejects refill planning without queue entries" {
@@ -600,7 +635,7 @@ test "phase12 virtio net rejects refill planning without queue entries" {
         .max_queue_pairs = 1,
     });
 
-    try std.testing.expectError(error.InvalidRxQueueEntries, lab.planMergeableReceiveRefill(0));
+    try std.testing.expectError(error.InvalidRxQueueEntries, lab.planMergeableReceiveRefill(0, 0));
 }
 
 test "phase12 virtio net preserves legacy header shape without mergeable or hash features" {
