@@ -398,7 +398,9 @@ pub const DevresHelperLab = struct {
         if (resource.end < resource.start) {
             return error.InvalidRange;
         }
-        return (resource.end - resource.start) + 1;
+
+        const span = std.math.sub(u64, resource.end, resource.start) catch return error.InvalidRange;
+        return std.math.add(u64, span, 1) catch return error.InvalidRange;
     }
 
     pub fn buildPrettyName(allocator: std.mem.Allocator, device_name: []const u8, resource_name: ?[]const u8) ![]u8 {
