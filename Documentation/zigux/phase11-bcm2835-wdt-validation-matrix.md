@@ -5,7 +5,7 @@ This document records the first bounded hardware-validation matrix for the Zigux
 ## Status
 
 - `PHASE11_BCM2835_WDT_STATUS=platform_handoff_landed`
-- reviewed against live `master` `06163086af90205c3621cd505909e5d2c8c5c0c7`
+- reviewed against live `master` `ba15a15ff4f0becd063b9b12aeea73df5307e6ef`
 - scope: keep the current `bcm2835_wdt` starter honest about what is already validated, name the current platform-handoff evidence, and avoid overclaiming live platform registration, PM wiring, or poweroff coordination before those behaviors exist in Zigux
 - current repo reality:
   - `drivers/watchdog/bcm2835_wdt.zig`
