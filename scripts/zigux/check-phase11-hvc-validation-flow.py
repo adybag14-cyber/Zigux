@@ -14,8 +14,19 @@ WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 
 MAKEFILE_MARKERS = [
     "phase11-validate:",
-    "scripts/zigux/check-phase11-hvc-cleanup-alignment.py --self-test",
-    "scripts/zigux/check-phase11-hvc-cleanup-alignment.py",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-validation-flow.py --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-validation-flow.py",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-cleanup-alignment.py --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-cleanup-alignment.py",
+]
+MAKEFILE_ORDERED_MARKERS = [
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-build-inventory.py",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-validation-flow.py --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-validation-flow.py\n",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-cleanup-alignment.py --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-cleanup-alignment.py\n",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase11.py --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase11.py\n",
 ]
 
 WORKFLOW_MARKERS = [
@@ -33,7 +44,7 @@ def read_text(root: Path, rel_path: str) -> str:
 def validate(root: Path) -> list[str]:
     missing: list[str] = []
 
-    for rel_path in [CHECKER_PATH, MAKEFILE_PATH, WORKFLOW_PATH]:
+    for rel_path in [SCRIPT_NAME, CHECKER_PATH, MAKEFILE_PATH, WORKFLOW_PATH]:
         if not (root / rel_path).exists():
             missing.append(f"missing:{rel_path}")
     if missing:
@@ -45,6 +56,16 @@ def validate(root: Path) -> list[str]:
     for marker in MAKEFILE_MARKERS:
         if marker not in makefile:
             missing.append(f"make:{marker}")
+
+    last_index = -1
+    for marker in MAKEFILE_ORDERED_MARKERS:
+        index = makefile.find(marker)
+        if index == -1:
+            continue
+        if index < last_index:
+            missing.append(f"make-order:{marker}")
+            break
+        last_index = index
 
     for marker in WORKFLOW_MARKERS:
         if marker not in workflow:
@@ -89,8 +110,13 @@ def clone_fixture_root(destination_root: Path) -> None:
         "\n".join(
             [
                 "phase11-validate:",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-build-inventory.py",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-validation-flow.py --self-test",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-validation-flow.py",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-cleanup-alignment.py --self-test",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-cleanup-alignment.py",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase11.py --self-test",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase11.py",
                 "",
             ]
         ),
@@ -141,7 +167,24 @@ def run_self_test() -> int:
         expect_missing(
             "makefile_cleanup_self_test_hook",
             tmp_root,
-            "make:scripts/zigux/check-phase11-hvc-cleanup-alignment.py --self-test",
+            "make:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-cleanup-alignment.py --self-test",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        makefile_path.write_text(
+            original_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-validation-flow.py\n"
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-cleanup-alignment.py --self-test\n",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-cleanup-alignment.py --self-test\n"
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-validation-flow.py\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "makefile_validation_flow_order",
+            tmp_root,
+            "make-order:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-cleanup-alignment.py --self-test",
         )
         makefile_path.write_text(original_makefile, encoding="utf-8")
 
@@ -171,7 +214,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE11_HVC_VALIDATION_FLOW_SELF_TEST=pass")
-    print("PHASE11_HVC_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=3")
+    print("PHASE11_HVC_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=4")
     return 0
 
 
