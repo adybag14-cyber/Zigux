@@ -7,7 +7,7 @@ This document tracks the first bounded Phase 9 runtime trace-events starter unde
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-trace-events-module-starter`
 - `PHASE9_LANE_KEY=P9-L12`
-- `PHASE9_SURVEYED_COMMIT=5479b799a33cb071c449ff6cb4345ac8f4a3186f`
+- `PHASE9_SURVEYED_COMMIT=17ebcd4ca4ab5c9cf126042ab8997b2de79a7c66`
 - scope: lifecycle starter, bounded event-emission and registration behavior, a machine-checkable diagnostics summary with explicit main-thread and function-thread event totals plus explicit replay run counters, direct sample-local selftest, failed-exit rollback proof, and exit proof, a tiny payload-oriented diff gate, dedicated Phase 9 test wiring, and lane-local survey-manifest closure only
 - product boundary:
   - `samples/zigux/runtime_trace_events.zig`
@@ -33,9 +33,10 @@ No parity scorecard entry or Architecture Council status-change request is attac
 - guarded lifecycle transitions for `cold`, `initialized`, `selftest_complete`, and `exited`
 - bounded main-thread and function-thread event emission counters for the sample's primary tracepoint families
 - explicit registration-balance checks for the function-callback path
-- a stable `RuntimeTraceEventsSummary` view exposing lifecycle stage, registration depth, iteration counts, explicit main-thread and function-thread event totals, `init_runs`, `selftest_runs`, and `exit_runs`, payload-presence flags, and the latest bounded main-thread and function-thread payload literals without requiring direct field-by-field payload inspection
+- a stable `RuntimeTraceEventsSummary` view exposing lifecycle stage, registration depth, iteration counts, explicit main-thread and function-thread event totals, explicit `foo_bar_reg` and `foo_bar_unreg` registration labels, `init_runs`, `selftest_runs`, and `exit_runs`, payload-presence flags, and the latest bounded main-thread and function-thread payload literals without requiring direct field-by-field payload inspection
 - concrete main-thread payload literals for the current bounded `foo_bar`, template, conditional, template-print, and relative-location replay path, including the exported `iter=%d` format template
 - the same main-thread replay now also keeps the Linux sample's `count % 5` array-shape replay explicit by recording the bounded vararg array length and its zero terminator alongside the selected random string
+- the direct replay path now keeps the conditional branches count-gated by sample counts, so `emitMainIteration(7)` still leaves both conditional messages absent while the count-zero selftest path records both conditional families and the later mixed replay keeps the combined `10` main-thread, `4` function-thread, and `14` total-event summary counts explicit after direct pilot activity
 - concrete function-callback payload labels for the current bounded replay path
 - a paired header-side macro boundary note that keeps `samples/trace_events/trace-events-sample.h` visible as a 640-line surveyed boundary and survey-only macro surface rather than a generated tracepoint macro parity claim
 - a helper-local sample proof that `selftest_complete` still permits bounded replay while preserving registration balance, per-thread event totals, and payload-summary visibility until `exit()`
