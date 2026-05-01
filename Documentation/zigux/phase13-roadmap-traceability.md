@@ -20,6 +20,7 @@ Recommended Zigux destinations:
 Shared tranche entrypoints already present on `master`:
 - `zigux/tests/phase13_build.zig`
 - `zigux/Makefile` via `make -C zigux phase13`
+- `Documentation/zigux/phase13-release-notes-survey.md` keeps the active validator-first release reading for those same four roadmap anchors visible instead of leaving the current survey packet implicit outside this traceability note
 - `lib/devres.c` is represented by real helper code, real tests, a manifest-backed survey packet, and explicit blocked DMA/scatterlist boundary evidence
 
 ## Anchor-to-repo map
