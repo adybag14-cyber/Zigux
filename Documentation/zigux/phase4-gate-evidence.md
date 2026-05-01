@@ -49,11 +49,13 @@ The current packet stayed aligned across the following readbacks on `master`:
 - `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` now also keeps this exact readback note explicit by requiring the sibling manifest pins, the three index-surface pins, and the shared surveyed snapshot `ec9aa1b15a34e581625da1056956ecb5dd6cd76a` instead of leaving that evidence packet as prose-only maintenance.
 - the `test_fsmount` and perf-baseline survey manifests plus their paired survey tests still pin that same shared surveyed snapshot `ec9aa1b15a34e581625da1056956ecb5dd6cd76a`, so the rollback packet now keeps the manifest-backed survey trio aligned alongside the atomic64 packet.
 - the survey-file blob pins and the docs-root, scripts-root, and tests-root blob pins above now stay as direct audit-friendly readback anchors in the same note, so review can still prove exactly which survey surfaces and index surfaces were inspected even before the validator is widened to fail closed on those hashes too.
-- `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` still expose the same Phase 4 rollback-readiness packet, and the blob pins above now keep those three index surfaces directly audit-friendly when the shared packet moves.
+- `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` still expose the same Phase 4 rollback-readiness packet, but those three index surfaces are summary guides rather than the fail-closed blob authority; until the validator widens, this exact readback note remains the only place where the survey-file and index-surface blob pins are recorded together as one audit packet.
 
 ## Current Conclusion
 
 The current Phase 4 rollback-ownership survey packet is aligned at two levels: the direct validator replay still passes for the machine-checked matrix, validator, build, workflow, and manifest subset, and the broader survey-file plus index-surface blob pins in this note still match current connector readback for the same packet.
+
+That means the current README surfaces remain truthful summaries for the packet, while this note remains the broader audit-only blob ledger until `validate-phase4.py` is widened to fail closed on those extra survey and index pins too.
 
 The remaining roadmap-backed gaps are still the same bounded ones:
 
