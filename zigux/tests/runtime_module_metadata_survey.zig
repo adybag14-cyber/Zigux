@@ -174,6 +174,9 @@ test "runtime module metadata survey note keeps descriptor fields, shared loader
         "scripts/depmod.sh",
         "loadable-module metadata parity",
         "depmod bridge",
+        "python3 scripts/zigux/validate-phase9.py",
+        "zig build test --build-file zigux/tests/phase9_build.zig --summary all",
+        "zig test zigux/tests/runtime_module_metadata_survey.zig",
     });
     try expectContainsAll(loader_gap_note, &.{
         "samples/zigux/runtime_trace_events_loader.zig",
