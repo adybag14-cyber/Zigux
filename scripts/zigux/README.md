@@ -28,7 +28,9 @@ Current bootstrap helpers
 - `validate-phase6.py`
 - `validate-phase7.py`
 - `check-phase7-build-inventory.py`
+- `check-phase7-make-wrapper.py`
 - `check-phase7-cmdline-parity.py`
+- `check-phase7-rbtree-parity.py`
 - `validate-phase8.py`
 - `validate-phase9.py`
 - `validate-phase10.py`
@@ -131,10 +133,11 @@ Phase 7 flow
 - `validate-phase7.py` keeps the shipped runtime-safe leaf-helper packet aligned across `scripts/zigux/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, the four Phase 7 slice notes, `zigux/tests/phase7_build.zig`, `zigux/tests/fixtures/phase7_build_inventory.json`, `zigux/Makefile`, the bootstrap workflow, the dedicated helper and survey tests, the repo-root manifest-backed survey packet, and the four helper roots in `lib/`.
 - `validate-phase7.py --self-test` exercises the shared Phase 7 marker walk in a compact synthetic tree and fails if the helper-local review packet, repo-root survey packet, workflow hooks, or build wiring drift.
 - `check-phase7-build-inventory.py --self-test` and `check-phase7-build-inventory.py` keep the committed `zigux/tests/fixtures/phase7_build_inventory.json` snapshot aligned with the shared `zigux/tests/phase7_build.zig` helper bundle before the broader Phase 7 replay runs.
+- `check-phase7-make-wrapper.py --self-test` and `check-phase7-make-wrapper.py` keep the published `make -C zigux phase7-validate`, `make -C zigux phase7-test`, and `make -C zigux phase7` wrapper expansions aligned with the validator-first Phase 7 flow before the broader helper replay runs.
 - `check-phase7-cmdline-parity.py` remains the external parity spot check for the committed `zigux/tests/fixtures/phase7_cmdline.json` fixture against the bounded `lib/cmdline.c` harness replay.
-- `check-phase7-rbtree-parity.py` remains the external parity spot check for the committed `zigux/tests/fixtures/phase7_rbtree.json` fixture against the bounded `tools/lib/rbtree.c` harness replay.
+- `check-phase7-rbtree-parity.py` remains the external parity spot check for the committed `zigux/tests/fixtures/phase7_rbtree.json` fixture against the bounded `lib/rbtree.c` harness replay.
 - `make -C zigux phase7-validate` is the validator-first entrypoint for the current Phase 7 flow.
-- `make -C zigux phase7-test` is the shared replay path after the validator, build-inventory, and parity gates pass.
+- `make -C zigux phase7-test` is the shared replay path after the validator, build-inventory, make-wrapper, and parity gates pass.
 - `make -C zigux phase7` keeps the one-command bundle aligned with the published review path instead of bypassing the fail-closed validator.
 - `zig build test --build-file zigux/tests/phase7_build.zig --summary all` is the shared build replay for the current Phase 7 helper tranche.
 - `zigux/tests/phase7_build.zig` is the shared build entrypoint for `string_helpers`, `cmdline`, `argv_split`, and `rbtree`.
