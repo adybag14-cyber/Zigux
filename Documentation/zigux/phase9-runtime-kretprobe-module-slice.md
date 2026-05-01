@@ -7,8 +7,8 @@ This document tracks the first bounded Phase 9 runtime kretprobe starter under `
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-kretprobe-module-starter`
 - `PHASE9_LANE_KEY=P9-L13`
-- `PHASE9_SURVEYED_COMMIT=9ab58640ce44fd53534dd49e29fcce6e274dc3d0`
-- scope: lifecycle starter, bounded return-probe bookkeeping, direct embedded sample replay, explicit `phase9-runtime-kretprobe-{sample,module,diff,loader,survey}-tests` shared-build legs, a manifest-backed survey packet, a loader-handoff scaffold, a landed shared loader-request binding, and survey-manifest closure only
+- `PHASE9_SURVEYED_COMMIT=c35ea44cfcb4c8139327a786875b442c4399796c`
+- scope: lifecycle starter, bounded return-probe bookkeeping, direct embedded sample replay, explicit `phase9-runtime-kretprobe-{sample,module,diff,loader,survey}-tests` shared-build legs, a manifest-backed survey packet, a loader-handoff scaffold, explicit shared `command_name` preservation, a landed shared loader-request binding, and survey-manifest closure only
 - product boundary:
   - `samples/zigux/runtime_kretprobe.zig`
   - `samples/zigux/runtime_kretprobe_loader.zig`
@@ -38,6 +38,7 @@ The live repo already had runtime pilot starters for atomic64, bitmap, and trace
 - a direct embedded sample replay in `samples/zigux/runtime_kretprobe.zig` that keeps lifecycle accounting, concurrent timestamp handling, symbol-cap guards, and no-substrate bookkeeping reviewable without routing every starter check through the separate module gate
 - a dedicated `runtime_kretprobe_diff` gate that replays skip, elapsed-time, and missed-instance expectations from `samples/kprobes/kretprobe_example.c`
 - a bounded `runtime_kretprobe_loader` scaffold that makes the planned `register_kretprobe()` and `unregister_kretprobe()` lifecycle, entry or exit symbol names, and per-instance private-data size explicit while the runtime substrate remains unavailable
+- a bounded shared `command_name` preservation check in `samples/zigux/runtime_kretprobe_loader.zig` that keeps a synthetic non-null `perf-runtime-kretprobe` loader request reviewable through both `waiting_on_runtime_substrate` and `released_without_substrate` without claiming live argv policy or runtime execution
 - the same loader scaffold keeps the no-substrate rollback path explicit through `releaseSharedRuntimeLoadWithoutSubstrate()` and the shared `released_without_substrate` request state, so fallback review does not rely on prose alone
 - a landed shared runtime-loader request binding under `zigux/kernel/runtime_loader.zig` that consumes the kretprobe loader handoff through explicit allocator posture, staged entry and exit symbols, and a machine-checkable kretprobe payload
 - dedicated Phase 9 tests and manifest coverage wired into the shared `zigux/tests/phase9_build.zig` gate through the explicit `phase9-runtime-kretprobe-sample-tests`, `phase9-runtime-kretprobe-module-tests`, `phase9-runtime-kretprobe-diff-tests`, `phase9-runtime-kretprobe-loader-tests`, and `phase9-runtime-kretprobe-survey-tests` legs plus the manifest-backed survey packet

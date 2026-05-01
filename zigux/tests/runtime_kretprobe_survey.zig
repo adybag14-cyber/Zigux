@@ -51,7 +51,7 @@ const Manifest = struct {
     non_goals: []const []const u8,
 };
 
-const surveyed_commit = "9ab58640ce44fd53534dd49e29fcce6e274dc3d0";
+const surveyed_commit = "c35ea44cfcb4c8139327a786875b442c4399796c";
 
 fn readWorkspaceFile(
     io: anytype,
@@ -105,20 +105,24 @@ test "phase 9 runtime kretprobe survey manifest records the landed ownership pac
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_kretprobe_sample_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_kretprobe_doc_present);
-    try std.testing.expectEqual(@as(usize, 6), manifest.review_prompts.len);
-    try std.testing.expectEqual(@as(usize, 6), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 7), manifest.review_prompts.len);
+    try std.testing.expectEqual(@as(usize, 7), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 11), manifest.delivery_evidence_catalog.len);
     try std.testing.expectEqual(@as(usize, 11), manifest.ownership_map.len);
     try std.testing.expectEqual(@as(usize, 8), manifest.gaps.len);
     try std.testing.expectEqual(@as(usize, 5), manifest.non_goals.len);
 
     var saw_loader_rollback_prompt = false;
+    var saw_loader_command_name_prompt = false;
     var saw_shared_build_prompt = false;
     var saw_roadmap_gap_prompt = false;
     for (manifest.review_prompts) |prompt| {
         try std.testing.expect(prompt.len > 0);
         if (std.mem.indexOf(u8, prompt, "released_without_substrate") != null) {
             saw_loader_rollback_prompt = true;
+        }
+        if (std.mem.indexOf(u8, prompt, "synthetic non-null shared command_name") != null) {
+            saw_loader_command_name_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "phase9-runtime-kretprobe-module-tests") != null) {
             saw_shared_build_prompt = true;
@@ -130,6 +134,7 @@ test "phase 9 runtime kretprobe survey manifest records the landed ownership pac
 
     var saw_lifecycle_summary_check = false;
     var saw_loader_rollback_check = false;
+    var saw_loader_command_name_check = false;
     var saw_shared_build_check = false;
     var saw_delivery_packet_check = false;
     var saw_shared_controls_check = false;
@@ -150,6 +155,13 @@ test "phase 9 runtime kretprobe survey manifest records the landed ownership pac
             try std.testing.expectEqualStrings("runtime_loader_contract", check.kind);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "register and unregister API names") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "released_without_substrate") != null);
+        }
+        if (std.mem.eql(u8, check.id, "loader-command-name-preservation")) {
+            saw_loader_command_name_check = true;
+            try std.testing.expectEqualStrings("runtime_loader_contract", check.kind);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "perf-runtime-kretprobe") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "argv-policy") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "environment-derived activation ownership") != null);
         }
         if (std.mem.eql(u8, check.id, "shared-build-leg-surface")) {
             saw_shared_build_check = true;
@@ -219,6 +231,7 @@ test "phase 9 runtime kretprobe survey manifest records the landed ownership pac
         if (std.mem.eql(u8, entry.id, "runtime-kretprobe-loader-scaffold")) {
             saw_loader_catalog = true;
             try std.testing.expectEqualStrings("samples/zigux/runtime_kretprobe_loader.zig", entry.path);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "explicit shared command_name preservation") != null);
             try std.testing.expect(std.mem.indexOf(u8, entry.role, "released_without_substrate") != null);
         }
         if (std.mem.eql(u8, entry.id, "runtime-kretprobe-shared-loader-binding")) {
@@ -251,6 +264,9 @@ test "phase 9 runtime kretprobe survey manifest records the landed ownership pac
         if (std.mem.eql(u8, entry.surface, "samples/zigux/runtime_kretprobe.zig")) {
             saw_sample_ownership = true;
             try std.testing.expect(std.mem.indexOf(u8, entry.owns, "selftest-hook metadata") != null);
+        }
+        if (std.mem.eql(u8, entry.surface, "samples/zigux/runtime_kretprobe_loader.zig")) {
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "explicit shared command_name preservation") != null);
         }
         if (std.mem.eql(u8, entry.surface, "Documentation/zigux/phase9-runtime-loader-gap-survey.md")) {
             saw_loader_gap_ownership = true;
@@ -306,10 +322,12 @@ test "phase 9 runtime kretprobe survey manifest records the landed ownership pac
     try std.testing.expect(starter_landed_count >= 7);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_loader_rollback_prompt);
+    try std.testing.expect(saw_loader_command_name_prompt);
     try std.testing.expect(saw_shared_build_prompt);
     try std.testing.expect(saw_roadmap_gap_prompt);
     try std.testing.expect(saw_lifecycle_summary_check);
     try std.testing.expect(saw_loader_rollback_check);
+    try std.testing.expect(saw_loader_command_name_check);
     try std.testing.expect(saw_shared_build_check);
     try std.testing.expect(saw_delivery_packet_check);
     try std.testing.expect(saw_shared_controls_check);
@@ -357,7 +375,7 @@ test "phase 9 runtime kretprobe docs keep the ownership packet and shared-build 
 
     const required_survey_markers = [_][]const u8{
         "`PHASE9_LANE_KEY=P9-L13`",
-        "`PHASE9_SURVEYED_COMMIT=9ab58640ce44fd53534dd49e29fcce6e274dc3d0`",
+        "`PHASE9_SURVEYED_COMMIT=c35ea44cfcb4c8139327a786875b442c4399796c`",
         "manifest-backed delivery catalog and ownership map",
         "Latest verification snapshot",
         "zig test samples/zigux/runtime_kretprobe.zig",
@@ -370,6 +388,7 @@ test "phase 9 runtime kretprobe docs keep the ownership packet and shared-build 
         "phase9-runtime-kretprobe-diff-tests",
         "phase9-runtime-kretprobe-loader-tests",
         "phase9-runtime-kretprobe-survey-tests",
+        "perf-runtime-kretprobe",
         "RuntimeKretprobeSummary",
         "released_without_substrate",
         "first loadable Zigux runtime modules",
@@ -381,17 +400,19 @@ test "phase 9 runtime kretprobe docs keep the ownership packet and shared-build 
         try std.testing.expect(std.mem.indexOf(u8, survey_doc, marker) != null);
     }
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "phase9-runtime-kretprobe-loader-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "perf-runtime-kretprobe") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "RuntimeKretprobeSummary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "released_without_substrate") != null);
 
     const required_module_markers = [_][]const u8{
         "`PHASE9_LANE_KEY=P9-L13`",
-        "`PHASE9_SURVEYED_COMMIT=9ab58640ce44fd53534dd49e29fcce6e274dc3d0`",
+        "`PHASE9_SURVEYED_COMMIT=c35ea44cfcb4c8139327a786875b442c4399796c`",
         "phase9-runtime-kretprobe-sample-tests",
         "phase9-runtime-kretprobe-module-tests",
         "phase9-runtime-kretprobe-diff-tests",
         "phase9-runtime-kretprobe-loader-tests",
         "phase9-runtime-kretprobe-survey-tests",
+        "perf-runtime-kretprobe",
         "manifest-backed survey packet",
         "this shared build keeps the dedicated kretprobe sample, module, diff, loader, and survey legs explicit",
         "direct post-selftest replay proof",
@@ -401,9 +422,9 @@ test "phase 9 runtime kretprobe docs keep the ownership packet and shared-build 
         try std.testing.expect(std.mem.indexOf(u8, module_doc, marker) != null);
     }
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`PHASE9_LANE_KEY=P9-L13`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`PHASE9_SURVEYED_COMMIT=9ab58640ce44fd53534dd49e29fcce6e274dc3d0`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`PHASE9_SURVEYED_COMMIT=c35ea44cfcb4c8139327a786875b442c4399796c`") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "`PHASE9_LANE_KEY=P9-L13`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, module_doc, "`PHASE9_SURVEYED_COMMIT=9ab58640ce44fd53534dd49e29fcce6e274dc3d0`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "`PHASE9_SURVEYED_COMMIT=c35ea44cfcb4c8139327a786875b442c4399796c`") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "RuntimeKretprobeSummary") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "direct post-selftest replay proof") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "selftest_complete") != null);

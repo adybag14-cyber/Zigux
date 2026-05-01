@@ -1,7 +1,7 @@
 {
   "lane_key": "P9-L13",
   "phase": "Phase 9",
-  "surveyed_commit": "9ab58640ce44fd53534dd49e29fcce6e274dc3d0",
+  "surveyed_commit": "c35ea44cfcb4c8139327a786875b442c4399796c",
   "anchor": "samples/kprobes/kretprobe_example.c",
   "roadmap_destinations": [
     "zigux/tests/runtime_*",
@@ -18,6 +18,7 @@
   },
   "review_prompts": [
     "the review packet still keeps the Linux anchor, bounded lifecycle-summary surface, and the current released_without_substrate rollback path explicit instead of implying a real register or unregister handoff",
+    "the loader scaffold may keep a synthetic non-null shared command_name reviewable as field-preservation evidence, but docs and tests must still leave broader argv-policy and environment-derived activation control inside the blocked shared runtime-loader packet",
     "the manifest-backed delivery_evidence_catalog and ownership_map still keep the survey note, module-slice note, sample starter, survey gate, module gate, diff gate, loader scaffold, shared loader binding, shared loader-gap note, and shared Phase 9 build entrypoint in one reviewable packet",
     "the shared Phase 9 build entrypoint still names the dedicated phase9-runtime-kretprobe-sample-tests, phase9-runtime-kretprobe-module-tests, phase9-runtime-kretprobe-diff-tests, phase9-runtime-kretprobe-loader-tests, and phase9-runtime-kretprobe-survey-tests legs instead of leaving the shipped replay surface implicit",
     "sample or loader-behavior changes update the manifest-backed exact checks alongside runtime_kretprobe_module.zig, runtime_kretprobe_diff.zig, and the survey docs instead of leaving reviewers to infer the new contract from code alone",
@@ -34,6 +35,11 @@
       "id": "loader-rollback-surface",
       "kind": "runtime_loader_contract",
       "expected": "the loader scaffold keeps register and unregister API names, explicit init and exit symbols, waiting_on_runtime_substrate handoff, and a released_without_substrate rollback path machine-checkable through the shared runtime-loader request surface"
+    },
+    {
+      "id": "loader-command-name-preservation",
+      "kind": "runtime_loader_contract",
+      "expected": "the loader scaffold keeps the synthetic perf-runtime-kretprobe command_name explicit through toSharedRequest and releasedWithoutSubstrate without implying live argv-policy or environment-derived activation ownership"
     },
     {
       "id": "shared-build-leg-surface",
@@ -109,7 +115,7 @@
       "id": "runtime-kretprobe-loader-scaffold",
       "kind": "runtime_substrate_scaffold",
       "path": "samples/zigux/runtime_kretprobe_loader.zig",
-      "role": "owns the register or unregister API names, entry and exit symbol names, waiting_on_runtime_substrate handoff, released_without_substrate fallback, and kretprobe payload summary for the sample-side loader projection"
+      "role": "owns the register or unregister API names, entry and exit symbol names, explicit shared command_name preservation, waiting_on_runtime_substrate handoff, released_without_substrate fallback, and kretprobe payload summary for the sample-side loader projection"
     },
     {
       "id": "runtime-kretprobe-shared-loader-binding",
@@ -159,7 +165,7 @@
     },
     {
       "surface": "samples/zigux/runtime_kretprobe_loader.zig",
-      "owns": "the sample-side loader projection, waiting_on_runtime_substrate handoff, released_without_substrate fallback, and kretprobe payload summary"
+      "owns": "the sample-side loader projection, explicit shared command_name preservation, waiting_on_runtime_substrate handoff, released_without_substrate fallback, and kretprobe payload summary"
     },
     {
       "surface": "zigux/kernel/runtime_loader.zig",
@@ -211,7 +217,7 @@
       "status": "starter_landed",
       "kind": "runtime_loader_scaffold",
       "zigux_destination": "samples/zigux/runtime_kretprobe_loader.zig",
-      "why_now": "A bounded loader handoff keeps requires_runtime_substrate, register or unregister API names, staged entry and exit symbols, and the released_without_substrate rollback path reviewable through the shared runtime-loader request surface."
+      "why_now": "A bounded loader handoff keeps requires_runtime_substrate, register or unregister API names, staged entry and exit symbols, explicit shared command_name preservation, and the released_without_substrate rollback path reviewable through the shared runtime-loader request surface."
     },
     {
       "id": "runtime-kretprobe-live-loader-binding",
