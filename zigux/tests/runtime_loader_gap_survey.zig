@@ -166,7 +166,7 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
     try std.testing.expectEqual(@as(usize, 4), manifest.non_owner_surfaces.len);
     try std.testing.expectEqual(@as(usize, 11), manifest.delivery_evidence_catalog.len);
     try std.testing.expectEqual(@as(usize, 11), manifest.ownership_map.len);
-    try std.testing.expectEqual(@as(usize, 12), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);
 
     try std.testing.expectEqualStrings("lib/base64.zig", manifest.phase6_leaf_helpers[0]);
     try std.testing.expectEqualStrings("lib/hexdump.zig", manifest.phase6_leaf_helpers[3]);
@@ -223,7 +223,7 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
             try std.testing.expect(std.mem.indexOf(u8, entry.role, "manifest-backed catalog and ownership map") != null);
         }
         if (std.mem.eql(u8, entry.id, "runtime-loader-substrate-plan")) {
-            saw_substrate_plan_doc = true;
+            saw_substratePlanDoc = true;
             try std.testing.expectEqualStrings("documentation", entry.kind);
             try std.testing.expectEqualStrings("Documentation/zigux/phase9-runtime-loader-substrate-plan.md", entry.path);
             try std.testing.expect(std.mem.indexOf(u8, entry.role, "shared loader-stage vocabulary") != null);
@@ -360,7 +360,7 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
         if (std.mem.eql(u8, gap.id, "runtime-loader-plan-inputs")) {
             saw_plan_inputs = true;
             try std.testing.expectEqualStrings("samples/zigux/runtime_*_loader.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "entry and exit symbol names") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "staged init and exit symbol names") != null);
         }
         if (std.mem.eql(u8, gap.id, "runtime-loader-without-substrate-rollback")) {
             saw_without_substrate_rollback = true;
@@ -417,7 +417,7 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 9), landed_count);
+    try std.testing.expectEqual(@as(usize, 10), landed_count);
     try std.testing.expectEqual(@as(usize, 3), blocked_count);
     try std.testing.expect(saw_manifest_catalog);
     try std.testing.expect(saw_substrate_plan_doc);
@@ -558,7 +558,7 @@ test "runtime loader gap survey keeps the review checklist runtime guardrails ex
         "if the change touches the shared Phase 9 runtime-loader evidence packet, does `zigux/tests/runtime_loader_gap_manifest.json` still keep the manifest-backed catalog and ownership map aligned with the survey note, review checklist, shared request contract, sample-side loader plans, and shared `phase9_build.zig` entrypoint in one reviewable ownership packet?",
         "if the change touches the shared Phase 9 runtime-loader evidence packet, does `Documentation/zigux/phase9-runtime-loader-substrate-plan.md` still stay aligned with `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/kernel/runtime_loader.zig`, and the atomic64, bitmap, and kretprobe loader plans so the shared loader-stage vocabulary plus the without-substrate fallback remain reviewable in one place?",
         "if the change touches the shared Phase 9 runtime-loader evidence packet, does it still model `samples/zigux/runtime_trace_events.zig` as an intentionally sample-only blocked pilot and keep `zigux/tests/runtime_trace_events_manifest.json` plus the missing `samples/zigux/runtime_trace_events_loader.zig` path explicit rather than making the fourth runtime pilot look accidentally untracked?",
-        "if the change touches the shared Phase 9 runtime-loader evidence packet and its adjacent scheduler-facing boundary, does `Documentation/zigux/freeze-map.md` still stay in that same reviewable ownership packet so the study-only `kernel/workqueue.c` status and Architecture Council reopen rule remain explicit beside the survey note, review checklist, shared request contract, sample-side loader plans, and shared `phase9_build.zig` entrypoint?",
+        "if the change touches the shared Phase 9 runtime-loader evidence packet and its adjacent scheduler-facing boundary, does `Documentation/zigux/freeze-map.md` still stay in that same reviewable ownership packet so the study-only `kernel/workqueue.c` status and Architecture Council reopen rule remain explicit beside the survey note, review checklist, shared request contract, sample-side loader plans, and `phase9_build.zig` entrypoint?",
     });
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "scripts/zigux/kconfig/conf_bridge.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "zigux/kernel/export_shim.zig") != null);
@@ -572,7 +572,7 @@ test "runtime loader gap survey proves the shared request surface and existing l
         io_instance.io(),
         std.testing.allocator,
         "samples/zigux/runtime_atomic64_loader.zig",
-        32 * 1024,
+        64 * 1024,
     );
     defer std.testing.allocator.free(atomic64_loader);
 
@@ -580,7 +580,7 @@ test "runtime loader gap survey proves the shared request surface and existing l
         io_instance.io(),
         std.testing.allocator,
         "samples/zigux/runtime_bitmap_loader.zig",
-        32 * 1024,
+        64 * 1024,
     );
     defer std.testing.allocator.free(bitmap_loader);
 
@@ -588,7 +588,7 @@ test "runtime loader gap survey proves the shared request surface and existing l
         io_instance.io(),
         std.testing.allocator,
         "samples/zigux/runtime_kretprobe_loader.zig",
-        32 * 1024,
+        64 * 1024,
     );
     defer std.testing.allocator.free(kretprobe_loader);
 
@@ -596,21 +596,21 @@ test "runtime loader gap survey proves the shared request surface and existing l
         io_instance.io(),
         std.testing.allocator,
         "zigux/kernel/runtime_loader.zig",
-        32 * 1024,
+        64 * 1024,
     );
     defer std.testing.allocator.free(runtime_loader_file);
     const exec_cmd_file = try readWorkspaceFile(
         io_instance.io(),
         std.testing.allocator,
         "tools/lib/subcmd/exec-cmd.zig",
-        32 * 1024,
+        64 * 1024,
     );
     defer std.testing.allocator.free(exec_cmd_file);
     const help_file = try readWorkspaceFile(
         io_instance.io(),
         std.testing.allocator,
         "tools/lib/subcmd/help.zig",
-        32 * 1024,
+        64 * 1024,
     );
     defer std.testing.allocator.free(help_file);
 
