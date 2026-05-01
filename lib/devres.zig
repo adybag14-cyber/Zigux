@@ -12,6 +12,7 @@ pub const ModuleDescriptor = struct {
     provides_iounmap_call_planning: bool,
     provides_ioport_lifetime_planning: bool,
     provides_ioremap_resource_planning: bool,
+    provides_ioremap_resource_plain_wrapper_planning: bool,
     provides_ioremap_resource_uc_planning: bool,
     provides_ioremap_resource_wc_planning: bool,
     provides_of_iomap_planning: bool,
@@ -339,6 +340,7 @@ pub const DevresHelperLab = struct {
             .provides_iounmap_call_planning = true,
             .provides_ioport_lifetime_planning = true,
             .provides_ioremap_resource_planning = true,
+            .provides_ioremap_resource_plain_wrapper_planning = true,
             .provides_ioremap_resource_uc_planning = true,
             .provides_ioremap_resource_wc_planning = true,
             .provides_of_iomap_planning = true,
@@ -552,6 +554,10 @@ pub const DevresHelperLab = struct {
                 },
             },
         };
+    }
+
+    pub fn planManagedIoremapResourcePlain(allocator: std.mem.Allocator, input: IoremapResourceInput) !ManagedIoremapOutcome {
+        return planManagedIoremapResourceForType(allocator, .normal, input);
     }
 
     pub fn planManagedIoremapResourceUc(allocator: std.mem.Allocator, input: IoremapResourceInput) !ManagedIoremapOutcome {
