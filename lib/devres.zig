@@ -261,6 +261,10 @@ pub const DevresHelperLab = struct {
         };
     }
 
+    fn releaseMatches(tracked_address: usize, candidate_address: usize) bool {
+        return tracked_address == candidate_address;
+    }
+
     fn invalidManagedIoremapFailure(requested_type: IoremapType) ManagedIoremapOutcome {
         return .{
             .err = .{
@@ -288,6 +292,29 @@ pub const DevresHelperLab = struct {
                 .resource_stage = null,
             },
         };
+    }
+
+    fn planManagedIoremapAcquireForKind(kind: ManagedIoremapKind, input: ManagedIoremapAcquireWrapperInput) !ManagedIoremapAcquireResult {
+        return planManagedIoremapAcquire(.{
+            .kind = kind,
+            .release_record_allocated = input.release_record_allocated,
+            .mapped_address = input.mapped_address,
+        });
+    }
+
+    fn planManagedIoremapResourceForType(
+        allocator: std.mem.Allocator,
+        requested_type: IoremapType,
+        input: IoremapResourceInput,
+    ) !ManagedIoremapOutcome {
+        return planManagedIoremapResource(allocator, .{
+            .device_name = input.device_name,
+            .resource = input.resource,
+            .requested_type = requested_type,
+            .fail_pretty_name_allocation = input.fail_pretty_name_allocation,
+            .request_region_granted = input.request_region_granted,
+            .remap_succeeds = input.remap_succeeds,
+        });
     }
 
     pub fn descriptor() ModuleDescriptor {
@@ -332,39 +359,23 @@ pub const DevresHelperLab = struct {
     }
 
     pub fn planManagedIoremapAcquirePlain(input: ManagedIoremapAcquireWrapperInput) !ManagedIoremapAcquireResult {
-        return planManagedIoremapAcquire(.{
-            .kind = .plain,
-            .release_record_allocated = input.release_record_allocated,
-            .mapped_address = input.mapped_address,
-        });
+        return planManagedIoremapAcquireForKind(.plain, input);
     }
 
     pub fn planManagedIoremapAcquireUc(input: ManagedIoremapAcquireWrapperInput) !ManagedIoremapAcquireResult {
-        return planManagedIoremapAcquire(.{
-            .kind = .uncached,
-            .release_record_allocated = input.release_record_allocated,
-            .mapped_address = input.mapped_address,
-        });
+        return planManagedIoremapAcquireForKind(.uncached, input);
     }
 
     pub fn planManagedIoremapAcquireWc(input: ManagedIoremapAcquireWrapperInput) !ManagedIoremapAcquireResult {
-        return planManagedIoremapAcquire(.{
-            .kind = .write_combined,
-            .release_record_allocated = input.release_record_allocated,
-            .mapped_address = input.mapped_address,
-        });
+        return planManagedIoremapAcquireForKind(.write_combined, input);
     }
 
     pub fn planManagedIoremapAcquireNp(input: ManagedIoremapAcquireWrapperInput) !ManagedIoremapAcquireResult {
-        return planManagedIoremapAcquire(.{
-            .kind = .non_posted,
-            .release_record_allocated = input.release_record_allocated,
-            .mapped_address = input.mapped_address,
-        });
+        return planManagedIoremapAcquireForKind(.non_posted, input);
     }
 
     pub fn ioremapReleaseMatches(tracked_address: usize, candidate_address: usize) bool {
-        return tracked_address == candidate_address;
+        return releaseMatches(tracked_address, candidate_address);
     }
 
     pub fn planManagedIoportMap(input: ManagedIoportMapInput) !ManagedIoportMapResult {
@@ -384,7 +395,7 @@ pub const DevresHelperLab = struct {
     }
 
     pub fn ioportReleaseMatches(tracked_address: usize, candidate_address: usize) bool {
-        return tracked_address == candidate_address;
+        return releaseMatches(tracked_address, candidate_address);
     }
 
     pub fn resolveIoremapType(resource: Resource, requested_type: IoremapType) IoremapType {
@@ -523,25 +534,11 @@ pub const DevresHelperLab = struct {
     }
 
     pub fn planManagedIoremapResourceUc(allocator: std.mem.Allocator, input: IoremapResourceInput) !ManagedIoremapOutcome {
-        return planManagedIoremapResource(allocator, .{
-            .device_name = input.device_name,
-            .resource = input.resource,
-            .requested_type = .uc,
-            .fail_pretty_name_allocation = input.fail_pretty_name_allocation,
-            .request_region_granted = input.request_region_granted,
-            .remap_succeeds = input.remap_succeeds,
-        });
+        return planManagedIoremapResourceForType(allocator, .uc, input);
     }
 
     pub fn planManagedIoremapResourceWc(allocator: std.mem.Allocator, input: IoremapResourceInput) !ManagedIoremapOutcome {
-        return planManagedIoremapResource(allocator, .{
-            .device_name = input.device_name,
-            .resource = input.resource,
-            .requested_type = .wc,
-            .fail_pretty_name_allocation = input.fail_pretty_name_allocation,
-            .request_region_granted = input.request_region_granted,
-            .remap_succeeds = input.remap_succeeds,
-        });
+        return planManagedIoremapResourceForType(allocator, .wc, input);
     }
 
     pub fn planArchPhysWcAdd(input: ManagedPhysWcAddInput) !ManagedPhysWcAddOutcome {
