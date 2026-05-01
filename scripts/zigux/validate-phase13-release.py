@@ -70,7 +70,7 @@ RELEASE_MARKERS = [
     "the remaining live ruleset blocker is the same one already recorded by the manifest-backed survey packet: `rb_replace_node()`, live object ownership transfer, hierarchy lifetime, and workqueue-backed teardown are still outside the current helper-only lane",
     "a fresh full `zigux/tests/phase13_build.zig` replay is still the right way to confirm shared Phase 13 green status after that stale EOF marker is removed from the release note",
     "The current manifest lane ownership carried by the release packet is:",
-    "`fs/libfs.c` through `zigux/tests/phase13_libfs_manifest.json` lane `P13-L04`",
+    "`fs/libfs.c` through `zigux/tests/phase13_libfs_manifest.json` lane `P13-L03`",
     "`lib/devres.c` through `zigux/tests/phase13_devres_manifest.json` lane `P13-L03`",
     "`security/landlock/ruleset.c` through `zigux/tests/phase13_landlock_ruleset_manifest.json` lane `P13-L12`",
     "`security/landlock/syscalls.c` through `zigux/tests/phase13_landlock_syscalls_manifest.json` lane `P13-L16`",
@@ -271,7 +271,7 @@ if len(depend_steps) != 7:
     missing.append(f"build:depend_step_count={len(depend_steps)}")
 
 for manifest_path, lane_key, anchor in [
-    ("zigux/tests/phase13_libfs_manifest.json", "P13-L04", "fs/libfs.c"),
+    ("zigux/tests/phase13_libfs_manifest.json", "P13-L03", "fs/libfs.c"),
     ("zigux/tests/phase13_devres_manifest.json", "P13-L03", "lib/devres.c"),
     ("zigux/tests/phase13_landlock_ruleset_manifest.json", "P13-L12", "security/landlock/ruleset.c"),
     ("zigux/tests/phase13_landlock_syscalls_manifest.json", "P13-L16", "security/landlock/syscalls.c"),
