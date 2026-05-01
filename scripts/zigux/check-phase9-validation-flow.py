@@ -12,6 +12,14 @@ ROOT = Path(__file__).resolve().parent
 MAKEFILE_PATH = "zigux/Makefile"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 SURVEY_PATH = "Documentation/zigux/phase9-runtime-loader-gap-survey.md"
+LOADER_SUBSTRATE_CHECKER_PATH = "scripts/zigux/check-phase9-loader-substrate-plan.py"
+
+REQUIRED_FILES = [
+    MAKEFILE_PATH,
+    WORKFLOW_PATH,
+    SURVEY_PATH,
+    LOADER_SUBSTRATE_CHECKER_PATH,
+]
 
 MAKEFILE_MARKERS = [
     "phase9-validate:",
@@ -56,8 +64,17 @@ def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
 
 
+def collect_missing_files(root: Path) -> list[str]:
+    return [rel_path for rel_path in REQUIRED_FILES if not (root / rel_path).exists()]
+
+
 def validate(root: Path) -> list[str]:
     failures: list[str] = []
+
+    missing_files = collect_missing_files(root)
+    if missing_files:
+        failures.extend(f"missing_file:{rel_path}" for rel_path in missing_files)
+        return failures
 
     makefile = read_text(root, MAKEFILE_PATH)
     workflow = read_text(root, WORKFLOW_PATH)
@@ -80,6 +97,7 @@ def write_fixture_tree(root: Path) -> None:
     (root / "zigux").mkdir(parents=True, exist_ok=True)
     (root / ".github/workflows").mkdir(parents=True, exist_ok=True)
     (root / "Documentation/zigux").mkdir(parents=True, exist_ok=True)
+    (root / "scripts/zigux").mkdir(parents=True, exist_ok=True)
 
     (root / MAKEFILE_PATH).write_text(
         "\n".join(
@@ -156,6 +174,10 @@ def write_fixture_tree(root: Path) -> None:
                 "",
             ]
         ),
+        encoding="utf-8",
+    )
+    (root / LOADER_SUBSTRATE_CHECKER_PATH).write_text(
+        "# fixture placeholder for the dedicated loader-substrate-plan checker\n",
         encoding="utf-8",
     )
 
@@ -275,9 +297,20 @@ def run_self_test() -> int:
             tmp_root,
             "survey:- `python3 scripts/zigux/check-phase9-loader-substrate-plan.py --self-test`\n",
         )
+        survey_path.write_text(original_survey, encoding="utf-8")
+
+        loader_checker_path = tmp_root / LOADER_SUBSTRATE_CHECKER_PATH
+        original_loader_checker = loader_checker_path.read_text(encoding="utf-8")
+        loader_checker_path.unlink()
+        expect_missing_marker(
+            "loader_substrate_checker_file",
+            tmp_root,
+            "missing_file:scripts/zigux/check-phase9-loader-substrate-plan.py",
+        )
+        loader_checker_path.write_text(original_loader_checker, encoding="utf-8")
 
     print("PHASE9_VALIDATION_FLOW_SELF_TEST=pass")
-    print("PHASE9_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=6")
+    print("PHASE9_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
