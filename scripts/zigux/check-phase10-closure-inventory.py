@@ -52,6 +52,81 @@ EXPECTED_TESTS = [
     "zigux/tests/phase10_virtio_mmio_survey.zig",
 ]
 
+EXPECTED_ALLOWED_ROADMAP_DESTINATIONS = [
+    "drivers/virtio/*.zig",
+    "zigux/helpers/",
+]
+
+EXPECTED_ALLOWED_EVIDENCE_KINDS = [
+    "driver_local_lab_slices",
+    "survey_manifests",
+    "shared_validation_gates",
+]
+
+EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS = [
+    "queue_setup_reset_paths",
+    "irq_parity",
+    "dma_paths",
+    "input_registration_lifecycle",
+    "probe_remove_lifecycle",
+]
+
+EXPECTED_FREEZE_IN_C_ANCHORS = [
+    "kernel/sched/core.c",
+    "mm/page_alloc.c",
+    "kernel/rcu/tree.c",
+    "net/core/skbuff.c",
+]
+
+EXPECTED_STUDY_ONLY_ANCHORS = [
+    "kernel/workqueue.c",
+    "kernel/trace/ring_buffer.c",
+]
+
+EXPECTED_CROSS_PHASE_BOUNDARY = {
+    "reference_samples": {
+        "status": "out_of_scope",
+        "evidence": [
+            "samples/zigux",
+            "zigux/tests/phase5_build.zig",
+            "Documentation/zigux/review-checklist.md",
+        ],
+    },
+    "runtime_starters": {
+        "status": "out_of_scope",
+        "evidence": [
+            "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
+            "Documentation/zigux/phase9-runtime-loader-substrate-plan.md",
+            "zigux/tests/runtime_loader_gap_manifest.json",
+            "zigux/tests/runtime_loader_gap_survey.zig",
+            "zigux/tests/runtime_trace_events_manifest.json",
+            "zigux/tests/phase9_build.zig",
+            "zigux/kernel/runtime_loader.zig",
+            "zigux/helpers/allocator_policy.zig",
+            "samples/zigux/runtime_atomic64_loader.zig",
+            "samples/zigux/runtime_bitmap_loader.zig",
+            "samples/zigux/runtime_kretprobe_loader.zig",
+            "samples/zigux/runtime_trace_events.zig",
+        ],
+    },
+}
+
+EXPECTED_PHASE14_STUDY_ONLY_BOUNDARY = {
+    "status": "separate_phase14_lane",
+    "anchors": EXPECTED_STUDY_ONLY_ANCHORS,
+    "required_phase14_evidence_features": [
+        "boundary maps",
+        "concurrency audits",
+        "explicit stay-in-C decisions where warranted",
+        "wrapper-first or study-only posture",
+    ],
+    "future_destinations": [
+        "kernel/workqueue_bridge.zig",
+        "kernel/trace/ring_buffer.zig",
+    ],
+    "future_destination_policy": "kernel/trace/ring_buffer.zig remains a future destination only if years of evidence justify it",
+}
+
 REQUIRED_FILES = [CLOSURE_NOTE, CLOSURE_MANIFEST, CLOSURE_LEDGER] + EXPECTED_DOCS + EXPECTED_MANIFESTS + EXPECTED_DRIVERS + EXPECTED_TESTS
 
 CLOSURE_NOTE_MARKERS = [
@@ -65,6 +140,9 @@ CLOSURE_NOTE_MARKERS = [
     "PHASE10_VALIDATE_ENTRYPOINT=make -C zigux phase10-validate",
     "PHASE10_TEST_ENTRYPOINT=make -C zigux phase10-test",
     "PHASE10_COMBINED_ENTRYPOINT=make -C zigux phase10",
+    "PHASE10_ALLOWED_ROADMAP_DESTINATIONS=drivers/virtio/*.zig,zigux/helpers/",
+    "PHASE10_ALLOWED_EVIDENCE_KINDS=driver_local_lab_slices,survey_manifests,shared_validation_gates",
+    "PHASE10_FORBIDDEN_TRANSPORT_CLAIMS=queue_setup_reset_paths,irq_parity,dma_paths,input_registration_lifecycle,probe_remove_lifecycle",
 ]
 
 LEDGER_MARKERS = [
@@ -82,6 +160,7 @@ LEDGER_MARKERS = [
     "PHASE10_LEDGER_EXACT_CHECK_4=make -C zigux phase10-validate",
     "PHASE10_LEDGER_EXACT_CHECK_5=make -C zigux phase10-test",
     "PHASE10_LEDGER_EXACT_CHECK_6=make -C zigux phase10",
+    "PHASE10_LEDGER_BLOCKERS=phase10-virtio-input-registration-lifecycle,phase10-mmio-lifecycle-and-irq-paths",
 ]
 
 
@@ -119,6 +198,11 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         "manifests": EXPECTED_MANIFESTS,
         "drivers": EXPECTED_DRIVERS,
         "tests": EXPECTED_TESTS,
+        "allowed_roadmap_destinations": EXPECTED_ALLOWED_ROADMAP_DESTINATIONS,
+        "allowed_evidence_kinds": EXPECTED_ALLOWED_EVIDENCE_KINDS,
+        "forbidden_transport_claims": EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS,
+        "freeze_in_c_anchors": EXPECTED_FREEZE_IN_C_ANCHORS,
+        "study_only_anchors": EXPECTED_STUDY_ONLY_ANCHORS,
     }
     for key, expected in expected_arrays.items():
         if manifest.get(key) != expected:
@@ -133,6 +217,12 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     for key, expected in expected_counts.items():
         if manifest.get(key) != expected:
             missing.append(f"manifest:{key}")
+
+    if manifest.get("cross_phase_scoreboard_boundary") != EXPECTED_CROSS_PHASE_BOUNDARY:
+        missing.append("manifest:cross_phase_scoreboard_boundary")
+
+    if manifest.get("phase14_study_only_boundary") != EXPECTED_PHASE14_STUDY_ONLY_BOUNDARY:
+        missing.append("manifest:phase14_study_only_boundary")
 
     return [], missing
 
@@ -152,6 +242,13 @@ def write_fixture(root: Path) -> None:
         "manifests": EXPECTED_MANIFESTS,
         "drivers": EXPECTED_DRIVERS,
         "tests": EXPECTED_TESTS,
+        "allowed_roadmap_destinations": EXPECTED_ALLOWED_ROADMAP_DESTINATIONS,
+        "allowed_evidence_kinds": EXPECTED_ALLOWED_EVIDENCE_KINDS,
+        "forbidden_transport_claims": EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS,
+        "freeze_in_c_anchors": EXPECTED_FREEZE_IN_C_ANCHORS,
+        "study_only_anchors": EXPECTED_STUDY_ONLY_ANCHORS,
+        "cross_phase_scoreboard_boundary": EXPECTED_CROSS_PHASE_BOUNDARY,
+        "phase14_study_only_boundary": EXPECTED_PHASE14_STUDY_ONLY_BOUNDARY,
     }
 
     for rel_path in REQUIRED_FILES:
@@ -282,9 +379,64 @@ def run_self_test() -> int:
         manifest["tests"] = EXPECTED_TESTS[:-1] + ["zigux/tests/phase10_virtio_mmio_missing.zig"]
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         expect_missing_marker("manifest_tests_inventory", root, "manifest:tests")
+        write_fixture(root)
+
+        closure_note_path.write_text(
+            original_closure_note.replace(
+                "PHASE10_ALLOWED_EVIDENCE_KINDS=driver_local_lab_slices,survey_manifests,shared_validation_gates",
+                "PHASE10_ALLOWED_EVIDENCE_KINDS=missing",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "closure_allowed_evidence_marker",
+            root,
+            "closure:PHASE10_ALLOWED_EVIDENCE_KINDS=driver_local_lab_slices,survey_manifests,shared_validation_gates",
+        )
+        write_fixture(root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["allowed_roadmap_destinations"] = ["drivers/virtio/*.zig"]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "manifest_allowed_roadmap_destinations",
+            root,
+            "manifest:allowed_roadmap_destinations",
+        )
+        write_fixture(root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["cross_phase_scoreboard_boundary"]["reference_samples"]["status"] = "starter_landed"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "manifest_cross_phase_boundary",
+            root,
+            "manifest:cross_phase_scoreboard_boundary",
+        )
+        write_fixture(root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["phase14_study_only_boundary"]["required_phase14_evidence_features"].pop()
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "manifest_phase14_boundary",
+            root,
+            "manifest:phase14_study_only_boundary",
+        )
+        write_fixture(root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["freeze_in_c_anchors"] = EXPECTED_FREEZE_IN_C_ANCHORS[:-1]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "manifest_freeze_in_c_anchors",
+            root,
+            "manifest:freeze_in_c_anchors",
+        )
 
     print("PHASE10_CLOSURE_INVENTORY_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_INVENTORY_SELF_TEST_CASE_COUNT=8")
+    print("PHASE10_CLOSURE_INVENTORY_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
@@ -310,7 +462,7 @@ def main() -> int:
 
     print("PHASE10_CLOSURE_INVENTORY=pass")
     print(f"PHASE10_CLOSURE_INVENTORY_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
-    print("PHASE10_CLOSURE_INVENTORY_REQUIRED_GROUP_COUNT=5")
+    print("PHASE10_CLOSURE_INVENTORY_REQUIRED_GROUP_COUNT=9")
     return 0
 
 
