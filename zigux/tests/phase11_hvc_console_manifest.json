@@ -38,14 +38,14 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase11-hvc-console-survey.md",
-      "why_now": "The survey note now records that the original missing-driver gap has been closed by a bounded starter, the setup-versus-close boundary helper, the tiny final-close teardown summary, the tiny tty-registration handoff summary, the khvcd polling-contract summary, the khvcd worker-entry summary, the khvcd sleep-and-reschedule handoff summary, the __hvc_poll drain-order summary, the hvc_hangup disconnect summary, the hvc_remove handoff summary, and the tiny hvc_cleanup tty-port release handoff summary while preserving an explicit checkpoint for the remaining host-backed teardown and worker-execution work."
+      "why_now": "The survey note now records that the original missing-driver gap has been closed by a bounded starter, the CRLF framing parity packet including repeated bare-newline normalization and preserved CRLF input, the setup-versus-close boundary helper, the tiny final-close teardown summary, the tiny tty-registration handoff summary, the khvcd polling-contract summary, the khvcd worker-entry summary, the khvcd sleep-and-reschedule handoff summary, the __hvc_poll drain-order summary, the hvc_hangup disconnect summary, the hvc_remove handoff summary, and the tiny hvc_cleanup tty-port release handoff summary while preserving an explicit checkpoint for the remaining host-backed teardown and worker-execution work."
     },
     {
       "id": "phase11-hvc-console-driver-starter",
       "status": "starter_landed",
       "kind": "simple_driver_starter",
       "zigux_destination": "drivers/tty/hvc/hvc_console.zig",
-      "why_now": "The bounded starter is now landed around descriptor metadata, setup-time slot validation, CRLF write framing, flush intent, final-close wait-boundary summaries, a tiny final-close teardown summary, a tiny tty-registration handoff summary, a khvcd polling-contract summary, a khvcd worker-entry summary, a khvcd sleep-and-reschedule handoff summary, a __hvc_poll drain-order summary, a hvc_hangup disconnect summary, a hvc_remove handoff summary, and a tiny hvc_cleanup tty-port release handoff summary without claiming live tty registration, khvcd worker execution, or live hypervisor I/O."
+      "why_now": "The bounded starter is now landed around descriptor metadata, setup-time slot validation, CRLF write framing that normalizes repeated bare newlines while preserving pre-existing CRLF input, flush intent, final-close wait-boundary summaries, a tiny final-close teardown summary, a tiny tty-registration handoff summary, a khvcd polling-contract summary, a khvcd worker-entry summary, a khvcd sleep-and-reschedule handoff summary, a __hvc_poll drain-order summary, a hvc_hangup disconnect summary, a hvc_remove handoff summary, and a tiny hvc_cleanup tty-port release handoff summary without claiming live tty registration, khvcd worker execution, or live hypervisor I/O."
     },
     {
       "id": "phase11-hvc-console-close-teardown",
@@ -101,7 +101,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_hvc_console.zig",
-      "why_now": "Dedicated driver tests now cover setup-state slot validation, newline framing, retry-after-EAGAIN flush intent, final-close wait gating, final-close teardown sequencing, tty-registration handoff boundaries, khvcd polling-contract wakeup and reschedule boundaries, khvcd worker-entry sleep and backoff boundaries, khvcd sleep-and-reschedule handoff boundaries, __hvc_poll drain-order and tty-wakeup sequencing boundaries, hvc_hangup disconnect teardown boundaries, hvc_remove handoff boundaries, hvc_cleanup tty-port release boundaries, hung-up close short-circuiting, and teardown gating without touching tty core integration."
+      "why_now": "Dedicated driver tests now cover setup-state slot validation, newline framing including repeated bare-newline normalization and preserved CRLF input, retry-after-EAGAIN flush intent, final-close wait gating, final-close teardown sequencing, tty-registration handoff boundaries, khvcd polling-contract wakeup and reschedule boundaries, khvcd worker-entry sleep and backoff boundaries, khvcd sleep-and-reschedule handoff boundaries, __hvc_poll drain-order and tty-wakeup sequencing boundaries, hvc_hangup disconnect teardown boundaries, hvc_remove handoff boundaries, hvc_cleanup tty-port release boundaries, hung-up close short-circuiting, and teardown gating without touching tty core integration."
     },
     {
       "id": "phase11-hvc-console-validation-matrix",
