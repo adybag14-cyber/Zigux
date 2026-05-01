@@ -21,8 +21,8 @@ This note records the current export-shim and UAPI boundary for the bounded Phas
 - `PHASE3_EXPORT_UAPI_TEST_BLOB_SHA=fe3eaa894573e3a1313b46a16ee4bdf92e3694b5`
 - `PHASE3_ABI_MANIFEST_BLOB_SHA=f6716ac6e498c0bfd9264ab93b37db96d2e27c93`
 - `PHASE3_EXPORT_UAPI_GATE=zig build phase3-export-uapi-test --build-file zigux/tests/phase3_export_uapi_build.zig`
-- `PHASE3_BOUNDARY_GAP=broader-curated-uapi-shims-still-deferred`
-- `PHASE3_NEXT_BOUNDED_STEP=keep-boundary-header-surface-narrow-until-one-roadmap-backed-interop-slice-needs-another-curated-uapi-or-export-entry`
+- `PHASE3_BOUNDARY_GAP=no-second-zig-side-uapi-helper-beyond-version-and-boundary-header`
+- `PHASE3_NEXT_BOUNDED_STEP=keep-the-zig-side-uapi-surface-narrow-until-one-roadmap-backed-interop-slice-needs-another-curated-uapi-helper`
 
 ## Roadmap Contract
 
@@ -74,11 +74,14 @@ More specifically, it is still evidence for commit-train entry `26`, `feat(zigux
 The current gap is no longer the absence of an export shim.
 That piece exists and is reviewable.
 
-The remaining gap for this specific boundary packet is broader curated UAPI coverage:
+The remaining gap for this specific boundary packet is narrower than a missing public boundary altogether.
+The live repo already carries the C-facing boundary headers in `include/zigux/abi.h` and `include/linux/zigux.h`.
+
+What is still missing is a second curated Zig-side UAPI helper beyond the current `version-and-boundary-header` starter:
 
 - `zigux/uapi/` still contains only `version.zig`
-- there is no second curated public boundary helper or constant pack under `zigux/uapi/`
-- the shared header support is now explicit and now includes named version and size predicates plus canonical-versus-compatible header checks, but the export shim and UAPI surface still stop well short of a broader public entrypoint or shim family
+- there is no second curated Zig-side public boundary helper or constant pack under `zigux/uapi/`
+- the shared header support is now explicit and now includes named version and size predicates plus canonical-versus-compatible header checks, but the Zig-side UAPI surface still stops well short of a broader helper family
 
 That repo reality is consistent with the bounded ABI substrate, but it is still short of the roadmap's eventual broader permanent boundary destination.
 
@@ -87,7 +90,7 @@ That repo reality is consistent with the bounded ABI substrate, but it is still 
 The next honest follow-on inside this boundary family is still narrow:
 
 - keep the current export shim and boundary-header surface narrow until a roadmap-backed interop slice needs one more reviewable boundary helper
-- keep `zigux/uapi/` at version-plus-boundary-header scope until a concrete Phase 3 slice needs one additional curated public constant, type, or helper surface
+- keep `zigux/uapi/` at version-plus-boundary-header scope until a concrete Phase 3 slice needs one additional curated Zig-side public constant, type, or helper surface
 - refresh the packet-local `*_BLOB_SHA` markers whenever the directly coupled export/UAPI packet paths are deliberately resurveyed after boundary-local changes
 - refresh `PHASE3_SURVEYED_COMMIT` only when the whole export/UAPI packet is deliberately resurveyed against a confirmed shared head
 
