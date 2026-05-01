@@ -2,7 +2,7 @@
   "phase": "Phase 6",
   "status": "active",
   "tranche": "leaf-helper-parity",
-  "surveyed_commit": "6e5e19e8e177d054f123c237bbcb8b0cf11288f7",
+  "surveyed_commit": "d386a77a28cfbb46abd8e7d9c5e2bdf9c93948cb",
   "roadmap_anchors": [
     "lib/base64.c",
     "lib/bsearch.c",
@@ -127,7 +127,7 @@
       "parity_vectors": 9,
       "overflow_vectors": 4,
       "required_length_vectors": 9,
-      "perf_vectors": 3,
+      "perf_vectors": 4,
       "normalization_helpers": [
         "normalizedRowsize",
         "normalizedGroupsizeForLen",
