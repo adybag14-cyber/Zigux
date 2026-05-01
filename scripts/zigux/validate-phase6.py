@@ -857,7 +857,7 @@ def run_self_test() -> int:
         return 1
 
     print("PHASE6_VALIDATOR_SELF_TEST=pass")
-    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=7")
+    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
