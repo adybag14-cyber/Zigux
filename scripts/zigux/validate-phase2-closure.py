@@ -11,6 +11,9 @@ GENKSYMS_BRIDGE_DIR = ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge'
 KCONFIG_BRIDGE_DIR = ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge'
 FIXDEP_DIR = ROOT / 'zigux' / 'tests' / 'fixtures' / 'fixdep'
 FIXDEP_CASES = FIXDEP_DIR / 'cases.json'
+CHECK_KCONFIG_BRIDGE = ROOT / 'scripts' / 'zigux' / 'check-kconfig-bridge.py'
+CHECK_FIXDEP = ROOT / 'scripts' / 'zigux' / 'check-fixdep-diff.py'
+CHECK_ARTIFACT_DIFF_CONTRACT = ROOT / 'scripts' / 'zigux' / 'check-artifact-diff-contract.py'
 EXPECTED_TOOL_MANIFEST_TOOLS = [
     'scripts/zigux/fixdep.zig',
     'scripts/zigux/genksyms.zig',
@@ -25,6 +28,12 @@ EXPECTED_CROSS_TARGETS = [
     'riscv64-linux-musl',
 ]
 EXACT_WORKFLOW_RUN_COUNTS = {
+    'python3 scripts/zigux/artifact_diff.py --self-test': 1,
+    'python3 scripts/zigux/check-artifact-diff-contract.py': 1,
+    'python3 scripts/zigux/check-fixdep-diff.py --self-test': 1,
+    'python3 scripts/zigux/check-fixdep-diff.py': 1,
+    'python3 scripts/zigux/check-genksyms-bridge.py --self-test': 1,
+    'python3 scripts/zigux/check-genksyms-bridge.py': 1,
     'python3 scripts/zigux/check-genksyms-crc-diff.py --self-test': 1,
     'python3 scripts/zigux/check-genksyms-crc-diff.py': 1,
     'python3 scripts/zigux/check-kconfig-bridge.py --self-test': 1,
@@ -357,6 +366,30 @@ def validate_kconfig_bridge_manifest(cases_path: Path) -> list[str]:
     return issues
 
 
+def validate_kconfig_checker_gate(checker_script: Path) -> list[str]:
+    source = checker_script.read_text(encoding='utf-8')
+    required_markers = {
+        'self_test_arg': "parser.add_argument('--self-test'",
+        'self_test_pass_marker': "print('KCONFIG_BRIDGE_SELF_TEST=pass')",
+        'unexpected_conf_mode_guard': 'UNEXPECTED_CONF_BRIDGE_MODES_START',
+        'unsorted_conf_case_guard': 'UNSORTED_CONF_CASE_ORDER_START',
+        'unsorted_confdata_case_guard': 'UNSORTED_CONFDATA_CASE_ORDER_START',
+        'invalid_manifest_guard': 'INVALID_KCONFIG_MANIFEST_START',
+        'orphaned_fixture_guard': 'orphaned_fixture:',
+        'exact_confdata_compare': 'compare_text_artifacts(actual, repeat)',
+        'rebuilt_confdata_compare': 'compare_text_artifacts(actual, rebuild)',
+        'randconfig_seed_env': "env['KCONFIG_SEED'] = case['seed']",
+        'randconfig_probability_env': "env['KCONFIG_PROBABILITY'] = case['probability']",
+        'determinism_marker': "print('KCONFIG_BRIDGE_DETERMINISM=pass')",
+    }
+
+    issues: list[str] = []
+    for issue_name, markers in required_markers.items():
+        if not any(marker in source for marker in (markers if isinstance(markers, tuple) else (markers,))):
+            issues.append(f'kconfig_checker:{issue_name}')
+    return issues
+
+
 def validate_phase2_cross_checker_gate(checker_script: Path) -> list[str]:
     source = checker_script.read_text(encoding='utf-8')
     required_markers = {
@@ -418,6 +451,46 @@ def validate_genksyms_crc_checker_gate(checker_script: Path) -> list[str]:
     for issue_name, marker in required_markers.items():
         if marker not in source:
             issues.append(f'genksyms_crc_checker:{issue_name}')
+    return issues
+
+
+def validate_fixdep_checker_gate(checker_script: Path) -> list[str]:
+    source = checker_script.read_text(encoding='utf-8')
+    required_markers = {
+        'repeat_c_stdout': 'diff_text(c_actual, c_repeat)',
+        'repeat_zig_stdout': 'diff_text(zig_actual, zig_repeat)',
+        'repeat_c_stderr': 'diff_text(c_actual_stderr, c_repeat_stderr)',
+        'repeat_zig_stderr': 'diff_text(zig_actual_stderr, zig_repeat_stderr)',
+        'expected_stderr_fallback': "expected_stderr_path = expected_stderr or implicit_expected_stderr",
+        'quiet_success_stderr_gate': "implicit_expected_stderr.write_text('', encoding='utf-8')",
+        'determinism_marker': "print('FIXDEP_DETERMINISM=pass')",
+    }
+
+    issues: list[str] = []
+    for issue_name, marker in required_markers.items():
+        if marker not in source:
+            issues.append(f'fixdep_checker:{issue_name}')
+    return issues
+
+
+def validate_artifact_diff_contract_gate(checker_script: Path) -> list[str]:
+    source = checker_script.read_text(encoding='utf-8')
+    required_markers = {
+        'text_pass_case': "['--mode', 'text', str(expected), str(actual)]",
+        'missing_expected_case': 'EXPECTED_EXISTS=False',
+        'missing_actual_case': 'ACTUAL_EXISTS=False',
+        'expected_json_error_case': 'EXPECTED_JSON_ERROR=',
+        'actual_json_error_case': 'ACTUAL_JSON_ERROR=',
+        'sha256_pass_case': 'SHA256=0051a1ffdd63accde60d9c9893094b287388cecb4fcc734a204ea5a36a5c3576',
+        'sha256_fail_case': 'EXPECTED_SHA256=',
+        'sha256_fail_actual_case': 'ACTUAL_SHA256=',
+        'contract_pass_marker': "print('ARTIFACT_DIFF_CONTRACT=pass')",
+    }
+
+    issues: list[str] = []
+    for issue_name, marker in required_markers.items():
+        if marker not in source:
+            issues.append(f'artifact_diff_contract:{issue_name}')
     return issues
 
 
@@ -712,9 +785,12 @@ if target_manifest_targets != EXPECTED_CROSS_TARGETS:
     missing_markers.append('targets:list=x86_64-linux-musl,aarch64-linux-musl,riscv64-linux-musl')
 
 missing_markers.extend(validate_kconfig_bridge_manifest(KCONFIG_BRIDGE_DIR / 'cases.json'))
+missing_markers.extend(validate_kconfig_checker_gate(CHECK_KCONFIG_BRIDGE))
 missing_markers.extend(validate_phase2_cross_checker_gate(ROOT / 'scripts' / 'zigux' / 'check-phase2-cross.py'))
 missing_markers.extend(validate_genksyms_bridge_checker_gate(ROOT / 'scripts' / 'zigux' / 'check-genksyms-bridge.py'))
 missing_markers.extend(validate_genksyms_crc_checker_gate(ROOT / 'scripts' / 'zigux' / 'check-genksyms-crc-diff.py'))
+missing_markers.extend(validate_fixdep_checker_gate(CHECK_FIXDEP))
+missing_markers.extend(validate_artifact_diff_contract_gate(CHECK_ARTIFACT_DIFF_CONTRACT))
 missing_markers.extend(validate_mk_elfconfig_checker_gate(ROOT / 'scripts' / 'zigux' / 'check-mk-elfconfig-diff.py'))
 missing_markers.extend(fixdep_case_issues)
 missing_markers.extend(validate_exact_workflow_runs(workflow, EXACT_WORKFLOW_RUN_COUNTS))
