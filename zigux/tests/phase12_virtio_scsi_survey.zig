@@ -155,13 +155,10 @@ test "phase12 virtio_scsi survey manifest records the landed queue-depth summary
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue-layout, recovery, probe snapshot, host-limit summary, queue-depth summary, and io-queue-map starters") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-virtio-scsi-raw-github-fallback-catalog.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "7d653d8c5e57207763c07c1b1d020b514738c7f3") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_VALIDATION=fail") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Treat that validator miss list as archived cross-lane evidence") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "rather than as a claim about the live validator state on newer Phase 12 heads") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "review_checklist:if the change touches the shared Phase 12 libbpf snapshot packet") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12_nvme_pci_manifest.json:lane_key") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12_libbpf_snapshot_fixture:bytes:zigux/tests/phase12_libbpf_segments.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12_libbpf_snapshot_fixture:sha256:zigux/tests/phase12_libbpf_segments.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "archived `python3 scripts/zigux/validate-phase12.py` replay failed on four unrelated shared-packet drifts") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "the exact archived validator miss list now stays in `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "without repeating cross-lane details") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "implying those misses are still current on newer Phase 12 heads") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig test zigux/tests/phase12_virtio_scsi_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "passes `1/1` tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Rollback And Reversible Delivery") != null);
