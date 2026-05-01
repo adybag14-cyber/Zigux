@@ -106,6 +106,15 @@ jobs:
       - name: Check Phase 3 export and UAPI boundary survey
         run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py
 
+      - name: Check Phase 3 low-level wrapper boundary survey
+        run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py
+
+      - name: Check Phase 3 policy and unsafe boundary survey
+        run: python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py
+
+      - name: Check Phase 3 validation flow
+        run: python3 scripts/zigux/check-phase3-validation-flow.py
+
       - name: Validate Phase 4 diff gates
         run: make -C zigux phase4-validate
 
@@ -120,6 +129,15 @@ jobs:
 
       - name: Self-test Phase 3 export and UAPI boundary survey checker
         run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test
+
+      - name: Self-test Phase 3 low-level wrapper boundary survey checker
+        run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test
+
+      - name: Self-test Phase 3 policy and unsafe boundary survey checker
+        run: python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test
+
+      - name: Self-test Phase 3 validation flow checker
+        run: python3 scripts/zigux/check-phase3-validation-flow.py --self-test
 
       - name: Self-test Phase 3 catalog
         run: python3 scripts/zigux/phase3_catalog.py --self-test
