@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -12,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[2]
 FIXTURE = ROOT / "zigux" / "tests" / "fixtures" / "phase7_cmdline.json"
 HARNESS = ROOT / "zigux" / "tests" / "fixtures" / "phase7_cmdline_c_harness.c"
 SOURCE = ROOT / "lib" / "cmdline.c"
+SELF_TEST_PAYLOAD_ENV = "PHASE7_CMDLINE_PARITY_SELFTEST_PAYLOAD"
 
 
 def find_compiler(explicit: str | None) -> str:
@@ -141,7 +143,17 @@ def write_host_shims(root: Path) -> None:
     )
 
 
-def compile_and_run(exe: Path, actual: Path, compiler: str, include_root: Path) -> None:
+def compile_and_run(
+    exe: Path,
+    actual: Path,
+    compiler: str,
+    include_root: Path,
+    *,
+    harness: Path = HARNESS,
+    source: Path = SOURCE,
+    cwd: Path = ROOT,
+    env: dict[str, str] | None = None,
+) -> None:
     compile_cmd = [
         compiler,
         "-std=gnu11",
@@ -152,16 +164,99 @@ def compile_and_run(exe: Path, actual: Path, compiler: str, include_root: Path) 
         str(include_root),
         "-o",
         str(exe),
-        str(HARNESS),
-        str(SOURCE),
+        str(harness),
+        str(source),
     ]
-    run(compile_cmd, cwd=str(ROOT))
-    result = run([str(exe)], cwd=str(ROOT), capture_output=True)
+    run(compile_cmd, cwd=str(cwd), env=env)
+    result = run([str(exe)], cwd=str(cwd), capture_output=True, env=env)
     actual.write_text(result.stdout, encoding="utf-8")
 
 
 def load_json(path: Path) -> object:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def render_json(value: object) -> str:
+    return json.dumps(value, indent=2, sort_keys=True) + "\n"
+
+
+def write_fake_compiler(path: Path) -> None:
+    path.write_text(
+        "#!/usr/bin/env python3\n"
+        "from pathlib import Path\n"
+        "import os\n"
+        "import sys\n"
+        "out = Path(sys.argv[sys.argv.index('-o') + 1])\n"
+        f"payload = os.environ[{SELF_TEST_PAYLOAD_ENV!r}]\n"
+        "out.write_text(\n"
+        "    '#!/usr/bin/env python3\\n'\n"
+        "    'import sys\\n'\n"
+        "    'sys.stdout.write(' + repr(payload) + ')\\n',\n"
+        "    encoding='utf-8',\n"
+        ")\n"
+        "out.chmod(0o755)\n",
+        encoding="utf-8",
+    )
+    path.chmod(0o755)
+
+
+def run_self_test() -> int:
+    with tempfile.TemporaryDirectory(prefix="zigux_phase7_cmdline_parity_selftest_") as tmp_dir_str:
+        tmp_dir = Path(tmp_dir_str)
+        fixture = tmp_dir / "expected.json"
+        harness = tmp_dir / "fixture.c"
+        source = tmp_dir / "source.c"
+        fake_compiler = tmp_dir / "fake-cc"
+        payload = {
+            "parse_option_str": {
+                "assignment_not_bare": False,
+                "exact_bare_option": True,
+            }
+        }
+        fixture.write_text(render_json(payload), encoding="utf-8")
+        harness.write_text("/* self-test fixture */\n", encoding="utf-8")
+        source.write_text("/* self-test source */\n", encoding="utf-8")
+        write_fake_compiler(fake_compiler)
+
+        shim_dir = tmp_dir / "shim"
+        write_host_shims(shim_dir)
+
+        env = os.environ.copy()
+        env[SELF_TEST_PAYLOAD_ENV] = render_json(payload)
+        actual = tmp_dir / "actual.json"
+        exe = tmp_dir / "phase7_cmdline_selftest"
+        compile_and_run(
+            exe,
+            actual,
+            str(fake_compiler),
+            shim_dir,
+            harness=harness,
+            source=source,
+            cwd=tmp_dir,
+            env=env,
+        )
+        if load_json(actual) != load_json(fixture):
+            raise SystemExit("phase7-cmdline-parity-self-test:baseline_failed")
+
+        drift_actual = tmp_dir / "drift.json"
+        drift_exe = tmp_dir / "phase7_cmdline_selftest_drift"
+        env[SELF_TEST_PAYLOAD_ENV] = render_json({"parse_option_str": {"exact_bare_option": False}})
+        compile_and_run(
+            drift_exe,
+            drift_actual,
+            str(fake_compiler),
+            shim_dir,
+            harness=harness,
+            source=source,
+            cwd=tmp_dir,
+            env=env,
+        )
+        if load_json(drift_actual) == load_json(fixture):
+            raise SystemExit("phase7-cmdline-parity-self-test:drift_not_detected")
+
+    print("PHASE7_CMDLINE_PARITY_SELF_TEST=pass")
+    print("PHASE7_CMDLINE_PARITY_SELF_TEST_CASE_COUNT=2")
+    return 0
 
 
 def main() -> int:
@@ -173,8 +268,16 @@ def main() -> int:
         action="store_true",
         help="Refresh the committed JSON fixture from the C harness.",
     )
+    parser.add_argument(
+        "--self-test",
+        action="store_true",
+        help="Exercise the checker with a synthetic no-compiler fixture.",
+    )
     parser.add_argument("--cc", help="Explicit C compiler path to use.")
     args = parser.parse_args()
+
+    if args.self_test:
+        return run_self_test()
 
     compiler = find_compiler(args.cc)
 
@@ -188,7 +291,7 @@ def main() -> int:
         compile_and_run(exe, actual, compiler, shim_dir)
 
         actual_json = load_json(actual)
-        normalized = json.dumps(actual_json, indent=2, sort_keys=True) + "\n"
+        normalized = render_json(actual_json)
 
         if args.refresh:
             FIXTURE.write_text(normalized, encoding="utf-8")
