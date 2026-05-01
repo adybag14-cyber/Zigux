@@ -12,6 +12,7 @@ import tempfile
 _HERE = Path(__file__).resolve()
 ROOT = _HERE.parents[2] if len(_HERE.parents) > 2 else _HERE.parent
 SURVEY_REL = "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md"
+REVIEW_CHECKLIST_REL = "Documentation/zigux/review-checklist.md"
 MAKEFILE_REL = "zigux/Makefile"
 ABI_SLICE_REL = "Documentation/zigux/phase3-abi-slice.md"
 MANIFEST_REL = "zigux/tests/fixtures/phase3_abi_manifest.json"
@@ -77,6 +78,18 @@ REQUIRED_SURVEY_PATHS = (
 REQUIRED_MAKEFILE_SNIPPETS = (
     "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
     "scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test",
+)
+
+REQUIRED_REVIEW_CHECKLIST_SNIPPETS = (
+    "`Documentation/zigux/phase3-policy-unsafe-boundary-survey.md`",
+    "`scripts/zigux/validate-phase3-policy-unsafe-survey.py`",
+    "`zigux/helpers/layout_assert.zig`",
+    "`zigux/helpers/panic_policy.zig`",
+    "`zigux/helpers/allocator_policy.zig`",
+    "`zigux/helpers/interop_policy.zig`",
+    "`zigux/helpers/mmio.zig`",
+    "`zigux/unsafe/narrow.zig`",
+    "`zigux/tests/phase3_policy_unsafe.zig`",
 )
 
 REQUIRED_LAYOUT_ASSERT_SNIPPETS = (
@@ -266,6 +279,7 @@ def validate(root: Path) -> list[str]:
     issues: list[str] = []
 
     survey = _read_text(root, SURVEY_REL, issues)
+    review_checklist = _read_text(root, REVIEW_CHECKLIST_REL, issues)
     makefile = _read_text(root, MAKEFILE_REL, issues)
     layout_assert = _read_text(root, LAYOUT_ASSERT_REL, issues)
     panic_policy = _read_text(root, PANIC_POLICY_REL, issues)
@@ -305,6 +319,13 @@ def validate(root: Path) -> list[str]:
 
     if makefile:
         _check_snippets(makefile, REQUIRED_MAKEFILE_SNIPPETS, "missing_makefile_snippet", issues)
+    if review_checklist:
+        _check_snippets(
+            review_checklist,
+            REQUIRED_REVIEW_CHECKLIST_SNIPPETS,
+            "missing_review_checklist_snippet",
+            issues,
+        )
     if layout_assert:
         _check_snippets(layout_assert, REQUIRED_LAYOUT_ASSERT_SNIPPETS, "missing_layout_assert_snippet", issues)
     if panic_policy:
@@ -386,6 +407,11 @@ def run_self_test() -> int:
                 ]
             )
             + "\n",
+        )
+        _write(
+            root,
+            REVIEW_CHECKLIST_REL,
+            "- if the change touches the shared Phase 3 ABI substrate packet, do `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md`, `scripts/zigux/validate-phase3-policy-unsafe-survey.py`, `zigux/helpers/layout_assert.zig`, `zigux/helpers/panic_policy.zig`, `zigux/helpers/allocator_policy.zig`, `zigux/helpers/interop_policy.zig`, `zigux/helpers/mmio.zig`, `zigux/unsafe/narrow.zig`, and `zigux/tests/phase3_policy_unsafe.zig` still keep the dedicated policy-byte, typed interop-policy, scoped MMIO, and unsafe-boundary review packet explicit in one place?\n",
         )
         _write(
             root,
@@ -535,6 +561,14 @@ def run_self_test() -> int:
             'missing_policy_unsafe_test_snippet:test "phase3 policy gate rejects overflowed unsafe address math"'
             in issues
         )
+
+        _write(root, REVIEW_CHECKLIST_REL, "phase3 review drift\n")
+        issues = validate(root)
+        assert (
+            "missing_review_checklist_snippet:`Documentation/zigux/phase3-policy-unsafe-boundary-survey.md`"
+            in issues
+        )
+        assert "missing_review_checklist_snippet:`zigux/helpers/interop_policy.zig`" in issues
 
     print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass")
     return 0
