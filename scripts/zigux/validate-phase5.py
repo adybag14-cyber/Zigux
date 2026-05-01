@@ -307,7 +307,7 @@ manifest_expectations = {
         ],
     },
     "phase5_kobject_example_manifest.json": {
-        "lane_key": "P5-L10",
+        "lane_key": "P5-L12",
         "anchor": "samples/kobject/kobject-example.c",
         "sample_path": "samples/zigux/kobject_example.zig",
         "survey_note_path": "Documentation/zigux/phase5-kobject-sample-survey.md",
@@ -548,7 +548,7 @@ survey_note_expectations = {
     },
     "phase5_kobject_example_manifest.json": {
         "sample_test_command": "zig test samples/zigux/kobject_example.zig",
-        "sample_test_result": "All 2 tests passed.",
+        "sample_test_result": "All 3 tests passed.",
         "survey_test_command": "zig test zigux/tests/phase5_kobject_example_survey.zig",
         "survey_test_result": "All 2 tests passed.",
     },
