@@ -576,7 +576,7 @@ def validate_phase6(root: Path) -> dict[str, object]:
     phase6_catalog = text(root, "Documentation/zigux/phase6-helper-parity-catalog.md")
     phase6_manifest = load_json(root, "zigux/tests/phase6_helper_parity_manifest.json")
 
-    catalog_head_match = re.search(r"- verified head: `([0-9a-f]{40})`", phase6_catalog)
+    catalog_head_match = re.search(r"- verified head: `([^`]+)`", phase6_catalog)
     if catalog_head_match is None:
         return {
             "ok": False,
@@ -754,6 +754,49 @@ def run_self_test() -> int:
                 raise AssertionError(f"expected script README marker failure, got: {readme_fail_result['missing']}")
 
             write_self_test_tree(root)
+            catalog_path = root / "Documentation/zigux/phase6-helper-parity-catalog.md"
+            catalog_text = catalog_path.read_text(encoding="utf-8")
+            verified_head_line = f"- verified head: `{SELF_TEST_HEAD}`"
+            if verified_head_line not in catalog_text:
+                raise AssertionError("expected verified-head marker missing from positive catalog")
+            catalog_path.write_text(
+                catalog_text.replace(verified_head_line, "- verified tip: `missing-head-marker`", 1),
+                encoding="utf-8",
+            )
+
+            missing_head_result = validate_phase6(root)
+            if missing_head_result["ok"]:
+                raise AssertionError("missing catalog verified-head marker unexpectedly passed")
+            if missing_head_result["catalog_head_status"] != "missing":
+                raise AssertionError(
+                    "expected missing catalog-head status, got: "
+                    f"{missing_head_result['catalog_head_status']}"
+                )
+
+            write_self_test_tree(root)
+            catalog_path = root / "Documentation/zigux/phase6-helper-parity-catalog.md"
+            catalog_text = catalog_path.read_text(encoding="utf-8")
+            if verified_head_line not in catalog_text:
+                raise AssertionError("expected verified-head marker missing from invalid-head fixture")
+            catalog_path.write_text(
+                catalog_text.replace(
+                    verified_head_line,
+                    "- verified head: `0123456789abcdef0123456789abcdef0123456g`",
+                    1,
+                ),
+                encoding="utf-8",
+            )
+
+            invalid_head_result = validate_phase6(root)
+            if invalid_head_result["ok"]:
+                raise AssertionError("invalid catalog verified-head value unexpectedly passed")
+            if invalid_head_result["catalog_head_status"] != "invalid":
+                raise AssertionError(
+                    "expected invalid catalog-head status, got: "
+                    f"{invalid_head_result['catalog_head_status']}"
+                )
+
+            write_self_test_tree(root)
             vectors_path = root / "zigux/tests/fixtures/phase6_base64_vectors.zig"
             vectors_text = vectors_path.read_text(encoding="utf-8")
             vectors_marker = '.{ .input = ",,A", .expected = &variant_two_byte_sample, .padding = false, .variant_name = "imap" },'
@@ -879,7 +922,7 @@ def run_self_test() -> int:
             )
             if bsearch_avg_budget_marker not in bsearch_perf_text:
                 raise AssertionError("expected bsearch average budget marker missing from positive fixture")
-            bsearch_perf_path.write_text(
+            bsearch_perf_path.writeText(
                 bsearch_perf_text.replace(bsearch_avg_budget_marker, "", 1),
                 encoding="utf-8",
             )
@@ -924,7 +967,7 @@ def run_self_test() -> int:
         return 1
 
     print("PHASE6_VALIDATOR_SELF_TEST=pass")
-    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=11")
+    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
