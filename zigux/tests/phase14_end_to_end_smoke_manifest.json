@@ -96,8 +96,8 @@
     {
       "artifact_name": "phase14-workqueue-bridge-tests",
       "root_source_file": "phase14_workqueue_bridge.zig",
-      "coverage_mode": "full_bundle_only",
-      "dedicated_step": "",
+      "coverage_mode": "anchor_local_step_and_full_bundle",
+      "dedicated_step": "phase14-workqueue-bridge",
       "bridge_import": "workqueue_bridge",
       "bridge_source_file": "../../kernel/workqueue_bridge.zig"
     },
