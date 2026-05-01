@@ -15,6 +15,7 @@ This document records the shared boot/runtime loader gap that still separates th
   - `Documentation/zigux/freeze-map.md`
   - `zigux/tests/runtime_loader_gap_manifest.json`
   - `zigux/tests/runtime_loader_gap_survey.zig`
+  - `zigux/tests/runtime_trace_events_manifest.json`
   - `zigux/tests/phase9_build.zig`
   - `zigux/kernel/runtime_loader.zig`
   - `samples/zigux/runtime_atomic64_loader.zig`
