@@ -492,6 +492,16 @@ test "phase 9 runtime atomic64 docs stay aligned with the manifest-backed survey
     try expectSurveyedCommitMarker(survey_doc, manifest.surveyed_commit);
     try expectPinnedCommitSentence(survey_doc, manifest.surveyed_commit);
     try expectSurveyedCommitMarker(module_slice, manifest.surveyed_commit);
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        survey_doc,
+        "keeping the bounded lifecycle, selftest, and pre-execution runtime-pilot packet green without widening into unrelated shared runtime-loader control work.",
+    ) != null);
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        survey_doc,
+        "first-loadable-module parity packet",
+    ) == null);
 
     try std.testing.expect(std.mem.indexOf(
         u8,
