@@ -38,6 +38,17 @@ HEADER_BINDING_MARKERS = {
         '.name = "phase3-abi-dump",',
         'const phase3_dump_step = b.step("phase3-dump", "Run Phase 3 ABI dump");',
         "phase3_dump_step.dependOn(&run_phase3_dump.step);",
+        "const bitmap_view_module = b.createModule(.{",
+        "const cpumask_view_module = b.createModule(.{",
+        "const list_view_module = b.createModule(.{",
+        "const hlist_view_module = b.createModule(.{",
+        "const err_ptr_module = b.createModule(.{",
+        "const xarray_slot_view_module = b.createModule(.{",
+        "const idr_slot_view_module = b.createModule(.{",
+        "const ida_policy_view_module = b.createModule(.{",
+        "const dev_region_plan_module = b.createModule(.{",
+        "const cdev_add_plan_module = b.createModule(.{",
+        "const chrdev_open_plan_module = b.createModule(.{",
     ),
 }
 
@@ -78,7 +89,7 @@ def run_self_test() -> int:
             f"header-binding-marker: include/zigux/abi.h missing {first_marker}"
         ]
 
-        build_marker = HEADER_BINDING_MARKERS["zigux/tests/build.zig"][-1]
+        build_marker = HEADER_BINDING_MARKERS["zigux/tests/build.zig"][6]
         build_file = root / "zigux/tests/build.zig"
         build_file.write_text(
             build_file.read_text(encoding="utf-8").replace(build_marker + "\n", "", 1),
@@ -88,6 +99,18 @@ def run_self_test() -> int:
         assert validate_header_binding_markers(root) == [
             f"header-binding-marker: include/zigux/abi.h missing {first_marker}",
             f"header-binding-marker: zigux/tests/build.zig missing {build_marker}",
+        ]
+
+        interop_build_marker = HEADER_BINDING_MARKERS["zigux/tests/build.zig"][-1]
+        build_file.write_text(
+            build_file.read_text(encoding="utf-8").replace(interop_build_marker + "\n", "", 1),
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert validate_header_binding_markers(root) == [
+            f"header-binding-marker: include/zigux/abi.h missing {first_marker}",
+            f"header-binding-marker: zigux/tests/build.zig missing {build_marker}",
+            f"header-binding-marker: zigux/tests/build.zig missing {interop_build_marker}",
         ]
 
     print("PHASE3_HEADER_BINDING_MARKER_SELF_TEST=pass")
