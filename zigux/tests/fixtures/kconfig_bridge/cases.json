@@ -22,6 +22,7 @@
       "kconfig": "Kconfig",
       "config": "out/.config",
       "arch": "riscv64",
+      "nosilentupdate": "1",
       "expected": "syncconfig_expected.json"
     },
     {
