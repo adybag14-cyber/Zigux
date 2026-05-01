@@ -41,7 +41,7 @@ The current starter slice covers:
 - an injected chunk-reader interface that can assemble buffered sysfs-style input without touching real file descriptors
 - dense `[]bool` mask materialization for future tooling callers
 - counted possible-CPU reporting over the parsed mask
-- a bounded auto-CPU count clamp that mirrors libbpf's perf-buffer map-budget sizing without widening into `/sys` reads, online CPU filtering, perf-event-array updates, or perf FD registration
+- a bounded auto-CPU count clamp that mirrors libbpf's perf-buffer map-budget sizing without widening into `/sys` reads, online CPU filtering, perf-event-array updates, epoll-backed perf FD registration, or timeout-driven `perf_buffer__poll(timeout_ms)` waits that return ready-buffer counts
 
 The current tests check:
 
@@ -61,9 +61,11 @@ This slice does not yet claim:
 - direct `parse_cpu_mask_file()` parity
 - real file-descriptor I/O
 - `libbpf_num_possible_cpus()` caching or `READ_ONCE`/`WRITE_ONCE` behavior
-- `perf_buffer__new()` online CPU selection, perf-event-array population, or interrupt-routing behavior
+- `perf_buffer__new()` online CPU selection, perf-event-array population, or interrupt-routing-sensitive timing boundary behavior
+- direct `perf_buffer__poll(timeout_ms)` timeout handling or ready-buffer count parity
+- any standalone timer helper or standalone clockevent helper for perf-buffer polling
 - perf-buffer or feature-probe integration
 
 ## Next bounded step
 
-Keep the landed parser helper bounded, and leave the neighboring `perf-buffer-online-cpu-routing` survey segment deferred until Zigux has a smaller reviewed substrate for `/sys` cpu-mask reads, online CPU filtering, and per-CPU perf-buffer routing than the current libbpf boundary.
+Keep the landed parser helper bounded, and leave the neighboring `perf-buffer-online-cpu-routing` survey segment deferred until Zigux has a smaller reviewed substrate for `/sys` cpu-mask reads, online CPU filtering, per-CPU perf-buffer routing, and the interrupt-routing-sensitive timing boundary around `perf_buffer__poll(timeout_ms)` than the current libbpf boundary.
