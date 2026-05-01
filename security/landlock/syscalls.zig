@@ -30,6 +30,7 @@ pub const ModuleDescriptor = struct {
     provides_min_struct_copy_planning: bool,
     provides_create_ruleset_query_planning: bool,
     provides_restrict_self_flag_planning: bool,
+    provides_restrict_self_credential_handoff_planning: bool,
     provides_add_rule_planning: bool,
     provides_ruleset_fd_planning: bool,
     provides_ruleset_fd_creation_planning: bool,
@@ -119,6 +120,28 @@ pub const RestrictSelfPlan = struct {
     log_new_exec: bool,
     log_subdomains: bool,
     propagates_to_siblings: bool,
+};
+
+pub const RestrictSelfCredentialRequest = struct {
+    ruleset_fd: i32,
+    flags: u32 = 0,
+    has_no_new_privs: bool = false,
+    has_cap_sys_admin: bool = false,
+};
+
+pub const RestrictSelfCredentialPlan = struct {
+    anchor: []const u8,
+    requires_privilege_gate: bool,
+    acquires_ruleset_with_read_access: bool,
+    prepares_new_credentials: bool,
+    updates_log_subdomains_state: bool,
+    merges_ruleset_domain: bool,
+    replaces_prepared_domain: bool,
+    releases_previous_domain: bool,
+    propagates_to_siblings: bool,
+    aborts_creds_on_merge_failure: bool,
+    aborts_creds_on_tsync_failure: bool,
+    commits_prepared_credentials: bool,
 };
 
 pub const AddRuleAction = enum {
@@ -237,6 +260,7 @@ pub const SyscallsHelperLab = struct {
             .provides_min_struct_copy_planning = true,
             .provides_create_ruleset_query_planning = true,
             .provides_restrict_self_flag_planning = true,
+            .provides_restrict_self_credential_handoff_planning = true,
             .provides_add_rule_planning = true,
             .provides_ruleset_fd_planning = true,
             .provides_ruleset_fd_creation_planning = true,
@@ -380,6 +404,28 @@ pub const SyscallsHelperLab = struct {
             .log_new_exec = (flags & restrict_self_log_new_exec_on) != 0,
             .log_subdomains = (flags & restrict_self_log_subdomains_off) == 0,
             .propagates_to_siblings = (flags & restrict_self_tsync) != 0,
+        };
+    }
+
+    pub fn planRestrictSelfCredentialHandoff(request: RestrictSelfCredentialRequest) !RestrictSelfCredentialPlan {
+        if (!request.has_no_new_privs and !request.has_cap_sys_admin) {
+            return error.MissingPrivilege;
+        }
+
+        const restrict_self = try planRestrictSelf(request.ruleset_fd, request.flags);
+        return .{
+            .anchor = descriptor().anchor,
+            .requires_privilege_gate = true,
+            .acquires_ruleset_with_read_access = restrict_self.requires_ruleset,
+            .prepares_new_credentials = true,
+            .updates_log_subdomains_state = true,
+            .merges_ruleset_domain = restrict_self.requires_ruleset,
+            .replaces_prepared_domain = restrict_self.requires_ruleset,
+            .releases_previous_domain = restrict_self.requires_ruleset,
+            .propagates_to_siblings = restrict_self.propagates_to_siblings,
+            .aborts_creds_on_merge_failure = restrict_self.requires_ruleset,
+            .aborts_creds_on_tsync_failure = restrict_self.propagates_to_siblings,
+            .commits_prepared_credentials = true,
         };
     }
 
