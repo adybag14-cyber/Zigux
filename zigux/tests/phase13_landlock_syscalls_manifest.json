@@ -116,6 +116,13 @@
       "kind": "security_helper_pilot",
       "zigux_destination": "security/landlock/syscalls.zig",
       "why_now": "The syscall helper now includes one tiny in-memory planner around `prepare_creds()`, `landlock_merge_ruleset()`, optional sibling-thread synchronization, and `commit_creds()` so Zigux keeps the bounded restrict-self credential handoff order explicit before any live credential mutation or domain ownership is attempted."
+    },
+    {
+      "id": "phase13-landlock-ruleset-fops-followup",
+      "status": "starter_landed",
+      "kind": "security_helper_pilot",
+      "zigux_destination": "security/landlock/syscalls.zig",
+      "why_now": "The syscall helper now keeps the dedicated `ruleset_fops` contract explicit by recording the `fop_ruleset_release()` ownership drop and the dummy read or write handlers that enable `FMODE_CAN_READ` and `FMODE_CAN_WRITE` before any live file operations wiring or FD ownership is attempted."
     }
   ]
 }
