@@ -5,6 +5,7 @@ This note records the current export-shim and UAPI boundary for the bounded Phas
 ## Status
 
 - `PHASE3_SURVEYED_COMMIT=a1a5dc6f22c383d6a527583b692b519e3a33ee1b`
+- `PHASE3_SURVEY_PROVENANCE=packet-local-blob-first-with-legacy-head-anchor`
 - `PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig`
 - `PHASE3_EXPORT_SHIM_SCOPE=explicit-status-plus-boundary-header`
 - `PHASE3_EXPORT_SHIM_STATUS=normalize-and-compatibility-helpers-landed`
@@ -39,7 +40,7 @@ It does require the live repo to say clearly what is already part of the permane
 
 ## Live Repo Reality
 
-This survey is pinned to verified `master` head `a1a5dc6f22c383d6a527583b692b519e3a33ee1b` for the directly coupled export/UAPI packet, and it now also records the packet-local blob IDs for the curated header, helper, build, test, and manifest files so shallow history alone does not turn a reviewable packet into a false validation failure.
+This survey keeps `PHASE3_SURVEYED_COMMIT=a1a5dc6f22c383d6a527583b692b519e3a33ee1b` as the last fully resurveyed shared-head anchor for the directly coupled export/UAPI packet, but packet-local blob IDs are now the authoritative current boundary evidence for those files, so shallow history alone does not turn a reviewable packet into a false validation failure.
 
 The current tree already carries the first bounded export and UAPI boundary surface:
 
@@ -87,6 +88,7 @@ The next honest follow-on inside this boundary family is still narrow:
 
 - keep the current export shim and boundary-header surface narrow until a roadmap-backed interop slice needs one more reviewable boundary helper
 - keep `zigux/uapi/` at version-plus-boundary-header scope until a concrete Phase 3 slice needs one additional curated public constant, type, or helper surface
-- refresh `PHASE3_SURVEYED_COMMIT` and the packet-local `*_BLOB_SHA` markers whenever the directly coupled export/UAPI packet paths are deliberately resurveyed after boundary-local changes
+- refresh the packet-local `*_BLOB_SHA` markers whenever the directly coupled export/UAPI packet paths are deliberately resurveyed after boundary-local changes
+- refresh `PHASE3_SURVEYED_COMMIT` only when the whole export/UAPI packet is deliberately resurveyed against a confirmed shared head
 
 This lane does not justify broad UAPI expansion, generated headers, or a larger export namespace on its own.
