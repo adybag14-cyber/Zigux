@@ -424,6 +424,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             "phase10-mmio-queue-address-helper": "starter_landed",
             "phase10-mmio-config-window-helper": "starter_landed",
             "phase10-mmio-config-write-helper": "starter_landed",
+            "phase10-mmio-interrupt-ack-helper": "starter_landed",
             "phase10-mmio-lifecycle-and-irq-paths": "blocked_on_risky_transport",
         }
         for gap_id, status in expected_mmio_statuses.items():
@@ -441,6 +442,14 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
                 missing.append("mmio_manifest:config_write_gap:planning_helper")
             if "byte, halfword, and word" not in why_now:
                 missing.append("mmio_manifest:config_write_gap:byte_halfword_word")
+
+        interrupt_ack_gap = find_gap(mmio_manifest, "phase10-mmio-interrupt-ack-helper")
+        if interrupt_ack_gap is not None:
+            why_now = str(interrupt_ack_gap.get("why_now", ""))
+            if "interrupt-status acknowledge bookkeeping" not in why_now:
+                missing.append("mmio_manifest:interrupt_ack_gap:acknowledge_bookkeeping")
+            if "queue and config interrupt bits" not in why_now:
+                missing.append("mmio_manifest:interrupt_ack_gap:queue_and_config_bits")
 
         blocked_mmio_gap = find_gap(mmio_manifest, "phase10-mmio-lifecycle-and-irq-paths")
         if blocked_mmio_gap is not None:
@@ -556,6 +565,21 @@ def run_self_test() -> int:
         )
         mmio_manifest_path.write_text(original_mmio_manifest, encoding="utf-8")
 
+        mmio_manifest_path.write_text(
+            original_mmio_manifest.replace(
+                "\"phase10-mmio-interrupt-ack-helper\"",
+                "\"phase10-mmio-interrupt-ack-helper-drift\"",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "mmio_manifest_interrupt_ack_gap_id",
+            tmp_root,
+            "mmio_manifest:gap:phase10-mmio-interrupt-ack-helper",
+        )
+        mmio_manifest_path.write_text(original_mmio_manifest, encoding="utf-8")
+
         tests_readme_path = tmp_root / "zigux/tests/README.md"
         original_tests_readme = tests_readme_path.read_text(encoding="utf-8")
         tests_readme_path.write_text(
@@ -608,7 +632,7 @@ def run_self_test() -> int:
         doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
 
     print("PHASE10_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_VALIDATOR_SELF_TEST_CASE_COUNT=7")
+    print("PHASE10_VALIDATOR_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
