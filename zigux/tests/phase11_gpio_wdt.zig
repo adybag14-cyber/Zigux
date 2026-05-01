@@ -145,9 +145,29 @@ test "phase11 gpio_wdt stop requests distinguish nowayout gating from always-run
 }
 
 test "phase11 gpio_wdt teardown summary keeps disable ordering and failure modes reviewable" {
+    var dormant_watchdog = try gpio_wdt.GpioWatchdogLab.init(.toggle, 50, false);
+    const dormant = try dormant_watchdog.summarizeTeardown(false);
+    try std.testing.expectEqual(gpio_wdt.HardwareAlgorithm.toggle, dormant.hw_algo);
+    try std.testing.expect(!dormant.running_before_teardown);
+    try std.testing.expect(dormant.teardown_skipped_without_running);
+    try std.testing.expect(!dormant.stop_allowed_by_watchdog_core);
+    try std.testing.expect(!dormant.driver_stop_invoked);
+    try std.testing.expect(!dormant.disable_requested);
+    try std.testing.expect(!dormant.disable_performs_eternal_ping);
+    try std.testing.expect(!dormant.disable_returns_toggle_line_to_input);
+    try std.testing.expect(!dormant.disable_keeps_level_line_output);
+    try std.testing.expect(!dormant.stop_keeps_running_for_always_running);
+    try std.testing.expect(!dormant.final_running);
+    try std.testing.expect(!dormant.final_line_state);
+    try std.testing.expect(!dormant.final_line_is_output);
+    try std.testing.expectEqual(@as(usize, 0), dormant.disable_count);
+
     var blocked_watchdog = try gpio_wdt.GpioWatchdogLab.init(.toggle, 50, false);
+    _ = try blocked_watchdog.start();
     const blocked = try blocked_watchdog.summarizeTeardown(true);
     try std.testing.expectEqual(gpio_wdt.HardwareAlgorithm.toggle, blocked.hw_algo);
+    try std.testing.expect(blocked.running_before_teardown);
+    try std.testing.expect(!blocked.teardown_skipped_without_running);
     try std.testing.expect(!blocked.stop_allowed_by_watchdog_core);
     try std.testing.expect(!blocked.driver_stop_invoked);
     try std.testing.expect(!blocked.disable_requested);
@@ -159,8 +179,11 @@ test "phase11 gpio_wdt teardown summary keeps disable ordering and failure modes
     try std.testing.expectEqual(@as(usize, 0), blocked.disable_count);
 
     var toggle_watchdog = try gpio_wdt.GpioWatchdogLab.init(.toggle, 50, false);
+    _ = try toggle_watchdog.start();
     const toggle_teardown = try toggle_watchdog.summarizeTeardown(false);
     try std.testing.expectEqual(gpio_wdt.HardwareAlgorithm.toggle, toggle_teardown.hw_algo);
+    try std.testing.expect(toggle_teardown.running_before_teardown);
+    try std.testing.expect(!toggle_teardown.teardown_skipped_without_running);
     try std.testing.expect(toggle_teardown.stop_allowed_by_watchdog_core);
     try std.testing.expect(toggle_teardown.driver_stop_invoked);
     try std.testing.expect(toggle_teardown.disable_requested);
@@ -174,8 +197,11 @@ test "phase11 gpio_wdt teardown summary keeps disable ordering and failure modes
     try std.testing.expectEqual(@as(usize, 1), toggle_teardown.disable_count);
 
     var level_watchdog = try gpio_wdt.GpioWatchdogLab.init(.level, 50, false);
+    _ = try level_watchdog.start();
     const level_teardown = try level_watchdog.summarizeTeardown(false);
     try std.testing.expectEqual(gpio_wdt.HardwareAlgorithm.level, level_teardown.hw_algo);
+    try std.testing.expect(level_teardown.running_before_teardown);
+    try std.testing.expect(!level_teardown.teardown_skipped_without_running);
     try std.testing.expect(level_teardown.disable_requested);
     try std.testing.expect(level_teardown.disable_performs_eternal_ping);
     try std.testing.expect(!level_teardown.disable_returns_toggle_line_to_input);
@@ -186,7 +212,10 @@ test "phase11 gpio_wdt teardown summary keeps disable ordering and failure modes
     try std.testing.expectEqual(@as(usize, 1), level_teardown.disable_count);
 
     var always_running_watchdog = try gpio_wdt.GpioWatchdogLab.init(.level, 50, true);
+    _ = try always_running_watchdog.start();
     const always_running = try always_running_watchdog.summarizeTeardown(false);
+    try std.testing.expect(always_running.running_before_teardown);
+    try std.testing.expect(!always_running.teardown_skipped_without_running);
     try std.testing.expect(always_running.stop_allowed_by_watchdog_core);
     try std.testing.expect(always_running.driver_stop_invoked);
     try std.testing.expect(!always_running.disable_requested);
