@@ -178,6 +178,55 @@ test "phase10 virtio mmio keeps status writes separate from reset" {
     try std.testing.expectError(error.QueueAddressRequiresConfiguredSize, window.planModernQueueAddress(0x4000, 0x5000, 0x6000));
 }
 
+test "phase10 virtio mmio reset blocks stale queue, interrupt, and config-write state from leaking into reuse" {
+    var window = virtio_mmio.VirtioMmioRegisterWindowLab.initWithQueueMaximumsAndConfigWindow(
+        .{ 0, 0 },
+        4,
+        .{ 8, 16 },
+        .{ 0xaa, 0xbb, 0xcc, 0xdd, 0x10, 0x20, 0x30, 0x40, 0, 0, 0, 0, 0, 0, 0, 0 },
+    );
+
+    _ = try window.selectQueue(1);
+    _ = try window.writeSelectedQueueSize(12);
+    _ = try window.planModernQueueAddress(0x1000, 0x2000, 0x3000);
+    _ = try window.writeSelectedQueueReady(true);
+    _ = try window.notifySelectedQueue();
+    _ = try window.planConfigWrite(0, .word, 0x11223344);
+    try window.raiseInterrupt(virtio_mmio.supported_interrupt_bits);
+
+    const original_config = try window.snapshotConfigWindow(0, .word);
+    _ = window.reset();
+
+    try std.testing.expectEqual(@as(?virtio_mmio.ConfigWritePlanSummary, null), window.pendingConfigWritePlan());
+    try std.testing.expectEqual(@as(u32, 0), window.readInterruptStatus());
+
+    var queue = try window.queueRegisterSummary();
+    try std.testing.expectEqual(@as(u32, 0), queue.selected_queue);
+    try std.testing.expectEqual(@as(u16, 8), queue.selected_queue_size_max);
+    try std.testing.expectEqual(@as(u16, 0), queue.selected_queue_size);
+    try std.testing.expect(!queue.selected_queue_ready);
+
+    _ = try window.selectQueue(1);
+    queue = try window.queueRegisterSummary();
+    try std.testing.expectEqual(@as(u16, 16), queue.selected_queue_size_max);
+    try std.testing.expectEqual(@as(u16, 0), queue.selected_queue_size);
+    try std.testing.expect(!queue.selected_queue_ready);
+    try std.testing.expectError(error.QueueNotifyRequiresConfiguredSize, window.notifySelectedQueue());
+    try std.testing.expectError(error.QueueAddressRequiresConfiguredSize, window.planLegacyQueueAddress(4096, 4096, 0x80));
+
+    const reset_config = try window.snapshotConfigWindow(0, .word);
+    try std.testing.expectEqual(original_config.value, reset_config.value);
+    try std.testing.expectEqual(original_config.generation, reset_config.generation);
+
+    _ = try window.writeSelectedQueueSize(8);
+    const legacy = try window.planLegacyQueueAddress(4096, 4096, 0x80);
+    try std.testing.expectEqual(virtio_mmio.QueueAddressKind.legacy, legacy.kind);
+    try std.testing.expectEqual(@as(?u32, 4096), legacy.legacy_guest_page_size);
+    _ = try window.writeSelectedQueueReady(true);
+    const notify = try window.notifySelectedQueue();
+    try std.testing.expectEqual(@as(usize, 1), notify.notification_count);
+}
+
 test "phase10 virtio mmio tracks config generation changes without config-space IO" {
     var window = virtio_mmio.VirtioMmioRegisterWindowLab.init(.{ 0, 0 }, 9);
 
