@@ -4,6 +4,8 @@ This note records the smallest public-read fallback packet for lane `P12-L07`.
 
 It does not claim a live-head replay catalog. It only maps the archived Phase 12 NVMe PCI survey packet to stable GitHub tree views and raw blob URLs pinned to `8b69e4dfd04553afeb08c0ecbf3060f800e7ecd1`.
 
+The dedicated `zigux/tests/phase12_nvme_pci_survey.zig` gate reads this note back as part of the archived reviewability surface, so fallback coverage stays inside the NVMe packet instead of drifting into cross-lane memory.
+
 ## Scope
 
 - `PHASE12_LANE_KEY=P12-L07`
