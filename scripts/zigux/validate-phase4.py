@@ -577,8 +577,10 @@ def check_gate_matrix_alignment(
         'perf threshold status': expectation['threshold_status'],
     }
     for label, value in required_pairs.items():
-        needle = f'- {label}: {value}'
-        if needle not in section:
+        accepted_needles = [f'- {label}: {value}']
+        if label in {'owner', 'rollback owner'}:
+            accepted_needles.append(f'- {label}: `{value}`')
+        if not any(needle in section for needle in accepted_needles):
             missing.append(f'phase4_matrix:{gate_name}:{label}')
 
     rollback_evidence_gap = expectation.get('rollback_evidence_gap')
@@ -667,6 +669,8 @@ def check_roadmap_gap_alignment(
             line
             for line in matrix_text.splitlines()
             if line.startswith(f'| `{item_name}` |')
+            or line.startswith(f'| `{item_name}` from ')
+            or line.startswith(f'| {item_name} |')
         ),
         None,
     )
