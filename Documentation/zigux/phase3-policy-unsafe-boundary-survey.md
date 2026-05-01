@@ -4,7 +4,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 
 ## Status
 
-- `PHASE3_SURVEYED_COMMIT=3f6c46bc81db1f86358a5aad9f44194a4ece35bb`
+- `PHASE3_SURVEYED_COMMIT=a1a5dc6f22c383d6a527583b692b519e3a33ee1b`
 - `PHASE3_LAYOUT_ASSERT_PATH=zigux/helpers/layout_assert.zig`
 - `PHASE3_LAYOUT_ASSERT_SCOPE=canonical-bindings`
 - `PHASE3_LAYOUT_ASSERT_STATUS=canonical-layout-assertions-landed`
@@ -25,10 +25,10 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_UNSAFE_BLOB_SHA=d8ab4bcb25b30702fe29e3dee0c8fa7fdc6c4f9f`
 - `PHASE3_MMIO_PATH=zigux/helpers/mmio.zig`
 - `PHASE3_MMIO_BLOB_SHA=031bb804a25982da8d3de2a944777b49b21a3405`
-- `PHASE3_ABI_SLICE_DOC_BLOB_SHA=2aba404045daca63246680a2a33a2c0b5dcad8a9`
+- `PHASE3_ABI_SLICE_DOC_BLOB_SHA=444a215b0bc72c348992543ab709b6d466d7c1cc`
 - `PHASE3_POLICY_UNSAFE_BUILD_BLOB_SHA=4613c79a8d082b2dd3fe9502b7dcdb03ef181bb2`
 - `PHASE3_POLICY_UNSAFE_TEST_BLOB_SHA=f6826a59b15176430ddd7fde7f09a90ece3df396`
-- `PHASE3_ABI_MANIFEST_BLOB_SHA=df3f1f6208774d020278e54abf65e2ffea38a5bf`
+- `PHASE3_ABI_MANIFEST_BLOB_SHA=f6716ac6e498c0bfd9264ab93b37db96d2e27c93`
 - `PHASE3_POLICY_UNSAFE_GATE=zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig`
 - `PHASE3_BOUNDARY_GAP=no-second-boundary-helper-consumes-decoded-policy-beyond-focused-replay`
 - `PHASE3_NEXT_BOUNDED_STEP=keep-the-policy-and-unsafe-surface-narrow-until-one-roadmap-backed-boundary-helper-needs-a-typed-interop-policy-consumer`
@@ -49,7 +49,7 @@ It does require the current tree to say clearly which policy rules are already l
 
 ## Live Repo Reality
 
-This survey is pinned to verified `master` head `3f6c46bc81db1f86358a5aad9f44194a4ece35bb` for the directly coupled policy-and-unsafe packet, and it now also records packet-local blob IDs for the curated helper, build, test, manifest, and slice-note files so shallow history alone does not turn a reviewable packet into a false validation failure.
+This survey is pinned to verified `master` head `a1a5dc6f22c383d6a527583b692b519e3a33ee1b` for the directly coupled policy-and-unsafe packet, and it now also records packet-local blob IDs for the curated helper, build, test, manifest, and slice-note files so shallow history alone does not turn a reviewable packet into a false validation failure.
 
 The current tree already carries a real bounded policy-and-unsafe substrate:
 
