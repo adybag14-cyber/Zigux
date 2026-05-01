@@ -139,7 +139,7 @@ MANIFEST_SPECS = {
     "phase11_gpio_wdt_manifest.json": ("P11-L04", "drivers/watchdog/gpio_wdt.c", 14, [], ["phase11-gpio-wdt-platform-registration"]),
     "phase11_bcm2835_wdt_manifest.json": ("P11-L08", "drivers/watchdog/bcm2835_wdt.c", 13, [], ["phase11-bcm2835-wdt-live-platform-registration"]),
     "phase11_dw_wdt_manifest.json": ("P11-L11", "drivers/watchdog/dw_wdt.c", 12, [], ["phase11-dw-wdt-platform-and-pm"]),
-    "phase11_hvc_console_manifest.json": ("P11-L18", "drivers/tty/hvc/hvc_console.c", 15, [], []),
+    "phase11_hvc_console_manifest.json": ("P11-L18", "drivers/tty/hvc/hvc_console.c", 16, [], []),
     "phase11_uapi_header_parity_manifest.json": ("P11-L17", "include/uapi/linux/watchdog.h and include/uapi/asm-generic/termios.h", 8, ["phase11-phase3-interop-followup"], []),
 }
 ALLOWED_STATUSES = {
@@ -648,7 +648,10 @@ for name, (lane_key, anchor, gap_count, ready_ids, blocked_ids) in MANIFEST_SPEC
     survey_spec = SURVEY_SPECS[name]
     survey_text = text(survey_spec["path"])
     commit = str(manifest.get("surveyed_commit", ""))
-    if commit not in survey_text:
+    if name == "phase11_hvc_console_manifest.json":
+        if "expectSurveyedCommitProvenance(survey_note, manifest.surveyed_commit);" not in survey_text:
+            missing.append(f"{name}:survey_commit_pin")
+    elif commit not in survey_text:
         missing.append(f"{name}:survey_commit_pin")
     for variable_name, status_match in survey_spec["count_markers"]:
         expected_count = count_statuses(manifest, status_match)
@@ -666,21 +669,23 @@ for marker in [
     f"reviewed against live `master` `{hvc_commit}`",
     "dedicated hvc survey replay is still separate from `zigux/tests/phase11_build.zig`",
     "a tiny final-close teardown summary",
+    "a tiny notifier-add open handoff summary",
     "a khvcd worker-entry summary",
-    "The next honest bounded step inside the same Phase 11 lane is to leave the starter parked unless fresh repo inspection finds another comparably small host-free notifier or sysrq handoff that is not already covered by the `struct winsize` and `struct hv_ops` checkpoints; otherwise avoid widening straight into live khvcd worker behavior, `struct hvc_struct`, or host-backed teardown.",
+    "The next honest bounded step inside the same Phase 11 lane is to leave the starter parked unless fresh repo inspection finds another comparably small host-free sysrq or khvcd handoff that is not already covered by the notifier-add open handoff, the `struct winsize` layout proof, the `struct hv_ops` layout proof, and the `hv_ops` callback-signature proof; otherwise avoid widening straight into live tty teardown, notifier execution, sysrq handling, live khvcd worker behavior, `struct hvc_struct`, or host-backed teardown.",
 ]:
     if marker not in hvc_survey_doc:
         missing.append(f"phase11_hvc_console_docs:survey:{marker}")
 for marker in [
-    "adds a tiny final-close teardown summary that keeps tty detachment, `HUPCL`-gated `dtr_rts` shutdown, `notifier_del` ownership, resize-work cancellation, and `tty_wait_until_sent()` intent reviewable without claiming notifier callbacks or tty-core teardown timing",
+    "adds a tiny final-close teardown summary that keeps tty detachment, `HUPCL`-gated `dtr_rts` shutdown, `notifier_del` ownership, resize-work cancellation, and `tty_wait_until_sent()` intent reviewable without claiming notifier execution or tty-core teardown timing",
     "adds a tiny tty-registration handoff summary that keeps `setup_hvc_console()`-adjacent close-wait ownership, notifier boundaries, and khvcd wakeup intent reviewable without claiming worker execution",
+    "adds a tiny notifier-add open handoff summary that keeps notifier-add success, polling fallback, failed-open close cleanup, open-time IRQ request boundaries, and khvcd kick follow-through reviewable without claiming live notifier callback execution",
     "adds a tiny khvcd polling-contract summary that keeps notifier-driven versus polling-driven wakeups, bounded reschedule intent, and teardown-facing host-I/O boundaries reviewable without claiming worker execution",
     "adds a tiny khvcd worker-entry summary that keeps wake-before-sleep decisions, xmon-forced read polling, mutex-backed list walks, and timeout-backoff choices reviewable without claiming live worker execution",
     "adds a tiny khvcd sleep-and-reschedule handoff summary that keeps the pre-sleep kick check, the interruptible-state recheck, untimed schedule versus timed backoff selection, and running-state restore reviewable without claiming live worker execution",
     "adds a tiny `hvc_hangup()` disconnect summary that keeps resize-cancel ordering, the stale-count guard, tty detach, outbuf clearing, and notifier-hangup boundaries reviewable without claiming notifier callback execution",
     "adds a tiny `hvc_remove()` handoff summary that keeps console-lock slot clearing, the paired `vtermnos[]` and `cons_ops[]` release, `tty_port_put()` ordering, `tty_vhangup()` follow-through, and the keep-IRQ-until-hangup teardown boundary reviewable without claiming live console locking or IRQ teardown",
     "This slice does not claim tty-driver registration, khvcd polling or execution, sysrq handling, notifier callback execution, hotplug discovery, or live hypervisor-backed reads and writes yet.",
-    "The next honest bounded step inside the same Phase 11 lane is to leave this starter parked unless another comparably small host-free notifier or sysrq handoff becomes obvious; otherwise avoid widening straight into live khvcd worker behavior or host-backed teardown.",
+    "The next honest bounded step inside the same Phase 11 lane is to leave this starter parked unless another comparably small host-free sysrq or khvcd handoff becomes obvious; otherwise avoid widening straight into live tty teardown, live khvcd worker behavior, or host-backed teardown.",
 ]:
     if marker not in hvc_slice_doc:
         missing.append(f"phase11_hvc_console_docs:slice:{marker}")
