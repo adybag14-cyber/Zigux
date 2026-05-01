@@ -147,6 +147,20 @@ test "phase 7 numeric helpers reject explicit leading plus signs to stay with cm
     try std.testing.expectEqual(@as(usize, 0), index);
 }
 
+test "phase 7 getOption keeps oversized integer wrapping aligned with cmdline.c without trapping" {
+    var positive_rest: []const u8 = "18446744073709551615,tail";
+    var positive_value: i32 = 0;
+    try std.testing.expectEqual(@as(u8, 2), cmdline.getOption(&positive_rest, &positive_value));
+    try std.testing.expectEqual(@as(i32, -1), positive_value);
+    try std.testing.expectEqualStrings("tail", positive_rest);
+
+    var negative_rest: []const u8 = "-18446744073709551615,tail";
+    var negative_value: i32 = 0;
+    try std.testing.expectEqual(@as(u8, 2), cmdline.getOption(&negative_rest, &negative_value));
+    try std.testing.expectEqual(@as(i32, 1), negative_value);
+    try std.testing.expectEqualStrings("tail", negative_rest);
+}
+
 test "phase 7 nextArg matches serialized edge fixtures" {
     for (next_arg_vectors.next_arg_cases) |fixture| {
         try expectNextArgFixture(fixture);

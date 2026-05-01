@@ -60,12 +60,20 @@ static void run_get_option_section(void)
 {
     char range_input[] = "3-5";
     char plus_input[] = "+7,panic";
+    char wrap_input[] = "18446744073709551615,tail";
+    char negative_wrap_input[] = "-18446744073709551615,tail";
     char *range_rest = range_input;
     char *plus_rest = plus_input;
+    char *wrap_rest = wrap_input;
+    char *negative_wrap_rest = negative_wrap_input;
     int range_value = -1;
     int plus_value = -1;
+    int wrap_value = -1;
+    int negative_wrap_value = -1;
     int range_rc = get_option(&range_rest, &range_value);
     int plus_rc = get_option(&plus_rest, &plus_value);
+    int wrap_rc = get_option(&wrap_rest, &wrap_value);
+    int negative_wrap_rc = get_option(&negative_wrap_rest, &negative_wrap_value);
 
     printf("\"get_option\":{");
     printf("\"range\":{");
@@ -79,6 +87,18 @@ static void run_get_option_section(void)
     printf("\"value\":%d,", plus_value);
     printf("\"rest\":");
     emit_json_string(plus_rest);
+    printf("},");
+    printf("\"unsigned_wrap\":{");
+    printf("\"rc\":%d,", wrap_rc);
+    printf("\"value\":%d,", wrap_value);
+    printf("\"rest\":");
+    emit_json_string(wrap_rest);
+    printf("},");
+    printf("\"negative_unsigned_wrap\":{");
+    printf("\"rc\":%d,", negative_wrap_rc);
+    printf("\"value\":%d,", negative_wrap_value);
+    printf("\"rest\":");
+    emit_json_string(negative_wrap_rest);
     printf("}}");
 }
 

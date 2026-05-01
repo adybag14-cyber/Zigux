@@ -7,7 +7,7 @@ pub fn getOption(str: *[]const u8, pint: ?*i32) u8 {
         return 0;
     }
 
-    var parsed_value: i64 = 0;
+    var parsed_value: i32 = 0;
     var consumed: usize = 0;
 
     if (current[0] == '-') {
@@ -20,16 +20,16 @@ pub fn getOption(str: *[]const u8, pint: ?*i32) u8 {
             str.* = current[1..];
             return 0;
         };
-        parsed_value = -@as(i64, @intCast(parsed.value));
+        parsed_value = negateAndTruncateUnsignedToI32(parsed.value);
         consumed = 1 + parsed.len;
     } else {
         const parsed = parseUnsignedPrefix(current) orelse return 0;
-        parsed_value = @intCast(parsed.value);
+        parsed_value = truncateUnsignedToI32(parsed.value);
         consumed = parsed.len;
     }
 
     if (pint) |out| {
-        out.* = truncateToI32(parsed_value);
+        out.* = parsed_value;
     }
 
     const rest = current[consumed..];
@@ -214,7 +214,7 @@ fn getRange(str: *[]const u8, lower: i32, out: []i32) ?usize {
     const parsed = parseSignedPrefix(str.*) orelse return null;
 
     const upper = parsed.value;
-    const delta = upper - @as(i64, lower);
+    const delta = @as(i64, upper) - @as(i64, lower);
     if (delta < 0) {
         return null;
     }
@@ -271,7 +271,7 @@ fn parseUnsignedPrefix(s: []const u8) ?struct { value: u64, len: usize } {
     };
 }
 
-fn parseSignedPrefix(s: []const u8) ?struct { value: i64, len: usize } {
+fn parseSignedPrefix(s: []const u8) ?struct { value: i32, len: usize } {
     if (s.len == 0) {
         return null;
     }
@@ -279,14 +279,14 @@ fn parseSignedPrefix(s: []const u8) ?struct { value: i64, len: usize } {
     if (s[0] == '-') {
         const parsed = parseUnsignedPrefix(s[1..]) orelse return null;
         return .{
-            .value = -@as(i64, @intCast(parsed.value)),
+            .value = negateAndTruncateUnsignedToI32(parsed.value),
             .len = 1 + parsed.len,
         };
     }
 
     const parsed = parseUnsignedPrefix(s) orelse return null;
     return .{
-        .value = @intCast(parsed.value),
+        .value = truncateUnsignedToI32(parsed.value),
         .len = parsed.len,
     };
 }
@@ -301,9 +301,13 @@ fn isDigitForBase(ch: u8, base: u8) bool {
     return value < base;
 }
 
-fn truncateToI32(value: i64) i32 {
-    const bits: u32 = @truncate(@as(u64, @bitCast(value)));
+fn truncateUnsignedToI32(value: u64) i32 {
+    const bits: u32 = @truncate(value);
     return @bitCast(bits);
+}
+
+fn negateAndTruncateUnsignedToI32(value: u64) i32 {
+    return truncateUnsignedToI32(0 -% value);
 }
 
 fn skipSpaces(s: []u8) []u8 {
@@ -523,6 +527,20 @@ test "numeric parsing rejects an explicit leading plus sign" {
 
     try std.testing.expectEqual(@as(u64, 0), memparse("+", &mem_index));
     try std.testing.expectEqual(@as(usize, 0), mem_index);
+}
+
+test "getOption wraps oversized integers without trapping" {
+    var positive_rest: []const u8 = "18446744073709551615,tail";
+    var positive_value: i32 = 0;
+    try std.testing.expectEqual(@as(u8, 2), getOption(&positive_rest, &positive_value));
+    try std.testing.expectEqual(@as(i32, -1), positive_value);
+    try std.testing.expectEqualStrings("tail", positive_rest);
+
+    var negative_rest: []const u8 = "-18446744073709551615,tail";
+    var negative_value: i32 = 0;
+    try std.testing.expectEqual(@as(u8, 2), getOption(&negative_rest, &negative_value));
+    try std.testing.expectEqual(@as(i32, 1), negative_value);
+    try std.testing.expectEqualStrings("tail", negative_rest);
 }
 
 test "parseOptionStr matches C empty-option edge behavior around commas" {

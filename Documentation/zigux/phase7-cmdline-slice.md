@@ -70,6 +70,7 @@ The current tests check:
 - the full KUnit malformed-token classification corpus now also runs through the shared `zigux/tests/phase7_cmdline.zig` gate instead of only the helper-local `zig test lib/cmdline.zig` path
 - KUnit-derived pointer-advance semantics for malformed-prefix, leading-integer, and trailing-integer `get_option()` inputs so the shared Phase 7 gate and the helper-local test path both keep matching where the C helper leaves the parse cursor
 - memory-size suffix scaling with accurate parse-stop reporting
+- oversized integer inputs now stay runtime-safe while preserving the wrapped `int` results that `lib/cmdline.c` exposes through `get_option()`
 - rejection of explicit leading-plus numeric inputs, including autodetected radix forms like `+0x10`, so the Zig helper stays aligned with the `lib/cmdline.c` `simple_strtoull()` parsing contract
 - exact bare-option matching for comma-delimited flags
 - C-style stop-at-NUL handling for bare-option scans

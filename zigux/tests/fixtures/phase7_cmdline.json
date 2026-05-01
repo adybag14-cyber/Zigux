@@ -5,10 +5,20 @@
       "rest": "+7,panic",
       "value": 0
     },
+    "negative_unsigned_wrap": {
+      "rc": 2,
+      "rest": "tail",
+      "value": 1
+    },
     "range": {
       "rc": 3,
       "rest": "-5",
       "value": 3
+    },
+    "unsigned_wrap": {
+      "rc": 2,
+      "rest": "tail",
+      "value": -1
     }
   },
   "get_options": {
