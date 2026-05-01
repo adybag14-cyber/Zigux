@@ -3,6 +3,7 @@ const runtime_atomic64_diff = @import("runtime_atomic64_diff.zig");
 const atomic64_diff_source = @embedFile("atomic64_diff.zig");
 const runtime_atomic64_diff_source = @embedFile("runtime_atomic64_diff.zig");
 const phase4_runtime_atomic64_manifest_source = @embedFile("phase4_runtime_atomic64_diff_manifest.json");
+const phase4_validation_matrix_source = @embedFile("../../Documentation/zigux/phase4-validation-matrix.md");
 const phase4_build_source = @embedFile("phase4_build.zig");
 const phase9_build_source = @embedFile("phase9_build.zig");
 
@@ -24,6 +25,10 @@ fn expectWrapperNoMarker(marker: []const u8) !void {
 
 fn expectManifestMarker(marker: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, phase4_runtime_atomic64_manifest_source, marker) != null);
+}
+
+fn expectPhase4MatrixMarker(marker: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, phase4_validation_matrix_source, marker) != null);
 }
 
 fn expectPhase4BuildMarker(marker: []const u8) !void {
@@ -69,6 +74,18 @@ test "atomic64 diff wrapper keeps roadmap entrypoint and rollback evidence align
     try expectManifestMarker("\"phase4_validator_runtime_atomic64_diff_present\": true");
     try expectManifestMarker("\"phase9_build_uses_runtime_atomic64_diff\": true");
     try expectManifestMarker("\"id\": \"phase4-roadmap-path-alignment\"");
+}
+
+test "atomic64 diff wrapper keeps isolated rollback replay evidence explicit" {
+    try expectPhase4MatrixMarker("`make -C zigux phase4-runtime-atomic64-diff`");
+    try expectPhase4MatrixMarker(
+        "`zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig`",
+    );
+    try expectPhase4MatrixMarker("`threshold_pending_until_runtime_atomic64_scope_widens`");
+    try expectPhase4MatrixMarker("`runtime_atomic64_diff.zig` remains the single replay body");
+    try expectPhase4MatrixMarker(
+        "removing `atomic64_diff.zig` from the shared `phase4_build.zig` entrypoint is the documented rollback move",
+    );
 }
 
 test "atomic64 diff wrapper checks live phase4 and phase9 build entrypoints directly" {
