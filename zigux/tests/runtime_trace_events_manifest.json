@@ -75,7 +75,7 @@
       "id": "runtime-trace-events-module-slice",
       "kind": "documentation",
       "path": "Documentation/zigux/phase9-runtime-trace-events-module-slice.md",
-      "role": "owns the landed starter surface summary, direct sample and diff gate posture, and the paired loader-free blocker restatement for the trace-events packet"
+      "role": "owns the landed starter surface summary, direct sample and diff gate posture, the paired loader-free blocker restatement, and the paired header-side macro boundary note for the trace-events packet"
     },
     {
       "id": "runtime-trace-events-freeze-map",
@@ -115,7 +115,7 @@
     },
     {
       "surface": "Documentation/zigux/phase9-runtime-trace-events-module-slice.md",
-      "owns": "landed starter surface summary, direct sample and diff gate posture, and the paired loader-free blocker restatement for the trace-events packet"
+      "owns": "landed starter surface summary, direct sample and diff gate posture, the paired loader-free blocker restatement, and the paired header-side macro boundary note for the trace-events packet"
     },
     {
       "surface": "Documentation/zigux/freeze-map.md",
