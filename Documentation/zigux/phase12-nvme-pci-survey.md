@@ -29,6 +29,8 @@ This survey keeps that difference explicit so the lane does not overclaim produc
 
 This lane now also carries a tiny public-read fallback map in `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` so the archived packet can be reviewed through pinned GitHub tree and raw URLs without borrowing the separate `virtio_scsi` current-replay catalog.
 
+The dedicated survey gate now treats that pinned fallback map as part of this packet's reviewability surface, so public-read fallback coverage stays inside the NVMe lane instead of drifting back into cross-lane memory.
+
 ## Survey findings
 
 - `drivers/nvme/host/pci.c` is present on `master` and remains a high-risk complex-driver anchor whose live behavior stretches far beyond the current Zigux starter.
@@ -56,6 +58,8 @@ The survey manifest now records:
 - the landed `phase12-nvme-pci-prp-shape-helper`
 - the landed `phase12-nvme-pci-pointer-selection-helper`
 - the still-blocked `phase12-nvme-pci-live-queue-and-dma`
+
+Within that same recorded survey-note gap, the packet now treats `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` as reviewable evidence for the archived public-read path.
 
 Within that same recorded starter packet, the current live code, tests, and slice note also keep the bounded PRP metadata helper reviewable without claiming live descriptor allocation or transport work.
 
@@ -97,7 +101,7 @@ This survey slice does not claim:
 - `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
 - the published focused NVMe verification snapshot is still pinned to packet-local head `8b69e4dfd04553afeb08c0ecbf3060f800e7ecd1`, where `phase12-nvme-pci-survey-tests` passed `1/1`; treat the command and result lines below as archived packet evidence rather than a claim about the current `master` tip.
 - a fresh live reread of `scripts/zigux/validate-phase12.py` and `zigux/tests/phase12_virtio_net_survey.zig` shows the older shared-lane syntax and EOF failures recorded by this survey are stale historical evidence rather than current repo truth.
-- the same archived packet now also carries `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` so public readback can stay pinned to the same bounded NVMe file family without widening into the separate `virtio_scsi` current-replay catalog.
+- the same archived packet now also carries `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, and the dedicated survey gate reads that note back as part of the archived reviewability surface.
 - this NVMe lane did not rerun the shared Phase 12 validator or shared Zig replay in the current pass, so the next shared-tranche status update belongs to the owner of the validator or virtio_net survey packet rather than to this note.
 - even on the archived packet-local replay, the shared bundle still reached `phase12-nvme-pci-tests 11 pass (11 total)` and `phase12-nvme-pci-survey-tests 1 pass (1 total)` before the unrelated cross-lane stop recorded at the time.
 
