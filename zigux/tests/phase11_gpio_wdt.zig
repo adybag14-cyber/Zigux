@@ -145,6 +145,17 @@ test "phase11 gpio_wdt stop requests distinguish nowayout gating from always-run
     try std.testing.expect(blocked.line_is_output);
     try std.testing.expectEqual(@as(usize, 0), blocked.disable_count);
 
+    var blocked_always_running = try gpio_wdt.GpioWatchdogLab.init(.toggle, 50, true);
+    _ = try blocked_always_running.start();
+    const blocked_always_running_summary = blocked_always_running.requestStop(true);
+    try std.testing.expectEqual(gpio_wdt.StopDisposition.blocked_by_nowayout, blocked_always_running_summary.disposition);
+    try std.testing.expect(!blocked_always_running_summary.stop_allowed_by_watchdog_core);
+    try std.testing.expect(!blocked_always_running_summary.driver_stop_invoked);
+    try std.testing.expect(blocked_always_running_summary.running);
+    try std.testing.expect(blocked_always_running_summary.line_state);
+    try std.testing.expect(blocked_always_running_summary.line_is_output);
+    try std.testing.expectEqual(@as(usize, 0), blocked_always_running_summary.disable_count);
+
     var dormant_watchdog = try gpio_wdt.GpioWatchdogLab.init(.toggle, 50, false);
     const dormant = dormant_watchdog.requestStop(false);
     try std.testing.expectEqual(gpio_wdt.StopDisposition.stopped, dormant.disposition);
@@ -210,6 +221,24 @@ test "phase11 gpio_wdt teardown summary keeps disable ordering and failure modes
     try std.testing.expect(blocked.final_running);
     try std.testing.expect(blocked.final_line_is_output);
     try std.testing.expectEqual(@as(usize, 0), blocked.disable_count);
+
+    var blocked_always_running_watchdog = try gpio_wdt.GpioWatchdogLab.init(.toggle, 50, true);
+    _ = try blocked_always_running_watchdog.start();
+    const blocked_always_running = try blocked_always_running_watchdog.summarizeTeardown(true);
+    try std.testing.expectEqual(gpio_wdt.HardwareAlgorithm.toggle, blocked_always_running.hw_algo);
+    try std.testing.expect(blocked_always_running.running_before_teardown);
+    try std.testing.expect(!blocked_always_running.teardown_skipped_without_running);
+    try std.testing.expect(!blocked_always_running.stop_allowed_by_watchdog_core);
+    try std.testing.expect(!blocked_always_running.driver_stop_invoked);
+    try std.testing.expect(!blocked_always_running.disable_requested);
+    try std.testing.expect(!blocked_always_running.disable_performs_eternal_ping);
+    try std.testing.expect(!blocked_always_running.disable_returns_toggle_line_to_input);
+    try std.testing.expect(!blocked_always_running.disable_keeps_level_line_output);
+    try std.testing.expect(!blocked_always_running.stop_keeps_running_for_always_running);
+    try std.testing.expect(blocked_always_running.final_running);
+    try std.testing.expect(blocked_always_running.final_line_state);
+    try std.testing.expect(blocked_always_running.final_line_is_output);
+    try std.testing.expectEqual(@as(usize, 0), blocked_always_running.disable_count);
 
     var toggle_watchdog = try gpio_wdt.GpioWatchdogLab.init(.toggle, 50, false);
     _ = try toggle_watchdog.start();
