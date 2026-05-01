@@ -21,6 +21,8 @@ REQUIRED_FILES = {
 TESTS_README_MARKERS = [
     "zigux/tests/phase8_perf_buffer_poll.zig",
     "zigux/tests/phase8_bpf_type_names.zig",
+    "zigux/tests/phase8_file_path_handle_bridge.zig",
+    "zigux/tests/phase8_bridge_boundary_survey.zig",
     "zigux/tests/phase8_libbpf_segments.zig",
     "scripts/zigux/validate-phase8.py",
     "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
@@ -124,6 +126,8 @@ def clone_fixture_root(destination_root: Path) -> None:
                 "",
                 "- zigux/tests/phase8_libbpf_segments.zig",
                 "- zigux/tests/phase8_bpf_type_names.zig",
+                "- zigux/tests/phase8_file_path_handle_bridge.zig",
+                "- zigux/tests/phase8_bridge_boundary_survey.zig",
                 "- zigux/tests/phase8_perf_buffer_poll.zig",
                 "- scripts/zigux/validate-phase8.py",
                 "- Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
@@ -238,6 +242,36 @@ def run_self_test() -> int:
 
         tests_readme_path.write_text(
             original_tests_readme.replace(
+                "- zigux/tests/phase8_file_path_handle_bridge.zig\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "tests_readme_file_path_handle_bridge",
+            tmp_root,
+            "tests_readme:zigux/tests/phase8_file_path_handle_bridge.zig",
+        )
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
+
+        tests_readme_path.write_text(
+            original_tests_readme.replace(
+                "- zigux/tests/phase8_bridge_boundary_survey.zig\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "tests_readme_bridge_boundary_survey",
+            tmp_root,
+            "tests_readme:zigux/tests/phase8_bridge_boundary_survey.zig",
+        )
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
+
+        tests_readme_path.write_text(
+            original_tests_readme.replace(
                 "- Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md\n",
                 "",
                 1,
@@ -332,7 +366,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=8")
+    print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
