@@ -46,7 +46,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     try std.testing.expectEqualStrings("samples/zigux/trace_events_sample.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
     try std.testing.expectEqual(@as(usize, 10), manifest.review_prompts.len);
-    try std.testing.expectEqual(@as(usize, 13), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 14), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_descriptor_prompt = false;
@@ -68,6 +68,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     var saw_focus_check = false;
     var saw_callback_balance_check = false;
     var saw_single_registration_check = false;
+    var saw_underflow_and_armed_exit_check = false;
     var saw_exit_check = false;
     var saw_exit_prompt = false;
     var saw_sync_prompt = false;
@@ -113,6 +114,8 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
         }
         if (std.mem.indexOf(u8, prompt, "single live") != null and
             std.mem.indexOf(u8, prompt, "register-then-unregister") != null and
+            std.mem.indexOf(u8, prompt, "unregisterFunctionCallback underflow") != null and
+            std.mem.indexOf(u8, prompt, "OutstandingRegistration") != null and
             std.mem.indexOf(u8, prompt, "kthread") != null)
         {
             saw_callback_prompt = true;
@@ -212,6 +215,12 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "second registerFunctionCallback call") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "one live callback registration") != null);
         }
+        if (std.mem.eql(u8, check.id, "registration-underflow-and-armed-exit")) {
+            saw_underflow_and_armed_exit_check = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "unregisterFunctionCallback underflow") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "OutstandingRegistration") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "one callback remains armed") != null);
+        }
         if (std.mem.eql(u8, check.id, "post-exit-rejection")) {
             saw_exit_check = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "after exit") != null);
@@ -245,6 +254,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     try std.testing.expect(saw_focus_check);
     try std.testing.expect(saw_callback_balance_check);
     try std.testing.expect(saw_single_registration_check);
+    try std.testing.expect(saw_underflow_and_armed_exit_check);
     try std.testing.expect(saw_exit_check);
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[0], "CREATE_TRACE_POINTS parity"));
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[1], "tracepoint macro parity from trace-events-sample.h"));
@@ -335,6 +345,8 @@ test "phase 5 trace-events contributor docs stay aligned with the shipped review
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "floating branch label") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "CREATE_TRACE_POINTS") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "second `registerFunctionCallback()`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`unregisterFunctionCallback()` underflow") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`OutstandingRegistration`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "replayFunctionIteration()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "unregisterFunctionCallback()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Mother Goose") != null);
@@ -378,6 +390,8 @@ test "phase 5 trace-events contributor docs stay aligned with the shipped review
     try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "phase5_trace_events_sample_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "phase5-trace-events-sample-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "approved payload-and-callback idiom") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "unregister-underflow rejection before a callback is armed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "`OutstandingRegistration` rejection if `exit()` is attempted while one callback is still live") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "Phase 9 runtime pilot claim") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "manifest-backed survey") != null);
