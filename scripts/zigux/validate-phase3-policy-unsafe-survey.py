@@ -59,6 +59,8 @@ REQUIRED_SURVEY_SNIPPETS = (
     "zigux/tests/phase3_policy_unsafe_build.zig",
     "zigux/tests/phase3_policy_unsafe.zig",
     "typed interop-policy",
+    "`init`, `encode`, and round-trip replay helpers",
+    "`action()`, `permitsVolatileMmio()`, and `permitsRawPointerBridge()` accessors",
 )
 
 REQUIRED_SURVEY_PATHS = (
@@ -103,10 +105,18 @@ REQUIRED_ALLOCATOR_POLICY_SNIPPETS = (
 
 REQUIRED_INTEROP_POLICY_SNIPPETS = (
     "pub const DecodedInteropPolicy = struct {",
+    "    pub fn action(self: DecodedInteropPolicy) panic_policy.Action {",
+    "    pub fn permitsVolatileMmio(self: DecodedInteropPolicy) bool {",
+    "    pub fn permitsRawPointerBridge(self: DecodedInteropPolicy) bool {",
+    "pub fn init(panic_mode: abi.PanicMode, allocator_mode: abi.AllocatorMode, unsafe_scope: narrow.UnsafeScopeTag) DecodedInteropPolicy {",
+    "pub fn encode(panic_mode: abi.PanicMode, allocator_mode: abi.AllocatorMode, unsafe_scope: narrow.UnsafeScopeTag) abi.InteropPolicy {",
     "pub fn decode(policy: abi.InteropPolicy) DecodeError!DecodedInteropPolicy {",
     "pub fn recognizes(policy: abi.InteropPolicy) bool {",
     'test "phase3 interop policy decoder keeps the boundary typed"',
+    'test "phase3 interop policy decoder keeps the panic action explicit"',
     'test "phase3 interop policy decoder keeps allocator init requirements explicit"',
+    'test "phase3 interop policy keeps canonical abi encoding explicit"',
+    'test "phase3 interop policy encode helper preserves explicit policy behavior"',
     'test "phase3 interop policy decoder rejects invalid bytes and reserved bits"',
 )
 
@@ -139,6 +149,11 @@ REQUIRED_POLICY_UNSAFE_TEST_SNIPPETS = (
     'test "phase3 policy decoder rejects partial or reserved policy bytes"',
     "try std.testing.expectError(error.InvalidPanicMode, interop_policy.decode(.{",
     "try std.testing.expectError(error.InvalidAllocatorMode, interop_policy.decode(.{",
+    'test "phase3 policy encoder keeps a canonical interop record"',
+    "const encoded = interop_policy.encode(.warn, .arena, .raw_pointer_bridge);",
+    "const round_trip = try interop_policy.decode(encoded);",
+    'test "phase3 policy init helper round trips through decode without widening scope"',
+    "const decoded = interop_policy.init(.abort, .caller_provided, .none);",
     'test "phase3 policy gate decodes interop-policy unsafe bytes explicitly"',
     'test "phase3 policy gate enforces the declared unsafe scope"',
     "try std.testing.expectError(error.UnsafeScopeDenied, narrow.constSliceAt(u32, .volatile_mmio, base, words.len));",
@@ -385,7 +400,7 @@ def run_self_test() -> int:
                     "- `PHASE3_NEXT_BOUNDED_STEP=keep-the-policy-and-unsafe-surface-narrow-until-one-roadmap-backed-boundary-helper-needs-a-typed-interop-policy-consumer`",
                     "",
                     f"This survey is pinned to verified `master` head `{PLACEHOLDER_COMMIT}`.",
-                    "The packet names zigux/helpers/layout_assert.zig, zigux/helpers/panic_policy.zig, zigux/helpers/allocator_policy.zig, zigux/helpers/interop_policy.zig, zigux/unsafe/narrow.zig, zigux/helpers/mmio.zig, zigux/tests/phase3_policy_unsafe_build.zig, and zigux/tests/phase3_policy_unsafe.zig, and it keeps the typed interop-policy boundary explicit.",
+                    "The packet names zigux/helpers/layout_assert.zig, zigux/helpers/panic_policy.zig, zigux/helpers/allocator_policy.zig, zigux/helpers/interop_policy.zig, zigux/unsafe/narrow.zig, zigux/helpers/mmio.zig, zigux/tests/phase3_policy_unsafe_build.zig, and zigux/tests/phase3_policy_unsafe.zig, and it keeps the typed interop-policy boundary explicit through `init`, `encode`, and round-trip replay helpers plus direct `action()`, `permitsVolatileMmio()`, and `permitsRawPointerBridge()` accessors.",
                     "",
                     *_blob_marker_lines(),
                 ]
@@ -415,7 +430,7 @@ def run_self_test() -> int:
         _write(
             root,
             INTEROP_POLICY_REL,
-            'pub const DecodedInteropPolicy = struct {};\npub fn decode(policy: abi.InteropPolicy) DecodeError!DecodedInteropPolicy { _ = policy; }\npub fn recognizes(policy: abi.InteropPolicy) bool { _ = policy; }\ntest "phase3 interop policy decoder keeps the boundary typed" {}\ntest "phase3 interop policy decoder keeps allocator init requirements explicit" {}\ntest "phase3 interop policy decoder rejects invalid bytes and reserved bits" {}\n',
+            'pub const DecodedInteropPolicy = struct {};\npub fn init(panic_mode: abi.PanicMode, allocator_mode: abi.AllocatorMode, unsafe_scope: narrow.UnsafeScopeTag) DecodedInteropPolicy { _ = panic_mode; _ = allocator_mode; _ = unsafe_scope; }\npub fn encode(panic_mode: abi.PanicMode, allocator_mode: abi.AllocatorMode, unsafe_scope: narrow.UnsafeScopeTag) abi.InteropPolicy { _ = panic_mode; _ = allocator_mode; _ = unsafe_scope; }\npub fn decode(policy: abi.InteropPolicy) DecodeError!DecodedInteropPolicy { _ = policy; }\npub fn recognizes(policy: abi.InteropPolicy) bool { _ = policy; }\npub fn action(self: DecodedInteropPolicy) panic_policy.Action { _ = self; }\npub fn permitsVolatileMmio(self: DecodedInteropPolicy) bool { _ = self; }\npub fn permitsRawPointerBridge(self: DecodedInteropPolicy) bool { _ = self; }\ntest "phase3 interop policy decoder keeps the boundary typed" {}\ntest "phase3 interop policy decoder keeps the panic action explicit" {}\ntest "phase3 interop policy decoder keeps allocator init requirements explicit" {}\ntest "phase3 interop policy keeps canonical abi encoding explicit" {}\ntest "phase3 interop policy encode helper preserves explicit policy behavior" {}\ntest "phase3 interop policy decoder rejects invalid bytes and reserved bits" {}\n',
         )
         _write(
             root,
@@ -440,6 +455,11 @@ def run_self_test() -> int:
                     'test "phase3 policy decoder rejects partial or reserved policy bytes" {}',
                     'try std.testing.expectError(error.InvalidPanicMode, interop_policy.decode(.{',
                     'try std.testing.expectError(error.InvalidAllocatorMode, interop_policy.decode(.{',
+                    'test "phase3 policy encoder keeps a canonical interop record" {}',
+                    'const encoded = interop_policy.encode(.warn, .arena, .raw_pointer_bridge);',
+                    'const round_trip = try interop_policy.decode(encoded);',
+                    'test "phase3 policy init helper round trips through decode without widening scope" {}',
+                    'const decoded = interop_policy.init(.abort, .caller_provided, .none);',
                     'test "phase3 policy gate decodes interop-policy unsafe bytes explicitly" {}',
                     'test "phase3 policy gate enforces the declared unsafe scope" {}',
                     'try std.testing.expectError(error.UnsafeScopeDenied, narrow.constSliceAt(u32, .volatile_mmio, base, words.len));',
@@ -538,6 +558,14 @@ def run_self_test() -> int:
             in issues
         )
         assert (
+            'missing_policy_unsafe_test_snippet:test "phase3 policy encoder keeps a canonical interop record"'
+            in issues
+        )
+        assert (
+            'missing_policy_unsafe_test_snippet:test "phase3 policy init helper round trips through decode without widening scope"'
+            in issues
+        )
+        assert (
             'missing_policy_unsafe_test_snippet:try std.testing.expectError(error.UnsafeScopeDenied, narrow.constSliceAt(u32, .volatile_mmio, base, words.len));'
             in issues
         )
@@ -558,6 +586,49 @@ def run_self_test() -> int:
         issues = validate(root)
         assert (
             "missing_makefile_snippet:$(ZIG) build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig"
+            in issues
+        )
+
+        _write(
+            root,
+            INTEROP_POLICY_REL,
+            "\n".join(
+                [
+                    'pub const DecodedInteropPolicy = struct {};',
+                    'pub fn init(panic_mode: abi.PanicMode, allocator_mode: abi.AllocatorMode, unsafe_scope: narrow.UnsafeScopeTag) DecodedInteropPolicy { _ = panic_mode; _ = allocator_mode; _ = unsafe_scope; }',
+                    'pub fn encode(panic_mode: abi.PanicMode, allocator_mode: abi.AllocatorMode, unsafe_scope: narrow.UnsafeScopeTag) abi.InteropPolicy { _ = panic_mode; _ = allocator_mode; _ = unsafe_scope; }',
+                    'pub fn decode(policy: abi.InteropPolicy) DecodeError!DecodedInteropPolicy { _ = policy; }',
+                    'pub fn recognizes(policy: abi.InteropPolicy) bool { _ = policy; }',
+                    'test "phase3 interop policy decoder keeps the boundary typed" {}',
+                    'test "phase3 interop policy decoder keeps allocator init requirements explicit" {}',
+                    'test "phase3 interop policy decoder rejects invalid bytes and reserved bits" {}',
+                    '',
+                ]
+            ),
+        )
+        issues = validate(root)
+        assert (
+            'missing_interop_policy_snippet:    pub fn action(self: DecodedInteropPolicy) panic_policy.Action {'
+            in issues
+        )
+        assert (
+            'missing_interop_policy_snippet:    pub fn permitsVolatileMmio(self: DecodedInteropPolicy) bool {'
+            in issues
+        )
+        assert (
+            'missing_interop_policy_snippet:    pub fn permitsRawPointerBridge(self: DecodedInteropPolicy) bool {'
+            in issues
+        )
+        assert (
+            'missing_interop_policy_snippet:test "phase3 interop policy decoder keeps the panic action explicit"'
+            in issues
+        )
+        assert (
+            'missing_interop_policy_snippet:test "phase3 interop policy keeps canonical abi encoding explicit"'
+            in issues
+        )
+        assert (
+            'missing_interop_policy_snippet:test "phase3 interop policy encode helper preserves explicit policy behavior"'
             in issues
         )
 
