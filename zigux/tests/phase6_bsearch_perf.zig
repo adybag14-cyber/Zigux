@@ -13,6 +13,18 @@ const perf_cases = [_]PerfCase{
     .{ .label = "65536", .len = 65536, .reps = 64 },
 };
 
+const TypedVariant = struct {
+    label: []const u8,
+    values: []const u32,
+    compare: bsearch.CComparator(u32, u32),
+};
+
+const RawVariant = struct {
+    label: []const u8,
+    values: []const u32,
+    compare: bsearch.CRawComparator,
+};
+
 var compare_calls: usize = 0;
 
 pub fn main(init: std.process.Init) !void {
@@ -51,6 +63,37 @@ fn compareCounted(key: *const u32, item: *const u32) callconv(.c) i32 {
     };
 }
 
+fn compareDescendingCounted(key: *const u32, item: *const u32) callconv(.c) i32 {
+    compare_calls += 1;
+    return switch (std.math.order(item.*, key.*)) {
+        .lt => -1,
+        .eq => 0,
+        .gt => 1,
+    };
+}
+
+fn compareOpaqueCounted(key: *const anyopaque, item: *const anyopaque) callconv(.c) i32 {
+    compare_calls += 1;
+    const typed_key: *const u32 = @ptrCast(@alignCast(key));
+    const typed_item: *const u32 = @ptrCast(@alignCast(item));
+    return switch (std.math.order(typed_key.*, typed_item.*)) {
+        .lt => -1,
+        .eq => 0,
+        .gt => 1,
+    };
+}
+
+fn compareOpaqueDescendingCounted(key: *const anyopaque, item: *const anyopaque) callconv(.c) i32 {
+    compare_calls += 1;
+    const typed_key: *const u32 = @ptrCast(@alignCast(key));
+    const typed_item: *const u32 = @ptrCast(@alignCast(item));
+    return switch (std.math.order(typed_item.*, typed_key.*)) {
+        .lt => -1,
+        .eq => 0,
+        .gt => 1,
+    };
+}
+
 fn benchTime(io: std.Io) i96 {
     return std.Io.Clock.awake.now(io).nanoseconds;
 }
@@ -59,9 +102,14 @@ fn runPerfCase(case: PerfCase, io: std.Io) !PerfResult {
     const allocator = std.heap.page_allocator;
     const values = try allocator.alloc(u32, case.len);
     defer allocator.free(values);
+    const descending_values = try allocator.alloc(u32, case.len);
+    defer allocator.free(descending_values);
 
     for (values, 0..) |*value, idx| {
         value.* = @as(u32, @intCast(idx * 2));
+    }
+    for (descending_values, 0..) |*value, idx| {
+        value.* = values[values.len - 1 - idx];
     }
 
     const query_count = 32;
@@ -84,25 +132,41 @@ fn runPerfCase(case: PerfCase, io: std.Io) !PerfResult {
         }
     }
 
+    const typed_variants = [_]TypedVariant{
+        .{ .label = "typed-ascending", .values = values, .compare = compareCounted },
+        .{ .label = "typed-descending", .values = descending_values, .compare = compareDescendingCounted },
+    };
+    const raw_variants = [_]RawVariant{
+        .{ .label = "raw-ascending", .values = values, .compare = compareOpaqueCounted },
+        .{ .label = "raw-descending", .values = descending_values, .compare = compareOpaqueDescendingCounted },
+    };
+
     var total_compare_calls: usize = 0;
     var max_compare_calls: usize = 0;
-    const total_lookups = case.reps * query_count;
+    const total_lookups = case.reps * query_count * (typed_variants.len + raw_variants.len);
     const started_at = benchTime(io);
     const max_compare_budget = std.math.log2_int_ceil(usize, case.len) + 1;
 
     for (0..case.reps) |_| {
         for (queries, expected_hits) |query, expected_hit| {
-            compare_calls = 0;
-            const found = bsearch.searchIndex(u32, u32, &query, values, compareCounted);
-            total_compare_calls += compare_calls;
-            max_compare_calls = @max(max_compare_calls, compare_calls);
+            for (typed_variants) |variant| {
+                compare_calls = 0;
+                const found = bsearch.searchIndex(u32, u32, &query, variant.values, variant.compare);
+                total_compare_calls += compare_calls;
+                max_compare_calls = @max(max_compare_calls, compare_calls);
 
-            try std.testing.expect(compare_calls <= max_compare_budget);
+                try std.testing.expect(compare_calls <= max_compare_budget);
+                try expectFoundOrMiss(expected_hit, found, variant.label, query);
+            }
 
-            if (expected_hit) {
-                try std.testing.expect(found != null);
-            } else {
-                try std.testing.expect(found == null);
+            for (raw_variants) |variant| {
+                compare_calls = 0;
+                const found = bsearch.bsearchIndex(&query, @ptrCast(variant.values.ptr), variant.values.len, @sizeOf(u32), variant.compare);
+                total_compare_calls += compare_calls;
+                max_compare_calls = @max(max_compare_calls, compare_calls);
+
+                try std.testing.expect(compare_calls <= max_compare_budget);
+                try expectFoundOrMiss(expected_hit, found, variant.label, query);
             }
         }
     }
@@ -119,6 +183,16 @@ fn runPerfCase(case: PerfCase, io: std.Io) !PerfResult {
         .max_compare_calls = max_compare_calls,
         .max_compare_budget = max_compare_budget,
     };
+}
+
+fn expectFoundOrMiss(expected_hit: bool, found: ?usize, variant_label: []const u8, query: u32) !void {
+    _ = variant_label;
+    _ = query;
+    if (expected_hit) {
+        try std.testing.expect(found != null);
+    } else {
+        try std.testing.expect(found == null);
+    }
 }
 
 fn seedDeterministicQueries(
