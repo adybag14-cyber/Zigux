@@ -25,6 +25,7 @@ The helper now keeps these bounded rules explicit:
 - timeout requests stay classified as nonblocking, bounded, or indefinite based only on the already-observed `timeout_ms` input
 - normalized negative errno-or-ready-count wait results stay compact through explicit `timed_out`, `interrupted`, `ready_events`, and `failed(errno)` variants before buffer bookkeeping starts
 - ready-buffer bookkeeping counts ready buffers, remembers the first ready index, and surfaces the first buffer-local error without claiming record decoding
+- the ordered `perf_buffer__process_records()` pass can now be summarized separately as successful ready-buffer processing until the first failing ready buffer, keeping libbpf's fail-fast loop explicit without claiming callback delivery or record decoding parity
 - observed wait outcomes stay compact instead of hiding error or ready-state intent inside broader loop behavior
 - inconsistent states such as more ready buffers than observed ready events still fail fast
 
@@ -39,6 +40,7 @@ This helper does not yet claim:
 - online CPU filtering
 - per-CPU perf-event-array map updates
 - direct `perf_buffer__poll(timeout_ms)` timeout parity for the broader routing loop
+- callback delivery or record decoding parity inside `perf_buffer__process_records()`
 - no standalone timer helper
 - no standalone clockevent helper
 - interrupt-routing-sensitive perf-buffer delivery behavior
