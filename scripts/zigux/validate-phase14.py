@@ -77,6 +77,10 @@ SCRIPT_README_MARKERS = [
     "automatic return-to-blocked trigger catalog",
     "four-anchor boundary map",
     "bounded concurrency-audit scope",
+    "`make -C zigux phase14-validate PYTHON=python3 ZIG=<attached-zig-path>`",
+    "`make -C zigux phase14-smoke ZIG=<attached-zig-path>`",
+    "`make -C zigux phase14 ZIG=<attached-zig-path>`",
+    "when `zig` is not on `PATH`",
 ]
 
 RELEASE_MARKERS = [
@@ -99,6 +103,7 @@ RELEASE_MARKERS = [
     "PHASE14_STATUS_CHANGE_CLAIM=no",
     "PHASE14_BOUNDARY_MAP=shared-anchor-packet-bundle",
     "PHASE14_CONCURRENCY_AUDIT_SCOPE=anchor-local-packets-only",
+    "PHASE14_ATTACHED_TOOLCHAIN_FALLBACK=PYTHON=python3 and ZIG=<attached-zig-path>",
     "scripts/zigux/validate-phase14.py",
     "scripts/zigux/README.md",
     "phase14_workqueue_bridge_manifest.json",
@@ -180,11 +185,14 @@ if missing_files:
     sys.exit(1)
 
 missing: list[str] = []
+scripts_readme_text = text("scripts/zigux/README.md")
+survey_note = text("Documentation/zigux/phase14-end-to-end-smoke-survey.md")
+
 for name, source, markers in [
-    ("scripts_readme", text("scripts/zigux/README.md"), SCRIPT_README_MARKERS),
+    ("scripts_readme", scripts_readme_text, SCRIPT_README_MARKERS),
     ("make", text("zigux/Makefile"), MAKE_MARKERS),
     ("workflow", text(".github/workflows/zigux-bootstrap.yml"), WORKFLOW_MARKERS),
-    ("survey", text("Documentation/zigux/phase14-end-to-end-smoke-survey.md"), RELEASE_MARKERS),
+    ("survey", survey_note, RELEASE_MARKERS),
     ("checklist", text("Documentation/zigux/review-checklist.md"), CHECKLIST_MARKERS),
     ("build", text("zigux/tests/phase14_build.zig"), BUILD_MARKERS),
 ]:
@@ -226,6 +234,11 @@ if not isinstance(smoke_commands, list) or len(smoke_commands) != 3:
 smoke_shard_commands = manifest.get("smoke_shard_commands")
 if not isinstance(smoke_shard_commands, list) or len(smoke_shard_commands) != 2:
     missing.append("manifest:smoke_shard_commands")
+
+attached_toolchain_commands = manifest.get("attached_toolchain_commands")
+if not isinstance(attached_toolchain_commands, list) or len(attached_toolchain_commands) != 3:
+    missing.append("manifest:attached_toolchain_commands")
+    attached_toolchain_commands = []
 
 survey_summary = manifest.get("survey_summary")
 required_summary_keys = [
@@ -292,6 +305,23 @@ expected_build_test_names: list[str] = []
 focused_shard_count = 0
 full_bundle_only_count = 0
 
+if isinstance(smoke_commands, list):
+    for command in smoke_commands:
+        if isinstance(command, str) and command and command not in survey_note:
+            missing.append(f"survey:smoke_command:{command}")
+
+if isinstance(smoke_shard_commands, list):
+    for command in smoke_shard_commands:
+        if isinstance(command, str) and command and command not in survey_note:
+            missing.append(f"survey:smoke_shard_command:{command}")
+
+for command in attached_toolchain_commands:
+    if isinstance(command, str) and command:
+        if command not in survey_note:
+            missing.append(f"survey:attached_toolchain_command:{command}")
+        if command not in scripts_readme_text:
+            missing.append(f"scripts_readme:attached_toolchain_command:{command}")
+
 for index, shard in enumerate(compile_shards):
     if not isinstance(shard, dict):
         missing.append(f"manifest:compile_shards:{index}")
@@ -322,14 +352,6 @@ for index, shard in enumerate(compile_shards):
         missing.append(f"phase14_build:artifact_name:{artifact_name}")
     if root_source_file not in build_text:
         missing.append(f"phase14_build:root_source_file:{root_source_file}")
-    if isinstance(smoke_commands, list):
-        for command in smoke_commands:
-            if isinstance(command, str) and command and command not in text("Documentation/zigux/phase14-end-to-end-smoke-survey.md"):
-                missing.append(f"survey:smoke_command:{command}")
-    if isinstance(smoke_shard_commands, list):
-        for command in smoke_shard_commands:
-            if isinstance(command, str) and command and command not in text("Documentation/zigux/phase14-end-to-end-smoke-survey.md"):
-                missing.append(f"survey:smoke_shard_command:{command}")
 
     if bridge_import:
         if bridge_import not in build_text:
@@ -337,7 +359,6 @@ for index, shard in enumerate(compile_shards):
         if bridge_source_file not in build_text:
             missing.append(f"phase14_build:bridge_source_file:{bridge_source_file}")
 
-survey_note = text("Documentation/zigux/phase14-end-to-end-smoke-survey.md")
 if surveyed_commit and surveyed_commit not in survey_note:
     missing.append("survey:surveyed_commit")
 expected_provenance_line = f"- survey provenance captured against verified `master` head `{surveyed_commit}`"
