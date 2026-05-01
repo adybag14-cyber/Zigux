@@ -69,7 +69,10 @@ MAKE_MARKERS = [
     "phase12-validate:",
     "scripts/zigux/check-phase12-build-inventory.py --self-test",
     "scripts/zigux/check-phase12-build-inventory.py",
+    "scripts/zigux/check-phase12-libbpf-snapshot.py --self-test",
     "scripts/zigux/check-phase12-libbpf-snapshot.py",
+    "scripts/zigux/check-phase12-libbpf-packet.py --self-test",
+    "scripts/zigux/check-phase12-libbpf-packet.py",
     "scripts/zigux/validate-phase12.py",
     "$(ZIG) build test --build-file zigux/tests/phase12_build.zig --summary all",
     "phase12: phase12-validate phase12-test",
@@ -117,7 +120,7 @@ CHECKLIST_MARKERS = [
     "if the change is a Phase 12 complex-driver or heavy-helper slice, do `scripts/zigux/validate-phase12.py`, `zigux/tests/phase12_build.zig`, the four Phase 12 manifests, and the four Phase 12 survey notes still agree on the same bounded tranche, exact surveyed commits, approved roadmap destinations, shared replay contract, and explicit DMA versus object-model blocker posture?",
     "if the change touches the shared Phase 12 degraded-workflow packet, do the workflow path, README notes, review checklist, and `zigux/tests/phase12_virtio_scsi_survey.zig` still agree that `make -C zigux phase12` runs the validator before the shared Zig replay?",
     "if the change touches the shared Phase 12 tooling path, do `scripts/zigux/check-phase12-build-inventory.py`, `zigux/tests/phase12_build.zig`, `zigux/tests/fixtures/phase12_build_inventory.json`, and the shared Phase 12 manifests still agree on the exact shared build inventory instead of leaving the replay shape implicit?",
-    "if the change touches the shared Phase 12 libbpf snapshot packet, do `python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test`, `scripts/zigux/check-phase12-libbpf-snapshot.py`, `zigux/tests/fixtures/phase12_libbpf_snapshot.json`, `zigux/tests/phase12_libbpf_manifest.json`, `zigux/tests/phase12_libbpf_segments.zig`, `zigux/tests/phase12_libbpf_reviewability.zig`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, and `tools/lib/bpf/zigux_segments/manifest.json` still agree on the same bounded five-file reproducibility packet, exact surveyed commit, and repeat-run-stable self-test contract instead of leaving the bounded libbpf snapshot discipline in run memory only?",
+    "if the change touches the shared Phase 12 libbpf snapshot packet, do `python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test`, `scripts/zigux/check-phase12-libbpf-snapshot.py`, `python3 scripts/zigux/check-phase12-libbpf-packet.py --self-test`, `scripts/zigux/check-phase12-libbpf-packet.py`, `zigux/tests/fixtures/phase12_libbpf_snapshot.json`, `zigux/tests/phase12_libbpf_manifest.json`, `zigux/tests/phase12_libbpf_segments.zig`, `zigux/tests/phase12_libbpf_reviewability.zig`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, and `tools/lib/bpf/zigux_segments/manifest.json` still agree on the same bounded five-file reproducibility packet, exact surveyed commit, and repeat-run-stable packet-alignment contract instead of leaving the bounded libbpf snapshot discipline in run memory only?",
 ]
 PHASE12_PACKET_MARKERS = {
     "phase12_virtio_net_test": (
