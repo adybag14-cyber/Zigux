@@ -34,6 +34,7 @@ REQUIRED_SURVEY_ALIGNMENT_MARKERS = [
 PHASE4_GATE_EVIDENCE_BLOB_TARGETS = {
     "PHASE4_VALIDATION_MATRIX_BLOB_SHA": "Documentation/zigux/phase4-validation-matrix.md",
     "PHASE4_VALIDATOR_BLOB_SHA": "scripts/zigux/validate-phase4.py",
+    "PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA": "scripts/zigux/check-phase4-gate-evidence.py",
     "PHASE4_BUILD_BLOB_SHA": "zigux/tests/phase4_build.zig",
     "PHASE4_MAKEFILE_BLOB_SHA": "zigux/Makefile",
     "PHASE4_WORKFLOW_BLOB_SHA": ".github/workflows/zigux-bootstrap.yml",
@@ -100,6 +101,7 @@ def write_fixture_tree(root: Path) -> None:
     file_contents = {
         "Documentation/zigux/phase4-validation-matrix.md": "phase4 matrix fixture\n",
         "scripts/zigux/validate-phase4.py": "phase4 validator fixture\n",
+        "scripts/zigux/check-phase4-gate-evidence.py": "phase4 gate evidence checker fixture\n",
         "zigux/tests/phase4_build.zig": "phase4 build fixture\n",
         "zigux/Makefile": "phase4 validate fixture\n",
         ".github/workflows/zigux-bootstrap.yml": "phase4 workflow fixture\n",
@@ -213,6 +215,12 @@ def run_self_test() -> int:
         )
         missing = validate_root(root)
         assert f"phase4_gate_evidence:{SHARED_SURVEYED_COMMIT}" in missing, missing
+
+        write_fixture_tree(root)
+        checker = root / "scripts/zigux/check-phase4-gate-evidence.py"
+        checker.unlink()
+        missing = validate_root(root)
+        assert "file:scripts/zigux/check-phase4-gate-evidence.py" in missing, missing
 
         write_fixture_tree(root)
         tests_readme = root / "zigux/tests/README.md"
