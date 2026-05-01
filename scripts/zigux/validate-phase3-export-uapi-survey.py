@@ -522,6 +522,32 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         _replace_blob_markers_with_head(root, survey_path)
+        current_survey = survey_path.read_text(encoding="utf-8")
+        export_blob = _marker_value_from_text(current_survey, "PHASE3_EXPORT_SHIM_BLOB_SHA")
+        assert export_blob is not None
+        survey_path.write_text(
+            current_survey.replace(
+                f"PHASE3_EXPORT_SHIM_BLOB_SHA={export_blob}",
+                "PHASE3_EXPORT_SHIM_BLOB_SHA=not-a-sha",
+            ),
+            encoding="utf-8",
+        )
+        issues = validate(root)
+        assert "invalid_survey_blob_sha:PHASE3_EXPORT_SHIM_BLOB_SHA:not-a-sha" in issues
+
+        survey_path.write_text(
+            "\n".join(
+                (
+                    *REQUIRED_SURVEY_MARKERS,
+                    f"PHASE3_SURVEYED_COMMIT={head}",
+                    *_blob_marker_lines(),
+                    *REQUIRED_SURVEY_SNIPPETS,
+                )
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        _replace_blob_markers_with_head(root, survey_path)
         missing_commit = "fedcba9876543210fedcba9876543210fedcba98"
         survey_path.write_text(
             survey_path.read_text(encoding="utf-8").replace(
