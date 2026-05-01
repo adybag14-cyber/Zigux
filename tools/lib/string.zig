@@ -124,6 +124,13 @@ fn cStringLen(src: []const u8) usize {
     return len;
 }
 
+fn cStringCharAt(src: []const u8, idx: usize) u8 {
+    if (idx >= src.len) {
+        return 0;
+    }
+    return src[idx];
+}
+
 pub fn strlcpy(dest: []u8, src: []const u8) usize {
     const ret = cStringLen(src);
     if (dest.len == 0) {
@@ -158,6 +165,21 @@ pub fn strEq(lhs: []const u8, rhs: []const u8) bool {
 
 pub fn streq(lhs: []const u8, rhs: []const u8) bool {
     return strEq(lhs, rhs);
+}
+
+pub fn strCmp(lhs: []const u8, rhs: []const u8) i32 {
+    var idx: usize = 0;
+    while (true) : (idx += 1) {
+        const lhs_ch = cStringCharAt(lhs, idx);
+        const rhs_ch = cStringCharAt(rhs, idx);
+        if (lhs_ch != rhs_ch or lhs_ch == 0 or rhs_ch == 0) {
+            return @as(i32, lhs_ch) - @as(i32, rhs_ch);
+        }
+    }
+}
+
+pub fn strcmp(lhs: []const u8, rhs: []const u8) i32 {
+    return strCmp(lhs, rhs);
 }
 
 pub fn strStarts(str: []const u8, prefix: []const u8) bool {
@@ -456,6 +478,22 @@ test "streq matches C-string equality semantics" {
     const embedded_miss = [_]u8{ 'z', 'i', 'p', 0, 'u', 'x' };
     try std.testing.expect(streq(&source, &embedded_match));
     try std.testing.expect(!streq(&source, &embedded_miss));
+}
+
+test "strcmp matches C-string ordering semantics" {
+    try std.testing.expectEqual(@as(i32, 0), strCmp("zigux", "zigux"));
+    try std.testing.expectEqual(@as(i32, 0), strcmp("zigux", "zigux"));
+    try std.testing.expect(strCmp("zig", "zigux") < 0);
+    try std.testing.expect(strcmp("zigux", "zig") > 0);
+    try std.testing.expect(strCmp("zigux", "Zigux") > 0);
+
+    const embedded_match = [_]u8{ 'z', 'i', 'g', 0, 'u', 'x' };
+    const embedded_match_rhs = [_]u8{ 'z', 'i', 'g', 0, 'a' };
+    const embedded_less = [_]u8{ 'a', 0, 'x' };
+    const embedded_more = [_]u8{ 'a', 'b', 0 };
+    try std.testing.expectEqual(@as(i32, 0), strCmp(&embedded_match, &embedded_match_rhs));
+    try std.testing.expect(strCmp(&embedded_less, &embedded_more) < 0);
+    try std.testing.expect(strCmp(&embedded_more, &embedded_less) > 0);
 }
 
 test "strstarts matches kernel prefix semantics" {
