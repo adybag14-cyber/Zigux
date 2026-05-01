@@ -64,10 +64,11 @@ RELEASE_MARKERS = [
     "PHASE13_SHARED_MAKE_TARGET_PRESENT=yes",
     "PHASE13_SHARED_REPLAY_STEP_COUNT=7",
     "PHASE13_RELEASE_CLOSED=no",
-    "The current release packet also carries one active shared-replay blocker on `master`:",
+    "The current release packet also carries one active Phase 13 posture reminder on `master`:",
     "`python3 scripts/zigux/validate-phase13-release.py` and `make -C zigux phase13-validate` currently pass",
-    "`make -C zigux phase13-test` and `make -C zigux phase13` currently fail because `zigux/tests/phase13_landlock_ruleset.zig` ends with a syntax error at the current `P13-L12` ruleset packet tail (`expected statement, found 'EOF'`)",
-    "that failure belongs to the dedicated Landlock ruleset helper lane, so this release-note packet records it as an active tranche blocker instead of pretending the shared replay is green",
+    "the earlier `expected statement, found 'EOF'` note for `zigux/tests/phase13_landlock_ruleset.zig` is stale: the current checked-in ruleset test file is syntactically complete, and its dedicated ruleset helper replay still passes against `security/landlock/ruleset.zig`",
+    "the remaining live ruleset blocker is the same one already recorded by the manifest-backed survey packet: `rb_replace_node()`, live object ownership transfer, hierarchy lifetime, and workqueue-backed teardown are still outside the current helper-only lane",
+    "a fresh full `zigux/tests/phase13_build.zig` replay is still the right way to confirm shared Phase 13 green status after that stale EOF marker is removed from the release note",
     "The current manifest lane ownership carried by the release packet is:",
     "`fs/libfs.c` through `zigux/tests/phase13_libfs_manifest.json` lane `P13-L04`",
     "`lib/devres.c` through `zigux/tests/phase13_devres_manifest.json` lane `P13-L03`",
@@ -75,11 +76,6 @@ RELEASE_MARKERS = [
     "`security/landlock/syscalls.c` through `zigux/tests/phase13_landlock_syscalls_manifest.json` lane `P13-L16`",
     "adjacent notifier-list reviewability evidence through `zigux/tests/phase13_notifier_list_manifest.json` lane `P13-L17`",
     "lib/devres.c`: helper slice landed, dedicated tests present, roadmap traceability present, manifest-backed survey present, and helper-first MMIO or resource planners keep live DMA-backed mappings and scatterlist ownership explicitly blocked",
-    "The current release packet also carries one active shared-replay blocker on `master`:",
-    "`python3 scripts/zigux/validate-phase13-release.py` and `make -C zigux phase13-validate` currently pass",
-    "`make -C zigux phase13-test` and `make -C zigux phase13` currently fail because `zigux/tests/phase13_landlock_ruleset.zig` ends with a syntax error",
-    "`expected statement, found 'EOF'`",
-    "that failure belongs to the dedicated Landlock ruleset helper lane",
     "phase13_notifier_list_reviewability.zig",
     "zig build test --build-file zigux/tests/phase13_build.zig --summary all",
 ]
@@ -96,7 +92,7 @@ DOCS_ROOT_MARKERS = [
     "`Documentation/zigux/phase13-roadmap-traceability.md` now maps the four shared-helper roadmap anchors `fs/libfs.c`, `lib/devres.c`, `security/landlock/ruleset.c`, and `security/landlock/syscalls.c` to the live Zigux evidence so the current Phase 13 packet is visible from the docs root.",
     "`Documentation/zigux/phase13-libfs-survey.md`, `Documentation/zigux/phase13-devres-survey.md`, `Documentation/zigux/phase13-landlock-ruleset-survey.md`, and `Documentation/zigux/phase13-landlock-syscalls-survey.md` plus the four `zigux/tests/phase13_*_manifest.json` files now keep the current helper-first boundaries explicit instead of implying broader runtime parity.",
     "`make -C zigux phase13-validate` is the current validator-first entrypoint for the shared Phase 13 release-discipline packet.",
-    "`zigux/tests/phase13_build.zig` and `make -C zigux phase13` remain the published shared replay path, but that replay is currently blocked on `master` because `zigux/tests/phase13_landlock_ruleset.zig` still ends with the `P13-L12` syntax error recorded by `Documentation/zigux/phase13-release-notes-survey.md`.",
+    "`zigux/tests/phase13_build.zig` and `make -C zigux phase13` remain the published shared replay path; the earlier `phase13_landlock_ruleset.zig` EOF blocker note is stale, and the remaining live `P13-L12` blocker is the manifest-backed helper boundary around `rb_replace_node()`, live object ownership transfer, hierarchy lifetime, and workqueue-backed teardown until a fresh full shared replay is confirmed on current `master`.",
 ]
 
 SCRIPT_README_MARKERS = [
