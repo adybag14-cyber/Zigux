@@ -35,7 +35,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_risky_transport");
 }
 
-test "phase10 virtio ring survey manifest records the live queue-discipline packet and parked MMIO blocker after landed config-write" {
+test "phase10 virtio ring survey manifest records the live queue-discipline packet and parked MMIO blocker after landed interrupt-ack" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -79,7 +79,9 @@ test "phase10 virtio ring survey manifest records the live queue-discipline pack
     );
     defer std.testing.allocator.free(closure_manifest_json);
 
-    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{
+        .ignore_unknown_fields = true,
+    });
     defer parsed.deinit();
     const closure_parsed = try std.json.parseFromSlice(std.json.Value, std.testing.allocator, closure_manifest_json, .{});
     defer closure_parsed.deinit();
@@ -89,7 +91,7 @@ test "phase10 virtio ring survey manifest records the live queue-discipline pack
     try std.testing.expectEqualStrings("P10-L08", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 10", manifest.phase);
     try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", manifest.anchor);
-    try std.testing.expectEqualStrings("800e2edfb5d2d0c80ac45ffee6630a6b13905d0d", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("fe8a43ea2e186da0da152198b571dff57ea3c38c", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.virtio_ring_c_lines >= 3000);
     try std.testing.expectEqual(@as(usize, 4), manifest.survey_summary.preexisting_phase10_test_files);
@@ -112,13 +114,14 @@ test "phase10 virtio ring survey manifest records the live queue-discipline pack
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-mmio-queue-address-helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-mmio-config-window-helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-mmio-config-write-helper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-mmio-interrupt-ack-helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "no smaller ready transport follow-up remains ahead of the still-blocked lifecycle and IRQ packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "remaining MMIO follow-up ladder against the roadmap") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig build test --build-file zigux/tests/phase10_build.zig --summary all") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "kernel/workqueue.c") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "kernel/trace/ring_buffer.c") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/*.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, slice_note, "config-window and config-write helpers are already landed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "config-window, config-write, and interrupt-ack helpers are already landed") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "leave this packet parked unless a future Phase 10 review can split `phase10-mmio-lifecycle-and-irq-paths` into a smaller transport-safe observation helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "next bounded follow-up should come from the survey-backed `virtio_mmio` config-window helper") == null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "zig build test --build-file zigux/tests/phase10_build.zig --summary all") != null);
@@ -163,6 +166,7 @@ test "phase10 virtio ring survey manifest records the live queue-discipline pack
     var saw_mmio_queue_address = false;
     var saw_mmio_config_window = false;
     var saw_mmio_config_write = false;
+    var saw_mmio_interrupt_ack = false;
     var saw_mmio_blocker = false;
     var saw_ring_slice_note = false;
     var saw_core_progress_note = false;
@@ -299,11 +303,21 @@ test "phase10 virtio ring survey manifest records the live queue-discipline pack
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "config-write planning helper") != null);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase10-mmio-interrupt-ack-helper")) {
+            saw_mmio_interrupt_ack = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "interrupt-status acknowledge bookkeeping") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue and config interrupt bits") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase10-mmio-lifecycle-and-irq-paths")) {
             saw_mmio_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_risky_transport", gap.status);
             try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "interrupt acknowledgement") != null or std.mem.indexOf(u8, gap.why_now, "lifecycle") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "interrupt acknowledgement") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue notify side effects") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "config-space writes") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase10-virtio-ring-slice-note")) {
@@ -336,6 +350,7 @@ test "phase10 virtio ring survey manifest records the live queue-discipline pack
     try std.testing.expect(saw_mmio_queue_address);
     try std.testing.expect(saw_mmio_config_window);
     try std.testing.expect(saw_mmio_config_write);
+    try std.testing.expect(saw_mmio_interrupt_ack);
     try std.testing.expect(saw_ring_slice_note);
     try std.testing.expect(saw_mmio_blocker);
 }
