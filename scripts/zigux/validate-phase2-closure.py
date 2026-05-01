@@ -471,6 +471,7 @@ required_closure_markers = [
     'PHASE2_GENKSYMS_BRIDGE_STDERR_POLICY=success-path stderr silence plus repeat-run stderr determinism are required for closure',
     'PHASE2_GENKSYMS_BRIDGE_EVIDENCE=artifact fixtures plus abbreviated-long, inline-short, clustered-short-inline, missing-short-dump-types, lone-dash, explicit-terminator, empty-long-name, abbreviated-dump-types, and reference-limit coverage are required for closure',
     'PHASE2_GENKSYMS_CRC_DETERMINISM=check-genksyms-crc-diff.py replays C and Zig outputs twice before comparing artifacts',
+    'PHASE2_MK_ELFCONFIG_SELF_TEST=python3 scripts/zigux/check-mk-elfconfig-diff.py --self-test',
     'genksyms bridge parses clustered short flags before inline reference argument',
     'genksyms bridge accepts abbreviated unique long options',
     'genksyms bridge treats lone dash as positional passthrough',
