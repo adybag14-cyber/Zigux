@@ -2,6 +2,8 @@
 
 This bounded Phase 14 slice starts `kernel/workqueue_bridge.zig` as a pure boundary map anchored to `kernel/workqueue.c`.
 
+This packet inherits the shared Phase 14 `study_only` contract: `kernel/workqueue.c` remains the source of truth, the rollback owner stays `Repo Tooling Pod`, and any review drift that weakens explicit stay-in-C wording for worker pools, scheduler hooks, delayed timers, rescuer execution, or hotplug migration should send the lane back to blocked maintenance rather than forward into new behavior claims.
+
 The current bridge stays intentionally narrow:
 
 - records the caller-facing submission boundary around `queue_work_on()` and `__queue_work()` without claiming live enqueue, wakeup, or execution behavior
