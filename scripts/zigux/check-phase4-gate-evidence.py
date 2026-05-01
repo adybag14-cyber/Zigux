@@ -7,7 +7,9 @@ import tempfile
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[2]
+SCRIPT_PATH = Path(__file__).resolve()
+ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
+SHARED_SURVEYED_COMMIT = "ec9aa1b15a34e581625da1056956ecb5dd6cd76a"
 
 REQUIRED_MARKERS = [
     "PHASE4_EVIDENCE_DATE=",
@@ -19,6 +21,11 @@ REQUIRED_MARKERS = [
     "PHASE4_REQUIRED_MARKER_COUNT=",
     "## Exact Readback Evidence",
     "## Current Conclusion",
+]
+
+REQUIRED_SURVEY_ALIGNMENT_MARKERS = [
+    SHARED_SURVEYED_COMMIT,
+    "phase4_runtime_atomic64_diff_survey.zig",
 ]
 
 PHASE4_GATE_EVIDENCE_BLOB_TARGETS = {
@@ -61,6 +68,9 @@ def validate_root(root: Path) -> list[str]:
 
     gate_evidence = read_text(root, gate_evidence_path)
     for marker in REQUIRED_MARKERS:
+        if marker not in gate_evidence:
+            missing.append(f"phase4_gate_evidence:{marker}")
+    for marker in REQUIRED_SURVEY_ALIGNMENT_MARKERS:
         if marker not in gate_evidence:
             missing.append(f"phase4_gate_evidence:{marker}")
 
@@ -115,7 +125,7 @@ def write_fixture_tree(root: Path) -> None:
         "",
         "## Exact Readback Evidence",
         "",
-        "- synthetic fixture",
+        f"- synthetic fixture keeps shared surveyed snapshot `{SHARED_SURVEYED_COMMIT}` explicit through `phase4_runtime_atomic64_diff_survey.zig`.",
         "",
         "## Current Conclusion",
         "",
@@ -163,6 +173,19 @@ def run_self_test() -> int:
         )
         missing = validate_root(root)
         assert "phase4_gate_evidence:PHASE4_VALIDATION=pass" in missing, missing
+
+        write_fixture_tree(root)
+        gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
+        gate_evidence.write_text(
+            gate_evidence.read_text(encoding="utf-8").replace(
+                SHARED_SURVEYED_COMMIT,
+                "0" * 40,
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert f"phase4_gate_evidence:{SHARED_SURVEYED_COMMIT}" in missing, missing
 
         write_fixture_tree(root)
         tests_readme = root / "zigux/tests/README.md"
