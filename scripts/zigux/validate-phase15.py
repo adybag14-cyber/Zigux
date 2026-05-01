@@ -67,7 +67,8 @@ HANDOFF_MARKERS = [
     "## Open Handoff Gaps",
     "## Pending Next Steps",
     "## Maintenance Handoff Contract",
-    "broader shared replay is green on current `master`",
+    "shared replay surface is green again",
+    "phase15-docs-root-summary-drift-blocker",
     "phase15-deep-core-status-change-blocker",
     "make -C zigux phase15",
     "zig build test --build-file zigux/tests/phase15_build.zig",
@@ -531,7 +532,7 @@ else:
 
 handoff_manifest = load_json("zigux/tests/phase15_handoff_next_steps_manifest.json")
 require(handoff_manifest.get("phase") == "Phase 15", "handoff_manifest:phase")
-require(handoff_manifest.get("lane_key") == "P15-L12", "handoff_manifest:lane_key")
+require(handoff_manifest.get("lane_key") == "P15-L08", "handoff_manifest:lane_key")
 require(
     handoff_manifest.get("surveyed_commit") == "ef7b33b6922d05e5ef514fb4efa588316ce6dda8",
     "handoff_manifest:surveyed_commit",
@@ -560,43 +561,69 @@ else:
     require_false(
         handoff_repo_evidence,
         "handoff_manifest:repo_evidence",
-        ["deep_core_status_change_ready"],
+        ["docs_root_phase15_summary_aligned", "deep_core_status_change_ready"],
     )
 
 open_handoff_gaps = handoff_manifest.get("open_handoff_gaps")
-if not isinstance(open_handoff_gaps, list) or len(open_handoff_gaps) != 1:
+expected_handoff_gaps = {
+    "phase15-docs-root-summary-drift-blocker": (
+        "blocked_on_release_evidence_alignment",
+        "Documentation/zigux/README.md",
+        ["docs-root Phase 15 summary", "shared Phase 15 replay as green"],
+    ),
+    "phase15-deep-core-status-change-blocker": (
+        "blocked_on_stay_in_c_evidence",
+        "Documentation/zigux/phase15-parity-scorecard.md",
+        ["freeze-in-C posture"],
+    ),
+}
+if not isinstance(open_handoff_gaps, list) or len(open_handoff_gaps) != 2:
     missing.append("handoff_manifest:open_handoff_gaps")
 else:
-    gap = open_handoff_gaps[0]
-    if not isinstance(gap, dict):
-        missing.append("handoff_manifest:open_handoff_gaps:shape")
-    else:
-        require(gap.get("id") == "phase15-deep-core-status-change-blocker", "handoff_manifest:open_handoff_gaps:id")
+    seen_gap_ids: set[str] = set()
+    for gap in open_handoff_gaps:
+        if not isinstance(gap, dict):
+            missing.append("handoff_manifest:open_handoff_gaps:shape")
+            continue
+        gap_id = gap.get("id")
+        if not isinstance(gap_id, str) or gap_id not in expected_handoff_gaps:
+            missing.append(f"handoff_manifest:open_handoff_gaps:unexpected:{gap_id}")
+            continue
+        seen_gap_ids.add(gap_id)
+        expected_status, expected_destination, phrases = expected_handoff_gaps[gap_id]
+        require(gap.get("status") == expected_status, f"handoff_manifest:open_handoff_gaps:status:{gap_id}")
         require(
-            gap.get("status") == "blocked_on_stay_in_c_evidence",
-            "handoff_manifest:open_handoff_gaps:status",
-        )
-        require(
-            gap.get("zigux_destination") == "Documentation/zigux/phase15-parity-scorecard.md",
-            "handoff_manifest:open_handoff_gaps:zigux_destination",
+            gap.get("zigux_destination") == expected_destination,
+            f"handoff_manifest:open_handoff_gaps:zigux_destination:{gap_id}",
         )
         why_now = gap.get("why_now")
-        require(
-            isinstance(why_now, str) and "freeze-in-C posture" in why_now,
-            "handoff_manifest:open_handoff_gaps:why_now",
-        )
+        if not isinstance(why_now, str):
+            missing.append(f"handoff_manifest:open_handoff_gaps:why_now:{gap_id}")
+            continue
+        for phrase in phrases:
+            require(phrase in why_now, f"handoff_manifest:open_handoff_gaps:why_now:{gap_id}:{phrase}")
+    for gap_id in expected_handoff_gaps:
+        require(gap_id in seen_gap_ids, f"handoff_manifest:open_handoff_gaps:missing:{gap_id}")
 
 pending_next_steps = handoff_manifest.get("pending_next_steps")
 if not isinstance(pending_next_steps, list) or len(pending_next_steps) != 2:
     missing.append("handoff_manifest:pending_next_steps")
 else:
     require(
-        isinstance(pending_next_steps[0], str) and "shared Phase 15 replay drifts again" in pending_next_steps[0],
+        isinstance(pending_next_steps[0], str) and "docs-root Phase 15 summary is refreshed" in pending_next_steps[0],
         "handoff_manifest:pending_next_steps:0",
+    )
+    require(
+        isinstance(pending_next_steps[0], str) and "shared Phase 15 replay drifts again" in pending_next_steps[0],
+        "handoff_manifest:pending_next_steps:0:replay",
     )
     require(
         isinstance(pending_next_steps[1], str) and "make -C zigux phase15" in pending_next_steps[1],
         "handoff_manifest:pending_next_steps:1",
+    )
+    require(
+        isinstance(pending_next_steps[1], str) and "docs-root summary" in pending_next_steps[1],
+        "handoff_manifest:pending_next_steps:1:docs-root",
     )
 
 if missing:
