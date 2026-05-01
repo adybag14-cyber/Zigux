@@ -35,7 +35,7 @@ pub fn isValid(view: abi.BitmapView) bool {
 
 fn wordSlice(view: abi.BitmapView) []const Word {
     std.debug.assert(view.word_count != 0);
-    return narrow.constSliceAt(Word, view.words_addr, view.word_count);
+    return narrow.constSliceAt(Word, .raw_pointer_bridge, view.words_addr, view.word_count) catch unreachable;
 }
 
 pub fn testBit(view: abi.BitmapView, bit: u32) bool {
