@@ -7,24 +7,27 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 - `PHASE7_STATUS=parked`
 - `PHASE7_SLICE=cmdline-runtime-leaf`
 - scope: first low-risk parsing helpers only
-- lane state: helper and fixture slice landed; parked unless a new `cmdline.c` parity issue appears
+- lane state: helper, fixture, and parity-adapter slice landed; parked unless a new `cmdline.c` parity issue appears
 - product boundary:
   - `lib/cmdline.zig`
   - `zigux/tests/phase7_cmdline.zig`
   - `zigux/tests/phase7_cmdline_survey.zig`
   - `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`
+  - `zigux/tests/fixtures/phase7_cmdline.json`
+  - `zigux/tests/fixtures/phase7_cmdline_c_harness.c`
+  - `scripts/zigux/check-phase7-cmdline-parity.py`
   - `zigux/tests/phase7_build.zig`
 
 ## Why this slice exists
 
 Phase 7 explicitly calls out `lib/cmdline.c` as one of the first reusable in-kernel leaf libraries that should move into the Zigux product path.
 
-This current slice keeps the work bounded to runtime-safe leaf helpers with explicit integration with validation substrate through `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, and `zigux/tests/phase7_build.zig`.
+This current slice keeps the work bounded to runtime-safe leaf helpers with explicit integration with validation substrate through `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-cmdline-parity.py`, `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, and `zigux/tests/phase7_build.zig`.
 
 This current slice therefore stays inside helpers that:
 
 - do not allocate
-- keep deterministic parsing and cursor-advance behavior reviewable across helper-local and shared Phase 7 gates
+- keep deterministic parsing and cursor-advance behavior reviewable across helper-local, external parity, and shared Phase 7 gates
 
 ## Gates
 
@@ -41,6 +44,9 @@ This current slice therefore stays inside helpers that:
 4. keep the helper-only review note replay inside the shared gate
 - `zigux/tests/phase7_cmdline_survey.zig`
 
+5. check the committed C parity fixture
+- `python3 scripts/zigux/check-phase7-cmdline-parity.py`
+
 ## Current parity surface
 
 The current landed slice covers:
@@ -53,6 +59,7 @@ The current landed slice covers:
 
 The current tests check:
 
+- committed C-vs-Zig parity for representative `get_option()`, `get_options()`, `memparse()`, `parse_option_str()`, and `next_arg()` cases through `zigux/tests/fixtures/phase7_cmdline.json` plus `zigux/tests/fixtures/phase7_cmdline_c_harness.c`
 - signed integer parsing and comma handling
 - Linux-style hyphen range expansion and validation-only counting
 - descending-range and unparseable-suffix early stop behavior
@@ -61,7 +68,7 @@ The current tests check:
 - the full KUnit malformed-token classification corpus now also runs through the shared `zigux/tests/phase7_cmdline.zig` gate instead of only the helper-local `zig test lib/cmdline.zig` path
 - KUnit-derived pointer-advance semantics for malformed-prefix, leading-integer, and trailing-integer `get_option()` inputs so the shared Phase 7 gate and the helper-local test path both keep matching where the C helper leaves the parse cursor
 - memory-size suffix scaling with accurate parse-stop reporting
-- rejection of explicit leading-plus numeric inputs, including autodetected radix forms like `+0x10`, so the Zig helper stays aligned with the `simple_strtoull()` parsing used by `lib/cmdline.c`
+- rejection of explicit leading-plus numeric inputs, including autodetected radix forms like `+0x10`, so the Zig helper stays aligned with the `lib/cmdline.c` `simple_strtoull()` parsing contract
 - exact bare-option matching for comma-delimited flags
 - C-style stop-at-NUL handling for bare-option scans
 - `parse_option_str()` empty-needle parity now mirrors the live C helper: empty option names only match empty segments at the start of the scan or between commas, while an empty source string or a purely trailing comma still return false
@@ -80,4 +87,4 @@ This slice still does not yet claim:
 
 ## Next bounded step
 
-Move the next Phase 7 schedule to another unfinished leaf helper family. Reopen this lane only if fresh repo inspection finds one more real `cmdline.c` parity gap inside the existing helper, fixture, or dedicated-gate surface.
+Move the next Phase 7 schedule to another unfinished leaf helper family. Reopen this lane only if fresh repo inspection finds one more real `cmdline.c` parity gap inside the existing helper, fixture, dedicated-gate, or external-parity surface.
