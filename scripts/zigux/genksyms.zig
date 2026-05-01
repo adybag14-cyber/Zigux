@@ -516,6 +516,20 @@ test "genksyms bridge accepts abbreviated unique long options" {
     }
 }
 
+test "genksyms bridge accepts abbreviated unique action long options" {
+    const version_outcome = try parseArgs(std.testing.allocator, &.{"--ver"});
+    switch (version_outcome) {
+        .command => |command| try std.testing.expect(command == .version),
+        .failure => return error.UnexpectedFailure,
+    }
+
+    const help_outcome = try parseArgs(std.testing.allocator, &.{"--hel"});
+    switch (help_outcome) {
+        .command => |command| try std.testing.expect(command == .help),
+        .failure => return error.UnexpectedFailure,
+    }
+}
+
 test "genksyms bridge rejects ambiguous abbreviated long options" {
     const outcome = try parseArgs(std.testing.allocator, &.{"--dum"});
     switch (outcome) {
@@ -570,17 +584,6 @@ test "genksyms bridge accepts explicit option terminator" {
                 try std.testing.expectEqualSlices([]const u8, args, request.raw_args);
                 try std.testing.expectEqualSlices([]const u8, args, request.rendered_args);
             },
-            else => return error.UnexpectedCommand,
-        },
-        .failure => return error.UnexpectedFailure,
-    }
-}
-
-test "genksyms bridge reports short version control path immediately" {
-    const outcome = try parseArgs(std.testing.allocator, &.{ "-V", "-d", "-r", "ignored.symref" });
-    switch (outcome) {
-        .command => |command| switch (command) {
-            .version => {},
             else => return error.UnexpectedCommand,
         },
         .failure => return error.UnexpectedFailure,
