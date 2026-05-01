@@ -187,6 +187,51 @@ def run_self_test() -> int:
             },
         ) == ["source-marker: marker-fixture.zig missing pub fn policyByteMarker() void {}"]
 
+        policy_marker_fixture = root / "phase3-policy-unsafe-marker-fixture.zig"
+        overflow_policy_markers = (
+            'test "phase3 policy gate rejects overflowed unsafe address math"',
+            "try std.testing.expectError(error.AddressOverflow, narrow.checkedByteOffset(max, 1));",
+            "try std.testing.expectError(error.AddressOverflow, narrow.checkedSpanBytes(u32, max));",
+            "try std.testing.expectError(error.AddressOverflow, narrow.checkedSpanEnd(u32, 4, max));",
+            "try std.testing.expectError(error.AddressOverflow, narrow.scopedPointerAt(u32, .volatile_mmio, max, 1));",
+            "try std.testing.expectError(error.AddressOverflow, narrow.scopedConstSliceAt(u32, .raw_pointer_bridge, 4, max));",
+        )
+        policy_marker_fixture.write_text(
+            "\n".join([
+                'test "phase3 policy gate rejects overflowed unsafe address math" {}',
+                "try std.testing.expectError(error.AddressOverflow, narrow.checkedByteOffset(max, 1));",
+                "try std.testing.expectError(error.AddressOverflow, narrow.checkedSpanBytes(u32, max));",
+                "try std.testing.expectError(error.AddressOverflow, narrow.checkedSpanEnd(u32, 4, max));",
+                "try std.testing.expectError(error.AddressOverflow, narrow.scopedPointerAt(u32, .volatile_mmio, max, 1));",
+                "try std.testing.expectError(error.AddressOverflow, narrow.scopedConstSliceAt(u32, .raw_pointer_bridge, 4, max));",
+                "",
+            ]),
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert validate_source_markers(
+            root,
+            {"phase3-policy-unsafe-marker-fixture.zig": overflow_policy_markers},
+        ) == []
+        policy_marker_fixture.write_text(
+            "\n".join([
+                'test "phase3 policy gate rejects overflowed unsafe address math" {}',
+                "try std.testing.expectError(error.AddressOverflow, narrow.checkedByteOffset(max, 1));",
+                "try std.testing.expectError(error.AddressOverflow, narrow.checkedSpanBytes(u32, max));",
+                "try std.testing.expectError(error.AddressOverflow, narrow.checkedSpanEnd(u32, 4, max));",
+                "try std.testing.expectError(error.AddressOverflow, narrow.scopedPointerAt(u32, .volatile_mmio, max, 1));",
+                "",
+            ]),
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert validate_source_markers(
+            root,
+            {"phase3-policy-unsafe-marker-fixture.zig": overflow_policy_markers},
+        ) == [
+            "source-marker: phase3-policy-unsafe-marker-fixture.zig missing try std.testing.expectError(error.AddressOverflow, narrow.scopedConstSliceAt(u32, .raw_pointer_bridge, 4, max));"
+        ]
+
         low_level_export_fixture = root / "low-level-export-fixture.zig"
         low_level_export_fixture.write_text(
             "\n".join(
@@ -265,6 +310,12 @@ def run_self_test() -> int:
         policy_markers = ABI_REQUIRED_SOURCE_MARKERS["zigux/tests/phase3_policy_unsafe.zig"]
         assert "try std.testing.expectError(error.InvalidPanicMode, interop_policy.decode(.{" in policy_markers
         assert "try std.testing.expectError(error.InvalidAllocatorMode, interop_policy.decode(.{" in policy_markers
+        assert 'test "phase3 policy gate rejects overflowed unsafe address math"' in policy_markers
+        assert "try std.testing.expectError(error.AddressOverflow, narrow.checkedByteOffset(max, 1));" in policy_markers
+        assert "try std.testing.expectError(error.AddressOverflow, narrow.checkedSpanBytes(u32, max));" in policy_markers
+        assert "try std.testing.expectError(error.AddressOverflow, narrow.checkedSpanEnd(u32, 4, max));" in policy_markers
+        assert "try std.testing.expectError(error.AddressOverflow, narrow.scopedPointerAt(u32, .volatile_mmio, max, 1));" in policy_markers
+        assert "try std.testing.expectError(error.AddressOverflow, narrow.scopedConstSliceAt(u32, .raw_pointer_bridge, 4, max));" in policy_markers
 
         export_uapi_check = root / "scripts/zigux/validate-phase3-export-uapi-survey.py"
         export_uapi_check.write_text(
