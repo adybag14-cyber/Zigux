@@ -354,6 +354,17 @@ def run_self_test() -> int:
         assert validate_policy_unsafe_boundary(root) == [
             "policy-unsafe-gate: missing_survey_marker:PHASE3_INTEROP_POLICY_PATH=zigux/helpers/interop_policy.zig"
         ]
+        policy_unsafe_check.write_text(
+            "#!/usr/bin/env python3\n"
+            "print('PHASE3_POLICY_UNSAFE_SURVEY=fail')\n"
+            "print('surveyed_blob_drift:zigux/helpers/mmio.zig')\n"
+            "raise SystemExit(1)\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert validate_policy_unsafe_boundary(root) == [
+            "policy-unsafe-gate: surveyed_blob_drift:zigux/helpers/mmio.zig"
+        ]
 
     print("PHASE3_VALIDATOR_SELF_TEST=pass")
     return 0
