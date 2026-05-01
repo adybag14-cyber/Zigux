@@ -31,6 +31,18 @@ const Manifest = struct {
     gaps: []const Gap,
 };
 
+const RuntimeAtomic64SiblingManifest = struct {
+    phase: []const u8,
+    surveyed_commit: []const u8,
+};
+
+const PerfBaselineSiblingManifest = struct {
+    phase: []const u8,
+    owner: []const u8,
+    rollback_owner: []const u8,
+    surveyed_commit: []const u8,
+};
+
 fn countLines(text: []const u8) usize {
     if (text.len == 0) return 0;
 
@@ -88,6 +100,46 @@ test "phase4 test_fsmount survey manifest records the landed survey packet and r
     try std.testing.expect(manifest.survey_summary.phase4_validator_present);
     try std.testing.expect(manifest.survey_summary.phase4_validation_matrix_present);
     try std.testing.expectEqual(@as(usize, 4), manifest.gaps.len);
+
+    const runtime_atomic64_manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase4_runtime_atomic64_diff_manifest.json",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(runtime_atomic64_manifest_json);
+    const runtime_atomic64_parsed = try std.json.parseFromSlice(
+        RuntimeAtomic64SiblingManifest,
+        std.testing.allocator,
+        runtime_atomic64_manifest_json,
+        .{ .ignore_unknown_fields = true },
+    );
+    defer runtime_atomic64_parsed.deinit();
+    const runtime_atomic64_manifest = runtime_atomic64_parsed.value;
+    try std.testing.expectEqualStrings("Phase 4", runtime_atomic64_manifest.phase);
+    try std.testing.expectEqualStrings(current_surveyed_commit, runtime_atomic64_manifest.surveyed_commit);
+    try std.testing.expect(isLowerHexSha(runtime_atomic64_manifest.surveyed_commit));
+
+    const perf_baseline_manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase4_perf_baseline_manifest.json",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(perf_baseline_manifest_json);
+    const perf_baseline_parsed = try std.json.parseFromSlice(
+        PerfBaselineSiblingManifest,
+        std.testing.allocator,
+        perf_baseline_manifest_json,
+        .{ .ignore_unknown_fields = true },
+    );
+    defer perf_baseline_parsed.deinit();
+    const perf_baseline_manifest = perf_baseline_parsed.value;
+    try std.testing.expectEqualStrings("Phase 4", perf_baseline_manifest.phase);
+    try std.testing.expectEqualStrings("Validation and Perf Team", perf_baseline_manifest.owner);
+    try std.testing.expectEqualStrings("Validation and Perf Team", perf_baseline_manifest.rollback_owner);
+    try std.testing.expectEqualStrings(current_surveyed_commit, perf_baseline_manifest.surveyed_commit);
+    try std.testing.expect(isLowerHexSha(perf_baseline_manifest.surveyed_commit));
 
     const anchor = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
