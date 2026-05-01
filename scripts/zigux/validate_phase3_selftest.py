@@ -262,6 +262,9 @@ def run_self_test() -> int:
         narrow_markers = ABI_REQUIRED_SOURCE_MARKERS["zigux/unsafe/narrow.zig"]
         assert "pub fn checkedSpanEnd(comptime T: type, base: usize, len: usize) ScopeError!usize {" in narrow_markers
         assert 'test "phase3 narrow unsafe scoped helpers reject overflowed address math"' in narrow_markers
+        policy_markers = ABI_REQUIRED_SOURCE_MARKERS["zigux/tests/phase3_policy_unsafe.zig"]
+        assert "try std.testing.expectError(error.InvalidPanicMode, interop_policy.decode(.{" in policy_markers
+        assert "try std.testing.expectError(error.InvalidAllocatorMode, interop_policy.decode(.{" in policy_markers
 
         export_uapi_check = root / "scripts/zigux/validate-phase3-export-uapi-survey.py"
         export_uapi_check.write_text(
