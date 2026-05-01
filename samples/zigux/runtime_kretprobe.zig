@@ -129,6 +129,13 @@ pub const RuntimeKretprobeSample = struct {
         self.symbol_name = symbol_name;
     }
 
+    pub fn configureMaxactive(self: *Self, maxactive: usize) !void {
+        if (self.stage() != .cold) return error.InvalidLifecycleTransition;
+        if (maxactive == 0 or maxactive > default_maxactive) return error.InvalidMaxactive;
+
+        self.maxactive = maxactive;
+    }
+
     pub fn init(self: *Self) !void {
         if (self.stage() != .cold) return error.InvalidLifecycleTransition;
         if (self.symbol_name.len == 0) return error.InvalidSymbolName;
@@ -305,12 +312,14 @@ test "runtime kretprobe sample replays bounded skip, return, and concurrent time
     var cold = RuntimeKretprobeSample{};
     try std.testing.expectError(error.InvalidSymbolName, cold.retargetSymbol(""));
     try std.testing.expectError(error.SymbolNameTooLong, cold.retargetSymbol(too_long_symbol[0..]));
-
-    var invalid_maxactive = RuntimeKretprobeSample{ .maxactive = RuntimeKretprobeSample.default_maxactive + 1 };
-    try std.testing.expectError(error.InvalidMaxactive, invalid_maxactive.init());
+    try std.testing.expectError(error.InvalidMaxactive, cold.configureMaxactive(0));
+    try std.testing.expectError(error.InvalidMaxactive, cold.configureMaxactive(RuntimeKretprobeSample.default_maxactive + 1));
 
     var module = RuntimeKretprobeSample{};
+    try module.configureMaxactive(2);
     try module.init();
+    try std.testing.expectEqual(@as(usize, 2), module.maxactive);
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.configureMaxactive(1));
 
     try std.testing.expect(!(try module.entryHandler(false, 11)));
     try std.testing.expectEqual(@as(usize, 1), module.skipped_kernel_threads);
@@ -343,6 +352,7 @@ test "runtime kretprobe sample replays bounded skip, return, and concurrent time
 
 test "runtime kretprobe sample keeps failed exit rollback explicit in the direct sample leg" {
     var module = RuntimeKretprobeSample{};
+    try module.configureMaxactive(1);
     try module.init();
     try std.testing.expect(try module.entryHandler(true, 410));
 
@@ -352,6 +362,7 @@ test "runtime kretprobe sample keeps failed exit rollback explicit in the direct
     try std.testing.expectEqual(@as(usize, 1), before_failed_exit.init_runs);
     try std.testing.expectEqual(@as(usize, 0), before_failed_exit.selftest_runs);
     try std.testing.expectEqual(@as(usize, 0), before_failed_exit.exit_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_failed_exit.maxactive);
     try std.testing.expectEqual(@as(usize, 1), before_failed_exit.active_instances);
     try std.testing.expect(before_failed_exit.entry_timestamp_armed);
     try std.testing.expectEqual(@as(usize, 0), before_failed_exit.nmissed);
