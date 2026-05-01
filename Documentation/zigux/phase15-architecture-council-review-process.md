@@ -8,7 +8,7 @@ This document records the bounded Phase 15 governance lane around the Architectu
 - `PHASE15_STATUS=review_process_slice_landed`
 - `PHASE15_SLICE=architecture-council-review-process-checklist-no-approval-posture-gate`
 - scope: one review-process note, one dedicated manifest and Zig test, the shared Phase 15 build wiring, and one bounded checklist-gate follow-up that keeps the already-landed no-approval posture explicit across the review-process note, the parity scorecard, and the reserved evidence-archive templates inside the same Architecture Council packet
-- survey provenance refreshed against verified `master` head `98e62218232eaac0eccd3b17fc9dc58378c74fd2`
+- survey provenance refreshed against verified `master` head `b44cf66d6ecf6a57d6932aefad1f7da70806eeeb`
 - product boundary:
   - `Documentation/zigux/phase15-architecture-council-review-process.md`
   - `Documentation/zigux/phase15-handoff-next-steps-survey.md`
