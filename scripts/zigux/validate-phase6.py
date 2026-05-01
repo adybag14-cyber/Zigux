@@ -166,6 +166,7 @@ BASE64_PARITY_SCRIPT_MARKERS = [
     'generated_cases = run_checked([zig, "run", str(CASE_GENERATOR)]).stdout',
     'GENERATED_INCLUDE.write_text(generated_cases, encoding="utf-8")',
     'print("PHASE6_BASE64_C_PARITY_SELF_TEST=pass")',
+    'print("PHASE6_BASE64_C_PARITY_SELF_TEST_CASE_COUNT=7")',
     'print(f"PHASE6_BASE64_C_PARITY_CASES={len(c_lines)}")',
 ]
 
@@ -241,6 +242,7 @@ BSEARCH_PERF_MARKERS = [
 BSEARCH_PARITY_SCRIPT_MARKERS = [
     'parser.add_argument("--self-test", action="store_true", help="Run built-in parity-script checks")',
     'print("PHASE6_BSEARCH_C_PARITY_SELF_TEST=pass")',
+    'print("PHASE6_BSEARCH_C_PARITY_SELF_TEST_CASE_COUNT=6")',
     'print(f"PHASE6_BSEARCH_C_PARITY_CASES={len(c_lines)}")',
 ]
 
@@ -803,13 +805,36 @@ def run_self_test() -> int:
                 raise AssertionError(
                     f"expected manifest exact_checks failure, got: {exact_checks_fail_result['missing']}"
                 )
+
+            write_self_test_tree(root)
+            base64_parity_script_path = root / "scripts/zigux/check-phase6-base64-c-parity.py"
+            base64_parity_script_text = base64_parity_script_path.read_text(encoding="utf-8")
+            base64_self_test_case_count_marker = 'print("PHASE6_BASE64_C_PARITY_SELF_TEST_CASE_COUNT=7")'
+            if base64_self_test_case_count_marker not in base64_parity_script_text:
+                raise AssertionError("expected base64 parity self-test case-count marker missing from positive fixture")
+            base64_parity_script_path.write_text(
+                base64_parity_script_text.replace(base64_self_test_case_count_marker, "", 1),
+                encoding="utf-8",
+            )
+
+            base64_self_test_case_count_fail_result = validate_phase6(root)
+            if base64_self_test_case_count_fail_result["ok"]:
+                raise AssertionError("base64 parity self-test case-count marker removal unexpectedly passed")
+            if (
+                f"phase6_base64_c_parity_script:missing:{base64_self_test_case_count_marker}"
+                not in base64_self_test_case_count_fail_result["missing"]
+            ):
+                raise AssertionError(
+                    "expected base64 parity self-test case-count marker failure, got: "
+                    f"{base64_self_test_case_count_fail_result['missing']}"
+                )
     except AssertionError as exc:
         print("PHASE6_VALIDATOR_SELF_TEST=fail")
         print(f"PHASE6_VALIDATOR_SELF_TEST_REASON={exc}")
         return 1
 
     print("PHASE6_VALIDATOR_SELF_TEST=pass")
-    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=5")
+    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
