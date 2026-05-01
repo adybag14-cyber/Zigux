@@ -15,7 +15,8 @@ The current helper stays intentionally narrow:
 - adds one in-memory `add_rule_path_beneath()` planner that combines copied path-beneath attrs with the bounded `get_path_from_fd()` handoff and the later `put_path()` release responsibility without touching live rule insertion or inode ownership
 - adds one in-memory `add_rule_net_port()` planner that reuses the bounded add-rule validation and makes the copied net-port attrs plus final `landlock_append_net_rule()` handoff explicit without touching live socket, ruleset, or domain state
 - adds one in-memory ruleset-FD creation handoff planner that keeps the fixed `anon_inode_getfd("[landlock-ruleset]", ..., O_RDWR | O_CLOEXEC)` label or flag discipline plus the `landlock_put_ruleset()` failure release responsibility explicit without touching live file operations wiring or FD ownership
+- makes the dedicated `ruleset_fops` contract explicit so the helper records the `fop_ruleset_release()` ownership drop and the dummy read or write handlers that enable `FMODE_CAN_READ` and `FMODE_CAN_WRITE` without claiming live file operations wiring
 
 This slice does not claim anonymous-fd creation, live user-memory copying, path imports, credential preparation, thread synchronization, domain merges, or live syscall enforcement.
 
-The next honest bounded step in this same lane is to stay parked at the current syscall-helper boundary unless another follow-up can tighten validation or lifetime discipline without widening into anonymous inode internals, live file operations wiring, FD ownership, deeper credential mutation, or domain state.
+The next honest bounded step in this same lane is to stay parked at the current syscall-helper boundary unless another follow-up can tighten validation or lifetime discipline without widening into anonymous inode internals, live FD ownership, deeper credential mutation, or domain state.
