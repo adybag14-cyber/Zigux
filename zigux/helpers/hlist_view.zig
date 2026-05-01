@@ -17,11 +17,11 @@ pub fn isValid(view: abi.HListView) bool {
 
 fn headPtr(view: abi.HListView) *const abi.HListHeadRef {
     std.debug.assert(isValid(view));
-    return narrow.constPointerAt(abi.HListHeadRef, view.head_addr);
+    return narrow.constPointerAt(abi.HListHeadRef, .raw_pointer_bridge, view.head_addr) catch unreachable;
 }
 
 fn nodePtr(addr: usize) *const abi.HListNodeRef {
-    return narrow.constPointerAt(abi.HListNodeRef, addr);
+    return narrow.constPointerAt(abi.HListNodeRef, .raw_pointer_bridge, addr) catch unreachable;
 }
 
 pub fn isEmpty(view: abi.HListView) bool {
