@@ -299,6 +299,7 @@ MARKER_GROUPS = {
             'test "find next and bit skips earlier shared matches in the same word"',
             'test "empty and boundary scans return nbits"',
             'test "find underscore aliases preserve scan semantics"',
+            'test "single-word scans keep linux small-bitmap semantics"',
         ],
     ),
     "find_bit_harness": (
@@ -319,6 +320,8 @@ MARKER_GROUPS = {
             '"find_bit.tail_and_mixed_next"',
             '"alias_unit_test_anchor"',
             '"alias_unit_test_contract"',
+            '"small_bitmap_unit_test_anchor"',
+            '"small_bitmap_unit_test_contract"',
         ],
     ),
     "string": (
@@ -455,6 +458,12 @@ def validate_manifest_shape() -> list[str]:
                 issues.append("phase1_manifest:tools/lib/bitmap.zig:allocator_alias_unit_test_anchor:mismatch")
             if bitmap_note.get("allocator_alias_unit_test_contract") != "Direct Zig unit coverage keeps bitmap_alloc(), bitmap_zalloc(), and bitmap_free() aligned with bitmapAlloc(), bitmapZalloc(), and bitmapFree() for partial-word sizing, zero-filled allocation, and optional-handle reset semantics.":
                 issues.append("phase1_manifest:tools/lib/bitmap.zig:allocator_alias_unit_test_contract:mismatch")
+        find_bit_note = notes.get("tools/lib/find_bit.zig")
+        if isinstance(find_bit_note, dict):
+            if find_bit_note.get("small_bitmap_unit_test_anchor") != 'tools/lib/find_bit.zig:test "single-word scans keep linux small-bitmap semantics"':
+                issues.append("phase1_manifest:tools/lib/find_bit.zig:small_bitmap_unit_test_anchor:mismatch")
+            if find_bit_note.get("small_bitmap_unit_test_contract") != "Direct Zig unit coverage keeps single-word set, zero, and shared-bit scans aligned with Linux small-bitmap semantics by masking out-of-range tail bits while preserving inclusive in-range matches inside one word.":
+                issues.append("phase1_manifest:tools/lib/find_bit.zig:small_bitmap_unit_test_contract:mismatch")
     return issues
 
 
