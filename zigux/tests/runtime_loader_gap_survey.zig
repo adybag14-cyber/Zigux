@@ -223,7 +223,7 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
             try std.testing.expect(std.mem.indexOf(u8, entry.role, "manifest-backed catalog and ownership map") != null);
         }
         if (std.mem.eql(u8, entry.id, "runtime-loader-substrate-plan")) {
-            saw_substratePlanDoc = true;
+            saw_substrate_plan_doc = true;
             try std.testing.expectEqualStrings("documentation", entry.kind);
             try std.testing.expectEqualStrings("Documentation/zigux/phase9-runtime-loader-substrate-plan.md", entry.path);
             try std.testing.expect(std.mem.indexOf(u8, entry.role, "shared loader-stage vocabulary") != null);
