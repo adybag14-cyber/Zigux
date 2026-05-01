@@ -111,13 +111,17 @@ The current tests check:
 
 ## Gates
 
-1. run the dedicated Phase 8 tooling gate
-- `zig build test --build-file zigux/tests/phase8_build.zig`
+1. run the validator-first Phase 8 preflight path
+- `python3 scripts/zigux/validate-phase8.py`
+- `make -C zigux phase8-validate`
 
-2. run the focused libbpf survey replay
+2. run the dedicated shared Phase 8 tooling replay
+- `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
+
+3. run the focused libbpf survey replay
 - `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all`
 
-3. run the convenience target
+4. run the convenience target
 - `make -C zigux phase8`
 
 ## Latest verification snapshot
@@ -141,7 +145,7 @@ This survey slice does not yet claim:
 - `parse_cpu_mask_file()` parity or direct file reads
 - `perf_buffer__new()` online CPU filtering, perf-event-array population, epoll registration, or interrupt-routing parity
 - direct `mkdir()`, `statfs()`, `unlink()`, or `bpf_obj_pin()` parity for map or program pinning
-- direct `/proc/.../fdinfo` reads, `fopen()` or `fclose()` ownership, `open()` or `close()` ownership, `bpf_obj_get()` reopen flows, or `bpf_token_create()` handle lifeyclhe parity
+- direct `/proc/.../fdinfo` reads, `fopen()` or `fclose()` ownership, `open()` or `close()` ownership, `bpf_obj_get()` reopen flows, or `bpf_token_create()` handle lifecycle parity
 - BTF relocation parity
 - ELF loader parity
 - `perf_buffer__poll(timeout_ms)` timeout parity or ready-buffer count semantics
