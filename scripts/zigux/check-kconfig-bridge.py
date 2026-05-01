@@ -337,6 +337,20 @@ def capture_failure(callback, *args) -> list[str]:
     return stream.getvalue().splitlines()
 
 
+def assert_text_mode_rejects_byte_drift(left: Path, right: Path, *, label: str) -> None:
+    text_result = subprocess.run(
+        [sys.executable, str(ARTIFACT_DIFF), '--mode', 'text', str(left), str(right)],
+        check=False,
+        text=True,
+        capture_output=True,
+        cwd=str(ROOT),
+    )
+    if text_result.returncode != 1:
+        raise AssertionError(f'expected compare_text_artifacts to catch byte drift for {label}')
+    assert 'ARTIFACT_DIFF=fail' in text_result.stdout
+    assert 'MODE=text' in text_result.stdout
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix='zigux_kconfig_bridge_selftest_') as tmp_dir_str:
         tmp_dir = Path(tmp_dir_str)
@@ -500,17 +514,7 @@ def run_self_test() -> int:
         exact_a.write_text('{"counts":{"set":1,"unset":0},"entries":[]}\n', encoding='utf-8', newline='\n')
         exact_b.write_text('{"entries":[],"counts":{"unset":0,"set":1}}\n', encoding='utf-8', newline='\n')
         compare_json_artifacts(exact_a, exact_b)
-        text_result = subprocess.run(
-            [sys.executable, str(ARTIFACT_DIFF), '--mode', 'text', str(exact_a), str(exact_b)],
-            check=False,
-            text=True,
-            capture_output=True,
-            cwd=str(ROOT),
-        )
-        if text_result.returncode != 1:
-            raise AssertionError('expected compare_text_artifacts to catch byte drift for JSON-equivalent confdata output')
-        assert 'ARTIFACT_DIFF=fail' in text_result.stdout
-        assert 'MODE=text' in text_result.stdout
+        assert_text_mode_rejects_byte_drift(exact_a, exact_b, label='json-equivalent conf bridge output')
 
     print('KCONFIG_BRIDGE_SELF_TEST=pass')
     return 0
@@ -536,15 +540,18 @@ def main() -> int:
     with tempfile.TemporaryDirectory(prefix='zigux_kconfig_bridge_') as tmp_dir_str:
         tmp_dir = Path(tmp_dir_str)
         conf_exe = tmp_dir / ('conf-bridge.exe' if sys.platform == 'win32' else 'conf-bridge')
+        conf_rebuild_exe = tmp_dir / ('conf-bridge-rebuild.exe' if sys.platform == 'win32' else 'conf-bridge-rebuild')
         confdata_exe = tmp_dir / ('confdata-bridge.exe' if sys.platform == 'win32' else 'confdata-bridge')
         confdata_rebuild_exe = tmp_dir / ('confdata-bridge-rebuild.exe' if sys.platform == 'win32' else 'confdata-bridge-rebuild')
         compile_tool(zig, CONF_BRIDGE, conf_exe)
+        compile_tool(zig, CONF_BRIDGE, conf_rebuild_exe)
         compile_tool(zig, CONFDATA_BRIDGE, confdata_exe)
         compile_tool(zig, CONFDATA_BRIDGE, confdata_rebuild_exe)
 
         for case in cases['conf_cases']:
             actual = tmp_dir / f"{case['name']}.actual.json"
             repeat = tmp_dir / f"{case['name']}.repeat.json"
+            rebuild = tmp_dir / f"{case['name']}.rebuild.json"
             cmd = [
                 str(conf_exe),
                 case['mode'],
@@ -569,9 +576,16 @@ def main() -> int:
             repeat_result = run(cmd, cwd=str(ROOT), capture_output=True, env=env)
             repeat.write_text(repeat_result.stdout, encoding='utf-8', newline='\n')
             compare_json_artifacts(actual, repeat)
+            compare_text_artifacts(actual, repeat)
+            rebuild_cmd = [str(conf_rebuild_exe), *cmd[1:]]
+            rebuild_result = run(rebuild_cmd, cwd=str(ROOT), capture_output=True, env=env)
+            rebuild.write_text(rebuild_result.stdout, encoding='utf-8', newline='\n')
+            compare_json_artifacts(actual, rebuild)
+            compare_text_artifacts(actual, rebuild)
 
         default_actual = tmp_dir / 'default-oldaskconfig.actual.json'
         default_repeat = tmp_dir / 'default-oldaskconfig.repeat.json'
+        default_rebuild = tmp_dir / 'default-oldaskconfig.rebuild.json'
         default_cmd = [
             str(conf_exe),
             'Kconfig',
@@ -584,6 +598,17 @@ def main() -> int:
         repeat_result = run(default_cmd, cwd=str(ROOT), capture_output=True)
         default_repeat.write_text(repeat_result.stdout, encoding='utf-8', newline='\n')
         compare_json_artifacts(default_actual, default_repeat)
+        compare_text_artifacts(default_actual, default_repeat)
+        default_rebuild_cmd = [
+            str(conf_rebuild_exe),
+            'Kconfig',
+            '.config',
+            'x86_64',
+        ]
+        rebuild_result = run(default_rebuild_cmd, cwd=str(ROOT), capture_output=True)
+        default_rebuild.write_text(rebuild_result.stdout, encoding='utf-8', newline='\n')
+        compare_json_artifacts(default_actual, default_rebuild)
+        compare_text_artifacts(default_actual, default_rebuild)
 
         for case in cases['confdata_cases']:
             actual = tmp_dir / f"{case['name']}.actual.json"
