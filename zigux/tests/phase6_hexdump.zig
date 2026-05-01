@@ -74,6 +74,49 @@ fn assertFixtureLengthCase(case: fixtures.LengthCase) !void {
     );
 }
 
+fn assertExactCapacityFullBufferCase(
+    len: usize,
+    rowsize: usize,
+    groupsize: usize,
+    ascii: bool,
+) !void {
+    var exact: [test_hexdump_buf_size]u8 = [_]u8{fill_char} ** test_hexdump_buf_size;
+    var roomy: [test_hexdump_buf_size]u8 = [_]u8{fill_char} ** test_hexdump_buf_size;
+    var expected: [test_hexdump_buf_size]u8 = undefined;
+
+    const required = fixtures.expectedLength(len, rowsize, groupsize, ascii);
+    const want = fixtures.prepareExpectedLine(expected[0..], len, rowsize, groupsize, ascii);
+
+    const exact_required = hexdump.hexDumpToBuffer(
+        test_data_b[0..len],
+        rowsize,
+        groupsize,
+        exact[0 .. required + 1],
+        ascii,
+    );
+    const roomy_required = hexdump.hexDumpToBuffer(
+        test_data_b[0..len],
+        rowsize,
+        groupsize,
+        roomy[0..],
+        ascii,
+    );
+
+    try std.testing.expectEqual(required, exact_required);
+    try std.testing.expectEqual(required, roomy_required);
+    try std.testing.expectEqualSlices(u8, want, std.mem.sliceTo(exact[0..], 0));
+    try std.testing.expectEqualSlices(u8, want, std.mem.sliceTo(roomy[0..], 0));
+    try std.testing.expectEqual(@as(u8, 0), exact[required]);
+    try std.testing.expectEqual(@as(u8, 0), roomy[required]);
+
+    for (exact[required + 1 ..]) |byte| {
+        try std.testing.expectEqual(fill_char, byte);
+    }
+    for (roomy[required + 1 ..]) |byte| {
+        try std.testing.expectEqual(fill_char, byte);
+    }
+}
+
 test "phase 6 hexdump module imports cleanly" {
     _ = hexdump;
 }
@@ -188,4 +231,10 @@ test "phase 6 hexdump proves exact 8-byte grouped ascii output" {
             "b293180a7bdb32be 9b34837d24c4ba70  .2.{....p..$}.4.",
         std.mem.sliceTo(linebuf[0..], 0),
     );
+}
+
+test "phase 6 hexdump exact-capacity full-buffer path stays aligned with fixture output" {
+    try assertExactCapacityFullBufferCase(16, 16, 4, false);
+    try assertExactCapacityFullBufferCase(16, 16, 4, true);
+    try assertExactCapacityFullBufferCase(32, 32, 2, true);
 }
