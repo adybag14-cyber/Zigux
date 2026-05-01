@@ -1,6 +1,5 @@
 const std = @import("std");
-const root = @import("root");
-const find_bit = if (@hasDecl(root, "find_bit")) root.find_bit else @import("find_bit.zig");
+const find_bit = @import("find_bit");
 
 pub const Word = find_bit.Word;
 pub const bits_per_long = find_bit.bits_per_long;
