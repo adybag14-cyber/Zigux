@@ -77,7 +77,7 @@ More specifically, it is still evidence for commit-train entry `26`, `feat(zigux
 The current gap is no longer the absence of an export shim.
 That piece exists and is reviewable.
 
-The remaining gap for this specific boundary packet is narrower than a missing public boundary altogether.
+The remaining gap for this specific boundary packet is no longer a missing export shim, a missing boundary header, or a missing public boundary root.
 The live repo already carries the C-facing boundary headers in `include/zigux/abi.h` and `include/linux/zigux.h`.
 
 What is still missing is a second curated Zig-side UAPI helper beyond the current `version-and-boundary-header` starter:
@@ -92,8 +92,8 @@ That repo reality is consistent with the bounded ABI substrate, but it is still 
 
 The next honest follow-on inside this boundary family is still narrow:
 
-- keep the current export shim and boundary-header surface narrow until a roadmap-backed interop slice needs one more reviewable boundary helper
-- keep `zigux/uapi/` at version-plus-boundary-header scope until a concrete Phase 3 slice needs one additional curated Zig-side public constant, type, or helper surface
+- keep the Zig-side UAPI surface at version-plus-boundary-header scope until one roadmap-backed interop slice needs another curated Zig-side helper
+- avoid broadening the public export namespace unless that same roadmap-backed slice proves it needs a matching export entry instead of a UAPI-only helper
 - refresh the packet-local `*_BLOB_SHA` markers whenever the directly coupled export/UAPI packet paths are deliberately resurveyed after boundary-local changes
 - refresh `PHASE3_SURVEYED_COMMIT` only when the whole export/UAPI packet is deliberately resurveyed against a confirmed shared head
 
