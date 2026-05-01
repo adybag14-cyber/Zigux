@@ -74,9 +74,9 @@
       "blocked_gap": "phase14-ring-buffer-zig-port-blocker"
     },
     {
-      "lane_key": "P14-L16",
+      "lane_key": "P14-L15",
       "anchor": "kernel/rcu/tree.c",
-      "surveyed_commit": "4c889233d157960514b241bcd5aff7cac5fda312",
+      "surveyed_commit": "e2075a1902926ea5f25f724134e48f04108e9240",
       "manifest_path": "zigux/tests/phase14_rcu_tree_manifest.json",
       "survey_note_path": "Documentation/zigux/phase14-rcu-tree-survey.md",
       "ready_next_gap": "",
