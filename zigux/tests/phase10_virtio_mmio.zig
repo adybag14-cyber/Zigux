@@ -275,6 +275,45 @@ test "phase10 virtio mmio plans bounded config-window writes without side effect
     try std.testing.expectError(error.ConfigWindowOutOfRange, window.planConfigWrite(15, .half, 0xabcd));
 }
 
+test "phase10 virtio mmio summarizes bounded interrupt state and reset cleanup without claiming irq delivery" {
+    var window = virtio_mmio.VirtioMmioRegisterWindowLab.init(.{ 0, 0 }, 0);
+
+    var summary = window.interruptSummary();
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", summary.anchor);
+    try std.testing.expectEqual(@as(u32, 0), summary.pending_bits);
+    try std.testing.expect(!summary.queue_interrupt_pending);
+    try std.testing.expect(!summary.config_interrupt_pending);
+    try std.testing.expect(!summary.line_asserted);
+
+    try window.raiseInterrupt(virtio_mmio.queue_interrupt_bit);
+    summary = window.interruptSummary();
+    try std.testing.expectEqual(@as(u32, virtio_mmio.queue_interrupt_bit), summary.pending_bits);
+    try std.testing.expect(summary.queue_interrupt_pending);
+    try std.testing.expect(!summary.config_interrupt_pending);
+    try std.testing.expect(summary.line_asserted);
+
+    try window.raiseInterrupt(virtio_mmio.config_interrupt_bit);
+    summary = window.interruptSummary();
+    try std.testing.expectEqual(@as(u32, virtio_mmio.supported_interrupt_bits), summary.pending_bits);
+    try std.testing.expect(summary.queue_interrupt_pending);
+    try std.testing.expect(summary.config_interrupt_pending);
+    try std.testing.expect(summary.line_asserted);
+
+    _ = try window.acknowledgeInterrupt(virtio_mmio.queue_interrupt_bit);
+    summary = window.interruptSummary();
+    try std.testing.expectEqual(@as(u32, virtio_mmio.config_interrupt_bit), summary.pending_bits);
+    try std.testing.expect(!summary.queue_interrupt_pending);
+    try std.testing.expect(summary.config_interrupt_pending);
+    try std.testing.expect(summary.line_asserted);
+
+    _ = window.reset();
+    summary = window.interruptSummary();
+    try std.testing.expectEqual(@as(u32, 0), summary.pending_bits);
+    try std.testing.expect(!summary.queue_interrupt_pending);
+    try std.testing.expect(!summary.config_interrupt_pending);
+    try std.testing.expect(!summary.line_asserted);
+}
+
 test "phase10 virtio mmio acknowledges only pending bounded interrupt bits" {
     var window = virtio_mmio.VirtioMmioRegisterWindowLab.init(.{ 0, 0 }, 0);
 
