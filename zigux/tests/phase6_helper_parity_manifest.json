@@ -73,9 +73,10 @@
     "scripts/zigux/validate-phase6.py",
     ".github/workflows/zigux-bootstrap.yml",
     "Documentation/zigux/README.md",
+    "Documentation/zigux/phase6-helper-parity-catalog.md",
+    "Documentation/zigux/phase6-perf-gate-survey.md",
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
-    "Documentation/zigux/phase6-helper-parity-catalog.md",
     "zigux/tests/phase6_helper_parity_manifest.json"
   ],
   "perf_posture": {
