@@ -111,7 +111,11 @@ def run_self_test() -> int:
         "missing runner: /tmp/phase6-missing-runner.zig",
     )
     build_text = build_zig_build_text()
-    assert_equal("build_text_import", 'root_module.addImport("bsearch", bsearch_module);' in build_text, True)
+    assert_equal(
+        "build_text_import",
+        'root_module.addImport("bsearch", bsearch_module);' in build_text and str(ROOT / "lib" / "bsearch.zig") in build_text,
+        True,
+    )
     assert_equal("build_text_runner", str(ZIG_RUNNER) in build_text, True)
     assert_equal(
         "sorted_lines",
