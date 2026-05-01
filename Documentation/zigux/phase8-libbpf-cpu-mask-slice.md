@@ -36,6 +36,7 @@ The current starter slice covers:
 
 - `parse_cpu_mask_str()`-adjacent parsing for `N` and `N-M` fragments
 - `+N` and `+N-+M` signed-decimal token forms that libbpf's `%d` parsing already accepts, while still rejecting negative CPU indices
+- C-style whitespace immediately after the range dash when the second `%d` parse consumes the trailing CPU index, without widening into standalone whitespace-delimiter behavior
 - repeated comma and newline delimiter skipping for sysfs-style CPU mask strings
 - leading horizontal whitespace and carriage-return acceptance only where the C helper's `sscanf()` token parsing already consumes them, without widening into standalone whitespace-delimiter behavior
 - an injected chunk-reader interface that can assemble buffered sysfs-style input without touching real file descriptors
@@ -48,7 +49,8 @@ The current tests check:
 - mixed single-value and ranged fragments
 - `+`-prefixed single-value and ranged fragments that stay non-negative
 - newline-terminated, repeated-delimiter, and leading-whitespace-at-token-start inputs
-- chunked reader input that splits `+`-prefixed ranges, delimiters, and leading `sscanf()`-style whitespace across buffer boundaries
+- C-style whitespace immediately after range dashes for the second parsed CPU index
+- chunked reader input that splits `+`-prefixed ranges, post-dash whitespace, delimiters, and leading `sscanf()`-style whitespace across buffer boundaries
 - sparse masks with unset gaps preserved
 - explicit error handling for empty, malformed, and trailing-whitespace-only ranges
 - reader contract failures such as zero-length chunks, oversized counts, and injected read errors
