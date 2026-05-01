@@ -111,8 +111,8 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_bitmap_doc_present);
     try std.testing.expect(manifest.review_prompts.len >= 7);
     try std.testing.expectEqual(@as(usize, 16), manifest.exact_checks.len);
-    try std.testing.expectEqual(@as(usize, 11), manifest.delivery_evidence_catalog.len);
-    try std.testing.expectEqual(@as(usize, 11), manifest.ownership_map.len);
+    try std.testing.expectEqual(@as(usize, 12), manifest.delivery_evidence_catalog.len);
+    try std.testing.expectEqual(@as(usize, 12), manifest.ownership_map.len);
     try std.testing.expect(manifest.gaps.len >= 6);
     try std.testing.expectEqual(@as(usize, 6), manifest.non_goals.len);
 
@@ -137,10 +137,12 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
     var saw_loader_gap_note = false;
     var saw_runtime_loader_binding_catalog = false;
     var saw_bitmap_loader_scaffold_catalog = false;
+    var saw_freeze_map_catalog = false;
     var saw_loader_gap_ownership = false;
     var saw_module_slice_ownership = false;
     var saw_bitmap_diff_ownership = false;
     var saw_bitmap_sample_ownership = false;
+    var saw_freeze_map_ownership = false;
     var saw_loader_gap_review_prompt = false;
     var saw_freeze_map_review_prompt = false;
 
@@ -198,6 +200,13 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
             try std.testing.expect(std.mem.indexOf(u8, entry.role, "released_without_substrate") != null);
             try std.testing.expect(std.mem.indexOf(u8, entry.role, "explicit shared command-name preservation") != null);
         }
+        if (std.mem.eql(u8, entry.id, "runtime-bitmap-freeze-map")) {
+            saw_freeze_map_catalog = true;
+            try std.testing.expectEqualStrings("governance", entry.kind);
+            try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", entry.path);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "kernel/workqueue.c") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "Architecture Council reopen rule") != null);
+        }
 
         for (manifest.delivery_evidence_catalog[i + 1 ..]) |other| {
             try std.testing.expect(!std.mem.eql(u8, entry.id, other.id));
@@ -224,6 +233,11 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
         if (std.mem.eql(u8, entry.surface, "samples/zigux/runtime_bitmap.zig")) {
             saw_bitmap_sample_ownership = true;
             try std.testing.expect(std.mem.indexOf(u8, entry.owns, "selftest-hook metadata") != null);
+        }
+        if (std.mem.eql(u8, entry.surface, "Documentation/zigux/freeze-map.md")) {
+            saw_freeze_map_ownership = true;
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "kernel/workqueue.c") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "Architecture Council reopen rule") != null);
         }
         if (std.mem.eql(u8, entry.surface, "samples/zigux/runtime_bitmap_loader.zig")) {
             try std.testing.expect(std.mem.indexOf(u8, entry.owns, "explicit shared command-name preservation") != null);
@@ -449,10 +463,12 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
     try std.testing.expect(saw_loader_gap_note);
     try std.testing.expect(saw_runtime_loader_binding_catalog);
     try std.testing.expect(saw_bitmap_loader_scaffold_catalog);
+    try std.testing.expect(saw_freeze_map_catalog);
     try std.testing.expect(saw_loader_gap_ownership);
     try std.testing.expect(saw_module_slice_ownership);
     try std.testing.expect(saw_bitmap_diff_ownership);
     try std.testing.expect(saw_bitmap_sample_ownership);
+    try std.testing.expect(saw_freeze_map_ownership);
     try std.testing.expect(saw_loader_gap_review_prompt);
     try std.testing.expect(saw_freeze_map_review_prompt);
     try std.testing.expect(saw_direct_sample_build_leg);
@@ -599,12 +615,12 @@ test "phase 9 runtime bitmap direct sample keeps empty parse-and-print replay ex
     defer std.testing.allocator.free(sample_source);
 
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "var empty = RuntimeBitmapSample{};") != null);
-    try std.testing.expect(std.mem.indexOf(u8, sample_source, "try empty.initFromBitList(\"  \"");") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, "try empty.initFromBitList(\"  \");") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "const empty_summary = empty.summary();") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "const empty_formatted = try empty.formatSetBits(std.testing.allocator);") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "try std.testing.expectEqualStrings(\"\", empty_formatted);") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "try std.testing.expectEqual(@as(?u32, null), empty.nthSetBit(0));") != null);
-    try std.testing.expect(std.mem.indexOf(u8, sample_source, "try duplicate_bits.initFromBitList(\"70, 5, 70, 0, 64, 5\"");") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, "try duplicate_bits.initFromBitList(\"70, 5, 70, 0, 64, 5\");") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "const duplicate_formatted = try duplicate_bits.formatSetBits(std.testing.allocator);") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "try std.testing.expectEqualStrings(\"0,5,64,70\", duplicate_formatted);") != null);
 }
