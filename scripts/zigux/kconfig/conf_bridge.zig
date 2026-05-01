@@ -80,6 +80,7 @@ pub const Request = struct {
     allconfig: ?[]const u8 = null,
     seed: ?[]const u8 = null,
     probability: ?[]const u8 = null,
+    nosilentupdate: ?[]const u8 = null,
 };
 
 const ValidateExtraArgError = error{
@@ -152,6 +153,11 @@ pub fn runConfBridge(writer: anytype, request: Request) !void {
     }
     if (request.mode == .syncconfig) {
         try writer.writeAll(",\"KCONFIG_AUTOCONFIG\":\"include/config/auto.conf\",\"KCONFIG_AUTOHEADER\":\"include/generated/autoconf.h\"");
+        if (request.nosilentupdate) |nosilentupdate| {
+            try writer.writeAll(",\"KCONFIG_NOSILENTUPDATE\":\"");
+            try writeJsonEscaped(writer, nosilentupdate);
+            try writer.writeAll("\"");
+        }
     }
     try writer.writeAll("}}\n");
 }
@@ -234,6 +240,7 @@ pub fn main(init: std.process.Init) !void {
     const args = try init.minimal.args.toSlice(init.arena.allocator());
     const seed = nonEmptyEnvValue(std.process.Environ.getPosix(init.minimal.environ, "KCONFIG_SEED"));
     const probability = nonEmptyEnvValue(std.process.Environ.getPosix(init.minimal.environ, "KCONFIG_PROBABILITY"));
+    const nosilentupdate = nonEmptyEnvValue(std.process.Environ.getPosix(init.minimal.environ, "KCONFIG_NOSILENTUPDATE"));
 
     var request = parseRequestArgs(args) catch |err| switch (err) {
         error.InvalidArity => {
@@ -296,6 +303,8 @@ pub fn main(init: std.process.Init) !void {
     if (request.mode == .randconfig) {
         request.seed = seed;
         request.probability = probability;
+    } else if (request.mode == .syncconfig) {
+        request.nosilentupdate = nosilentupdate;
     }
 
     var stdout_buffer: [1024]u8 = undefined;
@@ -452,6 +461,51 @@ test "conf bridge emits syncconfig auto files" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_AUTOCONFIG\":\"include/config/auto.conf\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_AUTOHEADER\":\"include/generated/autoconf.h\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"ARCH\":\"riscv64\"") != null);
+}
+
+test "conf bridge emits syncconfig nosilentupdate env when present" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{ .list = try std.ArrayList(u8).initCapacity(allocator, 224), .allocator = allocator };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn writeAll(self: *@This(), bytes: []const u8) !void {
+            try self.list.appendSlice(self.allocator, bytes);
+        }
+
+        fn writeByte(self: *@This(), byte: u8) !void {
+            try self.list.append(self.allocator, byte);
+        }
+    };
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try runConfBridge(&capture, .{
+        .mode = .syncconfig,
+        .kconfig = "Kconfig",
+        .config = "out/.config",
+        .arch = "riscv64",
+        .nosilentupdate = "1",
+    });
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_NOSILENTUPDATE\":\"1\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_AUTOCONFIG\":\"include/config/auto.conf\"") != null);
+}
+
+test "conf bridge omits empty syncconfig nosilentupdate env values" {
+    try std.testing.expectEqual(@as(?[]const u8, null), nonEmptyEnvValue(""));
+    try std.testing.expectEqual(@as(?[]const u8, null), nonEmptyEnvValue(null));
+
+    const nosilentupdate = nonEmptyEnvValue("1");
+    try std.testing.expectEqualStrings("1", nosilentupdate.?);
 }
 
 test "conf bridge emits alldefconfig argv and env" {
