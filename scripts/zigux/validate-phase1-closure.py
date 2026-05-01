@@ -144,7 +144,7 @@ REQUIRED_LEDGER_MARKERS = [
 
 REQUIRED_BENCH_CHECKER_MARKERS = [
     "print('PHASE1_BENCH_SELF_TEST=pass')",
-    "print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=13')",
+    "print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=14')",
     "print('DUPLICATE_PHASE1_BENCH_KEYS_START')",
     "print('MISSING_PHASE1_BENCH_KEYS_START')",
 ]
@@ -463,8 +463,8 @@ def run_self_test() -> int:
 
         bench_checker_path = tmp_root / "scripts" / "zigux" / "check-phase1-bench.py"
         original_bench_checker = bench_checker_path.read_text(encoding="utf-8")
-        bench_checker_path.write_text(original_bench_checker.replace("print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=13')", "", 1), encoding="utf-8")
-        expect_missing_marker("bench_self_test_count", tmp_root, "bench_checker:print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=13')")
+        bench_checker_path.write_text(original_bench_checker.replace("print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=14')", "", 1), encoding="utf-8")
+        expect_missing_marker("bench_self_test_count", tmp_root, "bench_checker:print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=14')")
         bench_checker_path.write_text(original_bench_checker, encoding="utf-8")
 
         manifest_path = tmp_root / "zigux" / "tests" / "fixtures" / "phase1_helper_manifest.json"
