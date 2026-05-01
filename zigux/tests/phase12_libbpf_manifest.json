@@ -20,6 +20,7 @@
     "preexisting_logging_zig_present": true,
     "preexisting_pin_path_zig_present": true,
     "preexisting_file_path_handle_bridge_zig_present": true,
+    "preexisting_perf_buffer_poll_zig_present": true,
     "preexisting_phase12_build_present": true,
     "preexisting_phase12_libbpf_survey_present": true,
     "preexisting_phase12_survey_note_present": true,
@@ -122,7 +123,7 @@
       "status": "deferred_high_risk",
       "kind": "interrupt_routing_boundary",
       "zigux_destination": "tools/lib/bpf/zigux_segments/cpu_mask.zig",
-      "why_now": "The remaining cpu-mask-adjacent perf-buffer path still crosses `/sys` cpu-mask reads, online CPU filtering, per-CPU perf-event-array map updates, epoll registration, and timeout-driven perf-buffer polling, so the helper-first parser footing must stay separate from routing and timing parity."
+      "why_now": "The remaining cpu-mask-adjacent perf-buffer path still crosses `/sys` cpu-mask reads, online CPU filtering, per-CPU perf-event-array map updates, epoll registration, timeout-driven perf-buffer polling, and the interrupt-routing contract for perf-buffer delivery, so the helper-first parser footing and the newer bounded `perf_buffer__poll()` wait-result bookkeeping helper must stay separate from routing and timing parity."
     },
     {
       "id": "phase12-libbpf-skeleton-population",
