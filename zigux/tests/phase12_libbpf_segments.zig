@@ -14,6 +14,7 @@ const SurveySummary = struct {
     preexisting_logging_zig_present: bool,
     preexisting_pin_path_zig_present: bool,
     preexisting_file_path_handle_bridge_zig_present: bool,
+    preexisting_perf_buffer_poll_zig_present: bool,
     preexisting_phase12_build_present: bool,
     preexisting_phase12_libbpf_survey_present: bool,
     preexisting_phase12_survey_note_present: bool,
@@ -82,6 +83,7 @@ test "phase12 libbpf survey manifest records the bounded heavy-helper packet" {
     try std.testing.expect(manifest.survey_summary.preexisting_logging_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_pin_path_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_file_path_handle_bridge_zig_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_perf_buffer_poll_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_libbpf_survey_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_survey_note_present);
@@ -247,6 +249,6 @@ test "phase12 libbpf survey note records rollback and current surveyed head" {
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "make -C zigux phase12-validate") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig build test --build-file zigux/tests/phase12_build.zig --summary all") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "the bounded file-path-and-handle helper packet now also mirrors the libbpf token-preparation recovery split more faithfully") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "the legacy Phase 8 segment catalog now records two important same-file boundaries") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "perf-buffer-online-cpu-routing stays deferred even though the bounded parser helper already lives in `cpu_mask.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "the legacy Phase 8 segment catalog now records the bounded `perf_buffer_poll.zig` helper as a landed helper-first slice") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "perf-buffer-online-cpu-routing stays deferred even though the bounded parser helper already lives in `cpu_mask.zig` and the bounded wait-result and ready-buffer bookkeeping helper already lives in `perf_buffer_poll.zig`") != null);
 }
