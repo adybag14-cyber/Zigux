@@ -8,6 +8,7 @@ The current helper stays intentionally narrow:
 - models the `copy_min_struct_from_user()` helper discipline around null-user rejection, minimum-size and page-limit validation, plus copy-then-zero-fill intent without touching live user-memory access
 - models the query and validation path of `landlock_create_ruleset()` around version and errata requests, minimum struct sizing, page-size bounds, handled-access mask filtering, and empty-ruleset rejection
 - translates the logging and thread-sync flags used by `landlock_restrict_self()`, including the special `ruleset_fd == -1` mute-subdomains-only case
+- adds one in-memory `landlock_restrict_self()` credential handoff planner that keeps the `task_no_new_privs()` or `CAP_SYS_ADMIN` gate, `prepare_creds()`, optional ruleset merge, optional sibling-thread synchronization, and final `commit_creds()` order explicit without touching live credentials or domain ownership
 - adds one in-memory `landlock_add_rule()` planner for rule-type dispatch, empty-access rejection, handled-access subset checks, and net-port bounds without touching file descriptors or paths
 - adds one in-memory `get_ruleset_from_fd()` planner for bad-FD rejection, ruleset-FD type checks, `FMODE_CAN_WRITE` or `FMODE_CAN_READ` access checks, and the single-layer guard without touching the live FD table
 - adds one in-memory `get_path_from_fd()` planner for bad-FD rejection, ruleset-FD rejection, internal-mount and non-user-visible inode filtering, and owned path reference handoff without touching live paths
@@ -17,4 +18,4 @@ The current helper stays intentionally narrow:
 
 This slice does not claim anonymous-fd creation, live user-memory copying, path imports, credential preparation, thread synchronization, domain merges, or live syscall enforcement.
 
-The next honest bounded step in this same lane is to stay parked at the current syscall-helper boundary unless another follow-up can tighten validation or lifetime discipline without widening into anonymous inode internals, live file operations wiring, FD ownership, credential changes, or domain state.
+The next honest bounded step in this same lane is to stay parked at the current syscall-helper boundary unless another follow-up can tighten validation or lifetime discipline without widening into anonymous inode internals, live file operations wiring, FD ownership, deeper credential mutation, or domain state.
