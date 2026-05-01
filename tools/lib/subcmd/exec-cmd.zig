@@ -21,6 +21,7 @@ pub const EnvMap = struct {
     pub fn deinit(self: *EnvMap) void {
         var iterator = self.values.iterator();
         while (iterator.next()) |entry| {
+            self.allocator.free(entry.key_ptr.*);
             self.allocator.free(entry.value_ptr.*);
         }
         self.values.deinit();
@@ -38,7 +39,15 @@ pub const EnvMap = struct {
         const entry = try self.values.getOrPut(key);
         if (entry.found_existing) {
             self.allocator.free(entry.value_ptr.*);
+            entry.value_ptr.* = owned_value;
+            return;
         }
+        errdefer _ = self.values.remove(key);
+
+        const owned_key = try self.allocator.dupe(u8, key);
+        errdefer self.allocator.free(owned_key);
+
+        entry.key_ptr.* = owned_key;
         entry.value_ptr.* = owned_value;
     }
 };
@@ -707,6 +716,21 @@ test "execCmdInit and setArgvExecPath propagate the expected environment keys" {
     );
     try std.testing.expectEqualStrings("/tmp/perf-core", state.argv_exec_path.?);
     try std.testing.expectEqualStrings("/tmp/perf-core", env.get("PERF_EXEC_PATH").?);
+}
+
+test "EnvMap owns inserted keys as well as values" {
+    var env = EnvMap.init(std.testing.allocator);
+    defer env.deinit();
+
+    const original_key = "PERF_EXEC_PATH";
+    const owned_key = try std.testing.allocator.dupe(u8, original_key);
+    defer std.testing.allocator.free(owned_key);
+
+    try env.set(owned_key, "tools/bin");
+
+    @memset(owned_key, 'x');
+
+    try std.testing.expectEqualStrings("tools/bin", env.get(original_key).?);
 }
 
 test "setupPath updates PATH using stored exec path, argv0 path, and fallback defaults" {
