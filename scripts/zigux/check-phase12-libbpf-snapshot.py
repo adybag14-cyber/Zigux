@@ -101,6 +101,14 @@ def expect_system_exit(label: str, callback, expected_message: str) -> None:
     )
 
 
+def expect_snapshot_mismatch(label: str, snapshot: dict[str, object]) -> None:
+    mismatched_result, _ = compare_snapshot(snapshot)
+    if mismatched_result.returncode == 0:
+        raise SystemExit(f"phase12-libbpf-snapshot:self-test:{label}:fixture_drift_exit")
+    if "ARTIFACT_DIFF=fail" not in mismatched_result.stdout:
+        raise SystemExit(f"phase12-libbpf-snapshot:self-test:{label}:fixture_drift_stdout")
+
+
 def run_self_test() -> int:
     live_manifest = json.loads((ROOT / TRACKED_PATHS[0]).read_text(encoding="utf-8"))
     manifest_packet = validate_manifest_packet(live_manifest)
@@ -163,14 +171,18 @@ def run_self_test() -> int:
 
     drifted = dict(first)
     drifted["lane_key"] = "P12-L99"
-    mismatched_result, _ = compare_snapshot(drifted)
-    if mismatched_result.returncode == 0:
-        raise SystemExit("phase12-libbpf-snapshot:self-test:fixture_drift_exit")
-    if "ARTIFACT_DIFF=fail" not in mismatched_result.stdout:
-        raise SystemExit("phase12-libbpf-snapshot:self-test:fixture_drift_stdout")
+    expect_snapshot_mismatch("fixture_lane_key_drift", drifted)
+
+    drifted_track_count = dict(first)
+    drifted_track_count["tracked_file_count"] = int(first["tracked_file_count"]) + 1
+    expect_snapshot_mismatch("fixture_tracked_file_count_drift", drifted_track_count)
+
+    drifted_sha = json.loads(json.dumps(first))
+    drifted_sha["files"][0]["sha256"] = "0" * 64
+    expect_snapshot_mismatch("fixture_sha256_drift", drifted_sha)
 
     print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST=pass")
-    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT=16")
+    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT=18")
     return 0
 
 
