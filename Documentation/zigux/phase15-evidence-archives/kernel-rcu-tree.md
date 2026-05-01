@@ -19,6 +19,7 @@ This template reserves the Architecture Council packet path named by the Phase 1
 
 - lane owner: `ABI and Runtime Team`
 - rollback owner: `Architecture Council + ABI and Runtime Team`
+- rollback threshold: `pending_until_architecture_council_request_names_status_change_abort_boundary`
 
 ## Validation Gate Summary
 
@@ -35,7 +36,7 @@ This template reserves the Architecture Council packet path named by the Phase 1
 ## Blocker Disposition
 
 - latest blocker disposition: `blocked_phase14_followup_still_wider_than_allowed_rcu_seam`
-- automatic return-to-blocked trigger: `missing review fields, stale evidence, contradictory scorecard state, or rollback-threshold drift returns this anchor to blocked review posture`
+- automatic return-to-blocked trigger: `missing review fields, stale evidence, contradictory scorecard state, rollback-threshold drift, or rollback-threshold breach returns this anchor to blocked review posture`
 - indefinite-C policy link: `Documentation/zigux/phase15-indefinite-c-policy.md`
 
 ## Discussion State
