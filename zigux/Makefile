@@ -156,6 +156,7 @@ phase8-validate:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase8.py
 
 phase8-exec-cmd-test:
+	cd $(ZIGUX_ROOT) && $(ZIG) test tools/lib/subcmd/exec-cmd.zig
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase8_exec_cmd_only_build.zig --summary all
 
 phase8-help-test:
