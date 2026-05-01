@@ -1,5 +1,5 @@
 {
-  "lane_key": "P13-L17",
+  "lane_key": "P13-L18",
   "phase": "Phase 13",
   "surveyed_commit": "66b55d8a9a800345097f3c04b9f95130b1f8d0b8",
   "anchors": [
@@ -9,7 +9,7 @@
     "include/net/dsa.h",
     "include/linux/watchdog.h"
   ],
-  "roadmap_scope": "Phase 13 is the shared helper tranche, but its named anchors remain libfs, devres, and Landlock, so this lane stays reviewability-only and records the roadmap-adjacent interop gap between the preexisting list surfaces, the preexisting generic notifier header anchors, and the still-missing Zigux notifier ABI or helper surface.",
+  "roadmap_scope": "Phase 13 is the shared helper tranche, but its named anchors remain libfs, devres, and Landlock, so this lane stays bounded to a read-only notifier foothold that mirrors upstream generic notifier shapes without promoting notifier/list interop to a new named anchor.",
   "survey_summary": {
     "preexisting_phase13_build_present": true,
     "preexisting_phase3_build_present": true,
@@ -23,9 +23,9 @@
     "preexisting_generic_notifier_layout_anchor_present": true,
     "preexisting_public_list_notifier_coexistence_anchor_present": true,
     "preexisting_public_same_struct_list_notifier_anchor_present": true,
-    "preexisting_generic_notifier_abi_present": false,
-    "preexisting_generic_notifier_build_surface_present": false,
-    "preexisting_generic_notifier_helper_present": false
+    "preexisting_generic_notifier_abi_present": true,
+    "preexisting_generic_notifier_build_surface_present": true,
+    "preexisting_generic_notifier_helper_present": true
   },
   "gaps": [
     {
@@ -33,98 +33,98 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_build.zig",
-      "why_now": "The shared Phase 13 replay now carries a dedicated notifier/list reviewability test so this survey lane stays machine-checkable instead of living only in prose."
+      "why_now": "The shared Phase 13 replay now compiles both the reviewability gate and the read-only notifier-chain helper directly."
     },
     {
       "id": "phase13-notifier-list-reviewability-gate",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_notifier_list_reviewability.zig",
-      "why_now": "A small reviewability gate ties the current list ABI surface, list or hlist view helpers, chrdev-only notifier planning, and the still-missing generic notifier surface together in one repeatable check."
+      "why_now": "The reviewability gate now records the landed Zigux-side notifier binding and helper foothold instead of only the earlier absence proof."
     },
     {
       "id": "phase13-notifier-list-survey-note",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase13-notifier-list-survey.md",
-      "why_now": "The survey note records the exact current posture on master so later runs do not mistake the chrdev-only notify family for a generic notifier helper or overstate this roadmap-adjacent packet as a new Phase 13 anchor."
+      "why_now": "The survey note now records the published read-only notifier foothold and keeps registration, execution, SRCU, and blocking semantics explicitly out of scope."
     },
     {
       "id": "phase3-list-abi-and-view-surface",
       "status": "preexisting_phase3_surface",
       "kind": "shared_helper_surface",
       "zigux_destination": "zigux/bindings/abi.zig",
-      "why_now": "The current repo already exposes ListHeadRef and HListHeadRef plus the list and hlist summary flags, which means list-shaped interop has a reusable ABI foothold even though it still lives under the Phase 3 helper bundle."
+      "why_now": "The current repo already exposes ListHeadRef and HListHeadRef plus the list and hlist summary flags, which means list-shaped interop still provides the reusable companion surface for this bounded notifier foothold."
     },
     {
       "id": "phase3-list-view-helper-surface",
       "status": "preexisting_phase3_surface",
       "kind": "shared_helper_surface",
       "zigux_destination": "zigux/helpers/list_view.zig",
-      "why_now": "The existing list view helper already models bounded list_head traversal, empty or singular detection, and truncation-aware summaries without claiming list mutation or notifier delivery semantics."
+      "why_now": "The existing list view helper already models bounded list_head traversal without claiming mutation, so the notifier foothold can stay read-only and companion-shaped."
     },
     {
       "id": "phase3-list-hlist-replay-surface",
       "status": "preexisting_phase3_surface",
       "kind": "validation",
       "zigux_destination": "zigux/tests/build.zig",
-      "why_now": "The shared Phase 3 build already replays list_view and hlist_view directly, which makes the current list side of the survey observable on master rather than hypothetical."
+      "why_now": "The shared Phase 3 build already replays the list helpers directly, which keeps the list side of the interop story observable beside the new notifier foothold."
     },
     {
       "id": "phase3-chrdev-notify-surface",
       "status": "preexisting_chrdev_surface",
       "kind": "chrdev_local_notify_planner",
       "zigux_destination": "zigux/helpers/chrdev_notify_plan.zig",
-      "why_now": "Notifier-like behavior in the current repo is still chrdev-local: the notify planner maps chrdev completion state into notify outcomes, but it does not expose a generic notifier_block or notifier_head ABI for shared helper consumers."
+      "why_now": "Notifier-like behavior in the current repo was previously chrdev-local only, which is why this new shared helper slice stays generic and read-only."
     },
     {
       "id": "phase11-hvc-header-notifier-list-anchor",
       "status": "preexisting_phase11_surface",
       "kind": "driver_local_notifier_list_anchor",
       "zigux_destination": "drivers/tty/hvc/hvc_console.zig",
-      "why_now": "The landed Phase 11 hvc_console header-parity surface already mirrors a driver-local anchor where struct hvc_struct carries a list_head next link while hv_ops carries notifier callbacks, which makes the current notifier-plus-list linkage reviewable without overstating it as a generic shared helper."
+      "why_now": "The Phase 11 hvc packet already showed notifier callbacks living near list linkage, which remains useful upstream evidence for the shared read-only surface."
     },
     {
       "id": "linux-generic-notifier-header-anchor",
       "status": "preexisting_header_surface",
       "kind": "generic_notifier_header_anchor",
       "zigux_destination": "include/linux/acpi_amd_wbrf.h",
-      "why_now": "The current repo already exposes one public generic notifier consumer header that imports include/linux/notifier.h and publishes register or unregister entry points around struct notifier_block *nb, so the remaining Phase 13 gap is specifically Zigux-side ABI and helper reviewability rather than missing upstream notifier anchors."
+      "why_now": "A public upstream notifier consumer still proves the generic contract exists independently of the new Zigux mirror."
     },
     {
       "id": "linux-generic-notifier-layout-anchor",
       "status": "preexisting_header_surface",
       "kind": "generic_notifier_layout_anchor",
       "zigux_destination": "include/linux/notifier.h",
-      "why_now": "The current repo also exposes the concrete read-only field layout any future Zigux ABI would need to mirror: notifier_block carries notifier_call, next, and priority, while raw_notifier_head anchors the chain through head."
+      "why_now": "The upstream header still fixes the read-only shape that the new Zigux binding mirrors."
     },
     {
       "id": "linux-public-list-notifier-coexistence-anchor",
       "status": "preexisting_header_surface",
       "kind": "public_list_notifier_coexistence_anchor",
       "zigux_destination": "include/net/dsa.h",
-      "why_now": "The public DSA header already keeps list-shaped and notifier-shaped read-only surfaces adjacent: dsa_switch_tree carries list and raw notifier fields while dsa_switch carries a notifier_block listener, so the shared interop gap is now clearly on the Zigux mirroring side rather than in upstream anchor discovery."
+      "why_now": "The public DSA header still keeps list and notifier shapes adjacent, which remains useful evidence for the helper-first interop story."
     },
     {
       "id": "linux-public-same-struct-list-notifier-anchor",
       "status": "preexisting_header_surface",
       "kind": "public_same_struct_list_notifier_anchor",
       "zigux_destination": "include/linux/watchdog.h",
-      "why_now": "The public watchdog header goes one step tighter than header-level coexistence: struct watchdog_device carries reboot, restart, and power-management notifier_block fields plus a deferred list_head in the same exported read-only shape, which sharpens the future Zigux mirroring target without claiming notifier helper delivery."
+      "why_now": "The public watchdog header still shows notifier fields and list linkage in one exported layout, which helps judge the read-only binding mirror honestly."
     },
     {
-      "id": "phase13-generic-notifier-abi-gap",
-      "status": "ready_next",
-      "kind": "shared_helper_gap",
-      "zigux_destination": "zigux/bindings/abi.zig",
-      "why_now": "The next honest shared-helper step is still a tiny generic notifier ABI surface such as notifier_block or notifier_head references that stays read-only and reviewable before any callback registration or chain execution is claimed."
+      "id": "phase13-generic-notifier-abi-foothold",
+      "status": "starter_landed",
+      "kind": "shared_helper_surface",
+      "zigux_destination": "zigux/bindings/notifier_abi.zig",
+      "why_now": "This run lands the smallest reusable Zigux-side generic notifier mirror: read-only `notifier_block` and `raw_notifier_head` references plus bounded chain view and summary structs."
     },
     {
-      "id": "phase13-generic-notifier-helper-gap",
-      "status": "ready_next",
-      "kind": "shared_helper_gap",
-      "zigux_destination": "zigux/helpers/",
-      "why_now": "After a generic notifier ABI exists, the smallest follow-up is one bounded helper that only surveys notifier-chain linkage against the existing list_head footprint instead of widening into live registration, priority ordering, SRCU, or blocking-callback behavior."
+      "id": "phase13-generic-notifier-helper-foothold",
+      "status": "starter_landed",
+      "kind": "shared_helper_surface",
+      "zigux_destination": "zigux/helpers/notifier_chain_view.zig",
+      "why_now": "This run also lands the bounded helper that surveys raw notifier-chain linkage with empty, terminated, truncated, and self-loop coverage while staying out of registration, callback execution, SRCU, and blocking semantics."
     }
   ]
 }
