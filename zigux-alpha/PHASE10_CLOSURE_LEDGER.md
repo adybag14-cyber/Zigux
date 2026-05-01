@@ -27,8 +27,11 @@ This focused ledger records the current closure-evidence bundle for the active P
 - `PHASE10_LEDGER_EXACT_CHECK_5=make -C zigux phase10`
 - `PHASE10_LEDGER_NEXT_STEP=leave_parked_unless_phase10-mmio-lifecycle-and-irq-paths_splits_smaller`
 - `PHASE10_LEDGER_BLOCKERS=phase10-virtio-input-registration-lifecycle,phase10-mmio-lifecycle-and-irq-paths`
+- `PHASE10_LEDGER_LANDED_MMIO_HELPERS=phase10-mmio-register-window-helper,phase10-mmio-queue-register-helper,phase10-mmio-queue-notify-helper,phase10-mmio-queue-address-helper,phase10-mmio-config-window-helper,phase10-mmio-config-write-helper,phase10-mmio-interrupt-ack-helper`
 
 This ledger stays intentionally narrow. It records the roadmap-backed closure packet and the current parked-next-step posture without claiming queue setup, reset, IRQ parity, DMA, probe or remove lifecycle, or input registration lifecycle parity.
+
+The shared closure manifest and the dedicated MMIO survey now agree that the landed MMIO helper ladder reaches bounded interrupt acknowledgement, so this ledger keeps that reviewable helper set explicit instead of collapsing the MMIO packet into only its remaining transport blocker.
 
 The exact replay packet for the current closure bundle is:
 
