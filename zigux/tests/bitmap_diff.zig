@@ -215,6 +215,8 @@ test "bitmap diff gate records exact bounded copy checks" {
     const copy_nbits = bits_per_long * 3;
     var small_src = [_]Word{ 0, 0 };
     var small_dst = [_]Word{ 0, 0 };
+    var anchor_src = [_]Word{0} ** word_count;
+    var anchor_dst = [_]Word{0} ** word_count;
     var wide_src = [_]Word{0} ** word_count;
     var wide_dst = [_]Word{0} ** word_count;
     var src = [_]Word{ 0, 0, 0 };
@@ -244,6 +246,31 @@ test "bitmap diff gate records exact bounded copy checks" {
     try expectClear(&small_dst, 19);
     try expectClear(&small_dst, 22);
     try std.testing.expectEqual(~@as(Word, 0), small_dst[1]);
+
+    bitmap.zero(&anchor_src, bitmap_nbits);
+    bitmap.zero(&anchor_dst, bitmap_nbits);
+    bitmap.setRange(&anchor_src, 0, 19);
+    // test_copy exact 1024-bit anchor replay for the 23-bit single-word window from a cleared destination
+    copyFrom(&anchor_dst, &anchor_src, 23);
+    try std.testing.expectEqual(@as(usize, 19), weight(&anchor_dst, bitmap_nbits));
+    try std.testing.expectEqual(@as(usize, 0), firstSet(&anchor_dst, bitmap_nbits));
+    try std.testing.expectEqual(@as(usize, 19), firstZero(&anchor_dst, bitmap_nbits));
+    try expectPrintedList(&anchor_dst, bitmap_nbits, "0-18");
+    try expectSet(&anchor_dst, 18);
+    try expectClear(&anchor_dst, 19);
+    try expectClear(&anchor_dst, bitmap_nbits - 1);
+
+    bitmap.zero(&anchor_dst, bitmap_nbits);
+    bitmap.setRange(&anchor_dst, 0, 23);
+    // test_copy exact 1024-bit anchor replay for the 23-bit single-word window from the partially populated destination in lib/test_bitmap.c
+    copyFrom(&anchor_dst, &anchor_src, 23);
+    try std.testing.expectEqual(@as(usize, 19), weight(&anchor_dst, bitmap_nbits));
+    try std.testing.expectEqual(@as(usize, 0), firstSet(&anchor_dst, bitmap_nbits));
+    try std.testing.expectEqual(@as(usize, 19), firstZero(&anchor_dst, bitmap_nbits));
+    try expectPrintedList(&anchor_dst, bitmap_nbits, "0-18");
+    try expectSet(&anchor_dst, 18);
+    try expectClear(&anchor_dst, 19);
+    try expectClear(&anchor_dst, bitmap_nbits - 1);
 
     bitmap.zero(&wide_src, bitmap_nbits);
     bitmap.zero(&wide_dst, bitmap_nbits);
