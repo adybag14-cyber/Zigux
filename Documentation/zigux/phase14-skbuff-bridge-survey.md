@@ -62,6 +62,23 @@ The current lane state is:
 
 This keeps the lane explicit without overstating progress: Zigux now has a real Phase 14 skbuff boundary map, a lifetime-audit foothold, an explicit checksum-state audit, the first segmentation-handoff study, the partial-seg tail-owner follow-up, the checksum-to-data-offset crossover audit, the exported tail-publication checkpoint, the consumer-side `validate_xmit_skb_list()` reset checkpoint, and the republish handoff that stitches validated outputs back into one list, but it still does not claim live refcount transitions, destructor ordering, checksum ownership, segmentation behavior, or a direct `net/core/skbuff.c` rewrite.
 
+## Freeze-in-C guardrails
+
+- named owner: `Core-Adjacent Pod`
+- status bucket: `freeze_in_c`
+- validation gate: `zig build test --build-file zigux/tests/phase14_build.zig --summary all` plus `make -C zigux phase14`
+- rollback owner: `Repo Tooling Pod`
+- rollback threshold: keep this packet in `freeze_in_c` posture and return it to blocked skbuff-packet maintenance if the validation gate, rollback owner, stay-in-C wording, or the `__dev_direct_xmit()` identity-drop follow-up stops being explicit.
+- fallback path: Keep `net/core/skbuff.c` as the source of truth, keep `net/core/skbuff_bridge.zig` boundary-map-only, and fall back to blocked skbuff-packet maintenance if the stay-in-C or rollback contract stops being explicit.
+- required evidence:
+  - named owner, validation gate, and rollback owner recorded together in this survey note
+  - explicit stay-in-C wording for `head = skb`, `tail->next = skb`, `validate_xmit_skb()`, and the `__dev_direct_xmit()` identity-drop follow-up
+  - the current ready-next gap and the blocked live-ownership gap kept explicit beside the same freeze-in-C posture
+- automatic return-to-blocked triggers:
+  - any edit that drops the named validation gate or rollback owner
+  - missing freeze-in-C or stay-in-C wording for the republish or direct-xmit handoff in this survey packet
+  - any manifest refresh that changes the ready-next or blocked gap without refreshing this survey note
+
 ## Non-goals
 
 This survey slice does not claim:
