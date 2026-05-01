@@ -317,7 +317,7 @@ def run_self_test() -> int:
             root,
             {"phase3-policy-unsafe-marker-fixture.zig": overflow_policy_markers},
         ) == []
-        policy_marker_fixture.write_text(
+        policy_marker_fixture.writeText(
             "\n".join([
                 'test "phase3 policy gate rejects overflowed unsafe address math" {}',
                 "try std.testing.expectError(error.AddressOverflow, narrow.checkedByteOffset(max, 1));",
@@ -382,8 +382,11 @@ def run_self_test() -> int:
             in ABI_REQUIRED_DOC_MARKERS
         )
         assert "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md" in ABI_REQUIRED_MANIFEST_FILES
+        assert "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md" in ABI_REQUIRED_MANIFEST_FILES
         assert "Documentation/zigux/review-checklist.md" in ABI_REQUIRED_MANIFEST_FILES
         assert ABI_POLICY_UNSAFE_SURVEY_CHECK_REL in ABI_REQUIRED_MANIFEST_FILES
+        assert "scripts/zigux/validate-phase3-low-level-wrapper-survey.py" in ABI_REQUIRED_MANIFEST_FILES
+        assert "scripts/zigux/validate_phase3_header_binding_markers.py" in ABI_REQUIRED_MANIFEST_FILES
         assert any(
             "shared Phase 3 ABI substrate packet" in marker for marker in ABI_REVIEW_CHECKLIST_MARKERS
         )
