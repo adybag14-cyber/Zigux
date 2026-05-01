@@ -93,6 +93,8 @@ REQUIRED_CLOSURE_MARKERS = [
     "PHASE1_FIND_BIT_ALIAS_UNIT_REVIEW=find_bit underscore alias entry points preserve the same set, shared-bit, and zero-bit scan semantics as the camelCase helpers across the same caller-selected bit windows and tail clamps",
     "PHASE1_FIND_BIT_LOW_LEVEL_UNIT_REVIEW=find_bit low-level underscore entry points preserve same-word inclusive starts and tail-clamped set, shared-bit, and zero-bit scan behavior across the same caller-selected bit windows as the public helpers",
     "PHASE1_RBTREE_REVIEW=rbtree parity covers ordered traversal, replaceNode, eraseInit, postorder traversal, and detached-node state while Linux-style rb_* alias parity remains explicitly out of scope for this closed tranche",
+    "PHASE1_RBTREE_ITERATE_UNIT_REVIEW=rbtree iterateMatches yields only the equal-key duplicate range and cleanly reports no match for missing keys",
+    "PHASE1_RBTREE_REVERSE_UNIT_REVIEW=rbtree findLast, prevMatch, and iterateMatchesReverse keep reverse duplicate-key lookup walks aligned from the rightmost match back through the equal-key range while still reporting no match for missing keys",
     "PHASE1_RBTREE_ALIAS_GAP_NOTE=the closed Phase 1 rbtree tranche still excludes Linux-style rb_* alias parity for the already-ported entry points, and that remaining surface stays explicitly out of scope until a later bounded repair lands",
     RBTREE_ALIAS_GAP_GATE,
     "PHASE1_STRING_MEMPARSE_UNIT_REVIEW=string memparse preserves decimal, hexadecimal, suffix-bearing, and invalid inputs without changing the parsed value or rest pointer contract",
@@ -235,6 +237,10 @@ def build_manifest() -> dict[str, object]:
                 "fixture": "zigux/tests/fixtures/phase1_helpers.json",
                 "summary": RBTREE_SUMMARY,
                 "alias_gap_note": RBTREE_ALIAS_GAP_NOTE,
+                "iterator_unit_test_anchor": 'tools/lib/rbtree.zig:test "rbtree iterateMatches streams only the duplicate range"',
+                "iterator_unit_test_contract": "Direct Zig unit coverage keeps iterateMatches() aligned so duplicate-key iteration yields only the equal-key range and cleanly reports no match for missing keys.",
+                "reverse_unit_test_anchor": 'tools/lib/rbtree.zig:test "rbtree iterateMatchesReverse streams only the duplicate range in reverse"',
+                "reverse_unit_test_contract": "Direct Zig unit coverage keeps findLast(), prevMatch(), and iterateMatchesReverse() aligned so reverse duplicate-key lookups start at the rightmost match, walk back through the equal-key range, and cleanly report no match for missing keys.",
             },
             "tools/lib/string.zig": {
                 "fixture": "zigux/tests/fixtures/phase1_helpers.json",
@@ -330,6 +336,14 @@ def validate_manifest(root: Path, manifest: dict[str, object], missing: list[str
         missing.append("manifest:rbtree.summary")
     if rbtree.get("alias_gap_note") != RBTREE_ALIAS_GAP_NOTE:
         missing.append("manifest:rbtree.alias_gap_note")
+    if rbtree.get("iterator_unit_test_anchor") != 'tools/lib/rbtree.zig:test "rbtree iterateMatches streams only the duplicate range"':
+        missing.append("manifest:rbtree.iterator_unit_test_anchor")
+    if rbtree.get("iterator_unit_test_contract") != "Direct Zig unit coverage keeps iterateMatches() aligned so duplicate-key iteration yields only the equal-key range and cleanly reports no match for missing keys.":
+        missing.append("manifest:rbtree.iterator_unit_test_contract")
+    if rbtree.get("reverse_unit_test_anchor") != 'tools/lib/rbtree.zig:test "rbtree iterateMatchesReverse streams only the duplicate range in reverse"':
+        missing.append("manifest:rbtree.reverse_unit_test_anchor")
+    if rbtree.get("reverse_unit_test_contract") != "Direct Zig unit coverage keeps findLast(), prevMatch(), and iterateMatchesReverse() aligned so reverse duplicate-key lookups start at the rightmost match, walk back through the equal-key range, and cleanly report no match for missing keys.":
+        missing.append("manifest:rbtree.reverse_unit_test_contract")
     if string.get("memparse_unit_test_contract") != "Direct Zig unit coverage keeps memparse aligned by forwarding decimal, hexadecimal, suffix-bearing, and invalid inputs through the shared command-line parser without changing the parsed value or rest pointer contract.":
         missing.append("manifest:string.memparse_unit_test_contract")
 
@@ -400,6 +414,14 @@ def run_self_test() -> int:
         expect_missing_marker("closure_memparse", tmp_root, "closure:PHASE1_STRING_MEMPARSE_UNIT_REVIEW=string memparse preserves decimal, hexadecimal, suffix-bearing, and invalid inputs without changing the parsed value or rest pointer contract")
         closure_path.write_text(original_closure, encoding="utf-8")
 
+        closure_path.write_text(original_closure.replace("PHASE1_RBTREE_ITERATE_UNIT_REVIEW=rbtree iterateMatches yields only the equal-key duplicate range and cleanly reports no match for missing keys", "", 1), encoding="utf-8")
+        expect_missing_marker("closure_rbtree_iterate_review", tmp_root, "closure:PHASE1_RBTREE_ITERATE_UNIT_REVIEW=rbtree iterateMatches yields only the equal-key duplicate range and cleanly reports no match for missing keys")
+        closure_path.write_text(original_closure, encoding="utf-8")
+
+        closure_path.write_text(original_closure.replace("PHASE1_RBTREE_REVERSE_UNIT_REVIEW=rbtree findLast, prevMatch, and iterateMatchesReverse keep reverse duplicate-key lookup walks aligned from the rightmost match back through the equal-key range while still reporting no match for missing keys", "", 1), encoding="utf-8")
+        expect_missing_marker("closure_rbtree_reverse_review", tmp_root, "closure:PHASE1_RBTREE_REVERSE_UNIT_REVIEW=rbtree findLast, prevMatch, and iterateMatchesReverse keep reverse duplicate-key lookup walks aligned from the rightmost match back through the equal-key range while still reporting no match for missing keys")
+        closure_path.write_text(original_closure, encoding="utf-8")
+
         closure_path.write_text(original_closure.replace("PHASE1_RBTREE_BENCH_KEYS=PHASE1_BENCH_RBTREE_CHECKSUM,PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM,PHASE1_BENCH_RBTREE_CACHED_CHECKSUM,PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM,PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM", "", 1), encoding="utf-8")
         expect_missing_marker("closure_rbtree_bench_keys", tmp_root, "closure:PHASE1_RBTREE_BENCH_KEYS=PHASE1_BENCH_RBTREE_CHECKSUM,PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM,PHASE1_BENCH_RBTREE_CACHED_CHECKSUM,PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM,PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM")
         closure_path.write_text(original_closure, encoding="utf-8")
@@ -433,6 +455,18 @@ def run_self_test() -> int:
         write_json(manifest_path, original_manifest)
 
         mutated_manifest = json.loads(json.dumps(original_manifest))
+        mutated_manifest["helper_review_notes"]["tools/lib/rbtree.zig"]["iterator_unit_test_contract"] = ""
+        write_json(manifest_path, mutated_manifest)
+        expect_missing_marker("rbtree_iterator_contract", tmp_root, "manifest:rbtree.iterator_unit_test_contract")
+        write_json(manifest_path, original_manifest)
+
+        mutated_manifest = json.loads(json.dumps(original_manifest))
+        mutated_manifest["helper_review_notes"]["tools/lib/rbtree.zig"]["reverse_unit_test_contract"] = ""
+        write_json(manifest_path, mutated_manifest)
+        expect_missing_marker("rbtree_reverse_contract", tmp_root, "manifest:rbtree.reverse_unit_test_contract")
+        write_json(manifest_path, original_manifest)
+
+        mutated_manifest = json.loads(json.dumps(original_manifest))
         mutated_manifest["helper_review_notes"]["tools/lib/find_bit.zig"]["low_level_unit_test_contract"] = ""
         write_json(manifest_path, mutated_manifest)
         expect_missing_marker("find_bit_low_level_contract", tmp_root, "manifest:find_bit.low_level_unit_test_contract")
@@ -462,7 +496,7 @@ def run_self_test() -> int:
         expect_missing_marker("rbtree_alias_source", tmp_root, "rbtree_source:unexpected_alias:pub fn rb_first(")
 
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=12")
+    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
