@@ -57,6 +57,19 @@ def main() -> int:
             ],
         )
 
+        actual.write_text('alpha\nBETA\n', encoding='utf-8', newline='\n')
+        run_contract_case(
+            ['--mode', 'text', str(expected), str(actual)],
+            1,
+            [
+                'ARTIFACT_DIFF=fail',
+                'MODE=text',
+                f'EXPECTED={expected}',
+                f'ACTUAL={actual}',
+            ],
+        )
+        actual.write_text('alpha\nbeta\n', encoding='utf-8', newline='\n')
+
         run_contract_case(
             ['--mode', 'text', str(missing), str(actual)],
             1,
