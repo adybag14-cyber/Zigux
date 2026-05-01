@@ -58,6 +58,22 @@ test "phase 7 string helper sample survey manifest records the bounded sample-ba
     );
     defer std.testing.allocator.free(sample_source);
 
+    const helper_source = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "lib/string_helpers.zig",
+        std.testing.allocator,
+        .limited(128 * 1024),
+    );
+    defer std.testing.allocator.free(helper_source);
+
+    const fixture_source = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/fixtures/phase7_string_helpers_escape_vectors.zig",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(fixture_source);
+
     const build_source = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "zigux/tests/phase7_build.zig",
@@ -179,6 +195,32 @@ test "phase 7 string helper sample survey manifest records the bounded sample-ba
     };
     for (expected_sample_markers) |marker| {
         try expectContains(sample_source, marker);
+    }
+
+    const expected_helper_markers = [_][]const u8{
+        "pub fn sysfsStreq",
+        "pub fn sysfsMatchString",
+        "pub fn stringGetSize",
+        "pub fn stringUnescape",
+        "pub fn stringEscapeMem",
+        "test \"stringEscapeMem covers the bounded Linux escape classes\"",
+        "test \"stringEscapeMem honors only and append selection rules\"",
+    };
+    for (expected_helper_markers) |marker| {
+        try expectContains(helper_source, marker);
+    }
+
+    const expected_fixture_markers = [_][]const u8{
+        "pub const UnescapeCase",
+        "pub const EscapeCase",
+        "pub const unescape_cases",
+        "pub const escape_cases",
+        "space escapes",
+        "dictionary-limited space escaping",
+        "append dictionary entries with hex escaping",
+    };
+    for (expected_fixture_markers) |marker| {
+        try expectContains(fixture_source, marker);
     }
 
     const expected_build_markers = [_][]const u8{
