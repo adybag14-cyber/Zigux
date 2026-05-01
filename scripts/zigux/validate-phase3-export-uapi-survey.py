@@ -22,6 +22,7 @@ EXPORT_UAPI_TEST_REL = "zigux/tests/phase3_export_uapi.zig"
 HEX40 = re.compile(r"^[0-9a-f]{40}$")
 
 REQUIRED_SURVEY_MARKERS = (
+    "PHASE3_SURVEY_PROVENANCE=packet-local-blob-first-with-legacy-head-anchor",
     "PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig",
     "PHASE3_EXPORT_SHIM_SCOPE=explicit-status-plus-boundary-header",
     "PHASE3_EXPORT_SHIM_STATUS=normalize-and-compatibility-helpers-landed",
@@ -38,7 +39,8 @@ REQUIRED_SURVEY_SNIPPETS = (
     "zigux/tests/phase3_export_uapi.zig",
     "zigux/tests/fixtures/phase3_abi_manifest.json",
     "keep canonical-size header checks separate from broader future-compatible header acceptance",
-    "verified `master` head",
+    "last fully resurveyed shared-head anchor",
+    "packet-local blob IDs are now the authoritative current boundary evidence",
 )
 
 REQUIRED_SURVEY_PATHS = (
