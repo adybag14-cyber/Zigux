@@ -217,6 +217,14 @@ test "phase 5 kretprobe contributor docs stay aligned with the shipped review su
     );
     defer std.testing.allocator.free(readme);
 
+    const tests_readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/README.md",
+        std.testing.allocator,
+        .limited(review_doc_read_limit),
+    );
+    defer std.testing.allocator.free(tests_readme);
+
     const sample_root_readme = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "samples/zigux/README.md",
@@ -284,6 +292,15 @@ test "phase 5 kretprobe contributor docs stay aligned with the shipped review su
     try expectContains(readme, "samples/zigux/kretprobe_example.zig");
     try expectContains(readme, "shared sample-root catalog, shared review checklist, manifest, and shared `phase5_build.zig` entrypoint prompts");
     try expectContains(readme, "separate Phase 9 runtime starter");
+
+    try expectContains(tests_readme, "zigux/tests/phase5_kretprobe_example.zig");
+    try expectContains(tests_readme, "zigux/tests/phase5_kretprobe_example_manifest.json");
+    try expectContains(tests_readme, "zigux/tests/phase5_kretprobe_example_survey.zig");
+    try expectContains(tests_readme, "scripts/zigux/validate-phase5.py");
+    try expectContains(tests_readme, "make -C zigux phase5-validate");
+    try expectContains(tests_readme, "zig test samples/zigux/kretprobe_example.zig");
+    try expectContains(tests_readme, "zig test zigux/tests/phase5_kretprobe_example_survey.zig");
+    try expectContains(tests_readme, "keep the current Phase 5 reference-sample packet reviewable through `zigux/tests/phase5_build.zig`");
 
     try expectContains(sample_root_readme, "Kretprobe review packet");
     try expectContains(sample_root_readme, "phase5_kretprobe_example_manifest.json");
