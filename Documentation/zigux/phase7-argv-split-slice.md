@@ -42,7 +42,7 @@ This current slice keeps the work bounded to the smallest runtime-safe ownership
 - `zig test lib/argv_split.zig`
 
 3. run the shared Phase 7 helper gate
-- `zig build test --build-file zigux/tests/phase7_build.zig`
+- `zig build test --build-file zigux/tests/phase7_build.zig --summary all`
 
 4. keep the roadmap survey record machine-checked
 - `zig test zigux/tests/phase7_argv_split_survey.zig`
