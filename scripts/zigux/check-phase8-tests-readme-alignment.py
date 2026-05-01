@@ -221,6 +221,36 @@ def run_self_test() -> int:
         )
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
+        tests_readme_path.write_text(
+            original_tests_readme.replace(
+                "- zigux/tests/phase8_bpf_type_names.zig\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "tests_readme_bpf_type_names",
+            tmp_root,
+            "tests_readme:zigux/tests/phase8_bpf_type_names.zig",
+        )
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
+
+        tests_readme_path.write_text(
+            original_tests_readme.replace(
+                "- Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "tests_readme_bridge_boundary",
+            tmp_root,
+            "tests_readme:Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
+        )
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
+
         perf_slice_path = tmp_root / REQUIRED_FILES["perf_slice"]
         original_perf_slice = perf_slice_path.read_text(encoding="utf-8")
         perf_slice_path.write_text(
@@ -302,7 +332,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=6")
+    print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
