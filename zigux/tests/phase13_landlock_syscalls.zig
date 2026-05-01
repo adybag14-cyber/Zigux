@@ -31,7 +31,7 @@ const Manifest = struct {
 };
 
 const expected_surveyed_commit = "9c17b0790799d8240ef9f964903f5ce2db64af89";
-const expected_slice_marker = "PHASE13_SLICE=landlock-syscalls-helper-restrict-self-credential-handoff";
+const expected_slice_marker = "PHASE13_SLICE=landlock-syscalls-helper-ruleset-fops-contract";
 
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
@@ -76,7 +76,7 @@ test "phase13 landlock syscalls manifest records the current landed packet" {
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 14), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 15), manifest.gaps.len);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, expected_surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE13_SURVEYED_COMMIT=") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, expected_slice_marker) != null);
@@ -97,6 +97,7 @@ test "phase13 landlock syscalls manifest records the current landed packet" {
     var saw_net_port_handoff = false;
     var saw_ruleset_fd_creation_handoff = false;
     var saw_restrict_self_credential_handoff = false;
+    var saw_ruleset_fops_followup = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -197,13 +198,22 @@ test "phase13 landlock syscalls manifest records the current landed packet" {
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "prepare_creds()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "commit_creds()") != null);
         }
+        if (std.mem.eql(u8, gap.id, "phase13-landlock-ruleset-fops-followup")) {
+            saw_ruleset_fops_followup = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("security/landlock/syscalls.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "ruleset_fops") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "fop_ruleset_release()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "FMODE_CAN_READ") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "FMODE_CAN_WRITE") != null);
+        }
 
         for (manifest.gaps[i + 1 ..]) |other| {
             try std.testing.expect(!std.mem.eql(u8, gap.id, other.id));
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 14), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 15), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_make_target);
@@ -219,6 +229,7 @@ test "phase13 landlock syscalls manifest records the current landed packet" {
     try std.testing.expect(saw_net_port_handoff);
     try std.testing.expect(saw_ruleset_fd_creation_handoff);
     try std.testing.expect(saw_restrict_self_credential_handoff);
+    try std.testing.expect(saw_ruleset_fops_followup);
 }
 
 test "phase13 landlock syscalls descriptor stays anchored to syscalls.c" {
@@ -289,4 +300,19 @@ test "phase13 landlock restrict_self credential handoff requires privilege gate"
         .ruleset_fd = 3,
         .flags = 0,
     }));
+}
+
+test "phase13 landlock syscalls ruleset fd creation plan captures file-operations contract" {
+    const plan = try syscalls.SyscallsHelperLab.planCreateRulesetFd(.{});
+
+    try std.testing.expectEqualStrings("security/landlock/syscalls.c", plan.anchor);
+    try std.testing.expectEqualStrings(syscalls.ruleset_fd_label, plan.label);
+    try std.testing.expectEqual(syscalls.ruleset_fd_flags, plan.flags);
+    try std.testing.expect(plan.invokes_anon_inode_getfd);
+    try std.testing.expect(plan.installs_release_handler);
+    try std.testing.expect(plan.release_handler_puts_ruleset);
+    try std.testing.expect(plan.installs_dummy_read_handler);
+    try std.testing.expect(plan.installs_dummy_write_handler);
+    try std.testing.expect(plan.transfers_ruleset_to_fd_on_success);
+    try std.testing.expect(plan.releases_ruleset_on_fd_failure);
 }
