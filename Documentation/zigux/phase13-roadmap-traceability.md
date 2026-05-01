@@ -117,6 +117,8 @@ Current repo evidence:
 - survey note: `Documentation/zigux/phase13-landlock-syscalls-survey.md`
 
 Current lane state recorded in the manifest:
+- landed `phase13-build-gate`
+- landed `phase13-make-target`
 - landed `phase13-landlock-syscalls-starter`
 - landed `phase13-landlock-syscalls-test-gate`
 - landed `phase13-landlock-syscalls-slice-note`
@@ -128,9 +130,10 @@ Current lane state recorded in the manifest:
 - landed `phase13-landlock-path-beneath-handoff-followup`
 - landed `phase13-landlock-net-port-import-followup`
 - landed `phase13-landlock-ruleset-fd-creation-handoff-followup`
+- landed `phase13-landlock-restrict-self-credential-handoff-followup`
 
 Traceability summary:
-- this anchor stays roadmap-aligned and manifest-backed, and the helper packet now covers ABI sizing, bounded user-struct copy discipline, create-ruleset validation, restrict-self logging translation, add-rule planning, ruleset-FD lookup, path-FD lookup, path-beneath handoff, net-port handoff, and ruleset-FD creation handoff planning while still refusing to claim live user-memory access, live FD ownership, anonymous inode internals, credential updates, domain merges, or syscall enforcement.
+- this anchor stays roadmap-aligned and manifest-backed, and the helper packet now covers the shared build gate, make target, ABI sizing, bounded user-struct copy discipline, create-ruleset validation, restrict-self logging translation, restrict-self credential handoff ordering, add-rule planning, ruleset-FD lookup, path-FD lookup, path-beneath handoff, net-port handoff, and ruleset-FD creation handoff planning while still refusing to claim live user-memory access, live FD ownership, anonymous inode internals, credential updates, domain merges, or syscall enforcement.
 
 ## Roadmap-adjacent evidence that is not a fifth anchor
 
