@@ -97,7 +97,7 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P9-L02", manifest.lane_key);
+    try std.testing.expectEqualStrings("P9-L04", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 9", manifest.phase);
     try std.testing.expect(isLowerHexSha(manifest.surveyed_commit));
     try std.testing.expectEqualStrings("lib/atomic64_test.c", manifest.anchor);
@@ -473,7 +473,7 @@ test "phase 9 runtime atomic64 docs stay aligned with the manifest-backed survey
     defer std.testing.allocator.free(module_slice);
 
     const required_markers = [_][]const u8{
-        "`PHASE9_LANE_KEY=P9-L02`",
+        "`PHASE9_LANE_KEY=P9-L04`",
         "`Documentation/zigux/freeze-map.md` keeps `kernel/workqueue.c` in `Study / Boundary Only`",
         "No parity scorecard entry or Architecture Council status-change request is attached to this runtime atomic64 starter packet.",
         "the bounded guard-return trio from `lib/atomic64_test.c`: `add_unless`, `inc_not_zero`, and `dec_if_positive`",
