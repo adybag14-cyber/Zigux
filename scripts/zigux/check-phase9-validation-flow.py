@@ -33,6 +33,8 @@ MAKEFILE_MARKERS = [
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-loader-substrate-plan.py\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-loader-non-owner-boundary.py\n",
+    "phase9-loader-gap-survey:",
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_loader_gap_survey.zig\n",
     "phase9: phase9-validate phase9-test",
 ]
 
@@ -56,6 +58,7 @@ SURVEY_MARKERS = [
     "- `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py`\n",
     "- `python3 scripts/zigux/check-phase9-loader-non-owner-boundary.py`\n",
     "- `make -C zigux phase9-validate`\n",
+    "- `make -C zigux phase9-loader-gap-survey`\n",
     "- `make -C zigux phase9`\n",
 ]
 
@@ -119,6 +122,9 @@ def write_fixture_tree(root: Path) -> None:
                 "phase9-test:",
                 "\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase9_build.zig --summary all",
                 "",
+                "phase9-loader-gap-survey:",
+                "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_loader_gap_survey.zig",
+                "",
                 "phase9: phase9-validate phase9-test",
                 "",
             ]
@@ -168,7 +174,10 @@ def write_fixture_tree(root: Path) -> None:
                 "4. run the shared Phase 9 runtime survey bundle",
                 "- `zig build test --build-file zigux/tests/phase9_build.zig --summary all`",
                 "",
-                "5. run the convenience targets",
+                "5. run the focused loader-gap replay",
+                "- `make -C zigux phase9-loader-gap-survey`",
+                "",
+                "6. run the convenience targets",
                 "- `make -C zigux phase9-validate`",
                 "- `make -C zigux phase9`",
                 "",
@@ -299,6 +308,36 @@ def run_self_test() -> int:
         )
         survey_path.write_text(original_survey, encoding="utf-8")
 
+        makefile_path.write_text(
+            original_makefile.replace(
+                "phase9-loader-gap-survey:\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "makefile_loader_gap_target",
+            tmp_root,
+            "makefile:phase9-loader-gap-survey:",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        survey_path.write_text(
+            original_survey.replace(
+                "- `make -C zigux phase9-loader-gap-survey`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "survey_loader_gap_replay",
+            tmp_root,
+            "survey:- `make -C zigux phase9-loader-gap-survey`\n",
+        )
+        survey_path.write_text(original_survey, encoding="utf-8")
+
         loader_checker_path = tmp_root / LOADER_SUBSTRATE_CHECKER_PATH
         original_loader_checker = loader_checker_path.read_text(encoding="utf-8")
         loader_checker_path.unlink()
@@ -310,7 +349,7 @@ def run_self_test() -> int:
         loader_checker_path.write_text(original_loader_checker, encoding="utf-8")
 
     print("PHASE9_VALIDATION_FLOW_SELF_TEST=pass")
-    print("PHASE9_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=7")
+    print("PHASE9_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
