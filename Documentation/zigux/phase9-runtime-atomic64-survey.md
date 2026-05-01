@@ -6,7 +6,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `lib
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-atomic64-survey`
-- `PHASE9_SURVEYED_COMMIT=0b7d0fabb8871bdf2061b3fc566c53d1bea6213d`
+- `PHASE9_SURVEYED_COMMIT=0ce4ac9c92aaa08d8678e2060dc8f1a22e287a85`
 - scope: survey manifest, manifest-backed delivery catalog and ownership map, dedicated runtime survey gate, direct `phase9-runtime-atomic64-sample-tests` and `phase9-runtime-atomic64-loader-tests` shared-build legs, landed sample-backed module starter, landed module gate, landed diff gate, landed loader scaffold, landed shared loader-request binding, and the lane-level review note that keeps the remaining roadmap blocker explicit without claiming loadable-module parity
 - product boundary:
   - `samples/zigux/runtime_atomic64.zig`
@@ -34,14 +34,14 @@ No parity scorecard entry or Architecture Council status-change request is attac
 ## Survey findings
 
 - `lib/atomic64_test.c` is present on `master` at 277 lines.
-- the current survey packet is pinned to `master` commit `0b7d0fabb8871bdf2061b3fc566c53d1bea6213d`.
+- the current survey packet is pinned to `master` commit `0ce4ac9c92aaa08d8678e2060dc8f1a22e287a85`.
 - the repo had zero `zigux/tests/runtime_*` files before this survey landed.
 - the repo had no `samples/zigux/` directory before this survey landed.
 - the repo had no `zigux/tests/phase9_build.zig` gate, no dedicated Phase 9 runtime note, and no dedicated atomic64 module-slice note before this survey landed.
 
 ## Latest verification snapshot
 
-On inspected `master` commit `0b7d0fabb8871bdf2061b3fc566c53d1bea6213d`, the shared Phase 9 build replay still passed with the attached Zig toolchain via `zig build test --build-file zigux/tests/phase9_build.zig --summary all`, including the dedicated `phase9-runtime-atomic64-sample-tests`, `phase9-runtime-atomic64-loader-tests`, `phase9-runtime-atomic64-module-tests`, `phase9-runtime-atomic64-diff-tests`, and `phase9-runtime-atomic64-survey-tests` legs.
+On inspected `master` commit `0ce4ac9c92aaa08d8678e2060dc8f1a22e287a85`, focused Phase 9 replay still passed with the attached Zig toolchain across the dedicated atomic64 and bitmap sample, loader, and survey legs, keeping the bounded lifecycle, selftest, and first-loadable-module parity packet green without widening into unrelated shared runtime-loader control work.
 
 ## Roadmap snapshot
 
