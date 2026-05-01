@@ -308,6 +308,7 @@ required_survey_markers = [
 
 required_bridge_boundary_markers = [
     "PHASE8_SLICE=userspace-kernel-bridge-boundary-survey",
+    "surveyed_commit=",
     "Documentation/zigux/phase8-exec-cmd-slice.md",
     "Documentation/zigux/phase8-help-slice.md",
     "Documentation/zigux/phase8-libbpf-segment-survey.md",
@@ -583,42 +584,40 @@ required_type_name_markers = [
     "every table entry is reachable through the corresponding helper",
     "representative late enum ordinals from `tools/include/uapi/linux/bpf.h` still resolve to the expected names",
     "deprecated-but-still-addressable map ordinals preserve the shipped libbpf names",
-    "out-of-range negative and oversized values are rejected cleanly",
+    "out-of-range negative and oversized type ordinals are still rejected cleanly",
 ]
 
 required_phase8_bpf_type_names_markers = [
-    'test "phase 8 bpf type-name segment keeps live libbpf tables aligned with current UAPI ordinals"',
-    'test "phase 8 bpf type-name segment still exposes the current live enum ceilings"',
+    'test "phase 8 bpf type-name docs keep the helper-only boundary explicit"',
+    'test "phase 8 bpf type-name helper stays wired into the shared Phase 8 build"',
+    'test "phase 8 bpf type-name helper covers representative late ordinals from the live UAPI"',
+    "Documentation/zigux/phase8-bpf-type-names-slice.md",
+    "phase8_build.zig",
+    "phase8-bpf-type-names-tests",
     "tools/include/uapi/linux/bpf.h",
-    "tools/lib/bpf/libbpf.c",
-    "static const char * const attach_type_name[] = {",
-    "static const char * const link_type_name[] = {",
-    "static const char * const map_type_name[] = {",
-    "static const char * const prog_type_name[] = {",
-    "enum bpf_attach_type {",
-    "enum bpf_link_type {",
-    "enum bpf_map_type {",
-    "enum bpf_prog_type {",
 ]
 
 required_type_names_helper_markers = [
-    "pub fn libbpfBpfAttachTypeStr(value: i32) ?[]const u8 {",
-    "pub fn libbpfBpfLinkTypeStr(value: i32) ?[]const u8 {",
-    "pub fn libbpfBpfMapTypeStr(value: i32) ?[]const u8 {",
-    "pub fn libbpfBpfProgTypeStr(value: i32) ?[]const u8 {",
+    'pub fn libbpfBpfAttachTypeStr(attach_type: i32) ?[]const u8 {',
+    'pub fn libbpfBpfLinkTypeStr(link_type: i32) ?[]const u8 {',
+    'pub fn libbpfBpfMapTypeStr(map_type: i32) ?[]const u8 {',
+    'pub fn libbpfBpfProgTypeStr(prog_type: i32) ?[]const u8 {',
+    'try std.testing.expectEqualStrings("struct_ops", libbpfBpfMapTypeStr(27).?);',
     'try std.testing.expectEqualStrings("netfilter", libbpfBpfProgTypeStr(32).?);',
-    'test "type-name helper keeps negative and oversized ordinals out of range"',
 ]
 
 required_manifest_markers = [
-    '"lane_key": "P8-L15"',
-    '"phase": "Phase 8"',
-    '"anchor": "tools/lib/bpf/libbpf.c"',
     '"slug": "cpu-mask-parsing"',
+    '"slug": "logging-version-and-errno"',
+    '"slug": "pin-path-helpers"',
+    '"slug": "type-name-helpers"',
     '"slug": "fdinfo-map-info-helpers"',
     '"slug": "map-reuse-compatibility"',
     '"slug": "file-path-and-handle-bridge"',
     '"slug": "perf-buffer-online-cpu-routing"',
+    '"zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"',
+    '"why_now": "The proc fdinfo path construction, bounded map-info text parsing including map_extra, and token-preparation recovery classification can land as pure helpers without claiming procfs fopen or fclose behavior, pinned-map reuse side effects, token lifecycle parity, or fd ownership."',
+    '"why_now": "The reused-map compatibility comparison is a pure field-and-flag check that extends the existing file-path bridge packet without claiming bpffs reopen flow, fd duplication, or pinned-map side effects, and it preserves libbpf\'s bounded DEVMAP readonly-flag exception as an explicit helper contract."',
 ]
 
 
@@ -847,18 +846,25 @@ def validate(root: Path) -> tuple[list[str], list[str], list[str]]:
             phase8_libbpf_segments_test,
             "phase8_libbpf_segments_test:missing_or_invalid_current_surveyed_commit",
         )
+        surveyed_commit_from_bridge_boundary = require_match(
+            r"`surveyed_commit=([0-9a-f]{40})`",
+            phase8_bridge_boundary,
+            "phase8_bridge_boundary:missing_or_invalid_surveyed_commit",
+        )
     except ValueError as exc:
         commit_sync_errors.append(str(exc))
     else:
         if (
             surveyed_commit_from_note != surveyed_commit_from_manifest
             or surveyed_commit_from_note != surveyed_commit_from_test
+            or surveyed_commit_from_note != surveyed_commit_from_bridge_boundary
         ):
             commit_sync_errors.extend(
                 [
                     f"survey_note:{surveyed_commit_from_note}",
                     f"manifest:{surveyed_commit_from_manifest}",
                     f"phase8_libbpf_segments_test:{surveyed_commit_from_test}",
+                    f"phase8_bridge_boundary:{surveyed_commit_from_bridge_boundary}",
                 ]
             )
 
@@ -1023,6 +1029,31 @@ def run_self_test() -> int:
             original_phase8_bridge_boundary_survey,
             encoding="utf-8",
         )
+
+        bridge_boundary_path = tmp_root / "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md"
+        original_bridge_boundary = bridge_boundary_path.read_text(encoding="utf-8")
+        bridge_boundary_path.write_text(
+            original_bridge_boundary.replace(
+                "`surveyed_commit=",
+                "`surveyed_head=",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing_files, missing_markers, commit_sync_errors = validate(tmp_root)
+        if missing_files or missing_markers:
+            raise SystemExit(
+                "phase8-self-test:bridge_boundary_commit_sync:unexpected_file_or_marker_failure:"
+                f"files={','.join(missing_files) if missing_files else 'none'}:"
+                f"markers={','.join(missing_markers) if missing_markers else 'none'}"
+            )
+        if "phase8_bridge_boundary:missing_or_invalid_surveyed_commit" not in commit_sync_errors:
+            actual = ",".join(commit_sync_errors) if commit_sync_errors else "none"
+            raise SystemExit(
+                "phase8-self-test:bridge_boundary_commit_sync:"
+                f"expected_phase8_bridge_boundary_commit_marker:actual:{actual}"
+            )
+        bridge_boundary_path.write_text(original_bridge_boundary, encoding="utf-8")
 
         perf_buffer_poll_slice_path = tmp_root / "Documentation/zigux/phase8-perf-buffer-poll-slice.md"
         original_perf_buffer_poll_slice = perf_buffer_poll_slice_path.read_text(encoding="utf-8")
