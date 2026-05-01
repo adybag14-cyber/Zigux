@@ -92,7 +92,7 @@ test "phase 9 runtime kretprobe survey manifest records the landed ownership pac
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P9-L13", manifest.lane_key);
+    try std.testing.expectEqualStrings("P9-L15", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 9", manifest.phase);
     try std.testing.expectEqualStrings(surveyed_commit, manifest.surveyed_commit);
     try std.testing.expect(isLowerHexSha(manifest.surveyed_commit));
@@ -374,7 +374,7 @@ test "phase 9 runtime kretprobe docs keep the ownership packet and shared-build 
     defer std.testing.allocator.free(module_test);
 
     const required_survey_markers = [_][]const u8{
-        "`PHASE9_LANE_KEY=P9-L13`",
+        "`PHASE9_LANE_KEY=P9-L15`",
         "`PHASE9_SURVEYED_COMMIT=c35ea44cfcb4c8139327a786875b442c4399796c`",
         "manifest-backed delivery catalog and ownership map",
         "Latest verification snapshot",
@@ -390,7 +390,10 @@ test "phase 9 runtime kretprobe docs keep the ownership packet and shared-build 
         "phase9-runtime-kretprobe-survey-tests",
         "perf-runtime-kretprobe",
         "RuntimeKretprobeSummary",
+        "failed-exit rollback proof",
         "released_without_substrate",
+        "phase9-runtime-loader-non-owner-boundary-survey-tests",
+        "StreamTooLong",
         "first loadable Zigux runtime modules",
         "runtime module lifecycle parity",
         "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
@@ -405,7 +408,7 @@ test "phase 9 runtime kretprobe docs keep the ownership packet and shared-build 
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "released_without_substrate") != null);
 
     const required_module_markers = [_][]const u8{
-        "`PHASE9_LANE_KEY=P9-L13`",
+        "`PHASE9_LANE_KEY=P9-L15`",
         "`PHASE9_SURVEYED_COMMIT=c35ea44cfcb4c8139327a786875b442c4399796c`",
         "phase9-runtime-kretprobe-sample-tests",
         "phase9-runtime-kretprobe-module-tests",
@@ -416,17 +419,19 @@ test "phase 9 runtime kretprobe docs keep the ownership packet and shared-build 
         "manifest-backed survey packet",
         "this shared build keeps the dedicated kretprobe sample, module, diff, loader, and survey legs explicit",
         "direct post-selftest replay proof",
+        "failed-exit rollback proof",
         "rather than reopening already-landed sample, survey, manifest, loader, module, or diff scaffolding",
     };
     for (required_module_markers) |marker| {
         try std.testing.expect(std.mem.indexOf(u8, module_doc, marker) != null);
     }
-    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`PHASE9_LANE_KEY=P9-L13`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`PHASE9_LANE_KEY=P9-L15`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`PHASE9_SURVEYED_COMMIT=c35ea44cfcb4c8139327a786875b442c4399796c`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, module_doc, "`PHASE9_LANE_KEY=P9-L13`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "`PHASE9_LANE_KEY=P9-L15`") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "`PHASE9_SURVEYED_COMMIT=c35ea44cfcb4c8139327a786875b442c4399796c`") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "RuntimeKretprobeSummary") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "direct post-selftest replay proof") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "OutstandingProbeInstance") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "selftest_complete") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "`nmissed` replay") != null);
 
@@ -434,4 +439,6 @@ test "phase 9 runtime kretprobe docs keep the ownership packet and shared-build 
     try std.testing.expect(std.mem.indexOf(u8, module_doc, surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, module_test, "test \"runtime kretprobe sample keeps post-selftest replay explicit at the module boundary\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_test, "try std.testing.expectEqual(@as(usize, 2), summary.nmissed);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_test, "try std.testing.expectError(error.OutstandingProbeInstance, outstanding.exit());") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_test, "try std.testing.expectEqual(before_failed_exit.entry_timestamp_armed, after_failed_exit.entry_timestamp_armed);") != null);
 }
