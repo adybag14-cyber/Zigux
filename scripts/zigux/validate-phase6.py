@@ -853,6 +853,31 @@ def run_self_test() -> int:
                 )
 
             write_self_test_tree(root)
+            bsearch_perf_path = root / "zigux/tests/phase6_bsearch_perf.zig"
+            bsearch_perf_text = bsearch_perf_path.read_text(encoding="utf-8")
+            bsearch_avg_budget_marker = (
+                "try std.testing.expect(avg_compare_calls <= @as(f64, @floatFromInt(max_compare_budget)));"
+            )
+            if bsearch_avg_budget_marker not in bsearch_perf_text:
+                raise AssertionError("expected bsearch average budget marker missing from positive fixture")
+            bsearch_perf_path.write_text(
+                bsearch_perf_text.replace(bsearch_avg_budget_marker, "", 1),
+                encoding="utf-8",
+            )
+
+            bsearch_avg_budget_fail_result = validate_phase6(root)
+            if bsearch_avg_budget_fail_result["ok"]:
+                raise AssertionError("bsearch average budget marker removal unexpectedly passed")
+            if (
+                f"phase6_bsearch_perf:missing:{bsearch_avg_budget_marker}"
+                not in bsearch_avg_budget_fail_result["missing"]
+            ):
+                raise AssertionError(
+                    "expected bsearch average budget marker failure, got: "
+                    f"{bsearch_avg_budget_fail_result['missing']}"
+                )
+
+            write_self_test_tree(root)
             hexdump_vectors_path = root / "zigux/tests/fixtures/phase6_hexdump_vectors.zig"
             hexdump_vectors_text = hexdump_vectors_path.read_text(encoding="utf-8")
             hexdump_grouped_ascii_marker = '.{ .label = "16B-ascii-g4", .len = 16, .rowsize = 16, .groupsize = 4, .ascii = true, .reps = 20_000, .max_slowdown_pct = 550 },'
@@ -880,7 +905,7 @@ def run_self_test() -> int:
         return 1
 
     print("PHASE6_VALIDATOR_SELF_TEST=pass")
-    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=9")
+    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
