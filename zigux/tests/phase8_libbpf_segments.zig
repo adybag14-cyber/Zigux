@@ -348,6 +348,14 @@ test "phase 8 docs keep the deferred irq routing and timer boundary explicit" {
         survey_note,
         "- survey checkpoint: refreshed against inspected `master` head `" ++ current_surveyed_commit ++ "`",
     );
+    try expectContains(
+        survey_note,
+        "scope: segment manifest plus six landed helper-first starter slices, the separate bounded perf-buffer poll bookkeeping adjunct, one deferred resource boundary, one deferred interrupt-routing boundary, one blocked object-model follow-on, and two deferred loader-facing follow-ons",
+    );
+    try expectContains(
+        survey_note,
+        "That eleven-segment catalog intentionally excludes the separate `perf_buffer_poll.zig` adjunct packet",
+    );
     try expectContains(survey_note, "perf-buffer-online-cpu-routing");
     try expectContains(survey_note, "interrupt-routing-sensitive timing boundary");
     try expectContains(survey_note, "no standalone timer helper");
