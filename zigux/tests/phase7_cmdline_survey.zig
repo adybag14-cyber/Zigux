@@ -112,6 +112,7 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
     try expectContains(phase7_cmdline_slice, "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig");
     try expectContains(phase7_cmdline_slice, "zigux/tests/fixtures/phase7_cmdline_c_harness.c");
     try expectContains(phase7_cmdline_slice, "scripts/zigux/check-phase7-cmdline-parity.py");
+    try expectContains(phase7_cmdline_slice, "The committed C parity replay through `scripts/zigux/check-phase7-cmdline-parity.py` stays coupled to that validation substrate so the helper-only slice remains externally reviewable.");
     try expectContains(phase7_cmdline_slice, "`python3 scripts/zigux/validate-phase7.py --self-test`");
     try expectContains(phase7_cmdline_slice, "`make -C zigux phase7-validate`");
     try expectContains(phase7_cmdline_slice, "prove the shared Phase 7 validator packet still fails closed before the helper replay runs");
