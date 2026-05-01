@@ -51,6 +51,7 @@ Against the Phase 9 roadmap requirements, the current runtime atomic64 lane now 
 - a landed direct `phase9-runtime-atomic64-sample-tests` shared-build leg in `zigux/tests/phase9_build.zig` so the sample file's own lifecycle and summary replay now runs as first-class shared build evidence
 - a landed direct `phase9-runtime-atomic64-loader-tests` shared-build leg in `zigux/tests/phase9_build.zig` so the loader scaffold's request-shape replay stays equally first-class instead of being implied through the broader shared loader checks
 - a landed sample-side loader scaffold in `samples/zigux/runtime_atomic64_loader.zig`
+- the atomic64 loader scaffold now keeps a synthetic non-null shared `command_name` reviewable through both `toSharedRequest()` and `releasedWithoutSubstrate()` so field preservation is explicit even while the broader shared runtime command surface remains blocked
 - a landed dedicated module gate in `zigux/tests/runtime_atomic64_module.zig`
 - a landed dedicated differential gate in `zigux/tests/runtime_atomic64_diff.zig`
 - a landed shared runtime-loader request binding under `zigux/kernel/runtime_loader.zig` that can consume the atomic64 loader handoff shape, staged entry and exit symbols, allocator posture, and the four-field atomic64 payload summary
@@ -72,7 +73,7 @@ The manifest-backed ownership packet for this slice now keeps the current delive
 - `zigux/tests/runtime_atomic64_diff.zig` owns the bounded differential replay for arithmetic, bitwise, swap, compare-swap, and guard-return expectations
 - `zigux/tests/phase9_build.zig` owns the shared Phase 9 replay entrypoint for the direct atomic64 sample and loader legs plus the survey, module, diff, loader, and shared-loader checks
 - `samples/zigux/runtime_atomic64.zig` owns the bounded in-memory atomic64 starter contract, lifecycle staging, and selftest-hook metadata
-- `samples/zigux/runtime_atomic64_loader.zig` owns the sample-side loader projection, `waiting_on_runtime_substrate` handoff, `released_without_substrate` fallback, and atomic64 payload summary
+- `samples/zigux/runtime_atomic64_loader.zig` owns the sample-side loader projection, explicit shared `command_name` preservation, `waiting_on_runtime_substrate` handoff, `released_without_substrate` fallback, and atomic64 payload summary
 - `zigux/kernel/runtime_loader.zig` owns the shared runtime-loader request contract that consumes the atomic64 loader handoff, allocator posture, and staged entry and exit symbols
 - `Documentation/zigux/phase9-runtime-loader-gap-survey.md` owns the still-blocked shared command-name, argv-policy, and environment-derived activation-control posture that keeps this atomic64 packet pre-execution
 
