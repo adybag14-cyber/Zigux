@@ -142,6 +142,7 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "prove the shared Phase 7 validator packet still fails closed before the helper replay runs") != null);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "`python3 scripts/zigux/validate-phase7.py --self-test`") != null);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "`make -C zigux phase7-validate`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "`zig build test --build-file zigux/tests/phase7_build.zig --summary all`") != null);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "`argv_free()` via `argvFree()`") != null);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "optional argc reporting that stays in sync with the returned argv length") != null);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "leading-NUL truncation to zero argv entries before any later bytes are considered") != null);
