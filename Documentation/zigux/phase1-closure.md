@@ -211,11 +211,14 @@ Host-side helper timing is too sensitive to hosted runner drift to make nanoseco
 Instead, Phase 1 uses:
 
 - a benchmark smoke executable for representative helper paths
-- representative bitmap smoke for weight, tail-window bitwise ops, tail-sensitive copy and `copyClearTail` replay, and range rendering
+- representative bitmap smoke for weight, tail-window bitwise ops, tail-sensitive copy and `copyClearTail` replay, plus empty-bitmap buffer-preservation and truncation-aware range rendering checks
 - stable checksum and iteration outputs so the benchmark cannot silently optimize away the hot loops
 - machine-readable benchmark expectations in `zigux/tests/fixtures/phase1_bench_expectations.json`
 - manual review of timing deltas before expanding helper scope
 
+- `PHASE1_BITMAP_BENCH_REVIEW=bitmap benchmark smoke pins deterministic weight, tail-window bitwise, tail-sensitive copy, and range-rendering checksums so helper-local regressions cannot hide behind a broad positive bench result`
+- `PHASE1_BITMAP_BENCH_KEYS=PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM,PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM,PHASE1_BENCH_BITMAP_COPY_CHECKSUM,PHASE1_BENCH_BITMAP_SCNPRINTF_CHECKSUM`
+- `PHASE1_BITMAP_BENCH_ITERATIONS=PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS,PHASE1_BENCH_BITMAP_WINDOW_ITERATIONS,PHASE1_BENCH_BITMAP_COPY_ITERATIONS,PHASE1_BENCH_BITMAP_SCNPRINTF_ITERATIONS`
 - `PHASE1_FIND_BIT_BENCH_REVIEW=find_bit benchmark smoke pins deterministic next-bit, whole-family, tail-window, same-word, zero-bit, and shared-bit scan checksums plus the live loop counts so helper-local scan regressions cannot hide behind a generic positive checksum or a silently shrunk workload`
 - `PHASE1_FIND_BIT_BENCH_KEYS=PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM,PHASE1_BENCH_FIND_BIT_FAMILY_CHECKSUM,PHASE1_BENCH_FIND_TAIL_WINDOW_CHECKSUM,PHASE1_BENCH_FIND_SAME_WORD_CHECKSUM`
 - `PHASE1_FIND_BIT_BENCH_ITERATIONS=PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS,PHASE1_BENCH_FIND_SAME_WORD_ITERATIONS,PHASE1_BENCH_FIND_NEXT_ZERO_BIT_ITERATIONS,PHASE1_BENCH_FIND_NEXT_AND_BIT_ITERATIONS`
