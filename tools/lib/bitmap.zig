@@ -495,6 +495,21 @@ test "bitmap set clear weight and empty full helpers" {
     try std.testing.expect(full(&map, bits_per_long * 2));
 }
 
+test "bitmap fill masks a partial tail and zero clears only the active word window" {
+    const nbits = bits_per_long + 5;
+    var map = [_]Word{ 0, 0, 0x55aa };
+
+    fill(&map, nbits);
+    try std.testing.expectEqual(~@as(Word, 0), map[0]);
+    try std.testing.expectEqual(lastWordMask(nbits), map[1]);
+    try std.testing.expectEqual(@as(Word, 0x55aa), map[2]);
+
+    zero(&map, nbits);
+    try std.testing.expectEqual(@as(Word, 0), map[0]);
+    try std.testing.expectEqual(@as(Word, 0), map[1]);
+    try std.testing.expectEqual(@as(Word, 0x55aa), map[2]);
+}
+
 test "bitmap range helpers preserve edges across whole-word spans" {
     const start = bits_per_long - 2;
     const len = bits_per_long * 2 + 4;
