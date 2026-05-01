@@ -203,6 +203,8 @@ MARKER_GROUPS = {
             "PHASE1_PARITY_SELF_TEST_GATE=python3 scripts/zigux/check-phase1-parity.py --self-test",
             "PHASE1_BITMAP_ZERO_BIT_UNIT_REVIEW=",
             "PHASE1_FIND_BIT_ALIAS_UNIT_REVIEW=",
+            "PHASE1_FIND_BIT_SET_UNIT_REVIEW=find_bit same-word set-scan start masking keeps inclusive starts honest, skips earlier same-word set matches after the search advances, and still clamps tail results to nbits",
+            "PHASE1_FIND_BIT_AND_UNIT_REVIEW=find_bit same-word shared-bit start masking keeps inclusive starts honest, skips earlier same-word overlaps after the search advances, and still clamps tail AND results to nbits",
             "PHASE1_FIND_BIT_MASK_UNIT_REVIEW=find_bit mask and sizing helpers keep Linux-style whole-word, partial-word, and wrapped-start boundaries reviewable without relying only on indirect scan coverage",
             "PHASE1_FIND_BIT_BOUNDARY_UNIT_REVIEW=find_bit empty and out-of-range scans return nbits for zero-length bitmaps, start-at-nbits searches, and fully set zero-bit windows that must not report past the declared range",
             "PHASE1_FIND_BIT_LOW_LEVEL_UNIT_REVIEW=find_bit low-level underscore entry points preserve same-word inclusive starts and tail-clamped set, shared-bit, and zero-bit scan behavior across the same caller-selected bit windows as the public helpers",
@@ -363,6 +365,10 @@ MARKER_GROUPS = {
             '"find_bit.tail_and_mixed_next"',
             '"alias_unit_test_anchor"',
             '"alias_unit_test_contract"',
+            '"set_unit_test_anchor"',
+            '"set_unit_test_contract"',
+            '"and_unit_test_anchor"',
+            '"and_unit_test_contract"',
             '"mask_unit_test_anchor"',
             '"mask_unit_test_contract"',
             '"boundary_unit_test_anchor"',
@@ -557,6 +563,14 @@ def validate_manifest_shape() -> list[str]:
                 issues.append("phase1_manifest:tools/lib/find_bit.zig:alias_unit_test_anchor:mismatch")
             if find_bit_note.get("alias_unit_test_contract") != "Direct Zig unit coverage keeps find_first_bit(), find_first_and_bit(), find_first_zero_bit(), find_next_bit(), find_next_and_bit(), and find_next_zero_bit() aligned with the camelCase scan helpers across the same caller-selected bit windows and tail clamps.":
                 issues.append("phase1_manifest:tools/lib/find_bit.zig:alias_unit_test_contract:mismatch")
+            if find_bit_note.get("set_unit_test_anchor") != 'tools/lib/find_bit.zig:test "find next bit skips earlier matches in the same word"':
+                issues.append("phase1_manifest:tools/lib/find_bit.zig:set_unit_test_anchor:mismatch")
+            if find_bit_note.get("set_unit_test_contract") != "Direct Zig unit coverage keeps same-word set-scan start masking aligned so inclusive starts can return the current set bit, later starts skip earlier same-word matches, and tail scans still clamp to nbits.":
+                issues.append("phase1_manifest:tools/lib/find_bit.zig:set_unit_test_contract:mismatch")
+            if find_bit_note.get("and_unit_test_anchor") != 'tools/lib/find_bit.zig:test "find next and bit skips earlier shared matches in the same word"':
+                issues.append("phase1_manifest:tools/lib/find_bit.zig:and_unit_test_anchor:mismatch")
+            if find_bit_note.get("and_unit_test_contract") != "Direct Zig unit coverage keeps same-word shared-bit start masking aligned so inclusive starts can return the current shared bit, later starts skip earlier same-word overlaps, and tail-clamped AND scans still stop at nbits.":
+                issues.append("phase1_manifest:tools/lib/find_bit.zig:and_unit_test_contract:mismatch")
             if find_bit_note.get("mask_unit_test_anchor") != 'tools/lib/find_bit.zig:test "word helpers keep linux-style mask and sizing boundaries"':
                 issues.append("phase1_manifest:tools/lib/find_bit.zig:mask_unit_test_anchor:mismatch")
             if find_bit_note.get("mask_unit_test_contract") != "Direct Zig unit coverage keeps bitsToWords(), firstWordMask(), and lastWordMask() aligned with Linux-style whole-word, partial-word, and wrapped-start boundaries so exported mask helpers remain reviewable without relying only on indirect scan coverage.":
