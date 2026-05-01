@@ -128,7 +128,7 @@ No additional helper should be called Phase 1 work unless this document and the 
 - `tools/lib/string.zig` direct Zig unit coverage also keeps `strStarts` and `strstarts` aligned with kernel-style prefix semantics for exact, empty-prefix, shorter-input, and case-sensitive comparisons.
 - `tools/lib/string.zig` direct Zig unit coverage also keeps `strHasPrefix` and `str_has_prefix` aligned by returning the matched C-string prefix length for exact and embedded-NUL prefixes while rejecting mismatches and longer prefixes.
 - `tools/lib/string.zig` direct Zig unit coverage also keeps `strEndsWith`, `str_ends_with`, and `strends` aligned with kernel-style suffix semantics for exact, empty-suffix, shorter-input, and case-sensitive comparisons.
-- `tools/lib/string.zig` direct Zig unit coverage also keeps the header-level `memparse()` string surface aligned by forwarding decimal, hexadecimal, suffix-bearing, and invalid inputs through the shared command-line parser without changing the parsed value or rest pointer contract.
+- `tools/lib/string.zig` direct Zig unit coverage also keeps the header-level `memparse()` string surface aligned by preserving decimal, hexadecimal, suffix-bearing, and invalid inputs without changing the parsed value or rest pointer contract.
 - string fixture authority: `zigux/tests/fixtures/phase1_helpers.json`
 - string manifest review anchor: `zigux/tests/fixtures/phase1_helper_manifest.json`
 - string c-string unit-test anchor: `tools/lib/string.zig:test "strlcpy stops at the first embedded NUL in the source"`
@@ -149,7 +149,7 @@ No additional helper should be called Phase 1 work unless this document and the 
 - `PHASE1_STRING_PREFIX_UNIT_REVIEW=string strStarts and strstarts keep kernel-style prefix checks aligned for exact, empty-prefix, shorter-input, and case-sensitive comparisons`
 - `PHASE1_STRING_PREFIX_LENGTH_UNIT_REVIEW=string strHasPrefix and str_has_prefix return the matched C-string prefix length for exact and embedded-NUL prefixes while rejecting mismatches and longer prefixes`
 - `PHASE1_STRING_SUFFIX_UNIT_REVIEW=string strEndsWith, str_ends_with, and strends keep kernel-style suffix semantics aligned for exact, empty-suffix, shorter-input, and case-sensitive comparisons`
-- `PHASE1_STRING_MEMPARSE_UNIT_REVIEW=string memparse forwards decimal, hexadecimal, suffix-bearing, and invalid inputs through the shared command-line parser without changing the parsed value or rest pointer contract`
+- `PHASE1_STRING_MEMPARSE_UNIT_REVIEW=string memparse preserves decimal, hexadecimal, suffix-bearing, and invalid inputs without changing the parsed value or rest pointer contract`
 
 ## Closure Gates
 
