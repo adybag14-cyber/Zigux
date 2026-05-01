@@ -47,12 +47,12 @@
   ],
   "anchor_packets": [
     {
-      "lane_key": "P14-L02",
+      "lane_key": "P14-L01",
       "anchor": "kernel/workqueue.c",
-      "surveyed_commit": "64f315b1e0536983ec5bdf620d720d10972d9551",
+      "surveyed_commit": "542acd7b12c52211ef9a8bd790fa2e2b3367cbf0",
       "manifest_path": "zigux/tests/phase14_workqueue_bridge_manifest.json",
       "survey_note_path": "Documentation/zigux/phase14-workqueue-bridge-survey.md",
-      "ready_next_gap": "phase14-workqueue-delayed-disable-wrapper-followup",
+      "ready_next_gap": "phase14-workqueue-delayed-submission-alias-followup",
       "blocked_gap": "phase14-workqueue-live-execution-blocker"
     },
     {
