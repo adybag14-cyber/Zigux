@@ -112,7 +112,7 @@ The committed Phase 6 fixture corpus is deterministic today because every shippe
 ## Review posture
 
 - `make -C zigux phase6-validate` is the fail-fast shared catalog gate.
-- `python3 scripts/zigux/validate-phase6.py --self-test` currently reports `PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=11` and now fail-closes on catalog-head drift, perf-survey marker drift, shared-gates drift, and determinism-evidence drift across the shipped base64, bsearch, checksum, and hexdump packet before the broader Phase 6 review surface claims alignment.
+- `python3 scripts/zigux/validate-phase6.py --self-test` currently reports `PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=11` and now fail-closes on catalog-head drift, script-README drift, catalog marker drift, perf-survey marker drift, shared-gates drift, and determinism-evidence drift across the shipped base64, bsearch, checksum, and hexdump packet before the broader Phase 6 review surface claims alignment.
 - `make -C zigux phase6` replays the bundled Phase 6 helper tests together.
 - `python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test` is the current tool-free reviewability check for the bounded base64 external parity script before the live `zig` plus `cc` replay runs.
 - `python3 scripts/zigux/check-phase6-bsearch-c-parity.py --self-test` is the current tool-free reviewability check for the bounded bsearch external parity script before the live `zig` plus `cc` replay runs.
