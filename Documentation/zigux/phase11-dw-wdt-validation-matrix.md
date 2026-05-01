@@ -5,7 +5,7 @@ This document records the bounded validation matrix for the Zigux `dw_wdt` lane.
 ## Status
 
 - `PHASE11_DW_WDT_STATUS=validation_matrix_landed`
-- scope: keep the current `dw_wdt` starter honest about what is already validated, name the existing lifecycle and failure-mode evidence clearly, and avoid overclaiming platform registration, PM, IRQ, debugfs, or hardware-backed behavior before those surfaces exist in Zigux
+- scope: keep the current `dw_wdt` starter honest about what is already validated, name the existing lifecycle, remove-time, and failure-mode evidence clearly, and avoid overclaiming platform registration, PM, IRQ, debugfs, or hardware-backed behavior before those surfaces exist in Zigux
 - current repo reality:
   - `drivers/watchdog/dw_wdt.zig`
   - `zigux/tests/phase11_dw_wdt.zig`
@@ -16,10 +16,10 @@ This document records the bounded validation matrix for the Zigux `dw_wdt` lane.
 
 ## Why This Exists
 
-The bounded starter now covers fixed TOP timeout selection, custom TOP ordering, reset-mode versus IRQ-mode timeout bookkeeping, imported running-state snapshots, registration-facing watchdog-info and parent handoff details, platform-resource preflight and live resource-order sequencing, restart intent, non-stoppable stop semantics, and an explicit `summarizeTeardownLifecycle()` helper for the stop-and-restart failure-mode packet. The live repo still needed one reviewable note that explains:
+The bounded starter now covers fixed TOP timeout selection, custom TOP ordering, reset-mode versus IRQ-mode timeout bookkeeping, imported running-state snapshots, registration-facing watchdog-info and parent handoff details, platform-resource preflight and live resource-order sequencing, restart intent, non-stoppable stop semantics, an explicit `summarizeTeardownLifecycle()` helper for the stop-and-restart failure-mode packet, and an explicit `summarizeRemoveHandoff()` helper for the remove-time teardown packet. The live repo still needed one reviewable note that explains:
 
 - which parts of the lane are already exercised by the shared Phase 11 gate
-- which lifecycle and failure-mode checkpoints are already reviewable in bounded form
+- which lifecycle, remove-time, and failure-mode checkpoints are already reviewable in bounded form
 - which areas must remain out of scope until a later platform-driver or hardware-validation handoff lands
 
 Without this matrix, the slice and survey named the right boundaries but did not yet preserve the validation posture in one place.
@@ -33,6 +33,7 @@ Without this matrix, the slice and survey named the right boundaries but did not
 | imported running-state handoff evidence | `loadRegisters()`, `probeSummary()`, and `registrationHandoffSummary()` keep imported running-state handoff evidence explicit, including already-running watchdog state, watchdog-info selection, parent linkage, driver-data setup, timeout-init intent, and register-device intent before any live registration | `zig build test --build-file zigux/tests/phase11_build.zig --summary all` via the imported-running-state and registration-handoff checks in `zigux/tests/phase11_dw_wdt.zig` | keep the handoff summary honest while any later lane decides whether to model real platform registration or watchdog-core execution | live platform-driver registration, watchdog-core registration, and backend state handoff |
 | platform-resource ordering surface | `platformResourcePreflightSummary()` plus `liveResourceOrderSummary()` keep timer-clock choice, optional APB clock presence, reset-control availability, optional pretimeout-IRQ wiring, and the bounded tclk, optional pclk, reset, irq, and registration sequencing reviewable before any live devm calls | `zig build test --build-file zigux/tests/phase11_build.zig --summary all` via the platform-resource preflight and live resource-order checks in `zigux/tests/phase11_dw_wdt.zig` | keep the ordering surface stable until a later lane writes the first real platform-driver call packet and its hardware-validation plan | live `devm_clk_get()`, reset-control acquisition, IRQ requests, PM callbacks, and hardware-backed registration |
 | stop and restart failure-mode boundary | `stop()`, `armRestart()`, and `summarizeTeardownLifecycle()` keep the non-stoppable stop failure-mode boundary explicit when reset control is unavailable while still recording the stoppable path, interrupt-status clearing, restart arming, reset-mode restart forcing, and restart-from-stopped enablement without claiming reboot-side effects | `zig build test --build-file zigux/tests/phase11_build.zig --summary all` via the stop, restart, and teardown-summary checks in `zigux/tests/phase11_dw_wdt.zig` | keep the failure-mode evidence tied to the same bounded starter until a later lane adds real platform-teardown or restart-plumbing work | live reboot ordering, reset pulses, suspend or resume handling, and hardware-backed failure injection |
+| remove-time teardown handoff boundary | `summarizeRemoveHandoff()` keeps debugfs clear, unregister-device ordering, reset-control-backed disable, and non-reset remove fallout explicit without claiming a live remove callback, PM teardown, or debugfs implementation | `zig build test --build-file zigux/tests/phase11_build.zig --summary all` via the remove-handoff checks in `zigux/tests/phase11_dw_wdt.zig` | leave this handoff parked unless a later lane can isolate one equally small platform-remove or PM-teardown clarification directly adjacent to the current helper | live remove callbacks, PM teardown ordering, debugfs implementation, and hardware-backed remove validation |
 
 ## Shared Replay Surface
 
