@@ -112,13 +112,15 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "average-segment threshold preference") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, current_surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_LANE_KEY=P12-L08") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`master` snapshot") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "packet-local verification head") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "current `master` tip") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "landed `phase12-nvme-pci-pointer-selection-helper`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue-planner plus PRP-shape plus pointer-selection starters") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "pointer-selection helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "SyntaxError") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-virtio-net-survey-tests") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Build Summary: 14/17 steps succeeded (1 failed); 52/52 tests passed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "stale historical evidence rather than current repo truth") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-nvme-pci-survey-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-nvme-pci-tests 9 pass (9 total)") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig fmt --check drivers/nvme/host/pci.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-nvme-pci-raw-github-fallback-map.md") != null);
 
