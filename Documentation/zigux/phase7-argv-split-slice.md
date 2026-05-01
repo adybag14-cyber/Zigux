@@ -20,7 +20,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 
 Phase 7 explicitly calls out `lib/argv_split.c` as one of the first reusable in-kernel leaf libraries that should move into the Zigux product path.
 
-This current slice keeps the work bounded to runtime-safe leaf helpers with explicit integration with validation substrate through `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, and `zigux/tests/phase7_build.zig`.
+This current slice keeps the work bounded to runtime-safe leaf helpers with explicit integration with validation substrate through `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-build-inventory.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `zigux/tests/phase7_argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, and `zigux/tests/phase7_build.zig`.
 
 This current slice keeps the work bounded to the smallest runtime-safe ownership-preserving surface:
 
@@ -34,8 +34,10 @@ This current slice keeps the work bounded to the smallest runtime-safe ownership
 
 ## Gates
 
-1. prove the shared Phase 7 validator packet still fails closed before the helper replay runs
+1. prove the shared Phase 7 validator packet plus the build-inventory and make-wrapper gates still fail closed before the helper replay runs
 - `python3 scripts/zigux/validate-phase7.py --self-test`
+- `python3 scripts/zigux/check-phase7-build-inventory.py`
+- `python3 scripts/zigux/check-phase7-make-wrapper.py`
 - `make -C zigux phase7-validate`
 
 2. run the focused Zig module tests
@@ -78,6 +80,8 @@ The current tests check:
 The dedicated Phase 7 review gate now imports a focused fixture module under `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, while the helper self-tests keep the same bounded parity surface local to `lib/argv_split.zig`.
 
 The manifest-backed survey packet stays rooted at `repo_root` through `zigux/tests/phase7_build.zig` so `zigux/tests/phase7_argv_split_manifest.json` remains a reviewable ownership record instead of a helper-local detail.
+
+The shared build-inventory gate stays in that same review packet, so the committed `zigux/tests/fixtures/phase7_build_inventory.json` snapshot and the published `make -C zigux phase7-validate` wrapper path remain explicit instead of living only in the broader shared Phase 7 notes.
 
 ## Non-goals
 
