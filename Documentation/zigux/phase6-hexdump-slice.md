@@ -34,7 +34,8 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 - `make -C zigux phase6`
 
 3. replay the hexdump perf sanity harness when reviewing formatter-cost drift
-- `make -C zigux phase6-hexdump-perf`
+- `zig build hexdump-perf --build-file zigux/tests/phase6_build.zig`
+- or `make -C zigux phase6-hexdump-perf`
 
 ## Current parity surface
 
