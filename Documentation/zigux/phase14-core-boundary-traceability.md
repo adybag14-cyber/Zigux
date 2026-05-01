@@ -21,7 +21,7 @@ This note stays narrow on purpose. It does not add a bridge, reopen a freeze dec
 - manifest: `zigux/tests/phase14_ring_buffer_manifest.json`
 - survey note: `Documentation/zigux/phase14-ring-buffer-survey.md`
 - lane key: `P14-L08`
-- surveyed commit: `98aa9bb7dd14ed6063f954b0a23c19a537af51a5`
+- surveyed commit: `f9a7a6e93c8e6a1b6550fd7b2aa5571729aab05b`
 - ready-next gap: none currently recorded
 - blocked gap: `phase14-ring-buffer-zig-port-blocker`
 - retained-in-C boundary: reserve or commit publication, reader-page handoff, wakeup or watermark publication, mapped-reader limitations, `ring_buffer_read_page()` extraction behavior, and the read-page allocation or reuse contract still stay with the shipped C implementation because they share per-CPU page choreography, reader-visible loss accounting, wait-queue state, and `resize_disabled` ownership.
