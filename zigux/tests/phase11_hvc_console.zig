@@ -129,6 +129,79 @@ test "phase11 hvc console keeps tty-registration handoff and khvcd boundaries re
     }));
 }
 
+test "phase11 hvc console keeps notifier-add success, fallback, and failure cleanup reviewable" {
+    var console = try hvc_console.HvcConsoleLab.init(14);
+    _ = console.instantiate(0xe0);
+
+    const successful_add = try console.summarizeNotifierAddOutcome(.{
+        .close = .{
+            .port_initialized = true,
+            .open_count_before_close = 1,
+        },
+        .notifier_add_present = true,
+        .notifier_add_result = 0,
+    });
+    try std.testing.expectEqual(@as(usize, 14), successful_add.slot_index);
+    try std.testing.expectEqual(@as(u32, 0xe0), successful_add.vtermno);
+    try std.testing.expect(successful_add.adapter_present);
+    try std.testing.expect(successful_add.tty_registration_pending);
+    try std.testing.expect(successful_add.final_close_wait_required);
+    try std.testing.expect(successful_add.clears_port_initialized_on_final_close);
+    try std.testing.expect(successful_add.keeps_console_binding);
+    try std.testing.expect(successful_add.notifier_add_present);
+    try std.testing.expect(successful_add.notifier_add_attempted);
+    try std.testing.expect(successful_add.notifier_add_succeeded);
+    try std.testing.expect(!successful_add.notifier_add_failed);
+    try std.testing.expect(successful_add.irq_requested_after_open);
+    try std.testing.expect(!successful_add.polling_fallback_required);
+    try std.testing.expect(!successful_add.close_cleanup_required);
+    try std.testing.expect(successful_add.khvcd_kick_required);
+    try std.testing.expect(successful_add.host_io_pending);
+
+    const polling_fallback = try console.summarizeNotifierAddOutcome(.{
+        .close = .{
+            .port_initialized = false,
+            .open_count_before_close = 2,
+        },
+        .notifier_add_present = false,
+    });
+    try std.testing.expect(!polling_fallback.final_close_wait_required);
+    try std.testing.expect(!polling_fallback.clears_port_initialized_on_final_close);
+    try std.testing.expect(!polling_fallback.notifier_add_present);
+    try std.testing.expect(!polling_fallback.notifier_add_attempted);
+    try std.testing.expect(!polling_fallback.notifier_add_succeeded);
+    try std.testing.expect(!polling_fallback.notifier_add_failed);
+    try std.testing.expect(!polling_fallback.irq_requested_after_open);
+    try std.testing.expect(polling_fallback.polling_fallback_required);
+    try std.testing.expect(!polling_fallback.close_cleanup_required);
+    try std.testing.expect(polling_fallback.khvcd_kick_required);
+    try std.testing.expect(polling_fallback.host_io_pending);
+
+    const failed_add = try console.summarizeNotifierAddOutcome(.{
+        .close = .{
+            .port_initialized = false,
+            .open_count_before_close = 1,
+        },
+        .notifier_add_present = true,
+        .notifier_add_result = -19,
+    });
+    try std.testing.expect(failed_add.notifier_add_present);
+    try std.testing.expect(failed_add.notifier_add_attempted);
+    try std.testing.expect(!failed_add.notifier_add_succeeded);
+    try std.testing.expect(failed_add.notifier_add_failed);
+    try std.testing.expect(!failed_add.irq_requested_after_open);
+    try std.testing.expect(failed_add.polling_fallback_required);
+    try std.testing.expect(failed_add.close_cleanup_required);
+    try std.testing.expect(failed_add.khvcd_kick_required);
+    try std.testing.expect(failed_add.host_io_pending);
+
+    try std.testing.expectError(error.InvalidOpenCount, console.summarizeNotifierAddOutcome(.{
+        .close = .{
+            .open_count_before_close = 0,
+        },
+    }));
+}
+
 test "phase11 hvc console keeps final-close teardown sequencing reviewable" {
     var console = try hvc_console.HvcConsoleLab.init(11);
     _ = console.instantiate(0xb0);
