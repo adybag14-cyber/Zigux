@@ -362,8 +362,13 @@ def run_self_test() -> int:
         expect_missing_marker("closure_memparse", tmp_root, "closure:PHASE1_STRING_MEMPARSE_UNIT_REVIEW=string memparse preserves decimal, hexadecimal, suffix-bearing, and invalid inputs without changing the parsed value or rest pointer contract")
         closure_path.write_text(original_closure, encoding="utf-8")
 
+        closure_path.writeText = closure_path.write_text
         closure_path.write_text(original_closure.replace("PHASE1_RBTREE_BENCH_KEYS=PHASE1_BENCH_RBTREE_CHECKSUM,PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM,PHASE1_BENCH_RBTREE_CACHED_CHECKSUM,PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM,PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM", "", 1), encoding="utf-8")
         expect_missing_marker("closure_rbtree_bench_keys", tmp_root, "closure:PHASE1_RBTREE_BENCH_KEYS=PHASE1_BENCH_RBTREE_CHECKSUM,PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM,PHASE1_BENCH_RBTREE_CACHED_CHECKSUM,PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM,PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM")
+        closure_path.write_text(original_closure, encoding="utf-8")
+
+        closure_path.write_text(original_closure.replace("PHASE1_RBTREE_ALIAS_GAP_NOTE=the closed Phase 1 rbtree tranche still excludes Linux-style rb_* alias parity for the already-ported entry points, and that remaining surface stays explicitly out of scope until a later bounded repair lands", "", 1), encoding="utf-8")
+        expect_missing_marker("closure_rbtree_alias_gap_note", tmp_root, "closure:PHASE1_RBTREE_ALIAS_GAP_NOTE=the closed Phase 1 rbtree tranche still excludes Linux-style rb_* alias parity for the already-ported entry points, and that remaining surface stays explicitly out of scope until a later bounded repair lands")
         closure_path.write_text(original_closure, encoding="utf-8")
 
         bench_checker_path = tmp_root / "scripts" / "zigux" / "check-phase1-bench.py"
@@ -399,7 +404,7 @@ def run_self_test() -> int:
         expect_missing_marker("rbtree_postorder_checksum", tmp_root, "bench:exact_checksums.PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM=1484000")
 
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=7")
+    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
