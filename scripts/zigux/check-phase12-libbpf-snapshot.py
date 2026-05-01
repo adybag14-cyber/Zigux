@@ -177,12 +177,20 @@ def run_self_test() -> int:
     drifted_track_count["tracked_file_count"] = int(first["tracked_file_count"]) + 1
     expect_snapshot_mismatch("fixture_tracked_file_count_drift", drifted_track_count)
 
+    drifted_path = json.loads(json.dumps(first))
+    drifted_path["files"][0]["path"] = "zigux/tests/phase12_libbpf_manifest_drift.json"
+    expect_snapshot_mismatch("fixture_tracked_path_drift", drifted_path)
+
+    drifted_bytes = json.loads(json.dumps(first))
+    drifted_bytes["files"][0]["bytes"] = int(first["files"][0]["bytes"]) + 1
+    expect_snapshot_mismatch("fixture_byte_count_drift", drifted_bytes)
+
     drifted_sha = json.loads(json.dumps(first))
     drifted_sha["files"][0]["sha256"] = "0" * 64
     expect_snapshot_mismatch("fixture_sha256_drift", drifted_sha)
 
     print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST=pass")
-    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT=18")
+    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT=20")
     return 0
 
 
