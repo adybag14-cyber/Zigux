@@ -37,6 +37,7 @@ pub const ModuleDescriptor = struct {
     anchor: []const u8,
     provides_lab_queue_planner: bool,
     provides_prp_shape_helper: bool,
+    provides_prp_metadata_helper: bool,
     provides_pointer_selection_helper: bool,
     touches_live_dma: bool,
     touches_pci_probe: bool,
@@ -85,6 +86,21 @@ pub const PrpBufferShapeSummary = struct {
     reset_generation: u32,
 };
 
+pub const PrpMetadataPlanSummary = struct {
+    anchor: []const u8,
+    dma_address: u64,
+    transfer_bytes: u32,
+    spanned_pages: u16,
+    uses_prp_list: bool,
+    command_data_prp_entries: u16,
+    prp_list_covered_pages: u16,
+    prp_list_pages: u16,
+    metadata_dma_bytes: u32,
+    total_dma_bytes: u32,
+    requires_descriptor_rebuild_after_reset: bool,
+    reset_generation: u32,
+};
+
 pub const DataPointerStrategySummary = struct {
     anchor: []const u8,
     queue_id: u16,
@@ -123,6 +139,7 @@ pub const NvmePciQueueLab = struct {
             .anchor = "drivers/nvme/host/pci.c",
             .provides_lab_queue_planner = true,
             .provides_prp_shape_helper = true,
+            .provides_prp_metadata_helper = true,
             .provides_pointer_selection_helper = true,
             .touches_live_dma = false,
             .touches_pci_probe = false,
@@ -231,6 +248,38 @@ pub const NvmePciQueueLab = struct {
         };
     }
 
+    pub fn planPrpMetadata(
+        self: *const Self,
+        dma_address: u64,
+        transfer_bytes: u32,
+    ) !PrpMetadataPlanSummary {
+        const shape = try self.shapePrpBuffer(dma_address, transfer_bytes);
+        const command_data_prp_entries: u16 = if (shape.spanned_pages == 1)
+            1
+        else if (shape.uses_prp_list)
+            1
+        else
+            2;
+        const prp_list_covered_pages: u16 = if (shape.uses_prp_list) shape.prp_list_entries else 0;
+        const metadata_dma_bytes = try checkedMulU16ByU32(shape.prp_list_pages, self.page_size);
+        const total_dma_bytes = try checkedAddU32(shape.rounded_span_bytes, metadata_dma_bytes);
+
+        return .{
+            .anchor = shape.anchor,
+            .dma_address = shape.dma_address,
+            .transfer_bytes = shape.transfer_bytes,
+            .spanned_pages = shape.spanned_pages,
+            .uses_prp_list = shape.uses_prp_list,
+            .command_data_prp_entries = command_data_prp_entries,
+            .prp_list_covered_pages = prp_list_covered_pages,
+            .prp_list_pages = shape.prp_list_pages,
+            .metadata_dma_bytes = metadata_dma_bytes,
+            .total_dma_bytes = total_dma_bytes,
+            .requires_descriptor_rebuild_after_reset = shape.uses_prp_list,
+            .reset_generation = shape.reset_generation,
+        };
+    }
+
     pub fn planDataPointerStrategy(
         self: *const Self,
         queue_id: u16,
@@ -300,8 +349,8 @@ pub const NvmePciQueueLab = struct {
         const queue_depth = try checkedQueueDepth(requested_depth);
         const checked_sq_entry_bytes = try checkedSqEntryBytes(sq_entry_bytes);
 
-        const sq_bytes = try checkedMulU32(queue_depth, checked_sq_entry_bytes);
-        const cq_bytes = try checkedMulU32(queue_depth, completion_entry_bytes);
+        const sq_bytes = try checkedMulU16ByU16(queue_depth, checked_sq_entry_bytes);
+        const cq_bytes = try checkedMulU16ByU16(queue_depth, completion_entry_bytes);
         const queue_memory_bytes = try checkedAddU32(sq_bytes, cq_bytes);
         const host_dma_bytes = if (uses_cmb) cq_bytes else queue_memory_bytes;
         const required_host_dma_pages = try checkedDivCeilU16(host_dma_bytes, self.page_size);
@@ -343,7 +392,12 @@ pub const NvmePciQueueLab = struct {
         return sq_entry_bytes;
     }
 
-    fn checkedMulU32(lhs: u16, rhs: u16) !u32 {
+    fn checkedMulU16ByU16(lhs: u16, rhs: u16) !u32 {
+        const value = @as(u64, lhs) * rhs;
+        return std.math.cast(u32, value) orelse error.QueueBytesOverflow;
+    }
+
+    fn checkedMulU16ByU32(lhs: u16, rhs: u32) !u32 {
         const value = @as(u64, lhs) * rhs;
         return std.math.cast(u32, value) orelse error.QueueBytesOverflow;
     }
