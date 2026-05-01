@@ -173,6 +173,14 @@ def run_self_test() -> int:
     drifted["lane_key"] = "P12-L99"
     expect_snapshot_mismatch("fixture_lane_key_drift", drifted)
 
+    drifted_phase = dict(first)
+    drifted_phase["phase"] = "Phase 11"
+    expect_snapshot_mismatch("fixture_phase_drift", drifted_phase)
+
+    drifted_commit = dict(first)
+    drifted_commit["surveyed_commit"] = "0" * 40
+    expect_snapshot_mismatch("fixture_surveyed_commit_drift", drifted_commit)
+
     drifted_track_count = dict(first)
     drifted_track_count["tracked_file_count"] = int(first["tracked_file_count"]) + 1
     expect_snapshot_mismatch("fixture_tracked_file_count_drift", drifted_track_count)
@@ -190,7 +198,7 @@ def run_self_test() -> int:
     expect_snapshot_mismatch("fixture_sha256_drift", drifted_sha)
 
     print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST=pass")
-    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT=20")
+    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT=22")
     return 0
 
 
