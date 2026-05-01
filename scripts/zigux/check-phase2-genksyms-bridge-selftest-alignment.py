@@ -17,6 +17,7 @@ REQUIRED_FILES = {
     'closure_validator': 'scripts/zigux/validate-phase2-closure.py',
     'validator': 'scripts/zigux/validate-phase2.py',
     'workflow': '.github/workflows/zigux-bootstrap.yml',
+    'makefile': 'zigux/Makefile',
     'cases': 'zigux/tests/fixtures/genksyms_bridge/cases.json',
 }
 EXPECTED_CASE_NAMES = [
@@ -71,6 +72,11 @@ VALIDATOR_MARKERS = [
     "'python3 scripts/zigux/check-genksyms-bridge.py': 1,",
     '\'self_test_case_count_marker\': "print(\\\'PHASE2_GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=26\\\')",',
     "'check-genksyms-bridge.py --self-test',",
+]
+MAKEFILE_MARKERS = [
+    'phase2-validate:',
+    'scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test',
+    'scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py',
 ]
 WORKFLOW_RUN_COUNTS = {
     'python3 scripts/zigux/check-genksyms-bridge.py --self-test': 1,
@@ -135,6 +141,7 @@ def validate(root: Path) -> list[str]:
     closure_validator = read_text(root, REQUIRED_FILES['closure_validator'])
     validator = read_text(root, REQUIRED_FILES['validator'])
     workflow = read_text(root, REQUIRED_FILES['workflow'])
+    makefile = read_text(root, REQUIRED_FILES['makefile'])
 
     for marker in BRIDGE_CHECKER_MARKERS:
         if marker not in bridge_checker:
@@ -151,6 +158,9 @@ def validate(root: Path) -> list[str]:
     for marker in VALIDATOR_MARKERS:
         if marker not in validator:
             issues.append(f'validator:{marker}')
+    for marker in MAKEFILE_MARKERS:
+        if marker not in makefile:
+            issues.append(f'makefile:{marker}')
     issues.extend(validate_workflow(workflow))
     issues.extend(validate_cases(root))
     return issues
@@ -170,7 +180,7 @@ def clone_fixture_root(destination_root: Path) -> None:
     script_target.parent.mkdir(parents=True, exist_ok=True)
     script_target.write_text(Path(__file__).read_text(encoding='utf-8'), encoding='utf-8')
 
-    for key in ('bridge_checker', 'readme', 'closure_doc', 'closure_validator', 'validator', 'workflow', 'cases'):
+    for key in ('bridge_checker', 'readme', 'closure_doc', 'closure_validator', 'validator', 'workflow', 'makefile', 'cases'):
         (destination_root / REQUIRED_FILES[key]).parent.mkdir(parents=True, exist_ok=True)
 
     (destination_root / REQUIRED_FILES['bridge_checker']).write_text(
@@ -183,6 +193,7 @@ def clone_fixture_root(destination_root: Path) -> None:
     (destination_root / REQUIRED_FILES['validator']).write_text('\n'.join(VALIDATOR_MARKERS) + '\n', encoding='utf-8')
     workflow_lines = [f'run: {command}' for command in WORKFLOW_RUN_COUNTS]
     (destination_root / REQUIRED_FILES['workflow']).write_text('\n'.join(workflow_lines) + '\n', encoding='utf-8')
+    (destination_root / REQUIRED_FILES['makefile']).write_text('\n'.join(MAKEFILE_MARKERS) + '\n', encoding='utf-8')
     (destination_root / REQUIRED_FILES['cases']).write_text(
         json.dumps({'cases': [{'name': name} for name in EXPECTED_CASE_NAMES]}, indent=2) + '\n',
         encoding='utf-8',
@@ -230,6 +241,19 @@ def run_self_test() -> int:
         expect_issue('workflow_self_test', tmp_root, 'workflow:python3 scripts/zigux/check-genksyms-bridge.py --self-test:count=0:expected=1')
         workflow_path.write_text(original_workflow, encoding='utf-8')
 
+        makefile_path = tmp_root / REQUIRED_FILES['makefile']
+        original_makefile = makefile_path.read_text(encoding='utf-8')
+        makefile_path.write_text(
+            original_makefile.replace('scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test\n', '', 1),
+            encoding='utf-8',
+        )
+        expect_issue(
+            'makefile_self_test',
+            tmp_root,
+            'makefile:scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test',
+        )
+        makefile_path.write_text(original_makefile, encoding='utf-8')
+
         cases_path = tmp_root / REQUIRED_FILES['cases']
         cases_payload = json.loads(cases_path.read_text(encoding='utf-8'))
         cases_payload['cases'].pop()
@@ -255,7 +279,7 @@ def run_self_test() -> int:
         expect_issue('validator_case_count_marker', tmp_root, f'validator:{VALIDATOR_MARKERS[2]}')
 
     print('PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST=pass')
-    print('PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=5')
+    print('PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=6')
     return 0
 
 
