@@ -61,8 +61,7 @@ The manifest-backed delivery packet now names which surface owns each part of th
 - `zigux/tests/runtime_trace_events_manifest.json` owns the manifest-backed delivery catalog, ownership map, exact checks, and non-goal packet for this slice
 - `zigux/tests/phase9_build.zig` owns the shared Phase 9 runtime bundle entrypoint for the trace-events starter
 - `Documentation/zigux/phase9-runtime-trace-events-survey.md` owns the lane history, recorded gaps, delivery ownership map, and bounded blocker posture for the survey packet
-- `Documentation/zigux/phase9-runtime-trace-events-module-slice.md` owns the landed starter surface summary, direct sample and diff gate posture, and the paired loader-free blocker restatement for the trace-events packet
-- `Documentation/zigux/phase9-runtime-trace-events-module-slice.md` also owns the paired header-side macro boundary note for `samples/trace_events/trace-events-sample.h`
+- `Documentation/zigux/phase9-runtime-trace-events-module-slice.md` owns the landed starter surface summary, direct sample and diff gate posture, the paired loader-free blocker restatement, and the paired header-side macro boundary note for `samples/trace_events/trace-events-sample.h`
 - `Documentation/zigux/freeze-map.md` owns the study-only `kernel/trace/ring_buffer.c` boundary and the Architecture Council reopen rule for trace-core status changes
 
 ## Recorded gaps
