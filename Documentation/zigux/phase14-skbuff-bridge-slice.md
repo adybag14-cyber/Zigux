@@ -14,4 +14,4 @@ The current bridge stays intentionally narrow:
 
 This slice still does not claim live allocation, refcount transitions, header-write eligibility, destructor callbacks, frag-list teardown, checksum completion, segmentation behavior, or a direct `net/core/skbuff.c` rewrite.
 
-The next honest bounded step in this same lane is no longer another new wrapper seam. After the republish stitchback is recorded, the remaining Phase 14 skbuff work is stronger stay-in-C evidence around transmit-list ownership, not a deeper implementation claim.
+The next honest bounded step in this same lane is the narrower `__dev_direct_xmit()` identity-drop follow-up, limited to `skb = validate_xmit_skb_list(...)`, `skb != orig_skb`, and the drop path. That keeps the lane review-local and boundary-first instead of drifting into a deeper wrapper or ownership claim.
