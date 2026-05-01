@@ -363,7 +363,7 @@ test "phase 9 runtime kretprobe docs keep the ownership packet and shared-build 
         "zig test samples/zigux/runtime_kretprobe.zig",
         "zig fmt --check samples/zigux/runtime_kretprobe.zig",
         "zig test zigux/tests/runtime_kretprobe_survey.zig",
-        "zig build test --build-file zigux/tests/phase9_build.zig",
+        "zig build test --build-file zigux/tests/phase9_build.zig --summary all",
         "Delivery ownership map",
         "phase9-runtime-kretprobe-sample-tests",
         "phase9-runtime-kretprobe-module-tests",
