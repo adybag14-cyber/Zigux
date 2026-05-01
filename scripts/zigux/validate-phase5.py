@@ -201,6 +201,50 @@ required_phase5_build_markers = [
     'b.step("test", "Run Phase 5 reference sample checks")',
 ]
 
+sample_source_expectations = {
+    "phase5_bytestream_fifo_sample": {
+        "path": "samples/zigux/bytestream_fifo.zig",
+        "markers": [
+            "pub fn descriptor() SampleDescriptor {",
+            '.name = "bytestream_fifo"',
+            '.anchor = "samples/kfifo/bytestream-example.c"',
+            ".requires_runtime_substrate = false",
+            ".provides_selfcheck = true",
+            ".storage_backing = .embedded_fixed_buffer",
+        ],
+    },
+    "phase5_kobject_example_sample": {
+        "path": "samples/zigux/kobject_example.zig",
+        "markers": [
+            "pub fn descriptor() SampleDescriptor {",
+            '.name = "kobject_example"',
+            '.anchor = "samples/kobject/kobject-example.c"',
+            ".requires_runtime_substrate = false",
+            ".provides_selfcheck = true",
+        ],
+    },
+    "phase5_kretprobe_example_sample": {
+        "path": "samples/zigux/kretprobe_example.zig",
+        "markers": [
+            "pub fn descriptor() SampleDescriptor {",
+            '.name = "kretprobe_example"',
+            '.anchor = "samples/kprobes/kretprobe_example.c"',
+            ".requires_runtime_substrate = false",
+            ".provides_selfcheck = true",
+        ],
+    },
+    "phase5_trace_events_sample": {
+        "path": "samples/zigux/trace_events_sample.zig",
+        "markers": [
+            "pub fn descriptor() SampleDescriptor {",
+            '.name = "trace_events_sample"',
+            '.anchor = "samples/trace_events/trace-events-sample.c"',
+            ".requires_runtime_substrate = false",
+            ".provides_selfcheck = true",
+        ],
+    },
+}
+
 missing_markers = []
 
 for marker in required_make_markers:
@@ -449,7 +493,7 @@ review_prompt_expectations = {
                 "fixed helper-backed reviewable ceiling",
             ],
         },
-    ],
+    },
     "phase5_trace_events_sample_manifest.json": [
         {
             "id": "surveyed_commit_sync",
@@ -618,6 +662,8 @@ def total_marker_count() -> int:
         + len(required_sample_root_markers)
         + len(required_phase5_build_markers)
     )
+    for spec in sample_source_expectations.values():
+        marker_count += len(spec["markers"])
     for manifest_name, spec in manifest_expectations.items():
         marker_count += 6  # phase, lane, anchor, sample path, entrypoint, surveyed commit shape
         marker_count += len(spec["non_goals"])
@@ -651,6 +697,8 @@ def validate_phase5(root: Path) -> dict[str, object]:
     require_markers(missing, "review_checklist", review_checklist, required_checklist_markers)
     require_markers(missing, "sample_root_readme", sample_root_readme, required_sample_root_markers)
     require_markers(missing, "phase5_build", phase5_build, required_phase5_build_markers)
+    for label, spec in sample_source_expectations.items():
+        require_markers(missing, f"sample_source:{label}", text(root, spec["path"]), spec["markers"])
 
     for manifest_name, spec in manifest_expectations.items():
         manifest_obj = load_json(root, f"zigux/tests/{manifest_name}")
@@ -876,8 +924,22 @@ def run_self_test() -> int:
             print("PHASE5_VALIDATOR_SELF_TEST_REASON=sample-root-cmdline-boundary-gap")
             return 1
 
+        sample_path = tmp_root / sample_source_expectations["phase5_trace_events_sample"]["path"]
+        sample_text = sample_path.read_text(encoding="utf-8")
+        sample_text = sample_text.replace(
+            ".requires_runtime_substrate = false",
+            ".requires_runtime_substrate = true",
+            1,
+        )
+        sample_path.write_text(sample_text, encoding="utf-8")
+        sample_result = validate_phase5(tmp_root)
+        if sample_result["ok"] or "sample_source:phase5_trace_events_sample:missing:.requires_runtime_substrate = false" not in sample_result["missing"]:
+            print("PHASE5_VALIDATOR_SELF_TEST=fail")
+            print("PHASE5_VALIDATOR_SELF_TEST_REASON=sample-descriptor-gap")
+            return 1
+
     print("PHASE5_VALIDATOR_SELF_TEST=pass")
-    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=6")
+    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
