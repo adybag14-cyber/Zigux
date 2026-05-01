@@ -39,7 +39,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_live_lsm_state");
 }
 
-test "phase13 landlock syscalls manifest records the starter and remaining gap" {
+test "phase13 landlock syscalls manifest records the current landed packet" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -63,7 +63,7 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
     );
     defer std.testing.allocator.free(survey_note);
 
-    try std.testing.expectEqualStrings("P13-L14", manifest.lane_key);
+    try std.testing.expectEqualStrings("P13-L16", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("security/landlock/syscalls.c", manifest.anchor);
     try std.testing.expectEqualStrings(expected_surveyed_commit, manifest.surveyed_commit);
