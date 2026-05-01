@@ -263,3 +263,37 @@ test "phase14 skbuff bridge survey note records the active lane marker" {
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "validate_xmit_skb()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase14-skbuff-direct-xmit-identity-drop-followup") != null);
 }
+
+test "phase14 skbuff bridge compile contract stays wired into the shared bundle" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const phase14_build = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase14_build.zig",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(phase14_build);
+
+    const smoke_manifest = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase14_end_to_end_smoke_manifest.json",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(smoke_manifest);
+
+    try std.testing.expect(std.mem.indexOf(u8, phase14_build, ".root_source_file = b.path(\"../../net/core/skbuff_bridge.zig\")") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase14_build, ".root_source_file = b.path(\"phase14_skbuff_bridge.zig\")") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase14_build, "phase14_skbuff_bridge_module.addImport(\"skbuff_bridge\", skbuff_bridge_module);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase14_build, ".name = \"phase14-skbuff-bridge-tests\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase14_build, "test_step.dependOn(&run_phase14_skbuff_bridge_tests.step);") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, smoke_manifest, "\"lane_key\": \"P14-L12\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_manifest, "\"artifact_name\": \"phase14-skbuff-bridge-tests\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_manifest, "\"root_source_file\": \"phase14_skbuff_bridge.zig\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_manifest, "\"bridge_import\": \"skbuff_bridge\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_manifest, "\"bridge_source_file\": \"../../net/core/skbuff_bridge.zig\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_manifest, "\"coverage_mode\": \"full_bundle_only\"") != null);
+}
