@@ -6,7 +6,7 @@ This document tracks the first bounded Phase 9 runtime atomic64 starter under `s
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-atomic64-module-starter`
-- `PHASE9_LANE_KEY=P9-L01`
+- `PHASE9_LANE_KEY=P9-L02`
 - `PHASE9_SURVEYED_COMMIT=8f7994d3c1f41fae739096997380a0f48f9eeb33`
 - scope: lifecycle starter, direct sample-test and direct loader-test shared-build wiring, adjacent loader scaffold, shared loader-request binding, selftest summary, and survey-manifest closure only
 - product boundary:
@@ -36,6 +36,7 @@ No parity scorecard entry or Architecture Council status-change request is attac
 - the bounded guard-return trio from `lib/atomic64_test.c`: `add_unless`, `inc_not_zero`, and `dec_if_positive`
 - a narrow differential gate under `zigux/tests/runtime_atomic64_diff.zig` for bounded add, sub, bitwise, swap, compare-swap, and guard-return expectations drawn from `lib/atomic64_test.c`
 - a landed sample-side loader scaffold under `samples/zigux/runtime_atomic64_loader.zig` plus a shared runtime-loader request binding under `zigux/kernel/runtime_loader.zig`
+- a bounded shared `command_name` preservation check in `samples/zigux/runtime_atomic64_loader.zig` that keeps a synthetic non-null loader request reviewable through both `waiting_on_runtime_substrate` and `released_without_substrate` without claiming live argv policy or runtime execution
 - dedicated Phase 9 tests, including direct `phase9-runtime-atomic64-sample-tests` and `phase9-runtime-atomic64-loader-tests` legs, and a `make -C zigux phase9` entry
 
 ## Non-goals
@@ -59,4 +60,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Stay in the Phase 9 runtime atomic64 lane and keep future work narrowly aimed at the remaining runtime substrate handoff or lifecycle-parity blocker, rather than reopening already-landed starter or differential scaffolds.
+Stay in the Phase 9 runtime atomic64 lane and keep future work narrowly aimed at the remaining runtime substrate handoff or broader shared loader-control blocker, rather than reopening already-landed starter, loader-request, or differential scaffolds.
