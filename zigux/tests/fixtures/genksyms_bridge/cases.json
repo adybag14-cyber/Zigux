@@ -122,12 +122,28 @@
       "expected": "help_expected.json"
     },
     {
+      "name": "abbreviated_help",
+      "argv": [
+        "--hel"
+      ],
+      "mode": "process_json",
+      "expected": "abbreviated_help_expected.json"
+    },
+    {
       "name": "version",
       "argv": [
         "--version"
       ],
       "mode": "process_json",
       "expected": "version_expected.json"
+    },
+    {
+      "name": "abbreviated_version",
+      "argv": [
+        "--ver"
+      ],
+      "mode": "process_json",
+      "expected": "abbreviated_version_expected.json"
     },
     {
       "name": "invalid_option",
