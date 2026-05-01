@@ -6,7 +6,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling survey for Z
 
 - `PHASE8_STATUS=active`
 - `PHASE8_SLICE=libbpf-segment-survey`
-- scope: segment manifest plus six landed helper-first starter slices, one bounded perf-buffer poll helper slice, one deferred resource boundary, one deferred interrupt-routing boundary, one blocked object-model follow-on, and two deferred loader-facing follow-ons
+- scope: segment manifest plus six landed helper-first starter slices, the separate bounded perf-buffer poll bookkeeping adjunct, one deferred resource boundary, one deferred interrupt-routing boundary, one blocked object-model follow-on, and two deferred loader-facing follow-ons
 - survey checkpoint: refreshed against inspected `master` head `36414e38da67a51209095d0c06170f81e80258eb`
 - product boundary:
   - `tools/lib/bpf/zigux_segments/manifest.json`
@@ -41,7 +41,11 @@ The live repo already carried the full C libbpf tree, but it still had no `tools
 
 ## Segment catalog
 
-The manifest currently records eleven bounded segments:
+The manifest currently records eleven bounded segments.
+
+That eleven-segment catalog intentionally excludes the separate `perf_buffer_poll.zig` adjunct packet: the poll helper is landed and reviewable, but it remains a narrower bookkeeping-only follow-on beside the deferred `perf-buffer-online-cpu-routing` segment rather than a twelfth catalog entry inside the main libbpf segment manifest.
+
+The recorded segments are:
 
 - `logging-version-and-errno`
 - `pin-path-helpers`
