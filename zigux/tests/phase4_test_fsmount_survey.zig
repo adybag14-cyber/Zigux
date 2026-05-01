@@ -1,5 +1,5 @@
 const std = @import("std");
-const current_surveyed_commit = "ef7b33b6922d05e5ef514fb4efa588316ce6dda8";
+const current_surveyed_commit = "ec9aa1b15a34e581625da1056956ecb5dd6cd76a";
 
 const SurveySummary = struct {
     test_fsmount_c_lines: usize,
