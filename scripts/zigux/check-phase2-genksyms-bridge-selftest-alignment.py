@@ -142,16 +142,15 @@ def validate_ordered_commands(
     ordered_commands: list[str],
     prefix: str,
     *,
-    exact_line,
+    find_position,
 ) -> list[str]:
     issues: list[str] = []
     positions: dict[str, int] = {}
     for command in ordered_commands:
-        line = exact_line(command)
-        try:
-            positions[command] = stripped_lines.index(line)
-        except ValueError:
+        position = find_position(stripped_lines, command)
+        if position is None:
             continue
+        positions[command] = position
     for before, after in zip(ordered_commands, ordered_commands[1:]):
         if before in positions and after in positions and positions[before] >= positions[after]:
             issues.append(f'{prefix}_order:{before}:before:{after}')
@@ -171,7 +170,10 @@ def validate_workflow(workflow_text: str) -> list[str]:
             stripped_lines,
             WORKFLOW_ORDERED_COMMANDS,
             'workflow',
-            exact_line=lambda command: f'run: {command}',
+            find_position=lambda lines, command: next(
+                (index for index, line in enumerate(lines) if line == f'run: {command}'),
+                None,
+            ),
         )
     )
     return issues
@@ -189,7 +191,10 @@ def validate_makefile(makefile_text: str) -> list[str]:
             stripped_lines,
             MAKEFILE_ORDERED_COMMANDS,
             'makefile',
-            exact_line=lambda command: command,
+            find_position=lambda lines, command: next(
+                (index for index, line in enumerate(lines) if line.endswith(command)),
+                None,
+            ),
         )
     )
     return issues
@@ -429,6 +434,33 @@ def run_self_test() -> int:
         )
         makefile_path.write_text(original_makefile, encoding='utf-8')
 
+        live_prefixed_makefile_lines = [
+            'phase2-validate:',
+            'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test',
+            'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py',
+            'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2.py',
+            'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2-closure.py',
+        ]
+        makefile_path.write_text('\n'.join(live_prefixed_makefile_lines) + '\n', encoding='utf-8')
+        live_prefixed_baseline = run_checker(tmp_root)
+        if live_prefixed_baseline.returncode != 0:
+            raise SystemExit(
+                'phase2-genksyms-selftest-alignment:live_prefixed_makefile_baseline_failed:'
+                f"{live_prefixed_baseline.stdout.strip() or live_prefixed_baseline.stderr.strip() or 'no_output'}"
+            )
+
+        live_prefixed_makefile_lines[1], live_prefixed_makefile_lines[2] = (
+            live_prefixed_makefile_lines[2],
+            live_prefixed_makefile_lines[1],
+        )
+        makefile_path.write_text('\n'.join(live_prefixed_makefile_lines) + '\n', encoding='utf-8')
+        expect_issue(
+            'live_prefixed_makefile_alignment_order',
+            tmp_root,
+            'makefile_order:scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test:before:scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py',
+        )
+        clone_fixture_root(tmp_root)
+
         cases_path = tmp_root / REQUIRED_FILES['cases']
         cases_payload = json.loads(cases_path.read_text(encoding='utf-8'))
         cases_payload['cases'].pop()
@@ -454,7 +486,7 @@ def run_self_test() -> int:
         expect_issue('validator_case_count_marker', tmp_root, f'validator:{VALIDATOR_MARKERS[2]}')
 
     print('PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST=pass')
-    print('PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=13')
+    print('PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=15')
     return 0
 
 
