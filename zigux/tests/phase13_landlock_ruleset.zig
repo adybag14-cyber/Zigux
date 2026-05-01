@@ -267,6 +267,18 @@ test "phase13 landlock ruleset layer unmasking and insertion stay pure" {
     }, &masks);
     try std.testing.expect(cleared);
 
+    var duplicate_masks = [_]u32{ 0x3, 0x4 } ++ ([_]u32{0} ** (ruleset.max_num_layers - 2));
+    try std.testing.expectError(error.InvalidLayerShape, ruleset.RulesetHelperLab.unmaskLayers(&[_]ruleset.Layer{
+        .{ .level = 1, .access = 0x1 },
+        .{ .level = 1, .access = 0x2 },
+    }, &duplicate_masks));
+
+    var unordered_masks = [_]u32{ 0x3, 0x4 } ++ ([_]u32{0} ** (ruleset.max_num_layers - 2));
+    try std.testing.expectError(error.InvalidLayerShape, ruleset.RulesetHelperLab.unmaskLayers(&[_]ruleset.Layer{
+        .{ .level = 2, .access = 0x4 },
+        .{ .level = 1, .access = 0x3 },
+    }, &unordered_masks));
+
     const inserted = try ruleset.RulesetHelperLab.planRuleInsertion(null, &[_]ruleset.Layer{
         .{ .level = 1, .access = 0x1 },
     }, 4);
