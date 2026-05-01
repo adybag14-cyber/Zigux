@@ -127,6 +127,37 @@ test "runtime bitmap sample keeps post-selftest mutation replay explicit at the 
     try std.testing.expect(!mirror.isSet(second_word_base));
 }
 
+test "runtime bitmap sample keeps sparse nth-set-bit replay explicit at the module boundary" {
+    var module = sample.RuntimeBitmapSample{};
+    const expected = [_]u32{ 10, 20, 30, 40, 50, 60, 80, 123 };
+    try module.initWithSetBits(&expected);
+
+    const initialized_summary = module.summary();
+    try std.testing.expectEqual(@as(u32, 8), initialized_summary.weight);
+    try std.testing.expectEqual(@as(usize, 1), initialized_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_summary.exit_runs);
+
+    for (expected, 0..) |bit, index| {
+        try std.testing.expectEqual(bit, module.nthSetBit(@intCast(index)) orelse return error.ExpectedNthSetBit);
+    }
+    try std.testing.expectEqual(@as(?u32, null), module.nthSetBit(@intCast(expected.len)));
+
+    _ = try module.runSelftest();
+
+    const post_selftest_summary = module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, module.stage());
+    try std.testing.expectEqual(@as(u32, 8), post_selftest_summary.weight);
+    try std.testing.expectEqual(@as(usize, 1), post_selftest_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), post_selftest_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), post_selftest_summary.exit_runs);
+
+    for (expected, 0..) |bit, index| {
+        try std.testing.expectEqual(bit, module.nthSetBit(@intCast(index)) orelse return error.ExpectedNthSetBit);
+    }
+    try std.testing.expectEqual(@as(?u32, null), module.nthSetBit(@intCast(expected.len)));
+}
+
 test "runtime bitmap sample keeps bounded errors explicit" {
     var module = sample.RuntimeBitmapSample{};
 
