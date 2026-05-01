@@ -93,7 +93,7 @@ test "phase13 notifier/list survey keeps the current list surface and generic no
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P13-L13", manifest.lane_key);
+    try std.testing.expectEqualStrings("P13-L15", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("66b55d8a9a800345097f3c04b9f95130b1f8d0b8", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 5), manifest.anchors.len);
@@ -180,6 +180,7 @@ test "phase13 notifier/list survey keeps the current list surface and generic no
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "public list-plus-notifier coexistence anchor") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "same-struct public notifier-plus-list anchor") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "no shared notifier helper file or build replay hook") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase13_notifier_list_reviewability.zig") != null);
 
     var starter_landed_count: usize = 0;
     var preexisting_phase3_count: usize = 0;
