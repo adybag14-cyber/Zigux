@@ -74,6 +74,7 @@ test "phase4 test_fsmount survey manifest records the landed survey packet and r
     try std.testing.expectEqualStrings("Phase 4", manifest.phase);
     try std.testing.expectEqualStrings("Validation and Perf Team", manifest.owner);
     try std.testing.expectEqualStrings("Validation and Perf Team", manifest.rollback_owner);
+    try std.testing.expect(isLowerHexSha(current_surveyed_commit));
     try std.testing.expectEqualStrings(current_surveyed_commit, manifest.surveyed_commit);
     try std.testing.expect(isLowerHexSha(manifest.surveyed_commit));
     try std.testing.expectEqualStrings("samples/vfs/test-fsmount.c", manifest.anchor);
