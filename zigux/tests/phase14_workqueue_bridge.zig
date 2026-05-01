@@ -55,10 +55,10 @@ test "phase14 workqueue bridge manifest records the boundary-map foothold and re
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P14-L02", manifest.lane_key);
+    try std.testing.expectEqualStrings("P14-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
     try std.testing.expectEqualStrings("kernel/workqueue.c", manifest.anchor);
-    try std.testing.expectEqualStrings("fa4792c40ad2dd2a6b8766a0d01e4b3ebabc2e7c", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("542acd7b12c52211ef9a8bd790fa2e2b3367cbf0", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.workqueue_c_lines >= 8400);
     try std.testing.expect(manifest.survey_summary.workqueue_internal_h_lines >= 80);
@@ -80,7 +80,7 @@ test "phase14 workqueue bridge manifest records the boundary-map foothold and re
         .limited(32 * 1024),
     );
     defer std.testing.allocator.free(survey_note);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_SURVEYED_COMMIT=fa4792c40ad2dd2a6b8766a0d01e4b3ebabc2e7c") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_SURVEYED_COMMIT=542acd7b12c52211ef9a8bd790fa2e2b3367cbf0") != null);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -100,7 +100,7 @@ test "phase14 workqueue bridge manifest records the boundary-map foothold and re
     var saw_drain_cancel_audit = false;
     var saw_disable_delayed_followup = false;
     var saw_delayed_disable_wrapper_followup = false;
-    var saw_delayed_timer_handoff_followup = false;
+    var saw_delayed_submission_alias_followup = false;
     var saw_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -211,8 +211,8 @@ test "phase14 workqueue bridge manifest records the boundary-map foothold and re
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "disable_delayed_work_sync()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "enable_delayed_work()") != null);
         }
-        if (std.mem.eql(u8, gap.id, "phase14-workqueue-delayed-timer-handoff-followup")) {
-            saw_delayed_timer_handoff_followup = true;
+        if (std.mem.eql(u8, gap.id, "phase14-workqueue-delayed-submission-alias-followup")) {
+            saw_delayed_submission_alias_followup = true;
             try std.testing.expectEqualStrings("kernel/workqueue_bridge.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("ready_next", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue_delayed_work_on()") != null);
@@ -250,7 +250,7 @@ test "phase14 workqueue bridge manifest records the boundary-map foothold and re
     try std.testing.expect(saw_drain_cancel_audit);
     try std.testing.expect(saw_disable_delayed_followup);
     try std.testing.expect(saw_delayed_disable_wrapper_followup);
-    try std.testing.expect(saw_delayed_timer_handoff_followup);
+    try std.testing.expect(saw_delayed_submission_alias_followup);
     try std.testing.expect(saw_blocker);
 }
 
