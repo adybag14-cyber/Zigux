@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import subprocess
 
 from validate_phase3_core import ROOT, discover_phase3_slices, select_slices, validate_slices
 from validate_phase3_header_binding_markers import (
@@ -9,6 +10,17 @@ from validate_phase3_header_binding_markers import (
     validate_header_binding_markers,
 )
 from validate_phase3_selftest import run_self_test
+
+
+def _run_script_self_test(script_name: str) -> int:
+    script_path = ROOT / "scripts" / "zigux" / script_name
+    result = subprocess.run(
+        ["python3", str(script_path), "--self-test"],
+        cwd=ROOT,
+        text=True,
+        check=False,
+    )
+    return result.returncode
 
 
 def main() -> int:
@@ -26,7 +38,13 @@ def main() -> int:
         result = run_self_test()
         if result != 0:
             return result
-        return run_header_binding_marker_self_test()
+        result = run_header_binding_marker_self_test()
+        if result != 0:
+            return result
+        result = _run_script_self_test("validate-phase3-export-uapi-survey.py")
+        if result != 0:
+            return result
+        return _run_script_self_test("validate-phase3-policy-unsafe-survey.py")
 
     slices = select_slices(discover_phase3_slices(), args.slug)
     if not slices:
