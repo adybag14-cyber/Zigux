@@ -283,6 +283,14 @@ test "phase11 shared header parity survey keeps the header boundary explicit" {
     );
     defer std.testing.allocator.free(hvc_validation_matrix);
 
+    const hvc_survey = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase11_hvc_console_survey.zig",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(hvc_survey);
+
     const phase11_build_inventory = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "zigux/tests/fixtures/phase11_build_inventory.json",
@@ -368,6 +376,25 @@ test "phase11 shared header parity survey keeps the header boundary explicit" {
     try std.testing.expect(std.mem.indexOf(u8, hvc_zig, ".exports_notifier_hangup_irq = true") != null);
     try std.testing.expect(std.mem.indexOf(u8, hvc_zig, ".has_notifier_hangup = true") != null);
     try std.testing.expect(std.mem.indexOf(u8, hvc_validation_matrix, "dedicated survey replay still passes separately") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_survey, "test \"phase11 hvc console survey keeps a bounded winsize layout proof\" {") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_survey, "layout_assert.assertSize(WinsizeLayout, 8);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_survey, "layout_assert.assertAlign(WinsizeLayout, 2);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_survey, "layout_assert.assertOffset(WinsizeLayout, \"ws_row\", 0);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_survey, "layout_assert.assertOffset(WinsizeLayout, \"ws_col\", 2);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_survey, "layout_assert.assertOffset(WinsizeLayout, \"ws_xpixel\", 4);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_survey, "layout_assert.assertOffset(WinsizeLayout, \"ws_ypixel\", 6);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_survey, "test \"phase11 hvc console survey keeps a bounded hv_ops layout proof\" {") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_survey, "layout_assert.assertSize(HvOpsLayout, 72);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_survey, "layout_assert.assertAlign(HvOpsLayout, 8);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_survey, "layout_assert.assertOffset(HvOpsLayout, \"get_chars\", 0);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_survey, "layout_assert.assertOffset(HvOpsLayout, \"put_chars\", 8);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_survey, "layout_assert.assertOffset(HvOpsLayout, \"flush\", 16);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_survey, "layout_assert.assertOffset(HvOpsLayout, \"notifier_add\", 24);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_survey, "layout_assert.assertOffset(HvOpsLayout, \"notifier_del\", 32);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_survey, "layout_assert.assertOffset(HvOpsLayout, \"notifier_hangup\", 40);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_survey, "layout_assert.assertOffset(HvOpsLayout, \"tiocmget\", 48);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_survey, "layout_assert.assertOffset(HvOpsLayout, \"tiocmset\", 56);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_survey, "layout_assert.assertOffset(HvOpsLayout, \"dtr_rts\", 64);") != null);
     try std.testing.expectEqual(@as(usize, 9), inventory.build_test_names.len);
     try std.testing.expectEqual(@as(usize, 8), inventory.shared_test_depend_steps.len);
     try std.testing.expectEqual(@as(usize, 15), inventory.module_root_source_files.len);
