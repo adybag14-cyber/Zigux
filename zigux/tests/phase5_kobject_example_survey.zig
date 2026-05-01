@@ -260,11 +260,14 @@ test "phase 5 kobject contributor docs stay aligned with the shipped review surf
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "run the focused self-check that keeps the in-memory replay explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig test samples/zigux/kobject_example.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig test zigux/tests/phase5_kobject_example_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "1/3 kobject_example.test.kobject sample replay keeps the anchor reviewable and non-runtime...OK") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "2/3 kobject_example.test.kobject sample keeps shared dispatch and parse failures explicit...OK") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "3/3 kobject_example.test.kobject sample teardown keeps ownership boundaries explicit...OK") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "All 3 tests passed.") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "1/2 phase5_kobject_example_survey.test.phase 5 kobject manifest records the exact bounded checks...OK") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "2/2 phase5_kobject_example_survey.test.phase 5 kobject contributor docs stay aligned with the shipped review surface...OK") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Build Summary: 17/17 steps succeeded; 28/28 tests passed") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5-kobject-example-tests 5 pass (5 total)") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5-kobject-example-survey-tests 2 pass (2 total)") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "This focused doc-accuracy refresh reran the bounded self-check and the manifest-backed survey gate.") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared `zigux/tests/phase5_build.zig` entrypoint remains the broader validation path recorded in the manifest") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "The roadmap delivery gap is already closed.") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "/workspace/agent_files/") == null);
     {
