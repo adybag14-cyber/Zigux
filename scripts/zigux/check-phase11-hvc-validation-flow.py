@@ -1,0 +1,193 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+from pathlib import Path
+import subprocess
+import sys
+import tempfile
+
+
+SCRIPT_NAME = "scripts/zigux/check-phase11-hvc-validation-flow.py"
+CHECKER_PATH = "scripts/zigux/check-phase11-hvc-cleanup-alignment.py"
+MAKEFILE_PATH = "zigux/Makefile"
+WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
+
+MAKEFILE_MARKERS = [
+    "phase11-validate:",
+    "scripts/zigux/check-phase11-hvc-cleanup-alignment.py --self-test",
+    "scripts/zigux/check-phase11-hvc-cleanup-alignment.py",
+]
+
+WORKFLOW_MARKERS = [
+    "Self-test Phase 11 hvc cleanup alignment checker",
+    "python3 scripts/zigux/check-phase11-hvc-cleanup-alignment.py --self-test",
+    "Validate Phase 11 simple-driver bundle",
+    "make -C zigux phase11-validate",
+]
+
+
+def read_text(root: Path, rel_path: str) -> str:
+    return (root / rel_path).read_text(encoding="utf-8")
+
+
+def validate(root: Path) -> list[str]:
+    missing: list[str] = []
+
+    for rel_path in [CHECKER_PATH, MAKEFILE_PATH, WORKFLOW_PATH]:
+        if not (root / rel_path).exists():
+            missing.append(f"missing:{rel_path}")
+    if missing:
+        return missing
+
+    makefile = read_text(root, MAKEFILE_PATH)
+    workflow = read_text(root, WORKFLOW_PATH)
+
+    for marker in MAKEFILE_MARKERS:
+        if marker not in makefile:
+            missing.append(f"make:{marker}")
+
+    for marker in WORKFLOW_MARKERS:
+        if marker not in workflow:
+            missing.append(f"workflow:{marker}")
+
+    return missing
+
+
+def run_validator(root: Path) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [sys.executable, str(root / SCRIPT_NAME)],
+        cwd=str(root),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+
+def expect_missing(label: str, root: Path, needle: str) -> None:
+    result = run_validator(root)
+    if result.returncode == 0:
+        raise SystemExit(f"phase11-hvc-flow-self-test:{label}:unexpected_pass")
+    if needle not in result.stdout:
+        actual = result.stdout.strip() or "none"
+        raise SystemExit(
+            f"phase11-hvc-flow-self-test:{label}:expected:{needle}:actual:{actual}"
+        )
+
+
+def clone_fixture_root(destination_root: Path) -> None:
+    script_target = destination_root / SCRIPT_NAME
+    script_target.parent.mkdir(parents=True, exist_ok=True)
+    script_target.write_text(Path(__file__).read_text(encoding="utf-8"), encoding="utf-8")
+
+    checker_target = destination_root / CHECKER_PATH
+    checker_target.parent.mkdir(parents=True, exist_ok=True)
+    checker_target.write_text("#!/usr/bin/env python3\nprint('placeholder')\n", encoding="utf-8")
+
+    makefile_target = destination_root / MAKEFILE_PATH
+    makefile_target.parent.mkdir(parents=True, exist_ok=True)
+    makefile_target.write_text(
+        "\n".join(
+            [
+                "phase11-validate:",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-cleanup-alignment.py --self-test",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-cleanup-alignment.py",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    workflow_target = destination_root / WORKFLOW_PATH
+    workflow_target.parent.mkdir(parents=True, exist_ok=True)
+    workflow_target.write_text(
+        "\n".join(
+            [
+                "jobs:",
+                "  bootstrap:",
+                "    steps:",
+                "      - name: Self-test Phase 11 hvc cleanup alignment checker",
+                "        run: python3 scripts/zigux/check-phase11-hvc-cleanup-alignment.py --self-test",
+                "      - name: Validate Phase 11 simple-driver bundle",
+                "        run: make -C zigux phase11-validate",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+
+def run_self_test() -> int:
+    with tempfile.TemporaryDirectory(prefix="zigux_phase11_hvc_flow_") as tmp_dir:
+        tmp_root = Path(tmp_dir)
+        clone_fixture_root(tmp_root)
+
+        baseline = run_validator(tmp_root)
+        if baseline.returncode != 0:
+            raise SystemExit(
+                "phase11-hvc-flow-self-test:baseline_failed:"
+                f"{baseline.stdout.strip() or baseline.stderr.strip() or 'no_output'}"
+            )
+
+        makefile_path = tmp_root / MAKEFILE_PATH
+        original_makefile = makefile_path.read_text(encoding="utf-8")
+        makefile_path.write_text(
+            original_makefile.replace(
+                "scripts/zigux/check-phase11-hvc-cleanup-alignment.py --self-test",
+                "scripts/zigux/check-phase11-build-inventory.py",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "makefile_cleanup_self_test_hook",
+            tmp_root,
+            "make:scripts/zigux/check-phase11-hvc-cleanup-alignment.py --self-test",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        workflow_path = tmp_root / WORKFLOW_PATH
+        original_workflow = workflow_path.read_text(encoding="utf-8")
+        workflow_path.write_text(
+            original_workflow.replace(
+                "Self-test Phase 11 hvc cleanup alignment checker",
+                "Self-test Phase 11 build inventory checker",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "workflow_cleanup_self_test_step",
+            tmp_root,
+            "workflow:Self-test Phase 11 hvc cleanup alignment checker",
+        )
+        workflow_path.write_text(original_workflow, encoding="utf-8")
+
+        checker_path = tmp_root / CHECKER_PATH
+        checker_path.unlink()
+        expect_missing(
+            "checker_file_presence",
+            tmp_root,
+            f"missing:{CHECKER_PATH}",
+        )
+
+    print("PHASE11_HVC_VALIDATION_FLOW_SELF_TEST=pass")
+    print("PHASE11_HVC_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=3")
+    return 0
+
+
+if "--self-test" in sys.argv[1:]:
+    raise SystemExit(run_self_test())
+
+
+ROOT = Path(__file__).resolve().parents[2]
+problems = validate(ROOT)
+if problems:
+    print("PHASE11_HVC_VALIDATION_FLOW=fail")
+    print("PHASE11_HVC_VALIDATION_FLOW_MISSING_START")
+    for problem in problems:
+        print(problem)
+    print("PHASE11_HVC_VALIDATION_FLOW_MISSING_END")
+    raise SystemExit(1)
+
+print("PHASE11_HVC_VALIDATION_FLOW=pass")
+print(f"PHASE11_HVC_VALIDATION_FLOW_ROOT={ROOT}")
