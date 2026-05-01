@@ -21,11 +21,13 @@ The shared replay and gating surface for that packet is:
 - `scripts/zigux/validate-phase6.py`
 - `.github/workflows/zigux-bootstrap.yml`
 - `Documentation/zigux/README.md`
+- `Documentation/zigux/phase6-helper-parity-catalog.md`
+- `Documentation/zigux/phase6-perf-gate-survey.md`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 - `zigux/tests/phase6_helper_parity_manifest.json`
 
-This shared catalog exists so reviewers can confirm, in one place, that the roadmap-backed Phase 6 packet still stops at the four leaf helpers and that the docs, validator, workflow, and test entrypoints all describe the same shipped surface. The manifest is the compact machine-readable companion for that same packet, while this note keeps the reviewer-facing perf and fixture posture explicit.
+This shared catalog exists so reviewers can confirm, in one place, that the roadmap-backed Phase 6 packet still stops at the four leaf helpers and that the docs, validator, workflow, perf-gate survey, and test entrypoints all describe the same shipped surface. The manifest is the compact machine-readable companion for that same packet, while this note keeps the reviewer-facing perf and fixture posture explicit.
 
 ## Current helper evidence
 
