@@ -58,70 +58,14 @@ fn expectSurveyedCommitProvenance(survey_note: []const u8, surveyed_commit: []co
     try std.testing.expect(std.mem.indexOf(u8, survey_note, surveyed_commit) != null);
 }
 
-fn assertOptionalFnSignature(
-    comptime MaybeFn: type,
-    comptime ExpectedReturn: type,
-    comptime ExpectedParams: []const type,
+fn assertExactType(
+    comptime Actual: type,
+    comptime Expected: type,
 ) void {
-    const child = switch (@typeInfo(MaybeFn)) {
-        .optional => |optional_info| optional_info.child,
-        else => @compileError(std.fmt.comptimePrint(
-            "expected optional function pointer type, found {s}",
-            .{ @typeName(MaybeFn) },
-        )),
-    };
-    const ptr_info = switch (@typeInfo(child)) {
-        .pointer => |pointer_info| pointer_info,
-        else => @compileError(std.fmt.comptimePrint(
-            "expected pointer child for {s}",
-            .{ @typeName(MaybeFn) },
-        )),
-    };
-    if (ptr_info.size != .one) {
+    if (Actual != Expected) {
         @compileError(std.fmt.comptimePrint(
-            "expected single-pointer callback type for {s}",
-            .{ @typeName(MaybeFn) },
-        ));
-    }
-    const fn_info = switch (@typeInfo(ptr_info.child)) {
-        .@"fn" => |function_info| function_info,
-        else => @compileError(std.fmt.comptimePrint(
-            "expected function pointer child for {s}",
-            .{ @typeName(MaybeFn) },
-        )),
-    };
-    if (fn_info.calling_convention != .c) {
-        @compileError(std.fmt.comptimePrint(
-            "expected C calling convention for {s}",
-            .{ @typeName(MaybeFn) },
-        ));
-    }
-    if (fn_info.params.len != ExpectedParams.len) {
-        @compileError(std.fmt.comptimePrint(
-            "expected {d} parameters for {s}, found {d}",
-            .{ ExpectedParams.len, @typeName(MaybeFn), fn_info.params.len },
-        ));
-    }
-    inline for (ExpectedParams, 0..) |ExpectedParam, index| {
-        const actual = fn_info.params[index].type orelse @compileError(std.fmt.comptimePrint(
-            "missing parameter type at index {d} for {s}",
-            .{ index, @typeName(MaybeFn) },
-        ));
-        if (actual != ExpectedParam) {
-            @compileError(std.fmt.comptimePrint(
-                "parameter {d} mismatch for {s}: expected {s}, found {s}",
-                .{ index, @typeName(MaybeFn), @typeName(ExpectedParam), @typeName(actual) },
-            ));
-        }
-    }
-    const actual_return = fn_info.return_type orelse @compileError(std.fmt.comptimePrint(
-        "missing return type for {s}",
-        .{ @typeName(MaybeFn) },
-    ));
-    if (actual_return != ExpectedReturn) {
-        @compileError(std.fmt.comptimePrint(
-            "return type mismatch for {s}: expected {s}, found {s}",
-            .{ @typeName(MaybeFn), @typeName(ExpectedReturn), @typeName(actual_return) },
+            "type mismatch: expected {s}, found {s}",
+            .{ @typeName(Expected), @typeName(Actual) },
         ));
     }
 }
@@ -528,14 +472,14 @@ test "phase11 hvc console survey keeps a bounded hv_ops layout proof" {
 
 test "phase11 hvc console survey keeps bounded hv_ops callback signature proofs" {
     comptime {
-        assertOptionalFnSignature(@FieldType(HvOpsLayout, "get_chars"), isize, &.{ u32, [*]u8, usize });
-        assertOptionalFnSignature(@FieldType(HvOpsLayout, "put_chars"), isize, &.{ u32, [*]const u8, usize });
-        assertOptionalFnSignature(@FieldType(HvOpsLayout, "flush"), c_int, &.{ u32, bool });
-        assertOptionalFnSignature(@FieldType(HvOpsLayout, "notifier_add"), c_int, &.{ *HvcStruct, c_int });
-        assertOptionalFnSignature(@FieldType(HvOpsLayout, "notifier_del"), void, &.{ *HvcStruct, c_int });
-        assertOptionalFnSignature(@FieldType(HvOpsLayout, "notifier_hangup"), void, &.{ *HvcStruct, c_int });
-        assertOptionalFnSignature(@FieldType(HvOpsLayout, "tiocmget"), c_int, &.{ *HvcStruct });
-        assertOptionalFnSignature(@FieldType(HvOpsLayout, "tiocmset"), c_int, &.{ *HvcStruct, c_uint, c_uint });
-        assertOptionalFnSignature(@FieldType(HvOpsLayout, "dtr_rts"), void, &.{ *HvcStruct, bool });
+        assertExactType(@FieldType(HvOpsLayout, "get_chars"), ?*const fn (u32, [*]u8, usize) callconv(.c) isize);
+        assertExactType(@FieldType(HvOpsLayout, "put_chars"), ?*const fn (u32, [*]const u8, usize) callconv(.c) isize);
+        assertExactType(@FieldType(HvOpsLayout, "flush"), ?*const fn (u32, bool) callconv(.c) c_int);
+        assertExactType(@FieldType(HvOpsLayout, "notifier_add"), ?*const fn (*HvcStruct, c_int) callconv(.c) c_int);
+        assertExactType(@FieldType(HvOpsLayout, "notifier_del"), ?*const fn (*HvcStruct, c_int) callconv(.c) void);
+        assertExactType(@FieldType(HvOpsLayout, "notifier_hangup"), ?*const fn (*HvcStruct, c_int) callconv(.c) void);
+        assertExactType(@FieldType(HvOpsLayout, "tiocmget"), ?*const fn (*HvcStruct) callconv(.c) c_int);
+        assertExactType(@FieldType(HvOpsLayout, "tiocmset"), ?*const fn (*HvcStruct, c_uint, c_uint) callconv(.c) c_int);
+        assertExactType(@FieldType(HvOpsLayout, "dtr_rts"), ?*const fn (*HvcStruct, bool) callconv(.c) void);
     }
 }
