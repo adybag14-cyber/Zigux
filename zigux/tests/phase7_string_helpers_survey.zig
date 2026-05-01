@@ -152,6 +152,7 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
     try expectContains(string_helpers_slice, "`kstrdup_and_replace()` over the bounded duplicate-then-rewrite ownership-safe path");
     try expectContains(string_helpers_slice, "`kasprintf_strarray()` over the bounded sequential prefix-index ownership path");
     try expectContains(string_helpers_slice, "`kfree_strarray()` over the bounded repeated-teardown-safe release path");
+    try expectContains(string_helpers_slice, "one `kfree_strarray()` proof that keeps first-NUL prefix handling, zero-count sentinel reuse, and repeated teardown safe");
     try expectContains(string_helpers_slice, "shared wrapper proofs that `string_unescape_inplace()`, `string_unescape_any()`, and `string_unescape_any_inplace()` preserve `UNESCAPE_ANY`, stop at the first written NUL, and leave trailing storage untouched");
     try expectContains(string_helpers_slice, "`STRING_UNITS_NO_SPACE` and `STRING_UNITS_NO_BYTES` formatting flags plus snprintf-style truncation accounting for `string_get_size()`");
     try expectContains(string_helpers_slice, "truncation accounting that returns the full would-be escaped length without promising an appended terminator through one dedicated gate assertion");
