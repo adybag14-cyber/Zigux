@@ -576,6 +576,17 @@ test "genksyms bridge accepts explicit option terminator" {
     }
 }
 
+test "genksyms bridge reports short version control path immediately" {
+    const outcome = try parseArgs(std.testing.allocator, &.{ "-V", "-d", "-r", "ignored.symref" });
+    switch (outcome) {
+        .command => |command| switch (command) {
+            .version => {},
+            else => return error.UnexpectedCommand,
+        },
+        .failure => return error.UnexpectedFailure,
+    }
+}
+
 test "genksyms bridge reports invalid short option in getopt style" {
     const outcome = try parseArgs(std.testing.allocator, &.{"-x"});
     switch (outcome) {
