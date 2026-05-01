@@ -41,6 +41,8 @@ The roadmap boundary matters here too: Phase 8 is the repo-hosted tooling tranch
 - `make -C zigux phase8-exec-cmd-test`
 - `make -C zigux phase8`
 
+`phase8-exec-cmd-test` now runs both the helper-local `zig test tools/lib/subcmd/exec-cmd.zig` proof and the focused shared Phase 8 replay so repo-hosted CI catches helper drift before it only shows up in the broader tooling packet.
+
 ## Current parity surface
 
 The current parked slice covers:
