@@ -1,1 +1,1 @@
-{"counts":{"set":4,"unset":0},"entries":[{"name":"CONFIG_NEGATIVE_DECIMAL","kind":"int","value":"-7"},{"name":"CONFIG_NEGATIVE_HEX","kind":"hex","value":"-0x2A"},{"name":"CONFIG_NEGATIVE_UPPER_HEX","kind":"hex","value":"-0XFF"},{"name":"CONFIG_RAW","kind":"value","value":"minus_alpha"}]}
+{"counts":{"set":4,"unset":0},"entries":[{"name":"CONFIG_NEGATIVE_DECIMAL","kind":"int","value":"-7"},{"name":"CONFIG_NEGATIVE_HEX","kind":"value","value":"-0x2A"},{"name":"CONFIG_NEGATIVE_UPPER_HEX","kind":"value","value":"-0XFF"},{"name":"CONFIG_RAW","kind":"value","value":"minus_alpha"}]}
