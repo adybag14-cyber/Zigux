@@ -635,6 +635,8 @@ test "runtime loader gap survey proves the shared request surface and existing l
         "released.keepsSharedHandoffContractExplicit()",
         "request.keepsAllocatorInitFlowConsistent()",
         "released.keepsAllocatorInitFlowConsistent()",
+        "request.keepsLifecyclePayloadConsistent()",
+        "released.keepsLifecyclePayloadConsistent()",
         ".allocator_handoff = runtime_loader.allocatorHandoffFor(.kernel_heap)",
     };
     const shared_request_surface = [_][]const u8{
@@ -645,6 +647,7 @@ test "runtime loader gap survey proves the shared request surface and existing l
         "pub fn waitingOnRuntimeSubstrate",
         "pub fn releasedWithoutSubstrate",
         "pub fn keepsAllocatorInitFlowConsistent",
+        "pub fn keepsLifecyclePayloadConsistent",
         "pub fn keepsSharedHandoffContractExplicit",
     };
     const absent_command_env_surface = [_][]const u8{
@@ -707,6 +710,13 @@ test "runtime loader gap survey proves the shared request surface and existing l
         ".allocator_handoff = runtime_loader.allocatorHandoffFor(.kernel_heap)",
         ".payload = .{",
         ".bitmap = .{",
+        "first_set = plan.summary.first_set",
+        "first_zero = plan.summary.first_zero",
+        "weight = plan.summary.weight",
+        "nbits = plan.summary.nbits",
+        "init_runs = plan.summary.init_runs",
+        "selftest_runs = plan.summary.selftest_runs",
+        "exit_runs = plan.summary.exit_runs",
     });
     try expectContainsAll(kretprobe_loader, &.{
         "pub const RuntimeKretprobeLoadPlan = struct",
@@ -723,5 +733,14 @@ test "runtime loader gap survey proves the shared request surface and existing l
         "pub fn toSharedRequest",
         ".allocator_handoff = runtime_loader.allocatorHandoffFor(.kernel_heap)",
         ".kretprobe = .{",
+        "active_instances = plan.summary.active_instances",
+        "skipped_kernel_threads = plan.summary.skipped_kernel_threads",
+        "nmissed = plan.summary.nmissed",
+        "last_retval = plan.summary.last_retval",
+        "last_duration_ns = plan.summary.last_duration_ns",
+        "init_runs = plan.summary.init_runs",
+        "selftest_runs = plan.summary.selftest_runs",
+        "exit_runs = plan.summary.exit_runs",
+        "entry_timestamp_armed = plan.summary.entry_timestamp_armed",
     });
 }
