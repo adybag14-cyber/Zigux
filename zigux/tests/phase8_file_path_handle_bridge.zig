@@ -100,6 +100,26 @@ test "phase 8 file-path-handle bridge keeps token failure recovery discipline ex
     try std.testing.expectEqual(file_path_handle_bridge.TokenPreparationLogLevel.warn, mandatory_create.log_level);
     try std.testing.expectEqualStrings("", mandatory_create.message_suffix);
     try std.testing.expect(!mandatory_create.shouldContinueWithoutToken());
+
+    const missing_pinned_map = file_path_handle_bridge.classifyReusePinnedMapOpenFailure(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+    );
+    try std.testing.expectEqual(
+        file_path_handle_bridge.ReusePinnedMapOpenFailureDisposition.skip_missing_pinned_map,
+        missing_pinned_map.disposition,
+    );
+    try std.testing.expectEqual(file_path_handle_bridge.TokenPreparationLogLevel.debug, missing_pinned_map.log_level);
+    try std.testing.expect(missing_pinned_map.shouldContinueWithoutReuse());
+
+    const denied_pinned_map = file_path_handle_bridge.classifyReusePinnedMapOpenFailure(
+        -@as(i32, @intFromEnum(std.os.linux.E.PERM)),
+    );
+    try std.testing.expectEqual(
+        file_path_handle_bridge.ReusePinnedMapOpenFailureDisposition.fail,
+        denied_pinned_map.disposition,
+    );
+    try std.testing.expectEqual(file_path_handle_bridge.TokenPreparationLogLevel.warn, denied_pinned_map.log_level);
+    try std.testing.expect(!denied_pinned_map.shouldContinueWithoutReuse());
 }
 
 test "phase 8 file-path-handle bridge parses bounded fdinfo map metadata" {
@@ -230,7 +250,6 @@ test "phase 8 file-path-handle bridge keeps the DEVMAP readonly-prog compatibili
         .key_size = 4,
         .value_size = 4,
         .max_entries = 16,
-        .map_flags = 0,
     };
     const actual = file_path_handle_bridge.FdInfoMapInfo{
         .map_type = file_path_handle_bridge.bpf_map_type_devmap,
