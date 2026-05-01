@@ -30,8 +30,8 @@ const Manifest = struct {
     gaps: []const Gap,
 };
 
-const expected_surveyed_commit = "09229747ad125661be1d17d3d55d87ef11cd33e4";
-const expected_slice_marker = "PHASE13_SLICE=landlock-syscalls-helper-ruleset-fd-creation-handoff";
+const expected_surveyed_commit = "9c17b0790799d8240ef9f964903f5ce2db64af89";
+const expected_slice_marker = "PHASE13_SLICE=landlock-syscalls-helper-restrict-self-credential-handoff";
 
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
@@ -63,7 +63,7 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
     );
     defer std.testing.allocator.free(survey_note);
 
-    try std.testing.expectEqualStrings("P13-L16", manifest.lane_key);
+    try std.testing.expectEqualStrings("P13-L14", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("security/landlock/syscalls.c", manifest.anchor);
     try std.testing.expectEqualStrings(expected_surveyed_commit, manifest.surveyed_commit);
@@ -76,7 +76,7 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 14), manifest.gaps.len);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, expected_surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE13_SURVEYED_COMMIT=") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, expected_slice_marker) != null);
@@ -96,6 +96,7 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
     var saw_path_beneath_handoff = false;
     var saw_net_port_handoff = false;
     var saw_ruleset_fd_creation_handoff = false;
+    var saw_restrict_self_credential_handoff = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -189,13 +190,20 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "anon_inode_getfd()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "landlock_put_ruleset()") != null);
         }
+        if (std.mem.eql(u8, gap.id, "phase13-landlock-restrict-self-credential-handoff-followup")) {
+            saw_restrict_self_credential_handoff = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("security/landlock/syscalls.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "prepare_creds()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "commit_creds()") != null);
+        }
 
         for (manifest.gaps[i + 1 ..]) |other| {
             try std.testing.expect(!std.mem.eql(u8, gap.id, other.id));
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 13), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 14), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_make_target);
@@ -210,6 +218,7 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
     try std.testing.expect(saw_path_beneath_handoff);
     try std.testing.expect(saw_net_port_handoff);
     try std.testing.expect(saw_ruleset_fd_creation_handoff);
+    try std.testing.expect(saw_restrict_self_credential_handoff);
 }
 
 test "phase13 landlock syscalls descriptor stays anchored to syscalls.c" {
@@ -221,6 +230,7 @@ test "phase13 landlock syscalls descriptor stays anchored to syscalls.c" {
     try std.testing.expect(descriptor.provides_min_struct_copy_planning);
     try std.testing.expect(descriptor.provides_create_ruleset_query_planning);
     try std.testing.expect(descriptor.provides_restrict_self_flag_planning);
+    try std.testing.expect(descriptor.provides_restrict_self_credential_handoff_planning);
     try std.testing.expect(descriptor.provides_add_rule_planning);
     try std.testing.expect(descriptor.provides_ruleset_fd_planning);
     try std.testing.expect(descriptor.provides_ruleset_fd_creation_planning);
@@ -233,4 +243,50 @@ test "phase13 landlock syscalls descriptor stays anchored to syscalls.c" {
     try std.testing.expect(!descriptor.touches_live_domains);
 }
 
-MÄ
+test "phase13 landlock restrict_self credential handoff models merge and tsync flow" {
+    const plan = try syscalls.SyscallsHelperLab.planRestrictSelfCredentialHandoff(.{
+        .ruleset_fd = 7,
+        .flags = syscalls.restrict_self_log_new_exec_on | syscalls.restrict_self_tsync,
+        .has_no_new_privs = true,
+    });
+
+    try std.testing.expectEqualStrings("security/landlock/syscalls.c", plan.anchor);
+    try std.testing.expect(plan.requires_privilege_gate);
+    try std.testing.expect(plan.acquires_ruleset_with_read_access);
+    try std.testing.expect(plan.prepares_new_credentials);
+    try std.testing.expect(plan.updates_log_subdomains_state);
+    try std.testing.expect(plan.merges_ruleset_domain);
+    try std.testing.expect(plan.replaces_prepared_domain);
+    try std.testing.expect(plan.releases_previous_domain);
+    try std.testing.expect(plan.propagates_to_siblings);
+    try std.testing.expect(plan.aborts_creds_on_merge_failure);
+    try std.testing.expect(plan.aborts_creds_on_tsync_failure);
+    try std.testing.expect(plan.commits_prepared_credentials);
+}
+
+test "phase13 landlock restrict_self credential handoff allows mute-only update without ruleset" {
+    const plan = try syscalls.SyscallsHelperLab.planRestrictSelfCredentialHandoff(.{
+        .ruleset_fd = -1,
+        .flags = syscalls.restrict_self_log_subdomains_off,
+        .has_cap_sys_admin = true,
+    });
+
+    try std.testing.expect(plan.requires_privilege_gate);
+    try std.testing.expect(!plan.acquires_ruleset_with_read_access);
+    try std.testing.expect(plan.prepares_new_credentials);
+    try std.testing.expect(plan.updates_log_subdomains_state);
+    try std.testing.expect(!plan.merges_ruleset_domain);
+    try std.testing.expect(!plan.replaces_prepared_domain);
+    try std.testing.expect(!plan.releases_previous_domain);
+    try std.testing.expect(!plan.propagates_to_siblings);
+    try std.testing.expect(!plan.aborts_creds_on_merge_failure);
+    try std.testing.expect(!plan.aborts_creds_on_tsync_failure);
+    try std.testing.expect(plan.commits_prepared_credentials);
+}
+
+test "phase13 landlock restrict_self credential handoff requires privilege gate" {
+    try std.testing.expectError(error.MissingPrivilege, syscalls.SyscallsHelperLab.planRestrictSelfCredentialHandoff(.{
+        .ruleset_fd = 3,
+        .flags = 0,
+    }));
+}
