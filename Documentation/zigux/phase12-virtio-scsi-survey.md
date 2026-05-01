@@ -82,7 +82,7 @@ This survey slice does not claim:
 - `make -C zigux phase12-validate`
 
 2. run the dedicated Phase 12 build
-- `zig build test --build-file zigux/tests/phase12_build.zig`
+- `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
 
 3. run the convenience target
 - `make -C zigux phase12`
