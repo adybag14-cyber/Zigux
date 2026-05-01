@@ -114,6 +114,8 @@ The bounded `fixdep` closure packet remains closed because both the shared artif
 - shared fixture packet:
   `sample_expected.txt`, `sample_multi_target_expected.txt`, `sample_escaped_space_expected.txt`, `sample_concatenated_expected.txt`, `sample_comment_only_expected.stderr.txt`, `sample_missing_dep_expected.stderr.txt`, `sample_output_write_expected.stderr.txt`
 - helper-local anchors in `scripts/zigux/fixdep.zig`:
+  `dep parsing skips escaped-newline comments before the first target`
+  `dep parsing continues dependency tokens across escaped newlines`
   `dep parsing keeps the first source across concatenated target entries`
   `dep parsing unescapes escaped hash and colon tokens once`
   `dependency file error messages keep C helper wording`
@@ -121,7 +123,7 @@ The bounded `fixdep` closure packet remains closed because both the shared artif
   `output writer maps print and flush failures to fixdep output-write errors`
   `preserving a primary error ignores late output flush failures`
 
-- `PHASE2_FIXDEP_EVIDENCE=artifact fixtures plus direct concatenated-target, escaped-token, dependency-file-error, missing-path-preservation, output-write, and primary-error-preservation unit anchors are required for closure`
+- `PHASE2_FIXDEP_EVIDENCE=artifact fixtures plus direct escaped-newline-comment, dep-continuation, concatenated-target, escaped-token, dependency-file-error, missing-path-preservation, output-write, and primary-error-preservation unit anchors are required for closure`
 
 ## Genksyms Bridge Evidence
 
