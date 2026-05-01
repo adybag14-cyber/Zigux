@@ -120,6 +120,14 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
     try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_slice, "empty option names only match empty segments at the start of the scan or between commas") != null);
 
     try expectContains(helper_cmdline, "const next_arg_cases = [_]NextArgCase{");
+    try expectContains(helper_cmdline, ".name = \"quoted value with trailing token\",");
+    try expectContains(helper_cmdline, ".name = \"quoted bare token with trailing token\",");
+    try expectContains(helper_cmdline, ".name = \"unquoted value keeps punctuation until whitespace\",");
+    try expectContains(helper_cmdline, ".name = \"empty quoted value becomes empty string\",");
+    try expectContains(helper_cmdline, ".name = \"first equals wins inside the value\",");
+    try expectContains(helper_cmdline, ".name = \"quoted value without trailing token leaves empty rest\",");
+    try expectContains(helper_cmdline, ".name = \"leading equals sign stays in the parameter token\",");
+    try expectContains(helper_cmdline, ".name = \"trailing spaces after key=value trim to empty rest\",");
     try expectContains(helper_cmdline, ".input = \"root=\\\"/dev/sda 1\\\" ro\",");
     try expectContains(helper_cmdline, ".input = \"\\\"noparam value\\\" next\",");
     try expectContains(helper_cmdline, ".input = \"key=alpha=beta tail\",");
