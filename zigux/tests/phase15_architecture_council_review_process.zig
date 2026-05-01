@@ -69,8 +69,8 @@ const Manifest = struct {
     gaps: []const Gap,
 };
 
-const expected_lane_key = "P15-L05";
-const expected_surveyed_commit = "7bf7c92851f8c13da93dd5e569f4c447adfc0273";
+const expected_lane_key = "P15-L06";
+const expected_surveyed_commit = "98e62218232eaac0eccd3b17fc9dc58378c74fd2";
 
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
@@ -110,7 +110,7 @@ test "phase 15 architecture council review-process manifest records current trig
     try std.testing.expectEqualStrings("ownership_or_validation_changed", manifest.ownership_refresh_trigger);
     try std.testing.expectEqual(@as(usize, 2), manifest.ownership_refresh_fields.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.decision_buckets.len);
-    try std.testing.expectEqual(@as(usize, 15), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 16), manifest.gaps.len);
 
     try std.testing.expectEqualStrings("requested decision bucket", manifest.approval_evidence_fields[0]);
     try std.testing.expectEqualStrings("decision record ID", manifest.approval_evidence_fields[1]);
@@ -198,7 +198,7 @@ test "phase 15 architecture council review-process manifest records current trig
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 15), landed_count);
+    try std.testing.expectEqual(@as(usize, 16), landed_count);
 }
 
 test "phase 15 architecture council review-process note stays aligned with checklist and handoff language" {
@@ -217,7 +217,7 @@ test "phase 15 architecture council review-process note stays aligned with check
         io_instance.io(),
         "Documentation/zigux/review-checklist.md",
         std.testing.allocator,
-        .limited(24 * 1024),
+        .limited(32 * 1024),
     );
     defer std.testing.allocator.free(checklist);
 
@@ -236,7 +236,7 @@ test "phase 15 architecture council review-process note stays aligned with check
     try std.testing.expect(std.mem.indexOf(u8, review_process, "## Reopen Evidence Matrix") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "## Roadmap Handoff Evidence") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "## Maintenance-Mode Handoff") != null);
-    try std.testing.expect(std.mem.indexOf(u8, review_process, "PHASE15_LANE_KEY=P15-L05") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_process, "PHASE15_LANE_KEY=P15-L06") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "current lane posture: `maintenance_mode`") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "make -C zigux phase15") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "retired_from_active_discussion") != null);
@@ -246,6 +246,7 @@ test "phase 15 architecture council review-process note stays aligned with check
     try std.testing.expect(std.mem.indexOf(u8, review_process, "decision record ID: pending_no_architecture_council_request") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "no Architecture Council approval claim") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "current ownership evidence is explicit in both the scorecard and the anchor templates") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_process, "shared review checklist now fail-closes that same no-approval posture") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "Documentation/zigux/phase15-evidence-archives/") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "narrower_followup_answers_blocker") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "evidence_packet_stale_or_contradictory") != null);
@@ -277,6 +278,8 @@ test "phase 15 architecture council review-process note stays aligned with check
     try std.testing.expect(std.mem.indexOf(u8, checklist, "trigger-specific refreshed evidence by path") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "retained discussion state, the indefinite-C policy link or explicit non-applicability note, and the reopen triggers explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "does the evidence archive cite one or more named reopen-trigger catalog items so the parked packet stays reviewable later?") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "does the no-approval posture stay explicit across `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-parity-scorecard.md`, and the reserved evidence-archive templates") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "`requested decision bucket: pending_no_request`, `decision record ID: pending_no_architecture_council_request`, and `no Architecture Council approval claim` visible until a real council decision lands?") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, docs_root, "Phase 15 notes") != null);
     try std.testing.expect(std.mem.indexOf(u8, docs_root, "Documentation/zigux/freeze-map.md") != null);
