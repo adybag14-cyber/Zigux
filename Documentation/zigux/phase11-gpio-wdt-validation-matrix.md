@@ -53,11 +53,11 @@ Without this matrix, the slice and survey named the right next step but did not 
 
 ## Latest Verification Snapshot
 
-- lane key: `P11-L01`
-- inspected `master` head: `ae87eabf15b3ac6c526e97e239754f97b3e222c0`
+- lane key: `P11-L03`
+- inspected `master` head: `f0aacb8c3c98b9c3b25c0908067a97c0db54c230`
 - focused compile replay:
-  - `zig build test --build-file build.zig --summary all` in the bounded scratch packet replayed the live `drivers/watchdog/gpio_wdt.zig` module plus `zigux/tests/phase11_gpio_wdt.zig` and `zigux/tests/phase11_gpio_wdt_survey.zig`
-  - result: `5/5` build steps succeeded and `11/11` tests passed
+  - `zig test --dep gpio_wdt -Mroot=zigux/tests/phase11_gpio_wdt.zig -Mgpio_wdt=drivers/watchdog/gpio_wdt.zig`
+  - result: `11/11` focused gpio watchdog tests passed
 - focused survey replay:
   - `zig test zigux/tests/phase11_gpio_wdt_survey.zig`
   - result: `1/1` survey tests passed
