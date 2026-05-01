@@ -437,7 +437,7 @@ pub fn stringEscapeMemAnyNp(src: []const u8, dst: []u8, only: ?[]const u8) usize
 }
 
 pub fn stringEscapeStr(src: []const u8, dst: []u8, size: usize, flags: u32, only: ?[]const u8) usize {
-    const limit = if (size == 0) dst.len else @min(size, dst.len);
+    const limit = @min(size, dst.len);
     return stringEscapeMem(cStringPrefix(src), dst[0..limit], flags, only);
 }
 
@@ -767,6 +767,18 @@ test "stringGetSize honors formatting flags and snprintf-style truncation" {
     try std.testing.expectEqualSlices(u8, &[_]u8{ '1', '.', '5', '0', 0 }, &truncated);
 
     try std.testing.expectEqual(@as(usize, 7), stringGetSize(1500, 1, STRING_UNITS_10, &.{}));
+}
+
+test "stringEscapeStr treats zero-sized destinations as length-only requests" {
+    var out = [_]u8{ '?', '?', '?', '?' };
+    const len = stringEscapeStr("A\n\x00tail", &out, 0, ESCAPE_HEX, null);
+
+    try std.testing.expectEqual(@as(usize, 8), len);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ '?', '?', '?', '?' }, &out);
+
+    const any_np_len = stringEscapeStrAnyNp("A\n\x00tail", &out, 0, null);
+    try std.testing.expectEqual(@as(usize, 3), any_np_len);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ '?', '?', '?', '?' }, &out);
 }
 
 test "parseIntArray returns a counted Linux-style integer array" {
