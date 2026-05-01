@@ -25,16 +25,20 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 
 ## Gates
 
-1. run the focused Zig Phase 6 helper tests
+1. run the shared Phase 6 validator-first handoff before helper-local replay
+- `python3 scripts/zigux/validate-phase6.py --self-test`
+- `make -C zigux phase6-validate`
+
+2. run the focused Zig Phase 6 helper tests
 - `zig build test --build-file zigux/tests/phase6_build.zig`
 
-2. keep the helper wired through the Zigux convenience target
+3. keep the helper wired through the Zigux convenience target
 - `make -C zigux phase6`
 
-3. replay the bounded perf-sanity harness when reviewing lookup-cost drift
+4. replay the bounded perf-sanity harness when reviewing lookup-cost drift
 - `make -C zigux phase6-bsearch-perf`
 
-4. replay the representative external C-vs-Zig parity spot check when portability-sensitive behavior is under review
+5. replay the representative external C-vs-Zig parity spot check when portability-sensitive behavior is under review
 - `python3 scripts/zigux/check-phase6-bsearch-c-parity.py`
 - `python3 scripts/zigux/check-phase6-bsearch-c-parity.py --self-test`
 - `zigux/tests/phase6_bsearch_c_parity.zig`
