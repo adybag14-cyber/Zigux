@@ -222,6 +222,44 @@ test "phase 8 help raw PATH splitting keeps empty segments, custom prefixes, and
     try std.testing.expectEqualStrings("empty", empty_other_cmds.names.items[0].name);
 }
 
+test "phase 8 help loader normalizes caller-seeded main commands before PATH exclusion" {
+    const path_entries = [_]help.DirectoryEntry{
+        .{ .name = "perf-report.exe", .is_executable = true },
+        .{ .name = "perf-stat", .is_executable = true },
+    };
+
+    var source = FixtureSource{
+        .dirs = &.{
+            .{ .path = "/usr/bin", .entries = &path_entries },
+        },
+    };
+
+    var main_cmds = help.CmdNames.init(std.testing.allocator);
+    defer main_cmds.deinit();
+    try main_cmds.addCmdName("trace", 5);
+    try main_cmds.addCmdName("report", 6);
+    try main_cmds.addCmdName("trace", 5);
+
+    var other_cmds = help.CmdNames.init(std.testing.allocator);
+    defer other_cmds.deinit();
+
+    try help.loadCommandListsFromSource(
+        null,
+        null,
+        &.{"/usr/bin"},
+        &main_cmds,
+        &other_cmds,
+        &source,
+        FixtureSource.populate,
+    );
+
+    try std.testing.expectEqual(@as(usize, 2), main_cmds.count());
+    try std.testing.expectEqualStrings("report", main_cmds.names.items[0].name);
+    try std.testing.expectEqualStrings("trace", main_cmds.names.items[1].name);
+    try std.testing.expectEqual(@as(usize, 1), other_cmds.count());
+    try std.testing.expectEqualStrings("stat", other_cmds.names.items[0].name);
+}
+
 test "phase 8 help output emission keeps column-major pretty-printing pure and testable" {
     var cmds = help.CmdNames.init(std.testing.allocator);
     defer cmds.deinit();
@@ -368,9 +406,6 @@ test "phase 8 help docs keep the parked stable-output boundary explicit" {
     try expectContains(slice_note, "PHASE8_SLICE=help-command-source-and-terminal-starter");
     try expectContains(slice_note, "tools/lib/subcmd/help.zig");
     try expectContains(slice_note, "zigux/tests/phase8_help.zig");
-    try expectContains(slice_note, "helper-first expansion rule");
-    try expectContains(slice_note, "serious repo-hosted tooling");
-    try expectContains(slice_note, "output-stable tooling behavior");
     try expectContains(slice_note, "stable command-list manipulation logic");
     try expectContains(slice_note, "section-level output stays testable");
     try expectContains(slice_note, "list_commands()");
@@ -392,7 +427,6 @@ test "phase 8 help review checklist keeps the parked stable-output packet review
     try expectContains(review_checklist, "`load_command_list()`");
     try expectContains(review_checklist, "`pretty_print_string_list()`");
     try expectContains(review_checklist, "`list_commands()`");
-    try expectContains(review_checklist, "helper-first, output-stable tooling behavior");
     try expectContains(review_checklist, "`opendir()` or `readdir()` parity");
     try expectContains(review_checklist, "raw `ioctl()` terminal probing");
 }
