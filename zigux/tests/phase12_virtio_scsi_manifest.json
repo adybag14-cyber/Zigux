@@ -82,7 +82,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_virtio_scsi.zig",
-      "why_now": "Dedicated driver tests now keep the starter honest around poll-queue clamping, stable global virtqueue indexes, the bounded freeze or restore contract, the host-limit summary helper that clamps cmd_per_lun, and the queue-depth summary helper that mirrors `virtscsi_change_queue_depth()` before any Scsi_Host registration work."
+      "why_now": "Dedicated driver tests now keep the starter honest around poll-queue clamping, stable global virtqueue indexes, the bounded freeze or restore contract, repeated transport-reset replanning across recovery generations, fresh recovery queue-depth and io-queue-map summaries after restore, the host-limit summary helper that clamps cmd_per_lun, and the queue-depth summary helper that mirrors `virtscsi_change_queue_depth()` before any Scsi_Host registration work."
     },
     {
       "id": "phase12-virtio-scsi-slice-note",
