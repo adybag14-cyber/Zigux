@@ -241,6 +241,7 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "packet budget bytes") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "minimum buffer length") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "headroom") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "recycled room") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-virtio-net-runtime-data-path")) {
@@ -290,4 +291,5 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
     try std.testing.expect(std.mem.indexOf(u8, driver_file, "pub fn planQueueResume") != null);
     try std.testing.expect(std.mem.indexOf(u8, driver_file, "pub fn planMergeableReceiveRefill") != null);
     try std.testing.expect(std.mem.indexOf(u8, driver_file, "pub const MergeableReceiveRefillSummary = struct") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_file, "pub const ReceiveRefillRoomPath = enum") != null);
 }
