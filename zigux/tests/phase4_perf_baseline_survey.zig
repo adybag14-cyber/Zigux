@@ -51,6 +51,13 @@ const Atomic64Manifest = struct {
     threshold_plan: Atomic64ThresholdPlan,
 };
 
+const TestFsmountManifest = struct {
+    phase: []const u8,
+    owner: []const u8,
+    rollback_owner: []const u8,
+    surveyed_commit: []const u8,
+};
+
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
         std.mem.eql(u8, status, "ready_next");
@@ -166,6 +173,27 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
     );
     try std.testing.expect(std.mem.indexOf(u8, atomic64_manifest.threshold_plan.scope, "selftest-family plus post-selftest replay set") != null);
     try std.testing.expect(std.mem.indexOf(u8, atomic64_manifest.threshold_plan.why_not_approved_yet, "correctness-only coverage") != null);
+
+    const test_fsmount_manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase4_test_fsmount_manifest.json",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(test_fsmount_manifest_json);
+    const test_fsmount_parsed = try std.json.parseFromSlice(
+        TestFsmountManifest,
+        std.testing.allocator,
+        test_fsmount_manifest_json,
+        .{ .ignore_unknown_fields = true },
+    );
+    defer test_fsmount_parsed.deinit();
+    const test_fsmount_manifest = test_fsmount_parsed.value;
+    try std.testing.expectEqualStrings("Phase 4", test_fsmount_manifest.phase);
+    try std.testing.expectEqualStrings("Validation and Perf Team", test_fsmount_manifest.owner);
+    try std.testing.expectEqualStrings("Validation and Perf Team", test_fsmount_manifest.rollback_owner);
+    try std.testing.expectEqualStrings(current_surveyed_commit, test_fsmount_manifest.surveyed_commit);
+    try std.testing.expect(isLowerHexSha(test_fsmount_manifest.surveyed_commit));
 
     const phase4_build = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
