@@ -166,6 +166,16 @@ ABI_REQUIRED_SOURCE_MARKERS = {
         "try std.testing.expect(export_shim.isCanonicalHeader(header));",
         "try std.testing.expect(uapi_version.isCanonical(header));",
     ),
+    "zigux/tests/phase3_export_uapi_build.zig": (
+        '.root_source_file = b.path("../kernel/export_shim.zig"),',
+        '.root_source_file = b.path("../uapi/version.zig"),',
+        'uapi_version_module.addImport("abi_bindings", abi_bindings_module);',
+        'export_shim_module.addImport("uapi_version", uapi_version_module);',
+        '.root_source_file = b.path("phase3_export_uapi.zig"),',
+        'root_module.addImport("export_shim", export_shim_module);',
+        'root_module.addImport("uapi_version", uapi_version_module);',
+        'const test_step = b.step("phase3-export-uapi-test", "Run Phase 3 export shim and uapi smoke tests");',
+    ),
     "zigux/tests/phase3_low_level_wrappers.zig": (
         'test "phase3 low-level wrappers stay inside the documented ABI surface"',
         "atomic.fetchSub(u32, &value, 4, .seq_cst)",
