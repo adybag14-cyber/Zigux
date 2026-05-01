@@ -84,6 +84,7 @@ The current runtime pilot surface already exposes reviewable loader inputs:
 - the atomic64 and bitmap loaders keep staged `zigux_runtime_*_init` and `zigux_runtime_*_exit` symbol names reviewable without claiming a live `module_init()` or `module_exit()` path, while the kretprobe loader keeps `register_kretprobe` and `unregister_kretprobe` as metadata-only labels instead of a live registration path
 - the landed loader-plan trio still builds its shipped shared requests with `command_name = null`; the only non-null command-name evidence in this family is the synthetic `perf-runtime-kretprobe` preservation check in `samples/zigux/runtime_kretprobe_loader.zig`, so this packet still records a field contract rather than a live runtime command surface
 - the landed kretprobe starter still keeps the current symbol surface bounded to `default_symbol_name = "kernel_clone"` plus pre-init retargeting, and the shared Phase 9 runtime packet still carries no `CONFIG_`, `Kconfig`, `EXPORT_SYMBOL`, or `symbol export` markers anywhere in this evidence family
+- the shared loader-gap manifest also keeps the blocked module-metadata and depmod-publication boundary explicit: `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, and `scripts/depmod.sh` stay named only as blocked boundary surfaces until a real depmod bridge exists, so this packet does not imply published module catalog parity from the current starter evidence
 - `zigux/helpers/allocator_policy.zig` already records the explicit caller-vs-fallback allocator posture that a future runtime loader must consume rather than bypass
 
 What is now landed is the smallest shared consumer contract:
@@ -116,6 +117,7 @@ What is still missing is actual runtime execution behavior:
 - `tools/lib/subcmd/help.zig` owns the live Phase 8 terminal-cue surfaces through `LINES`, `COLUMNS`, and the pretty-print terminal layout helpers
 - no path here claims module registration parity, live init invocation, or live exit teardown
 - no live `module_init()`, `module_exit()`, `register_kretprobe()`, or `unregister_kretprobe()` path is being claimed anywhere in this shared loader-gap packet
+- no path here claims `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, or `scripts/depmod.sh` parity while the depmod bridge remains absent
 - no path here claims workqueue parity, scheduler-facing runtime transport ownership, or a freeze-map status change for `kernel/workqueue.c` without an explicit Architecture Council decision
 
 That means the current runtime surface is now a bounded shared request contract, not a real loadable runtime path.
@@ -129,6 +131,8 @@ The roadmap boundary matters here:
 - `Phase 9` is the first runtime-module phase, so this survey is recorded there even though the scheduled lane key is `P6-L01`
 
 That same roadmap split also keeps earlier config and export ownership explicit. `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig` stay in the Phase 2 config-surface bridge packet, while `rust/exports.c` and `zigux/kernel/export_shim.zig` stay in the Phase 3 export-boundary packet. This Phase 9 survey records those files only as boundary references instead of Phase 9 runtime evidence.
+
+That same boundary discipline also keeps module metadata and depmod publication explicit. `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, and `scripts/depmod.sh` remain blocked boundary references in `zigux/tests/runtime_loader_gap_manifest.json` until a real depmod bridge exists, so this Phase 9 packet does not claim alias publication or module catalog output.
 
 This slice therefore stays deliberately pre-execution. It does not claim runtime scheduling, polling, or event-loop implementation and it does not move runtime allocator or init-flow ownership into Phase 6.
 It also stays underneath the freeze-map study boundary for `kernel/workqueue.c`, so the shared loader packet must keep workqueue parity and any scheduler-core status change blocked until the Architecture Council explicitly reopens that anchor with fresh evidence.
