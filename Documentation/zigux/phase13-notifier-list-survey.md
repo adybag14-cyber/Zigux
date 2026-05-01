@@ -7,6 +7,7 @@ The Phase 13 roadmap names `fs/libfs.c`, `lib/devres.c`, and the Landlock slices
 Current repo state on `master`:
 
 - last inspected current-master commit: `66b55d8a9a800345097f3c04b9f95130b1f8d0b8`
+- lane key: `P13-L17`
 - `zigux/bindings/abi.zig` already exposes `ListHeadRef` and `HListHeadRef`, so list-shaped interop has a reusable ABI foothold
 - `zigux/helpers/list_view.zig` and `zigux/helpers/hlist_view.zig` already summarize bounded `list_head` and `hlist_head` traversal without touching live mutation
 - `zigux/tests/build.zig` already replays those list helpers under the Phase 3 helper bundle
@@ -22,6 +23,7 @@ Current repo state on `master`:
 Why this matters for Phase 13:
 
 - the roadmap treats Phase 13 as the shared helper tranche, but its named anchors are still `libfs`, `devres`, and Landlock, so notifier/list evidence belongs here only as a bounded helper-first interop note
+- the explicit `P13-L17` lane marker keeps this existing reviewability packet from silently drifting across adjacent notifier evidence lanes when later runs only refresh head pins or upstream anchor evidence
 - the current list side is reusable enough to survey today, and there is now concrete driver-local evidence that notifier callbacks can coexist with `list_head` linkage without yet implying a shared helper contract
 - the generic header anchor narrows the remaining gap: upstream C already exposes a reusable `notifier_block` contract, but Zigux still lacks the tiny read-only ABI and helper surfaces that would make that contract reviewable on the Zig side
 - the field-level notifier layout anchor makes that remaining gap sharper: the missing Zigux ABI is no longer just about naming the contract, but about mirroring a specific read-only chain shape without over-claiming registration or execution semantics
