@@ -43,6 +43,17 @@ pub fn compareExchange(
     return @cmpxchgStrong(T, ptr, expected_value, new_value, success_order, failure_order);
 }
 
+pub fn compareExchangeWeak(
+    comptime T: type,
+    ptr: *T,
+    expected_value: T,
+    new_value: T,
+    comptime success_order: std.builtin.AtomicOrder,
+    comptime failure_order: std.builtin.AtomicOrder,
+) ?T {
+    return @cmpxchgWeak(T, ptr, expected_value, new_value, success_order, failure_order);
+}
+
 test "phase3 atomic wrappers behave predictably" {
     var value: u32 = 1;
     try std.testing.expectEqual(@as(u32, 1), load(u32, &value, .seq_cst));
@@ -61,13 +72,17 @@ test "phase3 atomic wrappers behave predictably" {
     try std.testing.expectEqual(@as(u32, 3), fetchXor(u32, &value, 0b1111, .seq_cst));
     try std.testing.expectEqual(@as(u32, 12), value);
 
-    try std.testing.expectEqual(
-        @as(?u32, null),
-        compareExchange(u32, &value, 12, 15, .seq_cst, .seq_cst),
-    );
+    try std.testing.expectEqual(@as(?u32, null), compareExchange(u32, &value, 12, 15, .seq_cst, .seq_cst));
     try std.testing.expectEqual(@as(u32, 15), value);
 
     const mismatch = compareExchange(u32, &value, 9, 19, .seq_cst, .seq_cst);
     try std.testing.expectEqual(@as(?u32, 15), mismatch);
     try std.testing.expectEqual(@as(u32, 15), value);
+
+    try std.testing.expectEqual(@as(?u32, null), compareExchangeWeak(u32, &value, 15, 23, .seq_cst, .seq_cst));
+    try std.testing.expectEqual(@as(u32, 23), value);
+
+    const weak_mismatch = compareExchangeWeak(u32, &value, 15, 27, .seq_cst, .seq_cst);
+    try std.testing.expectEqual(@as(?u32, 23), weak_mismatch);
+    try std.testing.expectEqual(@as(u32, 23), value);
 }
