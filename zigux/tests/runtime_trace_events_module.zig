@@ -20,8 +20,14 @@ test "runtime trace-events sample enforces lifecycle transitions and bounded eve
     try std.testing.expectEqual(@as(usize, 0), cold_summary.fn_thread_events);
     try std.testing.expectEqual(@as(usize, 0), cold_summary.total_events);
     try std.testing.expectEqual(@as(usize, 0), cold_summary.registration_depth);
+    try std.testing.expectEqual(@as(usize, 0), cold_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), cold_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), cold_summary.exit_runs);
     try std.testing.expectEqual(@as(i32, -1), cold_summary.last_main_count);
     try std.testing.expectEqual(@as(i32, -1), cold_summary.last_fn_count);
+    try std.testing.expect(!cold_summary.saw_vararg_payload);
+    try std.testing.expect(!cold_summary.saw_rel_loc_payload);
+    try std.testing.expect(!cold_summary.saw_conditional_path);
     try std.testing.expectEqual(@as(?[]const u8, null), cold_summary.last_main_foo_bar_message);
     try std.testing.expectEqual(@as(?[]const u8, null), cold_summary.last_main_random_choice_message);
     try std.testing.expectEqual(@as(?usize, null), cold_summary.last_main_vararg_array_length);
@@ -44,9 +50,14 @@ test "runtime trace-events sample enforces lifecycle transitions and bounded eve
     const initialized_summary = module.summary();
     try std.testing.expectEqual(sample.ModuleStage.initialized, initialized_summary.stage);
     try std.testing.expectEqual(@as(usize, 1), initialized_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_summary.exit_runs);
     try std.testing.expectEqual(@as(usize, 0), initialized_summary.main_thread_events);
     try std.testing.expectEqual(@as(usize, 0), initialized_summary.fn_thread_events);
     try std.testing.expectEqual(@as(usize, 0), initialized_summary.total_events);
+    try std.testing.expect(!initialized_summary.saw_vararg_payload);
+    try std.testing.expect(!initialized_summary.saw_rel_loc_payload);
+    try std.testing.expect(!initialized_summary.saw_conditional_path);
 
     const main_events = try module.emitMainIteration(7);
     try std.testing.expectEqual(@as(usize, 6), main_events);
