@@ -19,6 +19,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase10-virtio-core-survey.md",
     "Documentation/zigux/phase10-virtio-ring-survey.md",
     "Documentation/zigux/phase10-virtio-input-survey.md",
+    "Documentation/zigux/phase10-virtio-mmio-slice.md",
     "Documentation/zigux/phase10-virtio-mmio-survey.md",
     "scripts/zigux/check-phase10-closure-inventory.py",
     "zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
@@ -31,6 +32,7 @@ REQUIRED_FILES = [
     "zigux/tests/phase10_virtio_ring_survey.zig",
     "zigux/tests/phase10_virtio_input_survey.zig",
     "zigux/tests/phase10_virtio_mmio.zig",
+    "zigux/tests/phase10_virtio_mmio_manifest.json",
     "zigux/tests/phase10_virtio_mmio_survey.zig",
 ]
 
@@ -588,6 +590,24 @@ def run_self_test() -> int:
         )
         write_fixture(fixture_root)
 
+        mmio_slice_path = fixture_root / "Documentation/zigux/phase10-virtio-mmio-slice.md"
+        mmio_slice_path.unlink()
+        expect_missing_file(
+            "mmio_slice_required_file",
+            fixture_root,
+            "Documentation/zigux/phase10-virtio-mmio-slice.md",
+        )
+        write_fixture(fixture_root)
+
+        mmio_manifest_path = fixture_root / "zigux/tests/phase10_virtio_mmio_manifest.json"
+        mmio_manifest_path.unlink()
+        expect_missing_file(
+            "mmio_manifest_required_file",
+            fixture_root,
+            "zigux/tests/phase10_virtio_mmio_manifest.json",
+        )
+        write_fixture(fixture_root)
+
         input_path = fixture_root / "zigux/tests/phase10_virtio_input_survey.zig"
         original_input = input_path.read_text(encoding="utf-8")
         input_path.write_text(
@@ -777,7 +797,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=16")
+    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=18")
     return 0
 
 
