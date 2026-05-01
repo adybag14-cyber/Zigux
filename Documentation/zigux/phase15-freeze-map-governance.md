@@ -4,11 +4,11 @@ This document records the bounded Phase 15 governance lane around `Documentation
 
 ## Status
 
-- `PHASE15_LANE_KEY=P15-L03`
+- `PHASE15_LANE_KEY=P15-L01`
 - `PHASE15_STATUS=governance_slice_landed`
 - `PHASE15_SLICE=freeze-map-governance-enforcement-refresh`
 - scope: the live freeze map, the existing dedicated Phase 15 manifest and test gate, and one bounded maintenance follow-up that keeps the root freeze-map note aligned with the already-landed parity-scorecard, review-process, indefinite-C policy, retained stay-in-C closeout, current blocker posture, and the real current enforcement state on `master`
-- survey provenance refreshed against verified `master` head `a5fdfc2f82f52a4babccc9dca60e8b1ba6228b59`
+- survey provenance refreshed against verified `master` head `d05c46833225bb5445f5e186d57360a61011de21`
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/phase15-freeze-map-governance.md`
@@ -98,7 +98,7 @@ This slice does not claim:
 
 ## Current enforcement evidence
 
-- verified remote `master` head for this check: `a5fdfc2f82f52a4babccc9dca60e8b1ba6228b59`
+- verified remote `master` head for this check: `d05c46833225bb5445f5e186d57360a61011de21`
 - the root policy is present and explicit in `Documentation/zigux/freeze-map.md`, including the freeze-in-C list, study-only list, Architecture Council requirement, parity-scorecard requirement, retained stay-in-C closeout state, reopen-trigger language, and the no-silent-exception rule
 - the review hook is present in `Documentation/zigux/review-checklist.md`, which now asks whether freeze-map anchors carry parity-scorecard evidence or blocker state, decision-record links, retained-discussion state, reopen triggers, and an explicit current lane owner for blocked evidence packets
 - the shared review checklist now carries a dedicated freeze-map governance-packet drift gate, so edits to `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, or `Documentation/zigux/phase15-parity-scorecard.md` must keep the automatic return-to-blocked trigger, retained discussion state, reopen triggers, and the current maintenance-mode handoff aligned
