@@ -285,6 +285,24 @@ test "kobject sample replay keeps the anchor reviewable and non-runtime" {
     try std.testing.expectEqualSlices(SampleFocus, &expected_focus, replay.checked_focus);
 }
 
+test "kobject sample keeps shared dispatch and parse failures explicit" {
+    var sample = KobjectExampleSample{};
+    try sample.init();
+    try sample.registerAttributes();
+
+    try std.testing.expectEqual(@as(usize, 2), try sample.storeValue("baz", "9\n"));
+    try std.testing.expectEqual(@as(usize, 3), try sample.storeValue("bar", "10\n"));
+    const baz_value = try sample.showValue("baz");
+    const bar_value = try sample.showValue("bar");
+    try std.testing.expectEqualStrings("baz", baz_value.attr_name);
+    try std.testing.expectEqualStrings("bar", bar_value.attr_name);
+    try std.testing.expectEqualStrings("9\n", baz_value.text[0..baz_value.len]);
+    try std.testing.expectEqualStrings("10\n", bar_value.text[0..bar_value.len]);
+    try std.testing.expectError(error.InvalidInteger, sample.storeValue("foo", "abc\n"));
+    try std.testing.expectError(error.UnknownAttribute, sample.storeValue("qux", "1\n"));
+    try std.testing.expectError(error.UnknownAttribute, sample.showValue("qux"));
+}
+
 test "kobject sample teardown keeps ownership boundaries explicit" {
     var initialized_sample = KobjectExampleSample{};
     try initialized_sample.init();
