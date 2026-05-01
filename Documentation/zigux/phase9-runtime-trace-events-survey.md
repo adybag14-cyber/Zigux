@@ -7,7 +7,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `sam
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-trace-events-survey`
 - `PHASE9_LANE_KEY=P9-L12`
-- `PHASE9_SURVEYED_COMMIT=5479b799a33cb071c449ff6cb4345ac8f4a3186f`
+- `PHASE9_SURVEYED_COMMIT=17ebcd4ca4ab5c9cf126042ab8997b2de79a7c66`
 - scope: survey manifest, starter sample, dedicated module and survey gates, shared Phase 9 build wiring, and the lane-level review note that now tracks the landed starter plus its shipped selftest hook, lifecycle parity evidence, and machine-checkable diagnostics summary with explicit per-thread event totals plus explicit replay run counters without claiming loadable-module parity
 - product boundary:
   - `samples/zigux/runtime_trace_events.zig`
@@ -33,15 +33,16 @@ No parity scorecard entry or Architecture Council status-change request is attac
 ## Survey findings
 
 - `samples/trace_events/trace-events-sample.c` is present on `master` at 153 lines.
-- the current survey packet is pinned to `master` commit `5479b799a33cb071c449ff6cb4345ac8f4a3186f`.
+- the current survey packet is pinned to `master` commit `17ebcd4ca4ab5c9cf126042ab8997b2de79a7c66`.
 - `samples/trace_events/trace-events-sample.h` is present on `master` at 640 lines.
 - the manifest-backed review packet now keeps `samples/trace_events/trace-events-sample.h` explicit as a header-side macro boundary with a 640-line surveyed boundary, so the active trace-events lane can point at the real header surface without turning it into a generated tracepoint macro parity claim.
 - the Linux ftrace selftests already reference `trace-events-sample` as a modprobe and event-enabling target in at least two places.
 - the repo had zero `zigux/tests/runtime_trace_events*` files before this survey landed.
 - the repo now carries `samples/zigux/runtime_trace_events.zig`, `zigux/tests/runtime_trace_events_module.zig`, `zigux/tests/runtime_trace_events_diff.zig`, the survey manifest and gate, and shared `zigux/tests/phase9_build.zig` coverage for the trace-events starter lane.
 - the current bounded starter now records concrete main-thread payload literals for `foo_bar`, template, conditional, template-print, and relative-location replay paths, plus explicit function-callback payload labels and the exported `iter=%d` format template.
-- the current bounded starter also exposes a stable `RuntimeTraceEventsSummary` view for stage, registration depth, iteration counts, explicit main-thread and function-thread event totals, `init_runs`, `selftest_runs`, and `exit_runs`, payload-presence flags, and the latest bounded main-thread and function-thread payload literals so logging diagnostics stay machine-checkable.
+- the current bounded starter also exposes a stable `RuntimeTraceEventsSummary` view for stage, registration depth, iteration counts, explicit main-thread and function-thread event totals, explicit `foo_bar_reg` and `foo_bar_unreg` registration labels, `init_runs`, `selftest_runs`, and `exit_runs`, payload-presence flags, and the latest bounded main-thread and function-thread payload literals so logging diagnostics stay machine-checkable.
 - the main-thread replay now also keeps the Linux sample's `count % 5` array-shape replay explicit through the summary surface by recording the bounded vararg array length and its zero terminator alongside the selected random string.
+- the current replay contract now keeps the count-gated conditional paths explicit too: direct `emitMainIteration(7)` leaves both conditional messages absent, while the count-zero selftest path still records both conditional families and the later mixed replay keeps the combined `10` main-thread, `4` function-thread, and `14` total-event summary counts machine-checkable after direct pilot activity.
 - the starter now makes the roadmap's shipped selftest hook explicit through `provides_selftest_hook = true` on the bounded descriptor surface.
 - the focused module, sample, and diff gates now prove the bounded replay counts, explicit per-thread event totals, replay run counters, payload literals, and failed-exit rollback proof through the summary surface, so the stable diagnostics view stays aligned with the concrete Linux-sample replay paths instead of drifting behind raw field access.
 - the manifest-backed review packet now also records an explicit sample path, the shared Phase 9 validation entrypoint, review prompts, a delivery_evidence_catalog, an ownership_map, exact checks, and non-goals so reviewers can tell which parts of the starter, paired module-slice note, and freeze-boundary packet are shipped contract versus still-blocked runtime substrate.
@@ -55,7 +56,7 @@ No parity scorecard entry or Architecture Council status-change request is attac
 The manifest-backed delivery packet now names which surface owns each part of the shipped Phase 9 trace-events review bundle:
 
 - `samples/zigux/runtime_trace_events.zig` owns the bounded trace-events starter descriptor, lifecycle surface, diagnostics summary, and shipped selftest hook
-- `zigux/tests/runtime_trace_events_module.zig` owns the dedicated lifecycle, summary-surface, and failed-exit rollback checks for the starter
+- `zigux/tests/runtime_trace_events_module.zig` owns the dedicated lifecycle, summary-surface, registration-label, conditional-replay, and failed-exit rollback checks for the starter
 - `zigux/tests/runtime_trace_events_diff.zig` owns the bounded payload and function-callback replay checks against the Linux sample anchor
 - `zigux/tests/runtime_trace_events_survey.zig` owns the machine-checkable replay of the manifest, review prompts, exact checks, loader-free blocker, and freeze-map boundary
 - `zigux/tests/runtime_trace_events_manifest.json` owns the manifest-backed delivery catalog, ownership map, exact checks, and non-goal packet for this slice
