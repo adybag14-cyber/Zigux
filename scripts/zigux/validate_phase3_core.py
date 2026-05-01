@@ -186,6 +186,8 @@ ABI_REQUIRED_SOURCE_MARKERS = {
         "allocator_policy.requiresResetOnInitPolicyByte(@intFromEnum(abi.AllocatorMode.arena))",
         'test "phase3 policy decoder validates the whole interop record"',
         'test "phase3 policy decoder rejects partial or reserved policy bytes"',
+        "try std.testing.expectError(error.InvalidPanicMode, interop_policy.decode(.{",
+        "try std.testing.expectError(error.InvalidAllocatorMode, interop_policy.decode(.{",
         'test "phase3 policy gate decodes interop-policy unsafe bytes explicitly"',
         "const invalid_scope_policy = abi.InteropPolicy{",
         "const reserved_policy = abi.InteropPolicy{",
