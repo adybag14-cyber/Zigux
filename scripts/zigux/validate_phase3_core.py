@@ -49,6 +49,8 @@ ABI_REQUIRED_MANIFEST_FILES = (
     "zigux/tests/phase3_abi_dump.zig",
     "zigux/tests/fixtures/phase3_abi/expected.json",
     "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c",
+    "zigux/tests/fixtures/phase3_abi_manifest.json",
+    "scripts/zigux/validate-phase3.py",
     "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md",
