@@ -7,7 +7,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `lib
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-bitmap-survey`
 - `PHASE9_LANE_KEY=P9-L08`
-- `PHASE9_SURVEYED_COMMIT=0ce4ac9c92aaa08d8678e2060dc8f1a22e287a85`
+- `PHASE9_SURVEYED_COMMIT=f15b316029bc067aacb393be773744950fcb7486`
 - scope: survey manifest, manifest-backed delivery catalog and ownership map, dedicated runtime survey gate, direct `phase9-runtime-bitmap-sample-tests` and `phase9-runtime-bitmap-loader-tests` shared-build legs, landed sample-backed module starter, landed module gate, landed diff gate, landed loader scaffold, landed shared loader-request binding, and the lane-level review note that keeps the remaining broader runtime-control blocker explicit without claiming loadable-module parity
 - product boundary:
   - `samples/zigux/runtime_bitmap.zig`
@@ -35,7 +35,7 @@ No parity scorecard entry or Architecture Council status-change request is attac
 ## Survey findings
 
 - `lib/test_bitmap.c` is present on `master` at 1567 lines.
-- the current survey packet is pinned to `master` commit `0ce4ac9c92aaa08d8678e2060dc8f1a22e287a85`.
+- the current survey packet is pinned to `master` commit `f15b316029bc067aacb393be773744950fcb7486`.
 - the live Phase 9 bitmap lane already carried dedicated runtime bitmap test files before this survey note landed.
 - the live Phase 9 bitmap lane already carried a sample-backed runtime bitmap starter under `samples/zigux/`.
 - the live repo already carried shared `zigux/tests/phase9_build.zig` wiring and a bitmap module-slice note before this survey note landed.
@@ -99,6 +99,7 @@ The manifest-backed ownership packet for this slice now keeps the current delive
 - `samples/zigux/runtime_bitmap_loader.zig` owns the sample-side loader projection, `waiting_on_runtime_substrate` handoff, `released_without_substrate` fallback, explicit shared command-name preservation, and bitmap payload summary
 - `zigux/kernel/runtime_loader.zig` owns the shared runtime-loader request contract that consumes the bitmap loader handoff, allocator posture, staged entry and exit symbols, and explicit command-name preservation
 - `Documentation/zigux/phase9-runtime-loader-gap-survey.md` owns the still-blocked shared command-name, argv-policy, and environment-derived activation-control posture that keeps this bitmap packet pre-execution
+- `Documentation/zigux/freeze-map.md` owns the study-only `kernel/workqueue.c` boundary and the Architecture Council reopen rule that keep this bitmap packet out of scheduler-facing parity claims
 
 ## Contributor refresh prompts
 
