@@ -72,6 +72,9 @@ SCRIPT_README_MARKERS = [
     "memory-ordering mistakes",
     "overpromising full parity",
     "deep-core scope creep",
+    "rollback threshold",
+    "fallback path",
+    "automatic return-to-blocked trigger catalog",
     "four-anchor boundary map",
     "bounded concurrency-audit scope",
 ]
@@ -105,6 +108,7 @@ RELEASE_MARKERS = [
 ]
 
 CHECKLIST_MARKERS = [
+    "is there a stated rollback owner and fallback path?",
     "if the change touches the shared Phase 14 smoke packet, do `scripts/zigux/validate-phase14.py`, `scripts/zigux/README.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `zigux/tests/phase14_end_to_end_smoke_survey.zig`, `zigux/tests/phase14_build.zig`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/freeze-map.md`, and the four Phase 14 anchor-local manifests plus survey notes still agree on the same exact validator-backed smoke commands, the same focused `phase14-smoke` shard commands, ready-next versus blocked posture, stay-in-C boundary, named owner, validation gate, rollback owner, rollback threshold, automatic return-to-blocked trigger catalog, roadmap risk bundle (`hidden runtime behavior`, `memory-ordering mistakes`, `overpromising full parity`, `deep-core scope creep`), and explicit ZAR-to-product transfer rationale?",
     "if the change touches the shared Phase 14 smoke packet, do the same shared smoke note, scripts index, and manifest-backed survey summary still keep the current four-anchor boundary map and bounded concurrency-audit scope explicit instead of leaving that roadmap evidence implicit behind the anchor list?",
 ]
@@ -241,15 +245,21 @@ required_summary_keys = [
     "review_checklist_has_productization_prompt",
     "review_checklist_has_risk_bundle_prompt",
     "review_checklist_has_rollback_threshold_prompt",
+    "review_checklist_has_fallback_path_prompt",
+    "review_checklist_has_return_to_blocked_trigger_prompt",
     "review_checklist_has_boundary_map_prompt",
     "review_checklist_has_concurrency_audit_prompt",
     "smoke_note_records_owner_and_rollback",
     "smoke_note_records_risk_bundle",
     "smoke_note_records_rollback_threshold",
+    "smoke_note_records_fallback_path",
+    "smoke_note_records_return_to_blocked_triggers",
     "smoke_note_records_transfer_rationale",
     "smoke_note_records_boundary_map",
     "smoke_note_records_concurrency_audit_scope",
     "scripts_readme_records_rollback_threshold",
+    "scripts_readme_records_fallback_path",
+    "scripts_readme_records_return_to_blocked_triggers",
     "scripts_readme_records_boundary_map",
     "scripts_readme_records_concurrency_audit_scope",
     "freeze_map_lists_workqueue_c",
