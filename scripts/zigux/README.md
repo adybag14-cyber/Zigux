@@ -22,6 +22,7 @@ Current bootstrap helpers
 - `validate-phase2-closure.py`
 - `validate-phase3.py`
 - `validate-phase4.py`
+- `check-phase4-gate-evidence.py`
 - `validate-phase5.py`
 - `validate-phase6.py`
 - `validate-phase7.py`
