@@ -21,8 +21,8 @@ This note records the current atomic, barrier, and MMIO boundary for the bounded
 - `PHASE3_LOW_LEVEL_BUILD_BLOB_SHA=26de15d04505e0d345e874c538044200507ab8c2`
 - `PHASE3_LOW_LEVEL_TEST_PATH=zigux/tests/phase3_low_level_wrappers.zig`
 - `PHASE3_LOW_LEVEL_TEST_BLOB_SHA=b990d35805103cd0dcaa58661d8aef55d88be4a7`
-- `PHASE3_ABI_SLICE_DOC_BLOB_SHA=3fd88b4a1685d5d3207debc72634c993fd9e16ce`
-- `PHASE3_ABI_MANIFEST_BLOB_SHA=f6716ac6e498c0bfd9264ab93b37db96d2e27c93`
+- `PHASE3_ABI_SLICE_DOC_BLOB_SHA=91d40c2a6c02249fc0d0734368389cb4be4502d7`
+- `PHASE3_ABI_MANIFEST_BLOB_SHA=57faa49007c0d1b44cc4dd4169fb2b31ed57bb43`
 - `PHASE3_LOW_LEVEL_GATE=zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`
 - `PHASE3_BOUNDARY_GAP=no-64-bit-mmio-or-broader-kernel-style-atomic-and-barrier-family-is-shipped-yet`
 - `PHASE3_NEXT_BOUNDED_STEP=keep-the-low-level-wrapper-packet-narrow-until-one-roadmap-backed-boundary-slice-needs-one-more-explicit-helper`
@@ -38,6 +38,8 @@ For this lane, the roadmap requirements are:
 - approved MMIO wrappers
 - explicit narrow-unsafe review instead of hidden raw-pointer expansion
 
+In other words, this packet is the roadmap's approved atomic, barrier, and MMIO wrappers surface.
+
 That does not require a broad kernel-style low-level helper family yet.
 It does require the live repo to say clearly which low-level wrappers are already part of the permanent boundary and which wider helper families are still intentionally deferred.
 
@@ -51,7 +53,8 @@ The current tree already carries a real bounded low-level wrapper packet:
 - `zigux/helpers/barrier.zig` currently limits the approved barrier surface to `acquire`, `release`, and `full`, each expressed through a throwaway ordered atomic probe so the helper does not keep hidden shared state.
 - `zigux/helpers/mmio.zig` currently limits the approved MMIO surface to `range`, `read8`, `read16`, `read32`, `write8`, `write16`, and `write32`, plus the scoped `read8`, `write8`, `read16`, `write16`, `read32`, and `write32` entry points that keep volatile pointer formation routed back through the declared narrow unsafe layer.
 - `zigux/tests/phase3_low_level_wrappers_build.zig` and `zigux/tests/phase3_low_level_wrappers.zig` keep that packet reviewable on one focused compile-and-test path.
-- `zigux/tests/phase3_low_level_wrappers.zig` now keeps the compare-exchange mismatch replay, barrier probe, denied-scope checks, width-specific scoped MMIO coverage, misalignment failures, overflow failures, and the shared `MmioRange` layout assertion reviewable without having to infer them from the broader `phase3_abi` bundle alone.
+- `zigux/tests/phase3_low_level_wrappers.zig` now keeps the compare-exchange mismatch replay, barrier probe, denied-scope checks, width-specific scoped MMIO coverage, misalignment failures, and overflow failures reviewable on one focused path.
+- that same focused replay also keeps the shared `MmioRange` layout assertion reviewable without having to infer it from the broader `phase3_abi` bundle alone.
 
 This is real roadmap-backed progress.
 It is also still a deliberately narrow packet:
@@ -59,6 +62,8 @@ It is also still a deliberately narrow packet:
 - no 64-bit MMIO helpers are shipped in the current packet
 - no relaxed-order barrier variants are shipped in the current packet
 - no broader kernel-style atomic helper family is shipped in the current packet
+
+no 64-bit MMIO helpers, relaxed-order barrier variants, or a broader kernel-style atomic helper family are shipped in the current packet.
 
 ## Ledger Alignment
 
