@@ -347,7 +347,7 @@ def run_self_test() -> None:
         )
 
     print('PHASE2_GENKSYMS_BRIDGE_SELF_TEST=pass')
-    print('PHASE2_GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=5')
+    print('PHASE2_GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=26')
 
 
 def main() -> int:
