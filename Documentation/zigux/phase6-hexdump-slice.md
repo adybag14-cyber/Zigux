@@ -69,6 +69,7 @@ The current tests check:
 - shared normalization ownership stays in `zigux/tests/fixtures/phase6_hexdump_vectors.zig`, where `normalizedRowsize()`, `normalizedGroupsizeForLen()`, and `prepareExpectedLine(...)` keep the parity, overflow, required-length, and perf replays on one committed corpus path
 - empty-buffer required-length behavior for normalized fallback paths
 - truncation behavior while still reporting the full required line length
+- exact `required + 1` caller-buffer coverage for the non-truncating formatter path, keeping the grouped plain and grouped ASCII fast path aligned with the same fixture output and NUL-termination contract as the roomy replay
 - a replayable perf-sanity harness reports representative dump cost per call and per byte for plain, grouped, and ASCII formatter paths through the shared `zigux/tests/fixtures/phase6_hexdump_vectors.zig` perf-case table, including the native-endian 4-byte grouped ASCII branch
 - the same perf harness now measures helper output against the committed `fixtures.prepareExpectedLine(...)` reference path, keeping `16B-plain` at `max_slowdown_pct = 175` while the grouped ASCII `32B-ascii-g2` and `16B-ascii-g4` replays use `max_slowdown_pct = 550`
 
