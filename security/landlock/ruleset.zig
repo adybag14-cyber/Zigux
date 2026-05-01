@@ -227,16 +227,27 @@ pub const RulesetHelperLab = struct {
         return plan;
     }
 
-    pub fn unmaskLayers(rule_layers: []const Layer, masks: *[max_num_layers]u32) !bool {
+    fn validateOrderedLayers(rule_layers: []const Layer) !void {
         if (rule_layers.len == 0) {
-            return false;
+            return error.MissingLayers;
         }
 
+        var previous_level: u16 = 0;
         for (rule_layers) |layer| {
             if (layer.level == 0 or layer.level > max_num_layers) {
                 return error.InvalidLayer;
             }
+            if (layer.level <= previous_level) {
+                return error.InvalidLayerShape;
+            }
+            previous_level = layer.level;
+        }
+    }
 
+    pub fn unmaskLayers(rule_layers: []const Layer, masks: *[max_num_layers]u32) !bool {
+        try validateOrderedLayers(rule_layers);
+
+        for (rule_layers) |layer| {
             const layer_index = layer.level - 1;
             masks[layer_index] &= ~layer.access;
         }
