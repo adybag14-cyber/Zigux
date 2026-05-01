@@ -203,6 +203,8 @@ MARKER_GROUPS = {
             "PHASE1_PARITY_SELF_TEST_GATE=python3 scripts/zigux/check-phase1-parity.py --self-test",
             "PHASE1_BITMAP_ZERO_BIT_UNIT_REVIEW=",
             "PHASE1_FIND_BIT_ALIAS_UNIT_REVIEW=",
+            "PHASE1_FIND_BIT_MASK_UNIT_REVIEW=find_bit mask and sizing helpers keep Linux-style whole-word, partial-word, and wrapped-start boundaries reviewable without relying only on indirect scan coverage",
+            "PHASE1_FIND_BIT_BOUNDARY_UNIT_REVIEW=find_bit empty and out-of-range scans return nbits for zero-length bitmaps, start-at-nbits searches, and fully set zero-bit windows that must not report past the declared range",
             "PHASE1_FIND_BIT_LOW_LEVEL_UNIT_REVIEW=find_bit low-level underscore entry points preserve same-word inclusive starts and tail-clamped set, shared-bit, and zero-bit scan behavior across the same caller-selected bit windows as the public helpers",
             'find_bit small-bitmap unit-test anchor: `tools/lib/find_bit.zig:test "single-word scans keep linux small-bitmap semantics"`',
             "PHASE1_STRING_ALIAS_UNIT_REVIEW=string trimSpaces and strim trim trailing whitespace before the first embedded NUL while preserving bytes beyond that terminator",
@@ -337,6 +339,7 @@ MARKER_GROUPS = {
             "pub fn find_first_bit(addr: []const Word, nbits: usize) usize {",
             'test "find next bit skips earlier matches in the same word"',
             'test "find next and bit skips earlier shared matches in the same word"',
+            'test "word helpers keep linux-style mask and sizing boundaries"',
             'test "empty and boundary scans return nbits"',
             'test "find underscore aliases preserve scan semantics"',
             'test "single-word scans keep linux small-bitmap semantics"',
@@ -360,6 +363,10 @@ MARKER_GROUPS = {
             '"find_bit.tail_and_mixed_next"',
             '"alias_unit_test_anchor"',
             '"alias_unit_test_contract"',
+            '"mask_unit_test_anchor"',
+            '"mask_unit_test_contract"',
+            '"boundary_unit_test_anchor"',
+            '"boundary_unit_test_contract"',
             '"low_level_unit_test_anchor"',
             '"low_level_unit_test_contract"',
             '"small_bitmap_unit_test_anchor"',
@@ -550,6 +557,14 @@ def validate_manifest_shape() -> list[str]:
                 issues.append("phase1_manifest:tools/lib/find_bit.zig:alias_unit_test_anchor:mismatch")
             if find_bit_note.get("alias_unit_test_contract") != "Direct Zig unit coverage keeps find_first_bit(), find_first_and_bit(), find_first_zero_bit(), find_next_bit(), find_next_and_bit(), and find_next_zero_bit() aligned with the camelCase scan helpers across the same caller-selected bit windows and tail clamps.":
                 issues.append("phase1_manifest:tools/lib/find_bit.zig:alias_unit_test_contract:mismatch")
+            if find_bit_note.get("mask_unit_test_anchor") != 'tools/lib/find_bit.zig:test "word helpers keep linux-style mask and sizing boundaries"':
+                issues.append("phase1_manifest:tools/lib/find_bit.zig:mask_unit_test_anchor:mismatch")
+            if find_bit_note.get("mask_unit_test_contract") != "Direct Zig unit coverage keeps bitsToWords(), firstWordMask(), and lastWordMask() aligned with Linux-style whole-word, partial-word, and wrapped-start boundaries so exported mask helpers remain reviewable without relying only on indirect scan coverage.":
+                issues.append("phase1_manifest:tools/lib/find_bit.zig:mask_unit_test_contract:mismatch")
+            if find_bit_note.get("boundary_unit_test_anchor") != 'tools/lib/find_bit.zig:test "empty and boundary scans return nbits"':
+                issues.append("phase1_manifest:tools/lib/find_bit.zig:boundary_unit_test_anchor:mismatch")
+            if find_bit_note.get("boundary_unit_test_contract") != "Direct Zig unit coverage keeps empty and out-of-range scan boundaries aligned by returning nbits for zero-length bitmaps, start-at-nbits searches, and fully set zero-bit windows that must not report past the declared range.":
+                issues.append("phase1_manifest:tools/lib/find_bit.zig:boundary_unit_test_contract:mismatch")
             if find_bit_note.get("low_level_unit_test_anchor") != 'tools/lib/find_bit.zig:test "find low-level underscore entry points preserve same-word and tail-clamped scan semantics"':
                 issues.append("phase1_manifest:tools/lib/find_bit.zig:low_level_unit_test_anchor:mismatch")
             if find_bit_note.get("low_level_unit_test_contract") != "Direct Zig unit coverage keeps _find_first_bit(), _find_first_and_bit(), _find_first_zero_bit(), _find_next_bit(), _find_next_and_bit(), and _find_next_zero_bit() aligned with the public scan helpers across same-word inclusive starts and tail-clamped caller-selected bit windows.":
