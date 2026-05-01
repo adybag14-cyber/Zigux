@@ -267,6 +267,13 @@ MARKER_GROUPS = {
             "fixture.find_bit.tail_clamped_first",
             "fixture.find_bit.tail_and_mixed_next",
             "fixture.string.remove_spaces_nul_bytes",
+            "fixture.rbtree.insert_order",
+            "fixture.rbtree.reverse_order",
+            "fixture.rbtree.replace_order",
+            "fixture.rbtree.erase_init_order",
+            "fixture.rbtree.postorder_count",
+            "fixture.rbtree.erase_init_node_empty",
+            "fixture.rbtree.cleared_node_empty",
         ],
     ),
     "bitmap": (
