@@ -1,12 +1,12 @@
 # Phase 14 RCU Tree Survey
 
-This document records the bounded Phase 14 survey lane `P14-L16` around `kernel/rcu/tree.c`.
+This document records the bounded Phase 14 survey lane `P14-L15` around `kernel/rcu/tree.c`.
 
 ## Status
 
 - `PHASE14_STATUS=freeze_in_c`
 - `PHASE14_SLICE=rcu-tree-survey-gap`
-- `PHASE14_LANE_KEY=P14-L16`
+- `PHASE14_LANE_KEY=P14-L15`
 - `PHASE14_SURVEYED_COMMIT=e2075a1902926ea5f25f724134e48f04108e9240`
 - scope: the dedicated Phase 14 RCU tree survey gate, its manifest, the shared Phase 14 build wiring, the shared review checklist entry for this boundary packet, and this lane note that compares the roadmap destination against the current freeze boundary without shipping a bridge
 - survey provenance refreshed against verified `master` head `e2075a1902926ea5f25f724134e48f04108e9240`
@@ -91,6 +91,16 @@ This run closes the previously recorded callback-offload follow-up without chang
 
 The net result is still survey-only: offloaded callback enqueue, GP wait selection, and deferred wakeup flushing remain explicitly in C, not as a new opening for `kernel/rcu/tree_bridge.zig`.
 
+## Grace-period kthread wake and force-QS follow-up
+
+This run closes one narrower concurrency-boundary gap without changing the underlying freeze decision.
+
+- `rcu_gp_kthread_wake()` is not just a generic wake helper. It snapshots the live GP kthread pointer, suppresses self-wake churn while that kthread is already running in process context, records both `gp_wake_time` and `gp_wake_seq`, and then signals the shared `gp_wq` waitqueue that the grace-period loop uses.
+- `rcu_gp_fqs_loop()` is also not a detached timeout loop. It tunes its waiting interval from callback-overload state, publishes `jiffies_force_qs` before the `RCU_GP_WAIT_FQS` state transition for stall detection, sleeps on the same `gp_wq`, and then flips back into active force-QS work under the live root `rcu_node` lock.
+- `force_qs_rnp()` remains coupled to that same concurrency state because it walks the `rcu_node` tree while holding the hierarchy locks, reports quiescent-state pressure into the active grace period, and relies on the exact wake-versus-wait sequencing that the GP kthread loop and stall timers already share.
+
+The net result is still survey-only: GP-kthread wakeups, force-QS timing, and quiescent-state forcing remain explicitly in C, not as a new opening for `kernel/rcu/tree_bridge.zig`.
+
 ## Public wait and barrier follow-up
 
 This run closes one narrower roadmap-boundary gap without changing the underlying freeze decision.
@@ -157,6 +167,7 @@ The current lane state is:
 - landed `phase14-rcu-tree-quiescent-state-followup`
 - landed `phase14-rcu-tree-callback-enqueue-followup`
 - landed `phase14-rcu-tree-callback-offload-followup`
+- landed `phase14-rcu-tree-gp-kthread-fqs-followup`
 - landed `phase14-rcu-tree-idle-watch-followup`
 - landed `phase14-rcu-tree-public-wait-and-barrier-followup`
 - landed `phase14-rcu-tree-cpu-hotplug-followup`

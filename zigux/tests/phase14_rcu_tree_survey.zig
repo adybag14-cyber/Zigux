@@ -91,7 +91,7 @@ test "phase 14 rcu tree survey manifest records the freeze-boundary gap without 
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P14-L16", manifest.lane_key);
+    try std.testing.expectEqualStrings("P14-L15", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
     try std.testing.expectEqualStrings("kernel/rcu/tree.c", manifest.anchor);
     try std.testing.expectEqualStrings("e2075a1902926ea5f25f724134e48f04108e9240", manifest.surveyed_commit);
@@ -125,7 +125,7 @@ test "phase 14 rcu tree survey manifest records the freeze-boundary gap without 
     try std.testing.expectEqual(@as(usize, 3), manifest.rollback_threshold.required_evidence.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.rollback_threshold.rollback_triggers.len);
     try std.testing.expectEqual(@as(usize, 6), manifest.decision_checklist.len);
-    try std.testing.expectEqual(@as(usize, 15), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 16), manifest.gaps.len);
 
     var landed_count: usize = 0;
     var blocked_count: usize = 0;
@@ -135,6 +135,7 @@ test "phase 14 rcu tree survey manifest records the freeze-boundary gap without 
     var saw_followup = false;
     var saw_callback_followup = false;
     var saw_callback_offload_followup = false;
+    var saw_gp_kthread_fqs_followup = false;
     var saw_idle_watch_followup = false;
     var saw_public_wait_followup = false;
     var saw_cpu_hotplug_followup = false;
@@ -193,6 +194,14 @@ test "phase 14 rcu tree survey manifest records the freeze-boundary gap without 
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "nocb_gp_wait()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rcu_nocb_flush_deferred_wakeup()") != null);
         }
+        if (std.mem.eql(u8, gap.id, "phase14-rcu-tree-gp-kthread-fqs-followup")) {
+            saw_gp_kthread_fqs_followup = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase14-rcu-tree-survey.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rcu_gp_kthread_wake()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rcu_gp_fqs_loop()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "force_qs_rnp()") != null);
+        }
         if (std.mem.eql(u8, gap.id, "phase14-rcu-tree-idle-watch-followup")) {
             saw_idle_watch_followup = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
@@ -247,7 +256,7 @@ test "phase 14 rcu tree survey manifest records the freeze-boundary gap without 
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 14), landed_count);
+    try std.testing.expectEqual(@as(usize, 15), landed_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_freeze_note);
     try std.testing.expect(saw_survey_gate);
@@ -255,6 +264,7 @@ test "phase 14 rcu tree survey manifest records the freeze-boundary gap without 
     try std.testing.expect(saw_followup);
     try std.testing.expect(saw_callback_followup);
     try std.testing.expect(saw_callback_offload_followup);
+    try std.testing.expect(saw_gp_kthread_fqs_followup);
     try std.testing.expect(saw_idle_watch_followup);
     try std.testing.expect(saw_public_wait_followup);
     try std.testing.expect(saw_cpu_hotplug_followup);
@@ -360,7 +370,7 @@ test "phase 14 rcu tree survey keeps the roadmap boundary map explicit" {
     try std.testing.expect(std.mem.indexOf(u8, boundary_map[2].blocker, "placeholder wrapper") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Roadmap boundary map") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "bounded Phase 14 survey lane `P14-L16` around `kernel/rcu/tree.c`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "bounded Phase 14 survey lane `P14-L15` around `kernel/rcu/tree.c`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "The honest move for this lane is therefore not to start `kernel/rcu/tree_bridge.zig`.") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_SURVEYED_COMMIT=e2075a1902926ea5f25f724134e48f04108e9240") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "survey provenance refreshed against verified `master` head `e2075a1902926ea5f25f724134e48f04108e9240`") != null);
@@ -372,6 +382,11 @@ test "phase 14 rcu tree survey keeps the roadmap boundary map explicit" {
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "the Phase 14 RCU tree survey packet directly") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Idle-watch and core-invocation follow-up") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "idle-watch transitions, dyntick snapshot ordering, and core re-entry remain explicitly in C") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Grace-period kthread wake and force-QS follow-up") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "rcu_gp_kthread_wake()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "rcu_gp_fqs_loop()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "force_qs_rnp()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "GP-kthread wakeups, force-QS timing, and quiescent-state forcing remain explicitly in C") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Public wait and barrier follow-up") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "public wait, polling, and callback-barrier surfaces remain explicitly in C") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "## CPU hotplug and callback migration follow-up") != null);
