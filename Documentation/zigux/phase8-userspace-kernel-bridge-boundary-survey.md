@@ -19,6 +19,7 @@ This note records the current cross-slice boundary for Phase 8 userspace-adjacen
   - `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`
   - `tools/lib/bpf/zigux_segments/type_names.zig`
   - `zigux/tests/phase8_bridge_boundary_survey.zig`
+  - `zigux/tests/phase8_libbpf_segments_only_build.zig`
   - `zigux/tests/phase8_build.zig`
 
 ## Why this note exists
@@ -47,7 +48,8 @@ Keep this survey aligned with:
 
 1. `python3 scripts/zigux/validate-phase8.py`
 2. `make -C zigux phase8-validate`
-3. `zig build test --build-file zigux/tests/phase8_build.zig`
+3. `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all`
+4. `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
 
 ## Non-goals
 
