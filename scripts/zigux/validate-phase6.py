@@ -811,6 +811,18 @@ def run_self_test() -> int:
             write_self_test_tree(root)
             catalog_path = root / "Documentation/zigux/phase6-helper-parity-catalog.md"
             catalog_text = catalog_path.read_text(encoding="utf-8")
+            catalog_marker = "PHASE6_BSEARCH_C_PARITY_CASES=29"
+            catalog_path.write_text(
+                catalog_text.replace(catalog_marker, "", 1),
+                encoding="utf-8",
+            )
+            catalog_fail_result = validate_phase6(root)
+            if catalog_fail_result["ok"] or f"phase6_catalog:missing:{catalog_marker}" not in catalog_fail_result["missing"]:
+                raise AssertionError(f"expected catalog drift failure, got: {catalog_fail_result}")
+
+            write_self_test_tree(root)
+            catalog_path = root / "Documentation/zigux/phase6-helper-parity-catalog.md"
+            catalog_text = catalog_path.read_text(encoding="utf-8")
             verified_head_line = f"- verified head: `{SELF_TEST_HEAD}`"
             catalog_path.write_text(
                 catalog_text.replace(verified_head_line, "- verified tip: `missing-head-marker`", 1),
@@ -887,7 +899,7 @@ def run_self_test() -> int:
         return 1
 
     print("PHASE6_VALIDATOR_SELF_TEST=pass")
-    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=10")
+    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
