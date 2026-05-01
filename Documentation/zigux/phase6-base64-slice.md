@@ -69,14 +69,14 @@ The current tests check:
 - invalid-input rejection for malformed, embedded-NUL, variant-mismatched, and non-canonical tail-bit decode inputs through the shared fixture packet and the external C-vs-Zig spot check
 - exhaustive reverse-map classification across all 256 byte values for the standard, URL-safe, and IMAP decode variants
 - extra kernel KUnit parity vectors for uppercase, lowercase, and digit-heavy standard cases
-- a deterministic 64-byte and 1-kibibyte encode/decode timing harness that reuses the shared `zigux/tests/fixtures/phase6_base64_vectors.zig` payload corpus, compares the helper against the padded `std.base64.standard` reference path, the unpadded `std.base64.url_safe_no_pad` reference path, and a translated unpadded IMAP reference path, and rejects regressions beyond the current fixture-backed encode and decode slowdown budgets using a median-of-three slowdown sample while rechecking round-trip correctness
+- a deterministic 64-byte and 1-kibibyte encode/decode timing harness that reuses the shared `zigux/tests/fixtures/phase6_base64_vectors.zig` payload corpus, compares the helper against the padded `std.base64.standard` reference path, the padded and unpadded `std.base64.url_safe{,_no_pad}` reference paths, and translated padded plus unpadded IMAP reference paths, and rejects regressions beyond the current fixture-backed encode and decode slowdown budgets using a median-of-three slowdown sample while rechecking round-trip correctness
 
 ## Non-goals
 
 This slice does not yet claim:
 
 - KUnit integration
-- architecture-specific performance thresholds beyond the current padded standard-path plus URL-safe and IMAP no-padding slowdown gates
+- architecture-specific performance thresholds beyond the current padded standard-path plus padded and unpadded URL-safe and IMAP slowdown gates
 - a full generated external fixture corpus beyond the current representative C-vs-Zig spot-check harness
 
 ## Next bounded step
