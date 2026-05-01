@@ -8,6 +8,27 @@
     "zigux/tests/",
     "Documentation/zigux/"
   ],
+  "rollback_contract": {
+    "owner": "BPF Tooling Lane",
+    "rollback_owner": "BPF Tooling Lane",
+    "fallback_path": "tools/lib/bpf/libbpf.c",
+    "reversible_delivery_evidence": [
+      "zigux/tests/phase12_libbpf_segments.zig",
+      "zigux/tests/phase12_libbpf_reviewability.zig",
+      "Documentation/zigux/phase12-libbpf-segment-survey.md"
+    ],
+    "rollback_drill": [
+      "python3 scripts/zigux/check-phase12-build-inventory.py --self-test",
+      "python3 scripts/zigux/check-phase12-build-inventory.py",
+      "python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test",
+      "python3 scripts/zigux/check-phase12-libbpf-snapshot.py",
+      "python3 scripts/zigux/check-phase12-libbpf-packet.py --self-test",
+      "python3 scripts/zigux/check-phase12-libbpf-packet.py",
+      "python3 scripts/zigux/validate-phase12.py",
+      "make -C zigux phase12-validate",
+      "zig build test --build-file zigux/tests/phase12_build.zig --summary all"
+    ]
+  },
   "survey_summary": {
     "libbpf_c_lines": 14771,
     "preexisting_phase8_test_files": 7,
