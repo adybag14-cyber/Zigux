@@ -9,6 +9,7 @@ This document records the live Phase 4 differential-validation ownership and rep
 - current repo reality:
   - `scripts/zigux/artifact_diff.py`
   - `scripts/zigux/check-artifact-diff-contract.py`
+  - `Documentation/zigux/phase4-gate-evidence.md`
   - `zigux/tests/atomic64_diff.zig`
   - `zigux/tests/runtime_atomic64_diff.zig`
   - `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`
@@ -31,6 +32,7 @@ The roadmap says Phase 4 must make future Zigux ports measurable and reversible.
 - the current perf threshold status for those gates
 - the lab and CI matrix that replays the gates today
 - the reversible-delivery evidence that ties each shipped Zig gate back to its current C anchor if the shared entrypoint has to drop that gate
+- one exact readback note that pins the current matrix, validator, build entrypoint, workflow, and manifest packet to an inspected `master` head whenever the live Phase 4 gate-definition surface moves
 - the shared artifact comparator self-test that now runs before the Phase 4 validator claims the rollback-readiness bundle is still aligned
 - the external artifact-diff contract replay that keeps the published stable text pass case, text mismatch failure, both missing-file directions, direct JSON mismatch, malformed-JSON markers, SHA-256 digest fields, and exit-code surface reviewable outside the helper's built-in self-test
 - one isolated runtime atomic64 replay command that can be run without depending on the bitmap lane staying green on the same head
@@ -106,6 +108,8 @@ Without that record, Phase 4 validation existed in code but not yet as a product
 The `samples/zigux/test_fsmount.zig` roadmap row is no longer prose-only: the manifest-backed survey gate now lives in `zigux/tests/phase4_test_fsmount_manifest.json`, runs through `phase4-test-fsmount-survey-tests` in `zigux/tests/phase4_build.zig`, and keeps the dedicated `make -C zigux phase4-test-fsmount-survey` local replay path plus the current lab posture C-anchor-only through `make M=samples/vfs` until the bounded Zig sample itself lands.
 
 The Phase 4 perf-baseline gap is no longer prose-only either: the manifest-backed survey packet now lives in `zigux/tests/phase4_perf_baseline_manifest.json`, runs through `phase4-perf-baseline-survey-tests` in `zigux/tests/phase4_build.zig`, and keeps the dedicated `make -C zigux phase4-perf-baseline-survey` local replay path plus the current `threshold_pending_until_runtime_atomic64_scope_widens` and `threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks` posture explicit until one bounded benchmark command and one acceptable limit land for each shipped rollback gate.
+
+`Documentation/zigux/phase4-gate-evidence.md` is the paired exact readback note for this same packet, so any change that moves the matrix, validator, build entrypoint, workflow hooks, or the manifest-backed survey gates should refresh that inspected-head evidence in the same bounded Phase 4 update.
 
 ## Review Rules
 
