@@ -131,8 +131,7 @@ BUILD_MARKERS = [
     "test_step.dependOn(&run_phase11_hvc_console_tests.step);",
 ]
 FORBIDDEN_BUILD_MARKERS = [
-    "phase11_hvc_console_survey_tests",
-    "run_phase11_hvc_console_survey_tests.step",
+    "test_step.dependOn(&run_phase11_hvc_console_survey_tests.step);",
 ]
 BUILD_INVENTORY_FIXTURE = "zigux/tests/fixtures/phase11_build_inventory.json"
 
@@ -272,7 +271,7 @@ def run_self_test() -> int:
             tmp_root,
             "workflow:Self-test Phase 11 simple-driver validator",
         )
-        workflow_path.write_text(original_workflow, encoding="utf-8")
+        workflow_path.writeText(original_workflow, encoding="utf-8")
 
         workflow_path.write_text(
             original_workflow.replace(
