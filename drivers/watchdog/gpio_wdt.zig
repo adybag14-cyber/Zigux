@@ -471,7 +471,9 @@ pub const GpioWatchdogLab = struct {
             .disable_performs_eternal_ping = disable_requested,
             .disable_returns_toggle_line_to_input = disable_requested and self.hw_algo == .toggle,
             .disable_keeps_level_line_output = disable_requested and self.hw_algo == .level,
-            .stop_keeps_running_for_always_running = self.always_running and stop_summary.running,
+            .stop_keeps_running_for_always_running = self.always_running and
+                stop_summary.running and
+                stop_summary.driver_stop_invoked,
             .final_running = stop_summary.running,
             .final_line_state = stop_summary.line_state,
             .final_line_is_output = stop_summary.line_is_output,
