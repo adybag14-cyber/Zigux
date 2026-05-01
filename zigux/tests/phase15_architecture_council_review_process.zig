@@ -229,6 +229,14 @@ test "phase 15 architecture council review-process note stays aligned with check
     );
     defer std.testing.allocator.free(docs_root);
 
+    const handoff_survey = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase15-handoff-next-steps-survey.md",
+        std.testing.allocator,
+        .limited(24 * 1024),
+    );
+    defer std.testing.allocator.free(handoff_survey);
+
     try std.testing.expect(std.mem.indexOf(u8, review_process, "## Trigger Conditions") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "## Required Review Packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "## Decision Buckets") != null);
@@ -292,6 +300,15 @@ test "phase 15 architecture council review-process note stays aligned with check
     try std.testing.expect(std.mem.indexOf(u8, docs_root, "maintenance mode") != null);
     try std.testing.expect(std.mem.indexOf(u8, docs_root, "named reopen triggers") != null);
     try std.testing.expect(std.mem.indexOf(u8, docs_root, "deep-core blocker posture") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, handoff_survey, "# Phase 15 Handoff and Next-Step Survey") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_survey, "Documentation/zigux/phase15-architecture-council-review-process.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_survey, "named reopen triggers") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_survey, "zig build test --build-file zigux/tests/phase15_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_survey, "make -C zigux phase15") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_survey, "deep-core blocker posture") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_survey, "shared Phase 15 replay drifts again") != null);
+
     try expectTemplateEvidence(
         io_instance.io(),
         "Documentation/zigux/phase15-evidence-archives/kernel-sched-core.md",
