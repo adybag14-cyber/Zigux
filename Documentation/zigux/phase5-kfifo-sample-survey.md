@@ -117,10 +117,11 @@ Current sample behavior was re-verified against `master` commit `f5f4aa86602580b
 The exact verification commands and observed results were:
 
 - `zig test samples/zigux/bytestream_fifo.zig`
-  - observed result: `1/3 bytestream_fifo.test.bytestream fifo sample replays the Linux anchor result sequence...OK`
-  - observed result: `2/3 bytestream_fifo.test.bytestream fifo sample keeps helper boundaries explicit...OK`
-  - observed result: `3/3 bytestream_fifo.test.bytestream fifo sample keeps ownership and lifetime guards explicit...OK`
-  - observed result: `All 3 tests passed.`
+  - observed result: `1/4 bytestream_fifo.test.bytestream fifo sample replays the Linux anchor result sequence...OK`
+  - observed result: `2/4 bytestream_fifo.test.bytestream fifo sample keeps helper boundaries explicit...OK`
+  - observed result: `3/4 bytestream_fifo.test.bytestream fifo sample keeps ownership and lifetime guards explicit...OK`
+  - observed result: `4/4 bytestream_fifo.test.bytestream fifo sample reset clears queue state without rewinding lifecycle bookkeeping...OK`
+  - observed result: `All 4 tests passed.`
 - `zig test zigux/tests/phase5_bytestream_fifo_survey.zig`
   - observed result: `1/2 phase5_bytestream_fifo_survey.test.phase 5 bytestream fifo manifest records the exact bounded checks...OK`
   - observed result: `2/2 phase5_bytestream_fifo_survey.test.phase 5 bytestream fifo contributor docs stay aligned with the shipped review surface...OK`
