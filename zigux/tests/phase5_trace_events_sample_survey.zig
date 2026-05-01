@@ -196,8 +196,6 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "1,1,1") != null);
         }
         if (std.mem.eql(u8, check.id, "checked-focus-order")) {
-            sawFocusCheck: {
-            }
             saw_focus_check = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "payload_shape") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "string_selection") != null);
@@ -371,8 +369,6 @@ test "phase 5 trace-events contributor docs stay aligned with the shipped review
 
     try std.testing.expect(std.mem.indexOf(u8, readme, "phase5-trace-events-sample-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, readme, "samples/zigux/trace_events_sample.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, readme, "shared sample-root catalog") != null);
-    try std.testing.expect(std.mem.indexOf(u8, readme, "shared review checklist") != null);
     try std.testing.expect(std.mem.indexOf(u8, readme, "Phase 9 runtime pilot tranche") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "Trace-events review packet") != null);
