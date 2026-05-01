@@ -293,6 +293,9 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
             try std.testing.expectEqualStrings("input_validation", check.kind);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "trailing or doubled separators") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "out-of-bounds bit lists") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "canonical 0,5,64,70 replay") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "empty string") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "null nthSetBit(0)") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "InvalidLifecycleTransition") != null);
         }
         if (std.mem.eql(u8, check.id, "loader-request-surface")) {
@@ -498,7 +501,7 @@ test "phase 9 runtime bitmap survey doc keeps the direct sample, sparse iteratio
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`Documentation/zigux/phase9-runtime-loader-gap-survey.md` owns the still-blocked shared command-name, argv-policy, and environment-derived activation-control posture that keeps this bitmap packet pre-execution") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`zigux/kernel/runtime_loader.zig` owns the shared runtime-loader request contract that consumes the bitmap loader handoff") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the direct sample leg replays sparse `nthSetBit()` iteration across bits `10`, `20`, `30`, `40`, `50`, `60`, `80`, and `123`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`initFromBitList()` rejects trailing or doubled separators, rejects out-of-bounds bit lists, and blocks repeat parse initialization with `InvalidLifecycleTransition` once the first parse succeeds") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`initFromBitList()` rejects trailing or doubled separators, rejects out-of-bounds bit lists, normalizes duplicate bit lists to the canonical `0,5,64,70` replay, preserves empty parse-and-print replay as an empty string plus `null` first `nthSetBit()`, and blocks repeat parse initialization with `InvalidLifecycleTransition` once the first parse succeeds") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the landed `phase9-build-gate`, including the direct `phase9-runtime-bitmap-sample-tests` shared-build leg") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the landed `phase9-build-gate`, including the direct `phase9-runtime-bitmap-loader-tests` shared-build leg") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "this shared build now includes the direct `phase9-runtime-bitmap-sample-tests` and `phase9-runtime-bitmap-loader-tests` legs") != null);
@@ -555,6 +558,7 @@ test "phase 9 runtime bitmap module slice note stays aligned with the landed loa
         "shared runtime-loader request binding in `zigux/kernel/runtime_loader.zig`",
         "bounded two-word runtime bitmap backing store",
         "bounded parse-and-print replay",
+        "duplicate bit-list normalization and empty formatting",
     };
 
     for (required_markers) |marker| {
@@ -593,4 +597,7 @@ test "phase 9 runtime bitmap direct sample keeps empty parse-and-print replay ex
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "const empty_formatted = try empty.formatSetBits(std.testing.allocator);") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "try std.testing.expectEqualStrings(\"\", empty_formatted);") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "try std.testing.expectEqual(@as(?u32, null), empty.nthSetBit(0));") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, "try duplicate_bits.initFromBitList(\"70, 5, 70, 0, 64, 5\");") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, "const duplicate_formatted = try duplicate_bits.formatSetBits(std.testing.allocator);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, "try std.testing.expectEqualStrings(\"0,5,64,70\", duplicate_formatted);") != null);
 }
