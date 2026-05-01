@@ -387,6 +387,7 @@ manifest_expectations = {
             "checked-focus-order",
             "callback-registration-balance",
             "single-registration-boundary",
+            "registration-underflow-and-armed-exit",
             "post-exit-rejection",
         ],
     },
