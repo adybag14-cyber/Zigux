@@ -72,6 +72,7 @@ No additional helper should be called Phase 1 work unless this document and the 
 - `tools/lib/find_bit.zig` direct Zig unit coverage also keeps empty and out-of-range scan boundaries aligned by returning `nbits` for zero-length bitmaps, start-at-`nbits` searches, and fully set zero-bit windows that must not report past the declared range.
 - `tools/lib/find_bit.zig` direct Zig unit coverage also keeps the underscore alias entry points aligned so `find_first_bit()`, `find_first_and_bit()`, `find_first_zero_bit()`, `find_next_bit()`, `find_next_and_bit()`, and `find_next_zero_bit()` preserve the same scan semantics as the camelCase helpers across the same caller-selected bit windows and tail clamps.
 - `tools/lib/find_bit.zig` direct Zig unit coverage also keeps the low-level underscore entry points aligned so `_find_first_bit()`, `_find_first_and_bit()`, `_find_first_zero_bit()`, `_find_next_bit()`, `_find_next_and_bit()`, and `_find_next_zero_bit()` preserve same-word inclusive starts and tail-clamped scan behavior across the same caller-selected bit windows as the public helpers.
+- `tools/lib/find_bit.zig` direct Zig unit coverage also keeps single-word set, zero, and shared-bit scans aligned with Linux small-bitmap semantics by masking out-of-range tail bits while preserving inclusive in-range matches inside one word.
 - find_bit fixture authority: `zigux/tests/fixtures/phase1_helpers.json`
 - find_bit manifest review anchor: `zigux/tests/fixtures/phase1_helper_manifest.json`
 - find_bit direct unit-test anchor: `tools/lib/find_bit.zig:test "find next zero bit skips earlier matches in the same word"`
@@ -92,6 +93,7 @@ No additional helper should be called Phase 1 work unless this document and the 
 - `PHASE1_FIND_BIT_BOUNDARY_UNIT_REVIEW=find_bit empty and out-of-range scans return nbits for zero-length bitmaps, start-at-nbits searches, and fully set zero-bit windows that must not report past the declared range`
 - `PHASE1_FIND_BIT_ALIAS_UNIT_REVIEW=find_bit underscore alias entry points preserve the same set, shared-bit, and zero-bit scan semantics as the camelCase helpers across the same caller-selected bit windows and tail clamps`
 - `PHASE1_FIND_BIT_LOW_LEVEL_UNIT_REVIEW=find_bit low-level underscore entry points preserve same-word inclusive starts and tail-clamped set, shared-bit, and zero-bit scan behavior across the same caller-selected bit windows as the public helpers`
+- `PHASE1_FIND_BIT_SMALL_BITMAP_UNIT_REVIEW=find_bit single-word set zero and shared-bit scans keep Linux small-bitmap semantics aligned by masking out-of-range tail bits while preserving inclusive in-range matches inside one word`
 
 - `tools/lib/rbtree.zig` closure includes committed C-backed parity coverage for ordered forward and reverse traversal plus `replaceNode`, `eraseInit`, postorder traversal, and detached-node state checks, while Linux-style `rb_*` alias parity remains explicitly out of scope for this closed Phase 1 tranche.
 - `tools/lib/rbtree.zig` direct Zig unit coverage keeps `findAdd` duplicate handling aligned so the first equal key stays resident while new distinct keys still link into the tree.
