@@ -532,7 +532,7 @@ else:
 
 handoff_manifest = load_json("zigux/tests/phase15_handoff_next_steps_manifest.json")
 require(handoff_manifest.get("phase") == "Phase 15", "handoff_manifest:phase")
-require(handoff_manifest.get("lane_key") == "P15-L08", "handoff_manifest:lane_key")
+require(handoff_manifest.get("lane_key") == "P15-L10", "handoff_manifest:lane_key")
 require(
     handoff_manifest.get("surveyed_commit") == "ef7b33b6922d05e5ef514fb4efa588316ce6dda8",
     "handoff_manifest:surveyed_commit",
