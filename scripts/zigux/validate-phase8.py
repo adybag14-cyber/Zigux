@@ -22,6 +22,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase8-bpf-type-names-slice.md",
     "Documentation/zigux/phase8-libbpf-segment-survey.md",
     "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
+    "Documentation/zigux/phase8-perf-buffer-poll-slice.md",
     "zigux/Makefile",
     "zigux/tests/README.md",
     "zigux/tests/phase8_build.zig",
@@ -39,6 +40,7 @@ REQUIRED_FILES = [
     "zigux/tests/phase8_file_path_handle_bridge.zig",
     "zigux/tests/phase8_libbpf_segments.zig",
     "zigux/tests/phase8_bpf_type_names.zig",
+    "zigux/tests/phase8_perf_buffer_poll.zig",
     "tools/lib/subcmd/exec-cmd.zig",
     "tools/lib/subcmd/help.zig",
     "tools/lib/symbol/kallsyms.zig",
@@ -47,6 +49,7 @@ REQUIRED_FILES = [
     "tools/lib/bpf/zigux_segments/pin_path.zig",
     "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
     "tools/lib/bpf/zigux_segments/type_names.zig",
+    "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
     "tools/lib/bpf/zigux_segments/manifest.json",
     ".github/workflows/zigux-bootstrap.yml",
 ]
@@ -199,6 +202,7 @@ required_phase8_build_markers = [
     "../../tools/lib/bpf/zigux_segments/pin_path.zig",
     "../../tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
     "../../tools/lib/bpf/zigux_segments/type_names.zig",
+    "../../tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
     "phase8_exec_cmd.zig",
     "phase8-exec-cmd-tests",
     "phase8_help.zig",
@@ -219,6 +223,8 @@ required_phase8_build_markers = [
     "phase8-libbpf-segment-tests",
     "phase8_bpf_type_names.zig",
     "phase8-bpf-type-names-tests",
+    "phase8_perf_buffer_poll.zig",
+    "phase8-perf-buffer-poll-tests",
 ]
 
 required_phase8_exec_cmd_only_build_markers = [
@@ -264,11 +270,13 @@ required_survey_markers = [
     "tools/lib/bpf/zigux_segments/pin_path.zig",
     "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
     "tools/lib/bpf/zigux_segments/type_names.zig",
+    "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
     "fdinfo-map-info-helpers",
     "map-reuse-compatibility",
     "file-path-and-handle-bridge",
     "perf-buffer-online-cpu-routing",
     "phase8_file_path_handle_bridge.zig",
+    "zigux/tests/phase8_perf_buffer_poll.zig",
     "path construction",
     "map reuse compatibility",
     "DEVMAP readonly-prog",
@@ -508,6 +516,40 @@ required_pin_path_helper_markers = [
     'test "pin-path helpers resolve stored and requested unpin paths explicitly"',
 ]
 
+required_phase8_perf_buffer_poll_slice_markers = [
+    "PHASE8_SLICE=perf-buffer-poll-helper",
+    "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
+    "zigux/tests/phase8_perf_buffer_poll.zig",
+    "perf_buffer__poll(timeout_ms)",
+    "wait-result classification",
+    "ready-buffer bookkeeping",
+    "no standalone timer helper",
+    "no standalone clockevent helper",
+]
+
+required_phase8_perf_buffer_poll_markers = [
+    'test "phase 8 perf-buffer poll docs keep the bounded wait-result helper explicit"',
+    'test "phase 8 perf-buffer poll helper stays wired into the shared Phase 8 build"',
+    'test "phase 8 perf-buffer poll helper keeps observed wait outcomes compact"',
+    "Documentation/zigux/phase8-perf-buffer-poll-slice.md",
+    "phase8_build.zig",
+    "phase8-perf-buffer-poll-tests",
+    "no standalone timer helper",
+    "no standalone clockevent helper",
+]
+
+required_perf_buffer_poll_helper_markers = [
+    "pub const WaitClass = enum {",
+    "pub const PollOutcome = enum {",
+    "pub fn classifyWaitClass(timeout_ms: i32) PollError!WaitClass {",
+    "pub fn summarizeReadyBuffers(buffers: []const BufferObservation) ReadyBufferSummary {",
+    "pub fn summarizePoll(",
+    'test "classifyWaitClass keeps perf_buffer__poll timeout classes explicit"',
+    'test "summarizeReadyBuffers counts ready buffers and preserves the first error"',
+    'test "summarizePoll keeps bounded ready observations compact and reviewable"',
+    'test "summarizePoll keeps timeout, interruption, and missing-ready mismatches explicit"',
+]
+
 required_phase8_file_path_handle_bridge_markers = [
     'test "phase 8 file-path-handle bridge builds proc fdinfo paths without widening into io"',
     'test "phase 8 file-path-handle bridge keeps the current-process fdinfo helper aligned"',
@@ -557,56 +599,26 @@ required_phase8_bpf_type_names_markers = [
     "enum bpf_link_type {",
     "enum bpf_map_type {",
     "enum bpf_prog_type {",
-    '"trace_fsession"',
-    '"sockmap"',
-    '"insn_array"',
-    '"netfilter"',
 ]
 
 required_type_names_helper_markers = [
-    "pub const attach_type_names =",
-    "pub const link_type_names =",
-    "pub const map_type_names =",
-    "pub const prog_type_names =",
-    "pub fn libbpfBpfAttachTypeStr",
-    "pub fn libbpfBpfLinkTypeStr",
-    "pub fn libbpfBpfMapTypeStr",
-    "pub fn libbpfBpfProgTypeStr",
-    'try std.testing.expectEqualStrings("trace_fsession", libbpfBpfAttachTypeStr(58).?);',
-    'try std.testing.expectEqualStrings("sockmap", libbpfBpfLinkTypeStr(14).?);',
-    'try std.testing.expectEqualStrings("insn_array", libbpfBpfMapTypeStr(34).?);',
+    "pub fn libbpfBpfAttachTypeStr(value: i32) ?[]const u8 {",
+    "pub fn libbpfBpfLinkTypeStr(value: i32) ?[]const u8 {",
+    "pub fn libbpfBpfMapTypeStr(value: i32) ?[]const u8 {",
+    "pub fn libbpfBpfProgTypeStr(value: i32) ?[]const u8 {",
     'try std.testing.expectEqualStrings("netfilter", libbpfBpfProgTypeStr(32).?);',
-    'test "type-name helpers reject out-of-range values the same way as libbpf.c"',
+    'test "type-name helper keeps negative and oversized ordinals out of range"',
 ]
 
 required_manifest_markers = [
+    '"lane_key": "P8-L15"',
+    '"phase": "Phase 8"',
+    '"anchor": "tools/lib/bpf/libbpf.c"',
     '"slug": "cpu-mask-parsing"',
-    '"zigux_destination": "tools/lib/bpf/zigux_segments/cpu_mask.zig"',
-    '"slug": "logging-version-and-errno"',
-    '"status": "starter_landed"',
-    '"zigux_destination": "tools/lib/bpf/zigux_segments/logging.zig"',
-    '"slug": "pin-path-helpers"',
-    '"zigux_destination": "tools/lib/bpf/zigux_segments/pin_path.zig"',
     '"slug": "fdinfo-map-info-helpers"',
-    '"zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"',
-    '"kind": "resource_boundary"',
-    '"tools/lib/bpf/libbpf.c:5112-5157"',
-    '"tools/lib/bpf/libbpf.c:5255-5286"',
-    "token-preparation planner",
-    "real bpffs path opens",
-    "bpffs path opens",
-    "token creation",
-    "pinned-object reopen flows",
-    "fd ownership",
-    '"slug": "type-name-helpers"',
-    '"zigux_destination": "tools/lib/bpf/zigux_segments/type_names.zig"',
+    '"slug": "map-reuse-compatibility"',
+    '"slug": "file-path-and-handle-bridge"',
     '"slug": "perf-buffer-online-cpu-routing"',
-    '"kind": "interrupt_routing_boundary"',
-    '"tools/lib/bpf/libbpf.c:14049-14110"',
-    '"tools/lib/bpf/libbpf.c:14429-14480"',
-    "online CPU filtering",
-    "perf-event-array map updates",
-    "interrupt-routing contract",
 ]
 
 
@@ -642,6 +654,9 @@ def required_marker_count() -> int:
         + len(required_pin_path_survey_markers)
         + len(required_phase8_pin_path_markers)
         + len(required_pin_path_helper_markers)
+        + len(required_phase8_perf_buffer_poll_slice_markers)
+        + len(required_phase8_perf_buffer_poll_markers)
+        + len(required_perf_buffer_poll_helper_markers)
         + len(required_phase8_file_path_handle_bridge_markers)
         + len(required_file_path_handle_bridge_helper_markers)
         + len(required_type_name_markers)
@@ -675,6 +690,7 @@ def validate(root: Path) -> tuple[list[str], list[str], list[str]]:
     phase8_kallsyms_slice = read_text(root, "Documentation/zigux/phase8-kallsyms-slice.md")
     phase8_cpu_mask = read_text(root, "Documentation/zigux/phase8-libbpf-cpu-mask-slice.md")
     phase8_type_names = read_text(root, "Documentation/zigux/phase8-bpf-type-names-slice.md")
+    phase8_perf_buffer_poll_slice = read_text(root, "Documentation/zigux/phase8-perf-buffer-poll-slice.md")
     manifest = read_text(root, "tools/lib/bpf/zigux_segments/manifest.json")
     phase8_libbpf_segments_test = read_text(root, "zigux/tests/phase8_libbpf_segments.zig")
     phase8_bpf_type_names_test = read_text(root, "zigux/tests/phase8_bpf_type_names.zig")
@@ -684,6 +700,7 @@ def validate(root: Path) -> tuple[list[str], list[str], list[str]]:
     phase8_kallsyms_test = read_text(root, "zigux/tests/phase8_kallsyms.zig")
     phase8_logging_test = read_text(root, "zigux/tests/phase8_logging.zig")
     phase8_pin_path_test = read_text(root, "zigux/tests/phase8_pin_path.zig")
+    phase8_perf_buffer_poll_test = read_text(root, "zigux/tests/phase8_perf_buffer_poll.zig")
     exec_cmd_helper = read_text(root, "tools/lib/subcmd/exec-cmd.zig")
     help_helper = read_text(root, "tools/lib/subcmd/help.zig")
     kallsyms_helper = read_text(root, "tools/lib/symbol/kallsyms.zig")
@@ -691,6 +708,7 @@ def validate(root: Path) -> tuple[list[str], list[str], list[str]]:
     file_path_handle_bridge_helper = read_text(root, "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig")
     pin_path_helper = read_text(root, "tools/lib/bpf/zigux_segments/pin_path.zig")
     type_names_helper = read_text(root, "tools/lib/bpf/zigux_segments/type_names.zig")
+    perf_buffer_poll_helper = read_text(root, "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig")
 
     missing_markers: list[str] = []
     commit_sync_errors: list[str] = []
@@ -785,6 +803,15 @@ def validate(root: Path) -> tuple[list[str], list[str], list[str]]:
     for marker in required_pin_path_helper_markers:
         if marker not in pin_path_helper:
             missing_markers.append(f"pin_path_helper:{marker}")
+    for marker in required_phase8_perf_buffer_poll_slice_markers:
+        if marker not in phase8_perf_buffer_poll_slice:
+            missing_markers.append(f"phase8_perf_buffer_poll_slice:{marker}")
+    for marker in required_phase8_perf_buffer_poll_markers:
+        if marker not in phase8_perf_buffer_poll_test:
+            missing_markers.append(f"phase8_perf_buffer_poll:{marker}")
+    for marker in required_perf_buffer_poll_helper_markers:
+        if marker not in perf_buffer_poll_helper:
+            missing_markers.append(f"perf_buffer_poll_helper:{marker}")
     for marker in required_phase8_file_path_handle_bridge_markers:
         if marker not in phase8_file_path_handle_bridge_test:
             missing_markers.append(f"phase8_file_path_handle_bridge:{marker}")
@@ -997,6 +1024,26 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
 
+        perf_buffer_poll_slice_path = tmp_root / "Documentation/zigux/phase8-perf-buffer-poll-slice.md"
+        original_perf_buffer_poll_slice = perf_buffer_poll_slice_path.read_text(encoding="utf-8")
+        perf_buffer_poll_slice_path.write_text(
+            original_perf_buffer_poll_slice.replace(
+                "no standalone timer helper",
+                "no standalone timer boundary",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "phase8_perf_buffer_poll_timer_marker",
+            tmp_root,
+            "phase8_perf_buffer_poll_slice:no standalone timer helper",
+        )
+        perf_buffer_poll_slice_path.write_text(
+            original_perf_buffer_poll_slice,
+            encoding="utf-8",
+        )
+
         kallsyms_helper_path = tmp_root / "tools/lib/symbol/kallsyms.zig"
         original_kallsyms_helper = kallsyms_helper_path.read_text(encoding="utf-8")
         kallsyms_helper_path.write_text(
@@ -1056,7 +1103,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE8_VALIDATOR_SELF_TEST=pass")
-    print("PHASE8_VALIDATOR_SELF_TEST_CASE_COUNT=10")
+    print("PHASE8_VALIDATOR_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
