@@ -137,12 +137,75 @@ def compare_inventory(inventory: dict[str, object]) -> subprocess.CompletedProce
     return result
 
 
+def find_duplicate_strings(values: list[str]) -> bool:
+    return len(values) != len(set(values))
+
+
+def find_duplicate_record_fields(entries: list[dict[str, str]], fields: tuple[str, ...]) -> bool:
+    seen: set[tuple[str, ...]] = set()
+    for entry in entries:
+        signature_parts: list[str] = []
+        for field in fields:
+            value = entry.get(field)
+            if not isinstance(value, str):
+                return False
+            signature_parts.append(value)
+        signature = tuple(signature_parts)
+        if signature in seen:
+            return True
+        seen.add(signature)
+    return False
+
+
+def validate_inventory_shape(inventory: dict[str, object]) -> list[str]:
+    problems: list[str] = []
+
+    build_test_names = inventory.get("build_test_names")
+    if isinstance(build_test_names, list) and all(isinstance(item, str) for item in build_test_names):
+        if find_duplicate_strings(build_test_names):
+            problems.append("build_test_names_duplicates")
+
+    depend_steps = inventory.get("shared_test_depend_steps")
+    if isinstance(depend_steps, list) and all(isinstance(item, str) for item in depend_steps):
+        if find_duplicate_strings(depend_steps):
+            problems.append("shared_test_depend_steps_duplicates")
+
+    module_root_source_files = inventory.get("module_root_source_files")
+    if isinstance(module_root_source_files, list) and all(
+        isinstance(item, dict) for item in module_root_source_files
+    ):
+        if find_duplicate_record_fields(module_root_source_files, ("module",)):
+            problems.append("module_root_source_files_module_duplicates")
+        if find_duplicate_record_fields(module_root_source_files, ("path",)):
+            problems.append("module_root_source_files_path_duplicates")
+
+    module_imports = inventory.get("module_imports")
+    if isinstance(module_imports, list) and all(isinstance(item, dict) for item in module_imports):
+        if find_duplicate_record_fields(module_imports, ("module", "import_name")):
+            problems.append("module_imports_module_import_name_duplicates")
+
+    test_root_modules = inventory.get("test_root_modules")
+    if isinstance(test_root_modules, list) and all(
+        isinstance(item, dict) for item in test_root_modules
+    ):
+        if find_duplicate_record_fields(test_root_modules, ("test",)):
+            problems.append("test_root_modules_test_duplicates")
+
+    return problems
+
+
 def expect_inventory_mismatch(label: str, inventory: dict[str, object]) -> None:
     mismatched_result = compare_inventory(inventory)
     if mismatched_result.returncode == 0:
         raise SystemExit(f"phase12-build-inventory:self-test:{label}:fixture_drift_exit")
     if "ARTIFACT_DIFF=fail" not in mismatched_result.stdout:
         raise SystemExit(f"phase12-build-inventory:self-test:{label}:fixture_drift_stdout")
+
+
+def expect_shape_problem(label: str, inventory: dict[str, object], expected_problem: str) -> None:
+    problems = validate_inventory_shape(inventory)
+    if expected_problem not in problems:
+        raise SystemExit(f"phase12-build-inventory:self-test:{label}:shape_guard")
 
 
 def run_self_test() -> int:
@@ -158,6 +221,11 @@ def run_self_test() -> int:
         raise SystemExit("phase12-build-inventory:self-test:test_root_module_count")
     if len(first["shared_test_depend_steps"]) != len(first["build_test_names"]):
         raise SystemExit("phase12-build-inventory:self-test:depend_step_count")
+    baseline_shape_problems = validate_inventory_shape(first)
+    if baseline_shape_problems:
+        raise SystemExit(
+            f"phase12-build-inventory:self-test:baseline_shape:{baseline_shape_problems[0]}"
+        )
 
     matched_result = compare_inventory(first)
     if matched_result.returncode != 0:
@@ -173,21 +241,72 @@ def run_self_test() -> int:
     drifted_test_names["build_test_names"][0] = "phase12-build-inventory-drift"
     expect_inventory_mismatch("fixture_build_test_name_drift", drifted_test_names)
 
+    duplicate_test_names = json.loads(json.dumps(first))
+    duplicate_test_names["build_test_names"][0] = duplicate_test_names["build_test_names"][1]
+    expect_shape_problem(
+        "duplicate_build_test_names",
+        duplicate_test_names,
+        "build_test_names_duplicates",
+    )
+
     drifted_depend_steps = json.loads(json.dumps(first))
     drifted_depend_steps["shared_test_depend_steps"][0] = "run_phase12_inventory_drift"
     expect_inventory_mismatch("fixture_depend_step_drift", drifted_depend_steps)
+
+    duplicate_depend_steps = json.loads(json.dumps(first))
+    duplicate_depend_steps["shared_test_depend_steps"][0] = duplicate_depend_steps[
+        "shared_test_depend_steps"
+    ][1]
+    expect_shape_problem(
+        "duplicate_depend_steps",
+        duplicate_depend_steps,
+        "shared_test_depend_steps_duplicates",
+    )
 
     drifted_module_roots = json.loads(json.dumps(first))
     drifted_module_roots["module_root_source_files"][0]["path"] = "../../drivers/virtio/virtio_drift.zig"
     expect_inventory_mismatch("fixture_module_root_source_file_drift", drifted_module_roots)
 
+    duplicate_module_root_paths = json.loads(json.dumps(first))
+    duplicate_module_root_paths["module_root_source_files"][0]["path"] = duplicate_module_root_paths[
+        "module_root_source_files"
+    ][1]["path"]
+    expect_shape_problem(
+        "duplicate_module_root_paths",
+        duplicate_module_root_paths,
+        "module_root_source_files_path_duplicates",
+    )
+
     drifted_module_imports = json.loads(json.dumps(first))
     drifted_module_imports["module_imports"][0]["import_name"] = "virtio_drift"
     expect_inventory_mismatch("fixture_module_import_drift", drifted_module_imports)
 
+    duplicate_module_imports = json.loads(json.dumps(first))
+    duplicate_module_imports["module_imports"][1]["module"] = duplicate_module_imports[
+        "module_imports"
+    ][0]["module"]
+    duplicate_module_imports["module_imports"][1]["import_name"] = duplicate_module_imports[
+        "module_imports"
+    ][0]["import_name"]
+    expect_shape_problem(
+        "duplicate_module_imports",
+        duplicate_module_imports,
+        "module_imports_module_import_name_duplicates",
+    )
+
     drifted_test_root_modules = json.loads(json.dumps(first))
     drifted_test_root_modules["test_root_modules"][0]["root_module"] = "phase12_inventory_drift_module"
     expect_inventory_mismatch("fixture_test_root_module_drift", drifted_test_root_modules)
+
+    duplicate_test_root_modules = json.loads(json.dumps(first))
+    duplicate_test_root_modules["test_root_modules"][0]["test"] = duplicate_test_root_modules[
+        "test_root_modules"
+    ][1]["test"]
+    expect_shape_problem(
+        "duplicate_test_root_modules",
+        duplicate_test_root_modules,
+        "test_root_modules_test_duplicates",
+    )
 
     drifted_step_count = dict(first)
     drifted_step_count["expected_step_count"] = 0
@@ -206,7 +325,7 @@ def run_self_test() -> int:
     expect_inventory_mismatch("fixture_dedicated_survey_replays_drift", drifted_dedicated_replays)
 
     print("PHASE12_BUILD_INVENTORY_SELF_TEST=pass")
-    print("PHASE12_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=16")
+    print("PHASE12_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=22")
     return 0
 
 
@@ -226,6 +345,14 @@ def main(argv: list[str] | None = None) -> int:
 
     load_json(FIXTURE_PATH)
     generated = render_inventory()
+    shape_problems = validate_inventory_shape(generated)
+    if shape_problems:
+        print("PHASE12_BUILD_INVENTORY=fail")
+        print("PHASE12_BUILD_INVENTORY_SHAPE_MISMATCH_START")
+        for problem in shape_problems:
+            print(problem)
+        print("PHASE12_BUILD_INVENTORY_SHAPE_MISMATCH_END")
+        return 1
     result = compare_inventory(generated)
 
     if result.stdout:
