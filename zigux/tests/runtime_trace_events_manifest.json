@@ -1,7 +1,7 @@
 {
   "lane_key": "P9-L12",
   "phase": "Phase 9",
-  "surveyed_commit": "cb80d40c9dab90d575790cc7db6d949972a482ee",
+  "surveyed_commit": "dc0860ecff38ecdc1add8f892ebd68982fa438c1",
   "anchor": "samples/trace_events/trace-events-sample.c",
   "roadmap_destinations": [
     "zigux/tests/runtime_*",
