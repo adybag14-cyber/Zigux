@@ -443,7 +443,7 @@ for index, packet in enumerate(anchor_packets):
                     if not isinstance(item, str) or item not in anchor_survey_note:
                         missing.append(f"{survey_note_path}:rollback_required_evidence:{item}")
             rollback_triggers = rollback_threshold.get("rollback_triggers")
-            if not isinstance(rollback_triggers, list) or len(rollback_triggers) != 3:
+            if not isinstance(rollback_triggers, list) or len(rollback_triggers) != 4:
                 missing.append(f"{manifest_path}:rollback_threshold:rollback_triggers")
             else:
                 for item in rollback_triggers:
