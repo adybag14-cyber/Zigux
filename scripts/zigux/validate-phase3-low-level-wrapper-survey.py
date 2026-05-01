@@ -115,6 +115,8 @@ REQUIRED_LOW_LEVEL_TEST_SNIPPETS = (
 REQUIRED_ABI_SLICE_SNIPPETS = (
     "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
+    "PHASE3_MMIO_SCOPE=range-read8-read16-read32-read64-write8-write16-write32-write64-plus-scoped-read8-write8-read16-write16-read32-write32-read64-write64",
+    "broader kernel-style atomic or barrier families plus MMIO expansion beyond the current direct and scoped 8-bit, 16-bit, 32-bit, and 64-bit helpers still stay deferred until a roadmap-backed boundary slice really needs them",
 )
 
 SURVEYED_PACKET_BLOB_MARKERS = {
