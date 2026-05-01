@@ -16,6 +16,7 @@ PHASE7_BUILD_PATH = ROOT / "zigux" / "tests" / "phase7_build.zig"
 
 required_files = [
     ROOT / "scripts" / "zigux" / "validate-phase7.py",
+    ROOT / "scripts" / "zigux" / "check-phase7-make-wrapper.py",
     ROOT / "scripts" / "zigux" / "check-phase7-cmdline-parity.py",
     ROOT / "scripts" / "zigux" / "check-phase7-rbtree-parity.py",
     ROOT / "scripts" / "zigux" / "README.md",
@@ -144,7 +145,11 @@ def run_self_test() -> int:
             "    'phase7-validate': [\n"
             "        'python3 scripts/zigux/validate-phase7.py --self-test',\n"
             "        'python3 scripts/zigux/validate-phase7.py',\n"
+            "        'python3 scripts/zigux/check-phase7-make-wrapper.py --self-test',\n"
+            "        'python3 scripts/zigux/check-phase7-make-wrapper.py',\n"
+            "        'python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test',\n"
             "        'python3 scripts/zigux/check-phase7-cmdline-parity.py',\n"
+            "        'python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test',\n"
             "        'python3 scripts/zigux/check-phase7-rbtree-parity.py',\n"
             "    ],\n"
             "    'phase7-test': [\n"
@@ -153,7 +158,11 @@ def run_self_test() -> int:
             "    'phase7': [\n"
             "        'python3 scripts/zigux/validate-phase7.py --self-test',\n"
             "        'python3 scripts/zigux/validate-phase7.py',\n"
+            "        'python3 scripts/zigux/check-phase7-make-wrapper.py --self-test',\n"
+            "        'python3 scripts/zigux/check-phase7-make-wrapper.py',\n"
+            "        'python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test',\n"
             "        'python3 scripts/zigux/check-phase7-cmdline-parity.py',\n"
+            "        'python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test',\n"
             "        'python3 scripts/zigux/check-phase7-rbtree-parity.py',\n"
             "        'zig build test --build-file zigux/tests/phase7_build.zig --summary all',\n"
             "    ],\n"
@@ -184,7 +193,11 @@ def run_self_test() -> int:
             "    'phase7-validate': [\n"
             "        'python3 scripts/zigux/validate-phase7.py --self-test',\n"
             "        'python3 scripts/zigux/validate-phase7.py',\n"
+            "        'python3 scripts/zigux/check-phase7-make-wrapper.py --self-test',\n"
+            "        'python3 scripts/zigux/check-phase7-make-wrapper.py',\n"
+            "        'python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test',\n"
             "        'python3 scripts/zigux/check-phase7-cmdline-parity.py',\n"
+            "        'python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test',\n"
             "        'python3 scripts/zigux/check-phase7-rbtree-parity.py',\n"
             "    ],\n"
             "    'phase7-test': [\n"
@@ -194,7 +207,11 @@ def run_self_test() -> int:
             "    'phase7': [\n"
             "        'python3 scripts/zigux/validate-phase7.py --self-test',\n"
             "        'python3 scripts/zigux/validate-phase7.py',\n"
+            "        'python3 scripts/zigux/check-phase7-make-wrapper.py --self-test',\n"
+            "        'python3 scripts/zigux/check-phase7-make-wrapper.py',\n"
+            "        'python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test',\n"
             "        'python3 scripts/zigux/check-phase7-cmdline-parity.py',\n"
+            "        'python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test',\n"
             "        'python3 scripts/zigux/check-phase7-rbtree-parity.py',\n"
             "        'zig build test --build-file zigux/tests/phase7_build.zig --summary all',\n"
             "        'zig build test --build-file zigux/tests/build.zig',\n"
@@ -211,6 +228,47 @@ def run_self_test() -> int:
             actual = result.stdout.strip() or "none"
             raise SystemExit(
                 "phase7-self-test:stale_wrapper_expansion:expected_wrapper_failure:"
+                f"actual:{actual}"
+            )
+
+        fake_make_path.write_text(
+            "#!/usr/bin/env python3\n"
+            "import sys\n"
+            "\n"
+            "target = sys.argv[-1]\n"
+            "outputs = {\n"
+            "    'phase7-validate': [\n"
+            "        'python3 scripts/zigux/validate-phase7.py --self-test',\n"
+            "        'python3 scripts/zigux/validate-phase7.py',\n"
+            "        'python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test',\n"
+            "        'python3 scripts/zigux/check-phase7-cmdline-parity.py',\n"
+            "        'python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test',\n"
+            "        'python3 scripts/zigux/check-phase7-rbtree-parity.py',\n"
+            "    ],\n"
+            "    'phase7-test': [\n"
+            "        'zig build test --build-file zigux/tests/phase7_build.zig --summary all',\n"
+            "    ],\n"
+            "    'phase7': [\n"
+            "        'python3 scripts/zigux/validate-phase7.py --self-test',\n"
+            "        'python3 scripts/zigux/validate-phase7.py',\n"
+            "        'python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test',\n"
+            "        'python3 scripts/zigux/check-phase7-cmdline-parity.py',\n"
+            "        'python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test',\n"
+            "        'python3 scripts/zigux/check-phase7-rbtree-parity.py',\n"
+            "        'zig build test --build-file zigux/tests/phase7_build.zig --summary all',\n"
+            "    ],\n"
+            "}\n"
+            "for line in outputs.get(target, []):\n"
+            "    print(line)\n",
+            encoding="utf-8",
+        )
+        result = run_validator(tmp_root, env=fake_make_env)
+        if result.returncode == 0:
+            raise SystemExit("phase7-self-test:missing_make_wrapper_gate:unexpected_pass")
+        if "phase7-validate: missing expected wrapper expansion" not in result.stdout:
+            actual = result.stdout.strip() or "none"
+            raise SystemExit(
+                "phase7-self-test:missing_make_wrapper_gate:expected_wrapper_failure:"
                 f"actual:{actual}"
             )
 
@@ -379,7 +437,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=13")
+    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
@@ -426,7 +484,11 @@ required_make_markers = [
     "phase7-validate:",
     "scripts/zigux/validate-phase7.py --self-test",
     "scripts/zigux/validate-phase7.py",
+    "scripts/zigux/check-phase7-make-wrapper.py --self-test",
+    "scripts/zigux/check-phase7-make-wrapper.py",
+    "scripts/zigux/check-phase7-cmdline-parity.py --self-test",
     "scripts/zigux/check-phase7-cmdline-parity.py",
+    "scripts/zigux/check-phase7-rbtree-parity.py --self-test",
     "scripts/zigux/check-phase7-rbtree-parity.py",
     "phase7-test:",
     "$(ZIG) build test --build-file zigux/tests/phase7_build.zig --summary all",
@@ -628,7 +690,11 @@ expected_make_expansions = {
     "phase7-validate": [
         "python3 scripts/zigux/validate-phase7.py --self-test",
         "python3 scripts/zigux/validate-phase7.py",
+        "python3 scripts/zigux/check-phase7-make-wrapper.py --self-test",
+        "python3 scripts/zigux/check-phase7-make-wrapper.py",
+        "python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test",
         "python3 scripts/zigux/check-phase7-cmdline-parity.py",
+        "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test",
         "python3 scripts/zigux/check-phase7-rbtree-parity.py",
     ],
     "phase7-test": [
@@ -637,7 +703,11 @@ expected_make_expansions = {
     "phase7": [
         "python3 scripts/zigux/validate-phase7.py --self-test",
         "python3 scripts/zigux/validate-phase7.py",
+        "python3 scripts/zigux/check-phase7-make-wrapper.py --self-test",
+        "python3 scripts/zigux/check-phase7-make-wrapper.py",
+        "python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test",
         "python3 scripts/zigux/check-phase7-cmdline-parity.py",
+        "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test",
         "python3 scripts/zigux/check-phase7-rbtree-parity.py",
         "zig build test --build-file zigux/tests/phase7_build.zig --summary all",
     ],
@@ -651,7 +721,11 @@ unexpected_make_expansions = {
     "phase7-test": [
         "python3 scripts/zigux/validate-phase7.py --self-test",
         "python3 scripts/zigux/validate-phase7.py",
+        "python3 scripts/zigux/check-phase7-make-wrapper.py --self-test",
+        "python3 scripts/zigux/check-phase7-make-wrapper.py",
+        "python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test",
         "python3 scripts/zigux/check-phase7-cmdline-parity.py",
+        "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test",
         "python3 scripts/zigux/check-phase7-rbtree-parity.py",
         "zig build test --build-file zigux/tests/build.zig",
     ],
