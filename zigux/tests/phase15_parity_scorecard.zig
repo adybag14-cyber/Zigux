@@ -6,6 +6,7 @@ const EvidenceArchive = struct {
     benchmark_notes_status: []const u8,
     replay_command: []const u8,
     latest_blocker_disposition: []const u8,
+    rollback_threshold: []const u8,
 };
 
 const AnchorScorecard = struct {
@@ -128,6 +129,8 @@ fn expectTemplate(io: std.Io, anchor: AnchorScorecard) !void {
     try expectContains(template_doc, anchor.evidence_archive.replay_command);
     try expectContains(template_doc, anchor.evidence_archive.latest_blocker_disposition);
     try expectContains(template_doc, "automatic return-to-blocked trigger");
+    try expectContains(template_doc, "rollback threshold");
+    try expectContains(template_doc, anchor.evidence_archive.rollback_threshold);
     try expectContains(template_doc, "phase15-indefinite-c-policy.md");
     try expectContains(template_doc, "narrower_followup_answers_blocker");
     try expectContains(template_doc, "evidence_packet_stale_or_contradictory");
@@ -151,13 +154,14 @@ test "phase 15 parity scorecard manifest tracks the current roadmap gap honestly
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
     try std.testing.expectEqualStrings("90d95d183d1072f1e8a030eec05e1e60abf443ac", manifest.surveyed_commit);
     try std.testing.expect(manifest.review_process.decision_record_required);
-    try std.testing.expectEqual(@as(usize, 12), manifest.review_process.required_record_fields.len);
+    try std.testing.expectEqual(@as(usize, 13), manifest.review_process.required_record_fields.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.review_process.reopen_trigger_catalog.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.review_process.archive_requirements.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.handoff_evidence.roadmap_requirements.len);
     try std.testing.expectEqualStrings("parity scorecard", manifest.current_parity_tracking_gap.roadmap_requirement);
     try expectContains(manifest.current_parity_tracking_gap.current_gap, "lane identity");
     try expectContains(manifest.current_parity_tracking_gap.current_gap, "surveyed-master provenance");
+    try expectContains(manifest.current_parity_tracking_gap.current_gap, "rollback-threshold");
     try expectContains(manifest.handoff_evidence.current_repo_handoff, "Documentation/zigux/README.md");
     try expectContains(manifest.handoff_evidence.current_repo_handoff, "Documentation/zigux/phase15-handoff-next-steps-survey.md");
     try expectContains(manifest.current_parity_tracking_gap.repo_state, "make -C zigux phase15");
@@ -176,13 +180,15 @@ test "phase 15 parity scorecard manifest tracks the current roadmap gap honestly
     try std.testing.expectEqual(@as(usize, 2), manifest.scorecard_metrics.anchors_with_phase14_survey_evidence);
     try std.testing.expectEqual(@as(usize, 19), manifest.scorecard_metrics.landed_scorecard_gaps);
     try std.testing.expectEqual(@as(usize, 1), manifest.scorecard_metrics.blocked_scorecard_gaps);
-    try std.testing.expectEqual(@as(usize, 12), manifest.scorecard_metrics.required_review_process_record_fields);
+    try std.testing.expectEqual(@as(usize, 13), manifest.scorecard_metrics.required_review_process_record_fields);
     try std.testing.expectEqualStrings("current roadmap phase", manifest.review_process.required_record_fields[0]);
     try std.testing.expectEqualStrings("automatic return-to-blocked trigger", manifest.review_process.required_record_fields[7]);
-    try std.testing.expectEqualStrings("indefinite-C policy link or applicability note", manifest.review_process.required_record_fields[8]);
-    try std.testing.expectEqualStrings("written rationale", manifest.review_process.required_record_fields[11]);
+    try std.testing.expectEqualStrings("rollback threshold", manifest.review_process.required_record_fields[8]);
+    try std.testing.expectEqualStrings("indefinite-C policy link or applicability note", manifest.review_process.required_record_fields[9]);
+    try std.testing.expectEqualStrings("written rationale", manifest.review_process.required_record_fields[12]);
     try expectContains(manifest.review_process.retirement_rule, "current roadmap phase");
     try expectContains(manifest.review_process.retirement_rule, "automatic return-to-blocked trigger");
+    try expectContains(manifest.review_process.retirement_rule, "rollback threshold");
     try expectContains(manifest.review_process.retirement_rule, "indefinite-C policy link or applicability note");
     try expectContains(manifest.review_process.retirement_rule, "written rationale");
 
@@ -209,6 +215,7 @@ test "phase 15 parity scorecard manifest tracks the current roadmap gap honestly
         try std.testing.expect(anchor.evidence_archive.linked_evidence.len >= 2);
         try std.testing.expectEqualStrings("zig build test --build-file zigux/tests/phase15_build.zig", anchor.evidence_archive.replay_command);
         try expectContains(anchor.evidence_archive.latest_blocker_disposition, "blocked");
+        try expectContains(anchor.evidence_archive.rollback_threshold, "blocked review posture");
         try expectTemplate(io_instance.io(), anchor);
 
         if (std.mem.eql(u8, anchor.path, "kernel/sched/core.c")) {
@@ -248,18 +255,20 @@ test "phase 15 parity scorecard docs keep the parity-tracking survey aligned" {
     try expectContains(scorecard_doc, "PHASE15_LANE_KEY=P15-L09");
     try expectContains(scorecard_doc, "## Current Parity-Tracking Gap");
     try expectContains(scorecard_doc, "That closes the current parity-tracking gap for the roadmap requirement `parity scorecard`.");
-    try expectContains(scorecard_doc, "lane identity, surveyed-master provenance, roadmap wording, and replay-backed evidence packet current");
+    try expectContains(scorecard_doc, "lane identity, surveyed-master provenance, roadmap wording, rollback-threshold field sync, and replay-backed evidence packet current");
     try expectContains(scorecard_doc, "Documentation/zigux/README.md");
     try expectContains(scorecard_doc, "Documentation/zigux/phase15-handoff-next-steps-survey.md");
     try expectContains(scorecard_doc, "shared replay path");
-    try expectContains(scorecard_doc, "required review-process record fields tracked in the manifest: `12`");
+    try expectContains(scorecard_doc, "required review-process record fields tracked in the manifest: `13`");
     try expectContains(scorecard_doc, "landed scorecard gaps: `19 / 20`");
     try expectContains(scorecard_doc, "blocked scorecard gaps: `1 / 20`");
     try expectContains(scorecard_doc, "the current roadmap phase, the decision record ID, and the lane owner");
     try expectContains(scorecard_doc, "the automatic return-to-blocked trigger that sends the anchor back to blocked review posture");
+    try expectContains(scorecard_doc, "the rollback threshold that names which stale, missing, contradictory, or widened evidence returns the anchor to blocked review posture");
     try expectContains(scorecard_doc, "the indefinite-C policy link, or an explicit note saying why the packet is not yet entering that policy posture");
     try expectContains(scorecard_doc, "the written rationale for why the current product state needs council attention now");
     try expectContains(scorecard_doc, "phase15-scorecard-review-packet-field-sync");
+    try expectContains(review_process_doc, "rollback-threshold");
     try expectContains(review_process_doc, "parity scorecard");
     try expectContains(indefinite_c_policy_doc, "parity scorecard");
     try expectContains(docs_readme, "Phase 15 notes");
@@ -287,7 +296,10 @@ test "phase 15 parity scorecard gap inventory stays bounded" {
         if (std.mem.eql(u8, gap.status, "blocked_on_stay_in_c_evidence")) blocked += 1;
         if (std.mem.eql(u8, gap.id, "phase15-anchor-owner-tracking")) saw_owner_tracking = true;
         if (std.mem.eql(u8, gap.id, "phase15-maintenance-mode-handoff-sync")) saw_handoff_sync = true;
-        if (std.mem.eql(u8, gap.id, "phase15-scorecard-review-packet-field-sync")) saw_review_packet_field_sync = true;
+        if (std.mem.eql(u8, gap.id, "phase15-scorecard-review-packet-field-sync")) {
+            saw_review_packet_field_sync = true;
+            try expectContains(gap.why_now, "rollback threshold");
+        }
     }
 
     try std.testing.expectEqual(@as(usize, 19), landed);
