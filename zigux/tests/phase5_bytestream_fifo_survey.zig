@@ -347,6 +347,8 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "runtime_bitmap_loader.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "runtime_kretprobe_loader.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "preview truncation") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "truncated 8-byte preview prefix preserves `[3,4,5,6,7,8,9,0]`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "later helper-side preview truncation") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "fixed embedded") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_bytestream_fifo.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "initial string copy count is `5`") != null);
@@ -397,6 +399,8 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
     try std.testing.expect(std.mem.indexOf(u8, samples_readme, "phase5_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, samples_readme, "exact queue-order replay") != null);
     try std.testing.expect(std.mem.indexOf(u8, samples_readme, "transfer counts") != null);
+    try std.testing.expect(std.mem.indexOf(u8, samples_readme, "wrapped replay-preview prefix") != null);
+    try std.testing.expect(std.mem.indexOf(u8, samples_readme, "helper-side preview truncation") != null);
     try std.testing.expect(std.mem.indexOf(u8, samples_readme, "helper-only review surface") != null);
     try std.testing.expect(std.mem.indexOf(u8, samples_readme, "capacity ceiling") != null);
     try std.testing.expect(std.mem.indexOf(u8, samples_readme, "kfifo_from_user()") != null);
