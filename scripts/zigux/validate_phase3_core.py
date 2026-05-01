@@ -22,6 +22,7 @@ BUILD_FILE_REL = "zigux/tests/build.zig"
 ABI_LOW_LEVEL_BUILD_FILE_REL = "zigux/tests/phase3_low_level_wrappers_build.zig"
 ABI_EXPORT_UAPI_BUILD_FILE_REL = "zigux/tests/phase3_export_uapi_build.zig"
 ABI_POLICY_UNSAFE_BUILD_FILE_REL = "zigux/tests/phase3_policy_unsafe_build.zig"
+ABI_LOW_LEVEL_SURVEY_CHECK_REL = "scripts/zigux/validate-phase3-low-level-wrapper-survey.py"
 ABI_EXPORT_UAPI_SURVEY_CHECK_REL = "scripts/zigux/validate-phase3-export-uapi-survey.py"
 ABI_POLICY_UNSAFE_SURVEY_CHECK_REL = "scripts/zigux/validate-phase3-policy-unsafe-survey.py"
 ABI_REQUIRED_MANIFEST_FILES = (
@@ -448,6 +449,36 @@ def validate_export_uapi_boundary(root: Path) -> list[str]:
     return issues
 
 
+def validate_low_level_wrapper_boundary(root: Path) -> list[str]:
+    check_path = root / ABI_LOW_LEVEL_SURVEY_CHECK_REL
+    if not check_path.exists():
+        return [f"low-level-wrapper-survey-gate: missing {ABI_LOW_LEVEL_SURVEY_CHECK_REL}"]
+
+    result = subprocess.run(
+        ["python3", str(check_path)],
+        cwd=str(root),
+        text=True,
+        capture_output=True,
+    )
+    if result.returncode == 0:
+        return []
+
+    issues: list[str] = []
+    for line in result.stdout.splitlines():
+        stripped = line.strip()
+        if not stripped or stripped == "PHASE3_LOW_LEVEL_WRAPPER_SURVEY=fail":
+            continue
+        issues.append(f"low-level-wrapper-survey-gate: {stripped}")
+    stderr = result.stderr.strip()
+    if stderr:
+        issues.append(f"low-level-wrapper-survey-gate: stderr: {stderr.splitlines()[-1]}")
+    if not issues:
+        issues.append(
+            f"low-level-wrapper-survey-gate: {ABI_LOW_LEVEL_SURVEY_CHECK_REL} exited with status {result.returncode}"
+        )
+    return issues
+
+
 def validate_policy_unsafe_boundary(root: Path) -> list[str]:
     check_path = root / ABI_POLICY_UNSAFE_SURVEY_CHECK_REL
     if not check_path.exists():
@@ -643,6 +674,7 @@ def validate_slices(
             issues.extend(validate_abi_expected_fixture(root))
             issues.extend(validate_phase3_review_checklist(root))
             issues.extend(validate_export_uapi_boundary(root))
+            issues.extend(validate_low_level_wrapper_boundary(root))
             issues.extend(validate_policy_unsafe_boundary(root))
         if check_build_smoke:
             issues.extend(_validate_build_smoke(root, entry, zig_path))
