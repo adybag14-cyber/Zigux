@@ -2,7 +2,7 @@
   "phase": "Phase 6",
   "status": "active",
   "tranche": "leaf-helper-parity",
-  "surveyed_commit": "2a40bd2ead95f10db27a7d55809158125d5791f1",
+  "surveyed_commit": "ef7b33b6922d05e5ef514fb4efa588316ce6dda8",
   "roadmap_anchors": [
     "lib/base64.c",
     "lib/bsearch.c",
@@ -22,7 +22,7 @@
         "zigux/tests/phase6_base64_c_casegen.zig"
       ],
       "fixtures": [
-        "zigux/tests/phase6_base64_vectors.zig",
+        "zigux/tests/fixtures/phase6_base64_vectors.zig",
         "zigux/tests/fixtures/phase6_base64_c_harness.c"
       ],
       "slice_note": "Documentation/zigux/phase6-base64-slice.md",
