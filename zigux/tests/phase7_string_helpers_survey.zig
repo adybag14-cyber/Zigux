@@ -150,8 +150,12 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
     try expectContains(string_helpers_slice, "`parse_int_array_user()` over the bounded copy-and-parse starter path");
     try expectContains(string_helpers_slice, "`kstrdup_quotable()` over the bounded escape-then-duplicate path");
     try expectContains(string_helpers_slice, "`kstrdup_and_replace()` over the bounded duplicate-then-rewrite ownership-safe path");
+    try expectContains(string_helpers_slice, "`kasprintf_strarray_raw()` over the bounded direct C-style null-terminated pointer-array starter path");
+    try expectContains(string_helpers_slice, "`kfree_strarray_raw()` over the bounded counted partial-teardown path for partially initialized string arrays");
     try expectContains(string_helpers_slice, "`kasprintf_strarray()` over the bounded sequential prefix-index ownership path");
     try expectContains(string_helpers_slice, "`kfree_strarray()` over the bounded repeated-teardown-safe release path");
+    try expectContains(string_helpers_slice, "one allocator-backed `kasprintf_strarray_raw()` proof that keeps the direct C-style null-terminated pointer-array form explicit beside the higher-level Zig wrapper");
+    try expectContains(string_helpers_slice, "one counted `kfree_strarray_raw()` proof that frees a partially initialized pointer-array prefix without requiring later entries to exist");
     try expectContains(string_helpers_slice, "one `kfree_strarray()` proof that keeps first-NUL prefix handling, zero-count sentinel reuse, and repeated teardown safe");
     try expectContains(string_helpers_slice, "shared wrapper proofs that `string_unescape_inplace()`, `string_unescape_any()`, and `string_unescape_any_inplace()` preserve `UNESCAPE_ANY`, stop at the first written NUL, and leave trailing storage untouched");
     try expectContains(string_helpers_slice, "`STRING_UNITS_NO_SPACE` and `STRING_UNITS_NO_BYTES` formatting flags plus snprintf-style truncation accounting for `string_get_size()`");
@@ -165,6 +169,8 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
     try expectContains(string_helpers_helper, "const empty_kasprintf_strarray_null_terminated: []const ?[*:0]const u8 = &.{null};");
     try expectContains(string_helpers_helper, "pub fn deinit(self: *KasprintfStrarrayResult, allocator: std.mem.Allocator) void");
     try expectContains(string_helpers_helper, "pub fn cArray(self: *const KasprintfStrarrayResult) [*]const ?[*:0]const u8");
+    try expectContains(string_helpers_helper, "pub fn kasprintfStrarrayRaw(");
+    try expectContains(string_helpers_helper, "pub fn kfreeStrarrayRaw(allocator: std.mem.Allocator, array: ?[]?[*:0]u8, count: usize) void");
     try expectContains(string_helpers_helper, "pub fn kasprintfStrarray(");
     try expectContains(string_helpers_helper, "pub fn kfreeStrarray(allocator: std.mem.Allocator, result: *KasprintfStrarrayResult) void");
 
@@ -173,6 +179,8 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
     try expectContains(string_helpers_tests, "phase 7 parseIntArrayUser keeps count-bounded copy semantics explicit");
     try expectContains(string_helpers_tests, "phase 7 kstrdupQuotable reuses the bounded escape subset for log-safe duplication");
     try expectContains(string_helpers_tests, "phase 7 kstrdupAndReplace keeps ownership and first-NUL replacement boundaries explicit");
+    try expectContains(string_helpers_tests, "phase 7 kasprintfStrarrayRaw keeps direct C-style pointer ownership explicit");
+    try expectContains(string_helpers_tests, "phase 7 kfreeStrarrayRaw keeps counted partial teardown safe");
     try expectContains(string_helpers_tests, "phase 7 kasprintfStrarray returns sequential owned strings with a null-pointer terminator");
     try expectContains(string_helpers_tests, "phase 7 kfreeStrarray keeps first-NUL prefixes, zero-count reuse, and repeated teardown safe");
     try expectContains(string_helpers_tests, "phase 7 string helper wrappers keep shared any-flag and C-string ownership rules");
