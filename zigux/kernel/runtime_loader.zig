@@ -393,6 +393,113 @@ test "runtime loader request keeps kretprobe handoff state explicit" {
     try std.testing.expectEqualStrings("register_kretprobe", released.payload.kretprobe.register_api);
 }
 
+test "runtime loader request preserves explicit command names across runtime-lane transitions" {
+    const requests = [_]RuntimeLoadRequest{
+        .{
+            .module_name = "runtime_atomic64",
+            .command_name = "perf-runtime-atomic64",
+            .anchor = "lib/atomic64_test.c",
+            .entry_symbol = "zigux_runtime_atomic64_init",
+            .exit_symbol = "zigux_runtime_atomic64_exit",
+            .requires_runtime_substrate = true,
+            .provides_selftest_hook = true,
+            .handoff_stage = .prepared,
+            .allocator_handoff = allocatorHandoffFor(.kernel_heap),
+            .payload = .{
+                .atomic64 = .{
+                    .counter_snapshot = 99,
+                    .init_runs = 1,
+                    .selftest_runs = 1,
+                    .exit_runs = 0,
+                },
+            },
+        },
+        .{
+            .module_name = "runtime_bitmap",
+            .command_name = "perf-runtime-bitmap",
+            .anchor = "lib/test_bitmap.c",
+            .entry_symbol = "zigux_runtime_bitmap_init",
+            .exit_symbol = "zigux_runtime_bitmap_exit",
+            .requires_runtime_substrate = true,
+            .provides_selftest_hook = true,
+            .handoff_stage = .prepared,
+            .allocator_handoff = allocatorHandoffFor(.kernel_heap),
+            .payload = .{
+                .bitmap = .{
+                    .first_set = 0,
+                    .first_zero = 1,
+                    .weight = 4,
+                    .nbits = 128,
+                    .init_runs = 1,
+                    .selftest_runs = 1,
+                    .exit_runs = 0,
+                },
+            },
+        },
+        .{
+            .module_name = "runtime_kretprobe",
+            .command_name = "perf-runtime-kretprobe",
+            .anchor = "samples/kprobes/kretprobe_example.c",
+            .entry_symbol = "zigux_runtime_kretprobe_init",
+            .exit_symbol = "zigux_runtime_kretprobe_exit",
+            .requires_runtime_substrate = true,
+            .provides_selftest_hook = true,
+            .handoff_stage = .prepared,
+            .allocator_handoff = allocatorHandoffFor(.kernel_heap),
+            .payload = .{
+                .kretprobe = .{
+                    .register_api = "register_kretprobe",
+                    .unregister_api = "unregister_kretprobe",
+                    .symbol_name = "do_sys_openat2",
+                    .maxactive = 20,
+                    .private_data_bytes = 24,
+                    .active_instances = 0,
+                    .skipped_kernel_threads = 1,
+                    .nmissed = 1,
+                    .last_retval = 42,
+                    .last_duration_ns = 75,
+                    .init_runs = 1,
+                    .selftest_runs = 1,
+                    .exit_runs = 0,
+                    .entry_timestamp_armed = false,
+                },
+            },
+        },
+    };
+
+    for (requests) |request| {
+        try std.testing.expect(request.command_name != null);
+        try std.testing.expect(request.keepsCommandNameExplicit());
+        try std.testing.expect(request.keepsInitExitContractExplicit());
+        try std.testing.expect(request.keepsLifecyclePayloadConsistent());
+        try std.testing.expect(request.keepsSharedHandoffContractExplicit());
+
+        const waiting = request.waitingOnRuntimeSubstrate();
+        try std.testing.expect(waiting.command_name != null);
+        try std.testing.expectEqualStrings(request.command_name.?, waiting.command_name.?);
+        try std.testing.expectEqual(request.lane(), waiting.lane());
+        try std.testing.expect(waiting.isWaitingOnRuntimeSubstrate());
+        try std.testing.expect(!waiting.isReleasedWithoutSubstrate());
+        try std.testing.expect(waiting.keepsCommandNameExplicit());
+        try std.testing.expect(waiting.keepsInitExitContractExplicit());
+        try std.testing.expect(waiting.keepsStageConsistentWithRuntimeSubstrate());
+        try std.testing.expect(waiting.keepsLifecyclePayloadConsistent());
+        try std.testing.expect(waiting.keepsSharedHandoffContractExplicit());
+
+        const released = waiting.releasedWithoutSubstrate();
+        try std.testing.expect(released.command_name != null);
+        try std.testing.expectEqualStrings(waiting.command_name.?, released.command_name.?);
+        try std.testing.expectEqual(waiting.lane(), released.lane());
+        try std.testing.expect(!released.isWaitingOnRuntimeSubstrate());
+        try std.testing.expect(released.isReleasedWithoutSubstrate());
+        try std.testing.expect(released.keepsCommandNameExplicit());
+        try std.testing.expect(released.keepsInitExitContractExplicit());
+        try std.testing.expect(released.keepsStageConsistentWithRuntimeSubstrate());
+        try std.testing.expect(released.keepsLifecyclePayloadConsistent());
+        try std.testing.expect(released.keepsSharedHandoffContractExplicit());
+    }
+}
+
 test "runtime loader request rejects implicit init-exit and stage handoff contracts" {
     const missing_exit = RuntimeLoadRequest{
         .module_name = "runtime_bitmap",
