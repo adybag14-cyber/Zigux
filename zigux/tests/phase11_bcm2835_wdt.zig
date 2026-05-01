@@ -218,6 +218,7 @@ test "phase11 bcm2835_wdt remove summary only clears the shared poweroff handler
     try std.testing.expect(owned.clear_poweroff_handler_requested);
     try std.testing.expect(!owned.clear_poweroff_handler_blocked_by_conflict);
     try std.testing.expect(!owned.clear_poweroff_handler_skipped_without_system_power_controller);
+    try std.testing.expect(!owned.clear_poweroff_handler_skipped_without_handler);
     try std.testing.expect(!owned.poweroff_handler_left_in_place);
 
     const conflict = watchdog.removeSummary(true, true, false);
@@ -230,6 +231,7 @@ test "phase11 bcm2835_wdt remove summary only clears the shared poweroff handler
     try std.testing.expect(!conflict.clear_poweroff_handler_requested);
     try std.testing.expect(conflict.clear_poweroff_handler_blocked_by_conflict);
     try std.testing.expect(!conflict.clear_poweroff_handler_skipped_without_system_power_controller);
+    try std.testing.expect(!conflict.clear_poweroff_handler_skipped_without_handler);
     try std.testing.expect(conflict.poweroff_handler_left_in_place);
 
     const not_controller = watchdog.removeSummary(false, true, true);
@@ -242,6 +244,7 @@ test "phase11 bcm2835_wdt remove summary only clears the shared poweroff handler
     try std.testing.expect(!not_controller.clear_poweroff_handler_requested);
     try std.testing.expect(!not_controller.clear_poweroff_handler_blocked_by_conflict);
     try std.testing.expect(not_controller.clear_poweroff_handler_skipped_without_system_power_controller);
+    try std.testing.expect(!not_controller.clear_poweroff_handler_skipped_without_handler);
     try std.testing.expect(not_controller.poweroff_handler_left_in_place);
 
     const absent = watchdog.removeSummary(true, false, false);
@@ -254,5 +257,6 @@ test "phase11 bcm2835_wdt remove summary only clears the shared poweroff handler
     try std.testing.expect(!absent.clear_poweroff_handler_requested);
     try std.testing.expect(!absent.clear_poweroff_handler_blocked_by_conflict);
     try std.testing.expect(!absent.clear_poweroff_handler_skipped_without_system_power_controller);
+    try std.testing.expect(absent.clear_poweroff_handler_skipped_without_handler);
     try std.testing.expect(!absent.poweroff_handler_left_in_place);
 }
