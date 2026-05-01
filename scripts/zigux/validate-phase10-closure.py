@@ -255,6 +255,68 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         if manifest.get(key) != value:
             missing.append(f"manifest:{key}={manifest.get(key)!r}")
 
+    expected_allowed_roadmap_destinations = [
+        "drivers/virtio/*.zig",
+        "zigux/helpers/",
+    ]
+    if manifest.get("allowed_roadmap_destinations") != expected_allowed_roadmap_destinations:
+        missing.append("manifest:allowed_roadmap_destinations")
+
+    expected_allowed_evidence_kinds = [
+        "driver_local_lab_slices",
+        "survey_manifests",
+        "shared_validation_gates",
+    ]
+    if manifest.get("allowed_evidence_kinds") != expected_allowed_evidence_kinds:
+        missing.append("manifest:allowed_evidence_kinds")
+
+    expected_forbidden_transport_claims = [
+        "queue_setup_reset_paths",
+        "irq_parity",
+        "dma_paths",
+        "input_registration_lifecycle",
+        "probe_remove_lifecycle",
+    ]
+    if manifest.get("forbidden_transport_claims") != expected_forbidden_transport_claims:
+        missing.append("manifest:forbidden_transport_claims")
+
+    expected_freeze_in_c_anchors = [
+        "kernel/sched/core.c",
+        "mm/page_alloc.c",
+        "kernel/rcu/tree.c",
+        "net/core/skbuff.c",
+    ]
+    if manifest.get("freeze_in_c_anchors") != expected_freeze_in_c_anchors:
+        missing.append("manifest:freeze_in_c_anchors")
+
+    expected_study_only_anchors = [
+        "kernel/workqueue.c",
+        "kernel/trace/ring_buffer.c",
+    ]
+    if manifest.get("study_only_anchors") != expected_study_only_anchors:
+        missing.append("manifest:study_only_anchors")
+
+    expected_phase14_study_only_boundary = {
+        "status": "separate_phase14_lane",
+        "anchors": [
+            "kernel/workqueue.c",
+            "kernel/trace/ring_buffer.c",
+        ],
+        "required_phase14_evidence_features": [
+            "boundary maps",
+            "concurrency audits",
+            "explicit stay-in-C decisions where warranted",
+            "wrapper-first or study-only posture",
+        ],
+        "future_destinations": [
+            "kernel/workqueue_bridge.zig",
+            "kernel/trace/ring_buffer.zig",
+        ],
+        "future_destination_policy": "kernel/trace/ring_buffer.zig remains a future destination only if years of evidence justify it",
+    }
+    if manifest.get("phase14_study_only_boundary") != expected_phase14_study_only_boundary:
+        missing.append("manifest:phase14_study_only_boundary")
+
     scoreboard = manifest.get("roadmap_parity_scoreboard")
     if not isinstance(scoreboard, dict):
         missing.append("manifest:roadmap_parity_scoreboard")
@@ -397,6 +459,22 @@ def write_fixture(root: Path) -> None:
                 "mmio": "0945df1cf664a3582d7241f859183a13f3f04adb",
             },
         },
+        "allowed_roadmap_destinations": [
+            "drivers/virtio/*.zig",
+            "zigux/helpers/",
+        ],
+        "allowed_evidence_kinds": [
+            "driver_local_lab_slices",
+            "survey_manifests",
+            "shared_validation_gates",
+        ],
+        "forbidden_transport_claims": [
+            "queue_setup_reset_paths",
+            "irq_parity",
+            "dma_paths",
+            "input_registration_lifecycle",
+            "probe_remove_lifecycle",
+        ],
         "landed_mmio_helper_evidence": {
             "zigux/tests/phase10_virtio_mmio_manifest.json": [
                 "phase10-mmio-register-window-helper",
@@ -419,6 +497,34 @@ def write_fixture(root: Path) -> None:
             "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-lifecycle-and-irq-paths",
         },
         "ready_transport_followups": {},
+        "freeze_in_c_anchors": [
+            "kernel/sched/core.c",
+            "mm/page_alloc.c",
+            "kernel/rcu/tree.c",
+            "net/core/skbuff.c",
+        ],
+        "study_only_anchors": [
+            "kernel/workqueue.c",
+            "kernel/trace/ring_buffer.c",
+        ],
+        "phase14_study_only_boundary": {
+            "status": "separate_phase14_lane",
+            "anchors": [
+                "kernel/workqueue.c",
+                "kernel/trace/ring_buffer.c",
+            ],
+            "required_phase14_evidence_features": [
+                "boundary maps",
+                "concurrency audits",
+                "explicit stay-in-C decisions where warranted",
+                "wrapper-first or study-only posture",
+            ],
+            "future_destinations": [
+                "kernel/workqueue_bridge.zig",
+                "kernel/trace/ring_buffer.zig",
+            ],
+            "future_destination_policy": "kernel/trace/ring_buffer.zig remains a future destination only if years of evidence justify it",
+        },
         "exact_checks": [
             "python3 scripts/zigux/validate-phase10-closure.py",
             "zig build test --build-file zigux/tests/phase10_build.zig --summary all",
@@ -510,6 +616,28 @@ def run_self_test() -> int:
         )
         write_fixture(fixture_root)
 
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["forbidden_transport_claims"] = [
+            claim for claim in manifest["forbidden_transport_claims"] if claim != "irq_parity"
+        ]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "forbidden_transport_claims_guard",
+            fixture_root,
+            "manifest:forbidden_transport_claims",
+        )
+        write_fixture(fixture_root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["phase14_study_only_boundary"]["future_destinations"][1] = "kernel/trace/ring_buffer.c"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "phase14_study_only_boundary_guard",
+            fixture_root,
+            "manifest:phase14_study_only_boundary",
+        )
+        write_fixture(fixture_root)
+
         closure_path = fixture_root / "Documentation/zigux/phase10-closure-evidence.md"
         original_closure = closure_path.read_text(encoding="utf-8")
         closure_path.write_text(
@@ -544,7 +672,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=6")
+    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
