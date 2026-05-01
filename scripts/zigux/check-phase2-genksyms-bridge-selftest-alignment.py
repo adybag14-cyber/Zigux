@@ -8,12 +8,14 @@ import subprocess
 import sys
 import tempfile
 
-DEFAULT_ROOT = Path(__file__).resolve().parents[2]
+SCRIPT_PATH = Path(__file__).resolve()
+DEFAULT_ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
 REQUIRED_FILES = {
     'bridge_checker': 'scripts/zigux/check-genksyms-bridge.py',
     'readme': 'scripts/zigux/README.md',
     'closure_doc': 'Documentation/zigux/phase2-closure.md',
     'closure_validator': 'scripts/zigux/validate-phase2-closure.py',
+    'validator': 'scripts/zigux/validate-phase2.py',
     'workflow': '.github/workflows/zigux-bootstrap.yml',
     'cases': 'zigux/tests/fixtures/genksyms_bridge/cases.json',
 }
@@ -61,8 +63,14 @@ CLOSURE_DOC_MARKERS = [
 CLOSURE_VALIDATOR_MARKERS = [
     "'python3 scripts/zigux/check-genksyms-bridge.py --self-test': 1,",
     "'python3 scripts/zigux/check-genksyms-bridge.py': 1,",
-    "'self_test_case_count_marker': \"print('PHASE2_GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=26')\"",
+    '\'self_test_case_count_marker\': "print(\\\'PHASE2_GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=26\\\')",',
     "'PHASE2_GENKSYMS_BRIDGE_CASE_COUNT=26',",
+]
+VALIDATOR_MARKERS = [
+    "'python3 scripts/zigux/check-genksyms-bridge.py --self-test': 1,",
+    "'python3 scripts/zigux/check-genksyms-bridge.py': 1,",
+    '\'self_test_case_count_marker\': "print(\\\'PHASE2_GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=26\\\')",',
+    "'check-genksyms-bridge.py --self-test',",
 ]
 WORKFLOW_RUN_COUNTS = {
     'python3 scripts/zigux/check-genksyms-bridge.py --self-test': 1,
@@ -125,6 +133,7 @@ def validate(root: Path) -> list[str]:
     readme = read_text(root, REQUIRED_FILES['readme'])
     closure_doc = read_text(root, REQUIRED_FILES['closure_doc'])
     closure_validator = read_text(root, REQUIRED_FILES['closure_validator'])
+    validator = read_text(root, REQUIRED_FILES['validator'])
     workflow = read_text(root, REQUIRED_FILES['workflow'])
 
     for marker in BRIDGE_CHECKER_MARKERS:
@@ -139,6 +148,9 @@ def validate(root: Path) -> list[str]:
     for marker in CLOSURE_VALIDATOR_MARKERS:
         if marker not in closure_validator:
             issues.append(f'closure_validator:{marker}')
+    for marker in VALIDATOR_MARKERS:
+        if marker not in validator:
+            issues.append(f'validator:{marker}')
     issues.extend(validate_workflow(workflow))
     issues.extend(validate_cases(root))
     return issues
@@ -158,7 +170,7 @@ def clone_fixture_root(destination_root: Path) -> None:
     script_target.parent.mkdir(parents=True, exist_ok=True)
     script_target.write_text(Path(__file__).read_text(encoding='utf-8'), encoding='utf-8')
 
-    for key in ('bridge_checker', 'readme', 'closure_doc', 'closure_validator', 'workflow', 'cases'):
+    for key in ('bridge_checker', 'readme', 'closure_doc', 'closure_validator', 'validator', 'workflow', 'cases'):
         (destination_root / REQUIRED_FILES[key]).parent.mkdir(parents=True, exist_ok=True)
 
     (destination_root / REQUIRED_FILES['bridge_checker']).write_text(
@@ -168,6 +180,7 @@ def clone_fixture_root(destination_root: Path) -> None:
     (destination_root / REQUIRED_FILES['readme']).write_text('\n'.join(README_MARKERS) + '\n', encoding='utf-8')
     (destination_root / REQUIRED_FILES['closure_doc']).write_text('\n'.join(CLOSURE_DOC_MARKERS) + '\n', encoding='utf-8')
     (destination_root / REQUIRED_FILES['closure_validator']).write_text('\n'.join(CLOSURE_VALIDATOR_MARKERS) + '\n', encoding='utf-8')
+    (destination_root / REQUIRED_FILES['validator']).write_text('\n'.join(VALIDATOR_MARKERS) + '\n', encoding='utf-8')
     workflow_lines = [f'run: {command}' for command in WORKFLOW_RUN_COUNTS]
     (destination_root / REQUIRED_FILES['workflow']).write_text('\n'.join(workflow_lines) + '\n', encoding='utf-8')
     (destination_root / REQUIRED_FILES['cases']).write_text(
@@ -231,9 +244,18 @@ def run_self_test() -> int:
             encoding='utf-8',
         )
         expect_issue('closure_validator_marker', tmp_root, f'closure_validator:{CLOSURE_VALIDATOR_MARKERS[-1]}')
+        clone_fixture_root(tmp_root)
+
+        validator_path = tmp_root / REQUIRED_FILES['validator']
+        original_validator = validator_path.read_text(encoding='utf-8')
+        validator_path.write_text(
+            original_validator.replace(VALIDATOR_MARKERS[2] + '\n', '', 1),
+            encoding='utf-8',
+        )
+        expect_issue('validator_case_count_marker', tmp_root, f'validator:{VALIDATOR_MARKERS[2]}')
 
     print('PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST=pass')
-    print('PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=4')
+    print('PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=5')
     return 0
 
 
