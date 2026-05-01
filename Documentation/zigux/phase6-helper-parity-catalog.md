@@ -2,7 +2,7 @@
 
 This note records the current shared Phase 6 leaf-helper evidence bundle at the inspected `master` tip when this catalog was refreshed.
 
-- verified head: `6e5e19e8e177d054f123c237bbcb8b0cf11288f7`
+- verified head: `d386a77a28cfbb46abd8e7d9c5e2bdf9c93948cb`
 - machine-readable inventory: `zigux/tests/phase6_helper_parity_manifest.json`
 
 ## Scope
@@ -92,8 +92,8 @@ The current Phase 6 perf packet is intentionally mixed. Three helpers now carry 
 
 ### hexdump
 
-- `zigux/tests/phase6_hexdump_perf.zig` now replays three deterministic formatter cases from `zigux/tests/fixtures/phase6_hexdump_vectors.zig`: `16B-plain` at `40_000` reps, `32B-ascii-g2` at `10_000` reps, and `16B-ascii-g4` at `20_000` reps.
-- the current numeric thresholds keep `16B-plain` at `max_slowdown_pct = 175` while widening the grouped ASCII `32B-ascii-g2` and `16B-ascii-g4` replays to `max_slowdown_pct = 550`, checked against the committed `fixtures.prepareExpectedLine(...)` reference path.
+- `zigux/tests/phase6_hexdump_perf.zig` now replays four deterministic formatter cases from `zigux/tests/fixtures/phase6_hexdump_vectors.zig`: `16B-plain` at `40_000` reps, `32B-ascii-g2` at `10_000` reps, `16B-ascii-g4` at `20_000` reps, and `16B-ascii-g8` at `20_000` reps.
+- the current numeric thresholds keep `16B-plain` at `max_slowdown_pct = 175` while the grouped ASCII `32B-ascii-g2` and `16B-ascii-g4` replays stay at `max_slowdown_pct = 550` and the wider native-endian `16B-ascii-g8` replay uses `max_slowdown_pct = 600`, checked against the committed `fixtures.prepareExpectedLine(...)` reference path.
 - the harness also records helper and reference nanoseconds per call, helper and reference nanoseconds per byte, the observed `slowdown_pct`, and the required formatted line length.
 
 ## Current fixture corpus determinism
@@ -103,7 +103,7 @@ The committed Phase 6 fixture corpus is deterministic today because every shippe
 - `zigux/tests/fixtures/phase6_base64_vectors.zig` is the current static base64 corpus with 22 standard encode vectors, 18 variant encode vectors, 22 standard decode vectors, 12 variant decode vectors, and 22 invalid decode vectors.
 - `zigux/tests/fixtures/phase6_base64_c_harness.c`, `zigux/tests/phase6_base64_c_casegen.zig`, and `zigux/tests/phase6_base64_c_parity.zig` replay that same representative base64 surface through `python3 scripts/zigux/check-phase6-base64-c-parity.py`; `python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test` currently reports `PHASE6_BASE64_C_PARITY_SELF_TEST_CASE_COUNT=7`, keeping the parity script's missing-path guards, generated build template, and sorted-output normalization reviewable without a live toolchain replay, and the committed case generator still rebuilds the C include payload from `zigux/tests/fixtures/phase6_base64_vectors.zig` before the current `PHASE6_BASE64_C_PARITY_CASES=96` spot check runs.
 - `zigux/tests/fixtures/phase6_checksum_vectors.zig` is the current static checksum corpus with 5 compute vectors, 2 composition vectors, 3 seeded vectors, 1 IPv4 pseudo-header vector, 2 IPv6 pseudo-header vectors, 4 carry-discipline vectors, and 6 imported KUnit random-prefix vectors.
-- `zigux/tests/fixtures/phase6_hexdump_vectors.zig` is the current static hexdump corpus with 9 parity vectors, 4 overflow vectors, 9 required-length vectors, and 3 perf replay cases, and it keeps `normalizedRowsize()`, `normalizedGroupsizeForLen()`, and `prepareExpectedLine(...)` as the shared normalization path so parity, overflow, required-length, and perf replays stay on one committed corpus table.
+- `zigux/tests/fixtures/phase6_hexdump_vectors.zig` is the current static hexdump corpus with 9 parity vectors, 4 overflow vectors, 9 required-length vectors, and 4 perf replay cases, and it keeps `normalizedRowsize()`, `normalizedGroupsizeForLen()`, and `prepareExpectedLine(...)` as the shared normalization path so parity, overflow, required-length, and perf replays stay on one committed corpus table.
 - `zigux/tests/phase6_bsearch.zig` and `zigux/tests/phase6_bsearch_c_parity.zig` keep the current bsearch corpus inline as sorted integer, descending, duplicate, singleton, empty-slice, mutable, and symbol tables rather than a generated fixture file, `python3 scripts/zigux/check-phase6-bsearch-c-parity.py --self-test` currently reports `PHASE6_BSEARCH_C_PARITY_SELF_TEST_CASE_COUNT=6` so the parity script's missing-path and output-normalization helpers stay reviewable without a live toolchain replay, and `python3 scripts/zigux/check-phase6-bsearch-c-parity.py` currently passes with `PHASE6_BSEARCH_C_PARITY_CASES=29`.
 - No generated Phase 6 fixture artifact is committed today; current corpus determinism comes from these committed literals, normalization helpers, and sorted external parity replays.
 
@@ -116,6 +116,6 @@ The committed Phase 6 fixture corpus is deterministic today because every shippe
 - `zigux/tests/phase6_base64_perf.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/phase6_hexdump_perf.zig` currently carry fixture-backed relative slowdown thresholds rather than cross-machine absolute ceilings.
 - the current base64 perf packet now covers the shipped standard, URL-safe, and IMAP alphabets with both padded and no-padding variant branches under the bounded slowdown gate.
 - `zigux/tests/phase6_bsearch_perf.zig` currently enforces a bounded per-lookup and average comparison budget rather than a nanosecond threshold.
-- the current hexdump perf packet measures helper output against the committed `fixtures.prepareExpectedLine(...)` reference path, keeping `16B-plain` at `max_slowdown_pct = 175` while the grouped ASCII replays use `max_slowdown_pct = 550`.
+- the current hexdump perf packet measures helper output against the committed `fixtures.prepareExpectedLine(...)` reference path, keeping `16B-plain` at `max_slowdown_pct = 175` while the grouped ASCII replays use `max_slowdown_pct = 550` and the wider `16B-ascii-g8` replay uses `max_slowdown_pct = 600`.
 - The per-helper perf targets stay reviewable only through this same bounded packet; do not treat one helper-local perf harness as closure for the whole tranche.
 - Reopen this catalog only when the shipped helper inventory, test labels, fixture modules, perf entrypoints, or slice-note ownership changes.
