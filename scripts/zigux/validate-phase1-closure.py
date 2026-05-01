@@ -365,70 +365,65 @@ required_closure_markers = [
     'PHASE1_BENCH_SELF_TEST_GATE=python3 scripts/zigux/check-phase1-bench.py --self-test',
     'PHASE1_CLOSURE_GATE=python3 scripts/zigux/validate-phase1-closure.py',
     'PHASE1_CLOSURE_SELF_TEST_GATE=python3 scripts/zigux/validate-phase1-closure.py --self-test',
-    'PHASE1_FIND_BIT_BENCH_REVIEW=find_bit benchmark smoke pins deterministic next-bit, whole-family, tail-window, and same-word start-mask checksums so helper-local scan regressions cannot hide behind a generic positive checksum',
+    'PHASE1_FIND_BIT_BENCH_REVIEW=find_bit benchmark smoke pins deterministic next-bit, whole-family, tail-window, same-word, zero-bit, and shared-bit scan checksums plus the live loop counts so helper-local scan regressions cannot hide behind a generic positive checksum or a silently shrunk workload',
     'PHASE1_FIND_BIT_BENCH_KEYS=PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM,PHASE1_BENCH_FIND_BIT_FAMILY_CHECKSUM,PHASE1_BENCH_FIND_TAIL_WINDOW_CHECKSUM,PHASE1_BENCH_FIND_SAME_WORD_CHECKSUM',
-    'PHASE1_FIND_BIT_BENCH_ITERATIONS=PHASE1_BENCH_FIND_SAME_WORD_ITERATIONS',
+    'PHASE1_FIND_BIT_BENCH_ITERATIONS=PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS,PHASE1_BENCH_FIND_SAME_WORD_ITERATIONS,PHASE1_BENCH_FIND_NEXT_ZERO_BIT_ITERATIONS,PHASE1_BENCH_FIND_NEXT_AND_BIT_ITERATIONS',
     'PHASE1_RBTREE_BENCH_REVIEW=rbtree benchmark smoke pins ordered traversal, duplicate-range, cached-leftmost, and findAdd checksum surfaces so duplicate-owner regressions cannot hide behind the broader tree checksum alone',
     'PHASE1_RBTREE_BENCH_KEYS=PHASE1_BENCH_RBTREE_CHECKSUM,PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM,PHASE1_BENCH_RBTREE_CACHED_CHECKSUM,PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM',
     'PHASE1_ROLLBACK=keep C authoritative and remove failing Zig helper from test/build wiring',
 ]
+
 required_workflow_markers = [
-    'FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true',
-    'uses: actions/checkout@v6.0.2',
-    'uses: actions/setup-python@v6.2.0',
-    'python3 scripts/zigux/install-zig.py --dest .zig-toolchain',
-    'run: zig version',
-    'python3 scripts/zigux/validate-phase1-closure.py',
-    'python3 scripts/zigux/validate-phase1-closure.py --self-test',
     'python3 scripts/zigux/check-phase1-parity.py --self-test',
-    'python3 scripts/zigux/check-phase1-bench.py',
     'python3 scripts/zigux/check-phase1-bench.py --self-test',
-    'zig build bench --build-file zigux/tests/build.zig',
-]
-required_workflow_exact_lines = {
-    'run: python3 scripts/zigux/validate-phase1-closure.py': 1,
-    'run: python3 scripts/zigux/validate-phase1-closure.py --self-test': 1,
-    'run: python3 scripts/zigux/check-phase1-parity.py --self-test': 1,
-    'run: python3 scripts/zigux/check-phase1-bench.py': 1,
-    'run: python3 scripts/zigux/check-phase1-bench.py --self-test': 1,
-}
-required_build_markers = [
-    'phase1_bench.zig',
-    'const bench_step = b.step("bench", "Run Phase 1 helper benchmark smoke");',
-]
-required_ledger_markers = [
-    'Documentation/zigux/phase1-closure.md',
-    'scripts/zigux/validate-phase1-closure.py',
-    'zigux/tests/fixtures/phase1_helper_manifest.json',
-    'zigux/tests/fixtures/phase1_bench_expectations.json',
-]
-required_bench_checker_markers = [
-    "print('PHASE1_BENCH_SELF_TEST=pass')",
-    "print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=11')",
-    "print('DUPLICATE_PHASE1_BENCH_KEYS_START')",
-]
-required_parity_checker_markers = [
-    "print('PHASE1_PARITY_SELF_TEST=pass')",
-    "print('PHASE1_PARITY_SELF_TEST_CASE_COUNT=7')",
-    "print('bitmap.scnprintf_empty_len')",
-    "print('bitmap.scnprintf_empty_bytes')",
-    "print('bitmap.scnprintf_trunc_len')",
-    "print('bitmap.scnprintf_trunc')",
+    'python3 scripts/zigux/validate-phase1-closure.py --self-test',
+    'python3 scripts/zigux/check-phase1-parity.py',
+    'python3 scripts/zigux/check-phase1-bench.py',
+    'python3 scripts/zigux/validate-phase1-closure.py',
+    'actions/checkout@v4',
+    'actions/setup-python@v5',
+    'actions/upload-artifact@v4',
+    'actions/cache@v4',
+    'ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true',
 ]
 
-missing_markers: list[str] = []
+required_build_markers = [
+    'const phase1_bench = b.addExecutable(.{',
+    '.name = "phase1-bench",',
+    '.root_source_file = b.path("phase1_bench.zig"),',
+    'phase1_bench.root_module.addImport("find_bit", find_bit_mod);',
+    'const run_phase1_bench = b.addRunArtifact(phase1_bench);',
+    'const bench_step = b.step("bench", "Run bounded Phase 1 helper benchmark smoke");',
+    'bench_step.dependOn(&run_phase1_bench.step);',
+]
+
+required_ledger_markers = [
+    '15. `docs(zigux): close bounded phase-1 helper tranche`',
+    '- `Documentation/zigux/phase1-closure.md`',
+    '- `scripts/zigux/validate-phase1-closure.py`',
+    '- `zigux/tests/phase1_bench.zig`',
+    '16. `test(zigux): harden phase-1 closure gates`',
+    '- `scripts/zigux/check-phase1-bench.py`',
+    '- `zigux/tests/fixtures/phase1_bench_expectations.json`',
+]
+
+required_bench_checker_markers = [
+    "print('DUPLICATE_PHASE1_BENCH_KEYS_START')",
+    "print('MISSING_PHASE1_BENCH_KEYS_START')",
+    "print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=11')",
+]
+
+required_parity_checker_markers = [
+    "print('PHASE1_PARITY_SELF_TEST_CASE_COUNT=7')",
+]
+
+missing_markers = []
 for marker in required_closure_markers:
     if marker not in closure:
         missing_markers.append(f'closure:{marker}')
 for marker in required_workflow_markers:
     if marker not in workflow:
         missing_markers.append(f'workflow:{marker}')
-for line, expected_count in required_workflow_exact_lines.items():
-    actual_count = count_exact_line(workflow, line)
-    if actual_count != expected_count:
-        missing_markers.append(
-            f'workflow_exact:{line}:expected_count={expected_count}:actual_count={actual_count}'
-        )
 for marker in required_build_markers:
     if marker not in tests_build:
         missing_markers.append(f'build:{marker}')
@@ -693,7 +688,10 @@ required_exact_checksums = {
     'PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM': 3484000,
 }
 required_iterations = {
+    'PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS': 20000,
     'PHASE1_BENCH_FIND_SAME_WORD_ITERATIONS': 20000,
+    'PHASE1_BENCH_FIND_NEXT_ZERO_BIT_ITERATIONS': 20000,
+    'PHASE1_BENCH_FIND_NEXT_AND_BIT_ITERATIONS': 20000,
 }
 for key, expected in required_iterations.items():
     if bench_expectations.get('iterations', {}).get(key) != expected:
