@@ -131,6 +131,32 @@ pub const TtyRegistrationHandoffSnapshot = struct {
     host_io_pending: bool,
 };
 
+pub const NotifierAddOutcomeRequest = struct {
+    close: CloseRequest = .{},
+    notifier_add_present: bool = false,
+    notifier_add_result: isize = 0,
+};
+
+pub const NotifierAddOutcomeSnapshot = struct {
+    anchor: []const u8,
+    slot_index: usize,
+    vtermno: u32,
+    adapter_present: bool,
+    tty_registration_pending: bool,
+    final_close_wait_required: bool,
+    clears_port_initialized_on_final_close: bool,
+    keeps_console_binding: bool,
+    notifier_add_present: bool,
+    notifier_add_attempted: bool,
+    notifier_add_succeeded: bool,
+    notifier_add_failed: bool,
+    irq_requested_after_open: bool,
+    polling_fallback_required: bool,
+    close_cleanup_required: bool,
+    khvcd_kick_required: bool,
+    host_io_pending: bool,
+};
+
 pub const KhvcdPollingContractRequest = struct {
     close: CloseRequest = .{},
     notifier_add_pending: bool = false,
@@ -440,6 +466,36 @@ pub const HvcConsoleLab = struct {
             .khvcd_polling_pending = true,
             .notifier_callbacks_pending = true,
             .host_io_pending = true,
+        };
+    }
+
+    pub fn summarizeNotifierAddOutcome(
+        self: *const Self,
+        request: NotifierAddOutcomeRequest,
+    ) !NotifierAddOutcomeSnapshot {
+        const handoff = try self.summarizeTtyRegistrationHandoff(request.close);
+        const notifier_add_attempted = request.notifier_add_present;
+        const notifier_add_succeeded = notifier_add_attempted and request.notifier_add_result >= 0;
+        const notifier_add_failed = notifier_add_attempted and request.notifier_add_result < 0;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .slot_index = handoff.slot_index,
+            .vtermno = handoff.vtermno,
+            .adapter_present = handoff.adapter_present,
+            .tty_registration_pending = handoff.tty_registration_pending,
+            .final_close_wait_required = handoff.final_close_wait_required,
+            .clears_port_initialized_on_final_close = handoff.clears_port_initialized_on_final_close,
+            .keeps_console_binding = handoff.keeps_console_binding,
+            .notifier_add_present = request.notifier_add_present,
+            .notifier_add_attempted = notifier_add_attempted,
+            .notifier_add_succeeded = notifier_add_succeeded,
+            .notifier_add_failed = notifier_add_failed,
+            .irq_requested_after_open = notifier_add_succeeded,
+            .polling_fallback_required = !notifier_add_succeeded,
+            .close_cleanup_required = notifier_add_failed,
+            .khvcd_kick_required = handoff.khvcd_kick_on_open or !notifier_add_succeeded,
+            .host_io_pending = handoff.host_io_pending,
         };
     }
 
