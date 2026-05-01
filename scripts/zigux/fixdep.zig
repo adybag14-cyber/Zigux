@@ -478,6 +478,55 @@ test "dep parsing returns NoTargets for comment-only depfiles" {
     try std.testing.expectEqual(@as(usize, 0), capture.list.items.len);
 }
 
+test "dep parsing skips escaped-newline comments before the first target" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{
+                .list = try std.ArrayList(u8).initCapacity(allocator, 128),
+                .allocator = allocator,
+            };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
+            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
+            defer self.allocator.free(rendered);
+            try self.list.appendSlice(self.allocator, rendered);
+        }
+    };
+
+    var processor = Processor.init(std.testing.allocator, std.testing.io);
+    defer processor.deinit();
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try processor.parseDepFile(
+        &capture,
+        "# rustc note \\\n" ++
+            "continues across lines \\\n" ++
+            "until the first real newline\n" ++
+            "continued_comment.o: source.rmeta dep.so\n",
+        "continued_comment.o",
+    );
+
+    try std.testing.expectEqualStrings(
+        "source_continued_comment.o := source.rmeta\n\n" ++
+            "deps_continued_comment.o := \\\n" ++
+            "  dep.so \\\n" ++
+            "\n" ++
+            "continued_comment.o: $(deps_continued_comment.o)\n\n" ++
+            "$(deps_continued_comment.o):\n",
+        capture.list.items,
+    );
+}
+
 test "dep parsing keeps escaped whitespace inside dependency tokens" {
     const Capture = struct {
         list: std.ArrayList(u8),
