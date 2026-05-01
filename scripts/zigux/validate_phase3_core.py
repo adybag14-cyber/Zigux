@@ -71,6 +71,9 @@ ABI_REQUIRED_DOC_MARKERS = (
     "PHASE3_ATOMIC_SCOPE=load-store-exchange-compare-exchange-fetch-add-fetch-sub-fetch-and-fetch-or-fetch-xor",
     "PHASE3_BARRIER_SCOPE=acquire-release-full",
     "PHASE3_MMIO_SCOPE=range-read8-read16-read32-write8-write16-write32-plus-scoped-read8-write8-read16-write16-read32-write32",
+    "PHASE3_ROADMAP_ANCHORS=rust-exports-lib-bitmap-lib-rbtree-lib-cpumask",
+    "PHASE3_CURRENT_INTEROP_FAMILIES=bitmap-cpumask-list-hlist-errptr-xarray-idr-ida-dev-region-cdev-chrdev",
+    "PHASE3_CURRENT_INTEROP_GAP=repo-now-carries-curated-phase3-parity-slices-beyond-the-original-roadmap-anchor-set",
 )
 ABI_REVIEW_CHECKLIST_MARKERS = (
     "- if the change touches the shared Phase 3 ABI substrate packet, do `include/zigux/abi.h`, `include/linux/zigux.h`, `zigux/bindings/abi.zig`, `zigux/tests/phase3_abi.zig`, and `zigux/tests/fixtures/phase3_abi/expected.json` still agree on the same canonical boundary layouts, constants, and fixture-backed dump contract?",
