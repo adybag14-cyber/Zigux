@@ -144,12 +144,14 @@ It also stays underneath the freeze-map study boundary for `kernel/workqueue.c`,
 
 2. run the shared Phase 9 validation-flow self-test and the dedicated runtime-loader packet self-tests
 - `python3 scripts/zigux/check-phase9-validation-flow.py --self-test`
+- `python3 scripts/zigux/check-phase9-loader-substrate-plan.py --self-test`
 - `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test`
 - `python3 scripts/zigux/check-phase9-loader-non-owner-boundary.py --self-test`
 
 3. run the release-discipline validator and the dedicated runtime-loader packet checks
 - `python3 scripts/zigux/validate-phase9.py`
 - `python3 scripts/zigux/check-phase9-validation-flow.py`
+- `python3 scripts/zigux/check-phase9-loader-substrate-plan.py`
 - `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py`
 - `python3 scripts/zigux/check-phase9-loader-non-owner-boundary.py`
 
