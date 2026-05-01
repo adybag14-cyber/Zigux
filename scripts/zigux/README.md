@@ -11,6 +11,7 @@ Initial responsibilities
 
 Current bootstrap helpers
 - `artifact_diff.py`
+- `check-artifact-diff-contract.py`
 - `check-zig-toolchain.py`
 - `validate-bootstrap.py`
 - `install-zig.py`
