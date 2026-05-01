@@ -351,6 +351,48 @@ def assert_text_mode_rejects_byte_drift(left: Path, right: Path, *, label: str) 
     assert 'MODE=text' in text_result.stdout
 
 
+def write_synthetic_confdata_case(
+    tmp_dir: Path,
+    *,
+    name: str,
+    input_bytes: bytes,
+    expected_json: str,
+) -> tuple[Path, Path]:
+    input_path = tmp_dir / f'{name}.config'
+    expected_path = tmp_dir / f'{name}_expected.json'
+    input_path.write_bytes(input_bytes)
+    expected_path.write_text(expected_json, encoding='utf-8', newline='\n')
+    return input_path, expected_path
+
+
+def check_confdata_case(
+    confdata_exe: Path,
+    confdata_rebuild_exe: Path,
+    tmp_dir: Path,
+    *,
+    name: str,
+    input_path: Path,
+    expected_path: Path,
+) -> None:
+    actual = tmp_dir / f'{name}.actual.json'
+    repeat = tmp_dir / f'{name}.repeat.json'
+    rebuild = tmp_dir / f'{name}.rebuild.json'
+
+    result = run([str(confdata_exe), str(input_path)], cwd=str(ROOT), capture_output=True)
+    actual.write_text(result.stdout, encoding='utf-8', newline='\n')
+    compare_json_artifacts(expected_path, actual)
+
+    repeat_result = run([str(confdata_exe), str(input_path)], cwd=str(ROOT), capture_output=True)
+    repeat.write_text(repeat_result.stdout, encoding='utf-8', newline='\n')
+    compare_json_artifacts(actual, repeat)
+    compare_text_artifacts(actual, repeat)
+
+    rebuild_result = run([str(confdata_rebuild_exe), str(input_path)], cwd=str(ROOT), capture_output=True)
+    rebuild.write_text(rebuild_result.stdout, encoding='utf-8', newline='\n')
+    compare_json_artifacts(actual, rebuild)
+    compare_text_artifacts(actual, rebuild)
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix='zigux_kconfig_bridge_selftest_') as tmp_dir_str:
         tmp_dir = Path(tmp_dir_str)
@@ -563,6 +605,24 @@ def run_self_test() -> int:
         compare_json_artifacts(exact_a, exact_b)
         assert_text_mode_rejects_byte_drift(exact_a, exact_b, label='json-equivalent conf bridge output')
 
+        trailing_cr_input, trailing_cr_expected = write_synthetic_confdata_case(
+            tmp_dir,
+            name='final_trailing_carriage_return',
+            input_bytes=b'CONFIG_DECIMAL=7\r',
+            expected_json='{"counts":{"set":1,"unset":0},"entries":[{"name":"CONFIG_DECIMAL","kind":"value","value":"7\\r"}]}\n',
+        )
+        assert trailing_cr_input.read_bytes() == b'CONFIG_DECIMAL=7\r'
+        assert trailing_cr_expected.read_text(encoding='utf-8') == '{"counts":{"set":1,"unset":0},"entries":[{"name":"CONFIG_DECIMAL","kind":"value","value":"7\\r"}]}\n'
+
+        final_unset_input, final_unset_expected = write_synthetic_confdata_case(
+            tmp_dir,
+            name='final_unterminated_unset_comment',
+            input_bytes=b'CONFIG_ALPHA=y\n# CONFIG_DEBUG is not set\r',
+            expected_json='{"counts":{"set":1,"unset":0},"entries":[{"name":"CONFIG_ALPHA","kind":"tristate","value":"y"}]}\n',
+        )
+        assert final_unset_input.read_bytes() == b'CONFIG_ALPHA=y\n# CONFIG_DEBUG is not set\r'
+        assert final_unset_expected.read_text(encoding='utf-8') == '{"counts":{"set":1,"unset":0},"entries":[{"name":"CONFIG_ALPHA","kind":"tristate","value":"y"}]}\n'
+
     print('KCONFIG_BRIDGE_SELF_TEST=pass')
     return 0
 
@@ -658,20 +718,44 @@ def main() -> int:
         compare_text_artifacts(default_actual, default_rebuild)
 
         for case in cases['confdata_cases']:
-            actual = tmp_dir / f"{case['name']}.actual.json"
-            repeat = tmp_dir / f"{case['name']}.repeat.json"
-            rebuild = tmp_dir / f"{case['name']}.rebuild.json"
-            result = run([str(confdata_exe), str(FIXTURE_DIR / case['input'])], cwd=str(ROOT), capture_output=True)
-            actual.write_text(result.stdout, encoding='utf-8', newline='\n')
-            compare_json_artifacts(FIXTURE_DIR / case['expected'], actual)
-            repeat_result = run([str(confdata_exe), str(FIXTURE_DIR / case['input'])], cwd=str(ROOT), capture_output=True)
-            repeat.write_text(repeat_result.stdout, encoding='utf-8', newline='\n')
-            compare_json_artifacts(actual, repeat)
-            compare_text_artifacts(actual, repeat)
-            rebuild_result = run([str(confdata_rebuild_exe), str(FIXTURE_DIR / case['input'])], cwd=str(ROOT), capture_output=True)
-            rebuild.write_text(rebuild_result.stdout, encoding='utf-8', newline='\n')
-            compare_json_artifacts(actual, rebuild)
-            compare_text_artifacts(actual, rebuild)
+            check_confdata_case(
+                confdata_exe,
+                confdata_rebuild_exe,
+                tmp_dir,
+                name=case['name'],
+                input_path=FIXTURE_DIR / case['input'],
+                expected_path=FIXTURE_DIR / case['expected'],
+            )
+
+        trailing_cr_input, trailing_cr_expected = write_synthetic_confdata_case(
+            tmp_dir,
+            name='final_trailing_carriage_return',
+            input_bytes=b'CONFIG_DECIMAL=7\r',
+            expected_json='{"counts":{"set":1,"unset":0},"entries":[{"name":"CONFIG_DECIMAL","kind":"value","value":"7\\r"}]}\n',
+        )
+        check_confdata_case(
+            confdata_exe,
+            confdata_rebuild_exe,
+            tmp_dir,
+            name='final_trailing_carriage_return',
+            input_path=trailing_cr_input,
+            expected_path=trailing_cr_expected,
+        )
+
+        final_unset_input, final_unset_expected = write_synthetic_confdata_case(
+            tmp_dir,
+            name='final_unterminated_unset_comment',
+            input_bytes=b'CONFIG_ALPHA=y\n# CONFIG_DEBUG is not set\r',
+            expected_json='{"counts":{"set":1,"unset":0},"entries":[{"name":"CONFIG_ALPHA","kind":"tristate","value":"y"}]}\n',
+        )
+        check_confdata_case(
+            confdata_exe,
+            confdata_rebuild_exe,
+            tmp_dir,
+            name='final_unterminated_unset_comment',
+            input_path=final_unset_input,
+            expected_path=final_unset_expected,
+        )
 
     print('KCONFIG_BRIDGE_DIFF=pass')
     print('KCONFIG_BRIDGE_DETERMINISM=pass')
