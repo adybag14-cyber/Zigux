@@ -343,9 +343,12 @@ test "trace-events sample keeps callback registration single-live" {
     var sample = TraceEventsReferenceSample{};
 
     try sample.init();
+    try std.testing.expectError(error.RegistrationUnderflow, sample.unregisterFunctionCallback());
     try sample.registerFunctionCallback();
     try std.testing.expectError(error.CallbackAlreadyRegistered, sample.registerFunctionCallback());
     try std.testing.expectError(error.InvalidIterationCount, sample.replayFunctionIteration(-1));
+    try std.testing.expectError(error.OutstandingRegistration, sample.exit());
+    try std.testing.expectEqual(@as(usize, 1), sample.registration_depth);
     try sample.replayFunctionIteration(5);
     try sample.unregisterFunctionCallback();
     try std.testing.expectEqual(@as(usize, 0), sample.registration_depth);
