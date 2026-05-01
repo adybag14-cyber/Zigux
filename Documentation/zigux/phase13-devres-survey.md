@@ -21,7 +21,7 @@ Current repo state on `master`:
 
 - reviewed against live `master` `46cfce733c7aac677f2fbed9682667866f42aa0b`
 - `lib/devres.zig` already anchors a helper-first `DevresHelperLab` on `lib/devres.c`
-- compared against the earlier surveyed head `26e5f8101d3546c7942c93757ecc3fdfaa6ee264`, the current helper packet now advances by adding the direct non-posted managed wrapper instead of staying byte-for-byte unchanged; the refreshed `lib/devres.zig` helper surface now hashes to `sha256 2bbad8cad014471312865a57a249412b29af4574d8a6918f8bb66f4948973eda`
+- compared against the earlier surveyed head `26e5f8101d3546c7942c93757ecc3fdfaa6ee264`, the current helper packet now advances by rejecting full-width inclusive MMIO resource spans that would overflow size math before request-region or remap planning begins; the refreshed `lib/devres.zig` helper surface now hashes to `sha256 bf273f9916faea71d56c5ecc75907bb5ccf693685e03d9fe448af3f6e4da50b6`
 - compared against that same earlier surveyed head, the refreshed dedicated `zigux/tests/phase13_devres.zig` replay now hashes to `sha256 7dc45ab99f46d5424e3d757f720e58654aaea326b13db1af601be88c3cbff476` because the focused Phase 13 replay now covers the direct non-posted wrapper too
 - the shipped `DevresHelperLab` descriptor now says explicitly that the helper-only surface still avoids live DMA-backed mappings and scatterlist ownership instead of leaving that boundary only in the manifest and prose packet
 - a direct token scan of current `lib/devres.zig` finds only the `touches_live_dma` and `touches_live_scatterlist` descriptor markers and no `dmam_alloc_coherent`, `dmam_free_coherent`, `dma_map_resource`, `dma_unmap_resource`, `dma_map_sgtable`, `struct scatterlist`, or `sg_table` helper entrypoints
@@ -43,7 +43,7 @@ What is landed today:
 - the `devm_ioremap_uc()` wrapper path and exact `devm_iounmap()` pointer-match release behavior
 - the `devm_ioremap_wc()` wrapper path without widening into live write-combined mappings
 - the `devm_ioremap_np()` wrapper path so the direct non-posted managed mapping export is reviewable instead of being inferred only from the generic lifetime helper or from resource-flag fallback
-- managed `__devm_ioremap_resource()` planning around memory-resource validation, inclusive size calculation, pretty-name construction, request-region gating, remap cleanup, and non-posted fallback when the resource flags demand it
+- managed `__devm_ioremap_resource()` planning around memory-resource validation, overflow-safe inclusive size calculation, pretty-name construction, request-region gating, remap cleanup, and non-posted fallback when the resource flags demand it
 - the adjacent `devm_ioremap_resource_wc()` wrapper path without widening into live write-combined mappings
 - `devm_of_iomap()` planning around translated resource selection, optional size reporting, and delegation into the managed-resource planner without walking a live device tree
 - `devm_ioport_map()` and `devm_ioport_unmap()` lifetime bookkeeping without claiming live port-space side effects
