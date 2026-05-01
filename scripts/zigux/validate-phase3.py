@@ -23,6 +23,36 @@ def _run_script_self_test(script_name: str) -> int:
     return result.returncode
 
 
+def _collect_script_validation_issues(
+    script_name: str,
+    failure_banner: str,
+    issue_prefix: str,
+) -> list[str]:
+    script_path = ROOT / "scripts" / "zigux" / script_name
+    result = subprocess.run(
+        ["python3", str(script_path)],
+        cwd=ROOT,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if result.returncode == 0:
+        return []
+
+    issues: list[str] = []
+    for line in result.stdout.splitlines():
+        stripped = line.strip()
+        if not stripped or stripped == failure_banner:
+            continue
+        issues.append(f"{issue_prefix}: {stripped}")
+    stderr = result.stderr.strip()
+    if stderr:
+        issues.append(f"{issue_prefix}: stderr: {stderr.splitlines()[-1]}")
+    if not issues:
+        issues.append(f"{issue_prefix}: {script_name} exited with status {result.returncode}")
+    return issues
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate the bounded Phase 3 slice catalog and metadata.")
     parser.add_argument("--slug", action="append", default=[], help="Only validate the named Phase 3 slug. Repeat to validate more than one.")
@@ -63,6 +93,13 @@ def main() -> int:
             check_slug_sanity=args.check_slug_sanity,
             check_all_wrappers=not args.skip_obsolete_wrapper_check,
             zig_path=args.zig,
+        )
+    )
+    issues.extend(
+        _collect_script_validation_issues(
+            "validate-phase3-low-level-wrapper-survey.py",
+            "PHASE3_LOW_LEVEL_WRAPPER_SURVEY=fail",
+            "low-level-wrapper-survey-gate",
         )
     )
     if issues:
