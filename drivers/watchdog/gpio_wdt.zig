@@ -399,6 +399,22 @@ pub const GpioWatchdogLab = struct {
             };
         }
 
+        if (!self.running) {
+            return .{
+                .anchor = descriptor().anchor,
+                .hw_algo = self.hw_algo,
+                .always_running = self.always_running,
+                .nowayout = false,
+                .disposition = .stopped,
+                .stop_allowed_by_watchdog_core = true,
+                .driver_stop_invoked = false,
+                .running = self.running,
+                .line_state = self.line_state,
+                .line_is_output = self.line_is_output,
+                .disable_count = self.disable_count,
+            };
+        }
+
         const runtime = self.stop();
         return .{
             .anchor = descriptor().anchor,
