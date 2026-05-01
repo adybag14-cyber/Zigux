@@ -51,7 +51,7 @@ Without this matrix, the slice and survey named the right next step but did not 
 
 ## Latest Verification Snapshot
 
-- lane key: `P11-L05`
+- lane key: `P11-L01`
 - inspected `master` head: `530282b229a59280b795c77a82c7e528ffb6cddd`
 - focused compile replay:
   - `zig build test --build-file build.zig --summary all` in the bounded scratch packet replayed the live `drivers/watchdog/gpio_wdt.zig` module plus `zigux/tests/phase11_gpio_wdt.zig` and `zigux/tests/phase11_gpio_wdt_survey.zig`
