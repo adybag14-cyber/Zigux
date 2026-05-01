@@ -76,10 +76,20 @@ test "atomic64 diff wrapper checks live phase4 and phase9 build entrypoints dire
     try expectPhase4BuildMarker("phase4-runtime-atomic64-diff-tests");
     try expectPhase4BuildMarker("phase4-runtime-atomic64-diff-survey-tests");
     try expectPhase4BuildMarker("phase4-runtime-atomic64-diff");
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        phase4_build_source,
+        ".root_source_file = b.path(\"runtime_atomic64_diff.zig\")",
+    ) == null);
 
     try expectPhase9BuildMarker(".root_source_file = b.path(\"runtime_atomic64_diff.zig\")");
     try expectPhase9BuildMarker("phase9-runtime-atomic64-diff-tests");
     try expectPhase9BuildMarker("runtime_atomic64_diff_module");
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        phase9_build_source,
+        ".root_source_file = b.path(\"atomic64_diff.zig\")",
+    ) == null);
 }
 
 test "atomic64 diff wrapper records the exact bounded runtime atomic64 checks" {
