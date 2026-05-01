@@ -18,7 +18,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 
 The Phase 8 roadmap explicitly names `tools/lib/subcmd/help.c` as a userspace-adjacent tooling anchor and recommends `tools/lib/subcmd/*.zig` as the first Zigux destination for this tranche.
 
-This lane keeps the shipped `help.zig` starter slice aligned with the stable command-list manipulation logic from `help.c`, because that surface is still easier to validate honestly than terminal-size probing, directory walking, environment inspection, or output emission.
+This lane keeps the shipped `help.zig` parked slice aligned with the stable command-list manipulation logic from `help.c`, because that surface is still easier to validate honestly than terminal-size probing, directory walking, environment inspection, or output emission.
 
 ## Gates
 
@@ -37,7 +37,7 @@ This lane keeps the shipped `help.zig` starter slice aligned with the stable com
 
 ## Current parity surface
 
-The current starter slice covers:
+The current parked slice covers:
 
 - owned `add_cmdname()`-style command-name storage with explicit copy semantics
 - owned command-name and raw-`PATH` entry storage that now also frees temporary copied slices cleanly if allocator growth fails before the new entry is retained
