@@ -15,15 +15,21 @@ const PerfCase = struct {
 
 const ReferenceKind = enum {
     standard,
+    url_safe_padded,
     url_safe_no_pad,
+    imap_padded,
     imap_no_pad,
 };
 
 const perf_cases = [_]PerfCase{
     .{ .label = "std-64B", .size = fixtures.perf_cases[0].size, .reps = fixtures.perf_cases[0].reps, .max_encode_slowdown_pct = 190, .max_decode_slowdown_pct = 320, .padding = true, .variant = .std, .reference_kind = .standard },
     .{ .label = "std-1KB", .size = fixtures.perf_cases[1].size, .reps = fixtures.perf_cases[1].reps, .max_encode_slowdown_pct = 190, .max_decode_slowdown_pct = 320, .padding = true, .variant = .std, .reference_kind = .standard },
+    .{ .label = "urlsafe-padded-64B", .size = fixtures.perf_cases[0].size, .reps = fixtures.perf_cases[0].reps, .max_encode_slowdown_pct = 190, .max_decode_slowdown_pct = 320, .padding = true, .variant = .urlsafe, .reference_kind = .url_safe_padded },
+    .{ .label = "urlsafe-padded-1KB", .size = fixtures.perf_cases[1].size, .reps = fixtures.perf_cases[1].reps, .max_encode_slowdown_pct = 190, .max_decode_slowdown_pct = 320, .padding = true, .variant = .urlsafe, .reference_kind = .url_safe_padded },
     .{ .label = "urlsafe-64B", .size = fixtures.perf_cases[0].size, .reps = fixtures.perf_cases[0].reps, .max_encode_slowdown_pct = 190, .max_decode_slowdown_pct = 320, .padding = false, .variant = .urlsafe, .reference_kind = .url_safe_no_pad },
     .{ .label = "urlsafe-1KB", .size = fixtures.perf_cases[1].size, .reps = fixtures.perf_cases[1].reps, .max_encode_slowdown_pct = 190, .max_decode_slowdown_pct = 320, .padding = false, .variant = .urlsafe, .reference_kind = .url_safe_no_pad },
+    .{ .label = "imap-padded-64B", .size = fixtures.perf_cases[0].size, .reps = fixtures.perf_cases[0].reps, .max_encode_slowdown_pct = 190, .max_decode_slowdown_pct = 320, .padding = true, .variant = .imap, .reference_kind = .imap_padded },
+    .{ .label = "imap-padded-1KB", .size = fixtures.perf_cases[1].size, .reps = fixtures.perf_cases[1].reps, .max_encode_slowdown_pct = 190, .max_decode_slowdown_pct = 320, .padding = true, .variant = .imap, .reference_kind = .imap_padded },
     .{ .label = "imap-64B", .size = fixtures.perf_cases[0].size, .reps = fixtures.perf_cases[0].reps, .max_encode_slowdown_pct = 190, .max_decode_slowdown_pct = 320, .padding = false, .variant = .imap, .reference_kind = .imap_no_pad },
     .{ .label = "imap-1KB", .size = fixtures.perf_cases[1].size, .reps = fixtures.perf_cases[1].reps, .max_encode_slowdown_pct = 190, .max_decode_slowdown_pct = 320, .padding = false, .variant = .imap, .reference_kind = .imap_no_pad },
 };
@@ -84,7 +90,9 @@ fn benchHelperEncode(src: []const u8, dst: []u8, reps: usize, padding: bool, var
 fn referenceEncode(kind: ReferenceKind, dst: []u8, src: []const u8) []const u8 {
     return switch (kind) {
         .standard => std.base64.standard.Encoder.encode(dst, src),
+        .url_safe_padded => std.base64.url_safe.Encoder.encode(dst, src),
         .url_safe_no_pad => std.base64.url_safe_no_pad.Encoder.encode(dst, src),
+        .imap_padded => encodeImapReference(dst, src, true),
         .imap_no_pad => encodeImapReference(dst, src, false),
     };
 }
@@ -134,7 +142,9 @@ fn benchHelperDecode(encoded: []const u8, dst: []u8, expected_len: usize, reps: 
 fn referenceDecodedLen(kind: ReferenceKind, encoded: []const u8, scratch: []u8) !usize {
     return switch (kind) {
         .standard => std.base64.standard.Decoder.calcSizeForSlice(encoded),
+        .url_safe_padded => std.base64.url_safe.Decoder.calcSizeForSlice(encoded),
         .url_safe_no_pad => std.base64.url_safe_no_pad.Decoder.calcSizeForSlice(encoded),
+        .imap_padded => std.base64.standard.Decoder.calcSizeForSlice(try normalizeImapDecodeInput(scratch, encoded)),
         .imap_no_pad => std.base64.standard.Decoder.calcSizeForSlice(try normalizeImapDecodeInput(scratch, encoded)),
     };
 }
@@ -142,7 +152,9 @@ fn referenceDecodedLen(kind: ReferenceKind, encoded: []const u8, scratch: []u8) 
 fn referenceDecode(kind: ReferenceKind, dst: []u8, encoded: []const u8, scratch: []u8) !void {
     switch (kind) {
         .standard => try std.base64.standard.Decoder.decode(dst, encoded),
+        .url_safe_padded => try std.base64.url_safe.Decoder.decode(dst, encoded),
         .url_safe_no_pad => try std.base64.url_safe_no_pad.Decoder.decode(dst, encoded),
+        .imap_padded => try std.base64.standard.Decoder.decode(dst, try normalizeImapDecodeInput(scratch, encoded)),
         .imap_no_pad => try std.base64.standard.Decoder.decode(dst, try normalizeImapDecodeInput(scratch, encoded)),
     }
 }
