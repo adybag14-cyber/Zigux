@@ -92,7 +92,7 @@ The manifest-backed review prompts for this lane now also keep one rollback ques
 - direct sample replay in the lane-local scratch packet passed: `zig test samples/zigux/runtime_kretprobe.zig`
 - formatting stayed clean for the shipped sample: `zig fmt --check samples/zigux/runtime_kretprobe.zig`
 - the dedicated survey packet stays directly replayable through the shipped standalone survey gate: `zig test zigux/tests/runtime_kretprobe_survey.zig`
-- the shared Phase 9 runtime build still covers the dedicated `phase9-runtime-kretprobe-sample-tests`, `phase9-runtime-kretprobe-module-tests`, `phase9-runtime-kretprobe-diff-tests`, `phase9-runtime-kretprobe-loader-tests`, and `phase9-runtime-kretprobe-survey-tests` legs together: `zig build test --build-file zigux/tests/phase9_build.zig`
+- the shared Phase 9 runtime build still covers the dedicated `phase9-runtime-kretprobe-sample-tests`, `phase9-runtime-kretprobe-module-tests`, `phase9-runtime-kretprobe-diff-tests`, `phase9-runtime-kretprobe-loader-tests`, and `phase9-runtime-kretprobe-survey-tests` legs together: `zig build test --build-file zigux/tests/phase9_build.zig --summary all`
 - observed current bounded behavior stayed unchanged: the sample selftest path still reaches `selftest_complete`, the loader still hands off through `waiting_on_runtime_substrate` plus `released_without_substrate`, and the broader shared runtime-loader control surface remains the only blocker to real execution
 
 ## Gates
@@ -102,7 +102,7 @@ The manifest-backed review prompts for this lane now also keep one rollback ques
 - this dedicated gate keeps the manifest-backed ownership packet and blocked shared-loader note reviewable without requiring the broader shared build
 
 2. run the shared runtime packet replay
-- `zig build test --build-file zigux/tests/phase9_build.zig`
+- `zig build test --build-file zigux/tests/phase9_build.zig --summary all`
 - this shared build now includes the dedicated `phase9-runtime-kretprobe-sample-tests`, `phase9-runtime-kretprobe-module-tests`, `phase9-runtime-kretprobe-diff-tests`, `phase9-runtime-kretprobe-loader-tests`, and `phase9-runtime-kretprobe-survey-tests` legs
 
 3. run the convenience target
