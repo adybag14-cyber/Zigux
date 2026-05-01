@@ -157,11 +157,14 @@ def run_self_test() -> int:
     if actual_paths != TRACKED_PATHS:
         raise SystemExit("phase12-libbpf-snapshot:self-test:tracked_path_order")
 
-    first_digest = files[0]
-    if first_digest.get("path") != TRACKED_PATHS[0]:
-        raise SystemExit("phase12-libbpf-snapshot:self-test:first_digest_path")
-    if first_digest.get("bytes") != len((ROOT / TRACKED_PATHS[0]).read_bytes()):
-        raise SystemExit("phase12-libbpf-snapshot:self-test:first_digest_bytes")
+    for entry, expected_path in zip(files, TRACKED_PATHS):
+        if entry.get("path") != expected_path:
+            raise SystemExit("phase12-libbpf-snapshot:self-test:tracked_entry_path")
+        expected_bytes = (ROOT / expected_path).read_bytes()
+        if entry.get("bytes") != len(expected_bytes):
+            raise SystemExit("phase12-libbpf-snapshot:self-test:tracked_entry_bytes")
+        if entry.get("sha256") != hashlib.sha256(expected_bytes).hexdigest():
+            raise SystemExit("phase12-libbpf-snapshot:self-test:tracked_entry_sha256")
 
     matched_result, _ = compare_snapshot(first)
     if matched_result.returncode != 0:
@@ -197,8 +200,25 @@ def run_self_test() -> int:
     drifted_sha["files"][0]["sha256"] = "0" * 64
     expect_snapshot_mismatch("fixture_sha256_drift", drifted_sha)
 
+    last_index = len(files) - 1
+    drifted_tail_path = json.loads(json.dumps(first))
+    drifted_tail_path["files"][last_index]["path"] = "tools/lib/bpf/zigux_segments/manifest_drift.json"
+    expect_snapshot_mismatch("fixture_tail_path_drift", drifted_tail_path)
+
+    drifted_tail_bytes = json.loads(json.dumps(first))
+    drifted_tail_bytes["files"][last_index]["bytes"] = int(first["files"][last_index]["bytes"]) + 1
+    expect_snapshot_mismatch("fixture_tail_byte_count_drift", drifted_tail_bytes)
+
+    drifted_tail_sha = json.loads(json.dumps(first))
+    drifted_tail_sha["files"][last_index]["sha256"] = "f" * 64
+    expect_snapshot_mismatch("fixture_tail_sha256_drift", drifted_tail_sha)
+
+    drifted_order = json.loads(json.dumps(first))
+    drifted_order["files"][0], drifted_order["files"][last_index] = drifted_order["files"][last_index], drifted_order["files"][0]
+    expect_snapshot_mismatch("fixture_tracked_order_drift", drifted_order)
+
     print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST=pass")
-    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT=22")
+    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT=26")
     return 0
 
 
