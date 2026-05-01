@@ -67,9 +67,10 @@ The current tests check:
 - copied-buffer ownership so later source mutation does not affect split results
 - optional argc reporting that stays in sync with the returned argv length
 - the explicit `argv_free()` ownership mirror through `argvFree()` over an already-split result object
-- blank-input reuse of the exported empty argv view under a four-byte fixed-buffer allocator
+- blank-input reuse of the exported empty argv view under a four-byte fixed-buffer allocator, including pointer-stable reuse across repeated empty-result calls
 - repeated blank-input `argvFree()` teardown safety so the shared empty sentinel state survives explicit release without allocator backing
 - teardown cleanup that clears the exported storage handle alongside the argv views after `ArgvSplitResult.deinit()`
+- blank-input reuse of the exported empty storage sentinel without allocator backing, including pointer-stable reuse across repeated empty-result calls
 - repeated teardown safety so an already-cleared `ArgvSplitResult` can be passed through `deinit()` again without freeing the shared empty sentinel state
 - allocator-failure cleanup that proves the shared Phase 7 gate also exercises the intermediate allocation teardown path already covered by the direct helper tests
 - a machine-checked survey record that keeps the Phase 7 roadmap anchor and landed review surfaces explicit without advertising active same-lane work
