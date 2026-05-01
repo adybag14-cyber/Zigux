@@ -99,6 +99,14 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
     );
     defer std.testing.allocator.free(survey_note);
 
+    const raw_fallback_map = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(raw_fallback_map);
+
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "PRP-versus-SGL selection summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "page-gap forcing") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "average-segment threshold preference") != null);
@@ -112,6 +120,39 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-virtio-net-survey-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Build Summary: 14/17 steps succeeded (1 failed); 52/52 tests passed") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig fmt --check drivers/nvme/host/pci.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-nvme-pci-raw-github-fallback-map.md") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_map, "PHASE12_LANE_KEY=P12-L08") != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_map, current_surveyed_commit) != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_map, "It does not claim a live-head replay catalog.") != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_map, "## Tree Readback Roots") != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_map, "## Raw Pinned URLs") != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_map, "## Non-goals") != null);
+
+    const expected_tree_urls = [_][]const u8{
+        "https://github.com/adybag14-cyber/Zigux/tree/master/drivers/nvme/host",
+        "https://github.com/adybag14-cyber/Zigux/tree/master/Documentation/zigux",
+        "https://github.com/adybag14-cyber/Zigux/tree/master/zigux/tests",
+    };
+    for (expected_tree_urls) |url| {
+        try std.testing.expect(std.mem.indexOf(u8, raw_fallback_map, url) != null);
+    }
+
+    const expected_raw_urls = [_][]const u8{
+        "https://raw.githubusercontent.com/adybag14-cyber/Zigux/" ++ current_surveyed_commit ++ "/drivers/nvme/host/pci.c",
+        "https://raw.githubusercontent.com/adybag14-cyber/Zigux/" ++ current_surveyed_commit ++ "/drivers/nvme/host/pci.zig",
+        "https://raw.githubusercontent.com/adybag14-cyber/Zigux/" ++ current_surveyed_commit ++ "/zigux/tests/phase12_nvme_pci.zig",
+        "https://raw.githubusercontent.com/adybag14-cyber/Zigux/" ++ current_surveyed_commit ++ "/zigux/tests/phase12_nvme_pci_manifest.json",
+        "https://raw.githubusercontent.com/adybag14-cyber/Zigux/" ++ current_surveyed_commit ++ "/zigux/tests/phase12_nvme_pci_survey.zig",
+        "https://raw.githubusercontent.com/adybag14-cyber/Zigux/" ++ current_surveyed_commit ++ "/zigux/tests/phase12_build.zig",
+        "https://raw.githubusercontent.com/adybag14-cyber/Zigux/" ++ current_surveyed_commit ++ "/Documentation/zigux/phase12-nvme-pci-slice.md",
+        "https://raw.githubusercontent.com/adybag14-cyber/Zigux/" ++ current_surveyed_commit ++ "/Documentation/zigux/phase12-nvme-pci-survey.md",
+        "https://raw.githubusercontent.com/adybag14-cyber/Zigux/" ++ current_surveyed_commit ++ "/scripts/zigux/validate-phase12.py",
+        "https://raw.githubusercontent.com/adybag14-cyber/Zigux/" ++ current_surveyed_commit ++ "/zigux/Makefile",
+    };
+    for (expected_raw_urls) |url| {
+        try std.testing.expect(std.mem.indexOf(u8, raw_fallback_map, url) != null);
+    }
 
     var starter_landed_count: usize = 0;
     var blocked_count: usize = 0;
