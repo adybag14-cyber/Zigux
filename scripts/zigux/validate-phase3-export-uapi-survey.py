@@ -26,6 +26,8 @@ REQUIRED_SURVEY_MARKERS = (
     "PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig",
     "PHASE3_EXPORT_SHIM_SCOPE=explicit-status-plus-boundary-header",
     "PHASE3_EXPORT_SHIM_STATUS=normalize-and-compatibility-helpers-landed",
+    "PHASE3_C_HEADER_PATH=include/linux/zigux.h",
+    "PHASE3_C_HEADER_STATUS=shared-abi-relay-and-status-helpers-landed",
     "PHASE3_UAPI_ROOT=zigux/uapi",
     "PHASE3_UAPI_SCOPE=version-and-boundary-header",
     "PHASE3_UAPI_STATUS=version-header-and-compatibility-surface-landed",
@@ -459,6 +461,30 @@ def run_self_test() -> int:
         issues = validate(root)
         assert any(issue.startswith("missing_survey_marker:") for issue in issues)
         assert any(issue.startswith("missing_survey_snippet:") for issue in issues)
+
+        survey_path.write_text(
+            "\n".join(
+                (
+                    *(
+                        marker
+                        for marker in REQUIRED_SURVEY_MARKERS
+                        if marker
+                        != "PHASE3_C_HEADER_STATUS=shared-abi-relay-and-status-helpers-landed"
+                    ),
+                    f"PHASE3_SURVEYED_COMMIT={head}",
+                    *_blob_marker_lines(),
+                    *REQUIRED_SURVEY_SNIPPETS,
+                )
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        _replace_blob_markers_with_head(root, survey_path)
+        issues = validate(root)
+        assert (
+            "missing_survey_marker:PHASE3_C_HEADER_STATUS=shared-abi-relay-and-status-helpers-landed"
+            in issues
+        )
 
         survey_path.write_text(
             "\n".join(
