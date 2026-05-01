@@ -177,8 +177,20 @@ def run_self_test() -> int:
     drifted_depend_steps["shared_test_depend_steps"][0] = "run_phase12_inventory_drift"
     expect_inventory_mismatch("fixture_depend_step_drift", drifted_depend_steps)
 
+    drifted_module_roots = json.loads(json.dumps(first))
+    drifted_module_roots["module_root_source_files"][0]["path"] = "../../drivers/virtio/virtio_drift.zig"
+    expect_inventory_mismatch("fixture_module_root_source_file_drift", drifted_module_roots)
+
+    drifted_module_imports = json.loads(json.dumps(first))
+    drifted_module_imports["module_imports"][0]["import_name"] = "virtio_drift"
+    expect_inventory_mismatch("fixture_module_import_drift", drifted_module_imports)
+
+    drifted_test_root_modules = json.loads(json.dumps(first))
+    drifted_test_root_modules["test_root_modules"][0]["root_module"] = "phase12_inventory_drift_module"
+    expect_inventory_mismatch("fixture_test_root_module_drift", drifted_test_root_modules)
+
     print("PHASE12_BUILD_INVENTORY_SELF_TEST=pass")
-    print("PHASE12_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=9")
+    print("PHASE12_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
