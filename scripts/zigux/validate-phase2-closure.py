@@ -25,6 +25,7 @@ EXPECTED_CROSS_TARGETS = [
     'riscv64-linux-musl',
 ]
 EXACT_WORKFLOW_RUN_COUNTS = {
+    'python3 scripts/zigux/check-genksyms-bridge.py --self-test': 1,
     'python3 scripts/zigux/check-genksyms-crc-diff.py --self-test': 1,
     'python3 scripts/zigux/check-genksyms-crc-diff.py': 1,
     'python3 scripts/zigux/check-kconfig-bridge.py --self-test': 1,
@@ -526,6 +527,7 @@ required_closure_markers = [
     'PHASE2_FIXDEP_GATE=python3 scripts/zigux/check-fixdep-diff.py',
     'PHASE2_FIXDEP_DETERMINISM=check-fixdep-diff.py replays C and Zig outputs twice before comparing artifacts',
     'PHASE2_FIXDEP_FULL_READ_POLICY=fixdep.zig reads dependency files at full C-helper size and maps short writes to fixdep output errors',
+    'PHASE2_GENKSYMS_BRIDGE_SELF_TEST=python3 scripts/zigux/check-genksyms-bridge.py --self-test',
     f'PHASE2_FIXDEP_CASE_COUNT={fixdep_case_count}',
     'PHASE2_FIXDEP_OUTPUT_WRITE_CASE=zigux/tests/fixtures/fixdep/sample_output_write_expected.stderr.txt',
     'PHASE2_GENKSYMS_BRIDGE_GATE=python3 scripts/zigux/check-genksyms-bridge.py',
@@ -592,6 +594,7 @@ required_workflow_markers = [
     'python3 scripts/zigux/artifact_diff.py --self-test',
     'python3 scripts/zigux/check-artifact-diff-contract.py',
     'python3 scripts/zigux/check-fixdep-diff.py',
+    'python3 scripts/zigux/check-genksyms-bridge.py --self-test',
     'python3 scripts/zigux/check-genksyms-bridge.py',
     'python3 scripts/zigux/check-genksyms-crc-diff.py',
     'python3 scripts/zigux/check-kconfig-bridge.py --self-test',
@@ -618,6 +621,7 @@ required_ledger_markers = [
 required_readme_markers = [
     'artifact_diff.py --self-test',
     'check-artifact-diff-contract.py',
+    'check-genksyms-bridge.py --self-test',
     'check-genksyms-bridge.py',
     'check-genksyms-crc-diff.py',
     'check-kconfig-bridge.py --self-test',
@@ -646,6 +650,7 @@ required_makefile_markers = [
     'artifact_diff.py --self-test',
     'check-artifact-diff-contract.py',
     'phase2-tools:',
+    'check-genksyms-bridge.py --self-test',
     'phase2-kconfig:',
     'check-kconfig-bridge.py --self-test',
     'phase2-cross:',
