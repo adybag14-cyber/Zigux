@@ -95,6 +95,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
         }
         if (std.mem.indexOf(u8, prompt, "sample-backed survey note") != null and
             std.mem.indexOf(u8, prompt, "shared sample-root catalog") != null and
+            std.mem.indexOf(u8, prompt, "shared tests-root guide") != null and
             std.mem.indexOf(u8, prompt, "shared review checklist") != null and
             std.mem.indexOf(u8, prompt, "phase5_build.zig") != null)
         {
