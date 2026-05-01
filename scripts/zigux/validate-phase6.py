@@ -282,7 +282,7 @@ BSEARCH_C_PARITY_RUNNER_MARKERS = [
 BSEARCH_C_HARNESS_MARKERS = [
     "static int compare_descending_u32(const void *key, const void *elt)",
     'print_index_case("descending-hit", key, descending_values, inline_bsearch(&key, descending_values, sizeof(descending_values) / sizeof(descending_values[0]), sizeof(descending_values[0]), compare_descending_u32));',
-    'print_duplicate_case("duplicate-hit-middle", key, inline_bsearch(&key, duplicate_in_middle, sizeof(duplicate_in_middle) / sizeof(duplicate_in_middle[0]), sizeof(duplicate_in_middle[0]), compare_u32));',
+    'print_duplicate_case("duplicate-hit-middle", key, duplicate_in_middle, inline_bsearch(&key, duplicate_in_middle, sizeof(duplicate_in_middle) / sizeof(duplicate_in_middle[0]), sizeof(duplicate_in_middle[0]), compare_u32));',
     'print_index_case("raw-descending-hit", key, descending_values, inline_bsearch(&key, descending_values, sizeof(descending_values) / sizeof(descending_values[0]), sizeof(descending_values[0]), compare_descending_u32));',
     "print_runtime_typed_cases(values, sizeof(values) / sizeof(values[0]), descending_values, sizeof(descending_values) / sizeof(descending_values[0]));",
     "print_runtime_raw_cases(values, sizeof(values) / sizeof(values[0]), descending_values, sizeof(descending_values) / sizeof(descending_values[0]));",
@@ -392,6 +392,22 @@ CATALOG_MARKERS = [
     "avg_compare_calls <= std.math.log2_int_ceil(len) + 1",
 ]
 
+EXPECTED_BASE64_DETERMINISM = {
+    "standard_encode_vectors": 22,
+    "variant_encode_vectors": 18,
+    "standard_decode_vectors": 22,
+    "variant_decode_vectors": 12,
+    "invalid_decode_vectors": 22,
+    "c_parity_self_test_cases": 7,
+    "c_parity_cases": 96,
+}
+
+EXPECTED_BSEARCH_DETERMINISM = {
+    "inline_corpus": "sorted integer and symbol tables",
+    "c_parity_self_test_cases": 6,
+    "c_parity_cases": 29,
+}
+
 EXPECTED_CHECKSUM_DETERMINISM = {
     "compute_vectors": 5,
     "composition_vectors": 2,
@@ -400,6 +416,18 @@ EXPECTED_CHECKSUM_DETERMINISM = {
     "ipv6_pseudo_header_vectors": 2,
     "carry_discipline_vectors": 4,
     "kunit_random_prefix_vectors": 6,
+}
+
+EXPECTED_HEXDUMP_DETERMINISM = {
+    "parity_vectors": 9,
+    "overflow_vectors": 4,
+    "required_length_vectors": 9,
+    "perf_vectors": 4,
+    "normalization_helpers": [
+        "normalizedRowsize",
+        "normalizedGroupsizeForLen",
+        "prepareExpectedLine",
+    ],
 }
 
 EXPECTED_MANIFEST = {
@@ -644,9 +672,16 @@ def validate_phase6(root: Path) -> dict[str, object]:
         if not isinstance(determinism_evidence, dict):
             missing.append("manifest:determinism_evidence")
         else:
-            checksum_determinism = determinism_evidence.get("checksum")
-            if checksum_determinism != EXPECTED_CHECKSUM_DETERMINISM:
+            if determinism_evidence.get("base64") != EXPECTED_BASE64_DETERMINISM:
+                missing.append("manifest:determinism_evidence:base64")
+            if determinism_evidence.get("bsearch") != EXPECTED_BSEARCH_DETERMINISM:
+                missing.append("manifest:determinism_evidence:bsearch")
+            if determinism_evidence.get("checksum") != EXPECTED_CHECKSUM_DETERMINISM:
                 missing.append("manifest:determinism_evidence:checksum")
+            if determinism_evidence.get("hexdump") != EXPECTED_HEXDUMP_DETERMINISM:
+                missing.append("manifest:determinism_evidence:hexdump")
+            if determinism_evidence.get("generated_fixture_artifacts_committed") is not False:
+                missing.append("manifest:determinism_evidence:generated_fixture_artifacts_committed")
 
     return {
         "ok": not missing,
@@ -716,7 +751,17 @@ def write_self_test_tree(root: Path) -> None:
     manifest = dict(EXPECTED_MANIFEST)
     manifest["surveyed_commit"] = SELF_TEST_HEAD
     manifest["determinism_evidence"] = {
+        "base64": dict(EXPECTED_BASE64_DETERMINISM),
+        "bsearch": dict(EXPECTED_BSEARCH_DETERMINISM),
         "checksum": dict(EXPECTED_CHECKSUM_DETERMINISM),
+        "hexdump": {
+            "parity_vectors": EXPECTED_HEXDUMP_DETERMINISM["parity_vectors"],
+            "overflow_vectors": EXPECTED_HEXDUMP_DETERMINISM["overflow_vectors"],
+            "required_length_vectors": EXPECTED_HEXDUMP_DETERMINISM["required_length_vectors"],
+            "perf_vectors": EXPECTED_HEXDUMP_DETERMINISM["perf_vectors"],
+            "normalization_helpers": list(EXPECTED_HEXDUMP_DETERMINISM["normalization_helpers"]),
+        },
+        "generated_fixture_artifacts_committed": False,
     }
     write_file(
         root,
@@ -791,6 +836,15 @@ def run_self_test() -> int:
             write_self_test_tree(root)
             manifest_path = root / "zigux/tests/phase6_helper_parity_manifest.json"
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            manifest["determinism_evidence"]["base64"]["c_parity_cases"] = 95
+            manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+            base64_determinism_fail_result = validate_phase6(root)
+            if base64_determinism_fail_result["ok"] or "manifest:determinism_evidence:base64" not in base64_determinism_fail_result["missing"]:
+                raise AssertionError(f"expected base64 determinism drift failure, got: {base64_determinism_fail_result}")
+
+            write_self_test_tree(root)
+            manifest_path = root / "zigux/tests/phase6_helper_parity_manifest.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
             checksum_evidence = manifest["determinism_evidence"]["checksum"]
             checksum_evidence["kunit_random_prefix_vectors"] = 5
             manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
@@ -804,7 +858,7 @@ def run_self_test() -> int:
         return 1
 
     print("PHASE6_VALIDATOR_SELF_TEST=pass")
-    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=6")
+    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
