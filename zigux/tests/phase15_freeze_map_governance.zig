@@ -51,9 +51,9 @@ test "phase 15 freeze-map governance manifest records the bounded governance sli
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P15-L03", manifest.lane_key);
+    try std.testing.expectEqualStrings("P15-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("a5fdfc2f82f52a4babccc9dca60e8b1ba6228b59", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("d05c46833225bb5445f5e186d57360a61011de21", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_freeze_in_c_targets.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_study_only_targets.len);
@@ -225,11 +225,11 @@ test "phase 15 freeze-map governance note and checklist record the current block
         io_instance.io(),
         "Documentation/zigux/review-checklist.md",
         std.testing.allocator,
-        .limited(20 * 1024),
+        .limited(32 * 1024),
     );
     defer std.testing.allocator.free(checklist);
 
-    try std.testing.expect(std.mem.indexOf(u8, governance_note, "PHASE15_LANE_KEY=P15-L03") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "PHASE15_LANE_KEY=P15-L01") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "## Current blocker posture") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "## Roadmap versus repo reality") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "roadmap freeze-in-C anchors") != null);
