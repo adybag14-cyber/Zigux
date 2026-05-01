@@ -17,6 +17,7 @@ This survey note records the current bounded Phase 12 checkpoint around `drivers
   - `zigux/tests/phase12_build.zig`
   - `Documentation/zigux/phase12-nvme-pci-slice.md`
   - `Documentation/zigux/phase12-nvme-pci-survey.md`
+  - `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`
 
 ## Why this slice exists
 
@@ -25,6 +26,8 @@ The Phase 12 roadmap explicitly names `drivers/nvme/host/pci.c` as a complex pro
 That starter is real progress, but it is still only a narrow queue-and-data-pointer planning slice. The Linux anchor is 4,293 lines and mixes quirk parsing, admin-queue bring-up, MSI and MSI-X planning, blk-mq queue mapping, PRP and SGL setup, Host Memory Buffer controls, timeout and reset policy, PCI queue creation, completion polling, and suspend or teardown flows.
 
 This survey keeps that difference explicit so the lane does not overclaim production-driver progress.
+
+This lane now also carries a tiny public-read fallback map in `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` so the archived packet can be reviewed through pinned GitHub tree and raw URLs without borrowing the separate `virtio_scsi` current-replay catalog.
 
 ## Survey findings
 
@@ -61,8 +64,8 @@ This keeps the lane concrete and reviewable without overstating progress: the qu
 - owner: `Storage Driver Lane`
 - rollback owner: `Storage Driver Lane`
 - fallback path: keep `drivers/nvme/host/pci.c` as the source of truth, keep the bounded `drivers/nvme/host/pci.zig` queue planner plus PRP buffer-shape and pointer-selection helpers reviewable in isolation, and drop the direct `phase12-nvme-pci-tests` plus `phase12-nvme-pci-survey-tests` entries out of `zigux/tests/phase12_build.zig` if the shared packet regresses.
-- reversible delivery evidence: this Phase 12 packet only adds one bounded `drivers/nvme/host/pci.zig` starter, its paired `zigux/tests/phase12_nvme_pci.zig` and `zigux/tests/phase12_nvme_pci_survey.zig` review gates, the slice note, and this survey note around the existing C anchor, so the lane can be narrowed again without inventing live PRP or SGL mapping, Host Memory Buffer policy, blk-mq request submission, or PCI queue lifecycle parity.
-- rollback drill: run `make -C zigux phase12-validate`; if the nvme PCI packet is the only failing slice, repair `Documentation/zigux/phase12-nvme-pci-survey.md` or `zigux/tests/phase12_nvme_pci_survey.zig` first when only the reviewability record drifted, otherwise remove the `phase12-nvme-pci-tests` and `phase12-nvme-pci-survey-tests` entries from `zigux/tests/phase12_build.zig`, keep `drivers/nvme/host/pci.c` plus the bounded Zig starter unchanged, then rerun `make -C zigux phase12-validate` followed by `zig build test --build-file zigux/tests/phase12_build.zig --summary all` so the shared Phase 12 tranche stays truthful while the survey packet is repaired.
+- reversible delivery evidence: this Phase 12 packet only adds one bounded `drivers/nvme/host/pci.zig` starter, its paired `zigux/tests/phase12_nvme_pci.zig` and `zigux/tests/phase12_nvme_pci_survey.zig` review gates, the slice note, this survey note, and the pinned raw-read fallback map around the existing C anchor, so the lane can be narrowed again without inventing live PRP or SGL mapping, Host Memory Buffer policy, blk-mq request submission, or PCI queue lifecycle parity.
+- rollback drill: run `make -C zigux phase12-validate`; if the nvme PCI packet is the only failing slice, repair `Documentation/zigux/phase12-nvme-pci-survey.md`, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, or `zigux/tests/phase12_nvme_pci_survey.zig` first when only the reviewability record drifted, otherwise remove the `phase12-nvme-pci-tests` and `phase12-nvme-pci-survey-tests` entries from `zigux/tests/phase12_build.zig`, keep `drivers/nvme/host/pci.c` plus the bounded Zig starter unchanged, then rerun `make -C zigux phase12-validate` followed by `zig build test --build-file zigux/tests/phase12_build.zig --summary all` so the shared Phase 12 tranche stays truthful while the survey packet is repaired.
 
 ## Non-goals
 
@@ -92,9 +95,10 @@ This survey slice does not claim:
 - `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
 - the published focused NVMe verification snapshot is still pinned to packet-local head `8b69e4dfd04553afeb08c0ecbf3060f800e7ecd1`, where `phase12-nvme-pci-survey-tests` passed `1/1`; treat the command and result lines below as archived packet evidence rather than a claim about the current `master` tip.
 - a fresh live reread of `scripts/zigux/validate-phase12.py` and `zigux/tests/phase12_virtio_net_survey.zig` shows the older shared-lane syntax and EOF failures recorded by this survey are stale historical evidence rather than current repo truth.
+- the same archived packet now also carries `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` so public readback can stay pinned to the same bounded NVMe file family without widening into the separate `virtio_scsi` current-replay catalog.
 - this NVMe lane did not rerun the shared Phase 12 validator or shared Zig replay in the current pass, so the next shared-tranche status update belongs to the owner of the validator or virtio_net survey packet rather than to this note.
 - even on the archived packet-local replay, the shared bundle still reached `phase12-nvme-pci-tests 9 pass (9 total)` and `phase12-nvme-pci-survey-tests 1 pass (1 total)` before the unrelated cross-lane stop recorded at the time.
 
 ## Next bounded step
 
-Stay in the Phase 12 nvme PCI lane on survey or validation work until the roadmap-approved DMA-safe transport substrate exists for a truthful follow-up beyond the current queue planner, PRP buffer-shape helper, and pointer-selection helper. If this note reopens before then, refresh only the current-head pin or the exact replay evidence for this packet and leave shared-validator or shared-build status refreshes to their own Phase 12 lanes.
+Stay in the Phase 12 nvme PCI lane on survey or validation work until the roadmap-approved DMA-safe transport substrate exists for a truthful follow-up beyond the current queue planner, PRP buffer-shape helper, and pointer-selection helper. If this note reopens before then, refresh only the current-head pin, the exact replay evidence for this packet, or the pinned raw-read fallback map, and leave shared-validator or shared-build status refreshes to their own Phase 12 lanes.
