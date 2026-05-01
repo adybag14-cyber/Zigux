@@ -200,9 +200,27 @@ test "phase12 libbpf reviewability gate pins the committed snapshot fixture pack
     try std.testing.expectEqual(expected_paths.len, snapshot.files.len);
 
     for (snapshot.files, expected_paths) |entry, expected_path| {
+        const live_bytes = try std.Io.Dir.cwd().readFileAlloc(
+            io_instance.io(),
+            expected_path,
+            std.testing.allocator,
+            .limited(64 * 1024),
+        );
+        defer std.testing.allocator.free(live_bytes);
+
         try std.testing.expectEqualStrings(expected_path, entry.path);
-        try std.testing.expect(entry.bytes > 0);
-        try std.testing.expectEqual(@as(usize, 64), entry.sha256.len);
+        try std.testing.expectEqual(live_bytes.len, entry.bytes);
+
+        var live_sha256: [std.crypto.hash.sha2.Sha256.digest_length]u8 = undefined;
+        std.crypto.hash.sha2.Sha256.hash(live_bytes, &live_sha256, .{});
+
+        var live_sha256_hex: [std.crypto.hash.sha2.Sha256.digest_length * 2]u8 = undefined;
+        const live_sha256_text = try std.fmt.bufPrint(
+            &live_sha256_hex,
+            "{}",
+            .{std.fmt.fmtSliceHexLower(&live_sha256)},
+        );
+        try std.testing.expectEqualStrings(live_sha256_text, entry.sha256);
     }
 }
 
