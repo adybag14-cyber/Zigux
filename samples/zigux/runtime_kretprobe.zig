@@ -340,3 +340,60 @@ test "runtime kretprobe sample replays bounded skip, return, and concurrent time
     try module.exit();
     try std.testing.expectError(error.InvalidLifecycleTransition, module.entryHandler(true, 320));
 }
+
+test "runtime kretprobe sample keeps failed exit rollback explicit in the direct sample leg" {
+    var module = RuntimeKretprobeSample{};
+    try module.init();
+    try std.testing.expect(try module.entryHandler(true, 410));
+
+    const before_failed_exit = module.summary();
+    try std.testing.expectEqual(ModuleStage.initialized, module.stage());
+    try std.testing.expectEqual(ModuleStage.initialized, before_failed_exit.stage);
+    try std.testing.expectEqual(@as(usize, 1), before_failed_exit.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_failed_exit.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_failed_exit.exit_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_failed_exit.active_instances);
+    try std.testing.expect(before_failed_exit.entry_timestamp_armed);
+    try std.testing.expectEqual(@as(usize, 0), before_failed_exit.nmissed);
+    try std.testing.expectEqual(@as(usize, 0), before_failed_exit.last_retval);
+    try std.testing.expectEqual(@as(i64, 0), before_failed_exit.last_duration_ns);
+
+    try std.testing.expectError(error.OutstandingProbeInstance, module.exit());
+
+    const after_failed_exit = module.summary();
+    try std.testing.expectEqual(ModuleStage.initialized, module.stage());
+    try std.testing.expectEqual(ModuleStage.initialized, after_failed_exit.stage);
+    try std.testing.expectEqual(before_failed_exit.init_runs, after_failed_exit.init_runs);
+    try std.testing.expectEqual(before_failed_exit.selftest_runs, after_failed_exit.selftest_runs);
+    try std.testing.expectEqual(before_failed_exit.exit_runs, after_failed_exit.exit_runs);
+    try std.testing.expectEqual(before_failed_exit.active_instances, after_failed_exit.active_instances);
+    try std.testing.expectEqual(before_failed_exit.entry_timestamp_armed, after_failed_exit.entry_timestamp_armed);
+    try std.testing.expectEqual(before_failed_exit.nmissed, after_failed_exit.nmissed);
+    try std.testing.expectEqual(before_failed_exit.last_retval, after_failed_exit.last_retval);
+    try std.testing.expectEqual(before_failed_exit.last_duration_ns, after_failed_exit.last_duration_ns);
+
+    const recovered = try module.retHandler(17, 490);
+    try std.testing.expectEqual(@as(usize, 17), recovered.retval);
+    try std.testing.expectEqual(@as(i64, 80), recovered.duration_ns);
+    try std.testing.expectEqual(@as(usize, 0), module.summary().active_instances);
+    try std.testing.expect(!module.summary().entry_timestamp_armed);
+
+    const selftest = try module.runSelftest();
+    try std.testing.expectEqual(ModuleStage.selftest_complete, module.stage());
+    try std.testing.expect(selftest.skipped_kernel_thread_path_checked);
+    try std.testing.expect(selftest.duration_path_checked);
+    try std.testing.expect(selftest.missed_instance_path_checked);
+    try std.testing.expectEqual(@as(usize, 42), selftest.last_retval);
+    try std.testing.expectEqual(@as(i64, 75), selftest.last_duration_ns);
+
+    try module.exit();
+    const final_summary = module.summary();
+    try std.testing.expectEqual(ModuleStage.exited, final_summary.stage);
+    try std.testing.expectEqual(@as(usize, 1), final_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), final_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), final_summary.exit_runs);
+    try std.testing.expectEqual(@as(usize, 1), final_summary.nmissed);
+    try std.testing.expectEqual(@as(usize, 42), final_summary.last_retval);
+    try std.testing.expectEqual(@as(i64, 75), final_summary.last_duration_ns);
+    try std.testing.expect(!final_summary.entry_timestamp_armed);
+}
