@@ -59,6 +59,8 @@ REQUIRED_CLOSURE_MARKERS = [
     "PHASE1_FIND_BIT_BENCH_REVIEW=find_bit benchmark smoke pins deterministic next-bit, whole-family, tail-window, same-word, zero-bit, and shared-bit scan checksums plus the live loop counts so helper-local scan regressions cannot hide behind a generic positive checksum or a silently shrunk workload",
     "PHASE1_FIND_BIT_BENCH_KEYS=PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM,PHASE1_BENCH_FIND_BIT_FAMILY_CHECKSUM,PHASE1_BENCH_FIND_TAIL_WINDOW_CHECKSUM,PHASE1_BENCH_FIND_SAME_WORD_CHECKSUM",
     "PHASE1_FIND_BIT_BENCH_ITERATIONS=PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS,PHASE1_BENCH_FIND_SAME_WORD_ITERATIONS,PHASE1_BENCH_FIND_NEXT_ZERO_BIT_ITERATIONS,PHASE1_BENCH_FIND_NEXT_AND_BIT_ITERATIONS",
+    "PHASE1_RBTREE_BENCH_REVIEW=rbtree benchmark smoke pins ordered traversal, duplicate-range, cached-leftmost, findAdd, and postorder-safe checksum surfaces so duplicate-owner and erase-while-walking regressions cannot hide behind the broader tree checksum alone",
+    "PHASE1_RBTREE_BENCH_KEYS=PHASE1_BENCH_RBTREE_CHECKSUM,PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM,PHASE1_BENCH_RBTREE_CACHED_CHECKSUM,PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM,PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM",
     "PHASE1_CLOSURE_GATE=python3 scripts/zigux/validate-phase1-closure.py",
     "PHASE1_CLOSURE_SELF_TEST_GATE=python3 scripts/zigux/validate-phase1-closure.py --self-test",
 ]
@@ -331,6 +333,10 @@ def run_self_test() -> int:
         expect_missing_marker("closure_memparse", tmp_root, "closure:PHASE1_STRING_MEMPARSE_UNIT_REVIEW=string memparse preserves decimal, hexadecimal, suffix-bearing, and invalid inputs without changing the parsed value or rest pointer contract")
         closure_path.write_text(original_closure, encoding="utf-8")
 
+        closure_path.write_text(original_closure.replace("PHASE1_RBTREE_BENCH_KEYS=PHASE1_BENCH_RBTREE_CHECKSUM,PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM,PHASE1_BENCH_RBTREE_CACHED_CHECKSUM,PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM,PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM", "", 1), encoding="utf-8")
+        expect_missing_marker("closure_rbtree_bench_keys", tmp_root, "closure:PHASE1_RBTREE_BENCH_KEYS=PHASE1_BENCH_RBTREE_CHECKSUM,PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM,PHASE1_BENCH_RBTREE_CACHED_CHECKSUM,PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM,PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM")
+        closure_path.write_text(original_closure, encoding="utf-8")
+
         bench_checker_path = tmp_root / "scripts" / "zigux" / "check-phase1-bench.py"
         original_bench_checker = bench_checker_path.read_text(encoding="utf-8")
         bench_checker_path.write_text(original_bench_checker.replace("print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=13')", "", 1), encoding="utf-8")
@@ -352,7 +358,7 @@ def run_self_test() -> int:
         expect_missing_marker("rbtree_postorder_checksum", tmp_root, "bench:exact_checksums.PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM=1484000")
 
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=4")
+    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=5")
     return 0
 
 
