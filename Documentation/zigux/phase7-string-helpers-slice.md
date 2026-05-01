@@ -41,7 +41,7 @@ Review note:
 - `make -C zigux phase7-validate`
 
 2. run the focused Zig Phase 7 helper tests
-- `zig build test --build-file zigux/tests/phase7_build.zig`
+- `zig build test --build-file zigux/tests/phase7_build.zig --summary all`
 
 3. keep the helper wired through the Zigux convenience target
 - `make -C zigux phase7`
