@@ -440,6 +440,46 @@ pub fn bitmap_free(allocator: std.mem.Allocator, bitmap: *?[]Word) void {
     bitmapFree(allocator, bitmap);
 }
 
+pub fn __bitmap_weight(bitmap: []const Word, bits: usize) usize {
+    return weight(bitmap, bits);
+}
+
+pub fn __bitmap_or(dst: []Word, bitmap1: []const Word, bitmap2: []const Word, bits: usize) void {
+    orBits(dst, bitmap1, bitmap2, bits);
+}
+
+pub fn __bitmap_and(dst: []Word, bitmap1: []const Word, bitmap2: []const Word, bits: usize) bool {
+    return andBits(dst, bitmap1, bitmap2, bits);
+}
+
+pub fn __bitmap_equal(bitmap1: []const Word, bitmap2: []const Word, bits: usize) bool {
+    return equal(bitmap1, bitmap2, bits);
+}
+
+pub fn __bitmap_intersects(bitmap1: []const Word, bitmap2: []const Word, bits: usize) bool {
+    return intersects(bitmap1, bitmap2, bits);
+}
+
+pub fn __bitmap_set(map: []Word, start: usize, len: usize) void {
+    setRange(map, start, len);
+}
+
+pub fn __bitmap_clear(map: []Word, start: usize, len: usize) void {
+    clearRange(map, start, len);
+}
+
+pub fn __bitmap_andnot(dst: []Word, bitmap1: []const Word, bitmap2: []const Word, bits: usize) bool {
+    return andNotBits(dst, bitmap1, bitmap2, bits);
+}
+
+pub fn __bitmap_subset(bitmap1: []const Word, bitmap2: []const Word, bits: usize) bool {
+    return subset(bitmap1, bitmap2, bits);
+}
+
+pub fn __bitmap_xor(dst: []Word, bitmap1: []const Word, bitmap2: []const Word, bits: usize) void {
+    xorBits(dst, bitmap1, bitmap2, bits);
+}
+
 test "bitmap set clear weight and empty full helpers" {
     var map = [_]Word{ 0, 0, 0 };
     setRange(&map, 1, 3);
@@ -710,6 +750,35 @@ test "bitmap underscore aliases preserve bitmap helper semantics" {
 
     const rendered_len = scnprintf(&lhs, nbits, &buffer);
     try std.testing.expectEqual(rendered_len, bitmap_scnprintf(&lhs, nbits, &buffer));
+}
+
+test "bitmap double-underscore aliases preserve core helper semantics" {
+    const nbits = bits_per_long + 5;
+    const lhs = [_]Word{ 0b1110, (@as(Word, 1) << 2) | (@as(Word, 1) << 9) };
+    const rhs = [_]Word{ 0b1010, @as(Word, 1) << 2 };
+    var dst = [_]Word{ 0, 0 };
+    var range = [_]Word{ 0, 0, 0 };
+
+    try std.testing.expectEqual(weight(&lhs, nbits), __bitmap_weight(&lhs, nbits));
+
+    __bitmap_or(&dst, &lhs, &rhs, nbits);
+    try std.testing.expectEqualSlices(Word, &[_]Word{ lhs[0] | rhs[0], (lhs[1] | rhs[1]) & lastWordMask(nbits) }, &[_]Word{ dst[0], dst[1] & lastWordMask(nbits) });
+
+    try std.testing.expect(andBits(&dst, &lhs, &rhs, nbits) == __bitmap_and(&dst, &lhs, &rhs, nbits));
+    try std.testing.expect(andNotBits(&dst, &lhs, &rhs, nbits) == __bitmap_andnot(&dst, &lhs, &rhs, nbits));
+    try std.testing.expectEqual(equal(&lhs, &rhs, nbits), __bitmap_equal(&lhs, &rhs, nbits));
+    try std.testing.expectEqual(intersects(&lhs, &rhs, nbits), __bitmap_intersects(&lhs, &rhs, nbits));
+    try std.testing.expectEqual(subset(&rhs, &lhs, nbits), __bitmap_subset(&rhs, &lhs, nbits));
+
+    __bitmap_xor(&dst, &lhs, &rhs, nbits);
+    try std.testing.expectEqualSlices(Word, &[_]Word{ lhs[0] ^ rhs[0], (lhs[1] ^ rhs[1]) & lastWordMask(nbits) }, &[_]Word{ dst[0], dst[1] & lastWordMask(nbits) });
+
+    __bitmap_set(&range, 1, 3);
+    __bitmap_set(&range, bits_per_long + 1, 2);
+    try std.testing.expectEqual(@as(usize, 5), __bitmap_weight(&range, nbits));
+    __bitmap_clear(&range, 1, 3);
+    __bitmap_clear(&range, bits_per_long + 1, 2);
+    try std.testing.expect(empty(&range, nbits));
 }
 
 test "bitmap underscore allocator aliases preserve allocation and ownership semantics" {
