@@ -603,6 +603,28 @@ test "phase12 virtio net rejects refill planning without queue entries" {
     try std.testing.expectError(error.InvalidRxQueueEntries, lab.planMergeableReceiveRefill(0));
 }
 
+test "phase12 virtio net restore clears stale refill planning state" {
+    var lab = try virtio_net.VirtioNetProbeLab.init(&.{
+        virtio_net.feature_mergeable_rx_buffers,
+        virtio_net.feature_control_vq,
+    });
+
+    _ = try lab.captureProbeSnapshot(.{
+        .driver_feature_bits = &.{
+            virtio_net.feature_mergeable_rx_buffers,
+            virtio_net.feature_control_vq,
+        },
+        .requested_queue_pairs = 1,
+        .max_queue_pairs = 1,
+    });
+
+    _ = try lab.planMergeableReceiveRefill(4);
+    _ = try lab.freezeForRecovery();
+    _ = try lab.restoreAfterRecovery();
+
+    try std.testing.expectError(error.ProbeSnapshotUnavailable, lab.planMergeableReceiveRefill(4));
+}
+
 test "phase12 virtio net preserves legacy header shape without mergeable or hash features" {
     var lab = try virtio_net.VirtioNetProbeLab.init(&.{});
 
