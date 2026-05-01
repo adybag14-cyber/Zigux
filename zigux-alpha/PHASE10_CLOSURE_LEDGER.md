@@ -19,6 +19,15 @@ This focused ledger records the current closure-evidence bundle for the active P
 - `PHASE10_LEDGER_INPUT_MANIFEST=zigux/tests/phase10_virtio_input_manifest.json`
 - `PHASE10_LEDGER_MMIO_MANIFEST=zigux/tests/phase10_virtio_mmio_manifest.json`
 - `PHASE10_LEDGER_ROADMAP_SCOREBOARD_SOURCE=zigux/tests/phase10_closure_manifest.json`
+- `PHASE10_LEDGER_SURVEY_PROVENANCE_SOURCE=manifest_derived`
+- `PHASE10_LEDGER_SURVEY_CORE_LANE=P10-L03`
+- `PHASE10_LEDGER_SURVEY_RING_LANE=P10-L08`
+- `PHASE10_LEDGER_SURVEY_INPUT_LANE=P10-L13`
+- `PHASE10_LEDGER_SURVEY_MMIO_LANE=P10-L18`
+- `PHASE10_LEDGER_SURVEY_CORE_COMMIT=3232d0c7296f86e9f5822d0f8b87030f79449c08`
+- `PHASE10_LEDGER_SURVEY_RING_COMMIT=800e2edfb5d2d0c80ac45ffee6630a6b13905d0d`
+- `PHASE10_LEDGER_SURVEY_INPUT_COMMIT=b24f990e2e5504ac3ed4a1a0f1f97c41e06ddd38`
+- `PHASE10_LEDGER_SURVEY_MMIO_COMMIT=0945df1cf664a3582d7241f859183a13f3f04adb`
 - `PHASE10_LEDGER_ROADMAP_VIRTQUEUE_WRAPPERS=starter_landed`
 - `PHASE10_LEDGER_ROADMAP_MMIO_WRAPPERS=starter_landed`
 - `PHASE10_LEDGER_ROADMAP_LAB_ONLY_DRIVER_VALIDATION=starter_landed`
@@ -39,6 +48,8 @@ This focused ledger records the current closure-evidence bundle for the active P
 This ledger stays intentionally narrow. It records the roadmap-backed closure packet and the current parked-next-step posture without claiming queue setup, reset, IRQ parity, DMA, probe or remove lifecycle, or input registration lifecycle parity.
 
 The roadmap-facing scoreboard is mirrored here from the shared closure manifest so the closure packet can be compared directly against the Phase 10 roadmap requirements without hopping between survey notes. That shared scoreboard still reads `starter_landed` for virtqueue wrappers, MMIO wrappers, and lab-only validation, while risky dual implementations remain `blocked_on_risky_transport` until a smaller transport-facing helper lane is ready.
+
+The same manifest also carries the survey-provenance packet for the current closure bundle, so this ledger now publishes the exact lane ownership and inspected heads behind the live core, ring, input, and MMIO survey notes instead of leaving that tranche evidence implicit.
 
 The shared closure manifest, the dedicated MMIO survey gate, the shared Phase 10 validator, and the dedicated MMIO survey now agree that the landed MMIO helper ladder reaches bounded interrupt acknowledgement, so this ledger keeps that reviewable helper-and-validation set explicit instead of collapsing the MMIO packet into only its remaining transport blocker.
 
