@@ -151,10 +151,11 @@ Phase 8 flow
 
 Phase 9 flow
 - `validate-phase9.py --self-test` exercises the shared runtime marker walk in a compact synthetic tree before the live runtime packet is trusted.
-- `validate-phase9.py` keeps the current runtime pilot packet aligned across `scripts/zigux/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, the four runtime survey families, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_loader_gap_survey.zig`, `zigux/tests/phase9_build.zig`, `zigux/Makefile`, and the bootstrap workflow so the manifest-backed catalog and ownership map stay reviewable.
+- `validate-phase9.py` keeps the current runtime pilot packet aligned across `scripts/zigux/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, the four runtime survey families, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_loader_gap_survey.zig`, `zigux/tests/runtime_loader_non_owner_boundary_survey.zig`, `zigux/tests/phase9_build.zig`, `zigux/Makefile`, and the bootstrap workflow so the manifest-backed catalog, ownership map, and non-owner boundary survey stay reviewable.
 - `make -C zigux phase9-validate` is the validator-first entrypoint for the current Phase 9 flow.
 - `make -C zigux phase9` and `zig build test --build-file zigux/tests/phase9_build.zig --summary all` are the shared replay path after the validator passes.
 - `Documentation/zigux/phase9-runtime-loader-gap-survey.md` remains the shared loader-gap review note for the runtime packet.
+- `zigux/tests/runtime_loader_non_owner_boundary_survey.zig` remains the focused replay that keeps the Phase 2 config-surface and Phase 3 export-boundary references explicit around the same runtime packet instead of letting those non-owner surfaces fade into prose-only context.
 - the current Phase 9 review surface keeps the roadmap's selftest-hook markers explicit across the shipped sample, manifest-backed survey, and shared build entrypoint.
 - the current runtime starter remains a bounded lifecycle-parity posture rather than a claim of live loadable-module execution.
 
