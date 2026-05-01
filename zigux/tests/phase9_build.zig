@@ -141,6 +141,11 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const runtime_module_metadata_survey_module = b.createModule(.{
+        .root_source_file = b.path("runtime_module_metadata_survey.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
     const runtime_trace_events_survey_module = b.createModule(.{
         .root_source_file = b.path("runtime_trace_events_survey.zig"),
         .target = target,
@@ -254,6 +259,11 @@ pub fn build(b: *std.Build) void {
         .root_module = runtime_bitmap_survey_module,
     });
     const run_runtime_bitmap_survey_tests = b.addRunArtifact(runtime_bitmap_survey_tests);
+    const runtime_module_metadata_survey_tests = b.addTest(.{
+        .name = "phase9-runtime-module-metadata-survey-tests",
+        .root_module = runtime_module_metadata_survey_module,
+    });
+    const run_runtime_module_metadata_survey_tests = b.addRunArtifact(runtime_module_metadata_survey_tests);
     const runtime_trace_events_survey_tests = b.addTest(.{
         .name = "phase9-runtime-trace-events-survey-tests",
         .root_module = runtime_trace_events_survey_module,
@@ -275,7 +285,7 @@ pub fn build(b: *std.Build) void {
     });
     const run_runtime_loader_non_owner_boundary_survey_tests = b.addRunArtifact(runtime_loader_non_owner_boundary_survey_tests);
 
-    const test_step = b.step("test", "Run Phase 9 runtime atomic64, bitmap, trace-events, and kretprobe pilot-module tests");
+    const test_step = b.step("test", "Run Phase 9 runtime atomic64, bitmap, trace-events, kretprobe, and module-metadata survey tests");
     test_step.dependOn(&run_runtime_atomic64_module_tests.step);
     test_step.dependOn(&run_runtime_atomic64_loader_tests.step);
     test_step.dependOn(&run_runtime_atomic64_sample_tests.step);
@@ -294,6 +304,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_runtime_kretprobe_loader_tests.step);
     test_step.dependOn(&run_runtime_atomic64_survey_tests.step);
     test_step.dependOn(&run_runtime_bitmap_survey_tests.step);
+    test_step.dependOn(&run_runtime_module_metadata_survey_tests.step);
     test_step.dependOn(&run_runtime_trace_events_survey_tests.step);
     test_step.dependOn(&run_runtime_kretprobe_survey_tests.step);
     test_step.dependOn(&run_runtime_loader_gap_survey_tests.step);
