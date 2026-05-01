@@ -30,17 +30,7 @@ const Manifest = struct {
     gaps: []const Gap,
 };
 
-fn isLowerHexCommitSha(value: []const u8) bool {
-    if (value.len != 40) return false;
-    for (value) |byte| {
-        if (!std.ascii.isDigit(byte) and (byte < 'a' or byte > 'f')) return false;
-    }
-    return true;
-}
-
-fn surveyedCommitMarker(allocator: std.mem.Allocator, value: []const u8) ![]u8 {
-    return std.fmt.allocPrint(allocator, "PHASE13_SURVEYED_COMMIT={s}", .{value});
-}
+const expected_surveyed_commit = "ff87456109937e1ffbe7f2a91a79c2661874ef88";
 
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
@@ -72,13 +62,10 @@ test "phase13 libfs manifest records the landed close-bookkeeping slice and the 
     );
     defer std.testing.allocator.free(survey_note);
 
-    const commit_marker = try surveyedCommitMarker(std.testing.allocator, manifest.surveyed_commit);
-    defer std.testing.allocator.free(commit_marker);
-
-    try std.testing.expectEqualStrings("P13-L03", manifest.lane_key);
+    try std.testing.expectEqualStrings("P13-L04", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("fs/libfs.c", manifest.anchor);
-    try std.testing.expect(isLowerHexCommitSha(manifest.surveyed_commit));
+    try std.testing.expectEqualStrings(expected_surveyed_commit, manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.libfs_c_lines >= 2300);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_build_present);
@@ -89,7 +76,8 @@ test "phase13 libfs manifest records the landed close-bookkeeping slice and the 
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_reviewability_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_survey_note_present);
     try std.testing.expectEqual(@as(usize, 16), manifest.gaps.len);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, commit_marker) != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, expected_surveyed_commit) != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE13_SURVEYED_COMMIT=") != null);
 
     const descriptor = libfs.LibFsHelperLab.descriptor();
     try std.testing.expectEqualStrings("fs/libfs.c", descriptor.anchor);
@@ -99,6 +87,7 @@ test "phase13 libfs manifest records the landed close-bookkeeping slice and the 
     try std.testing.expect(descriptor.provides_offset_seek_helpers);
     try std.testing.expect(descriptor.provides_directory_emit_planning);
     try std.testing.expect(descriptor.provides_directory_cursor_preconditions);
+    try std.testing.expect(descriptor.provides_directory_cursor_reposition_planning);
     try std.testing.expect(descriptor.provides_directory_close_planning);
     try std.testing.expect(descriptor.provides_transaction_buffer_planning);
     try std.testing.expect(descriptor.provides_transaction_read_release_planning);
@@ -132,6 +121,12 @@ test "phase13 libfs manifest records the landed close-bookkeeping slice and the 
             try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dcache_dir_close") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dput(file->private_data)") != null);
+        }
+        if (std.mem.eql(u8, gap.id, "phase13-libfs-dcache-cursor-reposition-bookkeeping")) {
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "exported descriptor") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "cursor-reposition planning") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase13-libfs-dcache-cursor-helpers")) {
             saw_blocked_cursor_helpers = true;
