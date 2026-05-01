@@ -21,7 +21,7 @@ This note records the current atomic, barrier, and MMIO boundary for the bounded
 - `PHASE3_LOW_LEVEL_BUILD_BLOB_SHA=26de15d04505e0d345e874c538044200507ab8c2`
 - `PHASE3_LOW_LEVEL_TEST_PATH=zigux/tests/phase3_low_level_wrappers.zig`
 - `PHASE3_LOW_LEVEL_TEST_BLOB_SHA=1c7b1c9da723b6626366931fd995e90d471496c6`
-- `PHASE3_ABI_SLICE_DOC_BLOB_SHA=8ad476e742a78e3bc7baa6e6e836c62ac65a43d2`
+- `PHASE3_ABI_SLICE_DOC_BLOB_SHA=abddfc50e256426894fafc3752339bd1cea79a17`
 - `PHASE3_ABI_MANIFEST_BLOB_SHA=57faa49007c0d1b44cc4dd4169fb2b31ed57bb43`
 - `PHASE3_LOW_LEVEL_GATE=zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`
 - `PHASE3_BOUNDARY_GAP=no-relaxed-order-barrier-variants-or-broader-kernel-style-atomic-family-is-shipped-yet`
