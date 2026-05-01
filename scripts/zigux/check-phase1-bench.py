@@ -231,6 +231,35 @@ def run_self_test() -> int:
         ),
         ['PHASE1_BENCH_FIND_INCLUSIVE_TAIL_CHECKSUM'],
     )
+    rbtree_expectations = {
+        'status': 'pass',
+        'iterations': {
+            'PHASE1_BENCH_RBTREE_ITERATIONS': 4000,
+        },
+        'exact_checksums': {
+            'PHASE1_BENCH_RBTREE_CHECKSUM': 1308000,
+            'PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM': 1188000,
+            'PHASE1_BENCH_RBTREE_CACHED_CHECKSUM': 196000,
+            'PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM': 3484000,
+        },
+        'checksums': [],
+    }
+    assert_equal(
+        'unexpected_rbtree_metric',
+        unexpected_phase1_bench_keys(
+            {
+                'PHASE1_BENCH': 'pass',
+                'PHASE1_BENCH_RBTREE_ITERATIONS': '4000',
+                'PHASE1_BENCH_RBTREE_CHECKSUM': '1308000',
+                'PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM': '1188000',
+                'PHASE1_BENCH_RBTREE_CACHED_CHECKSUM': '196000',
+                'PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM': '3484000',
+                'PHASE1_BENCH_RBTREE_DUPLICATE_MUTATION_CHECKSUM': '7',
+            },
+            rbtree_expectations,
+        ),
+        ['PHASE1_BENCH_RBTREE_DUPLICATE_MUTATION_CHECKSUM'],
+    )
     assert_equal('find_zig_explicit', find_zig('/tmp/zig-self-test'), '/tmp/zig-self-test')
     assert_equal('status_passthrough', parsed['PHASE1_BENCH'], 'pass')
 
@@ -284,7 +313,7 @@ def run_self_test() -> int:
         raise SystemExit('phase1-bench:self-test:invalid_reserved:unexpected_pass')
 
     print('PHASE1_BENCH_SELF_TEST=pass')
-    print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=12')
+    print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=13')
     return 0
 
 
