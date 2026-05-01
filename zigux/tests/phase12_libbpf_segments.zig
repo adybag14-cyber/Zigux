@@ -210,6 +210,7 @@ test "phase12 libbpf survey note records rollback and current surveyed head" {
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Rollback And Reversible Delivery") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, current_surveyed_commit) != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_LANE_KEY=P12-L16") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "owner: `BPF Tooling Lane`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "rollback owner: `BPF Tooling Lane`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "fallback path: keep `tools/lib/bpf/libbpf.c` as the source of truth") != null);
