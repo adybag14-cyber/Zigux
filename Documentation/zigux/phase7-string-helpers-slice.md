@@ -76,6 +76,8 @@ The current starter slice covers:
 - `parse_int_array_user()` over the bounded copy-and-parse starter path
 - `kstrdup_quotable()` over the bounded escape-then-duplicate path for log-safe printable strings
 - `kstrdup_and_replace()` over the bounded duplicate-then-rewrite ownership-safe path
+- `kasprintf_strarray_raw()` over the bounded direct C-style null-terminated pointer-array starter path
+- `kfree_strarray_raw()` over the bounded counted partial-teardown path for partially initialized string arrays
 - `kasprintf_strarray()` over the bounded sequential prefix-index ownership path
 - `kfree_strarray()` over the bounded repeated-teardown-safe release path
 
@@ -104,6 +106,8 @@ The current tests check:
 - shared `parse_int_array_user()` coverage that keeps the bounded copy window explicit before parsing, inserts a first-NUL terminator at the requested count boundary, and returns a no-entry error when the requested window is empty
 - one allocator-backed `kstrdup_quotable()` proof that escapes newline, tab, backslash, and double-quote bytes through the existing bounded `ESCAPE_HEX` surface, preserves a trailing sentinel NUL, and keeps Linux's null-input behavior explicit
 - one allocator-backed `kstrdup_and_replace()` proof that duplicates the first-NUL prefix before reusing `strreplace()`, preserves a trailing sentinel NUL on the returned owned string, keeps null input explicit, and leaves the source bytes untouched
+- one allocator-backed `kasprintf_strarray_raw()` proof that keeps the direct C-style null-terminated pointer-array form explicit beside the higher-level Zig wrapper
+- one counted `kfree_strarray_raw()` proof that frees a partially initialized pointer-array prefix without requiring later entries to exist
 - one allocator-backed `kasprintf_strarray()` proof that returns sequential `prefix-index` owned strings together with a trailing null-pointer view for C-style callers
 - one `kfree_strarray()` proof that keeps first-NUL prefix handling, zero-count sentinel reuse, and repeated teardown safe
 
@@ -112,7 +116,7 @@ The current tests check:
 This slice does not yet claim:
 
 - integer parsing beyond the current formatter, bounded count-backed array starters, and escape surface
-- the broader allocation-backed duplication family beyond the current `kstrdup_quotable()`, `kstrdup_and_replace()`, and string-array starter helpers
+- the broader allocation-backed duplication family beyond the current `kstrdup_quotable()`, `kstrdup_and_replace()`, and bounded string-array starter helpers
 
 ## Next bounded step
 
