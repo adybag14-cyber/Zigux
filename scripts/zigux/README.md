@@ -34,6 +34,9 @@ Current bootstrap helpers
 - `validate-phase8.py`
 - `check-phase8-tests-readme-alignment.py`
 - `validate-phase9.py`
+- `check-phase9-validation-flow.py`
+- `check-phase9-runtime-loader-commit-alignment.py`
+- `check-phase9-loader-non-owner-boundary.py`
 - `validate-phase10.py`
 - `validate-phase10-closure.py`
 - `check-phase11-build-inventory.py`
@@ -161,6 +164,7 @@ Phase 8 flow
 Phase 9 flow
 - `validate-phase9.py --self-test` exercises the shared runtime marker walk in a compact synthetic tree before the live runtime packet is trusted.
 - `validate-phase9.py` keeps the current runtime pilot packet aligned across `scripts/zigux/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, the four runtime survey families, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_loader_gap_survey.zig`, `zigux/tests/runtime_loader_non_owner_boundary_survey.zig`, `zigux/tests/phase9_build.zig`, `zigux/Makefile`, and the bootstrap workflow so the manifest-backed catalog, ownership map, and non-owner boundary survey stay reviewable.
+- `check-phase9-validation-flow.py`, `check-phase9-runtime-loader-commit-alignment.py`, and `check-phase9-loader-non-owner-boundary.py` keep the validator-first route, the shared loader surveyed-commit packet, and the Phase 2 plus Phase 3 non-owner boundary explicit before the broader Phase 9 replay claims stay green.
 - `make -C zigux phase9-validate` is the validator-first entrypoint for the current Phase 9 flow.
 - `make -C zigux phase9` and `zig build test --build-file zigux/tests/phase9_build.zig --summary all` are the shared replay path after the validator passes.
 - `Documentation/zigux/phase9-runtime-loader-gap-survey.md` remains the shared loader-gap review note for the runtime packet.
