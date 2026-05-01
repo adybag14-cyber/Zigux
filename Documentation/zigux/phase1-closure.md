@@ -89,13 +89,14 @@ No additional helper should be called Phase 1 work unless this document and the 
 - `PHASE1_FIND_BIT_ALIAS_UNIT_REVIEW=find_bit underscore alias entry points preserve the same set, shared-bit, and zero-bit scan semantics as the camelCase helpers across the same caller-selected bit windows and tail clamps`
 - `PHASE1_FIND_BIT_LOW_LEVEL_UNIT_REVIEW=find_bit low-level underscore entry points preserve same-word inclusive starts and tail-clamped set, shared-bit, and zero-bit scan behavior across the same caller-selected bit windows as the public helpers`
 
-- `tools/lib/rbtree.zig` closure includes committed C-backed parity coverage for ordered forward and reverse traversal plus `replaceNode`, `eraseInit`, postorder traversal, and detached-node state checks.
+- `tools/lib/rbtree.zig` closure includes committed C-backed parity coverage for ordered forward and reverse traversal plus `replaceNode`, `eraseInit`, postorder traversal, and detached-node state checks, while Linux-style `rb_*` alias parity remains explicitly out of scope for this closed Phase 1 tranche.
 - `tools/lib/rbtree.zig` direct Zig unit coverage keeps `findAdd` duplicate handling aligned so the first equal key stays resident while new distinct keys still link into the tree.
 - `tools/lib/rbtree.zig` direct Zig unit coverage also keeps `find()`, `findFirst()`, and `nextMatch()` aligned so duplicate-key lookups start at the leftmost match and walk through the final equal node without drifting into a later key.
 - `tools/lib/rbtree.zig` direct Zig unit coverage also keeps duplicate-key search aligned after `erase()` and same-key `replaceNode()` so `findFirst()`, `findLast()`, and duplicate-range iterators continue to report the surviving equal-key window in both directions.
 - `tools/lib/rbtree.zig` direct Zig unit coverage also keeps `RootCached` leftmost tracking aligned so cached insert, erase, and replace helpers continue to expose the same first node as the underlying tree root.
 - `tools/lib/rbtree.zig` direct Zig unit coverage also keeps `RootCached` duplicate minima aligned so erasing the first equal key promotes the next duplicate minimum while non-leftmost replacement leaves the cached first node unchanged.
 - `tools/lib/rbtree.zig` direct Zig unit coverage also keeps `findAddCached()` aligned so equal-key probes return the original resident node, distinct inserts still link into the cached tree, and `RootCached` continues to expose the same leftmost node as the underlying tree root.
+- `tools/lib/rbtree.zig` direct Zig review notes keep the remaining `rb_*` alias gap explicit so the closed Phase 1 tranche cannot be misread as already covering the header-level alias surface.
 - `tools/lib/rbtree.zig` direct Zig unit coverage also keeps `iterateMatches()` aligned so duplicate-key iteration yields only the equal-key range and cleanly reports no match for missing keys.
 - `tools/lib/rbtree.zig` direct Zig unit coverage also keeps `findLast()`, `prevMatch()`, and `iterateMatchesReverse()` aligned so reverse duplicate-key lookups start at the rightmost match, walk back through the equal-key range, and cleanly report no match for missing keys.
 - rbtree fixture authority: `zigux/tests/fixtures/phase1_helpers.json`
@@ -110,7 +111,7 @@ No additional helper should be called Phase 1 work unless this document and the 
 - rbtree reverse unit-test anchor: `tools/lib/rbtree.zig:test "rbtree iterateMatchesReverse streams only the duplicate range in reverse"`
 
 - `PHASE1_RBTREE_FIXTURE=zigux/tests/fixtures/phase1_helpers.json`
-- `PHASE1_RBTREE_REVIEW=rbtree parity covers ordered traversal, replaceNode, eraseInit, postorder traversal, and detached-node state`
+- `PHASE1_RBTREE_REVIEW=rbtree parity covers ordered traversal, replaceNode, eraseInit, postorder traversal, and detached-node state while Linux-style rb_* alias parity remains explicitly out of scope for this closed tranche`
 - `PHASE1_RBTREE_UNIT_REVIEW=rbtree findAdd keeps the first equal key resident while new distinct keys still link into the tree`
 - `PHASE1_RBTREE_SEARCH_UNIT_REVIEW=rbtree find, findFirst, and nextMatch keep duplicate-key lookup walks aligned from the leftmost match through the final equal node`
 - `PHASE1_RBTREE_DUPLICATE_SEARCH_UNIT_REVIEW=rbtree duplicate-key search stays aligned after erase and same-key replace so findFirst, findLast, and duplicate-range iterators report the surviving equal-key window in both directions`
@@ -119,6 +120,7 @@ No additional helper should be called Phase 1 work unless this document and the 
 - `PHASE1_RBTREE_CACHED_FINDADD_UNIT_REVIEW=rbtree findAddCached returns the original equal-key resident node, still links new distinct keys into the cached tree, and keeps the cached first node aligned with the underlying tree root`
 - `PHASE1_RBTREE_ITERATE_UNIT_REVIEW=rbtree iterateMatches yields only the equal-key duplicate range and cleanly reports no match for missing keys`
 - `PHASE1_RBTREE_REVERSE_UNIT_REVIEW=rbtree findLast, prevMatch, and iterateMatchesReverse keep reverse duplicate-key lookup walks aligned from the rightmost match back through the equal-key range while still reporting no match for missing keys`
+- `PHASE1_RBTREE_ALIAS_GAP_NOTE=the closed Phase 1 rbtree tranche still excludes Linux-style rb_* alias parity for the already-ported entry points, and that remaining surface stays explicitly out of scope until a later bounded repair lands`
 
 - `tools/lib/string.zig` closure includes committed C-backed parity coverage for Linux-style bool parsing, C-string-aware `strlcpy` length and truncation behavior, in-place whitespace and replacement helpers including embedded-NUL `remove_spaces` handling, and first-mismatch `memchrInv` detection.
 - `tools/lib/string.zig` direct Zig unit coverage also keeps `strlcpy` aligned with C-string semantics by stopping at the first embedded NUL, preserving truncation behavior, and leaving zero-sized destinations untouched.
