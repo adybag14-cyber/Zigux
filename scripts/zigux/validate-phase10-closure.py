@@ -60,7 +60,7 @@ CLOSURE_MARKERS = [
     "kernel/workqueue_bridge.zig",
     "kernel/trace/ring_buffer.zig",
     "shared closure validator now also fails closed if the MMIO interrupt-ack rung disappears from the closure packet",
-    "machine-checked MMIO closure subset reaches the current landed helper ladder through interrupt acknowledgement",
+    "The machine-checked MMIO closure subset therefore reaches the current landed helper ladder through interrupt acknowledgement rather than stopping one rung earlier.",
 ]
 
 DOCS_README_MARKERS = [
@@ -94,6 +94,10 @@ LEDGER_MARKERS = [
     "PHASE10_LEDGER_EVIDENCE=Documentation/zigux/phase10-closure-evidence.md",
     "PHASE10_LEDGER_VALIDATE=scripts/zigux/validate-phase10-closure.py",
     "PHASE10_LEDGER_ROADMAP_SCOREBOARD_SOURCE=zigux/tests/phase10_closure_manifest.json",
+    "PHASE10_LEDGER_SURVEY_CORE_COMMIT=bc71a85e989bb3d4f0a7d19067f4f1f47527c505",
+    "PHASE10_LEDGER_SURVEY_RING_COMMIT=800e2edfb5d2d0c80ac45ffee6630a6b13905d0d",
+    "PHASE10_LEDGER_SURVEY_INPUT_COMMIT=b24f990e2e5504ac3ed4a1a0f1f97c41e06ddd38",
+    "PHASE10_LEDGER_SURVEY_MMIO_COMMIT=0945df1cf664a3582d7241f859183a13f3f04adb",
     "PHASE10_LEDGER_ROADMAP_VIRTQUEUE_WRAPPERS=starter_landed",
     "PHASE10_LEDGER_ROADMAP_MMIO_WRAPPERS=starter_landed",
     "PHASE10_LEDGER_ROADMAP_LAB_ONLY_DRIVER_VALIDATION=starter_landed",
@@ -313,7 +317,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             "mmio": "P10-L18",
         },
         "surveyed_commits": {
-            "core": "fff48ae79aea16379f402e92c46f02f3772fb789",
+            "core": "bc71a85e989bb3d4f0a7d19067f4f1f47527c505",
             "ring": "800e2edfb5d2d0c80ac45ffee6630a6b13905d0d",
             "input": "b24f990e2e5504ac3ed4a1a0f1f97c41e06ddd38",
             "mmio": "0945df1cf664a3582d7241f859183a13f3f04adb",
@@ -387,7 +391,7 @@ def write_fixture(root: Path) -> None:
                 "mmio": "P10-L18",
             },
             "surveyed_commits": {
-                "core": "fff48ae79aea16379f402e92c46f02f3772fb789",
+                "core": "bc71a85e989bb3d4f0a7d19067f4f1f47527c505",
                 "ring": "800e2edfb5d2d0c80ac45ffee6630a6b13905d0d",
                 "input": "b24f990e2e5504ac3ed4a1a0f1f97c41e06ddd38",
                 "mmio": "0945df1cf664a3582d7241f859183a13f3f04adb",
