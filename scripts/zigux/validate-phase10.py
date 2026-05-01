@@ -79,7 +79,7 @@ SCRIPT_README_MARKERS = [
     "ring manifest-backed packet",
     "ring reset-reuse replay",
     "blocked registration-lifecycle contract",
-    "queue-callback preflight helper",
+    "shared validation surface",
     "bounded MMIO interrupt-ack rung",
 ]
 
@@ -118,7 +118,7 @@ DOC_README_MARKERS = [
     "phase10-virtio-input-survey.md",
     "registration-preflight helper",
     "queue-callback preflight helper",
-    "registration-lifecycle blocker",
+    "registration-lifecycle plus MMIO lifecycle blockers",
 ]
 
 RING_SLICE_MARKERS = [
@@ -153,7 +153,7 @@ MODULE_SLICE_MARKERS = [
 ]
 
 MMIO_SLICE_MARKERS = [
-    "PHASE10_SLICE=virtio-mmio-interrupt-summary-helper",
+    "PHASE10_SLICE=virtio-mmio-interrupt-ack-helper",
     "in-memory config-write planning",
     "phase10-mmio-lifecycle-and-irq-paths",
 ]
@@ -181,8 +181,8 @@ MMIO_HELPER_MARKERS = [
 
 RING_TEST_MARKERS = [
     'test "phase10 virtio ring delays callbacks until most outstanding buffers are consumed" {',
+    'test "phase10 virtio ring reset rejects queues with unpublished or unpolled work" {',
     'test "phase10 virtio ring reset clears drained queue bookkeeping without dropping queue shape" {',
-    'test "phase10 virtio ring recovers a drained broken queue without dropping shape metadata" {',
 ]
 
 RING_RESET_REUSE_TEST_MARKERS = [
@@ -190,8 +190,8 @@ RING_RESET_REUSE_TEST_MARKERS = [
 ]
 
 RING_SURVEY_TEST_MARKERS = [
-    'test "phase10 virtio ring survey manifest records the live queue-discipline packet and parked MMIO blocker after landed config-write" {',
-    'try std.testing.expectEqualStrings("800e2edfb5d2d0c80ac45ffee6630a6b13905d0d", manifest.surveyed_commit);',
+    'test "phase10 virtio ring survey manifest records the live queue-discipline packet and parked MMIO blocker after landed interrupt-ack" {',
+    'try std.testing.expectEqual(@as(usize, 40), manifest.surveyed_commit.len);',
     'try std.testing.expectEqual(@as(usize, 0), ready_next_count);',
     'if (std.mem.eql(u8, gap.id, "phase10-mmio-config-write-helper")) {',
     'if (std.mem.eql(u8, gap.id, "phase10-mmio-lifecycle-and-irq-paths")) {',
@@ -741,8 +741,7 @@ def run_self_test() -> int:
         ring_survey_path.write_text(
             original_ring_survey.replace(
                 "phase10-mmio-config-write-helper",
-                "phase10-mmio-config-write-helper-drift",
-                1,
+                "phase10-mmio-configwrite-helper-drift",
             ),
             encoding="utf-8",
         )
