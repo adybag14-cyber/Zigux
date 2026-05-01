@@ -433,9 +433,21 @@ def run_self_test() -> int:
         write_json(manifest_path, original_manifest)
 
         mutated_manifest = json.loads(json.dumps(original_manifest))
+        mutated_manifest["helper_review_notes"]["tools/lib/find_bit.zig"]["low_level_unit_test_contract"] = ""
+        write_json(manifest_path, mutated_manifest)
+        expect_missing_marker("find_bit_low_level_contract", tmp_root, "manifest:find_bit.low_level_unit_test_contract")
+        write_json(manifest_path, original_manifest)
+
+        mutated_manifest = json.loads(json.dumps(original_manifest))
         mutated_manifest["helper_review_notes"]["tools/lib/find_bit.zig"]["small_bitmap_unit_test_contract"] = ""
         write_json(manifest_path, mutated_manifest)
         expect_missing_marker("find_bit_small_bitmap_contract", tmp_root, "manifest:find_bit.small_bitmap_unit_test_contract")
+        write_json(manifest_path, original_manifest)
+
+        mutated_manifest = json.loads(json.dumps(original_manifest))
+        mutated_manifest["helper_review_notes"]["tools/lib/string.zig"]["memparse_unit_test_contract"] = ""
+        write_json(manifest_path, mutated_manifest)
+        expect_missing_marker("string_memparse_contract", tmp_root, "manifest:string.memparse_unit_test_contract")
         write_json(manifest_path, original_manifest)
 
         expectations_path = tmp_root / "zigux" / "tests" / "fixtures" / "phase1_bench_expectations.json"
@@ -450,7 +462,7 @@ def run_self_test() -> int:
         expect_missing_marker("rbtree_alias_source", tmp_root, "rbtree_source:unexpected_alias:pub fn rb_first(")
 
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=10")
+    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
