@@ -40,6 +40,14 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
     );
     defer std.testing.allocator.free(string_helpers_slice);
 
+    const string_helpers_helper = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "lib/string_helpers.zig",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(string_helpers_helper);
+
     const string_helpers_tests = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "zigux/tests/phase7_string_helpers.zig",
@@ -143,6 +151,13 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
     try expectContains(phase7_build, "phase7_string_helpers_survey.zig");
     try expectContains(phase7_build, "phase7-string-helpers-tests");
     try expectContains(phase7_build, "phase7-string-helpers-survey-tests");
+
+    try expectContains(string_helpers_helper, "pub const KasprintfStrarrayResult = struct");
+    try expectContains(string_helpers_helper, "const empty_kasprintf_strarray_null_terminated: []const ?[*:0]const u8 = &.{null};");
+    try expectContains(string_helpers_helper, "pub fn deinit(self: *KasprintfStrarrayResult, allocator: std.mem.Allocator) void");
+    try expectContains(string_helpers_helper, "pub fn cArray(self: *const KasprintfStrarrayResult) [*]const ?[*:0]const u8");
+    try expectContains(string_helpers_helper, "pub fn kasprintfStrarray(");
+    try expectContains(string_helpers_helper, "pub fn kfreeStrarray(allocator: std.mem.Allocator, result: *KasprintfStrarrayResult) void");
 
     try expectContains(string_helpers_tests, "fixtures/phase7_string_helpers_escape_vectors.zig");
     try expectContains(string_helpers_tests, "phase 7 parseIntArray keeps the counted get_options contract explicit");
