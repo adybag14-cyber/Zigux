@@ -682,7 +682,8 @@ test "phase 8 kallsyms docs keep the parked parser boundary explicit" {
     defer std.testing.allocator.free(slice_note);
 
     try expectContains(slice_note, "PHASE8_STATUS=parked");
-    try expectContains(slice_note, "PHASE8_SLICE=kallsyms-parse-wrapper-starter");
+    try expectContains(slice_note, "PHASE8_SLICE=kallsyms-parse-wrapper-parked");
+    try expectContains(slice_note, "legacy validator alias: `PHASE8_SLICE=kallsyms-parse-wrapper-starter`");
     try expectContains(slice_note, "tools/lib/symbol/kallsyms.zig");
     try expectContains(slice_note, "zigux/tests/phase8_kallsyms.zig");
     try expectContains(slice_note, "chunked overlong-line handling");
