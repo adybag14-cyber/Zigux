@@ -373,7 +373,7 @@ test "phase11 shared header parity survey keeps the header boundary explicit" {
     try std.testing.expectEqual(@as(usize, 15), inventory.module_root_source_files.len);
     try std.testing.expectEqual(@as(usize, 8), inventory.module_imports.len);
     try std.testing.expectEqual(@as(usize, 9), inventory.test_root_modules.len);
-    try std.testing.expectEqual(@as(usize, 2), inventory.forbidden_markers.len);
+    try std.testing.expectEqual(@as(usize, 1), inventory.forbidden_markers.len);
     try std.testing.expectEqual(@as(usize, 1), inventory.dedicated_survey_replays.len);
     try std.testing.expectEqualStrings("phase11-uapi-header-parity-survey-tests", inventory.build_test_names[6]);
     try std.testing.expectEqualStrings("phase11-hvc-console-tests", inventory.build_test_names[7]);
@@ -396,8 +396,7 @@ test "phase11 shared header parity survey keeps the header boundary explicit" {
     try std.testing.expectEqualStrings("phase11_hvc_console_module", inventory.test_root_modules[7].root_module);
     try std.testing.expectEqualStrings("phase11-hvc-console-survey-tests", inventory.test_root_modules[8].@"test");
     try std.testing.expectEqualStrings("phase11_hvc_console_survey_module", inventory.test_root_modules[8].root_module);
-    try std.testing.expectEqualStrings("phase11_hvc_console_survey_tests", inventory.forbidden_markers[0]);
-    try std.testing.expectEqualStrings("run_phase11_hvc_console_survey_tests.step", inventory.forbidden_markers[1]);
+    try std.testing.expectEqualStrings("test_step.dependOn(&run_phase11_hvc_console_survey_tests.step);", inventory.forbidden_markers[0]);
     try std.testing.expectEqualStrings("zigux/tests/phase11_hvc_console_survey.zig", inventory.dedicated_survey_replays[0]);
 }
 
