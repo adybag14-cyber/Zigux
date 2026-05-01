@@ -17,6 +17,17 @@
     "shared_init_exit_contract_present": true,
     "shared_command_environment_control_present": false
   },
+  "lifecycle_boundary_summary": {
+    "staged_init_exit_symbols_are_review_only": true,
+    "kretprobe_registration_labels_are_metadata_only": true,
+    "live_initcall_or_registration_path_present": false,
+    "forbidden_live_calls": [
+      "module_init()",
+      "module_exit()",
+      "register_kretprobe()",
+      "unregister_kretprobe()"
+    ]
+  },
   "phase8_command_environment_surfaces": [
     "tools/lib/subcmd/exec-cmd.zig",
     "tools/lib/subcmd/help.zig"
@@ -264,6 +275,13 @@
       "kind": "governance",
       "zigux_destination": "Documentation/zigux/review-checklist.md",
       "why_now": "The bounded runtime-loader starter still needs explicit review cues for hidden runtime services, implicit allocation posture, panic behavior, and visible unsafe ownership while the shared request surface remains pre-execution."
+    },
+    {
+      "id": "runtime-loader-pre-execution-lifecycle-boundary",
+      "status": "starter_landed",
+      "kind": "runtime_substrate",
+      "zigux_destination": "zigux/tests/runtime_loader_gap_manifest.json",
+      "why_now": "The shared manifest now records the current pre-execution lifecycle boundary directly: staged init and exit symbols stay review-only, kretprobe registration labels stay metadata-only, and no live `module_init()`, `module_exit()`, `register_kretprobe()`, or `unregister_kretprobe()` path is claimed anywhere in this packet."
     },
     {
       "id": "runtime-loader-plan-inputs",
