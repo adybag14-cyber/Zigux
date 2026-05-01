@@ -202,8 +202,8 @@ test "phase14 shared smoke manifest records the current evidence bundle" {
 
     try std.testing.expectEqualStrings("phase14-workqueue-bridge-tests", manifest.compile_shards[0].artifact_name);
     try std.testing.expectEqualStrings("phase14_workqueue_bridge.zig", manifest.compile_shards[0].root_source_file);
-    try std.testing.expectEqualStrings("full_bundle_only", manifest.compile_shards[0].coverage_mode);
-    try std.testing.expectEqualStrings("", manifest.compile_shards[0].dedicated_step);
+    try std.testing.expectEqualStrings("anchor_local_step_and_full_bundle", manifest.compile_shards[0].coverage_mode);
+    try std.testing.expectEqualStrings("phase14-workqueue-bridge", manifest.compile_shards[0].dedicated_step);
     try std.testing.expectEqualStrings("workqueue_bridge", manifest.compile_shards[0].bridge_import);
     try std.testing.expectEqualStrings("../../kernel/workqueue_bridge.zig", manifest.compile_shards[0].bridge_source_file);
     try std.testing.expectEqualStrings("phase14-skbuff-bridge-tests", manifest.compile_shards[1].artifact_name);
@@ -254,13 +254,19 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     try std.testing.expect(std.mem.indexOf(u8, build_file, "phase14_end_to_end_smoke_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_file, "phase14-smoke") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_file, "phase14_smoke_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_file, "phase14_workqueue_bridge_step.dependOn(&run_phase14_workqueue_bridge_tests.step);") != null);
     var focused_shard_count: usize = 0;
+    var anchor_local_step_count: usize = 0;
     var full_bundle_only_count: usize = 0;
     for (smoke_manifest.value.compile_shards) |shard| {
         try std.testing.expect(std.mem.indexOf(u8, build_file, shard.artifact_name) != null);
         try std.testing.expect(std.mem.indexOf(u8, build_file, shard.root_source_file) != null);
         if (std.mem.eql(u8, shard.coverage_mode, "focused_and_full_bundle")) {
             focused_shard_count += 1;
+            try std.testing.expect(shard.dedicated_step.len > 0);
+            try std.testing.expect(std.mem.indexOf(u8, build_file, shard.dedicated_step) != null);
+        } else if (std.mem.eql(u8, shard.coverage_mode, "anchor_local_step_and_full_bundle")) {
+            anchor_local_step_count += 1;
             try std.testing.expect(shard.dedicated_step.len > 0);
             try std.testing.expect(std.mem.indexOf(u8, build_file, shard.dedicated_step) != null);
         } else {
@@ -274,7 +280,8 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
         }
     }
     try std.testing.expectEqual(@as(usize, 1), focused_shard_count);
-    try std.testing.expectEqual(@as(usize, 4), full_bundle_only_count);
+    try std.testing.expectEqual(@as(usize, 1), anchor_local_step_count);
+    try std.testing.expectEqual(@as(usize, 3), full_bundle_only_count);
     try std.testing.expectEqual(@as(usize, 5), std.mem.count(u8, build_file, "test_step.dependOn(&run_phase14_"));
     try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, build_file, "phase14_smoke_step.dependOn(&run_phase14_"));
 
@@ -370,7 +377,8 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "PHASE14_VALIDATE_ENTRYPOINT=make -C zigux phase14-validate") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "PHASE14_COMPILE_ARTIFACT_COUNT=5") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "PHASE14_FOCUSED_SHARD_COUNT=1") != null);
-    try std.testing.expect(std.mem.indexOf(u8, smoke_note, "PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=4") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_note, "PHASE14_ANCHOR_LOCAL_STEP_COUNT=1") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_note, "PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=3") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "PHASE14_FULL_BUNDLE_DEPENDENCY_COUNT=5") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "PHASE14_FOCUSED_SHARD_DEPENDENCY_COUNT=1") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "PHASE14_FOCUSED_SHARD_ONLY_ARTIFACT=phase14-end-to-end-smoke-tests") != null);
@@ -402,8 +410,9 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
             try std.testing.expect(std.mem.indexOf(u8, smoke_note, shard.bridge_source_file) != null);
         }
     }
-    try std.testing.expect(std.mem.indexOf(u8, smoke_note, "only the shared smoke survey has a dedicated shard today") != null);
-    try std.testing.expect(std.mem.indexOf(u8, smoke_note, "four anchor-local artifacts still replay only through the broader `test` bundle") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_note, "shared smoke survey is the only workflow-wired shared shard today") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_note, "workqueue packet keeps one anchor-local build-only step") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_note, "three anchor-local artifacts still replay only through the broader `test` bundle") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "current four-anchor boundary map") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "bounded concurrency-audit scope") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "phase14_smoke_step") != null);
