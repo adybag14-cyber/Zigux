@@ -14,6 +14,7 @@ This sample-backed survey note tracks the bounded Phase 5 reference-sample surve
   - `Documentation/zigux/README.md`
   - `Documentation/zigux/review-checklist.md`
   - `samples/zigux/README.md`
+  - `zigux/tests/README.md`
   - `samples/zigux/trace_events_sample.zig`
   - `zigux/tests/phase5_build.zig`
   - `zigux/tests/phase5_trace_events_sample.zig`
@@ -37,6 +38,7 @@ Fresh repo inspection now shows that current `master` carries all four roadmap-a
 - the honest Phase 5 move is to make the payload shape, chosen string, formatted message, family counts, public selected-string slot and payload-length cues, and callback-registration balance reviewable in memory while leaving runtime thread creation and tracepoint macro wiring out of scope.
 - the shared sample-root catalog in `samples/zigux/README.md` is part of that boundary now, because it is the shortest shared place to keep the four Phase 5 reference readings visibly separate from the later runtime starters that live in the same directory.
 - the shared sample-root catalog now also carries a dedicated trace-events review-packet stanza, so contributors can refresh the exact replay contract, callback-balance cues, and out-of-scope runtime claims without having to infer them from the deeper survey note alone.
+- the shared tests-root guide in `zigux/tests/README.md` is part of that same contributor packet now, because it names the direct `zig test samples/zigux/trace_events_sample.zig` replay, the paired `zig test zigux/tests/phase5_trace_events_sample_survey.zig` replay, and the wider Phase 5 boundary cues that keep this landed sample distinct from the separate Phase 7 helper-only evidence and the later Phase 9 runtime follow-ons.
 
 ## Landed sample and exact checks
 
@@ -100,7 +102,7 @@ When a contributor updates `samples/zigux/trace_events_sample.zig` or its direct
 
 - does `TraceEventsReferenceSample.descriptor()` still name `samples/trace_events/trace-events-sample.c` and keep `requires_runtime_substrate = false` plus `provides_selfcheck = true`?
 - does `zigux/tests/phase5_trace_events_sample_manifest.json` still pin `surveyed_commit` to the exact inspected `master` head instead of a floating branch label?
-- do the sample-backed survey note, `samples/zigux/README.md`, `Documentation/zigux/README.md`, and `Documentation/zigux/review-checklist.md` still describe the same bounded replay contract and keep this Phase 5 sample visibly separate from the later Phase 9 runtime pilot?
+- do the sample-backed survey note, `samples/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/README.md`, and `Documentation/zigux/review-checklist.md` still describe the same bounded replay contract and keep this Phase 5 sample visibly separate from the later Phase 9 runtime pilot?
 - do `zigux/tests/phase5_trace_events_sample_manifest.json` and `zigux/tests/phase5_trace_events_sample_survey.zig` still describe the exact selected-string-slot, payload-length, main-iteration, callback-iteration, vararg-payload, lifecycle-summary, message, relative-location, callback-path, and teardown contract run through `zigux/tests/phase5_build.zig`?
 - does `lifecycleSummary()` still keep stage plus init, replay, and exit counts, registration depth, and total event calls visible without private field access?
 - do the sample self-check and the manifest-backed exact-check packet still keep the full modulo-selected string cycle explicit across counts `0` through `4` instead of only one reviewed string case?
@@ -109,7 +111,7 @@ When a contributor updates `samples/zigux/trace_events_sample.zig` or its direct
 - does function-callback replay stay a single-live register-then-unregister idiom, including rejection of a second `registerFunctionCallback()` call while one callback is already registered, rather than implying `kthread_run()`, thread scheduling, or tracepoint enablement parity?
 - before callback balance returns to zero, does the sample still reject `unregisterFunctionCallback()` underflow and reject `exit()` with `OutstandingRegistration` while a callback remains armed, so the ownership boundary is explicit before teardown?
 - after `exit()`, do `replayMainIteration()`, `registerFunctionCallback()`, `replayFunctionIteration()`, and `unregisterFunctionCallback()` all stay rejected so the teardown boundary is fully reviewable instead of only partially implied?
-- do the sample-backed survey note, `samples/zigux/README.md`, and `Documentation/zigux/review-checklist.md` still point reviewers back to the descriptor, manifest-backed survey, sample-backed survey note, shared sample-root catalog, and shared `phase5_build.zig` entrypoint for this exact replay contract?
+- do the sample-backed survey note, `samples/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/review-checklist.md` still point reviewers back to the descriptor, manifest-backed survey, sample-backed survey note, shared sample-root catalog, shared tests-root guide, and shared `phase5_build.zig` entrypoint for this exact replay contract?
 - if the sample behavior changes, is the manifest updated alongside the replay contract instead of leaving reviewers to infer the new boundary from code alone?
 - do the docs and tests still say clearly that `CREATE_TRACE_POINTS`, tracepoint macros from `trace-events-sample.h`, kernel scheduling, and module registration wiring remain out of scope for this Phase 5 sample?
 
