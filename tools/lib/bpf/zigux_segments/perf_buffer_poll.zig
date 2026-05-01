@@ -1,0 +1,206 @@
+const std = @import("std");
+
+pub const WaitClass = enum {
+    nonblocking,
+    bounded,
+    indefinite,
+};
+
+pub const PollOutcome = enum {
+    ready,
+    timeout,
+    interrupted,
+    failed,
+};
+
+pub const BufferObservation = struct {
+    ready: bool = false,
+    error_code: ?i32 = null,
+};
+
+pub const WaitObservation = union(enum) {
+    timed_out,
+    interrupted,
+    ready_events: usize,
+    failed: i32,
+};
+
+pub const ReadyBufferSummary = struct {
+    ready_count: usize,
+    first_ready_index: ?usize,
+    first_error: ?i32,
+};
+
+pub const PollSummary = struct {
+    wait_class: WaitClass,
+    outcome: PollOutcome,
+    observed_ready_events: usize,
+    ready_count: usize,
+    first_ready_index: ?usize,
+    first_error: ?i32,
+};
+
+pub const PollError = error{
+    InvalidTimeout,
+    ReadyCountExceedsObservedEvents,
+    ReadyEventsMissingReadyBuffer,
+    TimeoutObservationHasReadyBuffer,
+    InterruptedObservationHasReadyBuffer,
+};
+
+pub fn classifyWaitClass(timeout_ms: i32) PollError!WaitClass {
+    return switch (timeout_ms) {
+        -1 => .indefinite,
+        0 => .nonblocking,
+        1...std.math.maxInt(i32) => .bounded,
+        else => PollError.InvalidTimeout,
+    };
+}
+
+pub fn summarizeReadyBuffers(buffers: []const BufferObservation) ReadyBufferSummary {
+    var ready_count: usize = 0;
+    var first_ready_index: ?usize = null;
+    var first_error: ?i32 = null;
+
+    for (buffers, 0..) |buffer, index| {
+        if (buffer.ready) {
+            ready_count += 1;
+            if (first_ready_index == null) first_ready_index = index;
+        }
+        if (first_error == null and buffer.error_code != null) {
+            first_error = buffer.error_code;
+        }
+    }
+
+    return .{
+        .ready_count = ready_count,
+        .first_ready_index = first_ready_index,
+        .first_error = first_error,
+    };
+}
+
+pub fn summarizePoll(
+    timeout_ms: i32,
+    observation: WaitObservation,
+    buffers: []const BufferObservation,
+) PollError!PollSummary {
+    const wait_class = try classifyWaitClass(timeout_ms);
+    const ready = summarizeReadyBuffers(buffers);
+
+    return switch (observation) {
+        .timed_out => {
+            if (ready.ready_count != 0) return PollError.TimeoutObservationHasReadyBuffer;
+            return .{
+                .wait_class = wait_class,
+                .outcome = .timeout,
+                .observed_ready_events = 0,
+                .ready_count = 0,
+                .first_ready_index = null,
+                .first_error = ready.first_error,
+            };
+        },
+        .interrupted => {
+            if (ready.ready_count != 0) return PollError.InterruptedObservationHasReadyBuffer;
+            return .{
+                .wait_class = wait_class,
+                .outcome = .interrupted,
+                .observed_ready_events = 0,
+                .ready_count = 0,
+                .first_ready_index = null,
+                .first_error = ready.first_error,
+            };
+        },
+        .failed => |err_code| .{
+            .wait_class = wait_class,
+            .outcome = .failed,
+            .observed_ready_events = 0,
+            .ready_count = ready.ready_count,
+            .first_ready_index = ready.first_ready_index,
+            .first_error = ready.first_error orelse err_code,
+        },
+        .ready_events => |observed_ready_events| blk: {
+            if (ready.ready_count > observed_ready_events) {
+                return PollError.ReadyCountExceedsObservedEvents;
+            }
+            if (ready.ready_count == 0) {
+                if (ready.first_error != null) {
+                    break :blk .{
+                        .wait_class = wait_class,
+                        .outcome = .failed,
+                        .observed_ready_events = observed_ready_events,
+                        .ready_count = 0,
+                        .first_ready_index = null,
+                        .first_error = ready.first_error,
+                    };
+                }
+                return PollError.ReadyEventsMissingReadyBuffer;
+            }
+            break :blk .{
+                .wait_class = wait_class,
+                .outcome = .ready,
+                .observed_ready_events = observed_ready_events,
+                .ready_count = ready.ready_count,
+                .first_ready_index = ready.first_ready_index,
+                .first_error = ready.first_error,
+            };
+        },
+    };
+}
+
+test "classifyWaitClass keeps perf_buffer__poll timeout classes explicit" {
+    try std.testing.expectEqual(WaitClass.indefinite, try classifyWaitClass(-1));
+    try std.testing.expectEqual(WaitClass.nonblocking, try classifyWaitClass(0));
+    try std.testing.expectEqual(WaitClass.bounded, try classifyWaitClass(25));
+    try std.testing.expectError(PollError.InvalidTimeout, classifyWaitClass(-2));
+}
+
+test "summarizeReadyBuffers counts ready buffers and preserves the first error" {
+    const buffers = [_]BufferObservation{
+        .{},
+        .{ .ready = true },
+        .{ .error_code = -11 },
+        .{ .ready = true, .error_code = -32 },
+    };
+    const summary = summarizeReadyBuffers(&buffers);
+
+    try std.testing.expectEqual(@as(usize, 2), summary.ready_count);
+    try std.testing.expectEqual(@as(?usize, 1), summary.first_ready_index);
+    try std.testing.expectEqual(@as(?i32, -11), summary.first_error);
+}
+
+test "summarizePoll keeps bounded ready observations compact and reviewable" {
+    const buffers = [_]BufferObservation{
+        .{ .ready = true },
+        .{ .error_code = -32 },
+        .{ .ready = true },
+    };
+    const summary = try summarizePoll(10, .{ .ready_events = 3 }, &buffers);
+
+    try std.testing.expectEqual(WaitClass.bounded, summary.wait_class);
+    try std.testing.expectEqual(PollOutcome.ready, summary.outcome);
+    try std.testing.expectEqual(@as(usize, 3), summary.observed_ready_events);
+    try std.testing.expectEqual(@as(usize, 2), summary.ready_count);
+    try std.testing.expectEqual(@as(?usize, 0), summary.first_ready_index);
+    try std.testing.expectEqual(@as(?i32, -32), summary.first_error);
+}
+
+test "summarizePoll keeps timeout, interruption, and missing-ready mismatches explicit" {
+    const idle_buffers = [_]BufferObservation{.{}, .{}};
+    const timeout_summary = try summarizePoll(0, .timed_out, &idle_buffers);
+    try std.testing.expectEqual(WaitClass.nonblocking, timeout_summary.wait_class);
+    try std.testing.expectEqual(PollOutcome.timeout, timeout_summary.outcome);
+
+    const interrupted_summary = try summarizePoll(-1, .interrupted, &idle_buffers);
+    try std.testing.expectEqual(WaitClass.indefinite, interrupted_summary.wait_class);
+    try std.testing.expectEqual(PollOutcome.interrupted, interrupted_summary.outcome);
+
+    const error_only = [_]BufferObservation{.{ .error_code = -22 }};
+    const failed_summary = try summarizePoll(5, .{ .ready_events = 1 }, &error_only);
+    try std.testing.expectEqual(PollOutcome.failed, failed_summary.outcome);
+    try std.testing.expectEqual(@as(?i32, -22), failed_summary.first_error);
+
+    try std.testing.expectError(
+        PollError.ReadyEventsMissingReadyBuffer,
+        summarizePoll(5, .{ .ready_events = 1 }, &idle_buffers),
+    );
+}
