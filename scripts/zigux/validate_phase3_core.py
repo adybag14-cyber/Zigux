@@ -174,6 +174,14 @@ ABI_REQUIRED_SOURCE_MARKERS = {
         "try std.testing.expect(!uapi_version.isCurrentAbiVersion(mismatched_version_header.abi_version));",
         "try std.testing.expect(uapi_version.isCompatibleSize(future_compatible_header.size));",
     ),
+    "zigux/tests/phase3_export_uapi_build.zig": (
+        '.root_source_file = b.path("phase3_export_uapi.zig"),',
+        'export_shim_module.addImport("uapi_version", uapi_version_module);',
+        'root_module.addImport("abi_bindings", abi_bindings_module);',
+        'root_module.addImport("export_shim", export_shim_module);',
+        'root_module.addImport("uapi_version", uapi_version_module);',
+        '"phase3-export-uapi-test",',
+    ),
     "zigux/tests/phase3_low_level_wrappers.zig": (
         'test "phase3 low-level wrappers stay inside the documented ABI surface"',
         "atomic.fetchSub(u32, &value, 4, .seq_cst)",
