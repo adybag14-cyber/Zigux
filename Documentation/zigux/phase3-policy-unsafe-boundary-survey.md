@@ -22,12 +22,12 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_INTEROP_POLICY_BLOB_SHA=43abf6f25b2e3083b3f99f9a39312061b19c510a`
 - `PHASE3_UNSAFE_PATH=zigux/unsafe/narrow.zig`
 - `PHASE3_UNSAFE_SCOPE=narrow-mmio-and-raw-pointer-bridge`
-- `PHASE3_UNSAFE_BLOB_SHA=d8ab4bcb25b30702fe29e3dee0c8fa7fdc6c4f9f`
+- `PHASE3_UNSAFE_BLOB_SHA=543239eec61a02701f14622cacf39f6bf104621e`
 - `PHASE3_MMIO_PATH=zigux/helpers/mmio.zig`
 - `PHASE3_MMIO_BLOB_SHA=031bb804a25982da8d3de2a944777b49b21a3405`
 - `PHASE3_ABI_SLICE_DOC_BLOB_SHA=3fd88b4a1685d5d3207debc72634c993fd9e16ce`
 - `PHASE3_POLICY_UNSAFE_BUILD_BLOB_SHA=4613c79a8d082b2dd3fe9502b7dcdb03ef181bb2`
-- `PHASE3_POLICY_UNSAFE_TEST_BLOB_SHA=f6826a59b15176430ddd7fde7f09a90ece3df396`
+- `PHASE3_POLICY_UNSAFE_TEST_BLOB_SHA=42c7838b999482421066da2b1387ed8dec8297ec`
 - `PHASE3_ABI_MANIFEST_BLOB_SHA=f6716ac6e498c0bfd9264ab93b37db96d2e27c93`
 - `PHASE3_POLICY_UNSAFE_GATE=zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig`
 - `PHASE3_BOUNDARY_GAP=no-second-boundary-helper-consumes-decoded-policy-beyond-focused-replay`
@@ -49,7 +49,7 @@ It does require the current tree to say clearly which policy rules are already l
 
 ## Live Repo Reality
 
-This survey is pinned to verified `master` head `cdcdd05ab1b8028fbf170ee0e9ff4c09f06c1a34` for the directly coupled policy-and-unsafe packet, and it now also records packet-local blob IDs for the curated helper, build, test, manifest, and slice-note files so shallow history alone does not turn a reviewable packet into a false validation failure.
+This survey still records the last verified `master` head `cdcdd05ab1b8028fbf170ee0e9ff4c09f06c1a34` as a fallback baseline for the directly coupled policy-and-unsafe packet, and it now treats the packet-local blob IDs for the curated helper, build, test, manifest, and slice-note files as the primary drift anchors so follow-on policy-only edits do not read as false survey failures.
 
 The current tree already carries a real bounded policy-and-unsafe substrate:
 
