@@ -35,6 +35,18 @@ const Manifest = struct {
     gaps: []const Gap,
 };
 
+const Atomic64ThresholdPlan = struct {
+    posture: []const u8,
+    status: []const u8,
+    benchmark_command: []const u8,
+    acceptable_limit: []const u8,
+};
+
+const Atomic64Manifest = struct {
+    surveyed_commit: []const u8,
+    threshold_plan: Atomic64ThresholdPlan,
+};
+
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
         std.mem.eql(u8, status, "ready_next");
@@ -107,6 +119,40 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
         manifest.surveyed_gates[1].threshold_posture,
     );
 
+    const atomic64_manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase4_runtime_atomic64_diff_manifest.json",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(atomic64_manifest_json);
+    const atomic64_parsed = try std.json.parseFromSlice(
+        Atomic64Manifest,
+        std.testing.allocator,
+        atomic64_manifest_json,
+        .{},
+    );
+    defer atomic64_parsed.deinit();
+    const atomic64_manifest = atomic64_parsed.value;
+    try std.testing.expectEqualStrings(current_surveyed_commit, atomic64_manifest.surveyed_commit);
+    try std.testing.expect(isLowerHexSha(atomic64_manifest.surveyed_commit));
+    try std.testing.expectEqualStrings(
+        "threshold_pending_until_runtime_atomic64_scope_widens",
+        atomic64_manifest.threshold_plan.posture,
+    );
+    try std.testing.expectEqualStrings(
+        "pending_scope_widening",
+        atomic64_manifest.threshold_plan.status,
+    );
+    try std.testing.expectEqualStrings(
+        "unapproved_until_runtime_atomic64_scope_widens",
+        atomic64_manifest.threshold_plan.benchmark_command,
+    );
+    try std.testing.expectEqualStrings(
+        "unapproved_until_runtime_atomic64_scope_widens",
+        atomic64_manifest.threshold_plan.acceptable_limit,
+    );
+
     const phase4_build = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "zigux/tests/phase4_build.zig",
@@ -142,8 +188,16 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
             std.mem.indexOf(u8, phase4_matrix, "perf_thresholds_unapproved_until_bounded_phase4_benchmarks_land") != null and
             std.mem.indexOf(u8, phase4_matrix, "benchmark command and acceptable limit are still unapproved for both landed gates") != null and
             std.mem.indexOf(u8, phase4_matrix, "land one bounded benchmark command and one acceptable limit per gate before Phase 4 claims perf coverage") != null,
-        .benchmark_command_unapproved = std.mem.indexOf(u8, phase4_matrix, "benchmark command and acceptable limit are still unapproved for both landed gates") != null,
-        .acceptable_limit_unapproved = std.mem.indexOf(u8, phase4_matrix, "benchmark command and acceptable limit are still unapproved for both landed gates") != null,
+        .benchmark_command_unapproved = std.mem.eql(
+            u8,
+            atomic64_manifest.threshold_plan.benchmark_command,
+            "unapproved_until_runtime_atomic64_scope_widens",
+        ) and std.mem.indexOf(u8, phase4_matrix, "benchmark command and acceptable limit are still unapproved for both landed gates") != null,
+        .acceptable_limit_unapproved = std.mem.eql(
+            u8,
+            atomic64_manifest.threshold_plan.acceptable_limit,
+            "unapproved_until_runtime_atomic64_scope_widens",
+        ) and std.mem.indexOf(u8, phase4_matrix, "benchmark command and acceptable limit are still unapproved for both landed gates") != null,
     };
     try std.testing.expectEqualDeep(live_summary, manifest.survey_summary);
 
