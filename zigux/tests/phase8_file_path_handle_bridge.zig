@@ -250,6 +250,7 @@ test "phase 8 file-path-handle bridge keeps the DEVMAP readonly-prog compatibili
         .key_size = 4,
         .value_size = 4,
         .max_entries = 16,
+        .map_flags = 0,
     };
     const actual = file_path_handle_bridge.FdInfoMapInfo{
         .map_type = file_path_handle_bridge.bpf_map_type_devmap,
