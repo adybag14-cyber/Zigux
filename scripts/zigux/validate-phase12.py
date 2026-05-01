@@ -31,6 +31,7 @@ LOCAL_ZIG_IMPORT_RE = re.compile(r'@import\("([^"]+\.zig)"\)')
 FILES = [
     "scripts/zigux/check-phase12-build-inventory.py",
     "scripts/zigux/check-phase12-libbpf-snapshot.py",
+    "scripts/zigux/check-phase12-libbpf-packet.py",
     "scripts/zigux/validate-phase12.py",
     "scripts/zigux/README.md",
     "Documentation/zigux/README.md",
@@ -86,6 +87,7 @@ WORKFLOW_MARKERS = [
 README_MARKERS = [
     "check-phase12-build-inventory.py",
     "check-phase12-libbpf-snapshot.py",
+    "check-phase12-libbpf-packet.py",
     "validate-phase12.py",
     "Phase 12 flow",
     "make -C zigux phase12-validate",
