@@ -30,7 +30,7 @@ Trace-events review packet
 - keep `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, `zigux/tests/phase5_trace_events_sample_survey.zig`, and `Documentation/zigux/phase5-trace-events-sample-survey.md` aligned through the shared `zigux/tests/phase5_build.zig` entrypoint
 - keep the landed replay contract explicit: selected-string slot and payload-length cues, the bounded array payload, `iter=%d` message, `0xdeadbeef` bitmask word, exact event-family counts, the full modulo-selected string cycle, and the public lifecycle-summary plus `checked_focus` review surface
 - keep the ownership-and-callback review surface explicit outside the main replay path: single-live callback registration, register-then-unregister balance, and post-exit replay or callback rejection remain part of the shipped contract
-- keep `CREATE_TRACE_POINTS`, tracepoint macros from `trace-events-sample.h`, kernel scheduling, and runtime registration out of scope so this sample stays a bounded in-memory payload-and-callback idiom rather than a Phase 9 runtime pilot claim
+- keep `CREATE_TRACE_POINTS`, tracepoint macros from `trace-events-sample.h`, kernel scheduling, and runtime registration out of scope so this sample stays a bounded in-memory approved payload-and-callback idiom rather than a Phase 9 runtime pilot claim
 
 Later runtime starters and loader-side follow-ons
 - `samples/zigux/runtime_atomic64.zig`
