@@ -207,6 +207,8 @@ MARKER_GROUPS = {
             "PHASE1_RBTREE_CACHED_FINDADD_UNIT_REVIEW=",
             "PHASE1_RBTREE_BENCH_REVIEW=rbtree benchmark smoke pins ordered traversal, duplicate-range, cached-leftmost, findAdd, and postorder-safe checksum surfaces so duplicate-owner and erase-while-walking regressions cannot hide behind the broader tree checksum alone",
             "PHASE1_RBTREE_BENCH_KEYS=PHASE1_BENCH_RBTREE_CHECKSUM,PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM,PHASE1_BENCH_RBTREE_CACHED_CHECKSUM,PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM,PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM",
+            'bitmap direct unit-test anchor: `tools/lib/bitmap.zig:test "bitmap allocation helpers size zero fill and reset optionals"`',
+            "bitmap allocator review note: `bitmap_alloc()` and `bitmap_zalloc()` must size partial-word bitmaps through `BITS_TO_LONGS(nbits)`, while `bitmapFree()` optional-reset behavior remains direct Zig-only coverage because the C helper frees raw pointers in place",
         ],
     ),
     "bench": (
@@ -277,6 +279,15 @@ MARKER_GROUPS = {
             "unsigned long alloc_nbits = BITS_PER_LONG + 5;",
             'printf("\\\"alloc_nbits\\\":%lu,", alloc_nbits);',
             'printf("\\\"scnprintf_trunc\\\":\\\"%s\\\"", trunc_buffer);',
+        ],
+    ),
+    "bitmap_manifest": (
+        "zigux/tests/fixtures/phase1_helper_manifest.json",
+        [
+            '"allocator_alias_unit_test_anchor"',
+            "bitmap underscore allocator aliases preserve allocation and ownership semantics",
+            '"allocator_alias_unit_test_contract"',
+            "bitmap_alloc(), bitmap_zalloc(), and bitmap_free() aligned with bitmapAlloc(), bitmapZalloc(), and bitmapFree() for partial-word sizing, zero-filled allocation, and optional-handle reset semantics.",
         ],
     ),
     "find_bit": (
@@ -438,6 +449,12 @@ def validate_manifest_shape() -> list[str]:
             evidence_keys = note.get("evidence_keys")
             if not isinstance(evidence_keys, list) or not evidence_keys:
                 issues.append(f"phase1_manifest:{helper}:evidence_keys:expected_nonempty_list")
+        bitmap_note = notes.get("tools/lib/bitmap.zig")
+        if isinstance(bitmap_note, dict):
+            if bitmap_note.get("allocator_alias_unit_test_anchor") != 'tools/lib/bitmap.zig:test "bitmap underscore allocator aliases preserve allocation and ownership semantics"':
+                issues.append("phase1_manifest:tools/lib/bitmap.zig:allocator_alias_unit_test_anchor:mismatch")
+            if bitmap_note.get("allocator_alias_unit_test_contract") != "Direct Zig unit coverage keeps bitmap_alloc(), bitmap_zalloc(), and bitmap_free() aligned with bitmapAlloc(), bitmapZalloc(), and bitmapFree() for partial-word sizing, zero-filled allocation, and optional-handle reset semantics.":
+                issues.append("phase1_manifest:tools/lib/bitmap.zig:allocator_alias_unit_test_contract:mismatch")
     return issues
 
 
