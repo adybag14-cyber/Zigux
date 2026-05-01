@@ -5,7 +5,7 @@ This document records the bounded kernel-integration validation matrix for the Z
 ## Status
 
 - `PHASE11_HVC_CONSOLE_STATUS=cleanup_handoff_landed`
-- reviewed against live `master` `a5fdfc2f82f52a4babccc9dca60e8b1ba6228b59`
+- reviewed against live `master` `b9e3d3872245d2966b152f499d3f40aa6a02bf4c`
 - scope: keep the current `hvc_console` starter honest about what is already validated, name the next kernel-facing checkpoints, and avoid overclaiming tty or hypervisor integration before those behaviors exist in Zigux
 - current repo reality:
   - `drivers/tty/hvc/hvc_console.zig`
