@@ -512,6 +512,19 @@ test "memdup and memchrInv preserve byte content" {
     try std.testing.expectEqual(@as(?usize, null), memchrInv("bbbb", 'b'));
 }
 
+test "memchrInv keeps the short and long cutoff paths aligned" {
+    var short_exact = [_]u8{'a'} ** 16;
+    short_exact[15] = 'X';
+    try std.testing.expectEqual(@as(?usize, 15), memchrInv(&short_exact, 'a'));
+
+    var long_exact = [_]u8{'a'} ** 17;
+    long_exact[16] = 'X';
+    try std.testing.expectEqual(@as(?usize, 16), memchrInv(&long_exact, 'a'));
+
+    var all_equal = [_]u8{'a'} ** 17;
+    try std.testing.expectEqual(@as(?usize, null), memchrInv(&all_equal, 'a'));
+}
+
 test "memparse forwards the header-level string helper surface" {
     const decimal = memparse("64K rest");
     try std.testing.expectEqual(@as(u64, 64 << 10), decimal.value);
