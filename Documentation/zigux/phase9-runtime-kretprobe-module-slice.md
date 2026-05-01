@@ -6,9 +6,9 @@ This document tracks the first bounded Phase 9 runtime kretprobe starter under `
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-kretprobe-module-starter`
-- `PHASE9_LANE_KEY=P9-L15`
-- `PHASE9_SURVEYED_COMMIT=c35ea44cfcb4c8139327a786875b442c4399796c`
-- scope: lifecycle starter, bounded return-probe bookkeeping, direct embedded sample replay, explicit `phase9-runtime-kretprobe-{sample,module,diff,loader,survey}-tests` shared-build legs, a manifest-backed survey packet, a loader-handoff scaffold, explicit shared `command_name` preservation, a landed shared loader-request binding, and survey-manifest closure only
+- `PHASE9_LANE_KEY=P9-L16`
+- `PHASE9_SURVEYED_COMMIT=fe8a43ea2e186da0da152198b571dff57ea3c38c`
+- scope: lifecycle starter, bounded return-probe bookkeeping, direct embedded sample replay, the bounded pre-init `configureMaxactive()` starter contract, explicit `phase9-runtime-kretprobe-{sample,module,diff,loader,survey}-tests` shared-build legs, a manifest-backed survey packet, a loader-handoff scaffold, explicit shared `command_name` preservation, a landed shared loader-request binding, and survey-manifest closure only
 - product boundary:
   - `samples/zigux/runtime_kretprobe.zig`
   - `samples/zigux/runtime_kretprobe_loader.zig`
@@ -32,6 +32,7 @@ The live repo already had runtime pilot starters for atomic64, bitmap, and trace
 - module descriptor metadata naming the `samples/kprobes/kretprobe_example.c` anchor
 - guarded lifecycle transitions for `cold`, `initialized`, `selftest_complete`, and `exited`
 - a retargetable symbol-name starter that defaults to `kernel_clone`, matches the Linux sample's module parameter, and rejects retargets at or above the fixed `KSYM_NAME_LEN`-style 512-byte ceiling
+- a pre-init `configureMaxactive()` starter contract that keeps `maxactive` reviewable as bounded starter-owned state, accepts only `1...default_maxactive` before init, and rejects post-init retunes so the pilot does not imply live module-parameter mutation
 - bounded entry-handler skip behavior for kernel-thread-like contexts, bounded per-instance private entry-timestamp tracking across concurrent active probes, return-value and duration bookkeeping, and explicit `nmissed` tracking
 - a stable `RuntimeKretprobeSummary` view exposing lifecycle stage, `init_runs`, `selftest_runs`, `exit_runs`, active-instance state, and the latest bounded probe results without requiring direct field access on the sample
 - a direct post-selftest replay proof that `selftest_complete` still permits bounded entry-timestamp, return-value, duration, and `nmissed` replay while `RuntimeKretprobeSummary` stays explicit until exit
