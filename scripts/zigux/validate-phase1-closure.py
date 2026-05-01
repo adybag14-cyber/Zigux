@@ -48,6 +48,17 @@ HELPERS = [
     "tools/lib/zalloc.zig",
 ]
 
+RBTREE_SUMMARY = (
+    "Committed C-backed parity coverage includes ordered forward and reverse traversal plus "
+    "replaceNode, eraseInit, postorder traversal, and detached-node state checks, while "
+    "Linux-style rb_* alias parity remains explicitly out of scope for this closed Phase 1 tranche."
+)
+RBTREE_ALIAS_GAP_NOTE = (
+    "Linux-style rb_* alias surface parity is still missing for the already-ported entry points, "
+    "and that remaining surface stays explicitly out of scope for the closed Phase 1 tranche until "
+    "a later bounded repair lands."
+)
+
 REQUIRED_CLOSURE_MARKERS = [
     "PHASE1_STATUS=closed",
     "PHASE1_HELPER_COUNT=13",
@@ -55,6 +66,8 @@ REQUIRED_CLOSURE_MARKERS = [
     "PHASE1_BITMAP_ALIAS_UNIT_REVIEW=bitmap underscore alias entry points preserve the same caller-selected window semantics as the camelCase helpers for weight bitwise range and formatting operations",
     "PHASE1_FIND_BIT_ALIAS_UNIT_REVIEW=find_bit underscore alias entry points preserve the same set, shared-bit, and zero-bit scan semantics as the camelCase helpers across the same caller-selected bit windows and tail clamps",
     "PHASE1_FIND_BIT_LOW_LEVEL_UNIT_REVIEW=find_bit low-level underscore entry points preserve same-word inclusive starts and tail-clamped set, shared-bit, and zero-bit scan behavior across the same caller-selected bit windows as the public helpers",
+    "PHASE1_RBTREE_REVIEW=rbtree parity covers ordered traversal, replaceNode, eraseInit, postorder traversal, and detached-node state while Linux-style rb_* alias parity remains explicitly out of scope for this closed tranche",
+    "PHASE1_RBTREE_ALIAS_GAP_NOTE=the closed Phase 1 rbtree tranche still excludes Linux-style rb_* alias parity for the already-ported entry points, and that remaining surface stays explicitly out of scope until a later bounded repair lands",
     "PHASE1_STRING_MEMPARSE_UNIT_REVIEW=string memparse preserves decimal, hexadecimal, suffix-bearing, and invalid inputs without changing the parsed value or rest pointer contract",
     "PHASE1_FIND_BIT_BENCH_REVIEW=find_bit benchmark smoke pins deterministic next-bit, whole-family, tail-window, same-word, zero-bit, and shared-bit scan checksums plus the live loop counts so helper-local scan regressions cannot hide behind a generic positive checksum or a silently shrunk workload",
     "PHASE1_FIND_BIT_BENCH_KEYS=PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM,PHASE1_BENCH_FIND_BIT_FAMILY_CHECKSUM,PHASE1_BENCH_FIND_TAIL_WINDOW_CHECKSUM,PHASE1_BENCH_FIND_SAME_WORD_CHECKSUM",
@@ -81,7 +94,7 @@ REQUIRED_WORKFLOW_MARKERS = [
 REQUIRED_BUILD_MARKERS = [
     '.root_source_file = b.path("phase1_bench.zig"),',
     'bench_root_module.addImport("find_bit", find_bit_module);',
-    'const bench = b.addExecutable(.{',
+    "const bench = b.addExecutable(.{",
     '.name = "phase1-bench",',
     "const run_bench = b.addRunArtifact(bench);",
     'const bench_step = b.step("bench", "Run Phase 1 helper benchmark smoke");',
@@ -193,7 +206,8 @@ def build_manifest() -> dict[str, object]:
             },
             "tools/lib/rbtree.zig": {
                 "fixture": "zigux/tests/fixtures/phase1_helpers.json",
-                "summary": "Committed C-backed parity coverage includes ordered forward and reverse traversal plus replaceNode, eraseInit, postorder traversal, and detached-node state checks. Linux-style rb_* alias surface parity is still missing for the already-ported entry points.",
+                "summary": RBTREE_SUMMARY,
+                "alias_gap_note": RBTREE_ALIAS_GAP_NOTE,
             },
             "tools/lib/string.zig": {
                 "fixture": "zigux/tests/fixtures/phase1_helpers.json",
@@ -260,6 +274,7 @@ def validate_manifest(root: Path, manifest: dict[str, object], missing: list[str
         missing.append("manifest:status=closed")
     if manifest.get("helper_count") != 13:
         missing.append("manifest:helper_count=13")
+
     helpers = manifest.get("helpers")
     if helpers != HELPERS:
         missing.append("manifest:helpers")
@@ -267,24 +282,32 @@ def validate_manifest(root: Path, manifest: dict[str, object], missing: list[str
         for rel in helpers:
             if not (root / rel).exists():
                 missing.append(f"manifest_file:{rel}")
+
     review = manifest.get("helper_review_notes", {})
-    if review.get("tools/lib/find_bit.zig", {}).get("low_level_unit_test_anchor") != 'tools/lib/find_bit.zig:test "find low-level underscore entry points preserve same-word and tail-clamped scan semantics"':
+    find_bit = review.get("tools/lib/find_bit.zig", {})
+    rbtree = review.get("tools/lib/rbtree.zig", {})
+    string = review.get("tools/lib/string.zig", {})
+
+    if find_bit.get("low_level_unit_test_anchor") != 'tools/lib/find_bit.zig:test "find low-level underscore entry points preserve same-word and tail-clamped scan semantics"':
         missing.append("manifest:find_bit.low_level_unit_test_anchor")
-    if review.get("tools/lib/find_bit.zig", {}).get("low_level_unit_test_contract") != "Direct Zig unit coverage keeps _find_first_bit(), _find_first_and_bit(), _find_first_zero_bit(), _find_next_bit(), _find_next_and_bit(), and _find_next_zero_bit() aligned with the public scan helpers across same-word inclusive starts and tail-clamped caller-selected bit windows.":
+    if find_bit.get("low_level_unit_test_contract") != "Direct Zig unit coverage keeps _find_first_bit(), _find_first_and_bit(), _find_first_zero_bit(), _find_next_bit(), _find_next_and_bit(), and _find_next_zero_bit() aligned with the public scan helpers across same-word inclusive starts and tail-clamped caller-selected bit windows.":
         missing.append("manifest:find_bit.low_level_unit_test_contract")
-    if review.get("tools/lib/find_bit.zig", {}).get("small_bitmap_unit_test_anchor") != 'tools/lib/find_bit.zig:test "single-word scans keep linux small-bitmap semantics"':
+    if find_bit.get("small_bitmap_unit_test_anchor") != 'tools/lib/find_bit.zig:test "single-word scans keep linux small-bitmap semantics"':
         missing.append("manifest:find_bit.small_bitmap_unit_test_anchor")
-    if review.get("tools/lib/find_bit.zig", {}).get("small_bitmap_unit_test_contract") != "Direct Zig unit coverage keeps single-word set, zero, and shared-bit scans aligned with Linux small-bitmap semantics by masking out-of-range tail bits while preserving inclusive in-range matches inside one word.":
+    if find_bit.get("small_bitmap_unit_test_contract") != "Direct Zig unit coverage keeps single-word set, zero, and shared-bit scans aligned with Linux small-bitmap semantics by masking out-of-range tail bits while preserving inclusive in-range matches inside one word.":
         missing.append("manifest:find_bit.small_bitmap_unit_test_contract")
-    if review.get("tools/lib/rbtree.zig", {}).get("summary") != "Committed C-backed parity coverage includes ordered forward and reverse traversal plus replaceNode, eraseInit, postorder traversal, and detached-node state checks. Linux-style rb_* alias surface parity is still missing for the already-ported entry points.":
+    if rbtree.get("summary") != RBTREE_SUMMARY:
         missing.append("manifest:rbtree.summary")
-    if review.get("tools/lib/string.zig", {}).get("memparse_unit_test_contract") != "Direct Zig unit coverage keeps memparse aligned by forwarding decimal, hexadecimal, suffix-bearing, and invalid inputs through the shared command-line parser without changing the parsed value or rest pointer contract.":
+    if rbtree.get("alias_gap_note") != RBTREE_ALIAS_GAP_NOTE:
+        missing.append("manifest:rbtree.alias_gap_note")
+    if string.get("memparse_unit_test_contract") != "Direct Zig unit coverage keeps memparse aligned by forwarding decimal, hexadecimal, suffix-bearing, and invalid inputs through the shared command-line parser without changing the parsed value or rest pointer contract.":
         missing.append("manifest:string.memparse_unit_test_contract")
 
 
 def validate_expectations(expectations: dict[str, object], missing: list[str]) -> None:
     if expectations.get("status") != "pass":
         missing.append("bench:status=pass")
+
     iterations = expectations.get("iterations", {})
     exact = expectations.get("exact_checksums", {})
     checksums = expectations.get("checksums", [])
@@ -339,6 +362,7 @@ def run_self_test() -> int:
         expect_missing_marker("closure_memparse", tmp_root, "closure:PHASE1_STRING_MEMPARSE_UNIT_REVIEW=string memparse preserves decimal, hexadecimal, suffix-bearing, and invalid inputs without changing the parsed value or rest pointer contract")
         closure_path.write_text(original_closure, encoding="utf-8")
 
+        closure_path.writeText = None
         closure_path.write_text(original_closure.replace("PHASE1_RBTREE_BENCH_KEYS=PHASE1_BENCH_RBTREE_CHECKSUM,PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM,PHASE1_BENCH_RBTREE_CACHED_CHECKSUM,PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM,PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM", "", 1), encoding="utf-8")
         expect_missing_marker("closure_rbtree_bench_keys", tmp_root, "closure:PHASE1_RBTREE_BENCH_KEYS=PHASE1_BENCH_RBTREE_CHECKSUM,PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM,PHASE1_BENCH_RBTREE_CACHED_CHECKSUM,PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM,PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM")
         closure_path.write_text(original_closure, encoding="utf-8")
@@ -358,6 +382,12 @@ def run_self_test() -> int:
         write_json(manifest_path, original_manifest)
 
         mutated_manifest = json.loads(json.dumps(original_manifest))
+        mutated_manifest["helper_review_notes"]["tools/lib/rbtree.zig"]["alias_gap_note"] = ""
+        write_json(manifest_path, mutated_manifest)
+        expect_missing_marker("rbtree_alias_gap_note", tmp_root, "manifest:rbtree.alias_gap_note")
+        write_json(manifest_path, original_manifest)
+
+        mutated_manifest = json.loads(json.dumps(original_manifest))
         mutated_manifest["helper_review_notes"]["tools/lib/find_bit.zig"]["small_bitmap_unit_test_contract"] = ""
         write_json(manifest_path, mutated_manifest)
         expect_missing_marker("find_bit_small_bitmap_contract", tmp_root, "manifest:find_bit.small_bitmap_unit_test_contract")
@@ -370,7 +400,7 @@ def run_self_test() -> int:
         expect_missing_marker("rbtree_postorder_checksum", tmp_root, "bench:exact_checksums.PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM=1484000")
 
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=6")
+    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
