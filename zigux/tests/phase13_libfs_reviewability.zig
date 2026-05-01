@@ -30,7 +30,7 @@ const Manifest = struct {
     gaps: []const Gap,
 };
 
-const expected_surveyed_commit = "ff87456109937e1ffbe7f2a91a79c2661874ef88";
+const expected_surveyed_commit = "ba74bb197b16b020ec02b876efdd154663c6a146";
 
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
@@ -62,7 +62,7 @@ test "phase13 libfs manifest records the landed close-bookkeeping slice and the 
     );
     defer std.testing.allocator.free(survey_note);
 
-    try std.testing.expectEqualStrings("P13-L04", manifest.lane_key);
+    try std.testing.expectEqualStrings("P13-L03", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("fs/libfs.c", manifest.anchor);
     try std.testing.expectEqualStrings(expected_surveyed_commit, manifest.surveyed_commit);
