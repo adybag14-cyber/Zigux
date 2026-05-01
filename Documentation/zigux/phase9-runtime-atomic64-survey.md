@@ -95,10 +95,13 @@ This keeps the survey useful after the first starter, direct sample-test leg, di
 ## Gates
 
 1. run the dedicated Phase 9 survey gate
+- `zig test zigux/tests/runtime_atomic64_survey.zig`
+
+2. run the shared Phase 9 runtime survey bundle
 - `zig build test --build-file zigux/tests/phase9_build.zig`
 - this shared build now includes the direct `phase9-runtime-atomic64-sample-tests` and `phase9-runtime-atomic64-loader-tests` legs alongside the atomic64 survey, module, diff, loader, and shared runtime-loader checks
 
-2. run the convenience target
+3. run the convenience target
 - `make -C zigux phase9`
 
 ## Non-goals
