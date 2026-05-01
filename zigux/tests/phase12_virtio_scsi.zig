@@ -9,6 +9,8 @@ test "phase12 virtio scsi queue planner stays anchored to virtio_scsi.c" {
     try std.testing.expect(descriptor.provides_probe_config_snapshot);
     try std.testing.expect(descriptor.provides_host_limit_summary);
     try std.testing.expect(descriptor.provides_queue_depth_summary);
+    try std.testing.expect(descriptor.provides_io_queue_map_summary);
+    try std.testing.expect(descriptor.provides_recovery_restore_planner);
     try std.testing.expect(!descriptor.touches_live_dma);
     try std.testing.expect(!descriptor.touches_scsi_host);
     try std.testing.expect(descriptor.touches_transport_reset);
