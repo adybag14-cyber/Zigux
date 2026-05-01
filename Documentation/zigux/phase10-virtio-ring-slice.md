@@ -55,4 +55,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-The queue-local ring lane now covers the smallest honest reset-discipline and notify-rollover steps as well, and the adjacent survey-backed `virtio_mmio` config-window and config-write helpers are already landed. Do not reopen `virtio_ring.zig` for more speculative in-memory queue work; leave this packet parked unless a future Phase 10 review can split `phase10-mmio-lifecycle-and-irq-paths` into a smaller transport-safe observation helper without widening the ring slice.
+The queue-local ring lane now covers the smallest honest reset-discipline and notify-rollover steps as well, and the adjacent survey-backed `virtio_mmio` config-window, config-write, and interrupt-ack helpers are already landed. Do not reopen `virtio_ring.zig` for more speculative in-memory queue work; leave this packet parked unless a future Phase 10 review can split `phase10-mmio-lifecycle-and-irq-paths` into a smaller transport-safe observation helper without widening the ring slice.
