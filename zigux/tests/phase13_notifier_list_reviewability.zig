@@ -100,7 +100,7 @@ test "phase13 notifier/list survey keeps the current list surface and generic no
         std.mem.indexOf(u8, phase3_build, "../helpers/notifier_chain_view.zig") != null;
     const notifier_helper_present = !notifier_helper_missing;
 
-    try std.testing.expectEqualStrings("P13-L15", manifest.lane_key);
+    try std.testing.expectEqualStrings("P13-L16", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("66b55d8a9a800345097f3c04b9f95130b1f8d0b8", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 5), manifest.anchors.len);
