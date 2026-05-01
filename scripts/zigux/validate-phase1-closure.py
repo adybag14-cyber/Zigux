@@ -188,6 +188,8 @@ def build_manifest() -> dict[str, object]:
                 "alias_unit_test_contract": "Direct Zig unit coverage keeps find_first_bit(), find_first_and_bit(), find_first_zero_bit(), find_next_bit(), find_next_and_bit(), and find_next_zero_bit() aligned with the camelCase scan helpers across the same caller-selected bit windows and tail clamps.",
                 "low_level_unit_test_anchor": 'tools/lib/find_bit.zig:test "find low-level underscore entry points preserve same-word and tail-clamped scan semantics"',
                 "low_level_unit_test_contract": "Direct Zig unit coverage keeps _find_first_bit(), _find_first_and_bit(), _find_first_zero_bit(), _find_next_bit(), _find_next_and_bit(), and _find_next_zero_bit() aligned with the public scan helpers across same-word inclusive starts and tail-clamped caller-selected bit windows.",
+                "small_bitmap_unit_test_anchor": 'tools/lib/find_bit.zig:test "single-word scans keep linux small-bitmap semantics"',
+                "small_bitmap_unit_test_contract": "Direct Zig unit coverage keeps single-word set, zero, and shared-bit scans aligned with Linux small-bitmap semantics by masking out-of-range tail bits while preserving inclusive in-range matches inside one word.",
             },
             "tools/lib/rbtree.zig": {
                 "fixture": "zigux/tests/fixtures/phase1_helpers.json",
@@ -270,6 +272,10 @@ def validate_manifest(root: Path, manifest: dict[str, object], missing: list[str
         missing.append("manifest:find_bit.low_level_unit_test_anchor")
     if review.get("tools/lib/find_bit.zig", {}).get("low_level_unit_test_contract") != "Direct Zig unit coverage keeps _find_first_bit(), _find_first_and_bit(), _find_first_zero_bit(), _find_next_bit(), _find_next_and_bit(), and _find_next_zero_bit() aligned with the public scan helpers across same-word inclusive starts and tail-clamped caller-selected bit windows.":
         missing.append("manifest:find_bit.low_level_unit_test_contract")
+    if review.get("tools/lib/find_bit.zig", {}).get("small_bitmap_unit_test_anchor") != 'tools/lib/find_bit.zig:test "single-word scans keep linux small-bitmap semantics"':
+        missing.append("manifest:find_bit.small_bitmap_unit_test_anchor")
+    if review.get("tools/lib/find_bit.zig", {}).get("small_bitmap_unit_test_contract") != "Direct Zig unit coverage keeps single-word set, zero, and shared-bit scans aligned with Linux small-bitmap semantics by masking out-of-range tail bits while preserving inclusive in-range matches inside one word.":
+        missing.append("manifest:find_bit.small_bitmap_unit_test_contract")
     if review.get("tools/lib/rbtree.zig", {}).get("summary") != "Committed C-backed parity coverage includes ordered forward and reverse traversal plus replaceNode, eraseInit, postorder traversal, and detached-node state checks. Linux-style rb_* alias surface parity is still missing for the already-ported entry points.":
         missing.append("manifest:rbtree.summary")
     if review.get("tools/lib/string.zig", {}).get("memparse_unit_test_contract") != "Direct Zig unit coverage keeps memparse aligned by forwarding decimal, hexadecimal, suffix-bearing, and invalid inputs through the shared command-line parser without changing the parsed value or rest pointer contract.":
@@ -351,6 +357,12 @@ def run_self_test() -> int:
         expect_missing_marker("rbtree_summary", tmp_root, "manifest:rbtree.summary")
         write_json(manifest_path, original_manifest)
 
+        mutated_manifest = json.loads(json.dumps(original_manifest))
+        mutated_manifest["helper_review_notes"]["tools/lib/find_bit.zig"]["small_bitmap_unit_test_contract"] = ""
+        write_json(manifest_path, mutated_manifest)
+        expect_missing_marker("find_bit_small_bitmap_contract", tmp_root, "manifest:find_bit.small_bitmap_unit_test_contract")
+        write_json(manifest_path, original_manifest)
+
         expectations_path = tmp_root / "zigux" / "tests" / "fixtures" / "phase1_bench_expectations.json"
         expectations = json.loads(expectations_path.read_text(encoding="utf-8"))
         expectations["exact_checksums"]["PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM"] = 1
@@ -358,7 +370,7 @@ def run_self_test() -> int:
         expect_missing_marker("rbtree_postorder_checksum", tmp_root, "bench:exact_checksums.PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM=1484000")
 
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=5")
+    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
