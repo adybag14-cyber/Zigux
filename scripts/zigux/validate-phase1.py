@@ -344,14 +344,28 @@ MARKER_GROUPS = {
             'test "strlcpy stops at the first embedded NUL in the source"',
             'test "streq matches C-string equality semantics"',
             'test "trimSpaces and strim trim trailing whitespace before an embedded NUL"',
+            'test "strstarts matches kernel prefix semantics"',
+            'test "strHasPrefix returns the matched prefix length with C-string semantics"',
+            'test "str_ends_with matches kernel suffix semantics"',
             'test "memparse forwards the header-level string helper surface"',
         ],
     ),
     "string_manifest": (
         "zigux/tests/fixtures/phase1_helper_manifest.json",
         [
+            '"string.strlcpy_buffer"',
             '"string.remove_spaces_nul"',
             '"string.remove_spaces_nul_bytes"',
+            '"cstring_unit_test_anchor"',
+            '"cstring_unit_test_contract"',
+            '"equality_unit_test_anchor"',
+            '"equality_unit_test_contract"',
+            '"prefix_unit_test_anchor"',
+            '"prefix_unit_test_contract"',
+            '"prefix_length_unit_test_anchor"',
+            '"prefix_length_unit_test_contract"',
+            '"suffix_unit_test_anchor"',
+            '"suffix_unit_test_contract"',
             '"memparse_unit_test_anchor"',
             '"memparse_unit_test_contract"',
         ],
@@ -476,7 +490,32 @@ def validate_manifest_shape() -> list[str]:
                 issues.append("phase1_manifest:tools/lib/find_bit.zig:small_bitmap_unit_test_anchor:mismatch")
             if find_bit_note.get("small_bitmap_unit_test_contract") != "Direct Zig unit coverage keeps single-word set, zero, and shared-bit scans aligned with Linux small-bitmap semantics by masking out-of-range tail bits while preserving inclusive in-range matches inside one word.":
                 issues.append("phase1_manifest:tools/lib/find_bit.zig:small_bitmap_unit_test_contract:mismatch")
-    return issues
+        string_note = notes.get("tools/lib/string.zig")
+        if isinstance(string_note, dict):
+            if string_note.get("cstring_unit_test_anchor") != 'tools/lib/string.zig:test "strlcpy stops at the first embedded NUL in the source"':
+                issues.append("phase1_manifest:tools/lib/string.zig:cstring_unit_test_anchor:mismatch")
+            if string_note.get("cstring_unit_test_contract") != "Direct Zig unit coverage keeps strlcpy aligned with C-string semantics by stopping at the first embedded NUL, preserving truncation behavior, and leaving zero-sized destinations untouched.":
+                issues.append("phase1_manifest:tools/lib/string.zig:cstring_unit_test_contract:mismatch")
+            if string_note.get("equality_unit_test_anchor") != 'tools/lib/string.zig:test "streq matches C-string equality semantics"':
+                issues.append("phase1_manifest:tools/lib/string.zig:equality_unit_test_anchor:mismatch")
+            if string_note.get("equality_unit_test_contract") != "Direct Zig unit coverage keeps strEq() and streq() aligned with C-string equality semantics for exact, empty, length-mismatched, case-sensitive, and embedded-NUL comparisons.":
+                issues.append("phase1_manifest:tools/lib/string.zig:equality_unit_test_contract:mismatch")
+            if string_note.get("prefix_unit_test_anchor") != 'tools/lib/string.zig:test "strstarts matches kernel prefix semantics"':
+                issues.append("phase1_manifest:tools/lib/string.zig:prefix_unit_test_anchor:mismatch")
+            if string_note.get("prefix_unit_test_contract") != "Direct Zig unit coverage keeps strStarts and strstarts aligned with kernel-style prefix semantics for exact, empty-prefix, shorter-input, and case-sensitive comparisons.":
+                issues.append("phase1_manifest:tools/lib/string.zig:prefix_unit_test_contract:mismatch")
+            if string_note.get("prefix_length_unit_test_anchor") != 'tools/lib/string.zig:test "strHasPrefix returns the matched prefix length with C-string semantics"':
+                issues.append("phase1_manifest:tools/lib/string.zig:prefix_length_unit_test_anchor:mismatch")
+            if string_note.get("prefix_length_unit_test_contract") != "Direct Zig unit coverage keeps strHasPrefix and str_has_prefix aligned by returning the matched C-string prefix length for exact and embedded-NUL prefixes while rejecting mismatches and longer prefixes.":
+                issues.append("phase1_manifest:tools/lib/string.zig:prefix_length_unit_test_contract:mismatch")
+            if string_note.get("suffix_unit_test_anchor") != 'tools/lib/string.zig:test "str_ends_with matches kernel suffix semantics"':
+                issues.append("phase1_manifest:tools/lib/string.zig:suffix_unit_test_anchor:mismatch")
+            if string_note.get("suffix_unit_test_contract") != "Direct Zig unit coverage keeps strEndsWith, str_ends_with, and strends aligned with kernel-style suffix semantics for exact, empty-suffix, shorter-input, and case-sensitive comparisons.":
+                issues.append("phase1_manifest:tools/lib/string.zig:suffix_unit_test_contract:mismatch")
+            if string_note.get("memparse_unit_test_anchor") != 'tools/lib/string.zig:test "memparse forwards the header-level string helper surface"':
+                issues.append("phase1_manifest:tools/lib/string.zig:memparse_unit_test_anchor:mismatch")
+            if string_note.get("memparse_unit_test_contract") != "Direct Zig unit coverage keeps memparse aligned by forwarding decimal, hexadecimal, suffix-bearing, and invalid inputs through the shared command-line parser without changing the parsed value or rest pointer contract.":
+                issues.append("phase1_manifest:tools/lib/string.zig:memparse_unit_test_contract:mismatch")
 
 
 missing_files = [path for path in REQUIRED_FILES if not (ROOT / path).exists()]
