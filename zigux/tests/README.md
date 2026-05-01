@@ -66,6 +66,8 @@ Key entrypoints
 - `zigux/tests/phase7_rbtree_manifest.json`
 - `zigux/tests/fixtures/phase7_string_helpers_escape_vectors.zig`
 - `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`
+- `zigux/tests/fixtures/phase7_cmdline.json`
+- `zigux/tests/fixtures/phase7_cmdline_c_harness.c`
 - `zigux/tests/fixtures/phase7_argv_split_vectors.zig`
 - `zigux/tests/fixtures/phase7_rbtree.json`
 - `zigux/tests/fixtures/phase7_rbtree_c_harness.c`
@@ -128,6 +130,7 @@ Key entrypoints
 - `scripts/zigux/validate-phase5.py`
 - `scripts/zigux/validate-phase6.py`
 - `scripts/zigux/validate-phase7.py`
+- `scripts/zigux/check-phase7-cmdline-parity.py`
 - `scripts/zigux/validate-phase8.py`
 - `scripts/zigux/validate-phase9.py`
 - `scripts/zigux/validate-phase10.py`
@@ -158,7 +161,7 @@ Guidance
 - keep the direct sample replays and paired survey replays explicit for every shipped Phase 5 family: `zig test samples/zigux/bytestream_fifo.zig`, `zig test samples/zigux/kobject_example.zig`, `zig test samples/zigux/kretprobe_example.zig`, `zig test samples/zigux/trace_events_sample.zig`, `zig test zigux/tests/phase5_bytestream_fifo_survey.zig`, `zig test zigux/tests/phase5_kobject_example_survey.zig`, `zig test zigux/tests/phase5_kretprobe_example_survey.zig`, and `zig test zigux/tests/phase5_trace_events_sample_survey.zig`, so one landed sample packet stays reviewable even when a contributor is not running the full shared bundle
 - refresh `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, and `zigux/tests/phase6_helper_parity_manifest.json` whenever the shipped Phase 6 helper inventory, perf entrypoints, fixtures, or shared slice notes change
 - keep the current Phase 6 hexdump normalization packet explicit: `zigux/tests/fixtures/phase6_hexdump_vectors.zig` owns `normalizedRowsize()`, `normalizedGroupsizeForLen()`, `prepareExpectedLine(...)`, and the current perf-case table so parity, overflow, required-length, and perf replays stay on one committed corpus path
-- keep the current Phase 7 helper packet reviewable through `zigux/tests/phase7_build.zig`, `make -C zigux phase7-test`, `scripts/zigux/validate-phase7.py`, and `scripts/zigux/check-phase7-rbtree-parity.py` instead of widening into ad hoc helper-local bootstrap rules
+- keep the current Phase 7 helper packet reviewable through `zigux/tests/phase7_build.zig`, `make -C zigux phase7-test`, `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-cmdline-parity.py`, and `scripts/zigux/check-phase7-rbtree-parity.py` instead of widening into ad hoc helper-local bootstrap rules
 - keep `scripts/zigux/validate-phase7.py --self-test` in the same packet so the shared Phase 7 validator still proves it catches Makefile-hook, workflow-step, and parked argv-split survey drift before the broader helper replay runs
 - keep the Phase 7 handoff explicit: the helper roots in `zigux/tests/phase7_build.zig` receive `string_helpers`, `cmdline`, `argv_split`, and `rbtree` through `addImport(...)`, `zigux/tests/phase7_string_helpers_survey.zig` and `zigux/tests/phase7_cmdline_survey.zig` stay standalone so the helper-only string and cmdline slices keep their roadmap-backed review notes explicit without widening into extra helper-local bootstrap rules or later-phase sample claims, and `zigux/tests/phase7_argv_split_survey.zig` and `zigux/tests/phase7_rbtree_survey.zig` rely on repo-root reads of `zigux/tests/phase7_argv_split_manifest.json` and `zigux/tests/phase7_rbtree_manifest.json`, so `phase7_build.zig` keeps those survey runs rooted at `repo_root`
 - keep the `next_arg()` edge corpus reviewable in both places: `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig` is the dedicated Phase 7 fixture packet, while `lib/cmdline.zig` keeps the same serialized cases mirrored for helper-local `zig test lib/cmdline.zig` runs because that direct helper entrypoint cannot import fixtures outside the helper module path
