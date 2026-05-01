@@ -93,6 +93,26 @@ pub fn full(src: []const Word, nbits: usize) bool {
     return find_bit.findFirstZeroBit(src, nbits) == nbits;
 }
 
+pub fn bitmap_zero(dst: []Word, nbits: usize) void {
+    zero(dst, nbits);
+}
+
+pub fn bitmap_fill(dst: []Word, nbits: usize) void {
+    fill(dst, nbits);
+}
+
+pub fn bitmap_copy(dst: []Word, src: []const Word, nbits: usize) void {
+    copy(dst, src, nbits);
+}
+
+pub fn bitmap_empty(src: []const Word, nbits: usize) bool {
+    return empty(src, nbits);
+}
+
+pub fn bitmap_full(src: []const Word, nbits: usize) bool {
+    return full(src, nbits);
+}
+
 pub fn weight(src: []const Word, nbits: usize) usize {
     assertBitmapLen(src, nbits);
     if (nbits == 0) {
@@ -748,6 +768,27 @@ test "bitmap zero-bit helpers stay explicit no-ops" {
     var buffer = [_]u8{ 0xaa, 0xaa, 0xaa };
     try std.testing.expectEqual(@as(usize, 0), scnprintf(&[_]Word{}, 0, &buffer));
     try std.testing.expectEqualSlices(u8, &[_]u8{ 0xaa, 0xaa, 0xaa }, &buffer);
+}
+
+test "bitmap header-style aliases preserve zero fill copy and predicate semantics" {
+    const nbits = bits_per_long + 5;
+    const src = [_]Word{ ~@as(Word, 0), ~@as(Word, 0), 0x55aa };
+    var zero_map = [_]Word{ 0x1111, 0x2222, 0x3333 };
+    var fill_map = [_]Word{ 0, 0, 0x55aa };
+    var copy_map = [_]Word{ 0, 0, 0x55aa };
+
+    bitmap_zero(&zero_map, nbits);
+    try std.testing.expectEqualSlices(Word, &[_]Word{ 0, 0, 0x3333 }, &zero_map);
+    try std.testing.expect(bitmap_empty(&zero_map, nbits));
+
+    bitmap_fill(&fill_map, nbits);
+    try std.testing.expectEqualSlices(Word, &[_]Word{ ~@as(Word, 0), lastWordMask(nbits), 0x55aa }, &fill_map);
+    try std.testing.expect(bitmap_full(&fill_map, nbits));
+
+    bitmap_copy(&copy_map, &src, nbits);
+    try std.testing.expectEqualSlices(Word, &[_]Word{ src[0], src[1], 0x55aa }, &copy_map);
+    try std.testing.expect(!bitmap_empty(&copy_map, nbits));
+    try std.testing.expect(bitmap_full(&copy_map, nbits));
 }
 
 test "bitmap underscore aliases preserve bitmap helper semantics" {
