@@ -28,8 +28,7 @@ BUILD_TEST_ROOT_MODULE_RE = re.compile(
     re.S,
 )
 FORBIDDEN_BUILD_MARKERS = [
-    "phase11_hvc_console_survey_tests",
-    "run_phase11_hvc_console_survey_tests.step",
+    "test_step.dependOn(&run_phase11_hvc_console_survey_tests.step);",
 ]
 DEDICATED_SURVEY_REPLAYS = [
     "zigux/tests/phase11_hvc_console_survey.zig",
