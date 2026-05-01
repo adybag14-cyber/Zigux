@@ -66,10 +66,10 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P11-L01", manifest.lane_key);
+    try std.testing.expectEqualStrings("P11-L03", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
     try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.c", manifest.anchor);
-    try std.testing.expectEqualStrings("ae87eabf15b3ac6c526e97e239754f97b3e222c0", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("f0aacb8c3c98b9c3b25c0908067a97c0db54c230", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.gpio_wdt_c_lines >= 190);
     try std.testing.expectEqual(@as(usize, 2), manifest.survey_summary.preexisting_phase11_test_files);
@@ -87,7 +87,7 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "phase11-gpio-wdt-survey-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "zig build test --build-file zigux/tests/phase11_build.zig --summary all") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "zig test zigux/tests/phase11_gpio_wdt_survey.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "- lane key: `P11-L01`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "- lane key: `P11-L03`") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "direct watchdog metadata surface") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "GPIO Watchdog") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "teardown-facing stop evidence") != null);
