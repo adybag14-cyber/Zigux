@@ -25,6 +25,10 @@ The Phase 9 roadmap explicitly names `lib/test_bitmap.c` as a runtime pilot anch
 
 The live repo already had an atomic64 starter under the same Phase 9 review path, but it still had no matching bitmap pilot. This slice lands the smallest honest bitmap follow-on step: a sample-backed lifecycle scaffold that reuses the existing bitmap-view helper without claiming loadable-module parity or broad bitmap API coverage.
 
+This bounded starter also stays underneath the freeze map's study boundary. `Documentation/zigux/freeze-map.md` keeps `kernel/workqueue.c` in `Study / Boundary Only`, so this starter may describe the bounded in-memory sample, the sample-side loader scaffold, and the shared loader-request binding, but it must not imply workqueue parity, scheduler transport ownership, or any Architecture Council-approved status change for that study-only anchor.
+
+No parity scorecard entry or Architecture Council status-change request is attached to this runtime bitmap starter packet. This module slice only records the active study boundary and does not reopen the scheduler-facing freeze posture.
+
 ## Landed starter surface
 
 - module descriptor metadata naming the `lib/test_bitmap.c` anchor
@@ -46,15 +50,17 @@ This slice does not yet claim:
 - direct parity for the full `lib/test_bitmap.c` surface
 - broader parse-and-print differential coverage beyond the bounded starter replay
 - region-allocation or performance-path differentials
+- parity or ownership for `kernel/workqueue.c`
+- any freeze-map status change for the scheduler-facing workqueue boundary without an Architecture Council decision
 
 ## Gates
 
 1. run the dedicated Phase 9 build
-- `zig build test --build-file zigux/tests/phase9_build.zig`
+- `zig build test --build-file zigux/tests/phase9_build.zig --summary all`
 
 2. run the convenience target
 - `make -C zigux phase9`
 
 ## Next bounded step
 
-Stay in the Phase 9 runtime bitmap lane and keep the next step on the remaining broader shared runtime-loader control surface or real lifecycle-parity blocker, rather than inventing another bitmap-local binding surface now that `zigux/kernel/runtime_loader.zig` already consumes the current handoff plan.
+Stay in the Phase 9 runtime bitmap lane and keep the next step on the remaining broader shared runtime-loader control surface or real lifecycle-parity blocker, rather than inventing another bitmap-local binding surface now that `zigux/kernel/runtime_loader.zig` already consumes the current handoff plan, while keeping the separate `kernel/workqueue.c` freeze-map boundary in study-only status unless the Architecture Council explicitly reopens it.
