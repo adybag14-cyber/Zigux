@@ -69,7 +69,7 @@
     {
       "id": "zero-length-and-source-guards",
       "kind": "helper_contract",
-      "expected": "zero-length setRange and clearRange leave the bitmap summary unchanged, and copyFrom rejects cold or exited sources with InvalidSourceLifecycle"
+      "expected": "zero-length setRange and clearRange leave the bitmap summary unchanged, copyFrom rejects cold or exited sources with InvalidSourceLifecycle, and copyFrom still accepts selftest-complete sources while preserving the sparse 4, 7, 65, and 73 replay on an initialized mirror sample"
     },
     {
       "id": "bit-list-guards",
