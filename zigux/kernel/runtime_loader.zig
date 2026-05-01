@@ -403,7 +403,7 @@ test "runtime loader request preserves explicit command names across runtime-lan
             .exit_symbol = "zigux_runtime_atomic64_exit",
             .requires_runtime_substrate = true,
             .provides_selftest_hook = true,
-            .handoff_stage = .prepared,
+            .handoff_stage = .waiting_on_runtime_substrate,
             .allocator_handoff = allocatorHandoffFor(.kernel_heap),
             .payload = .{
                 .atomic64 = .{
@@ -422,7 +422,7 @@ test "runtime loader request preserves explicit command names across runtime-lan
             .exit_symbol = "zigux_runtime_bitmap_exit",
             .requires_runtime_substrate = true,
             .provides_selftest_hook = true,
-            .handoff_stage = .prepared,
+            .handoff_stage = .waiting_on_runtime_substrate,
             .allocator_handoff = allocatorHandoffFor(.kernel_heap),
             .payload = .{
                 .bitmap = .{
@@ -444,7 +444,7 @@ test "runtime loader request preserves explicit command names across runtime-lan
             .exit_symbol = "zigux_runtime_kretprobe_exit",
             .requires_runtime_substrate = true,
             .provides_selftest_hook = true,
-            .handoff_stage = .prepared,
+            .handoff_stage = .waiting_on_runtime_substrate,
             .allocator_handoff = allocatorHandoffFor(.kernel_heap),
             .payload = .{
                 .kretprobe = .{
