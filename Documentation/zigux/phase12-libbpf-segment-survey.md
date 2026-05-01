@@ -22,7 +22,7 @@ That matters because the live repo already has real helper-first progress under 
 
 The highest-value honest step in this lane is therefore a survey checkpoint that records the existing segmented footing, keeps the Phase 12 build gate aware of it, verifies that the landed helper files still match the segment plan, and keeps the blocked-risk split current instead of drifting behind the live tree.
 
-This checkpoint has now been re-verified against current `master` head `211c8a950500e9b79e4562506d26d677b33b0d8f`, with the landed helper set widened to include the bounded map-reuse compatibility slice, the cpu-mask helper now also carrying the same automatic perf-buffer CPU-budget clamp that libbpf applies before it opens per-CPU buffers, and with the deferred risk split still holding between the skeleton blocker, the deferred file-path and perf-buffer boundaries that share helper files, the deferred object-loader bucket, and the deferred relocation or verifier-facing bucket.
+This checkpoint has now been re-verified against current `master` head `2df10deb8b6f2ab013ee2f289a49e6aa33180656`, with the landed helper set widened to include the bounded map-reuse compatibility slice, the cpu-mask helper now also carrying the same automatic perf-buffer CPU-budget clamp that libbpf applies before it opens per-CPU buffers, and with the deferred risk split still holding between the skeleton blocker, the deferred file-path and perf-buffer boundaries that share helper files, the deferred object-loader bucket, and the deferred relocation or verifier-facing bucket.
 
 ## Survey findings
 
