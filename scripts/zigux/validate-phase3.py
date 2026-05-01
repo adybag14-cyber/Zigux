@@ -44,6 +44,9 @@ def main() -> int:
         result = _run_script_self_test("validate-phase3-export-uapi-survey.py")
         if result != 0:
             return result
+        result = _run_script_self_test("validate-phase3-low-level-wrapper-survey.py")
+        if result != 0:
+            return result
         return _run_script_self_test("validate-phase3-policy-unsafe-survey.py")
 
     slices = select_slices(discover_phase3_slices(), args.slug)
