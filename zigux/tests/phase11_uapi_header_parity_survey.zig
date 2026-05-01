@@ -170,6 +170,8 @@ test "phase11 shared header parity manifest records the bounded layout checkpoin
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "MAX_NR_HVC_CONSOLES") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hv_ops") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hvc_kick()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "notifier_*_irq()") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-hvc-console-header-snapshot-check")) {
@@ -177,6 +179,7 @@ test "phase11 shared header parity manifest records the bounded layout checkpoin
             try std.testing.expectEqualStrings("zigux/tests/phase11_uapi_header_parity_survey.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hvc_console.zig") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "default notifier_*_irq() helper exports") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hv_ops callback booleans") != null);
         }
 
@@ -325,6 +328,8 @@ test "phase11 shared header parity survey keeps the header boundary explicit" {
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Phase 3 interop substrate") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared struct layouts") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "hvc_console.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "hvc_kick()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "notifier_*_irq()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "backed by code instead of prose alone") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase11_hvc_console_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared-versus-dedicated replay") != null);
@@ -345,13 +350,22 @@ test "phase11 shared header parity survey keeps the header boundary explicit" {
     try std.testing.expect(std.mem.indexOf(u8, hvc_header, "HVC_ALLOC_TTY_ADAPTERS") != null);
     try std.testing.expect(std.mem.indexOf(u8, hvc_header, "struct hv_ops") != null);
     try std.testing.expect(std.mem.indexOf(u8, hvc_header, "struct winsize ws;") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_header, "int hvc_poll(struct hvc_struct *hp);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_header, "void hvc_kick(void);") != null);
     try std.testing.expect(std.mem.indexOf(u8, hvc_header, "__hvc_resize(struct hvc_struct *hp, struct winsize ws)") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_header, "extern int notifier_add_irq(struct hvc_struct *hp, int data);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_header, "extern void notifier_del_irq(struct hvc_struct *hp, int data);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_header, "extern void notifier_hangup_irq(struct hvc_struct *hp, int data);") != null);
     try std.testing.expect(std.mem.indexOf(u8, hvc_zig, "pub const max_nr_hvc_consoles: usize = 16;") != null);
     try std.testing.expect(std.mem.indexOf(u8, hvc_zig, "pub const alloc_tty_adapters: usize = 8;") != null);
     try std.testing.expect(std.mem.indexOf(u8, hvc_zig, "pub const HeaderParitySnapshot = struct") != null);
     try std.testing.expect(std.mem.indexOf(u8, hvc_zig, "pub fn headerParitySnapshot() HeaderParitySnapshot") != null);
     try std.testing.expect(std.mem.indexOf(u8, hvc_zig, ".anchor = \"drivers/tty/hvc/hvc_console.h\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, hvc_zig, ".exports_resize = true") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_zig, ".exports_kick = true") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_zig, ".exports_notifier_add_irq = true") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_zig, ".exports_notifier_del_irq = true") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_zig, ".exports_notifier_hangup_irq = true") != null);
     try std.testing.expect(std.mem.indexOf(u8, hvc_zig, ".has_notifier_hangup = true") != null);
     try std.testing.expect(std.mem.indexOf(u8, hvc_validation_matrix, "dedicated survey replay still passes separately") != null);
     try std.testing.expectEqual(@as(usize, 9), inventory.build_test_names.len);
@@ -398,6 +412,10 @@ test "phase11 shared header parity survey keeps the hvc snapshot aligned with th
     try std.testing.expect(snapshot.exports_remove);
     try std.testing.expect(snapshot.exports_poll);
     try std.testing.expect(snapshot.exports_resize);
+    try std.testing.expect(snapshot.exports_kick);
+    try std.testing.expect(snapshot.exports_notifier_add_irq);
+    try std.testing.expect(snapshot.exports_notifier_del_irq);
+    try std.testing.expect(snapshot.exports_notifier_hangup_irq);
     try std.testing.expect(snapshot.hv_ops.has_get_chars);
     try std.testing.expect(snapshot.hv_ops.has_put_chars);
     try std.testing.expect(snapshot.hv_ops.has_flush);
