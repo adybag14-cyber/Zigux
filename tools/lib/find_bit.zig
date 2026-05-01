@@ -392,3 +392,24 @@ test "find low-level underscore entry points preserve same-word and tail-clamped
     try std.testing.expectEqual(findNextAndBit(&lhs, &rhs, nbits, 3), _find_next_and_bit(&lhs, &rhs, nbits, 3));
     try std.testing.expectEqual(findNextZeroBit(&full, nbits, bits_per_long), _find_next_zero_bit(&full, nbits, bits_per_long));
 }
+
+test "find alias entry points preserve empty and start-out-of-range boundaries" {
+    const empty = [_]Word{};
+    const nbits = bits_per_long * 2;
+    const full = [_]Word{ ~@as(Word, 0), ~@as(Word, 0) };
+    const bitmap = [_]Word{ (@as(Word, 1) << 5) | (@as(Word, 1) << 9), @as(Word, 1) << 2 };
+
+    try std.testing.expectEqual(@as(usize, 0), find_first_bit(&empty, 0));
+    try std.testing.expectEqual(@as(usize, 0), find_first_and_bit(&empty, &empty, 0));
+    try std.testing.expectEqual(@as(usize, 0), find_first_zero_bit(&empty, 0));
+    try std.testing.expectEqual(@as(usize, 0), _find_first_bit(&empty, 0));
+    try std.testing.expectEqual(@as(usize, 0), _find_first_and_bit(&empty, &empty, 0));
+    try std.testing.expectEqual(@as(usize, 0), _find_first_zero_bit(&empty, 0));
+
+    try std.testing.expectEqual(@as(usize, nbits), find_next_bit(&bitmap, nbits, nbits));
+    try std.testing.expectEqual(@as(usize, nbits), find_next_and_bit(&bitmap, &bitmap, nbits, nbits));
+    try std.testing.expectEqual(@as(usize, nbits), find_next_zero_bit(&full, nbits, nbits));
+    try std.testing.expectEqual(@as(usize, nbits), _find_next_bit(&bitmap, nbits, nbits));
+    try std.testing.expectEqual(@as(usize, nbits), _find_next_and_bit(&bitmap, &bitmap, nbits, nbits));
+    try std.testing.expectEqual(@as(usize, nbits), _find_next_zero_bit(&full, nbits, nbits));
+}
