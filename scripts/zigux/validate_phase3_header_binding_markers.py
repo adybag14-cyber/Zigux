@@ -30,6 +30,15 @@ HEADER_BINDING_MARKERS = {
         "pub const AllocatorMode = enum(u8) {",
         "pub const UnsafeScope = enum(u8) {",
     ),
+    "zigux/tests/build.zig": (
+        "const phase3_dump_module = b.createModule(.{",
+        '.root_source_file = b.path("phase3_abi_dump.zig"),',
+        'phase3_dump_module.addImport("abi_bindings", abi_bindings_module);',
+        "const phase3_dump = b.addExecutable(.{",
+        '.name = "phase3-abi-dump",',
+        'const phase3_dump_step = b.step("phase3-dump", "Run Phase 3 ABI dump");',
+        "phase3_dump_step.dependOn(&run_phase3_dump.step);",
+    ),
 }
 
 
@@ -67,6 +76,18 @@ def run_self_test() -> int:
         )
         assert validate_header_binding_markers(root) == [
             f"header-binding-marker: include/zigux/abi.h missing {first_marker}"
+        ]
+
+        build_marker = HEADER_BINDING_MARKERS["zigux/tests/build.zig"][-1]
+        build_file = root / "zigux/tests/build.zig"
+        build_file.write_text(
+            build_file.read_text(encoding="utf-8").replace(build_marker + "\n", "", 1),
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert validate_header_binding_markers(root) == [
+            f"header-binding-marker: include/zigux/abi.h missing {first_marker}",
+            f"header-binding-marker: zigux/tests/build.zig missing {build_marker}",
         ]
 
     print("PHASE3_HEADER_BINDING_MARKER_SELF_TEST=pass")
