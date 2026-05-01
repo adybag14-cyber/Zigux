@@ -357,3 +357,11 @@ def run_self_test() -> int:
 
     print("PHASE3_VALIDATOR_SELF_TEST=pass")
     return 0
+
+
+def main() -> int:
+    return run_self_test()
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
