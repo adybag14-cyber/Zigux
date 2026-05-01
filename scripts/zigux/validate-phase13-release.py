@@ -32,6 +32,8 @@ FILES = [
     "zigux/tests/phase13_libfs_reviewability.zig",
     "zigux/tests/phase13_devres_reviewability.zig",
     "zigux/tests/phase13_notifier_list_reviewability.zig",
+    "zigux/bindings/notifier_abi.zig",
+    "zigux/helpers/notifier_chain_view.zig",
 ]
 
 MAKE_MARKERS = [
@@ -144,6 +146,8 @@ RELEASE_EVIDENCE_CORE_PATHS = [
     ".github/workflows/zigux-bootstrap.yml",
     "zigux/Makefile",
     "zigux/tests/phase13_build.zig",
+    "zigux/bindings/notifier_abi.zig",
+    "zigux/helpers/notifier_chain_view.zig",
 ]
 
 
@@ -221,6 +225,8 @@ else:
         "zigux/tests/phase13_notifier_list_manifest.json",
         "zigux/tests/phase13_devres_reviewability.zig",
         "zigux/tests/phase13_notifier_list_reviewability.zig",
+        "zigux/bindings/notifier_abi.zig",
+        "zigux/helpers/notifier_chain_view.zig",
     ]:
         if rel not in product_boundary:
             missing.append(f"release:product_boundary_path:{rel}")
@@ -246,6 +252,8 @@ for rel in [
     "zigux/tests/phase13_notifier_list_manifest.json",
     "zigux/tests/phase13_devres_reviewability.zig",
     "zigux/tests/phase13_notifier_list_reviewability.zig",
+    "zigux/bindings/notifier_abi.zig",
+    "zigux/helpers/notifier_chain_view.zig",
 ]:
     if rel not in release_text:
         missing.append(f"release:evidence_path:{rel}")
@@ -306,6 +314,16 @@ if notifier_manifest.get("phase") != "Phase 13":
     missing.append("zigux/tests/phase13_notifier_list_manifest.json:phase")
 if notifier_manifest.get("lane_key") != "P13-L18":
     missing.append("zigux/tests/phase13_notifier_list_manifest.json:lane_key")
+notifier_summary = notifier_manifest.get("survey_summary")
+if not isinstance(notifier_summary, dict):
+    missing.append("zigux/tests/phase13_notifier_list_manifest.json:survey_summary")
+else:
+    if notifier_summary.get("preexisting_phase13_build_present") is not True:
+        missing.append("zigux/tests/phase13_notifier_list_manifest.json:build_present")
+    if notifier_summary.get("preexisting_generic_notifier_abi_present") is not True:
+        missing.append("zigux/tests/phase13_notifier_list_manifest.json:notifier_abi_present")
+    if notifier_summary.get("preexisting_generic_notifier_helper_present") is not True:
+        missing.append("zigux/tests/phase13_notifier_list_manifest.json:notifier_helper_present")
 
 if missing:
     print("PHASE13_RELEASE_VALIDATION=fail")
