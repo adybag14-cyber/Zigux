@@ -428,6 +428,18 @@ pub fn bitmap_xor(dst: []Word, bitmap1: []const Word, bitmap2: []const Word, bit
     xorBits(dst, bitmap1, bitmap2, bits);
 }
 
+pub fn bitmap_alloc(allocator: std.mem.Allocator, nbits: usize) ![]Word {
+    return bitmapAlloc(allocator, nbits);
+}
+
+pub fn bitmap_zalloc(allocator: std.mem.Allocator, nbits: usize) ![]Word {
+    return bitmapZalloc(allocator, nbits);
+}
+
+pub fn bitmap_free(allocator: std.mem.Allocator, bitmap: *?[]Word) void {
+    bitmapFree(allocator, bitmap);
+}
+
 test "bitmap set clear weight and empty full helpers" {
     var map = [_]Word{ 0, 0, 0 };
     setRange(&map, 1, 3);
@@ -698,4 +710,26 @@ test "bitmap underscore aliases preserve bitmap helper semantics" {
 
     const rendered_len = scnprintf(&lhs, nbits, &buffer);
     try std.testing.expectEqual(rendered_len, bitmap_scnprintf(&lhs, nbits, &buffer));
+}
+
+test "bitmap underscore allocator aliases preserve allocation and ownership semantics" {
+    const allocator = std.testing.allocator;
+    const nbits = bits_per_long + 5;
+
+    var plain: ?[]Word = try bitmap_alloc(allocator, nbits);
+    defer bitmap_free(allocator, &plain);
+    try std.testing.expectEqual(@as(usize, bitsToWords(nbits)), plain.?.len);
+    @memset(plain.?, ~@as(Word, 0));
+
+    var zeroed: ?[]Word = try bitmap_zalloc(allocator, nbits);
+    defer bitmap_free(allocator, &zeroed);
+    try std.testing.expectEqual(@as(usize, bitsToWords(nbits)), zeroed.?.len);
+    for (zeroed.?) |word| {
+        try std.testing.expectEqual(@as(Word, 0), word);
+    }
+
+    bitmap_free(allocator, &plain);
+    try std.testing.expect(plain == null);
+    bitmap_free(allocator, &zeroed);
+    try std.testing.expect(zeroed == null);
 }
