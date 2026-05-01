@@ -13,6 +13,7 @@ SCRIPT_PATH = Path(__file__).resolve()
 
 REQUIRED_FILES = {
     "tests_readme": "zigux/tests/README.md",
+    "doc_readme": "Documentation/zigux/README.md",
     "perf_slice": "Documentation/zigux/phase8-perf-buffer-poll-slice.md",
     "shared_build": "zigux/tests/phase8_build.zig",
     "makefile": "zigux/Makefile",
@@ -28,6 +29,15 @@ TESTS_README_MARKERS = [
     "zigux/tests/phase8_libbpf_segments.zig",
     "scripts/zigux/validate-phase8.py",
     "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
+]
+
+DOC_README_MARKERS = [
+    "Phase 8 notes",
+    "Documentation/zigux/phase8-perf-buffer-poll-slice.md",
+    "zigux/tests/phase8_bridge_boundary_survey.zig",
+    "zigux/tests/phase8_file_path_handle_bridge.zig",
+    "zigux/tests/phase8_bpf_type_names.zig",
+    "zigux/tests/phase8_perf_buffer_poll.zig",
 ]
 
 PERF_SLICE_MARKERS = [
@@ -97,6 +107,7 @@ def validate(root: Path) -> list[str]:
         return missing
 
     tests_readme = read_text(root, REQUIRED_FILES["tests_readme"])
+    doc_readme = read_text(root, REQUIRED_FILES["doc_readme"])
     perf_slice = read_text(root, REQUIRED_FILES["perf_slice"])
     shared_build = read_text(root, REQUIRED_FILES["shared_build"])
     makefile = read_text(root, REQUIRED_FILES["makefile"])
@@ -106,6 +117,10 @@ def validate(root: Path) -> list[str]:
     for marker in TESTS_README_MARKERS:
         if marker not in tests_readme:
             missing.append(f"tests_readme:{marker}")
+
+    for marker in DOC_README_MARKERS:
+        if marker not in doc_readme:
+            missing.append(f"doc_readme:{marker}")
 
     for marker in PERF_SLICE_MARKERS:
         if marker not in perf_slice:
@@ -158,6 +173,25 @@ def clone_fixture_root(destination_root: Path) -> None:
                 "- zigux/tests/phase8_perf_buffer_poll.zig",
                 "- scripts/zigux/validate-phase8.py",
                 "- Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    doc_readme = destination_root / REQUIRED_FILES["doc_readme"]
+    doc_readme.parent.mkdir(parents=True, exist_ok=True)
+    doc_readme.write_text(
+        "\n".join(
+            [
+                "# Zigux Documentation",
+                "",
+                "## Phase 8 notes",
+                "- Documentation/zigux/phase8-perf-buffer-poll-slice.md",
+                "- zigux/tests/phase8_bridge_boundary_survey.zig",
+                "- zigux/tests/phase8_file_path_handle_bridge.zig",
+                "- zigux/tests/phase8_bpf_type_names.zig",
+                "- zigux/tests/phase8_perf_buffer_poll.zig",
                 "",
             ]
         ),
@@ -349,6 +383,23 @@ def run_self_test() -> int:
         )
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
+        doc_readme_path = tmp_root / REQUIRED_FILES["doc_readme"]
+        original_doc_readme = doc_readme_path.read_text(encoding="utf-8")
+        doc_readme_path.write_text(
+            original_doc_readme.replace(
+                "- zigux/tests/phase8_perf_buffer_poll.zig\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "doc_readme_perf_buffer_poll",
+            tmp_root,
+            "doc_readme:zigux/tests/phase8_perf_buffer_poll.zig",
+        )
+        doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
+
         perf_slice_path = tmp_root / REQUIRED_FILES["perf_slice"]
         original_perf_slice = perf_slice_path.read_text(encoding="utf-8")
         perf_slice_path.write_text(
@@ -465,7 +516,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=12")
+    print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
