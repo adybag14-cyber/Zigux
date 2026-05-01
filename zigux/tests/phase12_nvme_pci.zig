@@ -172,11 +172,16 @@ test "phase12 nvme pci prp metadata helper quantifies descriptor DMA footprint" 
 
 test "phase12 nvme pci prp metadata helper respects reset freeze and resumes after reset" {
     var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    const stale_metadata = try lab.planPrpMetadata(0x1180, 8192);
+    try std.testing.expectEqual(@as(u32, 0), stale_metadata.reset_generation);
+    try std.testing.expect(stale_metadata.requires_descriptor_rebuild_after_reset);
+
     _ = lab.beginReset();
     try std.testing.expectError(error.QueuePlanningBlockedByReset, lab.planPrpMetadata(0x1180, 8192));
 
     _ = lab.completeReset();
     const metadata = try lab.planPrpMetadata(0x1400, 12288);
+    try std.testing.expect(stale_metadata.reset_generation < metadata.reset_generation);
     try std.testing.expectEqual(@as(u16, 4), metadata.spanned_pages);
     try std.testing.expect(metadata.uses_prp_list);
     try std.testing.expectEqual(@as(u16, 3), metadata.prp_list_covered_pages);
