@@ -36,7 +36,8 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 - `make -C zigux phase6`
 
 4. replay the bounded perf-sanity harness when reviewing lookup-cost drift
-- `make -C zigux phase6-bsearch-perf`
+- `zig build bsearch-perf --build-file zigux/tests/phase6_build.zig`
+- or `make -C zigux phase6-bsearch-perf`
 
 5. replay the representative external C-vs-Zig parity spot check when portability-sensitive behavior is under review
 - `python3 scripts/zigux/check-phase6-bsearch-c-parity.py`
