@@ -1,7 +1,7 @@
 {
-  "lane_key": "P9-L02",
+  "lane_key": "P9-L04",
   "phase": "Phase 9",
-  "surveyed_commit": "8f7994d3c1f41fae739096997380a0f48f9eeb33",
+  "surveyed_commit": "b0298e2977b1ec7f4cc53a9b03ece973bf0deaad",
   "anchor": "lib/atomic64_test.c",
   "roadmap_destinations": [
     "zigux/tests/runtime_*",
