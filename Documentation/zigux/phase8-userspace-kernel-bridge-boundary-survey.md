@@ -61,8 +61,9 @@ Keep this survey aligned with:
 
 1. `python3 scripts/zigux/validate-phase8.py`
 2. `make -C zigux phase8-validate`
-3. `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all`
-4. `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
+3. `zig test zigux/tests/phase8_libbpf_segments.zig`
+4. `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all`
+5. `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
 
 ## Non-goals
 
