@@ -79,10 +79,13 @@ This survey slice does not claim:
 
 ## Gates
 
-1. run the dedicated Phase 12 build
+1. run the focused virtio_net survey gate first
+- `zig test zigux/tests/phase12_virtio_net_survey.zig`
+
+2. run the dedicated Phase 12 build
 - `zig build test --build-file zigux/tests/phase12_build.zig`
 
-2. run the convenience target
+3. run the convenience target
 - `make -C zigux phase12`
 
 ## Next bounded step
@@ -93,3 +96,4 @@ Latest verification snapshot:
 
 - lane key refreshed to `P12-L04` while keeping the same bounded virtio_net survey-packet scope
 - the published `surveyed_commit` remains the last packet-local verification head `8b69e4dfd04553afeb08c0ecbf3060f800e7ecd1`; this note now keeps that archived evidence explicit instead of calling it the current `master` tip
+- this lane now treats the focused `zig test zigux/tests/phase12_virtio_net_survey.zig` replay as the first rollback and drift check before broader shared Phase 12 validation
