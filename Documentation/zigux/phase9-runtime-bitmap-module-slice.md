@@ -33,8 +33,8 @@ The live repo already had an atomic64 starter under the same Phase 9 review path
 - summary checks that reuse `zigux/helpers/bitmap_view.zig` for `first_set`, `first_zero`, and `weight`
 - a bounded parse-and-print replay that keeps direct sample bit-list parsing and formatting reviewable through `initFromBitList()` and `formatSetBits()`, including duplicate bit-list normalization to canonical set-bit output plus empty parse-and-print replay, without claiming a broader runtime parsing or printing surface
 - a table-driven differential gate that replays a few `lib/test_bitmap.c` expectations for set, clear, summary, and copy behavior
-- a tiny sample-side loader handoff scaffold that names bounded entry and exit symbols, pins the full `first_set`, `first_zero`, `weight`, and `nbits` handoff summary, and emits both waiting and released shared runtime-loader request shapes for the no-substrate path without claiming a real module loader
-- a shared runtime-loader request binding in `zigux/kernel/runtime_loader.zig` that now consumes the bitmap handoff shape, allocator posture, and staged entry or exit symbols without claiming live execution
+- a tiny sample-side loader handoff scaffold that names bounded entry and exit symbols, pins the full `first_set`, `first_zero`, `weight`, and `nbits` handoff summary, preserves explicit shared command-name handoff evidence for both waiting and released request shapes, and emits both waiting and released shared runtime-loader request shapes for the no-substrate path without claiming a real module loader
+- a shared runtime-loader request binding in `zigux/kernel/runtime_loader.zig` that now consumes the bitmap handoff shape, allocator posture, staged entry or exit symbols, and explicit shared command-name preservation without claiming live execution
 - dedicated Phase 9 tests and manifest coverage wired into the shared `zigux/tests/phase9_build.zig` gate, including direct `phase9-runtime-bitmap-sample-tests` and `phase9-runtime-bitmap-loader-tests` legs
 
 ## Non-goals
