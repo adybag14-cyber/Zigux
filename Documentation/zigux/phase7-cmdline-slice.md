@@ -73,6 +73,7 @@ The current tests check:
 - rejection of explicit leading-plus numeric inputs, including autodetected radix forms like `+0x10`, so the Zig helper stays aligned with the `lib/cmdline.c` `simple_strtoull()` parsing contract
 - exact bare-option matching for comma-delimited flags
 - C-style stop-at-NUL handling for bare-option scans
+- committed C-vs-Zig parity for `parse_option_str()` now keeps that stop-at-NUL scan behavior in the checked JSON fixture instead of leaving it helper-local only
 - `parse_option_str()` empty-needle parity now mirrors the live C helper: empty option names only match empty segments at the start of the scan or between commas, while an empty source string or a purely trailing comma still return false
 - serialized `next_arg()` edge cases covering quoted values, quoted bare tokens, empty quoted values, unquoted punctuation-rich values, first-equals splitting, leading-equals sentinel handling, trailing-space trimming after `key=value`, and empty-rest termination
 
