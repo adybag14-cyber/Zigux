@@ -99,6 +99,26 @@ The shared request surface also stays parked beneath the nearby freeze-map bound
 - `samples/zigux/runtime_trace_events.zig` remains the fourth Phase 9 pilot, but it stays intentionally sample-only while `samples/zigux/runtime_trace_events_loader.zig` is absent and `zigux/tests/runtime_trace_events_manifest.json` keeps the `runtime-trace-events-substrate-handoff` blocker explicit.
 - `Documentation/zigux/freeze-map.md` also keeps `kernel/trace/ring_buffer.c` in `Study / Boundary Only`, so tracepoint-registration lifecycle wiring, thread creation, and any future trace-events loader path remain blocked until that boundary is reopened with Architecture Council evidence.
 
+## Gates
+
+1. run the dedicated shared-substrate checker first
+- `python3 scripts/zigux/check-phase9-loader-substrate-plan.py --self-test`
+- `python3 scripts/zigux/check-phase9-loader-substrate-plan.py`
+
+2. replay the focused runtime-loader survey packet that keeps this note aligned with the manifest, shared request surface, and sample-side loaders
+- `zig test zigux/tests/runtime_loader_gap_survey.zig`
+- `make -C zigux phase9-loader-gap-survey`
+
+3. replay the shared Phase 9 runtime bundle so the same loader-stage vocabulary and lifecycle-parity evidence stay visible beside the broader samples and surveys
+- `zig build test --build-file zigux/tests/phase9_build.zig --summary all`
+- `make -C zigux phase9-test`
+
+4. run the validator-first wrapper path when reviewing the whole Phase 9 packet
+- `make -C zigux phase9-validate`
+- `make -C zigux phase9`
+
+These gates keep the substrate-plan note tied to the actual tests and samples that prove it, instead of leaving the shared loader-stage vocabulary as prose-only context.
+
 ## Non-goals
 
 This slice should not yet claim:
