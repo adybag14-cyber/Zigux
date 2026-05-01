@@ -53,11 +53,6 @@ pub fn build(b: *std.Build) void {
         .root_module = phase14_workqueue_bridge_module,
     });
     const run_phase14_workqueue_bridge_tests = b.addRunArtifact(phase14_workqueue_bridge_tests);
-    const phase14_workqueue_bridge_step = b.step(
-        "phase14-workqueue-bridge",
-        "Run the Phase 14 workqueue bridge tests only",
-    );
-    phase14_workqueue_bridge_step.dependOn(&run_phase14_workqueue_bridge_tests.step);
 
     const phase14_skbuff_bridge_tests = b.addTest(.{
         .name = "phase14-skbuff-bridge-tests",
