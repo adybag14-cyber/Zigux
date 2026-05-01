@@ -156,14 +156,17 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     try std.testing.expect(std.mem.indexOf(u8, rbtree_helper, "pub fn eraseInit") != null);
     try std.testing.expect(std.mem.indexOf(u8, rbtree_helper, "pub fn clearNode") != null);
     try std.testing.expect(std.mem.indexOf(u8, rbtree_helper, "pub fn emptyNode") != null);
+    try std.testing.expect(std.mem.indexOf(u8, rbtree_helper, "pub fn findAdd") != null);
     try std.testing.expect(std.mem.indexOf(u8, rbtree_tests, "phase 7 rbtree eraseInit detaches erased nodes for reuse") != null);
     try std.testing.expect(std.mem.indexOf(u8, rbtree_tests, "phase 7 rbtree detached nodes stay non-empty until callers clear them") != null);
     try std.testing.expect(std.mem.indexOf(u8, rbtree_tests, "phase 7 rbtree clearNode marks detached nodes as empty") != null);
+    try std.testing.expect(std.mem.indexOf(u8, rbtree_tests, "phase 7 rbtree findAdd inserts new nodes and returns existing duplicates") != null);
     try std.testing.expect(std.mem.indexOf(u8, rbtree_tests, "phase 7 rbtree postorder traversal matches committed parity fixture") != null);
     try expectContains(rbtree_slice, "runtime-safe leaf helpers");
     try expectContains(rbtree_slice, "integration with validation substrate through `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_survey.zig`, `zigux/tests/phase7_build.zig`, and `scripts/zigux/check-phase7-rbtree-parity.py`");
     try std.testing.expect(std.mem.indexOf(u8, rbtree_slice, "detached-node ownership discipline after `erase()` and `replaceNode()`, where callers must still run `clearNode()` before `emptyNode()` becomes true") != null);
     try std.testing.expect(std.mem.indexOf(u8, rbtree_slice, "detached-node clearing semantics") != null);
+    try std.testing.expect(std.mem.indexOf(u8, rbtree_slice, "duplicate-aware find-or-insert behavior via `findAdd()`") != null);
     try std.testing.expect(std.mem.indexOf(u8, rbtree_slice, "erase-and-detach reuse semantics via `eraseInit()`") != null);
     try std.testing.expect(std.mem.indexOf(u8, rbtree_slice, "a machine-checked manifest that records the `lib/rbtree.c` anchor and the landed Phase 7 review surfaces") != null);
 }
