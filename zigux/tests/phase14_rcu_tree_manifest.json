@@ -1,7 +1,7 @@
 {
   "lane_key": "P14-L16",
   "phase": "Phase 14",
-  "surveyed_commit": "4c889233d157960514b241bcd5aff7cac5fda312",
+  "surveyed_commit": "e2075a1902926ea5f25f724134e48f04108e9240",
   "anchor": "kernel/rcu/tree.c",
   "roadmap_destinations": [
     "zigux/tests/",
@@ -46,6 +46,7 @@
     "preexisting_phase14_rcu_tree_manifest_present": true,
     "preexisting_phase14_rcu_tree_survey_test_present": true,
     "preexisting_phase14_rcu_tree_survey_note_present": true,
+    "preexisting_phase14_rcu_tree_review_checklist_present": true,
     "rollback_threshold_note_present": true,
     "rollback_threshold_checklist_present": true,
     "rollback_threshold_freeze_map_rule_present": true
@@ -218,6 +219,13 @@
       "kind": "boundary_audit",
       "zigux_destination": "Documentation/zigux/phase14-rcu-tree-survey.md",
       "why_now": "The survey now records `rcutree_prepare_cpu()`, `rcutree_report_cpu_dead()`, and `rcutree_migrate_callbacks()` as a landed stay-in-C audit so CPU hotplug enrollment, teardown, and callback migration remain reviewable without weakening the freeze boundary."
+    },
+    {
+      "id": "phase14-rcu-tree-review-checklist-followup",
+      "status": "starter_landed",
+      "kind": "reviewability",
+      "zigux_destination": "Documentation/zigux/review-checklist.md",
+      "why_now": "The shared review checklist now names the Phase 14 RCU tree survey packet directly so the surveyed commit pin, blocked `kernel/rcu/tree_bridge.zig` boundary-map status, rollback threshold, automatic return-to-blocked triggers, and placeholder-wrapper non-goal stay reviewable outside the lane-local note."
     },
     {
       "id": "phase14-rcu-tree-rollback-threshold-guardrail",
