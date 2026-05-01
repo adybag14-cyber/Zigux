@@ -304,6 +304,14 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
     );
     defer std.testing.allocator.free(samples_readme);
 
+    const tests_readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/README.md",
+        std.testing.allocator,
+        .limited(review_doc_read_limit),
+    );
+    defer std.testing.allocator.free(tests_readme);
+
     const review_checklist = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/review-checklist.md",
@@ -344,6 +352,10 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
     try std.testing.expect(std.mem.indexOf(u8, survey_note, surveyed_commit_marker) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "reference-pattern list") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "samples/zigux/README.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/README.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared tests-root guide in `zigux/tests/README.md`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig test samples/zigux/bytestream_fifo.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig test zigux/tests/phase5_bytestream_fifo_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "fixed embedded 32-byte ring buffer") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "wraparound requeue, skip, and peek") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "runtime_atomic64_loader.zig") != null);
@@ -354,7 +366,7 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_bytestream_fifo.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "initial string copy count is `5`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`kfifo_in()` and `kfifo_out()` transfer sizes stay reviewable") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "draining a three-byte destination from the queued string `\"hello\"` yields `\"hel\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "draining a three-byte destination from the queued string `\\\"hello\\\"` yields `\\\"hel\\\"`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "follow-up drain on the now-empty queue returns `0`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "capacity ceiling") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "outside the main replay path") != null);
@@ -372,7 +384,7 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
     try std.testing.expect(std.mem.indexOf(u8, survey_note, pinned_commit_line) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "The roadmap delivery gap is already closed.") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "approved in-memory FIFO idiom inside that completed anchor set") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared sample-root catalog, shared review checklist, and contributor refresh path all point at the same inspected `master` head") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared sample-root catalog, shared tests-root guide, shared review checklist, and contributor refresh path all point at the same inspected `master` head") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "without reopening the closed Phase 5 sample-delivery gap") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "no `samples/zigux/*cmdline*` Phase 5 boundary explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "exact `checked_focus` order `bounded_fifo_order`, `wraparound_requeue`, `peek_and_skip`, `non_destructive_snapshot`, `preview_truncation`, `reset_and_replay`, and `ownership_and_lifetime`") != null);
@@ -431,6 +443,16 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
     try std.testing.expect(std.mem.indexOf(u8, samples_readme, "lib/cmdline.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, samples_readme, "phase7_cmdline.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, samples_readme, "phase7_build.zig") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "zigux/tests/phase5_bytestream_fifo.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "zigux/tests/phase5_bytestream_fifo_manifest.json") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "zigux/tests/phase5_bytestream_fifo_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "scripts/zigux/validate-phase5.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "make -C zigux phase5-validate") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "zig test samples/zigux/bytestream_fifo.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "zig test zigux/tests/phase5_bytestream_fifo_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "keep the current Phase 5 reference-sample packet reviewable through `zigux/tests/phase5_build.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "direct sample replays and paired survey replays explicit for every shipped Phase 5 family") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "manifest-backed survey") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "sample-backed survey note") != null);
