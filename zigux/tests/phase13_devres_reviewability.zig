@@ -71,7 +71,7 @@ test "phase13 devres manifest records the current iomap/mmio safety surface and 
     try std.testing.expectEqualStrings("P13-L03", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("lib/devres.c", manifest.anchor);
-    try std.testing.expectEqualStrings("46cfce733c7aac677f2fbed9682667866f42aa0b", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("66b55d8a9a800345097f3c04b9f95130b1f8d0b8", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.devres_c_lines >= 390);
     try std.testing.expectEqualStrings("26e5f8101d3546c7942c93757ecc3fdfaa6ee264", manifest.survey_summary.previous_surveyed_commit);
@@ -139,7 +139,7 @@ test "phase13 devres manifest records the current iomap/mmio safety surface and 
     try expectContains(survey_note, "## Status");
     try expectContains(survey_note, "- `PHASE13_STATUS=active`");
     try expectContains(survey_note, "- `PHASE13_SLICE=devres-helper-iomap-mmio-safety-reviewability`");
-    try expectContains(survey_note, "- `PHASE13_SURVEYED_COMMIT=46cfce733c7aac677f2fbed9682667866f42aa0b`");
+    try expectContains(survey_note, "- `PHASE13_SURVEYED_COMMIT=66b55d8a9a800345097f3c04b9f95130b1f8d0b8`");
     try expectContains(survey_note, "- product boundary:");
     try expectContains(survey_note, "- `lib/devres.zig`");
     try expectContains(survey_note, "- `zigux/tests/phase13_devres_manifest.json`");
