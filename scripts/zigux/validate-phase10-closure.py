@@ -194,17 +194,14 @@ def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
 
 
-
 def load_json(root: Path, rel_path: str) -> object:
     return json.loads(read_text(root, rel_path))
-
 
 
 def check_markers(missing: list[str], label: str, text: str, markers: list[str]) -> None:
     for marker in markers:
         if marker not in text:
             missing.append(f"{label}:{marker}")
-
 
 
 def validate(root: Path) -> tuple[list[str], list[str]]:
@@ -302,6 +299,10 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     if blocked != expected_blocked:
         missing.append("manifest:blocked_transport_gaps")
 
+    ready_transport_followups = manifest.get("ready_transport_followups")
+    if ready_transport_followups != {}:
+        missing.append("manifest:ready_transport_followups")
+
     exact_checks = manifest.get("exact_checks")
     expected_exact_checks = [
         "python3 scripts/zigux/validate-phase10-closure.py",
@@ -314,7 +315,6 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         missing.append("manifest:exact_checks")
 
     return [], missing
-
 
 
 def write_fixture(root: Path) -> None:
@@ -380,6 +380,7 @@ def write_fixture(root: Path) -> None:
             "zigux/tests/phase10_virtio_input_manifest.json": "phase10-virtio-input-registration-lifecycle",
             "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-lifecycle-and-irq-paths",
         },
+        "ready_transport_followups": {},
         "exact_checks": [
             "python3 scripts/zigux/validate-phase10-closure.py",
             "zig build test --build-file zigux/tests/phase10_build.zig --summary all",
@@ -398,7 +399,6 @@ def write_fixture(root: Path) -> None:
             path.write_text(texts.get(rel_path, "fixture\n"), encoding="utf-8")
 
 
-
 def expect_missing_marker(label: str, root: Path, marker: str) -> None:
     missing_files, missing_markers = validate(root)
     if missing_files:
@@ -407,7 +407,6 @@ def expect_missing_marker(label: str, root: Path, marker: str) -> None:
         raise SystemExit(
             f"phase10-closure-self-test:{label}:expected:{marker}:actual:{','.join(missing_markers) if missing_markers else 'none'}"
         )
-
 
 
 def run_self_test() -> int:
@@ -451,6 +450,18 @@ def run_self_test() -> int:
         )
         write_fixture(fixture_root)
 
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["ready_transport_followups"] = {
+            "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-interrupt-ack-helper"
+        }
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "parked_ready_transport_followups",
+            fixture_root,
+            "manifest:ready_transport_followups",
+        )
+        write_fixture(fixture_root)
+
         closure_path = fixture_root / "Documentation/zigux/phase10-closure-evidence.md"
         original_closure = closure_path.read_text(encoding="utf-8")
         closure_path.write_text(
@@ -485,7 +496,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=4")
+    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=5")
     return 0
 
 
