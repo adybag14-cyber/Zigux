@@ -219,7 +219,7 @@ test "phase11 bcm2835_wdt platform handoff summary keeps parent and PM-base prer
     try std.testing.expect(blocked.system_power_controller);
     try std.testing.expect(blocked.poweroff_handler_present);
     try std.testing.expect(!blocked.poweroff_handler_claimed);
-    try std.testing.expect(!blocked.poweroff_handler_conflict);
+    try std.testing.expect(blocked.poweroff_handler_conflict);
 }
 
 test "phase11 bcm2835_wdt remove summary only clears the shared poweroff handler when bcm2835 owns it" {
