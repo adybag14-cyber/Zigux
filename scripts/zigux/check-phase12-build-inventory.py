@@ -189,8 +189,24 @@ def run_self_test() -> int:
     drifted_test_root_modules["test_root_modules"][0]["root_module"] = "phase12_inventory_drift_module"
     expect_inventory_mismatch("fixture_test_root_module_drift", drifted_test_root_modules)
 
+    drifted_step_count = dict(first)
+    drifted_step_count["expected_step_count"] = 0
+    expect_inventory_mismatch("fixture_expected_step_count_drift", drifted_step_count)
+
+    drifted_test_count = dict(first)
+    drifted_test_count["expected_test_count"] = 0
+    expect_inventory_mismatch("fixture_expected_test_count_drift", drifted_test_count)
+
+    drifted_forbidden_markers = dict(first)
+    drifted_forbidden_markers["forbidden_markers"] = ["phase12-build-inventory-drift"]
+    expect_inventory_mismatch("fixture_forbidden_markers_drift", drifted_forbidden_markers)
+
+    drifted_dedicated_replays = dict(first)
+    drifted_dedicated_replays["dedicated_survey_replays"] = ["phase12-build-inventory-drift"]
+    expect_inventory_mismatch("fixture_dedicated_survey_replays_drift", drifted_dedicated_replays)
+
     print("PHASE12_BUILD_INVENTORY_SELF_TEST=pass")
-    print("PHASE12_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=12")
+    print("PHASE12_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
