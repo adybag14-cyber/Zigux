@@ -1,7 +1,7 @@
 {
-  "lane_key": "P13-L03",
+  "lane_key": "P13-L04",
   "phase": "Phase 13",
-  "surveyed_commit": "ba15a15ff4f0becd063b9b12aeea73df5307e6ef",
+  "surveyed_commit": "ff87456109937e1ffbe7f2a91a79c2661874ef88",
   "anchor": "fs/libfs.c",
   "roadmap_destinations": [
     "fs/libfs.zig",
@@ -108,7 +108,7 @@
       "status": "starter_landed",
       "kind": "filesystem_helper_wrapper",
       "zigux_destination": "fs/libfs.zig",
-      "why_now": "The landed libfs helper lab now models the post-scan cursor reposition bookkeeping around hlist_del_init() plus hlist_add_before() / hlist_add_behind() in pure planning form, keeping the work reviewable without claiming live sibling-list mutation, lock ordering, or cursor dentry ownership."
+      "why_now": "The landed libfs helper lab now models the post-scan cursor reposition bookkeeping around hlist_del_init() plus hlist_add_before() / hlist_add_behind() in pure planning form, and the exported descriptor now reports that cursor-reposition planning explicitly so the review packet no longer hides an already-landed helper surface behind older starter scaffolding."
     },
     {
       "id": "phase13-libfs-dcache-dir-close-release-bookkeeping",
