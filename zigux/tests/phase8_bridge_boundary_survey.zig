@@ -71,7 +71,12 @@ test "phase 8 bridge boundary survey stays wired into the shared packet" {
     try expectContains(bridge_note, "tools/lib/subcmd/exec-cmd.zig");
     try expectContains(bridge_note, "tools/lib/subcmd/help.zig");
     try expectContains(bridge_note, "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig");
+    try expectContains(bridge_note, "`execv_cmd()`");
+    try expectContains(bridge_note, "`execl_cmd()`");
     try expectContains(bridge_note, "`execvp()`");
+    try expectContains(bridge_note, "queue ownership");
+    try expectContains(bridge_note, "scheduler-facing transport behavior");
+    try expectContains(bridge_note, "kernel/workqueue.c");
     try expectContains(bridge_note, "`bpf_token_create()`");
     try expectContains(bridge_note, "perf_buffer__poll(timeout_ms)");
     try expectContains(bridge_note, "no standalone timer helper");
@@ -125,6 +130,11 @@ test "phase 8 bridge boundary survey still matches the live helper surfaces" {
 
     try expectContains(bridge_note, "path-resolution");
     try expectContains(bridge_note, "raw `PATH` splitting");
+    try expectContains(bridge_note, "`execv_cmd()`-style future handoff packaging");
+    try expectContains(bridge_note, "`execl_cmd()`-style argument collection plus deferred future handoff carriers");
+    try expectContains(bridge_note, "queue ownership");
+    try expectContains(bridge_note, "scheduler-facing transport behavior");
+    try expectContains(bridge_note, "kernel/workqueue.c");
     try expectContains(bridge_note, "/proc/<pid>/fdinfo/<fd>");
     try expectContains(bridge_note, "bpf_object_prepare_token()");
     try expectContains(bridge_note, "bpf_object__reuse_map()");
@@ -132,6 +142,8 @@ test "phase 8 bridge boundary survey still matches the live helper surfaces" {
     try expectContains(exec_cmd_helper, "command_name: []const u8");
     try expectContains(exec_cmd_helper, "exec_path_env: []const u8");
     try expectContains(exec_cmd_helper, "pub fn buildSearchPath(");
+    try expectContains(exec_cmd_helper, "pub fn buildDeferredExecvCall(");
+    try expectContains(exec_cmd_helper, "pub fn buildDeferredExeclCall(");
     try expectContains(help_helper, "pub fn resolveTerminalDimensions(");
     try expectContains(file_path_handle_bridge_helper, "pub fn buildCurrentProcessFdinfoPath(");
     try expectContains(file_path_handle_bridge_helper, "pub fn chooseReusedMapName(");
