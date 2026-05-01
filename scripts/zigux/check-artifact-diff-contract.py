@@ -90,6 +90,17 @@ def main() -> int:
         invalid_actual_json.write_text('{"alpha": 1,\n', encoding='utf-8', newline='\n')
 
         run_contract_case(
+            ['--mode', 'json', str(expected_json), str(actual_json)],
+            0,
+            [
+                'ARTIFACT_DIFF=pass',
+                'MODE=json',
+                f'EXPECTED={expected_json}',
+                f'ACTUAL={actual_json}',
+            ],
+        )
+
+        run_contract_case(
             ['--mode', 'json', str(expected_json), str(actual_json_mismatch)],
             1,
             [
