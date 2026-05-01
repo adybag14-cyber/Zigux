@@ -169,9 +169,11 @@ The current lane state is:
 - landed `phase15-indefinite-c-policy-test`
 - landed `phase15-build-gate-indefinite-c-policy`
 - landed `phase15-indefinite-c-field-sync-followup`
+- landed `phase15-indefinite-c-maintenance-handoff`
 - landed `phase15-indefinite-c-current-gap-survey`
 - landed `phase15-indefinite-c-exception-request-checklist`
 - landed `phase15-indefinite-c-reopen-evidence-matrix`
+- landed `phase15-indefinite-c-reopen-trigger-catalog`
 - blocked `phase15-deep-core-status-change-blocker`
 
 This keeps the lane narrow. Zigux gains a dedicated, reviewable Phase 15 policy for code that remains in C indefinitely, but it still does not claim Architecture Council approval for any status change or any new deep-core Zig ownership.
