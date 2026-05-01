@@ -7,7 +7,7 @@ This sample-backed survey note tracks the bounded Phase 5 reference-sample surve
 - `PHASE5_STATUS=active`
 - `PHASE5_SLICE=trace-events-reference-sample-starter`
 - `PHASE5_LANE_KEY=P5-L24`
-- `PHASE5_SURVEYED_COMMIT=f0276491744b936652e4017387c586b433d0cb89`
+- `PHASE5_SURVEYED_COMMIT=bc64354437727e63caed13a39203148016399d07`
 - scope: roadmap-vs-repo sample delivery, approved payload and callback idiom guidance, contributor refresh cues, and exact bounded checks for the landed `samples/zigux/` trace-events replay
 - product boundary:
   - `Documentation/zigux/phase5-trace-events-sample-survey.md`
@@ -69,7 +69,7 @@ The exact checks currently recorded in `zigux/tests/phase5_trace_events_sample_m
 
 ## Latest verification snapshot
 
-- inspected `master` head: `f0276491744b936652e4017387c586b433d0cb89`
+- inspected `master` head: `bc64354437727e63caed13a39203148016399d07`
 - attached Zig toolchain: `0.17.0-dev.87+9b177a7d2`
 - exact commands and observed results:
   - `zig test samples/zigux/trace_events_sample.zig`
@@ -83,9 +83,10 @@ The exact checks currently recorded in `zigux/tests/phase5_trace_events_sample_m
     - `2/2 phase5_trace_events_sample_survey.test.phase 5 trace-events contributor docs stay aligned with the shipped review surface...OK`
     - `All 2 tests passed.`
   - `zig build test --build-file zigux/tests/phase5_build.zig --summary all`
-    - `Build Summary: 17/17 steps succeeded; 28/28 tests passed`
+    - `Build Summary: 15/17 steps succeeded (1 failed); 26/28 tests passed (2 failed)`
     - `phase5-trace-events-sample-tests 5 pass (5 total)`
     - `phase5-trace-events-sample-survey-tests 2 pass (2 total)`
+    - unrelated current Phase 5 kretprobe survey drift still failed in the shared packet: `phase5-kretprobe-example-survey-tests` expected lane marker `P5-L17` but found `P5-L22`, so the shared entrypoint is not fully green even though the trace-events legs passed
 
 ## Contributor refresh prompts for the landed sample
 
@@ -112,7 +113,7 @@ The current gap is no longer "Zigux has no trace-events sample guidance." The mo
 - the repo now has a reviewable Phase 5 `trace_events_sample` reference sample plus manifest-backed checks for payload shape, string selection, selected-string slot cues, payload-length cues, main-path and callback-path iteration cues, formatted messages, bounded family counts, lifecycle-summary counts, the exact `checked_focus` review surface, vararg-payload coverage, relative-location coverage, callback-path coverage, and teardown
 - this sample must remain visibly separate from the later Phase 9 runtime `trace-events` starter so contributors do not over-claim runtime substrate coverage
 - the Phase 5 roadmap's four named sample anchors are now all represented by bounded `samples/zigux/` reference readings, but that does not close the separate Phase 9 runtime pilot tranche
-- this approved payload-and-callback idiom is now pinned to `PHASE5_SURVEYED_COMMIT=f0276491744b936652e4017387c586b433d0cb89` so the sample-backed survey note, latest verification snapshot, sample-root catalog boundary, and manifest-backed survey all point at the same inspected `master` head
+- this approved payload-and-callback idiom is now pinned to `PHASE5_SURVEYED_COMMIT=bc64354437727e63caed13a39203148016399d07` so the sample-backed survey note, latest verification snapshot, sample-root catalog boundary, and manifest-backed survey all point at the same inspected `master` head
 
 ## Review gates for this survey
 
