@@ -352,6 +352,29 @@ test "bytestream fifo sample keeps helper boundaries explicit" {
     try std.testing.expectEqualSlices(u8, &.{ 2, 3, 4, 5, 6, 7, 8, 9 }, wraparound_preview[0..]);
     try std.testing.expectEqual(@as(usize, 10), sample.count());
 
+    sample.reset();
+    var fill: u8 = 0;
+    while (fill < fifo_capacity) : (fill += 1) {
+        try std.testing.expect(sample.pushByte(fill));
+    }
+    try std.testing.expect(!sample.pushByte(255));
+    try std.testing.expectEqual(@as(usize, fifo_capacity), sample.count());
+    try std.testing.expectEqual(@as(?u8, 0), sample.peekByte());
+
+    sample.reset();
+    try std.testing.expectEqual(@as(usize, 5), sample.enqueueSlice("hello"));
+    var short_drain: [3]u8 = undefined;
+    try std.testing.expectEqual(@as(usize, short_drain.len), sample.drain(short_drain[0..]));
+    try std.testing.expectEqualSlices(u8, "hel", short_drain[0..]);
+    try std.testing.expectEqual(@as(usize, 2), sample.count());
+    try std.testing.expectEqual(@as(?u8, 'l'), sample.peekByte());
+
+    var remainder: [2]u8 = undefined;
+    try std.testing.expectEqual(@as(usize, remainder.len), sample.dequeueSlice(remainder[0..]));
+    try std.testing.expectEqualSlices(u8, "lo", remainder[0..]);
+    try std.testing.expectEqual(@as(usize, 0), sample.count());
+    try std.testing.expectEqual(@as(usize, 0), sample.drain(short_drain[0..]));
+
     try sample.exit();
     try std.testing.expectEqual(SampleStage.exited, sample.stage());
     try std.testing.expectEqual(@as(usize, 0), sample.count());
@@ -379,4 +402,31 @@ test "bytestream fifo sample keeps ownership and lifetime guards explicit" {
     try std.testing.expectEqual(@as(usize, 1), sample.exit_runs);
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.runAnchorReplay());
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.exit());
+}
+
+test "bytestream fifo sample reset clears queue state without rewinding lifecycle bookkeeping" {
+    var sample = BytestreamFifoSample{};
+
+    try sample.init();
+    try std.testing.expect(sample.pushByte(7));
+    sample.reset();
+    try std.testing.expectEqual(SampleStage.initialized, sample.stage());
+    try std.testing.expectEqual(@as(usize, 1), sample.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), sample.exit_runs);
+    try std.testing.expectEqual(@as(usize, 0), sample.count());
+    try std.testing.expectEqual(@as(?u8, null), sample.peekByte());
+
+    _ = try sample.runAnchorReplay();
+    sample.reset();
+    try std.testing.expectEqual(SampleStage.replay_complete, sample.stage());
+    try std.testing.expectEqual(@as(usize, 1), sample.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), sample.exit_runs);
+    try std.testing.expectEqual(@as(usize, 0), sample.count());
+
+    try sample.exit();
+    sample.reset();
+    try std.testing.expectEqual(SampleStage.exited, sample.stage());
+    try std.testing.expectEqual(@as(usize, 1), sample.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), sample.exit_runs);
+    try std.testing.expectEqual(@as(usize, 0), sample.count());
 }
