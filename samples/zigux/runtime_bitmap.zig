@@ -355,17 +355,30 @@ test "runtime bitmap sample keeps post-selftest mutation replay explicit" {
     try std.testing.expect(module.isSet(bitmap_view.bits_per_long + 6));
     try std.testing.expect(!module.isSet(bitmap_view.bits_per_long));
 
+    const formatted = try module.formatSetBits(std.testing.allocator);
+    defer std.testing.allocator.free(formatted);
+    try std.testing.expectEqualStrings("0,5,9,10,11,12,70", formatted);
+
     var mirror = RuntimeBitmapSample{};
     try mirror.initWithSetBits(&.{});
     try mirror.copyFrom(&module);
 
     const mirror_summary = mirror.summary();
+    try std.testing.expectEqual(ModuleStage.initialized, mirror.stage());
+    try std.testing.expectEqual(@as(usize, 1), mirror_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), mirror_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), mirror_summary.exit_runs);
     try std.testing.expectEqual(summary_after_mutation.first_set, mirror_summary.first_set);
     try std.testing.expectEqual(summary_after_mutation.first_zero, mirror_summary.first_zero);
     try std.testing.expectEqual(summary_after_mutation.weight, mirror_summary.weight);
+    try std.testing.expectEqual(summary_after_mutation.nbits, mirror_summary.nbits);
     try std.testing.expect(mirror.isSet(12));
     try std.testing.expect(mirror.isSet(bitmap_view.bits_per_long + 6));
     try std.testing.expect(!mirror.isSet(bitmap_view.bits_per_long));
+
+    const mirror_formatted = try mirror.formatSetBits(std.testing.allocator);
+    defer std.testing.allocator.free(mirror_formatted);
+    try std.testing.expectEqualStrings(formatted, mirror_formatted);
 }
 
 test "runtime bitmap sample keeps exit lifecycle and post-exit snapshot explicit" {
