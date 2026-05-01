@@ -7,7 +7,7 @@ This sample-backed survey note tracks the bounded Phase 5 reference-sample surve
 - `PHASE5_STATUS=active`
 - `PHASE5_SLICE=trace-events-reference-sample-starter`
 - `PHASE5_LANE_KEY=P5-L24`
-- `PHASE5_SURVEYED_COMMIT=99edb14edd6f6bc0394059d8959b1666ddffa4a5`
+- `PHASE5_SURVEYED_COMMIT=ffc0f4d6a45afb5ba6fd4e696d277a8d862ecded`
 - scope: roadmap-vs-repo sample delivery, approved payload and callback idiom guidance, contributor refresh cues, and exact bounded checks for the landed `samples/zigux/` trace-events replay
 - product boundary:
   - `Documentation/zigux/phase5-trace-events-sample-survey.md`
@@ -70,7 +70,7 @@ The exact checks currently recorded in `zigux/tests/phase5_trace_events_sample_m
 
 ## Latest verification snapshot
 
-- inspected `master` head: `99edb14edd6f6bc0394059d8959b1666ddffa4a5`
+- inspected `master` head: `ffc0f4d6a45afb5ba6fd4e696d277a8d862ecded`
 - attached Zig toolchain: `0.17.0-dev.87+9b177a7d2`
 - exact commands and observed results:
   - `zig test samples/zigux/trace_events_sample.zig`
@@ -84,10 +84,12 @@ The exact checks currently recorded in `zigux/tests/phase5_trace_events_sample_m
     - `2/2 phase5_trace_events_sample_survey.test.phase 5 trace-events contributor docs stay aligned with the shipped review surface...OK`
     - `All 2 tests passed.`
   - `zig build test --build-file zigux/tests/phase5_build.zig --summary all`
-    - `Build Summary: 17/17 steps succeeded; 28/28 tests passed`
+    - `Build Summary: 14/17 steps succeeded (1 failed); 26/26 tests passed`
     - `phase5-trace-events-sample-tests 5 pass (5 total)`
     - `phase5-trace-events-sample-survey-tests 2 pass (2 total)`
     - `phase5-kretprobe-example-survey-tests 2 pass (2 total)`
+    - `phase5-kobject-example-survey-tests transitive failure`
+    - current `master` still carries unrelated Phase 5 kobject survey source corruption: the shared entrypoint now fails while compiling `zigux/tests/phase5_kobject_example_survey.zig` because that file contains an invalid byte near the shared sample-root catalog expectation, so the shared Phase 5 replay is not yet a fully green trace-events proof on this head
 
 ## Contributor refresh prompts for the landed sample
 
@@ -115,7 +117,7 @@ The current gap is no longer "Zigux has no trace-events sample guidance." The mo
 - the repo now has a reviewable Phase 5 `trace_events_sample` reference sample plus manifest-backed checks for payload shape, string selection, selected-string slot cues, payload-length cues, main-path and callback-path iteration cues, formatted messages, bounded family counts, lifecycle-summary counts, the exact `checked_focus` review surface, vararg-payload coverage, relative-location coverage, callback-path coverage, and teardown
 - this sample must remain visibly separate from the later Phase 9 runtime `trace-events` starter so contributors do not over-claim runtime substrate coverage
 - the Phase 5 roadmap's four named sample anchors are now all represented by bounded `samples/zigux/` reference readings, but that does not close the separate Phase 9 runtime pilot tranche
-- this approved payload-and-callback idiom is now pinned to `PHASE5_SURVEYED_COMMIT=99edb14edd6f6bc0394059d8959b1666ddffa4a5` so the sample-backed survey note, latest verification snapshot, sample-root catalog boundary, and manifest-backed survey all point at the same inspected `master` head
+- this approved payload-and-callback idiom is now pinned to `PHASE5_SURVEYED_COMMIT=ffc0f4d6a45afb5ba6fd4e696d277a8d862ecded` so the sample-backed survey note, latest verification snapshot, sample-root catalog boundary, and manifest-backed survey all point at the same inspected `master` head, even though the shared `phase5_build.zig` replay on that head is currently blocked by unrelated kobject survey source corruption rather than by this trace-events packet
 
 ## Review gates for this survey
 
@@ -141,4 +143,4 @@ This survey does not yet claim:
 
 ## Next bounded step
 
-Stay in the same Phase 5 samples-and-reference-patterns family and tighten one more directly coupled replay-summary or contributor-guidance edge only if fresh repo inspection shows real drift in the landed `trace_events_sample` contract on current `master`.
+Stay in the same Phase 5 samples-and-reference-patterns family and refresh this shared-build verification snapshot once current `master` no longer carries the unrelated kobject survey source corruption, or tighten one more directly coupled replay-summary or contributor-guidance edge only if fresh repo inspection shows real drift in the landed `trace_events_sample` contract.
