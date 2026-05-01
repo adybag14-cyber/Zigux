@@ -91,7 +91,7 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     try expectContains(roadmap, "integration with validation substrate");
     try std.testing.expectEqualStrings("P7-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 7", manifest.phase);
-    try std.testing.expectEqualStrings("9fe95586826f03d2e047dcd3d4536fc884dc996c", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("2d4d54a73329556a8d6dab46afef9a4aad341ef9", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("lib/rbtree.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 1), manifest.roadmap_destinations.len);
     try std.testing.expectEqualStrings("lib/rbtree.zig", manifest.roadmap_destinations[0]);
