@@ -281,6 +281,13 @@ manifest_expectations = {
         "sample_path": "samples/zigux/bytestream_fifo.zig",
         "survey_note_path": "Documentation/zigux/phase5-kfifo-sample-survey.md",
         "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
+        "reference_patterns": [
+            "fixed embedded 32-byte ring buffer keeps the Phase 5 sample in memory and reviewable",
+            "exact queue-order replay mirrors the Linux bytestream anchor without claiming procfs or module parity",
+            "wraparound requeue, skip, and peek stay explicit as bounded FIFO operations rather than hidden helper behavior",
+            "non-destructive snapshot keeps reviewer inspection separate from the final drain sequence",
+            "init, replay, and exit keep ownership and lifetime boundaries explicit for the bytestream sample",
+        ],
         "survey_build_summary": "Build Summary: 17/17 steps succeeded; 28/28 tests passed",
         "non_goals": [
             "procfs parity",
@@ -668,6 +675,7 @@ def total_marker_count() -> int:
         marker_count += len(spec["markers"])
     for manifest_name, spec in manifest_expectations.items():
         marker_count += 6  # phase, lane, anchor, sample path, entrypoint, surveyed commit shape
+        marker_count += len(spec.get("reference_patterns", []))
         marker_count += len(spec["non_goals"])
         marker_count += len(spec["exact_check_ids"])
         marker_count += 3 + len(review_prompt_expectations[manifest_name])
@@ -724,6 +732,15 @@ def validate_phase5(root: Path) -> dict[str, object]:
             "validation_entrypoint",
             spec["validation_entrypoint"],
         )
+        reference_patterns = spec.get("reference_patterns")
+        if isinstance(reference_patterns, list):
+            require_manifest_string_list(
+                missing,
+                label,
+                manifest_obj,
+                "reference_patterns",
+                reference_patterns,
+            )
         require_manifest_string_list(missing, label, manifest_obj, "non_goals", spec["non_goals"])
         require_exact_check_ids(missing, label, manifest_obj, spec["exact_check_ids"])
         require_review_prompt_groups(
@@ -817,6 +834,27 @@ def run_self_test() -> int:
             print("PHASE5_VALIDATOR_SELF_TEST_REASON=seeded-tree-should-pass")
             return 1
 
+        bytestream_manifest_path = tmp_root / "zigux/tests/phase5_bytestream_fifo_manifest.json"
+        bytestream_manifest = json.loads(bytestream_manifest_path.read_text(encoding="utf-8"))
+        reference_patterns = bytestream_manifest.get("reference_patterns")
+        if not isinstance(reference_patterns, list) or not reference_patterns:
+            print("PHASE5_VALIDATOR_SELF_TEST=fail")
+            print("PHASE5_VALIDATOR_SELF_TEST_REASON=reference-pattern-seed-missing")
+            return 1
+        bytestream_manifest["reference_patterns"] = list(reference_patterns)
+        bytestream_manifest["reference_patterns"][0] = "mutated reference pattern"
+        bytestream_manifest_path.write_text(json.dumps(bytestream_manifest, indent=2) + "\n", encoding="utf-8")
+        reference_pattern_result = validate_phase5(tmp_root)
+        if reference_pattern_result["ok"] or "phase5_bytestream_fifo_manifest:reference_patterns" not in reference_pattern_result["missing"]:
+            print("PHASE5_VALIDATOR_SELF_TEST=fail")
+            print("PHASE5_VALIDATOR_SELF_TEST_REASON=reference-pattern-gap")
+            return 1
+
+        bytestream_manifest = json.loads(
+            (ROOT / "zigux/tests/phase5_bytestream_fifo_manifest.json").read_text(encoding="utf-8")
+        )
+        bytestream_manifest_path.write_text(json.dumps(bytestream_manifest, indent=2) + "\n", encoding="utf-8")
+
         manifest["surveyed_commit"] = SELF_TEST_MUTATED_HEAD
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         mutated_result = validate_phase5(tmp_root)
@@ -829,7 +867,7 @@ def run_self_test() -> int:
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         note_text = note_path.readText if False else note_path.read_text(encoding="utf-8")
         note_text = note_text.replace(
-            manifest_expectations["phase5_trace_events_sample_manifest.json"]["survey_build_summary"],
+            manifest_expectations["phase5_trace_events_sample.json"]["survey_build_summary"] if False else manifest_expectations["phase5_trace_events_sample_manifest.json"]["survey_build_summary"],
             "Build Summary: 17/17 steps succeeded; 99/99 tests passed",
             1,
         )
@@ -941,7 +979,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE5_VALIDATOR_SELF_TEST=pass")
-    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=7")
+    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
