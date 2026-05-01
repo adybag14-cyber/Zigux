@@ -52,6 +52,7 @@ This slice does not yet claim:
 
 1. run the dedicated Phase 9 build
 - `zig build test --build-file zigux/tests/phase9_build.zig`
+- this shared build includes the direct `phase9-runtime-atomic64-sample-tests` and `phase9-runtime-atomic64-loader-tests` legs alongside the atomic64 module, diff, survey, loader, and shared runtime-loader checks
 
 2. run the convenience target
 - `make -C zigux phase9`
