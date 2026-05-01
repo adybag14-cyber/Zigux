@@ -8,6 +8,7 @@ from pathlib import Path
 from phase3_catalog import Phase3Paths, discover_phase3_slices
 from phase3_check_lib import render_wrapper_stub, shared_runner_gate_for_slug
 from validate_phase3_core import (
+    ABI_EXPECTED_LAYOUT_KEYS,
     ABI_REVIEW_CHECKLIST_MARKERS,
     ABI_POLICY_UNSAFE_SURVEY_CHECK_REL,
     ABI_REQUIRED_DOC_MARKERS,
@@ -20,6 +21,7 @@ from validate_phase3_core import (
     BUILD_FILE_REL,
     build_smoke_commands,
     select_slices,
+    validate_abi_expected_fixture,
     validate_export_uapi_boundary,
     validate_low_level_wrapper_exports,
     validate_policy_unsafe_boundary,
@@ -171,6 +173,106 @@ def run_self_test() -> int:
             zig_path=None,
         ) == ["doc-sync: artifact-diff-phase3-stale\tDocumentation/zigux/artifact-diff.md"]
 
+        abi_fixture_dir = paths.fixtures_dir / "phase3_abi"
+        abi_fixture_dir.mkdir(parents=True, exist_ok=True)
+        (paths.tests_dir / "phase3_abi.zig").write_text(
+            "\n".join(
+                [
+                    "const abi = @import(\"abi_bindings\");",
+                    "const layout_assert = @import(\"layout_assert\");",
+                    "",
+                    'test "phase3 abi slice uses stable canonical layouts" {',
+                    "    comptime {",
+                    "        layout_assert.assertBoundaryHeaderLayout();",
+                    "        layout_assert.assertExportStatusLayout();",
+                    "        layout_assert.assertInteropPolicyLayout();",
+                    "        layout_assert.assertMmioRangeLayout();",
+                    '        layout_assert.assertOffset(abi.MmioRange, "base_addr", 0);',
+                    '        layout_assert.assertOffset(abi.MmioRange, "length", @sizeOf(usize));',
+                    '        layout_assert.assertOffset(abi.MmioRange, "stride", @sizeOf(usize) + 4);',
+                    "    }",
+                    "}",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        (paths.tests_dir / "phase3_abi_dump.zig").write_text(
+            "\n".join(
+                [
+                    "fn writeStructLayout(writer: anytype, comptime name: []const u8, comptime T: type, comma: bool) !void {",
+                    "    _ = writer;",
+                    "    _ = name;",
+                    "    _ = T;",
+                    "    _ = comma;",
+                    "}",
+                    "",
+                    "pub fn main() void {",
+                    "    const writer = undefined;",
+                    '    writeStructLayout(writer, "zigux_boundary_header", void, true) catch unreachable;',
+                    '    writeStructLayout(writer, "zigux_export_status", void, true) catch unreachable;',
+                    '    writeStructLayout(writer, "zigux_mmio_range", void, true) catch unreachable;',
+                    '    writeStructLayout(writer, "zigux_interop_policy", void, false) catch unreachable;',
+                    "}",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        expected_structs = {
+            key: {"size": 0, "align": 0, "offsets": {}}
+            for key in ABI_EXPECTED_LAYOUT_KEYS
+        }
+        (abi_fixture_dir / "expected.json").write_text(
+            json.dumps(
+                {
+                    "abi_version": 1,
+                    "constants": ABI_REQUIRED_EXPECTED_CONSTANTS,
+                    "structs": expected_structs,
+                }
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        (abi_fixture_dir / "phase3_abi_c_harness.c").write_text(
+            "\n".join(
+                [
+                    "static const struct layout_desc layouts[] = {",
+                    '    {"zigux_boundary_header", sizeof(struct zigux_boundary_header), 0, 0, 0},',
+                    '    {"zigux_export_status", sizeof(struct zigux_export_status), 0, 0, 0},',
+                    '    {"zigux_mmio_range", sizeof(struct zigux_mmio_range), 0, 0, 0},',
+                    '    {"zigux_interop_policy", sizeof(struct zigux_interop_policy), 0, 0, 0},',
+                    "};",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert validate_abi_expected_fixture(root) == []
+        extra_structs = dict(expected_structs)
+        extra_structs["zigux_bitmap_view"] = {"size": 0, "align": 0, "offsets": {}}
+        (abi_fixture_dir / "expected.json").write_text(
+            json.dumps(
+                {
+                    "abi_version": 1,
+                    "constants": ABI_REQUIRED_EXPECTED_CONSTANTS,
+                    "structs": extra_structs,
+                }
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert validate_abi_expected_fixture(root) == [
+            "abi-fixture: expected.json tracks 5 layouts but phase3_abi_dump.zig emits 4",
+            "abi-fixture: expected.json tracks 5 layouts but phase3_abi_c_harness.c emits 4",
+            "abi-fixture: expected.json and phase3_abi_dump.zig layout keys drift",
+            "abi-fixture: expected.json and phase3_abi_c_harness.c layout keys drift",
+            "abi-fixture: expected.json layout keys must stay bounded to zigux_boundary_header, zigux_export_status, zigux_interop_policy, zigux_mmio_range",
+        ]
+
         source_marker_fixture = root / "marker-fixture.zig"
         source_marker_fixture.write_text(
             "pub fn boundaryMarker() void {}\n",
@@ -310,12 +412,27 @@ def run_self_test() -> int:
         policy_markers = ABI_REQUIRED_SOURCE_MARKERS["zigux/tests/phase3_policy_unsafe.zig"]
         assert "try std.testing.expectError(error.InvalidPanicMode, interop_policy.decode(.{" in policy_markers
         assert "try std.testing.expectError(error.InvalidAllocatorMode, interop_policy.decode(.{" in policy_markers
-        assert 'test "phase3 policy gate rejects overflowed unsafe address math"' in policy_markers
-        assert "try std.testing.expectError(error.AddressOverflow, narrow.checkedByteOffset(max, 1));" in policy_markers
-        assert "try std.testing.expectError(error.AddressOverflow, narrow.checkedSpanBytes(u32, max));" in policy_markers
-        assert "try std.testing.expectError(error.AddressOverflow, narrow.checkedSpanEnd(u32, 4, max));" in policy_markers
-        assert "try std.testing.expectError(error.AddressOverflow, narrow.scopedPointerAt(u32, .volatile_mmio, max, 1));" in policy_markers
-        assert "try std.testing.expectError(error.AddressOverflow, narrow.scopedConstSliceAt(u32, .raw_pointer_bridge, 4, max));" in policy_markers
+        assert 'test "phase3 policy gate decodes interop-policy unsafe bytes explicitly"' in policy_markers
+        assert "const invalid_scope_policy = abi.InteropPolicy{" in policy_markers
+        assert "const reserved_policy = abi.InteropPolicy{" in policy_markers
+        assert (
+            "try std.testing.expect(!narrow.recognizesInteropPolicyBytes(invalid_scope_policy.unsafe_scope, invalid_scope_policy.reserved));"
+            in policy_markers
+        )
+        assert (
+            "try std.testing.expect(!narrow.recognizesInteropPolicyBytes(reserved_policy.unsafe_scope, reserved_policy.reserved));"
+            in policy_markers
+        )
+        assert 'test "phase3 policy gate enforces the declared unsafe scope"' in policy_markers
+        assert "try std.testing.expectError(error.UnsafeScopeDenied, narrow.scopedPointerAt(u32, .none, base, 0));" in policy_markers
+        assert (
+            "try std.testing.expectError(error.UnsafeScopeDenied, narrow.scopedConstSliceAt(u32, .volatile_mmio, base, 1));"
+            in policy_markers
+        )
+        assert (
+            "try std.testing.expectError(error.UnsafeScopeDenied, narrow.scopedConstPointerAt(u32, .volatile_mmio, base));"
+            in policy_markers
+        )
 
         export_uapi_check = root / "scripts/zigux/validate-phase3-export-uapi-survey.py"
         export_uapi_check.write_text(
