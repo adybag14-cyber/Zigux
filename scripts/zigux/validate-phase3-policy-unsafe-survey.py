@@ -140,6 +140,10 @@ REQUIRED_POLICY_UNSAFE_TEST_SNIPPETS = (
     "try std.testing.expectError(error.InvalidAllocatorMode, interop_policy.decode(.{",
     'test "phase3 policy gate decodes interop-policy unsafe bytes explicitly"',
     'test "phase3 policy gate enforces the declared unsafe scope"',
+    "try std.testing.expectError(error.UnsafeScopeDenied, narrow.constSliceAt(u32, .volatile_mmio, base, words.len));",
+    "const words_slice = try narrow.constSliceAt(u32, .raw_pointer_bridge, base, words.len);",
+    "try std.testing.expectError(error.UnsafeScopeDenied, narrow.constPointerAt(u32, .volatile_mmio, base + @sizeOf(u32)));",
+    "const second_word = try narrow.constPointerAt(u32, .raw_pointer_bridge, base + @sizeOf(u32));",
     'test "phase3 policy gate rejects overflowed unsafe address math"',
     "try std.testing.expectError(error.AddressOverflow, narrow.checkedByteOffset(max, 1));",
     "try std.testing.expectError(error.AddressOverflow, narrow.scopedPointerAt(u32, .volatile_mmio, max, 1));",
@@ -437,8 +441,13 @@ def run_self_test() -> int:
                     'try std.testing.expectError(error.InvalidAllocatorMode, interop_policy.decode(.{',
                     'test "phase3 policy gate decodes interop-policy unsafe bytes explicitly" {}',
                     'test "phase3 policy gate enforces the declared unsafe scope" {}',
+                    'try std.testing.expectError(error.UnsafeScopeDenied, narrow.constSliceAt(u32, .volatile_mmio, base, words.len));',
+                    'const words_slice = try narrow.constSliceAt(u32, .raw_pointer_bridge, base, words.len);',
+                    'try std.testing.expectError(error.UnsafeScopeDenied, narrow.constPointerAt(u32, .volatile_mmio, base + @sizeOf(u32)));',
+                    'const second_word = try narrow.constPointerAt(u32, .raw_pointer_bridge, base + @sizeOf(u32));',
                     'test "phase3 policy gate rejects overflowed unsafe address math" {}',
                     'try std.testing.expectError(error.AddressOverflow, narrow.checkedByteOffset(max, 1));',
+                    'try std.testing.expectError(error.UnsafeScopeDenied, narrow.constSliceAt(u32, .volatile_mmio, base, 1));',
                     'try std.testing.expectError(error.AddressOverflow, narrow.scopedPointerAt(u32, .volatile_mmio, max, 1));',
                     "",
                 ]
@@ -525,6 +534,10 @@ def run_self_test() -> int:
         )
         assert (
             'missing_policy_unsafe_test_snippet:try std.testing.expectError(error.InvalidPanicMode, interop_policy.decode(.{'
+            in issues
+        )
+        assert (
+            'missing_policy_unsafe_test_snippet:try std.testing.expectError(error.UnsafeScopeDenied, narrow.constSliceAt(u32, .volatile_mmio, base, words.len));'
             in issues
         )
         assert (
