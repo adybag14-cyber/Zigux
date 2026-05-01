@@ -32,6 +32,7 @@ Current bootstrap helpers
 - `check-phase7-cmdline-parity.py`
 - `check-phase7-rbtree-parity.py`
 - `validate-phase8.py`
+- `check-phase8-tests-readme-alignment.py`
 - `validate-phase9.py`
 - `validate-phase10.py`
 - `validate-phase10-closure.py`
@@ -149,6 +150,7 @@ Phase 7 flow
 
 Phase 8 flow
 - `validate-phase8.py` keeps the parked repo-hosted tooling packet aligned across `Documentation/zigux/phase8-exec-cmd-slice.md`, `Documentation/zigux/phase8-help-slice.md`, `Documentation/zigux/phase8-kallsyms-slice.md`, `Documentation/zigux/phase8-libbpf-cpu-mask-slice.md`, `Documentation/zigux/phase8-bpf-type-names-slice.md`, `Documentation/zigux/phase8-libbpf-segment-survey.md`, `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`, and `Documentation/zigux/phase8-perf-buffer-poll-slice.md` so the shared review surface stays explicit.
+- `check-phase8-tests-readme-alignment.py` keeps `zigux/tests/README.md`, `Documentation/zigux/phase8-perf-buffer-poll-slice.md`, `zigux/tests/phase8_build.zig`, and `zigux/Makefile` aligned with the shared Phase 8 perf-buffer poll packet and the validator-first `phase8-validate` hooks.
 - `make -C zigux phase8-validate` is the validator-first entrypoint for the current Phase 8 flow.
 - `zigux/tests/phase8_exec_cmd_only_build.zig`, `zigux/tests/phase8_help_only_build.zig`, `zigux/tests/phase8_kallsyms_only_build.zig`, `zigux/tests/phase8_libbpf_segments_only_build.zig`, `zigux/tests/phase8_perf_buffer_poll.zig`, and `zigux/tests/phase8_build.zig` keep the focused and shared replay paths visible in one place.
 - `tools/lib/subcmd/exec-cmd.zig`, the deferred execution notes around `execvp()`, and the separate `kernel/workqueue.c` freeze boundary remain helper-only review surfaces rather than new process-launch claims.
