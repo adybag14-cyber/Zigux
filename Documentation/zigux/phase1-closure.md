@@ -36,6 +36,7 @@ No additional helper should be called Phase 1 work unless this document and the 
 
 - `tools/lib/bitmap.zig` closure includes committed C-backed parity coverage for allocator-backed bitmap sizing, zero-allocation state, contiguous-range rendering, the empty-bitmap buffer-preservation contract, and the truncation path that must preserve a trailing terminator slot.
 - `tools/lib/bitmap.zig` direct Zig unit coverage keeps `bitmapAlloc()`, `bitmapZalloc()`, and `bitmapFree()` honest by proving optional bitmap handles size through `bitsToWords()`, zero-filled allocation stays intact, and released optionals reset to `null`.
+- `tools/lib/bitmap.zig` direct Zig unit coverage also keeps `bitmap_alloc()`, `bitmap_zalloc()`, and `bitmap_free()` aligned with `bitmapAlloc()`, `bitmapZalloc()`, and `bitmapFree()` for partial-word sizing, zero-filled allocation, and optional-handle reset semantics.
 - `tools/lib/bitmap.zig` direct Zig unit coverage also keeps tail-masked reduction helpers aligned so `andBits()`, `andNotBits()`, `equal()`, `intersects()`, and `subset()` ignore out-of-range tail differences while preserving the in-range window.
 - `tools/lib/bitmap.zig` direct Zig unit coverage also keeps `xorBits()` aligned with the caller-selected bit window by proving partial-word and multiword-tail replays preserve only the in-range bits that callers intentionally clamp.
 - `tools/lib/bitmap.zig` direct Zig unit coverage also keeps zero-length helper calls explicit and side-effect free so `zero()`, `fill()`, `copy()`, `copyClearTail()`, `orBits()`, `xorBits()`, scans, and formatting all leave caller-owned buffers untouched when `nbits` is zero.
@@ -47,6 +48,7 @@ No additional helper should be called Phase 1 work unless this document and the 
 - bitmap manifest review anchor: `zigux/tests/fixtures/phase1_helper_manifest.json`
 - bitmap direct unit-test anchor: `tools/lib/bitmap.zig:test "bitmap allocation helpers size zero fill and reset optionals"`
 - bitmap alias unit-test anchor: `tools/lib/bitmap.zig:test "bitmap underscore aliases preserve bitmap helper semantics"`
+- bitmap allocator alias unit-test anchor: `tools/lib/bitmap.zig:test "bitmap underscore allocator aliases preserve allocation and ownership semantics"`
 - bitmap xor unit-test anchor: `tools/lib/bitmap.zig:test "bitmap xor keeps caller-selected bit window"`
 - bitmap tail-mask unit-test anchor: `tools/lib/bitmap.zig:test "bitmap tail-masked helpers ignore out-of-range differences"`
 - bitmap zero-bit unit-test anchor: `tools/lib/bitmap.zig:test "bitmap zero-bit helpers stay explicit no-ops"`
@@ -57,6 +59,7 @@ No additional helper should be called Phase 1 work unless this document and the 
 - `PHASE1_BITMAP_REVIEW=bitmap parity covers allocator-backed sizing, zero-allocation state, contiguous-range rendering, empty-bitmap buffer preservation, and truncation that preserves the terminator slot`
 - `PHASE1_BITMAP_UNIT_REVIEW=bitmap allocation helpers keep bitmapFree optional handles null after release while shared parity covers allocator-backed sizing and zero-allocation state`
 - `PHASE1_BITMAP_ALIAS_UNIT_REVIEW=bitmap underscore alias entry points preserve the same caller-selected window semantics as the camelCase helpers for weight bitwise range and formatting operations`
+- `PHASE1_BITMAP_ALLOCATOR_ALIAS_UNIT_REVIEW=bitmap bitmap_alloc bitmap_zalloc and bitmap_free stay aligned with bitmapAlloc bitmapZalloc and bitmapFree for partial-word sizing zero-filled allocation and optional-handle reset semantics`
 - `PHASE1_BITMAP_XOR_UNIT_REVIEW=bitmap xorBits caller-selected window coverage proves partial-word and multiword-tail replays preserve only the in-range bits that callers intentionally clamp`
 - `PHASE1_BITMAP_TAIL_MASK_UNIT_REVIEW=bitmap tail-masked reduction helpers ignore out-of-range differences while preserving the in-range window for andBits, andNotBits, equal, intersects, and subset`
 - `PHASE1_BITMAP_ZERO_BIT_UNIT_REVIEW=bitmap zero-length helper calls stay side-effect free so zero fill copy copyClearTail orBits xorBits scans and formatting leave caller-owned buffers untouched when nbits is zero`
