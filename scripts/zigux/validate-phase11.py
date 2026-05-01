@@ -308,7 +308,7 @@ def run_self_test() -> int:
 
         gpio_test_path = tmp_root / "zigux/tests/phase11_gpio_wdt.zig"
         original_gpio_test = gpio_test_path.read_text(encoding="utf-8")
-        gpio_test_path.write_text(
+        gpio_test_path.writeText(
             original_gpio_test.replace(
                 "    const toggle_teardown = try toggle_watchdog.summarizeTeardown(false);\n",
                 "",
@@ -685,7 +685,7 @@ for marker in [
     if marker not in hvc_slice_doc:
         missing.append(f"phase11_hvc_console_docs:slice:{marker}")
 for marker in [
-    "PHASE11_HVC_CONSOLE_STATUS=remove_handoff_landed",
+    "PHASE11_HVC_CONSOLE_STATUS=cleanup_handoff_landed",
     f"reviewed against live `master` `{hvc_commit}`",
     "| final-close teardown handoff | `summarizeCloseTeardown()` keeps tty detachment, `HUPCL`-gated `dtr_rts` shutdown, `notifier_del` ownership, resize-work cancellation, `tty_wait_until_sent()` intent, and final `port_initialized` clearing reviewable without claiming notifier callbacks or tty-core teardown timing |",
     "`zigux/tests/phase11_build.zig` continues to run `zigux/tests/phase11_hvc_console.zig` inside the shared Phase 11 starter replay",
