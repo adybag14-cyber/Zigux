@@ -91,6 +91,14 @@ The first shared substrate implementation is now ready because:
 
 That still leaves the broader control plane blocked. Any future non-null `command_name` must keep a truthful Phase 8 owner such as `tools/lib/subcmd/exec-cmd.zig` and `ExtractArgv0Result.command_name`, and this slice still does not claim `Config.exec_path_env`, `PERF_EXEC_PATH`, `PATH`, or other environment-derived activation handling as runtime-loader behavior.
 
+## Adjacent freeze boundaries
+
+The shared request surface also stays parked beneath the nearby freeze-map boundaries:
+
+- `Documentation/zigux/freeze-map.md` keeps `kernel/workqueue.c` in `Study / Boundary Only`, so this substrate note must not imply scheduler transport ownership, polling, event-loop behavior, or workqueue-parity progress.
+- `samples/zigux/runtime_trace_events.zig` remains the fourth Phase 9 pilot, but it stays intentionally sample-only while `samples/zigux/runtime_trace_events_loader.zig` is absent and `zigux/tests/runtime_trace_events_manifest.json` keeps the `runtime-trace-events-substrate-handoff` blocker explicit.
+- `Documentation/zigux/freeze-map.md` also keeps `kernel/trace/ring_buffer.c` in `Study / Boundary Only`, so tracepoint-registration lifecycle wiring, thread creation, and any future trace-events loader path remain blocked until that boundary is reopened with Architecture Council evidence.
+
 ## Non-goals
 
 This slice should not yet claim:
