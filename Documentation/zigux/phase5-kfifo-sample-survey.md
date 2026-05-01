@@ -14,6 +14,7 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
   - `Documentation/zigux/README.md`
   - `Documentation/zigux/review-checklist.md`
   - `samples/zigux/README.md`
+  - `zigux/tests/README.md`
   - `samples/zigux/bytestream_fifo.zig`
   - `zigux/tests/phase5_build.zig`
   - `zigux/tests/phase5_bytestream_fifo.zig`
