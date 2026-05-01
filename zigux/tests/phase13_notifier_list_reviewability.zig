@@ -100,7 +100,7 @@ test "phase13 notifier/list survey keeps the current list surface and generic no
         std.mem.indexOf(u8, phase3_build, "../helpers/notifier_chain_view.zig") != null;
     const notifier_helper_present = !notifier_helper_missing;
 
-    try std.testing.expectEqualStrings("P13-L16", manifest.lane_key);
+    try std.testing.expectEqualStrings("P13-L17", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("66b55d8a9a800345097f3c04b9f95130b1f8d0b8", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 5), manifest.anchors.len);
@@ -190,6 +190,7 @@ test "phase13 notifier/list survey keeps the current list surface and generic no
     try std.testing.expect(std.mem.indexOf(u8, watchdog_header_text, "struct notifier_block restart_nb;") != null);
     try std.testing.expect(std.mem.indexOf(u8, watchdog_header_text, "struct notifier_block pm_nb;") != null);
     try std.testing.expect(std.mem.indexOf(u8, watchdog_header_text, "struct list_head deferred;") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "lane key: `P13-L17`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "generic notifier ABI surface") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "roadmap-adjacent reviewability evidence only") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "list and hlist view surface") != null);
