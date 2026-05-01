@@ -76,6 +76,10 @@ pub const RuntimeTraceEventsSummary = struct {
     saw_vararg_payload: bool,
     saw_rel_loc_payload: bool,
     saw_conditional_path: bool,
+    main_thread_label: ?[]const u8,
+    function_thread_label: ?[]const u8,
+    last_register_label: ?[]const u8,
+    last_unregister_label: ?[]const u8,
     last_main_foo_bar_message: ?[]const u8,
     last_main_random_choice_message: ?[]const u8,
     last_main_vararg_array_length: ?usize,
@@ -106,6 +110,10 @@ pub const RuntimeTraceEventsSample = struct {
     saw_vararg_payload: bool = false,
     saw_rel_loc_payload: bool = false,
     saw_conditional_path: bool = false,
+    main_thread_label: ?[]const u8 = null,
+    function_thread_label: ?[]const u8 = null,
+    last_register_label: ?[]const u8 = null,
+    last_unregister_label: ?[]const u8 = null,
     last_main_payload: ?MainThreadPayload = null,
     last_function_payload: ?FunctionThreadPayload = null,
 
@@ -139,6 +147,10 @@ pub const RuntimeTraceEventsSample = struct {
             .saw_vararg_payload = self.saw_vararg_payload,
             .saw_rel_loc_payload = self.saw_rel_loc_payload,
             .saw_conditional_path = self.saw_conditional_path,
+            .main_thread_label = self.main_thread_label,
+            .function_thread_label = self.function_thread_label,
+            .last_register_label = self.last_register_label,
+            .last_unregister_label = self.last_unregister_label,
             .last_main_foo_bar_message = if (self.last_main_payload) |payload| payload.foo_bar_message else null,
             .last_main_random_choice_message = if (self.last_main_payload) |payload| payload.random_choice_message else null,
             .last_main_vararg_array_length = if (self.last_main_payload) |payload| payload.vararg_array_length else null,
@@ -173,6 +185,10 @@ pub const RuntimeTraceEventsSample = struct {
         self.saw_vararg_payload = false;
         self.saw_rel_loc_payload = false;
         self.saw_conditional_path = false;
+        self.main_thread_label = "event-sample";
+        self.function_thread_label = "event-sample-fn";
+        self.last_register_label = null;
+        self.last_unregister_label = null;
         self.last_main_payload = null;
         self.last_function_payload = null;
         self.init_runs += 1;
@@ -182,12 +198,14 @@ pub const RuntimeTraceEventsSample = struct {
     pub fn registerFunctionThread(self: *Self) !void {
         try self.ensureMutable();
         self.registration_depth += 1;
+        self.last_register_label = "foo_bar_reg";
     }
 
     pub fn unregisterFunctionThread(self: *Self) !void {
         try self.ensureMutable();
         if (self.registration_depth == 0) return error.RegistrationUnderflow;
         self.registration_depth -= 1;
+        self.last_unregister_label = "foo_bar_unreg";
     }
 
     fn randomStringForCount(count: i32) []const u8 {
@@ -318,6 +336,10 @@ test "runtime trace-events sample keeps selftest replay explicit" {
     try std.testing.expect(summary.saw_vararg_payload);
     try std.testing.expect(summary.saw_rel_loc_payload);
     try std.testing.expect(summary.saw_conditional_path);
+    try std.testing.expectEqualStrings("event-sample", summary.main_thread_label orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("event-sample-fn", summary.function_thread_label orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqualStrings("foo_bar_reg", summary.last_register_label orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqualStrings("foo_bar_unreg", summary.last_unregister_label orelse return error.ExpectedFunctionPayload);
     try std.testing.expectEqualStrings("hello", summary.last_main_foo_bar_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings("Gandalf", summary.last_main_random_choice_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqual(@as(usize, 2), summary.last_main_vararg_array_length orelse return error.ExpectedMainPayload);
@@ -357,6 +379,10 @@ test "runtime trace-events sample keeps exit lifecycle explicit" {
     try std.testing.expect(summary.saw_vararg_payload);
     try std.testing.expect(summary.saw_rel_loc_payload);
     try std.testing.expect(summary.saw_conditional_path);
+    try std.testing.expectEqualStrings("event-sample", summary.main_thread_label orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("event-sample-fn", summary.function_thread_label orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqualStrings("foo_bar_reg", summary.last_register_label orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqualStrings("foo_bar_unreg", summary.last_unregister_label orelse return error.ExpectedFunctionPayload);
     try std.testing.expectEqualStrings("hello", summary.last_main_foo_bar_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings("Mother Goose", summary.last_main_random_choice_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqual(@as(usize, 0), summary.last_main_vararg_array_length orelse return error.ExpectedMainPayload);
@@ -396,6 +422,10 @@ test "runtime trace-events sample keeps failed exit rollback explicit" {
     try std.testing.expect(before_failed_exit.saw_vararg_payload);
     try std.testing.expect(before_failed_exit.saw_rel_loc_payload);
     try std.testing.expect(before_failed_exit.saw_conditional_path);
+    try std.testing.expectEqualStrings("event-sample", before_failed_exit.main_thread_label orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("event-sample-fn", before_failed_exit.function_thread_label orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqualStrings("foo_bar_reg", before_failed_exit.last_register_label orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqual(@as(?[]const u8, null), before_failed_exit.last_unregister_label);
     try std.testing.expectEqualStrings("hello", before_failed_exit.last_main_foo_bar_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings("Frodo", before_failed_exit.last_main_random_choice_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqual(@as(usize, 3), before_failed_exit.last_main_vararg_array_length orelse return error.ExpectedMainPayload);
@@ -428,6 +458,22 @@ test "runtime trace-events sample keeps failed exit rollback explicit" {
     try std.testing.expectEqual(before_failed_exit.saw_vararg_payload, after_failed_exit.saw_vararg_payload);
     try std.testing.expectEqual(before_failed_exit.saw_rel_loc_payload, after_failed_exit.saw_rel_loc_payload);
     try std.testing.expectEqual(before_failed_exit.saw_conditional_path, after_failed_exit.saw_conditional_path);
+    try std.testing.expectEqualStrings(
+        before_failed_exit.main_thread_label orelse return error.ExpectedMainPayload,
+        after_failed_exit.main_thread_label orelse return error.ExpectedMainPayload,
+    );
+    try std.testing.expectEqualStrings(
+        before_failed_exit.function_thread_label orelse return error.ExpectedFunctionPayload,
+        after_failed_exit.function_thread_label orelse return error.ExpectedFunctionPayload,
+    );
+    try std.testing.expectEqualStrings(
+        before_failed_exit.last_register_label orelse return error.ExpectedFunctionPayload,
+        after_failed_exit.last_register_label orelse return error.ExpectedFunctionPayload,
+    );
+    try std.testing.expectEqual(
+        before_failed_exit.last_unregister_label,
+        after_failed_exit.last_unregister_label,
+    );
     try std.testing.expectEqualStrings(
         before_failed_exit.last_main_foo_bar_message orelse return error.ExpectedMainPayload,
         after_failed_exit.last_main_foo_bar_message orelse return error.ExpectedMainPayload,
@@ -487,4 +533,8 @@ test "runtime trace-events sample keeps failed exit rollback explicit" {
     try std.testing.expectEqual(@as(usize, 2), final_summary.main_iterations);
     try std.testing.expectEqual(@as(usize, 2), final_summary.fn_iterations);
     try std.testing.expectEqual(@as(usize, 16), final_summary.total_events);
+    try std.testing.expectEqualStrings("event-sample", final_summary.main_thread_label orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("event-sample-fn", final_summary.function_thread_label orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqualStrings("foo_bar_reg", final_summary.last_register_label orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqualStrings("foo_bar_unreg", final_summary.last_unregister_label orelse return error.ExpectedFunctionPayload);
 }
