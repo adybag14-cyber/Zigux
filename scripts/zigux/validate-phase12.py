@@ -102,6 +102,7 @@ README_MARKERS = [
     "survey notes pinned to each manifest's exact `surveyed_commit`",
     "repeat-run and artifact-drift self-test",
     "the current active storage-driver survey packet stays explicit through `Documentation/zigux/phase12-virtio-scsi-survey.md`, `Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, and the paired `zigux/tests/phase12_virtio_scsi_{manifest,survey}.zig` files, so the queue-layout, recovery, probe snapshot, host-limit summary, queue-depth summary, and io-queue-map starters remain visible without overstating the still-blocked DMA-backed queue ownership, `Scsi_Host` lifecycle, or blk-mq follow-up.",
+    "Build Summary: 19/19 steps succeeded; 55/55 tests passed",
 ]
 DOCS_ROOT_MARKERS = [
     "Phase 12 notes",
