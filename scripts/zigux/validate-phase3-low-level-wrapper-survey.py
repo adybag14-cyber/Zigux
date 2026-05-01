@@ -1,0 +1,411 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import os
+from pathlib import Path
+import re
+import subprocess
+import tempfile
+
+
+_HERE = Path(__file__).resolve()
+ROOT = _HERE.parents[2] if len(_HERE.parents) > 2 else _HERE.parent
+SURVEY_REL = "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"
+ABI_SLICE_REL = "Documentation/zigux/phase3-abi-slice.md"
+MANIFEST_REL = "zigux/tests/fixtures/phase3_abi_manifest.json"
+REVIEW_CHECKLIST_REL = "Documentation/zigux/review-checklist.md"
+ATOMIC_REL = "zigux/helpers/atomic.zig"
+BARRIER_REL = "zigux/helpers/barrier.zig"
+MMIO_REL = "zigux/helpers/mmio.zig"
+LOW_LEVEL_BUILD_REL = "zigux/tests/phase3_low_level_wrappers_build.zig"
+LOW_LEVEL_TEST_REL = "zigux/tests/phase3_low_level_wrappers.zig"
+
+HEX40 = re.compile(r"^[0-9a-f]{40}$")
+PLACEHOLDER_SHA = "0123456789abcdef0123456789abcdef01234567"
+
+REQUIRED_SURVEY_MARKERS = (
+    "PHASE3_SURVEY_PROVENANCE=packet-local-blob-first-current-head-sha-unavailable-in-connector-run",
+    "PHASE3_ATOMIC_PATH=zigux/helpers/atomic.zig",
+    "PHASE3_ATOMIC_SCOPE=load-store-exchange-compare-exchange-fetch-add-fetch-sub-fetch-and-fetch-or-fetch-xor",
+    "PHASE3_ATOMIC_STATUS=bounded-helper-surface-and-mismatch-replay-landed",
+    "PHASE3_BARRIER_PATH=zigux/helpers/barrier.zig",
+    "PHASE3_BARRIER_SCOPE=acquire-release-full",
+    "PHASE3_BARRIER_STATUS=throwaway-probe-barriers-landed",
+    "PHASE3_MMIO_PATH=zigux/helpers/mmio.zig",
+    "PHASE3_MMIO_SCOPE=range-read8-read16-read32-write8-write16-write32-plus-scoped-read8-write8-read16-write16-read32-write32",
+    "PHASE3_MMIO_STATUS=scoped-width-specific-mmio-and-guard-coverage-landed",
+    "PHASE3_LOW_LEVEL_BUILD_PATH=zigux/tests/phase3_low_level_wrappers_build.zig",
+    "PHASE3_LOW_LEVEL_TEST_PATH=zigux/tests/phase3_low_level_wrappers.zig",
+    "PHASE3_LOW_LEVEL_GATE=zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
+    "PHASE3_BOUNDARY_GAP=no-64-bit-mmio-or-broader-kernel-style-atomic-and-barrier-family-is-shipped-yet",
+    "PHASE3_NEXT_BOUNDED_STEP=keep-the-low-level-wrapper-packet-narrow-until-one-roadmap-backed-boundary-slice-needs-one-more-explicit-helper",
+)
+
+REQUIRED_SURVEY_SNIPPETS = (
+    "approved atomic, barrier, and MMIO wrappers",
+    "`zigux/helpers/atomic.zig` currently limits the approved helper surface to `load`, `store`, `exchange`, `fetchAdd`, `fetchSub`, `fetchAnd`, `fetchOr`, `fetchXor`, and `compareExchange`",
+    "`zigux/helpers/barrier.zig` currently limits the approved barrier surface to `acquire`, `release`, and `full`",
+    "`zigux/helpers/mmio.zig` currently limits the approved MMIO surface to `range`, `read8`, `read16`, `read32`, `write8`, `write16`, and `write32`, plus the scoped `read8`, `write8`, `read16`, `write16`, `read32`, and `write32` entry points",
+    "no 64-bit MMIO helpers are shipped in the current packet",
+    "no relaxed-order barrier variants are shipped in the current packet",
+    "no broader kernel-style atomic helper family is shipped in the current packet",
+    "`zigux/tests/phase3_low_level_wrappers.zig` now keeps the compare-exchange mismatch replay, barrier probe, denied-scope checks, width-specific scoped MMIO coverage, misalignment failures, overflow failures, and the shared `MmioRange` layout assertion reviewable without having to infer them from the broader `phase3_abi` bundle alone.",
+    "This is real roadmap-backed progress.",
+)
+
+REQUIRED_SURVEY_PATHS = (
+    ATOMIC_REL,
+    BARRIER_REL,
+    MMIO_REL,
+    LOW_LEVEL_BUILD_REL,
+    LOW_LEVEL_TEST_REL,
+    MANIFEST_REL,
+    ABI_SLICE_REL,
+    REVIEW_CHECKLIST_REL,
+)
+
+REQUIRED_REVIEW_CHECKLIST_SNIPPETS = (
+    "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",
+    "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
+    "compare-exchange mismatch",
+    "barrier probe behavior",
+)
+
+REQUIRED_ATOMIC_SNIPPETS = (
+    "pub fn load(comptime T: type, ptr: *const T, comptime order: std.builtin.AtomicOrder) T {",
+    "pub fn fetchAnd(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {",
+    "pub fn fetchOr(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {",
+    "pub fn fetchXor(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {",
+    "pub fn compareExchange(",
+    'test "phase3 atomic wrappers behave predictably"',
+)
+
+REQUIRED_BARRIER_SNIPPETS = (
+    "pub fn acquire() void {",
+    "pub fn release() void {",
+    "pub fn full() void {",
+    'test "phase3 barrier wrappers stay local to each barrier probe"',
+)
+
+REQUIRED_MMIO_SNIPPETS = (
+    "pub fn range(base_addr: usize, length: u32, stride: u32) abi.MmioRange {",
+    "pub fn read16Scoped(scope: narrow.UnsafeScopeTag, base_addr: usize, offset: usize) narrow.ScopeError!u16 {",
+    "pub fn write16Scoped(",
+    "pub fn read32Scoped(scope: narrow.UnsafeScopeTag, base_addr: usize, offset: usize) narrow.ScopeError!u32 {",
+    "pub fn write32Scoped(",
+    'test "phase3 mmio wrapper keeps declared scope explicit across widths"',
+    'test "phase3 mmio wrapper rejects misaligned scoped accesses"',
+    'test "phase3 mmio wrapper rejects overflowed scoped accesses"',
+)
+
+REQUIRED_LOW_LEVEL_TEST_SNIPPETS = (
+    'test "phase3 low-level wrappers stay inside the documented ABI surface"',
+    "atomic.fetchAnd(u32, &value, 0b0111, .seq_cst)",
+    "atomic.fetchOr(u32, &value, 0b1000, .seq_cst)",
+    "atomic.fetchXor(u32, &value, 0b1111, .seq_cst)",
+    "const mismatch = atomic.compareExchange(u32, &value, 9, 19, .seq_cst, .seq_cst);",
+    "barrier.full();",
+    "const desc = mmio.range(base, 12, 4);",
+    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write16Scoped(.none, base, 0, 0x99));",
+    "try std.testing.expectError(error.MisalignedAccess, mmio.write16Scoped(.volatile_mmio, base, 1, 0x99));",
+    "try std.testing.expectError(error.AddressOverflow, mmio.write32Scoped(.volatile_mmio, std.math.maxInt(usize), 4, 0x99));",
+    'test "phase3 low-level wrapper ABI range shape stays stable"',
+    'test "phase3 low-level wrappers keep the narrow unsafe scope contract explicit"',
+)
+
+REQUIRED_ABI_SLICE_SNIPPETS = (
+    "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",
+    "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
+    "64-bit MMIO or broader kernel-style atomic or barrier families still stay deferred",
+)
+
+SURVEYED_PACKET_BLOB_MARKERS = {
+    "PHASE3_ATOMIC_BLOB_SHA": ATOMIC_REL,
+    "PHASE3_BARRIER_BLOB_SHA": BARRIER_REL,
+    "PHASE3_MMIO_BLOB_SHA": MMIO_REL,
+    "PHASE3_LOW_LEVEL_BUILD_BLOB_SHA": LOW_LEVEL_BUILD_REL,
+    "PHASE3_LOW_LEVEL_TEST_BLOB_SHA": LOW_LEVEL_TEST_REL,
+    "PHASE3_ABI_SLICE_DOC_BLOB_SHA": ABI_SLICE_REL,
+    "PHASE3_ABI_MANIFEST_BLOB_SHA": MANIFEST_REL,
+}
+
+
+def _read_text(root: Path, rel: str, issues: list[str]) -> str:
+    path = root / rel
+    try:
+        return path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        issues.append(f"missing_file:{rel}")
+        return ""
+
+
+def _check_snippets(text: str, snippets: tuple[str, ...], prefix: str, issues: list[str]) -> None:
+    for snippet in snippets:
+        if snippet not in text:
+            issues.append(f"{prefix}:{snippet}")
+
+
+def _marker_value_from_text(text: str, marker: str) -> str | None:
+    prefix = f"{marker}="
+    for line in text.splitlines():
+        stripped = line.strip().strip("- ").strip("`")
+        if stripped.startswith(prefix):
+            return stripped[len(prefix) :]
+    return None
+
+
+def _packet_drift_by_blob_sha(root: Path, survey: str) -> list[str]:
+    if not (root / ".git").exists():
+        return []
+
+    issues: list[str] = []
+    for marker, rel in SURVEYED_PACKET_BLOB_MARKERS.items():
+        expected_blob = _marker_value_from_text(survey, marker)
+        if expected_blob is None:
+            issues.append(f"missing_survey_marker:{marker}=")
+            continue
+        if not HEX40.fullmatch(expected_blob):
+            issues.append(f"invalid_survey_blob_sha:{marker}:{expected_blob}")
+            continue
+
+        path = root / rel
+        if not path.exists():
+            issues.append(f"current_blob_unavailable:{rel}")
+            continue
+
+        result = subprocess.run(
+            ["git", "hash-object", "--no-filters", str(path)],
+            cwd=root,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        if result.returncode != 0:
+            issues.append(f"current_blob_unavailable:{rel}")
+            continue
+
+        current_blob = result.stdout.strip()
+        if not HEX40.fullmatch(current_blob):
+            issues.append(f"invalid_current_blob_sha:{rel}:{current_blob}")
+        elif current_blob != expected_blob:
+            issues.append(f"surveyed_blob_drift:{rel}")
+
+    return issues
+
+
+def validate(root: Path) -> list[str]:
+    issues: list[str] = []
+
+    survey = _read_text(root, SURVEY_REL, issues)
+    review_checklist = _read_text(root, REVIEW_CHECKLIST_REL, issues)
+    atomic = _read_text(root, ATOMIC_REL, issues)
+    barrier = _read_text(root, BARRIER_REL, issues)
+    mmio = _read_text(root, MMIO_REL, issues)
+    low_level_test = _read_text(root, LOW_LEVEL_TEST_REL, issues)
+    abi_slice = _read_text(root, ABI_SLICE_REL, issues)
+
+    if survey:
+        _check_snippets(survey, REQUIRED_SURVEY_MARKERS, "missing_survey_marker", issues)
+        _check_snippets(survey, REQUIRED_SURVEY_SNIPPETS, "missing_survey_snippet", issues)
+        issues.extend(_packet_drift_by_blob_sha(root, survey))
+
+    for rel in REQUIRED_SURVEY_PATHS:
+        if not (root / rel).exists():
+            issues.append(f"missing_repo_path:{rel}")
+
+    if review_checklist:
+        _check_snippets(
+            review_checklist,
+            REQUIRED_REVIEW_CHECKLIST_SNIPPETS,
+            "missing_review_checklist_snippet",
+            issues,
+        )
+    if atomic:
+        _check_snippets(atomic, REQUIRED_ATOMIC_SNIPPETS, "missing_atomic_snippet", issues)
+    if barrier:
+        _check_snippets(barrier, REQUIRED_BARRIER_SNIPPETS, "missing_barrier_snippet", issues)
+    if mmio:
+        _check_snippets(mmio, REQUIRED_MMIO_SNIPPETS, "missing_mmio_snippet", issues)
+    if low_level_test:
+        _check_snippets(
+            low_level_test,
+            REQUIRED_LOW_LEVEL_TEST_SNIPPETS,
+            "missing_low_level_test_snippet",
+            issues,
+        )
+    if abi_slice:
+        _check_snippets(abi_slice, REQUIRED_ABI_SLICE_SNIPPETS, "missing_abi_slice_snippet", issues)
+
+    return issues
+
+
+def _write(root: Path, rel: str, text: str) -> None:
+    path = root / rel
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8", newline="\n")
+
+
+def _blob_marker_lines() -> list[str]:
+    return [f"- `{marker}={PLACEHOLDER_SHA}`" for marker in SURVEYED_PACKET_BLOB_MARKERS]
+
+
+def _replace_blob_markers_with_head(root: Path, survey_path: Path) -> None:
+    survey_text = survey_path.read_text(encoding="utf-8")
+    for marker, rel in SURVEYED_PACKET_BLOB_MARKERS.items():
+        blob_sha = subprocess.run(
+            ["git", "hash-object", "--no-filters", str(root / rel)],
+            cwd=root,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+        survey_text = survey_text.replace(f"{marker}={PLACEHOLDER_SHA}", f"{marker}={blob_sha}")
+    survey_path.write_text(survey_text, encoding="utf-8", newline="\n")
+
+
+def run_self_test() -> int:
+    with tempfile.TemporaryDirectory(prefix="zigux_phase3_low_level_wrapper_survey_") as tmp_dir_str:
+        root = Path(tmp_dir_str)
+
+        _write(
+            root,
+            SURVEY_REL,
+            "\n".join(
+                [
+                    "# Phase 3 Low-Level Wrapper Boundary Survey",
+                    "",
+                    "- `PHASE3_SURVEY_PROVENANCE=packet-local-blob-first-current-head-sha-unavailable-in-connector-run`",
+                    "- `PHASE3_ATOMIC_PATH=zigux/helpers/atomic.zig`",
+                    "- `PHASE3_ATOMIC_SCOPE=load-store-exchange-compare-exchange-fetch-add-fetch-sub-fetch-and-fetch-or-fetch-xor`",
+                    "- `PHASE3_ATOMIC_STATUS=bounded-helper-surface-and-mismatch-replay-landed`",
+                    "- `PHASE3_BARRIER_PATH=zigux/helpers/barrier.zig`",
+                    "- `PHASE3_BARRIER_SCOPE=acquire-release-full`",
+                    "- `PHASE3_BARRIER_STATUS=throwaway-probe-barriers-landed`",
+                    "- `PHASE3_MMIO_PATH=zigux/helpers/mmio.zig`",
+                    "- `PHASE3_MMIO_SCOPE=range-read8-read16-read32-write8-write16-write32-plus-scoped-read8-write8-read16-write16-read32-write32`",
+                    "- `PHASE3_MMIO_STATUS=scoped-width-specific-mmio-and-guard-coverage-landed`",
+                    "- `PHASE3_LOW_LEVEL_BUILD_PATH=zigux/tests/phase3_low_level_wrappers_build.zig`",
+                    "- `PHASE3_LOW_LEVEL_TEST_PATH=zigux/tests/phase3_low_level_wrappers.zig`",
+                    "- `PHASE3_LOW_LEVEL_GATE=zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`",
+                    "- `PHASE3_BOUNDARY_GAP=no-64-bit-mmio-or-broader-kernel-style-atomic-and-barrier-family-is-shipped-yet`",
+                    "- `PHASE3_NEXT_BOUNDED_STEP=keep-the-low-level-wrapper-packet-narrow-until-one-roadmap-backed-boundary-slice-needs-one-more-explicit-helper`",
+                    "",
+                    "The roadmap calls for approved atomic, barrier, and MMIO wrappers.",
+                    "Today `zigux/helpers/atomic.zig` currently limits the approved helper surface to `load`, `store`, `exchange`, `fetchAdd`, `fetchSub`, `fetchAnd`, `fetchOr`, `fetchXor`, and `compareExchange`.",
+                    "Today `zigux/helpers/barrier.zig` currently limits the approved barrier surface to `acquire`, `release`, and `full`.",
+                    "Today `zigux/helpers/mmio.zig` currently limits the approved MMIO surface to `range`, `read8`, `read16`, `read32`, `write8`, `write16`, and `write32`, plus the scoped `read8`, `write8`, `read16`, `write16`, `read32`, and `write32` entry points.",
+                    "The packet keeps it explicit that no 64-bit MMIO helpers are shipped in the current packet, no relaxed-order barrier variants are shipped in the current packet, and no broader kernel-style atomic helper family is shipped in the current packet.",
+                    "`zigux/tests/phase3_low_level_wrappers.zig` now keeps the compare-exchange mismatch replay, barrier probe, denied-scope checks, width-specific scoped MMIO coverage, misalignment failures, overflow failures, and the shared `MmioRange` layout assertion reviewable without having to infer them from the broader `phase3_abi` bundle alone.",
+                    "This is real roadmap-backed progress.",
+                    "",
+                    *_blob_marker_lines(),
+                ]
+            )
+            + "\n",
+        )
+        _write(
+            root,
+            REVIEW_CHECKLIST_REL,
+            "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md\n"
+            "scripts/zigux/validate-phase3-low-level-wrapper-survey.py\n"
+            "compare-exchange mismatch\n"
+            "barrier probe behavior\n",
+        )
+        _write(root, ATOMIC_REL, "\n".join(REQUIRED_ATOMIC_SNIPPETS) + "\n")
+        _write(root, BARRIER_REL, "\n".join(REQUIRED_BARRIER_SNIPPETS) + "\n")
+        _write(root, MMIO_REL, "\n".join(REQUIRED_MMIO_SNIPPETS) + "\n")
+        _write(root, LOW_LEVEL_TEST_REL, "\n".join(REQUIRED_LOW_LEVEL_TEST_SNIPPETS) + "\n")
+        _write(root, ABI_SLICE_REL, "\n".join(REQUIRED_ABI_SLICE_SNIPPETS) + "\n")
+        _write(root, LOW_LEVEL_BUILD_REL, "// build file present\n")
+        _write(root, MANIFEST_REL, "{}\n")
+
+        assert validate(root) == []
+
+        subprocess.run(["git", "init"], cwd=root, check=True, capture_output=True, text=True)
+        subprocess.run(["git", "add", "."], cwd=root, check=True, capture_output=True, text=True)
+        env = {
+            **os.environ,
+            "GIT_AUTHOR_NAME": "Codex",
+            "GIT_AUTHOR_EMAIL": "codex@example.com",
+            "GIT_COMMITTER_NAME": "Codex",
+            "GIT_COMMITTER_EMAIL": "codex@example.com",
+        }
+        subprocess.run(
+            ["git", "commit", "-m", "self-test snapshot"],
+            cwd=root,
+            check=True,
+            capture_output=True,
+            text=True,
+            env=env,
+        )
+        survey_path = root / SURVEY_REL
+        _replace_blob_markers_with_head(root, survey_path)
+        assert validate(root) == []
+
+        _write(root, SURVEY_REL, REQUIRED_SURVEY_MARKERS[0] + "\n")
+        issues = validate(root)
+        assert any(issue.startswith("missing_survey_marker:") for issue in issues)
+        assert any(issue.startswith("missing_survey_snippet:") for issue in issues)
+
+        _write(
+            root,
+            SURVEY_REL,
+            "\n".join(
+                [
+                    *REQUIRED_SURVEY_MARKERS,
+                    *REQUIRED_SURVEY_SNIPPETS[:-1],
+                    *_blob_marker_lines(),
+                ]
+            )
+            + "\n",
+        )
+        issues = validate(root)
+        assert any(
+            issue == f"missing_survey_snippet:{REQUIRED_SURVEY_SNIPPETS[-1]}"
+            for issue in issues
+        )
+
+        _write(
+            root,
+            SURVEY_REL,
+            "\n".join(
+                [
+                    *REQUIRED_SURVEY_MARKERS,
+                    *REQUIRED_SURVEY_SNIPPETS,
+                    *_blob_marker_lines(),
+                ]
+            )
+            + "\n",
+        )
+        _replace_blob_markers_with_head(root, survey_path)
+        _write(root, MMIO_REL, (root / MMIO_REL).read_text(encoding="utf-8") + "// drift\n")
+        issues = validate(root)
+        assert f"surveyed_blob_drift:{MMIO_REL}" in issues
+
+    print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass")
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Validate the dedicated Phase 3 low-level wrapper boundary survey.")
+    parser.add_argument("--self-test", action="store_true", help="Run isolated validator checks.")
+    parser.add_argument("root", nargs="?", help="Optional repo root override.")
+    args = parser.parse_args()
+
+    if args.self_test:
+        return run_self_test()
+
+    issues = validate(Path(args.root).resolve() if args.root else ROOT)
+    if issues:
+        print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY=fail")
+        for issue in issues:
+            print(issue)
+        return 1
+
+    print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY=pass")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
