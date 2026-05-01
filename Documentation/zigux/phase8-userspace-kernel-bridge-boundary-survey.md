@@ -10,6 +10,7 @@ This note records the current cross-slice boundary for Phase 8 userspace-adjacen
 - product boundary:
   - `Documentation/zigux/phase8-exec-cmd-slice.md`
   - `Documentation/zigux/phase8-help-slice.md`
+  - `Documentation/zigux/phase8-libbpf-cpu-mask-slice.md`
   - `Documentation/zigux/phase8-bpf-type-names-slice.md`
   - `Documentation/zigux/phase8-libbpf-segment-survey.md`
   - `tools/lib/subcmd/exec-cmd.zig`
@@ -19,8 +20,13 @@ This note records the current cross-slice boundary for Phase 8 userspace-adjacen
   - `tools/lib/bpf/zigux_segments/pin_path.zig`
   - `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`
   - `tools/lib/bpf/zigux_segments/type_names.zig`
+  - `zigux/tests/phase8_cpu_mask.zig`
+  - `zigux/tests/phase8_logging.zig`
+  - `zigux/tests/phase8_pin_path.zig`
+  - `zigux/tests/phase8_file_path_handle_bridge.zig`
   - `zigux/tests/phase8_bpf_type_names.zig`
   - `zigux/tests/phase8_bridge_boundary_survey.zig`
+  - `zigux/tests/phase8_libbpf_segments.zig`
   - `zigux/tests/phase8_libbpf_segments_only_build.zig`
   - `zigux/tests/phase8_build.zig`
 
@@ -40,8 +46,9 @@ The current parked command boundary is helper-only:
 
 The current libbpf bridge packet is also helper-first:
 
+- `tools/lib/bpf/zigux_segments/cpu_mask.zig`, `tools/lib/bpf/zigux_segments/logging.zig`, and `tools/lib/bpf/zigux_segments/pin_path.zig` keep stable mask parsing, bounded version or errno reporting, and pure bpffs-style path shaping explicit without widening into sysfs reads, stderr emission, directory creation, or pinning side effects
 - `tools/lib/bpf/zigux_segments/type_names.zig` plus `zigux/tests/phase8_bpf_type_names.zig` keep the exported attach, link, map, and program type-name tables reviewable as stable lookup helpers without claiming object-model, loader, or handle-lifecycle parity
-- `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` now claims `/proc/<pid>/fdinfo/<fd>` path construction, the current-process `getpid()` convenience wrapper, bounded fdinfo text parsing from `bpf_get_map_info_from_fdinfo()` including `map_extra`, the reused-map-name chooser from `bpf_map__reuse_fd()`, and the bounded map reuse compatibility comparison from `bpf_object__reuse_map()` that preserves the DEVMAP readonly-prog exception without claiming reopen or replacement side effects
+- `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` plus `zigux/tests/phase8_file_path_handle_bridge.zig` now claim `/proc/<pid>/fdinfo/<fd>` path construction, the current-process `getpid()` convenience wrapper, bounded fdinfo text parsing from `bpf_get_map_info_from_fdinfo()` including `map_extra`, the reused-map-name chooser from `bpf_map__reuse_fd()`, and the bounded map reuse compatibility comparison from `bpf_object__reuse_map()` that preserves the DEVMAP readonly-prog exception without claiming reopen or replacement side effects
 - `Documentation/zigux/phase8-libbpf-segment-survey.md` keeps the deferred `file-path-and-handle-bridge` boundary explicit around `bpf_object_prepare_token()`, `bpf_object__reuse_map()`, `bpf_obj_get()` reopen flows, and `open()` or `close()` ownership, even after the bounded `planTokenPreparation()` helper made the optional-versus-mandatory token-path intent reviewable and `classifyTokenPreparationFailure()` made the optional-fallback versus mandatory-fail split explicit without claiming live handle creation
 - the same survey keeps the separate `perf-buffer-online-cpu-routing` boundary explicit around `/sys/devices/system/cpu/online` reads, cached `/sys/devices/system/cpu/possible` counts from `libbpf_num_possible_cpus()`, online CPU filtering, per-CPU perf-event-array map updates, epoll-backed perf FD registration, and timeout-driven `perf_buffer__poll(timeout_ms)` waits that return ready-buffer counts, so the landed helper-first rollout still does not claim direct `/proc/.../fdinfo` reads, `fopen()` or `fclose()` ownership, bpffs path opens, `bpf_token_create()` handle lifecycle parity, or interrupt-routing-sensitive perf-buffer behavior. The current helper-only packet stops at `skip_optional_missing_delegation`, `skip_optional`, and mandatory `fail` planning instead of claiming the live token-creation side effects themselves, and it still keeps `bpf_obj_get()` reopen flows plus FD duplication or replacement behavior outside the current bridge packet. Phase 8 still ships no standalone timer helper and no standalone clockevent helper for this poll-adjacent path, so any future `perf_buffer__poll(timeout_ms)` packet needs its own manifest-backed slice instead of being inferred from the current cpu-mask and bridge notes.
 
