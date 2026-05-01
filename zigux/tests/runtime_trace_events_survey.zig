@@ -56,7 +56,7 @@ const Manifest = struct {
     non_goals: []const []const u8,
 };
 
-const surveyed_commit = "5479b799a33cb071c449ff6cb4345ac8f4a3186f";
+const surveyed_commit = "17ebcd4ca4ab5c9cf126042ab8997b2de79a7c66";
 
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
@@ -270,6 +270,8 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
             saw_function_balance = true;
             try std.testing.expectEqualStrings("registration_contract", check.kind);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "registration depth") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "foo_bar_reg") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "foo_bar_unreg") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "underflow protection") != null);
         }
         if (std.mem.eql(u8, check.id, "selftest-family-order")) {
@@ -277,6 +279,7 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
             try std.testing.expectEqualStrings("selftest_contract", check.kind);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "relative_location") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "8 total-event") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "14 total-event") != null);
         }
         if (std.mem.eql(u8, check.id, "failed-exit-rollback")) {
             saw_failed_exit_rollback = true;
@@ -432,10 +435,13 @@ test "phase 9 runtime trace-events docs keep the task and event-loop substrate g
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "RuntimeTraceEventsSummary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "explicit per-thread event totals") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "explicit main-thread and function-thread event totals") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`foo_bar_reg`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`foo_bar_unreg`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`init_runs`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`selftest_runs`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`exit_runs`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "array-shape replay explicit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "count-zero selftest path") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "latest bounded main-thread and function-thread payload literals") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "zig test --dep runtime_trace_events_sample") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "-Mroot=zigux/tests/runtime_trace_events_survey.zig") != null);
@@ -468,7 +474,7 @@ test "phase 9 runtime trace-events docs keep the task and event-loop substrate g
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "No parity scorecard entry or Architecture Council status-change request is attached to this Phase 9 lane.") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "study-boundary note rather than a freeze-map reopen request") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "Architecture Council") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the current survey packet is pinned to `master` commit `5479b799a33cb071c449ff6cb4345ac8f4a3186f`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the current survey packet is pinned to `master` commit `17ebcd4ca4ab5c9cf126042ab8997b2de79a7c66`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "landed starter surface summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "loader-free blocker restatement") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "paired header-side macro boundary note") != null);
@@ -477,11 +483,14 @@ test "phase 9 runtime trace-events docs keep the task and event-loop substrate g
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "`PHASE9_LANE_KEY=P9-L12`") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "RuntimeTraceEventsSummary") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "explicit main-thread and function-thread event totals") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "`foo_bar_reg`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "`foo_bar_unreg`") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "`init_runs`") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "`selftest_runs`") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "`exit_runs`") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "explicit per-thread event-total") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "array-shape replay explicit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "count-zero selftest path") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "latest bounded main-thread and function-thread payload literals") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "phase9-runtime-trace-events-sample-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, surveyed_commit) != null);
