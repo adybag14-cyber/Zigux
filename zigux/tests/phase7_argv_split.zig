@@ -156,6 +156,11 @@ test "phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable"
     try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
 
     argv_split.argvFree(std.testing.allocator, &split);
+    try std.testing.expectEqual(@as(usize, 0), split.storage.len);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[split.storage.len]);
+    try std.testing.expectEqual(@as(usize, 0), split.argv.len);
+    try std.testing.expectEqual(@as(usize, 1), split.argv_null_terminated.len);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
 }
 
 test "phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup" {
