@@ -205,6 +205,7 @@ MARKER_GROUPS = {
             "PHASE1_FIND_BIT_ALIAS_UNIT_REVIEW=",
             "PHASE1_FIND_BIT_LOW_LEVEL_UNIT_REVIEW=find_bit low-level underscore entry points preserve same-word inclusive starts and tail-clamped set, shared-bit, and zero-bit scan behavior across the same caller-selected bit windows as the public helpers",
             'find_bit small-bitmap unit-test anchor: `tools/lib/find_bit.zig:test "single-word scans keep linux small-bitmap semantics"`',
+            "PHASE1_STRING_ALIAS_UNIT_REVIEW=string trimSpaces and strim trim trailing whitespace before the first embedded NUL while preserving bytes beyond that terminator",
             "PHASE1_STRING_MEMPARSE_UNIT_REVIEW=",
             "PHASE1_RBTREE_CACHED_FINDADD_UNIT_REVIEW=",
             "PHASE1_RBTREE_BENCH_REVIEW=rbtree benchmark smoke pins ordered traversal, duplicate-range, cached-leftmost, findAdd, and postorder-safe checksum surfaces so duplicate-owner and erase-while-walking regressions cannot hide behind the broader tree checksum alone",
@@ -385,6 +386,8 @@ MARKER_GROUPS = {
             '"string.strlcpy_buffer"',
             '"string.remove_spaces_nul"',
             '"string.remove_spaces_nul_bytes"',
+            '"alias_unit_test_anchor"',
+            '"alias_unit_test_contract"',
             '"cstring_unit_test_anchor"',
             '"cstring_unit_test_contract"',
             '"equality_unit_test_anchor"',
@@ -561,6 +564,10 @@ def validate_manifest_shape() -> list[str]:
                 issues.append("phase1_manifest:tools/lib/string.zig:cstring_unit_test_anchor:mismatch")
             if string_note.get("cstring_unit_test_contract") != "Direct Zig unit coverage keeps strlcpy aligned with C-string semantics by stopping at the first embedded NUL, preserving truncation behavior, and leaving zero-sized destinations untouched.":
                 issues.append("phase1_manifest:tools/lib/string.zig:cstring_unit_test_contract:mismatch")
+            if string_note.get("alias_unit_test_anchor") != 'tools/lib/string.zig:test "trimSpaces and strim trim trailing whitespace before an embedded NUL"':
+                issues.append("phase1_manifest:tools/lib/string.zig:alias_unit_test_anchor:mismatch")
+            if string_note.get("alias_unit_test_contract") != "Direct Zig unit coverage keeps trimSpaces and strim aligned with C-string semantics by trimming trailing whitespace that appears before the first embedded NUL while preserving bytes beyond that terminator.":
+                issues.append("phase1_manifest:tools/lib/string.zig:alias_unit_test_contract:mismatch")
             if string_note.get("equality_unit_test_anchor") != 'tools/lib/string.zig:test "streq matches C-string equality semantics"':
                 issues.append("phase1_manifest:tools/lib/string.zig:equality_unit_test_anchor:mismatch")
             if string_note.get("equality_unit_test_contract") != "Direct Zig unit coverage keeps strEq() and streq() aligned with C-string equality semantics for exact, empty, length-mismatched, case-sensitive, and embedded-NUL comparisons.":
