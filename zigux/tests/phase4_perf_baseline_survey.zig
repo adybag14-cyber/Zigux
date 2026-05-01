@@ -56,6 +56,7 @@ const TestFsmountManifest = struct {
     owner: []const u8,
     rollback_owner: []const u8,
     surveyed_commit: []const u8,
+    current_replay: []const u8,
 };
 
 fn isAllowedStatus(status: []const u8) bool {
@@ -194,6 +195,7 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
     try std.testing.expectEqualStrings("Validation and Perf Team", test_fsmount_manifest.rollback_owner);
     try std.testing.expectEqualStrings(current_surveyed_commit, test_fsmount_manifest.surveyed_commit);
     try std.testing.expect(isLowerHexSha(test_fsmount_manifest.surveyed_commit));
+    try std.testing.expectEqualStrings("make M=samples/vfs", test_fsmount_manifest.current_replay);
 
     const phase4_build = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
