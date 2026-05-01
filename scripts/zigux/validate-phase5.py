@@ -274,7 +274,7 @@ for marker in required_phase5_build_markers:
 
 manifest_expectations = {
     "phase5_bytestream_fifo_manifest.json": {
-        "lane_key": "P5-L04",
+        "lane_key": "P5-L01",
         "anchor": "samples/kfifo/bytestream-example.c",
         "sample_path": "samples/zigux/bytestream_fifo.zig",
         "survey_note_path": "Documentation/zigux/phase5-kfifo-sample-survey.md",
