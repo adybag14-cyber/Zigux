@@ -54,7 +54,7 @@ This slice does not yet claim:
 ## Gates
 
 1. run the dedicated Phase 9 build
-- `zig build test --build-file zigux/tests/phase9_build.zig`
+- `zig build test --build-file zigux/tests/phase9_build.zig --summary all`
 - this shared build keeps the dedicated kretprobe sample, module, diff, loader, and survey legs explicit
 
 2. run the convenience target
