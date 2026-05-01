@@ -65,6 +65,23 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const notifier_abi_module = b.createModule(.{
+        .root_source_file = b.path("../bindings/notifier_abi.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const narrow_unsafe_module = b.createModule(.{
+        .root_source_file = b.path("../unsafe/narrow.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const notifier_chain_view_module = b.createModule(.{
+        .root_source_file = b.path("../helpers/notifier_chain_view.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    notifier_chain_view_module.addImport("notifier_abi_bindings", notifier_abi_module);
+    notifier_chain_view_module.addImport("narrow_unsafe", narrow_unsafe_module);
 
     const phase13_libfs_tests = b.addTest(.{
         .name = "phase13-libfs-tests",
@@ -101,6 +118,11 @@ pub fn build(b: *std.Build) void {
         .root_module = phase13_notifier_list_reviewability_module,
     });
     const run_phase13_notifier_list_reviewability_tests = b.addRunArtifact(phase13_notifier_list_reviewability_tests);
+    const phase13_notifier_chain_view_tests = b.addTest(.{
+        .name = "phase13-notifier-chain-view-tests",
+        .root_module = notifier_chain_view_module,
+    });
+    const run_phase13_notifier_chain_view_tests = b.addRunArtifact(phase13_notifier_chain_view_tests);
 
     const test_step = b.step("test", "Run Phase 13 shared helper tests");
     test_step.dependOn(&run_phase13_libfs_tests.step);
@@ -110,4 +132,5 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_phase13_libfs_reviewability_tests.step);
     test_step.dependOn(&run_phase13_devres_reviewability_tests.step);
     test_step.dependOn(&run_phase13_notifier_list_reviewability_tests.step);
+    test_step.dependOn(&run_phase13_notifier_chain_view_tests.step);
 }
