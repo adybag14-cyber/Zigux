@@ -16,11 +16,13 @@ from validate_phase3_core import (
     ABI_REQUIRED_SOURCE_MARKERS,
     ABI_EXPORT_UAPI_BUILD_FILE_REL,
     ABI_LOW_LEVEL_BUILD_FILE_REL,
+    ABI_LOW_LEVEL_SURVEY_CHECK_REL,
     ABI_POLICY_UNSAFE_BUILD_FILE_REL,
     BUILD_FILE_REL,
     build_smoke_commands,
     select_slices,
     validate_export_uapi_boundary,
+    validate_low_level_wrapper_boundary,
     validate_low_level_wrapper_exports,
     validate_policy_unsafe_boundary,
     validate_manifest,
@@ -454,6 +456,36 @@ def run_self_test() -> int:
         )
         assert validate_export_uapi_boundary(root) == [
             "export-uapi-gate: missing_survey_marker:PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig"
+        ]
+
+        low_level_wrapper_check = root / ABI_LOW_LEVEL_SURVEY_CHECK_REL
+        low_level_wrapper_check.write_text(
+            "#!/usr/bin/env python3\nprint('PHASE3_LOW_LEVEL_WRAPPER_SURVEY=pass')\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert validate_low_level_wrapper_boundary(root) == []
+        low_level_wrapper_check.write_text(
+            "#!/usr/bin/env python3\n"
+            "print('PHASE3_LOW_LEVEL_WRAPPER_SURVEY=fail')\n"
+            "print('missing_survey_marker:PHASE3_MMIO_PATH=zigux/helpers/mmio.zig')\n"
+            "raise SystemExit(1)\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert validate_low_level_wrapper_boundary(root) == [
+            "low-level-wrapper-survey-gate: missing_survey_marker:PHASE3_MMIO_PATH=zigux/helpers/mmio.zig"
+        ]
+        low_level_wrapper_check.write_text(
+            "#!/usr/bin/env python3\n"
+            "print('PHASE3_LOW_LEVEL_WRAPPER_SURVEY=fail')\n"
+            "print('surveyed_blob_drift:zigux/helpers/atomic.zig')\n"
+            "raise SystemExit(1)\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert validate_low_level_wrapper_boundary(root) == [
+            "low-level-wrapper-survey-gate: surveyed_blob_drift:zigux/helpers/atomic.zig"
         ]
 
         policy_unsafe_check = root / ABI_POLICY_UNSAFE_SURVEY_CHECK_REL
