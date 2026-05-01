@@ -270,6 +270,25 @@ test "phase 7 kasprintfStrarray returns sequential owned strings with a null-poi
     try std.testing.expectEqual(@as(?[*:0]const u8, null), names.cArray()[3]);
 }
 
+test "phase 7 kasprintfStrarrayRaw keeps direct C-style pointer ownership explicit" {
+    const raw = try string_helpers.kasprintfStrarrayRaw(std.testing.allocator, "cpu", 3);
+    defer string_helpers.kfreeStrarrayRaw(std.testing.allocator, raw, 3);
+
+    try std.testing.expectEqual(@as(usize, 4), raw.len);
+    try std.testing.expectEqualStrings("cpu-0", std.mem.span(raw[0].?));
+    try std.testing.expectEqualStrings("cpu-1", std.mem.span(raw[1].?));
+    try std.testing.expectEqualStrings("cpu-2", std.mem.span(raw[2].?));
+    try std.testing.expectEqual(@as(?[*:0]u8, null), raw[3]);
+}
+
+test "phase 7 kfreeStrarrayRaw keeps counted partial teardown safe" {
+    const raw = try std.testing.allocator.alloc(?[*:0]u8, 4);
+    @memset(raw, null);
+    raw[0] = (try std.testing.allocator.dupeZ(u8, "tty-0")).ptr;
+    raw[1] = (try std.testing.allocator.dupeZ(u8, "tty-1")).ptr;
+    string_helpers.kfreeStrarrayRaw(std.testing.allocator, raw, 2);
+}
+
 test "phase 7 kfreeStrarray keeps first-NUL prefixes, zero-count reuse, and repeated teardown safe" {
     var prefixed = try string_helpers.kasprintfStrarray(std.testing.allocator, "tty\x00ignored", 2);
     try std.testing.expectEqualStrings("tty-0", prefixed.names[0]);
