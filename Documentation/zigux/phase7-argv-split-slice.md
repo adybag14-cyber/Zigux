@@ -44,7 +44,7 @@ This current slice keeps the work bounded to the smallest runtime-safe ownership
 3. run the shared Phase 7 helper gate
 - `zig build test --build-file zigux/tests/phase7_build.zig --summary all`
 
-4. keep the roadmap survey record machine-checked
+4. keep the roadmap survey record machine-checked from `repo_root`
 - `zig test zigux/tests/phase7_argv_split_survey.zig`
 
 ## Current parity surface
@@ -75,6 +75,8 @@ The current tests check:
 - a machine-checked survey record that keeps the Phase 7 roadmap anchor and landed review surfaces explicit without advertising active same-lane work
 
 The dedicated Phase 7 review gate now imports a focused fixture module under `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, while the helper self-tests keep the same bounded parity surface local to `lib/argv_split.zig`.
+
+The manifest-backed survey packet stays rooted at `repo_root` through `zigux/tests/phase7_build.zig` so `zigux/tests/phase7_argv_split_manifest.json` remains a reviewable ownership record instead of a helper-local detail.
 
 ## Non-goals
 
