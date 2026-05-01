@@ -1,7 +1,7 @@
 {
   "lane_key": "P11-L01",
   "phase": "Phase 11",
-  "surveyed_commit": "530282b229a59280b795c77a82c7e528ffb6cddd",
+  "surveyed_commit": "ae87eabf15b3ac6c526e97e239754f97b3e222c0",
   "anchor": "drivers/watchdog/gpio_wdt.c",
   "roadmap_destinations": [
     "drivers/watchdog/*.zig",
@@ -45,7 +45,7 @@
       "status": "starter_landed",
       "kind": "simple_driver_starter",
       "zigux_destination": "drivers/watchdog/gpio_wdt.zig",
-      "why_now": "The first gpio_wdt starter is now landed and models hw_algo parsing, heartbeat margin validation, bounded start or stop or ping transitions, a tiny probe-time summary, a nowayout-aware teardown-facing stop helper, an explicit teardown summary for disable ordering and failure-mode fallout, a metadata-only registration plan, and the first bounded register-device call summary without touching live GPIO or platform registration."
+      "why_now": "The first gpio_wdt starter is now landed and models hw_algo parsing, heartbeat margin validation, an explicit watchdog metadata summary, bounded start or stop or ping transitions, a tiny probe-time summary, a nowayout-aware teardown-facing stop helper, an explicit teardown summary for disable ordering and failure-mode fallout, a metadata-only registration plan, and the first bounded register-device call summary without touching live GPIO or platform registration."
     },
     {
       "id": "phase11-gpio-wdt-driver-tests",
@@ -67,6 +67,13 @@
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase11-gpio-wdt-validation-matrix.md",
       "why_now": "The first bounded hardware-validation matrix now names the shared Phase 11 replay path, the property and transition evidence, the teardown-facing stop evidence, the explicit teardown-summary evidence, and the first bounded register-device call surface that keep the gpio_wdt packet reviewable without claiming live GPIO or watchdog-core execution."
+    },
+    {
+      "id": "phase11-gpio-wdt-watchdog-metadata-followup",
+      "status": "starter_landed",
+      "kind": "simple_driver_starter",
+      "zigux_destination": "drivers/watchdog/gpio_wdt.zig",
+      "why_now": "The starter now keeps the direct watchdog-info contract explicit through `watchdogMetadataSummary()` so review can see the `GPIO Watchdog` identity, the bounded `WDIOF_SETTIMEOUT`, `WDIOF_MAGICCLOSE`, and `WDIOF_KEEPALIVEPING` surface, and the starter-local ops readiness before descriptor-backed registration work lands."
     },
     {
       "id": "phase11-gpio-wdt-probe-summary-followup",
