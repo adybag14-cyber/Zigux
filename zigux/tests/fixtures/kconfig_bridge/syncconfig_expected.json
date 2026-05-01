@@ -1,1 +1,1 @@
-{"tool":"scripts/kconfig/conf","mode":"syncconfig","argv":["scripts/kconfig/conf","--syncconfig","Kconfig"],"env":{"ARCH":"riscv64","KCONFIG_CONFIG":"out/.config","KCONFIG_AUTOCONFIG":"include/config/auto.conf","KCONFIG_AUTOHEADER":"include/generated/autoconf.h"}}
+{"tool":"scripts/kconfig/conf","mode":"syncconfig","argv":["scripts/kconfig/conf","--syncconfig","Kconfig"],"env":{"ARCH":"riscv64","KCONFIG_CONFIG":"out/.config","KCONFIG_AUTOCONFIG":"include/config/auto.conf","KCONFIG_AUTOHEADER":"include/generated/autoconf.h","KCONFIG_NOSILENTUPDATE":"1"}}
