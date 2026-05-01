@@ -18,8 +18,9 @@ test "runtime kretprobe diff gate replays the Linux sample's skip and duration p
 }
 
 test "runtime kretprobe diff gate keeps maxactive pressure and nmissed explicit" {
-    var module = sample.RuntimeKretprobeSample{ .maxactive = 1 };
+    var module = sample.RuntimeKretprobeSample{};
     try module.retargetSymbol("do_sys_openat2");
+    try module.configureMaxactive(1);
     try module.init();
 
     try std.testing.expect(try module.entryHandler(true, 200));
