@@ -7,7 +7,7 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 - `PHASE5_STATUS=active`
 - `PHASE5_SLICE=kobject-reference-sample-starter`
 - `PHASE5_LANE_KEY=P5-L07`
-- `PHASE5_SURVEYED_COMMIT=2b56209aa4229e40183f8ee3cf8a84d14dee7185`
+- `PHASE5_SURVEYED_COMMIT=9c24cef3fc94732364960c8c4c88860f30a0d8e5`
 - scope: roadmap-vs-repo sample delivery, approved ownership-and-lifetime guidance, and exact bounded checks for the landed `samples/zigux/` kobject-style replay
 - product boundary:
   - `Documentation/zigux/phase5-kobject-sample-survey.md`
@@ -66,7 +66,7 @@ The exact checks currently recorded in `zigux/tests/phase5_kobject_example_manif
 
 ## Latest verification snapshot
 
-Current sample behavior was re-verified against `master` commit `2b56209aa4229e40183f8ee3cf8a84d14dee7185` on 2026-05-01 with the attached Zig toolchain.
+Current sample behavior was re-verified against `master` commit `9c24cef3fc94732364960c8c4c88860f30a0d8e5` on 2026-05-01 with the attached Zig toolchain.
 
 The exact verification commands and observed results were:
 
@@ -103,7 +103,7 @@ When a contributor updates `samples/zigux/kobject_example.zig` or its directly c
 The roadmap delivery gap is already closed. The more precise ongoing review job is:
 
 - the repo now has a reviewable Phase 5 `kobject_example` sample plus manifest-backed checks for registration, a single replay-side ownership claim, attribute order, shared `0664` attribute mode, initialized-only abandonment, dispatch, parse failures, and teardown
-- this approved ownership-and-lifetime idiom is now pinned to `PHASE5_SURVEYED_COMMIT=2b56209aa4229e40183f8ee3cf8a84d14dee7185` so the survey note, manifest-backed checks, shared sample-root catalog, shared review checklist, and contributor review path all point at the same inspected `master` head
+- this approved ownership-and-lifetime idiom is now pinned to `PHASE5_SURVEYED_COMMIT=9c24cef3fc94732364960c8c4c88860f30a0d8e5` so the survey note, manifest-backed checks, shared sample-root catalog, shared review checklist, and contributor review path all point at the same inspected `master` head
 - the full four-anchor Phase 5 reference-sample set is already landed on current `master`, so this note should describe the kobject slice as one approved ownership-and-lifetime idiom inside that completed anchor set rather than as a placeholder for a still-missing tranche item
 - contributor guidance still needs to keep the in-memory directory, unnamed-group shape, attribute-array order, initialized-only abandonment path, and pre-registration ownership boundary visibly separate from real sysfs or module substrate claims and from the later runtime pilot families
 
