@@ -82,6 +82,32 @@ fn isLowerHexSha(value: []const u8) bool {
     return true;
 }
 
+fn gitBlobShaHex(payload: []const u8) [40]u8 {
+    var hasher = std.crypto.hash.Sha1.init(.{});
+    var header_buf: [64]u8 = undefined;
+    const header = std.fmt.bufPrint(&header_buf, "blob {d}\x00", .{payload.len}) catch unreachable;
+    hasher.update(header);
+    hasher.update(payload);
+
+    var digest: [20]u8 = undefined;
+    hasher.final(&digest);
+
+    var hex: [40]u8 = undefined;
+    _ = std.fmt.bufPrint(&hex, "{}", .{std.fmt.fmtSliceHexLower(&digest)}) catch unreachable;
+    return hex;
+}
+
+fn expectGateEvidenceBlob(
+    gate_evidence: []const u8,
+    marker: []const u8,
+    payload: []const u8,
+) !void {
+    const digest = gitBlobShaHex(payload);
+    var line_buf: [128]u8 = undefined;
+    const line = try std.fmt.bufPrint(&line_buf, "`{s}={s}`", .{ marker, &digest });
+    try std.testing.expect(std.mem.indexOf(u8, gate_evidence, line) != null);
+}
+
 test "phase4 runtime atomic64 survey manifest records the shipped bounded gate, roadmap entrypoint, and remaining broader-surface gap" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -219,6 +245,55 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate, 
         32 * 1024,
     );
     defer std.testing.allocator.free(phase4_gate_evidence);
+    const runtime_atomic64_diff_survey = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "zigux/tests/phase4_runtime_atomic64_diff_survey.zig",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(runtime_atomic64_diff_survey);
+    const test_fsmount_manifest_json = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "zigux/tests/phase4_test_fsmount_manifest.json",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(test_fsmount_manifest_json);
+    const test_fsmount_survey = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "zigux/tests/phase4_test_fsmount_survey.zig",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(test_fsmount_survey);
+    const perf_baseline_manifest_json = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "zigux/tests/phase4_perf_baseline_manifest.json",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(perf_baseline_manifest_json);
+    const phase4_perf_baseline_survey = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "zigux/tests/phase4_perf_baseline_survey.zig",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(phase4_perf_baseline_survey);
+    const doc_readme = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "Documentation/zigux/README.md",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(doc_readme);
+    const script_readme = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "scripts/zigux/README.md",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(script_readme);
 
     const live_summary = SurveySummary{
         .atomic64_test_c_lines = countLines(atomic64_test_c),
@@ -295,17 +370,15 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate, 
     );
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "PHASE4_EVIDENCE_MODE=github_connector_readback") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "PHASE4_TEST_FSMOUNT_MANIFEST_BLOB_SHA=") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "`PHASE4_TEST_FSMOUNT_SURVEY_BLOB_SHA=1b4add365fc9edbc705a80f0b1f1b1d916db2da4`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "PHASE4_PERF_BASELINE_MANIFEST_BLOB_SHA=") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "`PHASE4_PERF_BASELINE_SURVEY_BLOB_SHA=8c2fbdb1debc254133a79d3b7884f8d6e4c9a08c`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "`PHASE4_DOC_README_BLOB_SHA=1f7b8c668c22a5f67a1933681c4cfb41b6b70e94`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "`PHASE4_SCRIPT_README_BLOB_SHA=94a68f7ebe09a7433294e33a1791c46d49eb1d15`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "`PHASE4_TESTS_README_BLOB_SHA=5cad09e003f399741be7332d0fba479e5f148d00`") != null);
+    try expectGateEvidenceBlob(phase4_gate_evidence, "PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA", manifest_json);
+    try expectGateEvidenceBlob(phase4_gate_evidence, "PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA", runtime_atomic64_diff_survey);
+    try expectGateEvidenceBlob(phase4_gate_evidence, "PHASE4_TEST_FSMOUNT_MANIFEST_BLOB_SHA", test_fsmount_manifest_json);
+    try expectGateEvidenceBlob(phase4_gate_evidence, "PHASE4_TEST_FSMOUNT_SURVEY_BLOB_SHA", test_fsmount_survey);
+    try expectGateEvidenceBlob(phase4_gate_evidence, "PHASE4_PERF_BASELINE_MANIFEST_BLOB_SHA", perf_baseline_manifest_json);
+    try expectGateEvidenceBlob(phase4_gate_evidence, "PHASE4_PERF_BASELINE_SURVEY_BLOB_SHA", phase4_perf_baseline_survey);
+    try expectGateEvidenceBlob(phase4_gate_evidence, "PHASE4_DOC_README_BLOB_SHA", doc_readme);
+    try expectGateEvidenceBlob(phase4_gate_evidence, "PHASE4_SCRIPT_README_BLOB_SHA", script_readme);
+    try expectGateEvidenceBlob(phase4_gate_evidence, "PHASE4_TESTS_README_BLOB_SHA", tests_readme);
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, current_surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "phase4_runtime_atomic64_diff_survey.zig") != null);
 
