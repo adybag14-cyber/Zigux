@@ -13,7 +13,11 @@ This note records the current cross-slice boundary for Phase 8 userspace-adjacen
   - `Documentation/zigux/phase8-libbpf-segment-survey.md`
   - `tools/lib/subcmd/exec-cmd.zig`
   - `tools/lib/subcmd/help.zig`
+  - `tools/lib/bpf/zigux_segments/cpu_mask.zig`
+  - `tools/lib/bpf/zigux_segments/logging.zig`
+  - `tools/lib/bpf/zigux_segments/pin_path.zig`
   - `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`
+  - `tools/lib/bpf/zigux_segments/type_names.zig`
   - `zigux/tests/phase8_bridge_boundary_survey.zig`
   - `zigux/tests/phase8_build.zig`
 
