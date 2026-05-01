@@ -89,7 +89,7 @@ Phase 9 notes
 - the Phase 9 runtime packet keeps its manifest-backed catalog and ownership map explicit instead of relying on ad hoc survey drift.
 - the current runtime pilot notes keep the roadmap selftest-hook markers and bounded lifecycle-parity posture visible instead of implying a loadable module path.
 - existing atomic64, bitmap, or kretprobe loader plans stay tied to `Documentation/zigux/phase9-runtime-loader-gap-survey.md` rather than being mistaken for live runtime substrate closure.
-- `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig` remain Phase 2 or Phase 3 non-owner references around the shared Phase 9 packet.
+- `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig` stay explicit as Phase 2 config-surface bridge references, while `rust/exports.c` and `zigux/kernel/export_shim.zig` stay explicit as Phase 3 export-boundary references around the shared Phase 9 packet.
 - the current docs-root summary keeps those non-owner references visibly separate from direct Phase 9 runtime evidence.
 
 Phase 10 notes
