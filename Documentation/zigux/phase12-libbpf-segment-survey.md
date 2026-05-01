@@ -26,8 +26,8 @@ This checkpoint was last re-verified against packet-local head `2df10deb8b6f2ab0
 
 ## Survey findings
 
-- `tools/lib/bpf/libbpf.c` is present on `master` at 14,771 lines, which is large enough to cross helper, loader, object-model, relocation, and verifier-facing concerns in one file.
-- the live repo already ships the earlier `tools/lib/bpf/zigux_segments/manifest.json` survey plus six landed helper slices:
+- at the archived surveyed head `2df10deb8b6f2ab013ee2f289a49e6aa33180656`, `tools/lib/bpf/libbpf.c` measured 14,771 lines, which is large enough to cross helper, loader, object-model, relocation, and verifier-facing concerns in one file.
+- the live repo already ships the earlier `tools/lib/bpf/zigux_segments/manifest.json` survey plus five landed helper files that carry six bounded helper slices:
   - `type_names.zig` for exported attach, link, map, and program type string tables
   - `cpu_mask.zig` for bounded CPU-mask parsing, set-bit counting, the automatic perf-buffer CPU-budget clamp, and a deferred reader interface that still stops short of direct file I/O while keeping libbpf's fixed-width cpu-mask input ceiling explicit
   - `logging.zig` for bounded print-level parsing, version reporting, and libbpf-specific error text formatting
