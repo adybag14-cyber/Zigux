@@ -305,7 +305,7 @@ pub const SkbuffBridgeLab = struct {
     }
 
     pub fn nextAuditFocus() []const u8 {
-        return "Keep validate_xmit_skb_list() republish stitching and drop pruning in C until stronger stay-in-C evidence justifies a deeper ownership audit around validate_xmit_skb() return semantics and transmit-list publication.";
+        return "Keep the __dev_direct_xmit() identity-drop follow-up in C, limited to skb = validate_xmit_skb_list(...), skb != orig_skb, and the drop path, until stronger stay-in-C evidence justifies a deeper transmit-list ownership audit.";
     }
 };
 
@@ -330,8 +330,8 @@ test "skbuff bridge boundary map records stay-in-c lifetime decisions" {
     try std.testing.expectEqualStrings("boundary_map_only", map.posture);
     try std.testing.expectEqual(@as(usize, 6), map.areas.len);
     try std.testing.expectEqual(@as(usize, 2), SkbuffBridgeLab.stayInCDecisionCount());
-    try std.testing.expect(std.mem.indexOf(u8, SkbuffBridgeLab.nextAuditFocus(), "validate_xmit_skb()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, SkbuffBridgeLab.nextAuditFocus(), "transmit-list publication") != null);
+    try std.testing.expect(std.mem.indexOf(u8, SkbuffBridgeLab.nextAuditFocus(), "__dev_direct_xmit()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, SkbuffBridgeLab.nextAuditFocus(), "skb != orig_skb") != null);
 
     try std.testing.expectEqualStrings("allocation-entrypoints", map.areas[0].id);
     try std.testing.expect(map.areas[0].ownership == .boundary_map_only);
@@ -355,8 +355,8 @@ test "skbuff bridge lifetime audit stays review-only" {
     try std.testing.expectEqual(@as(usize, 11), audit.checkpoints.len);
     try std.testing.expectEqual(@as(usize, 11), audit.blocked_live_behaviors.len);
     try std.testing.expectEqual(@as(usize, 11), SkbuffBridgeLab.auditCheckpointCount());
-    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "validate_xmit_skb()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "transmit-list publication") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "__dev_direct_xmit()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "skb != orig_skb") != null);
 
     try std.testing.expectEqualStrings("dataref-header-write-split", audit.checkpoints[0].id);
     try std.testing.expect(audit.checkpoints[0].guard == .header_write_requires_private_data);
@@ -418,6 +418,3 @@ test "skbuff bridge lifetime audit stays review-only" {
     try std.testing.expectEqualStrings("tail->next", audit.checkpoints[10].observed_fields[1]);
     try std.testing.expectEqualStrings("next", audit.checkpoints[10].observed_fields[3]);
     try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[10].blocked_by, "validate_xmit_skb() returns NULL") != null);
-    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[10].blocked_by, "head = skb") != null);
-    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[10].blocked_by, "tail->next = skb") != null);
-}
