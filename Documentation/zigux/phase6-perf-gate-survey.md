@@ -43,8 +43,8 @@ The shared entrypoints for that packet remain:
 
 ### hexdump
 
-- `zigux/tests/phase6_hexdump_perf.zig` replays the deterministic `16B-plain`, `32B-ascii-g2`, and `16B-ascii-g4` formatter cases from `zigux/tests/fixtures/phase6_hexdump_vectors.zig`.
-- the current gate is a fixture-backed relative slowdown check against `fixtures.prepareExpectedLine(...)`: `max_slowdown_pct = 175` for `16B-plain` and `max_slowdown_pct = 550` for the two grouped ASCII replays.
+- `zigux/tests/phase6_hexdump_perf.zig` replays the deterministic `16B-plain`, `32B-ascii-g2`, `16B-ascii-g4`, and `16B-ascii-g8` formatter cases from `zigux/tests/fixtures/phase6_hexdump_vectors.zig`.
+- the current gate is a fixture-backed relative slowdown check against `fixtures.prepareExpectedLine(...)`: `max_slowdown_pct = 175` for `16B-plain`, `max_slowdown_pct = 550` for the grouped ASCII `32B-ascii-g2` and `16B-ascii-g4` replays, and `max_slowdown_pct = 600` for the wider native-endian `16B-ascii-g8` replay.
 - the harness also reports helper and reference nanoseconds per call and per byte plus the required formatted-line length, but the enforced contract remains the slowdown percentage.
 
 ## Gap Versus Roadmap Wording
