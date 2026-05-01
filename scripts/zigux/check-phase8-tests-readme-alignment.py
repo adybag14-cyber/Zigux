@@ -16,6 +16,8 @@ REQUIRED_FILES = {
     "perf_slice": "Documentation/zigux/phase8-perf-buffer-poll-slice.md",
     "shared_build": "zigux/tests/phase8_build.zig",
     "makefile": "zigux/Makefile",
+    "scripts_readme": "scripts/zigux/README.md",
+    "workflow": ".github/workflows/zigux-bootstrap.yml",
 }
 
 TESTS_README_MARKERS = [
@@ -45,6 +47,21 @@ MAKEFILE_MARKERS = [
     "phase8-validate:",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-tests-readme-alignment.py --self-test\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-tests-readme-alignment.py\n",
+]
+
+SCRIPTS_README_MARKERS = [
+    "check-phase8-tests-readme-alignment.py",
+    "Phase 8 flow",
+    "make -C zigux phase8-validate",
+    "zigux/tests/phase8_bridge_boundary_survey.zig",
+    "zigux/tests/phase8_perf_buffer_poll.zig",
+]
+
+WORKFLOW_MARKERS = [
+    "Validate Phase 8 tooling gates",
+    "make -C zigux phase8-validate",
+    "Run Phase 8 tooling tests",
+    "zig build test --build-file zigux/tests/phase8_build.zig --summary all",
 ]
 
 
@@ -83,6 +100,8 @@ def validate(root: Path) -> list[str]:
     perf_slice = read_text(root, REQUIRED_FILES["perf_slice"])
     shared_build = read_text(root, REQUIRED_FILES["shared_build"])
     makefile = read_text(root, REQUIRED_FILES["makefile"])
+    scripts_readme = read_text(root, REQUIRED_FILES["scripts_readme"])
+    workflow = read_text(root, REQUIRED_FILES["workflow"])
 
     for marker in TESTS_README_MARKERS:
         if marker not in tests_readme:
@@ -99,6 +118,14 @@ def validate(root: Path) -> list[str]:
     for marker in MAKEFILE_MARKERS:
         if marker not in makefile:
             missing.append(f"makefile:{marker}")
+
+    for marker in SCRIPTS_README_MARKERS:
+        if marker not in scripts_readme:
+            missing.append(f"scripts_readme:{marker}")
+
+    for marker in WORKFLOW_MARKERS:
+        if marker not in workflow:
+            missing.append(f"workflow:{marker}")
 
     return missing
 
@@ -178,6 +205,43 @@ def clone_fixture_root(destination_root: Path) -> None:
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-tests-readme-alignment.py --self-test",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase8.py",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-tests-readme-alignment.py",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    scripts_readme = destination_root / REQUIRED_FILES["scripts_readme"]
+    scripts_readme.parent.mkdir(parents=True, exist_ok=True)
+    scripts_readme.write_text(
+        "\n".join(
+            [
+                "# scripts/zigux",
+                "",
+                "- check-phase8-tests-readme-alignment.py",
+                "",
+                "## Phase 8 flow",
+                "- make -C zigux phase8-validate",
+                "- zigux/tests/phase8_bridge_boundary_survey.zig",
+                "- zigux/tests/phase8_perf_buffer_poll.zig",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    workflow = destination_root / REQUIRED_FILES["workflow"]
+    workflow.parent.mkdir(parents=True, exist_ok=True)
+    workflow.write_text(
+        "\n".join(
+            [
+                "jobs:",
+                "  bootstrap:",
+                "    steps:",
+                "      - name: Validate Phase 8 tooling gates",
+                "        run: make -C zigux phase8-validate",
+                "      - name: Run Phase 8 tooling tests",
+                "        run: zig build test --build-file zigux/tests/phase8_build.zig --summary all",
                 "",
             ]
         ),
@@ -364,9 +428,44 @@ def run_self_test() -> int:
             tmp_root,
             "makefile:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-tests-readme-alignment.py\n",
         )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        scripts_readme_path = tmp_root / REQUIRED_FILES["scripts_readme"]
+        original_scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
+        scripts_readme_path.write_text(
+            original_scripts_readme.replace(
+                "- check-phase8-tests-readme-alignment.py\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "scripts_readme_checker",
+            tmp_root,
+            "scripts_readme:check-phase8-tests-readme-alignment.py",
+        )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
+        workflow_path = tmp_root / REQUIRED_FILES["workflow"]
+        original_workflow = workflow_path.read_text(encoding="utf-8")
+        workflow_path.write_text(
+            original_workflow.replace(
+                "      - name: Validate Phase 8 tooling gates\n"
+                "        run: make -C zigux phase8-validate\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "workflow_validate_hook",
+            tmp_root,
+            "workflow:Validate Phase 8 tooling gates",
+        )
 
     print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=10")
+    print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
