@@ -21,8 +21,8 @@ This note records the current atomic, barrier, and MMIO boundary for the bounded
 - `PHASE3_LOW_LEVEL_BUILD_BLOB_SHA=26de15d04505e0d345e874c538044200507ab8c2`
 - `PHASE3_LOW_LEVEL_TEST_PATH=zigux/tests/phase3_low_level_wrappers.zig`
 - `PHASE3_LOW_LEVEL_TEST_BLOB_SHA=b990d35805103cd0dcaa58661d8aef55d88be4a7`
-- `PHASE3_ABI_SLICE_DOC_BLOB_SHA=3fd88b4a1685d5d3207debc72634c993fd9e16ce`
-- `PHASE3_ABI_MANIFEST_BLOB_SHA=f6716ac6e498c0bfd9264ab93b37db96d2e27c93`
+- `PHASE3_ABI_SLICE_DOC_BLOB_SHA=641e17cfad8465118285dc953ffa71d223320ca0`
+- `PHASE3_ABI_MANIFEST_BLOB_SHA=57faa49007c0d1b44cc4dd4169fb2b31ed57bb43`
 - `PHASE3_LOW_LEVEL_GATE=zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`
 - `PHASE3_BOUNDARY_GAP=no-64-bit-mmio-or-broader-kernel-style-atomic-and-barrier-family-is-shipped-yet`
 - `PHASE3_NEXT_BOUNDED_STEP=keep-the-low-level-wrapper-packet-narrow-until-one-roadmap-backed-boundary-slice-needs-one-more-explicit-helper`
@@ -33,6 +33,7 @@ Phase 3 is where Zigux starts defining the permanent C and Zigux boundary instea
 
 For this lane, the roadmap requirements are:
 
+- approved atomic, barrier, and MMIO wrappers
 - approved atomic wrappers
 - approved barrier wrappers
 - approved MMIO wrappers
