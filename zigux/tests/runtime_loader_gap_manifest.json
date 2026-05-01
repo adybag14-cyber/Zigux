@@ -3,7 +3,7 @@
   "schedule_phase": "Phase 6",
   "roadmap_runtime_phase": "Phase 9",
   "roadmap_command_environment_phase": "Phase 8",
-  "surveyed_commit": "6be8e2a2a4094a8fab9fc1dc62fd9b93f0b65e97",
+  "surveyed_commit": "1383062a0df7f7a360df54db685454b3e69798af",
   "anchor": "shared runtime loader boundary between samples/zigux/runtime_* and zigux/kernel/runtime_loader.zig",
   "survey_summary": {
     "phase6_leaf_helper_count": 4,
