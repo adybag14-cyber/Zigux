@@ -8,7 +8,7 @@ This document captures the bounded Phase 9 follow-up after the landed atomic64, 
 - `PHASE9_SLICE=shared-runtime-loader-substrate-plan`
 - `PHASE9_LANE_KEY=P6-L01`
 - `PHASE9_SURVEYED_COMMIT=6be8e2a2a4094a8fab9fc1dc62fd9b93f0b65e97`
-- scope: shared request shape, shared loader-stage vocabulary, atomic64 plus bitmap plus kretprobe handoff alignment, and an explicit low-risk path that now lands as `zigux/kernel/runtime_loader.zig` without claiming live runtime execution
+- scope: shared request shape, shared loader-stage vocabulary, allocator-handoff and command-name review surfaces, atomic64 plus bitmap plus kretprobe handoff alignment, and an explicit low-risk path that now lands as `zigux/kernel/runtime_loader.zig` without claiming live runtime execution
 - product boundary:
   - `Documentation/zigux/phase9-runtime-loader-substrate-plan.md`
   - `zigux/kernel/runtime_loader.zig`
@@ -40,6 +40,8 @@ The landed atomic64, bitmap, and kretprobe loaders already agree on several core
 - each lane exposes a bounded handoff plan rather than pretending the runtime substrate already exists
 - each plan carries module identity, Linux anchor provenance, explicit init and exit symbol names, and the current sample lifecycle stage
 - each lane keeps `requires_runtime_substrate` and `provides_selftest_hook` explicit instead of hiding them in prose
+- each lane can keep an optional shared `command_name` handoff reviewable without claiming broader argv-policy or environment-derived activation control
+- each lane now relies on an explicit allocator handoff derived from `zigux/helpers/allocator_policy.zig` instead of leaving allocator ownership implicit in lane-local notes
 
 The main differences are lane-specific payload details:
 
@@ -60,12 +62,14 @@ The first shared code step stayed intentionally small:
 The landed shared request keeps these common fields explicit:
 
 - module name
+- optional shared `command_name` handoff field
 - Linux anchor path
 - entry symbol
 - exit symbol
 - `requires_runtime_substrate`
 - `provides_selftest_hook`
 - sample handoff stage
+- explicit `allocator_handoff` facts derived from `zigux/helpers/allocator_policy.zig`
 - lane kind such as atomic64, bitmap, or kretprobe
 
 The first lane payloads stay small:
@@ -82,6 +86,10 @@ The first shared substrate implementation is now ready because:
 - the shared Phase 9 build can run focused tests for that common request shape
 - the code still makes it impossible to confuse a bounded handoff with a real loadable runtime module
 - the trace-events lane remains free to adopt the same request shape later without forcing the first implementation to solve thread creation or tracepoint registration
+- the shared request keeps `command_name` reviewable as a narrow handoff clue that can later mirror `ExtractArgv0Result.command_name` without claiming a finished argv or environment control plane
+- allocator ownership now stays machine-checkable through the shared `allocator_handoff` record before any real runtime loader exists
+
+That still leaves the broader control plane blocked. Any future non-null `command_name` must keep a truthful Phase 8 owner such as `tools/lib/subcmd/exec-cmd.zig` and `ExtractArgv0Result.command_name`, and this slice still does not claim `Config.exec_path_env`, `PERF_EXEC_PATH`, `PATH`, or other environment-derived activation handling as runtime-loader behavior.
 
 ## Non-goals
 
