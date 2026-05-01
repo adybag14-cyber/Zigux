@@ -5,7 +5,7 @@ This document records the first bounded hardware-validation matrix for the Zigux
 ## Status
 
 - `PHASE11_BCM2835_WDT_STATUS=platform_handoff_landed`
-- reviewed against live `master` `e39cf065b8a2a10319dd0db9388736045e014cf2`
+- reviewed against live `master` `7384183d7b913bdf9a89e67c4d57f14afad9ad4a`
 - scope: keep the current `bcm2835_wdt` starter honest about what is already validated, name the current platform-handoff evidence, and avoid overclaiming live platform registration, PM wiring, or poweroff coordination before those behaviors exist in Zigux
 - latest focused replay: `zig test zigux/tests/phase11_bcm2835_wdt_survey.zig` passes on current `master`
 - latest shared replay: `zig build test --build-file zigux/tests/phase11_build.zig --summary all` passes on current `master`, including `phase11-bcm2835-wdt-tests` and `phase11-bcm2835-wdt-survey-tests`
