@@ -192,7 +192,7 @@ BASE64_CASEGEN_MARKERS = [
 BASE64_C_HARNESS_MARKERS = [
     "BASE64_IMAP = 2,",
     '[BASE64_IMAP] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+,",',
-    '[BASE64_IMAP] = BASE64_REV_INIT(+, ,),',
+    '[BASE64_IMAP] = BASE64_REV_INIT(\'+\', \',\'),',
     '#include "phase6_base64_c_generated_cases.inc"',
     'printf("enc\\t%s\\t%d\\t", variant_name(c->variant), c->padding ? 1 : 0);',
     'printf("dec\\t%s\\t%d\\t%d\\t", variant_name(c->variant), c->padding ? 1 : 0, bytes_result);',
@@ -247,7 +247,7 @@ BSEARCH_PARITY_SCRIPT_MARKERS = [
 ]
 
 BSEARCH_C_PARITY_RUNNER_MARKERS = [
-    'const descending_values = [_]u32{ 89, 55, 34, 21, 13, 8, 3 };',
+    "const descending_values = [_]u32{ 89, 55, 34, 21, 13, 8, 3 };",
     'try writeIndexCase(writer, "descending-hit", 34, bsearch.searchIndex(u32, u32, &@as(u32, 34), descending_values[0..], compareDescendingU32));',
     'try writeDuplicateCase(writer, "duplicate-hit-middle", 7, bsearch.searchIndex(u32, u32, &@as(u32, 7), duplicate_in_middle[0..], compareU32));',
     'try writeIndexCase(writer, "raw-descending-hit", 34, bsearch.bsearchIndex(&@as(u32, 34), @ptrCast(descending_values[0..].ptr), descending_values.len, @sizeOf(u32), compareOpaqueDescendingU32));',
