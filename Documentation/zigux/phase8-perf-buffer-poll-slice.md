@@ -16,15 +16,16 @@ This note records the bounded Phase 8 helper-first slice around the pure wait-re
 
 The remaining `perf-buffer-online-cpu-routing` packet is still too large to land honestly in one step because it crosses `/sys` reads, online CPU filtering, perf-event-array updates, epoll-backed registration, and interrupt-routing-sensitive delivery behavior.
 
-The narrower `perf_buffer__poll(timeout_ms)` bookkeeping surface is smaller and safer. Zigux can model wait-result classification, ready-buffer counting, first-ready indexing, and first-error surfacing without claiming direct `epoll_wait()` parity or broader timer ownership.
+The narrower `perf_buffer__poll(timeout_ms)` bookkeeping surface is smaller and safer. Zigux can model normalized negative errno-or-ready-count wait results, ready-buffer counting, first-ready indexing, and first-error surfacing without claiming direct `epoll_wait()` parity or broader timer ownership.
 
 ## Current helper contract
 
 The helper now keeps these bounded rules explicit:
 
 - timeout requests stay classified as nonblocking, bounded, or indefinite based only on the already-observed `timeout_ms` input
+- normalized negative errno-or-ready-count wait results stay compact through explicit `timed_out`, `interrupted`, `ready_events`, and `failed(errno)` variants before buffer bookkeeping starts
 - ready-buffer bookkeeping counts ready buffers, remembers the first ready index, and surfaces the first buffer-local error without claiming record decoding
-- observed wait outcomes stay compact through explicit `timed_out`, `interrupted`, `ready_events`, and `failed(errno)` variants instead of hidden syscall behavior
+- observed wait outcomes stay compact instead of hiding error or ready-state intent inside broader loop behavior
 - inconsistent states such as more ready buffers than observed ready events still fail fast
 
 ## Non-goals

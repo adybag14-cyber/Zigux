@@ -48,6 +48,20 @@ pub const PollError = error{
     InterruptedObservationHasReadyBuffer,
 };
 
+pub fn classifyObservedWaitResult(wait_result: i32) WaitObservation {
+    if (wait_result == 0) {
+        return .timed_out;
+    }
+    if (wait_result > 0) {
+        return .{ .ready_events = @intCast(wait_result) };
+    }
+    if (wait_result == -@as(i32, @intFromEnum(std.os.linux.E.INTR))) {
+        return .interrupted;
+    }
+
+    return .{ .failed = wait_result };
+}
+
 pub fn classifyWaitClass(timeout_ms: i32) PollError!WaitClass {
     return switch (timeout_ms) {
         -1 => .indefinite,
@@ -154,6 +168,16 @@ test "classifyWaitClass keeps perf_buffer__poll timeout classes explicit" {
     try std.testing.expectError(PollError.InvalidTimeout, classifyWaitClass(-2));
 }
 
+test "classifyObservedWaitResult keeps normalized wait outcomes compact before buffer bookkeeping" {
+    try std.testing.expectEqualDeep(WaitObservation.timed_out, classifyObservedWaitResult(0));
+    try std.testing.expectEqualDeep(WaitObservation{ .ready_events = 3 }, classifyObservedWaitResult(3));
+    try std.testing.expectEqualDeep(
+        WaitObservation.interrupted,
+        classifyObservedWaitResult(-@as(i32, @intFromEnum(std.os.linux.E.INTR))),
+    );
+    try std.testing.expectEqualDeep(WaitObservation{ .failed = -5 }, classifyObservedWaitResult(-5));
+}
+
 test "summarizeReadyBuffers counts ready buffers and preserves the first error" {
     const buffers = [_]BufferObservation{
         .{},
@@ -185,7 +209,7 @@ test "summarizePoll keeps bounded ready observations compact and reviewable" {
 }
 
 test "summarizePoll keeps timeout, interruption, and missing-ready mismatches explicit" {
-    const idle_buffers = [_]BufferObservation{.{}, .{}};
+    const idle_buffers = [_]BufferObservation{ .{}, .{} };
     const timeout_summary = try summarizePoll(0, .timed_out, &idle_buffers);
     try std.testing.expectEqual(WaitClass.nonblocking, timeout_summary.wait_class);
     try std.testing.expectEqual(PollOutcome.timeout, timeout_summary.outcome);
