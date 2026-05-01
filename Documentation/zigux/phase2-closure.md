@@ -75,7 +75,7 @@ Phase 2 is only considered closed when all of the following are green:
 
 7. bounded phase2 cross-target compile gate
 - `python3 scripts/zigux/check-phase2-cross.py --self-test`
-- the checker self-test must stay in the Linux-style `phase2-cross` path before live compile replay so duplicate tool entries, duplicate manifest targets, manifest-count drift, and explicit-target failure drift cannot hide behind local Zig availability
+- the checker self-test must stay in the Linux-style `phase2-cross` path before live compile replay so duplicate tool entries, duplicate requested targets, unexpected explicit targets, duplicate manifest targets, manifest-count drift, and explicit-target failure drift cannot hide behind local Zig availability
 - `python3 scripts/zigux/check-phase2-cross.py`
 
 8. bounded shared phase2 validator gate
@@ -111,7 +111,7 @@ Phase 2 is only considered closed when all of the following are green:
 - `PHASE2_KCONFIG_BRIDGE_DETERMINISM=check-kconfig-bridge.py replays conf and confdata outputs twice and compares a rebuilt confdata binary against the same JSON artifacts`
 - `PHASE2_CROSS_SELF_TEST=python3 scripts/zigux/check-phase2-cross.py --self-test`
 - `PHASE2_CROSS_GATE=python3 scripts/zigux/check-phase2-cross.py`
-- `PHASE2_CROSS_MANIFEST_POLICY=check-phase2-cross.py rejects duplicate tool entries, duplicate manifest targets, and manifest-count drift before live compile replay`
+- `PHASE2_CROSS_MANIFEST_POLICY=check-phase2-cross.py rejects duplicate tool entries, duplicate requested targets, unexpected explicit targets, duplicate manifest targets, and manifest-count drift before live compile replay`
 - `PHASE2_SHARED_VALIDATOR=python3 scripts/zigux/validate-phase2.py`
 - `PHASE2_CLOSURE_GATE=python3 scripts/zigux/validate-phase2-closure.py`
 
