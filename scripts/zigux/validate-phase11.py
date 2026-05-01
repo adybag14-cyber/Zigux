@@ -136,7 +136,7 @@ FORBIDDEN_BUILD_MARKERS = [
 BUILD_INVENTORY_FIXTURE = "zigux/tests/fixtures/phase11_build_inventory.json"
 
 MANIFEST_SPECS = {
-    "phase11_gpio_wdt_manifest.json": ("P11-L01", "drivers/watchdog/gpio_wdt.c", 13, [], ["phase11-gpio-wdt-platform-registration"]),
+    "phase11_gpio_wdt_manifest.json": ("P11-L04", "drivers/watchdog/gpio_wdt.c", 14, [], ["phase11-gpio-wdt-platform-registration"]),
     "phase11_bcm2835_wdt_manifest.json": ("P11-L08", "drivers/watchdog/bcm2835_wdt.c", 13, [], ["phase11-bcm2835-wdt-live-platform-registration"]),
     "phase11_dw_wdt_manifest.json": ("P11-L11", "drivers/watchdog/dw_wdt.c", 12, [], ["phase11-dw-wdt-platform-and-pm"]),
     "phase11_hvc_console_manifest.json": ("P11-L18", "drivers/tty/hvc/hvc_console.c", 14, [], []),
@@ -672,7 +672,7 @@ for marker in [
     if marker not in hvc_survey_doc:
         missing.append(f"phase11_hvc_console_docs:survey:{marker}")
 for marker in [
-    "adds a tiny final-close teardown summary that keeps tty detachment, `HUPCL`-gated `dtr_rts` shutdown, `notifier_del` ownership, resize-work cancellation, and `tty_wait_until_sent()` intent reviewable without claiming notifier execution or tty-core teardown timing",
+    "adds a tiny final-close teardown summary that keeps tty detachment, `HUPCL`-gated `dtr_rts` shutdown, `notifier_del` ownership, resize-work cancellation, and `tty_wait_until_sent()` intent reviewable without claiming notifier callbacks or tty-core teardown timing",
     "adds a tiny tty-registration handoff summary that keeps `setup_hvc_console()`-adjacent close-wait ownership, notifier boundaries, and khvcd wakeup intent reviewable without claiming worker execution",
     "adds a tiny khvcd polling-contract summary that keeps notifier-driven versus polling-driven wakeups, bounded reschedule intent, and teardown-facing host-I/O boundaries reviewable without claiming worker execution",
     "adds a tiny khvcd worker-entry summary that keeps wake-before-sleep decisions, xmon-forced read polling, mutex-backed list walks, and timeout-backoff choices reviewable without claiming live worker execution",
@@ -757,7 +757,7 @@ for marker in [
     if marker not in gpio_slice_doc:
         missing.append(f"phase11_gpio_wdt_docs:slice:{marker}")
 for marker in [
-    "PHASE11_GPIO_WDT_STATUS=teardown_and_register_device_surface_landed",
+    "PHASE11_GPIO_WDT_STATUS=metadata_teardown_and_register_device_surface_landed",
     "| teardown-facing stop and failure-mode evidence | `requestStop()` keeps nowayout blocking, non-`always_running` disable, and `always_running` keepalive outcomes reviewable as teardown-facing metadata immediately adjacent to the current register-device planning boundary |",
     "| explicit disable-order teardown summary | `summarizeTeardown()` now keeps `gpio_wdt_disable()`-style eternal-ping ordering, toggle-mode return-to-input behavior, level-mode asserted-output behavior, and `always-running` versus `nowayout` stop fallout reviewable without claiming a live unregister path |",
     "| register-device call surface | `registerDeviceCallSummary()` now records the exact watchdog metadata, timeout bounds, driver-data ownership, parent linkage, `nowayout`, stop-on-reboot, startup state, and explicit `register_device_requested` marker that would reach the first bounded `devm_watchdog_register_device()` request without claiming the live call or descriptor path |",
