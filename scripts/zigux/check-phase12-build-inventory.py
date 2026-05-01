@@ -137,6 +137,14 @@ def compare_inventory(inventory: dict[str, object]) -> subprocess.CompletedProce
     return result
 
 
+def expect_inventory_mismatch(label: str, inventory: dict[str, object]) -> None:
+    mismatched_result = compare_inventory(inventory)
+    if mismatched_result.returncode == 0:
+        raise SystemExit(f"phase12-build-inventory:self-test:{label}:fixture_drift_exit")
+    if "ARTIFACT_DIFF=fail" not in mismatched_result.stdout:
+        raise SystemExit(f"phase12-build-inventory:self-test:{label}:fixture_drift_stdout")
+
+
 def run_self_test() -> int:
     load_json(FIXTURE_PATH)
 
@@ -157,16 +165,20 @@ def run_self_test() -> int:
     if "ARTIFACT_DIFF=pass" not in matched_result.stdout:
         raise SystemExit("phase12-build-inventory:self-test:fixture_match_stdout")
 
-    drifted = dict(first)
-    drifted["expected_summary_line"] = "Build Summary: 0/0 steps succeeded; 0/0 tests passed"
-    mismatched_result = compare_inventory(drifted)
-    if mismatched_result.returncode == 0:
-        raise SystemExit("phase12-build-inventory:self-test:fixture_drift_exit")
-    if "ARTIFACT_DIFF=fail" not in mismatched_result.stdout:
-        raise SystemExit("phase12-build-inventory:self-test:fixture_drift_stdout")
+    drifted_summary = dict(first)
+    drifted_summary["expected_summary_line"] = "Build Summary: 0/0 steps succeeded; 0/0 tests passed"
+    expect_inventory_mismatch("fixture_summary_line_drift", drifted_summary)
+
+    drifted_test_names = json.loads(json.dumps(first))
+    drifted_test_names["build_test_names"][0] = "phase12-build-inventory-drift"
+    expect_inventory_mismatch("fixture_build_test_name_drift", drifted_test_names)
+
+    drifted_depend_steps = json.loads(json.dumps(first))
+    drifted_depend_steps["shared_test_depend_steps"][0] = "run_phase12_inventory_drift"
+    expect_inventory_mismatch("fixture_depend_step_drift", drifted_depend_steps)
 
     print("PHASE12_BUILD_INVENTORY_SELF_TEST=pass")
-    print("PHASE12_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=7")
+    print("PHASE12_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
