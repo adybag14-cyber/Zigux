@@ -553,7 +553,8 @@ def discover_artifact_diff_phase3_order(
     entries: list[Phase3Slice],
     artifact_diff_path: Path = ARTIFACT_DIFF_PATH,
 ) -> list[Phase3Slice]:
-    entry_map = {entry.slug: entry for entry in entries}
+    publishable_entries = _artifact_diff_publishable_entries(entries)
+    entry_map = {entry.slug: entry for entry in publishable_entries}
     ordered_entries: list[Phase3Slice] = []
     seen: set[str] = set()
 
@@ -562,7 +563,7 @@ def discover_artifact_diff_phase3_order(
         start = lines.index("Current Phase 3 use")
         end = lines.index("Rules")
     except (FileNotFoundError, ValueError):
-        return entries
+        return publishable_entries
 
     for line in lines[start + 1 : end]:
         match = ARTIFACT_DIFF_PHASE3_SLUG_RE.search(line)
@@ -574,7 +575,7 @@ def discover_artifact_diff_phase3_order(
         ordered_entries.append(entry_map[slug])
         seen.add(slug)
 
-    for entry in entries:
+    for entry in publishable_entries:
         if entry.slug in seen:
             continue
         ordered_entries.append(entry)
@@ -721,6 +722,11 @@ def audit_phase3_slug_sanity(entries: list[Phase3Slice]) -> list[Phase3AuditIssu
         if repeated_bigrams:
             issues.append(Phase3AuditIssue("slug-repeated-phrase", f"{entry.slug}\t{','.join(repeated_bigrams)}"))
     return issues
+
+
+def _artifact_diff_publishable_entries(entries: list[Phase3Slice]) -> list[Phase3Slice]:
+    blocked_slugs = {issue.detail.split("\t", 1)[0] for issue in audit_phase3_slug_sanity(entries)}
+    return [entry for entry in entries if entry.slug not in blocked_slugs]
 
 
 def discover_phase3_slug_rename_candidates(entries: list[Phase3Slice]) -> list[Phase3SlugRenameCandidate]:
@@ -1121,6 +1127,9 @@ def run_self_test() -> int:
             candidate.slug == repetitive_slug and candidate.canonical_slug == canonical_slug
             for candidate in rename_candidates
         )
+        publishable_slugs = [entry.slug for entry in _artifact_diff_publishable_entries(discover_phase3_slices(paths))]
+        assert repetitive_slug not in publishable_slugs
+        assert canonical_slug in publishable_slugs
 
     print("PHASE3_CATALOG_SELF_TEST=pass")
     return 0
