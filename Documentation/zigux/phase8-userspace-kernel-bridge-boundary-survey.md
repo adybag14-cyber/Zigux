@@ -43,8 +43,8 @@ This survey closes that documentation gap without widening the implementation su
 
 The current parked command boundary is helper-only:
 
-- `tools/lib/subcmd/exec-cmd.zig` covers path-resolution, injected environment setup, cwd-choice modeling, null-terminated argv preparation, pure `execv_cmd()`-style future handoff packaging, and pure `execl_cmd()`-style argument collection plus deferred future handoff carriers
-- `tools/lib/subcmd/help.zig` covers owned command-name handling, injected command-source filtering, raw `PATH` splitting, injected terminal-dimensions resolution, and pure section-render planning or emission
+- `tools/lib/subcmd/exec-cmd.zig` covers path-resolution, injected environment setup, cwd-choice modeling through `choosePwdCwdFromIdentities()` and `setupPathWithPwd()`, null-terminated argv preparation through `collectExeclArgs()`, pure `execv_cmd()`-style future handoff packaging through `buildDeferredExecvCall()`, and pure `execl_cmd()`-style argument collection plus deferred future handoff carriers through `buildDeferredExeclCall()`
+- `tools/lib/subcmd/help.zig` covers owned command-name handling, injected command-source filtering through `loadCommandListsFromEnvPath()`, raw `PATH` splitting, injected terminal-dimensions resolution through `resolveTerminalDimensions()`, and pure section-render planning or emission through `writeCommandSectionsForTerminal()`
 - the current command packet does not claim direct `execvp()` parity, direct environment reads or writes, `opendir()` or `readdir()` parity, direct `ioctl()`-backed terminal probing, queue ownership, scheduler-facing transport behavior, or any handoff into `kernel/workqueue.c`, which remains a separate Phase 14 boundary-study target
 
 The current libbpf bridge packet is also helper-first:
