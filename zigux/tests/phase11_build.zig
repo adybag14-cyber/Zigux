@@ -81,6 +81,12 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     phase11_hvc_console_module.addImport("hvc_console", hvc_console_module);
+    const phase11_hvc_console_poll_retry_split_module = b.createModule(.{
+        .root_source_file = b.path("phase11_hvc_console_poll_retry_split.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase11_hvc_console_poll_retry_split_module.addImport("hvc_console", hvc_console_module);
     const phase11_hvc_console_survey_module = b.createModule(.{
         .root_source_file = b.path("phase11_hvc_console_survey.zig"),
         .target = target,
@@ -128,6 +134,13 @@ pub fn build(b: *std.Build) void {
         .root_module = phase11_hvc_console_module,
     });
     const run_phase11_hvc_console_tests = b.addRunArtifact(phase11_hvc_console_tests);
+    const phase11_hvc_console_poll_retry_split_tests = b.addTest(.{
+        .name = "phase11-hvc-console-poll-retry-split-tests",
+        .root_module = phase11_hvc_console_poll_retry_split_module,
+    });
+    const run_phase11_hvc_console_poll_retry_split_tests = b.addRunArtifact(
+        phase11_hvc_console_poll_retry_split_tests,
+    );
     const phase11_hvc_console_survey_tests = b.addTest(.{
         .name = "phase11-hvc-console-survey-tests",
         .root_module = phase11_hvc_console_survey_module,
@@ -143,6 +156,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_phase11_dw_wdt_survey_tests.step);
     test_step.dependOn(&run_phase11_uapi_header_parity_survey_tests.step);
     test_step.dependOn(&run_phase11_hvc_console_tests.step);
+    test_step.dependOn(&run_phase11_hvc_console_poll_retry_split_tests.step);
 
     const hvc_console_survey_step = b.step(
         "hvc-console-survey",
