@@ -352,6 +352,45 @@ const test_data_b = [_]u8{
 
 const test_ascii = ".2.{....p..$}.4...1.....L...C...";
 
+fn assertExactCapacityFullBufferCase(
+    len: usize,
+    rowsize: usize,
+    groupsize: usize,
+    ascii: bool,
+) !void {
+    var exact: [160]u8 = [_]u8{'#'} ** 160;
+    var roomy: [160]u8 = [_]u8{'#'} ** 160;
+
+    const required = hexDumpLineLength(len, rowsize, groupsize, ascii);
+    const exact_required = hexDumpToBuffer(
+        test_data_b[0..len],
+        rowsize,
+        groupsize,
+        exact[0 .. required + 1],
+        ascii,
+    );
+    const roomy_required = hexDumpToBuffer(
+        test_data_b[0..len],
+        rowsize,
+        groupsize,
+        roomy[0..],
+        ascii,
+    );
+
+    try std.testing.expectEqual(required, exact_required);
+    try std.testing.expectEqual(required, roomy_required);
+    try std.testing.expectEqualSlices(u8, std.mem.sliceTo(roomy[0..], 0), std.mem.sliceTo(exact[0..], 0));
+    try std.testing.expectEqual(@as(u8, 0), exact[required]);
+    try std.testing.expectEqual(@as(u8, 0), roomy[required]);
+
+    for (exact[required + 1 ..]) |byte| {
+        try std.testing.expectEqual(@as(u8, '#'), byte);
+    }
+    for (roomy[required + 1 ..]) |byte| {
+        try std.testing.expectEqual(@as(u8, '#'), byte);
+    }
+}
+
 test "hexToBin accepts digits and both alphabetic cases" {
     try std.testing.expectEqual(@as(i32, 0), hexToBin('0'));
     try std.testing.expectEqual(@as(i32, 9), hexToBin('9'));
@@ -544,4 +583,5 @@ test "hexDumpToBuffer exact-capacity full-buffer path stays aligned with fixture
     try assertExactCapacityFullBufferCase(16, 16, 4, false);
     try assertExactCapacityFullBufferCase(16, 16, 4, true);
     try assertExactCapacityFullBufferCase(32, 32, 2, true);
+    try assertExactCapacityFullBufferCase(16, 16, 8, true);
 }
