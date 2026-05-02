@@ -33,21 +33,52 @@ FORBIDDEN_BUILD_MARKERS = [
 DEDICATED_SURVEY_REPLAYS = [
     "zigux/tests/phase11_hvc_console_survey.zig",
 ]
+SPLIT_TEST_SUFFIX = "-split-tests"
 
 
 def load_json(path: Path) -> dict[str, object]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def render_shared_split_replays(
+    module_roots: list[dict[str, str]],
+    test_root_modules: list[dict[str, str]],
+) -> list[dict[str, str]]:
+    root_path_by_module = {
+        item["module"]: item["path"]
+        for item in module_roots
+    }
+    shared_split_replays: list[dict[str, str]] = []
+    for item in test_root_modules:
+        test_name = item["test"]
+        if not test_name.endswith(SPLIT_TEST_SUFFIX):
+            continue
+        root_path = root_path_by_module.get(item["root_module"])
+        if root_path is None:
+            continue
+        shared_split_replays.append(
+            {
+                "test": test_name,
+                "path": (Path("zigux/tests") / root_path).as_posix(),
+            }
+        )
+    return shared_split_replays
+
+
 def render_inventory() -> dict[str, object]:
     build_text = BUILD_PATH.read_text(encoding="utf-8")
+    module_root_source_files = [
+        {"module": module_name, "path": root_path}
+        for module_name, root_path in BUILD_MODULE_RE.findall(build_text)
+    ]
+    test_root_modules = [
+        {"test": test_name, "root_module": root_module}
+        for test_name, root_module in BUILD_TEST_ROOT_MODULE_RE.findall(build_text)
+    ]
     return {
         "build_test_names": BUILD_TEST_NAME_RE.findall(build_text),
         "shared_test_depend_steps": BUILD_DEPEND_STEP_RE.findall(build_text),
-        "module_root_source_files": [
-            {"module": module_name, "path": root_path}
-            for module_name, root_path in BUILD_MODULE_RE.findall(build_text)
-        ],
+        "module_root_source_files": module_root_source_files,
         "module_imports": [
             {
                 "module": module_name,
@@ -56,12 +87,10 @@ def render_inventory() -> dict[str, object]:
             }
             for module_name, import_name, imported_module in BUILD_IMPORT_RE.findall(build_text)
         ],
-        "test_root_modules": [
-            {"test": test_name, "root_module": root_module}
-            for test_name, root_module in BUILD_TEST_ROOT_MODULE_RE.findall(build_text)
-        ],
+        "test_root_modules": test_root_modules,
         "forbidden_markers": FORBIDDEN_BUILD_MARKERS,
         "dedicated_survey_replays": DEDICATED_SURVEY_REPLAYS,
+        "shared_split_replays": render_shared_split_replays(module_root_source_files, test_root_modules),
     }
 
 
@@ -195,6 +224,16 @@ pub fn build(b: *std.Build) void {
         ],
         "forbidden_markers": FORBIDDEN_BUILD_MARKERS,
         "dedicated_survey_replays": DEDICATED_SURVEY_REPLAYS,
+        "shared_split_replays": [
+            {
+                "test": "phase11-dw-wdt-remove-idle-split-tests",
+                "path": "zigux/tests/phase11_dw_wdt_remove_idle_split.zig",
+            },
+            {
+                "test": "phase11-hvc-console-poll-retry-split-tests",
+                "path": "zigux/tests/phase11_hvc_console_poll_retry_split.zig",
+            },
+        ],
     }
     write_text(
         root / "zigux/tests/fixtures/phase11_build_inventory.json",
@@ -352,8 +391,17 @@ def run_self_test() -> int:
         )
         fixture_path.write_text(fixture_backup, encoding="utf-8")
 
+        fixture = json.loads(fixture_backup)
+        fixture["shared_split_replays"] = []
+        fixture_path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
+        expect_inventory_drift(
+            "shared_split_replays_fixture_drift",
+            tmp_root,
+        )
+        fixture_path.write_text(fixture_backup, encoding="utf-8")
+
     print("PHASE11_BUILD_INVENTORY_SELF_TEST=pass")
-    print("PHASE11_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=5")
+    print("PHASE11_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
