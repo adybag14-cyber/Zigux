@@ -7,6 +7,7 @@ const Anchor = struct {
     survey_note_path: []const u8,
     public_read_status: []const u8,
     raw_fallback_catalog_path: []const u8,
+    raw_fallback_map_path: []const u8,
 };
 
 const Manifest = struct {
@@ -17,6 +18,7 @@ const Manifest = struct {
     last_replayed_public_head: []const u8,
     roadmap_anchor_count: usize,
     commit_pinned_raw_fallback_catalog_count: usize,
+    commit_pinned_raw_fallback_map_count: usize,
     shared_tree_only_anchor_count: usize,
     anchors: []const Anchor,
 };
@@ -49,6 +51,14 @@ test "phase12 raw GitHub coverage survey keeps the roadmap-wide public-read spli
     );
     defer std.testing.allocator.free(raw_fallback_catalog);
 
+    const raw_fallback_map = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(raw_fallback_map);
+
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
 
@@ -69,21 +79,35 @@ test "phase12 raw GitHub coverage survey keeps the roadmap-wide public-read spli
     );
     try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_anchor_count);
     try std.testing.expectEqual(@as(usize, 1), manifest.commit_pinned_raw_fallback_catalog_count);
-    try std.testing.expectEqual(@as(usize, 3), manifest.shared_tree_only_anchor_count);
+    try std.testing.expectEqual(@as(usize, 1), manifest.commit_pinned_raw_fallback_map_count);
+    try std.testing.expectEqual(@as(usize, 2), manifest.shared_tree_only_anchor_count);
     try std.testing.expectEqual(@as(usize, 4), manifest.anchors.len);
 
     var shared_tree_only_count: usize = 0;
-    var commit_pinned_count: usize = 0;
+    var commit_pinned_catalog_count: usize = 0;
+    var commit_pinned_map_count: usize = 0;
+    var saw_nvme_pci = false;
     var saw_virtio_scsi = false;
     for (manifest.anchors) |anchor| {
         if (std.mem.eql(u8, anchor.public_read_status, "shared_tree_only")) {
             shared_tree_only_count += 1;
             try std.testing.expectEqual(@as(usize, 0), anchor.raw_fallback_catalog_path.len);
+            try std.testing.expectEqual(@as(usize, 0), anchor.raw_fallback_map_path.len);
         } else if (std.mem.eql(u8, anchor.public_read_status, "commit_pinned_raw_catalog")) {
-            commit_pinned_count += 1;
+            commit_pinned_catalog_count += 1;
             try std.testing.expect(std.mem.indexOf(u8, anchor.raw_fallback_catalog_path, "virtio-scsi-raw-github-fallback-catalog.md") != null);
+            try std.testing.expectEqual(@as(usize, 0), anchor.raw_fallback_map_path.len);
+        } else if (std.mem.eql(u8, anchor.public_read_status, "commit_pinned_raw_map")) {
+            commit_pinned_map_count += 1;
+            try std.testing.expectEqual(@as(usize, 0), anchor.raw_fallback_catalog_path.len);
+            try std.testing.expect(std.mem.indexOf(u8, anchor.raw_fallback_map_path, "nvme-pci-raw-github-fallback-map.md") != null);
         } else {
             return error.UnexpectedStatus;
+        }
+
+        if (std.mem.eql(u8, anchor.id, "nvme_pci")) {
+            saw_nvme_pci = true;
+            try std.testing.expectEqualStrings("drivers/nvme/host/pci.c", anchor.anchor);
         }
 
         if (std.mem.eql(u8, anchor.id, "virtio_scsi")) {
@@ -92,8 +116,10 @@ test "phase12 raw GitHub coverage survey keeps the roadmap-wide public-read spli
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 3), shared_tree_only_count);
-    try std.testing.expectEqual(@as(usize, 1), commit_pinned_count);
+    try std.testing.expectEqual(@as(usize, 2), shared_tree_only_count);
+    try std.testing.expectEqual(@as(usize, 1), commit_pinned_catalog_count);
+    try std.testing.expectEqual(@as(usize, 1), commit_pinned_map_count);
+    try std.testing.expect(saw_nvme_pci);
     try std.testing.expect(saw_virtio_scsi);
 
     for ([_][]const u8{
@@ -102,12 +128,16 @@ test "phase12 raw GitHub coverage survey keeps the roadmap-wide public-read spli
         "drivers/scsi/virtio_scsi.c",
         "tools/lib/bpf/libbpf.c",
         "one anchor keeps a commit-pinned raw fallback catalog",
-        "three anchors remain shared-tree-only fallback reads",
+        "one anchor keeps a commit-pinned raw fallback map",
+        "two anchors remain shared-tree-only fallback reads",
         "a8daee106057a542aa03f2983662bec7c06584bb",
         "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md",
+        "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md",
     }) |marker| {
         try std.testing.expect(std.mem.indexOf(u8, survey_note, marker) != null);
     }
 
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_map, "PHASE12_SURVEYED_COMMIT=8b69e4dfd04553afeb08c0ecbf3060f800e7ecd1") != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_map, "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md") != null);
 }
