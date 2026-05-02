@@ -213,6 +213,16 @@ test \"phase11 shared header parity survey keeps a bounded winsize layout proof\
 
         write_fixture(
             tmp_root,
+            INVENTORY_PATH,
+            json.dumps({"module_root_source_files": [EXPECTED_LAYOUT_MODULE], "module_imports": []}, indent=2),
+        )
+        inventory_missing = check_root(tmp_root)
+        if "inventory:phase11_uapi_header_parity_survey_layout_assert_import" not in inventory_missing:
+            raise SystemExit("phase11-layout-assert-self-test:inventory_missing_survey_import")
+        write_fixture(tmp_root, INVENTORY_PATH, inventory_text)
+
+        write_fixture(
+            tmp_root,
             SURVEY_PATH,
             survey_text.replace('const layout_assert = @import("layout_assert");\n', "", 1),
         )
@@ -221,7 +231,7 @@ test \"phase11 shared header parity survey keeps a bounded winsize layout proof\
             raise SystemExit("phase11-layout-assert-self-test:survey_missing_layout_import")
 
     print("PHASE11_LAYOUT_ASSERT_SURFACE_SELF_TEST=pass")
-    print("PHASE11_LAYOUT_ASSERT_SURFACE_SELF_TEST_CASE_COUNT=4")
+    print("PHASE11_LAYOUT_ASSERT_SURFACE_SELF_TEST_CASE_COUNT=5")
     return 0
 
 
