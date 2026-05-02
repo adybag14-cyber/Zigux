@@ -9,6 +9,16 @@
       "rc": 3,
       "rest": "-5",
       "value": 3
+    },
+    "wrapped_negative_low_word": {
+      "rc": 2,
+      "rest": "tail",
+      "value": 1
+    },
+    "wrapped_positive_low_word": {
+      "rc": 2,
+      "rest": "tail",
+      "value": -1
     }
   },
   "get_options": {
