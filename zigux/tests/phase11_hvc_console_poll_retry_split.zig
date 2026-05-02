@@ -153,3 +153,38 @@ test "phase11 hvc console keeps partial write progress distinct from stalled __h
     try std.testing.expect(stalled_write.wakeup_before_unlock);
     try std.testing.expect(stalled_write.backend_handoff_pending);
 }
+
+test "phase11 hvc console keeps fully drained writes waking the tty without a preexisting wakeup flag" {
+    var console = try hvc_console.HvcConsoleLab.init(3);
+    _ = console.instantiate(0x33);
+
+    const drained_write = try console.summarizePollDrainOrder(.{
+        .contract = .{
+            .close = .{
+                .open_count_before_close = 1,
+            },
+        },
+        .irq_requested = true,
+        .buffered_write_len = 5,
+        .write_result = 5,
+    });
+    try std.testing.expectEqual(@as(usize, 3), drained_write.slot_index);
+    try std.testing.expectEqual(@as(u32, 0x33), drained_write.vtermno);
+    try std.testing.expect(drained_write.adapter_present);
+    try std.testing.expect(drained_write.write_drain_precedes_read_path);
+    try std.testing.expect(drained_write.write_drain_attempted);
+    try std.testing.expectEqual(@as(usize, 0), drained_write.write_remaining_len);
+    try std.testing.expect(!drained_write.write_poll_pending_after_drain);
+    try std.testing.expect(!drained_write.write_progress_resets_timeout);
+    try std.testing.expect(!drained_write.stalled_write_uses_min_timeout);
+    try std.testing.expect(!drained_write.releases_lock_before_read_retry);
+    try std.testing.expect(drained_write.tty_required_for_read_path);
+    try std.testing.expect(!drained_write.read_poll_armed_without_irq);
+    try std.testing.expect(!drained_write.read_poll_pending_after_drain);
+    try std.testing.expect(!drained_write.read_hangup_pending);
+    try std.testing.expectEqual(@as(usize, 0), drained_write.read_bytes_drained);
+    try std.testing.expect(drained_write.wakeup_before_unlock);
+    try std.testing.expect(!drained_write.flip_push_after_unlock);
+    try std.testing.expect(!drained_write.wakeup_precedes_flip_push);
+    try std.testing.expect(drained_write.backend_handoff_pending);
+}
