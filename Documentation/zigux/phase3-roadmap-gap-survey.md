@@ -19,6 +19,8 @@ This note records the current Phase 3 ABI and interop gap between the roadmap co
 - `PHASE3_REPO_REALITY=chrdev-plan-growth-exceeds-roadmap-anchors`
 - `PHASE3_INTEROP_GAP=rbtree-interop-slice-still-missing`
 - `PHASE3_NEXT_BOUNDED_STEP=small-phase3-rbtree-interop-slice-before-more-chrdev-growth`
+- `PHASE3_SURVEY_MANIFEST=zigux/tests/phase3_roadmap_gap_manifest.json`
+- `PHASE3_SURVEY_GATE=zig test zigux/tests/phase3_roadmap_gap_survey.zig`
 
 ## Roadmap Contract
 
@@ -86,6 +88,14 @@ There is also a smaller but still explicit boundary gap around UAPI scope:
 - the roadmap destination list includes `zigux/uapi/` as part of the permanent Phase 3 boundary
 - the current repo still only exposes the bounded `zigux/uapi/version.zig` surface
 - that version-and-boundary-header surface is appropriate for the current ABI substrate, but it is not full closure of the broader UAPI destination the roadmap leaves room for later
+
+## Focused Survey Gate
+
+This roadmap-gap packet is now directly reviewable instead of living only as prose plus a Python validator:
+
+- `zigux/tests/phase3_roadmap_gap_manifest.json` keeps the current anchor map, the current interop-family summary, the current `rbtree` evidence packet, and the still-open bounded next step explicit on the same committed artifact path
+- `zig test zigux/tests/phase3_roadmap_gap_survey.zig` checks that the manifest, this note, the dedicated `Documentation/zigux/phase3-rbtree-interop-survey.md` note, and the dedicated Python validator still agree on the same current-gap story
+- `scripts/zigux/validate-phase3-roadmap-gap-survey.py` now fails if the manifest-backed survey packet disappears or if the focused survey gate stops naming the same current `rbtree` gap markers
 
 ## Drift Note
 
