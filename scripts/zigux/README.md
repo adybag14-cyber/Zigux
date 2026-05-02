@@ -136,7 +136,7 @@ Phase 5 flow
 
 Phase 6 flow
 - `validate-phase6.py` keeps the shipped Phase 6 leaf-helper packet aligned across `scripts/zigux/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/phase6-helper-parity-catalog.md`, `zigux/tests/phase6_helper_parity_manifest.json`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, the bootstrap workflow, and the four helper-local slice notes before any shared replay claims stay green.
-- `validate-phase6.py --self-test` exercises the shared Phase 6 marker walk in a compact synthetic tree and fails if catalog or manifest provenance or helper-local fixture evidence drifts.
+- `validate-phase6.py --self-test` exercises the shared Phase 6 marker walk in a compact synthetic tree and fails if catalog-head provenance, script-README wording, perf-survey markers, shared-gates inventory, manifest `surveyed_commit`, or helper-local determinism evidence drifts.
 - `make -C zigux phase6-validate` is the validator-first entrypoint for the current Phase 6 review packet.
 - `make -C zigux phase6` is the shared replay path for the bounded `base64`, `bsearch`, `checksum`, and `hexdump` helper tests after the validator passes.
 - the per-helper perf targets stay reviewable as explicit make entrypoints: `make -C zigux phase6-base64-perf`, `make -C zigux phase6-bsearch-perf`, `make -C zigux phase6-checksum-perf`, and `make -C zigux phase6-hexdump-perf`.
