@@ -23,6 +23,7 @@ REQUIRED_FILES = {
 
 SURVEY_MARKERS = [
     "reviewed against live `master` `{commit}`",
+    "`zigux/tests/phase11_hvc_console_poll_retry_split.zig` now keeps the already-landed `__hvc_poll()` IRQ-backed may-sleep drained-read split, the may-sleep IRQ-free retry-rearm split, and the partial-write-versus-stalled-write split explicit inside the shared Phase 11 gate so those read-versus-write retry details do not stay implicit in the older single-file HVC replay",
     "The next honest bounded step inside the same Phase 11 lane is to leave the starter parked unless fresh repo inspection finds another comparably small host-free notifier, sysrq, or khvcd handoff that is not already covered by the `struct winsize` and `struct hv_ops` checkpoints; otherwise avoid widening straight into live tty teardown, notifier execution, sysrq handling, live khvcd worker behavior, `struct hvc_struct`, or host-backed teardown.",
 ]
 
@@ -137,6 +138,7 @@ def clone_fixture_root(destination_root: Path) -> None:
                 "# Phase 11 HVC Console Survey",
                 f"- reviewed against live `master` `{FIXTURE_COMMIT}`",
                 "- `hvc_cleanup()` remains bounded",
+                "- `zigux/tests/phase11_hvc_console_poll_retry_split.zig` now keeps the already-landed `__hvc_poll()` IRQ-backed may-sleep drained-read split, the may-sleep IRQ-free retry-rearm split, and the partial-write-versus-stalled-write split explicit inside the shared Phase 11 gate so those read-versus-write retry details do not stay implicit in the older single-file HVC replay",
                 "- The next honest bounded step inside the same Phase 11 lane is to leave the starter parked unless fresh repo inspection finds another comparably small host-free notifier, sysrq, or khvcd handoff that is not already covered by the `struct winsize` and `struct hv_ops` checkpoints; otherwise avoid widening straight into live tty teardown, notifier execution, sysrq handling, live khvcd worker behavior, `struct hvc_struct`, or host-backed teardown.",
                 "",
             ]
@@ -229,6 +231,21 @@ def run_self_test() -> int:
         original_survey = survey_path.read_text(encoding="utf-8")
         survey_path.write_text(
             original_survey.replace(
+                "partial-write-versus-stalled-write split explicit inside the shared Phase 11 gate",
+                "partial-write split explicit inside the shared Phase 11 gate",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "survey_poll_retry_split_marker",
+            tmp_root,
+            "survey:`zigux/tests/phase11_hvc_console_poll_retry_split.zig` now keeps the already-landed `__hvc_poll()` IRQ-backed may-sleep drained-read split, the may-sleep IRQ-free retry-rearm split, and the partial-write-versus-stalled-write split explicit inside the shared Phase 11 gate so those read-versus-write retry details do not stay implicit in the older single-file HVC replay",
+        )
+        survey_path.write_text(original_survey, encoding="utf-8")
+
+        survey_path.write_text(
+            original_survey.replace(
                 "host-free notifier, sysrq, or khvcd handoff",
                 "host-free notifier or sysrq handoff",
                 1,
@@ -266,7 +283,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE11_HVC_CLEANUP_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE11_HVC_CLEANUP_ALIGNMENT_SELF_TEST_CASE_COUNT=5")
+    print("PHASE11_HVC_CLEANUP_ALIGNMENT_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
