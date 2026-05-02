@@ -211,7 +211,19 @@ def run_self_test() -> int:
             "parse_option_str": {
                 "assignment_not_bare": False,
                 "exact_bare_option": True,
-            }
+            },
+            "next_arg": {
+                "quoted_value": {
+                    "param": "foo",
+                    "value": "bar baz",
+                    "remaining": "",
+                },
+                "empty_value": {
+                    "param": "foo",
+                    "value": "",
+                    "remaining": "",
+                },
+            },
         }
         fixture.write_text(render_json(payload), encoding="utf-8")
         harness.write_text("/* self-test fixture */\n", encoding="utf-8")
@@ -240,7 +252,15 @@ def run_self_test() -> int:
 
         drift_actual = tmp_dir / "drift.json"
         drift_exe = tmp_dir / "phase7_cmdline_selftest_drift"
-        env[SELF_TEST_PAYLOAD_ENV] = render_json({"parse_option_str": {"exact_bare_option": False}})
+        env[SELF_TEST_PAYLOAD_ENV] = render_json(
+            {
+                "parse_option_str": {
+                    "assignment_not_bare": False,
+                    "exact_bare_option": False,
+                },
+                "next_arg": payload["next_arg"],
+            }
+        )
         compile_and_run(
             drift_exe,
             drift_actual,
@@ -252,10 +272,42 @@ def run_self_test() -> int:
             env=env,
         )
         if load_json(drift_actual) == load_json(fixture):
-            raise SystemExit("phase7-cmdline-parity-self-test:drift_not_detected")
+            raise SystemExit("phase7-cmdline-parity-self-test:parse_option_str_drift_not_detected")
+
+        next_arg_drift_actual = tmp_dir / "next_arg_drift.json"
+        next_arg_drift_exe = tmp_dir / "phase7_cmdline_selftest_next_arg_drift"
+        env[SELF_TEST_PAYLOAD_ENV] = render_json(
+            {
+                "parse_option_str": payload["parse_option_str"],
+                "next_arg": {
+                    "quoted_value": {
+                        "param": "foo",
+                        "value": "bar baz",
+                        "remaining": "",
+                    },
+                    "empty_value": {
+                        "param": "foo",
+                        "value": "",
+                        "remaining": "still here",
+                    },
+                },
+            }
+        )
+        compile_and_run(
+            next_arg_drift_exe,
+            next_arg_drift_actual,
+            str(fake_compiler),
+            shim_dir,
+            harness=harness,
+            source=source,
+            cwd=tmp_dir,
+            env=env,
+        )
+        if load_json(next_arg_drift_actual) == load_json(fixture):
+            raise SystemExit("phase7-cmdline-parity-self-test:next_arg_drift_not_detected")
 
     print("PHASE7_CMDLINE_PARITY_SELF_TEST=pass")
-    print("PHASE7_CMDLINE_PARITY_SELF_TEST_CASE_COUNT=2")
+    print("PHASE7_CMDLINE_PARITY_SELF_TEST_CASE_COUNT=3")
     return 0
 
 
