@@ -67,6 +67,14 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     );
     defer std.testing.allocator.free(argv_split_tests);
 
+    const argv_split_fixture = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(argv_split_fixture);
+
     const argv_split_slice = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/phase7-argv-split-slice.md",
@@ -101,6 +109,7 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
     var saw_helper = false;
+    var saw_shared_fixtures = false;
     var saw_survey_gate = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -121,6 +130,12 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
             try std.testing.expectEqualStrings("lib/argv_split.zig", gap.zigux_destination);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase7-argv-split-shared-fixtures")) {
+            saw_shared_fixtures = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("zigux/tests/fixtures/phase7_argv_split_vectors.zig", gap.zigux_destination);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase7-argv-split-survey-gate")) {
             saw_survey_gate = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
@@ -136,9 +151,12 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try std.testing.expect(starter_landed_count >= 6);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expect(saw_helper);
+    try std.testing.expect(saw_shared_fixtures);
     try std.testing.expect(saw_survey_gate);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_helper, "pub fn argvFree") != null);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_helper, "leading_nul_expected") != null);
+    try std.testing.expect(std.mem.indexOf(u8, argv_split_tests, "const phase7_vectors = @import(\"fixtures/phase7_argv_split_vectors.zig\");") != null);
+    try std.testing.expect(std.mem.indexOf(u8, argv_split_tests, "phase 7 argvSplit matches focused parity fixtures") != null);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_tests, "phase 7 argvSplitWithArgc reports the split length through the optional out parameter") != null);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_tests, "phase 7 argvSplit keeps the final token C-string terminator and trailing argv sentinel aligned") != null);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_tests, "phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable") != null);
@@ -146,6 +164,12 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try std.testing.expect(std.mem.indexOf(u8, argv_split_tests, "phase 7 argvSplit deinit clears exported storage and argv views") != null);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_tests, "phase 7 argvSplit deinit stays safe when called after teardown already cleared the result") != null);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_tests, "phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup") != null);
+    try std.testing.expect(std.mem.indexOf(u8, argv_split_fixture, "pub const argv_split_cases = [_]ArgvSplitCase{") != null);
+    try std.testing.expect(std.mem.indexOf(u8, argv_split_fixture, ".name = \"leading NUL truncates to zero argv entries\",") != null);
+    try std.testing.expect(std.mem.indexOf(u8, argv_split_fixture, ".name = \"first NUL stops counting and splitting\",") != null);
+    try std.testing.expect(std.mem.indexOf(u8, argv_split_fixture, ".name = \"quote characters stay inside returned tokens\",") != null);
+    try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "zigux/tests/fixtures/phase7_argv_split_vectors.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "The dedicated Phase 7 review gate now imports a focused fixture module under `zigux/tests/fixtures/phase7_argv_split_vectors.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "integration with validation substrate through `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-build-inventory.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `zigux/tests/phase7_argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, and `zigux/tests/phase7_build.zig`.") != null);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "prove the shared Phase 7 validator packet plus the build-inventory and make-wrapper gates still fail closed before the helper replay runs") != null);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "`python3 scripts/zigux/validate-phase7.py --self-test`") != null);
@@ -163,6 +187,7 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "teardown cleanup that clears the exported storage handle alongside the argv views after `ArgvSplitResult.deinit()`") != null);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "repeated teardown safety so an already-cleared `ArgvSplitResult` can be passed through `deinit()` again without freeing the shared empty sentinel state") != null);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "allocator-failure cleanup that proves the shared Phase 7 gate also exercises the intermediate allocation teardown path already covered by the direct helper tests") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase7_build, "phase7-argv-split-survey-tests") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase7_build, "repo_root") != null);
+    try expectContains(manifest_json, "\"id\": \"phase7-argv-split-shared-fixtures\"");
+    try expectContains(phase7_build, "phase7-argv-split-survey-tests");
+    try expectContains(phase7_build, "repo_root");
 }
