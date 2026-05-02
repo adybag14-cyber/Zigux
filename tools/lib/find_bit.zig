@@ -420,6 +420,29 @@ test "find underscore aliases preserve scan semantics" {
     try std.testing.expectEqual(findNextZeroBit(&full, nbits, bits_per_long), find_next_zero_bit(&full, nbits, bits_per_long));
 }
 
+test "find underscore aliases preserve empty and out-of-range boundaries" {
+    const empty = [_]Word{};
+    try std.testing.expectEqual(findFirstBit(&empty, 0), find_first_bit(&empty, 0));
+    try std.testing.expectEqual(findFirstAndBit(&empty, &empty, 0), find_first_and_bit(&empty, &empty, 0));
+    try std.testing.expectEqual(findFirstZeroBit(&empty, 0), find_first_zero_bit(&empty, 0));
+    try std.testing.expectEqual(findNextBit(&empty, 0, 0), find_next_bit(&empty, 0, 0));
+    try std.testing.expectEqual(findNextAndBit(&empty, &empty, 0, 0), find_next_and_bit(&empty, &empty, 0, 0));
+    try std.testing.expectEqual(findNextZeroBit(&empty, 0, 0), find_next_zero_bit(&empty, 0, 0));
+
+    const nbits = bits_per_long + 5;
+    const lhs = [_]Word{ (@as(Word, 1) << 2) | (@as(Word, 1) << 7), (@as(Word, 1) << 1) };
+    const rhs = [_]Word{ (@as(Word, 1) << 7), (@as(Word, 1) << 1) };
+    const full = [_]Word{ ~@as(Word, 0), ~@as(Word, 0) };
+    const out_of_range = nbits + 3;
+
+    try std.testing.expectEqual(findNextBit(&lhs, nbits, nbits), find_next_bit(&lhs, nbits, nbits));
+    try std.testing.expectEqual(findNextBit(&lhs, nbits, out_of_range), find_next_bit(&lhs, nbits, out_of_range));
+    try std.testing.expectEqual(findNextAndBit(&lhs, &rhs, nbits, nbits), find_next_and_bit(&lhs, &rhs, nbits, nbits));
+    try std.testing.expectEqual(findNextAndBit(&lhs, &rhs, nbits, out_of_range), find_next_and_bit(&lhs, &rhs, nbits, out_of_range));
+    try std.testing.expectEqual(findNextZeroBit(&full, nbits, nbits), find_next_zero_bit(&full, nbits, nbits));
+    try std.testing.expectEqual(findNextZeroBit(&full, nbits, out_of_range), find_next_zero_bit(&full, nbits, out_of_range));
+}
+
 test "find low-level underscore entry points preserve same-word and tail-clamped scan semantics" {
     const nbits = bits_per_long + 5;
     const lhs = [_]Word{ (@as(Word, 1) << 2) | (@as(Word, 1) << 7), (@as(Word, 1) << 1) | (@as(Word, 1) << 8) };
@@ -432,4 +455,27 @@ test "find low-level underscore entry points preserve same-word and tail-clamped
     try std.testing.expectEqual(findNextBit(&lhs, nbits, 3), _find_next_bit(&lhs, nbits, 3));
     try std.testing.expectEqual(findNextAndBit(&lhs, &rhs, nbits, 3), _find_next_and_bit(&lhs, &rhs, nbits, 3));
     try std.testing.expectEqual(findNextZeroBit(&full, nbits, bits_per_long), _find_next_zero_bit(&full, nbits, bits_per_long));
+}
+
+test "find low-level underscore entry points preserve empty and out-of-range boundaries" {
+    const empty = [_]Word{};
+    try std.testing.expectEqual(findFirstBit(&empty, 0), _find_first_bit(&empty, 0));
+    try std.testing.expectEqual(findFirstAndBit(&empty, &empty, 0), _find_first_and_bit(&empty, &empty, 0));
+    try std.testing.expectEqual(findFirstZeroBit(&empty, 0), _find_first_zero_bit(&empty, 0));
+    try std.testing.expectEqual(findNextBit(&empty, 0, 0), _find_next_bit(&empty, 0, 0));
+    try std.testing.expectEqual(findNextAndBit(&empty, &empty, 0, 0), _find_next_and_bit(&empty, &empty, 0, 0));
+    try std.testing.expectEqual(findNextZeroBit(&empty, 0, 0), _find_next_zero_bit(&empty, 0, 0));
+
+    const nbits = bits_per_long + 5;
+    const lhs = [_]Word{ (@as(Word, 1) << 2) | (@as(Word, 1) << 7), (@as(Word, 1) << 1) };
+    const rhs = [_]Word{ (@as(Word, 1) << 7), (@as(Word, 1) << 1) };
+    const full = [_]Word{ ~@as(Word, 0), ~@as(Word, 0) };
+    const out_of_range = nbits + 3;
+
+    try std.testing.expectEqual(findNextBit(&lhs, nbits, nbits), _find_next_bit(&lhs, nbits, nbits));
+    try std.testing.expectEqual(findNextBit(&lhs, nbits, out_of_range), _find_next_bit(&lhs, nbits, out_of_range));
+    try std.testing.expectEqual(findNextAndBit(&lhs, &rhs, nbits, nbits), _find_next_and_bit(&lhs, &rhs, nbits, nbits));
+    try std.testing.expectEqual(findNextAndBit(&lhs, &rhs, nbits, out_of_range), _find_next_and_bit(&lhs, &rhs, nbits, out_of_range));
+    try std.testing.expectEqual(findNextZeroBit(&full, nbits, nbits), _find_next_zero_bit(&full, nbits, nbits));
+    try std.testing.expectEqual(findNextZeroBit(&full, nbits, out_of_range), _find_next_zero_bit(&full, nbits, out_of_range));
 }
