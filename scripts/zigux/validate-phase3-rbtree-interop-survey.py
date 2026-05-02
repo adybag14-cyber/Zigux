@@ -126,6 +126,13 @@ def run_self_test() -> int:
         assert any(issue.startswith("missing_roadmap_gap_marker:") for issue in issues)
         roadmap_gap_path.write_text("\n".join(REQUIRED_ROADMAP_GAP_MARKERS) + "\n", encoding="utf-8")
 
+        missing_repo_rel = REQUIRED_REPO_PATHS[-1]
+        missing_repo_path = root / missing_repo_rel
+        missing_repo_path.unlink()
+        issues = validate(root)
+        assert f"missing_repo_path:{missing_repo_rel}" in issues
+        missing_repo_path.write_text("// ok\n", encoding="utf-8")
+
         for rel in RBTREE_FREE_BOUNDARY_PATHS:
             for clean_rel in RBTREE_FREE_BOUNDARY_PATHS:
                 boundary_path = root / clean_rel
