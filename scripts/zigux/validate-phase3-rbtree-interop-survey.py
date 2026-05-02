@@ -14,42 +14,39 @@ REQUIRED_SURVEY_MARKERS = (
     "PHASE3_RBTREE_ROADMAP_ANCHOR=lib/rbtree.c",
     "PHASE3_RBTREE_PHASE1_EVIDENCE=tools/lib/rbtree.zig,Documentation/zigux/phase1-closure.md",
     "PHASE3_RBTREE_PHASE7_EVIDENCE=lib/rbtree.zig,Documentation/zigux/phase7-rbtree-slice.md,zigux/tests/phase7_rbtree.zig,zigux/tests/phase7_rbtree_survey.zig,zigux/tests/phase7_rbtree_manifest.json",
-    "PHASE3_RBTREE_PHASE3_SURVEY=Documentation/zigux/phase3-rbtree-interop-survey.md",
-    "PHASE3_RBTREE_PHASE3_BOUNDARY=missing-helper-dump-fixture-and-slice",
+    "PHASE3_RBTREE_PHASE3_HELPER=zigux/helpers/rbtree_view.zig",
+    "PHASE3_RBTREE_PHASE3_SURVEY=zigux/tests/phase3_rbtree_survey.zig,zigux/tests/phase3_rbtree_manifest.json",
+    "PHASE3_RBTREE_PHASE3_SLICE=Documentation/zigux/phase3-rbtree-slice.md",
+    "PHASE3_RBTREE_PHASE3_BOUNDARY=helper-landed-curated-c-binding-surface-still-missing",
     "PHASE3_RBTREE_NON_GOALS=no-balancing-port,no-export-shim-growth,no-uapi-growth",
-    "PHASE3_RBTREE_NEXT_BOUNDED_STEP=one-curated-phase3-rbtree-view-slice",
+    "PHASE3_RBTREE_NEXT_BOUNDED_STEP=one-curated-phase3-rbtree-boundary-record",
 )
 
 REQUIRED_REPO_PATHS = (
     "Documentation/zigux/phase1-closure.md",
+    "Documentation/zigux/phase3-rbtree-slice.md",
     "Documentation/zigux/phase3-roadmap-gap-survey.md",
     "Documentation/zigux/phase7-rbtree-slice.md",
     "lib/rbtree.zig",
     "tools/lib/rbtree.zig",
+    "zigux/helpers/rbtree_view.zig",
+    "zigux/tests/phase3_rbtree_survey.zig",
+    "zigux/tests/phase3_rbtree_manifest.json",
     "zigux/tests/phase7_rbtree.zig",
     "zigux/tests/phase7_rbtree_survey.zig",
     "zigux/tests/phase7_rbtree_manifest.json",
 )
 
 REQUIRED_ROADMAP_GAP_MARKERS = (
-    "PHASE3_CURRENT_RBTREE_STATUS=phase3-survey-exists-but-phase3-interop-slice-is-missing",
-    "PHASE3_CURRENT_RBTREE_SURVEY=Documentation/zigux/phase3-rbtree-interop-survey.md",
-    "PHASE3_INTEROP_GAP=rbtree-interop-slice-still-missing",
+    "PHASE3_CURRENT_RBTREE_STATUS=phase3-helper-packet-exists-but-curated-c-binding-surface-is-still-missing",
+    "PHASE3_INTEROP_GAP=curated-rbtree-c-binding-surface-still-missing",
+    "PHASE3_NEXT_BOUNDED_STEP=curated-rbtree-boundary-header-and-parity-fixture-before-more-chrdev-growth",
 )
 
 RBTREE_FREE_BOUNDARY_PATHS = (
     "include/zigux/abi.h",
     "zigux/bindings/abi.zig",
     "zigux/tests/fixtures/phase3_abi_manifest.json",
-)
-
-DISALLOWED_EXACT_PATHS = (
-    "Documentation/zigux/phase3-rbtree-slice.md",
-)
-
-DISALLOWED_GLOB_PATTERNS = (
-    ("zigux/helpers", "rbtree"),
-    ("zigux/tests", "phase3_rbtree"),
 )
 
 
@@ -60,17 +57,6 @@ def _read_text(root: Path, rel: str, issues: list[str]) -> str:
     except FileNotFoundError:
         issues.append(f"missing_file:{rel}")
         return ""
-
-
-def _find_matching_relpaths(root: Path, base_rel: str, needle: str) -> list[str]:
-    base = root / base_rel
-    if not base.exists():
-        return []
-    return sorted(
-        path.relative_to(root).as_posix()
-        for path in base.rglob("*")
-        if path.is_file() and needle in path.name
-    )
 
 
 def validate(root: Path) -> list[str]:
@@ -96,14 +82,6 @@ def validate(root: Path) -> list[str]:
         text = _read_text(root, rel, issues)
         if text and "rbtree" in text.lower():
             issues.append(f"boundary_mentions_rbtree:{rel}")
-
-    for rel in DISALLOWED_EXACT_PATHS:
-        if (root / rel).exists():
-            issues.append(f"stale_rbtree_slice_path:{rel}")
-
-    for base_rel, needle in DISALLOWED_GLOB_PATTERNS:
-        for rel in _find_matching_relpaths(root, base_rel, needle):
-            issues.append(f"stale_rbtree_slice_path:{rel}")
 
     return issues
 
@@ -147,12 +125,6 @@ def run_self_test() -> int:
         issues = validate(root)
         assert any(issue.startswith("missing_roadmap_gap_marker:") for issue in issues)
         roadmap_gap_path.write_text("\n".join(REQUIRED_ROADMAP_GAP_MARKERS) + "\n", encoding="utf-8")
-
-        stale_doc = root / "Documentation" / "zigux" / "phase3-rbtree-slice.md"
-        stale_doc.write_text("# stale\n", encoding="utf-8")
-        issues = validate(root)
-        assert "stale_rbtree_slice_path:Documentation/zigux/phase3-rbtree-slice.md" in issues
-        stale_doc.unlink()
 
         boundary = root / "include" / "zigux" / "abi.h"
         boundary.write_text("// rbtree drift\n", encoding="utf-8")
