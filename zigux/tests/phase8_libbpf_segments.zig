@@ -354,6 +354,14 @@ test "phase 8 docs keep the deferred irq routing and timer boundary explicit" {
     );
     try expectContains(
         survey_note,
+        "segmented rollout instead of a single-file port attempt",
+    );
+    try expectContains(
+        survey_note,
+        "helper-first clusters with stable text or path behavior",
+    );
+    try expectContains(
+        survey_note,
         "That eleven-segment catalog intentionally excludes the separate `perf_buffer_poll.zig` adjunct packet",
     );
     try expectContains(survey_note, "perf-buffer-online-cpu-routing");
