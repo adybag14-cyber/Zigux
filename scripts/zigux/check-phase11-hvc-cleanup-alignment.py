@@ -20,6 +20,7 @@ REQUIRED_FILES = {
     "slice": "Documentation/zigux/phase11-hvc-console-slice.md",
     "matrix": "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
     "poll_retry_split": "zigux/tests/phase11_hvc_console_poll_retry_split.zig",
+    "hvc_test": "zigux/tests/phase11_hvc_console.zig",
 }
 
 SURVEY_MARKERS = [
@@ -49,6 +50,17 @@ POLL_RETRY_SPLIT_MARKERS = [
     'test "phase11 hvc console keeps partial write progress distinct from stalled __hvc_poll retries" {',
     "    try std.testing.expect(partial_write.write_progress_resets_timeout);",
     "    try std.testing.expect(stalled_write.stalled_write_uses_min_timeout);",
+]
+
+HVC_TEST_MARKERS = [
+    'test "phase11 hvc console keeps hvc_cleanup tty-port release boundaries reviewable" {',
+    "    try std.testing.expect(final_cleanup.tty_port_put_requested);",
+    "    try std.testing.expect(final_cleanup.drops_tty_port_reference);",
+    "    try std.testing.expect(final_cleanup.defers_final_release_to_port_destruct);",
+    "    try std.testing.expect(hangup_cleanup.close_skipped);",
+    "    try std.testing.expect(hangup_cleanup.tty_port_put_requested);",
+    "    try std.testing.expect(hangup_cleanup.drops_tty_port_reference);",
+    "    try std.testing.expect(hangup_cleanup.defers_final_release_to_port_destruct);",
 ]
 
 
@@ -99,6 +111,7 @@ def validate(root: Path) -> list[str]:
     slice_note = read_text(root, REQUIRED_FILES["slice"])
     matrix = read_text(root, REQUIRED_FILES["matrix"])
     poll_retry_split = read_text(root, REQUIRED_FILES["poll_retry_split"])
+    hvc_test = read_text(root, REQUIRED_FILES["hvc_test"])
 
     for marker in SURVEY_MARKERS:
         expected = marker.format(commit=commit)
@@ -118,6 +131,10 @@ def validate(root: Path) -> list[str]:
     for marker in POLL_RETRY_SPLIT_MARKERS:
         if marker not in poll_retry_split:
             missing.append(f"poll_retry_split:{marker}")
+
+    for marker in HVC_TEST_MARKERS:
+        if marker not in hvc_test:
+            missing.append(f"hvc_test:{marker}")
 
     return missing
 
@@ -210,6 +227,27 @@ def clone_fixture_root(destination_root: Path) -> None:
                 'test "phase11 hvc console keeps partial write progress distinct from stalled __hvc_poll retries" {',
                 "    try std.testing.expect(partial_write.write_progress_resets_timeout);",
                 "    try std.testing.expect(stalled_write.stalled_write_uses_min_timeout);",
+                "}",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    (destination_root / REQUIRED_FILES["hvc_test"]).parent.mkdir(parents=True, exist_ok=True)
+    (destination_root / REQUIRED_FILES["hvc_test"]).write_text(
+        "\n".join(
+            [
+                "const std = @import(\"std\");",
+                "const hvc_console = @import(\"hvc_console\");",
+                "",
+                'test "phase11 hvc console keeps hvc_cleanup tty-port release boundaries reviewable" {',
+                "    try std.testing.expect(final_cleanup.tty_port_put_requested);",
+                "    try std.testing.expect(final_cleanup.drops_tty_port_reference);",
+                "    try std.testing.expect(final_cleanup.defers_final_release_to_port_destruct);",
+                "    try std.testing.expect(hangup_cleanup.close_skipped);",
+                "    try std.testing.expect(hangup_cleanup.tty_port_put_requested);",
+                "    try std.testing.expect(hangup_cleanup.drops_tty_port_reference);",
+                "    try std.testing.expect(hangup_cleanup.defers_final_release_to_port_destruct);",
                 "}",
                 "",
             ]
@@ -359,6 +397,32 @@ def run_self_test() -> int:
         )
         poll_retry_split_path.write_text(original_poll_retry_split, encoding="utf-8")
 
+        hvc_test_path = tmp_root / REQUIRED_FILES["hvc_test"]
+        original_hvc_test = hvc_test_path.read_text(encoding="utf-8")
+        hvc_test_path.write_text(
+            original_hvc_test.replace(
+                "    try std.testing.expect(final_cleanup.tty_port_put_requested);\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "hvc_test_final_cleanup_marker",
+            tmp_root,
+            "hvc_test:    try std.testing.expect(final_cleanup.tty_port_put_requested);",
+        )
+        hvc_test_path.write_text(original_hvc_test, encoding="utf-8")
+
+        hvc_test_path.unlink()
+        expect_missing(
+            "hvc_test_file_presence",
+            tmp_root,
+            f"missing:hvc_test:{REQUIRED_FILES['hvc_test']}",
+        )
+        clone_fixture_root(tmp_root)
+
+        poll_retry_split_path = tmp_root / REQUIRED_FILES["poll_retry_split"]
         poll_retry_split_path.unlink()
         expect_missing(
             "poll_retry_split_file_presence",
@@ -367,7 +431,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE11_HVC_CLEANUP_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE11_HVC_CLEANUP_ALIGNMENT_SELF_TEST_CASE_COUNT=9")
+    print("PHASE11_HVC_CLEANUP_ALIGNMENT_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
