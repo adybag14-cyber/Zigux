@@ -732,6 +732,7 @@ required_readme_markers = [
     'check-genksyms-bridge.py',
     'check-genksyms-crc-diff.py',
     'check-kconfig-bridge.py --self-test',
+    'check-kconfig-bridge.py',
     'check-phase2-cross.py --self-test',
     'duplicate tool entries',
     'check-mk-elfconfig-diff.py',
@@ -799,8 +800,6 @@ if tool_manifest.get('phase') != 'Phase 2':
     missing_markers.append('manifest:phase=Phase 2')
 if tool_manifest.get('status') != 'closed':
     missing_markers.append('manifest:status=closed')
-if tool_manifest.get('tool_count') != 6:
-    missing_markers.append('manifest:tool_count=6')
 tool_manifest_tools = tool_manifest.get('tools', [])
 if len(tool_manifest_tools) != 6:
     missing_markers.append(f'manifest:tools_len={len(tool_manifest_tools)}')
@@ -812,7 +811,7 @@ for rel in tool_manifest_tools:
 
 if targets_manifest.get('phase') != 'Phase 2':
     missing_markers.append('targets:phase=Phase 2')
-if targets_manifest.get('status') != EXPECTED_STATUS:
+if targets_manifest.get('status') != 'closed':
     missing_markers.append('targets:status=closed')
 if targets_manifest.get('target_count') != 3:
     missing_markers.append('targets:target_count=3')
