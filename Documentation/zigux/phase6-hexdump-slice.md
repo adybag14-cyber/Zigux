@@ -9,11 +9,11 @@ This document records the bounded Phase 6 leaf-helper validation slice for Zigux
 - scope: first low-risk hexdump helper coverage only
 - lane posture: parked after the current parity surface cleared the bounded helper goal
 - product boundary:
-- `lib/hexdump.zig`
-- `zigux/tests/phase6_hexdump.zig`
-- `zigux/tests/fixtures/phase6_hexdump_vectors.zig`
-- `zigux/tests/phase6_build.zig`
-- `zigux/Makefile`
+  - `lib/hexdump.zig`
+  - `zigux/tests/phase6_hexdump.zig`
+  - `zigux/tests/fixtures/phase6_hexdump_vectors.zig`
+  - `zigux/tests/phase6_build.zig`
+  - `zigux/Makefile`
 
 ## Why this slice exists
 
@@ -77,7 +77,7 @@ The current tests check:
 - a replayable perf-sanity harness reports representative dump cost per call and per byte for plain, grouped, and ASCII formatter paths through the shared `zigux/tests/fixtures/phase6_hexdump_vectors.zig` perf-case table, including the native-endian 4-byte and 8-byte grouped ASCII branches
 - the same perf harness now measures helper output against the committed `fixtures.prepareExpectedLine(...)` reference path, keeping `16B-plain` at `max_slowdown_pct = 175` while the grouped ASCII `32B-ascii-g2` and `16B-ascii-g4` replays use `max_slowdown_pct = 550` and the wider native-endian `16B-ascii-g8` replay uses `max_slowdown_pct = 600`
 
-This is enough evidence to leave the bounded hexdump helper lane parked unless a concrete new parity gap appears in the live repo.
+This is enough evidence to leave the bounded hexdump helper lane parked unless a concrete new parity, perf, or directly coupled review-packet gap appears in the live repo.
 
 ## Non-goals
 
@@ -89,4 +89,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Leave the hexdump helper lane parked and move future Phase 6 work to another unfinished helper family unless fresh repo inspection finds a concrete new parity, perf, or ABI gap in this exact slice.
+Leave the hexdump helper lane parked unless fresh repo inspection finds a concrete new parity, perf, or directly coupled review-packet gap in this exact slice.
