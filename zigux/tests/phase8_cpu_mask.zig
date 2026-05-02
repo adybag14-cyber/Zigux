@@ -128,27 +128,37 @@ test "phase 8 cpu mask starter slice keeps the online CPU eligibility predicate 
 test "phase 8 cpu mask reader interface keeps failures explicit" {
     const ReaderError = error{InjectedReadFailure};
     const ReaderState = struct {
-        mode: enum { injected_error, oversized_chunk },
+        mode: enum { empty_chunk, injected_error, oversized_chunk },
 
         fn read(context: ?*anyopaque, _: []u8) ReaderError!?usize {
             const self: *@This() = @ptrCast(@alignCast(context.?));
             return switch (self.mode) {
+                .empty_chunk => 0,
                 .injected_error => error.InjectedReadFailure,
                 .oversized_chunk => 12,
             };
         }
     };
 
+    var empty_chunk_state = ReaderState{ .mode = .empty_chunk };
     var injected_error_state = ReaderState{ .mode = .injected_error };
     var oversized_chunk_state = ReaderState{ .mode = .oversized_chunk };
     var scratch: [8]u8 = undefined;
 
+    try std.testing.expectError(error.EmptyReadChunk, cpu_mask.parseCpuMaskFromReader(std.testing.allocator, &scratch, .{
+        .context = &empty_chunk_state,
+        .readFn = ReaderState.read,
+    }));
     try std.testing.expectError(error.InjectedReadFailure, cpu_mask.parseCpuMaskFromReader(std.testing.allocator, &scratch, .{
         .context = &injected_error_state,
         .readFn = ReaderState.read,
     }));
     try std.testing.expectError(error.InvalidReadCount, cpu_mask.parseCpuMaskFromReader(std.testing.allocator, &scratch, .{
         .context = &oversized_chunk_state,
+        .readFn = ReaderState.read,
+    }));
+    try std.testing.expectError(error.EmptyReadBuffer, cpu_mask.parseCpuMaskFromReader(std.testing.allocator, &.{}, .{
+        .context = &empty_chunk_state,
         .readFn = ReaderState.read,
     }));
 }
