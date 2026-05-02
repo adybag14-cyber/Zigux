@@ -62,6 +62,13 @@
       "why_now": "The survey note compares the 592-line `syscalls.c` anchor against the new starter and keeps the remaining gap around rule insertion, file descriptors, path import, and credential changes explicit."
     },
     {
+      "id": "phase13-landlock-initialization-gate-followup",
+      "status": "starter_landed",
+      "kind": "security_helper_pilot",
+      "zigux_destination": "security/landlock/syscalls.zig",
+      "why_now": "The syscall helper now includes one tiny in-memory planner around `is_initialized()` so Zigux keeps the shared `-EOPNOTSUPP` boot-disabled gate and warning-once intent explicit before any create-ruleset, add-rule, or restrict-self path widens into live setup state."
+    },
+    {
       "id": "phase13-landlock-copy-min-struct-followup",
       "status": "starter_landed",
       "kind": "security_helper_pilot",
