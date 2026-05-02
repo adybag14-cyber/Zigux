@@ -102,7 +102,7 @@ int main(int argc, char **argv)
 				"  -q, --quiet           Disable warnings (default)\n"
 				"  -h, --help            Print this message\n"
 				"  -V, --version         Print the release version\n",
-				stdout
+				stderr
 			);
 			return 0;
 		default:
