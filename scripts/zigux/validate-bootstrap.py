@@ -182,6 +182,9 @@ toolchain_policy = json.loads((ROOT / 'scripts' / 'zigux' / 'zig-toolchain-polic
 required_policy_values = {
     'phase': 'Phase 2',
     'policy_note': 'Shared Zigux bootstrap and Phase 2 toolchain pin.',
+    'archive_sha256': {
+        'x86_64-linux': '313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77',
+    },
 }
 policy_issues = []
 if not isinstance(toolchain_policy, dict):
@@ -235,6 +238,10 @@ installer = (ROOT / 'scripts' / 'zigux' / 'install-zig.py').read_text(encoding='
 required_installer_markers = [
     'zig-toolchain-policy.json',
     'policy version drift',
+    'archive_sha256',
+    'ZIG_INSTALL_EXPECTED_SHA256',
+    'ZIG_INSTALL_ARCHIVE_SHA256',
+    'archive sha256 mismatch for',
     "parser.add_argument('--self-test'",
 ]
 missing_installer_markers = [marker for marker in required_installer_markers if marker not in installer]
