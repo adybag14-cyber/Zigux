@@ -1,13 +1,13 @@
-# Phase 13 devres helper DMA/scatterlist boundary survey
+# Phase 13 devres helper packet survey
 
 This lane stays inside the Phase 13 shared-helper tranche and records the current `lib/devres.c` helper-first boundary without claiming live device-resource teardown, live MMIO mappings, live DMA-backed helpers, live scatter-gather ownership, or generic devres-group ownership.
 
 ## Status
 
 - `PHASE13_STATUS=active`
-- `PHASE13_SLICE=devres-helper-dma-scatterlist-boundary-reviewability`
+- `PHASE13_SLICE=devres-helper-packet-reviewability`
 - `PHASE13_SURVEYED_COMMIT=aa01b37be5500e6a1e4f959c9fe07f0e39d39bfb`
-- scope: the landed `lib/devres.zig` helper slice, its dedicated Phase 13 tests and manifest, the shared Phase 13 build wiring, and the lane notes that keep the helper-first iomap or resource planners plus explicit DMA/scatterlist blockers pinned to the current repo state
+- scope: the landed `lib/devres.zig` helper slice, its dedicated Phase 13 tests and manifest, the shared Phase 13 build wiring, and the lane notes that keep the active helper-first devres packet plus its explicit live-state blockers pinned to the current repo state
 - product boundary:
   - `lib/devres.zig`
   - `zigux/tests/phase13_devres.zig`
@@ -27,7 +27,7 @@ Current repo state on `master`:
 - a direct token scan of current `lib/devres.zig` finds only the `touches_live_dma` and `touches_live_scatterlist` descriptor markers and no `dmam_alloc_coherent`, `dmam_free_coherent`, `dma_map_resource`, `dma_unmap_resource`, `dma_map_sgtable`, `dma_unmap_sgtable`, `dma_map_sg_attrs`, `dma_unmap_sg_attrs`, `struct scatterlist`, `sg_table`, or `sg_` helper entrypoints
 - `zigux/tests/phase13_devres.zig` already exercises managed `__devm_ioremap()` lifetime planning, the direct `devm_ioremap()`, `devm_ioremap_uc()`, `devm_ioremap_wc()`, and `devm_ioremap_np()` acquire wrappers, `__devm_ioremap_resource()` planning, `devm_of_iomap()` translation handoff, `devm_ioport_map()` lifetime bookkeeping, `devm_arch_phys_wc_add()` token retention, and `devm_arch_io_reserve_memtype_wc()` range retention
 - the current helper lab still exposes no `dma*`, `dmam_*`, `scatterlist`, `sg_table`, or `sg_*` ownership surface, so the Phase 13 packet remains outside DMA-backed and scatter-gather behavior rather than merely leaving that boundary implicit
-- `Documentation/zigux/phase13-devres-slice.md` already marks the helper boundary clearly, but until this packet landed the DMA/scatterlist boundary posture was not recorded in the same manifest-backed survey shape as the other active Phase 13 anchors
+- `Documentation/zigux/phase13-devres-slice.md` already marks the helper boundary clearly, but until this packet refresh the active review packet still identified itself with the older DMA/scatterlist-only slice name instead of the full current helper packet
 - `zigux/Makefile` and `zigux/tests/phase13_build.zig` already expose the shared Phase 13 replay entrypoints that this survey now joins
 
 Why this matters for Phase 13:
@@ -58,4 +58,4 @@ What remains explicitly blocked:
 - live device-tree walking, overlapping resource arbitration, or broader `struct device_node` ownership beyond the pure `devm_of_iomap()` planner boundary
 - live MTRR or arch memtype state mutation beyond the token-style and range-style detach bookkeeping planners
 
-The next honest bounded step for this lane is to keep the survey packet aligned with the helper lab and shared Phase 13 replay. New product work should move in the dedicated helper lanes rather than reopening this now-recorded helper-first DMA/scatterlist boundary packet.
+The next honest bounded step for this lane is to keep the survey packet aligned with the helper lab and shared Phase 13 replay. New product work should move in the dedicated helper lanes rather than reopening this now-recorded helper-first packet.
