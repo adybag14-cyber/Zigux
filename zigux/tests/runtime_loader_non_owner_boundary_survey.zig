@@ -23,7 +23,7 @@ test "runtime loader non-owner boundary survey keeps config-surface and export p
         io_instance.io(),
         std.testing.allocator,
         "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
-        64 * 1024,
+        128 * 1024,
     );
     defer std.testing.allocator.free(survey_note);
 
@@ -31,7 +31,7 @@ test "runtime loader non-owner boundary survey keeps config-surface and export p
         io_instance.io(),
         std.testing.allocator,
         "zigux/tests/runtime_loader_gap_manifest.json",
-        32 * 1024,
+        64 * 1024,
     );
     defer std.testing.allocator.free(manifest);
 
@@ -39,7 +39,7 @@ test "runtime loader non-owner boundary survey keeps config-surface and export p
         io_instance.io(),
         std.testing.allocator,
         "scripts/zigux/kconfig/conf_bridge.zig",
-        32 * 1024,
+        64 * 1024,
     );
     defer std.testing.allocator.free(conf_bridge);
 
@@ -47,7 +47,7 @@ test "runtime loader non-owner boundary survey keeps config-surface and export p
         io_instance.io(),
         std.testing.allocator,
         "scripts/zigux/kconfig/confdata_bridge.zig",
-        32 * 1024,
+        64 * 1024,
     );
     defer std.testing.allocator.free(confdata_bridge);
 
@@ -55,7 +55,7 @@ test "runtime loader non-owner boundary survey keeps config-surface and export p
         io_instance.io(),
         std.testing.allocator,
         "rust/exports.c",
-        8 * 1024,
+        16 * 1024,
     );
     defer std.testing.allocator.free(rust_exports);
 
@@ -63,7 +63,7 @@ test "runtime loader non-owner boundary survey keeps config-surface and export p
         io_instance.io(),
         std.testing.allocator,
         "zigux/kernel/export_shim.zig",
-        16 * 1024,
+        32 * 1024,
     );
     defer std.testing.allocator.free(export_shim);
 
