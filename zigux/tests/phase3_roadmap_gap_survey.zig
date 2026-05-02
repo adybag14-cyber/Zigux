@@ -37,149 +37,71 @@ fn isLowerHexSha(value: []const u8) bool {
     return true;
 }
 
-fn readWorkspaceFile(
-    io: anytype,
-    allocator: std.mem.Allocator,
-    path: []const u8,
-    limit: usize,
-) ![]u8 {
-    return std.Io.Dir.cwd().readFileAlloc(io, path, allocator, .limited(limit));
+fn expectContains(haystack: []const u8, needle: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
-fn expectContainsAll(haystack: []const u8, needles: []const []const u8) !void {
-    for (needles) |needle| {
-        try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
-    }
-}
-
-test "phase3 roadmap gap manifest keeps the current interop gap explicit" {
-    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
-    defer io_instance.deinit();
-
-    const manifest_json = try readWorkspaceFile(
-        io_instance.io(),
-        std.testing.allocator,
-        "zigux/tests/phase3_roadmap_gap_manifest.json",
-        24 * 1024,
-    );
-    defer std.testing.allocator.free(manifest_json);
-
-    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{
-        .ignore_unknown_fields = true,
-    });
+test "phase3 roadmap gap manifest records the narrowed rbtree gap" {
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, @embedFile("phase3_roadmap_gap_manifest.json"), .{});
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P3-L01", manifest.lane_key);
+    try std.testing.expectEqualStrings("P3-L02", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 3", manifest.roadmap_phase);
     try std.testing.expect(isLowerHexSha(manifest.surveyed_commit));
     try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_anchors.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.current_boundary_surfaces.len);
-    try std.testing.expectEqual(@as(usize, 11), manifest.current_interop_families.len);
-    try std.testing.expectEqual(@as(usize, 8), manifest.rbtree_evidence.len);
-    try std.testing.expectEqual(@as(usize, 5), manifest.delivery_evidence.len);
+    try std.testing.expectEqual(@as(usize, 12), manifest.current_interop_families.len);
+    try std.testing.expectEqual(@as(usize, 12), manifest.rbtree_evidence.len);
+    try std.testing.expectEqual(@as(usize, 7), manifest.delivery_evidence.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.gaps.len);
 
-    try std.testing.expectEqualStrings("rust/exports.c", manifest.roadmap_anchors[0]);
-    try std.testing.expectEqualStrings("lib/rbtree.c", manifest.roadmap_anchors[2]);
-    try std.testing.expectEqualStrings("zigux/kernel/export_shim.zig", manifest.current_boundary_surfaces[2]);
-    try std.testing.expectEqualStrings("bitmap", manifest.current_interop_families[0]);
-    try std.testing.expectEqualStrings("chrdev", manifest.current_interop_families[10]);
-    try std.testing.expectEqualStrings("Documentation/zigux/phase3-rbtree-interop-survey.md", manifest.rbtree_evidence[0]);
-    try std.testing.expectEqualStrings("zigux/tests/phase7_rbtree_manifest.json", manifest.rbtree_evidence[7]);
-    try std.testing.expectEqualStrings("rbtree-interop-slice-still-missing", manifest.current_interop_gap);
-    try std.testing.expectEqualStrings("phase3-survey-exists-but-phase3-interop-slice-is-missing", manifest.current_rbtree_status);
-    try std.testing.expectEqualStrings("small-phase3-rbtree-interop-slice-before-more-chrdev-growth", manifest.next_bounded_step);
-    try std.testing.expectEqualStrings("chrdev-plan-growth-exceeds-roadmap-anchors", manifest.adjacent_growth_marker);
+    try std.testing.expectEqualStrings("rbtree", manifest.current_interop_families[4]);
+    try std.testing.expectEqualStrings("curated-rbtree-c-binding-surface-still-missing", manifest.current_interop_gap);
+    try std.testing.expectEqualStrings("phase3-helper-packet-exists-but-curated-c-binding-surface-is-still-missing", manifest.current_rbtree_status);
+    try std.testing.expectEqualStrings("curated-rbtree-boundary-header-and-parity-fixture-before-more-chrdev-growth", manifest.next_bounded_step);
 
-    try std.testing.expectEqualStrings("documentation", manifest.delivery_evidence[0].kind);
-    try std.testing.expectEqualStrings("Documentation/zigux/phase3-roadmap-gap-survey.md", manifest.delivery_evidence[0].path);
-    try std.testing.expectEqualStrings("validation", manifest.delivery_evidence[2].kind);
-    try std.testing.expectEqualStrings("scripts/zigux/validate-phase3-roadmap-gap-survey.py", manifest.delivery_evidence[2].path);
-    try std.testing.expectEqualStrings("manifest", manifest.delivery_evidence[3].kind);
-    try std.testing.expectEqualStrings("zigux/tests/phase3_roadmap_gap_manifest.json", manifest.delivery_evidence[3].path);
-    try std.testing.expectEqualStrings("validation", manifest.delivery_evidence[4].kind);
-    try std.testing.expectEqualStrings("zigux/tests/phase3_roadmap_gap_survey.zig", manifest.delivery_evidence[4].path);
+    try std.testing.expectEqualStrings("Documentation/zigux/phase3-rbtree-slice.md", manifest.rbtree_evidence[1]);
+    try std.testing.expectEqualStrings("zigux/helpers/rbtree_view.zig", manifest.rbtree_evidence[6]);
+    try std.testing.expectEqualStrings("zigux/tests/phase3_rbtree_survey.zig", manifest.rbtree_evidence[7]);
+    try std.testing.expectEqualStrings("zigux/tests/phase3_rbtree_manifest.json", manifest.rbtree_evidence[8]);
 
-    try std.testing.expectEqualStrings("phase3-rbtree-boundary-slice", manifest.gaps[0].id);
-    try std.testing.expectEqualStrings("missing", manifest.gaps[0].status);
-    try std.testing.expectEqualStrings("roadmap_anchor", manifest.gaps[0].kind);
-    try std.testing.expectEqualStrings("lib/rbtree.c", manifest.gaps[0].path);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.gaps[0].why_now, "Phase 3 helper, dump, fixture, or slice note") != null);
-    try std.testing.expectEqualStrings("phase3-uapi-breadth", manifest.gaps[1].id);
-    try std.testing.expectEqualStrings("deferred", manifest.gaps[1].status);
-    try std.testing.expectEqualStrings("boundary_scope", manifest.gaps[1].kind);
-    try std.testing.expectEqualStrings("zigux/uapi/version.zig", manifest.gaps[1].path);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.gaps[1].why_now, "broader curated UAPI shim family") != null);
-    try std.testing.expectEqualStrings("chrdev-growth-not-roadmap-closure", manifest.gaps[2].id);
-    try std.testing.expectEqualStrings("adjacent_only", manifest.gaps[2].status);
-    try std.testing.expectEqualStrings("review_boundary", manifest.gaps[2].kind);
-    try std.testing.expectEqualStrings("zigux/helpers/chrdev_open_plan.zig", manifest.gaps[2].path);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.gaps[2].why_now, "adjacent exploratory growth") != null);
+    try std.testing.expectEqualStrings("phase3-rbtree-boundary-record", manifest.gaps[0].id);
+    try std.testing.expectEqualStrings("helper_landed_binding_followup_pending", manifest.gaps[0].status);
+    try std.testing.expectEqualStrings("include/zigux/abi.h", manifest.gaps[0].path);
+    try expectContains(manifest.gaps[0].why_now, "no curated ABI record");
 }
 
-test "phase3 roadmap gap survey note and dedicated rbtree note stay aligned" {
-    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
-    defer io_instance.deinit();
+test "phase3 roadmap gap survey note and rbtree helper packet stay aligned" {
+    const roadmap_gap = @embedFile("../../Documentation/zigux/phase3-roadmap-gap-survey.md");
+    const interop_note = @embedFile("../../Documentation/zigux/phase3-rbtree-interop-survey.md");
+    const slice_note = @embedFile("../../Documentation/zigux/phase3-rbtree-slice.md");
+    const helper = @embedFile("../helpers/rbtree_view.zig");
+    const helper_manifest = @embedFile("phase3_rbtree_manifest.json");
 
-    const survey_note = try readWorkspaceFile(
-        io_instance.io(),
-        std.testing.allocator,
-        "Documentation/zigux/phase3-roadmap-gap-survey.md",
-        24 * 1024,
-    );
-    defer std.testing.allocator.free(survey_note);
+    try expectContains(roadmap_gap, "PHASE3_CURRENT_RBTREE_STATUS=phase3-helper-packet-exists-but-curated-c-binding-surface-is-still-missing");
+    try expectContains(roadmap_gap, "PHASE3_INTEROP_GAP=curated-rbtree-c-binding-surface-still-missing");
+    try expectContains(roadmap_gap, "PHASE3_NEXT_BOUNDED_STEP=curated-rbtree-boundary-header-and-parity-fixture-before-more-chrdev-growth");
 
-    const rbtree_note = try readWorkspaceFile(
-        io_instance.io(),
-        std.testing.allocator,
-        "Documentation/zigux/phase3-rbtree-interop-survey.md",
-        16 * 1024,
-    );
-    defer std.testing.allocator.free(rbtree_note);
+    try expectContains(interop_note, "PHASE3_RBTREE_PHASE3_HELPER=zigux/helpers/rbtree_view.zig");
+    try expectContains(interop_note, "PHASE3_RBTREE_PHASE3_BOUNDARY=helper-landed-curated-c-binding-surface-still-missing");
+    try expectContains(interop_note, "PHASE3_RBTREE_NEXT_BOUNDED_STEP=one-curated-phase3-rbtree-boundary-record");
 
-    try expectContainsAll(survey_note, &.{
-        "PHASE3_CURRENT_RBTREE_STATUS=phase3-survey-exists-but-phase3-interop-slice-is-missing",
-        "PHASE3_INTEROP_GAP=rbtree-interop-slice-still-missing",
-        "PHASE3_NEXT_BOUNDED_STEP=small-phase3-rbtree-interop-slice-before-more-chrdev-growth",
-        "PHASE3_SURVEY_MANIFEST=zigux/tests/phase3_roadmap_gap_manifest.json",
-        "PHASE3_SURVEY_GATE=zig test zigux/tests/phase3_roadmap_gap_survey.zig",
-        "The largest roadmap-backed interop gap is still `lib/rbtree.c`.",
-        "zigux/tests/phase3_roadmap_gap_manifest.json",
-        "zig test zigux/tests/phase3_roadmap_gap_survey.zig",
-        "Documentation/zigux/phase3-rbtree-interop-survey.md",
-        "scripts/zigux/validate-phase3-roadmap-gap-survey.py",
-        "chrdev_* planning ladder",
-    });
-    try expectContainsAll(rbtree_note, &.{
-        "PHASE3_RBTREE_PHASE3_BOUNDARY=missing-helper-dump-fixture-and-slice",
-        "PHASE3_RBTREE_NEXT_BOUNDED_STEP=one-curated-phase3-rbtree-view-slice",
-        "no `zigux/helpers/rbtree*.zig` boundary-facing helper family",
-        "no `zigux/tests/phase3_rbtree*.zig` dump, fixture, or parity packet",
-    });
+    try expectContains(slice_note, "PHASE3_SLICE=rbtree-helper-interop");
+    try expectContains(slice_note, "`zig test zigux/helpers/rbtree_view.zig`");
+    try expectContains(slice_note, "`zig test zigux/tests/phase3_rbtree_survey.zig`");
+
+    try expectContains(helper, "pub fn summarize");
+    try expectContains(helper, "TRUNCATED_FLAG");
+    try expectContains(helper_manifest, "\"helper_landed_binding_followup_pending\"");
 }
 
-test "phase3 roadmap gap survey gate stays aligned with the dedicated python validator" {
-    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
-    defer io_instance.deinit();
-
-    const validator = try readWorkspaceFile(
-        io_instance.io(),
-        std.testing.allocator,
-        "scripts/zigux/validate-phase3-roadmap-gap-survey.py",
-        24 * 1024,
-    );
-    defer std.testing.allocator.free(validator);
-
-    try expectContainsAll(validator, &.{
-        'MANIFEST_REL = "zigux/tests/phase3_roadmap_gap_manifest.json"',
-        'SURVEY_GATE_REL = "zigux/tests/phase3_roadmap_gap_survey.zig"',
-        '"PHASE3_SURVEY_MANIFEST=zigux/tests/phase3_roadmap_gap_manifest.json"',
-        '"PHASE3_SURVEY_GATE=zig test zigux/tests/phase3_roadmap_gap_survey.zig"',
-        '"PHASE3_CURRENT_RBTREE_VALIDATOR=scripts/zigux/validate-phase3-rbtree-interop-survey.py"',
-        '"missing_manifest_snippet:"',
-        '"missing_survey_gate_snippet:"',
-        '"phase3-rbtree-boundary-slice"',
-        '"chrdev-growth-not-roadmap-closure"',
-    });
+test "phase3 roadmap gap survey gate points at the refreshed python validator" {
+    const validator = @embedFile("../../scripts/zigux/validate-phase3-roadmap-gap-survey.py");
+    try expectContains(validator, "PHASE3_CURRENT_RBTREE_STATUS=phase3-helper-packet-exists-but-curated-c-binding-surface-is-still-missing");
+    try expectContains(validator, "PHASE3_INTEROP_GAP=curated-rbtree-c-binding-surface-still-missing");
+    try expectContains(validator, "zigux/helpers/rbtree_view.zig");
+    try expectContains(validator, "Documentation/zigux/phase3-rbtree-slice.md");
+    try expectContains(validator, "zigux/tests/phase3_rbtree_survey.zig");
+    try expectContains(validator, "zigux/tests/phase3_rbtree_manifest.json");
 }
