@@ -77,6 +77,8 @@ That keeps the README surfaces truthful summaries for the packet, and this note 
 
 The dedicated checker now also keeps the runtime atomic64 reversible-delivery sentence fail-closed in this note, so the rollback move, single replay body, and forward-path wording cannot silently drift back into prose-only guidance.
 
+The current correctness-only anchors for the still-unapproved Phase 4 threshold plans remain `make -C zigux phase4-runtime-atomic64-diff` and `make -C zigux phase4-bitmap-diff`, so the packet still ties future perf-baseline work back to named isolated rollback replays instead of broad shared-bundle timing claims.
+
 The remaining roadmap-backed gaps are still the same bounded ones:
 
 - `samples/zigux/kprobe_example.zig` is still absent, still tied to `samples/kprobes/kprobe_example.c`, and still depends on the matrix-only `make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m` replay path rather than a dedicated survey gate on current `master`
