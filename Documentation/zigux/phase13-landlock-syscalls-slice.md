@@ -5,6 +5,7 @@ This bounded Phase 13 slice starts `security/landlock/syscalls.zig` with a pure 
 The current helper stays intentionally narrow:
 
 - reports the ABI shape checks that `build_check_abi()` enforces for `landlock_ruleset_attr`, `landlock_path_beneath_attr`, and `landlock_net_port_attr`
+- models the shared `is_initialized()` gate used by `landlock_create_ruleset()`, `landlock_add_rule()`, and `landlock_restrict_self()`, keeping the boot-disabled `-EOPNOTSUPP` return and warning intent explicit without touching live boot configuration or setup state
 - models the `copy_min_struct_from_user()` helper discipline around null-user rejection, minimum-size and page-limit validation, plus copy-then-zero-fill intent without touching live user-memory access
 - models the query and validation path of `landlock_create_ruleset()` around version and errata requests, minimum struct sizing, page-size bounds, handled-access mask filtering, and empty-ruleset rejection
 - translates the logging and thread-sync flags used by `landlock_restrict_self()`, including the special `ruleset_fd == -1` mute-subdomains-only case
