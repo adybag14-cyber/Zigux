@@ -322,7 +322,7 @@ manifest_expectations = {
         "sample_path": "samples/zigux/kobject_example.zig",
         "survey_note_path": "Documentation/zigux/phase5-kobject-sample-survey.md",
         "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
-        "survey_build_summary": "Build Summary: 17/17 steps succeeded; 28/28 tests passed",
+        "survey_build_summary": "The shared `zigux/tests/phase5_build.zig` entrypoint remains the umbrella review gate recorded in the manifest and contributor prompts, but this bounded verification pass did not rerun the whole Phase 5 sample bundle.",
         "non_goals": [
             "sysfs file creation parity",
             "kernel_kobj integration",
@@ -559,7 +559,7 @@ survey_note_expectations = {
     },
     "phase5_kobject_example_manifest.json": {
         "sample_test_command": "zig test samples/zigux/kobject_example.zig",
-        "sample_test_result": "All 3 tests passed.",
+        "sample_test_result": "All 5 tests passed.",
         "survey_test_command": "zig test zigux/tests/phase5_kobject_example_survey.zig",
         "survey_test_result": "All 2 tests passed.",
     },
