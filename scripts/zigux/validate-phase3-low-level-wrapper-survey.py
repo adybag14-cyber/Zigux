@@ -373,14 +373,11 @@ def run_self_test() -> int:
             "\n".join(
                 snippet
                 for snippet in REQUIRED_LOW_LEVEL_TEST_SNIPPETS
-                if snippet != "try mmio.write64Policy(mmio_policy, base64, @sizeOf(u64), 0x1111_2222_3333_4444);"
+                if snippet != "atomic.fetchMax(u32, &value, 29, .seq_cst)"
             ) + "\n",
         )
         issues = validate(root)
-        assert (
-            "missing_low_level_test_snippet:try mmio.write64Policy(mmio_policy, base64, @sizeOf(u64), 0x1111_2222_3333_4444);"
-            in issues
-        )
+        assert "missing_low_level_test_snippet:atomic.fetchMax(u32, &value, 29, .seq_cst)" in issues
 
     print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass")
     return 0
