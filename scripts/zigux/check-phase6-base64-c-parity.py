@@ -340,9 +340,18 @@ pub const invalid_decode_cases = [_]InvalidDecodeCase{
         "phase6-base64-c-parity:self-test-unexpected-case:unexpected_output:"
         f"expected={sample_expected!r}:actual={unexpected_lines!r}",
     )
+    missing_std_encode_case = [
+        line for line in sample_expected if line != "enc\tstd\t1\t4d616e\t54574675"
+    ]
+    expect_system_exit(
+        "missing_case",
+        lambda: validate_expected_surface(missing_std_encode_case, sample_expected, "self-test-missing-case"),
+        "phase6-base64-c-parity:self-test-missing-case:unexpected_output:"
+        f"expected={sample_expected!r}:actual={missing_std_encode_case!r}",
+    )
 
     print("PHASE6_BASE64_C_PARITY_SELF_TEST=pass")
-    print("PHASE6_BASE64_C_PARITY_SELF_TEST_CASE_COUNT=8")
+    print("PHASE6_BASE64_C_PARITY_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
