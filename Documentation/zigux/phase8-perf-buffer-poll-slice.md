@@ -49,17 +49,18 @@ This helper does not yet claim:
 
 ## Gates
 
-The shared review path now fail-closes through the shared Phase 8 validator, the dedicated tests-readme alignment checker, and their built-in self-tests before the focused helper replay and the shared Phase 8 build replay run, so this slice stays tied to the same validator-first Phase 8 tooling packet as the docs root, tests root, Makefile, workflow, and broader segmented libbpf notes.
+The shared review path now fail-closes through the shared Phase 8 validator, the dedicated tests-readme alignment checker, the dedicated perf-buffer poll gate checker, and all three built-in self-tests before the focused perf-buffer poll build shard and the shared Phase 8 build replay run, so this slice stays tied to the same validator-first Phase 8 tooling packet as the docs root, tests root, Makefile, workflow, and broader segmented libbpf notes.
 
 1. `python3 scripts/zigux/validate-phase8.py --self-test`
 2. `python3 scripts/zigux/check-phase8-tests-readme-alignment.py --self-test`
-3. `python3 scripts/zigux/validate-phase8.py`
-4. `python3 scripts/zigux/check-phase8-tests-readme-alignment.py`
-5. `make -C zigux phase8-validate`
-6. `zig test tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
-7. `make -C zigux phase8-perf-buffer-poll-test`
-8. `zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all`
-9. `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
+3. `python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py --self-test`
+4. `python3 scripts/zigux/validate-phase8.py`
+5. `python3 scripts/zigux/check-phase8-tests-readme-alignment.py`
+6. `python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py`
+7. `make -C zigux phase8-validate`
+8. `make -C zigux phase8-perf-buffer-poll-test`
+9. `zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all`
+10. `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
 
 ## Next bounded step
 
