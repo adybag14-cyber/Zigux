@@ -52,13 +52,27 @@ fn scanWord(comptime kind: ScanKind, idx: usize, addr1: []const Word, addr2: ?[]
     };
 }
 
+fn smallBitmapMask(nbits: usize, start: usize) Word {
+    if (start >= nbits) {
+        return 0;
+    }
+    return lastWordMask(nbits) & firstWordMask(start);
+}
+
 fn findFirstImpl(comptime kind: ScanKind, addr1: []const Word, addr2: ?[]const Word, nbits: usize) usize {
     assertBitmapLen(addr1, nbits);
     if (kind == .and_bits) {
         assertBitmapLen(addr2.?, nbits);
     }
+    if (nbits == 0) {
+        return 0;
+    }
+    if (nbits <= bits_per_long) {
+        const value = scanWord(kind, 0, addr1, addr2) & lastWordMask(nbits);
+        return if (value != 0) @as(usize, @intCast(@ctz(value))) else nbits;
+    }
 
-    const last_idx = if (nbits == 0) 0 else bitsToWords(nbits) - 1;
+    const last_idx = bitsToWords(nbits) - 1;
     const last_mask = lastWordMask(nbits);
 
     var idx: usize = 0;
@@ -79,6 +93,10 @@ fn findNextImpl(comptime kind: ScanKind, addr1: []const Word, addr2: ?[]const Wo
     }
     if (start >= nbits) {
         return nbits;
+    }
+    if (nbits <= bits_per_long) {
+        const value = scanWord(kind, 0, addr1, addr2) & smallBitmapMask(nbits, start);
+        return if (value != 0) @as(usize, @intCast(@ctz(value))) else nbits;
     }
 
     const last_idx = bitsToWords(nbits) - 1;
