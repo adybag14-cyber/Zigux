@@ -12,7 +12,7 @@ Bytestream FIFO review packet
 - keep `samples/zigux/bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, `zigux/tests/phase5_bytestream_fifo_survey.zig`, and `Documentation/zigux/phase5-kfifo-sample-survey.md` aligned through the shared `zigux/tests/phase5_build.zig` entrypoint
 - keep the landed replay contract explicit: exact queue-order replay, transfer counts, wrapped replay-preview prefix, helper-side preview truncation, non-destructive snapshot, fixed embedded 32-byte ring-buffer backing, and the exact `checked_focus` order `bounded_fifo_order`, `wraparound_requeue`, `peek_and_skip`, `non_destructive_snapshot`, `preview_truncation`, `reset_and_replay`, and `ownership_and_lifetime`
 - keep the helper-only review surface explicit outside the main replay path: empty-queue null handling, the capacity ceiling, and queue-only reset remain part of the shipped contract
-- keep procfs, `kfifo_from_user()` or `kfifo_to_user()`, locking, and runtime registration out of scope so this sample stays a bounded in-memory idiom rather than a runtime module claim
+- keep procfs, `kfifo_from_user()` or `kfifo_to_user()`, locking, and runtime registration out of scope so this sample stays an approved Phase 5 in-memory FIFO idiom rather than a runtime module claim
 
 Kobject review packet
 - keep `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, `zigux/tests/phase5_kobject_example_manifest.json`, `zigux/tests/phase5_kobject_example_survey.zig`, and `Documentation/zigux/phase5-kobject-sample-survey.md` aligned through the shared `zigux/tests/phase5_build.zig` entrypoint
