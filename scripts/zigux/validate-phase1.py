@@ -210,6 +210,8 @@ MARKER_GROUPS = {
             "PHASE1_FIND_BIT_BOUNDARY_UNIT_REVIEW=find_bit empty and out-of-range scans return nbits for zero-length bitmaps, start-at-nbits searches, and fully set zero-bit windows that must not report past the declared range",
             "PHASE1_FIND_BIT_LOW_LEVEL_UNIT_REVIEW=find_bit low-level underscore entry points preserve same-word inclusive starts and tail-clamped set, shared-bit, and zero-bit scan behavior across the same caller-selected bit windows as the public helpers",
             "PHASE1_FIND_BIT_SMALL_BITMAP_UNIT_REVIEW=find_bit single-word set zero and shared-bit scans keep Linux small-bitmap semantics aligned by masking out-of-range tail bits while preserving inclusive in-range matches inside one word",
+            "PHASE1_FIND_BIT_TAIL_START_UNIT_REVIEW=find_bit tail-clamped set zero and shared-bit scans keep the last in-range bit reachable from an inclusive start while later starts still return nbits instead of leaking the out-of-range tail",
+            "PHASE1_FIND_BIT_ZERO_SIZED_UNIT_REVIEW=find_bit zero-length set zero and shared-bit scans return 0 even when backing words are populated so declared nbits stays authoritative over caller storage",
             'find_bit small-bitmap unit-test anchor: `tools/lib/find_bit.zig:test "single-word scans keep linux small-bitmap semantics"`',
             "PHASE1_STRING_ALIAS_UNIT_REVIEW=string trimSpaces and strim trim trailing whitespace before the first embedded NUL while preserving bytes beyond that terminator",
             "PHASE1_STRING_MEMPARSE_UNIT_REVIEW=",
@@ -381,6 +383,10 @@ MARKER_GROUPS = {
             '"low_level_unit_test_contract"',
             '"small_bitmap_unit_test_anchor"',
             '"small_bitmap_unit_test_contract"',
+            '"tail_start_unit_test_anchor"',
+            '"tail_start_unit_test_contract"',
+            '"zero_sized_unit_test_anchor"',
+            '"zero_sized_unit_test_contract"',
         ],
     ),
     "string": (
@@ -497,17 +503,14 @@ def validate_manifest_shape() -> list[str]:
         issues.append("phase1_manifest:phase:mismatch")
     if manifest.get("status") != "closed":
         issues.append("phase1_manifest:status:mismatch")
-    if manifest.get("helper_count") != 13:
-        issues.append("phase1_manifest:helper_count:mismatch")
+    if manifest.get("helper_count") != len(HELPERS):
+        issues.append(
+            "phase1_manifest:helper_count:"
+            f"expected={len(HELPERS)}:actual={manifest.get('helper_count')}"
+        )
     helpers = manifest.get("helpers")
-    if not isinstance(helpers, list):
-        issues.append("phase1_manifest:helpers:expected_list")
-    else:
-        actual_helpers = set(helpers)
-        for helper in sorted(HELPERS - actual_helpers):
-            issues.append(f"phase1_manifest:helpers:missing:{helper}")
-        for helper in sorted(actual_helpers - HELPERS):
-            issues.append(f"phase1_manifest:helpers:unexpected:{helper}")
+    if helpers != sorted(HELPERS):
+        issues.append("phase1_manifest:helpers:mismatch")
     notes = manifest.get("helper_review_notes")
     if not isinstance(notes, dict):
         issues.append("phase1_manifest:helper_review_notes:expected_object")
@@ -591,6 +594,14 @@ def validate_manifest_shape() -> list[str]:
                 issues.append("phase1_manifest:tools/lib/find_bit.zig:small_bitmap_unit_test_anchor:mismatch")
             if find_bit_note.get("small_bitmap_unit_test_contract") != "Direct Zig unit coverage keeps single-word set, zero, and shared-bit scans aligned with Linux small-bitmap semantics by masking out-of-range tail bits while preserving inclusive in-range matches inside one word.":
                 issues.append("phase1_manifest:tools/lib/find_bit.zig:small_bitmap_unit_test_contract:mismatch")
+            if find_bit_note.get("tail_start_unit_test_anchor") != 'tools/lib/find_bit.zig:test "tail scans keep the last in-range bit reachable from an inclusive start"':
+                issues.append("phase1_manifest:tools/lib/find_bit.zig:tail_start_unit_test_anchor:mismatch")
+            if find_bit_note.get("tail_start_unit_test_contract") != "Direct Zig unit coverage keeps tail-clamped set, zero, and shared-bit scans aligned when the inclusive start lands on the last in-range bit, while later starts still return nbits instead of leaking the out-of-range tail.":
+                issues.append("phase1_manifest:tools/lib/find_bit.zig:tail_start_unit_test_contract:mismatch")
+            if find_bit_note.get("zero_sized_unit_test_anchor") != 'tools/lib/find_bit.zig:test "zero-sized scans ignore populated backing words"':
+                issues.append("phase1_manifest:tools/lib/find_bit.zig:zero_sized_unit_test_anchor:mismatch")
+            if find_bit_note.get("zero_sized_unit_test_contract") != "Direct Zig unit coverage keeps zero-length set, zero, and shared-bit scans aligned by returning 0 even when backing words are populated, so declared nbits stays authoritative over caller storage.":
+                issues.append("phase1_manifest:tools/lib/find_bit.zig:zero_sized_unit_test_contract:mismatch")
         string_note = notes.get("tools/lib/string.zig")
         if isinstance(string_note, dict):
             if string_note.get("cstring_unit_test_anchor") != 'tools/lib/string.zig:test "strlcpy stops at the first embedded NUL in the source"':
