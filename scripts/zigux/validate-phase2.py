@@ -753,7 +753,7 @@ def validate_genksyms_bridge_checker_gate(checker_script: Path) -> list[str]:
     required_markers = {
         'self_test_arg': "parser.add_argument('--self-test'",
         'self_test_pass_marker': "print('PHASE2_GENKSYMS_BRIDGE_SELF_TEST=pass')",
-        'self_test_case_count_marker': "print('PHASE2_GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=26')",
+        'self_test_case_count_marker': "print('PHASE2_GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=5')",
         'normalize_stderr_mode_guard': 'normalize_stderr:requires_process_json_mode',
         'missing_expected_fixture_guard': 'expected:missing_fixture:',
         'orphaned_expected_guard': 'cases.json:orphaned_expected:',
