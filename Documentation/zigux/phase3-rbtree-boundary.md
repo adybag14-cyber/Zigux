@@ -10,7 +10,7 @@ This packet adds one bounded Phase 3 binding step for the `lib/rbtree` roadmap a
 - `PHASE3_RBTREE_BINDING=zigux/bindings/rbtree.zig`
 - `PHASE3_RBTREE_TEST_GATE=zig build phase3-rbtree-test --build-file zigux/tests/phase3_rbtree_build.zig`
 - `PHASE3_RBTREE_DUMP_GATE=zig build phase3-rbtree-dump --build-file zigux/tests/phase3_rbtree_build.zig`
-- `PHASE3_RBTREE_DIFF_GATE=python3 scripts/zigux/check-phase3-rbtree.py`
+- `PHASE3_RBTREE_DIFF_GATE=python3 scripts/zigux/run-phase3-checks.py --slug rbtree`
 
 ## Why this slice exists
 
