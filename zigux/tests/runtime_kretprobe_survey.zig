@@ -209,6 +209,10 @@ test "phase 9 runtime kretprobe survey manifest records the landed ownership pac
             saw_roadmap_gap_check = true;
             try std.testing.expectEqualStrings("roadmap_gap", check.kind);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "selftest hooks are landed") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "module_init()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "module_exit()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "register_kretprobe()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "unregister_kretprobe()") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "first loadable Zigux runtime modules") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "runtime module lifecycle parity") != null);
         }
@@ -408,6 +412,14 @@ test "phase 9 runtime kretprobe docs keep the ownership packet and shared-build 
     );
     defer std.testing.allocator.free(module_test);
 
+    const runtime_loader_file = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "zigux/kernel/runtime_loader.zig",
+        40 * 1024,
+    );
+    defer std.testing.allocator.free(runtime_loader_file);
+
     const required_survey_markers = [_][]const u8{
         "`PHASE9_LANE_KEY=P9-L16`",
         "manifest-backed delivery catalog and ownership map",
@@ -427,6 +439,11 @@ test "phase 9 runtime kretprobe docs keep the ownership packet and shared-build 
         "RuntimeKretprobeSummary",
         "failed-exit rollback proof",
         "released_without_substrate",
+        "shared lifecycle-boundary summary",
+        "module_init()",
+        "module_exit()",
+        "register_kretprobe()",
+        "unregister_kretprobe()",
         "phase9-runtime-loader-non-owner-boundary-survey-tests",
         "StreamTooLong",
         "first loadable Zigux runtime modules",
@@ -467,6 +484,14 @@ test "phase 9 runtime kretprobe docs keep the ownership packet and shared-build 
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "OutstandingProbeInstance") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "selftest_complete") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "`nmissed` replay") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, runtime_loader_file, "pub fn keepsPreExecutionLifecycleBoundaryExplicit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, runtime_loader_file, "\"module_init\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, runtime_loader_file, "\"module_exit\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, runtime_loader_file, "payload.register_api.len > 0") != null);
+    try std.testing.expect(std.mem.indexOf(u8, runtime_loader_file, "payload.unregister_api.len > 0") != null);
+    try std.testing.expect(std.mem.indexOf(u8, runtime_loader_file, "payload.register_api, self.entry_symbol") != null);
+    try std.testing.expect(std.mem.indexOf(u8, runtime_loader_file, "payload.unregister_api, self.exit_symbol") != null);
 
     try expectSurveyedCommitMarker(survey_doc, manifest.surveyed_commit);
     try expectPinnedCommitSentence(survey_doc, manifest.surveyed_commit);
