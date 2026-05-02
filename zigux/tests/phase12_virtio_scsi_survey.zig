@@ -235,6 +235,12 @@ test "phase12 virtio_scsi survey manifest records the landed queue-depth summary
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "current_shared_build_result: `not replayed in this run because the attached Zig toolchain was unavailable`") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "current_focused_survey_result: `not replayed in this run because the attached Zig toolchain was unavailable`") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "focused_survey_result: `All 1 tests passed.`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "## Latest repo-head recheck") != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "Legacy validator compatibility note for the same bounded recheck:") != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "- rechecked_public_master_head: `") != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "- verification_method: public GitHub `master` commit and tree reads plus connector-backed current-`master` blob reads of") != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "- observed_behavior: public GitHub still exposes the same three tree entry points") != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "- replay_limit: this runtime still could not clone the repository directly (`CONNECT tunnel failed, response 403`)") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "This packet is archival rather than live-head truth.") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "the URLs, byte counts, and hashes below should be read as the last commit-pinned fallback evidence, not as the newest repo state") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "These fields record the last bounded replay note captured for this pinned fallback packet.") != null);
