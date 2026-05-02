@@ -332,8 +332,28 @@ def run_self_test() -> int:
         )
         write_text(build_path, build_backup)
 
+        fixture_path = tmp_root / "zigux/tests/fixtures/phase11_build_inventory.json"
+        fixture_backup = fixture_path.read_text(encoding="utf-8")
+        fixture = json.loads(fixture_backup)
+        fixture["forbidden_markers"] = []
+        fixture_path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
+        expect_inventory_drift(
+            "forbidden_markers_fixture_drift",
+            tmp_root,
+        )
+        fixture_path.write_text(fixture_backup, encoding="utf-8")
+
+        fixture = json.loads(fixture_backup)
+        fixture["dedicated_survey_replays"] = []
+        fixture_path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
+        expect_inventory_drift(
+            "dedicated_survey_replays_fixture_drift",
+            tmp_root,
+        )
+        fixture_path.write_text(fixture_backup, encoding="utf-8")
+
     print("PHASE11_BUILD_INVENTORY_SELF_TEST=pass")
-    print("PHASE11_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=3")
+    print("PHASE11_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=5")
     return 0
 
 
