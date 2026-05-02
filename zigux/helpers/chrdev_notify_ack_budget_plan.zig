@@ -238,3 +238,68 @@ pub fn summarize(view: abi.ChrdevNotifyAckBudgetView) abi.ChrdevNotifyAckBudgetS
 
     return summary;
 }
+
+test "phase3 chrdev notify ack budget uses direct ack budget first" {
+    var view = std.mem.zeroInit(abi.ChrdevNotifyAckBudgetView, .{});
+    view.ack_mask = 1;
+    view.ack_observed = 1;
+    view.ack_budget = 2;
+    view.deferred_ack_budget = 1;
+
+    const summary = summarize(view);
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_NOTIFY_ACK_BUDGET_STATUS_ACKED), summary.ack_budget_status);
+    try std.testing.expectEqual(@as(u32, 1), summary.budget_acked_count);
+    try std.testing.expectEqual(@as(u32, 1), summary.ack_budget_after);
+    try std.testing.expectEqual(@as(u32, 1), summary.deferred_ack_budget_after);
+    try std.testing.expect((summary.ack_budget_flags & abi.CHRDEV_NOTIFY_ACK_BUDGET_FLAG_ACK_BUDGET_USED) != 0);
+}
+
+test "phase3 chrdev notify ack budget falls back to deferred then drops when exhausted" {
+    var deferred_view = std.mem.zeroInit(abi.ChrdevNotifyAckBudgetView, .{});
+    deferred_view.ack_mask = 1;
+    deferred_view.ack_window = 1;
+    deferred_view.ack_budget = 0;
+    deferred_view.deferred_ack_budget = 1;
+
+    const deferred_summary = summarize(deferred_view);
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_NOTIFY_ACK_BUDGET_STATUS_DEFERRED), deferred_summary.ack_budget_status);
+    try std.testing.expectEqual(@as(u32, 1), deferred_summary.budget_deferred_ack_count);
+    try std.testing.expectEqual(@as(u32, 0), deferred_summary.deferred_ack_budget_after);
+    try std.testing.expect((deferred_summary.ack_budget_flags & abi.CHRDEV_NOTIFY_ACK_BUDGET_FLAG_DEFERRED_ACK_BUDGET_USED) != 0);
+
+    var dropped_view = std.mem.zeroInit(abi.ChrdevNotifyAckBudgetView, .{});
+    dropped_view.ack_mask = 1;
+    dropped_view.ack_window = 1;
+    dropped_view.ack_budget = 0;
+    dropped_view.deferred_ack_budget = 0;
+
+    const dropped_summary = summarize(dropped_view);
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_NOTIFY_ACK_BUDGET_STATUS_DROPPED), dropped_summary.ack_budget_status);
+    try std.testing.expectEqual(@as(u32, 1), dropped_summary.budget_dropped_ack_count);
+    try std.testing.expect((dropped_summary.ack_budget_flags & abi.CHRDEV_NOTIFY_ACK_BUDGET_FLAG_DEFERRED_ACK_BUDGET_EXHAUSTED) != 0);
+}
+
+test "phase3 chrdev notify ack budget keeps suppressed and skipped cases explicit" {
+    var suppressed_view = std.mem.zeroInit(abi.ChrdevNotifyAckBudgetView, .{});
+    suppressed_view.ack_mask = 1;
+    suppressed_view.ack_policy_flags = abi.CHRDEV_NOTIFY_ACK_POLICY_SUPPRESS_EXPIRED;
+    suppressed_view.ack_budget = 2;
+    suppressed_view.deferred_ack_budget = 3;
+
+    const suppressed_summary = summarize(suppressed_view);
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_NOTIFY_ACK_BUDGET_STATUS_SUPPRESSED), suppressed_summary.ack_budget_status);
+    try std.testing.expectEqual(@as(u32, 1), suppressed_summary.budget_suppressed_ack_count);
+    try std.testing.expectEqual(@as(u32, 2), suppressed_summary.ack_budget_after);
+    try std.testing.expectEqual(@as(u32, 3), suppressed_summary.deferred_ack_budget_after);
+
+    var skipped_view = std.mem.zeroInit(abi.ChrdevNotifyAckBudgetView, .{});
+    skipped_view.ack_mask = 0;
+    skipped_view.ack_budget = 2;
+    skipped_view.deferred_ack_budget = 3;
+
+    const skipped_summary = summarize(skipped_view);
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_NOTIFY_ACK_BUDGET_STATUS_SKIPPED), skipped_summary.ack_budget_status);
+    try std.testing.expectEqual(@as(u32, 1), skipped_summary.budget_skipped_ack_count);
+    try std.testing.expectEqual(@as(u32, 2), skipped_summary.ack_budget_after);
+    try std.testing.expectEqual(@as(u32, 3), skipped_summary.deferred_ack_budget_after);
+}
