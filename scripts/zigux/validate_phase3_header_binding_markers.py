@@ -29,6 +29,9 @@ HEADER_BINDING_MARKERS = {
         "pub const PanicMode = enum(u8) {",
         "pub const AllocatorMode = enum(u8) {",
         "pub const UnsafeScope = enum(u8) {",
+        "pub const CHRDEV_NOTIFY_MASK_SUCCESS: u32 = 1;",
+        "pub const CHRDEV_NOTIFY_STATUS_DELIVERED: u32 = 1;",
+        "pub const CHRDEV_NOTIFY_ACK_STATUS_ACKED: u32 = 1;",
     ),
     "zigux/tests/build.zig": (
         "const phase3_dump_module = b.createModule(.{",
@@ -49,6 +52,16 @@ HEADER_BINDING_MARKERS = {
         "const dev_region_plan_module = b.createModule(.{",
         "const cdev_add_plan_module = b.createModule(.{",
         "const chrdev_open_plan_module = b.createModule(.{",
+        "const chrdev_fops_plan_module = b.createModule(.{",
+        "const chrdev_route_plan_module = b.createModule(.{",
+        "const chrdev_io_plan_module = b.createModule(.{",
+        "const chrdev_notify_plan_module = b.createModule(.{",
+        "const chrdev_notify_policy_plan_module = b.createModule(.{",
+        "const chrdev_notify_budget_plan_module = b.createModule(.{",
+        "const chrdev_notify_ack_plan_module = b.createModule(.{",
+        "const chrdev_notify_ack_policy_plan_module = b.createModule(.{",
+        "const chrdev_notify_ack_budget_plan_module = b.createModule(.{",
+        "const chrdev_notify_ack_window_plan_module = b.createModule(.{",
     ),
     "zigux/tests/phase3_export_uapi_build.zig": (
         '.root_source_file = b.path("phase3_export_uapi.zig"),',
@@ -109,6 +122,18 @@ def run_self_test() -> int:
             f"header-binding-marker: include/zigux/abi.h missing {first_marker}"
         ]
 
+        notify_ack_marker = HEADER_BINDING_MARKERS["zigux/bindings/abi.zig"][-1]
+        bindings_file = root / "zigux/bindings/abi.zig"
+        bindings_file.write_text(
+            bindings_file.read_text(encoding="utf-8").replace(notify_ack_marker + "\n", "", 1),
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert validate_header_binding_markers(root) == [
+            f"header-binding-marker: include/zigux/abi.h missing {first_marker}",
+            f"header-binding-marker: zigux/bindings/abi.zig missing {notify_ack_marker}",
+        ]
+
         build_marker = HEADER_BINDING_MARKERS["zigux/tests/build.zig"][6]
         build_file = root / "zigux/tests/build.zig"
         build_file.write_text(
@@ -118,6 +143,7 @@ def run_self_test() -> int:
         )
         assert validate_header_binding_markers(root) == [
             f"header-binding-marker: include/zigux/abi.h missing {first_marker}",
+            f"header-binding-marker: zigux/bindings/abi.zig missing {notify_ack_marker}",
             f"header-binding-marker: zigux/tests/build.zig missing {build_marker}",
         ]
 
@@ -129,6 +155,7 @@ def run_self_test() -> int:
         )
         assert validate_header_binding_markers(root) == [
             f"header-binding-marker: include/zigux/abi.h missing {first_marker}",
+            f"header-binding-marker: zigux/bindings/abi.zig missing {notify_ack_marker}",
             f"header-binding-marker: zigux/tests/build.zig missing {build_marker}",
             f"header-binding-marker: zigux/tests/build.zig missing {interop_build_marker}",
         ]
@@ -142,6 +169,7 @@ def run_self_test() -> int:
         )
         assert validate_header_binding_markers(root) == [
             f"header-binding-marker: include/zigux/abi.h missing {first_marker}",
+            f"header-binding-marker: zigux/bindings/abi.zig missing {notify_ack_marker}",
             f"header-binding-marker: zigux/tests/build.zig missing {build_marker}",
             f"header-binding-marker: zigux/tests/build.zig missing {interop_build_marker}",
             f"header-binding-marker: zigux/tests/phase3_export_uapi_build.zig missing {export_uapi_build_marker}",
@@ -156,6 +184,7 @@ def run_self_test() -> int:
         )
         assert validate_header_binding_markers(root) == [
             f"header-binding-marker: include/zigux/abi.h missing {first_marker}",
+            f"header-binding-marker: zigux/bindings/abi.zig missing {notify_ack_marker}",
             f"header-binding-marker: zigux/tests/build.zig missing {build_marker}",
             f"header-binding-marker: zigux/tests/build.zig missing {interop_build_marker}",
             f"header-binding-marker: zigux/tests/phase3_export_uapi_build.zig missing {export_uapi_build_marker}",
@@ -171,6 +200,7 @@ def run_self_test() -> int:
         )
         assert validate_header_binding_markers(root) == [
             f"header-binding-marker: include/zigux/abi.h missing {first_marker}",
+            f"header-binding-marker: zigux/bindings/abi.zig missing {notify_ack_marker}",
             f"header-binding-marker: zigux/tests/build.zig missing {build_marker}",
             f"header-binding-marker: zigux/tests/build.zig missing {interop_build_marker}",
             f"header-binding-marker: zigux/tests/phase3_export_uapi_build.zig missing {export_uapi_build_marker}",
