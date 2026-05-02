@@ -50,131 +50,175 @@ EXPECTED_CASE_NAMES = [
 ]
 EXPECTED_CASE_SPECS = {
     'minimal': {
+        'argv': [],
         'expected': 'minimal_expected.json',
         'mode': 'stdout_json',
         'normalize_stderr': False,
     },
     'debug_reference_types': {
+        'argv': ['-d', '-d', '-D', '-w', '-p', '-r', 'foo.symref', '-r', 'bar.symref', '-T', 'out.symtypes'],
         'expected': 'debug_reference_types_expected.json',
         'mode': 'stdout_json',
         'normalize_stderr': False,
     },
     'short_inline_reference_dump_types': {
+        'argv': ['-d', '-rfoo.symref', '-Tout.symtypes', '-p'],
         'expected': 'short_inline_reference_dump_types_expected.json',
         'mode': 'stdout_json',
         'normalize_stderr': False,
     },
     'clustered_short_inline_reference': {
+        'argv': ['-dwrfoo.symref', '-Tout.symtypes', '-p'],
         'expected': 'clustered_short_inline_reference_expected.json',
         'mode': 'stdout_json',
         'normalize_stderr': False,
     },
     'long_options': {
+        'argv': ['--debug', '--warnings', '--reference=foo.symref', '--dump-types', 'types.symtypes', '--preserve'],
         'expected': 'long_options_expected.json',
         'mode': 'stdout_json',
         'normalize_stderr': False,
     },
     'abbreviated_long_options': {
+        'argv': ['--deb', '--war', '--qui', '--ref=foo.symref', '--dump-t', 'types.symtypes', '--pres'],
         'expected': 'abbreviated_long_options_expected.json',
         'mode': 'stdout_json',
         'normalize_stderr': False,
     },
     'quiet_overrides_warning': {
+        'argv': ['-w', '-q'],
         'expected': 'quiet_overrides_warning_expected.json',
         'mode': 'stdout_json',
         'normalize_stderr': False,
     },
     'explicit_option_terminator': {
+        'argv': ['--', '--leftover', 'positional'],
         'expected': 'explicit_option_terminator_expected.json',
         'mode': 'stdout_json',
         'normalize_stderr': False,
     },
     'positional_passthrough': {
+        'argv': ['leftover.c', '-d', 'rightover.h', '-r', 'foo.symref'],
         'expected': 'positional_passthrough_expected.json',
         'mode': 'stdout_json',
         'normalize_stderr': False,
     },
     'lone_dash_passthrough': {
+        'argv': ['-', '-d', 'tail'],
         'expected': 'lone_dash_passthrough_expected.json',
         'mode': 'stdout_json',
         'normalize_stderr': False,
     },
     'explicit_terminator_positional_passthrough': {
+        'argv': ['leftover.c', '-d', '--', 'tail.h'],
         'expected': 'explicit_terminator_positional_passthrough_expected.json',
         'mode': 'stdout_json',
         'normalize_stderr': False,
     },
     'help': {
+        'argv': ['--hel'],
         'expected': 'help_expected.json',
         'mode': 'process_json',
         'normalize_stderr': False,
     },
     'version': {
+        'argv': ['--ver'],
         'expected': 'version_expected.json',
         'mode': 'process_json',
         'normalize_stderr': False,
     },
     'invalid_option': {
+        'argv': ['-x'],
         'expected': 'invalid_option_expected.json',
         'mode': 'process_json',
         'normalize_stderr': True,
     },
     'missing_reference_argument': {
+        'argv': ['-r'],
         'expected': 'missing_reference_argument_expected.json',
         'mode': 'process_json',
         'normalize_stderr': True,
     },
     'missing_dump_types_argument': {
+        'argv': ['-T'],
         'expected': 'missing_dump_types_argument_expected.json',
         'mode': 'process_json',
         'normalize_stderr': True,
     },
     'unsupported_long_option': {
+        'argv': ['--bogus'],
         'expected': 'unsupported_long_option_expected.json',
         'mode': 'process_json',
         'normalize_stderr': True,
     },
     'ambiguous_abbreviated_long_option': {
+        'argv': ['--dum'],
         'expected': 'ambiguous_abbreviated_long_option_expected.json',
         'mode': 'process_json',
         'normalize_stderr': True,
     },
     'empty_long_option_name': {
+        'argv': ['--=value'],
         'expected': 'empty_long_option_name_expected.json',
         'mode': 'process_json',
         'normalize_stderr': True,
     },
     'unexpected_long_option_argument': {
+        'argv': ['--debug=extra'],
         'expected': 'unexpected_long_option_argument_expected.json',
         'mode': 'process_json',
         'normalize_stderr': True,
     },
     'abbreviated_unexpected_long_option_argument': {
+        'argv': ['--deb=extra'],
         'expected': 'abbreviated_unexpected_long_option_argument_expected.json',
         'mode': 'process_json',
         'normalize_stderr': True,
     },
     'missing_long_reference_argument': {
+        'argv': ['--reference'],
         'expected': 'missing_long_reference_argument_expected.json',
         'mode': 'process_json',
         'normalize_stderr': True,
     },
     'abbreviated_missing_long_reference_argument': {
+        'argv': ['--ref'],
         'expected': 'abbreviated_missing_long_reference_argument_expected.json',
         'mode': 'process_json',
         'normalize_stderr': True,
     },
     'missing_long_dump_types_argument': {
+        'argv': ['--dump-types'],
         'expected': 'missing_long_dump_types_argument_expected.json',
         'mode': 'process_json',
         'normalize_stderr': True,
     },
     'abbreviated_missing_long_dump_types_argument': {
+        'argv': ['--dump-t'],
         'expected': 'abbreviated_missing_long_dump_types_argument_expected.json',
         'mode': 'process_json',
         'normalize_stderr': True,
     },
     'too_many_reference_files': {
+        'argv': [
+            '-r', 'ref00.symref',
+            '-r', 'ref01.symref',
+            '-r', 'ref02.symref',
+            '-r', 'ref03.symref',
+            '-r', 'ref04.symref',
+            '-r', 'ref05.symref',
+            '-r', 'ref06.symref',
+            '-r', 'ref07.symref',
+            '-r', 'ref08.symref',
+            '-r', 'ref09.symref',
+            '-r', 'ref10.symref',
+            '-r', 'ref11.symref',
+            '-r', 'ref12.symref',
+            '-r', 'ref13.symref',
+            '-r', 'ref14.symref',
+            '-r', 'ref15.symref',
+            '-r', 'ref16.symref',
+        ],
         'expected': 'too_many_reference_files_expected.json',
         'mode': 'process_json',
         'normalize_stderr': False,
@@ -294,6 +338,12 @@ def validate_cases(root: Path) -> list[str]:
         if spec is None:
             issues.append(f'cases:unexpected_name:{name}')
             continue
+
+        actual_argv = case.get('argv')
+        if actual_argv != spec['argv']:
+            issues.append(
+                f"cases:{name}:argv={actual_argv!r}:expected_argv={spec['argv']!r}"
+            )
 
         actual_expected = case.get('expected')
         if actual_expected != spec['expected']:
@@ -496,6 +546,7 @@ def clone_fixture_root(destination_root: Path) -> None:
                 'cases': [
                     {
                         'name': name,
+                        'argv': EXPECTED_CASE_SPECS[name]['argv'],
                         'expected': EXPECTED_CASE_SPECS[name]['expected'],
                         'mode': EXPECTED_CASE_SPECS[name]['mode'],
                         'normalize_stderr': EXPECTED_CASE_SPECS[name]['normalize_stderr'],
@@ -776,6 +827,16 @@ def run_self_test() -> int:
         clone_fixture_root(tmp_root)
 
         cases_payload = json.loads(cases_path.read_text(encoding='utf-8'))
+        cases_payload['cases'][0]['argv'] = ['--bogus']
+        cases_path.write_text(json.dumps(cases_payload, indent=2) + '\n', encoding='utf-8')
+        expect_issue(
+            'case_argv_contract',
+            tmp_root,
+            "cases:minimal:argv=['--bogus']:expected_argv=[]",
+        )
+        clone_fixture_root(tmp_root)
+
+        cases_payload = json.loads(cases_path.read_text(encoding='utf-8'))
         cases_payload['cases'][11]['normalize_stderr'] = True
         cases_path.write_text(json.dumps(cases_payload, indent=2) + '\n', encoding='utf-8')
         expect_issue(
@@ -803,7 +864,7 @@ def run_self_test() -> int:
         expect_issue('validator_case_count_marker', tmp_root, f'validator:{VALIDATOR_MARKERS[2]}')
 
     print('PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST=pass')
-    print('PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=23')
+    print('PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=24')
     return 0
 
 
