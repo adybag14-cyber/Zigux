@@ -96,6 +96,13 @@ def validate_expected_fixdep_cases(cases_path: Path) -> list[str]:
             'expected': 'sample_escaped_space_expected.txt',
             'expected_exit_code': 0,
         },
+        'sample_escaped_colon': {
+            'depfile': 'sample_escaped_colon.d',
+            'target': 'sample_escaped_colon.o',
+            'cmdline': 'clang -c zigux/tests/fixtures/fixdep/sample_escaped_colon_source.c -o sample_escaped_colon.o',
+            'expected': 'sample_escaped_colon_expected.txt',
+            'expected_exit_code': 0,
+        },
         'sample_concatenated': {
             'depfile': 'sample_concatenated.d',
             'target': 'sample_concatenated.o',
@@ -573,6 +580,7 @@ required_files = [
     ROOT / 'zigux-alpha' / 'BOOTSTRAP_COMMIT_LEDGER.md',
     ROOT / 'zigux' / 'Makefile',
     FIXDEP_CASES,
+    FIXDEP_DIR / 'sample_escaped_colon_expected.txt',
     FIXDEP_DIR / 'sample_concatenated_expected.txt',
     FIXDEP_DIR / 'sample_output_write_expected.txt',
     FIXDEP_DIR / 'sample_output_write_expected.stderr.txt',
