@@ -85,6 +85,7 @@ SURVEY_NOTE_MARKERS = [
     "make -C zigux phase12-validate",
     "zig build test --build-file zigux/tests/phase12_build.zig --summary all",
     "automatic perf-buffer CPU-budget clamp explicit before any per-CPU buffer opens happen",
+    "bounded `perf_buffer__poll(timeout_ms)` wait-result classification, ready-buffer bookkeeping",
     "optional probes still degrade gracefully, mandatory probes still fail hard",
 ]
 
@@ -607,6 +608,23 @@ def run_self_test() -> int:
         original = survey_note_path.read_text(encoding="utf-8")
         survey_note_path.write_text(
             original.replace(
+                "bounded `perf_buffer__poll(timeout_ms)` wait-result classification, ready-buffer bookkeeping\n",
+                "",
+            ),
+            encoding="utf-8",
+        )
+        missing = check_packet(root)
+        if (
+            "survey_note:bounded `perf_buffer__poll(timeout_ms)` wait-result classification, ready-buffer bookkeeping"
+            not in missing
+        ):
+            raise SystemExit("phase12-libbpf-packet:self-test:perf_buffer_poll_marker_detection")
+
+        build_self_test_tree(root)
+        survey_note_path = root / TRACKED_PATHS[3]
+        original = survey_note_path.read_text(encoding="utf-8")
+        survey_note_path.write_text(
+            original.replace(
                 "optional probes still degrade gracefully, mandatory probes still fail hard\n",
                 "",
             ),
@@ -992,7 +1010,7 @@ def run_self_test() -> int:
             raise SystemExit("phase12-libbpf-packet:self-test:legacy_surveyed_commit_hex_detection")
 
         print("PHASE12_LIBBPF_PACKET_SELF_TEST=pass")
-        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=43")
+        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=44")
     return 0
 
 
