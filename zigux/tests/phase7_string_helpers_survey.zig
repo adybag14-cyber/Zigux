@@ -184,6 +184,7 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
     try expectContains(string_helpers_tests, "phase 7 kasprintfStrarray returns sequential owned strings with a null-pointer terminator");
     try expectContains(string_helpers_tests, "phase 7 kfreeStrarray keeps first-NUL prefixes, zero-count reuse, and repeated teardown safe");
     try expectContains(string_helpers_tests, "phase 7 string helper wrappers keep shared any-flag and C-string ownership rules");
+    try expectContains(string_helpers_tests, "phase 7 escape flag masks stay aligned with the Linux helper contract");
     try expectContains(string_helpers_tests, "phase 7 stringGetSize returns snprintf-style length on truncation");
     try expectContains(string_helpers_tests, "phase 7 stringEscapeMem covers the bounded escape subset");
     try expectContains(string_helpers_tests, "phase 7 stringEscapeMem reports truncated output length without forcing a terminator");
