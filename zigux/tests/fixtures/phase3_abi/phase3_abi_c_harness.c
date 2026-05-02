@@ -79,6 +79,10 @@ int main(void)
     fprintf(stdout, "%u", ZIGUX_ABI_VERSION);
     fputs(",\"constants\":{\"facility_kernel\":", stdout);
     fprintf(stdout, "%u", ZIGUX_FACILITY_KERNEL);
+    fputs(",\"facility_helpers\":", stdout);
+    fprintf(stdout, "%u", ZIGUX_FACILITY_HELPERS);
+    fputs(",\"facility_drivers\":", stdout);
+    fprintf(stdout, "%u", ZIGUX_FACILITY_DRIVERS);
     fputs(",\"status_flag_error\":", stdout);
     fprintf(stdout, "%u", ZIGUX_STATUS_FLAG_ERROR);
     fputs(",\"panic_abort\":", stdout);
@@ -101,10 +105,14 @@ int main(void)
     fprintf(stdout, "%u", ZIGUX_UNSAFE_RAW_POINTER_BRIDGE);
     fputs(",\"chrdev_notify_ack_window_policy_budget_window_delivery_window_status_skipped\":", stdout);
     fprintf(stdout, "%u", ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_SKIPPED);
+    fputs(",\"chrdev_notify_ack_window_policy_budget_window_delivery_window_status_dropped\":", stdout);
+    fprintf(stdout, "%u", ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_DROPPED);
     fputs(",\"chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_flag_budget_applied\":", stdout);
     fprintf(stdout, "%u", ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_BUDGET_APPLIED);
     fputs(",\"chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_status_skipped\":", stdout);
     fprintf(stdout, "%u", ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_STATUS_SKIPPED);
+    fputs(",\"chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_status_dropped\":", stdout);
+    fprintf(stdout, "%u", ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_STATUS_DROPPED);
     fputs("},\"structs\":{", stdout);
     for (size_t i = 0; i < ARRAY_SIZE(layouts); ++i)
         emit_layout(stdout, &layouts[i], i + 1 < ARRAY_SIZE(layouts));
