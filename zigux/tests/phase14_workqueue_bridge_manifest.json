@@ -129,10 +129,17 @@
     },
     {
       "id": "phase14-workqueue-delayed-submission-alias-followup",
+      "status": "starter_landed",
+      "kind": "concurrency_audit",
+      "zigux_destination": "kernel/workqueue_bridge.zig",
+      "why_now": "The bridge now records that `queue_delayed_work_on()` and `mod_delayed_work_on()` are delayed-entry aliases over `__queue_delayed_work()`, that delayed submission keeps pending ownership on `work->data`, refuses disabled work instead of bypassing the existing off-queue disable state, and hands the item to `dwork->timer` until timer expiry re-enters `__queue_work()`, so Zigux can describe delayed submission routing without claiming CPU-affinity, timer-base, or requeue parity."
+    },
+    {
+      "id": "phase14-workqueue-delayed-timer-handoff-followup",
       "status": "ready_next",
       "kind": "concurrency_audit",
       "zigux_destination": "kernel/workqueue_bridge.zig",
-      "why_now": "The next honest Phase 14 step is to audit `queue_delayed_work_on()`, `mod_delayed_work_on()`, and `__queue_delayed_work()` so Zigux can describe the delayed submission aliases around pending ownership, disabled-work bypass, and timer handoff without claiming CPU-affinity, timer, or requeue parity."
+      "why_now": "The next honest Phase 14 step is to audit `delayed_work_timer_fn()` and its handoff back into `__queue_work()` so Zigux can describe timer-expiry ownership and requeue boundaries without claiming timer-base, CPU-affinity, or requeue parity."
     },
     {
       "id": "phase14-workqueue-live-execution-blocker",
