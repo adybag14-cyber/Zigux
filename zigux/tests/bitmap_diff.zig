@@ -419,6 +419,8 @@ test "bitmap diff gate records exact bounded copy checks" {
     copyFrom(&wide_dst, &wide_src, 97);
     try std.testing.expectEqual(@as(usize, 109 + (bitmap_nbits - bits_per_long * 2)), weight(&wide_dst, bitmap_nbits));
     try expectPrintedList(&wide_dst, bitmap_nbits, "0-108,128-1023");
+    try std.testing.expectEqual(bitmap.lastWordMask(109), wide_dst[1]);
+    try std.testing.expectEqual(~@as(Word, 0), wide_dst[2]);
     try expectSet(&wide_dst, 108);
     try expectClear(&wide_dst, 109);
     try expectClear(&wide_dst, bits_per_long * 2 - 1);
@@ -462,6 +464,8 @@ test "bitmap diff gate records exact bounded copy checks" {
     copyFrom(&dst, &src, 97);
     try std.testing.expectEqual(@as(usize, 109 + bits_per_long), weight(&dst, copy_nbits));
     try expectPrintedList(&dst, copy_nbits, "0-108,128-191");
+    try std.testing.expectEqual(bitmap.lastWordMask(109), dst[1]);
+    try std.testing.expectEqual(~@as(Word, 0), dst[2]);
     try expectSet(&dst, 108);
     try expectClear(&dst, 109);
     try expectClear(&dst, bits_per_long * 2 - 1);
