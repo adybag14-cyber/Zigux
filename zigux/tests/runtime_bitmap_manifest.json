@@ -23,7 +23,8 @@
     "the review packet keeps the Phase 9 runtime bitmap starter distinct from the still-blocked shared runtime-loader control surface instead of implying loadable-module or command-path parity",
     "docs and tests still keep real runtime execution, shared loader controls, and full lib/test_bitmap.c parity out of scope for this bounded runtime starter",
     "the bitmap packet still treats Documentation/zigux/phase9-runtime-loader-gap-survey.md as the owner of blocked shared command-name, argv-policy, and environment-derived activation control rather than implying that the bitmap starter itself has crossed into real runtime execution",
-    "the bitmap packet still treats Documentation/zigux/freeze-map.md as authoritative for the study-only kernel/workqueue.c boundary and carries no parity scorecard entry or Architecture Council status-change request for that scheduler-facing anchor"
+    "the bitmap packet still treats Documentation/zigux/freeze-map.md as authoritative for the study-only kernel/workqueue.c boundary and carries no parity scorecard entry or Architecture Council status-change request for that scheduler-facing anchor",
+    "if the loader scaffold changes, the manifest-backed exact-check packet still keeps the prepared-summary snapshot explicit so later sample mutation cannot silently rewrite the waiting_on_runtime_substrate or released_without_substrate replay"
   ],
   "exact_checks": [
     {
@@ -82,6 +83,11 @@
       "expected": "the loader scaffold keeps entry symbol zigux_runtime_bitmap_init, exit symbol zigux_runtime_bitmap_exit, waiting_on_runtime_substrate handoff, released_without_substrate fallback, helper_owned allocator flow, explicit shared command-name preservation, initialized-stage shared request and fallback counters with selftest_runs 0 and exit_runs 0 before selftest, and the seven-field bitmap payload summary machine-checkable through the shared runtime-loader request surface"
     },
     {
+      "id": "loader-prepared-snapshot",
+      "kind": "runtime_loader_contract",
+      "expected": "preparing the loader handoff snapshots the current bitmap summary, and later sample mutations do not rewrite the waiting_on_runtime_substrate request or released_without_substrate fallback summary or counters"
+    },
+    {
       "id": "loader-build-leg",
       "kind": "shared_build_contract",
       "expected": "the shared Phase 9 build keeps the dedicated phase9-runtime-bitmap-sample-tests, phase9-runtime-bitmap-module-tests, phase9-runtime-bitmap-diff-tests, and phase9-runtime-bitmap-loader-tests legs together so the sample, module, diff, and loader review evidence stays explicit inside one shared build entrypoint"
@@ -118,7 +124,7 @@
       "id": "runtime-bitmap-module-slice",
       "kind": "documentation",
       "path": "Documentation/zigux/phase9-runtime-bitmap-module-slice.md",
-      "role": "records the bounded starter surface, loader handoff wording, and shared-build-leg explanation for the shipped runtime bitmap packet"
+      "role": "records the bounded starter surface, loader handoff wording, prepared-summary snapshot replay, and shared-build-leg explanation for the shipped runtime bitmap packet"
     },
     {
       "id": "runtime-bitmap-manifest",
@@ -160,13 +166,13 @@
       "id": "runtime-bitmap-loader-scaffold",
       "kind": "runtime_substrate_scaffold",
       "path": "samples/zigux/runtime_bitmap_loader.zig",
-      "role": "owns the entry and exit symbol names, waiting_on_runtime_substrate handoff, released_without_substrate fallback, explicit shared command-name preservation, and bitmap payload summary for the sample-side loader projection"
+      "role": "owns the entry and exit symbol names, waiting_on_runtime_substrate handoff, released_without_substrate fallback, explicit shared command-name preservation, prepared-summary snapshot replay, and bitmap payload summary for the sample-side loader projection"
     },
     {
       "id": "runtime-bitmap-shared-loader-binding",
       "kind": "runtime_substrate",
       "path": "zigux/kernel/runtime_loader.zig",
-      "role": "owns the shared runtime-loader request contract that consumes the bitmap loader handoff, allocator posture, and staged entry and exit symbols"
+      "role": "owns the shared runtime-loader request contract that consumes the bitmap loader handoff, allocator posture, staged entry and exit symbols, prepared-summary snapshot replay, and bitmap payload facts"
     },
     {
       "id": "runtime-loader-gap-note",
@@ -188,7 +194,7 @@
     },
     {
       "surface": "Documentation/zigux/phase9-runtime-bitmap-module-slice.md",
-      "owns": "the bounded starter surface, loader handoff wording, and shared-build-leg explanation for the shipped bitmap packet"
+      "owns": "the bounded starter surface, loader handoff wording, prepared-summary snapshot replay, and shared-build-leg explanation for the shipped bitmap packet"
     },
     {
       "surface": "zigux/tests/runtime_bitmap_manifest.json",
@@ -216,11 +222,11 @@
     },
     {
       "surface": "samples/zigux/runtime_bitmap_loader.zig",
-      "owns": "the sample-side loader projection, waiting_on_runtime_substrate handoff, released_without_substrate fallback, explicit shared command-name preservation, and bitmap payload summary"
+      "owns": "the sample-side loader projection, waiting_on_runtime_substrate handoff, released_without_substrate fallback, explicit shared command-name preservation, prepared-summary snapshot replay, and bitmap payload summary"
     },
     {
       "surface": "zigux/kernel/runtime_loader.zig",
-      "owns": "the shared runtime-loader request contract that consumes the bitmap loader handoff, allocator posture, and staged entry and exit symbols"
+      "owns": "the shared runtime-loader request contract that consumes the bitmap loader handoff, allocator posture, staged entry and exit symbols, prepared-summary snapshot replay, and bitmap payload facts"
     },
     {
       "surface": "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
@@ -244,7 +250,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/runtime_bitmap_survey.zig",
-      "why_now": "A bitmap-specific survey gate keeps the lib/test_bitmap.c anchor, the landed sample, module, diff, and shared loader-request surfaces, plus the remaining shared runtime-control blocker, explicit while the pilot surface stays small."
+      "why_now": "A bitmap-specific survey gate keeps the lib/test_bitmap.c anchor, the landed sample, module, diff, and shared loader-request surfaces, plus the prepared-summary snapshot contract and the remaining shared runtime-control blocker, explicit while the pilot surface stays small."
     },
     {
       "id": "runtime-bitmap-sample-module",
@@ -272,14 +278,14 @@
       "status": "starter_landed",
       "kind": "runtime_substrate_scaffold",
       "zigux_destination": "samples/zigux/runtime_bitmap_loader.zig",
-      "why_now": "A tiny sample-side loader scaffold makes the existing requires_runtime_substrate contract reviewable through explicit entry and exit symbol names, handoff-stage checks, a no-substrate release path, and a bitmap summary payload that now feeds the shared runtime-loader request surface."
+      "why_now": "A tiny sample-side loader scaffold makes the existing requires_runtime_substrate contract reviewable through explicit entry and exit symbol names, handoff-stage checks, a no-substrate release path, a prepared-summary snapshot that survives later sample mutation, and a bitmap summary payload that now feeds the shared runtime-loader request surface."
     },
     {
       "id": "runtime-bitmap-live-loader-binding",
       "status": "starter_landed",
       "kind": "runtime_substrate",
       "zigux_destination": "zigux/kernel/runtime_loader.zig",
-      "why_now": "The shared runtime-loader request surface now consumes the bitmap loader handoff directly through zigux/kernel/runtime_loader.zig, keeping allocator posture, staged entry and exit symbols, and bitmap payload facts machine-checkable before any real runtime execution path exists."
+      "why_now": "The shared runtime-loader request surface now consumes the bitmap loader handoff directly through zigux/kernel/runtime_loader.zig, keeping allocator posture, staged entry and exit symbols, prepared-summary snapshot replay, and bitmap payload facts machine-checkable before any real runtime execution path exists."
     },
     {
       "id": "runtime-bitmap-shared-loader-controls",
