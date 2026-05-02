@@ -58,6 +58,12 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     phase11_dw_wdt_module.addImport("dw_wdt", dw_wdt_module);
+    const phase11_dw_wdt_suspend_resume_module = b.createModule(.{
+        .root_source_file = b.path("phase11_dw_wdt_suspend_resume.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase11_dw_wdt_suspend_resume_module.addImport("dw_wdt", dw_wdt_module);
     const phase11_dw_wdt_remove_idle_split_module = b.createModule(.{
         .root_source_file = b.path("phase11_dw_wdt_remove_idle_split.zig"),
         .target = target,
@@ -131,6 +137,13 @@ pub fn build(b: *std.Build) void {
         .root_module = phase11_dw_wdt_module,
     });
     const run_phase11_dw_wdt_tests = b.addRunArtifact(phase11_dw_wdt_tests);
+    const phase11_dw_wdt_suspend_resume_tests = b.addTest(.{
+        .name = "phase11-dw-wdt-suspend-resume-tests",
+        .root_module = phase11_dw_wdt_suspend_resume_module,
+    });
+    const run_phase11_dw_wdt_suspend_resume_tests = b.addRunArtifact(
+        phase11_dw_wdt_suspend_resume_tests,
+    );
     const phase11_dw_wdt_remove_idle_split_tests = b.addTest(.{
         .name = "phase11-dw-wdt-remove-idle-split-tests",
         .root_module = phase11_dw_wdt_remove_idle_split_module,
@@ -179,6 +192,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_phase11_bcm2835_wdt_tests.step);
     test_step.dependOn(&run_phase11_bcm2835_wdt_survey_tests.step);
     test_step.dependOn(&run_phase11_dw_wdt_tests.step);
+    test_step.dependOn(&run_phase11_dw_wdt_suspend_resume_tests.step);
     test_step.dependOn(&run_phase11_dw_wdt_remove_idle_split_tests.step);
     test_step.dependOn(&run_phase11_dw_wdt_survey_tests.step);
     test_step.dependOn(&run_phase11_uapi_header_parity_survey_tests.step);
