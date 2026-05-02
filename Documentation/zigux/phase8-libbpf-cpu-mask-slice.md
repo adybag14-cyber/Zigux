@@ -21,13 +21,27 @@ The Phase 8 roadmap explicitly names `tools/lib/bpf/libbpf.c` as a tooling ancho
 
 ## Gates
 
-1. run the focused Zig module tests
+The shared review path now fail-closes through the broader Phase 8 validator and the dedicated docs-index/tests-index alignment checker before the focused helper and shared build replays run, so this cpu-mask slice stays tied to the same docs-root, tests-root, Makefile, workflow, and deferred interrupt-routing boundary packet that current `master` already ships.
+
+1. run the shared Phase 8 validator self-test
+- `python3 scripts/zigux/validate-phase8.py --self-test`
+
+2. run the shared Phase 8 docs-index/tests-index alignment self-test
+- `python3 scripts/zigux/check-phase8-tests-readme-alignment.py --self-test`
+
+3. run the shared Phase 8 validator
+- `python3 scripts/zigux/validate-phase8.py`
+
+4. run the shared Phase 8 docs-index/tests-index alignment checker
+- `python3 scripts/zigux/check-phase8-tests-readme-alignment.py`
+
+5. run the focused Zig module tests
 - `zig test tools/lib/bpf/zigux_segments/cpu_mask.zig`
 
-2. run the dedicated Phase 8 tooling gate
+6. run the dedicated Phase 8 tooling gate
 - `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
 
-3. run the convenience target
+7. run the convenience target
 - `make -C zigux phase8`
 
 ## Current parity surface
