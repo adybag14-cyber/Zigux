@@ -159,6 +159,19 @@ pub const QueueCallbackPreflightSummary = struct {
     ready_for_queue_callback: bool,
 };
 
+pub const ProbePreflightSummary = struct {
+    anchor: []const u8,
+    supported_select_count: usize,
+    identity_ready: bool,
+    capability_ready: bool,
+    registration_ready: bool,
+    event_queue_configured: bool,
+    status_queue_configured: bool,
+    event_buffers_ready: bool,
+    device_ready: bool,
+    ready_for_probe_handoff: bool,
+};
+
 pub const VirtioInputLab = struct {
     const Self = @This();
     const ConfigBitmapBitSet = std.StaticBitSet(config_bitmap_bit_capacity);
@@ -481,6 +494,30 @@ pub const VirtioInputLab = struct {
             .device_ready = self.ready,
             .registration_ready = registration_summary.ready_for_registration,
             .ready_for_queue_callback = registration_summary.ready_for_registration and event_buffers_ready and status_queue_configured and self.ready,
+        };
+    }
+
+    pub fn probePreflightSummary(self: *const Self) !ProbePreflightSummary {
+        const snapshot = self.configSnapshot();
+        const registration_summary = try self.registrationPreflightSummary();
+        const queue_summary = try self.queueCallbackPreflightSummary();
+        const event_queue_configured = self.event_descriptor_count != 0;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .supported_select_count = snapshot.supported_selects.len,
+            .identity_ready = registration_summary.identity_ready,
+            .capability_ready = registration_summary.staged_capability_count != 0,
+            .registration_ready = registration_summary.ready_for_registration,
+            .event_queue_configured = event_queue_configured,
+            .status_queue_configured = queue_summary.status_queue_configured,
+            .event_buffers_ready = queue_summary.event_buffers_ready,
+            .device_ready = queue_summary.device_ready,
+            .ready_for_probe_handoff = registration_summary.ready_for_registration and
+                event_queue_configured and
+                queue_summary.status_queue_configured and
+                queue_summary.event_buffers_ready and
+                queue_summary.device_ready,
         };
     }
 
