@@ -196,6 +196,17 @@ pub const RuntimeBitmapSample = struct {
         return null;
     }
 
+    pub fn countSetBitsInRange(self: *const Self, start: u32, len: u32) !u32 {
+        try validateRange(start, len);
+
+        var total: u32 = 0;
+        var bit = start;
+        while (bit < start + len) : (bit += 1) {
+            if (self.isSet(bit)) total += 1;
+        }
+        return total;
+    }
+
     pub fn summary(self: *const Self) RuntimeBitmapSummary {
         const view = bitmap_view.viewFromWords(self.words[0..], bitmap_nbits);
         const bounded = bitmap_view.summarize(view);
@@ -260,6 +271,27 @@ test "runtime bitmap sample exposes ordered set-bit replay for sparse population
         try std.testing.expectEqual(bit, module.nthSetBit(@intCast(index)) orelse return error.ExpectedNthSetBit);
     }
     try std.testing.expectEqual(@as(?u32, null), module.nthSetBit(@intCast(expected.len)));
+}
+
+test "runtime bitmap sample keeps bounded range-count replay explicit" {
+    var module = RuntimeBitmapSample{};
+    try module.initWithSetBits(&.{ 0, 5, bitmap_view.bits_per_long, bitmap_view.bits_per_long + 6, bitmap_view.bits_per_long + 7, bitmap_view.bits_per_long + 8, 123 });
+
+    try std.testing.expectEqual(@as(u32, 2), try module.countSetBitsInRange(0, 8));
+    try std.testing.expectEqual(@as(u32, 0), try module.countSetBitsInRange(8, 1));
+    try std.testing.expectEqual(@as(u32, 4), try module.countSetBitsInRange(bitmap_view.bits_per_long, 9));
+    try std.testing.expectEqual(@as(u32, 3), try module.countSetBitsInRange(bitmap_view.bits_per_long + 6, 3));
+    try std.testing.expectEqual(@as(u32, 0), try module.countSetBitsInRange(RuntimeBitmapSample.bitmap_nbits, 0));
+
+    _ = try module.runSelftest();
+    try std.testing.expectEqual(@as(u32, 4), try module.countSetBitsInRange(bitmap_view.bits_per_long, 9));
+
+    try module.exit();
+    try std.testing.expectEqual(@as(u32, 3), try module.countSetBitsInRange(bitmap_view.bits_per_long + 6, 3));
+    try std.testing.expectError(
+        error.BitRangeOutOfBounds,
+        module.countSetBitsInRange(RuntimeBitmapSample.bitmap_nbits - 1, 2),
+    );
 }
 
 test "runtime bitmap sample keeps parse-and-print replay explicit" {
