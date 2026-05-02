@@ -261,7 +261,7 @@ EXPECTED_BASE64_HELPER = {
         "zigux/tests/fixtures/phase6_base64_c_harness.c",
     ],
     "slice_note": "Documentation/zigux/phase6-base64-slice.md",
-    "external_parity": "python3 scripts/zigux/check-phase6-base64-c-parity",
+    "external_parity": "python3 scripts/zigux/check-phase6-base64-c-parity.py",
 }
 
 EXPECTED_BSEARCH_HELPER = {
