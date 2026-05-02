@@ -128,7 +128,7 @@ test "phase 8 exec-cmd environment wrapper propagates PREFIX, exec path, and PAT
     defer explicit_empty_env.deinit();
 
     var explicit_empty_state = exec_cmd.ExecCmdState{};
-    defer explicit_empty_state.deinit(std.testing.allocator);
+    defer explicit_empty_state.deinit();
 
     try exec_cmd.execCmdInit(&explicit_empty_env, config);
     try exec_cmd.setArgvExecPath(
@@ -449,6 +449,24 @@ test "phase 8 exec-cmd models the pure execl-style argv collector and guard" {
     try std.testing.expectEqualStrings("-a", collected[1].?);
     try std.testing.expectEqualStrings("--stdio", collected[2].?);
     try std.testing.expectEqual(@as(?[]const u8, null), collected[3]);
+
+    var last_valid_tail: [30]?[]const u8 = undefined;
+    for (last_valid_tail[0..29]) |*slot| {
+        slot.* = "x";
+    }
+    last_valid_tail[29] = null;
+
+    const last_valid = try exec_cmd.collectExeclArgs(
+        std.testing.allocator,
+        "record",
+        &last_valid_tail,
+    );
+    defer std.testing.allocator.free(last_valid);
+
+    try std.testing.expectEqual(@as(usize, exec_cmd.max_execl_slots - 1), last_valid.len);
+    try std.testing.expectEqualStrings("record", last_valid[0].?);
+    try std.testing.expectEqualStrings("x", last_valid[exec_cmd.max_execl_slots - 3].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), last_valid[exec_cmd.max_execl_slots - 2]);
 
     var overflowing_tail: [31]?[]const u8 = undefined;
     for (overflowing_tail[0..30]) |*slot| {
