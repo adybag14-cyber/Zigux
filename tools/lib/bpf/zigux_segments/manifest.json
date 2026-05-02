@@ -1,7 +1,7 @@
 {
   "lane_key": "P8-L15",
   "phase": "Phase 8",
-  "surveyed_commit": "f5a4d6990f701937b2a3bb9ae723bb6d0f27ba21",
+  "surveyed_commit": "e8e920a31cc814cee458d865a5f61868efc75be2",
   "anchor": "tools/lib/bpf/libbpf.c",
   "survey_summary": {
     "libbpf_c_lines": 14771,
@@ -87,7 +87,7 @@
         "tools/lib/bpf/libbpf.c:260-324"
       ],
       "zigux_destination": "tools/lib/bpf/zigux_segments/type_names.zig",
-      "why_now": "The exported attach, link, map, and program type name tables are a stable userspace-to-kernel bridge surface that extends the helper-first libbpf entry without pulling in object loading, ELF state, or syscall-backed behavior."
+      "why_now": "The exported attach, link, map, and program type string tables are a stable userspace-to-kernel bridge surface that extends the helper-first libbpf entry without pulling in object loading, ELF state, or syscall-backed behavior."
     },
     {
       "id": "P8-L15-S08",
