@@ -32,6 +32,12 @@ const Manifest = struct {
     surveyed_commit: []const u8,
     anchor: []const u8,
     roadmap_destinations: []const []const u8,
+    freeze_map: []const u8,
+    freeze_boundary_status: []const u8,
+    risky_transport_posture: []const u8,
+    forbidden_transport_claims: []const []const u8,
+    architecture_council_reopen_required: bool,
+    architecture_council_reopen_attached: bool,
     survey_summary: SurveySummary,
     gaps: []const Gap,
 };
@@ -42,7 +48,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_risky_transport");
 }
 
-test "phase10 virtio mmio survey manifest records the landed config-write rung and remaining transport gap" {
+test "phase10 virtio mmio survey manifest records the landed interrupt-ack rung and remaining transport gap" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -87,6 +93,13 @@ test "phase10 virtio mmio survey manifest records the landed config-write rung a
 
     const manifest = parsed.value;
     const closure_manifest = closure_parsed.value;
+    const expected_forbidden_transport_claims = [_][]const u8{
+        "queue_setup_reset_paths",
+        "irq_parity",
+        "dma_paths",
+        "input_registration_lifecycle",
+        "probe_remove_lifecycle",
+    };
     try std.testing.expectEqualStrings("P10-L18", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 10", manifest.phase);
     try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", manifest.anchor);
@@ -95,6 +108,15 @@ test "phase10 virtio mmio survey manifest records the landed config-write rung a
         try std.testing.expect(std.ascii.isHex(ch));
     }
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
+    try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", manifest.freeze_map);
+    try std.testing.expectEqualStrings("aligned", manifest.freeze_boundary_status);
+    try std.testing.expectEqualStrings("blocked_on_risky_transport", manifest.risky_transport_posture);
+    try std.testing.expect(manifest.architecture_council_reopen_required);
+    try std.testing.expect(!manifest.architecture_council_reopen_attached);
+    try std.testing.expectEqual(expected_forbidden_transport_claims.len, manifest.forbidden_transport_claims.len);
+    for (expected_forbidden_transport_claims, 0..) |claim, index| {
+        try std.testing.expectEqualStrings(claim, manifest.forbidden_transport_claims[index]);
+    }
     try std.testing.expect(manifest.survey_summary.virtio_mmio_c_lines >= 800);
     try std.testing.expectEqual(@as(usize, 9), manifest.survey_summary.preexisting_phase10_test_files);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_core_zig_present);
