@@ -14,8 +14,8 @@ This note records the current atomic, barrier, and MMIO boundary for the bounded
 - `PHASE3_BARRIER_STATUS=throwaway-probe-barriers-landed`
 - `PHASE3_BARRIER_BLOB_SHA=309ba685e24c808488bea93131febe9aad615539`
 - `PHASE3_MMIO_PATH=zigux/helpers/mmio.zig`
-- `PHASE3_MMIO_SCOPE=range-read8-read16-read32-read64-write8-write16-write32-write64-plus-scoped-read8-write8-read16-write16-read32-write32-read64-write64`
-- `PHASE3_MMIO_STATUS=scoped-width-specific-mmio-and-64-bit-guard-coverage-landed`
+- `PHASE3_MMIO_SCOPE=range-read8-read16-read32-read64-write8-write16-write32-write64-plus-scoped-read8-write8-read16-write16-read32-write32-read64-write64-plus-policy-read8-write8-read16-write16-read32-write32-read64-write64-and-generic-policy-bridges`
+- `PHASE3_MMIO_STATUS=scoped-width-specific-mmio-and-policy-bridge-landed`
 - `PHASE3_MMIO_BLOB_SHA=48fc0b280fa04415ba06a1e6ecdf35810ecc7dde`
 - `PHASE3_LOW_LEVEL_BUILD_PATH=zigux/tests/phase3_low_level_wrappers_build.zig`
 - `PHASE3_LOW_LEVEL_BUILD_BLOB_SHA=287e2122d6bc46149f60697ed18c569760941965`
@@ -50,8 +50,9 @@ The current tree already carries a real bounded low-level wrapper packet:
 
 - `zigux/helpers/atomic.zig` currently limits the approved helper surface to `load`, `store`, `exchange`, `fetchAdd`, `fetchSub`, `fetchAnd`, `fetchOr`, `fetchXor`, `compareExchange`, and `compareExchangeWeak`, all parameterized by Zig atomic order rather than widening into a broader kernel-style helper family.
 - `zigux/helpers/barrier.zig` currently limits the approved barrier surface to `acquire`, `release`, and `full`, each expressed through a throwaway ordered atomic probe so the helper does not keep hidden shared state.
-- `zigux/helpers/mmio.zig` currently limits the approved MMIO surface to `range`, `read8`, `read16`, `read32`, `read64`, `write8`, `write16`, `write32`, and `write64`, plus the scoped `read8`, `write8`, `read16`, `write16`, `read32`, `write32`, `read64`, and `write64` entry points that keep volatile pointer formation routed back through the declared narrow unsafe layer.
-- `zigux/tests/phase3_low_level_wrappers_build.zig` and `zigux/tests/phase3_low_level_wrappers.zig` keep that packet reviewable on one focused compile-and-test path, and the focused build now also wires the current `interop_policy` dependency that `zigux/helpers/mmio.zig` imports.
+- `zigux/helpers/mmio.zig` currently limits the approved MMIO surface to `range`, `read8`, `read16`, `read32`, `read64`, `write8`, `write16`, `write32`, and `write64`, plus the scoped `read8`, `write8`, `read16`, `write16`, `read32`, `write32`, `read64`, and `write64` entry points, the width-specific `read8Policy`, `write8Policy`, `read16Policy`, `write16Policy`, `read32Policy`, `write32Policy`, `read64Policy`, and `write64Policy` entry points, and the generic `readScopedWithPolicy` plus `writeScopedWithPolicy` bridges that keep decoded-policy MMIO access routed back through the declared narrow unsafe layer.
+- `zigux/tests/phase3_low_level_wrappers_build.zig` and `zigux/tests/phase3_low_level_wrappers.zig` keep the atomic, barrier, and direct-plus-scoped MMIO packet reviewable on one focused compile-and-test path, and the focused build now also wires the current `interop_policy` dependency that `zigux/helpers/mmio.zig` imports.
+- `zigux/tests/phase3_policy_unsafe.zig` and `scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py` keep the decoded-policy MMIO bridge reviewable beside that focused low-level gate, so the policy-aware MMIO surface is explicit without widening the low-level wrapper lane into the broader policy-and-unsafe packet.
 - `zigux/tests/phase3_low_level_wrappers.zig` now keeps the strong and weak compare-exchange replay, barrier probe, denied-scope checks, width-specific direct and scoped 8-bit, 16-bit, 32-bit, and 64-bit MMIO coverage, misalignment failures, overflow failures, and the shared `MmioRange` layout assertion reviewable without having to infer them from the broader `phase3_abi` bundle alone.
 
 This is real roadmap-backed progress.
@@ -59,7 +60,7 @@ It is also still a deliberately narrow packet:
 
 - no relaxed-order barrier variants are shipped in the current packet
 - no broader kernel-style atomic helper family is shipped in the current packet
-- no MMIO family wider than the direct and scoped 8-bit, 16-bit, 32-bit, and 64-bit accessors is shipped in the current packet
+- no MMIO family wider than the direct, scoped, and decoded-policy 8-bit, 16-bit, 32-bit, and 64-bit accessors is shipped in the current packet
 
 ## Ledger Alignment
 
@@ -68,7 +69,7 @@ This low-level wrapper packet still belongs to the same bounded Phase 3 ABI subs
 That means the focused atomic, barrier, and MMIO replay should be read as tighter proof for the original ABI substrate packet rather than as a new standalone tranche.
 
 - the original substrate ledger entry already named `zigux/helpers/atomic.zig`, `zigux/helpers/barrier.zig`, and `zigux/helpers/mmio.zig` as part of the permanent Phase 3 boundary
-- current `master` now also keeps that same packet reviewable through the focused `zigux/tests/phase3_low_level_wrappers.zig` replay path
+- current `master` now keeps the direct and scoped packet reviewable through `zigux/tests/phase3_low_level_wrappers.zig`, while the typed-policy MMIO bridge stays reviewable through `zigux/tests/phase3_policy_unsafe.zig`
 - this dedicated survey note exists to keep the currently approved wrapper set explicit so future Phase 3 work can prefer survey-and-validation honesty before widening the helper family
 
 ## Current Boundary Gap
@@ -80,7 +81,7 @@ The remaining gap for this boundary packet is breadth, not presence:
 
 - the current packet intentionally stops short of relaxed-order or Linux-style expanded barrier helpers
 - the current packet intentionally stops short of a broader kernel-style atomic helper family beyond the currently approved bounded surface
-- the current packet intentionally stops short of wider MMIO families beyond the currently approved direct and scoped 8-bit, 16-bit, 32-bit, and 64-bit helpers
+- the current packet intentionally stops short of wider MMIO families beyond the currently approved direct, scoped, and decoded-policy 8-bit, 16-bit, 32-bit, and 64-bit helpers
 
 That repo reality matches the roadmap's wrapper-first posture.
 It also means this lane should stay survey-and-validation heavy until one concrete roadmap-backed boundary slice needs one more explicit low-level helper.
@@ -91,7 +92,7 @@ The next honest follow-on inside this family is still narrow:
 
 - keep the current atomic, barrier, and MMIO packet stable until one roadmap-backed boundary helper needs another explicit low-level wrapper
 - keep broader kernel-style atomic or barrier families still deferred until that need is real and reviewable
-- keep any MMIO expansion beyond the current direct and scoped 8-bit, 16-bit, 32-bit, and 64-bit helpers deferred until a boundary slice needs it
+- keep any MMIO expansion beyond the current direct, scoped, and decoded-policy 8-bit, 16-bit, 32-bit, and 64-bit helpers deferred until a boundary slice needs it
 - refresh the packet-local `*_BLOB_SHA` markers whenever the directly coupled low-level packet paths are deliberately resurveyed after boundary-local changes
 
 This lane does not justify broad atomic API growth, hidden shared-state barriers, or a wider MMIO family on its own.
