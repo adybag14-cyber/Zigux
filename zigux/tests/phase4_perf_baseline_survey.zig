@@ -84,6 +84,36 @@ fn isLowerHexSha(value: []const u8) bool {
     return true;
 }
 
+fn expectedCorrectnessReplay(surface: []const u8) ?[]const u8 {
+    if (std.mem.eql(u8, surface, "zigux/tests/atomic64_diff.zig")) {
+        return "make -C zigux phase4-runtime-atomic64-diff";
+    }
+    if (std.mem.eql(u8, surface, "zigux/tests/bitmap_diff.zig")) {
+        return "make -C zigux phase4-bitmap-diff";
+    }
+    return null;
+}
+
+fn expectedPendingStatus(posture: []const u8) ?[]const u8 {
+    if (std.mem.eql(u8, posture, "threshold_pending_until_runtime_atomic64_scope_widens")) {
+        return "pending_scope_widening";
+    }
+    if (std.mem.eql(u8, posture, "threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks")) {
+        return "pending_bounded_benchmark";
+    }
+    return null;
+}
+
+fn expectedUnapprovedPlaceholder(posture: []const u8) ?[]const u8 {
+    if (std.mem.eql(u8, posture, "threshold_pending_until_runtime_atomic64_scope_widens")) {
+        return "unapproved_until_runtime_atomic64_scope_widens";
+    }
+    if (std.mem.eql(u8, posture, "threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks")) {
+        return "unapproved_until_bitmap_gate_grows_beyond_bounded_correctness_checks";
+    }
+    return null;
+}
+
 fn gitBlobShaHex(payload: []const u8) [40]u8 {
     var hasher = std.crypto.hash.Sha1.init(.{});
     var header_buf: [64]u8 = undefined;
@@ -167,6 +197,23 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
         manifest.surveyed_gates[1].threshold_posture,
     );
     try std.testing.expectEqual(@as(usize, 2), manifest.pending_threshold_plans.len);
+
+    for (manifest.surveyed_gates, manifest.pending_threshold_plans) |surveyed_gate, pending_plan| {
+        try std.testing.expectEqualStrings(surveyed_gate.surface, pending_plan.surface);
+        try std.testing.expectEqualStrings(surveyed_gate.gate_owner, pending_plan.gate_owner);
+        try std.testing.expectEqualStrings(surveyed_gate.gate_rollback_owner, pending_plan.gate_rollback_owner);
+
+        const expected_replay = expectedCorrectnessReplay(surveyed_gate.surface) orelse unreachable;
+        try std.testing.expectEqualStrings(expected_replay, pending_plan.current_correctness_replay);
+
+        const expected_status = expectedPendingStatus(surveyed_gate.threshold_posture) orelse unreachable;
+        try std.testing.expectEqualStrings(expected_status, pending_plan.status);
+
+        const expected_placeholder = expectedUnapprovedPlaceholder(surveyed_gate.threshold_posture) orelse unreachable;
+        try std.testing.expectEqualStrings(expected_placeholder, pending_plan.benchmark_command);
+        try std.testing.expectEqualStrings(expected_placeholder, pending_plan.acceptable_limit);
+    }
+
     try std.testing.expectEqualStrings(
         "zigux/tests/atomic64_diff.zig",
         manifest.pending_threshold_plans[0].surface,
