@@ -17,7 +17,10 @@ REQUIRED_FILES = [
     "Documentation/zigux/freeze-map.md",
     "Documentation/zigux/phase10-virtio-core-slice.md",
     "Documentation/zigux/phase10-virtio-core-survey.md",
+    "Documentation/zigux/phase10-virtio-ring-slice.md",
     "Documentation/zigux/phase10-virtio-ring-survey.md",
+    "Documentation/zigux/phase10-virtio-input-slice.md",
+    "Documentation/zigux/phase10-virtio-input-module-slice.md",
     "Documentation/zigux/phase10-virtio-input-survey.md",
     "Documentation/zigux/phase10-virtio-mmio-slice.md",
     "Documentation/zigux/phase10-virtio-mmio-survey.md",
@@ -28,6 +31,8 @@ REQUIRED_FILES = [
     "zigux/tests/phase10_build.zig",
     "zigux/tests/phase10_closure_manifest.json",
     "zigux/tests/phase10_virtio_core_manifest.json",
+    "zigux/tests/phase10_virtio_ring_manifest.json",
+    "zigux/tests/phase10_virtio_input_manifest.json",
     "zigux/tests/phase10_virtio_core_survey.zig",
     "zigux/tests/phase10_virtio_ring_survey.zig",
     "zigux/tests/phase10_virtio_input_survey.zig",
@@ -608,6 +613,51 @@ def run_self_test() -> int:
         )
         write_fixture(fixture_root)
 
+        ring_slice_path = fixture_root / "Documentation/zigux/phase10-virtio-ring-slice.md"
+        ring_slice_path.unlink()
+        expect_missing_file(
+            "ring_slice_required_file",
+            fixture_root,
+            "Documentation/zigux/phase10-virtio-ring-slice.md",
+        )
+        write_fixture(fixture_root)
+
+        input_slice_path = fixture_root / "Documentation/zigux/phase10-virtio-input-slice.md"
+        input_slice_path.unlink()
+        expect_missing_file(
+            "input_slice_required_file",
+            fixture_root,
+            "Documentation/zigux/phase10-virtio-input-slice.md",
+        )
+        write_fixture(fixture_root)
+
+        input_module_slice_path = fixture_root / "Documentation/zigux/phase10-virtio-input-module-slice.md"
+        input_module_slice_path.unlink()
+        expect_missing_file(
+            "input_module_slice_required_file",
+            fixture_root,
+            "Documentation/zigux/phase10-virtio-input-module-slice.md",
+        )
+        write_fixture(fixture_root)
+
+        ring_manifest_path = fixture_root / "zigux/tests/phase10_virtio_ring_manifest.json"
+        ring_manifest_path.unlink()
+        expect_missing_file(
+            "ring_manifest_required_file",
+            fixture_root,
+            "zigux/tests/phase10_virtio_ring_manifest.json",
+        )
+        write_fixture(fixture_root)
+
+        input_manifest_path = fixture_root / "zigux/tests/phase10_virtio_input_manifest.json"
+        input_manifest_path.unlink()
+        expect_missing_file(
+            "input_manifest_required_file",
+            fixture_root,
+            "zigux/tests/phase10_virtio_input_manifest.json",
+        )
+        write_fixture(fixture_root)
+
         input_path = fixture_root / "zigux/tests/phase10_virtio_input_survey.zig"
         original_input = input_path.read_text(encoding="utf-8")
         input_path.write_text(
@@ -797,7 +847,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=18")
+    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=23")
     return 0
 
 
