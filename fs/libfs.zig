@@ -3,6 +3,8 @@ const std = @import("std");
 pub const page_size: u32 = 4096;
 pub const name_max: u32 = 255;
 pub const simple_transaction_limit: usize = page_size;
+pub const dir_offset_first: i64 = 2;
+pub const dir_offset_eod: i64 = std.math.maxInt(i32);
 
 pub const ModuleDescriptor = struct {
     name: []const u8,
@@ -11,12 +13,14 @@ pub const ModuleDescriptor = struct {
     provides_lookup_policy: bool,
     provides_buffer_copy_helpers: bool,
     provides_offset_seek_helpers: bool,
+    provides_offset_readdir_planning: bool,
     provides_directory_emit_planning: bool,
     provides_directory_cursor_preconditions: bool,
     provides_directory_cursor_reposition_planning: bool,
     provides_directory_close_planning: bool,
     provides_transaction_buffer_planning: bool,
     provides_transaction_read_release_planning: bool,
+    provides_open_private_data_planning: bool,
     touches_live_dcache: bool,
     touches_live_inode_state: bool,
 };
@@ -92,6 +96,22 @@ pub const DirectoryEmitPlan = struct {
     emitted_any_entries: bool,
     stays_in_dots_window: bool,
     should_stop: bool,
+};
+
+pub const OffsetReaddirMode = enum {
+    blocked_on_emit_dots,
+    ready_to_iterate,
+    ready_at_end_of_directory,
+};
+
+pub const OffsetReaddirPlan = struct {
+    anchor: []const u8,
+    mode: OffsetReaddirMode,
+    returns_zero: bool,
+    requires_dir_emit_dots: bool,
+    enters_offset_iteration: bool,
+    keeps_current_pos: bool,
+    treats_eod_as_terminal: bool,
 };
 
 pub const CursorOpenMode = enum {
@@ -193,6 +213,18 @@ pub const TransactionReleasePlan = struct {
     had_private_data: bool,
 };
 
+pub const SimpleOpenPrivateDataSource = enum {
+    unchanged,
+    inode_private,
+};
+
+pub const SimpleOpenPlan = struct {
+    anchor: []const u8,
+    private_data_source: SimpleOpenPrivateDataSource,
+    returns_zero: bool,
+    stores_inode_private_data: bool,
+};
+
 pub const LibFsHelperLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -202,12 +234,14 @@ pub const LibFsHelperLab = struct {
             .provides_lookup_policy = true,
             .provides_buffer_copy_helpers = true,
             .provides_offset_seek_helpers = true,
+            .provides_offset_readdir_planning = true,
             .provides_directory_emit_planning = true,
             .provides_directory_cursor_preconditions = true,
             .provides_directory_cursor_reposition_planning = true,
             .provides_directory_close_planning = true,
             .provides_transaction_buffer_planning = true,
             .provides_transaction_read_release_planning = true,
+            .provides_open_private_data_planning = true,
             .touches_live_dcache = false,
             .touches_live_inode_state = false,
         };
@@ -371,6 +405,35 @@ pub const LibFsHelperLab = struct {
             .changed = target != current_pos,
             .requires_positive_scan = false,
             .stays_in_dots_window = target <= 2,
+        };
+    }
+
+    pub fn offsetReaddirPlan(current_pos: i64, emit_dots_result: bool) !OffsetReaddirPlan {
+        if (current_pos < 0) {
+            return error.InvalidOffset;
+        }
+
+        if (!emit_dots_result) {
+            return .{
+                .anchor = descriptor().anchor,
+                .mode = .blocked_on_emit_dots,
+                .returns_zero = true,
+                .requires_dir_emit_dots = true,
+                .enters_offset_iteration = false,
+                .keeps_current_pos = true,
+                .treats_eod_as_terminal = false,
+            };
+        }
+
+        const at_end_of_directory = current_pos == dir_offset_eod;
+        return .{
+            .anchor = descriptor().anchor,
+            .mode = if (at_end_of_directory) .ready_at_end_of_directory else .ready_to_iterate,
+            .returns_zero = true,
+            .requires_dir_emit_dots = true,
+            .enters_offset_iteration = !at_end_of_directory,
+            .keeps_current_pos = at_end_of_directory,
+            .treats_eod_as_terminal = at_end_of_directory,
         };
     }
 
@@ -582,6 +645,15 @@ pub const LibFsHelperLab = struct {
             .returns_zero = true,
             .frees_private_data = has_private_data,
             .had_private_data = has_private_data,
+        };
+    }
+
+    pub fn simpleOpenPlan(inode_has_private_data: bool) SimpleOpenPlan {
+        return .{
+            .anchor = descriptor().anchor,
+            .private_data_source = if (inode_has_private_data) .inode_private else .unchanged,
+            .returns_zero = true,
+            .stores_inode_private_data = inode_has_private_data,
         };
     }
 };
