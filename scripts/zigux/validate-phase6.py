@@ -472,7 +472,7 @@ def run_self_test() -> int:
 
             build_self_test_tree(root)
             docs_root = root / "Documentation/zigux/README.md"
-            docs_root.writeText(docs_root.read_text(encoding="utf-8").replace(DOCS_ROOT_MARKERS[0], "", 1), encoding="utf-8")
+            docs_root.write_text(docs_root.read_text(encoding="utf-8").replace(DOCS_ROOT_MARKERS[0], "", 1), encoding="utf-8")
             if f"docs_root:missing:{DOCS_ROOT_MARKERS[0]}" not in validate_phase6(root)["missing"]:
                 raise AssertionError("missing docs root marker failure")
 
