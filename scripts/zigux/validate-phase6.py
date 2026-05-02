@@ -417,7 +417,7 @@ HEXDUMP_SLICE_MARKERS = [
 
 CATALOG_MARKERS = [
     "- verified head: `",
-    "PHASE6_BASE64_C_PARITY_CASES=106",
+    "PHASE6_BASE64_C_PARITY_CASES=112",
     "PHASE6_BSEARCH_C_PARITY_CASES=29",
     "shared portability coverage: `zigux/tests/phase6_bsearch.zig` now exercises both typed and raw runtime-selected comparator pointers across native and C ABI paths",
     "max_slowdown_pct = 150",
@@ -433,9 +433,11 @@ EXPECTED_BASE64_DETERMINISM = {
     "variant_encode_vectors": 24,
     "standard_decode_vectors": 22,
     "variant_decode_vectors": 16,
-    "invalid_decode_vectors": 22,
+    "invalid_decode_vectors": 28,
+    "perf_payload_cases": 2,
+    "perf_replay_cases": 10,
     "c_parity_self_test_cases": 8,
-    "c_parity_cases": 106,
+    "c_parity_cases": 112,
 }
 
 EXPECTED_BSEARCH_DETERMINISM = {
