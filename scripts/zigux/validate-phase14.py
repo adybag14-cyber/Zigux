@@ -79,6 +79,7 @@ SCRIPT_README_MARKERS = [
     "bounded concurrency-audit scope",
     "`make -C zigux phase14-validate PYTHON=python3 ZIG=<attached-zig-path>`",
     "`make -C zigux phase14-smoke ZIG=<attached-zig-path>`",
+    "`make -C zigux phase14-test ZIG=<attached-zig-path>`",
     "`make -C zigux phase14 ZIG=<attached-zig-path>`",
     "when `zig` is not on `PATH`",
 ]
@@ -357,6 +358,10 @@ for command in attached_toolchain_commands:
             missing.append(f"survey:attached_toolchain_command:{command}")
         if command not in scripts_readme_text:
             missing.append(f"scripts_readme:attached_toolchain_command:{command}")
+
+if "`make -C zigux phase14-test ZIG=<attached-zig-path>`" in survey_note:
+    if "`make -C zigux phase14-test ZIG=<attached-zig-path>`" not in scripts_readme_text:
+        missing.append("scripts_readme:phase14_test_attached_toolchain_command")
 
 for index, shard in enumerate(compile_shards):
     if not isinstance(shard, dict):
