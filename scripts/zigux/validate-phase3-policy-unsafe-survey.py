@@ -592,6 +592,12 @@ def run_self_test() -> int:
         _replace_blob_markers_with_head(root, survey_path)
         assert validate(root) == []
 
+        missing_repo_path = root / POLICY_UNSAFE_BUILD_REL
+        missing_repo_path.unlink()
+        issues = validate(root)
+        assert f"missing_repo_path:{POLICY_UNSAFE_BUILD_REL}" in issues
+        _write(root, POLICY_UNSAFE_BUILD_REL, "// build file present\n")
+
         current_survey = survey_path.read_text(encoding="utf-8")
         layout_assert_blob = _marker_value_from_text(current_survey, "PHASE3_LAYOUT_ASSERT_BLOB_SHA")
         assert layout_assert_blob is not None
