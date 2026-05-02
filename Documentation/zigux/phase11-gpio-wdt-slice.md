@@ -20,4 +20,6 @@ The starter stays intentionally narrow:
 
 This slice does not claim platform-driver registration, GPIO descriptor lookup, watchdog-core registration, reboot integration, module parameter wiring beyond summary bookkeeping, or live hardware validation yet.
 
+The archived manifest identity for this landed packet remains `P11-L04` for traceability, even though later scheduled continuity revisited the same teardown-facing review packet under `P11-L03` and the same wording-only validation cleanup under `P11-L05` without reopening descriptor-backed preflight or live registration work.
+
 The next honest bounded step inside the same Phase 11 lane is to leave the starter parked unless fresh repo inspection finds another comparably small simple-driver, teardown, or failure-mode drift inside `gpio_wdt`. Keep descriptor-backed preflight, reboot glue, and broader watchdog registration work blocked from this slice.
