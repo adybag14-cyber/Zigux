@@ -22,6 +22,7 @@ REQUIRED_MAKEFILE_SNIPPETS = (
     "scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",
     "scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test",
+    "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
 )
 
 REQUIRED_WORKFLOW_SNIPPETS = (
@@ -45,6 +46,8 @@ REQUIRED_WORKFLOW_SNIPPETS = (
     "run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",
     "name: Self-test Phase 3 policy and unsafe boundary survey checker",
     "run: python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test",
+    "name: Run Phase 3 export/UAPI layout tests",
+    "run: zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
 )
 
 
@@ -98,6 +101,8 @@ def run_self_test() -> int:
             not in (
                 "name: Self-test Phase 3 low-level wrapper boundary survey checker",
                 "run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",
+                "name: Run Phase 3 export/UAPI layout tests",
+                "run: zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
             )
         )
         _write(root, WORKFLOW_REL, "\n".join(reduced_workflow) + "\n")
@@ -108,6 +113,11 @@ def run_self_test() -> int:
         )
         assert (
             "missing_workflow_snippet:run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test"
+            in issues
+        )
+        assert "missing_workflow_snippet:name: Run Phase 3 export/UAPI layout tests" in issues
+        assert (
+            "missing_workflow_snippet:run: zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"
             in issues
         )
         assert (
@@ -124,6 +134,7 @@ def run_self_test() -> int:
                 "scripts/zigux/validate-phase3.py --slug abi --check-build-smoke --zig $(ZIG)",
                 "scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
                 "scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",
+                "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
             )
         )
         _write(root, MAKEFILE_REL, "\n".join(reduced_makefile) + "\n")
@@ -138,6 +149,10 @@ def run_self_test() -> int:
         )
         assert (
             "missing_makefile_snippet:scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test"
+            in issues
+        )
+        assert (
+            "missing_makefile_snippet:zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"
             in issues
         )
 
