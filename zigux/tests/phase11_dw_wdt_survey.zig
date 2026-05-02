@@ -312,7 +312,7 @@ test "phase11 dw_wdt survey manifest and validation matrix record the landed lif
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-dw-wdt-platform-and-pm")) {
-            sawPlatform_blocker = true;
+            saw_platform_blocker = true;
             try std.testing.expectEqualStrings("zigux/tests/phase11_dw_wdt.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("blocked_on_driver_scaffold", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "Platform-driver registration") != null);
