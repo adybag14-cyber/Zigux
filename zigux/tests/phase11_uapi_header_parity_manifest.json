@@ -57,7 +57,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_uapi_header_parity_survey.zig",
-      "why_now": "The shared header-parity gate now replays the hvc_console.zig header snapshot directly so the mirrored console-limit constants, exported hvc helper surface, default notifier_*_irq() helper exports, and hv_ops callback booleans remain machine-checked instead of living only in prose."
+      "why_now": "The shared header-parity gate now replays the hvc_console.zig header snapshot directly, and it also checks that the dedicated hvc archival survey still carries the struct winsize layout, struct hv_ops layout, and bounded hv_ops callback-signature proofs, so the mirrored console-limit constants, exported hvc helper surface, default notifier_*_irq() helper exports, and hv_ops callback booleans remain machine-checked instead of living only in prose."
     },
     {
       "id": "phase11-dw-wdt-watchdog-info-layout-assert",
