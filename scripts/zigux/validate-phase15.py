@@ -31,6 +31,7 @@ FILES = [
     "zigux/tests/phase15_readiness_gate.zig",
     "zigux/tests/phase15_handoff_next_steps_manifest.json",
     "zigux/tests/phase15_handoff_next_steps.zig",
+    "zigux/tests/phase15_docs_root_reviewability.zig",
 ]
 
 MAKE_MARKERS = [
@@ -69,6 +70,7 @@ HANDOFF_MARKERS = [
     "## Pending Next Steps",
     "## Maintenance Handoff Contract",
     "shared replay surface is green again",
+    "zigux/tests/phase15_docs_root_reviewability.zig",
     "phase15-docs-root-summary-drift-blocker",
     "phase15-deep-core-status-change-blocker",
     "make -C zigux phase15",
@@ -82,6 +84,7 @@ BUILD_MARKERS = [
     "phase15-indefinite-c-policy-tests",
     "phase15-readiness-gate-tests",
     "phase15-handoff-next-steps-tests",
+    "phase15-docs-root-reviewability-tests",
 ]
 
 HANDOFF_TEST_MARKERS = [
@@ -89,6 +92,15 @@ HANDOFF_TEST_MARKERS = [
     'phase15-docs-root-summary-drift-blocker',
     'phase15-deep-core-status-change-blocker',
     'make -C zigux phase15',
+    'zigux/tests/phase15_docs_root_reviewability.zig',
+]
+
+DOCS_ROOT_REVIEWABILITY_MARKERS = [
+    "Documentation/zigux/phase15-readiness-gate-survey.md",
+    "Documentation/zigux/phase15-handoff-next-steps-survey.md",
+    "remaining broader replay drift on current `master`",
+    "The broader shared replay is green on current `master`",
+    "phase15-docs-root-summary-drift-blocker",
 ]
 
 REVIEW_PROCESS_MARKERS = [
@@ -215,6 +227,7 @@ require_markers("readme", text("Documentation/zigux/README.md"), README_MARKERS)
 require_markers("survey", text("Documentation/zigux/phase15-readiness-gate-survey.md"), SURVEY_MARKERS)
 require_markers("handoff", text("Documentation/zigux/phase15-handoff-next-steps-survey.md"), HANDOFF_MARKERS)
 require_markers("handoff_test", text("zigux/tests/phase15_handoff_next_steps.zig"), HANDOFF_TEST_MARKERS)
+require_markers("docs_root_reviewability", text("zigux/tests/phase15_docs_root_reviewability.zig"), DOCS_ROOT_REVIEWABILITY_MARKERS)
 require_markers("build", text("zigux/tests/phase15_build.zig"), BUILD_MARKERS)
 require_markers(
     "review_process",
@@ -564,6 +577,7 @@ else:
             "phase15_make_target_present",
             "shared_ci_phase15_present",
             "docs_index_handoff_pointer_present",
+            "docs_root_reviewability_guard_present",
             "phase15_replay_green_on_current_master",
         ],
     )
@@ -647,7 +661,7 @@ print("PHASE15_VALIDATION=pass")
 print(f"PHASE15_REQUIRED_FILE_COUNT={len(FILES)}")
 print(
     "PHASE15_REQUIRED_MARKER_COUNT="
-    f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(README_MARKERS) + len(SURVEY_MARKERS) + len(HANDOFF_MARKERS) + len(HANDOFF_TEST_MARKERS) + len(BUILD_MARKERS)}"
+    f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(README_MARKERS) + len(SURVEY_MARKERS) + len(HANDOFF_MARKERS) + len(HANDOFF_TEST_MARKERS) + len(DOCS_ROOT_REVIEWABILITY_MARKERS) + len(BUILD_MARKERS)}"
 )
 print(
     "PHASE15_REMAINING_BLOCKERS="
