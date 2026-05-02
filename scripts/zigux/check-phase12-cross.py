@@ -14,6 +14,19 @@ BUILD_FILE = ROOT / "zigux" / "tests" / "phase12_cross_build.zig"
 EXPECTED_PHASE = "Phase 12"
 EXPECTED_LANE_KEY = "P12-L02"
 EXPECTED_BUILD_STEP = "cross"
+EXPECTED_BUILD_MARKERS = [
+    ("virtio_net_syntax_lab_module", 'b.path("phase12_virtio_net_syntax_lab.zig")'),
+    ("virtio_scsi_syntax_lab_module", 'b.path("phase12_virtio_scsi_syntax_lab.zig")'),
+    ("raw_github_coverage_module", 'b.path("phase12_raw_github_coverage_survey.zig")'),
+    ("virtio_net_syntax_lab_import", 'phase12_virtio_net_syntax_lab_module.addImport("virtio_net", virtio_net_module);'),
+    ("virtio_scsi_syntax_lab_import", 'phase12_virtio_scsi_syntax_lab_module.addImport("virtio_scsi", virtio_scsi_module);'),
+    ("virtio_net_syntax_lab_test", '.name = "phase12-cross-virtio-net-syntax-lab-tests"'),
+    ("virtio_scsi_syntax_lab_test", '.name = "phase12-cross-virtio-scsi-syntax-lab-tests"'),
+    ("raw_github_coverage_test", '.name = "phase12-cross-raw-github-coverage-survey-tests"'),
+    ("virtio_net_syntax_lab_step", "cross_step.dependOn(&phase12_virtio_net_syntax_lab_tests.step);"),
+    ("virtio_scsi_syntax_lab_step", "cross_step.dependOn(&phase12_virtio_scsi_syntax_lab_tests.step);"),
+    ("raw_github_coverage_step", "cross_step.dependOn(&phase12_raw_github_coverage_survey_tests.step);"),
+]
 
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
@@ -36,6 +49,12 @@ def load_json_object(path: Path) -> dict[str, object]:
     return data
 
 
+def validate_build_text(build_text: str) -> None:
+    for label, marker in EXPECTED_BUILD_MARKERS:
+        if marker not in build_text:
+            raise SystemExit(f"phase12-cross:build_marker:{label}")
+
+
 def validate_fixture(doc: dict[str, object]) -> list[str]:
     if doc.get("phase") != EXPECTED_PHASE:
         raise SystemExit("phase12-cross:fixture_phase")
@@ -47,6 +66,8 @@ def validate_fixture(doc: dict[str, object]) -> list[str]:
         raise SystemExit("phase12-cross:fixture_build_step")
     if not BUILD_FILE.exists():
         raise SystemExit("phase12-cross:build_file_missing")
+
+    validate_build_text(BUILD_FILE.read_text(encoding="utf-8"))
 
     targets = doc.get("targets")
     if not isinstance(targets, list) or not targets:
@@ -107,6 +128,7 @@ def expect_system_exit(label: str, callback, expected_message: str) -> None:
 def run_self_test() -> int:
     doc = load_json_object(FIXTURE)
     allowed_targets = validate_fixture(doc)
+    build_text = BUILD_FILE.read_text(encoding="utf-8")
 
     if resolve_targets(None, allowed_targets) != allowed_targets:
         raise SystemExit("phase12-cross:self-test:default_target_selection")
@@ -175,8 +197,30 @@ def run_self_test() -> int:
         f"phase12-cross:duplicate_manifest_target:{allowed_targets[0]}",
     )
 
+    missing_net_syntax_lab = build_text.replace(
+        'b.path("phase12_virtio_net_syntax_lab.zig")',
+        'b.path("phase12_virtio_net_syntax_lab_missing.zig")',
+        1,
+    )
+    expect_system_exit(
+        "build_marker_net_syntax_lab",
+        lambda: validate_build_text(missing_net_syntax_lab),
+        "phase12-cross:build_marker:virtio_net_syntax_lab_module",
+    )
+
+    missing_raw_github_step = build_text.replace(
+        "cross_step.dependOn(&phase12_raw_github_coverage_survey_tests.step);",
+        "cross_step.dependOn(&phase12_libbpf_segments_tests.step);",
+        1,
+    )
+    expect_system_exit(
+        "build_marker_raw_github_step",
+        lambda: validate_build_text(missing_raw_github_step),
+        "phase12-cross:build_marker:raw_github_coverage_step",
+    )
+
     print("PHASE12_CROSS_SELF_TEST=pass")
-    print("PHASE12_CROSS_SELF_TEST_CASE_COUNT=10")
+    print("PHASE12_CROSS_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
