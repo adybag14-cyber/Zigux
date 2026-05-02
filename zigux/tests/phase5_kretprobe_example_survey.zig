@@ -310,6 +310,7 @@ test "phase 5 kretprobe contributor docs stay aligned with the shipped review su
     try expectContains(sample_root_readme, "phase5_kretprobe_example_manifest.json");
     try expectContains(sample_root_readme, "phase5_kretprobe_example_survey.zig");
     try expectContains(sample_root_readme, "phase5-kretprobe-sample-survey.md");
+    try expectContains(sample_root_readme, "approved Phase 5 non-runtime probe-lifecycle idiom");
     try expectContains(sample_root_readme, "maxactive = 20");
     try expectContains(sample_root_readme, "Phase 9 starter claim");
 
