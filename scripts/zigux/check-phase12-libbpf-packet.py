@@ -773,6 +773,32 @@ def run_self_test() -> int:
         build_self_test_tree(root)
         manifest_path = root / TRACKED_PATHS[0]
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["rollback_contract"]["reversible_delivery_evidence"] = [
+            evidence
+            for evidence in manifest["rollback_contract"]["reversible_delivery_evidence"]
+            if evidence != "zigux/tests/phase12_libbpf_reviewability.zig"
+        ]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        missing = check_packet(root)
+        if "manifest:rollback_contract:reversible_delivery_evidence" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:rollback_reversible_delivery_detection")
+
+        build_self_test_tree(root)
+        manifest_path = root / TRACKED_PATHS[0]
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["rollback_contract"]["rollback_drill"] = [
+            step
+            for step in manifest["rollback_contract"]["rollback_drill"]
+            if step != "python3 scripts/zigux/check-phase12-libbpf-packet.py"
+        ]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        missing = check_packet(root)
+        if "manifest:rollback_contract:rollback_drill" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:rollback_drill_detection")
+
+        build_self_test_tree(root)
+        manifest_path = root / TRACKED_PATHS[0]
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["roadmap_destinations"] = [
             "Documentation/zigux/",
             "zigux/tests/",
@@ -903,7 +929,7 @@ def run_self_test() -> int:
             raise SystemExit("phase12-libbpf-packet:self-test:legacy_surveyed_commit_hex_detection")
 
         print("PHASE12_LIBBPF_PACKET_SELF_TEST=pass")
-        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=35")
+        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=37")
     return 0
 
 
