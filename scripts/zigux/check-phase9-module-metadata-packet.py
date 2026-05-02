@@ -693,9 +693,40 @@ def run_self_test() -> int:
             tmp_root,
             "tests_readme:keep the dedicated Phase 9 module-metadata packet explicit beside the loader-gap packet",
         )
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
+
+        tests_readme_path.write_text(
+            original_tests_readme.replace(
+                "`Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md`",
+                "`Documentation/zigux/phase9-module-metadata-survey.md`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "tests_readme_survey_note_path",
+            tmp_root,
+            "tests_readme:`Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md`",
+        )
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
+
+        tests_readme_path.write_text(
+            original_tests_readme.replace(
+                "absent depmod-facing metadata without implying `.modinfo`, `MODULE_ALIAS()`, or `scripts/depmod.sh` parity",
+                "absent depmod-facing metadata without implying loadable-module parity",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "tests_readme_depmod_parity_warning",
+            tmp_root,
+            "tests_readme:absent depmod-facing metadata without implying `.modinfo`, `MODULE_ALIAS()`, or `scripts/depmod.sh` parity",
+        )
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
     print("PHASE9_MODULE_METADATA_PACKET_SELF_TEST=pass")
-    print("PHASE9_MODULE_METADATA_PACKET_SELF_TEST_CASE_COUNT=9")
+    print("PHASE9_MODULE_METADATA_PACKET_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
