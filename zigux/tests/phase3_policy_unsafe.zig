@@ -4,6 +4,7 @@ const panic_policy = @import("panic_policy");
 const allocator_policy = @import("allocator_policy");
 const interop_policy = @import("interop_policy");
 const layout_assert = @import("layout_assert");
+const mmio = @import("mmio");
 const narrow = @import("narrow_unsafe");
 
 test "phase3 policy helpers stay ABI aligned" {
@@ -152,6 +153,30 @@ test "phase3 policy init helper round trips through decode without widening scop
     try std.testing.expectEqual(decoded.allocator_mode, round_trip.allocator_mode);
     try std.testing.expectEqual(decoded.unsafe_scope, round_trip.unsafe_scope);
     try std.testing.expectEqual(@as(u8, @intFromEnum(abi.UnsafeScope.none)), encoded.unsafe_scope);
+}
+
+test "phase3 policy gate reaches a second boundary helper through decoded policy" {
+    var regs32 = [_]u32{ 0, 0 };
+    const base32 = narrow.addressOf(&regs32[0]);
+
+    const mmio_policy = try interop_policy.decode(.{
+        .panic_mode = @intFromEnum(abi.PanicMode.abort),
+        .allocator_mode = @intFromEnum(abi.AllocatorMode.kernel_heap),
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.volatile_mmio),
+        .reserved = 0,
+    });
+    const raw_pointer_policy = try interop_policy.decode(.{
+        .panic_mode = @intFromEnum(abi.PanicMode.warn),
+        .allocator_mode = @intFromEnum(abi.AllocatorMode.arena),
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.raw_pointer_bridge),
+        .reserved = 0,
+    });
+
+    try mmio.write32Policy(mmio_policy, base32, @sizeOf(u32), 0xdecafbad);
+    try std.testing.expectEqual(@as(u32, 0xdecafbad), regs32[1]);
+    try std.testing.expectEqual(@as(u32, 0xdecafbad), try mmio.read32Policy(mmio_policy, base32, @sizeOf(u32)));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.write32Policy(raw_pointer_policy, base32, 0, 1));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.read32Policy(raw_pointer_policy, base32, 0));
 }
 
 test "phase3 narrow unsafe helpers stay explicit" {
