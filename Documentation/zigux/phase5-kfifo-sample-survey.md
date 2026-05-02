@@ -38,6 +38,7 @@ Fresh repo inspection now shows that `samples/zigux/` carries all four roadmap-a
 - `runtime_kretprobe.zig`
 - `runtime_kretprobe_loader.zig`
 - `runtime_trace_events.zig`
+- `runtime_trace_events_loader.zig`
 
 The `kfifo`-specific gap is no longer missing sample delivery. The remaining work in this lane is to keep the approved idiom, exact checks, and non-goals honest now that the full Phase 5 anchor set is landed, especially where later Phase 9 runtime pilots exist under neighboring Linux sample families.
 The shared sample-root catalog in `samples/zigux/README.md`, the shared tests-root guide in `zigux/tests/README.md`, and the shared prompts in `Documentation/zigux/review-checklist.md` are part of that contributor-facing boundary now, because they are the shortest places to keep the landed bytestream FIFO idiom visibly separate from the later runtime starters while pointing reviewers back to the direct `zig test samples/zigux/bytestream_fifo.zig` replay, the paired `zig test zigux/tests/phase5_bytestream_fifo_survey.zig` replay, and the exact shipped review packet.
