@@ -115,10 +115,10 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
     try expectContains(phase7_cmdline_slice, "The committed C parity replay through `scripts/zigux/check-phase7-cmdline-parity.py` stays coupled to that validation substrate so the helper-only slice remains externally reviewable.");
     try expectContains(phase7_cmdline_slice, "`python3 scripts/zigux/validate-phase7.py --self-test`");
     try expectContains(phase7_cmdline_slice, "`make -C zigux phase7-validate`");
-    try expectContains(phase7_cmdline_slice, "prove the shared Phase 7 validator packet still fails closed before the helper replay runs");
+    try expectContains(phase7_cmdline_slice, "prove the shared Phase 7 validator packet plus the build-inventory and make-wrapper gates still fail closed before the helper replay runs");
     try expectContains(phase7_cmdline_slice, "zig build test --build-file zigux/tests/phase7_build.zig --summary all");
     try expectContains(phase7_cmdline_slice, "runtime-safe leaf helpers");
-    try expectContains(phase7_cmdline_slice, "integration with validation substrate through `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, and `zigux/tests/phase7_build.zig`.");
+    try expectContains(phase7_cmdline_slice, "integration with validation substrate through `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-build-inventory.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, and `zigux/tests/phase7_build.zig`.");
     try expectContains(phase7_cmdline_slice, "helper-local test runs cannot import that fixture from outside the helper module path");
     try expectContains(phase7_cmdline_slice, "`zig test lib/cmdline.zig` keeps a mirrored `next_arg()` edge corpus beside `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig` because helper-local test runs cannot import that fixture from outside the helper module path; keep both packets aligned when those serialized cases change");
     try expectContains(phase7_cmdline_slice, "malformed token classification and malformed range counting ported from the in-tree `lib/tests/cmdline_kunit.c` corpus");
