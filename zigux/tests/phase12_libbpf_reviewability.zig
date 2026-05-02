@@ -356,6 +356,7 @@ test "phase12 libbpf reviewability gate still compiles the landed helper foundat
     var fdinfo_path_buffer: [32]u8 = undefined;
     var path_buffer: [64]u8 = undefined;
     var error_buffer: [64]u8 = undefined;
+    // phase12 libbpf reviewability gate still compiles the landed perf_buffer_poll helper
     const perf_buffers = [_]perf_buffer_poll.BufferObservation{
         .{ .ready = true },
         .{ .error_code = -22 },
