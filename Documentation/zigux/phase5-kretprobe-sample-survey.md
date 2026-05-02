@@ -7,7 +7,7 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 - `PHASE5_STATUS=active`
 - `PHASE5_LANE_KEY=P5-L22`
 - `PHASE5_SLICE=kretprobe-reference-sample-starter`
-- `PHASE5_SURVEYED_COMMIT=d935d20c16156bc5defdb915f44d670d0a505a17`
+- `PHASE5_SURVEYED_COMMIT=a15760c3e46103fd41ae0da852b61f612e9116c6`
 - scope: roadmap-vs-repo sample reviewability, approved probe-lifecycle guidance, and exact bounded checks for the landed `samples/zigux/` kretprobe-style replay
 - product boundary:
   - `Documentation/zigux/phase5-kretprobe-sample-survey.md`
@@ -67,7 +67,7 @@ The exact checks currently recorded in `zigux/tests/phase5_kretprobe_example_man
 
 ## Latest verification snapshot
 
-- inspected `master` head: `d935d20c16156bc5defdb915f44d670d0a505a17`
+- inspected `master` head: `a15760c3e46103fd41ae0da852b61f612e9116c6`
 - attached Zig toolchain: `0.17.0-dev.87+9b177a7d2`
 - exact commands and observed results:
   - `zig test samples/zigux/kretprobe_example.zig`
@@ -102,7 +102,7 @@ The current gap is no longer "Zigux has no kretprobe sample guidance." The more 
 
 - the repo now has a reviewable Phase 5 `kretprobe_example` sample plus manifest-backed checks for symbol choice, pre-init retargeting, skip behavior, private-data shape, timestamp-order rejection and recovery, return timing, helper-backed fixed `maxactive`, summary recording, and teardown
 - this sample must remain visibly separate from the later Phase 9 runtime `kretprobe` starter so contributors do not over-claim runtime substrate coverage
-- this approved probe-lifecycle idiom is now pinned to `PHASE5_SURVEYED_COMMIT=d935d20c16156bc5defdb915f44d670d0a505a17` so the survey note, manifest-backed checks, shared sample-root catalog, shared tests-root guide, and shared review checklist all point at the same inspected `master` head
+- this approved probe-lifecycle idiom is now pinned to `PHASE5_SURVEYED_COMMIT=a15760c3e46103fd41ae0da852b61f612e9116c6` so the survey note, manifest-backed checks, shared sample-root catalog, shared tests-root guide, and shared review checklist all point at the same inspected `master` head
 - the Phase 5 roadmap's four named sample anchors are now all represented by bounded `samples/zigux/` reference readings, but that does not close the separate Phase 9 runtime pilot tranche
 
 ## Review gates for this survey
