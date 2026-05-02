@@ -52,10 +52,22 @@ test "phase 5 bytestream fifo sample replays exact queue behavior from the Linux
     try std.testing.expectEqualSlices(u8, sample.expected_anchor_result[0..], replay.final_sequence[0..]);
     try std.testing.expectEqual(@as(usize, 0), module.count());
     try std.testing.expectEqual(sample.SampleStage.replay_complete, module.stage());
+    const replay_lifecycle = module.lifecycleSummary();
+    try std.testing.expectEqual(sample.SampleStage.replay_complete, replay_lifecycle.stage);
+    try std.testing.expectEqual(@as(usize, 1), replay_lifecycle.init_run_count);
+    try std.testing.expectEqual(@as(usize, 0), replay_lifecycle.exit_run_count);
+    try std.testing.expectEqual(@as(usize, 0), replay_lifecycle.queue_len);
+    try std.testing.expectEqual(sample.StorageBacking.embedded_fixed_buffer, replay_lifecycle.storage_backing);
 
     try module.exit();
     try std.testing.expectEqual(sample.SampleStage.exited, module.stage());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runAnchorReplay());
+    const exited_lifecycle = module.lifecycleSummary();
+    try std.testing.expectEqual(sample.SampleStage.exited, exited_lifecycle.stage);
+    try std.testing.expectEqual(@as(usize, 1), exited_lifecycle.init_run_count);
+    try std.testing.expectEqual(@as(usize, 1), exited_lifecycle.exit_run_count);
+    try std.testing.expectEqual(@as(usize, 0), exited_lifecycle.queue_len);
+    try std.testing.expectEqual(sample.StorageBacking.embedded_fixed_buffer, exited_lifecycle.storage_backing);
 }
 
 test "phase 5 bytestream fifo sample keeps bounded helper behavior explicit" {
