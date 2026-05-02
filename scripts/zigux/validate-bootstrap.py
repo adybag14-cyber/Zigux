@@ -222,7 +222,10 @@ if policy_issues:
 toolchain_checker = (ROOT / 'scripts' / 'zigux' / 'check-zig-toolchain.py').read_text(encoding='utf-8')
 required_toolchain_markers = [
     'zig-toolchain-policy.json',
+    'archive_sha256',
     'ZIG_TOOLCHAIN_REQUIRED_VERSION',
+    'ZIG_TOOLCHAIN_TARGET',
+    'ZIG_TOOLCHAIN_EXPECTED_SHA256',
     'status = "not_pinned"',
 ]
 missing_toolchain_markers = [marker for marker in required_toolchain_markers if marker not in toolchain_checker]
