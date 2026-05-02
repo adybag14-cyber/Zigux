@@ -750,6 +750,41 @@ test "loadCommandListsFromEnvPath preserves raw PATH splitting and exec-path fil
     try std.testing.expectEqualStrings("trace", other_cmds.names.items[0].name);
 }
 
+test "loadCommandListsFromEnvPath keeps a fully empty PATH string on the shared loader path" {
+    const current_dir_entries = [_]DirectoryEntry{
+        .{ .name = "perf-current", .is_executable = true },
+        .{ .name = "perf-report.exe", .is_executable = true },
+        .{ .name = "README.md", .is_executable = true },
+    };
+
+    var source = CommandSourceFixture{
+        .dirs = &.{
+            .{ .path = "", .entries = &current_dir_entries },
+        },
+    };
+
+    var main_cmds = CmdNames.init(std.testing.allocator);
+    defer main_cmds.deinit();
+    var other_cmds = CmdNames.init(std.testing.allocator);
+    defer other_cmds.deinit();
+
+    try loadCommandListsFromEnvPath(
+        std.testing.allocator,
+        null,
+        null,
+        "",
+        &main_cmds,
+        &other_cmds,
+        &source,
+        CommandSourceFixture.populate,
+    );
+
+    try std.testing.expectEqual(@as(usize, 0), main_cmds.count());
+    try std.testing.expectEqual(@as(usize, 2), other_cmds.count());
+    try std.testing.expectEqualStrings("current", other_cmds.names.items[0].name);
+    try std.testing.expectEqualStrings("report", other_cmds.names.items[1].name);
+}
+
 test "loadCommandListsFromEnvPath keeps PATH-only fallback stable when exec-path lookup is unavailable" {
     const current_dir_entries = [_]DirectoryEntry{
         .{ .name = "perf-current", .is_executable = true },
