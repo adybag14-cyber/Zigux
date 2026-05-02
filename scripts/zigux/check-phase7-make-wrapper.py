@@ -313,6 +313,23 @@ def run_self_test() -> int:
             'validator source missing marker: ROOT / "scripts" / "zigux" / "check-phase7-build-inventory.py"',
         )
 
+        validator_path.write_text(
+            "#!/usr/bin/env python3\n"
+            "ROOT = None\n"
+            "required_files = [\n"
+            '    ROOT / "scripts" / "zigux" / "check-phase7-build-inventory.py",\n'
+            '    ROOT / "zigux" / "tests" / "fixtures" / "phase7_build_inventory.json",\n'
+            "]\n"
+            "expected_make_expansions = {\n",
+            encoding="utf-8",
+        )
+        expect_failure(
+            "validator_parse_failure",
+            tmp_root,
+            fake_make_env,
+            "validator source parse failure:",
+        )
+
         write_validator_fixture(
             validator_path,
             {
@@ -450,7 +467,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE7_MAKE_WRAPPER_SELF_TEST=pass")
-    print("PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT=8")
+    print("PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
