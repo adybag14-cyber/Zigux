@@ -131,6 +131,8 @@ REQUIRED_CLOSURE_MARKERS = [
     "PHASE1_FIND_BIT_BOUNDARY_UNIT_REVIEW=find_bit empty and out-of-range scans return nbits for zero-length bitmaps, start-at-nbits searches, and fully set zero-bit windows that must not report past the declared range",
     "PHASE1_FIND_BIT_LOW_LEVEL_UNIT_REVIEW=find_bit low-level underscore entry points preserve same-word inclusive starts and tail-clamped set, shared-bit, and zero-bit scan behavior across the same caller-selected bit windows as the public helpers",
     "PHASE1_FIND_BIT_SMALL_BITMAP_UNIT_REVIEW=find_bit single-word set zero and shared-bit scans keep Linux small-bitmap semantics aligned by masking out-of-range tail bits while preserving inclusive in-range matches inside one word",
+    "PHASE1_FIND_BIT_TAIL_START_UNIT_REVIEW=find_bit tail-clamped set zero and shared-bit scans keep the last in-range bit reachable from an inclusive start while later starts still return nbits instead of leaking the out-of-range tail",
+    "PHASE1_FIND_BIT_ZERO_SIZED_UNIT_REVIEW=find_bit zero-length set zero and shared-bit scans return 0 even when backing words are populated so declared nbits stays authoritative over caller storage",
     "PHASE1_RBTREE_REVIEW=rbtree parity covers ordered traversal, replaceNode, eraseInit, postorder traversal, and detached-node state while Linux-style rb_* alias parity remains explicitly out of scope for this closed tranche",
     "PHASE1_RBTREE_ITERATE_UNIT_REVIEW=rbtree iterateMatches yields only the equal-key duplicate range and cleanly reports no match for missing keys",
     "PHASE1_RBTREE_REVERSE_UNIT_REVIEW=rbtree findLast, prevMatch, and iterateMatchesReverse keep reverse duplicate-key lookup walks aligned from the rightmost match back through the equal-key range while still reporting no match for missing keys",
@@ -272,6 +274,18 @@ EXPECTED_MANIFEST_FIELDS = {
             "Direct Zig unit coverage keeps single-word set, zero, and shared-bit scans aligned "
             "with Linux small-bitmap semantics by masking out-of-range tail bits while "
             "preserving inclusive in-range matches inside one word."
+        ),
+        "tail_start_unit_test_anchor": 'tools/lib/find_bit.zig:test "tail scans keep the last in-range bit reachable from an inclusive start"',
+        "tail_start_unit_test_contract": (
+            "Direct Zig unit coverage keeps tail-clamped set, zero, and shared-bit scans aligned "
+            "when the inclusive start lands on the last in-range bit, while later starts still "
+            "return nbits instead of leaking the out-of-range tail."
+        ),
+        "zero_sized_unit_test_anchor": 'tools/lib/find_bit.zig:test "zero-sized scans ignore populated backing words"',
+        "zero_sized_unit_test_contract": (
+            "Direct Zig unit coverage keeps zero-length set, zero, and shared-bit scans aligned by "
+            "returning 0 even when backing words are populated, so declared nbits stays "
+            "authoritative over caller storage."
         ),
     },
     "tools/lib/rbtree.zig": {
@@ -552,6 +566,8 @@ def run_self_test() -> int:
             ("closure_find_bit_mask_review", "PHASE1_FIND_BIT_MASK_UNIT_REVIEW=find_bit mask and sizing helpers keep Linux-style whole-word, partial-word, and wrapped-start boundaries reviewable without relying only on indirect scan coverage"),
             ("closure_find_bit_boundary_review", "PHASE1_FIND_BIT_BOUNDARY_UNIT_REVIEW=find_bit empty and out-of-range scans return nbits for zero-length bitmaps, start-at-nbits searches, and fully set zero-bit windows that must not report past the declared range"),
             ("closure_find_bit_small_bitmap_review", "PHASE1_FIND_BIT_SMALL_BITMAP_UNIT_REVIEW=find_bit single-word set zero and shared-bit scans keep Linux small-bitmap semantics aligned by masking out-of-range tail bits while preserving inclusive in-range matches inside one word"),
+            ("closure_find_bit_tail_start_review", "PHASE1_FIND_BIT_TAIL_START_UNIT_REVIEW=find_bit tail-clamped set zero and shared-bit scans keep the last in-range bit reachable from an inclusive start while later starts still return nbits instead of leaking the out-of-range tail"),
+            ("closure_find_bit_zero_sized_review", "PHASE1_FIND_BIT_ZERO_SIZED_UNIT_REVIEW=find_bit zero-length set zero and shared-bit scans return 0 even when backing words are populated so declared nbits stays authoritative over caller storage"),
             ("closure_rbtree_iterate_review", "PHASE1_RBTREE_ITERATE_UNIT_REVIEW=rbtree iterateMatches yields only the equal-key duplicate range and cleanly reports no match for missing keys"),
             ("closure_rbtree_reverse_review", "PHASE1_RBTREE_REVERSE_UNIT_REVIEW=rbtree findLast, prevMatch, and iterateMatchesReverse keep reverse duplicate-key lookup walks aligned from the rightmost match back through the equal-key range while still reporting no match for missing keys"),
             ("closure_rbtree_bench_keys", "PHASE1_RBTREE_BENCH_KEYS=PHASE1_BENCH_RBTREE_CHECKSUM,PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM,PHASE1_BENCH_RBTREE_CACHED_CHECKSUM,PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM,PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM"),
@@ -589,6 +605,8 @@ def run_self_test() -> int:
             ("find_bit_boundary_contract", "tools/lib/find_bit.zig", "boundary_unit_test_contract"),
             ("find_bit_low_level_contract", "tools/lib/find_bit.zig", "low_level_unit_test_contract"),
             ("find_bit_small_bitmap_contract", "tools/lib/find_bit.zig", "small_bitmap_unit_test_contract"),
+            ("find_bit_tail_start_contract", "tools/lib/find_bit.zig", "tail_start_unit_test_contract"),
+            ("find_bit_zero_sized_contract", "tools/lib/find_bit.zig", "zero_sized_unit_test_contract"),
             ("string_summary", "tools/lib/string.zig", "summary"),
             ("string_unit_anchor", "tools/lib/string.zig", "unit_test_anchor"),
             ("string_cstring_contract", "tools/lib/string.zig", "cstring_unit_test_contract"),
