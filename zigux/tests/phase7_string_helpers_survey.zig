@@ -119,7 +119,7 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
     try expectContains(samples_readme, "samples/zigux/kobject_example.zig");
     try expectContains(samples_readme, "samples/zigux/kretprobe_example.zig");
     try expectContains(samples_readme, "samples/zigux/trace_events_sample.zig");
-    try expectContains(samples_readme, "Later runtime starters and loader-side follow-ons");
+    try expectContains(samples_readme, "Later runtime starters, loader-side follow-ons, and blocked pilots");
     try expectContains(samples_readme, "samples/zigux/runtime_atomic64.zig");
     try expectContains(samples_readme, "samples/zigux/runtime_bitmap.zig");
     try expectContains(samples_readme, "samples/zigux/runtime_kretprobe.zig");
