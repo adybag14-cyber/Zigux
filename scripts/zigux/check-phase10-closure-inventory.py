@@ -11,6 +11,7 @@ SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 
 CLOSURE_NOTE = "Documentation/zigux/phase10-closure-evidence.md"
+DOCS_ROOT = "Documentation/zigux/README.md"
 CLOSURE_MANIFEST = "zigux/tests/phase10_closure_manifest.json"
 CLOSURE_LEDGER = "zigux-alpha/PHASE10_CLOSURE_LEDGER.md"
 
@@ -268,6 +269,7 @@ EXPECTED_MANIFEST_SCALARS = {
 
 REQUIRED_FILES = [
     CLOSURE_NOTE,
+    DOCS_ROOT,
     CLOSURE_MANIFEST,
     CLOSURE_LEDGER,
     *EXPECTED_DOCS,
@@ -292,6 +294,11 @@ CLOSURE_NOTE_MARKERS = [
     "PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=yes",
     "PHASE10_ARCHITECTURE_COUNCIL_REOPEN_ATTACHED=no",
     "PHASE10_FORBIDDEN_TRANSPORT_CLAIMS=queue_setup_reset_paths,irq_parity,dma_paths,input_registration_lifecycle,probe_remove_lifecycle",
+]
+
+DOCS_ROOT_MARKERS = [
+    "shared Phase 10 closure note plus the same nine published Phase 10 docs named by the shared closure packet",
+    "zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
 ]
 
 LEDGER_MARKERS = [
@@ -361,6 +368,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
 
     missing: list[str] = []
     check_markers(missing, "closure", read_text(root, CLOSURE_NOTE), CLOSURE_NOTE_MARKERS)
+    check_markers(missing, "docs_root", read_text(root, DOCS_ROOT), DOCS_ROOT_MARKERS)
     check_markers(missing, "ledger", read_text(root, CLOSURE_LEDGER), LEDGER_MARKERS)
 
     manifest = load_json(root, CLOSURE_MANIFEST)
@@ -412,6 +420,8 @@ def write_fixture(root: Path) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
         if rel_path == CLOSURE_NOTE:
             path.write_text("\n".join(CLOSURE_NOTE_MARKERS) + "\n", encoding="utf-8")
+        elif rel_path == DOCS_ROOT:
+            path.write_text("\n".join(DOCS_ROOT_MARKERS) + "\n", encoding="utf-8")
         elif rel_path == CLOSURE_LEDGER:
             path.write_text("\n".join(LEDGER_MARKERS) + "\n", encoding="utf-8")
         elif rel_path == CLOSURE_MANIFEST:
@@ -514,6 +524,23 @@ def run_self_test() -> int:
             "closure:PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=yes",
         )
         note_path.write_text(original_note, encoding="utf-8")
+
+        docs_root_path = root / DOCS_ROOT
+        original_docs_root = docs_root_path.read_text(encoding="utf-8")
+        docs_root_path.write_text(
+            original_docs_root.replace(
+                "shared Phase 10 closure note plus the same nine published Phase 10 docs named by the shared closure packet",
+                "shared Phase 10 closure note plus nine docs",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "docs_root_phase10_summary_sentence",
+            root,
+            "docs_root:shared Phase 10 closure note plus the same nine published Phase 10 docs named by the shared closure packet",
+        )
+        docs_root_path.write_text(original_docs_root, encoding="utf-8")
 
         ledger_path = root / CLOSURE_LEDGER
         original_ledger = ledger_path.read_text(encoding="utf-8")
@@ -716,7 +743,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_CLOSURE_INVENTORY_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_INVENTORY_SELF_TEST_CASE_COUNT=25")
+    print("PHASE10_CLOSURE_INVENTORY_SELF_TEST_CASE_COUNT=26")
     return 0
 
 
@@ -742,7 +769,7 @@ def main() -> int:
 
     print("PHASE10_CLOSURE_INVENTORY=pass")
     print(f"PHASE10_CLOSURE_INVENTORY_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
-    print("PHASE10_CLOSURE_INVENTORY_REQUIRED_GROUP_COUNT=16")
+    print("PHASE10_CLOSURE_INVENTORY_REQUIRED_GROUP_COUNT=17")
     return 0
 
 
