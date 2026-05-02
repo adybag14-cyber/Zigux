@@ -199,6 +199,8 @@ test "bitmap diff survey keeps the current rounded fill drifts explicit against 
     // gap measurable here until tools/lib/bitmap.zig changes.
     try std.testing.expectEqual(bits_per_long * 2, roundedPrefixLen(115));
     try expectCurrentFillPrefix(&map, 115, 115, "0-114");
+    try expectSet(&map, 114);
+    try expectClear(&map, 115);
     try expectClear(&map, bits_per_long * 2 - 1);
 }
 
