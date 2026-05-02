@@ -9,7 +9,7 @@ This note records one exact readback snapshot for the current Phase 4 rollback-o
 - `PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions`
 - `PHASE4_VALIDATION_MATRIX_BLOB_SHA=bbd40093d39f68163076dc104fe731f0324de4f7`
 - `PHASE4_VALIDATOR_BLOB_SHA=9f81ba776b76cb9b8941d538cda5edaca340e48f`
-- `PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA=51f3bdfe2ae2b0d390322e2754a4c3fd5f46b165`
+- `PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA=6559ddf2b31dd7f149ddd391afbea26ebce2179f`
 - `PHASE4_BUILD_BLOB_SHA=57f4c3809387cac39e3153b9bbad17ca92ce3684`
 - `PHASE4_MAKEFILE_BLOB_SHA=393503231223dbdfc393bb831c807f5c0112383d`
 - `PHASE4_WORKFLOW_BLOB_SHA=d8e33b54488171c873d86b80ceaff8479d999bb8`
@@ -51,6 +51,7 @@ The current packet stayed aligned across the following readbacks on `master`:
 - `scripts/zigux/validate-phase4.py` now accepts the current matrix formatting for backticked gate owners and the roadmap-gap rows that spell out the Linux anchor in the first column, and it now also fails closed if either dedicated `check-phase4-gate-evidence.py` Makefile line disappears or the checker file itself drops out of the shared Phase 4 packet.
 - the current published validator contract for this packet still records `PHASE4_VALIDATOR_SELF_TEST=pass`, `PHASE4_VALIDATION=pass`, `PHASE4_REQUIRED_FILE_COUNT=23`, and `PHASE4_REQUIRED_MARKER_COUNT=236`, and the dedicated checker keeps those exact status tokens fail-closed in this ledger.
 - `zigux/tests/atomic64_diff.zig` still keeps the exact bounded atomic64 replay readable by current check name: add `onestwos` growth and `-1` decrement; sub `onestwos` decrement and `-1` increment; bitwise `or`, `and`, `xor`, and `andnot` on the `v0`/`v1` pair; exchange `v0 -> v1`, `v1 -> v2`, and `minInt(i64) -> -1`; `cmpxchg` match-store and mismatch-no-store; `addUnlessCounter()` blocked and changed paths; `incNotZeroCounter()` positive, zero, `-1`, and `minInt(i64)`; `decIfPositiveCounter()` positive, zero, and negative return-path behavior; ordered selftest families with `checked_returning_paths` and `checked_guard_paths`; single-shot init/selftest/exit transitions; and post-selftest replay across add, sub, bitwise, swap, compare-swap, add-unless, inc-not-zero, and dec-if-positive before final exit.
+- the runtime atomic64 reversible-delivery contract also remains explicit in the current exact-readback packet: `lib/atomic64_test.c` stays the source of truth, removing `atomic64_diff.zig` from the shared `phase4_build.zig` entrypoint is the documented rollback move, `runtime_atomic64_diff.zig` remains the single replay body, and the existing Phase 9 runtime atomic64 starter remains the forward path.
 - `zigux/tests/bitmap_diff.zig` still keeps the broadened bitmap rollback packet explicit by recording the all-set and all-clear start-state printlist anchors, zero-nbits helper no-op behavior, zero-length range edits on populated anchors, the rounded `bitmap_fill(..., 35)` and `bitmap_fill(..., 115)` drift checkpoints, the `bitmap_set(..., 79, 19)` and `bitmap_clear(..., 79, 19)` cross-boundary windows, the bounded copy-tail packet, and the nth-bit cutoff replay around bit 123.
 - the bootstrap workflow still keeps `Self-test Phase 4 validator` as a dedicated step beside `Validate Phase 4 diff gates` and `Run Phase 4 diff tests`, so the matrix's new standalone validator row matches the current shipped workflow rather than inventing a new replay path.
 - the dedicated `scripts/zigux/check-phase4-gate-evidence.py` checker now also fails closed if this note keeps the validator count tokens but lets the exact `PHASE4_REQUIRED_FILE_COUNT=23` or `PHASE4_REQUIRED_MARKER_COUNT=236` values drift.
@@ -70,6 +71,8 @@ The current Phase 4 rollback-ownership survey packet now has a refreshed exact-r
 The packet still carries two validator-backed status layers as part of the published contract: the `validate-phase4.py` status bundle for the matrix, validator, dedicated checker, exact checker Makefile wiring, build, workflow, and manifest subset, and the `check-phase4-gate-evidence.py` status bundle for the broader survey-file plus index-surface blob ledger.
 
 That keeps the README surfaces truthful summaries for the packet, and this note is again a current blob ledger for the broader survey and index surfaces instead of a stale audit record.
+
+The dedicated checker now also keeps the runtime atomic64 reversible-delivery sentence fail-closed in this note, so the rollback move, single replay body, and forward-path wording cannot silently drift back into prose-only guidance.
 
 The remaining roadmap-backed gaps are still the same bounded ones:
 
