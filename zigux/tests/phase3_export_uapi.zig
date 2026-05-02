@@ -27,11 +27,15 @@ test "phase3 export shim and uapi stay aligned" {
     try std.testing.expect(uapi_version.isCanonical(header));
     try std.testing.expect(export_shim.isCompatibleHeader(header));
     try std.testing.expect(uapi_version.isCompatible(header));
+    try std.testing.expectEqual(header, export_shim.canonicalizeHeader(header).?);
+    try std.testing.expectEqual(header, uapi_version.canonicalizeHeader(header).?);
 
     const undersized_header = uapi_version.compatibleHeader(uapi_version.header_size - 1, 0x11);
     try std.testing.expect(!uapi_version.isCompatibleSize(undersized_header.size));
     try std.testing.expect(!export_shim.isCompatibleHeader(undersized_header));
     try std.testing.expect(!uapi_version.isCompatible(undersized_header));
+    try std.testing.expect(export_shim.canonicalizeHeader(undersized_header) == null);
+    try std.testing.expect(uapi_version.canonicalizeHeader(undersized_header) == null);
 
     const mismatched_version_header: abi.BoundaryHeader = .{
         .size = uapi_version.header_size,
@@ -41,6 +45,8 @@ test "phase3 export shim and uapi stay aligned" {
     try std.testing.expect(!uapi_version.isCurrentAbiVersion(mismatched_version_header.abi_version));
     try std.testing.expect(!export_shim.isCompatibleHeader(mismatched_version_header));
     try std.testing.expect(!uapi_version.isCompatible(mismatched_version_header));
+    try std.testing.expect(export_shim.canonicalizeHeader(mismatched_version_header) == null);
+    try std.testing.expect(uapi_version.canonicalizeHeader(mismatched_version_header) == null);
 
     const future_compatible_header = uapi_version.compatibleHeader(uapi_version.header_size + 8, 0x44);
     try std.testing.expectEqual(abi.ABI_VERSION, future_compatible_header.abi_version);
@@ -51,6 +57,8 @@ test "phase3 export shim and uapi stay aligned" {
     try std.testing.expect(!uapi_version.isCanonical(future_compatible_header));
     try std.testing.expect(export_shim.isCompatibleHeader(future_compatible_header));
     try std.testing.expect(uapi_version.isCompatible(future_compatible_header));
+    try std.testing.expectEqual(header, export_shim.canonicalizeHeader(future_compatible_header).?);
+    try std.testing.expectEqual(header, uapi_version.canonicalizeHeader(future_compatible_header).?);
 
     try std.testing.expectEqual(abi.ABI_VERSION, uapi_version.abi_version);
 }
