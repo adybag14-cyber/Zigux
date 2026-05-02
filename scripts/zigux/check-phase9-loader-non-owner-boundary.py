@@ -198,8 +198,26 @@ def run_self_test() -> int:
                 + ",".join(failures or ["none"])
             )
 
+        makefile_path.write_text(
+            "\n".join(
+                [
+                    "PHONY += phase9-validate phase9-test phase9-loader-gap-survey phase9-non-owner-boundary-survey phase9-kretprobe-survey phase9-trace-events-survey phase9",
+                    "",
+                    "phase9-non-owner-boundary-survey:",
+                ]
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        failures = validate(tmp_root)
+        if "makefile:non_owner_boundary_target_command_missing" not in failures:
+            raise SystemExit(
+                "phase9-loader-non-owner-selftest:expected_make_command_failure:"
+                + ",".join(failures or ["none"])
+            )
+
     print("PHASE9_LOADER_NON_OWNER_BOUNDARY_SELF_TEST=pass")
-    print("PHASE9_LOADER_NON_OWNER_BOUNDARY_SELF_TEST_CASE_COUNT=3")
+    print("PHASE9_LOADER_NON_OWNER_BOUNDARY_SELF_TEST_CASE_COUNT=4")
     return 0
 
 
