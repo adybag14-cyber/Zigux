@@ -59,6 +59,20 @@ const Phase8ControlSurfaceMarkers = struct {
     terminal_env_names: []const []const u8,
 };
 
+const LifecycleBoundarySummary = struct {
+    staged_init_exit_symbols_are_review_only: bool,
+    kretprobe_registration_labels_are_metadata_only: bool,
+    live_initcall_or_registration_path_present: bool,
+    forbidden_live_calls: []const []const u8,
+};
+
+const ModuleMetadataDepmodBoundary = struct {
+    surface: []const u8,
+    boundary_kind: []const u8,
+    status: []const u8,
+    why_non_owner: []const u8,
+};
+
 const Manifest = struct {
     lane_key: []const u8,
     schedule_phase: []const u8,
@@ -67,6 +81,7 @@ const Manifest = struct {
     surveyed_commit: []const u8,
     anchor: []const u8,
     survey_summary: SurveySummary,
+    lifecycle_boundary_summary: LifecycleBoundarySummary,
     phase6_leaf_helpers: []const []const u8,
     phase8_command_environment_surfaces: []const []const u8,
     phase8_control_surface_markers: Phase8ControlSurfaceMarkers,
@@ -74,6 +89,7 @@ const Manifest = struct {
     runtime_loader_plans: []const []const u8,
     runtime_sample_only_blocked: []const SampleOnlyBlockedRuntimeSurface,
     non_owner_surfaces: []const NonOwnerSurface,
+    module_metadata_depmod_boundaries: []const ModuleMetadataDepmodBoundary,
     delivery_evidence_catalog: []const DeliveryEvidence,
     ownership_map: []const OwnershipEntry,
     gaps: []const Gap,
@@ -146,6 +162,14 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
     try std.testing.expect(manifest.survey_summary.allocator_policy_present);
     try std.testing.expect(manifest.survey_summary.shared_init_exit_contract_present);
     try std.testing.expect(!manifest.survey_summary.shared_command_environment_control_present);
+    try std.testing.expect(manifest.lifecycle_boundary_summary.staged_init_exit_symbols_are_review_only);
+    try std.testing.expect(manifest.lifecycle_boundary_summary.kretprobe_registration_labels_are_metadata_only);
+    try std.testing.expect(!manifest.lifecycle_boundary_summary.live_initcall_or_registration_path_present);
+    try std.testing.expectEqual(@as(usize, 4), manifest.lifecycle_boundary_summary.forbidden_live_calls.len);
+    try std.testing.expectEqualStrings("module_init()", manifest.lifecycle_boundary_summary.forbidden_live_calls[0]);
+    try std.testing.expectEqualStrings("module_exit()", manifest.lifecycle_boundary_summary.forbidden_live_calls[1]);
+    try std.testing.expectEqualStrings("register_kretprobe()", manifest.lifecycle_boundary_summary.forbidden_live_calls[2]);
+    try std.testing.expectEqualStrings("unregister_kretprobe()", manifest.lifecycle_boundary_summary.forbidden_live_calls[3]);
     try std.testing.expectEqual(@as(usize, 4), manifest.phase6_leaf_helpers.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.phase8_command_environment_surfaces.len);
     try std.testing.expectEqualStrings("tools/lib/subcmd/exec-cmd.zig", manifest.phase8_control_surface_markers.exec_cmd_surface);
@@ -164,6 +188,7 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
     try std.testing.expectEqual(@as(usize, 3), manifest.runtime_loader_plans.len);
     try std.testing.expectEqual(@as(usize, 1), manifest.runtime_sample_only_blocked.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_owner_surfaces.len);
+    try std.testing.expectEqual(@as(usize, 4), manifest.module_metadata_depmod_boundaries.len);
     try std.testing.expectEqual(@as(usize, 11), manifest.delivery_evidence_catalog.len);
     try std.testing.expectEqual(@as(usize, 11), manifest.ownership_map.len);
     try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);
@@ -200,6 +225,22 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
     try std.testing.expectEqualStrings("Phase 3", manifest.non_owner_surfaces[3].owning_phase);
     try std.testing.expectEqualStrings("export_boundary", manifest.non_owner_surfaces[3].boundary_kind);
     try std.testing.expect(std.mem.indexOf(u8, manifest.non_owner_surfaces[3].why_non_owner, "boundary reference instead of Phase 9 runtime evidence") != null);
+    try std.testing.expectEqualStrings(".modinfo", manifest.module_metadata_depmod_boundaries[0].surface);
+    try std.testing.expectEqualStrings("module_metadata", manifest.module_metadata_depmod_boundaries[0].boundary_kind);
+    try std.testing.expectEqualStrings("blocked_on_depmod_bridge", manifest.module_metadata_depmod_boundaries[0].status);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.module_metadata_depmod_boundaries[0].why_non_owner, "ELF module metadata parity") != null);
+    try std.testing.expectEqualStrings("MODULE_ALIAS()", manifest.module_metadata_depmod_boundaries[1].surface);
+    try std.testing.expectEqualStrings("module_alias", manifest.module_metadata_depmod_boundaries[1].boundary_kind);
+    try std.testing.expectEqualStrings("blocked_on_depmod_bridge", manifest.module_metadata_depmod_boundaries[1].status);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.module_metadata_depmod_boundaries[1].why_non_owner, "Alias declarations") != null);
+    try std.testing.expectEqualStrings("modules.alias", manifest.module_metadata_depmod_boundaries[2].surface);
+    try std.testing.expectEqualStrings("depmod_output", manifest.module_metadata_depmod_boundaries[2].boundary_kind);
+    try std.testing.expectEqualStrings("blocked_on_depmod_bridge", manifest.module_metadata_depmod_boundaries[2].status);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.module_metadata_depmod_boundaries[2].why_non_owner, "depmod output generation") != null);
+    try std.testing.expectEqualStrings("scripts/depmod.sh", manifest.module_metadata_depmod_boundaries[3].surface);
+    try std.testing.expectEqualStrings("depmod_bridge", manifest.module_metadata_depmod_boundaries[3].boundary_kind);
+    try std.testing.expectEqualStrings("blocked_on_depmod_bridge", manifest.module_metadata_depmod_boundaries[3].status);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.module_metadata_depmod_boundaries[3].why_non_owner, "no shipped bridge") != null);
 
     var landed_count: usize = 0;
     var blocked_count: usize = 0;
@@ -517,6 +558,14 @@ test "runtime loader gap survey doc keeps the mixed roadmap phases and remaining
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "released_without_substrate") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "fallback path") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "pre-execution") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "module_init()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "module_exit()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "register_kretprobe()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "unregister_kretprobe()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, ".modinfo") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "MODULE_ALIAS()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "modules.alias") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "scripts/depmod.sh") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Phase 6 runtime implementation progress") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "scripts/zigux/kconfig/conf_bridge.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "scripts/zigux/kconfig/confdata_bridge.zig") != null);
@@ -643,6 +692,7 @@ test "runtime loader gap survey proves the shared request surface and existing l
         "pub const RuntimeLoadRequest = struct",
         "pub fn keepsCommandNameExplicit",
         "pub fn keepsInitExitContractExplicit",
+        "pub fn keepsPreExecutionLifecycleBoundaryExplicit",
         "pub fn isWaitingOnRuntimeSubstrate",
         "pub fn isReleasedWithoutSubstrate",
         "pub fn waitingOnRuntimeSubstrate",
@@ -665,6 +715,13 @@ test "runtime loader gap survey proves the shared request surface and existing l
         "allocator_policy.permitsGlobalFallback(mode)",
         "allocator_policy.initializesOwnedState(mode)",
         "allocator_policy.requiresResetOnInit(mode)",
+    };
+    const pre_execution_boundary_surface = [_][]const u8{
+        "pub fn keepsPreExecutionLifecycleBoundaryExplicit",
+        "\"module_init\"",
+        "\"module_exit\"",
+        "\"register_kretprobe\"",
+        "\"unregister_kretprobe\"",
     };
     const absent_command_env_surface = [_][]const u8{
         "argv_policy",
@@ -715,6 +772,7 @@ test "runtime loader gap survey proves the shared request surface and existing l
     });
     try expectContainsAll(runtime_loader_file, &allocator_handoff_surface);
     try expectContainsAll(runtime_loader_file, &shared_request_surface);
+    try expectContainsAll(runtime_loader_file, &pre_execution_boundary_surface);
 
     try expectContainsAll(bitmap_loader, &.{
         "pub const RuntimeBitmapLoadPlan = struct",
