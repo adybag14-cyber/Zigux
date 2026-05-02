@@ -79,6 +79,12 @@ jobs:
       - name: Self-test Phase 1 closure validator
         run: python3 scripts/zigux/validate-phase1-closure.py --self-test
 
+      - name: Self-test artifact diff helper
+        run: python3 scripts/zigux/artifact_diff.py --self-test
+
+      - name: Check artifact diff helper CLI contract
+        run: python3 scripts/zigux/check-artifact-diff-contract.py
+
       - name: Validate Phase 2 fixdep files
         run: python3 scripts/zigux/validate-phase2.py
 
@@ -96,12 +102,6 @@ jobs:
 
       - name: Validate Phase 2 closure
         run: python3 scripts/zigux/validate-phase2-closure.py
-
-      - name: Self-test artifact diff helper
-        run: python3 scripts/zigux/artifact_diff.py --self-test
-
-      - name: Check artifact diff helper CLI contract
-        run: python3 scripts/zigux/check-artifact-diff-contract.py
 
       - name: Validate Phase 3 slices
         run: python3 scripts/zigux/validate-phase3.py
