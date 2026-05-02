@@ -107,7 +107,7 @@
       "standard_decode_vectors": 22,
       "variant_decode_vectors": 12,
       "invalid_decode_vectors": 22,
-      "c_parity_self_test_cases": 8,
+      "c_parity_self_test_cases": 7,
       "c_parity_cases": 96
     },
     "bsearch": {
