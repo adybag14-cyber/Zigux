@@ -499,6 +499,16 @@ def run_self_test() -> int:
         write_fixture(root)
 
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["study_only_anchors"] = EXPECTED_STUDY_ONLY_ANCHORS[:-1]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "manifest_study_only_anchors",
+            root,
+            "manifest:study_only_anchors",
+        )
+        write_fixture(root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["freeze_in_c_anchors"] = EXPECTED_FREEZE_IN_C_ANCHORS[:-1]
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         expect_missing_marker(
@@ -508,7 +518,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_CLOSURE_INVENTORY_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_INVENTORY_SELF_TEST_CASE_COUNT=19")
+    print("PHASE10_CLOSURE_INVENTORY_SELF_TEST_CASE_COUNT=20")
     return 0
 
 
