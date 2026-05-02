@@ -76,10 +76,10 @@ test "phase 6 base64 module imports cleanly" {
 
 test "phase 6 base64 fixture inventory stays aligned with the current review packet" {
     try std.testing.expectEqual(@as(usize, 22), fixtures.standard_cases.len);
-    try std.testing.expectEqual(@as(usize, 24), fixtures.variant_cases.len);
+    try std.testing.expectEqual(@as(usize, 30), fixtures.variant_cases.len);
     try std.testing.expectEqual(@as(usize, 22), fixtures.standard_decode_cases.len);
-    try std.testing.expectEqual(@as(usize, 16), fixtures.variant_decode_cases.len);
-    try std.testing.expectEqual(@as(usize, 22), fixtures.invalid_decode_cases.len);
+    try std.testing.expectEqual(@as(usize, 20), fixtures.variant_decode_cases.len);
+    try std.testing.expectEqual(@as(usize, 28), fixtures.invalid_decode_cases.len);
     try std.testing.expectEqual(@as(usize, 10), fixtures.perf_cases.len);
 
     const c_parity_cases = fixtures.standard_cases.len +
@@ -87,7 +87,7 @@ test "phase 6 base64 fixture inventory stays aligned with the current review pac
         fixtures.standard_decode_cases.len +
         fixtures.variant_decode_cases.len +
         fixtures.invalid_decode_cases.len;
-    try std.testing.expectEqual(@as(usize, 106), c_parity_cases);
+    try std.testing.expectEqual(@as(usize, 122), c_parity_cases);
 }
 
 test "phase 6 base64 standard encode parity matches kernel vectors" {
