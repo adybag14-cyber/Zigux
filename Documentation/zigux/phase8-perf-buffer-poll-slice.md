@@ -10,6 +10,7 @@ This note records the bounded Phase 8 helper-first slice around the pure wait-re
 - product boundary:
   - `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
   - `zigux/tests/phase8_perf_buffer_poll.zig`
+  - `zigux/tests/phase8_perf_buffer_poll_only_build.zig`
   - `zigux/tests/phase8_build.zig`
 
 ## Why this slice exists
@@ -56,7 +57,9 @@ The shared review path now fail-closes through the shared Phase 8 validator, the
 4. `python3 scripts/zigux/check-phase8-tests-readme-alignment.py`
 5. `make -C zigux phase8-validate`
 6. `zig test tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
-7. `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
+7. `make -C zigux phase8-perf-buffer-poll-test`
+8. `zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all`
+9. `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
 
 ## Next bounded step
 
