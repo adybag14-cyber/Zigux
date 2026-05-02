@@ -33,6 +33,13 @@ REQUIRED_SURVEY_ALIGNMENT_MARKERS = [
     "phase4_runtime_atomic64_diff_survey.zig",
 ]
 
+REQUIRED_SELF_TEST_ROUTE_MARKERS = [
+    "Self-test Phase 4 validator",
+    "python3 scripts/zigux/validate-phase4.py --self-test",
+    "Validate Phase 4 diff gates",
+    "Run Phase 4 diff tests",
+]
+
 EXACT_VALIDATOR_STATUS_LINES = [
     "PHASE4_VALIDATOR_SELF_TEST=pass",
     "PHASE4_VALIDATION=pass",
@@ -84,6 +91,9 @@ def validate_root(root: Path) -> list[str]:
         if marker not in gate_evidence:
             missing.append(f"phase4_gate_evidence:{marker}")
     for marker in REQUIRED_SURVEY_ALIGNMENT_MARKERS:
+        if marker not in gate_evidence:
+            missing.append(f"phase4_gate_evidence:{marker}")
+    for marker in REQUIRED_SELF_TEST_ROUTE_MARKERS:
         if marker not in gate_evidence:
             missing.append(f"phase4_gate_evidence:{marker}")
     for line in EXACT_VALIDATOR_STATUS_LINES:
@@ -152,6 +162,7 @@ def write_fixture_tree(root: Path) -> None:
         "## Exact Readback Evidence",
         "",
         f"- synthetic fixture keeps shared surveyed snapshot `{SHARED_SURVEYED_COMMIT}` explicit through `phase4_runtime_atomic64_diff_survey.zig`, `phase4_test_fsmount_survey.zig`, and `phase4_perf_baseline_survey.zig`.",
+        "- synthetic fixture keeps `Self-test Phase 4 validator` plus `python3 scripts/zigux/validate-phase4.py --self-test` explicit beside `Validate Phase 4 diff gates` and `Run Phase 4 diff tests`.",
         "",
         "## Current Conclusion",
         "",
@@ -286,6 +297,21 @@ def run_self_test() -> int:
         missing = validate_root(root)
         assert (
             "phase4_gate_evidence:phase4_test_fsmount_survey.zig" in missing
+        ), missing
+
+        write_fixture_tree(root)
+        gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
+        gate_evidence.write_text(
+            gate_evidence.read_text(encoding="utf-8").replace(
+                "- synthetic fixture keeps `Self-test Phase 4 validator` plus `python3 scripts/zigux/validate-phase4.py --self-test` explicit beside `Validate Phase 4 diff gates` and `Run Phase 4 diff tests`.\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert (
+            "phase4_gate_evidence:Self-test Phase 4 validator" in missing
         ), missing
 
         write_fixture_tree(root)
