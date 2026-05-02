@@ -16,10 +16,13 @@ The shared entrypoints for that packet remain:
 - `python3 scripts/zigux/validate-phase6.py`
 - `make -C zigux phase6-validate`
 - `make -C zigux phase6`
+- `make -C zigux phase6-perf`
 - `make -C zigux phase6-base64-perf`
 - `make -C zigux phase6-bsearch-perf`
 - `make -C zigux phase6-checksum-perf`
 - `make -C zigux phase6-hexdump-perf`
+
+The new aggregate `make -C zigux phase6-perf` path exists so the already-shipped helper-local perf gates can be replayed together without widening the packet into cross-machine absolute thresholds or folding those heavier microbenches into the default `make -C zigux phase6` helper-test lane.
 
 ## Current measurement posture
 
@@ -52,6 +55,7 @@ The shared entrypoints for that packet remain:
 The roadmap asks for `perf gates for math-sensitive helpers`. Current `master` now satisfies that requirement only in a bounded helper-local sense:
 
 - every shipped helper has an explicit perf review path
+- the shared `make -C zigux phase6-perf` replay now runs those helper-local gates together through one bounded aggregate entrypoint
 - three helpers use fixture-backed relative slowdown ceilings
 - one helper uses an algorithmic comparison budget instead of a timing ceiling
 - no helper currently claims a stable cross-machine nanosecond threshold
@@ -61,6 +65,7 @@ That means the live Phase 6 packet should be read as a reviewable microbench-and
 ## Review Guardrails
 
 - refresh this note when a Phase 6 helper gains or loses a threshold, changes the perf corpus, or changes the current comparison-budget contract
+- refresh this note and `zigux/tests/phase6_helper_parity_manifest.json` together when the shared `make -C zigux phase6-perf` replay path changes
 - refresh `Documentation/zigux/phase6-helper-parity-catalog.md` in the same change when the shared packet posture changes
 - do not treat a helper-local perf improvement as justification to widen Phase 6 beyond the current four-helper packet
 - do not translate the printed nanosecond output into a product-wide performance promise without a dedicated cross-machine threshold lane
