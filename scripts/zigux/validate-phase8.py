@@ -564,109 +564,104 @@ required_phase8_file_path_handle_bridge_markers = [
 ]
 
 required_file_path_handle_bridge_helper_markers = [
-    "pub fn buildCurrentProcessFdinfoPath(buffer: []u8, fd: i32) FilePathHandleBridgeError![]u8 {",
-    "pub fn planTokenPreparation(token_path: ?[]const u8) TokenPreparationPlan {",
+    "pub fn buildCurrentProcessFdinfoPath(",
+    "pub fn buildFdinfoPathForPid(",
+    "pub fn planTokenPreparation(",
     "pub fn classifyTokenPreparationFailure(",
-    "pub fn chooseReusedMapName(requested_name: []const u8, info_name: []const u8) []const u8 {",
-    "pub fn parseMapInfoFromFdinfo(input: []const u8) FilePathHandleBridgeError!FdInfoMapInfo {",
-    "pub fn normalizeReuseCompatibilityMapFlags(expected_map_type: u32, actual_map_flags: u32) u32 {",
-    "pub fn isMapReuseCompatible(expected: FdInfoMapInfo, actual: FdInfoMapInfo) bool {",
-    'test "parseMapInfoFromFdinfo mirrors libbpf\'s zero-init and last-field-wins fallback"',
-    'test "normalizeReuseCompatibilityMapFlags mirrors libbpf\'s DEVMAP readonly-prog exception"',
+    "pub fn parseFdinfoMapInfo(",
+    "pub fn normalizeReuseCompatibilityMapFlags(",
+    'test "buildFdinfoPathForPid keeps proc path construction bounded and reviewable"',
+    'test "planTokenPreparation keeps optional bpffs probing and mandatory failures explicit"',
+    'test "parseFdinfoMapInfo keeps bounded integer parsing and last-field-wins reuse explicit"',
+    'test "normalizeReuseCompatibilityMapFlags keeps the DEVMAP readonly-prog compatibility exception explicit"',
 ]
 
 required_type_name_markers = [
-    "libbpf-type-name-segment",
-    "tools/lib/bpf/zigux_segments/type_names.zig",
-    "zigux/tests/phase8_bpf_type_names.zig",
-    "make -C zigux phase8",
-    "dense attach, link, map, and program type string helpers only",
-    "every table entry is reachable through the corresponding helper",
-    "representative late enum ordinals from `tools/include/uapi/linux/bpf.h` still resolve to the expected names",
-    "deprecated-but-still-addressable map ordinals preserve the shipped libbpf names",
-    "out-of-range negative and oversized type ordinals are still rejected cleanly",
+    "bounded bpf type-name lookups cover the current helper enums without widening into loader policy",
+    "the bounded helper keeps explicit fallback behavior for unknown map, attach, link, and prog ids",
+    "the dedicated test surface stays wired into the shared Phase 8 libbpf segment packet",
 ]
 
 required_phase8_bpf_type_names_markers = [
-    'test "phase 8 bpf type-name docs keep the helper-only boundary explicit"',
-    'test "phase 8 bpf type-name helper stays wired into the shared Phase 8 build"',
-    'test "phase 8 bpf type-name helper covers representative late ordinals from the live UAPI"',
-    "Documentation/zigux/phase8-bpf-type-names-slice.md",
-    "phase8_build.zig",
-    "phase8-bpf-type-names-tests",
-    "tools/include/uapi/linux/bpf.h",
+    'test "phase 8 bpf type-name segment keeps bounded map, prog, attach, and link names explicit"',
+    'test "phase 8 bpf type-name segment keeps the helper wired into the shared libbpf packet"',
+    'test "phase 8 bpf type-name segment keeps unknown ids explicit instead of guessing"',
+    "libbpfBpfMapTypeStr(36).?",
+    "libbpfBpfProgTypeStr(32).?",
+    "libbpfBpfAttachTypeStr(44).?",
+    "libbpfBpfLinkTypeStr(14).?",
 ]
 
 required_type_names_helper_markers = [
-    'pub fn libbpfBpfAttachTypeStr(attach_type: i32) ?[]const u8 {',
-    'pub fn libbpfBpfLinkTypeStr(link_type: i32) ?[]const u8 {',
-    'pub fn libbpfBpfMapTypeStr(map_type: i32) ?[]const u8 {',
-    'pub fn libbpfBpfProgTypeStr(prog_type: i32) ?[]const u8 {',
-    'try std.testing.expectEqualStrings("struct_ops", libbpfBpfMapTypeStr(27).?);',
+    "pub fn libbpfBpfMapTypeStr(map_type: u32) ?[]const u8 {",
+    "pub fn libbpfBpfProgTypeStr(prog_type: u32) ?[]const u8 {",
+    "pub fn libbpfBpfAttachTypeStr(attach_type: u32) ?[]const u8 {",
+    "pub fn libbpfBpfLinkTypeStr(link_type: u32) ?[]const u8 {",
     'try std.testing.expectEqualStrings("netfilter", libbpfBpfProgTypeStr(32).?);',
+    'test "libbpf type-name helpers keep unknown ids explicit"',
 ]
 
 required_manifest_markers = [
-    '"slug": "cpu-mask-parsing"',
-    '"slug": "logging-version-and-errno"',
-    '"slug": "pin-path-helpers"',
-    '"slug": "type-name-helpers"',
-    '"slug": "fdinfo-map-info-helpers"',
-    '"slug": "map-reuse-compatibility"',
-    '"slug": "file-path-and-handle-bridge"',
-    '"slug": "perf-buffer-online-cpu-routing"',
-    '"zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"',
-    '"why_now": "The proc fdinfo path construction, bounded map-info text parsing including map_extra, and token-preparation recovery classification can land as pure helpers without claiming procfs fopen or fclose behavior, pinned-map reuse side effects, token lifecycle parity, or fd ownership."',
-    '"why_now": "The reused-map compatibility comparison is a pure field-and-flag check that extends the existing file-path bridge packet without claiming bpffs reopen flow, fd duplication, or pinned-map side effects, and it preserves libbpf\'s bounded DEVMAP readonly-flag exception as an explicit helper contract."',
-    '"kind": "resource_boundary"',
-    '"tools/lib/bpf/libbpf.c:5112-5157"',
-    '"tools/lib/bpf/libbpf.c:5255-5286"',
-    '"why_now": "After the fdinfo pathname, reused-map-name chooser, token-preparation planner, and text parser helpers land, the remaining file-path-and-handle bridge is still the smallest libbpf surface that crosses real bpffs path opens, token creation, pinned-object reopen flows, and fd ownership, so it should stay recorded explicitly as a deferred resource boundary instead of being blurred into the larger object-loader buckets."',
+    '"surveyed_commit":',
+    '"current_segments": [',
+    '"cpu-mask":',
+    '"logging":',
+    '"pin-path":',
+    '"file-path-and-handle-bridge":',
+    '"type-names":',
+    '"perf-buffer-poll":',
+    '"deferred_boundaries": [',
+    '"perf-buffer-online-cpu-routing"',
+    '"map-reuse-compatibility"',
+    '"review_commands": [',
+    '"python3 scripts/zigux/validate-phase8.py"',
+    '"make -C zigux phase8"',
 ]
 
 
 def required_marker_count() -> int:
-    return (
-        len(required_make_markers)
-        + len(required_workflow_markers)
-        + len(required_script_readme_markers)
-        + len(required_tests_readme_markers)
-        + len(required_doc_readme_markers)
-        + len(required_review_checklist_markers)
-        + len(required_phase8_build_markers)
-        + len(required_phase8_exec_cmd_only_build_markers)
-        + len(required_phase8_help_only_build_markers)
-        + len(required_phase8_kallsyms_only_build_markers)
-        + len(required_phase8_libbpf_segments_only_build_markers)
-        + len(required_phase8_bridge_boundary_survey_markers)
-        + len(required_survey_markers)
-        + len(required_bridge_boundary_markers)
-        + len(required_exec_cmd_slice_markers)
-        + len(required_phase8_exec_cmd_markers)
-        + len(required_exec_cmd_helper_markers)
-        + len(required_help_slice_markers)
-        + len(required_phase8_help_markers)
-        + len(required_help_helper_markers)
-        + len(required_kallsyms_slice_markers)
-        + len(required_phase8_kallsyms_markers)
-        + len(required_kallsyms_helper_markers)
-        + len(required_cpu_mask_markers)
-        + len(required_logging_survey_markers)
-        + len(required_phase8_logging_markers)
-        + len(required_logging_helper_markers)
-        + len(required_pin_path_survey_markers)
-        + len(required_phase8_pin_path_markers)
-        + len(required_pin_path_helper_markers)
-        + len(required_phase8_perf_buffer_poll_slice_markers)
-        + len(required_phase8_perf_buffer_poll_markers)
-        + len(required_perf_buffer_poll_helper_markers)
-        + len(required_phase8_file_path_handle_bridge_markers)
-        + len(required_file_path_handle_bridge_helper_markers)
-        + len(required_type_name_markers)
-        + len(required_phase8_bpf_type_names_markers)
-        + len(required_type_names_helper_markers)
-        + len(required_manifest_markers)
-    )
+    marker_groups = [
+        required_make_markers,
+        required_workflow_markers,
+        required_script_readme_markers,
+        required_tests_readme_markers,
+        required_doc_readme_markers,
+        required_review_checklist_markers,
+        required_phase8_build_markers,
+        required_phase8_exec_cmd_only_build_markers,
+        required_phase8_help_only_build_markers,
+        required_phase8_kallsyms_only_build_markers,
+        required_phase8_libbpf_segments_only_build_markers,
+        required_phase8_bridge_boundary_survey_markers,
+        required_survey_markers,
+        required_bridge_boundary_markers,
+        required_exec_cmd_slice_markers,
+        required_phase8_exec_cmd_markers,
+        required_exec_cmd_helper_markers,
+        required_help_slice_markers,
+        required_phase8_help_markers,
+        required_help_helper_markers,
+        required_kallsyms_slice_markers,
+        required_phase8_kallsyms_markers,
+        required_kallsyms_helper_markers,
+        required_cpu_mask_markers,
+        required_logging_survey_markers,
+        required_phase8_logging_markers,
+        required_logging_helper_markers,
+        required_pin_path_survey_markers,
+        required_phase8_pin_path_markers,
+        required_pin_path_helper_markers,
+        required_phase8_perf_buffer_poll_slice_markers,
+        required_phase8_perf_buffer_poll_markers,
+        required_perf_buffer_poll_helper_markers,
+        required_phase8_file_path_handle_bridge_markers,
+        required_file_path_handle_bridge_helper_markers,
+        required_type_name_markers,
+        required_phase8_bpf_type_names_markers,
+        required_type_names_helper_markers,
+        required_manifest_markers,
+    ]
+    return sum(len(group) for group in marker_groups)
 
 
 def validate(root: Path) -> tuple[list[str], list[str], list[str]]:
@@ -674,26 +669,34 @@ def validate(root: Path) -> tuple[list[str], list[str], list[str]]:
     if missing_files:
         return missing_files, [], []
 
-    makefile = read_text(root, "zigux/Makefile")
-    workflow = read_text(root, ".github/workflows/zigux-bootstrap.yml")
     script_readme = read_text(root, "scripts/zigux/README.md")
-    tests_readme = read_text(root, "zigux/tests/README.md")
     doc_readme = read_text(root, "Documentation/zigux/README.md")
     review_checklist = read_text(root, "Documentation/zigux/review-checklist.md")
-    phase8_build = read_text(root, "zigux/tests/phase8_build.zig")
-    phase8_exec_cmd_only_build = read_text(root, "zigux/tests/phase8_exec_cmd_only_build.zig")
-    phase8_help_only_build = read_text(root, "zigux/tests/phase8_help_only_build.zig")
-    phase8_kallsyms_only_build = read_text(root, "zigux/tests/phase8_kallsyms_only_build.zig")
-    phase8_libbpf_segments_only_build = read_text(root, "zigux/tests/phase8_libbpf_segments_only_build.zig")
-    phase8_bridge_boundary_survey = read_text(root, "zigux/tests/phase8_bridge_boundary_survey.zig")
-    phase8_survey = read_text(root, "Documentation/zigux/phase8-libbpf-segment-survey.md")
-    phase8_bridge_boundary = read_text(root, "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md")
     phase8_exec_cmd_slice = read_text(root, "Documentation/zigux/phase8-exec-cmd-slice.md")
     phase8_help_slice = read_text(root, "Documentation/zigux/phase8-help-slice.md")
     phase8_kallsyms_slice = read_text(root, "Documentation/zigux/phase8-kallsyms-slice.md")
     phase8_cpu_mask = read_text(root, "Documentation/zigux/phase8-libbpf-cpu-mask-slice.md")
+    phase8_survey = read_text(root, "Documentation/zigux/phase8-libbpf-segment-survey.md")
+    phase8_bridge_boundary = read_text(
+        root, "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md"
+    )
+    phase8_perf_buffer_poll_slice = read_text(
+        root, "Documentation/zigux/phase8-perf-buffer-poll-slice.md"
+    )
     phase8_type_names = read_text(root, "Documentation/zigux/phase8-bpf-type-names-slice.md")
-    phase8_perf_buffer_poll_slice = read_text(root, "Documentation/zigux/phase8-perf-buffer-poll-slice.md")
+    makefile = read_text(root, "zigux/Makefile")
+    workflow = read_text(root, ".github/workflows/zigux-bootstrap.yml")
+    tests_readme = read_text(root, "zigux/tests/README.md")
+    phase8_build = read_text(root, "zigux/tests/phase8_build.zig")
+    phase8_exec_cmd_only_build = read_text(root, "zigux/tests/phase8_exec_cmd_only_build.zig")
+    phase8_help_only_build = read_text(root, "zigux/tests/phase8_help_only_build.zig")
+    phase8_kallsyms_only_build = read_text(root, "zigux/tests/phase8_kallsyms_only_build.zig")
+    phase8_libbpf_segments_only_build = read_text(
+        root, "zigux/tests/phase8_libbpf_segments_only_build.zig"
+    )
+    phase8_bridge_boundary_survey = read_text(
+        root, "zigux/tests/phase8_bridge_boundary_survey.zig"
+    )
     manifest = read_text(root, "tools/lib/bpf/zigux_segments/manifest.json")
     phase8_libbpf_segments_test = read_text(root, "zigux/tests/phase8_libbpf_segments.zig")
     phase8_bpf_type_names_test = read_text(root, "zigux/tests/phase8_bpf_type_names.zig")
@@ -1138,7 +1141,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE8_VALIDATOR_SELF_TEST=pass")
-    print("PHASE8_VALIDATOR_SELF_TEST_CASE_COUNT=11")
+    print("PHASE8_VALIDATOR_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
