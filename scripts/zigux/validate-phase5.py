@@ -375,7 +375,7 @@ manifest_expectations = {
         "sample_path": "samples/zigux/trace_events_sample.zig",
         "survey_note_path": "Documentation/zigux/phase5-trace-events-sample-survey.md",
         "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
-        "survey_build_summary": "Build Summary: 17/17 steps succeeded; 28/28 tests passed",
+        "survey_build_summary": "Build Summary: 17/17 steps succeeded; 29/29 tests passed",
         "non_goals": [
             "CREATE_TRACE_POINTS parity",
             "tracepoint macro parity from trace-events-sample.h",
@@ -394,6 +394,7 @@ manifest_expectations = {
             "lifecycle-summary-counts",
             "checked-focus-order",
             "callback-registration-balance",
+            "pre-registration-callback-rejection",
             "single-registration-boundary",
             "registration-underflow-and-armed-exit",
             "post-exit-rejection",
