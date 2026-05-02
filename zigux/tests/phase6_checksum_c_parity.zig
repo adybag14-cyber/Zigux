@@ -35,7 +35,7 @@ pub fn main(init: std.process.Init) !void {
         const payload_partial = checksum.partial(case.payload, 0);
         try writer.print(
             "tcpudpv6-nofold\t{s}\t0x{x:0>8}\n",
-            .{ case.name, checksum.tcpUdpV6Nofold(payload_partial, case.saddr, case.daddr, @intCast(case.payload.len), case.proto) },
+            .{ case.name, checksum.tcpUdpV6Nofold(payload_partial, case.saddr, case.daddr, case.declared_len, case.proto) },
         );
     }
 
