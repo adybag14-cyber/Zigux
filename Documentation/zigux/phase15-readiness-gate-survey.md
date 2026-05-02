@@ -7,7 +7,7 @@ This document records the bounded Phase 15 readiness lane for surveying the rema
 - `PHASE15_STATUS=readiness_gate_survey_landed`
 - `PHASE15_SLICE=tranche-readiness-gap-survey`
 - scope: one readiness survey note, one dedicated manifest and Zig test, one shared `phase15_build.zig` follow-up, one shared bootstrap-workflow replay step, and one docs-root release-evidence comparison that together keep the roadmap requirements, bootstrap ledger anchor, current repo evidence, and remaining blocked readiness gaps reviewable in one place
-- survey provenance refreshed against verified `master` head `ef7b33b6922d05e5ef514fb4efa588316ce6dda8`
+- survey provenance refreshed against verified `master` head `77d1209e4c74efade82757d00d4d6dcfbe5e397e`
 - product boundary:
   - `zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md`
   - `zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md`
@@ -77,6 +77,7 @@ The docs-root Phase 15 summary still says the handoff includes remaining broader
 - `Documentation/zigux/README.md` still uses the stale broader-drift wording
 - `Documentation/zigux/phase15-readiness-gate-survey.md` records the dedicated replay posture as green
 - `Documentation/zigux/phase15-handoff-next-steps-survey.md` records the same replay posture as green
+- the contradiction remains present after the current review-process evidence refresh landed at `master` head `77d1209e4c74efade82757d00d4d6dcfbe5e397e`
 
 This keeps the lane honest: the repo does not need another governance note or another replay wire-up here, but it does still need the top-level Phase 15 release evidence aligned with the already-landed dedicated packet.
 
