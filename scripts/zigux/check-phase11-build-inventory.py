@@ -144,7 +144,7 @@ def validate_named_build_steps(build_text: str) -> list[str]:
         actual = build_steps.get(expected["symbol"])
         if actual != {
             "name": expected["name"],
-            "description": expected["description"],
+            "description": expected["description"]
         }:
             missing.append(
                 f'{expected["symbol"]}:name={expected["name"]},'
@@ -185,6 +185,12 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const phase11_hvc_console_modem_control_split_module = b.createModule(.{
+        .root_source_file = b.path(\"phase11_hvc_console_modem_control_split.zig\"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase11_hvc_console_modem_control_split_module.addImport(\"hvc_console\", hvc_console_module);
     const phase11_hvc_console_poll_retry_split_module = b.createModule(.{
         .root_source_file = b.path(\"phase11_hvc_console_poll_retry_split.zig\"),
         .target = target,
@@ -199,6 +205,13 @@ pub fn build(b: *std.Build) void {
     const run_phase11_dw_wdt_remove_idle_split_tests = b.addRunArtifact(
         phase11_dw_wdt_remove_idle_split_tests,
     );
+    const phase11_hvc_console_modem_control_split_tests = b.addTest(.{
+        .name = \"phase11-hvc-console-modem-control-split-tests\",
+        .root_module = phase11_hvc_console_modem_control_split_module,
+    });
+    const run_phase11_hvc_console_modem_control_split_tests = b.addRunArtifact(
+        phase11_hvc_console_modem_control_split_tests,
+    );
     const phase11_hvc_console_poll_retry_split_tests = b.addTest(.{
         .name = \"phase11-hvc-console-poll-retry-split-tests\",
         .root_module = phase11_hvc_console_poll_retry_split_module,
@@ -209,6 +222,7 @@ pub fn build(b: *std.Build) void {
 
     const test_step = b.step(\"test\", \"Run Phase 11 starter and survey tests\");
     test_step.dependOn(&run_phase11_dw_wdt_remove_idle_split_tests.step);
+    test_step.dependOn(&run_phase11_hvc_console_modem_control_split_tests.step);
     test_step.dependOn(&run_phase11_hvc_console_poll_retry_split_tests.step);
 
     const hvc_console_survey_step = b.step(
@@ -228,11 +242,13 @@ pub fn build(b: *std.Build) void {
     fixture = {
         "build_test_names": [
             "phase11-dw-wdt-remove-idle-split-tests",
+            "phase11-hvc-console-modem-control-split-tests",
             "phase11-hvc-console-poll-retry-split-tests",
             "phase11-hvc-console-survey-tests",
         ],
         "shared_test_depend_steps": [
             "run_phase11_dw_wdt_remove_idle_split_tests",
+            "run_phase11_hvc_console_modem_control_split_tests",
             "run_phase11_hvc_console_poll_retry_split_tests",
         ],
         "module_root_source_files": [
@@ -242,6 +258,10 @@ pub fn build(b: *std.Build) void {
                 "path": "phase11_dw_wdt_remove_idle_split.zig",
             },
             {"module": "hvc_console_module", "path": "../../drivers/tty/hvc/hvc_console.zig"},
+            {
+                "module": "phase11_hvc_console_modem_control_split_module",
+                "path": "phase11_hvc_console_modem_control_split.zig",
+            },
             {
                 "module": "phase11_hvc_console_poll_retry_split_module",
                 "path": "phase11_hvc_console_poll_retry_split.zig",
@@ -254,6 +274,11 @@ pub fn build(b: *std.Build) void {
                 "imported_module": "dw_wdt_module",
             },
             {
+                "module": "phase11_hvc_console_modem_control_split_module",
+                "import_name": "hvc_console",
+                "imported_module": "hvc_console_module",
+            },
+            {
                 "module": "phase11_hvc_console_poll_retry_split_module",
                 "import_name": "hvc_console",
                 "imported_module": "hvc_console_module",
@@ -263,6 +288,10 @@ pub fn build(b: *std.Build) void {
             {
                 "test": "phase11-dw-wdt-remove-idle-split-tests",
                 "root_module": "phase11_dw_wdt_remove_idle_split_module",
+            },
+            {
+                "test": "phase11-hvc-console-modem-control-split-tests",
+                "root_module": "phase11_hvc_console_modem_control_split_module",
             },
             {
                 "test": "phase11-hvc-console-poll-retry-split-tests",
@@ -279,6 +308,10 @@ pub fn build(b: *std.Build) void {
             {
                 "test": "phase11-dw-wdt-remove-idle-split-tests",
                 "path": "zigux/tests/phase11_dw_wdt_remove_idle_split.zig",
+            },
+            {
+                "test": "phase11-hvc-console-modem-control-split-tests",
+                "path": "zigux/tests/phase11_hvc_console_modem_control_split.zig",
             },
             {
                 "test": "phase11-hvc-console-poll-retry-split-tests",
@@ -324,6 +357,7 @@ if __name__ == \"__main__\":
         "drivers/watchdog/dw_wdt.zig",
         "drivers/tty/hvc/hvc_console.zig",
         "zigux/tests/phase11_dw_wdt_remove_idle_split.zig",
+        "zigux/tests/phase11_hvc_console_modem_control_split.zig",
         "zigux/tests/phase11_hvc_console_poll_retry_split.zig",
     ]:
         write_text(root / rel_path, "// self-test placeholder\n")
@@ -410,6 +444,16 @@ def run_self_test() -> int:
             "phase11_dw_wdt_remove_idle_split_module:phase11_dw_wdt_remove_idle_split.zig",
         )
         write_text(dw_split, dw_backup)
+
+        hvc_modem_split = tmp_root / "zigux/tests/phase11_hvc_console_modem_control_split.zig"
+        hvc_modem_backup = hvc_modem_split.read_text(encoding="utf-8")
+        hvc_modem_split.unlink()
+        expect_missing_root(
+            "missing_hvc_modem_split",
+            tmp_root,
+            "phase11_hvc_console_modem_control_split_module:phase11_hvc_console_modem_control_split.zig",
+        )
+        write_text(hvc_modem_split, hvc_modem_backup)
 
         hvc_split = tmp_root / "zigux/tests/phase11_hvc_console_poll_retry_split.zig"
         hvc_backup = hvc_split.read_text(encoding="utf-8")
@@ -498,7 +542,7 @@ def run_self_test() -> int:
         fixture_path.write_text(fixture_backup, encoding="utf-8")
 
     print("PHASE11_BUILD_INVENTORY_SELF_TEST=pass")
-    print("PHASE11_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=8")
+    print("PHASE11_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
