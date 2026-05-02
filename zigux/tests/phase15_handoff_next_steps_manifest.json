@@ -20,6 +20,7 @@
     "phase15_make_target_present": true,
     "shared_ci_phase15_present": true,
     "docs_index_handoff_pointer_present": true,
+    "docs_root_reviewability_guard_present": true,
     "phase15_replay_green_on_current_master": true,
     "docs_root_phase15_summary_aligned": false,
     "deep_core_status_change_ready": false
