@@ -34,7 +34,7 @@ Current repo evidence:
 - dedicated tests: `zigux/tests/phase13_libfs.zig`
 - reviewability gate: `zigux/tests/phase13_libfs_reviewability.zig`
 - manifest: `zigux/tests/phase13_libfs_manifest.json`
-- manifest `surveyed_commit`: `ba15a15ff4f0becd063b9b12aeea73df5307e6ef`
+- manifest `surveyed_commit`: `949994db4046ec70abf044d1b2ea874fde9bc4a6`
 - shared build entry: `zigux/tests/phase13_build.zig`
 - slice notes: `Documentation/zigux/phase13-libfs-slice.md`
 - survey note: `Documentation/zigux/phase13-libfs-survey.md`
@@ -45,11 +45,12 @@ Current lane state recorded in the manifest:
 - landed `phase13-libfs-dcache-cursor-preconditions`
 - landed `phase13-libfs-dcache-cursor-reposition-bookkeeping`
 - landed `phase13-libfs-dcache-dir-close-release-bookkeeping`
+- landed `phase13-libfs-simple-open-private-data-planning`
 - blocked `phase13-libfs-dcache-cursor-helpers`
 - blocked `phase13-libfs-inode-and-pseudofs-lifecycle`
 
 Traceability summary:
-- this anchor stays roadmap-aligned and manifest-backed, and the helper packet now includes the tiny `dcache_dir_close()` release-bookkeeping boundary while still refusing to claim broader cursor traversal, inode lifecycle, or pseudo-filesystem ownership.
+- this anchor stays roadmap-aligned and manifest-backed, and the helper packet now includes the tiny `dcache_dir_close()` release-bookkeeping boundary plus the pure `simple_open()` private-data handoff while still refusing to claim broader cursor traversal, inode lifecycle, or pseudo-filesystem ownership.
 
 ### `lib/devres.c`
 
