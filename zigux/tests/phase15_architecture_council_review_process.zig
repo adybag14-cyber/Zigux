@@ -69,8 +69,8 @@ const Manifest = struct {
     gaps: []const Gap,
 };
 
-const expected_lane_key = "P15-L11";
-const expected_surveyed_commit = "7851ac1a82e206891f91e8d7c717ceacf7fbd3e1";
+const expected_lane_key = "P15-Y02";
+const expected_surveyed_commit = "9918b0c1a52d41b8d6ab609157d5cf795fd5cc3a";
 
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
@@ -231,6 +231,7 @@ test "phase 15 architecture council review-process note stays aligned with check
     );
     defer std.testing.allocator.free(docs_root);
 
+    try std.testing.expect(std.mem.indexOf(u8, review_process, "PHASE15_LANE_KEY=P15-Y02") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "## Trigger Conditions") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "## Required Review Packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "## Decision Buckets") != null);
