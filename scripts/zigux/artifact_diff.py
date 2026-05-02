@@ -131,6 +131,8 @@ def capture_emit_result(matched: bool, details: dict[str, object]) -> tuple[int,
 
 
 def run_self_test() -> int:
+    covered_cases: list[str] = []
+
     with tempfile.TemporaryDirectory(prefix='zigux_artifact_diff_') as tmp_dir_str:
         tmp_dir = Path(tmp_dir_str)
         text_a = tmp_dir / 'text-a.txt'
@@ -158,6 +160,7 @@ def run_self_test() -> int:
         exit_code, lines = capture_emit_result(matched, details)
         assert exit_code == 0
         assert lines == render_result_lines(matched, details)
+        covered_cases.append('text_pass')
 
         text_b.write_text('alpha\nBETA\n', encoding='utf-8', newline='\n')
         matched, details = compare_artifacts('text', text_a, text_b)
@@ -171,6 +174,7 @@ def run_self_test() -> int:
         exit_code, lines = capture_emit_result(matched, details)
         assert exit_code == 1
         assert lines == render_result_lines(matched, details)
+        covered_cases.append('text_mismatch')
 
         json_a.write_text('{"alpha": 1, "beta": [2, 3]}\n', encoding='utf-8', newline='\n')
         json_b.write_text('{\n  "beta": [2, 3],\n  "alpha": 1\n}\n', encoding='utf-8', newline='\n')
@@ -186,6 +190,7 @@ def run_self_test() -> int:
         exit_code, lines = capture_emit_result(matched, details)
         assert exit_code == 0
         assert lines == render_result_lines(matched, details)
+        covered_cases.append('json_pass')
 
         json_b.write_text('{"alpha": 1, "beta": [2, 4]}\n', encoding='utf-8', newline='\n')
         matched, details = compare_artifacts('json', json_a, json_b)
@@ -199,6 +204,7 @@ def run_self_test() -> int:
         exit_code, lines = capture_emit_result(matched, details)
         assert exit_code == 1
         assert lines == render_result_lines(matched, details)
+        covered_cases.append('json_mismatch')
 
         invalid_json.write_text('{"alpha": 1,\n', encoding='utf-8', newline='\n')
         matched, details = compare_artifacts('json', invalid_json, json_a)
@@ -215,6 +221,7 @@ def run_self_test() -> int:
         exit_code, lines = capture_emit_result(matched, details)
         assert exit_code == 1
         assert lines == render_result_lines(matched, details)
+        covered_cases.append('json_invalid_expected')
 
         matched, details = compare_artifacts('json', json_a, invalid_json)
         assert not matched
@@ -229,6 +236,7 @@ def run_self_test() -> int:
         exit_code, lines = capture_emit_result(matched, details)
         assert exit_code == 1
         assert lines == render_result_lines(matched, details)
+        covered_cases.append('json_invalid_actual')
 
         other_invalid_json.write_text('{"beta": [1,\n', encoding='utf-8', newline='\n')
         matched, details = compare_artifacts('json', invalid_json, other_invalid_json)
@@ -245,6 +253,7 @@ def run_self_test() -> int:
         exit_code, lines = capture_emit_result(matched, details)
         assert exit_code == 1
         assert lines == render_result_lines(matched, details)
+        covered_cases.append('json_invalid_both')
 
         blob_a.write_bytes(b'zigux-artifact-diff')
         blob_b.write_bytes(b'zigux-artifact-diff')
@@ -261,6 +270,7 @@ def run_self_test() -> int:
         exit_code, lines = capture_emit_result(matched, details)
         assert exit_code == 0
         assert lines == render_result_lines(matched, details)
+        covered_cases.append('sha256_pass')
 
         blob_b.write_bytes(b'zigux-artifact-DRIFT')
         matched, details = compare_artifacts('sha256', blob_a, blob_b)
@@ -277,6 +287,7 @@ def run_self_test() -> int:
         exit_code, lines = capture_emit_result(matched, details)
         assert exit_code == 1
         assert lines == render_result_lines(matched, details)
+        covered_cases.append('sha256_drift')
 
         matched, details = compare_artifacts('text', missing, text_a)
         assert not matched
@@ -293,6 +304,7 @@ def run_self_test() -> int:
         exit_code, lines = capture_emit_result(matched, details)
         assert exit_code == 1
         assert lines == render_result_lines(matched, details)
+        covered_cases.append('text_missing_expected')
 
         matched, details = compare_artifacts('text', text_a, missing)
         assert not matched
@@ -309,6 +321,7 @@ def run_self_test() -> int:
         exit_code, lines = capture_emit_result(matched, details)
         assert exit_code == 1
         assert lines == render_result_lines(matched, details)
+        covered_cases.append('text_missing_actual')
 
         matched, details = compare_artifacts('text', missing, other_missing)
         assert not matched
@@ -325,6 +338,24 @@ def run_self_test() -> int:
         exit_code, lines = capture_emit_result(matched, details)
         assert exit_code == 1
         assert lines == render_result_lines(matched, details)
+        covered_cases.append('text_missing_both')
+
+        matched, details = compare_artifacts('sha256', missing, blob_a)
+        assert not matched
+        assert details['expected_exists'] is False
+        assert details['actual_exists'] is True
+        assert render_result_lines(matched, details) == [
+            'ARTIFACT_DIFF=fail',
+            'MODE=sha256',
+            f'EXPECTED={missing}',
+            f'ACTUAL={blob_a}',
+            'EXPECTED_EXISTS=False',
+            'ACTUAL_EXISTS=True',
+        ]
+        exit_code, lines = capture_emit_result(matched, details)
+        assert exit_code == 1
+        assert lines == render_result_lines(matched, details)
+        covered_cases.append('sha256_missing_expected')
 
         matched, details = compare_artifacts('sha256', blob_a, missing)
         assert not matched
@@ -341,6 +372,7 @@ def run_self_test() -> int:
         exit_code, lines = capture_emit_result(matched, details)
         assert exit_code == 1
         assert lines == render_result_lines(matched, details)
+        covered_cases.append('sha256_missing_actual')
 
         matched, details = compare_artifacts('sha256', missing, other_missing)
         assert not matched
@@ -357,8 +389,11 @@ def run_self_test() -> int:
         exit_code, lines = capture_emit_result(matched, details)
         assert exit_code == 1
         assert lines == render_result_lines(matched, details)
+        covered_cases.append('sha256_missing_both')
 
     print('ARTIFACT_DIFF_SELF_TEST=pass')
+    print(f'ARTIFACT_DIFF_SELF_TEST_CASE_COUNT={len(covered_cases)}')
+    print('ARTIFACT_DIFF_SELF_TEST_CASES=' + ','.join(covered_cases))
     return 0
 
 
