@@ -11,11 +11,12 @@ The starter stays intentionally narrow:
 - adds a tiny probe-time summary for bootloader-carried running status, watchdog-core timeout and nowayout initialization, restart priority, stop-on-reboot setup, watchdog parent linkage, and system-power-controller eligibility
 - adds a tiny registration-facing handoff summary for watchdog registration intent plus poweroff-handler claim-vs-conflict outcomes
 - adds a tiny platform-registration and PM-base handoff summary for parent attachment, PM base availability, drvdata handoff readiness, register-device intent, and poweroff claim-vs-conflict reviewability
+- adds a tiny poweroff-path summary for shared system-poweroff callback ownership, Raspberry Pi halt-partition request bits, and the short restart arming sequence without claiming a live poweroff hook installation
 - adds a tiny remove-time teardown summary for devm-managed watchdog cleanup while clearing the shared poweroff handler only when the bcm2835 lane currently owns it
 - preserves the Raspberry Pi halt-partition state in the lab snapshot without claiming full poweroff plumbing
 
 This slice does not claim platform-driver registration, watchdog-core registration, MMIO access, delayed restart behavior, module parameter wiring beyond bookkeeping, live remove-time poweroff-handler release logic, or live poweroff integration yet.
 
-`Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md` now records the first bounded hardware-validation matrix for watchdog metadata, timeout conversion, probe-time bookkeeping, registration ownership, platform handoff prerequisites, and remove-time teardown scope without widening into live PM base or poweroff plumbing.
+`Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md` now records the first bounded hardware-validation matrix for watchdog metadata, timeout conversion, probe-time bookkeeping, registration ownership, platform handoff prerequisites, poweroff-path sequencing, and remove-time teardown scope without widening into live PM base or poweroff plumbing.
 
 The next honest bounded step inside the same Phase 11 family is no longer another note-only handoff. The remaining gap is a later hardware-facing decision about whether to model any live platform registration or PM base plumbing, and that should stay blocked until the lane carries an explicit validation plan for that wider behavior.
