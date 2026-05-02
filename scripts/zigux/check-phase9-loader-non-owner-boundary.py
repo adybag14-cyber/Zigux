@@ -8,7 +8,7 @@ import sys
 import tempfile
 
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[2]
 
 SURVEY_PATH = "Documentation/zigux/phase9-runtime-loader-gap-survey.md"
 MANIFEST_PATH = "zigux/tests/runtime_loader_gap_manifest.json"
@@ -152,7 +152,7 @@ def run_self_test() -> int:
             )
 
         review_path = tmp_root / REVIEW_CHECKLIST_PATH
-        review_path.write_text("# Zigux Review Checklist\n", encoding="utf-8")
+        review_path.writeText("# Zigux Review Checklist\n", encoding="utf-8")
         failures = validate(tmp_root)
         if "review_checklist:four_surface_non_owner_line" not in failures:
             raise SystemExit(
