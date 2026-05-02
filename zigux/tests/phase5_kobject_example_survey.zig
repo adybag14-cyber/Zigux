@@ -259,6 +259,14 @@ test "phase 5 kobject contributor docs stay aligned with the shipped review surf
     );
     defer std.testing.allocator.free(sample_root_readme);
 
+    const tests_readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/README.md",
+        std.testing.allocator,
+        .limited(review_doc_read_limit),
+    );
+    defer std.testing.allocator.free(tests_readme);
+
     const review_checklist = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/review-checklist.md",
@@ -322,6 +330,16 @@ test "phase 5 kobject contributor docs stay aligned with the shipped review surf
     try expectContains(sample_root_readme, "unnamed attribute-group shape");
     try expectContains(sample_root_readme, "initialized-only abandonment path");
     try expectContains(sample_root_readme, "runtime sysfs claim");
+
+    try expectContains(tests_readme, "zigux/tests/phase5_kobject_example.zig");
+    try expectContains(tests_readme, "zigux/tests/phase5_kobject_example_manifest.json");
+    try expectContains(tests_readme, "zigux/tests/phase5_kobject_example_survey.zig");
+    try expectContains(tests_readme, "scripts/zigux/validate-phase5.py");
+    try expectContains(tests_readme, "make -C zigux phase5-validate");
+    try expectContains(tests_readme, "zig test samples/zigux/kobject_example.zig");
+    try expectContains(tests_readme, "zig test zigux/tests/phase5_kobject_example_survey.zig");
+    try expectContains(tests_readme, "keep the current Phase 5 reference-sample packet reviewable through `zigux/tests/phase5_build.zig`");
+    try expectContains(tests_readme, "direct sample replays and paired survey replays explicit for every shipped Phase 5 family");
 
     try expectContains(review_checklist, "manifest-backed survey");
     try expectContains(review_checklist, "sample-backed survey note");
