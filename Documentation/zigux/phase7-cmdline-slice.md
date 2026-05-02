@@ -12,6 +12,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
   - `lib/cmdline.zig`
   - `zigux/tests/phase7_cmdline.zig`
   - `zigux/tests/phase7_cmdline_survey.zig`
+  - `zigux/tests/phase7_cmdline_manifest.json`
   - `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`
   - `zigux/tests/fixtures/phase7_cmdline.json`
   - `zigux/tests/fixtures/phase7_cmdline_c_harness.c`
@@ -25,6 +26,8 @@ Phase 7 explicitly calls out `lib/cmdline.c` as one of the first reusable in-ker
 This current slice keeps the work bounded to runtime-safe leaf helpers with explicit integration with validation substrate through `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-build-inventory.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, and `zigux/tests/phase7_build.zig`.
 
 The committed C parity replay through `scripts/zigux/check-phase7-cmdline-parity.py` stays coupled to that validation substrate so the helper-only slice remains externally reviewable.
+
+The manifest-backed survey packet stays rooted at `repo_root` through `zigux/tests/phase7_build.zig` so `zigux/tests/phase7_cmdline_manifest.json` remains a reviewable ownership record instead of a helper-local detail.
 
 This current slice therefore stays inside helpers that:
 
@@ -83,6 +86,7 @@ The current tests check:
 - committed C-vs-Zig parity for `parse_option_str()` now keeps that stop-at-NUL scan behavior in the checked JSON fixture instead of leaving it helper-local only
 - `parse_option_str()` empty-needle parity now mirrors the live C helper: empty option names only match empty segments at the start of the scan or between commas, while an empty source string or a purely trailing comma still return false
 - serialized `next_arg()` edge cases covering quoted values, quoted bare tokens, empty quoted values, unquoted punctuation-rich values, first-equals splitting, leading-equals sentinel handling, trailing-space trimming after `key=value`, and empty-rest termination
+- a machine-checked manifest that records the `lib/cmdline.c` anchor and the landed Phase 7 review surfaces
 
 Review note:
 - this slice intentionally follows `lib/cmdline.c` and its `simple_strtoull()` call sites, not the broader `kstrtoull()` family in `lib/kstrtox.c` that does accept a leading `+`
