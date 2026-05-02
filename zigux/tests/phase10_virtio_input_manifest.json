@@ -128,7 +128,7 @@
       "status": "blocked_on_risky_transport",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase10_virtio_input.zig",
-      "why_now": "Real event delivery, `input_register_device()` lifecycle coverage, freeze or restore behavior, and transport-backed queue callbacks remain too risky until the queue-callback preflight helper and broader queue callback plumbing are in place."
+      "why_now": "Real event delivery, `input_register_device()` lifecycle coverage, freeze or restore behavior, and transport-backed queue callbacks remain too risky even with the landed queue-callback preflight helper, so the packet stays blocked below registration lifecycle work."
     }
   ]
 }
