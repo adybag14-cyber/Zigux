@@ -33,6 +33,7 @@ pub const ModuleDescriptor = struct {
     provides_restrict_self_flag_planning: bool,
     provides_restrict_self_credential_handoff_planning: bool,
     provides_add_rule_planning: bool,
+    provides_rule_attr_copy_planning: bool,
     provides_ruleset_fd_planning: bool,
     provides_ruleset_fd_creation_planning: bool,
     provides_ruleset_fops_planning: bool,
@@ -180,6 +181,27 @@ pub const AddRulePlan = struct {
     port: ?u16 = null,
 };
 
+pub const RuleAttrKind = enum {
+    path_beneath,
+    net_port,
+};
+
+pub const RuleAttrCopyRequest = struct {
+    kind: RuleAttrKind,
+    attr_present: bool = true,
+    uncopied_bytes: usize = 0,
+};
+
+pub const RuleAttrCopyPlan = struct {
+    anchor: []const u8,
+    kind: RuleAttrKind,
+    copy_bytes: usize,
+    uses_copy_from_user: bool,
+    rejects_partial_copy: bool,
+    returns_bad_pointer_on_copy_failure: bool,
+    follows_with_empty_access_check: bool,
+};
+
 pub const RulesetFdKind = enum {
     ruleset,
     other,
@@ -295,6 +317,7 @@ pub const SyscallsHelperLab = struct {
             .provides_restrict_self_flag_planning = true,
             .provides_restrict_self_credential_handoff_planning = true,
             .provides_add_rule_planning = true,
+            .provides_rule_attr_copy_planning = true,
             .provides_ruleset_fd_planning = true,
             .provides_ruleset_fd_creation_planning = true,
             .provides_ruleset_fops_planning = true,
@@ -520,6 +543,28 @@ pub const SyscallsHelperLab = struct {
             },
             else => return error.InvalidRuleType,
         }
+    }
+
+    pub fn planCopyRuleAttr(request: RuleAttrCopyRequest) !RuleAttrCopyPlan {
+        if (!request.attr_present or request.uncopied_bytes != 0) {
+            return error.BadUserPointer;
+        }
+
+        const abi_shapes = reportAbiShapes();
+        const copy_bytes = switch (request.kind) {
+            .path_beneath => abi_shapes.path_beneath_attr_size,
+            .net_port => abi_shapes.net_port_attr_size,
+        };
+
+        return .{
+            .anchor = descriptor().anchor,
+            .kind = request.kind,
+            .copy_bytes = copy_bytes,
+            .uses_copy_from_user = true,
+            .rejects_partial_copy = true,
+            .returns_bad_pointer_on_copy_failure = true,
+            .follows_with_empty_access_check = true,
+        };
     }
 
     pub fn planGetRulesetFromFd(request: RulesetFdRequest) !RulesetFdPlan {
