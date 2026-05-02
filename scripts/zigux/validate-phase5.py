@@ -157,6 +157,9 @@ required_sample_root_markers = [
     "later `runtime_*` starters still stay cataloged separately from the approved Phase 5 anchors",
     "current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample",
     "current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample",
+    "runtime_trace_events.zig",
+    "sample-only blocked Phase 9 pilot",
+    "no shipped `samples/zigux/runtime_trace_events_loader.zig` yet",
     "zig test samples/zigux/bytestream_fifo.zig",
     "zig test samples/zigux/kobject_example.zig",
     "zig test samples/zigux/kretprobe_example.zig",
@@ -169,6 +172,7 @@ required_sample_root_markers = [
     "rg '/runtime_.*\\.zig$'",
     "rg '/.*string.*\\.zig$'",
     "rg '/.*cmdline.*\\.zig$'",
+    "rg -n \"runtime_trace_events\\.zig|runtime_trace_events_loader\\.zig|sample-only blocked Phase 9 pilot|no shipped samples/zigux/runtime_trace_events_loader.zig yet\"",
     "rg -n \"samples/zigux/\\\\*cmdline\\\\*|Phase 7 helper bundle|lib/cmdline.zig|phase7_cmdline.zig|phase7_build.zig\"",
     "python3 scripts/zigux/validate-phase7.py",
 ]
@@ -866,7 +870,7 @@ def run_self_test() -> int:
             return 1
 
         manifest["surveyed_commit"] = SELF_TEST_HEAD
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        manifest_path.writeText(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         note_text = note_path.read_text(encoding="utf-8")
         note_text = note_text.replace(
             manifest_expectations["phase5_trace_events_sample_manifest.json"]["survey_build_summary"],
@@ -968,6 +972,40 @@ def run_self_test() -> int:
 
         sample_root_path.write_text((ROOT / "samples/zigux/README.md").read_text(encoding="utf-8"), encoding="utf-8")
 
+        sample_root_text = sample_root_path.read_text(encoding="utf-8").replace(
+            "sample-only blocked Phase 9 pilot",
+            "later Phase 9 pilot",
+            1,
+        )
+        sample_root_path.write_text(sample_root_text, encoding="utf-8")
+        trace_events_runtime_boundary_result = validate_phase5(tmp_root)
+        if trace_events_runtime_boundary_result["ok"] or (
+            "sample_root_readme:missing:sample-only blocked Phase 9 pilot"
+            not in trace_events_runtime_boundary_result["missing"]
+        ):
+            print("PHASE5_VALIDATOR_SELF_TEST=fail")
+            print("PHASE5_VALIDATOR_SELF_TEST_REASON=sample-root-runtime-trace-events-boundary-gap")
+            return 1
+
+        sample_root_path.write_text((ROOT / "samples/zigux/README.md").read_text(encoding="utf-8"), encoding="utf-8")
+
+        sample_root_text = sample_root_path.read_text(encoding="utf-8").replace(
+            "no shipped `samples/zigux/runtime_trace_events_loader.zig` yet",
+            "loader follow-on remains deferred",
+            1,
+        )
+        sample_root_path.write_text(sample_root_text, encoding="utf-8")
+        trace_events_loader_boundary_result = validate_phase5(tmp_root)
+        if trace_events_loader_boundary_result["ok"] or (
+            "sample_root_readme:missing:no shipped `samples/zigux/runtime_trace_events_loader.zig` yet"
+            not in trace_events_loader_boundary_result["missing"]
+        ):
+            print("PHASE5_VALIDATOR_SELF_TEST=fail")
+            print("PHASE5_VALIDATOR_SELF_TEST_REASON=sample-root-runtime-trace-events-loader-gap")
+            return 1
+
+        sample_root_path.write_text((ROOT / "samples/zigux/README.md").read_text(encoding="utf-8"), encoding="utf-8")
+
         script_readme_path = tmp_root / "scripts/zigux/README.md"
         script_readme_text = script_readme_path.read_text(encoding="utf-8").replace(
             "`samples/zigux/runtime_bitmap.zig` plus `samples/zigux/runtime_bitmap_loader.zig` stay cataloged as the separate Phase 9 runtime bitmap survey packet rather than a fifth approved Phase 5 sample",
@@ -1019,7 +1057,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE5_VALIDATOR_SELF_TEST=pass")
-    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=10")
+    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
