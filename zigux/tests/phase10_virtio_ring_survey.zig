@@ -118,6 +118,8 @@ test "phase10 virtio ring survey manifest records the live queue-discipline pack
         try std.testing.expect(std.ascii.isHex(ch));
     }
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
+    try std.testing.expectEqualStrings("drivers/virtio/*.zig", manifest.roadmap_destinations[0]);
+    try std.testing.expectEqualStrings("zigux/helpers/", manifest.roadmap_destinations[1]);
     try std.testing.expect(manifest.survey_summary.virtio_ring_c_lines >= 3000);
     try std.testing.expectEqual(@as(usize, 4), manifest.survey_summary.preexisting_phase10_test_files);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_core_zig_present);
@@ -157,6 +159,12 @@ test "phase10 virtio ring survey manifest records the live queue-discipline pack
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "kernel/trace/ring_buffer.c") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/*.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/helpers/") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "boundary maps") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "concurrency audits") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "explicit stay-in-C decisions where warranted") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "wrapper-first or study-only posture") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "kernel/workqueue_bridge.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "kernel/trace/ring_buffer.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "it does not reopen `queue_setup_reset_paths`, `irq_parity`, `dma_paths`, `input_registration_lifecycle`, or `probe_remove_lifecycle`") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "config-window, config-write, and interrupt-ack helpers are already landed") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "leave this packet parked unless a future Phase 10 review can split `phase10-mmio-lifecycle-and-irq-paths` into a smaller transport-safe observation helper") != null);
