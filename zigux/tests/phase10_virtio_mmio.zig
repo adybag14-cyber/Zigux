@@ -11,6 +11,33 @@ test "phase10 virtio mmio descriptor stays anchored to virtio_mmio.c" {
     try std.testing.expect(!descriptor.touches_dma_paths);
 }
 
+test "phase10 virtio mmio snapshots transport identity without claiming probe parity" {
+    var window = virtio_mmio.VirtioMmioRegisterWindowLab.init(.{ 0, 0 }, 0);
+
+    var identity = window.deviceIdentitySummary();
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", identity.anchor);
+    try std.testing.expectEqual(@as(u32, virtio_mmio.expected_magic_value), identity.magic_value);
+    try std.testing.expectEqual(@as(u32, virtio_mmio.modern_transport_version), identity.version);
+    try std.testing.expectEqual(@as(u32, 0), identity.device_id);
+    try std.testing.expectEqual(@as(u32, 0), identity.vendor_id);
+    try std.testing.expect(identity.magic_matches);
+    try std.testing.expect(identity.version_supported);
+    try std.testing.expect(!identity.device_present);
+
+    identity = window.seedTransportIdentity(virtio_mmio.expected_magic_value, virtio_mmio.legacy_transport_version, 16, 0x554d4551);
+    try std.testing.expect(identity.magic_matches);
+    try std.testing.expect(identity.version_supported);
+    try std.testing.expect(identity.device_present);
+    try std.testing.expectEqual(@as(u32, 16), identity.device_id);
+    try std.testing.expectEqual(@as(u32, 0x554d4551), identity.vendor_id);
+
+    identity = window.seedTransportIdentity(0, 3, 0, 0x1234);
+    try std.testing.expect(!identity.magic_matches);
+    try std.testing.expect(!identity.version_supported);
+    try std.testing.expect(!identity.device_present);
+    try std.testing.expectEqual(@as(u32, 0x1234), identity.vendor_id);
+}
+
 test "phase10 virtio mmio selects feature pages and records driver feature writes" {
     var window = virtio_mmio.VirtioMmioRegisterWindowLab.init(.{ 0x89abcdef, 0x01234567 }, 7);
 
