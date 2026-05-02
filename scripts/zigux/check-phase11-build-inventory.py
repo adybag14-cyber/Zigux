@@ -65,9 +65,39 @@ def render_inventory() -> dict[str, object]:
     }
 
 
+def validate_module_root_paths_exist(inventory: dict[str, object]) -> list[str]:
+    missing: list[str] = []
+    module_roots = inventory.get("module_root_source_files")
+    if not isinstance(module_roots, list):
+        return ["phase11_build_inventory:module_root_source_files"]
+
+    build_dir = BUILD_PATH.parent
+    for item in module_roots:
+        if not isinstance(item, dict):
+            missing.append("phase11_build_inventory:module_root_source_files:item")
+            continue
+        module_name = item.get("module")
+        root_path = item.get("path")
+        if not isinstance(module_name, str) or not isinstance(root_path, str):
+            missing.append("phase11_build_inventory:module_root_source_files:shape")
+            continue
+        if not (build_dir / root_path).exists():
+            missing.append(f"{module_name}:{root_path}")
+    return missing
+
+
 def main() -> int:
     _ = load_json(FIXTURE_PATH)
     generated = render_inventory()
+    missing_module_roots = validate_module_root_paths_exist(generated)
+
+    if missing_module_roots:
+        print("PHASE11_BUILD_INVENTORY=fail")
+        print("PHASE11_BUILD_INVENTORY_MISSING_MODULE_ROOTS_START")
+        for item in missing_module_roots:
+            print(item)
+        print("PHASE11_BUILD_INVENTORY_MISSING_MODULE_ROOTS_END")
+        return 1
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase11_inventory_") as tmp_dir_str:
         actual_path = Path(tmp_dir_str) / "phase11_build_inventory.json"
