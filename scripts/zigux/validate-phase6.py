@@ -653,10 +653,10 @@ def run_self_test() -> int:
 
             build_self_test_tree(root)
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-            manifest["determinism_evidence"]["generated_fixture_artifacts_committed"] = True
+            manifest["determinism_evidence"]["checksum"]["c_parity_cases"] = 21
             manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-            if "manifest:determinism_evidence:generated_fixture_artifacts_committed" not in validate_phase6(root)["missing"]:
-                raise AssertionError("missing generated fixture flag failure")
+            if "manifest:determinism_evidence:checksum" not in validate_phase6(root)["missing"]:
+                raise AssertionError("missing checksum determinism evidence failure")
     except AssertionError as exc:
         print("PHASE6_VALIDATOR_SELF_TEST=fail")
         print(f"PHASE6_VALIDATOR_SELF_TEST_REASON={exc}")
