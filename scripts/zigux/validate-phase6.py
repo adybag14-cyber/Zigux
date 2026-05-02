@@ -15,13 +15,24 @@ HEX40 = re.compile(r"^[0-9a-f]{40}$")
 SELF_TEST_HEAD = "0123456789abcdef0123456789abcdef01234567"
 SELF_TEST_MUTATED_HEAD = "fedcba9876543210fedcba9876543210fedcba98"
 
-REQUIRED_FILES = [
+EXPECTED_SHARED_GATES = [
+    "zigux/tests/phase6_build.zig",
+    "zigux/Makefile",
     "scripts/zigux/validate-phase6.py",
+    ".github/workflows/zigux-bootstrap.yml",
+    "Documentation/zigux/README.md",
+    "Documentation/zigux/phase6-helper-parity-catalog.md",
+    "Documentation/zigux/phase6-perf-gate-survey.md",
+    "scripts/zigux/README.md",
+    "zigux/tests/README.md",
+    "zigux/tests/phase6_helper_parity_manifest.json",
+]
+
+REQUIRED_FILES = [
+    *EXPECTED_SHARED_GATES,
     "scripts/zigux/check-phase6-base64-c-parity.py",
     "scripts/zigux/check-phase6-bsearch-c-parity.py",
     "scripts/zigux/check-phase6-checksum-c-parity.py",
-    "Documentation/zigux/phase6-helper-parity-catalog.md",
-    "Documentation/zigux/phase6-perf-gate-survey.md",
     "Documentation/zigux/phase6-base64-slice.md",
     "Documentation/zigux/phase6-bsearch-slice.md",
     "Documentation/zigux/phase6-checksum-slice.md",
@@ -34,8 +45,6 @@ REQUIRED_FILES = [
     "zigux/tests/fixtures/phase6_checksum_c_harness.c",
     "zigux/tests/fixtures/phase6_checksum_vectors.zig",
     "zigux/tests/fixtures/phase6_hexdump_vectors.zig",
-    "zigux/tests/phase6_helper_parity_manifest.json",
-    "zigux/Makefile",
 ]
 
 MAKE_MARKERS = [
@@ -67,6 +76,36 @@ PERF_SURVEY_MARKERS = [
     "max_slowdown_pct = 175",
     "max_slowdown_pct = 550",
     "max_slowdown_pct = 600",
+]
+
+SCRIPTS_README_MARKERS = [
+    "validate-phase6.py keeps the shipped Phase 6 leaf-helper packet aligned across `scripts/zigux/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/phase6-helper-parity-catalog.md`, `zigux/tests/phase6_helper_parity_manifest.json`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, the bootstrap workflow, and the four helper-local slice notes before any shared replay claims stay green.",
+    "`validate-phase6.py --self-test` exercises the shared Phase 6 marker walk in a compact synthetic tree and fails if catalog-head provenance, script-README wording, perf-survey markers, shared-gates inventory, manifest `surveyed_commit`, or helper-local determinism evidence drifts.",
+]
+
+DOCS_ROOT_MARKERS = [
+    "`Documentation/zigux/phase6-base64-slice.md`, `Documentation/zigux/phase6-bsearch-slice.md`, `Documentation/zigux/phase6-checksum-slice.md`, `Documentation/zigux/phase6-hexdump-slice.md`, and `Documentation/zigux/phase6-helper-parity-catalog.md` are the current shared notes for the bounded `lib/base64.zig`, `lib/bsearch.zig`, `lib/checksum.zig`, and `lib/hexdump.zig` leaf-helper packet.",
+    "`python3 scripts/zigux/validate-phase6.py`, `make -C zigux phase6-validate`, and `make -C zigux phase6` are the published validator-first shared replay path for the current Phase 6 helper tranche.",
+]
+
+TESTS_README_MARKERS = [
+    "- `zigux/tests/phase6_build.zig`",
+    "- `zigux/tests/phase6_helper_parity_manifest.json`",
+    "- `scripts/zigux/validate-phase6.py`",
+    "refresh `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, and `zigux/tests/phase6_helper_parity_manifest.json` whenever the shipped Phase 6 helper inventory, perf entrypoints, fixtures, or shared slice notes change",
+]
+
+WORKFLOW_MARKERS = [
+    "run: make -C zigux phase6-validate",
+    "run: zig build test --build-file zigux/tests/phase6_build.zig --summary all",
+]
+
+PHASE6_BUILD_MARKERS = [
+    '.name = "phase6-base64-tests"',
+    '.name = "phase6-bsearch-tests"',
+    '.name = "phase6-checksum-tests"',
+    '.name = "phase6-hexdump-tests"',
+    'const perf_step = b.step("perf", "Run the Phase 6 leaf helper performance sanity harnesses");',
 ]
 
 BASE64_PERF_MARKERS = [
@@ -128,6 +167,7 @@ EXPECTED_MANIFEST = {
         "lib/checksum.c",
         "lib/hexdump.c",
     ],
+    "shared_gates": EXPECTED_SHARED_GATES,
     "perf_posture": {
         "relative_slowdown_helpers": ["base64", "checksum", "hexdump"],
         "comparison_budget_helpers": ["bsearch"],
@@ -278,6 +318,11 @@ def validate_phase6(root: Path) -> dict[str, object]:
     missing: list[str] = []
     require_markers(missing, "catalog", catalog, CATALOG_MARKERS)
     require_markers(missing, "perf_survey", text(root, "Documentation/zigux/phase6-perf-gate-survey.md"), PERF_SURVEY_MARKERS)
+    require_markers(missing, "scripts_readme", text(root, "scripts/zigux/README.md"), SCRIPTS_README_MARKERS)
+    require_markers(missing, "docs_root", text(root, "Documentation/zigux/README.md"), DOCS_ROOT_MARKERS)
+    require_markers(missing, "tests_readme", text(root, "zigux/tests/README.md"), TESTS_README_MARKERS)
+    require_markers(missing, "workflow", text(root, ".github/workflows/zigux-bootstrap.yml"), WORKFLOW_MARKERS)
+    require_markers(missing, "phase6_build", text(root, "zigux/tests/phase6_build.zig"), PHASE6_BUILD_MARKERS)
     require_markers(missing, "base64_perf", text(root, "zigux/tests/phase6_base64_perf.zig"), BASE64_PERF_MARKERS)
     require_markers(missing, "bsearch_perf", text(root, "zigux/tests/phase6_bsearch_perf.zig"), BSEARCH_PERF_MARKERS)
     require_markers(missing, "checksum_perf", text(root, "zigux/tests/phase6_checksum_perf.zig"), CHECKSUM_PERF_MARKERS)
@@ -340,6 +385,11 @@ def build_self_test_tree(root: Path) -> None:
         write(root, path, "placeholder\n")
     write(root, "Documentation/zigux/phase6-helper-parity-catalog.md", "\n".join([f"# x", f"- verified head: `{SELF_TEST_HEAD}`", *CATALOG_MARKERS]) + "\n")
     write(root, "Documentation/zigux/phase6-perf-gate-survey.md", "\n".join(PERF_SURVEY_MARKERS) + "\n")
+    write(root, "scripts/zigux/README.md", "\n".join(SCRIPTS_README_MARKERS) + "\n")
+    write(root, "Documentation/zigux/README.md", "\n".join(DOCS_ROOT_MARKERS) + "\n")
+    write(root, "zigux/tests/README.md", "\n".join(TESTS_README_MARKERS) + "\n")
+    write(root, ".github/workflows/zigux-bootstrap.yml", "\n".join(WORKFLOW_MARKERS) + "\n")
+    write(root, "zigux/tests/phase6_build.zig", "\n".join(PHASE6_BUILD_MARKERS) + "\n")
     write(root, "zigux/tests/phase6_base64_perf.zig", "\n".join(BASE64_PERF_MARKERS) + "\n")
     write(root, "zigux/tests/phase6_bsearch_perf.zig", "\n".join(BSEARCH_PERF_MARKERS) + "\n")
     write(root, "zigux/tests/phase6_checksum_perf.zig", "\n".join(CHECKSUM_PERF_MARKERS) + "\n")
@@ -425,50 +475,41 @@ def run_self_test() -> int:
                 raise AssertionError("missing checksum threshold failure")
 
             build_self_test_tree(root)
-            hexdump_vectors = root / "zigux/tests/fixtures/phase6_hexdump_vectors.zig"
-            hexdump_vectors.write_text("", encoding="utf-8")
-            if "hexdump_vectors:missing:.{ .label = \"16B-ascii-g8\", .len = 16, .rowsize = 16, .groupsize = 8, .ascii = true, .reps = 20_000, .max_slowdown_pct = 600 }," not in validate_phase6(root)["missing"]:
-                raise AssertionError("missing hexdump threshold failure")
+            scripts_readme = root / "scripts/zigux/README.md"
+            scripts_readme.write_text(scripts_readme.read_text(encoding="utf-8").replace(SCRIPTS_README_MARKERS[0], "", 1), encoding="utf-8")
+            if f"scripts_readme:missing:{SCRIPTS_README_MARKERS[0]}" not in validate_phase6(root)["missing"]:
+                raise AssertionError("missing scripts README marker failure")
 
             build_self_test_tree(root)
-            parity_script = root / "scripts/zigux/check-phase6-checksum-c-parity.py"
-            parity_script.write_text("", encoding="utf-8")
-            if "checksum_parity_script:missing:print(\"PHASE6_CHECKSUM_C_PARITY_CASES={len(c_lines)}\")" in validate_phase6(root)["missing"]:
-                raise AssertionError("impossible marker typo")
+            docs_root = root / "Documentation/zigux/README.md"
+            docs_root.write_text(docs_root.read_text(encoding="utf-8").replace(DOCS_ROOT_MARKERS[0], "", 1), encoding="utf-8")
+            if f"docs_root:missing:{DOCS_ROOT_MARKERS[0]}" not in validate_phase6(root)["missing"]:
+                raise AssertionError("missing docs root marker failure")
 
             build_self_test_tree(root)
-            parity_script = root / "scripts/zigux/check-phase6-checksum-c-parity.py"
-            parity_script.write_text('print("PHASE6_CHECKSUM_C_PARITY_SELF_TEST=pass")\n', encoding="utf-8")
-            if 'checksum_parity_script:missing:print(f"PHASE6_CHECKSUM_C_PARITY_CASES={len(c_lines)}")' not in validate_phase6(root)["missing"]:
-                raise AssertionError("missing checksum parity script failure")
+            tests_readme = root / "zigux/tests/README.md"
+            tests_readme.write_text(tests_readme.read_text(encoding="utf-8").replace(TESTS_README_MARKERS[3], "", 1), encoding="utf-8")
+            if f"tests_readme:missing:{TESTS_README_MARKERS[3]}" not in validate_phase6(root)["missing"]:
+                raise AssertionError("missing tests README marker failure")
 
             build_self_test_tree(root)
-            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-            manifest["determinism_evidence"]["checksum"]["c_parity_cases"] = 14
-            manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-            if "manifest:determinism_evidence:checksum" not in validate_phase6(root)["missing"]:
-                raise AssertionError("missing checksum determinism failure")
+            workflow = root / ".github/workflows/zigux-bootstrap.yml"
+            workflow.write_text(workflow.read_text(encoding="utf-8").replace(WORKFLOW_MARKERS[0], "", 1), encoding="utf-8")
+            if f"workflow:missing:{WORKFLOW_MARKERS[0]}" not in validate_phase6(root)["missing"]:
+                raise AssertionError("missing workflow marker failure")
 
             build_self_test_tree(root)
-            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-            manifest["helpers"][2]["tests"] = ["zigux/tests/phase6_checksum.zig"]
-            manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-            if "manifest:helpers:checksum:tests" not in validate_phase6(root)["missing"]:
-                raise AssertionError("missing checksum helper test inventory failure")
-
-            build_self_test_tree(root)
-            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-            manifest["helpers"][2]["fixtures"] = ["zigux/tests/fixtures/phase6_checksum_vectors.zig"]
-            manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-            if "manifest:helpers:checksum:fixtures" not in validate_phase6(root)["missing"]:
-                raise AssertionError("missing checksum helper fixture inventory failure")
+            phase6_build = root / "zigux/tests/phase6_build.zig"
+            phase6_build.write_text(phase6_build.read_text(encoding="utf-8").replace(PHASE6_BUILD_MARKERS[4], "", 1), encoding="utf-8")
+            if f"phase6_build:missing:{PHASE6_BUILD_MARKERS[4]}" not in validate_phase6(root)["missing"]:
+                raise AssertionError("missing phase6 build marker failure")
 
             build_self_test_tree(root)
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-            manifest["helpers"][2]["external_parity"] = "python3 scripts/zigux/check-phase6-bsearch-c-parity.py"
+            manifest["shared_gates"] = manifest["shared_gates"][:-1]
             manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-            if "manifest:helpers:checksum:external_parity" not in validate_phase6(root)["missing"]:
-                raise AssertionError("missing checksum helper external parity failure")
+            if "manifest:shared_gates" not in validate_phase6(root)["missing"]:
+                raise AssertionError("missing shared gates manifest failure")
 
             build_self_test_tree(root)
             bad_catalog = root / "Documentation/zigux/phase6-helper-parity-catalog.md"
