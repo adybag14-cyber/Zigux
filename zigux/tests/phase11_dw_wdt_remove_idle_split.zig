@@ -56,3 +56,27 @@ test "phase11 dw_wdt keeps idle remove-time pending interrupts distinct when res
     try std.testing.expect(!reset_available_quiet_summary.remove_preserves_running_marker_without_reset);
     try std.testing.expect(!reset_available_quiet_summary.remove_preserves_pending_interrupt_without_reset);
 }
+
+test "phase11 dw_wdt keeps the minimum normal timeout distinct from restart arming" {
+    var watchdog = try dw_wdt.DwWdtLab.initFixedTops(65_536, false);
+    const config = try watchdog.setTimeout(1);
+    try std.testing.expectEqual(@as(u32, 1), config.timeout_sec);
+    try std.testing.expectEqual(@as(u32, 0), config.pretimeout_sec);
+
+    const shortest_timeout = try watchdog.start();
+    try std.testing.expect(shortest_timeout.running);
+    try std.testing.expectEqual(@as(u32, 0), shortest_timeout.registers.timeout_range);
+    try std.testing.expect(!shortest_timeout.restart_armed);
+
+    const imported_shortest_timeout = watchdog.loadRegisters(.{
+        .control = dw_wdt.control_reg_wdt_en_mask,
+        .timeout_range = 0,
+    });
+    try std.testing.expect(imported_shortest_timeout.running);
+    try std.testing.expectEqual(@as(u32, 0), imported_shortest_timeout.registers.timeout_range);
+    try std.testing.expect(!imported_shortest_timeout.restart_armed);
+
+    const restart_runtime = watchdog.armRestart();
+    try std.testing.expect(restart_runtime.running);
+    try std.testing.expect(restart_runtime.restart_armed);
+}
