@@ -654,6 +654,7 @@ required_closure_markers = [
     'genksyms bridge rejects reference lists beyond the bounded C harness limit',
     'PHASE2_KCONFIG_BRIDGE_SELF_TEST=python3 scripts/zigux/check-kconfig-bridge.py --self-test',
     'PHASE2_KCONFIG_BRIDGE_GATE=python3 scripts/zigux/check-kconfig-bridge.py',
+    'PHASE2_KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=6',
     'PHASE2_KCONFIG_BRIDGE_DETERMINISM=check-kconfig-bridge.py replays conf and confdata outputs twice and compares a rebuilt confdata binary against the same JSON artifacts',
     'conf bridge emits allconfig env for allconfig family modes',
     'conf bridge requires mode arg for defconfig modes',
@@ -731,7 +732,6 @@ required_readme_markers = [
     'check-genksyms-bridge.py',
     'check-genksyms-crc-diff.py',
     'check-kconfig-bridge.py --self-test',
-    'check-kconfig-bridge.py',
     'check-phase2-cross.py --self-test',
     'duplicate tool entries',
     'check-mk-elfconfig-diff.py',
@@ -812,7 +812,7 @@ for rel in tool_manifest_tools:
 
 if targets_manifest.get('phase') != 'Phase 2':
     missing_markers.append('targets:phase=Phase 2')
-if targets_manifest.get('status') != 'closed':
+if targets_manifest.get('status') != EXPECTED_STATUS:
     missing_markers.append('targets:status=closed')
 if targets_manifest.get('target_count') != 3:
     missing_markers.append('targets:target_count=3')
