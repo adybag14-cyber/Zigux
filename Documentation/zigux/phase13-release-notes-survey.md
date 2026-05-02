@@ -8,7 +8,7 @@ This document records the current release-discipline reading for the active Phas
 - `PHASE13_TRANCHE=shared-helper-bundle`
 - `PHASE13_RELEASE_SURVEY=present`
 - `PHASE13_RELEASE_VALIDATOR=present`
-- scope: roadmap traceability, shared helper replay entrypoints, the four manifest-backed survey packets already present on `master`, the adjacent notifier-list reviewability packet plus its landed read-only generic notifier foothold, and the explicit helper-only `devres` DMA/scatterlist boundary
+- scope: roadmap traceability, shared helper replay entrypoints, the four manifest-backed survey packets already present on `master`, the adjacent notifier-list reviewability packet plus its landed read-only generic notifier foothold, and the explicit helper-only `devres` DMA/scatterlist boundary plus its adjacent coherent DMA replay
 - product boundary:
   - `scripts/zigux/validate-phase13-release.py`
   - `scripts/zigux/README.md`
@@ -34,6 +34,8 @@ This document records the current release-discipline reading for the active Phas
   - `zigux/tests/phase13_landlock_syscalls_manifest.json`
   - `zigux/tests/phase13_notifier_list_manifest.json`
   - `zigux/tests/phase13_libfs_reviewability.zig`
+  - `zigux/tests/phase13_devres.zig`
+  - `zigux/tests/phase13_devres_dma_coherent.zig`
   - `zigux/tests/phase13_devres_reviewability.zig`
   - `zigux/tests/phase13_notifier_list_reviewability.zig`
   - `zigux/bindings/notifier_abi.zig`
@@ -57,7 +59,7 @@ What this record needs to say, in one place, is how to read that bundle today:
 - the shared bootstrap workflow mirrors that same validator-first release path through `Validate Phase 13 release-discipline packet` and `Run Phase 13 shared helper tests`, so release-facing reviewability is not hidden only in local commands
 - the validator helper itself is part of the published evidence packet through `scripts/zigux/README.md`, so the fast-check contract is documented alongside the release note instead of living only in the script and workflow wiring
 - `libfs`, `devres`, `landlock/ruleset`, and `landlock/syscalls` all already have manifest-backed survey packets
-- the shared release packet now needs to say plainly that `devres` is manifest-backed while still blocking live DMA-backed mappings and scatterlist ownership
+- the shared release packet now needs to say plainly that `devres` is manifest-backed while still blocking live DMA-backed mappings and scatterlist ownership, and that the adjacent coherent DMA replay is part of the shared build without turning that blocked boundary into a live DMA-backed mapping claim
 
 This survey keeps that release reading aligned without inventing new helper progress.
 
@@ -70,6 +72,7 @@ The current Phase 13 release-facing reading is:
 - `security/landlock/ruleset.c`: helper slice landed, dedicated tests present, roadmap traceability present, manifest-backed survey present
 - `security/landlock/syscalls.c`: helper slice landed, dedicated tests present, roadmap traceability present, manifest-backed survey present
 - the shared bootstrap workflow replays the same validator-plus-build contract through `Validate Phase 13 release-discipline packet` and `Run Phase 13 shared helper tests`
+- the shared replay now also keeps the adjacent helper-first coherent DMA alloc/free bookkeeping replay visible through `phase13-devres-dma-coherent-tests` without turning the blocked devres DMA/scatterlist boundary into a live DMA-backed mapping claim
 - the adjacent notifier-list packet now stays visible as roadmap-adjacent release evidence, and its shared replay surface includes the landed read-only generic notifier foothold through `zigux/bindings/notifier_abi.zig` and `zigux/helpers/notifier_chain_view.zig`
 
 - `PHASE13_ROADMAP_ANCHOR_COUNT=4`
@@ -79,7 +82,7 @@ The current Phase 13 release-facing reading is:
 - `PHASE13_VALIDATE_ENTRYPOINT=make -C zigux phase13-validate`
 - `PHASE13_SHARED_BUILD_PRESENT=yes`
 - `PHASE13_SHARED_MAKE_TARGET_PRESENT=yes`
-- `PHASE13_SHARED_REPLAY_STEP_COUNT=8`
+- `PHASE13_SHARED_REPLAY_STEP_COUNT=9`
 - `PHASE13_RELEASE_CLOSED=no`
 
 The current release packet also carries one active Phase 13 boundary reminder on `master`:
@@ -100,6 +103,7 @@ The current shared replay inventory is:
 
 - `phase13-libfs-tests`
 - `phase13-devres-tests`
+- `phase13-devres-dma-coherent-tests`
 - `phase13-landlock-ruleset-tests`
 - `phase13-landlock-syscalls-tests`
 - `phase13-libfs-reviewability-tests`
@@ -139,6 +143,7 @@ The current bounded release-evidence set is:
 - `zigux/tests/phase13_build.zig`
 - `zigux/tests/phase13_libfs.zig`
 - `zigux/tests/phase13_devres.zig`
+- `zigux/tests/phase13_devres_dma_coherent.zig`
 - `zigux/tests/phase13_landlock_ruleset.zig`
 - `zigux/tests/phase13_landlock_syscalls.zig`
 - `zigux/tests/phase13_libfs_reviewability.zig`
