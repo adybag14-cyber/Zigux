@@ -346,6 +346,17 @@ test "bitmap diff gate records exact bounded copy checks" {
     try expectClear(&anchor_dst, 19);
     try expectClear(&anchor_dst, bitmap_nbits - 1);
 
+    bitmap.setRange(&anchor_src, 19, 90);
+    // test_copy exact 1024-bit anchor replay for the first multi-word copy from the carried-forward partial destination in lib/test_bitmap.c
+    copyFrom(&anchor_dst, &anchor_src, bitmap_nbits);
+    try std.testing.expectEqual(@as(usize, 109), weight(&anchor_dst, bitmap_nbits));
+    try std.testing.expectEqual(@as(usize, 0), firstSet(&anchor_dst, bitmap_nbits));
+    try std.testing.expectEqual(@as(usize, 109), firstZero(&anchor_dst, bitmap_nbits));
+    try expectPrintedList(&anchor_dst, bitmap_nbits, "0-108");
+    try expectSet(&anchor_dst, 108);
+    try expectClear(&anchor_dst, 109);
+    try expectClear(&anchor_dst, bitmap_nbits - 1);
+
     bitmap.zero(&wide_src, bitmap_nbits);
     bitmap.zero(&wide_dst, bitmap_nbits);
     // test_copy full-width copy keeps an empty source empty from a cleared destination
