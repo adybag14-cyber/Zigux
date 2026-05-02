@@ -4,11 +4,11 @@ This document records the bounded Phase 15 governance lane around the Architectu
 
 ## Status
 
-- `PHASE15_LANE_KEY=P15-Y02`
+- `PHASE15_LANE_KEY=P15-L06`
 - `PHASE15_STATUS=review_process_slice_landed`
-- `PHASE15_SLICE=architecture-council-review-process-rollback-threshold-gate`
-- scope: one review-process note, one dedicated manifest and Zig test, and one bounded rollback-threshold field follow-up that keeps the explicit stay-in-C reopen threshold aligned with the freeze-map governance rule inside the same Architecture Council packet
-- survey provenance refreshed against verified `master` head `9918b0c1a52d41b8d6ab609157d5cf795fd5cc3a`
+- `PHASE15_SLICE=architecture-council-review-process-ownership-provenance-refresh`
+- scope: one review-process note, one dedicated manifest and Zig test, and one bounded ownership-and-provenance refresh that keeps the Architecture Council packet aligned with the current maintenance-mode Phase 15 governance handoff after neighboring packets already moved to newer lane identities and surveyed-head pins
+- survey provenance refreshed against verified `master` head `355b71d89807a217a6b7c405c996cbd623c48ca0`
 - product boundary:
   - `Documentation/zigux/phase15-architecture-council-review-process.md`
   - `Documentation/zigux/phase15-handoff-next-steps-survey.md`
@@ -114,7 +114,7 @@ If multiple triggers are cited together, each trigger's minimum evidence must st
 - roadmap handoff: the Architecture Council review process stays honest only while it remains visibly tied to the same Phase 15 governance bundle as the freeze map, parity scorecard, indefinite-C policy, shared replay gate, and parked maintenance-mode next step
 - bootstrap ledger anchor: `docs(zigux): add documentation root, review checklist, and freeze map`
 - current repo handoff: the original documentation-root and freeze-map landing is now carried forward by `Documentation/zigux/README.md`, this review-process note, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `zigux/tests/phase15_build.zig`, and `make -C zigux phase15`
-- current bounded lane: `P15-Y02` keeps the review-process packet narrowed to one same-packet follow-up inside the current parked maintenance-mode handoff packet by making rollback-threshold handling an explicit required Architecture Council request field so the freeze-map reopen rule stays reviewable beside the existing automatic return-to-blocked trigger while the shared replay entrypoints still match the parity scorecard, the anchor templates, and the current Phase 15 handoff survey on current `master`, without reopening nearby scorecard or indefinite-C policy maintenance
+- current bounded lane: `P15-L06` keeps the review-process packet narrowed to one same-packet ownership and provenance refresh by replacing stale lane markers and the older surveyed-head pin across the review-process note, manifest, and focused test so the Architecture Council handoff stays aligned with the current parked maintenance-mode Phase 15 packet and neighboring governance slices on current `master`, without reopening freeze-map, parity-scorecard, or indefinite-C policy maintenance
 - maintenance-mode next step: wait for one of the named reopen triggers, a shared Phase 15 replay drift, or the deep-core blocker posture to change before opening another Phase 15 slice
 
 ## Maintenance-Mode Handoff
@@ -146,8 +146,9 @@ The current lane state is:
 - landed `phase15-review-process-roadmap-handoff-evidence`
 - landed `phase15-review-process-reopen-evidence-matrix-gate`
 - landed `phase15-review-process-rollback-threshold-field-gate`
+- landed `phase15-review-process-lane-identity-provenance-refresh`
 
-This keeps the slice narrow. Zigux gains a reviewable Architecture Council process description that now points at the landed parity scorecard, aligns the required packet with the scorecard's decision-record fields, names the retained stay-in-C closeout state, standardizes the reopen-trigger catalog, requires refreshed ownership evidence when a packet reopens because ownership or validation changed, requires trigger-specific reopened evidence by path instead of trigger-name-only reopen requests, makes the automatic return-to-blocked trigger explicit in the review packet, promotes the rollback threshold from implied trigger wording to an explicit required request field, keeps the current roadmap phase and written rationale explicit in the shared checklist, keeps the roadmap and ledger provenance explicit in the same handoff surface, and states the current no-approval posture plainly, but it still does not claim a real council roster or any change to a freeze-map anchor status.
+This keeps the slice narrow. Zigux gains a reviewable Architecture Council process description that now points at the landed parity scorecard, aligns the required packet with the scorecard's decision-record fields, names the retained stay-in-C closeout state, standardizes the reopen-trigger catalog, requires refreshed ownership evidence when a packet reopens because ownership or validation changed, requires trigger-specific reopened evidence by path instead of trigger-name-only reopen requests, makes the automatic return-to-blocked trigger explicit in the review packet, promotes the rollback threshold from implied trigger wording to an explicit required request field, keeps the current roadmap phase and written rationale explicit in the shared checklist, keeps the roadmap and ledger provenance explicit in the same handoff surface, refreshes the packet's own lane identity and surveyed-head provenance so the note, manifest, and focused test stay aligned with current `master` and the neighboring Phase 15 governance packet family, and states the current no-approval posture plainly, but it still does not claim a real council roster or any change to a freeze-map anchor status.
 
 ## Non-goals
 
