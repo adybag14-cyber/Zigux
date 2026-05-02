@@ -105,25 +105,25 @@
       "surface": ".modinfo",
       "boundary_kind": "module_metadata",
       "status": "blocked_on_depmod_bridge",
-      "why_non_owner": "The current Phase 9 runtime pilot packet does not claim ELF module metadata parity, so `.modinfo` stays recorded only as a blocked boundary until a real depmod bridge exists."
+      "why_non_owner": "The current Phase 9 runtime pilot packet does not claim ELF module metadata parity, so `.modinfo` stays recorded only as an explicit blocked boundary until a real depmod bridge exists."
     },
     {
       "surface": "MODULE_ALIAS()",
       "boundary_kind": "module_alias",
       "status": "blocked_on_depmod_bridge",
-      "why_non_owner": "Alias declarations remain outside the current runtime starter packet because no live depmod bridge yet translates Phase 9 runtime evidence into published module-alias metadata."
+      "why_non_owner": "Alias declarations remain an explicit blocked boundary outside the current runtime starter packet because no live depmod bridge yet translates Phase 9 runtime evidence into published module-alias metadata."
     },
     {
       "surface": "modules.alias",
       "boundary_kind": "depmod_output",
       "status": "blocked_on_depmod_bridge",
-      "why_non_owner": "The shared runtime-loader packet still stops before depmod output generation, so `modules.alias` remains a named blocked boundary instead of implied runtime evidence."
+      "why_non_owner": "The shared runtime-loader packet still stops before depmod output generation, so `modules.alias` remains an explicit blocked boundary instead of implied runtime evidence."
     },
     {
       "surface": "scripts/depmod.sh",
       "boundary_kind": "depmod_bridge",
       "status": "blocked_on_depmod_bridge",
-      "why_non_owner": "The Phase 9 runtime pilot packet still has no shipped bridge into `scripts/depmod.sh`, so depmod replay and module catalog publication remain explicitly blocked."
+      "why_non_owner": "The Phase 9 runtime pilot packet still has no shipped bridge into `scripts/depmod.sh`, so depmod replay and module catalog publication remain an explicit blocked boundary instead of implied runtime evidence."
     }
   ],
   "delivery_evidence_catalog": [
@@ -225,7 +225,7 @@
     },
     {
       "surface": "zigux/kernel/runtime_loader.zig",
-      "owns": "shared request contract plus allocator, command-name, atomic64, bitmap, kretprobe, and init or exit handoff fields"
+      "owns": "shared request contract plus allocator, command-name, atomic64, bitmap, and init or exit handoff fields"
     },
     {
       "surface": "samples/zigux/runtime_atomic64_loader.zig",
