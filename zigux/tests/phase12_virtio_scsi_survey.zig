@@ -147,6 +147,7 @@ test "phase12 virtio_scsi survey manifest records the landed queue-depth summary
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "now also lands one tiny host-limit summary helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "adds one tiny queue-depth summary helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "now also blocks queue-depth capture until restore") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "repeated transport-reset cycle reuses only the newly replanned queue topology") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "keeps one bounded io-queue-map plus recovery-restore summary in memory") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "live `map_queues` callback or CPU-affinity wiring") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`scsi_host_alloc()`") != null);
@@ -177,6 +178,7 @@ test "phase12 virtio_scsi survey manifest records the landed queue-depth summary
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "ready-next `phase12-virtio-scsi-host-limit-summary-followup`") == null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "transport freeze or restore boundary") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "blocks queue-depth capture while transport is still frozen") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "second freeze or restore cycle uses the newly replanned topology") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "synthetic `can_queue`") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "`cmd_per_lun`") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "`nr_hw_queues`") != null);
@@ -330,6 +332,7 @@ test "phase12 virtio_scsi survey manifest records the landed queue-depth summary
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "poll-queue clamping") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "global virtqueue indexes") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "recovery generations") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "host-limit summary helper") != null);
         }
 
