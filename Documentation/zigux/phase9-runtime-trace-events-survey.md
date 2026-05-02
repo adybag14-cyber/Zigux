@@ -19,6 +19,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `sam
   - `zigux/tests/phase9_build.zig`
   - `Documentation/zigux/phase9-runtime-trace-events-survey.md`
   - `Documentation/zigux/phase9-runtime-trace-events-module-slice.md`
+  - `Documentation/zigux/review-checklist.md`
   - `Documentation/zigux/freeze-map.md`
 
 ## Why this slice exists
@@ -28,6 +29,8 @@ The Phase 9 roadmap explicitly names `samples/trace_events/trace-events-sample.c
 The live repo originally had no matching trace-events survey artifact, no dedicated `runtime_*` review gate, and no Zigux starter under `samples/zigux/`. That survey note now stays in place as the lane history and review anchor after the bounded starter sample, the blocked loader scaffold, and the focused module tests landed, so Phase 9 can keep recording what is shipped versus what still depends on the runtime substrate.
 
 The roadmap and the freeze map also keep an adjacent trace substrate boundary explicit: `kernel/trace/ring_buffer.c` remains `Study / Boundary Only` in `Documentation/zigux/freeze-map.md`. That means this lane may ship a bounded trace-events starter, a blocked loader scaffold, and survey evidence, but it must not imply ring-buffer parity, deep trace transport ownership, or any Architecture Council-approved status change for the frozen trace core.
+
+The same governance packet also treats `Documentation/zigux/review-checklist.md` as the review-side owner for the trace-core freeze-boundary prompt, so the `Study / Boundary Only` posture stays explicit in the review checklist beside the survey note, manifest, and freeze map instead of living only in one document.
 
 No parity scorecard entry or Architecture Council status-change request is attached to this Phase 9 lane. The evidence here is limited to keeping the study-only blocker explicit until a separate governance packet reopens that anchor.
 
@@ -48,6 +51,7 @@ No parity scorecard entry or Architecture Council status-change request is attac
 - the focused module, sample, and diff gates now prove the bounded replay counts, explicit per-thread event totals, replay run counters, payload literals, and failed-exit rollback proof through the summary surface, so the stable diagnostics view stays aligned with the concrete Linux-sample replay paths instead of drifting behind raw field access.
 - the bounded `samples/zigux/runtime_trace_events_loader.zig` scaffold now keeps the review-only `foo_bar_reg` and `foo_bar_unreg` labels, explicit `waiting_on_runtime_substrate` to `released_without_substrate` fallback, and pre-execution loader shape visible without claiming any shared runtime-loader binding or executable runtime substrate.
 - the manifest-backed review packet now also records an explicit sample path, the shared Phase 9 validation entrypoint, review prompts, a delivery_evidence_catalog, an ownership_map, exact checks, and non-goals so reviewers can tell which parts of the starter, blocked loader scaffold, paired module-slice note, and freeze-boundary packet are shipped contract versus still-blocked runtime substrate.
+- the review-side freeze-boundary packet also now keeps `Documentation/zigux/review-checklist.md` explicit beside `Documentation/zigux/freeze-map.md`, so the trace-core study boundary is carried by both the lane note and the shared review prompts instead of being implied through the freeze map alone.
 - the shared `zigux/tests/phase9_build.zig` bundle still avoids any trace-events loader test target, so the trace-events loader scaffold remains a loader-free blocker inside the shared build packet while runtime task ownership, polling and event-loop substrate, thread creation, and tracepoint-registration lifecycle wiring remain blocked.
 - the paired module-slice note now repeats that blocked loader-scaffold handoff explicitly so the dedicated docs cannot drift into implying a shared loader target or scheduler-facing substrate before the shared runtime handoff exists.
 - the same lane also stays under the freeze-map study boundary for `kernel/trace/ring_buffer.c`, so the shipped survey evidence must keep ring-buffer parity, trace transport ownership, and any freeze-map status change out of scope until the Architecture Council explicitly reopens that anchor.
@@ -66,6 +70,7 @@ The manifest-backed delivery packet now names which surface owns each part of th
 - `zigux/tests/phase9_build.zig` owns the shared Phase 9 runtime bundle entrypoint for the trace-events starter while the trace-events loader target stays absent
 - `Documentation/zigux/phase9-runtime-trace-events-survey.md` owns the lane history, recorded gaps, delivery ownership map, and bounded blocker posture for the survey packet
 - `Documentation/zigux/phase9-runtime-trace-events-module-slice.md` owns the landed starter surface summary, direct sample and diff gate posture, the blocked loader-scaffold restatement, and the paired header-side macro boundary note for `samples/trace_events/trace-events-sample.h`
+- `Documentation/zigux/review-checklist.md` owns the shared review prompt that keeps the `kernel/trace/ring_buffer.c` study boundary, the no-status-change posture, and the Architecture Council reopen rule explicit during review
 - `Documentation/zigux/freeze-map.md` owns the study-only `kernel/trace/ring_buffer.c` boundary and the Architecture Council reopen rule for trace-core status changes
 
 ## Recorded gaps
