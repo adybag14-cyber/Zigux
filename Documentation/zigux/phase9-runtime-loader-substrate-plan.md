@@ -15,6 +15,7 @@ This document captures the bounded Phase 9 follow-up after the landed atomic64, 
   - `samples/zigux/runtime_atomic64_loader.zig`
   - `samples/zigux/runtime_bitmap_loader.zig`
   - `samples/zigux/runtime_kretprobe_loader.zig`
+  - `samples/zigux/runtime_trace_events_loader.zig`
   - `zigux/tests/phase9_build.zig`
 
 ## Why this slice exists
@@ -96,8 +97,8 @@ That still leaves the broader control plane blocked. Any future non-null `comman
 The shared request surface also stays parked beneath the nearby freeze-map boundaries:
 
 - `Documentation/zigux/freeze-map.md` keeps `kernel/workqueue.c` in `Study / Boundary Only`, so this substrate note must not imply scheduler transport ownership, polling, event-loop behavior, or workqueue-parity progress.
-- `samples/zigux/runtime_trace_events.zig` remains the fourth Phase 9 pilot, but it stays intentionally sample-only while `samples/zigux/runtime_trace_events_loader.zig` is absent and `zigux/tests/runtime_trace_events_manifest.json` keeps the `runtime-trace-events-substrate-handoff` blocker explicit.
-- `Documentation/zigux/freeze-map.md` also keeps `kernel/trace/ring_buffer.c` in `Study / Boundary Only`, so tracepoint-registration lifecycle wiring, thread creation, and any future trace-events loader path remain blocked until that boundary is reopened with Architecture Council evidence.
+- `samples/zigux/runtime_trace_events.zig` remains the fourth Phase 9 pilot, and `samples/zigux/runtime_trace_events_loader.zig` now records a bounded pre-execution loader scaffold, but `zigux/tests/runtime_trace_events_manifest.json` still keeps the `runtime-trace-events-substrate-handoff` blocker explicit because the shared runtime substrate does not yet own tracepoint-registration execution, thread creation, or polling or event-loop wiring.
+- `Documentation/zigux/freeze-map.md` also keeps `kernel/trace/ring_buffer.c` in `Study / Boundary Only`, so tracepoint-registration lifecycle wiring, thread creation, and any future trace-events shared-request binding or live loader path remain blocked until that boundary is reopened with Architecture Council evidence.
 
 ## Gates
 
