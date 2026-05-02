@@ -117,10 +117,14 @@ test "phase13 notifier/list survey records the landed read-only generic notifier
     try std.testing.expect(std.mem.indexOf(u8, notifier_abi_text, "pub const RawNotifierHeadRef = extern struct") != null);
     try std.testing.expect(std.mem.indexOf(u8, notifier_abi_text, "pub const NotifierChainView = extern struct") != null);
     try std.testing.expect(std.mem.indexOf(u8, notifier_abi_text, "pub const NotifierChainSummary = extern struct") != null);
+    try std.testing.expect(std.mem.indexOf(u8, notifier_abi_text, "pub const NOTIFIER_CHAIN_FLAG_PRIORITY_NONINCREASING: u32 = 16;") != null);
     try std.testing.expect(std.mem.indexOf(u8, notifier_helper_text, "pub fn viewFromHead") != null);
     try std.testing.expect(std.mem.indexOf(u8, notifier_helper_text, "pub fn isEmpty") != null);
     try std.testing.expect(std.mem.indexOf(u8, notifier_helper_text, "pub fn length") != null);
     try std.testing.expect(std.mem.indexOf(u8, notifier_helper_text, "pub fn summarize") != null);
+    try std.testing.expect(std.mem.indexOf(u8, notifier_helper_text, "priority_nonincreasing") != null);
+    try std.testing.expect(std.mem.indexOf(u8, notifier_helper_text, "NOTIFIER_CHAIN_FLAG_PRIORITY_NONINCREASING") != null);
+    try std.testing.expect(std.mem.indexOf(u8, notifier_helper_text, "clears the priority-order flag when priorities rise") != null);
     try std.testing.expect(std.mem.indexOf(u8, list_view_text, "pub fn viewFromHead") != null);
     try std.testing.expect(std.mem.indexOf(u8, list_view_text, "pub fn isEmpty") != null);
     try std.testing.expect(std.mem.indexOf(u8, list_view_text, "pub fn length") != null);
