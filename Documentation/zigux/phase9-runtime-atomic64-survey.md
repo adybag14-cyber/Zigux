@@ -81,8 +81,7 @@ The manifest-backed ownership packet for this slice now keeps the current delive
 
 The manifest now records both the ownership packet and the current gap posture:
 
-- the landed `phase9-build-gate`, including the direct `phase9-runtime-atomic64-sample-tests` shared-build leg
-- the landed `phase9-build-gate`, including the direct `phase9-runtime-atomic64-loader-tests` shared-build leg
+- the landed `phase9-build-gate`, including the direct `phase9-runtime-atomic64-sample-tests` and `phase9-runtime-atomic64-loader-tests` shared-build legs
 - the landed `runtime-atomic64-survey-gate`
 - the landed `runtime-atomic64-sample-module` starter
 - the landed `runtime-atomic64-module-tests`
