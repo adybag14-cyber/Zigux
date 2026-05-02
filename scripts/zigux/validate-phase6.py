@@ -75,7 +75,7 @@ CATALOG_MARKERS = [
     "max_slowdown_pct = 550",
     "max_slowdown_pct = 600",
     "avg_compare_calls <= std.math.log2_int_ceil(len) + 1",
-    "PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=23",
+    "PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=24",
 ]
 
 PERF_SURVEY_MARKERS = [
@@ -86,6 +86,11 @@ PERF_SURVEY_MARKERS = [
     "max_slowdown_pct = 175",
     "max_slowdown_pct = 550",
     "max_slowdown_pct = 600",
+]
+
+CHECKSUM_SLICE_MARKERS = [
+    "an external C-vs-Zig spot check through `python3 scripts/zigux/check-phase6-checksum-c-parity.py`, `zigux/tests/phase6_checksum_c_parity.zig`, and `zigux/tests/fixtures/phase6_checksum_c_harness.c` so the current `lib/checksum.c` arithmetic surface stays directly reviewable beside the committed Zig fixture packet; the live parity runner now replays 22 direct outputs across 5 compute cases, 3 seeded partial cases, 2 composition cases, 1 IPv4 pseudo-header nofold case, 3 IPv6 pseudo-header nofold cases, 4 carry-discipline folds, and 4 incremental replacement outputs",
+    "a replayable perf-sanity harness reports representative checksum cost per call and per byte while rechecking parity against the widened-accumulator `referencePartial` path on deterministic 64-byte and 1501-byte payloads, and it currently fail-closes on `max_slowdown_pct = 150` for both committed perf cases",
 ]
 
 HEXDUMP_SLICE_MARKERS = [
@@ -418,6 +423,7 @@ def validate_phase6(root: Path) -> dict[str, object]:
     missing: list[str] = []
     require_markers(missing, "catalog", catalog, CATALOG_MARKERS)
     require_markers(missing, "perf_survey", text(root, "Documentation/zigux/phase6-perf-gate-survey.md"), PERF_SURVEY_MARKERS)
+    require_markers(missing, "checksum_slice", text(root, "Documentation/zigux/phase6-checksum-slice.md"), CHECKSUM_SLICE_MARKERS)
     require_markers(missing, "hexdump_slice", text(root, "Documentation/zigux/phase6-hexdump-slice.md"), HEXDUMP_SLICE_MARKERS)
     require_markers(missing, "scripts_readme", text(root, "scripts/zigux/README.md"), SCRIPTS_README_MARKERS)
     require_markers(missing, "docs_root", text(root, "Documentation/zigux/README.md"), DOCS_ROOT_MARKERS)
@@ -471,7 +477,7 @@ def report_validation(result: dict[str, object]) -> int:
         return 1
     print("PHASE6_VALIDATION=pass")
     print(f"PHASE6_CATALOG_VERIFIED_HEAD={result['catalog_head']}")
-    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=23")
+    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=24")
     return 0
 
 
@@ -486,6 +492,7 @@ def build_self_test_tree(root: Path) -> None:
         write(root, path, "placeholder\n")
     write(root, "Documentation/zigux/phase6-helper-parity-catalog.md", "\n".join([f"# x", f"- verified head: `{SELF_TEST_HEAD}`", *CATALOG_MARKERS]) + "\n")
     write(root, "Documentation/zigux/phase6-perf-gate-survey.md", "\n".join(PERF_SURVEY_MARKERS) + "\n")
+    write(root, "Documentation/zigux/phase6-checksum-slice.md", "\n".join(CHECKSUM_SLICE_MARKERS) + "\n")
     write(root, "Documentation/zigux/phase6-hexdump-slice.md", "\n".join(HEXDUMP_SLICE_MARKERS) + "\n")
     write(root, "scripts/zigux/README.md", "\n".join(SCRIPTS_README_MARKERS) + "\n")
     write(root, "Documentation/zigux/README.md", "\n".join(DOCS_ROOT_MARKERS) + "\n")
@@ -546,6 +553,12 @@ def run_self_test() -> int:
             survey.write_text(survey.read_text(encoding="utf-8").replace("max_slowdown_pct = 600", "", 1), encoding="utf-8")
             if "perf_survey:missing:max_slowdown_pct = 600" not in validate_phase6(root)["missing"]:
                 raise AssertionError("missing perf survey marker failure")
+
+            build_self_test_tree(root)
+            checksum_slice = root / "Documentation/zigux/phase6-checksum-slice.md"
+            checksum_slice.write_text(checksum_slice.read_text(encoding="utf-8").replace(CHECKSUM_SLICE_MARKERS[0], "", 1), encoding="utf-8")
+            if f"checksum_slice:missing:{CHECKSUM_SLICE_MARKERS[0]}" not in validate_phase6(root)["missing"]:
+                raise AssertionError("missing checksum slice marker failure")
 
             build_self_test_tree(root)
             hexdump_slice = root / "Documentation/zigux/phase6-hexdump-slice.md"
@@ -685,7 +698,7 @@ def run_self_test() -> int:
         return 1
 
     print("PHASE6_VALIDATOR_SELF_TEST=pass")
-    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=23")
+    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=24")
     return 0
 
 
