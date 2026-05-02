@@ -163,11 +163,12 @@ def run_self_test() -> int:
     )
 
     validate_expected_surface(EXPECTED_SORTED_LINES, "self-test-positive")
+    unexpected_lines = EXPECTED_SORTED_LINES + ["unexpected-extra\t999\tnull"]
     expect_system_exit(
-        "missing_case",
-        lambda: validate_expected_surface(EXPECTED_SORTED_LINES[:-1], "self-test-missing-case"),
-        "phase6-bsearch-c-parity:self-test-missing-case:unexpected_output:"
-        f"expected={EXPECTED_SORTED_LINES!r}:actual={EXPECTED_SORTED_LINES[:-1]!r}",
+        "unexpected_case",
+        lambda: validate_expected_surface(unexpected_lines, "self-test-unexpected-case"),
+        "phase6-bsearch-c-parity:self-test-unexpected-case:unexpected_output:"
+        f"expected={EXPECTED_SORTED_LINES!r}:actual={unexpected_lines!r}",
     )
     print("PHASE6_BSEARCH_C_PARITY_SELF_TEST=pass")
     print("PHASE6_BSEARCH_C_PARITY_SELF_TEST_CASE_COUNT=6")
