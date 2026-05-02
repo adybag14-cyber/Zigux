@@ -4,7 +4,7 @@ const fixtures = @import("phase6_checksum_vectors");
 
 pub fn main(init: std.process.Init) !void {
     const io = init.io;
-    var stdout_buffer: [2048]u8 = undefined;
+    var stdout_buffer: [4096]u8 = undefined;
     var stdout = std.Io.File.stdout().writer(io, &stdout_buffer);
     const writer = &stdout.interface;
 
@@ -28,6 +28,14 @@ pub fn main(init: std.process.Init) !void {
         try writer.print(
             "tcpudp-nofold\t{s}\t0x{x:0>8}\n",
             .{ case.name, checksum.tcpUdpNofold(payload_partial, case.saddr, case.daddr, @intCast(case.payload.len), case.proto) },
+        );
+    }
+
+    for (fixtures.ipv6_pseudo_header_cases) |case| {
+        const payload_partial = checksum.partial(case.payload, 0);
+        try writer.print(
+            "tcpudpv6-nofold\t{s}\t0x{x:0>8}\n",
+            .{ case.name, checksum.tcpUdpV6Nofold(payload_partial, case.saddr, case.daddr, @intCast(case.payload.len), case.proto) },
         );
     }
 
