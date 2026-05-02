@@ -196,6 +196,24 @@ EXPECTED_MANIFEST = {
     },
 }
 
+EXPECTED_EXACT_CHECKS = [
+    "python3 scripts/zigux/validate-phase6.py --self-test",
+    "python3 scripts/zigux/validate-phase6.py",
+    "make -C zigux phase6-validate",
+    "make -C zigux phase6",
+    "make -C zigux phase6-perf",
+    "make -C zigux phase6-base64-perf",
+    "make -C zigux phase6-bsearch-perf",
+    "make -C zigux phase6-checksum-perf",
+    "make -C zigux phase6-hexdump-perf",
+    "python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test",
+    "python3 scripts/zigux/check-phase6-base64-c-parity.py",
+    "python3 scripts/zigux/check-phase6-bsearch-c-parity.py --self-test",
+    "python3 scripts/zigux/check-phase6-bsearch-c-parity.py",
+    "python3 scripts/zigux/check-phase6-checksum-c-parity.py --self-test",
+    "python3 scripts/zigux/check-phase6-checksum-c-parity.py",
+]
+
 EXPECTED_BASE64_DETERMINISM = {
     "standard_encode_vectors": 22,
     "variant_encode_vectors": 24,
@@ -339,6 +357,8 @@ def validate_manifest(missing: list[str], manifest: dict[str, object], catalog_h
     for key, expected in EXPECTED_MANIFEST.items():
         if manifest.get(key) != expected:
             missing.append(f"manifest:{key}")
+    if manifest.get("exact_checks") != EXPECTED_EXACT_CHECKS:
+        missing.append("manifest:exact_checks")
 
     helpers = manifest.get("helpers")
     if not isinstance(helpers, list) or len(helpers) != 4:
@@ -499,6 +519,7 @@ def build_self_test_tree(root: Path) -> None:
             "hexdump": EXPECTED_HEXDUMP_DETERMINISM,
             "generated_fixture_artifacts_committed": False,
         },
+        "exact_checks": EXPECTED_EXACT_CHECKS,
     }
     write(root, "zigux/tests/phase6_helper_parity_manifest.json", json.dumps(manifest, indent=2) + "\n")
 
@@ -594,6 +615,13 @@ def run_self_test() -> int:
                 raise AssertionError("missing shared gates manifest failure")
 
             build_self_test_tree(root)
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            manifest["exact_checks"] = manifest["exact_checks"][:-1]
+            manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+            if "manifest:exact_checks" not in validate_phase6(root)["missing"]:
+                raise AssertionError("missing exact checks manifest failure")
+
+            build_self_test_tree(root)
             bad_catalog = root / "Documentation/zigux/phase6-helper-parity-catalog.md"
             bad_catalog.write_text("- verified head: `not-a-sha`\n", encoding="utf-8")
             bad_result = validate_phase6(root)
@@ -617,12 +645,6 @@ def run_self_test() -> int:
             bsearch_runner.unlink()
             if "zigux/tests/phase6_bsearch_c_parity.zig" not in validate_phase6(root)["missing_files"]:
                 raise AssertionError("missing bsearch parity runner failure")
-
-            build_self_test_tree(root)
-            checksum_test = root / "zigux/tests/phase6_checksum.zig"
-            checksum_test.unlink()
-            if "zigux/tests/phase6_checksum.zig" not in validate_phase6(root)["missing_files"]:
-                raise AssertionError("missing checksum test failure")
 
             build_self_test_tree(root)
             hexdump_test = root / "zigux/tests/phase6_hexdump.zig"
