@@ -414,3 +414,24 @@ test "phase11 gpio_wdt registration planning enums include the first real call s
     try std.testing.expectEqualStrings("pre_registration_metadata", validation_focus_fields[0].name);
     try std.testing.expectEqualStrings("register_device_call_surface", validation_focus_fields[1].name);
 }
+
+test "phase11 gpio_wdt always-running toggle teardown keeps the line asserted without disable" {
+    var watchdog = try gpio_wdt.GpioWatchdogLab.init(.toggle, 50, true);
+    _ = try watchdog.start();
+
+    const summary = try watchdog.summarizeTeardown(false);
+    try std.testing.expect(summary.always_running);
+    try std.testing.expect(summary.running_before_teardown);
+    try std.testing.expect(!summary.teardown_skipped_without_running);
+    try std.testing.expect(summary.stop_allowed_by_watchdog_core);
+    try std.testing.expect(summary.driver_stop_invoked);
+    try std.testing.expect(!summary.disable_requested);
+    try std.testing.expect(!summary.disable_performs_eternal_ping);
+    try std.testing.expect(!summary.disable_returns_toggle_line_to_input);
+    try std.testing.expect(!summary.disable_keeps_level_line_output);
+    try std.testing.expect(summary.stop_keeps_running_for_always_running);
+    try std.testing.expect(summary.final_running);
+    try std.testing.expect(summary.final_line_state);
+    try std.testing.expect(summary.final_line_is_output);
+    try std.testing.expectEqual(@as(usize, 0), summary.disable_count);
+}
