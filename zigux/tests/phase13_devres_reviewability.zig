@@ -185,6 +185,18 @@ test "phase13 devres manifest records the current helper boundary and explicit d
     try expectContains(survey_note, "`devres_alloc_node()` ownership, `devres_add()` installation, `devm_request_mem_region()` side effects");
     try expectContains(survey_note, "the direct `devm_ioremap_resource()` wrapper path that keeps the plain managed-resource export explicit instead of leaving it implied only by `__devm_ioremap_resource()` and the UC/WC wrapper pair");
 
+    const devres_tests = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase13_devres.zig",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(devres_tests);
+
+    try expectContains(devres_tests, "test \\\"phase13 devres plans a plain managed ioremap resource wrapper\\\"");
+    try expectContains(devres_tests, "test \\\"phase13 devres propagates plain managed resource wrapper failures\\\"");
+    try expectContains(devres_tests, "planManagedIoremapResourcePlain(");
+
     var starter_landed_count: usize = 0;
     var blocked_live_mmio_count: usize = 0;
     var blocked_dma_count: usize = 0;
