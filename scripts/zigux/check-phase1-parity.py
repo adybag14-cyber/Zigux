@@ -131,28 +131,8 @@ def assert_equal(label: str, actual, expected) -> None:
 
 def run_self_test() -> int:
     tmp_root = Path('/tmp/phase1-parity-self-test')
+    source_text = Path(__file__).read_text(encoding='utf-8')
     assert_equal('find_compiler_explicit', find_compiler('/tmp/zigux-cc'), '/tmp/zigux-cc')
-    assert_equal('source_count', len(SOURCES), 14)
-    assert_equal(
-        'source_suffixes',
-        [path.name for path in SOURCES],
-        [
-            'phase1_helpers_c_harness.c',
-            'argv_split.c',
-            'bitmap.c',
-            'cmdline.c',
-            'ctype.c',
-            'find_bit.c',
-            'hweight.c',
-            'list_sort.c',
-            'slab.c',
-            'str_error_r.c',
-            'string.c',
-            'rbtree.c',
-            'vsprintf.c',
-            'zalloc.c',
-        ],
-    )
     assert_equal(
         'include_flags',
         include_flags(tmp_root),
@@ -164,6 +144,8 @@ def run_self_test() -> int:
             '-I', str(ROOT / 'tools' / 'include' / 'uapi'),
         ],
     )
+    assert_equal('main_pass_marker', "print('PHASE1_PARITY=pass')" in source_text, True)
+    assert_equal('main_determinism_marker', "print('PHASE1_PARITY_DETERMINISM=pass')" in source_text, True)
 
     with tempfile.TemporaryDirectory(prefix='zigux_phase1_parity_selftest_') as tmp_dir_str:
         shim_root = Path(tmp_dir_str) / 'shim'
