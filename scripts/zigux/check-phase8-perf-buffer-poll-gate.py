@@ -372,8 +372,25 @@ def run_self_test() -> int:
         )
         bridge_boundary_path.write_text(original_bridge_boundary, encoding="utf-8")
 
+        helper_path = tmp_root / "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"
+        original_helper = helper_path.read_text(encoding="utf-8")
+        helper_path.write_text(
+            original_helper.replace(
+                "pub fn summarizeProcessRecords(",
+                "pub fn summarizeProcessedRecords(",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "helper_process_records_surface",
+            tmp_root,
+            "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig:pub fn summarizeProcessRecords(",
+        )
+        helper_path.write_text(original_helper, encoding="utf-8")
+
     print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST=pass")
-    print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST_CASE_COUNT=7")
+    print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
