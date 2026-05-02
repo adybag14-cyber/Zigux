@@ -267,6 +267,22 @@ def expect_missing_root(label: str, root: Path, expected_marker: str) -> None:
         )
 
 
+def expect_inventory_drift(label: str, root: Path) -> None:
+    result = run_checker(root)
+    if result.returncode == 0:
+        raise SystemExit(f"phase11-build-inventory-self-test:{label}:unexpected_pass")
+    if "PHASE11_BUILD_INVENTORY=fail" not in result.stdout:
+        actual = result.stdout.strip() or result.stderr.strip() or "no_output"
+        raise SystemExit(
+            f"phase11-build-inventory-self-test:{label}:missing_fail_token:{actual}"
+        )
+    if "ARTIFACT_DIFF=fail" not in result.stdout:
+        actual = result.stdout.strip() or result.stderr.strip() or "no_output"
+        raise SystemExit(
+            f"phase11-build-inventory-self-test:{label}:missing_artifact_diff_fail:{actual}"
+        )
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase11_build_inventory_") as tmp_dir:
         tmp_root = Path(tmp_dir)
@@ -299,8 +315,25 @@ def run_self_test() -> int:
         )
         write_text(hvc_split, hvc_backup)
 
+        build_path = tmp_root / "zigux/tests/phase11_build.zig"
+        build_backup = build_path.read_text(encoding="utf-8")
+        build_path.write_text(
+            build_backup.replace(
+                "    test_step.dependOn(&run_phase11_hvc_console_poll_retry_split_tests.step);\n",
+                "    test_step.dependOn(&run_phase11_hvc_console_poll_retry_split_tests.step);\n"
+                "    test_step.dependOn(&run_phase11_hvc_console_survey_tests.step);\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_inventory_drift(
+            "shared_test_step_includes_dedicated_hvc_survey",
+            tmp_root,
+        )
+        write_text(build_path, build_backup)
+
     print("PHASE11_BUILD_INVENTORY_SELF_TEST=pass")
-    print("PHASE11_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=2")
+    print("PHASE11_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=3")
     return 0
 
 
