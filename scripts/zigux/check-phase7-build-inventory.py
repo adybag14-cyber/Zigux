@@ -93,7 +93,7 @@ def collect_validator_alignment_failures(validator_text: str) -> list[str]:
         )
 
     for block_name, markers in VALIDATOR_EXPECTED_MARKERS.items():
-        block_match = re.search(rf"{block_name} = \\{{(.*?)\\n \\}}", validator_text, re.S)
+        block_match = re.search(rf"{block_name} = \{{(.*?)\n \}}", validator_text, re.S)
         if block_match is None:
             failures.append(f"validate-phase7.py: missing {block_name} block")
             continue
