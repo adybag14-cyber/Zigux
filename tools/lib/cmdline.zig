@@ -101,6 +101,26 @@ test "memparse handles decimal hexadecimal octal and suffixes" {
     try std.testing.expectEqualStrings("", octal.rest);
 }
 
+test "memparse handles signed and explicit positive prefixes" {
+    const negative = memparse("-4K tail");
+    try std.testing.expectEqual(@as(u64, @bitCast(@as(i64, -4096))), negative.value);
+    try std.testing.expectEqualStrings(" tail", negative.rest);
+
+    const positive = memparse("+0X10M done");
+    try std.testing.expectEqual(@as(u64, 0x10 << 20), positive.value);
+    try std.testing.expectEqualStrings(" done", positive.rest);
+}
+
+test "memparse keeps the original rest when sign-prefixed input has no digits" {
+    const negative = memparse("-xyz");
+    try std.testing.expectEqual(@as(u64, 0), negative.value);
+    try std.testing.expectEqualStrings("-xyz", negative.rest);
+
+    const positive = memparse("+nope");
+    try std.testing.expectEqual(@as(u64, 0), positive.value);
+    try std.testing.expectEqualStrings("+nope", positive.rest);
+}
+
 test "memparse reports no-conversion via unchanged rest" {
     const invalid = memparse("xyz");
     try std.testing.expectEqual(@as(u64, 0), invalid.value);
