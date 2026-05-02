@@ -41,6 +41,81 @@ REQUIRED_FILES = [
     "zigux/tests/phase10_virtio_mmio_survey.zig",
 ]
 
+EXPECTED_ALLOWED_ROADMAP_DESTINATIONS = [
+    "drivers/virtio/*.zig",
+    "zigux/helpers/",
+]
+
+EXPECTED_ALLOWED_EVIDENCE_KINDS = [
+    "driver_local_lab_slices",
+    "survey_manifests",
+    "shared_validation_gates",
+]
+
+EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS = [
+    "queue_setup_reset_paths",
+    "irq_parity",
+    "dma_paths",
+    "input_registration_lifecycle",
+    "probe_remove_lifecycle",
+]
+
+EXPECTED_FREEZE_IN_C_ANCHORS = [
+    "kernel/sched/core.c",
+    "mm/page_alloc.c",
+    "kernel/rcu/tree.c",
+    "net/core/skbuff.c",
+]
+
+EXPECTED_STUDY_ONLY_ANCHORS = [
+    "kernel/workqueue.c",
+    "kernel/trace/ring_buffer.c",
+]
+
+EXPECTED_CROSS_PHASE_BOUNDARY = {
+    "reference_samples": {
+        "status": "out_of_scope",
+        "evidence": [
+            "samples/zigux",
+            "zigux/tests/phase5_build.zig",
+            "Documentation/zigux/review-checklist.md",
+        ],
+    },
+    "runtime_starters": {
+        "status": "out_of_scope",
+        "evidence": [
+            "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
+            "Documentation/zigux/phase9-runtime-loader-substrate-plan.md",
+            "zigux/tests/runtime_loader_gap_manifest.json",
+            "zigux/tests/runtime_loader_gap_survey.zig",
+            "zigux/tests/runtime_trace_events_manifest.json",
+            "zigux/tests/phase9_build.zig",
+            "zigux/kernel/runtime_loader.zig",
+            "zigux/helpers/allocator_policy.zig",
+            "samples/zigux/runtime_atomic64_loader.zig",
+            "samples/zigux/runtime_bitmap_loader.zig",
+            "samples/zigux/runtime_kretprobe_loader.zig",
+            "samples/zigux/runtime_trace_events.zig",
+        ],
+    },
+}
+
+EXPECTED_PHASE14_STUDY_ONLY_BOUNDARY = {
+    "status": "separate_phase14_lane",
+    "anchors": EXPECTED_STUDY_ONLY_ANCHORS,
+    "required_phase14_evidence_features": [
+        "boundary maps",
+        "concurrency audits",
+        "explicit stay-in-C decisions where warranted",
+        "wrapper-first or study-only posture",
+    ],
+    "future_destinations": [
+        "kernel/workqueue_bridge.zig",
+        "kernel/trace/ring_buffer.zig",
+    ],
+    "future_destination_policy": "kernel/trace/ring_buffer.zig remains a future destination only if years of evidence justify it",
+}
+
 CLOSURE_MARKERS = [
     "PHASE10_STATUS=active",
     "PHASE10_TRANCHE=virtio-lab-bundle",
@@ -306,6 +381,23 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         if manifest.get(key) != value:
             missing.append(f"manifest:{key}={manifest.get(key)!r}")
 
+    expected_arrays = {
+        "allowed_roadmap_destinations": EXPECTED_ALLOWED_ROADMAP_DESTINATIONS,
+        "allowed_evidence_kinds": EXPECTED_ALLOWED_EVIDENCE_KINDS,
+        "forbidden_transport_claims": EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS,
+        "freeze_in_c_anchors": EXPECTED_FREEZE_IN_C_ANCHORS,
+        "study_only_anchors": EXPECTED_STUDY_ONLY_ANCHORS,
+    }
+    for key, value in expected_arrays.items():
+        if manifest.get(key) != value:
+            missing.append(f"manifest:{key}")
+
+    if manifest.get("cross_phase_scoreboard_boundary") != EXPECTED_CROSS_PHASE_BOUNDARY:
+        missing.append("manifest:cross_phase_scoreboard_boundary")
+
+    if manifest.get("phase14_study_only_boundary") != EXPECTED_PHASE14_STUDY_ONLY_BOUNDARY:
+        missing.append("manifest:phase14_study_only_boundary")
+
     scoreboard = manifest.get("roadmap_parity_scoreboard")
     if not isinstance(scoreboard, dict):
         missing.append("manifest:roadmap_parity_scoreboard")
@@ -456,14 +548,18 @@ def write_fixture(root: Path) -> None:
         "freeze_status_change_claimed": False,
         "review_checklist": "Documentation/zigux/review-checklist.md",
         "risky_transport_posture": "blocked_on_risky_transport",
+        "allowed_roadmap_destinations": EXPECTED_ALLOWED_ROADMAP_DESTINATIONS,
+        "allowed_evidence_kinds": EXPECTED_ALLOWED_EVIDENCE_KINDS,
         "architecture_council_reopen_required": True,
         "architecture_council_reopen_attached": False,
+        "forbidden_transport_claims": EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS,
         "roadmap_parity_scoreboard": {
             "virtqueue_wrappers": {"status": "starter_landed"},
             "mmio_wrappers": {"status": "starter_landed"},
             "lab_only_driver_validation": {"status": "starter_landed"},
             "dual_implementations_for_risky_areas": {"status": "blocked_on_risky_transport"},
         },
+        "cross_phase_scoreboard_boundary": EXPECTED_CROSS_PHASE_BOUNDARY,
         "survey_provenance": {
             "source": "manifest_derived",
             "lane_keys": {
@@ -523,6 +619,9 @@ def write_fixture(root: Path) -> None:
             "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-lifecycle-and-irq-paths",
         },
         "ready_transport_followups": {},
+        "freeze_in_c_anchors": EXPECTED_FREEZE_IN_C_ANCHORS,
+        "study_only_anchors": EXPECTED_STUDY_ONLY_ANCHORS,
+        "phase14_study_only_boundary": EXPECTED_PHASE14_STUDY_ONLY_BOUNDARY,
         "exact_checks": [
             "python3 scripts/zigux/check-phase10-closure-inventory.py",
             "python3 scripts/zigux/validate-phase10-closure.py",
@@ -739,6 +838,66 @@ def run_self_test() -> int:
         write_fixture(fixture_root)
 
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["allowed_roadmap_destinations"] = ["drivers/virtio/*.zig"]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "allowed_roadmap_destinations_guard",
+            fixture_root,
+            "manifest:allowed_roadmap_destinations",
+        )
+        write_fixture(fixture_root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["allowed_evidence_kinds"] = ["driver_local_lab_slices", "survey_manifests"]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "allowed_evidence_kinds_guard",
+            fixture_root,
+            "manifest:allowed_evidence_kinds",
+        )
+        write_fixture(fixture_root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["forbidden_transport_claims"] = ["queue_setup_reset_paths", "irq_parity"]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "forbidden_transport_claims_guard",
+            fixture_root,
+            "manifest:forbidden_transport_claims",
+        )
+        write_fixture(fixture_root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["study_only_anchors"] = ["kernel/workqueue.c"]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "study_only_anchors_guard",
+            fixture_root,
+            "manifest:study_only_anchors",
+        )
+        write_fixture(fixture_root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["cross_phase_scoreboard_boundary"]["reference_samples"]["status"] = "starter_landed"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "cross_phase_boundary_guard",
+            fixture_root,
+            "manifest:cross_phase_scoreboard_boundary",
+        )
+        write_fixture(fixture_root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["phase14_study_only_boundary"]["required_phase14_evidence_features"].pop()
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "phase14_boundary_guard",
+            fixture_root,
+            "manifest:phase14_study_only_boundary",
+        )
+        write_fixture(fixture_root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["survey_provenance"]["surveyed_commits"]["mmio"] = "deadbeef"
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         expect_missing_marker(
@@ -847,7 +1006,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=23")
+    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=29")
     return 0
 
 
