@@ -457,6 +457,32 @@ def run_self_test() -> int:
             raise SystemExit("phase12-libbpf-packet:self-test:tracked_count_detection")
 
         build_self_test_tree(root)
+        snapshot_path = root / "zigux/tests/fixtures/phase12_libbpf_snapshot.json"
+        snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
+        snapshot["files"][0], snapshot["files"][-1] = snapshot["files"][-1], snapshot["files"][0]
+        snapshot_path.write_text(json.dumps(snapshot, indent=2) + "\n", encoding="utf-8")
+        missing = check_packet(root)
+        if "snapshot:tracked_paths" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:tracked_paths_detection")
+
+        build_self_test_tree(root)
+        reviewability_test_path = root / TRACKED_PATHS[2]
+        original = reviewability_test_path.read_text(encoding="utf-8")
+        reviewability_test_path.write_text(
+            original.replace(
+                "phase12 libbpf reviewability gate cross-checks the legacy segment catalog\n",
+                "",
+            ),
+            encoding="utf-8",
+        )
+        missing = check_packet(root)
+        if (
+            "reviewability_test:phase12 libbpf reviewability gate cross-checks the legacy segment catalog"
+            not in missing
+        ):
+            raise SystemExit("phase12-libbpf-packet:self-test:reviewability_marker_detection")
+
+        build_self_test_tree(root)
         manifest_path = root / TRACKED_PATHS[0]
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["lane_key"] = "P12-L99"
@@ -539,7 +565,7 @@ def run_self_test() -> int:
             raise SystemExit("phase12-libbpf-packet:self-test:legacy_surveyed_commit_detection")
 
         print("PHASE12_LIBBPF_PACKET_SELF_TEST=pass")
-        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=12")
+        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
