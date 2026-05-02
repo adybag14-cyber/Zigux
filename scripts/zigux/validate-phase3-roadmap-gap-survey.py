@@ -20,11 +20,12 @@ REQUIRED_SURVEY_MARKERS = (
     "PHASE3_UAPI_BOUNDARY_GAP=version-and-boundary-header-surface-is-still-below-full-uapi-shim-destination",
     "PHASE3_CURRENT_BITMAP_CPUMASK=zigux/helpers/bitmap_view.zig,zigux/helpers/cpumask_view.zig",
     "PHASE3_CURRENT_LIST_HLIST=zigux/helpers/list_view.zig,zigux/helpers/hlist_view.zig",
-    "PHASE3_CURRENT_RBTREE_STATUS=phase7-helper-exists-but-phase3-interop-slice-is-missing",
-    "PHASE3_CURRENT_RBTREE_EVIDENCE=tools/lib/rbtree.zig,lib/rbtree.zig,Documentation/zigux/phase1-closure.md,Documentation/zigux/phase7-rbtree-slice.md,zigux/tests/phase7_rbtree.zig,zigux/tests/phase7_rbtree_survey.zig,zigux/tests/phase7_rbtree_manifest.json",
+    "PHASE3_CURRENT_RBTREE_STATUS=phase3-survey-exists-but-phase3-interop-slice-is-missing",
+    "PHASE3_CURRENT_RBTREE_SURVEY=Documentation/zigux/phase3-rbtree-interop-survey.md",
+    "PHASE3_CURRENT_RBTREE_EVIDENCE=Documentation/zigux/phase3-rbtree-interop-survey.md,tools/lib/rbtree.zig,lib/rbtree.zig,Documentation/zigux/phase1-closure.md,Documentation/zigux/phase7-rbtree-slice.md,zigux/tests/phase7_rbtree.zig,zigux/tests/phase7_rbtree_survey.zig,zigux/tests/phase7_rbtree_manifest.json",
     "PHASE3_REPO_REALITY=chrdev-plan-growth-exceeds-roadmap-anchors",
     "PHASE3_INTEROP_GAP=rbtree-interop-slice-still-missing",
-    "PHASE3_NEXT_BOUNDED_STEP=roadmap-backed-rbtree-interop-survey-or-slice-before-more-chrdev-growth",
+    "PHASE3_NEXT_BOUNDED_STEP=small-phase3-rbtree-interop-slice-before-more-chrdev-growth",
 )
 
 REQUIRED_SURVEY_PATHS = (
@@ -40,7 +41,9 @@ REQUIRED_SURVEY_PATHS = (
     "zigux/helpers/cdev_add_plan.zig",
     "zigux/helpers/chrdev_open_plan.zig",
     "Documentation/zigux/phase1-closure.md",
+    "Documentation/zigux/phase3-rbtree-interop-survey.md",
     "Documentation/zigux/phase7-rbtree-slice.md",
+    "scripts/zigux/validate-phase3-rbtree-interop-survey.py",
     "lib/rbtree.zig",
     "tools/lib/rbtree.zig",
     "zigux/tests/phase7_rbtree.zig",
@@ -54,8 +57,11 @@ RBTREE_FREE_BOUNDARY_PATHS = (
     "zigux/tests/fixtures/phase3_abi_manifest.json",
 )
 
+DISALLOWED_PHASE3_RBTREE_PATHS = (
+    "Documentation/zigux/phase3-rbtree-slice.md",
+)
+
 DISALLOWED_PHASE3_RBTREE_PATH_PATTERNS = (
-    ("Documentation/zigux", "phase3-rbtree"),
     ("zigux/tests", "phase3_rbtree"),
     ("zigux/helpers", "rbtree"),
 )
@@ -117,6 +123,10 @@ def validate(root: Path) -> list[str]:
         if text and "rbtree" in text.lower():
             issues.append(f"stale_rbtree_gap_claim_in_boundary:{rel}")
 
+    for rel in DISALLOWED_PHASE3_RBTREE_PATHS:
+        if (root / rel).exists():
+            issues.append(f"stale_rbtree_gap_claim:{rel}")
+
     for base_rel, needle in DISALLOWED_PHASE3_RBTREE_PATH_PATTERNS:
         for rel in _find_matching_relpaths(root, base_rel, needle):
             issues.append(f"stale_rbtree_gap_claim:{rel}")
@@ -177,11 +187,11 @@ def run_self_test() -> int:
         assert f"missing_scripts_readme_snippet:{removed_scripts_snippet}" in issues
         scripts_readme_path.write_text("\n".join(REQUIRED_SCRIPTS_README_SNIPPETS) + "\n", encoding="utf-8")
 
-        missing_path = root / "zigux" / "uapi" / "version.zig"
+        missing_path = root / "Documentation" / "zigux" / "phase3-rbtree-interop-survey.md"
         missing_path.unlink()
         issues = validate(root)
-        assert "missing_repo_path:zigux/uapi/version.zig" in issues
-        missing_path.write_text("// ok\n", encoding="utf-8")
+        assert "missing_repo_path:Documentation/zigux/phase3-rbtree-interop-survey.md" in issues
+        missing_path.write_text("# ok\n", encoding="utf-8")
 
         stale_phase3_doc = root / "Documentation" / "zigux" / "phase3-rbtree-slice.md"
         stale_phase3_doc.write_text("# stale\n", encoding="utf-8")
