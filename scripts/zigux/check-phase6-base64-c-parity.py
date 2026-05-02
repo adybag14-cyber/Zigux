@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import argparse
+import ast
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -13,15 +15,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 C_HARNESS = ROOT / "zigux" / "tests" / "fixtures" / "phase6_base64_c_harness.c"
 CASE_GENERATOR = ROOT / "zigux" / "tests" / "phase6_base64_c_casegen.zig"
+FIXTURE_SOURCE = ROOT / "zigux" / "tests" / "fixtures" / "phase6_base64_vectors.zig"
 GENERATED_INCLUDE = ROOT / "zigux" / "tests" / "fixtures" / "phase6_base64_c_generated_cases.inc"
 ZIG_RUNNER = ROOT / "zigux" / "tests" / "phase6_base64_c_parity.zig"
-EXPECTED_SORTED_LINES = sorted(
-    [
-        "dec\timap\t0\t3\tok\tok",
-        "dec\tstd\t1\t3\tok\tok",
-        "enc\tstd\t1\tTWFu\tok",
-    ]
-)
+BYTE_CONST_RE = re.compile(r"(?:pub\s+)?const\s+(\w+)\s*=\s*\[_\]u8\{([^}]*)\};")
+ENTRY_RE = re.compile(r"\.\{([^}]*)\}", re.S)
+FIELD_RE = re.compile(r'\.(\w+)\s*=\s*("(?:\\.|[^"])*"|&?\w+(?:\[0\.\.\])?|true|false)')
 
 
 def require_tool(name: str, env_name: str) -> str:
@@ -53,30 +52,30 @@ def run_checked(cmd: list[str]) -> subprocess.CompletedProcess[str]:
 def build_zig_build_text() -> str:
     return textwrap.dedent(
         f"""
-        const std = @import("std");
+        const std = @import(\"std\");
 
         pub fn build(b: *std.Build) void {{
             const target = b.standardTargetOptions(.{{}});
             const optimize = b.standardOptimizeOption(.{{}});
 
             const base64_module = b.createModule(.{{
-                .root_source_file = .{{ .cwd_relative = "{ROOT / 'lib' / 'base64.zig'}" }},
+                .root_source_file = .{{ .cwd_relative = \"{ROOT / 'lib' / 'base64.zig'}\" }},
                 .target = target,
                 .optimize = optimize,
             }});
             const root_module = b.createModule(.{{
-                .root_source_file = .{{ .cwd_relative = "{ZIG_RUNNER}" }},
+                .root_source_file = .{{ .cwd_relative = \"{ZIG_RUNNER}\" }},
                 .target = target,
                 .optimize = optimize,
             }});
-            root_module.addImport("base64", base64_module);
+            root_module.addImport(\"base64\", base64_module);
 
             const exe = b.addExecutable(.{{
-                .name = "phase6-base64-c-parity",
+                .name = \"phase6-base64-c-parity\",
                 .root_module = root_module,
             }});
             const run = b.addRunArtifact(exe);
-            const step = b.step("run", "Run Phase 6 base64 C parity spot check");
+            const step = b.step(\"run\", \"Run Phase 6 base64 C parity spot check\");
             step.dependOn(&run.step);
         }}
         """
@@ -107,11 +106,168 @@ def expect_system_exit(label: str, callback, expected_message: str) -> None:
     )
 
 
-def validate_expected_surface(lines: list[str], label: str) -> None:
-    if lines != EXPECTED_SORTED_LINES:
+def validate_expected_surface(lines: list[str], expected_lines: list[str], label: str) -> None:
+    if lines != expected_lines:
         raise SystemExit(
-            f"phase6-base64-c-parity:{label}:unexpected_output:expected={EXPECTED_SORTED_LINES!r}:actual={lines!r}"
+            f"phase6-base64-c-parity:{label}:unexpected_output:expected={expected_lines!r}:actual={lines!r}"
         )
+
+
+def parse_zig_string_literal(expr: str) -> bytes:
+    try:
+        value = ast.literal_eval("b" + expr)
+    except (SyntaxError, ValueError) as exc:
+        raise SystemExit(f"phase6-base64-c-parity:unsupported_string_literal:{expr}") from exc
+    if not isinstance(value, bytes):
+        raise SystemExit(f"phase6-base64-c-parity:unsupported_string_literal:{expr}")
+    return value
+
+
+def parse_zig_byte_token(token: str) -> int:
+    token = token.strip()
+    if not token:
+        raise SystemExit("phase6-base64-c-parity:empty_byte_token")
+    if token.startswith("'") and token.endswith("'"):
+        try:
+            value = ast.literal_eval(token)
+        except (SyntaxError, ValueError) as exc:
+            raise SystemExit(f"phase6-base64-c-parity:unsupported_byte_token:{token}") from exc
+        if not isinstance(value, str) or len(value) != 1:
+            raise SystemExit(f"phase6-base64-c-parity:unsupported_byte_token:{token}")
+        return ord(value)
+    try:
+        return int(token, 0)
+    except ValueError as exc:
+        raise SystemExit(f"phase6-base64-c-parity:unsupported_byte_token:{token}") from exc
+
+
+def parse_byte_constants(text: str) -> dict[str, bytes]:
+    constants: dict[str, bytes] = {}
+    for name, body in BYTE_CONST_RE.findall(text):
+        tokens = [token.strip() for token in body.split(",") if token.strip()]
+        constants[name] = bytes(parse_zig_byte_token(token) for token in tokens)
+    return constants
+
+
+def extract_array_block(text: str, name: str) -> str:
+    marker = f"pub const {name} ="
+    start = text.find(marker)
+    if start == -1:
+        raise SystemExit(f"phase6-base64-c-parity:missing_fixture_array:{name}")
+
+    brace_start = text.find("{", start)
+    if brace_start == -1:
+        raise SystemExit(f"phase6-base64-c-parity:missing_fixture_block:{name}")
+
+    depth = 0
+    for index in range(brace_start, len(text)):
+        ch = text[index]
+        if ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                return text[brace_start + 1 : index]
+
+    raise SystemExit(f"phase6-base64-c-parity:unterminated_fixture_block:{name}")
+
+
+def parse_case_entries(block: str, label: str) -> list[dict[str, str]]:
+    entries: list[dict[str, str]] = []
+    for match in ENTRY_RE.finditer(block):
+        fields = {name: value.strip() for name, value in FIELD_RE.findall(match.group(1))}
+        if fields:
+            entries.append(fields)
+    if not entries:
+        raise SystemExit(f"phase6-base64-c-parity:empty_fixture_array:{label}")
+    return entries
+
+
+def parse_bool(expr: str) -> bool:
+    if expr == "true":
+        return True
+    if expr == "false":
+        return False
+    raise SystemExit(f"phase6-base64-c-parity:unsupported_bool:{expr}")
+
+
+def parse_bytes_expr(expr: str, byte_constants: dict[str, bytes]) -> bytes:
+    expr = expr.strip()
+    if expr.startswith("&"):
+        expr = expr[1:].strip()
+    if expr.endswith("[0..]"):
+        expr = expr[:-5].strip()
+    if expr.startswith('"'):
+        return parse_zig_string_literal(expr)
+    if expr in byte_constants:
+        return byte_constants[expr]
+    raise SystemExit(f"phase6-base64-c-parity:unsupported_bytes_expr:{expr}")
+
+
+def parse_variant_name(expr: str) -> str:
+    return parse_zig_string_literal(expr).decode("ascii")
+
+
+def expected_surface_from_fixture_text(text: str) -> list[str]:
+    byte_constants = parse_byte_constants(text)
+    rows: list[str] = []
+
+    for case in parse_case_entries(extract_array_block(text, "standard_cases"), "standard_cases"):
+        rows.append(
+            "enc\tstd\t{padding}\t{input_hex}\t{output_hex}".format(
+                padding=int(parse_bool(case["padding"])),
+                input_hex=parse_bytes_expr(case["input"], byte_constants).hex(),
+                output_hex=parse_bytes_expr(case["expected"], byte_constants).hex(),
+            )
+        )
+
+    for case in parse_case_entries(extract_array_block(text, "variant_cases"), "variant_cases"):
+        rows.append(
+            "enc\t{variant}\t{padding}\t{input_hex}\t{output_hex}".format(
+                variant=parse_variant_name(case["variant_name"]),
+                padding=int(parse_bool(case["padding"])),
+                input_hex=parse_bytes_expr(case["input"], byte_constants).hex(),
+                output_hex=parse_bytes_expr(case["expected"], byte_constants).hex(),
+            )
+        )
+
+    for case in parse_case_entries(extract_array_block(text, "standard_decode_cases"), "standard_decode_cases"):
+        expected = parse_bytes_expr(case["expected"], byte_constants)
+        rows.append(
+            "dec\tstd\t{padding}\t{output_len}\t{input_hex}\t{output_hex}".format(
+                padding=int(parse_bool(case["padding"])),
+                output_len=len(expected),
+                input_hex=parse_bytes_expr(case["input"], byte_constants).hex(),
+                output_hex=expected.hex(),
+            )
+        )
+
+    for case in parse_case_entries(extract_array_block(text, "variant_decode_cases"), "variant_decode_cases"):
+        expected = parse_bytes_expr(case["expected"], byte_constants)
+        rows.append(
+            "dec\t{variant}\t{padding}\t{output_len}\t{input_hex}\t{output_hex}".format(
+                variant=parse_variant_name(case["variant_name"]),
+                padding=int(parse_bool(case["padding"])),
+                output_len=len(expected),
+                input_hex=parse_bytes_expr(case["input"], byte_constants).hex(),
+                output_hex=expected.hex(),
+            )
+        )
+
+    for case in parse_case_entries(extract_array_block(text, "invalid_decode_cases"), "invalid_decode_cases"):
+        rows.append(
+            "inv\t{variant}\t{padding}\t{input_hex}\tInvalidInput\tInvalidInput".format(
+                variant=parse_variant_name(case["variant_name"]),
+                padding=int(parse_bool(case["padding"])),
+                input_hex=parse_bytes_expr(case["input"], byte_constants).hex(),
+            )
+        )
+
+    return sorted(rows)
+
+
+def expected_surface_from_fixture_file(path: Path) -> list[str]:
+    return expected_surface_from_fixture_text(path.read_text(encoding="utf-8"))
 
 
 def run_self_test() -> int:
@@ -131,6 +287,11 @@ def run_self_test() -> int:
         lambda: validate_required_path(Path("/tmp/phase6-missing-runner.zig"), "runner"),
         "missing runner: /tmp/phase6-missing-runner.zig",
     )
+    expect_system_exit(
+        "missing_fixture_source",
+        lambda: validate_required_path(Path("/tmp/phase6-missing-fixture.zig"), "fixture source"),
+        "missing fixture source: /tmp/phase6-missing-fixture.zig",
+    )
     build_text = build_zig_build_text()
     assert_equal(
         "build_text",
@@ -139,20 +300,49 @@ def run_self_test() -> int:
         and str(ZIG_RUNNER) in build_text,
         True,
     )
+    sample_fixture = """
+const variant_sample = [_]u8{ 0xfb };
+const invalid_with_nul = [_]u8{ 'Z', 'g', 0, '=' };
+pub const standard_cases = [_]EncodeCase{
+    .{ .input = "Man", .expected = "TWFu", .padding = true },
+};
+pub const variant_cases = [_]VariantCase{
+    .{ .input = &variant_sample, .expected = "-w", .padding = false, .variant_name = "urlsafe" },
+};
+pub const standard_decode_cases = [_]DecodeCase{
+    .{ .input = "TWFu", .expected = "Man", .padding = true, .variant_name = "std" },
+};
+pub const variant_decode_cases = [_]DecodeCase{
+    .{ .input = "-w", .expected = &variant_sample, .padding = false, .variant_name = "urlsafe" },
+};
+pub const invalid_decode_cases = [_]InvalidDecodeCase{
+    .{ .input = invalid_with_nul[0..], .padding = true, .variant_name = "std" },
+};
+"""
+    sample_expected = sorted(
+        [
+            "dec\tstd\t1\t3\t54574675\t4d616e",
+            "dec\turlsafe\t0\t1\t2d77\tfb",
+            "enc\tstd\t1\t4d616e\t54574675",
+            "enc\turlsafe\t0\tfb\t2d77",
+            "inv\tstd\t1\t5a67003d\tInvalidInput\tInvalidInput",
+        ]
+    )
     validate_expected_surface(
-        sorted_lines("dec\tstd\t1\t3\tok\tok\nenc\tstd\t1\tTWFu\tok\ndec\timap\t0\t3\tok\tok\n"),
+        expected_surface_from_fixture_text(sample_fixture),
+        sample_expected,
         "self-test-positive",
     )
-    unexpected_lines = EXPECTED_SORTED_LINES + ["unexpected-extra\tstd\t1\tbogus\tok"]
+    unexpected_lines = sample_expected + ["unexpected-extra\tstd\t1\tbogus\tok"]
     expect_system_exit(
         "unexpected_case",
-        lambda: validate_expected_surface(unexpected_lines, "self-test-unexpected-case"),
+        lambda: validate_expected_surface(unexpected_lines, sample_expected, "self-test-unexpected-case"),
         "phase6-base64-c-parity:self-test-unexpected-case:unexpected_output:"
-        f"expected={EXPECTED_SORTED_LINES!r}:actual={unexpected_lines!r}",
+        f"expected={sample_expected!r}:actual={unexpected_lines!r}",
     )
 
     print("PHASE6_BASE64_C_PARITY_SELF_TEST=pass")
-    print("PHASE6_BASE64_C_PARITY_SELF_TEST_CASE_COUNT=7")
+    print("PHASE6_BASE64_C_PARITY_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
@@ -170,7 +360,10 @@ def main() -> int:
 
     validate_required_path(C_HARNESS, "harness")
     validate_required_path(CASE_GENERATOR, "case generator")
+    validate_required_path(FIXTURE_SOURCE, "fixture source")
     validate_required_path(ZIG_RUNNER, "runner")
+
+    expected_lines = expected_surface_from_fixture_file(FIXTURE_SOURCE)
 
     out_dir = ROOT / ".zigux-cache" / "phase6-base64-c-parity"
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -201,8 +394,8 @@ def main() -> int:
 
     c_lines = sorted_lines(c_run.stdout)
     zig_lines = sorted_lines(zig_run.stdout)
-    validate_expected_surface(c_lines, "c")
-    validate_expected_surface(zig_lines, "zig")
+    validate_expected_surface(c_lines, expected_lines, "c")
+    validate_expected_surface(zig_lines, expected_lines, "zig")
 
     if c_lines != zig_lines:
         print("PHASE6_BASE64_C_PARITY=fail")
