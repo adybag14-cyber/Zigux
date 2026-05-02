@@ -30,8 +30,8 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_POLICY_UNSAFE_TEST_BLOB_SHA=99d6e599a716d26a9e96694b543f2dc3f19d4ac8`
 - `PHASE3_ABI_MANIFEST_BLOB_SHA=d40d25f96ddbda5c44aaf76ae8dcc3796936a041`
 - `PHASE3_POLICY_UNSAFE_GATE=zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig`
-- `PHASE3_BOUNDARY_GAP=typed-policy-consumption-still-stops-at-scoped-mmio-without-another-dedicated-boundary-packet`
-- `PHASE3_NEXT_BOUNDED_STEP=keep-the-policy-and-unsafe-surface-narrow-until-one-more-roadmap-backed-boundary-helper-needs-direct-decoded-interop-policy-consumption`
+- `PHASE3_BOUNDARY_GAP=no-boundary-helper-beyond-scoped-mmio-consumes-decoded-policy-yet`
+- `PHASE3_NEXT_BOUNDED_STEP=keep-the-policy-and-unsafe-surface-narrow-until-one-roadmap-backed-boundary-helper-beyond-scoped-mmio-needs-a-typed-interop-policy-consumer`
 
 ## Roadmap Contract
 
