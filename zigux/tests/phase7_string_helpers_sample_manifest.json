@@ -16,6 +16,36 @@
     "preexisting_phase7_helper_present": true,
     "preexisting_phase7_sample_present": true
   },
+  "sample_replay_contract": {
+    "descriptor_name": "string_helpers_sample",
+    "matched_index": 1,
+    "checked_focus": [
+      "newline_tolerant_matching",
+      "bounded_size_rendering",
+      "deterministic_escape_subset",
+      "non_allocating_runtime_safe"
+    ],
+    "lifecycle_states": [
+      "cold",
+      "initialized",
+      "replay_complete",
+      "exited"
+    ],
+    "helper_call_markers": [
+      "string_helpers.sysfsStreq",
+      "string_helpers.sysfsMatchString",
+      "string_helpers.stringGetSize",
+      "string_helpers.stringUnescape",
+      "string_helpers.stringEscapeMem"
+    ],
+    "test_assertions": [
+      "try std.testing.expectEqualStrings(\"1.50 KiB\", cStringPrefix(&replay.size_text.bytes));",
+      "try std.testing.expectEqual(@as(usize, 8), replay.size_text.len);",
+      "try std.testing.expectEqualSlices(u8, \"line\\n\", replay.unescaped_text.bytes[0..replay.unescaped_text.len]);",
+      "try std.testing.expectEqualSlices(u8, \"\\\\x0a\", replay.escaped_text.bytes[0..replay.escaped_text.len]);",
+      "try std.testing.expectEqual(@as(usize, 4), replay.checked_focus.len);"
+    ]
+  },
   "gaps": [
     {
       "id": "phase7-build-gate",
