@@ -66,6 +66,7 @@ HEADER_BINDING_MARKERS = {
         "const chrdev_notify_ack_policy_plan_module = b.createModule(.{",
         "const chrdev_notify_ack_budget_plan_module = b.createModule(.{",
         "const chrdev_notify_ack_window_plan_module = b.createModule(.{",
+        "const chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_plan_module = b.createModule(.{",
     ),
     "zigux/tests/phase3_export_uapi_build.zig": (
         '.root_source_file = b.path("phase3_export_uapi.zig"),',
