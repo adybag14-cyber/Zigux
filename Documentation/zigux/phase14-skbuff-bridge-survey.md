@@ -39,7 +39,7 @@ The highest-value honest step in this lane is therefore to add a boundary map th
 - the bridge now records the exported tail-publication contract around `segs->prev`, the last-segment `gso_size` or `gso_segs` clamp, `tail->next`, and the nearby `validate_xmit_skb_list()` handoff so the lane names where segmented output becomes a published list without weakening the stay-in-C posture.
 - the bridge now records the `validate_xmit_skb_list()` consumer-side reset around `next = skb->next`, `skb_mark_not_on_list()`, `skb->prev = skb`, and `tail = skb->prev` so the lane names how single-skb and segmented outputs converge on one tail contract without weakening the stay-in-C posture.
 - the bridge now records the smaller `validate_xmit_skb_list()` republish handoff around `head = skb`, `tail->next = skb`, and `validate_xmit_skb()` drop pruning so the lane records how validated outputs are stitched back into one list before any wrapper claim approaches live packet lifetime behavior.
-- the next honest skbuff-facing step is the narrower `__dev_direct_xmit()` identity-drop follow-up around `skb = validate_xmit_skb_list(...)`, `skb != orig_skb`, and the drop path so the lane records where the republished output is either accepted as the original skb or rejected without weakening the stay-in-C posture.
+- the next honest skbuff-facing step is the narrower `__dev_direct_xmit()` identity-drop follow-up around `skb = validate_xmit_skb_list(...)`, `skb != orig_skb`, and the drop path, and that step stays strictly observational: it does not move qdisc publication, queue ownership, or skb lifetime ownership out of the existing C implementation.
 
 ## Recorded gaps
 
@@ -62,7 +62,7 @@ The current lane state is:
 - ready-next `phase14-skbuff-direct-xmit-identity-drop-followup`
 - blocked `phase14-skbuff-live-ownership-blocker`
 
-This keeps the lane explicit without overstating progress: Zigux now has a real Phase 14 skbuff boundary map, a lifetime-audit foothold, an explicit checksum-state audit, the first segmentation-handoff study, the partial-seg tail-owner follow-up, the checksum-to-data-offset crossover audit, the exported tail-publication checkpoint, the consumer-side `validate_xmit_skb_list()` reset checkpoint, and the republish handoff that stitches validated outputs back into one list, but it still does not claim live refcount transitions, destructor ordering, checksum ownership, segmentation behavior, or a direct `net/core/skbuff.c` rewrite.
+This keeps the lane explicit without overstating progress: Zigux now has a real Phase 14 skbuff boundary map, a lifetime-audit foothold, an explicit checksum-state audit, the first segmentation-handoff study, the partial-seg tail-owner follow-up, the checksum-to-data-offset crossover audit, the exported tail-publication checkpoint, the consumer-side `validate_xmit_skb_list()` reset checkpoint, and the republish handoff that stitches validated outputs back into one list, but it still does not claim live refcount transitions, destructor ordering, checksum ownership, segmentation behavior, qdisc publication ownership, or a direct `net/core/skbuff.c` rewrite.
 
 ## Freeze-in-C guardrails
 
@@ -76,10 +76,12 @@ This keeps the lane explicit without overstating progress: Zigux now has a real 
   - named owner, validation gate, and rollback owner recorded together in this survey note
   - explicit stay-in-C wording for `head = skb`, `tail->next = skb`, `validate_xmit_skb()`, and the `__dev_direct_xmit()` identity-drop follow-up
   - the current ready-next gap and the blocked live-ownership gap kept explicit beside the same freeze-in-C posture
+  - explicit wording that the identity-drop follow-up is observational only and does not transfer qdisc publication, queue ownership, or skb lifetime ownership out of C
 - automatic return-to-blocked triggers:
   - any edit that drops the named validation gate or rollback owner
   - missing freeze-in-C or stay-in-C wording for the republish or direct-xmit handoff in this survey packet
   - any manifest refresh that changes the ready-next or blocked gap without refreshing this survey note
+  - any edit that stops distinguishing the observational `__dev_direct_xmit()` identity-drop follow-up from the still-blocked qdisc publication, queue ownership, or skb lifetime ownership
 
 ## Non-goals
 
@@ -103,4 +105,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 14 skbuff lane and add one tiny `__dev_direct_xmit()` identity-drop follow-up next, limited to `skb = validate_xmit_skb_list(...)`, `skb != orig_skb`, and the drop path so the bridge records where the republished output is either accepted as the original skb or rejected before any wrapper leaves the current boundary-map-only posture.
+Stay in the Phase 14 skbuff lane and add one tiny `__dev_direct_xmit()` identity-drop follow-up next, limited to `skb = validate_xmit_skb_list(...)`, `skb != orig_skb`, and the drop path so the bridge records where the republished output is either accepted as the original skb or rejected before any wrapper leaves the current boundary-map-only posture. Keep that follow-up observational only: qdisc publication, queue ownership, and skb lifetime ownership remain explicitly in C.
