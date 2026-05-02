@@ -155,6 +155,18 @@ const PendingParsedLine = struct {
     }
 };
 
+fn finishPendingAtEof(
+    pending: *PendingParsedLine,
+    context: anytype,
+    comptime process_symbol: fn (@TypeOf(context), ParsedSymbol) anyerror!void,
+) !void {
+    if (pending.len == 0) {
+        return;
+    }
+
+    try pending.finish(context, process_symbol);
+}
+
 fn processParsedChunk(
     pending: *PendingParsedLine,
     chunk: []const u8,
@@ -185,9 +197,7 @@ pub fn forEachParsedChunked(
         try processParsedChunk(&pending, chunk, process_context, process_symbol);
     }
 
-    if (pending.len != 0) {
-        try processParsedLine(pending.items(), process_context, process_symbol);
-    }
+    try finishPendingAtEof(&pending, process_context, process_symbol);
 }
 
 pub fn forEachParsedReader(
@@ -214,9 +224,7 @@ pub fn forEachParsedReader(
         try processParsedChunk(&pending, scratch_buffer[0..bytes_read], process_context, process_symbol);
     }
 
-    if (pending.len != 0) {
-        try processParsedLine(pending.items(), process_context, process_symbol);
-    }
+    try finishPendingAtEof(&pending, process_context, process_symbol);
 }
 
 pub fn forEachParsedFile(
@@ -613,6 +621,97 @@ test "forEachParsedChunked discards oversized line tails once the bounded callba
     try std.testing.expectEqual(@as(u8, 't'), parsed.items[1].symbol_type);
 }
 
+test "chunked and reader entrypoints keep the final unterminated line at EOF" {
+    const OwnedParsedSymbol = struct {
+        name: []u8,
+        symbol_type: u8,
+        start: u64,
+
+        fn deinit(self: *@This(), allocator: std.mem.Allocator) void {
+            allocator.free(self.name);
+            self.* = undefined;
+        }
+    };
+
+    const SliceReader = struct {
+        bytes: []const u8,
+        index: usize = 0,
+
+        pub fn read(self: *@This(), dest: []u8) !usize {
+            if (self.index >= self.bytes.len) {
+                return 0;
+            }
+
+            const amt = @min(dest.len, self.bytes.len - self.index);
+            @memcpy(dest[0..amt], self.bytes[self.index .. self.index + amt]);
+            self.index += amt;
+            return amt;
+        }
+    };
+
+    const Fixture = struct {
+        fn collect(list: *std.ArrayList(OwnedParsedSymbol), symbol: ParsedSymbol) !void {
+            try list.append(std.testing.allocator, .{
+                .name = try std.testing.allocator.dupe(u8, symbol.name),
+                .symbol_type = symbol.symbol_type,
+                .start = symbol.start,
+            });
+        }
+    };
+
+    var chunked_state = ChunkFixtureState{
+        .chunks = &.{
+            "ffffffff81000000 T startup_",
+            "64\nffffffff81000400 w weak_tail",
+        },
+    };
+    var chunked_symbols = std.ArrayList(OwnedParsedSymbol).empty;
+    defer {
+        for (chunked_symbols.items) |*symbol| {
+            symbol.deinit(std.testing.allocator);
+        }
+        chunked_symbols.deinit(std.testing.allocator);
+    }
+
+    try forEachParsedChunked(
+        std.testing.allocator,
+        &chunked_state,
+        nextFixtureChunk,
+        &chunked_symbols,
+        Fixture.collect,
+    );
+
+    try std.testing.expectEqual(@as(usize, 2), chunked_symbols.items.len);
+    try std.testing.expectEqualStrings("startup_64", chunked_symbols.items[0].name);
+    try std.testing.expectEqualStrings("weak_tail", chunked_symbols.items[1].name);
+    try std.testing.expectEqual(@as(u8, 'w'), chunked_symbols.items[1].symbol_type);
+
+    var reader = SliceReader{
+        .bytes = "ffffffff81000000 T startup_64\nffffffff81000400 w weak_tail",
+    };
+    var scratch_buffer: [9]u8 = undefined;
+    var reader_symbols = std.ArrayList(OwnedParsedSymbol).empty;
+    defer {
+        for (reader_symbols.items) |*symbol| {
+            symbol.deinit(std.testing.allocator);
+        }
+        reader_symbols.deinit(std.testing.allocator);
+    }
+
+    try forEachParsedReader(
+        std.testing.allocator,
+        &reader,
+        &scratch_buffer,
+        &reader_symbols,
+        Fixture.collect,
+    );
+
+    try std.testing.expectEqual(@as(usize, 2), reader_symbols.items.len);
+    try std.testing.expectEqualStrings("startup_64", reader_symbols.items[0].name);
+    try std.testing.expectEqualStrings("weak_tail", reader_symbols.items[1].name);
+    try std.testing.expectEqual(@as(u8, 'w'), reader_symbols.items[1].symbol_type);
+}
+
 test "forEachParsedReader and path reuse the same malformed-line skipping semantics" {
     const SliceReader = struct {
         bytes: []const u8,
@@ -777,9 +876,9 @@ test "kallsymsParse wrappers preserve the C-shaped callback contract and bounded
 
     const contents =
         "ffffffff81000000 T startup_64\n" ++
-            "garbage\n" ++
-            "ffffffff81000200 W weak_handler\n" ++
-            "ffffffff81000300 t ignored_after_stop\n";
+        "garbage\n" ++
+        "ffffffff81000200 W weak_handler\n" ++
+        "ffffffff81000300 t ignored_after_stop\n";
 
     var contents_state = CallbackState.init();
     defer contents_state.deinit(std.testing.allocator);
@@ -975,4 +1074,69 @@ test "kallsymsParse wrappers preserve the C-shaped callback contract and bounded
     try std.testing.expect(std.mem.allEqual(u8, oversized_state.names.items[0], 'b'));
     try std.testing.expectEqual(@as(u8, 'T'), oversized_state.symbol_types.items[0]);
     try std.testing.expectEqual(@as(u64, 1), oversized_state.starts.items[0]);
+}
+
+test "kallsymsParseReader keeps the final unterminated callback record at EOF" {
+    const CallbackState = struct {
+        names: std.ArrayList([]u8),
+
+        fn init() @This() {
+            return .{
+                .names = std.ArrayList([]u8).empty,
+            };
+        }
+
+        fn deinit(self: *@This(), allocator: std.mem.Allocator) void {
+            for (self.names.items) |name| {
+                allocator.free(name);
+            }
+            self.names.deinit(allocator);
+            self.* = undefined;
+        }
+
+        fn collect(context: ?*anyopaque, name: [:0]const u8, symbol_type: u8, start: u64) i32 {
+            _ = symbol_type;
+            _ = start;
+            const self: *@This() = @ptrCast(@alignCast(context.?));
+            self.names.append(std.testing.allocator, std.testing.allocator.dupe(u8, name) catch return -99) catch return -98;
+            return 0;
+        }
+    };
+
+    const SliceReader = struct {
+        bytes: []const u8,
+        index: usize = 0,
+
+        pub fn read(self: *@This(), dest: []u8) !usize {
+            if (self.index >= self.bytes.len) {
+                return 0;
+            }
+
+            const amt = @min(dest.len, self.bytes.len - self.index);
+            @memcpy(dest[0..amt], self.bytes[self.index .. self.index + amt]);
+            self.index += amt;
+            return amt;
+        }
+    };
+
+    var state = CallbackState.init();
+    defer state.deinit(std.testing.allocator);
+
+    var reader = SliceReader{
+        .bytes = "ffffffff81000000 T startup_64\nffffffff81000400 w weak_tail",
+    };
+    var scratch_buffer: [12]u8 = undefined;
+
+    const result = try kallsymsParseReader(
+        std.testing.allocator,
+        &reader,
+        &scratch_buffer,
+        &state,
+        CallbackState.collect,
+    );
+
+    try std.testing.expectEqual(@as(i32, 0), result);
+    try std.testing.expectEqual(@as(usize, 2), state.names.items.len);
+    try std.testing.expectEqualStrings("startup_64", state.names.items[0]);
+    try std.testing.expectEqualStrings("weak_tail", state.names.items[1]);
 }
