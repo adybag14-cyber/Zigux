@@ -63,6 +63,7 @@ FILES = [
     "zigux/tests/phase12_virtio_net_survey.zig",
     "zigux/tests/phase12_nvme_pci_survey.zig",
     "zigux/tests/phase12_virtio_scsi_survey.zig",
+    "zigux/tests/phase12_raw_github_coverage_survey.zig",
     "zigux/tests/phase12_libbpf_segments.zig",
     "zigux/tests/phase12_libbpf_reviewability.zig",
     "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md",
@@ -221,6 +222,7 @@ BUILD_MARKERS = [
     "phase12-virtio-scsi-syntax-lab-tests",
     "phase12-virtio-scsi-tests",
     "phase12-virtio-scsi-survey-tests",
+    "phase12-raw-github-coverage-survey-tests",
     "phase12-libbpf-segment-survey-tests",
     "phase12-libbpf-reviewability-tests",
     "test_step.dependOn(&run_phase12_nvme_pci_tests.step);",
@@ -231,6 +233,7 @@ BUILD_MARKERS = [
     "test_step.dependOn(&run_phase12_virtio_scsi_syntax_lab_tests.step);",
     "test_step.dependOn(&run_phase12_virtio_scsi_tests.step);",
     "test_step.dependOn(&run_phase12_virtio_scsi_survey_tests.step);",
+    "test_step.dependOn(&run_phase12_raw_github_coverage_survey_tests.step);",
     "test_step.dependOn(&run_phase12_libbpf_segments_tests.step);",
     "test_step.dependOn(&run_phase12_libbpf_reviewability_tests.step);",
 ]
