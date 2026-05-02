@@ -60,7 +60,7 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
         io_instance.io(),
         "lib/string_helpers.zig",
         std.testing.allocator,
-        .limited(32 * 1024),
+        .limited(64 * 1024),
     );
     defer std.testing.allocator.free(string_helpers_helper);
 
@@ -229,18 +229,18 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
     try expectContains(makefile, "scripts/zigux/check-phase7-make-wrapper.py --self-test");
     try expectContains(makefile, "scripts/zigux/check-phase7-make-wrapper.py");
     try expectContains(makefile, "phase7-test:");
-    try expectContains(makefile, "zig build test --build-file zigux/tests/phase7_build.zig --summary all");
+    try expectContains(makefile, "$(ZIG) build test --build-file zigux/tests/phase7_build.zig --summary all");
 
     try expectContains(phase7_build, "phase7_string_helpers_survey.zig");
     try expectContains(phase7_build, "phase7-string-helpers-tests");
     try expectContains(phase7_build, "phase7-string-helpers-survey-tests");
 
-    try expectContains(validate_phase7, "ROOT / \"scripts\" / \"zigux\" / \"check-phase7-build-inventory.py\",");
-    try expectContains(validate_phase7, "ROOT / \"zigux\" / \"tests\" / \"fixtures\" / \"phase7_build_inventory.json\",");
+    try expectContains(validate_phase7, "check-phase7-build-inventory.py --self-test");
+    try expectContains(validate_phase7, "zigux/tests/fixtures/phase7_build_inventory.json");
     try expectContains(validate_phase7, "(\"zigux/tests/phase7_string_helpers_survey.zig\", phase7_string_helpers_survey, required_phase7_string_helpers_survey_markers),");
 
     try expectContains(build_inventory_checker, "PHASE7_BUILD_INVENTORY_SELF_TEST=pass");
-    try expectContains(build_inventory_checker, "check-phase7-build-inventory.py --self-test");
+    try expectContains(build_inventory_checker, "PHASE7_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=8");
 
     try expectContains(make_wrapper_checker, "PHASE7_MAKE_WRAPPER_SELF_TEST=pass");
     try expectContains(make_wrapper_checker, "check-phase7-make-wrapper.py --self-test");
