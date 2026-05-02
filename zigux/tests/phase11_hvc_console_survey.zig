@@ -402,9 +402,21 @@ test "phase11 hvc console survey keeps the shared replay separate but exposes an
     );
     defer std.testing.allocator.free(build_zig);
 
+    const poll_retry_split = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase11_hvc_console_poll_retry_split.zig",
+        std.testing.allocator,
+        .limited(24 * 1024),
+    );
+    defer std.testing.allocator.free(poll_retry_split);
+
     try expectSurveyedCommitProvenance(survey_note, manifest.surveyed_commit);
     try std.testing.expect(std.mem.indexOf(u8, build_zig, "const phase11_hvc_console_tests = b.addTest") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_zig, "test_step.dependOn(&run_phase11_hvc_console_tests.step);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_zig, "const phase11_hvc_console_poll_retry_split_tests = b.addTest") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_zig, "test_step.dependOn(&run_phase11_hvc_console_poll_retry_split_tests.step);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, poll_retry_split, "phase11 hvc console keeps irq-backed drained reads distinct when __hvc_poll can or cannot sleep") != null);
+    try std.testing.expect(std.mem.indexOf(u8, poll_retry_split, "phase11 hvc console keeps partial write progress distinct from stalled __hvc_poll retries") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_zig, "const phase11_hvc_console_survey_tests = b.addTest") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_zig, "const hvc_console_survey_step = b.step") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_zig, "\"hvc-console-survey\"") != null);
