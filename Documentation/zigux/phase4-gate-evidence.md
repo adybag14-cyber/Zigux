@@ -9,7 +9,7 @@ This note records one exact readback snapshot for the current Phase 4 rollback-o
 - `PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions`
 - `PHASE4_VALIDATION_MATRIX_BLOB_SHA=da0a50dcf4c1b277b035f17c23575bd522016ec2`
 - `PHASE4_VALIDATOR_BLOB_SHA=9f81ba776b76cb9b8941d538cda5edaca340e48f`
-- `PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA=d7caac07b09abc8b2ca09120d5d6fa941fbb9b73`
+- `PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA=134fe28d88554596086d708fa8f5795e9e4da946`
 - `PHASE4_BUILD_BLOB_SHA=57f4c3809387cac39e3153b9bbad17ca92ce3684`
 - `PHASE4_MAKEFILE_BLOB_SHA=cc72aabfbc191ead57e9da22760d9a23d244206e`
 - `PHASE4_WORKFLOW_BLOB_SHA=baad28e89c761af30961433e34bacec2a7e75d53`
@@ -50,6 +50,7 @@ The current packet stayed aligned across the following readbacks on `master`:
 - `Documentation/zigux/phase4-validation-matrix.md` still names the current rollback owners, threshold posture, workflow step names, local replay commands, and reversible-delivery evidence for the two shipped rollback gates plus the two manifest-backed survey gates.
 - `scripts/zigux/validate-phase4.py` now accepts the current matrix formatting for backticked gate owners and the roadmap-gap rows that spell out the Linux anchor in the first column, and it now also fails closed if either dedicated `check-phase4-gate-evidence.py` Makefile line disappears or the checker file itself drops out of the shared Phase 4 packet.
 - direct validator replay on that same source snapshot still returned `PHASE4_VALIDATOR_SELF_TEST=pass`, `PHASE4_VALIDATION=pass`, `PHASE4_REQUIRED_FILE_COUNT=23`, and `PHASE4_REQUIRED_MARKER_COUNT=236` for the machine-checked matrix, validator, dedicated checker, Makefile, build, workflow, and manifest subset.
+- the dedicated `scripts/zigux/check-phase4-gate-evidence.py` checker now also fails closed if this note keeps the validator count tokens but lets the exact `PHASE4_REQUIRED_FILE_COUNT=23` or `PHASE4_REQUIRED_MARKER_COUNT=236` values drift.
 - `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` now also keeps this exact readback note explicit by requiring the sibling manifest pins, the three index-surface pins, and the shared surveyed snapshot `ec9aa1b15a34e581625da1056956ecb5dd6cd76a` instead of leaving that evidence packet as prose-only maintenance.
 - `zigux/tests/phase4_test_fsmount_survey.zig` and `zigux/tests/phase4_perf_baseline_survey.zig` now keep that same shared surveyed snapshot `ec9aa1b15a34e581625da1056956ecb5dd6cd76a` explicit beside `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`, so the rollback packet now keeps the manifest-backed survey trio aligned alongside the atomic64 packet instead of leaving two survey surfaces implied only by prose.
 - the dedicated `scripts/zigux/check-phase4-gate-evidence.py` replay is now wired into `make -C zigux phase4-validate` beside the older validator subset, and this note now pins that checker file too, so review can prove both which survey surfaces were inspected and which checker implementation defined the broader blob-ledger contract on the inspected head.
