@@ -86,6 +86,8 @@ test "phase 8 bridge boundary survey stays wired into the shared packet" {
     );
     try expectContains(bridge_note, "tools/lib/subcmd/exec-cmd.zig");
     try expectContains(bridge_note, "tools/lib/subcmd/help.zig");
+    try expectContains(bridge_note, "tools/lib/bpf/zigux_segments/cpu_mask.zig");
+    try expectContains(bridge_note, "zigux/tests/phase8_cpu_mask.zig");
     try expectContains(bridge_note, "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig");
     try expectContains(bridge_note, "choosePwdCwdFromIdentities()");
     try expectContains(bridge_note, "setupPathWithPwd()");
@@ -103,6 +105,7 @@ test "phase 8 bridge boundary survey stays wired into the shared packet" {
     try expectContains(bridge_note, "scheduler-facing transport behavior");
     try expectContains(bridge_note, "kernel/workqueue.c");
     try expectContains(bridge_note, "`bpf_token_create()`");
+    try expectContains(bridge_note, "perf-buffer-online-cpu-routing");
     try expectContains(bridge_note, "perf_buffer__poll(timeout_ms)");
     try expectContains(bridge_note, "no standalone timer helper");
     try expectContains(bridge_note, "no standalone clockevent helper");
@@ -129,6 +132,14 @@ test "phase 8 bridge boundary survey still matches the live helper surfaces" {
     );
     defer std.testing.allocator.free(bridge_note);
 
+    const cpu_mask_note = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "Documentation/zigux/phase8-libbpf-cpu-mask-slice.md",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(cpu_mask_note);
+
     const exec_cmd_helper = try readWorkspaceFile(
         io_instance.io(),
         std.testing.allocator,
@@ -144,6 +155,22 @@ test "phase 8 bridge boundary survey still matches the live helper surfaces" {
         64 * 1024,
     );
     defer std.testing.allocator.free(help_helper);
+
+    const cpu_mask_helper = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "tools/lib/bpf/zigux_segments/cpu_mask.zig",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(cpu_mask_helper);
+
+    const cpu_mask_test = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "zigux/tests/phase8_cpu_mask.zig",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(cpu_mask_test);
 
     const file_path_handle_bridge_helper = try readWorkspaceFile(
         io_instance.io(),
@@ -183,6 +210,9 @@ test "phase 8 bridge boundary survey still matches the live helper surfaces" {
     try expectContains(bridge_note, "/proc/<pid>/fdinfo/<fd>");
     try expectContains(bridge_note, "bpf_object_prepare_token()");
     try expectContains(bridge_note, "bpf_object__reuse_map()");
+    try expectContains(cpu_mask_note, "a bounded auto-CPU count clamp that mirrors libbpf's perf-buffer map-budget sizing");
+    try expectContains(cpu_mask_note, "a pure online-CPU eligibility predicate that mirrors libbpf's automatic-budget offline skip rule");
+    try expectContains(cpu_mask_note, "perf-buffer-online-cpu-routing");
 
     try expectContains(exec_cmd_helper, "command_name: []const u8");
     try expectContains(exec_cmd_helper, "exec_path_env: []const u8");
@@ -196,6 +226,13 @@ test "phase 8 bridge boundary survey still matches the live helper surfaces" {
     try expectContains(help_helper, "pub fn loadCommandListsFromEnvPath(");
     try expectContains(help_helper, "pub fn resolveTerminalDimensions(");
     try expectContains(help_helper, "pub fn writeCommandSectionsForTerminal(");
+    try expectContains(cpu_mask_helper, "pub fn derivePerfBufferAutoCpuCount(possible_cpu_count: usize, map_max_entries: u32) usize {");
+    try expectContains(cpu_mask_helper, "pub fn isPerfBufferCpuOnlineEligible(cpu_index: usize, requested_cpu_count: i32, online_mask: []const bool) bool {");
+    try expectContains(cpu_mask_helper, "test \"derivePerfBufferAutoCpuCount keeps perf-buffer auto sizing within the map budget\"");
+    try expectContains(cpu_mask_helper, "test \"isPerfBufferCpuOnlineEligible keeps the bounded online CPU predicate explicit\"");
+    try expectContains(cpu_mask_helper, "test \"isPerfBufferCpuOnlineEligible bypasses the online mask when the caller pins a positive CPU budget\"");
+    try expectContains(cpu_mask_test, "test \"phase 8 cpu mask starter slice keeps perf-buffer auto CPU sizing bounded without claiming routing parity\"");
+    try expectContains(cpu_mask_test, "test \"phase 8 cpu mask starter slice keeps the online CPU eligibility predicate helper-first\"");
     try expectContains(file_path_handle_bridge_helper, "pub fn buildCurrentProcessFdinfoPath(");
     try expectContains(file_path_handle_bridge_helper, "pub fn chooseReusedMapName(");
     try expectContains(file_path_handle_bridge_helper, "pub fn planTokenPreparation(");
