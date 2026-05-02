@@ -362,6 +362,36 @@ def run_self_test() -> int:
 
         ledger_path.write_text(
             original_ledger.replace(
+                "PHASE10_LEDGER_SHARED_VALIDATE=scripts/zigux/validate-phase10.py",
+                "PHASE10_LEDGER_SHARED_VALIDATE=missing",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "ledger_shared_validator_marker",
+            root,
+            "ledger:PHASE10_LEDGER_SHARED_VALIDATE=scripts/zigux/validate-phase10.py",
+        )
+        ledger_path.write_text(original_ledger, encoding="utf-8")
+
+        ledger_path.write_text(
+            original_ledger.replace(
+                "PHASE10_LEDGER_MMIO_SURVEY_GATE=zigux/tests/phase10_virtio_mmio_survey.zig",
+                "PHASE10_LEDGER_MMIO_SURVEY_GATE=missing",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "ledger_mmio_survey_gate_marker",
+            root,
+            "ledger:PHASE10_LEDGER_MMIO_SURVEY_GATE=zigux/tests/phase10_virtio_mmio_survey.zig",
+        )
+        ledger_path.write_text(original_ledger, encoding="utf-8")
+
+        ledger_path.write_text(
+            original_ledger.replace(
                 "PHASE10_LEDGER_EXACT_CHECK_1=python3 scripts/zigux/check-phase10-closure-inventory.py",
                 "PHASE10_LEDGER_EXACT_CHECK_1=python3 scripts/zigux/validate-phase10-closure.py",
                 1,
@@ -436,7 +466,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_CLOSURE_INVENTORY_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_INVENTORY_SELF_TEST_CASE_COUNT=12")
+    print("PHASE10_CLOSURE_INVENTORY_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
