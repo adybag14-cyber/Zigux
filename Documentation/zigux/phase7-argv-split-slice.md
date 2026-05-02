@@ -36,7 +36,9 @@ This current slice keeps the work bounded to the smallest runtime-safe ownership
 
 1. prove the shared Phase 7 validator packet plus the build-inventory and make-wrapper gates still fail closed before the helper replay runs
 - `python3 scripts/zigux/validate-phase7.py --self-test`
+- `python3 scripts/zigux/check-phase7-build-inventory.py --self-test`
 - `python3 scripts/zigux/check-phase7-build-inventory.py`
+- `python3 scripts/zigux/check-phase7-make-wrapper.py --self-test`
 - `python3 scripts/zigux/check-phase7-make-wrapper.py`
 - `make -C zigux phase7-validate`
 
