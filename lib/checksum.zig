@@ -207,6 +207,29 @@ test "pseudo-header helpers match local reference assembly" {
     try std.testing.expectEqual(normalize(expected_v6), actual_v6);
 }
 
+test "tcpUdpV6Nofold preserves upper length bits" {
+    const payload = "v6len";
+    const payload_partial = partial(payload, 0);
+    const proto: u8 = 58;
+    const jumbo_len: u32 = 0x0001_0001;
+    const truncated_len: u32 = 0x0000_0001;
+    const saddr = [16]u8{ 0xfd, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x12, 0x34, 0x56, 0x78, 0x00, 0x00, 0x00, 0x01 };
+    const daddr = [16]u8{ 0xfd, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x87, 0x65, 0x43, 0x21, 0x00, 0x00, 0x00, 0x02 };
+
+    var pseudo_header = [_]u8{0} ** 40;
+    @memcpy(pseudo_header[0..16], &saddr);
+    @memcpy(pseudo_header[16..32], &daddr);
+    appendBigEndianU32(pseudo_header[32..36], jumbo_len);
+    pseudo_header[39] = proto;
+
+    const expected = blockAdd(partial(&pseudo_header, 0), payload_partial, pseudo_header.len);
+    const actual = tcpUdpV6Nofold(payload_partial, saddr, daddr, jumbo_len, proto);
+    const truncated = tcpUdpV6Nofold(payload_partial, saddr, daddr, truncated_len, proto);
+
+    try std.testing.expectEqual(normalize(expected), actual);
+    try std.testing.expect(actual != truncated);
+}
+
 test "add, sub, and offset shifting preserve checksum arithmetic" {
     const lhs: u32 = 0x12_34;
     const rhs: u32 = 0xab_cd;
