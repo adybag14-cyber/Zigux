@@ -16,6 +16,8 @@ TRACKED_PATHS = [
     "Documentation/zigux/phase12-libbpf-segment-survey.md",
     "tools/lib/bpf/zigux_segments/manifest.json",
 ]
+SNAPSHOT_FIXTURE_PATH = "zigux/tests/fixtures/phase12_libbpf_snapshot.json"
+REQUIRED_PATHS = [*TRACKED_PATHS, SNAPSHOT_FIXTURE_PATH]
 
 EXPECTED_ROADMAP_DESTINATIONS = [
     "tools/lib/bpf/zigux_segments/",
@@ -311,7 +313,7 @@ def check_manifest_survey_summary(survey_summary: object, missing: list[str]) ->
 
 def check_packet(root: Path) -> list[str]:
     missing: list[str] = []
-    for rel_path in TRACKED_PATHS:
+    for rel_path in REQUIRED_PATHS:
         if not (root / rel_path).exists():
             missing.append(f"missing_file:{rel_path}")
 
@@ -319,7 +321,7 @@ def check_packet(root: Path) -> list[str]:
         return missing
 
     manifest = load_json(root, TRACKED_PATHS[0])
-    snapshot = load_json(root, "zigux/tests/fixtures/phase12_libbpf_snapshot.json")
+    snapshot = load_json(root, SNAPSHOT_FIXTURE_PATH)
     legacy_manifest = load_json(root, TRACKED_PATHS[4])
     survey_note = read_text(root, TRACKED_PATHS[3])
     segment_test = read_text(root, TRACKED_PATHS[1])
@@ -492,7 +494,7 @@ def build_self_test_tree(root: Path) -> None:
         "tracked_file_count": len(TRACKED_PATHS),
         "files": expected_snapshot_files(root),
     }
-    write(root / "zigux/tests/fixtures/phase12_libbpf_snapshot.json", json.dumps(snapshot, indent=2) + "\n")
+    write(root / SNAPSHOT_FIXTURE_PATH, json.dumps(snapshot, indent=2) + "\n")
 
 
 def run_self_test() -> int:
@@ -513,6 +515,13 @@ def run_self_test() -> int:
             raise SystemExit("phase12-libbpf-packet:self-test:missing_tracked_file_detection")
 
         build_self_test_tree(root)
+        snapshot_path = root / SNAPSHOT_FIXTURE_PATH
+        snapshot_path.unlink()
+        missing = check_packet(root)
+        if f"missing_file:{SNAPSHOT_FIXTURE_PATH}" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:missing_snapshot_fixture_detection")
+
+        build_self_test_tree(root)
         manifest_path = root / TRACKED_PATHS[0]
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["phase"] = "Phase 11"
@@ -522,7 +531,7 @@ def run_self_test() -> int:
             raise SystemExit("phase12-libbpf-packet:self-test:manifest_phase_detection")
 
         build_self_test_tree(root)
-        snapshot_path = root / "zigux/tests/fixtures/phase12_libbpf_snapshot.json"
+        snapshot_path = root / SNAPSHOT_FIXTURE_PATH
         snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
         snapshot["lane_key"] = "P12-L99"
         snapshot_path.write_text(json.dumps(snapshot, indent=2) + "\n", encoding="utf-8")
@@ -531,7 +540,7 @@ def run_self_test() -> int:
             raise SystemExit("phase12-libbpf-packet:self-test:snapshot_lane_detection")
 
         build_self_test_tree(root)
-        snapshot_path = root / "zigux/tests/fixtures/phase12_libbpf_snapshot.json"
+        snapshot_path = root / SNAPSHOT_FIXTURE_PATH
         snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
         snapshot["phase"] = "Phase 11"
         snapshot_path.write_text(json.dumps(snapshot, indent=2) + "\n", encoding="utf-8")
@@ -611,7 +620,7 @@ def run_self_test() -> int:
             raise SystemExit("phase12-libbpf-packet:self-test:recovery_split_marker_detection")
 
         build_self_test_tree(root)
-        snapshot_path = root / "zigux/tests/fixtures/phase12_libbpf_snapshot.json"
+        snapshot_path = root / SNAPSHOT_FIXTURE_PATH
         snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
         snapshot["tracked_file_count"] = len(TRACKED_PATHS) + 1
         snapshot_path.write_text(json.dumps(snapshot, indent=2) + "\n", encoding="utf-8")
@@ -620,7 +629,7 @@ def run_self_test() -> int:
             raise SystemExit("phase12-libbpf-packet:self-test:tracked_count_detection")
 
         build_self_test_tree(root)
-        snapshot_path = root / "zigux/tests/fixtures/phase12_libbpf_snapshot.json"
+        snapshot_path = root / SNAPSHOT_FIXTURE_PATH
         snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
         snapshot["files"][0]["bytes"] = int(snapshot["files"][0]["bytes"]) + 1
         snapshot_path.write_text(json.dumps(snapshot, indent=2) + "\n", encoding="utf-8")
@@ -629,7 +638,7 @@ def run_self_test() -> int:
             raise SystemExit("phase12-libbpf-packet:self-test:tracked_bytes_detection")
 
         build_self_test_tree(root)
-        snapshot_path = root / "zigux/tests/fixtures/phase12_libbpf_snapshot.json"
+        snapshot_path = root / SNAPSHOT_FIXTURE_PATH
         snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
         snapshot["files"][-1]["sha256"] = "f" * 64
         snapshot_path.write_text(json.dumps(snapshot, indent=2) + "\n", encoding="utf-8")
@@ -638,7 +647,7 @@ def run_self_test() -> int:
             raise SystemExit("phase12-libbpf-packet:self-test:tracked_sha_detection")
 
         build_self_test_tree(root)
-        snapshot_path = root / "zigux/tests/fixtures/phase12_libbpf_snapshot.json"
+        snapshot_path = root / SNAPSHOT_FIXTURE_PATH
         snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
         snapshot["files"][0], snapshot["files"][-1] = snapshot["files"][-1], snapshot["files"][0]
         snapshot_path.write_text(json.dumps(snapshot, indent=2) + "\n", encoding="utf-8")
@@ -647,7 +656,7 @@ def run_self_test() -> int:
             raise SystemExit("phase12-libbpf-packet:self-test:tracked_paths_detection")
 
         build_self_test_tree(root)
-        snapshot_path = root / "zigux/tests/fixtures/phase12_libbpf_snapshot.json"
+        snapshot_path = root / SNAPSHOT_FIXTURE_PATH
         snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
         snapshot["surveyed_commit"] = "0" * 40
         snapshot_path.write_text(json.dumps(snapshot, indent=2) + "\n", encoding="utf-8")
@@ -956,7 +965,7 @@ def run_self_test() -> int:
             raise SystemExit("phase12-libbpf-packet:self-test:legacy_surveyed_commit_hex_detection")
 
         print("PHASE12_LIBBPF_PACKET_SELF_TEST=pass")
-        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=39")
+        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=40")
     return 0
 
 
