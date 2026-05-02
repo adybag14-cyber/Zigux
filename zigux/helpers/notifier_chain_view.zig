@@ -72,7 +72,7 @@ pub fn summarize(view: abi.NotifierChainView) abi.NotifierChainSummary {
         current = next_addr;
     }
 
-    if (count != 0 and priority_nonincreasing) {
+    if (previous_priority != null and priority_nonincreasing) {
         flags |= abi.NOTIFIER_CHAIN_FLAG_PRIORITY_NONINCREASING;
     }
     if ((flags & abi.NOTIFIER_CHAIN_FLAG_SELF_LOOP) != 0) {
