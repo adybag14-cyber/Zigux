@@ -55,6 +55,12 @@ RBTREE_SUMMARY = (
     "replaceNode, eraseInit, postorder traversal, and detached-node state checks, while "
     "Linux-style rb_* alias parity remains explicitly out of scope for this closed Phase 1 tranche."
 )
+RBTREE_SHARED_PARITY_SCOPE_NOTE = (
+    "The committed shared Phase 1 fixture still stops at traversal, replaceNode, eraseInit, "
+    "postorder traversal, and detached-node state checks; duplicate-key search, duplicate-range "
+    "iterators, and cached-root minima tracking are currently recorded as direct Zig unit coverage "
+    "only in this closed tranche."
+)
 RBTREE_ALIAS_GAP_NOTE = (
     "Linux-style rb_* alias surface parity is still missing for the already-ported entry points, "
     "and that remaining surface stays explicitly out of scope for the closed Phase 1 tranche until "
@@ -63,6 +69,19 @@ RBTREE_ALIAS_GAP_NOTE = (
 RBTREE_ALIAS_GAP_GATE = (
     "PHASE1_RBTREE_ALIAS_GAP_GATE=phase1 closure validation fails closed if tools/lib/rbtree.zig "
     "grows Linux-style rb_* aliases before the closed helper tranche is deliberately reopened"
+)
+RBTREE_POSTORDER_ITERATOR_REVIEW = (
+    "PHASE1_RBTREE_POSTORDER_ITERATOR_UNIT_REVIEW=rbtree iteratePostorder visits each node exactly "
+    "once in left-right-root order and reports exhaustion cleanly after the full walk"
+)
+RBTREE_POSTORDER_SAFE_REVIEW = (
+    "PHASE1_RBTREE_POSTORDER_SAFE_UNIT_REVIEW=rbtree iteratePostorderSafe caches exactly one step "
+    "ahead so callers can invalidate the current node without truncating the remaining postorder walk"
+)
+RBTREE_POSTORDER_SAFE_REBALANCE_REVIEW = (
+    "PHASE1_RBTREE_POSTORDER_SAFE_REBALANCE_UNIT_REVIEW=rbtree iteratePostorderSafe stays aligned "
+    "across erase-driven rebalancing so the walk still reaches each remaining node exactly once after "
+    "the current node is removed"
 )
 RBTREE_UNEXPECTED_ALIAS_MARKERS = [
     "pub fn rb_insert_color(",
@@ -136,6 +155,9 @@ REQUIRED_CLOSURE_MARKERS = [
     "PHASE1_RBTREE_REVIEW=rbtree parity covers ordered traversal, replaceNode, eraseInit, postorder traversal, and detached-node state while Linux-style rb_* alias parity remains explicitly out of scope for this closed tranche",
     "PHASE1_RBTREE_ITERATE_UNIT_REVIEW=rbtree iterateMatches yields only the equal-key duplicate range and cleanly reports no match for missing keys",
     "PHASE1_RBTREE_REVERSE_UNIT_REVIEW=rbtree findLast, prevMatch, and iterateMatchesReverse keep reverse duplicate-key lookup walks aligned from the rightmost match back through the equal-key range while still reporting no match for missing keys",
+    RBTREE_POSTORDER_ITERATOR_REVIEW,
+    RBTREE_POSTORDER_SAFE_REVIEW,
+    RBTREE_POSTORDER_SAFE_REBALANCE_REVIEW,
     "PHASE1_RBTREE_ALIAS_GAP_NOTE=the closed Phase 1 rbtree tranche still excludes Linux-style rb_* alias parity for the already-ported entry points, and that remaining surface stays explicitly out of scope until a later bounded repair lands",
     RBTREE_ALIAS_GAP_GATE,
     f"PHASE1_STRING_REVIEW={STRING_SUMMARY}",
@@ -291,6 +313,7 @@ EXPECTED_MANIFEST_FIELDS = {
     "tools/lib/rbtree.zig": {
         "fixture": "zigux/tests/fixtures/phase1_helpers.json",
         "summary": RBTREE_SUMMARY,
+        "shared_parity_scope_note": RBTREE_SHARED_PARITY_SCOPE_NOTE,
         "alias_gap_note": RBTREE_ALIAS_GAP_NOTE,
         "iterator_unit_test_anchor": 'tools/lib/rbtree.zig:test "rbtree iterateMatches streams only the duplicate range"',
         "iterator_unit_test_contract": (
@@ -302,6 +325,24 @@ EXPECTED_MANIFEST_FIELDS = {
             "Direct Zig unit coverage keeps findLast(), prevMatch(), and iterateMatchesReverse() "
             "aligned so reverse duplicate-key lookups start at the rightmost match, walk back "
             "through the equal-key range, and cleanly report no match for missing keys."
+        ),
+        "postorder_iterator_unit_test_anchor": 'tools/lib/rbtree.zig:test "rbtree iteratePostorder streams the full postorder walk once"',
+        "postorder_iterator_unit_test_contract": (
+            "Direct Zig unit coverage keeps iteratePostorder() aligned so the explicit iterator "
+            "visits each node exactly once in left-right-root order and reports exhaustion cleanly "
+            "after the full walk."
+        ),
+        "postorder_safe_unit_test_anchor": 'tools/lib/rbtree.zig:test "rbtree iteratePostorderSafe caches the next node before node invalidation"',
+        "postorder_safe_unit_test_contract": (
+            "Direct Zig unit coverage keeps iteratePostorderSafe() aligned by caching exactly one "
+            "step ahead so callers can invalidate the current node without truncating the remaining "
+            "postorder walk."
+        ),
+        "postorder_safe_rebalance_unit_test_anchor": 'tools/lib/rbtree.zig:test "rbtree iteratePostorderSafe survives erase-driven rebalancing"',
+        "postorder_safe_rebalance_unit_test_contract": (
+            "Direct Zig unit coverage keeps iteratePostorderSafe() aligned across erase-driven "
+            "rebalancing so the walk still reaches each remaining node exactly once after the "
+            "current node is removed."
         ),
     },
     "tools/lib/string.zig": {
@@ -428,6 +469,7 @@ def build_expectations() -> dict[str, object]:
             "PHASE1_BENCH_LIST_SORT_CHECKSUM",
         ],
     }
+}
 
 
 def create_fixture_root(root: Path) -> None:
@@ -570,6 +612,9 @@ def run_self_test() -> int:
             ("closure_find_bit_zero_sized_review", "PHASE1_FIND_BIT_ZERO_SIZED_UNIT_REVIEW=find_bit zero-length set zero and shared-bit scans return 0 even when backing words are populated so declared nbits stays authoritative over caller storage"),
             ("closure_rbtree_iterate_review", "PHASE1_RBTREE_ITERATE_UNIT_REVIEW=rbtree iterateMatches yields only the equal-key duplicate range and cleanly reports no match for missing keys"),
             ("closure_rbtree_reverse_review", "PHASE1_RBTREE_REVERSE_UNIT_REVIEW=rbtree findLast, prevMatch, and iterateMatchesReverse keep reverse duplicate-key lookup walks aligned from the rightmost match back through the equal-key range while still reporting no match for missing keys"),
+            ("closure_rbtree_postorder_iterator_review", RBTREE_POSTORDER_ITERATOR_REVIEW),
+            ("closure_rbtree_postorder_safe_review", RBTREE_POSTORDER_SAFE_REVIEW),
+            ("closure_rbtree_postorder_safe_rebalance_review", RBTREE_POSTORDER_SAFE_REBALANCE_REVIEW),
             ("closure_rbtree_bench_keys", "PHASE1_RBTREE_BENCH_KEYS=PHASE1_BENCH_RBTREE_CHECKSUM,PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM,PHASE1_BENCH_RBTREE_CACHED_CHECKSUM,PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM,PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM"),
             ("closure_rbtree_alias_gap_note", "PHASE1_RBTREE_ALIAS_GAP_NOTE=the closed Phase 1 rbtree tranche still excludes Linux-style rb_* alias parity for the already-ported entry points, and that remaining surface stays explicitly out of scope until a later bounded repair lands"),
             ("closure_rbtree_alias_gap_gate", RBTREE_ALIAS_GAP_GATE),
@@ -598,9 +643,13 @@ def run_self_test() -> int:
         original_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest_cases = [
             ("rbtree_summary", "tools/lib/rbtree.zig", "summary"),
+            ("rbtree_shared_parity_scope_note", "tools/lib/rbtree.zig", "shared_parity_scope_note"),
             ("rbtree_alias_gap_note", "tools/lib/rbtree.zig", "alias_gap_note"),
             ("rbtree_iterator_contract", "tools/lib/rbtree.zig", "iterator_unit_test_contract"),
             ("rbtree_reverse_contract", "tools/lib/rbtree.zig", "reverse_unit_test_contract"),
+            ("rbtree_postorder_iterator_contract", "tools/lib/rbtree.zig", "postorder_iterator_unit_test_contract"),
+            ("rbtree_postorder_safe_contract", "tools/lib/rbtree.zig", "postorder_safe_unit_test_contract"),
+            ("rbtree_postorder_safe_rebalance_contract", "tools/lib/rbtree.zig", "postorder_safe_rebalance_unit_test_contract"),
             ("find_bit_mask_contract", "tools/lib/find_bit.zig", "mask_unit_test_contract"),
             ("find_bit_boundary_contract", "tools/lib/find_bit.zig", "boundary_unit_test_contract"),
             ("find_bit_low_level_contract", "tools/lib/find_bit.zig", "low_level_unit_test_contract"),
