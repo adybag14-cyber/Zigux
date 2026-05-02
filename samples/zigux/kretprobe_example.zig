@@ -44,6 +44,18 @@ pub const ReplaySummary = struct {
     checked_focus: []const SampleFocus,
 };
 
+pub const RetargetRecoverySummary = struct {
+    anchor: []const u8,
+    symbol_name: []const u8,
+    skipped_kernel_thread_path_checked: bool,
+    rejected_timestamp_ns: i64,
+    return_value: usize,
+    duration_ns: i64,
+    private_data_size_bytes: usize,
+    maxactive: usize,
+    stage_after_recovery: SampleStage,
+};
+
 pub const KretprobeExampleSample = struct {
     const Self = @This();
     const InstanceData = struct {
@@ -182,6 +194,37 @@ pub const KretprobeExampleSample = struct {
                 .missed_summary,
                 .ownership_and_lifetime,
             },
+        };
+    }
+
+    pub fn runRetargetRecoveryReplay(self: *Self) !RetargetRecoverySummary {
+        if (self.stage() != .cold) return error.InvalidLifecycleTransition;
+
+        try self.retargetSymbol("do_sys_openat2");
+        try self.init();
+
+        const skipped = try self.entryHandler(false, 11);
+        if (skipped) return error.UnexpectedEntryArming;
+
+        const armed = try self.entryHandler(true, 200);
+        if (!armed) return error.UnexpectedEntrySkip;
+
+        _ = self.retHandler(9, 199) catch |err| switch (err) {
+            error.InvalidTimestampOrder => {},
+            else => return err,
+        };
+        const recovered = try self.retHandler(9, 260);
+
+        return .{
+            .anchor = descriptor().anchor,
+            .symbol_name = self.symbol_name,
+            .skipped_kernel_thread_path_checked = self.skipped_kernel_threads == 1,
+            .rejected_timestamp_ns = 199,
+            .return_value = recovered.retval,
+            .duration_ns = recovered.duration_ns,
+            .private_data_size_bytes = self.privateDataSizeBytes(),
+            .maxactive = self.maxactiveBudget(),
+            .stage_after_recovery = self.stage(),
         };
     }
 
