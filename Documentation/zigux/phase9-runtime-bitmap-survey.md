@@ -7,7 +7,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `lib
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-bitmap-survey`
 - `PHASE9_LANE_KEY=P9-L08`
-- `PHASE9_SURVEYED_COMMIT=3ba64cd4e41a4de1c8fd8dbaecb23702ad9701a3`
+- `PHASE9_SURVEYED_COMMIT=f5a4d6990f701937b2a3bb9ae723bb6d0f27ba21`
 - scope: survey manifest, manifest-backed delivery catalog and ownership map, dedicated runtime survey gate, direct `phase9-runtime-bitmap-sample-tests` and `phase9-runtime-bitmap-loader-tests` shared-build legs, landed sample-backed module starter, landed module gate, landed diff gate, landed loader scaffold, landed shared loader-request binding, and the lane-level review note that keeps the remaining broader runtime-control blocker explicit without claiming loadable-module parity
 - product boundary:
   - `samples/zigux/runtime_bitmap.zig`
@@ -35,7 +35,7 @@ No parity scorecard entry or Architecture Council status-change request is attac
 ## Survey findings
 
 - `lib/test_bitmap.c` is present on `master` at 1567 lines.
-- the current survey packet is pinned to `master` commit `3ba64cd4e41a4de1c8fd8dbaecb23702ad9701a3`.
+- the current survey packet is pinned to `master` commit `f5a4d6990f701937b2a3bb9ae723bb6d0f27ba21`.
 - the live Phase 9 bitmap lane already carried dedicated runtime bitmap test files before this survey note landed.
 - the live Phase 9 bitmap lane already carried a sample-backed runtime bitmap starter under `samples/zigux/`.
 - the live repo already carried shared `zigux/tests/phase9_build.zig` wiring and a bitmap module-slice note before this survey note landed.
