@@ -13,6 +13,32 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 C_HARNESS = ROOT / "zigux" / "tests" / "fixtures" / "phase6_checksum_c_harness.c"
 ZIG_RUNNER = ROOT / "zigux" / "tests" / "phase6_checksum_c_parity.zig"
+EXPECTED_SORTED_LINES = sorted(
+    [
+        "compute\tempty\t0xffff",
+        "compute\ttwo-byte word\t0xfffe",
+        "compute\tipv4 header\t0x9c5d",
+        "compute\todd payload\t0xd638",
+        "compute\tcarry-heavy payload\t0x80ff",
+        "partial\todd payload with saturated seed\t0x000029c7",
+        "partial\tcarry-heavy payload with unfolded seed\t0x00007f00",
+        "partial\tipv4 fragment with arbitrary seed\t0x00004d50",
+        "compose\teven split\t0x00000e7b",
+        "compose\todd split\t0x00000e7b",
+        "tcpudp-nofold\tudp pseudo header\t0x000085e4",
+        "tcpudpv6-nofold\tudp doc payload odd\t0x0000f876",
+        "tcpudpv6-nofold\ttcp carry payload even\t0x0000b842",
+        "tcpudpv6-nofold\ticmpv6 preserves upper declared length bits\t0x00007e10",
+        "carry-discipline\tall-ones odd payload with saturated seed\t0x00ff",
+        "carry-discipline\tall-ones even payload with zero seed\t0x0000",
+        "carry-discipline\tsingle-byte no-carry seed stays one step below overflow\t0x0004",
+        "carry-discipline\ttwo-byte no-carry seed stays one step below overflow\t0x0404",
+        "replace\tpayload-word\t0xffffd8dd",
+        "replace-by-diff\tipv4-total-length\t0x9c59",
+        "replace2\tipv4-total-length\t0x9c59",
+        "replace4\tipv4-saddr\t0x9c58",
+    ]
+)
 
 
 def require_tool(name: str, env_name: str) -> str:
@@ -104,6 +130,13 @@ def expect_system_exit(label: str, callback, expected_message: str) -> None:
     )
 
 
+def validate_expected_surface(lines: list[str], label: str) -> None:
+    if lines != EXPECTED_SORTED_LINES:
+        raise SystemExit(
+            f"phase6-checksum-c-parity:{label}:unexpected_output:expected={EXPECTED_SORTED_LINES!r}:actual={lines!r}"
+        )
+
+
 def validate_matching_surface(c_lines: list[str], zig_lines: list[str], label: str) -> None:
     if c_lines != zig_lines:
         raise SystemExit(
@@ -132,6 +165,14 @@ def run_self_test() -> int:
         sorted_lines("partial\tseeded\t0x00000001\ncompute\tempty\t0xffff\n"),
         ["compute\tempty\t0xffff", "partial\tseeded\t0x00000001"],
     )
+    validate_expected_surface(EXPECTED_SORTED_LINES, "self-test-positive")
+    unexpected_lines = EXPECTED_SORTED_LINES + ["unexpected-extra\tbogus\t0x00000000"]
+    expect_system_exit(
+        "unexpected_case",
+        lambda: validate_expected_surface(unexpected_lines, "self-test-unexpected-case"),
+        "phase6-checksum-c-parity:self-test-unexpected-case:unexpected_output:"
+        f"expected={EXPECTED_SORTED_LINES!r}:actual={unexpected_lines!r}",
+    )
     expect_system_exit(
         "mismatch_surface",
         lambda: validate_matching_surface(
@@ -145,7 +186,7 @@ def run_self_test() -> int:
     )
 
     print("PHASE6_CHECKSUM_C_PARITY_SELF_TEST=pass")
-    print("PHASE6_CHECKSUM_C_PARITY_SELF_TEST_CASE_COUNT=6")
+    print("PHASE6_CHECKSUM_C_PARITY_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
@@ -190,15 +231,21 @@ def main() -> int:
 
     c_lines = sorted_lines(c_run.stdout)
     zig_lines = sorted_lines(zig_run.stdout)
-    mismatch: str | None = None
+    failures: list[str] = []
+    for label, lines in (("c", c_lines), ("zig", zig_lines)):
+        try:
+            validate_expected_surface(lines, label)
+        except SystemExit as exc:
+            failures.append(str(exc))
     try:
-        validate_matching_surface(c_lines, zig_lines, "zig")
+        validate_matching_surface(c_lines, zig_lines, "c-vs-zig")
     except SystemExit as exc:
-        mismatch = str(exc)
+        failures.append(str(exc))
 
-    if mismatch is not None:
+    if failures:
         print("PHASE6_CHECKSUM_C_PARITY=fail")
-        print(mismatch)
+        for failure in failures:
+            print(failure)
         print("C_OUTPUT_START")
         print(c_run.stdout.rstrip())
         print("C_OUTPUT_END")
