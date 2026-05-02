@@ -138,6 +138,7 @@
     "generated_fixture_artifacts_committed": false
   },
   "exact_checks": [
+    "python3 scripts/zigux/validate-phase6.py --self-test",
     "python3 scripts/zigux/validate-phase6.py",
     "make -C zigux phase6-validate",
     "make -C zigux phase6",
