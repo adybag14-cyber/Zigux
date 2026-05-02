@@ -248,6 +248,7 @@ VALIDATOR_MARKERS = [
     "'python3 scripts/zigux/check-genksyms-bridge.py': 1,",
     '\'self_test_case_count_marker\': "print(\\\'PHASE2_GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=26\\\')",',
     "'check-genksyms-bridge.py --self-test',",
+    "'abbreviated_missing_long_dump_types_argument': 'abbreviated_missing_long_dump_types_argument_expected.json',",
 ]
 MAKEFILE_MARKERS = [
     'phase2-validate:',
@@ -858,13 +859,20 @@ def run_self_test() -> int:
         validator_path = tmp_root / REQUIRED_FILES['validator']
         original_validator = validator_path.read_text(encoding='utf-8')
         validator_path.write_text(
+            original_validator.replace(VALIDATOR_MARKERS[-1] + '\n', '', 1),
+            encoding='utf-8',
+        )
+        expect_issue('validator_expected_filename_marker', tmp_root, f'validator:{VALIDATOR_MARKERS[-1]}')
+        validator_path.write_text(original_validator, encoding='utf-8')
+
+        validator_path.write_text(
             original_validator.replace(VALIDATOR_MARKERS[2] + '\n', '', 1),
             encoding='utf-8',
         )
         expect_issue('validator_case_count_marker', tmp_root, f'validator:{VALIDATOR_MARKERS[2]}')
 
     print('PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST=pass')
-    print('PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=24')
+    print('PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=25')
     return 0
 
 
