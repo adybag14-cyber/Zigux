@@ -452,6 +452,7 @@ test "phase 9 runtime trace-events docs keep the task and event-loop substrate g
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "-Mroot=zigux/tests/runtime_trace_events_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "-Mruntime_trace_events_sample=samples/zigux/runtime_trace_events.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "make -C zigux phase9-trace-events-survey") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "zig build test --build-file zigux/tests/phase9_build.zig --summary all") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "phase9-runtime-trace-events-sample-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "phase9-runtime-trace-events-module-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "phase9-runtime-trace-events-diff-tests") != null);
