@@ -98,6 +98,8 @@ TEXT_MARKERS = {
         "ships no `samples/zigux/*string*` Phase 5 reference sample",
         "ships no `samples/zigux/*cmdline*` Phase 5 reference sample",
         "runtime_bitmap_loader.zig",
+        "bounded `samples/zigux/runtime_trace_events_loader.zig` scaffold is now shipped",
+        "runtime-substrate handoff still blocked",
     ],
     "samples/zigux/README.md": [
         "Phase 5 reference samples",
@@ -469,6 +471,21 @@ def run_self_test() -> int:
 
         tmp_root = Path(tmp)
         copy_tree(ROOT, tmp_root)
+        checklist = tmp_root / "Documentation/zigux/review-checklist.md"
+        text = checklist.read_text(encoding="utf-8").replace(
+            "runtime-substrate handoff still blocked",
+            "runtime-substrate handoff now cleared",
+            1,
+        )
+        checklist.write_text(text, encoding="utf-8")
+        missing = validate_phase5(tmp_root)
+        if missing["ok"] or not any(item.startswith("Documentation/zigux/review-checklist.md") for item in missing["missing"]):
+            print("PHASE5_VALIDATOR_SELF_TEST=fail")
+            print("PHASE5_VALIDATOR_SELF_TEST_REASON=trace-events-loader-boundary-gap")
+            return 1
+
+        tmp_root = Path(tmp)
+        copy_tree(ROOT, tmp_root)
         sample = tmp_root / "samples/zigux/trace_events_sample.zig"
         text = sample.read_text(encoding="utf-8").replace(
             ".requires_runtime_substrate = false",
@@ -483,7 +500,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE5_VALIDATOR_SELF_TEST=pass")
-    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=6")
+    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
