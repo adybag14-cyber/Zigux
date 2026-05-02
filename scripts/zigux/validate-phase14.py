@@ -101,6 +101,7 @@ RELEASE_MARKERS = [
     "PHASE14_FOCUSED_SHARD_DEPENDENCY_COUNT=1",
     "PHASE14_FOCUSED_SHARD_ONLY_ARTIFACT=phase14-end-to-end-smoke-tests",
     "PHASE14_STAY_IN_C_BOUNDARY=explicit",
+    "PHASE14_REVIEW_BLOCKER_STATUS=blocked_on_stay_in_c_evidence",
     "PHASE14_STATUS_CHANGE_CLAIM=no",
     "PHASE14_BOUNDARY_MAP=shared-anchor-packet-bundle",
     "PHASE14_CONCURRENCY_AUDIT_SCOPE=anchor-local-packets-only",
@@ -145,6 +146,12 @@ PRODUCTIZATION_KEYS = {
     "owner": "Core-Adjacent Pod",
     "status_bucket": "study_only",
     "validation_gate": "zig build test --build-file zigux/tests/phase14_build.zig --summary all && make -C zigux phase14",
+    "rollback_owner": "Repo Tooling Pod",
+}
+SHARED_ROLLBACK_THRESHOLD_KEYS = {
+    "status_bucket": "study_only",
+    "review_blocker_status": "blocked_on_stay_in_c_evidence",
+    "owner": "Core-Adjacent Pod",
     "rollback_owner": "Repo Tooling Pod",
 }
 RCU_TREE_ROLLBACK_THRESHOLD_KEYS = {
@@ -224,6 +231,32 @@ else:
     if not isinstance(transfer_rationale, str) or "ZAR runtime research" not in transfer_rationale:
         missing.append("manifest:productization:transfer_rationale")
 
+rollback_threshold = manifest.get("rollback_threshold")
+if not isinstance(rollback_threshold, dict):
+    missing.append("manifest:rollback_threshold")
+    rollback_threshold = {}
+else:
+    for key, value in SHARED_ROLLBACK_THRESHOLD_KEYS.items():
+        if rollback_threshold.get(key) != value:
+            missing.append(f"manifest:rollback_threshold:{key}={rollback_threshold.get(key)}")
+    fallback_path = rollback_threshold.get("fallback_path")
+    if not isinstance(fallback_path, str) or "source of truth" not in fallback_path:
+        missing.append("manifest:rollback_threshold:fallback_path")
+    required_evidence = rollback_threshold.get("required_evidence")
+    if not isinstance(required_evidence, list) or len(required_evidence) != 3:
+        missing.append("manifest:rollback_threshold:required_evidence")
+    else:
+        for item in required_evidence:
+            if not isinstance(item, str) or item not in survey_note:
+                missing.append(f"survey:rollback_required_evidence:{item}")
+    rollback_triggers = rollback_threshold.get("rollback_triggers")
+    if not isinstance(rollback_triggers, list) or len(rollback_triggers) != 4:
+        missing.append("manifest:rollback_threshold:rollback_triggers")
+    else:
+        for item in rollback_triggers:
+            if not isinstance(item, str) or item not in survey_note:
+                missing.append(f"survey:rollback_trigger:{item}")
+
 shared_smoke_surfaces = manifest.get("shared_smoke_surfaces")
 if not isinstance(shared_smoke_surfaces, list) or len(shared_smoke_surfaces) != 10:
     missing.append("manifest:shared_smoke_surfaces")
@@ -265,6 +298,7 @@ required_summary_keys = [
     "review_checklist_has_concurrency_audit_prompt",
     "smoke_note_records_owner_and_rollback",
     "smoke_note_records_risk_bundle",
+    "smoke_note_records_review_blocker_status",
     "smoke_note_records_rollback_threshold",
     "smoke_note_records_fallback_path",
     "smoke_note_records_return_to_blocked_triggers",
@@ -379,6 +413,13 @@ for key, value in PRODUCTIZATION_KEYS.items():
         missing.append(f"survey:productization:{key}")
 if "ZAR runtime research" not in survey_note:
     missing.append("survey:transfer_rationale")
+review_blocker_status = rollback_threshold.get("review_blocker_status")
+if isinstance(review_blocker_status, str):
+    expected_review_blocker_marker = f"PHASE14_REVIEW_BLOCKER_STATUS={review_blocker_status}"
+    if expected_review_blocker_marker not in survey_note:
+        missing.append("survey:review_blocker_status")
+    if review_blocker_status not in survey_note:
+        missing.append("survey:review_blocker_status_productization")
 
 expected_compile_count_marker = f"PHASE14_COMPILE_ARTIFACT_COUNT={len(expected_build_test_names)}"
 expected_focused_count_marker = f"PHASE14_FOCUSED_SHARD_COUNT={focused_shard_count}"
@@ -500,4 +541,4 @@ print(f"PHASE14_BUILD_DEPEND_STEP_COUNT={len(actual_depend_steps)}")
 print(f"PHASE14_COMPILE_ARTIFACT_COUNT={len(expected_build_test_names)}")
 print(f"PHASE14_FOCUSED_SHARD_COUNT={focused_shard_count}")
 print(f"PHASE14_ANCHOR_LOCAL_STEP_COUNT={anchor_local_step_count}")
-print(f"PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT={full_bundle_only_count}")
+print(f"PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT={full_bundle_only_count})"
