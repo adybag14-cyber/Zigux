@@ -23,6 +23,9 @@ BUILD_TEST_ROOT_MODULE_RE = re.compile(
 
 REQUIRED_FILES = [
     "scripts/zigux/check-phase12-libbpf-focused-replay.py",
+    "scripts/zigux/README.md",
+    ".github/workflows/zigux-bootstrap.yml",
+    "zigux/Makefile",
     "zigux/tests/phase12_libbpf_only_build.zig",
     "zigux/tests/phase12_libbpf_manifest.json",
     "zigux/tests/phase12_libbpf_segments.zig",
@@ -96,6 +99,19 @@ MANIFEST_MARKERS = [
     "check-phase12-libbpf-focused-replay.py",
     "phase12_libbpf_only_build.zig",
 ]
+SCRIPTS_README_MARKERS = [
+    "check-phase12-libbpf-focused-replay.py",
+    "phase12_libbpf_only_build.zig",
+    "focused libbpf-only replay hook",
+]
+MAKEFILE_MARKERS = [
+    "scripts/zigux/check-phase12-libbpf-focused-replay.py --self-test",
+    "scripts/zigux/check-phase12-libbpf-focused-replay.py",
+]
+WORKFLOW_MARKERS = [
+    "check-phase12-libbpf-focused-replay.py --self-test",
+    "check-phase12-libbpf-focused-replay.py",
+]
 
 
 def read_text(path: str) -> str:
@@ -103,7 +119,7 @@ def read_text(path: str) -> str:
 
 
 def run_self_test() -> int:
-    if len(REQUIRED_FILES) != 6:
+    if len(REQUIRED_FILES) != 9:
         raise SystemExit("phase12-libbpf-focused-replay-self-test:required_file_count")
     if EXPECTED_BUILD_TEST_NAMES != [
         "phase12-libbpf-segment-survey-tests",
@@ -141,6 +157,9 @@ if missing_files:
 build_text = read_text("zigux/tests/phase12_libbpf_only_build.zig")
 survey_note_text = read_text("Documentation/zigux/phase12-libbpf-segment-survey.md")
 manifest_text = read_text("zigux/tests/phase12_libbpf_manifest.json")
+scripts_readme_text = read_text("scripts/zigux/README.md")
+makefile_text = read_text("zigux/Makefile")
+workflow_text = read_text(".github/workflows/zigux-bootstrap.yml")
 
 missing: list[str] = []
 
@@ -184,6 +203,18 @@ for marker in SURVEY_NOTE_MARKERS:
 for marker in MANIFEST_MARKERS:
     if marker not in manifest_text:
         missing.append(f"manifest:{marker}")
+
+for marker in SCRIPTS_README_MARKERS:
+    if marker not in scripts_readme_text:
+        missing.append(f"scripts_readme:{marker}")
+
+for marker in MAKEFILE_MARKERS:
+    if marker not in makefile_text:
+        missing.append(f"makefile:{marker}")
+
+for marker in WORKFLOW_MARKERS:
+    if marker not in workflow_text:
+        missing.append(f"workflow:{marker}")
 
 if missing:
     print("PHASE12_LIBBPF_FOCUSED_REPLAY=fail")
