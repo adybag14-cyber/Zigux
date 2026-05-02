@@ -122,6 +122,41 @@ test "phase 8 file-path-handle bridge keeps token failure recovery discipline ex
     try std.testing.expect(!denied_pinned_map.shouldContinueWithoutReuse());
 }
 
+test "phase 8 file-path-handle bridge keeps reuse-attempt ownership planning explicit" {
+    const incompatible = file_path_handle_bridge.resolveReusePinnedMapAttempt(false, 0);
+    try std.testing.expectEqual(
+        file_path_handle_bridge.ReusePinnedMapResolutionDisposition.incompatible_map,
+        incompatible.disposition,
+    );
+    try std.testing.expectEqual(-@as(i32, @intFromEnum(std.os.linux.E.INVAL)), incompatible.result_code);
+    try std.testing.expect(incompatible.should_close_pin_fd);
+    try std.testing.expect(!incompatible.should_mark_map_pinned);
+    try std.testing.expect(!incompatible.succeeded());
+
+    const reuse_failed = file_path_handle_bridge.resolveReusePinnedMapAttempt(
+        true,
+        -@as(i32, @intFromEnum(std.os.linux.E.PERM)),
+    );
+    try std.testing.expectEqual(
+        file_path_handle_bridge.ReusePinnedMapResolutionDisposition.reuse_fd_failed,
+        reuse_failed.disposition,
+    );
+    try std.testing.expectEqual(-@as(i32, @intFromEnum(std.os.linux.E.PERM)), reuse_failed.result_code);
+    try std.testing.expect(reuse_failed.should_close_pin_fd);
+    try std.testing.expect(!reuse_failed.should_mark_map_pinned);
+    try std.testing.expect(!reuse_failed.succeeded());
+
+    const reused = file_path_handle_bridge.resolveReusePinnedMapAttempt(true, 0);
+    try std.testing.expectEqual(
+        file_path_handle_bridge.ReusePinnedMapResolutionDisposition.reused,
+        reused.disposition,
+    );
+    try std.testing.expectEqual(@as(i32, 0), reused.result_code);
+    try std.testing.expect(reused.should_close_pin_fd);
+    try std.testing.expect(reused.should_mark_map_pinned);
+    try std.testing.expect(reused.succeeded());
+}
+
 test "phase 8 file-path-handle bridge parses bounded fdinfo map metadata" {
     const info = try file_path_handle_bridge.parseMapInfoFromFdinfo(
         "pos:\t0\n" ++
