@@ -110,7 +110,6 @@ def run_self_test() -> int:
 
         build_self_test_tree(root)
         build_path = root / 'zigux/tests/phase12_libbpf_only_build.zig'
-        build_path.writeText = None
         build_path.write_text(
             build_path.read_text(encoding='utf-8').replace(
                 BUILD_MARKERS[6],
