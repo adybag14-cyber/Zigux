@@ -31,7 +31,7 @@ const Manifest = struct {
 };
 
 const expected_surveyed_commit = "9c17b0790799d8240ef9f964903f5ce2db64af89";
-const expected_slice_marker = "PHASE13_SLICE=landlock-syscalls-helper-ruleset-fops-contract";
+const expected_slice_marker = "PHASE13_SLICE=landlock-syscalls-helper-pure-handoff-boundary";
 
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
