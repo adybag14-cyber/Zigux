@@ -57,6 +57,23 @@ fn applySuffix(value: u64, suffix: u8) u64 {
     };
 }
 
+fn consumeOptionalUnitTail(text: []const u8, idx: *usize) void {
+    if (idx.* >= text.len) {
+        return;
+    }
+
+    if ((text[idx.*] == 'i' or text[idx.*] == 'I') and idx.* + 1 < text.len and
+        (text[idx.* + 1] == 'B' or text[idx.* + 1] == 'b'))
+    {
+        idx.* += 2;
+        return;
+    }
+
+    if (text[idx.*] == 'B' or text[idx.*] == 'b') {
+        idx.* += 1;
+    }
+}
+
 pub fn memparse(text: []const u8) MemparseResult {
     const prefix = parseSignedPrefix(text);
     const base_info = parseBase(text, prefix.start);
@@ -82,9 +99,12 @@ pub fn memparse(text: []const u8) MemparseResult {
 
     var result: u64 = @bitCast(signed_value);
     if (idx < text.len) {
-        result = applySuffix(result, text[idx]);
         switch (text[idx]) {
-            'E', 'e', 'P', 'p', 'T', 't', 'G', 'g', 'M', 'm', 'K', 'k' => idx += 1,
+            'E', 'e', 'P', 'p', 'T', 't', 'G', 'g', 'M', 'm', 'K', 'k' => {
+                result = applySuffix(result, text[idx]);
+                idx += 1;
+                consumeOptionalUnitTail(text, &idx);
+            },
             else => {},
         }
     }
@@ -547,6 +567,14 @@ test "memparse forwards the header-level string helper surface" {
     const positive = memparse("+32");
     try std.testing.expectEqual(@as(u64, 32), positive.value);
     try std.testing.expectEqualStrings("", positive.rest);
+
+    const kib = memparse("64KiB rest");
+    try std.testing.expectEqual(@as(u64, 64 << 10), kib.value);
+    try std.testing.expectEqualStrings(" rest", kib.rest);
+
+    const mb = memparse("2MB!");
+    try std.testing.expectEqual(@as(u64, 2 << 20), mb.value);
+    try std.testing.expectEqualStrings("!", mb.rest);
 
     const invalid = memparse("xyz");
     try std.testing.expectEqual(@as(u64, 0), invalid.value);
