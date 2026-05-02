@@ -1,7 +1,7 @@
 {
   "lane_key": "P9-L12",
   "phase": "Phase 9",
-  "surveyed_commit": "17ebcd4ca4ab5c9cf126042ab8997b2de79a7c66",
+  "surveyed_commit": "f5a4d6990f701937b2a3bb9ae723bb6d0f27ba21",
   "anchor": "samples/trace_events/trace-events-sample.c",
   "roadmap_destinations": [
     "zigux/tests/runtime_*",
@@ -33,7 +33,7 @@
       "id": "runtime-trace-events-sample",
       "kind": "sample_starter",
       "path": "samples/zigux/runtime_trace_events.zig",
-      "role": "owns the bounded trace-events starter descriptor, lifecycle surface, diagnostics summary, and shipped selftest hook"
+      "role": "owns the bounded trace-events starter descriptor, lifecycle surface, and shipped selftest hook"
     },
     {
       "id": "runtime-trace-events-module-gate",
