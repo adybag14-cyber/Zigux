@@ -15,6 +15,7 @@ REQUIRED_FILES = {
     "tests_readme": "zigux/tests/README.md",
     "doc_readme": "Documentation/zigux/README.md",
     "perf_slice": "Documentation/zigux/phase8-perf-buffer-poll-slice.md",
+    "focused_build": "zigux/tests/phase8_perf_buffer_poll_only_build.zig",
     "shared_build": "zigux/tests/phase8_build.zig",
     "makefile": "zigux/Makefile",
     "scripts_readme": "scripts/zigux/README.md",
@@ -23,6 +24,7 @@ REQUIRED_FILES = {
 
 TESTS_README_MARKERS = [
     "zigux/tests/phase8_perf_buffer_poll.zig",
+    "zigux/tests/phase8_perf_buffer_poll_only_build.zig",
     "zigux/tests/phase8_bpf_type_names.zig",
     "zigux/tests/phase8_file_path_handle_bridge.zig",
     "zigux/tests/phase8_bridge_boundary_survey.zig",
@@ -44,7 +46,15 @@ PERF_SLICE_MARKERS = [
     "PHASE8_SLICE=perf-buffer-poll-helper",
     "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
     "zigux/tests/phase8_perf_buffer_poll.zig",
+    "zigux/tests/phase8_perf_buffer_poll_only_build.zig",
     "phase8-perf-buffer-poll-tests",
+    "make -C zigux phase8-perf-buffer-poll-test",
+]
+
+FOCUSED_BUILD_MARKERS = [
+    "phase8_perf_buffer_poll.zig",
+    "phase8-perf-buffer-poll-tests",
+    "Run focused Phase 8 perf-buffer poll tests",
 ]
 
 SHARED_BUILD_MARKERS = [
@@ -57,6 +67,9 @@ MAKEFILE_MARKERS = [
     "phase8-validate:",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-tests-readme-alignment.py --self-test\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-tests-readme-alignment.py\n",
+    "phase8-perf-buffer-poll-test:",
+    "zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all",
+    "phase8: phase8-validate phase8-exec-cmd-test phase8-help-test phase8-kallsyms-test phase8-libbpf-segments-test phase8-perf-buffer-poll-test phase8-test",
 ]
 
 SCRIPTS_README_MARKERS = [
@@ -70,6 +83,8 @@ SCRIPTS_README_MARKERS = [
 WORKFLOW_MARKERS = [
     "Validate Phase 8 tooling gates",
     "make -C zigux phase8-validate",
+    "Run focused Phase 8 perf-buffer poll tests",
+    "zigux/tests/phase8_perf_buffer_poll_only_build.zig",
     "Run Phase 8 tooling tests",
     "zig build test --build-file zigux/tests/phase8_build.zig --summary all",
 ]
@@ -109,6 +124,7 @@ def validate(root: Path) -> list[str]:
     tests_readme = read_text(root, REQUIRED_FILES["tests_readme"])
     doc_readme = read_text(root, REQUIRED_FILES["doc_readme"])
     perf_slice = read_text(root, REQUIRED_FILES["perf_slice"])
+    focused_build = read_text(root, REQUIRED_FILES["focused_build"])
     shared_build = read_text(root, REQUIRED_FILES["shared_build"])
     makefile = read_text(root, REQUIRED_FILES["makefile"])
     scripts_readme = read_text(root, REQUIRED_FILES["scripts_readme"])
@@ -125,6 +141,10 @@ def validate(root: Path) -> list[str]:
     for marker in PERF_SLICE_MARKERS:
         if marker not in perf_slice:
             missing.append(f"perf_slice:{marker}")
+
+    for marker in FOCUSED_BUILD_MARKERS:
+        if marker not in focused_build:
+            missing.append(f"focused_build:{marker}")
 
     for marker in SHARED_BUILD_MARKERS:
         if marker not in shared_build:
@@ -171,6 +191,7 @@ def clone_fixture_root(destination_root: Path) -> None:
                 "- zigux/tests/phase8_file_path_handle_bridge.zig",
                 "- zigux/tests/phase8_bridge_boundary_survey.zig",
                 "- zigux/tests/phase8_perf_buffer_poll.zig",
+                "- zigux/tests/phase8_perf_buffer_poll_only_build.zig",
                 "- scripts/zigux/validate-phase8.py",
                 "- Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
                 "",
@@ -208,7 +229,23 @@ def clone_fixture_root(destination_root: Path) -> None:
                 "- PHASE8_SLICE=perf-buffer-poll-helper",
                 "- tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
                 "- zigux/tests/phase8_perf_buffer_poll.zig",
+                "- zigux/tests/phase8_perf_buffer_poll_only_build.zig",
                 "- phase8-perf-buffer-poll-tests",
+                "- make -C zigux phase8-perf-buffer-poll-test",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    focused_build = destination_root / REQUIRED_FILES["focused_build"]
+    focused_build.parent.mkdir(parents=True, exist_ok=True)
+    focused_build.write_text(
+        "\n".join(
+            [
+                'const root = "phase8_perf_buffer_poll.zig";',
+                'const name = "phase8-perf-buffer-poll-tests";',
+                'const desc = "Run focused Phase 8 perf-buffer poll tests";',
                 "",
             ]
         ),
@@ -239,6 +276,9 @@ def clone_fixture_root(destination_root: Path) -> None:
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-tests-readme-alignment.py --self-test",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase8.py",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-tests-readme-alignment.py",
+                "phase8-perf-buffer-poll-test:",
+                "\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all",
+                "phase8: phase8-validate phase8-exec-cmd-test phase8-help-test phase8-kallsyms-test phase8-libbpf-segments-test phase8-perf-buffer-poll-test phase8-test",
                 "",
             ]
         ),
@@ -274,6 +314,8 @@ def clone_fixture_root(destination_root: Path) -> None:
                 "    steps:",
                 "      - name: Validate Phase 8 tooling gates",
                 "        run: make -C zigux phase8-validate",
+                "      - name: Run focused Phase 8 perf-buffer poll tests",
+                "        run: zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all",
                 "      - name: Run Phase 8 tooling tests",
                 "        run: zig build test --build-file zigux/tests/phase8_build.zig --summary all",
                 "",
@@ -308,6 +350,21 @@ def run_self_test() -> int:
 
         tests_readme_path = tmp_root / REQUIRED_FILES["tests_readme"]
         original_tests_readme = tests_readme_path.read_text(encoding="utf-8")
+        tests_readme_path.write_text(
+            original_tests_readme.replace(
+                "- zigux/tests/phase8_perf_buffer_poll_only_build.zig\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "tests_readme_perf_buffer_poll_only_build",
+            tmp_root,
+            "tests_readme:zigux/tests/phase8_perf_buffer_poll_only_build.zig",
+        )
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
+
         tests_readme_path.write_text(
             original_tests_readme.replace(
                 "- zigux/tests/phase8_perf_buffer_poll.zig\n",
@@ -509,18 +566,50 @@ def run_self_test() -> int:
         original_perf_slice = perf_slice_path.read_text(encoding="utf-8")
         perf_slice_path.write_text(
             original_perf_slice.replace(
-                "- zigux/tests/phase8_perf_buffer_poll.zig\n",
+                "- zigux/tests/phase8_perf_buffer_poll_only_build.zig\n",
                 "",
                 1,
             ),
             encoding="utf-8",
         )
         expect_missing(
-            "perf_slice_test_reference",
+            "perf_slice_focused_build_reference",
             tmp_root,
-            "perf_slice:zigux/tests/phase8_perf_buffer_poll.zig",
+            "perf_slice:zigux/tests/phase8_perf_buffer_poll_only_build.zig",
         )
         perf_slice_path.write_text(original_perf_slice, encoding="utf-8")
+
+        perf_slice_path.write_text(
+            original_perf_slice.replace(
+                "- make -C zigux phase8-perf-buffer-poll-test\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "perf_slice_make_target",
+            tmp_root,
+            "perf_slice:make -C zigux phase8-perf-buffer-poll-test",
+        )
+        perf_slice_path.write_text(original_perf_slice, encoding="utf-8")
+
+        focused_build_path = tmp_root / REQUIRED_FILES["focused_build"]
+        original_focused_build = focused_build_path.read_text(encoding="utf-8")
+        focused_build_path.write_text(
+            original_focused_build.replace(
+                'const name = "phase8-perf-buffer-poll-tests";\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "focused_build_artifact_name",
+            tmp_root,
+            "focused_build:phase8-perf-buffer-poll-tests",
+        )
+        focused_build_path.write_text(original_focused_build, encoding="utf-8")
 
         shared_build_path = tmp_root / REQUIRED_FILES["shared_build"]
         original_shared_build = shared_build_path.read_text(encoding="utf-8")
@@ -558,31 +647,31 @@ def run_self_test() -> int:
         original_makefile = makefile_path.read_text(encoding="utf-8")
         makefile_path.write_text(
             original_makefile.replace(
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-tests-readme-alignment.py --self-test\n",
+                "phase8-perf-buffer-poll-test:\n",
                 "",
                 1,
             ),
             encoding="utf-8",
         )
         expect_missing(
-            "makefile_self_test_hook",
+            "makefile_perf_buffer_poll_target",
             tmp_root,
-            "makefile:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-tests-readme-alignment.py --self-test\n",
+            "makefile:phase8-perf-buffer-poll-test:",
         )
         makefile_path.write_text(original_makefile, encoding="utf-8")
 
         makefile_path.write_text(
             original_makefile.replace(
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-tests-readme-alignment.py\n",
-                "",
+                "phase8-perf-buffer-poll-test",
+                "phase8-perf-buffer-wait-test",
                 1,
             ),
             encoding="utf-8",
         )
         expect_missing(
-            "makefile_live_hook",
+            "makefile_phase8_bundle",
             tmp_root,
-            "makefile:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-tests-readme-alignment.py\n",
+            "makefile:phase8: phase8-validate phase8-exec-cmd-test phase8-help-test phase8-kallsyms-test phase8-libbpf-segments-test phase8-perf-buffer-poll-test phase8-test",
         )
         makefile_path.write_text(original_makefile, encoding="utf-8")
 
@@ -622,6 +711,22 @@ def run_self_test() -> int:
         original_workflow = workflow_path.read_text(encoding="utf-8")
         workflow_path.write_text(
             original_workflow.replace(
+                "      - name: Run focused Phase 8 perf-buffer poll tests\n"
+                "        run: zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "workflow_focused_perf_buffer_poll_hook",
+            tmp_root,
+            "workflow:Run focused Phase 8 perf-buffer poll tests",
+        )
+        workflow_path.write_text(original_workflow, encoding="utf-8")
+
+        workflow_path.write_text(
+            original_workflow.replace(
                 "      - name: Validate Phase 8 tooling gates\n"
                 "        run: make -C zigux phase8-validate\n",
                 "",
@@ -634,24 +739,9 @@ def run_self_test() -> int:
             tmp_root,
             "workflow:Validate Phase 8 tooling gates",
         )
-        workflow_path.write_text(original_workflow, encoding="utf-8")
-
-        workflow_path.write_text(
-            original_workflow.replace(
-                "        run: zig build test --build-file zigux/tests/phase8_build.zig --summary all\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing(
-            "workflow_shared_replay_hook",
-            tmp_root,
-            "workflow:zig build test --build-file zigux/tests/phase8_build.zig --summary all",
-        )
 
     print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=22")
+    print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=27")
     return 0
 
 
