@@ -124,8 +124,11 @@ DOCS_ROOT_MARKERS = [
     "tools/lib/bpf/zigux_segments/manifest.json",
     "scripts/zigux/check-phase12-libbpf-packet.py",
     "`zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `scripts/zigux/validate-phase12.py`, `make -C zigux phase12-validate`, and `make -C zigux phase12` now keep that same storage-driver survey packet reviewable through the shared Phase 12 tranche",
+    "the same shared Phase 12 rollback-lab packet now also keeps the active rollback owners and C-anchor fallback path explicit at the docs root: `Network Driver Lane` owns the bounded `virtio_net` packet against `drivers/net/virtio_net.c`, `Storage Driver Lane` owns the bounded `nvme_pci` and `virtio_scsi` packets against `drivers/nvme/host/pci.c` and `drivers/scsi/virtio_scsi.c`, and `BPF Tooling Lane` owns the bounded libbpf helper packet against `tools/lib/bpf/libbpf.c`.",
+    "reversible delivery remains limited to the bounded Zig starters, survey notes, review gates, and snapshot fixtures around those C anchors, and `make -C zigux phase12-validate` stays the shared rollback drill before `zig build test --build-file zigux/tests/phase12_build.zig --summary all` reruns the current Phase 12 tranche.",
 ]
 CHECKLIST_MARKERS = [
+    "is there a stated rollback owner and fallback path?",
     "if the change is a Phase 12 complex-driver or heavy-helper slice, do `scripts/zigux/validate-phase12.py`, `zigux/tests/phase12_build.zig`, the four Phase 12 manifests, and the four Phase 12 survey notes still agree on the same bounded tranche, exact surveyed commits, approved roadmap destinations, shared replay contract, and explicit DMA versus object-model blocker posture?",
     "if the change touches the shared Phase 12 degraded-workflow packet, do the workflow path, README notes, review checklist, and `zigux/tests/phase12_virtio_scsi_survey.zig` still agree that `make -C zigux phase12` runs the validator before the shared Zig replay?",
     "if the change touches the shared Phase 12 tooling path, do `scripts/zigux/check-phase12-build-inventory.py`, `zigux/tests/phase12_build.zig`, `zigux/tests/fixtures/phase12_build_inventory.json`, and the shared Phase 12 manifests still agree on the exact shared build inventory instead of leaving the replay shape implicit?",
