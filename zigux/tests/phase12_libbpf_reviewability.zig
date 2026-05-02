@@ -1,4 +1,5 @@
 const std = @import("std");
+const perf_buffer_poll = @import("../../tools/lib/bpf/zigux_segments/perf_buffer_poll.zig");
 const cpu_mask = @import("cpu_mask");
 const bpf_type_names = @import("bpf_type_names");
 const file_path_handle_bridge = @import("file_path_handle_bridge");
@@ -355,6 +356,20 @@ test "phase12 libbpf reviewability gate still compiles the landed helper foundat
     var fdinfo_path_buffer: [32]u8 = undefined;
     var path_buffer: [64]u8 = undefined;
     var error_buffer: [64]u8 = undefined;
+    const perf_buffers = [_]perf_buffer_poll.BufferObservation{
+        .{ .ready = true },
+        .{ .error_code = -22 },
+        .{ .ready = true },
+    };
+    const perf_summary = try perf_buffer_poll.summarizePoll(
+        10,
+        perf_buffer_poll.classifyObservedWaitResult(3),
+        &perf_buffers,
+    );
+    const process_summary = perf_buffer_poll.summarizeProcessRecords(&.{
+        .{},
+        .{ .result = -5 },
+    });
 
     try std.testing.expectEqual(@as(usize, 3), cpu_mask.countPossibleCpus(parsed.values));
     try std.testing.expectEqual(@as(usize, 3), cpu_mask.derivePerfBufferAutoCpuCount(6, 3));
@@ -362,6 +377,14 @@ test "phase12 libbpf reviewability gate still compiles the landed helper foundat
     try std.testing.expectEqualStrings("xdp", bpf_type_names.libbpfBpfAttachTypeStr(37).?);
     try std.testing.expectEqualStrings("ringbuf", bpf_type_names.libbpfBpfMapTypeStr(27).?);
     try std.testing.expectEqual(@as(u32, 2), fdinfo_map_info.map_type);
+    try std.testing.expectEqual(perf_buffer_poll.WaitClass.bounded, perf_summary.wait_class);
+    try std.testing.expectEqual(perf_buffer_poll.PollOutcome.ready, perf_summary.outcome);
+    try std.testing.expectEqual(@as(usize, 2), perf_summary.ready_count);
+    try std.testing.expectEqual(@as(?i32, -22), perf_summary.first_error);
+    try std.testing.expectEqual(@as(usize, 2), process_summary.attempted_count);
+    try std.testing.expectEqual(@as(usize, 1), process_summary.completed_count);
+    try std.testing.expectEqual(@as(?usize, 1), process_summary.first_error_index);
+    try std.testing.expectEqual(@as(?i32, -5), process_summary.first_error);
     try std.testing.expectEqualStrings(
         "/proc/321/fdinfo/7",
         try file_path_handle_bridge.buildFdinfoPath(&fdinfo_path_buffer, 321, 7),
@@ -538,4 +561,11 @@ test "phase12 libbpf reviewability gate cross-checks the legacy segment catalog"
             }
         }
     }
+
+    const perf_buffer_poll_segment = findLegacySegment(legacy_manifest, "perf-buffer-poll-helper") orelse return error.TestUnexpectedResult;
+    const perf_buffer_poll_exists = try pathExists(io_instance.io(), "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig");
+    try std.testing.expectEqualStrings("starter_landed", perf_buffer_poll_segment.status);
+    try std.testing.expectEqualStrings("tools/lib/bpf/zigux_segments/perf_buffer_poll.zig", perf_buffer_poll_segment.zigux_destination);
+    try std.testing.expect(std.mem.indexOf(u8, perf_buffer_poll_segment.why_now, "wait-result and ready-buffer bookkeeping") != null);
+    try std.testing.expect(perf_buffer_poll_exists);
 }
