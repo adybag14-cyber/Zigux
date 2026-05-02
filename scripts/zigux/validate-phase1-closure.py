@@ -119,6 +119,10 @@ STRING_EQUALITY_REVIEW = (
     "string strEq and streq keep C-string equality aligned for exact, empty, length-mismatched, "
     "case-sensitive, and embedded-NUL comparisons"
 )
+STRING_UNIT_REVIEW = (
+    "string memchrInv aligned and misaligned long-buffer scans stay consistent beyond the short "
+    "C-backed fixture cases"
+)
 STRING_ALIAS_REVIEW = (
     "string trimSpaces and strim trim trailing whitespace before the first embedded NUL while "
     "preserving bytes beyond that terminator"
@@ -163,6 +167,7 @@ REQUIRED_CLOSURE_MARKERS = [
     f"PHASE1_STRING_REVIEW={STRING_SUMMARY}",
     f"PHASE1_STRING_CSTRING_UNIT_REVIEW={STRING_CSTRING_REVIEW}",
     f"PHASE1_STRING_EQUALITY_UNIT_REVIEW={STRING_EQUALITY_REVIEW}",
+    f"PHASE1_STRING_UNIT_REVIEW={STRING_UNIT_REVIEW}",
     f"PHASE1_STRING_ALIAS_UNIT_REVIEW={STRING_ALIAS_REVIEW}",
     f"PHASE1_STRING_PREFIX_UNIT_REVIEW={STRING_PREFIX_REVIEW}",
     f"PHASE1_STRING_PREFIX_LENGTH_UNIT_REVIEW={STRING_PREFIX_LENGTH_REVIEW}",
@@ -626,6 +631,7 @@ def run_self_test() -> int:
             ("closure_string_summary", f"PHASE1_STRING_REVIEW={STRING_SUMMARY}"),
             ("closure_string_cstring", f"PHASE1_STRING_CSTRING_UNIT_REVIEW={STRING_CSTRING_REVIEW}"),
             ("closure_string_equality", f"PHASE1_STRING_EQUALITY_UNIT_REVIEW={STRING_EQUALITY_REVIEW}"),
+            ("closure_string_unit", f"PHASE1_STRING_UNIT_REVIEW={STRING_UNIT_REVIEW}"),
             ("closure_string_alias", f"PHASE1_STRING_ALIAS_UNIT_REVIEW={STRING_ALIAS_REVIEW}"),
             ("closure_string_prefix", f"PHASE1_STRING_PREFIX_UNIT_REVIEW={STRING_PREFIX_REVIEW}"),
             ("closure_string_prefix_length", f"PHASE1_STRING_PREFIX_LENGTH_UNIT_REVIEW={STRING_PREFIX_LENGTH_REVIEW}"),
