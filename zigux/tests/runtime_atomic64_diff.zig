@@ -518,18 +518,22 @@ test "runtime atomic64 diff gate keeps post-selftest replay explicit" {
 
     const or_result = try module.orCounter(0x0000_0000_0000_00ff);
     try std.testing.expectEqual(seed + 0x02, or_result.previous);
+    try std.testing.expectEqual(0x1111_2222_3333_44ff, or_result.final);
     try std.testing.expectEqual(0x1111_2222_3333_44ff, module.snapshotCounter());
 
     const and_result = try module.andCounter(0x0fff_ffff_ffff_ff0f);
     try std.testing.expectEqual(0x1111_2222_3333_44ff, and_result.previous);
+    try std.testing.expectEqual(0x0111_2222_3333_440f, and_result.final);
     try std.testing.expectEqual(0x0111_2222_3333_440f, module.snapshotCounter());
 
     const xor_result = try module.xorCounter(0x0000_00ff_0000_00f0);
     try std.testing.expectEqual(0x0111_2222_3333_440f, xor_result.previous);
+    try std.testing.expectEqual(0x0111_22dd_3333_44ff, xor_result.final);
     try std.testing.expectEqual(0x0111_22dd_3333_44ff, module.snapshotCounter());
 
     const andnot_result = try module.andNotCounter(0x0000_0000_0000_00ff);
     try std.testing.expectEqual(0x0111_22dd_3333_44ff, andnot_result.previous);
+    try std.testing.expectEqual(0x0111_22dd_3333_4400, andnot_result.final);
     try std.testing.expectEqual(0x0111_22dd_3333_4400, module.snapshotCounter());
 
     const swapped = try module.swapCounter(seed + 1);
