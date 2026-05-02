@@ -128,7 +128,7 @@ test "phase 8 exec-cmd environment wrapper propagates PREFIX, exec path, and PAT
     defer explicit_empty_env.deinit();
 
     var explicit_empty_state = exec_cmd.ExecCmdState{};
-    defer explicit_empty_state.deinit();
+    defer explicit_empty_state.deinit(std.testing.allocator);
 
     try exec_cmd.execCmdInit(&explicit_empty_env, config);
     try exec_cmd.setArgvExecPath(
@@ -533,6 +533,47 @@ test "phase 8 exec-cmd keeps the deferred execl handoff explicit for empty comma
     try std.testing.expectEqualStrings("perf", deferred.argv[0].?);
     try std.testing.expectEqualStrings("version", deferred.argv[1].?);
     try std.testing.expectEqual(@as(?[]const u8, null), deferred.argv[2]);
+}
+
+test "phase 8 exec-cmd keeps the combined deferred planner aligned with PATH setup" {
+    const config = exec_cmd.Config{
+        .exec_name = "perf",
+        .prefix = "/usr/libexec/perf-core",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var env = exec_cmd.EnvMap.init(std.testing.allocator);
+    defer env.deinit();
+
+    var state = exec_cmd.ExecCmdState{};
+    defer state.deinit(std.testing.allocator);
+
+    try exec_cmd.execCmdInit(&env, config);
+    try exec_cmd.setArgvExecPath(std.testing.allocator, &env, &state, config, "tools/bin");
+    try exec_cmd.setArgv0Path(std.testing.allocator, &state, "scripts");
+    try env.set("PATH", "/usr/bin:/bin");
+
+    var plan = try exec_cmd.planDeferredExecvCall(
+        std.testing.allocator,
+        &env,
+        state,
+        config,
+        "/repo",
+        &[_][]const u8{ "record", "-a" },
+    );
+    defer plan.deinit(std.testing.allocator);
+
+    try std.testing.expectEqualStrings(
+        "/repo/tools/bin:/repo/scripts:/usr/bin:/bin",
+        plan.path,
+    );
+    try std.testing.expectEqualStrings(plan.path, env.get("PATH").?);
+    try std.testing.expectEqual(@as(usize, 4), plan.call.argv.len);
+    try std.testing.expectEqualStrings("perf", plan.call.argv[0].?);
+    try std.testing.expectEqualStrings("record", plan.call.argv[1].?);
+    try std.testing.expectEqualStrings("-a", plan.call.argv[2].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), plan.call.argv[3]);
 }
 
 test "phase 8 exec-cmd docs keep the deferred execution boundary explicit" {
