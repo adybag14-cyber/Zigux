@@ -14,6 +14,7 @@ WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 SURVEY_PATH = "Documentation/zigux/phase9-runtime-loader-gap-survey.md"
 MODULE_METADATA_SURVEY_PATH = "Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md"
 TRACE_EVENTS_SURVEY_PATH = "Documentation/zigux/phase9-runtime-trace-events-survey.md"
+KRETPROBE_SURVEY_PATH = "Documentation/zigux/phase9-runtime-kretprobe-survey.md"
 LOADER_SUBSTRATE_CHECKER_PATH = "scripts/zigux/check-phase9-loader-substrate-plan.py"
 MODULE_METADATA_CHECKER_PATH = "scripts/zigux/check-phase9-module-metadata-packet.py"
 
@@ -23,6 +24,7 @@ REQUIRED_FILES = [
     SURVEY_PATH,
     MODULE_METADATA_SURVEY_PATH,
     TRACE_EVENTS_SURVEY_PATH,
+    KRETPROBE_SURVEY_PATH,
     LOADER_SUBSTRATE_CHECKER_PATH,
     MODULE_METADATA_CHECKER_PATH,
 ]
@@ -93,6 +95,17 @@ TRACE_EVENTS_SURVEY_MARKERS = [
     "phase9-runtime-trace-events-survey-tests",
 ]
 
+KRETPROBE_SURVEY_MARKERS = [
+    "- `zig test zigux/tests/runtime_kretprobe_survey.zig`\n",
+    "- `zig build test --build-file zigux/tests/phase9_build.zig --summary all`\n",
+    "- `make -C zigux phase9`\n",
+    "phase9-runtime-kretprobe-sample-tests",
+    "phase9-runtime-kretprobe-module-tests",
+    "phase9-runtime-kretprobe-diff-tests",
+    "phase9-runtime-kretprobe-loader-tests",
+    "phase9-runtime-kretprobe-survey-tests",
+]
+
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
@@ -115,6 +128,7 @@ def validate(root: Path) -> list[str]:
     survey = read_text(root, SURVEY_PATH)
     module_metadata_survey = read_text(root, MODULE_METADATA_SURVEY_PATH)
     trace_events_survey = read_text(root, TRACE_EVENTS_SURVEY_PATH)
+    kretprobe_survey = read_text(root, KRETPROBE_SURVEY_PATH)
 
     for marker in MAKEFILE_MARKERS:
         if marker not in makefile:
@@ -131,6 +145,9 @@ def validate(root: Path) -> list[str]:
     for marker in TRACE_EVENTS_SURVEY_MARKERS:
         if marker not in trace_events_survey:
             failures.append(f"trace_events_survey:{marker}")
+    for marker in KRETPROBE_SURVEY_MARKERS:
+        if marker not in kretprobe_survey:
+            failures.append(f"kretprobe_survey:{marker}")
 
     return failures
 
@@ -274,6 +291,28 @@ def write_fixture_tree(root: Path) -> None:
                 "2. run the shared Phase 9 runtime packet replay",
                 "- `zig build test --build-file zigux/tests/phase9_build.zig --summary all`",
                 "- this shared build now includes `phase9-runtime-trace-events-module-tests` and `phase9-runtime-trace-events-survey-tests` so the starter, diff, and survey evidence stay explicit in one shared packet",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    (root / KRETPROBE_SURVEY_PATH).write_text(
+        "\n".join(
+            [
+                "# Phase 9 Runtime Kretprobe Survey",
+                "",
+                "## Gates",
+                "",
+                "1. run the dedicated Phase 9 survey gate",
+                "- `zig test zigux/tests/runtime_kretprobe_survey.zig`",
+                "- this dedicated gate keeps the manifest-backed ownership packet and blocked shared-loader note reviewable without requiring the broader shared build",
+                "",
+                "2. run the shared runtime packet replay",
+                "- `zig build test --build-file zigux/tests/phase9_build.zig --summary all`",
+                "- this shared build now includes the dedicated `phase9-runtime-kretprobe-sample-tests`, `phase9-runtime-kretprobe-module-tests`, `phase9-runtime-kretprobe-diff-tests`, `phase9-runtime-kretprobe-loader-tests`, and `phase9-runtime-kretprobe-survey-tests` legs",
+                "",
+                "3. run the convenience target",
+                "- `make -C zigux phase9`",
                 "",
             ]
         ),
@@ -565,6 +604,53 @@ def run_self_test() -> int:
 
         makefile_path.write_text(
             original_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_kretprobe_survey.zig\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "makefile_kretprobe_command",
+            tmp_root,
+            "makefile:\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_kretprobe_survey.zig\n",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        kretprobe_survey_path = tmp_root / KRETPROBE_SURVEY_PATH
+        original_kretprobe_survey = kretprobe_survey_path.read_text(encoding="utf-8")
+        kretprobe_survey_path.write_text(
+            original_kretprobe_survey.replace(
+                "- `zig test zigux/tests/runtime_kretprobe_survey.zig`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "kretprobe_survey_dedicated_gate",
+            tmp_root,
+            "kretprobe_survey:- `zig test zigux/tests/runtime_kretprobe_survey.zig`\n",
+        )
+        kretprobe_survey_path.write_text(original_kretprobe_survey, encoding="utf-8")
+
+        kretprobe_survey_path.write_text(
+            original_kretprobe_survey.replace(
+                "phase9-runtime-kretprobe-survey-tests",
+                "phase9-runtime-kretprobe-review-tests",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "kretprobe_survey_shared_build_leg",
+            tmp_root,
+            "kretprobe_survey:phase9-runtime-kretprobe-survey-tests",
+        )
+        kretprobe_survey_path.write_text(original_kretprobe_survey, encoding="utf-8")
+
+        makefile_path.write_text(
+            original_makefile.replace(
                 "\tcd $(ZIGUX_ROOT) && $(ZIG) test --dep runtime_trace_events_sample -Mroot=zigux/tests/runtime_trace_events_survey.zig -Mruntime_trace_events_sample=samples/zigux/runtime_trace_events.zig\n",
                 "",
                 1,
@@ -626,7 +712,7 @@ def run_self_test() -> int:
         makefile_path.write_text(original_makefile, encoding="utf-8")
 
     print("PHASE9_VALIDATION_FLOW_SELF_TEST=pass")
-    print("PHASE9_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=20")
+    print("PHASE9_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=23")
     return 0
 
 
@@ -661,7 +747,7 @@ def main() -> int:
 
     print("PHASE9_VALIDATION_FLOW=pass")
     print(
-        f"PHASE9_VALIDATION_FLOW_MARKER_COUNT={len(MAKEFILE_MARKERS) + len(WORKFLOW_MARKERS) + len(SURVEY_MARKERS) + len(MODULE_METADATA_SURVEY_MARKERS) + len(TRACE_EVENTS_SURVEY_MARKERS)}"
+        f"PHASE9_VALIDATION_FLOW_MARKER_COUNT={len(MAKEFILE_MARKERS) + len(WORKFLOW_MARKERS) + len(SURVEY_MARKERS) + len(MODULE_METADATA_SURVEY_MARKERS) + len(TRACE_EVENTS_SURVEY_MARKERS) + len(KRETPROBE_SURVEY_MARKERS)}"
     )
     return 0
 
