@@ -103,7 +103,7 @@ RELEASE_MARKERS = [
     "PHASE14_STATUS_CHANGE_CLAIM=no",
     "PHASE14_BOUNDARY_MAP=shared-anchor-packet-bundle",
     "PHASE14_CONCURRENCY_AUDIT_SCOPE=anchor-local-packets-only",
-    "PHASE14_ATTACHED_TOOLCHAIN_FALLBACK=PYTHON=python3 and ZIG=<attached-zig-path>",
+    "PHASE14_ATTACHED_TOOLCHAIN_FALLBACK=ZIG=<attached-zig-path>",
     "scripts/zigux/validate-phase14.py",
     "scripts/zigux/README.md",
     "phase14_workqueue_bridge_manifest.json",
