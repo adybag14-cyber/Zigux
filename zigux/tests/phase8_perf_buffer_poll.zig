@@ -37,17 +37,28 @@ test "phase 8 perf-buffer poll docs keep the bounded wait-result helper explicit
     try expectContains(note, "no standalone clockevent helper");
 }
 
-test "phase 8 perf-buffer poll helper stays wired into the shared Phase 8 build" {
-    const build_file = try readWorkspaceFile(
+test "phase 8 perf-buffer poll helper stays wired into focused and shared Phase 8 builds" {
+    const focused_build_file = try readWorkspaceFile(
+        std.testing.allocator,
+        "zigux/tests/phase8_perf_buffer_poll_only_build.zig",
+        16 * 1024,
+    );
+    defer std.testing.allocator.free(focused_build_file);
+
+    const shared_build_file = try readWorkspaceFile(
         std.testing.allocator,
         "zigux/tests/phase8_build.zig",
         32 * 1024,
     );
-    defer std.testing.allocator.free(build_file);
+    defer std.testing.allocator.free(shared_build_file);
 
-    try expectContains(build_file, "../../tools/lib/bpf/zigux_segments/perf_buffer_poll.zig");
-    try expectContains(build_file, "phase8_perf_buffer_poll.zig");
-    try expectContains(build_file, "phase8-perf-buffer-poll-tests");
+    try expectContains(focused_build_file, "phase8_perf_buffer_poll.zig");
+    try expectContains(focused_build_file, "phase8-perf-buffer-poll-tests");
+    try expectContains(focused_build_file, "Run focused Phase 8 perf-buffer poll tests");
+
+    try expectContains(shared_build_file, "../../tools/lib/bpf/zigux_segments/perf_buffer_poll.zig");
+    try expectContains(shared_build_file, "phase8_perf_buffer_poll.zig");
+    try expectContains(shared_build_file, "phase8-perf-buffer-poll-tests");
 }
 
 test "phase 8 perf-buffer poll helper keeps observed wait outcomes compact" {
