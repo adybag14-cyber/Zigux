@@ -110,6 +110,7 @@ def run_self_test() -> int:
 
         build_self_test_tree(root)
         build_path = root / 'zigux/tests/phase12_libbpf_only_build.zig'
+        build_path.writeText = None
         build_path.write_text(
             build_path.read_text(encoding='utf-8').replace(
                 BUILD_MARKERS[6],
@@ -154,6 +155,23 @@ def run_self_test() -> int:
             raise SystemExit('phase12-libbpf-focused-replay:self-test:focused_build_note_detection')
 
         build_self_test_tree(root)
+        note_path = root / 'Documentation/zigux/phase12-libbpf-segment-survey.md'
+        note_path.write_text(
+            note_path.read_text(encoding='utf-8').replace(
+                NOTE_MARKERS[4],
+                'focused libbpf dedicated replay',
+            ),
+            encoding='utf-8',
+        )
+        missing = check_paths(
+            root / 'zigux/tests/phase12_libbpf_only_build.zig',
+            note_path,
+            root / 'zigux/Makefile',
+        )
+        if f'note:{NOTE_MARKERS[4]}' not in missing:
+            raise SystemExit('phase12-libbpf-focused-replay:self-test:focused_replay_phrase_detection')
+
+        build_self_test_tree(root)
         make_path = root / 'zigux/Makefile'
         make_path.write_text(make_path.read_text(encoding='utf-8').replace(MAKE_MARKERS[0], 'scripts/zigux/check-phase12-libbpf-focused-replay.py --phase12-self-test'), encoding='utf-8')
         missing = check_paths(
@@ -193,7 +211,7 @@ def run_self_test() -> int:
             raise SystemExit('phase12-libbpf-focused-replay:self-test:missing_file_detection')
 
     print('PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST=pass')
-    print('PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST_CASE_COUNT=8')
+    print('PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST_CASE_COUNT=9')
     return 0
 
 
