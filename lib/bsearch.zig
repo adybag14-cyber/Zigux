@@ -399,16 +399,31 @@ test "bsearch supports heterogeneous keys and mutable raw pointers" {
     try std.testing.expectEqual(@as(u32, 5), entries[2].value);
 }
 
-test "search accepts runtime-selected comparator function pointers" {
+test "search accepts runtime-selected comparator function pointers across hit and miss cases" {
     const ascending = [_]i32{ 2, 4, 7, 11, 16, 23, 42 };
     const descending = [_]i32{ 42, 23, 16, 11, 7, 4, 2 };
-    const comparators = [_]Comparator(i32, i32){ compareInt, compareDescendingInt };
-    const slices = [_][]const i32{ ascending[0..], descending[0..] };
-    const targets = [_]i32{ 23, 7 };
+    const cases = [_]struct {
+        target: i32,
+        items: []const i32,
+        compare: Comparator(i32, i32),
+        expected_index: ?usize,
+    }{
+        .{ .target = 23, .items = ascending[0..], .compare = compareInt, .expected_index = 5 },
+        .{ .target = 7, .items = descending[0..], .compare = compareDescendingInt, .expected_index = 4 },
+        .{ .target = 20, .items = ascending[0..], .compare = compareInt, .expected_index = null },
+        .{ .target = 20, .items = descending[0..], .compare = compareDescendingInt, .expected_index = null },
+    };
 
-    for (comparators, slices, targets) |compare, items, target| {
-        const found = search(i32, i32, &target, items, compare) orelse return error.TestUnexpectedResult;
-        try std.testing.expectEqual(target, found.*);
+    for (cases) |case| {
+        try std.testing.expectEqual(case.expected_index, searchIndex(i32, i32, &case.target, case.items, case.compare));
+
+        if (case.expected_index) |expected_index| {
+            const found = search(i32, i32, &case.target, case.items, case.compare) orelse return error.TestUnexpectedResult;
+            try std.testing.expectEqual(@intFromPtr(&case.items[expected_index]), @intFromPtr(found));
+            try std.testing.expectEqual(case.target, found.*);
+        } else {
+            try std.testing.expect(search(i32, i32, &case.target, case.items, case.compare) == null);
+        }
     }
 }
 
@@ -440,17 +455,31 @@ test "searchIndex and search accept runtime-selected C ABI comparator function p
     }
 }
 
-test "bsearch accepts runtime-selected raw comparator function pointers for ascending and descending slices" {
+test "bsearch accepts runtime-selected raw comparator function pointers across hit and miss cases" {
     const ascending = [_]i32{ 2, 4, 7, 11, 16, 23, 42 };
     const descending = [_]i32{ 42, 23, 16, 11, 7, 4, 2 };
-    const comparators = [_]RawComparator{ compareOpaqueInt, compareOpaqueDescendingInt };
-    const slices = [_][]const i32{ ascending[0..], descending[0..] };
-    const targets = [_]i32{ 23, 7 };
+    const cases = [_]struct {
+        target: i32,
+        items: []const i32,
+        compare: RawComparator,
+        expected_index: ?usize,
+    }{
+        .{ .target = 23, .items = ascending[0..], .compare = compareOpaqueInt, .expected_index = 5 },
+        .{ .target = 7, .items = descending[0..], .compare = compareOpaqueDescendingInt, .expected_index = 4 },
+        .{ .target = 20, .items = ascending[0..], .compare = compareOpaqueInt, .expected_index = null },
+        .{ .target = 20, .items = descending[0..], .compare = compareOpaqueDescendingInt, .expected_index = null },
+    };
 
-    for (comparators, slices, targets) |compare, items, target| {
-        const found = bsearch(&target, @ptrCast(items.ptr), items.len, @sizeOf(i32), compare) orelse return error.TestUnexpectedResult;
-        const typed_found: *const i32 = @ptrCast(@alignCast(found));
-        try std.testing.expectEqual(target, typed_found.*);
+    for (cases) |case| {
+        try std.testing.expectEqual(case.expected_index, bsearchIndex(&case.target, @ptrCast(case.items.ptr), case.items.len, @sizeOf(i32), case.compare));
+
+        if (case.expected_index) |_| {
+            const found = bsearch(&case.target, @ptrCast(case.items.ptr), case.items.len, @sizeOf(i32), case.compare) orelse return error.TestUnexpectedResult;
+            const typed_found: *const i32 = @ptrCast(@alignCast(found));
+            try std.testing.expectEqual(case.target, typed_found.*);
+        } else {
+            try std.testing.expect(bsearch(&case.target, @ptrCast(case.items.ptr), case.items.len, @sizeOf(i32), case.compare) == null);
+        }
     }
 }
 
