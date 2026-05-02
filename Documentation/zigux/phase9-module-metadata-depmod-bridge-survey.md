@@ -129,6 +129,7 @@ That is more honest than counting starter descriptors or loader scaffolds as if 
 
 4. run the focused metadata survey replay
 - `zig test zigux/tests/runtime_module_metadata_survey.zig`
+- `make -C zigux phase9-module-metadata-survey`
 
 5. run the shared convenience target
 - `make -C zigux phase9-validate`
