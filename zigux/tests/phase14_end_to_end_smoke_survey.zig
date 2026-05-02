@@ -158,7 +158,7 @@ test "phase14 shared smoke manifest records the current evidence bundle" {
     try std.testing.expectEqual(@as(usize, 4), manifest.anchor_packets.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.smoke_commands.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.smoke_shard_commands.len);
-    try std.testing.expectEqual(@as(usize, 3), manifest.attached_toolchain_commands.len);
+    try std.testing.expectEqual(@as(usize, 4), manifest.attached_toolchain_commands.len);
     try std.testing.expectEqual(@as(usize, 5), manifest.compile_shards.len);
     try std.testing.expect(manifest.survey_summary.phase14_validate_script_present);
     try std.testing.expect(manifest.survey_summary.phase14_validate_entrypoint_present);
@@ -208,8 +208,12 @@ test "phase14 shared smoke manifest records the current evidence bundle" {
         manifest.attached_toolchain_commands[1],
     );
     try std.testing.expectEqualStrings(
-        "make -C zigux phase14 ZIG=<attached-zig-path>",
+        "make -C zigux phase14-test ZIG=<attached-zig-path>",
         manifest.attached_toolchain_commands[2],
+    );
+    try std.testing.expectEqualStrings(
+        "make -C zigux phase14 ZIG=<attached-zig-path>",
+        manifest.attached_toolchain_commands[3],
     );
 
     try std.testing.expectEqualStrings("P14-L04", manifest.anchor_packets[0].lane_key);
@@ -381,6 +385,7 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     try std.testing.expect(std.mem.indexOf(u8, script_readme, "bounded concurrency-audit scope") != null);
     try std.testing.expect(std.mem.indexOf(u8, script_readme, "make -C zigux phase14-validate PYTHON=python3 ZIG=<attached-zig-path>") != null);
     try std.testing.expect(std.mem.indexOf(u8, script_readme, "make -C zigux phase14-smoke ZIG=<attached-zig-path>") != null);
+    try std.testing.expect(std.mem.indexOf(u8, script_readme, "make -C zigux phase14-test ZIG=<attached-zig-path>") != null);
     try std.testing.expect(std.mem.indexOf(u8, script_readme, "make -C zigux phase14 ZIG=<attached-zig-path>") != null);
 
     const freeze_map = try std.Io.Dir.cwd().readFileAlloc(
