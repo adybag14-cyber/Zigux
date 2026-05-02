@@ -10,6 +10,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[2]
 BUILD_TEST_NAME_RE = re.compile(r'\.name = "(phase13-[^"]+)"')
 BUILD_DEPEND_STEP_RE = re.compile(r"test_step\.dependOn\(&([A-Za-z0-9_]+)\.step\);")
+SURVEYED_COMMIT_RE = re.compile(r"[0-9a-f]{40}")
 
 FILES = [
     "scripts/zigux/validate-phase13-release.py",
@@ -308,6 +309,17 @@ devres_manifest = load_json("zigux/tests/phase13_devres_manifest.json")
 for blocked in ["blocked_on_dma_state", "blocked_on_scatterlist_state"]:
     if not any(gap.get("status") == blocked for gap in devres_manifest.get("gaps", []) if isinstance(gap, dict)):
         missing.append(f"zigux/tests/phase13_devres_manifest.json:{blocked}")
+
+devres_surveyed_commit = devres_manifest.get("surveyed_commit")
+if not isinstance(devres_surveyed_commit, str) or SURVEYED_COMMIT_RE.fullmatch(devres_surveyed_commit) is None:
+    missing.append("zigux/tests/phase13_devres_manifest.json:surveyed_commit")
+else:
+    devres_survey_text = text("Documentation/zigux/phase13-devres-survey.md")
+    devres_traceability_text = text("Documentation/zigux/phase13-roadmap-traceability.md")
+    if f"- `PHASE13_SURVEYED_COMMIT={devres_surveyed_commit}`" not in devres_survey_text:
+        missing.append("Documentation/zigux/phase13-devres-survey.md:surveyed_commit")
+    if f"- manifest `surveyed_commit`: `{devres_surveyed_commit}`" not in devres_traceability_text:
+        missing.append("Documentation/zigux/phase13-roadmap-traceability.md:devres_surveyed_commit")
 
 notifier_manifest = load_json("zigux/tests/phase13_notifier_list_manifest.json")
 if notifier_manifest.get("phase") != "Phase 13":
