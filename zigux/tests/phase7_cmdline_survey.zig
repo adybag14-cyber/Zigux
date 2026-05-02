@@ -1,7 +1,39 @@
 const std = @import("std");
 
+const SurveySummary = struct {
+    cmdline_c_lines: usize,
+    preexisting_phase7_test_files: usize,
+    preexisting_phase7_fixture_modules: usize,
+    preexisting_phase7_parity_fixture_present: bool,
+    preexisting_phase7_doc_present: bool,
+    preexisting_phase7_helper_present: bool,
+};
+
+const Gap = struct {
+    id: []const u8,
+    status: []const u8,
+    kind: []const u8,
+    zigux_destination: []const u8,
+    why_now: []const u8,
+};
+
+const Manifest = struct {
+    lane_key: []const u8,
+    phase: []const u8,
+    surveyed_commit: []const u8,
+    anchor: []const u8,
+    roadmap_destinations: []const []const u8,
+    survey_summary: SurveySummary,
+    gaps: []const Gap,
+};
+
 fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+}
+
+fn isAllowedStatus(status: []const u8) bool {
+    return std.mem.eql(u8, status, "starter_landed") or
+        std.mem.eql(u8, status, "ready_next");
 }
 
 test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
@@ -96,13 +128,23 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
     );
     defer std.testing.allocator.free(parity_fixture);
 
-    const manifest = try std.Io.Dir.cwd().readFileAlloc(
+    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "zigux/tests/phase7_cmdline_manifest.json",
         std.testing.allocator,
         .limited(16 * 1024),
     );
-    defer std.testing.allocator.free(manifest);
+    defer std.testing.allocator.free(manifest_json);
+
+    const parsed_manifest = try std.json.parseFromSlice(
+        Manifest,
+        std.testing.allocator,
+        manifest_json,
+        .{},
+    );
+    defer parsed_manifest.deinit();
+
+    const manifest = parsed_manifest.value;
 
     try expectContains(roadmap, "## Phase 7: In-Kernel Leaf Libraries");
     try expectContains(roadmap, "lib/cmdline.c");
@@ -203,19 +245,78 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
 
     try expectContains(parity_fixture, "\"nul_stop_bare_scan\": false");
 
-    try expectContains(manifest, "\"lane_key\": \"P7-L05\"");
-    try expectContains(manifest, "\"phase\": \"Phase 7\"");
-    try expectContains(manifest, "\"surveyed_commit\": \"0e4b033d832d08252fc4741eef1a8b8911d95b03\"");
-    try expectContains(manifest, "\"anchor\": \"lib/cmdline.c\"");
-    try expectContains(manifest, "\"roadmap_destinations\": [");
-    try expectContains(manifest, "\"lib/cmdline.zig\"");
-    try expectContains(manifest, "\"id\": \"phase7-build-gate\"");
-    try expectContains(manifest, "\"id\": \"phase7-cmdline-helper\"");
-    try expectContains(manifest, "\"id\": \"phase7-cmdline-dedicated-tests\"");
-    try expectContains(manifest, "\"id\": \"phase7-cmdline-shared-fixtures\"");
-    try expectContains(manifest, "\"id\": \"phase7-cmdline-parity-fixture-layer\"");
-    try expectContains(manifest, "\"id\": \"phase7-cmdline-slice-note\"");
-    try expectContains(manifest, "\"id\": \"phase7-cmdline-survey-gate\"");
+    try std.testing.expectEqualStrings("P7-L05", manifest.lane_key);
+    try std.testing.expectEqualStrings("Phase 7", manifest.phase);
+    try std.testing.expectEqualStrings("0e4b033d832d08252fc4741eef1a8b8911d95b03", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("lib/cmdline.c", manifest.anchor);
+    try std.testing.expectEqual(@as(usize, 1), manifest.roadmap_destinations.len);
+    try std.testing.expectEqualStrings("lib/cmdline.zig", manifest.roadmap_destinations[0]);
+    try std.testing.expectEqual(@as(usize, 241), manifest.survey_summary.cmdline_c_lines);
+    try std.testing.expectEqual(@as(usize, 1), manifest.survey_summary.preexisting_phase7_test_files);
+    try std.testing.expectEqual(@as(usize, 1), manifest.survey_summary.preexisting_phase7_fixture_modules);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase7_parity_fixture_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase7_doc_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase7_helper_present);
+    try std.testing.expect(manifest.gaps.len >= 7);
+
+    var starter_landed_count: usize = 0;
+    var ready_next_count: usize = 0;
+    var saw_helper = false;
+    var saw_shared_fixtures = false;
+    var saw_parity_fixture = false;
+    var saw_survey_gate = false;
+
+    for (manifest.gaps, 0..) |gap, i| {
+        try std.testing.expect(gap.id.len > 0);
+        try std.testing.expect(gap.kind.len > 0);
+        try std.testing.expect(gap.why_now.len > 0);
+        try std.testing.expect(isAllowedStatus(gap.status));
+
+        if (std.mem.eql(u8, gap.status, "starter_landed")) {
+            starter_landed_count += 1;
+        } else if (std.mem.eql(u8, gap.status, "ready_next")) {
+            ready_next_count += 1;
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase7-cmdline-helper")) {
+            saw_helper = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("lib/cmdline.zig", gap.zigux_destination);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase7-cmdline-shared-fixtures")) {
+            saw_shared_fixtures = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "serialized next_arg() edge corpus") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase7-cmdline-parity-fixture-layer")) {
+            saw_parity_fixture = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("zigux/tests/fixtures/phase7_cmdline.json", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "externally reviewable") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase7-cmdline-survey-gate")) {
+            saw_survey_gate = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("zigux/tests/phase7_cmdline_survey.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "machine-checked survey gate") != null);
+        }
+
+        for (manifest.gaps[i + 1 ..]) |other| {
+            try std.testing.expect(!std.mem.eql(u8, gap.id, other.id));
+            try std.testing.expect(!std.mem.eql(u8, gap.zigux_destination, other.zigux_destination));
+        }
+    }
+
+    try std.testing.expect(starter_landed_count >= 7);
+    try std.testing.expectEqual(@as(usize, 0), ready_next_count);
+    try std.testing.expect(saw_helper);
+    try std.testing.expect(saw_shared_fixtures);
+    try std.testing.expect(saw_parity_fixture);
+    try std.testing.expect(saw_survey_gate);
 
     try expectContains(phase7_build, "phase7_cmdline_survey.zig");
     try expectContains(phase7_build, "phase7-cmdline-survey-tests");
