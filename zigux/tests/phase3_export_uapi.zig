@@ -16,7 +16,9 @@ test "phase3 export shim and uapi stay aligned" {
     try std.testing.expectEqual(@as(u16, @intFromEnum(abi.Facility.helpers)), failure.facility);
     try std.testing.expectEqual(@as(u16, abi.STATUS_FLAG_ERROR), failure.flags);
 
-    const header = export_shim.header(0x44);
+    const header = export_shim.canonicalHeader(0x44);
+    try std.testing.expectEqual(header, export_shim.header(0x44));
+    try std.testing.expectEqual(header, uapi_version.canonicalHeader(0x44));
     try std.testing.expectEqual(header, uapi_version.boundaryHeader(0x44));
     try std.testing.expectEqual(uapi_version.header_size, header.size);
     try std.testing.expect(uapi_version.isCurrentAbiVersion(header.abi_version));
