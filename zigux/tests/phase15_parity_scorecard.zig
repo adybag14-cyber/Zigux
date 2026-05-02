@@ -174,9 +174,9 @@ test "phase 15 parity scorecard manifest tracks the current roadmap gap honestly
     defer parsed.deinit();
     const manifest = parsed.value;
 
-    try std.testing.expectEqualStrings("P15-L09", manifest.lane_key);
+    try std.testing.expectEqualStrings("P15-L12", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("ba15a15ff4f0becd063b9b12aeea73df5307e6ef", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("355b71d89807a217a6b7c405c996cbd623c48ca0", manifest.surveyed_commit);
     try std.testing.expect(manifest.review_process.decision_record_required);
     try std.testing.expectEqual(@as(usize, 15), manifest.review_process.required_record_fields.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.review_process.reopen_trigger_catalog.len);
@@ -293,7 +293,7 @@ test "phase 15 parity scorecard docs keep the parity-tracking survey aligned" {
     const docs_readme = try readAlloc(io_instance.io(), "Documentation/zigux/README.md", 32 * 1024);
     defer std.testing.allocator.free(docs_readme);
 
-    try expectContains(scorecard_doc, "PHASE15_LANE_KEY=P15-L09");
+    try expectContains(scorecard_doc, "PHASE15_LANE_KEY=P15-L12");
     try expectContains(scorecard_doc, "## Current Parity-Tracking Gap");
     try expectContains(scorecard_doc, "That closes the current parity-tracking gap for the roadmap requirement `parity scorecard`.");
     try expectContains(scorecard_doc, "lane identity, surveyed-master provenance, roadmap wording, rollback-threshold field sync, and replay-backed evidence packet current");
