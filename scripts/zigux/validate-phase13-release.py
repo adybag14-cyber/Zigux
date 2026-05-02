@@ -126,6 +126,29 @@ REVIEW_CHECKLIST_MARKERS = [
     "if the change touches the shared Phase 13 release-discipline packet, do `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, `zigux/helpers/notifier_chain_view.zig`, and `Documentation/zigux/phase13-notifier-list-survey.md` still keep the adjacent notifier packet explicit as roadmap-adjacent release evidence rather than a fifth roadmap anchor?",
 ]
 
+DEVRES_SURVEY_MARKERS = [
+    "# Phase 13 devres helper DMA/scatterlist boundary survey",
+    "helper-only iomap or resource planners plus explicit DMA/scatterlist blockers pinned to the current repo state",
+    "the shipped `DevresHelperLab` descriptor now says explicitly that the helper-only surface still avoids live DMA-backed mappings and scatterlist ownership",
+    "live DMA-backed helpers such as `dmam_alloc_coherent()`, `dmam_free_coherent()`, `dma_map_resource()`, `dma_unmap_resource()`, or `dma_map_sgtable()` ownership and execution",
+    "live scatter-gather ownership such as `struct scatterlist`, `sg_table`, `sg_*` iteration, merge, or detach-time cleanup behavior",
+]
+
+DEVRES_REVIEWABILITY_MARKERS = [
+    'test "phase13 devres manifest records the current helper boundary and explicit dma/scatterlist blockers"',
+    'try std.testing.expect(!descriptor.touches_live_dma);',
+    'try std.testing.expect(!descriptor.touches_live_scatterlist);',
+    'try std.testing.expectEqual(@as(usize, 1), blocked_dma_count);',
+    'try std.testing.expectEqual(@as(usize, 1), blocked_scatterlist_count);',
+    'try std.testing.expect(saw_dma_blocker);',
+    'try std.testing.expect(saw_scatterlist_blocker);',
+]
+
+DEVRES_MANIFEST_GAP_EXPECTATIONS = [
+    ("phase13-devres-live-dma-mappings", "blocked_on_dma_state"),
+    ("phase13-devres-live-scatterlist-ownership", "blocked_on_scatterlist_state"),
+]
+
 BUILD_NAME_MARKERS = [
     "phase13-libfs-tests",
     "phase13-devres-tests",
@@ -310,6 +333,13 @@ for blocked in ["blocked_on_dma_state", "blocked_on_scatterlist_state"]:
     if not any(gap.get("status") == blocked for gap in devres_manifest.get("gaps", []) if isinstance(gap, dict)):
         missing.append(f"zigux/tests/phase13_devres_manifest.json:{blocked}")
 
+for gap_id, status in DEVRES_MANIFEST_GAP_EXPECTATIONS:
+    if not any(
+        isinstance(gap, dict) and gap.get("id") == gap_id and gap.get("status") == status
+        for gap in devres_manifest.get("gaps", [])
+    ):
+        missing.append(f"zigux/tests/phase13_devres_manifest.json:{gap_id}:{status}")
+
 devres_surveyed_commit = devres_manifest.get("surveyed_commit")
 if not isinstance(devres_surveyed_commit, str) or SURVEYED_COMMIT_RE.fullmatch(devres_surveyed_commit) is None:
     missing.append("zigux/tests/phase13_devres_manifest.json:surveyed_commit")
@@ -320,6 +350,14 @@ else:
         missing.append("Documentation/zigux/phase13-devres-survey.md:surveyed_commit")
     if f"- manifest `surveyed_commit`: `{devres_surveyed_commit}`" not in devres_traceability_text:
         missing.append("Documentation/zigux/phase13-roadmap-traceability.md:devres_surveyed_commit")
+    for marker in DEVRES_SURVEY_MARKERS:
+        if marker not in devres_survey_text:
+            missing.append(f"Documentation/zigux/phase13-devres-survey.md:{marker}")
+
+devres_reviewability_text = text("zigux/tests/phase13_devres_reviewability.zig")
+for marker in DEVRES_REVIEWABILITY_MARKERS:
+    if marker not in devres_reviewability_text:
+        missing.append(f"zigux/tests/phase13_devres_reviewability.zig:{marker}")
 
 notifier_manifest = load_json("zigux/tests/phase13_notifier_list_manifest.json")
 if notifier_manifest.get("phase") != "Phase 13":
@@ -349,7 +387,7 @@ print("PHASE13_RELEASE_VALIDATION=pass")
 print(f"PHASE13_RELEASE_REQUIRED_FILE_COUNT={len(FILES)}")
 print(
     "PHASE13_RELEASE_REQUIRED_MARKER_COUNT="
-    f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(RELEASE_MARKERS) + len(TRACEABILITY_MARKERS) + len(DOCS_ROOT_MARKERS) + len(SCRIPT_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS)}"
+    f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(RELEASE_MARKERS) + len(TRACEABILITY_MARKERS) + len(DOCS_ROOT_MARKERS) + len(SCRIPT_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(DEVRES_SURVEY_MARKERS) + len(DEVRES_REVIEWABILITY_MARKERS)}"
 )
 print(f"PHASE13_RELEASE_BUILD_TEST_COUNT={len(build_names)}")
 print(f"PHASE13_RELEASE_BUILD_DEPEND_STEP_COUNT={len(depend_steps)}")
