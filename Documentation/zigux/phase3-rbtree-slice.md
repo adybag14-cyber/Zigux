@@ -34,8 +34,14 @@ That gives Phase 3 a real `zigux/helpers/rbtree_*` foothold without pretending t
 2. keep the survey packet machine-checked
 - `zig test zigux/tests/phase3_rbtree_survey.zig`
 
-3. keep the wider roadmap-gap packet aligned
-- `python3 scripts/zigux/validate-phase3-roadmap-gap-survey.py`
+3. keep the shared Phase 3 slice contract aligned
+- `python3 scripts/zigux/validate-phase3.py`
+- `zig build phase3-test --build-file zigux/tests/build.zig`
+- `python3 scripts/zigux/run-phase3-checks.py --slug rbtree`
+
+- `PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py`
+- `PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig`
+- `PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug rbtree`
 
 ## Boundary
 
