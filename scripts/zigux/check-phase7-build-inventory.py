@@ -29,7 +29,9 @@ RUN_CALL_RE = re.compile(
 DEPEND_STEP_RE = re.compile(r"test_step\.dependOn\(&([A-Za-z0-9_]+)\.step\);")
 BUILD_PATH_RE = re.compile(r'b\.path\("([^"]+)"\)')
 PHASE7_VALIDATE_BLOCK_RE = re.compile(r"^phase7-validate:\n((?:\t.*\n)+)", re.M)
-MAKEFILE_SCRIPT_RE = re.compile(r"scripts/zigux/[A-Za-z0-9._-]+\.py")
+MAKEFILE_COMMAND_RE = re.compile(
+    r"\$\(PYTHON\)\s+(scripts/zigux/[A-Za-z0-9._-]+\.py(?: --self-test)?)"
+)
 UNEXPECTED_BUILD_MARKERS = ["../../tools/lib/", "zigux/tests/build.zig"]
 
 
@@ -37,16 +39,25 @@ def load_fixture() -> dict[str, object]:
     return json.loads(FIXTURE_PATH.read_text(encoding="utf-8"))
 
 
-def render_validation_gates(makefile_text: str) -> list[str]:
+def render_validation_commands(makefile_text: str) -> list[str]:
     match = PHASE7_VALIDATE_BLOCK_RE.search(makefile_text)
     if match is None:
         raise ValueError("missing phase7-validate block")
 
-    gates: list[str] = []
+    commands: list[str] = []
     for line in match.group(1).splitlines():
-        for script in MAKEFILE_SCRIPT_RE.findall(line):
-            if script not in gates:
-                gates.append(script)
+        command_match = MAKEFILE_COMMAND_RE.search(line)
+        if command_match is not None:
+            commands.append(command_match.group(1))
+    return commands
+
+
+def render_validation_gates(validation_commands: list[str]) -> list[str]:
+    gates: list[str] = []
+    for command in validation_commands:
+        script = command.removesuffix(" --self-test")
+        if script not in gates:
+            gates.append(script)
     return gates
 
 
@@ -72,6 +83,7 @@ def render_inventory_from_text(
     expected_build_paths.update(entry["root_path"] for entry in imported_helpers)
     expected_build_paths.update(entry["helper_path"] for entry in imported_helpers)
     expected_build_paths.update(standalone_surveys)
+    validation_commands = render_validation_commands(makefile_text)
 
     return {
         "repo_root_path": "../..",
@@ -81,7 +93,8 @@ def render_inventory_from_text(
         "run_labels": run_labels,
         "run_cwds": run_cwds,
         "shared_test_depend_steps": DEPEND_STEP_RE.findall(build_text),
-        "shared_validation_gates": render_validation_gates(makefile_text),
+        "shared_validation_gates": render_validation_gates(validation_commands),
+        "shared_validation_commands": validation_commands,
         "unexpected_build_markers": UNEXPECTED_BUILD_MARKERS,
     }
 
@@ -120,6 +133,13 @@ def run_self_test() -> int:
         raise SystemExit("phase7-build-inventory:self-test:depend_step_count")
     if len(first["shared_validation_gates"]) != 5:
         raise SystemExit("phase7-build-inventory:self-test:validation_gate_count")
+    if len(first["shared_validation_commands"]) != 10:
+        raise SystemExit("phase7-build-inventory:self-test:validation_command_count")
+    if first["shared_validation_commands"][2:4] != [
+        "scripts/zigux/check-phase7-build-inventory.py --self-test",
+        "scripts/zigux/check-phase7-build-inventory.py",
+    ]:
+        raise SystemExit("phase7-build-inventory:self-test:build_inventory_command_pair")
 
     drifted = dict(first)
     drifted["run_labels"] = ["phase7-mismatch"]
@@ -227,6 +247,33 @@ def run_self_test() -> int:
         not in validation_gate_drift["shared_validation_gates"]
     ):
         raise SystemExit("phase7-build-inventory:self-test:validation_gate_drift_shape")
+    if (
+        "scripts/zigux/check-phase7-build-inventory-drift.py --self-test"
+        not in validation_gate_drift["shared_validation_commands"]
+    ):
+        raise SystemExit("phase7-build-inventory:self-test:validation_gate_command_shape")
+
+    validation_command_pair_drift_text = makefile_text.replace(
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-inventory.py --self-test\n",
+        "",
+        1,
+    )
+    if validation_command_pair_drift_text == makefile_text:
+        raise SystemExit("phase7-build-inventory:self-test:validation_command_pair_drift_rewrite")
+
+    validation_command_pair_drift = render_inventory_from_text(
+        build_text,
+        validation_command_pair_drift_text,
+    )
+    if validation_command_pair_drift == fixture:
+        raise SystemExit("phase7-build-inventory:self-test:validation_command_pair_drift_detection")
+    if (
+        "scripts/zigux/check-phase7-build-inventory.py --self-test"
+        in validation_command_pair_drift["shared_validation_commands"]
+    ):
+        raise SystemExit("phase7-build-inventory:self-test:validation_command_pair_drift_shape")
+    if validation_command_pair_drift["shared_validation_gates"] != fixture["shared_validation_gates"]:
+        raise SystemExit("phase7-build-inventory:self-test:validation_command_pair_gate_shape")
 
     validation_gate_order_drift_text, replacements = re.subn(
         r'(\tcd \$\(ZIGUX_ROOT\) && \$\(PYTHON\) scripts/zigux/check-phase7-build-inventory\.py --self-test\n)'
@@ -245,10 +292,12 @@ def run_self_test() -> int:
     if validation_gate_order_drift == fixture:
         raise SystemExit("phase7-build-inventory:self-test:validation_gate_order_drift_detection")
     if validation_gate_order_drift["shared_validation_gates"] != fixture["shared_validation_gates"]:
-        raise SystemExit("phase7-build-inventory:self-test:validation_gate_order_drift_shape")
+        raise SystemExit("phase7-build-inventory:self-test:validation_gate_order_gate_shape")
+    if validation_gate_order_drift["shared_validation_commands"] == fixture["shared_validation_commands"]:
+        raise SystemExit("phase7-build-inventory:self-test:validation_gate_order_command_shape")
 
     print("PHASE7_BUILD_INVENTORY_SELF_TEST=pass")
-    print("PHASE7_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=10")
+    print("PHASE7_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
@@ -278,6 +327,10 @@ def main(argv: list[str] | None = None) -> int:
     print(
         "PHASE7_BUILD_INVENTORY_VALIDATION_GATE_COUNT="
         f"{len(generated['shared_validation_gates'])}"
+    )
+    print(
+        "PHASE7_BUILD_INVENTORY_VALIDATION_COMMAND_COUNT="
+        f"{len(generated['shared_validation_commands'])}"
     )
     return 0
 
