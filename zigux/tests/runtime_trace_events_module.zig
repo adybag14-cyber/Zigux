@@ -55,6 +55,12 @@ test "runtime trace-events sample keeps replay-summary continuity explicit after
     try std.testing.expectEqual(@as(usize, 6), selftest.main_thread_events);
     try std.testing.expectEqual(@as(usize, 2), selftest.fn_thread_events);
     try std.testing.expectEqual(@as(usize, 8), selftest.total_events);
+    try std.testing.expectEqual(@as(usize, 5), selftest.event_families.len);
+    try std.testing.expectEqual(sample.EventFamily.foo_bar, selftest.event_families[0]);
+    try std.testing.expectEqual(sample.EventFamily.template, selftest.event_families[1]);
+    try std.testing.expectEqual(sample.EventFamily.conditional, selftest.event_families[2]);
+    try std.testing.expectEqual(sample.EventFamily.relative_location, selftest.event_families[3]);
+    try std.testing.expectEqual(sample.EventFamily.function_callback, selftest.event_families[4]);
     try std.testing.expectEqual(sample.ModuleStage.selftest_complete, module.stage());
 
     const main_emitted = try module.emitMainIteration(3);
@@ -151,6 +157,12 @@ test "runtime trace-events sample keeps registration balance and failed-exit rol
     try std.testing.expectEqual(@as(usize, 10), selftest.main_thread_events);
     try std.testing.expectEqual(@as(usize, 4), selftest.fn_thread_events);
     try std.testing.expectEqual(@as(usize, 14), selftest.total_events);
+    try std.testing.expectEqual(@as(usize, 5), selftest.event_families.len);
+    try std.testing.expectEqual(sample.EventFamily.foo_bar, selftest.event_families[0]);
+    try std.testing.expectEqual(sample.EventFamily.template, selftest.event_families[1]);
+    try std.testing.expectEqual(sample.EventFamily.conditional, selftest.event_families[2]);
+    try std.testing.expectEqual(sample.EventFamily.relative_location, selftest.event_families[3]);
+    try std.testing.expectEqual(sample.EventFamily.function_callback, selftest.event_families[4]);
 
     const before_exit = module.summary();
     try std.testing.expectEqual(sample.ModuleStage.selftest_complete, before_exit.stage);
@@ -222,6 +234,11 @@ test "runtime trace-events sample keeps selftest replay explicit after direct pi
     try std.testing.expectEqual(sample.ModuleStage.selftest_complete, module.stage());
     try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample.c", summary.anchor);
     try std.testing.expectEqual(@as(usize, 5), summary.event_families.len);
+    try std.testing.expectEqual(sample.EventFamily.foo_bar, summary.event_families[0]);
+    try std.testing.expectEqual(sample.EventFamily.template, summary.event_families[1]);
+    try std.testing.expectEqual(sample.EventFamily.conditional, summary.event_families[2]);
+    try std.testing.expectEqual(sample.EventFamily.relative_location, summary.event_families[3]);
+    try std.testing.expectEqual(sample.EventFamily.function_callback, summary.event_families[4]);
     try std.testing.expectEqual(@as(usize, 10), summary.main_thread_events);
     try std.testing.expectEqual(@as(usize, 4), summary.fn_thread_events);
     try std.testing.expectEqual(@as(usize, 14), summary.total_events);
