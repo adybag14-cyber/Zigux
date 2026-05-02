@@ -1,14 +1,14 @@
 {
   "lane_key": "P5-L22",
   "phase": "Phase 5",
-  "surveyed_commit": "d935d20c16156bc5defdb915f44d670d0a505a17",
+  "surveyed_commit": "3ba64cd4e41a4de1c8fd8dbaecb23702ad9701a3",
   "anchor": "samples/kprobes/kretprobe_example.c",
   "sample_path": "samples/zigux/kretprobe_example.zig",
   "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
   "review_prompts": [
     "descriptor keeps the Linux anchor path explicit and leaves requires_runtime_substrate false while provides_selfcheck stays true",
     "the manifest keeps surveyed_commit pinned to the exact inspected master head instead of a floating branch label so reviewability stays tied to one bounded repo state",
-    "the manifest and survey test still describe the exact skip, pre-init retargeting, timestamp-order boundary, return-value, duration, and missed-summary contract run through phase5_build.zig",
+    "the manifest and survey test still describe the exact skip, pre-init retargeting, timestamp-order boundary, return-value, duration, maxactive, missed-summary, and sample-owned ownership replay contract run through phase5_build.zig",
     "the sample-backed survey note, shared sample-root catalog, shared tests-root guide, top-level Phase 5 README note, and shared review checklist still keep the landed Phase 5 kretprobe slice tied to the shared phase5_build.zig entrypoint and distinct from the separate Phase 9 runtime starter",
     "the sample keeps the Linux my_data-style private entry timestamp explicit and reviewable instead of burying it in unstructured state",
     "the sample keeps the Linux maxactive budget explicit through a fixed helper-backed reviewable ceiling for this in-memory-only reference slice instead of implying runtime pressure tuning",
@@ -60,12 +60,12 @@
     {
       "id": "outstanding-instance-boundary",
       "kind": "ownership_lifetime",
-      "expected": "exit rejects an armed sample until retHandler clears the outstanding tracked instance"
+      "expected": "runOwnershipBoundaryReplay rejects exit on an armed sample until retHandler clears the outstanding tracked instance"
     },
     {
       "id": "post-exit-rejection",
       "kind": "ownership_lifetime",
-      "expected": "after exit the sample rejects later recordMissedInstance, entryHandler, or retHandler calls"
+      "expected": "after runOwnershipBoundaryReplay exits the sample rejects later recordMissedInstance, entryHandler, or retHandler calls"
     }
   ],
   "non_goals": [
