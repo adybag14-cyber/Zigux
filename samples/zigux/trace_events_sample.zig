@@ -343,6 +343,21 @@ test "trace-events sample keeps callback registration single-live" {
     var sample = TraceEventsReferenceSample{};
 
     try sample.init();
+    const initial_lifecycle = sample.lifecycleSummary();
+    try std.testing.expectEqual(SampleStage.initialized, initial_lifecycle.stage);
+    try std.testing.expectEqual(@as(usize, 1), initial_lifecycle.init_run_count);
+    try std.testing.expectEqual(@as(usize, 0), initial_lifecycle.replay_run_count);
+    try std.testing.expectEqual(@as(usize, 0), initial_lifecycle.exit_run_count);
+    try std.testing.expectEqual(@as(usize, 0), initial_lifecycle.registration_depth);
+    try std.testing.expectEqual(@as(usize, 0), initial_lifecycle.total_event_calls);
+    try std.testing.expectError(error.FunctionCallbackNotRegistered, sample.replayFunctionIteration(5));
+    const after_unregistered_callback = sample.lifecycleSummary();
+    try std.testing.expectEqual(SampleStage.initialized, after_unregistered_callback.stage);
+    try std.testing.expectEqual(@as(usize, 1), after_unregistered_callback.init_run_count);
+    try std.testing.expectEqual(@as(usize, 0), after_unregistered_callback.replay_run_count);
+    try std.testing.expectEqual(@as(usize, 0), after_unregistered_callback.exit_run_count);
+    try std.testing.expectEqual(@as(usize, 0), after_unregistered_callback.registration_depth);
+    try std.testing.expectEqual(@as(usize, 0), after_unregistered_callback.total_event_calls);
     try std.testing.expectError(error.RegistrationUnderflow, sample.unregisterFunctionCallback());
     try sample.registerFunctionCallback();
     try std.testing.expectError(error.CallbackAlreadyRegistered, sample.registerFunctionCallback());
