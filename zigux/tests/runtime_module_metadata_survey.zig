@@ -76,6 +76,22 @@ fn isLowerHexSha(value: []const u8) bool {
     return true;
 }
 
+fn expectSurveyedCommitMarker(document: []const u8, commit: []const u8) !void {
+    const marker = try std.fmt.allocPrint(std.testing.allocator, "`PHASE9_SURVEYED_COMMIT={s}`", .{commit});
+    defer std.testing.allocator.free(marker);
+    try std.testing.expect(std.mem.indexOf(u8, document, marker) != null);
+}
+
+fn expectPinnedCommitSentence(document: []const u8, commit: []const u8) !void {
+    const sentence = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "the current survey packet is pinned to `master` commit `{s}`",
+        .{commit},
+    );
+    defer std.testing.allocator.free(sentence);
+    try std.testing.expect(std.mem.indexOf(u8, document, sentence) != null);
+}
+
 test "runtime module metadata manifest keeps the dedicated descriptor and depmod-gap packet explicit" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -126,6 +142,150 @@ test "runtime module metadata manifest keeps the dedicated descriptor and depmod
     try std.testing.expect(std.mem.indexOf(u8, manifest.runtime_sample_only_blocked[0].why_blocked, "sample-only") != null);
     try std.testing.expectEqualStrings("MODULE_INFO()", manifest.depmod_gap_surfaces[0]);
     try std.testing.expectEqualStrings("scripts/depmod.sh", manifest.depmod_gap_surfaces[7]);
+
+    var saw_survey_note = false;
+    var saw_manifest = false;
+    var saw_survey_gate = false;
+    var saw_loader_gap_note = false;
+    var saw_runtime_loader_contract = false;
+    for (manifest.delivery_evidence_catalog, 0..) |entry, i| {
+        try std.testing.expect(entry.id.len > 0);
+        try std.testing.expect(entry.kind.len > 0);
+        try std.testing.expect(entry.path.len > 0);
+        try std.testing.expect(entry.role.len > 0);
+
+        if (std.mem.eql(u8, entry.id, "runtime-module-metadata-survey-note")) {
+            saw_survey_note = true;
+            try std.testing.expectEqualStrings("documentation", entry.kind);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md", entry.path);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "written survey") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "depmod-facing metadata") != null);
+        }
+        if (std.mem.eql(u8, entry.id, "runtime-module-metadata-manifest")) {
+            saw_manifest = true;
+            try std.testing.expectEqualStrings("manifest", entry.kind);
+            try std.testing.expectEqualStrings("zigux/tests/runtime_module_metadata_manifest.json", entry.path);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "machine-readable counts") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "depmod-gap catalog") != null);
+        }
+        if (std.mem.eql(u8, entry.id, "runtime-module-metadata-survey-gate")) {
+            saw_survey_gate = true;
+            try std.testing.expectEqualStrings("validation", entry.kind);
+            try std.testing.expectEqualStrings("zigux/tests/runtime_module_metadata_survey.zig", entry.path);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "focused replay") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "RuntimeLoadRequest metadata") != null);
+        }
+        if (std.mem.eql(u8, entry.id, "runtime-loader-gap-note")) {
+            saw_loader_gap_note = true;
+            try std.testing.expectEqualStrings("documentation", entry.kind);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase9-runtime-loader-gap-survey.md", entry.path);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "missing runtime_trace_events_loader sibling") != null);
+        }
+        if (std.mem.eql(u8, entry.id, "shared-runtime-loader-contract")) {
+            saw_runtime_loader_contract = true;
+            try std.testing.expectEqualStrings("runtime_substrate", entry.kind);
+            try std.testing.expectEqualStrings("zigux/kernel/runtime_loader.zig", entry.path);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "RuntimeLoadRequest metadata fields") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "three-lane loader union") != null);
+        }
+
+        for (manifest.delivery_evidence_catalog[i + 1 ..]) |other| {
+            try std.testing.expect(!std.mem.eql(u8, entry.id, other.id));
+            try std.testing.expect(!std.mem.eql(u8, entry.path, other.path));
+        }
+    }
+    try std.testing.expect(saw_survey_note);
+    try std.testing.expect(saw_manifest);
+    try std.testing.expect(saw_survey_gate);
+    try std.testing.expect(saw_loader_gap_note);
+    try std.testing.expect(saw_runtime_loader_contract);
+
+    var saw_survey_note_ownership = false;
+    var saw_manifest_ownership = false;
+    var saw_survey_gate_ownership = false;
+    var saw_loader_gap_ownership = false;
+    var saw_runtime_loader_ownership = false;
+    for (manifest.ownership_map, 0..) |entry, i| {
+        try std.testing.expect(entry.surface.len > 0);
+        try std.testing.expect(entry.owns.len > 0);
+
+        if (std.mem.eql(u8, entry.surface, "Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md")) {
+            saw_survey_note_ownership = true;
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "written survey") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "depmod-facing gap") != null);
+        }
+        if (std.mem.eql(u8, entry.surface, "zigux/tests/runtime_module_metadata_manifest.json")) {
+            saw_manifest_ownership = true;
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "machine-readable counts") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "depmod-gap catalog") != null);
+        }
+        if (std.mem.eql(u8, entry.surface, "zigux/tests/runtime_module_metadata_survey.zig")) {
+            saw_survey_gate_ownership = true;
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "focused replay") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "RuntimeLoadRequest metadata") != null);
+        }
+        if (std.mem.eql(u8, entry.surface, "Documentation/zigux/phase9-runtime-loader-gap-survey.md")) {
+            saw_loader_gap_ownership = true;
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "runtime_trace_events_loader sibling") != null);
+        }
+        if (std.mem.eql(u8, entry.surface, "zigux/kernel/runtime_loader.zig")) {
+            saw_runtime_loader_ownership = true;
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "RuntimeLoadRequest metadata fields") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "three-lane loader union") != null);
+        }
+
+        for (manifest.ownership_map[i + 1 ..]) |other| {
+            try std.testing.expect(!std.mem.eql(u8, entry.surface, other.surface));
+        }
+    }
+    try std.testing.expect(saw_survey_note_ownership);
+    try std.testing.expect(saw_manifest_ownership);
+    try std.testing.expect(saw_survey_gate_ownership);
+    try std.testing.expect(saw_loader_gap_ownership);
+    try std.testing.expect(saw_runtime_loader_ownership);
+}
+
+test "runtime module metadata docs stay aligned with the manifest-backed surveyed commit" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const manifest_json = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "zigux/tests/runtime_module_metadata_manifest.json",
+        24 * 1024,
+    );
+    defer std.testing.allocator.free(manifest_json);
+
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{
+        .ignore_unknown_fields = true,
+    });
+    defer parsed.deinit();
+
+    const manifest = parsed.value;
+
+    const survey_note = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md",
+        24 * 1024,
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    try expectContainsAll(survey_note, &.{
+        "`PHASE9_SLICE=runtime-module-metadata-depmod-bridge-survey`",
+        "ModuleDescriptor",
+        "RuntimeLoadRequest",
+        "samples/zigux/runtime_trace_events_loader.zig",
+        "MODULE_INFO()",
+        "scripts/depmod.sh",
+        "it is not yet loadable-module metadata parity",
+        "the shared runtime loader currently exposes three tagged loader lanes: `atomic64`, `bitmap`, and `kretprobe`",
+        "the three landed loader-plan files stay at `samples/zigux/runtime_atomic64_loader.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and `samples/zigux/runtime_kretprobe_loader.zig`",
+        "samples/zigux/runtime_trace_events.zig` remains intentionally sample-only",
+    });
+    try expectSurveyedCommitMarker(survey_note, manifest.surveyed_commit);
+    try expectPinnedCommitSentence(survey_note, manifest.surveyed_commit);
 }
 
 test "runtime module metadata survey note keeps descriptor fields, shared loader metadata, and depmod gaps explicit" {
