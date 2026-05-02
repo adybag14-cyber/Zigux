@@ -222,6 +222,94 @@ test "phase11 bcm2835_wdt platform handoff summary keeps parent and PM-base prer
     try std.testing.expect(blocked.poweroff_handler_conflict);
 }
 
+test "phase11 bcm2835_wdt poweroff summary only arms the halt reset when bcm2835 owns the shared callback" {
+    var watchdog = try bcm2835_wdt.Bcm2835WatchdogLab.init(9);
+    _ = watchdog.loadRegisters(.{
+        .rstc = 0x1234_5678,
+        .rsts = 0x0000_0004,
+    });
+
+    const owned = watchdog.poweroffSummary(true, true, true);
+    try std.testing.expectEqualStrings("drivers/watchdog/bcm2835_wdt.c", owned.anchor);
+    try std.testing.expect(owned.system_power_controller);
+    try std.testing.expect(owned.poweroff_handler_present);
+    try std.testing.expect(owned.poweroff_handler_owned_by_driver);
+    try std.testing.expect(owned.poweroff_callback_ready);
+    try std.testing.expect(owned.poweroff_path_available);
+    try std.testing.expect(!owned.blocked_without_system_power_controller);
+    try std.testing.expect(!owned.blocked_without_poweroff_handler);
+    try std.testing.expect(!owned.blocked_by_poweroff_handler_conflict);
+    try std.testing.expect(owned.full_reset_requested);
+    try std.testing.expect(owned.restart_armed);
+    try std.testing.expect(owned.halt_partition_requested);
+    try std.testing.expectEqual(
+        bcm2835_wdt.pm_password | bcm2835_wdt.restart_ticks,
+        owned.registers.wdog,
+    );
+    try std.testing.expectEqual(
+        bcm2835_wdt.pm_password |
+            (0x1234_5678 & bcm2835_wdt.pm_rstc_wrcfg_clr) |
+            bcm2835_wdt.pm_rstc_wrcfg_full_reset,
+        owned.registers.rstc,
+    );
+    try std.testing.expectEqual(
+        @as(u32, 0x0000_0004 | bcm2835_wdt.pm_password | bcm2835_wdt.pm_rsts_halt),
+        owned.registers.rsts,
+    );
+
+    var conflict_watchdog = try bcm2835_wdt.Bcm2835WatchdogLab.init(9);
+    _ = conflict_watchdog.loadRegisters(.{
+        .rstc = 0xabcd_1000,
+        .rsts = 0x0000_0008,
+    });
+    const conflict = conflict_watchdog.poweroffSummary(true, true, false);
+    try std.testing.expect(conflict.system_power_controller);
+    try std.testing.expect(conflict.poweroff_handler_present);
+    try std.testing.expect(!conflict.poweroff_handler_owned_by_driver);
+    try std.testing.expect(!conflict.poweroff_callback_ready);
+    try std.testing.expect(!conflict.poweroff_path_available);
+    try std.testing.expect(!conflict.blocked_without_system_power_controller);
+    try std.testing.expect(!conflict.blocked_without_poweroff_handler);
+    try std.testing.expect(conflict.blocked_by_poweroff_handler_conflict);
+    try std.testing.expect(!conflict.full_reset_requested);
+    try std.testing.expect(!conflict.restart_armed);
+    try std.testing.expect(!conflict.halt_partition_requested);
+    try std.testing.expectEqual(@as(u32, 0xabcd_1000), conflict.registers.rstc);
+    try std.testing.expectEqual(@as(u32, 0x0000_0008), conflict.registers.rsts);
+
+    var missing_watchdog = try bcm2835_wdt.Bcm2835WatchdogLab.init(9);
+    _ = missing_watchdog.loadRegisters(.{
+        .rstc = 0,
+        .rsts = 0x0000_0010,
+    });
+    const missing = missing_watchdog.poweroffSummary(true, false, false);
+    try std.testing.expect(missing.system_power_controller);
+    try std.testing.expect(!missing.poweroff_handler_present);
+    try std.testing.expect(!missing.poweroff_handler_owned_by_driver);
+    try std.testing.expect(!missing.poweroff_callback_ready);
+    try std.testing.expect(!missing.poweroff_path_available);
+    try std.testing.expect(!missing.blocked_without_system_power_controller);
+    try std.testing.expect(missing.blocked_without_poweroff_handler);
+    try std.testing.expect(!missing.blocked_by_poweroff_handler_conflict);
+    try std.testing.expectEqual(@as(u32, 0x0000_0010), missing.registers.rsts);
+
+    var passive_watchdog = try bcm2835_wdt.Bcm2835WatchdogLab.init(9);
+    _ = passive_watchdog.loadRegisters(.{
+        .rstc = 0,
+        .rsts = 0x0000_0020,
+    });
+    const passive = passive_watchdog.poweroffSummary(false, true, true);
+    try std.testing.expect(!passive.system_power_controller);
+    try std.testing.expect(passive.poweroff_handler_present);
+    try std.testing.expect(passive.poweroff_handler_owned_by_driver);
+    try std.testing.expect(!passive.poweroff_callback_ready);
+    try std.testing.expect(!passive.poweroff_path_available);
+    try std.testing.expect(passive.blocked_without_system_power_controller);
+    try std.testing.expect(!passive.blocked_without_poweroff_handler);
+    try std.testing.expect(!passive.blocked_by_poweroff_handler_conflict);
+    try std.testing.expectEqual(@as(u32, 0x0000_0020), passive.registers.rsts);
+}
+
 test "phase11 bcm2835_wdt remove summary only clears the shared poweroff handler when bcm2835 owns it" {
     var watchdog = try bcm2835_wdt.Bcm2835WatchdogLab.init(9);
 
