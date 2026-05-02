@@ -3,6 +3,8 @@ const std = @import("std");
 pub const page_size: u32 = 4096;
 pub const name_max: u32 = 255;
 pub const simple_transaction_limit: usize = page_size;
+pub const dir_offset_first: i64 = 2;
+pub const dir_offset_eod: i64 = std.math.maxInt(i32);
 
 pub const ModuleDescriptor = struct {
     name: []const u8,
@@ -11,6 +13,7 @@ pub const ModuleDescriptor = struct {
     provides_lookup_policy: bool,
     provides_buffer_copy_helpers: bool,
     provides_offset_seek_helpers: bool,
+    provides_offset_readdir_planning: bool,
     provides_directory_emit_planning: bool,
     provides_directory_cursor_preconditions: bool,
     provides_directory_cursor_reposition_planning: bool,
@@ -93,6 +96,22 @@ pub const DirectoryEmitPlan = struct {
     emitted_any_entries: bool,
     stays_in_dots_window: bool,
     should_stop: bool,
+};
+
+pub const OffsetReaddirMode = enum {
+    blocked_on_emit_dots,
+    ready_to_iterate,
+    ready_at_end_of_directory,
+};
+
+pub const OffsetReaddirPlan = struct {
+    anchor: []const u8,
+    mode: OffsetReaddirMode,
+    returns_zero: bool,
+    requires_dir_emit_dots: bool,
+    enters_offset_iteration: bool,
+    keeps_current_pos: bool,
+    treats_eod_as_terminal: bool,
 };
 
 pub const CursorOpenMode = enum {
@@ -215,6 +234,7 @@ pub const LibFsHelperLab = struct {
             .provides_lookup_policy = true,
             .provides_buffer_copy_helpers = true,
             .provides_offset_seek_helpers = true,
+            .provides_offset_readdir_planning = true,
             .provides_directory_emit_planning = true,
             .provides_directory_cursor_preconditions = true,
             .provides_directory_cursor_reposition_planning = true,
@@ -415,6 +435,35 @@ pub const LibFsHelperLab = struct {
             .emitted_any_entries = emitted_entries != 0,
             .stays_in_dots_window = new_pos <= 2,
             .should_stop = emitted_entries == 0,
+        };
+    }
+
+    pub fn offsetReaddirPlan(current_pos: i64, emit_dots_result: bool) !OffsetReaddirPlan {
+        if (current_pos < 0) {
+            return error.InvalidOffset;
+        }
+
+        if (!emit_dots_result) {
+            return .{
+                .anchor = descriptor().anchor,
+                .mode = .blocked_on_emit_dots,
+                .returns_zero = true,
+                .requires_dir_emit_dots = true,
+                .enters_offset_iteration = false,
+                .keeps_current_pos = true,
+                .treats_eod_as_terminal = false,
+            };
+        }
+
+        const at_end_of_directory = current_pos == dir_offset_eod;
+        return .{
+            .anchor = descriptor().anchor,
+            .mode = if (at_end_of_directory) .ready_at_end_of_directory else .ready_to_iterate,
+            .returns_zero = true,
+            .requires_dir_emit_dots = true,
+            .enters_offset_iteration = !at_end_of_directory,
+            .keeps_current_pos = at_end_of_directory,
+            .treats_eod_as_terminal = at_end_of_directory,
         };
     }
 
