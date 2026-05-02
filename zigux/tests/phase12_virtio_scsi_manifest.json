@@ -27,6 +27,31 @@
     "raw_github_tree_fallback_count": 3,
     "raw_github_file_fallback_count": 10
   },
+  "roadmap_gap": {
+    "anchor": "Phase 12 complex production drivers and heavy helper consumers",
+    "required_features": [
+      {
+        "feature": "DMA-safe abstractions",
+        "status": "blocked_on_substrate",
+        "evidence": "The bounded starter still does not claim DMA mapping, scatter-gather command assembly, virtqueue buffer ownership, or live request or response buffer lifetime."
+      },
+      {
+        "feature": "queueing correctness",
+        "status": "bounded_planning_only",
+        "evidence": "The landed queue-family planner, host-limit summary, queue-depth summary, and io-queue-map summaries keep control, event, request, and poll topology reviewable in memory without claiming live blk-mq submission or request completion."
+      },
+      {
+        "feature": "throughput and recovery parity",
+        "status": "recovery_shape_only",
+        "evidence": "The lane records freeze or restore planning and queue-map restore pressure, but it does not claim measured throughput, command completion, event-work recycling, or PM callback parity."
+      },
+      {
+        "feature": "segmented rollout",
+        "status": "active_survey_packet",
+        "evidence": "The current packet stays intentionally segmented across the bounded driver starter, direct tests, survey note, and archival raw-GitHub fallback catalog instead of presenting a full runtime SCSI port."
+      }
+    ]
+  },
   "gaps": [
     {
       "id": "phase12-build-gate",
