@@ -42,8 +42,8 @@ EXPECTED_SORTED_LINES = sorted(
         "runtime-raw-miss\t20\tnull",
         "sym-hit\tkmalloc\t0x1400",
         "sym-miss\tvfree\tnull",
-        "mutable-hit\t21\t22",
-        "raw-mutable-hit\t21\t22",
+        "mutable-hit\t34\t35",
+        "raw-mutable-hit\t34\t35",
     ]
 )
 
@@ -158,7 +158,7 @@ def run_self_test() -> int:
     )
     assert_equal(
         "build_text_runner",
-        str(ZIG_RUNNER) in build_text and sorted_lines("mutable-hit\t21\t22\nascending-hit\t34\t4\n") == ["ascending-hit\t34\t4", "mutable-hit\t21\t22"],
+        str(ZIG_RUNNER) in build_text and sorted_lines("mutable-hit\t34\t35\nascending-hit\t34\t4\n") == ["ascending-hit\t34\t4", "mutable-hit\t34\t35"],
         True,
     )
 
