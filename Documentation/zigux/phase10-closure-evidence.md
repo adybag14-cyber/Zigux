@@ -49,7 +49,7 @@ The current bounded Phase 10 evidence set is:
 - `PHASE10_TEST_COUNT=9`
 - `PHASE10_HAS_VIRTIO_MMIO_ZIG=yes`
 
-The shared closure manifest now carries explicit landed-helper evidence for the core config summaries, the ring queue-discipline ladder, and the input preflight pair, so the scoreboard does not reduce the current Phase 10 packet to only its remaining transport blockers.
+The shared closure manifest now carries explicit landed-helper evidence for the core config summaries, the ring queue-discipline ladder, the input preflight pair, and a dedicated MMIO rollback boundary, so the scoreboard does not reduce the current Phase 10 packet to only its remaining transport blockers.
 
 ## Roadmap Parity Scoreboard
 
@@ -111,6 +111,24 @@ The current Phase 10 tranche is only considered evidence-verified when all of th
 - `PHASE10_VALIDATE_ENTRYPOINT=make -C zigux phase10-validate`
 - `PHASE10_TEST_ENTRYPOINT=make -C zigux phase10-test`
 - `PHASE10_COMBINED_ENTRYPOINT=make -C zigux phase10`
+
+## MMIO Rollback Boundary
+
+- `PHASE10_MMIO_ROLLBACK_OWNER=phase10-mmio-lab-packet`
+- `PHASE10_MMIO_ROLLBACK_LAST_SAFE_RUNG=phase10-mmio-config-write-helper`
+- `PHASE10_MMIO_ROLLBACK_BLOCKED_EXPANSION=phase10-mmio-lifecycle-and-irq-paths`
+- `PHASE10_MMIO_ROLLBACK_VALIDATE=python3 scripts/zigux/validate-phase10-closure.py`
+- `PHASE10_MMIO_ROLLBACK_ENTRYPOINTS=make -C zigux phase10-validate,make -C zigux phase10`
+
+The MMIO lane still stops at a lab-only config-write planning rung. If a future edit starts implying transport-backed queue setup, shared IRQ delivery, or probe/remove lifecycle behavior, the rollback path is to return the MMIO packet to the last safe manifest-backed rung above rather than widening the blocked transport claim set in place.
+
+The closure manifest now preserves that boundary as data for the MMIO packet itself, including the exact surface that must stay aligned:
+
+- `drivers/virtio/virtio_mmio.zig`
+- `zigux/tests/phase10_virtio_mmio.zig`
+- `zigux/tests/phase10_virtio_mmio_manifest.json`
+- `Documentation/zigux/phase10-virtio-mmio-slice.md`
+- `Documentation/zigux/phase10-virtio-mmio-survey.md`
 
 ## Freeze Boundary Reading
 
