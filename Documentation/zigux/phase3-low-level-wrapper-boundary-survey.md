@@ -20,7 +20,7 @@ This note records the current atomic, barrier, and MMIO boundary for the bounded
 - `PHASE3_LOW_LEVEL_BUILD_PATH=zigux/tests/phase3_low_level_wrappers_build.zig`
 - `PHASE3_LOW_LEVEL_BUILD_BLOB_SHA=a5ab6035a905edb3143c0ad850fb6b0d7381384e`
 - `PHASE3_LOW_LEVEL_TEST_PATH=zigux/tests/phase3_low_level_wrappers.zig`
-- `PHASE3_LOW_LEVEL_TEST_BLOB_SHA=8038bbf992853746e48e37570a02f48cd69bd301`
+- `PHASE3_LOW_LEVEL_TEST_BLOB_SHA=339032931ca5fe973028f84ecbe3329c2b9601e1`
 - `PHASE3_ABI_SLICE_DOC_BLOB_SHA=6b90b23ca058f34af7f0eafef9f7fc45a1298a20`
 - `PHASE3_ABI_MANIFEST_BLOB_SHA=d553cf38524af7349534668d31f85cd34edd9c5f`
 - `PHASE3_LOW_LEVEL_GATE=zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`
