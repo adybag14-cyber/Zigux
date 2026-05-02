@@ -274,6 +274,37 @@ def expect_self_test_failure(label: str, expected_fragment: str, func, *args) ->
         )
 
 
+def expect_process_json(
+    label: str,
+    *,
+    stdout: str,
+    stderr: str,
+    exit_code: int,
+    normalize_stderr: bool,
+    expected_stderr: str,
+) -> None:
+    with tempfile.TemporaryDirectory(prefix='zigux_genksyms_bridge_process_json_') as tmp_dir_str:
+        actual_path = Path(tmp_dir_str) / 'actual.json'
+        result = subprocess.CompletedProcess(
+            args=['genksyms-bridge-self-test'],
+            returncode=exit_code,
+            stdout=stdout,
+            stderr=stderr,
+        )
+        write_process_json(actual_path, result, normalize_stderr=normalize_stderr)
+        payload = json.loads(actual_path.read_text(encoding='utf-8'))
+
+    expected = {
+        'stdout': stdout,
+        'stderr': expected_stderr,
+        'exit_code': exit_code,
+    }
+    if payload != expected:
+        raise SystemExit(
+            f'genksyms-bridge:self-test:{label}:expected={expected!r}:actual={payload!r}'
+        )
+
+
 def run_self_test() -> None:
     if find_compiler('/tmp/zigux-self-test-cc') != '/tmp/zigux-self-test-cc':
         raise SystemExit('genksyms-bridge:self-test:explicit_cc_passthrough')
@@ -294,6 +325,23 @@ def run_self_test() -> None:
         raise SystemExit(
             f'genksyms-bridge:self-test:stderr_normalization:expected={expected_normalized!r}:actual={normalized!r}'
         )
+
+    expect_process_json(
+        'process_json_normalized_stderr',
+        stdout='{"tool":"scripts/genksyms/genksyms"}\n',
+        stderr="zigux-genksyms: invalid option -- 'x'\n",
+        exit_code=1,
+        normalize_stderr=True,
+        expected_stderr="invalid option -- 'x'\n",
+    )
+    expect_process_json(
+        'process_json_raw_stderr',
+        stdout='',
+        stderr='verbatim stderr\nsecond line\n',
+        exit_code=7,
+        normalize_stderr=False,
+        expected_stderr='verbatim stderr\nsecond line\n',
+    )
 
     cases = load_cases_manifest()
     if len(cases) != 26:
