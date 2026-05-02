@@ -60,6 +60,7 @@ Current bootstrap helpers
 - `check-phase1-parity.py`
 - `check-fixdep-diff.py`
 - `check-genksyms-bridge.py`
+- `check-phase2-genksyms-bridge-selftest-alignment.py`
 - `check-genksyms-crc-diff.py`
 - `check-kconfig-bridge.py`
 - `check-phase2-cross.py`
@@ -96,6 +97,8 @@ Phase 2 flow
 - `check-fixdep-diff.py` compares the bounded `fixdep.zig` output against the committed fixture set, including the multi-target, escaped-whitespace, escaped-colon, comment-only no-target, and missing-dependency failure artifacts under `zigux/tests/fixtures/fixdep/`, reruns both the C tool and Zig tool to prove repeat-run artifact determinism, and now also fails if any success-path fixdep case starts emitting unexpected stderr noise.
 - `check-genksyms-bridge.py --self-test` exercises the bounded `genksyms` bridge checker packet itself before the Linux-style `phase2-tools` entrypoint replays live bridge artifacts, so missing-expected-fixture drift, duplicate expected-fixture wiring, stderr-mode contract drift, and repeat-run compare coverage cannot hide behind a locally passing bridge replay.
 - `check-genksyms-bridge.py` exercises the bounded `genksyms.zig` bridge parity lane, including success-path stderr silence and repeat-run stderr determinism for the stdout-json bridge fixtures.
+- `check-phase2-genksyms-bridge-selftest-alignment.py --self-test` exercises the dedicated Phase 2 alignment checker packet before the validator-first `phase2-validate` path trusts the broader closure replay, so README, closure-note, workflow, Makefile, validator, and bridge-case drift cannot hide behind a locally passing bridge packet.
+- `check-phase2-genksyms-bridge-selftest-alignment.py` keeps `check-genksyms-bridge.py`, `scripts/zigux/README.md`, `Documentation/zigux/phase2-closure.md`, `scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, and `zigux/tests/fixtures/genksyms_bridge/cases.json` fail-closed around the committed 26-case bridge surface.
 - that same committed bridge packet currently spans 26 reviewable cases under `zigux/tests/fixtures/genksyms_bridge/`, including the minimal, clustered short-inline, abbreviated long-option, lone-dash passthrough, explicit-terminator positional, missing-argument, and reference-limit fixtures that keep the widened wrapper-first surface explicit.
 - `check-genksyms-crc-diff.py --self-test` exercises the bounded `genksyms_crc` checker packet itself before the Linux-style `phase2-tools` entrypoint replays the live artifact lane, so explicit-tool passthrough drift, mismatch-contract drift, and repeat-run compare coverage cannot hide behind local compiler or Zig availability.
 - `check-genksyms-crc-diff.py` checks the bounded `genksyms_crc.zig` artifact lane and now proves repeat-run JSON determinism for both the bounded C harness and Zig tool before fixture comparison.
