@@ -25,7 +25,7 @@ The shared entrypoints for that packet remain:
 
 ### base64
 
-- `zigux/tests/phase6_base64_perf.zig` replays ten deterministic cases across the shipped standard, URL-safe, and IMAP alphabets.
+- `zigux/tests/phase6_base64_perf.zig` replays ten deterministic cases across the shipped standard, URL-safe, and IMAP alphabets using the two committed `64B` and `1KB` payload cases from `zigux/tests/fixtures/phase6_base64_vectors.zig`.
 - the current gate is a fixture-backed relative slowdown check, not an absolute nanosecond ceiling: `max_encode_slowdown_pct = 190` and `max_decode_slowdown_pct = 320`.
 - the harness reports helper and reference nanoseconds per operation, but review should treat the machine-checked ceiling as the slowdown percentage rather than the printed wall-clock number.
 
