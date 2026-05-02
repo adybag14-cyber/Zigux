@@ -90,8 +90,9 @@ test "phase10 virtio input survey manifest records the live starter and remainin
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_input_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_input_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_input_module_note_present);
-    try std.testing.expect(manifest.gaps.len >= 14);
+    try std.testing.expect(manifest.gaps.len >= 15);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, manifest.surveyed_commit) != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-virtio-input-probe-preflight-helper") != null);
     try std.testing.expect(closure_manifest == .object);
 
     const landed_input_helper_evidence = closure_manifest.object.get("landed_input_helper_evidence") orelse return error.TestUnexpectedResult;
@@ -125,7 +126,8 @@ test "phase10 virtio input survey manifest records the live starter and remainin
     var saw_survey_gate = false;
     var saw_teardown_helper = false;
     var saw_preflight_helper = false;
-    var saw_ready_next = false;
+    var saw_queue_callback_helper = false;
+    var saw_probe_preflight_helper = false;
     var saw_blocker = false;
 
     for (manifest.gaps) |gap| {
@@ -197,13 +199,23 @@ test "phase10 virtio input survey manifest records the live starter and remainin
         }
 
         if (std.mem.eql(u8, gap.id, "phase10-virtio-input-queue-callback-preflight-helper")) {
-            saw_ready_next = true;
+            saw_queue_callback_helper = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("drivers/virtio/virtio_input.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "registration intent is staged") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "event queue is filled") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "status queue is configured") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "device is ready") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase10-virtio-input-probe-preflight-helper")) {
+            saw_probe_preflight_helper = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("drivers/virtio/virtio_input.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "registration intent") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue provisioning") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "ready-state gating") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "transport-backed probe handoff") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase10-virtio-input-registration-lifecycle")) {
@@ -215,7 +227,7 @@ test "phase10 virtio input survey manifest records the live starter and remainin
         }
     }
 
-    try std.testing.expect(starter_landed_count >= 12);
+    try std.testing.expect(starter_landed_count >= 13);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_helper);
@@ -223,6 +235,7 @@ test "phase10 virtio input survey manifest records the live starter and remainin
     try std.testing.expect(saw_survey_gate);
     try std.testing.expect(saw_teardown_helper);
     try std.testing.expect(saw_preflight_helper);
-    try std.testing.expect(saw_ready_next);
+    try std.testing.expect(saw_queue_callback_helper);
+    try std.testing.expect(saw_probe_preflight_helper);
     try std.testing.expect(saw_blocker);
 }
