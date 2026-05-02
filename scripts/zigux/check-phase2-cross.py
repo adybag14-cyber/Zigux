@@ -199,6 +199,15 @@ def run_self_test() -> int:
         f'phase2-cross:duplicate_tool:{tools[0].relative_to(ROOT).as_posix()}',
     )
 
+    missing_path_manifest = dict(manifest)
+    missing_path_manifest['tools'] = ['scripts/zigux/missing_tool.zig']
+    missing_path_manifest['tool_count'] = 1
+    expect_system_exit(
+        'tool_manifest_path_missing',
+        lambda: validate_tool_manifest(missing_path_manifest),
+        'phase2-cross:tool_manifest_path_missing:scripts/zigux/missing_tool.zig',
+    )
+
     bad_targets = dict(targets_doc)
     bad_targets['target_count'] = len(allowed_targets) + 1
     expect_system_exit(
@@ -254,7 +263,7 @@ def run_self_test() -> int:
             )
 
     print('PHASE2_CROSS_SELF_TEST=pass')
-    print('PHASE2_CROSS_SELF_TEST_CASE_COUNT=8')
+    print('PHASE2_CROSS_SELF_TEST_CASE_COUNT=9')
     return 0
 
 
