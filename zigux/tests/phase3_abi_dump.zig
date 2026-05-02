@@ -32,6 +32,10 @@ pub fn main(init: std.process.Init) !void {
     try writer.print("{d}", .{abi.ABI_VERSION});
     try writer.writeAll(",\"constants\":{\"facility_kernel\":");
     try writer.print("{d}", .{@intFromEnum(abi.Facility.kernel)});
+    try writer.writeAll(",\"facility_helpers\":");
+    try writer.print("{d}", .{@intFromEnum(abi.Facility.helpers)});
+    try writer.writeAll(",\"facility_drivers\":");
+    try writer.print("{d}", .{@intFromEnum(abi.Facility.drivers)});
     try writer.writeAll(",\"status_flag_error\":");
     try writer.print("{d}", .{abi.STATUS_FLAG_ERROR});
     try writer.writeAll(",\"panic_abort\":");
@@ -52,12 +56,6 @@ pub fn main(init: std.process.Init) !void {
     try writer.print("{d}", .{@intFromEnum(abi.UnsafeScope.volatile_mmio)});
     try writer.writeAll(",\"unsafe_scope_raw_pointer_bridge\":");
     try writer.print("{d}", .{@intFromEnum(abi.UnsafeScope.raw_pointer_bridge)});
-    try writer.writeAll(",\"chrdev_notify_ack_window_policy_budget_window_delivery_window_status_skipped\":");
-    try writer.print("{d}", .{abi.CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_SKIPPED});
-    try writer.writeAll(",\"chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_flag_budget_applied\":");
-    try writer.print("{d}", .{abi.CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_BUDGET_APPLIED});
-    try writer.writeAll(",\"chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_status_skipped\":");
-    try writer.print("{d}", .{abi.CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_STATUS_SKIPPED});
     try writer.writeAll("},\"structs\":{");
     try writeStructLayout(writer, "zigux_boundary_header", abi.BoundaryHeader, true);
     try writeStructLayout(writer, "zigux_export_status", abi.ExportStatus, true);
