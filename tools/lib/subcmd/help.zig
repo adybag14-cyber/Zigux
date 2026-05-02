@@ -571,6 +571,35 @@ test "splitPathEntries preserves empty PATH segments and owns copied slices" {
     try std.testing.expectEqualStrings("", entries.entries.items[4]);
 }
 
+test "addCmdName frees the duplicated name when list growth fails" {
+    var failing_allocator = std.testing.FailingAllocator.init(std.testing.allocator, .{
+        .fail_index = 1,
+    });
+
+    var cmds = CmdNames.init(failing_allocator.allocator());
+    defer cmds.deinit();
+
+    try std.testing.expectError(error.OutOfMemory, cmds.addCmdName("trace", 5));
+    try std.testing.expectEqual(@as(usize, 0), cmds.count());
+    try std.testing.expectEqual(failing_allocator.allocated_bytes, failing_allocator.freed_bytes);
+    try std.testing.expectEqual(@as(usize, 1), failing_allocator.allocations);
+    try std.testing.expectEqual(@as(usize, 1), failing_allocator.deallocations);
+}
+
+test "splitPathEntries frees the duplicated entry when list growth fails" {
+    var failing_allocator = std.testing.FailingAllocator.init(std.testing.allocator, .{
+        .fail_index = 1,
+    });
+
+    try std.testing.expectError(
+        error.OutOfMemory,
+        splitPathEntries(failing_allocator.allocator(), "/usr/bin"),
+    );
+    try std.testing.expectEqual(failing_allocator.allocated_bytes, failing_allocator.freed_bytes);
+    try std.testing.expectEqual(@as(usize, 1), failing_allocator.allocations);
+    try std.testing.expectEqual(@as(usize, 1), failing_allocator.deallocations);
+}
+
 test "command entry helpers filter prefixes and strip windows executable suffixes" {
     try std.testing.expectEqualStrings("trace", commandNameFromEntry("perf-trace", "perf-").?);
     try std.testing.expectEqualStrings("report", commandNameFromEntry("perf-report.exe", "perf-").?);
