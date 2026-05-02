@@ -4,7 +4,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 
 ## Status
 
-- `PHASE3_SURVEYED_COMMIT=de9ce0d08cc56cf962acc2ab36c0cb202a7b6a1c`
+- `PHASE3_SURVEYED_COMMIT=74c8aa84cb84ffe645a4ebe980d411c8fde5fa71`
 - `PHASE3_LAYOUT_ASSERT_PATH=zigux/helpers/layout_assert.zig`
 - `PHASE3_LAYOUT_ASSERT_SCOPE=canonical-bindings`
 - `PHASE3_LAYOUT_ASSERT_STATUS=canonical-layout-assertions-landed`
@@ -19,7 +19,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_ALLOCATOR_POLICY_BLOB_SHA=61355af4c5498283ca9e235634c3e0a56d2caca6`
 - `PHASE3_INTEROP_POLICY_PATH=zigux/helpers/interop_policy.zig`
 - `PHASE3_INTEROP_POLICY_SCOPE=whole-record-decode-explicit-mode-and-scope-validation`
-- `PHASE3_INTEROP_POLICY_BLOB_SHA=9f2ff5221aba8f918bb1db774424350ac13d7110`
+- `PHASE3_INTEROP_POLICY_BLOB_SHA=c5216dd6737f83222f85f1c5e6f5fb3dd6b037e4`
 - `PHASE3_UNSAFE_PATH=zigux/unsafe/narrow.zig`
 - `PHASE3_UNSAFE_SCOPE=narrow-mmio-and-raw-pointer-bridge`
 - `PHASE3_UNSAFE_BLOB_SHA=543239eec61a02701f14622cacf39f6bf104621e`
@@ -28,7 +28,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_MMIO_TYPED_POLICY_CONSUMER=zigux/helpers/mmio.zig`
 - `PHASE3_ABI_SLICE_DOC_BLOB_SHA=c9676f9697cbe34dd75809a4dae6a53b24030059`
 - `PHASE3_POLICY_UNSAFE_BUILD_BLOB_SHA=c6a5192365517139ddaf5f3fbe9350f9508a5dc7`
-- `PHASE3_POLICY_UNSAFE_TEST_BLOB_SHA=99d6e599a716d26a9e96694b543f2dc3f19d4ac8`
+- `PHASE3_POLICY_UNSAFE_TEST_BLOB_SHA=a97252d1d8a9f255037bf7a4c473182b0ac9f76f`
 - `PHASE3_ABI_MANIFEST_BLOB_SHA=d40d25f96ddbda5c44aaf76ae8dcc3796936a041`
 - `PHASE3_POLICY_UNSAFE_GATE=zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig`
 - `PHASE3_BOUNDARY_GAP=typed-policy-mmio-consumer-landed-no-third-boundary-helper-beyond-focused-replay`
@@ -50,19 +50,19 @@ It does require the current tree to say clearly which policy rules are already l
 
 ## Live Repo Reality
 
-This survey is pinned to verified `master` head `de9ce0d08cc56cf962acc2ab36c0cb202a7b6a1c` for the directly coupled policy-and-unsafe packet, and it now also records packet-local blob IDs for the curated helper, build, test, manifest, and slice-note files so shallow history alone does not turn a reviewable packet into a false validation failure.
+This survey is pinned to verified `master` head `74c8aa84cb84ffe645a4ebe980d411c8fde5fa71` for the directly coupled policy-and-unsafe packet, and it now also records packet-local blob IDs for the curated helper, build, test, manifest, and slice-note files so shallow history alone does not turn a reviewable packet into a false validation failure.
 
 The current tree already carries a real bounded policy-and-unsafe substrate:
 
 - `zigux/helpers/layout_assert.zig` now owns the canonical `BoundaryHeader`, `ExportStatus`, `InteropPolicy`, and `MmioRange` size, alignment, field-type, and offset assertions instead of spreading those checks across ad hoc call sites
 - `zigux/helpers/panic_policy.zig` keeps the panic boundary explicit through `abort`, `bug`, and `warn`, and it now decodes raw `InteropPolicy.panic_mode` bytes before boundary code decides whether return is allowed
 - `zigux/helpers/allocator_policy.zig` keeps allocator ownership explicit through `caller_provided`, `kernel_heap`, and `arena`, and it now decodes raw `InteropPolicy.allocator_mode` bytes before boundary code decides caller ownership, fallback, and reset behavior
-- `zigux/helpers/interop_policy.zig` now treats `abi.InteropPolicy` as one typed boundary record, so reserved bits, panic mode, allocator mode, and unsafe scope fail together through one decode path instead of three unrelated byte checks, the decoded view keeps allocator-owned initialization and reset requirements reviewable alongside caller-ownership and fallback policy, the current head also keeps canonical record encoding explicit through the paired `init`, `encode`, and round-trip replay helpers, and the same decoded packet now exposes direct `action()`, `permitsVolatileMmio()`, and `permitsRawPointerBridge()` accessors so panic action and unsafe-permission review stay attached to the typed policy record instead of being re-derived ad hoc at call sites
+- `zigux/helpers/interop_policy.zig` now treats `abi.InteropPolicy` as one typed boundary record, so reserved bits, panic mode, allocator mode, and unsafe scope fail together through one decode path instead of three unrelated byte checks, the decoded view keeps allocator-owned initialization and reset requirements reviewable alongside caller-ownership and fallback policy, the current head also keeps canonical record encoding explicit through the paired `init`, `encode`, and round-trip replay helpers, the same decoded packet now exposes direct `action()`, `permitsVolatileMmio()`, and `permitsRawPointerBridge()` accessors so panic action and unsafe-permission review stay attached to the typed policy record instead of being re-derived ad hoc at call sites, and it now also exposes direct raw-pointer bridge readers through `constSliceAt()` and `constPointerAt()` without widening the packet into a broader runtime caller surface
 - `zigux/unsafe/narrow.zig` now keeps `none`, `volatile_mmio`, and `raw_pointer_bridge` explicit, provides permit helpers for those declared scopes, rejects misaligned scoped accesses before pointer formation, and now fails overflowed address math before a scoped pointer or slice can be formed
-- `zigux/helpers/mmio.zig` routes scoped MMIO helpers back through that same narrow unsafe layer, and `zigux/helpers/mmio.zig` is now the shipped second boundary helper that consumes `DecodedInteropPolicy` directly outside the focused `phase3_policy_unsafe` test packet, so volatile pointer formation stays attached to the declared unsafe scope instead of widening into a generic raw-pointer helper family
-- `zigux/tests/phase3_policy_unsafe_build.zig` and `zigux/tests/phase3_policy_unsafe.zig` now keep `layout_assert`, panic, allocator, typed `InteropPolicy` decoding, unsafe-byte decoding, and declared-scope enforcement on their own focused replay path rather than leaving that packet visible only through the broader `phase3_abi.zig` bundle
+- `zigux/helpers/mmio.zig` routes scoped MMIO helpers back through that same narrow unsafe layer, and `zigux/helpers/mmio.zig` is still the shipped second boundary helper that consumes `DecodedInteropPolicy` directly outside the focused `phase3_policy_unsafe` test packet, so volatile pointer formation stays attached to the declared unsafe scope instead of widening into a generic raw-pointer helper family
+- `zigux/tests/phase3_policy_unsafe_build.zig` and `zigux/tests/phase3_policy_unsafe.zig` now keep `layout_assert`, panic, allocator, typed `InteropPolicy` decoding, unsafe-byte decoding, declared-scope enforcement, decoded-policy MMIO bridging, and decoded-policy raw-pointer bridge reads on their own focused replay path rather than leaving that packet visible only through the broader `phase3_abi.zig` bundle
 - `zigux/tests/fixtures/phase3_abi_manifest.json`, `Documentation/zigux/phase3-abi-slice.md`, and `scripts/zigux/validate-phase3.py` already treat that focused replay as part of the bounded ABI substrate packet
-- current `master` also extends that same focused replay to pin the newer allocator-init/reset expectations, decoded panic-action and unsafe-permission accessors in `zigux/helpers/interop_policy.zig`, the stronger canonical field-type assertions in `zigux/helpers/layout_assert.zig`, the typed-policy MMIO consumer in `zigux/helpers/mmio.zig`, and the overflow-guard behavior in `zigux/unsafe/narrow.zig`, so this note can no longer stay pinned to the older pre-accessor packet
+- current `master` also extends that same focused replay to pin the newer allocator-init/reset expectations, decoded panic-action and unsafe-permission accessors in `zigux/helpers/interop_policy.zig`, the stronger canonical field-type assertions in `zigux/helpers/layout_assert.zig`, the typed-policy MMIO consumer in `zigux/helpers/mmio.zig`, the new typed-policy raw-pointer bridge readers in `zigux/helpers/interop_policy.zig`, and the overflow-guard behavior in `zigux/unsafe/narrow.zig`, so this note can no longer stay pinned to the older pre-accessor packet
 
 This is real roadmap-backed progress.
 It is also still a narrow boundary packet rather than a full runtime policy substrate.
@@ -74,7 +74,7 @@ This landed policy-and-unsafe boundary step still belongs to the same bounded Ph
 More specifically, it is still evidence for commit-train entry `26`, `feat(zigux): start bounded Phase 3 abi substrate skeleton`, so the focused policy-and-unsafe replay should be read as stronger proof for the original ABI substrate packet rather than as a new standalone tranche.
 
 - the original substrate ledger entry already named `zigux/helpers/layout_assert.zig`, `zigux/helpers/panic_policy.zig`, `zigux/helpers/allocator_policy.zig`, and `zigux/unsafe/narrow.zig` as part of the permanent Phase 3 boundary
-- current `master` now also keeps the typed interop-policy and scoped MMIO policy evidence inside that same packet through `zigux/helpers/interop_policy.zig`, `zigux/helpers/mmio.zig`, and the focused `zigux/tests/phase3_policy_unsafe.zig` replay
+- current `master` now also keeps the typed interop-policy, raw-pointer bridge readers, and scoped MMIO policy evidence inside that same packet through `zigux/helpers/interop_policy.zig`, `zigux/helpers/mmio.zig`, and the focused `zigux/tests/phase3_policy_unsafe.zig` replay
 - the new dedicated survey gate `scripts/zigux/validate-phase3-policy-unsafe-survey.py` now keeps that boundary packet reviewable at the survey layer through packet-local blob IDs first and `PHASE3_SURVEYED_COMMIT` fallback second, so packet-local drift can fail before the broader ABI validator is asked to explain it even on shallow checkouts
 
 ## Current Boundary Gap
@@ -84,8 +84,8 @@ Those helpers exist and are reviewable.
 
 The remaining gap for this boundary packet is the next consumer boundary:
 
-- `zigux/helpers/interop_policy.zig` now proves typed decoding through the focused replay and through the shipped scoped MMIO helper
-- `zigux/helpers/mmio.zig` is now the shipped second boundary helper that consumes `DecodedInteropPolicy` directly outside the focused `phase3_policy_unsafe` test packet
+- `zigux/helpers/interop_policy.zig` now proves typed decoding through the focused replay, keeps direct raw-pointer bridge reads reviewable through `constSliceAt()` and `constPointerAt()`, and still stays inside the same bounded policy record rather than widening into a broader runtime surface
+- `zigux/helpers/mmio.zig` is still the shipped second boundary helper that consumes `DecodedInteropPolicy` directly outside the focused `phase3_policy_unsafe` test packet
 - the current tree does not yet ship a third Phase 3 boundary helper that consumes `DecodedInteropPolicy` directly beyond the focused replay and the scoped MMIO helper
 - the narrow unsafe surface is explicit and reviewable, but it still stops at scoped MMIO and raw-pointer bridging helpers rather than a broader runtime caller surface
 
@@ -96,7 +96,7 @@ It also means this lane should stay survey-and-validation heavy until one concre
 
 The next honest follow-on inside this family is still narrow:
 
-- keep the current `layout_assert`, panic, allocator, typed `InteropPolicy`, narrow unsafe, and scoped MMIO packet stable until one roadmap-backed helper beyond `zigux/helpers/mmio.zig` needs direct `DecodedInteropPolicy` consumption
+- keep the current `layout_assert`, panic, allocator, typed `InteropPolicy`, raw-pointer bridge readers, narrow unsafe, and scoped MMIO packet stable until one roadmap-backed helper beyond `zigux/helpers/mmio.zig` needs direct `DecodedInteropPolicy` consumption
 - if that helper lands later, keep the change inside the same bounded ABI substrate packet rather than widening into global runtime policy machinery
 - refresh `PHASE3_SURVEYED_COMMIT` and the packet-local `*_BLOB_SHA` markers whenever the directly coupled policy-and-unsafe packet paths are deliberately resurveyed after boundary-local changes
 
