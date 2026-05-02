@@ -151,6 +151,13 @@ def run_self_test() -> int:
             in issues
         )
 
+        _write(root, DOCS_README_REL, "\n".join(REQUIRED_DOCS_README_SNIPPETS) + "\n")
+        missing_repo_rel = REQUIRED_SURVEY_PATHS[-1]
+        missing_repo_path = root / missing_repo_rel
+        missing_repo_path.unlink()
+        issues = validate(root)
+        assert f"missing_repo_path:{missing_repo_rel}" in issues
+
     print("PHASE3_ROADMAP_GAP_SURVEY_SELF_TEST=pass")
     return 0
 
