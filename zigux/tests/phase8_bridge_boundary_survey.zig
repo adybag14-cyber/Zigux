@@ -51,6 +51,22 @@ test "phase 8 bridge boundary survey stays wired into the shared packet" {
     );
     defer std.testing.allocator.free(libbpf_survey_note);
 
+    const manifest_json = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "tools/lib/bpf/zigux_segments/manifest.json",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(manifest_json);
+
+    const libbpf_segments_test = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "zigux/tests/phase8_libbpf_segments.zig",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(libbpf_segments_test);
+
     const phase8_build = try readWorkspaceFile(
         io_instance.io(),
         std.testing.allocator,
@@ -83,6 +99,14 @@ test "phase 8 bridge boundary survey stays wired into the shared packet" {
     try expectContains(
         libbpf_survey_note,
         "survey checkpoint: refreshed against inspected `master` head `" ++ shared_surveyed_commit ++ "`",
+    );
+    try expectContains(
+        manifest_json,
+        "\"surveyed_commit\": \"" ++ shared_surveyed_commit ++ "\"",
+    );
+    try expectContains(
+        libbpf_segments_test,
+        "const current_surveyed_commit = \"" ++ shared_surveyed_commit ++ "\";",
     );
     try expectContains(bridge_note, "tools/lib/subcmd/exec-cmd.zig");
     try expectContains(bridge_note, "tools/lib/subcmd/help.zig");
