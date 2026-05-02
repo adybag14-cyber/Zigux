@@ -218,8 +218,8 @@ test "phase14 shared smoke manifest records the current evidence bundle" {
     try std.testing.expectEqualStrings("f9a7a6e93c8e6a1b6550fd7b2aa5571729aab05b", manifest.anchor_packets[2].surveyed_commit);
     try std.testing.expectEqualStrings("", manifest.anchor_packets[2].ready_next_gap);
     try std.testing.expectEqualStrings("phase14-ring-buffer-zig-port-blocker", manifest.anchor_packets[2].blocked_gap);
-    try std.testing.expectEqualStrings("P14-L12", manifest.anchor_packets[1].lane_key);
-    try std.testing.expectEqualStrings("f65e3d897847bf205198e5c47a41782085620579", manifest.anchor_packets[1].surveyed_commit);
+    try std.testing.expectEqualStrings("P14-L09", manifest.anchor_packets[1].lane_key);
+    try std.testing.expectEqualStrings("6689715b1930c419e49a44b1c2dd317548a08c1d", manifest.anchor_packets[1].surveyed_commit);
     try std.testing.expectEqualStrings("phase14-skbuff-direct-xmit-identity-drop-followup", manifest.anchor_packets[1].ready_next_gap);
     try std.testing.expectEqualStrings("phase14-skbuff-live-ownership-blocker", manifest.anchor_packets[1].blocked_gap);
     try std.testing.expectEqualStrings("P14-L15", manifest.anchor_packets[3].lane_key);
