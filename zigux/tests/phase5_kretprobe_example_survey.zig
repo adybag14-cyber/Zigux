@@ -19,6 +19,7 @@ const Manifest = struct {
 };
 
 const review_doc_read_limit = 64 * 1024;
+const current_surveyed_commit = "3ba64cd4e41a4de1c8fd8dbaecb23702ad9701a3";
 
 fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
@@ -42,6 +43,7 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P5-L22", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 5", manifest.phase);
+    try std.testing.expectEqualStrings(current_surveyed_commit, manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 40), manifest.surveyed_commit.len);
     for (manifest.surveyed_commit) |byte| {
         try std.testing.expect(std.ascii.isLower(byte) or std.ascii.isDigit(byte));
@@ -101,7 +103,7 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
         }
         if (std.mem.indexOf(u8, prompt, "pre-init retargeting") != null and
             std.mem.indexOf(u8, prompt, "timestamp-order") != null and
-            std.mem.indexOf(u8, prompt, "missed-summary") != null)
+            std.mem.indexOf(u8, prompt, "ownership replay") != null)
         {
             saw_exact_contract_prompt = true;
         }
@@ -156,6 +158,7 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
         }
         if (std.mem.eql(u8, check.id, "post-exit-rejection")) {
             saw_exit_check = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "runOwnershipBoundaryReplay") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "recordMissedInstance") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "entryHandler") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "retHandler") != null);
@@ -267,11 +270,11 @@ test "phase 5 kretprobe contributor docs stay aligned with the shipped review su
     try expectContains(survey_note, "shared `Documentation/zigux/review-checklist.md` prompts are part of that boundary now");
     try expectContains(survey_note, "shared tests-root guide in `zigux/tests/README.md` is part of that same contributor packet now");
     try expectContains(survey_note, "the direct `zig test samples/zigux/kretprobe_example.zig` replay, the paired `zig test zigux/tests/phase5_kretprobe_example_survey.zig` replay");
+    try expectContains(survey_note, "runOwnershipBoundaryReplay()");
     try expectContains(survey_note, "Latest verification snapshot");
     try expectContains(survey_note, "zig test samples/zigux/kretprobe_example.zig");
     try expectContains(survey_note, "All 1 tests passed.");
     try expectContains(survey_note, "zig test zigux/tests/phase5_kretprobe_example_survey.zig");
-    try expectContains(survey_note, "All 2 tests passed.");
     try expectContains(survey_note, "Build Summary: 17/17 steps succeeded; 28/28 tests passed");
     try expectContains(survey_note, "phase5-kretprobe-example-tests 5 pass (5 total)");
     try expectContains(survey_note, "phase5-kretprobe-example-survey-tests 2 pass (2 total)");
