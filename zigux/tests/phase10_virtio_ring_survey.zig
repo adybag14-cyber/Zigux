@@ -18,7 +18,9 @@ const Gap = struct {
 const Manifest = struct {
     lane_key: []const u8,
     phase: []const u8,
+    surveyed_commit: []const u8,
     anchor: []const u8,
+    roadmap_destinations: []const []const u8,
     freeze_boundary_status: []const u8,
     risky_transport_posture: []const u8,
     survey_summary: SurveySummary,
@@ -32,7 +34,7 @@ fn findGap(gaps: []const Gap, id: []const u8) ?Gap {
     return null;
 }
 
-test "phase10 virtio ring survey stays aligned with the live ring packet" {
+test "phase10 virtio ring survey manifest records the live queue-discipline packet and parked MMIO blocker after landed interrupt-ack" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -86,6 +88,13 @@ test "phase10 virtio ring survey stays aligned with the live ring packet" {
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P10-L08", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 10", manifest.phase);
+    try std.testing.expectEqual(@as(usize, 40), manifest.surveyed_commit.len);
+    for (manifest.surveyed_commit) |ch| {
+        try std.testing.expect(std.ascii.isHex(ch));
+    }
+    try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
+    try std.testing.expectEqualStrings("drivers/virtio/*.zig", manifest.roadmap_destinations[0]);
+    try std.testing.expectEqualStrings("zigux/helpers/", manifest.roadmap_destinations[1]);
     try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", manifest.anchor);
     try std.testing.expectEqualStrings("aligned", manifest.freeze_boundary_status);
     try std.testing.expectEqualStrings("blocked_on_risky_transport", manifest.risky_transport_posture);
@@ -114,9 +123,32 @@ test "phase10 virtio ring survey stays aligned with the live ring packet" {
         try std.testing.expect(gap.why_now.len != 0);
     }
 
+    const config_write_gap = findGap(manifest.gaps, "phase10-mmio-config-write-helper") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("starter_landed", config_write_gap.status);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", config_write_gap.zigux_destination);
+    try std.testing.expect(std.mem.indexOf(u8, config_write_gap.why_now, "config-write planning helper") != null);
+
     const blocked_mmio_gap = findGap(manifest.gaps, "phase10-mmio-lifecycle-and-irq-paths") orelse return error.TestUnexpectedResult;
     try std.testing.expectEqualStrings("blocked_on_risky_transport", blocked_mmio_gap.status);
     try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", blocked_mmio_gap.zigux_destination);
+    try std.testing.expect(std.mem.indexOf(u8, blocked_mmio_gap.why_now, "interrupt acknowledgement") != null);
+    try std.testing.expect(std.mem.indexOf(u8, blocked_mmio_gap.why_now, "probe or remove lifecycle") != null);
+
+    var starter_landed_count: usize = 0;
+    var ready_next_count: usize = 0;
+    var blocked_count: usize = 0;
+    for (manifest.gaps) |gap| {
+        if (std.mem.eql(u8, gap.status, "starter_landed")) {
+            starter_landed_count += 1;
+        } else if (std.mem.eql(u8, gap.status, "ready_next")) {
+            ready_next_count += 1;
+        } else if (std.mem.eql(u8, gap.status, "blocked_on_risky_transport")) {
+            blocked_count += 1;
+        }
+    }
+    try std.testing.expect(starter_landed_count >= 20);
+    try std.testing.expectEqual(@as(usize, 0), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 1), blocked_count);
 
     const landed_ring_helper_evidence = closure.value.object.get("landed_ring_helper_evidence") orelse return error.TestUnexpectedResult;
     const ring_helper_evidence = landed_ring_helper_evidence.object.get("zigux/tests/phase10_virtio_ring_manifest.json") orelse return error.TestUnexpectedResult;
@@ -125,9 +157,11 @@ test "phase10 virtio ring survey stays aligned with the live ring packet" {
         try std.testing.expectEqualStrings(helper_id, ring_helper_evidence.array.items[index].string);
     }
 
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, manifest.surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-broken-queue-recovery-helper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-mmio-config-write-helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-mmio-interrupt-ack-helper") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "still-blocked lifecycle and IRQ packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "no smaller ready transport follow-up remains ahead of the still-blocked lifecycle and IRQ packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Do not reopen the ring lane") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "broken-queue recovery") != null);
