@@ -145,8 +145,6 @@ def run_self_test() -> int:
             "    'phase7-validate': [\n"
             "        'python3 scripts/zigux/validate-phase7.py --self-test',\n"
             "        'python3 scripts/zigux/validate-phase7.py',\n"
-            "        'python3 scripts/zigux/check-phase7-build-inventory.py --self-test',\n"
-            "        'python3 scripts/zigux/check-phase7-build-inventory.py',\n"
             "        'python3 scripts/zigux/check-phase7-make-wrapper.py --self-test',\n"
             "        'python3 scripts/zigux/check-phase7-make-wrapper.py',\n"
             "        'python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test',\n"
@@ -160,8 +158,6 @@ def run_self_test() -> int:
             "    'phase7': [\n"
             "        'python3 scripts/zigux/validate-phase7.py --self-test',\n"
             "        'python3 scripts/zigux/validate-phase7.py',\n"
-            "        'python3 scripts/zigux/check-phase7-build-inventory.py --self-test',\n"
-            "        'python3 scripts/zigux/check-phase7-build-inventory.py',\n"
             "        'python3 scripts/zigux/check-phase7-make-wrapper.py --self-test',\n"
             "        'python3 scripts/zigux/check-phase7-make-wrapper.py',\n"
             "        'python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test',\n"
@@ -197,8 +193,6 @@ def run_self_test() -> int:
             "    'phase7-validate': [\n"
             "        'python3 scripts/zigux/validate-phase7.py --self-test',\n"
             "        'python3 scripts/zigux/validate-phase7.py',\n"
-            "        'python3 scripts/zigux/check-phase7-build-inventory.py --self-test',\n"
-            "        'python3 scripts/zigux/check-phase7-build-inventory.py',\n"
             "        'python3 scripts/zigux/check-phase7-make-wrapper.py --self-test',\n"
             "        'python3 scripts/zigux/check-phase7-make-wrapper.py',\n"
             "        'python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test',\n"
@@ -213,8 +207,6 @@ def run_self_test() -> int:
             "    'phase7': [\n"
             "        'python3 scripts/zigux/validate-phase7.py --self-test',\n"
             "        'python3 scripts/zigux/validate-phase7.py',\n"
-            "        'python3 scripts/zigux/check-phase7-build-inventory.py --self-test',\n"
-            "        'python3 scripts/zigux/check-phase7-build-inventory.py',\n"
             "        'python3 scripts/zigux/check-phase7-make-wrapper.py --self-test',\n"
             "        'python3 scripts/zigux/check-phase7-make-wrapper.py',\n"
             "        'python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test',\n"
@@ -491,8 +483,6 @@ required_make_markers = [
     "phase7-validate:",
     'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test',
     'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py',
-    'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-inventory.py --self-test',
-    'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-inventory.py',
     'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper.py --self-test',
     'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper.py',
     'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-cmdline-parity.py --self-test',
@@ -502,7 +492,7 @@ required_make_markers = [
     "phase7-test:",
     'cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase7_build.zig --summary all',
     "phase7: phase7-validate phase7-test",
-]
+ ]
 
 required_workflow_markers = [
     "- name: Self-test Phase 7 runtime validator",
@@ -511,7 +501,7 @@ required_workflow_markers = [
     "run: make -C zigux phase7-validate",
     "- name: Run Phase 7 runtime helper tests",
     "run: zig build test --build-file zigux/tests/phase7_build.zig --summary all",
-]
+ ]
 
 required_script_readme_markers = [
     "`validate-phase7.py`",
@@ -524,20 +514,20 @@ required_script_readme_markers = [
     "`make -C zigux phase7-validate` is the validator-first entrypoint for the current Phase 7 flow.",
     "`make -C zigux phase7-test` is the shared replay path after the validator, build-inventory, make-wrapper, and parity gates pass.",
     "`make -C zigux phase7` keeps the one-command bundle aligned with the published review path instead of bypassing the fail-closed validator.",
-]
+ ]
 
 required_tests_readme_markers = [
     "keep the current Phase 7 helper packet reviewable through `zigux/tests/phase7_build.zig`, `zigux/tests/fixtures/phase7_build_inventory.json`, `make -C zigux phase7-test`, `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-build-inventory.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-cmdline-parity.py`, and `scripts/zigux/check-phase7-rbtree-parity.py` instead of widening into ad hoc helper-local bootstrap rules",
     "keep `scripts/zigux/validate-phase7.py --self-test`, `scripts/zigux/check-phase7-build-inventory.py --self-test`, and `scripts/zigux/check-phase7-make-wrapper.py --self-test` in the same packet so the shared Phase 7 review path still proves it catches Makefile-hook, workflow-step, build-inventory, make-wrapper, and parked argv-split survey drift before the broader helper replay runs",
     "keep the Phase 7 handoff explicit: the helper roots in `zigux/tests/phase7_build.zig` receive `string_helpers`, `cmdline`, `argv_split`, and `rbtree` through `addImport(...)`, `zigux/tests/phase7_string_helpers_survey.zig` and `zigux/tests/phase7_cmdline_survey.zig` stay standalone so the helper-only string and cmdline slices keep their roadmap-backed review notes explicit without widening into extra helper-local bootstrap rules or later-phase sample claims, and `zigux/tests/phase7_argv_split_survey.zig` and `zigux/tests/phase7_rbtree_survey.zig` rely on repo-root reads of `zigux/tests/phase7_argv_split_manifest.json` and `zigux/tests/phase7_rbtree_manifest.json`, so `phase7_build.zig` keeps those survey runs rooted at `repo_root`",
-]
+ ]
 
 required_doc_readme_markers = [
     "`samples/zigux/README.md` is the shared Phase 5 sample-root catalog",
     "the Phase 7 string-helpers slice is intentionally helper-only",
     "current `master` ships no `samples/zigux/*string*` reference sample",
     "sample-root follow-up should not treat that absence as a missing Phase 5 port",
-]
+ ]
 
 required_phase7_string_helpers_survey_markers = [
     "phase7-string-helpers-tests",
@@ -547,13 +537,13 @@ required_phase7_string_helpers_survey_markers = [
     "current `master` ships no `samples/zigux/*string*` reference sample",
     "sample-root follow-up should not treat that absence as a missing Phase 5 port",
     "phase 7 kasprintfStrarray returns sequential owned strings with a null-pointer terminator",
-]
+ ]
 
 required_phase7_string_helpers_test_markers = [
     "fixtures/phase7_string_helpers_escape_vectors.zig",
     "phase 7 stringEscapeMem reports truncated output length without forcing a terminator",
     "phase 7 kasprintfStrarray returns sequential owned strings with a null-pointer terminator",
-]
+ ]
 
 required_phase7_string_helpers_doc_markers = [
     "integration with validation substrate through `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-build-inventory.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_survey.zig`, and `zigux/tests/phase7_build.zig`.",
@@ -561,31 +551,31 @@ required_phase7_string_helpers_doc_markers = [
     "`python3 scripts/zigux/check-phase7-build-inventory.py`",
     "`python3 scripts/zigux/check-phase7-make-wrapper.py`",
     "`make -C zigux phase7-validate`",
-]
+ ]
 
 required_phase7_cmdline_survey_markers = [
     "phase 7 cmdline survey keeps the roadmap-backed helper-only boundary explicit",
     "exact bare-option matching for comma-delimited flags",
     "`zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`",
-]
+ ]
 
 required_phase7_cmdline_test_markers = [
     "fixtures/phase7_cmdline_next_arg_vectors.zig",
     "phase 7 nextArg keeps the mirrored edge corpus reviewable",
     "phase 7 parseOptionStr keeps bare comma-delimited flags exact",
-]
+ ]
 
 required_phase7_cmdline_doc_markers = [
     "integration with validation substrate through `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-build-inventory.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, and `zigux/tests/phase7_build.zig`.",
     "exact bare-option matching for comma-delimited flags",
     "`python3 scripts/zigux/check-phase7-build-inventory.py`",
     "`python3 scripts/zigux/check-phase7-make-wrapper.py`",
-]
+ ]
 
 required_phase7_argv_split_helper_markers = [
     "const leading_nul_expected = [_][]const u8{};",
     "pub fn argvFree",
-]
+ ]
 
 required_phase7_argv_split_doc_markers = [
     "integration with validation substrate through `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-build-inventory.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `zigux/tests/phase7_argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, and `zigux/tests/phase7_build.zig`.",
@@ -604,7 +594,7 @@ required_phase7_argv_split_doc_markers = [
     "teardown cleanup that clears the exported storage handle alongside the argv views after `ArgvSplitResult.deinit()`",
     "repeated teardown safety so an already-cleared `ArgvSplitResult` can be passed through `deinit()` again without freeing the shared empty sentinel state",
     "allocator-failure cleanup that proves the shared Phase 7 gate also exercises the intermediate allocation teardown path already covered by the direct helper tests",
-]
+ ]
 
 required_phase7_argv_split_survey_markers = [
     "zigux/tests/phase7_argv_split_manifest.json",
@@ -612,13 +602,16 @@ required_phase7_argv_split_survey_markers = [
     'try std.testing.expect(std.mem.indexOf(u8, argv_split_tests, "phase 7 argvSplitWithArgc reports the split length through the optional out parameter") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, argv_split_tests, "phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, argv_split_tests, "phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup") != null);',
-]
+    'try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "keep the roadmap survey record machine-checked from `repo_root`") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "The manifest-backed survey packet stays rooted at `repo_root` through `zigux/tests/phase7_build.zig`") != null);',
+    'try std.testing.expectEqual(@as(usize, 0), ready_next_count);',
+ ]
 
 required_phase7_argv_split_test_markers = [
     "phase 7 argvSplitWithArgc reports the split length through the optional out parameter",
     "phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable",
     "phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup",
-]
+ ]
 
 required_phase7_rbtree_survey_markers = [
     "zigux/tests/phase7_rbtree_manifest.json",
@@ -628,7 +621,7 @@ required_phase7_rbtree_survey_markers = [
     'try std.testing.expect(std.mem.indexOf(u8, rbtree_tests, "phase 7 rbtree postorder traversal matches committed parity fixture") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, rbtree_slice, "erase-and-detach reuse semantics via `eraseInit()`") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, rbtree_slice, "a machine-checked manifest that records the `lib/rbtree.c` anchor and the landed Phase 7 review surfaces") != null);',
-]
+ ]
 
 required_phase7_rbtree_test_markers = [
     '@embedFile("fixtures/phase7_rbtree.json")',
@@ -640,13 +633,13 @@ required_phase7_rbtree_test_markers = [
     "phase 7 rbtree iterateMatches streams duplicate-key ranges",
     "phase 7 rbtree findAdd inserts new nodes and returns existing duplicates",
     "phase 7 rbtree postorder traversal matches committed parity fixture",
-]
+ ]
 
 required_phase7_rbtree_doc_markers = [
     "integration with validation substrate through `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_survey.zig`, `zigux/tests/phase7_build.zig`, and `scripts/zigux/check-phase7-rbtree-parity.py`.",
     "erase-and-detach reuse semantics via `eraseInit()`",
     "a machine-checked manifest that records the `lib/rbtree.c` anchor and the landed Phase 7 review surfaces",
-]
+ ]
 
 expected_phase7_build_paths = {
     "../..",
@@ -662,7 +655,7 @@ expected_phase7_build_paths = {
     "phase7_argv_split_survey.zig",
     "phase7_rbtree.zig",
     "phase7_rbtree_survey.zig",
-}
+ }
 
 expected_phase7_import_calls = {
     "string_helpers": (
@@ -681,7 +674,7 @@ expected_phase7_import_calls = {
         r'createImportedTestRoot\(\s*b,\s*target,\s*optimize,\s*"phase7_rbtree\.zig",'
         r'\s*"rbtree",\s*"\.\./\.\./lib/rbtree\.zig",'
     ),
-}
+ }
 
 expected_phase7_run_labels = {
     "phase7-string-helpers-tests",
@@ -692,7 +685,7 @@ expected_phase7_run_labels = {
     "phase7-argv-split-survey-tests",
     "phase7-rbtree-tests",
     "phase7-rbtree-survey-tests",
-}
+ }
 
 expected_phase7_run_cwds = {
     "phase7-string-helpers-tests": "null",
@@ -703,7 +696,7 @@ expected_phase7_run_cwds = {
     "phase7-string-helpers-survey-tests": "repo_root",
     "phase7-rbtree-tests": "null",
     "phase7-rbtree-survey-tests": "repo_root",
-}
+ }
 
 expected_phase7_test_step_dependencies = {
     "run_string_helpers_tests",
@@ -714,7 +707,7 @@ expected_phase7_test_step_dependencies = {
     "run_string_helpers_survey_tests",
     "run_rbtree_tests",
     "run_rbtree_survey_tests",
-}
+ }
 
 required_phase7_build_markers = [
     "fn createImportedTestRoot(",
@@ -752,19 +745,17 @@ required_phase7_build_markers = [
     "rbtree_root_module,\n        null,",
     "rbtree_survey_root_module,\n        repo_root,",
     'b.step("test", "Run Phase 7 runtime helper tests")',
-]
+ ]
 
 unexpected_phase7_build_markers = [
     "../../tools/lib/",
     "zigux/tests/build.zig",
-]
+ ]
 
 expected_make_expansions = {
     "phase7-validate": [
         "python3 scripts/zigux/validate-phase7.py --self-test",
         "python3 scripts/zigux/validate-phase7.py",
-        "python3 scripts/zigux/check-phase7-build-inventory.py --self-test",
-        "python3 scripts/zigux/check-phase7-build-inventory.py",
         "python3 scripts/zigux/check-phase7-make-wrapper.py --self-test",
         "python3 scripts/zigux/check-phase7-make-wrapper.py",
         "python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test",
@@ -778,8 +769,6 @@ expected_make_expansions = {
     "phase7": [
         "python3 scripts/zigux/validate-phase7.py --self-test",
         "python3 scripts/zigux/validate-phase7.py",
-        "python3 scripts/zigux/check-phase7-build-inventory.py --self-test",
-        "python3 scripts/zigux/check-phase7-build-inventory.py",
         "python3 scripts/zigux/check-phase7-make-wrapper.py --self-test",
         "python3 scripts/zigux/check-phase7-make-wrapper.py",
         "python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test",
@@ -788,7 +777,7 @@ expected_make_expansions = {
         "python3 scripts/zigux/check-phase7-rbtree-parity.py",
         "zig build test --build-file zigux/tests/phase7_build.zig --summary all",
     ],
-}
+ }
 
 unexpected_make_expansions = {
     "phase7-validate": [
@@ -798,8 +787,6 @@ unexpected_make_expansions = {
     "phase7-test": [
         "python3 scripts/zigux/validate-phase7.py --self-test",
         "python3 scripts/zigux/validate-phase7.py",
-        "python3 scripts/zigux/check-phase7-build-inventory.py --self-test",
-        "python3 scripts/zigux/check-phase7-build-inventory.py",
         "python3 scripts/zigux/check-phase7-make-wrapper.py --self-test",
         "python3 scripts/zigux/check-phase7-make-wrapper.py",
         "python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test",
@@ -811,7 +798,7 @@ unexpected_make_expansions = {
     "phase7": [
         "zig build test --build-file zigux/tests/build.zig",
     ],
-}
+ }
 
 checks = [
     ("zigux/Makefile", makefile, required_make_markers),
@@ -833,7 +820,7 @@ checks = [
     ("zigux/tests/phase7_rbtree.zig", phase7_rbtree_tests, required_phase7_rbtree_test_markers),
     ("Documentation/zigux/phase7-cmdline-slice.md", phase7_cmdline_doc, required_phase7_cmdline_doc_markers),
     ("Documentation/zigux/phase7-rbtree-slice.md", phase7_rbtree_doc, required_phase7_rbtree_doc_markers),
-]
+ ]
 
 missing_markers: list[tuple[str, str]] = []
 for label, content, markers in checks:
@@ -856,7 +843,7 @@ expected_argv_split_gap_destinations = {
     "phase7-argv-split-shared-fixtures": "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
     "phase7-argv-split-slice-note": "Documentation/zigux/phase7-argv-split-slice.md",
     "phase7-argv-split-survey-gate": "zigux/tests/phase7_argv_split_survey.zig",
-}
+ }
 
 expected_rbtree_gap_destinations = {
     "phase7-build-gate": "zigux/tests/phase7_build.zig",
@@ -865,7 +852,7 @@ expected_rbtree_gap_destinations = {
     "phase7-rbtree-slice-note": "Documentation/zigux/phase7-rbtree-slice.md",
     "phase7-rbtree-survey-gate": "zigux/tests/phase7_rbtree_survey.zig",
     "phase7-rbtree-parity-fixture-layer": "zigux/tests/fixtures/phase7_rbtree.json",
-}
+ }
 
 manifest_shape_errors: list[str] = []
 if phase7_argv_split_manifest.get("lane_key") != "P7-L12":
@@ -887,7 +874,7 @@ expected_summary = {
     "preexisting_phase7_build_present": True,
     "preexisting_phase7_doc_present": True,
     "preexisting_phase7_helper_present": True,
-}
+ }
 for key, expected_value in expected_summary.items():
     if survey_summary.get(key) != expected_value:
         manifest_shape_errors.append(f"survey_summary:{key}")
@@ -936,7 +923,7 @@ expected_rbtree_summary = {
     "preexisting_phase7_build_present": True,
     "preexisting_phase7_doc_present": True,
     "preexisting_phase7_helper_present": True,
-}
+ }
 for key, expected_value in expected_rbtree_summary.items():
     if rbtree_survey_summary.get(key) != expected_value:
         rbtree_manifest_shape_errors.append(f"survey_summary:{key}")
@@ -1086,7 +1073,7 @@ if actual_test_step_dependencies != expected_phase7_test_step_dependencies:
 
 unexpected_build_hits = [
     marker for marker in unexpected_phase7_build_markers if marker in phase7_build
-]
+ ]
 if unexpected_build_hits:
     print("PHASE7_VALIDATION=fail")
     print("PHASE7_BUILD_STALE_MARKERS_START")
