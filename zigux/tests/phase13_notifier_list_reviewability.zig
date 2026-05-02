@@ -14,9 +14,9 @@ const SurveySummary = struct {
     preexisting_generic_notifier_layout_anchor_present: bool,
     preexisting_public_list_notifier_coexistence_anchor_present: bool,
     preexisting_public_same_struct_list_notifier_anchor_present: bool,
-    preexisting_generic_notifier_abi_present: bool,
-    preexisting_generic_notifier_build_surface_present: bool,
-    preexisting_generic_notifier_helper_present: bool,
+    landed_generic_notifier_abi_present: bool,
+    landed_generic_notifier_build_surface_present: bool,
+    landed_generic_notifier_helper_present: bool,
 };
 
 const Gap = struct {
@@ -94,9 +94,9 @@ test "phase13 notifier/list survey records the landed read-only generic notifier
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("66b55d8a9a800345097f3c04b9f95130b1f8d0b8", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 5), manifest.anchors.len);
-    try std.testing.expect(manifest.survey_summary.preexisting_generic_notifier_abi_present);
-    try std.testing.expect(manifest.survey_summary.preexisting_generic_notifier_build_surface_present);
-    try std.testing.expect(manifest.survey_summary.preexisting_generic_notifier_helper_present);
+    try std.testing.expect(manifest.survey_summary.landed_generic_notifier_abi_present);
+    try std.testing.expect(manifest.survey_summary.landed_generic_notifier_build_surface_present);
+    try std.testing.expect(manifest.survey_summary.landed_generic_notifier_helper_present);
     try std.testing.expect(manifest.survey_summary.preexisting_list_helper_api_companion_present);
     try std.testing.expectEqual(@as(usize, 15), manifest.gaps.len);
 
@@ -136,6 +136,7 @@ test "phase13 notifier/list survey records the landed read-only generic notifier
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "lane key: `P13-L18`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/bindings/notifier_abi.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/helpers/notifier_chain_view.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "landed packet-local evidence instead of as inherited preexisting groundwork") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "share the same small companion API shape") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "registration, callback execution, SRCU, and blocking notifier semantics remain out of scope") != null);
 
