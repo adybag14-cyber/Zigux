@@ -285,6 +285,35 @@ test "bitmap diff gate keeps zero-nbits bitmap helpers as explicit no-ops" {
     try std.testing.expectEqualSlices(u8, &[_]u8{ 0xaa, 0xaa, 0xaa, 0xaa }, &buffer);
 }
 
+test "bitmap diff gate keeps zero-length range edits from changing populated anchors" {
+    var map = [_]Word{0} ** word_count;
+
+    bitmap.zero(&map, bitmap_nbits);
+    bitmap.setRange(&map, 5, 4);
+    bitmap.setRange(&map, 70, 3);
+    try std.testing.expectEqual(@as(usize, 7), weight(&map, bitmap_nbits));
+    try std.testing.expectEqual(@as(usize, 5), firstSet(&map, bitmap_nbits));
+    try std.testing.expectEqual(@as(usize, 0), firstZero(&map, bitmap_nbits));
+    try expectPrintedList(&map, bitmap_nbits, "5-8,70-72");
+
+    bitmap.setRange(&map, 0, 0);
+    bitmap.setRange(&map, 6, 0);
+    bitmap.clearRange(&map, 0, 0);
+    bitmap.clearRange(&map, 71, 0);
+    try std.testing.expectEqual(@as(usize, 7), weight(&map, bitmap_nbits));
+    try std.testing.expectEqual(@as(usize, 5), firstSet(&map, bitmap_nbits));
+    try std.testing.expectEqual(@as(usize, 0), firstZero(&map, bitmap_nbits));
+    try expectPrintedList(&map, bitmap_nbits, "5-8,70-72");
+    try expectClear(&map, 4);
+    try expectSet(&map, 5);
+    try expectSet(&map, 8);
+    try expectClear(&map, 9);
+    try expectClear(&map, 69);
+    try expectSet(&map, 70);
+    try expectSet(&map, 72);
+    try expectClear(&map, 73);
+}
+
 test "bitmap diff gate records exact bounded copy checks" {
     const copy_nbits = bits_per_long * 3;
     var small_src = [_]Word{ 0, 0 };
