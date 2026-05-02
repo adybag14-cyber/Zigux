@@ -565,6 +565,14 @@ def run_self_test() -> int:
 
         cases = load_cases(fixture_dir)
         ensure_manifest_shape(cases)
+        invalid_shape_cases = json.loads(json.dumps(valid_cases))
+        invalid_shape_cases['unexpected'] = []
+        assert capture_failure(ensure_manifest_shape, invalid_shape_cases) == [
+            'KCONFIG_BRIDGE_DIFF=fail',
+            'INVALID_KCONFIG_MANIFEST_START',
+            'top_level:unexpected_key:unexpected',
+            'INVALID_KCONFIG_MANIFEST_END',
+        ]
         ensure_conf_bridge_matches_conf_c(conf_bridge_path, conf_c_path)
         ensure_manifest_matches_bridge_modes(cases, conf_bridge_path)
         ensure_confdata_case_order_is_sorted(cases)
