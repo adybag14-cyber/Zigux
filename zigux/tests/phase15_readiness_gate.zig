@@ -37,8 +37,7 @@ const Manifest = struct {
 };
 
 fn isAllowedStatus(status: []const u8) bool {
-    return std.mem.eql(u8, status, "blocked_on_release_evidence_alignment") or
-        std.mem.eql(u8, status, "blocked_on_stay_in_c_evidence");
+    return std.mem.eql(u8, status, "blocked_on_stay_in_c_evidence");
 }
 
 test "phase 15 readiness manifest records the roadmap, ledger, and current repo posture" {
@@ -59,7 +58,7 @@ test "phase 15 readiness manifest records the roadmap, ledger, and current repo 
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P15-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("77d1209e4c74efade82757d00d4d6dcfbe5e397e", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("b5f64cf3306b706ea93cc9d3de769d545849b2d4", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Full-Parity Blockers and Long-Term Governance", manifest.roadmap_phase_title);
     try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_requirements.len);
     try std.testing.expectEqualStrings("freeze map", manifest.roadmap_requirements[0]);
@@ -82,31 +81,18 @@ test "phase 15 readiness manifest records the roadmap, ledger, and current repo 
     try std.testing.expect(manifest.repo_evidence.phase15_make_target_present);
     try std.testing.expect(manifest.repo_evidence.shared_ci_phase15_present);
     try std.testing.expect(manifest.repo_evidence.phase15_replay_green_on_current_master);
-    try std.testing.expect(!manifest.repo_evidence.docs_root_phase15_summary_aligned);
+    try std.testing.expect(manifest.repo_evidence.docs_root_phase15_summary_aligned);
     try std.testing.expect(!manifest.repo_evidence.deep_core_status_change_ready);
 
-    try std.testing.expectEqual(@as(usize, 2), manifest.remaining_gaps.len);
+    try std.testing.expectEqual(@as(usize, 1), manifest.remaining_gaps.len);
 
-    var saw_docs_root_gap = false;
-    var saw_deep_core_gap = false;
-    for (manifest.remaining_gaps) |gap| {
-        try std.testing.expect(isAllowedStatus(gap.status));
-        if (std.mem.eql(u8, gap.id, "phase15-docs-root-summary-drift-blocker")) {
-            saw_docs_root_gap = true;
-            try std.testing.expectEqualStrings("blocked_on_release_evidence_alignment", gap.status);
-            try std.testing.expectEqualStrings("Documentation/zigux/README.md", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "docs-root Phase 15 summary") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remaining broader replay drift") != null);
-        } else if (std.mem.eql(u8, gap.id, "phase15-deep-core-status-change-blocker")) {
-            saw_deep_core_gap = true;
-            try std.testing.expectEqualStrings("blocked_on_stay_in_c_evidence", gap.status);
-            try std.testing.expectEqualStrings("Documentation/zigux/phase15-parity-scorecard.md", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "freeze-in-C posture") != null);
-        }
-    }
-    try std.testing.expect(saw_docs_root_gap);
-    try std.testing.expect(saw_deep_core_gap);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "docs-root Phase 15 summary is refreshed") != null);
+    const gap = manifest.remaining_gaps[0];
+    try std.testing.expect(isAllowedStatus(gap.status));
+    try std.testing.expectEqualStrings("phase15-deep-core-status-change-blocker", gap.id);
+    try std.testing.expectEqualStrings("blocked_on_stay_in_c_evidence", gap.status);
+    try std.testing.expectEqualStrings("Documentation/zigux/phase15-parity-scorecard.md", gap.zigux_destination);
+    try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "freeze-in-C posture") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "shared Phase 15 replay drifts") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "deep-core blocker posture changes") != null);
 }
 
@@ -144,14 +130,15 @@ test "phase 15 readiness note keeps the roadmap and ledger comparison explicit" 
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "## Readiness Gate") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "Full-Parity Blockers and Long-Term Governance") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "docs(zigux): add documentation root, review checklist, and freeze map") != null);
-    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "docs-root Phase 15 summary still says the handoff includes remaining broader replay drift") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "docs-root Phase 15 summary now matches the dedicated readiness and handoff packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "dedicated replay surfaces are green on current `master`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "phase15-docs-root-summary-drift-blocker") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "phase15-docs-root-summary-alignment") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "phase15-deep-core-status-change-blocker") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "make -C zigux phase15") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "zig build test --build-file zigux/tests/phase15_build.zig") != null);
 
-    try std.testing.expect(std.mem.indexOf(u8, docs_readme, "remaining broader replay drift on current `master`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, docs_readme, "only remaining blocked work is the deep-core status-change evidence") != null);
+    try std.testing.expect(std.mem.indexOf(u8, docs_readme, "remaining broader replay drift on current `master`") == null);
 
     try std.testing.expect(std.mem.indexOf(u8, workflow, "Validate Phase 14 shared smoke packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, workflow, "Run Phase 14 internal bridge tests") != null);
