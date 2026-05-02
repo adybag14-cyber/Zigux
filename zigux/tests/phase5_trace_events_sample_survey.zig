@@ -46,7 +46,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     try std.testing.expectEqualStrings("samples/zigux/trace_events_sample.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
     try std.testing.expectEqual(@as(usize, 10), manifest.review_prompts.len);
-    try std.testing.expectEqual(@as(usize, 14), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 15), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_descriptor_prompt = false;
@@ -67,6 +67,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     var saw_lifecycle_check = false;
     var saw_focus_check = false;
     var saw_callback_balance_check = false;
+    var saw_pre_registration_check = false;
     var saw_single_registration_check = false;
     var saw_underflow_and_armed_exit_check = false;
     var saw_exit_check = false;
@@ -113,6 +114,8 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
             saw_lifecycle_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "single live") != null and
+            std.mem.indexOf(u8, prompt, "replayFunctionIteration before registration") != null and
+            std.mem.indexOf(u8, prompt, "FunctionCallbackNotRegistered") != null and
             std.mem.indexOf(u8, prompt, "register-then-unregister") != null and
             std.mem.indexOf(u8, prompt, "unregisterFunctionCallback underflow") != null and
             std.mem.indexOf(u8, prompt, "OutstandingRegistration") != null and
@@ -210,6 +213,12 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "callback path") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "zero") != null);
         }
+        if (std.mem.eql(u8, check.id, "pre-registration-callback-rejection")) {
+            saw_pre_registration_check = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "replayFunctionIteration before registration") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "FunctionCallbackNotRegistered") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "tracepoint enablement parity") != null);
+        }
         if (std.mem.eql(u8, check.id, "single-registration-boundary")) {
             saw_single_registration_check = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "second registerFunctionCallback call") != null);
@@ -253,6 +262,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     try std.testing.expect(saw_lifecycle_check);
     try std.testing.expect(saw_focus_check);
     try std.testing.expect(saw_callback_balance_check);
+    try std.testing.expect(saw_pre_registration_check);
     try std.testing.expect(saw_single_registration_check);
     try std.testing.expect(saw_underflow_and_armed_exit_check);
     try std.testing.expect(saw_exit_check);
@@ -355,6 +365,8 @@ test "phase 5 trace-events contributor docs stay aligned with the shipped review
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "exact inspected `master` head") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "floating branch label") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "CREATE_TRACE_POINTS") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "FunctionCallbackNotRegistered") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "before a callback is registered") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "second `registerFunctionCallback()`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`unregisterFunctionCallback()` underflow") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`OutstandingRegistration`") != null);
