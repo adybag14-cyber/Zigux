@@ -177,7 +177,7 @@ test "phase11 dw_wdt survey manifest and validation matrix record the landed lif
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "keeps idle remove-time pending interrupts distinct when remove happens before the watchdog is running") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "This slice does not claim platform-driver registration") != null);
 
-    try std.testing.expect(std.mem.indexOf(u8, remove_idle_split_test, 'test "phase11 dw_wdt keeps idle remove-time pending interrupts distinct when reset control is available or absent" {') != null);
+    try std.testing.expect(std.mem.indexOf(u8, remove_idle_split_test, "test \"phase11 dw_wdt keeps idle remove-time pending interrupts distinct when reset control is available or absent\" {") != null);
     try std.testing.expect(std.mem.indexOf(u8, remove_idle_split_test, "remove_preserves_pending_interrupt_without_reset") != null);
     try std.testing.expect(std.mem.indexOf(u8, remove_idle_split_test, "remove_clears_interrupt_status") != null);
     try std.testing.expect(std.mem.indexOf(u8, remove_idle_split_test, "remove_asserts_reset_control") != null);
