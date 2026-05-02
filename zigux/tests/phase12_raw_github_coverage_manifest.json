@@ -6,7 +6,8 @@
   "last_replayed_public_head": "a8daee106057a542aa03f2983662bec7c06584bb",
   "roadmap_anchor_count": 4,
   "commit_pinned_raw_fallback_catalog_count": 1,
-  "shared_tree_only_anchor_count": 3,
+  "commit_pinned_raw_fallback_map_count": 1,
+  "shared_tree_only_anchor_count": 2,
   "anchors": [
     {
       "id": "virtio_net",
@@ -14,15 +15,17 @@
       "roadmap_destination": "drivers/net/virtio_net.zig",
       "survey_note_path": "Documentation/zigux/phase12-virtio-net-survey.md",
       "public_read_status": "shared_tree_only",
-      "raw_fallback_catalog_path": ""
+      "raw_fallback_catalog_path": "",
+      "raw_fallback_map_path": ""
     },
     {
       "id": "nvme_pci",
       "anchor": "drivers/nvme/host/pci.c",
       "roadmap_destination": "drivers/nvme/host/pci.zig",
       "survey_note_path": "Documentation/zigux/phase12-nvme-pci-survey.md",
-      "public_read_status": "shared_tree_only",
-      "raw_fallback_catalog_path": ""
+      "public_read_status": "commit_pinned_raw_map",
+      "raw_fallback_catalog_path": "",
+      "raw_fallback_map_path": "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md"
     },
     {
       "id": "virtio_scsi",
@@ -30,7 +33,8 @@
       "roadmap_destination": "drivers/scsi/virtio_scsi.zig",
       "survey_note_path": "Documentation/zigux/phase12-virtio-scsi-survey.md",
       "public_read_status": "commit_pinned_raw_catalog",
-      "raw_fallback_catalog_path": "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md"
+      "raw_fallback_catalog_path": "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md",
+      "raw_fallback_map_path": ""
     },
     {
       "id": "libbpf",
@@ -38,7 +42,8 @@
       "roadmap_destination": "tools/lib/bpf/zigux_segments/",
       "survey_note_path": "Documentation/zigux/phase12-libbpf-segment-survey.md",
       "public_read_status": "shared_tree_only",
-      "raw_fallback_catalog_path": ""
+      "raw_fallback_catalog_path": "",
+      "raw_fallback_map_path": ""
     }
   ]
 }
