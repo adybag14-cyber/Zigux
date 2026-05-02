@@ -113,6 +113,8 @@ test "phase10 virtio mmio survey manifest records the landed config-write rung a
     try std.testing.expect(manifest.gaps.len >= 14);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, manifest.surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10_virtio_ring_reset_reuse.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Documentation/zigux/phase10-virtio-ring-survey.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Documentation/zigux/phase10-virtio-input-module-slice.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-virtio-ring-slice-note") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-mmio-config-write-helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-mmio-interrupt-ack-helper") != null);
@@ -322,7 +324,7 @@ test "phase10 virtio mmio survey manifest records the landed config-write rung a
             try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "interrupt acknowledgement") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue notify side effects") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "interrupt-ack helpers are landed") != null or std.mem.indexOf(u8, gap.why_now, "interrupt-ack helpers are landed") != null or std.mem.indexOf(u8, gap.why_now, "config-space writes") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "interrupt-ack helpers are landed") != null or std.mem.indexOf(u8, gap.why_now, "config-space writes") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
