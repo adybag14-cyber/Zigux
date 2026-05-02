@@ -104,6 +104,7 @@ Phase 10 notes
 Phase 11 notes
 - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, and `Documentation/zigux/phase11-uapi-header-parity-survey.md` are the current shared delivery packet for the active simple-driver tranche.
 - the active Phase 11 simple-driver packet now keeps the four roadmap-backed driver lanes visible from the top-level docs index while keeping the paired UAPI header parity survey explicit as the shared tranche-close boundary.
+- `python3 scripts/zigux/check-phase11-build-inventory.py`, `python3 scripts/zigux/check-phase11-layout-assert-surface.py`, `python3 scripts/zigux/check-phase11-hvc-validation-flow.py`, and `python3 scripts/zigux/check-phase11-hvc-cleanup-alignment.py` now keep the build snapshot, layout-assert review surface, shared-versus-dedicated hvc replay contract, and current hvc cleanup packet explicit as the pre-replay Phase 11 delivery gate behind `make -C zigux phase11-validate`.
 - `python3 scripts/zigux/validate-phase11.py`, `zigux/tests/fixtures/phase11_build_inventory.json`, `make -C zigux phase11-validate`, and `make -C zigux phase11` now define the shared Phase 11 reviewability path, with the dedicated `zigux/tests/phase11_hvc_console_survey.zig` archival replay still kept separate from `zigux/tests/phase11_build.zig`.
 
 Phase 12 notes
