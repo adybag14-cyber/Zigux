@@ -117,6 +117,31 @@ def resolve_targets(explicit_targets: list[str] | None, allowed_targets: list[st
     return selected
 
 
+def compile_tools_for_targets(
+    zig: str,
+    tools: list[Path],
+    targets: list[str],
+    *,
+    runner=run,
+    work_root: Path | None = None,
+) -> None:
+    if work_root is None:
+        with tempfile.TemporaryDirectory(prefix='zigux_phase2_cross_') as tmp_dir_str:
+            compile_tools_for_targets(
+                zig,
+                tools,
+                targets,
+                runner=runner,
+                work_root=Path(tmp_dir_str),
+            )
+        return
+
+    for target in targets:
+        for tool in tools:
+            output = work_root / f'{target}_{tool.stem}'
+            runner([zig, 'build-exe', str(tool), '-target', target, '-femit-bin=' + str(output)], cwd=str(ROOT))
+
+
 def expect_system_exit(label: str, callback, expected_message: str) -> None:
     try:
         callback()
@@ -191,6 +216,43 @@ def run_self_test() -> int:
         f'phase2-cross:duplicate_manifest_target:{allowed_targets[0]}',
     )
 
+    compile_attempts: list[list[str]] = []
+    expected_tool = str(tools[0])
+    expected_target = allowed_targets[0]
+
+    def failing_run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
+        del kwargs
+        compile_attempts.append(cmd)
+        raise subprocess.CalledProcessError(1, cmd)
+
+    with tempfile.TemporaryDirectory(prefix='zigux_phase2_cross_selftest_') as tmp_dir_str:
+        try:
+            compile_tools_for_targets(
+                'zig',
+                [tools[0]],
+                [expected_target],
+                runner=failing_run,
+                work_root=Path(tmp_dir_str),
+            )
+        except subprocess.CalledProcessError as exc:
+            if not compile_attempts:
+                raise SystemExit('phase2-cross:self-test:explicit_target_failure:no_compile_attempt') from exc
+            attempted_cmd = compile_attempts[0]
+            if expected_tool not in attempted_cmd or expected_target not in attempted_cmd:
+                raise SystemExit(
+                    'phase2-cross:self-test:explicit_target_failure:'
+                    f'expected_tool={expected_tool!r}:expected_target={expected_target!r}:actual_cmd={attempted_cmd!r}'
+                ) from exc
+            if exc.cmd != attempted_cmd:
+                raise SystemExit(
+                    'phase2-cross:self-test:explicit_target_failure:'
+                    f'expected_cmd={attempted_cmd!r}:actual_cmd={exc.cmd!r}'
+                ) from exc
+        else:
+            raise SystemExit(
+                'phase2-cross:self-test:explicit_target_failure:missing_called_process_error'
+            )
+
     print('PHASE2_CROSS_SELF_TEST=pass')
     print('PHASE2_CROSS_SELF_TEST_CASE_COUNT=8')
     return 0
@@ -212,13 +274,7 @@ def main() -> int:
     tools = validate_tool_manifest(manifest)
     allowed_targets = validate_targets_manifest(targets_doc)
     targets = resolve_targets(args.target, allowed_targets)
-
-    with tempfile.TemporaryDirectory(prefix='zigux_phase2_cross_') as tmp_dir_str:
-        tmp_dir = Path(tmp_dir_str)
-        for target in targets:
-            for tool in tools:
-                output = tmp_dir / f'{target}_{tool.stem}'
-                run([zig, 'build-exe', str(tool), '-target', target, '-femit-bin=' + str(output)], cwd=str(ROOT))
+    compile_tools_for_targets(zig, tools, targets)
 
     print('PHASE2_CROSS=pass')
     print(f'PHASE2_CROSS_TARGET_COUNT={len(targets)}')
