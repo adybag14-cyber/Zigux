@@ -635,6 +635,20 @@ def run_self_test() -> int:
         write_fixture(root)
 
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["landed_core_helper_evidence"] = {
+            "zigux/tests/phase10_virtio_core_manifest.json": [
+                "phase10-config-generation-summary-helper"
+            ]
+        }
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "manifest_landed_core_helpers",
+            root,
+            "manifest:landed_core_helper_evidence",
+        )
+        write_fixture(root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["landed_mmio_helper_evidence"] = {
             "zigux/tests/phase10_virtio_mmio_manifest.json": [
                 "phase10-mmio-register-window-helper"
@@ -746,7 +760,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_CLOSURE_INVENTORY_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_INVENTORY_SELF_TEST_CASE_COUNT=27")
+    print("PHASE10_CLOSURE_INVENTORY_SELF_TEST_CASE_COUNT=28")
     return 0
 
 
