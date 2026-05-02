@@ -180,6 +180,29 @@ def run_self_test() -> int:
     if cwd_drift["run_cwds"].get("phase7-argv-split-survey-tests") is not None:
         raise SystemExit("phase7-build-inventory:self-test:argv_split_repo_root_drift")
 
+    string_helpers_helper_path_drift_text, replacements = re.subn(
+        r'("phase7_string_helpers\.zig",\s*"string_helpers",\s*")\.\./\.\./lib/string_helpers\.zig("\s*,)',
+        r'\1../../lib/cmdline.zig\2',
+        build_text,
+        count=1,
+        flags=re.S,
+    )
+    if replacements != 1:
+        raise SystemExit("phase7-build-inventory:self-test:string_helpers_helper_path_drift_rewrite")
+
+    string_helpers_helper_path_drift = render_inventory_from_text(
+        string_helpers_helper_path_drift_text
+    )
+    if string_helpers_helper_path_drift == fixture:
+        raise SystemExit("phase7-build-inventory:self-test:string_helpers_helper_path_drift_detection")
+    if first["imported_helpers"][0]["helper_path"] != "../../lib/string_helpers.zig":
+        raise SystemExit("phase7-build-inventory:self-test:string_helpers_helper_path_baseline")
+    if (
+        string_helpers_helper_path_drift["imported_helpers"][0]["helper_path"]
+        != "../../lib/cmdline.zig"
+    ):
+        raise SystemExit("phase7-build-inventory:self-test:string_helpers_helper_path_drift")
+
     helper_path_drift_text, replacements = re.subn(
         r'("phase7_argv_split\.zig",\s*"argv_split",\s*")\.\./\.\./lib/argv_split\.zig("\s*,)',
         r'\1../../lib/cmdline.zig\2',
@@ -238,7 +261,7 @@ def run_self_test() -> int:
     )
 
     print("PHASE7_BUILD_INVENTORY_SELF_TEST=pass")
-    print("PHASE7_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=11")
+    print("PHASE7_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
