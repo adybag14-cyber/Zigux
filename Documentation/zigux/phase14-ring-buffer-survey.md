@@ -10,6 +10,7 @@ This document records the bounded Phase 14 survey lane around `kernel/trace/ring
 - `PHASE14_SURVEYED_COMMIT=f9a7a6e93c8e6a1b6550fd7b2aa5571729aab05b`
 - scope: the dedicated Phase 14 ring-buffer survey gate, its manifest, the shared Phase 14 build wiring, and this lane note that keeps the roadmap gap explicit without shipping a Zig bridge
 - survey provenance refreshed against verified `master` head `f9a7a6e93c8e6a1b6550fd7b2aa5571729aab05b`
+- live follow-up: current repo inspection added one more bounded hotplug-lifetime audit around `trace_rb_cpu_prepare()` and the CPU-online publication path without widening this packet into a repin, bridge claim, or wrapper-first implementation
 - product boundary:
   - `zigux/tests/phase14_ring_buffer_survey.zig`
   - `zigux/tests/phase14_ring_buffer_manifest.json`
@@ -129,6 +130,13 @@ The honest Phase 14 move here is therefore not to start a `ring_buffer.zig` file
 - The last-unmap path also stays coupled to the same kernel-owned teardown. `ring_buffer_unmap()` takes the fast decrement path while `user_mapped > 1`, but when the final user mapping goes away it drops `mapped` to match `user_mapped = 0`, frees `subbuf_ids`, frees the meta-page, and only then decrements `resize_disabled`, so resize remains blocked until the very last shared mapping disappears.
 - The docs and implementation line up on why this should stay study-only. `Documentation/trace/ring-buffer-map.rst` warns that concurrent mapped readers compete for one unpredictable shared stream, and the VMA-dup plus final-unmap rules show that the kernel deliberately treats those readers as one shared lifetime contract rather than as isolated consumer handles that a Zig bridge could own piecemeal.
 
+## CPU hotplug prepare lifetime audit
+
+- `trace_rb_cpu_prepare()` makes the per-CPU lifetime rule explicit. When a CPU comes online it allocates a new ring-buffer shard if one does not already exist, but the function comment says those buffers are never freed when the CPU goes down because users would otherwise lose trace data that is still parked in that per-CPU buffer.
+- The prepare path also keeps sizing and publication coupled in C. It reuses the common page count only when all existing CPU buffers agree, falls back to a two-page minimum when sizes differ, and only advertises the new CPU in `buffer->cpumask` after `on_each_cpu(rb_cpu_sync, NULL, 1)` plus the matching write barrier, so reader visibility and CPU-online enrollment still share one ordered transition.
+- `tracer_alloc_buffers()` wires that same path into `cpuhp_setup_state_multi(CPUHP_TRACE_RB_PREPARE, "trace/RB:prepare", trace_rb_cpu_prepare, NULL)`, which keeps hotplug allocation, publication ordering, and later instance teardown inside one tracing-core control surface rather than a wrapper-safe helper seam.
+- Because offline CPUs keep their old buffers and later online transitions reuse the same contract, the honest Phase 14 posture is still stay-in-C evidence only: a future Zig bridge should not imply independent ownership of per-CPU hotplug churn, retained unread data, or cross-CPU publication ordering.
+
 ## Recorded gaps
 
 The current lane state is:
@@ -176,4 +184,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Keep the Phase 14 ring-buffer packet parked unless it drifts again or a future study-only step can stay narrower than the existing resize, rollback, reader-page, mapped-reader, and kill-switch-recovery audits; the next honest follow-up would need another concrete source-of-truth drift or a still-narrower tracefs evidence gap instead of reopening bridge code or generic tracing UX work.
+Keep the Phase 14 ring-buffer packet parked unless it drifts again or a future study-only step can stay narrower than the existing resize, rollback, reader-page, mapped-reader, kill-switch-recovery, and hotplug-lifetime audits; the next honest follow-up would need another concrete source-of-truth drift or a still-smaller tracefs evidence gap instead of reopening bridge code or generic tracing UX work.
