@@ -291,7 +291,7 @@ test "phase 14 ring-buffer survey exposes the landed stay-in-c checklist" {
     try std.testing.expect(std.mem.indexOf(u8, checklist[5].rationale, "resize_disabled") != null);
 }
 
-test "phase 14 ring-buffer survey note records the refreshed commit pin and landed resize and recovery audits" {
+test "phase 14 ring-buffer survey note records the landed resize, recovery, and hotplug audits" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -322,4 +322,10 @@ test "phase 14 ring-buffer survey note records the refreshed commit pin and land
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "__rb_inc_dec_mapped()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "ring_buffer_unmap()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "resize_disabled") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "## CPU hotplug prepare lifetime audit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "trace_rb_cpu_prepare()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "on_each_cpu(rb_cpu_sync, NULL, 1)") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "cpuhp_setup_state_multi(CPUHP_TRACE_RB_PREPARE") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "buffer->cpumask") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "never freed when the CPU goes down") != null);
 }
