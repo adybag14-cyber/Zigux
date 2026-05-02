@@ -93,6 +93,12 @@ def _run_survey_aggregation_self_test() -> int:
             "missing_mmio_policy_consumer_anchor",
         ),
         (
+            "check-phase3-abi-layout-packet.py",
+            "PHASE3_ABI_LAYOUT_PACKET=fail",
+            "abi-layout-packet-gate",
+            "missing_expected_struct:zigux_cpumask_view",
+        ),
+        (
             "check-phase3-build-roots.py",
             "PHASE3_BUILD_ROOTS=fail",
             "build-roots-gate",
@@ -175,6 +181,9 @@ def main() -> int:
         result = _run_script_self_test("check-phase3-policy-unsafe-mmio-consumer.py")
         if result != 0:
             return result
+        result = _run_script_self_test("check-phase3-abi-layout-packet.py")
+        if result != 0:
+            return result
         return _run_script_self_test("check-phase3-build-roots.py")
 
     slices = select_slices(discover_phase3_slices(), args.slug)
@@ -233,6 +242,13 @@ def main() -> int:
             "check-phase3-policy-unsafe-mmio-consumer.py",
             "PHASE3_POLICY_UNSAFE_MMIO_CONSUMER=fail",
             "policy-unsafe-mmio-consumer-gate",
+        )
+    )
+    issues.extend(
+        _collect_script_validation_issues(
+            "check-phase3-abi-layout-packet.py",
+            "PHASE3_ABI_LAYOUT_PACKET=fail",
+            "abi-layout-packet-gate",
         )
     )
     if args.check_build_root_drift:
