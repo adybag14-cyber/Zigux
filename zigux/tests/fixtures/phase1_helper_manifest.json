@@ -144,7 +144,13 @@
       "iterator_unit_test_anchor": "tools/lib/rbtree.zig:test \"rbtree iterateMatches streams only the duplicate range\"",
       "iterator_unit_test_contract": "Direct Zig unit coverage keeps iterateMatches() aligned so duplicate-key iteration yields only the equal-key range and cleanly reports no match for missing keys.",
       "reverse_unit_test_anchor": "tools/lib/rbtree.zig:test \"rbtree iterateMatchesReverse streams only the duplicate range in reverse\"",
-      "reverse_unit_test_contract": "Direct Zig unit coverage keeps findLast(), prevMatch(), and iterateMatchesReverse() aligned so reverse duplicate-key lookups start at the rightmost match, walk back through the equal-key range, and cleanly report no match for missing keys."
+      "reverse_unit_test_contract": "Direct Zig unit coverage keeps findLast(), prevMatch(), and iterateMatchesReverse() aligned so reverse duplicate-key lookups start at the rightmost match, walk back through the equal-key range, and cleanly report no match for missing keys.",
+      "postorder_iterator_unit_test_anchor": "tools/lib/rbtree.zig:test \"rbtree iteratePostorder streams the full postorder walk once\"",
+      "postorder_iterator_unit_test_contract": "Direct Zig unit coverage keeps iteratePostorder() aligned so the explicit iterator visits each node exactly once in left-right-root order and reports exhaustion cleanly after the full walk.",
+      "postorder_safe_unit_test_anchor": "tools/lib/rbtree.zig:test \"rbtree iteratePostorderSafe caches the next node before node invalidation\"",
+      "postorder_safe_unit_test_contract": "Direct Zig unit coverage keeps iteratePostorderSafe() aligned by caching exactly one step ahead so callers can invalidate the current node without truncating the remaining postorder walk.",
+      "postorder_safe_rebalance_unit_test_anchor": "tools/lib/rbtree.zig:test \"rbtree iteratePostorderSafe survives erase-driven rebalancing\"",
+      "postorder_safe_rebalance_unit_test_contract": "Direct Zig unit coverage keeps iteratePostorderSafe() aligned across erase-driven rebalancing so the walk still reaches each remaining node exactly once after the current node is removed."
     },
     "tools/lib/string.zig": {
       "fixture": "zigux/tests/fixtures/phase1_helpers.json",
