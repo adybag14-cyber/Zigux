@@ -80,6 +80,18 @@
     "scripts/zigux/check-phase7-cmdline-parity.py",
     "scripts/zigux/check-phase7-rbtree-parity.py"
   ],
+  "shared_validation_commands": [
+    "scripts/zigux/validate-phase7.py --self-test",
+    "scripts/zigux/validate-phase7.py",
+    "scripts/zigux/check-phase7-build-inventory.py --self-test",
+    "scripts/zigux/check-phase7-build-inventory.py",
+    "scripts/zigux/check-phase7-make-wrapper.py --self-test",
+    "scripts/zigux/check-phase7-make-wrapper.py",
+    "scripts/zigux/check-phase7-cmdline-parity.py --self-test",
+    "scripts/zigux/check-phase7-cmdline-parity.py",
+    "scripts/zigux/check-phase7-rbtree-parity.py --self-test",
+    "scripts/zigux/check-phase7-rbtree-parity.py"
+  ],
   "unexpected_build_markers": [
     "../../tools/lib/",
     "zigux/tests/build.zig"
