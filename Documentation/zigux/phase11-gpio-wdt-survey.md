@@ -2,6 +2,8 @@
 
 This survey note now tracks the landed Phase 11 `gpio_wdt` starter anchored to `drivers/watchdog/gpio_wdt.c`.
 
+- reviewed against live `master` `f0aacb8c3c98b9c3b25c0908067a97c0db54c230`
+
 The live repo state is now:
 
 - `drivers/watchdog/gpio_wdt.zig` models `hw_algo` parsing, heartbeat-margin validation, the narrow start, ping, stop, and disable transitions from the Linux GPIO watchdog driver, a small probe-time summary for startup and registration-facing bookkeeping, a tiny nowayout-aware teardown-facing stop helper that separates watchdog-core policy blocking from hardware `always-running` behavior, an explicit `summarizeTeardown()` helper for eternal-ping disable ordering plus toggle-versus-level teardown fallout, and a registration handoff summary
