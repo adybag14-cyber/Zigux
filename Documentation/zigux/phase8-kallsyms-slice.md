@@ -16,7 +16,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 
 ## Why this slice exists
 
-The Phase 8 roadmap explicitly names `tools/lib/symbol/kallsyms.c` as a userspace-adjacent tooling anchor and recommends `tools/lib/symbol/*.zig` as a bounded Zigux destination for this tranche.
+The Phase 8 roadmap explicitly names `tools/lib/symbol/kallsyms.c` as a userspace-adjacent tooling anchor and recommends `tools/lib/symbol/*.zig` as a bounded Zigux destination for this tranche. That same roadmap says Phase 8 should prove Zigux inside serious repo-hosted tooling, not just tiny helpers, so the phase-level packet should stay focused on the integrated parser-and-wrapper surface that reviewers actually need to inspect.
 
 The live repo already has the parse-first `kallsyms.zig` parked slice, the injected chunked reader surface, thin reader-backed and path-backed adapters, the bounded discard-after-boundary behavior for oversized symbol names, and direct callback wrappers across caller-provided contents, injected readers, and file-backed parsing. The lane-local drift is no longer about broad symbol-tooling expansion; it is about keeping that bounded callback-wrapper surface explicit and machine-checked while still framing the tranche as a parser-and-wrapper packet rather than a broader symbol-tooling port.
 
@@ -54,16 +54,13 @@ The current parked slice covers:
 
 The current tests check:
 
-- uppercase and lowercase symbol types map to the same binding and function classifications as the C helper
-- valid symbol lines expose the expected address, type, and name slices
-- malformed lines are skipped without stopping iteration
+- helper-local `tools/lib/symbol/kallsyms.zig` tests own the direct binding, type, `parseLine()`, per-line malformed-record skipping, EOF-finish, and callback-stop matrix
+- the focused `zigux/tests/phase8_kallsyms.zig` replay stays on the integrated review packet: chunked reconstruction, chunked callback-stop behavior, thin reader and path adapters, direct callback wrappers, the parked note itself, and the live C helper anchors
 - split records still parse correctly when a file-like reader delivers partial lines and CRLF endings across chunk boundaries
 - split records also preserve callback-stop behavior unchanged when a failing symbol spans buffered chunk boundaries in the dedicated Phase 8 gate
 - the new reader and path adapters preserve the same callback and malformed-line behavior as the lower-level parser
 - the direct wrappers preserve the same callback-stop contract across caller-provided contents, injected readers, the cwd-based filename entrypoint, and the injected-dir contract while presenting a `void *arg` plus null-terminated symbol-name callback shape
-- oversized symbol names are truncated to `KSYM_NAME_LEN` in direct, line-by-line, and chunk-reconstructed parsing, with explicit helper and dedicated Phase 8 test coverage for the chunked discard path and direct-wrapper routes, so the parked slice now matches the C helper's bounded callback contract without buffering the whole overlong line first
-- injected callback failures bubble out unchanged so the parked parser does not hide downstream review or tooling errors
-- the focused `phase8_kallsyms_only_build.zig` replay keeps that parked parser and callback-contract packet reviewable on its own instead of relying only on the broader shared Phase 8 tooling build
+- oversized symbol names are truncated to `KSYM_NAME_LEN` in chunk-reconstructed parsing, with explicit helper and dedicated Phase 8 test coverage for the chunked discard path, so the parked slice now matches the C helper's bounded callback contract without buffering the whole overlong line first
 
 ## Non-goals
 
@@ -75,4 +72,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Park the `kallsyms` lane unless a fresh parity gap appears; the parked slice now covers bounded overlong-name handling, chunked discard-after-boundary behavior, and the shipped direct callback wrappers, so the next honest follow-up should only reopen this lane for another exact parser or callback-contract edge rather than widening into ELF emission or downstream symbol plumbing.
+Park the `kallsyms` lane unless a fresh parity gap appears; the parked slice now covers the integrated parser-and-wrapper packet while the helper-local matrix stays owned by `tools/lib/symbol/kallsyms.zig`, so the next honest follow-up should only reopen this lane for another exact parser or callback-contract edge rather than widening into ELF emission or downstream symbol plumbing.
