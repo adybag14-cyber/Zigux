@@ -4,6 +4,7 @@ const atomic64_diff_source = @embedFile("atomic64_diff.zig");
 const runtime_atomic64_diff_source = @embedFile("runtime_atomic64_diff.zig");
 const phase4_runtime_atomic64_manifest_source = @embedFile("phase4_runtime_atomic64_diff_manifest.json");
 const phase4_build_source = @embedFile("phase4_build.zig");
+const phase4_makefile_source = @embedFile("../Makefile");
 const phase9_build_source = @embedFile("phase9_build.zig");
 
 comptime {
@@ -51,6 +52,10 @@ fn expectPhase4MatrixMarker(marker: []const u8) !void {
 
 fn expectPhase4BuildMarker(marker: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, phase4_build_source, marker) != null);
+}
+
+fn expectPhase4MakefileMarker(marker: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, phase4_makefile_source, marker) != null);
 }
 
 fn expectPhase9BuildMarker(marker: []const u8) !void {
@@ -127,6 +132,18 @@ test "atomic64 diff wrapper checks live phase4 and phase9 build entrypoints dire
         phase9_build_source,
         ".root_source_file = b.path(\"atomic64_diff.zig\")",
     ) == null);
+}
+
+test "atomic64 diff wrapper checks the published phase4 make entrypoints directly" {
+    try expectPhase4MakefileMarker("PHONY += phase4-validate phase4-test phase4-runtime-atomic64-diff");
+    try expectPhase4MakefileMarker("phase4-test:");
+    try expectPhase4MakefileMarker(
+        "$(ZIG) build test --build-file zigux/tests/phase4_build.zig",
+    );
+    try expectPhase4MakefileMarker("phase4-runtime-atomic64-diff:");
+    try expectPhase4MakefileMarker(
+        "$(ZIG) build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig",
+    );
 }
 
 test "atomic64 diff wrapper records the exact bounded runtime atomic64 checks" {
