@@ -201,6 +201,20 @@ MANIFEST_EXPECTATIONS = {
             "uevent delivery",
             "loadable module registration",
         ],
+        "exact_ids": [
+            "directory-name",
+            "attribute-order",
+            "attribute-mode",
+            "registration-step",
+            "static-name-no-uevent-boundary",
+            "pre-registration-boundary",
+            "ownership-summary",
+            "initialized-exit-teardown",
+            "foo-roundtrip",
+            "shared-b-dispatch",
+            "parse-failure",
+            "exit-boundary",
+        ],
         "survey_note": "Documentation/zigux/phase5-kobject-sample-survey.md",
         "survey_summary": "The shared `zigux/tests/phase5_build.zig` entrypoint remains the umbrella review gate recorded in the manifest and contributor prompts, but this bounded verification pass did not rerun the whole Phase 5 sample bundle.",
         "sample_test": "zig test samples/zigux/kobject_example.zig",
@@ -219,6 +233,18 @@ MANIFEST_EXPECTATIONS = {
             "unregister_kretprobe parity",
             "pt_regs or regs_return_value parity",
             "loadable module wiring",
+        ],
+        "exact_ids": [
+            "default-symbol",
+            "pre-init-retargeting",
+            "skip-kernel-thread",
+            "private-data-shape",
+            "return-duration",
+            "timestamp-order-boundary",
+            "maxactive-budget",
+            "missed-summary",
+            "outstanding-instance-boundary",
+            "post-exit-rejection",
         ],
         "survey_note": "Documentation/zigux/phase5-kretprobe-sample-survey.md",
         "survey_summary": "Build Summary: 17/17 steps succeeded; 28/28 tests passed",
@@ -389,6 +415,30 @@ def run_self_test() -> int:
 
         tmp_root = Path(tmp)
         copy_tree(ROOT, tmp_root)
+        manifest_path = tmp_root / "zigux/tests/phase5_kobject_example_manifest.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["exact_checks"][0]["id"] = "directory-name-drift"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        missing = validate_phase5(tmp_root)
+        if missing["ok"] or "zigux/tests/phase5_kobject_example_manifest.json:exact_ids" not in missing["missing"]:
+            print("PHASE5_VALIDATOR_SELF_TEST=fail")
+            print("PHASE5_VALIDATOR_SELF_TEST_REASON=kobject-exact-check-gap")
+            return 1
+
+        tmp_root = Path(tmp)
+        copy_tree(ROOT, tmp_root)
+        manifest_path = tmp_root / "zigux/tests/phase5_kretprobe_example_manifest.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["exact_checks"][-1]["id"] = "post-exit-rejection-drift"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        missing = validate_phase5(tmp_root)
+        if missing["ok"] or "zigux/tests/phase5_kretprobe_example_manifest.json:exact_ids" not in missing["missing"]:
+            print("PHASE5_VALIDATOR_SELF_TEST=fail")
+            print("PHASE5_VALIDATOR_SELF_TEST_REASON=kretprobe-exact-check-gap")
+            return 1
+
+        tmp_root = Path(tmp)
+        copy_tree(ROOT, tmp_root)
         note_path = tmp_root / "Documentation/zigux/phase5-kfifo-sample-survey.md"
         note_text = note_path.read_text(encoding="utf-8").replace(
             MANIFEST_EXPECTATIONS["zigux/tests/phase5_bytestream_fifo_manifest.json"]["survey_summary"],
@@ -433,7 +483,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE5_VALIDATOR_SELF_TEST=pass")
-    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=4")
+    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
