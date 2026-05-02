@@ -455,7 +455,7 @@ EXPECTED_CHECKSUM_DETERMINISM = {
 }
 
 EXPECTED_HEXDUMP_DETERMINISM = {
-    "parity_vectors": 9,
+    "parity_vectors": 10,
     "overflow_vectors": 4,
     "required_length_vectors": 9,
     "perf_vectors": 4,
@@ -566,6 +566,43 @@ EXPECTED_MANIFEST = {
         "inline_corpus_helpers": [
             "bsearch",
         ],
+    },
+    "determinism_evidence": {
+        "base64": {
+            "standard_encode_vectors": 22,
+            "variant_encode_vectors": 18,
+            "standard_decode_vectors": 22,
+            "variant_decode_vectors": 12,
+            "invalid_decode_vectors": 22,
+            "c_parity_self_test_cases": 8,
+            "c_parity_cases": 96,
+        },
+        "bsearch": {
+            "inline_corpus": "sorted integer and symbol tables",
+            "c_parity_self_test_cases": 6,
+            "c_parity_cases": 29,
+        },
+        "checksum": {
+            "compute_vectors": 5,
+            "composition_vectors": 2,
+            "seeded_vectors": 3,
+            "ipv4_pseudo_header_vectors": 1,
+            "ipv6_pseudo_header_vectors": 2,
+            "carry_discipline_vectors": 4,
+            "kunit_random_prefix_vectors": 6,
+        },
+        "hexdump": {
+            "parity_vectors": 10,
+            "overflow_vectors": 4,
+            "required_length_vectors": 9,
+            "perf_vectors": 4,
+            "normalization_helpers": [
+                "normalizedRowsize",
+                "normalizedGroupsizeForLen",
+                "prepareExpectedLine",
+            ],
+        },
+        "generated_fixture_artifacts_committed": False,
     },
     "exact_checks": [
         "python3 scripts/zigux/validate-phase6.py --self-test",
