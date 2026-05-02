@@ -4,11 +4,11 @@ This document records the bounded Phase 15 governance lane around `Documentation
 
 ## Status
 
-- `PHASE15_LANE_KEY=P15-L04`
+- `PHASE15_LANE_KEY=P15-L01`
 - `PHASE15_STATUS=governance_slice_landed`
 - `PHASE15_SLICE=freeze-map-governance-enforcement-refresh`
 - scope: the live freeze map, the existing dedicated Phase 15 manifest and test gate, and one bounded maintenance follow-up that keeps the root freeze-map note aligned with the already-landed parity-scorecard, review-process, indefinite-C policy, retained stay-in-C closeout, current blocker posture, and the real current enforcement state on `master`
-- survey provenance refreshed against verified `master` head `ba15a15ff4f0becd063b9b12aeea73df5307e6ef`
+- survey provenance refreshed against verified `master` head `355b71d89807a217a6b7c405c996cbd623c48ca0`
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/phase15-freeze-map-governance.md`
@@ -78,7 +78,7 @@ The current lane state is:
 - landed `phase15-roadmap-vs-repo-reality-survey`
 - blocked `phase15-deep-core-status-change-blocker`
 
-This keeps the lane tight: Zigux now has a reviewable governance rule for the freeze map that matches the current roadmap freeze list, the current repo evidence packet family, and the already-landed broader stay-in-C governance artifacts. What remains blocked is any deep-core status change, and the neighboring docs-root or shared Phase 15 maintenance drift still belongs to its own packets rather than a freeze-map status change.
+This keeps the lane tight: Zigux now has a reviewable governance rule for the freeze map that matches the current roadmap freeze list, the current repo evidence packet family, and the already-landed broader stay-in-C governance artifacts. What remains blocked is any deep-core status change, and any neighboring broader Phase 15 maintenance drift still belongs to its own packets rather than a freeze-map status change.
 
 ## Non-goals
 
@@ -98,7 +98,7 @@ This slice does not claim:
 
 ## Current enforcement evidence
 
-- verified remote `master` head for this check: `ba15a15ff4f0becd063b9b12aeea73df5307e6ef`
+- verified remote `master` head for this check: `355b71d89807a217a6b7c405c996cbd623c48ca0`
 - the root policy is present and explicit in `Documentation/zigux/freeze-map.md`, including the freeze-in-C list, study-only list, Architecture Council requirement, parity-scorecard requirement, retained stay-in-C closeout state, reopen-trigger language, and the no-silent-exception rule
 - the review hook is present in `Documentation/zigux/review-checklist.md`, which now asks whether freeze-map anchors carry parity-scorecard evidence or blocker state, decision-record links, retained-discussion state, reopen triggers, and an explicit current lane owner for blocked evidence packets
 - the shared review checklist now carries a dedicated freeze-map governance-packet drift gate, so edits to `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, or `Documentation/zigux/phase15-parity-scorecard.md` must keep the automatic return-to-blocked trigger, retained discussion state, reopen triggers, and the current maintenance-mode handoff aligned
