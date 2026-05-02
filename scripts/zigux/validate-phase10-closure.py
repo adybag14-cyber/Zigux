@@ -44,6 +44,7 @@ CLOSURE_MARKERS = [
 
 DOCS_README_MARKERS = [
     "Documentation/zigux/phase10-closure-evidence.md",
+    "zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
     "python3 scripts/zigux/validate-phase10-closure.py",
     "make -C zigux phase10-validate",
 ]
@@ -469,6 +470,23 @@ def run_self_test() -> int:
         )
         write_fixture(root)
 
+        docs_readme_path = root / "Documentation/zigux/README.md"
+        original_docs_readme = docs_readme_path.read_text(encoding="utf-8")
+        docs_readme_path.write_text(
+            original_docs_readme.replace(
+                "zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
+                "zigux-alpha/PHASE10_CLOSURE_LEDGER_DRIFT.md",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "docs_root_closure_ledger_marker",
+            root,
+            "docs_readme:zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
+        )
+        write_fixture(root)
+
         ring_manifest_path = root / "zigux/tests/phase10_virtio_ring_manifest.json"
         ring_manifest = json.loads(ring_manifest_path.read_text(encoding="utf-8"))
         ring_manifest["gaps"][0]["status"] = "blocked_on_risky_transport"
@@ -491,7 +509,7 @@ def run_self_test() -> int:
         write_fixture(root)
 
     print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=3")
+    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=4")
     return 0
 
 
