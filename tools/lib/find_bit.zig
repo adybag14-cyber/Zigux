@@ -305,6 +305,34 @@ test "find next and bit masks earlier and out-of-range tail matches" {
     try std.testing.expectEqual(@as(usize, nbits), findNextAndBit(&lhs, &rhs, nbits, bits_per_long + 5));
 }
 
+test "tail scans honor an exact tail-word boundary start" {
+    const nbits = bits_per_long + 5;
+    const tail_start = bits_per_long;
+
+    const set_bits = [_]Word{
+        @as(Word, 1) << 7,
+        (@as(Word, 1) << 1) | (@as(Word, 1) << 4) | (@as(Word, 1) << 9),
+    };
+    try std.testing.expectEqual(@as(usize, bits_per_long + 1), findNextBit(&set_bits, nbits, tail_start));
+
+    var zero_bits = [_]Word{ ~@as(Word, 0), lastWordMask(nbits) };
+    zero_bits[0] &= ~(@as(Word, 1) << 7);
+    zero_bits[1] &= ~(@as(Word, 1) << 1);
+    zero_bits[1] &= ~(@as(Word, 1) << 4);
+    zero_bits[1] &= ~(@as(Word, 1) << 9);
+    try std.testing.expectEqual(@as(usize, bits_per_long + 1), findNextZeroBit(&zero_bits, nbits, tail_start));
+
+    const lhs = [_]Word{
+        @as(Word, 1) << 7,
+        (@as(Word, 1) << 1) | (@as(Word, 1) << 4) | (@as(Word, 1) << 9),
+    };
+    const rhs = [_]Word{
+        @as(Word, 1) << 7,
+        (@as(Word, 1) << 1) | (@as(Word, 1) << 4) | (@as(Word, 1) << 12),
+    };
+    try std.testing.expectEqual(@as(usize, bits_per_long + 1), findNextAndBit(&lhs, &rhs, nbits, tail_start));
+}
+
 test "tail mask keeps the in-range shared bit for and scans" {
     const nbits = bits_per_long + 5;
     const lhs = [_]Word{ 0, (@as(Word, 1) << 3) | (@as(Word, 1) << 9) };
