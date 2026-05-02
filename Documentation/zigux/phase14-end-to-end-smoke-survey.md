@@ -18,6 +18,7 @@ This document records the shared Phase 14 smoke lane that verifies the current b
 - `PHASE14_ANCHOR_LOCAL_STEP_COUNT=0`
 - `PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=4`
 - `PHASE14_STAY_IN_C_BOUNDARY=explicit`
+- `PHASE14_REVIEW_BLOCKER_STATUS=blocked_on_stay_in_c_evidence`
 - `PHASE14_STATUS_CHANGE_CLAIM=no`
 - `PHASE14_FULL_BUNDLE_DEPENDENCY_COUNT=5`
 - `PHASE14_FOCUSED_SHARD_DEPENDENCY_COUNT=1`
@@ -86,7 +87,7 @@ This lane stays narrow on purpose. It does not add a new bridge. It verifies tha
 - `zigux/tests/phase14_end_to_end_smoke_survey.zig` now treats the shared note's quoted shared-lane marker plus per-anchor surveyed commits as machine-checked evidence, so future shared or anchor-manifest refreshes cannot silently leave the shared smoke note behind.
 - `zigux/tests/phase14_end_to_end_smoke_manifest.json` now also records which compile artifacts are `full_bundle_only` or `focused_and_full_bundle`, so later build-file churn cannot silently undercount dedicated Phase 14 leaf-step coverage.
 - `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, and `scripts/zigux/README.md` now keep the attached-toolchain fallback commands explicit so reviewers in mounted-toolchain environments can rerun the same shared packet without rediscovering the `ZIG=` override from `zigux/Makefile` alone.
-- the shared smoke manifest, note, checklist, and `scripts/zigux/README.md` now also carry one explicit rollback threshold, fallback path, and automatic return-to-blocked trigger catalog, so the packet fails closed if its stay-in-C review contract drifts.
+- the shared smoke manifest and note now also keep the exact `blocked_on_stay_in_c_evidence` review-blocker status explicit alongside the rollback threshold, fallback path, and return-to-blocked trigger catalog, so the packet fails closed before any shared smoke maintenance can overstate a Phase 14 status change.
 - `zigux/tests/phase14_end_to_end_smoke_manifest.json` is now the current four-anchor boundary map for the shared packet, because it keeps the workqueue, skbuff, ring-buffer, and RCU anchor manifests pinned together under one reviewable lane.
 - those same four anchor-local packets are the current bounded concurrency-audit scope for this slice: they keep queue, ownership, buffer, and grace-period audit evidence reviewable without claiming live parity or a status change.
 
@@ -96,6 +97,7 @@ This lane stays narrow on purpose. It does not add a new bridge. It verifies tha
 - status bucket: `study_only`
 - validation gate: `zig build test --build-file zigux/tests/phase14_build.zig --summary all && make -C zigux phase14`
 - rollback owner: `Repo Tooling Pod`
+- review blocker status: `blocked_on_stay_in_c_evidence`
 - roadmap risk bundle:
   - `hidden runtime behavior`
   - `memory-ordering mistakes`
