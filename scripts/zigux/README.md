@@ -39,6 +39,7 @@ Current bootstrap helpers
 - `check-phase9-runtime-loader-commit-alignment.py`
 - `check-phase9-loader-non-owner-boundary.py`
 - `validate-phase10.py`
+- `check-phase10-closure-inventory.py`
 - `validate-phase10-closure.py`
 - `check-phase11-build-inventory.py`
 - `validate-phase11.py`
@@ -180,6 +181,7 @@ Phase 9 flow
 Phase 10 flow
 - `validate-phase10.py` keeps the wider Phase 10 flow aligned across `scripts/zigux/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-survey.md`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, `zigux/tests/README.md`, `zigux/tests/phase10_build.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_input_manifest.json`, `zigux/tests/phase10_virtio_mmio_manifest.json`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_mmio.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `zigux/tests/phase10_virtio_input.zig`, `zigux/tests/phase10_virtio_input_survey.zig`, and `zigux/tests/phase10_virtio_mmio.zig` so the current Phase 10 ring-plus-input-plus-MMIO lab packet stays reviewable through one shared validation surface instead of drifting into isolated file-local claims.
 - `validate-phase10.py --self-test` exercises the shared marker walk in a compact synthetic tree and fails if the published Phase 10 flow, `make -C zigux phase10-validate`, `phase10_build.zig`, the ring manifest-backed packet, the ring reset-reuse replay, the blocked registration-lifecycle contract, or the bounded MMIO interrupt-ack rung is landed only in code without the same review path staying explicit.
+- `check-phase10-closure-inventory.py` keeps the direct Phase 10 closure inventory fail-closed across `Documentation/zigux/phase10-closure-evidence.md`, `zigux/tests/phase10_closure_manifest.json`, `zigux-alpha/PHASE10_CLOSURE_LEDGER.md`, the nine Phase 10 docs, the four Phase 10 manifests, the four virtio driver roots, the nine shared test entrypoints, and the exact six-step replay packet order before the broader closure validator and shared replay route claim aligned evidence.
 - `make -C zigux phase10-validate` is the validator-first entrypoint for the active Phase 10 ring-plus-input-plus-MMIO lab packet.
 - `make -C zigux phase10` keeps the one-command replay path aligned with the shared fail-closed review contract after the validators pass.
 - `zig build test --build-file zigux/tests/phase10_build.zig --summary all` is the shared Phase 10 replay surface for the virtio core, ring, input, and MMIO lab helpers plus their survey-backed checks.
