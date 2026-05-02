@@ -60,7 +60,7 @@
       "status": "starter_landed",
       "kind": "ownership_note",
       "zigux_destination": "Documentation/zigux/phase4-validation-matrix.md",
-      "why_now": "The validation matrix already names the rollback owner, the exact `threshold_pending_until_runtime_atomic64_scope_widens` threshold posture, the manifest-backed pending threshold plan in this survey packet, and the reversible-delivery evidence that keeps the current `lib/atomic64_test.c` anchor plus the shared `phase4_build.zig` entrypoint explicit for the live runtime atomic64 gate, so the atomic64 survey should point at that published ownership note instead of repeating it loosely."
+      "why_now": "The validation matrix already names the rollback owner, the exact `threshold_pending_until_runtime_atomic64_scope_widens` threshold posture, the manifest-backed pending threshold plan in this survey packet, and the reversible-delivery evidence that keeps the current `lib/atomic64_test.c` anchor plus the shared `phase4_build.zig` entrypoint explicit while `runtime_atomic64_diff.zig` remains the single replay body and the existing Phase 9 runtime atomic64 starter remains the forward path for the live runtime atomic64 gate, so the atomic64 survey should point at that published ownership note instead of repeating it loosely."
     },
     {
       "id": "phase4-roadmap-path-alignment",
