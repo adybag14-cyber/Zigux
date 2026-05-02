@@ -416,7 +416,7 @@ def validate_phase2_cross_checker_gate(checker_script: Path) -> list[str]:
     required_markers = {
         'self_test_arg': "parser.add_argument('--self-test'",
         'self_test_pass_marker': "print('PHASE2_CROSS_SELF_TEST=pass')",
-        'self_test_case_count_marker': "print('PHASE2_CROSS_SELF_TEST_CASE_COUNT=8')",
+        'self_test_case_count_marker': "print('PHASE2_CROSS_SELF_TEST_CASE_COUNT=9')",
         'duplicate_tool_guard': 'phase2-cross:duplicate_tool:',
         'tool_count_mismatch_guard': 'phase2-cross:tool_count_mismatch',
         'target_count_mismatch_guard': 'phase2-cross:target_count_mismatch',
