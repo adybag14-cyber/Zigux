@@ -17,6 +17,7 @@
     "watchdog_core_header_present": true,
     "dw_wdt_zig_present": true,
     "dw_wdt_test_present": true,
+    "dw_wdt_suspend_resume_replay_present": true,
     "dw_wdt_slice_note_present": true,
     "dw_wdt_validation_matrix_present": true,
     "dw_wdt_failure_mode_evidence_present": true,
@@ -29,7 +30,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_build.zig",
-      "why_now": "The shared Phase 11 build entry now runs the gpio_wdt, bcm2835_wdt, and dw_wdt starter tests together with the dw_wdt survey gate so the simple-driver watchdog tranche stays reviewable in one place."
+      "why_now": "The shared Phase 11 build entry now runs the gpio_wdt, bcm2835_wdt, and dw_wdt starter tests together with the dedicated dw_wdt suspend-resume replay, the dedicated remove-idle split replay, and the dw_wdt survey gate so the simple-driver watchdog tranche stays reviewable in one place."
     },
     {
       "id": "phase11-dw-wdt-survey-gate",
@@ -78,7 +79,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase11-dw-wdt-validation-matrix.md",
-      "why_now": "A dedicated validation matrix now centralizes the shared Phase 11 test gate, fixed-TOP timeout evidence, IRQ pretimeout bookkeeping, imported running-state handoff evidence, non-stoppable stop failure-mode coverage, the landed remove-handoff teardown parity, the landed platform-resource preflight plus live resource-order summary, and the exact replay commands so the DesignWare lane does not overclaim platform-driver or PM parity."
+      "why_now": "A dedicated validation matrix now centralizes the shared Phase 11 test gate, fixed-TOP timeout evidence, IRQ pretimeout bookkeeping, imported running-state handoff evidence, bounded suspend-resume state-preservation evidence, non-stoppable stop failure-mode coverage, the landed remove-handoff teardown parity, the landed platform-resource preflight plus live resource-order summary, and the exact replay commands so the DesignWare lane does not overclaim platform-driver or PM parity."
     },
     {
       "id": "phase11-dw-wdt-probe-summary",
