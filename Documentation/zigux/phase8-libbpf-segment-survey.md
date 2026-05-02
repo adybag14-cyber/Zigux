@@ -7,7 +7,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling survey for Z
 - `PHASE8_STATUS=active`
 - `PHASE8_SLICE=libbpf-segment-survey`
 - scope: segment manifest plus six landed helper-first starter slices, the separate bounded perf-buffer poll bookkeeping adjunct, one deferred resource boundary, one deferred interrupt-routing boundary, one blocked object-model follow-on, and two deferred loader-facing follow-ons
-- survey checkpoint: refreshed against inspected `master` head `36414e38da67a51209095d0c06170f81e80258eb`
+- survey checkpoint: refreshed against inspected `master` head `f5a4d6990f701937b2a3bb9ae723bb6d0f27ba21`
 - product boundary:
   - `tools/lib/bpf/zigux_segments/manifest.json`
   - `tools/lib/bpf/zigux_segments/cpu_mask.zig`
@@ -133,8 +133,8 @@ The shared review path now fail-closes through the shared Phase 8 validator, the
 
 ## Latest verification snapshot
 
-- provenance and anchor alignment rechecked against inspected `master` head `36414e38da67a51209095d0c06170f81e80258eb`
-- focused Zig replay rerun against inspected `master` head `36414e38da67a51209095d0c06170f81e80258eb`
+- provenance and anchor alignment rechecked against inspected `master` head `f5a4d6990f701937b2a3bb9ae723bb6d0f27ba21`
+- focused Zig replay rerun against inspected `master` head `f5a4d6990f701937b2a3bb9ae723bb6d0f27ba21`
 - `python3 scripts/zigux/validate-phase8.py --self-test`
   - `PHASE8_VALIDATOR_SELF_TEST=pass`
   - `PHASE8_VALIDATOR_SELF_TEST_CASE_COUNT=12`
