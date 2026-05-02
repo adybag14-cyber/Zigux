@@ -84,7 +84,7 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     defer std.testing.allocator.free(phase7_build);
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P7-L13", manifest.lane_key);
+    try std.testing.expectEqualStrings("P7-L12", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 7", manifest.phase);
     try std.testing.expectEqualStrings("ac615fab1a13cf24fc9a45abf09b1500fb1e2ac9", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("lib/argv_split.c", manifest.anchor);
