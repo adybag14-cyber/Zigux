@@ -68,7 +68,7 @@ test "phase13 devres manifest records the current helper boundary and explicit d
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P13-L05", manifest.lane_key);
+    try std.testing.expectEqualStrings("P13-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("lib/devres.c", manifest.anchor);
     try std.testing.expectEqualStrings("aa01b37be5500e6a1e4f959c9fe07f0e39d39bfb", manifest.surveyed_commit);
