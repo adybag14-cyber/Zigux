@@ -511,7 +511,6 @@ def run_self_test() -> int:
         build_self_test_tree(root)
         survey_note_path = root / TRACKED_PATHS[3]
         original = survey_note_path.read_text(encoding="utf-8")
-        survey_note_path.writeText = None
         survey_note_path.write_text(
             original.replace(
                 "automatic perf-buffer CPU-budget clamp explicit before any per-CPU buffer opens happen\n",
