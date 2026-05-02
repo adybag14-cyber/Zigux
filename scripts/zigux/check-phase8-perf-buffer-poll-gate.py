@@ -504,9 +504,43 @@ def run_self_test() -> int:
             tmp_root,
             "zigux/tests/phase8_build.zig:phase8-perf-buffer-poll-tests",
         )
+        shared_build_path.write_text(original_shared_build, encoding="utf-8")
+
+        poll_test_path = tmp_root / "zigux/tests/phase8_perf_buffer_poll.zig"
+        original_poll_test = poll_test_path.read_text(encoding="utf-8")
+        poll_test_path.write_text(
+            original_poll_test.replace(
+                "phase8_perf_buffer_poll_only_build.zig",
+                "phase8_perf_buffer_poll_build.zig",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "poll_test_focused_build_surface",
+            tmp_root,
+            "zigux/tests/phase8_perf_buffer_poll.zig:phase8_perf_buffer_poll_only_build.zig",
+        )
+        poll_test_path.write_text(original_poll_test, encoding="utf-8")
+
+        focused_build_path = tmp_root / "zigux/tests/phase8_perf_buffer_poll_only_build.zig"
+        original_focused_build = focused_build_path.read_text(encoding="utf-8")
+        focused_build_path.write_text(
+            original_focused_build.replace(
+                "phase8-perf-buffer-poll-tests",
+                "phase8-perf-buffer-tests",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "focused_build_artifact_name",
+            tmp_root,
+            "zigux/tests/phase8_perf_buffer_poll_only_build.zig:phase8-perf-buffer-poll-tests",
+        )
 
     print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST=pass")
-    print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST_CASE_COUNT=14")
+    print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
