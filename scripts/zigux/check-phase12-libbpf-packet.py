@@ -509,6 +509,52 @@ def run_self_test() -> int:
             raise SystemExit("phase12-libbpf-packet:self-test:tracked_paths_detection")
 
         build_self_test_tree(root)
+        manifest_path = root / TRACKED_PATHS[0]
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        surveyed_commit = manifest["surveyed_commit"]
+        snapshot_path = root / "zigux/tests/fixtures/phase12_libbpf_snapshot.json"
+        snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
+        snapshot["surveyed_commit"] = "0" * 40
+        snapshot_path.write_text(json.dumps(snapshot, indent=2) + "\n", encoding="utf-8")
+        missing = check_packet(root)
+        if "snapshot:surveyed_commit" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:snapshot_surveyed_commit_detection")
+
+        build_self_test_tree(root)
+        manifest_path = root / TRACKED_PATHS[0]
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        surveyed_commit = manifest["surveyed_commit"]
+        survey_note_path = root / TRACKED_PATHS[3]
+        original = survey_note_path.read_text(encoding="utf-8")
+        survey_note_path.write_text(
+            original.replace(
+                f"surveyed head {surveyed_commit}",
+                "surveyed head " + ("0" * 40),
+            ),
+            encoding="utf-8",
+        )
+        missing = check_packet(root)
+        if "survey_note:surveyed_commit" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:survey_note_surveyed_commit_detection")
+
+        build_self_test_tree(root)
+        manifest_path = root / TRACKED_PATHS[0]
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        surveyed_commit = manifest["surveyed_commit"]
+        segment_test_path = root / TRACKED_PATHS[1]
+        original = segment_test_path.read_text(encoding="utf-8")
+        segment_test_path.write_text(
+            original.replace(
+                f'const current_surveyed_commit = "{surveyed_commit}";',
+                'const current_surveyed_commit = "' + ("0" * 40) + '";',
+            ),
+            encoding="utf-8",
+        )
+        missing = check_packet(root)
+        if "segment_test:surveyed_commit" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:segment_test_surveyed_commit_detection")
+
+        build_self_test_tree(root)
         reviewability_test_path = root / TRACKED_PATHS[2]
         original = reviewability_test_path.read_text(encoding="utf-8")
         reviewability_test_path.write_text(
@@ -655,7 +701,7 @@ def run_self_test() -> int:
             raise SystemExit("phase12-libbpf-packet:self-test:legacy_surveyed_commit_detection")
 
         print("PHASE12_LIBBPF_PACKET_SELF_TEST=pass")
-        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=18")
+        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=21")
     return 0
 
 
