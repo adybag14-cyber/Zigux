@@ -40,6 +40,7 @@ Later runtime starters, loader-side follow-ons, and blocked pilots
 - `samples/zigux/runtime_kretprobe.zig`
 - `samples/zigux/runtime_kretprobe_loader.zig`
 - `samples/zigux/runtime_trace_events.zig`
+- `samples/zigux/runtime_trace_events_loader.zig`
 - `samples/zigux/runtime_trace_events.zig` is still a sample-only blocked Phase 9 pilot on current `master`; the bounded `samples/zigux/runtime_trace_events_loader.zig` scaffold is shipped now, but keep it separate from the loader-backed follow-ons above because the runtime-substrate handoff still stays blocked
 - the runtime bitmap pair `samples/zigux/runtime_bitmap.zig` and `samples/zigux/runtime_bitmap_loader.zig` stays a later Phase 9 runtime pilot packet rooted in `lib/test_bitmap.c`; keep it cataloged here as follow-on work rather than treating it as a fifth approved Phase 5 reference idiom
 
