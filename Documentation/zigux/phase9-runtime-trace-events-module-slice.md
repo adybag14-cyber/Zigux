@@ -16,6 +16,9 @@ This document tracks the first bounded Phase 9 runtime trace-events starter unde
   - `zigux/tests/runtime_trace_events_manifest.json`
   - `zigux/tests/runtime_trace_events_survey.zig`
   - `zigux/tests/phase9_build.zig`
+  - `Documentation/zigux/phase9-runtime-trace-events-survey.md`
+  - `Documentation/zigux/phase9-runtime-trace-events-module-slice.md`
+  - `Documentation/zigux/freeze-map.md`
 
 ## Why this slice exists
 
