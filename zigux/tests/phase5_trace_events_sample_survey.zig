@@ -199,7 +199,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "1,1,1") != null);
         }
         if (std.mem.eql(u8, check.id, "checked-focus-order")) {
-            saw_focus_check = true;
+            sawFocus_check = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "payload_shape") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "string_selection") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "formatted_message") != null);
