@@ -32,6 +32,22 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
     );
     defer std.testing.allocator.free(review_checklist);
 
+    const script_readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "scripts/zigux/README.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(script_readme);
+
+    const tests_readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/README.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(tests_readme);
+
     const string_helpers_slice = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/phase7-string-helpers-slice.md",
@@ -79,6 +95,38 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
         .limited(16 * 1024),
     );
     defer std.testing.allocator.free(phase7_build);
+
+    const validate_phase7 = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "scripts/zigux/validate-phase7.py",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(validate_phase7);
+
+    const build_inventory_checker = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "scripts/zigux/check-phase7-build-inventory.py",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(build_inventory_checker);
+
+    const make_wrapper_checker = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "scripts/zigux/check-phase7-make-wrapper.py",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(make_wrapper_checker);
+
+    const makefile = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/Makefile",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(makefile);
 
     const expected_sample_files = [_][]const u8{
         "samples/zigux/bytestream_fifo.zig",
@@ -137,6 +185,20 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
     try expectContains(review_checklist, "the shipped string-helper evidence remains the separate Phase 7 helper bundle");
     try expectContains(review_checklist, "`lib/string_helpers.zig`, `zigux/tests/phase7_string_helpers.zig`, and `zigux/tests/phase7_build.zig`");
 
+    try expectContains(script_readme, "`validate-phase7.py`");
+    try expectContains(script_readme, "`check-phase7-build-inventory.py`");
+    try expectContains(script_readme, "`check-phase7-make-wrapper.py`");
+    try expectContains(script_readme, "`make -C zigux phase7-validate` is the validator-first entrypoint for the current Phase 7 flow.");
+
+    try expectContains(
+        tests_readme,
+        "keep the current Phase 7 helper packet reviewable through `zigux/tests/phase7_build.zig`, `zigux/tests/fixtures/phase7_build_inventory.json`, `make -C zigux phase7-test`, `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-build-inventory.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-cmdline-parity.py`, and `scripts/zigux/check-phase7-rbtree-parity.py` instead of widening into ad hoc helper-local bootstrap rules",
+    );
+    try expectContains(
+        tests_readme,
+        "keep `scripts/zigux/validate-phase7.py --self-test`, `scripts/zigux/check-phase7-build-inventory.py --self-test`, and `scripts/zigux/check-phase7-make-wrapper.py --self-test` in the same packet",
+    );
+
     try expectContains(string_helpers_slice, "This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.");
     try expectContains(string_helpers_slice, "Current `master` keeps string-helper reviewability in the helper and test bundle");
     try expectContains(string_helpers_slice, "the four Phase 5 `samples/zigux/` anchors remain `bytestream_fifo`, `kobject_example`, `kretprobe_example`, and `trace_events_sample`.");
@@ -161,9 +223,27 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
     try expectContains(string_helpers_slice, "`STRING_UNITS_NO_SPACE` and `STRING_UNITS_NO_BYTES` formatting flags plus snprintf-style truncation accounting for `string_get_size()`");
     try expectContains(string_helpers_slice, "truncation accounting that returns the full would-be escaped length without promising an appended terminator through one dedicated gate assertion");
 
+    try expectContains(makefile, "phase7-validate:");
+    try expectContains(makefile, "scripts/zigux/check-phase7-build-inventory.py --self-test");
+    try expectContains(makefile, "scripts/zigux/check-phase7-build-inventory.py");
+    try expectContains(makefile, "scripts/zigux/check-phase7-make-wrapper.py --self-test");
+    try expectContains(makefile, "scripts/zigux/check-phase7-make-wrapper.py");
+    try expectContains(makefile, "phase7-test:");
+    try expectContains(makefile, "zig build test --build-file zigux/tests/phase7_build.zig --summary all");
+
     try expectContains(phase7_build, "phase7_string_helpers_survey.zig");
     try expectContains(phase7_build, "phase7-string-helpers-tests");
     try expectContains(phase7_build, "phase7-string-helpers-survey-tests");
+
+    try expectContains(validate_phase7, "ROOT / \"scripts\" / \"zigux\" / \"check-phase7-build-inventory.py\",");
+    try expectContains(validate_phase7, "ROOT / \"zigux\" / \"tests\" / \"fixtures\" / \"phase7_build_inventory.json\",");
+    try expectContains(validate_phase7, "(\"zigux/tests/phase7_string_helpers_survey.zig\", phase7_string_helpers_survey, required_phase7_string_helpers_survey_markers),");
+
+    try expectContains(build_inventory_checker, "PHASE7_BUILD_INVENTORY_SELF_TEST=pass");
+    try expectContains(build_inventory_checker, "check-phase7-build-inventory.py --self-test");
+
+    try expectContains(make_wrapper_checker, "PHASE7_MAKE_WRAPPER_SELF_TEST=pass");
+    try expectContains(make_wrapper_checker, "check-phase7-make-wrapper.py --self-test");
 
     try expectContains(string_helpers_helper, "pub const KasprintfStrarrayResult = struct");
     try expectContains(string_helpers_helper, "const empty_kasprintf_strarray_null_terminated: []const ?[*:0]const u8 = &.{null};");
