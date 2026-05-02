@@ -303,6 +303,24 @@ test "kobject sample keeps shared dispatch and parse failures explicit" {
     try std.testing.expectError(error.UnknownAttribute, sample.showValue("qux"));
 }
 
+test "kobject sample keeps the pre-registration ownership boundary explicit" {
+    var sample = KobjectExampleSample{};
+
+    try std.testing.expectEqual(SampleStage.cold, sample.stage());
+    try std.testing.expectEqual(@as(usize, 0), sample.activeAttrCount());
+    try std.testing.expect(!sample.attributesAreAccessible());
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.registerAttributes());
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.showValue("foo"));
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.storeValue("foo", "1\n"));
+
+    try sample.init();
+    try std.testing.expectEqual(SampleStage.initialized, sample.stage());
+    try std.testing.expectEqual(@as(usize, 0), sample.activeAttrCount());
+    try std.testing.expect(!sample.attributesAreAccessible());
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.showValue("foo"));
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.storeValue("foo", "1\n"));
+}
+
 test "kobject sample teardown keeps ownership boundaries explicit" {
     var initialized_sample = KobjectExampleSample{};
     try initialized_sample.init();
