@@ -326,6 +326,38 @@ def run_self_test() -> int:
         assert exit_code == 1
         assert lines == render_result_lines(matched, details)
 
+        matched, details = compare_artifacts('sha256', blob_a, missing)
+        assert not matched
+        assert details['expected_exists'] is True
+        assert details['actual_exists'] is False
+        assert render_result_lines(matched, details) == [
+            'ARTIFACT_DIFF=fail',
+            'MODE=sha256',
+            f'EXPECTED={blob_a}',
+            f'ACTUAL={missing}',
+            'EXPECTED_EXISTS=True',
+            'ACTUAL_EXISTS=False',
+        ]
+        exit_code, lines = capture_emit_result(matched, details)
+        assert exit_code == 1
+        assert lines == render_result_lines(matched, details)
+
+        matched, details = compare_artifacts('sha256', missing, other_missing)
+        assert not matched
+        assert details['expected_exists'] is False
+        assert details['actual_exists'] is False
+        assert render_result_lines(matched, details) == [
+            'ARTIFACT_DIFF=fail',
+            'MODE=sha256',
+            f'EXPECTED={missing}',
+            f'ACTUAL={other_missing}',
+            'EXPECTED_EXISTS=False',
+            'ACTUAL_EXISTS=False',
+        ]
+        exit_code, lines = capture_emit_result(matched, details)
+        assert exit_code == 1
+        assert lines == render_result_lines(matched, details)
+
     print('ARTIFACT_DIFF_SELF_TEST=pass')
     return 0
 
