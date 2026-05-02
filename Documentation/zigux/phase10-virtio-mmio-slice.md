@@ -39,6 +39,8 @@ The live repo now has the virtio core, ring, and input lab footholds plus the ea
 - interrupt-status bookkeeping plus bounded interrupt acknowledge behavior for the reviewable queue and config interrupt bits only
 - dedicated Phase 10 tests and build wiring for the helper
 
+The same parked MMIO packet also participates in the shared closure evidence bundle through `Documentation/zigux/phase10-closure-evidence.md`, `zigux/tests/phase10_closure_manifest.json`, and `zigux-alpha/PHASE10_CLOSURE_LEDGER.md`, so the current review path is broader than the dedicated MMIO test alone even though the landed helper surface remains transport-local.
+
 ## Non-goals
 
 This slice does not yet claim:
@@ -54,15 +56,18 @@ This slice does not yet claim:
 
 ## Gates
 
-1. run the dedicated validation guards
+1. run the shared closure inventory gate
+- `python3 scripts/zigux/check-phase10-closure-inventory.py`
+
+2. run the dedicated validation guards
 - `python3 scripts/zigux/validate-phase10.py`
 - `python3 scripts/zigux/validate-phase10-closure.py`
 - `make -C zigux phase10-validate`
 
-2. run the dedicated Phase 10 build
+3. run the dedicated Phase 10 build
 - `zig build test --build-file zigux/tests/phase10_build.zig --summary all`
 
-3. run the convenience target
+4. run the convenience target
 - `make -C zigux phase10`
 
 ## Next bounded step
