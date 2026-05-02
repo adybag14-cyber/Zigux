@@ -40,6 +40,7 @@ What is landed today:
 
 - managed `__devm_ioremap()` lifetime planning, including retained release records on success and free-on-failure cleanup when mapping returns `NULL`
 - the direct `devm_ioremap()` wrapper path that keeps the plain managed ioremap export explicit instead of leaving it implied by the internal lifetime helper
+- the direct `devm_ioremap_resource()` wrapper path that keeps the plain managed-resource export explicit instead of leaving it implied only by `__devm_ioremap_resource()` and the UC/WC wrapper pair
 - the `devm_ioremap_uc()` wrapper path and exact `devm_iounmap()` pointer-match release behavior
 - the `devm_ioremap_wc()` wrapper path without widening into live write-combined mappings
 - the `devm_ioremap_np()` wrapper path so the direct non-posted managed mapping export is reviewable instead of being inferred only from the generic lifetime helper or from resource-flag fallback
