@@ -506,6 +506,13 @@ def run_self_test() -> int:
             )
 
         build_self_test_tree(root)
+        tracked_reviewability_path = root / TRACKED_PATHS[2]
+        tracked_reviewability_path.unlink()
+        missing = check_packet(root)
+        if f"missing_file:{TRACKED_PATHS[2]}" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:missing_tracked_file_detection")
+
+        build_self_test_tree(root)
         manifest_path = root / TRACKED_PATHS[0]
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["phase"] = "Phase 11"
@@ -896,7 +903,7 @@ def run_self_test() -> int:
             raise SystemExit("phase12-libbpf-packet:self-test:legacy_surveyed_commit_hex_detection")
 
         print("PHASE12_LIBBPF_PACKET_SELF_TEST=pass")
-        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=34")
+        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=35")
     return 0
 
 
