@@ -4,7 +4,7 @@ PHONY += phase4-validate phase4-test phase4-runtime-atomic64-diff phase4-test-fs
 PHONY += phase5-validate phase5-test phase5
 PHONY += phase6-validate phase6-test phase6-perf phase6-base64-perf phase6-bsearch-perf phase6-checksum-perf phase6-hexdump-perf phase6
 PHONY += phase7-validate phase7-test phase7
-PHONY += phase8-validate phase8-exec-cmd-test phase8-help-test phase8-kallsyms-test phase8-libbpf-segments-test phase8-test phase8
+PHONY += phase8-validate phase8-exec-cmd-test phase8-help-test phase8-kallsyms-test phase8-libbpf-segments-test phase8-perf-buffer-poll-test phase8-test phase8
 PHONY += phase9-validate phase9-test phase9-loader-gap-survey phase9-kretprobe-survey phase9-trace-events-survey phase9
 PHONY += phase10-validate phase10-test phase10
 PHONY += phase11-validate phase11-test phase11-hvc-survey phase11
@@ -177,10 +177,13 @@ phase8-kallsyms-test:
 phase8-libbpf-segments-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all
 
+phase8-perf-buffer-poll-test:
+	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all
+
 phase8-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase8_build.zig --summary all
 
-phase8: phase8-validate phase8-exec-cmd-test phase8-help-test phase8-kallsyms-test phase8-libbpf-segments-test phase8-test
+phase8: phase8-validate phase8-exec-cmd-test phase8-help-test phase8-kallsyms-test phase8-libbpf-segments-test phase8-perf-buffer-poll-test phase8-test
 
 phase9-validate:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase9.py --self-test
