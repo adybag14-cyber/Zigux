@@ -87,6 +87,30 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "ready_next");
 }
 
+fn countHvcHeaderExports(snapshot: hvc_console.HeaderParitySnapshot) usize {
+    return @intFromBool(snapshot.exports_instantiate) +
+        @intFromBool(snapshot.exports_alloc) +
+        @intFromBool(snapshot.exports_remove) +
+        @intFromBool(snapshot.exports_poll) +
+        @intFromBool(snapshot.exports_resize) +
+        @intFromBool(snapshot.exports_kick) +
+        @intFromBool(snapshot.exports_notifier_add_irq) +
+        @intFromBool(snapshot.exports_notifier_del_irq) +
+        @intFromBool(snapshot.exports_notifier_hangup_irq);
+}
+
+fn countHvOpsHeaderSurface(surface: hvc_console.HvOpsHeaderSurface) usize {
+    return @intFromBool(surface.has_get_chars) +
+        @intFromBool(surface.has_put_chars) +
+        @intFromBool(surface.has_flush) +
+        @intFromBool(surface.has_notifier_add) +
+        @intFromBool(surface.has_notifier_del) +
+        @intFromBool(surface.has_notifier_hangup) +
+        @intFromBool(surface.has_tiocmget) +
+        @intFromBool(surface.has_tiocmset) +
+        @intFromBool(surface.has_dtr_rts);
+}
+
 test "phase11 shared header parity manifest records the bounded layout checkpoints" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -478,6 +502,13 @@ test "phase11 shared header parity survey keeps the hvc snapshot aligned with th
     try std.testing.expect(snapshot.hv_ops.has_dtr_rts);
     try std.testing.expect(snapshot.keeps_tty_registration_out_of_scope);
     try std.testing.expect(snapshot.keeps_live_hypervisor_io_out_of_scope);
+}
+
+test "phase11 shared header parity survey keeps exact hvc snapshot counts" {
+    const snapshot = hvc_console.headerParitySnapshot();
+
+    try std.testing.expectEqual(@as(usize, 9), countHvcHeaderExports(snapshot));
+    try std.testing.expectEqual(@as(usize, 9), countHvOpsHeaderSurface(snapshot.hv_ops));
 }
 
 test "phase11 shared header parity survey keeps a bounded watchdog_info layout proof" {
