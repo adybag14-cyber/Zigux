@@ -104,6 +104,23 @@ def validate_expectations_shape(expectations: dict[str, object]) -> None:
             f'{optional_bitmap_checksum}'
         )
 
+    rbtree_exact_checksum = next(
+        (
+            key
+            for key in sorted(metric_groups['exact_checksums'])
+            if key.startswith('PHASE1_BENCH_RBTREE_')
+        ),
+        None,
+    )
+    if (
+        rbtree_exact_checksum is not None
+        and 'PHASE1_BENCH_RBTREE_ITERATIONS' not in metric_groups['iterations']
+    ):
+        raise SystemExit(
+            'phase1-bench:expectations:iterations:rbtree_required:'
+            'PHASE1_BENCH_RBTREE_ITERATIONS'
+        )
+
 
 def unexpected_phase1_bench_keys(
     parsed: dict[str, str], expectations: dict[str, object]
@@ -280,6 +297,7 @@ def run_self_test() -> int:
     assert_equal('status_passthrough', parsed['PHASE1_BENCH'], 'pass')
 
     validate_expectations_shape(expectations)
+    validate_expectations_shape(rbtree_expectations)
 
     invalid_overlap = {
         **expectations,
@@ -344,8 +362,23 @@ def run_self_test() -> int:
     else:
         raise SystemExit('phase1-bench:self-test:invalid_bitmap_optional:unexpected_pass')
 
+    invalid_rbtree_missing_iterations = {
+        **rbtree_expectations,
+        'iterations': {},
+    }
+    try:
+        validate_expectations_shape(invalid_rbtree_missing_iterations)
+    except SystemExit as exc:
+        assert_equal(
+            'invalid_rbtree_missing_iterations',
+            str(exc),
+            'phase1-bench:expectations:iterations:rbtree_required:PHASE1_BENCH_RBTREE_ITERATIONS',
+        )
+    else:
+        raise SystemExit('phase1-bench:self-test:invalid_rbtree_missing_iterations:unexpected_pass')
+
     print('PHASE1_BENCH_SELF_TEST=pass')
-    print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=14')
+    print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=15')
     return 0
 
 
