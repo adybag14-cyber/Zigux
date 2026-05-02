@@ -4,7 +4,7 @@ This document records the bounded Phase 14 survey lane around `kernel/trace/ring
 
 ## Status
 
-- `PHASE14_LANE_KEY=P14-L05`
+- `PHASE14_LANE_KEY=P14-L08`
 - `PHASE14_STATUS=study_only`
 - `PHASE14_SLICE=ring-buffer-survey-gap`
 - `PHASE14_SURVEYED_COMMIT=f9a7a6e93c8e6a1b6550fd7b2aa5571729aab05b`
@@ -158,6 +158,7 @@ The current lane state is:
 - landed `phase14-ring-buffer-snapshot-rollback-failure-followup`
 - landed `phase14-ring-buffer-tracing-disabled-recovery-followup`
 - landed `phase14-ring-buffer-map-dup-unmap-lifetime-followup`
+- landed `phase14-ring-buffer-cpu-hotplug-lifetime-followup`
 - blocked `phase14-ring-buffer-zig-port-blocker`
 
 This keeps the lane honest: Zigux now has an explicit reviewable record that `kernel/trace/ring_buffer.c` belongs in the study-only set for now, and that the repo still does not ship `kernel/trace/ring_buffer.zig`.
