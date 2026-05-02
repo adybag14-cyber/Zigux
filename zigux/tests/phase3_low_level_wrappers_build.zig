@@ -68,6 +68,7 @@ pub fn build(b: *std.Build) void {
     low_level_root_module.addImport("abi_bindings", abi_bindings_module);
     low_level_root_module.addImport("atomic_helpers", atomic_helpers_module);
     low_level_root_module.addImport("barrier_helpers", barrier_helpers_module);
+    low_level_root_module.addImport("interop_policy", interop_policy_module);
     low_level_root_module.addImport("layout_assert", layout_assert_module);
     low_level_root_module.addImport("mmio_helpers", mmio_helpers_module);
     low_level_root_module.addImport("narrow_unsafe", narrow_unsafe_module);
