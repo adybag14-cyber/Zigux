@@ -78,9 +78,9 @@ The current tests check:
 - carry-discipline edge cases on the helper-local surface
 - six imported KUnit random-prefix prefix lengths through the committed fixture corpus
 - pseudo-header accumulation parity for representative TCP/UDP-style checksum folding
-- IPv6 pseudo-header accumulation parity for representative UDP and TCP-style checksum folding
+- IPv6 pseudo-header accumulation parity for representative UDP and TCP-style checksum folding, including the committed upper-length-bits regression fixture
 - incremental checksum replacement parity for payload word updates, 16-bit IPv4 header field replacement, 32-bit IPv4 address replacement, and diff-based checksum repair
-- an external C-vs-Zig spot check through `python3 scripts/zigux/check-phase6-checksum-c-parity.py`, `zigux/tests/phase6_checksum_c_parity.zig`, and `zigux/tests/fixtures/phase6_checksum_c_harness.c` so the current `lib/checksum.c` arithmetic surface stays directly reviewable beside the committed Zig fixture packet, including the current IPv4 pseudo-header nofold path, both committed IPv6 pseudo-header nofold fixture cases, and the incremental replacement helpers
+- an external C-vs-Zig spot check through `python3 scripts/zigux/check-phase6-checksum-c-parity.py`, `zigux/tests/phase6_checksum_c_parity.zig`, and `zigux/tests/fixtures/phase6_checksum_c_harness.c` so the current `lib/checksum.c` arithmetic surface stays directly reviewable beside the committed Zig fixture packet, including the current IPv4 pseudo-header nofold path, the committed IPv6 pseudo-header nofold fixture cases, and the incremental replacement helpers
 - shared fixture-backed checksum vectors stored in `zigux/tests/fixtures/phase6_checksum_vectors.zig` and consumed by `zigux/tests/phase6_checksum.zig`, while `lib/checksum.zig` keeps only helper-local arithmetic and regression checks so the leaf helper no longer depends on the shared Phase 6 fixture packet
 - a replayable perf-sanity harness reports representative checksum cost per call and per byte while rechecking parity against the widened-accumulator `referencePartial` path on deterministic 64-byte and 1501-byte payloads, and it currently fail-closes on `max_slowdown_pct = 150` for both fixture-backed perf cases
 
