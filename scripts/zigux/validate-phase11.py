@@ -845,7 +845,7 @@ dw_test_text = text("zigux/tests/phase11_dw_wdt.zig")
 for marker in [
     f"`master` `{dw_commit}`",
     "an explicit `summarizeTeardownLifecycle()` stop-and-restart helper",
-    "latest carried-forward shared replay status remains `PHASE11_VALIDATION=pass` for the landed starter packet",
+    "the focused `dw_wdt` driver and survey replays for this landed starter packet remain green",
 ]:
     if marker not in dw_survey_doc:
         missing.append(f"phase11_dw_wdt_docs:survey:{marker}")
