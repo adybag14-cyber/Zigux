@@ -82,7 +82,7 @@
       "blocker_manifest": "zigux/tests/runtime_trace_events_manifest.json",
       "blocker_gap_id": "runtime-trace-events-substrate-handoff",
       "blocker_freeze_anchor": "kernel/trace/ring_buffer.c",
-      "why_blocked": "The fourth Phase 9 pilot remains intentionally sample-only because the trace-events packet keeps the trace core at a study-only freeze boundary and still blocks runtime task ownership, polling and event-loop substrate, thread creation, and tracepoint-registration lifecycle wiring."
+      "why_blocked": "The fourth Phase 9 pilot remains intentionally sample-only even though its bounded loader scaffold now exists, because the trace-events packet keeps the trace core at a study-only freeze boundary and still blocks runtime task ownership, polling and event-loop substrate, thread creation, and tracepoint-registration lifecycle wiring."
     }
   ],
   "non_owner_surfaces": [
@@ -148,7 +148,7 @@
       "id": "runtime-loader-substrate-plan",
       "kind": "documentation",
       "path": "Documentation/zigux/phase9-runtime-loader-substrate-plan.md",
-      "role": "keeps the shared loader-stage vocabulary, the atomic64, bitmap, and kretprobe handoff alignment, and the freeze-map-adjacent trace-events sample-only boundary explicit beside the shared runtime request surface"
+      "role": "keeps the shared loader-stage vocabulary, the atomic64, bitmap, and kretprobe handoff alignment, the explicit first shared-request trio, and the freeze-map-adjacent trace-events sample-only boundary explicit beside the shared runtime request surface"
     },
     {
       "id": "runtime-loader-review-checklist",
@@ -212,7 +212,7 @@
     },
     {
       "surface": "Documentation/zigux/phase9-runtime-loader-substrate-plan.md",
-      "owns": "shared loader-stage vocabulary plus the atomic64, bitmap, and kretprobe handoff-alignment note and the freeze-map-adjacent trace-events sample-only boundary for the same runtime packet"
+      "owns": "shared loader-stage vocabulary plus the atomic64, bitmap, and kretprobe handoff-alignment note, the explicit first shared-request trio, and the freeze-map-adjacent trace-events sample-only boundary for the same runtime packet"
     },
     {
       "surface": "Documentation/zigux/review-checklist.md",
@@ -278,7 +278,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase9-runtime-loader-substrate-plan.md",
-      "why_now": "The live shared runtime-loader packet already includes atomic64, bitmap, and kretprobe loader plans plus the common `zigux/kernel/runtime_loader.zig` request surface, so one shared substrate-plan note should keep that loader-stage vocabulary and the explicit `waiting_on_runtime_substrate` to `released_without_substrate` fallback aligned instead of leaving it implicit. It also keeps `samples/zigux/runtime_trace_events.zig` explicit as the sample-only fourth pilot while `kernel/trace/ring_buffer.c` remains study-only in the freeze map."
+      "why_now": "The live shared runtime-loader packet already includes atomic64, bitmap, and kretprobe loader plans plus the common `zigux/kernel/runtime_loader.zig` request surface, so one shared substrate-plan note should keep that loader-stage vocabulary and the explicit `waiting_on_runtime_substrate` to `released_without_substrate` fallback aligned instead of leaving it implicit. It also keeps the first shared-request trio explicit while `samples/zigux/runtime_trace_events_loader.zig` stays adjacent to that union as a sample-only blocked scaffold under the separate trace-core freeze boundary."
     },
     {
       "id": "runtime-loader-review-checklist",
@@ -313,7 +313,7 @@
       "status": "blocked_on_runtime_substrate",
       "kind": "runtime_substrate_boundary",
       "zigux_destination": "samples/zigux/runtime_trace_events_loader.zig",
-      "why_now": "The fourth Phase 9 runtime pilot is still `samples/zigux/runtime_trace_events.zig`, but its loader plan remains intentionally absent because the trace-events packet keeps `kernel/trace/ring_buffer.c` at a study-only boundary and still blocks runtime task ownership, polling and event-loop substrate, thread creation, and tracepoint-registration lifecycle wiring."
+      "why_now": "The fourth Phase 9 runtime pilot is still `samples/zigux/runtime_trace_events.zig`, and its bounded `samples/zigux/runtime_trace_events_loader.zig` scaffold now exists, but that scaffold remains intentionally outside the first shared-request union because the trace-events packet keeps `kernel/trace/ring_buffer.c` at a study-only boundary and still blocks runtime task ownership, polling and event-loop substrate, thread creation, and tracepoint-registration lifecycle wiring."
     },
     {
       "id": "runtime-loader-workqueue-freeze-map-boundary",
