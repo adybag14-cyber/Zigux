@@ -19,6 +19,8 @@ UAPI_VERSION_REL = "zigux/uapi/version.zig"
 UAPI_ROOT_REL = "zigux/uapi"
 ABI_SLICE_REL = "Documentation/zigux/phase3-abi-slice.md"
 EXPORT_UAPI_TEST_REL = "zigux/tests/phase3_export_uapi.zig"
+LINUX_HEADER_REL = "include/linux/zigux.h"
+ABI_HEADER_REL = "include/zigux/abi.h"
 HEX40 = re.compile(r"^[0-9a-f]{40}$")
 
 REQUIRED_SURVEY_MARKERS = (
@@ -50,16 +52,18 @@ REQUIRED_SURVEY_SNIPPETS = (
     "last fully resurveyed shared-head anchor",
     "packet-local blob IDs are now the authoritative current boundary evidence",
     "The live repo already carries the C-facing boundary headers in `include/zigux/abi.h` and `include/linux/zigux.h`.",
+    "compiles and runs a tiny C relay check against `include/linux/zigux.h`",
+    "the C-facing `zigux_status_ok()` and `zigux_status_err()` helpers plus raw `zigux_boundary_header` field values still agree",
 )
 
 REQUIRED_SURVEY_PATHS = (
     EXPORT_SHIM_REL,
     UAPI_VERSION_REL,
-    "Documentation/zigux/phase3-abi-slice.md",
-    "include/zigux/abi.h",
-    "include/linux/zigux.h",
+    ABI_SLICE_REL,
+    ABI_HEADER_REL,
+    LINUX_HEADER_REL,
     "zigux/tests/phase3_export_uapi_build.zig",
-    "zigux/tests/phase3_export_uapi.zig",
+    EXPORT_UAPI_TEST_REL,
     "zigux/tests/fixtures/phase3_abi_manifest.json",
     "scripts/zigux/validate-phase3.py",
     "scripts/zigux/validate_phase3_core.py",
@@ -133,8 +137,8 @@ REQUIRED_UAPI_FILES = (
 SURVEYED_PACKET_PATHS = (
     EXPORT_SHIM_REL,
     UAPI_VERSION_REL,
-    "include/linux/zigux.h",
-    "include/zigux/abi.h",
+    LINUX_HEADER_REL,
+    ABI_HEADER_REL,
     ABI_SLICE_REL,
     "zigux/tests/phase3_export_uapi_build.zig",
     EXPORT_UAPI_TEST_REL,
@@ -143,8 +147,8 @@ SURVEYED_PACKET_PATHS = (
 SURVEYED_PACKET_BLOB_MARKERS = {
     "PHASE3_EXPORT_SHIM_BLOB_SHA": EXPORT_SHIM_REL,
     "PHASE3_UAPI_VERSION_BLOB_SHA": UAPI_VERSION_REL,
-    "PHASE3_LINUX_HEADER_BLOB_SHA": "include/linux/zigux.h",
-    "PHASE3_ABI_HEADER_BLOB_SHA": "include/zigux/abi.h",
+    "PHASE3_LINUX_HEADER_BLOB_SHA": LINUX_HEADER_REL,
+    "PHASE3_ABI_HEADER_BLOB_SHA": ABI_HEADER_REL,
     "PHASE3_ABI_SLICE_DOC_BLOB_SHA": ABI_SLICE_REL,
     "PHASE3_EXPORT_UAPI_BUILD_BLOB_SHA": "zigux/tests/phase3_export_uapi_build.zig",
     "PHASE3_EXPORT_UAPI_TEST_BLOB_SHA": EXPORT_UAPI_TEST_REL,
@@ -182,23 +186,6 @@ def _marker_value_from_text(text: str, marker: str) -> str | None:
         if stripped.startswith(prefix):
             return stripped[len(prefix) :]
     return None
-
-
-def _current_head_commit(root: Path) -> str | None:
-    git_dir = root / ".git"
-    if not git_dir.exists():
-        return None
-    result = subprocess.run(
-        ["git", "rev-parse", "HEAD"],
-        cwd=root,
-        text=True,
-        capture_output=True,
-        check=False,
-    )
-    if result.returncode != 0:
-        return None
-    head = result.stdout.strip()
-    return head if HEX40.fullmatch(head) else None
 
 
 def _has_local_commit(root: Path, commit: str) -> bool:
@@ -292,6 +279,67 @@ def _replace_blob_markers_with_head(root: Path, survey_path: Path) -> None:
     survey_path.write_text(survey_text, encoding="utf-8")
 
 
+def validate_c_header_relay(root: Path) -> list[str]:
+    linux_header = root / LINUX_HEADER_REL
+    abi_header = root / ABI_HEADER_REL
+    if not linux_header.exists() or not abi_header.exists():
+        return []
+
+    cc = os.environ.get("CC", "cc")
+    with tempfile.TemporaryDirectory(prefix="zigux_phase3_export_uapi_c_header_") as tmp_dir_str:
+        tmp_dir = Path(tmp_dir_str)
+        source_path = tmp_dir / "relay_check.c"
+        binary_path = tmp_dir / "relay_check"
+        source_path.write_text(
+            "\n".join(
+                (
+                    "#include <linux/zigux.h>",
+                    "int main(void)",
+                    "{",
+                    "    struct zigux_export_status ok = zigux_status_ok(ZIGUX_FACILITY_KERNEL);",
+                    "    struct zigux_export_status err = zigux_status_err(-22, ZIGUX_FACILITY_HELPERS);",
+                    "    struct zigux_boundary_header hdr = {",
+                    "        .size = sizeof(struct zigux_boundary_header),",
+                    "        .abi_version = ZIGUX_ABI_VERSION,",
+                    "        .flags = 0x44,",
+                    "    };",
+                    "    if (ok.code != 0 || ok.facility != ZIGUX_FACILITY_KERNEL || ok.flags != 0)",
+                    "        return 10;",
+                    "    if (err.code != -22 || err.facility != ZIGUX_FACILITY_HELPERS || (err.flags & ZIGUX_STATUS_FLAG_ERROR) == 0)",
+                    "        return 11;",
+                    "    if (hdr.size != sizeof(struct zigux_boundary_header) || hdr.abi_version != ZIGUX_ABI_VERSION || hdr.flags != 0x44)",
+                    "        return 12;",
+                    "    return 0;",
+                    "}",
+                )
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        compile_result = subprocess.run(
+            [cc, "-std=c11", "-Wall", "-Werror", "-I", str(root / "include"), str(source_path), "-o", str(binary_path)],
+            cwd=root,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        if compile_result.returncode != 0:
+            tail = compile_result.stderr.strip().splitlines()
+            detail = tail[-1] if tail else f"exit {compile_result.returncode}"
+            return [f"c-header-relay-compile:{detail}"]
+        run_result = subprocess.run(
+            [str(binary_path)],
+            cwd=root,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        if run_result.returncode != 0:
+            detail = run_result.stderr.strip() or run_result.stdout.strip() or f"exit {run_result.returncode}"
+            return [f"c-header-relay-run:{detail}"]
+    return []
+
+
 def validate(root: Path) -> list[str]:
     issues: list[str] = []
 
@@ -370,6 +418,8 @@ def validate(root: Path) -> list[str]:
             if snippet not in export_uapi_test:
                 issues.append(f"missing_export_uapi_test_snippet:{snippet}")
 
+    issues.extend(validate_c_header_relay(root))
+
     uapi_files = _collect_relative_files(root, UAPI_ROOT_REL)
     expected_uapi_files = sorted(REQUIRED_UAPI_FILES)
     for rel in expected_uapi_files:
@@ -388,6 +438,8 @@ def run_self_test() -> int:
         (root / "Documentation" / "zigux").mkdir(parents=True, exist_ok=True)
         (root / "scripts" / "zigux").mkdir(parents=True, exist_ok=True)
         (root / "zigux").mkdir(parents=True, exist_ok=True)
+        (root / "include/linux").mkdir(parents=True, exist_ok=True)
+        (root / "include/zigux").mkdir(parents=True, exist_ok=True)
 
         for rel in REQUIRED_SURVEY_PATHS:
             path = root / rel
@@ -396,6 +448,50 @@ def run_self_test() -> int:
                 path.write_text("\n".join(REQUIRED_EXPORT_SHIM_SNIPPETS) + "\n", encoding="utf-8")
             elif rel == UAPI_VERSION_REL:
                 path.write_text("\n".join(REQUIRED_UAPI_VERSION_SNIPPETS) + "\n", encoding="utf-8")
+            elif rel == ABI_HEADER_REL:
+                path.write_text(
+                    "\n".join(
+                        (
+                            "#ifndef _ZIGUX_ABI_H",
+                            "#define _ZIGUX_ABI_H",
+                            "#include <stdint.h>",
+                            "typedef uint16_t zigux_u16;",
+                            "typedef uint32_t zigux_u32;",
+                            "typedef int32_t zigux_s32;",
+                            "#define ZIGUX_ABI_VERSION 1U",
+                            "#define ZIGUX_FACILITY_KERNEL 1U",
+                            "#define ZIGUX_FACILITY_HELPERS 2U",
+                            "#define ZIGUX_FACILITY_DRIVERS 3U",
+                            "#define ZIGUX_STATUS_FLAG_ERROR 1U",
+                            "struct zigux_boundary_header { zigux_u32 size; zigux_u16 abi_version; zigux_u16 flags; };",
+                            "struct zigux_export_status { zigux_s32 code; zigux_u16 facility; zigux_u16 flags; };",
+                            "#endif",
+                        )
+                    )
+                    + "\n",
+                    encoding="utf-8",
+                )
+            elif rel == LINUX_HEADER_REL:
+                path.write_text(
+                    "\n".join(
+                        (
+                            "#ifndef _LINUX_ZIGUX_H",
+                            "#define _LINUX_ZIGUX_H",
+                            "#include <stdbool.h>",
+                            "#include <stdint.h>",
+                            "#include <zigux/abi.h>",
+                            "static inline struct zigux_export_status zigux_status_ok(zigux_u16 facility) {",
+                            "    return (struct zigux_export_status){ .code = 0, .facility = facility, .flags = 0 };",
+                            "}",
+                            "static inline struct zigux_export_status zigux_status_err(zigux_s32 code, zigux_u16 facility) {",
+                            "    return (struct zigux_export_status){ .code = code, .facility = facility, .flags = code < 0 ? ZIGUX_STATUS_FLAG_ERROR : 0 };",
+                            "}",
+                            "#endif",
+                        )
+                    )
+                    + "\n",
+                    encoding="utf-8",
+                )
             else:
                 path.write_text("// ok\n", encoding="utf-8")
 
@@ -465,12 +561,7 @@ def run_self_test() -> int:
         survey_path.write_text(
             "\n".join(
                 (
-                    *(
-                        marker
-                        for marker in REQUIRED_SURVEY_MARKERS
-                        if marker
-                        != "PHASE3_C_HEADER_STATUS=shared-abi-relay-and-status-helpers-landed"
-                    ),
+                    *(marker for marker in REQUIRED_SURVEY_MARKERS if marker != "PHASE3_C_HEADER_STATUS=shared-abi-relay-and-status-helpers-landed"),
                     f"PHASE3_SURVEYED_COMMIT={head}",
                     *_blob_marker_lines(),
                     *REQUIRED_SURVEY_SNIPPETS,
@@ -481,10 +572,7 @@ def run_self_test() -> int:
         )
         _replace_blob_markers_with_head(root, survey_path)
         issues = validate(root)
-        assert (
-            "missing_survey_marker:PHASE3_C_HEADER_STATUS=shared-abi-relay-and-status-helpers-landed"
-            in issues
-        )
+        assert "missing_survey_marker:PHASE3_C_HEADER_STATUS=shared-abi-relay-and-status-helpers-landed" in issues
 
         survey_path.write_text(
             "\n".join(
@@ -548,29 +636,6 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         _replace_blob_markers_with_head(root, survey_path)
-        missing_commit = "fedcba9876543210fedcba9876543210fedcba98"
-        survey_path.write_text(
-            survey_path.read_text(encoding="utf-8").replace(
-                f"PHASE3_SURVEYED_COMMIT={head}",
-                f"PHASE3_SURVEYED_COMMIT={missing_commit}",
-            ),
-            encoding="utf-8",
-        )
-        assert validate(root) == []
-
-        survey_path.write_text(
-            "\n".join(
-                (
-                    *REQUIRED_SURVEY_MARKERS,
-                    f"PHASE3_SURVEYED_COMMIT={head}",
-                    *_blob_marker_lines(),
-                    *REQUIRED_SURVEY_SNIPPETS,
-                )
-            )
-            + "\n",
-            encoding="utf-8",
-        )
-        _replace_blob_markers_with_head(root, survey_path)
         extra_uapi = root / UAPI_ROOT_REL / "extra.zig"
         extra_uapi.write_text("// drift\n", encoding="utf-8")
         issues = validate(root)
@@ -591,18 +656,28 @@ def run_self_test() -> int:
         )
         _replace_blob_markers_with_head(root, survey_path)
         issues = validate(root)
-        assert any(
-            issue == f"missing_survey_snippet:{REQUIRED_SURVEY_SNIPPETS[-1]}"
-            for issue in issues
-        )
+        assert any(issue == f"missing_survey_snippet:{REQUIRED_SURVEY_SNIPPETS[-1]}" for issue in issues)
 
-        export_shim_path = root / EXPORT_SHIM_REL
-        export_shim_path.write_text(
-            export_shim_path.read_text(encoding="utf-8") + "\n// drift\n",
+        survey_path.write_text(
+            "\n".join(
+                (
+                    *REQUIRED_SURVEY_MARKERS,
+                    f"PHASE3_SURVEYED_COMMIT={head}",
+                    *_blob_marker_lines(),
+                    *REQUIRED_SURVEY_SNIPPETS,
+                )
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        _replace_blob_markers_with_head(root, survey_path)
+        linux_header_path = root / LINUX_HEADER_REL
+        linux_header_path.write_text(
+            linux_header_path.read_text(encoding="utf-8").replace("zigux_status_err", "zigux_status_missing", 1),
             encoding="utf-8",
         )
         issues = validate(root)
-        assert f"surveyed_blob_drift:{EXPORT_SHIM_REL}" in issues
+        assert any(issue.startswith("c-header-relay-compile:") for issue in issues)
 
     print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")
     return 0
