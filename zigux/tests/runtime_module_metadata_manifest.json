@@ -93,6 +93,24 @@
       "role": "owns the focused replay that proves the note, manifest, starter descriptors, and shared RuntimeLoadRequest metadata stay aligned"
     },
     {
+      "id": "runtime-module-metadata-packet-checker",
+      "kind": "validation",
+      "path": "scripts/zigux/check-phase9-module-metadata-packet.py",
+      "role": "owns the fail-closed checker for this dedicated metadata packet, including the survey note, focused replay, shared Phase 9 bundle replay entrypoint, tests-root guidance, and adjacent loader-gap note"
+    },
+    {
+      "id": "phase9-build-gate",
+      "kind": "validation",
+      "path": "zigux/tests/phase9_build.zig",
+      "role": "owns the shared Phase 9 runtime bundle replay entrypoint that keeps the dedicated metadata survey in the reviewable runtime packet"
+    },
+    {
+      "id": "phase9-tests-readme-guide",
+      "kind": "documentation",
+      "path": "zigux/tests/README.md",
+      "role": "owns the tests-root guidance that keeps the dedicated metadata checker and shared replay route explicit beside the loader-gap packet"
+    },
+    {
       "id": "runtime-loader-gap-note",
       "kind": "documentation",
       "path": "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
@@ -117,6 +135,18 @@
     {
       "surface": "zigux/tests/runtime_module_metadata_survey.zig",
       "owns": "focused replay of the note, manifest, starter descriptors, and shared RuntimeLoadRequest metadata"
+    },
+    {
+      "surface": "scripts/zigux/check-phase9-module-metadata-packet.py",
+      "owns": "fail-closed checker for the dedicated metadata packet, including the survey note, focused replay, shared Phase 9 bundle replay entrypoint, tests-root guidance, and adjacent loader-gap note"
+    },
+    {
+      "surface": "zigux/tests/phase9_build.zig",
+      "owns": "shared Phase 9 runtime bundle replay entrypoint that keeps the dedicated metadata survey in the reviewable runtime packet"
+    },
+    {
+      "surface": "zigux/tests/README.md",
+      "owns": "tests-root guidance that keeps the dedicated metadata checker and shared replay route explicit beside the loader-gap packet"
     },
     {
       "surface": "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
