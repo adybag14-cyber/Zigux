@@ -97,6 +97,20 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_validation_matrix_present);
     try std.testing.expectEqual(@as(usize, 15), manifest.gaps.len);
 
+    const expected_commit_pin = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "reviewed against live `master` `{s}`",
+        .{manifest.surveyed_commit},
+    );
+    defer std.testing.allocator.free(expected_commit_pin);
+
+    const expected_matrix_snapshot_line = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "- inspected `master` head: `{s}`",
+        .{manifest.surveyed_commit},
+    );
+    defer std.testing.allocator.free(expected_matrix_snapshot_line);
+
     try std.testing.expect(std.mem.indexOf(u8, driver_source, "pub const PlatformDriverRegistrationMode = enum") != null);
     try std.testing.expect(std.mem.indexOf(u8, driver_source, "pub const PlatformDriverIdentitySummary = struct") != null);
     try std.testing.expect(std.mem.indexOf(u8, driver_source, "pub fn platformDriverIdentitySummary() PlatformDriverIdentitySummary") != null);
@@ -106,6 +120,8 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
     try std.testing.expect(std.mem.indexOf(u8, driver_source, ".default_registration_mode = .module_platform_driver") != null);
     try std.testing.expect(std.mem.indexOf(u8, driver_source, ".supports_arch_initcall_override = true") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "PHASE11_GPIO_WDT_STATUS=metadata_teardown_and_register_device_surface_landed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, expected_commit_pin) != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, expected_matrix_snapshot_line) != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "## Shared Replay Surface") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "phase11-gpio-wdt-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "phase11-gpio-wdt-survey-tests") != null);
@@ -131,6 +147,7 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "The next honest bounded step inside the same Phase 11 lane is to leave the starter parked unless fresh repo inspection finds another comparably small simple-driver, teardown, or failure-mode drift inside `gpio_wdt`.") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "Keep descriptor-backed preflight, reboot glue, and broader watchdog registration work blocked from this slice.") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "move from that metadata-only registration plan to the first bounded register-device call surface") == null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, expected_commit_pin) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "platformDriverIdentitySummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "gpio-wdt") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "linux,wdt-gpio") != null);
