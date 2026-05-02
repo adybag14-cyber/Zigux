@@ -293,6 +293,9 @@ test "phase 5 kobject contributor docs stay aligned with the shipped review surf
     }
     try expectContains(survey_note, "shared sample-root catalog in `samples/zigux/README.md` plus the shared prompts in `Documentation/zigux/review-checklist.md`");
     try expectContains(survey_note, "dedicated kobject review-packet stanza");
+    try expectContains(survey_note, "shared tests-root guide in `zigux/tests/README.md`");
+    try expectContains(survey_note, "direct `zig test samples/zigux/kobject_example.zig` replay");
+    try expectContains(survey_note, "paired `zig test zigux/tests/phase5_kobject_example_survey.zig` replay");
     try expectContains(survey_note, "Linux `foo`/`baz`/`bar` attribute-array order");
     try expectContains(survey_note, "shared `0664` attribute mode pattern");
     try expectContains(survey_note, "initialized-but-not-registered ownership boundary");
