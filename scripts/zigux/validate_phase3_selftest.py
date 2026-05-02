@@ -495,6 +495,17 @@ def run_self_test() -> int:
         assert validate_export_uapi_boundary(root) == [
             "export-uapi-gate: missing_survey_marker:PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig"
         ]
+        export_uapi_check.write_text(
+            "#!/usr/bin/env python3\n"
+            "print('PHASE3_EXPORT_UAPI_SURVEY=fail')\n"
+            "print('surveyed_blob_drift:zigux/uapi/version.zig')\n"
+            "raise SystemExit(1)\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert validate_export_uapi_boundary(root) == [
+            "export-uapi-gate: surveyed_blob_drift:zigux/uapi/version.zig"
+        ]
 
         low_level_wrapper_check = root / ABI_LOW_LEVEL_SURVEY_CHECK_REL
         low_level_wrapper_check.write_text(
@@ -557,7 +568,7 @@ def run_self_test() -> int:
         ]
 
     print("PHASE3_VALIDATOR_SELF_TEST=pass")
-    print("PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT=9")
+    print("PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
