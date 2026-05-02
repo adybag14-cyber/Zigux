@@ -152,7 +152,7 @@ def run_self_test() -> int:
             )
 
         review_path = tmp_root / REVIEW_CHECKLIST_PATH
-        review_path.writeText("# Zigux Review Checklist\n", encoding="utf-8")
+        review_path.write_text("# Zigux Review Checklist\n", encoding="utf-8")
         failures = validate(tmp_root)
         if "review_checklist:four_surface_non_owner_line" not in failures:
             raise SystemExit(
