@@ -30,8 +30,8 @@ The live Zigux tree is no longer survey-only here. It already carries a small `f
 - `fs/libfs.c` remains broad enough to cross several VFS boundaries at once: dentries, directory iteration, inode bookkeeping, pseudo-filesystem mounting, and generic buffer-copy helpers.
 - the live repo now has a landed `fs/libfs.zig` helper slice plus `zigux/tests/phase13_libfs.zig`, and both the explicit standalone `zig test` entrypoints with `libfs` module wiring plus `zigux/tests/phase13_build.zig` compile that helper and reviewability path.
 - the current survey packet is pinned to inspected `master` head `ff87456109937e1ffbe7f2a91a79c2661874ef88` so future lane runs can detect note and manifest drift before widening helper coverage.
-- the current helper slice stays intentionally narrow around `simple_statfs()` defaults, the `always_delete_dentry()` policy, the branch decisions inside `simple_lookup()`, the pure buffer-copy helper trio, the early `dcache_dir_lseek()` and `offset_dir_llseek()` seek-policy surface, one tiny `dcache_readdir()`-adjacent emit planner, one bounded `dcache_dir_open()` / `dcache_readdir()` cursor-precondition planner, one bounded `dcache_dir_close()` release planner, a bounded `simple_transaction_get()` / `simple_transaction_set()` staging-buffer planner, and a pure `simple_transaction_read()` / `simple_transaction_release()` follow-up that only models private-data presence checks, read delegation intent, and release bookkeeping.
-- the reviewability gate and manifest tie the current helper slice, tests, build wire, slice note, and survey note together so future runs can verify the exact Phase 13 lane state before widening helper coverage, including the exported descriptor metadata for the already-landed cursor-reposition planning surface.
+- the current helper slice stays intentionally narrow around `simple_statfs()` defaults, the `always_delete_dentry()` policy, the branch decisions inside `simple_lookup()`, the pure buffer-copy helper trio, the early `dcache_dir_lseek()` and `offset_dir_llseek()` seek-policy surface, one tiny `dcache_readdir()`-adjacent emit planner, one bounded `dcache_dir_open()` / `dcache_readdir()` cursor-precondition planner, one bounded `dcache_dir_close()` release planner, a bounded `simple_transaction_get()` / `simple_transaction_set()` staging-buffer planner, a pure `simple_transaction_read()` / `simple_transaction_release()` follow-up, and a pure `simple_open()` private-data handoff planner.
+- the reviewability gate and manifest tie the current helper slice, tests, build wire, slice note, and survey note together so future runs can verify the exact Phase 13 lane state before widening helper coverage, including the exported descriptor metadata for the already-landed cursor-reposition planning surface and the new simple-open planning surface.
 - directory cursor helpers such as `dcache_dir_open()` and the deeper cursor-backed `dcache_readdir()` traversal remain riskier because they depend on cursor dentries, sibling lists, lock ordering, and reschedule-aware traversal.
 
 ## Recorded gaps
@@ -51,10 +51,11 @@ The current lane state is:
 - landed `phase13-libfs-dcache-cursor-preconditions`
 - landed `phase13-libfs-dcache-cursor-reposition-bookkeeping`
 - landed `phase13-libfs-dcache-dir-close-release-bookkeeping`
+- landed `phase13-libfs-simple-open-private-data-planning`
 - blocked `phase13-libfs-dcache-cursor-helpers`
 - blocked `phase13-libfs-inode-and-pseudofs-lifecycle`
 
-This keeps the lane explicit without overstating progress: Zigux now has a real `fs/libfs.zig` helper slice plus a reviewability checkpoint, a bounded cursor-precondition planner, a bounded post-scan cursor-reposition planner, a bounded close-path release planner, a bounded transaction-buffer planner, and a pure transaction read/release follow-up, but it still does not claim live dcache parity, mutable file-private transaction state, pseudo-filesystem mounting, inode lifecycle work, rename-state behavior, or cursor-backed directory traversal.
+This keeps the lane explicit without overstating progress: Zigux now has a real `fs/libfs.zig` helper slice plus a reviewability checkpoint, a bounded cursor-precondition planner, a bounded post-scan cursor-reposition planner, a bounded close-path release planner, a bounded transaction-buffer planner, a pure transaction read/release follow-up, and a pure simple-open private-data planner, but it still does not claim live dcache parity, mutable file-private transaction state, pseudo-filesystem mounting, inode lifecycle work, rename-state behavior, or cursor-backed directory traversal.
 
 ## Non-goals
 
@@ -84,7 +85,7 @@ This slice does not claim:
 
 - inspected head: `ff87456109937e1ffbe7f2a91a79c2661874ef88`
 - `zig test fs/libfs.zig`: passed (`0` embedded tests; parse and compile check only)
-- `zig test --dep libfs -Mroot=zigux/tests/phase13_libfs.zig -Mlibfs=fs/libfs.zig`: passed (`22/22` tests)
+- `zig test --dep libfs -Mroot=zigux/tests/phase13_libfs.zig -Mlibfs=fs/libfs.zig`: passed (`23/23` tests)
 - `zig test --dep libfs -Mroot=zigux/tests/phase13_libfs_reviewability.zig -Mlibfs=fs/libfs.zig`: passed (`1/1` tests)
 
 ## Next bounded step
