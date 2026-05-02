@@ -134,6 +134,19 @@ test "phase10 virtio input survey manifest records the live starter and remainin
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "kernel/trace/ring_buffer.zig") != null);
     try std.testing.expect(closure_manifest == .object);
 
+    const survey_provenance = closure_manifest.object.get("survey_provenance") orelse return error.TestUnexpectedResult;
+    try std.testing.expect(survey_provenance == .object);
+    const survey_lane_keys = survey_provenance.object.get("lane_keys") orelse return error.TestUnexpectedResult;
+    try std.testing.expect(survey_lane_keys == .object);
+    const input_lane_key = survey_lane_keys.object.get("input") orelse return error.TestUnexpectedResult;
+    try std.testing.expect(input_lane_key == .string);
+    try std.testing.expectEqualStrings(manifest.lane_key, input_lane_key.string);
+    const surveyed_commits = survey_provenance.object.get("surveyed_commits") orelse return error.TestUnexpectedResult;
+    try std.testing.expect(surveyed_commits == .object);
+    const input_surveyed_commit = surveyed_commits.object.get("input") orelse return error.TestUnexpectedResult;
+    try std.testing.expect(input_surveyed_commit == .string);
+    try std.testing.expectEqualStrings(manifest.surveyed_commit, input_surveyed_commit.string);
+
     const landed_input_helper_evidence = closure_manifest.object.get("landed_input_helper_evidence") orelse return error.TestUnexpectedResult;
     try std.testing.expect(landed_input_helper_evidence == .object);
     const input_helper_evidence = landed_input_helper_evidence.object.get("zigux/tests/phase10_virtio_input_manifest.json") orelse return error.TestUnexpectedResult;
