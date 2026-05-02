@@ -18,6 +18,8 @@ test "runtime trace-events diff gate keeps count-gated main-thread replay explic
     try std.testing.expect(replay.saw_vararg_payload);
     try std.testing.expect(replay.saw_rel_loc_payload);
     try std.testing.expect(!replay.saw_conditional_path);
+    try std.testing.expectEqualStrings("event-sample", replay.main_thread_label orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("event-sample-fn", replay.function_thread_label orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings("hello", replay.last_main_foo_bar_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings("Gandalf", replay.last_main_random_choice_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqual(@as(usize, 2), replay.last_main_vararg_array_length orelse return error.ExpectedMainPayload);
@@ -36,6 +38,8 @@ test "runtime trace-events diff gate keeps function-callback registration balanc
 
     try std.testing.expectError(error.FunctionThreadNotRegistered, module.emitFunctionIteration(0));
 
+    try std.testing.expectEqualStrings("event-sample", module.summary().main_thread_label orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqualStrings("event-sample-fn", module.summary().function_thread_label orelse return error.ExpectedFunctionPayload);
     try module.registerFunctionThread();
     try module.registerFunctionThread();
     try std.testing.expectEqual(@as(usize, 2), module.summary().registration_depth);
@@ -50,6 +54,8 @@ test "runtime trace-events diff gate keeps function-callback registration balanc
     try std.testing.expectEqual(@as(usize, 2), replay.total_events);
     try std.testing.expectEqual(@as(i32, 9), replay.last_fn_count);
     try std.testing.expectEqual(@as(usize, 2), replay.registration_depth);
+    try std.testing.expectEqualStrings("event-sample", replay.main_thread_label orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqualStrings("event-sample-fn", replay.function_thread_label orelse return error.ExpectedFunctionPayload);
     try std.testing.expectEqualStrings("Look at me", replay.last_function_foo_bar_message orelse return error.ExpectedFunctionPayload);
     try std.testing.expectEqualStrings("Look at me too", replay.last_function_template_message orelse return error.ExpectedFunctionPayload);
 
@@ -91,6 +97,8 @@ test "runtime trace-events diff gate keeps the selftest family order and gated r
     try std.testing.expectEqual(@as(i32, 0), replay.last_main_count);
     try std.testing.expectEqual(@as(i32, 1), replay.last_fn_count);
     try std.testing.expect(replay.saw_conditional_path);
+    try std.testing.expectEqualStrings("event-sample", replay.main_thread_label orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("event-sample-fn", replay.function_thread_label orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings("Mother Goose", replay.last_main_random_choice_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings("Some times print", replay.last_main_conditional_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings("prints other times", replay.last_main_template_cond_message orelse return error.ExpectedMainPayload);
