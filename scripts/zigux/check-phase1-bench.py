@@ -120,6 +120,31 @@ def validate_expectations_shape(expectations: dict[str, object]) -> None:
                 f'{iteration_key or bitmap_exact_checksum}'
             )
 
+    find_bit_required_iterations = {
+        'PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS': {
+            'PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM',
+            'PHASE1_BENCH_FIND_BIT_FAMILY_CHECKSUM',
+            'PHASE1_BENCH_FIND_TAIL_WINDOW_CHECKSUM',
+        },
+        'PHASE1_BENCH_FIND_SAME_WORD_ITERATIONS': {
+            'PHASE1_BENCH_FIND_SAME_WORD_CHECKSUM',
+        },
+        'PHASE1_BENCH_FIND_NEXT_ZERO_BIT_ITERATIONS': {
+            'PHASE1_BENCH_FIND_NEXT_ZERO_BIT_CHECKSUM',
+        },
+        'PHASE1_BENCH_FIND_NEXT_AND_BIT_ITERATIONS': {
+            'PHASE1_BENCH_FIND_NEXT_AND_BIT_CHECKSUM',
+        },
+    }
+    for iteration_key, exact_checksum_keys in find_bit_required_iterations.items():
+        present_exact_checksums = metric_groups['exact_checksums'] & exact_checksum_keys
+        if present_exact_checksums and iteration_key not in metric_groups['iterations']:
+            checksum_key = sorted(present_exact_checksums)[0]
+            raise SystemExit(
+                'phase1-bench:expectations:iterations:find_bit_required:'
+                f'{iteration_key}:{checksum_key}'
+            )
+
     rbtree_exact_checksum = next(
         (
             key
@@ -319,6 +344,7 @@ def run_self_test() -> int:
 
     validate_expectations_shape(expectations)
     validate_expectations_shape(bitmap_expectations)
+    validate_expectations_shape(find_bit_expectations)
     validate_expectations_shape(rbtree_expectations)
 
     invalid_overlap = {
@@ -399,6 +425,44 @@ def run_self_test() -> int:
     else:
         raise SystemExit('phase1-bench:self-test:invalid_bitmap_missing_iterations:unexpected_pass')
 
+    invalid_find_bit_missing_next_iterations = {
+        **find_bit_expectations,
+        'iterations': {
+            'PHASE1_BENCH_FIND_SAME_WORD_ITERATIONS': 20000,
+            'PHASE1_BENCH_FIND_NEXT_ZERO_BIT_ITERATIONS': 20000,
+            'PHASE1_BENCH_FIND_NEXT_AND_BIT_ITERATIONS': 20000,
+        },
+    }
+    try:
+        validate_expectations_shape(invalid_find_bit_missing_next_iterations)
+    except SystemExit as exc:
+        assert_equal(
+            'invalid_find_bit_missing_next_iterations',
+            str(exc),
+            'phase1-bench:expectations:iterations:find_bit_required:PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS:PHASE1_BENCH_FIND_BIT_FAMILY_CHECKSUM',
+        )
+    else:
+        raise SystemExit('phase1-bench:self-test:invalid_find_bit_missing_next_iterations:unexpected_pass')
+
+    invalid_find_bit_missing_zero_iterations = {
+        **find_bit_expectations,
+        'iterations': {
+            'PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS': 20000,
+            'PHASE1_BENCH_FIND_SAME_WORD_ITERATIONS': 20000,
+            'PHASE1_BENCH_FIND_NEXT_AND_BIT_ITERATIONS': 20000,
+        },
+    }
+    try:
+        validate_expectations_shape(invalid_find_bit_missing_zero_iterations)
+    except SystemExit as exc:
+        assert_equal(
+            'invalid_find_bit_missing_zero_iterations',
+            str(exc),
+            'phase1-bench:expectations:iterations:find_bit_required:PHASE1_BENCH_FIND_NEXT_ZERO_BIT_ITERATIONS:PHASE1_BENCH_FIND_NEXT_ZERO_BIT_CHECKSUM',
+        )
+    else:
+        raise SystemExit('phase1-bench:self-test:invalid_find_bit_missing_zero_iterations:unexpected_pass')
+
     invalid_rbtree_missing_iterations = {
         **rbtree_expectations,
         'iterations': {},
@@ -415,7 +479,7 @@ def run_self_test() -> int:
         raise SystemExit('phase1-bench:self-test:invalid_rbtree_missing_iterations:unexpected_pass')
 
     print('PHASE1_BENCH_SELF_TEST=pass')
-    print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=16')
+    print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=18')
     return 0
 
 
