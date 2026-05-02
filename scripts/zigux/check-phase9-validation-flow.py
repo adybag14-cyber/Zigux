@@ -7,7 +7,7 @@ import sys
 import tempfile
 
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[2]
 
 MAKEFILE_PATH = "zigux/Makefile"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
