@@ -55,9 +55,9 @@ test "phase 15 freeze-map governance manifest records the active lane and blocke
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P15-Y05", manifest.lane_key);
+    try std.testing.expectEqualStrings("arch-council", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("061e7433848f59ef6efd3b25f91b4916a9070de1", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("d918be7ded6383c13cbd5eea4ca4aa4f3cdafee4", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_freeze_in_c_targets.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_study_only_targets.len);
@@ -65,8 +65,8 @@ test "phase 15 freeze-map governance manifest records the active lane and blocke
     try std.testing.expectEqual(@as(usize, 2), manifest.study_only_targets.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.repo_reality_evidence_paths.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.current_blockers.len);
-    try std.testing.expectEqual(@as(usize, 5), manifest.governance_requirements.len);
-    try std.testing.expectEqual(@as(usize, 9), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 6), manifest.governance_requirements.len);
+    try std.testing.expectEqual(@as(usize, 10), manifest.gaps.len);
 
     try std.testing.expectEqualStrings("kernel/sched/core.c", manifest.roadmap_freeze_in_c_targets[0]);
     try std.testing.expectEqualStrings("mm/page_alloc.c", manifest.roadmap_freeze_in_c_targets[1]);
@@ -83,6 +83,18 @@ test "phase 15 freeze-map governance manifest records the active lane and blocke
     var blocked_count: usize = 0;
     var saw_note = false;
     var saw_roadmap_vs_repo_reality = false;
+    var saw_rollback_threshold_sync = false;
+    var saw_rollback_threshold_requirement = false;
+
+    for (manifest.governance_requirements) |requirement| {
+        if (std.mem.eql(u8, requirement.id, "freeze-map-rollback-threshold")) {
+            saw_rollback_threshold_requirement = true;
+            try std.testing.expectEqualStrings(
+                "Any reopened freeze-in-C review packet must state the rollback threshold that forces the anchor back to its blocked freeze posture if review evidence stops being explicit.",
+                requirement.summary,
+            );
+        }
+    }
 
     for (manifest.gaps) |gap| {
         try std.testing.expect(gap.id.len > 0);
@@ -101,15 +113,21 @@ test "phase 15 freeze-map governance manifest records the active lane and blocke
             saw_roadmap_vs_repo_reality = true;
             try std.testing.expectEqualStrings("Documentation/zigux/phase15-freeze-map-governance.md", gap.zigux_destination);
         }
+        if (std.mem.eql(u8, gap.id, "phase15-rollback-threshold-sync")) {
+            saw_rollback_threshold_sync = true;
+            try std.testing.expectEqualStrings("Documentation/zigux/phase15-freeze-map-governance.md", gap.zigux_destination);
+        }
     }
 
-    try std.testing.expectEqual(@as(usize, 8), landed_count);
+    try std.testing.expectEqual(@as(usize, 9), landed_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_note);
     try std.testing.expect(saw_roadmap_vs_repo_reality);
+    try std.testing.expect(saw_rollback_threshold_sync);
+    try std.testing.expect(saw_rollback_threshold_requirement);
 }
 
-test "phase 15 freeze-map governance note keeps the active lane, current head, and unchanged blocker posture explicit" {
+test "phase 15 freeze-map governance note keeps the active lane, current head, rollback threshold, and unchanged blocker posture explicit" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -121,8 +139,11 @@ test "phase 15 freeze-map governance note keeps the active lane, current head, a
     );
     defer std.testing.allocator.free(note);
 
-    try std.testing.expect(hasSubstring(note, "PHASE15_LANE_KEY=P15-Y05"));
-    try std.testing.expect(hasSubstring(note, "061e7433848f59ef6efd3b25f91b4916a9070de1"));
+    try std.testing.expect(hasSubstring(note, "PHASE15_LANE_KEY=arch-council"));
+    try std.testing.expect(hasSubstring(note, "d918be7ded6383c13cbd5eea4ca4aa4f3cdafee4"));
+    try std.testing.expect(hasSubstring(note, "rollback threshold"));
+    try std.testing.expect(hasSubstring(note, "forces the anchor back to its blocked freeze posture"));
+    try std.testing.expect(hasSubstring(note, "phase15-rollback-threshold-rule-present"));
     try std.testing.expect(hasSubstring(note, "closed_docs_root_summary_alignment_landed_in_readiness_and_handoff_packets"));
     try std.testing.expect(hasSubstring(note, "docs-root summary alignment drift is now already closed by the dedicated readiness and handoff packets"));
     try std.testing.expect(hasSubstring(note, "blocked_no_bounded_scheduler_seam"));
