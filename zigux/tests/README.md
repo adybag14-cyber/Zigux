@@ -52,6 +52,7 @@ Key entrypoints
 - `zigux/tests/phase6_hexdump_perf.zig`
 - `zigux/tests/fixtures/phase6_hexdump_vectors.zig`
 - `Documentation/zigux/phase6-helper-parity-catalog.md`
+- `Documentation/zigux/phase6-perf-gate-survey.md`
 - `zigux/tests/phase6_helper_parity_manifest.json`
 - `zigux/tests/phase7_build.zig`
 - `zigux/tests/fixtures/phase7_build_inventory.json`
