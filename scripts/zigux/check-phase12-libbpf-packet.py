@@ -505,6 +505,57 @@ def run_self_test() -> int:
                 "phase12-libbpf-packet:self-test:unexpected_failures:" + ",".join(missing)
             )
 
+        build_self_test_tree(root)
+        manifest_path = root / TRACKED_PATHS[0]
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["phase"] = "Phase 11"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        missing = check_packet(root)
+        if "manifest:phase" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:manifest_phase_detection")
+
+        build_self_test_tree(root)
+        snapshot_path = root / "zigux/tests/fixtures/phase12_libbpf_snapshot.json"
+        snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
+        snapshot["lane_key"] = "P12-L99"
+        snapshot_path.write_text(json.dumps(snapshot, indent=2) + "\n", encoding="utf-8")
+        missing = check_packet(root)
+        if "snapshot:lane_key" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:snapshot_lane_detection")
+
+        build_self_test_tree(root)
+        snapshot_path = root / "zigux/tests/fixtures/phase12_libbpf_snapshot.json"
+        snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
+        snapshot["phase"] = "Phase 11"
+        snapshot_path.write_text(json.dumps(snapshot, indent=2) + "\n", encoding="utf-8")
+        missing = check_packet(root)
+        if "snapshot:phase" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:snapshot_phase_detection")
+
+        build_self_test_tree(root)
+        legacy_manifest_path = root / TRACKED_PATHS[4]
+        legacy_manifest = json.loads(legacy_manifest_path.read_text(encoding="utf-8"))
+        legacy_manifest["lane_key"] = "P8-L99"
+        legacy_manifest_path.write_text(
+            json.dumps(legacy_manifest, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        missing = check_packet(root)
+        if "legacy_manifest:lane_key" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:legacy_lane_detection")
+
+        build_self_test_tree(root)
+        legacy_manifest_path = root / TRACKED_PATHS[4]
+        legacy_manifest = json.loads(legacy_manifest_path.read_text(encoding="utf-8"))
+        legacy_manifest["phase"] = "Phase 9"
+        legacy_manifest_path.write_text(
+            json.dumps(legacy_manifest, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        missing = check_packet(root)
+        if "legacy_manifest:phase" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:legacy_phase_detection")
+
         survey_note_path = root / TRACKED_PATHS[3]
         original = survey_note_path.read_text(encoding="utf-8")
         survey_note_path.write_text(
@@ -832,7 +883,7 @@ def run_self_test() -> int:
         if "legacy_manifest:surveyed_commit" not in missing:
             raise SystemExit("phase12-libbpf-packet:self-test:legacy_surveyed_commit_detection")
 
-        build_self_test_tree(root)
+        build_self_testTree(root)
         legacy_manifest_path = root / TRACKED_PATHS[4]
         legacy_manifest = json.loads(legacy_manifest_path.read_text(encoding="utf-8"))
         legacy_manifest["surveyed_commit"] = "g" * 40
@@ -845,7 +896,7 @@ def run_self_test() -> int:
             raise SystemExit("phase12-libbpf-packet:self-test:legacy_surveyed_commit_hex_detection")
 
         print("PHASE12_LIBBPF_PACKET_SELF_TEST=pass")
-        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=29")
+        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=34")
     return 0
 
 
