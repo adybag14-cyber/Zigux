@@ -256,6 +256,8 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "MAX_NR_HVC_CONSOLES") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "HVC_ALLOC_TTY_ADAPTERS") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hv_ops") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hvc_kick") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "notifier-IRQ helper surface") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-hvc-console-winsize-layout-assert")) {
@@ -454,11 +456,15 @@ test "phase11 hvc console survey keeps the survey note, slice note, and validati
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "`hvc_cleanup()` tty-port release handoff summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "port-reference drop timing") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "tiny notifier-add open handoff summary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "hvc_kick") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "notifier-IRQ helper surface") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, manifest.surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "PHASE11_HVC_CONSOLE_STATUS=cleanup_handoff_landed") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Phase 11 simple-production-driver gap has been closed by the bounded starter") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "remaining unported work is now tty-driver registration, khvcd worker execution, sysrq integration, notifier callback execution, and host-backed transport or teardown validation") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "tiny notifier-add open handoff summary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "hvc_kick") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "notifier-IRQ helper surface") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "`hvc_remove()` handoff") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "`hvc_cleanup()` tty-port release handoff") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "`summarizeNotifierAddOutcome()`") != null);
