@@ -122,8 +122,41 @@ def run_self_test() -> int:
     if cwd_drift["run_cwds"].get("phase7-argv-split-survey-tests") is not None:
         raise SystemExit("phase7-build-inventory:self-test:argv_split_repo_root_drift")
 
+    helper_path_drift_text, replacements = re.subn(
+        r'("phase7_argv_split\.zig",\s*"argv_split",\s*")\.\./\.\./lib/argv_split\.zig("\s*,)',
+        r'\1../../lib/cmdline.zig\2',
+        build_text,
+        count=1,
+        flags=re.S,
+    )
+    if replacements != 1:
+        raise SystemExit("phase7-build-inventory:self-test:helper_path_drift_rewrite")
+
+    helper_path_drift = render_inventory_from_text(helper_path_drift_text)
+    if helper_path_drift == fixture:
+        raise SystemExit("phase7-build-inventory:self-test:helper_path_drift_detection")
+    if helper_path_drift["imported_helpers"][2]["helper_path"] != "../../lib/cmdline.zig":
+        raise SystemExit("phase7-build-inventory:self-test:helper_path_drift_shape")
+
+    dependency_drift_text = build_text.replace(
+        "    test_step.dependOn(&run_rbtree_tests.step);\n",
+        "",
+        1,
+    )
+    if dependency_drift_text == build_text:
+        raise SystemExit("phase7-build-inventory:self-test:dependency_drift_rewrite")
+
+    dependency_drift = render_inventory_from_text(dependency_drift_text)
+    if dependency_drift == fixture:
+        raise SystemExit("phase7-build-inventory:self-test:dependency_drift_detection")
+    dependency_steps = dependency_drift["shared_test_depend_steps"]
+    if "run_rbtree_tests" in dependency_steps:
+        raise SystemExit("phase7-build-inventory:self-test:dependency_drift_shape")
+    if len(dependency_steps) != len(first["shared_test_depend_steps"]) - 1:
+        raise SystemExit("phase7-build-inventory:self-test:dependency_drift_count")
+
     print("PHASE7_BUILD_INVENTORY_SELF_TEST=pass")
-    print("PHASE7_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=6")
+    print("PHASE7_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
