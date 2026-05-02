@@ -36,6 +36,8 @@ The live repo now has a bounded `drivers/virtio/virtio_input.zig` helper plus de
 - a reset-local teardown observation summary that reports queue, status, config, and ABS staging state together with explicit reset cleanup intent while preserving the identity strings already copied at init time
 - dedicated Phase 10 tests and build wiring for the helper
 
+The same parked input packet also participates in the shared closure evidence bundle through `Documentation/zigux/phase10-closure-evidence.md`, `zigux/tests/phase10_closure_manifest.json`, and `zigux-alpha/PHASE10_CLOSURE_LEDGER.md`, so the current review path is broader than the dedicated input test alone even though the landed helper surface remains input-local.
+
 ## Non-goals
 
 This slice does not yet claim:
@@ -47,15 +49,19 @@ This slice does not yet claim:
 
 ## Gates
 
-1. run the dedicated Phase 10 build
-- `zig build test --build-file zigux/tests/phase10_build.zig`
+1. run the shared closure inventory gate
+- `python3 scripts/zigux/check-phase10-closure-inventory.py`
 
-2. run the convenience target
-- `make -C zigux phase10`
-
-3. run the dedicated validation guard
+2. run the shared closure validation path
+- `python3 scripts/zigux/validate-phase10-closure.py`
 - `python3 scripts/zigux/validate-phase10.py`
 - `make -C zigux phase10-validate`
+
+3. run the dedicated Phase 10 build
+- `zig build test --build-file zigux/tests/phase10_build.zig --summary all`
+
+4. run the convenience target
+- `make -C zigux phase10`
 
 ## Next bounded step
 
