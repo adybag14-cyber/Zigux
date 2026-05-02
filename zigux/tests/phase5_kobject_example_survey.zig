@@ -95,6 +95,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
             saw_static_name_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "sample-backed survey note") != null and
+            std.mem.indexOf(u8, prompt, "shared docs-root guide") != null and
             std.mem.indexOf(u8, prompt, "shared sample-root catalog") != null and
             std.mem.indexOf(u8, prompt, "shared tests-root guide") != null and
             std.mem.indexOf(u8, prompt, "shared review checklist") != null and
@@ -304,6 +305,7 @@ test "phase 5 kobject contributor docs stay aligned with the shipped review surf
         try expectContains(survey_note, surveyed_commit_line);
     }
     try expectContains(survey_note, "shared sample-root catalog in `samples/zigux/README.md`");
+    try expectContains(survey_note, "top-level docs-root guide in `Documentation/zigux/README.md`");
     try expectContains(survey_note, "shared tests-root guide in `zigux/tests/README.md`");
     try expectContains(survey_note, "direct `zig test samples/zigux/kobject_example.zig` replay");
     try expectContains(survey_note, "paired `zig test zigux/tests/phase5_kobject_example_survey.zig` replay");
