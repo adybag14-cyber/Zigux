@@ -202,6 +202,7 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     try expectContains(rbtree_slice, "`python3 scripts/zigux/check-phase7-make-wrapper.py`");
     try expectContains(rbtree_slice, "`make -C zigux phase7-validate`");
     try expectContains(rbtree_slice, "`zig build test --build-file zigux/tests/phase7_build.zig --summary all`");
+    try expectContains(rbtree_slice, "keep the manifest-backed survey record machine-checked from `repo_root`");
     try expectContains(rbtree_slice, "the published `make -C zigux phase7` one-command bundle stays aligned with that same review path");
     try expectContains(build_inventory_checker, "BUILD_PATH = ROOT / \"zigux\" / \"tests\" / \"phase7_build.zig\"");
     try expectContains(build_inventory_checker, "FIXTURE_PATH = ROOT / \"zigux\" / \"tests\" / \"fixtures\" / \"phase7_build_inventory.json\"");
