@@ -63,6 +63,14 @@ test "phase12 virtio_scsi survey manifest records the landed queue-depth summary
     );
     defer std.testing.allocator.free(makefile);
 
+    const scripts_readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "scripts/zigux/README.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(scripts_readme);
+
     const phase12_build = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "zigux/tests/phase12_build.zig",
@@ -142,6 +150,9 @@ test "phase12 virtio_scsi survey manifest records the landed queue-depth summary
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase12-test:") != null);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase12-validate:") != null);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase12: phase12-validate phase12-test") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scripts_readme, "make -C zigux phase12-validate PYTHON=python3 ZIG=<attached-zig-path>") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scripts_readme, "make -C zigux phase12 ZIG=<attached-zig-path>") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scripts_readme, "attached-toolchain fallback path when Devbox or a PATH-provided `zig` is unavailable") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "probe snapshot of `virtscsi_probe()` config fields") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "host-limit summary helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "now also lands one tiny host-limit summary helper") != null);
