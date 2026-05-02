@@ -151,19 +151,19 @@ FIXTURE_TEXT = {
 print("fixture")
 """,
     "scripts/zigux/validate-phase8.py": """REQUIRED_FILES = [
-    \"zigux/tests/phase8_perf_buffer_poll_only_build.zig\",
+    "zigux/tests/phase8_perf_buffer_poll_only_build.zig",
 ]
 
 required_make_markers = [
-    \"phase8-perf-buffer-poll-test:\",
+    "phase8-perf-buffer-poll-test:",
 ]
 
 required_workflow_markers = [
-    \"Run focused Phase 8 perf-buffer poll tests\",
+    "Run focused Phase 8 perf-buffer poll tests",
 ]
 
 required_phase8_perf_buffer_poll_markers = [
-    \"phase8-perf-buffer-poll-tests\",
+    "phase8-perf-buffer-poll-tests",
 ]
 """,
     "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig": """pub const WaitClass = enum {
@@ -172,7 +172,7 @@ required_phase8_perf_buffer_poll_markers = [
 
 pub fn summarizeProcessRecords() void {}
 
-test \"summarizeProcessRecords keeps perf_buffer__process_records fail-fast ordering and processed record totals explicit\" {}
+test "summarizeProcessRecords keeps perf_buffer__process_records fail-fast ordering and processed record totals explicit" {}
 """,
     "zigux/Makefile": """PHONY += phase8-validate phase8-exec-cmd-test phase8-help-test phase8-kallsyms-test phase8-libbpf-segments-test phase8-perf-buffer-poll-test phase8-test phase8
 
@@ -192,27 +192,27 @@ phase8: phase8-validate phase8-exec-cmd-test phase8-help-test phase8-kallsyms-te
 - `make -C zigux phase8-perf-buffer-poll-test`
 """,
     "zigux/tests/phase8_build.zig": """const perf_buffer_poll_module = b.createModule(.{
-    .root_source_file = b.path(\"../../tools/lib/bpf/zigux_segments/perf_buffer_poll.zig\"),
+    .root_source_file = b.path("../../tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"),
 });
 const perf_buffer_poll_root_module = b.createModule(.{
-    .root_source_file = b.path(\"phase8_perf_buffer_poll.zig\"),
+    .root_source_file = b.path("phase8_perf_buffer_poll.zig"),
 });
 const perf_buffer_poll_tests = b.addTest(.{
-    .name = \"phase8-perf-buffer-poll-tests\",
+    .name = "phase8-perf-buffer-poll-tests",
 });
 """,
-    "zigux/tests/phase8_perf_buffer_poll.zig": """test \"phase 8 perf-buffer poll helper stays wired into focused and shared Phase 8 builds\" {
-    _ = \"phase8_perf_buffer_poll_only_build.zig\";
-    _ = \"phase8-perf-buffer-poll-tests\";
+    "zigux/tests/phase8_perf_buffer_poll.zig": """test "phase 8 perf-buffer poll helper stays wired into focused and shared Phase 8 builds" {
+    _ = "phase8_perf_buffer_poll_only_build.zig";
+    _ = "phase8-perf-buffer-poll-tests";
 }
 """,
     "zigux/tests/phase8_perf_buffer_poll_only_build.zig": """const root_module = b.createModule(.{
-    .root_source_file = b.path(\"phase8_perf_buffer_poll.zig\"),
+    .root_source_file = b.path("phase8_perf_buffer_poll.zig"),
 });
 const perf_buffer_poll_tests = b.addTest(.{
-    .name = \"phase8-perf-buffer-poll-tests\",
+    .name = "phase8-perf-buffer-poll-tests",
 });
-const test_step = b.step(\"test\", \"Run focused Phase 8 perf-buffer poll tests\");
+const test_step = b.step("test", "Run focused Phase 8 perf-buffer poll tests");
 """,
 }
 
@@ -361,6 +361,21 @@ def run_self_test() -> int:
         )
         docs_readme_path.write_text(original_docs_readme, encoding="utf-8")
 
+        docs_readme_path.write_text(
+            original_docs_readme.replace(
+                "make -C zigux phase8-validate",
+                "make -C zigux phase8-check",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "docs_readme_validate_hook",
+            tmp_root,
+            "Documentation/zigux/README.md:make -C zigux phase8-validate",
+        )
+        docs_readme_path.write_text(original_docs_readme, encoding="utf-8")
+
         scripts_readme_path = tmp_root / "scripts/zigux/README.md"
         original_scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
         scripts_readme_path.write_text(
@@ -375,6 +390,21 @@ def run_self_test() -> int:
             "scripts_readme_helper_surface",
             tmp_root,
             "scripts/zigux/README.md:tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
+        )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
+        scripts_readme_path.write_text(
+            original_scripts_readme.replace(
+                "make -C zigux phase8-validate",
+                "make -C zigux phase8-check",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "scripts_readme_validate_hook",
+            tmp_root,
+            "scripts/zigux/README.md:make -C zigux phase8-validate",
         )
         scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
 
@@ -416,8 +446,8 @@ def run_self_test() -> int:
         original_validator = validator_path.read_text(encoding="utf-8")
         validator_path.write_text(
             original_validator.replace(
-                '\"zigux/tests/phase8_perf_buffer_poll_only_build.zig\"',
-                '\"zigux/tests/phase8_perf_buffer_poll_build.zig\"',
+                '"zigux/tests/phase8_perf_buffer_poll_only_build.zig"',
+                '"zigux/tests/phase8_perf_buffer_poll_build.zig"',
                 1,
             ),
             encoding="utf-8",
@@ -457,9 +487,26 @@ def run_self_test() -> int:
             tmp_root,
             "scripts/zigux/validate-phase8.py:Run focused Phase 8 perf-buffer poll tests",
         )
+        validator_path.write_text(original_validator, encoding="utf-8")
+
+        shared_build_path = tmp_root / "zigux/tests/phase8_build.zig"
+        original_shared_build = shared_build_path.read_text(encoding="utf-8")
+        shared_build_path.write_text(
+            original_shared_build.replace(
+                "phase8-perf-buffer-poll-tests",
+                "phase8-perf-buffer-tests",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "shared_build_poll_artifact_name",
+            tmp_root,
+            "zigux/tests/phase8_build.zig:phase8-perf-buffer-poll-tests",
+        )
 
     print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST=pass")
-    print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST_CASE_COUNT=11")
+    print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
