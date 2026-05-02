@@ -1,0 +1,68 @@
+{
+  "lane_key": "P7-L05",
+  "phase": "Phase 7",
+  "surveyed_commit": "bd419951498ce3b8f89fb07d54c163e92b3e8f77",
+  "anchor": "lib/cmdline.c",
+  "roadmap_destinations": [
+    "lib/cmdline.zig"
+  ],
+  "survey_summary": {
+    "cmdline_c_lines": 241,
+    "preexisting_phase7_test_files": 1,
+    "preexisting_phase7_fixture_modules": 1,
+    "preexisting_phase7_parity_fixture_present": true,
+    "preexisting_phase7_doc_present": true,
+    "preexisting_phase7_helper_present": true
+  },
+  "gaps": [
+    {
+      "id": "phase7-build-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase7_build.zig",
+      "why_now": "The shared Phase 7 build step is the narrowest honest review gate for keeping the cmdline runtime leaf helper inside the existing in-kernel helper tranche."
+    },
+    {
+      "id": "phase7-cmdline-helper",
+      "status": "starter_landed",
+      "kind": "runtime_leaf_helper",
+      "zigux_destination": "lib/cmdline.zig",
+      "why_now": "The roadmap names lib/cmdline.zig directly, and the current helper keeps the bounded parsing surface runtime-safe around get_option(), get_options(), memparse(), parse_option_str(), and next_arg()."
+    },
+    {
+      "id": "phase7-cmdline-dedicated-tests",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase7_cmdline.zig",
+      "why_now": "A dedicated Phase 7 gate keeps the bounded cmdline parsing surface reviewable around KUnit-derived malformed-token behavior, range parsing, next_arg() edge cases, and parse_option_str() bare-option semantics."
+    },
+    {
+      "id": "phase7-cmdline-shared-fixtures",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig",
+      "why_now": "The shared fixture layer keeps the serialized next_arg() edge corpus reviewable from one source instead of leaving the helper-local mirror as the only packet."
+    },
+    {
+      "id": "phase7-cmdline-parity-fixture-layer",
+      "status": "starter_landed",
+      "kind": "differential_validation",
+      "zigux_destination": "zigux/tests/fixtures/phase7_cmdline.json",
+      "why_now": "The committed parity layer and C harness keep representative get_option(), get_options(), memparse(), parse_option_str(), and next_arg() behavior externally reviewable against lib/cmdline.c through the dedicated parity checker."
+    },
+    {
+      "id": "phase7-cmdline-slice-note",
+      "status": "starter_landed",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase7-cmdline-slice.md",
+      "why_now": "The slice note records the bounded product surface, non-goals, and shared validation-substrate handoff so the Phase 7 lane stays tied to the actual runtime helper."
+    },
+    {
+      "id": "phase7-cmdline-survey-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase7_cmdline_survey.zig",
+      "why_now": "A machine-checked survey gate keeps the roadmap anchor, manifest-backed review packet, and landed validation surfaces explicit without reopening helper behavior."
+    }
+  ]
+}
