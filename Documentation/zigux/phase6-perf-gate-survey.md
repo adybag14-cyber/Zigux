@@ -66,6 +66,7 @@ That means the live Phase 6 packet should be read as a reviewable microbench-and
 
 - refresh this note when a Phase 6 helper gains or loses a threshold, changes the perf corpus, or changes the current comparison-budget contract
 - refresh this note and `zigux/tests/phase6_helper_parity_manifest.json` together when the shared `make -C zigux phase6-perf` replay path changes
+- `python3 scripts/zigux/validate-phase6.py --self-test` now also checks that `Documentation/zigux/phase6-hexdump-slice.md` keeps the grouped-ASCII slowdown wording aligned with the shipped `zigux/tests/phase6_hexdump_perf.zig` and `zigux/tests/fixtures/phase6_hexdump_vectors.zig` packet, so hexdump threshold drift fails before broader Phase 6 replay claims stay green
 - refresh `Documentation/zigux/phase6-helper-parity-catalog.md` in the same change when the shared packet posture changes
 - do not treat a helper-local perf improvement as justification to widen Phase 6 beyond the current four-helper packet
 - do not translate the printed nanosecond output into a product-wide performance promise without a dedicated cross-machine threshold lane
