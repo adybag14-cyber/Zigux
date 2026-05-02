@@ -16,7 +16,7 @@ This note records the bounded Phase 8 helper-first slice around the pure wait-re
 
 The remaining `perf-buffer-online-cpu-routing` packet is still too large to land honestly in one step because it crosses `/sys` reads, online CPU filtering, perf-event-array updates, epoll-backed registration, and interrupt-routing-sensitive delivery behavior.
 
-The narrower `perf_buffer__poll(timeout_ms)` bookkeeping surface is smaller and safer. Zigux can model normalized negative errno-or-ready-count wait results, ready-buffer counting, first-ready indexing, first-error surfacing, fail-fast ready-buffer processing order, and the cumulative processed-record count returned before the first failing ready buffer without claiming direct `epoll_wait()` parity or broader timer ownership.
+The narrower `perf_buffer__poll(timeout_ms)` bookkeeping surface is smaller and safer. Zigux can model normalized negative errno-or-ready-count wait results, ready-buffer counting, first-ready indexing, first-error surfacing, fail-fast ready-buffer processing order, and the cumulative processed-record count returned before the first failing ready buffer without claiming direct `epoll_wait()` parity or broader timer or clockevent ownership.
 
 ## Current helper contract
 
@@ -48,7 +48,7 @@ This helper does not yet claim:
 
 ## Gates
 
-The shared review path now fail-closes through the shared Phase 8 validator, the dedicated tests-readme alignment checker, and their built-in self-tests before the focused helper and shared build replays run, so this slice stays tied to the same validator-first Phase 8 tooling packet as the docs root, tests root, Makefile, workflow, and broader segmented libbpf notes.
+The shared review path now fail-closes through the shared Phase 8 validator, the dedicated tests-readme alignment checker, and their built-in self-tests before the focused helper replay and the shared Phase 8 build replay run, so this slice stays tied to the same validator-first Phase 8 tooling packet as the docs root, tests root, Makefile, workflow, and broader segmented libbpf notes.
 
 1. `python3 scripts/zigux/validate-phase8.py --self-test`
 2. `python3 scripts/zigux/check-phase8-tests-readme-alignment.py --self-test`
@@ -56,8 +56,7 @@ The shared review path now fail-closes through the shared Phase 8 validator, the
 4. `python3 scripts/zigux/check-phase8-tests-readme-alignment.py`
 5. `make -C zigux phase8-validate`
 6. `zig test tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
-7. `zig test zigux/tests/phase8_perf_buffer_poll.zig`
-8. `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
+7. `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
 
 ## Next bounded step
 
