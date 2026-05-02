@@ -15,6 +15,7 @@ CHECK_KCONFIG_BRIDGE = ROOT / 'scripts' / 'zigux' / 'check-kconfig-bridge.py'
 CHECK_FIXDEP = ROOT / 'scripts' / 'zigux' / 'check-fixdep-diff.py'
 CHECK_ARTIFACT_DIFF_CONTRACT = ROOT / 'scripts' / 'zigux' / 'check-artifact-diff-contract.py'
 CHECK_PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT = ROOT / 'scripts' / 'zigux' / 'check-phase2-genksyms-bridge-selftest-alignment.py'
+CHECK_PHASE2_CROSS_SELFTEST_ALIGNMENT = ROOT / 'scripts' / 'zigux' / 'check-phase2-cross-selftest-alignment.py'
 EXPECTED_TOOL_MANIFEST_TOOLS = [
     'scripts/zigux/fixdep.zig',
     'scripts/zigux/genksyms.zig',
@@ -432,6 +433,25 @@ def validate_phase2_cross_checker_gate(checker_script: Path) -> list[str]:
     return issues
 
 
+def validate_phase2_cross_alignment_checker_gate(checker_script: Path) -> list[str]:
+    source = checker_script.read_text(encoding='utf-8')
+    required_markers = {
+        'self_test_arg': 'parser.add_argument("--self-test"',
+        'self_test_pass_marker': 'print("PHASE2_CROSS_ALIGNMENT_SELF_TEST=pass")',
+        'self_test_case_count_marker': 'print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=8")',
+        'validator_anchor': 'PHASE2_VALIDATOR = ROOT / "scripts" / "zigux" / "validate-phase2.py"',
+        'closure_doc_anchor': 'CLOSURE_DOC = ROOT / "Documentation" / "zigux" / "phase2-closure.md"',
+        'targets_manifest_anchor': 'TARGETS_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json"',
+        'pass_marker': 'print("PHASE2_CROSS_ALIGNMENT=pass")',
+    }
+
+    issues: list[str] = []
+    for issue_name, marker in required_markers.items():
+        if marker not in source:
+            issues.append(f'phase2_cross_alignment_checker:{issue_name}')
+    return issues
+
+
 def validate_genksyms_bridge_checker_gate(checker_script: Path) -> list[str]:
     source = checker_script.read_text(encoding='utf-8')
     required_markers = {
@@ -567,6 +587,7 @@ required_files = [
     ROOT / 'scripts' / 'zigux' / 'check-fixdep-diff.py',
     ROOT / 'scripts' / 'zigux' / 'check-genksyms-bridge.py',
     ROOT / 'scripts' / 'zigux' / 'check-phase2-genksyms-bridge-selftest-alignment.py',
+    CHECK_PHASE2_CROSS_SELFTEST_ALIGNMENT,
     ROOT / 'scripts' / 'zigux' / 'check-genksyms-crc-diff.py',
     ROOT / 'scripts' / 'zigux' / 'check-kconfig-bridge.py',
     ROOT / 'scripts' / 'zigux' / 'check-mk-elfconfig-diff.py',
@@ -681,6 +702,8 @@ required_closure_markers = [
     'PHASE2_MK_ELFCONFIG_DETERMINISM=check-mk-elfconfig-diff.py replays C and Zig outputs twice before comparing artifacts',
     'PHASE2_CROSS_SELF_TEST=python3 scripts/zigux/check-phase2-cross.py --self-test',
     'PHASE2_CROSS_GATE=python3 scripts/zigux/check-phase2-cross.py',
+    'PHASE2_CROSS_ALIGNMENT_SELF_TEST=python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test',
+    'PHASE2_CROSS_ALIGNMENT_GATE=python3 scripts/zigux/check-phase2-cross-selftest-alignment.py',
     'PHASE2_CROSS_MANIFEST_POLICY=check-phase2-cross.py rejects duplicate tool entries, duplicate requested targets, unexpected explicit targets, duplicate manifest targets, and manifest-count drift before live compile replay',
     'PHASE2_SHARED_VALIDATOR=python3 scripts/zigux/validate-phase2.py',
     'PHASE2_CLOSURE_GATE=python3 scripts/zigux/validate-phase2-closure.py',
@@ -826,6 +849,7 @@ if target_manifest_targets != EXPECTED_CROSS_TARGETS:
 missing_markers.extend(validate_kconfig_bridge_manifest(KCONFIG_BRIDGE_DIR / 'cases.json'))
 missing_markers.extend(validate_kconfig_checker_gate(CHECK_KCONFIG_BRIDGE))
 missing_markers.extend(validate_phase2_cross_checker_gate(ROOT / 'scripts' / 'zigux' / 'check-phase2-cross.py'))
+missing_markers.extend(validate_phase2_cross_alignment_checker_gate(CHECK_PHASE2_CROSS_SELFTEST_ALIGNMENT))
 missing_markers.extend(validate_genksyms_bridge_checker_gate(ROOT / 'scripts' / 'zigux' / 'check-genksyms-bridge.py'))
 missing_markers.extend(validate_genksyms_crc_checker_gate(ROOT / 'scripts' / 'zigux' / 'check-genksyms-crc-diff.py'))
 missing_markers.extend(validate_fixdep_checker_gate(CHECK_FIXDEP))
