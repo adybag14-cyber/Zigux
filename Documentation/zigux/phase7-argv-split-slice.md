@@ -36,6 +36,7 @@ This current slice keeps the work bounded to the smallest runtime-safe ownership
 
 1. prove the shared Phase 7 validator packet plus the build-inventory and make-wrapper gates still fail closed before the helper replay runs
 - `python3 scripts/zigux/validate-phase7.py --self-test`
+- `python3 scripts/zigux/validate-phase7.py`
 - `python3 scripts/zigux/check-phase7-build-inventory.py --self-test`
 - `python3 scripts/zigux/check-phase7-build-inventory.py`
 - `python3 scripts/zigux/check-phase7-make-wrapper.py --self-test`
@@ -83,7 +84,7 @@ The dedicated Phase 7 review gate now imports a focused fixture module under `zi
 
 The manifest-backed survey packet stays rooted at `repo_root` through `zigux/tests/phase7_build.zig` so `zigux/tests/phase7_argv_split_manifest.json` remains a reviewable ownership record instead of a helper-local detail.
 
-The shared build-inventory gate stays in that same review packet, so the committed `zigux/tests/fixtures/phase7_build_inventory.json` snapshot and the published `make -C zigux phase7-validate` wrapper path remain explicit instead of living only in the broader shared Phase 7 notes.
+The shared Phase 7 validator packet plus the build-inventory and make-wrapper self-tests stay in that same review packet, so the committed `zigux/tests/fixtures/phase7_build_inventory.json` snapshot and the published `make -C zigux phase7-validate` wrapper path remain explicit instead of living only in the broader shared Phase 7 notes.
 
 ## Non-goals
 
