@@ -273,9 +273,9 @@ pub fn replaceChar(buf: []u8, old: u8, new: u8) usize {
     return buf.len;
 }
 
-pub fn strreplace(buf: []u8, old: u8, new: u8) []u8 {
+pub fn strreplace(buf: []u8, old: u8, new: u8) [*]u8 {
     const end = replaceChar(buf, old, new);
-    return buf[0..end];
+    return buf.ptr + end;
 }
 
 fn repeatedByteWord(value: u8) u64 {
@@ -415,7 +415,8 @@ test "skip trim remove and replace spaces work in place" {
     try std.testing.expectEqualSlices(u8, &[_]u8{ 'a', '_', 0, '-' }, &replace_cstr_buf);
 
     var strreplace_buf = [_]u8{ 'a', '-', 'b', 0, '-' };
-    try std.testing.expectEqualStrings("a_b", strreplace(strreplace_buf[0 .. strreplace_buf.len - 1], '-', '_'));
+    const replaced_end = strreplace(strreplace_buf[0 .. strreplace_buf.len - 1], '-', '_');
+    try std.testing.expectEqual(@intFromPtr(strreplace_buf[0..].ptr) + 3, @intFromPtr(replaced_end));
     try std.testing.expectEqualSlices(u8, &[_]u8{ 'a', '_', 'b', 0, '-' }, &strreplace_buf);
 }
 
