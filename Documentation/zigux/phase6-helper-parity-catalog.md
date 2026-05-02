@@ -68,6 +68,9 @@ This shared catalog exists so reviewers can confirm, in one place, that the road
 - helper: `lib/hexdump.zig`
 - tests: `zigux/tests/phase6_hexdump.zig`
 - perf: `zigux/tests/phase6_hexdump_perf.zig`
+- external parity: `scripts/zigux/check-phase6-hexdump-c-parity.py`
+- external parity runner: `zigux/tests/phase6_hexdump_c_parity.zig`
+- external parity harness: `zigux/tests/fixtures/phase6_hexdump_c_harness.c`
 - fixtures: `zigux/tests/fixtures/phase6_hexdump_vectors.zig`
 - slice note: `Documentation/zigux/phase6-hexdump-slice.md`
 
@@ -110,6 +113,7 @@ The committed Phase 6 fixture corpus is deterministic today because every shippe
 - `zigux/tests/fixtures/phase6_checksum_vectors.zig` is the current static checksum corpus with 5 compute vectors, 2 composition vectors, 3 seeded vectors, 1 IPv4 pseudo-header vector, 3 IPv6 pseudo-header vectors, 4 carry-discipline vectors, and 6 imported KUnit random-prefix vectors.
 - `zigux/tests/phase6_checksum_c_parity.zig` and `zigux/tests/fixtures/phase6_checksum_c_harness.c` now replay 22 direct C-vs-Zig checksum parity cases through `python3 scripts/zigux/check-phase6-checksum-c-parity.py`, and `python3 scripts/zigux/check-phase6-checksum-c-parity.py --self-test` now reports `PHASE6_CHECKSUM_C_PARITY_SELF_TEST_CASE_COUNT=10` while proving the committed exact 22-line expected surface, missing-path guards, and C-vs-Zig mismatch handling.
 - `zigux/tests/fixtures/phase6_hexdump_vectors.zig` is the current static hexdump corpus with 10 parity vectors, 4 overflow vectors, 9 required-length vectors, and 4 perf replay cases, and it keeps `normalizedRowsize()`, `normalizedGroupsizeForLen()`, and `prepareExpectedLine(...)` as the shared normalization path so parity, overflow, required-length, and perf replays stay on one committed corpus table.
+- `zigux/tests/phase6_hexdump_c_parity.zig` and `zigux/tests/fixtures/phase6_hexdump_c_harness.c` now replay 27 direct C-vs-Zig hexdump parity cases through `python3 scripts/zigux/check-phase6-hexdump-c-parity.py`, and `python3 scripts/zigux/check-phase6-hexdump-c-parity.py --self-test` now reports `PHASE6_HEXDUMP_C_PARITY_SELF_TEST_CASE_COUNT=8` while proving the committed exact 27-line expected surface, missing-path guards, sorted-output normalization, and C-vs-Zig mismatch handling.
 - `zigux/tests/phase6_bsearch.zig` and `zigux/tests/phase6_bsearch_c_parity.zig` keep the current bsearch corpus inline as sorted integer, descending, duplicate, singleton, empty-slice, mutable, and symbol tables rather than a generated fixture file, `python3 scripts/zigux/check-phase6-bsearch-c-parity.py --self-test` currently reports `PHASE6_BSEARCH_C_PARITY_SELF_TEST_CASE_COUNT=6` so the parity script's missing-path, unexpected-extra-output, and output-normalization helpers stay reviewable without a live toolchain replay, and `python3 scripts/zigux/check-phase6-bsearch-c-parity.py` currently passes with `PHASE6_BSEARCH_C_PARITY_CASES=29`.
 - No generated Phase 6 fixture artifact is committed today; current corpus determinism comes from these committed literals, normalization helpers, and sorted external parity replays.
 
@@ -122,6 +126,7 @@ The committed Phase 6 fixture corpus is deterministic today because every shippe
 - `python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test` is the current tool-free reviewability check for the bounded base64 external parity script before the live `zig` plus `cc` replay runs.
 - `python3 scripts/zigux/check-phase6-bsearch-c-parity.py --self-test` is the current tool-free reviewability check for the bounded bsearch external parity script before the live `zig` plus `cc` replay runs.
 - `python3 scripts/zigux/check-phase6-checksum-c-parity.py --self-test` is the current tool-free reviewability check for the bounded checksum external parity script before the live `zig` plus `cc` replay runs, and `python3 scripts/zigux/check-phase6-checksum-c-parity.py` currently passes with `PHASE6_CHECKSUM_C_PARITY_CASES=22`.
+- `python3 scripts/zigux/check-phase6-hexdump-c-parity.py --self-test` is the current tool-free reviewability check for the bounded hexdump external parity script before the live `zig` plus `cc` replay runs, and `python3 scripts/zigux/check-phase6-hexdump-c-parity.py` currently passes with `PHASE6_HEXDUMP_C_PARITY_CASES=27`.
 - `zigux/tests/phase6_base64_perf.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/phase6_hexdump_perf.zig` currently carry fixture-backed relative slowdown thresholds rather than cross-machine absolute ceilings.
 - the current base64 perf packet now covers the shipped standard, URL-safe, and IMAP alphabets with both padded and no-padding variant branches under the bounded slowdown gate.
 - `zigux/tests/phase6_bsearch_perf.zig` currently enforces a bounded per-lookup and average comparison budget rather than a nanosecond threshold.
