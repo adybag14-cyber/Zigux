@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import json
 import tempfile
 from pathlib import Path
 
@@ -10,6 +11,11 @@ from pathlib import Path
 SCRIPT_PATH = Path(__file__).resolve()
 ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
 SHARED_SURVEYED_COMMIT = "3ba64cd4e41a4de1c8fd8dbaecb23702ad9701a3"
+SURVEYED_COMMIT_MANIFESTS = [
+    "zigux/tests/phase4_runtime_atomic64_diff_manifest.json",
+    "zigux/tests/phase4_test_fsmount_manifest.json",
+    "zigux/tests/phase4_perf_baseline_manifest.json",
+]
 
 REQUIRED_MARKERS = [
     "PHASE4_EVIDENCE_DATE=",
@@ -27,7 +33,6 @@ REQUIRED_MARKERS = [
 ]
 
 REQUIRED_SURVEY_ALIGNMENT_MARKERS = [
-    SHARED_SURVEYED_COMMIT,
     "phase4_test_fsmount_survey.zig",
     "phase4_perf_baseline_survey.zig",
     "phase4_runtime_atomic64_diff_survey.zig",
@@ -79,6 +84,46 @@ def read_text(root: Path, relative_path: str) -> str:
     return (root / relative_path).read_text(encoding="utf-8")
 
 
+def read_json(root: Path, relative_path: str) -> dict[str, object]:
+    return json.loads(read_text(root, relative_path))
+
+
+def is_hex_sha(value: object) -> bool:
+    return (
+        isinstance(value, str)
+        and len(value) == 40
+        and all(ch in "0123456789abcdef" for ch in value)
+    )
+
+
+def collect_shared_surveyed_commit_markers(root: Path, gate_evidence: str) -> list[str]:
+    missing: list[str] = []
+    shared_commit: str | None = None
+
+    for relative_path in SURVEYED_COMMIT_MANIFESTS:
+        target = root / relative_path
+        if not target.exists():
+            missing.append(f"file:{relative_path}")
+            continue
+        manifest = read_json(root, relative_path)
+        surveyed_commit = manifest.get("surveyed_commit")
+        if not is_hex_sha(surveyed_commit):
+            missing.append(f"phase4_gate_evidence:surveyed_commit:{relative_path}")
+            continue
+        if shared_commit is None:
+            shared_commit = surveyed_commit
+        elif surveyed_commit != shared_commit:
+            missing.append(
+                "phase4_gate_evidence:shared_surveyed_commit_mismatch:"
+                f"{relative_path}:{surveyed_commit}:{shared_commit}"
+            )
+
+    if shared_commit is not None and shared_commit not in gate_evidence:
+        missing.append(f"phase4_gate_evidence:{shared_commit}")
+
+    return missing
+
+
 def validate_root(root: Path) -> list[str]:
     missing: list[str] = []
 
@@ -93,6 +138,7 @@ def validate_root(root: Path) -> list[str]:
     for marker in REQUIRED_SURVEY_ALIGNMENT_MARKERS:
         if marker not in gate_evidence:
             missing.append(f"phase4_gate_evidence:{marker}")
+    missing.extend(collect_shared_surveyed_commit_markers(root, gate_evidence))
     for marker in REQUIRED_SELF_TEST_ROUTE_MARKERS:
         if marker not in gate_evidence:
             missing.append(f"phase4_gate_evidence:{marker}")
@@ -120,6 +166,7 @@ def validate_root(root: Path) -> list[str]:
 
 
 def write_fixture_tree(root: Path) -> None:
+    minimal_manifest = json.dumps({"surveyed_commit": SHARED_SURVEYED_COMMIT}) + "\n"
     file_contents = {
         "Documentation/zigux/phase4-validation-matrix.md": "phase4 matrix fixture\n",
         "scripts/zigux/validate-phase4.py": "phase4 validator fixture\n",
@@ -127,11 +174,11 @@ def write_fixture_tree(root: Path) -> None:
         "zigux/tests/phase4_build.zig": "phase4 build fixture\n",
         "zigux/Makefile": "phase4 validate fixture\n",
         ".github/workflows/zigux-bootstrap.yml": "phase4 workflow fixture\n",
-        "zigux/tests/phase4_test_fsmount_manifest.json": "{}\n",
+        "zigux/tests/phase4_test_fsmount_manifest.json": minimal_manifest,
         "zigux/tests/phase4_test_fsmount_survey.zig": "phase4 test_fsmount survey fixture\n",
-        "zigux/tests/phase4_perf_baseline_manifest.json": "{}\n",
+        "zigux/tests/phase4_perf_baseline_manifest.json": minimal_manifest,
         "zigux/tests/phase4_perf_baseline_survey.zig": "phase4 perf baseline survey fixture\n",
-        "zigux/tests/phase4_runtime_atomic64_diff_manifest.json": "{}\n",
+        "zigux/tests/phase4_runtime_atomic64_diff_manifest.json": minimal_manifest,
         "zigux/tests/phase4_runtime_atomic64_diff_survey.zig": "phase4 runtime atomic64 survey fixture\n",
         "Documentation/zigux/README.md": "phase4 doc readme fixture\n",
         "scripts/zigux/README.md": "phase4 script readme fixture\n",
@@ -283,6 +330,29 @@ def run_self_test() -> int:
         )
         missing = validate_root(root)
         assert f"phase4_gate_evidence:{SHARED_SURVEYED_COMMIT}" in missing, missing
+
+        write_fixture_tree(root)
+        perf_manifest = root / "zigux/tests/phase4_perf_baseline_manifest.json"
+        perf_manifest.write_text(
+            json.dumps({"surveyed_commit": "0" * 40}) + "\n",
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert any(
+            marker.startswith(
+                "phase4_gate_evidence:shared_surveyed_commit_mismatch:"
+            )
+            for marker in missing
+        ), missing
+
+        write_fixture_tree(root)
+        test_fsmount_manifest = root / "zigux/tests/phase4_test_fsmount_manifest.json"
+        test_fsmount_manifest.write_text("{}\n", encoding="utf-8")
+        missing = validate_root(root)
+        assert (
+            "phase4_gate_evidence:surveyed_commit:zigux/tests/phase4_test_fsmount_manifest.json"
+            in missing
+        ), missing
 
         write_fixture_tree(root)
         gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
