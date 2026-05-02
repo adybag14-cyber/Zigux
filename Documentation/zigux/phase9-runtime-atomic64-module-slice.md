@@ -16,7 +16,6 @@ This document tracks the first bounded Phase 9 runtime atomic64 starter under `s
   - `zigux/tests/runtime_atomic64_manifest.json`
   - `zigux/tests/phase9_build.zig`
   - `zigux/kernel/runtime_loader.zig`
-  - `zigux/Makefile`
 
 ## Why this slice exists
 
