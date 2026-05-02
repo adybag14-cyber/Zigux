@@ -390,9 +390,9 @@ test "phase 5 trace-events contributor docs stay aligned with the shipped review
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Build Summary: 17/17 steps succeeded; 29/29 tests passed") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5-bytestream-fifo-tests 5 pass (5 total)") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5-bytestream-fifo-survey-tests 2 pass (2 total)") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5-kobject-example-tests 3 pass (3 total)") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5-kobject-example-tests 5 pass (5 total)") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5-kobject-example-survey-tests 2 pass (2 total)") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5-kretprobe-example-tests 1 pass (1 total)") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5-kretprobe-example-tests 5 pass (5 total)") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5-kretprobe-example-survey-tests 2 pass (2 total)") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5-trace-events-sample-tests 5 pass (5 total)") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5-trace-events-sample-survey-tests 2 pass (2 total)") != null);
