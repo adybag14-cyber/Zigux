@@ -18,9 +18,9 @@
     "owner": "Shared Subsystems Pod",
     "rollback_owner": "Shared Subsystems Pod",
     "posture": "threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
-    "status": "pending_scope_widening",
-    "benchmark_command": "unapproved_until_bitmap_gate_scope_widens",
-    "acceptable_limit": "unapproved_until_bitmap_gate_scope_widens",
+    "status": "pending_bounded_benchmark",
+    "benchmark_command": "unapproved_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
+    "acceptable_limit": "unapproved_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
     "scope": "range, rounded-prefix, cross-boundary set-clear, summary, exact nth-lookup, and copy-behavior checkpoints",
     "why_not_approved_yet": "The live gate is still a bounded rollback-readiness slice, direct `bitmap_fill(..., 115)` still stops at bit 114 in the shipped Zig helper, and no approved benchmark command or acceptable limit has landed for this gate yet."
   },
