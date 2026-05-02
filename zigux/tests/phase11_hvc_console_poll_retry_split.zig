@@ -1,6 +1,6 @@
 const std = @import("std");
 const hvc_console = @import("hvc_console");
-const hvc_console_sysrq = @import("../../drivers/tty/hvc/hvc_console_sysrq.zig");
+const hvc_console_sysrq = @import("./phase11_hvc_console_sysrq_helper.zig");
 
 test "phase11 hvc console keeps irq-backed drained reads distinct when __hvc_poll can or cannot sleep" {
     var console = try hvc_console.HvcConsoleLab.init(15);
