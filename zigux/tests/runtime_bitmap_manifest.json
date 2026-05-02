@@ -79,7 +79,7 @@
     {
       "id": "loader-request-surface",
       "kind": "runtime_loader_contract",
-      "expected": "the loader scaffold keeps entry symbol zigux_runtime_bitmap_init, exit symbol zigux_runtime_bitmap_exit, waiting_on_runtime_substrate handoff, released_without_substrate fallback, helper_owned allocator flow, explicit shared command-name preservation, and the four-field bitmap payload summary machine-checkable through the shared runtime-loader request surface"
+      "expected": "the loader scaffold keeps entry symbol zigux_runtime_bitmap_init, exit symbol zigux_runtime_bitmap_exit, waiting_on_runtime_substrate handoff, released_without_substrate fallback, helper_owned allocator flow, explicit shared command-name preservation, initialized-stage shared request and fallback counters with selftest_runs 0 and exit_runs 0 before selftest, and the seven-field bitmap payload summary machine-checkable through the shared runtime-loader request surface"
     },
     {
       "id": "loader-build-leg",
