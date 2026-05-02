@@ -27,6 +27,9 @@ const Manifest = struct {
     anchor: []const u8,
     roadmap_destinations: []const []const u8,
     current_replay: []const u8,
+    isolated_survey_replay: []const u8,
+    shared_build_replay: []const u8,
+    threshold_posture: []const u8,
     survey_summary: SurveySummary,
     gaps: []const Gap,
 };
@@ -91,6 +94,9 @@ test "phase4 test_fsmount survey manifest records the landed survey packet and r
     try std.testing.expect(isLowerHexSha(manifest.surveyed_commit));
     try std.testing.expectEqualStrings("samples/vfs/test-fsmount.c", manifest.anchor);
     try std.testing.expectEqualStrings("make M=samples/vfs", manifest.current_replay);
+    try std.testing.expectEqualStrings("make -C zigux phase4-test-fsmount-survey", manifest.isolated_survey_replay);
+    try std.testing.expectEqualStrings("phase4-test-fsmount-survey-tests", manifest.shared_build_replay);
+    try std.testing.expectEqualStrings("c_anchor_only_until_test_fsmount_starter_lands", manifest.threshold_posture);
     try std.testing.expectEqual(@as(usize, 1), manifest.roadmap_destinations.len);
     try std.testing.expectEqualStrings("samples/zigux/test_fsmount.zig", manifest.roadmap_destinations[0]);
     try std.testing.expect(manifest.survey_summary.test_fsmount_c_lines >= 100);
@@ -218,13 +224,13 @@ test "phase4 test_fsmount survey manifest records the landed survey packet and r
         .vfs_makefile_replay_present = std.mem.indexOf(u8, vfs_makefile, "userprogs-always-y += test-fsmount") != null,
         .zig_sample_present = zig_sample_present,
         .phase4_build_present = std.mem.indexOf(u8, phase4_build, "phase4_test_fsmount_survey.zig") != null and
-            std.mem.indexOf(u8, phase4_build, "phase4-test-fsmount-survey-tests") != null,
+            std.mem.indexOf(u8, phase4_build, manifest.shared_build_replay) != null,
         .phase4_validator_present = std.mem.indexOf(u8, phase4_validator, "phase4_test_fsmount_manifest.json") != null and
             std.mem.indexOf(u8, phase4_validator, "phase4_test_fsmount_survey.zig") != null,
         .phase4_validation_matrix_present = std.mem.indexOf(u8, phase4_matrix, "phase4_test_fsmount_manifest.json") != null and
-            std.mem.indexOf(u8, phase4_matrix, "phase4-test-fsmount-survey-tests") != null and
-            std.mem.indexOf(u8, phase4_matrix, "make -C zigux phase4-test-fsmount-survey") != null and
-            std.mem.indexOf(u8, phase4_matrix, "c_anchor_only_until_test_fsmount_starter_lands") != null and
+            std.mem.indexOf(u8, phase4_matrix, manifest.shared_build_replay) != null and
+            std.mem.indexOf(u8, phase4_matrix, manifest.isolated_survey_replay) != null and
+            std.mem.indexOf(u8, phase4_matrix, manifest.threshold_posture) != null and
             std.mem.indexOf(u8, phase4_matrix, "`make M=samples/vfs`") != null and
             std.mem.indexOf(u8, phase4_matrix, "C-anchor-only") != null,
     };
@@ -295,15 +301,20 @@ test "phase4 test_fsmount survey manifest records the landed survey packet and r
 
     try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, "manifest-backed survey gate now lives in `zigux/tests/phase4_test_fsmount_manifest.json`") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, "| `zigux/tests/phase4_test_fsmount_survey.zig` |") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, "phase4-test-fsmount-survey-tests") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, "make -C zigux phase4-test-fsmount-survey") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, "c_anchor_only_until_test_fsmount_starter_lands") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, manifest.shared_build_replay) != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, manifest.isolated_survey_replay) != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, manifest.threshold_posture) != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, "| `samples/zigux/test_fsmount.zig` |") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, "the Zig lab matrix remains C-anchor-only") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, "`make M=samples/vfs` replay contract before claiming this anchor as active Phase 4 work") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "PHASE4_EVIDENCE_MODE=github_connector_readback") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "PHASE4_TEST_FSMOUNT_MANIFEST_BLOB_SHA=") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "PHASE4_TEST_FSMOUNT_SURVEY_BLOB_SHA=") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, current_surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "phase4_test_fsmount_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, manifest.shared_build_replay) != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, manifest.threshold_posture) != null);
     try std.testing.expect(std.mem.indexOf(u8, doc_readme, "phase4-test-fsmount-survey") != null);
     try std.testing.expect(std.mem.indexOf(u8, doc_readme, "phase4-test-fsmount-survey-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, script_readme, "make -C zigux phase4-test-fsmount-survey") != null);
