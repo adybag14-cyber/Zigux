@@ -389,6 +389,21 @@ def run_self_test() -> int:
         )
         bcm2835_test_path.write_text(original_bcm2835_test, encoding="utf-8")
 
+        bcm2835_test_path.write_text(
+            original_bcm2835_test.replace(
+                "    try std.testing.expect(blocked.poweroff_handler_conflict);\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "bcm2835_blocked_platform_conflict_surface",
+            tmp_root,
+            "phase11_bcm2835_wdt_tests:    try std.testing.expect(blocked.poweroff_handler_conflict);",
+        )
+        bcm2835_test_path.write_text(original_bcm2835_test, encoding="utf-8")
+
         hvc_test_path.write_text(
             original_hvc_test.replace(
                 "    try std.testing.expect(!stale_hangup.notifier_hangup_pending);\n",
@@ -464,7 +479,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE11_VALIDATOR_SELF_TEST=pass")
-    print("PHASE11_VALIDATOR_SELF_TEST_CASE_COUNT=13")
+    print("PHASE11_VALIDATOR_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
@@ -813,6 +828,7 @@ for marker in [
     'test "phase11 bcm2835_wdt platform handoff summary keeps parent and PM-base prerequisites reviewable" {',
     "    try std.testing.expect(ready.pm_base_handoff_ready);",
     "    try std.testing.expect(!blocked.pm_base_handoff_ready);",
+    "    try std.testing.expect(blocked.poweroff_handler_conflict);",
     'test "phase11 bcm2835_wdt remove summary only clears the shared poweroff handler when bcm2835 owns it" {',
     "    try std.testing.expect(conflict.poweroff_handler_left_in_place);",
     "    try std.testing.expect(!absent.poweroff_handler_left_in_place);",
