@@ -15,6 +15,13 @@ C_HARNESS = ROOT / "zigux" / "tests" / "fixtures" / "phase6_base64_c_harness.c"
 CASE_GENERATOR = ROOT / "zigux" / "tests" / "phase6_base64_c_casegen.zig"
 GENERATED_INCLUDE = ROOT / "zigux" / "tests" / "fixtures" / "phase6_base64_c_generated_cases.inc"
 ZIG_RUNNER = ROOT / "zigux" / "tests" / "phase6_base64_c_parity.zig"
+EXPECTED_SORTED_LINES = sorted(
+    [
+        "dec\timap\t0\t3\tok\tok",
+        "dec\tstd\t1\t3\tok\tok",
+        "enc\tstd\t1\tTWFu\tok",
+    ]
+)
 
 
 def require_tool(name: str, env_name: str) -> str:
@@ -100,6 +107,13 @@ def expect_system_exit(label: str, callback, expected_message: str) -> None:
     )
 
 
+def validate_expected_surface(lines: list[str], label: str) -> None:
+    if lines != EXPECTED_SORTED_LINES:
+        raise SystemExit(
+            f"phase6-base64-c-parity:{label}:unexpected_output:expected={EXPECTED_SORTED_LINES!r}:actual={lines!r}"
+        )
+
+
 def run_self_test() -> int:
     assert_equal("require_tool_env", require_tool("zig", "PHASE6_SELFTEST_TOOL"), "/tmp/zig-self-test")
     expect_system_exit(
@@ -118,12 +132,23 @@ def run_self_test() -> int:
         "missing runner: /tmp/phase6-missing-runner.zig",
     )
     build_text = build_zig_build_text()
-    assert_equal("build_text_import", 'root_module.addImport("base64", base64_module);' in build_text, True)
-    assert_equal("build_text_runner", str(ZIG_RUNNER) in build_text, True)
     assert_equal(
-        "sorted_lines",
-        sorted_lines("dec\tstd\t1\t3\tok\tok\nenc\tstd\t1\tTWFu\tok\n"),
-        ["dec\tstd\t1\t3\tok\tok", "enc\tstd\t1\tTWFu\tok"],
+        "build_text",
+        'root_module.addImport("base64", base64_module);' in build_text
+        and str(ROOT / "lib" / "base64.zig") in build_text
+        and str(ZIG_RUNNER) in build_text,
+        True,
+    )
+    validate_expected_surface(
+        sorted_lines("dec\tstd\t1\t3\tok\tok\nenc\tstd\t1\tTWFu\tok\ndec\timap\t0\t3\tok\tok\n"),
+        "self-test-positive",
+    )
+    unexpected_lines = EXPECTED_SORTED_LINES + ["unexpected-extra\tstd\t1\tbogus\tok"]
+    expect_system_exit(
+        "unexpected_case",
+        lambda: validate_expected_surface(unexpected_lines, "self-test-unexpected-case"),
+        "phase6-base64-c-parity:self-test-unexpected-case:unexpected_output:"
+        f"expected={EXPECTED_SORTED_LINES!r}:actual={unexpected_lines!r}",
     )
 
     print("PHASE6_BASE64_C_PARITY_SELF_TEST=pass")
