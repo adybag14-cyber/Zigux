@@ -9,6 +9,7 @@ test "phase12 nvme pci descriptor and admin queue plan stay anchored to pci.c" {
     try std.testing.expect(descriptor.provides_prp_shape_helper);
     try std.testing.expect(descriptor.provides_prp_metadata_helper);
     try std.testing.expect(descriptor.provides_pointer_selection_helper);
+    try std.testing.expect(descriptor.provides_doorbell_window_helper);
     try std.testing.expect(!descriptor.touches_live_dma);
     try std.testing.expect(!descriptor.touches_pci_probe);
     try std.testing.expect(!descriptor.touches_irq_recovery);
@@ -246,4 +247,54 @@ test "phase12 nvme pci data pointer strategy respects reset freeze and resumes a
     try std.testing.expectEqual(nvme_pci.DataPointerPlan.sgl, strategy_after_reset.selected_pointer);
     try std.testing.expect(strategy_after_reset.threshold_prefers_sgl);
     try std.testing.expectEqual(@as(u32, 1), strategy_after_reset.reset_generation);
+}
+
+test "phase12 nvme pci doorbell window helper summarizes planned admin and io register aperture" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 16);
+    _ = try lab.planAdminQueue(64, 64, false);
+    _ = try lab.planIoQueue(128, 64, false);
+    _ = try lab.planIoQueue(64, 64, true);
+
+    const window = try lab.planDoorbellWindow();
+    try std.testing.expectEqualStrings("drivers/nvme/host/pci.c", window.anchor);
+    try std.testing.expectEqual(@as(usize, 2), window.planned_io_queues);
+    try std.testing.expectEqual(@as(usize, 3), window.queue_pair_count);
+    try std.testing.expectEqual(@as(u32, 16), window.doorbell_stride_bytes);
+    try std.testing.expectEqual(@as(u32, 0), window.admin_sq_doorbell_offset);
+    try std.testing.expectEqual(@as(u32, 16), window.admin_cq_doorbell_offset);
+    try std.testing.expect(window.has_io_queues);
+    try std.testing.expectEqual(@as(u32, 32), window.first_io_sq_doorbell_offset);
+    try std.testing.expectEqual(@as(u32, 80), window.last_cq_doorbell_offset);
+    try std.testing.expectEqual(@as(u32, 96), window.total_doorbell_window_bytes);
+    try std.testing.expect(!window.queues_frozen);
+    try std.testing.expectEqual(@as(u32, 0), window.reset_generation);
+}
+
+test "phase12 nvme pci doorbell window helper tracks reset state without claiming live irq routing" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try lab.planAdminQueue(32, 64, false);
+    _ = try lab.planIoQueue(16, 64, false);
+
+    var window = try lab.planDoorbellWindow();
+    try std.testing.expectEqual(@as(usize, 2), window.queue_pair_count);
+    try std.testing.expectEqual(@as(u32, 24), window.last_cq_doorbell_offset);
+    try std.testing.expectEqual(@as(u32, 32), window.total_doorbell_window_bytes);
+    try std.testing.expect(!window.queues_frozen);
+
+    _ = lab.beginReset();
+    window = try lab.planDoorbellWindow();
+    try std.testing.expect(window.queues_frozen);
+    try std.testing.expectEqual(@as(usize, 1), window.planned_io_queues);
+    try std.testing.expectEqual(@as(u32, 1), window.reset_generation);
+
+    _ = lab.completeReset();
+    window = try lab.planDoorbellWindow();
+    try std.testing.expectEqual(@as(usize, 0), window.planned_io_queues);
+    try std.testing.expectEqual(@as(usize, 1), window.queue_pair_count);
+    try std.testing.expect(!window.has_io_queues);
+    try std.testing.expectEqual(@as(u32, 0), window.first_io_sq_doorbell_offset);
+    try std.testing.expectEqual(@as(u32, 8), window.last_cq_doorbell_offset);
+    try std.testing.expectEqual(@as(u32, 16), window.total_doorbell_window_bytes);
+    try std.testing.expect(!window.queues_frozen);
+    try std.testing.expectEqual(@as(u32, 1), window.reset_generation);
 }
