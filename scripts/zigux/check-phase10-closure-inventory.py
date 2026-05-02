@@ -343,6 +343,12 @@ def run_self_test() -> int:
         expect_missing_marker("manifest_docs_inventory", root, "manifest:docs")
         write_fixture(root)
 
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["manifests"] = EXPECTED_MANIFESTS[:-1] + ["zigux/tests/phase10_virtio_mmio_missing.json"]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker("manifest_manifest_inventory", root, "manifest:manifests")
+        write_fixture(root)
+
         ledger_path = root / CLOSURE_LEDGER
         original_ledger = ledger_path.read_text(encoding="utf-8")
         ledger_path.write_text(
@@ -372,6 +378,21 @@ def run_self_test() -> int:
             "ledger_shared_validator_marker",
             root,
             "ledger:PHASE10_LEDGER_SHARED_VALIDATE=scripts/zigux/validate-phase10.py",
+        )
+        ledger_path.write_text(original_ledger, encoding="utf-8")
+
+        ledger_path.write_text(
+            original_ledger.replace(
+                "PHASE10_LEDGER_CORE_SURVEY_GATE=zigux/tests/phase10_virtio_core_survey.zig",
+                "PHASE10_LEDGER_CORE_SURVEY_GATE=missing",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "ledger_core_survey_gate_marker",
+            root,
+            "ledger:PHASE10_LEDGER_CORE_SURVEY_GATE=zigux/tests/phase10_virtio_core_survey.zig",
         )
         ledger_path.write_text(original_ledger, encoding="utf-8")
 
@@ -487,7 +508,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_CLOSURE_INVENTORY_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_INVENTORY_SELF_TEST_CASE_COUNT=16")
+    print("PHASE10_CLOSURE_INVENTORY_SELF_TEST_CASE_COUNT=19")
     return 0
 
 
