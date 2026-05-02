@@ -28,7 +28,7 @@ BUILD_TEST_ROOT_MODULE_RE = re.compile(
     re.S,
 )
 BUILD_STEP_RE = re.compile(
-    r'const ([A-Za-z0-9_]+) = b\.step\(\s*"([^"]+)",\s*"([^"]+)"\s*\);',
+    r'const ([A-Za-z0-9_]+) = b\.step\(\s*"([^"]+)",\s*"([^"]+)",?\s*\);',
     re.S,
 )
 FORBIDDEN_BUILD_MARKERS = [
