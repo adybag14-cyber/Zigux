@@ -66,6 +66,16 @@ fn compareDescendingU32Counted(key: *const u32, item: *const u32) i32 {
     return compareDescendingU32(key, item);
 }
 
+fn compareCU32Counted(key: *const u32, item: *const u32) callconv(.c) i32 {
+    counted_compare_calls += 1;
+    return compareCU32(key, item);
+}
+
+fn compareCDescendingU32Counted(key: *const u32, item: *const u32) callconv(.c) i32 {
+    counted_compare_calls += 1;
+    return compareCDescendingU32(key, item);
+}
+
 fn compareOpaqueU32Counted(key: *const anyopaque, item: *const anyopaque) i32 {
     counted_compare_calls += 1;
     return compareOpaqueU32(key, item);
@@ -239,6 +249,24 @@ test "phase 6 bsearch keeps runtime-selected typed and raw comparator paths insi
     };
 
     for (typed_cases) |case| {
+        counted_compare_calls = 0;
+        try std.testing.expectEqual(case.expected, bsearch.searchIndex(u32, u32, &case.key, case.values, case.compare));
+        try std.testing.expect(counted_compare_calls <= budget);
+    }
+
+    const c_typed_cases = [_]struct {
+        key: u32,
+        values: []const u32,
+        compare: bsearch.CComparator(u32, u32),
+        expected: ?usize,
+    }{
+        .{ .key = 34, .values = ascending[0..], .compare = compareCU32Counted, .expected = 4 },
+        .{ .key = 34, .values = descending[0..], .compare = compareCDescendingU32Counted, .expected = 2 },
+        .{ .key = 20, .values = ascending[0..], .compare = compareCU32Counted, .expected = null },
+        .{ .key = 20, .values = descending[0..], .compare = compareCDescendingU32Counted, .expected = null },
+    };
+
+    for (c_typed_cases) |case| {
         counted_compare_calls = 0;
         try std.testing.expectEqual(case.expected, bsearch.searchIndex(u32, u32, &case.key, case.values, case.compare));
         try std.testing.expect(counted_compare_calls <= budget);
