@@ -31,7 +31,7 @@ fn parseBase(text: []const u8, start: usize) struct {
 } {
     if (start + 1 < text.len and text[start] == '0') {
         const next = text[start + 1];
-        if (next == 'x' or next == 'X') {
+        if ((next == 'x' or next == 'X') and start + 2 < text.len and digitValue(text[start + 2], 16) != null) {
             return .{ .base = 16, .digits_start = start + 2 };
         }
         return .{ .base = 8, .digits_start = start };
@@ -109,6 +109,20 @@ test "memparse handles signed and explicit positive prefixes" {
     const positive = memparse("+0X10M done");
     try std.testing.expectEqual(@as(u64, 0x10 << 20), positive.value);
     try std.testing.expectEqualStrings(" done", positive.rest);
+}
+
+test "memparse keeps bare hex prefixes aligned with C parsing" {
+    const bare = memparse("0x");
+    try std.testing.expectEqual(@as(u64, 0), bare.value);
+    try std.testing.expectEqualStrings("x", bare.rest);
+
+    const signed_bare = memparse("-0x");
+    try std.testing.expectEqual(@as(u64, 0), signed_bare.value);
+    try std.testing.expectEqualStrings("x", signed_bare.rest);
+
+    const invalid_hex_digit = memparse("0xG");
+    try std.testing.expectEqual(@as(u64, 0), invalid_hex_digit.value);
+    try std.testing.expectEqualStrings("xG", invalid_hex_digit.rest);
 }
 
 test "memparse keeps the original rest when sign-prefixed input has no digits" {
