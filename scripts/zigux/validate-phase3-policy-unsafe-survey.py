@@ -12,6 +12,8 @@ import tempfile
 _HERE = Path(__file__).resolve()
 ROOT = _HERE.parents[2] if len(_HERE.parents) > 2 else _HERE.parent
 SURVEY_REL = "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md"
+DOCS_README_REL = "Documentation/zigux/README.md"
+SCRIPTS_README_REL = "scripts/zigux/README.md"
 MAKEFILE_REL = "zigux/Makefile"
 ABI_SLICE_REL = "Documentation/zigux/phase3-abi-slice.md"
 MANIFEST_REL = "zigux/tests/fixtures/phase3_abi_manifest.json"
@@ -74,6 +76,20 @@ REQUIRED_SURVEY_PATHS = (
     POLICY_UNSAFE_TEST_REL,
     MANIFEST_REL,
     ABI_SLICE_REL,
+)
+
+REQUIRED_DOCS_README_SNIPPETS = (
+    "`Documentation/zigux/phase3-policy-unsafe-boundary-survey.md`",
+    "`scripts/zigux/validate-phase3-policy-unsafe-survey.py`",
+    "`make -C zigux phase3-validate`",
+    "shared docs-index hook",
+    "shared scripts-index hook",
+)
+
+REQUIRED_SCRIPTS_README_SNIPPETS = (
+    "`validate-phase3-policy-unsafe-survey.py`",
+    "`Documentation/zigux/phase3-policy-unsafe-boundary-survey.md`",
+    "published docs-index and scripts-index hooks",
 )
 
 REQUIRED_MAKEFILE_SNIPPETS = (
@@ -286,6 +302,8 @@ def validate(root: Path) -> list[str]:
     issues: list[str] = []
 
     survey = _read_text(root, SURVEY_REL, issues)
+    docs_readme = _read_text(root, DOCS_README_REL, issues)
+    scripts_readme = _read_text(root, SCRIPTS_README_REL, issues)
     makefile = _read_text(root, MAKEFILE_REL, issues)
     layout_assert = _read_text(root, LAYOUT_ASSERT_REL, issues)
     panic_policy = _read_text(root, PANIC_POLICY_REL, issues)
@@ -323,6 +341,10 @@ def validate(root: Path) -> list[str]:
         if not (root / rel).exists():
             issues.append(f"missing_repo_path:{rel}")
 
+    if docs_readme:
+        _check_snippets(docs_readme, REQUIRED_DOCS_README_SNIPPETS, "missing_docs_readme_snippet", issues)
+    if scripts_readme:
+        _check_snippets(scripts_readme, REQUIRED_SCRIPTS_README_SNIPPETS, "missing_scripts_readme_snippet", issues)
     if makefile:
         _check_snippets(makefile, REQUIRED_MAKEFILE_SNIPPETS, "missing_makefile_snippet", issues)
     if layout_assert:
@@ -406,6 +428,16 @@ def run_self_test() -> int:
                 ]
             )
             + "\n",
+        )
+        _write(
+            root,
+            DOCS_README_REL,
+            "\n".join(REQUIRED_DOCS_README_SNIPPETS) + "\n",
+        )
+        _write(
+            root,
+            SCRIPTS_README_REL,
+            "\n".join(REQUIRED_SCRIPTS_README_SNIPPETS) + "\n",
         )
         _write(
             root,
@@ -566,6 +598,32 @@ def run_self_test() -> int:
         issues = validate(root)
         assert f"surveyed_blob_drift:{MMIO_REL}" in issues
 
+        _write(
+            root,
+            DOCS_README_REL,
+            "\n".join(REQUIRED_DOCS_README_SNIPPETS[:-1]) + "\n",
+        )
+        issues = validate(root)
+        assert "missing_docs_readme_snippet:shared scripts-index hook" in issues
+
+        _write(
+            root,
+            DOCS_README_REL,
+            "\n".join(REQUIRED_DOCS_README_SNIPPETS) + "\n",
+        )
+        _write(
+            root,
+            SCRIPTS_README_REL,
+            "\n".join(REQUIRED_SCRIPTS_README_SNIPPETS[:-1]) + "\n",
+        )
+        issues = validate(root)
+        assert "missing_scripts_readme_snippet:published docs-index and scripts-index hooks" in issues
+
+        _write(
+            root,
+            SCRIPTS_README_REL,
+            "\n".join(REQUIRED_SCRIPTS_README_SNIPPETS) + "\n",
+        )
         _write(
             root,
             POLICY_UNSAFE_TEST_REL,
