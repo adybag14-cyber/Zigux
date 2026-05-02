@@ -12,8 +12,10 @@ import tempfile
 
 
 ROOT = Path(__file__).resolve().parents[2]
-FIXTURE_PATH = ROOT / "zigux/tests/fixtures/phase12_libbpf_snapshot.json"
-ARTIFACT_DIFF_PATH = ROOT / "scripts/zigux/artifact_diff.py"
+FIXTURE_REL_PATH = "zigux/tests/fixtures/phase12_libbpf_snapshot.json"
+ARTIFACT_DIFF_REL_PATH = "scripts/zigux/artifact_diff.py"
+FIXTURE_PATH = ROOT / FIXTURE_REL_PATH
+ARTIFACT_DIFF_PATH = ROOT / ARTIFACT_DIFF_REL_PATH
 TRACKED_PATHS = [
     "zigux/tests/phase12_libbpf_manifest.json",
     "zigux/tests/phase12_libbpf_segments.zig",
@@ -21,7 +23,16 @@ TRACKED_PATHS = [
     "Documentation/zigux/phase12-libbpf-segment-survey.md",
     "tools/lib/bpf/zigux_segments/manifest.json",
 ]
+REQUIRED_PATHS = [*TRACKED_PATHS, FIXTURE_REL_PATH, ARTIFACT_DIFF_REL_PATH]
 HEX40 = re.compile(r"^[0-9a-f]{40}$")
+
+
+def missing_required_paths(root: Path) -> list[str]:
+    missing: list[str] = []
+    for rel_path in REQUIRED_PATHS:
+        if not (root / rel_path).exists():
+            missing.append(f"missing_file:{rel_path}")
+    return missing
 
 
 def validate_manifest_packet(manifest: dict[str, object]) -> dict[str, str]:
@@ -50,14 +61,14 @@ def file_digest(path: Path) -> dict[str, object]:
     }
 
 
-def load_manifest_packet() -> dict[str, str]:
-    manifest = json.loads((ROOT / TRACKED_PATHS[0]).read_text(encoding="utf-8"))
+def load_manifest_packet(root: Path = ROOT) -> dict[str, str]:
+    manifest = json.loads((root / TRACKED_PATHS[0]).read_text(encoding="utf-8"))
     return validate_manifest_packet(manifest)
 
 
-def render_snapshot() -> dict[str, object]:
-    manifest_packet = load_manifest_packet()
-    files = [file_digest(ROOT / rel_path) for rel_path in TRACKED_PATHS]
+def render_snapshot(root: Path = ROOT) -> dict[str, object]:
+    manifest_packet = load_manifest_packet(root)
+    files = [file_digest(root / rel_path) for rel_path in TRACKED_PATHS]
     return {
         "lane_key": manifest_packet["lane_key"],
         "phase": manifest_packet["phase"],
@@ -67,7 +78,11 @@ def render_snapshot() -> dict[str, object]:
     }
 
 
-def compare_snapshot(snapshot: dict[str, object]) -> tuple[subprocess.CompletedProcess[str], str]:
+def compare_snapshot(
+    snapshot: dict[str, object],
+    fixture_path: Path = FIXTURE_PATH,
+    artifact_diff_path: Path = ARTIFACT_DIFF_PATH,
+) -> tuple[subprocess.CompletedProcess[str], str]:
     rendered = json.dumps(snapshot, indent=2) + "\n"
     with tempfile.TemporaryDirectory(prefix="zigux_phase12_libbpf_snapshot_") as tmp_dir_str:
         actual_path = Path(tmp_dir_str) / "phase12_libbpf_snapshot.json"
@@ -75,10 +90,10 @@ def compare_snapshot(snapshot: dict[str, object]) -> tuple[subprocess.CompletedP
         result = subprocess.run(
             [
                 sys.executable,
-                str(ARTIFACT_DIFF_PATH),
+                str(artifact_diff_path),
                 "--mode",
                 "json",
-                str(FIXTURE_PATH),
+                str(fixture_path),
                 str(actual_path),
             ],
             check=False,
@@ -109,6 +124,13 @@ def expect_snapshot_mismatch(label: str, snapshot: dict[str, object]) -> None:
         raise SystemExit(f"phase12-libbpf-snapshot:self-test:{label}:fixture_drift_exit")
     if "ARTIFACT_DIFF=fail" not in mismatched_result.stdout:
         raise SystemExit(f"phase12-libbpf-snapshot:self-test:{label}:fixture_drift_stdout")
+
+
+def copy_required_tree(root: Path) -> None:
+    for rel_path in REQUIRED_PATHS:
+        target_path = root / rel_path
+        target_path.parent.mkdir(parents=True, exist_ok=True)
+        target_path.write_bytes((ROOT / rel_path).read_bytes())
 
 
 def run_self_test() -> int:
@@ -160,6 +182,33 @@ def run_self_test() -> int:
         lambda: validate_manifest_packet(invalid_uppercase_commit_manifest),
         "invalid Phase 12 libbpf surveyed_commit",
     )
+
+    with tempfile.TemporaryDirectory(prefix="zigux_phase12_libbpf_snapshot_required_") as tmp_dir_str:
+        required_root = Path(tmp_dir_str)
+        copy_required_tree(required_root)
+        if missing_required_paths(required_root):
+            raise SystemExit("phase12-libbpf-snapshot:self-test:required_tree_complete")
+
+        (required_root / TRACKED_PATHS[2]).unlink()
+        missing = missing_required_paths(required_root)
+        if f"missing_file:{TRACKED_PATHS[2]}" not in missing:
+            raise SystemExit("phase12-libbpf-snapshot:self-test:missing_tracked_file_detection")
+
+    with tempfile.TemporaryDirectory(prefix="zigux_phase12_libbpf_snapshot_fixture_") as tmp_dir_str:
+        fixture_root = Path(tmp_dir_str)
+        copy_required_tree(fixture_root)
+        (fixture_root / FIXTURE_REL_PATH).unlink()
+        missing = missing_required_paths(fixture_root)
+        if f"missing_file:{FIXTURE_REL_PATH}" not in missing:
+            raise SystemExit("phase12-libbpf-snapshot:self-test:missing_fixture_detection")
+
+    with tempfile.TemporaryDirectory(prefix="zigux_phase12_libbpf_snapshot_artifact_diff_") as tmp_dir_str:
+        helper_root = Path(tmp_dir_str)
+        copy_required_tree(helper_root)
+        (helper_root / ARTIFACT_DIFF_REL_PATH).unlink()
+        missing = missing_required_paths(helper_root)
+        if f"missing_file:{ARTIFACT_DIFF_REL_PATH}" not in missing:
+            raise SystemExit("phase12-libbpf-snapshot:self-test:missing_artifact_diff_detection")
 
     first = render_snapshot()
     second = render_snapshot()
@@ -236,7 +285,7 @@ def run_self_test() -> int:
     expect_snapshot_mismatch("fixture_tracked_order_drift", drifted_order)
 
     print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST=pass")
-    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT=28")
+    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT=31")
     return 0
 
 
@@ -253,6 +302,15 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.self_test:
         return run_self_test()
+
+    missing = missing_required_paths(ROOT)
+    if missing:
+        print("PHASE12_LIBBPF_SNAPSHOT=fail")
+        print("PHASE12_LIBBPF_SNAPSHOT_MISSING_START")
+        for item in missing:
+            print(item)
+        print("PHASE12_LIBBPF_SNAPSHOT_MISSING_END")
+        return 1
 
     first = render_snapshot()
     second = render_snapshot()
