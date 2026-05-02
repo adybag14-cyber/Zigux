@@ -74,7 +74,7 @@
     {
       "id": "bit-list-guards",
       "kind": "input_validation",
-      "expected": "initFromBitList rejects trailing or doubled separators, rejects out-of-bounds bit lists, normalizes duplicate bit lists to the canonical 0,5,64,70 replay, preserves empty parse-and-print replay as an empty string plus null nthSetBit(0), and refuses a second initFromBitList call with InvalidLifecycleTransition after the first parse succeeds"
+      "expected": "initFromBitList rejects trailing or doubled separators, rejects out-of-bounds bit lists, normalizes duplicate bit lists to the canonical 0,5,64,70 replay, preserves empty parse-and-print replay as an empty string plus null nthSetBit(0), refuses a second initFromBitList call with InvalidLifecycleTransition after the first parse succeeds, and keeps failed parsed or direct init attempts cold and empty so a clean follow-up init can still succeed"
     },
     {
       "id": "loader-request-surface",
