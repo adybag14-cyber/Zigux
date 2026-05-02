@@ -57,7 +57,7 @@ CATALOG_MARKERS = [
     "PHASE6_BASE64_C_PARITY_CASES=112",
     "PHASE6_BSEARCH_C_PARITY_CASES=29",
     "PHASE6_CHECKSUM_C_PARITY_SELF_TEST_CASE_COUNT=6",
-    "PHASE6_CHECKSUM_C_PARITY_CASES=15",
+    "PHASE6_CHECKSUM_C_PARITY_CASES=21",
     "max_encode_slowdown_pct = 190",
     "max_decode_slowdown_pct = 320",
     "max_slowdown_pct = 150",
@@ -208,7 +208,7 @@ EXPECTED_CHECKSUM_DETERMINISM = {
     "carry_discipline_vectors": 4,
     "kunit_random_prefix_vectors": 6,
     "c_parity_self_test_cases": 6,
-    "c_parity_cases": 15,
+    "c_parity_cases": 21,
 }
 
 EXPECTED_HEXDUMP_DETERMINISM = {
@@ -216,6 +216,12 @@ EXPECTED_HEXDUMP_DETERMINISM = {
     "overflow_vectors": 4,
     "required_length_vectors": 9,
     "perf_vectors": 4,
+    "perf_labels": [
+        "16B-plain",
+        "32B-ascii-g2",
+        "16B-ascii-g4",
+        "16B-ascii-g8",
+    ],
     "normalization_helpers": [
         "normalizedRowsize",
         "normalizedGroupsizeForLen",
@@ -466,7 +472,7 @@ def run_self_test() -> int:
 
             build_self_test_tree(root)
             docs_root = root / "Documentation/zigux/README.md"
-            docs_root.write_text(docs_root.read_text(encoding="utf-8").replace(DOCS_ROOT_MARKERS[0], "", 1), encoding="utf-8")
+            docs_root.writeText(docs_root.read_text(encoding="utf-8").replace(DOCS_ROOT_MARKERS[0], "", 1), encoding="utf-8")
             if f"docs_root:missing:{DOCS_ROOT_MARKERS[0]}" not in validate_phase6(root)["missing"]:
                 raise AssertionError("missing docs root marker failure")
 
@@ -490,8 +496,8 @@ def run_self_test() -> int:
 
             build_self_test_tree(root)
             catalog = root / "Documentation/zigux/phase6-helper-parity-catalog.md"
-            catalog.write_text(catalog.read_text(encoding="utf-8").replace("PHASE6_CHECKSUM_C_PARITY_CASES=15", "", 1), encoding="utf-8")
-            if "catalog:missing:PHASE6_CHECKSUM_C_PARITY_CASES=15" not in validate_phase6(root)["missing"]:
+            catalog.write_text(catalog.read_text(encoding="utf-8").replace("PHASE6_CHECKSUM_C_PARITY_CASES=21", "", 1), encoding="utf-8")
+            if "catalog:missing:PHASE6_CHECKSUM_C_PARITY_CASES=21" not in validate_phase6(root)["missing"]:
                 raise AssertionError("missing catalog failure")
 
             build_self_test_tree(root)
