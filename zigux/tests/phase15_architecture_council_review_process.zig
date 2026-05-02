@@ -102,27 +102,29 @@ test "phase 15 architecture council review-process manifest records current trig
     try std.testing.expectEqualStrings("no_freeze_map_status_change_approved", manifest.current_approval_state);
     try std.testing.expectEqual(@as(usize, 12), manifest.ownership_evidence_fields.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.approval_evidence_fields.len);
-    try std.testing.expectEqual(@as(usize, 6), manifest.approval_evidence_paths.len);
-    try std.testing.expectEqual(@as(usize, 5), manifest.ownership_evidence_paths.len);
+    try std.testing.expectEqual(@as(usize, 7), manifest.approval_evidence_paths.len);
+    try std.testing.expectEqual(@as(usize, 6), manifest.ownership_evidence_paths.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.trigger_conditions.len);
     try std.testing.expectEqual(@as(usize, 21), manifest.required_review_packet_fields.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.reopen_trigger_catalog.len);
     try std.testing.expectEqualStrings("ownership_or_validation_changed", manifest.ownership_refresh_trigger);
     try std.testing.expectEqual(@as(usize, 2), manifest.ownership_refresh_fields.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.decision_buckets.len);
-    try std.testing.expectEqual(@as(usize, 17), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 18), manifest.gaps.len);
 
     try std.testing.expectEqualStrings("requested decision bucket", manifest.approval_evidence_fields[0]);
     try std.testing.expectEqualStrings("decision record ID", manifest.approval_evidence_fields[1]);
     try std.testing.expectEqualStrings("no Architecture Council approval claim", manifest.approval_evidence_fields[2]);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-architecture-council-review-process.md", manifest.approval_evidence_paths[0]);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-parity-scorecard.md", manifest.approval_evidence_paths[1]);
+    try std.testing.expectEqualStrings("Documentation/zigux/phase15-indefinite-c-policy.md", manifest.approval_evidence_paths[2]);
     try std.testing.expectEqualStrings("owner", manifest.ownership_evidence_fields[0]);
     try std.testing.expectEqualStrings("rollback owner", manifest.ownership_evidence_fields[1]);
     try std.testing.expectEqualStrings("retained discussion state", manifest.ownership_evidence_fields[7]);
     try std.testing.expectEqualStrings("automatic return-to-blocked trigger", manifest.ownership_evidence_fields[8]);
     try std.testing.expectEqualStrings("indefinite-C policy link or applicability note", manifest.ownership_evidence_fields[9]);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-parity-scorecard.md", manifest.ownership_evidence_paths[0]);
+    try std.testing.expectEqualStrings("Documentation/zigux/phase15-indefinite-c-policy.md", manifest.ownership_evidence_paths[1]);
     try std.testing.expectEqualStrings("freeze-map list change", manifest.trigger_conditions[0]);
     try std.testing.expectEqualStrings("freeze-map status-bucket change", manifest.trigger_conditions[1]);
     try std.testing.expectEqualStrings("linux anchor path", manifest.required_review_packet_fields[0]);
@@ -185,6 +187,7 @@ test "phase 15 architecture council review-process manifest records current trig
     }
 
     var landed_count: usize = 0;
+    var saw_indefinite_c_evidence_sync = false;
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(isAllowedStatus(gap.status));
         try std.testing.expect(gap.id.len > 0);
@@ -193,13 +196,20 @@ test "phase 15 architecture council review-process manifest records current trig
         try std.testing.expect(gap.why_now.len > 0);
 
         if (std.mem.eql(u8, gap.status, "starter_landed")) landed_count += 1;
+        if (std.mem.eql(u8, gap.id, "phase15-review-process-indefinite-c-evidence-path-sync")) {
+            saw_indefinite_c_evidence_sync = true;
+            try std.testing.expectEqualStrings("governance_sync", gap.kind);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "indefinite-C policy") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "evidence-path inventory") != null);
+        }
 
         for (manifest.gaps[i + 1 ..]) |other| {
             try std.testing.expect(!std.mem.eql(u8, gap.id, other.id));
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 17), landed_count);
+    try std.testing.expectEqual(@as(usize, 18), landed_count);
+    try std.testing.expect(saw_indefinite_c_evidence_sync);
 }
 
 test "phase 15 architecture council review-process note stays aligned with checklist and handoff language" {
@@ -242,6 +252,7 @@ test "phase 15 architecture council review-process note stays aligned with check
     try std.testing.expect(std.mem.indexOf(u8, review_process, "make -C zigux phase15") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "retired_from_active_discussion") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "no Architecture Council approval is currently recorded") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_process, "the current bounded evidence is the freeze map, this review-process note, the review checklist hook, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, and the reserved per-anchor templates under `Documentation/zigux/phase15-evidence-archives/`") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "current approval evidence is explicit negative evidence rather than silence") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "requested decision bucket: pending_no_request") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "decision record ID: pending_no_architecture_council_request") != null);
@@ -271,6 +282,7 @@ test "phase 15 architecture council review-process note stays aligned with check
     try std.testing.expect(std.mem.indexOf(u8, review_process, "Documentation/zigux/phase15-handoff-next-steps-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "shared Phase 15 replay drift") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "phase15-review-process-lane-identity-provenance-refresh") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_process, "phase15-review-process-indefinite-c-evidence-path-sync") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, checklist, "decision record ID, lane owner, rollback owner, validation gate summary, evidence archive path, latest blocker disposition, benchmark notes, and replay command explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "does the packet name the automatic return-to-blocked trigger") != null);
