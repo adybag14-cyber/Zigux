@@ -48,6 +48,12 @@ def expected_metric_keys(expectations: dict[str, object]) -> set[str]:
     )
 
 
+def iteration_key_for_exact_checksum(key: str) -> str | None:
+    if not key.endswith('_CHECKSUM'):
+        return None
+    return key.removesuffix('_CHECKSUM') + '_ITERATIONS'
+
+
 def validate_expectations_shape(expectations: dict[str, object]) -> None:
     iterations = expectations.get('iterations')
     exact_checksums = expectations.get('exact_checksums')
@@ -103,6 +109,16 @@ def validate_expectations_shape(expectations: dict[str, object]) -> None:
             'phase1-bench:expectations:checksums:bitmap_exact_required:'
             f'{optional_bitmap_checksum}'
         )
+
+    for bitmap_exact_checksum in sorted(metric_groups['exact_checksums']):
+        if not bitmap_exact_checksum.startswith('PHASE1_BENCH_BITMAP_'):
+            continue
+        iteration_key = iteration_key_for_exact_checksum(bitmap_exact_checksum)
+        if iteration_key is None or iteration_key not in metric_groups['iterations']:
+            raise SystemExit(
+                'phase1-bench:expectations:iterations:bitmap_required:'
+                f'{iteration_key or bitmap_exact_checksum}'
+            )
 
     rbtree_exact_checksum = next(
         (
@@ -174,6 +190,11 @@ def run_self_test() -> int:
             'PHASE1_BENCH_SAMPLE_CHECKSUM',
             'PHASE1_BENCH_OPTIONAL_CHECKSUM',
         },
+    )
+    assert_equal(
+        'iteration_key_for_exact_checksum',
+        iteration_key_for_exact_checksum('PHASE1_BENCH_BITMAP_COPY_CHECKSUM'),
+        'PHASE1_BENCH_BITMAP_COPY_ITERATIONS',
     )
     assert_equal(
         'unexpected_keys_empty',
@@ -297,6 +318,7 @@ def run_self_test() -> int:
     assert_equal('status_passthrough', parsed['PHASE1_BENCH'], 'pass')
 
     validate_expectations_shape(expectations)
+    validate_expectations_shape(bitmap_expectations)
     validate_expectations_shape(rbtree_expectations)
 
     invalid_overlap = {
@@ -362,6 +384,21 @@ def run_self_test() -> int:
     else:
         raise SystemExit('phase1-bench:self-test:invalid_bitmap_optional:unexpected_pass')
 
+    invalid_bitmap_missing_iterations = {
+        **bitmap_expectations,
+        'iterations': {},
+    }
+    try:
+        validate_expectations_shape(invalid_bitmap_missing_iterations)
+    except SystemExit as exc:
+        assert_equal(
+            'invalid_bitmap_missing_iterations',
+            str(exc),
+            'phase1-bench:expectations:iterations:bitmap_required:PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS',
+        )
+    else:
+        raise SystemExit('phase1-bench:self-test:invalid_bitmap_missing_iterations:unexpected_pass')
+
     invalid_rbtree_missing_iterations = {
         **rbtree_expectations,
         'iterations': {},
@@ -378,7 +415,7 @@ def run_self_test() -> int:
         raise SystemExit('phase1-bench:self-test:invalid_rbtree_missing_iterations:unexpected_pass')
 
     print('PHASE1_BENCH_SELF_TEST=pass')
-    print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=15')
+    print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=16')
     return 0
 
 
