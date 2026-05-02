@@ -335,26 +335,20 @@ test "phase14 workqueue bridge descriptor stays at boundary-map posture" {
     try std.testing.expect(audit.checkpoints[16].guard == .mayday_lock_then_pool_lock);
 }
 
-test "phase14 workqueue bridge checklist prompt keeps review packet aligned" {
+test "phase14 workqueue bridge survey status block keeps review packet aligned" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
-    const checklist = try std.Io.Dir.cwd().readFileAlloc(
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
-        "Documentation/zigux/review-checklist.md",
+        "Documentation/zigux/phase14-workqueue-bridge-survey.md",
         std.testing.allocator,
         .limited(32 * 1024),
     );
-    defer std.testing.allocator.free(checklist);
+    defer std.testing.allocator.free(survey_note);
 
-    try std.testing.expect(std.mem.indexOf(u8, checklist, "Phase 14 workqueue bridge lane") != null);
-    try std.testing.expect(std.mem.indexOf(u8, checklist, "kernel/workqueue_bridge.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, checklist, "zigux/tests/phase14_workqueue_bridge_manifest.json") != null);
-    try std.testing.expect(std.mem.indexOf(u8, checklist, "phase14-workqueue-bridge-slice.md") != null);
-    try std.testing.expect(std.mem.indexOf(u8, checklist, "phase14-workqueue-bridge-survey.md") != null);
-    try std.testing.expect(std.mem.indexOf(u8, checklist, "boundary-map-only posture") != null);
-    try std.testing.expect(std.mem.indexOf(u8, checklist, "sixteen-checkpoint audit outline") != null);
-    try std.testing.expect(std.mem.indexOf(u8, checklist, "queue_delayed_work_on()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, checklist, "mod_delayed_work_on()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, checklist, "__queue_delayed_work()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_SLICE=workqueue-delayed-timer-handoff-audit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "ready-next `phase14-workqueue-delayed-timer-handoff-followup`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "delayed_work_timer_fn()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "__queue_work()") != null);
 }
