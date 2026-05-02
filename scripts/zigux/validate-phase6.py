@@ -204,7 +204,7 @@ EXPECTED_CHECKSUM_DETERMINISM = {
     "composition_vectors": 2,
     "seeded_vectors": 3,
     "ipv4_pseudo_header_vectors": 1,
-    "ipv6_pseudo_header_vectors": 2,
+    "ipv6_pseudo_header_vectors": 3,
     "carry_discipline_vectors": 4,
     "kunit_random_prefix_vectors": 6,
     "c_parity_self_test_cases": 6,
