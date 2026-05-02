@@ -80,6 +80,14 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
     );
     defer std.testing.allocator.free(parity_fixture);
 
+    const manifest = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase7_cmdline_manifest.json",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(manifest);
+
     try expectContains(roadmap, "## Phase 7: In-Kernel Leaf Libraries");
     try expectContains(roadmap, "lib/cmdline.c");
     try expectContains(roadmap, "- `lib/cmdline.zig`");
@@ -109,6 +117,7 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
 
     try expectContains(phase7_cmdline_slice, "zigux/tests/phase7_cmdline.zig");
     try expectContains(phase7_cmdline_slice, "zigux/tests/phase7_cmdline_survey.zig");
+    try expectContains(phase7_cmdline_slice, "zigux/tests/phase7_cmdline_manifest.json");
     try expectContains(phase7_cmdline_slice, "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig");
     try expectContains(phase7_cmdline_slice, "zigux/tests/fixtures/phase7_cmdline_c_harness.c");
     try expectContains(phase7_cmdline_slice, "scripts/zigux/check-phase7-cmdline-parity.py");
@@ -123,6 +132,7 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
     try expectContains(phase7_cmdline_slice, "`zig test lib/cmdline.zig` keeps a mirrored `next_arg()` edge corpus beside `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig` because helper-local test runs cannot import that fixture from outside the helper module path; keep both packets aligned when those serialized cases change");
     try expectContains(phase7_cmdline_slice, "malformed token classification and malformed range counting ported from the in-tree `lib/tests/cmdline_kunit.c` corpus");
     try expectContains(phase7_cmdline_slice, "KUnit-derived pointer-advance semantics for malformed-prefix, leading-integer, and trailing-integer `get_option()` inputs");
+    try expectContains(phase7_cmdline_slice, "a machine-checked manifest that records the `lib/cmdline.c` anchor and the landed Phase 7 review surfaces");
     try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_slice, "descending-range and unparseable-suffix early stop behavior") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_slice, "array-capacity stop behavior when a hyphen range is only partially stored") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_slice, "memory-size suffix scaling with accurate parse-stop reporting") != null);
@@ -170,6 +180,20 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
     try expectContains(next_arg_fixture, ".input = \"mode=fast   \",");
 
     try expectContains(parity_fixture, "\"nul_stop_bare_scan\": false");
+
+    try expectContains(manifest, "\"lane_key\": \"P7-L05\"");
+    try expectContains(manifest, "\"phase\": \"Phase 7\"");
+    try expectContains(manifest, "\"surveyed_commit\": \"bd419951498ce3b8f89fb07d54c163e92b3e8f77\"");
+    try expectContains(manifest, "\"anchor\": \"lib/cmdline.c\"");
+    try expectContains(manifest, "\"roadmap_destinations\": [");
+    try expectContains(manifest, "\"lib/cmdline.zig\"");
+    try expectContains(manifest, "\"id\": \"phase7-build-gate\"");
+    try expectContains(manifest, "\"id\": \"phase7-cmdline-helper\"");
+    try expectContains(manifest, "\"id\": \"phase7-cmdline-dedicated-tests\"");
+    try expectContains(manifest, "\"id\": \"phase7-cmdline-shared-fixtures\"");
+    try expectContains(manifest, "\"id\": \"phase7-cmdline-parity-fixture-layer\"");
+    try expectContains(manifest, "\"id\": \"phase7-cmdline-slice-note\"");
+    try expectContains(manifest, "\"id\": \"phase7-cmdline-survey-gate\"");
 
     try expectContains(phase7_build, "phase7_cmdline_survey.zig");
     try expectContains(phase7_build, "phase7-cmdline-survey-tests");
