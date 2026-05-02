@@ -81,6 +81,7 @@ SCRIPT_README_MARKERS = [
     "blocked registration-lifecycle contract",
     "shared validation surface",
     "bounded MMIO interrupt-ack rung",
+    "probe-preflight helper",
 ]
 
 FORBIDDEN_SCRIPT_README_MARKERS = [
@@ -118,6 +119,7 @@ DOC_README_MARKERS = [
     "phase10-virtio-input-survey.md",
     "registration-preflight helper",
     "queue-callback preflight helper",
+    "landed probe-preflight helper",
     "registration-lifecycle plus MMIO lifecycle blockers",
 ]
 
@@ -144,6 +146,7 @@ SURVEY_MARKERS = [
     "make -C zigux phase10-validate",
     "phase10-virtio-input-registration-preflight-helper",
     "phase10-virtio-input-queue-callback-preflight-helper",
+    "phase10-virtio-input-probe-preflight-helper",
     "phase10-virtio-input-registration-lifecycle",
 ]
 
@@ -231,6 +234,7 @@ TEST_MARKERS = [
     'test "phase10 virtio input records registration preflight once identity and capability intent are staged" {',
     'test "phase10 virtio input registration preflight infers multitouch slot intent from staged ABS_MT_SLOT metadata" {',
     'test "phase10 virtio input records queue-callback preflight once registration and queue intent are staged" {',
+    'test "phase10 virtio input records probe preflight once registration and queue provisioning converge" {',
     'test "phase10 virtio input reset clears queue plan and returns to default bus identity" {',
 ]
 
@@ -242,6 +246,7 @@ SURVEY_TEST_MARKERS = [
     'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-teardown-observation-helper")) {',
     'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-registration-preflight-helper")) {',
     'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-queue-callback-preflight-helper")) {',
+    'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-probe-preflight-helper")) {',
     'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-registration-lifecycle")) {',
 ]
 
@@ -478,6 +483,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             "phase10-virtio-input-teardown-observation-helper": "starter_landed",
             "phase10-virtio-input-registration-preflight-helper": "starter_landed",
             "phase10-virtio-input-queue-callback-preflight-helper": "starter_landed",
+            "phase10-virtio-input-probe-preflight-helper": "starter_landed",
             "phase10-virtio-input-registration-lifecycle": "blocked_on_risky_transport",
         }
         starter_count = 0
@@ -498,7 +504,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             missing.append(f"manifest:ready_next_count={ready_count}")
         if blocked_count != 1:
             missing.append(f"manifest:blocked_count={blocked_count}")
-        if starter_count < 12:
+        if starter_count < 13:
             missing.append(f"manifest:starter_count={starter_count}")
 
         for gap_id, status in expected_statuses.items():
@@ -528,6 +534,18 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
                 missing.append("manifest:ready_gap:status_queue_is_configured")
             if "device is ready" not in why_now:
                 missing.append("manifest:ready_gap:device_is_ready")
+
+        probe_gap = find_gap(manifest, "phase10-virtio-input-probe-preflight-helper")
+        if probe_gap is not None:
+            why_now = str(probe_gap.get("why_now", ""))
+            if "registration intent" not in why_now:
+                missing.append("manifest:probe_gap:registration_intent")
+            if "queue provisioning" not in why_now:
+                missing.append("manifest:probe_gap:queue_provisioning")
+            if "ready-state gating" not in why_now:
+                missing.append("manifest:probe_gap:ready_state_gating")
+            if "transport-backed probe handoff" not in why_now:
+                missing.append("manifest:probe_gap:transport_backed_probe_handoff")
 
         blocked_gap = find_gap(manifest, "phase10-virtio-input-registration-lifecycle")
         if blocked_gap is not None:
@@ -784,6 +802,21 @@ def run_self_test() -> int:
         )
         input_manifest_path.write_text(original_input_manifest, encoding="utf-8")
 
+        input_manifest_path.write_text(
+            original_input_manifest.replace(
+                "\"phase10-virtio-input-probe-preflight-helper\"",
+                "\"phase10-virtio-input-probe-preflight-helper-drift\"",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "input_manifest_probe_preflight_gap_id",
+            tmp_root,
+            "manifest:gap:phase10-virtio-input-probe-preflight-helper",
+        )
+        input_manifest_path.write_text(original_input_manifest, encoding="utf-8")
+
         mmio_manifest_path = tmp_root / "zigux/tests/phase10_virtio_mmio_manifest.json"
         original_mmio_manifest = mmio_manifest_path.read_text(encoding="utf-8")
         mmio_manifest_path.write_text(
@@ -848,6 +881,21 @@ def run_self_test() -> int:
         )
         scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
 
+        scripts_readme_path.write_text(
+            original_scripts_readme.replace(
+                "the landed probe-preflight helper, ",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "scripts_readme_probe_preflight_entry",
+            tmp_root,
+            "script_readme:probe-preflight helper",
+        )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
         tests_readme_path = tmp_root / "zigux/tests/README.md"
         original_tests_readme = tests_readme_path.read_text(encoding="utf-8")
         tests_readme_path.write_text(
@@ -887,6 +935,40 @@ def run_self_test() -> int:
         )
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
+        input_test_path = tmp_root / "zigux/tests/phase10_virtio_input.zig"
+        original_input_test = input_test_path.read_text(encoding="utf-8")
+        input_test_path.write_text(
+            original_input_test.replace(
+                'test "phase10 virtio input records probe preflight once registration and queue provisioning converge" {\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "input_probe_preflight_test",
+            tmp_root,
+            'tests:test "phase10 virtio input records probe preflight once registration and queue provisioning converge" {',
+        )
+        input_test_path.write_text(original_input_test, encoding="utf-8")
+
+        input_survey_test_path = tmp_root / "zigux/tests/phase10_virtio_input_survey.zig"
+        original_input_survey_test = input_survey_test_path.read_text(encoding="utf-8")
+        input_survey_test_path.write_text(
+            original_input_survey_test.replace(
+                'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-probe-preflight-helper")) {',
+                'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-probe-preflight-helper-drift")) {',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "input_probe_preflight_survey_test",
+            tmp_root,
+            'survey_test:if (std.mem.eql(u8, gap.id, "phase10-virtio-input-probe-preflight-helper")) {',
+        )
+        input_survey_test_path.write_text(original_input_survey_test, encoding="utf-8")
+
         mmio_test_path = tmp_root / "zigux/tests/phase10_virtio_mmio.zig"
         original_mmio_test = mmio_test_path.read_text(encoding="utf-8")
         mmio_test_path.write_text(
@@ -922,7 +1004,7 @@ def run_self_test() -> int:
         doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
 
     print("PHASE10_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_VALIDATOR_SELF_TEST_CASE_COUNT=16")
+    print("PHASE10_VALIDATOR_SELF_TEST_CASE_COUNT=20")
     return 0
 
 
