@@ -24,6 +24,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling survey for Z
   - `zigux/tests/phase8_libbpf_segments.zig`
   - `zigux/tests/phase8_libbpf_segments_only_build.zig`
   - `zigux/tests/phase8_perf_buffer_poll.zig`
+  - `zigux/tests/phase8_perf_buffer_poll_only_build.zig`
   - `zigux/tests/phase8_build.zig`
 
 ## Why this slice exists
