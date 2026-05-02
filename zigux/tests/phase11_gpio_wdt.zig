@@ -403,7 +403,19 @@ test "phase11 gpio_wdt register-device call summary keeps the first bounded requ
     try std.testing.expect(dormant_call.blocked_on_reboot_glue);
 }
 
-test "phase11 gpio_wdt registration planning enums include the first real call surface" {
+test "phase11 gpio_wdt platform-driver identity keeps probe ownership and wrapper choice explicit" {
+    const surface = gpio_wdt.GpioWatchdogLab.platformDriverIdentitySummary();
+    try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.c", surface.anchor);
+    try std.testing.expectEqualStrings("gpio-wdt", surface.driver_name);
+    try std.testing.expectEqualStrings("linux,wdt-gpio", surface.of_compatible);
+    try std.testing.expectEqualStrings("gpio_wdt_probe", surface.probe_callback);
+    try std.testing.expectEqual(gpio_wdt.PlatformDriverRegistrationMode.module_platform_driver, surface.default_registration_mode);
+    try std.testing.expect(surface.supports_arch_initcall_override);
+    try std.testing.expect(surface.of_match_table_ready);
+    try std.testing.expect(surface.platform_probe_ready);
+}
+
+test "phase11 gpio_wdt registration planning enums include the first real call surface and platform wrapper choices" {
     const registration_surface_fields = @typeInfo(gpio_wdt.RegistrationSurface).@"enum".fields;
     try std.testing.expectEqual(@as(usize, 2), registration_surface_fields.len);
     try std.testing.expectEqualStrings("watchdog_device_metadata", registration_surface_fields[0].name);
@@ -413,6 +425,11 @@ test "phase11 gpio_wdt registration planning enums include the first real call s
     try std.testing.expectEqual(@as(usize, 2), validation_focus_fields.len);
     try std.testing.expectEqualStrings("pre_registration_metadata", validation_focus_fields[0].name);
     try std.testing.expectEqualStrings("register_device_call_surface", validation_focus_fields[1].name);
+
+    const wrapper_fields = @typeInfo(gpio_wdt.PlatformDriverRegistrationMode).@"enum".fields;
+    try std.testing.expectEqual(@as(usize, 2), wrapper_fields.len);
+    try std.testing.expectEqualStrings("module_platform_driver", wrapper_fields[0].name);
+    try std.testing.expectEqualStrings("arch_initcall_platform_driver", wrapper_fields[1].name);
 }
 
 test "phase11 gpio_wdt always-running toggle teardown keeps the line asserted without disable" {
