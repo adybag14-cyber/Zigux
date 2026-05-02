@@ -144,6 +144,13 @@ fn cStringLen(src: []const u8) usize {
     return len;
 }
 
+fn cStringByte(src: []const u8, idx: usize) u8 {
+    if (idx >= src.len) {
+        return 0;
+    }
+    return src[idx];
+}
+
 pub fn strlcpy(dest: []u8, src: []const u8) usize {
     const ret = cStringLen(src);
     if (dest.len == 0) {
@@ -224,6 +231,30 @@ pub fn str_ends_with(str: []const u8, suffix: []const u8) bool {
 
 pub fn strends(str: []const u8, suffix: []const u8) bool {
     return strEndsWith(str, suffix);
+}
+
+pub fn sysfsStreq(lhs: []const u8, rhs: []const u8) bool {
+    var idx: usize = 0;
+    while (true) : (idx += 1) {
+        const lhs_ch = cStringByte(lhs, idx);
+        const rhs_ch = cStringByte(rhs, idx);
+        if (lhs_ch == 0 or lhs_ch != rhs_ch) {
+            if (lhs_ch == rhs_ch) {
+                return true;
+            }
+            if (lhs_ch == 0 and rhs_ch == '\n' and cStringByte(rhs, idx + 1) == 0) {
+                return true;
+            }
+            if (lhs_ch == '\n' and cStringByte(lhs, idx + 1) == 0 and rhs_ch == 0) {
+                return true;
+            }
+            return false;
+        }
+    }
+}
+
+pub fn sysfs_streq(lhs: []const u8, rhs: []const u8) bool {
+    return sysfsStreq(lhs, rhs);
 }
 
 pub fn trimSpaces(buf: []u8) []u8 {
@@ -525,6 +556,19 @@ test "str_ends_with matches kernel suffix semantics" {
     const embedded_suffix = [_]u8{ 'i', 'g', 0, 'u', 'x' };
     try std.testing.expect(str_ends_with(&source, &embedded_suffix));
     try std.testing.expect(strends(&source, &embedded_suffix));
+}
+
+test "sysfsStreq treats a trailing newline as equivalent to C-string termination" {
+    try std.testing.expect(sysfsStreq("enabled", "enabled"));
+    try std.testing.expect(sysfs_streq("enabled", "enabled\n"));
+    try std.testing.expect(sysfs_streq("enabled\n", "enabled"));
+    try std.testing.expect(sysfs_streq("", "\n"));
+    try std.testing.expect(!sysfs_streq("enabled", "enabled\nx"));
+    try std.testing.expect(!sysfs_streq("enabled\nx", "enabled"));
+    try std.testing.expect(!sysfs_streq("enabled", "disable"));
+
+    const embedded = [_]u8{ 'o', 'n', 0, 'x' };
+    try std.testing.expect(sysfs_streq(&embedded, "on\n"));
 }
 
 test "memdup and memchrInv preserve byte content" {
