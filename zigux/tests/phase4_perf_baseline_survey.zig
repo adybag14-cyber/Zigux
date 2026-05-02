@@ -24,6 +24,17 @@ const Gap = struct {
     why_now: []const u8,
 };
 
+const PendingThresholdPlan = struct {
+    surface: []const u8,
+    gate_owner: []const u8,
+    gate_rollback_owner: []const u8,
+    current_correctness_replay: []const u8,
+    benchmark_command: []const u8,
+    acceptable_limit: []const u8,
+    status: []const u8,
+    why_not_approved_yet: []const u8,
+};
+
 const Manifest = struct {
     lane_key: []const u8,
     phase: []const u8,
@@ -32,6 +43,7 @@ const Manifest = struct {
     surveyed_commit: []const u8,
     surveyed_gates: []const SurveyedGate,
     survey_summary: SurveySummary,
+    pending_threshold_plans: []const PendingThresholdPlan,
     gaps: []const Gap,
 };
 
@@ -82,9 +94,7 @@ fn gitBlobShaHex(payload: []const u8) [40]u8 {
     var digest: [20]u8 = undefined;
     hasher.final(&digest);
 
-    var hex: [40]u8 = undefined;
-    _ = std.fmt.bufPrint(&hex, "{}", .{std.fmt.fmtSliceHexLower(&digest)}) catch unreachable;
-    return hex;
+    return std.fmt.bytesToHex(digest, .lower);
 }
 
 fn expectGateEvidenceBlob(
@@ -156,6 +166,66 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
         "threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
         manifest.surveyed_gates[1].threshold_posture,
     );
+    try std.testing.expectEqual(@as(usize, 2), manifest.pending_threshold_plans.len);
+    try std.testing.expectEqualStrings(
+        "zigux/tests/atomic64_diff.zig",
+        manifest.pending_threshold_plans[0].surface,
+    );
+    try std.testing.expectEqualStrings(
+        "ABI and Runtime Team",
+        manifest.pending_threshold_plans[0].gate_owner,
+    );
+    try std.testing.expectEqualStrings(
+        "ABI and Runtime Team",
+        manifest.pending_threshold_plans[0].gate_rollback_owner,
+    );
+    try std.testing.expectEqualStrings(
+        "make -C zigux phase4-runtime-atomic64-diff",
+        manifest.pending_threshold_plans[0].current_correctness_replay,
+    );
+    try std.testing.expectEqualStrings(
+        "pending_scope_widening",
+        manifest.pending_threshold_plans[0].status,
+    );
+    try std.testing.expectEqualStrings(
+        "unapproved_until_runtime_atomic64_scope_widens",
+        manifest.pending_threshold_plans[0].benchmark_command,
+    );
+    try std.testing.expectEqualStrings(
+        "unapproved_until_runtime_atomic64_scope_widens",
+        manifest.pending_threshold_plans[0].acceptable_limit,
+    );
+    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_threshold_plans[0].why_not_approved_yet, "correctness-only coverage") != null);
+    try std.testing.expectEqualStrings(
+        "zigux/tests/bitmap_diff.zig",
+        manifest.pending_threshold_plans[1].surface,
+    );
+    try std.testing.expectEqualStrings(
+        "Shared Subsystems Pod",
+        manifest.pending_threshold_plans[1].gate_owner,
+    );
+    try std.testing.expectEqualStrings(
+        "Shared Subsystems Pod",
+        manifest.pending_threshold_plans[1].gate_rollback_owner,
+    );
+    try std.testing.expectEqualStrings(
+        "make -C zigux phase4-bitmap-diff",
+        manifest.pending_threshold_plans[1].current_correctness_replay,
+    );
+    try std.testing.expectEqualStrings(
+        "pending_bounded_benchmark",
+        manifest.pending_threshold_plans[1].status,
+    );
+    try std.testing.expectEqualStrings(
+        "unapproved_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
+        manifest.pending_threshold_plans[1].benchmark_command,
+    );
+    try std.testing.expectEqualStrings(
+        "unapproved_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
+        manifest.pending_threshold_plans[1].acceptable_limit,
+    );
+    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_threshold_plans[1].why_not_approved_yet, "rounded-fill survey gap") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_threshold_plans[1].why_not_approved_yet, "acceptable limit") != null);
 
     const atomic64_manifest_json = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
@@ -298,11 +368,19 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
             u8,
             atomic64_manifest.threshold_plan.benchmark_command,
             "unapproved_until_runtime_atomic64_scope_widens",
+        ) and std.mem.eql(
+            u8,
+            manifest.pending_threshold_plans[1].benchmark_command,
+            "unapproved_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
         ) and std.mem.indexOf(u8, phase4_matrix, "benchmark command and acceptable limit are still unapproved for both landed gates") != null,
         .acceptable_limit_unapproved = std.mem.eql(
             u8,
             atomic64_manifest.threshold_plan.acceptable_limit,
             "unapproved_until_runtime_atomic64_scope_widens",
+        ) and std.mem.eql(
+            u8,
+            manifest.pending_threshold_plans[1].acceptable_limit,
+            "unapproved_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
         ) and std.mem.indexOf(u8, phase4_matrix, "benchmark command and acceptable limit are still unapproved for both landed gates") != null,
     };
     try std.testing.expectEqualDeep(live_summary, manifest.survey_summary);
@@ -313,6 +391,8 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
     try expectGateEvidenceBlob(phase4_gate_evidence, "PHASE4_PERF_BASELINE_SURVEY_BLOB_SHA", phase4_perf_baseline_survey);
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, current_surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "phase4_perf_baseline_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "pending threshold-plan record per shipped rollback gate") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "make -C zigux phase4-bitmap-diff") != null);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
