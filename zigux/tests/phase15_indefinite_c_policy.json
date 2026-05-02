@@ -30,7 +30,7 @@
     },
     {
       "id": "indefinite-c-recordkeeping",
-      "summary": "The review record must preserve the shared review-packet fields, roadmap phase, replay command, retained closeout state, and linked scorecard/archive evidence for a stay-in-C outcome.",
+      "summary": "The review record must preserve the shared review-packet fields, roadmap phase, replay command, automatic return-to-blocked rule, retained closeout state, and linked scorecard/archive evidence for a stay-in-C outcome.",
       "required_terms": [
         "Linux anchor path",
         "current roadmap phase",
@@ -45,6 +45,7 @@
         "replay command",
         "latest blocker disposition",
         "retained discussion state",
+        "automatic return-to-blocked trigger",
         "reopen triggers",
         "parity scorecard link or blocker record",
         "explicit non-goals",
@@ -70,16 +71,26 @@
     },
     {
       "id": "indefinite-c-exception-request-checklist",
-      "summary": "Every allowed exception request must stay reviewable as a bounded reopen packet with the minimum trigger, evidence, ownership, and source-of-truth fields kept explicit.",
+      "summary": "Every allowed exception request must stay reviewable as a bounded reopen packet with the minimum trigger, evidence, automatic return-to-blocked, ownership, and source-of-truth fields kept explicit.",
       "required_terms": [
         "named reopen-trigger catalog item",
         "trigger-specific refreshed evidence by path",
         "current blocker disposition",
+        "automatic return-to-blocked trigger",
         "replay command reviewers should run",
         "parity scorecard link",
         "evidence-archive path",
         "lane owner and rollback owner",
         "C implementation remains the product source of truth unless the reopen request is approved"
+      ]
+    },
+    {
+      "id": "indefinite-c-automatic-return-to-blocked",
+      "summary": "Every active exception or reopened stay-in-C packet must fail closed with one explicit automatic return-to-blocked trigger.",
+      "required_terms": [
+        "automatic return-to-blocked trigger",
+        "missing field, stale evidence, contradictory scorecard link, replay drift, blocker drift, or rollback-threshold breach",
+        "returns to blocked review posture"
       ]
     },
     {
@@ -188,6 +199,13 @@
       "kind": "policy",
       "zigux_destination": "Documentation/zigux/phase15-indefinite-c-policy.md",
       "why_now": "The stay-in-C exception path now needs one explicit request checklist so bounded reopen packets fail closed when trigger, evidence, ownership, replay, or source-of-truth fields are missing."
+    },
+    {
+      "id": "phase15-indefinite-c-automatic-return-to-blocked-gate",
+      "status": "starter_landed",
+      "kind": "policy",
+      "zigux_destination": "Documentation/zigux/phase15-indefinite-c-policy.md",
+      "why_now": "The stay-in-C packet still needs one explicit automatic return-to-blocked field so active exception packets fail closed when review fields, linked evidence, scorecard state, replay commands, blocker posture, or rollback ownership drift."
     },
     {
       "id": "phase15-indefinite-c-reopen-evidence-matrix",
