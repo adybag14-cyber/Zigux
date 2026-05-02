@@ -62,6 +62,7 @@ PHASE2_CROSS_REQUIRED_SOURCE_MARKERS = [
 ]
 PHASE2_KCONFIG_REQUIRED_SOURCE_MARKERS = [
     "assert total_self_test_cases == 6",
+    "print(f'KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT={total_self_test_cases}')",
 ]
 
 
