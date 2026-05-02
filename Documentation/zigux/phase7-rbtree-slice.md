@@ -57,10 +57,11 @@ This slice stays intentionally narrow and ports the first practical runtime-safe
 5. keep the survey record machine-checked
 - `zig test zigux/tests/phase7_rbtree_survey.zig`
 
-6. check the committed C parity fixture
+6. check the committed C parity fixture and its dedicated checker self-test
+- `python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test`
 - `python3 scripts/zigux/check-phase7-rbtree-parity.py`
 
-This lane is parked after the bounded helper surface compiled cleanly, the shared Phase 7 validator packet plus the build-inventory and make-wrapper self-tests now remain the published fail-closed handoff before helper replay, the focused module tests passed, the shared Phase 7 helper gate continued to import and exercise the live `rbtree` slice, the published `make -C zigux phase7` one-command bundle stays aligned with that same review path, the survey record captures the fully landed parity surface, and the committed parity fixture now locks ordered insert, standalone erase traversal, erase-plus-replace traversal, duplicate-range lookup, reverse traversal, and postorder behavior against the C helper surface.
+This lane is parked after the bounded helper surface compiled cleanly, the shared Phase 7 validator packet plus the build-inventory, make-wrapper, and dedicated rbtree parity self-tests now remain the published fail-closed handoff before helper replay, the focused module tests passed, the shared Phase 7 helper gate continued to import and exercise the live `rbtree` slice, the published `make -C zigux phase7` one-command bundle stays aligned with that same review path, the survey record captures the fully landed parity surface, and the committed parity fixture now locks ordered insert, standalone erase traversal, erase-plus-replace traversal, duplicate-range lookup, reverse traversal, and postorder behavior against the C helper surface.
 
 The shared build-inventory gate and published `make -C zigux phase7` convenience path stay in that same review packet, so the committed `zigux/tests/fixtures/phase7_build_inventory.json` snapshot and the published wrapper route remain explicit instead of living only in the broader shared Phase 7 notes.
 
