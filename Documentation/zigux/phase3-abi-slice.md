@@ -20,7 +20,7 @@ This document starts the first bounded Phase 3 slice for Zigux.
 - `PHASE3_BARRIER_SCOPE=acquire-release-full`
 - `PHASE3_MMIO_SCOPE=range-read8-read16-read32-read64-write8-write16-write32-write64-plus-scoped-read8-write8-read16-write16-read32-write32-read64-write64`
 - `PHASE3_ROADMAP_ANCHORS=rust-exports-lib-bitmap-lib-rbtree-lib-cpumask`
-- `PHASE3_CURRENT_INTEROP_FAMILIES=bitmap-cpumask-list-hlist-errptr-xarray-idr-ida-dev-region-cdev-chrdev`
+- `PHASE3_CURRENT_INTEROP_FAMILIES=bitmap-cpumask-list-hlist-errptr-xarray-idr-ida-minor-alloc-dev-region-cdev-chrdev`
 - `PHASE3_CURRENT_INTEROP_GAP=repo-now-carries-curated-phase3-parity-slices-beyond-the-original-roadmap-anchor-set`
 - scope: first permanent C/Zigux boundary only
 - product boundary:
@@ -63,7 +63,7 @@ The live curated Phase 3 packet now also carries parity slices for:
 - bitmap and cpumask boundary views
 - list and hlist traversal views
 - err-pointer, xarray, idr, and ida planning views
-- dev-region, cdev, and chrdev planning and notification chains
+- minor-allocation, dev-region, cdev, and chrdev planning and notification chains
 
 That is real repo-backed interop progress, but it is also the current survey gap:
 
