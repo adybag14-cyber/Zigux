@@ -61,7 +61,7 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P12-L07", manifest.lane_key);
+    try std.testing.expectEqualStrings("P12-L08", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
     try std.testing.expectEqualStrings("drivers/nvme/host/pci.c", manifest.anchor);
     try std.testing.expectEqualStrings(current_surveyed_commit, manifest.surveyed_commit);
@@ -113,19 +113,19 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "PRP metadata helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "PRP-versus-SGL selection summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, current_surveyed_commit) != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_LANE_KEY=P12-L07") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_LANE_KEY=P12-L08") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "packet-local verification head") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "current `master` tip") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-nvme-pci-doorbell-window-helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue planner, doorbell-window helper, PRP buffer-shape helper, PRP metadata helper, and pointer-selection helper") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "SyntaxError") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "stale historical evidence rather than current repo truth") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "historical-only evidence") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "fresh owner-lane replay") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-nvme-pci-survey-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-nvme-pci-tests 11 pass (11 total)") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-nvme-pci-raw-github-fallback-map.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "current live starter now also carries one bounded doorbell-window helper") != null);
 
-    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_map, "PHASE12_LANE_KEY=P12-L07") != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_map, "PHASE12_LANE_KEY=P12-L08") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_map, current_surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_map, "It does not claim a live-head replay catalog.") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_map, "## Tree Readback Roots") != null);
