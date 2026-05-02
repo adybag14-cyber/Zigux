@@ -6,7 +6,7 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 
 - `PHASE5_STATUS=active`
 - `PHASE5_SLICE=kobject-reference-sample-starter`
-- `PHASE5_LANE_KEY=P5-L10`
+- `PHASE5_LANE_KEY=P5-L12`
 - `PHASE5_SURVEYED_COMMIT=a15760c3e46103fd41ae0da852b61f612e9116c6`
 - scope: roadmap-vs-repo sample delivery, approved ownership-and-lifetime guidance, and exact bounded checks for the landed `samples/zigux/` kobject-style replay
 - product boundary:
@@ -137,4 +137,4 @@ This survey does not yet claim:
 
 ## Next bounded step
 
-Leave this narrow kobject-survey lane parked unless fresh repo inspection shows one more directly coupled wording drift in the landed sample-backed review surface, while keeping this Phase 5 idiom distinct from the later Phase 9 runtime starters and preserving the exact verification packet recorded under `P5-L10`.
+Leave this narrow kobject-survey lane parked unless fresh repo inspection shows one more directly coupled wording drift in the landed sample-backed review surface, while keeping this Phase 5 idiom distinct from the later Phase 9 runtime starters and preserving the exact verification packet recorded under `P5-L12`.
