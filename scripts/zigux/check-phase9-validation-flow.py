@@ -16,6 +16,7 @@ MODULE_METADATA_SURVEY_PATH = "Documentation/zigux/phase9-module-metadata-depmod
 TRACE_EVENTS_SURVEY_PATH = "Documentation/zigux/phase9-runtime-trace-events-survey.md"
 KRETPROBE_SURVEY_PATH = "Documentation/zigux/phase9-runtime-kretprobe-survey.md"
 LOADER_SUBSTRATE_CHECKER_PATH = "scripts/zigux/check-phase9-loader-substrate-plan.py"
+NON_OWNER_BOUNDARY_CHECKER_PATH = "scripts/zigux/check-phase9-loader-non-owner-boundary.py"
 MODULE_METADATA_CHECKER_PATH = "scripts/zigux/check-phase9-module-metadata-packet.py"
 
 REQUIRED_FILES = [
@@ -26,11 +27,12 @@ REQUIRED_FILES = [
     TRACE_EVENTS_SURVEY_PATH,
     KRETPROBE_SURVEY_PATH,
     LOADER_SUBSTRATE_CHECKER_PATH,
+    NON_OWNER_BOUNDARY_CHECKER_PATH,
     MODULE_METADATA_CHECKER_PATH,
 ]
 
 MAKEFILE_MARKERS = [
-    "PHONY += phase9-validate phase9-test phase9-loader-gap-survey phase9-kretprobe-survey phase9-trace-events-survey phase9",
+    "PHONY += phase9-validate phase9-test phase9-loader-gap-survey phase9-non-owner-boundary-survey phase9-kretprobe-survey phase9-trace-events-survey phase9",
     "phase9-validate:",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase9.py --self-test\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-validation-flow.py --self-test\n",
@@ -46,6 +48,8 @@ MAKEFILE_MARKERS = [
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-module-metadata-packet.py\n",
     "phase9-loader-gap-survey:",
     "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_loader_gap_survey.zig\n",
+    "phase9-non-owner-boundary-survey:",
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_loader_non_owner_boundary_survey.zig\n",
     "phase9-kretprobe-survey:",
     "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_kretprobe_survey.zig\n",
     "phase9-trace-events-survey:",
@@ -161,7 +165,7 @@ def write_fixture_tree(root: Path) -> None:
     (root / MAKEFILE_PATH).write_text(
         "\n".join(
             [
-                "PHONY += phase9-validate phase9-test phase9-loader-gap-survey phase9-kretprobe-survey phase9-trace-events-survey phase9",
+                "PHONY += phase9-validate phase9-test phase9-loader-gap-survey phase9-non-owner-boundary-survey phase9-kretprobe-survey phase9-trace-events-survey phase9",
                 "",
                 "phase9-validate:",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase9.py --self-test",
@@ -182,6 +186,9 @@ def write_fixture_tree(root: Path) -> None:
                 "",
                 "phase9-loader-gap-survey:",
                 "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_loader_gap_survey.zig",
+                "",
+                "phase9-non-owner-boundary-survey:",
+                "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_loader_non_owner_boundary_survey.zig",
                 "",
                 "phase9-kretprobe-survey:",
                 "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_kretprobe_survey.zig",
@@ -320,6 +327,10 @@ def write_fixture_tree(root: Path) -> None:
     )
     (root / LOADER_SUBSTRATE_CHECKER_PATH).write_text(
         "# fixture placeholder for the dedicated loader-substrate-plan checker\n",
+        encoding="utf-8",
+    )
+    (root / NON_OWNER_BOUNDARY_CHECKER_PATH).write_text(
+        "# fixture placeholder for the dedicated non-owner-boundary checker\n",
         encoding="utf-8",
     )
     (root / MODULE_METADATA_CHECKER_PATH).write_text(
@@ -499,6 +510,61 @@ def run_self_test() -> int:
             "missing_file:scripts/zigux/check-phase9-loader-substrate-plan.py",
         )
         loader_checker_path.write_text(original_loader_checker, encoding="utf-8")
+
+        non_owner_checker_path = tmp_root / NON_OWNER_BOUNDARY_CHECKER_PATH
+        original_non_owner_checker = non_owner_checker_path.read_text(encoding="utf-8")
+        non_owner_checker_path.unlink()
+        expect_missing_marker(
+            "non_owner_boundary_checker_file",
+            tmp_root,
+            "missing_file:scripts/zigux/check-phase9-loader-non-owner-boundary.py",
+        )
+        non_owner_checker_path.write_text(original_non_owner_checker, encoding="utf-8")
+
+        makefile_path.write_text(
+            original_makefile.replace(
+                "phase9-non-owner-boundary-survey:\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "makefile_non_owner_boundary_target",
+            tmp_root,
+            "makefile:phase9-non-owner-boundary-survey:",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        makefile_path.write_text(
+            original_makefile.replace(
+                "PHONY += phase9-validate phase9-test phase9-loader-gap-survey phase9-non-owner-boundary-survey phase9-kretprobe-survey phase9-trace-events-survey phase9",
+                "PHONY += phase9-validate phase9-test phase9-loader-gap-survey phase9-kretprobe-survey phase9-trace-events-survey phase9",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "makefile_non_owner_boundary_phony",
+            tmp_root,
+            "makefile:PHONY += phase9-validate phase9-test phase9-loader-gap-survey phase9-non-owner-boundary-survey phase9-kretprobe-survey phase9-trace-events-survey phase9",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        makefile_path.write_text(
+            original_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_loader_non_owner_boundary_survey.zig\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "makefile_non_owner_boundary_command",
+            tmp_root,
+            "makefile:\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_loader_non_owner_boundary_survey.zig\n",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
 
         module_metadata_survey_path = tmp_root / MODULE_METADATA_SURVEY_PATH
         original_module_metadata_survey = module_metadata_survey_path.read_text(encoding="utf-8")
@@ -712,7 +778,7 @@ def run_self_test() -> int:
         makefile_path.write_text(original_makefile, encoding="utf-8")
 
     print("PHASE9_VALIDATION_FLOW_SELF_TEST=pass")
-    print("PHASE9_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=23")
+    print("PHASE9_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=26")
     return 0
 
 
