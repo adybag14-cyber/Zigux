@@ -2,6 +2,7 @@ const std = @import("std");
 const abi = @import("abi_bindings");
 const atomic = @import("atomic_helpers");
 const barrier = @import("barrier_helpers");
+const interop_policy = @import("interop_policy");
 const layout_assert = @import("layout_assert");
 const mmio = @import("mmio_helpers");
 const narrow = @import("narrow_unsafe");
@@ -97,6 +98,32 @@ test "phase3 low-level wrappers stay inside the documented ABI surface" {
     try std.testing.expectError(error.AddressOverflow, mmio.read64Scoped(.volatile_mmio, std.math.maxInt(usize), 8));
     try mmio.write64Scoped(.volatile_mmio, base64, 0, 0xfedc_ba98_7654_3210);
     try std.testing.expectEqual(@as(u64, 0xfedc_ba98_7654_3210), try mmio.read64Scoped(.volatile_mmio, base64, 0));
+
+    const mmio_policy = try interop_policy.decode(.{
+        .panic_mode = @intFromEnum(abi.PanicMode.abort),
+        .allocator_mode = @intFromEnum(abi.AllocatorMode.kernel_heap),
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.volatile_mmio),
+        .reserved = 0,
+    });
+    const raw_pointer_policy = try interop_policy.decode(.{
+        .panic_mode = @intFromEnum(abi.PanicMode.warn),
+        .allocator_mode = @intFromEnum(abi.AllocatorMode.arena),
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.raw_pointer_bridge),
+        .reserved = 0,
+    });
+    const none_policy = try interop_policy.decode(.{
+        .panic_mode = @intFromEnum(abi.PanicMode.abort),
+        .allocator_mode = @intFromEnum(abi.AllocatorMode.caller_provided),
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.none),
+        .reserved = 0,
+    });
+    try mmio.write64Policy(mmio_policy, base64, @sizeOf(u64), 0x1111_2222_3333_4444);
+    try std.testing.expectEqual(@as(u64, 0x1111_2222_3333_4444), regs64[1]);
+    try std.testing.expectEqual(@as(u64, 0x1111_2222_3333_4444), try mmio.read64Policy(mmio_policy, base64, @sizeOf(u64)));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.write64Policy(raw_pointer_policy, base64, 0, 1));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.read64Policy(raw_pointer_policy, base64, 0));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.write64Policy(none_policy, base64, 0, 1));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.read64Policy(none_policy, base64, 0));
 }
 
 test "phase3 low-level wrapper ABI range shape stays stable" {
