@@ -206,6 +206,7 @@ REQUIRED_ITERATIONS = {
     "PHASE1_BENCH_FIND_SAME_WORD_ITERATIONS": 20000,
     "PHASE1_BENCH_FIND_NEXT_ZERO_BIT_ITERATIONS": 20000,
     "PHASE1_BENCH_FIND_NEXT_AND_BIT_ITERATIONS": 20000,
+    "PHASE1_BENCH_RBTREE_ITERATIONS": 4000,
 }
 
 REQUIRED_EXACT_CHECKSUMS = {
@@ -233,8 +234,8 @@ EXPECTED_MANIFEST_FIELDS = {
         "alias_unit_test_anchor": 'tools/lib/bitmap.zig:test "bitmap underscore aliases preserve bitmap helper semantics"',
         "alias_unit_test_contract": (
             "Direct Zig unit coverage keeps bitmap_weight(), bitmap_and(), bitmap_andnot(), "
-            "bitmap_or(), bitmap_xor(), bitmap_equal(), bitmap_intersects(), bitmap_subset(), "
-            "bitmap_set(), bitmap_clear(), and bitmap_scnprintf() aligned with the camelCase "
+            "bitmap_or(), bitmap_xor(), bitmap_equal(), bitmap_intersects(), "
+            "bitmap_subset(), bitmap_set(), bitmap_clear(), and bitmap_scnprintf() aligned with the camelCase "
             "helpers across the same caller-selected bit window."
         ),
     },
@@ -613,6 +614,16 @@ def run_self_test() -> int:
             "rbtree_postorder_checksum",
             tmp_root,
             "bench:exact_checksums.PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM=1484000",
+        )
+        total_cases += 1
+
+        expectations = json.loads(expectations_path.read_text(encoding="utf-8"))
+        expectations["iterations"]["PHASE1_BENCH_RBTREE_ITERATIONS"] = 1
+        write_json(expectations_path, expectations)
+        expect_missing_marker(
+            "rbtree_iterations",
+            tmp_root,
+            "bench:iterations.PHASE1_BENCH_RBTREE_ITERATIONS=4000",
         )
         total_cases += 1
 
