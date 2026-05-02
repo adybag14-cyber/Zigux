@@ -128,8 +128,8 @@ test "runtime module metadata manifest keeps the dedicated descriptor and depmod
     try std.testing.expectEqual(@as(usize, 3), manifest.runtime_loader_plans.len);
     try std.testing.expectEqual(@as(usize, 1), manifest.runtime_sample_only_blocked.len);
     try std.testing.expectEqual(@as(usize, 8), manifest.depmod_gap_surfaces.len);
-    try std.testing.expectEqual(@as(usize, 5), manifest.delivery_evidence_catalog.len);
-    try std.testing.expectEqual(@as(usize, 5), manifest.ownership_map.len);
+    try std.testing.expectEqual(@as(usize, 8), manifest.delivery_evidence_catalog.len);
+    try std.testing.expectEqual(@as(usize, 8), manifest.ownership_map.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.review_prompts.len);
 
     try std.testing.expectEqualStrings("samples/zigux/runtime_atomic64.zig", manifest.descriptor_surfaces[0].sample_path);
@@ -146,6 +146,9 @@ test "runtime module metadata manifest keeps the dedicated descriptor and depmod
     var saw_survey_note = false;
     var saw_manifest = false;
     var saw_survey_gate = false;
+    var saw_packet_checker = false;
+    var saw_phase9_build_gate = false;
+    var saw_tests_readme_guide = false;
     var saw_loader_gap_note = false;
     var saw_runtime_loader_contract = false;
     for (manifest.delivery_evidence_catalog, 0..) |entry, i| {
@@ -175,6 +178,29 @@ test "runtime module metadata manifest keeps the dedicated descriptor and depmod
             try std.testing.expect(std.mem.indexOf(u8, entry.role, "focused replay") != null);
             try std.testing.expect(std.mem.indexOf(u8, entry.role, "RuntimeLoadRequest metadata") != null);
         }
+        if (std.mem.eql(u8, entry.id, "runtime-module-metadata-packet-checker")) {
+            saw_packet_checker = true;
+            try std.testing.expectEqualStrings("validation", entry.kind);
+            try std.testing.expectEqualStrings("scripts/zigux/check-phase9-module-metadata-packet.py", entry.path);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "fail-closed checker") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "shared Phase 9 bundle replay entrypoint") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "tests-root guidance") != null);
+        }
+        if (std.mem.eql(u8, entry.id, "phase9-build-gate")) {
+            saw_phase9_build_gate = true;
+            try std.testing.expectEqualStrings("validation", entry.kind);
+            try std.testing.expectEqualStrings("zigux/tests/phase9_build.zig", entry.path);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "shared Phase 9 runtime bundle replay entrypoint") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "dedicated metadata survey") != null);
+        }
+        if (std.mem.eql(u8, entry.id, "phase9-tests-readme-guide")) {
+            saw_tests_readme_guide = true;
+            try std.testing.expectEqualStrings("documentation", entry.kind);
+            try std.testing.expectEqualStrings("zigux/tests/README.md", entry.path);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "tests-root guidance") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "dedicated metadata checker") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "loader-gap packet") != null);
+        }
         if (std.mem.eql(u8, entry.id, "runtime-loader-gap-note")) {
             saw_loader_gap_note = true;
             try std.testing.expectEqualStrings("documentation", entry.kind);
@@ -197,12 +223,18 @@ test "runtime module metadata manifest keeps the dedicated descriptor and depmod
     try std.testing.expect(saw_survey_note);
     try std.testing.expect(saw_manifest);
     try std.testing.expect(saw_survey_gate);
+    try std.testing.expect(saw_packet_checker);
+    try std.testing.expect(saw_phase9_build_gate);
+    try std.testing.expect(saw_tests_readme_guide);
     try std.testing.expect(saw_loader_gap_note);
     try std.testing.expect(saw_runtime_loader_contract);
 
     var saw_survey_note_ownership = false;
     var saw_manifest_ownership = false;
     var saw_survey_gate_ownership = false;
+    var saw_packet_checker_ownership = false;
+    var saw_phase9_build_ownership = false;
+    var saw_tests_readme_ownership = false;
     var saw_loader_gap_ownership = false;
     var saw_runtime_loader_ownership = false;
     for (manifest.ownership_map, 0..) |entry, i| {
@@ -224,6 +256,23 @@ test "runtime module metadata manifest keeps the dedicated descriptor and depmod
             try std.testing.expect(std.mem.indexOf(u8, entry.owns, "focused replay") != null);
             try std.testing.expect(std.mem.indexOf(u8, entry.owns, "RuntimeLoadRequest metadata") != null);
         }
+        if (std.mem.eql(u8, entry.surface, "scripts/zigux/check-phase9-module-metadata-packet.py")) {
+            saw_packet_checker_ownership = true;
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "fail-closed checker") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "shared Phase 9 bundle replay entrypoint") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "tests-root guidance") != null);
+        }
+        if (std.mem.eql(u8, entry.surface, "zigux/tests/phase9_build.zig")) {
+            saw_phase9_build_ownership = true;
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "shared Phase 9 runtime bundle replay entrypoint") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "dedicated metadata survey") != null);
+        }
+        if (std.mem.eql(u8, entry.surface, "zigux/tests/README.md")) {
+            saw_tests_readme_ownership = true;
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "tests-root guidance") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "dedicated metadata checker") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "loader-gap packet") != null);
+        }
         if (std.mem.eql(u8, entry.surface, "Documentation/zigux/phase9-runtime-loader-gap-survey.md")) {
             saw_loader_gap_ownership = true;
             try std.testing.expect(std.mem.indexOf(u8, entry.owns, "runtime_trace_events_loader sibling") != null);
@@ -241,6 +290,9 @@ test "runtime module metadata manifest keeps the dedicated descriptor and depmod
     try std.testing.expect(saw_survey_note_ownership);
     try std.testing.expect(saw_manifest_ownership);
     try std.testing.expect(saw_survey_gate_ownership);
+    try std.testing.expect(saw_packet_checker_ownership);
+    try std.testing.expect(saw_phase9_build_ownership);
+    try std.testing.expect(saw_tests_readme_ownership);
     try std.testing.expect(saw_loader_gap_ownership);
     try std.testing.expect(saw_runtime_loader_ownership);
 }
