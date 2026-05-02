@@ -432,6 +432,27 @@ pub fn planDeferredExecvCall(
     };
 }
 
+pub fn planDeferredExeclCall(
+    allocator: std.mem.Allocator,
+    env: *EnvMap,
+    state: ExecCmdState,
+    config: Config,
+    cwd: []const u8,
+    cmd: []const u8,
+    argv_tail: []const ?[]const u8,
+) !DeferredExecPlan {
+    const path = try setupPath(allocator, env, state, config, cwd);
+    errdefer allocator.free(path);
+
+    var call = try buildDeferredExeclCall(allocator, config, cmd, argv_tail);
+    errdefer call.deinit(allocator);
+
+    return .{
+        .path = path,
+        .call = call,
+    };
+}
+
 test "systemPath and getArgvExecPath preserve C-style precedence" {
     const config = Config{
         .exec_name = "perf",
@@ -701,6 +722,49 @@ test "buildDeferredExeclCall preserves the empty-tail execl shape" {
     try std.testing.expectEqualStrings("perf", deferred.argv[0].?);
     try std.testing.expectEqualStrings("version", deferred.argv[1].?);
     try std.testing.expectEqual(@as(?[]const u8, null), deferred.argv[2]);
+}
+
+test "planDeferredExeclCall keeps PATH preparation and deferred execl argv in one launch-free packet" {
+    const config = Config{
+        .exec_name = "perf",
+        .prefix = "/usr/libexec/perf-core",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var env = EnvMap.init(std.testing.allocator);
+    defer env.deinit();
+
+    var state = ExecCmdState{};
+    defer state.deinit(std.testing.allocator);
+
+    try execCmdInit(&env, config);
+    try setArgvExecPath(std.testing.allocator, &env, &state, config, "tools/bin");
+    try setArgv0Path(std.testing.allocator, &state, "scripts");
+    try env.set("PATH", "/usr/bin:/bin");
+
+    var plan = try planDeferredExeclCall(
+        std.testing.allocator,
+        &env,
+        state,
+        config,
+        "/repo",
+        "record",
+        &[_]?[]const u8{ "-a", "--stdio", null, "--ignored" },
+    );
+    defer plan.deinit(std.testing.allocator);
+
+    try std.testing.expectEqualStrings(
+        "/repo/tools/bin:/repo/scripts:/usr/bin:/bin",
+        plan.path,
+    );
+    try std.testing.expectEqualStrings(plan.path, env.get("PATH").?);
+    try std.testing.expectEqual(@as(usize, 5), plan.call.argv.len);
+    try std.testing.expectEqualStrings("perf", plan.call.argv[0].?);
+    try std.testing.expectEqualStrings("record", plan.call.argv[1].?);
+    try std.testing.expectEqualStrings("-a", plan.call.argv[2].?);
+    try std.testing.expectEqualStrings("--stdio", plan.call.argv[3].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), plan.call.argv[4]);
 }
 
 test "buildDeferredExecvCall keeps the execv handoff pure and launch-free" {
