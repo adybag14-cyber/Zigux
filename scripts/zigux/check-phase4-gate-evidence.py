@@ -9,7 +9,7 @@ from pathlib import Path
 
 SCRIPT_PATH = Path(__file__).resolve()
 ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
-SHARED_SURVEYED_COMMIT = "ec9aa1b15a34e581625da1056956ecb5dd6cd76a"
+SHARED_SURVEYED_COMMIT = "3ba64cd4e41a4de1c8fd8dbaecb23702ad9701a3"
 
 REQUIRED_MARKERS = [
     "PHASE4_EVIDENCE_DATE=",
