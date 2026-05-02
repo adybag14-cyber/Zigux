@@ -477,6 +477,17 @@ test "extractArgv0Path splits command names from directory prefixes" {
     try std.testing.expectEqual(@as(usize, 0), root.argv0_path.?.len);
     try std.testing.expectEqualStrings("perf", root.command_name);
 
+    var directory_only = (try extractArgv0Path(std.testing.allocator, "/tmp/perf/")) orelse unreachable;
+    defer directory_only.deinit(std.testing.allocator);
+    try std.testing.expectEqualStrings("/tmp/perf", directory_only.argv0_path.?);
+    try std.testing.expectEqual(@as(usize, 0), directory_only.command_name.len);
+
+    var root_only = (try extractArgv0Path(std.testing.allocator, "/")) orelse unreachable;
+    defer root_only.deinit(std.testing.allocator);
+    try std.testing.expect(root_only.argv0_path != null);
+    try std.testing.expectEqual(@as(usize, 0), root_only.argv0_path.?.len);
+    try std.testing.expectEqual(@as(usize, 0), root_only.command_name.len);
+
     var bare = (try extractArgv0Path(std.testing.allocator, "perf")) orelse unreachable;
     defer bare.deinit(std.testing.allocator);
     try std.testing.expectEqual(@as(?[]u8, null), bare.argv0_path);
@@ -917,6 +928,38 @@ test "setupPath updates PATH using stored exec path, argv0 path, and fallback de
         inherited_empty,
     );
     try std.testing.expectEqualStrings(inherited_empty, inherited_empty_env.get("PATH").?);
+}
+
+test "setupPath ignores an empty argv0 directory sentinel extracted from root-only argv0" {
+    const config = Config{
+        .exec_name = "perf",
+        .prefix = "/usr/libexec/perf-core",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var env = EnvMap.init(std.testing.allocator);
+    defer env.deinit();
+
+    var state = ExecCmdState{};
+    defer state.deinit(std.testing.allocator);
+
+    try execCmdInit(&env, config);
+    try setArgvExecPath(std.testing.allocator, &env, &state, config, "tools/bin");
+
+    var extracted = (try extractArgv0Path(std.testing.allocator, "/")) orelse unreachable;
+    defer extracted.deinit(std.testing.allocator);
+    try setArgv0Path(std.testing.allocator, &state, extracted.argv0_path);
+    try env.set("PATH", "/usr/bin");
+
+    const updated = try setupPath(std.testing.allocator, &env, state, config, "/repo");
+    defer std.testing.allocator.free(updated);
+
+    try std.testing.expectEqualStrings(
+        "/repo/tools/bin:/usr/bin",
+        updated,
+    );
+    try std.testing.expectEqualStrings(updated, env.get("PATH").?);
 }
 
 test "setupPathWithPwd reuses the logical PWD only when the injected identities match" {
