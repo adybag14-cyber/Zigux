@@ -64,7 +64,7 @@ SURVEY_MARKERS = [
 ]
 
 HANDOFF_MARKERS = [
-    "PHASE15_LANE_KEY=P15-Y01",
+    "PHASE15_LANE_KEY=P15-L08",
     "## Current Handoff Surface",
     "## Open Handoff Gaps",
     "## Pending Next Steps",
@@ -88,7 +88,7 @@ BUILD_MARKERS = [
 ]
 
 HANDOFF_TEST_MARKERS = [
-    'try std.testing.expectEqualStrings("P15-Y01", manifest.lane_key);',
+    'try std.testing.expectEqualStrings("P15-L08", manifest.lane_key);',
     'phase15-docs-root-summary-drift-blocker',
     'phase15-deep-core-status-change-blocker',
     'make -C zigux phase15',
@@ -313,9 +313,9 @@ else:
 
 scorecard_manifest = load_json("zigux/tests/phase15_parity_scorecard.json")
 require(scorecard_manifest.get("phase") == "Phase 15", "scorecard_manifest:phase")
-require(scorecard_manifest.get("lane_key") == "P15-L09", "scorecard_manifest:lane_key")
+require(scorecard_manifest.get("lane_key") == "P15-L12", "scorecard_manifest:lane_key")
 require(
-    scorecard_manifest.get("surveyed_commit") == "ba15a15ff4f0becd063b9b12aeea73df5307e6ef",
+    scorecard_manifest.get("surveyed_commit") == "355b71d89807a217a6b7c405c996cbd623c48ca0",
     "scorecard_manifest:surveyed_commit",
 )
 
@@ -469,8 +469,7 @@ require(
     "review_process_manifest:current_approval_state",
 )
 require(
-    review_process_manifest.get("approval_evidence_fields")
-    == ["requested decision bucket", "decision record ID", "no Architecture Council approval claim"],
+    review_process_manifest.get("approval_evidence_fields") == ["requested decision bucket", "decision record ID", "no Architecture Council approval claim"],
     "review_process_manifest:approval_evidence_fields",
 )
 require(
@@ -530,7 +529,7 @@ else:
     )
     current_bounded_lane = handoff_evidence.get("current_bounded_lane")
     require(
-        isinstance(current_bounded_lane, str) and "current no-approval posture" in current_bounded_lane,
+        isinstance(current_bounded_lane, str) and "governance, approval, and ownership evidence verification" in current_bounded_lane,
         "review_process_manifest:handoff_evidence:current_bounded_lane",
     )
 
@@ -554,9 +553,9 @@ else:
 
 handoff_manifest = load_json("zigux/tests/phase15_handoff_next_steps_manifest.json")
 require(handoff_manifest.get("phase") == "Phase 15", "handoff_manifest:phase")
-require(handoff_manifest.get("lane_key") == "P15-Y01", "handoff_manifest:lane_key")
+require(handoff_manifest.get("lane_key") == "P15-L08", "handoff_manifest:lane_key")
 require(
-    handoff_manifest.get("surveyed_commit") == "ef7b33b6922d05e5ef514fb4efa588316ce6dda8",
+    handoff_manifest.get("surveyed_commit") == "355b71d89807a217a6b7c405c996cbd623c48ca0",
     "handoff_manifest:surveyed_commit",
 )
 
