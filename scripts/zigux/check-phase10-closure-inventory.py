@@ -83,6 +83,15 @@ EXPECTED_STUDY_ONLY_ANCHORS = [
     "kernel/trace/ring_buffer.c",
 ]
 
+EXPECTED_EXACT_CHECKS = [
+    "python3 scripts/zigux/check-phase10-closure-inventory.py",
+    "python3 scripts/zigux/validate-phase10-closure.py",
+    "zig build test --build-file zigux/tests/phase10_build.zig --summary all",
+    "make -C zigux phase10-validate",
+    "make -C zigux phase10-test",
+    "make -C zigux phase10",
+]
+
 EXPECTED_CROSS_PHASE_BOUNDARY = {
     "reference_samples": {
         "status": "out_of_scope",
@@ -203,6 +212,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         "forbidden_transport_claims": EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS,
         "freeze_in_c_anchors": EXPECTED_FREEZE_IN_C_ANCHORS,
         "study_only_anchors": EXPECTED_STUDY_ONLY_ANCHORS,
+        "exact_checks": EXPECTED_EXACT_CHECKS,
     }
     for key, expected in expected_arrays.items():
         if manifest.get(key) != expected:
@@ -249,6 +259,7 @@ def write_fixture(root: Path) -> None:
         "study_only_anchors": EXPECTED_STUDY_ONLY_ANCHORS,
         "cross_phase_scoreboard_boundary": EXPECTED_CROSS_PHASE_BOUNDARY,
         "phase14_study_only_boundary": EXPECTED_PHASE14_STUDY_ONLY_BOUNDARY,
+        "exact_checks": EXPECTED_EXACT_CHECKS,
     }
 
     for rel_path in REQUIRED_FILES:
@@ -526,9 +537,19 @@ def run_self_test() -> int:
             root,
             "manifest:freeze_in_c_anchors",
         )
+        write_fixture(root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["exact_checks"] = EXPECTED_EXACT_CHECKS[:-1]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "manifest_exact_checks",
+            root,
+            "manifest:exact_checks",
+        )
 
     print("PHASE10_CLOSURE_INVENTORY_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_INVENTORY_SELF_TEST_CASE_COUNT=21")
+    print("PHASE10_CLOSURE_INVENTORY_SELF_TEST_CASE_COUNT=22")
     return 0
 
 
