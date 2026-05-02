@@ -44,6 +44,12 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     phase12_virtio_scsi_module.addImport("virtio_scsi", virtio_scsi_module);
+    const phase12_virtio_scsi_syntax_lab_module = b.createModule(.{
+        .root_source_file = b.path("phase12_virtio_scsi_syntax_lab.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase12_virtio_scsi_syntax_lab_module.addImport("virtio_scsi", virtio_scsi_module);
     const nvme_pci_module = b.createModule(.{
         .root_source_file = b.path("../../drivers/nvme/host/pci.zig"),
         .target = target,
@@ -141,6 +147,11 @@ pub fn build(b: *std.Build) void {
         .root_module = phase12_virtio_net_syntax_lab_module,
     });
     const run_phase12_virtio_net_syntax_lab_tests = b.addRunArtifact(phase12_virtio_net_syntax_lab_tests);
+    const phase12_virtio_scsi_syntax_lab_tests = b.addTest(.{
+        .name = "phase12-virtio-scsi-syntax-lab-tests",
+        .root_module = phase12_virtio_scsi_syntax_lab_module,
+    });
+    const run_phase12_virtio_scsi_syntax_lab_tests = b.addRunArtifact(phase12_virtio_scsi_syntax_lab_tests);
     const phase12_virtio_scsi_survey_tests = b.addTest(.{
         .name = "phase12-virtio-scsi-survey-tests",
         .root_module = phase12_virtio_scsi_survey_module,
@@ -174,6 +185,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_phase12_virtio_net_tests.step);
     test_step.dependOn(&run_phase12_virtio_net_survey_tests.step);
     test_step.dependOn(&run_phase12_virtio_net_syntax_lab_tests.step);
+    test_step.dependOn(&run_phase12_virtio_scsi_syntax_lab_tests.step);
     test_step.dependOn(&run_phase12_virtio_scsi_survey_tests.step);
     test_step.dependOn(&run_phase12_raw_github_coverage_survey_tests.step);
     test_step.dependOn(&run_phase12_libbpf_segments_tests.step);
