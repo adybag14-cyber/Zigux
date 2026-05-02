@@ -359,6 +359,24 @@ test "single-word scans keep linux small-bitmap semantics" {
     try std.testing.expectEqual(@as(usize, nbits), findNextAndBit(&lhs, &rhs, nbits, 10));
 }
 
+test "single-word scans ignore matches that exist only beyond nbits" {
+    const nbits: usize = 12;
+    const out_of_range_bit = 15;
+
+    const set_bits = [_]Word{@as(Word, 1) << out_of_range_bit};
+    try std.testing.expectEqual(@as(usize, nbits), findFirstBit(&set_bits, nbits));
+    try std.testing.expectEqual(@as(usize, nbits), findNextBit(&set_bits, nbits, 0));
+
+    const zero_bits = [_]Word{~@as(Word, 0) & ~(@as(Word, 1) << out_of_range_bit)};
+    try std.testing.expectEqual(@as(usize, nbits), findFirstZeroBit(&zero_bits, nbits));
+    try std.testing.expectEqual(@as(usize, nbits), findNextZeroBit(&zero_bits, nbits, 0));
+
+    const lhs = [_]Word{@as(Word, 1) << out_of_range_bit};
+    const rhs = [_]Word{@as(Word, 1) << out_of_range_bit};
+    try std.testing.expectEqual(@as(usize, nbits), findFirstAndBit(&lhs, &rhs, nbits));
+    try std.testing.expectEqual(@as(usize, nbits), findNextAndBit(&lhs, &rhs, nbits, 0));
+}
+
 test "word helpers keep linux-style mask and sizing boundaries" {
     try std.testing.expectEqual(@as(usize, 0), bitsToWords(0));
     try std.testing.expectEqual(@as(usize, 1), bitsToWords(1));
