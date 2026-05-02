@@ -43,6 +43,7 @@ fn expectTemplateEvidence(
     try std.testing.expect(std.mem.indexOf(u8, template_doc, "no Architecture Council approval claim") != null);
     try std.testing.expect(std.mem.indexOf(u8, template_doc, lane_owner) != null);
     try std.testing.expect(std.mem.indexOf(u8, template_doc, rollback_owner) != null);
+    try std.testing.expect(std.mem.indexOf(u8, template_doc, "rollback threshold") != null);
     try std.testing.expect(std.mem.indexOf(u8, template_doc, "retired_from_active_discussion") != null);
     try std.testing.expect(std.mem.indexOf(u8, template_doc, "ownership_or_validation_changed") != null);
 }
@@ -100,7 +101,7 @@ test "phase 15 architecture council review-process manifest records current trig
     try std.testing.expectEqualStrings("Architecture Council review process", manifest.roadmap_requirement);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-architecture-council-review-process.md", manifest.anchor);
     try std.testing.expectEqualStrings("no_freeze_map_status_change_approved", manifest.current_approval_state);
-    try std.testing.expectEqual(@as(usize, 12), manifest.ownership_evidence_fields.len);
+    try std.testing.expectEqual(@as(usize, 13), manifest.ownership_evidence_fields.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.approval_evidence_fields.len);
     try std.testing.expectEqual(@as(usize, 7), manifest.approval_evidence_paths.len);
     try std.testing.expectEqual(@as(usize, 6), manifest.ownership_evidence_paths.len);
@@ -110,7 +111,7 @@ test "phase 15 architecture council review-process manifest records current trig
     try std.testing.expectEqualStrings("ownership_or_validation_changed", manifest.ownership_refresh_trigger);
     try std.testing.expectEqual(@as(usize, 2), manifest.ownership_refresh_fields.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.decision_buckets.len);
-    try std.testing.expectEqual(@as(usize, 18), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 19), manifest.gaps.len);
 
     try std.testing.expectEqualStrings("requested decision bucket", manifest.approval_evidence_fields[0]);
     try std.testing.expectEqualStrings("decision record ID", manifest.approval_evidence_fields[1]);
@@ -122,7 +123,8 @@ test "phase 15 architecture council review-process manifest records current trig
     try std.testing.expectEqualStrings("rollback owner", manifest.ownership_evidence_fields[1]);
     try std.testing.expectEqualStrings("retained discussion state", manifest.ownership_evidence_fields[7]);
     try std.testing.expectEqualStrings("automatic return-to-blocked trigger", manifest.ownership_evidence_fields[8]);
-    try std.testing.expectEqualStrings("indefinite-C policy link or applicability note", manifest.ownership_evidence_fields[9]);
+    try std.testing.expectEqualStrings("rollback threshold", manifest.ownership_evidence_fields[9]);
+    try std.testing.expectEqualStrings("indefinite-C policy link or applicability note", manifest.ownership_evidence_fields[10]);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-parity-scorecard.md", manifest.ownership_evidence_paths[0]);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-indefinite-c-policy.md", manifest.ownership_evidence_paths[1]);
     try std.testing.expectEqualStrings("freeze-map list change", manifest.trigger_conditions[0]);
@@ -188,6 +190,7 @@ test "phase 15 architecture council review-process manifest records current trig
 
     var landed_count: usize = 0;
     var saw_indefinite_c_evidence_sync = false;
+    var saw_ownership_evidence_rollback_threshold_sync = false;
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(isAllowedStatus(gap.status));
         try std.testing.expect(gap.id.len > 0);
@@ -202,14 +205,21 @@ test "phase 15 architecture council review-process manifest records current trig
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "indefinite-C policy") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "evidence-path inventory") != null);
         }
+        if (std.mem.eql(u8, gap.id, "phase15-review-process-ownership-evidence-rollback-threshold-sync")) {
+            saw_ownership_evidence_rollback_threshold_sync = true;
+            try std.testing.expectEqualStrings("governance_sync", gap.kind);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rollback threshold") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "ownership-evidence inventory") != null);
+        }
 
         for (manifest.gaps[i + 1 ..]) |other| {
             try std.testing.expect(!std.mem.eql(u8, gap.id, other.id));
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 18), landed_count);
+    try std.testing.expectEqual(@as(usize, 19), landed_count);
     try std.testing.expect(saw_indefinite_c_evidence_sync);
+    try std.testing.expect(saw_ownership_evidence_rollback_threshold_sync);
 }
 
 test "phase 15 architecture council review-process note stays aligned with checklist and handoff language" {
@@ -258,6 +268,7 @@ test "phase 15 architecture council review-process note stays aligned with check
     try std.testing.expect(std.mem.indexOf(u8, review_process, "decision record ID: pending_no_architecture_council_request") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "no Architecture Council approval claim") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "current ownership evidence is explicit in both the scorecard and the anchor templates") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_process, "rollback threshold") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "Documentation/zigux/phase15-evidence-archives/") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "narrower_followup_answers_blocker") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "evidence_packet_stale_or_contradictory") != null);
@@ -283,6 +294,7 @@ test "phase 15 architecture council review-process note stays aligned with check
     try std.testing.expect(std.mem.indexOf(u8, review_process, "shared Phase 15 replay drift") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "phase15-review-process-lane-identity-provenance-refresh") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "phase15-review-process-indefinite-c-evidence-path-sync") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_process, "phase15-review-process-ownership-evidence-rollback-threshold-sync") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, checklist, "decision record ID, lane owner, rollback owner, validation gate summary, evidence archive path, latest blocker disposition, benchmark notes, and replay command explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "does the packet name the automatic return-to-blocked trigger") != null);
