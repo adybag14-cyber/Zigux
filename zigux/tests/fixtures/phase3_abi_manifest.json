@@ -25,6 +25,8 @@
     "zigux/tests/phase3_abi.zig",
     "zigux/tests/phase3_export_uapi_build.zig",
     "zigux/tests/phase3_export_uapi.zig",
+    "zigux/tests/phase3_export_uapi_layout_build.zig",
+    "zigux/tests/phase3_export_uapi_layout.zig",
     "zigux/tests/phase3_abi_dump.zig",
     "zigux/tests/fixtures/phase3_abi/expected.json",
     "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c",
@@ -48,5 +50,5 @@
     "scripts/zigux/validate_phase3_core.py",
     "scripts/zigux/validate_phase3_selftest.py"
   ],
-  "file_count": 44
+  "file_count": 46
 }
