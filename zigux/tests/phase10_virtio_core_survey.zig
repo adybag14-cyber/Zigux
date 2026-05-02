@@ -99,6 +99,19 @@ test "phase10 virtio core survey manifest records the live core validation bundl
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-core-probe-remove-lifecycle") != null);
     try std.testing.expect(closure_manifest == .object);
 
+    const survey_provenance = closure_manifest.object.get("survey_provenance") orelse return error.TestUnexpectedResult;
+    try std.testing.expect(survey_provenance == .object);
+    const lane_keys = survey_provenance.object.get("lane_keys") orelse return error.TestUnexpectedResult;
+    try std.testing.expect(lane_keys == .object);
+    const core_lane_key = lane_keys.object.get("core") orelse return error.TestUnexpectedResult;
+    try std.testing.expect(core_lane_key == .string);
+    try std.testing.expectEqualStrings(manifest.lane_key, core_lane_key.string);
+    const surveyed_commits = survey_provenance.object.get("surveyed_commits") orelse return error.TestUnexpectedResult;
+    try std.testing.expect(surveyed_commits == .object);
+    const core_surveyed_commit = surveyed_commits.object.get("core") orelse return error.TestUnexpectedResult;
+    try std.testing.expect(core_surveyed_commit == .string);
+    try std.testing.expectEqualStrings(manifest.surveyed_commit, core_surveyed_commit.string);
+
     const landed_core_helper_evidence = closure_manifest.object.get("landed_core_helper_evidence") orelse return error.TestUnexpectedResult;
     try std.testing.expect(landed_core_helper_evidence == .object);
     const core_helper_evidence = landed_core_helper_evidence.object.get("zigux/tests/phase10_virtio_core_manifest.json") orelse return error.TestUnexpectedResult;
