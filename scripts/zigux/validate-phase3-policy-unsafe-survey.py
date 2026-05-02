@@ -25,6 +25,7 @@ ALLOCATOR_POLICY_REL = "zigux/helpers/allocator_policy.zig"
 INTEROP_POLICY_REL = "zigux/helpers/interop_policy.zig"
 UNSAFE_NARROW_REL = "zigux/unsafe/narrow.zig"
 MMIO_REL = "zigux/helpers/mmio.zig"
+POLICY_UNSAFE_MMIO_CONSUMER_CHECK_REL = "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"
 
 HEX40 = re.compile(r"^[0-9a-f]{40}$")
 PLACEHOLDER_SHA = "0123456789abcdef0123456789abcdef01234567"
@@ -77,6 +78,7 @@ REQUIRED_SURVEY_PATHS = (
     MMIO_REL,
     POLICY_UNSAFE_BUILD_REL,
     POLICY_UNSAFE_TEST_REL,
+    POLICY_UNSAFE_MMIO_CONSUMER_CHECK_REL,
     MANIFEST_REL,
     ABI_SLICE_REL,
 )
@@ -198,6 +200,15 @@ REQUIRED_POLICY_UNSAFE_TEST_SNIPPETS = (
 REQUIRED_ABI_SLICE_SNIPPETS = (
     "focused replay gate: `zigux/tests/phase3_policy_unsafe.zig` now verifies both successful whole-record decoding and rejection of partial or reserved policy bytes",
     "focused replay gate: `zigux/tests/phase3_policy_unsafe.zig` now keeps `layout_assert`, panic, allocator, whole-record interop-policy decoding, unsafe-byte decoding, and declared-scope enforcement aligned on its own compile-and-test path",
+)
+
+REQUIRED_POLICY_UNSAFE_MMIO_CONSUMER_CHECK_SNIPPETS = (
+    "PHASE3_MMIO_TYPED_POLICY_CONSUMER=zigux/helpers/mmio.zig",
+    "PHASE3_BOUNDARY_GAP=typed-policy-mmio-consumer-landed-no-third-boundary-helper-beyond-focused-replay",
+    "PHASE3_NEXT_BOUNDED_STEP=keep-the-policy-and-unsafe-surface-narrow-until-one-roadmap-backed-helper-beyond-mmio-needs-a-typed-interop-policy-consumer",
+    "`zigux/helpers/mmio.zig` is now the shipped second boundary helper that consumes `DecodedInteropPolicy` directly outside the focused `phase3_policy_unsafe` test packet",
+    "the current tree does not yet ship a third Phase 3 boundary helper that consumes `DecodedInteropPolicy` directly beyond the focused replay and the scoped MMIO helper",
+    'test "phase3 mmio wrapper consumes decoded interop policy"',
 )
 
 SURVEYED_PACKET_BLOB_MARKERS = {
@@ -326,6 +337,7 @@ def validate(root: Path) -> list[str]:
     unsafe_narrow = _read_text(root, UNSAFE_NARROW_REL, issues)
     mmio = _read_text(root, MMIO_REL, issues)
     policy_unsafe_test = _read_text(root, POLICY_UNSAFE_TEST_REL, issues)
+    policy_unsafe_mmio_consumer_check = _read_text(root, POLICY_UNSAFE_MMIO_CONSUMER_CHECK_REL, issues)
     abi_slice = _read_text(root, ABI_SLICE_REL, issues)
 
     if survey:
@@ -375,6 +387,13 @@ def validate(root: Path) -> list[str]:
         _check_snippets(mmio, REQUIRED_MMIO_SNIPPETS, "missing_mmio_snippet", issues)
     if policy_unsafe_test:
         _check_snippets(policy_unsafe_test, REQUIRED_POLICY_UNSAFE_TEST_SNIPPETS, "missing_policy_unsafe_test_snippet", issues)
+    if policy_unsafe_mmio_consumer_check:
+        _check_snippets(
+            policy_unsafe_mmio_consumer_check,
+            REQUIRED_POLICY_UNSAFE_MMIO_CONSUMER_CHECK_SNIPPETS,
+            "missing_policy_unsafe_mmio_consumer_check_snippet",
+            issues,
+        )
     if abi_slice:
         _check_snippets(abi_slice, REQUIRED_ABI_SLICE_SNIPPETS, "missing_abi_slice_snippet", issues)
 
@@ -532,6 +551,11 @@ def run_self_test() -> int:
         )
         _write(root, POLICY_UNSAFE_BUILD_REL, "// build file present\n")
         _write(root, MANIFEST_REL, "{}\n")
+        _write(
+            root,
+            POLICY_UNSAFE_MMIO_CONSUMER_CHECK_REL,
+            "\n".join(REQUIRED_POLICY_UNSAFE_MMIO_CONSUMER_CHECK_SNIPPETS) + "\n",
+        )
 
         assert validate(root) == []
 
@@ -789,6 +813,21 @@ def run_self_test() -> int:
         )
         assert "missing_mmio_snippet:pub fn write32Policy(" in issues
         assert 'missing_mmio_snippet:test "phase3 mmio wrapper consumes decoded interop policy"' in issues
+
+        _write(
+            root,
+            POLICY_UNSAFE_MMIO_CONSUMER_CHECK_REL,
+            "\n".join(
+                snippet
+                for snippet in REQUIRED_POLICY_UNSAFE_MMIO_CONSUMER_CHECK_SNIPPETS
+                if snippet != 'test "phase3 mmio wrapper consumes decoded interop policy"'
+            ) + "\n",
+        )
+        issues = validate(root)
+        assert (
+            'missing_policy_unsafe_mmio_consumer_check_snippet:test "phase3 mmio wrapper consumes decoded interop policy"'
+            in issues
+        )
 
     print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass")
     return 0
