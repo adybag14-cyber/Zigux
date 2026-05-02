@@ -1,7 +1,7 @@
 {
   "lane_key": "P15-Y01",
   "phase": "Phase 15",
-  "surveyed_commit": "ef7b33b6922d05e5ef514fb4efa588316ce6dda8",
+  "surveyed_commit": "b5f64cf3306b706ea93cc9d3de769d545849b2d4",
   "roadmap_phase_title": "Full-Parity Blockers and Long-Term Governance",
   "roadmap_requirements": [
     "freeze map",
@@ -22,17 +22,10 @@
     "docs_index_handoff_pointer_present": true,
     "docs_root_reviewability_guard_present": true,
     "phase15_replay_green_on_current_master": true,
-    "docs_root_phase15_summary_aligned": false,
+    "docs_root_phase15_summary_aligned": true,
     "deep_core_status_change_ready": false
   },
   "open_handoff_gaps": [
-    {
-      "id": "phase15-docs-root-summary-drift-blocker",
-      "status": "blocked_on_release_evidence_alignment",
-      "kind": "documentation",
-      "zigux_destination": "Documentation/zigux/README.md",
-      "why_now": "The docs-root Phase 15 summary still says the handoff includes remaining broader replay drift on current `master` even though the dedicated readiness and handoff packets now record the shared Phase 15 replay as green."
-    },
     {
       "id": "phase15-deep-core-status-change-blocker",
       "status": "blocked_on_stay_in_c_evidence",
@@ -42,7 +35,7 @@
     }
   ],
   "pending_next_steps": [
-    "Keep this handoff lane parked unless the docs-root Phase 15 summary is refreshed to match the dedicated readiness and handoff packet, the shared Phase 15 replay drifts again, or a named reopen trigger or deep-core blocker change makes a refreshed synthesis necessary.",
-    "When one of those conditions changes, rerun zig build test --build-file zigux/tests/phase15_build.zig and make -C zigux phase15 before refreshing the docs-root summary or neighboring governance packets."
+    "Keep this handoff lane parked unless the shared Phase 15 replay drifts again, a named reopen trigger now fits the evidence packet again, or a deep-core blocker change makes a refreshed synthesis necessary.",
+    "When one of those conditions changes, rerun zig build test --build-file zigux/tests/phase15_build.zig and make -C zigux phase15 before refreshing neighboring governance packets."
   ]
 }
