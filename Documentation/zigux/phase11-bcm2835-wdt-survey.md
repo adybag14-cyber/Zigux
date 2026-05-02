@@ -6,10 +6,10 @@ The live repo state is now:
 
 - reviewed against live `master` `f5a4d6990f701937b2a3bb9ae723bb6d0f27ba21`
 - `drivers/watchdog/gpio_wdt.zig` already provides one bounded Phase 11 watchdog starter, so the tranche has a real foothold
-- `drivers/watchdog/bcm2835_wdt.zig` already ships the bounded bcm2835 starter for watchdog metadata, timeout tick encoding, running-bit detection, bounded start and stop register transitions, restart intent, halt-partition bookkeeping, a tiny probe-time summary, a small registration-facing handoff or poweroff ownership summary, a tiny platform-registration or PM-base handoff summary, and a tiny remove-time ownership summary
+- `drivers/watchdog/bcm2835_wdt.zig` already ships the bounded bcm2835 starter for watchdog metadata, timeout tick encoding, running-bit detection, bounded start and stop register transitions, restart intent, halt-partition bookkeeping, a tiny probe-time summary, a small registration-facing handoff or poweroff ownership summary, a tiny platform-registration or PM-base handoff summary, a small poweroff-path summary, and a tiny remove-time ownership summary
 - `zigux/tests/phase11_bcm2835_wdt.zig` and `Documentation/zigux/phase11-bcm2835-wdt-slice.md` keep that starter reviewable without claiming platform registration or hardware-backed execution
-- `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md` now names the shared Phase 11 test gate, the current timeout, probe, registration, platform-handoff, and remove-time evidence, and the still-blocked live platform-registration or PM-base decision
-- `zigux/tests/phase11_bcm2835_wdt_survey.zig` and `zigux/tests/phase11_bcm2835_wdt_manifest.json` now treat the handoff summary as landed while still keeping the live platform-registration and PM-base gap explicit so the lane does not overclaim progress
+- `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md` now names the shared Phase 11 test gate, the current timeout, probe, registration, platform-handoff, poweroff-path, and remove-time evidence, and the still-blocked live platform-registration or PM-base decision
+- `zigux/tests/phase11_bcm2835_wdt_survey.zig` and `zigux/tests/phase11_bcm2835_wdt_manifest.json` now treat the handoff and poweroff summaries as landed while still keeping the live platform-registration and PM-base gap explicit so the lane does not overclaim progress
 - the focused replay `zig test zigux/tests/phase11_bcm2835_wdt_survey.zig` still passes on current `master`
 - `zigux/tests/phase11_build.zig` still compiles and runs the gpio starter checks, the bcm2835 starter checks, and the bcm2835 survey check together so Phase 11 watchdog drift is visible in one place, and the current shared replay now passes on `master`
 
