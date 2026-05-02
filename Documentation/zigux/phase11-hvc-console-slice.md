@@ -5,7 +5,7 @@ This bounded Phase 11 slice adds the first Zigux `hvc_console` starter anchored 
 The starter stays intentionally narrow:
 
 - validates the early-console slot range and adapter-presence gate
-- keeps a small header-parity snapshot for `drivers/tty/hvc/hvc_console.h`, including `MAX_NR_HVC_CONSOLES`, `HVC_ALLOC_TTY_ADAPTERS`, the `hv_ops` callback shape, and the exported `hvc_*` helper surface
+- keeps a small header-parity snapshot for `drivers/tty/hvc/hvc_console.h`, including `MAX_NR_HVC_CONSOLES`, `HVC_ALLOC_TTY_ADAPTERS`, the `hv_ops` callback shape, the exported `hvc_alloc` or `hvc_remove` or `hvc_poll` or `hvc_resize` helpers, and the bounded `hvc_kick` plus notifier-IRQ helper surface
 - models CRLF write framing for the bounded console print path, including repeated bare-newline normalization and preservation of pre-existing CRLF input
 - records retry-after-`-EAGAIN`, partial-write, full-write, and fatal-drop flush progress without claiming backend I/O
 - summarizes the setup-state and final-close wait boundary, including the `HVC_CLOSE_WAIT`-shaped final-close gate, without claiming tty registration
