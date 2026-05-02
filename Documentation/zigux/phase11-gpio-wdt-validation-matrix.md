@@ -5,7 +5,7 @@ This document records the first bounded hardware-validation matrix for the Zigux
 ## Status
 
 - `PHASE11_GPIO_WDT_STATUS=metadata_teardown_and_register_device_surface_landed`
-- reviewed against live `master` `f0aacb8c3c98b9c3b25c0908067a97c0db54c230`
+- reviewed against live `master` `949994db4046ec70abf044d1b2ea874fde9bc4a6`
 - archived manifest lane key for this packet remains `P11-L04` for traceability, even though later scheduled continuity revisited the same landed review packet under `P11-L03` for teardown-facing verification and `P11-L05` for wording-only matrix cleanup without widening into descriptor-backed preflight or live registration work
 - scope: keep the current `gpio_wdt` starter honest about what is already validated, name the explicit teardown evidence plus the first bounded register-device call evidence, and avoid overclaiming live GPIO, platform registration, or reboot integration before those behaviors exist in Zigux
 - current repo reality:
@@ -58,7 +58,7 @@ Without this matrix, the slice and survey named the right next step but did not 
 
 - lane key: `P11-L04`
 - later continuity note: the same landed review packet was revisited under `P11-L03` for teardown-facing verification and `P11-L05` for wording-only matrix cleanup while the archived manifest identity stayed fixed
-- inspected `master` head: `f0aacb8c3c98b9c3b25c0908067a97c0db54c230`
+- inspected `master` head: `949994db4046ec70abf044d1b2ea874fde9bc4a6`
 - focused compile replay:
   - `zig test --dep gpio_wdt -Mroot=zigux/tests/phase11_gpio_wdt.zig -Mgpio_wdt=drivers/watchdog/gpio_wdt.zig`
   - result: `12/12` focused gpio watchdog tests passed
