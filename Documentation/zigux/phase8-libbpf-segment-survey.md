@@ -119,21 +119,25 @@ The current tests check:
 
 ## Gates
 
-The shared review path now fail-closes through the dedicated tests-readme alignment checker and its built-in self-test alongside the broader Phase 8 validator-first preflight path before the focused survey and shared build replays run, so this survey stays tied to the same docs-root, tests-root, Makefile, workflow, and segmented libbpf packet that the repo already ships.
+The shared review path now fail-closes through the shared Phase 8 validator, the dedicated tests-readme alignment checker, and both built-in self-tests before the focused survey and shared build replays run, so this survey stays tied to the same docs-root, tests-root, Makefile, workflow, and segmented libbpf packet that the repo already ships.
 
-1. `python3 scripts/zigux/check-phase8-tests-readme-alignment.py --self-test`
-2. `python3 scripts/zigux/check-phase8-tests-readme-alignment.py`
+1. `python3 scripts/zigux/validate-phase8.py --self-test`
+2. `python3 scripts/zigux/check-phase8-tests-readme-alignment.py --self-test`
 3. `python3 scripts/zigux/validate-phase8.py`
-4. `make -C zigux phase8-validate`
-5. `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
+4. `python3 scripts/zigux/check-phase8-tests-readme-alignment.py`
+5. `make -C zigux phase8-validate`
 6. `zig test zigux/tests/phase8_libbpf_segments.zig`
 7. `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all`
-8. `make -C zigux phase8`
+8. `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
+9. `make -C zigux phase8`
 
 ## Latest verification snapshot
 
 - provenance and anchor alignment rechecked against inspected `master` head `36414e38da67a51209095d0c06170f81e80258eb`
 - focused Zig replay rerun against inspected `master` head `36414e38da67a51209095d0c06170f81e80258eb`
+- `python3 scripts/zigux/validate-phase8.py --self-test`
+  - `PHASE8_VALIDATOR_SELF_TEST=pass`
+  - `PHASE8_VALIDATOR_SELF_TEST_CASE_COUNT=11`
 - `python3 scripts/zigux/check-phase8-tests-readme-alignment.py --self-test`
   - `PHASE8_TESTS_README_ALIGNMENT_SELF_TEST=pass`
   - `PHASE8_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=15`
