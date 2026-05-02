@@ -174,7 +174,7 @@ REQUIRED_CLOSURE_MARKERS = [
     f"PHASE1_STRING_SUFFIX_UNIT_REVIEW={STRING_SUFFIX_REVIEW}",
     f"PHASE1_STRING_MEMPARSE_UNIT_REVIEW={STRING_MEMPARSE_REVIEW}",
     "PHASE1_FIND_BIT_BENCH_REVIEW=find_bit benchmark smoke pins deterministic next-bit, whole-family, tail-window, same-word, zero-bit, and shared-bit scan checksums plus the live loop counts so helper-local scan regressions cannot hide behind a generic positive checksum or a silently shrunk workload",
-    "PHASE1_FIND_BIT_BENCH_KEYS=PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM,PHASE1_BENCH_FIND_BIT_FAMILY_CHECKSUM,PHASE1_BENCH_FIND_TAIL_WINDOW_CHECKSUM,PHASE1_BENCH_FIND_SAME_WORD_CHECKSUM",
+    "PHASE1_FIND_BIT_BENCH_KEYS=PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM,PHASE1_BENCH_FIND_BIT_FAMILY_CHECKSUM,PHASE1_BENCH_FIND_TAIL_WINDOW_CHECKSUM,PHASE1_BENCH_FIND_SAME_WORD_CHECKSUM,PHASE1_BENCH_FIND_NEXT_ZERO_BIT_CHECKSUM,PHASE1_BENCH_FIND_NEXT_AND_BIT_CHECKSUM",
     "PHASE1_FIND_BIT_BENCH_ITERATIONS=PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS,PHASE1_BENCH_FIND_SAME_WORD_ITERATIONS,PHASE1_BENCH_FIND_NEXT_ZERO_BIT_ITERATIONS,PHASE1_BENCH_FIND_NEXT_AND_BIT_ITERATIONS",
     "PHASE1_RBTREE_BENCH_REVIEW=rbtree benchmark smoke pins ordered traversal, duplicate-range, cached-leftmost, findAdd, and postorder-safe checksum surfaces so duplicate-owner and erase-while-walking regressions cannot hide behind the broader tree checksum alone",
     "PHASE1_RBTREE_BENCH_KEYS=PHASE1_BENCH_RBTREE_CHECKSUM,PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM,PHASE1_BENCH_RBTREE_CACHED_CHECKSUM,PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM,PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM",
@@ -216,7 +216,7 @@ REQUIRED_LEDGER_MARKERS = [
 
 REQUIRED_BENCH_CHECKER_MARKERS = [
     "print('PHASE1_BENCH_SELF_TEST=pass')",
-    "print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=15')",
+    "print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=16')",
     "print('DUPLICATE_PHASE1_BENCH_KEYS_START')",
     "print('MISSING_PHASE1_BENCH_KEYS_START')",
 ]
@@ -659,13 +659,13 @@ def run_self_test() -> int:
         bench_checker_path = tmp_root / "scripts" / "zigux" / "check-phase1-bench.py"
         original_bench_checker = bench_checker_path.read_text(encoding="utf-8")
         bench_checker_path.write_text(
-            replace_once(original_bench_checker, "print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=15')"),
+            replace_once(original_bench_checker, "print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=16')"),
             encoding="utf-8",
         )
         expect_missing_marker(
             "bench_self_test_count",
             tmp_root,
-            "bench_checker:print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=15')",
+            "bench_checker:print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=16')",
         )
         bench_checker_path.write_text(original_bench_checker, encoding="utf-8")
         total_cases += 1
