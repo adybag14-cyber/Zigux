@@ -20,8 +20,8 @@ This note records the current atomic, barrier, and MMIO boundary for the bounded
 - `PHASE3_LOW_LEVEL_BUILD_PATH=zigux/tests/phase3_low_level_wrappers_build.zig`
 - `PHASE3_LOW_LEVEL_BUILD_BLOB_SHA=a5ab6035a905edb3143c0ad850fb6b0d7381384e`
 - `PHASE3_LOW_LEVEL_TEST_PATH=zigux/tests/phase3_low_level_wrappers.zig`
-- `PHASE3_LOW_LEVEL_TEST_BLOB_SHA=339032931ca5fe973028f84ecbe3329c2b9601e1`
-- `PHASE3_ABI_SLICE_DOC_BLOB_SHA=6b90b23ca058f34af7f0eafef9f7fc45a1298a20`
+- `PHASE3_LOW_LEVEL_TEST_BLOB_SHA=0cc693a0da6891b61540ba9af573256054205037`
+- `PHASE3_ABI_SLICE_DOC_BLOB_SHA=ae10cff373709470ac777e97feec257ea069f8a0`
 - `PHASE3_ABI_MANIFEST_BLOB_SHA=d553cf38524af7349534668d31f85cd34edd9c5f`
 - `PHASE3_LOW_LEVEL_GATE=zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`
 - `PHASE3_BOUNDARY_GAP=no-relaxed-order-barrier-variants-or-broader-kernel-style-atomic-family-is-shipped-yet`
@@ -48,7 +48,7 @@ This survey is anchored to packet-local blob IDs because the current connector r
 
 The current tree already carries a real bounded low-level wrapper packet:
 
-- `zigux/helpers/atomic.zig` currently limits the approved helper surface to `load`, `store`, `exchange`, `fetchAdd`, `fetchSub`, `fetchAnd`, `fetchOr`, `fetchXor`, `fetchMin`, `fetchMax`, `compareExchange`, and `compareExchangeWeak`, all parameterized by Zig atomic order rather than widening into a broader kernel-style helper family.
+- `zigux/helpers/atomic.zig` currently limits the approved helper surface to `load`, `store`, `exchange`, `fetchAdd`, `fetchSub`, `fetchAnd`, `fetchOr`, `fetchXor`, `fetchMin`, `fetchMax`, and `compareExchangeWeak`, all parameterized by Zig atomic order rather than widening into a broader kernel-style helper family.
 - `zigux/helpers/barrier.zig` currently limits the approved barrier surface to `acquire`, `release`, and `full`, each expressed through a throwaway ordered atomic probe so the helper does not keep hidden shared state.
 - `zigux/helpers/mmio.zig` currently limits the approved MMIO surface to `range`, `read8`, `read16`, `read32`, `read64`, `write8`, `write16`, `write32`, and `write64`, plus the scoped `read8`, `write8`, `read16`, `write16`, `read32`, `write32`, `read64`, and `write64` entry points, the width-specific `read8Policy`, `write8Policy`, `read16Policy`, `write16Policy`, `read32Policy`, `write32Policy`, `read64Policy`, and `write64Policy` entry points, and the generic `readScopedWithPolicy` plus `writeScopedWithPolicy` bridges that keep decoded-policy MMIO access routed back through the declared narrow unsafe layer.
 - `zigux/tests/phase3_low_level_wrappers_build.zig` and `zigux/tests/phase3_low_level_wrappers.zig` keep the atomic, barrier, and direct-plus-scoped MMIO packet reviewable on one focused compile-and-test path, and the focused build now also wires the current `interop_policy` dependency that `zigux/helpers/mmio.zig` imports.
