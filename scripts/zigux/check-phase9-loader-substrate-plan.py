@@ -35,7 +35,7 @@ SURVEY_REQUIRED_MARKERS = [
 
 SUBSTRATE_PLAN_REQUIRED_MARKERS = [
     "`PHASE9_SLICE=shared-runtime-loader-substrate-plan`",
-    "`PHASE9_SURVEYED_COMMIT=",
+    "PHASE9_SURVEYED_COMMIT=",
     "zigux/kernel/runtime_loader.zig",
     "samples/zigux/runtime_atomic64_loader.zig",
     "samples/zigux/runtime_bitmap_loader.zig",
@@ -57,6 +57,46 @@ REVIEW_CHECKLIST_REQUIRED_MARKERS = [
 MAKEFILE_REQUIRED_MARKERS = [
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-loader-substrate-plan.py --self-test\n",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-loader-substrate-plan.py\n",
+]
+
+EXPECTED_LIFECYCLE_BOUNDARY_SUMMARY = {
+    "staged_init_exit_symbols_are_review_only": True,
+    "kretprobe_registration_labels_are_metadata_only": True,
+    "live_initcall_or_registration_path_present": False,
+}
+
+EXPECTED_FORBIDDEN_LIVE_CALLS = [
+    "module_init()",
+    "module_exit()",
+    "register_kretprobe()",
+    "unregister_kretprobe()",
+]
+
+EXPECTED_MODULE_METADATA_DEPMOD_BOUNDARIES = [
+    {
+        "surface": ".modinfo",
+        "boundary_kind": "module_metadata",
+        "status": "blocked_on_depmod_bridge",
+        "why_non_owner_fragment": "blocked boundary",
+    },
+    {
+        "surface": "MODULE_ALIAS()",
+        "boundary_kind": "module_alias",
+        "status": "blocked_on_depmod_bridge",
+        "why_non_owner_fragment": "blocked boundary",
+    },
+    {
+        "surface": "modules.alias",
+        "boundary_kind": "depmod_output",
+        "status": "blocked_on_depmod_bridge",
+        "why_non_owner_fragment": "blocked boundary",
+    },
+    {
+        "surface": "scripts/depmod.sh",
+        "boundary_kind": "depmod_bridge",
+        "status": "blocked_on_depmod_bridge",
+        "why_non_owner_fragment": "blocked boundary",
+    },
 ]
 
 
@@ -154,6 +194,47 @@ def validate_manifest_alignment(root: Path) -> list[str]:
             missing_markers.append("manifest:shared_runtime_loader_field_drift")
         if control_surface_markers.get("command_name_field") != "ExtractArgv0Result.command_name":
             missing_markers.append("manifest:command_name_field_drift")
+
+    lifecycle_boundary_summary = manifest.get("lifecycle_boundary_summary")
+    if not isinstance(lifecycle_boundary_summary, dict):
+        missing_markers.append("manifest:lifecycle_boundary_summary_missing")
+    else:
+        for field, expected in EXPECTED_LIFECYCLE_BOUNDARY_SUMMARY.items():
+            if lifecycle_boundary_summary.get(field) != expected:
+                missing_markers.append(f"manifest:lifecycle_boundary_summary:{field}")
+        if lifecycle_boundary_summary.get("forbidden_live_calls") != EXPECTED_FORBIDDEN_LIVE_CALLS:
+            missing_markers.append("manifest:lifecycle_boundary_summary:forbidden_live_calls")
+
+    module_metadata_depmod_boundaries = manifest.get("module_metadata_depmod_boundaries")
+    if not isinstance(module_metadata_depmod_boundaries, list):
+        missing_markers.append("manifest:module_metadata_depmod_boundaries_missing")
+    else:
+        if len(module_metadata_depmod_boundaries) != len(EXPECTED_MODULE_METADATA_DEPMOD_BOUNDARIES):
+            missing_markers.append("manifest:module_metadata_depmod_boundaries:count")
+        for index, expected in enumerate(EXPECTED_MODULE_METADATA_DEPMOD_BOUNDARIES):
+            if index >= len(module_metadata_depmod_boundaries):
+                missing_markers.append(
+                    f"manifest:module_metadata_depmod_boundaries:{expected['surface']}:missing"
+                )
+                continue
+            actual = module_metadata_depmod_boundaries[index]
+            if actual.get("surface") != expected["surface"]:
+                missing_markers.append(
+                    f"manifest:module_metadata_depmod_boundaries:{expected['surface']}:surface"
+                )
+            if actual.get("boundary_kind") != expected["boundary_kind"]:
+                missing_markers.append(
+                    f"manifest:module_metadata_depmod_boundaries:{expected['surface']}:boundary_kind"
+                )
+            if actual.get("status") != expected["status"]:
+                missing_markers.append(
+                    f"manifest:module_metadata_depmod_boundaries:{expected['surface']}:status"
+                )
+            why_non_owner = actual.get("why_non_owner")
+            if not isinstance(why_non_owner, str) or expected["why_non_owner_fragment"] not in why_non_owner:
+                missing_markers.append(
+                    f"manifest:module_metadata_depmod_boundaries:{expected['surface']}:why_non_owner"
+                )
 
     return missing_markers
 
@@ -273,6 +354,19 @@ def write_fixture_tree(root: Path) -> None:
                     "shared_runtime_loader_field": "shared command_name field",
                     "command_name_field": "ExtractArgv0Result.command_name",
                 },
+                "lifecycle_boundary_summary": {
+                    **EXPECTED_LIFECYCLE_BOUNDARY_SUMMARY,
+                    "forbidden_live_calls": EXPECTED_FORBIDDEN_LIVE_CALLS,
+                },
+                "module_metadata_depmod_boundaries": [
+                    {
+                        "surface": boundary["surface"],
+                        "boundary_kind": boundary["boundary_kind"],
+                        "status": boundary["status"],
+                        "why_non_owner": f"{boundary['surface']} stays a blocked boundary until a real depmod bridge exists.",
+                    }
+                    for boundary in EXPECTED_MODULE_METADATA_DEPMOD_BOUNDARIES
+                ],
             },
             indent=2,
         )
@@ -415,8 +509,28 @@ def run_self_test() -> int:
         )
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
+        manifest = json.loads(original_manifest)
+        manifest["lifecycle_boundary_summary"]["live_initcall_or_registration_path_present"] = True
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "manifest_lifecycle_boundary_summary",
+            tmp_root,
+            "manifest:lifecycle_boundary_summary:live_initcall_or_registration_path_present",
+        )
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
+        manifest = json.loads(original_manifest)
+        manifest["module_metadata_depmod_boundaries"][1]["status"] = "starter_landed"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "manifest_module_metadata_depmod_boundary_status",
+            tmp_root,
+            "manifest:module_metadata_depmod_boundaries:MODULE_ALIAS():status",
+        )
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
     print("PHASE9_LOADER_SUBSTRATE_PLAN_SELF_TEST=pass")
-    print("PHASE9_LOADER_SUBSTRATE_PLAN_SELF_TEST_CASE_COUNT=8")
+    print("PHASE9_LOADER_SUBSTRATE_PLAN_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
@@ -459,7 +573,7 @@ def main() -> int:
     print("PHASE9_LOADER_SUBSTRATE_PLAN=pass")
     print(
         "PHASE9_LOADER_SUBSTRATE_PLAN_MARKER_COUNT="
-        f"{len(SURVEY_REQUIRED_MARKERS) + len(SUBSTRATE_PLAN_REQUIRED_MARKERS) + len(REVIEW_CHECKLIST_REQUIRED_MARKERS) + len(MAKEFILE_REQUIRED_MARKERS) + 7}"
+        f"{len(SURVEY_REQUIRED_MARKERS) + len(SUBSTRATE_PLAN_REQUIRED_MARKERS) + len(REVIEW_CHECKLIST_REQUIRED_MARKERS) + len(MAKEFILE_REQUIRED_MARKERS) + 13}"
     )
     return 0
 
