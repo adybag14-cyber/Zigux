@@ -71,11 +71,12 @@
     },
     {
       "id": "indefinite-c-exception-request-checklist",
-      "summary": "Every allowed exception request must stay reviewable as a bounded reopen packet with the minimum trigger, evidence, automatic return-to-blocked, ownership, and source-of-truth fields kept explicit.",
+      "summary": "Every allowed exception request must stay reviewable as a bounded reopen packet with the minimum trigger, evidence, shared packet identity, automatic return-to-blocked, ownership, and source-of-truth fields kept explicit.",
       "required_terms": [
         "named reopen-trigger catalog item",
         "trigger-specific refreshed evidence by path",
         "current blocker disposition",
+        "decision record ID plus the current status bucket and requested decision bucket being changed",
         "automatic return-to-blocked trigger",
         "replay command reviewers should run",
         "parity scorecard link",
@@ -198,7 +199,7 @@
       "status": "starter_landed",
       "kind": "policy",
       "zigux_destination": "Documentation/zigux/phase15-indefinite-c-policy.md",
-      "why_now": "The stay-in-C exception path now needs one explicit request checklist so bounded reopen packets fail closed when trigger, evidence, ownership, replay, or source-of-truth fields are missing."
+      "why_now": "The stay-in-C exception path now needs one explicit request checklist so bounded reopen packets fail closed when trigger, evidence, identity, ownership, replay, or source-of-truth fields are missing."
     },
     {
       "id": "phase15-indefinite-c-automatic-return-to-blocked-gate",
