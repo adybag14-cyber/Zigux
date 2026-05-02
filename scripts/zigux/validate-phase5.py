@@ -109,7 +109,7 @@ TEXT_MARKERS = {
         "current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample",
         "current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample",
         "sample-only blocked Phase 9 pilot",
-        "no shipped `samples/zigux/runtime_trace_events_loader.zig` yet",
+        "bounded `samples/zigux/runtime_trace_events_loader.zig` scaffold is shipped now",
     ],
     "zigux/tests/phase5_build.zig": [
         '../../samples/zigux/bytestream_fifo.zig',
@@ -283,7 +283,7 @@ MANIFEST_EXPECTATIONS = {
             "post-exit-rejection",
         ],
         "survey_note": "Documentation/zigux/phase5-trace-events-sample-survey.md",
-        "survey_summary": "Build Summary: 17/17 steps succeeded; 29/29 tests passed",
+        "survey_summary": "Build Summary: 17/17 steps succeeded; 28/28 tests passed",
         "sample_test": "zig test samples/zigux/trace_events_sample.zig",
         "sample_result": "All 5 tests passed.",
         "survey_test": "zig test zigux/tests/phase5_trace_events_sample_survey.zig",
