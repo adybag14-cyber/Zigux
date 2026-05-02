@@ -77,26 +77,31 @@ pub const RuntimeBitmapSample = struct {
         if (len > bitmap_nbits - start) return error.BitRangeOutOfBounds;
     }
 
-    fn assignBit(self: *Self, bit: u32, value: bool) void {
+    fn assignBitInto(words: []bitmap_view.Word, bit: u32, value: bool) void {
         const word_index: usize = @intCast(bit / bitmap_view.bits_per_long);
         const bit_index: u6 = @intCast(bit % bitmap_view.bits_per_long);
         const mask: bitmap_view.Word = @as(bitmap_view.Word, 1) << bit_index;
         if (value) {
-            self.words[word_index] |= mask;
+            words[word_index] |= mask;
         } else {
-            self.words[word_index] &= ~mask;
+            words[word_index] &= ~mask;
         }
+    }
+
+    fn assignBit(self: *Self, bit: u32, value: bool) void {
+        assignBitInto(self.words[0..], bit, value);
     }
 
     pub fn initWithSetBits(self: *Self, bits: []const u32) !void {
         if (self.stage() != .cold) return error.InvalidLifecycleTransition;
 
-        @memset(self.words[0..], 0);
+        var next_words = [_]bitmap_view.Word{0} ** backing_word_count;
         for (bits) |bit| {
             if (bit >= bitmap_nbits) return error.BitRangeOutOfBounds;
-            self.assignBit(bit, true);
+            assignBitInto(next_words[0..], bit, true);
         }
 
+        self.words = next_words;
         self.init_runs += 1;
         self.stage_state = .initialized;
     }
@@ -104,7 +109,7 @@ pub const RuntimeBitmapSample = struct {
     pub fn initFromBitList(self: *Self, bit_list: []const u8) !void {
         if (self.stage() != .cold) return error.InvalidLifecycleTransition;
 
-        @memset(self.words[0..], 0);
+        var next_words = [_]bitmap_view.Word{0} ** backing_word_count;
 
         const trimmed = std.mem.trim(u8, bit_list, &std.ascii.whitespace);
         if (trimmed.len != 0) {
@@ -117,12 +122,13 @@ pub const RuntimeBitmapSample = struct {
                 const bit = std.fmt.parseUnsigned(u32, token, 10) catch return error.InvalidBitList;
                 if (bit >= bitmap_nbits) return error.BitRangeOutOfBounds;
 
-                self.assignBit(bit, true);
+                assignBitInto(next_words[0..], bit, true);
                 saw_any = true;
             }
             if (!saw_any) return error.InvalidBitList;
         }
 
+        self.words = next_words;
         self.init_runs += 1;
         self.stage_state = .initialized;
     }
@@ -534,4 +540,50 @@ test "runtime bitmap sample keeps bit-list bounds, separators, duplicate normali
     try std.testing.expectEqual(@as(usize, 0), summary.exit_runs);
     try std.testing.expectEqual(ModuleStage.initialized, module.stage());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.initFromBitList("1"));
+}
+
+test "runtime bitmap sample keeps transactional init failures explicit in the direct sample leg" {
+    var parsed = RuntimeBitmapSample{};
+    try std.testing.expectError(error.BitRangeOutOfBounds, parsed.initFromBitList("0, 5, 64, 128"));
+    try std.testing.expectEqual(ModuleStage.cold, parsed.stage());
+
+    const parsed_summary = parsed.summary();
+    try std.testing.expectEqual(RuntimeBitmapSample.bitmap_nbits, parsed_summary.first_set);
+    try std.testing.expectEqual(@as(u32, 0), parsed_summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 0), parsed_summary.weight);
+    try std.testing.expectEqual(@as(usize, 0), parsed_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), parsed_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), parsed_summary.exit_runs);
+    try std.testing.expectEqual(@as(?u32, null), parsed.nthSetBit(0));
+    try std.testing.expect(!parsed.isSet(0));
+    try std.testing.expect(!parsed.isSet(5));
+    try std.testing.expect(!parsed.isSet(bitmap_view.bits_per_long));
+
+    const parsed_formatted = try parsed.formatSetBits(std.testing.allocator);
+    defer std.testing.allocator.free(parsed_formatted);
+    try std.testing.expectEqualStrings("", parsed_formatted);
+
+    try parsed.initFromBitList("0, 5, 64, 70");
+    try std.testing.expectEqual(ModuleStage.initialized, parsed.stage());
+    try std.testing.expect(parsed.isSet(0));
+    try std.testing.expect(parsed.isSet(5));
+    try std.testing.expect(parsed.isSet(bitmap_view.bits_per_long));
+    try std.testing.expect(parsed.isSet(bitmap_view.bits_per_long + 6));
+
+    var direct = RuntimeBitmapSample{};
+    try std.testing.expectError(error.BitRangeOutOfBounds, direct.initWithSetBits(&.{ 1, RuntimeBitmapSample.bitmap_nbits }));
+    try std.testing.expectEqual(ModuleStage.cold, direct.stage());
+
+    const direct_summary = direct.summary();
+    try std.testing.expectEqual(RuntimeBitmapSample.bitmap_nbits, direct_summary.first_set);
+    try std.testing.expectEqual(@as(u32, 0), direct_summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 0), direct_summary.weight);
+    try std.testing.expectEqual(@as(usize, 0), direct_summary.init_runs);
+    try std.testing.expect(!direct.isSet(1));
+    try std.testing.expectEqual(@as(?u32, null), direct.nthSetBit(0));
+
+    try direct.initWithSetBits(&.{ 1, 3 });
+    try std.testing.expectEqual(ModuleStage.initialized, direct.stage());
+    try std.testing.expect(direct.isSet(1));
+    try std.testing.expect(direct.isSet(3));
 }
