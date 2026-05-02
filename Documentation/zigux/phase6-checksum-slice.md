@@ -32,13 +32,17 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 - `python3 scripts/zigux/validate-phase6.py --self-test`
 - `make -C zigux phase6-validate`
 
-2. run the focused Zig Phase 6 helper tests
+2. run the external checksum C-vs-Zig review hook when touching helper semantics
+- `python3 scripts/zigux/check-phase6-checksum-c-parity.py --self-test`
+- `python3 scripts/zigux/check-phase6-checksum-c-parity.py`
+
+3. run the focused Zig Phase 6 helper tests
 - `zig build test --build-file zigux/tests/phase6_build.zig`
 
-3. keep the helper wired through the Zigux convenience target
+4. keep the helper wired through the Zigux convenience target
 - `make -C zigux phase6`
 
-4. replay the checksum perf sanity harness when reviewing checksum-cost drift
+5. replay the checksum perf sanity harness when reviewing checksum-cost drift
 - `zig build checksum-perf --build-file zigux/tests/phase6_build.zig`
 - or `make -C zigux phase6-checksum-perf`
 
@@ -73,6 +77,7 @@ The current tests check:
 - pseudo-header accumulation parity for representative TCP/UDP-style checksum folding
 - IPv6 pseudo-header accumulation parity for representative UDP and TCP-style checksum folding
 - incremental checksum replacement parity for payload word updates, 16-bit IPv4 header field replacement, 32-bit IPv4 address replacement, and diff-based checksum repair
+- an external C-vs-Zig spot check through `python3 scripts/zigux/check-phase6-checksum-c-parity.py`, `zigux/tests/phase6_checksum_c_parity.zig`, and `zigux/tests/fixtures/phase6_checksum_c_harness.c` so the current `lib/checksum.c` arithmetic surface stays directly reviewable beside the committed Zig fixture packet
 - shared fixture-backed checksum vectors stored in `zigux/tests/fixtures/phase6_checksum_vectors.zig` and consumed by `zigux/tests/phase6_checksum.zig`, while `lib/checksum.zig` keeps only helper-local arithmetic and regression checks so the leaf helper no longer depends on the shared Phase 6 fixture packet
 - a replayable perf-sanity harness reports representative checksum cost per call and per byte while rechecking parity against the widened-accumulator `referencePartial` path on deterministic 64-byte and 1501-byte payloads, and it currently fail-closes on `max_slowdown_pct = 150` for both fixture-backed perf cases
 
