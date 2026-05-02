@@ -8,7 +8,7 @@ import sys
 import tempfile
 
 
-DEFAULT_ROOT = Path(__file__).resolve().parent
+DEFAULT_ROOT = Path(__file__).resolve().parents[2]
 SCRIPT_PATH = Path(__file__).resolve()
 
 REQUIRED_FILES = {
