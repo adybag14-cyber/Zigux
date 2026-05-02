@@ -569,6 +569,13 @@ test "sysfsStreq treats a trailing newline as equivalent to C-string termination
 
     const embedded = [_]u8{ 'o', 'n', 0, 'x' };
     try std.testing.expect(sysfs_streq(&embedded, "on\n"));
+
+    const newline_terminated = [_]u8{ 'o', 'n', '\n', 0, 'x' };
+    const nul_terminated = [_]u8{ 'o', 'n', 0, 'y' };
+    try std.testing.expect(sysfs_streq(&newline_terminated, &nul_terminated));
+
+    const non_terminal_newline = [_]u8{ 'o', 'n', '\n', 'x', 0 };
+    try std.testing.expect(!sysfs_streq(&non_terminal_newline, &nul_terminated));
 }
 
 test "memdup and memchrInv preserve byte content" {
