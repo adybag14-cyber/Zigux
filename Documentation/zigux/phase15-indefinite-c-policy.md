@@ -113,6 +113,7 @@ The exception packet must therefore carry all of the following before reviewers 
 - the exact named reopen-trigger catalog item or items being cited
 - the trigger-specific refreshed evidence by path for each cited trigger
 - the current blocker disposition the new evidence is trying to change
+- the decision record ID plus the current status bucket and requested decision bucket that the reopen request is attempting to change
 - the automatic return-to-blocked trigger that sends the anchor back to blocked review posture if review fields, linked evidence, scorecard state, replay commands, blocker posture, or rollback ownership drift
 - the replay command reviewers should run before trusting the exception packet
 - the parity scorecard link and the evidence-archive path tied to the same anchor
