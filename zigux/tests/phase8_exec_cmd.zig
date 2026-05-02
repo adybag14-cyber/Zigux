@@ -191,6 +191,43 @@ test "phase 8 exec-cmd review checklist keeps deferred handoff review wording al
     try expectContains(review_checklist, "scheduler-facing transport claims");
 }
 
+test "phase 8 exec-cmd build wiring keeps focused and shared gates explicit" {
+    const focused_build = try readWorkspaceFile(
+        std.testing.allocator,
+        "zigux/tests/phase8_exec_cmd_only_build.zig",
+        16 * 1024,
+    );
+    defer std.testing.allocator.free(focused_build);
+
+    try expectContains(focused_build, "../../tools/lib/subcmd/exec-cmd.zig");
+    try expectContains(focused_build, "phase8_exec_cmd.zig");
+    try expectContains(focused_build, "phase8-exec-cmd-tests");
+    try expectContains(focused_build, "Run focused Phase 8 exec-cmd tests");
+
+    const shared_build = try readWorkspaceFile(
+        std.testing.allocator,
+        "zigux/tests/phase8_build.zig",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(shared_build);
+
+    try expectContains(shared_build, "../../tools/lib/subcmd/exec-cmd.zig");
+    try expectContains(shared_build, "phase8_exec_cmd.zig");
+    try expectContains(shared_build, "phase8-exec-cmd-tests");
+
+    const makefile = try readWorkspaceFile(
+        std.testing.allocator,
+        "zigux/Makefile",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(makefile);
+
+    try expectContains(makefile, "phase8-exec-cmd-test:");
+    try expectContains(makefile, "$(ZIG) test tools/lib/subcmd/exec-cmd.zig");
+    try expectContains(makefile, "zigux/tests/phase8_exec_cmd_only_build.zig");
+    try expectContains(makefile, "phase8: phase8-validate phase8-exec-cmd-test");
+}
+
 test "phase 8 exec-cmd evidence still matches the live C helper anchors" {
     const exec_cmd_c = try readWorkspaceFile(
         std.testing.allocator,
