@@ -83,17 +83,18 @@ test "phase 5 trace-events sample keeps payload and callback boundaries explicit
     try std.testing.expect(module.saw_rel_loc_payload);
     try std.testing.expect(module.saw_conditional_path);
 
-    try std.testing.expectError(error.FunctionCallbackNotRegistered, module.replayFunctionIteration(0));
-    try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionCallback());
-    try module.registerFunctionCallback();
-    try std.testing.expectError(error.InvalidIterationCount, module.replayFunctionIteration(-1));
-    try std.testing.expectError(error.CallbackAlreadyRegistered, module.registerFunctionCallback());
-    try module.replayFunctionIteration(3);
-    try std.testing.expectEqual(@as(i32, 3), module.last_function_count);
-    try std.testing.expect(module.saw_function_callback_path);
-    try std.testing.expectEqual(@as(usize, 8), module.lifecycleSummary().total_event_calls);
-    try module.unregisterFunctionCallback();
-    try std.testing.expectEqual(@as(usize, 0), module.lifecycleSummary().registration_depth);
+    const callback_boundary = try module.runCallbackBoundaryRecoveryReplay();
+    try std.testing.expectEqual(sample.SampleStage.initialized, callback_boundary.stage_before_replay);
+    try std.testing.expectEqual(sample.SampleStage.initialized, callback_boundary.stage_after_recovery);
+    try std.testing.expectEqual(@as(i32, 5), callback_boundary.callback_iteration_count);
+    try std.testing.expect(callback_boundary.missing_registration_rejected);
+    try std.testing.expect(callback_boundary.underflow_before_registration_rejected);
+    try std.testing.expect(callback_boundary.double_registration_rejected);
+    try std.testing.expect(callback_boundary.invalid_callback_count_rejected);
+    try std.testing.expect(callback_boundary.armed_exit_rejected);
+    try std.testing.expect(callback_boundary.callback_path_checked);
+    try std.testing.expectEqual(@as(usize, 0), callback_boundary.registration_depth_after_recovery);
+    try std.testing.expectEqual(@as(usize, 8), callback_boundary.total_event_calls_after_recovery);
 }
 
 test "phase 5 trace-events sample keeps the full string and formatting cycle explicit" {
@@ -124,15 +125,16 @@ test "phase 5 trace-events sample makes ownership and teardown boundaries explic
 
     try std.testing.expectEqual(sample.SampleStage.cold, module.stage());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runAnchorReplay());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runCallbackBoundaryRecoveryReplay());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
 
     try module.init();
     try std.testing.expectEqual(sample.SampleStage.initialized, module.stage());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.init());
-    try module.registerFunctionCallback();
-    try std.testing.expectError(error.CallbackAlreadyRegistered, module.registerFunctionCallback());
-    try std.testing.expectError(error.OutstandingRegistration, module.exit());
-    try module.unregisterFunctionCallback();
+    const callback_boundary = try module.runCallbackBoundaryRecoveryReplay();
+    try std.testing.expect(callback_boundary.double_registration_rejected);
+    try std.testing.expect(callback_boundary.armed_exit_rejected);
+    try std.testing.expectEqual(@as(usize, 0), module.lifecycleSummary().registration_depth);
     try module.exit();
     const lifecycle = module.lifecycleSummary();
     try std.testing.expectEqual(sample.SampleStage.exited, lifecycle.stage);
@@ -140,6 +142,7 @@ test "phase 5 trace-events sample makes ownership and teardown boundaries explic
     try std.testing.expectEqual(@as(usize, 0), lifecycle.replay_run_count);
     try std.testing.expectEqual(@as(usize, 1), lifecycle.exit_run_count);
     try std.testing.expectEqual(@as(usize, 0), lifecycle.registration_depth);
+    try std.testing.expectEqual(@as(usize, 2), lifecycle.total_event_calls);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.replayMainIteration(1));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.registerFunctionCallback());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.replayFunctionIteration(1));
