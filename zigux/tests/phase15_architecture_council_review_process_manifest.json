@@ -1,7 +1,7 @@
 {
-  "lane_key": "P15-L11",
+  "lane_key": "P15-Y02",
   "phase": "Phase 15",
-  "surveyed_commit": "7851ac1a82e206891f91e8d7c717ceacf7fbd3e1",
+  "surveyed_commit": "9918b0c1a52d41b8d6ab609157d5cf795fd5cc3a",
   "roadmap_requirement": "Architecture Council review process",
   "anchor": "Documentation/zigux/phase15-architecture-council-review-process.md",
   "current_approval_state": "no_freeze_map_status_change_approved",
@@ -89,7 +89,7 @@
     "roadmap_handoff": "The Architecture Council review process stays honest only while it remains visibly tied to the same Phase 15 governance bundle as the freeze map, parity scorecard, indefinite-C policy, shared replay gate, and parked maintenance-mode next step.",
     "bootstrap_ledger_anchor": "docs(zigux): add documentation root, review checklist, and freeze map",
     "current_repo_handoff": "The original documentation-root and freeze-map landing is now carried forward by Documentation/zigux/README.md, the review-process note, Documentation/zigux/phase15-parity-scorecard.md, Documentation/zigux/phase15-indefinite-c-policy.md, Documentation/zigux/phase15-handoff-next-steps-survey.md, zigux/tests/phase15_build.zig, and make -C zigux phase15.",
-    "current_bounded_lane": "P15-L11 keeps the review-process packet narrowed to one same-packet follow-up inside the current parked maintenance-mode handoff packet by making rollback-threshold handling an explicit required Architecture Council request field so the freeze-map reopen rule stays reviewable beside the existing automatic return-to-blocked trigger while the shared replay entrypoints still match the parity scorecard, the anchor templates, and the current Phase 15 handoff survey on current master, without reopening nearby scorecard or indefinite-C policy maintenance.",
+    "current_bounded_lane": "P15-Y02 keeps the review-process packet narrowed to one same-packet follow-up inside the current parked maintenance-mode handoff packet by making rollback-threshold handling an explicit required Architecture Council request field so the freeze-map reopen rule stays reviewable beside the existing automatic return-to-blocked trigger while the shared replay entrypoints still match the parity scorecard, the anchor templates, and the current Phase 15 handoff survey on current master, without reopening nearby scorecard or indefinite-C policy maintenance.",
     "maintenance_mode_next_step": "Wait for one of the named reopen triggers, a shared Phase 15 replay drift, or the deep-core blocker posture to change before opening another Phase 15 slice."
   },
   "handoff": {
