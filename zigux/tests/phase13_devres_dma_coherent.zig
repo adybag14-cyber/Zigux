@@ -1,10 +1,10 @@
 const std = @import("std");
-const devres = @import("devres");
+const devres_dma_coherent = @import("devres_dma_coherent");
 
 test "phase13 devres descriptor records helper-first dma coherent planning" {
-    const descriptor = devres.DevresHelperLab.descriptor();
+    const descriptor = devres_dma_coherent.DevresDmaCoherentHelper.descriptor();
 
-    try std.testing.expectEqualStrings("devres_helper_lab", descriptor.name);
+    try std.testing.expectEqualStrings("devres_dma_coherent_helper", descriptor.name);
     try std.testing.expectEqualStrings("lib/devres.c", descriptor.anchor);
     try std.testing.expect(descriptor.provides_dma_coherent_lifetime_planning);
     try std.testing.expect(!descriptor.touches_live_dma);
@@ -12,7 +12,7 @@ test "phase13 devres descriptor records helper-first dma coherent planning" {
 }
 
 test "phase13 devres retains the release record when coherent dma planning returns both address and handle" {
-    const plan = try devres.DevresHelperLab.planManagedDmaCoherentAlloc(.{
+    const plan = try devres_dma_coherent.DevresDmaCoherentHelper.planManagedDmaCoherentAlloc(.{
         .size = 0x200,
         .release_record_allocated = true,
         .cpu_address = 0xc000,
@@ -31,7 +31,7 @@ test "phase13 devres retains the release record when coherent dma planning retur
 }
 
 test "phase13 devres frees the coherent dma release record when the dma handle is missing" {
-    const plan = try devres.DevresHelperLab.planManagedDmaCoherentAlloc(.{
+    const plan = try devres_dma_coherent.DevresDmaCoherentHelper.planManagedDmaCoherentAlloc(.{
         .size = 0x80,
         .release_record_allocated = true,
         .cpu_address = 0xc800,
@@ -48,7 +48,7 @@ test "phase13 devres frees the coherent dma release record when the dma handle i
 }
 
 test "phase13 devres rejects coherent dma planning when the release record cannot be allocated" {
-    try std.testing.expectError(error.OutOfMemory, devres.DevresHelperLab.planManagedDmaCoherentAlloc(.{
+    try std.testing.expectError(error.OutOfMemory, devres_dma_coherent.DevresDmaCoherentHelper.planManagedDmaCoherentAlloc(.{
         .size = 0x40,
         .release_record_allocated = false,
         .cpu_address = 0xd000,
@@ -57,12 +57,12 @@ test "phase13 devres rejects coherent dma planning when the release record canno
 }
 
 test "phase13 devres coherent dma release matching stays exact across address and handle" {
-    const exact = devres.DevresHelperLab.planManagedDmaCoherentFree(0xd800, 0x100, 0xd800, 0x100);
+    const exact = devres_dma_coherent.DevresDmaCoherentHelper.planManagedDmaCoherentFree(0xd800, 0x100, 0xd800, 0x100);
     try std.testing.expectEqualStrings("lib/devres.c", exact.anchor);
     try std.testing.expect(exact.release_matches);
     try std.testing.expect(!exact.warns_on_release_miss);
 
-    const miss = devres.DevresHelperLab.planManagedDmaCoherentFree(0xd800, 0x100, 0xd800, 0x101);
+    const miss = devres_dma_coherent.DevresDmaCoherentHelper.planManagedDmaCoherentFree(0xd800, 0x100, 0xd800, 0x101);
     try std.testing.expect(!miss.release_matches);
     try std.testing.expect(miss.warns_on_release_miss);
 }
