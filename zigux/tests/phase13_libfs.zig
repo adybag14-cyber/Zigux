@@ -15,6 +15,7 @@ test "phase13 libfs exposes the statfs starter anchored to libfs.c" {
     try std.testing.expect(descriptor.provides_directory_close_planning);
     try std.testing.expect(descriptor.provides_transaction_buffer_planning);
     try std.testing.expect(descriptor.provides_transaction_read_release_planning);
+    try std.testing.expect(descriptor.provides_open_private_data_planning);
     try std.testing.expect(!descriptor.touches_live_dcache);
     try std.testing.expect(!descriptor.touches_live_inode_state);
 
@@ -395,4 +396,17 @@ test "phase13 libfs transaction release planning only frees reserved private dat
     try std.testing.expect(release.returns_zero);
     try std.testing.expect(release.frees_private_data);
     try std.testing.expect(release.had_private_data);
+}
+
+test "phase13 libfs simple open planning keeps inode-private handoff explicit" {
+    const borrowed = libfs.LibFsHelperLab.simpleOpenPlan(true);
+    try std.testing.expectEqualStrings("fs/libfs.c", borrowed.anchor);
+    try std.testing.expectEqual(libfs.SimpleOpenPrivateDataSource.inode_private, borrowed.private_data_source);
+    try std.testing.expect(borrowed.returns_zero);
+    try std.testing.expect(borrowed.stores_inode_private_data);
+
+    const untouched = libfs.LibFsHelperLab.simpleOpenPlan(false);
+    try std.testing.expectEqual(libfs.SimpleOpenPrivateDataSource.unchanged, untouched.private_data_source);
+    try std.testing.expect(untouched.returns_zero);
+    try std.testing.expect(!untouched.stores_inode_private_data);
 }
