@@ -23,7 +23,7 @@ test "runtime loader non-owner boundary survey keeps config-surface and export p
         io_instance.io(),
         std.testing.allocator,
         "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
-        16 * 1024,
+        64 * 1024,
     );
     defer std.testing.allocator.free(survey_note);
 
