@@ -473,6 +473,16 @@ def run_self_test() -> int:
         write_fixture(root)
 
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["allowed_evidence_kinds"] = ["driver_local_lab_slices", "survey_manifests"]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "manifest_allowed_evidence_kinds",
+            root,
+            "manifest:allowed_evidence_kinds",
+        )
+        write_fixture(root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["drivers"] = EXPECTED_DRIVERS[:-1] + ["drivers/virtio/virtio_missing.zig"]
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         expect_missing_marker("manifest_driver_inventory", root, "manifest:drivers")
@@ -518,7 +528,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_CLOSURE_INVENTORY_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_INVENTORY_SELF_TEST_CASE_COUNT=20")
+    print("PHASE10_CLOSURE_INVENTORY_SELF_TEST_CASE_COUNT=21")
     return 0
 
 
