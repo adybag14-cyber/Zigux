@@ -618,6 +618,61 @@ test "rbtree erase and replace keep traversal consistent" {
     try std.testing.expectEqualSlices(i32, &[_]i32{ 5, 10, 15, 25 }, order[0..count]);
 }
 
+test "rbtree detached nodes stay non-empty until callers clear them" {
+    const Entry = struct {
+        key: i32,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var erase_entries = [_]Entry{
+        .{ .key = 10 },
+        .{ .key = 20 },
+        .{ .key = 5 },
+        .{ .key = 15 },
+    };
+    var erase_root = Root.init();
+    for (&erase_entries) |*entry| {
+        add(&entry.node, &erase_root, less);
+    }
+
+    erase(&erase_entries[0].node, &erase_root);
+
+    try std.testing.expect(!emptyNode(&erase_entries[0].node));
+    clearNode(&erase_entries[0].node);
+    try std.testing.expect(emptyNode(&erase_entries[0].node));
+    try std.testing.expectEqual(@as(?*Node, null), next(&erase_entries[0].node));
+    try std.testing.expectEqual(@as(?*Node, null), prev(&erase_entries[0].node));
+
+    var replace_entries = [_]Entry{
+        .{ .key = 10 },
+        .{ .key = 20 },
+        .{ .key = 5 },
+        .{ .key = 15 },
+    };
+    var replacement = Entry{ .key = 10 };
+    var replace_root = Root.init();
+    for (&replace_entries) |*entry| {
+        add(&entry.node, &replace_root, less);
+    }
+
+    replaceNode(&replace_entries[0].node, &replacement.node, &replace_root);
+
+    try std.testing.expect(!emptyNode(&replace_entries[0].node));
+    try std.testing.expectEqual(@as(?*Node, &replacement.node), replace_root.node);
+    clearNode(&replace_entries[0].node);
+    try std.testing.expect(emptyNode(&replace_entries[0].node));
+    try std.testing.expectEqual(@as(?*Node, null), next(&replace_entries[0].node));
+    try std.testing.expectEqual(@as(?*Node, null), prev(&replace_entries[0].node));
+}
+
 test "rbtree eraseInit detaches erased nodes from later traversal" {
     const Entry = struct {
         key: i32,
