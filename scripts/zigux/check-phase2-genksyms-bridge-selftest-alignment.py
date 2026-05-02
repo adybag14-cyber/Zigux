@@ -511,6 +511,24 @@ def run_self_test() -> int:
         expect_issue('bridge_checker_count', tmp_root, "bridge_checker:print('PHASE2_GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=26')")
         bridge_checker_path.write_text(original_bridge_checker, encoding='utf-8')
 
+        readme_path = tmp_root / REQUIRED_FILES['readme']
+        original_readme = readme_path.read_text(encoding='utf-8')
+        readme_path.write_text(
+            original_readme.replace(README_MARKERS[0] + '\n', '', 1),
+            encoding='utf-8',
+        )
+        expect_issue('readme_marker', tmp_root, f'readme:{README_MARKERS[0]}')
+        readme_path.write_text(original_readme, encoding='utf-8')
+
+        closure_doc_path = tmp_root / REQUIRED_FILES['closure_doc']
+        original_closure_doc = closure_doc_path.read_text(encoding='utf-8')
+        closure_doc_path.write_text(
+            original_closure_doc.replace(CLOSURE_DOC_MARKERS[1] + '\n', '', 1),
+            encoding='utf-8',
+        )
+        expect_issue('closure_doc_marker', tmp_root, f'closure_doc:{CLOSURE_DOC_MARKERS[1]}')
+        closure_doc_path.write_text(original_closure_doc, encoding='utf-8')
+
         workflow_path = tmp_root / REQUIRED_FILES['workflow']
         original_workflow = workflow_path.read_text(encoding='utf-8')
         workflow_path.write_text(
@@ -697,7 +715,7 @@ def run_self_test() -> int:
         expect_issue('validator_case_count_marker', tmp_root, f'validator:{VALIDATOR_MARKERS[2]}')
 
     print('PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST=pass')
-    print('PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=17')
+    print('PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=19')
     return 0
 
 
