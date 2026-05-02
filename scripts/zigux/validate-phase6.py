@@ -65,7 +65,7 @@ CATALOG_MARKERS = [
     "max_slowdown_pct = 550",
     "max_slowdown_pct = 600",
     "avg_compare_calls <= std.math.log2_int_ceil(len) + 1",
-    "PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=14",
+    "PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=15",
 ]
 
 PERF_SURVEY_MARKERS = [
@@ -76,6 +76,11 @@ PERF_SURVEY_MARKERS = [
     "max_slowdown_pct = 175",
     "max_slowdown_pct = 550",
     "max_slowdown_pct = 600",
+]
+
+HEXDUMP_SLICE_MARKERS = [
+    "a replayable perf-sanity harness reports representative dump cost per call and per byte for plain, grouped, and ASCII formatter paths through the shared `zigux/tests/fixtures/phase6_hexdump_vectors.zig` perf-case table, including the native-endian 4-byte and 8-byte grouped ASCII branches",
+    "the same perf harness now measures helper output against the committed `fixtures.prepareExpectedLine(...)` reference path, keeping `16B-plain` at `max_slowdown_pct = 175` while the grouped ASCII `32B-ascii-g2` and `16B-ascii-g4` replays use `max_slowdown_pct = 550` and the wider native-endian `16B-ascii-g8` replay uses `max_slowdown_pct = 600`",
 ]
 
 SCRIPTS_README_MARKERS = [
@@ -326,6 +331,7 @@ def validate_phase6(root: Path) -> dict[str, object]:
     missing: list[str] = []
     require_markers(missing, "catalog", catalog, CATALOG_MARKERS)
     require_markers(missing, "perf_survey", text(root, "Documentation/zigux/phase6-perf-gate-survey.md"), PERF_SURVEY_MARKERS)
+    require_markers(missing, "hexdump_slice", text(root, "Documentation/zigux/phase6-hexdump-slice.md"), HEXDUMP_SLICE_MARKERS)
     require_markers(missing, "scripts_readme", text(root, "scripts/zigux/README.md"), SCRIPTS_README_MARKERS)
     require_markers(missing, "docs_root", text(root, "Documentation/zigux/README.md"), DOCS_ROOT_MARKERS)
     require_markers(missing, "tests_readme", text(root, "zigux/tests/README.md"), TESTS_README_MARKERS)
@@ -378,7 +384,7 @@ def report_validation(result: dict[str, object]) -> int:
         return 1
     print("PHASE6_VALIDATION=pass")
     print(f"PHASE6_CATALOG_VERIFIED_HEAD={result['catalog_head']}")
-    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=14")
+    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
@@ -393,6 +399,7 @@ def build_self_test_tree(root: Path) -> None:
         write(root, path, "placeholder\n")
     write(root, "Documentation/zigux/phase6-helper-parity-catalog.md", "\n".join([f"# x", f"- verified head: `{SELF_TEST_HEAD}`", *CATALOG_MARKERS]) + "\n")
     write(root, "Documentation/zigux/phase6-perf-gate-survey.md", "\n".join(PERF_SURVEY_MARKERS) + "\n")
+    write(root, "Documentation/zigux/phase6-hexdump-slice.md", "\n".join(HEXDUMP_SLICE_MARKERS) + "\n")
     write(root, "scripts/zigux/README.md", "\n".join(SCRIPTS_README_MARKERS) + "\n")
     write(root, "Documentation/zigux/README.md", "\n".join(DOCS_ROOT_MARKERS) + "\n")
     write(root, "zigux/tests/README.md", "\n".join(TESTS_README_MARKERS) + "\n")
@@ -463,6 +470,12 @@ def run_self_test() -> int:
             survey.write_text(survey.read_text(encoding="utf-8").replace("max_slowdown_pct = 600", "", 1), encoding="utf-8")
             if "perf_survey:missing:max_slowdown_pct = 600" not in validate_phase6(root)["missing"]:
                 raise AssertionError("missing perf survey marker failure")
+
+            build_self_test_tree(root)
+            hexdump_slice = root / "Documentation/zigux/phase6-hexdump-slice.md"
+            hexdump_slice.write_text(hexdump_slice.read_text(encoding="utf-8").replace(HEXDUMP_SLICE_MARKERS[1], "", 1), encoding="utf-8")
+            if f"hexdump_slice:missing:{HEXDUMP_SLICE_MARKERS[1]}" not in validate_phase6(root)["missing"]:
+                raise AssertionError("missing hexdump slice marker failure")
 
             build_self_test_tree(root)
             scripts_readme = root / "scripts/zigux/README.md"
@@ -550,7 +563,7 @@ def run_self_test() -> int:
         return 1
 
     print("PHASE6_VALIDATOR_SELF_TEST=pass")
-    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=14")
+    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
