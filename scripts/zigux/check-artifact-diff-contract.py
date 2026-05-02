@@ -179,6 +179,20 @@ def main() -> int:
         covered_cases.append('json_missing_actual')
 
         run_contract_case(
+            ['--mode', 'json', str(missing), str(other_missing)],
+            1,
+            [
+                'ARTIFACT_DIFF=fail',
+                'MODE=json',
+                f'EXPECTED={missing}',
+                f'ACTUAL={other_missing}',
+                'EXPECTED_EXISTS=False',
+                'ACTUAL_EXISTS=False',
+            ],
+        )
+        covered_cases.append('json_missing_both')
+
+        run_contract_case(
             ['--mode', 'json', str(invalid_expected_json), str(actual_json)],
             1,
             [
