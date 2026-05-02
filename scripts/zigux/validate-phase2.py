@@ -346,7 +346,7 @@ def validate_expected_genksyms_bridge_cases(case_manifest: Path) -> list[str]:
         'missing_long_reference_argument': 'missing_long_reference_argument_expected.json',
         'abbreviated_missing_long_reference_argument': 'abbreviated_missing_long_reference_argument_expected.json',
         'missing_long_dump_types_argument': 'missing_long_dump_types_argument_expected.json',
-        'abbreviated_missing_long_dump_types_argument': 'abbreviated_missing_LONG_dump_types_argument_expected.json',
+        'abbreviated_missing_long_dump_types_argument': 'abbreviated_missing_long_dump_types_argument_expected.json',
         'too_many_reference_files': 'too_many_reference_files_expected.json',
     }
     process_json_cases = {
@@ -558,7 +558,299 @@ def validate_kconfig_bridge_manifest(case_manifest: Path, conf_bridge: Path) -> 
             'mode': 'randconfig',
             'kconfig': 'Kconfig',
             'config': 'rand/.config',
-            'arch': 'x86'…10227 tokens truncated…_guard': 'phase2-cross:duplicate_target:',
+            'arch': 'x86',
+            'expected': 'randconfig_expected.json',
+        },
+        {
+            'name': 'listnewconfig',
+            'mode': 'listnewconfig',
+            'kconfig': 'Kconfig',
+            'config': 'list/.config',
+            'arch': 'x86_64',
+            'expected': 'listnewconfig_expected.json',
+        },
+        {
+            'name': 'helpnewconfig',
+            'mode': 'helpnewconfig',
+            'kconfig': 'Kconfig',
+            'config': 'help/.config',
+            'arch': 'x86_64',
+            'expected': 'helpnewconfig_expected.json',
+        },
+        {
+            'name': 'olddefconfig',
+            'mode': 'olddefconfig',
+            'kconfig': 'Kconfig',
+            'config': 'olddef/.config',
+            'arch': 'arm64',
+            'expected': 'olddefconfig_expected.json',
+        },
+        {
+            'name': 'yes2modconfig',
+            'mode': 'yes2modconfig',
+            'kconfig': 'Kconfig',
+            'config': 'yes2mod/.config',
+            'arch': 'arm64',
+            'expected': 'yes2modconfig_expected.json',
+        },
+        {
+            'name': 'mod2yesconfig',
+            'mode': 'mod2yesconfig',
+            'kconfig': 'Kconfig',
+            'config': 'mod2yes/.config',
+            'arch': 'arm64',
+            'expected': 'mod2yesconfig_expected.json',
+        },
+        {
+            'name': 'mod2noconfig',
+            'mode': 'mod2noconfig',
+            'kconfig': 'Kconfig',
+            'config': 'mod2no/.config',
+            'arch': 'arm64',
+            'expected': 'mod2noconfig_expected.json',
+        },
+    ]
+
+    conf_case_names: set[str] = set()
+    if len(conf_cases) != len(expected_conf_cases):
+        issues.append(f'kconfig_bridge:manifest:conf_cases:count={len(conf_cases)},expected={len(expected_conf_cases)}')
+    expected_mode_names = [case['mode'] for case in expected_conf_cases]
+    if bridge_modes != expected_mode_names:
+        issues.append(f'kconfig_bridge:bridge_modes={bridge_modes!r},expected={expected_mode_names!r}')
+    for index, expected_case in enumerate(expected_conf_cases):
+        try:
+            case = conf_cases[index]
+        except IndexError:
+            break
+        if not isinstance(case, dict):
+            issues.append(f'kconfig_bridge:conf_case:{index}:expected_object')
+            continue
+        name = case.get('name')
+        if not name:
+            issues.append(f'kconfig_bridge:conf_case:{index}:missing_name')
+            continue
+        if name in conf_case_names:
+            issues.append(f'kconfig_bridge:conf_case:duplicate_name:{name}')
+            continue
+        conf_case_names.add(name)
+        if name != expected_case['name']:
+            issues.append(f"kconfig_bridge:conf_case:{index}:name={name!r},expected={expected_case['name']!r}")
+        for field_name, expected_value in expected_case.items():
+            if field_name == 'name':
+                continue
+            actual_value = case.get(field_name)
+            if actual_value != expected_value:
+                issues.append(
+                    f"kconfig_bridge:conf_case:{name}:{field_name}={actual_value!r},expected={expected_value!r}"
+                )
+        extra_fields = sorted(set(case) - set(expected_case))
+        for field_name in extra_fields:
+            issues.append(f'kconfig_bridge:conf_case:{name}:unexpected_field:{field_name}')
+
+    expected_conf_names = {case['name'] for case in expected_conf_cases}
+    for name in sorted(expected_conf_names - conf_case_names):
+        issues.append(f'kconfig_bridge:conf_case:missing_name:{name}')
+
+    expected_confdata_cases = [
+        {
+            'name': 'sample',
+            'input': 'sample.config',
+            'expected': 'sample_expected.json',
+        },
+        {
+            'name': 'empty_string',
+            'input': 'empty_string.config',
+            'expected': 'empty_string_expected.json',
+        },
+        {
+            'name': 'explicit_n_tristate',
+            'input': 'explicit_n_tristate.config',
+            'expected': 'explicit_n_tristate_expected.json',
+        },
+        {
+            'name': 'numeric_kinds',
+            'input': 'numeric_kinds.config',
+            'expected': 'numeric_kinds_expected.json',
+        },
+        {
+            'name': 'signed_numeric_kinds',
+            'input': 'signed_numeric_kinds.config',
+            'expected': 'signed_numeric_kinds_expected.json',
+        },
+        {
+            'name': 'negative_signed_numeric_kinds',
+            'input': 'negative_signed_numeric_kinds.config',
+            'expected': 'negative_signed_numeric_kinds_expected.json',
+        },
+        {
+            'name': 'duplicate_assignments',
+            'input': 'duplicate_assignments.config',
+            'expected': 'duplicate_assignments_expected.json',
+        },
+        {
+            'name': 'ignore_non_config_lines',
+            'input': 'ignore_non_config_lines.config',
+            'expected': 'ignore_non_config_lines_expected.json',
+        },
+        {
+            'name': 'escaped_strings',
+            'input': 'escaped_strings.config',
+            'expected': 'escaped_strings_expected.json',
+        },
+        {
+            'name': 'escaped_control_sequences',
+            'input': 'escaped_control_sequences.config',
+            'expected': 'escaped_control_sequences_expected.json',
+        },
+        {
+            'name': 'malformed_quoted_string',
+            'input': 'malformed_quoted_string.config',
+            'expected': 'malformed_quoted_string_expected.json',
+        },
+        {
+            'name': 'quoted_suffix_bytes',
+            'input': 'quoted_suffix_bytes.config',
+            'expected': 'quoted_suffix_bytes_expected.json',
+        },
+        {
+            'name': 'empty_symbol_names',
+            'input': 'empty_symbol_names.config',
+            'expected': 'empty_symbol_names_expected.json',
+        },
+        {
+            'name': 'sample_crlf',
+            'input': 'sample_crlf.config',
+            'expected': 'sample_crlf_expected.json',
+        },
+        {
+            'name': 'escaped_low_control_bytes',
+            'input': 'escaped_low_control_bytes.config',
+            'expected': 'escaped_low_control_bytes_expected.json',
+        },
+    ]
+
+    confdata_case_names: set[str] = set()
+    if len(confdata_cases) != len(expected_confdata_cases):
+        issues.append(
+            f'kconfig_bridge:manifest:confdata_cases:count={len(confdata_cases)},expected={len(expected_confdata_cases)}'
+        )
+    for index, expected_case in enumerate(expected_confdata_cases):
+        try:
+            case = confdata_cases[index]
+        except IndexError:
+            break
+        if not isinstance(case, dict):
+            issues.append(f'kconfig_bridge:confdata_case:{index}:expected_object')
+            continue
+        name = case.get('name')
+        if not name:
+            issues.append(f'kconfig_bridge:confdata_case:{index}:missing_name')
+            continue
+        if name in confdata_case_names:
+            issues.append(f'kconfig_bridge:confdata_case:duplicate_name:{name}')
+            continue
+        confdata_case_names.add(name)
+        if name != expected_case['name']:
+            issues.append(
+                f"kconfig_bridge:confdata_case:{index}:name={name!r},expected={expected_case['name']!r}"
+            )
+        for field_name, expected_value in expected_case.items():
+            if field_name == 'name':
+                continue
+            actual_value = case.get(field_name)
+            if actual_value != expected_value:
+                issues.append(
+                    f"kconfig_bridge:confdata_case:{name}:{field_name}={actual_value!r},expected={expected_value!r}"
+                )
+        extra_fields = sorted(set(case) - set(expected_case))
+        for field_name in extra_fields:
+            issues.append(f'kconfig_bridge:confdata_case:{name}:unexpected_field:{field_name}')
+
+    expected_confdata_names = {case['name'] for case in expected_confdata_cases}
+    for name in sorted(expected_confdata_names - confdata_case_names):
+        issues.append(f'kconfig_bridge:confdata_case:missing_name:{name}')
+
+    return issues
+
+
+def validate_fixdep_checker_gate(checker_script: Path) -> list[str]:
+    source = checker_script.read_text(encoding='utf-8')
+    required_markers = {
+        'self_test_arg': "parser.add_argument('--self-test'",
+        'self_test_pass_marker': "print('FIXDEP_DIFF_SELF_TEST=pass')",
+        'self_test_case_count_marker': "print('FIXDEP_DIFF_SELF_TEST_CASE_COUNT=17')",
+        'unsupported_stdout_mode_guard': 'unsupported_stdout_mode',
+        'dev_full_missing_expected_stdout_guard': 'stdout_mode=dev_full:requires_expected_stdout',
+        'success_stderr_guard': 'success_path_stderr_mismatch',
+        'missing_expected_stderr_guard': 'missing expected stderr fixture',
+        'repeat_c_compare': "run(diff + [str(c_out), str(c_repeat)], cwd=str(ROOT))",
+        'repeat_zig_compare': "run(diff + [str(zig_out), str(zig_repeat)], cwd=str(ROOT))",
+        'determinism_marker': "print('FIXDEP_DETERMINISM=pass')",
+    }
+
+    issues: list[str] = []
+    for issue_name, marker in required_markers.items():
+        if marker not in source:
+            issues.append(f'fixdep_checker:{issue_name}')
+    return issues
+
+
+def validate_artifact_diff_contract_gate(contract_script: Path) -> list[str]:
+    source = contract_script.read_text(encoding='utf-8')
+    required_markers = {
+        'self_test_arg': "parser.add_argument('--self-test'",
+        'self_test_pass_marker': "print('ARTIFACT_DIFF_CONTRACT_SELF_TEST=pass')",
+        'self_test_case_count_marker': "print('ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASE_COUNT=5')",
+        'missing_actual_guard': 'ARTIFACT_DIFF_MISSING_FILE=',
+        'json_actual_guard': 'ACTUAL_JSON_ERROR=',
+        'json_expected_guard': 'EXPECTED_JSON_ERROR=',
+        'sha_mode_guard': 'ARTIFACT_DIFF_SHA256=',
+        'text_mode_guard': 'ARTIFACT_DIFF_TEXT_DIFF_START',
+        'stable_path_guard': '--actual-label',
+    }
+
+    issues: list[str] = []
+    for issue_name, marker in required_markers.items():
+        if marker not in source:
+            issues.append(f'artifact_diff_contract:{issue_name}')
+    return issues
+
+
+def validate_kconfig_checker_gate(checker_script: Path) -> list[str]:
+    source = checker_script.read_text(encoding='utf-8')
+    required_markers = {
+        'self_test_arg': "parser.add_argument('--self-test'",
+        'self_test_pass_marker': "print('KCONFIG_BRIDGE_SELF_TEST=pass')",
+        'self_test_case_count_marker': "print('KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=6')",
+        'duplicate_expected_guard': ':duplicate_expected:',
+        'orphaned_expected_guard': ':orphaned_expected:',
+        'conf_mode_coverage_guard': 'conf_cases:missing_mode:',
+        'conf_mode_order_guard': 'conf_cases:mode_order=',
+        'confdata_naming_guard': 'confdata_cases:noncanonical_name:',
+        'repeat_conf_compare': "run(diff + [str(conf_actual), str(conf_repeat)], cwd=str(ROOT))",
+        'repeat_confdata_compare': "run(diff + [str(confdata_actual), str(confdata_repeat)], cwd=str(ROOT))",
+        'rebuild_confdata_compare': "run(diff + [str(confdata_actual), str(confdata_rebuilt)], cwd=str(ROOT))",
+        'determinism_marker': "print('KCONFIG_BRIDGE_DETERMINISM=pass')",
+    }
+
+    issues: list[str] = []
+    for issue_name, marker in required_markers.items():
+        if marker not in source:
+            issues.append(f'kconfig_checker:{issue_name}')
+    return issues
+
+
+def validate_phase2_cross_checker_gate(checker_script: Path) -> list[str]:
+    source = checker_script.read_text(encoding='utf-8')
+    required_markers = {
+        'self_test_arg': "parser.add_argument('--self-test'",
+        'self_test_pass_marker': "print('PHASE2_CROSS_SELF_TEST=pass')",
+        'self_test_case_count_marker': "print('PHASE2_CROSS_SELF_TEST_CASE_COUNT=11')",
+        'target_flag_guard': "parser.add_argument('--target'",
+        'manifest_count_guard': 'phase2-cross:manifest_count_mismatch',
+        'compile_fail_guard': 'phase2-cross:compile_failed',
+        'duplicate_tool_guard': 'phase2-cross:duplicate_tool:',
+        'duplicate_target_guard': 'phase2-cross:duplicate_target:',
         'unexpected_target_guard': 'phase2-cross:unexpected_target:',
         'duplicate_manifest_target_guard': 'phase2-cross:duplicate_manifest_target:',
     }
