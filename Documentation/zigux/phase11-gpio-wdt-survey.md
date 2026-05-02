@@ -3,6 +3,7 @@
 This survey note now tracks the landed Phase 11 `gpio_wdt` starter anchored to `drivers/watchdog/gpio_wdt.c`.
 
 - reviewed against live `master` `f0aacb8c3c98b9c3b25c0908067a97c0db54c230`
+- archived manifest lane key for this packet remains `P11-L04` for traceability, even though later scheduled continuity revisited the same landed review packet under `P11-L03` for teardown-facing verification and `P11-L05` for wording-only matrix cleanup without reopening descriptor-backed preflight or live registration work
 
 The live repo state is now:
 
