@@ -84,7 +84,7 @@ The exact verification commands and observed results for this narrow verificatio
   - observed result: `2/2 phase5_kobject_example_survey.test.phase 5 kobject contributor docs stay aligned with the shipped review surface...OK`
   - observed result: `All 2 tests passed.`
 
-The shared `zigux/tests/phase5_build.zig` entrypoint remains the umbrella review gate recorded in the manifest and contributor prompts, but this bounded verification pass did not rerun the whole Phase 5 sample bundle.
+The shared `zigux/tests/phase5_build.zig` entrypoint remains the umbrella review gate recorded in the manifest and contributor prompts, and the current published Phase 5 bundle snapshot for that same shared lane remains `Build Summary: 17/17 steps succeeded; 28/28 tests passed`, but this bounded verification pass did not rerun the whole Phase 5 sample bundle.
 
 Those live runs confirmed that the shipped kobject sample still matches the exact bounded checks above: the in-memory replay keeps the Linux `foo`/`baz`/`bar` attribute order and shared `0664` mode pattern explicit, makes the single `register_runs` ownership claim visible before leaving the sample registered with attributes accessible, keeps the initialized-but-not-registered stage at an active attribute count of `0` while rejecting show or store access, reports `abandoned_before_registration` for the initialized-only `exit()` path, keeps the shared sample-root catalog and review-checklist prompts aligned with the manifest-backed packet, and clears registered teardown state while rejecting later `init()`, `registerAttributes()`, `showValue()`, and `storeValue()` calls.
 
