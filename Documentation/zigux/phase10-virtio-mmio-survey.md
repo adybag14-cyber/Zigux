@@ -104,7 +104,12 @@ The direct closure-inventory guard now appears here explicitly because the manif
 2. run the dedicated Phase 10 build
 - `zig build test --build-file zigux/tests/phase10_build.zig --summary all`
 
-3. run the convenience target
+3. run the Linux-style Phase 10 test entrypoint
+- `make -C zigux phase10-test`
+
+This keeps the MMIO survey note aligned with the shared closure packet's exact check list instead of implying the direct build replay alone is the only test surface that matters here.
+
+4. run the convenience target
 - `make -C zigux phase10`
 
 ## Next bounded step
