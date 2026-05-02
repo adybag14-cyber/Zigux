@@ -87,6 +87,7 @@ required_script_readme_markers = [
     "make -C zigux phase5",
     "zigux/tests/phase5_build.zig",
     "samples/zigux/README.md",
+    "`samples/zigux/runtime_bitmap.zig` plus `samples/zigux/runtime_bitmap_loader.zig` stay cataloged as the separate Phase 9 runtime bitmap survey packet rather than a fifth approved Phase 5 sample",
 ]
 
 required_tests_readme_markers = [
@@ -966,6 +967,24 @@ def run_self_test() -> int:
 
         sample_root_path.write_text((ROOT / "samples/zigux/README.md").read_text(encoding="utf-8"), encoding="utf-8")
 
+        script_readme_path = tmp_root / "scripts/zigux/README.md"
+        script_readme_text = script_readme_path.read_text(encoding="utf-8").replace(
+            "`samples/zigux/runtime_bitmap.zig` plus `samples/zigux/runtime_bitmap_loader.zig` stay cataloged as the separate Phase 9 runtime bitmap survey packet rather than a fifth approved Phase 5 sample",
+            "`samples/zigux/runtime_bitmap.zig` and `samples/zigux/runtime_bitmap_loader.zig` stay cataloged as later runtime work",
+            1,
+        )
+        script_readme_path.write_text(script_readme_text, encoding="utf-8")
+        script_readme_result = validate_phase5(tmp_root)
+        if script_readme_result["ok"] or (
+            "script_readme:missing:`samples/zigux/runtime_bitmap.zig` plus `samples/zigux/runtime_bitmap_loader.zig` stay cataloged as the separate Phase 9 runtime bitmap survey packet rather than a fifth approved Phase 5 sample"
+            not in script_readme_result["missing"]
+        ):
+            print("PHASE5_VALIDATOR_SELF_TEST=fail")
+            print("PHASE5_VALIDATOR_SELF_TEST_REASON=script-readme-runtime-bitmap-boundary-gap")
+            return 1
+
+        script_readme_path.write_text((ROOT / "scripts/zigux/README.md").read_text(encoding="utf-8"), encoding="utf-8")
+
         tests_readme_path = tmp_root / "zigux/tests/README.md"
         tests_readme_text = tests_readme_path.read_text(encoding="utf-8").replace(
             "zig test zigux/tests/phase5_trace_events_sample_survey.zig",
@@ -999,7 +1018,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE5_VALIDATOR_SELF_TEST=pass")
-    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=9")
+    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
