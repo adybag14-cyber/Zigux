@@ -137,14 +137,19 @@ fn isDecimalValue(raw_value: []const u8) bool {
 }
 
 fn isHexValue(raw_value: []const u8) bool {
-    if (raw_value.len < 3) return false;
+    if (raw_value.len == 0) return false;
 
-    if (raw_value[0] != '0' or (raw_value[1] != 'x' and raw_value[1] != 'X')) return false;
+    var digits = raw_value;
+    const has_prefix = digits.len >= 2 and digits[0] == '0' and (digits[1] == 'x' or digits[1] == 'X');
+    if (has_prefix) digits = digits[2..];
+    if (digits.len == 0) return false;
 
-    for (raw_value[2..]) |byte| {
+    var saw_alpha_digit = false;
+    for (digits) |byte| {
         if (!std.ascii.isHex(byte)) return false;
+        if (std.ascii.isAlphabetic(byte)) saw_alpha_digit = true;
     }
-    return true;
+    return has_prefix or saw_alpha_digit;
 }
 
 fn findQuotedStringEnd(raw_value: []const u8) ?usize {
@@ -317,7 +322,7 @@ test "confdata bridge parses bounded config states" {
         \\CONFIG_ALPHA=y
         \\CONFIG_BETA=m
         \\CONFIG_COUNT=7
-        \\CONFIG_NAME="zigux"
+        \\CONFIG_NAME=\"zigux\"
         \\# CONFIG_DEBUG is not set
         \\
     );
@@ -539,8 +544,8 @@ test "confdata bridge keeps explicit n assignments as tristate values" {
 test "confdata bridge keeps empty quoted strings as string values" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
-        \\CONFIG_EMPTY=""
-        \\CONFIG_LABEL="zigux"
+        \\CONFIG_EMPTY=\"\"
+        \\CONFIG_LABEL=\"zigux\"
         \\
     );
     defer deinitSummary(allocator, &summary);
@@ -556,8 +561,8 @@ test "confdata bridge keeps empty quoted strings as string values" {
 test "confdata bridge skips malformed quoted strings" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
-        \\CONFIG_BROKEN="zigux
-        \\CONFIG_LABEL="ok"
+        \\CONFIG_BROKEN=\"zigux
+        \\CONFIG_LABEL=\"ok\"
         \\
     );
     defer deinitSummary(allocator, &summary);
@@ -573,7 +578,7 @@ test "confdata bridge skips malformed quoted strings" {
 test "confdata bridge keeps quoted payloads before trailing suffix bytes" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
-        \\CONFIG_BANNER="zigux"suffix_noise
+        \\CONFIG_BANNER=\"zigux\"suffix_noise
         \\CONFIG_STATE=y
         \\# CONFIG_DEBUG is not set
         \\
@@ -596,7 +601,7 @@ test "confdata bridge ignores non-CONFIG lines" {
         \\CONFIG_ALPHA=y
         \\BROKEN_ALPHA=y
         \\# BROKEN_BETA is not set
-        \\CONFIG_NAME="zigux"
+        \\CONFIG_NAME=\"zigux\"
         \\# CONFIG_DEBUG is not set
         \\
     );
@@ -650,6 +655,27 @@ test "confdata bridge distinguishes integer, hex, and fallback scalar values" {
     try std.testing.expectEqual(EntryKind.hex, summary.entries[2].kind);
     try std.testing.expectEqual(EntryKind.hex, summary.entries[3].kind);
     try std.testing.expectEqual(EntryKind.value, summary.entries[4].kind);
+}
+
+test "confdata bridge recognizes bare alphabetic hex values" {
+    const allocator = std.testing.allocator;
+    var summary = try parseConfig(allocator,
+        \\CONFIG_BARE_HEX=2A
+        \\CONFIG_BARE_UPPER_HEX=FF
+        \\CONFIG_PREFIXED_HEX=0x10
+        \\CONFIG_DECIMAL=10
+        \\
+    );
+    defer deinitSummary(allocator, &summary);
+
+    try std.testing.expectEqual(@as(usize, 4), summary.entries.len);
+    try std.testing.expectEqual(EntryKind.hex, summary.entries[0].kind);
+    try std.testing.expectEqualStrings("2A", summary.entries[0].value);
+    try std.testing.expectEqual(EntryKind.hex, summary.entries[1].kind);
+    try std.testing.expectEqualStrings("FF", summary.entries[1].value);
+    try std.testing.expectEqual(EntryKind.hex, summary.entries[2].kind);
+    try std.testing.expectEqualStrings("0x10", summary.entries[2].value);
+    try std.testing.expectEqual(EntryKind.int, summary.entries[3].kind);
 }
 
 test "confdata bridge keeps the last assignment for duplicate symbols" {
