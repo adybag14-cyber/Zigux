@@ -18,7 +18,7 @@ Kobject review packet
 - keep `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, `zigux/tests/phase5_kobject_example_manifest.json`, `zigux/tests/phase5_kobject_example_survey.zig`, and `Documentation/zigux/phase5-kobject-sample-survey.md` aligned through the shared `zigux/tests/phase5_build.zig` entrypoint
 - keep the landed replay contract explicit: the static `kobject_example` directory cue, unnamed attribute-group shape, Linux `foo` or `baz` or `bar` attribute order, shared `0664` mode pattern, integer roundtrips, and the single `register_runs` ownership claim
 - keep the ownership-and-lifetime review surface explicit outside the main replay path: the pre-registration zero-active-attributes boundary, initialized-only abandonment path, and post-exit rejection boundaries remain part of the shipped contract
-- keep sysfs creation, `kernel_kobj` integration, uevents, and runtime registration out of scope so this sample stays a bounded in-memory ownership idiom rather than a runtime sysfs claim
+- keep sysfs creation, `kernel_kobj` integration, uevents, and runtime registration out of scope so this sample stays an approved Phase 5 in-memory ownership-and-lifetime idiom rather than a runtime sysfs claim
 
 Kretprobe review packet
 - keep `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, `zigux/tests/phase5_kretprobe_example_survey.zig`, and `Documentation/zigux/phase5-kretprobe-sample-survey.md` aligned through the shared `zigux/tests/phase5_build.zig` entrypoint
