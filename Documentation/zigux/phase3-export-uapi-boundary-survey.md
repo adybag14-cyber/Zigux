@@ -18,10 +18,10 @@ This note records the current export-shim and UAPI boundary for the bounded Phas
 - `PHASE3_UAPI_VERSION_BLOB_SHA=ee01f0d9b6faf6cfbb9e12f11d8c267870a0a654`
 - `PHASE3_LINUX_HEADER_BLOB_SHA=c8cfd9590d2d0039ad087bb020a236fdc0a2b4ff`
 - `PHASE3_ABI_HEADER_BLOB_SHA=c588b6d2c81659ff8996495d001dd1ebad7df1b1`
-- `PHASE3_ABI_SLICE_DOC_BLOB_SHA=c9676f9697cbe34dd75809a4dae6a53b24030059`
+- `PHASE3_ABI_SLICE_DOC_BLOB_SHA=c736dc1bcb1b91eca07d16690c57728317879f7e`
 - `PHASE3_EXPORT_UAPI_BUILD_BLOB_SHA=17778c41309a0bfb1c2c026622938059c2dd41f9`
 - `PHASE3_EXPORT_UAPI_TEST_BLOB_SHA=40e49566fa959bcbda976ce3142b76c591e4c79f`
-- `PHASE3_ABI_MANIFEST_BLOB_SHA=9630475d654c3405494d2ab9fffd53acb4c332dc`
+- `PHASE3_ABI_MANIFEST_BLOB_SHA=d553cf38524af7349534668d31f85cd34edd9c5f`
 - `PHASE3_EXPORT_UAPI_GATE=zig build phase3-export-uapi-test --build-file zigux/tests/phase3_export_uapi_build.zig`
 - `PHASE3_ABI_BUILD_SMOKE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi --check-build-smoke`
 - `PHASE3_ABI_BUILD_SMOKE_STATUS=shared-validator-replays-export-uapi-boundary`
