@@ -72,6 +72,24 @@ LEDGER_MARKERS = [
     "PHASE10_LEDGER_VALIDATE=scripts/zigux/validate-phase10-closure.py",
     "PHASE10_LEDGER_MANIFEST=zigux/tests/phase10_closure_manifest.json",
     "PHASE10_LEDGER_BLOCKERS=phase10-virtio-input-registration-lifecycle,phase10-mmio-lifecycle-and-irq-paths",
+    "PHASE10_LEDGER_ROADMAP_SCOREBOARD_SOURCE=zigux/tests/phase10_closure_manifest.json",
+    "PHASE10_LEDGER_SURVEY_PROVENANCE_SOURCE=manifest_derived",
+    "PHASE10_LEDGER_SURVEY_CORE_LANE=P10-L03",
+    "PHASE10_LEDGER_SURVEY_RING_LANE=P10-L08",
+    "PHASE10_LEDGER_SURVEY_INPUT_LANE=P10-L13",
+    "PHASE10_LEDGER_SURVEY_MMIO_LANE=P10-L18",
+    "PHASE10_LEDGER_SURVEY_CORE_COMMIT=f5a4d6990f701937b2a3bb9ae723bb6d0f27ba21",
+    "PHASE10_LEDGER_SURVEY_RING_COMMIT=fe8a43ea2e186da0da152198b571dff57ea3c38c",
+    "PHASE10_LEDGER_SURVEY_INPUT_COMMIT=b24f990e2e5504ac3ed4a1a0f1f97c41e06ddd38",
+    "PHASE10_LEDGER_SURVEY_MMIO_COMMIT=0945df1cf664a3582d7241f859183a13f3f04adb",
+    "PHASE10_LEDGER_ROADMAP_VIRTQUEUE_WRAPPERS=starter_landed",
+    "PHASE10_LEDGER_SCOREBOARD_VIRTQUEUE_EVIDENCE=drivers/virtio/virtio_ring.zig,zigux/tests/phase10_virtio_ring.zig,zigux/tests/phase10_virtio_ring_manifest.json,Documentation/zigux/phase10-virtio-ring-survey.md",
+    "PHASE10_LEDGER_ROADMAP_MMIO_WRAPPERS=starter_landed",
+    "PHASE10_LEDGER_SCOREBOARD_MMIO_EVIDENCE=drivers/virtio/virtio_mmio.zig,zigux/tests/phase10_virtio_mmio.zig,zigux/tests/phase10_virtio_mmio_manifest.json,Documentation/zigux/phase10-virtio-mmio-slice.md,Documentation/zigux/phase10-virtio-mmio-survey.md",
+    "PHASE10_LEDGER_ROADMAP_LAB_ONLY_DRIVER_VALIDATION=starter_landed",
+    "PHASE10_LEDGER_SCOREBOARD_LAB_ONLY_DRIVER_VALIDATION_EVIDENCE=zigux/tests/phase10_build.zig,scripts/zigux/check-phase10-closure-inventory.py,scripts/zigux/validate-phase10.py,scripts/zigux/validate-phase10-closure.py,Documentation/zigux/phase10-closure-evidence.md,zigux/Makefile,.github/workflows/zigux-bootstrap.yml",
+    "PHASE10_LEDGER_ROADMAP_DUAL_IMPLEMENTATIONS_FOR_RISKY_AREAS=blocked_on_risky_transport",
+    "PHASE10_LEDGER_SCOREBOARD_DUAL_IMPLEMENTATIONS_EVIDENCE=Documentation/zigux/phase10-closure-evidence.md,zigux/tests/phase10_virtio_ring_manifest.json,zigux/tests/phase10_virtio_input_manifest.json,zigux/tests/phase10_virtio_mmio_manifest.json",
 ]
 
 MAKEFILE_MARKERS = [
@@ -608,8 +626,40 @@ def run_self_test() -> int:
         )
         write_fixture(root)
 
+        ledger_path = root / "zigux-alpha/PHASE10_CLOSURE_LEDGER.md"
+        original_ledger = ledger_path.read_text(encoding="utf-8")
+        ledger_path.write_text(
+            original_ledger.replace(
+                "PHASE10_LEDGER_SCOREBOARD_MMIO_EVIDENCE=drivers/virtio/virtio_mmio.zig,zigux/tests/phase10_virtio_mmio.zig,zigux/tests/phase10_virtio_mmio_manifest.json,Documentation/zigux/phase10-virtio-mmio-slice.md,Documentation/zigux/phase10-virtio-mmio-survey.md",
+                "PHASE10_LEDGER_SCOREBOARD_MMIO_EVIDENCE=drivers/virtio/virtio_mmio.zig,zigux/tests/phase10_virtio_mmio.zig,zigux/tests/phase10_virtio_mmio_manifest.json,Documentation/zigux/phase10-virtio-mmio-survey.md",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "ledger_mmio_scoreboard_evidence_guard",
+            root,
+            "ledger:PHASE10_LEDGER_SCOREBOARD_MMIO_EVIDENCE=drivers/virtio/virtio_mmio.zig,zigux/tests/phase10_virtio_mmio.zig,zigux/tests/phase10_virtio_mmio_manifest.json,Documentation/zigux/phase10-virtio-mmio-slice.md,Documentation/zigux/phase10-virtio-mmio-survey.md",
+        )
+        ledger_path.write_text(original_ledger, encoding="utf-8")
+
+        ledger_path.write_text(
+            original_ledger.replace(
+                "PHASE10_LEDGER_SURVEY_MMIO_COMMIT=0945df1cf664a3582d7241f859183a13f3f04adb",
+                "PHASE10_LEDGER_SURVEY_MMIO_COMMIT=0000000000000000000000000000000000000000",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "ledger_mmio_commit_guard",
+            root,
+            "ledger:PHASE10_LEDGER_SURVEY_MMIO_COMMIT=0945df1cf664a3582d7241f859183a13f3f04adb",
+        )
+        ledger_path.write_text(original_ledger, encoding="utf-8")
+
     print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=10")
+    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
