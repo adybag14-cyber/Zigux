@@ -25,6 +25,7 @@
       "evidence": [
         "zigux/tests/phase10_build.zig",
         "zigux/tests/phase10_virtio_ring_survey.zig",
+        "scripts/zigux/check-phase10-closure-inventory.py",
         "scripts/zigux/validate-phase10.py",
         "scripts/zigux/validate-phase10-closure.py",
         "zigux/Makefile"
