@@ -1,0 +1,15 @@
+{
+  "lane_key": "P3-L02",
+  "phase": "Phase 3",
+  "anchor": "lib/rbtree.c",
+  "status": "helper_landed_binding_followup_pending",
+  "roadmap_destination": "zigux/helpers/rbtree_view.zig",
+  "remaining_gap": "curated-rbtree-c-binding-surface-still-missing",
+  "file_count": 4,
+  "files": [
+    "zigux/helpers/rbtree_view.zig",
+    "Documentation/zigux/phase3-rbtree-slice.md",
+    "zigux/tests/phase3_rbtree_survey.zig",
+    "zigux/tests/phase3_rbtree_manifest.json"
+  ]
+}
