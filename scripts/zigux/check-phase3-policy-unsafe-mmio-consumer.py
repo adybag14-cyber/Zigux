@@ -174,11 +174,62 @@ def run_self_test() -> int:
                     "",
                     "`zigux/helpers/mmio.zig` is now the shipped second boundary helper that consumes `DecodedInteropPolicy` directly outside the focused `phase3_policy_unsafe` test packet.",
                     "`zigux/helpers/mmio.zig` now keeps the width-specific `read8Policy`, `write8Policy`, `read16Policy`, `write16Policy`, `read32Policy`, `write32Policy`, `read64Policy`, and `write64Policy` entry points plus the generic `readScopedWithPolicy()` and `writeScopedWithPolicy()` bridges inside that same bounded typed-policy consumer packet.",
+                    "",
+                )
+            ),
+        )
+        issues = validate(root)
+        assert (
+            "missing_survey_snippet:the current tree does not yet ship a third Phase 3 boundary helper that consumes `DecodedInteropPolicy` directly beyond the focused replay and the scoped MMIO helper"
+            in issues
+        )
+
+        _write(
+            root,
+            SURVEY_REL,
+            "\n".join(
+                (
+                    "# Phase 3 Policy and Unsafe Boundary Survey",
+                    "",
+                    "- `PHASE3_MMIO_TYPED_POLICY_CONSUMER=zigux/helpers/mmio.zig`",
+                    "- `PHASE3_BOUNDARY_GAP=typed-policy-mmio-consumer-landed-no-third-boundary-helper-beyond-focused-replay`",
+                    "- `PHASE3_NEXT_BOUNDED_STEP=keep-the-policy-and-unsafe-surface-narrow-until-one-roadmap-backed-helper-beyond-mmio-needs-a-typed-interop-policy-consumer`",
+                    "",
+                    "`zigux/helpers/mmio.zig` is now the shipped second boundary helper that consumes `DecodedInteropPolicy` directly outside the focused `phase3_policy_unsafe` test packet.",
+                    "`zigux/helpers/mmio.zig` now keeps the width-specific `read8Policy`, `write8Policy`, `read16Policy`, `write16Policy`, `read32Policy`, `write32Policy`, `read64Policy`, and `write64Policy` entry points plus the generic `readScopedWithPolicy()` and `writeScopedWithPolicy()` bridges inside that same bounded typed-policy consumer packet.",
                     "the current tree does not yet ship a third Phase 3 boundary helper that consumes `DecodedInteropPolicy` directly beyond the focused replay and the scoped MMIO helper.",
                     "",
                 )
             ),
         )
+        _write(
+            root,
+            MMIO_REL,
+            "\n".join(
+                (
+                    "fn scopeFromPolicy(policy: interop_policy.DecodedInteropPolicy) narrow.ScopeError!narrow.UnsafeScopeTag {",
+                    "    _ = policy;",
+                    "}",
+                    "pub fn read8Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u8 {",
+                    "    _ = policy; _ = base_addr; _ = offset; }",
+                    "pub fn write8Policy(",
+                    "pub fn read16Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u16 {",
+                    "    _ = policy; _ = base_addr; _ = offset; }",
+                    "pub fn write16Policy(",
+                    "pub fn read32Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u32 {",
+                    "    _ = policy; _ = base_addr; _ = offset; }",
+                    "pub fn write32Policy(",
+                    "pub fn read64Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u64 {",
+                    "    _ = policy; _ = base_addr; _ = offset; }",
+                    "pub fn write64Policy(",
+                    'test "phase3 mmio wrapper consumes decoded interop policy"',
+                    "",
+                )
+            ),
+        )
+        issues = validate(root)
+        assert "missing_mmio_snippet:pub fn readScopedWithPolicy(" in issues
+
         _write(
             root,
             MMIO_REL,
