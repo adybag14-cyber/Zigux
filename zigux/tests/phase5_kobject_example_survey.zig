@@ -252,9 +252,43 @@ test "phase 5 kobject contributor docs stay aligned with the shipped review surf
     );
     defer std.testing.allocator.free(survey_note);
 
+    const readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/README.md",
+        std.testing.allocator,
+        .limited(review_doc_read_limit),
+    );
+    defer std.testing.allocator.free(readme);
+
+    const sample_root_readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "samples/zigux/README.md",
+        std.testing.allocator,
+        .limited(review_doc_read_limit),
+    );
+    defer std.testing.allocator.free(sample_root_readme);
+
+    const tests_readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/README.md",
+        std.testing.allocator,
+        .limited(review_doc_read_limit),
+    );
+    defer std.testing.allocator.free(tests_readme);
+
+    const review_checklist = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/review-checklist.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(review_checklist);
+
     try expectContains(survey_note, "sample-backed survey note");
-    try expectContains(survey_note, "samples/zigux/README.md");
-    try expectContains(survey_note, "Documentation/zigux/review-checklist.md");
+    try expectContains(survey_note, "- `Documentation/zigux/README.md`");
+    try expectContains(survey_note, "- `Documentation/zigux/review-checklist.md`");
+    try expectContains(survey_note, "- `samples/zigux/README.md`");
+    try expectContains(survey_note, "- `zigux/tests/README.md`");
     try expectContains(survey_note, "phase5_kobject_example_manifest.json");
     try expectContains(survey_note, "phase5_kobject_example_survey.zig");
     try expectContains(survey_note, "phase5_build.zig");
@@ -268,8 +302,48 @@ test "phase 5 kobject contributor docs stay aligned with the shipped review surf
         defer std.testing.allocator.free(surveyed_commit_line);
         try expectContains(survey_note, surveyed_commit_line);
     }
+    try expectContains(survey_note, "shared sample-root catalog in `samples/zigux/README.md`");
+    try expectContains(survey_note, "shared tests-root guide in `zigux/tests/README.md`");
+    try expectContains(survey_note, "direct `zig test samples/zigux/kobject_example.zig` replay");
+    try expectContains(survey_note, "paired `zig test zigux/tests/phase5_kobject_example_survey.zig` replay");
+    try expectContains(survey_note, "approved Phase 5 ownership-and-lifetime idiom");
     try expectContains(survey_note, "ownershipSummary()");
     try expectContains(survey_note, "cold, initialized, registered, and exited");
+    try expectContains(survey_note, "sysfs creation, `kernel_kobj` integration, uevents, and loadable module registration remain out of scope");
+    try expectContains(survey_note, "zig test samples/zigux/kobject_example.zig");
     try expectContains(survey_note, "All 5 tests passed.");
+    try expectContains(survey_note, "zig test zigux/tests/phase5_kobject_example_survey.zig");
     try expectContains(survey_note, "All 2 tests passed.");
+
+    try expectContains(readme, "phase5-kobject-sample-survey.md");
+    try expectContains(readme, "samples/zigux/kobject_example.zig");
+    try expectContains(readme, "shared sample-root catalog, shared tests-root guide, shared review checklist, manifest, and shared `phase5_build.zig` entrypoint prompts");
+    try expectContains(readme, "direct sample replays and paired survey replays explicit for the four shipped Phase 5 families");
+
+    try expectContains(sample_root_readme, "Kobject review packet");
+    try expectContains(sample_root_readme, "phase5_kobject_example_manifest.json");
+    try expectContains(sample_root_readme, "phase5_kobject_example_survey.zig");
+    try expectContains(sample_root_readme, "phase5-kobject-sample-survey.md");
+    try expectContains(sample_root_readme, "approved Phase 5 in-memory ownership-and-lifetime idiom");
+    try expectContains(sample_root_readme, "pre-registration zero-active-attributes boundary");
+    try expectContains(sample_root_readme, "initialized-only abandonment path");
+    try expectContains(sample_root_readme, "post-exit rejection boundaries");
+    try expectContains(sample_root_readme, "sysfs creation, `kernel_kobj` integration, uevents, and runtime registration out of scope");
+    try expectContains(sample_root_readme, "zig test zigux/tests/phase5_kobject_example_survey.zig");
+
+    try expectContains(tests_readme, "zigux/tests/phase5_kobject_example.zig");
+    try expectContains(tests_readme, "zigux/tests/phase5_kobject_example_manifest.json");
+    try expectContains(tests_readme, "zigux/tests/phase5_kobject_example_survey.zig");
+    try expectContains(tests_readme, "scripts/zigux/validate-phase5.py");
+    try expectContains(tests_readme, "make -C zigux phase5-validate");
+    try expectContains(tests_readme, "zig test samples/zigux/kobject_example.zig");
+    try expectContains(tests_readme, "zig test zigux/tests/phase5_kobject_example_survey.zig");
+    try expectContains(tests_readme, "keep the current Phase 5 reference-sample packet reviewable through `zigux/tests/phase5_build.zig`");
+    try expectContains(tests_readme, "direct sample replays and paired survey replays explicit for every shipped Phase 5 family");
+
+    try expectContains(review_checklist, "landed Phase 5 `kobject` sample packet");
+    try expectContains(review_checklist, "manifest-backed survey still pin the exact inspected `master` head");
+    try expectContains(review_checklist, "approved ownership-and-lifetime idiom rather than a new runtime-substrate claim");
+    try expectContains(review_checklist, "sample-backed survey note");
+    try expectContains(review_checklist, "phase5_build.zig");
 }
