@@ -464,11 +464,11 @@ def run_self_test() -> int:
         ]
 
         assert (
-            "PHASE3_ATOMIC_SCOPE=load-store-exchange-compare-exchange-compare-exchange-weak-fetch-add-fetch-sub-fetch-and-fetch-or-fetch-xor"
+            "PHASE3_ATOMIC_SCOPE=load-store-exchange-compare-exchange-compare-exchange-weak-fetch-add-fetch-sub-fetch-and-fetch-or-fetch-xor-fetch-min-fetch-max"
             in ABI_REQUIRED_DOC_MARKERS
         )
         assert (
-            "PHASE3_MMIO_SCOPE=range-read8-read16-read32-read64-write8-write16-write32-write64-plus-scoped-read8-write8-read16-write16-read32-write32-read64-write64"
+            "PHASE3_MMIO_SCOPE=range-read8-read16-read32-read64-write8-write16-write32-write64-plus-scoped-read8-write8-read16-write16-read32-write32-read64-write64-plus-policy-read8-write8-read16-write16-read32-write32-read64-write64-and-generic-policy-bridges"
             in ABI_REQUIRED_DOC_MARKERS
         )
         assert "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md" in ABI_REQUIRED_MANIFEST_FILES
