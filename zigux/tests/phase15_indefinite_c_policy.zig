@@ -163,16 +163,17 @@ test "phase 15 indefinite-C policy manifest records current policy, exception, a
             try std.testing.expectEqualStrings("existing blocker remains recorded", requirement.required_terms[2]);
         } else if (std.mem.eql(u8, requirement.id, "indefinite-c-exception-request-checklist")) {
             saw_exception_request_checklist = true;
-            try std.testing.expectEqual(@as(usize, 9), requirement.required_terms.len);
+            try std.testing.expectEqual(@as(usize, 10), requirement.required_terms.len);
             try std.testing.expectEqualStrings("named reopen-trigger catalog item", requirement.required_terms[0]);
             try std.testing.expectEqualStrings("trigger-specific refreshed evidence by path", requirement.required_terms[1]);
             try std.testing.expectEqualStrings("current blocker disposition", requirement.required_terms[2]);
-            try std.testing.expectEqualStrings("automatic return-to-blocked trigger", requirement.required_terms[3]);
-            try std.testing.expectEqualStrings("replay command reviewers should run", requirement.required_terms[4]);
-            try std.testing.expectEqualStrings("parity scorecard link", requirement.required_terms[5]);
-            try std.testing.expectEqualStrings("evidence-archive path", requirement.required_terms[6]);
-            try std.testing.expectEqualStrings("lane owner and rollback owner", requirement.required_terms[7]);
-            try std.testing.expectEqualStrings("C implementation remains the product source of truth unless the reopen request is approved", requirement.required_terms[8]);
+            try std.testing.expectEqualStrings("decision record ID plus the current status bucket and requested decision bucket being changed", requirement.required_terms[3]);
+            try std.testing.expectEqualStrings("automatic return-to-blocked trigger", requirement.required_terms[4]);
+            try std.testing.expectEqualStrings("replay command reviewers should run", requirement.required_terms[5]);
+            try std.testing.expectEqualStrings("parity scorecard link", requirement.required_terms[6]);
+            try std.testing.expectEqualStrings("evidence-archive path", requirement.required_terms[7]);
+            try std.testing.expectEqualStrings("lane owner and rollback owner", requirement.required_terms[8]);
+            try std.testing.expectEqualStrings("C implementation remains the product source of truth unless the reopen request is approved", requirement.required_terms[9]);
         } else if (std.mem.eql(u8, requirement.id, "indefinite-c-automatic-return-to-blocked")) {
             saw_automatic_return_to_blocked = true;
             try std.testing.expectEqual(@as(usize, 3), requirement.required_terms.len);
@@ -387,6 +388,7 @@ test "phase 15 indefinite-C policy note preserves stay-in-C boundary language" {
     try expectContains(policy_note, "the exact named reopen-trigger catalog item or items being cited");
     try expectContains(policy_note, "the trigger-specific refreshed evidence by path for each cited trigger");
     try expectContains(policy_note, "the current blocker disposition the new evidence is trying to change");
+    try expectContains(policy_note, "the decision record ID plus the current status bucket and requested decision bucket that the reopen request is attempting to change");
     try expectContains(policy_note, "the automatic return-to-blocked trigger that sends the anchor back to blocked review posture if review fields, linked evidence, scorecard state, replay commands, blocker posture, or rollback ownership drift");
     try expectContains(policy_note, "the parity scorecard link and the evidence-archive path tied to the same anchor");
     try expectContains(policy_note, "the lane owner and rollback owner, refreshed when the trigger is `ownership_or_validation_changed`");
