@@ -504,6 +504,7 @@ test "phase 9 runtime trace-events docs keep the task and event-loop substrate g
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "polling-backed wake or dispatch behavior") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "real kernel thread scheduling or timeout behavior") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "samples/zigux/runtime_trace_events_loader.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "partial or placeholder `samples/zigux/runtime_trace_events_loader.zig` handoff") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "no trace-events loader target") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "samples/trace_events/trace-events-sample.h") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "header-side macro boundary") != null);
