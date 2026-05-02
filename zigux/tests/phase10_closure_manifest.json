@@ -114,7 +114,10 @@
       "mmio": "0945df1cf664a3582d7241f859183a13f3f04adb"
     }
   },
-  "ready_transport_followups": {},
+  "ready_transport_followups": {
+    "zigux/tests/phase10_virtio_input_manifest.json": "keep the Phase 10 virtio_input lane parked at the current probe-preflight boundary until a later transport-backed packet can justify widening into queue callbacks, interrupts, or input_register_device lifecycle work with explicit risky-transport evidence",
+    "zigux/tests/phase10_virtio_mmio_manifest.json": "leave the MMIO lane parked unless a future inspection can split phase10-mmio-lifecycle-and-irq-paths into a smaller transport-safe observation helper without claiming queue setup, IRQ delivery, probe, or remove parity or reopening the separate Phase 14 study-only boundary packet"
+  },
   "landed_core_helper_evidence": {
     "zigux/tests/phase10_virtio_core_manifest.json": [
       "phase10-config-generation-summary-helper",
@@ -195,8 +198,8 @@
     "Documentation/zigux/phase10-virtio-ring-survey.md",
     "Documentation/zigux/phase10-virtio-input-slice.md",
     "Documentation/zigux/phase10-virtio-input-module-slice.md",
-    "Documentation/zigux/phase10-virtio-input-survey.md",
     "Documentation/zigux/phase10-virtio-mmio-slice.md",
+    "Documentation/zigux/phase10-virtio-input-survey.md",
     "Documentation/zigux/phase10-virtio-mmio-survey.md"
   ],
   "manifests": [
