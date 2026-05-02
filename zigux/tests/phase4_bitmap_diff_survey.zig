@@ -95,15 +95,15 @@ test "phase4 bitmap diff survey manifest records the shipped gate, the current r
         manifest.threshold_plan.posture,
     );
     try std.testing.expectEqualStrings(
-        "pending_scope_widening",
+        "pending_bounded_benchmark",
         manifest.threshold_plan.status,
     );
     try std.testing.expectEqualStrings(
-        "unapproved_until_bitmap_gate_scope_widens",
+        "unapproved_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
         manifest.threshold_plan.benchmark_command,
     );
     try std.testing.expectEqualStrings(
-        "unapproved_until_bitmap_gate_scope_widens",
+        "unapproved_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
         manifest.threshold_plan.acceptable_limit,
     );
     try std.testing.expect(
