@@ -370,6 +370,36 @@ def run_self_test() -> int:
 
         tests_readme_path.write_text(
             original_tests_readme.replace(
+                "- zigux/tests/phase8_libbpf_segments.zig\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "tests_readme_libbpf_segments",
+            tmp_root,
+            "tests_readme:zigux/tests/phase8_libbpf_segments.zig",
+        )
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
+
+        tests_readme_path.write_text(
+            original_tests_readme.replace(
+                "- scripts/zigux/validate-phase8.py\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "tests_readme_validate_phase8",
+            tmp_root,
+            "tests_readme:scripts/zigux/validate-phase8.py",
+        )
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
+
+        tests_readme_path.write_text(
+            original_tests_readme.replace(
                 "- Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md\n",
                 "",
                 1,
@@ -576,7 +606,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=17")
+    print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=19")
     return 0
 
 
