@@ -92,24 +92,8 @@ pub fn main(init: std.process.Init) !void {
         try writer.writeAll("sym-miss\tvfree\tnull\n");
     }
 
-    var mutable_values = [_]u32{ 3, 8, 13, 21, 34, 55, 89 };
-    const found_mutable = bsearch.searchMutable(u32, u32, &@as(u32, 21), mutable_values[0..], compareU32);
-    if (found_mutable) |item| {
-        item.* = 22;
-        try writer.print("mutable-hit\t21\t{}\n", .{mutable_values[3]});
-    } else {
-        try writer.writeAll("mutable-hit\t21\tnull\n");
-    }
-
-    var raw_mutable_values = [_]u32{ 3, 8, 13, 21, 34, 55, 89 };
-    const raw_found_mutable = bsearch.bsearchMutable(&@as(u32, 21), @ptrCast(raw_mutable_values[0..].ptr), raw_mutable_values.len, @sizeOf(u32), compareOpaqueU32);
-    if (raw_found_mutable) |item| {
-        const typed_item: *u32 = @ptrCast(@alignCast(item));
-        typed_item.* = 22;
-        try writer.print("raw-mutable-hit\t21\t{}\n", .{raw_mutable_values[3]});
-    } else {
-        try writer.writeAll("raw-mutable-hit\t21\tnull\n");
-    }
+    try writeRuntimeTypedMutableCase(writer, "mutable-hit", 34, compareDescendingU32, descending_values[0..]);
+    try writeRuntimeRawMutableCase(writer, "raw-mutable-hit", 34, compareOpaqueDescendingU32, descending_values[0..]);
 
     try stdout.flush();
 }
@@ -176,5 +160,42 @@ fn writeRuntimeRawCases(
             case.key,
             bsearch.bsearchIndex(&case.key, @ptrCast(case.values.ptr), case.values.len, @sizeOf(u32), case.compare),
         );
+    }
+}
+
+fn writeRuntimeTypedMutableCase(
+    writer: *std.Io.Writer,
+    label: []const u8,
+    key: u32,
+    compare: bsearch.CComparator(u32, u32),
+    source_values: []const u32,
+) !void {
+    var mutable_values: [7]u32 = undefined;
+    @memcpy(mutable_values[0..], source_values);
+    const found_mutable = bsearch.searchMutable(u32, u32, &key, mutable_values[0..], compare);
+    if (found_mutable) |item| {
+        item.* += 1;
+        try writer.print("{s}\t{}\t{}\n", .{ label, key, item.* });
+    } else {
+        try writer.print("{s}\t{}\tnull\n", .{ label, key });
+    }
+}
+
+fn writeRuntimeRawMutableCase(
+    writer: *std.Io.Writer,
+    label: []const u8,
+    key: u32,
+    compare: bsearch.CRawComparator,
+    source_values: []const u32,
+) !void {
+    var mutable_values: [7]u32 = undefined;
+    @memcpy(mutable_values[0..], source_values);
+    const found_mutable = bsearch.bsearchMutable(&key, @ptrCast(mutable_values[0..].ptr), mutable_values.len, @sizeOf(u32), compare);
+    if (found_mutable) |item| {
+        const typed_item: *u32 = @ptrCast(@alignCast(item));
+        typed_item.* += 1;
+        try writer.print("{s}\t{}\t{}\n", .{ label, key, typed_item.* });
+    } else {
+        try writer.print("{s}\t{}\tnull\n", .{ label, key });
     }
 }
