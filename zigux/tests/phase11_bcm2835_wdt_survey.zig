@@ -120,6 +120,7 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "remove-time teardown boundary") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, expected_commit_pin) != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "archival checkpoint for the original Phase 11 roadmap gap") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the focused replay `zig test zigux/tests/phase11_bcm2835_wdt_survey.zig` still passes on current `master`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the current shared replay now passes on `master`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "bcm2835 starter for watchdog metadata, timeout tick encoding, running-bit detection") != null);
@@ -139,6 +140,7 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
     var blocked_count: usize = 0;
     var saw_build_gate = false;
     var saw_survey_gate = false;
+    var saw_survey_note = false;
     var saw_driver_gap = false;
     var saw_metadata_summary = false;
     var saw_driver_tests = false;
@@ -175,6 +177,16 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
             try std.testing.expectEqualStrings("zigux/tests/phase11_bcm2835_wdt_survey.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "validation matrix status") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase11-bcm2835-wdt-survey-note")) {
+            saw_survey_note = true;
+            try std.testing.expectEqualStrings("Documentation/zigux/phase11-bcm2835-wdt-survey.md", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "current master head") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "watchdog metadata summary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "platform handoff summary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remove-time teardown summary") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-bcm2835-wdt-driver-starter")) {
@@ -276,6 +288,7 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_survey_gate);
+    try std.testing.expect(saw_survey_note);
     try std.testing.expect(saw_driver_gap);
     try std.testing.expect(saw_metadata_summary);
     try std.testing.expect(saw_driver_tests);
