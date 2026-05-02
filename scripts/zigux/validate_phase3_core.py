@@ -21,10 +21,13 @@ ROOT = Path(__file__).resolve().parents[2]
 BUILD_FILE_REL = "zigux/tests/build.zig"
 ABI_LOW_LEVEL_BUILD_FILE_REL = "zigux/tests/phase3_low_level_wrappers_build.zig"
 ABI_EXPORT_UAPI_BUILD_FILE_REL = "zigux/tests/phase3_export_uapi_build.zig"
+ABI_EXPORT_UAPI_LAYOUT_BUILD_FILE_REL = "zigux/tests/phase3_export_uapi_layout_build.zig"
+ABI_EXPORT_UAPI_LAYOUT_TEST_REL = "zigux/tests/phase3_export_uapi_layout.zig"
 ABI_POLICY_UNSAFE_BUILD_FILE_REL = "zigux/tests/phase3_policy_unsafe_build.zig"
 ABI_LOW_LEVEL_SURVEY_CHECK_REL = "scripts/zigux/validate-phase3-low-level-wrapper-survey.py"
 ABI_EXPORT_UAPI_SURVEY_CHECK_REL = "scripts/zigux/validate-phase3-export-uapi-survey.py"
 ABI_POLICY_UNSAFE_SURVEY_CHECK_REL = "scripts/zigux/validate-phase3-policy-unsafe-survey.py"
+ABI_POLICY_UNSAFE_MMIO_CONSUMER_REL = "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"
 ABI_REQUIRED_MANIFEST_FILES = (
     "include/zigux/abi.h",
     "include/linux/zigux.h",
@@ -40,15 +43,19 @@ ABI_REQUIRED_MANIFEST_FILES = (
     "zigux/helpers/barrier.zig",
     "zigux/helpers/mmio.zig",
     "zigux/unsafe/narrow.zig",
+    BUILD_FILE_REL,
     ABI_LOW_LEVEL_BUILD_FILE_REL,
     "zigux/tests/phase3_low_level_wrappers.zig",
     "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     ABI_POLICY_UNSAFE_BUILD_FILE_REL,
     "zigux/tests/phase3_policy_unsafe.zig",
+    ABI_POLICY_UNSAFE_MMIO_CONSUMER_REL,
     "zigux/tests/phase3_abi.zig",
     ABI_EXPORT_UAPI_BUILD_FILE_REL,
     "zigux/tests/phase3_export_uapi.zig",
+    ABI_EXPORT_UAPI_LAYOUT_BUILD_FILE_REL,
+    ABI_EXPORT_UAPI_LAYOUT_TEST_REL,
     "zigux/tests/phase3_abi_dump.zig",
     "zigux/tests/fixtures/phase3_abi/expected.json",
     "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c",
