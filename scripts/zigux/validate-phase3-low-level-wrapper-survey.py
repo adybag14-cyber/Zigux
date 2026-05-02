@@ -218,11 +218,7 @@ def _packet_drift_by_blob_sha(root: Path, survey: str) -> list[str]:
     issues: list[str] = []
     for marker, rel in SURVEYED_PACKET_BLOB_MARKERS.items():
         expected_blob = _marker_value_from_text(survey, marker)
-        if expected_blob is None:
-            issues.append(f"missing_survey_marker:{marker}=")
-            continue
-        if not HEX40.fullmatch(expected_blob):
-            issues.append(f"invalid_survey_blob_sha:{marker}:{expected_blob}")
+        if expected_blob is None or not HEX40.fullmatch(expected_blob):
             continue
 
         path = root / rel
@@ -267,8 +263,14 @@ def validate(root: Path) -> list[str]:
 
     if survey:
         _check_snippets(survey, REQUIRED_SURVEY_MARKERS, "missing_survey_marker", issues)
-        _check_snippets(survey, REQUIRED_SURVEY_SNIPPETS, "missing_survey_snippet", issues)
+        for marker in SURVEYED_PACKET_BLOB_MARKERS:
+            value = _marker_value_from_text(survey, marker)
+            if value is None:
+                issues.append(f"missing_survey_marker:{marker}=")
+            elif not HEX40.fullmatch(value):
+                issues.append(f"invalid_survey_blob_sha:{marker}:{value}")
         issues.extend(_packet_drift_by_blob_sha(root, survey))
+        _check_snippets(survey, REQUIRED_SURVEY_SNIPPETS, "missing_survey_snippet", issues)
 
     for rel in REQUIRED_SURVEY_PATHS:
         if not (root / rel).exists():
@@ -389,9 +391,24 @@ def run_self_test() -> int:
         issues = validate(root)
         assert "invalid_survey_blob_sha:PHASE3_MMIO_BLOB_SHA:not-a-sha" in issues
 
-        _write(root, SURVEY_REL, "\n".join(["# Phase 3 Low-Level Wrapper Boundary Survey", *[f"- `{marker}`" for marker in REQUIRED_SURVEY_MARKERS[:-1]]]) + "\n")
+        _write(
+            root,
+            SURVEY_REL,
+            "\n".join([
+                "# Phase 3 Low-Level Wrapper Boundary Survey",
+                "",
+                *[f"- `{marker}`" for marker in REQUIRED_SURVEY_MARKERS],
+                "",
+                *REQUIRED_SURVEY_SNIPPETS,
+                "",
+                *[
+                    line for line in _blob_marker_lines()
+                    if line != f"- `PHASE3_MMIO_BLOB_SHA={PLACEHOLDER_SHA}`"
+                ],
+            ]) + "\n",
+        )
         issues = validate(root)
-        assert any(issue.startswith("missing_survey_marker:") for issue in issues)
+        assert "missing_survey_marker:PHASE3_MMIO_BLOB_SHA=" in issues
 
         _write(root, SURVEY_REL, "\n".join([
             "# Phase 3 Low-Level Wrapper Boundary Survey",
