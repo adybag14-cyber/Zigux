@@ -215,6 +215,11 @@ EXPECTED_BLOCKED_GAPS = {
     "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-lifecycle-and-irq-paths",
 }
 
+EXPECTED_READY_TRANSPORT_FOLLOWUPS = {
+    "zigux/tests/phase10_virtio_input_manifest.json": "keep the Phase 10 virtio_input lane parked at the current probe-preflight boundary until a later transport-backed packet can justify widening into queue callbacks, interrupts, or input_register_device lifecycle work with explicit risky-transport evidence",
+    "zigux/tests/phase10_virtio_mmio_manifest.json": "leave the MMIO lane parked unless a future inspection can split phase10-mmio-lifecycle-and-irq-paths into a smaller transport-safe observation helper without claiming queue setup, IRQ delivery, probe, or remove parity or reopening the separate Phase 14 study-only boundary packet",
+}
+
 EXPECTED_SCOREBOARD_STATUSES = {
     "virtqueue_wrappers": "starter_landed",
     "mmio_wrappers": "starter_landed",
@@ -359,6 +364,8 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             missing.append("closure_manifest:landed_mmio_helper_evidence")
         if closure_manifest.get("blocked_transport_gaps") != EXPECTED_BLOCKED_GAPS:
             missing.append("closure_manifest:blocked_transport_gaps")
+        if closure_manifest.get("ready_transport_followups") != EXPECTED_READY_TRANSPORT_FOLLOWUPS:
+            missing.append("closure_manifest:ready_transport_followups")
         if closure_manifest.get("exact_checks") != EXPECTED_EXACT_CHECKS:
             missing.append("closure_manifest:exact_checks")
         if closure_manifest.get("cross_phase_scoreboard_boundary") != EXPECTED_CROSS_PHASE_BOUNDARY:
@@ -441,6 +448,7 @@ def write_fixture(root: Path) -> None:
             "lane_keys": {"core": "P10-L03", "ring": "P10-L08", "input": "P10-L13", "mmio": "P10-L18"},
             "surveyed_commits": EXPECTED_SURVEYED_COMMITS,
         },
+        "ready_transport_followups": EXPECTED_READY_TRANSPORT_FOLLOWUPS,
         "landed_core_helper_evidence": {
             "zigux/tests/phase10_virtio_core_manifest.json": EXPECTED_CORE_HELPERS,
         },
@@ -640,6 +648,16 @@ def run_self_test() -> int:
         write_fixture(root)
 
         closure_manifest = json.loads(closure_manifest_path.read_text(encoding="utf-8"))
+        closure_manifest["ready_transport_followups"] = {}
+        closure_manifest_path.write_text(json.dumps(closure_manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "ready_transport_followup_guard",
+            root,
+            "closure_manifest:ready_transport_followups",
+        )
+        write_fixture(root)
+
+        closure_manifest = json.loads(closure_manifest_path.read_text(encoding="utf-8"))
         closure_manifest["survey_provenance"]["source"] = "repo_scan"
         closure_manifest_path.write_text(json.dumps(closure_manifest, indent=2) + "\n", encoding="utf-8")
         expect_missing_marker(
@@ -692,7 +710,7 @@ def run_self_test() -> int:
         ledger_path.write_text(original_ledger, encoding="utf-8")
 
     print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=14")
+    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
