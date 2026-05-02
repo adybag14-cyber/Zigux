@@ -13,6 +13,7 @@
   "approval_evidence_paths": [
     "Documentation/zigux/phase15-architecture-council-review-process.md",
     "Documentation/zigux/phase15-parity-scorecard.md",
+    "Documentation/zigux/phase15-indefinite-c-policy.md",
     "Documentation/zigux/phase15-evidence-archives/kernel-sched-core.md",
     "Documentation/zigux/phase15-evidence-archives/mm-page-alloc.md",
     "Documentation/zigux/phase15-evidence-archives/kernel-rcu-tree.md",
@@ -34,6 +35,7 @@
   ],
   "ownership_evidence_paths": [
     "Documentation/zigux/phase15-parity-scorecard.md",
+    "Documentation/zigux/phase15-indefinite-c-policy.md",
     "Documentation/zigux/phase15-evidence-archives/kernel-sched-core.md",
     "Documentation/zigux/phase15-evidence-archives/mm-page-alloc.md",
     "Documentation/zigux/phase15-evidence-archives/kernel-rcu-tree.md",
@@ -220,6 +222,13 @@
       "kind": "ownership_gate",
       "zigux_destination": "Documentation/zigux/phase15-architecture-council-review-process.md",
       "why_now": "Neighboring Phase 15 governance packets had already moved to newer lane identities and surveyed-head pins, so the Architecture Council packet needed one bounded governance, approval, and ownership evidence verification refresh across the note, manifest, and focused test to keep handoff reviewability aligned on current master."
+    },
+    {
+      "id": "phase15-review-process-indefinite-c-evidence-path-sync",
+      "status": "starter_landed",
+      "kind": "governance_sync",
+      "zigux_destination": "zigux/tests/phase15_architecture_council_review_process_manifest.json",
+      "why_now": "The review-process packet already requires the dedicated indefinite-C policy link for stay-in-C requests, so the current approval and ownership evidence-path inventory must list that same policy note instead of leaving one governance surface implied."
     }
   ]
 }
