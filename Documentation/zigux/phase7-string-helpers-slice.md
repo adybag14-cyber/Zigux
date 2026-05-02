@@ -33,12 +33,16 @@ This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane. Curr
 Review note:
 - helper-local test runs cannot import that fixture from outside the helper module path; keep both packets aligned when those serialized cases change
 - no `samples/zigux/*string*` Phase 5 reference sample is expected here; `samples/zigux/README.md` remains the shared sample-root catalog while this leaf-helper evidence stays under the separate Phase 7 helper bundle
+- the shared build-inventory fixture stays part of this parked review packet, so `zigux/tests/fixtures/phase7_build_inventory.json` plus the published `make -C zigux phase7-validate` wrapper path stay explicit instead of living only in the broader shared Phase 7 notes
 
 ## Gates
 
 1. prove the shared Phase 7 validator packet plus the build-inventory and make-wrapper gates still fail closed before the helper replay runs
 - `python3 scripts/zigux/validate-phase7.py --self-test`
+- `python3 scripts/zigux/validate-phase7.py`
+- `python3 scripts/zigux/check-phase7-build-inventory.py --self-test`
 - `python3 scripts/zigux/check-phase7-build-inventory.py`
+- `python3 scripts/zigux/check-phase7-make-wrapper.py --self-test`
 - `python3 scripts/zigux/check-phase7-make-wrapper.py`
 - `make -C zigux phase7-validate`
 
