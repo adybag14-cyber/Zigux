@@ -50,6 +50,29 @@ The survey manifest now records:
 
 This keeps the lane concrete and reviewable without overstating progress: the starter helper is real, but most of the config and registration surface from `virtio_input.c` remains intentionally out of scope.
 
+## Freeze Boundary
+
+- `PHASE10_FREEZE_MAP=Documentation/zigux/freeze-map.md`
+- `PHASE10_FREEZE_BOUNDARY_STATUS=aligned`
+- `PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=yes`
+- `PHASE10_ARCHITECTURE_COUNCIL_REOPEN_ATTACHED=no`
+- `PHASE10_FORBIDDEN_TRANSPORT_CLAIMS=queue_setup_reset_paths,irq_parity,dma_paths,input_registration_lifecycle,probe_remove_lifecycle`
+
+The roadmap keeps this lane inside `drivers/virtio/*.zig`, while the freeze map still keeps the deep-core anchors in C and the study-only transport-adjacent anchors in the separate Phase 14 family:
+
+- `kernel/sched/core.c`
+- `mm/page_alloc.c`
+- `kernel/rcu/tree.c`
+- `net/core/skbuff.c`
+- `kernel/workqueue.c`
+- `kernel/trace/ring_buffer.c`
+
+This input survey therefore records an aligned freeze-boundary reading rather than a status-change request:
+
+- no Architecture Council reopen request is attached to this Phase 10 input lane
+- no parity scorecard entry here reopens `kernel/workqueue.c` or `kernel/trace/ring_buffer.c`
+- the current lane stays limited to driver-local lab validation under `drivers/virtio/*.zig` and does not use the landed probe-preflight helper as a pretext for transport-backed registration, IRQ, DMA, or probe or remove claims
+
 ## Non-goals
 
 This survey slice does not yet claim:
@@ -58,6 +81,7 @@ This survey slice does not yet claim:
 - real event delivery or status completion callbacks
 - freeze, restore, remove, or reset lifecycle parity
 - MMIO-backed transport work or DMA-facing queue behavior
+- any reopen of the Phase 14 study-only anchors `kernel/workqueue.c` or `kernel/trace/ring_buffer.c`; this lane stays inside `drivers/virtio/*.zig` and does not use the landed probe-preflight helper as a pretext for broader transport claims
 
 ## Gates
 
