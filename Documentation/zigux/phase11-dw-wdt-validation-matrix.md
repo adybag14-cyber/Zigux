@@ -5,6 +5,7 @@ This document records the bounded validation matrix for the Zigux `dw_wdt` lane.
 ## Status
 
 - `PHASE11_DW_WDT_STATUS=validation_matrix_landed`
+- reviewed against live `master` `b2deef651d140045bdfb1d3675a3c18fde80de0e`
 - scope: keep the current `dw_wdt` starter honest about what is already validated, name the existing lifecycle, remove-time, failure-mode, and bounded suspend-resume evidence clearly, and avoid overclaiming platform registration, live PM callbacks, IRQ wiring, debugfs, or hardware-backed behavior before those surfaces exist in Zigux
 - current repo reality:
   - `drivers/watchdog/dw_wdt.zig`
