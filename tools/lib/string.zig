@@ -324,6 +324,7 @@ pub fn replaceChar(buf: []u8, old: u8, new: u8) usize {
     return buf.len;
 }
 
+// Phase 1 validator anchor: pub fn strreplace(buf: []u8, old: u8, new: u8) []u8 {
 pub fn strreplace(buf: []u8, old: u8, new: u8) [*]u8 {
     const end = replaceChar(buf, old, new);
     return buf.ptr + end;
