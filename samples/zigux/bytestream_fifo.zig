@@ -56,6 +56,14 @@ pub const ReplaySummary = struct {
     storage_backing: StorageBacking,
 };
 
+pub const LifecycleSummary = struct {
+    stage: SampleStage,
+    init_run_count: usize,
+    exit_run_count: usize,
+    queue_len: usize,
+    storage_backing: StorageBacking,
+};
+
 pub const BytestreamFifoSample = struct {
     const Self = @This();
 
@@ -84,6 +92,16 @@ pub const BytestreamFifoSample = struct {
 
     pub fn stage(self: *const Self) SampleStage {
         return self.stage_state;
+    }
+
+    pub fn lifecycleSummary(self: *const Self) LifecycleSummary {
+        return .{
+            .stage = self.stage(),
+            .init_run_count = self.init_runs,
+            .exit_run_count = self.exit_runs,
+            .queue_len = self.count(),
+            .storage_backing = .embedded_fixed_buffer,
+        };
     }
 
     pub fn reset(self: *Self) void {
@@ -311,11 +329,23 @@ test "bytestream fifo sample replays the Linux anchor result sequence" {
     try std.testing.expectEqual(StorageBacking.embedded_fixed_buffer, replay.storage_backing);
     try std.testing.expectEqual(SampleStage.replay_complete, sample.stage());
     try std.testing.expectEqual(@as(usize, 1), sample.init_runs);
+    const replay_lifecycle = sample.lifecycleSummary();
+    try std.testing.expectEqual(SampleStage.replay_complete, replay_lifecycle.stage);
+    try std.testing.expectEqual(@as(usize, 1), replay_lifecycle.init_run_count);
+    try std.testing.expectEqual(@as(usize, 0), replay_lifecycle.exit_run_count);
+    try std.testing.expectEqual(@as(usize, 0), replay_lifecycle.queue_len);
+    try std.testing.expectEqual(StorageBacking.embedded_fixed_buffer, replay_lifecycle.storage_backing);
 
     try sample.exit();
     try std.testing.expectEqual(SampleStage.exited, sample.stage());
     try std.testing.expectEqual(@as(usize, 0), sample.count());
     try std.testing.expectEqual(@as(usize, 1), sample.exit_runs);
+    const exited_lifecycle = sample.lifecycleSummary();
+    try std.testing.expectEqual(SampleStage.exited, exited_lifecycle.stage);
+    try std.testing.expectEqual(@as(usize, 1), exited_lifecycle.init_run_count);
+    try std.testing.expectEqual(@as(usize, 1), exited_lifecycle.exit_run_count);
+    try std.testing.expectEqual(@as(usize, 0), exited_lifecycle.queue_len);
+    try std.testing.expectEqual(StorageBacking.embedded_fixed_buffer, exited_lifecycle.storage_backing);
 }
 
 test "bytestream fifo sample keeps helper boundaries explicit" {
