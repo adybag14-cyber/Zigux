@@ -328,6 +328,31 @@ def run_self_test() -> int:
         )
         survey_path.write_text(original_survey, encoding="utf-8")
 
+        review_checklist_path = tmp_root / REVIEW_CHECKLIST_PATH
+        original_review_checklist = review_checklist_path.read_text(encoding="utf-8")
+        review_checklist_path.write_text("", encoding="utf-8")
+        expect_missing_marker(
+            "review_checklist_alignment",
+            tmp_root,
+            f"review_checklist:{REVIEW_CHECKLIST_REQUIRED_MARKERS[0]}",
+        )
+        review_checklist_path.write_text(original_review_checklist, encoding="utf-8")
+
+        survey_path.write_text(
+            original_survey.replace(
+                "- `python3 scripts/zigux/check-phase9-loader-substrate-plan.py --self-test`",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "survey_self_test_gate",
+            tmp_root,
+            "survey:- `python3 scripts/zigux/check-phase9-loader-substrate-plan.py --self-test`",
+        )
+        survey_path.write_text(original_survey, encoding="utf-8")
+
         manifest_path = tmp_root / MANIFEST_PATH
         original_manifest = manifest_path.read_text(encoding="utf-8")
         manifest = json.loads(original_manifest)
@@ -355,9 +380,10 @@ def run_self_test() -> int:
             tmp_root,
             "substrate_plan:surveyed_commit_mismatch",
         )
+        substrate_plan_path.write_text(original_substrate_plan, encoding="utf-8")
 
     print("PHASE9_LOADER_SUBSTRATE_PLAN_SELF_TEST=pass")
-    print("PHASE9_LOADER_SUBSTRATE_PLAN_SELF_TEST_CASE_COUNT=4")
+    print("PHASE9_LOADER_SUBSTRATE_PLAN_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
