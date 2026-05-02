@@ -15,6 +15,7 @@ SURVEY_PATH = "Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.m
 MANIFEST_PATH = "zigux/tests/runtime_module_metadata_manifest.json"
 SURVEY_TEST_PATH = "zigux/tests/runtime_module_metadata_survey.zig"
 CHECKER_PATH = "scripts/zigux/check-phase9-module-metadata-packet.py"
+MAKEFILE_PATH = "zigux/Makefile"
 PHASE9_BUILD_PATH = "zigux/tests/phase9_build.zig"
 RUNTIME_LOADER_PATH = "zigux/kernel/runtime_loader.zig"
 TESTS_README_PATH = "zigux/tests/README.md"
@@ -28,6 +29,7 @@ REQUIRED_FILES = [
     MANIFEST_PATH,
     SURVEY_TEST_PATH,
     CHECKER_PATH,
+    MAKEFILE_PATH,
     PHASE9_BUILD_PATH,
     RUNTIME_LOADER_PATH,
     TESTS_README_PATH,
@@ -69,6 +71,13 @@ SURVEY_REQUIRED_MARKERS = [
     "- `make -C zigux phase9-validate`",
     "- `zig build test --build-file zigux/tests/phase9_build.zig --summary all`",
     "- `zig test zigux/tests/runtime_module_metadata_survey.zig`",
+    "- `make -C zigux phase9-module-metadata-survey`",
+]
+
+MAKEFILE_REQUIRED_MARKERS = [
+    "PHONY += phase9-validate phase9-test phase9-loader-gap-survey phase9-non-owner-boundary-survey phase9-module-metadata-survey phase9-kretprobe-survey phase9-trace-events-survey phase9",
+    "phase9-module-metadata-survey:",
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_module_metadata_survey.zig\n",
 ]
 
 PHASE9_BUILD_REQUIRED_MARKERS = [
@@ -331,6 +340,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
 
     survey_text = read_text(root, SURVEY_PATH)
     survey_test_text = read_text(root, SURVEY_TEST_PATH)
+    makefile_text = read_text(root, MAKEFILE_PATH)
     phase9_build_text = read_text(root, PHASE9_BUILD_PATH)
     runtime_loader_text = read_text(root, RUNTIME_LOADER_PATH)
     tests_readme_text = read_text(root, TESTS_README_PATH)
@@ -344,6 +354,9 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     for marker in SURVEY_REQUIRED_MARKERS:
         if marker not in survey_text:
             failures.append(f"survey:{marker}")
+    for marker in MAKEFILE_REQUIRED_MARKERS:
+        if marker not in makefile_text:
+            failures.append(f"makefile:{marker}")
     for marker in PHASE9_BUILD_REQUIRED_MARKERS:
         if marker not in phase9_build_text:
             failures.append(f"phase9_build:{marker}")
@@ -387,6 +400,7 @@ def write_fixture_tree(root: Path) -> None:
     (root / "zigux/tests").mkdir(parents=True, exist_ok=True)
     (root / "scripts/zigux").mkdir(parents=True, exist_ok=True)
     (root / "zigux/kernel").mkdir(parents=True, exist_ok=True)
+    (root / "zigux").mkdir(parents=True, exist_ok=True)
     (root / "samples/zigux").mkdir(parents=True, exist_ok=True)
 
     commit = "949994db4046ec70abf044d1b2ea874fde9bc4a6"
@@ -445,7 +459,7 @@ def write_fixture_tree(root: Path) -> None:
                 "ModuleDescriptor keeps requires_runtime_substrate and provides_selftest_hook explicit.",
                 "RuntimeLoadRequest keeps module_name, command_name, entry_symbol, exit_symbol, handoff_stage, and allocator_handoff explicit.",
                 "The current survey packet is pinned to `master` commit `949994db4046ec70abf044d1b2ea874fde9bc4a6`.",
-                "The shared runtime loader currently exposes three tagged loader lanes: `atomic64`, `bitmap`, and `kretprobe`.",
+                "the shared runtime loader currently exposes three tagged loader lanes: `atomic64`, `bitmap`, and `kretprobe`.",
                 "four landed loader-plan files now stay at `samples/zigux/runtime_atomic64_loader.zig`, `samples/zigux/runtime_bitmap_loader.zig`, `samples/zigux/runtime_kretprobe_loader.zig`, and `samples/zigux/runtime_trace_events_loader.zig`.",
                 "The dedicated `samples/zigux/runtime_trace_events_loader.zig` scaffold is now landed too, but it still stops outside that shared `RuntimeLoadRequest` union.",
                 "The packet names MODULE_INFO(), MODULE_ALIAS(), .modinfo, modules.alias, modules.order, modules.builtin, Module.symvers, and scripts/depmod.sh directly.",
@@ -464,6 +478,7 @@ def write_fixture_tree(root: Path) -> None:
                 "",
                 "4. run the focused metadata survey replay",
                 "- `zig test zigux/tests/runtime_module_metadata_survey.zig`",
+                "- `make -C zigux phase9-module-metadata-survey`",
                 "",
                 "5. run the shared convenience target",
                 "- `make -C zigux phase9-validate`",
@@ -510,6 +525,18 @@ def write_fixture_tree(root: Path) -> None:
     )
     (root / CHECKER_PATH).write_text(
         "self checker fixture marker\n",
+        encoding="utf-8",
+    )
+    (root / MAKEFILE_PATH).write_text(
+        "\n".join(
+            [
+                "PHONY += phase9-validate phase9-test phase9-loader-gap-survey phase9-non-owner-boundary-survey phase9-module-metadata-survey phase9-kretprobe-survey phase9-trace-events-survey phase9",
+                "",
+                "phase9-module-metadata-survey:",
+                "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_module_metadata_survey.zig",
+            ]
+        )
+        + "\n",
         encoding="utf-8",
     )
     (root / PHASE9_BUILD_PATH).write_text(
@@ -745,6 +772,53 @@ def run_self_test() -> int:
         )
         survey_path.write_text(original_survey, encoding="utf-8")
 
+        makefile_path = tmp_root / MAKEFILE_PATH
+        original_makefile = makefile_path.read_text(encoding="utf-8")
+        makefile_path.write_text(
+            original_makefile.replace(
+                "phase9-module-metadata-survey:\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "makefile_metadata_target",
+            tmp_root,
+            "makefile:phase9-module-metadata-survey:",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        makefile_path.write_text(
+            original_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_module_metadata_survey.zig\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "makefile_metadata_command",
+            tmp_root,
+            "makefile:\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_module_metadata_survey.zig\n",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        survey_path.write_text(
+            original_survey.replace(
+                "- `make -C zigux phase9-module-metadata-survey`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "survey_make_target_gate",
+            tmp_root,
+            "survey:- `make -C zigux phase9-module-metadata-survey`",
+        )
+        survey_path.write_text(original_survey, encoding="utf-8")
+
         tests_readme_path = tmp_root / TESTS_README_PATH
         original_tests_readme = tests_readme_path.read_text(encoding="utf-8")
         tests_readme_path.write_text(
@@ -793,7 +867,7 @@ def run_self_test() -> int:
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
     print("PHASE9_MODULE_METADATA_PACKET_SELF_TEST=pass")
-    print("PHASE9_MODULE_METADATA_PACKET_SELF_TEST_CASE_COUNT=10")
+    print("PHASE9_MODULE_METADATA_PACKET_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
@@ -835,6 +909,7 @@ def main() -> int:
 
     required_marker_count = (
         len(SURVEY_REQUIRED_MARKERS)
+        + len(MAKEFILE_REQUIRED_MARKERS)
         + len(PHASE9_BUILD_REQUIRED_MARKERS)
         + len(SURVEY_TEST_REQUIRED_MARKERS)
         + len(RUNTIME_LOADER_REQUIRED_MARKERS)
