@@ -122,6 +122,14 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
     try std.testing.expect(std.mem.indexOf(u8, build_file, "phase12-virtio-net-syntax-lab-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_file, "run_phase12_virtio_net_syntax_lab_tests.step") != null);
     try std.testing.expect(std.mem.indexOf(u8, syntax_lab_file, "const virtio_net = @import(\"virtio_net\");") != null);
+    try std.testing.expect(std.mem.indexOf(u8, syntax_lab_file, "virtio_net.ModuleDescriptor") != null);
+    try std.testing.expect(std.mem.indexOf(u8, syntax_lab_file, "virtio_net.RecoveryAction") != null);
+    try std.testing.expect(std.mem.indexOf(u8, syntax_lab_file, "virtio_net.QueueFallbackReason") != null);
+    try std.testing.expect(std.mem.indexOf(u8, syntax_lab_file, "virtio_net.RssSummary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, syntax_lab_file, "virtio_net.ProbeRequest") != null);
+    try std.testing.expect(std.mem.indexOf(u8, syntax_lab_file, "virtio_net.ProbeSnapshot") != null);
+    try std.testing.expect(std.mem.indexOf(u8, syntax_lab_file, "virtio_net.QueueRecoverySummary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, syntax_lab_file, "virtio_net.QueueResumeSummary") != null);
     try std.testing.expect(std.mem.indexOf(u8, syntax_lab_file, "VirtioNetProbeLab.descriptor()") != null);
     try std.testing.expect(std.mem.indexOf(u8, syntax_lab_file, "QueueResumeScope.data_control_and_rss") != null);
     try std.testing.expect(std.mem.indexOf(u8, syntax_lab_file, "HeaderShape.hash_report_tunnel") != null);
@@ -299,6 +307,7 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "bounded mergeable-refill follow-up") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "syntax-lab compile smoke") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-virtio-net-syntax-lab-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "descriptor, request, snapshot, queue-recovery, queue-resume, and refill review types") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "still-blocked `phase12-virtio-net-runtime-data-path`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig test zigux/tests/phase12_virtio_net_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "first rollback and drift check before broader shared Phase 12 validation") != null);
