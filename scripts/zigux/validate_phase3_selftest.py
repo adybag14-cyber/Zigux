@@ -5,7 +5,7 @@ import tempfile
 from dataclasses import replace
 from pathlib import Path
 
-from phase3_catalog import Phase3Paths, discover_phase3_slices
+from phase3_catalog import Phase3Paths, Phase3Slice, discover_phase3_slices
 from phase3_check_lib import render_wrapper_stub, shared_runner_gate_for_slug
 from validate_phase3_core import (
     ABI_REVIEW_CHECKLIST_MARKERS,
@@ -19,6 +19,7 @@ from validate_phase3_core import (
     ABI_LOW_LEVEL_SURVEY_CHECK_REL,
     ABI_POLICY_UNSAFE_BUILD_FILE_REL,
     BUILD_FILE_REL,
+    _validate_build_smoke,
     build_smoke_commands,
     select_slices,
     validate_export_uapi_boundary,
@@ -137,6 +138,7 @@ def run_self_test() -> int:
         abi_entry = replace(entries[0], slug="abi", build_step="phase3-dump")
         assert build_smoke_commands(abi_entry) == (
             ("phase3-dump", BUILD_FILE_REL),
+            ("phase3-test", BUILD_FILE_REL),
             ("phase3-low-level-wrappers-test", ABI_LOW_LEVEL_BUILD_FILE_REL),
             ("phase3-export-uapi-test", ABI_EXPORT_UAPI_BUILD_FILE_REL),
             ("phase3-policy-unsafe-test", ABI_POLICY_UNSAFE_BUILD_FILE_REL),
@@ -150,6 +152,54 @@ def run_self_test() -> int:
             check_all_wrappers=False,
             zig_path=None,
         ) == []
+        build_log = root / "zig-build-smoke.log"
+        fake_zig = root / "fake-zig.sh"
+        fake_zig.write_text(
+            "\n".join(
+                [
+                    "#!/bin/sh",
+                    f'printf "%s\\n" "$*" >> "{build_log}"',
+                    "exit 0",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        fake_zig.chmod(0o755)
+        for rel in (
+            "zigux/tests/build.zig",
+            "zigux/tests/phase3_export_uapi_build.zig",
+            "zigux/tests/phase3_low_level_wrappers_build.zig",
+            "zigux/tests/phase3_policy_unsafe_build.zig",
+        ):
+            target = root / rel
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text("// build smoke fixture\n", encoding="utf-8", newline="\n")
+        abi_build_entry = Phase3Slice(
+            root=root,
+            slug="abi",
+            description="ABI layout",
+            build_step="phase3-dump",
+            doc_path=paths.docs_dir / "phase3-alpha-slice.md",
+            check_script=paths.scripts_dir / "check-phase3-alpha.py",
+            dump_path=paths.tests_dir / "phase3_alpha_dump.zig",
+            fixture_dir=paths.fixtures_dir / "phase3_alpha",
+            expected_path=paths.fixtures_dir / "phase3_alpha" / "expected.json",
+            harness_path=paths.fixtures_dir / "phase3_alpha" / "phase3_alpha_c_harness.c",
+            manifest_candidates=(paths.fixtures_dir / "phase3_alpha_manifest.json",),
+            manifest_path=paths.fixtures_dir / "phase3_alpha_manifest.json",
+            interop_gate=shared_runner_gate_for_slug("abi"),
+            interop_gate_mode="shared-runner",
+        )
+        assert _validate_build_smoke(root, abi_build_entry, str(fake_zig)) == []
+        assert build_log.read_text(encoding="utf-8").splitlines() == [
+            f"build phase3-dump --build-file {root / 'zigux/tests/build.zig'}",
+            f"build phase3-test --build-file {root / 'zigux/tests/build.zig'}",
+            f"build phase3-low-level-wrappers-test --build-file {root / 'zigux/tests/phase3_low_level_wrappers_build.zig'}",
+            f"build phase3-export-uapi-test --build-file {root / 'zigux/tests/phase3_export_uapi_build.zig'}",
+            f"build phase3-policy-unsafe-test --build-file {root / 'zigux/tests/phase3_policy_unsafe_build.zig'}",
+        ]
 
         _write_phase3_abi_fixture(paths)
         abi_entries = discover_phase3_slices(paths)
