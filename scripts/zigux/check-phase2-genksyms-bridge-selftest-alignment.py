@@ -403,6 +403,23 @@ def run_self_test() -> int:
         )
         clone_fixture_root(root)
 
+        makefile_path = root / REQUIRED_FILES["makefile"]
+        original = makefile_path.read_text(encoding="utf-8")
+        write(
+            makefile_path,
+            original.replace(
+                "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test\n",
+                "",
+                1,
+            ),
+        )
+        expect_issue(
+            "makefile_tools_count",
+            root,
+            "makefile_tools:scripts/zigux/check-genksyms-bridge.py --self-test:count=0:expected=1",
+        )
+        clone_fixture_root(root)
+
         cases_path = root / REQUIRED_FILES["cases"]
         payload = json.loads(cases_path.read_text(encoding="utf-8"))
         payload["cases"][11]["argv"] = ["--help"]
@@ -410,7 +427,7 @@ def run_self_test() -> int:
         expect_issue("case_sentinel", root, "cases:help:argv=['--hel']")
 
     print("PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=8")
+    print("PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
