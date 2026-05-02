@@ -469,6 +469,66 @@ test "phase10 virtio input records queue-callback preflight once registration an
     try std.testing.expect(summary.ready_for_queue_callback);
 }
 
+test "phase10 virtio input records probe preflight once registration and queue provisioning converge" {
+    var device = try virtio_input.VirtioInputLab.init("tablet", "serial-15", 15, null);
+
+    try std.testing.expectError(
+        error.CapabilityConfigNotConfigured,
+        device.probePreflightSummary(),
+    );
+
+    try device.configureConfigBitmap(.prop_bits, 0, &[_]u16{0});
+    try device.configureConfigBitmap(.ev_bits, virtio_input.ev_abs, &[_]u16{ 0x00, 0x01 });
+    try device.configureAbsInfo(0x00, .{
+        .minimum = -2048,
+        .maximum = 2047,
+        .resolution = 32,
+    });
+    try device.configureAbsInfo(0x01, .{
+        .minimum = 0,
+        .maximum = 4095,
+        .resolution = 48,
+    });
+
+    var summary = try device.probePreflightSummary();
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_input.c", summary.anchor);
+    try std.testing.expectEqual(@as(usize, 6), summary.supported_select_count);
+    try std.testing.expect(summary.identity_ready);
+    try std.testing.expect(summary.capability_ready);
+    try std.testing.expect(summary.registration_ready);
+    try std.testing.expect(!summary.event_queue_configured);
+    try std.testing.expect(!summary.status_queue_configured);
+    try std.testing.expect(!summary.event_buffers_ready);
+    try std.testing.expect(!summary.device_ready);
+    try std.testing.expect(!summary.ready_for_probe_handoff);
+
+    try device.configureEventQueue(16);
+    try device.configureStatusQueue(8);
+
+    summary = try device.probePreflightSummary();
+    try std.testing.expect(summary.event_queue_configured);
+    try std.testing.expect(summary.status_queue_configured);
+    try std.testing.expect(!summary.event_buffers_ready);
+    try std.testing.expect(!summary.device_ready);
+    try std.testing.expect(!summary.ready_for_probe_handoff);
+
+    _ = try device.fillEventBuffers();
+
+    summary = try device.probePreflightSummary();
+    try std.testing.expect(summary.event_buffers_ready);
+    try std.testing.expect(!summary.device_ready);
+    try std.testing.expect(!summary.ready_for_probe_handoff);
+
+    try device.markReady();
+
+    summary = try device.probePreflightSummary();
+    try std.testing.expect(summary.event_queue_configured);
+    try std.testing.expect(summary.status_queue_configured);
+    try std.testing.expect(summary.event_buffers_ready);
+    try std.testing.expect(summary.device_ready);
+    try std.testing.expect(summary.ready_for_probe_handoff);
+}
+
 test "phase10 virtio input reset clears queue-callback preflight readiness for rollback validation" {
     var device = try virtio_input.VirtioInputLab.init("tablet", "serial-14", 14, null);
 
