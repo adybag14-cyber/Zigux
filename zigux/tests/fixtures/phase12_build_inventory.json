@@ -6,6 +6,7 @@
     "phase12-virtio-net-survey-tests",
     "phase12-virtio-net-syntax-lab-tests",
     "phase12-virtio-scsi-survey-tests",
+    "phase12-raw-github-coverage-survey-tests",
     "phase12-libbpf-segment-survey-tests",
     "phase12-libbpf-reviewability-tests",
     "phase12-virtio-scsi-tests"
@@ -18,6 +19,7 @@
     "run_phase12_virtio_net_survey_tests",
     "run_phase12_virtio_net_syntax_lab_tests",
     "run_phase12_virtio_scsi_survey_tests",
+    "run_phase12_raw_github_coverage_survey_tests",
     "run_phase12_libbpf_segments_tests",
     "run_phase12_libbpf_reviewability_tests"
   ],
@@ -69,6 +71,10 @@
     {
       "module": "phase12_virtio_scsi_survey_module",
       "path": "phase12_virtio_scsi_survey.zig"
+    },
+    {
+      "module": "phase12_raw_github_coverage_survey_module",
+      "path": "phase12_raw_github_coverage_survey.zig"
     },
     {
       "module": "phase12_libbpf_segments_module",
@@ -182,6 +188,10 @@
       "root_module": "phase12_virtio_scsi_survey_module"
     },
     {
+      "test": "phase12-raw-github-coverage-survey-tests",
+      "root_module": "phase12_raw_github_coverage_survey_module"
+    },
+    {
       "test": "phase12-libbpf-segment-survey-tests",
       "root_module": "phase12_libbpf_segments_module"
     },
@@ -194,9 +204,9 @@
       "root_module": "phase12_virtio_scsi_module"
     }
   ],
-  "expected_step_count": 19,
-  "expected_test_count": 55,
-  "expected_summary_line": "Build Summary: 19/19 steps succeeded; 55/55 tests passed",
+  "expected_step_count": 21,
+  "expected_test_count": 56,
+  "expected_summary_line": "Build Summary: 21/21 steps succeeded; 56/56 tests passed",
   "forbidden_markers": [],
   "dedicated_survey_replays": []
 }
