@@ -56,6 +56,12 @@ pub fn main(init: std.process.Init) !void {
     try writer.print("{d}", .{@intFromEnum(abi.UnsafeScope.volatile_mmio)});
     try writer.writeAll(",\"unsafe_scope_raw_pointer_bridge\":");
     try writer.print("{d}", .{@intFromEnum(abi.UnsafeScope.raw_pointer_bridge)});
+    try writer.writeAll(",\"minor_alloc_flag_truncated\":");
+    try writer.print("{d}", .{abi.MINOR_ALLOC_FLAG_TRUNCATED});
+    try writer.writeAll(",\"minor_alloc_flag_found\":");
+    try writer.print("{d}", .{abi.MINOR_ALLOC_FLAG_FOUND});
+    try writer.writeAll(",\"minor_alloc_flag_exhausted\":");
+    try writer.print("{d}", .{abi.MINOR_ALLOC_FLAG_EXHAUSTED});
     try writer.writeAll("},\"structs\":{");
     try writeStructLayout(writer, "zigux_boundary_header", abi.BoundaryHeader, true);
     try writeStructLayout(writer, "zigux_export_status", abi.ExportStatus, true);
