@@ -201,6 +201,8 @@ def main() -> int:
 
     c_lines = sorted_lines(c_run.stdout)
     zig_lines = sorted_lines(zig_run.stdout)
+    validate_expected_surface(c_lines, "c")
+    validate_expected_surface(zig_lines, "zig")
 
     if c_lines != zig_lines:
         print("PHASE6_BASE64_C_PARITY=fail")
