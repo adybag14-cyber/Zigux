@@ -137,6 +137,13 @@ The honest Phase 14 move here is therefore not to start a `ring_buffer.zig` file
 - `tracer_alloc_buffers()` wires that same path into `cpuhp_setup_state_multi(CPUHP_TRACE_RB_PREPARE, "trace/RB:prepare", trace_rb_cpu_prepare, NULL)`, which keeps hotplug allocation, publication ordering, and later instance teardown inside one tracing-core control surface rather than a wrapper-safe helper seam.
 - Because offline CPUs keep their old buffers and later online transitions reuse the same contract, the honest Phase 14 posture is still stay-in-C evidence only: a future Zig bridge should not imply independent ownership of per-CPU hotplug churn, retained unread data, or cross-CPU publication ordering.
 
+## Attached toolchain fallback guidance
+
+- This anchor-local survey still rides the shared Phase 14 validator and build entrypoints; only the Zig binary changes when `zig` is not on `PATH`.
+- Use `make -C zigux phase14-validate PYTHON=python3 ZIG=<attached-zig-path>` before replaying the shared bundle.
+- Use `<attached-zig-path> build test --build-file zigux/tests/phase14_build.zig --summary all` for the direct shared build replay that includes this survey.
+- Use `make -C zigux phase14 ZIG=<attached-zig-path>` for the wrapper path when the mounted toolchain is the only Zig available.
+
 ## Recorded gaps
 
 The current lane state is:
@@ -182,6 +189,11 @@ This survey slice does not claim:
 
 2. run the convenience target
 - `make -C zigux phase14`
+
+3. run the attached-toolchain fallback path when `zig` is not on `PATH`
+- `make -C zigux phase14-validate PYTHON=python3 ZIG=<attached-zig-path>`
+- `<attached-zig-path> build test --build-file zigux/tests/phase14_build.zig --summary all`
+- `make -C zigux phase14 ZIG=<attached-zig-path>`
 
 ## Next bounded step
 
