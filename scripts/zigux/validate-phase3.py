@@ -150,7 +150,7 @@ def main() -> int:
     parser.add_argument("--slug", action="append", default=[], help="Only validate the named Phase 3 slug. Repeat to validate more than one.")
     parser.add_argument("--check-artifact-diff", action="store_true", help="Also validate the generated Current Phase 3 use section.")
     parser.add_argument("--check-build-smoke", action="store_true", help="Also run focused Zig build smoke checks for the selected Phase 3 slices.")
-    parser.add_argument("--check-build-root-drift", action="store_true", help="Also scan zigux/tests/build.zig for missing root_source_file targets.")
+    parser.add_argument("--check-build-root-drift", action="store_true", help="Deprecated compatibility flag; build-root drift checks now run by default.")
     parser.add_argument("--check-slug-sanity", action="store_true", help="Also audit discovered Phase 3 slugs for naming drift.")
     parser.add_argument("--skip-obsolete-wrapper-check", action="store_true", help="Skip the stale wrapper-file scan.")
     parser.add_argument("--zig", help="Explicit zig executable path for --check-build-smoke runs.")
@@ -197,14 +197,13 @@ def main() -> int:
                 issue_prefix,
             )
         )
-    if args.check_build_root_drift:
-        issues.extend(
-            _collect_script_validation_issues(
-                BUILD_ROOT_DRIFT_SCRIPT[0],
-                BUILD_ROOT_DRIFT_SCRIPT[1],
-                BUILD_ROOT_DRIFT_SCRIPT[2],
-            )
+    issues.extend(
+        _collect_script_validation_issues(
+            BUILD_ROOT_DRIFT_SCRIPT[0],
+            BUILD_ROOT_DRIFT_SCRIPT[1],
+            BUILD_ROOT_DRIFT_SCRIPT[2],
         )
+    )
     if issues:
         print("PHASE3_VALIDATION=fail")
         for issue in issues:
