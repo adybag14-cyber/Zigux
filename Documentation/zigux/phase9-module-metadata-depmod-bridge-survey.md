@@ -121,6 +121,8 @@ That is more honest than counting starter descriptors as if they already closed 
 5. run the shared convenience target
 - `make -C zigux phase9-validate`
 
+The shared tests-root guidance should keep this dedicated metadata checker explicit beside `scripts/zigux/validate-phase9.py` and `make -C zigux phase9-validate` so the bounded review route stays visible outside this note too.
+
 ## Non-goals
 
 This slice does not claim:
