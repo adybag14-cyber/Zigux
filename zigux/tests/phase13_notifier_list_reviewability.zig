@@ -7,6 +7,7 @@ const SurveySummary = struct {
     preexisting_hlist_abi_present: bool,
     preexisting_list_view_present: bool,
     preexisting_hlist_view_present: bool,
+    preexisting_list_helper_api_companion_present: bool,
     preexisting_chrdev_notify_plan_present: bool,
     preexisting_phase11_hvc_header_parity_present: bool,
     preexisting_generic_notifier_header_anchor_present: bool,
@@ -96,7 +97,8 @@ test "phase13 notifier/list survey records the landed read-only generic notifier
     try std.testing.expect(manifest.survey_summary.preexisting_generic_notifier_abi_present);
     try std.testing.expect(manifest.survey_summary.preexisting_generic_notifier_build_surface_present);
     try std.testing.expect(manifest.survey_summary.preexisting_generic_notifier_helper_present);
-    try std.testing.expectEqual(@as(usize, 14), manifest.gaps.len);
+    try std.testing.expect(manifest.survey_summary.preexisting_list_helper_api_companion_present);
+    try std.testing.expectEqual(@as(usize, 15), manifest.gaps.len);
 
     try std.testing.expect(std.mem.indexOf(u8, phase13_build, "../bindings/notifier_abi.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase13_build, "../helpers/notifier_chain_view.zig") != null);
@@ -114,7 +116,13 @@ test "phase13 notifier/list survey records the landed read-only generic notifier
     try std.testing.expect(std.mem.indexOf(u8, notifier_helper_text, "pub fn length") != null);
     try std.testing.expect(std.mem.indexOf(u8, notifier_helper_text, "pub fn summarize") != null);
     try std.testing.expect(std.mem.indexOf(u8, list_view_text, "pub fn viewFromHead") != null);
+    try std.testing.expect(std.mem.indexOf(u8, list_view_text, "pub fn isEmpty") != null);
+    try std.testing.expect(std.mem.indexOf(u8, list_view_text, "pub fn length") != null);
+    try std.testing.expect(std.mem.indexOf(u8, list_view_text, "pub fn summarize") != null);
     try std.testing.expect(std.mem.indexOf(u8, hlist_view_text, "pub fn viewFromHead") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hlist_view_text, "pub fn isEmpty") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hlist_view_text, "pub fn length") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hlist_view_text, "pub fn summarize") != null);
     try std.testing.expect(std.mem.indexOf(u8, chrdev_notify_text, "pub fn viewFromBits") != null);
     try std.testing.expect(std.mem.indexOf(u8, hvc_header_text, "struct list_head next;") != null);
     try std.testing.expect(std.mem.indexOf(u8, hvc_header_text, "notifier_add") != null);
@@ -128,6 +136,7 @@ test "phase13 notifier/list survey records the landed read-only generic notifier
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "lane key: `P13-L18`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/bindings/notifier_abi.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/helpers/notifier_chain_view.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "share the same small companion API shape") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "registration, callback execution, SRCU, and blocking notifier semantics remain out of scope") != null);
 
     var starter_landed_count: usize = 0;
@@ -135,6 +144,7 @@ test "phase13 notifier/list survey records the landed read-only generic notifier
     var preexisting_chrdev_count: usize = 0;
     var preexisting_phase11_count: usize = 0;
     var preexisting_header_count: usize = 0;
+    var found_companion_gap = false;
     for (manifest.gaps) |gap| {
         try std.testing.expect(isAllowedStatus(gap.status));
         if (std.mem.eql(u8, gap.status, "starter_landed")) starter_landed_count += 1;
@@ -142,9 +152,14 @@ test "phase13 notifier/list survey records the landed read-only generic notifier
         if (std.mem.eql(u8, gap.status, "preexisting_chrdev_surface")) preexisting_chrdev_count += 1;
         if (std.mem.eql(u8, gap.status, "preexisting_phase11_surface")) preexisting_phase11_count += 1;
         if (std.mem.eql(u8, gap.status, "preexisting_header_surface")) preexisting_header_count += 1;
+        if (std.mem.eql(u8, gap.id, "phase13-list-helper-api-companion-surface")) {
+            found_companion_gap = true;
+            try std.testing.expectEqualStrings("zigux/helpers/list_view.zig", gap.zigux_destination);
+        }
     }
+    try std.testing.expect(found_companion_gap);
     try std.testing.expectEqual(@as(usize, 5), starter_landed_count);
-    try std.testing.expectEqual(@as(usize, 3), preexisting_phase3_count);
+    try std.testing.expectEqual(@as(usize, 4), preexisting_phase3_count);
     try std.testing.expectEqual(@as(usize, 1), preexisting_chrdev_count);
     try std.testing.expectEqual(@as(usize, 1), preexisting_phase11_count);
     try std.testing.expectEqual(@as(usize, 4), preexisting_header_count);
