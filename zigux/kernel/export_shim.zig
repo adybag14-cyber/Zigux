@@ -10,6 +10,10 @@ pub fn header(flags: u16) abi.BoundaryHeader {
     return canonicalHeader(flags);
 }
 
+pub fn canonicalizeHeader(boundary_header: abi.BoundaryHeader) ?abi.BoundaryHeader {
+    return uapi_version.canonicalizeHeader(boundary_header);
+}
+
 pub fn isCompatibleHeader(boundary_header: abi.BoundaryHeader) bool {
     return uapi_version.isCompatible(boundary_header);
 }
@@ -103,4 +107,15 @@ test "phase3 export shim separates canonical headers from broader compatibility"
     };
     try std.testing.expect(!isCanonicalHeader(future_compatible));
     try std.testing.expect(isCompatibleHeader(future_compatible));
+}
+
+test "phase3 export shim canonicalizes compatible headers back to the current shape" {
+    const canonical = canonicalHeader(0x77);
+    try std.testing.expectEqual(canonical, canonicalizeHeader(canonical).?);
+
+    const future_compatible = uapi_version.compatibleHeader(uapi_version.header_size + 8, 0x77);
+    try std.testing.expectEqual(canonical, canonicalizeHeader(future_compatible).?);
+
+    const undersized = uapi_version.compatibleHeader(uapi_version.header_size - 1, 0x77);
+    try std.testing.expect(canonicalizeHeader(undersized) == null);
 }
