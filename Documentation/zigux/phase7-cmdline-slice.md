@@ -54,10 +54,11 @@ This current slice therefore stays inside helpers that:
 4. keep the helper-only review note replay inside the shared gate
 - `zigux/tests/phase7_cmdline_survey.zig`
 
-5. check the committed C parity fixture
+5. check the committed C parity fixture and its dedicated checker self-test
+- `python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test`
 - `python3 scripts/zigux/check-phase7-cmdline-parity.py`
 
-The shared Phase 7 validator packet plus the build-inventory and make-wrapper self-tests stay the published fail-closed handoff before helper replay, while the committed cmdline parity fixture keeps the narrower helper surface externally reviewable.
+The shared Phase 7 validator packet plus the build-inventory, make-wrapper, and dedicated cmdline parity self-tests stay the published fail-closed handoff before helper replay, while the committed cmdline parity fixture keeps the narrower helper surface externally reviewable.
 
 ## Current parity surface
 
