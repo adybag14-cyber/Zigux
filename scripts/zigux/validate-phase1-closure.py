@@ -255,12 +255,38 @@ REQUIRED_EXACT_CHECKSUMS = {
 EXPECTED_MANIFEST_FIELDS = {
     "tools/lib/bitmap.zig": {
         "fixture": "zigux/tests/fixtures/phase1_helpers.json",
+        "summary": (
+            "Committed C-backed parity coverage includes allocator-backed bitmap sizing, zero-allocation state, "
+            "tail-sensitive bitwise and copy replay, range set and clear behavior, contiguous-range rendering, the "
+            "empty-bitmap buffer-preservation contract, truncation behavior that preserves the trailing terminator "
+            "slot, and the underscore allocator alias surface that now mirrors the landed Zig ownership helpers, "
+            "while direct Zig unit coverage now also keeps the tools-header bitmap_zero(), bitmap_fill(), "
+            "bitmap_copy(), bitmap_empty(), and bitmap_full() aliases aligned with the same caller-visible semantics."
+        ),
+        "unit_test_anchor": 'tools/lib/bitmap.zig:test "bitmap allocation helpers size zero fill and reset optionals"',
+        "unit_test_contract": (
+            "Direct Zig unit coverage keeps bitmapAlloc(), bitmapZalloc(), and bitmapFree() honest by proving "
+            "optional bitmap handles size through bitsToWords(), zero-filled allocation stays intact, and released "
+            "optionals reset to null."
+        ),
+        "header_alias_unit_test_anchor": 'tools/lib/bitmap.zig:test "bitmap header-style aliases preserve zero fill copy and predicate semantics"',
+        "header_alias_unit_test_contract": (
+            "Direct Zig unit coverage keeps bitmap_zero(), bitmap_fill(), bitmap_copy(), bitmap_empty(), and "
+            "bitmap_full() aligned with zero(), fill(), copy(), empty(), and full() for active-word clearing, "
+            "partial-tail fill masking, copied-tail preservation, and predicate results across the same declared "
+            "bit window."
+        ),
         "alias_unit_test_anchor": 'tools/lib/bitmap.zig:test "bitmap underscore aliases preserve bitmap helper semantics"',
         "alias_unit_test_contract": (
             "Direct Zig unit coverage keeps bitmap_weight(), bitmap_and(), bitmap_andnot(), "
             "bitmap_or(), bitmap_xor(), bitmap_equal(), bitmap_intersects(), "
             "bitmap_subset(), bitmap_set(), bitmap_clear(), and bitmap_scnprintf() aligned with the camelCase "
             "helpers across the same caller-selected bit window."
+        ),
+        "empty_unit_test_anchor": 'tools/lib/bitmap.zig:test "bitmap scnprintf leaves the caller buffer untouched for an empty bitmap"',
+        "empty_unit_test_contract": (
+            "Direct Zig unit coverage keeps bitmap_scnprintf() from mutating a non-empty caller buffer when no "
+            "bits are set, matching the committed empty-bitmap parity fixture contract."
         ),
     },
     "tools/lib/find_bit.zig": {
@@ -641,6 +667,15 @@ def run_self_test() -> int:
         manifest_path = tmp_root / "zigux" / "tests" / "fixtures" / "phase1_helper_manifest.json"
         original_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest_cases = [
+            ("bitmap_summary", "tools/lib/bitmap.zig", "summary"),
+            ("bitmap_unit_anchor", "tools/lib/bitmap.zig", "unit_test_anchor"),
+            ("bitmap_unit_contract", "tools/lib/bitmap.zig", "unit_test_contract"),
+            ("bitmap_header_alias_anchor", "tools/lib/bitmap.zig", "header_alias_unit_test_anchor"),
+            ("bitmap_header_alias_contract", "tools/lib/bitmap.zig", "header_alias_unit_test_contract"),
+            ("bitmap_alias_anchor", "tools/lib/bitmap.zig", "alias_unit_test_anchor"),
+            ("bitmap_alias_contract", "tools/lib/bitmap.zig", "alias_unit_test_contract"),
+            ("bitmap_empty_anchor", "tools/lib/bitmap.zig", "empty_unit_test_anchor"),
+            ("bitmap_empty_contract", "tools/lib/bitmap.zig", "empty_unit_test_contract"),
             ("rbtree_summary", "tools/lib/rbtree.zig", "summary"),
             ("rbtree_shared_parity_scope_note", "tools/lib/rbtree.zig", "shared_parity_scope_note"),
             ("rbtree_alias_gap_note", "tools/lib/rbtree.zig", "alias_gap_note"),
