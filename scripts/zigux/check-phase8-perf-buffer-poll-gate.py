@@ -13,6 +13,7 @@ REQUIRED_FILES = [
     ".github/workflows/zigux-bootstrap.yml",
     "Documentation/zigux/README.md",
     "Documentation/zigux/phase8-perf-buffer-poll-slice.md",
+    "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
     "scripts/zigux/README.md",
     "scripts/zigux/check-phase8-perf-buffer-poll-gate.py",
     "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
@@ -41,6 +42,16 @@ REQUIRED_MARKERS = {
         "zigux/tests/phase8_perf_buffer_poll_only_build.zig",
         "make -C zigux phase8-perf-buffer-poll-test",
         "wait-result classification",
+        "no standalone timer helper",
+        "no standalone clockevent helper",
+    ],
+    "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md": [
+        "Documentation/zigux/phase8-perf-buffer-poll-slice.md",
+        "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
+        "zigux/tests/phase8_perf_buffer_poll.zig",
+        "zigux/tests/phase8_perf_buffer_poll_only_build.zig",
+        "make -C zigux phase8-perf-buffer-poll-test",
+        "ready-buffer counts",
         "no standalone timer helper",
         "no standalone clockevent helper",
     ],
@@ -111,6 +122,17 @@ FIXTURE_TEXT = {
 - no standalone timer helper
 - no standalone clockevent helper
 """,
+    "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md": """# Phase 8 Bridge Boundary Survey
+
+- `Documentation/zigux/phase8-perf-buffer-poll-slice.md`
+- `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
+- `zigux/tests/phase8_perf_buffer_poll.zig`
+- `zigux/tests/phase8_perf_buffer_poll_only_build.zig`
+- `make -C zigux phase8-perf-buffer-poll-test`
+- ready-buffer counts
+- no standalone timer helper
+- no standalone clockevent helper
+""",
     "scripts/zigux/README.md": """# scripts/zigux
 
 - `Documentation/zigux/phase8-perf-buffer-poll-slice.md`
@@ -132,11 +154,11 @@ test \"summarizeProcessRecords keeps perf_buffer__process_records fail-fast orde
     "zigux/Makefile": """PHONY += phase8-validate phase8-exec-cmd-test phase8-help-test phase8-kallsyms-test phase8-libbpf-segments-test phase8-perf-buffer-poll-test phase8-test phase8
 
 phase8-validate:
-\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-perf-buffer-poll-gate.py --self-test
-\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-perf-buffer-poll-gate.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-perf-buffer-poll-gate.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-perf-buffer-poll-gate.py
 
 phase8-perf-buffer-poll-test:
-\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all
+	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all
 
 phase8: phase8-validate phase8-exec-cmd-test phase8-help-test phase8-kallsyms-test phase8-libbpf-segments-test phase8-perf-buffer-poll-test phase8-test
 """,
@@ -331,9 +353,27 @@ def run_self_test() -> int:
             tmp_root,
             "scripts/zigux/README.md:tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
         )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
+        bridge_boundary_path = tmp_root / "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md"
+        original_bridge_boundary = bridge_boundary_path.read_text(encoding="utf-8")
+        bridge_boundary_path.write_text(
+            original_bridge_boundary.replace(
+                "zigux/tests/phase8_perf_buffer_poll_only_build.zig",
+                "zigux/tests/phase8_perf_buffer_poll_build.zig",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "bridge_boundary_focused_build",
+            tmp_root,
+            "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md:zigux/tests/phase8_perf_buffer_poll_only_build.zig",
+        )
+        bridge_boundary_path.write_text(original_bridge_boundary, encoding="utf-8")
 
     print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST=pass")
-    print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST_CASE_COUNT=6")
+    print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
