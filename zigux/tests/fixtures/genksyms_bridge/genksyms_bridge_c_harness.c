@@ -87,7 +87,7 @@ int main(int argc, char **argv)
 			break;
 		case 'V':
 			fputs("genksyms version 2.5.60\n", stderr);
-			return 0;
+			break;
 		case 'h':
 			fputs(
 				"Usage:\n"
