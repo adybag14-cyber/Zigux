@@ -30,6 +30,7 @@ test "phase 8 perf-buffer poll docs keep the bounded wait-result helper explicit
     try expectContains(note, "normalized negative errno-or-ready-count wait results");
     try expectContains(note, "ready-buffer bookkeeping");
     try expectContains(note, "ordered `perf_buffer__process_records()` pass");
+    try expectContains(note, "cumulative processed-record count");
     try expectContains(note, "first failing ready buffer");
     try expectContains(note, "reject impossible post-wait buffer state combinations");
     try expectContains(note, "no standalone timer helper");
@@ -81,21 +82,23 @@ test "phase 8 perf-buffer poll helper normalizes observed wait results before su
 
 test "phase 8 perf-buffer poll helper keeps ready-buffer processing fail-fast below epoll parity" {
     const failure = perf_buffer_poll.summarizeProcessRecords(&.{
-        .{},
+        .{ .records_processed = 5 },
         .{ .result = -11 },
-        .{ .result = -32 },
+        .{ .result = -32, .records_processed = 9 },
     });
     try std.testing.expectEqual(@as(usize, 2), failure.attempted_count);
     try std.testing.expectEqual(@as(usize, 1), failure.completed_count);
+    try std.testing.expectEqual(@as(usize, 5), failure.processed_record_count);
     try std.testing.expectEqual(@as(?usize, 1), failure.first_error_index);
     try std.testing.expectEqual(@as(?i32, -11), failure.first_error);
 
     const success = perf_buffer_poll.summarizeProcessRecords(&.{
-        .{},
-        .{},
+        .{ .records_processed = 2 },
+        .{ .records_processed = 3 },
     });
     try std.testing.expectEqual(@as(usize, 2), success.attempted_count);
     try std.testing.expectEqual(@as(usize, 2), success.completed_count);
+    try std.testing.expectEqual(@as(usize, 5), success.processed_record_count);
     try std.testing.expectEqual(@as(?usize, null), success.first_error_index);
     try std.testing.expectEqual(@as(?i32, null), success.first_error);
 }
