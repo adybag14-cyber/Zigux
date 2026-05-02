@@ -23,6 +23,12 @@ pub const SampleFocus = enum {
     ownership_and_lifetime,
 };
 
+pub const PreviewResult = struct {
+    copied: usize,
+    total_visible: usize,
+    truncated: bool,
+};
+
 pub const SampleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
@@ -45,6 +51,7 @@ pub const ReplaySummary = struct {
     skipped_byte: u8,
     peek_value: u8,
     preview_len: usize,
+    preview_truncated: bool,
     preview_prefix: [8]u8,
     snapshot_len: usize,
     snapshot_before_final_drain: [fifo_capacity]u8,
@@ -170,6 +177,15 @@ pub const BytestreamFifoSample = struct {
         return copied;
     }
 
+    pub fn previewInto(self: *const Self, dest: []u8) PreviewResult {
+        const copied = self.snapshotInto(dest);
+        return .{
+            .copied = copied,
+            .total_visible = self.len,
+            .truncated = copied < self.len,
+        };
+    }
+
     pub fn skipByte(self: *Self) ?u8 {
         return self.popByte();
     }
@@ -209,7 +225,7 @@ pub const BytestreamFifoSample = struct {
         const peek_value = self.peekByte() orelse return error.UnexpectedPeekOnEmpty;
 
         var preview_prefix: [8]u8 = [_]u8{0} ** 8;
-        const preview_len = self.snapshotInto(preview_prefix[0..]);
+        const preview = self.previewInto(preview_prefix[0..]);
 
         var snapshot_before_final_drain: [capacity]u8 = [_]u8{0} ** capacity;
         const snapshot_len = self.snapshotInto(snapshot_before_final_drain[0..]);
@@ -233,7 +249,8 @@ pub const BytestreamFifoSample = struct {
             .requeue_count = requeue_count,
             .skipped_byte = skipped,
             .peek_value = peek_value,
-            .preview_len = preview_len,
+            .preview_len = preview.copied,
+            .preview_truncated = preview.truncated,
             .preview_prefix = preview_prefix,
             .snapshot_len = snapshot_len,
             .snapshot_before_final_drain = snapshot_before_final_drain,
@@ -319,6 +336,7 @@ test "bytestream fifo sample replays the Linux anchor result sequence" {
     try std.testing.expectEqual(@as(u8, 2), replay.skipped_byte);
     try std.testing.expectEqual(@as(u8, 3), replay.peek_value);
     try std.testing.expectEqual(@as(usize, 8), replay.preview_len);
+    try std.testing.expect(replay.preview_truncated);
     try std.testing.expectEqualSlices(u8, expected_anchor_result[0..8], replay.preview_prefix[0..]);
     try std.testing.expectEqual(@as(usize, fifo_capacity), replay.snapshot_len);
     try std.testing.expectEqualSlices(u8, expected_anchor_result[0..], replay.snapshot_before_final_drain[0..]);
@@ -356,7 +374,10 @@ test "bytestream fifo sample keeps helper boundaries explicit" {
     try std.testing.expectEqual(@as(usize, 0), sample.enqueueSlice(&.{}));
 
     var preview: [4]u8 = [_]u8{ 0xaa, 0xaa, 0xaa, 0xaa };
-    try std.testing.expectEqual(@as(usize, 0), sample.snapshotInto(preview[0..]));
+    const empty_preview = sample.previewInto(preview[0..]);
+    try std.testing.expectEqual(@as(usize, 0), empty_preview.copied);
+    try std.testing.expectEqual(@as(usize, 0), empty_preview.total_visible);
+    try std.testing.expect(!empty_preview.truncated);
     try std.testing.expectEqualSlices(u8, &.{ 0xaa, 0xaa, 0xaa, 0xaa }, preview[0..]);
 
     try sample.init();
@@ -378,7 +399,10 @@ test "bytestream fifo sample keeps helper boundaries explicit" {
     try std.testing.expectEqual(@as(usize, 2), sample.enqueueSlice(&.{ 0, 1 }));
 
     var wraparound_preview: [8]u8 = [_]u8{0} ** 8;
-    try std.testing.expectEqual(@as(usize, wraparound_preview.len), sample.snapshotInto(wraparound_preview[0..]));
+    const preview_result = sample.previewInto(wraparound_preview[0..]);
+    try std.testing.expectEqual(@as(usize, wraparound_preview.len), preview_result.copied);
+    try std.testing.expectEqual(@as(usize, 10), preview_result.total_visible);
+    try std.testing.expect(preview_result.truncated);
     try std.testing.expectEqualSlices(u8, &.{ 2, 3, 4, 5, 6, 7, 8, 9 }, wraparound_preview[0..]);
     try std.testing.expectEqual(@as(usize, 10), sample.count());
 
@@ -390,6 +414,12 @@ test "bytestream fifo sample keeps helper boundaries explicit" {
     try std.testing.expect(!sample.pushByte(255));
     try std.testing.expectEqual(@as(usize, fifo_capacity), sample.count());
     try std.testing.expectEqual(@as(?u8, 0), sample.peekByte());
+
+    var full_preview: [fifo_capacity]u8 = [_]u8{0} ** fifo_capacity;
+    const full_preview_result = sample.previewInto(full_preview[0..]);
+    try std.testing.expectEqual(@as(usize, fifo_capacity), full_preview_result.copied);
+    try std.testing.expectEqual(@as(usize, fifo_capacity), full_preview_result.total_visible);
+    try std.testing.expect(!full_preview_result.truncated);
 
     sample.reset();
     try std.testing.expectEqual(@as(usize, 5), sample.enqueueSlice("hello"));
