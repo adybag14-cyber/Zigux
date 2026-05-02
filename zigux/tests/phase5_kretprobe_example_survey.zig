@@ -82,6 +82,7 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
         }
         if (std.mem.indexOf(u8, prompt, "sample-backed survey note") != null and
             std.mem.indexOf(u8, prompt, "shared sample-root catalog") != null and
+            std.mem.indexOf(u8, prompt, "shared tests-root guide") != null and
             std.mem.indexOf(u8, prompt, "top-level Phase 5 README note") != null and
             std.mem.indexOf(u8, prompt, "shared review checklist") != null and
             std.mem.indexOf(u8, prompt, "Phase 9 runtime starter") != null)
