@@ -79,7 +79,7 @@ test "phase13 landlock ruleset manifest records the shipped helper lab and remai
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 12), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -93,6 +93,7 @@ test "phase13 landlock ruleset manifest records the shipped helper lab and remai
     var saw_merge_followup = false;
     var saw_search_followup = false;
     var saw_tree_link_followup = false;
+    var saw_lookup_followup = false;
     var saw_materialization_followup = false;
     var saw_release_followup = false;
     var saw_live_state_blocker = false;
@@ -167,6 +168,13 @@ test "phase13 landlock ruleset manifest records the shipped helper lab and remai
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rb_link_node()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rb_insert_color()") != null);
         }
+        if (std.mem.eql(u8, gap.id, "phase13-landlock-rule-lookup-followup")) {
+            saw_lookup_followup = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("security/landlock/ruleset.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "landlock_find_rule()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "root->rb_node") != null);
+        }
         if (std.mem.eql(u8, gap.id, "phase13-landlock-rule-materialization-followup")) {
             saw_materialization_followup = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
@@ -195,7 +203,7 @@ test "phase13 landlock ruleset manifest records the shipped helper lab and remai
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 11), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 12), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
@@ -207,6 +215,7 @@ test "phase13 landlock ruleset manifest records the shipped helper lab and remai
     try std.testing.expect(saw_merge_followup);
     try std.testing.expect(saw_search_followup);
     try std.testing.expect(saw_tree_link_followup);
+    try std.testing.expect(saw_lookup_followup);
     try std.testing.expect(saw_materialization_followup);
     try std.testing.expect(saw_release_followup);
     try std.testing.expect(saw_live_state_blocker);
@@ -224,6 +233,7 @@ test "phase13 landlock ruleset descriptor stays anchored to ruleset.c" {
     try std.testing.expect(descriptor.provides_rule_insertion_planning);
     try std.testing.expect(descriptor.provides_rule_tree_search_planning);
     try std.testing.expect(descriptor.provides_rule_tree_link_planning);
+    try std.testing.expect(descriptor.provides_rule_lookup_planning);
     try std.testing.expect(descriptor.provides_rule_materialization_planning);
     try std.testing.expect(descriptor.provides_rule_release_planning);
     try std.testing.expect(!descriptor.touches_live_object_trees);
@@ -302,7 +312,7 @@ test "phase13 landlock ruleset layer unmasking and insertion stay pure" {
     try std.testing.expectEqual(@as(u32, 0x3), extended.resulting_rule.layers[0].access);
 }
 
-test "phase13 landlock ruleset tree search, link, materialization, and release planners stay data-only" {
+test "phase13 landlock ruleset tree search and link planners stay data-only" {
     const search = try ruleset.RulesetHelperLab.planRuleTreeSearch(.inode, true, 20, &[_]u64{10}, 2);
     try std.testing.expectEqualStrings("security/landlock/ruleset.c", search.anchor);
     try std.testing.expectEqual(ruleset.TreeRoot.inode, search.root);
@@ -317,7 +327,37 @@ test "phase13 landlock ruleset tree search, link, materialization, and release p
     try std.testing.expect(link.performs_rb_link_node);
     try std.testing.expect(link.performs_rb_insert_color);
     try std.testing.expectEqual(@as(u32, 3), link.resulting_num_rules);
+}
 
+test "phase13 landlock ruleset lookup planner stays read-only" {
+    const empty = try ruleset.RulesetHelperLab.planRuleLookup(.inode, false, 99, &.{});
+    try std.testing.expectEqualStrings("security/landlock/ruleset.c", empty.anchor);
+    try std.testing.expectEqual(ruleset.TreeRoot.inode, empty.root);
+    try std.testing.expectEqual(@as(usize, 0), empty.search_depth);
+    try std.testing.expect(!empty.found_existing_rule);
+    try std.testing.expectEqual(@as(?u64, null), empty.matched_key_data);
+
+    const found = try ruleset.RulesetHelperLab.planRuleLookup(.net_port, true, 30, &[_]u64{ 40, 20, 30 });
+    try std.testing.expectEqual(ruleset.TreeRoot.net_port, found.root);
+    try std.testing.expectEqual(@as(usize, 3), found.search_depth);
+    try std.testing.expectEqual(ruleset.SearchDirection.left, found.search_steps[0].direction);
+    try std.testing.expectEqual(ruleset.SearchDirection.right, found.search_steps[1].direction);
+    try std.testing.expectEqual(ruleset.SearchDirection.match, found.search_steps[2].direction);
+    try std.testing.expect(found.found_existing_rule);
+    try std.testing.expectEqual(@as(?u64, 30), found.matched_key_data);
+
+    const miss = try ruleset.RulesetHelperLab.planRuleLookup(.inode, true, 25, &[_]u64{ 40, 20 });
+    try std.testing.expectEqual(@as(usize, 2), miss.search_depth);
+    try std.testing.expectEqual(ruleset.SearchDirection.left, miss.search_steps[0].direction);
+    try std.testing.expectEqual(ruleset.SearchDirection.right, miss.search_steps[1].direction);
+    try std.testing.expect(!miss.found_existing_rule);
+    try std.testing.expectEqual(@as(?u64, null), miss.matched_key_data);
+
+    try std.testing.expectError(error.MissingRootNode, ruleset.RulesetHelperLab.planRuleLookup(.inode, true, 1, &.{}));
+    try std.testing.expectError(error.UnexpectedWalkerPath, ruleset.RulesetHelperLab.planRuleLookup(.inode, false, 1, &[_]u64{1}));
+}
+
+test "phase13 landlock ruleset materialization and release planners stay data-only" {
     const materialized = try ruleset.RulesetHelperLab.planRuleMaterialization(.inode, &[_]ruleset.Layer{
         .{ .level = 1, .access = 0x1 },
     }, .{ .level = 2, .access = 0x2 });
