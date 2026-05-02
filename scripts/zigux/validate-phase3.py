@@ -13,6 +13,59 @@ from validate_phase3_header_binding_markers import (
 from validate_phase3_selftest import run_self_test
 
 
+SURVEY_VALIDATION_SCRIPTS = (
+    (
+        "validate-phase3-roadmap-gap-survey.py",
+        "PHASE3_ROADMAP_GAP_SURVEY=fail",
+        "roadmap-gap-survey-gate",
+        "missing_roadmap_anchor",
+    ),
+    (
+        "validate-phase3-rbtree-interop-survey.py",
+        "PHASE3_RBTREE_INTEROP_SURVEY=fail",
+        "rbtree-interop-survey-gate",
+        "missing_rbtree_interop_anchor",
+    ),
+    (
+        "validate-phase3-export-uapi-survey.py",
+        "PHASE3_EXPORT_UAPI_SURVEY=fail",
+        "export-uapi-survey-gate",
+        "missing_export_uapi_anchor",
+    ),
+    (
+        "validate-phase3-low-level-wrapper-survey.py",
+        "PHASE3_LOW_LEVEL_WRAPPER_SURVEY=fail",
+        "low-level-wrapper-survey-gate",
+        "missing_low_level_anchor",
+    ),
+    (
+        "validate-phase3-policy-unsafe-survey.py",
+        "PHASE3_POLICY_UNSAFE_SURVEY=fail",
+        "policy-unsafe-survey-gate",
+        "missing_policy_unsafe_anchor",
+    ),
+    (
+        "check-phase3-policy-unsafe-mmio-consumer.py",
+        "PHASE3_POLICY_UNSAFE_MMIO_CONSUMER=fail",
+        "policy-unsafe-mmio-consumer-gate",
+        "missing_mmio_policy_consumer_anchor",
+    ),
+    (
+        "check-phase3-abi-layout-packet.py",
+        "PHASE3_ABI_LAYOUT_PACKET=fail",
+        "abi-layout-packet-gate",
+        "missing_expected_struct:zigux_cpumask_view",
+    ),
+)
+
+BUILD_ROOT_DRIFT_SCRIPT = (
+    "check-phase3-build-roots.py",
+    "PHASE3_BUILD_ROOTS=fail",
+    "build-roots-gate",
+    "missing_root_source_file:../helpers/missing_plan.zig:zigux/helpers/missing_plan.zig",
+)
+
+
 def _run_script_self_test(script_name: str) -> int:
     script_path = ROOT / "scripts" / "zigux" / script_name
     result = subprocess.run(
@@ -55,56 +108,7 @@ def _collect_script_validation_issues(
 
 
 def _run_survey_aggregation_self_test() -> int:
-    cases = (
-        (
-            "validate-phase3-roadmap-gap-survey.py",
-            "PHASE3_ROADMAP_GAP_SURVEY=fail",
-            "roadmap-gap-survey-gate",
-            "missing_roadmap_anchor",
-        ),
-        (
-            "validate-phase3-rbtree-interop-survey.py",
-            "PHASE3_RBTREE_INTEROP_SURVEY=fail",
-            "rbtree-interop-survey-gate",
-            "missing_rbtree_interop_anchor",
-        ),
-        (
-            "validate-phase3-export-uapi-survey.py",
-            "PHASE3_EXPORT_UAPI_SURVEY=fail",
-            "export-uapi-survey-gate",
-            "missing_export_uapi_anchor",
-        ),
-        (
-            "validate-phase3-low-level-wrapper-survey.py",
-            "PHASE3_LOW_LEVEL_WRAPPER_SURVEY=fail",
-            "low-level-wrapper-survey-gate",
-            "missing_low_level_anchor",
-        ),
-        (
-            "validate-phase3-policy-unsafe-survey.py",
-            "PHASE3_POLICY_UNSAFE_SURVEY=fail",
-            "policy-unsafe-survey-gate",
-            "missing_policy_unsafe_anchor",
-        ),
-        (
-            "check-phase3-policy-unsafe-mmio-consumer.py",
-            "PHASE3_POLICY_UNSAFE_MMIO_CONSUMER=fail",
-            "policy-unsafe-mmio-consumer-gate",
-            "missing_mmio_policy_consumer_anchor",
-        ),
-        (
-            "check-phase3-abi-layout-packet.py",
-            "PHASE3_ABI_LAYOUT_PACKET=fail",
-            "abi-layout-packet-gate",
-            "missing_expected_struct:zigux_cpumask_view",
-        ),
-        (
-            "check-phase3-build-roots.py",
-            "PHASE3_BUILD_ROOTS=fail",
-            "build-roots-gate",
-            "missing_root_source_file:../helpers/missing_plan.zig:zigux/helpers/missing_plan.zig",
-        ),
-    )
+    cases = SURVEY_VALIDATION_SCRIPTS + (BUILD_ROOT_DRIFT_SCRIPT,)
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_survey_aggregation_") as tmp_dir:
         root = type(ROOT)(tmp_dir)
@@ -163,28 +167,11 @@ def main() -> int:
         result = _run_survey_aggregation_self_test()
         if result != 0:
             return result
-        result = _run_script_self_test("validate-phase3-roadmap-gap-survey.py")
-        if result != 0:
-            return result
-        result = _run_script_self_test("validate-phase3-rbtree-interop-survey.py")
-        if result != 0:
-            return result
-        result = _run_script_self_test("validate-phase3-export-uapi-survey.py")
-        if result != 0:
-            return result
-        result = _run_script_self_test("validate-phase3-low-level-wrapper-survey.py")
-        if result != 0:
-            return result
-        result = _run_script_self_test("validate-phase3-policy-unsafe-survey.py")
-        if result != 0:
-            return result
-        result = _run_script_self_test("check-phase3-policy-unsafe-mmio-consumer.py")
-        if result != 0:
-            return result
-        result = _run_script_self_test("check-phase3-abi-layout-packet.py")
-        if result != 0:
-            return result
-        return _run_script_self_test("check-phase3-build-roots.py")
+        for script_name, _, _, _ in SURVEY_VALIDATION_SCRIPTS:
+            result = _run_script_self_test(script_name)
+            if result != 0:
+                return result
+        return _run_script_self_test(BUILD_ROOT_DRIFT_SCRIPT[0])
 
     slices = select_slices(discover_phase3_slices(), args.slug)
     if not slices:
@@ -202,61 +189,20 @@ def main() -> int:
             zig_path=args.zig,
         )
     )
-    issues.extend(
-        _collect_script_validation_issues(
-            "validate-phase3-roadmap-gap-survey.py",
-            "PHASE3_ROADMAP_GAP_SURVEY=fail",
-            "roadmap-gap-survey-gate",
+    for script_name, failure_banner, issue_prefix, _ in SURVEY_VALIDATION_SCRIPTS:
+        issues.extend(
+            _collect_script_validation_issues(
+                script_name,
+                failure_banner,
+                issue_prefix,
+            )
         )
-    )
-    issues.extend(
-        _collect_script_validation_issues(
-            "validate-phase3-rbtree-interop-survey.py",
-            "PHASE3_RBTREE_INTEROP_SURVEY=fail",
-            "rbtree-interop-survey-gate",
-        )
-    )
-    issues.extend(
-        _collect_script_validation_issues(
-            "validate-phase3-export-uapi-survey.py",
-            "PHASE3_EXPORT_UAPI_SURVEY=fail",
-            "export-uapi-survey-gate",
-        )
-    )
-    issues.extend(
-        _collect_script_validation_issues(
-            "validate-phase3-low-level-wrapper-survey.py",
-            "PHASE3_LOW_LEVEL_WRAPPER_SURVEY=fail",
-            "low-level-wrapper-survey-gate",
-        )
-    )
-    issues.extend(
-        _collect_script_validation_issues(
-            "validate-phase3-policy-unsafe-survey.py",
-            "PHASE3_POLICY_UNSAFE_SURVEY=fail",
-            "policy-unsafe-survey-gate",
-        )
-    )
-    issues.extend(
-        _collect_script_validation_issues(
-            "check-phase3-policy-unsafe-mmio-consumer.py",
-            "PHASE3_POLICY_UNSAFE_MMIO_CONSUMER=fail",
-            "policy-unsafe-mmio-consumer-gate",
-        )
-    )
-    issues.extend(
-        _collect_script_validation_issues(
-            "check-phase3-abi-layout-packet.py",
-            "PHASE3_ABI_LAYOUT_PACKET=fail",
-            "abi-layout-packet-gate",
-        )
-    )
     if args.check_build_root_drift:
         issues.extend(
             _collect_script_validation_issues(
-                "check-phase3-build-roots.py",
-                "PHASE3_BUILD_ROOTS=fail",
-                "build-roots-gate",
+                BUILD_ROOT_DRIFT_SCRIPT[0],
+                BUILD_ROOT_DRIFT_SCRIPT[1],
+                BUILD_ROOT_DRIFT_SCRIPT[2],
             )
         )
     if issues:
