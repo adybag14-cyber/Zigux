@@ -154,6 +154,66 @@ test "phase11 hvc console keeps partial write progress distinct from stalled __h
     try std.testing.expect(stalled_write.backend_handoff_pending);
 }
 
+test "phase11 hvc console keeps attached fatal write drops distinct from detached fatal drains" {
+    var console = try hvc_console.HvcConsoleLab.init(2);
+    _ = console.instantiate(0x22);
+
+    const attached_drop = try console.summarizePollDrainOrder(.{
+        .contract = .{
+            .close = .{
+                .open_count_before_close = 1,
+            },
+        },
+        .buffered_write_len = 4,
+        .write_result = -5,
+    });
+    try std.testing.expectEqual(@as(usize, 2), attached_drop.slot_index);
+    try std.testing.expectEqual(@as(u32, 0x22), attached_drop.vtermno);
+    try std.testing.expect(attached_drop.adapter_present);
+    try std.testing.expect(attached_drop.write_drain_attempted);
+    try std.testing.expectEqual(@as(usize, 0), attached_drop.write_remaining_len);
+    try std.testing.expect(!attached_drop.write_poll_pending_after_drain);
+    try std.testing.expect(!attached_drop.write_progress_resets_timeout);
+    try std.testing.expect(!attached_drop.stalled_write_uses_min_timeout);
+    try std.testing.expect(attached_drop.tty_required_for_read_path);
+    try std.testing.expect(attached_drop.read_poll_armed_without_irq);
+    try std.testing.expect(attached_drop.read_poll_pending_after_drain);
+    try std.testing.expect(!attached_drop.read_hangup_pending);
+    try std.testing.expectEqual(@as(usize, 0), attached_drop.read_bytes_drained);
+    try std.testing.expect(attached_drop.wakeup_before_unlock);
+    try std.testing.expect(!attached_drop.flip_push_after_unlock);
+    try std.testing.expect(!attached_drop.wakeup_precedes_flip_push);
+    try std.testing.expect(attached_drop.backend_handoff_pending);
+
+    const detached_drop = try console.summarizePollDrainOrder(.{
+        .contract = .{
+            .close = .{
+                .open_count_before_close = 1,
+            },
+        },
+        .tty_attached = false,
+        .buffered_write_len = 4,
+        .write_result = -5,
+    });
+    try std.testing.expectEqual(@as(usize, 2), detached_drop.slot_index);
+    try std.testing.expectEqual(@as(u32, 0x22), detached_drop.vtermno);
+    try std.testing.expect(detached_drop.adapter_present);
+    try std.testing.expect(detached_drop.write_drain_attempted);
+    try std.testing.expectEqual(@as(usize, 0), detached_drop.write_remaining_len);
+    try std.testing.expect(!detached_drop.write_poll_pending_after_drain);
+    try std.testing.expect(!detached_drop.write_progress_resets_timeout);
+    try std.testing.expect(!detached_drop.stalled_write_uses_min_timeout);
+    try std.testing.expect(!detached_drop.tty_required_for_read_path);
+    try std.testing.expect(!detached_drop.read_poll_armed_without_irq);
+    try std.testing.expect(!detached_drop.read_poll_pending_after_drain);
+    try std.testing.expect(!detached_drop.read_hangup_pending);
+    try std.testing.expectEqual(@as(usize, 0), detached_drop.read_bytes_drained);
+    try std.testing.expect(!detached_drop.wakeup_before_unlock);
+    try std.testing.expect(!detached_drop.flip_push_after_unlock);
+    try std.testing.expect(!detached_drop.wakeup_precedes_flip_push);
+    try std.testing.expect(detached_drop.backend_handoff_pending);
+}
+
 test "phase11 hvc console keeps fully drained writes waking the tty without a preexisting wakeup flag" {
     var console = try hvc_console.HvcConsoleLab.init(3);
     _ = console.instantiate(0x33);
