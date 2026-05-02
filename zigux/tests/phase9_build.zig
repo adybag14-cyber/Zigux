@@ -285,7 +285,7 @@ pub fn build(b: *std.Build) void {
     });
     const run_runtime_loader_non_owner_boundary_survey_tests = b.addRunArtifact(runtime_loader_non_owner_boundary_survey_tests);
 
-    const test_step = b.step("test", "Run Phase 9 runtime atomic64, bitmap, trace-events, kretprobe, and module-metadata survey tests");
+    const test_step = b.step("test", "Run Phase 9 runtime atomic64, bitmap, trace-events, kretprobe, loader-gap, non-owner-boundary, and module-metadata survey tests");
     test_step.dependOn(&run_runtime_atomic64_module_tests.step);
     test_step.dependOn(&run_runtime_atomic64_loader_tests.step);
     test_step.dependOn(&run_runtime_atomic64_sample_tests.step);
