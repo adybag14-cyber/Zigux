@@ -289,6 +289,57 @@ test "phase13 devres keeps requested mapping types and unnamed pretty names" {
     }
 }
 
+test "phase13 devres plans a plain managed ioremap resource wrapper" {
+    const outcome = try devres.DevresHelperLab.planManagedIoremapResourcePlain(std.testing.allocator, .{
+        .device_name = "pcie0",
+        .resource = .{
+            .start = 0x2200,
+            .end = 0x223f,
+            .is_memory = true,
+            .nonposted = true,
+            .name = "cfg",
+        },
+    });
+
+    switch (outcome) {
+        .mapped => |plan| {
+            defer std.testing.allocator.free(plan.pretty_name);
+            try std.testing.expectEqualStrings("lib/devres.c", plan.anchor);
+            try std.testing.expectEqualStrings("pcie0 cfg", plan.pretty_name);
+            try std.testing.expectEqual(devres.IoremapType.np, plan.effective_type);
+            try std.testing.expectEqual(@as(u64, 0x40), plan.size);
+            try std.testing.expect(plan.requests_region);
+            try std.testing.expect(!plan.releases_region_on_remap_failure);
+        },
+        .err => return error.UnexpectedFailure,
+    }
+}
+
+test "phase13 devres propagates plain managed resource wrapper failures" {
+    const outcome = try devres.DevresHelperLab.planManagedIoremapResourcePlain(std.testing.allocator, .{
+        .device_name = "pcie1",
+        .resource = .{
+            .start = 0x2280,
+            .end = 0x22bf,
+            .is_memory = true,
+            .nonposted = true,
+            .name = "cfg",
+        },
+        .request_region_granted = false,
+    });
+
+    switch (outcome) {
+        .mapped => return error.ExpectedFailure,
+        .err => |failure| {
+            try std.testing.expectEqual(devres.ErrorStage.request_region, failure.stage);
+            try std.testing.expectEqual(devres.ErrorCode.busy, failure.error_code);
+            try std.testing.expectEqual(devres.IoremapType.np, failure.effective_type);
+            try std.testing.expect(failure.requests_region);
+            try std.testing.expect(!failure.releases_region_on_remap_failure);
+        },
+    }
+}
+
 test "phase13 devres plans an uncached managed ioremap resource wrapper" {
     const outcome = try devres.DevresHelperLab.planManagedIoremapResourceUc(std.testing.allocator, .{
         .device_name = "uart3",
