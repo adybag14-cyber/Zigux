@@ -56,7 +56,7 @@ SURVEY_MARKERS = [
     "phase15-docs-root-summary-alignment",
 ]
 HANDOFF_MARKERS = [
-    "PHASE15_LANE_KEY=P15-Y01",
+    "PHASE15_LANE_KEY=P15-L08",
     "## Current Handoff Surface",
     "## Open Handoff Gaps",
     "## Pending Next Steps",
@@ -78,7 +78,7 @@ BUILD_MARKERS = [
     "phase15-docs-root-reviewability-tests",
 ]
 HANDOFF_TEST_MARKERS = [
-    'try std.testing.expectEqualStrings("P15-Y01", manifest.lane_key);',
+    'try std.testing.expectEqualStrings("P15-L08", manifest.lane_key);',
     'phase15-deep-core-status-change-blocker',
     'make -C zigux phase15',
     'zig build test --build-file zigux/tests/phase15_build.zig',
@@ -159,7 +159,7 @@ if isinstance(remaining_gaps, list) and len(remaining_gaps) == 1:
 
 handoff_manifest = load_json('zigux/tests/phase15_handoff_next_steps_manifest.json')
 require(handoff_manifest.get('phase') == 'Phase 15', 'handoff_manifest:phase')
-require(handoff_manifest.get('lane_key') == 'P15-Y01', 'handoff_manifest:lane_key')
+require(handoff_manifest.get('lane_key') == 'P15-L08', 'handoff_manifest:lane_key')
 require(handoff_manifest.get('surveyed_commit') == 'b5f64cf3306b706ea93cc9d3de769d545849b2d4', 'handoff_manifest:surveyed_commit')
 handoff_repo_evidence = handoff_manifest.get('repo_evidence', {})
 require_true(handoff_repo_evidence, 'handoff_manifest:repo_evidence', [
@@ -184,7 +184,7 @@ require(isinstance(review_process_manifest.get('surveyed_commit'), str) and HEX4
 
 scorecard_manifest = load_json('zigux/tests/phase15_parity_scorecard.json')
 require(scorecard_manifest.get('phase') == 'Phase 15', 'scorecard_manifest:phase')
-require(scorecard_manifest.get('lane_key') == 'P15-L09', 'scorecard_manifest:lane_key')
+require(scorecard_manifest.get('lane_key') == 'P15-L12', 'scorecard_manifest:lane_key')
 
 if missing:
     print('PHASE15_VALIDATION=fail')
