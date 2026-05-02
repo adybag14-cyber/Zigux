@@ -63,6 +63,7 @@ SURVEY_MARKERS = [
 ]
 
 HANDOFF_MARKERS = [
+    "PHASE15_LANE_KEY=P15-Y01",
     "## Current Handoff Surface",
     "## Open Handoff Gaps",
     "## Pending Next Steps",
@@ -81,6 +82,13 @@ BUILD_MARKERS = [
     "phase15-indefinite-c-policy-tests",
     "phase15-readiness-gate-tests",
     "phase15-handoff-next-steps-tests",
+]
+
+HANDOFF_TEST_MARKERS = [
+    'try std.testing.expectEqualStrings("P15-Y01", manifest.lane_key);',
+    'phase15-docs-root-summary-drift-blocker',
+    'phase15-deep-core-status-change-blocker',
+    'make -C zigux phase15',
 ]
 
 REVIEW_PROCESS_MARKERS = [
@@ -206,6 +214,7 @@ require_markers("workflow", text(".github/workflows/zigux-bootstrap.yml"), WORKF
 require_markers("readme", text("Documentation/zigux/README.md"), README_MARKERS)
 require_markers("survey", text("Documentation/zigux/phase15-readiness-gate-survey.md"), SURVEY_MARKERS)
 require_markers("handoff", text("Documentation/zigux/phase15-handoff-next-steps-survey.md"), HANDOFF_MARKERS)
+require_markers("handoff_test", text("zigux/tests/phase15_handoff_next_steps.zig"), HANDOFF_TEST_MARKERS)
 require_markers("build", text("zigux/tests/phase15_build.zig"), BUILD_MARKERS)
 require_markers(
     "review_process",
@@ -638,7 +647,7 @@ print("PHASE15_VALIDATION=pass")
 print(f"PHASE15_REQUIRED_FILE_COUNT={len(FILES)}")
 print(
     "PHASE15_REQUIRED_MARKER_COUNT="
-    f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(README_MARKERS) + len(SURVEY_MARKERS) + len(HANDOFF_MARKERS) + len(BUILD_MARKERS)}"
+    f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(README_MARKERS) + len(SURVEY_MARKERS) + len(HANDOFF_MARKERS) + len(HANDOFF_TEST_MARKERS) + len(BUILD_MARKERS)}"
 )
 print(
     "PHASE15_REMAINING_BLOCKERS="
