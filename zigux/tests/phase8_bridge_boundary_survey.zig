@@ -1,6 +1,6 @@
 const std = @import("std");
 
-const shared_surveyed_commit = "f5a4d6990f701937b2a3bb9ae723bb6d0f27ba21";
+const shared_surveyed_commit = "e8e920a31cc814cee458d865a5f61868efc75be2";
 
 fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
