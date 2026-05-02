@@ -883,7 +883,7 @@ def run_self_test() -> int:
         if "legacy_manifest:surveyed_commit" not in missing:
             raise SystemExit("phase12-libbpf-packet:self-test:legacy_surveyed_commit_detection")
 
-        build_self_testTree(root)
+        build_self_test_tree(root)
         legacy_manifest_path = root / TRACKED_PATHS[4]
         legacy_manifest = json.loads(legacy_manifest_path.read_text(encoding="utf-8"))
         legacy_manifest["surveyed_commit"] = "g" * 40
