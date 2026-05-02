@@ -38,6 +38,7 @@ Current bootstrap helpers
 - `check-phase9-loader-substrate-plan.py`
 - `check-phase9-runtime-loader-commit-alignment.py`
 - `check-phase9-loader-non-owner-boundary.py`
+- `check-phase9-module-metadata-packet.py`
 - `validate-phase10.py`
 - `check-phase10-closure-inventory.py`
 - `validate-phase10-closure.py`
@@ -172,11 +173,12 @@ Phase 8 flow
 
 Phase 9 flow
 - `validate-phase9.py --self-test` exercises the shared runtime marker walk in a compact synthetic tree before the live runtime packet is trusted.
-- `validate-phase9.py` keeps the current runtime pilot packet aligned across `scripts/zigux/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, the four runtime survey families, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_loader_gap_survey.zig`, `zigux/tests/runtime_loader_non_owner_boundary_survey.zig`, `zigux/tests/phase9_build.zig`, `zigux/Makefile`, and the bootstrap workflow so the manifest-backed catalog, ownership map, and non-owner boundary survey stay reviewable.
-- `check-phase9-validation-flow.py`, `check-phase9-loader-substrate-plan.py`, `check-phase9-runtime-loader-commit-alignment.py`, and `check-phase9-loader-non-owner-boundary.py` keep the validator-first route, the shared loader substrate-plan packet, the shared loader surveyed-commit packet, and the Phase 2 plus Phase 3 non-owner boundary explicit before the broader Phase 9 replay claims stay green.
+- `validate-phase9.py` keeps the current runtime pilot packet aligned across `scripts/zigux/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, the four runtime survey families, the dedicated module-metadata survey packet, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_loader_gap_survey.zig`, `zigux/tests/runtime_loader_non_owner_boundary_survey.zig`, `zigux/tests/runtime_module_metadata_manifest.json`, `zigux/tests/runtime_module_metadata_survey.zig`, `zigux/tests/phase9_build.zig`, `zigux/Makefile`, and the bootstrap workflow so the manifest-backed catalog, ownership map, non-owner boundary survey, and module-metadata packet stay reviewable.
+- `check-phase9-validation-flow.py`, `check-phase9-loader-substrate-plan.py`, `check-phase9-runtime-loader-commit-alignment.py`, `check-phase9-loader-non-owner-boundary.py`, and `check-phase9-module-metadata-packet.py` keep the validator-first route, the shared loader substrate-plan packet, the shared loader surveyed-commit packet, the Phase 2 plus Phase 3 non-owner boundary, and the dedicated module-metadata plus depmod-gap packet explicit before the broader Phase 9 replay claims stay green.
 - `make -C zigux phase9-validate` is the validator-first entrypoint for the current Phase 9 flow.
 - `make -C zigux phase9` and `zig build test --build-file zigux/tests/phase9_build.zig --summary all` are the shared replay path after the validator passes.
 - `Documentation/zigux/phase9-runtime-loader-gap-survey.md` remains the shared loader-gap review note for the runtime packet.
+- `Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md`, `zigux/tests/runtime_module_metadata_manifest.json`, and `zigux/tests/runtime_module_metadata_survey.zig` keep the dedicated module-metadata and depmod-gap packet explicit beside that shared loader-gap note so the starter descriptor surface, shared `RuntimeLoadRequest` metadata fields, and still-absent `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, and `scripts/depmod.sh` surfaces stay reviewable as part of the same bounded Phase 9 evidence packet.
 - `zigux/tests/runtime_loader_non_owner_boundary_survey.zig` remains the focused replay that keeps the Phase 2 config-surface and Phase 3 export-boundary references explicit around the same runtime packet instead of letting those non-owner surfaces fade into prose-only context.
 - the current Phase 9 review surface keeps the roadmap's selftest-hook markers explicit across the shipped sample, manifest-backed survey, and shared build entrypoint.
 - the current runtime starter remains a bounded lifecycle-parity posture rather than a claim of live loadable-module execution.
