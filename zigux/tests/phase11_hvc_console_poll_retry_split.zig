@@ -1,5 +1,6 @@
 const std = @import("std");
 const hvc_console = @import("hvc_console");
+const hvc_console_sysrq = @import("../../drivers/tty/hvc/hvc_console_sysrq.zig");
 
 test "phase11 hvc console keeps irq-backed drained reads distinct when __hvc_poll can or cannot sleep" {
     var console = try hvc_console.HvcConsoleLab.init(15);
@@ -247,4 +248,77 @@ test "phase11 hvc console keeps fully drained writes waking the tty without a pr
     try std.testing.expect(!drained_write.flip_push_after_unlock);
     try std.testing.expect(!drained_write.wakeup_precedes_flip_push);
     try std.testing.expect(drained_write.backend_handoff_pending);
+}
+
+test "phase11 hvc console keeps sysrq toggle handoff distinct from literal fallback on the primary console" {
+    var console = try hvc_console.HvcConsoleLab.init(5);
+    _ = console.instantiate(0x55);
+
+    const enter_sysrq = try hvc_console_sysrq.summarizeSysrqHandoff(&console, .{
+        .is_kernel_console = true,
+        .sysrq_pressed_before = false,
+        .input_char = 0x0f,
+    });
+    try std.testing.expectEqual(@as(usize, 5), enter_sysrq.slot_index);
+    try std.testing.expectEqual(@as(u32, 0x55), enter_sysrq.vtermno);
+    try std.testing.expect(enter_sysrq.adapter_present);
+    try std.testing.expect(enter_sysrq.is_kernel_console);
+    try std.testing.expect(!enter_sysrq.sysrq_pressed_before);
+    try std.testing.expectEqual(@as(u8, 0x0f), enter_sysrq.input_char);
+    try std.testing.expect(enter_sysrq.toggles_sysrq_mode);
+    try std.testing.expect(enter_sysrq.sysrq_pressed_after);
+    try std.testing.expect(!enter_sysrq.invokes_sysrq_handler);
+    try std.testing.expect(!enter_sysrq.clears_sysrq_after_handler);
+    try std.testing.expect(!enter_sysrq.emits_literal_char);
+    try std.testing.expect(enter_sysrq.consumes_input_without_flip);
+    try std.testing.expect(enter_sysrq.keeps_tty_registration_out_of_scope);
+    try std.testing.expect(enter_sysrq.keeps_live_hypervisor_io_out_of_scope);
+    try std.testing.expect(enter_sysrq.keeps_live_sysrq_execution_out_of_scope);
+
+    const exit_sysrq = try hvc_console_sysrq.summarizeSysrqHandoff(&console, .{
+        .is_kernel_console = true,
+        .sysrq_pressed_before = true,
+        .input_char = 0x0f,
+    });
+    try std.testing.expect(exit_sysrq.toggles_sysrq_mode);
+    try std.testing.expect(!exit_sysrq.sysrq_pressed_after);
+    try std.testing.expect(!exit_sysrq.invokes_sysrq_handler);
+    try std.testing.expect(!exit_sysrq.clears_sysrq_after_handler);
+    try std.testing.expect(exit_sysrq.emits_literal_char);
+    try std.testing.expect(!exit_sysrq.consumes_input_without_flip);
+}
+
+test "phase11 hvc console keeps pending sysrq dispatch separate from ordinary poll bytes" {
+    var console = try hvc_console.HvcConsoleLab.init(6);
+    _ = console.instantiate(0x66);
+
+    const dispatch = try hvc_console_sysrq.summarizeSysrqHandoff(&console, .{
+        .is_kernel_console = true,
+        .sysrq_pressed_before = true,
+        .input_char = 'x',
+    });
+    try std.testing.expect(dispatch.is_kernel_console);
+    try std.testing.expect(dispatch.sysrq_pressed_before);
+    try std.testing.expectEqual(@as(u8, 'x'), dispatch.input_char);
+    try std.testing.expect(!dispatch.toggles_sysrq_mode);
+    try std.testing.expect(!dispatch.sysrq_pressed_after);
+    try std.testing.expect(dispatch.invokes_sysrq_handler);
+    try std.testing.expect(dispatch.clears_sysrq_after_handler);
+    try std.testing.expect(!dispatch.emits_literal_char);
+    try std.testing.expect(dispatch.consumes_input_without_flip);
+
+    const ordinary = try hvc_console_sysrq.summarizeSysrqHandoff(&console, .{
+        .is_kernel_console = false,
+        .sysrq_pressed_before = true,
+        .input_char = 'x',
+    });
+    try std.testing.expect(!ordinary.is_kernel_console);
+    try std.testing.expect(ordinary.sysrq_pressed_before);
+    try std.testing.expectEqual(@as(u8, 'x'), ordinary.input_char);
+    try std.testing.expect(!ordinary.toggles_sysrq_mode);
+    try std.testing.expect(ordinary.sysrq_pressed_after);
+    try std.testing.expect(!ordinary.invokes_sysrq_handler);
+    try std.testing.expect(!ordinary.clears_sysrq_after_handler);
+    try std.testing.expect(ordinary.emits_literal_char);
+    try std.testing.expect(!ordinary.consumes_input_without_flip);
 }
