@@ -20,10 +20,16 @@ REQUIRED_SURVEY_MARKERS = (
     "PHASE3_RBTREE_PHASE3_BOUNDARY=helper-landed-curated-c-binding-surface-still-missing",
     "PHASE3_RBTREE_NON_GOALS=no-balancing-port,no-export-shim-growth,no-uapi-growth",
     "PHASE3_RBTREE_NEXT_BOUNDED_STEP=one-curated-phase3-rbtree-boundary-record",
+    "PHASE3_RBTREE_SURVEY_GATE=python3 scripts/zigux/validate-phase3-rbtree-interop-survey.py",
+    "PHASE3_RBTREE_SHARED_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi",
+    "PHASE3_RBTREE_SHARED_MAKE_GATE=make -C zigux phase3-validate",
 )
 
 REQUIRED_SURVEY_SNIPPETS = (
     "That means the remaining Phase 3 gap is no longer “no helper exists.” The remaining gap is that current `master` still has no curated C header, bindings record, or parity fixture for a boundary-facing `rbtree` packet.",
+    "`python3 scripts/zigux/validate-phase3-rbtree-interop-survey.py` keeps this dedicated survey note, the broader `Documentation/zigux/phase3-roadmap-gap-survey.md` note, and the repo-backed evidence paths aligned",
+    "`python3 scripts/zigux/validate-phase3.py --slug abi` keeps that dedicated `rbtree` gap visible inside the shared Phase 3 ABI validation packet instead of leaving it as prose-only context",
+    "`make -C zigux phase3-validate` remains the shared wrapper entrypoint for the broader bounded ABI packet, so this survey stays reviewable through the same published Phase 3 gate",
     "no curated `rbtree` record in `include/zigux/abi.h`",
     "no matching `zigux/bindings/abi.zig` layout type for a Phase 3 `rbtree` boundary packet",
     "no C-vs-Zig parity fixture for a Phase 3 `rbtree` boundary shape",
@@ -148,6 +154,20 @@ def run_self_test() -> int:
         issues = validate(root)
         assert (
             "missing_survey_snippet:one committed parity fixture that keeps the contract reviewable without widening into a full balancing port"
+            in issues
+        )
+        survey_path.write_text(
+            "\n".join((*REQUIRED_SURVEY_MARKERS, *REQUIRED_SURVEY_SNIPPETS)) + "\n",
+            encoding="utf-8",
+        )
+
+        survey_path.write_text(
+            "\n".join((*REQUIRED_SURVEY_MARKERS[:-1], *REQUIRED_SURVEY_SNIPPETS)) + "\n",
+            encoding="utf-8",
+        )
+        issues = validate(root)
+        assert (
+            "missing_survey_marker:PHASE3_RBTREE_SHARED_MAKE_GATE=make -C zigux phase3-validate"
             in issues
         )
         survey_path.write_text(
