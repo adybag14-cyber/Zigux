@@ -39,6 +39,11 @@ pub fn main(init: std.process.Init) !void {
         );
     }
 
+    for (fixtures.carry_discipline_cases) |case| {
+        const partial = checksum.partial(case.bytes, case.seed);
+        try writer.print("carry-discipline\t{s}\t0x{x:0>4}\n", .{ case.name, checksum.fold(partial) });
+    }
+
     var payload = [_]u8{ 0x70, 0x68, 0x61, 0x73, 0x65, 0x36 };
     const old_partial = checksum.partial(&payload, 0);
     const old_word = (@as(u32, payload[0]) << 8) | payload[1];
