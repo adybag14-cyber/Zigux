@@ -6,7 +6,7 @@ This note records the current atomic, barrier, and MMIO boundary for the bounded
 
 - `PHASE3_SURVEY_PROVENANCE=packet-local-blob-first-current-head-sha-unavailable-in-connector-run`
 - `PHASE3_ATOMIC_PATH=zigux/helpers/atomic.zig`
-- `PHASE3_ATOMIC_SCOPE=load-store-exchange-compare-exchange-compare-exchange-weak-fetch-add-fetch-sub-fetch-and-fetch-or-fetch-xor`
+- `PHASE3_ATOMIC_SCOPE=load-store-exchange-compare-exchange-compare-exchange-weak-fetch-add-fetch-sub-fetch-and-fetch-or-fetch-xor-fetch-min-fetch-max`
 - `PHASE3_ATOMIC_STATUS=bounded-helper-surface-and-mismatch-replay-landed`
 - `PHASE3_ATOMIC_BLOB_SHA=d9c58b5eff8d6c28b863734df0beab0f53fae56d`
 - `PHASE3_BARRIER_PATH=zigux/helpers/barrier.zig`
@@ -48,12 +48,12 @@ This survey is anchored to packet-local blob IDs because the current connector r
 
 The current tree already carries a real bounded low-level wrapper packet:
 
-- `zigux/helpers/atomic.zig` currently limits the approved helper surface to `load`, `store`, `exchange`, `fetchAdd`, `fetchSub`, `fetchAnd`, `fetchOr`, `fetchXor`, `compareExchange`, and `compareExchangeWeak`, all parameterized by Zig atomic order rather than widening into a broader kernel-style helper family.
+- `zigux/helpers/atomic.zig` currently limits the approved helper surface to `load`, `store`, `exchange`, `fetchAdd`, `fetchSub`, `fetchAnd`, `fetchOr`, `fetchXor`, `fetchMin`, `fetchMax`, `compareExchange`, and `compareExchangeWeak`, all parameterized by Zig atomic order rather than widening into a broader kernel-style helper family.
 - `zigux/helpers/barrier.zig` currently limits the approved barrier surface to `acquire`, `release`, and `full`, each expressed through a throwaway ordered atomic probe so the helper does not keep hidden shared state.
 - `zigux/helpers/mmio.zig` currently limits the approved MMIO surface to `range`, `read8`, `read16`, `read32`, `read64`, `write8`, `write16`, `write32`, and `write64`, plus the scoped `read8`, `write8`, `read16`, `write16`, `read32`, `write32`, `read64`, and `write64` entry points, the width-specific `read8Policy`, `write8Policy`, `read16Policy`, `write16Policy`, `read32Policy`, `write32Policy`, `read64Policy`, and `write64Policy` entry points, and the generic `readScopedWithPolicy` plus `writeScopedWithPolicy` bridges that keep decoded-policy MMIO access routed back through the declared narrow unsafe layer.
 - `zigux/tests/phase3_low_level_wrappers_build.zig` and `zigux/tests/phase3_low_level_wrappers.zig` keep the atomic, barrier, and direct-plus-scoped MMIO packet reviewable on one focused compile-and-test path, and the focused build now also wires the current `interop_policy` dependency that `zigux/helpers/mmio.zig` imports.
 - `zigux/tests/phase3_policy_unsafe.zig` and `scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py` keep the decoded-policy MMIO bridge reviewable beside that focused low-level gate, so the policy-aware MMIO surface is explicit without widening the low-level wrapper lane into the broader policy-and-unsafe packet.
-- `zigux/tests/phase3_low_level_wrappers.zig` now keeps the strong and weak compare-exchange replay, barrier probe, denied-scope checks, width-specific direct and scoped 8-bit, 16-bit, 32-bit, and 64-bit MMIO coverage, misalignment failures, overflow failures, and the shared `MmioRange` layout assertion reviewable without having to infer them from the broader `phase3_abi` bundle alone.
+- `zigux/tests/phase3_low_level_wrappers.zig` now keeps the strong and weak compare-exchange replay, `fetchMin()` and `fetchMax()` replay, barrier probe, denied-scope checks, width-specific direct and scoped 8-bit, 16-bit, 32-bit, and 64-bit MMIO coverage, misalignment failures, overflow failures, and the shared `MmioRange` layout assertion reviewable without having to infer them from the broader `phase3_abi` bundle alone.
 
 This is real roadmap-backed progress.
 It is also still a deliberately narrow packet:
