@@ -11,23 +11,33 @@ ROOT = Path(__file__).resolve().parents[2]
 ARTIFACT_DIFF = ROOT / 'scripts' / 'zigux' / 'artifact_diff.py'
 
 
-def run_contract_case(args: list[str], expected_exit: int, expected_lines: list[str]) -> None:
-    completed = subprocess.run(
-        [sys.executable, str(ARTIFACT_DIFF), *args],
-        check=False,
-        capture_output=True,
-        text=True,
-        cwd=ROOT,
-    )
-    lines = completed.stdout.splitlines()
-    if completed.returncode != expected_exit:
-        raise AssertionError(
-            f'expected exit {expected_exit}, got {completed.returncode}: {lines}'
+def run_contract_case(
+    args: list[str],
+    expected_exit: int,
+    expected_lines: list[str],
+    *,
+    repeat_count: int = 1,
+) -> None:
+    if repeat_count < 1:
+        raise ValueError(f'repeat_count must be positive, got {repeat_count}')
+
+    for attempt in range(1, repeat_count + 1):
+        completed = subprocess.run(
+            [sys.executable, str(ARTIFACT_DIFF), *args],
+            check=False,
+            capture_output=True,
+            text=True,
+            cwd=ROOT,
         )
-    if lines != expected_lines:
-        raise AssertionError(f'unexpected output lines: {lines}')
-    if completed.stderr:
-        raise AssertionError(f'unexpected stderr: {completed.stderr!r}')
+        lines = completed.stdout.splitlines()
+        if completed.returncode != expected_exit:
+            raise AssertionError(
+                f'attempt {attempt}: expected exit {expected_exit}, got {completed.returncode}: {lines}'
+            )
+        if lines != expected_lines:
+            raise AssertionError(f'attempt {attempt}: unexpected output lines: {lines}')
+        if completed.stderr:
+            raise AssertionError(f'attempt {attempt}: unexpected stderr: {completed.stderr!r}')
 
 
 def main() -> int:
@@ -61,8 +71,10 @@ def main() -> int:
                 f'EXPECTED={expected}',
                 f'ACTUAL={actual}',
             ],
+            repeat_count=2,
         )
         covered_cases.append('text_pass')
+        covered_cases.append('text_pass_repeat')
 
         actual.write_text('alpha\nBETA\n', encoding='utf-8', newline='\n')
         run_contract_case(
@@ -147,8 +159,10 @@ def main() -> int:
                 f'EXPECTED={expected_json}',
                 f'ACTUAL={actual_json_mismatch}',
             ],
+            repeat_count=2,
         )
         covered_cases.append('json_mismatch')
+        covered_cases.append('json_mismatch_repeat')
 
         run_contract_case(
             ['--mode', 'json', str(missing), str(actual_json)],
@@ -300,8 +314,10 @@ def main() -> int:
                 'EXPECTED_SHA256=0051a1ffdd63accde60d9c9893094b287388cecb4fcc734a204ea5a36a5c3576',
                 'ACTUAL_SHA256=bfc83f8f1f4369ce3cfabfdff0699ae3bf7a15b89f1702b690e56c6f35f1ee94',
             ],
+            repeat_count=2,
         )
         covered_cases.append('sha256_drift')
+        covered_cases.append('sha256_drift_repeat')
 
     print('ARTIFACT_DIFF_CONTRACT=pass')
     print(f'ARTIFACT_DIFF_CONTRACT_CASE_COUNT={len(covered_cases)}')
