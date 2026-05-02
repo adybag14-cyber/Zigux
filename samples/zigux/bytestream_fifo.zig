@@ -23,6 +23,28 @@ pub const SampleFocus = enum {
     ownership_and_lifetime,
 };
 
+pub const sample_review_focus = [_]SampleFocus{
+    .bounded_fifo_order,
+    .wraparound_requeue,
+    .peek_and_skip,
+    .non_destructive_snapshot,
+    .preview_truncation,
+    .reset_and_replay,
+    .ownership_and_lifetime,
+};
+
+pub const sample_review_non_goals = [_][]const u8{
+    "procfs parity",
+    "kfifo_from_user or kfifo_to_user parity",
+    "loadable module registration",
+    "locking or blocking semantics",
+};
+
+pub const ReviewContract = struct {
+    focus: []const SampleFocus,
+    non_goals: []const []const u8,
+};
+
 pub const PreviewResult = struct {
     copied: usize,
     total_visible: usize,
@@ -90,6 +112,15 @@ pub const BytestreamFifoSample = struct {
             .requires_runtime_substrate = false,
             .provides_selfcheck = true,
             .storage_backing = .embedded_fixed_buffer,
+        };
+    }
+
+    // Keep the contributor-facing review packet discoverable in the sample so
+    // code edits do not drift away from the bounded Phase 5 docs and manifest.
+    pub fn reviewContract() ReviewContract {
+        return .{
+            .focus = &sample_review_focus,
+            .non_goals = &sample_review_non_goals,
         };
     }
 
@@ -258,15 +289,7 @@ pub const BytestreamFifoSample = struct {
             .fill_end = fill_end,
             .final_len = final_len,
             .final_sequence = final_sequence,
-            .checked_focus = &.{
-                .bounded_fifo_order,
-                .wraparound_requeue,
-                .peek_and_skip,
-                .non_destructive_snapshot,
-                .preview_truncation,
-                .reset_and_replay,
-                .ownership_and_lifetime,
-            },
+            .checked_focus = reviewContract().focus,
             .storage_backing = .embedded_fixed_buffer,
         };
     }
@@ -299,16 +322,10 @@ pub const expected_anchor_result = [_]u8{
 };
 
 test "bytestream fifo sample replays the Linux anchor result sequence" {
-    const expected_focus = [_]SampleFocus{
-        .bounded_fifo_order,
-        .wraparound_requeue,
-        .peek_and_skip,
-        .non_destructive_snapshot,
-        .preview_truncation,
-        .reset_and_replay,
-        .ownership_and_lifetime,
-    };
+    const expected_focus = sample_review_focus;
+    const expected_non_goals = sample_review_non_goals;
     const descriptor = BytestreamFifoSample.descriptor();
+    const contract = BytestreamFifoSample.reviewContract();
 
     var sample = BytestreamFifoSample{};
     try sample.init();
@@ -320,6 +337,14 @@ test "bytestream fifo sample replays the Linux anchor result sequence" {
     try std.testing.expect(descriptor.provides_selfcheck);
     try std.testing.expectEqual(StorageBacking.embedded_fixed_buffer, descriptor.storage_backing);
     try std.testing.expectEqualStrings(descriptor.anchor, replay.anchor);
+    try std.testing.expectEqual(@as(usize, expected_focus.len), contract.focus.len);
+    for (expected_focus, contract.focus) |expected, actual| {
+        try std.testing.expectEqual(expected, actual);
+    }
+    try std.testing.expectEqual(@as(usize, expected_non_goals.len), contract.non_goals.len);
+    for (expected_non_goals, contract.non_goals) |expected, actual| {
+        try std.testing.expectEqualStrings(expected, actual);
+    }
     try std.testing.expectEqual(@as(usize, expected_focus.len), replay.checked_focus.len);
     for (expected_focus, replay.checked_focus) |expected, actual| {
         try std.testing.expectEqual(expected, actual);
