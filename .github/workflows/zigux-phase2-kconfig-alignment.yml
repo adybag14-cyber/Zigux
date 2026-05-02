@@ -1,0 +1,41 @@
+name: zigux-phase2-kconfig-alignment
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - 'scripts/zigux/check-kconfig-bridge.py'
+      - 'scripts/zigux/check-phase2-kconfig-bridge-selftest-alignment.py'
+      - 'scripts/zigux/kconfig/conf_bridge.zig'
+      - 'scripts/zigux/kconfig/confdata_bridge.zig'
+      - 'zigux/tests/fixtures/kconfig_bridge/**'
+      - '.github/workflows/zigux-phase2-kconfig-alignment.yml'
+  pull_request:
+    paths:
+      - 'scripts/zigux/check-kconfig-bridge.py'
+      - 'scripts/zigux/check-phase2-kconfig-bridge-selftest-alignment.py'
+      - 'scripts/zigux/kconfig/conf_bridge.zig'
+      - 'scripts/zigux/kconfig/confdata_bridge.zig'
+      - 'zigux/tests/fixtures/kconfig_bridge/**'
+      - '.github/workflows/zigux-phase2-kconfig-alignment.yml'
+  workflow_dispatch:
+
+jobs:
+  phase2-kconfig-alignment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+        with:
+          fetch-depth: 1
+
+      - name: Setup Python
+        uses: actions/setup-python@v6.2.0
+        with:
+          python-version: '3.x'
+
+      - name: Self-test kconfig alignment checker
+        run: python3 scripts/zigux/check-phase2-kconfig-bridge-selftest-alignment.py --self-test
+
+      - name: Check Phase 2 kconfig bridge alignment
+        run: python3 scripts/zigux/check-phase2-kconfig-bridge-selftest-alignment.py
