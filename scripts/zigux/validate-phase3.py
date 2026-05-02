@@ -63,6 +63,12 @@ def _run_survey_aggregation_self_test() -> int:
             "missing_roadmap_anchor",
         ),
         (
+            "validate-phase3-rbtree-interop-survey.py",
+            "PHASE3_RBTREE_INTEROP_SURVEY=fail",
+            "rbtree-interop-survey-gate",
+            "missing_rbtree_interop_anchor",
+        ),
+        (
             "validate-phase3-export-uapi-survey.py",
             "PHASE3_EXPORT_UAPI_SURVEY=fail",
             "export-uapi-survey-gate",
@@ -141,6 +147,9 @@ def main() -> int:
         result = _run_script_self_test("validate-phase3-roadmap-gap-survey.py")
         if result != 0:
             return result
+        result = _run_script_self_test("validate-phase3-rbtree-interop-survey.py")
+        if result != 0:
+            return result
         result = _run_script_self_test("validate-phase3-export-uapi-survey.py")
         if result != 0:
             return result
@@ -170,6 +179,13 @@ def main() -> int:
             "validate-phase3-roadmap-gap-survey.py",
             "PHASE3_ROADMAP_GAP_SURVEY=fail",
             "roadmap-gap-survey-gate",
+        )
+    )
+    issues.extend(
+        _collect_script_validation_issues(
+            "validate-phase3-rbtree-interop-survey.py",
+            "PHASE3_RBTREE_INTEROP_SURVEY=fail",
+            "rbtree-interop-survey-gate",
         )
     )
     issues.extend(
