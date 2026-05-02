@@ -39,7 +39,8 @@ Without this matrix, the slice and survey named the right boundaries but did not
 
 ## Shared Replay Surface
 
-- current shared replay wiring on `master` includes `phase11-dw-wdt-tests`, `phase11-dw-wdt-remove-idle-split-tests`, and `phase11-dw-wdt-survey-tests`
+- current shared replay wiring on `master` includes both `phase11-dw-wdt-tests` and `phase11-dw-wdt-survey-tests`
+- current shared replay wiring on `master` also includes `phase11-dw-wdt-remove-idle-split-tests`, so the shared packet now keeps the dedicated idle remove-time pending-interrupt split aligned with the main driver and survey replays
 - exact shared command:
   - `zig build test --build-file zigux/tests/phase11_build.zig --summary all`
 - focused driver replay command:
