@@ -274,6 +274,20 @@ def main() -> int:
         )
         covered_cases.append('sha256_missing_actual')
 
+        run_contract_case(
+            ['--mode', 'sha256', str(missing), str(other_missing)],
+            1,
+            [
+                'ARTIFACT_DIFF=fail',
+                'MODE=sha256',
+                f'EXPECTED={missing}',
+                f'ACTUAL={other_missing}',
+                'EXPECTED_EXISTS=False',
+                'ACTUAL_EXISTS=False',
+            ],
+        )
+        covered_cases.append('sha256_missing_both')
+
         blob_b.write_bytes(b'zigux-artifact-DRIFT')
         run_contract_case(
             ['--mode', 'sha256', str(blob_a), str(blob_b)],
