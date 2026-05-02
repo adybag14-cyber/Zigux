@@ -49,9 +49,13 @@ SURVEY_REQUIRED_MARKERS = [
     "modules.builtin",
     "Module.symvers",
     "scripts/depmod.sh",
-    "python3 scripts/zigux/validate-phase9.py",
-    "zig build test --build-file zigux/tests/phase9_build.zig --summary all",
-    "zig test zigux/tests/runtime_module_metadata_survey.zig",
+    "- `python3 scripts/zigux/validate-phase9.py --self-test`",
+    "- `python3 scripts/zigux/check-phase9-module-metadata-packet.py --self-test`",
+    "- `python3 scripts/zigux/validate-phase9.py`",
+    "- `python3 scripts/zigux/check-phase9-module-metadata-packet.py`",
+    "- `make -C zigux phase9-validate`",
+    "- `zig build test --build-file zigux/tests/phase9_build.zig --summary all`",
+    "- `zig test zigux/tests/runtime_module_metadata_survey.zig`",
 ]
 
 PHASE9_BUILD_REQUIRED_MARKERS = [
@@ -316,7 +320,24 @@ def write_fixture_tree(root: Path) -> None:
                 "ModuleDescriptor keeps requires_runtime_substrate and provides_selftest_hook explicit.",
                 "RuntimeLoadRequest keeps module_name, command_name, entry_symbol, exit_symbol, handoff_stage, and allocator_handoff explicit.",
                 "The packet names samples/zigux/runtime_trace_events_loader.zig plus MODULE_INFO(), MODULE_ALIAS(), .modinfo, modules.alias, modules.order, modules.builtin, Module.symvers, and scripts/depmod.sh directly.",
-                "The review path includes python3 scripts/zigux/validate-phase9.py, zig build test --build-file zigux/tests/phase9_build.zig --summary all, and zig test zigux/tests/runtime_module_metadata_survey.zig.",
+                "## Gates",
+                "",
+                "1. run the shared validator self-test plus the dedicated metadata checker self-test",
+                "- `python3 scripts/zigux/validate-phase9.py --self-test`",
+                "- `python3 scripts/zigux/check-phase9-module-metadata-packet.py --self-test`",
+                "",
+                "2. run the shared validator and the dedicated metadata checker",
+                "- `python3 scripts/zigux/validate-phase9.py`",
+                "- `python3 scripts/zigux/check-phase9-module-metadata-packet.py`",
+                "",
+                "3. run the shared Phase 9 runtime bundle",
+                "- `zig build test --build-file zigux/tests/phase9_build.zig --summary all`",
+                "",
+                "4. run the focused metadata survey replay",
+                "- `zig test zigux/tests/runtime_module_metadata_survey.zig`",
+                "",
+                "5. run the shared convenience target",
+                "- `make -C zigux phase9-validate`",
                 "",
             ]
         )
@@ -457,9 +478,39 @@ def run_self_test() -> int:
             tmp_root,
             "loader_gap_survey:sample-only blocked runtime pilot",
         )
+        loader_gap_path.write_text(original_loader_gap, encoding="utf-8")
+
+        survey_path.write_text(
+            original_survey.replace(
+                "- `python3 scripts/zigux/check-phase9-module-metadata-packet.py --self-test`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "survey_checker_self_test_gate",
+            tmp_root,
+            "survey:- `python3 scripts/zigux/check-phase9-module-metadata-packet.py --self-test`",
+        )
+        survey_path.write_text(original_survey, encoding="utf-8")
+
+        survey_path.write_text(
+            original_survey.replace(
+                "- `python3 scripts/zigux/check-phase9-module-metadata-packet.py`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "survey_checker_live_gate",
+            tmp_root,
+            "survey:- `python3 scripts/zigux/check-phase9-module-metadata-packet.py`",
+        )
 
     print("PHASE9_MODULE_METADATA_PACKET_SELF_TEST=pass")
-    print("PHASE9_MODULE_METADATA_PACKET_SELF_TEST_CASE_COUNT=5")
+    print("PHASE9_MODULE_METADATA_PACKET_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
