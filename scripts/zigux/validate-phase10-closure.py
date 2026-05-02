@@ -222,6 +222,13 @@ EXPECTED_SCOREBOARD_STATUSES = {
     "dual_implementations_for_risky_areas": "blocked_on_risky_transport",
 }
 
+EXPECTED_SURVEYED_COMMITS = {
+    "core": "f5a4d6990f701937b2a3bb9ae723bb6d0f27ba21",
+    "ring": "fe8a43ea2e186da0da152198b571dff57ea3c38c",
+    "input": "b24f990e2e5504ac3ed4a1a0f1f97c41e06ddd38",
+    "mmio": "0945df1cf664a3582d7241f859183a13f3f04adb",
+}
+
 EXPECTED_EXACT_CHECKS = [
     "python3 scripts/zigux/check-phase10-closure-inventory.py",
     "python3 scripts/zigux/validate-phase10-closure.py",
@@ -375,6 +382,9 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             lane_keys = survey_provenance.get("lane_keys")
             if lane_keys != {"core": "P10-L03", "ring": "P10-L08", "input": "P10-L13", "mmio": "P10-L18"}:
                 missing.append("closure_manifest:survey_provenance:lane_keys")
+            surveyed_commits = survey_provenance.get("surveyed_commits")
+            if surveyed_commits != EXPECTED_SURVEYED_COMMITS:
+                missing.append("closure_manifest:survey_provenance:surveyed_commits")
 
     ring_manifest = load_json(root, "zigux/tests/phase10_virtio_ring_manifest.json")
     if not isinstance(ring_manifest, dict):
@@ -429,6 +439,7 @@ def write_fixture(root: Path) -> None:
         "survey_provenance": {
             "source": "manifest_derived",
             "lane_keys": {"core": "P10-L03", "ring": "P10-L08", "input": "P10-L13", "mmio": "P10-L18"},
+            "surveyed_commits": EXPECTED_SURVEYED_COMMITS,
         },
         "landed_core_helper_evidence": {
             "zigux/tests/phase10_virtio_core_manifest.json": EXPECTED_CORE_HELPERS,
@@ -626,6 +637,16 @@ def run_self_test() -> int:
         )
         write_fixture(root)
 
+        closure_manifest = json.loads(closure_manifest_path.read_text(encoding="utf-8"))
+        closure_manifest["survey_provenance"]["surveyed_commits"]["ring"] = "0000000000000000000000000000000000000000"
+        closure_manifest_path.write_text(json.dumps(closure_manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "surveyed_commits_guard",
+            root,
+            "closure_manifest:survey_provenance:surveyed_commits",
+        )
+        write_fixture(root)
+
         ledger_path = root / "zigux-alpha/PHASE10_CLOSURE_LEDGER.md"
         original_ledger = ledger_path.read_text(encoding="utf-8")
         ledger_path.write_text(
@@ -659,7 +680,7 @@ def run_self_test() -> int:
         ledger_path.write_text(original_ledger, encoding="utf-8")
 
     print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=12")
+    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
