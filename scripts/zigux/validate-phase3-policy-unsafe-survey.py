@@ -45,9 +45,10 @@ REQUIRED_SURVEY_MARKERS = (
     "PHASE3_UNSAFE_PATH=zigux/unsafe/narrow.zig",
     "PHASE3_UNSAFE_SCOPE=narrow-mmio-and-raw-pointer-bridge",
     "PHASE3_MMIO_PATH=zigux/helpers/mmio.zig",
+    "PHASE3_MMIO_TYPED_POLICY_CONSUMER=zigux/helpers/mmio.zig",
     "PHASE3_POLICY_UNSAFE_GATE=zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig",
-    "PHASE3_BOUNDARY_GAP=no-boundary-helper-beyond-scoped-mmio-consumes-decoded-policy-yet",
-    "PHASE3_NEXT_BOUNDED_STEP=keep-the-policy-and-unsafe-surface-narrow-until-one-roadmap-backed-boundary-helper-beyond-scoped-mmio-needs-a-typed-interop-policy-consumer",
+    "PHASE3_BOUNDARY_GAP=typed-policy-mmio-consumer-landed-no-third-boundary-helper-beyond-focused-replay",
+    "PHASE3_NEXT_BOUNDED_STEP=keep-the-policy-and-unsafe-surface-narrow-until-one-roadmap-backed-helper-beyond-mmio-needs-a-typed-interop-policy-consumer",
 )
 
 REQUIRED_SURVEY_SNIPPETS = (
@@ -154,18 +155,14 @@ REQUIRED_MMIO_SNIPPETS = (
     "pub fn write16Scoped(",
     "pub fn read32Scoped(scope: narrow.UnsafeScopeTag, base_addr: usize, offset: usize) narrow.ScopeError!u32 {",
     "pub fn write32Scoped(",
+    "fn scopeFromPolicy(policy: interop_policy.DecodedInteropPolicy) narrow.ScopeError!narrow.UnsafeScopeTag {",
+    "pub fn readScopedWithPolicy(",
+    "pub fn writeScopedWithPolicy(",
+    "pub fn read32Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u32 {",
+    "pub fn write32Policy(",
+    'test "phase3 mmio wrapper consumes decoded interop policy"',
     'test "phase3 mmio wrapper keeps declared scope explicit across widths"',
     'test "phase3 mmio wrapper rejects misaligned scoped accesses"',
-)
-
-REQUIRED_POLICY_UNSAFE_BUILD_SNIPPETS = (
-    '.root_source_file = b.path("phase3_policy_unsafe.zig"),',
-    'interop_policy_module.addImport("narrow_unsafe", narrow_unsafe_module);',
-    'mmio_module.addImport("interop_policy", interop_policy_module);',
-    'mmio_module.addImport("narrow_unsafe", narrow_unsafe_module);',
-    'root_module.addImport("abi_bindings", abi_bindings_module);',
-    'root_module.addImport("interop_policy", interop_policy_module);',
-    'root_module.addImport("mmio", mmio_module);',
 )
 
 REQUIRED_POLICY_UNSAFE_TEST_SNIPPETS = (
@@ -182,6 +179,11 @@ REQUIRED_POLICY_UNSAFE_TEST_SNIPPETS = (
     "const round_trip = try interop_policy.decode(encoded);",
     'test "phase3 policy init helper round trips through decode without widening scope"',
     "const decoded = interop_policy.init(.abort, .caller_provided, .none);",
+    'test "phase3 policy gate reaches a second boundary helper through decoded policy"',
+    "try mmio.write32Policy(mmio_policy, base32, @sizeOf(u32), 0xdecafbad);",
+    "try std.testing.expectEqual(@as(u32, 0xdecafbad), try mmio.read32Policy(mmio_policy, base32, @sizeOf(u32)));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write32Policy(raw_pointer_policy, base32, 0, 1));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.read32Policy(raw_pointer_policy, base32, 0));",
     'test "phase3 policy gate decodes interop-policy unsafe bytes explicitly"',
     'test "phase3 policy gate enforces the declared unsafe scope"',
     "try std.testing.expectError(error.UnsafeScopeDenied, narrow.constSliceAt(u32, .volatile_mmio, base, words.len));",
@@ -323,7 +325,6 @@ def validate(root: Path) -> list[str]:
     interop_policy = _read_text(root, INTEROP_POLICY_REL, issues)
     unsafe_narrow = _read_text(root, UNSAFE_NARROW_REL, issues)
     mmio = _read_text(root, MMIO_REL, issues)
-    policy_unsafe_build = _read_text(root, POLICY_UNSAFE_BUILD_REL, issues)
     policy_unsafe_test = _read_text(root, POLICY_UNSAFE_TEST_REL, issues)
     abi_slice = _read_text(root, ABI_SLICE_REL, issues)
 
@@ -372,8 +373,6 @@ def validate(root: Path) -> list[str]:
         _check_snippets(unsafe_narrow, REQUIRED_UNSAFE_SNIPPETS, "missing_unsafe_snippet", issues)
     if mmio:
         _check_snippets(mmio, REQUIRED_MMIO_SNIPPETS, "missing_mmio_snippet", issues)
-    if policy_unsafe_build:
-        _check_snippets(policy_unsafe_build, REQUIRED_POLICY_UNSAFE_BUILD_SNIPPETS, "missing_policy_unsafe_build_snippet", issues)
     if policy_unsafe_test:
         _check_snippets(policy_unsafe_test, REQUIRED_POLICY_UNSAFE_TEST_SNIPPETS, "missing_policy_unsafe_test_snippet", issues)
     if abi_slice:
@@ -432,9 +431,10 @@ def run_self_test() -> int:
                     "- `PHASE3_UNSAFE_PATH=zigux/unsafe/narrow.zig`",
                     "- `PHASE3_UNSAFE_SCOPE=narrow-mmio-and-raw-pointer-bridge`",
                     "- `PHASE3_MMIO_PATH=zigux/helpers/mmio.zig`",
+                    "- `PHASE3_MMIO_TYPED_POLICY_CONSUMER=zigux/helpers/mmio.zig`",
                     "- `PHASE3_POLICY_UNSAFE_GATE=zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig`",
-                    "- `PHASE3_BOUNDARY_GAP=no-boundary-helper-beyond-scoped-mmio-consumes-decoded-policy-yet`",
-                    "- `PHASE3_NEXT_BOUNDED_STEP=keep-the-policy-and-unsafe-surface-narrow-until-one-roadmap-backed-boundary-helper-beyond-scoped-mmio-needs-a-typed-interop-policy-consumer`",
+                    "- `PHASE3_BOUNDARY_GAP=typed-policy-mmio-consumer-landed-no-third-boundary-helper-beyond-focused-replay`",
+                    "- `PHASE3_NEXT_BOUNDED_STEP=keep-the-policy-and-unsafe-surface-narrow-until-one-roadmap-backed-helper-beyond-mmio-needs-a-typed-interop-policy-consumer`",
                     "",
                     f"This survey is pinned to verified `master` head `{PLACEHOLDER_COMMIT}`.",
                     "The packet names zigux/helpers/layout_assert.zig, zigux/helpers/panic_policy.zig, zigux/helpers/allocator_policy.zig, zigux/helpers/interop_policy.zig, zigux/unsafe/narrow.zig, zigux/helpers/mmio.zig, zigux/tests/phase3_policy_unsafe_build.zig, and zigux/tests/phase3_policy_unsafe.zig, and it keeps the typed interop-policy boundary explicit through `init`, `encode`, and round-trip replay helpers plus direct `action()`, `permitsVolatileMmio()`, and `permitsRawPointerBridge()` accessors. The scoped MMIO packet now also exposes readScopedWithPolicy and the focused replay reaches the bridge through `mmio.write32Policy()` and `mmio.read32Policy()`, so the remaining gap is any typed-policy boundary helper beyond scoped MMIO.",
@@ -477,7 +477,7 @@ def run_self_test() -> int:
         _write(
             root,
             INTEROP_POLICY_REL,
-            'pub const DecodedInteropPolicy = struct {};\npub fn init(panic_mode: abi.PanicMode, allocator_mode: abi.AllocatorMode, unsafe_scope: narrow.UnsafeScopeTag) DecodedInteropPolicy { _ = panic_mode; _ = allocator_mode; _ = unsafe_scope; }\npub fn encode(panic_mode: abi.PanicMode, allocator_mode: abi.AllocatorMode, unsafe_scope: narrow.UnsafeScopeTag) abi.InteropPolicy { _ = panic_mode; _ = allocator_mode; _ = unsafe_scope; }\npub fn decode(policy: abi.InteropPolicy) DecodeError!DecodedInteropPolicy { _ = policy; }\npub fn recognizes(policy: abi.InteropPolicy) bool { _ = policy; }\npub fn action(self: DecodedInteropPolicy) panic_policy.Action { _ = self; }\npub fn permitsVolatileMmio(self: DecodedInteropPolicy) bool { _ = self; }\npub fn permitsRawPointerBridge(self: DecodedInteropPolicy) bool { _ = self; }\ntest "phase3 interop policy decoder keeps the boundary typed" {}\ntest "phase3 interop policy decoder keeps the panic action explicit" {}\ntest "phase3 interop policy decoder keeps allocator init requirements explicit" {}\ntest "phase3 interop policy keeps canonical abi encoding explicit" {}\ntest "phase3 interop policy encode helper preserves explicit policy behavior" {}\ntest "phase3 interop policy decoder rejects invalid bytes and reserved bits" {}\n',
+            'pub const DecodedInteropPolicy = struct {\n    pub fn action(self: DecodedInteropPolicy) panic_policy.Action { _ = self; }\n    pub fn permitsVolatileMmio(self: DecodedInteropPolicy) bool { _ = self; }\n    pub fn permitsRawPointerBridge(self: DecodedInteropPolicy) bool { _ = self; }\n};\npub fn init(panic_mode: abi.PanicMode, allocator_mode: abi.AllocatorMode, unsafe_scope: narrow.UnsafeScopeTag) DecodedInteropPolicy { _ = panic_mode; _ = allocator_mode; _ = unsafe_scope; }\npub fn encode(panic_mode: abi.PanicMode, allocator_mode: abi.AllocatorMode, unsafe_scope: narrow.UnsafeScopeTag) abi.InteropPolicy { _ = panic_mode; _ = allocator_mode; _ = unsafe_scope; }\npub fn decode(policy: abi.InteropPolicy) DecodeError!DecodedInteropPolicy { _ = policy; }\npub fn recognizes(policy: abi.InteropPolicy) bool { _ = policy; }\ntest "phase3 interop policy decoder keeps the boundary typed" {}\ntest "phase3 interop policy decoder keeps the panic action explicit" {}\ntest "phase3 interop policy decoder keeps allocator init requirements explicit" {}\ntest "phase3 interop policy keeps canonical abi encoding explicit" {}\ntest "phase3 interop policy encode helper preserves explicit policy behavior" {}\ntest "phase3 interop policy decoder rejects invalid bytes and reserved bits" {}\n',
         )
         _write(
             root,
@@ -487,25 +487,7 @@ def run_self_test() -> int:
         _write(
             root,
             MMIO_REL,
-            'pub fn read16Scoped(scope: narrow.UnsafeScopeTag, base_addr: usize, offset: usize) narrow.ScopeError!u16 { _ = scope; _ = base_addr; _ = offset; }\npub fn write16Scoped() void {}\npub fn read32Scoped(scope: narrow.UnsafeScopeTag, base_addr: usize, offset: usize) narrow.ScopeError!u32 { _ = scope; _ = base_addr; _ = offset; }\npub fn write32Scoped() void {}\ntest "phase3 mmio wrapper keeps declared scope explicit across widths" {}\ntest "phase3 mmio wrapper rejects misaligned scoped accesses" {}\n',
-        )
-        _write(
-            root,
-            POLICY_UNSAFE_BUILD_REL,
-            "\n".join(
-                [
-                    'const root_module = b.createModule(.{',
-                    '    .root_source_file = b.path("phase3_policy_unsafe.zig"),',
-                    '});',
-                    'interop_policy_module.addImport("narrow_unsafe", narrow_unsafe_module);',
-                    'mmio_module.addImport("interop_policy", interop_policy_module);',
-                    'mmio_module.addImport("narrow_unsafe", narrow_unsafe_module);',
-                    'root_module.addImport("abi_bindings", abi_bindings_module);',
-                    'root_module.addImport("interop_policy", interop_policy_module);',
-                    'root_module.addImport("mmio", mmio_module);',
-                    "",
-                ]
-            ),
+            'fn scopeFromPolicy(policy: interop_policy.DecodedInteropPolicy) narrow.ScopeError!narrow.UnsafeScopeTag { _ = policy; }\npub fn readScopedWithPolicy(comptime T: type, policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!T { _ = T; _ = policy; _ = base_addr; _ = offset; }\npub fn writeScopedWithPolicy(comptime T: type, policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize, value: T) narrow.ScopeError!void { _ = T; _ = policy; _ = base_addr; _ = offset; _ = value; }\npub fn read16Scoped(scope: narrow.UnsafeScopeTag, base_addr: usize, offset: usize) narrow.ScopeError!u16 { _ = scope; _ = base_addr; _ = offset; }\npub fn write16Scoped() void {}\npub fn read32Scoped(scope: narrow.UnsafeScopeTag, base_addr: usize, offset: usize) narrow.ScopeError!u32 { _ = scope; _ = base_addr; _ = offset; }\npub fn write32Scoped() void {}\npub fn read32Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u32 { _ = policy; _ = base_addr; _ = offset; }\npub fn write32Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize, value: u32) narrow.ScopeError!void { _ = policy; _ = base_addr; _ = offset; _ = value; }\ntest "phase3 mmio wrapper consumes decoded interop policy" {}\ntest "phase3 mmio wrapper keeps declared scope explicit across widths" {}\ntest "phase3 mmio wrapper rejects misaligned scoped accesses" {}\n',
         )
         _write(
             root,
@@ -525,6 +507,11 @@ def run_self_test() -> int:
                     'const round_trip = try interop_policy.decode(encoded);',
                     'test "phase3 policy init helper round trips through decode without widening scope" {}',
                     'const decoded = interop_policy.init(.abort, .caller_provided, .none);',
+                    'test "phase3 policy gate reaches a second boundary helper through decoded policy" {}',
+                    'try mmio.write32Policy(mmio_policy, base32, @sizeOf(u32), 0xdecafbad);',
+                    'try std.testing.expectEqual(@as(u32, 0xdecafbad), try mmio.read32Policy(mmio_policy, base32, @sizeOf(u32)));',
+                    'try std.testing.expectError(error.UnsafeScopeDenied, mmio.write32Policy(raw_pointer_policy, base32, 0, 1));',
+                    'try std.testing.expectError(error.UnsafeScopeDenied, mmio.read32Policy(raw_pointer_policy, base32, 0));',
                     'test "phase3 policy gate decodes interop-policy unsafe bytes explicitly" {}',
                     'test "phase3 policy gate enforces the declared unsafe scope" {}',
                     'try std.testing.expectError(error.UnsafeScopeDenied, narrow.constSliceAt(u32, .volatile_mmio, base, words.len));',
@@ -533,7 +520,6 @@ def run_self_test() -> int:
                     'const second_word = try narrow.constPointerAt(u32, .raw_pointer_bridge, base + @sizeOf(u32));',
                     'test "phase3 policy gate rejects overflowed unsafe address math" {}',
                     'try std.testing.expectError(error.AddressOverflow, narrow.checkedByteOffset(max, 1));',
-                    'try std.testing.expectError(error.UnsafeScopeDenied, narrow.constSliceAt(u32, .volatile_mmio, base, 1));',
                     'try std.testing.expectError(error.AddressOverflow, narrow.scopedPointerAt(u32, .volatile_mmio, max, 1));',
                     "",
                 ]
@@ -544,6 +530,7 @@ def run_self_test() -> int:
             ABI_SLICE_REL,
             "focused replay gate: `zigux/tests/phase3_policy_unsafe.zig` now verifies both successful whole-record decoding and rejection of partial or reserved policy bytes\nfocused replay gate: `zigux/tests/phase3_policy_unsafe.zig` now keeps `layout_assert`, panic, allocator, whole-record interop-policy decoding, unsafe-byte decoding, and declared-scope enforcement aligned on its own compile-and-test path\n",
         )
+        _write(root, POLICY_UNSAFE_BUILD_REL, "// build file present\n")
         _write(root, MANIFEST_REL, "{}\n")
 
         assert validate(root) == []
@@ -688,6 +675,26 @@ def run_self_test() -> int:
             in issues
         )
         assert (
+            'missing_policy_unsafe_test_snippet:test "phase3 policy gate reaches a second boundary helper through decoded policy"'
+            in issues
+        )
+        assert (
+            'missing_policy_unsafe_test_snippet:try mmio.write32Policy(mmio_policy, base32, @sizeOf(u32), 0xdecafbad);'
+            in issues
+        )
+        assert (
+            'missing_policy_unsafe_test_snippet:try std.testing.expectEqual(@as(u32, 0xdecafbad), try mmio.read32Policy(mmio_policy, base32, @sizeOf(u32)));'
+            in issues
+        )
+        assert (
+            'missing_policy_unsafe_test_snippet:try std.testing.expectError(error.UnsafeScopeDenied, mmio.write32Policy(raw_pointer_policy, base32, 0, 1));'
+            in issues
+        )
+        assert (
+            'missing_policy_unsafe_test_snippet:try std.testing.expectError(error.UnsafeScopeDenied, mmio.read32Policy(raw_pointer_policy, base32, 0));'
+            in issues
+        )
+        assert (
             'missing_policy_unsafe_test_snippet:try std.testing.expectError(error.UnsafeScopeDenied, narrow.constSliceAt(u32, .volatile_mmio, base, words.len));'
             in issues
         )
@@ -700,47 +707,6 @@ def run_self_test() -> int:
             in issues
         )
 
-        _write(
-            root,
-            POLICY_UNSAFE_BUILD_REL,
-            "\n".join(
-                [
-                    'const root_module = b.createModule(.{',
-                    '    .root_source_file = b.path("phase3_policy_unsafe.zig"),',
-                    '});',
-                    'interop_policy_module.addImport("narrow_unsafe", narrow_unsafe_module);',
-                    'mmio_module.addImport("interop_policy", interop_policy_module);',
-                    'root_module.addImport("abi_bindings", abi_bindings_module);',
-                    'root_module.addImport("interop_policy", interop_policy_module);',
-                    'root_module.addImport("mmio", mmio_module);',
-                    "",
-                ]
-            ),
-        )
-        issues = validate(root)
-        assert (
-            'missing_policy_unsafe_build_snippet:mmio_module.addImport("narrow_unsafe", narrow_unsafe_module);'
-            in issues
-        )
-
-        _write(
-            root,
-            POLICY_UNSAFE_BUILD_REL,
-            "\n".join(
-                [
-                    'const root_module = b.createModule(.{',
-                    '    .root_source_file = b.path("phase3_policy_unsafe.zig"),',
-                    '});',
-                    'interop_policy_module.addImport("narrow_unsafe", narrow_unsafe_module);',
-                    'mmio_module.addImport("interop_policy", interop_policy_module);',
-                    'mmio_module.addImport("narrow_unsafe", narrow_unsafe_module);',
-                    'root_module.addImport("abi_bindings", abi_bindings_module);',
-                    'root_module.addImport("interop_policy", interop_policy_module);',
-                    'root_module.addImport("mmio", mmio_module);',
-                    "",
-                ]
-            ),
-        )
         _write(
             root,
             MAKEFILE_REL,
@@ -757,15 +723,15 @@ def run_self_test() -> int:
             INTEROP_POLICY_REL,
             "\n".join(
                 [
-                    'pub const DecodedInteropPolicy = struct {};',
-                    'pub fn init(panic_mode: abi.PanicMode, allocator_mode: abi.AllocatorMode, unsafe_scope: narrow.UnsafeScopeTag) DecodedInteropPolicy { _ = panic_mode; _ = allocator_mode; _ = unsafe_scope; }',
-                    'pub fn encode(panic_mode: abi.PanicMode, allocator_mode: abi.AllocatorMode, unsafe_scope: narrow.UnsafeScopeTag) abi.InteropPolicy { _ = panic_mode; _ = allocator_mode; _ = unsafe_scope; }',
-                    'pub fn decode(policy: abi.InteropPolicy) DecodeError!DecodedInteropPolicy { _ = policy; }',
-                    'pub fn recognizes(policy: abi.InteropPolicy) bool { _ = policy; }',
+                    "pub const DecodedInteropPolicy = struct {};",
+                    "pub fn init(panic_mode: abi.PanicMode, allocator_mode: abi.AllocatorMode, unsafe_scope: narrow.UnsafeScopeTag) DecodedInteropPolicy { _ = panic_mode; _ = allocator_mode; _ = unsafe_scope; }",
+                    "pub fn encode(panic_mode: abi.PanicMode, allocator_mode: abi.AllocatorMode, unsafe_scope: narrow.UnsafeScopeTag) abi.InteropPolicy { _ = panic_mode; _ = allocator_mode; _ = unsafe_scope; }",
+                    "pub fn decode(policy: abi.InteropPolicy) DecodeError!DecodedInteropPolicy { _ = policy; }",
+                    "pub fn recognizes(policy: abi.InteropPolicy) bool { _ = policy; }",
                     'test "phase3 interop policy decoder keeps the boundary typed" {}',
                     'test "phase3 interop policy decoder keeps allocator init requirements explicit" {}',
                     'test "phase3 interop policy decoder rejects invalid bytes and reserved bits" {}',
-                    '',
+                    "",
                 ]
             ),
         )
@@ -794,6 +760,35 @@ def run_self_test() -> int:
             'missing_interop_policy_snippet:test "phase3 interop policy encode helper preserves explicit policy behavior"'
             in issues
         )
+
+        _write(
+            root,
+            MMIO_REL,
+            "\n".join(
+                [
+                    "pub fn read16Scoped(scope: narrow.UnsafeScopeTag, base_addr: usize, offset: usize) narrow.ScopeError!u16 { _ = scope; _ = base_addr; _ = offset; }",
+                    "pub fn write16Scoped() void {}",
+                    "pub fn read32Scoped(scope: narrow.UnsafeScopeTag, base_addr: usize, offset: usize) narrow.ScopeError!u32 { _ = scope; _ = base_addr; _ = offset; }",
+                    "pub fn write32Scoped() void {}",
+                    'test "phase3 mmio wrapper keeps declared scope explicit across widths" {}',
+                    'test "phase3 mmio wrapper rejects misaligned scoped accesses" {}',
+                    "",
+                ]
+            ),
+        )
+        issues = validate(root)
+        assert (
+            "missing_mmio_snippet:fn scopeFromPolicy(policy: interop_policy.DecodedInteropPolicy) narrow.ScopeError!narrow.UnsafeScopeTag {"
+            in issues
+        )
+        assert "missing_mmio_snippet:pub fn readScopedWithPolicy(" in issues
+        assert "missing_mmio_snippet:pub fn writeScopedWithPolicy(" in issues
+        assert (
+            "missing_mmio_snippet:pub fn read32Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u32 {"
+            in issues
+        )
+        assert "missing_mmio_snippet:pub fn write32Policy(" in issues
+        assert 'missing_mmio_snippet:test "phase3 mmio wrapper consumes decoded interop policy"' in issues
 
     print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass")
     return 0
