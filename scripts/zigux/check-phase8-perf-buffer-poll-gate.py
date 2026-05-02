@@ -16,6 +16,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
     "scripts/zigux/README.md",
     "scripts/zigux/check-phase8-perf-buffer-poll-gate.py",
+    "scripts/zigux/validate-phase8.py",
     "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
     "zigux/Makefile",
     "zigux/tests/README.md",
@@ -60,6 +61,12 @@ REQUIRED_MARKERS = {
         "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
         "zigux/tests/phase8_perf_buffer_poll.zig",
         "make -C zigux phase8-validate",
+    ],
+    "scripts/zigux/validate-phase8.py": [
+        "zigux/tests/phase8_perf_buffer_poll_only_build.zig",
+        "phase8-perf-buffer-poll-test:",
+        "Run focused Phase 8 perf-buffer poll tests",
+        "phase8-perf-buffer-poll-tests",
     ],
     "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig": [
         "pub const WaitClass = enum {",
@@ -141,7 +148,23 @@ FIXTURE_TEXT = {
 - `make -C zigux phase8-validate`
 """,
     "scripts/zigux/check-phase8-perf-buffer-poll-gate.py": """#!/usr/bin/env python3
-print(\"fixture\")
+print("fixture")
+""",
+    "scripts/zigux/validate-phase8.py": """REQUIRED_FILES = [
+    \"zigux/tests/phase8_perf_buffer_poll_only_build.zig\",
+]
+
+required_make_markers = [
+    \"phase8-perf-buffer-poll-test:\",
+]
+
+required_workflow_markers = [
+    \"Run focused Phase 8 perf-buffer poll tests\",
+]
+
+required_phase8_perf_buffer_poll_markers = [
+    \"phase8-perf-buffer-poll-tests\",
+]
 """,
     "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig": """pub const WaitClass = enum {
     nonblocking,
@@ -389,8 +412,54 @@ def run_self_test() -> int:
         )
         helper_path.write_text(original_helper, encoding="utf-8")
 
+        validator_path = tmp_root / "scripts/zigux/validate-phase8.py"
+        original_validator = validator_path.read_text(encoding="utf-8")
+        validator_path.write_text(
+            original_validator.replace(
+                '\"zigux/tests/phase8_perf_buffer_poll_only_build.zig\"',
+                '\"zigux/tests/phase8_perf_buffer_poll_build.zig\"',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "validator_focused_build_file",
+            tmp_root,
+            "scripts/zigux/validate-phase8.py:zigux/tests/phase8_perf_buffer_poll_only_build.zig",
+        )
+        validator_path.write_text(original_validator, encoding="utf-8")
+
+        validator_path.write_text(
+            original_validator.replace(
+                "phase8-perf-buffer-poll-test:",
+                "phase8-perf-buffer-test:",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "validator_make_target",
+            tmp_root,
+            "scripts/zigux/validate-phase8.py:phase8-perf-buffer-poll-test:",
+        )
+        validator_path.write_text(original_validator, encoding="utf-8")
+
+        validator_path.write_text(
+            original_validator.replace(
+                "Run focused Phase 8 perf-buffer poll tests",
+                "Run focused Phase 8 perf-buffer tests",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "validator_workflow_surface",
+            tmp_root,
+            "scripts/zigux/validate-phase8.py:Run focused Phase 8 perf-buffer poll tests",
+        )
+
     print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST=pass")
-    print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST_CASE_COUNT=8")
+    print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
