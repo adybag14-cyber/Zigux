@@ -388,7 +388,7 @@ test "runtime module metadata survey note keeps descriptor fields, shared loader
         "python3 scripts/zigux/validate-phase9.py",
         "zig build test --build-file zigux/tests/phase9_build.zig --summary all",
         "zig test zigux/tests/runtime_module_metadata_survey.zig",
-        "shared `RuntimeLoadRequest` union already carries a trace-events lane",
+        "The dedicated `samples/zigux/runtime_trace_events_loader.zig` scaffold is now landed too, but it still stops outside that shared `RuntimeLoadRequest` union",
     });
 }
 
