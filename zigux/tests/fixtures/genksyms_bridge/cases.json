@@ -116,7 +116,7 @@
     {
       "name": "help",
       "argv": [
-        "--help"
+        "--hel"
       ],
       "mode": "process_json",
       "expected": "help_expected.json"
@@ -124,9 +124,7 @@
     {
       "name": "version",
       "argv": [
-        "-Vd",
-        "--reference",
-        "foo.symref"
+        "--ver"
       ],
       "mode": "process_json",
       "expected": "version_expected.json"
