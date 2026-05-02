@@ -9,6 +9,7 @@ This document records the bounded validation matrix for the Zigux `dw_wdt` lane.
 - current repo reality:
   - `drivers/watchdog/dw_wdt.zig`
   - `zigux/tests/phase11_dw_wdt.zig`
+  - `zigux/tests/phase11_dw_wdt_remove_idle_split.zig`
   - `zigux/tests/phase11_dw_wdt_manifest.json`
   - `zigux/tests/phase11_dw_wdt_survey.zig`
   - `zigux/tests/phase11_build.zig`
@@ -16,7 +17,7 @@ This document records the bounded validation matrix for the Zigux `dw_wdt` lane.
 
 ## Why This Exists
 
-The bounded starter now covers fixed TOP timeout selection, custom TOP ordering, reset-mode versus IRQ-mode timeout bookkeeping, imported running-state snapshots, registration-facing watchdog-info and parent handoff details, platform-resource preflight and live resource-order sequencing, restart intent, non-stoppable stop semantics, an explicit `summarizeTeardownLifecycle()` helper for the stop-and-restart failure-mode packet, and an explicit `summarizeRemoveHandoff()` helper for the remove-time teardown packet. The live repo still needed one reviewable note that explains:
+The bounded starter now covers fixed TOP timeout selection, custom TOP ordering, reset-mode versus IRQ-mode timeout bookkeeping, imported running-state snapshots, registration-facing watchdog-info and parent handoff details, platform-resource preflight and live resource-order sequencing, restart intent, non-stoppable stop semantics, an explicit `summarizeTeardownLifecycle()` helper for the stop-and-restart failure-mode packet, an explicit `summarizeRemoveHandoff()` helper for the remove-time teardown packet, and a dedicated remove-idle split replay for pending-interrupt teardown drift. The live repo still needed one reviewable note that explains:
 
 - which parts of the lane are already exercised by the shared Phase 11 gate
 - which lifecycle, remove-time, and failure-mode checkpoints are already reviewable in bounded form
@@ -34,14 +35,17 @@ Without this matrix, the slice and survey named the right boundaries but did not
 | platform-resource ordering surface | `platformResourcePreflightSummary()` plus `liveResourceOrderSummary()` keep timer-clock choice, optional APB clock presence, reset-control availability, optional pretimeout-IRQ wiring, and the bounded tclk, optional pclk, reset, irq, and registration sequencing reviewable before any live devm calls | `zig build test --build-file zigux/tests/phase11_build.zig --summary all` via the platform-resource preflight and live resource-order checks in `zigux/tests/phase11_dw_wdt.zig` | keep the ordering surface stable until a later lane writes the first real platform-driver call packet and its hardware-validation plan | live `devm_clk_get()`, reset-control acquisition, IRQ requests, PM callbacks, and hardware-backed registration |
 | stop and restart failure-mode boundary | `stop()`, `armRestart()`, and `summarizeTeardownLifecycle()` keep the non-stoppable stop failure-mode boundary explicit when reset control is unavailable while still recording the stoppable path, interrupt-status clearing, restart arming, reset-mode restart forcing, and restart-from-stopped enablement without claiming reboot-side effects | `zig build test --build-file zigux/tests/phase11_build.zig --summary all` via the stop, restart, and teardown-summary checks in `zigux/tests/phase11_dw_wdt.zig` | keep the failure-mode evidence tied to the same bounded starter until a later lane adds real platform-teardown or restart-plumbing work | live reboot ordering, reset pulses, suspend or resume handling, and hardware-backed failure injection |
 | remove-time teardown handoff boundary | `summarizeRemoveHandoff()` keeps debugfs clear, unregister-device ordering, reset-control-backed disable, and non-reset remove fallout explicit without claiming a live remove callback, PM teardown, or debugfs implementation | `zig build test --build-file zigux/tests/phase11_build.zig --summary all` via the remove-handoff checks in `zigux/tests/phase11_dw_wdt.zig` | leave this handoff parked unless a later lane can isolate one equally small platform-remove or PM-teardown clarification directly adjacent to the current helper | live remove callbacks, PM teardown ordering, debugfs implementation, and hardware-backed remove validation |
+| idle remove-time pending-interrupt split | `zigux/tests/phase11_dw_wdt_remove_idle_split.zig` keeps idle remove-time pending interrupts distinct when reset control is present or absent, so reset-backed interrupt clearing and non-reset preserved pending state stay reviewable even when remove happens before the watchdog is running | `zig build test --build-file zigux/tests/phase11_build.zig --summary all` via the dedicated `phase11-dw-wdt-remove-idle-split-tests` replay | keep the split aligned with any later live remove callback or PM-teardown packet before widening other teardown behavior | live remove callbacks, PM teardown ordering, debugfs implementation, and hardware-backed remove validation |
 
 ## Shared Replay Surface
 
-- current shared replay wiring on `master` includes both `phase11-dw-wdt-tests` and `phase11-dw-wdt-survey-tests`
+- current shared replay wiring on `master` includes `phase11-dw-wdt-tests`, `phase11-dw-wdt-remove-idle-split-tests`, and `phase11-dw-wdt-survey-tests`
 - exact shared command:
   - `zig build test --build-file zigux/tests/phase11_build.zig --summary all`
 - focused driver replay command:
   - `zig test --dep dw_wdt -Mroot=zigux/tests/phase11_dw_wdt.zig -Mdw_wdt=drivers/watchdog/dw_wdt.zig`
+- focused remove-idle split replay command:
+  - `zig test --dep dw_wdt -Mroot=zigux/tests/phase11_dw_wdt_remove_idle_split.zig -Mdw_wdt=drivers/watchdog/dw_wdt.zig`
 - focused survey replay command:
   - `zig test zigux/tests/phase11_dw_wdt_survey.zig`
 - focused validation script command:
