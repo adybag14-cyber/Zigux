@@ -122,6 +122,30 @@ test "phase 8 file-path-handle bridge keeps token failure recovery discipline ex
     try std.testing.expect(!denied_pinned_map.shouldContinueWithoutReuse());
 }
 
+test "phase 8 file-path-handle bridge keeps token acquisition ownership planning explicit" {
+    const no_cache = file_path_handle_bridge.resolveTokenPreparationAcquisition(false);
+    try std.testing.expectEqual(
+        file_path_handle_bridge.TokenPreparationAcquisitionDisposition.cache_allocation_failed,
+        no_cache.disposition,
+    );
+    try std.testing.expectEqual(-@as(i32, @intFromEnum(std.os.linux.E.NOMEM)), no_cache.result_code);
+    try std.testing.expect(no_cache.should_close_token_fd);
+    try std.testing.expect(!no_cache.should_store_token_fd);
+    try std.testing.expect(!no_cache.should_store_feat_cache_token_fd);
+    try std.testing.expect(!no_cache.succeeded());
+
+    const prepared = file_path_handle_bridge.resolveTokenPreparationAcquisition(true);
+    try std.testing.expectEqual(
+        file_path_handle_bridge.TokenPreparationAcquisitionDisposition.prepared,
+        prepared.disposition,
+    );
+    try std.testing.expectEqual(@as(i32, 0), prepared.result_code);
+    try std.testing.expect(!prepared.should_close_token_fd);
+    try std.testing.expect(prepared.should_store_token_fd);
+    try std.testing.expect(prepared.should_store_feat_cache_token_fd);
+    try std.testing.expect(prepared.succeeded());
+}
+
 test "phase 8 file-path-handle bridge keeps reuse-attempt ownership planning explicit" {
     const incompatible = file_path_handle_bridge.resolveReusePinnedMapAttempt(false, 0);
     try std.testing.expectEqual(
