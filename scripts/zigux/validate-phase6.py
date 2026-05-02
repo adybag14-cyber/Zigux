@@ -66,7 +66,7 @@ MAKE_MARKERS = [
 CATALOG_MARKERS = [
     "PHASE6_BASE64_C_PARITY_CASES=112",
     "PHASE6_BSEARCH_C_PARITY_CASES=29",
-    "PHASE6_CHECKSUM_C_PARITY_SELF_TEST_CASE_COUNT=6",
+    "PHASE6_CHECKSUM_C_PARITY_SELF_TEST_CASE_COUNT=10",
     "PHASE6_CHECKSUM_C_PARITY_CASES=22",
     "max_encode_slowdown_pct = 190",
     "max_decode_slowdown_pct = 320",
@@ -158,7 +158,7 @@ HEXDUMP_FIXTURE_MARKERS = [
 
 CHECKSUM_PARITY_SCRIPT_MARKERS = [
     'print("PHASE6_CHECKSUM_C_PARITY_SELF_TEST=pass")',
-    'print("PHASE6_CHECKSUM_C_PARITY_SELF_TEST_CASE_COUNT=6")',
+    'print("PHASE6_CHECKSUM_C_PARITY_SELF_TEST_CASE_COUNT=10")',
     'print(f"PHASE6_CHECKSUM_C_PARITY_CASES={len(c_lines)}")',
 ]
 
@@ -222,7 +222,7 @@ EXPECTED_CHECKSUM_DETERMINISM = {
     "ipv6_pseudo_header_vectors": 3,
     "carry_discipline_vectors": 4,
     "kunit_random_prefix_vectors": 6,
-    "c_parity_self_test_cases": 6,
+    "c_parity_self_test_cases": 10,
     "c_parity_cases": 22,
 }
 
