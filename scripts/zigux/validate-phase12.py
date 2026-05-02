@@ -236,7 +236,7 @@ PHASE12_LIBBPF_SNAPSHOT_FIXTURE = "zigux/tests/fixtures/phase12_libbpf_snapshot.
 
 MANIFEST_SPECS = {
     "phase12_virtio_net_manifest.json": {
-        "lane_key": "P12-L01",
+        "lane_key": "P12-L04",
         "anchor": "drivers/net/virtio_net.c",
         "gap_count": 14,
         "roadmap_destinations": ["drivers/net/virtio_net.zig", "zigux/tests/"],
@@ -358,7 +358,6 @@ MANIFEST_SPECS = {
         "survey_count_markers": [("starter_landed_count", "starter_landed"), ("ready_next_count", "ready_next"), ("blocked_count", "blocked_on_object_model"), ("deferred_count", "deferred_high_risk")],
     },
 }
-
 
 def text(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
