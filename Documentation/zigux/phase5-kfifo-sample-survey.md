@@ -114,7 +114,7 @@ The exact checks currently recorded in `zigux/tests/phase5_bytestream_fifo_manif
 
 ## Latest verification snapshot
 
-Current sample behavior was re-verified against `master` commit `a15760c3e46103fd41ae0da852b61f612e9116c6` on 2026-05-02 with the attached Zig toolchain.
+The latest recorded focused verification snapshot for this packet remains the 2026-05-01 replay against `master` commit `f5f4aa86602580b500f4d0ab8640ec6029e82e46` with the attached Zig toolchain.
 
 The exact verification commands and observed results were:
 
@@ -133,9 +133,9 @@ The exact verification commands and observed results were:
   - observed result: `phase5-bytestream-fifo-tests 5 pass (5 total)`
   - observed result: `phase5-bytestream-fifo-survey-tests 2 pass (2 total)`
 
-This focused review-path recheck keeps the current bytestream packet honest after the survey note and manifest drift were corrected. The shared `phase5_build.zig` entrypoint remains the bundle-level replay path, and `zigux/tests/phase5_bytestream_fifo_manifest.json` now carries the same `surveyed_commit` value as this note instead of drifting to a different inspected head.
+This note's 2026-05-02 refresh only repinned the inspected-head provenance to `PHASE5_SURVEYED_COMMIT=a15760c3e46103fd41ae0da852b61f612e9116c6` after readback confirmed that the bytestream sample, the paired survey gate, and the shared `phase5_build.zig` entrypoint stayed unchanged from that previously validated packet.
 
-Those live runs confirmed that the shipped bytestream FIFO sample still matches the exact bounded checks above: the embedded 32-byte queue reaches length `15` after the initial replay setup, drains `"hello"` first, drains and requeues `0` and `1`, skips `2`, peeks `3`, preserves the truncated replay preview prefix `[3,4,5,6,7,8,9,0]`, preserves the exact 32-byte snapshot and final drain sequence `[3,4,5,6,7,8,9,0,1,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42]`, and keeps the helper-only preview truncation, reset, and lifecycle guards green under the shared Phase 5 build entrypoint.
+Those recorded runs confirmed that the shipped bytestream FIFO sample still matches the exact bounded checks above: the embedded 32-byte queue reaches length `15` after the initial replay setup, drains `"hello"` first, drains and requeues `0` and `1`, skips `2`, peeks `3`, preserves the truncated replay preview prefix `[3,4,5,6,7,8,9,0]`, preserves the exact 32-byte snapshot and final drain sequence `[3,4,5,6,7,8,9,0,1,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42]`, and keeps the helper-only preview truncation, reset, and lifecycle guards green under the shared Phase 5 build entrypoint.
 
 ## Contributor refresh prompts for the landed sample
 
