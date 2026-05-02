@@ -382,6 +382,64 @@ test "phase 7 rbtree find helpers walk duplicate-key ranges" {
     try std.testing.expectEqual(@as(?*rbtree.Node, null), rbtree.findFirst(@as(i32, 99), &root, cmp));
 }
 
+test "phase 7 rbtree reverse duplicate helpers walk duplicate-key ranges" {
+    var parsed = try loadFixture(std.testing.allocator);
+    defer parsed.deinit();
+    const fixture = parsed.value;
+
+    const less = struct {
+        fn compare(lhs: *const rbtree.Node, rhs: *const rbtree.Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            if (lhs_entry.key != rhs_entry.key) {
+                return lhs_entry.key < rhs_entry.key;
+            }
+            return lhs_entry.serial < rhs_entry.serial;
+        }
+    }.compare;
+
+    const cmp = struct {
+        fn compare(key: i32, node: *const rbtree.Node) i32 {
+            const entry: *const Entry = @fieldParentPtr("node", node);
+            return orderToInt(std.math.order(key, entry.key));
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 10, .serial = 0 },
+        .{ .key = 20, .serial = 0 },
+        .{ .key = 10, .serial = 1 },
+        .{ .key = 5, .serial = 0 },
+        .{ .key = 10, .serial = 2 },
+        .{ .key = 15, .serial = 0 },
+    };
+    var root = rbtree.Root.init();
+
+    for (&entries) |*entry| {
+        rbtree.add(&entry.node, &root, less);
+    }
+
+    const last_match = rbtree.findLast(fixture.duplicates.key, &root, cmp) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(i32, 2), (@as(*const Entry, @fieldParentPtr("node", last_match))).serial);
+
+    var reversed_expected: [3]i32 = undefined;
+    for (fixture.duplicates.match_serials, 0..) |_, index| {
+        reversed_expected[index] = fixture.duplicates.match_serials[fixture.duplicates.match_serials.len - 1 - index];
+    }
+
+    var reverse_serials: [3]i32 = undefined;
+    var reverse_count: usize = 0;
+    var current_match: ?*rbtree.Node = last_match;
+    while (current_match) |match| : (current_match = rbtree.prevMatch(fixture.duplicates.key, match, cmp)) {
+        reverse_serials[reverse_count] = (@as(*const Entry, @fieldParentPtr("node", match))).serial;
+        reverse_count += 1;
+    }
+
+    try std.testing.expectEqual(fixture.duplicates.match_serials.len, reverse_count);
+    try std.testing.expectEqualSlices(i32, reversed_expected[0..reverse_count], reverse_serials[0..reverse_count]);
+    try std.testing.expectEqual(@as(?*rbtree.Node, null), rbtree.findLast(@as(i32, 99), &root, cmp));
+}
+
 test "phase 7 rbtree iterateMatches streams duplicate-key ranges" {
     var parsed = try loadFixture(std.testing.allocator);
     defer parsed.deinit();
@@ -432,6 +490,64 @@ test "phase 7 rbtree iterateMatches streams duplicate-key ranges" {
     try std.testing.expectEqualSlices(i32, fixture.duplicates.match_serials, actual_serials[0..count]);
 
     var missing = rbtree.iterateMatches(@as(i32, 99), &root, cmp);
+    try std.testing.expectEqual(@as(?*rbtree.Node, null), missing.next());
+}
+
+test "phase 7 rbtree iterateMatchesReverse streams duplicate-key ranges in reverse" {
+    var parsed = try loadFixture(std.testing.allocator);
+    defer parsed.deinit();
+    const fixture = parsed.value;
+
+    const less = struct {
+        fn compare(lhs: *const rbtree.Node, rhs: *const rbtree.Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            if (lhs_entry.key != rhs_entry.key) {
+                return lhs_entry.key < rhs_entry.key;
+            }
+            return lhs_entry.serial < rhs_entry.serial;
+        }
+    }.compare;
+
+    const cmp = struct {
+        fn compare(key: i32, node: *const rbtree.Node) i32 {
+            const entry: *const Entry = @fieldParentPtr("node", node);
+            return orderToInt(std.math.order(key, entry.key));
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 10, .serial = 0 },
+        .{ .key = 20, .serial = 0 },
+        .{ .key = 10, .serial = 1 },
+        .{ .key = 5, .serial = 0 },
+        .{ .key = 10, .serial = 2 },
+        .{ .key = 15, .serial = 0 },
+    };
+    var root = rbtree.Root.init();
+
+    for (&entries) |*entry| {
+        rbtree.add(&entry.node, &root, less);
+    }
+
+    var reversed_expected: [3]i32 = undefined;
+    for (fixture.duplicates.match_serials, 0..) |_, index| {
+        reversed_expected[index] = fixture.duplicates.match_serials[fixture.duplicates.match_serials.len - 1 - index];
+    }
+
+    var iterator = rbtree.iterateMatchesReverse(fixture.duplicates.key, &root, cmp);
+    var actual_serials: [3]i32 = undefined;
+    var count: usize = 0;
+    while (iterator.next()) |match| {
+        const entry: *const Entry = @fieldParentPtr("node", match);
+        actual_serials[count] = entry.serial;
+        count += 1;
+    }
+
+    try std.testing.expectEqual(fixture.duplicates.match_serials.len, count);
+    try std.testing.expectEqualSlices(i32, reversed_expected[0..count], actual_serials[0..count]);
+
+    var missing = rbtree.iterateMatchesReverse(@as(i32, 99), &root, cmp);
     try std.testing.expectEqual(@as(?*rbtree.Node, null), missing.next());
 }
 
