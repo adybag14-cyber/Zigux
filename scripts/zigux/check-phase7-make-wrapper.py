@@ -84,18 +84,35 @@ def check_root(root: Path, env: dict[str, str] | None = None) -> tuple[bool, lis
                 failures.append(stderr)
             continue
 
-        wrapper_lines = {line.strip() for line in result.stdout.splitlines() if line.strip()}
+        wrapper_lines = [line.strip() for line in result.stdout.splitlines() if line.strip()]
+        wrapper_line_set = set(wrapper_lines)
         for line in expected_lines:
-            if line not in wrapper_lines:
+            if line not in wrapper_line_set:
                 failures.append(
                     f"{target_name}: missing expected wrapper expansion: {line}"
                 )
 
         for line in UNEXPECTED_MAKE_EXPANSIONS.get(target_name, []):
-            if line in wrapper_lines:
+            if line in wrapper_line_set:
                 failures.append(
                     f"{target_name}: unexpected wrapper expansion: {line}"
                 )
+
+        expected_positions = {
+            line: wrapper_lines.index(line)
+            for line in expected_lines
+            if line in wrapper_line_set
+        }
+        for earlier, later in zip(expected_lines, expected_lines[1:]):
+            earlier_pos = expected_positions.get(earlier)
+            later_pos = expected_positions.get(later)
+            if earlier_pos is None or later_pos is None:
+                continue
+            if earlier_pos >= later_pos:
+                failures.append(
+                    f"{target_name}: wrapper expansion order drift: expected {earlier!r} before {later!r}"
+                )
+                break
 
     return (len(failures) == 0, failures)
 
@@ -298,8 +315,57 @@ def run_self_test() -> int:
             "phase7: unexpected wrapper expansion: zig build test --build-file zigux/tests/build.zig",
         )
 
+        order_drift_phase7_validate = {
+            "phase7-validate": [
+                "python3 scripts/zigux/validate-phase7.py --self-test",
+                "python3 scripts/zigux/validate-phase7.py",
+                "python3 scripts/zigux/check-phase7-build-inventory.py",
+                "python3 scripts/zigux/check-phase7-build-inventory.py --self-test",
+                "python3 scripts/zigux/check-phase7-make-wrapper.py --self-test",
+                "python3 scripts/zigux/check-phase7-make-wrapper.py",
+                "python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test",
+                "python3 scripts/zigux/check-phase7-cmdline-parity.py",
+                "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test",
+                "python3 scripts/zigux/check-phase7-rbtree-parity.py",
+            ],
+            "phase7-test": EXPECTED_MAKE_EXPANSIONS["phase7-test"],
+            "phase7": EXPECTED_MAKE_EXPANSIONS["phase7"],
+        }
+        make_fake_make(fake_make_path, order_drift_phase7_validate)
+        expect_failure(
+            "order_drift_phase7_validate",
+            tmp_root,
+            fake_make_env,
+            "phase7-validate: wrapper expansion order drift: expected 'python3 scripts/zigux/check-phase7-build-inventory.py --self-test' before 'python3 scripts/zigux/check-phase7-build-inventory.py'",
+        )
+
+        order_drift_phase7_bundle = {
+            "phase7-validate": EXPECTED_MAKE_EXPANSIONS["phase7-validate"],
+            "phase7-test": EXPECTED_MAKE_EXPANSIONS["phase7-test"],
+            "phase7": [
+                "python3 scripts/zigux/validate-phase7.py --self-test",
+                "python3 scripts/zigux/validate-phase7.py",
+                "python3 scripts/zigux/check-phase7-build-inventory.py --self-test",
+                "python3 scripts/zigux/check-phase7-build-inventory.py",
+                "python3 scripts/zigux/check-phase7-make-wrapper.py --self-test",
+                "python3 scripts/zigux/check-phase7-make-wrapper.py",
+                "python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test",
+                "python3 scripts/zigux/check-phase7-cmdline-parity.py",
+                "zig build test --build-file zigux/tests/phase7_build.zig --summary all",
+                "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test",
+                "python3 scripts/zigux/check-phase7-rbtree-parity.py",
+            ],
+        }
+        make_fake_make(fake_make_path, order_drift_phase7_bundle)
+        expect_failure(
+            "order_drift_phase7_bundle",
+            tmp_root,
+            fake_make_env,
+            "phase7: wrapper expansion order drift: expected 'python3 scripts/zigux/check-phase7-rbtree-parity.py' before 'zig build test --build-file zigux/tests/phase7_build.zig --summary all'",
+        )
+
     print("PHASE7_MAKE_WRAPPER_SELF_TEST=pass")
-    print("PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT=9")
+    print("PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
