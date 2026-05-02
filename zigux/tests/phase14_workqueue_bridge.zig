@@ -55,7 +55,7 @@ test "phase14 workqueue bridge manifest records the boundary-map foothold and re
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P14-L01", manifest.lane_key);
+    try std.testing.expectEqualStrings("P14-L04", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
     try std.testing.expectEqualStrings("kernel/workqueue.c", manifest.anchor);
     try std.testing.expectEqualStrings("542acd7b12c52211ef9a8bd790fa2e2b3367cbf0", manifest.surveyed_commit);
