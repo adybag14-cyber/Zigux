@@ -33,6 +33,8 @@ The live repo already has a bounded `drivers/virtio/virtio.zig` core starter wit
 
 - `PHASE10_FREEZE_MAP=Documentation/zigux/freeze-map.md`
 - `PHASE10_FREEZE_BOUNDARY_STATUS=aligned`
+- `PHASE10_FREEZE_BOUNDARY_OWNER=P10-L10`
+- `PHASE10_FREEZE_BOUNDARY_ROLLBACK_OWNER=P10-L10`
 - `PHASE10_RISKY_TRANSPORT_POSTURE=blocked_on_risky_transport`
 - `PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=yes`
 - `PHASE10_ARCHITECTURE_COUNCIL_REOPEN_ATTACHED=no`
@@ -42,6 +44,7 @@ The live repo already has a bounded `drivers/virtio/virtio.zig` core starter wit
 - allowed Phase 10 delivery still stays inside `drivers/virtio/*.zig` plus `zigux/helpers/`
 - the separate Phase 14 packet still owns those study-only anchors through `boundary maps`, `concurrency audits`, `explicit stay-in-C decisions where warranted`, and `wrapper-first or study-only posture`, and `kernel/workqueue_bridge.zig` plus `kernel/trace/ring_buffer.zig` remain only future Phase 14 destinations
 - this survey uses the landed MMIO interrupt-ack rung only as evidence that no smaller ready transport follow-up remains ahead of `phase10-mmio-lifecycle-and-irq-paths`; it does not reopen `queue_setup_reset_paths`, `irq_parity`, `dma_paths`, `input_registration_lifecycle`, or `probe_remove_lifecycle`
+- if the note, focused survey gate, or manifest stops carrying this freeze packet, the rollback owner for this lane is `P10-L10`, which must retire the lane back to its parked review-only posture instead of widening into new helper or transport claims
 
 ## Recorded gaps
 
