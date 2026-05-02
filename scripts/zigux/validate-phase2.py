@@ -13,6 +13,7 @@ GENKSYMS_BRIDGE_ALIGNMENT_CHECKER = (
     ROOT / "scripts" / "zigux" / "check-phase2-genksyms-bridge-selftest-alignment.py"
 )
 PHASE2_CROSS_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross.py"
+CHECK_KCONFIG_BRIDGE = ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py"
 PHASE2_TOOL_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json"
 PHASE2_CROSS_TARGETS = ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json"
 EXPECTED_TOOL_MANIFEST_TOOLS = [
@@ -57,6 +58,9 @@ PHASE2_GENKSYMS_BRIDGE_ALIGNMENT_REQUIRED_SOURCE_MARKERS = [
 PHASE2_CROSS_REQUIRED_SOURCE_MARKERS = [
     "phase2-cross:tool_manifest_path_missing:",
     "print('PHASE2_CROSS_SELF_TEST_CASE_COUNT=9')",
+]
+PHASE2_KCONFIG_REQUIRED_SOURCE_MARKERS = [
+    "assert total_self_test_cases == 6",
 ]
 
 
@@ -155,6 +159,13 @@ def main() -> int:
             PHASE2_CROSS_CHECKER,
             label="phase2_cross_checker",
             required_markers=PHASE2_CROSS_REQUIRED_SOURCE_MARKERS,
+        )
+    )
+    issues.extend(
+        validate_source_markers(
+            CHECK_KCONFIG_BRIDGE,
+            label="phase2_kconfig_bridge_checker",
+            required_markers=PHASE2_KCONFIG_REQUIRED_SOURCE_MARKERS,
         )
     )
 
