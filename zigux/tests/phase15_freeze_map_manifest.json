@@ -1,7 +1,7 @@
 {
-  "lane_key": "P15-L04",
+  "lane_key": "P15-Y05",
   "phase": "Phase 15",
-  "surveyed_commit": "6689715b1930c419e49a44b1c2dd317548a08c1d",
+  "surveyed_commit": "061e7433848f59ef6efd3b25f91b4916a9070de1",
   "anchor": "Documentation/zigux/freeze-map.md",
   "roadmap_freeze_in_c_targets": [
     "kernel/sched/core.c",
@@ -90,7 +90,7 @@
       "status": "starter_landed",
       "kind": "lane_note",
       "zigux_destination": "Documentation/zigux/phase15-freeze-map-governance.md",
-      "why_now": "The freeze-map-specific lane note now needs to reflect current Phase 15 repo reality instead of preserving the older maintenance snapshot, because the current head keeps the narrower freeze-map packet green while the same deep-core blocker posture stays parked and any broader Phase 15 maintenance drift remains outside this packet."
+      "why_now": "The freeze-map-specific lane note now needs to reflect the active Phase 15 maintenance lane and current repo reality instead of preserving the older maintenance snapshot, because the current head keeps the narrower freeze-map packet green while the same deep-core blocker posture stays parked and any broader Phase 15 maintenance drift remains outside this packet."
     },
     {
       "id": "phase15-build-gate",
