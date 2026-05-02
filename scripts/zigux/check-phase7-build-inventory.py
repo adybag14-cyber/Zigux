@@ -11,6 +11,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[2]
 BUILD_PATH = ROOT / "zigux" / "tests" / "phase7_build.zig"
 FIXTURE_PATH = ROOT / "zigux" / "tests" / "fixtures" / "phase7_build_inventory.json"
+VALIDATOR_PATH = ROOT / "scripts" / "zigux" / "validate-phase7.py"
 
 IMPORTED_HELPER_RE = re.compile(
     r'createImportedTestRoot\(\s*b,\s*target,\s*optimize,\s*"([^"]+)",\s*"([^"]+)",\s*"([^"]+)"',
@@ -28,6 +29,19 @@ RUN_CALL_RE = re.compile(
 DEPEND_STEP_RE = re.compile(r"test_step\.dependOn\(&([A-Za-z0-9_]+)\.step\);")
 BUILD_PATH_RE = re.compile(r'b\.path\("([^"]+)"\)')
 UNEXPECTED_BUILD_MARKERS = ["../../tools/lib/", "zigux/tests/build.zig"]
+VALIDATOR_REQUIRED_FILE_MARKER = (
+    'ROOT / "scripts" / "zigux" / "check-phase7-build-inventory.py",'
+)
+VALIDATOR_EXPECTED_MARKERS = {
+    "expected_make_expansions": [
+        '"python3 scripts/zigux/check-phase7-build-inventory.py --self-test",',
+        '"python3 scripts/zigux/check-phase7-build-inventory.py",',
+    ],
+    "unexpected_make_expansions": [
+        '"python3 scripts/zigux/check-phase7-build-inventory.py --self-test",',
+        '"python3 scripts/zigux/check-phase7-build-inventory.py",',
+    ],
+}
 
 
 def load_fixture() -> dict[str, object]:
@@ -71,6 +85,29 @@ def render_inventory(build_path: Path = BUILD_PATH) -> dict[str, object]:
     return render_inventory_from_text(build_path.read_text(encoding="utf-8"))
 
 
+def collect_validator_alignment_failures(validator_text: str) -> list[str]:
+    failures: list[str] = []
+    if VALIDATOR_REQUIRED_FILE_MARKER not in validator_text:
+        failures.append(
+            "validate-phase7.py: missing required_files entry for scripts/zigux/check-phase7-build-inventory.py"
+        )
+
+    for block_name, markers in VALIDATOR_EXPECTED_MARKERS.items():
+        block_match = re.search(rf"{block_name} = \\{{(.*?)\\n \\}}", validator_text, re.S)
+        if block_match is None:
+            failures.append(f"validate-phase7.py: missing {block_name} block")
+            continue
+
+        block_text = block_match.group(1)
+        for marker in markers:
+            if marker not in block_text:
+                failures.append(
+                    f"validate-phase7.py: {block_name} missing marker {marker}"
+                )
+
+    return failures
+
+
 def print_mismatch(expected: dict[str, object], actual: dict[str, object]) -> None:
     print("PHASE7_BUILD_INVENTORY=fail")
     print("PHASE7_BUILD_INVENTORY_MISMATCH_START")
@@ -83,10 +120,29 @@ def print_mismatch(expected: dict[str, object], actual: dict[str, object]) -> No
     print("PHASE7_BUILD_INVENTORY_MISMATCH_END")
 
 
+def print_validator_alignment_failures(failures: list[str]) -> None:
+    print("PHASE7_BUILD_INVENTORY_VALIDATOR_ALIGNMENT_START")
+    for failure in failures:
+        print(failure)
+    print("PHASE7_BUILD_INVENTORY_VALIDATOR_ALIGNMENT_END")
+
+
+def expect_validator_failure(label: str, validator_text: str, expected_message: str) -> None:
+    failures = collect_validator_alignment_failures(validator_text)
+    if not failures:
+        raise SystemExit(f"phase7-build-inventory:self-test:{label}:unexpected_pass")
+    joined = "\n".join(failures)
+    if expected_message not in joined:
+        raise SystemExit(
+            f"phase7-build-inventory:self-test:{label}:expected:{expected_message}:actual:{joined}"
+        )
+
+
 def run_self_test() -> int:
     fixture = load_fixture()
     first = render_inventory()
     second = render_inventory()
+    validator_text = VALIDATOR_PATH.read_text(encoding="utf-8")
 
     if first != second:
         raise SystemExit("phase7-build-inventory:self-test:repeat_run_stability")
@@ -94,6 +150,8 @@ def run_self_test() -> int:
         raise SystemExit("phase7-build-inventory:self-test:fixture_match")
     if len(first["run_labels"]) != len(first["shared_test_depend_steps"]):
         raise SystemExit("phase7-build-inventory:self-test:depend_step_count")
+    if collect_validator_alignment_failures(validator_text):
+        raise SystemExit("phase7-build-inventory:self-test:validator_alignment_baseline")
 
     drifted = dict(first)
     drifted["run_labels"] = ["phase7-mismatch"]
@@ -155,8 +213,32 @@ def run_self_test() -> int:
     if len(dependency_steps) != len(first["shared_test_depend_steps"]) - 1:
         raise SystemExit("phase7-build-inventory:self-test:dependency_drift_count")
 
+    expect_validator_failure(
+        "missing_validator_required_file_marker",
+        validator_text.replace(VALIDATOR_REQUIRED_FILE_MARKER, "", 1),
+        "validate-phase7.py: missing required_files entry for scripts/zigux/check-phase7-build-inventory.py",
+    )
+    expect_validator_failure(
+        "missing_validator_expected_marker",
+        validator_text.replace(
+            '"python3 scripts/zigux/check-phase7-build-inventory.py --self-test",',
+            "",
+            1,
+        ),
+        'validate-phase7.py: expected_make_expansions missing marker "python3 scripts/zigux/check-phase7-build-inventory.py --self-test",',
+    )
+    expect_validator_failure(
+        "missing_validator_unexpected_marker",
+        validator_text.replace(
+            '"python3 scripts/zigux/check-phase7-build-inventory.py",',
+            "",
+            1,
+        ),
+        'validate-phase7.py: unexpected_make_expansions missing marker "python3 scripts/zigux/check-phase7-build-inventory.py",',
+    )
+
     print("PHASE7_BUILD_INVENTORY_SELF_TEST=pass")
-    print("PHASE7_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=8")
+    print("PHASE7_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
@@ -176,8 +258,22 @@ def main(argv: list[str] | None = None) -> int:
 
     fixture = load_fixture()
     generated = render_inventory()
-    if generated != fixture:
-        print_mismatch(fixture, generated)
+    validator_failures = collect_validator_alignment_failures(
+        VALIDATOR_PATH.read_text(encoding="utf-8")
+    )
+    if generated != fixture or validator_failures:
+        print("PHASE7_BUILD_INVENTORY=fail")
+        if generated != fixture:
+            print("PHASE7_BUILD_INVENTORY_MISMATCH_START")
+            print("EXPECTED_JSON_START")
+            print(json.dumps(fixture, indent=2))
+            print("EXPECTED_JSON_END")
+            print("ACTUAL_JSON_START")
+            print(json.dumps(generated, indent=2))
+            print("ACTUAL_JSON_END")
+            print("PHASE7_BUILD_INVENTORY_MISMATCH_END")
+        if validator_failures:
+            print_validator_alignment_failures(validator_failures)
         return 1
 
     print("PHASE7_BUILD_INVENTORY=pass")
