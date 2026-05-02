@@ -45,10 +45,11 @@
     "scripts/zigux/validate-phase3-rbtree-interop-survey.py",
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
+    "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py",
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "scripts/zigux/validate_phase3_header_binding_markers.py",
     "scripts/zigux/validate_phase3_core.py",
     "scripts/zigux/validate_phase3_selftest.py"
   ],
-  "file_count": 46
+  "file_count": 47
 }
