@@ -132,6 +132,9 @@ test "phase 8 bridge boundary survey stays wired into the shared packet" {
     try expectContains(bridge_note, "scheduler-facing transport behavior");
     try expectContains(bridge_note, "kernel/workqueue.c");
     try expectContains(bridge_note, "`bpf_token_create()`");
+    try expectContains(bridge_note, "resolveTokenPreparationAcquisition()");
+    try expectContains(bridge_note, "`cache_allocation_failed`");
+    try expectContains(bridge_note, "`should_store_feat_cache_token_fd`");
     try expectContains(bridge_note, "perf-buffer-online-cpu-routing");
     try expectContains(bridge_note, "perf_buffer__poll(timeout_ms)");
     try expectContains(bridge_note, "wait-result classification");
@@ -270,7 +273,9 @@ test "phase 8 bridge boundary survey still matches the live helper surfaces" {
     try expectContains(bridge_note, "bpf_object_prepare_token()");
     try expectContains(bridge_note, "bpf_object__reuse_map()");
     try expectContains(bridge_note, "classifyReusePinnedMapOpenFailure()");
+    try expectContains(bridge_note, "resolveTokenPreparationAcquisition()");
     try expectContains(bridge_note, "`skip_missing_pinned_map`");
+    try expectContains(bridge_note, "`should_close_token_fd`");
     try expectContains(bridge_note, "Documentation/zigux/phase8-perf-buffer-poll-slice.md");
     try expectContains(bridge_note, "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig");
     try expectContains(bridge_note, "zigux/tests/phase8_perf_buffer_poll.zig");
@@ -314,5 +319,6 @@ test "phase 8 bridge boundary survey still matches the live helper surfaces" {
     try expectContains(file_path_handle_bridge_helper, "pub fn planTokenPreparation(");
     try expectContains(file_path_handle_bridge_helper, "pub fn classifyTokenPreparationFailure(");
     try expectContains(file_path_handle_bridge_helper, "pub fn classifyReusePinnedMapOpenFailure(");
+    try expectContains(file_path_handle_bridge_helper, "pub fn resolveTokenPreparationAcquisition(");
     try expectContains(file_path_handle_bridge_helper, "skip_missing_pinned_map");
 }
