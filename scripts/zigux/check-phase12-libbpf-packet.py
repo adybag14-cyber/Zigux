@@ -5,6 +5,7 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+import re
 import tempfile
 
 
@@ -21,6 +22,7 @@ EXPECTED_ROADMAP_DESTINATIONS = [
     "zigux/tests/",
     "Documentation/zigux/",
 ]
+HEX40 = re.compile(r"^[0-9a-f]{40}$")
 
 EXPECTED_SURVEY_SUMMARY = {
     "libbpf_c_lines": 14771,
@@ -266,7 +268,7 @@ def find_item(items: list[dict[str, object]], key: str, value: str) -> dict[str,
 
 
 def has_valid_commit(value: object) -> bool:
-    return isinstance(value, str) and len(value) == 40
+    return isinstance(value, str) and HEX40.fullmatch(value) is not None
 
 
 def file_digest(root: Path, rel_path: str) -> dict[str, object]:
@@ -587,9 +589,6 @@ def run_self_test() -> int:
             raise SystemExit("phase12-libbpf-packet:self-test:tracked_paths_detection")
 
         build_self_test_tree(root)
-        manifest_path = root / TRACKED_PATHS[0]
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        surveyed_commit = manifest["surveyed_commit"]
         snapshot_path = root / "zigux/tests/fixtures/phase12_libbpf_snapshot.json"
         snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
         snapshot["surveyed_commit"] = "0" * 40
@@ -813,6 +812,15 @@ def run_self_test() -> int:
             raise SystemExit("phase12-libbpf-packet:self-test:legacy_anchor_detection")
 
         build_self_test_tree(root)
+        manifest_path = root / TRACKED_PATHS[0]
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["surveyed_commit"] = "g" * 40
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        missing = check_packet(root)
+        if "manifest:surveyed_commit" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:manifest_surveyed_commit_hex_detection")
+
+        build_self_test_tree(root)
         legacy_manifest_path = root / TRACKED_PATHS[4]
         legacy_manifest = json.loads(legacy_manifest_path.read_text(encoding="utf-8"))
         legacy_manifest["surveyed_commit"] = "deadbeef"
@@ -824,8 +832,20 @@ def run_self_test() -> int:
         if "legacy_manifest:surveyed_commit" not in missing:
             raise SystemExit("phase12-libbpf-packet:self-test:legacy_surveyed_commit_detection")
 
+        build_self_test_tree(root)
+        legacy_manifest_path = root / TRACKED_PATHS[4]
+        legacy_manifest = json.loads(legacy_manifest_path.read_text(encoding="utf-8"))
+        legacy_manifest["surveyed_commit"] = "g" * 40
+        legacy_manifest_path.write_text(
+            json.dumps(legacy_manifest, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        missing = check_packet(root)
+        if "legacy_manifest:surveyed_commit" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:legacy_surveyed_commit_hex_detection")
+
         print("PHASE12_LIBBPF_PACKET_SELF_TEST=pass")
-        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=27")
+        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=29")
     return 0
 
 
