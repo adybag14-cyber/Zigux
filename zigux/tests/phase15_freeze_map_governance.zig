@@ -128,6 +128,6 @@ test "phase 15 freeze-map governance note keeps the active lane, current head, a
     try std.testing.expect(hasSubstring(note, "blocked_no_bounded_allocator_seam"));
     try std.testing.expect(hasSubstring(note, "blocked_phase14_followup_still_wider_than_allowed_rcu_seam"));
     try std.testing.expect(hasSubstring(note, "blocked_packet_lifetime_boundary_still_too_wide"));
-    try std.testing.expect(hasSubstring(note, "Documentation/zigux/README.md"));
-    try std.testing.expect(hasSubstring(note, "Phase 15 notes"));
+    try std.testing.expect(hasSubstring(note, "Run Phase 15 governance tests"));
+    try std.testing.expect(hasSubstring(note, "phase15-shared-ci-enforcement-present"));
 }
