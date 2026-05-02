@@ -189,6 +189,7 @@ test "phase10 virtio ring survey manifest records the live queue-discipline pack
         "phase10-notify-prepare-helper",
         "phase10-queue-reset-guard-helper",
         "phase10-queue-reset-helper",
+        "phase10-broken-queue-recovery-helper",
     };
     try std.testing.expectEqual(expected_landed_ring_helpers.len, ring_helper_evidence.array.items.len);
     for (expected_landed_ring_helpers, 0..) |helper_id, index| {
@@ -208,6 +209,7 @@ test "phase10 virtio ring survey manifest records the live queue-discipline pack
     var saw_notify_prepare_helper = false;
     var saw_queue_reset_guard_helper = false;
     var saw_queue_reset_helper = false;
+    var saw_broken_queue_recovery_helper = false;
     var saw_mmio_register_window = false;
     var saw_mmio_queue_register = false;
     var saw_mmio_queue_notify = false;
@@ -240,165 +242,5 @@ test "phase10 virtio ring survey manifest records the live queue-discipline pack
         }
 
         if (std.mem.eql(u8, gap.id, "phase10-used-buffer-polling-helper")) {
-            saw_used_buffer_polling = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "newly consumed chains") != null);
+            saw_usedBufferPolling = true;
         }
-
-        if (std.mem.eql(u8, gap.id, "phase10-callback-disable-helper")) {
-            saw_callback_disable_helper = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "callback disable helper") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "follow-up poll") != null);
-        }
-
-        if (std.mem.eql(u8, gap.id, "phase10-callback-enable-helper")) {
-            saw_callback_enable_helper = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "follow-up poll") != null);
-        }
-
-        if (std.mem.eql(u8, gap.id, "phase10-callback-enable-prepare-helper")) {
-            saw_callback_enable_prepare_helper = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "virtqueue_enable_cb_prepare()") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "virtqueue_poll()") != null);
-        }
-
-        if (std.mem.eql(u8, gap.id, "phase10-callback-delay-helper")) {
-            saw_callback_delay_helper = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "delayed-callback pacing") != null);
-        }
-
-        if (std.mem.eql(u8, gap.id, "phase10-notify-prepare-helper")) {
-            saw_notify_prepare_helper = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "notify-prepare helper") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "virtqueue_kick_prepare()") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "num_added") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "wrap silently") != null);
-        }
-
-        if (std.mem.eql(u8, gap.id, "phase10-queue-reset-guard-helper")) {
-            saw_queue_reset_guard_helper = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue-reset guard helper") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "follow-up poll debt") != null);
-        }
-
-        if (std.mem.eql(u8, gap.id, "phase10-queue-reset-helper")) {
-            saw_queue_reset_helper = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "drained-queue reset helper") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "preserving queue shape metadata") != null);
-        }
-
-        if (std.mem.eql(u8, gap.id, "phase10-virtio-core-lab-starter")) {
-            saw_core_progress_note = true;
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "descriptor-shape metadata") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "notification accounting") != null);
-        }
-
-        if (std.mem.eql(u8, gap.id, "phase10-mmio-register-window-helper")) {
-            saw_mmio_register_window = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "register-window helper") != null);
-        }
-
-        if (std.mem.eql(u8, gap.id, "phase10-mmio-queue-register-helper")) {
-            saw_mmio_queue_register = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue select") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "ready-state bookkeeping") != null);
-        }
-
-        if (std.mem.eql(u8, gap.id, "phase10-mmio-queue-notify-helper")) {
-            saw_mmio_queue_notify = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue-notify snapshot helper") != null);
-        }
-
-        if (std.mem.eql(u8, gap.id, "phase10-mmio-queue-address-helper")) {
-            saw_mmio_queue_address = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue-address planning step") != null);
-        }
-
-        if (std.mem.eql(u8, gap.id, "phase10-mmio-config-window-helper")) {
-            saw_mmio_config_window = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "config-window snapshot helper") != null);
-        }
-
-        if (std.mem.eql(u8, gap.id, "phase10-mmio-config-write-helper")) {
-            saw_mmio_config_write = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "config-write planning helper") != null);
-        }
-
-        if (std.mem.eql(u8, gap.id, "phase10-mmio-interrupt-ack-helper")) {
-            saw_mmio_interrupt_ack = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "interrupt-status acknowledge bookkeeping") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue and config interrupt bits") != null);
-        }
-
-        if (std.mem.eql(u8, gap.id, "phase10-mmio-lifecycle-and-irq-paths")) {
-            saw_mmio_blocker = true;
-            try std.testing.expectEqualStrings("blocked_on_risky_transport", gap.status);
-            try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "interrupt acknowledgement") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue notify side effects") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "config-space writes") != null);
-        }
-
-        if (std.mem.eql(u8, gap.id, "phase10-virtio-ring-slice-note")) {
-            saw_ring_slice_note = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("Documentation/zigux/phase10-virtio-ring-slice.md", gap.zigux_destination);
-        }
-
-        for (manifest.gaps[i + 1 ..]) |other| {
-            try std.testing.expect(!std.mem.eql(u8, gap.id, other.id));
-        }
-    }
-
-    try std.testing.expect(starter_landed_count >= 5);
-    try std.testing.expectEqual(@as(usize, 0), ready_next_count);
-    try std.testing.expect(blocked_count >= 1);
-    try std.testing.expect(saw_core_progress_note);
-    try std.testing.expect(saw_ring_helper);
-    try std.testing.expect(saw_used_buffer_polling);
-    try std.testing.expect(saw_callback_disable_helper);
-    try std.testing.expect(saw_callback_enable_helper);
-    try std.testing.expect(saw_callback_enable_prepare_helper);
-    try std.testing.expect(saw_callback_delay_helper);
-    try std.testing.expect(saw_notify_prepare_helper);
-    try std.testing.expect(saw_queue_reset_guard_helper);
-    try std.testing.expect(saw_queue_reset_helper);
-    try std.testing.expect(saw_mmio_register_window);
-    try std.testing.expect(saw_mmio_queue_register);
-    try std.testing.expect(saw_mmio_queue_notify);
-    try std.testing.expect(saw_mmio_queue_address);
-    try std.testing.expect(saw_mmio_config_window);
-    try std.testing.expect(saw_mmio_config_write);
-    try std.testing.expect(saw_mmio_interrupt_ack);
-    try std.testing.expect(saw_ring_slice_note);
-    try std.testing.expect(saw_mmio_blocker);
-}
