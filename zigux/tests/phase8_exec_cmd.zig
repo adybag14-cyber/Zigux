@@ -164,6 +164,7 @@ test "phase 8 exec-cmd docs keep the parked deferred execution boundary explicit
     try expectContains(slice_note, "make -C zigux phase8-exec-cmd-test");
     try expectContains(slice_note, "Phase 14");
     try expectContains(slice_note, "kernel/workqueue.c");
+    try expectContains(slice_note, "`kernel/workqueue.c` remains a Phase 14 boundary-study target");
     try expectContains(slice_note, "`execv_cmd()`");
     try expectContains(slice_note, "`execvp()`");
     try expectContains(slice_note, "scheduler-facing transport ownership");
@@ -184,6 +185,7 @@ test "phase 8 exec-cmd review checklist keeps deferred handoff review wording al
     try expectContains(review_checklist, "zigux/tests/phase8_exec_cmd.zig");
     try expectContains(review_checklist, "deferred execution helper-only");
     try expectContains(review_checklist, "kernel/workqueue.c");
+    try expectContains(review_checklist, "separate `kernel/workqueue.c` Phase 14 boundary-study target");
     try expectContains(review_checklist, "`execv_cmd()`");
     try expectContains(review_checklist, "`execl_cmd()`");
     try expectContains(review_checklist, "direct `execvp()` side effects");
