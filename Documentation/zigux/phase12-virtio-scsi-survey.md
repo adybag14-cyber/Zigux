@@ -33,6 +33,17 @@ The highest-value honest step in this lane is therefore to keep the survey, vali
 - the pinned fallback packet also preserves one historical degraded-workflow replay from inspected head `7d653d8c5e57207763c07c1b1d020b514738c7f3`: the archived `python3 scripts/zigux/validate-phase12.py` replay failed on four unrelated shared-packet drifts while the focused `zig test zigux/tests/phase12_virtio_scsi_survey.zig` replay still passed `1/1` tests.
 - the exact archived validator miss list now stays in `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, so this survey note can point at the pinned fallback evidence without repeating cross-lane details or implying those misses are still current on newer Phase 12 heads.
 
+## Roadmap Gap Versus Required Features
+
+The Phase 12 roadmap calls for four properties before a truthful complex-driver claim: DMA-safe abstractions, queueing correctness, throughput and recovery parity, and a segmented rollout. The current `virtio_scsi` packet is still intentionally short of three of those four requirements, and the survey should say that plainly.
+
+- `DMA-safe abstractions`: still blocked. The bounded starter does not claim DMA mapping, scatter-gather command assembly, virtqueue buffer ownership, or live request or response buffer lifetime.
+- `queueing correctness`: only partially covered. Zigux now keeps queue-family planning, poll-queue clamping, stable global virtqueue indexes, host-limit summaries, queue-depth summaries, and io-queue-map summaries reviewable in memory, but it still does not claim live blk-mq submission, command completion, or runtime queue ownership.
+- `throughput and recovery parity`: only shape-level evidence exists today. The lane records freeze or restore planning, queue-depth restore pressure, and queue-map restore pressure, but it does not claim measured throughput, event-work recycling, PM callback parity, or full transport-reset behavior.
+- `segmented rollout`: active and appropriate. The current packet is intentionally segmented across the bounded driver starter, direct tests, survey note, and archival raw-GitHub fallback catalog instead of pretending to be a full runtime SCSI port.
+
+The manifest now carries the same roadmap-gap summary in structured form so future runs can refresh the survey packet without having to rediscover which Phase 12 requirement is landed, which one is only partially represented, and which ones are still blocked.
+
 ## Recorded gaps
 
 The survey manifest now records:
