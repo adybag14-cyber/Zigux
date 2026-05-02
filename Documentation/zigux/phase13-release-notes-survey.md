@@ -91,7 +91,7 @@ The current release packet also carries one active Phase 13 boundary reminder on
 The current manifest lane ownership carried by the release packet is:
 
 - `fs/libfs.c` through `zigux/tests/phase13_libfs_manifest.json` lane `P13-L03`
-- `lib/devres.c` through `zigux/tests/phase13_devres_manifest.json` lane `P13-L05`
+- `lib/devres.c` through `zigux/tests/phase13_devres_manifest.json` lane `P13-L01`
 - `security/landlock/ruleset.c` through `zigux/tests/phase13_landlock_ruleset_manifest.json` lane `P13-L12`
 - `security/landlock/syscalls.c` through `zigux/tests/phase13_landlock_syscalls_manifest.json` lane `P13-L16`
 - adjacent notifier-list reviewability evidence through `zigux/tests/phase13_notifier_list_manifest.json` lane `P13-L18`
