@@ -5,6 +5,7 @@ This document records the first bounded hardware-validation matrix for the Zigux
 ## Status
 
 - `PHASE11_GPIO_WDT_STATUS=metadata_teardown_and_register_device_surface_landed`
+- reviewed against live `master` `f0aacb8c3c98b9c3b25c0908067a97c0db54c230`
 - scope: keep the current `gpio_wdt` starter honest about what is already validated, name the explicit teardown evidence plus the first bounded register-device call evidence, and avoid overclaiming live GPIO, platform registration, or reboot integration before those behaviors exist in Zigux
 - current repo reality:
   - `drivers/watchdog/gpio_wdt.zig`
