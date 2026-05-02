@@ -35,6 +35,7 @@ This note records the current cross-slice boundary for Phase 8 userspace-adjacen
   - `zigux/tests/phase8_libbpf_segments.zig`
   - `zigux/tests/phase8_libbpf_segments_only_build.zig`
   - `zigux/tests/phase8_perf_buffer_poll.zig`
+  - `zigux/tests/phase8_perf_buffer_poll_only_build.zig`
   - `zigux/tests/phase8_build.zig`
 
 ## Why this note exists
@@ -71,7 +72,7 @@ The current bridge packet now matches the roadmap shape, but it still leaves a b
 
 ## Review gate
 
-The shared review path now follows the same validator-first Phase 8 sequence that current `master` publishes through `zigux/Makefile`: the broader validator self-test still runs first, the dedicated tests-readme alignment checker and its self-test stay in the same fail-closed packet, and only then do the focused survey and shared build replays run, so this cross-slice boundary note stays tied to the same docs-root, tests-root, Makefile, workflow, and segmented libbpf packet that current `master` already ships.
+The shared review path now follows the same validator-first Phase 8 sequence that current `master` publishes through `zigux/Makefile`: the broader validator self-test still runs first, the dedicated tests-readme alignment checker and its self-test stay in the same fail-closed packet, and only then do the focused survey, focused perf-buffer poll shard, and shared build replays run, so this cross-slice boundary note stays tied to the same docs-root, tests-root, Makefile, workflow, and segmented libbpf packet that current `master` already ships.
 
 1. `python3 scripts/zigux/validate-phase8.py --self-test`
 2. `python3 scripts/zigux/check-phase8-tests-readme-alignment.py --self-test`
@@ -80,7 +81,8 @@ The shared review path now follows the same validator-first Phase 8 sequence tha
 5. `make -C zigux phase8-validate`
 6. `zig test zigux/tests/phase8_libbpf_segments.zig`
 7. `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all`
-8. `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
+8. `zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all`
+9. `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
 
 ## Non-goals
 
