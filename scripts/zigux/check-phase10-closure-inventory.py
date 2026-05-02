@@ -249,7 +249,10 @@ EXPECTED_BLOCKED_TRANSPORT_GAPS = {
     "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-lifecycle-and-irq-paths",
 }
 
-EXPECTED_READY_TRANSPORT_FOLLOWUPS: dict[str, str] = {}
+EXPECTED_READY_TRANSPORT_FOLLOWUPS = {
+    "zigux/tests/phase10_virtio_input_manifest.json": "keep the Phase 10 virtio_input lane parked at the current probe-preflight boundary until a later transport-backed packet can justify widening into queue callbacks, interrupts, or input_register_device lifecycle work with explicit risky-transport evidence",
+    "zigux/tests/phase10_virtio_mmio_manifest.json": "leave the MMIO lane parked unless a future inspection can split phase10-mmio-lifecycle-and-irq-paths into a smaller transport-safe observation helper without claiming queue setup, IRQ delivery, probe, or remove parity or reopening the separate Phase 14 study-only boundary packet",
+}
 
 EXPECTED_MANIFEST_SCALARS = {
     "phase": "Phase 10",
@@ -668,9 +671,7 @@ def run_self_test() -> int:
         write_fixture(root)
 
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["ready_transport_followups"] = {
-            "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-interrupt-ack-helper"
-        }
+        manifest["ready_transport_followups"] = {}
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         expect_missing_marker(
             "manifest_ready_transport_followups",
@@ -745,7 +746,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_CLOSURE_INVENTORY_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_INVENTORY_SELF_TEST_CASE_COUNT=26")
+    print("PHASE10_CLOSURE_INVENTORY_SELF_TEST_CASE_COUNT=27")
     return 0
 
 
