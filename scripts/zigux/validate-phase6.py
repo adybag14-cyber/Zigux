@@ -425,7 +425,7 @@ CATALOG_MARKERS = [
     "max_slowdown_pct = 550",
     "max_slowdown_pct = 600",
     "avg_compare_calls <= std.math.log2_int_ceil(len) + 1",
-    "PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=11",
+    "PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=13",
 ]
 
 EXPECTED_BASE64_DETERMINISM = {
@@ -547,15 +547,28 @@ EXPECTED_MANIFEST = {
         "zigux/tests/phase6_helper_parity_manifest.json",
     ],
     "perf_posture": {
-        "relative_slowdown_helpers": ["base64", "checksum", "hexdump"],
-        "comparison_budget_helpers": ["bsearch"],
+        "relative_slowdown_helpers": [
+            "base64",
+            "checksum",
+            "hexdump",
+        ],
+        "comparison_budget_helpers": [
+            "bsearch",
+        ],
         "timing_sanity_only_helpers": [],
     },
     "fixture_posture": {
-        "fixture_backed_helpers": ["base64", "checksum", "hexdump"],
-        "inline_corpus_helpers": ["bsearch"],
+        "fixture_backed_helpers": [
+            "base64",
+            "checksum",
+            "hexdump",
+        ],
+        "inline_corpus_helpers": [
+            "bsearch",
+        ],
     },
     "exact_checks": [
+        "python3 scripts/zigux/validate-phase6.py --self-test",
         "python3 scripts/zigux/validate-phase6.py",
         "make -C zigux phase6-validate",
         "make -C zigux phase6",
@@ -856,7 +869,7 @@ def run_self_test() -> int:
             write_self_test_tree(root)
             catalog_path = root / "Documentation/zigux/phase6-helper-parity-catalog.md"
             catalog_text = catalog_path.read_text(encoding="utf-8")
-            validator_count_marker = "PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=11"
+            validator_count_marker = "PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=13"
             catalog_path.write_text(
                 catalog_text.replace(validator_count_marker, "", 1),
                 encoding="utf-8",
