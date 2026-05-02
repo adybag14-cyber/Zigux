@@ -227,7 +227,7 @@ readiness_manifest = load_json("zigux/tests/phase15_readiness_gate_manifest.json
 require(readiness_manifest.get("phase") == "Phase 15", "manifest:phase")
 require(readiness_manifest.get("lane_key") == "P15-L01", "manifest:lane_key")
 require(
-    readiness_manifest.get("surveyed_commit") == "ef7b33b6922d05e5ef514fb4efa588316ce6dda8",
+    readiness_manifest.get("surveyed_commit") == "77d1209e4c74efade82757d00d4d6dcfbe5e397e",
     "manifest:surveyed_commit",
 )
 
