@@ -6,6 +6,7 @@ const phase4_runtime_atomic64_manifest_source = @embedFile("phase4_runtime_atomi
 const phase4_build_source = @embedFile("phase4_build.zig");
 const phase4_makefile_source = @embedFile("../Makefile");
 const phase9_build_source = @embedFile("phase9_build.zig");
+const validate_phase4_source = @embedFile("../../scripts/zigux/validate-phase4.py");
 
 comptime {
     _ = runtime_atomic64_diff;
@@ -25,6 +26,10 @@ fn expectWrapperNoMarker(marker: []const u8) !void {
 
 fn expectManifestMarker(marker: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, phase4_runtime_atomic64_manifest_source, marker) != null);
+}
+
+fn expectValidatorMarker(marker: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, validate_phase4_source, marker) != null);
 }
 
 fn expectWorkspaceMarker(path: []const u8, marker: []const u8, limit: usize) !void {
@@ -144,6 +149,18 @@ test "atomic64 diff wrapper checks the published phase4 make entrypoints directl
     try expectPhase4MakefileMarker(
         "$(ZIG) build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig",
     );
+}
+
+test "atomic64 diff wrapper keeps phase4 validator aligned with wrapper and runtime split" {
+    try expectValidatorMarker("'atomic64_diff.zig': {");
+    try expectValidatorMarker("'zigux/tests/atomic64_diff.zig'");
+    try expectValidatorMarker("'zigux/tests/runtime_atomic64_diff.zig'");
+    try expectValidatorMarker("'phase4_validator_atomic64_diff_present': True");
+    try expectValidatorMarker("'phase4_validator_runtime_atomic64_diff_present': True");
+    try expectValidatorMarker("roadmap_atomic64_wrapper_targets_runtime_diff");
+    try expectValidatorMarker("threshold_pending_until_runtime_atomic64_scope_widens");
+    try expectValidatorMarker("removing `atomic64_diff.zig` from the shared `phase4_build.zig` entrypoint");
+    try expectValidatorMarker("`runtime_atomic64_diff.zig` remains the single replay body");
 }
 
 test "atomic64 diff wrapper records the exact bounded runtime atomic64 checks" {
