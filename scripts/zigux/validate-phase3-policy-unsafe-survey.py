@@ -158,6 +158,16 @@ REQUIRED_MMIO_SNIPPETS = (
     'test "phase3 mmio wrapper rejects misaligned scoped accesses"',
 )
 
+REQUIRED_POLICY_UNSAFE_BUILD_SNIPPETS = (
+    '.root_source_file = b.path("phase3_policy_unsafe.zig"),',
+    'interop_policy_module.addImport("narrow_unsafe", narrow_unsafe_module);',
+    'mmio_module.addImport("interop_policy", interop_policy_module);',
+    'mmio_module.addImport("narrow_unsafe", narrow_unsafe_module);',
+    'root_module.addImport("abi_bindings", abi_bindings_module);',
+    'root_module.addImport("interop_policy", interop_policy_module);',
+    'root_module.addImport("mmio", mmio_module);',
+)
+
 REQUIRED_POLICY_UNSAFE_TEST_SNIPPETS = (
     'test "phase3 policy helpers stay ABI aligned"',
     'test "phase3 policy decoder validates the whole interop record"',
@@ -313,6 +323,7 @@ def validate(root: Path) -> list[str]:
     interop_policy = _read_text(root, INTEROP_POLICY_REL, issues)
     unsafe_narrow = _read_text(root, UNSAFE_NARROW_REL, issues)
     mmio = _read_text(root, MMIO_REL, issues)
+    policy_unsafe_build = _read_text(root, POLICY_UNSAFE_BUILD_REL, issues)
     policy_unsafe_test = _read_text(root, POLICY_UNSAFE_TEST_REL, issues)
     abi_slice = _read_text(root, ABI_SLICE_REL, issues)
 
@@ -361,6 +372,8 @@ def validate(root: Path) -> list[str]:
         _check_snippets(unsafe_narrow, REQUIRED_UNSAFE_SNIPPETS, "missing_unsafe_snippet", issues)
     if mmio:
         _check_snippets(mmio, REQUIRED_MMIO_SNIPPETS, "missing_mmio_snippet", issues)
+    if policy_unsafe_build:
+        _check_snippets(policy_unsafe_build, REQUIRED_POLICY_UNSAFE_BUILD_SNIPPETS, "missing_policy_unsafe_build_snippet", issues)
     if policy_unsafe_test:
         _check_snippets(policy_unsafe_test, REQUIRED_POLICY_UNSAFE_TEST_SNIPPETS, "missing_policy_unsafe_test_snippet", issues)
     if abi_slice:
@@ -478,6 +491,24 @@ def run_self_test() -> int:
         )
         _write(
             root,
+            POLICY_UNSAFE_BUILD_REL,
+            "\n".join(
+                [
+                    'const root_module = b.createModule(.{',
+                    '    .root_source_file = b.path("phase3_policy_unsafe.zig"),',
+                    '});',
+                    'interop_policy_module.addImport("narrow_unsafe", narrow_unsafe_module);',
+                    'mmio_module.addImport("interop_policy", interop_policy_module);',
+                    'mmio_module.addImport("narrow_unsafe", narrow_unsafe_module);',
+                    'root_module.addImport("abi_bindings", abi_bindings_module);',
+                    'root_module.addImport("interop_policy", interop_policy_module);',
+                    'root_module.addImport("mmio", mmio_module);',
+                    "",
+                ]
+            ),
+        )
+        _write(
+            root,
             POLICY_UNSAFE_TEST_REL,
             "\n".join(
                 [
@@ -513,7 +544,6 @@ def run_self_test() -> int:
             ABI_SLICE_REL,
             "focused replay gate: `zigux/tests/phase3_policy_unsafe.zig` now verifies both successful whole-record decoding and rejection of partial or reserved policy bytes\nfocused replay gate: `zigux/tests/phase3_policy_unsafe.zig` now keeps `layout_assert`, panic, allocator, whole-record interop-policy decoding, unsafe-byte decoding, and declared-scope enforcement aligned on its own compile-and-test path\n",
         )
-        _write(root, POLICY_UNSAFE_BUILD_REL, "// build file present\n")
         _write(root, MANIFEST_REL, "{}\n")
 
         assert validate(root) == []
@@ -670,6 +700,47 @@ def run_self_test() -> int:
             in issues
         )
 
+        _write(
+            root,
+            POLICY_UNSAFE_BUILD_REL,
+            "\n".join(
+                [
+                    'const root_module = b.createModule(.{',
+                    '    .root_source_file = b.path("phase3_policy_unsafe.zig"),',
+                    '});',
+                    'interop_policy_module.addImport("narrow_unsafe", narrow_unsafe_module);',
+                    'mmio_module.addImport("interop_policy", interop_policy_module);',
+                    'root_module.addImport("abi_bindings", abi_bindings_module);',
+                    'root_module.addImport("interop_policy", interop_policy_module);',
+                    'root_module.addImport("mmio", mmio_module);',
+                    "",
+                ]
+            ),
+        )
+        issues = validate(root)
+        assert (
+            'missing_policy_unsafe_build_snippet:mmio_module.addImport("narrow_unsafe", narrow_unsafe_module);'
+            in issues
+        )
+
+        _write(
+            root,
+            POLICY_UNSAFE_BUILD_REL,
+            "\n".join(
+                [
+                    'const root_module = b.createModule(.{',
+                    '    .root_source_file = b.path("phase3_policy_unsafe.zig"),',
+                    '});',
+                    'interop_policy_module.addImport("narrow_unsafe", narrow_unsafe_module);',
+                    'mmio_module.addImport("interop_policy", interop_policy_module);',
+                    'mmio_module.addImport("narrow_unsafe", narrow_unsafe_module);',
+                    'root_module.addImport("abi_bindings", abi_bindings_module);',
+                    'root_module.addImport("interop_policy", interop_policy_module);',
+                    'root_module.addImport("mmio", mmio_module);',
+                    "",
+                ]
+            ),
+        )
         _write(
             root,
             MAKEFILE_REL,
