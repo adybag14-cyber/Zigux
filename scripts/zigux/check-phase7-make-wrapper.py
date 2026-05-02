@@ -195,6 +195,41 @@ def run_self_test() -> int:
             "phase7-validate: missing expected wrapper expansion: python3 scripts/zigux/check-phase7-build-inventory.py",
         )
 
+        missing_build_inventory_selftest_in_phase7_bundle = {
+            "phase7-validate": EXPECTED_MAKE_EXPANSIONS["phase7-validate"],
+            "phase7-test": EXPECTED_MAKE_EXPANSIONS["phase7-test"],
+            "phase7": [
+                line
+                for line in EXPECTED_MAKE_EXPANSIONS["phase7"]
+                if line
+                != "python3 scripts/zigux/check-phase7-build-inventory.py --self-test"
+            ],
+        }
+        make_fake_make(fake_make_path, missing_build_inventory_selftest_in_phase7_bundle)
+        expect_failure(
+            "missing_build_inventory_selftest_in_phase7_bundle",
+            tmp_root,
+            fake_make_env,
+            "phase7: missing expected wrapper expansion: python3 scripts/zigux/check-phase7-build-inventory.py --self-test",
+        )
+
+        missing_build_inventory_live_in_phase7_bundle = {
+            "phase7-validate": EXPECTED_MAKE_EXPANSIONS["phase7-validate"],
+            "phase7-test": EXPECTED_MAKE_EXPANSIONS["phase7-test"],
+            "phase7": [
+                line
+                for line in EXPECTED_MAKE_EXPANSIONS["phase7"]
+                if line != "python3 scripts/zigux/check-phase7-build-inventory.py"
+            ],
+        }
+        make_fake_make(fake_make_path, missing_build_inventory_live_in_phase7_bundle)
+        expect_failure(
+            "missing_build_inventory_live_in_phase7_bundle",
+            tmp_root,
+            fake_make_env,
+            "phase7: missing expected wrapper expansion: python3 scripts/zigux/check-phase7-build-inventory.py",
+        )
+
         missing_cmdline_selftest = {
             "phase7-validate": [
                 line
@@ -247,8 +282,24 @@ def run_self_test() -> int:
             "phase7-test: unexpected wrapper expansion: zig build test --build-file zigux/tests/build.zig",
         )
 
+        stale_build_in_phase7_bundle = {
+            "phase7-validate": EXPECTED_MAKE_EXPANSIONS["phase7-validate"],
+            "phase7-test": EXPECTED_MAKE_EXPANSIONS["phase7-test"],
+            "phase7": [
+                *EXPECTED_MAKE_EXPANSIONS["phase7"],
+                "zig build test --build-file zigux/tests/build.zig",
+            ],
+        }
+        make_fake_make(fake_make_path, stale_build_in_phase7_bundle)
+        expect_failure(
+            "stale_build_in_phase7_bundle",
+            tmp_root,
+            fake_make_env,
+            "phase7: unexpected wrapper expansion: zig build test --build-file zigux/tests/build.zig",
+        )
+
     print("PHASE7_MAKE_WRAPPER_SELF_TEST=pass")
-    print("PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT=6")
+    print("PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
