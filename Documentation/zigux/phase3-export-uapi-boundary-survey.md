@@ -49,7 +49,7 @@ This survey keeps `PHASE3_SURVEYED_COMMIT=86eacdc8bf95ba95f126e6dadf088eb67d6ebd
 The current tree already carries the first bounded export and UAPI boundary surface:
 
 - `zigux/kernel/export_shim.zig` exposes explicit `ok`, `errno`, `isOk`, `normalize`, `header`, `isCompatibleHeader`, and `isCanonicalHeader` helpers around the curated `ExportStatus` and `BoundaryHeader` ABI types
-- `include/linux/zigux.h` now sits inside the same bounded packet as the C-facing relay for those shared ABI types: the C-facing helper header still relays the shared `BoundaryHeader` and `ExportStatus` ABI types through `#include <zigux/abi.h>` while broader named C-side boundary-header helpers stay intentionally deferred
+- `include/linux/zigux.h` now sits inside the same bounded packet as the C-facing relay for those shared ABI types: the C-facing helper header still relays the shared `BoundaryHeader` and `ExportStatus` ABI types through `#include <zigux/abi.h>` while broader named C-side boundary-header helpers stay intentionally deferred, but current `master` no longer leaves that file as only a narrow relay-and-status shim because the same header also carries multiple already-landed Phase 3 interop helper families beyond the export/UAPI starter
 - the export shim and `zigux/uapi/version.zig` now carry the same shared boundary-header construction and compatibility contract without widening the packet beyond the existing ABI types
 - the export shim and `zigux/uapi/version.zig` now also keep canonical-size header checks separate from broader future-compatible header acceptance, so the packet distinguishes exact current-shape replay from forward-compatible boundary tolerance without widening the UAPI surface
 - the same surveyed head now also includes the landed policy-and-unsafe substrate tightening in `Documentation/zigux/phase3-abi-slice.md` and `zigux/tests/fixtures/phase3_abi_manifest.json`, so this export/UAPI survey pin stays aligned with the broader ABI packet instead of aging against a pre-policy snapshot
@@ -60,7 +60,8 @@ The current tree already carries the first bounded export and UAPI boundary surf
 - `zigux/uapi/version.zig` now also keeps the forward-compatible constructor explicit through `compatibleHeader(size, flags)`, so future-size replay does not have to fall back to ad hoc struct literals when the boundary packet wants to stay narrow but still reviewable
 - `scripts/zigux/validate_phase3_core.py` now routes `python3 scripts/zigux/validate-phase3.py --slug abi --check-build-smoke` through the shared `phase3-dump`, `phase3-low-level-wrappers-test`, `phase3-export-uapi-test`, and `phase3-policy-unsafe-test` replays, so the export/UAPI boundary is part of the shared ABI build-smoke proof rather than only a boundary-local survey gate
 - `scripts/zigux/validate-phase3-export-uapi-survey.py` now rejects drift in the directly coupled export/UAPI packet by checking the recorded packet-local blob IDs first and only falling back to `PHASE3_SURVEYED_COMMIT` when older survey notes do not yet carry those fingerprints, so the survey stays anchored to boundary-local evidence even on shallow checkouts
-- that same survey validator now also fails if the C-facing helper header stops carrying the shared ABI include or the local `zigux_status_ok()` and `zigux_status_err()` relay helpers, so the export/UAPI packet no longer leaves its C-side relay implicit
+- that same survey validator now also fails if the C-facing helper header stops carrying the shared ABI include or the local `zigux_status_ok()` and `zigux_status_err()` relay helpers, so the export/UAPI packet no longer leaves its C-side relay implicit even while the broader helper growth in that header remains a review concern for this lane
+- current repo reality is therefore asymmetric in a reviewable way: the Zig-side packet around `zigux/kernel/export_shim.zig` and `zigux/uapi/version.zig` is still intentionally narrow, while the paired C-side helper header has already grown into a much broader aggregation surface for Phase 3 interop helpers
 
 This is real roadmap-backed progress.
 It is also still a narrow starting point rather than broad UAPI closure.
@@ -87,12 +88,16 @@ That piece exists and is reviewable.
 The remaining gap for this specific boundary packet is narrower than a missing public boundary altogether.
 The live repo already carries the C-facing boundary headers in `include/zigux/abi.h` and `include/linux/zigux.h`.
 
+The sharper repo-reality gap is that the Zig-side starter and the C-side helper header are no longer growing at the same size or review level.
+`zigux/kernel/export_shim.zig` and `zigux/uapi/version.zig` still form a small, explicit, reviewable Zig-side boundary starter, but `include/linux/zigux.h` has already accumulated a much broader C-side helper surface around bitmap, cpumask, list, hlist, err-ptr, xarray, IDR, IDA, dev-region, cdev, and chrdev-adjacent interop helpers.
+That means the permanent boundary is still segmented unevenly even though the narrow export/UAPI starter itself is real.
+
 What is still missing is a broader curated Zig-side UAPI helper family beyond the current boundary-header starter:
 
 - `zigux/uapi/` still contains only `version.zig`
 - there is still no second curated Zig-side UAPI module or broader constant pack under `zigux/uapi/`
 - the shared header support is now explicit and now includes named version and size predicates plus canonical-versus-compatible header checks, and the same file now also exposes an explicit forward-compatible header constructor, but the Zig-side UAPI surface still stops well short of a broader helper family
-- the C-facing helper header is now an explicit part of the same surveyed packet, but it still stops at shared ABI relay plus status helpers rather than a broader named C-side boundary-header helper family
+- the C-facing helper header is now an explicit part of the same surveyed packet, but current repo reality has moved past a relay-plus-status-only role, so the main boundary-management risk is now the mismatch between the still-narrow Zig-side starter and the already-broader C-side aggregation header rather than the complete absence of C-facing entry points
 
 That repo reality is consistent with the bounded ABI substrate, but it is still short of the roadmap's eventual broader permanent boundary destination.
 
@@ -102,6 +107,7 @@ The next honest follow-on inside this boundary family is still narrow:
 
 - keep the current export shim and boundary-header surface narrow until a roadmap-backed interop slice needs one more reviewable boundary helper
 - keep `zigux/uapi/` at version-plus-boundary-header scope until a concrete Phase 3 slice needs one additional curated Zig-side public constant, type, or helper surface
+- do not treat this lane as permission to add more unrelated helper growth to `include/linux/zigux.h`; if another Phase 3 slice needs new C-side boundary entry points, resurvey this packet explicitly so the broader header growth stays visible instead of being mistaken for export/UAPI closure
 - refresh the packet-local `*_BLOB_SHA` markers whenever the directly coupled export/UAPI packet paths are deliberately resurveyed after boundary-local changes
 - refresh `PHASE3_SURVEYED_COMMIT` only when the whole export/UAPI packet is deliberately resurveyed against a confirmed shared head
 
