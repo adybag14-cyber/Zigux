@@ -122,6 +122,30 @@ test "phase11 dw_wdt survey manifest and validation matrix record the landed lif
     );
     defer std.testing.allocator.free(remove_idle_split_test);
 
+    const dw_wdt_zig = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "drivers/watchdog/dw_wdt.zig",
+        std.testing.allocator,
+        .limited(128 * 1024),
+    );
+    defer std.testing.allocator.free(dw_wdt_zig);
+
+    const dw_wdt_test = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase11_dw_wdt.zig",
+        std.testing.allocator,
+        .limited(128 * 1024),
+    );
+    defer std.testing.allocator.free(dw_wdt_test);
+
+    const phase11_build = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase11_build.zig",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(phase11_build);
+
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
 
@@ -193,6 +217,25 @@ test "phase11 dw_wdt survey manifest and validation matrix record the landed lif
     try std.testing.expect(std.mem.indexOf(u8, remove_idle_split_test, "remove_preserves_pending_interrupt_without_reset") != null);
     try std.testing.expect(std.mem.indexOf(u8, remove_idle_split_test, "remove_clears_interrupt_status") != null);
     try std.testing.expect(std.mem.indexOf(u8, remove_idle_split_test, "remove_asserts_reset_control") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, dw_wdt_zig, "pub const TeardownLifecycleSummary = struct {") != null);
+    try std.testing.expect(std.mem.indexOf(u8, dw_wdt_zig, "pub const RemoveSummary = struct {") != null);
+    try std.testing.expect(std.mem.indexOf(u8, dw_wdt_zig, "pub fn summarizeTeardownLifecycle(") != null);
+    try std.testing.expect(std.mem.indexOf(u8, dw_wdt_zig, "pub fn summarizeRemoveHandoff(") != null);
+    try std.testing.expect(std.mem.indexOf(u8, dw_wdt_zig, "pub fn liveResourceOrderSummary(") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, dw_wdt_test, "test \"phase11 dw_wdt remove handoff keeps unregister and reset-control teardown parity explicit\" {") != null);
+    try std.testing.expect(std.mem.indexOf(u8, dw_wdt_test, "test \"phase11 dw_wdt stop and restart stay bounded to reset-control and non-stoppable semantics\" {") != null);
+    try std.testing.expect(std.mem.indexOf(u8, dw_wdt_test, "try std.testing.expect(unstoppable_summary.stop_preserves_pending_interrupt_without_reset);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, dw_wdt_test, "try std.testing.expect(stoppable_summary.stop_uses_reset_pulse);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, dw_wdt_test, "try std.testing.expect(stoppable_summary.remove_asserts_reset_control);") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, phase11_build, ".name = \"phase11-dw-wdt-tests\",") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase11_build, ".name = \"phase11-dw-wdt-remove-idle-split-tests\",") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase11_build, ".name = \"phase11-dw-wdt-survey-tests\",") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase11_build, "test_step.dependOn(&run_phase11_dw_wdt_tests.step);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase11_build, "test_step.dependOn(&run_phase11_dw_wdt_remove_idle_split_tests.step);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase11_build, "test_step.dependOn(&run_phase11_dw_wdt_survey_tests.step);") != null);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
