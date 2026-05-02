@@ -150,8 +150,10 @@ REQUIRED_LOW_LEVEL_TEST_SNIPPETS = (
 )
 
 REQUIRED_ABI_SLICE_SNIPPETS = (
+    "PHASE3_ATOMIC_SCOPE=load-store-exchange-compare-exchange-compare-exchange-weak-fetch-add-fetch-sub-fetch-and-fetch-or-fetch-xor-fetch-min-fetch-max",
     "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
+    "atomic reality today: `zigux/helpers/atomic.zig` currently limits the approved wrapper set to `load`, `store`, `exchange`, `fetchAdd`, `fetchSub`, `fetchAnd`, `fetchOr`, `fetchXor`, `fetchMin`, `fetchMax`, `compareExchange`, and `compareExchangeWeak`",
     "PHASE3_MMIO_SCOPE=range-read8-read16-read32-read64-write8-write16-write32-write64-plus-scoped-read8-write8-read16-write16-read32-write32-read64-write64-plus-policy-read8-write8-read16-write16-read32-write32-read64-write64-and-generic-policy-bridges",
     "`zigux/tests/phase3_policy_unsafe.zig` and `scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py` keep the decoded-policy MMIO bridge reviewable beside the focused low-level gate",
     "broader kernel-style atomic or barrier families plus MMIO expansion beyond the current direct, scoped, and decoded-policy 8-bit, 16-bit, 32-bit, and 64-bit helpers still stay deferred until a roadmap-backed boundary slice really needs them",
@@ -378,6 +380,22 @@ def run_self_test() -> int:
         )
         issues = validate(root)
         assert "missing_low_level_test_snippet:atomic.fetchMax(u32, &value, 29, .seq_cst)" in issues
+
+        _write(
+            root,
+            ABI_SLICE_REL,
+            "\n".join(
+                snippet
+                for snippet in REQUIRED_ABI_SLICE_SNIPPETS
+                if snippet
+                != "PHASE3_ATOMIC_SCOPE=load-store-exchange-compare-exchange-compare-exchange-weak-fetch-add-fetch-sub-fetch-and-fetch-or-fetch-xor-fetch-min-fetch-max"
+            ) + "\n",
+        )
+        issues = validate(root)
+        assert (
+            "missing_abi_slice_snippet:PHASE3_ATOMIC_SCOPE=load-store-exchange-compare-exchange-compare-exchange-weak-fetch-add-fetch-sub-fetch-and-fetch-or-fetch-xor-fetch-min-fetch-max"
+            in issues
+        )
 
     print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass")
     return 0
