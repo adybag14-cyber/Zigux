@@ -405,7 +405,7 @@ def run_self_test() -> int:
 
         survey_path = tmp_root / SURVEY_PATH
         original_survey = survey_path.read_text(encoding="utf-8")
-        survey_path.writeText(
+        survey_path.write_text(
             original_survey.replace("MODULE_ALIAS()", "", 1),
             encoding="utf-8",
         )
