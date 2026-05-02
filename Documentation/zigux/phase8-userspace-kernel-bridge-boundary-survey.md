@@ -72,17 +72,19 @@ The current bridge packet now matches the roadmap shape, but it still leaves a b
 
 ## Review gate
 
-The shared review path now follows the same validator-first Phase 8 sequence that current `master` publishes through `zigux/Makefile`: the broader validator self-test still runs first, the dedicated tests-readme alignment checker and its self-test stay in the same fail-closed packet, and only then do the focused survey, focused perf-buffer poll shard, and shared build replays run, so this cross-slice boundary note stays tied to the same docs-root, tests-root, Makefile, workflow, and segmented libbpf packet that current `master` already ships.
+The shared review path now follows the same validator-first Phase 8 sequence that current `master` publishes through `zigux/Makefile`: the broader validator self-test still runs first, the dedicated tests-readme alignment checker and the dedicated perf-buffer poll gate checker each keep their self-test and live pass inside the same fail-closed packet, and only then do the focused survey, focused perf-buffer poll shard, and shared build replays run, so this cross-slice boundary note stays tied to the same docs-root, tests-root, Makefile, workflow, and segmented libbpf packet that current `master` already ships.
 
 1. `python3 scripts/zigux/validate-phase8.py --self-test`
 2. `python3 scripts/zigux/check-phase8-tests-readme-alignment.py --self-test`
-3. `python3 scripts/zigux/validate-phase8.py`
-4. `python3 scripts/zigux/check-phase8-tests-readme-alignment.py`
-5. `make -C zigux phase8-validate`
-6. `zig test zigux/tests/phase8_libbpf_segments.zig`
-7. `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all`
-8. `zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all`
-9. `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
+3. `python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py --self-test`
+4. `python3 scripts/zigux/validate-phase8.py`
+5. `python3 scripts/zigux/check-phase8-tests-readme-alignment.py`
+6. `python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py`
+7. `make -C zigux phase8-validate`
+8. `zig test zigux/tests/phase8_libbpf_segments.zig`
+9. `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all`
+10. `make -C zigux phase8-perf-buffer-poll-test`
+11. `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
 
 ## Non-goals
 
