@@ -277,6 +277,7 @@ pub const DwWdtLab = struct {
     saved_timeout_range: u32 = 0,
     timeouts: [num_tops]TimeoutWindow,
     registers: RegisterImage = .{},
+    restart_sequence_armed: bool = false,
 
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -626,6 +627,7 @@ pub const DwWdtLab = struct {
         self.pretimeout_sec = if (self.response_mode == .irq) selected.sec else 0;
         self.registers.timeout_range =
             selected.top_val | (selected.top_val << timeout_range_topinit_shift);
+        self.restart_sequence_armed = false;
 
         return self.configSnapshot();
     }
@@ -634,6 +636,7 @@ pub const DwWdtLab = struct {
         if (!self.isEnabled()) return error.WatchdogNotRunning;
         self.registers.restart = counter_restart_kick_value;
         self.hardware_running = true;
+        self.restart_sequence_armed = false;
         return self.runtimeSnapshot();
     }
 
@@ -650,6 +653,7 @@ pub const DwWdtLab = struct {
         control |= control_reg_wdt_en_mask;
         self.registers.control = control;
         self.hardware_running = true;
+        self.restart_sequence_armed = false;
 
         return self.runtimeSnapshot();
     }
@@ -657,6 +661,7 @@ pub const DwWdtLab = struct {
     pub fn stop(self: *Self) RuntimeSnapshot {
         if (!self.has_reset_control) {
             if (self.isEnabled()) self.hardware_running = true;
+            self.restart_sequence_armed = false;
             return self.runtimeSnapshot();
         }
 
@@ -664,12 +669,14 @@ pub const DwWdtLab = struct {
         self.registers.current_count = 0;
         self.registers.interrupt_status = 0;
         self.hardware_running = false;
+        self.restart_sequence_armed = false;
         return self.runtimeSnapshot();
     }
 
     pub fn remove(self: *Self) RuntimeSnapshot {
         if (!self.has_reset_control) {
             if (self.isEnabled()) self.hardware_running = true;
+            self.restart_sequence_armed = false;
             return self.runtimeSnapshot();
         }
 
@@ -677,6 +684,7 @@ pub const DwWdtLab = struct {
         self.registers.current_count = 0;
         self.registers.interrupt_status = 0;
         self.hardware_running = false;
+        self.restart_sequence_armed = false;
         return self.runtimeSnapshot();
     }
 
@@ -693,6 +701,7 @@ pub const DwWdtLab = struct {
         }
 
         self.hardware_running = true;
+        self.restart_sequence_armed = true;
         return self.runtimeSnapshot();
     }
 
@@ -706,7 +715,7 @@ pub const DwWdtLab = struct {
             .timeout_sec = self.actual_timeout_sec,
             .pretimeout_sec = self.pretimeout_sec,
             .interrupt_pending = self.registers.interrupt_status != 0,
-            .restart_armed = running and (self.registers.timeout_range & 0xf) == 0,
+            .restart_armed = running and self.restart_sequence_armed,
             .time_left_sec = if (running) self.getTimeLeftSeconds() else 0,
             .registers = self.registers,
         };
@@ -736,6 +745,7 @@ pub const DwWdtLab = struct {
         const timeout = self.timeouts[self.registers.timeout_range & 0xf];
         self.actual_timeout_sec = timeout.sec * @intFromEnum(self.response_mode);
         self.pretimeout_sec = if (self.response_mode == .irq) timeout.sec else 0;
+        self.restart_sequence_armed = false;
     }
 
     fn captureSuspendState(self: *Self) void {
