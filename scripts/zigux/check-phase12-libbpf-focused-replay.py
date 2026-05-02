@@ -121,7 +121,6 @@ def run_self_test() -> int:
 
         build_self_test_tree(root)
         make_path = root / 'zigux/Makefile'
-        make_path.writeText = None
         make_path.write_text(make_path.read_text(encoding='utf-8').replace(MAKE_MARKERS[0], 'scripts/zigux/check-phase12-libbpf-focused-replay.py --phase12-self-test'), encoding='utf-8')
         missing = check_paths(
             root / 'zigux/tests/phase12_libbpf_only_build.zig',
