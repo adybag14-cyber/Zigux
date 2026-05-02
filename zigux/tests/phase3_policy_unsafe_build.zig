@@ -41,6 +41,14 @@ pub fn build(b: *std.Build) void {
     interop_policy_module.addImport("panic_policy", panic_policy_module);
     interop_policy_module.addImport("allocator_policy", allocator_policy_module);
     interop_policy_module.addImport("narrow_unsafe", narrow_unsafe_module);
+    const mmio_module = b.createModule(.{
+        .root_source_file = b.path("../helpers/mmio.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    mmio_module.addImport("abi_bindings", abi_bindings_module);
+    mmio_module.addImport("interop_policy", interop_policy_module);
+    mmio_module.addImport("narrow_unsafe", narrow_unsafe_module);
 
     const root_module = b.createModule(.{
         .root_source_file = b.path("phase3_policy_unsafe.zig"),
@@ -52,6 +60,7 @@ pub fn build(b: *std.Build) void {
     root_module.addImport("allocator_policy", allocator_policy_module);
     root_module.addImport("interop_policy", interop_policy_module);
     root_module.addImport("layout_assert", layout_assert_module);
+    root_module.addImport("mmio", mmio_module);
     root_module.addImport("narrow_unsafe", narrow_unsafe_module);
 
     const tests = b.addTest(.{
