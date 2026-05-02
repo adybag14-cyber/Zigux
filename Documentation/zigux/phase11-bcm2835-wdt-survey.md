@@ -10,8 +10,8 @@ The live repo state is now:
 - `zigux/tests/phase11_bcm2835_wdt.zig` and `Documentation/zigux/phase11-bcm2835-wdt-slice.md` keep that starter reviewable without claiming platform registration or hardware-backed execution
 - `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md` now names the shared Phase 11 test gate, the current timeout, probe, registration, platform-handoff, poweroff-path, and remove-time evidence, and the still-blocked live platform-registration or PM-base decision
 - `zigux/tests/phase11_bcm2835_wdt_survey.zig` and `zigux/tests/phase11_bcm2835_wdt_manifest.json` now treat the handoff and poweroff summaries as landed while still keeping the live platform-registration and PM-base gap explicit so the lane does not overclaim progress
-- the focused replay `zig test zigux/tests/phase11_bcm2835_wdt_survey.zig` still passes on current `master`
-- `zigux/tests/phase11_build.zig` still compiles and runs the gpio starter checks, the bcm2835 starter checks, and the bcm2835 survey check together so Phase 11 watchdog drift is visible in one place, and the current shared replay now passes on `master`
+- the focused replay `zig test zigux/tests/phase11_bcm2835_wdt_survey.zig` still passes for the bounded bcm2835 packet on current `master`
+- `zigux/tests/phase11_build.zig` still compiles and runs the gpio starter checks, the bcm2835 starter checks, and the bcm2835 survey check together so Phase 11 watchdog drift is visible in one place, but this archival watchdog note no longer claims that the whole current shared Phase 11 replay is green when unrelated non-watchdog drift can reopen elsewhere on `master`
 
 This lane is no longer survey-only, but the archival survey still keeps its inherited `P11-L08` packet identity so the bcm2835 watchdog review record stays traceable alongside the live manifest, survey gate, and validator ownership for the same lane key. It does not claim watchdog-core registration, PM base wiring, live remove-time poweroff-handler release behavior, or hardware-backed execution.
 
