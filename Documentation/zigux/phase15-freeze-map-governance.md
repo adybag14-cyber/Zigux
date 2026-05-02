@@ -51,6 +51,7 @@ That means the honest current comparison is stable: no roadmap freeze-map delta 
 - changes to the freeze or study lists require an explicit Architecture Council decision with written rationale
 - any lane that touches a listed anchor must declare owner, phase, status bucket, validation gate, and rollback owner in a reviewable record
 - direct Zig bridge or port claims for a freeze-in-C anchor stay blocked until the repo carries a parity scorecard entry and the Architecture Council records why the status can change
+- any reopen packet for a freeze-in-C anchor must restate that the existing C implementation remains the product source of truth unless the Architecture Council approves a status change
 - the stay-in-C policy says the C implementation remains the product source of truth, and ambiguous validation must keep the code in C with an explicit blocker
 - a freeze-in-C review that closes without a status change must retain the blocker, record `retired_from_active_discussion`, and keep the documented reopen triggers attached to the evidence archive
 - there is no silent exception path around the stay-in-C policy; only an explicit Architecture Council reopen request with fresh linked evidence may reopen status review
@@ -99,7 +100,7 @@ This slice does not claim:
 ## Current enforcement evidence
 
 - verified remote `master` head for this check: `061e7433848f59ef6efd3b25f91b4916a9070de1`
-- the root policy is present and explicit in `Documentation/zigux/freeze-map.md`, including the freeze-in-C list, study-only list, Architecture Council requirement, parity-scorecard requirement, retained stay-in-C closeout state, reopen-trigger language, and the no-silent-exception rule
+- the root policy is present and explicit in `Documentation/zigux/freeze-map.md`, including the freeze-in-C list, study-only list, Architecture Council requirement, parity-scorecard requirement, retained stay-in-C closeout state, reopen-trigger language, the explicit source-of-truth reminder for reopened packets, and the no-silent-exception rule
 - the review hook is present in `Documentation/zigux/review-checklist.md`, which now asks whether freeze-map anchors carry parity-scorecard evidence or blocker state, decision-record links, retained-discussion state, reopen triggers, and an explicit current lane owner for blocked evidence packets
 - the shared review checklist now carries a dedicated freeze-map governance-packet drift gate, so edits to `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, or `Documentation/zigux/phase15-parity-scorecard.md` must keep the automatic return-to-blocked trigger, retained discussion state, reopen triggers, and the current maintenance-mode handoff aligned
 - the current roadmap-versus-repo comparison remains stable: the freeze and study-only lists in `Documentation/zigux/freeze-map.md` still match the roadmap, and the scorecard plus the existing Phase 14 RCU or skbuff survey packets still back the same four deep-core blockers
