@@ -2,6 +2,7 @@ pub const NOTIFIER_CHAIN_FLAG_EMPTY: u32 = 1;
 pub const NOTIFIER_CHAIN_FLAG_TERMINATED: u32 = 2;
 pub const NOTIFIER_CHAIN_FLAG_TRUNCATED: u32 = 4;
 pub const NOTIFIER_CHAIN_FLAG_SELF_LOOP: u32 = 8;
+pub const NOTIFIER_CHAIN_FLAG_PRIORITY_NONINCREASING: u32 = 16;
 
 pub const NotifierBlockRef = extern struct {
     notifier_call_addr: usize,
