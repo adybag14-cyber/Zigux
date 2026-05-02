@@ -71,7 +71,7 @@ test "phase14 workqueue bridge manifest records the boundary-map foothold and re
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_workqueue_manifest_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_workqueue_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_workqueue_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 17), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 18), manifest.gaps.len);
 
     const survey_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
@@ -101,6 +101,7 @@ test "phase14 workqueue bridge manifest records the boundary-map foothold and re
     var saw_disable_delayed_followup = false;
     var saw_delayed_disable_wrapper_followup = false;
     var saw_delayed_submission_alias_followup = false;
+    var saw_delayed_timer_handoff_followup = false;
     var saw_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -214,10 +215,18 @@ test "phase14 workqueue bridge manifest records the boundary-map foothold and re
         if (std.mem.eql(u8, gap.id, "phase14-workqueue-delayed-submission-alias-followup")) {
             saw_delayed_submission_alias_followup = true;
             try std.testing.expectEqualStrings("kernel/workqueue_bridge.zig", gap.zigux_destination);
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue_delayed_work_on()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "mod_delayed_work_on()") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "clear_pending_if_disabled()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "__queue_delayed_work()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dwork->timer") != null);
+        }
+        if (std.mem.eql(u8, gap.id, "phase14-workqueue-delayed-timer-handoff-followup")) {
+            saw_delayed_timer_handoff_followup = true;
+            try std.testing.expectEqualStrings("kernel/workqueue_bridge.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "delayed_work_timer_fn()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "__queue_work()") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase14-workqueue-live-execution-blocker")) {
             saw_blocker = true;
@@ -232,7 +241,7 @@ test "phase14 workqueue bridge manifest records the boundary-map foothold and re
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 15), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 16), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
@@ -251,6 +260,7 @@ test "phase14 workqueue bridge manifest records the boundary-map foothold and re
     try std.testing.expect(saw_disable_delayed_followup);
     try std.testing.expect(saw_delayed_disable_wrapper_followup);
     try std.testing.expect(saw_delayed_submission_alias_followup);
+    try std.testing.expect(saw_delayed_timer_handoff_followup);
     try std.testing.expect(saw_blocker);
 }
 
@@ -271,11 +281,11 @@ test "phase14 workqueue bridge descriptor stays at boundary-map posture" {
 
     try std.testing.expectEqual(@as(usize, 5), map.areas.len);
     try std.testing.expectEqual(@as(usize, 2), workqueue_bridge.WorkqueueBridgeLab.stayInCDecisionCount());
-    try std.testing.expectEqual(@as(usize, 16), audit.checkpoints.len);
+    try std.testing.expectEqual(@as(usize, 17), audit.checkpoints.len);
     try std.testing.expectEqual(@as(usize, 5), audit.blocked_live_behaviors.len);
-    try std.testing.expectEqual(@as(usize, 16), workqueue_bridge.WorkqueueBridgeLab.auditCheckpointCount());
-    try std.testing.expect(std.mem.indexOf(u8, workqueue_bridge.WorkqueueBridgeLab.nextAuditFocus(), "queue_delayed_work_on()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, workqueue_bridge.WorkqueueBridgeLab.nextAuditFocus(), "__queue_delayed_work()") != null);
+    try std.testing.expectEqual(@as(usize, 17), workqueue_bridge.WorkqueueBridgeLab.auditCheckpointCount());
+    try std.testing.expect(std.mem.indexOf(u8, workqueue_bridge.WorkqueueBridgeLab.nextAuditFocus(), "delayed_work_timer_fn()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, workqueue_bridge.WorkqueueBridgeLab.nextAuditFocus(), "__queue_work()") != null);
     try std.testing.expectEqualStrings("manager-role-serialization", audit.checkpoints[0].id);
     try std.testing.expectEqualStrings("pool->last_progress_ts", audit.checkpoints[1].observed_fields[0]);
     try std.testing.expectEqualStrings("max-active-ordering-gate", audit.checkpoints[2].id);
@@ -309,12 +319,20 @@ test "phase14 workqueue bridge descriptor stays at boundary-map posture" {
     try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[10].blocked_by, "might_sleep()") != null);
     try std.testing.expectEqualStrings("delayed-disable-wrapper-aliases", audit.checkpoints[11].id);
     try std.testing.expect(audit.checkpoints[11].guard == .delayed_disable_wrapper_aliases);
-    try std.testing.expectEqualStrings("process-one-work-execution-window", audit.checkpoints[12].id);
-    try std.testing.expect(audit.checkpoints[12].guard == .callback_execution_outside_pool_lock);
-    try std.testing.expectEqualStrings("worker-thread-idle-sleep-handoff", audit.checkpoints[13].id);
-    try std.testing.expect(audit.checkpoints[13].guard == .idle_sleep_transition);
-    try std.testing.expect(audit.checkpoints[14].guard == .scheduler_callback_under_pool_lock);
-    try std.testing.expect(audit.checkpoints[15].guard == .mayday_lock_then_pool_lock);
+    try std.testing.expectEqualStrings("delayed-submission-alias-handoff", audit.checkpoints[12].id);
+    try std.testing.expect(audit.checkpoints[12].guard == .delayed_submission_alias_handoff);
+    try std.testing.expectEqualStrings("dwork->timer", audit.checkpoints[12].observed_fields[0]);
+    try std.testing.expectEqualStrings("cpu", audit.checkpoints[12].observed_fields[3]);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[12].blocked_by, "queue_delayed_work_on()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[12].blocked_by, "mod_delayed_work_on()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[12].blocked_by, "__queue_delayed_work()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[12].blocked_by, "__queue_work()") != null);
+    try std.testing.expectEqualStrings("process-one-work-execution-window", audit.checkpoints[13].id);
+    try std.testing.expect(audit.checkpoints[13].guard == .callback_execution_outside_pool_lock);
+    try std.testing.expectEqualStrings("worker-thread-idle-sleep-handoff", audit.checkpoints[14].id);
+    try std.testing.expect(audit.checkpoints[14].guard == .idle_sleep_transition);
+    try std.testing.expect(audit.checkpoints[15].guard == .scheduler_callback_under_pool_lock);
+    try std.testing.expect(audit.checkpoints[16].guard == .mayday_lock_then_pool_lock);
 }
 
 test "phase14 workqueue bridge checklist prompt keeps review packet aligned" {
