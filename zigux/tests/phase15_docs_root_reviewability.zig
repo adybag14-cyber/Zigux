@@ -12,7 +12,7 @@ test "phase15 docs-root reviewability keeps the current handoff alignment explic
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
-    const docs_readme = try readAlloc(io_instance.io(), "Documentation/zigux/README.md", 16 * 1024);
+    const docs_readme = try readAlloc(io_instance.io(), "Documentation/zigux/README.md", 40 * 1024);
     defer std.testing.allocator.free(docs_readme);
 
     const readiness_doc = try readAlloc(io_instance.io(), "Documentation/zigux/phase15-readiness-gate-survey.md", 16 * 1024);
