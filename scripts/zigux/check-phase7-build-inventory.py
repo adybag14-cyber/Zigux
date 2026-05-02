@@ -10,6 +10,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[2]
 BUILD_PATH = ROOT / "zigux" / "tests" / "phase7_build.zig"
+MAKEFILE_PATH = ROOT / "zigux" / "Makefile"
 FIXTURE_PATH = ROOT / "zigux" / "tests" / "fixtures" / "phase7_build_inventory.json"
 
 IMPORTED_HELPER_RE = re.compile(
@@ -27,6 +28,8 @@ RUN_CALL_RE = re.compile(
 )
 DEPEND_STEP_RE = re.compile(r"test_step\.dependOn\(&([A-Za-z0-9_]+)\.step\);")
 BUILD_PATH_RE = re.compile(r'b\.path\("([^"]+)"\)')
+PHASE7_VALIDATE_BLOCK_RE = re.compile(r"^phase7-validate:\n((?:\t.*\n)+)", re.M)
+MAKEFILE_SCRIPT_RE = re.compile(r"scripts/zigux/[A-Za-z0-9._-]+\.py")
 UNEXPECTED_BUILD_MARKERS = ["../../tools/lib/", "zigux/tests/build.zig"]
 
 
@@ -34,7 +37,22 @@ def load_fixture() -> dict[str, object]:
     return json.loads(FIXTURE_PATH.read_text(encoding="utf-8"))
 
 
-def render_inventory_from_text(build_text: str) -> dict[str, object]:
+def render_validation_gates(makefile_text: str) -> list[str]:
+    match = PHASE7_VALIDATE_BLOCK_RE.search(makefile_text)
+    if match is None:
+        raise ValueError("missing phase7-validate block")
+
+    gates: list[str] = []
+    for line in match.group(1).splitlines():
+        for script in MAKEFILE_SCRIPT_RE.findall(line):
+            if script not in gates:
+                gates.append(script)
+    return gates
+
+
+def render_inventory_from_text(
+    build_text: str, makefile_text: str
+) -> dict[str, object]:
     imported_helpers = [
         {
             "root_path": root_path,
@@ -63,12 +81,18 @@ def render_inventory_from_text(build_text: str) -> dict[str, object]:
         "run_labels": run_labels,
         "run_cwds": run_cwds,
         "shared_test_depend_steps": DEPEND_STEP_RE.findall(build_text),
+        "shared_validation_gates": render_validation_gates(makefile_text),
         "unexpected_build_markers": UNEXPECTED_BUILD_MARKERS,
     }
 
 
-def render_inventory(build_path: Path = BUILD_PATH) -> dict[str, object]:
-    return render_inventory_from_text(build_path.read_text(encoding="utf-8"))
+def render_inventory(
+    build_path: Path = BUILD_PATH, makefile_path: Path = MAKEFILE_PATH
+) -> dict[str, object]:
+    return render_inventory_from_text(
+        build_path.read_text(encoding="utf-8"),
+        makefile_path.read_text(encoding="utf-8"),
+    )
 
 
 def print_mismatch(expected: dict[str, object], actual: dict[str, object]) -> None:
@@ -94,6 +118,8 @@ def run_self_test() -> int:
         raise SystemExit("phase7-build-inventory:self-test:fixture_match")
     if len(first["run_labels"]) != len(first["shared_test_depend_steps"]):
         raise SystemExit("phase7-build-inventory:self-test:depend_step_count")
+    if len(first["shared_validation_gates"]) != 5:
+        raise SystemExit("phase7-build-inventory:self-test:validation_gate_count")
 
     drifted = dict(first)
     drifted["run_labels"] = ["phase7-mismatch"]
@@ -104,6 +130,8 @@ def run_self_test() -> int:
         raise SystemExit("phase7-build-inventory:self-test:path_sorting")
 
     build_text = BUILD_PATH.read_text(encoding="utf-8")
+    makefile_text = MAKEFILE_PATH.read_text(encoding="utf-8")
+
     cwd_drift_text, replacements = re.subn(
         r'("phase7-argv-split-survey-tests",\s*argv_split_survey_root_module,\s*)repo_root(\s*,\s*\))',
         r"\1null\2",
@@ -114,7 +142,7 @@ def run_self_test() -> int:
     if replacements != 1:
         raise SystemExit("phase7-build-inventory:self-test:cwd_drift_rewrite")
 
-    cwd_drift = render_inventory_from_text(cwd_drift_text)
+    cwd_drift = render_inventory_from_text(cwd_drift_text, makefile_text)
     if cwd_drift == fixture:
         raise SystemExit("phase7-build-inventory:self-test:cwd_drift_detection")
     if first["run_cwds"].get("phase7-argv-split-survey-tests") != "repo_root":
@@ -133,7 +161,8 @@ def run_self_test() -> int:
         raise SystemExit("phase7-build-inventory:self-test:string_helpers_helper_path_drift_rewrite")
 
     string_helpers_helper_path_drift = render_inventory_from_text(
-        string_helpers_helper_path_drift_text
+        string_helpers_helper_path_drift_text,
+        makefile_text,
     )
     if string_helpers_helper_path_drift == fixture:
         raise SystemExit("phase7-build-inventory:self-test:string_helpers_helper_path_drift_detection")
@@ -155,7 +184,7 @@ def run_self_test() -> int:
     if replacements != 1:
         raise SystemExit("phase7-build-inventory:self-test:helper_path_drift_rewrite")
 
-    helper_path_drift = render_inventory_from_text(helper_path_drift_text)
+    helper_path_drift = render_inventory_from_text(helper_path_drift_text, makefile_text)
     if helper_path_drift == fixture:
         raise SystemExit("phase7-build-inventory:self-test:helper_path_drift_detection")
     if helper_path_drift["imported_helpers"][2]["helper_path"] != "../../lib/cmdline.zig":
@@ -169,7 +198,7 @@ def run_self_test() -> int:
     if dependency_drift_text == build_text:
         raise SystemExit("phase7-build-inventory:self-test:dependency_drift_rewrite")
 
-    dependency_drift = render_inventory_from_text(dependency_drift_text)
+    dependency_drift = render_inventory_from_text(dependency_drift_text, makefile_text)
     if dependency_drift == fixture:
         raise SystemExit("phase7-build-inventory:self-test:dependency_drift_detection")
     dependency_steps = dependency_drift["shared_test_depend_steps"]
@@ -178,8 +207,48 @@ def run_self_test() -> int:
     if len(dependency_steps) != len(first["shared_test_depend_steps"]) - 1:
         raise SystemExit("phase7-build-inventory:self-test:dependency_drift_count")
 
+    validation_gate_drift_text, replacements = re.subn(
+        r"scripts/zigux/check-phase7-build-inventory\.py",
+        "scripts/zigux/check-phase7-build-inventory-drift.py",
+        makefile_text,
+        count=1,
+    )
+    if replacements != 1:
+        raise SystemExit("phase7-build-inventory:self-test:validation_gate_drift_rewrite")
+
+    validation_gate_drift = render_inventory_from_text(
+        build_text,
+        validation_gate_drift_text,
+    )
+    if validation_gate_drift == fixture:
+        raise SystemExit("phase7-build-inventory:self-test:validation_gate_drift_detection")
+    if (
+        "scripts/zigux/check-phase7-build-inventory-drift.py"
+        not in validation_gate_drift["shared_validation_gates"]
+    ):
+        raise SystemExit("phase7-build-inventory:self-test:validation_gate_drift_shape")
+
+    validation_gate_order_drift_text, replacements = re.subn(
+        r'(\tcd \$\(ZIGUX_ROOT\) && \$\(PYTHON\) scripts/zigux/check-phase7-build-inventory\.py --self-test\n)'
+        r'(\tcd \$\(ZIGUX_ROOT\) && \$\(PYTHON\) scripts/zigux/check-phase7-build-inventory\.py\n)',
+        r'\2\1',
+        makefile_text,
+        count=1,
+    )
+    if replacements != 1:
+        raise SystemExit("phase7-build-inventory:self-test:validation_gate_order_drift_rewrite")
+
+    validation_gate_order_drift = render_inventory_from_text(
+        build_text,
+        validation_gate_order_drift_text,
+    )
+    if validation_gate_order_drift == fixture:
+        raise SystemExit("phase7-build-inventory:self-test:validation_gate_order_drift_detection")
+    if validation_gate_order_drift["shared_validation_gates"] != fixture["shared_validation_gates"]:
+        raise SystemExit("phase7-build-inventory:self-test:validation_gate_order_drift_shape")
+
     print("PHASE7_BUILD_INVENTORY_SELF_TEST=pass")
-    print("PHASE7_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=8")
+    print("PHASE7_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
@@ -206,6 +275,10 @@ def main(argv: list[str] | None = None) -> int:
     print("PHASE7_BUILD_INVENTORY=pass")
     print(f"PHASE7_BUILD_INVENTORY_RUN_COUNT={len(generated['run_labels'])}")
     print(f"PHASE7_BUILD_INVENTORY_DEPENDENCY_COUNT={len(generated['shared_test_depend_steps'])}")
+    print(
+        "PHASE7_BUILD_INVENTORY_VALIDATION_GATE_COUNT="
+        f"{len(generated['shared_validation_gates'])}"
+    )
     return 0
 
 
