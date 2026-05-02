@@ -56,6 +56,7 @@ FILES = [
     "zigux/tests/phase12_libbpf_manifest.json",
     "zigux/tests/phase12_virtio_net.zig",
     "zigux/tests/phase12_virtio_net_syntax_lab.zig",
+    "zigux/tests/phase12_virtio_scsi_syntax_lab.zig",
     "zigux/tests/phase12_nvme_pci.zig",
     "zigux/tests/phase12_virtio_scsi.zig",
     "zigux/tests/phase12_virtio_net_survey.zig",
@@ -102,7 +103,7 @@ README_MARKERS = [
     "survey notes pinned to each manifest's exact `surveyed_commit`",
     "repeat-run and artifact-drift self-test",
     "the current active storage-driver survey packet stays explicit through `Documentation/zigux/phase12-virtio-scsi-survey.md`, `Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, and the paired `zigux/tests/phase12_virtio_scsi_{manifest,survey}.zig` files, so the queue-layout, recovery, probe snapshot, host-limit summary, queue-depth summary, and io-queue-map starters remain visible without overstating the still-blocked DMA-backed queue ownership, `Scsi_Host` lifecycle, or blk-mq follow-up.",
-    "Build Summary: 19/19 steps succeeded; 55/55 tests passed",
+    "Build Summary: 23/23 steps succeeded; 58/58 tests passed",
 ]
 DOCS_ROOT_MARKERS = [
     "Phase 12 notes",
@@ -216,6 +217,7 @@ BUILD_MARKERS = [
     "phase12-virtio-net-tests",
     "phase12-virtio-net-survey-tests",
     "phase12-virtio-net-syntax-lab-tests",
+    "phase12-virtio-scsi-syntax-lab-tests",
     "phase12-virtio-scsi-tests",
     "phase12-virtio-scsi-survey-tests",
     "phase12-libbpf-segment-survey-tests",
@@ -225,6 +227,7 @@ BUILD_MARKERS = [
     "test_step.dependOn(&run_phase12_virtio_net_tests.step);",
     "test_step.dependOn(&run_phase12_virtio_net_survey_tests.step);",
     "test_step.dependOn(&run_phase12_virtio_net_syntax_lab_tests.step);",
+    "test_step.dependOn(&run_phase12_virtio_scsi_syntax_lab_tests.step);",
     "test_step.dependOn(&run_phase12_virtio_scsi_tests.step);",
     "test_step.dependOn(&run_phase12_virtio_scsi_survey_tests.step);",
     "test_step.dependOn(&run_phase12_libbpf_segments_tests.step);",
@@ -269,7 +272,7 @@ MANIFEST_SPECS = {
         "survey_count_markers": [("starter_landed_count", "starter_landed"), ("blocked_count", "blocked_on_dma_transport")],
     },
     "phase12_virtio_scsi_manifest.json": {
-        "lane_key": "P12-L09",
+        "lane_key": "P12-L12",
         "anchor": "drivers/scsi/virtio_scsi.c",
         "gap_count": 15,
         "roadmap_destinations": ["drivers/scsi/virtio_scsi.zig", "zigux/tests/", "Documentation/zigux/"],
