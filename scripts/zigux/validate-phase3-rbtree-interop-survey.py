@@ -126,10 +126,14 @@ def run_self_test() -> int:
         assert any(issue.startswith("missing_roadmap_gap_marker:") for issue in issues)
         roadmap_gap_path.write_text("\n".join(REQUIRED_ROADMAP_GAP_MARKERS) + "\n", encoding="utf-8")
 
-        boundary = root / "include" / "zigux" / "abi.h"
-        boundary.write_text("// rbtree drift\n", encoding="utf-8")
-        issues = validate(root)
-        assert "boundary_mentions_rbtree:include/zigux/abi.h" in issues
+        for rel in RBTREE_FREE_BOUNDARY_PATHS:
+            for clean_rel in RBTREE_FREE_BOUNDARY_PATHS:
+                boundary_path = root / clean_rel
+                boundary_path.write_text("// ok\n", encoding="utf-8")
+            boundary = root / rel
+            boundary.write_text("// rbtree drift\n", encoding="utf-8")
+            issues = validate(root)
+            assert f"boundary_mentions_rbtree:{rel}" in issues
 
     print("PHASE3_RBTREE_INTEROP_SURVEY_SELF_TEST=pass")
     return 0
