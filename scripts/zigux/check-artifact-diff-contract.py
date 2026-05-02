@@ -43,7 +43,15 @@ def run_contract_case(
 def main() -> int:
     covered_cases: list[str] = []
 
-    run_contract_case(['--self-test'], 0, ['ARTIFACT_DIFF_SELF_TEST=pass'])
+    run_contract_case(
+        ['--self-test'],
+        0,
+        [
+            'ARTIFACT_DIFF_SELF_TEST=pass',
+            'ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=15',
+            'ARTIFACT_DIFF_SELF_TEST_CASES=text_pass,text_mismatch,json_pass,json_mismatch,json_invalid_expected,json_invalid_actual,json_invalid_both,sha256_pass,sha256_drift,text_missing_expected,text_missing_actual,text_missing_both,sha256_missing_expected,sha256_missing_actual,sha256_missing_both',
+        ],
+    )
     covered_cases.append('helper_self_test')
 
     with tempfile.TemporaryDirectory(prefix='zigux_artifact_diff_contract_') as tmp_dir_str:
