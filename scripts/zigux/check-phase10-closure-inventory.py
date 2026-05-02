@@ -426,6 +426,21 @@ def run_self_test() -> int:
         )
         write_fixture(root)
 
+        closure_note_path.write_text(
+            original_closure_note.replace(
+                "PHASE10_FORBIDDEN_TRANSPORT_CLAIMS=queue_setup_reset_paths,irq_parity,dma_paths,input_registration_lifecycle,probe_remove_lifecycle",
+                "PHASE10_FORBIDDEN_TRANSPORT_CLAIMS=missing",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "closure_forbidden_transport_claims_marker",
+            root,
+            "closure:PHASE10_FORBIDDEN_TRANSPORT_CLAIMS=queue_setup_reset_paths,irq_parity,dma_paths,input_registration_lifecycle,probe_remove_lifecycle",
+        )
+        write_fixture(root)
+
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["allowed_roadmap_destinations"] = ["drivers/virtio/*.zig"]
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
@@ -434,6 +449,12 @@ def run_self_test() -> int:
             root,
             "manifest:allowed_roadmap_destinations",
         )
+        write_fixture(root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["drivers"] = EXPECTED_DRIVERS[:-1] + ["drivers/virtio/virtio_missing.zig"]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker("manifest_driver_inventory", root, "manifest:drivers")
         write_fixture(root)
 
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -466,7 +487,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_CLOSURE_INVENTORY_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_INVENTORY_SELF_TEST_CASE_COUNT=14")
+    print("PHASE10_CLOSURE_INVENTORY_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
