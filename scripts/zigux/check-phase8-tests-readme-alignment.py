@@ -26,6 +26,7 @@ REQUIRED_FILES = {
 TESTS_README_MARKERS = [
     "zigux/tests/phase8_perf_buffer_poll.zig",
     "zigux/tests/phase8_perf_buffer_poll_only_build.zig",
+    "make -C zigux phase8-perf-buffer-poll-test",
     "zigux/tests/phase8_libbpf_segments_only_build.zig",
     "zigux/tests/phase8_bpf_type_names.zig",
     "zigux/tests/phase8_file_path_handle_bridge.zig",
@@ -215,6 +216,7 @@ def clone_fixture_root(destination_root: Path) -> None:
                 "- zigux/tests/phase8_bridge_boundary_survey.zig",
                 "- zigux/tests/phase8_perf_buffer_poll.zig",
                 "- zigux/tests/phase8_perf_buffer_poll_only_build.zig",
+                "- make -C zigux phase8-perf-buffer-poll-test",
                 "- scripts/zigux/validate-phase8.py",
                 "- Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
                 "",
@@ -409,6 +411,21 @@ def run_self_test() -> int:
             "tests_readme_perf_buffer_poll_only_build",
             tmp_root,
             "tests_readme:zigux/tests/phase8_perf_buffer_poll_only_build.zig",
+        )
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
+
+        tests_readme_path.write_text(
+            original_tests_readme.replace(
+                "- make -C zigux phase8-perf-buffer-poll-test\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "tests_readme_perf_buffer_poll_make_target",
+            tmp_root,
+            "tests_readme:make -C zigux phase8-perf-buffer-poll-test",
         )
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
@@ -771,8 +788,8 @@ def run_self_test() -> int:
 
         makefile_path.write_text(
             original_makefile.replace(
-                "phase8-perf-buffer-poll-test",
-                "phase8-perf-buffer-wait-test",
+                "phase8: phase8-validate phase8-exec-cmd-test phase8-help-test phase8-kallsyms-test phase8-libbpf-segments-test phase8-perf-buffer-poll-test phase8-test",
+                "phase8: phase8-validate phase8-exec-cmd-test phase8-help-test phase8-kallsyms-test phase8-libbpf-segments-test phase8-perf-buffer-wait-test phase8-test",
                 1,
             ),
             encoding="utf-8",
@@ -898,7 +915,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=34")
+    print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=35")
     return 0
 
 
