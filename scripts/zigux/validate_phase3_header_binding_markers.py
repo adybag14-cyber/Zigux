@@ -33,6 +33,10 @@ HEADER_BINDING_MARKERS = {
         "pub const CHRDEV_NOTIFY_STATUS_DELIVERED: u32 = 1;",
         "pub const CHRDEV_NOTIFY_ACK_STATUS_ACKED: u32 = 1;",
     ),
+    "Documentation/zigux/phase3-abi-slice.md": (
+        "PHASE3_CURRENT_INTEROP_FAMILIES=bitmap-cpumask-list-hlist-errptr-xarray-idr-ida-minor-alloc-dev-region-cdev-chrdev",
+        "minor-allocation, dev-region, cdev, and chrdev planning and notification chains",
+    ),
     "zigux/tests/build.zig": (
         "const phase3_dump_module = b.createModule(.{",
         '.root_source_file = b.path("phase3_abi_dump.zig"),',
