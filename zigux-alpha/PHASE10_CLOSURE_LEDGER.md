@@ -40,6 +40,12 @@ This focused ledger records the current closure-evidence bundle for the active P
 - `PHASE10_LEDGER_MMIO_WRAPPERS=starter_landed`
 - `PHASE10_LEDGER_ROADMAP_LAB_ONLY_DRIVER_VALIDATION=starter_landed`
 - `PHASE10_LEDGER_ROADMAP_DUAL_IMPLEMENTATIONS_FOR_RISKY_AREAS=blocked_on_risky_transport`
+- `PHASE10_LEDGER_ALLOWED_ROADMAP_DESTINATIONS=drivers/virtio/*.zig,zigux/helpers/`
+- `PHASE10_LEDGER_ALLOWED_EVIDENCE_KINDS=driver_local_lab_slices,survey_manifests,shared_validation_gates`
+- `PHASE10_LEDGER_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=yes`
+- `PHASE10_LEDGER_ARCHITECTURE_COUNCIL_REOPEN_ATTACHED=no`
+- `PHASE10_LEDGER_FORBIDDEN_TRANSPORT_CLAIMS=queue_setup_reset_paths,irq_parity,dma_paths,input_registration_lifecycle,probe_remove_lifecycle`
+- `PHASE10_LEDGER_PHASE14_STUDY_ONLY_ANCHORS=kernel/workqueue.c,kernel/trace/ring_buffer.c`
 - `PHASE10_LEDGER_MAKEFILE=zigux/Makefile`
 - `PHASE10_LEDGER_WORKFLOW=.github/workflows/zigux-bootstrap.yml`
 - `PHASE10_LEDGER_ENTRYPOINTS=make -C zigux phase10-validate,make -C zigux phase10-test,make -C zigux phase10`
@@ -62,6 +68,10 @@ The same manifest also carries the survey-provenance packet for the current clos
 The same closure packet also stays reviewable through the dedicated core lab gate plus the dedicated core, ring, input, and MMIO survey gates, so this ledger now names that gate surface explicitly instead of leaving the parked core packet implied while only the MMIO survey gate was called out by name.
 
 The direct closure-inventory checker now also stays explicit beside the shared closure validator and the wider Phase 10 validator, so the parked packet keeps its named docs, manifests, drivers, and tests reviewable even when the combined `make -C zigux phase10-validate` wrapper is not the only command under inspection.
+
+The shared closure note and manifest also keep the roadmap-boundary packet explicit: Phase 10 stays limited to `drivers/virtio/*.zig` plus justified helper bridges, the allowed evidence stays limited to driver-local lab slices, survey manifests, and shared validation gates, and any future freeze-boundary status change still needs an Architecture Council reopen record before this tranche can widen.
+
+The same freeze-boundary packet keeps `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` in the separate Phase 14 study-only family, so this ledger now records those parked anchors directly instead of leaving them implicit in the companion closure note.
 
 The shared closure manifest, the dedicated MMIO survey gate, the shared Phase 10 validator, and the dedicated MMIO survey now agree that the landed MMIO helper ladder reaches bounded interrupt acknowledgement, so this ledger keeps that reviewable helper-and-validation set explicit instead of collapsing the MMIO packet into only its remaining transport blocker.
 
