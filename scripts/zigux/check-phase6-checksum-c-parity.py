@@ -104,6 +104,13 @@ def expect_system_exit(label: str, callback, expected_message: str) -> None:
     )
 
 
+def validate_matching_surface(c_lines: list[str], zig_lines: list[str], label: str) -> None:
+    if c_lines != zig_lines:
+        raise SystemExit(
+            f"phase6-checksum-c-parity:{label}:c_output_mismatch:expected={c_lines!r}:actual={zig_lines!r}"
+        )
+
+
 def run_self_test() -> int:
     assert_equal("require_tool_env", require_tool("zig", "PHASE6_SELFTEST_TOOL"), "/tmp/zig-self-test")
     expect_system_exit(
@@ -124,6 +131,17 @@ def run_self_test() -> int:
         "sorted_lines",
         sorted_lines("partial\tseeded\t0x00000001\ncompute\tempty\t0xffff\n"),
         ["compute\tempty\t0xffff", "partial\tseeded\t0x00000001"],
+    )
+    expect_system_exit(
+        "mismatch_surface",
+        lambda: validate_matching_surface(
+            ["compute\tempty\t0xffff", "partial\tseeded\t0x00000001"],
+            ["compute\tempty\t0xffff", "partial\tseeded\t0x00000002"],
+            "self-test-mismatch",
+        ),
+        "phase6-checksum-c-parity:self-test-mismatch:c_output_mismatch:"
+        "expected=['compute\\tempty\\t0xffff', 'partial\\tseeded\\t0x00000001']:"
+        "actual=['compute\\tempty\\t0xffff', 'partial\\tseeded\\t0x00000002']",
     )
 
     print("PHASE6_CHECKSUM_C_PARITY_SELF_TEST=pass")
@@ -172,9 +190,15 @@ def main() -> int:
 
     c_lines = sorted_lines(c_run.stdout)
     zig_lines = sorted_lines(zig_run.stdout)
+    mismatch: str | None = None
+    try:
+        validate_matching_surface(c_lines, zig_lines, "zig")
+    except SystemExit as exc:
+        mismatch = str(exc)
 
-    if c_lines != zig_lines:
+    if mismatch is not None:
         print("PHASE6_CHECKSUM_C_PARITY=fail")
+        print(mismatch)
         print("C_OUTPUT_START")
         print(c_run.stdout.rstrip())
         print("C_OUTPUT_END")
