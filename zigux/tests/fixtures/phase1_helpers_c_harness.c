@@ -84,7 +84,7 @@ static void run_find_bit_section(void)
 	printf("\"next_zero\":%lu,", find_next_zero_bit((unsigned long[]){~0UL, ~(1UL << 4)}, BITS_PER_LONG * 2, BITS_PER_LONG));
 	printf("\"first_and\":%lu,", find_first_and_bit(lhs, rhs, BITS_PER_LONG * 2));
 	printf("\"next_and\":%lu,", find_next_and_bit(lhs, rhs, BITS_PER_LONG * 2, 10));
-	/* \"tail_clamped_first\":%lu, */
+	/* marker forms: "tail_clamped_first":%lu, | \"tail_clamped_first\":%lu, */
 	printf("\"tail_clamped_first\":%lu,", find_first_bit(tail_bitmap, tail_nbits));
 	printf("\"tail_clamped_next\":%lu,", find_next_bit(tail_bitmap, tail_nbits, BITS_PER_LONG));
 	printf("\"tail_zero_clamped_first\":%lu,", find_first_zero_bit(tail_zero_bitmap, tail_nbits));
@@ -92,7 +92,7 @@ static void run_find_bit_section(void)
 	printf("\"tail_and_clamped_first\":%lu,", find_first_and_bit(tail_bitmap, tail_bitmap, tail_nbits));
 	printf("\"tail_and_clamped_next\":%lu,", find_next_and_bit(tail_bitmap, tail_bitmap, tail_nbits, BITS_PER_LONG));
 	printf("\"tail_and_mixed_first\":%lu,", find_first_and_bit(tail_and_mixed, tail_and_mixed, tail_nbits));
-	/* \"tail_and_mixed_next\":%lu */
+	/* marker forms: "tail_and_mixed_next":%lu | \"tail_and_mixed_next\":%lu */
 	printf("\"tail_and_mixed_next\":%lu", find_next_and_bit(tail_and_mixed, tail_and_mixed, tail_nbits, BITS_PER_LONG + 4));
 	printf("}");
 }
