@@ -13,6 +13,9 @@ ROOT = Path(__file__).resolve().parents[2]
 SURVEY_PATH = "Documentation/zigux/phase9-runtime-loader-gap-survey.md"
 MANIFEST_PATH = "zigux/tests/runtime_loader_gap_manifest.json"
 REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
+MAKEFILE_PATH = "zigux/Makefile"
+TARGET_NAME = "phase9-non-owner-boundary-survey"
+TARGET_COMMAND = "$(ZIG) test zigux/tests/runtime_loader_non_owner_boundary_survey.zig"
 
 SURFACES = [
     {
@@ -59,6 +62,7 @@ def validate(root: Path) -> list[str]:
 
     survey_text = read_text(root, SURVEY_PATH)
     review_checklist = read_text(root, REVIEW_CHECKLIST_PATH)
+    makefile_text = read_text(root, MAKEFILE_PATH)
     manifest = json.loads(read_text(root, MANIFEST_PATH))
 
     manifest_surfaces = manifest.get("non_owner_surfaces")
@@ -93,12 +97,18 @@ def validate(root: Path) -> list[str]:
     if REVIEW_CHECKLIST_LINE not in review_checklist:
         failures.append("review_checklist:four_surface_non_owner_line")
 
+    if TARGET_NAME not in makefile_text:
+        failures.append("makefile:non_owner_boundary_target_missing")
+    if TARGET_COMMAND not in makefile_text:
+        failures.append("makefile:non_owner_boundary_target_command_missing")
+
     return failures
 
 
 def write_fixture_tree(root: Path) -> None:
     (root / "Documentation/zigux").mkdir(parents=True, exist_ok=True)
     (root / "zigux/tests").mkdir(parents=True, exist_ok=True)
+    (root / "zigux").mkdir(parents=True, exist_ok=True)
 
     (root / SURVEY_PATH).write_text(
         "\n".join(
@@ -116,6 +126,18 @@ def write_fixture_tree(root: Path) -> None:
     )
     (root / REVIEW_CHECKLIST_PATH).write_text(
         "# Zigux Review Checklist\n\n- " + REVIEW_CHECKLIST_LINE + "\n",
+        encoding="utf-8",
+    )
+    (root / MAKEFILE_PATH).write_text(
+        "\n".join(
+            [
+                "PHONY += phase9-validate phase9-test phase9-loader-gap-survey phase9-non-owner-boundary-survey phase9-kretprobe-survey phase9-trace-events-survey phase9",
+                "",
+                "phase9-non-owner-boundary-survey:",
+                "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_loader_non_owner_boundary_survey.zig",
+            ]
+        )
+        + "\n",
         encoding="utf-8",
     )
     (root / MANIFEST_PATH).write_text(
@@ -159,9 +181,25 @@ def run_self_test() -> int:
                 "phase9-loader-non-owner-selftest:expected_review_failure:"
                 + ",".join(failures or ["none"])
             )
+        review_path.write_text(
+            "# Zigux Review Checklist\n\n- " + REVIEW_CHECKLIST_LINE + "\n",
+            encoding="utf-8",
+        )
+
+        makefile_path = tmp_root / MAKEFILE_PATH
+        makefile_path.write_text(
+            "PHONY += phase9-validate phase9-test phase9-loader-gap-survey phase9-kretprobe-survey phase9-trace-events-survey phase9\n",
+            encoding="utf-8",
+        )
+        failures = validate(tmp_root)
+        if "makefile:non_owner_boundary_target_missing" not in failures:
+            raise SystemExit(
+                "phase9-loader-non-owner-selftest:expected_make_target_failure:"
+                + ",".join(failures or ["none"])
+            )
 
     print("PHASE9_LOADER_NON_OWNER_BOUNDARY_SELF_TEST=pass")
-    print("PHASE9_LOADER_NON_OWNER_BOUNDARY_SELF_TEST_CASE_COUNT=2")
+    print("PHASE9_LOADER_NON_OWNER_BOUNDARY_SELF_TEST_CASE_COUNT=3")
     return 0
 
 
