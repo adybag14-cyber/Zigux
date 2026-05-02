@@ -37,12 +37,10 @@
     "scripts/zigux/validate-phase3.py",
     "Documentation/zigux/phase3-abi-slice.md",
     "Documentation/zigux/phase3-roadmap-gap-survey.md",
-    "Documentation/zigux/phase3-rbtree-interop-survey.md",
     "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
     "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md",
     "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",
     "scripts/zigux/validate-phase3-roadmap-gap-survey.py",
-    "scripts/zigux/validate-phase3-rbtree-interop-survey.py",
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
     "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py",
@@ -51,5 +49,5 @@
     "scripts/zigux/validate_phase3_core.py",
     "scripts/zigux/validate_phase3_selftest.py"
   ],
-  "file_count": 47
+  "file_count": 45
 }
