@@ -81,32 +81,31 @@ test "phase 5 kretprobe sample keeps the maxactive ceiling immutable" {
 }
 
 test "phase 5 kretprobe sample makes ownership and teardown boundaries explicit" {
+    var preflight = sample.KretprobeExampleSample{};
+    try std.testing.expectEqual(sample.SampleStage.cold, preflight.stage());
+    try std.testing.expectError(error.InvalidLifecycleTransition, preflight.runAnchorReplay());
+    try std.testing.expectError(error.InvalidLifecycleTransition, preflight.exit());
+
+    var init_guard = sample.KretprobeExampleSample{};
+    try init_guard.init();
+    try std.testing.expectError(error.InvalidLifecycleTransition, init_guard.init());
+    try std.testing.expectError(error.InvalidLifecycleTransition, init_guard.runRetargetRecoveryReplay());
+
     var module = sample.KretprobeExampleSample{};
-
-    try std.testing.expectEqual(sample.SampleStage.cold, module.stage());
-    try std.testing.expectError(error.InvalidLifecycleTransition, module.runAnchorReplay());
-    try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
-
-    try module.init();
-    try std.testing.expectEqual(sample.SampleStage.initialized, module.stage());
-    try std.testing.expectError(error.InvalidLifecycleTransition, module.init());
-    try std.testing.expectError(error.InvalidLifecycleTransition, module.runRetargetRecoveryReplay());
-    try std.testing.expect(try module.entryHandler(true, 200));
-    try std.testing.expectError(error.OutstandingProbeInstance, module.exit());
-    try std.testing.expectError(error.InvalidTimestampOrder, module.retHandler(9, 199));
-
-    const recovered = try module.retHandler(9, 260);
-    try std.testing.expectEqual(@as(i64, 60), recovered.duration_ns);
-    try std.testing.expectEqual(@as(i64, -1), module.instance_data.entry_stamp_ns);
-    try std.testing.expectEqual(sample.SampleStage.initialized, module.stage());
-
-    try module.exit();
+    const replay = try module.runOwnershipBoundaryReplay();
+    try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", replay.anchor);
+    try std.testing.expectEqualStrings(sample.KretprobeExampleSample.default_symbol_name, replay.symbol_name);
+    try std.testing.expect(replay.armed_exit_rejected);
+    try std.testing.expectEqual(@as(i64, 199), replay.rejected_timestamp_ns);
+    try std.testing.expectEqual(@as(i64, 60), replay.recovered_duration_ns);
+    try std.testing.expectEqual(sample.SampleStage.exited, replay.stage_after_exit);
+    try std.testing.expectEqual(@as(usize, 1), replay.exit_runs);
+    try std.testing.expect(replay.post_exit_record_missed_rejected);
+    try std.testing.expect(replay.post_exit_entry_rejected);
+    try std.testing.expect(replay.post_exit_ret_rejected);
     try std.testing.expectEqual(sample.SampleStage.exited, module.stage());
     try std.testing.expectEqual(@as(usize, 1), module.init_runs);
     try std.testing.expectEqual(@as(usize, 1), module.exit_runs);
     try std.testing.expectEqual(@as(usize, 0), module.active_instances);
     try std.testing.expectEqual(@as(i64, -1), module.instance_data.entry_stamp_ns);
-    try std.testing.expectError(error.InvalidLifecycleTransition, module.recordMissedInstance());
-    try std.testing.expectError(error.InvalidLifecycleTransition, module.entryHandler(true, 300));
-    try std.testing.expectError(error.InvalidLifecycleTransition, module.retHandler(11, 360));
 }
