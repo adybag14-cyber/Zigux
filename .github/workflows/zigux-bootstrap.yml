@@ -290,6 +290,9 @@ jobs:
           zig test zigux/tests/phase8_libbpf_segments.zig
           zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all
 
+      - name: Run focused Phase 8 perf-buffer poll tests
+        run: zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all
+
       - name: Run Phase 8 tooling tests
         run: zig build test --build-file zigux/tests/phase8_build.zig --summary all
 
