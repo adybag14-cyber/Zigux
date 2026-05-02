@@ -86,6 +86,12 @@ def _run_survey_aggregation_self_test() -> int:
             "policy-unsafe-survey-gate",
             "missing_policy_unsafe_anchor",
         ),
+        (
+            "check-phase3-policy-unsafe-mmio-consumer.py",
+            "PHASE3_POLICY_UNSAFE_MMIO_CONSUMER=fail",
+            "policy-unsafe-mmio-consumer-gate",
+            "missing_mmio_policy_consumer_anchor",
+        ),
     )
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_survey_aggregation_") as tmp_dir:
@@ -156,7 +162,10 @@ def main() -> int:
         result = _run_script_self_test("validate-phase3-low-level-wrapper-survey.py")
         if result != 0:
             return result
-        return _run_script_self_test("validate-phase3-policy-unsafe-survey.py")
+        result = _run_script_self_test("validate-phase3-policy-unsafe-survey.py")
+        if result != 0:
+            return result
+        return _run_script_self_test("check-phase3-policy-unsafe-mmio-consumer.py")
 
     slices = select_slices(discover_phase3_slices(), args.slug)
     if not slices:
@@ -207,6 +216,13 @@ def main() -> int:
             "validate-phase3-policy-unsafe-survey.py",
             "PHASE3_POLICY_UNSAFE_SURVEY=fail",
             "policy-unsafe-survey-gate",
+        )
+    )
+    issues.extend(
+        _collect_script_validation_issues(
+            "check-phase3-policy-unsafe-mmio-consumer.py",
+            "PHASE3_POLICY_UNSAFE_MMIO_CONSUMER=fail",
+            "policy-unsafe-mmio-consumer-gate",
         )
     )
     if issues:
