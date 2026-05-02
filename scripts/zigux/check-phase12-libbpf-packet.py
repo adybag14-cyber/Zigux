@@ -723,6 +723,18 @@ def run_self_test() -> int:
         manifest_path = root / TRACKED_PATHS[0]
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         for gap in manifest["gaps"]:
+            if gap["id"] == "phase12-libbpf-map-reuse-compatibility-helper-foundation":
+                gap["status"] = "deferred_high_risk"
+                break
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        missing = check_packet(root)
+        if "manifest_gap_status:phase12-libbpf-map-reuse-compatibility-helper-foundation" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:manifest_gap_status_detection")
+
+        build_self_test_tree(root)
+        manifest_path = root / TRACKED_PATHS[0]
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        for gap in manifest["gaps"]:
             if gap["id"] == "phase12-libbpf-survey-note":
                 gap["zigux_destination"] = "Documentation/zigux/phase12-libbpf-survey-note.md"
                 break
@@ -836,6 +848,21 @@ def run_self_test() -> int:
         build_self_test_tree(root)
         legacy_manifest_path = root / TRACKED_PATHS[4]
         legacy_manifest = json.loads(legacy_manifest_path.read_text(encoding="utf-8"))
+        for segment in legacy_manifest["segments"]:
+            if segment["slug"] == "perf-buffer-poll-helper":
+                segment["zigux_destination"] = "tools/lib/bpf/zigux_segments/cpu_mask.zig"
+                break
+        legacy_manifest_path.write_text(
+            json.dumps(legacy_manifest, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        missing = check_packet(root)
+        if "legacy_segment_destination:perf-buffer-poll-helper" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:legacy_destination_detection")
+
+        build_self_test_tree(root)
+        legacy_manifest_path = root / TRACKED_PATHS[4]
+        legacy_manifest = json.loads(legacy_manifest_path.read_text(encoding="utf-8"))
         legacy_manifest["segments"] = [
             segment
             for segment in legacy_manifest["segments"]
@@ -929,7 +956,7 @@ def run_self_test() -> int:
             raise SystemExit("phase12-libbpf-packet:self-test:legacy_surveyed_commit_hex_detection")
 
         print("PHASE12_LIBBPF_PACKET_SELF_TEST=pass")
-        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=37")
+        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=39")
     return 0
 
 
