@@ -55,6 +55,7 @@ phase2: phase2-validate phase2-tools phase2-kconfig phase2-cross
 
 phase3-validate:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3.py --check-build-root-drift
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3.py --slug abi --check-build-smoke --zig $(ZIG)
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-roadmap-gap-survey.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py
