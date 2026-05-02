@@ -98,8 +98,13 @@ The direct closure-inventory guard now appears here explicitly because the manif
 2. run the dedicated Phase 10 build
 - `zig build test --build-file zigux/tests/phase10_build.zig --summary all`
 
-3. run the convenience target
+3. run the Linux-style Phase 10 test entrypoint
+- `make -C zigux phase10-test`
+
+4. run the convenience target
 - `make -C zigux phase10`
+
+This keeps the input survey note aligned with the shared closure packet's exact test route instead of implying the direct build replay and combined convenience target are the only executable review surfaces for the current input packet.
 
 ## Next bounded step
 
