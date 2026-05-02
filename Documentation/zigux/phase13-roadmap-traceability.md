@@ -94,17 +94,29 @@ Current repo evidence:
 - implementation anchor: `security/landlock/ruleset.zig`
 - dedicated tests: `zigux/tests/phase13_landlock_ruleset.zig`
 - manifest: `zigux/tests/phase13_landlock_ruleset_manifest.json`
-- manifest `surveyed_commit`: `d0897d9112eef2f950d0079b2df8e441eb1f5226`
-- slice notes: `Documentation/zigux/phase13-landlock-ruleset-slice.md`
+- manifest `surveyed_commit`: `8812ad875b0307da2cc0fa3588b9a24325b85e17`
+- shared build entry: `zigux/tests/phase13_build.zig`
+- shared make entry: `zigux/Makefile` via `make -C zigux phase13`
+- slice note: `Documentation/zigux/phase13-landlock-ruleset-slice.md`
 - survey note: `Documentation/zigux/phase13-landlock-ruleset-survey.md`
 
 Current lane state recorded in the manifest:
+- landed `phase13-build-gate`
+- landed `phase13-make-target`
+- landed `phase13-landlock-ruleset-starter`
+- landed `phase13-landlock-ruleset-test-gate`
+- landed `phase13-landlock-ruleset-slice-note`
+- landed `phase13-landlock-ruleset-survey-note`
+- landed `phase13-landlock-rule-layer-merge-followup`
+- landed `phase13-landlock-tree-search-followup`
+- landed `phase13-landlock-tree-link-followup`
+- landed `phase13-landlock-rule-lookup-followup`
 - landed `phase13-landlock-rule-materialization-followup`
 - landed `phase13-landlock-rule-release-followup`
 - blocked `phase13-landlock-live-tree-state-blocker`
 
 Traceability summary:
-- this anchor stays helper-first and reviewable: the current ruleset helper lab now includes canonical layer-shape validation around `create_rule()`-style copied or appended layer stacks beside the earlier materialization and release planners, while the still-blocked live Landlock tree-state, release ownership, and hierarchy-lifetime work remains outside this pure in-memory slice.
+- this anchor stays helper-first and manifest-backed: the current ruleset helper packet is wired through the shared Phase 13 build and make entrypoints, records its dedicated slice plus survey notes, and now includes layer-merge, tree-search, tree-link, rule-lookup, materialization, and release planners while still refusing to claim `rb_replace_node()`, live object ownership transfer, hierarchy lifetime, or workqueue-backed teardown as pure in-memory slice work.
 
 ### `security/landlock/syscalls.c`
 
