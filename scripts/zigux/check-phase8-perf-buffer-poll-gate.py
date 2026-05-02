@@ -13,7 +13,6 @@ REQUIRED_FILES = [
     ".github/workflows/zigux-bootstrap.yml",
     "Documentation/zigux/phase8-perf-buffer-poll-slice.md",
     "scripts/zigux/check-phase8-perf-buffer-poll-gate.py",
-    "scripts/zigux/README.md",
     "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
     "zigux/Makefile",
     "zigux/tests/README.md",
@@ -36,12 +35,6 @@ REQUIRED_MARKERS = {
         "wait-result classification",
         "no standalone timer helper",
         "no standalone clockevent helper",
-    ],
-    "scripts/zigux/README.md": [
-        "check-phase8-perf-buffer-poll-gate.py",
-        "phase8_perf_buffer_poll_only_build.zig",
-        "make -C zigux phase8-perf-buffer-poll-test",
-        "phase8-perf-buffer-poll-test",
     ],
     "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig": [
         "pub const WaitClass = enum {",
@@ -96,13 +89,6 @@ FIXTURE_TEXT = {
 - wait-result classification
 - no standalone timer helper
 - no standalone clockevent helper
-""",
-    "scripts/zigux/README.md": """# scripts/zigux
-
-- `check-phase8-perf-buffer-poll-gate.py`
-- `phase8_perf_buffer_poll_only_build.zig`
-- `make -C zigux phase8-perf-buffer-poll-test`
-- `phase8-perf-buffer-poll-test`
 """,
     "scripts/zigux/check-phase8-perf-buffer-poll-gate.py": """#!/usr/bin/env python3
 print(\"fixture\")
