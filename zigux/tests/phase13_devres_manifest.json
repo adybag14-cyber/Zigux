@@ -1,5 +1,5 @@
 {
-  "lane_key": "P13-L01",
+  "lane_key": "P13-L08",
   "phase": "Phase 13",
   "surveyed_commit": "aa01b37be5500e6a1e4f959c9fe07f0e39d39bfb",
   "anchor": "lib/devres.c",
@@ -64,14 +64,14 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_devres_reviewability.zig",
-      "why_now": "A dedicated reviewability gate ties the helper lab, dedicated tests, slice note, and survey note together so the helper-only iomap or mmio safety surface, its direct non-posted wrapper, and its explicit DMA/scatterlist blockers stay machine-checkable on the live head."
+      "why_now": "A dedicated reviewability gate ties the helper lab, dedicated tests, manifest lane marker, and survey note together so the active helper-first devres packet and its explicit live-state blockers stay machine-checkable on the live head."
     },
     {
       "id": "phase13-devres-survey-note",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase13-devres-survey.md",
-      "why_now": "The survey note records the current helper-first iomap or mmio safety surface on the live head, including the direct non-posted managed wrapper, and names the remaining live MMIO, DMA, scatterlist, device-tree, and arch memtype blockers explicitly."
+      "why_now": "The survey note records the current helper-first devres packet on the live head, including the remaining live MMIO, DMA, scatterlist, device-tree, and arch memtype blockers explicitly."
     },
     {
       "id": "phase13-devres-managed-ioremap-lifetime",
