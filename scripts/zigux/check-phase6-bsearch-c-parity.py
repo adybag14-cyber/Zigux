@@ -152,13 +152,11 @@ def run_self_test() -> int:
     )
     build_text = build_zig_build_text()
     assert_equal(
-        "build_text_import",
-        'root_module.addImport("bsearch", bsearch_module);' in build_text and str(ROOT / "lib" / "bsearch.zig") in build_text,
-        True,
-    )
-    assert_equal(
-        "build_text_runner",
-        str(ZIG_RUNNER) in build_text and sorted_lines("mutable-hit\t34\t35\nascending-hit\t34\t4\n") == ["ascending-hit\t34\t4", "mutable-hit\t34\t35"],
+        "build_text_paths",
+        'root_module.addImport("bsearch", bsearch_module);' in build_text
+        and str(ROOT / "lib" / "bsearch.zig") in build_text
+        and str(ZIG_RUNNER) in build_text
+        and sorted_lines("mutable-hit\t34\t35\nascending-hit\t34\t4\n") == ["ascending-hit\t34\t4", "mutable-hit\t34\t35"],
         True,
     )
 
@@ -169,6 +167,15 @@ def run_self_test() -> int:
         lambda: validate_expected_surface(unexpected_lines, "self-test-unexpected-case"),
         "phase6-bsearch-c-parity:self-test-unexpected-case:unexpected_output:"
         f"expected={EXPECTED_SORTED_LINES!r}:actual={unexpected_lines!r}",
+    )
+    missing_descending_lines = [
+        line for line in EXPECTED_SORTED_LINES if line != "descending-hit\t34\t2"
+    ]
+    expect_system_exit(
+        "missing_descending_case",
+        lambda: validate_expected_surface(missing_descending_lines, "self-test-missing-descending-case"),
+        "phase6-bsearch-c-parity:self-test-missing-descending-case:unexpected_output:"
+        f"expected={EXPECTED_SORTED_LINES!r}:actual={missing_descending_lines!r}",
     )
     print("PHASE6_BSEARCH_C_PARITY_SELF_TEST=pass")
     print("PHASE6_BSEARCH_C_PARITY_SELF_TEST_CASE_COUNT=6")
