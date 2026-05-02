@@ -134,6 +134,11 @@ The shared review path now fail-closes through the dedicated tests-readme alignm
 
 - provenance and anchor alignment rechecked against inspected `master` head `36414e38da67a51209095d0c06170f81e80258eb`
 - focused Zig replay rerun against inspected `master` head `36414e38da67a51209095d0c06170f81e80258eb`
+- `python3 scripts/zigux/check-phase8-tests-readme-alignment.py --self-test`
+  - `PHASE8_TESTS_README_ALIGNMENT_SELF_TEST=pass`
+  - `PHASE8_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=13`
+- `python3 scripts/zigux/check-phase8-tests-readme-alignment.py`
+  - `PHASE8_TESTS_README_ALIGNMENT=pass`
 - `zig test zigux/tests/phase8_libbpf_segments.zig`
   - all `5/5` focused libbpf segment tests passed
 - `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all`
