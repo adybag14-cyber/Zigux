@@ -6,6 +6,7 @@ from pathlib import Path
 import json
 import re
 import sys
+import tempfile
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -236,6 +237,12 @@ BUILD_MARKERS = [
 FORBIDDEN_BUILD_MARKERS: list[str] = []
 BUILD_INVENTORY_FIXTURE = "zigux/tests/fixtures/phase12_build_inventory.json"
 PHASE12_LIBBPF_SNAPSHOT_FIXTURE = "zigux/tests/fixtures/phase12_libbpf_snapshot.json"
+SELF_TEST_SOURCE_MARKERS = [
+    'def run_self_test() -> int:',
+    'if "--self-test" in sys.argv[1:]:',
+    'PHASE12_VALIDATOR_SELF_TEST=pass',
+    'PHASE12_VALIDATOR_SELF_TEST_CASE_COUNT=4',
+]
 
 MANIFEST_SPECS = {
     "phase12_virtio_net_manifest.json": {
@@ -362,8 +369,91 @@ MANIFEST_SPECS = {
     },
 }
 
+def read_text(root: Path, path: str) -> str:
+    return (root / path).read_text(encoding="utf-8")
+
+
+def validate_self_test_surface(source_text: str, manifest_specs: dict[str, object]) -> list[str]:
+    missing: list[str] = []
+    for marker in SELF_TEST_SOURCE_MARKERS:
+        if marker not in source_text:
+            missing.append(f"validator_source:{marker}")
+
+    nvme_spec = manifest_specs.get("phase12_nvme_pci_manifest.json")
+    if not isinstance(nvme_spec, dict) or nvme_spec.get("lane_key") != "P12-L08":
+        missing.append("validator_source:phase12_nvme_pci_manifest.json:lane_key=P12-L08")
+
+    return missing
+
+
+def expect_self_test_missing(
+    label: str,
+    source_text: str,
+    manifest_specs: dict[str, object],
+    expected_marker: str,
+) -> None:
+    missing = validate_self_test_surface(source_text, manifest_specs)
+    if expected_marker not in missing:
+        actual = ",".join(missing) if missing else "none"
+        raise SystemExit(
+            f"phase12-validator-self-test:{label}:expected_missing_marker:{expected_marker}:actual:{actual}"
+        )
+
+
+def run_self_test() -> int:
+    source_text = Path(__file__).read_text(encoding="utf-8")
+    baseline_missing = validate_self_test_surface(source_text, MANIFEST_SPECS)
+    if baseline_missing:
+        raise SystemExit(
+            "phase12-validator-self-test:baseline_failed:"
+            f"{','.join(baseline_missing)}"
+        )
+
+    expect_self_test_missing(
+        "pass_token",
+        source_text.replace("PHASE12_VALIDATOR_SELF_TEST=pass", "PHASE12_VALIDATOR_SELF_TEST=drift", 1),
+        MANIFEST_SPECS,
+        "validator_source:PHASE12_VALIDATOR_SELF_TEST=pass",
+    )
+
+    expect_self_test_missing(
+        "case_count_token",
+        source_text.replace(
+            "PHASE12_VALIDATOR_SELF_TEST_CASE_COUNT=4",
+            "PHASE12_VALIDATOR_SELF_TEST_CASE_COUNT=5",
+            1,
+        ),
+        MANIFEST_SPECS,
+        "validator_source:PHASE12_VALIDATOR_SELF_TEST_CASE_COUNT=4",
+    )
+
+    expect_self_test_missing(
+        "entrypoint_guard",
+        source_text.replace(
+            'if "--self-test" in sys.argv[1:]:',
+            'if "--phase12-self-test" in sys.argv[1:]:',
+            1,
+        ),
+        MANIFEST_SPECS,
+        'validator_source:if "--self-test" in sys.argv[1:]:',
+    )
+
+    drifted_manifest_specs = json.loads(json.dumps(MANIFEST_SPECS))
+    drifted_manifest_specs["phase12_nvme_pci_manifest.json"]["lane_key"] = "P12-L05"
+    expect_self_test_missing(
+        "nvme_lane_key",
+        source_text,
+        drifted_manifest_specs,
+        "validator_source:phase12_nvme_pci_manifest.json:lane_key=P12-L08",
+    )
+
+    print("PHASE12_VALIDATOR_SELF_TEST=pass")
+    print("PHASE12_VALIDATOR_SELF_TEST_CASE_COUNT=4")
+    return 0
+
+
 def text(path: str) -> str:
-    return (ROOT / path).read_text(encoding="utf-8")
+    return read_text(ROOT, path)
 
 
 def load_manifest(name: str) -> dict[str, object]:
@@ -476,6 +566,10 @@ def expect_libbpf_snapshot_fixture(
             missing.append(f"phase12_libbpf_snapshot_fixture:bytes:{expected_path}")
         if entry.get("sha256") != hashlib.sha256(file_bytes).hexdigest():
             missing.append(f"phase12_libbpf_snapshot_fixture:sha256:{expected_path}")
+
+
+if "--self-test" in sys.argv[1:]:
+    raise SystemExit(run_self_test())
 
 
 missing_files = [path for path in FILES if not (ROOT / path).exists()]
