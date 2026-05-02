@@ -93,6 +93,23 @@ pub const TokenPreparationPlan = struct {
     }
 };
 
+pub const TokenPreparationAcquisitionDisposition = enum {
+    prepared,
+    cache_allocation_failed,
+};
+
+pub const TokenPreparationAcquisition = struct {
+    disposition: TokenPreparationAcquisitionDisposition,
+    result_code: i32,
+    should_close_token_fd: bool,
+    should_store_token_fd: bool,
+    should_store_feat_cache_token_fd: bool,
+
+    pub fn succeeded(self: TokenPreparationAcquisition) bool {
+        return self.result_code == 0;
+    }
+};
+
 pub const FilePathHandleBridgeError = error{
     PathTooLong,
     InvalidPid,
@@ -223,6 +240,26 @@ pub fn classifyTokenPreparationFailure(
         .disposition = .skip_optional,
         .log_level = log_level,
         .message_suffix = ", skipping optional step...",
+    };
+}
+
+pub fn resolveTokenPreparationAcquisition(has_feat_cache: bool) TokenPreparationAcquisition {
+    if (!has_feat_cache) {
+        return .{
+            .disposition = .cache_allocation_failed,
+            .result_code = -@as(i32, @intFromEnum(linux_errno.NOMEM)),
+            .should_close_token_fd = true,
+            .should_store_token_fd = false,
+            .should_store_feat_cache_token_fd = false,
+        };
+    }
+
+    return .{
+        .disposition = .prepared,
+        .result_code = 0,
+        .should_close_token_fd = false,
+        .should_store_token_fd = true,
+        .should_store_feat_cache_token_fd = true,
     };
 }
 
@@ -396,6 +433,27 @@ test "classifyTokenPreparationFailure keeps optional and mandatory recovery disc
     try std.testing.expectEqual(TokenPreparationLogLevel.warn, mandatory_create.log_level);
     try std.testing.expectEqualStrings("", mandatory_create.message_suffix);
     try std.testing.expect(!mandatory_create.shouldContinueWithoutToken());
+}
+
+test "resolveTokenPreparationAcquisition keeps token-fd ownership explicit after creation" {
+    const no_cache = resolveTokenPreparationAcquisition(false);
+    try std.testing.expectEqual(
+        TokenPreparationAcquisitionDisposition.cache_allocation_failed,
+        no_cache.disposition,
+    );
+    try std.testing.expectEqual(-@as(i32, @intFromEnum(linux_errno.NOMEM)), no_cache.result_code);
+    try std.testing.expect(no_cache.should_close_token_fd);
+    try std.testing.expect(!no_cache.should_store_token_fd);
+    try std.testing.expect(!no_cache.should_store_feat_cache_token_fd);
+    try std.testing.expect(!no_cache.succeeded());
+
+    const prepared = resolveTokenPreparationAcquisition(true);
+    try std.testing.expectEqual(TokenPreparationAcquisitionDisposition.prepared, prepared.disposition);
+    try std.testing.expectEqual(@as(i32, 0), prepared.result_code);
+    try std.testing.expect(!prepared.should_close_token_fd);
+    try std.testing.expect(prepared.should_store_token_fd);
+    try std.testing.expect(prepared.should_store_feat_cache_token_fd);
+    try std.testing.expect(prepared.succeeded());
 }
 
 test "classifyReusePinnedMapOpenFailure keeps missing pinned-map lookup distinct from hard failures" {
