@@ -69,6 +69,30 @@ fn isLowerHexSha(value: []const u8) bool {
     return true;
 }
 
+fn gitBlobShaHex(payload: []const u8) [40]u8 {
+    var hasher = std.crypto.hash.Sha1.init(.{});
+    var header_buf: [64]u8 = undefined;
+    const header = std.fmt.bufPrint(&header_buf, "blob {d}\x00", .{payload.len}) catch unreachable;
+    hasher.update(header);
+    hasher.update(payload);
+
+    var digest: [20]u8 = undefined;
+    hasher.final(&digest);
+
+    return std.fmt.bytesToHex(digest, .lower);
+}
+
+fn expectGateEvidenceBlob(
+    gate_evidence: []const u8,
+    marker: []const u8,
+    payload: []const u8,
+) !void {
+    const digest = gitBlobShaHex(payload);
+    var line_buf: [128]u8 = undefined;
+    const line = try std.fmt.bufPrint(&line_buf, "`{s}={s}`", .{ marker, &digest });
+    try std.testing.expect(std.mem.indexOf(u8, gate_evidence, line) != null);
+}
+
 test "phase4 test_fsmount survey manifest records the landed survey packet and remaining sample gap" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -189,6 +213,13 @@ test "phase4 test_fsmount survey manifest records the landed survey packet and r
         .limited(32 * 1024),
     );
     defer std.testing.allocator.free(phase4_gate_evidence);
+    const phase4_test_fsmount_survey = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase4_test_fsmount_survey.zig",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(phase4_test_fsmount_survey);
     const doc_readme = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/README.md",
@@ -309,8 +340,16 @@ test "phase4 test_fsmount survey manifest records the landed survey packet and r
     try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, "`make M=samples/vfs` replay contract before claiming this anchor as active Phase 4 work") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "PHASE4_EVIDENCE_MODE=github_connector_readback") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "PHASE4_TEST_FSMOUNT_MANIFEST_BLOB_SHA=") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "PHASE4_TEST_FSMOUNT_SURVEY_BLOB_SHA=") != null);
+    try expectGateEvidenceBlob(
+        phase4_gate_evidence,
+        "PHASE4_TEST_FSMOUNT_MANIFEST_BLOB_SHA",
+        manifest_json,
+    );
+    try expectGateEvidenceBlob(
+        phase4_gate_evidence,
+        "PHASE4_TEST_FSMOUNT_SURVEY_BLOB_SHA",
+        phase4_test_fsmount_survey,
+    );
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, current_surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "phase4_test_fsmount_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, manifest.shared_build_replay) != null);
