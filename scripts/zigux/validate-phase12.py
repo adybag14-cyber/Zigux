@@ -117,7 +117,9 @@ DOCS_ROOT_MARKERS = [
     "the same top-level Phase 12 packet now also keeps the bounded `drivers/nvme/host/pci.zig` queue planner, PRP buffer-shape helper, and pointer-selection helper visible from the docs index",
     "the active Phase 12 storage-driver survey packet now keeps the bounded `drivers/scsi/virtio_scsi.zig` queue-layout, recovery, probe snapshot, host-limit summary, queue-depth summary, and io-queue-map starters visible from the top-level docs index",
     "the active Phase 12 heavy-helper survey packet now also keeps the bounded `tools/lib/bpf/zigux_segments/` helper foundations, the reproducibility snapshot, and the blocked object-model, loader, and relocation split visible from the top-level docs index",
-    "`zigux/tests/phase12_libbpf_manifest.json`, `zigux/tests/phase12_libbpf_segments.zig`, `zigux/tests/phase12_libbpf_reviewability.zig`, `zigux/tests/fixtures/phase12_libbpf_snapshot.json`, `scripts/zigux/check-phase12-libbpf-snapshot.py`, `scripts/zigux/validate-phase12.py`, `make -C zigux phase12-validate`, and `make -C zigux phase12` now keep that same heavy-helper survey packet reviewable through the shared Phase 12 tranche",
+    "`zigux/tests/phase12_libbpf_manifest.json`, `zigux/tests/phase12_libbpf_segments.zig`, `zigux/tests/phase12_libbpf_reviewability.zig`, `zigux/tests/fixtures/phase12_libbpf_snapshot.json`, `tools/lib/bpf/zigux_segments/manifest.json`, `scripts/zigux/check-phase12-libbpf-snapshot.py`, `scripts/zigux/check-phase12-libbpf-packet.py`, `scripts/zigux/validate-phase12.py`, `make -C zigux phase12-validate`, and `make -C zigux phase12` now keep that same heavy-helper survey packet reviewable through the shared Phase 12 tranche",
+    "tools/lib/bpf/zigux_segments/manifest.json",
+    "scripts/zigux/check-phase12-libbpf-packet.py",
     "`zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `scripts/zigux/validate-phase12.py`, `make -C zigux phase12-validate`, and `make -C zigux phase12` now keep that same storage-driver survey packet reviewable through the shared Phase 12 tranche",
 ]
 CHECKLIST_MARKERS = [
