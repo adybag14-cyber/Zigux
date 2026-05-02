@@ -10,6 +10,7 @@ pub const Request = struct {
     preserve: bool = false,
     reference_files: []const []const u8 = &.{},
     dump_types_file: ?[]const u8 = null,
+    show_version: bool = false,
 };
 
 pub const Command = union(enum) {
@@ -240,7 +241,10 @@ fn parseLongOption(allocator: std.mem.Allocator, args: []const []const u8, index
 
             switch (spec.kind) {
                 .help => return .{ .command = .help },
-                .version => return .{ .command = .version },
+                .version => {
+                    request.show_version = true;
+                    return .none;
+                },
                 .debug => {
                     request.debug_level += 1;
                     return .none;
@@ -287,7 +291,7 @@ fn parseShortOptions(allocator: std.mem.Allocator, args: []const []const u8, ind
     while (short_index < arg.len) : (short_index += 1) {
         switch (arg[short_index]) {
             'h' => return .{ .command = .help },
-            'V' => return .{ .command = .version },
+            'V' => request.show_version = true,
             'd' => request.debug_level += 1,
             'w' => request.warnings = true,
             'q' => request.warnings = false,
@@ -420,6 +424,12 @@ pub fn main(init: std.process.Init) !void {
             try stderr_writer.interface.flush();
         },
         .request => |request| {
+            if (request.show_version) {
+                var stderr_buffer: [128]u8 = undefined;
+                var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
+                try stderr_writer.interface.writeAll(version_text);
+                try stderr_writer.interface.flush();
+            }
             var stdout_buffer: [2048]u8 = undefined;
             var stdout_writer = Io.File.stdout().writer(io, &stdout_buffer);
             try renderGenksymsBridge(&stdout_writer.interface, request);
@@ -519,13 +529,43 @@ test "genksyms bridge accepts abbreviated unique long options" {
 test "genksyms bridge accepts abbreviated unique action long options" {
     const version_outcome = try parseArgs(std.testing.allocator, &.{"--ver"});
     switch (version_outcome) {
-        .command => |command| try std.testing.expect(command == .version),
+        .command => |command| switch (command) {
+            .request => |request| {
+                defer std.testing.allocator.free(request.reference_files);
+                defer std.testing.allocator.free(request.rendered_args);
+                try std.testing.expect(request.show_version);
+                try std.testing.expectEqual(@as(usize, 0), request.reference_files.len);
+                try std.testing.expectEqualSlices([]const u8, &.{"--ver"}, request.rendered_args);
+            },
+            else => return error.UnexpectedCommand,
+        },
         .failure => return error.UnexpectedFailure,
     }
 
     const help_outcome = try parseArgs(std.testing.allocator, &.{"--hel"});
     switch (help_outcome) {
         .command => |command| try std.testing.expect(command == .help),
+        .failure => return error.UnexpectedFailure,
+    }
+}
+
+test "genksyms bridge keeps short version as a side effect while parsing later options" {
+    const args = &.{ "-Vd", "--reference", "foo.symref" };
+    const outcome = try parseArgs(std.testing.allocator, args);
+    switch (outcome) {
+        .command => |command| switch (command) {
+            .request => |request| {
+                defer std.testing.allocator.free(request.reference_files);
+                defer std.testing.allocator.free(request.rendered_args);
+                try std.testing.expect(request.show_version);
+                try std.testing.expectEqual(@as(usize, 1), request.debug_level);
+                try std.testing.expectEqual(@as(usize, 1), request.reference_files.len);
+                try std.testing.expectEqualStrings("foo.symref", request.reference_files[0]);
+                try std.testing.expectEqualSlices([]const u8, args, request.raw_args);
+                try std.testing.expectEqualSlices([]const u8, args, request.rendered_args);
+            },
+            else => return error.UnexpectedCommand,
+        },
         .failure => return error.UnexpectedFailure,
     }
 }
