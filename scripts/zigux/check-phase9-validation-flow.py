@@ -26,6 +26,7 @@ REQUIRED_FILES = [
 ]
 
 MAKEFILE_MARKERS = [
+    "PHONY += phase9-validate phase9-test phase9-loader-gap-survey phase9-kretprobe-survey phase9-trace-events-survey phase9",
     "phase9-validate:",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase9.py --self-test\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-validation-flow.py --self-test\n",
@@ -41,6 +42,10 @@ MAKEFILE_MARKERS = [
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-module-metadata-packet.py\n",
     "phase9-loader-gap-survey:",
     "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_loader_gap_survey.zig\n",
+    "phase9-kretprobe-survey:",
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_kretprobe_survey.zig\n",
+    "phase9-trace-events-survey:",
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) test --dep runtime_trace_events_sample -Mroot=zigux/tests/runtime_trace_events_survey.zig -Mruntime_trace_events_sample=samples/zigux/runtime_trace_events.zig\n",
     "phase9: phase9-validate phase9-test",
 ]
 
@@ -125,7 +130,7 @@ def write_fixture_tree(root: Path) -> None:
     (root / MAKEFILE_PATH).write_text(
         "\n".join(
             [
-                "PHONY += phase9-validate phase9-test phase9",
+                "PHONY += phase9-validate phase9-test phase9-loader-gap-survey phase9-kretprobe-survey phase9-trace-events-survey phase9",
                 "",
                 "phase9-validate:",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase9.py --self-test",
@@ -146,6 +151,12 @@ def write_fixture_tree(root: Path) -> None:
                 "",
                 "phase9-loader-gap-survey:",
                 "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_loader_gap_survey.zig",
+                "",
+                "phase9-kretprobe-survey:",
+                "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_kretprobe_survey.zig",
+                "",
+                "phase9-trace-events-survey:",
+                "\tcd $(ZIGUX_ROOT) && $(ZIG) test --dep runtime_trace_events_sample -Mroot=zigux/tests/runtime_trace_events_survey.zig -Mruntime_trace_events_sample=samples/zigux/runtime_trace_events.zig",
                 "",
                 "phase9: phase9-validate phase9-test",
                 "",
@@ -474,8 +485,38 @@ def run_self_test() -> int:
         )
         module_metadata_checker_path.write_text(original_module_metadata_checker, encoding="utf-8")
 
+        makefile_path.write_text(
+            original_makefile.replace(
+                "phase9-kretprobe-survey:\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "makefile_kretprobe_target",
+            tmp_root,
+            "makefile:phase9-kretprobe-survey:",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        makefile_path.write_text(
+            original_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(ZIG) test --dep runtime_trace_events_sample -Mroot=zigux/tests/runtime_trace_events_survey.zig -Mruntime_trace_events_sample=samples/zigux/runtime_trace_events.zig\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "makefile_trace_events_command",
+            tmp_root,
+            "makefile:\tcd $(ZIGUX_ROOT) && $(ZIG) test --dep runtime_trace_events_sample -Mroot=zigux/tests/runtime_trace_events_survey.zig -Mruntime_trace_events_sample=samples/zigux/runtime_trace_events.zig\n",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
     print("PHASE9_VALIDATION_FLOW_SELF_TEST=pass")
-    print("PHASE9_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=13")
+    print("PHASE9_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
