@@ -520,6 +520,15 @@ for index, packet in enumerate(anchor_packets):
                     if not isinstance(item, str) or item not in anchor_survey_note:
                         missing.append(f"{survey_note_path}:rollback_trigger:{item}")
 
+        expected_rcu_lane_marker = f"PHASE14_LANE_KEY={lane_key}"
+        if expected_rcu_lane_marker not in anchor_survey_note:
+            missing.append(f"{survey_note_path}:lane_key_marker")
+        expected_rcu_commit_marker = f"PHASE14_SURVEYED_COMMIT={packet_commit}"
+        if expected_rcu_commit_marker not in anchor_survey_note:
+            missing.append(f"{survey_note_path}:surveyed_commit_marker")
+        if "PHASE14_STATUS=freeze_in_c" not in anchor_survey_note:
+            missing.append(f"{survey_note_path}:status_bucket_marker")
+
         guardrail_gap = find_gap(anchor_manifest, RCU_TREE_ROLLBACK_GUARDRAIL_GAP)
         if not isinstance(guardrail_gap, dict) or guardrail_gap.get("status") != "starter_landed":
             missing.append(f"{manifest_path}:guardrail:{RCU_TREE_ROLLBACK_GUARDRAIL_GAP}")
