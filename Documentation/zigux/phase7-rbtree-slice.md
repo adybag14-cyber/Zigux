@@ -54,7 +54,7 @@ This slice stays intentionally narrow and ports the first practical runtime-safe
 4. keep the helper wired through the Zigux convenience target
 - `make -C zigux phase7`
 
-5. keep the survey record machine-checked
+5. keep the manifest-backed survey record machine-checked from `repo_root`
 - `zig test zigux/tests/phase7_rbtree_survey.zig`
 
 6. check the committed C parity fixture and its dedicated checker self-test
