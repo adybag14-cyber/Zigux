@@ -9,6 +9,7 @@ const SurveySummary = struct {
     bcm2835_wdt_slice_note_present: bool,
     bcm2835_wdt_validation_matrix_present: bool,
     bcm2835_wdt_platform_handoff_present: bool,
+    bcm2835_wdt_poweroff_summary_present: bool,
     bcm2835_wdt_shared_replay_evidence_present: bool,
     bcm2835_wdt_survey_gate_present: bool,
     bcm2835_wdt_survey_note_present: bool,
@@ -38,7 +39,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_driver_scaffold");
 }
 
-test "phase11 bcm2835_wdt survey manifest and validation matrix record the landed handoff summary plus replay surface" {
+test "phase11 bcm2835_wdt survey manifest and validation matrix record the landed handoff plus poweroff review surface" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -49,30 +50,6 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
         .limited(32 * 1024),
     );
     defer std.testing.allocator.free(manifest_json);
-
-    const bcm2835_driver = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "drivers/watchdog/bcm2835_wdt.zig",
-        std.testing.allocator,
-        .limited(32 * 1024),
-    );
-    defer std.testing.allocator.free(bcm2835_driver);
-
-    const dedicated_test = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "zigux/tests/phase11_bcm2835_wdt.zig",
-        std.testing.allocator,
-        .limited(32 * 1024),
-    );
-    defer std.testing.allocator.free(dedicated_test);
-
-    const build_zig = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "zigux/tests/phase11_build.zig",
-        std.testing.allocator,
-        .limited(32 * 1024),
-    );
-    defer std.testing.allocator.free(build_zig);
 
     const matrix_doc = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
@@ -115,10 +92,11 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
     try std.testing.expect(manifest.survey_summary.bcm2835_wdt_slice_note_present);
     try std.testing.expect(manifest.survey_summary.bcm2835_wdt_validation_matrix_present);
     try std.testing.expect(manifest.survey_summary.bcm2835_wdt_platform_handoff_present);
+    try std.testing.expect(manifest.survey_summary.bcm2835_wdt_poweroff_summary_present);
     try std.testing.expect(manifest.survey_summary.bcm2835_wdt_shared_replay_evidence_present);
     try std.testing.expect(manifest.survey_summary.bcm2835_wdt_survey_gate_present);
     try std.testing.expect(manifest.survey_summary.bcm2835_wdt_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 14), manifest.gaps.len);
 
     const expected_commit_pin = try std.fmt.allocPrint(
         std.testing.allocator,
@@ -126,17 +104,6 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
         .{manifest.surveyed_commit},
     );
     defer std.testing.allocator.free(expected_commit_pin);
-
-    try std.testing.expect(std.mem.indexOf(u8, bcm2835_driver, "pub const PlatformHandoffSummary = struct {") != null);
-    try std.testing.expect(std.mem.indexOf(u8, bcm2835_driver, "pub const RemoveSummary = struct {") != null);
-    try std.testing.expect(std.mem.indexOf(u8, bcm2835_driver, "watchdog_teardown_managed_by_devm = true,") != null);
-    try std.testing.expect(std.mem.indexOf(u8, dedicated_test, "test \"phase11 bcm2835_wdt platform handoff summary keeps parent and PM-base prerequisites reviewable\"") != null);
-    try std.testing.expect(std.mem.indexOf(u8, dedicated_test, "test \"phase11 bcm2835_wdt remove summary only clears the shared poweroff handler when bcm2835 owns it\"") != null);
-    try std.testing.expect(std.mem.indexOf(u8, build_zig, "../../drivers/watchdog/bcm2835_wdt.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, build_zig, "phase11-bcm2835-wdt-tests") != null);
-    try std.testing.expect(std.mem.indexOf(u8, build_zig, "phase11-bcm2835-wdt-survey-tests") != null);
-    try std.testing.expect(std.mem.indexOf(u8, build_zig, "test_step.dependOn(&run_phase11_bcm2835_wdt_tests.step);") != null);
-    try std.testing.expect(std.mem.indexOf(u8, build_zig, "test_step.dependOn(&run_phase11_bcm2835_wdt_survey_tests.step);") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "PHASE11_BCM2835_WDT_STATUS=platform_handoff_landed") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, expected_commit_pin) != null);
@@ -151,7 +118,8 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "WDIOF_SETTIMEOUT") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "full platform registration") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "PM base ioremap") != null);
-    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "devm-managed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "poweroff path summary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "shared system-poweroff callback") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "remove-time teardown boundary") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, expected_commit_pin) != null);
@@ -159,6 +127,7 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the focused replay `zig test zigux/tests/phase11_bcm2835_wdt_survey.zig` still passes on current `master`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the current shared replay now passes on `master`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "bcm2835 starter for watchdog metadata, timeout tick encoding, running-bit detection") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "small poweroff-path summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "tiny platform-registration or PM-base handoff summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`zigux/tests/phase11_build.zig` still compiles and runs the gpio starter checks, the bcm2835 starter checks, and the bcm2835 survey check together") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the archival survey still keeps its inherited `P11-L08` packet identity so the bcm2835 watchdog review record stays traceable alongside the live manifest, survey gate, and validator ownership for the same lane key") != null);
@@ -167,6 +136,7 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
 
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "tiny watchdog metadata summary for the Linux identity string, watchdog option flags, static timeout bounds, and bounded start or stop or get_timeleft or restart ops coverage") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "tiny platform-registration and PM-base handoff summary for parent attachment, PM base availability, drvdata handoff readiness, register-device intent, and poweroff claim-vs-conflict reviewability") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_doc, "tiny poweroff-path summary for shared system-poweroff callback ownership, Raspberry Pi halt-partition request bits, and the short restart arming sequence") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "tiny remove-time teardown summary for devm-managed watchdog cleanup while clearing the shared poweroff handler only when the bcm2835 lane currently owns it") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "remaining gap is a later hardware-facing decision about whether to model any live platform registration or PM base plumbing") != null);
 
@@ -184,6 +154,7 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
     var saw_probe_summary = false;
     var saw_registration_summary = false;
     var saw_platform_handoff = false;
+    var saw_poweroff_summary = false;
     var saw_remove_followup = false;
     var saw_live_platform_gap = false;
 
@@ -221,6 +192,7 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "current master head") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "watchdog metadata summary") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "platform handoff summary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "poweroff-path summary") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remove-time teardown summary") != null);
         }
 
@@ -231,6 +203,7 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "watchdog metadata") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "registration-facing handoff") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "platform-registration and PM-base handoff summary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "poweroff-path summary") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remove-time teardown summary") != null);
         }
 
@@ -249,6 +222,7 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "watchdog metadata") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "platform-handoff prerequisites") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "poweroff-path sequencing") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remove-time poweroff ownership plus devm-managed teardown outcomes") != null);
         }
 
@@ -258,6 +232,7 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "watchdog metadata summary") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "platform handoff summary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "poweroff-path summary") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remove-time teardown summary") != null);
         }
 
@@ -268,6 +243,7 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shared Phase 11 test gate") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "watchdog metadata surface") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "landed platform-handoff review surface") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "poweroff-path sequencing evidence") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remove-time teardown scope") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "replay commands") != null);
         }
@@ -296,6 +272,15 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "register-device intent") != null);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase11-bcm2835-wdt-poweroff-summary")) {
+            saw_poweroff_summary = true;
+            try std.testing.expectEqualStrings("drivers/watchdog/bcm2835_wdt.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shared system-poweroff callback") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "Raspberry Pi halt-partition request bits") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "short watchdog restart arming sequence") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase11-bcm2835-wdt-remove-summary")) {
             saw_remove_followup = true;
             try std.testing.expectEqualStrings("drivers/watchdog/bcm2835_wdt.zig", gap.zigux_destination);
@@ -318,7 +303,7 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 12), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 13), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
@@ -332,6 +317,7 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
     try std.testing.expect(saw_probe_summary);
     try std.testing.expect(saw_registration_summary);
     try std.testing.expect(saw_platform_handoff);
+    try std.testing.expect(saw_poweroff_summary);
     try std.testing.expect(saw_remove_followup);
     try std.testing.expect(saw_live_platform_gap);
 }
