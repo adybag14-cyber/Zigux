@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[2]
 SURVEY_PATH = "Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md"
 MANIFEST_PATH = "zigux/tests/runtime_module_metadata_manifest.json"
 SURVEY_TEST_PATH = "zigux/tests/runtime_module_metadata_survey.zig"
+CHECKER_PATH = "scripts/zigux/check-phase9-module-metadata-packet.py"
 PHASE9_BUILD_PATH = "zigux/tests/phase9_build.zig"
 LOADER_GAP_SURVEY_PATH = "Documentation/zigux/phase9-runtime-loader-gap-survey.md"
 RUNTIME_LOADER_PATH = "zigux/kernel/runtime_loader.zig"
@@ -26,6 +27,7 @@ REQUIRED_FILES = [
     SURVEY_PATH,
     MANIFEST_PATH,
     SURVEY_TEST_PATH,
+    CHECKER_PATH,
     PHASE9_BUILD_PATH,
     LOADER_GAP_SURVEY_PATH,
     RUNTIME_LOADER_PATH,
@@ -84,6 +86,9 @@ SURVEY_TEST_REQUIRED_MARKERS = [
     '"samples/zigux/runtime_bitmap_loader.zig"',
     '"samples/zigux/runtime_kretprobe_loader.zig"',
     '"samples/zigux/runtime_trace_events.zig"',
+    '"scripts/zigux/check-phase9-module-metadata-packet.py"',
+    '"zigux/tests/phase9_build.zig"',
+    '"zigux/tests/README.md"',
     '"MODULE_INFO()"',
     '"MODULE_ALIAS()"',
     '"scripts/depmod.sh"',
@@ -255,6 +260,9 @@ def validate_manifest_packet(root: Path) -> list[str]:
             ("runtime-module-metadata-survey-note", SURVEY_PATH),
             ("runtime-module-metadata-manifest", MANIFEST_PATH),
             ("runtime-module-metadata-survey-gate", SURVEY_TEST_PATH),
+            ("runtime-module-metadata-packet-checker", CHECKER_PATH),
+            ("phase9-build-gate", PHASE9_BUILD_PATH),
+            ("phase9-tests-readme-guide", TESTS_README_PATH),
             ("runtime-loader-gap-note", LOADER_GAP_SURVEY_PATH),
             ("shared-runtime-loader-contract", RUNTIME_LOADER_PATH),
         }
@@ -274,6 +282,9 @@ def validate_manifest_packet(root: Path) -> list[str]:
             SURVEY_PATH,
             MANIFEST_PATH,
             SURVEY_TEST_PATH,
+            CHECKER_PATH,
+            PHASE9_BUILD_PATH,
+            TESTS_README_PATH,
             LOADER_GAP_SURVEY_PATH,
             RUNTIME_LOADER_PATH,
         }
@@ -351,6 +362,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
 def write_fixture_tree(root: Path) -> None:
     (root / "Documentation/zigux").mkdir(parents=True, exist_ok=True)
     (root / "zigux/tests").mkdir(parents=True, exist_ok=True)
+    (root / "scripts/zigux").mkdir(parents=True, exist_ok=True)
     (root / "zigux/kernel").mkdir(parents=True, exist_ok=True)
     (root / "samples/zigux").mkdir(parents=True, exist_ok=True)
 
@@ -385,6 +397,9 @@ def write_fixture_tree(root: Path) -> None:
             {"id": "runtime-module-metadata-survey-note", "path": SURVEY_PATH},
             {"id": "runtime-module-metadata-manifest", "path": MANIFEST_PATH},
             {"id": "runtime-module-metadata-survey-gate", "path": SURVEY_TEST_PATH},
+            {"id": "runtime-module-metadata-packet-checker", "path": CHECKER_PATH},
+            {"id": "phase9-build-gate", "path": PHASE9_BUILD_PATH},
+            {"id": "phase9-tests-readme-guide", "path": TESTS_README_PATH},
             {"id": "runtime-loader-gap-note", "path": LOADER_GAP_SURVEY_PATH},
             {"id": "shared-runtime-loader-contract", "path": RUNTIME_LOADER_PATH},
         ],
@@ -392,6 +407,9 @@ def write_fixture_tree(root: Path) -> None:
             {"surface": SURVEY_PATH},
             {"surface": MANIFEST_PATH},
             {"surface": SURVEY_TEST_PATH},
+            {"surface": CHECKER_PATH},
+            {"surface": PHASE9_BUILD_PATH},
+            {"surface": TESTS_README_PATH},
             {"surface": LOADER_GAP_SURVEY_PATH},
             {"surface": RUNTIME_LOADER_PATH},
         ],
@@ -448,6 +466,9 @@ def write_fixture_tree(root: Path) -> None:
                 f'"{BITMAP_LOADER_PATH}"',
                 f'"{KRETPROBE_LOADER_PATH}"',
                 '"samples/zigux/runtime_trace_events.zig"',
+                f'"{CHECKER_PATH}"',
+                f'"{PHASE9_BUILD_PATH}"',
+                f'"{TESTS_README_PATH}"',
                 '"MODULE_INFO()"',
                 '"MODULE_ALIAS()"',
                 '"scripts/depmod.sh"',
@@ -460,6 +481,10 @@ def write_fixture_tree(root: Path) -> None:
                 "",
             ]
         ),
+        encoding="utf-8",
+    )
+    (root / CHECKER_PATH).write_text(
+        "self checker fixture marker\n",
         encoding="utf-8",
     )
     (root / PHASE9_BUILD_PATH).write_text(
@@ -596,6 +621,12 @@ def run_self_test() -> int:
         expect_missing_marker("manifest_depmod_count", tmp_root, "manifest:summary_depmod_gap_count_drift")
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
+        manifest = json.loads(original_manifest)
+        manifest["delivery_evidence_catalog"] = manifest["delivery_evidence_catalog"][:-1]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker("manifest_delivery_packet", tmp_root, "manifest:delivery_evidence_catalog_drift")
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
         survey_test_path = tmp_root / SURVEY_TEST_PATH
         original_survey_test = survey_test_path.read_text(encoding="utf-8")
         survey_test_path.write_text(
@@ -726,7 +757,7 @@ def run_self_test() -> int:
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
     print("PHASE9_MODULE_METADATA_PACKET_SELF_TEST=pass")
-    print("PHASE9_MODULE_METADATA_PACKET_SELF_TEST_CASE_COUNT=11")
+    print("PHASE9_MODULE_METADATA_PACKET_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
