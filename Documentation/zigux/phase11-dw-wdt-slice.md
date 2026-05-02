@@ -13,6 +13,7 @@ The starter stays intentionally narrow:
 - adds a tiny platform-resource preflight plus live resource-order summary that keeps the timer-clock choice, optional APB clock presence, reset-control availability, and optional pretimeout-IRQ wiring, plus the bounded tclk, optional pclk, reset, irq, and registration sequencing reviewable before any live devm calls
 - adds an explicit `summarizeTeardownLifecycle()` helper so reset-control-backed stop pulses, non-stoppable stop fallout, reset-mode restart forcing, and restart-from-stopped enablement stay reviewable before any live platform remove or PM teardown work
 - adds an explicit `summarizeRemoveHandoff()` helper so debugfs clear, unregister-device ordering, reset-control-backed remove, and non-reset remove fallout stay reviewable before any live platform remove, PM, or debugfs-backed teardown work
+- keeps idle remove-time pending interrupts distinct when remove happens before the watchdog is running, so reset-backed interrupt clearing and non-reset preserved pending interrupt state stay reviewable without claiming a live remove callback
 
 This slice does not claim platform-driver registration, clock or reset acquisition, IRQ registration, suspend or resume handling, debugfs support, custom devicetree TOP arrays beyond the bounded in-memory ordering helper, live MMIO access, or hardware validation coverage yet.
 
