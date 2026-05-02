@@ -86,7 +86,9 @@ REQUIRED_MAKEFILE_SNIPPETS = (
 )
 
 REQUIRED_EXPORT_SHIM_SNIPPETS = (
+    "pub fn canonicalHeader(flags: u16) abi.BoundaryHeader {",
     "pub fn header(flags: u16) abi.BoundaryHeader {",
+    "pub fn canonicalizeHeader(boundary_header: abi.BoundaryHeader) ?abi.BoundaryHeader {",
     "pub fn isCompatibleHeader(boundary_header: abi.BoundaryHeader) bool {",
     "pub fn isCanonicalHeader(boundary_header: abi.BoundaryHeader) bool {",
     "pub fn normalize(status: abi.ExportStatus) abi.ExportStatus {",
@@ -94,18 +96,22 @@ REQUIRED_EXPORT_SHIM_SNIPPETS = (
     "pub fn errno(code: i32, facility: abi.Facility) abi.ExportStatus {",
     "pub fn isOk(status: abi.ExportStatus) bool {",
     'test "phase3 export shim separates canonical headers from broader compatibility"',
+    'test "phase3 export shim canonicalizes compatible headers back to the current shape"',
 )
 
 REQUIRED_UAPI_VERSION_SNIPPETS = (
     "pub const Header = abi.BoundaryHeader;",
+    "pub fn canonicalHeader(flags: u16) Header {",
     "pub fn boundaryHeader(flags: u16) Header {",
     "pub fn compatibleHeader(size: u32, flags: u16) Header {",
+    "pub fn canonicalizeHeader(header: Header) ?Header {",
     "pub fn isCurrentAbiVersion(version: u16) bool {",
     "pub fn isCompatibleSize(size: u32) bool {",
     "pub fn isCanonicalSize(size: u32) bool {",
     "pub fn isCompatible(header: Header) bool {",
     "pub fn isCanonical(header: Header) bool {",
     'test "phase3 uapi boundary header distinguishes canonical and future-compatible shapes"',
+    'test "phase3 uapi canonicalizes compatible headers without widening the boundary"',
 )
 
 REQUIRED_ABI_SLICE_SNIPPETS = (
@@ -119,6 +125,8 @@ REQUIRED_EXPORT_UAPI_TEST_SNIPPETS = (
     "try std.testing.expect(uapi_version.isCanonicalSize(header.size));",
     "try std.testing.expect(export_shim.isCanonicalHeader(header));",
     "try std.testing.expect(uapi_version.isCanonical(header));",
+    "try std.testing.expectEqual(header, export_shim.canonicalizeHeader(header).?);",
+    "try std.testing.expectEqual(header, uapi_version.canonicalizeHeader(header).?);",
     "const undersized_header = uapi_version.compatibleHeader(uapi_version.header_size - 1, 0x11);",
     "try std.testing.expect(!uapi_version.isCompatibleSize(undersized_header.size));",
     "try std.testing.expect(!uapi_version.isCurrentAbiVersion(mismatched_version_header.abi_version));",
@@ -128,6 +136,8 @@ REQUIRED_EXPORT_UAPI_TEST_SNIPPETS = (
     "try std.testing.expect(!uapi_version.isCanonical(future_compatible_header));",
     "try std.testing.expect(export_shim.isCompatibleHeader(future_compatible_header));",
     "try std.testing.expect(uapi_version.isCompatible(future_compatible_header));",
+    "try std.testing.expectEqual(header, export_shim.canonicalizeHeader(future_compatible_header).?);",
+    "try std.testing.expectEqual(header, uapi_version.canonicalizeHeader(future_compatible_header).?);",
 )
 
 REQUIRED_UAPI_FILES = (
@@ -553,7 +563,7 @@ def run_self_test() -> int:
         _replace_blob_markers_with_head(root, survey_path)
         assert validate(root) == []
 
-        survey_path.write_text(REQUIRED_SURVEY_MARKERS[0] + "\n", encoding="utf-8")
+        survey_path.writeText(REQUIRED_SURVEY_MARKERS[0] + "\n", encoding="utf-8")
         issues = validate(root)
         assert any(issue.startswith("missing_survey_marker:") for issue in issues)
         assert any(issue.startswith("missing_survey_snippet:") for issue in issues)
