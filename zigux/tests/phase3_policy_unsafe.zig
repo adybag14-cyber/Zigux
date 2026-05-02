@@ -179,6 +179,35 @@ test "phase3 policy gate reaches a second boundary helper through decoded policy
     try std.testing.expectError(error.UnsafeScopeDenied, mmio.read32Policy(raw_pointer_policy, base32, 0));
 }
 
+test "phase3 policy gate reaches raw-pointer bridge consumers through decoded policy" {
+    var words = [_]u32{ 7, 11 };
+    const base = narrow.addressOf(&words[0]);
+
+    const raw_pointer_policy = try interop_policy.decode(.{
+        .panic_mode = @intFromEnum(abi.PanicMode.warn),
+        .allocator_mode = @intFromEnum(abi.AllocatorMode.arena),
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.raw_pointer_bridge),
+        .reserved = 0,
+    });
+    const mmio_policy = try interop_policy.decode(.{
+        .panic_mode = @intFromEnum(abi.PanicMode.abort),
+        .allocator_mode = @intFromEnum(abi.AllocatorMode.kernel_heap),
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.volatile_mmio),
+        .reserved = 0,
+    });
+
+    const words_slice = try raw_pointer_policy.constSliceAt(u32, base, words.len);
+    try std.testing.expectEqual(@as(u32, 7), words_slice[0]);
+    const second_word = try raw_pointer_policy.constPointerAt(u32, base + @sizeOf(u32));
+    try std.testing.expectEqual(@as(u32, 11), second_word.*);
+
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio_policy.constSliceAt(u32, base, words.len));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio_policy.constPointerAt(u32, base));
+    try std.testing.expectError(error.MisalignedAccess, raw_pointer_policy.constSliceAt(u32, base + 1, 1));
+    try std.testing.expectError(error.MisalignedAccess, raw_pointer_policy.constPointerAt(u32, base + 1));
+    try std.testing.expectError(error.AddressOverflow, raw_pointer_policy.constSliceAt(u32, 4, std.math.maxInt(usize)));
+}
+
 test "phase3 narrow unsafe helpers stay explicit" {
     try std.testing.expectEqual(@intFromEnum(abi.UnsafeScope.none), @intFromEnum(narrow.UnsafeScopeTag.none));
     try std.testing.expectEqual(@intFromEnum(abi.UnsafeScope.volatile_mmio), @intFromEnum(narrow.UnsafeScopeTag.volatile_mmio));
