@@ -123,7 +123,7 @@ test "phase12 virtio_scsi survey manifest records the landed queue-depth summary
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P12-L09", manifest.lane_key);
+    try std.testing.expectEqualStrings("P12-L12", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
     try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", manifest.anchor);
     try std.testing.expectEqualStrings("7d653d8c5e57207763c07c1b1d020b514738c7f3", manifest.surveyed_commit);
