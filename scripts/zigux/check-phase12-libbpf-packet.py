@@ -534,6 +534,31 @@ def run_self_test() -> int:
         build_self_test_tree(root)
         manifest_path = root / TRACKED_PATHS[0]
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["gaps"] = [
+            gap
+            for gap in manifest["gaps"]
+            if gap["id"] != "phase12-libbpf-map-reuse-compatibility-helper-foundation"
+        ]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        missing = check_packet(root)
+        if "manifest_gap:phase12-libbpf-map-reuse-compatibility-helper-foundation" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:manifest_gap_presence_detection")
+
+        build_self_test_tree(root)
+        manifest_path = root / TRACKED_PATHS[0]
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        for gap in manifest["gaps"]:
+            if gap["id"] == "phase12-libbpf-map-reuse-compatibility-helper-foundation":
+                gap["zigux_destination"] = "tools/lib/bpf/zigux_segments/cpu_mask.zig"
+                break
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        missing = check_packet(root)
+        if "manifest_gap_destination:phase12-libbpf-map-reuse-compatibility-helper-foundation" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:manifest_gap_destination_detection")
+
+        build_self_test_tree(root)
+        manifest_path = root / TRACKED_PATHS[0]
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["anchor"] = "tools/lib/bpf/libbpf_alt.c"
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         missing = check_packet(root)
@@ -565,7 +590,7 @@ def run_self_test() -> int:
             raise SystemExit("phase12-libbpf-packet:self-test:legacy_surveyed_commit_detection")
 
         print("PHASE12_LIBBPF_PACKET_SELF_TEST=pass")
-        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=14")
+        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
