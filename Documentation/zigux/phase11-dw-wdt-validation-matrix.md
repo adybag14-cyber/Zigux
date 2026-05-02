@@ -5,7 +5,7 @@ This document records the bounded validation matrix for the Zigux `dw_wdt` lane.
 ## Status
 
 - `PHASE11_DW_WDT_STATUS=validation_matrix_landed`
-- reviewed against live `master` `355b71d89807a217a6b7c405c996cbd623c48ca0`
+- reviewed against live `master` `82ccfea5b769fd42a3b6926eb43aeac9ae5ea9dc`
 - scope: keep the current `dw_wdt` starter honest about what is already validated, name the existing lifecycle, remove-time, and failure-mode evidence clearly, and avoid overclaiming platform registration, PM, IRQ, debugfs, or hardware-backed behavior before those surfaces exist in Zigux
 - latest focused replay posture: the bounded `dw_wdt` driver, remove-idle split, and survey replays remain this lane's truthful current-master evidence, while any wider shared `Phase 11` green status stays intentionally tracked outside this watchdog-local matrix because unrelated non-watchdog drift can reopen elsewhere on `master`
 - current repo reality:
