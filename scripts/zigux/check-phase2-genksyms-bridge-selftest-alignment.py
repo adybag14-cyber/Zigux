@@ -48,6 +48,138 @@ EXPECTED_CASE_NAMES = [
     'abbreviated_missing_long_dump_types_argument',
     'too_many_reference_files',
 ]
+EXPECTED_CASE_SPECS = {
+    'minimal': {
+        'expected': 'minimal_expected.json',
+        'mode': 'stdout_json',
+        'normalize_stderr': False,
+    },
+    'debug_reference_types': {
+        'expected': 'debug_reference_types_expected.json',
+        'mode': 'stdout_json',
+        'normalize_stderr': False,
+    },
+    'short_inline_reference_dump_types': {
+        'expected': 'short_inline_reference_dump_types_expected.json',
+        'mode': 'stdout_json',
+        'normalize_stderr': False,
+    },
+    'clustered_short_inline_reference': {
+        'expected': 'clustered_short_inline_reference_expected.json',
+        'mode': 'stdout_json',
+        'normalize_stderr': False,
+    },
+    'long_options': {
+        'expected': 'long_options_expected.json',
+        'mode': 'stdout_json',
+        'normalize_stderr': False,
+    },
+    'abbreviated_long_options': {
+        'expected': 'abbreviated_long_options_expected.json',
+        'mode': 'stdout_json',
+        'normalize_stderr': False,
+    },
+    'quiet_overrides_warning': {
+        'expected': 'quiet_overrides_warning_expected.json',
+        'mode': 'stdout_json',
+        'normalize_stderr': False,
+    },
+    'explicit_option_terminator': {
+        'expected': 'explicit_option_terminator_expected.json',
+        'mode': 'stdout_json',
+        'normalize_stderr': False,
+    },
+    'positional_passthrough': {
+        'expected': 'positional_passthrough_expected.json',
+        'mode': 'stdout_json',
+        'normalize_stderr': False,
+    },
+    'lone_dash_passthrough': {
+        'expected': 'lone_dash_passthrough_expected.json',
+        'mode': 'stdout_json',
+        'normalize_stderr': False,
+    },
+    'explicit_terminator_positional_passthrough': {
+        'expected': 'explicit_terminator_positional_passthrough_expected.json',
+        'mode': 'stdout_json',
+        'normalize_stderr': False,
+    },
+    'help': {
+        'expected': 'help_expected.json',
+        'mode': 'process_json',
+        'normalize_stderr': False,
+    },
+    'version': {
+        'expected': 'version_expected.json',
+        'mode': 'process_json',
+        'normalize_stderr': False,
+    },
+    'invalid_option': {
+        'expected': 'invalid_option_expected.json',
+        'mode': 'process_json',
+        'normalize_stderr': True,
+    },
+    'missing_reference_argument': {
+        'expected': 'missing_reference_argument_expected.json',
+        'mode': 'process_json',
+        'normalize_stderr': True,
+    },
+    'missing_dump_types_argument': {
+        'expected': 'missing_dump_types_argument_expected.json',
+        'mode': 'process_json',
+        'normalize_stderr': True,
+    },
+    'unsupported_long_option': {
+        'expected': 'unsupported_long_option_expected.json',
+        'mode': 'process_json',
+        'normalize_stderr': True,
+    },
+    'ambiguous_abbreviated_long_option': {
+        'expected': 'ambiguous_abbreviated_long_option_expected.json',
+        'mode': 'process_json',
+        'normalize_stderr': True,
+    },
+    'empty_long_option_name': {
+        'expected': 'empty_long_option_name_expected.json',
+        'mode': 'process_json',
+        'normalize_stderr': True,
+    },
+    'unexpected_long_option_argument': {
+        'expected': 'unexpected_long_option_argument_expected.json',
+        'mode': 'process_json',
+        'normalize_stderr': True,
+    },
+    'abbreviated_unexpected_long_option_argument': {
+        'expected': 'abbreviated_unexpected_long_option_argument_expected.json',
+        'mode': 'process_json',
+        'normalize_stderr': True,
+    },
+    'missing_long_reference_argument': {
+        'expected': 'missing_long_reference_argument_expected.json',
+        'mode': 'process_json',
+        'normalize_stderr': True,
+    },
+    'abbreviated_missing_long_reference_argument': {
+        'expected': 'abbreviated_missing_long_reference_argument_expected.json',
+        'mode': 'process_json',
+        'normalize_stderr': True,
+    },
+    'missing_long_dump_types_argument': {
+        'expected': 'missing_long_dump_types_argument_expected.json',
+        'mode': 'process_json',
+        'normalize_stderr': True,
+    },
+    'abbreviated_missing_long_dump_types_argument': {
+        'expected': 'abbreviated_missing_long_dump_types_argument_expected.json',
+        'mode': 'process_json',
+        'normalize_stderr': True,
+    },
+    'too_many_reference_files': {
+        'expected': 'too_many_reference_files_expected.json',
+        'mode': 'process_json',
+        'normalize_stderr': False,
+    },
+}
 BRIDGE_CHECKER_MARKERS = [
     "print('PHASE2_GENKSYMS_BRIDGE_SELF_TEST=pass')",
     "print('PHASE2_GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=26')",
@@ -129,11 +261,57 @@ def validate_cases(root: Path) -> list[str]:
     cases = payload.get('cases')
     if not isinstance(cases, list):
         return ['cases:expected_list']
-    names = [case.get('name') for case in cases if isinstance(case, dict)]
+
+    actual_names: list[str] = []
+    seen_names: set[str] = set()
+    for case in cases:
+        if not isinstance(case, dict):
+            issues.append('cases:entry:expected_object')
+            continue
+
+        name = case.get('name')
+        if not isinstance(name, str) or not name:
+            issues.append('cases:missing_name')
+            continue
+        if name in seen_names:
+            issues.append(f'cases:duplicate_name:{name}')
+            continue
+        seen_names.add(name)
+        actual_names.append(name)
+
+        spec = EXPECTED_CASE_SPECS.get(name)
+        if spec is None:
+            issues.append(f'cases:unexpected_name:{name}')
+            continue
+
+        actual_expected = case.get('expected')
+        if actual_expected != spec['expected']:
+            issues.append(
+                f"cases:{name}:expected={actual_expected!r}:expected_file={spec['expected']!r}"
+            )
+
+        actual_mode = case.get('mode', 'stdout_json')
+        if actual_mode != spec['mode']:
+            issues.append(
+                f"cases:{name}:mode={actual_mode!r}:expected_mode={spec['mode']!r}"
+            )
+
+        actual_normalize_stderr = case.get('normalize_stderr', False)
+        if actual_normalize_stderr != spec['normalize_stderr']:
+            issues.append(
+                f'cases:{name}:normalize_stderr={actual_normalize_stderr!r}:'
+                f"expected_normalize_stderr={spec['normalize_stderr']!r}"
+            )
+
     if len(cases) != 26:
         issues.append(f'cases:count={len(cases)}:expected=26')
-    if names != EXPECTED_CASE_NAMES:
+    if actual_names != EXPECTED_CASE_NAMES:
         issues.append('cases:names=expected_exact_phase2_genksyms_bridge_case_list')
+
+    missing_names = sorted(set(EXPECTED_CASE_SPECS) - seen_names)
+    for name in missing_names:
+        issues.append(f'cases:missing_name:{name}')
+
     return issues
 
 
@@ -283,7 +461,20 @@ def clone_fixture_root(destination_root: Path) -> None:
     ]
     (destination_root / REQUIRED_FILES['makefile']).write_text('\n'.join(makefile_lines) + '\n', encoding='utf-8')
     (destination_root / REQUIRED_FILES['cases']).write_text(
-        json.dumps({'cases': [{'name': name} for name in EXPECTED_CASE_NAMES]}, indent=2) + '\n',
+        json.dumps(
+            {
+                'cases': [
+                    {
+                        'name': name,
+                        'expected': EXPECTED_CASE_SPECS[name]['expected'],
+                        'mode': EXPECTED_CASE_SPECS[name]['mode'],
+                        'normalize_stderr': EXPECTED_CASE_SPECS[name]['normalize_stderr'],
+                    }
+                    for name in EXPECTED_CASE_NAMES
+                ]
+            },
+            indent=2,
+        ) + '\n',
         encoding='utf-8',
     )
 
@@ -468,6 +659,26 @@ def run_self_test() -> int:
         expect_issue('case_count', tmp_root, 'cases:count=25:expected=26')
         clone_fixture_root(tmp_root)
 
+        cases_payload = json.loads(cases_path.read_text(encoding='utf-8'))
+        cases_payload['cases'][0]['expected'] = 'help_expected.json'
+        cases_path.write_text(json.dumps(cases_payload, indent=2) + '\n', encoding='utf-8')
+        expect_issue(
+            'case_expected_fixture',
+            tmp_root,
+            "cases:minimal:expected='help_expected.json':expected_file='minimal_expected.json'",
+        )
+        clone_fixture_root(tmp_root)
+
+        cases_payload = json.loads(cases_path.read_text(encoding='utf-8'))
+        cases_payload['cases'][11]['normalize_stderr'] = True
+        cases_path.write_text(json.dumps(cases_payload, indent=2) + '\n', encoding='utf-8')
+        expect_issue(
+            'case_normalize_stderr_contract',
+            tmp_root,
+            'cases:help:normalize_stderr=True:expected_normalize_stderr=False',
+        )
+        clone_fixture_root(tmp_root)
+
         closure_validator_path = tmp_root / REQUIRED_FILES['closure_validator']
         original_closure_validator = closure_validator_path.read_text(encoding='utf-8')
         closure_validator_path.write_text(
@@ -486,7 +697,7 @@ def run_self_test() -> int:
         expect_issue('validator_case_count_marker', tmp_root, f'validator:{VALIDATOR_MARKERS[2]}')
 
     print('PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST=pass')
-    print('PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=15')
+    print('PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=17')
     return 0
 
 
