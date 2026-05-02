@@ -593,7 +593,7 @@ fn unescapeHex(src: []const u8, src_index: *usize, dst: []u8, dst_index: *usize)
 
 fn unescapeSpecial(src: []const u8, src_index: *usize, dst: []u8, dst_index: *usize) bool {
     const value: u8 = switch (src[src_index.*]) {
-        '\"' => '\"',
+        '"' => '"',
         '\\' => '\\',
         'a' => 0x07,
         'e' => 0x1b,
@@ -635,7 +635,7 @@ fn escapeSpecial(ch: u8, dst: []u8, dst_index: *usize) bool {
         '\\' => '\\',
         0x07 => 'a',
         0x1b => 'e',
-        '\"' => '\"',
+        '"' => '"',
         else => return false,
     };
     escapePassthrough('\\', dst, dst_index);
@@ -908,6 +908,25 @@ test "kfreeStrarray keeps first-NUL prefixes, zero-count reuse, and repeated tea
     try std.testing.expectEqual(@as(?[*:0]const u8, null), empty.cArray()[0]);
     kfreeStrarray(std.testing.allocator, &empty);
     kfreeStrarray(std.testing.allocator, &empty);
+}
+
+test "kasprintfStrarrayRaw keeps zero-count ownership and teardown semantics explicit" {
+    const empty_a = try kasprintfStrarrayRaw(std.testing.allocator, "cpu", 0);
+    const empty_b = try kasprintfStrarrayRaw(std.testing.allocator, "cpu", 0);
+    try std.testing.expectEqual(@as(usize, 1), empty_a.len);
+    try std.testing.expectEqual(@as(?[*:0]u8, null), empty_a[0]);
+    try std.testing.expect(empty_a.ptr != empty_kasprintf_strarray_raw.ptr);
+    try std.testing.expect(empty_b.ptr != empty_kasprintf_strarray_raw.ptr);
+    try std.testing.expect(empty_a.ptr != empty_b.ptr);
+    kfreeStrarrayRaw(std.testing.allocator, empty_a, 0);
+    kfreeStrarrayRaw(std.testing.allocator, empty_b, 0);
+
+    const partial = try std.testing.allocator.alloc(?[*:0]u8, 2);
+    @memset(partial, null);
+    partial[0] = (try std.testing.allocator.dupeZ(u8, "tty-0")).ptr;
+    kfreeStrarrayRaw(std.testing.allocator, partial, 99);
+
+    kfreeStrarrayRaw(std.testing.allocator, null, 7);
 }
 
 test "escape flag masks stay aligned with the Linux public helper surface" {
