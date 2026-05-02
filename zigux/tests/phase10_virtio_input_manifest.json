@@ -124,6 +124,13 @@
       "why_now": "The live repo now includes one bounded in-memory queue-callback preflight summary that records whether registration intent is staged, the event queue is filled, the status queue is configured, and the device is ready before any transport-backed callback or registration-lifecycle work."
     },
     {
+      "id": "phase10-virtio-input-probe-preflight-helper",
+      "status": "starter_landed",
+      "kind": "lab_driver_starter",
+      "zigux_destination": "drivers/virtio/virtio_input.zig",
+      "why_now": "The live repo now includes one bounded in-memory probe preflight summary that records whether identity, capability setup, registration intent, queue provisioning, and ready-state gating have all converged before any transport-backed probe handoff or input registration lifecycle work."
+    },
+    {
       "id": "phase10-virtio-input-registration-lifecycle",
       "status": "blocked_on_risky_transport",
       "kind": "validation",
