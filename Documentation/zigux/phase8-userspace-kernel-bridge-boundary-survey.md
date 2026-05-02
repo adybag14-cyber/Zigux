@@ -58,13 +58,15 @@ The current libbpf bridge packet is also helper-first:
 
 ## Review gate
 
-Keep this survey aligned with:
+The shared review path now fail-closes through the dedicated tests-readme alignment checker and its built-in self-test before the broader validator, focused survey replay, focused survey build replay, and shared build replay run, so this cross-slice boundary note stays tied to the same docs-root, tests-root, Makefile, workflow, and segmented libbpf packet that current `master` already ships.
 
-1. `python3 scripts/zigux/validate-phase8.py`
-2. `make -C zigux phase8-validate`
-3. `zig test zigux/tests/phase8_libbpf_segments.zig`
-4. `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all`
-5. `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
+1. `python3 scripts/zigux/check-phase8-tests-readme-alignment.py --self-test`
+2. `python3 scripts/zigux/check-phase8-tests-readme-alignment.py`
+3. `python3 scripts/zigux/validate-phase8.py`
+4. `make -C zigux phase8-validate`
+5. `zig test zigux/tests/phase8_libbpf_segments.zig`
+6. `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all`
+7. `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
 
 ## Non-goals
 
