@@ -288,7 +288,8 @@ pub const KobjectExampleSample = struct {
     }
 };
 
-test "kobject sample replay keeps the anchor reviewable and non-runtime" {
+test "kobject sample replay keeps the descriptor and anchor reviewable and non-runtime" {
+    const descriptor = KobjectExampleSample.descriptor();
     var sample = KobjectExampleSample{};
     try sample.init();
     const replay = try sample.runAnchorReplay();
@@ -301,6 +302,10 @@ test "kobject sample replay keeps the anchor reviewable and non-runtime" {
         .reviewable_non_sysfs_scope,
     };
 
+    try std.testing.expectEqualStrings("kobject_example", descriptor.name);
+    try std.testing.expectEqualStrings("samples/kobject/kobject-example.c", descriptor.anchor);
+    try std.testing.expect(!descriptor.requires_runtime_substrate);
+    try std.testing.expect(descriptor.provides_selfcheck);
     try std.testing.expectEqualStrings("samples/kobject/kobject-example.c", replay.anchor);
     try std.testing.expectEqualStrings("kobject_example", replay.directory_name);
     try std.testing.expectEqualStrings("foo", replay.ordered_attr_names[0]);
