@@ -278,7 +278,6 @@ def run_self_test() -> int:
 
         makefile_path = tmp_root / "zigux/Makefile"
         original_makefile = makefile_path.read_text(encoding="utf-8")
-        makefile_path.writeText if False else None
         makefile_path.write_text(
             original_makefile.replace(
                 "scripts/zigux/check-phase8-perf-buffer-poll-gate.py --self-test",
