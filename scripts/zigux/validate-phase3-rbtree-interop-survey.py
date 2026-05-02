@@ -22,6 +22,16 @@ REQUIRED_SURVEY_MARKERS = (
     "PHASE3_RBTREE_NEXT_BOUNDED_STEP=one-curated-phase3-rbtree-boundary-record",
 )
 
+REQUIRED_SURVEY_SNIPPETS = (
+    "That means the remaining Phase 3 gap is no longer “no helper exists.” The remaining gap is that current `master` still has no curated C header, bindings record, or parity fixture for a boundary-facing `rbtree` packet.",
+    "no curated `rbtree` record in `include/zigux/abi.h`",
+    "no matching `zigux/bindings/abi.zig` layout type for a Phase 3 `rbtree` boundary packet",
+    "no C-vs-Zig parity fixture for a Phase 3 `rbtree` boundary shape",
+    "one curated read-mostly ABI record",
+    "one matching Zig binding shape",
+    "one committed parity fixture that keeps the contract reviewable without widening into a full balancing port",
+)
+
 REQUIRED_REPO_PATHS = (
     "Documentation/zigux/phase1-closure.md",
     "Documentation/zigux/phase3-rbtree-slice.md",
@@ -68,6 +78,9 @@ def validate(root: Path) -> list[str]:
         for marker in REQUIRED_SURVEY_MARKERS:
             if marker not in survey:
                 issues.append(f"missing_survey_marker:{marker}")
+        for snippet in REQUIRED_SURVEY_SNIPPETS:
+            if snippet not in survey:
+                issues.append(f"missing_survey_snippet:{snippet}")
 
     for rel in REQUIRED_REPO_PATHS:
         if not (root / rel).exists():
@@ -99,7 +112,10 @@ def run_self_test() -> int:
         (root / "tools" / "lib").mkdir(parents=True, exist_ok=True)
 
         survey_path = root / SURVEY_REL
-        survey_path.write_text("\n".join(REQUIRED_SURVEY_MARKERS) + "\n", encoding="utf-8")
+        survey_path.write_text(
+            "\n".join((*REQUIRED_SURVEY_MARKERS, *REQUIRED_SURVEY_SNIPPETS)) + "\n",
+            encoding="utf-8",
+        )
         roadmap_gap_path = root / ROADMAP_GAP_SURVEY_REL
         roadmap_gap_path.write_text("\n".join(REQUIRED_ROADMAP_GAP_MARKERS) + "\n", encoding="utf-8")
 
@@ -119,7 +135,25 @@ def run_self_test() -> int:
         survey_path.write_text(REQUIRED_SURVEY_MARKERS[0] + "\n", encoding="utf-8")
         issues = validate(root)
         assert any(issue.startswith("missing_survey_marker:") for issue in issues)
-        survey_path.write_text("\n".join(REQUIRED_SURVEY_MARKERS) + "\n", encoding="utf-8")
+        assert any(issue.startswith("missing_survey_snippet:") for issue in issues)
+        survey_path.write_text(
+            "\n".join((*REQUIRED_SURVEY_MARKERS, *REQUIRED_SURVEY_SNIPPETS)) + "\n",
+            encoding="utf-8",
+        )
+
+        survey_path.write_text(
+            "\n".join((*REQUIRED_SURVEY_MARKERS, *REQUIRED_SURVEY_SNIPPETS[:-1])) + "\n",
+            encoding="utf-8",
+        )
+        issues = validate(root)
+        assert (
+            "missing_survey_snippet:one committed parity fixture that keeps the contract reviewable without widening into a full balancing port"
+            in issues
+        )
+        survey_path.write_text(
+            "\n".join((*REQUIRED_SURVEY_MARKERS, *REQUIRED_SURVEY_SNIPPETS)) + "\n",
+            encoding="utf-8",
+        )
 
         roadmap_gap_path.write_text(REQUIRED_ROADMAP_GAP_MARKERS[0] + "\n", encoding="utf-8")
         issues = validate(root)
