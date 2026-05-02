@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import ast
 import os
 from pathlib import Path
 import subprocess
@@ -9,6 +10,7 @@ import tempfile
 
 
 ROOT = Path(__file__).resolve().parents[2]
+VALIDATOR_PATH = ROOT / "scripts" / "zigux" / "validate-phase7.py"
 
 EXPECTED_MAKE_EXPANSIONS = {
     "phase7-validate": [
@@ -64,9 +66,110 @@ UNEXPECTED_MAKE_EXPANSIONS = {
     ],
 }
 
+REQUIRED_VALIDATOR_TEXT_MARKERS = [
+    'ROOT / "scripts" / "zigux" / "check-phase7-build-inventory.py"',
+    'ROOT / "zigux" / "tests" / "fixtures" / "phase7_build_inventory.json"',
+]
+
+VALIDATOR_ALIGNMENT_LINES = {
+    "phase7-validate": [
+        "python3 scripts/zigux/check-phase7-build-inventory.py --self-test",
+        "python3 scripts/zigux/check-phase7-build-inventory.py",
+    ],
+    "phase7": [
+        "python3 scripts/zigux/check-phase7-build-inventory.py --self-test",
+        "python3 scripts/zigux/check-phase7-build-inventory.py",
+    ],
+}
+
+
+def load_validator_make_expansions(
+    validator_path: Path,
+) -> tuple[dict[str, list[str]] | None, list[str]]:
+    if not validator_path.exists():
+        return None, [f"missing validator source: {validator_path.relative_to(ROOT)}"]
+
+    validator_text = validator_path.read_text(encoding="utf-8")
+    failures = [
+        f"validator source missing marker: {marker}"
+        for marker in REQUIRED_VALIDATOR_TEXT_MARKERS
+        if marker not in validator_text
+    ]
+
+    try:
+        module = ast.parse(validator_text, filename=str(validator_path))
+    except SyntaxError as exc:
+        failures.append(
+            "validator source parse failure: "
+            f"{validator_path.relative_to(ROOT)}:{exc.lineno}:{exc.offset}: {exc.msg}"
+        )
+        return None, failures
+
+    for node in module.body:
+        if not isinstance(node, ast.Assign):
+            continue
+        if not any(
+            isinstance(target, ast.Name) and target.id == "expected_make_expansions"
+            for target in node.targets
+        ):
+            continue
+        try:
+            value = ast.literal_eval(node.value)
+        except (TypeError, ValueError) as exc:
+            failures.append(f"validator expected_make_expansions literal drift: {exc}")
+            return None, failures
+        if not isinstance(value, dict):
+            failures.append("validator expected_make_expansions is not a dict")
+            return None, failures
+        return value, failures
+
+    failures.append("validator source missing expected_make_expansions")
+    return None, failures
+
+
+def check_validator_alignment(root: Path) -> list[str]:
+    validator_path = root / "scripts" / "zigux" / "validate-phase7.py"
+    expansions, failures = load_validator_make_expansions(validator_path)
+    if expansions is None:
+        return failures
+
+    for target_name, expected_lines in VALIDATOR_ALIGNMENT_LINES.items():
+        actual_lines = expansions.get(target_name)
+        if not isinstance(actual_lines, list):
+            failures.append(
+                f"validator {target_name} expansion missing or not a list"
+            )
+            continue
+
+        for line in expected_lines:
+            if line not in actual_lines:
+                failures.append(
+                    f"validator {target_name} expansion missing: {line}"
+                )
+
+        expected_positions = {
+            line: actual_lines.index(line)
+            for line in expected_lines
+            if line in actual_lines
+        }
+        for earlier, later in zip(expected_lines, expected_lines[1:]):
+            earlier_pos = expected_positions.get(earlier)
+            later_pos = expected_positions.get(later)
+            if earlier_pos is None or later_pos is None:
+                continue
+            if earlier_pos >= later_pos:
+                failures.append(
+                    f"validator {target_name} expansion order drift: "
+                    f"expected {earlier!r} before {later!r}"
+                )
+                break
+
+    return failures
+
 
 def check_root(root: Path, env: dict[str, str] | None = None) -> tuple[bool, list[str]]:
-    failures: list[str] = []
+    failures = check_validator_alignment(root)
+
     for target_name, expected_lines in EXPECTED_MAKE_EXPANSIONS.items():
         result = subprocess.run(
             ["make", "-n", "-C", str(root / "zigux"), target_name],
@@ -110,7 +213,8 @@ def check_root(root: Path, env: dict[str, str] | None = None) -> tuple[bool, lis
                 continue
             if earlier_pos >= later_pos:
                 failures.append(
-                    f"{target_name}: wrapper expansion order drift: expected {earlier!r} before {later!r}"
+                    f"{target_name}: wrapper expansion order drift: "
+                    f"expected {earlier!r} before {later!r}"
                 )
                 break
 
@@ -141,6 +245,29 @@ def make_fake_make(fake_make_path: Path, outputs: dict[str, list[str]]) -> None:
     fake_make_path.chmod(0o755)
 
 
+def write_validator_fixture(
+    validator_path: Path,
+    expected_make_expansions: dict[str, list[str]],
+    include_required_markers: bool = True,
+) -> None:
+    validator_path.parent.mkdir(parents=True, exist_ok=True)
+    required_entries = []
+    if include_required_markers:
+        required_entries = [
+            '    ROOT / "scripts" / "zigux" / "check-phase7-build-inventory.py",',
+            '    ROOT / "zigux" / "tests" / "fixtures" / "phase7_build_inventory.json",',
+        ]
+    validator_path.write_text(
+        "#!/usr/bin/env python3\n"
+        "ROOT = None\n"
+        "required_files = [\n"
+        + ("\n".join(required_entries) + ("\n" if required_entries else ""))
+        + "]\n"
+        + f"expected_make_expansions = {expected_make_expansions!r}\n",
+        encoding="utf-8",
+    )
+
+
 def expect_failure(
     label: str, root: Path, env: dict[str, str], expected_message: str
 ) -> None:
@@ -158,18 +285,15 @@ def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase7_make_wrapper_") as tmp_dir:
         tmp_root = Path(tmp_dir)
         (tmp_root / "zigux").mkdir()
+        validator_path = tmp_root / "scripts" / "zigux" / "validate-phase7.py"
         fake_make_dir = tmp_root / "fake-bin"
         fake_make_dir.mkdir()
         fake_make_path = fake_make_dir / "make"
         fake_make_env = os.environ.copy()
         fake_make_env["PATH"] = f"{fake_make_dir}:{fake_make_env['PATH']}"
 
-        valid_outputs = {
-            "phase7-validate": EXPECTED_MAKE_EXPANSIONS["phase7-validate"],
-            "phase7-test": EXPECTED_MAKE_EXPANSIONS["phase7-test"],
-            "phase7": EXPECTED_MAKE_EXPANSIONS["phase7"],
-        }
-        make_fake_make(fake_make_path, valid_outputs)
+        make_fake_make(fake_make_path, EXPECTED_MAKE_EXPANSIONS)
+        write_validator_fixture(validator_path, EXPECTED_MAKE_EXPANSIONS)
         ok, failures = check_root(tmp_root, env=fake_make_env)
         if not ok:
             raise SystemExit(
@@ -177,17 +301,130 @@ def run_self_test() -> int:
                 + (" | ".join(failures) or "no_output")
             )
 
-        missing_build_inventory_selftest = {
-            "phase7-validate": [
-                line
-                for line in EXPECTED_MAKE_EXPANSIONS["phase7-validate"]
-                if line
-                != "python3 scripts/zigux/check-phase7-build-inventory.py --self-test"
-            ],
-            "phase7-test": EXPECTED_MAKE_EXPANSIONS["phase7-test"],
-            "phase7": EXPECTED_MAKE_EXPANSIONS["phase7"],
-        }
-        make_fake_make(fake_make_path, missing_build_inventory_selftest)
+        write_validator_fixture(
+            validator_path,
+            EXPECTED_MAKE_EXPANSIONS,
+            include_required_markers=False,
+        )
+        expect_failure(
+            "missing_validator_required_markers",
+            tmp_root,
+            fake_make_env,
+            'validator source missing marker: ROOT / "scripts" / "zigux" / "check-phase7-build-inventory.py"',
+        )
+
+        write_validator_fixture(
+            validator_path,
+            {
+                **EXPECTED_MAKE_EXPANSIONS,
+                "phase7-validate": [
+                    line
+                    for line in EXPECTED_MAKE_EXPANSIONS["phase7-validate"]
+                    if line
+                    != "python3 scripts/zigux/check-phase7-build-inventory.py --self-test"
+                ],
+            },
+        )
+        expect_failure(
+            "missing_validator_build_inventory_selftest",
+            tmp_root,
+            fake_make_env,
+            "validator phase7-validate expansion missing: python3 scripts/zigux/check-phase7-build-inventory.py --self-test",
+        )
+
+        write_validator_fixture(
+            validator_path,
+            {
+                **EXPECTED_MAKE_EXPANSIONS,
+                "phase7-validate": [
+                    line
+                    for line in EXPECTED_MAKE_EXPANSIONS["phase7-validate"]
+                    if line != "python3 scripts/zigux/check-phase7-build-inventory.py"
+                ],
+            },
+        )
+        expect_failure(
+            "missing_validator_build_inventory_live",
+            tmp_root,
+            fake_make_env,
+            "validator phase7-validate expansion missing: python3 scripts/zigux/check-phase7-build-inventory.py",
+        )
+
+        write_validator_fixture(
+            validator_path,
+            {
+                **EXPECTED_MAKE_EXPANSIONS,
+                "phase7": [
+                    line
+                    for line in EXPECTED_MAKE_EXPANSIONS["phase7"]
+                    if line
+                    != "python3 scripts/zigux/check-phase7-build-inventory.py --self-test"
+                ],
+            },
+        )
+        expect_failure(
+            "missing_validator_build_inventory_selftest_in_bundle",
+            tmp_root,
+            fake_make_env,
+            "validator phase7 expansion missing: python3 scripts/zigux/check-phase7-build-inventory.py --self-test",
+        )
+
+        write_validator_fixture(
+            validator_path,
+            {
+                **EXPECTED_MAKE_EXPANSIONS,
+                "phase7": [
+                    line
+                    for line in EXPECTED_MAKE_EXPANSIONS["phase7"]
+                    if line != "python3 scripts/zigux/check-phase7-build-inventory.py"
+                ],
+            },
+        )
+        expect_failure(
+            "missing_validator_build_inventory_live_in_bundle",
+            tmp_root,
+            fake_make_env,
+            "validator phase7 expansion missing: python3 scripts/zigux/check-phase7-build-inventory.py",
+        )
+
+        write_validator_fixture(
+            validator_path,
+            {
+                **EXPECTED_MAKE_EXPANSIONS,
+                "phase7-validate": [
+                    "python3 scripts/zigux/validate-phase7.py --self-test",
+                    "python3 scripts/zigux/validate-phase7.py",
+                    "python3 scripts/zigux/check-phase7-build-inventory.py",
+                    "python3 scripts/zigux/check-phase7-build-inventory.py --self-test",
+                    "python3 scripts/zigux/check-phase7-make-wrapper.py --self-test",
+                    "python3 scripts/zigux/check-phase7-make-wrapper.py",
+                    "python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test",
+                    "python3 scripts/zigux/check-phase7-cmdline-parity.py",
+                    "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test",
+                    "python3 scripts/zigux/check-phase7-rbtree-parity.py",
+                ],
+            },
+        )
+        expect_failure(
+            "validator_order_drift",
+            tmp_root,
+            fake_make_env,
+            "validator phase7-validate expansion order drift: expected 'python3 scripts/zigux/check-phase7-build-inventory.py --self-test' before 'python3 scripts/zigux/check-phase7-build-inventory.py'",
+        )
+
+        write_validator_fixture(validator_path, EXPECTED_MAKE_EXPANSIONS)
+        make_fake_make(
+            fake_make_path,
+            {
+                **EXPECTED_MAKE_EXPANSIONS,
+                "phase7-validate": [
+                    line
+                    for line in EXPECTED_MAKE_EXPANSIONS["phase7-validate"]
+                    if line
+                    != "python3 scripts/zigux/check-phase7-build-inventory.py --self-test"
+                ],
+            },
+        )
         expect_failure(
             "missing_build_inventory_selftest",
             tmp_root,
@@ -195,119 +432,16 @@ def run_self_test() -> int:
             "phase7-validate: missing expected wrapper expansion: python3 scripts/zigux/check-phase7-build-inventory.py --self-test",
         )
 
-        missing_build_inventory_live = {
-            "phase7-validate": [
-                line
-                for line in EXPECTED_MAKE_EXPANSIONS["phase7-validate"]
-                if line != "python3 scripts/zigux/check-phase7-build-inventory.py"
-            ],
-            "phase7-test": EXPECTED_MAKE_EXPANSIONS["phase7-test"],
-            "phase7": EXPECTED_MAKE_EXPANSIONS["phase7"],
-        }
-        make_fake_make(fake_make_path, missing_build_inventory_live)
-        expect_failure(
-            "missing_build_inventory_live",
-            tmp_root,
-            fake_make_env,
-            "phase7-validate: missing expected wrapper expansion: python3 scripts/zigux/check-phase7-build-inventory.py",
+        make_fake_make(
+            fake_make_path,
+            {
+                **EXPECTED_MAKE_EXPANSIONS,
+                "phase7": [
+                    *EXPECTED_MAKE_EXPANSIONS["phase7"],
+                    "zig build test --build-file zigux/tests/build.zig",
+                ],
+            },
         )
-
-        missing_build_inventory_selftest_in_phase7_bundle = {
-            "phase7-validate": EXPECTED_MAKE_EXPANSIONS["phase7-validate"],
-            "phase7-test": EXPECTED_MAKE_EXPANSIONS["phase7-test"],
-            "phase7": [
-                line
-                for line in EXPECTED_MAKE_EXPANSIONS["phase7"]
-                if line
-                != "python3 scripts/zigux/check-phase7-build-inventory.py --self-test"
-            ],
-        }
-        make_fake_make(fake_make_path, missing_build_inventory_selftest_in_phase7_bundle)
-        expect_failure(
-            "missing_build_inventory_selftest_in_phase7_bundle",
-            tmp_root,
-            fake_make_env,
-            "phase7: missing expected wrapper expansion: python3 scripts/zigux/check-phase7-build-inventory.py --self-test",
-        )
-
-        missing_build_inventory_live_in_phase7_bundle = {
-            "phase7-validate": EXPECTED_MAKE_EXPANSIONS["phase7-validate"],
-            "phase7-test": EXPECTED_MAKE_EXPANSIONS["phase7-test"],
-            "phase7": [
-                line
-                for line in EXPECTED_MAKE_EXPANSIONS["phase7"]
-                if line != "python3 scripts/zigux/check-phase7-build-inventory.py"
-            ],
-        }
-        make_fake_make(fake_make_path, missing_build_inventory_live_in_phase7_bundle)
-        expect_failure(
-            "missing_build_inventory_live_in_phase7_bundle",
-            tmp_root,
-            fake_make_env,
-            "phase7: missing expected wrapper expansion: python3 scripts/zigux/check-phase7-build-inventory.py",
-        )
-
-        missing_cmdline_selftest = {
-            "phase7-validate": [
-                line
-                for line in EXPECTED_MAKE_EXPANSIONS["phase7-validate"]
-                if line
-                != "python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test"
-            ],
-            "phase7-test": EXPECTED_MAKE_EXPANSIONS["phase7-test"],
-            "phase7": EXPECTED_MAKE_EXPANSIONS["phase7"],
-        }
-        make_fake_make(fake_make_path, missing_cmdline_selftest)
-        expect_failure(
-            "missing_cmdline_selftest",
-            tmp_root,
-            fake_make_env,
-            "phase7-validate: missing expected wrapper expansion: python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test",
-        )
-
-        missing_summary = {
-            "phase7-validate": EXPECTED_MAKE_EXPANSIONS["phase7-validate"],
-            "phase7-test": [
-                "zig build test --build-file zigux/tests/phase7_build.zig",
-            ],
-            "phase7": EXPECTED_MAKE_EXPANSIONS["phase7"],
-        }
-        make_fake_make(fake_make_path, missing_summary)
-        expect_failure(
-            "missing_summary",
-            tmp_root,
-            fake_make_env,
-            "phase7-test: missing expected wrapper expansion: zig build test --build-file zigux/tests/phase7_build.zig --summary all",
-        )
-
-        stale_build = {
-            "phase7-validate": EXPECTED_MAKE_EXPANSIONS["phase7-validate"],
-            "phase7-test": [
-                "zig build test --build-file zigux/tests/phase7_build.zig --summary all",
-                "zig build test --build-file zigux/tests/build.zig",
-            ],
-            "phase7": [
-                *EXPECTED_MAKE_EXPANSIONS["phase7"],
-                "zig build test --build-file zigux/tests/build.zig",
-            ],
-        }
-        make_fake_make(fake_make_path, stale_build)
-        expect_failure(
-            "stale_build_wrapper",
-            tmp_root,
-            fake_make_env,
-            "phase7-test: unexpected wrapper expansion: zig build test --build-file zigux/tests/build.zig",
-        )
-
-        stale_build_in_phase7_bundle = {
-            "phase7-validate": EXPECTED_MAKE_EXPANSIONS["phase7-validate"],
-            "phase7-test": EXPECTED_MAKE_EXPANSIONS["phase7-test"],
-            "phase7": [
-                *EXPECTED_MAKE_EXPANSIONS["phase7"],
-                "zig build test --build-file zigux/tests/build.zig",
-            ],
-        }
-        make_fake_make(fake_make_path, stale_build_in_phase7_bundle)
         expect_failure(
             "stale_build_in_phase7_bundle",
             tmp_root,
@@ -315,57 +449,8 @@ def run_self_test() -> int:
             "phase7: unexpected wrapper expansion: zig build test --build-file zigux/tests/build.zig",
         )
 
-        order_drift_phase7_validate = {
-            "phase7-validate": [
-                "python3 scripts/zigux/validate-phase7.py --self-test",
-                "python3 scripts/zigux/validate-phase7.py",
-                "python3 scripts/zigux/check-phase7-build-inventory.py",
-                "python3 scripts/zigux/check-phase7-build-inventory.py --self-test",
-                "python3 scripts/zigux/check-phase7-make-wrapper.py --self-test",
-                "python3 scripts/zigux/check-phase7-make-wrapper.py",
-                "python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test",
-                "python3 scripts/zigux/check-phase7-cmdline-parity.py",
-                "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test",
-                "python3 scripts/zigux/check-phase7-rbtree-parity.py",
-            ],
-            "phase7-test": EXPECTED_MAKE_EXPANSIONS["phase7-test"],
-            "phase7": EXPECTED_MAKE_EXPANSIONS["phase7"],
-        }
-        make_fake_make(fake_make_path, order_drift_phase7_validate)
-        expect_failure(
-            "order_drift_phase7_validate",
-            tmp_root,
-            fake_make_env,
-            "phase7-validate: wrapper expansion order drift: expected 'python3 scripts/zigux/check-phase7-build-inventory.py --self-test' before 'python3 scripts/zigux/check-phase7-build-inventory.py'",
-        )
-
-        order_drift_phase7_bundle = {
-            "phase7-validate": EXPECTED_MAKE_EXPANSIONS["phase7-validate"],
-            "phase7-test": EXPECTED_MAKE_EXPANSIONS["phase7-test"],
-            "phase7": [
-                "python3 scripts/zigux/validate-phase7.py --self-test",
-                "python3 scripts/zigux/validate-phase7.py",
-                "python3 scripts/zigux/check-phase7-build-inventory.py --self-test",
-                "python3 scripts/zigux/check-phase7-build-inventory.py",
-                "python3 scripts/zigux/check-phase7-make-wrapper.py --self-test",
-                "python3 scripts/zigux/check-phase7-make-wrapper.py",
-                "python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test",
-                "python3 scripts/zigux/check-phase7-cmdline-parity.py",
-                "zig build test --build-file zigux/tests/phase7_build.zig --summary all",
-                "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test",
-                "python3 scripts/zigux/check-phase7-rbtree-parity.py",
-            ],
-        }
-        make_fake_make(fake_make_path, order_drift_phase7_bundle)
-        expect_failure(
-            "order_drift_phase7_bundle",
-            tmp_root,
-            fake_make_env,
-            "phase7: wrapper expansion order drift: expected 'python3 scripts/zigux/check-phase7-rbtree-parity.py' before 'zig build test --build-file zigux/tests/phase7_build.zig --summary all'",
-        )
-
     print("PHASE7_MAKE_WRAPPER_SELF_TEST=pass")
-    print("PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT=11")
+    print("PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
