@@ -122,6 +122,13 @@
       "why_now": "The live ring slice now includes a tiny drained-queue reset helper that clears avail, used, callback, and notify bookkeeping while preserving queue shape metadata, so the lane records the landed in-memory reset path without claiming transport-backed or DMA-facing reset execution."
     },
     {
+      "id": "phase10-broken-queue-recovery-helper",
+      "status": "starter_landed",
+      "kind": "queue_wrapper",
+      "zigux_destination": "drivers/virtio/virtio_ring.zig",
+      "why_now": "The live ring slice now includes a tiny broken-queue recovery helper that reuses the drained reset discipline after a bounded broken-queue marker, so the survey records teardown-safe queue reuse without claiming transport-backed reset execution, descriptor reclamation, or IRQ delivery."
+    },
+    {
       "id": "phase10-mmio-register-window-helper",
       "status": "starter_landed",
       "kind": "transport_wrapper",
