@@ -18,6 +18,28 @@
       "threshold_posture": "threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks"
     }
   ],
+  "pending_threshold_plans": [
+    {
+      "surface": "zigux/tests/atomic64_diff.zig",
+      "gate_owner": "ABI and Runtime Team",
+      "gate_rollback_owner": "ABI and Runtime Team",
+      "current_correctness_replay": "make -C zigux phase4-runtime-atomic64-diff",
+      "benchmark_command": "unapproved_until_runtime_atomic64_scope_widens",
+      "acceptable_limit": "unapproved_until_runtime_atomic64_scope_widens",
+      "status": "pending_scope_widening",
+      "why_not_approved_yet": "The live atomic64 gate is still a bounded rollback-readiness slice, so Phase 4 keeps correctness-only coverage until a broader atomic64 benchmark entrypoint is explicitly added and reviewed."
+    },
+    {
+      "surface": "zigux/tests/bitmap_diff.zig",
+      "gate_owner": "Shared Subsystems Pod",
+      "gate_rollback_owner": "Shared Subsystems Pod",
+      "current_correctness_replay": "make -C zigux phase4-bitmap-diff",
+      "benchmark_command": "unapproved_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
+      "acceptable_limit": "unapproved_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
+      "status": "pending_bounded_benchmark",
+      "why_not_approved_yet": "The live bitmap gate still carries a bounded correctness-first rollback packet, including the explicit rounded-fill survey gap, so Phase 4 keeps correctness-only coverage until one isolated bitmap benchmark command and acceptable limit are reviewed."
+    }
+  ],
   "survey_summary": {
     "phase4_build_present": true,
     "phase4_validator_present": true,
