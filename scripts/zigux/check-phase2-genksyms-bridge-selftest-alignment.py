@@ -355,6 +355,12 @@ def run_self_test() -> int:
         expect_issue("readme_marker", root, f"readme:{README_MARKERS[0]}")
         write(readme_path, original)
 
+        bridge_checker_path = root / REQUIRED_FILES["bridge_checker"]
+        original = bridge_checker_path.read_text(encoding="utf-8")
+        write(bridge_checker_path, original.replace(BRIDGE_CHECKER_MARKERS[1] + "\n", "", 1))
+        expect_issue("bridge_checker_marker", root, f"bridge_checker:{BRIDGE_CHECKER_MARKERS[1]}")
+        write(bridge_checker_path, original)
+
         validator_path = root / REQUIRED_FILES["validator"]
         original = validator_path.read_text(encoding="utf-8")
         write(validator_path, original.replace(VALIDATOR_MARKERS[1] + "\n", "", 1))
@@ -398,7 +404,7 @@ def run_self_test() -> int:
         expect_issue("case_sentinel", root, "cases:help:argv=['--hel']")
 
     print("PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=6")
+    print("PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
