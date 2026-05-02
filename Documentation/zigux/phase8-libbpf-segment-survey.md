@@ -140,7 +140,7 @@ The shared review path now fail-closes through the shared Phase 8 validator, the
   - `PHASE8_VALIDATOR_SELF_TEST_CASE_COUNT=12`
 - `python3 scripts/zigux/check-phase8-tests-readme-alignment.py --self-test`
   - `PHASE8_TESTS_README_ALIGNMENT_SELF_TEST=pass`
-  - `PHASE8_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=19`
+  - `PHASE8_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=22`
 - `python3 scripts/zigux/check-phase8-tests-readme-alignment.py`
   - `PHASE8_TESTS_README_ALIGNMENT=pass`
 - `zig test zigux/tests/phase8_libbpf_segments.zig`
