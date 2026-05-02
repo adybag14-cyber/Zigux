@@ -12,6 +12,7 @@ CLOSURE_VALIDATOR = ROOT / "scripts" / "zigux" / "validate-phase2-closure.py"
 GENKSYMS_BRIDGE_ALIGNMENT_CHECKER = (
     ROOT / "scripts" / "zigux" / "check-phase2-genksyms-bridge-selftest-alignment.py"
 )
+PHASE2_CROSS_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross.py"
 PHASE2_TOOL_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json"
 PHASE2_CROSS_TARGETS = ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json"
 EXPECTED_TOOL_MANIFEST_TOOLS = [
@@ -36,7 +37,7 @@ REQUIRED_PHASE2_FILES = [
     GENKSYMS_BRIDGE_ALIGNMENT_CHECKER,
     ROOT / "scripts" / "zigux" / "check-genksyms-crc-diff.py",
     ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py",
-    ROOT / "scripts" / "zigux" / "check-phase2-cross.py",
+    PHASE2_CROSS_CHECKER,
     ROOT / "scripts" / "zigux" / "check-mk-elfconfig-diff.py",
     ROOT / "scripts" / "zigux" / "fixdep.zig",
     ROOT / "scripts" / "zigux" / "genksyms.zig",
@@ -49,6 +50,9 @@ REQUIRED_PHASE2_FILES = [
     ROOT / "zigux" / "Makefile",
     PHASE2_TOOL_MANIFEST,
     PHASE2_CROSS_TARGETS,
+]
+PHASE2_CROSS_REQUIRED_SOURCE_MARKERS = [
+    "phase2-cross:tool_manifest_path_missing:",
 ]
 
 
@@ -95,6 +99,15 @@ def validate_list_manifest(
     return issues
 
 
+def validate_source_markers(path: Path, *, label: str, required_markers: list[str]) -> list[str]:
+    source = path.read_text(encoding="utf-8")
+    issues: list[str] = []
+    for marker in required_markers:
+        if marker not in source:
+            issues.append(f"{label}:missing_marker:{marker}")
+    return issues
+
+
 def main() -> int:
     missing = [str(path.relative_to(ROOT)) for path in REQUIRED_PHASE2_FILES if not path.exists()]
     if missing:
@@ -124,6 +137,13 @@ def main() -> int:
             expected_count=3,
             list_key="targets",
             expected_items=EXPECTED_CROSS_TARGETS,
+        )
+    )
+    issues.extend(
+        validate_source_markers(
+            PHASE2_CROSS_CHECKER,
+            label="phase2_cross_checker",
+            required_markers=PHASE2_CROSS_REQUIRED_SOURCE_MARKERS,
         )
     )
 
