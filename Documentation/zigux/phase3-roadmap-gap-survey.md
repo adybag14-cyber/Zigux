@@ -14,6 +14,7 @@ This note records the current Phase 3 ABI and interop gap between the roadmap co
 - `PHASE3_CURRENT_LIST_HLIST=zigux/helpers/list_view.zig,zigux/helpers/hlist_view.zig`
 - `PHASE3_CURRENT_RBTREE_STATUS=phase3-survey-exists-but-phase3-interop-slice-is-missing`
 - `PHASE3_CURRENT_RBTREE_SURVEY=Documentation/zigux/phase3-rbtree-interop-survey.md`
+- `PHASE3_CURRENT_RBTREE_VALIDATOR=scripts/zigux/validate-phase3-rbtree-interop-survey.py`
 - `PHASE3_CURRENT_RBTREE_EVIDENCE=Documentation/zigux/phase3-rbtree-interop-survey.md,tools/lib/rbtree.zig,lib/rbtree.zig,Documentation/zigux/phase1-closure.md,Documentation/zigux/phase7-rbtree-slice.md,zigux/tests/phase7_rbtree.zig,zigux/tests/phase7_rbtree_survey.zig,zigux/tests/phase7_rbtree_manifest.json`
 - `PHASE3_REPO_REALITY=chrdev-plan-growth-exceeds-roadmap-anchors`
 - `PHASE3_INTEROP_GAP=rbtree-interop-slice-still-missing`
@@ -62,7 +63,7 @@ The repo also already carries real `rbtree` evidence outside the still-missing P
 
 - `tools/lib/rbtree.zig` and `Documentation/zigux/phase1-closure.md` record the earlier host-helper parity packet
 - `lib/rbtree.zig`, `Documentation/zigux/phase7-rbtree-slice.md`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_survey.zig`, and `zigux/tests/phase7_rbtree_manifest.json` record the later runtime-helper packet and its survey-backed review surface
-- `Documentation/zigux/phase3-rbtree-interop-survey.md` now maps that evidence back to the original Phase 3 roadmap anchor and keeps the remaining boundary-facing gap explicit
+- `Documentation/zigux/phase3-rbtree-interop-survey.md` plus `scripts/zigux/validate-phase3-rbtree-interop-survey.py` now map that evidence back to the original Phase 3 roadmap anchor and keep the remaining boundary-facing gap explicit
 - that evidence matters because the remaining gap is not "no rbtree work exists"; it is specifically that no Phase 3 helper, dump, fixture, or slice packet exists yet
 
 The largest adjacent growth, though, is still the `chrdev_*` planning ladder. That packet remains real repo state, but it still exceeds the small named anchor set in the roadmap and should be treated as adjacent exploratory surface, not as proof that the core Phase 3 roadmap contract is complete.
@@ -99,7 +100,7 @@ Current repo reality is therefore:
 - bitmap and cpumask interop are real
 - several additional interop slices are real
 - the broader `chrdev_*` planning ladder is real and much wider than the original anchor list
-- the dedicated Phase 3 `rbtree` survey is now real
+- the dedicated Phase 3 `rbtree` survey and validator are now real
 - the roadmap-backed `rbtree` boundary-facing slice is still missing
 - more `chrdev_*` slice growth should wait until that roadmap-backed gap is explicitly addressed
 
