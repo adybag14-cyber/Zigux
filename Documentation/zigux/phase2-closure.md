@@ -43,6 +43,8 @@ Phase 2 is only considered closed when all of the following are green:
 - `python3 scripts/zigux/check-artifact-diff-contract.py`
 
 2. bounded fixdep artifact parity and deterministic failure coverage
+- `python3 scripts/zigux/check-fixdep-diff.py --self-test`
+- the checker self-test must stay in the Linux-style `phase2-tools` path before live artifact replay so case-manifest drift, explicit-tool drift, and unsupported stdout-mode changes cannot hide behind a locally passing parity run
 - `python3 scripts/zigux/check-fixdep-diff.py`
 - repeat-run determinism is required for both the bounded C helper and the Zig tool before closure evidence stays green
 - committed fixdep evidence now includes ten bounded review cases under `zigux/tests/fixtures/fixdep/`: primary, multi-target, escaped-whitespace, escaped-colon, concatenated-depfile, comment-only, comment-only stdout-full, missing-dependency, missing-dependency stdout-full, and stdout write-failure
@@ -98,6 +100,7 @@ Phase 2 is only considered closed when all of the following are green:
 
 - `PHASE2_ARTIFACT_DIFF_SELF_TEST=python3 scripts/zigux/artifact_diff.py --self-test`
 - `PHASE2_ARTIFACT_DIFF_CONTRACT=python3 scripts/zigux/check-artifact-diff-contract.py`
+- `PHASE2_FIXDEP_SELF_TEST=python3 scripts/zigux/check-fixdep-diff.py --self-test`
 - `PHASE2_FIXDEP_GATE=python3 scripts/zigux/check-fixdep-diff.py`
 - `PHASE2_FIXDEP_DETERMINISM=check-fixdep-diff.py replays C and Zig outputs twice before comparing artifacts`
 - `PHASE2_FIXDEP_FULL_READ_POLICY=fixdep.zig reads dependency files at full C-helper size and maps short writes to fixdep output errors`
