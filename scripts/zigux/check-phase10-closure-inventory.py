@@ -192,7 +192,7 @@ EXPECTED_SURVEY_PROVENANCE = {
         "mmio": "P10-L18",
     },
     "surveyed_commits": {
-        "core": "bc71a85e989bb3d4f0a7d19067f4f1f47527c505",
+        "core": "f5a4d6990f701937b2a3bb9ae723bb6d0f27ba21",
         "ring": "fe8a43ea2e186da0da152198b571dff57ea3c38c",
         "input": "b24f990e2e5504ac3ed4a1a0f1f97c41e06ddd38",
         "mmio": "0945df1cf664a3582d7241f859183a13f3f04adb",
@@ -217,6 +217,7 @@ EXPECTED_LANDED_RING_HELPERS = {
         "phase10-notify-prepare-helper",
         "phase10-queue-reset-guard-helper",
         "phase10-queue-reset-helper",
+        "phase10-broken-queue-recovery-helper",
     ]
 }
 
@@ -227,6 +228,7 @@ EXPECTED_LANDED_INPUT_HELPERS = {
         "phase10-virtio-input-teardown-observation-helper",
         "phase10-virtio-input-registration-preflight-helper",
         "phase10-virtio-input-queue-callback-preflight-helper",
+        "phase10-virtio-input-probe-preflight-helper",
     ]
 }
 
