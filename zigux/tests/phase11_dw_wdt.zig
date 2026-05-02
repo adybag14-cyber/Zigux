@@ -411,6 +411,23 @@ test "phase11 dw_wdt remove handoff keeps unregister and reset-control teardown 
     try std.testing.expect(!pending_idle_unstoppable_summary.remove_asserts_reset_control);
     try std.testing.expect(!pending_idle_unstoppable_summary.remove_preserves_running_marker_without_reset);
     try std.testing.expect(pending_idle_unstoppable_summary.remove_preserves_pending_interrupt_without_reset);
+
+    var pending_idle_stoppable = try dw_wdt.DwWdtLab.initFixedTops(65_536, true);
+    const pending_idle_stoppable_summary = try pending_idle_stoppable.summarizeRemoveHandoff(.{
+        .watchdog_running_before_remove = false,
+        .remove_interrupt_pending = true,
+    });
+    try std.testing.expect(pending_idle_stoppable_summary.reset_control_available);
+    try std.testing.expect(pending_idle_stoppable_summary.debugfs_clear_requested);
+    try std.testing.expect(pending_idle_stoppable_summary.unregister_device_requested);
+    try std.testing.expect(!pending_idle_stoppable_summary.remove_path_running_before_remove);
+    try std.testing.expect(!pending_idle_stoppable_summary.remove_path_running_after_remove);
+    try std.testing.expect(!pending_idle_stoppable_summary.remove_path_hardware_running_after_remove);
+    try std.testing.expect(!pending_idle_stoppable_summary.remove_clears_enable_bit);
+    try std.testing.expect(pending_idle_stoppable_summary.remove_clears_interrupt_status);
+    try std.testing.expect(pending_idle_stoppable_summary.remove_asserts_reset_control);
+    try std.testing.expect(!pending_idle_stoppable_summary.remove_preserves_running_marker_without_reset);
+    try std.testing.expect(!pending_idle_stoppable_summary.remove_preserves_pending_interrupt_without_reset);
 }
 
 test "phase11 dw_wdt stop and restart stay bounded to reset-control and non-stoppable semantics" {
