@@ -9,6 +9,7 @@ pub const close_wait_hz_divisor: usize = 100;
 pub const min_khvcd_timeout_ms: u32 = 10;
 pub const max_khvcd_timeout_ms: u32 = 2000;
 pub const epipe: isize = -32;
+pub const einval: c_int = -22;
 
 pub const FlushIntent = enum {
     none,
@@ -118,6 +119,34 @@ pub const CloseTeardownSnapshot = struct {
     keeps_console_binding: bool,
 };
 
+pub const ModemControlRequest = struct {
+    tiocmget_present: bool = false,
+    tiocmget_result: c_int = 0,
+    tiocmset_present: bool = false,
+    tiocmset_result: c_int = 0,
+    set_mask: c_uint = 0,
+    clear_mask: c_uint = 0,
+};
+
+pub const ModemControlSnapshot = struct {
+    anchor: []const u8,
+    slot_index: usize,
+    vtermno: u32,
+    adapter_present: bool,
+    tiocmget_present: bool,
+    tiocmget_routes_hp_directly: bool,
+    tiocmget_returns_einval_fallback: bool,
+    tiocmget_result: c_int,
+    tiocmset_present: bool,
+    tiocmset_routes_hp_directly: bool,
+    tiocmset_returns_einval_fallback: bool,
+    tiocmset_result: c_int,
+    set_mask: c_uint,
+    clear_mask: c_uint,
+    set_mask_passthrough: bool,
+    clear_mask_passthrough: bool,
+};
+
 pub const TtyRegistrationHandoffSnapshot = struct {
     anchor: []const u8,
     slot_index: usize,
@@ -204,7 +233,7 @@ pub const KhvcdWorkerEntrySnapshot = struct {
     slot_index: usize,
     vtermno: u32,
     adapter_present: bool,
-    final_close_wait_required: bool,
+    final_close_waitRequired: bool,
     clears_port_initialized_on_final_close: bool,
     keeps_console_binding: bool,
     tty_registration_pending: bool,
@@ -528,6 +557,33 @@ pub const HvcConsoleLab = struct {
         };
     }
 
+    pub fn summarizeModemControl(
+        self: *const Self,
+        request: ModemControlRequest,
+    ) !ModemControlSnapshot {
+        const slot = self.slotSnapshot();
+        if (!slot.usable_for_console) return error.ConsoleUnavailable;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .slot_index = slot.slot_index,
+            .vtermno = slot.vtermno,
+            .adapter_present = slot.adapter_present,
+            .tiocmget_present = request.tiocmget_present,
+            .tiocmget_routes_hp_directly = request.tiocmget_present,
+            .tiocmget_returns_einval_fallback = !request.tiocmget_present,
+            .tiocmget_result = if (request.tiocmget_present) request.tiocmget_result else einval,
+            .tiocmset_present = request.tiocmset_present,
+            .tiocmset_routes_hp_directly = request.tiocmset_present,
+            .tiocmset_returns_einval_fallback = !request.tiocmset_present,
+            .tiocmset_result = if (request.tiocmset_present) request.tiocmset_result else einval,
+            .set_mask = request.set_mask,
+            .clear_mask = request.clear_mask,
+            .set_mask_passthrough = request.tiocmset_present,
+            .clear_mask_passthrough = request.tiocmset_present,
+        };
+    }
+
     pub fn summarizeKhvcdPollingContract(
         self: *const Self,
         request: KhvcdPollingContractRequest,
@@ -617,7 +673,7 @@ pub const HvcConsoleLab = struct {
         const kick_short_circuits_before_sleep_state = request.entry.kick_pending_after_walk;
         const sets_interruptible_before_sleep_recheck = !kick_short_circuits_before_sleep_state;
         const checks_kick_after_interruptible_state = sets_interruptible_before_sleep_recheck;
-        const skip_schedule_due_to_post_state_kick = checks_kick_after_interruptible_state and
+        const skipScheduleDueToPostStateKick = checks_kick_after_interruptible_state and
             request.kick_pending_after_interruptible_state;
         const schedule_without_timeout = checks_kick_after_interruptible_state and
             !request.kick_pending_after_interruptible_state and
@@ -642,7 +698,7 @@ pub const HvcConsoleLab = struct {
             .kick_short_circuits_before_sleep_state = kick_short_circuits_before_sleep_state,
             .sets_interruptible_before_sleep_recheck = sets_interruptible_before_sleep_recheck,
             .checks_kick_after_interruptible_state = checks_kick_after_interruptible_state,
-            .skip_schedule_due_to_post_state_kick = skip_schedule_due_to_post_state_kick,
+            .skip_schedule_due_to_post_state_kick = skipScheduleDueToPostStateKick,
             .schedule_without_timeout = schedule_without_timeout,
             .schedule_timeout_interruptible = schedule_timeout_interruptible,
             .timeout_backoff_grows_before_timed_sleep = schedule_timeout_interruptible,
