@@ -176,6 +176,12 @@ EXPECTED_DEPMOD_GAP_SURFACES = [
     "scripts/depmod.sh",
 ]
 
+EXPECTED_REVIEW_PROMPTS = [
+    "the four runtime starter descriptors still agree on name, anchor, requires_runtime_substrate, and provides_selftest_hook instead of drifting into sample-local metadata stories",
+    "the shared RuntimeLoadRequest metadata surface still stays limited to the current reviewable fields and three landed loader lanes rather than implying a fourth live trace-events loader lane",
+    "the dedicated survey packet still keeps MODULE_INFO(), MODULE_ALIAS(), .modinfo, modules.alias, modules.order, modules.builtin, Module.symvers, and scripts/depmod.sh explicit as absent depmod-facing surfaces instead of counting starter descriptors as shipped loadable-module parity",
+]
+
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
@@ -297,7 +303,7 @@ def validate_manifest_packet(root: Path) -> list[str]:
             failures.append("manifest:ownership_map_drift")
 
     review_prompts = manifest.get("review_prompts")
-    if not isinstance(review_prompts, list) or len(review_prompts) != 3:
+    if review_prompts != EXPECTED_REVIEW_PROMPTS:
         failures.append("manifest:review_prompts_drift")
 
     return failures
@@ -413,7 +419,7 @@ def write_fixture_tree(root: Path) -> None:
             {"surface": LOADER_GAP_SURVEY_PATH},
             {"surface": RUNTIME_LOADER_PATH},
         ],
-        "review_prompts": ["a", "b", "c"],
+        "review_prompts": EXPECTED_REVIEW_PROMPTS,
     }
 
     (root / SURVEY_PATH).write_text(
@@ -627,6 +633,12 @@ def run_self_test() -> int:
         expect_missing_marker("manifest_delivery_packet", tmp_root, "manifest:delivery_evidence_catalog_drift")
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
+        manifest = json.loads(original_manifest)
+        manifest["review_prompts"][2] = "prompt drift"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker("manifest_review_prompts", tmp_root, "manifest:review_prompts_drift")
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
         survey_test_path = tmp_root / SURVEY_TEST_PATH
         original_survey_test = survey_test_path.read_text(encoding="utf-8")
         survey_test_path.write_text(
@@ -757,7 +769,7 @@ def run_self_test() -> int:
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
     print("PHASE9_MODULE_METADATA_PACKET_SELF_TEST=pass")
-    print("PHASE9_MODULE_METADATA_PACKET_SELF_TEST_CASE_COUNT=12")
+    print("PHASE9_MODULE_METADATA_PACKET_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
