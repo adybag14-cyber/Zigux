@@ -255,6 +255,7 @@ test "phase12 libbpf survey note records rollback and archived surveyed head" {
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "python3 scripts/zigux/check-phase12-libbpf-focused-replay.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase12_libbpf_only_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "focused libbpf-only replay") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared build-inventory, bounded libbpf snapshot, bounded libbpf packet-alignment, and focused replay checks all fail closed before the shared validator or bundled replay claim aligned evidence") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "python3 scripts/zigux/validate-phase12.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "make -C zigux phase12-validate") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig build test --build-file zigux/tests/phase12_libbpf_only_build.zig --summary all") != null);
