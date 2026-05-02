@@ -64,8 +64,11 @@ MANIFEST_ROLLBACK_CONTRACT = {
         "python3 scripts/zigux/check-phase12-libbpf-snapshot.py",
         "python3 scripts/zigux/check-phase12-libbpf-packet.py --self-test",
         "python3 scripts/zigux/check-phase12-libbpf-packet.py",
+        "python3 scripts/zigux/check-phase12-libbpf-focused-replay.py --self-test",
+        "python3 scripts/zigux/check-phase12-libbpf-focused-replay.py",
         "python3 scripts/zigux/validate-phase12.py",
         "make -C zigux phase12-validate",
+        "zig build test --build-file zigux/tests/phase12_libbpf_only_build.zig --summary all",
         "zig build test --build-file zigux/tests/phase12_build.zig --summary all",
     ],
 }
@@ -81,8 +84,11 @@ SURVEY_NOTE_MARKERS = [
     "python3 scripts/zigux/check-phase12-libbpf-snapshot.py",
     "python3 scripts/zigux/check-phase12-libbpf-packet.py --self-test",
     "python3 scripts/zigux/check-phase12-libbpf-packet.py",
+    "python3 scripts/zigux/check-phase12-libbpf-focused-replay.py --self-test",
+    "python3 scripts/zigux/check-phase12-libbpf-focused-replay.py",
     "python3 scripts/zigux/validate-phase12.py",
     "make -C zigux phase12-validate",
+    "zig build test --build-file zigux/tests/phase12_libbpf_only_build.zig --summary all",
     "zig build test --build-file zigux/tests/phase12_build.zig --summary all",
     "automatic perf-buffer CPU-budget clamp explicit before any per-CPU buffer opens happen",
     "bounded `perf_buffer__poll(timeout_ms)` wait-result classification, ready-buffer bookkeeping",
@@ -584,6 +590,19 @@ def run_self_test() -> int:
             raise SystemExit("phase12-libbpf-packet:self-test:survey_summary_packet_checker_detection")
 
         build_self_test_tree(root)
+        manifest_path = root / TRACKED_PATHS[0]
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["rollback_contract"]["rollback_drill"] = [
+            item
+            for item in manifest["rollback_contract"]["rollback_drill"]
+            if item != "python3 scripts/zigux/check-phase12-libbpf-focused-replay.py --self-test"
+        ]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        missing = check_packet(root)
+        if "manifest:rollback_contract:rollback_drill" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:rollback_drill_detection")
+
+        build_self_test_tree(root)
         survey_note_path = root / TRACKED_PATHS[3]
         original = survey_note_path.read_text(encoding="utf-8")
         survey_note_path.write_text(
@@ -771,7 +790,7 @@ def run_self_test() -> int:
             raise SystemExit("phase12-libbpf-packet:self-test:reviewability_marker_detection")
 
         print("PHASE12_LIBBPF_PACKET_SELF_TEST=pass")
-        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=46")
+        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=47")
     return 0
 
 
