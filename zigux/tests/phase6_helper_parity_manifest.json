@@ -129,7 +129,7 @@
       "carry_discipline_vectors": 4,
       "kunit_random_prefix_vectors": 6,
       "c_parity_self_test_cases": 6,
-      "c_parity_cases": 15
+      "c_parity_cases": 21
     },
     "hexdump": {
       "parity_vectors": 10,
