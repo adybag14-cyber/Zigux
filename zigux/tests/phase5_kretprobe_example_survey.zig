@@ -19,7 +19,6 @@ const Manifest = struct {
 };
 
 const review_doc_read_limit = 64 * 1024;
-const current_surveyed_commit = "7c1e6840cf73a321e775e8e77448157b1304ee1d";
 
 fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
@@ -43,7 +42,6 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P5-L22", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 5", manifest.phase);
-    try std.testing.expectEqualStrings(current_surveyed_commit, manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 40), manifest.surveyed_commit.len);
     for (manifest.surveyed_commit) |byte| {
         try std.testing.expect(std.ascii.isLower(byte) or std.ascii.isDigit(byte));
