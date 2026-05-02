@@ -311,6 +311,12 @@ jobs:
       - name: Self-test Phase 11 simple-driver validator
         run: python3 scripts/zigux/validate-phase11.py --self-test
 
+      - name: Self-test Phase 11 build inventory checker
+        run: python3 scripts/zigux/check-phase11-build-inventory.py --self-test
+
+      - name: Self-test Phase 11 hvc validation flow checker
+        run: python3 scripts/zigux/check-phase11-hvc-validation-flow.py --self-test
+
       - name: Self-test Phase 11 hvc cleanup alignment checker
         run: python3 scripts/zigux/check-phase11-hvc-cleanup-alignment.py --self-test
 
