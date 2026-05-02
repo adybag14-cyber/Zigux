@@ -61,6 +61,13 @@ test "phase13 libfs manifest records the landed close-bookkeeping slice and the 
         .limited(32 * 1024),
     );
     defer std.testing.allocator.free(survey_note);
+    const traceability_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase13-roadmap-traceability.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(traceability_note);
 
     try std.testing.expectEqualStrings("P13-L04", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
@@ -78,6 +85,14 @@ test "phase13 libfs manifest records the landed close-bookkeeping slice and the 
     try std.testing.expectEqual(@as(usize, 17), manifest.gaps.len);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, expected_surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE13_SURVEYED_COMMIT=") != null);
+    try std.testing.expect(std.mem.indexOf(u8, traceability_note, expected_surveyed_commit) != null);
+    try std.testing.expect(std.mem.indexOf(u8, traceability_note, "`fs/libfs.c`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, traceability_note, "phase13-libfs-dcache-dir-close-release-bookkeeping") != null);
+    try std.testing.expect(std.mem.indexOf(u8, traceability_note, "phase13-libfs-simple-open-private-data-planning") != null);
+    try std.testing.expect(std.mem.indexOf(u8, traceability_note, "phase13-libfs-dcache-cursor-helpers") != null);
+    try std.testing.expect(std.mem.indexOf(u8, traceability_note, "phase13-libfs-inode-and-pseudofs-lifecycle") != null);
+    try std.testing.expect(std.mem.indexOf(u8, traceability_note, "broader cursor traversal") != null);
+    try std.testing.expect(std.mem.indexOf(u8, traceability_note, "pseudo-filesystem ownership") != null);
 
     const descriptor = libfs.LibFsHelperLab.descriptor();
     try std.testing.expectEqualStrings("fs/libfs.c", descriptor.anchor);
