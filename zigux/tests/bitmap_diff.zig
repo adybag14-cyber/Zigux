@@ -142,15 +142,11 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
     try expectClear(&map, 8);
     try expectSet(&map, 9);
 
-    // The shipped Zig helper still keeps bitmap_fill(35) at the requested
-    // 35-bit prefix while we pin the exact 34, 35, and BITS_PER_LONG edges.
+    // bitmap_fill() matches the Linux rounded whole-word contract at the 35-bit edge.
     try std.testing.expectEqual(bits_per_long, roundedPrefixLen(35));
-    fillPrefix(&map, 35);
-    try std.testing.expectEqual(@as(usize, 35), weight(&map, bitmap_nbits));
-    try std.testing.expectEqual(@as(usize, 0), firstSet(&map, bitmap_nbits));
-    try std.testing.expectEqual(@as(usize, 35), firstZero(&map, bitmap_nbits));
-    try expectSet(&map, 34);
-    try expectClear(&map, 35);
+    try expectCurrentFillPrefix(&map, 35, roundedPrefixLen(35), "0-63");
+    try expectSet(&map, 35);
+    try expectSet(&map, bits_per_long - 1);
     try expectClear(&map, bits_per_long);
 
     bitmap.zero(&map, bitmap_nbits);
@@ -191,17 +187,15 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
     try expectSet(&map, bits_per_long * 2);
 }
 
-test "bitmap diff survey keeps the current rounded fill drifts explicit against lib/test_bitmap.c" {
+test "bitmap diff gate keeps rounded fill parity explicit against lib/test_bitmap.c" {
     var map = [_]Word{0} ** word_count;
 
-    // The kernel anchor rounds fill(115) to two whole words, while the
-    // the current Zig helper stops at bit 114 instead. Keep that remaining
-    // gap measurable here until tools/lib/bitmap.zig changes.
+    // The Linux anchor rounds fill(115) to two whole words and the Zig helper now matches it.
     try std.testing.expectEqual(bits_per_long * 2, roundedPrefixLen(115));
-    try expectCurrentFillPrefix(&map, 115, 115, "0-114");
+    try expectCurrentFillPrefix(&map, 115, roundedPrefixLen(115), "0-127");
     try expectSet(&map, 114);
-    try expectClear(&map, 115);
-    try expectClear(&map, bits_per_long * 2 - 1);
+    try expectSet(&map, 115);
+    try expectSet(&map, bits_per_long * 2 - 1);
 }
 
 test "bitmap diff gate records exact cross-boundary set and clear checks" {
