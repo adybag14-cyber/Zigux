@@ -114,6 +114,27 @@ static uint32_t csum_tcpudp_nofold(uint32_t saddr, uint32_t daddr,
 	return partial_bytes((const unsigned char *)"", 0, acc);
 }
 
+static void write_be32(unsigned char out[4], uint32_t value)
+{
+	out[0] = (unsigned char)(value >> 24);
+	out[1] = (unsigned char)(value >> 16);
+	out[2] = (unsigned char)(value >> 8);
+	out[3] = (unsigned char)value;
+}
+
+static uint32_t csum_tcpudp_v6_nofold(const unsigned char saddr[16],
+				      const unsigned char daddr[16],
+				      uint32_t len, uint8_t proto, uint32_t sum)
+{
+	unsigned char trailer[8] = { 0 };
+	uint32_t acc = partial_bytes(saddr, 16, sum);
+
+	acc = partial_bytes(daddr, 16, acc);
+	write_be32(trailer, len);
+	trailer[7] = proto;
+	return partial_bytes(trailer, sizeof(trailer), acc);
+}
+
 static void print_u16_case(const char *kind, const char *name, uint16_t value)
 {
 	printf("%s\t%s\t0x%04x\n", kind, name, value);
@@ -139,6 +160,24 @@ int main(void)
 	static const unsigned char carry_payload[] = { 0xff, 0xff, 0xff, 0xff, 0x7f };
 	static const unsigned char carry_phrase[] = "checksum fragments keep their carry";
 	static const unsigned char udp_payload[] = "zigux checksum";
+	static const unsigned char udp_v6_payload[] = "zigux v6 checksum";
+	static const unsigned char tcp_v6_payload[] = { 0xff, 0xff, 0x00, 0x01, 0xab, 0xcd, 0x12, 0x34 };
+	static const unsigned char udp_v6_saddr[] = {
+		0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01,
+	};
+	static const unsigned char udp_v6_daddr[] = {
+		0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02,
+	};
+	static const unsigned char tcp_v6_saddr[] = {
+		0xfd, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10,
+	};
+	static const unsigned char tcp_v6_daddr[] = {
+		0xfd, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20,
+	};
 	unsigned char payload[] = { 0x70, 0x68, 0x61, 0x73, 0x65, 0x36 };
 	unsigned char mutable_ipv4_header[] = {
 		0x45, 0x00, 0x00, 0x3c,
@@ -190,6 +229,12 @@ int main(void)
 	print_u32_case("tcpudp-nofold", "udp pseudo header",
 		       csum_tcpudp_nofold(udp_saddr, udp_daddr, sizeof(udp_payload) - 1, udp_proto,
 				  partial_bytes(udp_payload, sizeof(udp_payload) - 1, 0)));
+	print_u32_case("tcpudpv6-nofold", "udp doc payload odd",
+		       csum_tcpudp_v6_nofold(udp_v6_saddr, udp_v6_daddr, sizeof(udp_v6_payload) - 1, 17,
+				     partial_bytes(udp_v6_payload, sizeof(udp_v6_payload) - 1, 0)));
+	print_u32_case("tcpudpv6-nofold", "tcp carry payload even",
+		       csum_tcpudp_v6_nofold(tcp_v6_saddr, tcp_v6_daddr, sizeof(tcp_v6_payload), 6,
+				     partial_bytes(tcp_v6_payload, sizeof(tcp_v6_payload), 0)));
 
 	old_partial = partial_bytes(payload, sizeof(payload), 0);
 	old_word = ((uint32_t)payload[0] << 8) | payload[1];
