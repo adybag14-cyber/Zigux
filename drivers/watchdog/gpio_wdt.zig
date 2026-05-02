@@ -31,6 +31,11 @@ pub const ValidationFocus = enum {
     register_device_call_surface,
 };
 
+pub const PlatformDriverRegistrationMode = enum {
+    module_platform_driver,
+    arch_initcall_platform_driver,
+};
+
 pub const ModuleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
@@ -63,6 +68,17 @@ pub const WatchdogMetadataSummary = struct {
     min_timeout_sec: u32,
     default_timeout_sec: u32,
     max_hw_heartbeat_ms: u32,
+};
+
+pub const PlatformDriverIdentitySummary = struct {
+    anchor: []const u8,
+    driver_name: []const u8,
+    of_compatible: []const u8,
+    probe_callback: []const u8,
+    default_registration_mode: PlatformDriverRegistrationMode,
+    supports_arch_initcall_override: bool,
+    of_match_table_ready: bool,
+    platform_probe_ready: bool,
 };
 
 pub const ProbeSummary = struct {
@@ -289,6 +305,19 @@ pub const GpioWatchdogLab = struct {
             .min_timeout_sec = soft_timeout_min,
             .default_timeout_sec = soft_timeout_default,
             .max_hw_heartbeat_ms = self.hw_margin_ms,
+        };
+    }
+
+    pub fn platformDriverIdentitySummary() PlatformDriverIdentitySummary {
+        return .{
+            .anchor = descriptor().anchor,
+            .driver_name = "gpio-wdt",
+            .of_compatible = "linux,wdt-gpio",
+            .probe_callback = "gpio_wdt_probe",
+            .default_registration_mode = .module_platform_driver,
+            .supports_arch_initcall_override = true,
+            .of_match_table_ready = true,
+            .platform_probe_ready = true,
         };
     }
 
