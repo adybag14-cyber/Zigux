@@ -6,7 +6,7 @@ This bounded Phase 10 slice adds the first Zigux `virtio_input` lab driver start
 
 - `PHASE10_STATUS=active`
 - `PHASE10_SLICE=virtio-input-module-lab-helper`
-- scope: identity and config snapshots, bounded capability-setup staging, bounded multitouch slot-init intent, one bounded registration-preflight summary, one bounded queue-callback preflight helper summary, queue planning, ready-state gating, multitouch timestamp suppression, a reset-local teardown observation summary, and the shared Phase 10 review path only
+- scope: identity and config snapshots, bounded capability-setup staging, bounded multitouch slot-init intent, one bounded registration-preflight summary, one bounded queue-callback preflight helper summary, one bounded probe-preflight summary, queue planning, ready-state gating, multitouch timestamp suppression, a reset-local teardown observation summary, and the shared Phase 10 review path only
 - product boundary:
   - `drivers/virtio/virtio_input.zig`
   - `zigux/tests/phase10_virtio_input.zig`
@@ -27,6 +27,7 @@ This module note exists to keep the landed helper surface readable on its own wh
 - derives bounded multitouch slot-init intent from `ABS_MT_SLOT` metadata without claiming `input_mt_init_slots()` side effects
 - records one bounded registration-preflight summary so identity, capability, and multitouch slot-init intent stay reviewable before any `input_register_device()` claim
 - records one bounded queue-callback preflight helper summary so registration intent, queue fill state, status-queue setup, and ready-state gating stay explicit before any transport-backed callback claim
+- records one bounded probe-preflight summary so identity, capability setup, registration intent, queue provisioning, and ready-state gating stay explicit before any transport-backed probe handoff claim
 - models the fixed two-queue plan used by the Linux driver: events and status
 - caps prequeued event buffers to the static 64-entry event pool used by the C driver
 - keeps status sending in-memory only and suppresses `EV_MSC` plus `MSC_TIMESTAMP` loops when multitouch forwarding is enabled
@@ -61,4 +62,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Leave the lane parked at the current helper-only preflight boundary unless fresh inspection finds another directly coupled review-surface drift inside the landed registration-preflight, queue-callback preflight, or teardown-observation packet. Any later widening into registration lifecycle, interrupts, or transport-backed callbacks still needs a separate risky-transport packet rather than another silent helper-only expansion.
+Leave the lane parked at the current probe-preflight boundary unless fresh inspection finds another directly coupled review-surface drift inside the landed registration-preflight, queue-callback preflight, probe-preflight, or teardown-observation packet. Any later widening into registration lifecycle, interrupts, or transport-backed callbacks still needs a separate risky-transport packet rather than another silent helper-only expansion.
