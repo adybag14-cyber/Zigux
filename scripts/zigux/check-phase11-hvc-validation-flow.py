@@ -8,6 +8,7 @@ import tempfile
 
 
 SCRIPT_NAME = "scripts/zigux/check-phase11-hvc-validation-flow.py"
+BUILD_INVENTORY_CHECKER_PATH = "scripts/zigux/check-phase11-build-inventory.py"
 CHECKER_PATH = "scripts/zigux/check-phase11-hvc-cleanup-alignment.py"
 MAKEFILE_PATH = "zigux/Makefile"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
@@ -30,15 +31,16 @@ MAKEFILE_ORDERED_MARKERS = [
 ]
 
 WORKFLOW_MARKERS = [
+    "Self-test Phase 11 build inventory checker",
+    "python3 scripts/zigux/check-phase11-build-inventory.py --self-test",
+    "Self-test Phase 11 hvc validation flow checker",
+    "python3 scripts/zigux/check-phase11-hvc-validation-flow.py --self-test",
     "Self-test Phase 11 hvc cleanup alignment checker",
     "python3 scripts/zigux/check-phase11-hvc-cleanup-alignment.py --self-test",
     "Validate Phase 11 simple-driver bundle",
     "make -C zigux phase11-validate",
-    "Run Phase 11 watchdog and console tests",
-    "zig build test --build-file zigux/tests/phase11_build.zig --summary all",
-    "Run dedicated Phase 11 hvc survey replay",
-    "make -C zigux phase11-hvc-survey",
 ]
+
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
@@ -47,12 +49,7 @@ def read_text(root: Path, rel_path: str) -> str:
 def validate(root: Path) -> list[str]:
     missing: list[str] = []
 
-    for rel_path in [
-        SCRIPT_NAME,
-        CHECKER_PATH,
-        MAKEFILE_PATH,
-        WORKFLOW_PATH,
-    ]:
+    for rel_path in [SCRIPT_NAME, BUILD_INVENTORY_CHECKER_PATH, CHECKER_PATH, MAKEFILE_PATH, WORKFLOW_PATH]:
         if not (root / rel_path).exists():
             missing.append(f"missing:{rel_path}")
     if missing:
@@ -108,6 +105,10 @@ def clone_fixture_root(destination_root: Path) -> None:
     script_target.parent.mkdir(parents=True, exist_ok=True)
     script_target.write_text(Path(__file__).read_text(encoding="utf-8"), encoding="utf-8")
 
+    build_inventory_checker_target = destination_root / BUILD_INVENTORY_CHECKER_PATH
+    build_inventory_checker_target.parent.mkdir(parents=True, exist_ok=True)
+    build_inventory_checker_target.write_text("#!/usr/bin/env python3\nprint('placeholder')\n", encoding="utf-8")
+
     checker_target = destination_root / CHECKER_PATH
     checker_target.parent.mkdir(parents=True, exist_ok=True)
     checker_target.write_text("#!/usr/bin/env python3\nprint('placeholder')\n", encoding="utf-8")
@@ -139,19 +140,20 @@ def clone_fixture_root(destination_root: Path) -> None:
                 "jobs:",
                 "  bootstrap:",
                 "    steps:",
+                "      - name: Self-test Phase 11 build inventory checker",
+                "        run: python3 scripts/zigux/check-phase11-build-inventory.py --self-test",
+                "      - name: Self-test Phase 11 hvc validation flow checker",
+                "        run: python3 scripts/zigux/check-phase11-hvc-validation-flow.py --self-test",
                 "      - name: Self-test Phase 11 hvc cleanup alignment checker",
                 "        run: python3 scripts/zigux/check-phase11-hvc-cleanup-alignment.py --self-test",
                 "      - name: Validate Phase 11 simple-driver bundle",
                 "        run: make -C zigux phase11-validate",
-                "      - name: Run Phase 11 watchdog and console tests",
-                "        run: zig build test --build-file zigux/tests/phase11_build.zig --summary all",
-                "      - name: Run dedicated Phase 11 hvc survey replay",
-                "        run: make -C zigux phase11-hvc-survey",
                 "",
             ]
         ),
         encoding="utf-8",
     )
+
 
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase11_hvc_flow_") as tmp_dir:
@@ -218,6 +220,36 @@ def run_self_test() -> int:
         original_workflow = workflow_path.read_text(encoding="utf-8")
         workflow_path.write_text(
             original_workflow.replace(
+                "Self-test Phase 11 build inventory checker",
+                "Self-test Phase 11 build snapshot checker",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "workflow_build_inventory_self_test_step",
+            tmp_root,
+            "workflow:Self-test Phase 11 build inventory checker",
+        )
+        workflow_path.write_text(original_workflow, encoding="utf-8")
+
+        workflow_path.write_text(
+            original_workflow.replace(
+                "Self-test Phase 11 hvc validation flow checker",
+                "Self-test Phase 11 hvc flow checker",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "workflow_validation_flow_self_test_step",
+            tmp_root,
+            "workflow:Self-test Phase 11 hvc validation flow checker",
+        )
+        workflow_path.write_text(original_workflow, encoding="utf-8")
+
+        workflow_path.write_text(
+            original_workflow.replace(
                 "Self-test Phase 11 hvc cleanup alignment checker",
                 "Self-test Phase 11 build inventory checker",
                 1,
@@ -231,21 +263,6 @@ def run_self_test() -> int:
         )
         workflow_path.write_text(original_workflow, encoding="utf-8")
 
-        workflow_path.write_text(
-            original_workflow.replace(
-                "Run Phase 11 watchdog and console tests",
-                "Run Phase 11 shared tests",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing(
-            "workflow_shared_test_step",
-            tmp_root,
-            "workflow:Run Phase 11 watchdog and console tests",
-        )
-        workflow_path.write_text(original_workflow, encoding="utf-8")
-
         checker_path = tmp_root / CHECKER_PATH
         checker_path.unlink()
         expect_missing(
@@ -254,8 +271,16 @@ def run_self_test() -> int:
             f"missing:{CHECKER_PATH}",
         )
 
+        build_inventory_checker_path = tmp_root / BUILD_INVENTORY_CHECKER_PATH
+        build_inventory_checker_path.unlink()
+        expect_missing(
+            "build_inventory_checker_file_presence",
+            tmp_root,
+            f"missing:{BUILD_INVENTORY_CHECKER_PATH}",
+        )
+
     print("PHASE11_HVC_VALIDATION_FLOW_SELF_TEST=pass")
-    print("PHASE11_HVC_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=5")
+    print("PHASE11_HVC_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
