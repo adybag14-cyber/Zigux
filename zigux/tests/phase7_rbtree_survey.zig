@@ -164,6 +164,9 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     try std.testing.expect(saw_survey_gate);
     try std.testing.expect(saw_parity_follow_up);
     try std.testing.expect(std.mem.indexOf(u8, rbtree_helper, "pub fn iterateMatches") != null);
+    try std.testing.expect(std.mem.indexOf(u8, rbtree_helper, "pub fn iterateMatchesReverse") != null);
+    try std.testing.expect(std.mem.indexOf(u8, rbtree_helper, "pub fn findLast") != null);
+    try std.testing.expect(std.mem.indexOf(u8, rbtree_helper, "pub fn prevMatch") != null);
     try std.testing.expect(std.mem.indexOf(u8, rbtree_helper, "pub fn eraseInit") != null);
     try std.testing.expect(std.mem.indexOf(u8, rbtree_helper, "pub fn clearNode") != null);
     try std.testing.expect(std.mem.indexOf(u8, rbtree_helper, "pub fn emptyNode") != null);
@@ -172,6 +175,8 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     try std.testing.expect(std.mem.indexOf(u8, rbtree_tests, "phase 7 rbtree detached nodes stay non-empty until callers clear them") != null);
     try std.testing.expect(std.mem.indexOf(u8, rbtree_tests, "phase 7 rbtree clearNode marks detached nodes as empty") != null);
     try std.testing.expect(std.mem.indexOf(u8, rbtree_tests, "phase 7 rbtree findAdd inserts new nodes and returns existing duplicates") != null);
+    try std.testing.expect(std.mem.indexOf(u8, rbtree_tests, "phase 7 rbtree reverse duplicate helpers walk duplicate-key ranges") != null);
+    try std.testing.expect(std.mem.indexOf(u8, rbtree_tests, "phase 7 rbtree iterateMatchesReverse streams duplicate-key ranges in reverse") != null);
     try std.testing.expect(std.mem.indexOf(u8, rbtree_tests, "phase 7 rbtree postorder traversal matches committed parity fixture") != null);
     try expectContains(rbtree_slice, "runtime-safe leaf helpers");
     try expectContains(rbtree_slice, "integration with validation substrate through `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-build-inventory.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_survey.zig`, `zigux/tests/phase7_build.zig`, and `scripts/zigux/check-phase7-rbtree-parity.py`.");
