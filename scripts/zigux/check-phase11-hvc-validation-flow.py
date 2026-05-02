@@ -9,12 +9,15 @@ import tempfile
 
 SCRIPT_NAME = "scripts/zigux/check-phase11-hvc-validation-flow.py"
 BUILD_INVENTORY_CHECKER_PATH = "scripts/zigux/check-phase11-build-inventory.py"
+LAYOUT_ASSERT_CHECKER_PATH = "scripts/zigux/check-phase11-layout-assert-surface.py"
 CHECKER_PATH = "scripts/zigux/check-phase11-hvc-cleanup-alignment.py"
 MAKEFILE_PATH = "zigux/Makefile"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 
 MAKEFILE_MARKERS = [
     "phase11-validate:",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-layout-assert-surface.py --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-layout-assert-surface.py",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-validation-flow.py --self-test",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-validation-flow.py",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-cleanup-alignment.py --self-test",
@@ -22,6 +25,8 @@ MAKEFILE_MARKERS = [
 ]
 MAKEFILE_ORDERED_MARKERS = [
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-build-inventory.py",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-layout-assert-surface.py --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-layout-assert-surface.py\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-validation-flow.py --self-test",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-validation-flow.py\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-cleanup-alignment.py --self-test",
@@ -33,6 +38,8 @@ MAKEFILE_ORDERED_MARKERS = [
 WORKFLOW_MARKERS = [
     "Self-test Phase 11 build inventory checker",
     "python3 scripts/zigux/check-phase11-build-inventory.py --self-test",
+    "Self-test Phase 11 layout assert surface checker",
+    "python3 scripts/zigux/check-phase11-layout-assert-surface.py --self-test",
     "Self-test Phase 11 hvc validation flow checker",
     "python3 scripts/zigux/check-phase11-hvc-validation-flow.py --self-test",
     "Self-test Phase 11 hvc cleanup alignment checker",
@@ -49,7 +56,14 @@ def read_text(root: Path, rel_path: str) -> str:
 def validate(root: Path) -> list[str]:
     missing: list[str] = []
 
-    for rel_path in [SCRIPT_NAME, BUILD_INVENTORY_CHECKER_PATH, CHECKER_PATH, MAKEFILE_PATH, WORKFLOW_PATH]:
+    for rel_path in [
+        SCRIPT_NAME,
+        BUILD_INVENTORY_CHECKER_PATH,
+        LAYOUT_ASSERT_CHECKER_PATH,
+        CHECKER_PATH,
+        MAKEFILE_PATH,
+        WORKFLOW_PATH,
+    ]:
         if not (root / rel_path).exists():
             missing.append(f"missing:{rel_path}")
     if missing:
@@ -109,6 +123,10 @@ def clone_fixture_root(destination_root: Path) -> None:
     build_inventory_checker_target.parent.mkdir(parents=True, exist_ok=True)
     build_inventory_checker_target.write_text("#!/usr/bin/env python3\nprint('placeholder')\n", encoding="utf-8")
 
+    layout_assert_checker_target = destination_root / LAYOUT_ASSERT_CHECKER_PATH
+    layout_assert_checker_target.parent.mkdir(parents=True, exist_ok=True)
+    layout_assert_checker_target.write_text("#!/usr/bin/env python3\nprint('placeholder')\n", encoding="utf-8")
+
     checker_target = destination_root / CHECKER_PATH
     checker_target.parent.mkdir(parents=True, exist_ok=True)
     checker_target.write_text("#!/usr/bin/env python3\nprint('placeholder')\n", encoding="utf-8")
@@ -120,6 +138,8 @@ def clone_fixture_root(destination_root: Path) -> None:
             [
                 "phase11-validate:",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-build-inventory.py",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-layout-assert-surface.py --self-test",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-layout-assert-surface.py",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-validation-flow.py --self-test",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-validation-flow.py",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-cleanup-alignment.py --self-test",
@@ -142,6 +162,8 @@ def clone_fixture_root(destination_root: Path) -> None:
                 "    steps:",
                 "      - name: Self-test Phase 11 build inventory checker",
                 "        run: python3 scripts/zigux/check-phase11-build-inventory.py --self-test",
+                "      - name: Self-test Phase 11 layout assert surface checker",
+                "        run: python3 scripts/zigux/check-phase11-layout-assert-surface.py --self-test",
                 "      - name: Self-test Phase 11 hvc validation flow checker",
                 "        run: python3 scripts/zigux/check-phase11-hvc-validation-flow.py --self-test",
                 "      - name: Self-test Phase 11 hvc cleanup alignment checker",
@@ -169,6 +191,54 @@ def run_self_test() -> int:
 
         makefile_path = tmp_root / MAKEFILE_PATH
         original_makefile = makefile_path.read_text(encoding="utf-8")
+        makefile_path.write_text(
+            original_makefile.replace(
+                "scripts/zigux/check-phase11-layout-assert-surface.py --self-test",
+                "scripts/zigux/check-phase11-build-inventory.py",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "makefile_layout_assert_self_test_hook",
+            tmp_root,
+            "make:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-layout-assert-surface.py --self-test",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        makefile_path.write_text(
+            original_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-layout-assert-surface.py --self-test\n"
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-layout-assert-surface.py\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "makefile_layout_assert_run_hook",
+            tmp_root,
+            "make:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-layout-assert-surface.py",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        makefile_path.write_text(
+            original_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-layout-assert-surface.py\n"
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-validation-flow.py --self-test\n",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-validation-flow.py --self-test\n"
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-layout-assert-surface.py\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "makefile_layout_assert_order",
+            tmp_root,
+            "make-order:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-validation-flow.py --self-test",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
         makefile_path.write_text(
             original_makefile.replace(
                 "scripts/zigux/check-phase11-hvc-validation-flow.py --self-test",
@@ -235,6 +305,21 @@ def run_self_test() -> int:
 
         workflow_path.write_text(
             original_workflow.replace(
+                "Self-test Phase 11 layout assert surface checker",
+                "Self-test Phase 11 layout surface checker",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "workflow_layout_assert_self_test_step",
+            tmp_root,
+            "workflow:Self-test Phase 11 layout assert surface checker",
+        )
+        workflow_path.write_text(original_workflow, encoding="utf-8")
+
+        workflow_path.write_text(
+            original_workflow.replace(
                 "Self-test Phase 11 hvc validation flow checker",
                 "Self-test Phase 11 hvc flow checker",
                 1,
@@ -270,6 +355,7 @@ def run_self_test() -> int:
             tmp_root,
             f"missing:{CHECKER_PATH}",
         )
+        clone_fixture_root(tmp_root)
 
         build_inventory_checker_path = tmp_root / BUILD_INVENTORY_CHECKER_PATH
         build_inventory_checker_path.unlink()
@@ -278,9 +364,18 @@ def run_self_test() -> int:
             tmp_root,
             f"missing:{BUILD_INVENTORY_CHECKER_PATH}",
         )
+        clone_fixture_root(tmp_root)
+
+        layout_assert_checker_path = tmp_root / LAYOUT_ASSERT_CHECKER_PATH
+        layout_assert_checker_path.unlink()
+        expect_missing(
+            "layout_assert_checker_file_presence",
+            tmp_root,
+            f"missing:{LAYOUT_ASSERT_CHECKER_PATH}",
+        )
 
     print("PHASE11_HVC_VALIDATION_FLOW_SELF_TEST=pass")
-    print("PHASE11_HVC_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=7")
+    print("PHASE11_HVC_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
