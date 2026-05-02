@@ -72,7 +72,7 @@ The current tests check:
 - the deferred `execv_cmd()` handoff packages both populated and empty-tail argv vectors without widening into `execvp()` behavior
 - the combined deferred `execv_cmd()` planner keeps rebuilt `PATH` state and the future argv packet aligned in one launch-free handoff without claiming direct execution or queue ownership
 - the pure `execl_cmd()` collector preserves the command head, stops at the first null terminator, accepts only the last null-terminated shape that stays below `MAX_ARGS`, rejects the C helper's legacy null-slot overflow shape where the terminating null itself lands in slot `MAX_ARGS`, rejects a missing terminator, and still stops before any real `execvp()` call exists
-- the deferred-exec handoff helper prepends the configured executable name to the collected `execl_cmd()` packet, keeps the trailing null terminator, and stays launch-free so the reviewable surface stops before any real `execvp()` side effect
+- the deferred-exec handoff helper prepends the configured executable name to the collected `execl_cmd()` packet, keeps the trailing null terminator, preserves the empty-tail `execl_cmd(cmd, NULL)` shape, and stays launch-free so the reviewable surface stops before any real `execvp()` side effect
 
 ## Non-goals
 
