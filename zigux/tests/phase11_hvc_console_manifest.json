@@ -87,7 +87,7 @@
       "status": "starter_landed",
       "kind": "simple_driver_starter",
       "zigux_destination": "drivers/tty/hvc/hvc_console.zig",
-      "why_now": "A tiny header-parity surface now keeps MAX_NR_HVC_CONSOLES, HVC_ALLOC_TTY_ADAPTERS, the hv_ops callback shape, and the exported hvc alloc/remove/poll/resize surface reviewable without claiming tty registration or host-backed I/O."
+      "why_now": "A tiny header-parity surface now keeps MAX_NR_HVC_CONSOLES, HVC_ALLOC_TTY_ADAPTERS, the hv_ops callback shape, the exported hvc_alloc or hvc_remove or hvc_poll or hvc_resize helpers, and the bounded hvc_kick plus notifier-IRQ helper surface reviewable without claiming tty registration or host-backed I/O."
     },
     {
       "id": "phase11-hvc-console-winsize-layout-assert",
