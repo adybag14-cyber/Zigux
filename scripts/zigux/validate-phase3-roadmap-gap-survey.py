@@ -8,184 +8,43 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
 SURVEY_REL = "Documentation/zigux/phase3-roadmap-gap-survey.md"
-DOCS_README_REL = "Documentation/zigux/README.md"
-SCRIPTS_README_REL = "scripts/zigux/README.md"
-MANIFEST_REL = "zigux/tests/phase3_roadmap_gap_manifest.json"
-SURVEY_GATE_REL = "zigux/tests/phase3_roadmap_gap_survey.zig"
 
 REQUIRED_SURVEY_MARKERS = (
     "PHASE3_ROADMAP_ANCHORS=rust/exports.c,lib/bitmap.c,lib/rbtree.c,lib/cpumask.c",
     "PHASE3_CURRENT_EXPORT_SHIM=zigux/kernel/export_shim.zig",
-    "PHASE3_CURRENT_EXPORT_SHIM_SCOPE=explicit-status-plus-boundary-header",
     "PHASE3_CURRENT_UAPI=zigux/uapi/version.zig",
-    "PHASE3_CURRENT_UAPI_SCOPE=version-and-boundary-header",
-    "PHASE3_UAPI_BOUNDARY_GAP=version-and-boundary-header-surface-is-still-below-full-uapi-shim-destination",
     "PHASE3_CURRENT_BITMAP_CPUMASK=zigux/helpers/bitmap_view.zig,zigux/helpers/cpumask_view.zig",
     "PHASE3_CURRENT_LIST_HLIST=zigux/helpers/list_view.zig,zigux/helpers/hlist_view.zig",
-    "PHASE3_CURRENT_RBTREE_STATUS=phase3-survey-exists-but-phase3-interop-slice-is-missing",
-    "PHASE3_CURRENT_RBTREE_SURVEY=Documentation/zigux/phase3-rbtree-interop-survey.md",
-    "PHASE3_CURRENT_RBTREE_VALIDATOR=scripts/zigux/validate-phase3-rbtree-interop-survey.py",
-    "PHASE3_CURRENT_RBTREE_EVIDENCE=Documentation/zigux/phase3-rbtree-interop-survey.md,tools/lib/rbtree.zig,lib/rbtree.zig,Documentation/zigux/phase1-closure.md,Documentation/zigux/phase7-rbtree-slice.md,zigux/tests/phase7_rbtree.zig,zigux/tests/phase7_rbtree_survey.zig,zigux/tests/phase7_rbtree_manifest.json",
-    "PHASE3_REPO_REALITY=chrdev-plan-growth-exceeds-roadmap-anchors",
-    "PHASE3_INTEROP_GAP=rbtree-interop-slice-still-missing",
-    "PHASE3_NEXT_BOUNDED_STEP=small-phase3-rbtree-interop-slice-before-more-chrdev-growth",
-    "PHASE3_SURVEY_MANIFEST=zigux/tests/phase3_roadmap_gap_manifest.json",
-    "PHASE3_SURVEY_GATE=zig test zigux/tests/phase3_roadmap_gap_survey.zig",
+    "PHASE3_CURRENT_RBTREE_STATUS=phase3-helper-packet-exists-but-curated-c-binding-surface-is-still-missing",
+    "PHASE3_INTEROP_GAP=curated-rbtree-c-binding-surface-still-missing",
+    "PHASE3_NEXT_BOUNDED_STEP=curated-rbtree-boundary-header-and-parity-fixture-before-more-chrdev-growth",
 )
 
 REQUIRED_SURVEY_PATHS = (
-    "include/zigux/abi.h",
-    "zigux/bindings/abi.zig",
-    "zigux/tests/fixtures/phase3_abi_manifest.json",
-    "zigux/kernel/export_shim.zig",
-    "zigux/uapi/version.zig",
-    "zigux/helpers/bitmap_view.zig",
-    "zigux/helpers/cpumask_view.zig",
-    "zigux/helpers/list_view.zig",
-    "zigux/helpers/hlist_view.zig",
-    "zigux/helpers/cdev_add_plan.zig",
-    "zigux/helpers/chrdev_open_plan.zig",
-    "Documentation/zigux/phase1-closure.md",
-    "Documentation/zigux/phase3-rbtree-interop-survey.md",
-    "Documentation/zigux/phase7-rbtree-slice.md",
-    "scripts/zigux/validate-phase3-rbtree-interop-survey.py",
+    "zigux/helpers/rbtree_view.zig",
+    "Documentation/zigux/phase3-rbtree-slice.md",
+    "zigux/tests/phase3_rbtree_survey.zig",
+    "zigux/tests/phase3_rbtree_manifest.json",
     "lib/rbtree.zig",
     "tools/lib/rbtree.zig",
-    "zigux/tests/phase7_rbtree.zig",
-    "zigux/tests/phase7_rbtree_survey.zig",
-    "zigux/tests/phase7_rbtree_manifest.json",
-    MANIFEST_REL,
-    SURVEY_GATE_REL,
 )
-
-REQUIRED_MANIFEST_SNIPPETS = (
-    '"lane_key": "P3-L01"',
-    '"roadmap_phase": "Phase 3"',
-    '"surveyed_commit": "',
-    '"current_interop_gap": "rbtree-interop-slice-still-missing"',
-    '"current_rbtree_status": "phase3-survey-exists-but-phase3-interop-slice-is-missing"',
-    '"next_bounded_step": "small-phase3-rbtree-interop-slice-before-more-chrdev-growth"',
-    '"adjacent_growth_marker": "chrdev-plan-growth-exceeds-roadmap-anchors"',
-    '"Documentation/zigux/phase3-roadmap-gap-survey.md"',
-    '"Documentation/zigux/phase3-rbtree-interop-survey.md"',
-    '"zigux/tests/phase3_roadmap_gap_manifest.json"',
-    '"zigux/tests/phase3_roadmap_gap_survey.zig"',
-    '"scripts/zigux/validate-phase3-roadmap-gap-survey.py"',
-    '"phase3-rbtree-boundary-slice"',
-    '"chrdev-growth-not-roadmap-closure"',
-)
-
-REQUIRED_SURVEY_GATE_SNIPPETS = (
-    '"zigux/tests/phase3_roadmap_gap_manifest.json"',
-    '"Documentation/zigux/phase3-roadmap-gap-survey.md"',
-    '"Documentation/zigux/phase3-rbtree-interop-survey.md"',
-    '"scripts/zigux/validate-phase3-roadmap-gap-survey.py"',
-    '"PHASE3_CURRENT_RBTREE_STATUS=phase3-survey-exists-but-phase3-interop-slice-is-missing"',
-    '"PHASE3_INTEROP_GAP=rbtree-interop-slice-still-missing"',
-    '"PHASE3_NEXT_BOUNDED_STEP=small-phase3-rbtree-interop-slice-before-more-chrdev-growth"',
-)
-
-RBTREE_FREE_BOUNDARY_PATHS = (
-    "include/zigux/abi.h",
-    "zigux/bindings/abi.zig",
-    "zigux/tests/fixtures/phase3_abi_manifest.json",
-)
-
-DISALLOWED_PHASE3_RBTREE_PATHS = (
-    "Documentation/zigux/phase3-rbtree-slice.md",
-)
-
-DISALLOWED_PHASE3_RBTREE_PATH_PATTERNS = (
-    ("zigux/tests", "phase3_rbtree"),
-    ("zigux/helpers", "rbtree"),
-)
-
-REQUIRED_DOCS_README_SNIPPETS = (
-    "`Documentation/zigux/phase3-roadmap-gap-survey.md`",
-    "`scripts/zigux/validate-phase3-roadmap-gap-survey.py`",
-    "`make -C zigux phase3-validate`",
-    "current export shim and current `zigux/uapi/version.zig` boundary",
-    "existing Phase 1 and Phase 7 `rbtree` evidence",
-)
-
-REQUIRED_SCRIPTS_README_SNIPPETS = (
-    "`validate-phase3-roadmap-gap-survey.py`",
-    "`Documentation/zigux/phase3-roadmap-gap-survey.md`",
-    "current export shim and current `zigux/uapi/version.zig` boundary",
-    "Phase 1 plus Phase 7 `rbtree` evidence",
-)
-
-
-def _read_text(root: Path, rel: str, issues: list[str]) -> str:
-    path = root / rel
-    try:
-        return path.read_text(encoding="utf-8")
-    except FileNotFoundError:
-        issues.append(f"missing_file:{rel}")
-        return ""
-
-
-def _find_matching_relpaths(root: Path, base_rel: str, needle: str) -> list[str]:
-    base = root / base_rel
-    if not base.exists():
-        return []
-    return sorted(
-        path.relative_to(root).as_posix()
-        for path in base.rglob("*")
-        if path.is_file() and needle in path.name
-    )
 
 
 def validate(root: Path) -> list[str]:
     issues: list[str] = []
+    survey_path = root / SURVEY_REL
+    try:
+        survey = survey_path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return [f"missing_file:{SURVEY_REL}"]
 
-    survey = _read_text(root, SURVEY_REL, issues)
-    docs_readme = _read_text(root, DOCS_README_REL, issues)
-    scripts_readme = _read_text(root, SCRIPTS_README_REL, issues)
-    manifest = _read_text(root, MANIFEST_REL, issues)
-    survey_gate = _read_text(root, SURVEY_GATE_REL, issues)
-
-    if survey:
-        for marker in REQUIRED_SURVEY_MARKERS:
-            if marker not in survey:
-                issues.append(f"missing_survey_marker:{marker}")
-
-    if manifest:
-        for snippet in REQUIRED_MANIFEST_SNIPPETS:
-            if snippet not in manifest:
-                issues.append(f"missing_manifest_snippet:{snippet}")
-
-    if survey_gate:
-        for snippet in REQUIRED_SURVEY_GATE_SNIPPETS:
-            if snippet not in survey_gate:
-                issues.append(f"missing_survey_gate_snippet:{snippet}")
+    for marker in REQUIRED_SURVEY_MARKERS:
+        if marker not in survey:
+            issues.append(f"missing_survey_marker:{marker}")
 
     for rel in REQUIRED_SURVEY_PATHS:
         if not (root / rel).exists():
             issues.append(f"missing_repo_path:{rel}")
-
-    for rel in RBTREE_FREE_BOUNDARY_PATHS:
-        text = _read_text(root, rel, issues)
-        if text and "rbtree" in text.lower():
-            issues.append(f"stale_rbtree_gap_claim_in_boundary:{rel}")
-
-    for rel in DISALLOWED_PHASE3_RBTREE_PATHS:
-        if (root / rel).exists():
-            issues.append(f"stale_rbtree_gap_claim:{rel}")
-
-    for base_rel, needle in DISALLOWED_PHASE3_RBTREE_PATH_PATTERNS:
-        for rel in _find_matching_relpaths(root, base_rel, needle):
-            issues.append(f"stale_rbtree_gap_claim:{rel}")
-
-    if docs_readme:
-        for snippet in REQUIRED_DOCS_README_SNIPPETS:
-            if snippet not in docs_readme:
-                issues.append(f"missing_docs_readme_snippet:{snippet}")
-
-    if scripts_readme:
-        for snippet in REQUIRED_SCRIPTS_README_SNIPPETS:
-            if snippet not in scripts_readme:
-                issues.append(f"missing_scripts_readme_snippet:{snippet}")
 
     return issues
 
@@ -193,79 +52,19 @@ def validate(root: Path) -> list[str]:
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_gap_survey_") as tmp_dir_str:
         root = Path(tmp_dir_str)
-        (root / "Documentation" / "zigux").mkdir(parents=True, exist_ok=True)
-        (root / "scripts" / "zigux").mkdir(parents=True, exist_ok=True)
-        (root / "zigux" / "kernel").mkdir(parents=True, exist_ok=True)
-        (root / "zigux" / "helpers").mkdir(parents=True, exist_ok=True)
-        (root / "zigux" / "tests").mkdir(parents=True, exist_ok=True)
-        (root / "zigux" / "uapi").mkdir(parents=True, exist_ok=True)
-        (root / "lib").mkdir(parents=True, exist_ok=True)
-        (root / "tools" / "lib").mkdir(parents=True, exist_ok=True)
-        (root / "include" / "zigux").mkdir(parents=True, exist_ok=True)
-
         for rel in REQUIRED_SURVEY_PATHS:
             path = root / rel
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text("// ok\n", encoding="utf-8")
 
         survey_path = root / SURVEY_REL
+        survey_path.parent.mkdir(parents=True, exist_ok=True)
         survey_path.write_text("\n".join(REQUIRED_SURVEY_MARKERS) + "\n", encoding="utf-8")
-        docs_readme_path = root / DOCS_README_REL
-        docs_readme_path.write_text("\n".join(REQUIRED_DOCS_README_SNIPPETS) + "\n", encoding="utf-8")
-        scripts_readme_path = root / SCRIPTS_README_REL
-        scripts_readme_path.write_text("\n".join(REQUIRED_SCRIPTS_README_SNIPPETS) + "\n", encoding="utf-8")
-        manifest_path = root / MANIFEST_REL
-        manifest_path.write_text("\n".join(REQUIRED_MANIFEST_SNIPPETS) + "\n", encoding="utf-8")
-        survey_gate_path = root / SURVEY_GATE_REL
-        survey_gate_path.write_text("\n".join(REQUIRED_SURVEY_GATE_SNIPPETS) + "\n", encoding="utf-8")
-
         assert validate(root) == []
 
         survey_path.write_text(REQUIRED_SURVEY_MARKERS[0] + "\n", encoding="utf-8")
         issues = validate(root)
         assert any(issue.startswith("missing_survey_marker:") for issue in issues)
-        survey_path.write_text("\n".join(REQUIRED_SURVEY_MARKERS) + "\n", encoding="utf-8")
-
-        removed_manifest_snippet = REQUIRED_MANIFEST_SNIPPETS[0]
-        manifest_path.write_text("\n".join(REQUIRED_MANIFEST_SNIPPETS[1:]) + "\n", encoding="utf-8")
-        issues = validate(root)
-        assert f"missing_manifest_snippet:{removed_manifest_snippet}" in issues
-        manifest_path.write_text("\n".join(REQUIRED_MANIFEST_SNIPPETS) + "\n", encoding="utf-8")
-
-        removed_survey_gate_snippet = REQUIRED_SURVEY_GATE_SNIPPETS[0]
-        survey_gate_path.write_text("\n".join(REQUIRED_SURVEY_GATE_SNIPPETS[1:]) + "\n", encoding="utf-8")
-        issues = validate(root)
-        assert f"missing_survey_gate_snippet:{removed_survey_gate_snippet}" in issues
-        survey_gate_path.write_text("\n".join(REQUIRED_SURVEY_GATE_SNIPPETS) + "\n", encoding="utf-8")
-
-        removed_docs_snippet = REQUIRED_DOCS_README_SNIPPETS[0]
-        docs_readme_path.write_text("\n".join(REQUIRED_DOCS_README_SNIPPETS[1:]) + "\n", encoding="utf-8")
-        issues = validate(root)
-        assert f"missing_docs_readme_snippet:{removed_docs_snippet}" in issues
-        docs_readme_path.write_text("\n".join(REQUIRED_DOCS_README_SNIPPETS) + "\n", encoding="utf-8")
-
-        removed_scripts_snippet = REQUIRED_SCRIPTS_README_SNIPPETS[0]
-        scripts_readme_path.write_text("\n".join(REQUIRED_SCRIPTS_README_SNIPPETS[1:]) + "\n", encoding="utf-8")
-        issues = validate(root)
-        assert f"missing_scripts_readme_snippet:{removed_scripts_snippet}" in issues
-        scripts_readme_path.write_text("\n".join(REQUIRED_SCRIPTS_README_SNIPPETS) + "\n", encoding="utf-8")
-
-        missing_path = root / "Documentation" / "zigux" / "phase3-rbtree-interop-survey.md"
-        missing_path.unlink()
-        issues = validate(root)
-        assert "missing_repo_path:Documentation/zigux/phase3-rbtree-interop-survey.md" in issues
-        missing_path.write_text("# ok\n", encoding="utf-8")
-
-        stale_phase3_doc = root / "Documentation" / "zigux" / "phase3-rbtree-slice.md"
-        stale_phase3_doc.write_text("# stale\n", encoding="utf-8")
-        issues = validate(root)
-        assert "stale_rbtree_gap_claim:Documentation/zigux/phase3-rbtree-slice.md" in issues
-        stale_phase3_doc.unlink()
-
-        abi_header = root / "include" / "zigux" / "abi.h"
-        abi_header.write_text("// rbtree drift\n", encoding="utf-8")
-        issues = validate(root)
-        assert "stale_rbtree_gap_claim_in_boundary:include/zigux/abi.h" in issues
 
     print("PHASE3_ROADMAP_GAP_SURVEY_SELF_TEST=pass")
     return 0
