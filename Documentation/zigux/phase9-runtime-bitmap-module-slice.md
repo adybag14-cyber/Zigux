@@ -8,7 +8,7 @@ This document tracks the first bounded Phase 9 runtime bitmap starter under `sam
 - `PHASE9_SLICE=runtime-bitmap-module-starter`
 - `PHASE9_LANE_KEY=P9-L08`
 - `PHASE9_SURVEYED_COMMIT=f5a4d6990f701937b2a3bb9ae723bb6d0f27ba21`
-- scope: lifecycle starter, bitmap range mutation and copy behavior, bounded differential coverage, bounded parse-and-print replay including duplicate bit-list normalization, empty formatting, and transactional failed-init recovery, adjacent loader scaffold plus shared loader-request binding, dedicated Phase 9 sample, module, diff, and loader test wiring, and adjacent manifest plus survey packet alignment only
+- scope: lifecycle starter, bitmap range mutation and copy behavior, bounded differential coverage, bounded parse-and-print replay including duplicate bit-list normalization, empty formatting, and transactional failed-init recovery, adjacent loader scaffold plus shared loader-request binding, prepared loader-summary snapshot replay, dedicated Phase 9 sample, module, diff, and loader test wiring, and adjacent manifest plus survey packet alignment only
 - product boundary:
   - `samples/zigux/runtime_bitmap.zig`
   - `samples/zigux/runtime_bitmap_loader.zig`
@@ -37,7 +37,7 @@ No parity scorecard entry or Architecture Council status-change request is attac
 - summary checks that reuse `zigux/helpers/bitmap_view.zig` for `first_set`, `first_zero`, and `weight`
 - a bounded parse-and-print replay that keeps direct sample bit-list parsing and formatting reviewable through `initFromBitList()` and `formatSetBits()`, including duplicate bit-list normalization to canonical set-bit output plus empty parse-and-print replay, while failed parsed or direct init attempts stay cold and empty until a clean follow-up init succeeds, without claiming a broader runtime parsing or printing surface
 - a table-driven differential gate that replays a few `lib/test_bitmap.c` expectations for set, clear, summary, and copy behavior
-- a tiny sample-side loader handoff scaffold that names bounded entry and exit symbols, pins the full `first_set`, `first_zero`, `weight`, and `nbits` handoff summary, preserves explicit shared command-name handoff evidence for both waiting and released request shapes, and emits both waiting and released shared runtime-loader request shapes for the no-substrate path without claiming a real module loader
+- a tiny sample-side loader handoff scaffold that names bounded entry and exit symbols, pins the full `first_set`, `first_zero`, `weight`, and `nbits` handoff summary, freezes the prepared summary before later sample mutation so pending waiting and released request shapes keep the pre-mutation counters and bitmap facts machine-checkable, preserves explicit shared command-name handoff evidence for both waiting and released request shapes, and emits both waiting and released shared runtime-loader request shapes for the no-substrate path without claiming a real module loader
 - a shared runtime-loader request binding in `zigux/kernel/runtime_loader.zig` that now consumes the bitmap handoff shape, allocator posture, staged entry or exit symbols, and explicit shared command-name preservation without claiming live execution
 - dedicated Phase 9 tests and manifest coverage wired into the shared `zigux/tests/phase9_build.zig` gate, including the direct `phase9-runtime-bitmap-sample-tests`, `phase9-runtime-bitmap-module-tests`, `phase9-runtime-bitmap-diff-tests`, and `phase9-runtime-bitmap-loader-tests` legs
 
