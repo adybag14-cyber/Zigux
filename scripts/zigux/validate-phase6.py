@@ -44,7 +44,9 @@ REQUIRED_FILES = [
     "zigux/tests/phase6_bsearch.zig",
     "zigux/tests/phase6_bsearch_perf.zig",
     "zigux/tests/phase6_bsearch_c_parity.zig",
+    "zigux/tests/phase6_checksum.zig",
     "zigux/tests/phase6_checksum_perf.zig",
+    "zigux/tests/phase6_hexdump.zig",
     "zigux/tests/phase6_hexdump_perf.zig",
     "zigux/tests/phase6_checksum_c_parity.zig",
     "zigux/tests/fixtures/phase6_base64_vectors.zig",
@@ -73,7 +75,7 @@ CATALOG_MARKERS = [
     "max_slowdown_pct = 550",
     "max_slowdown_pct = 600",
     "avg_compare_calls <= std.math.log2_int_ceil(len) + 1",
-    "PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=19",
+    "PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=23",
 ]
 
 PERF_SURVEY_MARKERS = [
@@ -259,7 +261,7 @@ EXPECTED_BASE64_HELPER = {
         "zigux/tests/fixtures/phase6_base64_c_harness.c",
     ],
     "slice_note": "Documentation/zigux/phase6-base64-slice.md",
-    "external_parity": "python3 scripts/zigux/check-phase6-base64-c-parity.py",
+    "external_parity": "python3 scripts/zigux/check-phase6-base64-c-parity",
 }
 
 EXPECTED_BSEARCH_HELPER = {
@@ -292,6 +294,20 @@ EXPECTED_CHECKSUM_HELPER = {
     "slice_note": "Documentation/zigux/phase6-checksum-slice.md",
     "external_parity": "python3 scripts/zigux/check-phase6-checksum-c-parity.py",
 }
+
+EXPECTED_HEXDUMP_HELPER = {
+    "id": "hexdump",
+    "helper": "lib/hexdump.zig",
+    "tests": [
+        "zigux/tests/phase6_hexdump.zig",
+        "zigux/tests/phase6_hexdump_perf.zig",
+    ],
+    "fixtures": [
+        "zigux/tests/fixtures/phase6_hexdump_vectors.zig",
+    ],
+    "slice_note": "Documentation/zigux/phase6-hexdump-slice.md",
+}
+
 
 def text(root: Path, path: str) -> str:
     return (root / path).read_text(encoding="utf-8")
@@ -332,6 +348,7 @@ def validate_manifest(missing: list[str], manifest: dict[str, object], catalog_h
             "base64": EXPECTED_BASE64_HELPER,
             "bsearch": EXPECTED_BSEARCH_HELPER,
             "checksum": EXPECTED_CHECKSUM_HELPER,
+            "hexdump": EXPECTED_HEXDUMP_HELPER,
         }
         for helper_id, expected_helper in expected_helpers.items():
             helper = next((item for item in helpers if item.get("id") == helper_id), None)
@@ -434,7 +451,7 @@ def report_validation(result: dict[str, object]) -> int:
         return 1
     print("PHASE6_VALIDATION=pass")
     print(f"PHASE6_CATALOG_VERIFIED_HEAD={result['catalog_head']}")
-    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=19")
+    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=23")
     return 0
 
 
@@ -473,7 +490,7 @@ def build_self_test_tree(root: Path) -> None:
             EXPECTED_BASE64_HELPER,
             EXPECTED_BSEARCH_HELPER,
             EXPECTED_CHECKSUM_HELPER,
-            {"id": "hexdump"},
+            EXPECTED_HEXDUMP_HELPER,
         ],
         "determinism_evidence": {
             "base64": EXPECTED_BASE64_DETERMINISM,
@@ -602,6 +619,18 @@ def run_self_test() -> int:
                 raise AssertionError("missing bsearch parity runner failure")
 
             build_self_test_tree(root)
+            checksum_test = root / "zigux/tests/phase6_checksum.zig"
+            checksum_test.unlink()
+            if "zigux/tests/phase6_checksum.zig" not in validate_phase6(root)["missing_files"]:
+                raise AssertionError("missing checksum test failure")
+
+            build_self_test_tree(root)
+            hexdump_test = root / "zigux/tests/phase6_hexdump.zig"
+            hexdump_test.unlink()
+            if "zigux/tests/phase6_hexdump.zig" not in validate_phase6(root)["missing_files"]:
+                raise AssertionError("missing hexdump test failure")
+
+            build_self_test_tree(root)
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
             manifest["helpers"][0]["fixtures"] = manifest["helpers"][0]["fixtures"][:-1]
             manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
@@ -617,6 +646,13 @@ def run_self_test() -> int:
 
             build_self_test_tree(root)
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            manifest["helpers"][3]["slice_note"] = "Documentation/zigux/phase6-hexdump-slice.md -- drift"
+            manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+            if "manifest:helpers:hexdump" not in validate_phase6(root)["missing"]:
+                raise AssertionError("missing hexdump helper manifest failure")
+
+            build_self_test_tree(root)
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
             manifest["determinism_evidence"]["generated_fixture_artifacts_committed"] = True
             manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
             if "manifest:determinism_evidence:generated_fixture_artifacts_committed" not in validate_phase6(root)["missing"]:
@@ -627,7 +663,7 @@ def run_self_test() -> int:
         return 1
 
     print("PHASE6_VALIDATOR_SELF_TEST=pass")
-    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=19")
+    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=23")
     return 0
 
 
