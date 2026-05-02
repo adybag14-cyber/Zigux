@@ -143,6 +143,27 @@ test "phase13 devres manifest records the current helper boundary and explicit d
     try expectNotContains(devres_source, "sg_table");
     try std.testing.expectEqual(@as(usize, 0), std.mem.count(u8, devres_source, "sg_"));
 
+    const dma_coherent_source = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "lib/devres_dma_coherent.zig",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(dma_coherent_source);
+
+    try expectContains(dma_coherent_source, "provides_dma_coherent_lifetime_planning = true");
+    try expectContains(dma_coherent_source, "touches_live_dma = false");
+    try expectContains(dma_coherent_source, "touches_live_scatterlist = false");
+    try expectContains(dma_coherent_source, "planManagedDmaCoherentAlloc");
+    try expectContains(dma_coherent_source, "planManagedDmaCoherentFree");
+    try expectNotContains(dma_coherent_source, "dma_map_resource");
+    try expectNotContains(dma_coherent_source, "dma_unmap_resource");
+    try expectNotContains(dma_coherent_source, "dma_map_sgtable");
+    try expectNotContains(dma_coherent_source, "dma_unmap_sgtable");
+    try expectNotContains(dma_coherent_source, "struct scatterlist");
+    try expectNotContains(dma_coherent_source, "sg_table");
+    try std.testing.expectEqual(@as(usize, 0), std.mem.count(u8, dma_coherent_source, "sg_"));
+
     const slice_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/phase13-devres-slice.md",
@@ -157,6 +178,7 @@ test "phase13 devres manifest records the current helper boundary and explicit d
     try expectContains(slice_note, "adds the adjacent `devm_ioremap_resource()` wrapper step as a pure helper that keeps the plain managed-resource export explicit instead of leaving it only implied by the base planner entrypoint");
     try expectContains(slice_note, "does not expose `dmam_*`, `dma_map_*`, `dma_unmap_*`, `dma_map_sgtable()`, `struct scatterlist`, `sg_table`, or `sg_*` traversal behavior at all");
     try expectContains(slice_note, "does not claim live `devres_alloc_node()` ownership");
+    try expectContains(slice_note, "adds one adjacent helper-first coherent DMA lifetime planner in `lib/devres_dma_coherent.zig`");
 
     const survey_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
@@ -184,6 +206,9 @@ test "phase13 devres manifest records the current helper boundary and explicit d
     try expectContains(survey_note, "`dma_unmap_sgtable`, `dma_map_sg_attrs`, `dma_unmap_sg_attrs`, `struct scatterlist`, `sg_table`, or `sg_` helper entrypoints");
     try expectContains(survey_note, "`devres_alloc_node()` ownership, `devres_add()` installation, `devm_request_mem_region()` side effects");
     try expectContains(survey_note, "the direct `devm_ioremap_resource()` wrapper path that keeps the plain managed-resource export explicit instead of leaving it implied only by `__devm_ioremap_resource()` and the UC/WC wrapper pair");
+    try expectContains(survey_note, "`lib/devres_dma_coherent.zig` plus `zigux/tests/phase13_devres_dma_coherent.zig` now keep the helper-first coherent-DMA lifetime packet reviewable on current `master`");
+    try expectContains(survey_note, "the adjacent helper-first coherent-DMA lifetime planner in `lib/devres_dma_coherent.zig`");
+    try expectContains(survey_note, "beyond the helper-first coherent-DMA lifetime planner's retained-record bookkeeping surface");
 
     const devres_tests = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
@@ -193,9 +218,33 @@ test "phase13 devres manifest records the current helper boundary and explicit d
     );
     defer std.testing.allocator.free(devres_tests);
 
-    try expectContains(devres_tests, "test \\\"phase13 devres plans a plain managed ioremap resource wrapper\\\"");
-    try expectContains(devres_tests, "test \\\"phase13 devres propagates plain managed resource wrapper failures\\\"");
+    try expectContains(devres_tests, "test \"phase13 devres plans a plain managed ioremap resource wrapper\"");
+    try expectContains(devres_tests, "test \"phase13 devres propagates plain managed resource wrapper failures\"");
     try expectContains(devres_tests, "planManagedIoremapResourcePlain(");
+
+    const dma_coherent_tests = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase13_devres_dma_coherent.zig",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(dma_coherent_tests);
+
+    try expectContains(dma_coherent_tests, "phase13 devres descriptor records helper-first dma coherent planning");
+    try expectContains(dma_coherent_tests, "planManagedDmaCoherentAlloc");
+    try expectContains(dma_coherent_tests, "planManagedDmaCoherentFree");
+
+    const phase13_build = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase13_build.zig",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(phase13_build);
+
+    try expectContains(phase13_build, "../../lib/devres_dma_coherent.zig");
+    try expectContains(phase13_build, "phase13_devres_dma_coherent.zig");
+    try expectContains(phase13_build, "phase13-devres-dma-coherent-tests");
 
     var starter_landed_count: usize = 0;
     var blocked_live_mmio_count: usize = 0;
