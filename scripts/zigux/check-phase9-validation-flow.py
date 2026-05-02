@@ -13,6 +13,7 @@ MAKEFILE_PATH = "zigux/Makefile"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 SURVEY_PATH = "Documentation/zigux/phase9-runtime-loader-gap-survey.md"
 MODULE_METADATA_SURVEY_PATH = "Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md"
+TRACE_EVENTS_SURVEY_PATH = "Documentation/zigux/phase9-runtime-trace-events-survey.md"
 LOADER_SUBSTRATE_CHECKER_PATH = "scripts/zigux/check-phase9-loader-substrate-plan.py"
 MODULE_METADATA_CHECKER_PATH = "scripts/zigux/check-phase9-module-metadata-packet.py"
 
@@ -21,6 +22,7 @@ REQUIRED_FILES = [
     WORKFLOW_PATH,
     SURVEY_PATH,
     MODULE_METADATA_SURVEY_PATH,
+    TRACE_EVENTS_SURVEY_PATH,
     LOADER_SUBSTRATE_CHECKER_PATH,
     MODULE_METADATA_CHECKER_PATH,
 ]
@@ -83,6 +85,14 @@ MODULE_METADATA_SURVEY_MARKERS = [
     "- `zig test zigux/tests/runtime_module_metadata_survey.zig`\n",
 ]
 
+TRACE_EVENTS_SURVEY_MARKERS = [
+    "- `zig test --dep runtime_trace_events_sample -Mroot=zigux/tests/runtime_trace_events_survey.zig -Mruntime_trace_events_sample=samples/zigux/runtime_trace_events.zig`\n",
+    "- `make -C zigux phase9-trace-events-survey`\n",
+    "- `zig build test --build-file zigux/tests/phase9_build.zig --summary all`\n",
+    "phase9-runtime-trace-events-module-tests",
+    "phase9-runtime-trace-events-survey-tests",
+]
+
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
@@ -104,6 +114,7 @@ def validate(root: Path) -> list[str]:
     workflow = read_text(root, WORKFLOW_PATH)
     survey = read_text(root, SURVEY_PATH)
     module_metadata_survey = read_text(root, MODULE_METADATA_SURVEY_PATH)
+    trace_events_survey = read_text(root, TRACE_EVENTS_SURVEY_PATH)
 
     for marker in MAKEFILE_MARKERS:
         if marker not in makefile:
@@ -117,6 +128,9 @@ def validate(root: Path) -> list[str]:
     for marker in MODULE_METADATA_SURVEY_MARKERS:
         if marker not in module_metadata_survey:
             failures.append(f"module_metadata_survey:{marker}")
+    for marker in TRACE_EVENTS_SURVEY_MARKERS:
+        if marker not in trace_events_survey:
+            failures.append(f"trace_events_survey:{marker}")
 
     return failures
 
@@ -241,6 +255,25 @@ def write_fixture_tree(root: Path) -> None:
                 "",
                 "5. run the shared convenience target",
                 "- `make -C zigux phase9-validate`",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    (root / TRACE_EVENTS_SURVEY_PATH).write_text(
+        "\n".join(
+            [
+                "# Phase 9 Runtime Trace-Events Survey",
+                "",
+                "## Gates",
+                "",
+                "1. run the focused trace-events survey replays",
+                "- `zig test --dep runtime_trace_events_sample -Mroot=zigux/tests/runtime_trace_events_survey.zig -Mruntime_trace_events_sample=samples/zigux/runtime_trace_events.zig`",
+                "- `make -C zigux phase9-trace-events-survey`",
+                "",
+                "2. run the shared Phase 9 runtime packet replay",
+                "- `zig build test --build-file zigux/tests/phase9_build.zig --summary all`",
+                "- this shared build now includes `phase9-runtime-trace-events-module-tests` and `phase9-runtime-trace-events-survey-tests` so the starter, diff, and survey evidence stay explicit in one shared packet",
                 "",
             ]
         ),
@@ -545,8 +578,55 @@ def run_self_test() -> int:
         )
         makefile_path.write_text(original_makefile, encoding="utf-8")
 
+        trace_events_survey_path = tmp_root / TRACE_EVENTS_SURVEY_PATH
+        original_trace_events_survey = trace_events_survey_path.read_text(encoding="utf-8")
+        trace_events_survey_path.write_text(
+            original_trace_events_survey.replace(
+                "- `make -C zigux phase9-trace-events-survey`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "trace_events_survey_make_target",
+            tmp_root,
+            "trace_events_survey:- `make -C zigux phase9-trace-events-survey`\n",
+        )
+        trace_events_survey_path.write_text(original_trace_events_survey, encoding="utf-8")
+
+        trace_events_survey_path.write_text(
+            original_trace_events_survey.replace(
+                "phase9-runtime-trace-events-survey-tests",
+                "phase9-runtime-trace-events-review-tests",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "trace_events_survey_shared_build_leg",
+            tmp_root,
+            "trace_events_survey:phase9-runtime-trace-events-survey-tests",
+        )
+        trace_events_survey_path.write_text(original_trace_events_survey, encoding="utf-8")
+
+        makefile_path.write_text(
+            original_makefile.replace(
+                "phase9-trace-events-survey:\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "makefile_trace_events_target",
+            tmp_root,
+            "makefile:phase9-trace-events-survey:",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
     print("PHASE9_VALIDATION_FLOW_SELF_TEST=pass")
-    print("PHASE9_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=17")
+    print("PHASE9_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=20")
     return 0
 
 
@@ -581,7 +661,7 @@ def main() -> int:
 
     print("PHASE9_VALIDATION_FLOW=pass")
     print(
-        f"PHASE9_VALIDATION_FLOW_MARKER_COUNT={len(MAKEFILE_MARKERS) + len(WORKFLOW_MARKERS) + len(SURVEY_MARKERS) + len(MODULE_METADATA_SURVEY_MARKERS)}"
+        f"PHASE9_VALIDATION_FLOW_MARKER_COUNT={len(MAKEFILE_MARKERS) + len(WORKFLOW_MARKERS) + len(SURVEY_MARKERS) + len(MODULE_METADATA_SURVEY_MARKERS) + len(TRACE_EVENTS_SURVEY_MARKERS)}"
     )
     return 0
 
