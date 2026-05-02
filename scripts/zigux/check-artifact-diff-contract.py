@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[2]
 ARTIFACT_DIFF = ROOT / 'scripts' / 'zigux' / 'artifact_diff.py'
 EXPECTED_CONTRACT_CASES = [
     'helper_self_test',
+    'helper_self_test_repeat',
     'text_pass',
     'text_pass_repeat',
     'text_mismatch',
@@ -67,6 +68,8 @@ def run_contract_case(
 def main() -> int:
     covered_cases: list[str] = []
 
+    # Replaying the helper's own self-test twice keeps the published case
+    # catalog and count deterministic, not just the leaf comparison modes.
     run_contract_case(
         ['--self-test'],
         0,
@@ -75,8 +78,10 @@ def main() -> int:
             'ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=18',
             'ARTIFACT_DIFF_SELF_TEST_CASES=text_pass,text_mismatch,json_pass,json_mismatch,json_invalid_expected,json_invalid_actual,json_invalid_both,json_missing_expected,json_missing_actual,json_missing_both,sha256_pass,sha256_drift,text_missing_expected,text_missing_actual,text_missing_both,sha256_missing_expected,sha256_missing_actual,sha256_missing_both',
         ],
+        repeat_count=2,
     )
     covered_cases.append('helper_self_test')
+    covered_cases.append('helper_self_test_repeat')
 
     with tempfile.TemporaryDirectory(prefix='zigux_artifact_diff_contract_') as tmp_dir_str:
         tmp_dir = Path(tmp_dir_str)
