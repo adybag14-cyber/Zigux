@@ -187,7 +187,7 @@ Guidance
 Phase 10 guidance
 - keep the current Phase 10 lab bundle reviewable through `zigux/tests/phase10_build.zig`, the four lane survey manifests plus the shared `zigux/tests/phase10_closure_manifest.json`, instead of treating individual virtio starter files as independent closure signals
 - if the Phase 10 evidence bundle changes, update `zigux/tests/phase10_closure_manifest.json` and `Documentation/zigux/phase10-closure-evidence.md` together so the shared closure gate stays truthful about what is implemented versus still survey-backed
-- keep `scripts/zigux/validate-phase10.py` aligned with `zigux/tests/phase10_virtio_input_manifest.json` and `zigux/tests/phase10_virtio_input_survey.zig` so the landed queue-callback preflight helper, the landed registration-preflight helper summary, and the registration-lifecycle blocker all stay explicit together
+- keep `scripts/zigux/validate-phase10.py` aligned with `zigux/tests/phase10_virtio_input_manifest.json`, `zigux/tests/phase10_virtio_input_survey.zig`, `zigux/tests/phase10_virtio_mmio_manifest.json`, and `zigux/tests/phase10_virtio_mmio_survey.zig` so the landed queue-callback preflight helper, the landed registration-preflight helper summary, the landed interrupt-ack rung, and the paired registration-lifecycle plus MMIO lifecycle blockers all stay explicit together
 
 Phase 11 guidance
 - keep the current Phase 11 simple-driver packet reviewable through `zigux/tests/phase11_build.zig`, `scripts/zigux/validate-phase11.py`, `make -C zigux phase11-validate`, and `zigux/tests/fixtures/phase11_build_inventory.json` instead of widening into ad hoc driver-local bootstrap claims.
