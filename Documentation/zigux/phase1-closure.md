@@ -41,6 +41,8 @@ No additional helper should be called Phase 1 work unless this document and the 
 - `tools/lib/bitmap.zig` direct Zig unit coverage also keeps `xorBits()` aligned with the caller-selected bit window by proving partial-word and multiword-tail replays preserve only the in-range bits that callers intentionally clamp.
 - `tools/lib/bitmap.zig` direct Zig unit coverage also keeps zero-length helper calls explicit and side-effect free so `zero()`, `fill()`, `copy()`, `copyClearTail()`, `orBits()`, `xorBits()`, scans, and formatting all leave caller-owned buffers untouched when `nbits` is zero.
 - `tools/lib/bitmap.zig` direct Zig unit coverage also keeps the underscore alias entry points aligned so `bitmap_weight()`, `bitmap_and()`, `bitmap_andnot()`, `bitmap_or()`, `bitmap_xor()`, `bitmap_equal()`, `bitmap_intersects()`, `bitmap_subset()`, `bitmap_set()`, `bitmap_clear()`, and `bitmap_scnprintf()` preserve the same caller-selected window semantics as the camelCase helpers.
+- `tools/lib/bitmap.zig` direct Zig unit coverage also keeps the double-underscore alias entry points aligned so `__bitmap_weight()`, `__bitmap_or()`, `__bitmap_and()`, `__bitmap_andnot()`, `__bitmap_xor()`, `__bitmap_equal()`, `__bitmap_intersects()`, `__bitmap_subset()`, `__bitmap_set()`, and `__bitmap_clear()` preserve the same caller-selected window semantics as the core helpers.
+- `tools/lib/bitmap.zig` direct Zig unit coverage also keeps `bitmapSize()` and `bitmap_size()` aligned by rounding zero-length, partial-word, and multiword bit counts up to the same full-word byte footprint.
 - bitmap range unit-test anchor: `tools/lib/bitmap.zig:test "bitmap range helpers preserve edges across whole-word spans"`
 - bitmap copy unit-test anchor: `tools/lib/bitmap.zig:test "bitmap copyClearTail clears out-of-range bits in the last copied word"`
 - bitmap bitwise unit-test anchor: `tools/lib/bitmap.zig:test "bitmap and andnot equal intersects subset"`
@@ -49,6 +51,8 @@ No additional helper should be called Phase 1 work unless this document and the 
 - bitmap direct unit-test anchor: `tools/lib/bitmap.zig:test "bitmap allocation helpers size zero fill and reset optionals"`
 - bitmap alias unit-test anchor: `tools/lib/bitmap.zig:test "bitmap underscore aliases preserve bitmap helper semantics"`
 - bitmap allocator alias unit-test anchor: `tools/lib/bitmap.zig:test "bitmap underscore allocator aliases preserve allocation and ownership semantics"`
+- bitmap double-underscore alias unit-test anchor: `tools/lib/bitmap.zig:test "bitmap double-underscore aliases preserve core helper semantics"`
+- bitmap size unit-test anchor: `tools/lib/bitmap.zig:test "bitmap size helpers round up to full words in bytes"`
 - bitmap xor unit-test anchor: `tools/lib/bitmap.zig:test "bitmap xor keeps caller-selected bit window"`
 - bitmap tail-mask unit-test anchor: `tools/lib/bitmap.zig:test "bitmap tail-masked helpers ignore out-of-range differences"`
 - bitmap zero-bit unit-test anchor: `tools/lib/bitmap.zig:test "bitmap zero-bit helpers stay explicit no-ops"`
