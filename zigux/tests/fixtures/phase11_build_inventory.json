@@ -197,5 +197,15 @@
   ],
   "dedicated_survey_replays": [
     "zigux/tests/phase11_hvc_console_survey.zig"
+  ],
+  "shared_split_replays": [
+    {
+      "test": "phase11-dw-wdt-remove-idle-split-tests",
+      "path": "zigux/tests/phase11_dw_wdt_remove_idle_split.zig"
+    },
+    {
+      "test": "phase11-hvc-console-poll-retry-split-tests",
+      "path": "zigux/tests/phase11_hvc_console_poll_retry_split.zig"
+    }
   ]
 }
