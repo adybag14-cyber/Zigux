@@ -98,6 +98,7 @@ test "phase13 devres manifest records the current helper boundary and explicit d
     try std.testing.expect(descriptor.provides_release_pointer_match);
     try std.testing.expect(descriptor.provides_ioport_lifetime_planning);
     try std.testing.expect(descriptor.provides_ioremap_resource_planning);
+    try std.testing.expect(descriptor.provides_ioremap_resource_plain_wrapper_planning);
     try std.testing.expect(descriptor.provides_ioremap_resource_uc_planning);
     try std.testing.expect(descriptor.provides_ioremap_resource_wc_planning);
     try std.testing.expect(descriptor.provides_of_iomap_planning);
@@ -120,6 +121,7 @@ test "phase13 devres manifest records the current helper boundary and explicit d
 
     try std.testing.expectEqual(@as(usize, 2), std.mem.count(u8, devres_source, "touches_live_dma"));
     try std.testing.expectEqual(@as(usize, 2), std.mem.count(u8, devres_source, "touches_live_scatterlist"));
+    try std.testing.expectEqual(@as(usize, 2), std.mem.count(u8, devres_source, "provides_ioremap_resource_plain_wrapper_planning"));
     try expectNotContains(devres_source, "devres_alloc_node");
     try expectNotContains(devres_source, "devres_add");
     try expectNotContains(devres_source, "devm_request_mem_region");
@@ -152,6 +154,7 @@ test "phase13 devres manifest records the current helper boundary and explicit d
     try expectContains(slice_note, "pure helper-first foothold anchored to `lib/devres.c`");
     try expectContains(slice_note, "without claiming any live MMIO side effects");
     try expectContains(slice_note, "without pretending to read a live device tree");
+    try expectContains(slice_note, "adds the adjacent `devm_ioremap_resource()` wrapper step as a pure helper that keeps the plain managed-resource export explicit instead of leaving it only implied by the base planner entrypoint");
     try expectContains(slice_note, "does not expose `dmam_*`, `dma_map_*`, `dma_unmap_*`, `dma_map_sgtable()`, `struct scatterlist`, `sg_table`, or `sg_*` traversal behavior at all");
     try expectContains(slice_note, "does not claim live `devres_alloc_node()` ownership");
 
@@ -180,6 +183,7 @@ test "phase13 devres manifest records the current helper boundary and explicit d
     try expectContains(survey_note, "only the `touches_live_dma` and `touches_live_scatterlist` descriptor markers");
     try expectContains(survey_note, "`dma_unmap_sgtable`, `dma_map_sg_attrs`, `dma_unmap_sg_attrs`, `struct scatterlist`, `sg_table`, or `sg_` helper entrypoints");
     try expectContains(survey_note, "`devres_alloc_node()` ownership, `devres_add()` installation, `devm_request_mem_region()` side effects");
+    try expectContains(survey_note, "the direct `devm_ioremap_resource()` wrapper path that keeps the plain managed-resource export explicit instead of leaving it implied only by `__devm_ioremap_resource()` and the UC/WC wrapper pair");
 
     var starter_landed_count: usize = 0;
     var blocked_live_mmio_count: usize = 0;
@@ -286,7 +290,8 @@ test "phase13 devres manifest records the current helper boundary and explicit d
             saw_ioremap_resource = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("lib/devres.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "devm_ioremap_resource") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "__devm_ioremap_resource") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "direct devm_ioremap_resource() plain wrapper explicit") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "devm_ioremap_resource_wc") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "overflow-safe inclusive size calculation") != null);
         }
