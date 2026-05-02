@@ -9,18 +9,18 @@ This note records the current export-shim and UAPI boundary for the bounded Phas
 - `PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig`
 - `PHASE3_EXPORT_SHIM_SCOPE=explicit-status-plus-boundary-header`
 - `PHASE3_EXPORT_SHIM_STATUS=normalize-and-compatibility-helpers-landed`
-- `PHASE3_EXPORT_SHIM_BLOB_SHA=0a0ad07c905d29d504cc03a9323ab878390e1539`
+- `PHASE3_EXPORT_SHIM_BLOB_SHA=14178035d18bb8e89e68a34519b8affcb3827189`
 - `PHASE3_C_HEADER_PATH=include/linux/zigux.h`
 - `PHASE3_C_HEADER_STATUS=shared-abi-relay-and-status-helpers-landed`
 - `PHASE3_UAPI_ROOT=zigux/uapi`
 - `PHASE3_UAPI_SCOPE=version-and-boundary-header`
 - `PHASE3_UAPI_STATUS=version-header-and-compatibility-surface-landed`
-- `PHASE3_UAPI_VERSION_BLOB_SHA=8298ed333732b6b62a9cb17c4914273f81db3c53`
+- `PHASE3_UAPI_VERSION_BLOB_SHA=ee01f0d9b6faf6cfbb9e12f11d8c267870a0a654`
 - `PHASE3_LINUX_HEADER_BLOB_SHA=c8cfd9590d2d0039ad087bb020a236fdc0a2b4ff`
 - `PHASE3_ABI_HEADER_BLOB_SHA=c588b6d2c81659ff8996495d001dd1ebad7df1b1`
 - `PHASE3_ABI_SLICE_DOC_BLOB_SHA=c9676f9697cbe34dd75809a4dae6a53b24030059`
 - `PHASE3_EXPORT_UAPI_BUILD_BLOB_SHA=17778c41309a0bfb1c2c026622938059c2dd41f9`
-- `PHASE3_EXPORT_UAPI_TEST_BLOB_SHA=0fc6945b37104763a9f26ad96353880170dbae46`
+- `PHASE3_EXPORT_UAPI_TEST_BLOB_SHA=40e49566fa959bcbda976ce3142b76c591e4c79f`
 - `PHASE3_ABI_MANIFEST_BLOB_SHA=9630475d654c3405494d2ab9fffd53acb4c332dc`
 - `PHASE3_EXPORT_UAPI_GATE=zig build phase3-export-uapi-test --build-file zigux/tests/phase3_export_uapi_build.zig`
 - `PHASE3_ABI_BUILD_SMOKE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi --check-build-smoke`
@@ -53,11 +53,11 @@ The current tree already carries the first bounded export and UAPI boundary surf
 - the export shim and `zigux/uapi/version.zig` now carry the same shared boundary-header construction and compatibility contract without widening the packet beyond the existing ABI types
 - the export shim and `zigux/uapi/version.zig` now also keep canonical-size header checks separate from broader future-compatible header acceptance, so the packet distinguishes exact current-shape replay from forward-compatible boundary tolerance without widening the UAPI surface
 - the same surveyed head now also includes the landed policy-and-unsafe substrate tightening in `Documentation/zigux/phase3-abi-slice.md` and `zigux/tests/fixtures/phase3_abi_manifest.json`, so this export/UAPI survey pin stays aligned with the broader ABI packet instead of aging against a pre-policy snapshot
-- `zigux/uapi/version.zig` now exports `abi_version`, `header_size`, `Header`, `canonicalHeader`, `boundaryHeader`, `compatibleHeader`, `isCurrentAbiVersion`, `isCompatibleSize`, `isCanonicalSize`, `isCompatible`, and `isCanonical`
-- `zigux/tests/phase3_export_uapi.zig` now keeps the narrow kernel-side export shim aligned with the UAPI packet's named current-version and current-size predicates, the explicit named canonical constructor, plus the explicit forward-compatible header constructor, so the shared boundary rule stays reviewable without widening the kernel shim itself
-- `Documentation/zigux/phase3-abi-slice.md` now describes the export shim as explicit-status-plus-boundary-header, the C helper header as the shared ABI relay, and the UAPI surface as version-and-boundary-header
-- `zigux/tests/phase3_export_uapi.zig` now proves that both helpers accept the same shared boundary header, expose the same named version and size predicates, distinguish canonical headers from broader future-compatible headers, and reject undersized or version-mismatched headers identically
-- `zigux/uapi/version.zig` now also keeps the forward-compatible constructor explicit through `compatibleHeader(size, flags)`, and the exact current-shape constructor equally explicit through `canonicalHeader(flags)`, so future-size replay does not have to fall back to ad hoc struct literals when the boundary packet wants to stay narrow but still reviewable
+- `zigux/uapi/version.zig` now exports `abi_version`, `header_size`, `Header`, `canonicalHeader`, `boundaryHeader`, `compatibleHeader`, `Compatibility`, `compatibility`, `isCurrentAbiVersion`, `isCompatibleSize`, `isCanonicalSize`, `isCompatible`, and `isCanonical`
+- `zigux/kernel/export_shim.zig` now re-exports that same named boundary-header classification through `HeaderCompatibility` and `headerCompatibility`, so callers can distinguish canonical and broader future-compatible headers without recombining multiple boolean checks by hand
+- `zigux/tests/phase3_export_uapi.zig` now keeps the narrow kernel-side export shim aligned with the UAPI packet's named current-version and current-size predicates, the explicit named canonical constructor, the explicit forward-compatible header constructor, and the named compatibility classifier, so the shared boundary rule stays reviewable without widening the kernel shim itself
+- `zigux/tests/phase3_export_uapi.zig` now proves that both helpers accept the same shared boundary header, expose the same named version and size predicates, distinguish canonical headers from broader future-compatible headers, reject canonical, future-compatible, undersized, and version-mismatched headers through the same explicit review packet, and classify the same header shapes through the same named compatibility helper
+- `zigux/uapi/version.zig` now also keeps the forward-compatible constructor explicit through `compatibleHeader(size, flags)`, the exact current-shape constructor equally explicit through `canonicalHeader(flags)`, and the exact header-shape decision equally explicit through `compatibility(header)`, so future-size replay does not have to fall back to ad hoc struct literals or recombined boolean checks when the boundary packet wants to stay narrow but still reviewable
 - `scripts/zigux/validate_phase3_core.py` now routes `python3 scripts/zigux/validate-phase3.py --slug abi --check-build-smoke` through the shared `phase3-dump`, `phase3-low-level-wrappers-test`, `phase3-export-uapi-test`, and `phase3-policy-unsafe-test` replays, so the export/UAPI boundary is part of the shared ABI build-smoke proof rather than only a boundary-local survey gate
 - `scripts/zigux/validate-phase3-export-uapi-survey.py` now rejects drift in the directly coupled export/UAPI packet by checking the recorded packet-local blob IDs first and only falling back to `PHASE3_SURVEYED_COMMIT` when older survey notes do not yet carry those fingerprints, so the survey stays anchored to boundary-local evidence even on shallow checkouts
 - that same survey validator now also compiles and runs a tiny C relay check against `include/linux/zigux.h`, so the C-facing `zigux_status_ok()` and `zigux_status_err()` helpers plus raw `zigux_boundary_header` field values still agree with the same constants the Zig-side starter uses instead of relying only on source markers
@@ -76,6 +76,7 @@ More specifically, it is still evidence for commit-train entry `26`, `feat(zigux
 
 - the original substrate ledger entry already named `zigux/kernel/export_shim.zig` and `zigux/uapi/version.zig` as part of the permanent Phase 3 boundary
 - current `master` now adds focused replay evidence for that same boundary through `zigux/tests/phase3_export_uapi_build.zig` and `zigux/tests/phase3_export_uapi.zig`
+- current `master` now also keeps the exact boundary-header shape decision reviewable inside that same bounded packet through `zigux/uapi/version.zig` and `zigux/kernel/export_shim.zig`, where one named compatibility classifier distinguishes canonical headers from broader future-compatible headers without widening into a broader UAPI family
 - the same ledger packet also includes `include/linux/zigux.h`, and the dedicated export/UAPI survey now treats that helper header as first-class packet evidence instead of a side reference outside the reviewable boundary note
 - current `master` now also keeps that same ledger entry reviewable through the ABI-only build-smoke replay at `python3 scripts/zigux/validate-phase3.py --slug abi --check-build-smoke`, where `scripts/zigux/validate_phase3_core.py` compiles the shared dump plus the focused export/UAPI, low-level-wrapper, and policy/unsafe build steps inside one bounded substrate packet
 - current `master` also keeps that same ledger entry reviewable through the restored `python3 scripts/zigux/validate-phase3.py` gate and the tightened `python3 scripts/zigux/validate-phase3-export-uapi-survey.py` survey gate, so packet-local drift now fails at the survey layer before the boundary snapshot can quietly age out
@@ -97,7 +98,7 @@ What is still missing is a broader curated Zig-side UAPI helper family beyond th
 
 - `zigux/uapi/` still contains only `version.zig`
 - there is still no second curated Zig-side UAPI module or broader constant pack under `zigux/uapi/`
-- the shared header support is now explicit and now includes named version and size predicates plus canonical-versus-compatible header checks, plus explicit `canonicalHeader()` and `compatibleHeader()` constructors, but the Zig-side UAPI surface still stops well short of a broader helper family
+- the shared header support is now explicit and now includes named version and size predicates, canonical-versus-compatible header checks, explicit `canonicalHeader()` and `compatibleHeader()` constructors, and one named compatibility classifier, but the Zig-side UAPI surface still stops well short of a broader helper family
 - the C-facing helper header is now an explicit part of the same surveyed packet, but current repo reality has moved past a relay-plus-status-only role, so the main boundary-management risk is now the mismatch between the still-narrow Zig-side starter and the already-broader C-side aggregation header rather than the complete absence of C-facing entry points
 
 That repo reality is consistent with the bounded ABI substrate, but it is still short of the roadmap's eventual broader permanent boundary destination.
@@ -106,7 +107,7 @@ That repo reality is consistent with the bounded ABI substrate, but it is still 
 
 The next honest follow-on inside this boundary family is still narrow:
 
-- keep the current export shim and boundary-header surface narrow until a roadmap-backed interop slice needs one more reviewable boundary helper
+- keep the current export shim, boundary-header, and compatibility-classification surface narrow until a roadmap-backed interop slice needs one more reviewable boundary helper
 - keep `zigux/uapi/` at version-plus-boundary-header scope until a concrete Phase 3 slice needs one additional curated Zig-side public constant, type, or helper surface
 - do not treat this lane as permission to add more unrelated helper growth to `include/linux/zigux.h`; if another Phase 3 slice needs new C-side boundary entry points, resurvey this packet explicitly so the broader header growth stays visible instead of being mistaken for export/UAPI closure
 - refresh the packet-local `*_BLOB_SHA` markers whenever the directly coupled export/UAPI packet paths are deliberately resurveyed after boundary-local changes
