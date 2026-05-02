@@ -69,6 +69,34 @@ const expected_segment_kinds = [_][]const u8{
     "verifier_facing",
 };
 
+const expected_segment_destinations = [_][]const u8{
+    "tools/lib/bpf/zigux_segments/logging.zig",
+    "tools/lib/bpf/zigux_segments/pin_path.zig",
+    "tools/lib/bpf/zigux_segments/cpu_mask.zig",
+    "tools/lib/bpf/zigux_segments/type_names.zig",
+    "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+    "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+    "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+    "tools/lib/bpf/zigux_segments/cpu_mask.zig",
+    "tools/lib/bpf/zigux_segments/skeleton.zig",
+    "tools/lib/bpf/zigux_segments/object_loader.zig",
+    "tools/lib/bpf/zigux_segments/relocation.zig",
+};
+
+const expected_segment_anchor_range_counts = [_]usize{
+    2,
+    2,
+    1,
+    1,
+    2,
+    1,
+    2,
+    2,
+    1,
+    2,
+    2,
+};
+
 const CompanionFile = struct {
     path: []const u8,
     lines: usize,
@@ -213,9 +241,9 @@ test "phase 8 libbpf segment manifest records the current bounded catalog" {
         try std.testing.expectEqualStrings(expected_segment_slugs[i], segment.slug);
         try std.testing.expectEqualStrings(expected_segment_statuses[i], segment.status);
         try std.testing.expectEqualStrings(expected_segment_kinds[i], segment.kind);
-        try std.testing.expect(segment.anchor_ranges.len > 0);
+        try std.testing.expectEqualStrings(expected_segment_destinations[i], segment.zigux_destination);
+        try std.testing.expectEqual(expected_segment_anchor_range_counts[i], segment.anchor_ranges.len);
         try std.testing.expect(segment.why_now.len > 0);
-        try std.testing.expect(std.mem.startsWith(u8, segment.zigux_destination, "tools/lib/bpf/zigux_segments/"));
 
         if (std.mem.eql(u8, segment.status, "starter_landed")) starter_landed_count += 1;
         if (std.mem.eql(u8, segment.status, "blocked_on_object_model")) blocked_on_object_model_count += 1;
@@ -231,10 +259,42 @@ test "phase 8 libbpf segment manifest records the current bounded catalog" {
     try std.testing.expectEqual(@as(usize, 1), blocked_on_object_model_count);
     try std.testing.expectEqual(@as(usize, 4), deferred_high_risk_count);
 
+    const logging_segment = findSegmentBySlug(manifest.segments, "logging-version-and-errno") orelse return error.MissingLoggingSegment;
+    try std.testing.expectEqualStrings("starter_landed", logging_segment.status);
+    try std.testing.expectEqualStrings("helper_first", logging_segment.kind);
+    try std.testing.expectEqualStrings("tools/lib/bpf/zigux_segments/logging.zig", logging_segment.zigux_destination);
+    try std.testing.expectEqual(@as(usize, 2), logging_segment.anchor_ranges.len);
+    try expectContains(logging_segment.why_now, "string tables");
+    try expectContains(logging_segment.why_now, "log-level gating");
+    try expectContains(logging_segment.why_now, "version reporting");
+    try expectContains(logging_segment.why_now, "stable output semantics");
+
+    const pin_path_segment = findSegmentBySlug(manifest.segments, "pin-path-helpers") orelse return error.MissingPinPathSegment;
+    try std.testing.expectEqualStrings("starter_landed", pin_path_segment.status);
+    try std.testing.expectEqualStrings("helper_first", pin_path_segment.kind);
+    try std.testing.expectEqualStrings("tools/lib/bpf/zigux_segments/pin_path.zig", pin_path_segment.zigux_destination);
+    try std.testing.expectEqual(@as(usize, 2), pin_path_segment.anchor_ranges.len);
+    try expectContains(pin_path_segment.why_now, "Path concatenation");
+    try expectContains(pin_path_segment.why_now, "bpffs-style pin-name sanitization");
+    try expectContains(pin_path_segment.why_now, "mkdir");
+    try expectContains(pin_path_segment.why_now, "statfs");
+    try expectContains(pin_path_segment.why_now, "unlink");
+
     const cpu_mask_segment = findSegmentBySlug(manifest.segments, "cpu-mask-parsing") orelse return error.MissingCpuMaskSegment;
     try std.testing.expectEqualStrings("starter_landed", cpu_mask_segment.status);
     try std.testing.expectEqualStrings("tools/lib/bpf/zigux_segments/cpu_mask.zig", cpu_mask_segment.zigux_destination);
     try std.testing.expectEqual(@as(usize, 1), cpu_mask_segment.anchor_ranges.len);
+
+    const type_name_segment = findSegmentBySlug(manifest.segments, "type-name-helpers") orelse return error.MissingTypeNameSegment;
+    try std.testing.expectEqualStrings("starter_landed", type_name_segment.status);
+    try std.testing.expectEqualStrings("helper_first", type_name_segment.kind);
+    try std.testing.expectEqualStrings("tools/lib/bpf/zigux_segments/type_names.zig", type_name_segment.zigux_destination);
+    try std.testing.expectEqual(@as(usize, 1), type_name_segment.anchor_ranges.len);
+    try expectContains(type_name_segment.why_now, "attach, link, map, and program type name tables");
+    try expectContains(type_name_segment.why_now, "stable userspace-to-kernel bridge surface");
+    try expectContains(type_name_segment.why_now, "object loading");
+    try expectContains(type_name_segment.why_now, "ELF state");
+    try expectContains(type_name_segment.why_now, "syscall-backed behavior");
 
     const fdinfo_segment = findSegmentBySlug(manifest.segments, "fdinfo-map-info-helpers") orelse return error.MissingFdinfoSegment;
     try std.testing.expectEqualStrings("starter_landed", fdinfo_segment.status);
