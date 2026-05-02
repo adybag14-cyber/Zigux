@@ -17,15 +17,15 @@ REQUIRED_FILES = {
 }
 EXPECTED_CONF_MODES = [
     'oldaskconfig',
-    'syncconfig',
     'oldconfig',
+    'syncconfig',
+    'defconfig',
+    'savedefconfig',
     'allnoconfig',
     'allyesconfig',
     'allmodconfig',
     'alldefconfig',
     'randconfig',
-    'defconfig',
-    'savedefconfig',
     'listnewconfig',
     'helpnewconfig',
     'olddefconfig',
