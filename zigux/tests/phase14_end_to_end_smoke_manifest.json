@@ -1,7 +1,7 @@
 {
   "lane_key": "P14-L01",
   "phase": "Phase 14",
-  "surveyed_commit": "d686e50d78ade5c8ec517438b9715f2a0d7103b3",
+  "surveyed_commit": "6689715b1930c419e49a44b1c2dd317548a08c1d",
   "productization": {
     "owner": "Core-Adjacent Pod",
     "status_bucket": "study_only",
