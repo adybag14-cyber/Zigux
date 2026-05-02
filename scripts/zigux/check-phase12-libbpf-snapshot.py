@@ -126,6 +126,58 @@ def expect_snapshot_mismatch(label: str, snapshot: dict[str, object]) -> None:
         raise SystemExit(f"phase12-libbpf-snapshot:self-test:{label}:fixture_drift_stdout")
 
 
+def render_snapshot_result_lines(
+    *,
+    status: str,
+    repeat_run: str,
+    snapshot: dict[str, object] | None = None,
+    rendered: str | None = None,
+) -> list[str]:
+    lines = [f"PHASE12_LIBBPF_SNAPSHOT={status}", f"PHASE12_LIBBPF_REPEAT_RUN={repeat_run}"]
+    if snapshot is not None:
+        lines.append(f"PHASE12_LIBBPF_TRACKED_FILE_COUNT={snapshot['tracked_file_count']}")
+    if rendered is not None:
+        lines.append(
+            "PHASE12_LIBBPF_SNAPSHOT_SHA256="
+            + hashlib.sha256(rendered.encode("utf-8")).hexdigest()
+        )
+    return lines
+
+
+def run_snapshot_check() -> tuple[int, list[str]]:
+    missing = missing_required_paths(ROOT)
+    if missing:
+        return 1, [
+            "PHASE12_LIBBPF_SNAPSHOT=fail",
+            "PHASE12_LIBBPF_SNAPSHOT_MISSING_START",
+            *missing,
+            "PHASE12_LIBBPF_SNAPSHOT_MISSING_END",
+        ]
+
+    first = render_snapshot()
+    second = render_snapshot()
+    if first != second:
+        return 1, render_snapshot_result_lines(status="fail", repeat_run="drift")
+
+    result, rendered = compare_snapshot(first)
+    lines = result.stdout.splitlines()
+    if result.returncode != 0:
+        return result.returncode, [
+            *lines,
+            *render_snapshot_result_lines(status="fail", repeat_run="stable"),
+        ]
+
+    return 0, [
+        *lines,
+        *render_snapshot_result_lines(
+            status="pass",
+            repeat_run="stable",
+            snapshot=first,
+            rendered=rendered,
+        ),
+    ]
+
+
 def copy_required_tree(root: Path) -> None:
     for rel_path in REQUIRED_PATHS:
         target_path = root / rel_path
@@ -238,6 +290,31 @@ def run_self_test() -> int:
         raise SystemExit("phase12-libbpf-snapshot:self-test:fixture_match")
     if "ARTIFACT_DIFF=pass" not in matched_result.stdout:
         raise SystemExit("phase12-libbpf-snapshot:self-test:fixture_match_stdout")
+    expected_pass_lines = [
+        "ARTIFACT_DIFF=pass",
+        "MODE=json",
+        f"EXPECTED={FIXTURE_PATH}",
+        "ACTUAL=",
+        *render_snapshot_result_lines(
+            status="pass",
+            repeat_run="stable",
+            snapshot=first,
+            rendered=json.dumps(first, indent=2) + "\n",
+        ),
+    ]
+    pass_exit_code, pass_lines = run_snapshot_check()
+    if pass_exit_code != 0:
+        raise SystemExit("phase12-libbpf-snapshot:self-test:pass_exit_code")
+    if len(pass_lines) != len(expected_pass_lines):
+        raise SystemExit("phase12-libbpf-snapshot:self-test:pass_line_count")
+    if pass_lines[:2] != expected_pass_lines[:2]:
+        raise SystemExit("phase12-libbpf-snapshot:self-test:pass_prefix")
+    if pass_lines[2] != expected_pass_lines[2]:
+        raise SystemExit("phase12-libbpf-snapshot:self-test:pass_expected_path")
+    if not pass_lines[3].startswith("ACTUAL="):
+        raise SystemExit("phase12-libbpf-snapshot:self-test:pass_actual_path")
+    if pass_lines[4:] != expected_pass_lines[4:]:
+        raise SystemExit("phase12-libbpf-snapshot:self-test:pass_snapshot_lines")
 
     drifted = dict(first)
     drifted["lane_key"] = "P12-L99"
@@ -284,8 +361,35 @@ def run_self_test() -> int:
     drifted_order["files"][0], drifted_order["files"][last_index] = drifted_order["files"][last_index], drifted_order["files"][0]
     expect_snapshot_mismatch("fixture_tracked_order_drift", drifted_order)
 
+    with tempfile.TemporaryDirectory(prefix="zigux_phase12_libbpf_snapshot_missing_root_") as tmp_dir_str:
+        missing_root = Path(tmp_dir_str)
+        copy_required_tree(missing_root)
+        (missing_root / TRACKED_PATHS[1]).unlink()
+        original_root = globals()["ROOT"]
+        original_fixture_path = globals()["FIXTURE_PATH"]
+        original_artifact_diff_path = globals()["ARTIFACT_DIFF_PATH"]
+        try:
+            globals()["ROOT"] = missing_root
+            globals()["FIXTURE_PATH"] = missing_root / FIXTURE_REL_PATH
+            globals()["ARTIFACT_DIFF_PATH"] = missing_root / ARTIFACT_DIFF_REL_PATH
+            missing_exit_code, missing_lines = run_snapshot_check()
+        finally:
+            globals()["ROOT"] = original_root
+            globals()["FIXTURE_PATH"] = original_fixture_path
+            globals()["ARTIFACT_DIFF_PATH"] = original_artifact_diff_path
+        if missing_exit_code != 1:
+            raise SystemExit("phase12-libbpf-snapshot:self-test:missing_exit_code")
+        expected_missing_lines = [
+            "PHASE12_LIBBPF_SNAPSHOT=fail",
+            "PHASE12_LIBBPF_SNAPSHOT_MISSING_START",
+            f"missing_file:{TRACKED_PATHS[1]}",
+            "PHASE12_LIBBPF_SNAPSHOT_MISSING_END",
+        ]
+        if missing_lines != expected_missing_lines:
+            raise SystemExit("phase12-libbpf-snapshot:self-test:missing_lines")
+
     print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST=pass")
-    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT=31")
+    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT=33")
     return 0
 
 
@@ -303,42 +407,10 @@ def main(argv: list[str] | None = None) -> int:
     if args.self_test:
         return run_self_test()
 
-    missing = missing_required_paths(ROOT)
-    if missing:
-        print("PHASE12_LIBBPF_SNAPSHOT=fail")
-        print("PHASE12_LIBBPF_SNAPSHOT_MISSING_START")
-        for item in missing:
-            print(item)
-        print("PHASE12_LIBBPF_SNAPSHOT_MISSING_END")
-        return 1
-
-    first = render_snapshot()
-    second = render_snapshot()
-    if first != second:
-        print("PHASE12_LIBBPF_SNAPSHOT=fail")
-        print("PHASE12_LIBBPF_REPEAT_RUN=drift")
-        return 1
-
-    result, rendered = compare_snapshot(first)
-
-    if result.stdout:
-        sys.stdout.write(result.stdout)
-    if result.stderr:
-        sys.stderr.write(result.stderr)
-
-    if result.returncode != 0:
-        print("PHASE12_LIBBPF_SNAPSHOT=fail")
-        print("PHASE12_LIBBPF_REPEAT_RUN=stable")
-        return result.returncode
-
-    print("PHASE12_LIBBPF_SNAPSHOT=pass")
-    print("PHASE12_LIBBPF_REPEAT_RUN=stable")
-    print(f"PHASE12_LIBBPF_TRACKED_FILE_COUNT={first['tracked_file_count']}")
-    print(
-        "PHASE12_LIBBPF_SNAPSHOT_SHA256="
-        + hashlib.sha256(rendered.encode("utf-8")).hexdigest()
-    )
-    return 0
+    exit_code, lines = run_snapshot_check()
+    for line in lines:
+        print(line)
+    return exit_code
 
 
 if __name__ == "__main__":
