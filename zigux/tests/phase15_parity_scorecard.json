@@ -17,6 +17,8 @@
       "indefinite-C policy link or applicability note",
       "retained discussion state",
       "reopen triggers",
+      "trigger-specific refreshed evidence by path",
+      "refreshed ownership records when `ownership_or_validation_changed` is cited",
       "written rationale"
     ],
     "reopen_trigger_catalog": [
@@ -24,7 +26,7 @@
       "evidence_packet_stale_or_contradictory",
       "ownership_or_validation_changed"
     ],
-    "retirement_rule": "A frozen anchor leaves active discussion only after the current roadmap phase, Architecture Council sign-off, validation evidence links, rollback ownership, evidence archive path, latest blocker disposition, automatic return-to-blocked trigger, rollback threshold, indefinite-C policy link or applicability note, retained discussion state, reopen triggers, and written rationale are all recorded together in the scorecard.",
+    "retirement_rule": "A frozen anchor leaves active discussion only after the current roadmap phase, Architecture Council sign-off, validation evidence links, rollback ownership, evidence archive path, latest blocker disposition, automatic return-to-blocked trigger, rollback threshold, indefinite-C policy link or applicability note, retained discussion state, reopen triggers, trigger-specific refreshed evidence by path, refreshed ownership records when `ownership_or_validation_changed` is cited, and written rationale are all recorded together in the scorecard.",
     "archive_requirements": [
       "linked surveys and blocker follow-ups",
       "benchmark notes",
@@ -354,7 +356,7 @@
     "anchors_with_phase14_survey_evidence": 2,
     "reserved_evidence_archive_templates": 4,
     "anchors_with_explicit_blocker_dispositions": 4,
-    "required_review_process_record_fields": 13,
+    "required_review_process_record_fields": 15,
     "reopen_trigger_catalog_entries": 3,
     "repo_evidence_checks_green": 15,
     "landed_scorecard_gaps": 19,
