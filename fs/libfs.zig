@@ -17,6 +17,7 @@ pub const ModuleDescriptor = struct {
     provides_directory_close_planning: bool,
     provides_transaction_buffer_planning: bool,
     provides_transaction_read_release_planning: bool,
+    provides_open_private_data_planning: bool,
     touches_live_dcache: bool,
     touches_live_inode_state: bool,
 };
@@ -193,6 +194,18 @@ pub const TransactionReleasePlan = struct {
     had_private_data: bool,
 };
 
+pub const SimpleOpenPrivateDataSource = enum {
+    unchanged,
+    inode_private,
+};
+
+pub const SimpleOpenPlan = struct {
+    anchor: []const u8,
+    private_data_source: SimpleOpenPrivateDataSource,
+    returns_zero: bool,
+    stores_inode_private_data: bool,
+};
+
 pub const LibFsHelperLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -208,6 +221,7 @@ pub const LibFsHelperLab = struct {
             .provides_directory_close_planning = true,
             .provides_transaction_buffer_planning = true,
             .provides_transaction_read_release_planning = true,
+            .provides_open_private_data_planning = true,
             .touches_live_dcache = false,
             .touches_live_inode_state = false,
         };
@@ -582,6 +596,15 @@ pub const LibFsHelperLab = struct {
             .returns_zero = true,
             .frees_private_data = has_private_data,
             .had_private_data = has_private_data,
+        };
+    }
+
+    pub fn simpleOpenPlan(inode_has_private_data: bool) SimpleOpenPlan {
+        return .{
+            .anchor = descriptor().anchor,
+            .private_data_source = if (inode_has_private_data) .inode_private else .unchanged,
+            .returns_zero = true,
+            .stores_inode_private_data = inode_has_private_data,
         };
     }
 };
