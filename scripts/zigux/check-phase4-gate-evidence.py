@@ -33,6 +33,13 @@ REQUIRED_SURVEY_ALIGNMENT_MARKERS = [
     "phase4_runtime_atomic64_diff_survey.zig",
 ]
 
+EXACT_VALIDATOR_STATUS_LINES = [
+    "PHASE4_VALIDATOR_SELF_TEST=pass",
+    "PHASE4_VALIDATION=pass",
+    "PHASE4_REQUIRED_FILE_COUNT=23",
+    "PHASE4_REQUIRED_MARKER_COUNT=236",
+]
+
 PHASE4_GATE_EVIDENCE_BLOB_TARGETS = {
     "PHASE4_VALIDATION_MATRIX_BLOB_SHA": "Documentation/zigux/phase4-validation-matrix.md",
     "PHASE4_VALIDATOR_BLOB_SHA": "scripts/zigux/validate-phase4.py",
@@ -79,6 +86,9 @@ def validate_root(root: Path) -> list[str]:
     for marker in REQUIRED_SURVEY_ALIGNMENT_MARKERS:
         if marker not in gate_evidence:
             missing.append(f"phase4_gate_evidence:{marker}")
+    for line in EXACT_VALIDATOR_STATUS_LINES:
+        if f"`{line}`" not in gate_evidence:
+            missing.append(f"phase4_gate_evidence:{line}")
 
     for marker, relative_path in PHASE4_GATE_EVIDENCE_BLOB_TARGETS.items():
         target = root / relative_path
@@ -133,8 +143,8 @@ def write_fixture_tree(root: Path) -> None:
         "- `PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions`",
         "- `PHASE4_VALIDATOR_SELF_TEST=pass`",
         "- `PHASE4_VALIDATION=pass`",
-        "- `PHASE4_REQUIRED_FILE_COUNT=22`",
-        "- `PHASE4_REQUIRED_MARKER_COUNT=232`",
+        "- `PHASE4_REQUIRED_FILE_COUNT=23`",
+        "- `PHASE4_REQUIRED_MARKER_COUNT=236`",
         "- `PHASE4_GATE_EVIDENCE_SELF_TEST=pass`",
         "- `PHASE4_GATE_EVIDENCE_CHECK=pass`",
         f"- `PHASE4_GATE_EVIDENCE_TARGET_COUNT={len(PHASE4_GATE_EVIDENCE_BLOB_TARGETS)}`",
@@ -189,6 +199,36 @@ def run_self_test() -> int:
         )
         missing = validate_root(root)
         assert "phase4_gate_evidence:PHASE4_VALIDATION=pass" in missing, missing
+
+        write_fixture_tree(root)
+        gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
+        gate_evidence.write_text(
+            gate_evidence.read_text(encoding="utf-8").replace(
+                "PHASE4_REQUIRED_FILE_COUNT=23",
+                "PHASE4_REQUIRED_FILE_COUNT=21",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert (
+            "phase4_gate_evidence:PHASE4_REQUIRED_FILE_COUNT=23" in missing
+        ), missing
+
+        write_fixture_tree(root)
+        gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
+        gate_evidence.write_text(
+            gate_evidence.read_text(encoding="utf-8").replace(
+                "PHASE4_REQUIRED_MARKER_COUNT=236",
+                "PHASE4_REQUIRED_MARKER_COUNT=231",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert (
+            "phase4_gate_evidence:PHASE4_REQUIRED_MARKER_COUNT=236" in missing
+        ), missing
 
         write_fixture_tree(root)
         gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
