@@ -187,7 +187,7 @@ REQUIRED_LEDGER_MARKERS = [
 
 REQUIRED_BENCH_CHECKER_MARKERS = [
     "print('PHASE1_BENCH_SELF_TEST=pass')",
-    "print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=14')",
+    "print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=15')",
     "print('DUPLICATE_PHASE1_BENCH_KEYS_START')",
     "print('MISSING_PHASE1_BENCH_KEYS_START')",
 ]
@@ -343,9 +343,9 @@ EXPECTED_MANIFEST_FIELDS = {
         ),
         "memparse_unit_test_anchor": 'tools/lib/string.zig:test "memparse forwards the header-level string helper surface"',
         "memparse_unit_test_contract": (
-            "Direct Zig unit coverage keeps memparse aligned by preserving decimal, hexadecimal, "
-            "suffix-bearing, and invalid inputs without changing the parsed value or rest pointer "
-            "contract."
+            "Direct Zig unit coverage keeps memparse aligned by forwarding decimal, hexadecimal, "
+            "suffix-bearing, and invalid inputs through the shared command-line parser without "
+            "changing the parsed value or rest pointer contract."
         ),
     },
 }
@@ -567,13 +567,13 @@ def run_self_test() -> int:
         bench_checker_path = tmp_root / "scripts" / "zigux" / "check-phase1-bench.py"
         original_bench_checker = bench_checker_path.read_text(encoding="utf-8")
         bench_checker_path.write_text(
-            replace_once(original_bench_checker, "print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=14')"),
+            replace_once(original_bench_checker, "print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=15')"),
             encoding="utf-8",
         )
         expect_missing_marker(
             "bench_self_test_count",
             tmp_root,
-            "bench_checker:print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=14')",
+            "bench_checker:print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=15')",
         )
         bench_checker_path.write_text(original_bench_checker, encoding="utf-8")
         total_cases += 1
