@@ -26,7 +26,7 @@ The roadmap's Phase 15 work is about governance, not another burst of deep-core 
 
 That still leaves room for packet drift. This focused note and manifest were carrying an older maintenance snapshot, so the honest bounded step is to refresh the freeze-map-specific lane record to the current `master` head and keep the current blocker posture explicit without widening into neighboring Phase 15 packet ownership.
 
-The real current state is steady rather than status-change-ready: the narrower freeze-map packet still replays locally, the same deep-core blocker posture remains in place, and the one remaining broader Phase 15 release-evidence drift is the docs-root summary alignment tracked by the dedicated readiness and handoff packets rather than a freeze-map change.
+The real current state is steady rather than status-change-ready: the narrower freeze-map packet still replays locally, the same deep-core blocker posture remains in place, and the earlier docs-root summary alignment drift is now already closed by the dedicated readiness and handoff packets rather than remaining a freeze-map change.
 
 ## Roadmap versus repo reality
 
@@ -79,7 +79,7 @@ The current lane state is:
 - landed `phase15-roadmap-vs-repo-reality-survey`
 - blocked `phase15-deep-core-status-change-blocker`
 
-This keeps the lane tight: Zigux now has a reviewable governance rule for the freeze map that matches the current roadmap freeze list, the current repo evidence packet family, and the already-landed broader stay-in-C governance artifacts. What remains blocked is any deep-core status change, and the only neighboring governance drift still open is the docs-root summary alignment already owned by the dedicated readiness and handoff packets rather than this freeze-map slice.
+This keeps the lane tight: Zigux now has a reviewable governance rule for the freeze map that matches the current roadmap freeze list, the current repo evidence packet family, and the already-landed broader stay-in-C governance artifacts. What remains blocked is any deep-core status change, while the earlier docs-root summary drift is already closed in the dedicated readiness and handoff packets rather than remaining open inside this freeze-map slice.
 
 ## Non-goals
 
@@ -117,9 +117,9 @@ This slice does not claim:
 - `freeze-map-review-hook-present`: yes
 - `phase15-local-entrypoint-present`: yes
 - `phase15-shared-ci-enforcement-present`: yes
-- `phase15-neighboring-maintenance-drift`: `docs_root_summary_drift_owned_by_readiness_and_handoff_packets`
+- `phase15-neighboring-maintenance-drift`: `closed_docs_root_summary_alignment_landed_in_readiness_and_handoff_packets`
 - `phase15-shared-bundle-green-claim`: `out_of_scope_for_this_freeze_map_packet`
-- next repair step inside this lane family: leave the deep-core blocker posture parked here; the only neighboring maintenance follow-up still open is docs-root release-evidence alignment inside the readiness and handoff packets, or a later blocker-posture change
+- next repair step inside this lane family: leave the deep-core blocker posture parked here and wait for a later blocker-posture change or a new replay drift instead of reopening docs-root alignment work that is already landed in the readiness and handoff packets
 
 ## Next bounded step
 
