@@ -16,13 +16,13 @@ This note records the current atomic, barrier, and MMIO boundary for the bounded
 - `PHASE3_MMIO_PATH=zigux/helpers/mmio.zig`
 - `PHASE3_MMIO_SCOPE=range-read8-read16-read32-read64-write8-write16-write32-write64-plus-scoped-read8-write8-read16-write16-read32-write32-read64-write64`
 - `PHASE3_MMIO_STATUS=scoped-width-specific-mmio-and-64-bit-guard-coverage-landed`
-- `PHASE3_MMIO_BLOB_SHA=f89427a1d2d9a3738575e70b4303a791cce8a3cd`
+- `PHASE3_MMIO_BLOB_SHA=48fc0b280fa04415ba06a1e6ecdf35810ecc7dde`
 - `PHASE3_LOW_LEVEL_BUILD_PATH=zigux/tests/phase3_low_level_wrappers_build.zig`
 - `PHASE3_LOW_LEVEL_BUILD_BLOB_SHA=26de15d04505e0d345e874c538044200507ab8c2`
 - `PHASE3_LOW_LEVEL_TEST_PATH=zigux/tests/phase3_low_level_wrappers.zig`
 - `PHASE3_LOW_LEVEL_TEST_BLOB_SHA=1c7b1c9da723b6626366931fd995e90d471496c6`
-- `PHASE3_ABI_SLICE_DOC_BLOB_SHA=abddfc50e256426894fafc3752339bd1cea79a17`
-- `PHASE3_ABI_MANIFEST_BLOB_SHA=4053835af745f0841b13ebd8d7eb6a5af33003bc`
+- `PHASE3_ABI_SLICE_DOC_BLOB_SHA=c9676f9697cbe34dd75809a4dae6a53b24030059`
+- `PHASE3_ABI_MANIFEST_BLOB_SHA=d553cf38524af7349534668d31f85cd34edd9c5f`
 - `PHASE3_LOW_LEVEL_GATE=zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`
 - `PHASE3_BOUNDARY_GAP=no-relaxed-order-barrier-variants-or-broader-kernel-style-atomic-family-is-shipped-yet`
 - `PHASE3_NEXT_BOUNDED_STEP=keep-the-low-level-wrapper-packet-narrow-until-one-roadmap-backed-boundary-slice-needs-an-expanded-barrier-or-atomic-helper`
