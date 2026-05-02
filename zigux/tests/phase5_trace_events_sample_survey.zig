@@ -303,6 +303,14 @@ test "phase 5 trace-events contributor docs stay aligned with the shipped review
     );
     defer std.testing.allocator.free(sample_root_readme);
 
+    const tests_readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/README.md",
+        std.testing.allocator,
+        .limited(review_doc_read_limit),
+    );
+    defer std.testing.allocator.free(tests_readme);
+
     const review_checklist = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/review-checklist.md",
@@ -340,6 +348,9 @@ test "phase 5 trace-events contributor docs stay aligned with the shipped review
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "approved payload-and-callback idiom") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "reviewable and repeatable") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "samples/zigux/README.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared tests-root guide in `zigux/tests/README.md`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "direct `zig test samples/zigux/trace_events_sample.zig` replay") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "paired `zig test zigux/tests/phase5_trace_events_sample_survey.zig` replay") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "surveyed_commit") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "exact inspected `master` head") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "floating branch label") != null);
@@ -397,6 +408,16 @@ test "phase 5 trace-events contributor docs stay aligned with the shipped review
     try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "unregister-underflow rejection before a callback is armed") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "`OutstandingRegistration` rejection if `exit()` is attempted while one callback is still live") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "Phase 9 runtime pilot claim") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "zigux/tests/phase5_trace_events_sample.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "zigux/tests/phase5_trace_events_sample_manifest.json") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "zigux/tests/phase5_trace_events_sample_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "scripts/zigux/validate-phase5.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "make -C zigux phase5-validate") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "zig test samples/zigux/trace_events_sample.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "zig test zigux/tests/phase5_trace_events_sample_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "keep the current Phase 5 reference-sample packet reviewable through `zigux/tests/phase5_build.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "keep the direct sample replays and paired survey replays explicit for every shipped Phase 5 family") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "manifest-backed survey") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "sample-backed survey note") != null);
