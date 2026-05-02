@@ -162,6 +162,10 @@ int main(void)
 	static const unsigned char udp_payload[] = "zigux checksum";
 	static const unsigned char udp_v6_payload[] = "zigux v6 checksum";
 	static const unsigned char tcp_v6_payload[] = { 0xff, 0xff, 0x00, 0x01, 0xab, 0xcd, 0x12, 0x34 };
+	static const unsigned char all_ones_odd[] = { 0xff };
+	static const unsigned char all_ones_even[] = { 0xff, 0xff };
+	static const unsigned char no_carry_single[] = { 0x04 };
+	static const unsigned char no_carry_pair[] = { 0x04, 0x04 };
 	static const unsigned char udp_v6_saddr[] = {
 		0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x00,
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01,
@@ -235,6 +239,15 @@ int main(void)
 	print_u32_case("tcpudpv6-nofold", "tcp carry payload even",
 		       csum_tcpudp_v6_nofold(tcp_v6_saddr, tcp_v6_daddr, sizeof(tcp_v6_payload), 6,
 				     partial_bytes(tcp_v6_payload, sizeof(tcp_v6_payload), 0)));
+
+	print_u16_case("carry-discipline", "all-ones odd payload with saturated seed",
+		       csum_fold(partial_bytes(all_ones_odd, sizeof(all_ones_odd), 0xffffffffU)));
+	print_u16_case("carry-discipline", "all-ones even payload with zero seed",
+		       csum_fold(partial_bytes(all_ones_even, sizeof(all_ones_even), 0)));
+	print_u16_case("carry-discipline", "single-byte no-carry seed stays one step below overflow",
+		       csum_fold(partial_bytes(no_carry_single, sizeof(no_carry_single), 0xfffffbfbU)));
+	print_u16_case("carry-discipline", "two-byte no-carry seed stays one step below overflow",
+		       csum_fold(partial_bytes(no_carry_pair, sizeof(no_carry_pair), 0xfffff7f7U)));
 
 	old_partial = partial_bytes(payload, sizeof(payload), 0);
 	old_word = ((uint32_t)payload[0] << 8) | payload[1];
