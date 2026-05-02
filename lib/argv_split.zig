@@ -58,8 +58,7 @@ pub fn argvSplitWithArgc(
     argcp: ?*usize,
 ) !ArgvSplitResult {
     const current = cStringPrefix(text);
-    const argc = countArgc(current);
-    if (argc == 0) {
+    if (!hasAnyArg(current)) {
         if (argcp) |count_out| {
             count_out.* = 0;
         }
@@ -72,7 +71,7 @@ pub fn argvSplitWithArgc(
 
     var storage = try allocator.dupeZ(u8, current);
     errdefer allocator.free(storage);
-    // `current` is already trimmed to the first NUL, so its argc stays valid after the copy.
+    const argc = countArgc(storage);
 
     var argv = try allocator.alloc([:0]u8, argc);
     errdefer allocator.free(argv);
@@ -121,6 +120,15 @@ pub fn argvFree(allocator: std.mem.Allocator, result: *ArgvSplitResult) void {
 
 fn cStringPrefix(text: []const u8) []const u8 {
     return text[0 .. std.mem.indexOfScalar(u8, text, 0) orelse text.len];
+}
+
+fn hasAnyArg(text: []const u8) bool {
+    for (text) |ch| {
+        if (!std.ascii.isWhitespace(ch)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 const ArgvFixture = struct {
