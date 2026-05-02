@@ -152,6 +152,25 @@
     "zigux/tests/phase10_virtio_input_manifest.json": "phase10-virtio-input-registration-lifecycle",
     "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-lifecycle-and-irq-paths"
   },
+  "rollback_boundaries": {
+    "zigux/tests/phase10_virtio_mmio_manifest.json": {
+      "owner": "phase10-mmio-lab-packet",
+      "validated_by": [
+        "python3 scripts/zigux/validate-phase10-closure.py",
+        "make -C zigux phase10-validate",
+        "make -C zigux phase10"
+      ],
+      "last_safe_rung": "phase10-mmio-config-write-helper",
+      "blocked_expansion": "phase10-mmio-lifecycle-and-irq-paths",
+      "surface": [
+        "drivers/virtio/virtio_mmio.zig",
+        "zigux/tests/phase10_virtio_mmio.zig",
+        "zigux/tests/phase10_virtio_mmio_manifest.json",
+        "Documentation/zigux/phase10-virtio-mmio-slice.md",
+        "Documentation/zigux/phase10-virtio-mmio-survey.md"
+      ]
+    }
+  },
   "freeze_in_c_anchors": [
     "kernel/sched/core.c",
     "mm/page_alloc.c",
