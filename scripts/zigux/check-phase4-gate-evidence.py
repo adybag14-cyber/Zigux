@@ -45,6 +45,13 @@ REQUIRED_SELF_TEST_ROUTE_MARKERS = [
     "Run Phase 4 diff tests",
 ]
 
+REQUIRED_RUNTIME_ATOMIC64_REVERSIBLE_DELIVERY_MARKERS = [
+    "`lib/atomic64_test.c` stays the source of truth",
+    "removing `atomic64_diff.zig` from the shared `phase4_build.zig` entrypoint is the documented rollback move",
+    "`runtime_atomic64_diff.zig` remains the single replay body",
+    "the existing Phase 9 runtime atomic64 starter remains the forward path",
+]
+
 EXACT_VALIDATOR_STATUS_LINES = [
     "PHASE4_VALIDATOR_SELF_TEST=pass",
     "PHASE4_VALIDATION=pass",
@@ -142,6 +149,11 @@ def validate_root(root: Path) -> list[str]:
     for marker in REQUIRED_SELF_TEST_ROUTE_MARKERS:
         if marker not in gate_evidence:
             missing.append(f"phase4_gate_evidence:{marker}")
+    for marker in REQUIRED_RUNTIME_ATOMIC64_REVERSIBLE_DELIVERY_MARKERS:
+        if marker not in gate_evidence:
+            missing.append(
+                f"phase4_gate_evidence:runtime_atomic64_reversible_delivery:{marker}"
+            )
     for line in EXACT_VALIDATOR_STATUS_LINES:
         if f"`{line}`" not in gate_evidence:
             missing.append(f"phase4_gate_evidence:{line}")
@@ -185,10 +197,10 @@ def write_fixture_tree(root: Path) -> None:
         "zigux/tests/README.md": "phase4 tests readme fixture\n",
     }
 
-    for relative_path, content in file_contents.items():
+    for relative_path, content_value in file_contents.items():
         target = root / relative_path
         target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(content, encoding="utf-8")
+        target.write_text(content_value, encoding="utf-8")
 
     gate_evidence_lines = [
         "# Phase 4 Gate Evidence",
@@ -210,6 +222,7 @@ def write_fixture_tree(root: Path) -> None:
         "",
         f"- synthetic fixture keeps shared surveyed snapshot `{SHARED_SURVEYED_COMMIT}` explicit through `phase4_runtime_atomic64_diff_survey.zig`, `phase4_test_fsmount_survey.zig`, and `phase4_perf_baseline_survey.zig`.",
         "- synthetic fixture keeps `Self-test Phase 4 validator` plus `python3 scripts/zigux/validate-phase4.py --self-test` explicit beside `Validate Phase 4 diff gates` and `Run Phase 4 diff tests`.",
+        "- synthetic fixture keeps the runtime atomic64 reversible-delivery packet explicit: `lib/atomic64_test.c` stays the source of truth, removing `atomic64_diff.zig` from the shared `phase4_build.zig` entrypoint is the documented rollback move, `runtime_atomic64_diff.zig` remains the single replay body, and the existing Phase 9 runtime atomic64 starter remains the forward path.",
         "",
         "## Current Conclusion",
         "",
@@ -382,6 +395,24 @@ def run_self_test() -> int:
         missing = validate_root(root)
         assert (
             "phase4_gate_evidence:Self-test Phase 4 validator" in missing
+        ), missing
+
+        write_fixture_tree(root)
+        gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
+        gate_evidence.write_text(
+            gate_evidence.read_text(encoding="utf-8").replace(
+                "`runtime_atomic64_diff.zig` remains the single replay body",
+                "`runtime_atomic64_diff.zig` becomes another replay body",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert any(
+            marker.startswith(
+                "phase4_gate_evidence:runtime_atomic64_reversible_delivery:"
+            )
+            for marker in missing
         ), missing
 
         write_fixture_tree(root)
