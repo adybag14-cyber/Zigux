@@ -16,13 +16,15 @@ const perf_cases = [_]PerfCase{
 const TypedVariant = struct {
     label: []const u8,
     values: []const u32,
-    compare: bsearch.CComparator(u32, u32),
+    compare_native: ?bsearch.Comparator(u32, u32) = null,
+    compare_c: ?bsearch.CComparator(u32, u32) = null,
 };
 
 const RawVariant = struct {
     label: []const u8,
     values: []const u32,
-    compare: bsearch.CRawComparator,
+    compare_native: ?bsearch.RawComparator = null,
+    compare_c: ?bsearch.CRawComparator = null,
 };
 
 var compare_calls: usize = 0;
@@ -54,6 +56,24 @@ const PerfResult = struct {
     max_compare_budget: usize,
 };
 
+fn compareNativeCounted(key: *const u32, item: *const u32) i32 {
+    compare_calls += 1;
+    return switch (std.math.order(key.*, item.*)) {
+        .lt => -1,
+        .eq => 0,
+        .gt => 1,
+    };
+}
+
+fn compareNativeDescendingCounted(key: *const u32, item: *const u32) i32 {
+    compare_calls += 1;
+    return switch (std.math.order(item.*, key.*)) {
+        .lt => -1,
+        .eq => 0,
+        .gt => 1,
+    };
+}
+
 fn compareCounted(key: *const u32, item: *const u32) callconv(.c) i32 {
     compare_calls += 1;
     return switch (std.math.order(key.*, item.*)) {
@@ -66,6 +86,28 @@ fn compareCounted(key: *const u32, item: *const u32) callconv(.c) i32 {
 fn compareDescendingCounted(key: *const u32, item: *const u32) callconv(.c) i32 {
     compare_calls += 1;
     return switch (std.math.order(item.*, key.*)) {
+        .lt => -1,
+        .eq => 0,
+        .gt => 1,
+    };
+}
+
+fn compareOpaqueNativeCounted(key: *const anyopaque, item: *const anyopaque) i32 {
+    compare_calls += 1;
+    const typed_key: *const u32 = @ptrCast(@alignCast(key));
+    const typed_item: *const u32 = @ptrCast(@alignCast(item));
+    return switch (std.math.order(typed_key.*, typed_item.*)) {
+        .lt => -1,
+        .eq => 0,
+        .gt => 1,
+    };
+}
+
+fn compareOpaqueNativeDescendingCounted(key: *const anyopaque, item: *const anyopaque) i32 {
+    compare_calls += 1;
+    const typed_key: *const u32 = @ptrCast(@alignCast(key));
+    const typed_item: *const u32 = @ptrCast(@alignCast(item));
+    return switch (std.math.order(typed_item.*, typed_key.*)) {
         .lt => -1,
         .eq => 0,
         .gt => 1,
@@ -133,12 +175,16 @@ fn runPerfCase(case: PerfCase, io: std.Io) !PerfResult {
     }
 
     const typed_variants = [_]TypedVariant{
-        .{ .label = "typed-ascending", .values = values, .compare = compareCounted },
-        .{ .label = "typed-descending", .values = descending_values, .compare = compareDescendingCounted },
+        .{ .label = "typed-native-ascending", .values = values, .compare_native = compareNativeCounted },
+        .{ .label = "typed-native-descending", .values = descending_values, .compare_native = compareNativeDescendingCounted },
+        .{ .label = "typed-c-ascending", .values = values, .compare_c = compareCounted },
+        .{ .label = "typed-c-descending", .values = descending_values, .compare_c = compareDescendingCounted },
     };
     const raw_variants = [_]RawVariant{
-        .{ .label = "raw-ascending", .values = values, .compare = compareOpaqueCounted },
-        .{ .label = "raw-descending", .values = descending_values, .compare = compareOpaqueDescendingCounted },
+        .{ .label = "raw-native-ascending", .values = values, .compare_native = compareOpaqueNativeCounted },
+        .{ .label = "raw-native-descending", .values = descending_values, .compare_native = compareOpaqueNativeDescendingCounted },
+        .{ .label = "raw-c-ascending", .values = values, .compare_c = compareOpaqueCounted },
+        .{ .label = "raw-c-descending", .values = descending_values, .compare_c = compareOpaqueDescendingCounted },
     };
 
     var total_compare_calls: usize = 0;
@@ -151,7 +197,10 @@ fn runPerfCase(case: PerfCase, io: std.Io) !PerfResult {
         for (queries, expected_hits) |query, expected_hit| {
             for (typed_variants) |variant| {
                 compare_calls = 0;
-                const found = bsearch.searchIndex(u32, u32, &query, variant.values, variant.compare);
+                const found = if (variant.compare_native) |compare|
+                    bsearch.searchIndex(u32, u32, &query, variant.values, compare)
+                else
+                    bsearch.searchIndex(u32, u32, &query, variant.values, variant.compare_c.?);
                 total_compare_calls += compare_calls;
                 max_compare_calls = @max(max_compare_calls, compare_calls);
 
@@ -161,7 +210,10 @@ fn runPerfCase(case: PerfCase, io: std.Io) !PerfResult {
 
             for (raw_variants) |variant| {
                 compare_calls = 0;
-                const found = bsearch.bsearchIndex(&query, @ptrCast(variant.values.ptr), variant.values.len, @sizeOf(u32), variant.compare);
+                const found = if (variant.compare_native) |compare|
+                    bsearch.bsearchIndex(&query, @ptrCast(variant.values.ptr), variant.values.len, @sizeOf(u32), compare)
+                else
+                    bsearch.bsearchIndex(&query, @ptrCast(variant.values.ptr), variant.values.len, @sizeOf(u32), variant.compare_c.?);
                 total_compare_calls += compare_calls;
                 max_compare_calls = @max(max_compare_calls, compare_calls);
 
