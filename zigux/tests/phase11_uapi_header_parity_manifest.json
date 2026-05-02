@@ -1,7 +1,7 @@
 {
   "lane_key": "P11-L17",
   "phase": "Phase 11",
-  "surveyed_commit": "a0bfa2fc2d924b16bcb342294bd4456dac3632f5",
+  "surveyed_commit": "949994db4046ec70abf044d1b2ea874fde9bc4a6",
   "anchor": "include/uapi/linux/watchdog.h and include/uapi/asm-generic/termios.h",
   "roadmap_destinations": [
     "Documentation/zigux/",
