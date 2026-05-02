@@ -245,11 +245,15 @@ test "phase 8 bridge boundary survey still matches the live helper surfaces" {
     try expectContains(bridge_note, "/proc/<pid>/fdinfo/<fd>");
     try expectContains(bridge_note, "bpf_object_prepare_token()");
     try expectContains(bridge_note, "bpf_object__reuse_map()");
+    try expectContains(bridge_note, "classifyReusePinnedMapOpenFailure()");
+    try expectContains(bridge_note, "`skip_missing_pinned_map`");
     try expectContains(bridge_note, "Documentation/zigux/phase8-perf-buffer-poll-slice.md");
     try expectContains(bridge_note, "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig");
     try expectContains(bridge_note, "zigux/tests/phase8_perf_buffer_poll.zig");
     try expectContains(bridge_note, "wait-result classification");
     try expectContains(bridge_note, "ready-buffer bookkeeping");
+    try expectContains(libbpf_survey_note, "classifyReusePinnedMapOpenFailure()");
+    try expectContains(libbpf_survey_note, "skip_missing_pinned_map");
     try expectContains(cpu_mask_note, "a bounded auto-CPU count clamp that mirrors libbpf's perf-buffer map-budget sizing");
     try expectContains(cpu_mask_note, "a pure online-CPU eligibility predicate that mirrors libbpf's automatic-budget offline skip rule");
     try expectContains(cpu_mask_note, "perf-buffer-online-cpu-routing");
@@ -285,4 +289,6 @@ test "phase 8 bridge boundary survey still matches the live helper surfaces" {
     try expectContains(file_path_handle_bridge_helper, "pub fn chooseReusedMapName(");
     try expectContains(file_path_handle_bridge_helper, "pub fn planTokenPreparation(");
     try expectContains(file_path_handle_bridge_helper, "pub fn classifyTokenPreparationFailure(");
+    try expectContains(file_path_handle_bridge_helper, "pub fn classifyReusePinnedMapOpenFailure(");
+    try expectContains(file_path_handle_bridge_helper, "skip_missing_pinned_map");
 }
