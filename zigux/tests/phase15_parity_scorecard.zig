@@ -139,6 +139,30 @@ fn expectTemplate(io: std.Io, anchor: AnchorScorecard) !void {
     try expectContains(template_doc, "written rationale");
 }
 
+fn countRepoEvidenceGreen(repo_evidence: RepoEvidence) usize {
+    var total: usize = 0;
+    inline for ([_]bool{
+        repo_evidence.freeze_map_present,
+        repo_evidence.review_checklist_present,
+        repo_evidence.phase15_review_process_note_present,
+        repo_evidence.phase15_indefinite_c_policy_note_present,
+        repo_evidence.phase14_rcu_survey_present,
+        repo_evidence.phase14_skbuff_survey_present,
+        repo_evidence.phase15_readme_reviewability_present,
+        repo_evidence.phase15_scorecard_note_present,
+        repo_evidence.phase15_evidence_archive_templates_present,
+        repo_evidence.phase15_anchor_owner_tracking_present,
+        repo_evidence.phase15_scorecard_test_present,
+        repo_evidence.phase15_scorecard_manifest_present,
+        repo_evidence.phase15_build_present,
+        repo_evidence.phase15_make_target_present,
+        repo_evidence.phase15_workflow_replay_present,
+    }) |present| {
+        if (present) total += 1;
+    }
+    return total;
+}
+
 test "phase 15 parity scorecard manifest tracks the current roadmap gap honestly" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -169,15 +193,28 @@ test "phase 15 parity scorecard manifest tracks the current roadmap gap honestly
     try expectContains(manifest.current_parity_tracking_gap.remaining_blocker, "deep-core status-change blocker");
 
     try std.testing.expect(manifest.repo_evidence.freeze_map_present);
+    try std.testing.expect(manifest.repo_evidence.review_checklist_present);
     try std.testing.expect(manifest.repo_evidence.phase15_review_process_note_present);
     try std.testing.expect(manifest.repo_evidence.phase15_indefinite_c_policy_note_present);
+    try std.testing.expect(manifest.repo_evidence.phase14_rcu_survey_present);
+    try std.testing.expect(manifest.repo_evidence.phase14_skbuff_survey_present);
     try std.testing.expect(manifest.repo_evidence.phase15_readme_reviewability_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_scorecard_note_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_evidence_archive_templates_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_anchor_owner_tracking_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_scorecard_test_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_scorecard_manifest_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_build_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_make_target_present);
     try std.testing.expect(manifest.repo_evidence.phase15_workflow_replay_present);
+    try std.testing.expectEqual(@as(usize, 15), countRepoEvidenceGreen(manifest.repo_evidence));
 
     try std.testing.expectEqual(@as(usize, 4), manifest.anchors.len);
     try std.testing.expectEqual(@as(usize, 20), manifest.gaps.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.scorecard_metrics.freeze_in_c_anchor_count);
     try std.testing.expectEqual(@as(usize, 2), manifest.scorecard_metrics.anchors_with_phase14_survey_evidence);
+    try std.testing.expectEqual(@as(usize, 15), manifest.scorecard_metrics.repo_evidence_checks_green);
+    try std.testing.expectEqual(manifest.scorecard_metrics.repo_evidence_checks_green, countRepoEvidenceGreen(manifest.repo_evidence));
     try std.testing.expectEqual(@as(usize, 19), manifest.scorecard_metrics.landed_scorecard_gaps);
     try std.testing.expectEqual(@as(usize, 1), manifest.scorecard_metrics.blocked_scorecard_gaps);
     try std.testing.expectEqual(@as(usize, 13), manifest.scorecard_metrics.required_review_process_record_fields);
@@ -260,6 +297,7 @@ test "phase 15 parity scorecard docs keep the parity-tracking survey aligned" {
     try expectContains(scorecard_doc, "Documentation/zigux/phase15-handoff-next-steps-survey.md");
     try expectContains(scorecard_doc, "shared replay path");
     try expectContains(scorecard_doc, "required review-process record fields tracked in the manifest: `13`");
+    try expectContains(scorecard_doc, "repo evidence checks currently green: `15 / 15`");
     try expectContains(scorecard_doc, "landed scorecard gaps: `19 / 20`");
     try expectContains(scorecard_doc, "blocked scorecard gaps: `1 / 20`");
     try expectContains(scorecard_doc, "the current roadmap phase, the decision record ID, and the lane owner");
@@ -284,6 +322,8 @@ test "phase 15 parity scorecard gap inventory stays bounded" {
 
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
+
+    try std.testing.expectEqual(parsed.value.scorecard_metrics.repo_evidence_checks_green, countRepoEvidenceGreen(parsed.value.repo_evidence));
 
     var landed: usize = 0;
     var blocked: usize = 0;
