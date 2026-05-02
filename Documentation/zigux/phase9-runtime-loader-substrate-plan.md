@@ -1,6 +1,6 @@
 # Phase 9 Shared Runtime Loader Substrate Plan
 
-This document captures the bounded Phase 9 follow-up after the landed atomic64, bitmap, and kretprobe loader scaffolds and now records the first shared request surface that all three loaders can emit.
+This document captures the bounded Phase 9 follow-up after the landed atomic64, bitmap, and kretprobe shared-request loader scaffolds, while keeping the adjacent trace-events loader scaffold explicit as a separate blocked pre-execution boundary, and now records the first shared request surface that all three shared-request loaders can emit.
 
 ## Status
 
@@ -8,7 +8,7 @@ This document captures the bounded Phase 9 follow-up after the landed atomic64, 
 - `PHASE9_SLICE=shared-runtime-loader-substrate-plan`
 - `PHASE9_LANE_KEY=P6-L01`
 - `PHASE9_SURVEYED_COMMIT=a15760c3e46103fd41ae0da852b61f612e9116c6`
-- scope: shared request shape, shared loader-stage vocabulary, allocator-handoff and command-name review surfaces, atomic64 plus bitmap plus kretprobe handoff alignment, and an explicit low-risk path that now lands as `zigux/kernel/runtime_loader.zig` without claiming live runtime execution
+- scope: shared request shape, shared loader-stage vocabulary, allocator-handoff and command-name review surfaces, atomic64 plus bitmap plus kretprobe handoff alignment, the explicit adjacent trace-events scaffold boundary, and an explicit low-risk path that now lands as `zigux/kernel/runtime_loader.zig` without claiming live runtime execution
 - product boundary:
   - `Documentation/zigux/phase9-runtime-loader-substrate-plan.md`
   - `zigux/kernel/runtime_loader.zig`
@@ -27,6 +27,8 @@ The live repo already ships three bounded loader-handoff surfaces:
 - `samples/zigux/runtime_kretprobe_loader.zig`
 
 All three files currently stop at the same honest blocker: they can prepare a reviewable handoff plan, request runtime loading, and release without substrate, but they still have nowhere shared to send that handoff inside Zigux.
+
+The live repo also now carries `samples/zigux/runtime_trace_events_loader.zig` as the bounded scaffold for the fourth Phase 9 pilot, but that scaffold remains adjacent to this first shared-request packet rather than part of its union: the trace-events packet still blocks thread creation, tracepoint-registration lifecycle wiring, and any `kernel/trace/ring_buffer.c` status change behind the study-only freeze boundary.
 
 That makes the next useful step a shared substrate surface rather than another lane-local wording pass or a premature runtime-module implementation.
 
@@ -79,6 +81,8 @@ The first lane payloads stay small:
 - bitmap payload: summary snapshot only
 - kretprobe payload: register API, unregister API, symbol name, `maxactive`, private-data bytes, and current bookkeeping summary
 
+The first shared-request union therefore still covers atomic64, bitmap, and kretprobe only, while the trace-events scaffold remains a separate pre-execution note until that packet can truthfully reuse the same handoff without implying trace-core parity or scheduler-facing ownership.
+
 ## Current acceptance boundary
 
 The first shared substrate implementation is now ready because:
@@ -86,7 +90,7 @@ The first shared substrate implementation is now ready because:
 - atomic64, bitmap, and kretprobe can all export a common request shape without losing their current lane-specific facts
 - the shared Phase 9 build can run focused tests for that common request shape
 - the code still makes it impossible to confuse a bounded handoff with a real loadable runtime module
-- the trace-events lane remains free to adopt the same request shape later without forcing the first implementation to solve thread creation or tracepoint registration
+- the adjacent trace-events scaffold remains free to adopt the same request shape later, but it is still intentionally outside this first shared-request union so the implementation does not have to pretend thread creation or tracepoint registration are already solved
 - the shared request keeps `command_name` reviewable as a narrow handoff clue that can later mirror `ExtractArgv0Result.command_name` without claiming a finished argv or environment control plane
 - allocator ownership now stays machine-checkable through the shared `allocator_handoff` record before any real runtime loader exists
 
