@@ -20,6 +20,8 @@ FILES = [
     "Documentation/zigux/phase15-indefinite-c-policy.md",
     "Documentation/zigux/phase15-readiness-gate-survey.md",
     "Documentation/zigux/phase15-handoff-next-steps-survey.md",
+    "scripts/zigux/README.md",
+    "zigux/tests/README.md",
     ".github/workflows/zigux-bootstrap.yml",
     "zigux/Makefile",
     "zigux/tests/phase15_build.zig",
@@ -52,6 +54,23 @@ README_MARKERS = [
     "Phase 15 notes",
     "only remaining blocked work is the deep-core status-change evidence",
     "Documentation/zigux/phase15-handoff-next-steps-survey.md",
+]
+
+SCRIPTS_README_MARKERS = [
+    "Phase 15 flow",
+    "validate-phase15.py",
+    "make -C zigux phase15-validate",
+    "make -C zigux phase15",
+    "zig build test --build-file zigux/tests/phase15_build.zig",
+]
+
+TESTS_README_MARKERS = [
+    "Phase 15 guidance",
+    "zigux/tests/phase15_build.zig",
+    "scripts/zigux/validate-phase15.py",
+    "make -C zigux phase15-validate",
+    "make -C zigux phase15",
+    "blocked deep-core status-change posture",
 ]
 
 SURVEY_MARKERS = [
@@ -149,6 +168,8 @@ if missing_files:
 require_markers('make', text('zigux/Makefile'), MAKE_MARKERS)
 require_markers('workflow', text('.github/workflows/zigux-bootstrap.yml'), WORKFLOW_MARKERS)
 require_markers('readme', text('Documentation/zigux/README.md'), README_MARKERS)
+require_markers('scripts_readme', text('scripts/zigux/README.md'), SCRIPTS_README_MARKERS)
+require_markers('tests_readme', text('zigux/tests/README.md'), TESTS_README_MARKERS)
 require_markers('survey', text('Documentation/zigux/phase15-readiness-gate-survey.md'), SURVEY_MARKERS)
 require_markers('handoff', text('Documentation/zigux/phase15-handoff-next-steps-survey.md'), HANDOFF_MARKERS)
 require_markers('handoff_test', text('zigux/tests/phase15_handoff_next_steps.zig'), HANDOFF_TEST_MARKERS)
@@ -214,5 +235,18 @@ if missing:
 
 print('PHASE15_VALIDATION=pass')
 print(f'PHASE15_REQUIRED_FILE_COUNT={len(FILES)}')
-print('PHASE15_REQUIRED_MARKER_COUNT=' + str(len(MAKE_MARKERS)+len(WORKFLOW_MARKERS)+len(README_MARKERS)+len(SURVEY_MARKERS)+len(HANDOFF_MARKERS)+len(HANDOFF_TEST_MARKERS)+len(DOCS_ROOT_REVIEWABILITY_MARKERS)+len(BUILD_MARKERS)))
+print(
+    'PHASE15_REQUIRED_MARKER_COUNT=' + str(
+        len(MAKE_MARKERS)
+        + len(WORKFLOW_MARKERS)
+        + len(README_MARKERS)
+        + len(SCRIPTS_README_MARKERS)
+        + len(TESTS_README_MARKERS)
+        + len(SURVEY_MARKERS)
+        + len(HANDOFF_MARKERS)
+        + len(HANDOFF_TEST_MARKERS)
+        + len(DOCS_ROOT_REVIEWABILITY_MARKERS)
+        + len(BUILD_MARKERS)
+    )
+)
 print('PHASE15_REMAINING_BLOCKERS=phase15-deep-core-status-change-blocker')
