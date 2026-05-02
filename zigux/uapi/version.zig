@@ -5,8 +5,12 @@ pub const abi_version: u16 = abi.ABI_VERSION;
 pub const header_size: u32 = @sizeOf(abi.BoundaryHeader);
 pub const Header = abi.BoundaryHeader;
 
-pub fn boundaryHeader(flags: u16) Header {
+pub fn canonicalHeader(flags: u16) Header {
     return abi.defaultHeader(flags);
+}
+
+pub fn boundaryHeader(flags: u16) Header {
+    return canonicalHeader(flags);
 }
 
 pub fn compatibleHeader(size: u32, flags: u16) Header {
@@ -45,7 +49,8 @@ test "phase3 uapi version follows abi version" {
 }
 
 test "phase3 uapi boundary header stays explicit and compatible" {
-    const header = boundaryHeader(0x22);
+    const header = canonicalHeader(0x22);
+    try std.testing.expectEqual(header, boundaryHeader(0x22));
     try std.testing.expectEqual(header_size, header.size);
     try std.testing.expectEqual(abi.ABI_VERSION, header.abi_version);
     try std.testing.expectEqual(@as(u16, 0x22), header.flags);
@@ -67,7 +72,8 @@ test "phase3 uapi boundary header stays explicit and compatible" {
 }
 
 test "phase3 uapi boundary header distinguishes canonical and future-compatible shapes" {
-    const canonical = boundaryHeader(0x33);
+    const canonical = canonicalHeader(0x33);
+    try std.testing.expectEqual(canonical, boundaryHeader(0x33));
     try std.testing.expect(isCanonical(canonical));
     try std.testing.expect(isCompatible(canonical));
 
