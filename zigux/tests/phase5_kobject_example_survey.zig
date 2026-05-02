@@ -122,7 +122,8 @@ test "phase 5 kobject manifest records the exact bounded checks" {
         if (std.mem.indexOf(u8, prompt, "sysfs creation") != null and
             std.mem.indexOf(u8, prompt, "kernel_kobj integration") != null and
             std.mem.indexOf(u8, prompt, "uevents") != null and
-            std.mem.indexOf(u8, prompt, "module registration out of scope") != null)
+            std.mem.indexOf(u8, prompt, "module registration out of scope") != null and
+            std.mem.indexOf(u8, prompt, "approved Phase 5 ownership-and-lifetime idiom") != null)
         {
             saw_non_goal_prompt = true;
         }
@@ -332,6 +333,7 @@ test "phase 5 kobject contributor docs stay aligned with the shipped review surf
     try expectContains(sample_root_readme, "shared `0664` mode pattern");
     try expectContains(sample_root_readme, "unnamed attribute-group shape");
     try expectContains(sample_root_readme, "initialized-only abandonment path");
+    try expectContains(sample_root_readme, "approved Phase 5 in-memory ownership-and-lifetime idiom");
     try expectContains(sample_root_readme, "runtime sysfs claim");
 
     try expectContains(tests_readme, "zigux/tests/phase5_kobject_example.zig");
