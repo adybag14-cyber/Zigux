@@ -454,6 +454,8 @@ EXPECTED_CHECKSUM_DETERMINISM = {
     "ipv6_pseudo_header_vectors": 2,
     "carry_discipline_vectors": 4,
     "kunit_random_prefix_vectors": 6,
+    "c_parity_self_test_cases": 6,
+    "c_parity_cases": 15,
 }
 
 EXPECTED_HEXDUMP_DETERMINISM = {
@@ -517,11 +519,14 @@ EXPECTED_MANIFEST = {
             "tests": [
                 "zigux/tests/phase6_checksum.zig",
                 "zigux/tests/phase6_checksum_perf.zig",
+                "zigux/tests/phase6_checksum_c_parity.zig",
             ],
             "fixtures": [
                 "zigux/tests/fixtures/phase6_checksum_vectors.zig",
+                "zigux/tests/fixtures/phase6_checksum_c_harness.c",
             ],
             "slice_note": "Documentation/zigux/phase6-checksum-slice.md",
+            "external_parity": "python3 scripts/zigux/check-phase6-checksum-c-parity.py",
         },
         {
             "id": "hexdump",
