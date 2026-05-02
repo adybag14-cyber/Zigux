@@ -30,7 +30,7 @@ const Manifest = struct {
     gaps: []const Gap,
 };
 
-const expected_surveyed_commit = "d0897d9112eef2f950d0079b2df8e441eb1f5226";
+const expected_surveyed_commit = "8812ad875b0307da2cc0fa3588b9a24325b85e17";
 const expected_slice_marker = "PHASE13_SLICE=landlock-ruleset-helper-lab";
 
 fn isAllowedStatus(status: []const u8) bool {
