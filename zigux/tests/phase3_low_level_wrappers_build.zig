@@ -9,11 +9,32 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const panic_policy_module = b.createModule(.{
+        .root_source_file = b.path("../helpers/panic_policy.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    panic_policy_module.addImport("abi_bindings", abi_bindings_module);
+    const allocator_policy_module = b.createModule(.{
+        .root_source_file = b.path("../helpers/allocator_policy.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    allocator_policy_module.addImport("abi_bindings", abi_bindings_module);
     const narrow_unsafe_module = b.createModule(.{
         .root_source_file = b.path("../unsafe/narrow.zig"),
         .target = target,
         .optimize = optimize,
     });
+    const interop_policy_module = b.createModule(.{
+        .root_source_file = b.path("../helpers/interop_policy.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    interop_policy_module.addImport("abi_bindings", abi_bindings_module);
+    interop_policy_module.addImport("panic_policy", panic_policy_module);
+    interop_policy_module.addImport("allocator_policy", allocator_policy_module);
+    interop_policy_module.addImport("narrow_unsafe", narrow_unsafe_module);
     const layout_assert_module = b.createModule(.{
         .root_source_file = b.path("../helpers/layout_assert.zig"),
         .target = target,
@@ -36,6 +57,7 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     mmio_helpers_module.addImport("abi_bindings", abi_bindings_module);
+    mmio_helpers_module.addImport("interop_policy", interop_policy_module);
     mmio_helpers_module.addImport("narrow_unsafe", narrow_unsafe_module);
 
     const low_level_root_module = b.createModule(.{
