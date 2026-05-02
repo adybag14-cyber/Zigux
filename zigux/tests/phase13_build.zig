@@ -14,6 +14,11 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const devres_dma_coherent_module = b.createModule(.{
+        .root_source_file = b.path("../../lib/devres_dma_coherent.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
     const landlock_ruleset_module = b.createModule(.{
         .root_source_file = b.path("../../security/landlock/ruleset.zig"),
         .target = target,
@@ -41,7 +46,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
-    phase13_devres_dma_coherent_module.addImport("devres", devres_module);
+    phase13_devres_dma_coherent_module.addImport("devres_dma_coherent", devres_dma_coherent_module);
     const phase13_landlock_ruleset_module = b.createModule(.{
         .root_source_file = b.path("phase13_landlock_ruleset.zig"),
         .target = target,
