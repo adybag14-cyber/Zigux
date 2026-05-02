@@ -446,6 +446,7 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
     try std.testing.expect(std.mem.indexOf(u8, samples_readme, "lib/cmdline.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, samples_readme, "phase7_cmdline.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, samples_readme, "phase7_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, samples_readme, "zig test zigux/tests/phase5_bytestream_fifo.zig") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, tests_readme, "zigux/tests/phase5_bytestream_fifo.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, tests_readme, "zigux/tests/phase5_bytestream_fifo_manifest.json") != null);
