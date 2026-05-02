@@ -117,16 +117,16 @@ test "runtime module metadata manifest keeps the dedicated descriptor and depmod
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.survey_summary.runtime_descriptor_count);
     try std.testing.expectEqual(@as(usize, 3), manifest.survey_summary.runtime_loader_lane_count);
-    try std.testing.expectEqual(@as(usize, 3), manifest.survey_summary.runtime_loader_plan_count);
-    try std.testing.expectEqual(@as(usize, 1), manifest.survey_summary.runtime_sample_only_blocked_count);
+    try std.testing.expectEqual(@as(usize, 4), manifest.survey_summary.runtime_loader_plan_count);
+    try std.testing.expectEqual(@as(usize, 0), manifest.survey_summary.runtime_sample_only_blocked_count);
     try std.testing.expectEqual(@as(usize, 9), manifest.survey_summary.shared_metadata_field_count);
     try std.testing.expectEqual(@as(usize, 8), manifest.survey_summary.depmod_gap_count);
     try std.testing.expect(manifest.survey_summary.shared_runtime_loader_present);
-    try std.testing.expect(!manifest.survey_summary.runtime_trace_events_loader_present);
+    try std.testing.expect(manifest.survey_summary.runtime_trace_events_loader_present);
     try std.testing.expectEqual(@as(usize, 4), manifest.descriptor_surfaces.len);
     try std.testing.expectEqual(@as(usize, 9), manifest.shared_runtime_loader_metadata_fields.len);
-    try std.testing.expectEqual(@as(usize, 3), manifest.runtime_loader_plans.len);
-    try std.testing.expectEqual(@as(usize, 1), manifest.runtime_sample_only_blocked.len);
+    try std.testing.expectEqual(@as(usize, 4), manifest.runtime_loader_plans.len);
+    try std.testing.expectEqual(@as(usize, 0), manifest.runtime_sample_only_blocked.len);
     try std.testing.expectEqual(@as(usize, 8), manifest.depmod_gap_surfaces.len);
     try std.testing.expectEqual(@as(usize, 8), manifest.delivery_evidence_catalog.len);
     try std.testing.expectEqual(@as(usize, 8), manifest.ownership_map.len);
@@ -138,8 +138,7 @@ test "runtime module metadata manifest keeps the dedicated descriptor and depmod
     try std.testing.expectEqualStrings("module_name", manifest.shared_runtime_loader_metadata_fields[0]);
     try std.testing.expectEqualStrings("allocator_handoff", manifest.shared_runtime_loader_metadata_fields[8]);
     try std.testing.expectEqualStrings("samples/zigux/runtime_kretprobe_loader.zig", manifest.runtime_loader_plans[2]);
-    try std.testing.expectEqualStrings("samples/zigux/runtime_trace_events_loader.zig", manifest.runtime_sample_only_blocked[0].blocked_loader_path);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.runtime_sample_only_blocked[0].why_blocked, "sample-only") != null);
+    try std.testing.expectEqualStrings("samples/zigux/runtime_trace_events_loader.zig", manifest.runtime_loader_plans[3]);
     try std.testing.expectEqualStrings("MODULE_INFO()", manifest.depmod_gap_surfaces[0]);
     try std.testing.expectEqualStrings("scripts/depmod.sh", manifest.depmod_gap_surfaces[7]);
 
@@ -149,8 +148,8 @@ test "runtime module metadata manifest keeps the dedicated descriptor and depmod
     var saw_packet_checker = false;
     var saw_phase9_build_gate = false;
     var saw_tests_readme_guide = false;
-    var saw_loader_gap_note = false;
     var saw_runtime_loader_contract = false;
+    var saw_trace_events_loader_plan = false;
     for (manifest.delivery_evidence_catalog, 0..) |entry, i| {
         try std.testing.expect(entry.id.len > 0);
         try std.testing.expect(entry.kind.len > 0);
@@ -199,13 +198,7 @@ test "runtime module metadata manifest keeps the dedicated descriptor and depmod
             try std.testing.expectEqualStrings("zigux/tests/README.md", entry.path);
             try std.testing.expect(std.mem.indexOf(u8, entry.role, "tests-root guidance") != null);
             try std.testing.expect(std.mem.indexOf(u8, entry.role, "dedicated metadata checker") != null);
-            try std.testing.expect(std.mem.indexOf(u8, entry.role, "loader-gap packet") != null);
-        }
-        if (std.mem.eql(u8, entry.id, "runtime-loader-gap-note")) {
-            saw_loader_gap_note = true;
-            try std.testing.expectEqualStrings("documentation", entry.kind);
-            try std.testing.expectEqualStrings("Documentation/zigux/phase9-runtime-loader-gap-survey.md", entry.path);
-            try std.testing.expect(std.mem.indexOf(u8, entry.role, "missing runtime_trace_events_loader sibling") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "broader Phase 9 runtime packet") != null);
         }
         if (std.mem.eql(u8, entry.id, "shared-runtime-loader-contract")) {
             saw_runtime_loader_contract = true;
@@ -213,6 +206,13 @@ test "runtime module metadata manifest keeps the dedicated descriptor and depmod
             try std.testing.expectEqualStrings("zigux/kernel/runtime_loader.zig", entry.path);
             try std.testing.expect(std.mem.indexOf(u8, entry.role, "RuntimeLoadRequest metadata fields") != null);
             try std.testing.expect(std.mem.indexOf(u8, entry.role, "three-lane loader union") != null);
+        }
+        if (std.mem.eql(u8, entry.id, "runtime-trace-events-loader-plan")) {
+            saw_trace_events_loader_plan = true;
+            try std.testing.expectEqualStrings("runtime_loader_scaffold", entry.kind);
+            try std.testing.expectEqualStrings("samples/zigux/runtime_trace_events_loader.zig", entry.path);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "trace-events loader-side scaffold") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "shared RuntimeLoadRequest union still stops at atomic64, bitmap, and kretprobe") != null);
         }
 
         for (manifest.delivery_evidence_catalog[i + 1 ..]) |other| {
@@ -226,8 +226,8 @@ test "runtime module metadata manifest keeps the dedicated descriptor and depmod
     try std.testing.expect(saw_packet_checker);
     try std.testing.expect(saw_phase9_build_gate);
     try std.testing.expect(saw_tests_readme_guide);
-    try std.testing.expect(saw_loader_gap_note);
     try std.testing.expect(saw_runtime_loader_contract);
+    try std.testing.expect(saw_trace_events_loader_plan);
 
     var saw_survey_note_ownership = false;
     var saw_manifest_ownership = false;
@@ -235,8 +235,8 @@ test "runtime module metadata manifest keeps the dedicated descriptor and depmod
     var saw_packet_checker_ownership = false;
     var saw_phase9_build_ownership = false;
     var saw_tests_readme_ownership = false;
-    var saw_loader_gap_ownership = false;
     var saw_runtime_loader_ownership = false;
+    var saw_trace_events_loader_ownership = false;
     for (manifest.ownership_map, 0..) |entry, i| {
         try std.testing.expect(entry.surface.len > 0);
         try std.testing.expect(entry.owns.len > 0);
@@ -271,16 +271,17 @@ test "runtime module metadata manifest keeps the dedicated descriptor and depmod
             saw_tests_readme_ownership = true;
             try std.testing.expect(std.mem.indexOf(u8, entry.owns, "tests-root guidance") != null);
             try std.testing.expect(std.mem.indexOf(u8, entry.owns, "dedicated metadata checker") != null);
-            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "loader-gap packet") != null);
-        }
-        if (std.mem.eql(u8, entry.surface, "Documentation/zigux/phase9-runtime-loader-gap-survey.md")) {
-            saw_loader_gap_ownership = true;
-            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "runtime_trace_events_loader sibling") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "broader Phase 9 runtime packet") != null);
         }
         if (std.mem.eql(u8, entry.surface, "zigux/kernel/runtime_loader.zig")) {
             saw_runtime_loader_ownership = true;
             try std.testing.expect(std.mem.indexOf(u8, entry.owns, "RuntimeLoadRequest metadata fields") != null);
             try std.testing.expect(std.mem.indexOf(u8, entry.owns, "three-lane loader union") != null);
+        }
+        if (std.mem.eql(u8, entry.surface, "samples/zigux/runtime_trace_events_loader.zig")) {
+            saw_trace_events_loader_ownership = true;
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "trace-events loader-side scaffold") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "fourth lane") != null);
         }
 
         for (manifest.ownership_map[i + 1 ..]) |other| {
@@ -293,8 +294,8 @@ test "runtime module metadata manifest keeps the dedicated descriptor and depmod
     try std.testing.expect(saw_packet_checker_ownership);
     try std.testing.expect(saw_phase9_build_ownership);
     try std.testing.expect(saw_tests_readme_ownership);
-    try std.testing.expect(saw_loader_gap_ownership);
     try std.testing.expect(saw_runtime_loader_ownership);
+    try std.testing.expect(saw_trace_events_loader_ownership);
 }
 
 test "runtime module metadata docs stay aligned with the manifest-backed surveyed commit" {
@@ -333,8 +334,8 @@ test "runtime module metadata docs stay aligned with the manifest-backed surveye
         "scripts/depmod.sh",
         "it is not yet loadable-module metadata parity",
         "the shared runtime loader currently exposes three tagged loader lanes: `atomic64`, `bitmap`, and `kretprobe`",
-        "the three landed loader-plan files stay at `samples/zigux/runtime_atomic64_loader.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and `samples/zigux/runtime_kretprobe_loader.zig`",
-        "samples/zigux/runtime_trace_events.zig` remains intentionally sample-only",
+        "four landed loader-plan files now stay at `samples/zigux/runtime_atomic64_loader.zig`, `samples/zigux/runtime_bitmap_loader.zig`, `samples/zigux/runtime_kretprobe_loader.zig`, and `samples/zigux/runtime_trace_events_loader.zig`",
+        "The dedicated `samples/zigux/runtime_trace_events_loader.zig` scaffold is now landed too, but it still stops outside that shared `RuntimeLoadRequest` union",
     });
     try expectSurveyedCommitMarker(survey_note, manifest.surveyed_commit);
     try expectPinnedCommitSentence(survey_note, manifest.surveyed_commit);
@@ -352,17 +353,9 @@ test "runtime module metadata survey note keeps descriptor fields, shared loader
     );
     defer std.testing.allocator.free(survey_note);
 
-    const loader_gap_note = try readWorkspaceFile(
-        io_instance.io(),
-        std.testing.allocator,
-        "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
-        24 * 1024,
-    );
-    defer std.testing.allocator.free(loader_gap_note);
-
     try expectContainsAll(survey_note, &.{
         "PHASE9_SLICE=runtime-module-metadata-depmod-bridge-survey",
-        "PHASE9_SURVEYED_COMMIT=5a2398b1223d2c1e39c84c500f684244f4182eff",
+        "PHASE9_SURVEYED_COMMIT=949994db4046ec70abf044d1b2ea874fde9bc4a6",
         "ModuleDescriptor",
         "name",
         "anchor",
@@ -395,14 +388,11 @@ test "runtime module metadata survey note keeps descriptor fields, shared loader
         "python3 scripts/zigux/validate-phase9.py",
         "zig build test --build-file zigux/tests/phase9_build.zig --summary all",
         "zig test zigux/tests/runtime_module_metadata_survey.zig",
-    });
-    try expectContainsAll(loader_gap_note, &.{
-        "samples/zigux/runtime_trace_events_loader.zig",
-        "sample-only blocked runtime pilot",
+        "shared `RuntimeLoadRequest` union already carries a trace-events lane",
     });
 }
 
-test "runtime module metadata survey proves the landed loader-plan scaffolds stay explicit and sample-only bounded" {
+test "runtime module metadata survey proves the landed loader-plan scaffolds stay explicit and the shared metadata boundary stays narrow" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -429,6 +419,14 @@ test "runtime module metadata survey proves the landed loader-plan scaffolds sta
         48 * 1024,
     );
     defer std.testing.allocator.free(runtime_kretprobe_loader);
+
+    const runtime_trace_events_loader = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "samples/zigux/runtime_trace_events_loader.zig",
+        48 * 1024,
+    );
+    defer std.testing.allocator.free(runtime_trace_events_loader);
 
     try expectContainsAll(runtime_atomic64_loader, &.{
         "pub const RuntimeAtomic64LoadPlan = struct",
@@ -459,8 +457,24 @@ test "runtime module metadata survey proves the landed loader-plan scaffolds sta
         "releasedWithoutSubstrate();",
         "\"perf-runtime-kretprobe\"",
     });
+    try expectContainsAll(runtime_trace_events_loader, &.{
+        "const runtime_loader = @import(\"runtime_loader\");",
+        "pub const LoaderStage = runtime_loader.LoaderStage;",
+        "pub const RuntimeTraceEventsLoadPlan = struct",
+        "register_api",
+        "unregister_api",
+        "main_thread_label",
+        "function_thread_label",
+        "pub fn requestRuntimeLoad",
+        "pub fn releaseWithoutSubstrate",
+        "\"zigux_runtime_trace_events_init\"",
+        "\"zigux_runtime_trace_events_exit\"",
+        "\"foo_bar_reg\"",
+        "\"foo_bar_unreg\"",
+    });
+    try std.testing.expect(std.mem.indexOf(u8, runtime_trace_events_loader, "RuntimeLoadRequest") == null);
 
-    for ([_][]const u8{ runtime_atomic64_loader, runtime_bitmap_loader, runtime_kretprobe_loader }) |loader_text| {
+    for ([_][]const u8{ runtime_atomic64_loader, runtime_bitmap_loader, runtime_kretprobe_loader, runtime_trace_events_loader }) |loader_text| {
         try std.testing.expect(std.mem.indexOf(u8, loader_text, "MODULE_INFO(") == null);
         try std.testing.expect(std.mem.indexOf(u8, loader_text, "MODULE_ALIAS(") == null);
         try std.testing.expect(std.mem.indexOf(u8, loader_text, ".modinfo") == null);
