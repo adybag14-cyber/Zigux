@@ -77,11 +77,12 @@ The exact checks currently recorded in `zigux/tests/phase5_trace_events_sample_m
 - attached Zig toolchain: `0.17.0-dev.87+9b177a7d2`
 - exact commands and observed results:
   - `zig test samples/zigux/trace_events_sample.zig`
-    - `1/4 trace_events_sample.test.trace-events sample replay keeps the anchor reviewable and non-runtime...OK`
-    - `2/4 trace_events_sample.test.trace-events sample replays every modulo-selected string and formatted message...OK`
-    - `3/4 trace_events_sample.test.trace-events sample rejects every mutable entry point after exit...OK`
-    - `4/4 trace_events_sample.test.trace-events sample keeps callback registration single-live...OK`
-    - `All 4 tests passed.`
+    - `1/5 trace_events_sample.test.trace-events sample replay keeps the anchor reviewable and non-runtime...OK`
+    - `2/5 trace_events_sample.test.trace-events sample replays every modulo-selected string and formatted message...OK`
+    - `3/5 trace_events_sample.test.trace-events sample exposes callback boundary recovery as one bounded replay...OK`
+    - `4/5 trace_events_sample.test.trace-events sample rejects every mutable entry point after exit...OK`
+    - `5/5 trace_events_sample.test.trace-events sample keeps callback registration single-live...OK`
+    - `All 5 tests passed.`
   - `zig test zigux/tests/phase5_trace_events_sample_survey.zig`
     - `1/2 phase5_trace_events_sample_survey.test.phase 5 trace-events manifest records the exact bounded checks...OK`
     - `2/2 phase5_trace_events_sample_survey.test.phase 5 trace-events contributor docs stay aligned with the shipped review surface...OK`
