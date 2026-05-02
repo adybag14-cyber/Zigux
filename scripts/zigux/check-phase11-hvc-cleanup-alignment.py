@@ -249,9 +249,24 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         expect_missing("slice_next_step", tmp_root, "slice:The next honest bounded step inside the same Phase 11 lane is to leave this starter parked unless another comparably small host-free notifier, sysrq, or khvcd handoff becomes obvious; otherwise avoid widening straight into live tty teardown, live khvcd worker behavior, or host-backed teardown.")
+        slice_path.write_text(original_slice, encoding="utf-8")
+
+        slice_path.write_text(
+            original_slice.replace(
+                "`hvc_cleanup()` tty-port release handoff summary",
+                "`hvc_remove()` handoff summary",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "slice_cleanup_marker",
+            tmp_root,
+            "slice:`hvc_cleanup()` tty-port release handoff summary",
+        )
 
     print("PHASE11_HVC_CLEANUP_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE11_HVC_CLEANUP_ALIGNMENT_SELF_TEST_CASE_COUNT=4")
+    print("PHASE11_HVC_CLEANUP_ALIGNMENT_SELF_TEST_CASE_COUNT=5")
     return 0
 
 
