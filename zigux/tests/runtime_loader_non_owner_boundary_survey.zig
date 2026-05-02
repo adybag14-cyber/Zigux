@@ -6,7 +6,15 @@ fn readWorkspaceFile(
     path: []const u8,
     limit: usize,
 ) ![]u8 {
-    return std.Io.Dir.cwd().readFileAlloc(io, path, allocator, .limited(limit));
+    _ = limit;
+    // These survey inputs are repo-owned review surfaces, so avoid brittle
+    // per-file caps that drift as docs and boundary references grow.
+    return std.Io.Dir.cwd().readFileAlloc(
+        io,
+        path,
+        allocator,
+        .limited(std.math.maxInt(usize)),
+    );
 }
 
 fn expectContainsAll(haystack: []const u8, needles: []const []const u8) !void {
