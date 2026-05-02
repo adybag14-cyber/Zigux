@@ -22,6 +22,8 @@
       "kconfig": "Kconfig",
       "config": "out/.config",
       "arch": "riscv64",
+      "autoconfig": "generated/phase2/auto-sync.conf",
+      "autoheader": "generated/phase2/autoconf-sync.h",
       "nosilentupdate": "1",
       "expected": "syncconfig_expected.json"
     },
@@ -58,6 +60,7 @@
       "kconfig": "Kconfig",
       "config": "yes/.config",
       "arch": "riscv64",
+      "allconfig_env": "arch/riscv/configs/allyes-seed.config",
       "expected": "allyesconfig_expected.json"
     },
     {
@@ -171,6 +174,16 @@
       "name": "explicit_n_tristate",
       "input": "explicit_n_tristate.config",
       "expected": "explicit_n_tristate_expected.json"
+    },
+    {
+      "name": "final_trailing_carriage_return",
+      "input": "final_trailing_carriage_return.config",
+      "expected": "final_trailing_carriage_return_expected.json"
+    },
+    {
+      "name": "final_unterminated_unset_comment",
+      "input": "final_unterminated_unset_comment.config",
+      "expected": "final_unterminated_unset_comment_expected.json"
     },
     {
       "name": "ignore_non_config_lines",
