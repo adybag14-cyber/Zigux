@@ -37,6 +37,17 @@ pub const AttributeSpec = struct {
     uses_shared_b_handler: bool,
 };
 
+pub const OwnershipSummary = struct {
+    stage: SampleStage,
+    active_attr_count: usize,
+    attributes_are_accessible: bool,
+    init_runs: usize,
+    register_runs: usize,
+    exit_runs: usize,
+    can_register_attributes: bool,
+    can_exit: bool,
+};
+
 pub const ReplaySummary = struct {
     anchor: []const u8,
     directory_name: []const u8,
@@ -137,6 +148,20 @@ pub const KobjectExampleSample = struct {
 
     pub fn attributesAreAccessible(self: *const Self) bool {
         return self.stage() == .registered;
+    }
+
+    pub fn ownershipSummary(self: *const Self) OwnershipSummary {
+        const current_stage = self.stage();
+        return .{
+            .stage = current_stage,
+            .active_attr_count = self.activeAttrCount(),
+            .attributes_are_accessible = self.attributesAreAccessible(),
+            .init_runs = self.init_runs,
+            .register_runs = self.register_runs,
+            .exit_runs = self.exit_runs,
+            .can_register_attributes = current_stage == .initialized,
+            .can_exit = current_stage == .initialized or current_stage == .registered,
+        };
     }
 
     pub fn init(self: *Self) !void {
@@ -346,6 +371,53 @@ test "kobject sample keeps the pre-registration ownership boundary explicit" {
     try std.testing.expect(!sample.attributesAreAccessible());
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.showValue("foo"));
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.storeValue("foo", "1\n"));
+}
+
+test "kobject sample makes ownership snapshots reviewable across lifecycle stages" {
+    var sample = KobjectExampleSample{};
+
+    const cold = sample.ownershipSummary();
+    try std.testing.expectEqual(SampleStage.cold, cold.stage);
+    try std.testing.expectEqual(@as(usize, 0), cold.active_attr_count);
+    try std.testing.expect(!cold.attributes_are_accessible);
+    try std.testing.expectEqual(@as(usize, 0), cold.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), cold.register_runs);
+    try std.testing.expectEqual(@as(usize, 0), cold.exit_runs);
+    try std.testing.expect(!cold.can_register_attributes);
+    try std.testing.expect(!cold.can_exit);
+
+    try sample.init();
+    const initialized = sample.ownershipSummary();
+    try std.testing.expectEqual(SampleStage.initialized, initialized.stage);
+    try std.testing.expectEqual(@as(usize, 0), initialized.active_attr_count);
+    try std.testing.expect(!initialized.attributes_are_accessible);
+    try std.testing.expectEqual(@as(usize, 1), initialized.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized.register_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized.exit_runs);
+    try std.testing.expect(initialized.can_register_attributes);
+    try std.testing.expect(initialized.can_exit);
+
+    try sample.registerAttributes();
+    const registered = sample.ownershipSummary();
+    try std.testing.expectEqual(SampleStage.registered, registered.stage);
+    try std.testing.expectEqual(@as(usize, 3), registered.active_attr_count);
+    try std.testing.expect(registered.attributes_are_accessible);
+    try std.testing.expectEqual(@as(usize, 1), registered.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), registered.register_runs);
+    try std.testing.expectEqual(@as(usize, 0), registered.exit_runs);
+    try std.testing.expect(!registered.can_register_attributes);
+    try std.testing.expect(registered.can_exit);
+
+    _ = try sample.exit();
+    const exited = sample.ownershipSummary();
+    try std.testing.expectEqual(SampleStage.exited, exited.stage);
+    try std.testing.expectEqual(@as(usize, 0), exited.active_attr_count);
+    try std.testing.expect(!exited.attributes_are_accessible);
+    try std.testing.expectEqual(@as(usize, 1), exited.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited.register_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited.exit_runs);
+    try std.testing.expect(!exited.can_register_attributes);
+    try std.testing.expect(!exited.can_exit);
 }
 
 test "kobject sample teardown keeps ownership boundaries explicit" {
