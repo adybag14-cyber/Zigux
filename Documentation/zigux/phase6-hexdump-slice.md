@@ -53,6 +53,7 @@ The current hexdump helper surface exercised by this slice covers:
 - `bin2hex`
 - `bin2hexAppendUpper`
 - `bin2hexUpper`
+- `hexDumpLineLength`
 - `hexDumpToBuffer`
 
 The current tests check:
