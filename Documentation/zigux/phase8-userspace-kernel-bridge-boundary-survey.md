@@ -7,16 +7,18 @@ This note records the current cross-slice boundary for Phase 8 userspace-adjacen
 - `PHASE8_STATUS=active`
 - `PHASE8_SLICE=userspace-kernel-bridge-boundary-survey`
 - `surveyed_commit=36414e38da67a51209095d0c06170f81e80258eb`
-- scope: parked command-preparation helpers under `tools/lib/subcmd/*.zig`, the helper-first libbpf starter slices under `tools/lib/bpf/zigux_segments/`, and the bounded perf-buffer poll bookkeeping helper, with direct process-launch, directory, terminal, procfs, bpffs, handle-lifecycle, and interrupt-routing-sensitive behavior still deferred
+- scope: parked command-preparation helpers under `tools/lib/subcmd/*.zig`, the bounded symbol-side parser helper under `tools/lib/symbol/*.zig`, the helper-first libbpf starter slices under `tools/lib/bpf/zigux_segments/`, and the bounded perf-buffer poll bookkeeping helper, with direct process-launch, directory, terminal, procfs, bpffs, handle-lifecycle, interrupt-routing-sensitive behavior, and downstream ELF-emission work still deferred
 - product boundary:
   - `Documentation/zigux/phase8-exec-cmd-slice.md`
   - `Documentation/zigux/phase8-help-slice.md`
+  - `Documentation/zigux/phase8-kallsyms-slice.md`
   - `Documentation/zigux/phase8-libbpf-cpu-mask-slice.md`
   - `Documentation/zigux/phase8-bpf-type-names-slice.md`
   - `Documentation/zigux/phase8-libbpf-segment-survey.md`
   - `Documentation/zigux/phase8-perf-buffer-poll-slice.md`
   - `tools/lib/subcmd/exec-cmd.zig`
   - `tools/lib/subcmd/help.zig`
+  - `tools/lib/symbol/kallsyms.zig`
   - `tools/lib/bpf/zigux_segments/cpu_mask.zig`
   - `tools/lib/bpf/zigux_segments/logging.zig`
   - `tools/lib/bpf/zigux_segments/pin_path.zig`
@@ -28,6 +30,7 @@ This note records the current cross-slice boundary for Phase 8 userspace-adjacen
   - `zigux/tests/phase8_pin_path.zig`
   - `zigux/tests/phase8_file_path_handle_bridge.zig`
   - `zigux/tests/phase8_bpf_type_names.zig`
+  - `zigux/tests/phase8_kallsyms.zig`
   - `zigux/tests/phase8_bridge_boundary_survey.zig`
   - `zigux/tests/phase8_libbpf_segments.zig`
   - `zigux/tests/phase8_libbpf_segments_only_build.zig`
@@ -36,17 +39,18 @@ This note records the current cross-slice boundary for Phase 8 userspace-adjacen
 
 ## Why this note exists
 
-The Phase 8 roadmap names both `tools/lib/subcmd/*.zig` and `tools/lib/bpf/zigux_segments/` as the bounded Zigux footholds for serious repo-hosted tooling. The repo already had slice-local notes for `exec-cmd`, `help`, and the helper-first libbpf rollout, but it did not yet have one reviewable survey that states the current shared boundary between landed command-preparation helpers and the still-deferred syscall or handle-facing behavior.
+The Phase 8 roadmap names `tools/lib/subcmd/*.zig`, `tools/lib/symbol/*.zig`, and `tools/lib/bpf/zigux_segments/` as the bounded Zigux footholds for serious repo-hosted tooling. The repo already had slice-local notes for `exec-cmd`, `help`, `kallsyms`, and the helper-first libbpf rollout, but it did not yet have one reviewable survey that states the current shared boundary between landed helper packets and the still-deferred syscall, handle-facing, and downstream-emission behavior.
 
-This survey closes that documentation gap without widening the implementation surface. It keeps the command side and the libbpf side in one place so reviewers can see exactly which userspace/kernel bridge behavior is already claimed and which behavior is still intentionally outside the current Phase 8 packet.
+This survey closes that documentation gap without widening the implementation surface. It keeps the command side, symbol side, and libbpf side in one place so reviewers can see exactly which userspace/kernel bridge behavior is already claimed and which behavior is still intentionally outside the current Phase 8 packet.
 
 ## Current boundary
 
-The current parked command boundary is helper-only:
+The current parked subcommand and symbol boundary is helper-only:
 
 - `tools/lib/subcmd/exec-cmd.zig` covers path-resolution, injected environment setup, cwd-choice modeling through `choosePwdCwdFromIdentities()` and `setupPathWithPwd()`, null-terminated argv preparation through `collectExeclArgs()`, pure `execv_cmd()`-style future handoff packaging through `buildDeferredExecvCall()`, the combined launch-free PATH-plus-argv planning wrapper through `planDeferredExecvCall()`, and pure `execl_cmd()`-style argument collection plus deferred future handoff carriers through `buildDeferredExeclCall()`
 - `tools/lib/subcmd/help.zig` covers owned command-name handling, injected command-source filtering through `loadCommandListsFromEnvPath()`, raw `PATH` splitting, injected terminal-dimensions resolution through `resolveTerminalDimensions()`, and pure section-render planning or emission through `writeCommandSectionsForTerminal()`
-- the current command packet does not claim direct `execvp()` parity, direct environment reads or writes, `opendir()` or `readdir()` parity, direct `ioctl()`-backed terminal probing, queue ownership, scheduler-facing transport behavior, or any handoff into `kernel/workqueue.c`, which remains a separate Phase 14 boundary-study target
+- `tools/lib/symbol/kallsyms.zig` covers bounded `kallsyms__parse()`-style callback wrapping, line parsing, chunked overlong-line discard-after-boundary handling, and pure contents, reader, path, and in-directory adapters without claiming broader `api/io.h` parity or downstream ELF-emission behavior
+- the current command-and-symbol packet does not claim direct `execvp()` parity, direct environment reads or writes, `opendir()` or `readdir()` parity, direct `ioctl()`-backed terminal probing, queue ownership, scheduler-facing transport behavior, any handoff into `kernel/workqueue.c`, which remains a separate Phase 14 boundary-study target, broader `api/io.h` parity, or downstream ELF-emission behavior
 
 The current libbpf bridge packet is also helper-first:
 
@@ -75,6 +79,7 @@ This survey does not reopen or claim:
 - direct `execvp()` or other process-launch side effects
 - direct environment inspection or mutation beyond injected helper inputs
 - direct `opendir()`, `readdir()`, or `ioctl()` parity
+- broader `api/io.h` parity or downstream ELF-emission behavior
 - direct `/proc/.../fdinfo` reads
 - direct `fopen()` or `fclose()` ownership
 - direct `open()` or `close()` ownership
@@ -90,4 +95,4 @@ This survey does not reopen or claim:
 
 ## Next bounded step
 
-Keep the current Phase 8 bridge packet parked unless repo reality exposes one more helper-first tooling slice that stays smaller than the existing deferred command or handle boundaries. If this note reopens, the next honest move should still be survey or validator precision around those explicit boundaries rather than widening into direct syscall-backed or process-launch behavior.
+Keep the current Phase 8 bridge packet parked unless repo reality exposes one more helper-first tooling slice that stays smaller than the existing deferred command or handle boundaries. If this note reopens, the next honest move should still be survey or validator precision around those explicit boundaries rather than widening into direct syscall-backed, parser-emission, or process-launch behavior.
