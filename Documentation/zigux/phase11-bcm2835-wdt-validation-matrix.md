@@ -7,8 +7,8 @@ This document records the first bounded hardware-validation matrix for the Zigux
 - `PHASE11_BCM2835_WDT_STATUS=platform_handoff_landed`
 - reviewed against live `master` `f5a4d6990f701937b2a3bb9ae723bb6d0f27ba21`
 - scope: keep the current `bcm2835_wdt` starter honest about what is already validated, name the current platform-handoff and poweroff-path evidence, and avoid overclaiming live platform registration, PM wiring, or poweroff coordination before those behaviors exist in Zigux
-- latest focused replay: `zig test zigux/tests/phase11_bcm2835_wdt_survey.zig` passes on current `master`
-- latest shared replay: `zig build test --build-file zigux/tests/phase11_build.zig --summary all` passes on current `master`, including `phase11-bcm2835-wdt-tests` and `phase11-bcm2835-wdt-survey-tests`
+- latest focused replay: `zig test zigux/tests/phase11_bcm2835_wdt_survey.zig` still passes for the bounded bcm2835 packet on current `master`
+- shared replay boundary: `zig build test --build-file zigux/tests/phase11_build.zig --summary all` still includes `phase11-bcm2835-wdt-tests` and `phase11-bcm2835-wdt-survey-tests`, but this watchdog-local matrix no longer claims that the whole current shared Phase 11 replay is green when unrelated non-watchdog drift can reopen elsewhere on `master`
 - current repo reality:
   - `drivers/watchdog/bcm2835_wdt.zig`
   - `zigux/tests/phase11_bcm2835_wdt.zig`
@@ -44,9 +44,9 @@ Without this matrix, the slice and survey named the right next step but did not 
 - current shared replay wiring on `master` includes both `phase11-bcm2835-wdt-tests` and `phase11-bcm2835-wdt-survey-tests`
 - exact shared command:
   - `zig build test --build-file zigux/tests/phase11_build.zig --summary all`
-- latest shared replay result:
-  - `phase11-bcm2835-wdt-tests` and `phase11-bcm2835-wdt-survey-tests` both passed during the current replay
-  - the full shared command also passed on current `master`
+- shared replay posture for this watchdog lane:
+  - `phase11-bcm2835-wdt-tests` and `phase11-bcm2835-wdt-survey-tests` remain the shared Phase 11 artifacts that cover this bcm2835 packet
+  - full-bundle green status for the wider current Phase 11 replay is intentionally tracked outside this watchdog-local matrix because unrelated non-watchdog drift can reopen elsewhere on `master`
 - included bcm2835 artifacts:
   - `phase11-bcm2835-wdt-tests`
   - `phase11-bcm2835-wdt-survey-tests`
