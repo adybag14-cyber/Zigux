@@ -35,6 +35,13 @@ REQUIRED_FILES = [
     "zigux/tests/fixtures/phase6_checksum_vectors.zig",
     "zigux/tests/fixtures/phase6_hexdump_vectors.zig",
     "zigux/tests/phase6_helper_parity_manifest.json",
+    "zigux/Makefile",
+]
+
+MAKE_MARKERS = [
+    "PHONY += phase6-validate phase6-test phase6-perf phase6-base64-perf phase6-bsearch-perf phase6-checksum-perf phase6-hexdump-perf phase6",
+    "phase6-perf:",
+    "perf --build-file zigux/tests/phase6_build.zig",
 ]
 
 CATALOG_MARKERS = [
@@ -49,7 +56,7 @@ CATALOG_MARKERS = [
     "max_slowdown_pct = 550",
     "max_slowdown_pct = 600",
     "avg_compare_calls <= std.math.log2_int_ceil(len) + 1",
-    "PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=13",
+    "PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=14",
 ]
 
 PERF_SURVEY_MARKERS = [
@@ -280,6 +287,7 @@ def validate_phase6(root: Path) -> dict[str, object]:
     require_markers(missing, "checksum_parity_script", text(root, "scripts/zigux/check-phase6-checksum-c-parity.py"), CHECKSUM_PARITY_SCRIPT_MARKERS)
     require_markers(missing, "checksum_parity_runner", text(root, "zigux/tests/phase6_checksum_c_parity.zig"), CHECKSUM_PARITY_RUNNER_MARKERS)
     require_markers(missing, "checksum_parity_harness", text(root, "zigux/tests/fixtures/phase6_checksum_c_harness.c"), CHECKSUM_PARITY_HARNESS_MARKERS)
+    require_markers(missing, "make", text(root, "zigux/Makefile"), MAKE_MARKERS)
 
     manifest = json.loads(text(root, "zigux/tests/phase6_helper_parity_manifest.json"))
     if not isinstance(manifest, dict):
@@ -317,7 +325,7 @@ def report_validation(result: dict[str, object]) -> int:
         return 1
     print("PHASE6_VALIDATION=pass")
     print(f"PHASE6_CATALOG_VERIFIED_HEAD={result['catalog_head']}")
-    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=13")
+    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
@@ -341,6 +349,7 @@ def build_self_test_tree(root: Path) -> None:
     write(root, "scripts/zigux/check-phase6-checksum-c-parity.py", "\n".join(CHECKSUM_PARITY_SCRIPT_MARKERS) + "\n")
     write(root, "zigux/tests/phase6_checksum_c_parity.zig", "\n".join(CHECKSUM_PARITY_RUNNER_MARKERS) + "\n")
     write(root, "zigux/tests/fixtures/phase6_checksum_c_harness.c", "\n".join(CHECKSUM_PARITY_HARNESS_MARKERS) + "\n")
+    write(root, "zigux/Makefile", "\n".join(MAKE_MARKERS) + "\n")
 
     manifest = {
         **EXPECTED_MANIFEST,
@@ -402,6 +411,12 @@ def run_self_test() -> int:
             catalog.write_text(catalog.read_text(encoding="utf-8").replace("PHASE6_CHECKSUM_C_PARITY_CASES=15", "", 1), encoding="utf-8")
             if "catalog:missing:PHASE6_CHECKSUM_C_PARITY_CASES=15" not in validate_phase6(root)["missing"]:
                 raise AssertionError("missing catalog failure")
+
+            build_self_test_tree(root)
+            makefile = root / "zigux/Makefile"
+            makefile.write_text(makefile.read_text(encoding="utf-8").replace("phase6-perf:", "", 1), encoding="utf-8")
+            if "make:missing:phase6-perf:" not in validate_phase6(root)["missing"]:
+                raise AssertionError("missing aggregate perf make marker failure")
 
             build_self_test_tree(root)
             checksum_vectors = root / "zigux/tests/fixtures/phase6_checksum_vectors.zig"
@@ -480,7 +495,7 @@ def run_self_test() -> int:
         return 1
 
     print("PHASE6_VALIDATOR_SELF_TEST=pass")
-    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=13")
+    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
