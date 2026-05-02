@@ -6,7 +6,7 @@ This document tracks the first bounded `drivers/virtio/virtio_input.c` lab helpe
 
 - `PHASE10_STATUS=active`
 - `PHASE10_SLICE=virtio-input-lab-helper`
-- scope: config identity snapshots, bounded property and event config bitmap summaries, bounded ABS metadata summaries, bounded capability-setup staging, bounded multitouch slot planning, a bounded registration-preflight summary, a bounded queue-callback preflight summary, event and status queue planning, static event-buffer fill behavior, ready-state gating, multitouch timestamp suppression, a reset-local teardown observation summary, dedicated Phase 10 input tests, and a slice note only
+- scope: config identity snapshots, bounded property and event config bitmap summaries, bounded ABS metadata summaries, bounded capability-setup staging, bounded multitouch slot planning, a bounded registration-preflight summary, a bounded queue-callback preflight summary, a bounded probe-preflight summary, event and status queue planning, static event-buffer fill behavior, ready-state gating, multitouch timestamp suppression, a reset-local teardown observation summary, dedicated Phase 10 input tests, and a slice note only
 - product boundary:
   - `drivers/virtio/virtio_input.zig`
   - `zigux/tests/phase10_virtio_input.zig`
@@ -29,6 +29,7 @@ The live repo now has a bounded `drivers/virtio/virtio_input.zig` helper plus de
 - in-memory multitouch slot planning keyed off `ABS_MT_SLOT`, deriving the bounded `input_mt_init_slots()`-style slot-count intent from staged ABS metadata only
 - a bounded registration-preflight summary that records when identity, capability, and multitouch slot-init intent are all staged before any `input_register_device()` or transport-backed queue work
 - a bounded queue-callback preflight helper summary that records when registration intent is staged, event buffers are filled, the status queue is configured, and the device is ready before any transport-backed callback claim
+- a bounded probe-preflight summary that records when identity, capability setup, registration intent, queue provisioning, and ready-state gating have all converged before any transport-backed probe handoff claim
 - event and status queue descriptor-count validation with power-of-two bounds
 - static event-buffer fill accounting capped to the helper's in-memory event-buffer capacity
 - ready-state gating so status sends stay blocked until both queues are configured
@@ -65,4 +66,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Keep the Phase 10 virtio_input lane at the current helper-only preflight boundary until a future transport-backed packet can justify callback plumbing or input-device registration work without blurring the risky-transport guardrails.
+Keep the Phase 10 virtio_input lane at the current probe-preflight boundary until a future transport-backed packet can justify callback plumbing, probe handoff, or input-device registration work without blurring the risky-transport guardrails.
