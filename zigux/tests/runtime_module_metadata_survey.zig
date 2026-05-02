@@ -344,6 +344,73 @@ test "runtime module metadata survey note keeps descriptor fields, shared loader
     });
 }
 
+test "runtime module metadata survey proves the landed loader-plan scaffolds stay explicit and sample-only bounded" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const runtime_atomic64_loader = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "samples/zigux/runtime_atomic64_loader.zig",
+        48 * 1024,
+    );
+    defer std.testing.allocator.free(runtime_atomic64_loader);
+
+    const runtime_bitmap_loader = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "samples/zigux/runtime_bitmap_loader.zig",
+        48 * 1024,
+    );
+    defer std.testing.allocator.free(runtime_bitmap_loader);
+
+    const runtime_kretprobe_loader = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "samples/zigux/runtime_kretprobe_loader.zig",
+        48 * 1024,
+    );
+    defer std.testing.allocator.free(runtime_kretprobe_loader);
+
+    try expectContainsAll(runtime_atomic64_loader, &.{
+        "pub const RuntimeAtomic64LoadPlan = struct",
+        "pub fn toSharedRequest(plan: RuntimeAtomic64LoadPlan) runtime_loader.RuntimeLoadRequest",
+        "\"zigux_runtime_atomic64_init\"",
+        "\"zigux_runtime_atomic64_exit\"",
+        ".waitingOnRuntimeSubstrate();",
+        "releasedWithoutSubstrate();",
+        "\"perf-runtime-atomic64\"",
+    });
+    try expectContainsAll(runtime_bitmap_loader, &.{
+        "pub const RuntimeBitmapLoadPlan = struct",
+        "pub fn toSharedRequest(plan: RuntimeBitmapLoadPlan) runtime_loader.RuntimeLoadRequest",
+        "\"zigux_runtime_bitmap_init\"",
+        "\"zigux_runtime_bitmap_exit\"",
+        ".waitingOnRuntimeSubstrate();",
+        "releasedWithoutSubstrate();",
+        "\"perf-runtime-bitmap\"",
+    });
+    try expectContainsAll(runtime_kretprobe_loader, &.{
+        "pub const RuntimeKretprobeLoadPlan = struct",
+        "pub fn toSharedRequest(plan: RuntimeKretprobeLoadPlan) runtime_loader.RuntimeLoadRequest",
+        "\"register_kretprobe\"",
+        "\"unregister_kretprobe\"",
+        "\"zigux_runtime_kretprobe_init\"",
+        "\"zigux_runtime_kretprobe_exit\"",
+        ".waitingOnRuntimeSubstrate();",
+        "releasedWithoutSubstrate();",
+        "\"perf-runtime-kretprobe\"",
+    });
+
+    for ([_][]const u8{ runtime_atomic64_loader, runtime_bitmap_loader, runtime_kretprobe_loader }) |loader_text| {
+        try std.testing.expect(std.mem.indexOf(u8, loader_text, "MODULE_INFO(") == null);
+        try std.testing.expect(std.mem.indexOf(u8, loader_text, "MODULE_ALIAS(") == null);
+        try std.testing.expect(std.mem.indexOf(u8, loader_text, ".modinfo") == null);
+        try std.testing.expect(std.mem.indexOf(u8, loader_text, "modules.alias") == null);
+        try std.testing.expect(std.mem.indexOf(u8, loader_text, "scripts/depmod.sh") == null);
+    }
+}
+
 test "runtime module metadata survey proves the live starter descriptors and shared loader metadata surface directly" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
