@@ -429,6 +429,36 @@ test "runtime bitmap sample keeps bounds errors explicit in the direct sample le
     try std.testing.expectError(error.BitRangeOutOfBounds, module.clearRange(RuntimeBitmapSample.bitmap_nbits, 1));
 }
 
+test "runtime bitmap sample keeps initWithSetBits duplicate normalization and repeat-init lifecycle explicit in the direct sample leg" {
+    var duplicate_bits = RuntimeBitmapSample{};
+    try duplicate_bits.initWithSetBits(&.{ 70, 5, 70, 0, bitmap_view.bits_per_long, 5 });
+
+    const duplicate_summary = duplicate_bits.summary();
+    try std.testing.expectEqual(@as(u32, 0), duplicate_summary.first_set);
+    try std.testing.expectEqual(@as(u32, 1), duplicate_summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 4), duplicate_summary.weight);
+    try std.testing.expectEqual(RuntimeBitmapSample.bitmap_nbits, duplicate_summary.nbits);
+    try std.testing.expectEqual(@as(usize, 1), duplicate_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), duplicate_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), duplicate_summary.exit_runs);
+    try std.testing.expectEqual(ModuleStage.initialized, duplicate_bits.stage());
+    try std.testing.expect(duplicate_bits.isSet(0));
+    try std.testing.expect(duplicate_bits.isSet(5));
+    try std.testing.expect(duplicate_bits.isSet(bitmap_view.bits_per_long));
+    try std.testing.expect(duplicate_bits.isSet(bitmap_view.bits_per_long + 6));
+    try std.testing.expectEqual(@as(?u32, 0), duplicate_bits.nthSetBit(0));
+    try std.testing.expectEqual(@as(?u32, 5), duplicate_bits.nthSetBit(1));
+    try std.testing.expectEqual(@as(?u32, bitmap_view.bits_per_long), duplicate_bits.nthSetBit(2));
+    try std.testing.expectEqual(@as(?u32, bitmap_view.bits_per_long + 6), duplicate_bits.nthSetBit(3));
+    try std.testing.expectEqual(@as(?u32, null), duplicate_bits.nthSetBit(4));
+
+    const duplicate_formatted = try duplicate_bits.formatSetBits(std.testing.allocator);
+    defer std.testing.allocator.free(duplicate_formatted);
+    try std.testing.expectEqualStrings("0,5,64,70", duplicate_formatted);
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, duplicate_bits.initWithSetBits(&.{1}));
+}
+
 test "runtime bitmap sample keeps zero-length mutations and invalid copy sources explicit in the direct sample leg" {
     var module = RuntimeBitmapSample{};
     try module.initWithSetBits(&.{ 2, 7 });
