@@ -131,7 +131,8 @@
       "phase10-callback-delay-helper",
       "phase10-notify-prepare-helper",
       "phase10-queue-reset-guard-helper",
-      "phase10-queue-reset-helper"
+      "phase10-queue-reset-helper",
+      "phase10-broken-queue-recovery-helper"
     ]
   },
   "landed_input_helper_evidence": {
@@ -140,7 +141,8 @@
       "phase10-virtio-input-multitouch-slot-helper",
       "phase10-virtio-input-teardown-observation-helper",
       "phase10-virtio-input-registration-preflight-helper",
-      "phase10-virtio-input-queue-callback-preflight-helper"
+      "phase10-virtio-input-queue-callback-preflight-helper",
+      "phase10-virtio-input-probe-preflight-helper"
     ]
   },
   "landed_mmio_helper_evidence": {
