@@ -18,7 +18,7 @@ The next honest larger move is still blocked on platform-driver scaffold work su
 Latest verification snapshot:
 
 - lane key remains `P11-L11` and the surveyed head is now `b2deef651d140045bdfb1d3675a3c18fde80de0e` while keeping the same bounded DesignWare starter scope
-- latest carried-forward shared replay status remains `PHASE11_VALIDATION=pass` for the landed starter packet
+- the focused `dw_wdt` driver and survey replays for this landed starter packet remain green, but this archival watchdog note no longer claims that the whole current shared Phase 11 validator is green when unrelated non-watchdog drift can reopen elsewhere on `master`
 - `zig test --dep dw_wdt -Mroot=zigux/tests/phase11_dw_wdt.zig -Mdw_wdt=drivers/watchdog/dw_wdt.zig`
 - `zig test --dep dw_wdt -Mroot=zigux/tests/phase11_dw_wdt_remove_idle_split.zig -Mdw_wdt=drivers/watchdog/dw_wdt.zig`
 - `zig test zigux/tests/phase11_dw_wdt_survey.zig`
