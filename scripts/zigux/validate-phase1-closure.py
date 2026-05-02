@@ -251,7 +251,7 @@ def build_manifest() -> dict[str, object]:
             },
             "tools/lib/string.zig": {
                 "fixture": "zigux/tests/fixtures/phase1_helpers.json",
-                "memparse_unit_test_contract": "Direct Zig unit coverage keeps memparse aligned by forwarding decimal, hexadecimal, suffix-bearing, and invalid inputs through the shared command-line parser without changing the parsed value or rest pointer contract.",
+                "memparse_unit_test_contract": "Direct Zig unit coverage keeps memparse aligned by preserving decimal, hexadecimal, suffix-bearing, and invalid inputs without changing the parsed value or rest pointer contract.",
             },
         },
     }
@@ -359,7 +359,7 @@ def validate_manifest(root: Path, manifest: dict[str, object], missing: list[str
         missing.append("manifest:rbtree.reverse_unit_test_anchor")
     if rbtree.get("reverse_unit_test_contract") != "Direct Zig unit coverage keeps findLast(), prevMatch(), and iterateMatchesReverse() aligned so reverse duplicate-key lookups start at the rightmost match, walk back through the equal-key range, and cleanly report no match for missing keys.":
         missing.append("manifest:rbtree.reverse_unit_test_contract")
-    if string.get("memparse_unit_test_contract") != "Direct Zig unit coverage keeps memparse aligned by forwarding decimal, hexadecimal, suffix-bearing, and invalid inputs through the shared command-line parser without changing the parsed value or rest pointer contract.":
+    if string.get("memparse_unit_test_contract") != "Direct Zig unit coverage keeps memparse aligned by preserving decimal, hexadecimal, suffix-bearing, and invalid inputs without changing the parsed value or rest pointer contract.":
         missing.append("manifest:string.memparse_unit_test_contract")
 
 
