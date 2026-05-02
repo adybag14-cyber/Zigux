@@ -49,6 +49,11 @@ test "phase3 abi slice keeps explicit constants and statuses reviewable" {
     try std.testing.expectEqual(@as(u8, 0), @intFromEnum(abi.UnsafeScope.none));
     try std.testing.expectEqual(@as(u8, 1), @intFromEnum(abi.UnsafeScope.volatile_mmio));
     try std.testing.expectEqual(@as(u8, 2), @intFromEnum(abi.UnsafeScope.raw_pointer_bridge));
+    try std.testing.expectEqual(@as(u32, 6), abi.CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_SKIPPED);
+    try std.testing.expectEqual(@as(u32, 5), abi.CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_DROPPED);
+    try std.testing.expectEqual(@as(u32, 1), abi.CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_BUDGET_APPLIED);
+    try std.testing.expectEqual(@as(u32, 6), abi.CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_STATUS_SKIPPED);
+    try std.testing.expectEqual(@as(u32, 5), abi.CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_STATUS_DROPPED);
 
     const ok = export_shim.ok(.kernel);
     try std.testing.expect(export_shim.isOk(ok));
