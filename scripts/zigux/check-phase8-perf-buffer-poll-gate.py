@@ -11,7 +11,9 @@ ROOT = Path(__file__).resolve().parents[2]
 
 REQUIRED_FILES = [
     ".github/workflows/zigux-bootstrap.yml",
+    "Documentation/zigux/README.md",
     "Documentation/zigux/phase8-perf-buffer-poll-slice.md",
+    "scripts/zigux/README.md",
     "scripts/zigux/check-phase8-perf-buffer-poll-gate.py",
     "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
     "zigux/Makefile",
@@ -28,6 +30,12 @@ REQUIRED_MARKERS = {
         "Run focused Phase 8 perf-buffer poll tests",
         "zigux/tests/phase8_perf_buffer_poll_only_build.zig",
     ],
+    "Documentation/zigux/README.md": [
+        "Documentation/zigux/phase8-perf-buffer-poll-slice.md",
+        "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
+        "zigux/tests/phase8_perf_buffer_poll.zig",
+        "make -C zigux phase8-validate",
+    ],
     "Documentation/zigux/phase8-perf-buffer-poll-slice.md": [
         "PHASE8_SLICE=perf-buffer-poll-helper",
         "zigux/tests/phase8_perf_buffer_poll_only_build.zig",
@@ -35,6 +43,12 @@ REQUIRED_MARKERS = {
         "wait-result classification",
         "no standalone timer helper",
         "no standalone clockevent helper",
+    ],
+    "scripts/zigux/README.md": [
+        "Documentation/zigux/phase8-perf-buffer-poll-slice.md",
+        "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
+        "zigux/tests/phase8_perf_buffer_poll.zig",
+        "make -C zigux phase8-validate",
     ],
     "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig": [
         "pub const WaitClass = enum {",
@@ -81,6 +95,13 @@ FIXTURE_TEXT = {
 - name: Run focused Phase 8 perf-buffer poll tests
   run: zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all
 """,
+    "Documentation/zigux/README.md": """# Zigux Documentation
+
+- `Documentation/zigux/phase8-perf-buffer-poll-slice.md`
+- `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
+- `zigux/tests/phase8_perf_buffer_poll.zig`
+- `make -C zigux phase8-validate`
+""",
     "Documentation/zigux/phase8-perf-buffer-poll-slice.md": """# Phase 8 Perf-Buffer Poll Slice
 
 - `PHASE8_SLICE=perf-buffer-poll-helper`
@@ -89,6 +110,13 @@ FIXTURE_TEXT = {
 - wait-result classification
 - no standalone timer helper
 - no standalone clockevent helper
+""",
+    "scripts/zigux/README.md": """# scripts/zigux
+
+- `Documentation/zigux/phase8-perf-buffer-poll-slice.md`
+- `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
+- `zigux/tests/phase8_perf_buffer_poll.zig`
+- `make -C zigux phase8-validate`
 """,
     "scripts/zigux/check-phase8-perf-buffer-poll-gate.py": """#!/usr/bin/env python3
 print(\"fixture\")
@@ -269,9 +297,43 @@ def run_self_test() -> int:
             tmp_root,
             ".github/workflows/zigux-bootstrap.yml:Run focused Phase 8 perf-buffer poll tests",
         )
+        workflow_path.write_text(original_workflow, encoding="utf-8")
+
+        docs_readme_path = tmp_root / "Documentation/zigux/README.md"
+        original_docs_readme = docs_readme_path.read_text(encoding="utf-8")
+        docs_readme_path.write_text(
+            original_docs_readme.replace(
+                "zigux/tests/phase8_perf_buffer_poll.zig",
+                "zigux/tests/phase8_perf_buffer_poll_only_build.zig",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "docs_readme_poll_test_surface",
+            tmp_root,
+            "Documentation/zigux/README.md:zigux/tests/phase8_perf_buffer_poll.zig",
+        )
+        docs_readme_path.write_text(original_docs_readme, encoding="utf-8")
+
+        scripts_readme_path = tmp_root / "scripts/zigux/README.md"
+        original_scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
+        scripts_readme_path.write_text(
+            original_scripts_readme.replace(
+                "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
+                "tools/lib/bpf/zigux_segments/perf_buffer_poll_helper.zig",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "scripts_readme_helper_surface",
+            tmp_root,
+            "scripts/zigux/README.md:tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
+        )
 
     print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST=pass")
-    print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST_CASE_COUNT=4")
+    print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
