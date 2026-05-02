@@ -119,21 +119,16 @@ The current tests check:
 
 ## Gates
 
-1. run the validator-first Phase 8 preflight path
-- `python3 scripts/zigux/validate-phase8.py`
-- `make -C zigux phase8-validate`
+The shared review path now fail-closes through the dedicated tests-readme alignment checker and its built-in self-test alongside the broader Phase 8 validator-first preflight path before the focused survey and shared build replays run, so this survey stays tied to the same docs-root, tests-root, Makefile, workflow, and segmented libbpf packet that the repo already ships.
 
-2. run the dedicated shared Phase 8 tooling replay
-- `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
-
-3. run the direct focused libbpf survey replay
-- `zig test zigux/tests/phase8_libbpf_segments.zig`
-
-4. run the focused libbpf survey build replay
-- `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all`
-
-5. run the convenience target
-- `make -C zigux phase8`
+1. `python3 scripts/zigux/check-phase8-tests-readme-alignment.py --self-test`
+2. `python3 scripts/zigux/check-phase8-tests-readme-alignment.py`
+3. `python3 scripts/zigux/validate-phase8.py`
+4. `make -C zigux phase8-validate`
+5. `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
+6. `zig test zigux/tests/phase8_libbpf_segments.zig`
+7. `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all`
+8. `make -C zigux phase8`
 
 ## Latest verification snapshot
 
