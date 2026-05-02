@@ -122,8 +122,9 @@ SCRIPT_README_MARKERS = [
     "`make -C zigux phase13` routes through the validator before the shared replay",
     "`Documentation/zigux/phase13-devres-survey.md`",
     "`zigux/tests/phase13_devres_manifest.json`",
+    "`zigux/tests/phase13_devres_dma_coherent.zig`",
     "`zigux/tests/phase13_devres_reviewability.zig`",
-    "live DMA-backed mappings and scatterlist ownership",
+    "adjacent coherent-DMA bookkeeping while live DMA-backed mappings and scatterlist ownership stay blocked rather than implied",
 ]
 
 REVIEW_CHECKLIST_MARKERS = [
