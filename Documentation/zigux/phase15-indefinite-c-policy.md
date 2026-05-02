@@ -77,6 +77,7 @@ When an anchor is recorded under the indefinite-C policy, the reviewable record 
 - the validation gate summary, the current benchmark-notes status, the evidence archive path, and the replay command reviewers should use
 - the latest blocker disposition and the written rationale for why the anchor remains in C
 - the retained discussion state that closes the packet as `retired_from_active_discussion` when active review ends without a status change
+- the automatic return-to-blocked trigger naming which missing field, stale evidence, contradictory scorecard link, replay drift, blocker drift, or rollback-threshold breach sends the anchor back to blocked review posture
 - the reopen triggers and the parity scorecard link or blocker record that keep the closed packet reviewable later
 - the explicit non-goals that keep the packet from widening into deep-core delivery
 
@@ -112,12 +113,21 @@ The exception packet must therefore carry all of the following before reviewers 
 - the exact named reopen-trigger catalog item or items being cited
 - the trigger-specific refreshed evidence by path for each cited trigger
 - the current blocker disposition the new evidence is trying to change
+- the automatic return-to-blocked trigger that sends the anchor back to blocked review posture if review fields, linked evidence, scorecard state, replay commands, blocker posture, or rollback ownership drift
 - the replay command reviewers should run before trusting the exception packet
 - the parity scorecard link and the evidence-archive path tied to the same anchor
 - the lane owner and rollback owner, refreshed when the trigger is `ownership_or_validation_changed`
 - an explicit note that the C implementation remains the product source of truth unless the reopen request is approved
 
 If any one of those fields is missing, the exception request is incomplete and the anchor remains in the recorded stay-in-C posture.
+
+## Automatic Return-To-Blocked Rule
+
+Every active exception or reopened stay-in-C review packet must keep one automatic return-to-blocked trigger explicit.
+
+That trigger must name which missing field, stale evidence, contradictory scorecard link, replay drift, blocker drift, or rollback-threshold breach sends the anchor back to blocked review posture.
+
+If the trigger is missing or any named drift is left unresolved, the exception packet is incomplete and the anchor returns to blocked review posture with the existing C implementation still the product source of truth.
 
 ## Reopen conditions
 
@@ -172,6 +182,7 @@ The current lane state is:
 - landed `phase15-indefinite-c-maintenance-handoff`
 - landed `phase15-indefinite-c-current-gap-survey`
 - landed `phase15-indefinite-c-exception-request-checklist`
+- landed `phase15-indefinite-c-automatic-return-to-blocked-gate`
 - landed `phase15-indefinite-c-reopen-evidence-matrix`
 - landed `phase15-indefinite-c-reopen-trigger-catalog`
 - blocked `phase15-deep-core-status-change-blocker`
