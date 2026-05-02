@@ -89,7 +89,7 @@ test "phase 8 cpu mask reader interface accepts chunked sysfs-style input" {
     };
 
     var state = ReaderState{
-        .chunks = &.{ "+0-\t3", ",\t+5", "\n +7-\r+8\n" },
+        .chunks = &.{ "+0-\t3", ",\t+5", "\n +7-", "\r+8\n" },
     };
     var scratch: [8]u8 = undefined;
     const parsed = try cpu_mask.parseCpuMaskFromReader(std.testing.allocator, &scratch, .{
@@ -113,6 +113,16 @@ test "phase 8 cpu mask starter slice keeps perf-buffer auto CPU sizing bounded w
     try std.testing.expectEqual(@as(usize, 8), cpu_mask.derivePerfBufferAutoCpuCount(8, 0));
     try std.testing.expectEqual(@as(usize, 4), cpu_mask.derivePerfBufferAutoCpuCount(8, 4));
     try std.testing.expectEqual(@as(usize, 8), cpu_mask.derivePerfBufferAutoCpuCount(8, 16));
+}
+
+test "phase 8 cpu mask starter slice keeps the online CPU eligibility predicate helper-first" {
+    const online = [_]bool{ true, false, true };
+
+    try std.testing.expect(cpu_mask.isPerfBufferCpuOnlineEligible(0, 0, &online));
+    try std.testing.expect(!cpu_mask.isPerfBufferCpuOnlineEligible(1, 0, &online));
+    try std.testing.expect(cpu_mask.isPerfBufferCpuOnlineEligible(2, -1, &online));
+    try std.testing.expect(!cpu_mask.isPerfBufferCpuOnlineEligible(3, 0, &online));
+    try std.testing.expect(cpu_mask.isPerfBufferCpuOnlineEligible(3, 2, &online));
 }
 
 test "phase 8 cpu mask reader interface keeps failures explicit" {
