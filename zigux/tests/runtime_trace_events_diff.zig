@@ -43,6 +43,8 @@ test "runtime trace-events diff gate keeps function-callback registration balanc
     try module.registerFunctionThread();
     try module.registerFunctionThread();
     try std.testing.expectEqual(@as(usize, 2), module.summary().registration_depth);
+    try std.testing.expectEqualStrings("foo_bar_reg", module.summary().last_register_label orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqual(@as(?[]const u8, null), module.summary().last_unregister_label);
 
     const emitted = try module.emitFunctionIteration(9);
     try std.testing.expectEqual(@as(usize, 2), emitted);
@@ -56,13 +58,17 @@ test "runtime trace-events diff gate keeps function-callback registration balanc
     try std.testing.expectEqual(@as(usize, 2), replay.registration_depth);
     try std.testing.expectEqualStrings("event-sample", replay.main_thread_label orelse return error.ExpectedFunctionPayload);
     try std.testing.expectEqualStrings("event-sample-fn", replay.function_thread_label orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqualStrings("foo_bar_reg", replay.last_register_label orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqual(@as(?[]const u8, null), replay.last_unregister_label);
     try std.testing.expectEqualStrings("Look at me", replay.last_function_foo_bar_message orelse return error.ExpectedFunctionPayload);
     try std.testing.expectEqualStrings("Look at me too", replay.last_function_template_message orelse return error.ExpectedFunctionPayload);
 
     try module.unregisterFunctionThread();
     try std.testing.expectEqual(@as(usize, 1), module.summary().registration_depth);
+    try std.testing.expectEqualStrings("foo_bar_unreg", module.summary().last_unregister_label orelse return error.ExpectedFunctionPayload);
     try module.unregisterFunctionThread();
     try std.testing.expectEqual(@as(usize, 0), module.summary().registration_depth);
+    try std.testing.expectEqualStrings("foo_bar_unreg", module.summary().last_unregister_label orelse return error.ExpectedFunctionPayload);
     try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionThread());
 }
 
