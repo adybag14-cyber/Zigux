@@ -233,7 +233,7 @@ pub const KhvcdWorkerEntrySnapshot = struct {
     slot_index: usize,
     vtermno: u32,
     adapter_present: bool,
-    final_close_waitRequired: bool,
+    final_close_wait_required: bool,
     clears_port_initialized_on_final_close: bool,
     keeps_console_binding: bool,
     tty_registration_pending: bool,
