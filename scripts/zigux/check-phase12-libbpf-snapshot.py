@@ -153,6 +153,14 @@ def run_self_test() -> int:
         "invalid Phase 12 libbpf surveyed_commit",
     )
 
+    invalid_uppercase_commit_manifest = dict(live_manifest)
+    invalid_uppercase_commit_manifest["surveyed_commit"] = live_manifest["surveyed_commit"].upper()
+    expect_system_exit(
+        "invalid_uppercase_surveyed_commit",
+        lambda: validate_manifest_packet(invalid_uppercase_commit_manifest),
+        "invalid Phase 12 libbpf surveyed_commit",
+    )
+
     first = render_snapshot()
     second = render_snapshot()
     if first != second:
@@ -228,7 +236,7 @@ def run_self_test() -> int:
     expect_snapshot_mismatch("fixture_tracked_order_drift", drifted_order)
 
     print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST=pass")
-    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT=27")
+    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT=28")
     return 0
 
 
