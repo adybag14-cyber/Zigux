@@ -370,6 +370,48 @@ fn nextFixtureChunk(state: *ChunkFixtureState) anyerror!?[]const u8 {
     return chunk;
 }
 
+const OwnedParsedSymbol = struct {
+    name: []u8,
+    symbol_type: u8,
+    start: u64,
+
+    fn deinit(self: *@This(), allocator: std.mem.Allocator) void {
+        allocator.free(self.name);
+        self.* = undefined;
+    }
+};
+
+fn appendOwnedParsedSymbol(list: *std.ArrayList(OwnedParsedSymbol), symbol: ParsedSymbol) !void {
+    try list.append(std.testing.allocator, .{
+        .name = try std.testing.allocator.dupe(u8, symbol.name),
+        .symbol_type = symbol.symbol_type,
+        .start = symbol.start,
+    });
+}
+
+fn deinitOwnedParsedSymbols(list: *std.ArrayList(OwnedParsedSymbol)) void {
+    for (list.items) |*symbol| {
+        symbol.deinit(std.testing.allocator);
+    }
+    list.deinit(std.testing.allocator);
+}
+
+const SliceReader = struct {
+    bytes: []const u8,
+    index: usize = 0,
+
+    pub fn read(self: *@This(), dest: []u8) !usize {
+        if (self.index >= self.bytes.len) {
+            return 0;
+        }
+
+        const amt = @min(dest.len, self.bytes.len - self.index);
+        @memcpy(dest[0..amt], self.bytes[self.index .. self.index + amt]);
+        self.index += amt;
+        return amt;
+    }
+};
+
 test "binding, type, and function helpers preserve the C-style symbol rules" {
     try std.testing.expectEqual(elf_stb_weak, kallsyms2ElfBinding('W'));
     try std.testing.expectEqual(elf_stb_global, kallsyms2ElfBinding('T'));
@@ -470,24 +512,9 @@ test "forEachParsedLine processes valid lines in order and propagates parse and 
 }
 
 test "forEachParsedChunked preserves line parsing across chunk boundaries" {
-    const OwnedParsedSymbol = struct {
-        name: []u8,
-        symbol_type: u8,
-        start: u64,
-
-        fn deinit(self: *@This(), allocator: std.mem.Allocator) void {
-            allocator.free(self.name);
-            self.* = undefined;
-        }
-    };
-
     const Fixture = struct {
         fn collect(list: *std.ArrayList(OwnedParsedSymbol), symbol: ParsedSymbol) !void {
-            try list.append(std.testing.allocator, .{
-                .name = try std.testing.allocator.dupe(u8, symbol.name),
-                .symbol_type = symbol.symbol_type,
-                .start = symbol.start,
-            });
+            try appendOwnedParsedSymbol(list, symbol);
         }
     };
 
@@ -500,12 +527,7 @@ test "forEachParsedChunked preserves line parsing across chunk boundaries" {
     };
 
     var parsed = std.ArrayList(OwnedParsedSymbol).empty;
-    defer {
-        for (parsed.items) |*symbol| {
-            symbol.deinit(std.testing.allocator);
-        }
-        parsed.deinit(std.testing.allocator);
-    }
+    defer deinitOwnedParsedSymbols(&parsed);
 
     try forEachParsedChunked(
         std.testing.allocator,
@@ -537,12 +559,7 @@ test "forEachParsedChunked preserves line parsing across chunk boundaries" {
     };
 
     var oversized = std.ArrayList(OwnedParsedSymbol).empty;
-    defer {
-        for (oversized.items) |*symbol| {
-            symbol.deinit(std.testing.allocator);
-        }
-        oversized.deinit(std.testing.allocator);
-    }
+    defer deinitOwnedParsedSymbols(&oversized);
 
     try forEachParsedChunked(
         std.testing.allocator,
@@ -558,24 +575,9 @@ test "forEachParsedChunked preserves line parsing across chunk boundaries" {
 }
 
 test "forEachParsedChunked discards oversized line tails once the bounded callback surface is full" {
-    const OwnedParsedSymbol = struct {
-        name: []u8,
-        symbol_type: u8,
-        start: u64,
-
-        fn deinit(self: *@This(), allocator: std.mem.Allocator) void {
-            allocator.free(self.name);
-            self.* = undefined;
-        }
-    };
-
     const Fixture = struct {
         fn collect(list: *std.ArrayList(OwnedParsedSymbol), symbol: ParsedSymbol) !void {
-            try list.append(std.testing.allocator, .{
-                .name = try std.testing.allocator.dupe(u8, symbol.name),
-                .symbol_type = symbol.symbol_type,
-                .start = symbol.start,
-            });
+            try appendOwnedParsedSymbol(list, symbol);
         }
     };
 
@@ -599,12 +601,7 @@ test "forEachParsedChunked discards oversized line tails once the bounded callba
     };
 
     var parsed = std.ArrayList(OwnedParsedSymbol).empty;
-    defer {
-        for (parsed.items) |*symbol| {
-            symbol.deinit(std.testing.allocator);
-        }
-        parsed.deinit(std.testing.allocator);
-    }
+    defer deinitOwnedParsedSymbols(&parsed);
 
     try forEachParsedChunked(
         std.testing.allocator,
@@ -622,40 +619,9 @@ test "forEachParsedChunked discards oversized line tails once the bounded callba
 }
 
 test "chunked and reader entrypoints keep the final unterminated line at EOF" {
-    const OwnedParsedSymbol = struct {
-        name: []u8,
-        symbol_type: u8,
-        start: u64,
-
-        fn deinit(self: *@This(), allocator: std.mem.Allocator) void {
-            allocator.free(self.name);
-            self.* = undefined;
-        }
-    };
-
-    const SliceReader = struct {
-        bytes: []const u8,
-        index: usize = 0,
-
-        pub fn read(self: *@This(), dest: []u8) !usize {
-            if (self.index >= self.bytes.len) {
-                return 0;
-            }
-
-            const amt = @min(dest.len, self.bytes.len - self.index);
-            @memcpy(dest[0..amt], self.bytes[self.index .. self.index + amt]);
-            self.index += amt;
-            return amt;
-        }
-    };
-
     const Fixture = struct {
         fn collect(list: *std.ArrayList(OwnedParsedSymbol), symbol: ParsedSymbol) !void {
-            try list.append(std.testing.allocator, .{
-                .name = try std.testing.allocator.dupe(u8, symbol.name),
-                .symbol_type = symbol.symbol_type,
-                .start = symbol.start,
-            });
+            try appendOwnedParsedSymbol(list, symbol);
         }
     };
 
@@ -666,12 +632,7 @@ test "chunked and reader entrypoints keep the final unterminated line at EOF" {
         },
     };
     var chunked_symbols = std.ArrayList(OwnedParsedSymbol).empty;
-    defer {
-        for (chunked_symbols.items) |*symbol| {
-            symbol.deinit(std.testing.allocator);
-        }
-        chunked_symbols.deinit(std.testing.allocator);
-    }
+    defer deinitOwnedParsedSymbols(&chunked_symbols);
 
     try forEachParsedChunked(
         std.testing.allocator,
@@ -691,12 +652,7 @@ test "chunked and reader entrypoints keep the final unterminated line at EOF" {
     };
     var scratch_buffer: [9]u8 = undefined;
     var reader_symbols = std.ArrayList(OwnedParsedSymbol).empty;
-    defer {
-        for (reader_symbols.items) |*symbol| {
-            symbol.deinit(std.testing.allocator);
-        }
-        reader_symbols.deinit(std.testing.allocator);
-    }
+    defer deinitOwnedParsedSymbols(&reader_symbols);
 
     try forEachParsedReader(
         std.testing.allocator,
@@ -713,40 +669,9 @@ test "chunked and reader entrypoints keep the final unterminated line at EOF" {
 }
 
 test "forEachParsedReader and path reuse the same malformed-line skipping semantics" {
-    const SliceReader = struct {
-        bytes: []const u8,
-        index: usize = 0,
-
-        pub fn read(self: *@This(), dest: []u8) !usize {
-            if (self.index >= self.bytes.len) {
-                return 0;
-            }
-
-            const amt = @min(dest.len, self.bytes.len - self.index);
-            @memcpy(dest[0..amt], self.bytes[self.index .. self.index + amt]);
-            self.index += amt;
-            return amt;
-        }
-    };
-
-    const OwnedParsedSymbol = struct {
-        name: []u8,
-        symbol_type: u8,
-        start: u64,
-
-        fn deinit(self: *@This(), allocator: std.mem.Allocator) void {
-            allocator.free(self.name);
-            self.* = undefined;
-        }
-    };
-
     const Fixture = struct {
         fn collect(list: *std.ArrayList(OwnedParsedSymbol), symbol: ParsedSymbol) !void {
-            try list.append(std.testing.allocator, .{
-                .name = try std.testing.allocator.dupe(u8, symbol.name),
-                .symbol_type = symbol.symbol_type,
-                .start = symbol.start,
-            });
+            try appendOwnedParsedSymbol(list, symbol);
         }
     };
 
@@ -758,12 +683,7 @@ test "forEachParsedReader and path reuse the same malformed-line skipping semant
     var stream = SliceReader{ .bytes = contents };
     var scratch_buffer: [11]u8 = undefined;
     var from_reader = std.ArrayList(OwnedParsedSymbol).empty;
-    defer {
-        for (from_reader.items) |*symbol| {
-            symbol.deinit(std.testing.allocator);
-        }
-        from_reader.deinit(std.testing.allocator);
-    }
+    defer deinitOwnedParsedSymbols(&from_reader);
 
     try forEachParsedReader(
         std.testing.allocator,
@@ -791,12 +711,7 @@ test "forEachParsedReader and path reuse the same malformed-line skipping semant
     }
 
     var from_path = std.ArrayList(OwnedParsedSymbol).empty;
-    defer {
-        for (from_path.items) |*symbol| {
-            symbol.deinit(std.testing.allocator);
-        }
-        from_path.deinit(std.testing.allocator);
-    }
+    defer deinitOwnedParsedSymbols(&from_path);
 
     try forEachParsedPath(
         std.testing.allocator,
@@ -895,22 +810,6 @@ test "kallsymsParse wrappers preserve the C-shaped callback contract and bounded
     try std.testing.expectEqualStrings("weak_handler", contents_state.names.items[1]);
     try std.testing.expectEqual(@as(u8, 'W'), contents_state.symbol_types.items[1]);
     try std.testing.expectEqual(@as(u64, 0xffffffff81000200), contents_state.starts.items[1]);
-
-    const SliceReader = struct {
-        bytes: []const u8,
-        index: usize = 0,
-
-        pub fn read(self: *@This(), dest: []u8) !usize {
-            if (self.index >= self.bytes.len) {
-                return 0;
-            }
-
-            const amt = @min(dest.len, self.bytes.len - self.index);
-            @memcpy(dest[0..amt], self.bytes[self.index .. self.index + amt]);
-            self.index += amt;
-            return amt;
-        }
-    };
 
     var reader_state = CallbackState.init();
     defer reader_state.deinit(std.testing.allocator);
@@ -1100,22 +999,6 @@ test "kallsymsParseReader keeps the final unterminated callback record at EOF" {
             const self: *@This() = @ptrCast(@alignCast(context.?));
             self.names.append(std.testing.allocator, std.testing.allocator.dupe(u8, name) catch return -99) catch return -98;
             return 0;
-        }
-    };
-
-    const SliceReader = struct {
-        bytes: []const u8,
-        index: usize = 0,
-
-        pub fn read(self: *@This(), dest: []u8) !usize {
-            if (self.index >= self.bytes.len) {
-                return 0;
-            }
-
-            const amt = @min(dest.len, self.bytes.len - self.index);
-            @memcpy(dest[0..amt], self.bytes[self.index .. self.index + amt]);
-            self.index += amt;
-            return amt;
         }
     };
 
