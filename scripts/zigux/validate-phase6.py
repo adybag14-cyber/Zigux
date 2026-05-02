@@ -224,7 +224,7 @@ BASE64_PARITY_SCRIPT_MARKERS = [
     'generated_cases = run_checked([zig, "run", str(CASE_GENERATOR)]).stdout',
     'GENERATED_INCLUDE.write_text(generated_cases, encoding="utf-8")',
     'print("PHASE6_BASE64_C_PARITY_SELF_TEST=pass")',
-    'print("PHASE6_BASE64_C_PARITY_SELF_TEST_CASE_COUNT=7")',
+    'print("PHASE6_BASE64_C_PARITY_SELF_TEST_CASE_COUNT=8")',
     'print(f"PHASE6_BASE64_C_PARITY_CASES={len(c_lines)}")',
 ]
 
@@ -434,7 +434,7 @@ EXPECTED_BASE64_DETERMINISM = {
     "standard_decode_vectors": 22,
     "variant_decode_vectors": 12,
     "invalid_decode_vectors": 22,
-    "c_parity_self_test_cases": 7,
+    "c_parity_self_test_cases": 8,
     "c_parity_cases": 96,
 }
 
