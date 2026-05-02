@@ -662,20 +662,23 @@ test "confdata bridge recognizes bare alphabetic hex values" {
     var summary = try parseConfig(allocator,
         \\CONFIG_BARE_HEX=2A
         \\CONFIG_BARE_UPPER_HEX=FF
+        \\CONFIG_BARE_LOWER_HEX=ff
         \\CONFIG_PREFIXED_HEX=0x10
         \\CONFIG_DECIMAL=10
         \\
     );
     defer deinitSummary(allocator, &summary);
 
-    try std.testing.expectEqual(@as(usize, 4), summary.entries.len);
+    try std.testing.expectEqual(@as(usize, 5), summary.entries.len);
     try std.testing.expectEqual(EntryKind.hex, summary.entries[0].kind);
     try std.testing.expectEqualStrings("2A", summary.entries[0].value);
     try std.testing.expectEqual(EntryKind.hex, summary.entries[1].kind);
     try std.testing.expectEqualStrings("FF", summary.entries[1].value);
     try std.testing.expectEqual(EntryKind.hex, summary.entries[2].kind);
-    try std.testing.expectEqualStrings("0x10", summary.entries[2].value);
-    try std.testing.expectEqual(EntryKind.int, summary.entries[3].kind);
+    try std.testing.expectEqualStrings("ff", summary.entries[2].value);
+    try std.testing.expectEqual(EntryKind.hex, summary.entries[3].kind);
+    try std.testing.expectEqualStrings("0x10", summary.entries[3].value);
+    try std.testing.expectEqual(EntryKind.int, summary.entries[4].kind);
 }
 
 test "confdata bridge keeps the last assignment for duplicate symbols" {
