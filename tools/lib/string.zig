@@ -339,11 +339,7 @@ fn repeatedByteWord(value: u8) u64 {
 
 fn firstMismatchingWordByte(word: u64, repeated: u64) usize {
     const diff = word ^ repeated;
-    const ones = repeatedByteWord(0x01);
-    const high_bits = repeatedByteWord(0x80);
-    const zero_byte_high_bits = (diff -% ones) & ~diff & high_bits;
-    const mismatch_high_bits = ~zero_byte_high_bits & high_bits;
-    return @as(usize, @intCast(@ctz(mismatch_high_bits) >> 3));
+    return @as(usize, @intCast(@ctz(diff) >> 3));
 }
 
 fn checkBytes8(buf: []const u8, value: u8) ?usize {
@@ -674,4 +670,19 @@ test "memchrInv dirty-word shortcut handles high-bit byte values" {
     misaligned_storage[10] = 0x00;
     misaligned_storage[15] = 0x7f;
     try std.testing.expectEqual(@as(?usize, 9), memchrInv(misaligned_storage[1..], 0x80));
+}
+
+test "memchrInv dirty-word shortcut handles zero-value scans at word boundaries" {
+    var aligned = [_]u8{0} ** 24;
+    aligned[8] = 1;
+    aligned[15] = 2;
+    try std.testing.expectEqual(@as(?usize, 8), memchrInv(&aligned, 0));
+
+    var misaligned_storage = [_]u8{0} ** 32;
+    const start = (1 -% (@as(usize, @intCast(@intFromPtr(misaligned_storage[0..].ptr) & 7)))) & 7;
+    const misaligned = misaligned_storage[start .. start + 24];
+    try std.testing.expect((@intFromPtr(misaligned.ptr) & 7) == 1);
+    misaligned[8] = 1;
+    misaligned[15] = 2;
+    try std.testing.expectEqual(@as(?usize, 8), memchrInv(misaligned, 0));
 }
