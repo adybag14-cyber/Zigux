@@ -285,6 +285,7 @@ test "phase 5 kobject contributor docs stay aligned with the shipped review surf
     defer std.testing.allocator.free(review_checklist);
 
     try expectContains(survey_note, "sample-backed survey note");
+    try expectContains(survey_note, "scope: roadmap-vs-repo sample reviewability, approved ownership-and-lifetime guidance, and exact bounded checks for the landed `samples/zigux/` kobject-style replay");
     try expectContains(survey_note, "- `Documentation/zigux/README.md`");
     try expectContains(survey_note, "- `Documentation/zigux/review-checklist.md`");
     try expectContains(survey_note, "- `samples/zigux/README.md`");
