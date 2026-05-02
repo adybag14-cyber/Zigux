@@ -16,6 +16,7 @@ MODULE_METADATA_SURVEY_PATH = "Documentation/zigux/phase9-module-metadata-depmod
 TRACE_EVENTS_SURVEY_PATH = "Documentation/zigux/phase9-runtime-trace-events-survey.md"
 KRETPROBE_SURVEY_PATH = "Documentation/zigux/phase9-runtime-kretprobe-survey.md"
 LOADER_SUBSTRATE_CHECKER_PATH = "scripts/zigux/check-phase9-loader-substrate-plan.py"
+COMMIT_ALIGNMENT_CHECKER_PATH = "scripts/zigux/check-phase9-runtime-loader-commit-alignment.py"
 NON_OWNER_BOUNDARY_CHECKER_PATH = "scripts/zigux/check-phase9-loader-non-owner-boundary.py"
 MODULE_METADATA_CHECKER_PATH = "scripts/zigux/check-phase9-module-metadata-packet.py"
 
@@ -27,6 +28,7 @@ REQUIRED_FILES = [
     TRACE_EVENTS_SURVEY_PATH,
     KRETPROBE_SURVEY_PATH,
     LOADER_SUBSTRATE_CHECKER_PATH,
+    COMMIT_ALIGNMENT_CHECKER_PATH,
     NON_OWNER_BOUNDARY_CHECKER_PATH,
     MODULE_METADATA_CHECKER_PATH,
 ]
@@ -329,6 +331,10 @@ def write_fixture_tree(root: Path) -> None:
         "# fixture placeholder for the dedicated loader-substrate-plan checker\n",
         encoding="utf-8",
     )
+    (root / COMMIT_ALIGNMENT_CHECKER_PATH).write_text(
+        "# fixture placeholder for the dedicated runtime-loader commit-alignment checker\n",
+        encoding="utf-8",
+    )
     (root / NON_OWNER_BOUNDARY_CHECKER_PATH).write_text(
         "# fixture placeholder for the dedicated non-owner-boundary checker\n",
         encoding="utf-8",
@@ -510,6 +516,16 @@ def run_self_test() -> int:
             "missing_file:scripts/zigux/check-phase9-loader-substrate-plan.py",
         )
         loader_checker_path.write_text(original_loader_checker, encoding="utf-8")
+
+        commit_alignment_checker_path = tmp_root / COMMIT_ALIGNMENT_CHECKER_PATH
+        original_commit_alignment_checker = commit_alignment_checker_path.read_text(encoding="utf-8")
+        commit_alignment_checker_path.unlink()
+        expect_missing_marker(
+            "commit_alignment_checker_file",
+            tmp_root,
+            "missing_file:scripts/zigux/check-phase9-runtime-loader-commit-alignment.py",
+        )
+        commit_alignment_checker_path.write_text(original_commit_alignment_checker, encoding="utf-8")
 
         non_owner_checker_path = tmp_root / NON_OWNER_BOUNDARY_CHECKER_PATH
         original_non_owner_checker = non_owner_checker_path.read_text(encoding="utf-8")
@@ -778,7 +794,7 @@ def run_self_test() -> int:
         makefile_path.write_text(original_makefile, encoding="utf-8")
 
     print("PHASE9_VALIDATION_FLOW_SELF_TEST=pass")
-    print("PHASE9_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=26")
+    print("PHASE9_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=27")
     return 0
 
 
