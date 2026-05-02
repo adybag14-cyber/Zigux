@@ -5,7 +5,7 @@ This document records the bounded Phase 13 survey lane around `security/landlock
 ## Status
 
 - `PHASE13_STATUS=active`
-- `PHASE13_SLICE=landlock-syscalls-helper-ruleset-fops-contract`
+- `PHASE13_SLICE=landlock-syscalls-helper-pure-handoff-boundary`
 - `PHASE13_SURVEYED_COMMIT=9c17b0790799d8240ef9f964903f5ce2db64af89`
 - scope: the landed `security/landlock/syscalls.zig` helper slice, its dedicated Phase 13 test gate and manifest, the shared Phase 13 build wiring, and the lane notes that compare the current foothold against the roadmap
 - product boundary:
@@ -32,7 +32,7 @@ The highest-value honest step in this lane is therefore not to pretend Zigux own
 - compared against the Phase 13 roadmap and the current repo reality, the next pure syscall-helper follow-up in this packet was the shared `is_initialized()` gate before all three public entry points, so this lane now closes that gap by making the boot-disabled `-EOPNOTSUPP` return and warning-once intent explicit without claiming boot-time configuration or live setup ownership.
 - the current `security/landlock/syscalls.zig` slice now stays intentionally narrow around `build_check_abi()` sizing, the shared `is_initialized()` gate for `landlock_create_ruleset()`, `landlock_add_rule()`, and `landlock_restrict_self()`, `copy_min_struct_from_user()` helper discipline, `landlock_create_ruleset()` query and mask validation, `landlock_restrict_self()` logging-flag translation plus the later in-memory credential handoff order, the first `landlock_add_rule()` planner for rule-type dispatch and bounded rule-shape validation, the in-memory `get_ruleset_from_fd()` planner for bad-FD rejection, ruleset-FD type checks, `FMODE_CAN_WRITE` or `FMODE_CAN_READ` access checks, and the single-layer guard, the in-memory `get_path_from_fd()` planner for ruleset-FD rejection, internal-mount filtering, non-user-visible inode rejection, and owned path reference handoff, the in-memory `add_rule_path_beneath()` planner that combines copied attrs with the bounded path-FD handoff and the later `put_path()` release responsibility, the in-memory `add_rule_net_port()` planner that reuses the add-rule validation and keeps the copied net-port attrs plus `landlock_append_net_rule()` boundary explicit, plus the in-memory ruleset-FD creation and `ruleset_fops` planners that fix the anon-inode label, `O_RDWR | O_CLOEXEC` flags, `fop_ruleset_release()` ownership drop, and the dummy read or write handlers behind `FMODE_CAN_READ` and `FMODE_CAN_WRITE` without claiming live FD ownership.
 - the helper still does not claim anonymous inode creation internals, live user-memory access, live FD ownership, path-backed or port-backed rule insertion, live `prepare_creds()` mutation, live sibling-thread synchronization, or live domain merges.
-- after the shared initialization gate and ruleset file-operations contract slice, the next honest syscall-facing move is to stay parked unless another tiny validation-only or lifetime-discipline follow-up can remain pure without widening into anonymous inode internals, live user-memory access, live FD ownership, deeper credential mutation, or domain state.
+- after this broader pure handoff-boundary slice, the next honest syscall-facing move is to stay parked unless another tiny validation-only or lifetime-discipline follow-up can remain pure without widening into anonymous inode internals, live user-memory access, live FD ownership, deeper credential mutation, or domain state.
 
 ## Recorded gaps
 
