@@ -9,6 +9,7 @@ test "phase13 libfs exposes the statfs starter anchored to libfs.c" {
     try std.testing.expect(descriptor.provides_lookup_policy);
     try std.testing.expect(descriptor.provides_buffer_copy_helpers);
     try std.testing.expect(descriptor.provides_offset_seek_helpers);
+    try std.testing.expect(descriptor.provides_offset_readdir_planning);
     try std.testing.expect(descriptor.provides_directory_emit_planning);
     try std.testing.expect(descriptor.provides_directory_cursor_preconditions);
     try std.testing.expect(descriptor.provides_directory_cursor_reposition_planning);
@@ -179,6 +180,35 @@ test "phase13 libfs offset seek planning stays bounded by vfs-style max position
 
     try std.testing.expectError(error.PositionOutOfRange, libfs.LibFsHelperLab.offsetDirSeekPlan(3, 20, .set, 16));
     try std.testing.expectError(error.UnsupportedWhence, libfs.LibFsHelperLab.offsetDirSeekPlan(3, 0, .hole, 16));
+}
+
+test "phase13 libfs offset readdir planning gates dots and honors the terminal sentinel" {
+    const blocked = try libfs.LibFsHelperLab.offsetReaddirPlan(libfs.dir_offset_first, false);
+    try std.testing.expectEqualStrings("fs/libfs.c", blocked.anchor);
+    try std.testing.expectEqual(libfs.OffsetReaddirMode.blocked_on_emit_dots, blocked.mode);
+    try std.testing.expect(blocked.returns_zero);
+    try std.testing.expect(blocked.requires_dir_emit_dots);
+    try std.testing.expect(!blocked.enters_offset_iteration);
+    try std.testing.expect(blocked.keeps_current_pos);
+    try std.testing.expect(!blocked.treats_eod_as_terminal);
+
+    const iterating = try libfs.LibFsHelperLab.offsetReaddirPlan(libfs.dir_offset_first, true);
+    try std.testing.expectEqual(libfs.OffsetReaddirMode.ready_to_iterate, iterating.mode);
+    try std.testing.expect(iterating.returns_zero);
+    try std.testing.expect(iterating.requires_dir_emit_dots);
+    try std.testing.expect(iterating.enters_offset_iteration);
+    try std.testing.expect(!iterating.keeps_current_pos);
+    try std.testing.expect(!iterating.treats_eod_as_terminal);
+
+    const at_eod = try libfs.LibFsHelperLab.offsetReaddirPlan(libfs.dir_offset_eod, true);
+    try std.testing.expectEqual(libfs.OffsetReaddirMode.ready_at_end_of_directory, at_eod.mode);
+    try std.testing.expect(at_eod.returns_zero);
+    try std.testing.expect(at_eod.requires_dir_emit_dots);
+    try std.testing.expect(!at_eod.enters_offset_iteration);
+    try std.testing.expect(at_eod.keeps_current_pos);
+    try std.testing.expect(at_eod.treats_eod_as_terminal);
+
+    try std.testing.expectError(error.InvalidOffset, libfs.LibFsHelperLab.offsetReaddirPlan(-1, true));
 }
 
 test "phase13 libfs directory emit planning stops cleanly before positive scan starts" {
