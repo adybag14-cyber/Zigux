@@ -251,8 +251,13 @@ test "phase12 libbpf survey note records rollback and archived surveyed head" {
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "python3 scripts/zigux/check-phase12-libbpf-snapshot.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "python3 scripts/zigux/check-phase12-libbpf-packet.py --self-test") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "python3 scripts/zigux/check-phase12-libbpf-packet.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "python3 scripts/zigux/check-phase12-libbpf-focused-replay.py --self-test") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "python3 scripts/zigux/check-phase12-libbpf-focused-replay.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase12_libbpf_only_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "focused libbpf-only replay") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "python3 scripts/zigux/validate-phase12.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "make -C zigux phase12-validate") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig build test --build-file zigux/tests/phase12_libbpf_only_build.zig --summary all") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig build test --build-file zigux/tests/phase12_build.zig --summary all") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "the bounded file-path-and-handle helper packet now also mirrors the libbpf token-preparation recovery split more faithfully") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "the legacy Phase 8 segment catalog now records the bounded `perf_buffer_poll.zig` helper as a landed helper-first slice") != null);
