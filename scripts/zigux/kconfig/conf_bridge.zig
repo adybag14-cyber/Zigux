@@ -235,9 +235,28 @@ fn nonEmptyEnvValue(value: ?[:0]const u8) ?[]const u8 {
     return slice;
 }
 
+fn applyModeEnvFallbacks(
+    request: *Request,
+    allconfig: ?[]const u8,
+    seed: ?[]const u8,
+    probability: ?[]const u8,
+    nosilentupdate: ?[]const u8,
+) void {
+    if (supportsAllConfig(request.mode) and request.allconfig == null) {
+        request.allconfig = allconfig;
+    }
+    if (request.mode == .randconfig) {
+        request.seed = seed;
+        request.probability = probability;
+    } else if (request.mode == .syncconfig) {
+        request.nosilentupdate = nosilentupdate;
+    }
+}
+
 pub fn main(init: std.process.Init) !void {
     const io = init.io;
     const args = try init.minimal.args.toSlice(init.arena.allocator());
+    const allconfig = nonEmptyEnvValue(std.process.Environ.getPosix(init.minimal.environ, "KCONFIG_ALLCONFIG"));
     const seed = nonEmptyEnvValue(std.process.Environ.getPosix(init.minimal.environ, "KCONFIG_SEED"));
     const probability = nonEmptyEnvValue(std.process.Environ.getPosix(init.minimal.environ, "KCONFIG_PROBABILITY"));
     const nosilentupdate = nonEmptyEnvValue(std.process.Environ.getPosix(init.minimal.environ, "KCONFIG_NOSILENTUPDATE"));
@@ -300,12 +319,7 @@ pub fn main(init: std.process.Init) !void {
             std.process.exit(1);
         },
     };
-    if (request.mode == .randconfig) {
-        request.seed = seed;
-        request.probability = probability;
-    } else if (request.mode == .syncconfig) {
-        request.nosilentupdate = nosilentupdate;
-    }
+    applyModeEnvFallbacks(&request, allconfig, seed, probability, nosilentupdate);
 
     var stdout_buffer: [1024]u8 = undefined;
     var stdout_writer = Io.File.stdout().writer(io, &stdout_buffer);
@@ -544,6 +558,33 @@ test "conf bridge emits alldefconfig argv and env" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"--alldefconfig\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_CONFIG\":\"build/.config\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"ARCH\":\"arm64\"") != null);
+}
+
+test "conf bridge prefers explicit allconfig over env fallback" {
+    var request = try parseRequestArgs(&.{
+        "conf_bridge",
+        "allnoconfig",
+        "Kconfig",
+        "none/.config",
+        "arm64",
+        "arch/arm64/configs/tiny.config",
+    });
+    applyModeEnvFallbacks(&request, "all.config", null, null, null);
+
+    try std.testing.expectEqualStrings("arch/arm64/configs/tiny.config", request.allconfig.?);
+}
+
+test "conf bridge uses allconfig env fallback for allconfig modes" {
+    var request = try parseRequestArgs(&.{
+        "conf_bridge",
+        "allnoconfig",
+        "Kconfig",
+        "none/.config",
+        "arm64",
+    });
+    applyModeEnvFallbacks(&request, "all.config", null, null, null);
+
+    try std.testing.expectEqualStrings("all.config", request.allconfig.?);
 }
 
 test "conf bridge emits allmodconfig argv and env" {
