@@ -1,6 +1,6 @@
 const std = @import("std");
 
-const current_surveyed_commit = "2df10deb8b6f2ab013ee2f289a49e6aa33180656";
+const archived_surveyed_commit = "2df10deb8b6f2ab013ee2f289a49e6aa33180656";
 
 const SurveySummary = struct {
     libbpf_c_lines: usize,
@@ -73,7 +73,7 @@ test "phase12 libbpf survey manifest records the bounded heavy-helper packet" {
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P12-L16", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
-    try std.testing.expectEqualStrings(current_surveyed_commit, manifest.surveyed_commit);
+    try std.testing.expectEqualStrings(archived_surveyed_commit, manifest.surveyed_commit);
     try std.testing.expectEqualStrings("tools/lib/bpf/libbpf.c", manifest.anchor);
     try std.testing.expect(manifest.survey_summary.libbpf_c_lines >= 14000);
     try std.testing.expectEqual(@as(usize, 7), manifest.survey_summary.preexisting_phase8_test_files);
@@ -222,7 +222,7 @@ test "phase12 libbpf survey manifest records the bounded heavy-helper packet" {
     ));
 }
 
-test "phase12 libbpf survey note records rollback and current surveyed head" {
+test "phase12 libbpf survey note records rollback and archived surveyed head" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -235,7 +235,7 @@ test "phase12 libbpf survey note records rollback and current surveyed head" {
     defer std.testing.allocator.free(survey_note);
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Rollback And Reversible Delivery") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, current_surveyed_commit) != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, archived_surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_LANE_KEY=P12-L16") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "owner: `BPF Tooling Lane`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "rollback owner: `BPF Tooling Lane`") != null);
