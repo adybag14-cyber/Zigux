@@ -9,6 +9,9 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[2]
 CLOSURE_VALIDATOR = ROOT / "scripts" / "zigux" / "validate-phase2-closure.py"
+GENKSYMS_BRIDGE_ALIGNMENT_CHECKER = (
+    ROOT / "scripts" / "zigux" / "check-phase2-genksyms-bridge-selftest-alignment.py"
+)
 PHASE2_TOOL_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json"
 PHASE2_CROSS_TARGETS = ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json"
 EXPECTED_TOOL_MANIFEST_TOOLS = [
@@ -30,7 +33,7 @@ REQUIRED_PHASE2_FILES = [
     ROOT / "scripts" / "zigux" / "check-artifact-diff-contract.py",
     ROOT / "scripts" / "zigux" / "check-fixdep-diff.py",
     ROOT / "scripts" / "zigux" / "check-genksyms-bridge.py",
-    ROOT / "scripts" / "zigux" / "check-phase2-genksyms-bridge-selftest-alignment.py",
+    GENKSYMS_BRIDGE_ALIGNMENT_CHECKER,
     ROOT / "scripts" / "zigux" / "check-genksyms-crc-diff.py",
     ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py",
     ROOT / "scripts" / "zigux" / "check-phase2-cross.py",
@@ -131,6 +134,14 @@ def main() -> int:
             print(item)
         print("INVALID_PHASE2_SHARED_METADATA_END")
         return 1
+
+    result = subprocess.run(
+        [sys.executable, str(GENKSYMS_BRIDGE_ALIGNMENT_CHECKER)],
+        cwd=ROOT,
+    )
+    if result.returncode != 0:
+        print("PHASE2_VALIDATION=fail")
+        return result.returncode
 
     result = subprocess.run([sys.executable, str(CLOSURE_VALIDATOR)], cwd=ROOT)
     if result.returncode == 0:
