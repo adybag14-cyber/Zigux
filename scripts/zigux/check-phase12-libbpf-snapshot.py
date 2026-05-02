@@ -25,9 +25,20 @@ TRACKED_PATHS = [
 ]
 MANIFEST_REL_PATH = TRACKED_PATHS[0]
 SEGMENT_TEST_REL_PATH = TRACKED_PATHS[1]
+REVIEWABILITY_TEST_REL_PATH = TRACKED_PATHS[2]
 SURVEY_NOTE_REL_PATH = TRACKED_PATHS[3]
 REQUIRED_PATHS = [*TRACKED_PATHS, FIXTURE_REL_PATH, ARTIFACT_DIFF_REL_PATH]
 HEX40 = re.compile(r"^[0-9a-f]{40}$")
+REVIEWABILITY_SNAPSHOT_MARKERS = [
+    'test "phase12 libbpf reviewability gate pins the committed snapshot fixture packet"',
+    "try std.testing.expectEqual(expected_paths.len, snapshot.tracked_file_count);",
+    "try std.testing.expectEqualStrings(expected_path, entry.path);",
+    "zigux/tests/phase12_libbpf_manifest.json",
+    "zigux/tests/phase12_libbpf_segments.zig",
+    "zigux/tests/phase12_libbpf_reviewability.zig",
+    "Documentation/zigux/phase12-libbpf-segment-survey.md",
+    "tools/lib/bpf/zigux_segments/manifest.json",
+]
 
 
 def missing_required_paths(root: Path) -> list[str]:
@@ -69,6 +80,13 @@ def validate_lane_marker_alignment(root: Path, manifest_packet: dict[str, str]) 
         raise SystemExit("invalid Phase 12 libbpf segment test lane marker")
 
 
+def validate_reviewability_snapshot_gate(root: Path) -> None:
+    reviewability_test = (root / REVIEWABILITY_TEST_REL_PATH).read_text(encoding="utf-8")
+    for marker in REVIEWABILITY_SNAPSHOT_MARKERS:
+        if marker not in reviewability_test:
+            raise SystemExit("invalid Phase 12 libbpf reviewability snapshot markers")
+
+
 def file_digest(path: Path) -> dict[str, object]:
     data = path.read_bytes()
     return {
@@ -82,6 +100,7 @@ def load_manifest_packet(root: Path = ROOT) -> dict[str, str]:
     manifest = json.loads((root / MANIFEST_REL_PATH).read_text(encoding="utf-8"))
     manifest_packet = validate_manifest_packet(manifest)
     validate_lane_marker_alignment(root, manifest_packet)
+    validate_reviewability_snapshot_gate(root)
     return manifest_packet
 
 
@@ -215,6 +234,7 @@ def run_self_test() -> int:
     if manifest_packet["surveyed_commit"] != live_manifest["surveyed_commit"]:
         raise SystemExit("phase12-libbpf-snapshot:self-test:surveyed_commit_round_trip")
     validate_lane_marker_alignment(ROOT, manifest_packet)
+    validate_reviewability_snapshot_gate(ROOT)
 
     invalid_lane_manifest = dict(live_manifest)
     invalid_lane_manifest["lane_key"] = ""
@@ -309,6 +329,23 @@ def run_self_test() -> int:
             "invalid_segment_test_lane_marker",
             lambda: load_manifest_packet(segment_root),
             "invalid Phase 12 libbpf segment test lane marker",
+        )
+
+    with tempfile.TemporaryDirectory(prefix="zigux_phase12_libbpf_snapshot_reviewability_markers_") as tmp_dir_str:
+        reviewability_root = Path(tmp_dir_str)
+        copy_required_tree(reviewability_root)
+        reviewability_test_path = reviewability_root / REVIEWABILITY_TEST_REL_PATH
+        reviewability_test_path.write_text(
+            reviewability_test_path.read_text(encoding="utf-8").replace(
+                "try std.testing.expectEqual(expected_paths.len, snapshot.tracked_file_count);\n",
+                "",
+            ),
+            encoding="utf-8",
+        )
+        expect_system_exit(
+            "invalid_reviewability_snapshot_markers",
+            lambda: load_manifest_packet(reviewability_root),
+            "invalid Phase 12 libbpf reviewability snapshot markers",
         )
 
     first = render_snapshot()
@@ -438,7 +475,7 @@ def run_self_test() -> int:
             raise SystemExit("phase12-libbpf-snapshot:self-test:missing_lines")
 
     print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST=pass")
-    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT=35")
+    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT=36")
     return 0
 
 
