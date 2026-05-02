@@ -95,6 +95,7 @@ RELEASE_MARKERS = [
     "PHASE14_ANCHOR_PACKET_COUNT=4",
     "PHASE14_COMPILE_ARTIFACT_COUNT=5",
     "PHASE14_FOCUSED_SHARD_COUNT=1",
+    "PHASE14_ANCHOR_LOCAL_STEP_COUNT=0",
     "PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=4",
     "PHASE14_FULL_BUNDLE_DEPENDENCY_COUNT=5",
     "PHASE14_FOCUSED_SHARD_DEPENDENCY_COUNT=1",
@@ -304,6 +305,7 @@ actual_smoke_depend_steps = BUILD_SMOKE_DEPEND_STEP_RE.findall(build_text)
 expected_build_test_names: list[str] = []
 focused_shard_count = 0
 full_bundle_only_count = 0
+anchor_local_step_count = 0
 
 if isinstance(smoke_commands, list):
     for command in smoke_commands:
@@ -337,6 +339,8 @@ for index, shard in enumerate(compile_shards):
         continue
 
     expected_build_test_names.append(artifact_name)
+    if dedicated_step and artifact_name != "phase14-end-to-end-smoke-tests":
+        anchor_local_step_count += 1
     if coverage_mode not in ALLOWED_COVERAGE_MODES:
         missing.append(f"manifest:compile_shards:{artifact_name}:coverage_mode={coverage_mode}")
     elif coverage_mode == "focused_and_full_bundle":
@@ -378,10 +382,12 @@ if "ZAR runtime research" not in survey_note:
 
 expected_compile_count_marker = f"PHASE14_COMPILE_ARTIFACT_COUNT={len(expected_build_test_names)}"
 expected_focused_count_marker = f"PHASE14_FOCUSED_SHARD_COUNT={focused_shard_count}"
+expected_anchor_local_step_count_marker = f"PHASE14_ANCHOR_LOCAL_STEP_COUNT={anchor_local_step_count}"
 expected_full_bundle_count_marker = f"PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT={full_bundle_only_count}"
 for marker in [
     expected_compile_count_marker,
     expected_focused_count_marker,
+    expected_anchor_local_step_count_marker,
     expected_full_bundle_count_marker,
 ]:
     if marker not in survey_note:
@@ -404,6 +410,8 @@ if actual_smoke_depend_steps != ["run_phase14_end_to_end_smoke_tests"]:
     missing.append("phase14_build:smoke_route_mismatch")
 if focused_shard_count != 1:
     missing.append(f"manifest:focused_shard_count={focused_shard_count}")
+if anchor_local_step_count != 0:
+    missing.append(f"manifest:anchor_local_step_count={anchor_local_step_count}")
 if full_bundle_only_count != len(expected_build_test_names) - focused_shard_count:
     missing.append(f"manifest:full_bundle_only_count={full_bundle_only_count}")
 
@@ -491,4 +499,5 @@ print(f"PHASE14_BUILD_TEST_COUNT={len(expected_build_test_names)}")
 print(f"PHASE14_BUILD_DEPEND_STEP_COUNT={len(actual_depend_steps)}")
 print(f"PHASE14_COMPILE_ARTIFACT_COUNT={len(expected_build_test_names)}")
 print(f"PHASE14_FOCUSED_SHARD_COUNT={focused_shard_count}")
+print(f"PHASE14_ANCHOR_LOCAL_STEP_COUNT={anchor_local_step_count}")
 print(f"PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT={full_bundle_only_count}")
