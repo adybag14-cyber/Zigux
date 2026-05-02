@@ -27,11 +27,30 @@ BUILD_TEST_ROOT_MODULE_RE = re.compile(
     r'\.root_module = ([A-Za-z0-9_]+),',
     re.S,
 )
+BUILD_STEP_RE = re.compile(
+    r'const ([A-Za-z0-9_]+) = b\.step\(\s*"([^"]+)",\s*"([^"]+)"\s*\);',
+    re.S,
+)
 FORBIDDEN_BUILD_MARKERS = [
     "test_step.dependOn(&run_phase11_hvc_console_survey_tests.step);",
 ]
 DEDICATED_SURVEY_REPLAYS = [
     "zigux/tests/phase11_hvc_console_survey.zig",
+]
+REQUIRED_BUILD_STEPS = [
+    {
+        "symbol": "test_step",
+        "name": "test",
+        "description": "Run Phase 11 starter and survey tests",
+    },
+    {
+        "symbol": "hvc_console_survey_step",
+        "name": "hvc-console-survey",
+        "description": "Run the dedicated Phase 11 hvc_console survey replay",
+    },
+]
+REQUIRED_BUILD_STEP_BINDINGS = [
+    "hvc_console_survey_step.dependOn(&run_phase11_hvc_console_survey_tests.step);",
 ]
 SPLIT_TEST_SUFFIX = "-split-tests"
 
@@ -115,6 +134,28 @@ def validate_module_root_paths_exist(inventory: dict[str, object]) -> list[str]:
     return missing
 
 
+def validate_named_build_steps(build_text: str) -> list[str]:
+    missing: list[str] = []
+    build_steps = {
+        symbol: {"name": name, "description": description}
+        for symbol, name, description in BUILD_STEP_RE.findall(build_text)
+    }
+    for expected in REQUIRED_BUILD_STEPS:
+        actual = build_steps.get(expected["symbol"])
+        if actual != {
+            "name": expected["name"],
+            "description": expected["description"],
+        }:
+            missing.append(
+                f'{expected["symbol"]}:name={expected["name"]},'
+                f'description={expected["description"]}'
+            )
+    for marker in REQUIRED_BUILD_STEP_BINDINGS:
+        if marker not in build_text:
+            missing.append(f"binding:{marker}")
+    return missing
+
+
 def write_text(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
@@ -166,7 +207,7 @@ pub fn build(b: *std.Build) void {
         phase11_hvc_console_poll_retry_split_tests,
     );
 
-    const test_step = b.step(\"test\", \"Run focused split parity replays\");
+    const test_step = b.step(\"test\", \"Run Phase 11 starter and survey tests\");
     test_step.dependOn(&run_phase11_dw_wdt_remove_idle_split_tests.step);
     test_step.dependOn(&run_phase11_hvc_console_poll_retry_split_tests.step);
 
@@ -174,7 +215,12 @@ pub fn build(b: *std.Build) void {
         \"hvc-console-survey\",
         \"Run the dedicated Phase 11 hvc_console survey replay\",
     );
-    _ = hvc_console_survey_step;
+    hvc_console_survey_step.dependOn(&run_phase11_hvc_console_survey_tests.step);
+    const phase11_hvc_console_survey_tests = b.addTest(.{
+        .name = \"phase11-hvc-console-survey-tests\",
+        .root_module = phase11_hvc_console_poll_retry_split_module,
+    });
+    _ = phase11_hvc_console_survey_tests;
 }
 """
     write_text(root / "zigux/tests/phase11_build.zig", build_text)
@@ -183,6 +229,7 @@ pub fn build(b: *std.Build) void {
         "build_test_names": [
             "phase11-dw-wdt-remove-idle-split-tests",
             "phase11-hvc-console-poll-retry-split-tests",
+            "phase11-hvc-console-survey-tests",
         ],
         "shared_test_depend_steps": [
             "run_phase11_dw_wdt_remove_idle_split_tests",
@@ -219,6 +266,10 @@ pub fn build(b: *std.Build) void {
             },
             {
                 "test": "phase11-hvc-console-poll-retry-split-tests",
+                "root_module": "phase11_hvc_console_poll_retry_split_module",
+            },
+            {
+                "test": "phase11-hvc-console-survey-tests",
                 "root_module": "phase11_hvc_console_poll_retry_split_module",
             },
         ],
@@ -322,6 +373,22 @@ def expect_inventory_drift(label: str, root: Path) -> None:
         )
 
 
+def expect_build_step_drift(label: str, root: Path, expected_marker: str) -> None:
+    result = run_checker(root)
+    if result.returncode == 0:
+        raise SystemExit(f"phase11-build-inventory-self-test:{label}:unexpected_pass")
+    if "PHASE11_BUILD_INVENTORY=fail" not in result.stdout:
+        actual = result.stdout.strip() or result.stderr.strip() or "no_output"
+        raise SystemExit(
+            f"phase11-build-inventory-self-test:{label}:missing_fail_token:{actual}"
+        )
+    if expected_marker not in result.stdout:
+        actual = result.stdout.strip() or "none"
+        raise SystemExit(
+            f"phase11-build-inventory-self-test:{label}:expected_missing_build_step:{expected_marker}:actual:{actual}"
+        )
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase11_build_inventory_") as tmp_dir:
         tmp_root = Path(tmp_dir)
@@ -371,6 +438,36 @@ def run_self_test() -> int:
         )
         write_text(build_path, build_backup)
 
+        build_path.write_text(
+            build_backup.replace(
+                '    const test_step = b.step("test", "Run Phase 11 starter and survey tests");\n',
+                '    const test_step = b.step("phase11", "Run Phase 11 starter and survey tests");\n',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_build_step_drift(
+            "shared_test_step_name_drift",
+            tmp_root,
+            "test_step:name=test,description=Run Phase 11 starter and survey tests",
+        )
+        write_text(build_path, build_backup)
+
+        build_path.write_text(
+            build_backup.replace(
+                "    hvc_console_survey_step.dependOn(&run_phase11_hvc_console_survey_tests.step);\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_build_step_drift(
+            "dedicated_hvc_survey_binding_missing",
+            tmp_root,
+            "binding:hvc_console_survey_step.dependOn(&run_phase11_hvc_console_survey_tests.step);",
+        )
+        write_text(build_path, build_backup)
+
         fixture_path = tmp_root / "zigux/tests/fixtures/phase11_build_inventory.json"
         fixture_backup = fixture_path.read_text(encoding="utf-8")
         fixture = json.loads(fixture_backup)
@@ -401,7 +498,7 @@ def run_self_test() -> int:
         fixture_path.write_text(fixture_backup, encoding="utf-8")
 
     print("PHASE11_BUILD_INVENTORY_SELF_TEST=pass")
-    print("PHASE11_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=6")
+    print("PHASE11_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
@@ -416,6 +513,16 @@ def main() -> int:
         for item in missing_module_roots:
             print(item)
         print("PHASE11_BUILD_INVENTORY_MISSING_MODULE_ROOTS_END")
+        return 1
+
+    build_text = BUILD_PATH.read_text(encoding="utf-8")
+    missing_build_steps = validate_named_build_steps(build_text)
+    if missing_build_steps:
+        print("PHASE11_BUILD_INVENTORY=fail")
+        print("PHASE11_BUILD_INVENTORY_MISSING_BUILD_STEPS_START")
+        for item in missing_build_steps:
+            print(item)
+        print("PHASE11_BUILD_INVENTORY_MISSING_BUILD_STEPS_END")
         return 1
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase11_inventory_") as tmp_dir_str:
