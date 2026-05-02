@@ -225,7 +225,7 @@
     },
     {
       "surface": "zigux/kernel/runtime_loader.zig",
-      "owns": "shared request contract plus allocator, command-name, atomic64, bitmap, and init or exit handoff fields"
+      "owns": "shared request contract plus allocator, command-name, atomic64, bitmap, kretprobe, and init or exit handoff fields"
     },
     {
       "surface": "samples/zigux/runtime_atomic64_loader.zig",
