@@ -22,6 +22,7 @@ REQUIRED_SURVEY_MARKERS = (
     "PHASE3_CURRENT_LIST_HLIST=zigux/helpers/list_view.zig,zigux/helpers/hlist_view.zig",
     "PHASE3_CURRENT_RBTREE_STATUS=phase3-survey-exists-but-phase3-interop-slice-is-missing",
     "PHASE3_CURRENT_RBTREE_SURVEY=Documentation/zigux/phase3-rbtree-interop-survey.md",
+    "PHASE3_CURRENT_RBTREE_VALIDATOR=scripts/zigux/validate-phase3-rbtree-interop-survey.py",
     "PHASE3_CURRENT_RBTREE_EVIDENCE=Documentation/zigux/phase3-rbtree-interop-survey.md,tools/lib/rbtree.zig,lib/rbtree.zig,Documentation/zigux/phase1-closure.md,Documentation/zigux/phase7-rbtree-slice.md,zigux/tests/phase7_rbtree.zig,zigux/tests/phase7_rbtree_survey.zig,zigux/tests/phase7_rbtree_manifest.json",
     "PHASE3_REPO_REALITY=chrdev-plan-growth-exceeds-roadmap-anchors",
     "PHASE3_INTEROP_GAP=rbtree-interop-slice-still-missing",
