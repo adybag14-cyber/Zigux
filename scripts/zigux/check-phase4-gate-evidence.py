@@ -234,6 +234,21 @@ def run_self_test() -> int:
         gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
         gate_evidence.write_text(
             gate_evidence.read_text(encoding="utf-8").replace(
+                f"PHASE4_GATE_EVIDENCE_TARGET_COUNT={len(PHASE4_GATE_EVIDENCE_BLOB_TARGETS)}",
+                "PHASE4_GATE_EVIDENCE_TARGET_COUNT=14",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert (
+            "phase4_gate_evidence:PHASE4_GATE_EVIDENCE_TARGET_COUNT=15" in missing
+        ), missing
+
+        write_fixture_tree(root)
+        gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
+        gate_evidence.write_text(
+            gate_evidence.read_text(encoding="utf-8").replace(
                 "PHASE4_GATE_EVIDENCE_CHECK=pass",
                 "PHASE4_GATE_EVIDENCE_CHECK=fail",
                 1,
