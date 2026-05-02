@@ -122,6 +122,8 @@ Current Phase 3 use
 - `python3 scripts/zigux/run-phase3-checks.py --slug minor-alloc` compares that committed JSON fixture against both the bounded C harness and the Zig minor allocation dump.
 - `zigux/tests/fixtures/phase3_xarray_slot/expected.json` anchors the bounded Phase 3 xarray slot parity claim.
 - `python3 scripts/zigux/run-phase3-checks.py --slug xarray-slot` compares that committed JSON fixture against both the bounded C harness and the Zig xarray slot dump.
+- `zigux/tests/fixtures/phase3_rbtree/expected.json` anchors the bounded Phase 3 rbtree parity claim.
+- `python3 scripts/zigux/run-phase3-checks.py --slug rbtree` compares that committed JSON fixture against both the bounded C harness and the Zig rbtree dump.
 
 Current Phase 4 use
 - `python3 scripts/zigux/artifact_diff.py --self-test` keeps the shared comparison layer that already backs the bounded host-side tools under `scripts/zigux/` deterministic before the rollback-readiness lanes run, including both-missing text failures and the fail-closed malformed-expected-first JSON path when both JSON inputs are broken.
