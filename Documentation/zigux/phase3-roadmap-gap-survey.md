@@ -12,11 +12,12 @@ This note records the current Phase 3 ABI and interop gap between the roadmap co
 - `PHASE3_UAPI_BOUNDARY_GAP=version-and-boundary-header-surface-is-still-below-full-uapi-shim-destination`
 - `PHASE3_CURRENT_BITMAP_CPUMASK=zigux/helpers/bitmap_view.zig,zigux/helpers/cpumask_view.zig`
 - `PHASE3_CURRENT_LIST_HLIST=zigux/helpers/list_view.zig,zigux/helpers/hlist_view.zig`
-- `PHASE3_CURRENT_RBTREE_STATUS=phase7-helper-exists-but-phase3-interop-slice-is-missing`
-- `PHASE3_CURRENT_RBTREE_EVIDENCE=tools/lib/rbtree.zig,lib/rbtree.zig,Documentation/zigux/phase1-closure.md,Documentation/zigux/phase7-rbtree-slice.md,zigux/tests/phase7_rbtree.zig,zigux/tests/phase7_rbtree_survey.zig,zigux/tests/phase7_rbtree_manifest.json`
+- `PHASE3_CURRENT_RBTREE_STATUS=phase3-survey-exists-but-phase3-interop-slice-is-missing`
+- `PHASE3_CURRENT_RBTREE_SURVEY=Documentation/zigux/phase3-rbtree-interop-survey.md`
+- `PHASE3_CURRENT_RBTREE_EVIDENCE=Documentation/zigux/phase3-rbtree-interop-survey.md,tools/lib/rbtree.zig,lib/rbtree.zig,Documentation/zigux/phase1-closure.md,Documentation/zigux/phase7-rbtree-slice.md,zigux/tests/phase7_rbtree.zig,zigux/tests/phase7_rbtree_survey.zig,zigux/tests/phase7_rbtree_manifest.json`
 - `PHASE3_REPO_REALITY=chrdev-plan-growth-exceeds-roadmap-anchors`
 - `PHASE3_INTEROP_GAP=rbtree-interop-slice-still-missing`
-- `PHASE3_NEXT_BOUNDED_STEP=roadmap-backed-rbtree-interop-survey-or-slice-before-more-chrdev-growth`
+- `PHASE3_NEXT_BOUNDED_STEP=small-phase3-rbtree-interop-slice-before-more-chrdev-growth`
 
 ## Roadmap Contract
 
@@ -47,7 +48,7 @@ The current tree already carries the bounded ABI substrate and the first reusabl
 - `zigux/kernel/export_shim.zig` keeps the export status surface explicit, and it now also keeps the boundary-header constructor and compatibility path reviewable without widening into a broader export namespace
 - `zigux/uapi/version.zig` keeps one minimal UAPI surface aligned to the ABI version, and it now also exposes the boundary-header constructor and compatibility check without widening into a broader UAPI shim family
 - `zigux/helpers/layout_assert.zig`, `panic_policy.zig`, `allocator_policy.zig`, `atomic.zig`, `barrier.zig`, and `mmio.zig` cover the low-level policy and wrapper packet
-- `zigux/tests/phase3_low_level_wrappers.zig` plus `zigux/tests/phase3_low_level_wrappers_build.zig` now keep that atomic, barrier, and MMIO packet reviewable on its own focused replay path, including the scoped MMIO entry points routed back through the declared narrow unsafe layer
+- `zigux/tests/phase3_low_level_wrappers.zig` plus `zigux/tests/phase3_low_level_wrappers_build.zig` keep that atomic, barrier, and MMIO packet reviewable on its own focused replay path, including the scoped MMIO entry points routed back through the declared narrow unsafe layer
 - `zigux/unsafe/narrow.zig` keeps the unsafe boundary narrow and named
 - `zigux/helpers/bitmap_view.zig` and `zigux/helpers/cpumask_view.zig` provide the first roadmap-backed reusable interop seam
 
@@ -57,21 +58,14 @@ The live tree also contains additional bounded interop helpers beyond the roadma
 - `zigux/helpers/err_ptr.zig`, `xa_value.zig`, `xarray_slot_view.zig`, `idr_slot_view.zig`
 - `zigux/helpers/ida_bitmap_view.zig`, `ida_alloc_view.zig`, `ida_range_view.zig`, `ida_range_set_view.zig`, `ida_policy_view.zig`
 
-The repo also already carries real `rbtree` evidence outside the still-missing Phase 3 boundary-facing packet:
+The repo also already carries real `rbtree` evidence outside the still-missing Phase 3 boundary-facing slice:
 
-- `tools/lib/rbtree.zig` and `Documentation/zigux/phase1-closure.md` record the earlier host-helper parity and direct unit coverage
+- `tools/lib/rbtree.zig` and `Documentation/zigux/phase1-closure.md` record the earlier host-helper parity packet
 - `lib/rbtree.zig`, `Documentation/zigux/phase7-rbtree-slice.md`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_survey.zig`, and `zigux/tests/phase7_rbtree_manifest.json` record the later runtime-helper packet and its survey-backed review surface
-- that evidence matters because the remaining Phase 3 gap is not "no rbtree work exists"; it is specifically that no Phase 3 interop-facing `zigux/helpers/rbtree_*`, `zigux/tests/phase3_rbtree_*`, or `Documentation/zigux/phase3-rbtree-*.md` packet exists yet
+- `Documentation/zigux/phase3-rbtree-interop-survey.md` now maps that evidence back to the original Phase 3 roadmap anchor and keeps the remaining boundary-facing gap explicit
+- that evidence matters because the remaining gap is not "no rbtree work exists"; it is specifically that no Phase 3 helper, dump, fixture, or slice packet exists yet
 
-The largest adjacent growth, though, is now the `chrdev_*` planning ladder. Current `master` no longer stops at one or two exploratory helpers here:
-
-- early chrdev planning is already published through `zigux/helpers/cdev_add_plan.zig`, `cdev_lookup_plan.zig`, `chrdev_open_plan.zig`, `chrdev_fops_plan.zig`, and `chrdev_route_plan.zig`
-- the same ladder already continues through `zigux/helpers/chrdev_io_plan.zig`, `chrdev_xfer_plan.zig`, `chrdev_complete_plan.zig`, and `chrdev_notify_plan.zig`
-- later slices already widen that planning family further into notification acknowledgement and windowing surfaces such as `zigux/helpers/chrdev_notify_ack_plan.zig` and `chrdev_notify_ack_window_plan.zig`
-- the documentation packet mirrors that spread with published slice notes such as `Documentation/zigux/phase3-cdev-add-slice.md`, `phase3-chrdev-open-slice.md`, `phase3-chrdev-fops-slice.md`, `phase3-chrdev-route-slice.md`, `phase3-chrdev-io-slice.md`, `phase3-chrdev-complete-slice.md`, `phase3-chrdev-notify-slice.md`, `phase3-chrdev-notify-ack-slice.md`, and `phase3-chrdev-notify-ack-window-slice.md`
-- `include/zigux/abi.h` and `zigux/bindings/abi.zig` now carry a matching expansion of chrdev planning flags, views, and summaries far beyond the original four roadmap anchors
-
-Those slices are real repo state, but they should not be confused with closure of the original roadmap anchors or with closure of the broader Phase 3 destination around export shims and UAPI.
+The largest adjacent growth, though, is still the `chrdev_*` planning ladder. That packet remains real repo state, but it still exceeds the small named anchor set in the roadmap and should be treated as adjacent exploratory surface, not as proof that the core Phase 3 roadmap contract is complete.
 
 ## Current Gap
 
@@ -80,9 +74,10 @@ The largest roadmap-backed interop gap is still `lib/rbtree.c`.
 Why this remains a real gap:
 
 - the roadmap names `lib/rbtree.c` as a Phase 3 anchor
-- the current repo has no `zigux/helpers/rbtree_*` Phase 3 interop helper family
-- the current repo has no `Documentation/zigux/phase3-rbtree-*.md` slice note
-- the current repo has no `zigux/tests/phase3_rbtree_*.zig` parity packet
+- the repo now has a dedicated Phase 3 `rbtree` survey note, but it still has no boundary-facing helper packet for that anchor
+- the current repo still has no `zigux/helpers/rbtree*.zig` interop helper family
+- the current repo still has no `Documentation/zigux/phase3-rbtree-slice.md` slice note
+- the current repo still has no `zigux/tests/phase3_rbtree*.zig` dump, fixture, or parity packet
 - the existing Phase 1 host-helper evidence and the later Phase 7 helper packet are useful anchors, but neither is a substitute for a Phase 3 boundary-facing interop slice
 
 There is also a smaller but still explicit boundary gap around UAPI scope:
@@ -93,27 +88,27 @@ There is also a smaller but still explicit boundary gap around UAPI scope:
 
 ## Drift Note
 
-The live Phase 3 tree has now grown far beyond a small side branch of `chrdev_*` planning helpers.
+The live Phase 3 tree has grown well beyond the original four-anchor roadmap packet.
 
-Current repo reality is that the exploratory chrdev packet already stretches from `cdev_add` and `chrdev_open` through route and IO planning, transfer and completion planning, notification planning, and the later notify-ack and ack-window layers, with matching ABI and binding surface growth in `include/zigux/abi.h` and `zigux/bindings/abi.zig`.
-
-That growth is real repo state, but it still exceeds the small named anchor set in the roadmap and should be treated as adjacent exploratory surface, not as proof that the core Phase 3 roadmap contract is complete. The current repo reality is therefore:
+Current repo reality is therefore:
 
 - the ABI substrate is real
-- the low-level wrapper packet is real and now has its own focused replay gate
+- the low-level wrapper packet is real and has its own focused replay gate
 - the export shim is real but still intentionally narrow
 - the current UAPI boundary is real but still version-and-boundary-header only
 - bitmap and cpumask interop are real
 - several additional interop slices are real
-- the chrdev planning ladder is real and much broader than the original anchor list
-- the roadmap-backed `rbtree` boundary is still missing
-- more `chrdev_*` slice growth should wait until the roadmap-backed gap is explicitly addressed
+- the broader `chrdev_*` planning ladder is real and much wider than the original anchor list
+- the dedicated Phase 3 `rbtree` survey is now real
+- the roadmap-backed `rbtree` boundary-facing slice is still missing
+- more `chrdev_*` slice growth should wait until that roadmap-backed gap is explicitly addressed
 
 ## Next Bounded Step
 
-The next honest Phase 3 step is one roadmap-backed `rbtree` boundary task, not another new `chrdev_*` layer.
+The next honest Phase 3 step is one small `rbtree` interop slice, not another new `chrdev_*` layer.
 
-Two acceptable bounded follow-ons from the current repo state are:
+A bounded follow-on from the current repo state should include:
 
-- a `phase3-rbtree` survey that maps `lib/rbtree.c` into a reviewable boundary packet with explicit non-goals
-- a small `rbtree` interop slice with one curated view type, one committed parity fixture, and one shared `run-phase3-checks.py --slug ...` replay path
+- one curated `rbtree` boundary-facing helper or view type
+- one committed dump or parity fixture packet
+- one explicit replay path that keeps the slice reviewable without widening into a full balancing or mutation port
