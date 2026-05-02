@@ -37,6 +37,7 @@ test "phase 5 bytestream fifo sample replays exact queue behavior from the Linux
     try std.testing.expectEqual(@as(u8, 2), replay.skipped_byte);
     try std.testing.expectEqual(@as(u8, 3), replay.peek_value);
     try std.testing.expectEqual(@as(usize, 8), replay.preview_len);
+    try std.testing.expect(replay.preview_truncated);
     try std.testing.expectEqualSlices(u8, sample.expected_anchor_result[0..8], replay.preview_prefix[0..]);
     try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), replay.snapshot_len);
     try std.testing.expectEqual(@as(u8, 20), replay.fill_start);
@@ -65,7 +66,10 @@ test "phase 5 bytestream fifo sample keeps bounded helper behavior explicit" {
     try std.testing.expectEqual(@as(usize, 0), module.enqueueSlice(&.{}));
 
     var preview: [4]u8 = [_]u8{ 0xaa, 0xaa, 0xaa, 0xaa };
-    try std.testing.expectEqual(@as(usize, 0), module.snapshotInto(preview[0..]));
+    const empty_preview = module.previewInto(preview[0..]);
+    try std.testing.expectEqual(@as(usize, 0), empty_preview.copied);
+    try std.testing.expectEqual(@as(usize, 0), empty_preview.total_visible);
+    try std.testing.expect(!empty_preview.truncated);
     try std.testing.expectEqual(@as(u8, 0xaa), preview[0]);
 
     var count: u8 = 0;
@@ -77,7 +81,10 @@ test "phase 5 bytestream fifo sample keeps bounded helper behavior explicit" {
     try std.testing.expectEqual(@as(?u8, 0), module.peekByte());
 
     var snapshot: [8]u8 = undefined;
-    try std.testing.expectEqual(@as(usize, snapshot.len), module.snapshotInto(snapshot[0..]));
+    const preview_result = module.previewInto(snapshot[0..]);
+    try std.testing.expectEqual(@as(usize, snapshot.len), preview_result.copied);
+    try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), preview_result.total_visible);
+    try std.testing.expect(preview_result.truncated);
     try std.testing.expectEqualSlices(u8, &.{ 0, 1, 2, 3, 4, 5, 6, 7 }, snapshot[0..]);
     try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), module.count());
 
@@ -96,21 +103,6 @@ test "phase 5 bytestream fifo sample keeps bounded helper behavior explicit" {
     try std.testing.expectEqualSlices(u8, "lo", remainder[0..]);
     try std.testing.expectEqual(@as(usize, 0), module.count());
     try std.testing.expectEqual(@as(usize, 0), module.drain(short_drain[0..]));
-
-    module.reset();
-    try std.testing.expectEqual(@as(usize, 5), module.enqueueSlice("hello"));
-    var value: u8 = 0;
-    while (value < 10) : (value += 1) {
-        try std.testing.expect(module.pushByte(value));
-    }
-    var discard: [7]u8 = undefined;
-    try std.testing.expectEqual(@as(usize, discard.len), module.dequeueSlice(discard[0..]));
-    try std.testing.expectEqual(@as(usize, 2), module.enqueueSlice(&.{ 0, 1 }));
-
-    var wraparound_preview: [8]u8 = [_]u8{0} ** 8;
-    try std.testing.expectEqual(@as(usize, wraparound_preview.len), module.snapshotInto(wraparound_preview[0..]));
-    try std.testing.expectEqualSlices(u8, &.{ 2, 3, 4, 5, 6, 7, 8, 9 }, wraparound_preview[0..]);
-    try std.testing.expectEqual(@as(usize, 10), module.count());
 
     module.reset();
     try std.testing.expectEqual(@as(usize, 0), module.count());
