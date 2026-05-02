@@ -283,6 +283,7 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     try std.testing.expect(std.mem.indexOf(u8, build_file, "phase14_smoke_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);") != null);
     var focused_shard_count: usize = 0;
     var full_bundle_only_count: usize = 0;
+    var anchor_local_step_count: usize = 0;
     for (smoke_manifest.value.compile_shards) |shard| {
         try std.testing.expect(std.mem.indexOf(u8, build_file, shard.artifact_name) != null);
         try std.testing.expect(std.mem.indexOf(u8, build_file, shard.root_source_file) != null);
@@ -295,12 +296,16 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
             try std.testing.expectEqualStrings("full_bundle_only", shard.coverage_mode);
             try std.testing.expectEqualStrings("", shard.dedicated_step);
         }
+        if (shard.dedicated_step.len > 0 and !std.mem.eql(u8, shard.artifact_name, "phase14-end-to-end-smoke-tests")) {
+            anchor_local_step_count += 1;
+        }
         if (shard.bridge_import.len > 0) {
             try std.testing.expect(std.mem.indexOf(u8, build_file, shard.bridge_import) != null);
             try std.testing.expect(std.mem.indexOf(u8, build_file, shard.bridge_source_file) != null);
         }
     }
     try std.testing.expectEqual(@as(usize, 1), focused_shard_count);
+    try std.testing.expectEqual(@as(usize, 0), anchor_local_step_count);
     try std.testing.expectEqual(@as(usize, 4), full_bundle_only_count);
     try std.testing.expectEqual(@as(usize, 5), std.mem.count(u8, build_file, "test_step.dependOn(&run_phase14_"));
     try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, build_file, "phase14_smoke_step.dependOn(&run_phase14_"));
@@ -403,6 +408,7 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "PHASE14_VALIDATE_ENTRYPOINT=make -C zigux phase14-validate") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "PHASE14_COMPILE_ARTIFACT_COUNT=5") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "PHASE14_FOCUSED_SHARD_COUNT=1") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_note, "PHASE14_ANCHOR_LOCAL_STEP_COUNT=0") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=4") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "PHASE14_FULL_BUNDLE_DEPENDENCY_COUNT=5") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "PHASE14_FOCUSED_SHARD_DEPENDENCY_COUNT=1") != null);
