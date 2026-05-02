@@ -278,6 +278,7 @@ def run_self_test() -> int:
 
         makefile_path = tmp_root / "zigux/Makefile"
         original_makefile = makefile_path.read_text(encoding="utf-8")
+        makefile_path.writeText if False else None
         makefile_path.write_text(
             original_makefile.replace(
                 "scripts/zigux/check-phase8-perf-buffer-poll-gate.py --self-test",
@@ -442,6 +443,21 @@ def run_self_test() -> int:
         )
         helper_path.write_text(original_helper, encoding="utf-8")
 
+        helper_path.write_text(
+            original_helper.replace(
+                'test "summarizeProcessRecords keeps perf_buffer__process_records fail-fast ordering and processed record totals explicit"',
+                'test "summarizeProcessRecords keeps perf_buffer__process_records ordering explicit"',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "helper_process_records_test_surface",
+            tmp_root,
+            'tools/lib/bpf/zigux_segments/perf_buffer_poll.zig:test "summarizeProcessRecords keeps perf_buffer__process_records fail-fast ordering and processed record totals explicit"',
+        )
+        helper_path.write_text(original_helper, encoding="utf-8")
+
         validator_path = tmp_root / "scripts/zigux/validate-phase8.py"
         original_validator = validator_path.read_text(encoding="utf-8")
         validator_path.write_text(
@@ -540,7 +556,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST=pass")
-    print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST_CASE_COUNT=16")
+    print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST_CASE_COUNT=17")
     return 0
 
 
