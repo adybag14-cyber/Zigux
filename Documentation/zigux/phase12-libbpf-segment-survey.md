@@ -12,6 +12,8 @@ This document records the bounded Phase 12 survey lane around `tools/lib/bpf/lib
   - `zigux/tests/phase12_libbpf_manifest.json`
   - `zigux/tests/phase12_libbpf_segments.zig`
   - `zigux/tests/phase12_libbpf_reviewability.zig`
+  - `zigux/tests/fixtures/phase12_libbpf_snapshot.json`
+  - `tools/lib/bpf/zigux_segments/manifest.json`
   - `zigux/tests/phase12_build.zig`
   - `Documentation/zigux/phase12-libbpf-segment-survey.md`
 
