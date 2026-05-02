@@ -4,8 +4,12 @@ const virtio_net = @import("virtio_net");
 test "phase12 virtio net syntax lab keeps bounded probe exports reachable" {
     const descriptor = virtio_net.VirtioNetProbeLab.descriptor();
 
-    _ = virtio_net.QueueRecoveryAction;
+    _ = virtio_net.ModuleDescriptor;
+    _ = virtio_net.RecoveryAction;
+    _ = virtio_net.QueueFallbackReason;
     _ = virtio_net.RecoveryState;
+    _ = virtio_net.QueueRecoveryAction;
+    _ = virtio_net.RssSummary;
     _ = virtio_net.QueueResumeReadiness;
     _ = virtio_net.QueueResumeScope;
     _ = virtio_net.HeaderShape;
@@ -13,6 +17,10 @@ test "phase12 virtio net syntax lab keeps bounded probe exports reachable" {
     _ = virtio_net.BigPacketReason;
     _ = virtio_net.HeaderScatterPolicy;
     _ = virtio_net.XdpConstraint;
+    _ = virtio_net.ProbeRequest;
+    _ = virtio_net.ProbeSnapshot;
+    _ = virtio_net.QueueRecoverySummary;
+    _ = virtio_net.QueueResumeSummary;
     _ = virtio_net.MergeableReceiveRefillSummary;
 
     try std.testing.expectEqualStrings("virtio_net_probe_lab", descriptor.name);
@@ -29,6 +37,14 @@ test "phase12 virtio net syntax lab keeps review enums stable" {
         virtio_net.QueueRecoveryAction.clamp_queue_pairs,
     );
     try std.testing.expectEqual(virtio_net.RecoveryState.stable, virtio_net.RecoveryState.stable);
+    try std.testing.expectEqual(
+        virtio_net.QueueFallbackReason.invalid_max_queue_pairs,
+        virtio_net.QueueFallbackReason.invalid_max_queue_pairs,
+    );
+    try std.testing.expectEqual(
+        virtio_net.RssSummary.downgraded_single_queue,
+        virtio_net.RssSummary.downgraded_single_queue,
+    );
     try std.testing.expectEqual(
         virtio_net.QueueResumeReadiness.ready,
         virtio_net.QueueResumeReadiness.ready,
