@@ -19,6 +19,7 @@ REQUIRED_FILES = {
     "survey": "Documentation/zigux/phase11-hvc-console-survey.md",
     "slice": "Documentation/zigux/phase11-hvc-console-slice.md",
     "matrix": "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
+    "poll_retry_split": "zigux/tests/phase11_hvc_console_poll_retry_split.zig",
 }
 
 SURVEY_MARKERS = [
@@ -116,7 +117,7 @@ def run_validator(root: Path) -> subprocess.CompletedProcess[str]:
 def clone_fixture_root(destination_root: Path) -> None:
     script_target = destination_root / "scripts/zigux/check-phase11-hvc-cleanup-alignment.py"
     script_target.parent.mkdir(parents=True, exist_ok=True)
-    script_target.write_text((DEFAULT_ROOT / "check-phase11-hvc-cleanup-alignment.py").read_text(encoding="utf-8"), encoding="utf-8")
+    script_target.write_text(Path(__file__).read_text(encoding="utf-8"), encoding="utf-8")
 
     (destination_root / REQUIRED_FILES["manifest"]).parent.mkdir(parents=True, exist_ok=True)
     (destination_root / REQUIRED_FILES["manifest"]).write_text(
@@ -170,6 +171,11 @@ def clone_fixture_root(destination_root: Path) -> None:
                 "",
             ]
         ),
+        encoding="utf-8",
+    )
+    (destination_root / REQUIRED_FILES["poll_retry_split"]).parent.mkdir(parents=True, exist_ok=True)
+    (destination_root / REQUIRED_FILES["poll_retry_split"]).write_text(
+        "test \"phase11 hvc console keeps the poll retry split placeholder reviewable\" {}\n",
         encoding="utf-8",
     )
 
@@ -296,9 +302,18 @@ def run_self_test() -> int:
             tmp_root,
             "slice:`hvc_cleanup()` tty-port release handoff summary",
         )
+        slice_path.write_text(original_slice, encoding="utf-8")
+
+        poll_retry_split_path = tmp_root / REQUIRED_FILES["poll_retry_split"]
+        poll_retry_split_path.unlink()
+        expect_missing(
+            "poll_retry_split_file_presence",
+            tmp_root,
+            f"missing:poll_retry_split:{REQUIRED_FILES['poll_retry_split']}",
+        )
 
     print("PHASE11_HVC_CLEANUP_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE11_HVC_CLEANUP_ALIGNMENT_SELF_TEST_CASE_COUNT=7")
+    print("PHASE11_HVC_CLEANUP_ALIGNMENT_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
