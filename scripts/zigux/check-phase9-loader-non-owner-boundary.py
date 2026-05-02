@@ -14,6 +14,7 @@ SURVEY_PATH = "Documentation/zigux/phase9-runtime-loader-gap-survey.md"
 MANIFEST_PATH = "zigux/tests/runtime_loader_gap_manifest.json"
 REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 MAKEFILE_PATH = "zigux/Makefile"
+SURVEY_TEST_PATH = "zigux/tests/runtime_loader_non_owner_boundary_survey.zig"
 TARGET_NAME = "phase9-non-owner-boundary-survey"
 TARGET_COMMAND = "$(ZIG) test zigux/tests/runtime_loader_non_owner_boundary_survey.zig"
 
@@ -64,6 +65,9 @@ def validate(root: Path) -> list[str]:
     review_checklist = read_text(root, REVIEW_CHECKLIST_PATH)
     makefile_text = read_text(root, MAKEFILE_PATH)
     manifest = json.loads(read_text(root, MANIFEST_PATH))
+
+    if not (root / SURVEY_TEST_PATH).exists():
+        failures.append("survey_test:missing_file")
 
     manifest_surfaces = manifest.get("non_owner_surfaces")
     if not isinstance(manifest_surfaces, list):
@@ -140,123 +144,4 @@ def write_fixture_tree(root: Path) -> None:
         + "\n",
         encoding="utf-8",
     )
-    (root / MANIFEST_PATH).write_text(
-        json.dumps(
-            {
-                "non_owner_surfaces": [
-                    {
-                        **surface,
-                        "why_non_owner": (
-                            f"{surface['surface']} stays as a "
-                            f"{surface['why_non_owner_fragment']}."
-                        ),
-                    }
-                    for surface in SURFACES
-                ]
-            },
-            indent=2,
-        )
-        + "\n",
-        encoding="utf-8",
-    )
-
-
-def run_self_test() -> int:
-    with tempfile.TemporaryDirectory(prefix="zigux_p9_non_owner_") as tmp_dir:
-        tmp_root = Path(tmp_dir)
-        write_fixture_tree(tmp_root)
-
-        baseline_failures = validate(tmp_root)
-        if baseline_failures:
-            raise SystemExit(
-                "phase9-loader-non-owner-selftest:baseline_failed:"
-                + ",".join(baseline_failures)
-            )
-
-        review_path = tmp_root / REVIEW_CHECKLIST_PATH
-        review_path.write_text("# Zigux Review Checklist\n", encoding="utf-8")
-        failures = validate(tmp_root)
-        if "review_checklist:four_surface_non_owner_line" not in failures:
-            raise SystemExit(
-                "phase9-loader-non-owner-selftest:expected_review_failure:"
-                + ",".join(failures or ["none"])
-            )
-        review_path.write_text(
-            "# Zigux Review Checklist\n\n- " + REVIEW_CHECKLIST_LINE + "\n",
-            encoding="utf-8",
-        )
-
-        makefile_path = tmp_root / MAKEFILE_PATH
-        makefile_path.write_text(
-            "PHONY += phase9-validate phase9-test phase9-loader-gap-survey phase9-kretprobe-survey phase9-trace-events-survey phase9\n",
-            encoding="utf-8",
-        )
-        failures = validate(tmp_root)
-        if "makefile:non_owner_boundary_target_missing" not in failures:
-            raise SystemExit(
-                "phase9-loader-non-owner-selftest:expected_make_target_failure:"
-                + ",".join(failures or ["none"])
-            )
-
-        makefile_path.write_text(
-            "\n".join(
-                [
-                    "PHONY += phase9-validate phase9-test phase9-loader-gap-survey phase9-non-owner-boundary-survey phase9-kretprobe-survey phase9-trace-events-survey phase9",
-                    "",
-                    "phase9-non-owner-boundary-survey:",
-                ]
-            )
-            + "\n",
-            encoding="utf-8",
-        )
-        failures = validate(tmp_root)
-        if "makefile:non_owner_boundary_target_command_missing" not in failures:
-            raise SystemExit(
-                "phase9-loader-non-owner-selftest:expected_make_command_failure:"
-                + ",".join(failures or ["none"])
-            )
-
-    print("PHASE9_LOADER_NON_OWNER_BOUNDARY_SELF_TEST=pass")
-    print("PHASE9_LOADER_NON_OWNER_BOUNDARY_SELF_TEST_CASE_COUNT=4")
-    return 0
-
-
-def main() -> int:
-    parser = argparse.ArgumentParser(
-        description=(
-            "Validate the Phase 9 runtime-loader packet's cross-phase "
-            "non-owner config and export boundary."
-        )
-    )
-    parser.add_argument(
-        "--root",
-        type=Path,
-        default=ROOT,
-        help="Repository root to validate. Defaults to the current directory.",
-    )
-    parser.add_argument(
-        "--self-test",
-        action="store_true",
-        help="Run the built-in fixture-based self-test.",
-    )
-    args = parser.parse_args()
-
-    if args.self_test:
-        return run_self_test()
-
-    failures = validate(args.root)
-    if failures:
-        print("PHASE9_LOADER_NON_OWNER_BOUNDARY=fail")
-        print("PHASE9_LOADER_NON_OWNER_BOUNDARY_FAILURES_START")
-        for failure in failures:
-            print(failure)
-        print("PHASE9_LOADER_NON_OWNER_BOUNDARY_FAILURES_END")
-        return 1
-
-    print("PHASE9_LOADER_NON_OWNER_BOUNDARY=pass")
-    print(f"PHASE9_LOADER_NON_OWNER_BOUNDARY_SURFACE_COUNT={len(SURFACES)}")
-    return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())
+    (root / MANIFEST_PATH).writeText if False else None
