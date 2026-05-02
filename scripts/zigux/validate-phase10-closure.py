@@ -156,7 +156,7 @@ EXPECTED_CLOSURE_MANIFEST = {
 
 EXPECTED_ALLOWED_ROADMAP_DESTINATIONS = [
     "drivers/virtio/*.zig",
-    "zigux/helpers/",
+    "zigux/helpers/"
 ]
 
 EXPECTED_ALLOWED_EVIDENCE_KINDS = [
@@ -524,6 +524,18 @@ def run_self_test() -> int:
         )
         write_fixture(root)
 
+        closure_manifest = json.loads(closure_manifest_path.read_text(encoding="utf-8"))
+        closure_manifest["landed_input_helper_evidence"] = {
+            "zigux/tests/phase10_virtio_input_manifest.json": EXPECTED_INPUT_HELPERS[:-1]
+        }
+        closure_manifest_path.write_text(json.dumps(closure_manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "input_helper_guard",
+            root,
+            "closure_manifest:landed_input_helper_evidence",
+        )
+        write_fixture(root)
+
         docs_readme_path = root / "Documentation/zigux/README.md"
         original_docs_readme = docs_readme_path.read_text(encoding="utf-8")
         docs_readme_path.write_text(
@@ -680,7 +692,7 @@ def run_self_test() -> int:
         ledger_path.write_text(original_ledger, encoding="utf-8")
 
     print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=13")
+    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
