@@ -64,6 +64,7 @@ The current tests check:
 - command-source loading keeps the exec-path list stable, skips the exec-path directory when it also appears on PATH, removes commands already present in the exec-path list, and preserves the `perf-` default prefix behavior
 - command-source loading keeps caller-seeded main command lists sorted and de-duplicated before PATH-side exclusion, preventing already-known commands from leaking back in when exec-path discovery is unavailable or precomputed upstream
 - raw `PATH` splitting keeps a fully empty string plus leading, repeated, and trailing empty segments explicit so later injected population can follow the same branch shape as `help.c`, and the env-`PATH` wrapper keeps custom-prefix filtering on the same shared helper path as the direct source loader
+- helper-local `tools/lib/subcmd/help.zig` tests own the fully empty `PATH` fallback and PATH-only fallback edges directly, so the phase replay stays centered on integrated command discovery and section rendering instead of replaying those helper-local cases again
 - terminal-dimensions resolution only accepts non-zero `LINES` plus `COLUMNS` pairs, otherwise falls back to injected terminal sizes or the `25x80` default
 - membership and longest-name tracking stay aligned with stored entries
 - layout planning preserves the same column math used before printing, including the single-column fallback for narrow terminals, the empty-list row contract, and environment-driven column selection through the injected terminal helper
