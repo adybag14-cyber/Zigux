@@ -1,0 +1,64 @@
+{
+  "lane_key": "P4-L07",
+  "phase": "Phase 4",
+  "surveyed_commit": "3ba64cd4e41a4de1c8fd8dbaecb23702ad9701a3",
+  "anchor": "lib/test_bitmap.c",
+  "roadmap_destinations": [
+    "zigux/tests/bitmap_diff.zig"
+  ],
+  "survey_summary": {
+    "test_bitmap_anchor_present": true,
+    "bitmap_diff_gate_present": true,
+    "rounded_fill_gap_recorded": true,
+    "phase4_build_present": true,
+    "phase4_build_is_gate_only": true,
+    "phase4_validation_matrix_present": true
+  },
+  "threshold_plan": {
+    "owner": "Shared Subsystems Pod",
+    "rollback_owner": "Shared Subsystems Pod",
+    "posture": "threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
+    "status": "pending_scope_widening",
+    "benchmark_command": "unapproved_until_bitmap_gate_scope_widens",
+    "acceptable_limit": "unapproved_until_bitmap_gate_scope_widens",
+    "scope": "range, rounded-prefix, cross-boundary set-clear, summary, exact nth-lookup, and copy-behavior checkpoints",
+    "why_not_approved_yet": "The live gate is still a bounded rollback-readiness slice, direct `bitmap_fill(..., 115)` still stops at bit 114 in the shipped Zig helper, and no approved benchmark command or acceptable limit has landed for this gate yet."
+  },
+  "gaps": [
+    {
+      "id": "phase4-bitmap-diff-gate",
+      "status": "starter_landed",
+      "kind": "bounded_gate",
+      "zigux_destination": "zigux/tests/bitmap_diff.zig",
+      "why_now": "The live Phase 4 gate already replays bounded range, rounded-prefix, cross-boundary set-clear, summary, exact find_nth_bit, and copy-behavior expectations from lib/test_bitmap.c, so the survey should point at that shipped gate instead of inventing a second parallel bitmap diff surface."
+    },
+    {
+      "id": "phase4-bitmap-diff-survey-packet",
+      "status": "starter_landed",
+      "kind": "survey_packet",
+      "zigux_destination": "zigux/tests/phase4_bitmap_diff_survey.zig",
+      "why_now": "This manifest-backed bitmap survey keeps the current rollback evidence gap, shared replay contract, and roadmap destination explicit in one machine-checkable packet instead of leaving the bitmap survey only inside prose and inline comments."
+    },
+    {
+      "id": "phase4-bitmap-diff-survey-build-step",
+      "status": "ready_next",
+      "kind": "survey_replay_gap",
+      "zigux_destination": "zigux/tests/phase4_build.zig",
+      "why_now": "The shared phase4_build.zig entrypoint already keeps `phase4-bitmap-diff-tests` in the rollback-readiness bundle, but it does not yet run a dedicated bitmap survey test or expose an isolated survey step for this new manifest-backed packet."
+    },
+    {
+      "id": "phase4-validation-matrix-note",
+      "status": "starter_landed",
+      "kind": "ownership_note",
+      "zigux_destination": "Documentation/zigux/phase4-validation-matrix.md",
+      "why_now": "The validation matrix already names the rollback owner, threshold posture, and current rollback evidence gap for `zigux/tests/bitmap_diff.zig`, so the bitmap survey should point at that published ownership note instead of restating it loosely."
+    },
+    {
+      "id": "phase4-broader-bitmap-surface",
+      "status": "blocked_on_fill_rounding_parity",
+      "kind": "coverage_gap",
+      "zigux_destination": "zigux/tests/bitmap_diff.zig",
+      "why_now": "The live gate is still a bounded rollback-readiness slice. It keeps the rounded-fill drift explicit because direct `bitmap_fill(..., 115)` still stops at bit 114 in the shipped Zig helper instead of matching the full lib/test_bitmap.c rounded two-word anchor, and Phase 4 still publishes no approved perf threshold for the broader bitmap surface."
+    }
+  ]
+}
