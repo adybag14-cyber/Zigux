@@ -10,6 +10,15 @@ const SurveySummary = struct {
     preexisting_phase7_sample_present: bool,
 };
 
+const SampleReplayContract = struct {
+    descriptor_name: []const u8,
+    matched_index: i32,
+    checked_focus: []const []const u8,
+    lifecycle_states: []const []const u8,
+    helper_call_markers: []const []const u8,
+    test_assertions: []const []const u8,
+};
+
 const Gap = struct {
     id: []const u8,
     status: []const u8,
@@ -25,6 +34,7 @@ const Manifest = struct {
     anchor: []const u8,
     roadmap_destinations: []const []const u8,
     survey_summary: SurveySummary,
+    sample_replay_contract: SampleReplayContract,
     gaps: []const Gap,
 };
 
@@ -38,6 +48,25 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
+fn expectOrderedContains(haystack: []const u8, needles: []const []const u8) !void {
+    var cursor: usize = 0;
+    for (needles) |needle| {
+        const index = std.mem.indexOfPos(u8, haystack, cursor, needle);
+        try std.testing.expect(index != null);
+        cursor = (index orelse unreachable) + needle.len;
+    }
+}
+
+fn countOccurrences(haystack: []const u8, needle: []const u8) usize {
+    var total: usize = 0;
+    var cursor: usize = 0;
+    while (std.mem.indexOfPos(u8, haystack, cursor, needle)) |index| {
+        total += 1;
+        cursor = index + needle.len;
+    }
+    return total;
+}
+
 test "phase 7 string helper sample survey manifest records the bounded sample-backed review packet" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -46,7 +75,7 @@ test "phase 7 string helper sample survey manifest records the bounded sample-ba
         io_instance.io(),
         "zigux/tests/phase7_string_helpers_sample_manifest.json",
         std.testing.allocator,
-        .limited(16 * 1024),
+        .limited(20 * 1024),
     );
     defer std.testing.allocator.free(manifest_json);
 
@@ -110,6 +139,13 @@ test "phase 7 string helper sample survey manifest records the bounded sample-ba
     try std.testing.expect(manifest.survey_summary.preexisting_phase7_sample_present);
     try std.testing.expectEqual(@as(usize, 7), manifest.gaps.len);
 
+    try std.testing.expectEqualStrings("string_helpers_sample", manifest.sample_replay_contract.descriptor_name);
+    try std.testing.expectEqual(@as(i32, 1), manifest.sample_replay_contract.matched_index);
+    try std.testing.expectEqual(@as(usize, 4), manifest.sample_replay_contract.checked_focus.len);
+    try std.testing.expectEqual(@as(usize, 4), manifest.sample_replay_contract.lifecycle_states.len);
+    try std.testing.expectEqual(@as(usize, 5), manifest.sample_replay_contract.helper_call_markers.len);
+    try std.testing.expectEqual(@as(usize, 5), manifest.sample_replay_contract.test_assertions.len);
+
     var starter_landed_count: usize = 0;
     var saw_helper = false;
     var saw_fixture_layer = false;
@@ -170,32 +206,22 @@ test "phase 7 string helper sample survey manifest records the bounded sample-ba
     try std.testing.expect(saw_sample_survey_gate);
     try std.testing.expect(saw_slice_note);
 
-    const expected_focuses = [_][]const u8{
-        "newline_tolerant_matching",
-        "bounded_size_rendering",
-        "deterministic_escape_subset",
-        "non_allocating_runtime_safe",
-    };
-    for (expected_focuses) |focus| {
-        try expectContains(sample_source, focus);
-    }
+    try expectContains(sample_source, ".name = \"string_helpers_sample\"");
+    try expectContains(sample_source, ".anchor = \"lib/string_helpers.c\"");
+    try expectContains(sample_source, ".matched_index = string_helpers.sysfsMatchString(&values, values.len, \"enabled\\n\"),");
+    try expectContains(sample_source, "const values = [_]?[]const u8{ \"disabled\", \"enabled\", null, \"ignored\" };");
 
-    const expected_sample_markers = [_][]const u8{
-        "pub const SampleDescriptor",
-        "pub fn init(self: *Self) !void",
-        "pub fn runAnchorReplay(self: *Self) !ReplaySummary",
-        "pub fn exit(self: *Self) !void",
-        "string_helpers.sysfsStreq",
-        "string_helpers.sysfsMatchString",
-        "string_helpers.stringGetSize",
-        "string_helpers.stringUnescape",
-        "string_helpers.stringEscapeMem",
-        ".stage_before_replay = .initialized",
-        ".stage_after_replay = self.stage()",
-    };
-    for (expected_sample_markers) |marker| {
+    try expectOrderedContains(sample_source, manifest.sample_replay_contract.lifecycle_states);
+    try expectOrderedContains(sample_source, manifest.sample_replay_contract.checked_focus);
+
+    for (manifest.sample_replay_contract.helper_call_markers) |marker| {
         try expectContains(sample_source, marker);
     }
+    for (manifest.sample_replay_contract.test_assertions) |marker| {
+        try expectContains(sample_source, marker);
+    }
+
+    try std.testing.expectEqual(@as(usize, 2), countOccurrences(sample_source, "test \"string helper sample"));
 
     const expected_helper_markers = [_][]const u8{
         "pub fn sysfsStreq",
