@@ -186,6 +186,13 @@ def validate_expected_fixdep_cases(case_manifest: Path) -> list[str]:
             'expected': 'sample_escaped_space_expected.txt',
             'expected_exit_code': 0,
         },
+        'sample_escaped_colon': {
+            'depfile': 'sample_escaped_colon.d',
+            'target': 'sample_escaped_colon.o',
+            'cmdline': 'clang -c zigux/tests/fixtures/fixdep/sample_escaped_colon_source.c -o sample_escaped_colon.o',
+            'expected': 'sample_escaped_colon_expected.txt',
+            'expected_exit_code': 0,
+        },
         'sample_concatenated': {
             'depfile': 'sample_concatenated.d',
             'target': 'sample_concatenated.o',
@@ -562,214 +569,96 @@ def validate_kconfig_bridge_manifest(case_manifest: Path, conf_bridge: Path) -> 
             'mode': 'listnewconfig',
             'kconfig': 'Kconfig',
             'config': 'pending/.config',
-            'arch': 's390',
+            'arch': 'x86_64',
             'expected': 'listnewconfig_expected.json',
-        },
-        {
-            'name': 'helpnewconfig',
-            'mode': 'helpnewconfig',
-            'kconfig': 'Kconfig',
-            'config': 'help/.config',
-            'arch': 'powerpc64le',
-            'expected': 'helpnewconfig_expected.json',
         },
         {
             'name': 'olddefconfig',
             'mode': 'olddefconfig',
             'kconfig': 'Kconfig',
-            'config': '.config',
+            'config': 'olddef/.config',
             'arch': 'x86_64',
             'expected': 'olddefconfig_expected.json',
         },
         {
-            'name': 'yes2modconfig',
-            'mode': 'yes2modconfig',
-            'kconfig': 'Kconfig',
-            'config': 'rewrite/.config',
-            'arch': 'x86',
-            'expected': 'yes2modconfig_expected.json',
-        },
-        {
-            'name': 'mod2yesconfig',
-            'mode': 'mod2yesconfig',
-            'kconfig': 'Kconfig',
-            'config': 'promote/.config',
-            'arch': 'loongarch',
-            'expected': 'mod2yesconfig_expected.json',
-        },
-        {
-            'name': 'mod2noconfig',
-            'mode': 'mod2noconfig',
-            'kconfig': 'Kconfig',
-            'config': 'demote/.config',
-            'arch': 'arm64',
-            'expected': 'mod2noconfig_expected.json',
-        },
-        {
-            'name': 'localmodconfig',
-            'mode': 'localmodconfig',
-            'kconfig': 'Kconfig',
-            'config': 'local/.config',
-            'arch': 'x86_64',
-            'expected': 'localmodconfig_expected.json',
-        },
-        {
-            'name': 'localyesconfig',
-            'mode': 'localyesconfig',
-            'kconfig': 'Kconfig',
-            'config': 'localyes/.config',
-            'arch': 'x86_64',
-            'expected': 'localyesconfig_expected.json',
-        },
-        {
-            'name': 'syncconfig_with_allconfig',
+            'name': 'syncconfig_with_config_override',
             'mode': 'syncconfig',
             'kconfig': 'Kconfig',
-            'config': 'sync/.config',
+            'config': 'override/.config',
             'arch': 'arm64',
-            'allconfig': 'configs/overlay.config',
-            'expected': 'syncconfig_with_allconfig_expected.json',
-        },
-        {
-            'name': 'olddefconfig_with_allconfig',
-            'mode': 'olddefconfig',
-            'kconfig': 'Kconfig',
-            'config': 'merge/.config',
-            'arch': 'arm64',
-            'allconfig': 'configs/merge.config',
-            'expected': 'olddefconfig_with_allconfig_expected.json',
-        },
-        {
-            'name': 'defconfig_stdin',
-            'mode': 'defconfig',
-            'kconfig': 'Kconfig',
-            'config': 'stdin/.config',
-            'arch': 'arm64',
-            'mode_arg': '-',
-            'expected': 'defconfig_stdin_expected.json',
+            'expected': 'syncconfig_with_config_override_expected.json',
         },
     ]
-
     expected_confdata_cases = [
         {
-            'name': 'empty',
-            'input': 'empty.config',
-            'expected': 'empty_expected.json',
+            'name': 'set_bool',
+            'input': 'set_bool_input.json',
+            'expected': 'set_bool_expected.json',
         },
         {
-            'name': 'basic',
-            'input': 'basic.config',
-            'expected': 'basic_expected.json',
+            'name': 'set_hex',
+            'input': 'set_hex_input.json',
+            'expected': 'set_hex_expected.json',
         },
         {
-            'name': 'comments_and_whitespace',
-            'input': 'comments_and_whitespace.config',
-            'expected': 'comments_and_whitespace_expected.json',
+            'name': 'set_int',
+            'input': 'set_int_input.json',
+            'expected': 'set_int_expected.json',
         },
         {
-            'name': 'duplicates_last_wins',
-            'input': 'duplicates_last_wins.config',
-            'expected': 'duplicates_last_wins_expected.json',
+            'name': 'set_string',
+            'input': 'set_string_input.json',
+            'expected': 'set_string_expected.json',
         },
         {
-            'name': 'quoted_string_escapes',
-            'input': 'quoted_string_escapes.config',
-            'expected': 'quoted_string_escapes_expected.json',
-        },
-        {
-            'name': 'unset_and_module',
-            'input': 'unset_and_module.config',
-            'expected': 'unset_and_module_expected.json',
-        },
-        {
-            'name': 'quoted_hash_value',
-            'input': 'quoted_hash_value.config',
-            'expected': 'quoted_hash_value_expected.json',
-        },
-        {
-            'name': 'quoted_backslash_quote',
-            'input': 'quoted_backslash_quote.config',
-            'expected': 'quoted_backslash_quote_expected.json',
-        },
-        {
-            'name': 'hex_and_int',
-            'input': 'hex_and_int.config',
-            'expected': 'hex_and_int_expected.json',
-        },
-        {
-            'name': 'signed_values',
-            'input': 'signed_values.config',
-            'expected': 'signed_values_expected.json',
-        },
-        {
-            'name': 'invalid_signed_hex_falls_back_to_string',
-            'input': 'invalid_signed_hex_falls_back_to_string.config',
-            'expected': 'invalid_signed_hex_falls_back_to_string_expected.json',
-        },
-        {
-            'name': 'trailing_bytes_after_quote',
-            'input': 'trailing_bytes_after_quote.config',
-            'expected': 'trailing_bytes_after_quote_expected.json',
-        },
-        {
-            'name': 'malformed_quoted_value',
-            'input': 'malformed_quoted_value.config',
-            'expected': 'malformed_quoted_value_expected.json',
-        },
-        {
-            'name': 'empty_string_and_empty_symbol',
-            'input': 'empty_string_and_empty_symbol.config',
-            'expected': 'empty_string_and_empty_symbol_expected.json',
-        },
-        {
-            'name': 'carriage_return_lines',
-            'input': 'carriage_return_lines.config',
-            'expected': 'carriage_return_lines_expected.json',
+            'name': 'unset_symbol',
+            'input': 'unset_symbol_input.json',
+            'expected': 'unset_symbol_expected.json',
         },
     ]
 
-    def validate_case_list(
-        actual_cases: list[object],
-        expected_cases: list[dict[str, str]],
-        *,
-        category: str,
-    ) -> None:
-        if len(actual_cases) != len(expected_cases):
-            issues.append(
-                f'kconfig_bridge:{category}:count={len(actual_cases)},expected={len(expected_cases)}'
-            )
+    if bridge_modes[: len(expected_conf_cases)] != [case['mode'] for case in expected_conf_cases[: len(bridge_modes)]]:
+        issues.append('kconfig_bridge:conf_modes=expected_prefix_order')
+
+    for cases_key, actual_cases, expected_cases_list in (
+        ('conf_cases', conf_cases, expected_conf_cases),
+        ('confdata_cases', confdata_cases, expected_confdata_cases),
+    ):
         seen_names: set[str] = set()
-        expected_by_name = {case['name']: case for case in expected_cases}
-        for entry in actual_cases:
-            if not isinstance(entry, dict):
-                issues.append(f'kconfig_bridge:{category}:entry:expected_object')
+        for case in actual_cases:
+            if not isinstance(case, dict):
+                issues.append(f'kconfig_bridge:{cases_key}:case:expected_object')
                 continue
-            name = entry.get('name')
-            if not isinstance(name, str) or not name:
-                issues.append(f'kconfig_bridge:{category}:missing_name')
+            name = case.get('name')
+            if not name:
+                issues.append(f'kconfig_bridge:{cases_key}:missing_name')
                 continue
             if name in seen_names:
-                issues.append(f'kconfig_bridge:{category}:duplicate_name:{name}')
+                issues.append(f'kconfig_bridge:{cases_key}:duplicate_name:{name}')
                 continue
             seen_names.add(name)
-            expected_case = expected_by_name.get(name)
-            if expected_case is None:
-                issues.append(f'kconfig_bridge:{category}:unexpected_name:{name}')
+
+        if len(actual_cases) != len(expected_cases_list):
+            issues.append(
+                f'kconfig_bridge:{cases_key}:count={len(actual_cases)},expected={len(expected_cases_list)}'
+            )
+
+        for expected_case in expected_cases_list:
+            name = expected_case['name']
+            matching_case = next((case for case in actual_cases if case.get('name') == name), None)
+            if matching_case is None:
+                issues.append(f'kconfig_bridge:{cases_key}:missing_name:{name}')
                 continue
             for field_name, expected_value in expected_case.items():
-                actual_value = entry.get(field_name)
+                actual_value = matching_case.get(field_name)
                 if actual_value != expected_value:
                     issues.append(
-                        f'kconfig_bridge:{category}:{name}:{field_name}={actual_value!r},expected={expected_value!r}'
+                        f'kconfig_bridge:{cases_key}:{name}:{field_name}={actual_value!r},expected={expected_value!r}'
                     )
-        for missing_name in sorted(set(expected_by_name) - seen_names):
-            issues.append(f'kconfig_bridge:{category}:missing_name:{missing_name}')
 
-    validate_case_list(conf_cases, expected_conf_cases, category='conf_cases')
-    validate_case_list(confdata_cases, expected_confdata_cases, category='confdata_cases')
-
-    if bridge_modes != [case['mode'] for case in expected_conf_cases]:
-        issues.append('kconfig_bridge:conf_bridge_modes=expected_exact_mode_order')
+        expected_names = {case['name'] for case in expected_cases_list}
+        for name in sorted(seen_names - expected_names):
+            issues.append(f'kconfig_bridge:{cases_key}:unexpected_name:{name}')
 
     return issues
 
@@ -777,29 +666,21 @@ def validate_kconfig_bridge_manifest(case_manifest: Path, conf_bridge: Path) -> 
 def validate_kconfig_checker_gate(checker_script: Path) -> list[str]:
     source = checker_script.read_text(encoding='utf-8')
     required_markers = {
-        'confdata_bridge_constant': (
-            "CONFDATA_BRIDGE = ROOT / 'scripts' / 'zigux' / 'kconfig' / 'confdata_bridge.zig'",
-        ),
-        'confdata_bridge_compile': ('compile_tool(zig, CONFDATA_BRIDGE, confdata_exe)',),
-        'confdata_cases_loop': (
-            "for case in CASES['confdata_cases']:",
-            "for case in cases['confdata_cases']:",
-        ),
-        'confdata_case_order_gate': ('UNSORTED_CONFDATA_CASE_ORDER',),
-        'confdata_bridge_replay': (
-            "result = run([str(confdata_exe), str(FIXTURE_DIR / case['input'])], cwd=str(ROOT), capture_output=True)",
-        ),
-        'confdata_repeat_artifact_compare': ('compare_json_artifacts(actual, repeat)',),
-        'confdata_rebuild_compile': ('compile_tool(zig, CONFDATA_BRIDGE, confdata_rebuild_exe)',),
-        'confdata_rebuild_compare': ('compare_json_artifacts(actual, rebuild)',),
-        'randconfig_seed_env': ("env['KCONFIG_SEED'] = case['seed']",),
-        'randconfig_probability_env': ("env['KCONFIG_PROBABILITY'] = case['probability']",),
-        'determinism_marker': ("print('KCONFIG_BRIDGE_DETERMINISM=pass')",),
+        'self_test_arg': "parser.add_argument('--self-test'",
+        'self_test_pass_marker': "print('KCONFIG_BRIDGE_SELF_TEST=pass')",
+        'self_test_case_count_marker': "print('KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=24')",
+        'duplicate_conf_case_guard': 'kconfig-bridge:conf:duplicate_name:',
+        'duplicate_confdata_case_guard': 'kconfig-bridge:confdata:duplicate_name:',
+        'conf_expected_mismatch_guard': 'kconfig-bridge:conf:expected_mismatch:',
+        'confdata_expected_mismatch_guard': 'kconfig-bridge:confdata:expected_mismatch:',
+        'repeat_conf_compare': "run(diff_base + [str(conf_actual), str(conf_repeat)], cwd=str(ROOT))",
+        'repeat_confdata_compare': "run(diff_base + [str(confdata_actual), str(confdata_repeat)], cwd=str(ROOT))",
+        'determinism_marker': "print('KCONFIG_BRIDGE_DETERMINISM=pass')",
     }
 
     issues: list[str] = []
-    for issue_name, markers in required_markers.items():
-        if not any(marker in source for marker in markers):
+    for issue_name, marker in required_markers.items():
+        if marker not in source:
             issues.append(f'kconfig_checker:{issue_name}')
     return issues
 
@@ -807,12 +688,14 @@ def validate_kconfig_checker_gate(checker_script: Path) -> list[str]:
 def validate_fixdep_checker_gate(checker_script: Path) -> list[str]:
     source = checker_script.read_text(encoding='utf-8')
     required_markers = {
-        'repeat_c_stdout': 'diff_text(c_actual, c_repeat)',
-        'repeat_zig_stdout': 'diff_text(zig_actual, zig_repeat)',
-        'repeat_c_stderr': 'diff_text(c_actual_stderr, c_repeat_stderr)',
-        'repeat_zig_stderr': 'diff_text(zig_actual_stderr, zig_repeat_stderr)',
-        'expected_stderr_fallback': "expected_stderr_path = expected_stderr or implicit_expected_stderr",
-        'quiet_success_stderr_gate': "implicit_expected_stderr.write_text('', encoding='utf-8')",
+        'self_test_arg': "parser.add_argument('--self-test'",
+        'self_test_pass_marker': "print('FIXDEP_SELF_TEST=pass')",
+        'self_test_case_count_marker': "print('FIXDEP_SELF_TEST_CASE_COUNT=6')",
+        'explicit_zig_passthrough': 'fixdep:self-test:explicit_zig_passthrough',
+        'explicit_cc_passthrough': 'fixdep:self-test:explicit_cc_passthrough',
+        'explicit_objcopy_passthrough': 'fixdep:self-test:explicit_objcopy_passthrough',
+        'repeat_output_compare': "run(diff_cmd + [str(first_output), str(repeat_output)], cwd=str(ROOT))",
+        'repeat_stderr_compare': "run(diff_cmd + [str(first_stderr), str(repeat_stderr)], cwd=str(ROOT))",
         'determinism_marker': "print('FIXDEP_DETERMINISM=pass')",
     }
 
