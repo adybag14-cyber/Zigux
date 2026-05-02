@@ -19,6 +19,8 @@ UAPI_VERSION_REL = "zigux/uapi/version.zig"
 UAPI_ROOT_REL = "zigux/uapi"
 ABI_SLICE_REL = "Documentation/zigux/phase3-abi-slice.md"
 EXPORT_UAPI_TEST_REL = "zigux/tests/phase3_export_uapi.zig"
+EXPORT_UAPI_LAYOUT_BUILD_REL = "zigux/tests/phase3_export_uapi_layout_build.zig"
+EXPORT_UAPI_LAYOUT_TEST_REL = "zigux/tests/phase3_export_uapi_layout.zig"
 LINUX_HEADER_REL = "include/linux/zigux.h"
 ABI_HEADER_REL = "include/zigux/abi.h"
 HEX40 = re.compile(r"^[0-9a-f]{40}$")
@@ -34,6 +36,7 @@ REQUIRED_SURVEY_MARKERS = (
     "PHASE3_UAPI_SCOPE=version-and-boundary-header",
     "PHASE3_UAPI_STATUS=version-header-and-compatibility-surface-landed",
     "PHASE3_EXPORT_UAPI_GATE=zig build phase3-export-uapi-test --build-file zigux/tests/phase3_export_uapi_build.zig",
+    "PHASE3_EXPORT_UAPI_LAYOUT_GATE=zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
     "PHASE3_ABI_BUILD_SMOKE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi --check-build-smoke",
     "PHASE3_ABI_BUILD_SMOKE_STATUS=shared-validator-replays-export-uapi-boundary",
     "PHASE3_BOUNDARY_GAP=broader-curated-uapi-shims-still-deferred",
@@ -43,6 +46,8 @@ REQUIRED_SURVEY_MARKERS = (
 REQUIRED_SURVEY_SNIPPETS = (
     "zigux/tests/phase3_export_uapi_build.zig",
     "zigux/tests/phase3_export_uapi.zig",
+    "zigux/tests/phase3_export_uapi_layout_build.zig",
+    "zigux/tests/phase3_export_uapi_layout.zig",
     "zigux/tests/fixtures/phase3_abi_manifest.json",
     "python3 scripts/zigux/validate-phase3.py --slug abi --check-build-smoke",
     "phase3-dump`, `phase3-low-level-wrappers-test`, `phase3-export-uapi-test`, and `phase3-policy-unsafe-test`",
@@ -54,6 +59,8 @@ REQUIRED_SURVEY_SNIPPETS = (
     "The live repo already carries the C-facing boundary headers in `include/zigux/abi.h` and `include/linux/zigux.h`.",
     "compiles and runs a tiny C relay check against `include/linux/zigux.h`",
     "the C-facing `zigux_status_ok()` and `zigux_status_err()` helpers plus raw `zigux_boundary_header` field values still agree",
+    "canonical boundary-header and export-status size and field-offset contract on its own focused layout replay",
+    "phase3-export-uapi-layout-test",
 )
 
 REQUIRED_SURVEY_PATHS = (
@@ -64,6 +71,8 @@ REQUIRED_SURVEY_PATHS = (
     LINUX_HEADER_REL,
     "zigux/tests/phase3_export_uapi_build.zig",
     EXPORT_UAPI_TEST_REL,
+    EXPORT_UAPI_LAYOUT_BUILD_REL,
+    EXPORT_UAPI_LAYOUT_TEST_REL,
     "zigux/tests/fixtures/phase3_abi_manifest.json",
     "scripts/zigux/validate-phase3.py",
     "scripts/zigux/validate_phase3_core.py",
@@ -83,6 +92,7 @@ REQUIRED_SCRIPTS_README_SNIPPETS = (
 REQUIRED_MAKEFILE_SNIPPETS = (
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
+    "phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
 )
 
 REQUIRED_EXPORT_SHIM_SNIPPETS = (
@@ -140,6 +150,26 @@ REQUIRED_EXPORT_UAPI_TEST_SNIPPETS = (
     "try std.testing.expectEqual(header, uapi_version.canonicalizeHeader(future_compatible_header).?);",
 )
 
+REQUIRED_EXPORT_UAPI_LAYOUT_BUILD_SNIPPETS = (
+    '.root_source_file = b.path("phase3_export_uapi_layout.zig"),',
+    'root_module.addImport("abi_bindings", abi_bindings_module);',
+    'root_module.addImport("export_shim", export_shim_module);',
+    'root_module.addImport("uapi_version", uapi_version_module);',
+    '"phase3-export-uapi-layout-test",',
+)
+
+REQUIRED_EXPORT_UAPI_LAYOUT_TEST_SNIPPETS = (
+    'test "phase3 export shim and uapi keep canonical boundary layout" {',
+    'try std.testing.expectEqual(@as(usize, 8), @sizeOf(abi.BoundaryHeader));',
+    'try std.testing.expectEqual(@as(usize, 8), @sizeOf(abi.ExportStatus));',
+    'try std.testing.expectEqual(@as(usize, 4), @offsetOf(abi.BoundaryHeader, "abi_version"));',
+    'try std.testing.expectEqual(@as(usize, 6), @offsetOf(abi.ExportStatus, "flags"));',
+    'try std.testing.expectEqual(@sizeOf(abi.BoundaryHeader), @as(usize, header.size));',
+    'try std.testing.expectEqual(header, uapi_header);',
+    'try std.testing.expect(export_shim.isCanonicalHeader(header));',
+    'try std.testing.expect(uapi_version.isCanonical(uapi_header));',
+)
+
 REQUIRED_UAPI_FILES = (
     UAPI_VERSION_REL,
 )
@@ -152,6 +182,8 @@ SURVEYED_PACKET_PATHS = (
     ABI_SLICE_REL,
     "zigux/tests/phase3_export_uapi_build.zig",
     EXPORT_UAPI_TEST_REL,
+    EXPORT_UAPI_LAYOUT_BUILD_REL,
+    EXPORT_UAPI_LAYOUT_TEST_REL,
     "zigux/tests/fixtures/phase3_abi_manifest.json",
 )
 SURVEYED_PACKET_BLOB_MARKERS = {
@@ -162,6 +194,8 @@ SURVEYED_PACKET_BLOB_MARKERS = {
     "PHASE3_ABI_SLICE_DOC_BLOB_SHA": ABI_SLICE_REL,
     "PHASE3_EXPORT_UAPI_BUILD_BLOB_SHA": "zigux/tests/phase3_export_uapi_build.zig",
     "PHASE3_EXPORT_UAPI_TEST_BLOB_SHA": EXPORT_UAPI_TEST_REL,
+    "PHASE3_EXPORT_UAPI_LAYOUT_BUILD_BLOB_SHA": EXPORT_UAPI_LAYOUT_BUILD_REL,
+    "PHASE3_EXPORT_UAPI_LAYOUT_TEST_BLOB_SHA": EXPORT_UAPI_LAYOUT_TEST_REL,
     "PHASE3_ABI_MANIFEST_BLOB_SHA": "zigux/tests/fixtures/phase3_abi_manifest.json",
 }
 REQUIRED_SURVEY_BLOB_MARKERS = tuple(SURVEYED_PACKET_BLOB_MARKERS)
@@ -361,6 +395,8 @@ def validate(root: Path) -> list[str]:
     uapi_version = _read_text(root, UAPI_VERSION_REL, issues)
     abi_slice = _read_text(root, ABI_SLICE_REL, issues)
     export_uapi_test = _read_text(root, EXPORT_UAPI_TEST_REL, issues)
+    export_uapi_layout_build = _read_text(root, EXPORT_UAPI_LAYOUT_BUILD_REL, issues)
+    export_uapi_layout_test = _read_text(root, EXPORT_UAPI_LAYOUT_TEST_REL, issues)
 
     if survey:
         for marker in REQUIRED_SURVEY_MARKERS:
@@ -427,6 +463,16 @@ def validate(root: Path) -> list[str]:
         for snippet in REQUIRED_EXPORT_UAPI_TEST_SNIPPETS:
             if snippet not in export_uapi_test:
                 issues.append(f"missing_export_uapi_test_snippet:{snippet}")
+
+    if export_uapi_layout_build:
+        for snippet in REQUIRED_EXPORT_UAPI_LAYOUT_BUILD_SNIPPETS:
+            if snippet not in export_uapi_layout_build:
+                issues.append(f"missing_export_uapi_layout_build_snippet:{snippet}")
+
+    if export_uapi_layout_test:
+        for snippet in REQUIRED_EXPORT_UAPI_LAYOUT_TEST_SNIPPETS:
+            if snippet not in export_uapi_layout_test:
+                issues.append(f"missing_export_uapi_layout_test_snippet:{snippet}")
 
     issues.extend(validate_c_header_relay(root))
 
@@ -502,6 +548,10 @@ def run_self_test() -> int:
                     + "\n",
                     encoding="utf-8",
                 )
+            elif rel == EXPORT_UAPI_LAYOUT_BUILD_REL:
+                path.write_text("\n".join(REQUIRED_EXPORT_UAPI_LAYOUT_BUILD_SNIPPETS) + "\n", encoding="utf-8")
+            elif rel == EXPORT_UAPI_LAYOUT_TEST_REL:
+                path.write_text("\n".join(REQUIRED_EXPORT_UAPI_LAYOUT_TEST_SNIPPETS) + "\n", encoding="utf-8")
             else:
                 path.write_text("// ok\n", encoding="utf-8")
 
