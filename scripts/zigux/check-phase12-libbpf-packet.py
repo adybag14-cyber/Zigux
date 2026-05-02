@@ -100,6 +100,21 @@ REVIEWABILITY_MARKERS = [
 
 PHASE12_GAP_SPECS = [
     (
+        "phase12-build-gate",
+        "starter_landed",
+        "zigux/tests/phase12_build.zig",
+    ),
+    (
+        "phase12-make-target",
+        "starter_landed",
+        "zigux/Makefile",
+    ),
+    (
+        "phase12-libbpf-segment-manifest-foundation",
+        "starter_landed",
+        "tools/lib/bpf/zigux_segments/manifest.json",
+    ),
+    (
         "phase12-libbpf-type-name-helper-foundation",
         "starter_landed",
         "tools/lib/bpf/zigux_segments/type_names.zig",
@@ -108,6 +123,21 @@ PHASE12_GAP_SPECS = [
         "phase12-libbpf-cpu-mask-helper-foundation",
         "starter_landed",
         "tools/lib/bpf/zigux_segments/cpu_mask.zig",
+    ),
+    (
+        "phase12-libbpf-survey-gate",
+        "starter_landed",
+        "zigux/tests/phase12_libbpf_segments.zig",
+    ),
+    (
+        "phase12-libbpf-reviewability-gate",
+        "starter_landed",
+        "zigux/tests/phase12_libbpf_reviewability.zig",
+    ),
+    (
+        "phase12-libbpf-survey-note",
+        "starter_landed",
+        "Documentation/zigux/phase12-libbpf-segment-survey.md",
     ),
     (
         "phase12-libbpf-logging-helper-foundation",
@@ -481,6 +511,7 @@ def run_self_test() -> int:
         build_self_test_tree(root)
         survey_note_path = root / TRACKED_PATHS[3]
         original = survey_note_path.read_text(encoding="utf-8")
+        survey_note_path.writeText = None
         survey_note_path.write_text(
             original.replace(
                 "automatic perf-buffer CPU-budget clamp explicit before any per-CPU buffer opens happen\n",
@@ -614,6 +645,31 @@ def run_self_test() -> int:
         build_self_test_tree(root)
         manifest_path = root / TRACKED_PATHS[0]
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["gaps"] = [
+            gap
+            for gap in manifest["gaps"]
+            if gap["id"] != "phase12-build-gate"
+        ]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        missing = check_packet(root)
+        if "manifest_gap:phase12-build-gate" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:manifest_build_gate_presence_detection")
+
+        build_self_test_tree(root)
+        manifest_path = root / TRACKED_PATHS[0]
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        for gap in manifest["gaps"]:
+            if gap["id"] == "phase12-libbpf-survey-note":
+                gap["zigux_destination"] = "Documentation/zigux/phase12-libbpf-survey-note.md"
+                break
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        missing = check_packet(root)
+        if "manifest_gap_destination:phase12-libbpf-survey-note" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:manifest_survey_note_destination_detection")
+
+        build_self_test_tree(root)
+        manifest_path = root / TRACKED_PATHS[0]
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["lane_key"] = "P12-L99"
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         missing = check_packet(root)
@@ -741,7 +797,7 @@ def run_self_test() -> int:
             raise SystemExit("phase12-libbpf-packet:self-test:legacy_surveyed_commit_detection")
 
         print("PHASE12_LIBBPF_PACKET_SELF_TEST=pass")
-        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=23")
+        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=25")
     return 0
 
 
