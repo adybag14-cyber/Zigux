@@ -96,17 +96,17 @@ Every reopen request must do more than repeat a catalog trigger name. The packet
 
 - `narrower_followup_answers_blocker`: cite the new narrower seam inventory, the updated validation plan, the rollback owner for that narrower seam, and the still-blocked boundary that remains in C unless the reopen request is approved
 - `evidence_packet_stale_or_contradictory`: cite the exact linked evidence that went stale or contradictory, the refreshed blocker disposition, and the replacement validation or benchmark record that now reflects current repo truth
-- `ownership_or_validation_changed`: cite the old and new owner or validation records, refresh the lane owner and rollback owner when ownership changed, and name the validation-gate or replay-command change that invalidates the closed packet
+- `ownership_or_validation_changed`: cite the old and new owner or validation records, refresh the lane owner and rollback owner when ownership changed, and name the validation-gate or replay-command change that invalidated the closed packet
 
 If multiple triggers are cited together, each trigger's minimum evidence must stay explicit in the same reopen packet instead of collapsing into one vague exception claim.
 
 ## Current Approval Posture
 
 - no Architecture Council approval is currently recorded for a freeze-map status change
-- the current bounded evidence is the freeze map, this review-process note, the review checklist hook, `Documentation/zigux/phase15-parity-scorecard.md`, and the reserved per-anchor templates under `Documentation/zigux/phase15-evidence-archives/`
+- the current bounded evidence is the freeze map, this review-process note, the review checklist hook, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, and the reserved per-anchor templates under `Documentation/zigux/phase15-evidence-archives/`
 - current approval evidence is explicit negative evidence rather than silence: this note records the no-approval posture, the parity scorecard still keeps every anchor in `freeze_in_c`, each reserved evidence-archive template keeps `requested decision bucket: pending_no_request`, `decision record ID: pending_no_architecture_council_request`, and `no Architecture Council approval claim` visible, and the review packet now keeps the automatic return-to-blocked trigger explicit if those fields or linked evidence drift
 - current ownership evidence is explicit in both the scorecard and the anchor templates: `Documentation/zigux/phase15-parity-scorecard.md` names the lane owner and rollback owner for each freeze-in-C anchor, and each matching evidence-archive template repeats those same owner records together with the replay command, latest blocker disposition, retained discussion state, and reopen triggers
-- until the review record, the parity scorecard, and the anchor templates all say otherwise, every freeze-in-C anchor remains blocked from an approval claim
+- until the review record, the parity scorecard, the dedicated indefinite-C policy note, and the anchor templates all say otherwise, every freeze-in-C anchor remains blocked from an approval claim
 
 ## Roadmap Handoff Evidence
 
@@ -147,6 +147,7 @@ The current lane state is:
 - landed `phase15-review-process-reopen-evidence-matrix-gate`
 - landed `phase15-review-process-rollback-threshold-field-gate`
 - landed `phase15-review-process-lane-identity-provenance-refresh`
+- landed `phase15-review-process-indefinite-c-evidence-path-sync`
 
 This keeps the slice narrow. Zigux gains a reviewable Architecture Council process description that now points at the landed parity scorecard, aligns the required packet with the scorecard's decision-record fields, names the retained stay-in-C closeout state, standardizes the reopen-trigger catalog, requires refreshed ownership evidence when a packet reopens because ownership or validation changed, requires trigger-specific reopened evidence by path instead of trigger-name-only reopen requests, makes the automatic return-to-blocked trigger explicit in the review packet, promotes the rollback threshold from implied trigger wording to an explicit required request field, keeps the current roadmap phase and written rationale explicit in the shared checklist, keeps the roadmap and ledger provenance explicit in the same handoff surface, refreshes the packet's own governance evidence markers so the note, manifest, and focused test stay aligned with current `master` and the neighboring Phase 15 governance packet family, and states the current no-approval posture plainly, but it still does not claim a real council roster or any change to a freeze-map anchor status.
 
