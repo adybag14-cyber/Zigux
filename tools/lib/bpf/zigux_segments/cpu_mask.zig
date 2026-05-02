@@ -152,6 +152,14 @@ pub fn derivePerfBufferAutoCpuCount(possible_cpu_count: usize, map_max_entries: 
     return possible_cpu_count;
 }
 
+pub fn isPerfBufferCpuOnlineEligible(cpu_index: usize, requested_cpu_count: i32, online_mask: []const bool) bool {
+    if (requested_cpu_count > 0) {
+        return true;
+    }
+
+    return cpu_index < online_mask.len and online_mask[cpu_index];
+}
+
 pub fn countPossibleCpus(mask: []const bool) usize {
     var count: usize = 0;
     for (mask) |present| {
@@ -334,4 +342,20 @@ test "derivePerfBufferAutoCpuCount keeps perf-buffer auto sizing within the map 
     try std.testing.expectEqual(@as(usize, 8), derivePerfBufferAutoCpuCount(8, 0));
     try std.testing.expectEqual(@as(usize, 4), derivePerfBufferAutoCpuCount(8, 4));
     try std.testing.expectEqual(@as(usize, 8), derivePerfBufferAutoCpuCount(8, 16));
+}
+
+test "isPerfBufferCpuOnlineEligible keeps the bounded online CPU predicate explicit" {
+    const online = [_]bool{ true, false, true };
+
+    try std.testing.expect(isPerfBufferCpuOnlineEligible(0, 0, &online));
+    try std.testing.expect(!isPerfBufferCpuOnlineEligible(1, 0, &online));
+    try std.testing.expect(isPerfBufferCpuOnlineEligible(2, -1, &online));
+    try std.testing.expect(!isPerfBufferCpuOnlineEligible(3, 0, &online));
+}
+
+test "isPerfBufferCpuOnlineEligible bypasses the online mask when the caller pins a positive CPU budget" {
+    const online = [_]bool{ false, false };
+
+    try std.testing.expect(isPerfBufferCpuOnlineEligible(0, 2, &online));
+    try std.testing.expect(isPerfBufferCpuOnlineEligible(3, 2, &online));
 }
