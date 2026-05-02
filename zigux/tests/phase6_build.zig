@@ -156,6 +156,12 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_checksum_tests.step);
     test_step.dependOn(&run_hexdump_tests.step);
 
+    const perf_step = b.step("perf", "Run the Phase 6 leaf helper performance sanity harnesses");
+    perf_step.dependOn(&run_base64_perf.step);
+    perf_step.dependOn(&run_bsearch_perf.step);
+    perf_step.dependOn(&run_checksum_perf.step);
+    perf_step.dependOn(&run_hexdump_perf.step);
+
     const base64_perf_step = b.step("base64-perf", "Run the Phase 6 base64 performance sanity harness");
     base64_perf_step.dependOn(&run_base64_perf.step);
 
