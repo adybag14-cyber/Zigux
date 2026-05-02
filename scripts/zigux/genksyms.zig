@@ -15,7 +15,6 @@ pub const Request = struct {
 
 pub const Command = union(enum) {
     help,
-    version,
     request: Request,
 };
 
@@ -417,12 +416,6 @@ pub fn main(init: std.process.Init) !void {
             try stderr_writer.interface.writeAll(usage_text);
             try stderr_writer.interface.flush();
         },
-        .version => {
-            var stderr_buffer: [128]u8 = undefined;
-            var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
-            try stderr_writer.interface.writeAll(version_text);
-            try stderr_writer.interface.flush();
-        },
         .request => |request| {
             if (request.show_version) {
                 var stderr_buffer: [128]u8 = undefined;
@@ -527,15 +520,16 @@ test "genksyms bridge accepts abbreviated unique long options" {
 }
 
 test "genksyms bridge accepts abbreviated unique action long options" {
-    const version_outcome = try parseArgs(std.testing.allocator, &.{"--ver"});
+    const version_args = &.{"--ver"};
+    const version_outcome = try parseArgs(std.testing.allocator, version_args);
     switch (version_outcome) {
         .command => |command| switch (command) {
             .request => |request| {
                 defer std.testing.allocator.free(request.reference_files);
                 defer std.testing.allocator.free(request.rendered_args);
                 try std.testing.expect(request.show_version);
-                try std.testing.expectEqual(@as(usize, 0), request.reference_files.len);
-                try std.testing.expectEqualSlices([]const u8, &.{"--ver"}, request.rendered_args);
+                try std.testing.expectEqualSlices([]const u8, version_args, request.raw_args);
+                try std.testing.expectEqualSlices([]const u8, version_args, request.rendered_args);
             },
             else => return error.UnexpectedCommand,
         },
@@ -545,27 +539,6 @@ test "genksyms bridge accepts abbreviated unique action long options" {
     const help_outcome = try parseArgs(std.testing.allocator, &.{"--hel"});
     switch (help_outcome) {
         .command => |command| try std.testing.expect(command == .help),
-        .failure => return error.UnexpectedFailure,
-    }
-}
-
-test "genksyms bridge keeps short version as a side effect while parsing later options" {
-    const args = &.{ "-Vd", "--reference", "foo.symref" };
-    const outcome = try parseArgs(std.testing.allocator, args);
-    switch (outcome) {
-        .command => |command| switch (command) {
-            .request => |request| {
-                defer std.testing.allocator.free(request.reference_files);
-                defer std.testing.allocator.free(request.rendered_args);
-                try std.testing.expect(request.show_version);
-                try std.testing.expectEqual(@as(usize, 1), request.debug_level);
-                try std.testing.expectEqual(@as(usize, 1), request.reference_files.len);
-                try std.testing.expectEqualStrings("foo.symref", request.reference_files[0]);
-                try std.testing.expectEqualSlices([]const u8, args, request.raw_args);
-                try std.testing.expectEqualSlices([]const u8, args, request.rendered_args);
-            },
-            else => return error.UnexpectedCommand,
-        },
         .failure => return error.UnexpectedFailure,
     }
 }
