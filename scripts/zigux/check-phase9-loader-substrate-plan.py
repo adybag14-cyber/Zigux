@@ -11,21 +11,33 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
 
-REQUIRED_FILES = [
-    "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
-    "Documentation/zigux/phase9-runtime-loader-substrate-plan.md",
-    "Documentation/zigux/review-checklist.md",
-    "samples/zigux/README.md",
-    "zigux/Makefile",
-    "zigux/tests/runtime_loader_gap_manifest.json",
-]
-
 SURVEY_PATH = "Documentation/zigux/phase9-runtime-loader-gap-survey.md"
 SUBSTRATE_PLAN_PATH = "Documentation/zigux/phase9-runtime-loader-substrate-plan.md"
 REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 SAMPLES_README_PATH = "samples/zigux/README.md"
 MAKEFILE_PATH = "zigux/Makefile"
 MANIFEST_PATH = "zigux/tests/runtime_loader_gap_manifest.json"
+RUNTIME_LOADER_PATH = "zigux/kernel/runtime_loader.zig"
+ALLOCATOR_POLICY_PATH = "zigux/helpers/allocator_policy.zig"
+ATOMIC64_LOADER_PATH = "samples/zigux/runtime_atomic64_loader.zig"
+BITMAP_LOADER_PATH = "samples/zigux/runtime_bitmap_loader.zig"
+KRETPROBE_LOADER_PATH = "samples/zigux/runtime_kretprobe_loader.zig"
+TRACE_EVENTS_LOADER_PATH = "samples/zigux/runtime_trace_events_loader.zig"
+
+REQUIRED_FILES = [
+    SURVEY_PATH,
+    SUBSTRATE_PLAN_PATH,
+    REVIEW_CHECKLIST_PATH,
+    SAMPLES_README_PATH,
+    MAKEFILE_PATH,
+    MANIFEST_PATH,
+    RUNTIME_LOADER_PATH,
+    ALLOCATOR_POLICY_PATH,
+    ATOMIC64_LOADER_PATH,
+    BITMAP_LOADER_PATH,
+    KRETPROBE_LOADER_PATH,
+    TRACE_EVENTS_LOADER_PATH,
+]
 
 SURVEY_REQUIRED_MARKERS = [
     "Documentation/zigux/phase9-runtime-loader-substrate-plan.md",
@@ -289,6 +301,8 @@ def write_fixture_tree(root: Path) -> None:
     (root / "Documentation/zigux").mkdir(parents=True, exist_ok=True)
     (root / "samples/zigux").mkdir(parents=True, exist_ok=True)
     (root / "zigux/tests").mkdir(parents=True, exist_ok=True)
+    (root / "zigux/kernel").mkdir(parents=True, exist_ok=True)
+    (root / "zigux/helpers").mkdir(parents=True, exist_ok=True)
     (root / "zigux").mkdir(parents=True, exist_ok=True)
 
     commit = "179066fc0b38700d1f1103de528b99cb63bef850"
@@ -409,6 +423,30 @@ def write_fixture_tree(root: Path) -> None:
         + "\n",
         encoding="utf-8",
     )
+    (root / RUNTIME_LOADER_PATH).write_text(
+        "pub const runtime_loader_placeholder = true;\n",
+        encoding="utf-8",
+    )
+    (root / ALLOCATOR_POLICY_PATH).write_text(
+        "pub const allocator_policy_placeholder = true;\n",
+        encoding="utf-8",
+    )
+    (root / ATOMIC64_LOADER_PATH).write_text(
+        "pub const runtime_atomic64_loader_placeholder = true;\n",
+        encoding="utf-8",
+    )
+    (root / BITMAP_LOADER_PATH).write_text(
+        "pub const runtime_bitmap_loader_placeholder = true;\n",
+        encoding="utf-8",
+    )
+    (root / KRETPROBE_LOADER_PATH).write_text(
+        "pub const runtime_kretprobe_loader_placeholder = true;\n",
+        encoding="utf-8",
+    )
+    (root / TRACE_EVENTS_LOADER_PATH).write_text(
+        "pub const runtime_trace_events_loader_placeholder = true;\n",
+        encoding="utf-8",
+    )
 
 
 def expect_missing_marker(label: str, root: Path, expected_marker: str) -> None:
@@ -424,6 +462,19 @@ def expect_missing_marker(label: str, root: Path, expected_marker: str) -> None:
         )
 
 
+def expect_missing_file(label: str, root: Path, expected_file: str) -> None:
+    missing_files, missing_markers = validate(root)
+    if expected_file not in missing_files:
+        actual = ",".join(missing_files) if missing_files else "none"
+        raise SystemExit(
+            f"phase9-loader-substrate-plan-selftest:{label}:expected_missing_file:{expected_file}:actual:{actual}"
+        )
+    if missing_markers:
+        raise SystemExit(
+            f"phase9-loader-substrate-plan-selftest:{label}:unexpected_missing_markers:{','.join(missing_markers)}"
+        )
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase9_loader_substrate_") as tmp_dir:
         tmp_root = Path(tmp_dir)
@@ -436,6 +487,16 @@ def run_self_test() -> int:
                 f"files={','.join(missing_files) if missing_files else 'none'}:"
                 f"markers={','.join(missing_markers) if missing_markers else 'none'}"
             )
+
+        trace_events_loader_path = tmp_root / TRACE_EVENTS_LOADER_PATH
+        original_trace_events_loader = trace_events_loader_path.read_text(encoding="utf-8")
+        trace_events_loader_path.unlink()
+        expect_missing_file(
+            "trace_events_loader_required_file",
+            tmp_root,
+            TRACE_EVENTS_LOADER_PATH,
+        )
+        trace_events_loader_path.write_text(original_trace_events_loader, encoding="utf-8")
 
         makefile_path = tmp_root / MAKEFILE_PATH
         original_makefile = makefile_path.read_text(encoding="utf-8")
@@ -583,7 +644,7 @@ def run_self_test() -> int:
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
     print("PHASE9_LOADER_SUBSTRATE_PLAN_SELF_TEST=pass")
-    print("PHASE9_LOADER_SUBSTRATE_PLAN_SELF_TEST_CASE_COUNT=11")
+    print("PHASE9_LOADER_SUBSTRATE_PLAN_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
