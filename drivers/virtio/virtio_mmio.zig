@@ -6,6 +6,9 @@ pub const config_interrupt_bit: u32 = 0x2;
 pub const supported_interrupt_bits: u32 = queue_interrupt_bit | config_interrupt_bit;
 pub const supported_queues: usize = 2;
 pub const supported_config_window_bytes: usize = 16;
+pub const expected_magic_value: u32 = 0x74726976;
+pub const legacy_transport_version: u32 = 1;
+pub const modern_transport_version: u32 = 2;
 
 pub const Register = enum(u32) {
     magic_value = 0x000,
@@ -43,6 +46,17 @@ pub const ModuleDescriptor = struct {
     provides_lab_validation: bool,
     touches_transport_mmio: bool,
     touches_dma_paths: bool,
+};
+
+pub const DeviceIdentitySummary = struct {
+    anchor: []const u8,
+    magic_value: u32,
+    version: u32,
+    device_id: u32,
+    vendor_id: u32,
+    magic_matches: bool,
+    version_supported: bool,
+    device_present: bool,
 };
 
 pub const FeatureWindowSummary = struct {
@@ -167,6 +181,10 @@ pub const VirtioMmioRegisterWindowLab = struct {
     interrupt_status: u32 = 0,
     reset_count: usize = 0,
     notification_count: usize = 0,
+    magic_value: u32 = expected_magic_value,
+    version: u32 = modern_transport_version,
+    device_id: u32 = 0,
+    vendor_id: u32 = 0,
 
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -212,6 +230,33 @@ pub const VirtioMmioRegisterWindowLab = struct {
         var self = initWithQueueMaximums(device_feature_pages, config_generation, queue_maximums);
         self.config_window = config_window;
         return self;
+    }
+
+    pub fn seedTransportIdentity(
+        self: *Self,
+        magic_value: u32,
+        version: u32,
+        device_id: u32,
+        vendor_id: u32,
+    ) DeviceIdentitySummary {
+        self.magic_value = magic_value;
+        self.version = version;
+        self.device_id = device_id;
+        self.vendor_id = vendor_id;
+        return self.deviceIdentitySummary();
+    }
+
+    pub fn deviceIdentitySummary(self: *const Self) DeviceIdentitySummary {
+        return .{
+            .anchor = descriptor().anchor,
+            .magic_value = self.magic_value,
+            .version = self.version,
+            .device_id = self.device_id,
+            .vendor_id = self.vendor_id,
+            .magic_matches = self.magic_value == expected_magic_value,
+            .version_supported = self.version == legacy_transport_version or self.version == modern_transport_version,
+            .device_present = self.device_id != 0,
+        };
     }
 
     pub fn selectDeviceFeaturePage(self: *Self, page: u32) !void {
