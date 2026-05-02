@@ -133,8 +133,12 @@ test "phase 8 bridge boundary survey stays wired into the shared packet" {
     try expectContains(bridge_note, "kernel/workqueue.c");
     try expectContains(bridge_note, "`bpf_token_create()`");
     try expectContains(bridge_note, "resolveTokenPreparationAcquisition()");
+    try expectContains(bridge_note, "resolveReusePinnedMapAttempt()");
     try expectContains(bridge_note, "`cache_allocation_failed`");
+    try expectContains(bridge_note, "`should_store_token_fd`");
     try expectContains(bridge_note, "`should_store_feat_cache_token_fd`");
+    try expectContains(bridge_note, "`reuse_fd_failed`");
+    try expectContains(bridge_note, "`should_mark_map_pinned`");
     try expectContains(bridge_note, "perf-buffer-online-cpu-routing");
     try expectContains(bridge_note, "perf_buffer__poll(timeout_ms)");
     try expectContains(bridge_note, "wait-result classification");
@@ -274,14 +278,18 @@ test "phase 8 bridge boundary survey still matches the live helper surfaces" {
     try expectContains(bridge_note, "bpf_object__reuse_map()");
     try expectContains(bridge_note, "classifyReusePinnedMapOpenFailure()");
     try expectContains(bridge_note, "resolveTokenPreparationAcquisition()");
+    try expectContains(bridge_note, "resolveReusePinnedMapAttempt()");
     try expectContains(bridge_note, "`skip_missing_pinned_map`");
     try expectContains(bridge_note, "`should_close_token_fd`");
+    try expectContains(bridge_note, "`should_store_token_fd`");
+    try expectContains(bridge_note, "`should_mark_map_pinned`");
     try expectContains(bridge_note, "Documentation/zigux/phase8-perf-buffer-poll-slice.md");
     try expectContains(bridge_note, "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig");
     try expectContains(bridge_note, "zigux/tests/phase8_perf_buffer_poll.zig");
     try expectContains(bridge_note, "wait-result classification");
     try expectContains(bridge_note, "ready-buffer bookkeeping");
     try expectContains(libbpf_survey_note, "classifyReusePinnedMapOpenFailure()");
+    try expectContains(libbpf_survey_note, "resolveReusePinnedMapAttempt()");
     try expectContains(libbpf_survey_note, "skip_missing_pinned_map");
     try expectContains(cpu_mask_note, "a bounded auto-CPU count clamp that mirrors libbpf's perf-buffer map-budget sizing");
     try expectContains(cpu_mask_note, "a pure online-CPU eligibility predicate that mirrors libbpf's automatic-budget offline skip rule");
@@ -320,5 +328,6 @@ test "phase 8 bridge boundary survey still matches the live helper surfaces" {
     try expectContains(file_path_handle_bridge_helper, "pub fn classifyTokenPreparationFailure(");
     try expectContains(file_path_handle_bridge_helper, "pub fn classifyReusePinnedMapOpenFailure(");
     try expectContains(file_path_handle_bridge_helper, "pub fn resolveTokenPreparationAcquisition(");
+    try expectContains(file_path_handle_bridge_helper, "pub fn resolveReusePinnedMapAttempt(");
     try expectContains(file_path_handle_bridge_helper, "skip_missing_pinned_map");
 }
