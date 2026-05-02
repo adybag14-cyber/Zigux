@@ -135,6 +135,49 @@ if (
     print('MISSING_WORKFLOW_TOOLCHAIN_POLICY_WIRING_END')
     sys.exit(1)
 
+phase11_validator_self_test_command = 'python3 scripts/zigux/validate-phase11.py --self-test'
+phase11_validator_self_test_step = 'Self-test Phase 11 simple-driver validator'
+phase11_validate_command = 'make -C zigux phase11-validate'
+phase11_validate_step = 'Validate Phase 11 simple-driver bundle'
+phase11_hvc_survey_command = 'make -C zigux phase11-hvc-survey'
+phase11_hvc_survey_step = 'Run dedicated Phase 11 hvc survey replay'
+workflow_phase11_validator_self_test_command_count = len(
+    re.findall(r'^\s*run:\s+python3 scripts/zigux/validate-phase11\.py --self-test\s*$', workflow, flags=re.MULTILINE)
+)
+workflow_phase11_validator_self_test_step_count = workflow.count(phase11_validator_self_test_step)
+workflow_phase11_validate_command_count = len(
+    re.findall(r'^\s*run:\s+make -C zigux phase11-validate\s*$', workflow, flags=re.MULTILINE)
+)
+workflow_phase11_validate_step_count = workflow.count(phase11_validate_step)
+workflow_phase11_hvc_survey_command_count = len(
+    re.findall(r'^\s*run:\s+make -C zigux phase11-hvc-survey\s*$', workflow, flags=re.MULTILINE)
+)
+workflow_phase11_hvc_survey_step_count = workflow.count(phase11_hvc_survey_step)
+if (
+    workflow_phase11_validator_self_test_command_count != 1
+    or workflow_phase11_validator_self_test_step_count != 1
+    or workflow_phase11_validate_command_count != 1
+    or workflow_phase11_validate_step_count != 1
+    or workflow_phase11_hvc_survey_command_count != 1
+    or workflow_phase11_hvc_survey_step_count != 1
+):
+    print('BOOTSTRAP_VALIDATION=fail')
+    print('MISSING_WORKFLOW_PHASE11_WIRING_START')
+    print(
+        'workflow:phase11_validator_self_test_command_count='
+        f'{workflow_phase11_validator_self_test_command_count},expected=1'
+    )
+    print(
+        'workflow:phase11_validator_self_test_step_count='
+        f'{workflow_phase11_validator_self_test_step_count},expected=1'
+    )
+    print(f'workflow:phase11_validate_command_count={workflow_phase11_validate_command_count},expected=1')
+    print(f'workflow:phase11_validate_step_count={workflow_phase11_validate_step_count},expected=1')
+    print(f'workflow:phase11_hvc_survey_command_count={workflow_phase11_hvc_survey_command_count},expected=1')
+    print(f'workflow:phase11_hvc_survey_step_count={workflow_phase11_hvc_survey_step_count},expected=1')
+    print('MISSING_WORKFLOW_PHASE11_WIRING_END')
+    sys.exit(1)
+
 toolchain_policy = json.loads((ROOT / 'scripts' / 'zigux' / 'zig-toolchain-policy.json').read_text(encoding='utf-8'))
 required_policy_values = {
     'phase': 'Phase 2',
