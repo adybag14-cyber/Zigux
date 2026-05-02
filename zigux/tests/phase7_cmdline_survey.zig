@@ -16,6 +16,22 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
     );
     defer std.testing.allocator.free(roadmap);
 
+    const docs_readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/README.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(docs_readme);
+
+    const review_checklist = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/review-checklist.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(review_checklist);
+
     const tests_readme = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "zigux/tests/README.md",
@@ -93,6 +109,12 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
     try expectContains(roadmap, "- `lib/cmdline.zig`");
     try expectContains(roadmap, "runtime-safe leaf helpers");
     try expectContains(roadmap, "integration with validation substrate");
+
+    try expectContains(docs_readme, "the same sample-root catalog also keeps the current no-`samples/zigux/*cmdline*` boundary explicit");
+    try expectContains(docs_readme, "cmdline evidence stays under the separate Phase 7 helper bundle rooted in `Documentation/zigux/phase7-cmdline-slice.md`, `lib/cmdline.zig`, and `zigux/tests/phase7_cmdline.zig`, and `zigux/tests/phase7_build.zig` instead of looking like a missing Phase 5 sample port.");
+    try expectContains(review_checklist, "if the change touches shared sample-root or helper-bundle notes for cmdline work");
+    try expectContains(review_checklist, "current `master` ships no `samples/zigux/*cmdline*` Phase 5 reference sample");
+    try expectContains(review_checklist, "the shipped cmdline evidence remains the separate Phase 7 helper bundle under `lib/cmdline.zig`, `zigux/tests/phase7_cmdline.zig`, and `zigux/tests/phase7_build.zig`");
 
     try expectContains(tests_readme, "zigux/tests/phase7_cmdline_survey.zig");
     try expectContains(tests_readme, "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig");
