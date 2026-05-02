@@ -384,6 +384,23 @@ test "phase11 dw_wdt remove handoff keeps unregister and reset-control teardown 
     try std.testing.expect(!stoppable_summary.remove_preserves_running_marker_without_reset);
     try std.testing.expect(!stoppable_summary.remove_preserves_pending_interrupt_without_reset);
 
+    var quiet_running_stoppable = try dw_wdt.DwWdtLab.initFixedTops(65_536, true);
+    const quiet_running_stoppable_summary = try quiet_running_stoppable.summarizeRemoveHandoff(.{
+        .watchdog_running_before_remove = true,
+        .remove_interrupt_pending = false,
+    });
+    try std.testing.expect(quiet_running_stoppable_summary.reset_control_available);
+    try std.testing.expect(quiet_running_stoppable_summary.debugfs_clear_requested);
+    try std.testing.expect(quiet_running_stoppable_summary.unregister_device_requested);
+    try std.testing.expect(quiet_running_stoppable_summary.remove_path_running_before_remove);
+    try std.testing.expect(!quiet_running_stoppable_summary.remove_path_running_after_remove);
+    try std.testing.expect(!quiet_running_stoppable_summary.remove_path_hardware_running_after_remove);
+    try std.testing.expect(quiet_running_stoppable_summary.remove_clears_enable_bit);
+    try std.testing.expect(!quiet_running_stoppable_summary.remove_clears_interrupt_status);
+    try std.testing.expect(quiet_running_stoppable_summary.remove_asserts_reset_control);
+    try std.testing.expect(!quiet_running_stoppable_summary.remove_preserves_running_marker_without_reset);
+    try std.testing.expect(!quiet_running_stoppable_summary.remove_preserves_pending_interrupt_without_reset);
+
     var quiet_unstoppable = try dw_wdt.DwWdtLab.initFixedTops(65_536, false);
     const quiet_unstoppable_summary = try quiet_unstoppable.summarizeRemoveHandoff(.{
         .watchdog_running_before_remove = false,
