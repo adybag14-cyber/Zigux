@@ -508,8 +508,41 @@ def run_self_test() -> int:
         )
         write_fixture(root)
 
+        closure_manifest = json.loads(closure_manifest_path.read_text(encoding="utf-8"))
+        closure_manifest["exact_checks"] = EXPECTED_EXACT_CHECKS[:-1]
+        closure_manifest_path.write_text(json.dumps(closure_manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "exact_checks_guard",
+            root,
+            "closure_manifest:exact_checks",
+        )
+        write_fixture(root)
+
+        closure_manifest = json.loads(closure_manifest_path.read_text(encoding="utf-8"))
+        closure_manifest["blocked_transport_gaps"] = {
+            "zigux/tests/phase10_virtio_input_manifest.json": "phase10-virtio-input-registration-lifecycle",
+            "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-config-write-helper",
+        }
+        closure_manifest_path.write_text(json.dumps(closure_manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "blocked_transport_gap_guard",
+            root,
+            "closure_manifest:blocked_transport_gaps",
+        )
+        write_fixture(root)
+
+        closure_manifest = json.loads(closure_manifest_path.read_text(encoding="utf-8"))
+        closure_manifest["survey_provenance"]["source"] = "repo_scan"
+        closure_manifest_path.write_text(json.dumps(closure_manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "survey_provenance_source_guard",
+            root,
+            "closure_manifest:survey_provenance:source",
+        )
+        write_fixture(root)
+
     print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=4")
+    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
