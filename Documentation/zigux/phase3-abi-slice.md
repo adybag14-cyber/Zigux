@@ -20,8 +20,10 @@ This document starts the first bounded Phase 3 slice for Zigux.
 - `PHASE3_BARRIER_SCOPE=acquire-release-full`
 - `PHASE3_MMIO_SCOPE=range-read8-read16-read32-read64-write8-write16-write32-write64-plus-scoped-read8-write8-read16-write16-read32-write32-read64-write64-plus-policy-read8-write8-read16-write16-read32-write32-read64-write64-and-generic-policy-bridges`
 - `PHASE3_ROADMAP_ANCHORS=rust-exports-lib-bitmap-lib-rbtree-lib-cpumask`
-- `PHASE3_CURRENT_INTEROP_FAMILIES=bitmap-cpumask-list-hlist-errptr-xarray-idr-ida-minor-alloc-dev-region-cdev-chrdev-notify-ack-window-delivery-guard`
-- `PHASE3_CURRENT_INTEROP_GAP=live-build-graph-now-carries-deep-chrdev-tail-packets-while-curated-rbtree-c-binding-surface-is-still-missing`
+- `PHASE3_CURRENT_INTEROP_FAMILIES=bitmap-cpumask-list-hlist-errptr-xarray-idr-ida-dev-region-cdev-chrdev`
+- `PHASE3_CURRENT_INTEROP_FAMILIES_DETAIL=bitmap-cpumask-list-hlist-errptr-xarray-idr-ida-minor-alloc-dev-region-cdev-chrdev-notify-ack-window-delivery-guard`
+- `PHASE3_CURRENT_INTEROP_GAP=repo-now-carries-curated-phase3-parity-slices-beyond-the-original-roadmap-anchor-set`
+- `PHASE3_CURRENT_INTEROP_GAP_DETAIL=live-build-graph-now-carries-deep-chrdev-tail-packets-while-curated-rbtree-c-binding-surface-is-still-missing`
 - scope: first permanent C/Zigux boundary only
 - product boundary:
   - `include/linux/zigux.h`
