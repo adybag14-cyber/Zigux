@@ -22,6 +22,8 @@ BARRIER_REL = "zigux/helpers/barrier.zig"
 MMIO_REL = "zigux/helpers/mmio.zig"
 LOW_LEVEL_BUILD_REL = "zigux/tests/phase3_low_level_wrappers_build.zig"
 LOW_LEVEL_TEST_REL = "zigux/tests/phase3_low_level_wrappers.zig"
+POLICY_UNSAFE_MMIO_CONSUMER_REL = "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"
+POLICY_UNSAFE_TEST_REL = "zigux/tests/phase3_policy_unsafe.zig"
 
 HEX40 = re.compile(r"^[0-9a-f]{40}$")
 PLACEHOLDER_SHA = "0123456789abcdef0123456789abcdef01234567"
@@ -66,6 +68,8 @@ REQUIRED_SURVEY_PATHS = (
     MMIO_REL,
     LOW_LEVEL_BUILD_REL,
     LOW_LEVEL_TEST_REL,
+    POLICY_UNSAFE_MMIO_CONSUMER_REL,
+    POLICY_UNSAFE_TEST_REL,
     MANIFEST_REL,
     ABI_SLICE_REL,
 )
@@ -147,6 +151,19 @@ REQUIRED_LOW_LEVEL_TEST_SNIPPETS = (
     "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write64Policy(raw_pointer_policy, base64, 0, 1));",
     "try std.testing.expectError(error.UnsafeScopeDenied, mmio.read64Policy(raw_pointer_policy, base64, 0));",
     'test "phase3 low-level wrappers keep the narrow unsafe scope contract explicit"',
+)
+
+REQUIRED_POLICY_UNSAFE_MMIO_CONSUMER_SNIPPETS = (
+    "PHASE3_MMIO_TYPED_POLICY_CONSUMER=zigux/helpers/mmio.zig",
+    "PHASE3_BOUNDARY_GAP=typed-policy-mmio-consumer-landed-no-third-boundary-helper-beyond-focused-replay",
+    "PHASE3_NEXT_BOUNDED_STEP=keep-the-policy-and-unsafe-surface-narrow-until-one-roadmap-backed-helper-beyond-mmio-needs-a-typed-interop-policy-consumer",
+    'test "phase3 mmio wrapper consumes decoded interop policy"',
+)
+
+REQUIRED_POLICY_UNSAFE_TEST_SNIPPETS = (
+    'test "phase3 policy gate reaches a second boundary helper through decoded policy"',
+    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write32Policy(raw_pointer_policy, base32, 0, 1));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.read32Policy(raw_pointer_policy, base32, 0));",
 )
 
 REQUIRED_ABI_SLICE_SNIPPETS = (
@@ -244,6 +261,8 @@ def validate(root: Path) -> list[str]:
     mmio = _read_text(root, MMIO_REL, issues)
     low_level_build = _read_text(root, LOW_LEVEL_BUILD_REL, issues)
     low_level_test = _read_text(root, LOW_LEVEL_TEST_REL, issues)
+    policy_unsafe_mmio_consumer = _read_text(root, POLICY_UNSAFE_MMIO_CONSUMER_REL, issues)
+    policy_unsafe_test = _read_text(root, POLICY_UNSAFE_TEST_REL, issues)
     abi_slice = _read_text(root, ABI_SLICE_REL, issues)
 
     if survey:
@@ -271,6 +290,20 @@ def validate(root: Path) -> list[str]:
         _check_snippets(low_level_build, REQUIRED_LOW_LEVEL_BUILD_SNIPPETS, "missing_low_level_build_snippet", issues)
     if low_level_test:
         _check_snippets(low_level_test, REQUIRED_LOW_LEVEL_TEST_SNIPPETS, "missing_low_level_test_snippet", issues)
+    if policy_unsafe_mmio_consumer:
+        _check_snippets(
+            policy_unsafe_mmio_consumer,
+            REQUIRED_POLICY_UNSAFE_MMIO_CONSUMER_SNIPPETS,
+            "missing_policy_unsafe_mmio_consumer_snippet",
+            issues,
+        )
+    if policy_unsafe_test:
+        _check_snippets(
+            policy_unsafe_test,
+            REQUIRED_POLICY_UNSAFE_TEST_SNIPPETS,
+            "missing_policy_unsafe_test_snippet",
+            issues,
+        )
     if abi_slice:
         _check_snippets(abi_slice, REQUIRED_ABI_SLICE_SNIPPETS, "missing_abi_slice_snippet", issues)
     return issues
@@ -324,6 +357,12 @@ def run_self_test() -> int:
         _write(root, MMIO_REL, "\n".join(REQUIRED_MMIO_SNIPPETS) + "\n")
         _write(root, LOW_LEVEL_BUILD_REL, "\n".join(REQUIRED_LOW_LEVEL_BUILD_SNIPPETS) + "\n")
         _write(root, LOW_LEVEL_TEST_REL, "\n".join(REQUIRED_LOW_LEVEL_TEST_SNIPPETS) + "\n")
+        _write(
+            root,
+            POLICY_UNSAFE_MMIO_CONSUMER_REL,
+            "\n".join(REQUIRED_POLICY_UNSAFE_MMIO_CONSUMER_SNIPPETS) + "\n",
+        )
+        _write(root, POLICY_UNSAFE_TEST_REL, "\n".join(REQUIRED_POLICY_UNSAFE_TEST_SNIPPETS) + "\n")
         _write(root, ABI_SLICE_REL, "\n".join(REQUIRED_ABI_SLICE_SNIPPETS) + "\n")
         _write(root, MANIFEST_REL, "{}\n")
 
@@ -381,6 +420,52 @@ def run_self_test() -> int:
         issues = validate(root)
         assert "missing_low_level_test_snippet:atomic.fetchMax(u32, &value, 29, .seq_cst)" in issues
 
+        _write(
+            root,
+            LOW_LEVEL_TEST_REL,
+            "\n".join(REQUIRED_LOW_LEVEL_TEST_SNIPPETS) + "\n",
+        )
+        _write(
+            root,
+            POLICY_UNSAFE_MMIO_CONSUMER_REL,
+            "\n".join(
+                snippet
+                for snippet in REQUIRED_POLICY_UNSAFE_MMIO_CONSUMER_SNIPPETS
+                if snippet != 'test "phase3 mmio wrapper consumes decoded interop policy"'
+            ) + "\n",
+        )
+        issues = validate(root)
+        assert (
+            'missing_policy_unsafe_mmio_consumer_snippet:test "phase3 mmio wrapper consumes decoded interop policy"'
+            in issues
+        )
+
+        _write(
+            root,
+            POLICY_UNSAFE_MMIO_CONSUMER_REL,
+            "\n".join(REQUIRED_POLICY_UNSAFE_MMIO_CONSUMER_SNIPPETS) + "\n",
+        )
+        _write(
+            root,
+            POLICY_UNSAFE_TEST_REL,
+            "\n".join(
+                snippet
+                for snippet in REQUIRED_POLICY_UNSAFE_TEST_SNIPPETS
+                if snippet
+                != "try std.testing.expectError(error.UnsafeScopeDenied, mmio.read32Policy(raw_pointer_policy, base32, 0));"
+            ) + "\n",
+        )
+        issues = validate(root)
+        assert (
+            "missing_policy_unsafe_test_snippet:try std.testing.expectError(error.UnsafeScopeDenied, mmio.read32Policy(raw_pointer_policy, base32, 0));"
+            in issues
+        )
+
+        _write(
+            root,
+            POLICY_UNSAFE_TEST_REL,
+            "\n".join(REQUIRED_POLICY_UNSAFE_TEST_SNIPPETS) + "\n",
+        )
         _write(
             root,
             ABI_SLICE_REL,
