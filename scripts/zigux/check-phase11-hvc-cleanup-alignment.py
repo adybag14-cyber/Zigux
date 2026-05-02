@@ -201,6 +201,17 @@ def run_self_test() -> int:
         original_manifest = manifest_path.read_text(encoding="utf-8")
         manifest_path.write_text(
             original_manifest.replace(
+                '"lane_key": "P11-L18"',
+                '"lane_key": "P11-L99"',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing("manifest_lane_key", tmp_root, "manifest:lane_key")
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
+        manifest_path.write_text(
+            original_manifest.replace(
                 f'"surveyed_commit": "{FIXTURE_COMMIT}"',
                 '"surveyed_commit": "1234567890abcdef1234567890abcdef12345678"',
                 1,
@@ -287,7 +298,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE11_HVC_CLEANUP_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE11_HVC_CLEANUP_ALIGNMENT_SELF_TEST_CASE_COUNT=6")
+    print("PHASE11_HVC_CLEANUP_ALIGNMENT_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
