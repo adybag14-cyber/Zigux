@@ -1,7 +1,7 @@
 {
   "lane_key": "P11-L18",
   "phase": "Phase 11",
-  "surveyed_commit": "b9e3d3872245d2966b152f499d3f40aa6a02bf4c",
+  "surveyed_commit": "355b71d89807a217a6b7c405c996cbd623c48ca0",
   "anchor": "drivers/tty/hvc/hvc_console.c",
   "roadmap_destinations": [
     "drivers/tty/hvc/*.zig",
@@ -115,14 +115,14 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_hvc_console.zig",
-      "why_now": "Dedicated driver tests now cover setup-state slot validation, newline framing including repeated bare-newline normalization and preserved CRLF input, retry-after-EAGAIN flush intent, final-close wait gating, final-close teardown sequencing, tty-registration handoff boundaries, notifier-add success, fallback, and failure cleanup boundaries, khvcd polling-contract wakeup and reschedule boundaries, khvcd worker-entry sleep and backoff boundaries, khvcd sleep-and-reschedule handoff boundaries, __hvc_poll drain-order and tty-wakeup sequencing boundaries, hvc_hangup disconnect teardown boundaries, hvc_remove handoff boundaries, hvc_cleanup tty-port release boundaries, hung-up close short-circuiting, and teardown gating without touching tty core integration."
+      "why_now": "Dedicated driver tests now cover setup-state slot validation, newline framing including repeated bare-newline normalization and preserved CRLF input, retry-after-EAGAIN flush intent, final-close wait gating, final-close teardown sequencing, tty-registration handoff boundaries, notifier-add success, fallback, and failure cleanup boundaries, khvcd polling-contract wakeup and reschedule boundaries, khvcd worker-entry sleep and backoff boundaries, khvcd sleep-and-reschedule handoff boundaries, __hvc_poll drain-order and tty-wakeup sequencing boundaries, hvc_hangup disconnect teardown boundaries, hvc_remove handoff boundaries, hvc_cleanup tty-port release boundaries, and the shared poll-retry split replay for may-sleep IRQ-backed drained-read, partial-versus-stalled write, attached-versus-detached fatal-drain, and full-drain tty-wakeup distinctions without touching tty core integration."
     },
     {
       "id": "phase11-hvc-console-validation-matrix",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
-      "why_now": "The first kernel-integration validation matrix now names the shared Phase 11 starter replay, records that the dedicated hvc_console survey gate still runs separately, and keeps the bounded close-wait, final-close teardown, tty-registration handoff, notifier-add open handoff, khvcd polling-contract, khvcd worker-entry, khvcd sleep-and-reschedule handoff, __hvc_poll drain-order, hvc_hangup disconnect, hvc_remove handoff evidence, and the hvc_cleanup tty-port release handoff honest without claiming host-backed I/O."
+      "why_now": "The first kernel-integration validation matrix now names the shared Phase 11 starter replay, records that the dedicated hvc_console survey gate still runs separately, and keeps the bounded close-wait, final-close teardown, tty-registration handoff, notifier-add open handoff, khvcd polling-contract, khvcd worker-entry, khvcd sleep-and-reschedule handoff, __hvc_poll drain-order, the shared poll-retry split replay, hvc_hangup disconnect, hvc_remove handoff evidence, and the hvc_cleanup tty-port release handoff honest without claiming host-backed I/O."
     },
     {
       "id": "phase11-hvc-console-tty-and-teardown-parity",
