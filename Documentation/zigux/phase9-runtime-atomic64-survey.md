@@ -6,7 +6,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `lib
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-atomic64-survey`
-- `PHASE9_SURVEYED_COMMIT=b0298e2977b1ec7f4cc53a9b03ece973bf0deaad`
+- `PHASE9_SURVEYED_COMMIT=f5a4d6990f701937b2a3bb9ae723bb6d0f27ba21`
 - scope: survey manifest, manifest-backed delivery catalog and ownership map, dedicated runtime survey gate, direct `phase9-runtime-atomic64-sample-tests` and `phase9-runtime-atomic64-loader-tests` shared-build legs, landed sample-backed module starter, landed module gate, landed diff gate, landed loader scaffold, landed shared loader-request binding, and the lane-level review note that keeps the remaining roadmap blocker explicit without claiming loadable-module parity
 - product boundary:
   - `samples/zigux/runtime_atomic64.zig`
@@ -34,14 +34,14 @@ No parity scorecard entry or Architecture Council status-change request is attac
 ## Survey findings
 
 - `lib/atomic64_test.c` is present on `master` at 277 lines.
-- the current survey packet is pinned to `master` commit `b0298e2977b1ec7f4cc53a9b03ece973bf0deaad`.
+- the current survey packet is pinned to `master` commit `f5a4d6990f701937b2a3bb9ae723bb6d0f27ba21`.
 - the repo had zero `zigux/tests/runtime_*` files before this survey landed.
 - the repo had no `samples/zigux/` directory before this survey landed.
 - the repo had no `zigux/tests/phase9_build.zig` gate, no dedicated Phase 9 runtime note, and no dedicated atomic64 module-slice note before this survey landed.
 
 ## Latest verification snapshot
 
-On inspected `master` commit `b0298e2977b1ec7f4cc53a9b03ece973bf0deaad`, focused Phase 9 replay still passed with the attached Zig toolchain across the dedicated atomic64 and bitmap sample, loader, and survey legs, keeping the bounded lifecycle, selftest, and pre-execution runtime-pilot packet green without widening into unrelated shared runtime-loader control work.
+On inspected `master` commit `f5a4d6990f701937b2a3bb9ae723bb6d0f27ba21`, focused Phase 9 replay still passed with the attached Zig toolchain across the dedicated atomic64 and bitmap sample, loader, and survey legs, keeping the bounded lifecycle, selftest, and pre-execution runtime-pilot packet green without widening into unrelated shared runtime-loader control work.
 
 ## Roadmap snapshot
 
@@ -71,7 +71,7 @@ The manifest-backed ownership packet for this slice now keeps the current delive
 - `zigux/tests/runtime_atomic64_survey.zig` owns the machine-checkable replay of that ownership packet and the adjacent blocked shared-loader note
 - `zigux/tests/runtime_atomic64_module.zig` owns the bounded starter lifecycle, selftest, and guard-path replay surface
 - `zigux/tests/runtime_atomic64_diff.zig` owns the bounded differential replay for arithmetic, bitwise, swap, compare-swap, and guard-return expectations
-- `zigux/tests/phase9_build.zig` owns the shared Phase 9 replay entrypoint for the direct atomic64 sample and loader legs plus the survey, module, diff, loader, and shared-loader checks
+- `zigux/tests/phase9_build.zig` owns the shared Phase 9 replay entrypoint for the direct atomic64 sample and loader legs plus the survey, module, diff, loader, and shared runtime-loader checks
 - `samples/zigux/runtime_atomic64.zig` owns the bounded in-memory atomic64 starter contract, lifecycle staging, and selftest-hook metadata
 - `samples/zigux/runtime_atomic64_loader.zig` owns the sample-side loader projection, explicit shared `command_name` preservation, `waiting_on_runtime_substrate` handoff, `released_without_substrate` fallback, and atomic64 payload summary
 - `zigux/kernel/runtime_loader.zig` owns the shared runtime-loader request contract that consumes the atomic64 loader handoff, allocator posture, and staged entry and exit symbols
