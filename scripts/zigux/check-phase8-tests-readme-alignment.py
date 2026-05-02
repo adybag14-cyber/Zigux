@@ -528,6 +528,21 @@ def run_self_test() -> int:
         )
         scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
 
+        scripts_readme_path.write_text(
+            original_scripts_readme.replace(
+                "- make -C zigux phase8-validate\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "scripts_readme_phase8_flow",
+            tmp_root,
+            "scripts_readme:make -C zigux phase8-validate",
+        )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
         workflow_path = tmp_root / REQUIRED_FILES["workflow"]
         original_workflow = workflow_path.read_text(encoding="utf-8")
         workflow_path.write_text(
@@ -544,9 +559,24 @@ def run_self_test() -> int:
             tmp_root,
             "workflow:Validate Phase 8 tooling gates",
         )
+        workflow_path.write_text(original_workflow, encoding="utf-8")
+
+        workflow_path.write_text(
+            original_workflow.replace(
+                "        run: zig build test --build-file zigux/tests/phase8_build.zig --summary all\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "workflow_shared_replay_hook",
+            tmp_root,
+            "workflow:zig build test --build-file zigux/tests/phase8_build.zig --summary all",
+        )
 
     print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=15")
+    print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=17")
     return 0
 
 
