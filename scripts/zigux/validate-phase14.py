@@ -271,7 +271,7 @@ if not isinstance(smoke_shard_commands, list) or len(smoke_shard_commands) != 2:
     missing.append("manifest:smoke_shard_commands")
 
 attached_toolchain_commands = manifest.get("attached_toolchain_commands")
-if not isinstance(attached_toolchain_commands, list) or len(attached_toolchain_commands) != 3:
+if not isinstance(attached_toolchain_commands, list) or len(attached_toolchain_commands) != 4:
     missing.append("manifest:attached_toolchain_commands")
     attached_toolchain_commands = []
 
