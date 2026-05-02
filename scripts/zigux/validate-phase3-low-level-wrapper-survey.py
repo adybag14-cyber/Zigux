@@ -137,6 +137,10 @@ REQUIRED_LOW_LEVEL_TEST_SNIPPETS = (
     "mmio.write16(base, 2, 0xabcd);",
     "mmio.write32(base, 8, 0x12345678);",
     "mmio.write64(base64, @sizeOf(u64), 0x0123_4567_89ab_cdef);",
+    "try mmio.write64Policy(mmio_policy, base64, @sizeOf(u64), 0x1111_2222_3333_4444);",
+    "try std.testing.expectEqual(@as(u64, 0x1111_2222_3333_4444), try mmio.read64Policy(mmio_policy, base64, @sizeOf(u64)));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write64Policy(raw_pointer_policy, base64, 0, 1));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.read64Policy(raw_pointer_policy, base64, 0));",
     'test "phase3 low-level wrappers keep the narrow unsafe scope contract explicit"',
 )
 
@@ -356,6 +360,22 @@ def run_self_test() -> int:
         _write(root, MMIO_REL, (root / MMIO_REL).read_text(encoding="utf-8") + "// drift\n")
         issues = validate(root)
         assert f"surveyed_blob_drift:{MMIO_REL}" in issues
+
+        _write(root, MMIO_REL, "\n".join(REQUIRED_MMIO_SNIPPETS) + "\n")
+        _write(
+            root,
+            LOW_LEVEL_TEST_REL,
+            "\n".join(
+                snippet
+                for snippet in REQUIRED_LOW_LEVEL_TEST_SNIPPETS
+                if snippet != "try mmio.write64Policy(mmio_policy, base64, @sizeOf(u64), 0x1111_2222_3333_4444);"
+            ) + "\n",
+        )
+        issues = validate(root)
+        assert (
+            "missing_low_level_test_snippet:try mmio.write64Policy(mmio_policy, base64, @sizeOf(u64), 0x1111_2222_3333_4444);"
+            in issues
+        )
 
     print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass")
     return 0
