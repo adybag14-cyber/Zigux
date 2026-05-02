@@ -17,6 +17,8 @@ PHASE2_CROSS_ALIGNMENT_CHECKER = (
 )
 PHASE2_CROSS_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross.py"
 CHECK_KCONFIG_BRIDGE = ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py"
+WORKFLOW_FILE = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
+MAKEFILE_FILE = ROOT / "zigux" / "Makefile"
 PHASE2_TOOL_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json"
 PHASE2_CROSS_TARGETS = ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json"
 EXPECTED_TOOL_MANIFEST_TOOLS = [
@@ -40,7 +42,7 @@ REQUIRED_PHASE2_FILES = [
     ROOT / "scripts" / "zigux" / "check-genksyms-bridge.py",
     GENKSYMS_BRIDGE_ALIGNMENT_CHECKER,
     ROOT / "scripts" / "zigux" / "check-genksyms-crc-diff.py",
-    ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py",
+    CHECK_KCONFIG_BRIDGE,
     PHASE2_CROSS_ALIGNMENT_CHECKER,
     PHASE2_CROSS_CHECKER,
     ROOT / "scripts" / "zigux" / "check-mk-elfconfig-diff.py",
@@ -50,9 +52,9 @@ REQUIRED_PHASE2_FILES = [
     ROOT / "scripts" / "zigux" / "mk_elfconfig.zig",
     ROOT / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig",
     ROOT / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig",
-    ROOT / ".github" / "workflows" / "zigux-bootstrap.yml",
+    WORKFLOW_FILE,
     ROOT / "Documentation" / "zigux" / "phase2-closure.md",
-    ROOT / "zigux" / "Makefile",
+    MAKEFILE_FILE,
     PHASE2_TOOL_MANIFEST,
     PHASE2_CROSS_TARGETS,
 ]
@@ -74,6 +76,14 @@ PHASE2_KCONFIG_REQUIRED_SOURCE_MARKERS = [
     "assert total_self_test_cases == 6",
     "print(f'KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT={total_self_test_cases}')",
 ]
+PHASE2_KCONFIG_REQUIRED_WORKFLOW_COUNTS = {
+    "python3 scripts/zigux/check-kconfig-bridge.py --self-test": 1,
+    "python3 scripts/zigux/check-kconfig-bridge.py": 1,
+}
+PHASE2_KCONFIG_REQUIRED_MAKEFILE_COUNTS = {
+    "scripts/zigux/check-kconfig-bridge.py --self-test": 1,
+    "scripts/zigux/check-kconfig-bridge.py": 1,
+}
 
 
 def load_json(path: Path) -> object:
@@ -125,6 +135,26 @@ def validate_source_markers(path: Path, *, label: str, required_markers: list[st
     for marker in required_markers:
         if marker not in source:
             issues.append(f"{label}:missing_marker:{marker}")
+    return issues
+
+
+def validate_exact_command_counts(
+    path: Path,
+    *,
+    label: str,
+    expected_counts: dict[str, int],
+    workflow_mode: bool = False,
+) -> list[str]:
+    lines = [line.strip() for line in path.read_text(encoding="utf-8").splitlines()]
+    issues: list[str] = []
+    for command, expected_count in expected_counts.items():
+        if workflow_mode:
+            expected_line = f"run: {command}"
+            count = sum(1 for line in lines if line == expected_line)
+        else:
+            count = sum(1 for line in lines if line.endswith(command))
+        if count != expected_count:
+            issues.append(f"{label}:{command}:count={count}:expected={expected_count}")
     return issues
 
 
@@ -185,6 +215,21 @@ def main() -> int:
             CHECK_KCONFIG_BRIDGE,
             label="phase2_kconfig_bridge_checker",
             required_markers=PHASE2_KCONFIG_REQUIRED_SOURCE_MARKERS,
+        )
+    )
+    issues.extend(
+        validate_exact_command_counts(
+            WORKFLOW_FILE,
+            label="phase2_kconfig_workflow",
+            expected_counts=PHASE2_KCONFIG_REQUIRED_WORKFLOW_COUNTS,
+            workflow_mode=True,
+        )
+    )
+    issues.extend(
+        validate_exact_command_counts(
+            MAKEFILE_FILE,
+            label="phase2_kconfig_makefile",
+            expected_counts=PHASE2_KCONFIG_REQUIRED_MAKEFILE_COUNTS,
         )
     )
 
