@@ -1,12 +1,13 @@
 # Phase 6 Bsearch Slice
 
-This document starts a bounded Phase 6 leaf-helper validation slice for Zigux.
+This document records the bounded Phase 6 leaf-helper validation slice for Zigux.
 
 ## Status
 
 - `PHASE6_STATUS=active`
 - `PHASE6_SLICE=bsearch-leaf-helper`
 - scope: first low-risk binary-search helper coverage only
+- lane posture: parked after the current parity surface cleared the bounded helper goal
 - product boundary:
   - `lib/bsearch.zig`
   - `zigux/tests/phase6_bsearch.zig`
