@@ -56,6 +56,19 @@ pub const RetargetRecoverySummary = struct {
     stage_after_recovery: SampleStage,
 };
 
+pub const OwnershipBoundarySummary = struct {
+    anchor: []const u8,
+    symbol_name: []const u8,
+    armed_exit_rejected: bool,
+    rejected_timestamp_ns: i64,
+    recovered_duration_ns: i64,
+    stage_after_exit: SampleStage,
+    exit_runs: usize,
+    post_exit_record_missed_rejected: bool,
+    post_exit_entry_rejected: bool,
+    post_exit_ret_rejected: bool,
+};
+
 pub const KretprobeExampleSample = struct {
     const Self = @This();
     const InstanceData = struct {
@@ -225,6 +238,64 @@ pub const KretprobeExampleSample = struct {
             .private_data_size_bytes = self.privateDataSizeBytes(),
             .maxactive = self.maxactiveBudget(),
             .stage_after_recovery = self.stage(),
+        };
+    }
+
+    pub fn runOwnershipBoundaryReplay(self: *Self) !OwnershipBoundarySummary {
+        if (self.stage() != .cold) return error.InvalidLifecycleTransition;
+
+        try self.init();
+        const armed = try self.entryHandler(true, 200);
+        if (!armed) return error.UnexpectedEntrySkip;
+
+        var armed_exit_rejected = false;
+        self.exit() catch |err| switch (err) {
+            error.OutstandingProbeInstance => armed_exit_rejected = true,
+            else => return err,
+        };
+        if (!armed_exit_rejected) return error.ExpectedOutstandingProbeInstance;
+
+        _ = self.retHandler(9, 199) catch |err| switch (err) {
+            error.InvalidTimestampOrder => {},
+            else => return err,
+        };
+        const recovered = try self.retHandler(9, 260);
+        try self.exit();
+
+        var post_exit_record_missed_rejected = false;
+        if (self.recordMissedInstance()) |_| {
+            return error.ExpectedPostExitRejection;
+        } else |err| switch (err) {
+            error.InvalidLifecycleTransition => post_exit_record_missed_rejected = true,
+        }
+
+        var post_exit_entry_rejected = false;
+        if (self.entryHandler(true, 300)) |_| {
+            return error.ExpectedPostExitRejection;
+        } else |err| switch (err) {
+            error.InvalidLifecycleTransition => post_exit_entry_rejected = true,
+            else => return err,
+        }
+
+        var post_exit_ret_rejected = false;
+        if (self.retHandler(11, 360)) |_| {
+            return error.ExpectedPostExitRejection;
+        } else |err| switch (err) {
+            error.InvalidLifecycleTransition => post_exit_ret_rejected = true,
+            else => return err,
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .symbol_name = self.symbol_name,
+            .armed_exit_rejected = armed_exit_rejected,
+            .rejected_timestamp_ns = 199,
+            .recovered_duration_ns = recovered.duration_ns,
+            .stage_after_exit = self.stage(),
+            .exit_runs = self.exit_runs,
+            .post_exit_record_missed_rejected = post_exit_record_missed_rejected,
+            .post_exit_entry_rejected = post_exit_entry_rejected,
+            .post_exit_ret_rejected = post_exit_ret_rejected,
         };
     }
 
