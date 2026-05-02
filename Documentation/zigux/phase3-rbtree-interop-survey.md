@@ -13,6 +13,9 @@ This note records the current state of the roadmap-backed `lib/rbtree.c` anchor 
 - `PHASE3_RBTREE_PHASE3_BOUNDARY=helper-landed-curated-c-binding-surface-still-missing`
 - `PHASE3_RBTREE_NON_GOALS=no-balancing-port,no-export-shim-growth,no-uapi-growth`
 - `PHASE3_RBTREE_NEXT_BOUNDED_STEP=one-curated-phase3-rbtree-boundary-record`
+- `PHASE3_RBTREE_SURVEY_GATE=python3 scripts/zigux/validate-phase3-rbtree-interop-survey.py`
+- `PHASE3_RBTREE_SHARED_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi`
+- `PHASE3_RBTREE_SHARED_MAKE_GATE=make -C zigux phase3-validate`
 
 ## Roadmap Anchor
 
@@ -32,6 +35,14 @@ This lane adds the missing first Phase 3 helper packet on top of that evidence:
 - `zigux/tests/phase3_rbtree_survey.zig` plus `zigux/tests/phase3_rbtree_manifest.json` keep the helper packet machine-checked
 
 That means the remaining Phase 3 gap is no longer “no helper exists.” The remaining gap is that current `master` still has no curated C header, bindings record, or parity fixture for a boundary-facing `rbtree` packet.
+
+## Validation Path
+
+The live Phase 3 validation packet already exposes this survey through dedicated and shared gates:
+
+- `python3 scripts/zigux/validate-phase3-rbtree-interop-survey.py` keeps this dedicated survey note, the broader `Documentation/zigux/phase3-roadmap-gap-survey.md` note, and the repo-backed evidence paths aligned
+- `python3 scripts/zigux/validate-phase3.py --slug abi` keeps that dedicated `rbtree` gap visible inside the shared Phase 3 ABI validation packet instead of leaving it as prose-only context
+- `make -C zigux phase3-validate` remains the shared wrapper entrypoint for the broader bounded ABI packet, so this survey stays reviewable through the same published Phase 3 gate
 
 ## Missing Boundary Contract
 
