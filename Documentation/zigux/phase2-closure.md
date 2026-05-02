@@ -74,6 +74,7 @@ Phase 2 is only considered closed when all of the following are green:
 - `python3 scripts/zigux/check-kconfig-bridge.py --self-test`
 - `python3 scripts/zigux/check-kconfig-bridge.py`
 - the checker self-test must stay in the Linux-style `phase2-kconfig` path before live replay so manifest-ordering and failure-shape drift cannot hide behind the bounded bridge artifacts
+- the checker self-test must emit `KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=6` so the bounded synthetic four-conf-case plus two-confdata-case packet stays explicit before live replay
 - conf and confdata repeat-run JSON determinism is required before closure evidence stays green, and confdata replay must also stay stable across a second binary rebuild in the same check packet
 
 7. bounded phase2 cross-target compile gate
@@ -110,9 +111,10 @@ Phase 2 is only considered closed when all of the following are green:
 - `PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_GATE=python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py`
 - `PHASE2_GENKSYMS_BRIDGE_DETERMINISM=check-genksyms-bridge.py replays C and Zig bridge outputs twice before comparing artifacts`
 - `PHASE2_MK_ELFCONFIG_GATE=python3 scripts/zigux/check-mk-elfconfig-diff.py`
-- `PHASE2_MK_ELFCONFIG_DETERMINISM=check-mk-elfconfig-diff.py replays C and Zig outputs twice before comparing artifacts`
+- `PHASE2_MK_ELFCONFIG_DETERMINISM=check-mk_elfconfig-diff.py replays C and Zig outputs twice before comparing artifacts`
 - `PHASE2_KCONFIG_BRIDGE_SELF_TEST=python3 scripts/zigux/check-kconfig-bridge.py --self-test`
 - `PHASE2_KCONFIG_BRIDGE_GATE=python3 scripts/zigux/check-kconfig-bridge.py`
+- `PHASE2_KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=6`
 - `PHASE2_KCONFIG_BRIDGE_DETERMINISM=check-kconfig-bridge.py replays conf and confdata outputs twice and compares a rebuilt confdata binary against the same JSON artifacts`
 - `PHASE2_CROSS_SELF_TEST=python3 scripts/zigux/check-phase2-cross.py --self-test`
 - `PHASE2_CROSS_GATE=python3 scripts/zigux/check-phase2-cross.py`
@@ -173,6 +175,8 @@ The bounded `kconfig` bridge closure packet remains closed because the shared fi
   `oldaskconfig_expected.json`, `olddefconfig_expected.json`, `oldconfig_expected.json`, `listnewconfig_expected.json`, `helpnewconfig_expected.json`, `yes2modconfig_expected.json`, `mod2yesconfig_expected.json`, `defconfig_expected.json`, `savedefconfig_expected.json`, `mod2noconfig_expected.json`, `allnoconfig_expected.json`, `allyesconfig_expected.json`, `allmodconfig_expected.json`, `alldefconfig_expected.json`, `randconfig_expected.json`, `syncconfig_expected.json`, `duplicate_assignments_expected.json`, `empty_string_expected.json`, `empty_symbol_names_expected.json`, `escaped_control_sequences_expected.json`, `escaped_low_control_bytes_expected.json`, `escaped_strings_expected.json`, `explicit_n_tristate_expected.json`, `ignore_non_config_lines_expected.json`, `malformed_quoted_string_expected.json`, `negative_signed_numeric_kinds_expected.json`, `numeric_kinds_expected.json`, `quoted_suffix_bytes_expected.json`, `sample_expected.json`, `sample_crlf_expected.json`, `signed_numeric_kinds_expected.json`
 - bridge manifest hardening:
   `check-kconfig-bridge.py` rejects uncovered conf bridge modes, unsorted conf-case order, malformed manifest shape, duplicate fixture references, orphaned fixture files, and non-canonical confdata fixture naming before replaying the bounded artifacts
+- checker self-test breadth marker:
+  `check-kconfig-bridge.py --self-test` now emits `KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=6` so the bounded synthetic four-conf-case plus two-confdata-case packet stays explicit before live replay
 - helper-local anchors in `scripts/zigux/kconfig/conf_bridge.zig`:
   `conf bridge emits allconfig env for allconfig family modes`
   `conf bridge requires mode arg for defconfig modes`
@@ -192,6 +196,7 @@ The bounded `kconfig` bridge closure packet remains closed because the shared fi
 
 - `PHASE2_KCONFIG_BRIDGE_CONF_CASE_COUNT=16`
 - `PHASE2_KCONFIG_BRIDGE_CONFDATA_CASE_COUNT=15`
+- `PHASE2_KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=6`
 - `PHASE2_KCONFIG_BRIDGE_ALLCONFIG_CASES=zigux/tests/fixtures/kconfig_bridge/allnoconfig_expected.json,zigux/tests/fixtures/kconfig_bridge/randconfig_expected.json`
 - `PHASE2_KCONFIG_BRIDGE_ARGUMENT_CASES=zigux/tests/fixtures/kconfig_bridge/defconfig_expected.json,zigux/tests/fixtures/kconfig_bridge/savedefconfig_expected.json`
 - `PHASE2_KCONFIG_BRIDGE_LOW_CONTROL_CASE=zigux/tests/fixtures/kconfig_bridge/escaped_low_control_bytes_expected.json`
