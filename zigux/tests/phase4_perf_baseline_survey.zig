@@ -72,6 +72,32 @@ fn isLowerHexSha(value: []const u8) bool {
     return true;
 }
 
+fn gitBlobShaHex(payload: []const u8) [40]u8 {
+    var hasher = std.crypto.hash.Sha1.init(.{});
+    var header_buf: [64]u8 = undefined;
+    const header = std.fmt.bufPrint(&header_buf, "blob {d}\x00", .{payload.len}) catch unreachable;
+    hasher.update(header);
+    hasher.update(payload);
+
+    var digest: [20]u8 = undefined;
+    hasher.final(&digest);
+
+    var hex: [40]u8 = undefined;
+    _ = std.fmt.bufPrint(&hex, "{}", .{std.fmt.fmtSliceHexLower(&digest)}) catch unreachable;
+    return hex;
+}
+
+fn expectGateEvidenceBlob(
+    gate_evidence: []const u8,
+    marker: []const u8,
+    payload: []const u8,
+) !void {
+    const digest = gitBlobShaHex(payload);
+    var line_buf: [128]u8 = undefined;
+    const line = try std.fmt.bufPrint(&line_buf, "`{s}={s}`", .{ marker, &digest });
+    try std.testing.expect(std.mem.indexOf(u8, gate_evidence, line) != null);
+}
+
 test "phase4 perf baseline survey manifest keeps the current unapproved threshold posture explicit" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -239,6 +265,21 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
         .limited(64 * 1024),
     );
     defer std.testing.allocator.free(tests_readme);
+    const phase4_gate_evidence = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase4-gate-evidence.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(phase4_gate_evidence);
+    const phase4_perf_baseline_survey = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase4_perf_baseline_survey.zig",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(phase4_perf_baseline_survey);
+
     const live_summary = SurveySummary{
         .phase4_build_present = std.mem.indexOf(u8, phase4_build, "phase4_perf_baseline_survey.zig") != null and
             std.mem.indexOf(u8, phase4_build, "phase4-perf-baseline-survey-tests") != null and
@@ -265,6 +306,13 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
         ) and std.mem.indexOf(u8, phase4_matrix, "benchmark command and acceptable limit are still unapproved for both landed gates") != null,
     };
     try std.testing.expectEqualDeep(live_summary, manifest.survey_summary);
+
+    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "PHASE4_EVIDENCE_MODE=github_connector_readback") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions") != null);
+    try expectGateEvidenceBlob(phase4_gate_evidence, "PHASE4_PERF_BASELINE_MANIFEST_BLOB_SHA", manifest_json);
+    try expectGateEvidenceBlob(phase4_gate_evidence, "PHASE4_PERF_BASELINE_SURVEY_BLOB_SHA", phase4_perf_baseline_survey);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, current_surveyed_commit) != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "phase4_perf_baseline_survey.zig") != null);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
