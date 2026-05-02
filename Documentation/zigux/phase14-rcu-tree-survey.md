@@ -7,9 +7,9 @@ This document records the bounded Phase 14 survey lane `P14-L15` around `kernel/
 - `PHASE14_STATUS=freeze_in_c`
 - `PHASE14_SLICE=rcu-tree-survey-gap`
 - `PHASE14_LANE_KEY=P14-L15`
-- `PHASE14_SURVEYED_COMMIT=e2075a1902926ea5f25f724134e48f04108e9240`
+- `PHASE14_SURVEYED_COMMIT=355b71d89807a217a6b7c405c996cbd623c48ca0`
 - scope: the dedicated Phase 14 RCU tree survey gate, its manifest, the shared Phase 14 build wiring, the shared review checklist entry for this boundary packet, and this lane note that compares the roadmap destination against the current freeze boundary without shipping a bridge
-- survey provenance refreshed against verified `master` head `e2075a1902926ea5f25f724134e48f04108e9240`
+- survey provenance refreshed against verified `master` head `355b71d89807a217a6b7c405c996cbd623c48ca0`
 - product boundary:
   - `zigux/tests/phase14_rcu_tree_survey.zig`
   - `zigux/tests/phase14_rcu_tree_manifest.json`
