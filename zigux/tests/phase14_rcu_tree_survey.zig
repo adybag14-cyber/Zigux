@@ -94,7 +94,7 @@ test "phase 14 rcu tree survey manifest records the freeze-boundary gap without 
     try std.testing.expectEqualStrings("P14-L15", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
     try std.testing.expectEqualStrings("kernel/rcu/tree.c", manifest.anchor);
-    try std.testing.expectEqualStrings("e2075a1902926ea5f25f724134e48f04108e9240", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("355b71d89807a217a6b7c405c996cbd623c48ca0", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.boundary_map.len);
     try std.testing.expect(manifest.survey_summary.tree_c_lines >= 4900);
@@ -372,8 +372,8 @@ test "phase 14 rcu tree survey keeps the roadmap boundary map explicit" {
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Roadmap boundary map") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "bounded Phase 14 survey lane `P14-L15` around `kernel/rcu/tree.c`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "The honest move for this lane is therefore not to start `kernel/rcu/tree_bridge.zig`.") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_SURVEYED_COMMIT=e2075a1902926ea5f25f724134e48f04108e9240") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "survey provenance refreshed against verified `master` head `e2075a1902926ea5f25f724134e48f04108e9240`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_SURVEYED_COMMIT=355b71d89807a217a6b7c405c996cbd623c48ca0") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "survey provenance refreshed against verified `master` head `355b71d89807a217a6b7c405c996cbd623c48ca0`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`kernel/rcu/tree_bridge.zig`: `blocked_on_stay_in_c_evidence`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "without overstating progress or sneaking in a placeholder wrapper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "current freeze-in-C blocker") != null);
