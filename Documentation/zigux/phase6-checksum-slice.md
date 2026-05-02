@@ -27,7 +27,7 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 - leaf-oriented
 - math-sensitive enough to justify a focused gate
 - small enough to validate without inventing a broad new subsystem
-- already ported with a committed helper, shared fixture corpus, and focused perf-sanity harness
+- already ported with a committed helper, shared fixture corpus, focused external C-vs-Zig parity replay, and perf-sanity harness
 
 ## Gates
 
@@ -72,17 +72,17 @@ The current checksum helper surface exercised by this slice covers:
 
 The current tests check:
 
-- fixture-backed whole-buffer compute parity across the committed checksum vectors
-- partial-sum composition across even and odd split boundaries
-- seeded partial accumulation against a widened-accumulator reference path
-- carry-discipline edge cases on the helper-local surface
-- six imported KUnit random-prefix prefix lengths through the committed fixture corpus
-- pseudo-header accumulation parity for representative TCP/UDP-style checksum folding
-- IPv6 pseudo-header accumulation parity for representative UDP and TCP-style checksum folding, including the committed upper-length-bits regression fixture
+- fixture-backed whole-buffer compute parity across 5 committed checksum vectors
+- partial-sum composition across 2 committed even and odd split cases
+- seeded partial accumulation against 3 widened-accumulator reference cases
+- carry-discipline edge cases across 4 committed helper-local vectors
+- 6 imported KUnit random-prefix lengths through the committed fixture corpus
+- pseudo-header accumulation parity for the committed IPv4 UDP-style checksum vector
+- IPv6 pseudo-header accumulation parity for 3 committed UDP, TCP, and ICMPv6-style checksum vectors, including the upper-length-bits regression fixture
 - incremental checksum replacement parity for payload word updates, 16-bit IPv4 header field replacement, 32-bit IPv4 address replacement, and diff-based checksum repair
-- an external C-vs-Zig spot check through `python3 scripts/zigux/check-phase6-checksum-c-parity.py`, `zigux/tests/phase6_checksum_c_parity.zig`, and `zigux/tests/fixtures/phase6_checksum_c_harness.c` so the current `lib/checksum.c` arithmetic surface stays directly reviewable beside the committed Zig fixture packet, including the current IPv4 pseudo-header nofold path, the committed IPv6 pseudo-header nofold fixture cases, and the incremental replacement helpers
+- an external C-vs-Zig spot check through `python3 scripts/zigux/check-phase6-checksum-c-parity.py`, `zigux/tests/phase6_checksum_c_parity.zig`, and `zigux/tests/fixtures/phase6_checksum_c_harness.c` so the current `lib/checksum.c` arithmetic surface stays directly reviewable beside the committed Zig fixture packet; the live parity runner currently replays 21 direct outputs across 5 compute cases, 3 seeded partial cases, 2 composition cases, 1 IPv4 pseudo-header nofold case, 3 IPv6 pseudo-header nofold cases, 4 carry-discipline folds, and 4 incremental replacement outputs
 - shared fixture-backed checksum vectors stored in `zigux/tests/fixtures/phase6_checksum_vectors.zig` and consumed by `zigux/tests/phase6_checksum.zig`, while `lib/checksum.zig` keeps only helper-local arithmetic and regression checks so the leaf helper no longer depends on the shared Phase 6 fixture packet
-- a replayable perf-sanity harness reports representative checksum cost per call and per byte while rechecking parity against the widened-accumulator `referencePartial` path on deterministic 64-byte and 1501-byte payloads, and it currently fail-closes on `max_slowdown_pct = 150` for both fixture-backed perf cases
+- a replayable perf-sanity harness reports representative checksum cost per call and per byte while rechecking parity against the widened-accumulator `referencePartial` path on deterministic 64-byte and 1501-byte payloads, and it currently fail-closes on `max_slowdown_pct = 150` for both committed perf cases
 
 This is enough evidence to leave the bounded checksum helper lane parked unless a concrete new parity or perf gap appears in the live repo.
 
@@ -97,4 +97,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Leave the checksum helper lane parked unless fresh repo inspection finds a concrete parity, perf, or directly coupled review-packet drift inside `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/fixtures/phase6_checksum_vectors.zig`, `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, `scripts/zigux/check-phase6-checksum-c-parity.py`, `zigux/tests/phase6_checksum_perf.zig`, or the shared Phase 6 packet.
+Leave the checksum helper lane parked unless fresh repo inspection finds a concrete parity, perf, or directly coupled review-packet drift inside `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/fixtures/phase6_checksum_vectors.zig`, `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, `scripts/zigux/check-phase6-checksum-c-parity.py`, `zigux/tests/phase6_checksum_perf.zig`, or the shared Phase 6 packet. If reviewers want the shared packet to enumerate the current checksum evidence more explicitly, the next same-family follow-up should stay narrow to `Documentation/zigux/phase6-helper-parity-catalog.md`, `zigux/tests/phase6_helper_parity_manifest.json`, and any directly coupled validator markers so those shared surfaces also acknowledge the live 3-case IPv6 pseudo-header corpus and 21-case checksum parity replay.
