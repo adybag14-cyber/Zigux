@@ -6,7 +6,7 @@ This note records the current cross-slice boundary for Phase 8 userspace-adjacen
 
 - `PHASE8_STATUS=active`
 - `PHASE8_SLICE=userspace-kernel-bridge-boundary-survey`
-- `surveyed_commit=36414e38da67a51209095d0c06170f81e80258eb`
+- `surveyed_commit=f5a4d6990f701937b2a3bb9ae723bb6d0f27ba21`
 - scope: parked command-preparation helpers under `tools/lib/subcmd/*.zig`, the bounded symbol-side parser helper under `tools/lib/symbol/*.zig`, the helper-first libbpf starter slices under `tools/lib/bpf/zigux_segments/`, and the bounded perf-buffer poll bookkeeping helper, with direct process-launch, directory, terminal, procfs, bpffs, handle-lifecycle, interrupt-routing-sensitive behavior, and downstream ELF-emission work still deferred
 - product boundary:
   - `Documentation/zigux/phase8-exec-cmd-slice.md`
