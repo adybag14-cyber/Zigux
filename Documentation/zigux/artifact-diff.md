@@ -13,6 +13,7 @@ Current Phase 2 use
 - `zigux/tests/fixtures/fixdep/sample_expected.txt` is generated from the current in-tree C `scripts/basic/fixdep.c` behavior on a bounded committed sample.
 - `zigux/tests/fixtures/fixdep/sample_multi_target_expected.txt` widens that claim with a second committed depfile covering multi-target parsing, comments, duplicate deps, no-parse files, and escaped `#`.
 - `zigux/tests/fixtures/fixdep/sample_escaped_space_expected.txt` anchors the escaped-whitespace dependency-token path so `fixdep.zig` must preserve `\\ ` and `\\t` separators the same way as the C tool.
+- `zigux/tests/fixtures/fixdep/sample_escaped_colon_expected.txt` anchors the escaped-colon dependency-token path so `fixdep.zig` must unescape `\\:` to the same on-disk dependency name that the C tool reads and emits.
 - `zigux/tests/fixtures/fixdep/sample_concatenated_expected.txt` anchors concatenated target entries so `fixdep.zig` must keep the first source token while still collecting later dependency tokens from the continued dep-info stream.
 - `zigux/tests/fixtures/fixdep/sample_comment_only_expected.txt` and `sample_comment_only_expected.stderr.txt` anchor the bounded no-target failure shape, keeping the `fixdep: parse error; no targets found` path reviewable against both stdout and stderr artifacts.
 - `zigux/tests/fixtures/fixdep/sample_missing_dep_expected.txt` and `sample_missing_dep_expected.stderr.txt` anchor the bounded missing-dependency failure shape, including the preserved stdout prefix and C-style open-file stderr message.
