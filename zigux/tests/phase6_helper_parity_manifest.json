@@ -106,11 +106,11 @@
       "variant_encode_vectors": 24,
       "standard_decode_vectors": 22,
       "variant_decode_vectors": 16,
-      "invalid_decode_vectors": 22,
+      "invalid_decode_vectors": 28,
       "perf_payload_cases": 2,
       "perf_replay_cases": 10,
       "c_parity_self_test_cases": 8,
-      "c_parity_cases": 106
+      "c_parity_cases": 112
     },
     "bsearch": {
       "inline_corpus": "sorted integer and symbol tables",
