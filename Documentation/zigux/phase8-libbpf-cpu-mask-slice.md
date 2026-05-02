@@ -6,7 +6,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 
 - `PHASE8_STATUS=active`
 - `PHASE8_SLICE=libbpf-cpu-mask-starter`
-- scope: injected CPU-mask string parsing, chunk-reader ingestion, set-bit counting, and bounded perf-buffer auto-CPU sizing only
+- scope: injected CPU-mask string parsing, chunk-reader ingestion, set-bit counting, bounded perf-buffer auto-CPU sizing, and pure online-CPU eligibility checks only
 - product boundary:
   - `tools/lib/bpf/zigux_segments/cpu_mask.zig`
   - `zigux/tests/phase8_cpu_mask.zig`
@@ -57,6 +57,7 @@ The current starter slice covers:
 - dense `[]bool` mask materialization for future tooling callers
 - counted possible-CPU reporting over the parsed mask
 - a bounded auto-CPU count clamp that mirrors libbpf's perf-buffer map-budget sizing without widening into `/sys` reads, online CPU filtering, perf-event-array updates, epoll-backed perf FD registration, or timeout-driven `perf_buffer__poll(timeout_ms)` waits that return ready-buffer counts
+- a pure online-CPU eligibility predicate that mirrors libbpf's automatic-budget offline skip rule without claiming direct `/sys/devices/system/cpu/online` reads, perf-event-array updates, or interrupt-routing ownership
 
 The current tests check:
 
@@ -69,6 +70,7 @@ The current tests check:
 - explicit error handling for empty, malformed, and trailing-whitespace-only ranges
 - reader contract failures such as zero-length chunks, oversized counts, and injected read errors
 - the bounded auto-CPU count clamp keeps possible-CPU sizing inside the map entry budget while still treating zero as the uncapped case
+- explicit online-mask eligibility behavior for zero-or-negative automatic CPU budgets versus positive caller-pinned CPU budgets
 
 ## Non-goals
 
