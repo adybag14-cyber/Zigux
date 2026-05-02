@@ -103,6 +103,12 @@ int main(void)
     fprintf(stdout, "%u", ZIGUX_UNSAFE_VOLATILE_MMIO);
     fputs(",\"unsafe_scope_raw_pointer_bridge\":", stdout);
     fprintf(stdout, "%u", ZIGUX_UNSAFE_RAW_POINTER_BRIDGE);
+    fputs(",\"minor_alloc_flag_truncated\":", stdout);
+    fprintf(stdout, "%u", ZIGUX_MINOR_ALLOC_FLAG_TRUNCATED);
+    fputs(",\"minor_alloc_flag_found\":", stdout);
+    fprintf(stdout, "%u", ZIGUX_MINOR_ALLOC_FLAG_FOUND);
+    fputs(",\"minor_alloc_flag_exhausted\":", stdout);
+    fprintf(stdout, "%u", ZIGUX_MINOR_ALLOC_FLAG_EXHAUSTED);
     fputs("},\"structs\":{", stdout);
     for (size_t i = 0; i < ARRAY_SIZE(layouts); ++i)
         emit_layout(stdout, &layouts[i], i + 1 < ARRAY_SIZE(layouts));
