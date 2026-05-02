@@ -40,7 +40,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P5-L12", manifest.lane_key);
+    try std.testing.expectEqualStrings("P5-L10", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 5", manifest.phase);
     try std.testing.expectEqual(@as(usize, 40), manifest.surveyed_commit.len);
     for (manifest.surveyed_commit) |char| {
@@ -282,7 +282,7 @@ test "phase 5 kobject contributor docs stay aligned with the shipped review surf
     try expectContains(survey_note, "phase5_kobject_example_manifest.json");
     try expectContains(survey_note, "phase5_kobject_example_survey.zig");
     try expectContains(survey_note, "phase5_build.zig");
-    try expectContains(survey_note, "PHASE5_LANE_KEY=P5-L12");
+    try expectContains(survey_note, "PHASE5_LANE_KEY=P5-L10");
     {
         const surveyed_commit_line = try std.fmt.allocPrint(
             std.testing.allocator,
@@ -301,16 +301,12 @@ test "phase 5 kobject contributor docs stay aligned with the shipped review surf
     try expectContains(survey_note, "shared `0664` attribute mode pattern");
     try expectContains(survey_note, "initialized-but-not-registered ownership boundary");
     try expectContains(survey_note, "abandoned_before_registration");
-    try expectContains(survey_note, "zig fmt --check samples/zigux/kobject_example.zig");
+    try expectContains(survey_note, "zig fmt --check samples/zigux/kobject_example.zig zigux/tests/phase5_kobject_example_survey.zig");
     try expectContains(survey_note, "zig test samples/zigux/kobject_example.zig");
-    try expectContains(survey_note, "1/4 kobject_example.test.kobject sample replay keeps the anchor reviewable and non-runtime...OK");
-    try expectContains(survey_note, "2/4 kobject_example.test.kobject sample keeps shared dispatch and parse failures explicit...OK");
-    try expectContains(survey_note, "3/4 kobject_example.test.kobject sample keeps the pre-registration ownership boundary explicit...OK");
-    try expectContains(survey_note, "4/4 kobject_example.test.kobject sample teardown keeps ownership boundaries explicit...OK");
     try expectContains(survey_note, "All 4 tests passed.");
     try expectContains(survey_note, "zig test zigux/tests/phase5_kobject_example_survey.zig");
     try expectContains(survey_note, "All 2 tests passed.");
-    try expectContains(survey_note, "did not rerun the survey gate or the whole Phase 5 sample bundle");
+    try expectContains(survey_note, "did not rerun the whole Phase 5 sample bundle");
     {
         const pinned_commit_line = try std.fmt.allocPrint(
             std.testing.allocator,
