@@ -58,7 +58,7 @@ test "phase 15 handoff manifest records the parked governance contract" {
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P15-L10", manifest.lane_key);
+    try std.testing.expectEqualStrings("P15-Y01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
     try std.testing.expectEqualStrings("ef7b33b6922d05e5ef514fb4efa588316ce6dda8", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Full-Parity Blockers and Long-Term Governance", manifest.roadmap_phase_title);
@@ -138,6 +138,7 @@ test "phase 15 handoff note keeps the open gaps and parked next steps explicit" 
     );
     defer std.testing.allocator.free(workflow);
 
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "PHASE15_LANE_KEY=P15-Y01") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "## Roadmap Versus Ledger") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "## Current Handoff Surface") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "## Open Handoff Gaps") != null);
