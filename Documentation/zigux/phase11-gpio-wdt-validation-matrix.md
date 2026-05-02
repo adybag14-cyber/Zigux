@@ -12,7 +12,7 @@ This document records the first bounded hardware-validation matrix for the Zigux
   - `zigux/tests/phase11_gpio_wdt.zig`
   - `zigux/tests/phase11_gpio_wdt_manifest.json`
   - `zigux/tests/phase11_gpio_wdt_survey.zig`
-  - `Documentation/zigux/phase11-gpio-wdt-module-slice.md`
+  - `Documentation/zigux/phase11-gpio-wdt-slice.md`
   - `zigux/tests/phase11_build.zig`
   - `.github/workflows/zigux-bootstrap.yml`
 
