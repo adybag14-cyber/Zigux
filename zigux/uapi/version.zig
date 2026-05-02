@@ -4,6 +4,10 @@ const abi = @import("abi_bindings");
 pub const abi_version: u16 = abi.ABI_VERSION;
 pub const header_size: u32 = @sizeOf(abi.BoundaryHeader);
 pub const Header = abi.BoundaryHeader;
+pub const Compatibility = enum(u8) {
+    canonical,
+    future_compatible,
+};
 
 pub fn canonicalHeader(flags: u16) Header {
     return abi.defaultHeader(flags);
@@ -21,8 +25,14 @@ pub fn compatibleHeader(size: u32, flags: u16) Header {
     };
 }
 
+pub fn compatibility(header: Header) ?Compatibility {
+    if (!isCurrentAbiVersion(header.abi_version)) return null;
+    if (!isCompatibleSize(header.size)) return null;
+    return if (isCanonicalSize(header.size)) .canonical else .future_compatible;
+}
+
 pub fn canonicalizeHeader(header: Header) ?Header {
-    if (!isCompatible(header)) return null;
+    if (compatibility(header) == null) return null;
     return canonicalHeader(header.flags);
 }
 
@@ -39,11 +49,11 @@ pub fn isCanonicalSize(size: u32) bool {
 }
 
 pub fn isCompatible(header: Header) bool {
-    return isCurrentAbiVersion(header.abi_version) and isCompatibleSize(header.size);
+    return compatibility(header) != null;
 }
 
 pub fn isCanonical(header: Header) bool {
-    return isCurrentAbiVersion(header.abi_version) and isCanonicalSize(header.size);
+    return compatibility(header) == .canonical;
 }
 
 test "phase3 uapi version follows abi version" {
@@ -89,6 +99,24 @@ test "phase3 uapi boundary header distinguishes canonical and future-compatible 
     try std.testing.expect(isCompatibleSize(future_compatible.size));
     try std.testing.expect(!isCanonical(future_compatible));
     try std.testing.expect(isCompatible(future_compatible));
+}
+
+test "phase3 uapi compatibility helper keeps header shape explicit" {
+    const canonical = canonicalHeader(0x44);
+    try std.testing.expectEqual(Compatibility.canonical, compatibility(canonical).?);
+
+    const future_compatible = compatibleHeader(header_size + 8, 0x44);
+    try std.testing.expectEqual(Compatibility.future_compatible, compatibility(future_compatible).?);
+
+    const undersized = compatibleHeader(header_size - 1, 0x44);
+    try std.testing.expect(compatibility(undersized) == null);
+
+    const incompatible_version: Header = .{
+        .size = header_size,
+        .abi_version = abi.ABI_VERSION + 1,
+        .flags = 0x44,
+    };
+    try std.testing.expect(compatibility(incompatible_version) == null);
 }
 
 test "phase3 uapi compatible header helper keeps explicit future-size replay reviewable" {
