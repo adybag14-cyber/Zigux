@@ -27,6 +27,7 @@ pub const ModuleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
     provides_abi_shape_reporting: bool,
+    provides_initialization_gate_planning: bool,
     provides_min_struct_copy_planning: bool,
     provides_create_ruleset_query_planning: bool,
     provides_restrict_self_flag_planning: bool,
@@ -67,6 +68,16 @@ pub const AbiShapeReport = struct {
     path_beneath_attr_size: usize,
     net_port_attr_size: usize,
     page_size_limit: usize,
+};
+
+pub const InitializationGatePlan = struct {
+    anchor: []const u8,
+    initialized: bool,
+    returns_eopnotsupp_when_disabled: bool,
+    emits_boot_disabled_warning: bool,
+    gates_create_ruleset: bool,
+    gates_add_rule: bool,
+    gates_restrict_self: bool,
 };
 
 pub const CopyMinStructRequest = struct {
@@ -278,6 +289,7 @@ pub const SyscallsHelperLab = struct {
             .name = "landlock_syscalls_helper_lab",
             .anchor = "security/landlock/syscalls.c",
             .provides_abi_shape_reporting = true,
+            .provides_initialization_gate_planning = true,
             .provides_min_struct_copy_planning = true,
             .provides_create_ruleset_query_planning = true,
             .provides_restrict_self_flag_planning = true,
@@ -293,6 +305,18 @@ pub const SyscallsHelperLab = struct {
             .touches_live_paths = false,
             .touches_live_credentials = false,
             .touches_live_domains = false,
+        };
+    }
+
+    pub fn planInitializationGate(initialized: bool) InitializationGatePlan {
+        return .{
+            .anchor = descriptor().anchor,
+            .initialized = initialized,
+            .returns_eopnotsupp_when_disabled = !initialized,
+            .emits_boot_disabled_warning = !initialized,
+            .gates_create_ruleset = true,
+            .gates_add_rule = true,
+            .gates_restrict_self = true,
         };
     }
 
