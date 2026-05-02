@@ -12,6 +12,9 @@ This note records the current Phase 9 runtime module-metadata surface and the st
   - `Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md`
   - `zigux/tests/runtime_module_metadata_manifest.json`
   - `zigux/tests/runtime_module_metadata_survey.zig`
+  - `scripts/zigux/check-phase9-module-metadata-packet.py`
+  - `zigux/tests/phase9_build.zig`
+  - `zigux/tests/README.md`
   - `Documentation/zigux/phase9-runtime-loader-gap-survey.md`
   - `zigux/kernel/runtime_loader.zig`
   - `samples/zigux/runtime_atomic64.zig`
@@ -83,11 +86,16 @@ Those surfaces are therefore still absent from the current runtime starter famil
 
 ## Delivery ownership map
 
+The shared replay route is part of this dedicated metadata packet too, because the note, focused replay, shared Phase 9 bundle, tests-root guide, and fail-closed checker all need to describe the same bounded metadata story.
+
 The dedicated metadata packet keeps one bounded ownership split:
 
 - `Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md` owns the written survey of the current descriptor surface and the depmod-facing gap
 - `zigux/tests/runtime_module_metadata_manifest.json` owns the machine-readable counts, exact file list, metadata field inventory, and absent depmod surface list
 - `zigux/tests/runtime_module_metadata_survey.zig` owns the focused replay that proves the note, manifest, starter descriptors, and shared loader metadata still agree
+- `scripts/zigux/check-phase9-module-metadata-packet.py` owns the fail-closed checker for this dedicated metadata packet, including the survey note, focused replay, shared Phase 9 bundle replay entrypoint, tests-root guidance, and adjacent loader-gap note
+- `zigux/tests/phase9_build.zig` owns the shared Phase 9 runtime bundle replay entrypoint that includes `phase9-runtime-module-metadata-survey-tests` beside the adjacent runtime packets
+- `zigux/tests/README.md` owns the tests-root guidance that keeps the dedicated metadata checker and shared replay route explicit beside the loader-gap packet and the shared `phase9-validate` flow
 - `Documentation/zigux/phase9-runtime-loader-gap-survey.md` owns the shared loader-packet note that keeps the missing `samples/zigux/runtime_trace_events_loader.zig` sibling explicit
 - `zigux/kernel/runtime_loader.zig` owns the shared `RuntimeLoadRequest` metadata fields and the current three-lane loader union
 
@@ -121,7 +129,7 @@ That is more honest than counting starter descriptors as if they already closed 
 5. run the shared convenience target
 - `make -C zigux phase9-validate`
 
-The shared tests-root guidance should keep this dedicated metadata checker explicit beside `scripts/zigux/validate-phase9.py` and `make -C zigux phase9-validate` so the bounded review route stays visible outside this note too.
+The shared tests-root guidance should keep this dedicated metadata checker explicit beside `scripts/zigux/validate-phase9.py`, `zigux/tests/phase9_build.zig`, and `make -C zigux phase9-validate` so the bounded review route stays visible outside this note too.
 
 ## Non-goals
 
