@@ -78,85 +78,6 @@ test "phase 8 kallsyms module imports cleanly" {
     _ = kallsyms;
 }
 
-test "phase 8 kallsyms parked parser packet covers symbol helpers and injected record parsing" {
-    try std.testing.expectEqual(kallsyms.elf_stb_weak, kallsyms.kallsyms2ElfBinding('W'));
-    try std.testing.expectEqual(kallsyms.elf_stb_global, kallsyms.kallsyms2ElfBinding('T'));
-    try std.testing.expectEqual(kallsyms.elf_stb_local, kallsyms.kallsyms2ElfBinding('t'));
-    try std.testing.expectEqual(kallsyms.elf_stt_func, kallsyms.kallsyms2ElfType('w'));
-    try std.testing.expectEqual(kallsyms.elf_stt_object, kallsyms.kallsyms2ElfType('B'));
-    try std.testing.expect(kallsyms.isFunction('W'));
-    try std.testing.expect(!kallsyms.isFunction('n'));
-
-    const parsed = kallsyms.parseLine("ffffffff81000100 t secondary_startup_64") orelse unreachable;
-    try std.testing.expectEqual(@as(u64, 0xffffffff81000100), parsed.start);
-    try std.testing.expectEqual(@as(u8, 't'), parsed.symbol_type);
-    try std.testing.expectEqualStrings("secondary_startup_64", parsed.name);
-
-    const Collector = struct {
-        fn append(list: *std.ArrayList(kallsyms.ParsedSymbol), symbol: kallsyms.ParsedSymbol) !void {
-            try list.append(std.testing.allocator, symbol);
-        }
-    };
-
-    var symbols = std.ArrayList(kallsyms.ParsedSymbol).empty;
-    defer symbols.deinit(std.testing.allocator);
-
-    try kallsyms.forEachParsedLine(
-        "ffffffff81000000 T startup_64\n" ++
-            "garbage\n" ++
-            "ffffffff81000200 W weak_handler\n",
-        &symbols,
-        Collector.append,
-    );
-
-    try std.testing.expectEqual(@as(usize, 2), symbols.items.len);
-    try std.testing.expectEqualStrings("startup_64", symbols.items[0].name);
-    try std.testing.expectEqualStrings("weak_handler", symbols.items[1].name);
-    try std.testing.expectEqual(@as(u8, 'W'), symbols.items[1].symbol_type);
-
-    const too_long_name = "a" ** (kallsyms.KSYM_NAME_LEN + 5);
-    const oversized_line = try std.fmt.allocPrint(
-        std.testing.allocator,
-        "1 T {s}",
-        .{too_long_name},
-    );
-    defer std.testing.allocator.free(oversized_line);
-
-    symbols.clearRetainingCapacity();
-    try kallsyms.forEachParsedLine(oversized_line, &symbols, Collector.append);
-    try std.testing.expectEqual(@as(usize, 1), symbols.items.len);
-    try std.testing.expectEqual(@as(usize, kallsyms.KSYM_NAME_LEN), symbols.items[0].name.len);
-    try std.testing.expect(std.mem.allEqual(u8, symbols.items[0].name, 'a'));
-}
-
-test "phase 8 kallsyms injected parser preserves callback failures" {
-    const Collector = struct {
-        fn stopOnWeakSymbol(list: *std.ArrayList(kallsyms.ParsedSymbol), symbol: kallsyms.ParsedSymbol) anyerror!void {
-            if (symbol.symbol_type == 'W') {
-                return error.StopOnWeakSymbol;
-            }
-
-            try list.append(std.testing.allocator, symbol);
-        }
-    };
-
-    var symbols = std.ArrayList(kallsyms.ParsedSymbol).empty;
-    defer symbols.deinit(std.testing.allocator);
-
-    try std.testing.expectError(
-        error.StopOnWeakSymbol,
-        kallsyms.forEachParsedLine(
-            "ffffffff81000000 T startup_64\n" ++
-                "ffffffff81000200 W weak_handler\n" ++
-                "ffffffff81000300 t ignored_after_callback_error\n",
-            &symbols,
-            Collector.stopOnWeakSymbol,
-        ),
-    );
-    try std.testing.expectEqual(@as(usize, 1), symbols.items.len);
-    try std.testing.expectEqualStrings("startup_64", symbols.items[0].name);
-}
-
 test "phase 8 kallsyms chunked reader slice keeps parser behavior across split input" {
     const Collector = struct {
         fn append(list: *std.ArrayList(OwnedParsedSymbol), symbol: kallsyms.ParsedSymbol) !void {
@@ -575,6 +496,9 @@ test "phase 8 kallsyms docs keep the parked parser boundary explicit" {
     try expectContains(slice_note, "legacy validator alias: `PHASE8_SLICE=kallsyms-parse-wrapper-starter`");
     try expectContains(slice_note, "tools/lib/symbol/kallsyms.zig");
     try expectContains(slice_note, "zigux/tests/phase8_kallsyms.zig");
+    try expectContains(slice_note, "serious repo-hosted tooling");
+    try expectContains(slice_note, "helper-local `tools/lib/symbol/kallsyms.zig` tests own");
+    try expectContains(slice_note, "focused `zigux/tests/phase8_kallsyms.zig` replay");
     try expectContains(slice_note, "chunked overlong-line handling");
     try expectContains(slice_note, "stops buffering after the bounded callback surface is full");
     try expectContains(slice_note, "kallsymsParseContents()");
