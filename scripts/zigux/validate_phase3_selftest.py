@@ -9,12 +9,14 @@ from phase3_catalog import Phase3Paths, Phase3Slice, discover_phase3_slices
 from phase3_check_lib import render_wrapper_stub, shared_runner_gate_for_slug
 from validate_phase3_core import (
     ABI_REVIEW_CHECKLIST_MARKERS,
+    ABI_POLICY_UNSAFE_MMIO_CONSUMER_REL,
     ABI_POLICY_UNSAFE_SURVEY_CHECK_REL,
     ABI_REQUIRED_DOC_MARKERS,
     ABI_REQUIRED_EXPECTED_CONSTANTS,
     ABI_REQUIRED_MANIFEST_FILES,
     ABI_REQUIRED_SOURCE_MARKERS,
     ABI_EXPORT_UAPI_BUILD_FILE_REL,
+    ABI_EXPORT_UAPI_LAYOUT_BUILD_FILE_REL,
     ABI_LOW_LEVEL_BUILD_FILE_REL,
     ABI_LOW_LEVEL_SURVEY_CHECK_REL,
     ABI_POLICY_UNSAFE_BUILD_FILE_REL,
@@ -170,6 +172,7 @@ def run_self_test() -> int:
         for rel in (
             "zigux/tests/build.zig",
             "zigux/tests/phase3_export_uapi_build.zig",
+            "zigux/tests/phase3_export_uapi_layout_build.zig",
             "zigux/tests/phase3_low_level_wrappers_build.zig",
             "zigux/tests/phase3_policy_unsafe_build.zig",
         ):
@@ -207,6 +210,7 @@ def run_self_test() -> int:
         abi_manifest_path = paths.fixtures_dir / "phase3_abi_manifest.json"
         roadmap_gap_doc = "Documentation/zigux/phase3-roadmap-gap-survey.md"
         roadmap_gap_validator = "scripts/zigux/validate-phase3-roadmap-gap-survey.py"
+        export_uapi_layout_test = "zigux/tests/phase3_export_uapi_layout.zig"
 
         assert validate_manifest(abi_manifest_entry, ABI_REQUIRED_MANIFEST_FILES) == []
 
@@ -222,6 +226,21 @@ def run_self_test() -> int:
         (root / roadmap_gap_validator).unlink()
         assert validate_manifest(abi_manifest_entry, ABI_REQUIRED_MANIFEST_FILES) == [
             f"abi: manifest references missing file {roadmap_gap_validator}"
+        ]
+        _write_phase3_abi_fixture(paths)
+
+        abi_manifest = json.loads(abi_manifest_path.read_text(encoding="utf-8"))
+        abi_manifest["files"].remove(export_uapi_layout_test)
+        abi_manifest["file_count"] = len(abi_manifest["files"])
+        abi_manifest_path.write_text(json.dumps(abi_manifest, indent=2) + "\n", encoding="utf-8", newline="\n")
+        assert validate_manifest(abi_manifest_entry, ABI_REQUIRED_MANIFEST_FILES) == [
+            f"abi: manifest missing {export_uapi_layout_test}"
+        ]
+
+        _write_phase3_abi_fixture(paths)
+        (root / ABI_POLICY_UNSAFE_MMIO_CONSUMER_REL).unlink()
+        assert validate_manifest(abi_manifest_entry, ABI_REQUIRED_MANIFEST_FILES) == [
+            f"abi: manifest references missing file {ABI_POLICY_UNSAFE_MMIO_CONSUMER_REL}"
         ]
         _write_phase3_abi_fixture(paths)
 
@@ -471,13 +490,17 @@ def run_self_test() -> int:
             "PHASE3_MMIO_SCOPE=range-read8-read16-read32-read64-write8-write16-write32-write64-plus-scoped-read8-write8-read16-write16-read32-write32-read64-write64-plus-policy-read8-write8-read16-write16-read32-write32-read64-write64-and-generic-policy-bridges"
             in ABI_REQUIRED_DOC_MARKERS
         )
+        assert BUILD_FILE_REL in ABI_REQUIRED_MANIFEST_FILES
         assert "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md" in ABI_REQUIRED_MANIFEST_FILES
         assert "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md" in ABI_REQUIRED_MANIFEST_FILES
         assert "Documentation/zigux/phase3-roadmap-gap-survey.md" in ABI_REQUIRED_MANIFEST_FILES
         assert "Documentation/zigux/review-checklist.md" in ABI_REQUIRED_MANIFEST_FILES
+        assert ABI_POLICY_UNSAFE_MMIO_CONSUMER_REL in ABI_REQUIRED_MANIFEST_FILES
         assert ABI_POLICY_UNSAFE_SURVEY_CHECK_REL in ABI_REQUIRED_MANIFEST_FILES
         assert "scripts/zigux/validate-phase3-low-level-wrapper-survey.py" in ABI_REQUIRED_MANIFEST_FILES
         assert "scripts/zigux/validate-phase3-roadmap-gap-survey.py" in ABI_REQUIRED_MANIFEST_FILES
+        assert ABI_EXPORT_UAPI_LAYOUT_BUILD_FILE_REL in ABI_REQUIRED_MANIFEST_FILES
+        assert "zigux/tests/phase3_export_uapi_layout.zig" in ABI_REQUIRED_MANIFEST_FILES
         assert "scripts/zigux/validate_phase3_header_binding_markers.py" in ABI_REQUIRED_MANIFEST_FILES
         assert any(
             "shared Phase 3 ABI substrate packet" in marker for marker in ABI_REVIEW_CHECKLIST_MARKERS
@@ -618,7 +641,7 @@ def run_self_test() -> int:
         ]
 
     print("PHASE3_VALIDATOR_SELF_TEST=pass")
-    print("PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT=10")
+    print("PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
