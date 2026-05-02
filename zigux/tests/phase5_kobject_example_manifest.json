@@ -1,7 +1,7 @@
 {
-  "lane_key": "P5-L10",
+  "lane_key": "P5-L12",
   "phase": "Phase 5",
-  "surveyed_commit": "a15760c3e46103fd41ae0da852b61f612e9116c6",
+  "surveyed_commit": "a1c6f22f0efad22fb31f9a7608b8b52b70cbbaf9",
   "anchor": "samples/kobject/kobject-example.c",
   "sample_path": "samples/zigux/kobject_example.zig",
   "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
@@ -10,9 +10,9 @@
     "the manifest and survey test still describe the exact registration, single register_runs ownership claim, Linux foo/baz/bar attribute order, shared 0664 attribute mode pattern, integer roundtrip, and shared baz/bar dispatch contract run through phase5_build.zig",
     "the replay contract keeps the static directory-name cue explicit, keeps emits_uevent false, and says dynamic kobjects stay out of scope for this Phase 5 sample",
     "the sample-backed survey note, shared sample-root catalog, shared tests-root guide, and shared review checklist still name the manifest-backed survey, sample-backed survey note, and phase5_build.zig entrypoint as part of the shipped kobject review surface",
-    "the manifest prompts keep the unnamed attribute group shape plus the pre-registration ownership boundary, initialized-only exit summary, and post-exit init/register/show/store rejection boundaries explicit instead of implying sysfs registration",
+    "the manifest prompts keep the unnamed attribute group shape plus the pre-registration ownership boundary, initialized-only exit summary, ownershipSummary lifecycle snapshot, and post-exit init/register/show/store rejection boundaries explicit instead of implying sysfs registration",
     "sample-behavior changes update the manifest-backed registration, attribute-order, teardown-summary, and lifecycle contract instead of leaving reviewers to infer it from code alone",
-    "ownership checks keep the initialized-but-not-registered stage explicit by requiring zero active attributes and no show/store access until registerAttributes claims ownership",
+    "ownership checks keep the initialized-but-not-registered stage explicit by requiring zero active attributes and no show/store access until registerAttributes claims ownership, and ownershipSummary must expose the cold, initialized, registered, and exited stage transitions directly",
     "docs and tests keep the post-exit init/register/show/store boundary explicit while still keeping sysfs creation, kernel_kobj integration, uevents, and module registration out of scope for this Phase 5 sample, and keep the shared sample-root packet explicit that the landed slice is an approved Phase 5 ownership-and-lifetime idiom"
   ],
   "exact_checks": [
@@ -45,6 +45,11 @@
       "id": "pre-registration-boundary",
       "kind": "ownership_lifetime",
       "expected": "the initialized-but-not-registered stage keeps the active attribute count at zero and rejects show or store calls until registerAttributes claims ownership"
+    },
+    {
+      "id": "ownership-summary",
+      "kind": "ownership_lifetime",
+      "expected": "ownershipSummary reports the cold, initialized, registered, and exited stages directly, keeps active attribute counts at 0, 0, 3, and 0, and makes register-or-exit availability reviewable without reading internal fields"
     },
     {
       "id": "initialized-exit-teardown",
