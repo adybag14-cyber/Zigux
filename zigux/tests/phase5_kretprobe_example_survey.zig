@@ -19,7 +19,7 @@ const Manifest = struct {
 };
 
 const review_doc_read_limit = 64 * 1024;
-const current_surveyed_commit = "3ba64cd4e41a4de1c8fd8dbaecb23702ad9701a3";
+const current_surveyed_commit = "7c1e6840cf73a321e775e8e77448157b1304ee1d";
 
 fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
