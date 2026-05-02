@@ -21,7 +21,7 @@ The Phase 12 roadmap explicitly names `drivers/net/virtio_net.c` as a complex pr
 
 That still matters because `virtio_net.c` is not a small leaf helper. The live file is 7,288 lines and mixes probe-time feature negotiation, receive and transmit virtqueue management, NAPI poll loops, XDP and XSK fast paths, page-pool and DMA handling, control-virtqueue commands, RSS and multiqueue configuration, ethtool hooks, and full `net_device` lifecycle work.
 
-The highest-value honest step in this lane is therefore a very small probe snapshot helper plus matching queue-recovery, queue-resume, `hdr_len`, receive-path, and mergeable-refill summaries with bounded build wiring and risk notes, not a premature runtime data-path or net-device scaffold. The syntax-lab compile smoke exists only to prove those bounded exports still stay reachable through the real build graph.
+The highest-value honest step in this lane is therefore a very small probe snapshot helper plus matching queue-recovery, queue-resume, `hdr_len`, receive-path, and mergeable-refill summaries with bounded build wiring and risk notes, not a premature runtime data-path or net-device scaffold. The syntax-lab compile smoke exists only to prove those bounded exports still stay reachable through the real build graph, including the descriptor, request, snapshot, queue-recovery, queue-resume, and refill review types that keep this packet inspectable before any DMA-backed rollout.
 
 ## Survey findings
 
@@ -37,7 +37,7 @@ The highest-value honest step in this lane is therefore a very small probe snaps
 - the lane now also lands one bounded queue-recovery summary follow-up: the lab can freeze the last in-memory queue topology and recovery posture, refuse fresh probe snapshots while recovery is in flight, and clear stale planning state after restore while preserving the remembered queue-pair count, total queue count, control-queue placement, RSS summary, and reset or renegotiation intent.
 - the lane now also lands one bounded receive-path follow-up: the probe snapshot records whether probe should expect small buffers, mergeable receive buffers, or big-packet refill pressure, whether `any_header_sg` keeps header and data combined or forces a separate header scatterlist entry, how much headroom must be preserved for that path, and whether an XDP request stays ready or blocked by split-header or big-packet constraints.
 - the lane now also lands one bounded mergeable-refill follow-up: once a probe snapshot exists, the lab can turn queue-entry count plus negotiated `hdr_len`, MTU, and headroom state into packet budget bytes and a minimum buffer length summary without claiming live page-pool, DMA refill, or NAPI execution.
-- the lane now also lands one bounded syntax-lab compile-smoke follow-up: `zigux/tests/phase12_virtio_net_syntax_lab.zig` keeps the exported probe-lab declarations, queue-resume enums, header-shape enums, and refill-summary type reachable through the real build graph even though the file is intentionally not a standalone `zig test` contract outside the injected `virtio_net` imports.
+- the lane now also lands one bounded syntax-lab compile-smoke follow-up: `zigux/tests/phase12_virtio_net_syntax_lab.zig` keeps the exported probe-lab descriptor, request, snapshot, queue-recovery, queue-resume, and refill review types plus the bounded enum surface reachable through the real build graph even though the file is intentionally not a standalone `zig test` contract outside the injected `virtio_net` imports.
 
 ## Recorded gaps
 
@@ -99,4 +99,4 @@ Latest verification snapshot:
 - lane key refreshed to `P12-L04` while keeping the same bounded virtio_net survey-packet scope
 - the published `surveyed_commit` remains the last packet-local verification head `f5a4d6990f701937b2a3bb9ae723bb6d0f27ba21`; this note now keeps that archived evidence explicit instead of calling it the current `master` tip
 - this lane now treats the focused `zig test zigux/tests/phase12_virtio_net_survey.zig` replay as the first rollback and drift check before broader shared Phase 12 validation
-- the syntax lab is intentionally a build-graph-only compile-smoke proof through `phase12-virtio-net-syntax-lab-tests`, not a standalone `zig test` contract outside the injected `virtio_net` imports
+- the syntax lab is intentionally a build-graph-only compile-smoke proof through `phase12-virtio-net-syntax-lab-tests`, not a standalone `zig test` contract outside the injected `virtio_net` imports, and it now keeps the descriptor, request, snapshot, queue-recovery, queue-resume, and refill review types reachable alongside the bounded enum surface
