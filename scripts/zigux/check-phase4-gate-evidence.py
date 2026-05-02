@@ -52,6 +52,13 @@ REQUIRED_RUNTIME_ATOMIC64_REVERSIBLE_DELIVERY_MARKERS = [
     "the existing Phase 9 runtime atomic64 starter remains the forward path",
 ]
 
+REQUIRED_PERF_BASELINE_PENDING_THRESHOLD_PLAN_MARKERS = [
+    "pending threshold-plan record per shipped rollback gate",
+    "`make -C zigux phase4-runtime-atomic64-diff`",
+    "`make -C zigux phase4-bitmap-diff`",
+    "still-unapproved benchmark-command and acceptable-limit placeholders",
+]
+
 EXACT_VALIDATOR_STATUS_LINES = [
     "PHASE4_VALIDATOR_SELF_TEST=pass",
     "PHASE4_VALIDATION=pass",
@@ -154,6 +161,11 @@ def validate_root(root: Path) -> list[str]:
             missing.append(
                 f"phase4_gate_evidence:runtime_atomic64_reversible_delivery:{marker}"
             )
+    for marker in REQUIRED_PERF_BASELINE_PENDING_THRESHOLD_PLAN_MARKERS:
+        if marker not in gate_evidence:
+            missing.append(
+                f"phase4_gate_evidence:perf_baseline_pending_threshold_plan:{marker}"
+            )
     for line in EXACT_VALIDATOR_STATUS_LINES:
         if f"`{line}`" not in gate_evidence:
             missing.append(f"phase4_gate_evidence:{line}")
@@ -223,6 +235,7 @@ def write_fixture_tree(root: Path) -> None:
         f"- synthetic fixture keeps shared surveyed snapshot `{SHARED_SURVEYED_COMMIT}` explicit through `phase4_runtime_atomic64_diff_survey.zig`, `phase4_test_fsmount_survey.zig`, and `phase4_perf_baseline_survey.zig`.",
         "- synthetic fixture keeps `Self-test Phase 4 validator` plus `python3 scripts/zigux/validate-phase4.py --self-test` explicit beside `Validate Phase 4 diff gates` and `Run Phase 4 diff tests`.",
         "- synthetic fixture keeps the runtime atomic64 reversible-delivery packet explicit: `lib/atomic64_test.c` stays the source of truth, removing `atomic64_diff.zig` from the shared `phase4_build.zig` entrypoint is the documented rollback move, `runtime_atomic64_diff.zig` remains the single replay body, and the existing Phase 9 runtime atomic64 starter remains the forward path.",
+        "- synthetic fixture keeps one pending threshold-plan record per shipped rollback gate explicit, pinning `make -C zigux phase4-runtime-atomic64-diff` and `make -C zigux phase4-bitmap-diff` beside the still-unapproved benchmark-command and acceptable-limit placeholders.",
         "",
         "## Current Conclusion",
         "",
@@ -411,6 +424,24 @@ def run_self_test() -> int:
         assert any(
             marker.startswith(
                 "phase4_gate_evidence:runtime_atomic64_reversible_delivery:"
+            )
+            for marker in missing
+        ), missing
+
+        write_fixture_tree(root)
+        gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
+        gate_evidence.write_text(
+            gate_evidence.read_text(encoding="utf-8").replace(
+                "`make -C zigux phase4-bitmap-diff`",
+                "`make -C zigux phase4-bitmap-diff-missing`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert any(
+            marker.startswith(
+                "phase4_gate_evidence:perf_baseline_pending_threshold_plan:"
             )
             for marker in missing
         ), missing
