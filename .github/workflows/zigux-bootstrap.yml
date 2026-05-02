@@ -73,6 +73,12 @@ jobs:
       - name: Validate Phase 1 helper files
         run: python3 scripts/zigux/validate-phase1.py
 
+      - name: Self-test Phase 1 find_bit validator anchor checker
+        run: python3 scripts/zigux/check-phase1-find-bit-validator-anchors.py --self-test
+
+      - name: Check Phase 1 find_bit validator anchor coverage
+        run: python3 scripts/zigux/check-phase1-find-bit-validator-anchors.py
+
       - name: Validate Phase 1 closure
         run: python3 scripts/zigux/validate-phase1-closure.py
 
