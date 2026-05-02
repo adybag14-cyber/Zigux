@@ -6,8 +6,8 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 
 - `PHASE5_STATUS=active`
 - `PHASE5_SLICE=kobject-reference-sample-starter`
-- `PHASE5_LANE_KEY=P5-L12`
-- `PHASE5_SURVEYED_COMMIT=bc64354437727e63caed13a39203148016399d07`
+- `PHASE5_LANE_KEY=P5-L10`
+- `PHASE5_SURVEYED_COMMIT=a15760c3e46103fd41ae0da852b61f612e9116c6`
 - scope: roadmap-vs-repo sample delivery, approved ownership-and-lifetime guidance, and exact bounded checks for the landed `samples/zigux/` kobject-style replay
 - product boundary:
   - `Documentation/zigux/phase5-kobject-sample-survey.md`
@@ -26,7 +26,7 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 The roadmap's Phase 5 target is "Samples and Reference Patterns" and explicitly names `samples/kobject/kobject-example.c` as one of the Linux anchors that should make approved Zigux idioms reviewable and repeatable.
 
 Fresh repo inspection now shows that current `master` carries all four roadmap-approved bounded Phase 5 reference samples under `samples/zigux/`, including the landed `kobject_example` slice. The kobject-specific job is no longer missing sample delivery; it is to keep this ownership-and-lifetime idiom, its exact checks, and its non-goals honest now that the broader Phase 5 anchor set is complete.
-The shared sample-root catalog in `samples/zigux/README.md`, the shared tests-root guide in `zigux/tests/README.md`, plus the shared prompts in `Documentation/zigux/review-checklist.md` are part of that contributor-facing boundary now, because they are the shortest places to keep the landed kobject idiom visibly separate from the later runtime starter families while pointing reviewers back to the direct `zig test samples/zigux/kobject_example.zig` replay, the paired `zig test zigux/tests/phase5_kobject_example_survey.zig` replay, and the exact shipped review packet.
+The shared sample-root catalog in `samples/zigux/README.md` plus the shared prompts in `Documentation/zigux/review-checklist.md`, together with the shared tests-root guide in `zigux/tests/README.md`, are part of that contributor-facing boundary now, because they are the shortest places to keep the landed kobject idiom visibly separate from the later runtime starter families while pointing reviewers back to the direct `zig test samples/zigux/kobject_example.zig` replay, the paired `zig test zigux/tests/phase5_kobject_example_survey.zig` replay, and the exact shipped review packet.
 
 ## Survey findings
 
@@ -68,19 +68,24 @@ The exact checks currently recorded in `zigux/tests/phase5_kobject_example_manif
 
 ## Latest verification snapshot
 
-Current sample behavior was re-verified on 2026-05-02 by replaying the live `master` sample body fetched through GitHub-app reads with the attached Zig toolchain.
+Current sample behavior was re-verified against `master` commit `a15760c3e46103fd41ae0da852b61f612e9116c6` on 2026-05-02 with the attached Zig toolchain.
 
 The exact verification commands and observed results for this narrow verification pass were:
 
-- `zig fmt --check samples/zigux/kobject_example.zig`
-  - observed result: formatting already matched the checked-in file
+- `zig fmt --check samples/zigux/kobject_example.zig zigux/tests/phase5_kobject_example_survey.zig`
+  - observed result: formatting already matched the checked-in files
 - `zig test samples/zigux/kobject_example.zig`
   - observed result: `1/4 kobject_example.test.kobject sample replay keeps the anchor reviewable and non-runtime...OK`
   - observed result: `2/4 kobject_example.test.kobject sample keeps shared dispatch and parse failures explicit...OK`
   - observed result: `3/4 kobject_example.test.kobject sample keeps the pre-registration ownership boundary explicit...OK`
   - observed result: `4/4 kobject_example.test.kobject sample teardown keeps ownership boundaries explicit...OK`
   - observed result: `All 4 tests passed.`
-The paired `zig test zigux/tests/phase5_kobject_example_survey.zig` replay still records `All 2 tests passed.` in the published review packet, and the shared `zigux/tests/phase5_build.zig` entrypoint remains the umbrella review gate recorded in the manifest and contributor prompts, but this bounded verification pass did not rerun the survey gate or the whole Phase 5 sample bundle.
+- `zig test zigux/tests/phase5_kobject_example_survey.zig`
+  - observed result: `1/2 phase5_kobject_example_survey.test.phase 5 kobject manifest records the exact bounded checks...OK`
+  - observed result: `2/2 phase5_kobject_example_survey.test.phase 5 kobject contributor docs stay aligned with the shipped review surface...OK`
+  - observed result: `All 2 tests passed.`
+
+The shared `zigux/tests/phase5_build.zig` entrypoint remains the umbrella review gate recorded in the manifest and contributor prompts, and the current published Phase 5 bundle snapshot for that same shared lane remains `Build Summary: 17/17 steps succeeded; 28/28 tests passed`, but this bounded verification pass did not rerun the whole Phase 5 sample bundle.
 
 Those live runs confirmed that the shipped kobject sample still matches the exact bounded checks above: the in-memory replay keeps the Linux `foo`/`baz`/`bar` attribute order and shared `0664` mode pattern explicit, makes the single `register_runs` ownership claim visible before leaving the sample registered with attributes accessible, keeps the initialized-but-not-registered stage at an active attribute count of `0` while rejecting show or store access, reports `abandoned_before_registration` for the initialized-only `exit()` path, keeps the shared sample-root catalog and review-checklist prompts aligned with the manifest-backed packet, and clears registered teardown state while rejecting later `init()`, `registerAttributes()`, `showValue()`, and `storeValue()` calls.
 
@@ -102,7 +107,7 @@ When a contributor updates `samples/zigux/kobject_example.zig` or its directly c
 The roadmap delivery gap is already closed. The more precise ongoing review job is:
 
 - the repo now has a reviewable Phase 5 `kobject_example` sample plus manifest-backed checks for registration, a single replay-side ownership claim, attribute order, shared `0664` attribute mode, initialized-only abandonment, dispatch, parse failures, and teardown
-- this approved ownership-and-lifetime idiom is now pinned to `PHASE5_SURVEYED_COMMIT=bc64354437727e63caed13a39203148016399d07` so the survey note, manifest-backed checks, shared sample-root catalog, shared tests-root guide, shared review checklist, and contributor review path all point at the same inspected `master` head
+- this approved ownership-and-lifetime idiom is now pinned to `PHASE5_SURVEYED_COMMIT=a15760c3e46103fd41ae0da852b61f612e9116c6` so the survey note, manifest-backed checks, shared sample-root catalog, shared tests-root guide, shared review checklist, and contributor review path all point at the same inspected `master` head
 - the full four-anchor Phase 5 reference-sample set is already landed on current `master`, so this note should describe the kobject slice as one approved ownership-and-lifetime idiom inside that completed anchor set rather than as a placeholder for a still-missing tranche item
 - contributor guidance still needs to keep the in-memory directory, unnamed-group shape, attribute-array order, initialized-only abandonment path, and pre-registration ownership boundary visibly separate from real sysfs or module substrate claims and from the later runtime pilot families
 
@@ -132,4 +137,4 @@ This survey does not yet claim:
 
 ## Next bounded step
 
-Leave this narrow kobject-survey lane parked unless fresh repo inspection shows one more directly coupled wording drift in the landed sample-backed review surface, while keeping this Phase 5 idiom distinct from the later Phase 9 runtime starters and preserving the exact verification packet recorded under `P5-L12`.
+Leave this narrow kobject-survey lane parked unless fresh repo inspection shows one more directly coupled wording drift in the landed sample-backed review surface, while keeping this Phase 5 idiom distinct from the later Phase 9 runtime starters and preserving the exact verification packet recorded under `P5-L10`.
