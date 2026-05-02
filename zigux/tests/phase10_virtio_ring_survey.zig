@@ -15,6 +15,17 @@ const Gap = struct {
     why_now: []const u8,
 };
 
+const RoadmapParityEvidenceEntry = struct {
+    status: []const u8,
+    evidence: []const []const u8,
+};
+
+const RoadmapParityEvidence = struct {
+    virtqueue_wrappers: RoadmapParityEvidenceEntry,
+    lab_only_driver_validation: RoadmapParityEvidenceEntry,
+    dual_implementations_for_risky_areas: RoadmapParityEvidenceEntry,
+};
+
 const Manifest = struct {
     lane_key: []const u8,
     phase: []const u8,
@@ -23,6 +34,7 @@ const Manifest = struct {
     roadmap_destinations: []const []const u8,
     freeze_boundary_status: []const u8,
     risky_transport_posture: []const u8,
+    roadmap_parity_evidence: RoadmapParityEvidence,
     survey_summary: SurveySummary,
     gaps: []const Gap,
 };
@@ -98,6 +110,15 @@ test "phase10 virtio ring survey manifest records the live queue-discipline pack
     try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", manifest.anchor);
     try std.testing.expectEqualStrings("aligned", manifest.freeze_boundary_status);
     try std.testing.expectEqualStrings("blocked_on_risky_transport", manifest.risky_transport_posture);
+    try std.testing.expectEqualStrings("starter_landed", manifest.roadmap_parity_evidence.virtqueue_wrappers.status);
+    try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_parity_evidence.virtqueue_wrappers.evidence.len);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.zig", manifest.roadmap_parity_evidence.virtqueue_wrappers.evidence[0]);
+    try std.testing.expectEqualStrings("starter_landed", manifest.roadmap_parity_evidence.lab_only_driver_validation.status);
+    try std.testing.expectEqual(@as(usize, 5), manifest.roadmap_parity_evidence.lab_only_driver_validation.evidence.len);
+    try std.testing.expectEqualStrings("zigux/tests/phase10_build.zig", manifest.roadmap_parity_evidence.lab_only_driver_validation.evidence[0]);
+    try std.testing.expectEqualStrings("blocked_on_risky_transport", manifest.roadmap_parity_evidence.dual_implementations_for_risky_areas.status);
+    try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_parity_evidence.dual_implementations_for_risky_areas.evidence.len);
+    try std.testing.expectEqualStrings("phase10-mmio-lifecycle-and-irq-paths", manifest.roadmap_parity_evidence.dual_implementations_for_risky_areas.evidence[0]);
     try std.testing.expect(manifest.survey_summary.virtio_ring_c_lines >= 3000);
     try std.testing.expectEqual(@as(usize, 4), manifest.survey_summary.preexisting_phase10_test_files);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_ring_zig_present);
@@ -158,6 +179,11 @@ test "phase10 virtio ring survey manifest records the live queue-discipline pack
     }
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, manifest.surveyed_commit) != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_RING_ROADMAP_SCOREBOARD_ROWS=3") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_RING_ROADMAP_VIRTQUEUE_WRAPPERS=starter_landed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_RING_ROADMAP_LAB_ONLY_DRIVER_VALIDATION=starter_landed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_RING_ROADMAP_DUAL_IMPLEMENTATIONS_FOR_RISKY_AREAS=blocked_on_risky_transport") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared closure evidence still owns the separate MMIO wrappers row") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-broken-queue-recovery-helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-mmio-config-write-helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-mmio-interrupt-ack-helper") != null);
