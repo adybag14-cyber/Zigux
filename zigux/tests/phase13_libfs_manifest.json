@@ -45,7 +45,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_libfs.zig",
-      "why_now": "Dedicated starter tests keep the current wrapper honest around split fsid packing, default statfs values, negative-dentry discard intent, casefold passthrough, buffer-copy accounting, seek-policy bounds, directory-close release bookkeeping, and directory-emit handoff bookkeeping."
+      "why_now": "Dedicated starter tests keep the current wrapper honest around split fsid packing, default statfs values, negative-dentry discard intent, casefold passthrough, buffer-copy accounting, seek-policy bounds, directory-close release bookkeeping, directory-open private-data handoff, and directory-emit handoff bookkeeping."
     },
     {
       "id": "phase13-libfs-slice-note",
@@ -116,6 +116,13 @@
       "kind": "filesystem_helper_wrapper",
       "zigux_destination": "fs/libfs.zig",
       "why_now": "The libfs helper lab now models the tiny dcache_dir_close() release bookkeeping around dput(file->private_data) and the zero-error close outcome without claiming live refcount mutation, inode ownership, or directory teardown."
+    },
+    {
+      "id": "phase13-libfs-simple-open-private-data-planning",
+      "status": "starter_landed",
+      "kind": "filesystem_helper_wrapper",
+      "zigux_destination": "fs/libfs.zig",
+      "why_now": "The libfs helper lab now models the tiny simple_open() private-data handoff in pure planning form so Zigux can keep the inode->i_private to file->private_data borrow explicit without claiming live inode mutation, open-time allocation, or broader file lifecycle ownership."
     },
     {
       "id": "phase13-libfs-dcache-cursor-helpers",
