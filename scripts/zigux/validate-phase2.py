@@ -12,6 +12,9 @@ CLOSURE_VALIDATOR = ROOT / "scripts" / "zigux" / "validate-phase2-closure.py"
 GENKSYMS_BRIDGE_ALIGNMENT_CHECKER = (
     ROOT / "scripts" / "zigux" / "check-phase2-genksyms-bridge-selftest-alignment.py"
 )
+PHASE2_CROSS_ALIGNMENT_CHECKER = (
+    ROOT / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py"
+)
 PHASE2_CROSS_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross.py"
 CHECK_KCONFIG_BRIDGE = ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py"
 PHASE2_TOOL_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json"
@@ -38,6 +41,7 @@ REQUIRED_PHASE2_FILES = [
     GENKSYMS_BRIDGE_ALIGNMENT_CHECKER,
     ROOT / "scripts" / "zigux" / "check-genksyms-crc-diff.py",
     ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py",
+    PHASE2_CROSS_ALIGNMENT_CHECKER,
     PHASE2_CROSS_CHECKER,
     ROOT / "scripts" / "zigux" / "check-mk-elfconfig-diff.py",
     ROOT / "scripts" / "zigux" / "fixdep.zig",
@@ -54,6 +58,10 @@ REQUIRED_PHASE2_FILES = [
 ]
 PHASE2_GENKSYMS_BRIDGE_ALIGNMENT_REQUIRED_SOURCE_MARKERS = [
     "PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=9",
+]
+PHASE2_CROSS_ALIGNMENT_REQUIRED_SOURCE_MARKERS = [
+    "print('PHASE2_CROSS_ALIGNMENT_SELF_TEST=pass')",
+    "print('PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=8')",
 ]
 PHASE2_CROSS_REQUIRED_SOURCE_MARKERS = [
     "phase2-cross:tool_manifest_path_missing:",
@@ -158,6 +166,13 @@ def main() -> int:
     )
     issues.extend(
         validate_source_markers(
+            PHASE2_CROSS_ALIGNMENT_CHECKER,
+            label="phase2_cross_alignment_checker",
+            required_markers=PHASE2_CROSS_ALIGNMENT_REQUIRED_SOURCE_MARKERS,
+        )
+    )
+    issues.extend(
+        validate_source_markers(
             PHASE2_CROSS_CHECKER,
             label="phase2_cross_checker",
             required_markers=PHASE2_CROSS_REQUIRED_SOURCE_MARKERS,
@@ -181,6 +196,14 @@ def main() -> int:
 
     result = subprocess.run(
         [sys.executable, str(GENKSYMS_BRIDGE_ALIGNMENT_CHECKER)],
+        cwd=ROOT,
+    )
+    if result.returncode != 0:
+        print("PHASE2_VALIDATION=fail")
+        return result.returncode
+
+    result = subprocess.run(
+        [sys.executable, str(PHASE2_CROSS_ALIGNMENT_CHECKER)],
         cwd=ROOT,
     )
     if result.returncode != 0:
