@@ -9,6 +9,9 @@
     "samples/zigux/test_fsmount.zig"
   ],
   "current_replay": "make M=samples/vfs",
+  "isolated_survey_replay": "make -C zigux phase4-test-fsmount-survey",
+  "shared_build_replay": "phase4-test-fsmount-survey-tests",
+  "threshold_posture": "c_anchor_only_until_test_fsmount_starter_lands",
   "survey_summary": {
     "test_fsmount_c_lines": 129,
     "vfs_makefile_replay_present": true,
