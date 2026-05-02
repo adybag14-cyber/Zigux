@@ -102,6 +102,14 @@ test "phase11 dw_wdt survey manifest and validation matrix record the landed lif
     );
     defer std.testing.allocator.free(slice_doc);
 
+    const remove_idle_split_test = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase11_dw_wdt_remove_idle_split.zig",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(remove_idle_split_test);
+
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
 
@@ -137,16 +145,19 @@ test "phase11 dw_wdt survey manifest and validation matrix record the landed lif
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "PHASE11_DW_WDT_STATUS=validation_matrix_landed") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "## Shared Replay Surface") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "phase11-dw-wdt-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "phase11-dw-wdt-remove-idle-split-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "phase11-dw-wdt-survey-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "fixed TOP timeout evidence") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "IRQ pretimeout bookkeeping") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "imported running-state handoff evidence") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "non-stoppable stop failure-mode boundary") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "remove-time teardown handoff boundary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "idle remove-time pending-interrupt split") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "summarizeTeardownLifecycle()") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "summarizeRemoveHandoff()") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "zig build test --build-file zigux/tests/phase11_build.zig --summary all") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "zig test --dep dw_wdt -Mroot=zigux/tests/phase11_dw_wdt.zig -Mdw_wdt=drivers/watchdog/dw_wdt.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "zig test --dep dw_wdt -Mroot=zigux/tests/phase11_dw_wdt_remove_idle_split.zig -Mdw_wdt=drivers/watchdog/dw_wdt.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "zig test zigux/tests/phase11_dw_wdt_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "python3 scripts/zigux/validate-phase11.py") != null);
 
@@ -154,6 +165,8 @@ test "phase11 dw_wdt survey manifest and validation matrix record the landed lif
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "bounded DesignWare starter for fixed TOP timeout windows") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "a tiny platform-resource preflight plus live resource-order summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "Documentation/zigux/phase11-dw-wdt-validation-matrix.md` now centralizes") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "dedicated idle remove-time pending-interrupt split replay") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "zigux/tests/phase11_dw_wdt_remove_idle_split.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "latest carried-forward shared replay status remains `PHASE11_VALIDATION=pass`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "This lane still does not claim platform-driver registration") != null);
 
@@ -161,7 +174,13 @@ test "phase11 dw_wdt survey manifest and validation matrix record the landed lif
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "platform-resource preflight plus live resource-order summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "summarizeTeardownLifecycle()") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "summarizeRemoveHandoff()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_doc, "keeps idle remove-time pending interrupts distinct when remove happens before the watchdog is running") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "This slice does not claim platform-driver registration") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, remove_idle_split_test, 'test "phase11 dw_wdt keeps idle remove-time pending interrupts distinct when reset control is available or absent" {') != null);
+    try std.testing.expect(std.mem.indexOf(u8, remove_idle_split_test, "remove_preserves_pending_interrupt_without_reset") != null);
+    try std.testing.expect(std.mem.indexOf(u8, remove_idle_split_test, "remove_clears_interrupt_status") != null);
+    try std.testing.expect(std.mem.indexOf(u8, remove_idle_split_test, "remove_asserts_reset_control") != null);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
