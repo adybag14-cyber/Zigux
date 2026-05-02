@@ -34,7 +34,19 @@ const Manifest = struct {
     gaps: []const Gap,
 };
 
+const SharedManifest = struct {
+    lane_key: []const u8,
+    gaps: []const Gap,
+};
+
 fn findGap(manifest: Manifest, id: []const u8) ?Gap {
+    for (manifest.gaps) |gap| {
+        if (std.mem.eql(u8, gap.id, id)) return gap;
+    }
+    return null;
+}
+
+fn findSharedGap(manifest: SharedManifest, id: []const u8) ?Gap {
     for (manifest.gaps) |gap| {
         if (std.mem.eql(u8, gap.id, id)) return gap;
     }
@@ -300,7 +312,7 @@ test "phase11 dw_wdt survey manifest and validation matrix record the landed lif
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-dw-wdt-platform-and-pm")) {
-            saw_platform_blocker = true;
+            sawPlatform_blocker = true;
             try std.testing.expectEqualStrings("zigux/tests/phase11_dw_wdt.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("blocked_on_driver_scaffold", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "Platform-driver registration") != null);
@@ -330,4 +342,89 @@ test "phase11 dw_wdt survey manifest and validation matrix record the landed lif
     try std.testing.expect(saw_registration_gap);
     try std.testing.expect(saw_resource_gap);
     try std.testing.expect(saw_platform_blocker);
+}
+
+test "phase11 dw_wdt survey keeps the shared watchdog header boundary aligned" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const shared_manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase11_uapi_header_parity_manifest.json",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(shared_manifest_json);
+
+    const shared_survey_doc = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase11-uapi-header-parity-survey.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(shared_survey_doc);
+
+    const dw_survey_doc = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase11-dw-wdt-survey.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(dw_survey_doc);
+
+    const watchdog_uapi_header = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "include/uapi/linux/watchdog.h",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(watchdog_uapi_header);
+
+    const watchdog_core_header = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "include/linux/watchdog.h",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(watchdog_core_header);
+
+    const parsed_shared = try std.json.parseFromSlice(
+        SharedManifest,
+        std.testing.allocator,
+        shared_manifest_json,
+        .{ .ignore_unknown_fields = true },
+    );
+    defer parsed_shared.deinit();
+
+    const shared_manifest = parsed_shared.value;
+    const shared_dw_gap = findSharedGap(shared_manifest, "phase11-dw-wdt-watchdog-header-boundary") orelse return error.MissingSharedDwWdtBoundary;
+
+    try std.testing.expectEqualStrings("P11-L17", shared_manifest.lane_key);
+    try std.testing.expectEqualStrings("starter_landed", shared_dw_gap.status);
+    try std.testing.expectEqualStrings("Documentation/zigux/phase11-dw-wdt-survey.md", shared_dw_gap.zigux_destination);
+
+    for ([_][]const u8{
+        "include/uapi/linux/watchdog.h",
+        "include/linux/watchdog.h",
+        "struct watchdog_info",
+        "WDIOC_*",
+        "WDIOF_*",
+        "WDIOS_*",
+        "watchdog_device",
+        "watchdog_ops",
+    }) |needle| {
+        try std.testing.expect(std.mem.indexOf(u8, shared_dw_gap.why_now, needle) != null);
+        try std.testing.expect(std.mem.indexOf(u8, shared_survey_doc, needle) != null);
+        try std.testing.expect(std.mem.indexOf(u8, dw_survey_doc, needle) != null);
+    }
+
+    try std.testing.expect(std.mem.indexOf(u8, shared_survey_doc, "dw_wdt survey packet now records") != null);
+    try std.testing.expect(std.mem.indexOf(u8, shared_survey_doc, "without claiming full watchdog-core ownership") != null);
+    try std.testing.expect(std.mem.indexOf(u8, dw_survey_doc, "driver-side bookkeeping instead of claiming public-header or watchdog-core parity") != null);
+    try std.testing.expect(std.mem.indexOf(u8, watchdog_uapi_header, "struct watchdog_info") != null);
+    try std.testing.expect(std.mem.indexOf(u8, watchdog_uapi_header, "WDIOC_GETSUPPORT") != null);
+    try std.testing.expect(std.mem.indexOf(u8, watchdog_uapi_header, "WDIOF_KEEPALIVEPING") != null);
+    try std.testing.expect(std.mem.indexOf(u8, watchdog_uapi_header, "WDIOS_DISABLECARD") != null);
+    try std.testing.expect(std.mem.indexOf(u8, watchdog_core_header, "struct watchdog_ops") != null);
+    try std.testing.expect(std.mem.indexOf(u8, watchdog_core_header, "struct watchdog_device") != null);
 }
