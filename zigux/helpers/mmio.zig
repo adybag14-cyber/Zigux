@@ -1,5 +1,6 @@
 const std = @import("std");
 const abi = @import("abi_bindings");
+const interop_policy = @import("interop_policy");
 const narrow = @import("narrow_unsafe");
 
 pub fn range(base_addr: usize, length: u32, stride: u32) abi.MmioRange {
@@ -8,6 +9,32 @@ pub fn range(base_addr: usize, length: u32, stride: u32) abi.MmioRange {
         .length = length,
         .stride = stride,
     };
+}
+
+fn scopeFromPolicy(policy: interop_policy.DecodedInteropPolicy) narrow.ScopeError!narrow.UnsafeScopeTag {
+    if (!policy.permitsVolatileMmio()) return error.UnsafeScopeDenied;
+    return policy.unsafe_scope;
+}
+
+pub fn readScopedWithPolicy(
+    comptime T: type,
+    policy: interop_policy.DecodedInteropPolicy,
+    base_addr: usize,
+    offset: usize,
+) narrow.ScopeError!T {
+    const ptr = try narrow.scopedPointerAt(T, try scopeFromPolicy(policy), base_addr, offset);
+    return ptr.*;
+}
+
+pub fn writeScopedWithPolicy(
+    comptime T: type,
+    policy: interop_policy.DecodedInteropPolicy,
+    base_addr: usize,
+    offset: usize,
+    value: T,
+) narrow.ScopeError!void {
+    const ptr = try narrow.scopedPointerAt(T, try scopeFromPolicy(policy), base_addr, offset);
+    ptr.* = value;
 }
 
 pub fn read8Scoped(scope: narrow.UnsafeScopeTag, base_addr: usize, offset: usize) narrow.ScopeError!u8 {
@@ -70,6 +97,58 @@ pub fn write64Scoped(
     ptr.* = value;
 }
 
+pub fn read8Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u8 {
+    return readScopedWithPolicy(u8, policy, base_addr, offset);
+}
+
+pub fn write8Policy(
+    policy: interop_policy.DecodedInteropPolicy,
+    base_addr: usize,
+    offset: usize,
+    value: u8,
+) narrow.ScopeError!void {
+    try writeScopedWithPolicy(u8, policy, base_addr, offset, value);
+}
+
+pub fn read16Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u16 {
+    return readScopedWithPolicy(u16, policy, base_addr, offset);
+}
+
+pub fn write16Policy(
+    policy: interop_policy.DecodedInteropPolicy,
+    base_addr: usize,
+    offset: usize,
+    value: u16,
+) narrow.ScopeError!void {
+    try writeScopedWithPolicy(u16, policy, base_addr, offset, value);
+}
+
+pub fn read32Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u32 {
+    return readScopedWithPolicy(u32, policy, base_addr, offset);
+}
+
+pub fn write32Policy(
+    policy: interop_policy.DecodedInteropPolicy,
+    base_addr: usize,
+    offset: usize,
+    value: u32,
+) narrow.ScopeError!void {
+    try writeScopedWithPolicy(u32, policy, base_addr, offset, value);
+}
+
+pub fn read64Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u64 {
+    return readScopedWithPolicy(u64, policy, base_addr, offset);
+}
+
+pub fn write64Policy(
+    policy: interop_policy.DecodedInteropPolicy,
+    base_addr: usize,
+    offset: usize,
+    value: u64,
+) narrow.ScopeError!void {
+    try writeScopedWithPolicy(u64, policy, base_addr, offset, value);
+}
+
 pub fn read8(base_addr: usize, offset: usize) u8 {
     return read8Scoped(.volatile_mmio, base_addr, offset) catch unreachable;
 }
@@ -124,6 +203,39 @@ test "phase3 mmio wrapper uses bounded volatile access" {
     try std.testing.expectEqual(base32, desc.base_addr);
     try std.testing.expectEqual(@as(u32, 8), desc.length);
     try std.testing.expectEqual(@as(u32, 4), desc.stride);
+}
+
+test "phase3 mmio wrapper consumes decoded interop policy" {
+    var regs32 = [_]u32{ 0, 0 };
+    const base32 = narrow.addressOf(&regs32[0]);
+
+    const mmio_policy = try interop_policy.decode(.{
+        .panic_mode = @intFromEnum(abi.PanicMode.abort),
+        .allocator_mode = @intFromEnum(abi.AllocatorMode.kernel_heap),
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.volatile_mmio),
+        .reserved = 0,
+    });
+    const raw_pointer_policy = try interop_policy.decode(.{
+        .panic_mode = @intFromEnum(abi.PanicMode.warn),
+        .allocator_mode = @intFromEnum(abi.AllocatorMode.arena),
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.raw_pointer_bridge),
+        .reserved = 0,
+    });
+    const none_policy = try interop_policy.decode(.{
+        .panic_mode = @intFromEnum(abi.PanicMode.abort),
+        .allocator_mode = @intFromEnum(abi.AllocatorMode.caller_provided),
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.none),
+        .reserved = 0,
+    });
+
+    try write32Policy(mmio_policy, base32, @sizeOf(u32), 0xaabbccdd);
+    try std.testing.expectEqual(@as(u32, 0xaabbccdd), regs32[1]);
+    try std.testing.expectEqual(@as(u32, 0xaabbccdd), try read32Policy(mmio_policy, base32, @sizeOf(u32)));
+
+    try std.testing.expectError(error.UnsafeScopeDenied, write32Policy(raw_pointer_policy, base32, 0, 1));
+    try std.testing.expectError(error.UnsafeScopeDenied, read32Policy(raw_pointer_policy, base32, 0));
+    try std.testing.expectError(error.UnsafeScopeDenied, write32Policy(none_policy, base32, 0, 1));
+    try std.testing.expectError(error.UnsafeScopeDenied, read32Policy(none_policy, base32, 0));
 }
 
 test "phase3 mmio wrapper keeps declared scope explicit across widths" {
