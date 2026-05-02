@@ -51,6 +51,16 @@ pub const LengthCase = struct {
     expected_length: usize,
 };
 
+pub const ExactCapacityCase = struct {
+    name: []const u8,
+    len: usize,
+    rowsize: usize,
+    groupsize: usize,
+    ascii: bool,
+    expected_length: usize,
+    expected_text: ExpectedText,
+};
+
 pub const PerfCase = struct {
     label: []const u8,
     len: usize,
@@ -406,6 +416,57 @@ pub const length_cases = [_]LengthCase{
         .groupsize = 4,
         .ascii = false,
         .expected_length = 26,
+    },
+};
+
+pub const exact_capacity_cases = [_]ExactCapacityCase{
+    .{
+        .name = "exact-capacity plain rowsize-16 group-4",
+        .len = 16,
+        .rowsize = 16,
+        .groupsize = 4,
+        .ascii = false,
+        .expected_length = 35,
+        .expected_text = .{
+            .little = "7bdb32be b293180a 24c4ba70 9b34837d",
+            .big = "be32db7b 0a1893b2 70bac424 7d83349b",
+        },
+    },
+    .{
+        .name = "exact-capacity ascii rowsize-16 group-4",
+        .len = 16,
+        .rowsize = 16,
+        .groupsize = 4,
+        .ascii = true,
+        .expected_length = 53,
+        .expected_text = .{
+            .little = "7bdb32be b293180a 24c4ba70 9b34837d  .2.{....p..$}.4.",
+            .big = "be32db7b 0a1893b2 70bac424 7d83349b  .2.{....p..$}.4.",
+        },
+    },
+    .{
+        .name = "exact-capacity ascii rowsize-32 group-2",
+        .len = 32,
+        .rowsize = 32,
+        .groupsize = 2,
+        .ascii = true,
+        .expected_length = 113,
+        .expected_text = .{
+            .little = "32be 7bdb 180a b293 ba70 24c4 837d 9b34 9ca6 ad31 0f9c e9ac d14c 9919 b143 0caf  .2.{....p..$}.4...1.....L...C...",
+            .big = "be32 db7b 0a18 93b2 70ba c424 7d83 349b a69c 31ad 9c0f ace9 4cd1 1999 43b1 af0c  .2.{....p..$}.4...1.....L...C...",
+        },
+    },
+    .{
+        .name = "exact-capacity ascii rowsize-16 group-8",
+        .len = 16,
+        .rowsize = 16,
+        .groupsize = 8,
+        .ascii = true,
+        .expected_length = 51,
+        .expected_text = .{
+            .little = "b293180a7bdb32be 9b34837d24c4ba70  .2.{....p..$}.4.",
+            .big = "be32db7b0a1893b2 70bac4247d83349b  .2.{....p..$}.4.",
+        },
     },
 };
 
