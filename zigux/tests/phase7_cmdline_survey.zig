@@ -205,7 +205,7 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
 
     try expectContains(manifest, "\"lane_key\": \"P7-L05\"");
     try expectContains(manifest, "\"phase\": \"Phase 7\"");
-    try expectContains(manifest, "\"surveyed_commit\": \"bd419951498ce3b8f89fb07d54c163e92b3e8f77\"");
+    try expectContains(manifest, "\"surveyed_commit\": \"0e4b033d832d08252fc4741eef1a8b8911d95b03\"");
     try expectContains(manifest, "\"anchor\": \"lib/cmdline.c\"");
     try expectContains(manifest, "\"roadmap_destinations\": [");
     try expectContains(manifest, "\"lib/cmdline.zig\"");
