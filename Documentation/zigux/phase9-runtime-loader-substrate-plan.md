@@ -7,7 +7,7 @@ This document captures the bounded Phase 9 follow-up after the landed atomic64, 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=shared-runtime-loader-substrate-plan`
 - `PHASE9_LANE_KEY=P6-L01`
-- `PHASE9_SURVEYED_COMMIT=179066fc0b38700d1f1103de528b99cb63bef850`
+- `PHASE9_SURVEYED_COMMIT=a15760c3e46103fd41ae0da852b61f612e9116c6`
 - scope: shared request shape, shared loader-stage vocabulary, allocator-handoff and command-name review surfaces, atomic64 plus bitmap plus kretprobe handoff alignment, and an explicit low-risk path that now lands as `zigux/kernel/runtime_loader.zig` without claiming live runtime execution
 - product boundary:
   - `Documentation/zigux/phase9-runtime-loader-substrate-plan.md`
@@ -29,7 +29,7 @@ All three files currently stop at the same honest blocker: they can prepare a re
 
 That makes the next useful step a shared substrate surface rather than another lane-local wording pass or a premature runtime-module implementation.
 
-The current substrate-plan packet is pinned to `master` commit `179066fc0b38700d1f1103de528b99cb63bef850`.
+The current substrate-plan packet is pinned to `master` commit `a15760c3e46103fd41ae0da852b61f612e9116c6`.
 This keeps the shared loader-stage vocabulary and handoff-alignment note reviewable against the same inspected repo state as the adjacent loader-gap survey packet.
 
 ## Shared facts already visible in the repo
