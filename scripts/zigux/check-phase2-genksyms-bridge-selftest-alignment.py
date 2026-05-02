@@ -207,18 +207,29 @@ VALIDATOR_MARKERS = [
 ]
 MAKEFILE_MARKERS = [
     'phase2-validate:',
+    'phase2-tools:',
 ]
-MAKEFILE_RUN_COUNTS = {
+MAKEFILE_VALIDATE_RUN_COUNTS = {
     'scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test': 1,
     'scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py': 1,
     'scripts/zigux/validate-phase2.py': 1,
     'scripts/zigux/validate-phase2-closure.py': 1,
 }
-MAKEFILE_ORDERED_COMMANDS = [
+MAKEFILE_VALIDATE_ORDERED_COMMANDS = [
     'scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test',
     'scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py',
     'scripts/zigux/validate-phase2.py',
     'scripts/zigux/validate-phase2-closure.py',
+]
+MAKEFILE_TOOL_RUN_COUNTS = {
+    'scripts/zigux/check-genksyms-bridge.py --self-test': 1,
+    'scripts/zigux/check-genksyms-bridge.py': 1,
+    '$(ZIG) test scripts/zigux/genksyms.zig': 1,
+}
+MAKEFILE_TOOL_ORDERED_COMMANDS = [
+    'scripts/zigux/check-genksyms-bridge.py --self-test',
+    'scripts/zigux/check-genksyms-bridge.py',
+    '$(ZIG) test scripts/zigux/genksyms.zig',
 ]
 WORKFLOW_RUN_COUNTS = {
     'python3 scripts/zigux/check-genksyms-bridge.py --self-test': 1,
@@ -360,15 +371,30 @@ def validate_workflow(workflow_text: str) -> list[str]:
 def validate_makefile(makefile_text: str) -> list[str]:
     issues: list[str] = []
     stripped_lines = [line.strip() for line in makefile_text.splitlines()]
-    for command, expected_count in MAKEFILE_RUN_COUNTS.items():
+    for command, expected_count in MAKEFILE_VALIDATE_RUN_COUNTS.items():
         count = sum(1 for line in stripped_lines if line.endswith(command))
         if count != expected_count:
-            issues.append(f'makefile_run:{command}:count={count}:expected={expected_count}')
+            issues.append(f'makefile_validate_run:{command}:count={count}:expected={expected_count}')
     issues.extend(
         validate_ordered_commands(
             stripped_lines,
-            MAKEFILE_ORDERED_COMMANDS,
-            'makefile',
+            MAKEFILE_VALIDATE_ORDERED_COMMANDS,
+            'makefile_validate',
+            find_position=lambda lines, command: next(
+                (index for index, line in enumerate(lines) if line.endswith(command)),
+                None,
+            ),
+        )
+    )
+    for command, expected_count in MAKEFILE_TOOL_RUN_COUNTS.items():
+        count = sum(1 for line in stripped_lines if line.endswith(command))
+        if count != expected_count:
+            issues.append(f'makefile_tool_run:{command}:count={count}:expected={expected_count}')
+    issues.extend(
+        validate_ordered_commands(
+            stripped_lines,
+            MAKEFILE_TOOL_ORDERED_COMMANDS,
+            'makefile_tool',
             find_position=lambda lines, command: next(
                 (index for index, line in enumerate(lines) if line.endswith(command)),
                 None,
@@ -453,11 +479,15 @@ def clone_fixture_root(destination_root: Path) -> None:
     ]
     (destination_root / REQUIRED_FILES['workflow']).write_text('\n'.join(workflow_lines) + '\n', encoding='utf-8')
     makefile_lines = [
-        *MAKEFILE_MARKERS,
+        'phase2-validate:',
         'scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test',
         'scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py',
         'scripts/zigux/validate-phase2.py',
         'scripts/zigux/validate-phase2-closure.py',
+        'phase2-tools:',
+        'scripts/zigux/check-genksyms-bridge.py --self-test',
+        'scripts/zigux/check-genksyms-bridge.py',
+        '$(ZIG) test scripts/zigux/genksyms.zig',
     ]
     (destination_root / REQUIRED_FILES['makefile']).write_text('\n'.join(makefile_lines) + '\n', encoding='utf-8')
     (destination_root / REQUIRED_FILES['cases']).write_text(
@@ -596,7 +626,7 @@ def run_self_test() -> int:
         expect_issue(
             'makefile_self_test',
             tmp_root,
-            'makefile_run:scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test:count=0:expected=1',
+            'makefile_validate_run:scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test:count=0:expected=1',
         )
         makefile_path.write_text(original_makefile, encoding='utf-8')
 
@@ -612,7 +642,7 @@ def run_self_test() -> int:
         expect_issue(
             'makefile_live',
             tmp_root,
-            'makefile_run:scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py:count=0:expected=1',
+            'makefile_validate_run:scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py:count=0:expected=1',
         )
         makefile_path.write_text(original_makefile, encoding='utf-8')
 
@@ -626,7 +656,7 @@ def run_self_test() -> int:
         expect_issue(
             'makefile_alignment_order',
             tmp_root,
-            'makefile_order:scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test:before:scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py',
+            'makefile_validate_order:scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test:before:scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py',
         )
         makefile_path.write_text(original_makefile, encoding='utf-8')
 
@@ -639,7 +669,61 @@ def run_self_test() -> int:
         expect_issue(
             'makefile_validator_order',
             tmp_root,
-            'makefile_order:scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py:before:scripts/zigux/validate-phase2.py',
+            'makefile_validate_order:scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py:before:scripts/zigux/validate-phase2.py',
+        )
+        makefile_path.write_text(original_makefile, encoding='utf-8')
+
+        makefile_path.write_text(
+            original_makefile.replace('scripts/zigux/check-genksyms-bridge.py --self-test\n', '', 1),
+            encoding='utf-8',
+        )
+        expect_issue(
+            'makefile_tool_self_test',
+            tmp_root,
+            'makefile_tool_run:scripts/zigux/check-genksyms-bridge.py --self-test:count=0:expected=1',
+        )
+        makefile_path.write_text(original_makefile, encoding='utf-8')
+
+        makefile_lines = original_makefile.splitlines()
+        makefile_path.write_text(
+            '\n'.join(
+                line
+                for line in makefile_lines
+                if line != 'scripts/zigux/check-genksyms-bridge.py'
+            ) + '\n',
+            encoding='utf-8',
+        )
+        expect_issue(
+            'makefile_tool_live',
+            tmp_root,
+            'makefile_tool_run:scripts/zigux/check-genksyms-bridge.py:count=0:expected=1',
+        )
+        makefile_path.write_text(original_makefile, encoding='utf-8')
+
+        makefile_lines = original_makefile.splitlines()
+        tool_self_test_line = 'scripts/zigux/check-genksyms-bridge.py --self-test'
+        tool_live_line = 'scripts/zigux/check-genksyms-bridge.py'
+        tool_self_test_index = makefile_lines.index(tool_self_test_line)
+        tool_live_index = makefile_lines.index(tool_live_line)
+        makefile_lines[tool_self_test_index], makefile_lines[tool_live_index] = makefile_lines[tool_live_index], makefile_lines[tool_self_test_index]
+        makefile_path.write_text('\n'.join(makefile_lines) + '\n', encoding='utf-8')
+        expect_issue(
+            'makefile_tool_order',
+            tmp_root,
+            'makefile_tool_order:scripts/zigux/check-genksyms-bridge.py --self-test:before:scripts/zigux/check-genksyms-bridge.py',
+        )
+        makefile_path.write_text(original_makefile, encoding='utf-8')
+
+        makefile_lines = original_makefile.splitlines()
+        tool_live_index = makefile_lines.index(tool_live_line)
+        zig_test_line = '$(ZIG) test scripts/zigux/genksyms.zig'
+        zig_test_index = makefile_lines.index(zig_test_line)
+        makefile_lines[tool_live_index], makefile_lines[zig_test_index] = makefile_lines[zig_test_index], makefile_lines[tool_live_index]
+        makefile_path.write_text('\n'.join(makefile_lines) + '\n', encoding='utf-8')
+        expect_issue(
+            'makefile_tool_unit_order',
+            tmp_root,
+            'makefile_tool_order:scripts/zigux/check-genksyms-bridge.py:before:$(ZIG) test scripts/zigux/genksyms.zig',
         )
         makefile_path.write_text(original_makefile, encoding='utf-8')
 
@@ -649,6 +733,10 @@ def run_self_test() -> int:
             'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py',
             'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2.py',
             'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2-closure.py',
+            'phase2-tools:',
+            'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test',
+            'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py',
+            'cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms.zig',
         ]
         makefile_path.write_text('\n'.join(live_prefixed_makefile_lines) + '\n', encoding='utf-8')
         live_prefixed_baseline = run_checker(tmp_root)
@@ -666,7 +754,7 @@ def run_self_test() -> int:
         expect_issue(
             'live_prefixed_makefile_alignment_order',
             tmp_root,
-            'makefile_order:scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test:before:scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py',
+            'makefile_validate_order:scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test:before:scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py',
         )
         clone_fixture_root(tmp_root)
 
@@ -715,7 +803,7 @@ def run_self_test() -> int:
         expect_issue('validator_case_count_marker', tmp_root, f'validator:{VALIDATOR_MARKERS[2]}')
 
     print('PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST=pass')
-    print('PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=19')
+    print('PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=23')
     return 0
 
 
