@@ -386,6 +386,7 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "approved in-memory FIFO idiom inside that completed anchor set") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared sample-root catalog, shared tests-root guide, shared review checklist, and contributor refresh path all point at the same inspected `master` head") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "without reopening the closed Phase 5 sample-delivery gap") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "no `samples/zigux/*string*` or `samples/zigux/*cmdline*` Phase 5 reference sample") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "no `samples/zigux/*cmdline*` Phase 5 boundary explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "exact `checked_focus` order `bounded_fifo_order`, `wraparound_requeue`, `peek_and_skip`, `non_destructive_snapshot`, `preview_truncation`, `reset_and_replay`, and `ownership_and_lifetime`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase7-cmdline-slice.md") != null);
