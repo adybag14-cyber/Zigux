@@ -365,7 +365,7 @@ test "phase 5 trace-events contributor docs stay aligned with the shipped review
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig test samples/zigux/trace_events_sample.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig test zigux/tests/phase5_trace_events_sample_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Build Summary: 17/17 steps succeeded; 28/28 tests passed") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5-bytestream-fifo-tests 4 pass (4 total)") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5-bytestream-fifo-tests 5 pass (5 total)") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5-bytestream-fifo-survey-tests 2 pass (2 total)") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5-kobject-example-tests 3 pass (3 total)") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5-kobject-example-survey-tests 2 pass (2 total)") != null);
