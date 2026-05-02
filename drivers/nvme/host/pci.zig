@@ -39,6 +39,7 @@ pub const ModuleDescriptor = struct {
     provides_prp_shape_helper: bool,
     provides_prp_metadata_helper: bool,
     provides_pointer_selection_helper: bool,
+    provides_doorbell_window_helper: bool,
     touches_live_dma: bool,
     touches_pci_probe: bool,
     touches_irq_recovery: bool,
@@ -122,6 +123,21 @@ pub const DataPointerStrategySummary = struct {
     reset_generation: u32,
 };
 
+pub const DoorbellWindowSummary = struct {
+    anchor: []const u8,
+    planned_io_queues: usize,
+    queue_pair_count: usize,
+    doorbell_stride_bytes: u32,
+    admin_sq_doorbell_offset: u32,
+    admin_cq_doorbell_offset: u32,
+    has_io_queues: bool,
+    first_io_sq_doorbell_offset: u32,
+    last_cq_doorbell_offset: u32,
+    total_doorbell_window_bytes: u32,
+    queues_frozen: bool,
+    reset_generation: u32,
+};
+
 pub const NvmePciQueueLab = struct {
     const Self = @This();
 
@@ -141,6 +157,7 @@ pub const NvmePciQueueLab = struct {
             .provides_prp_shape_helper = true,
             .provides_prp_metadata_helper = true,
             .provides_pointer_selection_helper = true,
+            .provides_doorbell_window_helper = true,
             .touches_live_dma = false,
             .touches_pci_probe = false,
             .touches_irq_recovery = false,
@@ -336,6 +353,35 @@ pub const NvmePciQueueLab = struct {
         };
     }
 
+    pub fn planDoorbellWindow(self: *const Self) !DoorbellWindowSummary {
+        const queue_pair_count = try checkedAddUsize(self.planned_io_queues, 1);
+        const has_io_queues = self.planned_io_queues != 0;
+        const first_io_sq_doorbell_offset = if (has_io_queues)
+            try checkedMulWideU32(2, self.doorbell_stride_bytes)
+        else
+            0;
+        const last_queue_id = std.math.cast(u32, self.planned_io_queues) orelse return error.QueueBytesOverflow;
+        const last_queue_slot = try checkedMulWideU32(last_queue_id, 2);
+        const last_sq_doorbell_offset = try checkedMulWideU32(last_queue_slot, self.doorbell_stride_bytes);
+        const last_cq_doorbell_offset = try checkedAddU32(last_sq_doorbell_offset, self.doorbell_stride_bytes);
+        const total_doorbell_window_bytes = try checkedAddU32(last_cq_doorbell_offset, self.doorbell_stride_bytes);
+
+        return .{
+            .anchor = descriptor().anchor,
+            .planned_io_queues = self.planned_io_queues,
+            .queue_pair_count = queue_pair_count,
+            .doorbell_stride_bytes = self.doorbell_stride_bytes,
+            .admin_sq_doorbell_offset = 0,
+            .admin_cq_doorbell_offset = self.doorbell_stride_bytes,
+            .has_io_queues = has_io_queues,
+            .first_io_sq_doorbell_offset = first_io_sq_doorbell_offset,
+            .last_cq_doorbell_offset = last_cq_doorbell_offset,
+            .total_doorbell_window_bytes = total_doorbell_window_bytes,
+            .queues_frozen = self.recovery_state != .running,
+            .reset_generation = self.reset_generation,
+        };
+    }
+
     fn planQueue(
         self: *const Self,
         role: QueueRole,
@@ -407,6 +453,10 @@ pub const NvmePciQueueLab = struct {
         return std.math.cast(u32, value) orelse error.QueueBytesOverflow;
     }
 
+    fn checkedAddUsize(lhs: usize, rhs: usize) !usize {
+        return std.math.add(usize, lhs, rhs) catch error.QueueBytesOverflow;
+    }
+
     fn checkedMulWideU32(lhs: u32, rhs: u32) !u32 {
         const value = @as(u64, lhs) * rhs;
         return std.math.cast(u32, value) orelse error.QueueBytesOverflow;
@@ -433,4 +483,4 @@ pub const NvmePciQueueLab = struct {
         const rounded = @as(u64, value) + divisor - 1;
         return std.math.cast(u32, rounded / divisor) orelse error.QueueBytesOverflow;
     }
-};
+}
