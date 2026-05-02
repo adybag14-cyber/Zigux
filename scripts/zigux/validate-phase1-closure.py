@@ -670,6 +670,20 @@ def run_self_test() -> int:
         bench_checker_path.write_text(original_bench_checker, encoding="utf-8")
         total_cases += 1
 
+        parity_checker_path = tmp_root / "scripts" / "zigux" / "check-phase1-parity.py"
+        original_parity_checker = parity_checker_path.read_text(encoding="utf-8")
+        parity_checker_path.write_text(
+            replace_once(original_parity_checker, "print('PHASE1_PARITY_SELF_TEST_CASE_COUNT=7')"),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "parity_self_test_count",
+            tmp_root,
+            "parity_checker:print('PHASE1_PARITY_SELF_TEST_CASE_COUNT=7')",
+        )
+        parity_checker_path.write_text(original_parity_checker, encoding="utf-8")
+        total_cases += 1
+
         manifest_path = tmp_root / "zigux" / "tests" / "fixtures" / "phase1_helper_manifest.json"
         original_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest_cases = [
