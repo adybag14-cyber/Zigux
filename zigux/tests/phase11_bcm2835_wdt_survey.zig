@@ -50,6 +50,30 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
     );
     defer std.testing.allocator.free(manifest_json);
 
+    const bcm2835_driver = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "drivers/watchdog/bcm2835_wdt.zig",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(bcm2835_driver);
+
+    const dedicated_test = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase11_bcm2835_wdt.zig",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(dedicated_test);
+
+    const build_zig = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase11_build.zig",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(build_zig);
+
     const matrix_doc = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md",
@@ -102,6 +126,17 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
         .{manifest.surveyed_commit},
     );
     defer std.testing.allocator.free(expected_commit_pin);
+
+    try std.testing.expect(std.mem.indexOf(u8, bcm2835_driver, "pub const PlatformHandoffSummary = struct {") != null);
+    try std.testing.expect(std.mem.indexOf(u8, bcm2835_driver, "pub const RemoveSummary = struct {") != null);
+    try std.testing.expect(std.mem.indexOf(u8, bcm2835_driver, "watchdog_teardown_managed_by_devm = true,") != null);
+    try std.testing.expect(std.mem.indexOf(u8, dedicated_test, "test \"phase11 bcm2835_wdt platform handoff summary keeps parent and PM-base prerequisites reviewable\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, dedicated_test, "test \"phase11 bcm2835_wdt remove summary only clears the shared poweroff handler when bcm2835 owns it\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_zig, "../../drivers/watchdog/bcm2835_wdt.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_zig, "phase11-bcm2835-wdt-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_zig, "phase11-bcm2835-wdt-survey-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_zig, "test_step.dependOn(&run_phase11_bcm2835_wdt_tests.step);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_zig, "test_step.dependOn(&run_phase11_bcm2835_wdt_survey_tests.step);") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "PHASE11_BCM2835_WDT_STATUS=platform_handoff_landed") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, expected_commit_pin) != null);
