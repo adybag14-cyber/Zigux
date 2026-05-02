@@ -41,6 +41,13 @@ EXPECTED_CASES = {
         'expected': 'sample_escaped_space_expected.txt',
         'expected_exit_code': 0,
     },
+    'sample_escaped_colon': {
+        'depfile': 'sample_escaped_colon.d',
+        'target': 'sample_escaped_colon.o',
+        'cmdline': 'clang -c zigux/tests/fixtures/fixdep/sample_escaped_colon_source.c -o sample_escaped_colon.o',
+        'expected': 'sample_escaped_colon_expected.txt',
+        'expected_exit_code': 0,
+    },
     'sample_concatenated': {
         'depfile': 'sample_concatenated.d',
         'target': 'sample_concatenated.o',
@@ -244,6 +251,18 @@ def expect_failure(label: str, callback, expected_message: str) -> None:
     raise SystemExit(f'fixdep:self-test:{label}:missing_failure:{expected_message!r}')
 
 
+def copy_valid_cases(valid_cases: list[dict[str, object]]) -> list[dict[str, object]]:
+    return [dict(case) for case in valid_cases]
+
+
+def find_case(valid_cases: list[dict[str, object]], name: str) -> dict[str, object]:
+    for case in valid_cases:
+        case_name = case.get('name')
+        if case_name == name:
+            return case
+    raise KeyError(name)
+
+
 def run_self_test() -> int:
     valid_cases = validate_cases(load_cases(CASES_PATH))
     validate_tool_sources(C_FIXDEP, ZIG_FIXDEP)
@@ -259,7 +278,7 @@ def run_self_test() -> int:
         f'{CASES_PATH}:expected_non_empty_json_list',
     )
 
-    duplicate_name_cases = [dict(case) for case in valid_cases]
+    duplicate_name_cases = copy_valid_cases(valid_cases)
     duplicate_name_cases[1]['name'] = duplicate_name_cases[0]['name']
     expect_failure(
         'duplicate_name',
@@ -267,7 +286,7 @@ def run_self_test() -> int:
         f'{CASES_PATH}:duplicate_name:{valid_cases[0]["name"]}',
     )
 
-    unexpected_name_cases = [dict(case) for case in valid_cases]
+    unexpected_name_cases = copy_valid_cases(valid_cases)
     unexpected_name_cases[0]['name'] = 'unexpected_fixdep_case'
     expect_failure(
         'unexpected_name',
@@ -275,24 +294,24 @@ def run_self_test() -> int:
         f'{CASES_PATH}:unexpected_name:unexpected_fixdep_case',
     )
 
-    missing_stderr_cases = [dict(case) for case in valid_cases]
-    missing_stderr_cases[4].pop('expected_stderr', None)
+    missing_stderr_cases = copy_valid_cases(valid_cases)
+    find_case(missing_stderr_cases, 'sample_comment_only').pop('expected_stderr', None)
     expect_failure(
         'missing_expected_stderr',
         lambda: validate_cases(missing_stderr_cases),
         f'{CASES_PATH}:sample_comment_only:expected_stderr=None,expected='"'"'sample_comment_only_expected.stderr.txt'"'"'',
     )
 
-    unsupported_stdout_mode_cases = [dict(case) for case in valid_cases]
-    unsupported_stdout_mode_cases[5]['stdout_mode'] = 'pipe_full'
+    unsupported_stdout_mode_cases = copy_valid_cases(valid_cases)
+    find_case(unsupported_stdout_mode_cases, 'sample_comment_only_stdout_full')['stdout_mode'] = 'pipe_full'
     expect_failure(
         'unsupported_stdout_mode',
         lambda: validate_cases(unsupported_stdout_mode_cases),
         f"{CASES_PATH}:sample_comment_only_stdout_full:stdout_mode='pipe_full',expected='dev_full'",
     )
 
-    missing_depfile_cases = [dict(case) for case in valid_cases]
-    missing_depfile_cases[0]['depfile'] = 'missing_depfile.d'
+    missing_depfile_cases = copy_valid_cases(valid_cases)
+    find_case(missing_depfile_cases, 'sample')['depfile'] = 'missing_depfile.d'
     expect_failure(
         'missing_depfile',
         lambda: validate_cases(missing_depfile_cases),
