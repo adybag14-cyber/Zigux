@@ -146,6 +146,15 @@ def validate_manifest_alignment(root: Path) -> list[str]:
         ):
             missing_markers.append("manifest:runtime-loader-substrate-plan_gap_missing")
 
+    control_surface_markers = manifest.get("phase8_control_surface_markers")
+    if not isinstance(control_surface_markers, dict):
+        missing_markers.append("manifest:phase8_control_surface_markers_missing")
+    else:
+        if control_surface_markers.get("shared_runtime_loader_field") != "shared command_name field":
+            missing_markers.append("manifest:shared_runtime_loader_field_drift")
+        if control_surface_markers.get("command_name_field") != "ExtractArgv0Result.command_name":
+            missing_markers.append("manifest:command_name_field_drift")
+
     return missing_markers
 
 
@@ -260,6 +269,10 @@ def write_fixture_tree(root: Path) -> None:
                         "why_now": "This keeps waiting_on_runtime_substrate and released_without_substrate explicit in one shared review surface.",
                     }
                 ],
+                "phase8_control_surface_markers": {
+                    "shared_runtime_loader_field": "shared command_name field",
+                    "command_name_field": "ExtractArgv0Result.command_name",
+                },
             },
             indent=2,
         )
@@ -382,8 +395,28 @@ def run_self_test() -> int:
         )
         substrate_plan_path.write_text(original_substrate_plan, encoding="utf-8")
 
+        manifest = json.loads(original_manifest)
+        manifest["phase8_control_surface_markers"]["shared_runtime_loader_field"] = "shared loader field"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "manifest_shared_runtime_loader_field",
+            tmp_root,
+            "manifest:shared_runtime_loader_field_drift",
+        )
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
+        manifest = json.loads(original_manifest)
+        manifest["phase8_control_surface_markers"]["command_name_field"] = "argv0"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "manifest_command_name_field",
+            tmp_root,
+            "manifest:command_name_field_drift",
+        )
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
     print("PHASE9_LOADER_SUBSTRATE_PLAN_SELF_TEST=pass")
-    print("PHASE9_LOADER_SUBSTRATE_PLAN_SELF_TEST_CASE_COUNT=6")
+    print("PHASE9_LOADER_SUBSTRATE_PLAN_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
@@ -426,7 +459,7 @@ def main() -> int:
     print("PHASE9_LOADER_SUBSTRATE_PLAN=pass")
     print(
         "PHASE9_LOADER_SUBSTRATE_PLAN_MARKER_COUNT="
-        f"{len(SURVEY_REQUIRED_MARKERS) + len(SUBSTRATE_PLAN_REQUIRED_MARKERS) + len(REVIEW_CHECKLIST_REQUIRED_MARKERS) + len(MAKEFILE_REQUIRED_MARKERS) + 5}"
+        f"{len(SURVEY_REQUIRED_MARKERS) + len(SUBSTRATE_PLAN_REQUIRED_MARKERS) + len(REVIEW_CHECKLIST_REQUIRED_MARKERS) + len(MAKEFILE_REQUIRED_MARKERS) + 7}"
     )
     return 0
 
