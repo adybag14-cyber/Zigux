@@ -190,7 +190,7 @@ test "phase14 shared smoke manifest records the current evidence bundle" {
     try std.testing.expect(manifest.survey_summary.scripts_readme_records_rollback_threshold);
     try std.testing.expect(manifest.survey_summary.scripts_readme_records_fallback_path);
     try std.testing.expect(manifest.survey_summary.scripts_readme_records_return_to_blocked_triggers);
-    try std.testing.expect(manifest.survey_summary.scripts_readme_records_BOUNDARY_MAP);
+    try std.testing.expect(manifest.survey_summary.scripts_readme_records_boundary_map);
     try std.testing.expect(manifest.survey_summary.scripts_readme_records_concurrency_audit_scope);
     try std.testing.expect(manifest.survey_summary.freeze_map_lists_workqueue_c);
     try std.testing.expect(manifest.survey_summary.freeze_map_lists_skbuff_c);
