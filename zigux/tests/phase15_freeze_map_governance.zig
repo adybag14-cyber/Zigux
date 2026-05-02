@@ -55,9 +55,9 @@ test "phase 15 freeze-map governance manifest records the active lane and blocke
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P15-L01", manifest.lane_key);
+    try std.testing.expectEqualStrings("P15-L03", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("355b71d89807a217a6b7c405c996cbd623c48ca0", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("6689715b1930c419e49a44b1c2dd317548a08c1d", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_freeze_in_c_targets.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_study_only_targets.len);
@@ -121,8 +121,8 @@ test "phase 15 freeze-map governance note keeps the active lane, current head, a
     );
     defer std.testing.allocator.free(note);
 
-    try std.testing.expect(hasSubstring(note, "PHASE15_LANE_KEY=P15-L01"));
-    try std.testing.expect(hasSubstring(note, "355b71d89807a217a6b7c405c996cbd623c48ca0"));
+    try std.testing.expect(hasSubstring(note, "PHASE15_LANE_KEY=P15-L03"));
+    try std.testing.expect(hasSubstring(note, "6689715b1930c419e49a44b1c2dd317548a08c1d"));
     try std.testing.expect(hasSubstring(note, "none_on_current_master"));
     try std.testing.expect(hasSubstring(note, "blocked_no_bounded_scheduler_seam"));
     try std.testing.expect(hasSubstring(note, "blocked_no_bounded_allocator_seam"));
