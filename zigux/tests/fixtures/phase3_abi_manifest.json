@@ -30,6 +30,8 @@
     "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c",
     "zigux/tests/fixtures/phase3_abi_manifest.json",
     "scripts/zigux/check-phase3-abi.py",
+    "scripts/zigux/run-phase3-checks.py",
+    "scripts/zigux/phase3_check_lib.py",
     "scripts/zigux/validate-phase3.py",
     "Documentation/zigux/phase3-abi-slice.md",
     "Documentation/zigux/phase3-roadmap-gap-survey.md",
@@ -46,5 +48,5 @@
     "scripts/zigux/validate_phase3_core.py",
     "scripts/zigux/validate_phase3_selftest.py"
   ],
-  "file_count": 42
+  "file_count": 44
 }
