@@ -83,6 +83,13 @@
       "why_now": "The ruleset helper now includes one tiny in-memory planner for the no-match insertion branch around `rb_link_node()` and `rb_insert_color()` after the tree-search outcome is known, keeping the parent or root link mode explicit without mutating live rb-trees."
     },
     {
+      "id": "phase13-landlock-rule-lookup-followup",
+      "status": "starter_landed",
+      "kind": "security_helper_pilot",
+      "zigux_destination": "security/landlock/ruleset.zig",
+      "why_now": "The ruleset helper now adds one bounded `landlock_find_rule()` lookup planner around root selection, `root->rb_node` descent, and match-versus-null outcomes so Zigux can review read-only rule lookup decisions without mutating live rb-trees, transferring object ownership, or widening into enforcement state."
+    },
+    {
       "id": "phase13-landlock-rule-materialization-followup",
       "status": "starter_landed",
       "kind": "security_helper_pilot",
