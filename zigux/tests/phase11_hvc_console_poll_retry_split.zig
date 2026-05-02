@@ -51,6 +51,58 @@ test "phase11 hvc console keeps irq-backed drained reads distinct when __hvc_pol
     try std.testing.expect(drained_with_sleep.backend_handoff_pending);
 }
 
+test "phase11 hvc console keeps may-sleep drained reads retry-armed when irq delivery is unavailable" {
+    var console = try hvc_console.HvcConsoleLab.init(4);
+    _ = console.instantiate(0x44);
+
+    const irq_free_drained = try console.summarizePollDrainOrder(.{
+        .contract = .{
+            .close = .{
+                .open_count_before_close = 1,
+            },
+        },
+        .may_sleep = true,
+        .read_result = 2,
+    });
+    try std.testing.expectEqual(@as(usize, 4), irq_free_drained.slot_index);
+    try std.testing.expectEqual(@as(u32, 0x44), irq_free_drained.vtermno);
+    try std.testing.expect(irq_free_drained.adapter_present);
+    try std.testing.expect(irq_free_drained.releases_lock_before_read_retry);
+    try std.testing.expect(irq_free_drained.tty_required_for_read_path);
+    try std.testing.expect(irq_free_drained.read_poll_armed_without_irq);
+    try std.testing.expect(irq_free_drained.read_poll_pending_after_drain);
+    try std.testing.expect(!irq_free_drained.read_hangup_pending);
+    try std.testing.expectEqual(@as(usize, 2), irq_free_drained.read_bytes_drained);
+    try std.testing.expect(!irq_free_drained.wakeup_before_unlock);
+    try std.testing.expect(irq_free_drained.flip_push_after_unlock);
+    try std.testing.expect(!irq_free_drained.wakeup_precedes_flip_push);
+    try std.testing.expect(irq_free_drained.backend_handoff_pending);
+
+    const irq_backed_drained = try console.summarizePollDrainOrder(.{
+        .contract = .{
+            .close = .{
+                .open_count_before_close = 1,
+            },
+        },
+        .may_sleep = true,
+        .irq_requested = true,
+        .read_result = 2,
+    });
+    try std.testing.expectEqual(@as(usize, 4), irq_backed_drained.slot_index);
+    try std.testing.expectEqual(@as(u32, 0x44), irq_backed_drained.vtermno);
+    try std.testing.expect(irq_backed_drained.adapter_present);
+    try std.testing.expect(irq_backed_drained.releases_lock_before_read_retry);
+    try std.testing.expect(irq_backed_drained.tty_required_for_read_path);
+    try std.testing.expect(!irq_backed_drained.read_poll_armed_without_irq);
+    try std.testing.expect(!irq_backed_drained.read_poll_pending_after_drain);
+    try std.testing.expect(!irq_backed_drained.read_hangup_pending);
+    try std.testing.expectEqual(@as(usize, 2), irq_backed_drained.read_bytes_drained);
+    try std.testing.expect(!irq_backed_drained.wakeup_before_unlock);
+    try std.testing.expect(irq_backed_drained.flip_push_after_unlock);
+    try std.testing.expect(!irq_backed_drained.wakeup_precedes_flip_push);
+    try std.testing.expect(irq_backed_drained.backend_handoff_pending);
+}
+
 test "phase11 hvc console keeps partial write progress distinct from stalled __hvc_poll retries" {
     var console = try hvc_console.HvcConsoleLab.init(14);
     _ = console.instantiate(0xe0);
