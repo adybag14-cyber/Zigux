@@ -80,6 +80,8 @@ pub const Request = struct {
     allconfig: ?[]const u8 = null,
     seed: ?[]const u8 = null,
     probability: ?[]const u8 = null,
+    autoconfig: ?[]const u8 = null,
+    autoheader: ?[]const u8 = null,
     nosilentupdate: ?[]const u8 = null,
 };
 
@@ -152,7 +154,11 @@ pub fn runConfBridge(writer: anytype, request: Request) !void {
         try writer.writeAll("\"");
     }
     if (request.mode == .syncconfig) {
-        try writer.writeAll(",\"KCONFIG_AUTOCONFIG\":\"include/config/auto.conf\",\"KCONFIG_AUTOHEADER\":\"include/generated/autoconf.h\"");
+        try writer.writeAll(",\"KCONFIG_AUTOCONFIG\":\"");
+        try writeJsonEscaped(writer, request.autoconfig orelse "include/config/auto.conf");
+        try writer.writeAll("\",\"KCONFIG_AUTOHEADER\":\"");
+        try writeJsonEscaped(writer, request.autoheader orelse "include/generated/autoconf.h");
+        try writer.writeAll("\"");
         if (request.nosilentupdate) |nosilentupdate| {
             try writer.writeAll(",\"KCONFIG_NOSILENTUPDATE\":\"");
             try writeJsonEscaped(writer, nosilentupdate);
@@ -235,11 +241,17 @@ fn nonEmptyEnvValue(value: ?[:0]const u8) ?[]const u8 {
     return slice;
 }
 
+fn envValueOrDefault(value: ?[:0]const u8, fallback: []const u8) []const u8 {
+    return nonEmptyEnvValue(value) orelse fallback;
+}
+
 fn applyModeEnvFallbacks(
     request: *Request,
     allconfig: ?[]const u8,
     seed: ?[]const u8,
     probability: ?[]const u8,
+    autoconfig: []const u8,
+    autoheader: []const u8,
     nosilentupdate: ?[]const u8,
 ) void {
     if (supportsAllConfig(request.mode) and request.allconfig == null) {
@@ -249,6 +261,8 @@ fn applyModeEnvFallbacks(
         request.seed = seed;
         request.probability = probability;
     } else if (request.mode == .syncconfig) {
+        request.autoconfig = autoconfig;
+        request.autoheader = autoheader;
         request.nosilentupdate = nosilentupdate;
     }
 }
@@ -259,6 +273,8 @@ pub fn main(init: std.process.Init) !void {
     const allconfig = nonEmptyEnvValue(std.process.Environ.getPosix(init.minimal.environ, "KCONFIG_ALLCONFIG"));
     const seed = nonEmptyEnvValue(std.process.Environ.getPosix(init.minimal.environ, "KCONFIG_SEED"));
     const probability = nonEmptyEnvValue(std.process.Environ.getPosix(init.minimal.environ, "KCONFIG_PROBABILITY"));
+    const autoconfig = envValueOrDefault(std.process.Environ.getPosix(init.minimal.environ, "KCONFIG_AUTOCONFIG"), "include/config/auto.conf");
+    const autoheader = envValueOrDefault(std.process.Environ.getPosix(init.minimal.environ, "KCONFIG_AUTOHEADER"), "include/generated/autoconf.h");
     const nosilentupdate = nonEmptyEnvValue(std.process.Environ.getPosix(init.minimal.environ, "KCONFIG_NOSILENTUPDATE"));
 
     var request = parseRequestArgs(args) catch |err| switch (err) {
@@ -319,7 +335,7 @@ pub fn main(init: std.process.Init) !void {
             std.process.exit(1);
         },
     };
-    applyModeEnvFallbacks(&request, allconfig, seed, probability, nosilentupdate);
+    applyModeEnvFallbacks(&request, allconfig, seed, probability, autoconfig, autoheader, nosilentupdate);
 
     var stdout_buffer: [1024]u8 = undefined;
     var stdout_writer = Io.File.stdout().writer(io, &stdout_buffer);
@@ -569,7 +585,7 @@ test "conf bridge prefers explicit allconfig over env fallback" {
         "arm64",
         "arch/arm64/configs/tiny.config",
     });
-    applyModeEnvFallbacks(&request, "all.config", null, null, null);
+    applyModeEnvFallbacks(&request, "all.config", null, null, "include/config/auto.conf", "include/generated/autoconf.h", null);
 
     try std.testing.expectEqualStrings("arch/arm64/configs/tiny.config", request.allconfig.?);
 }
@@ -582,7 +598,7 @@ test "conf bridge uses allconfig env fallback for allconfig modes" {
         "none/.config",
         "arm64",
     });
-    applyModeEnvFallbacks(&request, "all.config", null, null, null);
+    applyModeEnvFallbacks(&request, "all.config", null, null, "include/config/auto.conf", "include/generated/autoconf.h", null);
 
     try std.testing.expectEqualStrings("all.config", request.allconfig.?);
 }
