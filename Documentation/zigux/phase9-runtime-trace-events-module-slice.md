@@ -8,9 +8,10 @@ This document tracks the first bounded Phase 9 runtime trace-events starter unde
 - `PHASE9_SLICE=runtime-trace-events-module-starter`
 - `PHASE9_LANE_KEY=P9-L12`
 - `PHASE9_SURVEYED_COMMIT=f5a4d6990f701937b2a3bb9ae723bb6d0f27ba21`
-- scope: lifecycle starter, bounded event-emission and registration behavior, a machine-checkable diagnostics summary with explicit main-thread and function-thread event totals plus explicit replay run counters, direct sample-local selftest, failed-exit rollback proof, and exit proof, a tiny payload-oriented diff gate, dedicated Phase 9 test wiring, and lane-local survey-manifest closure only
+- scope: lifecycle starter, bounded event-emission and registration behavior, a machine-checkable diagnostics summary with explicit main-thread and function-thread event totals plus explicit replay run counters, direct sample-local selftest, failed-exit rollback proof, exit proof, a tiny payload-oriented diff gate, a blocked loader scaffold, dedicated Phase 9 test wiring, and lane-local survey-manifest closure only
 - product boundary:
   - `samples/zigux/runtime_trace_events.zig`
+  - `samples/zigux/runtime_trace_events_loader.zig`
   - `zigux/tests/runtime_trace_events_module.zig`
   - `zigux/tests/runtime_trace_events_diff.zig`
   - `zigux/tests/runtime_trace_events_manifest.json`
@@ -46,14 +47,14 @@ No parity scorecard entry or Architecture Council status-change request is attac
 - a helper-local failed-exit rollback proof showing that `error.OutstandingRegistration` leaves the module in the initialized stage with its current counters and payload summary intact until the registration is unwound and the normal selftest-to-exit path resumes
 - dedicated Phase 9 module and diff tests that assert those lifecycle, registration, diagnostics-summary, explicit per-thread event-total, replay run-counter, and payload-literal expectations through the shared `zigux/tests/phase9_build.zig` gate, with the diff gate now cross-checking the stable replay summary against the concrete main-thread and function-thread payload labels plus the selftest-path `init_runs`, `selftest_runs`, and `exit_runs` counters instead of treating raw payload structs as the only machine-checkable source
 - dedicated Phase 9 module, sample, diff, and manifest coverage wired into the shared `zigux/tests/phase9_build.zig` gate, including `phase9-runtime-trace-events-sample-tests` for the direct selftest and failed-exit rollback proof
-- no `samples/zigux/runtime_trace_events_loader.zig` handoff exists yet, and the shared `zigux/tests/phase9_build.zig` bundle intentionally carries no trace-events loader target while scheduler-facing runtime substrate work stays blocked
+- the bounded `samples/zigux/runtime_trace_events_loader.zig` scaffold now exists as a blocked pre-execution handoff that keeps review-only register/unregister labels, explicit module entry and exit labels, and the release-without-substrate fallback visible without claiming a shared runtime-loader binding or a trace-events loader target in the shared build packet
 
 ## Non-goals
 
 This slice does not yet claim:
 
 - a kernel-loadable Zigux trace-events module
-- a partial or placeholder `samples/zigux/runtime_trace_events_loader.zig` handoff before the blocked scheduler-facing runtime substrate exists
+- treating the bounded `samples/zigux/runtime_trace_events_loader.zig` scaffold as a shared runtime-loader binding or executable substrate handoff before the blocked scheduler-facing runtime substrate exists
 - generated tracepoint macro parity for `samples/trace_events/trace-events-sample.h`
 - runtime task ownership or event-loop substrate parity
 - polling-backed wake or dispatch behavior
@@ -71,11 +72,11 @@ This slice does not yet claim:
 
 2. run the shared Phase 9 build
 - `zig build test --build-file zigux/tests/phase9_build.zig --summary all`
-- this shared build includes `phase9-runtime-trace-events-sample-tests`, `phase9-runtime-trace-events-module-tests`, `phase9-runtime-trace-events-diff-tests`, and `phase9-runtime-trace-events-survey-tests`
+- this shared build includes `phase9-runtime-trace-events-sample-tests`, `phase9-runtime-trace-events-module-tests`, `phase9-runtime-trace-events-diff-tests`, and `phase9-runtime-trace-events-survey-tests` while still carrying no trace-events loader target
 
 3. run the convenience target
 - `make -C zigux phase9`
 
 ## Next bounded step
 
-Stay in the Phase 9 runtime trace-events lane and keep broader work blocked until there is a small honest substrate handoff for module entry, runtime task ownership, polling and event-loop substrate, thread creation, and tracepoint-registration lifecycle wiring, while keeping the separate `kernel/trace/ring_buffer.c` freeze-map boundary in study-only status unless the Architecture Council explicitly reopens it.
+Stay in the Phase 9 runtime trace-events lane and keep broader work blocked until there is a small honest substrate handoff for module entry, shared runtime-loader binding, runtime task ownership, polling and event-loop substrate, thread creation, and tracepoint-registration lifecycle wiring, while keeping the separate `kernel/trace/ring_buffer.c` freeze-map boundary in study-only status unless the Architecture Council explicitly reopens it.
