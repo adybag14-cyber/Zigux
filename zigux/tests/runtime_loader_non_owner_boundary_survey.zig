@@ -39,7 +39,7 @@ test "runtime loader non-owner boundary survey keeps config-surface and export p
         io_instance.io(),
         std.testing.allocator,
         "scripts/zigux/kconfig/conf_bridge.zig",
-        64 * 1024,
+        256 * 1024,
     );
     defer std.testing.allocator.free(conf_bridge);
 
@@ -47,7 +47,7 @@ test "runtime loader non-owner boundary survey keeps config-surface and export p
         io_instance.io(),
         std.testing.allocator,
         "scripts/zigux/kconfig/confdata_bridge.zig",
-        64 * 1024,
+        256 * 1024,
     );
     defer std.testing.allocator.free(confdata_bridge);
 
