@@ -15,6 +15,34 @@ TRACKED_PATHS = [
     "tools/lib/bpf/zigux_segments/manifest.json",
 ]
 
+EXPECTED_ROADMAP_DESTINATIONS = [
+    "tools/lib/bpf/zigux_segments/",
+    "zigux/tests/",
+    "Documentation/zigux/",
+]
+
+EXPECTED_SURVEY_SUMMARY = {
+    "libbpf_c_lines": 14771,
+    "preexisting_phase8_test_files": 7,
+    "preexisting_phase8_build_present": True,
+    "preexisting_phase8_libbpf_manifest_present": True,
+    "preexisting_phase8_libbpf_survey_present": True,
+    "preexisting_phase8_libbpf_note_present": True,
+    "preexisting_type_names_zig_present": True,
+    "preexisting_cpu_mask_zig_present": True,
+    "preexisting_logging_zig_present": True,
+    "preexisting_pin_path_zig_present": True,
+    "preexisting_file_path_handle_bridge_zig_present": True,
+    "preexisting_perf_buffer_poll_zig_present": True,
+    "preexisting_phase12_build_present": True,
+    "preexisting_phase12_libbpf_survey_present": True,
+    "preexisting_phase12_survey_note_present": True,
+    "preexisting_phase12_docs_root_packet_present": True,
+    "preexisting_phase12_reviewability_gate_present": True,
+    "preexisting_phase12_snapshot_checker_present": True,
+    "preexisting_phase12_packet_checker_present": True,
+}
+
 MANIFEST_ROLLBACK_CONTRACT = {
     "owner": "BPF Tooling Lane",
     "rollback_owner": "BPF Tooling Lane",
@@ -225,6 +253,16 @@ def check_manifest_rollback_contract(rollback_contract: object, missing: list[st
             missing.append(f"manifest:rollback_contract:{key}")
 
 
+def check_manifest_survey_summary(survey_summary: object, missing: list[str]) -> None:
+    if not isinstance(survey_summary, dict):
+        missing.append("manifest:survey_summary")
+        return
+
+    for key, expected_value in EXPECTED_SURVEY_SUMMARY.items():
+        if survey_summary.get(key) != expected_value:
+            missing.append(f"manifest:survey_summary:{key}")
+
+
 def check_packet(root: Path) -> list[str]:
     missing: list[str] = []
     for rel_path in TRACKED_PATHS:
@@ -247,7 +285,10 @@ def check_packet(root: Path) -> list[str]:
         missing.append("manifest:phase")
     if manifest.get("anchor") != "tools/lib/bpf/libbpf.c":
         missing.append("manifest:anchor")
+    if manifest.get("roadmap_destinations") != EXPECTED_ROADMAP_DESTINATIONS:
+        missing.append("manifest:roadmap_destinations")
     check_manifest_rollback_contract(manifest.get("rollback_contract"), missing)
+    check_manifest_survey_summary(manifest.get("survey_summary"), missing)
     surveyed_commit = manifest.get("surveyed_commit")
     if not has_valid_commit(surveyed_commit):
         missing.append("manifest:surveyed_commit")
@@ -342,7 +383,9 @@ def build_self_test_tree(root: Path) -> None:
         "phase": "Phase 12",
         "surveyed_commit": surveyed_commit,
         "anchor": "tools/lib/bpf/libbpf.c",
+        "roadmap_destinations": EXPECTED_ROADMAP_DESTINATIONS,
         "rollback_contract": MANIFEST_ROLLBACK_CONTRACT,
+        "survey_summary": EXPECTED_SURVEY_SUMMARY,
         "gaps": [
             {"id": gap_id, "status": status, "zigux_destination": destination}
             for gap_id, status, destination in PHASE12_GAP_SPECS
@@ -501,6 +544,28 @@ def run_self_test() -> int:
             raise SystemExit("phase12-libbpf-packet:self-test:rollback_contract_detection")
 
         build_self_test_tree(root)
+        manifest_path = root / TRACKED_PATHS[0]
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["roadmap_destinations"] = [
+            "Documentation/zigux/",
+            "zigux/tests/",
+            "tools/lib/bpf/zigux_segments/",
+        ]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        missing = check_packet(root)
+        if "manifest:roadmap_destinations" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:roadmap_destinations_detection")
+
+        build_self_test_tree(root)
+        manifest_path = root / TRACKED_PATHS[0]
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["survey_summary"]["preexisting_phase12_packet_checker_present"] = False
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        missing = check_packet(root)
+        if "manifest:survey_summary:preexisting_phase12_packet_checker_present" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:survey_summary_detection")
+
+        build_self_test_tree(root)
         legacy_manifest_path = root / TRACKED_PATHS[4]
         legacy_manifest = json.loads(legacy_manifest_path.read_text(encoding="utf-8"))
         for segment in legacy_manifest["segments"]:
@@ -590,7 +655,7 @@ def run_self_test() -> int:
             raise SystemExit("phase12-libbpf-packet:self-test:legacy_surveyed_commit_detection")
 
         print("PHASE12_LIBBPF_PACKET_SELF_TEST=pass")
-        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=16")
+        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=18")
     return 0
 
 
