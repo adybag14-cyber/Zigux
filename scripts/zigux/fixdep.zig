@@ -45,6 +45,7 @@ fn describeFileReadError(err: anyerror) []const u8 {
         error.NoDevice => "No such device",
         error.FileTooBig => "File too large",
         error.InputOutput => "Input/output error",
+        error.EndOfStream => "Success",
         else => @errorName(err),
     };
 }
@@ -231,16 +232,22 @@ const Processor = struct {
         };
         defer file.close(self.io);
 
-        _ = file.stat(self.io) catch |err| {
+        const stat = file.stat(self.io) catch |err| {
             if (!shouldNormalizeDependencyFileFailure(err)) {
                 return err;
             }
             return self.rememberFileError(path, err, .stat);
         };
+        const file_bytes = std.math.cast(usize, stat.size) orelse return error.StreamTooLong;
 
         var reader = file.reader(self.io, &.{});
-        return reader.interface.allocRemaining(self.arena.allocator(), .limited(max_file_bytes)) catch |err| {
-            try self.normalizeReadDependencyFailure(path, err, reader.err);
+        return reader.interface.readAlloc(self.arena.allocator(), file_bytes) catch |err| {
+            const actual_err = switch (err) {
+                error.EndOfStream => error.EndOfStream,
+                error.ReadFailed => reader.err orelse err,
+                else => err,
+            };
+            try self.normalizeReadDependencyFailure(path, actual_err, null);
             unreachable;
         };
     }
@@ -746,6 +753,7 @@ test "file read errors map to C-style messages" {
     try std.testing.expectEqualStrings("No such file or directory", describeFileReadError(error.FileNotFound));
     try std.testing.expectEqualStrings("Permission denied", describeFileReadError(error.AccessDenied));
     try std.testing.expectEqualStrings("File too large", describeFileReadError(error.FileTooBig));
+    try std.testing.expectEqualStrings("Success", describeFileReadError(error.EndOfStream));
 }
 
 test "dependency file failure normalization keeps runtime io errors on the C-style path" {
@@ -769,6 +777,10 @@ test "dependency file error messages keep C helper wording" {
     try std.testing.expectEqualStrings(
         "fixdep: read: Input/output error\n",
         try formatDependencyFileErrorMessage(&buffer, .read, "sample.d", error.InputOutput),
+    );
+    try std.testing.expectEqualStrings(
+        "fixdep: read: Success\n",
+        try formatDependencyFileErrorMessage(&buffer, .read, "sample.d", error.EndOfStream),
     );
 }
 
