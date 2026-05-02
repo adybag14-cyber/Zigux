@@ -58,7 +58,7 @@ The remaining blocked work is still the already-recorded deep-core status-change
 - anchors with Phase 14 survey evidence linked: `2 / 4`
 - reserved evidence-archive templates present: `4 / 4`
 - anchors with explicit blocker dispositions recorded: `4 / 4`
-- required review-process record fields tracked in the manifest: `13`
+- required review-process record fields tracked in the manifest: `15`
 - reopen-trigger catalog entries tracked in the manifest: `3`
 - repo evidence checks currently green: `15 / 15`
 - landed scorecard gaps: `19 / 20`
