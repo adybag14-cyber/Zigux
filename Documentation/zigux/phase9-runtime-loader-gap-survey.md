@@ -21,6 +21,7 @@ This document records the shared boot/runtime loader gap that still separates th
   - `samples/zigux/runtime_atomic64_loader.zig`
   - `samples/zigux/runtime_bitmap_loader.zig`
   - `samples/zigux/runtime_kretprobe_loader.zig`
+  - `samples/zigux/runtime_trace_events_loader.zig`
   - `samples/zigux/runtime_trace_events.zig`
   - `zigux/helpers/allocator_policy.zig`
 
@@ -36,8 +37,8 @@ The live repo already reflects that split:
 
 - the full bounded Phase 6 leaf-helper set is landed
 - four Phase 9 runtime starter samples are landed under `samples/zigux/runtime_*`
-- three sample-side loader plans are landed under `samples/zigux/runtime_*_loader.zig`
-- the fourth Phase 9 pilot, `samples/zigux/runtime_trace_events.zig`, remains intentionally sample-only with no `samples/zigux/runtime_trace_events_loader.zig`
+- the earlier three sample-side loader plans baseline has now widened to four landed loader scaffolds under `samples/zigux/runtime_*_loader.zig`
+- the fourth Phase 9 pilot, `samples/zigux/runtime_trace_events.zig`, now also carries a bounded `samples/zigux/runtime_trace_events_loader.zig` scaffold, but it remains a sample-only blocked runtime pilot with respect to live runtime substrate ownership and tracepoint-registration execution
 - a shared `zigux/kernel/runtime_loader.zig` request surface now exists
 
 the current survey packet is pinned to `master` commit `a15760c3e46103fd41ae0da852b61f612e9116c6`.
@@ -72,7 +73,8 @@ The manifest-backed catalog for this slice now names which file owns each part o
 - `samples/zigux/runtime_atomic64_loader.zig` owns the atomic64 loader-plan projection and without-substrate rollback path into the shared runtime request surface
 - `samples/zigux/runtime_bitmap_loader.zig` owns the bitmap loader-plan projection and without-substrate rollback path into the shared runtime request surface
 - `samples/zigux/runtime_kretprobe_loader.zig` owns the kretprobe loader-plan projection and without-substrate rollback path into the shared runtime request surface
-- `samples/zigux/runtime_trace_events.zig` plus `zigux/tests/runtime_trace_events_manifest.json` own the sample-only blocked trace-events loader boundary so the shared loader-gap packet does not treat that missing loader path as an accidental omission
+- `samples/zigux/runtime_trace_events_loader.zig` owns the bounded trace-events loader-plan projection and without-substrate fallback while keeping `foo_bar_reg` and `foo_bar_unreg` review-only instead of executable registration
+- `samples/zigux/runtime_trace_events.zig` plus `zigux/tests/runtime_trace_events_manifest.json` still own the sample-only blocked runtime pilot boundary around live runtime substrate, thread creation, polling or event-loop wiring, and tracepoint-registration execution so the shared loader-gap packet does not treat the still-blocked runtime path as solved
 
 ## Current blocker posture
 
@@ -81,6 +83,7 @@ The current runtime pilot surface already exposes reviewable loader inputs:
 - `samples/zigux/runtime_atomic64_loader.zig` records explicit entry and exit symbol names, `requires_runtime_substrate`, `provides_selftest_hook`, and a bounded handoff stage
 - `samples/zigux/runtime_bitmap_loader.zig` records explicit entry and exit symbol names, `requires_runtime_substrate`, `provides_selftest_hook`, and a bounded handoff stage
 - `samples/zigux/runtime_kretprobe_loader.zig` records the same loader-shape inputs for the kretprobe starter
+- `samples/zigux/runtime_trace_events_loader.zig` now records the same bounded init or exit handoff shape for the trace-events pilot, including review-only `foo_bar_reg` and `foo_bar_unreg` labels plus `waiting_on_runtime_substrate` to `released_without_substrate` fallback
 - the atomic64 and bitmap loaders keep staged `zigux_runtime_*_init` and `zigux_runtime_*_exit` symbol names reviewable without claiming a live `module_init()` or `module_exit()` path, while the kretprobe loader keeps `register_kretprobe` and `unregister_kretprobe` as metadata-only labels instead of a live registration path
 - the landed loader-plan trio still builds its shipped shared requests with `command_name = null`; the only non-null command-name evidence in this family is the synthetic preservation checks for `perf-runtime-atomic64`, `perf-runtime-bitmap`, and `perf-runtime-kretprobe` in `samples/zigux/runtime_atomic64_loader.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and `samples/zigux/runtime_kretprobe_loader.zig`, so this packet still records a field contract rather than a live runtime command surface
 - the landed kretprobe starter still keeps the current symbol surface bounded to `default_symbol_name = "kernel_clone"` plus pre-init retargeting, and the shared Phase 9 runtime packet still carries no `CONFIG_`, `Kconfig`, `EXPORT_SYMBOL`, or `symbol export` markers anywhere in this evidence family
@@ -90,11 +93,11 @@ The current runtime pilot surface already exposes reviewable loader inputs:
 What is now landed is the smallest shared consumer contract:
 
 - `zigux/kernel/runtime_loader.zig` defines a common loader-stage vocabulary for shared runtime handoff
-- `Documentation/zigux/phase9-runtime-loader-substrate-plan.md` keeps that shared loader-stage vocabulary reviewable beside the three sample-side loader plans and the shared request shape
-- the shared request shape carries module identity, an optional shared `command_name` field, Linux anchor provenance, entry and exit symbol names, and a tagged payload for either atomic64, bitmap, or kretprobe facts
+- `Documentation/zigux/phase9-runtime-loader-substrate-plan.md` keeps that shared loader-stage vocabulary reviewable beside the three sample-side loader plans that already bind into the shared request shape, while the newer trace-events scaffold remains an adjacent pre-execution note rather than part of the shared request union
+- the shared request shape carries module identity, an optional shared `command_name` field, Linux anchor provenance, entry and exit symbol names, and a tagged payload for atomic64, bitmap, or kretprobe facts
 - the shared request also consumes `zigux/helpers/allocator_policy.zig` through an explicit allocator-handoff record instead of leaving allocator posture in prose
-- the shared request now also keeps the starter selftest-hook contract machine-checkable by rejecting nonzero `selftest_runs` whenever `provides_selftest_hook` is absent, so the three landed loader plans share one explicit review boundary instead of three loader-local conventions
-- the atomic64, bitmap, and kretprobe loader scaffolds can now emit that shared request shape while still stopping at `waiting_on_runtime_substrate`
+- the shared request now also keeps the starter selftest-hook contract machine-checkable by rejecting nonzero `selftest_runs` whenever `provides_selftest_hook` is absent, so the three shared-request loader plans share one explicit review boundary instead of loader-local conventions
+- the atomic64, bitmap, and kretprobe loader scaffolds can now emit that shared request shape while still stopping at `waiting_on_runtime_substrate`, while the trace-events scaffold records the same pre-execution lifecycle cues without yet claiming a shared-request binding
 
 The current pilot-module evidence also carries an explicit rollback-without-substrate path:
 
@@ -104,11 +107,11 @@ The current pilot-module evidence also carries an explicit rollback-without-subs
 
 The shared packet also needs one explicit sample-only boundary so repo reality stays readable:
 
-- `samples/zigux/runtime_trace_events.zig` is the fourth landed Phase 9 pilot sample, but there is still no `samples/zigux/runtime_trace_events_loader.zig`
-- that absence is intentional, not missing parity work, because `zigux/tests/runtime_trace_events_manifest.json` already records the `runtime-trace-events-substrate-handoff` blocker
+- `samples/zigux/runtime_trace_events.zig` is the fourth landed Phase 9 pilot sample, and `samples/zigux/runtime_trace_events_loader.zig` now records its bounded loader-plan scaffold
+- that scaffold is intentional review-only progress rather than a solved runtime path, because `zigux/tests/runtime_trace_events_manifest.json` still records the `runtime-trace-events-substrate-handoff` blocker
 - that blocker stays tied to runtime task ownership, polling and event-loop substrate, thread creation, and tracepoint-registration lifecycle wiring
 - it also stays adjacent to `Documentation/zigux/freeze-map.md`, where `kernel/trace/ring_buffer.c` remains `Study / Boundary Only`
-- this shared loader-gap packet therefore treats trace-events as a sample-only blocked runtime pilot rather than counting it among the current loader-plan surfaces
+- this shared loader-gap packet therefore counts trace-events among the current loader-plan surfaces while still treating live runtime substrate ownership and tracepoint-registration execution as a sample-only blocked runtime pilot boundary
 
 What is still missing is actual runtime execution behavior:
 
