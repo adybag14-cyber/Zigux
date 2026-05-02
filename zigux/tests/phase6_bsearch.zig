@@ -48,54 +48,6 @@ fn compareCOpaqueDescendingU32(key: *const anyopaque, item: *const anyopaque) ca
     return compareOpaqueDescendingU32(key, item);
 }
 
-fn compareSymbolName(key: *const []const u8, item: *const Symbol) i32 {
-    return switch (std.mem.order(u8, key.*, item.name)) {
-        .lt => -1,
-        .eq => 0,
-        .gt => 1,
-    };
-}
-
-fn compareU32Counted(key: *const u32, item: *const u32) i32 {
-    counted_compare_calls += 1;
-    return compareU32(key, item);
-}
-
-fn compareDescendingU32Counted(key: *const u32, item: *const u32) i32 {
-    counted_compare_calls += 1;
-    return compareDescendingU32(key, item);
-}
-
-fn compareCU32Counted(key: *const u32, item: *const u32) callconv(.c) i32 {
-    counted_compare_calls += 1;
-    return compareCU32(key, item);
-}
-
-fn compareCDescendingU32Counted(key: *const u32, item: *const u32) callconv(.c) i32 {
-    counted_compare_calls += 1;
-    return compareCDescendingU32(key, item);
-}
-
-fn compareOpaqueU32Counted(key: *const anyopaque, item: *const anyopaque) i32 {
-    counted_compare_calls += 1;
-    return compareOpaqueU32(key, item);
-}
-
-fn compareOpaqueDescendingU32Counted(key: *const anyopaque, item: *const anyopaque) i32 {
-    counted_compare_calls += 1;
-    return compareOpaqueDescendingU32(key, item);
-}
-
-fn compareCOpaqueU32Counted(key: *const anyopaque, item: *const anyopaque) callconv(.c) i32 {
-    counted_compare_calls += 1;
-    return compareCOpaqueU32(key, item);
-}
-
-fn compareCOpaqueDescendingU32Counted(key: *const anyopaque, item: *const anyopaque) callconv(.c) i32 {
-    counted_compare_calls += 1;
-    return compareCOpaqueDescendingU32(key, item);
-}
-
 test "phase 6 bsearch module imports cleanly" {
     _ = bsearch;
 }
@@ -367,4 +319,21 @@ test "phase 6 bsearch accepts runtime-selected C ABI raw comparator pointers" {
         const typed_found: *const u32 = @ptrCast(@alignCast(found));
         try std.testing.expectEqual(target, typed_found.*);
     }
+}
+
+test "phase 6 bsearch exposes runtime-selected mutable typed and raw comparator write-through behavior" {
+    var typed_values = [_]u32{ 89, 55, 34, 21, 13, 8, 3 };
+    const typed_compare: bsearch.CComparator(u32, u32) = compareCDescendingU32;
+    const typed_found = bsearch.searchMutable(u32, u32, &@as(u32, 34), typed_values[0..], typed_compare) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@intFromPtr(&typed_values[2]), @intFromPtr(typed_found));
+    typed_found.* += 1;
+    try std.testing.expectEqual(@as(u32, 35), typed_values[2]);
+
+    var raw_values = [_]u32{ 89, 55, 34, 21, 13, 8, 3 };
+    const raw_compare: bsearch.CRawComparator = compareCOpaqueDescendingU32;
+    const raw_found = bsearch.bsearchMutable(&@as(u32, 34), @ptrCast(raw_values[0..].ptr), raw_values.len, @sizeOf(u32), raw_compare) orelse return error.TestUnexpectedResult;
+    const typed_raw_found: *u32 = @ptrCast(@alignCast(raw_found));
+    try std.testing.expectEqual(@intFromPtr(&raw_values[2]), @intFromPtr(typed_raw_found));
+    typed_raw_found.* += 1;
+    try std.testing.expectEqual(@as(u32, 35), raw_values[2]);
 }
