@@ -136,6 +136,15 @@ pub const RuntimeLoadRequest = struct {
         return self.allocator_handoff.keepsInitFlowConsistent();
     }
 
+    pub fn keepsSelftestHookConsistent(self: RuntimeLoadRequest) bool {
+        const selftest_runs = switch (self.payload) {
+            .atomic64 => |payload| payload.selftest_runs,
+            .bitmap => |payload| payload.selftest_runs,
+            .kretprobe => |payload| payload.selftest_runs,
+        };
+        return self.provides_selftest_hook or selftest_runs == 0;
+    }
+
     pub fn keepsPreExecutionLifecycleBoundaryExplicit(self: RuntimeLoadRequest) bool {
         if (std.mem.eql(u8, self.entry_symbol, "module_init") or
             std.mem.eql(u8, self.exit_symbol, "module_exit"))
@@ -184,6 +193,7 @@ pub const RuntimeLoadRequest = struct {
             self.keepsInitExitContractExplicit() and
             self.keepsStageConsistentWithRuntimeSubstrate() and
             self.keepsAllocatorInitFlowConsistent() and
+            self.keepsSelftestHookConsistent() and
             self.keepsPreExecutionLifecycleBoundaryExplicit() and
             self.keepsLifecyclePayloadConsistent();
     }
@@ -269,6 +279,7 @@ test "runtime loader request keeps bitmap handoff state explicit" {
     try std.testing.expect(request.keepsInitExitContractExplicit());
     try std.testing.expect(request.keepsStageConsistentWithRuntimeSubstrate());
     try std.testing.expect(request.keepsAllocatorInitFlowConsistent());
+    try std.testing.expect(request.keepsSelftestHookConsistent());
     try std.testing.expect(request.keepsPreExecutionLifecycleBoundaryExplicit());
     try std.testing.expect(request.keepsLifecyclePayloadConsistent());
     try std.testing.expect(request.keepsSharedHandoffContractExplicit());
@@ -280,6 +291,7 @@ test "runtime loader request keeps bitmap handoff state explicit" {
     try std.testing.expect(waiting.isWaitingOnRuntimeSubstrate());
     try std.testing.expect(!waiting.isReleasedWithoutSubstrate());
     try std.testing.expect(waiting.keepsStageConsistentWithRuntimeSubstrate());
+    try std.testing.expect(waiting.keepsSelftestHookConsistent());
     try std.testing.expect(waiting.keepsPreExecutionLifecycleBoundaryExplicit());
     try std.testing.expectEqual(@as(u32, 4), waiting.payload.bitmap.weight);
 
@@ -292,6 +304,7 @@ test "runtime loader request keeps bitmap handoff state explicit" {
     try std.testing.expect(released.keepsInitExitContractExplicit());
     try std.testing.expect(released.keepsStageConsistentWithRuntimeSubstrate());
     try std.testing.expect(released.keepsAllocatorInitFlowConsistent());
+    try std.testing.expect(released.keepsSelftestHookConsistent());
     try std.testing.expect(released.keepsPreExecutionLifecycleBoundaryExplicit());
     try std.testing.expect(released.keepsLifecyclePayloadConsistent());
     try std.testing.expect(released.keepsSharedHandoffContractExplicit());
@@ -326,6 +339,7 @@ test "runtime loader request keeps atomic64 handoff state explicit" {
     try std.testing.expect(request.keepsInitExitContractExplicit());
     try std.testing.expect(request.keepsStageConsistentWithRuntimeSubstrate());
     try std.testing.expect(request.keepsAllocatorInitFlowConsistent());
+    try std.testing.expect(request.keepsSelftestHookConsistent());
     try std.testing.expect(request.keepsPreExecutionLifecycleBoundaryExplicit());
     try std.testing.expect(request.keepsLifecyclePayloadConsistent());
     try std.testing.expect(request.keepsSharedHandoffContractExplicit());
@@ -337,6 +351,7 @@ test "runtime loader request keeps atomic64 handoff state explicit" {
     try std.testing.expect(waiting.isWaitingOnRuntimeSubstrate());
     try std.testing.expect(!waiting.isReleasedWithoutSubstrate());
     try std.testing.expect(waiting.keepsStageConsistentWithRuntimeSubstrate());
+    try std.testing.expect(waiting.keepsSelftestHookConsistent());
     try std.testing.expect(waiting.keepsPreExecutionLifecycleBoundaryExplicit());
     try std.testing.expectEqual(@as(i64, 0x1111_2222_3333_4444), waiting.payload.atomic64.counter_snapshot);
 
@@ -349,6 +364,7 @@ test "runtime loader request keeps atomic64 handoff state explicit" {
     try std.testing.expect(released.keepsInitExitContractExplicit());
     try std.testing.expect(released.keepsStageConsistentWithRuntimeSubstrate());
     try std.testing.expect(released.keepsAllocatorInitFlowConsistent());
+    try std.testing.expect(released.keepsSelftestHookConsistent());
     try std.testing.expect(released.keepsPreExecutionLifecycleBoundaryExplicit());
     try std.testing.expect(released.keepsLifecyclePayloadConsistent());
     try std.testing.expect(released.keepsSharedHandoffContractExplicit());
@@ -395,6 +411,7 @@ test "runtime loader request keeps kretprobe handoff state explicit" {
     try std.testing.expect(request.keepsInitExitContractExplicit());
     try std.testing.expect(request.keepsStageConsistentWithRuntimeSubstrate());
     try std.testing.expect(request.keepsAllocatorInitFlowConsistent());
+    try std.testing.expect(request.keepsSelftestHookConsistent());
     try std.testing.expect(request.keepsPreExecutionLifecycleBoundaryExplicit());
     try std.testing.expect(request.keepsLifecyclePayloadConsistent());
     try std.testing.expect(request.keepsSharedHandoffContractExplicit());
@@ -404,6 +421,7 @@ test "runtime loader request keeps kretprobe handoff state explicit" {
     try std.testing.expect(waiting.isWaitingOnRuntimeSubstrate());
     try std.testing.expect(!waiting.isReleasedWithoutSubstrate());
     try std.testing.expect(waiting.keepsStageConsistentWithRuntimeSubstrate());
+    try std.testing.expect(waiting.keepsSelftestHookConsistent());
     try std.testing.expect(waiting.keepsPreExecutionLifecycleBoundaryExplicit());
     try std.testing.expectEqualStrings("register_kretprobe", waiting.payload.kretprobe.register_api);
 
@@ -416,6 +434,7 @@ test "runtime loader request keeps kretprobe handoff state explicit" {
     try std.testing.expect(released.keepsInitExitContractExplicit());
     try std.testing.expect(released.keepsStageConsistentWithRuntimeSubstrate());
     try std.testing.expect(released.keepsAllocatorInitFlowConsistent());
+    try std.testing.expect(released.keepsSelftestHookConsistent());
     try std.testing.expect(released.keepsPreExecutionLifecycleBoundaryExplicit());
     try std.testing.expect(released.keepsLifecyclePayloadConsistent());
     try std.testing.expect(released.keepsSharedHandoffContractExplicit());
@@ -500,6 +519,7 @@ test "runtime loader request preserves explicit command names across runtime-lan
         try std.testing.expect(request.command_name != null);
         try std.testing.expect(request.keepsCommandNameExplicit());
         try std.testing.expect(request.keepsInitExitContractExplicit());
+        try std.testing.expect(request.keepsSelftestHookConsistent());
         try std.testing.expect(request.keepsPreExecutionLifecycleBoundaryExplicit());
         try std.testing.expect(!request.isWaitingOnRuntimeSubstrate());
         try std.testing.expect(!request.isReleasedWithoutSubstrate());
@@ -516,6 +536,7 @@ test "runtime loader request preserves explicit command names across runtime-lan
         try std.testing.expect(waiting.keepsCommandNameExplicit());
         try std.testing.expect(waiting.keepsInitExitContractExplicit());
         try std.testing.expect(waiting.keepsStageConsistentWithRuntimeSubstrate());
+        try std.testing.expect(waiting.keepsSelftestHookConsistent());
         try std.testing.expect(waiting.keepsPreExecutionLifecycleBoundaryExplicit());
         try std.testing.expect(waiting.keepsLifecyclePayloadConsistent());
         try std.testing.expect(waiting.keepsSharedHandoffContractExplicit());
@@ -529,6 +550,7 @@ test "runtime loader request preserves explicit command names across runtime-lan
         try std.testing.expect(released.keepsCommandNameExplicit());
         try std.testing.expect(released.keepsInitExitContractExplicit());
         try std.testing.expect(released.keepsStageConsistentWithRuntimeSubstrate());
+        try std.testing.expect(released.keepsSelftestHookConsistent());
         try std.testing.expect(released.keepsPreExecutionLifecycleBoundaryExplicit());
         try std.testing.expect(released.keepsLifecyclePayloadConsistent());
         try std.testing.expect(released.keepsSharedHandoffContractExplicit());
@@ -559,6 +581,7 @@ test "runtime loader request rejects implicit init-exit and live lifecycle hando
         },
     };
     try std.testing.expect(!missing_exit.keepsInitExitContractExplicit());
+    try std.testing.expect(missing_exit.keepsSelftestHookConsistent());
     try std.testing.expect(missing_exit.keepsPreExecutionLifecycleBoundaryExplicit());
     try std.testing.expect(missing_exit.keepsStageConsistentWithRuntimeSubstrate());
     try std.testing.expect(!missing_exit.keepsLifecyclePayloadConsistent());
@@ -587,6 +610,7 @@ test "runtime loader request rejects implicit init-exit and live lifecycle hando
         },
     };
     try std.testing.expect(wrong_stage.keepsInitExitContractExplicit());
+    try std.testing.expect(wrong_stage.keepsSelftestHookConsistent());
     try std.testing.expect(wrong_stage.keepsPreExecutionLifecycleBoundaryExplicit());
     try std.testing.expect(!wrong_stage.keepsStageConsistentWithRuntimeSubstrate());
     try std.testing.expect(wrong_stage.keepsLifecyclePayloadConsistent());
@@ -616,9 +640,38 @@ test "runtime loader request rejects implicit init-exit and live lifecycle hando
     };
     try std.testing.expect(!empty_command_name.keepsCommandNameExplicit());
     try std.testing.expect(empty_command_name.keepsInitExitContractExplicit());
+    try std.testing.expect(empty_command_name.keepsSelftestHookConsistent());
     try std.testing.expect(empty_command_name.keepsPreExecutionLifecycleBoundaryExplicit());
     try std.testing.expect(empty_command_name.keepsLifecyclePayloadConsistent());
     try std.testing.expect(!empty_command_name.keepsSharedHandoffContractExplicit());
+
+    const missing_selftest_hook = RuntimeLoadRequest{
+        .module_name = "runtime_bitmap",
+        .command_name = null,
+        .anchor = "lib/test_bitmap.c",
+        .entry_symbol = "zigux_runtime_bitmap_init",
+        .exit_symbol = "zigux_runtime_bitmap_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = false,
+        .handoff_stage = .waiting_on_runtime_substrate,
+        .allocator_handoff = allocatorHandoffFor(.kernel_heap),
+        .payload = .{
+            .bitmap = .{
+                .first_set = 0,
+                .first_zero = 1,
+                .weight = 4,
+                .nbits = 128,
+                .init_runs = 1,
+                .selftest_runs = 1,
+                .exit_runs = 0,
+            },
+        },
+    };
+    try std.testing.expect(missing_selftest_hook.keepsInitExitContractExplicit());
+    try std.testing.expect(!missing_selftest_hook.keepsSelftestHookConsistent());
+    try std.testing.expect(missing_selftest_hook.keepsPreExecutionLifecycleBoundaryExplicit());
+    try std.testing.expect(missing_selftest_hook.keepsLifecyclePayloadConsistent());
+    try std.testing.expect(!missing_selftest_hook.keepsSharedHandoffContractExplicit());
 
     const live_initcall_symbol = RuntimeLoadRequest{
         .module_name = "runtime_bitmap",
@@ -643,6 +696,7 @@ test "runtime loader request rejects implicit init-exit and live lifecycle hando
         },
     };
     try std.testing.expect(live_initcall_symbol.keepsInitExitContractExplicit());
+    try std.testing.expect(live_initcall_symbol.keepsSelftestHookConsistent());
     try std.testing.expect(!live_initcall_symbol.keepsPreExecutionLifecycleBoundaryExplicit());
     try std.testing.expect(live_initcall_symbol.keepsStageConsistentWithRuntimeSubstrate());
     try std.testing.expect(live_initcall_symbol.keepsLifecyclePayloadConsistent());
@@ -678,6 +732,7 @@ test "runtime loader request rejects implicit init-exit and live lifecycle hando
         },
     };
     try std.testing.expect(live_registration_label.keepsInitExitContractExplicit());
+    try std.testing.expect(live_registration_label.keepsSelftestHookConsistent());
     try std.testing.expect(!live_registration_label.keepsPreExecutionLifecycleBoundaryExplicit());
     try std.testing.expect(live_registration_label.keepsStageConsistentWithRuntimeSubstrate());
     try std.testing.expect(live_registration_label.keepsLifecyclePayloadConsistent());
@@ -713,6 +768,7 @@ test "runtime loader request rejects implicit init-exit and live lifecycle hando
         },
     };
     try std.testing.expect(released_with_exit_counter.keepsInitExitContractExplicit());
+    try std.testing.expect(released_with_exit_counter.keepsSelftestHookConsistent());
     try std.testing.expect(released_with_exit_counter.keepsPreExecutionLifecycleBoundaryExplicit());
     try std.testing.expect(released_with_exit_counter.keepsStageConsistentWithRuntimeSubstrate());
     try std.testing.expect(!released_with_exit_counter.keepsLifecyclePayloadConsistent());
@@ -739,6 +795,7 @@ test "runtime loader request rejects implicit init-exit and live lifecycle hando
     }).waitingOnRuntimeSubstrate();
     try std.testing.expect(!no_substrate.isWaitingOnRuntimeSubstrate());
     try std.testing.expectEqual(LoaderStage.prepared, no_substrate.handoff_stage);
+    try std.testing.expect(no_substrate.keepsSelftestHookConsistent());
     try std.testing.expect(no_substrate.keepsPreExecutionLifecycleBoundaryExplicit());
     try std.testing.expect(no_substrate.keepsStageConsistentWithRuntimeSubstrate());
 }
