@@ -208,6 +208,8 @@ test "phase3 mmio wrapper uses bounded volatile access" {
 test "phase3 mmio wrapper consumes decoded interop policy" {
     var regs32 = [_]u32{ 0, 0 };
     const base32 = narrow.addressOf(&regs32[0]);
+    var regs64 = [_]u64{ 0, 0 };
+    const base64 = narrow.addressOf(&regs64[0]);
 
     const mmio_policy = try interop_policy.decode(.{
         .panic_mode = @intFromEnum(abi.PanicMode.abort),
@@ -231,11 +233,18 @@ test "phase3 mmio wrapper consumes decoded interop policy" {
     try write32Policy(mmio_policy, base32, @sizeOf(u32), 0xaabbccdd);
     try std.testing.expectEqual(@as(u32, 0xaabbccdd), regs32[1]);
     try std.testing.expectEqual(@as(u32, 0xaabbccdd), try read32Policy(mmio_policy, base32, @sizeOf(u32)));
+    try write64Policy(mmio_policy, base64, @sizeOf(u64), 0x0123_4567_89ab_cdef);
+    try std.testing.expectEqual(@as(u64, 0x0123_4567_89ab_cdef), regs64[1]);
+    try std.testing.expectEqual(@as(u64, 0x0123_4567_89ab_cdef), try read64Policy(mmio_policy, base64, @sizeOf(u64)));
 
     try std.testing.expectError(error.UnsafeScopeDenied, write32Policy(raw_pointer_policy, base32, 0, 1));
     try std.testing.expectError(error.UnsafeScopeDenied, read32Policy(raw_pointer_policy, base32, 0));
     try std.testing.expectError(error.UnsafeScopeDenied, write32Policy(none_policy, base32, 0, 1));
     try std.testing.expectError(error.UnsafeScopeDenied, read32Policy(none_policy, base32, 0));
+    try std.testing.expectError(error.UnsafeScopeDenied, write64Policy(raw_pointer_policy, base64, 0, 1));
+    try std.testing.expectError(error.UnsafeScopeDenied, read64Policy(raw_pointer_policy, base64, 0));
+    try std.testing.expectError(error.UnsafeScopeDenied, write64Policy(none_policy, base64, 0, 1));
+    try std.testing.expectError(error.UnsafeScopeDenied, read64Policy(none_policy, base64, 0));
 }
 
 test "phase3 mmio wrapper keeps declared scope explicit across widths" {
