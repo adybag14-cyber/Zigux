@@ -107,6 +107,8 @@
       "standard_decode_vectors": 22,
       "variant_decode_vectors": 16,
       "invalid_decode_vectors": 22,
+      "perf_payload_cases": 2,
+      "perf_replay_cases": 10,
       "c_parity_self_test_cases": 8,
       "c_parity_cases": 106
     },
