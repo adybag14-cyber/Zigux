@@ -52,6 +52,9 @@ The shared handoff packet also exposes a narrower runtime-loader metadata surfac
 - `handoff_stage`
 - `allocator_handoff`
 
+The same shared request also keeps a tagged `payload` union limited to the currently landed `atomic64`, `bitmap`, and `kretprobe` loader lanes.
+All three landed loader-plan files currently emit that shared request with `command_name = null`, so the optional command-name field is still reserved for a future shared activation surface rather than exercised by the shipped starter packet.
+
 That is real metadata progress, but it is not yet loadable-module metadata parity.
 
 The current survey packet is pinned to `master` commit `5a2398b1223d2c1e39c84c500f684244f4182eff`.
@@ -64,6 +67,7 @@ Repo reality today is still bounded and review-first:
 - the four runtime starters each ship one explicit `ModuleDescriptor`
 - the shared runtime loader currently exposes three tagged loader lanes: `atomic64`, `bitmap`, and `kretprobe`
 - the three landed loader-plan files stay at `samples/zigux/runtime_atomic64_loader.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and `samples/zigux/runtime_kretprobe_loader.zig`
+- those three landed loader-plan files currently project `command_name = null` into `RuntimeLoadRequest`, so the optional field remains a shared contract marker rather than live runtime command metadata
 - `samples/zigux/runtime_trace_events.zig` remains intentionally sample-only, and `samples/zigux/runtime_trace_events_loader.zig` is still absent
 - `Documentation/zigux/phase9-runtime-loader-gap-survey.md` already keeps that missing trace-events loader sibling explicit as a blocked runtime-substrate boundary
 
