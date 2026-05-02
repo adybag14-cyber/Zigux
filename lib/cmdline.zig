@@ -7,7 +7,8 @@ pub fn getOption(str: *[]const u8, pint: ?*i32) u8 {
         return 0;
     }
 
-    var parsed_value: i64 = 0;
+    var parsed_bits: u64 = 0;
+    var negative = false;
     var consumed: usize = 0;
 
     if (current[0] == '-') {
@@ -26,7 +27,8 @@ pub fn getOption(str: *[]const u8, pint: ?*i32) u8 {
             str.* = current[1..];
             return 0;
         };
-        parsed_value = -@as(i64, @intCast(parsed.value));
+        parsed_bits = parsed.value;
+        negative = true;
         consumed = 1 + parsed.len;
     } else {
         const parsed = parseUnsignedPrefix(current) orelse {
@@ -35,12 +37,13 @@ pub fn getOption(str: *[]const u8, pint: ?*i32) u8 {
             }
             return 0;
         };
-        parsed_value = @intCast(parsed.value);
+        parsed_bits = parsed.value;
         consumed = parsed.len;
     }
 
+    const value = wrapU64ToI32(parsed_bits, negative);
     if (pint) |out| {
-        out.* = truncateToI32(parsed_value);
+        out.* = value;
     }
 
     const rest = current[consumed..];
@@ -291,14 +294,14 @@ fn parseSignedPrefix(s: []const u8) ?struct { value: i64, len: usize } {
     if (s[0] == '-') {
         const parsed = parseUnsignedPrefix(s[1..]) orelse return null;
         return .{
-            .value = -@as(i64, @intCast(parsed.value)),
+            .value = wrapUnsignedToI64(parsed.value, true),
             .len = 1 + parsed.len,
         };
     }
 
     const parsed = parseUnsignedPrefix(s) orelse return null;
     return .{
-        .value = @intCast(parsed.value),
+        .value = wrapUnsignedToI64(parsed.value, false),
         .len = parsed.len,
     };
 }
@@ -325,9 +328,15 @@ fn memSuffixShift(ch: u8) u6 {
     };
 }
 
-fn truncateToI32(value: i64) i32 {
-    const bits: u32 = @truncate(@as(u64, @bitCast(value)));
+fn wrapUnsignedToI64(value: u64, negative: bool) i64 {
+    const bits = if (negative) (0 -% value) else value;
     return @bitCast(bits);
+}
+
+fn wrapU64ToI32(value: u64, negative: bool) i32 {
+    const bits = if (negative) (0 -% value) else value;
+    const truncated: u32 = @truncate(bits);
+    return @bitCast(truncated);
 }
 
 fn skipSpaces(s: []u8) []u8 {
@@ -698,4 +707,18 @@ test "getOptions matches malformed-range counting from the Linux KUnit corpus" {
     for (cases) |case| {
         try expectGetOptionsCase(case);
     }
+}
+
+test "large parsed integers wrap like the C helper instead of trapping Zig safety checks" {
+    var positive_rest: []const u8 = "18446744073709551615,tail";
+    var positive_value: i32 = 0;
+    try std.testing.expectEqual(@as(u8, 2), getOption(&positive_rest, &positive_value));
+    try std.testing.expectEqual(@as(i32, -1), positive_value);
+    try std.testing.expectEqualStrings("tail", positive_rest);
+
+    var negative_rest: []const u8 = "-18446744073709551615,tail";
+    var negative_value: i32 = 0;
+    try std.testing.expectEqual(@as(u8, 2), getOption(&negative_rest, &negative_value));
+    try std.testing.expectEqual(@as(i32, 1), negative_value);
+    try std.testing.expectEqualStrings("tail", negative_rest);
 }
