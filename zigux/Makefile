@@ -5,7 +5,7 @@ PHONY += phase5-validate phase5-test phase5
 PHONY += phase6-validate phase6-test phase6-perf phase6-base64-perf phase6-bsearch-perf phase6-checksum-perf phase6-hexdump-perf phase6
 PHONY += phase7-validate phase7-test phase7
 PHONY += phase8-validate phase8-exec-cmd-test phase8-help-test phase8-kallsyms-test phase8-libbpf-segments-test phase8-perf-buffer-poll-test phase8-test phase8
-PHONY += phase9-validate phase9-test phase9-loader-gap-survey phase9-kretprobe-survey phase9-trace-events-survey phase9
+PHONY += phase9-validate phase9-test phase9-loader-gap-survey phase9-non-owner-boundary-survey phase9-kretprobe-survey phase9-trace-events-survey phase9
 PHONY += phase10-validate phase10-test phase10
 PHONY += phase11-validate phase11-test phase11-hvc-survey phase11
 PHONY += phase12-validate phase12-test phase12
@@ -206,6 +206,9 @@ phase9-test:
 
 phase9-loader-gap-survey:
 	cd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_loader_gap_survey.zig
+
+phase9-non-owner-boundary-survey:
+	cd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_loader_non_owner_boundary_survey.zig
 
 phase9-kretprobe-survey:
 	cd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_kretprobe_survey.zig
