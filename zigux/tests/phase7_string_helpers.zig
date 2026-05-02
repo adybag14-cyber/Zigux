@@ -281,6 +281,23 @@ test "phase 7 kasprintfStrarrayRaw keeps direct C-style pointer ownership explic
     try std.testing.expectEqual(@as(?[*:0]u8, null), raw[3]);
 }
 
+test "phase 7 kasprintfStrarrayRaw keeps zero-count and first-NUL prefixes explicit" {
+    const prefixed = try string_helpers.kasprintfStrarrayRaw(std.testing.allocator, "tty\x00ignored", 2);
+    defer string_helpers.kfreeStrarrayRaw(std.testing.allocator, prefixed, 2);
+
+    try std.testing.expectEqualStrings("tty-0", std.mem.span(prefixed[0].?));
+    try std.testing.expectEqualStrings("tty-1", std.mem.span(prefixed[1].?));
+    try std.testing.expectEqual(@as(?[*:0]u8, null), prefixed[2]);
+
+    const empty = try string_helpers.kasprintfStrarrayRaw(std.testing.allocator, "cpu", 0);
+    defer string_helpers.kfreeStrarrayRaw(std.testing.allocator, empty, 0);
+
+    try std.testing.expectEqual(@as(usize, 1), empty.len);
+    try std.testing.expectEqual(@as(?[*:0]u8, null), empty[0]);
+
+    string_helpers.kfreeStrarrayRaw(std.testing.allocator, null, 0);
+}
+
 test "phase 7 kfreeStrarrayRaw keeps counted partial teardown safe" {
     const raw = try std.testing.allocator.alloc(?[*:0]u8, 4);
     @memset(raw, null);
