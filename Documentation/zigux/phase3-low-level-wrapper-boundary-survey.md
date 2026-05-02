@@ -52,7 +52,7 @@ The current tree already carries a real bounded low-level wrapper packet:
 - `zigux/helpers/barrier.zig` currently limits the approved barrier surface to `acquire`, `release`, and `full`, each expressed through a throwaway ordered atomic probe so the helper does not keep hidden shared state.
 - `zigux/helpers/mmio.zig` currently limits the approved MMIO surface to `range`, `read8`, `read16`, `read32`, `read64`, `write8`, `write16`, `write32`, and `write64`, plus the scoped `read8`, `write8`, `read16`, `write16`, `read32`, `write32`, `read64`, and `write64` entry points that keep volatile pointer formation routed back through the declared narrow unsafe layer.
 - `zigux/tests/phase3_low_level_wrappers_build.zig` and `zigux/tests/phase3_low_level_wrappers.zig` keep that packet reviewable on one focused compile-and-test path.
-- `zigux/tests/phase3_low_level_wrappers.zig` now keeps the strong and weak compare-exchange replay, barrier probe, denied-scope checks, width-specific direct and scoped 32-bit and 64-bit MMIO coverage, misalignment failures, overflow failures, and the shared `MmioRange` layout assertion reviewable without having to infer them from the broader `phase3_abi` bundle alone.
+- `zigux/tests/phase3_low_level_wrappers.zig` now keeps the strong and weak compare-exchange replay, barrier probe, denied-scope checks, width-specific direct and scoped 8-bit, 16-bit, 32-bit, and 64-bit MMIO coverage, misalignment failures, overflow failures, and the shared `MmioRange` layout assertion reviewable without having to infer them from the broader `phase3_abi` bundle alone.
 
 This is real roadmap-backed progress.
 It is also still a deliberately narrow packet:
