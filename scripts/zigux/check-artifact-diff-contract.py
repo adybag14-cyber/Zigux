@@ -9,6 +9,30 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 ARTIFACT_DIFF = ROOT / 'scripts' / 'zigux' / 'artifact_diff.py'
+EXPECTED_CONTRACT_CASES = [
+    'helper_self_test',
+    'text_pass',
+    'text_pass_repeat',
+    'text_mismatch',
+    'text_missing_expected',
+    'text_missing_actual',
+    'text_missing_both',
+    'json_pass',
+    'json_mismatch',
+    'json_mismatch_repeat',
+    'json_missing_expected',
+    'json_missing_actual',
+    'json_missing_both',
+    'json_invalid_expected',
+    'json_invalid_actual',
+    'json_invalid_both',
+    'sha256_pass',
+    'sha256_missing_expected',
+    'sha256_missing_actual',
+    'sha256_missing_both',
+    'sha256_drift',
+    'sha256_drift_repeat',
+]
 
 
 def run_contract_case(
@@ -327,9 +351,15 @@ def main() -> int:
         covered_cases.append('sha256_drift')
         covered_cases.append('sha256_drift_repeat')
 
+    if covered_cases != EXPECTED_CONTRACT_CASES:
+        raise AssertionError(
+            'artifact-diff contract case catalog drifted: '
+            f'expected {EXPECTED_CONTRACT_CASES}, got {covered_cases}'
+        )
+
     print('ARTIFACT_DIFF_CONTRACT=pass')
-    print(f'ARTIFACT_DIFF_CONTRACT_CASE_COUNT={len(covered_cases)}')
-    print('ARTIFACT_DIFF_CONTRACT_CASES=' + ','.join(covered_cases))
+    print(f'ARTIFACT_DIFF_CONTRACT_CASE_COUNT={len(EXPECTED_CONTRACT_CASES)}')
+    print('ARTIFACT_DIFF_CONTRACT_CASES=' + ','.join(EXPECTED_CONTRACT_CASES))
     return 0
 
 
