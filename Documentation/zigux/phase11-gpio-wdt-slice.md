@@ -11,6 +11,7 @@ The starter stays intentionally narrow:
 - adds an explicit `summarizeTeardown()` helper so eternal-ping disable ordering, toggle-versus-level disable fallout, and `always-running` versus `nowayout` stop failure modes stay reviewable before any unregister path exists
 - reports a probe-time summary for requested GPIO line mode, `always-running` startup behavior, `nowayout`, timeout init, parent linkage, and stop-on-reboot bookkeeping before watchdog registration
 - keeps the `GPIO Watchdog` watchdog-info identity plus the bounded `WDIOF_SETTIMEOUT`, `WDIOF_MAGICCLOSE`, and `WDIOF_KEEPALIVEPING` contract explicit through a small metadata summary instead of leaving that starter surface implicit inside the later register-device packet
+- keeps the tiny platform-driver shell explicit through `platformDriverIdentitySummary()` so the `gpio-wdt` driver name, the `linux,wdt-gpio` OF match entry, the `gpio_wdt_probe()` callback, and the default `module_platform_driver()` versus `CONFIG_GPIO_WATCHDOG_ARCH_INITCALL` override boundary stay reviewable without claiming live registration
 - distinguishes watchdog-core `nowayout` stop blocking from the driver's own `always-running` hardware behavior so teardown-facing stop review does not blur policy gating with hardware gating
 - adds a tiny registration-facing handoff summary so the starter records what startup state, stop policy, timeout init, and reboot bookkeeping reach `devm_watchdog_register_device()` without claiming the registration call itself
 - records the first chosen registration surface and validation focus so the lane stays explicitly parked at watchdog-device metadata planning instead of overclaiming a real register-device call
@@ -19,4 +20,4 @@ The starter stays intentionally narrow:
 
 This slice does not claim platform-driver registration, GPIO descriptor lookup, watchdog-core registration, reboot integration, module parameter wiring beyond summary bookkeeping, or live hardware validation yet.
 
-The next honest bounded step inside the same Phase 11 lane is to leave the starter parked unless fresh repo inspection finds another comparably small teardown or failure-mode drift inside `gpio_wdt`. Keep descriptor-backed preflight, reboot glue, and broader watchdog registration work blocked from this slice.
+The next honest bounded step inside the same Phase 11 lane is to leave the starter parked unless fresh repo inspection finds another comparably small simple-driver, teardown, or failure-mode drift inside `gpio_wdt`. Keep descriptor-backed preflight, reboot glue, and broader watchdog registration work blocked from this slice.
