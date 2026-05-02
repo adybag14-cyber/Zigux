@@ -23,6 +23,7 @@ const SurveySummary = struct {
     review_checklist_has_concurrency_audit_prompt: bool,
     smoke_note_records_owner_and_rollback: bool,
     smoke_note_records_risk_bundle: bool,
+    smoke_note_records_review_blocker_status: bool,
     smoke_note_records_rollback_threshold: bool,
     smoke_note_records_fallback_path: bool,
     smoke_note_records_return_to_blocked_triggers: bool,
@@ -181,6 +182,7 @@ test "phase14 shared smoke manifest records the current evidence bundle" {
     try std.testing.expect(manifest.survey_summary.review_checklist_has_concurrency_audit_prompt);
     try std.testing.expect(manifest.survey_summary.smoke_note_records_owner_and_rollback);
     try std.testing.expect(manifest.survey_summary.smoke_note_records_risk_bundle);
+    try std.testing.expect(manifest.survey_summary.smoke_note_records_review_blocker_status);
     try std.testing.expect(manifest.survey_summary.smoke_note_records_rollback_threshold);
     try std.testing.expect(manifest.survey_summary.smoke_note_records_fallback_path);
     try std.testing.expect(manifest.survey_summary.smoke_note_records_return_to_blocked_triggers);
