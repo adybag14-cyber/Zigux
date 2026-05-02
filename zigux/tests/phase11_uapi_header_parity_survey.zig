@@ -182,6 +182,7 @@ test "phase11 shared header parity manifest records the bounded layout checkpoin
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hvc_console.zig") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "default notifier_*_irq() helper exports") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hv_ops callback booleans") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "callback-signature proofs") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-dw-wdt-watchdog-info-layout-assert")) {
@@ -342,6 +343,8 @@ test "phase11 shared header parity survey keeps the header boundary explicit" {
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "backed by code instead of prose alone") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase11_hvc_console_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared-versus-dedicated replay") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "three driver-local ABI checkpoints") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "callback-signature proofs") != null);
     try std.testing.expect(std.mem.indexOf(u8, watchdog_uapi_header, "struct watchdog_info") != null);
     try std.testing.expect(std.mem.indexOf(u8, watchdog_uapi_header, "__u32 options") != null);
     try std.testing.expect(std.mem.indexOf(u8, watchdog_uapi_header, "__u32 firmware_version") != null);
@@ -396,6 +399,10 @@ test "phase11 shared header parity survey keeps the header boundary explicit" {
     try std.testing.expect(std.mem.indexOf(u8, hvc_survey, "layout_assert.assertOffset(HvOpsLayout, \"tiocmget\", 48);") != null);
     try std.testing.expect(std.mem.indexOf(u8, hvc_survey, "layout_assert.assertOffset(HvOpsLayout, \"tiocmset\", 56);") != null);
     try std.testing.expect(std.mem.indexOf(u8, hvc_survey, "layout_assert.assertOffset(HvOpsLayout, \"dtr_rts\", 64);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_survey, "test \"phase11 hvc console survey keeps bounded hv_ops callback signature proofs\" {") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_survey, "assertExactType(@FieldType(HvOpsLayout, \"get_chars\"), ?*const fn (u32, [*]u8, usize) callconv(.c) isize);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_survey, "assertExactType(@FieldType(HvOpsLayout, \"notifier_add\"), ?*const fn (*HvcStruct, c_int) callconv(.c) c_int);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_survey, "assertExactType(@FieldType(HvOpsLayout, \"dtr_rts\"), ?*const fn (*HvcStruct, bool) callconv(.c) void);") != null);
     try std.testing.expectEqual(@as(usize, 11), inventory.build_test_names.len);
     try std.testing.expectEqual(@as(usize, 10), inventory.shared_test_depend_steps.len);
     try std.testing.expectEqual(@as(usize, 17), inventory.module_root_source_files.len);
