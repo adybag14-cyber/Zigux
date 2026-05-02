@@ -125,7 +125,7 @@
       "kunit_random_prefix_vectors": 6
     },
     "hexdump": {
-      "parity_vectors": 9,
+      "parity_vectors": 10,
       "overflow_vectors": 4,
       "required_length_vectors": 9,
       "perf_vectors": 4,
