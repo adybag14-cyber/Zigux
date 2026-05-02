@@ -33,11 +33,13 @@ pub const ReadyBufferSummary = struct {
 
 pub const ProcessRecordObservation = struct {
     result: i32 = 0,
+    records_processed: usize = 0,
 };
 
 pub const ProcessRecordSummary = struct {
     attempted_count: usize,
     completed_count: usize,
+    processed_record_count: usize,
     first_error_index: ?usize,
     first_error: ?i32,
 };
@@ -111,23 +113,27 @@ pub fn summarizeReadyBuffers(buffers: []const BufferObservation) ReadyBufferSumm
 
 pub fn summarizeProcessRecords(observations: []const ProcessRecordObservation) ProcessRecordSummary {
     var completed_count: usize = 0;
+    var processed_record_count: usize = 0;
 
     for (observations, 0..) |observation, index| {
         if (observation.result != 0) {
             return .{
                 .attempted_count = index + 1,
                 .completed_count = completed_count,
+                .processed_record_count = processed_record_count,
                 .first_error_index = index,
                 .first_error = observation.result,
             };
         }
 
         completed_count += 1;
+        processed_record_count += observation.records_processed;
     }
 
     return .{
         .attempted_count = observations.len,
         .completed_count = completed_count,
+        .processed_record_count = processed_record_count,
         .first_error_index = null,
         .first_error = null,
     };
@@ -272,25 +278,27 @@ test "summarizePoll keeps timeout interruption and missing-ready mismatches expl
     );
 }
 
-test "summarizeProcessRecords keeps perf_buffer__process_records fail-fast ordering explicit" {
+test "summarizeProcessRecords keeps perf_buffer__process_records fail-fast ordering and processed record totals explicit" {
     const failure = summarizeProcessRecords(&.{
-        .{},
-        .{},
+        .{ .records_processed = 4 },
+        .{ .records_processed = 3 },
         .{ .result = -22 },
-        .{ .result = -5 },
+        .{ .result = -5, .records_processed = 9 },
     });
     try std.testing.expectEqual(@as(usize, 3), failure.attempted_count);
     try std.testing.expectEqual(@as(usize, 2), failure.completed_count);
+    try std.testing.expectEqual(@as(usize, 7), failure.processed_record_count);
     try std.testing.expectEqual(@as(?usize, 2), failure.first_error_index);
     try std.testing.expectEqual(@as(?i32, -22), failure.first_error);
 
     const success = summarizeProcessRecords(&.{
-        .{},
-        .{},
-        .{},
+        .{ .records_processed = 1 },
+        .{ .records_processed = 2 },
+        .{ .records_processed = 3 },
     });
     try std.testing.expectEqual(@as(usize, 3), success.attempted_count);
     try std.testing.expectEqual(@as(usize, 3), success.completed_count);
+    try std.testing.expectEqual(@as(usize, 6), success.processed_record_count);
     try std.testing.expectEqual(@as(?usize, null), success.first_error_index);
     try std.testing.expectEqual(@as(?i32, null), success.first_error);
 }
