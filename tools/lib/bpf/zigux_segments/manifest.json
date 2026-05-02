@@ -79,17 +79,6 @@
       "why_now": "The CPU mask parser is self-contained text processing that future perf-buffer and feature probes can share, and the landed helper now also carries the bounded chunk-reader interface plus the same automatic perf-buffer CPU-budget clamp that libbpf applies before it opens per-CPU buffers, which makes it a good first real port after the survey scaffold."
     },
     {
-      "id": "P8-L15-S12",
-      "slug": "perf-buffer-poll-helper",
-      "status": "starter_landed",
-      "kind": "helper_first",
-      "anchor_ranges": [
-        "tools/lib/bpf/libbpf.c:14111-14378"
-      ],
-      "zigux_destination": "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
-      "why_now": "The bounded wait-result and ready-buffer bookkeeping surface inside `perf_buffer__poll(timeout_ms)` stays reviewable below epoll-backed registration, online CPU routing, interrupt delivery, and timer-sensitive behavior, so it can land as a helper-first slice without claiming direct perf-buffer runtime parity."
-    },
-    {
       "id": "P8-L15-S04",
       "slug": "type-name-helpers",
       "status": "starter_landed",
