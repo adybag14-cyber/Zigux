@@ -631,6 +631,15 @@ def run_self_test() -> int:
         build_self_test_tree(root)
         snapshot_path = root / SNAPSHOT_FIXTURE_PATH
         snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
+        snapshot["files"] = {"unexpected": True}
+        snapshot_path.write_text(json.dumps(snapshot, indent=2) + "\n", encoding="utf-8")
+        missing = check_packet(root)
+        if "snapshot:files" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:snapshot_files_container_detection")
+
+        build_self_test_tree(root)
+        snapshot_path = root / SNAPSHOT_FIXTURE_PATH
+        snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
         snapshot["files"][0]["bytes"] = int(snapshot["files"][0]["bytes"]) + 1
         snapshot_path.write_text(json.dumps(snapshot, indent=2) + "\n", encoding="utf-8")
         missing = check_packet(root)
@@ -794,6 +803,15 @@ def run_self_test() -> int:
         build_self_test_tree(root)
         manifest_path = root / TRACKED_PATHS[0]
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["rollback_contract"] = ["unexpected"]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        missing = check_packet(root)
+        if "manifest:rollback_contract" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:rollback_contract_container_detection")
+
+        build_self_test_tree(root)
+        manifest_path = root / TRACKED_PATHS[0]
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["rollback_contract"]["reversible_delivery_evidence"] = [
             evidence
             for evidence in manifest["rollback_contract"]["reversible_delivery_evidence"]
@@ -838,6 +856,15 @@ def run_self_test() -> int:
         missing = check_packet(root)
         if "manifest:survey_summary:preexisting_phase12_packet_checker_present" not in missing:
             raise SystemExit("phase12-libbpf-packet:self-test:survey_summary_detection")
+
+        build_self_test_tree(root)
+        manifest_path = root / TRACKED_PATHS[0]
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["survey_summary"] = ["unexpected"]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        missing = check_packet(root)
+        if "manifest:survey_summary" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:survey_summary_container_detection")
 
         build_self_test_tree(root)
         legacy_manifest_path = root / TRACKED_PATHS[4]
@@ -965,7 +992,7 @@ def run_self_test() -> int:
             raise SystemExit("phase12-libbpf-packet:self-test:legacy_surveyed_commit_hex_detection")
 
         print("PHASE12_LIBBPF_PACKET_SELF_TEST=pass")
-        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=40")
+        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=43")
     return 0
 
 
