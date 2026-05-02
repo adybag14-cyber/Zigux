@@ -190,6 +190,26 @@ def run_self_test() -> int:
                     "fn scopeFromPolicy(policy: interop_policy.DecodedInteropPolicy) narrow.ScopeError!narrow.UnsafeScopeTag {",
                     "    _ = policy;",
                     "}",
+                    "pub fn writeScopedWithPolicy(",
+                    "pub fn read32Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u32 {",
+                    "    _ = policy; _ = base_addr; _ = offset; }",
+                    "pub fn write32Policy(",
+                    'test "phase3 mmio wrapper consumes decoded interop policy"',
+                    "",
+                )
+            ),
+        )
+        issues = validate(root)
+        assert 'missing_mmio_snippet:pub fn readScopedWithPolicy(' in issues
+
+        _write(
+            root,
+            MMIO_REL,
+            "\n".join(
+                (
+                    "fn scopeFromPolicy(policy: interop_policy.DecodedInteropPolicy) narrow.ScopeError!narrow.UnsafeScopeTag {",
+                    "    _ = policy;",
+                    "}",
                     "pub fn readScopedWithPolicy(",
                     "pub fn writeScopedWithPolicy(",
                     "pub fn read32Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u32 {",
