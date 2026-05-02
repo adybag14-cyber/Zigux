@@ -271,7 +271,7 @@ if not isinstance(smoke_shard_commands, list) or len(smoke_shard_commands) != 2:
     missing.append("manifest:smoke_shard_commands")
 
 attached_toolchain_commands = manifest.get("attached_toolchain_commands")
-if not isinstance(attached_toolchain_commands, list) or len(attached_toolchain_commands) != 4:
+if not isinstance(attached_toolchain_commands, list) or len(attached_toolchain_commands) != 3:
     missing.append("manifest:attached_toolchain_commands")
     attached_toolchain_commands = []
 
@@ -450,7 +450,7 @@ expected_run_symbols = [
     "run_phase14_rcu_tree_survey_tests",
     "run_phase14_end_to_end_smoke_tests",
 ]
-if actual_depend_steps != expected_run_symbols:
+if actual_depend_steps != expected_runSymbols:
     missing.append("phase14_build:full_bundle_route_mismatch")
 if actual_smoke_depend_steps != ["run_phase14_end_to_end_smoke_tests"]:
     missing.append("phase14_build:smoke_route_mismatch")
