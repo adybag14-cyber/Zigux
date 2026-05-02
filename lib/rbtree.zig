@@ -932,6 +932,74 @@ test "rbtree iterateMatches streams duplicate-key ranges" {
     try std.testing.expectEqual(@as(?*Node, null), missing.next());
 }
 
+test "rbtree reverse duplicate helpers stream from last match back to first" {
+    const Entry = struct {
+        key: i32,
+        serial: i32,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            if (lhs_entry.key != rhs_entry.key) {
+                return lhs_entry.key < rhs_entry.key;
+            }
+            return lhs_entry.serial < rhs_entry.serial;
+        }
+    }.compare;
+
+    const cmp = struct {
+        fn compare(key: i32, node: *const Node) i32 {
+            const entry: *const Entry = @fieldParentPtr("node", node);
+            return orderToInt(std.math.order(key, entry.key));
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 10, .serial = 0 },
+        .{ .key = 20, .serial = 0 },
+        .{ .key = 10, .serial = 1 },
+        .{ .key = 5, .serial = 0 },
+        .{ .key = 10, .serial = 2 },
+        .{ .key = 15, .serial = 0 },
+    };
+    var root = Root.init();
+
+    for (&entries) |*entry| {
+        add(&entry.node, &root, less);
+    }
+
+    const last_match = findLast(@as(i32, 10), &root, cmp) orelse return error.TestUnexpectedResult;
+    const last_entry: *const Entry = @fieldParentPtr("node", last_match);
+    try std.testing.expectEqual(@as(i32, 2), last_entry.serial);
+
+    const middle_match = prevMatch(@as(i32, 10), last_match, cmp) orelse return error.TestUnexpectedResult;
+    const middle_entry: *const Entry = @fieldParentPtr("node", middle_match);
+    try std.testing.expectEqual(@as(i32, 1), middle_entry.serial);
+
+    const first_match = prevMatch(@as(i32, 10), middle_match, cmp) orelse return error.TestUnexpectedResult;
+    const first_entry: *const Entry = @fieldParentPtr("node", first_match);
+    try std.testing.expectEqual(@as(i32, 0), first_entry.serial);
+    try std.testing.expectEqual(@as(?*Node, null), prevMatch(@as(i32, 10), first_match, cmp));
+
+    var iterator = iterateMatchesReverse(@as(i32, 10), &root, cmp);
+    var serials: [3]i32 = undefined;
+    var count: usize = 0;
+    while (iterator.next()) |match| {
+        const entry: *const Entry = @fieldParentPtr("node", match);
+        serials[count] = entry.serial;
+        count += 1;
+    }
+
+    try std.testing.expectEqual(@as(usize, 3), count);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 2, 1, 0 }, serials[0..count]);
+
+    var missing = iterateMatchesReverse(@as(i32, 99), &root, cmp);
+    try std.testing.expectEqual(@as(?*Node, null), missing.next());
+}
+
 test "rbtree findAdd inserts missing nodes and returns duplicate matches" {
     const Entry = struct {
         key: i32,
