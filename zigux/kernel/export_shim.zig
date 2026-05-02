@@ -2,8 +2,12 @@ const std = @import("std");
 const abi = @import("abi_bindings");
 const uapi_version = @import("uapi_version");
 
+pub fn canonicalHeader(flags: u16) abi.BoundaryHeader {
+    return uapi_version.canonicalHeader(flags);
+}
+
 pub fn header(flags: u16) abi.BoundaryHeader {
-    return uapi_version.boundaryHeader(flags);
+    return canonicalHeader(flags);
 }
 
 pub fn isCompatibleHeader(boundary_header: abi.BoundaryHeader) bool {
@@ -58,12 +62,14 @@ test "phase3 export shim keeps failure encoding explicit" {
     try std.testing.expectEqual(@as(u16, @intFromEnum(abi.Facility.helpers)), failure.facility);
     try std.testing.expectEqual(@as(u16, abi.STATUS_FLAG_ERROR), failure.flags);
 
-    const hdr = header(0x10);
+    const hdr = canonicalHeader(0x10);
+    try std.testing.expectEqual(hdr, header(0x10));
     try std.testing.expectEqual(@as(u32, @sizeOf(abi.BoundaryHeader)), hdr.size);
     try std.testing.expectEqual(abi.ABI_VERSION, hdr.abi_version);
     try std.testing.expectEqual(@as(u16, 0x10), hdr.flags);
     try std.testing.expect(isCompatibleHeader(hdr));
     try std.testing.expectEqual(hdr, uapi_version.boundaryHeader(0x10));
+    try std.testing.expectEqual(hdr, uapi_version.canonicalHeader(0x10));
 }
 
 test "phase3 export shim normalizes explicit status decoding" {
@@ -85,7 +91,8 @@ test "phase3 export shim normalizes explicit status decoding" {
 }
 
 test "phase3 export shim separates canonical headers from broader compatibility" {
-    const canonical = header(0x20);
+    const canonical = canonicalHeader(0x20);
+    try std.testing.expectEqual(canonical, header(0x20));
     try std.testing.expect(isCanonicalHeader(canonical));
     try std.testing.expect(isCompatibleHeader(canonical));
 
