@@ -18,6 +18,7 @@ const SurveySummary = struct {
     preexisting_phase12_build_present: bool,
     preexisting_phase12_libbpf_survey_present: bool,
     preexisting_phase12_survey_note_present: bool,
+    preexisting_phase12_docs_root_packet_present: bool,
     preexisting_phase12_reviewability_gate_present: bool,
     preexisting_phase12_snapshot_checker_present: bool,
     preexisting_phase12_packet_checker_present: bool,
@@ -89,6 +90,7 @@ test "phase12 libbpf survey manifest records the bounded heavy-helper packet" {
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_libbpf_survey_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_survey_note_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase12_docs_root_packet_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_reviewability_gate_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_snapshot_checker_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_packet_checker_present);
