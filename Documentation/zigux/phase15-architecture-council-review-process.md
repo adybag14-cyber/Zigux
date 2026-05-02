@@ -4,10 +4,11 @@ This document records the bounded Phase 15 governance lane around the Architectu
 
 ## Status
 
+- `PHASE15_LANE_KEY=P15-Y02`
 - `PHASE15_STATUS=review_process_slice_landed`
 - `PHASE15_SLICE=architecture-council-review-process-rollback-threshold-gate`
 - scope: one review-process note, one dedicated manifest and Zig test, and one bounded rollback-threshold field follow-up that keeps the explicit stay-in-C reopen threshold aligned with the freeze-map governance rule inside the same Architecture Council packet
-- survey provenance refreshed against verified `master` head `7851ac1a82e206891f91e8d7c717ceacf7fbd3e1`
+- survey provenance refreshed against verified `master` head `9918b0c1a52d41b8d6ab609157d5cf795fd5cc3a`
 - product boundary:
   - `Documentation/zigux/phase15-architecture-council-review-process.md`
   - `Documentation/zigux/phase15-handoff-next-steps-survey.md`
@@ -113,7 +114,7 @@ If multiple triggers are cited together, each trigger's minimum evidence must st
 - roadmap handoff: the Architecture Council review process stays honest only while it remains visibly tied to the same Phase 15 governance bundle as the freeze map, parity scorecard, indefinite-C policy, shared replay gate, and parked maintenance-mode next step
 - bootstrap ledger anchor: `docs(zigux): add documentation root, review checklist, and freeze map`
 - current repo handoff: the original documentation-root and freeze-map landing is now carried forward by `Documentation/zigux/README.md`, this review-process note, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `zigux/tests/phase15_build.zig`, and `make -C zigux phase15`
-- current bounded lane: `P15-L11` keeps the review-process packet narrowed to one same-packet follow-up inside the current parked maintenance-mode handoff packet by making rollback-threshold handling an explicit required Architecture Council request field so the freeze-map reopen rule stays reviewable beside the existing automatic return-to-blocked trigger while the shared replay entrypoints still match the parity scorecard, the anchor templates, and the current Phase 15 handoff survey on current `master`, without reopening nearby scorecard or indefinite-C policy maintenance
+- current bounded lane: `P15-Y02` keeps the review-process packet narrowed to one same-packet follow-up inside the current parked maintenance-mode handoff packet by making rollback-threshold handling an explicit required Architecture Council request field so the freeze-map reopen rule stays reviewable beside the existing automatic return-to-blocked trigger while the shared replay entrypoints still match the parity scorecard, the anchor templates, and the current Phase 15 handoff survey on current `master`, without reopening nearby scorecard or indefinite-C policy maintenance
 - maintenance-mode next step: wait for one of the named reopen triggers, a shared Phase 15 replay drift, or the deep-core blocker posture to change before opening another Phase 15 slice
 
 ## Maintenance-Mode Handoff
