@@ -90,6 +90,8 @@ DOCS_ROOT_MARKERS = [
 
 TESTS_README_MARKERS = [
     "- `zigux/tests/phase6_build.zig`",
+    "- `zigux/tests/phase6_checksum_c_parity.zig`",
+    "- `zigux/tests/fixtures/phase6_checksum_c_harness.c`",
     "- `zigux/tests/phase6_helper_parity_manifest.json`",
     "- `scripts/zigux/validate-phase6.py`",
     "refresh `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, and `zigux/tests/phase6_helper_parity_manifest.json` whenever the shipped Phase 6 helper inventory, perf entrypoints, fixtures, or shared slice notes change",
@@ -457,6 +459,36 @@ def run_self_test() -> int:
                 raise AssertionError("missing perf survey marker failure")
 
             build_self_test_tree(root)
+            scripts_readme = root / "scripts/zigux/README.md"
+            scripts_readme.write_text(scripts_readme.read_text(encoding="utf-8").replace(SCRIPTS_README_MARKERS[0], "", 1), encoding="utf-8")
+            if f"scripts_readme:missing:{SCRIPTS_README_MARKERS[0]}" not in validate_phase6(root)["missing"]:
+                raise AssertionError("missing scripts README marker failure")
+
+            build_self_test_tree(root)
+            docs_root = root / "Documentation/zigux/README.md"
+            docs_root.write_text(docs_root.read_text(encoding="utf-8").replace(DOCS_ROOT_MARKERS[0], "", 1), encoding="utf-8")
+            if f"docs_root:missing:{DOCS_ROOT_MARKERS[0]}" not in validate_phase6(root)["missing"]:
+                raise AssertionError("missing docs root marker failure")
+
+            build_self_test_tree(root)
+            tests_readme = root / "zigux/tests/README.md"
+            tests_readme.write_text(tests_readme.read_text(encoding="utf-8").replace(TESTS_README_MARKERS[5], "", 1), encoding="utf-8")
+            if f"tests_readme:missing:{TESTS_README_MARKERS[5]}" not in validate_phase6(root)["missing"]:
+                raise AssertionError("missing tests README marker failure")
+
+            build_self_test_tree(root)
+            workflow = root / ".github/workflows/zigux-bootstrap.yml"
+            workflow.write_text(workflow.read_text(encoding="utf-8").replace(WORKFLOW_MARKERS[0], "", 1), encoding="utf-8")
+            if f"workflow:missing:{WORKFLOW_MARKERS[0]}" not in validate_phase6(root)["missing"]:
+                raise AssertionError("missing workflow marker failure")
+
+            build_self_test_tree(root)
+            phase6_build = root / "zigux/tests/phase6_build.zig"
+            phase6_build.write_text(phase6_build.read_text(encoding="utf-8").replace(PHASE6_BUILD_MARKERS[4], "", 1), encoding="utf-8")
+            if f"phase6_build:missing:{PHASE6_BUILD_MARKERS[4]}" not in validate_phase6(root)["missing"]:
+                raise AssertionError("missing phase6 build marker failure")
+
+            build_self_test_tree(root)
             catalog = root / "Documentation/zigux/phase6-helper-parity-catalog.md"
             catalog.write_text(catalog.read_text(encoding="utf-8").replace("PHASE6_CHECKSUM_C_PARITY_CASES=15", "", 1), encoding="utf-8")
             if "catalog:missing:PHASE6_CHECKSUM_C_PARITY_CASES=15" not in validate_phase6(root)["missing"]:
@@ -475,34 +507,10 @@ def run_self_test() -> int:
                 raise AssertionError("missing checksum threshold failure")
 
             build_self_test_tree(root)
-            scripts_readme = root / "scripts/zigux/README.md"
-            scripts_readme.write_text(scripts_readme.read_text(encoding="utf-8").replace(SCRIPTS_README_MARKERS[0], "", 1), encoding="utf-8")
-            if f"scripts_readme:missing:{SCRIPTS_README_MARKERS[0]}" not in validate_phase6(root)["missing"]:
-                raise AssertionError("missing scripts README marker failure")
-
-            build_self_test_tree(root)
-            docs_root = root / "Documentation/zigux/README.md"
-            docs_root.write_text(docs_root.read_text(encoding="utf-8").replace(DOCS_ROOT_MARKERS[0], "", 1), encoding="utf-8")
-            if f"docs_root:missing:{DOCS_ROOT_MARKERS[0]}" not in validate_phase6(root)["missing"]:
-                raise AssertionError("missing docs root marker failure")
-
-            build_self_test_tree(root)
-            tests_readme = root / "zigux/tests/README.md"
-            tests_readme.write_text(tests_readme.read_text(encoding="utf-8").replace(TESTS_README_MARKERS[3], "", 1), encoding="utf-8")
-            if f"tests_readme:missing:{TESTS_README_MARKERS[3]}" not in validate_phase6(root)["missing"]:
-                raise AssertionError("missing tests README marker failure")
-
-            build_self_test_tree(root)
-            workflow = root / ".github/workflows/zigux-bootstrap.yml"
-            workflow.write_text(workflow.read_text(encoding="utf-8").replace(WORKFLOW_MARKERS[0], "", 1), encoding="utf-8")
-            if f"workflow:missing:{WORKFLOW_MARKERS[0]}" not in validate_phase6(root)["missing"]:
-                raise AssertionError("missing workflow marker failure")
-
-            build_self_test_tree(root)
-            phase6_build = root / "zigux/tests/phase6_build.zig"
-            phase6_build.write_text(phase6_build.read_text(encoding="utf-8").replace(PHASE6_BUILD_MARKERS[4], "", 1), encoding="utf-8")
-            if f"phase6_build:missing:{PHASE6_BUILD_MARKERS[4]}" not in validate_phase6(root)["missing"]:
-                raise AssertionError("missing phase6 build marker failure")
+            hexdump_vectors = root / "zigux/tests/fixtures/phase6_hexdump_vectors.zig"
+            hexdump_vectors.write_text("", encoding="utf-8")
+            if "hexdump_vectors:missing:.{ .label = \"16B-ascii-g8\", .len = 16, .rowsize = 16, .groupsize = 8, .ascii = true, .reps = 20_000, .max_slowdown_pct = 600 }," not in validate_phase6(root)["missing"]:
+                raise AssertionError("missing hexdump threshold failure")
 
             build_self_test_tree(root)
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
