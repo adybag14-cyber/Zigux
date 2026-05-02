@@ -1,7 +1,7 @@
 {
-  "lane_key": "P15-Y05",
+  "lane_key": "arch-council",
   "phase": "Phase 15",
-  "surveyed_commit": "061e7433848f59ef6efd3b25f91b4916a9070de1",
+  "surveyed_commit": "d918be7ded6383c13cbd5eea4ca4aa4f3cdafee4",
   "anchor": "Documentation/zigux/freeze-map.md",
   "roadmap_freeze_in_c_targets": [
     "kernel/sched/core.c",
@@ -60,6 +60,14 @@
       ]
     },
     {
+      "id": "freeze-map-rollback-threshold",
+      "summary": "Any reopened freeze-in-C review packet must state the rollback threshold that forces the anchor back to its blocked freeze posture if review evidence stops being explicit.",
+      "required_terms": [
+        "rollback threshold",
+        "forces the anchor back to its blocked freeze posture"
+      ]
+    },
+    {
       "id": "freeze-map-stay-in-c-policy",
       "summary": "Ambiguous validation must keep the code in C with an explicit blocker.",
       "required_terms": [
@@ -90,7 +98,7 @@
       "status": "starter_landed",
       "kind": "lane_note",
       "zigux_destination": "Documentation/zigux/phase15-freeze-map-governance.md",
-      "why_now": "The freeze-map-specific lane note now needs to reflect the active Phase 15 maintenance lane and current repo reality instead of preserving the older maintenance snapshot, because the current head keeps the narrower freeze-map packet green while the same deep-core blocker posture stays parked and the docs-root alignment follow-up is already landed in the dedicated readiness and handoff packets."
+      "why_now": "The freeze-map-specific lane note now needs to reflect the active Architecture Council maintenance lane, the latest visible current-head survey, and the explicit rollback-threshold rule already present in the root policy layer instead of preserving an older maintenance snapshot."
     },
     {
       "id": "phase15-build-gate",
@@ -125,7 +133,7 @@
       "status": "starter_landed",
       "kind": "review_gate",
       "zigux_destination": "Documentation/zigux/review-checklist.md",
-      "why_now": "The live Phase 15 governance packet now spans the root freeze map, freeze-map governance note, review-process note, and parity scorecard, so the shared review checklist needs one explicit drift gate that keeps the automatic return-to-blocked trigger, retained discussion state, reopen triggers, and maintenance-mode handoff aligned during maintenance edits."
+      "why_now": "The live Phase 15 governance packet now spans the root freeze map, freeze-map governance note, review-process note, and parity scorecard, so the shared review checklist needs one explicit drift gate that keeps the rollback threshold, automatic return-to-blocked trigger, retained discussion state, reopen triggers, and maintenance-mode handoff aligned during maintenance edits."
     },
     {
       "id": "phase15-roadmap-vs-repo-reality-survey",
@@ -133,6 +141,13 @@
       "kind": "survey_alignment",
       "zigux_destination": "Documentation/zigux/phase15-freeze-map-governance.md",
       "why_now": "This lane now needs one explicit roadmap-versus-repo-reality comparison so the freeze-map packet says plainly that the roadmap lists still match the live freeze map and that the same four deep-core blockers remain backed by current Phase 15 and Phase 14 evidence."
+    },
+    {
+      "id": "phase15-rollback-threshold-sync",
+      "status": "starter_landed",
+      "kind": "policy_sync",
+      "zigux_destination": "Documentation/zigux/phase15-freeze-map-governance.md",
+      "why_now": "The packet-local note and manifest now need to carry the same rollback-threshold rule that the root freeze map already requires for any reopened freeze-in-C review."
     },
     {
       "id": "phase15-deep-core-status-change-blocker",
