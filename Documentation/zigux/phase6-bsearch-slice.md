@@ -75,6 +75,7 @@ The current tests check:
 - runtime-selected C ABI comparator pointers preserve the same found-or-null behavior across ascending and descending sorted slices
 - runtime-selected raw comparator pointers preserve the same found-or-null behavior across ascending and descending sorted slices
 - runtime-selected C ABI raw comparator pointers preserve the same found-or-null behavior across ascending and descending sorted slices
+- focused Zig Phase 6 tests now also prove runtime-selected descending typed and raw mutable-pointer write-through behavior instead of leaving that contract only to the external C-vs-Zig parity replay
 - representative lookup work stays inside a bounded binary-search comparison budget on every replayed lookup, not only on average across the perf run
 - inline sorted integer and symbol tables keep the current lookup corpus deterministic without introducing a generated fixture file
 - a replayable perf-sanity harness reports lookup cost plus both average and worst-case comparator work for representative `256`-, `4096`-, and `65536`-entry sorted slices while replaying the same deterministic edge, midpoint, seeded interior, and miss probes through typed and raw comparator paths for both ascending and descending order
