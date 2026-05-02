@@ -27,6 +27,13 @@ pub const RuntimeAtomic64Loader = struct {
     }
 
     pub fn planFor(module: *const runtime_atomic64_sample.RuntimeAtomic64Sample) !RuntimeAtomic64LoadPlan {
+        return planForWithCommandName(module, null);
+    }
+
+    pub fn planForWithCommandName(
+        module: *const runtime_atomic64_sample.RuntimeAtomic64Sample,
+        command_name: ?[]const u8,
+    ) !RuntimeAtomic64LoadPlan {
         const descriptor = runtime_atomic64_sample.RuntimeAtomic64Sample.descriptor();
         const module_stage = module.stage();
         switch (module_stage) {
@@ -35,10 +42,13 @@ pub const RuntimeAtomic64Loader = struct {
         }
 
         if (!descriptor.requires_runtime_substrate) return error.LoaderNotRequired;
+        if (command_name) |name| {
+            if (name.len == 0) return error.EmptyCommandName;
+        }
 
         return .{
             .module_name = descriptor.name,
-            .command_name = null,
+            .command_name = command_name,
             .anchor = descriptor.anchor,
             .entry_symbol = "zigux_runtime_atomic64_init",
             .exit_symbol = "zigux_runtime_atomic64_exit",
@@ -50,9 +60,17 @@ pub const RuntimeAtomic64Loader = struct {
     }
 
     pub fn prepare(self: *Self, module: *const runtime_atomic64_sample.RuntimeAtomic64Sample) !RuntimeAtomic64LoadPlan {
+        return prepareWithCommandName(self, module, null);
+    }
+
+    pub fn prepareWithCommandName(
+        self: *Self,
+        module: *const runtime_atomic64_sample.RuntimeAtomic64Sample,
+        command_name: ?[]const u8,
+    ) !RuntimeAtomic64LoadPlan {
         if (self.stage_state != .idle) return error.LoaderAlreadyPrepared;
 
-        const plan = try planFor(module);
+        const plan = try planForWithCommandName(module, command_name);
         self.cached_plan = plan;
         self.stage_state = .prepared;
         return plan;
@@ -283,30 +301,41 @@ test "runtime atomic64 loader keeps initialized-stage shared requests and fallba
 }
 
 test "runtime atomic64 loader preserves an explicit shared command name" {
-    const plan = RuntimeAtomic64LoadPlan{
-        .module_name = "runtime_atomic64",
-        .command_name = "perf-runtime-atomic64",
-        .anchor = "lib/atomic64_test.c",
-        .entry_symbol = "zigux_runtime_atomic64_init",
-        .exit_symbol = "zigux_runtime_atomic64_exit",
-        .requires_runtime_substrate = true,
-        .provides_selftest_hook = true,
-        .handoff_stage = runtime_atomic64_sample.ModuleStage.selftest_complete,
-        .summary = .{
-            .counter_snapshot = 0x1111_2222_3333_4444,
-            .init_runs = 1,
-            .selftest_runs = 1,
-            .exit_runs = 0,
-        },
-    };
+    var module = runtime_atomic64_sample.RuntimeAtomic64Sample{};
+    try module.init(0x1111_2222_3333_4444);
+    _ = try module.runSelftest();
 
-    const request = toSharedRequest(plan);
+    var loader = RuntimeAtomic64Loader{};
+    const plan = try loader.prepareWithCommandName(&module, "perf-runtime-atomic64");
+    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
+    try std.testing.expectEqualStrings("perf-runtime-atomic64", plan.command_name.?);
+
+    const request = try loader.requestSharedRuntimeLoad();
     try std.testing.expectEqualStrings("perf-runtime-atomic64", request.command_name.?);
     try std.testing.expect(request.keepsCommandNameExplicit());
     try std.testing.expectEqual(runtime_loader.LoaderStage.waiting_on_runtime_substrate, request.handoff_stage);
 
-    const released = request.releasedWithoutSubstrate();
+    var fallback_loader = RuntimeAtomic64Loader{};
+    _ = try fallback_loader.prepareWithCommandName(&module, "perf-runtime-atomic64");
+    const released = try fallback_loader.releaseSharedRuntimeLoadWithoutSubstrate();
     try std.testing.expectEqualStrings("perf-runtime-atomic64", released.command_name.?);
     try std.testing.expect(released.keepsCommandNameExplicit());
     try std.testing.expectEqual(runtime_loader.LoaderStage.released_without_substrate, released.handoff_stage);
+}
+
+test "runtime atomic64 loader rejects an empty explicit shared command name" {
+    var module = runtime_atomic64_sample.RuntimeAtomic64Sample{};
+    try module.init(5);
+
+    try std.testing.expectError(
+        error.EmptyCommandName,
+        RuntimeAtomic64Loader.planForWithCommandName(&module, ""),
+    );
+
+    var loader = RuntimeAtomic64Loader{};
+    try std.testing.expectError(
+        error.EmptyCommandName,
+        loader.prepareWithCommandName(&module, ""),
+    );
+    try std.testing.expectEqual(LoaderStage.idle, loader.stage());
 }
