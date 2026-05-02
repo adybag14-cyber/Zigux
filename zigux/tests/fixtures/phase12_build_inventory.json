@@ -5,6 +5,7 @@
     "phase12-virtio-net-tests",
     "phase12-virtio-net-survey-tests",
     "phase12-virtio-net-syntax-lab-tests",
+    "phase12-virtio-scsi-syntax-lab-tests",
     "phase12-virtio-scsi-survey-tests",
     "phase12-raw-github-coverage-survey-tests",
     "phase12-libbpf-segment-survey-tests",
@@ -18,6 +19,7 @@
     "run_phase12_virtio_net_tests",
     "run_phase12_virtio_net_survey_tests",
     "run_phase12_virtio_net_syntax_lab_tests",
+    "run_phase12_virtio_scsi_syntax_lab_tests",
     "run_phase12_virtio_scsi_survey_tests",
     "run_phase12_raw_github_coverage_survey_tests",
     "run_phase12_libbpf_segments_tests",
@@ -51,6 +53,10 @@
     {
       "module": "phase12_virtio_scsi_module",
       "path": "phase12_virtio_scsi.zig"
+    },
+    {
+      "module": "phase12_virtio_scsi_syntax_lab_module",
+      "path": "phase12_virtio_scsi_syntax_lab.zig"
     },
     {
       "module": "nvme_pci_module",
@@ -132,6 +138,11 @@
       "imported_module": "virtio_scsi_module"
     },
     {
+      "module": "phase12_virtio_scsi_syntax_lab_module",
+      "import_name": "virtio_scsi",
+      "imported_module": "virtio_scsi_module"
+    },
+    {
       "module": "phase12_nvme_pci_module",
       "import_name": "nvme_pci",
       "imported_module": "nvme_pci_module"
@@ -184,6 +195,10 @@
       "root_module": "phase12_virtio_net_syntax_lab_module"
     },
     {
+      "test": "phase12-virtio-scsi-syntax-lab-tests",
+      "root_module": "phase12_virtio_scsi_syntax_lab_module"
+    },
+    {
       "test": "phase12-virtio-scsi-survey-tests",
       "root_module": "phase12_virtio_scsi_survey_module"
     },
@@ -204,9 +219,9 @@
       "root_module": "phase12_virtio_scsi_module"
     }
   ],
-  "expected_step_count": 21,
-  "expected_test_count": 56,
-  "expected_summary_line": "Build Summary: 21/21 steps succeeded; 56/56 tests passed",
+  "expected_step_count": 23,
+  "expected_test_count": 58,
+  "expected_summary_line": "Build Summary: 23/23 steps succeeded; 58/58 tests passed",
   "forbidden_markers": [],
   "dedicated_survey_replays": []
 }
