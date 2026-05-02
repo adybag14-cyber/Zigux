@@ -34,6 +34,15 @@ EXPECTED_CONTRACT_CASES = [
     'sha256_drift',
     'sha256_drift_repeat',
 ]
+REPEAT_CONTRACT_CASES = [
+    'helper_self_test_repeat',
+    'text_pass_repeat',
+    'json_mismatch_repeat',
+    'sha256_drift_repeat',
+]
+BASE_CONTRACT_CASES = [
+    case for case in EXPECTED_CONTRACT_CASES if case not in REPEAT_CONTRACT_CASES
+]
 
 
 def run_contract_case(
@@ -65,7 +74,35 @@ def run_contract_case(
             raise AssertionError(f'attempt {attempt}: unexpected stderr: {completed.stderr!r}')
 
 
+def assert_contract_catalog_shape() -> None:
+    if len(set(EXPECTED_CONTRACT_CASES)) != len(EXPECTED_CONTRACT_CASES):
+        raise AssertionError(
+            f'artifact-diff contract cases must stay unique: {EXPECTED_CONTRACT_CASES}'
+        )
+    if len(set(REPEAT_CONTRACT_CASES)) != len(REPEAT_CONTRACT_CASES):
+        raise AssertionError(
+            f'artifact-diff repeat contract cases must stay unique: {REPEAT_CONTRACT_CASES}'
+        )
+    missing_repeat_cases = [
+        case for case in REPEAT_CONTRACT_CASES if case not in EXPECTED_CONTRACT_CASES
+    ]
+    if missing_repeat_cases:
+        raise AssertionError(
+            'artifact-diff repeat contract cases drifted outside the published catalog: '
+            f'{missing_repeat_cases}'
+        )
+    if len(BASE_CONTRACT_CASES) + len(REPEAT_CONTRACT_CASES) != len(
+        EXPECTED_CONTRACT_CASES
+    ):
+        raise AssertionError(
+            'artifact-diff base and repeat case partition drifted: '
+            f'base={BASE_CONTRACT_CASES} repeat={REPEAT_CONTRACT_CASES} '
+            f'all={EXPECTED_CONTRACT_CASES}'
+        )
+
+
 def main() -> int:
+    assert_contract_catalog_shape()
     covered_cases: list[str] = []
 
     # Replaying the helper's own self-test twice keeps the published case
@@ -363,6 +400,10 @@ def main() -> int:
         )
 
     print('ARTIFACT_DIFF_CONTRACT=pass')
+    print(f'ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT={len(BASE_CONTRACT_CASES)}')
+    print('ARTIFACT_DIFF_CONTRACT_BASE_CASES=' + ','.join(BASE_CONTRACT_CASES))
+    print(f'ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT={len(REPEAT_CONTRACT_CASES)}')
+    print('ARTIFACT_DIFF_CONTRACT_REPEAT_CASES=' + ','.join(REPEAT_CONTRACT_CASES))
     print(f'ARTIFACT_DIFF_CONTRACT_CASE_COUNT={len(EXPECTED_CONTRACT_CASES)}')
     print('ARTIFACT_DIFF_CONTRACT_CASES=' + ','.join(EXPECTED_CONTRACT_CASES))
     return 0
