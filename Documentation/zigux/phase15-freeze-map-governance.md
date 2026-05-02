@@ -108,7 +108,6 @@ This slice does not claim:
 - focused replay against current `master` shows the narrower freeze-map governance packet is runnable:
   - `zigux/tests/phase15_freeze_map_governance.zig` compiled and its `4/4` tests passed
   - `make -C zigux phase15` remains the same bounded shared replay path exposed through `zigux/Makefile`
-- current observed neighboring repo reality on live `master`: `Documentation/zigux/README.md` now exposes the dedicated `Phase 15 notes` block expected by the neighboring review-process packet, so the shared governance bundle is visible from the docs index without changing this freeze-map packet's narrower ownership
 - current observed behavior on live `master`: the repo carries real freeze-map policy, manifests, scorecard, dedicated replay entrypoints, shared bootstrap workflow coverage for the current Phase 15 gate, and one explicit checklist gate that keeps the governance packet aligned during maintenance edits while the deep-core blocker posture remains unchanged
 
 ## Exact blocker record
