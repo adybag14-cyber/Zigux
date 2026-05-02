@@ -51,7 +51,7 @@ This current slice therefore stays inside helpers that:
 3. run the shared Phase 7 helper gate
 - `zig build test --build-file zigux/tests/phase7_build.zig --summary all`
 
-4. keep the helper-only review note replay machine-checked from `repo_root`
+4. keep the manifest-backed survey record machine-checked from `repo_root`
 - `zig test zigux/tests/phase7_cmdline_survey.zig`
 
 5. check the committed C parity fixture and its dedicated checker self-test
