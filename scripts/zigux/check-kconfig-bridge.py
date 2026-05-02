@@ -233,7 +233,7 @@ def ensure_manifest_is_deterministic(cases: object, fixture_dir: Path = FIXTURE_
                 referenced_files.add(expected_path)
 
             if group_name == 'conf_cases':
-                allowed_keys = {'name', 'mode', 'kconfig', 'config', 'arch', 'mode_arg', 'allconfig', 'nosilentupdate', 'seed', 'probability', 'expected'}
+                allowed_keys = {'name', 'mode', 'kconfig', 'config', 'arch', 'mode_arg', 'allconfig', 'allconfig_env', 'autoconfig', 'autoheader', 'nosilentupdate', 'seed', 'probability', 'expected'}
                 mode = read_nonempty_string(case, 'mode', issues, prefix=case_prefix)
                 read_nonempty_string(case, 'kconfig', issues, prefix=case_prefix)
                 read_nonempty_string(case, 'config', issues, prefix=case_prefix)
@@ -247,18 +247,37 @@ def ensure_manifest_is_deterministic(cases: object, fixture_dir: Path = FIXTURE_
                     issues.append(f'{case_prefix}:mode_arg:unexpected_for_mode:{mode}')
 
                 allconfig = case.get('allconfig')
+                allconfig_env = case.get('allconfig_env')
                 if mode in CONF_ALLCONFIG_MODES:
                     if allconfig is not None and (not isinstance(allconfig, str) or not allconfig):
                         issues.append(f'{case_prefix}:allconfig:expected_nonempty_string')
-                elif allconfig is not None:
-                    issues.append(f'{case_prefix}:allconfig:unexpected_for_mode:{mode}')
+                    if allconfig_env is not None and (not isinstance(allconfig_env, str) or not allconfig_env):
+                        issues.append(f'{case_prefix}:allconfig_env:expected_nonempty_string')
+                    if allconfig is not None and allconfig_env is not None:
+                        issues.append(f'{case_prefix}:allconfig:multiple_sources')
+                else:
+                    if allconfig is not None:
+                        issues.append(f'{case_prefix}:allconfig:unexpected_for_mode:{mode}')
+                    if allconfig_env is not None:
+                        issues.append(f'{case_prefix}:allconfig_env:unexpected_for_mode:{mode}')
 
+                autoconfig = case.get('autoconfig')
+                autoheader = case.get('autoheader')
                 nosilentupdate = case.get('nosilentupdate')
                 if mode == 'syncconfig':
+                    if autoconfig is not None and (not isinstance(autoconfig, str) or not autoconfig):
+                        issues.append(f'{case_prefix}:autoconfig:expected_nonempty_string')
+                    if autoheader is not None and (not isinstance(autoheader, str) or not autoheader):
+                        issues.append(f'{case_prefix}:autoheader:expected_nonempty_string')
                     if nosilentupdate is not None and (not isinstance(nosilentupdate, str) or not nosilentupdate):
                         issues.append(f'{case_prefix}:nosilentupdate:expected_nonempty_string')
-                elif nosilentupdate is not None:
-                    issues.append(f'{case_prefix}:nosilentupdate:unexpected_for_mode:{mode}')
+                else:
+                    if autoconfig is not None:
+                        issues.append(f'{case_prefix}:autoconfig:unexpected_for_mode:{mode}')
+                    if autoheader is not None:
+                        issues.append(f'{case_prefix}:autoheader:unexpected_for_mode:{mode}')
+                    if nosilentupdate is not None:
+                        issues.append(f'{case_prefix}:nosilentupdate:unexpected_for_mode:{mode}')
 
                 seed = case.get('seed')
                 probability = case.get('probability')
@@ -671,6 +690,12 @@ def main() -> int:
             if 'allconfig' in case:
                 cmd.append(case['allconfig'])
             env = os.environ.copy()
+            if 'allconfig_env' in case:
+                env['KCONFIG_ALLCONFIG'] = case['allconfig_env']
+            if 'autoconfig' in case:
+                env['KCONFIG_AUTOCONFIG'] = case['autoconfig']
+            if 'autoheader' in case:
+                env['KCONFIG_AUTOHEADER'] = case['autoheader']
             if 'nosilentupdate' in case:
                 env['KCONFIG_NOSILENTUPDATE'] = case['nosilentupdate']
             if 'seed' in case:
