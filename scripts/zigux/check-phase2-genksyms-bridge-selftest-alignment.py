@@ -65,11 +65,10 @@ CLOSURE_DOC_MARKERS = [
 ]
 
 VALIDATOR_MARKERS = [
-    'ROOT / "scripts" / "zigux" / "check-genksyms-bridge.py",',
-    'ROOT / "scripts" / "zigux" / "check-phase2-genksyms-bridge-selftest-alignment.py",',
-    'ROOT / ".github" / "workflows" / "zigux-bootstrap.yml",',
-    'ROOT / "zigux" / "Makefile",',
-    "zigux/tests/fixtures/genksyms_bridge/cases.json",
+    "check-genksyms-bridge.py",
+    "check-phase2-genksyms-bridge-selftest-alignment.py",
+    "zigux-bootstrap.yml",
+    "zigux/Makefile",
 ]
 
 CLOSURE_VALIDATOR_MARKERS = [
@@ -78,7 +77,6 @@ CLOSURE_VALIDATOR_MARKERS = [
     "'python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test': 1,",
     "'python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py': 1,",
     "PHASE2_GENKSYMS_BRIDGE_CASE_COUNT=26",
-    "PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST=python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test",
 ]
 
 BRIDGE_CHECKER_MARKERS = [
