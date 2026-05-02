@@ -433,6 +433,35 @@ def run_self_test() -> int:
         _replace_blob_markers_with_head(root, survey_path)
         assert validate(root) == []
 
+        current_survey = survey_path.read_text(encoding="utf-8")
+        atomic_blob = _marker_value_from_text(current_survey, "PHASE3_ATOMIC_BLOB_SHA")
+        assert atomic_blob is not None
+        survey_path.write_text(
+            current_survey.replace(
+                f"PHASE3_ATOMIC_BLOB_SHA={atomic_blob}",
+                "PHASE3_ATOMIC_BLOB_SHA=not-a-sha",
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate(root)
+        assert "invalid_survey_blob_sha:PHASE3_ATOMIC_BLOB_SHA:not-a-sha" in issues
+
+        _write(
+            root,
+            SURVEY_REL,
+            "\n".join(
+                [
+                    *REQUIRED_SURVEY_MARKERS,
+                    *REQUIRED_SURVEY_SNIPPETS,
+                    *_blob_marker_lines(),
+                ]
+            )
+            + "\n",
+        )
+        _replace_blob_markers_with_head(root, survey_path)
+        assert validate(root) == []
+
         _write(root, SURVEY_REL, REQUIRED_SURVEY_MARKERS[0] + "\n")
         issues = validate(root)
         assert any(issue.startswith("missing_survey_marker:") for issue in issues)
