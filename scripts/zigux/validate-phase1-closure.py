@@ -469,7 +469,6 @@ def build_expectations() -> dict[str, object]:
             "PHASE1_BENCH_LIST_SORT_CHECKSUM",
         ],
     }
-}
 
 
 def create_fixture_root(root: Path) -> None:
