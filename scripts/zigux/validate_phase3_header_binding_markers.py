@@ -58,6 +58,9 @@ HEADER_BINDING_MARKERS = {
         'root_module.addImport("uapi_version", uapi_version_module);',
         '"phase3-export-uapi-test",',
     ),
+    "zigux/tests/fixtures/phase3_abi_manifest.json": (
+        '"zigux/tests/build.zig",',
+    ),
     "scripts/zigux/validate-phase3-export-uapi-survey.py": (
         "REQUIRED_SURVEY_MARKERS = (",
         '"PHASE3_EXPORT_SHIM_SCOPE=explicit-status-plus-boundary-header",',
@@ -156,6 +159,22 @@ def run_self_test() -> int:
             f"header-binding-marker: zigux/tests/build.zig missing {build_marker}",
             f"header-binding-marker: zigux/tests/build.zig missing {interop_build_marker}",
             f"header-binding-marker: zigux/tests/phase3_export_uapi_build.zig missing {export_uapi_build_marker}",
+            f"header-binding-marker: scripts/zigux/validate-phase3-export-uapi-survey.py missing {export_uapi_survey_marker}",
+        ]
+
+        manifest_marker = HEADER_BINDING_MARKERS["zigux/tests/fixtures/phase3_abi_manifest.json"][0]
+        manifest_file = root / "zigux/tests/fixtures/phase3_abi_manifest.json"
+        manifest_file.write_text(
+            manifest_file.read_text(encoding="utf-8").replace(manifest_marker + "\n", "", 1),
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert validate_header_binding_markers(root) == [
+            f"header-binding-marker: include/zigux/abi.h missing {first_marker}",
+            f"header-binding-marker: zigux/tests/build.zig missing {build_marker}",
+            f"header-binding-marker: zigux/tests/build.zig missing {interop_build_marker}",
+            f"header-binding-marker: zigux/tests/phase3_export_uapi_build.zig missing {export_uapi_build_marker}",
+            f"header-binding-marker: zigux/tests/fixtures/phase3_abi_manifest.json missing {manifest_marker}",
             f"header-binding-marker: scripts/zigux/validate-phase3-export-uapi-survey.py missing {export_uapi_survey_marker}",
         ]
 
