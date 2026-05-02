@@ -21,6 +21,11 @@ pub fn compatibleHeader(size: u32, flags: u16) Header {
     };
 }
 
+pub fn canonicalizeHeader(header: Header) ?Header {
+    if (!isCompatible(header)) return null;
+    return canonicalHeader(header.flags);
+}
+
 pub fn isCurrentAbiVersion(version: u16) bool {
     return version == abi_version;
 }
@@ -92,4 +97,19 @@ test "phase3 uapi compatible header helper keeps explicit future-size replay rev
     try std.testing.expectEqual(abi.ABI_VERSION, undersized.abi_version);
     try std.testing.expect(!isCompatible(undersized));
     try std.testing.expect(!isCanonical(undersized));
+}
+
+test "phase3 uapi canonicalizes compatible headers without widening the boundary" {
+    const canonical = canonicalHeader(0x66);
+    try std.testing.expectEqual(canonical, canonicalizeHeader(canonical).?);
+
+    const future_compatible = compatibleHeader(header_size + 16, 0x66);
+    try std.testing.expectEqual(canonical, canonicalizeHeader(future_compatible).?);
+
+    const incompatible_version: Header = .{
+        .size = header_size,
+        .abi_version = abi.ABI_VERSION + 1,
+        .flags = 0x66,
+    };
+    try std.testing.expect(canonicalizeHeader(incompatible_version) == null);
 }
