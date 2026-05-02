@@ -158,6 +158,21 @@ def run_self_test() -> int:
         original_makefile = makefile_path.read_text(encoding="utf-8")
         makefile_path.write_text(
             original_makefile.replace(
+                "scripts/zigux/check-phase11-hvc-validation-flow.py --self-test",
+                "scripts/zigux/check-phase11-build-inventory.py",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "makefile_validation_flow_self_test_hook",
+            tmp_root,
+            "make:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-validation-flow.py --self-test",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        makefile_path.write_text(
+            original_makefile.replace(
                 "scripts/zigux/check-phase11-hvc-cleanup-alignment.py --self-test",
                 "scripts/zigux/check-phase11-build-inventory.py",
                 1,
@@ -214,7 +229,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE11_HVC_VALIDATION_FLOW_SELF_TEST=pass")
-    print("PHASE11_HVC_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=4")
+    print("PHASE11_HVC_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=5")
     return 0
 
 
