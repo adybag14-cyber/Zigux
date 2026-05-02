@@ -52,6 +52,25 @@ pub const DecodedInteropPolicy = struct {
         return narrow.permitsRawPointerBridge(self.unsafe_scope);
     }
 
+    pub fn constSliceAt(
+        self: DecodedInteropPolicy,
+        comptime T: type,
+        base: usize,
+        len: usize,
+    ) narrow.ScopeError![]const T {
+        if (!self.permitsRawPointerBridge()) return error.UnsafeScopeDenied;
+        return narrow.scopedConstSliceAt(T, self.unsafe_scope, base, len);
+    }
+
+    pub fn constPointerAt(
+        self: DecodedInteropPolicy,
+        comptime T: type,
+        addr: usize,
+    ) narrow.ScopeError!*const T {
+        if (!self.permitsRawPointerBridge()) return error.UnsafeScopeDenied;
+        return narrow.scopedConstPointerAt(T, self.unsafe_scope, addr);
+    }
+
     pub fn toInteropPolicy(self: DecodedInteropPolicy) abi.InteropPolicy {
         return .{
             .panic_mode = @intFromEnum(self.panic_mode),
@@ -162,6 +181,35 @@ test "phase3 interop policy decoder keeps allocator init requirements explicit" 
     try std.testing.expect(arena_policy.permitsGlobalFallback());
     try std.testing.expect(arena_policy.initializesOwnedState());
     try std.testing.expect(arena_policy.requiresResetOnInit());
+}
+
+test "phase3 interop policy decoder keeps raw-pointer bridge consumers explicit" {
+    var words = [_]u32{ 7, 11 };
+    const base = narrow.addressOf(&words[0]);
+
+    const raw_pointer_policy = try decode(.{
+        .panic_mode = @intFromEnum(abi.PanicMode.warn),
+        .allocator_mode = @intFromEnum(abi.AllocatorMode.arena),
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.raw_pointer_bridge),
+        .reserved = 0,
+    });
+    const mmio_policy = try decode(.{
+        .panic_mode = @intFromEnum(abi.PanicMode.abort),
+        .allocator_mode = @intFromEnum(abi.AllocatorMode.kernel_heap),
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.volatile_mmio),
+        .reserved = 0,
+    });
+
+    const words_slice = try raw_pointer_policy.constSliceAt(u32, base, words.len);
+    try std.testing.expectEqual(@as(u32, 7), words_slice[0]);
+    const second_word = try raw_pointer_policy.constPointerAt(u32, base + @sizeOf(u32));
+    try std.testing.expectEqual(@as(u32, 11), second_word.*);
+
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio_policy.constSliceAt(u32, base, words.len));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio_policy.constPointerAt(u32, base));
+    try std.testing.expectError(error.MisalignedAccess, raw_pointer_policy.constSliceAt(u32, base + 1, 1));
+    try std.testing.expectError(error.MisalignedAccess, raw_pointer_policy.constPointerAt(u32, base + 1));
+    try std.testing.expectError(error.AddressOverflow, raw_pointer_policy.constSliceAt(u32, 4, std.math.maxInt(usize)));
 }
 
 test "phase3 interop policy keeps canonical abi encoding explicit" {
