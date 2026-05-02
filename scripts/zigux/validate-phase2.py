@@ -51,6 +51,9 @@ REQUIRED_PHASE2_FILES = [
     PHASE2_TOOL_MANIFEST,
     PHASE2_CROSS_TARGETS,
 ]
+PHASE2_GENKSYMS_BRIDGE_ALIGNMENT_REQUIRED_SOURCE_MARKERS = [
+    "print('PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=7')",
+]
 PHASE2_CROSS_REQUIRED_SOURCE_MARKERS = [
     "phase2-cross:tool_manifest_path_missing:",
 ]
@@ -137,6 +140,13 @@ def main() -> int:
             expected_count=3,
             list_key="targets",
             expected_items=EXPECTED_CROSS_TARGETS,
+        )
+    )
+    issues.extend(
+        validate_source_markers(
+            GENKSYMS_BRIDGE_ALIGNMENT_CHECKER,
+            label="phase2_genksyms_bridge_alignment_checker",
+            required_markers=PHASE2_GENKSYMS_BRIDGE_ALIGNMENT_REQUIRED_SOURCE_MARKERS,
         )
     )
     issues.extend(
