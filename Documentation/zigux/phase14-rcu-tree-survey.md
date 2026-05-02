@@ -51,6 +51,16 @@ The honest move for this lane is therefore not to start `kernel/rcu/tree_bridge.
 - `quiescent-state-propagation-and-callback-acceleration`: keep `rcu_report_qs_rnp()`, `note_gp_changes()`, and `rcu_accelerate_cbs()` in C because quiescent-state reporting still walks the locked `rcu_node` tree, `note_gp_changes()` still folds GP transitions into per-CPU callback state, and callback acceleration still depends on segmented callback lists plus offload state.
 - `callback-enqueue-and-batch-invocation`: keep `__call_rcu_common()`, `call_rcu_core()`, and `rcu_do_batch()` in C because callback enqueue still routes through per-CPU segmented callback lists, overload tracking, NOCB offload selection, grace-period forcing, and time-bounded callback invocation.
 
+## Grace-period sequence publication follow-up
+
+This run closes one more bounded stay-in-C follow-up without changing the underlying freeze decision.
+
+- `rcu_start_this_gp()` is not a narrow bridgeable starter. It decides whether a fresh grace period can begin at the current root node, coordinates wakeups and sequencing with the live GP-kthread path, and still depends on the same `gp_seq` publication and `rcu_node` mask state that the rest of Tree RCU uses.
+- `rcu_gp_init()` is also not just one initialization wrapper. It resets and repopulates hierarchy state across the active `rcu_node` tree, reinitializes per-GP bookkeeping that later expedited, callback, and stall paths consume, and publishes the new grace-period state in the same core structure that downstream readers observe.
+- `__note_gp_changes()` stays coupled for the same reason. It is the path that folds a new global `gp_seq` into per-CPU `rcu_data`, clears or rechecks CPU masks, and decides whether callback state, quiescent-state forcing, or wakeups need to react to the just-published grace period.
+
+The net result is still survey-only: grace-period start, initialization, and per-CPU publication remain explicitly in C, not as a new opening for `kernel/rcu/tree_bridge.zig`.
+
 ## Idle-watch and core-invocation follow-up
 
 This run closes one more bounded stay-in-C follow-up without changing the underlying freeze decision.
