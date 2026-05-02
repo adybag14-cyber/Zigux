@@ -9,7 +9,7 @@ This note records one exact readback snapshot for the current Phase 4 rollback-o
 - `PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions`
 - `PHASE4_VALIDATION_MATRIX_BLOB_SHA=615e1d1ccd1fc7b2aa8aebd3730b91cc019c4612`
 - `PHASE4_VALIDATOR_BLOB_SHA=9f81ba776b76cb9b8941d538cda5edaca340e48f`
-- `PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA=097167e6a37e89c46664e264014793c0525ebacf`
+- `PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA=c648bdccd483ca5cf2ec520d028cc5e50819c764`
 - `PHASE4_BUILD_BLOB_SHA=57f4c3809387cac39e3153b9bbad17ca92ce3684`
 - `PHASE4_MAKEFILE_BLOB_SHA=a02ca6e2faaaeeb7b8b221cddee38022b2236bc0`
 - `PHASE4_WORKFLOW_BLOB_SHA=8023d7b9c685aa5a54a142a80d394cc143b257ca`
@@ -54,6 +54,7 @@ The current packet stayed aligned across the following readbacks on `master`:
 - the runtime atomic64 reversible-delivery contract also remains explicit in the current exact-readback packet: `lib/atomic64_test.c` stays the source of truth, removing `atomic64_diff.zig` from the shared `phase4_build.zig` entrypoint is the documented rollback move, `runtime_atomic64_diff.zig` remains the single replay body, and the existing Phase 9 runtime atomic64 starter remains the forward path.
 - `zigux/tests/bitmap_diff.zig` still keeps the broadened bitmap rollback packet explicit by recording the all-set and all-clear start-state printlist anchors, zero-nbits helper no-op behavior, zero-length range edits on populated anchors, the rounded `bitmap_fill(..., 35)` and `bitmap_fill(..., 115)` drift checkpoints, the `bitmap_set(..., 79, 19)` and `bitmap_clear(..., 79, 19)` cross-boundary windows, the bounded copy-tail packet, and the nth-bit cutoff replay around bit 123.
 - the bootstrap workflow still keeps `Self-test Phase 4 validator` as a dedicated step beside `Validate Phase 4 diff gates` and `Run Phase 4 diff tests`, so the matrix's new standalone validator row matches the current shipped workflow rather than inventing a new replay path.
+- the dedicated `scripts/zigux/check-phase4-gate-evidence.py` checker now also fails closed if the Phase 4 workflow stops carrying exactly one `make -C zigux phase4-validate` run line or exactly one `make -C zigux phase4-test` run line under the Phase 4 steps, so that exact count is no longer prose-only drift inside this note.
 - the dedicated `scripts/zigux/check-phase4-gate-evidence.py` checker now also fails closed if this note keeps the validator count tokens but lets the exact `PHASE4_REQUIRED_FILE_COUNT=23` or `PHASE4_REQUIRED_MARKER_COUNT=236` values drift.
 - the dedicated `scripts/zigux/check-phase4-gate-evidence.py` self-test now also mutates every currently pinned non-note blob line in this ledger, including the checker, validator, matrix, build, Makefile, workflow, docs/scripts/tests README, both Phase 4 survey blobs, and all three surveyed-manifest blobs, so implementation, index-surface, manifest, and survey ledger targets all fail closed in the same synthetic replay instead of relying only on live-note inspection.
 - `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` now also keeps this exact readback note explicit by requiring the sibling manifest pins, the three index-surface pins, and the shared surveyed snapshot `3ba64cd4e41a4de1c8fd8dbaecb23702ad9701a3` instead of leaving that evidence packet as prose-only maintenance.
@@ -71,9 +72,9 @@ The current Phase 4 rollback-ownership survey packet now has a refreshed exact-r
 
 The packet still carries two validator-backed status layers as part of the published contract: the `validate-phase4.py` status bundle for the matrix, validator, dedicated checker, exact checker Makefile wiring, build, workflow, and manifest subset, and the `check-phase4-gate-evidence.py` status bundle for the broader survey-file plus index-surface blob ledger.
 
-One bounded validator-sized gap remains parked in the same lane: current `master` still proves the workflow step names and the presence of `make -C zigux phase4-validate` plus `make -C zigux phase4-test`, but it does not yet fail closed on the exact run-line counts for those two replays inside `.github/workflows/zigux-bootstrap.yml`.
+The shared validator still proves the workflow step names and the presence of `make -C zigux phase4-validate` plus `make -C zigux phase4-test`, and the dedicated gate-evidence checker now additionally fails closed on the exact single run-line counts for those two workflow commands.
 
-On the inspected `master` head pinned by `PHASE4_WORKFLOW_BLOB_SHA=8023d7b9c685aa5a54a142a80d394cc143b257ca`, the workflow currently contains one `make -C zigux phase4-validate` run line and one `make -C zigux phase4-test` run line under the Phase 4 steps, but that count still lives here as exact readback evidence rather than a validator-enforced contract.
+On the inspected `master` head pinned by `PHASE4_WORKFLOW_BLOB_SHA=8023d7b9c685aa5a54a142a80d394cc143b257ca`, the workflow currently contains one `make -C zigux phase4-validate` run line and one `make -C zigux phase4-test` run line under the Phase 4 steps, and that count now lives in both this exact-readback note and the dedicated checker contract.
 
 That keeps the README surfaces truthful summaries for the packet, and this note is again a current blob ledger for the broader survey and index surfaces instead of a stale audit record.
 
