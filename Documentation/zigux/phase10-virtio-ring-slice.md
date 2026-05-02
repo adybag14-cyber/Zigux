@@ -6,7 +6,7 @@ This document tracks the first bounded `drivers/virtio/virtio_ring.c` lab helper
 
 - `PHASE10_STATUS=active`
 - `PHASE10_SLICE=virtio-ring-lab-helper`
-- scope: queue index bounds, descriptor-count validation, split or packed layout metadata, avail and used index bookkeeping, used-buffer polling, callback disable and re-enable bookkeeping, callback enable-prepare snapshots, delayed-callback pacing bookkeeping, notify-prepare accounting with rollover flushing, queue-reset guard and drained-queue reset bookkeeping, dedicated Phase 10 ring tests, and a slice note only
+- scope: queue index bounds, descriptor-count validation, split or packed layout metadata, avail and used index bookkeeping, used-buffer polling, callback disable and re-enable bookkeeping, callback enable-prepare snapshots, delayed-callback pacing bookkeeping, notify-prepare accounting with rollover flushing, queue-reset guard and drained-queue reset bookkeeping, drained broken-queue recovery bookkeeping, dedicated Phase 10 ring tests, and a slice note only
 - product boundary:
   - `drivers/virtio/virtio_ring.zig`
   - `zigux/tests/phase10_virtio_ring.zig`
@@ -17,7 +17,7 @@ This document tracks the first bounded `drivers/virtio/virtio_ring.c` lab helper
 
 The Phase 10 roadmap puts virtqueue wrappers ahead of MMIO work and explicitly names `drivers/virtio/virtio_ring.c` as the next core anchor after `drivers/virtio/virtio.c`.
 
-The live repo already had a survey lane that made the queue-wrapper gap explicit. This slice lands the smallest honest follow-on: a lab-only helper that records queue shape, used-buffer polling, callback disable and re-enable state, callback enable-prepare snapshots, notification bookkeeping with rollover flushing, and drained-queue reset discipline in memory without pretending to own DMA mapping, real descriptor memory, or interrupt delivery.
+The live repo already had a survey lane that made the queue-wrapper gap explicit. This slice lands the smallest honest follow-on: a lab-only helper that records queue shape, used-buffer polling, callback disable and re-enable state, callback enable-prepare snapshots, notification bookkeeping with rollover flushing, drained-queue reset discipline, and drained broken-queue recovery discipline in memory without pretending to own DMA mapping, real descriptor memory, or interrupt delivery.
 
 ## Landed starter surface
 
@@ -33,6 +33,7 @@ The live repo already had a survey lane that made the queue-wrapper gap explicit
 - kick-prepare notification bookkeeping that mirrors the smallest reviewable `num_added` flow from `virtio_ring.c` and flushes pending notify work before the 16-bit counter wraps silently
 - queue-reset guard bookkeeping that refuses resets while unpublished descriptor chains, outstanding used work, or unpolled completions still remain
 - drained-queue reset bookkeeping that clears live avail, used, callback, and notify state while preserving queue shape metadata for reuse
+- broken-queue recovery that only reuses drained queues through the existing reset discipline and clears the broken marker without claiming real transport reset, descriptor reclamation, or IRQ delivery
 - used-chain accounting that drains outstanding lab work without touching real transport paths
 - dedicated Phase 10 tests and build wiring for the helper
 
@@ -64,4 +65,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-The queue-local ring lane now covers the smallest honest reset-discipline and notify-rollover steps as well, and the adjacent survey-backed `virtio_mmio` config-window, config-write, and interrupt-ack helpers are already landed. Do not reopen `virtio_ring.zig` for more speculative in-memory queue work; leave this packet parked unless a future Phase 10 review can split `phase10-mmio-lifecycle-and-irq-paths` into a smaller transport-safe observation helper without widening the ring slice.
+The queue-local ring lane now covers the smallest honest reset-discipline, broken-queue-recovery, and notify-rollover steps as well, and the adjacent survey-backed `virtio_mmio` config-window, config-write, and interrupt-ack helpers are already landed. Do not reopen `virtio_ring.zig` for more speculative in-memory queue work; leave this packet parked unless a future Phase 10 review can split `phase10-mmio-lifecycle-and-irq-paths` into a smaller transport-safe observation helper without widening the ring slice.
