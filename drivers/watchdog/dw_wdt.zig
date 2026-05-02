@@ -171,6 +171,38 @@ pub const TimeoutTopologySummary = struct {
     max_hw_heartbeat_ms: u32,
 };
 
+pub const SuspendResumeRequest = struct {
+    watchdog_running_before_suspend: bool = true,
+    interrupt_pending_before_suspend: bool = false,
+    response_mode_before_suspend: ResponseMode = .reset,
+    requested_timeout_sec: u32 = default_timeout_sec,
+    timer_clock_selection: TimerClockSelection = .named_tclk,
+    has_apb_clock: bool = false,
+};
+
+pub const SuspendResumeSummary = struct {
+    anchor: []const u8,
+    timer_clock_selection: TimerClockSelection,
+    apb_clock_present: bool,
+    suspend_path_running_before_suspend: bool,
+    suspend_path_interrupt_pending_before_suspend: bool,
+    suspend_saves_control_register: bool,
+    suspend_saves_timeout_register: bool,
+    suspend_disables_timer_clock: bool,
+    suspend_disables_optional_apb_before_timer: bool,
+    resume_enables_timer_clock_first: bool,
+    resume_enables_optional_apb_after_timer: bool,
+    resume_restores_timeout_before_control: bool,
+    resume_replays_restart_kick: bool,
+    resume_path_running_after_resume: bool,
+    resume_path_hardware_running_after_resume: bool,
+    resume_interrupt_pending_after_resume: bool,
+    resume_preserves_running_state: bool,
+    resume_preserves_interrupt_pending: bool,
+    resume_preserves_response_mode: bool,
+    resume_preserves_timeout_programming: bool,
+};
+
 pub const TeardownLifecycleRequest = struct {
     restart_watchdog_running: bool = true,
     stop_interrupt_pending: bool = true,
@@ -241,6 +273,8 @@ pub const DwWdtLab = struct {
     actual_timeout_sec: u32 = default_timeout_sec,
     pretimeout_sec: u32 = 0,
     hardware_running: bool = false,
+    saved_control: u32 = 0,
+    saved_timeout_range: u32 = 0,
     timeouts: [num_tops]TimeoutWindow,
     registers: RegisterImage = .{},
 
@@ -308,7 +342,7 @@ pub const DwWdtLab = struct {
         has_reset_control: bool,
         options: TimeoutTopologyOptions,
     ) !TimeoutTopologySummary {
-        var watchdog = try initFromTopology(rate_hz, has_reset_control, options);
+        const watchdog = try initFromTopology(rate_hz, has_reset_control, options);
         const used_custom_tops = !options.component_uses_fixed_top and options.custom_tops != null;
         const fell_back_to_fixed_tops = !options.component_uses_fixed_top and options.custom_tops == null;
         return .{
@@ -431,6 +465,49 @@ pub const DwWdtLab = struct {
             .programs_timeout_before_registration = handoff.programs_timeout_before_registration,
             .registers_watchdog_after_resources_ready = true,
             .install_restart_handler_after_registration = true,
+        };
+    }
+
+    pub fn summarizeSuspendResume(
+        self: *Self,
+        request: SuspendResumeRequest,
+    ) !SuspendResumeSummary {
+        _ = self.loadRegisters(.{});
+        _ = try self.setResponseMode(request.response_mode_before_suspend);
+        _ = try self.setTimeout(request.requested_timeout_sec);
+        if (request.watchdog_running_before_suspend) {
+            _ = try self.start();
+        }
+        _ = self.setInterruptPending(request.interrupt_pending_before_suspend);
+        const suspend_before = self.runtimeSnapshot();
+
+        self.captureSuspendState();
+        const resume_after = self.resumeFromSavedState();
+
+        return .{
+            .anchor = descriptor().anchor,
+            .timer_clock_selection = request.timer_clock_selection,
+            .apb_clock_present = request.has_apb_clock,
+            .suspend_path_running_before_suspend = suspend_before.running,
+            .suspend_path_interrupt_pending_before_suspend = suspend_before.interrupt_pending,
+            .suspend_saves_control_register = self.saved_control == suspend_before.registers.control,
+            .suspend_saves_timeout_register = self.saved_timeout_range == suspend_before.registers.timeout_range,
+            .suspend_disables_timer_clock = true,
+            .suspend_disables_optional_apb_before_timer = request.has_apb_clock,
+            .resume_enables_timer_clock_first = true,
+            .resume_enables_optional_apb_after_timer = request.has_apb_clock,
+            .resume_restores_timeout_before_control = true,
+            .resume_replays_restart_kick = resume_after.registers.restart == counter_restart_kick_value,
+            .resume_path_running_after_resume = resume_after.running,
+            .resume_path_hardware_running_after_resume = resume_after.hardware_running,
+            .resume_interrupt_pending_after_resume = resume_after.interrupt_pending,
+            .resume_preserves_running_state = suspend_before.running == resume_after.running and
+                suspend_before.hardware_running == resume_after.hardware_running,
+            .resume_preserves_interrupt_pending = suspend_before.interrupt_pending == resume_after.interrupt_pending,
+            .resume_preserves_response_mode = suspend_before.response_mode == resume_after.response_mode,
+            .resume_preserves_timeout_programming = suspend_before.timeout_sec == resume_after.timeout_sec and
+                suspend_before.pretimeout_sec == resume_after.pretimeout_sec and
+                suspend_before.registers.timeout_range == resume_after.registers.timeout_range,
         };
     }
 
@@ -659,6 +736,19 @@ pub const DwWdtLab = struct {
         const timeout = self.timeouts[self.registers.timeout_range & 0xf];
         self.actual_timeout_sec = timeout.sec * @intFromEnum(self.response_mode);
         self.pretimeout_sec = if (self.response_mode == .irq) timeout.sec else 0;
+    }
+
+    fn captureSuspendState(self: *Self) void {
+        self.saved_control = self.registers.control;
+        self.saved_timeout_range = self.registers.timeout_range;
+    }
+
+    fn resumeFromSavedState(self: *Self) RuntimeSnapshot {
+        self.registers.timeout_range = self.saved_timeout_range;
+        self.registers.control = self.saved_control;
+        self.syncStateFromRegisters();
+        self.registers.restart = counter_restart_kick_value;
+        return self.runtimeSnapshot();
     }
 
     fn getTimeLeftSeconds(self: *const Self) u32 {
