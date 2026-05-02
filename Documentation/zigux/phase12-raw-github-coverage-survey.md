@@ -18,24 +18,26 @@ The Phase 12 roadmap still names four anchors:
 - `drivers/scsi/virtio_scsi.c`
 - `tools/lib/bpf/libbpf.c`
 
-Current public-read coverage stays intentionally uneven:
+Current public-read coverage stays intentionally mixed:
 
-- one anchor keeps a commit-pinned raw fallback catalog: `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`
-- three anchors remain shared-tree-only fallback reads: `virtio_net`, `nvme_pci`, and `libbpf`
+- one anchor keeps a commit-pinned raw fallback catalog with a last bounded replay note: `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`
+- one anchor keeps a commit-pinned raw fallback map for the archived NVMe packet: `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`
+- two anchors remain shared-tree-only fallback reads: `virtio_net` and `libbpf`
 
-That split is the real current public boundary for this lane. It keeps the surviving `virtio_scsi` packet reviewable when connector-backed reads are flaky, but it does not overstate equivalent raw fallback coverage for the other three Phase 12 anchors.
+That split is the real current public boundary for this lane. It keeps the surviving `virtio_scsi` packet reviewable when connector-backed reads are flaky, preserves the archived `nvme_pci` raw-path packet, and does not overstate equivalent live-head replay coverage for the other two Phase 12 anchors.
 
 ## Roadmap Comparison
 
-- `virtio_net` is still visible through `Documentation/zigux/phase12-virtio-net-survey.md`, but it does not yet ship a commit-pinned raw fallback catalog parallel to the `virtio_scsi` packet.
-- `nvme_pci` is still visible through `Documentation/zigux/phase12-nvme-pci-survey.md`, but it also remains a shared-tree-only fallback read.
-- `virtio_scsi` is the only Phase 12 anchor that currently ships both a survey packet and a commit-pinned raw fallback catalog.
-- `libbpf` stays visible through `Documentation/zigux/phase12-libbpf-segment-survey.md`, but its public-read fallback posture is still shared-tree-only rather than catalog-pinned.
+- `virtio_net` is still visible through `Documentation/zigux/phase12-virtio-net-survey.md`, but it does not yet ship a commit-pinned raw fallback artifact parallel to the `virtio_scsi` or `nvme_pci` packets.
+- `nvme_pci` is still visible through `Documentation/zigux/phase12-nvme-pci-survey.md`, and it now also ships `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` for the archived packet, but that map intentionally stays archival rather than claiming a live-head replay catalog parallel to `virtio_scsi`.
+- `virtio_scsi` is the only Phase 12 anchor that currently ships both a survey packet and a commit-pinned raw fallback catalog with a recorded bounded replay note.
+- `libbpf` stays visible through `Documentation/zigux/phase12-libbpf-segment-survey.md`, but its public-read fallback posture is still shared-tree-only rather than map-pinned or catalog-pinned.
 
 ## Why This Matters
 
 The roadmap still expects honest segmented rollout and reviewability for complex drivers and heavy helper consumers. This survey keeps the current public-read posture explicit without widening into DMA-backed queue ownership, NVMe execution flow, SCSI host lifecycle work, or libbpf object-model follow-up.
 
-The surviving `virtio_scsi` fallback catalog remains the exact packet this survey compares against:
+The surviving pinned fallback artifacts this survey compares against remain:
 
 - `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`
+- `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`
