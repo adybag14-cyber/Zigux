@@ -76,7 +76,7 @@ test "phase13 landlock syscalls manifest records the current landed packet" {
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 15), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 16), manifest.gaps.len);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, expected_surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE13_SURVEYED_COMMIT=") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, expected_slice_marker) != null);
@@ -89,6 +89,7 @@ test "phase13 landlock syscalls manifest records the current landed packet" {
     var saw_test_gate = false;
     var saw_slice_note = false;
     var saw_survey_note = false;
+    var saw_initialization_gate = false;
     var saw_copy_min_struct = false;
     var saw_add_rule = false;
     var saw_fd_followup = false;
@@ -141,6 +142,13 @@ test "phase13 landlock syscalls manifest records the current landed packet" {
             saw_survey_note = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("Documentation/zigux/phase13-landlock-syscalls-survey.md", gap.zigux_destination);
+        }
+        if (std.mem.eql(u8, gap.id, "phase13-landlock-initialization-gate-followup")) {
+            saw_initialization_gate = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("security/landlock/syscalls.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "is_initialized()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "-EOPNOTSUPP") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase13-landlock-copy-min-struct-followup")) {
             saw_copy_min_struct = true;
@@ -213,7 +221,7 @@ test "phase13 landlock syscalls manifest records the current landed packet" {
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 15), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 16), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_make_target);
@@ -221,6 +229,7 @@ test "phase13 landlock syscalls manifest records the current landed packet" {
     try std.testing.expect(saw_test_gate);
     try std.testing.expect(saw_slice_note);
     try std.testing.expect(saw_survey_note);
+    try std.testing.expect(saw_initialization_gate);
     try std.testing.expect(saw_copy_min_struct);
     try std.testing.expect(saw_add_rule);
     try std.testing.expect(saw_fd_followup);
@@ -238,6 +247,7 @@ test "phase13 landlock syscalls descriptor stays anchored to syscalls.c" {
     try std.testing.expectEqualStrings("landlock_syscalls_helper_lab", descriptor.name);
     try std.testing.expectEqualStrings("security/landlock/syscalls.c", descriptor.anchor);
     try std.testing.expect(descriptor.provides_abi_shape_reporting);
+    try std.testing.expect(descriptor.provides_initialization_gate_planning);
     try std.testing.expect(descriptor.provides_min_struct_copy_planning);
     try std.testing.expect(descriptor.provides_create_ruleset_query_planning);
     try std.testing.expect(descriptor.provides_restrict_self_flag_planning);
@@ -245,6 +255,7 @@ test "phase13 landlock syscalls descriptor stays anchored to syscalls.c" {
     try std.testing.expect(descriptor.provides_add_rule_planning);
     try std.testing.expect(descriptor.provides_ruleset_fd_planning);
     try std.testing.expect(descriptor.provides_ruleset_fd_creation_planning);
+    try std.testing.expect(descriptor.provides_ruleset_fops_planning);
     try std.testing.expect(descriptor.provides_path_fd_planning);
     try std.testing.expect(descriptor.provides_path_beneath_handoff_planning);
     try std.testing.expect(descriptor.provides_net_port_handoff_planning);
@@ -252,6 +263,25 @@ test "phase13 landlock syscalls descriptor stays anchored to syscalls.c" {
     try std.testing.expect(!descriptor.touches_live_paths);
     try std.testing.expect(!descriptor.touches_live_credentials);
     try std.testing.expect(!descriptor.touches_live_domains);
+}
+
+test "phase13 landlock initialization gate planner keeps shared boot-disabled contract explicit" {
+    const initialized = syscalls.SyscallsHelperLab.planInitializationGate(true);
+    try std.testing.expectEqualStrings("security/landlock/syscalls.c", initialized.anchor);
+    try std.testing.expect(initialized.initialized);
+    try std.testing.expect(!initialized.returns_eopnotsupp_when_disabled);
+    try std.testing.expect(!initialized.emits_boot_disabled_warning);
+    try std.testing.expect(initialized.gates_create_ruleset);
+    try std.testing.expect(initialized.gates_add_rule);
+    try std.testing.expect(initialized.gates_restrict_self);
+
+    const disabled = syscalls.SyscallsHelperLab.planInitializationGate(false);
+    try std.testing.expect(!disabled.initialized);
+    try std.testing.expect(disabled.returns_eopnotsupp_when_disabled);
+    try std.testing.expect(disabled.emits_boot_disabled_warning);
+    try std.testing.expect(disabled.gates_create_ruleset);
+    try std.testing.expect(disabled.gates_add_rule);
+    try std.testing.expect(disabled.gates_restrict_self);
 }
 
 test "phase13 landlock restrict_self credential handoff models merge and tsync flow" {
