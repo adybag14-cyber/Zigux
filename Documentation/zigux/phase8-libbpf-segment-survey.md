@@ -137,7 +137,7 @@ The shared review path now fail-closes through the shared Phase 8 validator, the
 - focused Zig replay rerun against inspected `master` head `36414e38da67a51209095d0c06170f81e80258eb`
 - `python3 scripts/zigux/validate-phase8.py --self-test`
   - `PHASE8_VALIDATOR_SELF_TEST=pass`
-  - `PHASE8_VALIDATOR_SELF_TEST_CASE_COUNT=11`
+  - `PHASE8_VALIDATOR_SELF_TEST_CASE_COUNT=12`
 - `python3 scripts/zigux/check-phase8-tests-readme-alignment.py --self-test`
   - `PHASE8_TESTS_README_ALIGNMENT_SELF_TEST=pass`
   - `PHASE8_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=19`
