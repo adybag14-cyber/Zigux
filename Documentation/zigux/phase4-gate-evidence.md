@@ -11,17 +11,17 @@ This note records one exact readback snapshot for the current Phase 4 rollback-o
 - `PHASE4_VALIDATOR_BLOB_SHA=9f81ba776b76cb9b8941d538cda5edaca340e48f`
 - `PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA=c648bdccd483ca5cf2ec520d028cc5e50819c764`
 - `PHASE4_BUILD_BLOB_SHA=57f4c3809387cac39e3153b9bbad17ca92ce3684`
-- `PHASE4_MAKEFILE_BLOB_SHA=23038ef0f27dda3b5e169e36ba211e3e878df627`
-- `PHASE4_WORKFLOW_BLOB_SHA=531d4071089aec70245511e2ea6a040428029f50`
+- `PHASE4_MAKEFILE_BLOB_SHA=00021f2f9524288d161e7795b2a1a5af038ab7af`
+- `PHASE4_WORKFLOW_BLOB_SHA=25ecfa2ca0433046a7e2c34e3500f8c63992c127`
 - `PHASE4_TEST_FSMOUNT_MANIFEST_BLOB_SHA=7171b6d3f3c407c708d56fd6bb275e2cba44add5`
 - `PHASE4_TEST_FSMOUNT_SURVEY_BLOB_SHA=006f9c54cfa12c3029979f5256192465778790b6`
 - `PHASE4_PERF_BASELINE_MANIFEST_BLOB_SHA=1d3534b3ae5ea9e4211269aaec7b96bce7ab36ae`
 - `PHASE4_PERF_BASELINE_SURVEY_BLOB_SHA=64f28eb7e6372d1a56e0dcf90d5b13446e1674fe`
 - `PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=2a001ec217dc3acc6d77c08a66707346a950f353`
 - `PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=77d248a79404ba6eeac41582edd2248e9e0b2989`
-- `PHASE4_DOC_README_BLOB_SHA=cb98df26792f7dd918568d51f6e67dfbea561dad`
-- `PHASE4_SCRIPT_README_BLOB_SHA=4f5e61c406bd7cc1c55abb65ae3c76206435be63`
-- `PHASE4_TESTS_README_BLOB_SHA=c996d6711682a0d908f00416fec1253dbb818c22`
+- `PHASE4_DOC_README_BLOB_SHA=cb1179e173bff00cfd08363a4623a7801cc3f84d`
+- `PHASE4_SCRIPT_README_BLOB_SHA=e3b9718c3040f057e8c34131c857bf4c0f4a18f9`
+- `PHASE4_TESTS_README_BLOB_SHA=64b894d0e7a416ac4ce178d9d20a47fdf6bd6f88`
 - `PHASE4_VALIDATOR_SELF_TEST=pass`
 - `PHASE4_VALIDATION=pass`
 - `PHASE4_REQUIRED_FILE_COUNT=23`
@@ -74,7 +74,7 @@ The packet still carries two validator-backed status layers as part of the publi
 
 The shared validator still proves the workflow step names and the presence of `make -C zigux phase4-validate` plus `make -C zigux phase4-test`, and the dedicated gate-evidence checker now additionally fails closed on the exact single run-line counts for those two workflow commands.
 
-On the inspected `master` head pinned by `PHASE4_WORKFLOW_BLOB_SHA=531d4071089aec70245511e2ea6a040428029f50`, the workflow currently contains one `make -C zigux phase4-validate` run line and one `make -C zigux phase4-test` run line under the Phase 4 steps, and that count now lives in both this exact-readback note and the dedicated checker contract.
+On the inspected `master` head pinned by `PHASE4_WORKFLOW_BLOB_SHA=25ecfa2ca0433046a7e2c34e3500f8c63992c127`, the workflow currently contains one `make -C zigux phase4-validate` run line and one `make -C zigux phase4-test` run line under the Phase 4 steps, and that count now lives in both this exact-readback note and the dedicated checker contract.
 
 That keeps the README surfaces truthful summaries for the packet, and this note is again a current blob ledger for the broader survey and index surfaces instead of a stale audit record.
 
