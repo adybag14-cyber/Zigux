@@ -865,9 +865,9 @@ def run_self_test() -> int:
 
         manifest["surveyed_commit"] = SELF_TEST_HEAD
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        note_text = note_path.readText if False else note_path.read_text(encoding="utf-8")
+        note_text = note_path.read_text(encoding="utf-8")
         note_text = note_text.replace(
-            manifest_expectations["phase5_trace_events_sample.json"]["survey_build_summary"] if False else manifest_expectations["phase5_trace_events_sample_manifest.json"]["survey_build_summary"],
+            manifest_expectations["phase5_trace_events_sample_manifest.json"]["survey_build_summary"],
             "Build Summary: 17/17 steps succeeded; 99/99 tests passed",
             1,
         )
@@ -964,6 +964,26 @@ def run_self_test() -> int:
             print("PHASE5_VALIDATOR_SELF_TEST_REASON=sample-root-cmdline-boundary-gap")
             return 1
 
+        sample_root_path.write_text((ROOT / "samples/zigux/README.md").read_text(encoding="utf-8"), encoding="utf-8")
+
+        tests_readme_path = tmp_root / "zigux/tests/README.md"
+        tests_readme_text = tests_readme_path.read_text(encoding="utf-8").replace(
+            "zig test zigux/tests/phase5_trace_events_sample_survey.zig",
+            "zig test zigux/tests/phase5_trace_events_sample_missing_survey.zig",
+            1,
+        )
+        tests_readme_path.write_text(tests_readme_text, encoding="utf-8")
+        tests_readme_result = validate_phase5(tmp_root)
+        if tests_readme_result["ok"] or (
+            "tests_readme:missing:zig test zigux/tests/phase5_trace_events_sample_survey.zig"
+            not in tests_readme_result["missing"]
+        ):
+            print("PHASE5_VALIDATOR_SELF_TEST=fail")
+            print("PHASE5_VALIDATOR_SELF_TEST_REASON=tests-readme-replay-gap")
+            return 1
+
+        tests_readme_path.write_text((ROOT / "zigux/tests/README.md").read_text(encoding="utf-8"), encoding="utf-8")
+
         sample_path = tmp_root / sample_source_expectations["phase5_trace_events_sample"]["path"]
         sample_text = sample_path.read_text(encoding="utf-8")
         sample_text = sample_text.replace(
@@ -979,7 +999,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE5_VALIDATOR_SELF_TEST=pass")
-    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=8")
+    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
