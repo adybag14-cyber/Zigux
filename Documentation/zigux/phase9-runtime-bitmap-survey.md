@@ -24,7 +24,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `lib
 
 ## Why this slice exists
 
-The Phase 9 roadmap explicitly names `lib/test_bitmap.c` as a runtime pilot-module anchor and recommends `zigux/tests/runtime_*` plus `samples/zigux/runtime_*` as the bounded Zigux destinations.
+The Phase 9 roadmap explicitly names `lib/test_bitmap.c` as a runtime pilot anchor and recommends `zigux/tests/runtime_*` plus `samples/zigux/runtime_*` as the bounded Zigux destinations.
 
 The live repo originally needed a survey-shaped review anchor that could record what the runtime bitmap lane had already shipped versus what still depends on a shared runtime substrate. This note stays in place after the bounded starter sample, direct sample-test leg, direct loader-test leg, module gate, diff gate, loader scaffold, and shared loader-request binding landed, so the lane can keep comparing the current pilot-module surface against the roadmap without pretending that Zigux already has a real loadable bitmap module.
 
@@ -78,7 +78,7 @@ The exact checks now recorded in `zigux/tests/runtime_bitmap_manifest.json` and 
 - out-of-bounds init, `setRange()`, and `clearRange()` requests stay explicit `BitRangeOutOfBounds` errors at the bitmap tail
 - zero-length `setRange()` and `clearRange()` calls leave the summary unchanged, and `copyFrom()` rejects cold or exited sources with `InvalidSourceLifecycle`
 - `initFromBitList()` rejects trailing or doubled separators, rejects out-of-bounds bit lists, normalizes duplicate bit lists to the canonical `0,5,64,70` replay, preserves empty parse-and-print replay as an empty string plus `null` first `nthSetBit()`, blocks repeat parse initialization with `InvalidLifecycleTransition` once the first parse succeeds, and keeps failed parsed or direct init attempts cold and empty so a clean follow-up init can still succeed
-- the loader scaffold keeps entry symbol `zigux_runtime_bitmap_init`, exit symbol `zigux_runtime_bitmap_exit`, `waiting_on_runtime_substrate` handoff, `released_without_substrate` fallback, `helper_owned` allocator flow, explicit shared command-name preservation, and the four-field bitmap payload summary machine-checkable through the shared runtime-loader request surface
+- the loader scaffold keeps entry symbol `zigux_runtime_bitmap_init`, exit symbol `zigux_runtime_bitmap_exit`, `waiting_on_runtime_substrate` handoff, `released_without_substrate` fallback, `helper_owned` allocator flow, explicit shared command-name preservation, and the seven-field bitmap payload summary machine-checkable through the shared runtime-loader request surface
 - the shared Phase 9 build keeps the dedicated `phase9-runtime-bitmap-loader-tests` leg beside `phase9-runtime-bitmap-sample-tests` so loader-scaffold review evidence stays explicit instead of being implied through the broader shared runtime-loader checks
 - the diff gate replays a 9-bit fill-from-zero case with `first_set = 0`, `first_zero = 9`, `weight = 9`, bits `0` and `8` set, and later bits clear
 - the diff gate replays a full-set then `clearRange(79, 19)` cutout with `first_zero = 79`, weight `bitmap_nbits - 19`, and bits `79` through `97` cleared while bit `98` and the last bit stay set
@@ -156,4 +156,4 @@ This survey slice still does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 9 runtime bitmap lane and keep future work narrowly aimed at the remaining broader shared runtime-loader control surface or real lifecycle-parity blocker, rather than reopening already-landed survey, sample, loader-scaffold, shared binding, module-gate, or diff-gate scaffolding, while keeping the separate `kernel/workqueue.c` freeze-map boundary in study-only status unless the Architecture Council explicitly reopens it.
+Stay in the Phase 9 runtime bitmap lane and keep the next step on the remaining broader shared runtime-loader control surface or real lifecycle-parity blocker, rather than inventing another bitmap-local binding surface now that `zigux/kernel/runtime_loader.zig` already consumes the current handoff plan, while keeping the separate `kernel/workqueue.c` freeze-map boundary in study-only status unless the Architecture Council explicitly reopens it.
