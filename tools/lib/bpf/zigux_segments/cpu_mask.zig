@@ -160,6 +160,37 @@ pub fn isPerfBufferCpuOnlineEligible(cpu_index: usize, requested_cpu_count: i32,
     return cpu_index < online_mask.len and online_mask[cpu_index];
 }
 
+pub fn planPerfBufferAutoCpuIndices(
+    allocator: std.mem.Allocator,
+    possible_mask: []const bool,
+    online_mask: []const bool,
+    map_max_entries: u32,
+) ![]usize {
+    var planned = std.ArrayList(usize).empty;
+    errdefer planned.deinit(allocator);
+
+    const budget = derivePerfBufferAutoCpuCount(countPossibleCpus(possible_mask), map_max_entries);
+    if (budget == 0) {
+        return planned.toOwnedSlice(allocator);
+    }
+
+    for (possible_mask, 0..) |possible, cpu_index| {
+        if (!possible) {
+            continue;
+        }
+        if (!isPerfBufferCpuOnlineEligible(cpu_index, 0, online_mask)) {
+            continue;
+        }
+
+        try planned.append(allocator, cpu_index);
+        if (planned.items.len == budget) {
+            break;
+        }
+    }
+
+    return planned.toOwnedSlice(allocator);
+}
+
 pub fn countPossibleCpus(mask: []const bool) usize {
     var count: usize = 0;
     for (mask) |present| {
@@ -358,4 +389,24 @@ test "isPerfBufferCpuOnlineEligible bypasses the online mask when the caller pin
 
     try std.testing.expect(isPerfBufferCpuOnlineEligible(0, 2, &online));
     try std.testing.expect(isPerfBufferCpuOnlineEligible(3, 2, &online));
+}
+
+test "planPerfBufferAutoCpuIndices keeps auto-selected CPU routing pure and budget-bounded" {
+    const possible = [_]bool{ true, true, false, true, true };
+    const online = [_]bool{ false, true, true, false, true };
+
+    const planned = try planPerfBufferAutoCpuIndices(std.testing.allocator, &possible, &online, 2);
+    defer std.testing.allocator.free(planned);
+
+    try std.testing.expectEqualSlices(usize, &.{ 1, 4 }, planned);
+}
+
+test "planPerfBufferAutoCpuIndices skips offline or truncated online candidates without widening into sysfs io" {
+    const possible = [_]bool{ true, false, true, true };
+    const short_online = [_]bool{ true, false };
+
+    const planned = try planPerfBufferAutoCpuIndices(std.testing.allocator, &possible, &short_online, 0);
+    defer std.testing.allocator.free(planned);
+
+    try std.testing.expectEqualSlices(usize, &.{0}, planned);
 }
