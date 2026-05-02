@@ -39,6 +39,37 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_stay_in_c_evidence");
 }
 
+fn expectContains(haystack: []const u8, needle: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+}
+
+fn expectArchiveTemplateContents(
+    template: []const u8,
+    anchor_path: []const u8,
+    archive_path: []const u8,
+    blocker_disposition: []const u8,
+) !void {
+    try expectContains(template, anchor_path);
+    try expectContains(template, "phase: `Phase 15`");
+    try expectContains(template, "current status bucket: `freeze_in_c`");
+    try expectContains(template, "requested decision bucket: `pending_no_request`");
+    try expectContains(template, "decision record ID: `pending_no_architecture_council_request`");
+    try expectContains(template, archive_path);
+    try expectContains(template, "Documentation/zigux/phase15-parity-scorecard.md");
+    try expectContains(template, "validation gate summary");
+    try expectContains(template, "replay command: `zig build test --build-file zigux/tests/phase15_build.zig`");
+    try expectContains(template, blocker_disposition);
+    try expectContains(template, "automatic return-to-blocked trigger");
+    try expectContains(template, "Documentation/zigux/phase15-indefinite-c-policy.md");
+    try expectContains(template, "current discussion state: `active_review_required_until_complete_packet_exists`");
+    try expectContains(template, "retained discussion state after closeout: `retired_from_active_discussion`");
+    try expectContains(template, "narrower_followup_answers_blocker");
+    try expectContains(template, "evidence_packet_stale_or_contradictory");
+    try expectContains(template, "ownership_or_validation_changed");
+    try expectContains(template, "## Explicit Non-goals");
+    try expectContains(template, "written rationale");
+}
+
 test "phase 15 indefinite-C policy manifest records current policy, exception, and blocker evidence" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -300,80 +331,139 @@ test "phase 15 indefinite-C policy note preserves stay-in-C boundary language" {
     );
     defer std.testing.allocator.free(makefile);
 
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "## When the indefinite-C policy applies") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "## Required recorded fields") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "## Allowed work after an indefinite-C outcome") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "## Exception posture") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "## Exception request checklist") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "## Automatic Return-To-Blocked Rule") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "## Reopen conditions") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "## Reopen Evidence Matrix") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "## Reopen Trigger Catalog") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "## Current Policy Gap") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "## Maintenance-Mode Handoff") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "landed `phase15-indefinite-c-maintenance-handoff`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "landed `phase15-indefinite-c-automatic-return-to-blocked-gate`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "landed `phase15-indefinite-c-reopen-trigger-catalog`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "PHASE15_LANE_KEY=P15-L16") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "retired_from_active_discussion") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "no silent exception path") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "Architecture Council reopen request") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "existing blocker remains recorded") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "Every allowed exception request must stay reviewable as a bounded reopen packet instead of a policy waiver.") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "the exact named reopen-trigger catalog item or items being cited") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "the trigger-specific refreshed evidence by path for each cited trigger") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "the current blocker disposition the new evidence is trying to change") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "the automatic return-to-blocked trigger that sends the anchor back to blocked review posture if review fields, linked evidence, scorecard state, replay commands, blocker posture, or rollback ownership drift") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "the parity scorecard link and the evidence-archive path tied to the same anchor") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "the lane owner and rollback owner, refreshed when the trigger is `ownership_or_validation_changed`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "the C implementation remains the product source of truth unless the reopen request is approved") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "If any one of those fields is missing, the exception request is incomplete and the anchor remains in the recorded stay-in-C posture.") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "Every active exception or reopened stay-in-C review packet must keep one automatic return-to-blocked trigger explicit.") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "That trigger must name which missing field, stale evidence, contradictory scorecard link, replay drift, blocker drift, or rollback-threshold breach sends the anchor back to blocked review posture.") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "If the trigger is missing or any named drift is left unresolved, the exception packet is incomplete and the anchor returns to blocked review posture with the existing C implementation still the product source of truth.") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "named reopen-trigger catalog item") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "new bounded seam inventory") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "trigger-specific evidence") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "trigger-specific refreshed evidence by path") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "current blocker disposition") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "If multiple triggers are cited together") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "updated validation plan and rollback owner") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "refreshed linked evidence in the evidence archive") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "refreshed lane-owner, rollback-owner, or validation-gate evidence") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "current benchmark-notes status") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "current roadmap phase") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "replay command reviewers should use") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "automatic return-to-blocked trigger") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "reopen triggers and the parity scorecard link or blocker record") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "ownership_or_validation_changed") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "current lane posture: `maintenance_mode`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "make -C zigux phase15") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "The current roadmap-vs-repo policy gap inside this lane is no longer a missing local governance artifact.") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "That keeps the current roadmap-vs-repo policy gap explicit at the docs root and the shared replay path instead of leaving the closure signal buried only in this note.") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "That closes the current policy gap for the roadmap requirement `policy for code that remains in C indefinitely`.") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "Documentation/zigux/README.md") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "zigux/Makefile") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "no bounded scheduler seam is approved yet") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "next future target: wait for one of the named reopen triggers or the deep-core blocker posture to change before opening another Phase 15 slice") != null);
+    const kernel_sched_archive = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase15-evidence-archives/kernel-sched-core.md",
+        std.testing.allocator,
+        .limited(12 * 1024),
+    );
+    defer std.testing.allocator.free(kernel_sched_archive);
 
-    try std.testing.expect(std.mem.indexOf(u8, docs_root, "Phase 15 notes") != null);
-    try std.testing.expect(std.mem.indexOf(u8, docs_root, "`Documentation/zigux/phase15-indefinite-c-policy.md`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, docs_root, "the current roadmap-versus-repo indefinite-C policy gap is closed locally") != null);
-    try std.testing.expect(std.mem.indexOf(u8, docs_root, "`zig build test --build-file zigux/tests/phase15_build.zig` plus `make -C zigux phase15` replay path") != null);
+    const mm_page_alloc_archive = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase15-evidence-archives/mm-page-alloc.md",
+        std.testing.allocator,
+        .limited(12 * 1024),
+    );
+    defer std.testing.allocator.free(mm_page_alloc_archive);
 
-    try std.testing.expect(std.mem.indexOf(u8, phase15_build, "phase15_indefinite_c_policy.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase15_build, "phase15-indefinite-c-policy-tests") != null);
+    const kernel_rcu_tree_archive = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase15-evidence-archives/kernel-rcu-tree.md",
+        std.testing.allocator,
+        .limited(12 * 1024),
+    );
+    defer std.testing.allocator.free(kernel_rcu_tree_archive);
 
-    try std.testing.expect(std.mem.indexOf(u8, makefile, "phase15-test:") != null);
-    try std.testing.expect(std.mem.indexOf(u8, makefile, "build test --build-file zigux/tests/phase15_build.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, makefile, "phase15: phase15-validate phase15-test") != null);
+    const net_core_skbuff_archive = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase15-evidence-archives/net-core-skbuff.md",
+        std.testing.allocator,
+        .limited(12 * 1024),
+    );
+    defer std.testing.allocator.free(net_core_skbuff_archive);
 
-    try std.testing.expect(std.mem.indexOf(u8, freeze_map, "product source of truth") != null);
-    try std.testing.expect(std.mem.indexOf(u8, freeze_map, "no silent exception path") != null);
-    try std.testing.expect(std.mem.indexOf(u8, review_process, "retained discussion state") != null);
-    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "trigger-specific refreshed evidence by path") != null);
-    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "current blocker disposition") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard, "retired_from_active_discussion") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard, "narrower_followup_answers_blocker") != null);
-    try std.testing.expect(std.mem.indexOf(u8, freeze_map, "fresh linked evidence") != null);
+    try expectContains(policy_note, "## When the indefinite-C policy applies");
+    try expectContains(policy_note, "## Required recorded fields");
+    try expectContains(policy_note, "## Allowed work after an indefinite-C outcome");
+    try expectContains(policy_note, "## Exception posture");
+    try expectContains(policy_note, "## Exception request checklist");
+    try expectContains(policy_note, "## Automatic Return-To-Blocked Rule");
+    try expectContains(policy_note, "## Reopen conditions");
+    try expectContains(policy_note, "## Reopen Evidence Matrix");
+    try expectContains(policy_note, "## Reopen Trigger Catalog");
+    try expectContains(policy_note, "## Current Policy Gap");
+    try expectContains(policy_note, "## Maintenance-Mode Handoff");
+    try expectContains(policy_note, "landed `phase15-indefinite-c-maintenance-handoff`");
+    try expectContains(policy_note, "landed `phase15-indefinite-c-automatic-return-to-blocked-gate`");
+    try expectContains(policy_note, "landed `phase15-indefinite-c-reopen-trigger-catalog`");
+    try expectContains(policy_note, "PHASE15_LANE_KEY=P15-L16");
+    try expectContains(policy_note, "Documentation/zigux/phase15-evidence-archives/");
+    try expectContains(policy_note, "retired_from_active_discussion");
+    try expectContains(policy_note, "no silent exception path");
+    try expectContains(policy_note, "Architecture Council reopen request");
+    try expectContains(policy_note, "existing blocker remains recorded");
+    try expectContains(policy_note, "Every allowed exception request must stay reviewable as a bounded reopen packet instead of a policy waiver.");
+    try expectContains(policy_note, "the exact named reopen-trigger catalog item or items being cited");
+    try expectContains(policy_note, "the trigger-specific refreshed evidence by path for each cited trigger");
+    try expectContains(policy_note, "the current blocker disposition the new evidence is trying to change");
+    try expectContains(policy_note, "the automatic return-to-blocked trigger that sends the anchor back to blocked review posture if review fields, linked evidence, scorecard state, replay commands, blocker posture, or rollback ownership drift");
+    try expectContains(policy_note, "the parity scorecard link and the evidence-archive path tied to the same anchor");
+    try expectContains(policy_note, "the lane owner and rollback owner, refreshed when the trigger is `ownership_or_validation_changed`");
+    try expectContains(policy_note, "the C implementation remains the product source of truth unless the reopen request is approved");
+    try expectContains(policy_note, "If any one of those fields is missing, the exception request is incomplete and the anchor remains in the recorded stay-in-C posture.");
+    try expectContains(policy_note, "Every active exception or reopened stay-in-C review packet must keep one automatic return-to-blocked trigger explicit.");
+    try expectContains(policy_note, "That trigger must name which missing field, stale evidence, contradictory scorecard link, replay drift, blocker drift, or rollback-threshold breach sends the anchor back to blocked review posture.");
+    try expectContains(policy_note, "If the trigger is missing or any named drift is left unresolved, the exception packet is incomplete and the anchor returns to blocked review posture with the existing C implementation still the product source of truth.");
+    try expectContains(policy_note, "named reopen-trigger catalog item");
+    try expectContains(policy_note, "new bounded seam inventory");
+    try expectContains(policy_note, "trigger-specific evidence");
+    try expectContains(policy_note, "trigger-specific refreshed evidence by path");
+    try expectContains(policy_note, "current blocker disposition");
+    try expectContains(policy_note, "If multiple triggers are cited together");
+    try expectContains(policy_note, "updated validation plan and rollback owner");
+    try expectContains(policy_note, "refreshed linked evidence in the evidence archive");
+    try expectContains(policy_note, "refreshed lane-owner, rollback-owner, or validation-gate evidence");
+    try expectContains(policy_note, "current benchmark-notes status");
+    try expectContains(policy_note, "current roadmap phase");
+    try expectContains(policy_note, "replay command reviewers should use");
+    try expectContains(policy_note, "automatic return-to-blocked trigger");
+    try expectContains(policy_note, "reopen triggers and the parity scorecard link or blocker record");
+    try expectContains(policy_note, "ownership_or_validation_changed");
+    try expectContains(policy_note, "current lane posture: `maintenance_mode`");
+    try expectContains(policy_note, "make -C zigux phase15");
+    try expectContains(policy_note, "The current roadmap-vs-repo policy gap inside this lane is no longer a missing local governance artifact.");
+    try expectContains(policy_note, "That keeps the current roadmap-vs-repo policy gap explicit at the docs root and the shared replay path instead of leaving the closure signal buried only in this note.");
+    try expectContains(policy_note, "That closes the current policy gap for the roadmap requirement `policy for code that remains in C indefinitely`.");
+    try expectContains(policy_note, "Documentation/zigux/README.md");
+    try expectContains(policy_note, "zigux/Makefile");
+    try expectContains(policy_note, "no bounded scheduler seam is approved yet");
+    try expectContains(policy_note, "next future target: wait for one of the named reopen triggers or the deep-core blocker posture to change before opening another Phase 15 slice");
+
+    try expectContains(docs_root, "Phase 15 notes");
+    try expectContains(docs_root, "`Documentation/zigux/phase15-indefinite-c-policy.md`");
+    try expectContains(docs_root, "the current roadmap-versus-repo indefinite-C policy gap is closed locally");
+    try expectContains(docs_root, "`zig build test --build-file zigux/tests/phase15_build.zig` plus `make -C zigux phase15` replay path");
+    try expectContains(docs_root, "`Documentation/zigux/phase15-evidence-archives/`");
+
+    try expectContains(phase15_build, "phase15_indefinite_c_policy.zig");
+    try expectContains(phase15_build, "phase15-indefinite-c-policy-tests");
+
+    try expectContains(makefile, "phase15-test:");
+    try expectContains(makefile, "build test --build-file zigux/tests/phase15_build.zig");
+    try expectContains(makefile, "phase15: phase15-validate phase15-test");
+
+    try expectContains(freeze_map, "product source of truth");
+    try expectContains(freeze_map, "no silent exception path");
+    try expectContains(review_process, "retained discussion state");
+    try expectContains(review_checklist, "trigger-specific refreshed evidence by path");
+    try expectContains(review_checklist, "current blocker disposition");
+    try expectContains(scorecard, "retired_from_active_discussion");
+    try expectContains(scorecard, "narrower_followup_answers_blocker");
+    try expectContains(freeze_map, "fresh linked evidence");
+
+    try expectArchiveTemplateContents(
+        kernel_sched_archive,
+        "kernel/sched/core.c",
+        "Documentation/zigux/phase15-evidence-archives/kernel-sched-core.md",
+        "blocked_no_bounded_scheduler_seam",
+    );
+    try expectArchiveTemplateContents(
+        mm_page_alloc_archive,
+        "mm/page_alloc.c",
+        "Documentation/zigux/phase15-evidence-archives/mm-page-alloc.md",
+        "blocked_no_bounded_allocator_seam",
+    );
+    try expectArchiveTemplateContents(
+        kernel_rcu_tree_archive,
+        "kernel/rcu/tree.c",
+        "Documentation/zigux/phase15-evidence-archives/kernel-rcu-tree.md",
+        "blocked_phase14_followup_still_wider_than_allowed_rcu_seam",
+    );
+    try expectArchiveTemplateContents(
+        net_core_skbuff_archive,
+        "net/core/skbuff.c",
+        "Documentation/zigux/phase15-evidence-archives/net-core-skbuff.md",
+        "blocked_packet_lifetime_boundary_still_too_wide",
+    );
 }
