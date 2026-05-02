@@ -500,6 +500,8 @@ def run_self_test() -> int:
                 },
             ],
         }
+        total_self_test_cases = len(valid_cases['conf_cases']) + len(valid_cases['confdata_cases'])
+        assert total_self_test_cases == 6
 
         expected_shape_examples = []
         for case in valid_cases['conf_cases']:
@@ -641,6 +643,8 @@ def run_self_test() -> int:
         )
         assert final_unset_input.read_bytes() == b'CONFIG_ALPHA=y\n# CONFIG_DEBUG is not set\r'
         assert final_unset_expected.read_text(encoding='utf-8') == '{"counts":{"set":1,"unset":0},"entries":[{"name":"CONFIG_ALPHA","kind":"tristate","value":"y"}]}\n'
+
+        print(f'KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT={total_self_test_cases}')
 
     print('KCONFIG_BRIDGE_SELF_TEST=pass')
     return 0
