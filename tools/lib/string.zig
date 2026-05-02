@@ -624,6 +624,14 @@ test "memparse forwards the header-level string helper surface" {
     try std.testing.expectEqual(@as(u64, 2 << 20), mb.value);
     try std.testing.expectEqualStrings("!", mb.rest);
 
+    const gib = memparse("1GiB trailing");
+    try std.testing.expectEqual(@as(u64, 1) << 30, gib.value);
+    try std.testing.expectEqualStrings(" trailing", gib.rest);
+
+    const lowercase_kib = memparse("3kib.");
+    try std.testing.expectEqual(@as(u64, 3) << 10, lowercase_kib.value);
+    try std.testing.expectEqualStrings(".", lowercase_kib.rest);
+
     const invalid = memparse("xyz");
     try std.testing.expectEqual(@as(u64, 0), invalid.value);
     try std.testing.expectEqualStrings("xyz", invalid.rest);
