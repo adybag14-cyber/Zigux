@@ -75,7 +75,7 @@ CATALOG_MARKERS = [
     "max_slowdown_pct = 550",
     "max_slowdown_pct = 600",
     "avg_compare_calls <= std.math.log2_int_ceil(len) + 1",
-    "PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=24",
+    "PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=25",
 ]
 
 PERF_SURVEY_MARKERS = [
@@ -477,7 +477,7 @@ def report_validation(result: dict[str, object]) -> int:
         return 1
     print("PHASE6_VALIDATION=pass")
     print(f"PHASE6_CATALOG_VERIFIED_HEAD={result['catalog_head']}")
-    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=24")
+    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=25")
     return 0
 
 
@@ -597,6 +597,12 @@ def run_self_test() -> int:
                 raise AssertionError("missing phase6 build marker failure")
 
             build_self_test_tree(root)
+            bsearch_perf = root / "zigux/tests/phase6_bsearch_perf.zig"
+            bsearch_perf.write_text(bsearch_perf.read_text(encoding="utf-8").replace(BSEARCH_PERF_MARKERS[3], "", 1), encoding="utf-8")
+            if f"bsearch_perf:missing:{BSEARCH_PERF_MARKERS[3]}" not in validate_phase6(root)["missing"]:
+                raise AssertionError("missing bsearch perf budget failure")
+
+            build_self_test_tree(root)
             catalog = root / "Documentation/zigux/phase6-helper-parity-catalog.md"
             catalog.write_text(catalog.read_text(encoding="utf-8").replace("PHASE6_CHECKSUM_C_PARITY_CASES=22", "", 1), encoding="utf-8")
             if "catalog:missing:PHASE6_CHECKSUM_C_PARITY_CASES=22" not in validate_phase6(root)["missing"]:
@@ -698,7 +704,7 @@ def run_self_test() -> int:
         return 1
 
     print("PHASE6_VALIDATOR_SELF_TEST=pass")
-    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=24")
+    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=25")
     return 0
 
 
