@@ -1,8 +1,8 @@
 {
   "lane_key": "P9-L07",
   "phase": "Phase 9",
-  "surveyed_commit": "5a2398b1223d2c1e39c84c500f684244f4182eff",
-  "anchor": "current runtime starter descriptors and shared RuntimeLoadRequest metadata surface",
+  "surveyed_commit": "949994db4046ec70abf044d1b2ea874fde9bc4a6",
+  "anchor": "current runtime starter descriptors, four landed loader plans, and the shared RuntimeLoadRequest metadata surface",
   "roadmap_destinations": [
     "zigux/tests/runtime_*",
     "samples/zigux/runtime_*"
@@ -10,12 +10,12 @@
   "survey_summary": {
     "runtime_descriptor_count": 4,
     "runtime_loader_lane_count": 3,
-    "runtime_loader_plan_count": 3,
-    "runtime_sample_only_blocked_count": 1,
+    "runtime_loader_plan_count": 4,
+    "runtime_sample_only_blocked_count": 0,
     "shared_metadata_field_count": 9,
     "depmod_gap_count": 8,
     "shared_runtime_loader_present": true,
-    "runtime_trace_events_loader_present": false
+    "runtime_trace_events_loader_present": true
   },
   "descriptor_surfaces": [
     {
@@ -53,16 +53,10 @@
   "runtime_loader_plans": [
     "samples/zigux/runtime_atomic64_loader.zig",
     "samples/zigux/runtime_bitmap_loader.zig",
-    "samples/zigux/runtime_kretprobe_loader.zig"
+    "samples/zigux/runtime_kretprobe_loader.zig",
+    "samples/zigux/runtime_trace_events_loader.zig"
   ],
-  "runtime_sample_only_blocked": [
-    {
-      "sample_path": "samples/zigux/runtime_trace_events.zig",
-      "blocked_loader_path": "samples/zigux/runtime_trace_events_loader.zig",
-      "blocker_note": "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
-      "why_blocked": "The trace-events runtime pilot remains intentionally sample-only while runtime task ownership, polling and event-loop substrate, thread creation, and tracepoint-registration lifecycle wiring stay blocked."
-    }
-  ],
+  "runtime_sample_only_blocked": [],
   "depmod_gap_surfaces": [
     "MODULE_INFO()",
     "MODULE_ALIAS()",
@@ -78,7 +72,7 @@
       "id": "runtime-module-metadata-survey-note",
       "kind": "documentation",
       "path": "Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md",
-      "role": "owns the written survey of the current runtime descriptor surface and the still-absent depmod-facing metadata"
+      "role": "owns the written survey of the current runtime descriptor surface, the fourth landed loader scaffold, and the still-absent depmod-facing metadata"
     },
     {
       "id": "runtime-module-metadata-manifest",
@@ -90,13 +84,13 @@
       "id": "runtime-module-metadata-survey-gate",
       "kind": "validation",
       "path": "zigux/tests/runtime_module_metadata_survey.zig",
-      "role": "owns the focused replay that proves the note, manifest, starter descriptors, and shared RuntimeLoadRequest metadata stay aligned"
+      "role": "owns the focused replay that proves the note, manifest, starter descriptors, shared RuntimeLoadRequest metadata, and the dedicated trace-events loader scaffold stay aligned"
     },
     {
       "id": "runtime-module-metadata-packet-checker",
       "kind": "validation",
       "path": "scripts/zigux/check-phase9-module-metadata-packet.py",
-      "role": "owns the fail-closed checker for this dedicated metadata packet, including the survey note, focused replay, shared Phase 9 bundle replay entrypoint, tests-root guidance, and adjacent loader-gap note"
+      "role": "owns the fail-closed checker for this dedicated metadata packet, including the survey note, focused replay, shared Phase 9 bundle replay entrypoint, tests-root guidance, and the dedicated trace-events loader scaffold markers"
     },
     {
       "id": "phase9-build-gate",
@@ -108,25 +102,25 @@
       "id": "phase9-tests-readme-guide",
       "kind": "documentation",
       "path": "zigux/tests/README.md",
-      "role": "owns the tests-root guidance that keeps the dedicated metadata checker and shared replay route explicit beside the loader-gap packet"
-    },
-    {
-      "id": "runtime-loader-gap-note",
-      "kind": "documentation",
-      "path": "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
-      "role": "owns the shared loader-packet note that keeps the missing runtime_trace_events_loader sibling explicit"
+      "role": "owns the tests-root guidance that keeps the dedicated metadata checker and shared replay route explicit beside the broader Phase 9 runtime packet"
     },
     {
       "id": "shared-runtime-loader-contract",
       "kind": "runtime_substrate",
       "path": "zigux/kernel/runtime_loader.zig",
       "role": "owns the shared RuntimeLoadRequest metadata fields and the current three-lane loader union"
+    },
+    {
+      "id": "runtime-trace-events-loader-plan",
+      "kind": "runtime_loader_scaffold",
+      "path": "samples/zigux/runtime_trace_events_loader.zig",
+      "role": "owns the dedicated trace-events loader-side scaffold and preserves registration-label plus thread-label metadata while the shared RuntimeLoadRequest union still stops at atomic64, bitmap, and kretprobe"
     }
   ],
   "ownership_map": [
     {
       "surface": "Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md",
-      "owns": "written survey of the current runtime descriptor surface and the depmod-facing gap"
+      "owns": "written survey of the current runtime descriptor surface, the fourth landed loader scaffold, and the depmod-facing gap"
     },
     {
       "surface": "zigux/tests/runtime_module_metadata_manifest.json",
@@ -134,11 +128,11 @@
     },
     {
       "surface": "zigux/tests/runtime_module_metadata_survey.zig",
-      "owns": "focused replay of the note, manifest, starter descriptors, and shared RuntimeLoadRequest metadata"
+      "owns": "focused replay of the note, manifest, starter descriptors, shared RuntimeLoadRequest metadata, and the dedicated trace-events loader scaffold"
     },
     {
       "surface": "scripts/zigux/check-phase9-module-metadata-packet.py",
-      "owns": "fail-closed checker for the dedicated metadata packet, including the survey note, focused replay, shared Phase 9 bundle replay entrypoint, tests-root guidance, and adjacent loader-gap note"
+      "owns": "fail-closed checker for the dedicated metadata packet, including the survey note, focused replay, shared Phase 9 bundle replay entrypoint, tests-root guidance, and the dedicated trace-events loader scaffold markers"
     },
     {
       "surface": "zigux/tests/phase9_build.zig",
@@ -146,20 +140,20 @@
     },
     {
       "surface": "zigux/tests/README.md",
-      "owns": "tests-root guidance that keeps the dedicated metadata checker and shared replay route explicit beside the loader-gap packet"
-    },
-    {
-      "surface": "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
-      "owns": "shared loader-packet note for the missing runtime_trace_events_loader sibling"
+      "owns": "tests-root guidance that keeps the dedicated metadata checker and shared replay route explicit beside the broader Phase 9 runtime packet"
     },
     {
       "surface": "zigux/kernel/runtime_loader.zig",
       "owns": "shared RuntimeLoadRequest metadata fields and the current three-lane loader union"
+    },
+    {
+      "surface": "samples/zigux/runtime_trace_events_loader.zig",
+      "owns": "dedicated trace-events loader-side scaffold and its registration-label plus thread-label metadata until the shared RuntimeLoadRequest handoff grows a fourth lane"
     }
   ],
   "review_prompts": [
     "the four runtime starter descriptors still agree on name, anchor, requires_runtime_substrate, and provides_selftest_hook instead of drifting into sample-local metadata stories",
-    "the shared RuntimeLoadRequest metadata surface still stays limited to the current reviewable fields and three landed loader lanes rather than implying a fourth live trace-events loader lane",
-    "the dedicated survey packet still keeps MODULE_INFO(), MODULE_ALIAS(), .modinfo, modules.alias, modules.order, modules.builtin, Module.symvers, and scripts/depmod.sh explicit as absent depmod-facing surfaces instead of counting starter descriptors as shipped loadable-module parity"
+    "the four landed loader plans stay explicit, and the shared RuntimeLoadRequest metadata surface still stays limited to the current reviewable fields and three landed loader lanes instead of pretending the trace-events loader has already joined the shared union",
+    "the dedicated survey packet still keeps MODULE_INFO(), MODULE_ALIAS(), .modinfo, modules.alias, modules.order, modules.builtin, Module.symvers, and scripts/depmod.sh explicit as absent depmod-facing surfaces instead of counting starter descriptors or loader scaffolds as shipped loadable-module parity"
   ]
 }
