@@ -172,6 +172,26 @@ test "phase 8 exec-cmd docs keep the parked deferred execution boundary explicit
     try expectContains(slice_note, "`planDeferredExeclCall()`");
 }
 
+test "phase 8 exec-cmd docs keep the validator alias and Phase 14 wording reviewable" {
+    const slice_note = try readWorkspaceFile(
+        std.testing.allocator,
+        "Documentation/zigux/phase8-exec-cmd-slice.md",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(slice_note);
+
+    try expectContains(slice_note, "legacy validator alias: `PHASE8_SLICE=exec-cmd-tooling-starter`");
+
+    const review_checklist = try readWorkspaceFile(
+        std.testing.allocator,
+        "Documentation/zigux/review-checklist.md",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(review_checklist);
+
+    try expectContains(review_checklist, "separate `kernel/workqueue.c` Phase 14 boundary-study target");
+}
+
 test "phase 8 exec-cmd review checklist keeps deferred handoff review wording aligned" {
     const review_checklist = try readWorkspaceFile(
         std.testing.allocator,
