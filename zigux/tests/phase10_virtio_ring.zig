@@ -95,6 +95,16 @@ test "phase10 virtio ring flushes num_added before the 16-bit threshold wraps" {
     try std.testing.expectEqual(@as(u16, 1), summary.num_added);
     try std.testing.expectEqual(@as(usize, 1), summary.notification_count);
     try std.testing.expect(summary.needs_kick);
+
+    const kick_summary = try ring.prepareKick(0);
+    try std.testing.expect(kick_summary.needs_kick);
+    try std.testing.expectEqual(@as(u16, 1), kick_summary.num_added);
+    try std.testing.expectEqual(@as(usize, 2), kick_summary.notification_count);
+
+    summary = try ring.notificationSummary(0);
+    try std.testing.expectEqual(@as(u16, 0), summary.num_added);
+    try std.testing.expectEqual(@as(usize, 2), summary.notification_count);
+    try std.testing.expect(!summary.needs_kick);
 }
 
 test "phase10 virtio ring blocks publish and kick work while the queue is marked broken" {
