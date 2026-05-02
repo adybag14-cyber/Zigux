@@ -495,6 +495,28 @@ test "phase 8 exec-cmd keeps the deferred execl handoff helper below launch beha
     try std.testing.expectEqual(@as(?[]const u8, null), deferred.argv[4]);
 }
 
+test "phase 8 exec-cmd keeps the deferred execl handoff explicit for empty command tails" {
+    const config = exec_cmd.Config{
+        .exec_name = "perf",
+        .prefix = "/usr/libexec/perf-core",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var deferred = try exec_cmd.buildDeferredExeclCall(
+        std.testing.allocator,
+        config,
+        "version",
+        &[_]?[]const u8{null},
+    );
+    defer deferred.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 3), deferred.argv.len);
+    try std.testing.expectEqualStrings("perf", deferred.argv[0].?);
+    try std.testing.expectEqualStrings("version", deferred.argv[1].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), deferred.argv[2]);
+}
+
 test "phase 8 exec-cmd docs keep the deferred execution boundary explicit" {
     const slice_note = try readWorkspaceFile(
         std.testing.allocator,
@@ -513,6 +535,7 @@ test "phase 8 exec-cmd docs keep the deferred execution boundary explicit" {
     try expectContains(slice_note, "`execv_cmd()`");
     try expectContains(slice_note, "`execvp()`");
     try expectContains(slice_note, "scheduler-facing transport ownership");
+    try expectContains(slice_note, "empty-tail `execl_cmd(cmd, NULL)` shape");
 }
 
 test "phase 8 exec-cmd review checklist keeps deferred handoff review wording aligned" {
