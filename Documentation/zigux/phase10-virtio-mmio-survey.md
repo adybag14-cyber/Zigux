@@ -94,9 +94,12 @@ This survey slice does not yet claim:
 ## Gates
 
 1. run the dedicated validation guards
+- `python3 scripts/zigux/check-phase10-closure-inventory.py`
 - `python3 scripts/zigux/validate-phase10.py`
 - `python3 scripts/zigux/validate-phase10-closure.py`
 - `make -C zigux phase10-validate`
+
+The direct closure-inventory guard now appears here explicitly because the manifest-backed MMIO packet depends on that published closure path to keep the landed interrupt-ack rung and the parked lifecycle-and-IRQ blocker fail-closed together.
 
 2. run the dedicated Phase 10 build
 - `zig build test --build-file zigux/tests/phase10_build.zig --summary all`
