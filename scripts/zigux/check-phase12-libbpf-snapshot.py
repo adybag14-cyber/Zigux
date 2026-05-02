@@ -23,6 +23,9 @@ TRACKED_PATHS = [
     "Documentation/zigux/phase12-libbpf-segment-survey.md",
     "tools/lib/bpf/zigux_segments/manifest.json",
 ]
+MANIFEST_REL_PATH = TRACKED_PATHS[0]
+SEGMENT_TEST_REL_PATH = TRACKED_PATHS[1]
+SURVEY_NOTE_REL_PATH = TRACKED_PATHS[3]
 REQUIRED_PATHS = [*TRACKED_PATHS, FIXTURE_REL_PATH, ARTIFACT_DIFF_REL_PATH]
 HEX40 = re.compile(r"^[0-9a-f]{40}$")
 
@@ -52,6 +55,16 @@ def validate_manifest_packet(manifest: dict[str, object]) -> dict[str, str]:
     }
 
 
+def validate_lane_marker_alignment(root: Path, manifest_packet: dict[str, str]) -> None:
+    lane_marker = f"PHASE12_LANE_KEY={manifest_packet['lane_key']}"
+    survey_note = (root / SURVEY_NOTE_REL_PATH).read_text(encoding="utf-8")
+    if lane_marker not in survey_note:
+        raise SystemExit("invalid Phase 12 libbpf survey note lane marker")
+    segment_test = (root / SEGMENT_TEST_REL_PATH).read_text(encoding="utf-8")
+    if lane_marker not in segment_test:
+        raise SystemExit("invalid Phase 12 libbpf segment test lane marker")
+
+
 def file_digest(path: Path) -> dict[str, object]:
     data = path.read_bytes()
     return {
@@ -62,8 +75,10 @@ def file_digest(path: Path) -> dict[str, object]:
 
 
 def load_manifest_packet(root: Path = ROOT) -> dict[str, str]:
-    manifest = json.loads((root / TRACKED_PATHS[0]).read_text(encoding="utf-8"))
-    return validate_manifest_packet(manifest)
+    manifest = json.loads((root / MANIFEST_REL_PATH).read_text(encoding="utf-8"))
+    manifest_packet = validate_manifest_packet(manifest)
+    validate_lane_marker_alignment(root, manifest_packet)
+    return manifest_packet
 
 
 def render_snapshot(root: Path = ROOT) -> dict[str, object]:
@@ -186,7 +201,7 @@ def copy_required_tree(root: Path) -> None:
 
 
 def run_self_test() -> int:
-    live_manifest = json.loads((ROOT / TRACKED_PATHS[0]).read_text(encoding="utf-8"))
+    live_manifest = json.loads((ROOT / MANIFEST_REL_PATH).read_text(encoding="utf-8"))
     manifest_packet = validate_manifest_packet(live_manifest)
     if manifest_packet["lane_key"] != "P12-L16":
         raise SystemExit("phase12-libbpf-snapshot:self-test:lane_key_round_trip")
@@ -194,6 +209,7 @@ def run_self_test() -> int:
         raise SystemExit("phase12-libbpf-snapshot:self-test:phase_round_trip")
     if manifest_packet["surveyed_commit"] != live_manifest["surveyed_commit"]:
         raise SystemExit("phase12-libbpf-snapshot:self-test:surveyed_commit_round_trip")
+    validate_lane_marker_alignment(ROOT, manifest_packet)
 
     invalid_lane_manifest = dict(live_manifest)
     invalid_lane_manifest["lane_key"] = ""
@@ -261,6 +277,34 @@ def run_self_test() -> int:
         missing = missing_required_paths(helper_root)
         if f"missing_file:{ARTIFACT_DIFF_REL_PATH}" not in missing:
             raise SystemExit("phase12-libbpf-snapshot:self-test:missing_artifact_diff_detection")
+
+    with tempfile.TemporaryDirectory(prefix="zigux_phase12_libbpf_snapshot_note_marker_") as tmp_dir_str:
+        note_root = Path(tmp_dir_str)
+        copy_required_tree(note_root)
+        note_path = note_root / SURVEY_NOTE_REL_PATH
+        note_path.write_text(
+            note_path.read_text(encoding="utf-8").replace("PHASE12_LANE_KEY=P12-L16\n", ""),
+            encoding="utf-8",
+        )
+        expect_system_exit(
+            "invalid_survey_note_lane_marker",
+            lambda: load_manifest_packet(note_root),
+            "invalid Phase 12 libbpf survey note lane marker",
+        )
+
+    with tempfile.TemporaryDirectory(prefix="zigux_phase12_libbpf_snapshot_segment_marker_") as tmp_dir_str:
+        segment_root = Path(tmp_dir_str)
+        copy_required_tree(segment_root)
+        segment_test_path = segment_root / SEGMENT_TEST_REL_PATH
+        segment_test_path.write_text(
+            segment_test_path.read_text(encoding="utf-8").replace("PHASE12_LANE_KEY=P12-L16", "PHASE12_LANE_KEY=P12-L99"),
+            encoding="utf-8",
+        )
+        expect_system_exit(
+            "invalid_segment_test_lane_marker",
+            lambda: load_manifest_packet(segment_root),
+            "invalid Phase 12 libbpf segment test lane marker",
+        )
 
     first = render_snapshot()
     second = render_snapshot()
@@ -389,7 +433,7 @@ def run_self_test() -> int:
             raise SystemExit("phase12-libbpf-snapshot:self-test:missing_lines")
 
     print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST=pass")
-    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT=33")
+    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT=35")
     return 0
 
 
