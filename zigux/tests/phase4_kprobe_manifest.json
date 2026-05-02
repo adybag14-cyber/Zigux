@@ -1,0 +1,49 @@
+{
+  "lane_key": "P4-L19",
+  "phase": "Phase 4",
+  "owner": "Validation and Perf Team",
+  "rollback_owner": "Validation and Perf Team",
+  "surveyed_commit": "3ba64cd4e41a4de1c8fd8dbaecb23702ad9701a3",
+  "anchor": "samples/kprobes/kprobe_example.c",
+  "roadmap_destinations": [
+    "samples/zigux/kprobe_example.zig"
+  ],
+  "current_replay": "make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m",
+  "survey_summary": {
+    "kprobes_makefile_replay_present": true,
+    "kprobe_register_replay_present": true,
+    "zig_sample_present": false,
+    "phase4_build_present": false,
+    "phase4_gate_evidence_present": false
+  },
+  "gaps": [
+    {
+      "id": "phase4-kprobe-survey-manifest",
+      "status": "starter_landed",
+      "kind": "survey_manifest",
+      "zigux_destination": "zigux/tests/phase4_kprobe_manifest.json",
+      "why_now": "The roadmap gap is still sample-side, so the narrowest honest progress is a manifest-backed survey packet that records the current owner, rollback owner, C-anchor replay, and current standalone lab posture without pretending the Zig sample already exists."
+    },
+    {
+      "id": "phase4-kprobe-survey-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase4_kprobe_survey.zig",
+      "why_now": "A dedicated Phase 4 survey gate keeps the current kprobe roadmap row machine-checked instead of leaving the row as prose-only roadmap context."
+    },
+    {
+      "id": "phase4-kprobe-c-anchor-replay",
+      "status": "starter_landed",
+      "kind": "c_anchor_replay",
+      "zigux_destination": "samples/kprobes/kprobe_example.c",
+      "why_now": "The live replay still stays on the C anchor through make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m, so the survey packet has to keep that exact command explicit while the Zig sample remains absent."
+    },
+    {
+      "id": "phase4-kprobe-zig-sample",
+      "status": "ready_next",
+      "kind": "sample_port",
+      "zigux_destination": "samples/zigux/kprobe_example.zig",
+      "why_now": "The actual Zig sample is still absent on master, so the next bounded step is a starter under samples/zigux that keeps the same owner, rollback owner, and C-anchor replay contract instead of widening into broader kprobe behavior."
+    }
+  ]
+}
