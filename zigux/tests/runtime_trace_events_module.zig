@@ -33,6 +33,8 @@ test "runtime trace-events sample keeps gated main-thread replay and lifecycle s
     try std.testing.expect(replay.saw_vararg_payload);
     try std.testing.expect(replay.saw_rel_loc_payload);
     try std.testing.expect(!replay.saw_conditional_path);
+    try std.testing.expectEqualStrings("event-sample", replay.main_thread_label orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("event-sample-fn", replay.function_thread_label orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings("hello", replay.last_main_foo_bar_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings("Gandalf", replay.last_main_random_choice_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqual(@as(usize, 2), replay.last_main_vararg_array_length orelse return error.ExpectedMainPayload);
@@ -76,6 +78,8 @@ test "runtime trace-events sample keeps replay-summary continuity explicit after
     try std.testing.expectEqual(@as(i32, 3), replay.last_main_count);
     try std.testing.expectEqual(@as(i32, 11), replay.last_fn_count);
     try std.testing.expect(replay.saw_conditional_path);
+    try std.testing.expectEqualStrings("event-sample", replay.main_thread_label orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqualStrings("event-sample-fn", replay.function_thread_label orelse return error.ExpectedFunctionPayload);
     try std.testing.expectEqualStrings("foo_bar_reg", replay.last_register_label orelse return error.ExpectedFunctionPayload);
     try std.testing.expectEqualStrings("foo_bar_unreg", replay.last_unregister_label orelse return error.ExpectedFunctionPayload);
     try std.testing.expectEqualStrings("hello", replay.last_main_foo_bar_message orelse return error.ExpectedMainPayload);
@@ -94,6 +98,8 @@ test "runtime trace-events sample keeps registration balance and failed-exit rol
 
     try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionThread());
     try module.registerFunctionThread();
+    try std.testing.expectEqualStrings("event-sample", module.summary().main_thread_label orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqualStrings("event-sample-fn", module.summary().function_thread_label orelse return error.ExpectedFunctionPayload);
     try std.testing.expectEqualStrings("foo_bar_reg", module.summary().last_register_label orelse return error.ExpectedFunctionPayload);
     _ = try module.emitFunctionIteration(5);
     _ = try module.emitMainIteration(3);
@@ -106,6 +112,8 @@ test "runtime trace-events sample keeps registration balance and failed-exit rol
     try std.testing.expectEqual(@as(i32, 3), before_failed_exit.last_main_count);
     try std.testing.expectEqual(@as(i32, 5), before_failed_exit.last_fn_count);
     try std.testing.expect(!before_failed_exit.saw_conditional_path);
+    try std.testing.expectEqualStrings("event-sample", before_failed_exit.main_thread_label orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqualStrings("event-sample-fn", before_failed_exit.function_thread_label orelse return error.ExpectedFunctionPayload);
     try std.testing.expectEqual(@as(?[]const u8, null), before_failed_exit.last_main_conditional_message);
     try std.testing.expectEqual(@as(?[]const u8, null), before_failed_exit.last_main_template_cond_message);
 
@@ -118,6 +126,8 @@ test "runtime trace-events sample keeps registration balance and failed-exit rol
     try std.testing.expectEqual(before_failed_exit.total_events, after_failed_exit.total_events);
     try std.testing.expectEqual(before_failed_exit.last_main_count, after_failed_exit.last_main_count);
     try std.testing.expectEqual(before_failed_exit.last_fn_count, after_failed_exit.last_fn_count);
+    try std.testing.expectEqualStrings(before_failed_exit.main_thread_label orelse return error.ExpectedFunctionPayload, after_failed_exit.main_thread_label orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqualStrings(before_failed_exit.function_thread_label orelse return error.ExpectedFunctionPayload, after_failed_exit.function_thread_label orelse return error.ExpectedFunctionPayload);
 
     try module.unregisterFunctionThread();
     try std.testing.expectEqualStrings("foo_bar_unreg", module.summary().last_unregister_label orelse return error.ExpectedFunctionPayload);
@@ -159,6 +169,8 @@ test "runtime trace-events sample keeps selftest replay explicit after direct pi
     try std.testing.expectEqual(@as(i32, 0), replay.last_main_count);
     try std.testing.expectEqual(@as(i32, 1), replay.last_fn_count);
     try std.testing.expect(replay.saw_conditional_path);
+    try std.testing.expectEqualStrings("event-sample", replay.main_thread_label orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqualStrings("event-sample-fn", replay.function_thread_label orelse return error.ExpectedFunctionPayload);
     try std.testing.expectEqualStrings("Some times print", replay.last_main_conditional_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings("prints other times", replay.last_main_template_cond_message orelse return error.ExpectedMainPayload);
 }
