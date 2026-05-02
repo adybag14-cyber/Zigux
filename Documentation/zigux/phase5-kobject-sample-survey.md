@@ -68,23 +68,19 @@ The exact checks currently recorded in `zigux/tests/phase5_kobject_example_manif
 
 ## Latest verification snapshot
 
-Current sample behavior was re-verified against `master` commit `bc64354437727e63caed13a39203148016399d07` on 2026-05-01 with the attached Zig toolchain.
+Current sample behavior was re-verified on 2026-05-02 by replaying the live `master` sample body fetched through GitHub-app reads with the attached Zig toolchain.
 
 The exact verification commands and observed results for this narrow verification pass were:
 
-- `zig fmt --check samples/zigux/kobject_example.zig zigux/tests/phase5_kobject_example_survey.zig`
-  - observed result: formatting already matched the checked-in files
+- `zig fmt --check samples/zigux/kobject_example.zig`
+  - observed result: formatting already matched the checked-in file
 - `zig test samples/zigux/kobject_example.zig`
-  - observed result: `1/3 kobject_example.test.kobject sample replay keeps the anchor reviewable and non-runtime...OK`
-  - observed result: `2/3 kobject_example.test.kobject sample keeps shared dispatch and parse failures explicit...OK`
-  - observed result: `3/3 kobject_example.test.kobject sample teardown keeps ownership boundaries explicit...OK`
-  - observed result: `All 3 tests passed.`
-- `zig test zigux/tests/phase5_kobject_example_survey.zig`
-  - observed result: `1/2 phase5_kobject_example_survey.test.phase 5 kobject manifest records the exact bounded checks...OK`
-  - observed result: `2/2 phase5_kobject_example_survey.test.phase 5 kobject contributor docs stay aligned with the shipped review surface...OK`
-  - observed result: `All 2 tests passed.`
-
-The shared `zigux/tests/phase5_build.zig` entrypoint remains the umbrella review gate recorded in the manifest and contributor prompts, and the current published Phase 5 bundle snapshot for that same shared lane remains `Build Summary: 17/17 steps succeeded; 28/28 tests passed`, but this bounded verification pass did not rerun the whole Phase 5 sample bundle.
+  - observed result: `1/4 kobject_example.test.kobject sample replay keeps the anchor reviewable and non-runtime...OK`
+  - observed result: `2/4 kobject_example.test.kobject sample keeps shared dispatch and parse failures explicit...OK`
+  - observed result: `3/4 kobject_example.test.kobject sample keeps the pre-registration ownership boundary explicit...OK`
+  - observed result: `4/4 kobject_example.test.kobject sample teardown keeps ownership boundaries explicit...OK`
+  - observed result: `All 4 tests passed.`
+The paired `zig test zigux/tests/phase5_kobject_example_survey.zig` replay still records `All 2 tests passed.` in the published review packet, and the shared `zigux/tests/phase5_build.zig` entrypoint remains the umbrella review gate recorded in the manifest and contributor prompts, but this bounded verification pass did not rerun the survey gate or the whole Phase 5 sample bundle.
 
 Those live runs confirmed that the shipped kobject sample still matches the exact bounded checks above: the in-memory replay keeps the Linux `foo`/`baz`/`bar` attribute order and shared `0664` mode pattern explicit, makes the single `register_runs` ownership claim visible before leaving the sample registered with attributes accessible, keeps the initialized-but-not-registered stage at an active attribute count of `0` while rejecting show or store access, reports `abandoned_before_registration` for the initialized-only `exit()` path, keeps the shared sample-root catalog and review-checklist prompts aligned with the manifest-backed packet, and clears registered teardown state while rejecting later `init()`, `registerAttributes()`, `showValue()`, and `storeValue()` calls.
 
