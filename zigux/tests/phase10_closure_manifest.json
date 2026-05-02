@@ -55,6 +55,7 @@
       "evidence": [
         "zigux/tests/phase10_build.zig",
         "scripts/zigux/check-phase10-closure-inventory.py",
+        "scripts/zigux/validate-phase10.py",
         "scripts/zigux/validate-phase10-closure.py",
         "Documentation/zigux/phase10-closure-evidence.md",
         "zigux/Makefile",
