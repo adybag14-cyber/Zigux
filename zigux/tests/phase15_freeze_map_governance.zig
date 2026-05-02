@@ -123,8 +123,8 @@ test "phase 15 freeze-map governance note keeps the active lane, current head, a
 
     try std.testing.expect(hasSubstring(note, "PHASE15_LANE_KEY=P15-Y05"));
     try std.testing.expect(hasSubstring(note, "061e7433848f59ef6efd3b25f91b4916a9070de1"));
-    try std.testing.expect(hasSubstring(note, "docs_root_summary_drift_owned_by_readiness_and_handoff_packets"));
-    try std.testing.expect(hasSubstring(note, "docs-root summary alignment tracked by the dedicated readiness and handoff packets"));
+    try std.testing.expect(hasSubstring(note, "closed_docs_root_summary_alignment_landed_in_readiness_and_handoff_packets"));
+    try std.testing.expect(hasSubstring(note, "docs-root summary alignment drift is now already closed by the dedicated readiness and handoff packets"));
     try std.testing.expect(hasSubstring(note, "blocked_no_bounded_scheduler_seam"));
     try std.testing.expect(hasSubstring(note, "blocked_no_bounded_allocator_seam"));
     try std.testing.expect(hasSubstring(note, "blocked_phase14_followup_still_wider_than_allowed_rcu_seam"));
