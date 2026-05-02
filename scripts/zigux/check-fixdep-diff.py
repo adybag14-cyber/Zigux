@@ -263,6 +263,18 @@ def find_case(valid_cases: list[dict[str, object]], name: str) -> dict[str, obje
     raise KeyError(name)
 
 
+def expect_missing_fixture(label: str, fixture_name: str, expected_message: str) -> None:
+    fixture_path = FIXTURE_DIR / fixture_name
+    hidden_path = fixture_path.with_name(f'{fixture_path.name}.selftest-hidden')
+    if hidden_path.exists():
+        raise SystemExit(f'fixdep:self-test:{label}:stale_hidden_fixture:{hidden_path}')
+    fixture_path.rename(hidden_path)
+    try:
+        expect_failure(label, lambda: validate_cases(load_cases(CASES_PATH)), expected_message)
+    finally:
+        hidden_path.rename(fixture_path)
+
+
 def run_self_test() -> int:
     valid_cases = validate_cases(load_cases(CASES_PATH))
     validate_tool_sources(C_FIXDEP, ZIG_FIXDEP)
@@ -318,6 +330,18 @@ def run_self_test() -> int:
         f"{CASES_PATH}:sample:depfile='missing_depfile.d',expected='sample.d'",
     )
 
+    expect_missing_fixture(
+        'missing_expected_output_file',
+        'sample_expected.txt',
+        f'{CASES_PATH}:missing_expected_output:sample_expected.txt',
+    )
+
+    expect_missing_fixture(
+        'missing_expected_stderr_file',
+        'sample_comment_only_expected.stderr.txt',
+        f'{CASES_PATH}:missing_expected_stderr:sample_comment_only_expected.stderr.txt',
+    )
+
     expect_failure(
         'explicit_tool_drift',
         lambda: validate_tool_sources(C_FIXDEP.with_name('fixdep-mismatch.c'), ZIG_FIXDEP),
@@ -325,7 +349,7 @@ def run_self_test() -> int:
     )
 
     print('FIXDEP_SELF_TEST=pass')
-    print('FIXDEP_SELF_TEST_CASE_COUNT=9')
+    print('FIXDEP_SELF_TEST_CASE_COUNT=11')
     return 0
 
 
