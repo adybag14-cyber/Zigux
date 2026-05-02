@@ -15,27 +15,28 @@ REQUIRED_SURVEY_MARKERS = (
     "PHASE3_RBTREE_PHASE1_EVIDENCE=tools/lib/rbtree.zig,Documentation/zigux/phase1-closure.md",
     "PHASE3_RBTREE_PHASE7_EVIDENCE=lib/rbtree.zig,Documentation/zigux/phase7-rbtree-slice.md,zigux/tests/phase7_rbtree.zig,zigux/tests/phase7_rbtree_survey.zig,zigux/tests/phase7_rbtree_manifest.json",
     "PHASE3_RBTREE_PHASE3_HELPER=zigux/helpers/rbtree_view.zig",
+    "PHASE3_RBTREE_PHASE3_BOUNDARY=include/zigux/rbtree.h,zigux/bindings/rbtree.zig,zigux/tests/phase3_rbtree_dump.zig,zigux/tests/fixtures/phase3_rbtree/expected.json,zigux/tests/fixtures/phase3_rbtree/phase3_rbtree_c_harness.c",
     "PHASE3_RBTREE_PHASE3_SURVEY=zigux/tests/phase3_rbtree_survey.zig,zigux/tests/phase3_rbtree_manifest.json",
     "PHASE3_RBTREE_PHASE3_SLICE=Documentation/zigux/phase3-rbtree-slice.md",
-    "PHASE3_RBTREE_PHASE3_BOUNDARY=helper-landed-curated-c-binding-surface-still-missing",
+    "PHASE3_RBTREE_PHASE3_BOUNDARY_STATUS=dedicated-boundary-landed-shared-abi-lift-still-missing",
     "PHASE3_RBTREE_NON_GOALS=no-balancing-port,no-export-shim-growth,no-uapi-growth",
-    "PHASE3_RBTREE_NEXT_BOUNDED_STEP=one-curated-phase3-rbtree-boundary-record",
+    "PHASE3_RBTREE_NEXT_BOUNDED_STEP=one-shared-phase3-abi-rbtree-root-view",
     "PHASE3_RBTREE_SURVEY_GATE=python3 scripts/zigux/validate-phase3-rbtree-interop-survey.py",
     "PHASE3_RBTREE_SHARED_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi",
     "PHASE3_RBTREE_SHARED_MAKE_GATE=make -C zigux phase3-validate",
 )
 
 REQUIRED_SURVEY_SNIPPETS = (
-    "That means the remaining Phase 3 gap is no longer “no helper exists.” The remaining gap is that current `master` still has no curated C header, bindings record, or parity fixture for a boundary-facing `rbtree` packet.",
+    "The remaining gap is that current `master` still has no shared `rbtree` record inside `include/zigux/abi.h`, `zigux/bindings/abi.zig`, and the shared `phase3_abi` fixture packet.",
     "`python3 scripts/zigux/validate-phase3-rbtree-interop-survey.py` keeps this dedicated survey note, the broader `Documentation/zigux/phase3-roadmap-gap-survey.md` note, and the repo-backed evidence paths aligned",
     "`python3 scripts/zigux/validate-phase3.py --slug abi` keeps that dedicated `rbtree` gap visible inside the shared Phase 3 ABI validation packet instead of leaving it as prose-only context",
     "`make -C zigux phase3-validate` remains the shared wrapper entrypoint for the broader bounded ABI packet, so this survey stays reviewable through the same published Phase 3 gate",
     "no curated `rbtree` record in `include/zigux/abi.h`",
-    "no matching `zigux/bindings/abi.zig` layout type for a Phase 3 `rbtree` boundary packet",
-    "no C-vs-Zig parity fixture for a Phase 3 `rbtree` boundary shape",
-    "one curated read-mostly ABI record",
-    "one matching Zig binding shape",
-    "one committed parity fixture that keeps the contract reviewable without widening into a full balancing port",
+    "no matching shared `zigux/bindings/abi.zig` layout type for a Phase 3 `rbtree` boundary packet",
+    "no shared C-vs-Zig parity fixture for that `rbtree` root view inside `zigux/tests/fixtures/phase3_abi/`",
+    "one curated read-mostly ABI record in the shared packet",
+    "one matching shared Zig binding shape",
+    "one committed shared parity fixture that keeps the contract reviewable without widening into a full balancing port",
 )
 
 REQUIRED_REPO_PATHS = (
@@ -45,18 +46,23 @@ REQUIRED_REPO_PATHS = (
     "Documentation/zigux/phase7-rbtree-slice.md",
     "lib/rbtree.zig",
     "tools/lib/rbtree.zig",
+    "include/zigux/rbtree.h",
+    "zigux/bindings/rbtree.zig",
     "zigux/helpers/rbtree_view.zig",
     "zigux/tests/phase3_rbtree_survey.zig",
     "zigux/tests/phase3_rbtree_manifest.json",
+    "zigux/tests/phase3_rbtree_dump.zig",
+    "zigux/tests/fixtures/phase3_rbtree/expected.json",
+    "zigux/tests/fixtures/phase3_rbtree/phase3_rbtree_c_harness.c",
     "zigux/tests/phase7_rbtree.zig",
     "zigux/tests/phase7_rbtree_survey.zig",
     "zigux/tests/phase7_rbtree_manifest.json",
 )
 
 REQUIRED_ROADMAP_GAP_MARKERS = (
-    "PHASE3_CURRENT_RBTREE_STATUS=phase3-helper-packet-exists-but-curated-c-binding-surface-is-still-missing",
-    "PHASE3_INTEROP_GAP=curated-rbtree-c-binding-surface-still-missing",
-    "PHASE3_NEXT_BOUNDED_STEP=curated-rbtree-boundary-header-and-parity-fixture-before-more-chrdev-growth",
+    "PHASE3_CURRENT_RBTREE_STATUS=phase3-dedicated-rbtree-boundary-exists-shared-abi-lift-still-missing",
+    "PHASE3_INTEROP_GAP=shared-phase3-abi-rbtree-lift-still-missing",
+    "PHASE3_NEXT_BOUNDED_STEP=shared-abi-rbtree-root-view-before-more-chrdev-growth",
 )
 
 RBTREE_FREE_BOUNDARY_PATHS = (
@@ -110,6 +116,7 @@ def run_self_test() -> int:
         root = Path(tmp_dir_str)
         (root / "Documentation" / "zigux").mkdir(parents=True, exist_ok=True)
         (root / "zigux" / "tests").mkdir(parents=True, exist_ok=True)
+        (root / "zigux" / "tests" / "fixtures" / "phase3_rbtree").mkdir(parents=True, exist_ok=True)
         (root / "zigux" / "tests" / "fixtures").mkdir(parents=True, exist_ok=True)
         (root / "zigux" / "bindings").mkdir(parents=True, exist_ok=True)
         (root / "zigux" / "helpers").mkdir(parents=True, exist_ok=True)
@@ -153,7 +160,7 @@ def run_self_test() -> int:
         )
         issues = validate(root)
         assert (
-            "missing_survey_snippet:one committed parity fixture that keeps the contract reviewable without widening into a full balancing port"
+            "missing_survey_snippet:one committed shared parity fixture that keeps the contract reviewable without widening into a full balancing port"
             in issues
         )
         survey_path.write_text(
