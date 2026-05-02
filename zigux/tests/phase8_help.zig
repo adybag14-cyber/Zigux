@@ -233,6 +233,6 @@ test "phase 8 help evidence still matches the live C helper anchors" {
     try expectContains(help_c, "void load_command_list(const char *prefix,");
     try expectContains(help_c, "list_commands_in_dir(main_cmds, exec_path, prefix);");
     try expectContains(help_c, "void list_commands(const char *title, struct cmdnames *main_cmds,");
-    try expectContains(help_c, "printf(\\\"available %s in '%s'\\\\n\\\", title, exec_path);");
-    try expectContains(help_c, "printf(\\\"%s available from elsewhere on your $PATH\\\\n\\\", title);");
+    try expectContains(help_c, "printf(\\"available %s in '%s'\\n\\", title, exec_path);");
+    try expectContains(help_c, "printf(\\"%s available from elsewhere on your $PATH\\n\\", title);");
 }
