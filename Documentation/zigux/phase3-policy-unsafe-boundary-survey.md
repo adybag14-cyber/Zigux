@@ -4,7 +4,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 
 ## Status
 
-- `PHASE3_SURVEYED_COMMIT=f9f3d03591733cd0a179af9038a371331ef845fc`
+- `PHASE3_SURVEYED_COMMIT=81e215054a4f886d54f87d727c2a3a990f941f1e`
 - `PHASE3_LAYOUT_ASSERT_PATH=zigux/helpers/layout_assert.zig`
 - `PHASE3_LAYOUT_ASSERT_SCOPE=canonical-bindings`
 - `PHASE3_LAYOUT_ASSERT_STATUS=canonical-layout-assertions-landed`
@@ -26,8 +26,8 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_MMIO_PATH=zigux/helpers/mmio.zig`
 - `PHASE3_MMIO_BLOB_SHA=f89427a1d2d9a3738575e70b4303a791cce8a3cd`
 - `PHASE3_ABI_SLICE_DOC_BLOB_SHA=c9676f9697cbe34dd75809a4dae6a53b24030059`
-- `PHASE3_POLICY_UNSAFE_BUILD_BLOB_SHA=4613c79a8d082b2dd3fe9502b7dcdb03ef181bb2`
-- `PHASE3_POLICY_UNSAFE_TEST_BLOB_SHA=33db1f474ec888915b9db038cac637f775687ee3`
+- `PHASE3_POLICY_UNSAFE_BUILD_BLOB_SHA=c6a5192365517139ddaf5f3fbe9350f9508a5dc7`
+- `PHASE3_POLICY_UNSAFE_TEST_BLOB_SHA=99d6e599a716d26a9e96694b543f2dc3f19d4ac8`
 - `PHASE3_ABI_MANIFEST_BLOB_SHA=d40d25f96ddbda5c44aaf76ae8dcc3796936a041`
 - `PHASE3_POLICY_UNSAFE_GATE=zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig`
 - `PHASE3_BOUNDARY_GAP=no-second-boundary-helper-consumes-decoded-policy-beyond-focused-replay`
@@ -49,7 +49,7 @@ It does require the current tree to say clearly which policy rules are already l
 
 ## Live Repo Reality
 
-This survey is pinned to verified `master` head `f9f3d03591733cd0a179af9038a371331ef845fc` for the directly coupled policy-and-unsafe packet, and it now also records packet-local blob IDs for the curated helper, build, test, manifest, and slice-note files so shallow history alone does not turn a reviewable packet into a false validation failure.
+This survey is pinned to verified `master` head `81e215054a4f886d54f87d727c2a3a990f941f1e` for the directly coupled policy-and-unsafe packet, and it now also records packet-local blob IDs for the curated helper, build, test, manifest, and slice-note files so shallow history alone does not turn a reviewable packet into a false validation failure.
 
 The current tree already carries a real bounded policy-and-unsafe substrate:
 
