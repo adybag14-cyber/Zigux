@@ -113,6 +113,22 @@ pub const RemoveSummary = struct {
     poweroff_handler_left_in_place: bool,
 };
 
+pub const PoweroffSummary = struct {
+    anchor: []const u8,
+    system_power_controller: bool,
+    poweroff_handler_present: bool,
+    poweroff_handler_owned_by_driver: bool,
+    poweroff_callback_ready: bool,
+    poweroff_path_available: bool,
+    blocked_without_system_power_controller: bool,
+    blocked_without_poweroff_handler: bool,
+    blocked_by_poweroff_handler_conflict: bool,
+    full_reset_requested: bool,
+    restart_armed: bool,
+    halt_partition_requested: bool,
+    registers: RegisterImage,
+};
+
 pub const RuntimeSnapshot = struct {
     anchor: []const u8,
     running: bool,
@@ -278,11 +294,60 @@ pub const Bcm2835WatchdogLab = struct {
             .remove_callback_scope_limited_to_poweroff_owner = true,
             .clear_poweroff_handler_requested = clear_poweroff_handler_requested,
             .clear_poweroff_handler_blocked_by_conflict = clear_poweroff_handler_blocked_by_conflict,
-            .clear_poweroff_handler_skipped_without_system_power_controller =
-                clear_poweroff_handler_skipped_without_system_power_controller,
-            .clear_poweroff_handler_skipped_without_handler =
-                clear_poweroff_handler_skipped_without_handler,
+            .clear_poweroff_handler_skipped_without_system_power_controller = clear_poweroff_handler_skipped_without_system_power_controller,
+            .clear_poweroff_handler_skipped_without_handler = clear_poweroff_handler_skipped_without_handler,
             .poweroff_handler_left_in_place = poweroff_handler_present and !clear_poweroff_handler_requested,
+        };
+    }
+
+    pub fn poweroffSummary(
+        self: *Self,
+        system_power_controller: bool,
+        poweroff_handler_present: bool,
+        poweroff_handler_owned_by_driver: bool,
+    ) PoweroffSummary {
+        const poweroff_path_available =
+            system_power_controller and poweroff_handler_present and poweroff_handler_owned_by_driver;
+        const blocked_without_system_power_controller = !system_power_controller;
+        const blocked_without_poweroff_handler = system_power_controller and !poweroff_handler_present;
+        const blocked_by_poweroff_handler_conflict =
+            system_power_controller and poweroff_handler_present and !poweroff_handler_owned_by_driver;
+
+        if (!poweroff_path_available) {
+            const runtime = self.runtimeSnapshot();
+            return .{
+                .anchor = descriptor().anchor,
+                .system_power_controller = system_power_controller,
+                .poweroff_handler_present = poweroff_handler_present,
+                .poweroff_handler_owned_by_driver = poweroff_handler_owned_by_driver,
+                .poweroff_callback_ready = false,
+                .poweroff_path_available = false,
+                .blocked_without_system_power_controller = blocked_without_system_power_controller,
+                .blocked_without_poweroff_handler = blocked_without_poweroff_handler,
+                .blocked_by_poweroff_handler_conflict = blocked_by_poweroff_handler_conflict,
+                .full_reset_requested = runtime.full_reset_requested,
+                .restart_armed = runtime.restart_armed,
+                .halt_partition_requested = runtime.halt_partition_requested,
+                .registers = runtime.registers,
+            };
+        }
+
+        self.registers.rsts |= pm_password | pm_rsts_halt;
+        const runtime = self.armRestart();
+        return .{
+            .anchor = descriptor().anchor,
+            .system_power_controller = system_power_controller,
+            .poweroff_handler_present = poweroff_handler_present,
+            .poweroff_handler_owned_by_driver = poweroff_handler_owned_by_driver,
+            .poweroff_callback_ready = true,
+            .poweroff_path_available = true,
+            .blocked_without_system_power_controller = false,
+            .blocked_without_poweroff_handler = false,
+            .blocked_by_poweroff_handler_conflict = false,
+            .full_reset_requested = runtime.full_reset_requested,
+            .restart_armed = runtime.restart_armed,
+            .halt_partition_requested = runtime.halt_partition_requested,
+            .registers = runtime.registers,
         };
     }
 
