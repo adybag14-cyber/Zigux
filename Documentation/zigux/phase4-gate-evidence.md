@@ -73,6 +73,8 @@ The packet still carries two validator-backed status layers as part of the publi
 
 One bounded validator-sized gap remains parked in the same lane: current `master` still proves the workflow step names and the presence of `make -C zigux phase4-validate` plus `make -C zigux phase4-test`, but it does not yet fail closed on the exact run-line counts for those two replays inside `.github/workflows/zigux-bootstrap.yml`.
 
+On the inspected `master` head pinned by `PHASE4_WORKFLOW_BLOB_SHA=8023d7b9c685aa5a54a142a80d394cc143b257ca`, the workflow currently contains one `make -C zigux phase4-validate` run line and one `make -C zigux phase4-test` run line under the Phase 4 steps, but that count still lives here as exact readback evidence rather than a validator-enforced contract.
+
 That keeps the README surfaces truthful summaries for the packet, and this note is again a current blob ledger for the broader survey and index surfaces instead of a stale audit record.
 
 The dedicated checker now also keeps the runtime atomic64 reversible-delivery sentence fail-closed in this note, so the rollback move, single replay body, and forward-path wording cannot silently drift back into prose-only guidance.
