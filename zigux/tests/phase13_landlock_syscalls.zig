@@ -253,6 +253,7 @@ test "phase13 landlock syscalls descriptor stays anchored to syscalls.c" {
     try std.testing.expect(descriptor.provides_restrict_self_flag_planning);
     try std.testing.expect(descriptor.provides_restrict_self_credential_handoff_planning);
     try std.testing.expect(descriptor.provides_add_rule_planning);
+    try std.testing.expect(descriptor.provides_rule_attr_copy_planning);
     try std.testing.expect(descriptor.provides_ruleset_fd_planning);
     try std.testing.expect(descriptor.provides_ruleset_fd_creation_planning);
     try std.testing.expect(descriptor.provides_ruleset_fops_planning);
@@ -282,6 +283,40 @@ test "phase13 landlock initialization gate planner keeps shared boot-disabled co
     try std.testing.expect(disabled.gates_create_ruleset);
     try std.testing.expect(disabled.gates_add_rule);
     try std.testing.expect(disabled.gates_restrict_self);
+}
+
+test "phase13 landlock rule attr copy planner keeps fixed-size imports explicit" {
+    const path_plan = try syscalls.SyscallsHelperLab.planCopyRuleAttr(.{
+        .kind = .path_beneath,
+    });
+    try std.testing.expectEqualStrings("security/landlock/syscalls.c", path_plan.anchor);
+    try std.testing.expectEqual(syscalls.RuleAttrKind.path_beneath, path_plan.kind);
+    try std.testing.expectEqual(@as(usize, 12), path_plan.copy_bytes);
+    try std.testing.expect(path_plan.uses_copy_from_user);
+    try std.testing.expect(path_plan.rejects_partial_copy);
+    try std.testing.expect(path_plan.returns_bad_pointer_on_copy_failure);
+    try std.testing.expect(path_plan.follows_with_empty_access_check);
+
+    const net_plan = try syscalls.SyscallsHelperLab.planCopyRuleAttr(.{
+        .kind = .net_port,
+    });
+    try std.testing.expectEqual(syscalls.RuleAttrKind.net_port, net_plan.kind);
+    try std.testing.expectEqual(@as(usize, 16), net_plan.copy_bytes);
+    try std.testing.expect(net_plan.uses_copy_from_user);
+    try std.testing.expect(net_plan.rejects_partial_copy);
+    try std.testing.expect(net_plan.returns_bad_pointer_on_copy_failure);
+    try std.testing.expect(net_plan.follows_with_empty_access_check);
+}
+
+test "phase13 landlock rule attr copy planner rejects missing and partial user buffers" {
+    try std.testing.expectError(error.BadUserPointer, syscalls.SyscallsHelperLab.planCopyRuleAttr(.{
+        .kind = .path_beneath,
+        .attr_present = false,
+    }));
+    try std.testing.expectError(error.BadUserPointer, syscalls.SyscallsHelperLab.planCopyRuleAttr(.{
+        .kind = .net_port,
+        .uncopied_bytes = 1,
+    }));
 }
 
 test "phase13 landlock restrict_self credential handoff models merge and tsync flow" {
