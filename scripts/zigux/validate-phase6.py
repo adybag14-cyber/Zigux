@@ -37,11 +37,19 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase6-bsearch-slice.md",
     "Documentation/zigux/phase6-checksum-slice.md",
     "Documentation/zigux/phase6-hexdump-slice.md",
+    "zigux/tests/phase6_base64.zig",
     "zigux/tests/phase6_base64_perf.zig",
+    "zigux/tests/phase6_base64_c_parity.zig",
+    "zigux/tests/phase6_base64_c_casegen.zig",
+    "zigux/tests/phase6_bsearch.zig",
     "zigux/tests/phase6_bsearch_perf.zig",
+    "zigux/tests/phase6_bsearch_c_parity.zig",
     "zigux/tests/phase6_checksum_perf.zig",
     "zigux/tests/phase6_hexdump_perf.zig",
     "zigux/tests/phase6_checksum_c_parity.zig",
+    "zigux/tests/fixtures/phase6_base64_vectors.zig",
+    "zigux/tests/fixtures/phase6_base64_c_harness.c",
+    "zigux/tests/fixtures/phase6_bsearch_c_harness.c",
     "zigux/tests/fixtures/phase6_checksum_c_harness.c",
     "zigux/tests/fixtures/phase6_checksum_vectors.zig",
     "zigux/tests/fixtures/phase6_hexdump_vectors.zig",
@@ -65,7 +73,7 @@ CATALOG_MARKERS = [
     "max_slowdown_pct = 550",
     "max_slowdown_pct = 600",
     "avg_compare_calls <= std.math.log2_int_ceil(len) + 1",
-    "PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=15",
+    "PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=19",
 ]
 
 PERF_SURVEY_MARKERS = [
@@ -235,6 +243,56 @@ EXPECTED_HEXDUMP_DETERMINISM = {
 }
 
 
+EXPECTED_BASE64_HELPER = {
+    "id": "base64",
+    "helper": "lib/base64.zig",
+    "tests": [
+        "zigux/tests/phase6_base64.zig",
+        "zigux/tests/phase6_base64_perf.zig",
+        "zigux/tests/phase6_base64_c_parity.zig",
+    ],
+    "generators": [
+        "zigux/tests/phase6_base64_c_casegen.zig",
+    ],
+    "fixtures": [
+        "zigux/tests/fixtures/phase6_base64_vectors.zig",
+        "zigux/tests/fixtures/phase6_base64_c_harness.c",
+    ],
+    "slice_note": "Documentation/zigux/phase6-base64-slice.md",
+    "external_parity": "python3 scripts/zigux/check-phase6-base64-c-parity.py",
+}
+
+EXPECTED_BSEARCH_HELPER = {
+    "id": "bsearch",
+    "helper": "lib/bsearch.zig",
+    "tests": [
+        "zigux/tests/phase6_bsearch.zig",
+        "zigux/tests/phase6_bsearch_perf.zig",
+        "zigux/tests/phase6_bsearch_c_parity.zig",
+    ],
+    "fixtures": [
+        "zigux/tests/fixtures/phase6_bsearch_c_harness.c",
+    ],
+    "slice_note": "Documentation/zigux/phase6-bsearch-slice.md",
+    "external_parity": "python3 scripts/zigux/check-phase6-bsearch-c-parity.py",
+}
+
+EXPECTED_CHECKSUM_HELPER = {
+    "id": "checksum",
+    "helper": "lib/checksum.zig",
+    "tests": [
+        "zigux/tests/phase6_checksum.zig",
+        "zigux/tests/phase6_checksum_perf.zig",
+        "zigux/tests/phase6_checksum_c_parity.zig",
+    ],
+    "fixtures": [
+        "zigux/tests/fixtures/phase6_checksum_vectors.zig",
+        "zigux/tests/fixtures/phase6_checksum_c_harness.c",
+    ],
+    "slice_note": "Documentation/zigux/phase6-checksum-slice.md",
+    "external_parity": "python3 scripts/zigux/check-phase6-checksum-c-parity.py",
+}
+
 def text(root: Path, path: str) -> str:
     return (root / path).read_text(encoding="utf-8")
 
@@ -270,25 +328,17 @@ def validate_manifest(missing: list[str], manifest: dict[str, object], catalog_h
     if not isinstance(helpers, list) or len(helpers) != 4:
         missing.append("manifest:helpers")
     else:
-        checksum_helper = next((item for item in helpers if item.get("id") == "checksum"), None)
-        if checksum_helper is None:
-            missing.append("manifest:helpers:checksum")
-        else:
-            expected_tests = [
-                "zigux/tests/phase6_checksum.zig",
-                "zigux/tests/phase6_checksum_perf.zig",
-                "zigux/tests/phase6_checksum_c_parity.zig",
-            ]
-            expected_fixtures = [
-                "zigux/tests/fixtures/phase6_checksum_vectors.zig",
-                "zigux/tests/fixtures/phase6_checksum_c_harness.c",
-            ]
-            if checksum_helper.get("tests") != expected_tests:
-                missing.append("manifest:helpers:checksum:tests")
-            if checksum_helper.get("fixtures") != expected_fixtures:
-                missing.append("manifest:helpers:checksum:fixtures")
-            if checksum_helper.get("external_parity") != "python3 scripts/zigux/check-phase6-checksum-c-parity.py":
-                missing.append("manifest:helpers:checksum:external_parity")
+        expected_helpers = {
+            "base64": EXPECTED_BASE64_HELPER,
+            "bsearch": EXPECTED_BSEARCH_HELPER,
+            "checksum": EXPECTED_CHECKSUM_HELPER,
+        }
+        for helper_id, expected_helper in expected_helpers.items():
+            helper = next((item for item in helpers if item.get("id") == helper_id), None)
+            if helper is None:
+                missing.append(f"manifest:helpers:{helper_id}")
+            elif helper != expected_helper:
+                missing.append(f"manifest:helpers:{helper_id}")
 
     determinism = manifest.get("determinism_evidence")
     if not isinstance(determinism, dict):
@@ -384,7 +434,7 @@ def report_validation(result: dict[str, object]) -> int:
         return 1
     print("PHASE6_VALIDATION=pass")
     print(f"PHASE6_CATALOG_VERIFIED_HEAD={result['catalog_head']}")
-    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=15")
+    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=19")
     return 0
 
 
@@ -420,21 +470,9 @@ def build_self_test_tree(root: Path) -> None:
         **EXPECTED_MANIFEST,
         "surveyed_commit": SELF_TEST_HEAD,
         "helpers": [
-            {"id": "base64"},
-            {"id": "bsearch"},
-            {
-                "id": "checksum",
-                "tests": [
-                    "zigux/tests/phase6_checksum.zig",
-                    "zigux/tests/phase6_checksum_perf.zig",
-                    "zigux/tests/phase6_checksum_c_parity.zig",
-                ],
-                "fixtures": [
-                    "zigux/tests/fixtures/phase6_checksum_vectors.zig",
-                    "zigux/tests/fixtures/phase6_checksum_c_harness.c",
-                ],
-                "external_parity": "python3 scripts/zigux/check-phase6-checksum-c-parity.py",
-            },
+            EXPECTED_BASE64_HELPER,
+            EXPECTED_BSEARCH_HELPER,
+            EXPECTED_CHECKSUM_HELPER,
             {"id": "hexdump"},
         ],
         "determinism_evidence": {
@@ -552,6 +590,32 @@ def run_self_test() -> int:
                 raise AssertionError("missing required file failure")
 
             build_self_test_tree(root)
+            base64_runner = root / "zigux/tests/phase6_base64_c_parity.zig"
+            base64_runner.unlink()
+            if "zigux/tests/phase6_base64_c_parity.zig" not in validate_phase6(root)["missing_files"]:
+                raise AssertionError("missing base64 parity runner failure")
+
+            build_self_test_tree(root)
+            bsearch_runner = root / "zigux/tests/phase6_bsearch_c_parity.zig"
+            bsearch_runner.unlink()
+            if "zigux/tests/phase6_bsearch_c_parity.zig" not in validate_phase6(root)["missing_files"]:
+                raise AssertionError("missing bsearch parity runner failure")
+
+            build_self_test_tree(root)
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            manifest["helpers"][0]["fixtures"] = manifest["helpers"][0]["fixtures"][:-1]
+            manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+            if "manifest:helpers:base64" not in validate_phase6(root)["missing"]:
+                raise AssertionError("missing base64 helper manifest failure")
+
+            build_self_test_tree(root)
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            manifest["helpers"][1]["external_parity"] = "python3 scripts/zigux/check-phase6-bsearch-c-parity.py --bogus"
+            manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+            if "manifest:helpers:bsearch" not in validate_phase6(root)["missing"]:
+                raise AssertionError("missing bsearch helper manifest failure")
+
+            build_self_test_tree(root)
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
             manifest["determinism_evidence"]["generated_fixture_artifacts_committed"] = True
             manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
@@ -563,7 +627,7 @@ def run_self_test() -> int:
         return 1
 
     print("PHASE6_VALIDATOR_SELF_TEST=pass")
-    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=15")
+    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=19")
     return 0
 
 
