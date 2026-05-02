@@ -194,7 +194,7 @@ EXPECTED_SURVEY_PROVENANCE = {
     "surveyed_commits": {
         "core": "f5a4d6990f701937b2a3bb9ae723bb6d0f27ba21",
         "ring": "fe8a43ea2e186da0da152198b571dff57ea3c38c",
-        "input": "b24f990e2e5504ac3ed4a1a0f1f97c41e06ddd38",
+        "input": "f5a4d6990f701937b2a3bb9ae723bb6d0f27ba21",
         "mmio": "0945df1cf664a3582d7241f859183a13f3f04adb",
     },
 }
@@ -329,7 +329,7 @@ LEDGER_MARKERS = [
     "PHASE10_LEDGER_SURVEY_MMIO_LANE=P10-L18",
     "PHASE10_LEDGER_SURVEY_CORE_COMMIT=f5a4d6990f701937b2a3bb9ae723bb6d0f27ba21",
     "PHASE10_LEDGER_SURVEY_RING_COMMIT=fe8a43ea2e186da0da152198b571dff57ea3c38c",
-    "PHASE10_LEDGER_SURVEY_INPUT_COMMIT=b24f990e2e5504ac3ed4a1a0f1f97c41e06ddd38",
+    "PHASE10_LEDGER_SURVEY_INPUT_COMMIT=f5a4d6990f701937b2a3bb9ae723bb6d0f27ba21",
     "PHASE10_LEDGER_SURVEY_MMIO_COMMIT=0945df1cf664a3582d7241f859183a13f3f04adb",
     "PHASE10_LEDGER_ALLOWED_ROADMAP_DESTINATIONS=drivers/virtio/*.zig,zigux/helpers/",
     "PHASE10_LEDGER_ALLOWED_EVIDENCE_KINDS=driver_local_lab_slices,survey_manifests,shared_validation_gates",
