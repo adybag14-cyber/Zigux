@@ -240,9 +240,11 @@ Before a freeze-in-C anchor can enter active status-review discussion, the score
 - the indefinite-C policy link, or an explicit note saying why the packet is not yet entering that policy posture
 - the retained discussion state showing whether the anchor closes review as `retired_from_active_discussion`
 - the reopen triggers that name which evidence changes can reopen the stay-in-C discussion later without implying approval
+- the trigger-specific refreshed evidence by path, together with the current blocker disposition restatement, for every cited reopen trigger
+- refreshed lane-owner and rollback-owner evidence whenever the cited reopen trigger is `ownership_or_validation_changed`
 - the written rationale for why the current product state needs council attention now
 
-A frozen anchor leaves active discussion only after the current roadmap phase, Architecture Council sign-off, validation evidence links, rollback ownership, evidence archive path, latest blocker disposition, automatic return-to-blocked trigger, rollback threshold, indefinite-C policy link or applicability note, retained discussion state, reopen triggers, and written rationale are all recorded together in the scorecard.
+A frozen anchor leaves active discussion only after the current roadmap phase, Architecture Council sign-off, validation evidence links, rollback ownership, evidence archive path, latest blocker disposition, automatic return-to-blocked trigger, rollback threshold, indefinite-C policy link or applicability note, retained discussion state, reopen triggers, trigger-specific refreshed evidence by path, refreshed ownership records when `ownership_or_validation_changed` is cited, and written rationale are all recorded together in the scorecard.
 
 If any one of those fields is missing, stale, or contradicted by the linked evidence, the anchor remains in the freeze-in-C set and the review closes with an explicit stay-in-C outcome.
 
@@ -258,6 +260,8 @@ Each closeout packet must also record the reopen triggers that would bring the a
 - `evidence_packet_stale_or_contradictory`: linked validation, benchmark, or blocker evidence becoming stale or contradictory
 - `ownership_or_validation_changed`: rollback ownership or validation gates changing enough to invalidate the closed stay-in-C packet
 
+Any later reopen packet must restate the current blocker disposition and point reviewers at the trigger-specific refreshed evidence by path for every cited catalog item. If the cited item is `ownership_or_validation_changed`, the reopened packet must refresh both the current lane owner and the rollback owner before active review resumes.
+
 ## Reopen Trigger Catalog
 
 The bounded reopen-trigger catalog for retired stay-in-C packets is:
@@ -265,6 +269,8 @@ The bounded reopen-trigger catalog for retired stay-in-C packets is:
 - `narrower_followup_answers_blocker`: use when a narrower seam inventory or follow-up now answers the current blocker without widening the allowed boundary
 - `evidence_packet_stale_or_contradictory`: use when linked validation, benchmark, survey, or blocker evidence no longer agrees with the closed packet
 - `ownership_or_validation_changed`: use when rollback ownership, lane ownership, or validation gates changed enough that the closed packet must be reviewed again
+
+Every reopen packet must cite the trigger-specific refreshed evidence by path for each named catalog item and restate the current blocker disposition it is trying to change. When the cited item is `ownership_or_validation_changed`, the packet must also refresh both the current lane owner and the rollback owner instead of reusing stale closeout ownership.
 
 ## Evidence Archive Reporting Standard
 
