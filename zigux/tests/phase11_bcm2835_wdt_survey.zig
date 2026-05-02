@@ -107,8 +107,8 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
 
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "PHASE11_BCM2835_WDT_STATUS=platform_handoff_landed") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, expected_commit_pin) != null);
-    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "latest focused replay: `zig test zigux/tests/phase11_bcm2835_wdt_survey.zig` passes on current `master`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "latest shared replay: `zig build test --build-file zigux/tests/phase11_build.zig --summary all` passes on current `master`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "latest focused replay: `zig test zigux/tests/phase11_bcm2835_wdt_survey.zig` still passes for the bounded bcm2835 packet on current `master`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "shared replay boundary: `zig build test --build-file zigux/tests/phase11_build.zig --summary all` still includes `phase11-bcm2835-wdt-tests` and `phase11-bcm2835-wdt-survey-tests`") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "## Shared Replay Surface") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "phase11-bcm2835-wdt-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "phase11-bcm2835-wdt-survey-tests") != null);
@@ -124,8 +124,8 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
 
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, expected_commit_pin) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "archival checkpoint for the original Phase 11 roadmap gap") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the focused replay `zig test zigux/tests/phase11_bcm2835_wdt_survey.zig` still passes on current `master`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the current shared replay now passes on `master`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the focused replay `zig test zigux/tests/phase11_bcm2835_wdt_survey.zig` still passes for the bounded bcm2835 packet on current `master`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "this archival watchdog note no longer claims that the whole current shared Phase 11 replay is green") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "bcm2835 starter for watchdog metadata, timeout tick encoding, running-bit detection") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "small poweroff-path summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "tiny platform-registration or PM-base handoff summary") != null);
