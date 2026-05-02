@@ -7,7 +7,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `sam
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-trace-events-survey`
 - `PHASE9_LANE_KEY=P9-L12`
-- `PHASE9_SURVEYED_COMMIT=17ebcd4ca4ab5c9cf126042ab8997b2de79a7c66`
+- `PHASE9_SURVEYED_COMMIT=f5a4d6990f701937b2a3bb9ae723bb6d0f27ba21`
 - scope: survey manifest, starter sample, dedicated module and survey gates, shared Phase 9 build wiring, and the lane-level review note that now tracks the landed starter plus its shipped selftest hook, lifecycle parity evidence, and machine-checkable diagnostics summary with explicit per-thread event totals plus explicit replay run counters without claiming loadable-module parity
 - product boundary:
   - `samples/zigux/runtime_trace_events.zig`
@@ -33,7 +33,7 @@ No parity scorecard entry or Architecture Council status-change request is attac
 ## Survey findings
 
 - `samples/trace_events/trace-events-sample.c` is present on `master` at 153 lines.
-- the current survey packet is pinned to `master` commit `17ebcd4ca4ab5c9cf126042ab8997b2de79a7c66`.
+- the current survey packet is pinned to `master` commit `f5a4d6990f701937b2a3bb9ae723bb6d0f27ba21`.
 - `samples/trace_events/trace-events-sample.h` is present on `master` at 640 lines.
 - the manifest-backed review packet now keeps `samples/trace_events/trace-events-sample.h` explicit as a header-side macro boundary with a 640-line surveyed boundary, so the active trace-events lane can point at the real header surface without turning it into a generated tracepoint macro parity claim.
 - the Linux ftrace selftests already reference `trace-events-sample` as a modprobe and event-enabling target in at least two places.
