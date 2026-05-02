@@ -84,7 +84,7 @@ The standalone shared validator still directly guards the adjacent ring, input, 
 - verified against current `master` head `f5a4d6990f701937b2a3bb9ae723bb6d0f27ba21`
 - `zig test zigux/tests/phase10_virtio_core_survey.zig`
 - observed results:
-  - focused Phase 10 virtio-core survey replay passed after syncing the manifest, survey note, survey gate, and shared closure provenance to the same inspected head
+  - focused Phase 10 virtio-core survey replay passed after syncing the manifest, survey note, and survey gate to the same inspected head
   - broader Phase 10 closure and all-up build replay were not rerun in this narrow drift-fix lane because no core helper, ring, MMIO, or transport-facing behavior changed
 
 ## Next bounded step
