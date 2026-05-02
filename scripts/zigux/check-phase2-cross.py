@@ -166,6 +166,9 @@ def run_self_test() -> int:
     allowed_targets = validate_targets_manifest(targets_doc)
     if resolve_targets(None, allowed_targets) != allowed_targets:
         raise SystemExit('phase2-cross:self-test:default_target_selection')
+    explicit_zig = '/tmp/zigux-phase2-cross-selftest-zig'
+    if find_zig(explicit_zig) != explicit_zig:
+        raise SystemExit('phase2-cross:self-test:explicit_zig_passthrough')
 
     explicit_targets = [allowed_targets[1], allowed_targets[0]]
     if resolve_targets(explicit_targets, allowed_targets) != explicit_targets:
@@ -270,7 +273,7 @@ def run_self_test() -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(description='Compile bounded Phase 2 Zigux tools for cross targets.')
     parser.add_argument('--zig', help='Explicit zig executable path')
-    parser.add_argument('--self-test', action='store_true', help='Run built-in manifest and target-selection checks')
+    parser.add_argument('--self-test', action='store_true', help='Run built-in manifest, tool-selection, and target-selection checks')
     parser.add_argument('--target', action='append', help='Explicit target triple to compile')
     args = parser.parse_args()
 
