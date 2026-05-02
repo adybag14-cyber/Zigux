@@ -69,7 +69,7 @@ const Manifest = struct {
     gaps: []const Gap,
 };
 
-const expected_lane_key = "P15-L06";
+const expected_lane_key = "P15-L07";
 const expected_surveyed_commit = "355b71d89807a217a6b7c405c996cbd623c48ca0";
 
 fn isAllowedStatus(status: []const u8) bool {
@@ -160,10 +160,9 @@ test "phase 15 architecture council review-process manifest records current trig
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "zigux/tests/phase15_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "make -C zigux phase15") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_bounded_lane, expected_lane_key) != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_bounded_lane, "ownership and provenance refresh") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_bounded_lane, "stale lane markers") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_bounded_lane, "surveyed-head pin") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_bounded_lane, "governance, approval, and ownership evidence verification") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_bounded_lane, "current parked maintenance-mode Phase 15 packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_bounded_lane, "neighboring governance slices") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.maintenance_mode_next_step, "named reopen triggers") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.maintenance_mode_next_step, "shared Phase 15 replay drift") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.maintenance_mode_next_step, "deep-core blocker posture") != null);
@@ -231,7 +230,7 @@ test "phase 15 architecture council review-process note stays aligned with check
     );
     defer std.testing.allocator.free(docs_root);
 
-    try std.testing.expect(std.mem.indexOf(u8, review_process, "PHASE15_LANE_KEY=P15-L06") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_process, "PHASE15_LANE_KEY=P15-L07") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "## Trigger Conditions") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "## Required Review Packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "## Decision Buckets") != null);
@@ -271,6 +270,7 @@ test "phase 15 architecture council review-process note stays aligned with check
     try std.testing.expect(std.mem.indexOf(u8, review_process, expected_lane_line) != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "Documentation/zigux/phase15-handoff-next-steps-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "shared Phase 15 replay drift") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_process, "phase15-review-process-lane-identity-provenance-refresh") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, checklist, "decision record ID, lane owner, rollback owner, validation gate summary, evidence archive path, latest blocker disposition, benchmark notes, and replay command explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "does the packet name the automatic return-to-blocked trigger") != null);
