@@ -2,7 +2,7 @@
   "phase": "Phase 6",
   "status": "active",
   "tranche": "leaf-helper-parity",
-  "surveyed_commit": "dcbe83792ce4b9e2ac6eb229cf730e59e8dde4ba",
+  "surveyed_commit": "15af8bad92abdcbeb8f5d9e991d945be877f0617",
   "roadmap_anchors": [
     "lib/base64.c",
     "lib/bsearch.c",
@@ -103,12 +103,12 @@
   "determinism_evidence": {
     "base64": {
       "standard_encode_vectors": 22,
-      "variant_encode_vectors": 18,
+      "variant_encode_vectors": 24,
       "standard_decode_vectors": 22,
-      "variant_decode_vectors": 12,
+      "variant_decode_vectors": 16,
       "invalid_decode_vectors": 22,
       "c_parity_self_test_cases": 8,
-      "c_parity_cases": 96
+      "c_parity_cases": 106
     },
     "bsearch": {
       "inline_corpus": "sorted integer and symbol tables",
