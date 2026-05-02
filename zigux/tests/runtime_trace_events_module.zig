@@ -45,6 +45,49 @@ test "runtime trace-events sample keeps gated main-thread replay and lifecycle s
     try std.testing.expectEqualStrings("iter=%d", replay.last_format_template orelse return error.ExpectedMainPayload);
 }
 
+test "runtime trace-events sample keeps replay-summary continuity explicit after selftest completion" {
+    var module = sample.RuntimeTraceEventsSample{};
+    try module.init();
+
+    const selftest = try module.runSelftest();
+    try std.testing.expectEqual(@as(usize, 6), selftest.main_thread_events);
+    try std.testing.expectEqual(@as(usize, 2), selftest.fn_thread_events);
+    try std.testing.expectEqual(@as(usize, 8), selftest.total_events);
+    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, module.stage());
+
+    const main_emitted = try module.emitMainIteration(3);
+    try std.testing.expectEqual(@as(usize, 4), main_emitted);
+    try module.registerFunctionThread();
+    const fn_emitted = try module.emitFunctionIteration(11);
+    try std.testing.expectEqual(@as(usize, 2), fn_emitted);
+    try module.unregisterFunctionThread();
+
+    const replay = module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, replay.stage);
+    try std.testing.expectEqual(@as(usize, 2), replay.main_iterations);
+    try std.testing.expectEqual(@as(usize, 2), replay.fn_iterations);
+    try std.testing.expectEqual(@as(usize, 10), replay.main_thread_events);
+    try std.testing.expectEqual(@as(usize, 4), replay.fn_thread_events);
+    try std.testing.expectEqual(@as(usize, 14), replay.total_events);
+    try std.testing.expectEqual(@as(usize, 1), replay.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), replay.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), replay.exit_runs);
+    try std.testing.expectEqual(@as(usize, 0), replay.registration_depth);
+    try std.testing.expectEqual(@as(i32, 3), replay.last_main_count);
+    try std.testing.expectEqual(@as(i32, 11), replay.last_fn_count);
+    try std.testing.expect(replay.saw_conditional_path);
+    try std.testing.expectEqualStrings("foo_bar_reg", replay.last_register_label orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqualStrings("foo_bar_unreg", replay.last_unregister_label orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqualStrings("hello", replay.last_main_foo_bar_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("Frodo", replay.last_main_random_choice_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqual(@as(usize, 3), replay.last_main_vararg_array_length orelse return error.ExpectedMainPayload);
+    try std.testing.expect(replay.last_main_vararg_array_terminator_zero orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqual(@as(?[]const u8, null), replay.last_main_conditional_message);
+    try std.testing.expectEqual(@as(?[]const u8, null), replay.last_main_template_cond_message);
+    try std.testing.expectEqualStrings("Look at me", replay.last_function_foo_bar_message orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqualStrings("Look at me too", replay.last_function_template_message orelse return error.ExpectedFunctionPayload);
+}
+
 test "runtime trace-events sample keeps registration balance and failed-exit rollback explicit" {
     var module = sample.RuntimeTraceEventsSample{};
     try module.init();
