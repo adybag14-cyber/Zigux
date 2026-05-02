@@ -144,6 +144,7 @@ test "phase10 virtio input survey manifest records the live starter and remainin
         "phase10-virtio-input-teardown-observation-helper",
         "phase10-virtio-input-registration-preflight-helper",
         "phase10-virtio-input-queue-callback-preflight-helper",
+        "phase10-virtio-input-probe-preflight-helper",
     };
     try std.testing.expectEqual(expected_landed_input_helpers.len, input_helper_evidence.array.items.len);
     for (expected_landed_input_helpers, 0..) |helper_id, index| {
