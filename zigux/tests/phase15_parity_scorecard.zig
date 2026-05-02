@@ -201,7 +201,7 @@ test "phase 15 parity scorecard manifest tracks the current roadmap gap honestly
     try std.testing.expect(manifest.repo_evidence.phase15_readme_reviewability_present);
     try std.testing.expect(manifest.repo_evidence.phase15_scorecard_note_present);
     try std.testing.expect(manifest.repo_evidence.phase15_evidence_archive_templates_present);
-    try std.testing.expect(manifest.repo_evidence.phase15_anchor_ownerTracking_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_anchor_owner_tracking_present);
     try std.testing.expect(manifest.repo_evidence.phase15_scorecard_test_present);
     try std.testing.expect(manifest.repo_evidence.phase15_scorecard_manifest_present);
     try std.testing.expect(manifest.repo_evidence.phase15_build_present);
