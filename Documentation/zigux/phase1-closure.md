@@ -106,6 +106,9 @@ No additional helper should be called Phase 1 work unless this document and the 
 - `tools/lib/rbtree.zig` direct Zig closure validation also fails closed if `tools/lib/rbtree.zig` grows Linux-style `rb_*` aliases before this closed Phase 1 tranche is deliberately reopened.
 - `tools/lib/rbtree.zig` direct Zig unit coverage also keeps `iterateMatches()` aligned so duplicate-key iteration yields only the equal-key range and cleanly reports no match for missing keys.
 - `tools/lib/rbtree.zig` direct Zig unit coverage also keeps `findLast()`, `prevMatch()`, and `iterateMatchesReverse()` aligned so reverse duplicate-key lookups start at the rightmost match, walk back through the equal-key range, and cleanly report no match for missing keys.
+- `tools/lib/rbtree.zig` direct Zig unit coverage also keeps `iteratePostorder()` aligned so the explicit iterator visits each node exactly once in left-right-root order and reports exhaustion cleanly after the full walk.
+- `tools/lib/rbtree.zig` direct Zig unit coverage also keeps `iteratePostorderSafe()` aligned by caching exactly one step ahead so callers can invalidate the current node without truncating the remaining postorder walk.
+- `tools/lib/rbtree.zig` direct Zig unit coverage also keeps `iteratePostorderSafe()` aligned across erase-driven rebalancing so the walk still reaches each remaining node exactly once after the current node is removed.
 - rbtree fixture authority: `zigux/tests/fixtures/phase1_helpers.json`
 - rbtree manifest review anchor: `zigux/tests/fixtures/phase1_helper_manifest.json`
 - rbtree direct unit-test anchor: `tools/lib/rbtree.zig:test "rbtree findAdd keeps the first duplicate and inserts new keys"`
@@ -116,6 +119,9 @@ No additional helper should be called Phase 1 work unless this document and the 
 - rbtree cached findAdd unit-test anchor: `tools/lib/rbtree.zig:test "rbtree findAddCached preserves duplicate ownership and leftmost cache"`
 - rbtree iterator unit-test anchor: `tools/lib/rbtree.zig:test "rbtree iterateMatches streams only the duplicate range"`
 - rbtree reverse unit-test anchor: `tools/lib/rbtree.zig:test "rbtree iterateMatchesReverse streams only the duplicate range in reverse"`
+- rbtree postorder iterator unit-test anchor: `tools/lib/rbtree.zig:test "rbtree iteratePostorder streams the full postorder walk once"`
+- rbtree postorder safe unit-test anchor: `tools/lib/rbtree.zig:test "rbtree iteratePostorderSafe caches the next node before node invalidation"`
+- rbtree postorder safe rebalance unit-test anchor: `tools/lib/rbtree.zig:test "rbtree iteratePostorderSafe survives erase-driven rebalancing"`
 
 - `PHASE1_RBTREE_FIXTURE=zigux/tests/fixtures/phase1_helpers.json`
 - `PHASE1_RBTREE_REVIEW=rbtree parity covers ordered traversal, replaceNode, eraseInit, postorder traversal, and detached-node state while Linux-style rb_* alias parity remains explicitly out of scope for this closed tranche`
@@ -127,6 +133,9 @@ No additional helper should be called Phase 1 work unless this document and the 
 - `PHASE1_RBTREE_CACHED_FINDADD_UNIT_REVIEW=rbtree findAddCached returns the original equal-key resident node, still links new distinct keys into the cached tree, and keeps the cached first node aligned with the underlying tree root`
 - `PHASE1_RBTREE_ITERATE_UNIT_REVIEW=rbtree iterateMatches yields only the equal-key duplicate range and cleanly reports no match for missing keys`
 - `PHASE1_RBTREE_REVERSE_UNIT_REVIEW=rbtree findLast, prevMatch, and iterateMatchesReverse keep reverse duplicate-key lookup walks aligned from the rightmost match back through the equal-key range while still reporting no match for missing keys`
+- `PHASE1_RBTREE_POSTORDER_ITERATOR_UNIT_REVIEW=rbtree iteratePostorder visits each node exactly once in left-right-root order and reports exhaustion cleanly after the full walk`
+- `PHASE1_RBTREE_POSTORDER_SAFE_UNIT_REVIEW=rbtree iteratePostorderSafe caches exactly one step ahead so callers can invalidate the current node without truncating the remaining postorder walk`
+- `PHASE1_RBTREE_POSTORDER_SAFE_REBALANCE_UNIT_REVIEW=rbtree iteratePostorderSafe stays aligned across erase-driven rebalancing so the walk still reaches each remaining node exactly once after the current node is removed`
 - `PHASE1_RBTREE_ALIAS_GAP_NOTE=the closed Phase 1 rbtree tranche still excludes Linux-style rb_* alias parity for the already-ported entry points, and that remaining surface stays explicitly out of scope until a later bounded repair lands`
 - `PHASE1_RBTREE_ALIAS_GAP_GATE=phase1 closure validation fails closed if tools/lib/rbtree.zig grows Linux-style rb_* aliases before the closed helper tranche is deliberately reopened`
 
