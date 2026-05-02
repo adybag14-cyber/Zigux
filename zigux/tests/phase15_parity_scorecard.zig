@@ -178,7 +178,7 @@ test "phase 15 parity scorecard manifest tracks the current roadmap gap honestly
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
     try std.testing.expectEqualStrings("ba15a15ff4f0becd063b9b12aeea73df5307e6ef", manifest.surveyed_commit);
     try std.testing.expect(manifest.review_process.decision_record_required);
-    try std.testing.expectEqual(@as(usize, 13), manifest.review_process.required_record_fields.len);
+    try std.testing.expectEqual(@as(usize, 15), manifest.review_process.required_record_fields.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.review_process.reopen_trigger_catalog.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.review_process.archive_requirements.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.handoff_evidence.roadmap_requirements.len);
@@ -201,7 +201,7 @@ test "phase 15 parity scorecard manifest tracks the current roadmap gap honestly
     try std.testing.expect(manifest.repo_evidence.phase15_readme_reviewability_present);
     try std.testing.expect(manifest.repo_evidence.phase15_scorecard_note_present);
     try std.testing.expect(manifest.repo_evidence.phase15_evidence_archive_templates_present);
-    try std.testing.expect(manifest.repo_evidence.phase15_anchor_owner_tracking_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_anchor_ownerTracking_present);
     try std.testing.expect(manifest.repo_evidence.phase15_scorecard_test_present);
     try std.testing.expect(manifest.repo_evidence.phase15_scorecard_manifest_present);
     try std.testing.expect(manifest.repo_evidence.phase15_build_present);
@@ -217,16 +217,20 @@ test "phase 15 parity scorecard manifest tracks the current roadmap gap honestly
     try std.testing.expectEqual(manifest.scorecard_metrics.repo_evidence_checks_green, countRepoEvidenceGreen(manifest.repo_evidence));
     try std.testing.expectEqual(@as(usize, 19), manifest.scorecard_metrics.landed_scorecard_gaps);
     try std.testing.expectEqual(@as(usize, 1), manifest.scorecard_metrics.blocked_scorecard_gaps);
-    try std.testing.expectEqual(@as(usize, 13), manifest.scorecard_metrics.required_review_process_record_fields);
+    try std.testing.expectEqual(@as(usize, 15), manifest.scorecard_metrics.required_review_process_record_fields);
     try std.testing.expectEqualStrings("current roadmap phase", manifest.review_process.required_record_fields[0]);
     try std.testing.expectEqualStrings("automatic return-to-blocked trigger", manifest.review_process.required_record_fields[7]);
     try std.testing.expectEqualStrings("rollback threshold", manifest.review_process.required_record_fields[8]);
     try std.testing.expectEqualStrings("indefinite-C policy link or applicability note", manifest.review_process.required_record_fields[9]);
-    try std.testing.expectEqualStrings("written rationale", manifest.review_process.required_record_fields[12]);
+    try std.testing.expectEqualStrings("trigger-specific refreshed evidence by path", manifest.review_process.required_record_fields[12]);
+    try std.testing.expectEqualStrings("refreshed ownership records when `ownership_or_validation_changed` is cited", manifest.review_process.required_record_fields[13]);
+    try std.testing.expectEqualStrings("written rationale", manifest.review_process.required_record_fields[14]);
     try expectContains(manifest.review_process.retirement_rule, "current roadmap phase");
     try expectContains(manifest.review_process.retirement_rule, "automatic return-to-blocked trigger");
     try expectContains(manifest.review_process.retirement_rule, "rollback threshold");
     try expectContains(manifest.review_process.retirement_rule, "indefinite-C policy link or applicability note");
+    try expectContains(manifest.review_process.retirement_rule, "trigger-specific refreshed evidence by path");
+    try expectContains(manifest.review_process.retirement_rule, "ownership_or_validation_changed");
     try expectContains(manifest.review_process.retirement_rule, "written rationale");
 
     const sched_lines = try countLines(io_instance.io(), "kernel/sched/core.c", 1024 * 1024);
@@ -296,7 +300,7 @@ test "phase 15 parity scorecard docs keep the parity-tracking survey aligned" {
     try expectContains(scorecard_doc, "Documentation/zigux/README.md");
     try expectContains(scorecard_doc, "Documentation/zigux/phase15-handoff-next-steps-survey.md");
     try expectContains(scorecard_doc, "shared replay path");
-    try expectContains(scorecard_doc, "required review-process record fields tracked in the manifest: `13`");
+    try expectContains(scorecard_doc, "required review-process record fields tracked in the manifest: `15`");
     try expectContains(scorecard_doc, "repo evidence checks currently green: `15 / 15`");
     try expectContains(scorecard_doc, "landed scorecard gaps: `19 / 20`");
     try expectContains(scorecard_doc, "blocked scorecard gaps: `1 / 20`");
@@ -304,8 +308,12 @@ test "phase 15 parity scorecard docs keep the parity-tracking survey aligned" {
     try expectContains(scorecard_doc, "the automatic return-to-blocked trigger that sends the anchor back to blocked review posture");
     try expectContains(scorecard_doc, "the rollback threshold that names which stale, missing, contradictory, or widened evidence returns the anchor to blocked review posture");
     try expectContains(scorecard_doc, "the indefinite-C policy link, or an explicit note saying why the packet is not yet entering that policy posture");
+    try expectContains(scorecard_doc, "the trigger-specific refreshed evidence by path, together with the current blocker disposition restatement, for every cited reopen trigger");
+    try expectContains(scorecard_doc, "refreshed lane-owner and rollback-owner evidence whenever the cited reopen trigger is `ownership_or_validation_changed`");
     try expectContains(scorecard_doc, "the written rationale for why the current product state needs council attention now");
     try expectContains(scorecard_doc, "phase15-scorecard-review-packet-field-sync");
+    try expectContains(review_process_doc, "trigger-specific refreshed evidence by path");
+    try expectContains(review_process_doc, "ownership_or_validation_changed");
     try expectContains(review_process_doc, "rollback-threshold");
     try expectContains(review_process_doc, "parity scorecard");
     try expectContains(indefinite_c_policy_doc, "parity scorecard");
