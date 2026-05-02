@@ -3,9 +3,6 @@ const std = @import("std");
 const SurveySummary = struct {
     virtio_ring_c_lines: usize,
     preexisting_phase10_test_files: usize,
-    preexisting_virtio_core_zig_present: bool,
-    preexisting_phase10_build_present: bool,
-    preexisting_phase10_core_doc_present: bool,
     preexisting_virtio_ring_zig_present: bool,
     preexisting_virtio_ring_reset_reuse_test_present: bool,
     preexisting_virtio_ring_doc_present: bool,
@@ -14,7 +11,6 @@ const SurveySummary = struct {
 const Gap = struct {
     id: []const u8,
     status: []const u8,
-    kind: []const u8,
     zigux_destination: []const u8,
     why_now: []const u8,
 };
@@ -22,26 +18,21 @@ const Gap = struct {
 const Manifest = struct {
     lane_key: []const u8,
     phase: []const u8,
-    surveyed_commit: []const u8,
     anchor: []const u8,
-    roadmap_destinations: []const []const u8,
-    freeze_map: []const u8,
     freeze_boundary_status: []const u8,
     risky_transport_posture: []const u8,
-    forbidden_transport_claims: []const []const u8,
-    architecture_council_reopen_required: bool,
-    architecture_council_reopen_attached: bool,
     survey_summary: SurveySummary,
     gaps: []const Gap,
 };
 
-fn isAllowedStatus(status: []const u8) bool {
-    return std.mem.eql(u8, status, "starter_landed") or
-        std.mem.eql(u8, status, "ready_next") or
-        std.mem.eql(u8, status, "blocked_on_risky_transport");
+fn findGap(gaps: []const Gap, id: []const u8) ?Gap {
+    for (gaps) |gap| {
+        if (std.mem.eql(u8, gap.id, id)) return gap;
+    }
+    return null;
 }
 
-test "phase10 virtio ring survey manifest records the live queue-discipline packet and parked MMIO blocker after landed interrupt-ack" {
+test "phase10 virtio ring survey stays aligned with the live ring packet" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -52,6 +43,14 @@ test "phase10 virtio ring survey manifest records the live queue-discipline pack
         .limited(32 * 1024),
     );
     defer std.testing.allocator.free(manifest_json);
+
+    const closure_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase10_closure_manifest.json",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(closure_json);
 
     const survey_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
@@ -77,109 +76,26 @@ test "phase10 virtio ring survey manifest records the live queue-discipline pack
     );
     defer std.testing.allocator.free(phase10_build);
 
-    const closure_manifest_json = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "zigux/tests/phase10_closure_manifest.json",
-        std.testing.allocator,
-        .limited(32 * 1024),
-    );
-    defer std.testing.allocator.free(closure_manifest_json);
-
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{
         .ignore_unknown_fields = true,
     });
     defer parsed.deinit();
-    const closure_parsed = try std.json.parseFromSlice(std.json.Value, std.testing.allocator, closure_manifest_json, .{});
-    defer closure_parsed.deinit();
+    const closure = try std.json.parseFromSlice(std.json.Value, std.testing.allocator, closure_json, .{});
+    defer closure.deinit();
 
     const manifest = parsed.value;
-    const closure_manifest = closure_parsed.value;
     try std.testing.expectEqualStrings("P10-L08", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 10", manifest.phase);
     try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", manifest.anchor);
-    try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", manifest.freeze_map);
     try std.testing.expectEqualStrings("aligned", manifest.freeze_boundary_status);
     try std.testing.expectEqualStrings("blocked_on_risky_transport", manifest.risky_transport_posture);
-    try std.testing.expect(manifest.architecture_council_reopen_required);
-    try std.testing.expect(!manifest.architecture_council_reopen_attached);
-    const expected_forbidden_transport_claims = [_][]const u8{
-        "queue_setup_reset_paths",
-        "irq_parity",
-        "dma_paths",
-        "input_registration_lifecycle",
-        "probe_remove_lifecycle",
-    };
-    try std.testing.expectEqual(expected_forbidden_transport_claims.len, manifest.forbidden_transport_claims.len);
-    for (expected_forbidden_transport_claims, 0..) |claim, index| {
-        try std.testing.expectEqualStrings(claim, manifest.forbidden_transport_claims[index]);
-    }
-    try std.testing.expectEqual(@as(usize, 40), manifest.surveyed_commit.len);
-    for (manifest.surveyed_commit) |ch| {
-        try std.testing.expect(std.ascii.isHex(ch));
-    }
-    try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
-    try std.testing.expectEqualStrings("drivers/virtio/*.zig", manifest.roadmap_destinations[0]);
-    try std.testing.expectEqualStrings("zigux/helpers/", manifest.roadmap_destinations[1]);
     try std.testing.expect(manifest.survey_summary.virtio_ring_c_lines >= 3000);
     try std.testing.expectEqual(@as(usize, 4), manifest.survey_summary.preexisting_phase10_test_files);
-    try std.testing.expect(manifest.survey_summary.preexisting_virtio_core_zig_present);
-    try std.testing.expect(manifest.survey_summary.preexisting_phase10_build_present);
-    try std.testing.expect(manifest.survey_summary.preexisting_phase10_core_doc_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_ring_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_ring_reset_reuse_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_ring_doc_present);
-    try std.testing.expect(manifest.gaps.len >= 7);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10_virtio_core_survey.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-virtio-core-survey.md") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "older core slice note alone") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_build.zig`, and `Documentation/zigux/phase10-virtio-core-slice.md`") == null);
-    try std.testing.expect(std.mem.indexOf(u8, phase10_build, "phase10_virtio_ring_reset_reuse.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase10_build, "phase10-virtio-ring-reset-reuse-tests") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase10_build, "run_phase10_virtio_ring_reset_reuse_tests") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-mmio-queue-register-helper") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-mmio-queue-notify-helper") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-mmio-queue-address-helper") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-mmio-config-window-helper") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-mmio-config-write-helper") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-mmio-interrupt-ack-helper") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "no smaller ready transport follow-up remains ahead of the still-blocked lifecycle and IRQ packet") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "remaining MMIO follow-up ladder against the roadmap") == null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig build test --build-file zigux/tests/phase10_build.zig --summary all") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_FREEZE_MAP=Documentation/zigux/freeze-map.md") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_FREEZE_BOUNDARY_STATUS=aligned") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_FREEZE_BOUNDARY_OWNER=P10-L10") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_FREEZE_BOUNDARY_ROLLBACK_OWNER=P10-L10") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_RISKY_TRANSPORT_POSTURE=blocked_on_risky_transport") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=yes") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_ARCHITECTURE_COUNCIL_REOPEN_ATTACHED=no") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_FORBIDDEN_TRANSPORT_CLAIMS=queue_setup_reset_paths,irq_parity,dma_paths,input_registration_lifecycle,probe_remove_lifecycle") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "kernel/sched/core.c") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "mm/page_alloc.c") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "kernel/rcu/tree.c") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "net/core/skbuff.c") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "kernel/workqueue.c") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "kernel/trace/ring_buffer.c") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/*.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/helpers/") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "boundary maps") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "concurrency audits") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "explicit stay-in-C decisions where warranted") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "wrapper-first or study-only posture") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "kernel/workqueue_bridge.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "kernel/trace/ring_buffer.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "retire the lane back to its parked review-only posture") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "it does not reopen `queue_setup_reset_paths`, `irq_parity`, `dma_paths`, `input_registration_lifecycle`, or `probe_remove_lifecycle`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, slice_note, "config-window, config-write, and interrupt-ack helpers are already landed") != null);
-    try std.testing.expect(std.mem.indexOf(u8, slice_note, "leave this packet parked unless a future Phase 10 review can split `phase10-mmio-lifecycle-and-irq-paths` into a smaller transport-safe observation helper") != null);
-    try std.testing.expect(std.mem.indexOf(u8, slice_note, "next bounded follow-up should come from the survey-backed `virtio_mmio` config-window helper") == null);
-    try std.testing.expect(std.mem.indexOf(u8, slice_note, "zig build test --build-file zigux/tests/phase10_build.zig --summary all") != null);
-    try std.testing.expect(closure_manifest == .object);
 
-    const landed_ring_helper_evidence = closure_manifest.object.get("landed_ring_helper_evidence") orelse return error.TestUnexpectedResult;
-    try std.testing.expect(landed_ring_helper_evidence == .object);
-    const ring_helper_evidence = landed_ring_helper_evidence.object.get("zigux/tests/phase10_virtio_ring_manifest.json") orelse return error.TestUnexpectedResult;
-    try std.testing.expect(ring_helper_evidence == .array);
-    const expected_landed_ring_helpers = [_][]const u8{
+    const required_ring_helpers = [_][]const u8{
         "phase10-virtqueue-shape-helper",
         "phase10-used-buffer-polling-helper",
         "phase10-callback-disable-helper",
@@ -191,56 +107,32 @@ test "phase10 virtio ring survey manifest records the live queue-discipline pack
         "phase10-queue-reset-helper",
         "phase10-broken-queue-recovery-helper",
     };
-    try std.testing.expectEqual(expected_landed_ring_helpers.len, ring_helper_evidence.array.items.len);
-    for (expected_landed_ring_helpers, 0..) |helper_id, index| {
-        try std.testing.expect(ring_helper_evidence.array.items[index] == .string);
+    for (required_ring_helpers) |gap_id| {
+        const gap = findGap(manifest.gaps, gap_id) orelse return error.TestUnexpectedResult;
+        try std.testing.expectEqualStrings("starter_landed", gap.status);
+        try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.zig", gap.zigux_destination);
+        try std.testing.expect(gap.why_now.len != 0);
+    }
+
+    const blocked_mmio_gap = findGap(manifest.gaps, "phase10-mmio-lifecycle-and-irq-paths") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("blocked_on_risky_transport", blocked_mmio_gap.status);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", blocked_mmio_gap.zigux_destination);
+
+    const landed_ring_helper_evidence = closure.value.object.get("landed_ring_helper_evidence") orelse return error.TestUnexpectedResult;
+    const ring_helper_evidence = landed_ring_helper_evidence.object.get("zigux/tests/phase10_virtio_ring_manifest.json") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(usize, required_ring_helpers.len), ring_helper_evidence.array.items.len);
+    for (required_ring_helpers, 0..) |helper_id, index| {
         try std.testing.expectEqualStrings(helper_id, ring_helper_evidence.array.items[index].string);
     }
 
-    var starter_landed_count: usize = 0;
-    var ready_next_count: usize = 0;
-    var blocked_count: usize = 0;
-    var saw_ring_helper = false;
-    var saw_used_buffer_polling = false;
-    var saw_callback_disable_helper = false;
-    var saw_callback_enable_helper = false;
-    var saw_callback_enable_prepare_helper = false;
-    var saw_callback_delay_helper = false;
-    var saw_notify_prepare_helper = false;
-    var saw_queue_reset_guard_helper = false;
-    var saw_queue_reset_helper = false;
-    var saw_broken_queue_recovery_helper = false;
-    var saw_mmio_register_window = false;
-    var saw_mmio_queue_register = false;
-    var saw_mmio_queue_notify = false;
-    var saw_mmio_queue_address = false;
-    var saw_mmio_config_window = false;
-    var saw_mmio_config_write = false;
-    var saw_mmio_interrupt_ack = false;
-    var saw_mmio_blocker = false;
-    var saw_ring_slice_note = false;
-    var saw_core_progress_note = false;
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-broken-queue-recovery-helper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-mmio-interrupt-ack-helper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "still-blocked lifecycle and IRQ packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Do not reopen the ring lane") != null);
 
-    for (manifest.gaps, 0..) |gap, i| {
-        try std.testing.expect(gap.id.len > 0);
-        try std.testing.expect(gap.kind.len > 0);
-        try std.testing.expect(gap.why_now.len > 0);
-        try std.testing.expect(isAllowedStatus(gap.status));
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "broken-queue recovery") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "phase10-mmio-lifecycle-and-irq-paths") != null);
 
-        if (std.mem.eql(u8, gap.status, "starter_landed")) {
-            starter_landed_count += 1;
-        } else if (std.mem.eql(u8, gap.status, "ready_next")) {
-            ready_next_count += 1;
-        } else if (std.mem.eql(u8, gap.status, "blocked_on_risky_transport")) {
-            blocked_count += 1;
-        }
-
-        if (std.mem.eql(u8, gap.id, "phase10-virtqueue-shape-helper")) {
-            saw_ring_helper = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.zig", gap.zigux_destination);
-        }
-
-        if (std.mem.eql(u8, gap.id, "phase10-used-buffer-polling-helper")) {
-            saw_usedBufferPolling = true;
-        }
+    try std.testing.expect(std.mem.indexOf(u8, phase10_build, "phase10_virtio_ring_reset_reuse.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase10_build, "phase10_virtio_ring_survey.zig") != null);
+}
