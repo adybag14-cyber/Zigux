@@ -4,7 +4,7 @@ This document records the bounded Phase 14 survey lane around `kernel/trace/ring
 
 ## Status
 
-- `PHASE14_LANE_KEY=P14-L08`
+- `PHASE14_LANE_KEY=P14-L05`
 - `PHASE14_STATUS=study_only`
 - `PHASE14_SLICE=ring-buffer-survey-gap`
 - `PHASE14_SURVEYED_COMMIT=f9a7a6e93c8e6a1b6550fd7b2aa5571729aab05b`
