@@ -363,6 +363,9 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "runtime_atomic64_loader.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "runtime_bitmap_loader.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "runtime_kretprobe_loader.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "runtime_trace_events_loader.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "blocked `samples/zigux/runtime_trace_events.zig` pilot") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "bounded `samples/zigux/runtime_trace_events_loader.zig` scaffold is shipped now") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "preview truncation") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "fixed embedded") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_bytestream_fifo.zig") != null);
@@ -440,6 +443,9 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
     try std.testing.expect(std.mem.indexOf(u8, samples_readme, "samples/zigux/runtime_kretprobe.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, samples_readme, "samples/zigux/runtime_kretprobe_loader.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, samples_readme, "samples/zigux/runtime_trace_events.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, samples_readme, "samples/zigux/runtime_trace_events_loader.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, samples_readme, "sample-only blocked Phase 9 pilot") != null);
+    try std.testing.expect(std.mem.indexOf(u8, samples_readme, "runtime-substrate handoff still stays blocked") != null);
     try std.testing.expect(std.mem.indexOf(u8, samples_readme, "no `samples/zigux/*string*` Phase 5 reference sample") != null);
     try std.testing.expect(std.mem.indexOf(u8, samples_readme, "no `samples/zigux/*cmdline*` Phase 5 reference sample") != null);
     try std.testing.expect(std.mem.indexOf(u8, samples_readme, "phase7-cmdline-slice.md") != null);
