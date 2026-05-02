@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import copy
 import json
 import shutil
 import subprocess
@@ -14,6 +15,7 @@ if SELF_PATH.parent.name == "zigux" and SELF_PATH.parent.parent.name == "scripts
     ROOT = SELF_PATH.parents[2]
 else:
     ROOT = SELF_PATH.parent
+
 
 REQUIRED_FILE_RELS = [
     Path(".github/workflows/zigux-bootstrap.yml"),
@@ -85,6 +87,40 @@ RBTREE_UNEXPECTED_ALIAS_MARKERS = [
     "pub fn rb_next_match(",
 ]
 
+STRING_SUMMARY = (
+    "string parity covers Linux-style bool parsing for true, false, and invalid forms, "
+    "C-string-aware strlcpy length and truncation behavior, whitespace cleanup including "
+    "embedded-NUL remove_spaces handling, replacement, and memchrInv mismatch detection"
+)
+STRING_CSTRING_REVIEW = (
+    "string strlcpy stops at the first embedded NUL, preserves truncation behavior, and leaves "
+    "zero-sized destinations untouched"
+)
+STRING_EQUALITY_REVIEW = (
+    "string strEq and streq keep C-string equality aligned for exact, empty, length-mismatched, "
+    "case-sensitive, and embedded-NUL comparisons"
+)
+STRING_ALIAS_REVIEW = (
+    "string trimSpaces and strim trim trailing whitespace before the first embedded NUL while "
+    "preserving bytes beyond that terminator"
+)
+STRING_PREFIX_REVIEW = (
+    "string strStarts and strstarts keep kernel-style prefix checks aligned for exact, "
+    "empty-prefix, shorter-input, and case-sensitive comparisons"
+)
+STRING_PREFIX_LENGTH_REVIEW = (
+    "string strHasPrefix and str_has_prefix return the matched C-string prefix length for exact "
+    "and embedded-NUL prefixes while rejecting mismatches and longer prefixes"
+)
+STRING_SUFFIX_REVIEW = (
+    "string strEndsWith, str_ends_with, and strends keep kernel-style suffix semantics aligned "
+    "for exact, empty-suffix, shorter-input, and case-sensitive comparisons"
+)
+STRING_MEMPARSE_REVIEW = (
+    "string memparse preserves decimal, hexadecimal, suffix-bearing, and invalid inputs without "
+    "changing the parsed value or rest pointer contract"
+)
+
 REQUIRED_CLOSURE_MARKERS = [
     "PHASE1_STATUS=closed",
     "PHASE1_HELPER_COUNT=13",
@@ -100,7 +136,14 @@ REQUIRED_CLOSURE_MARKERS = [
     "PHASE1_RBTREE_REVERSE_UNIT_REVIEW=rbtree findLast, prevMatch, and iterateMatchesReverse keep reverse duplicate-key lookup walks aligned from the rightmost match back through the equal-key range while still reporting no match for missing keys",
     "PHASE1_RBTREE_ALIAS_GAP_NOTE=the closed Phase 1 rbtree tranche still excludes Linux-style rb_* alias parity for the already-ported entry points, and that remaining surface stays explicitly out of scope until a later bounded repair lands",
     RBTREE_ALIAS_GAP_GATE,
-    "PHASE1_STRING_MEMPARSE_UNIT_REVIEW=string memparse preserves decimal, hexadecimal, suffix-bearing, and invalid inputs without changing the parsed value or rest pointer contract",
+    f"PHASE1_STRING_REVIEW={STRING_SUMMARY}",
+    f"PHASE1_STRING_CSTRING_UNIT_REVIEW={STRING_CSTRING_REVIEW}",
+    f"PHASE1_STRING_EQUALITY_UNIT_REVIEW={STRING_EQUALITY_REVIEW}",
+    f"PHASE1_STRING_ALIAS_UNIT_REVIEW={STRING_ALIAS_REVIEW}",
+    f"PHASE1_STRING_PREFIX_UNIT_REVIEW={STRING_PREFIX_REVIEW}",
+    f"PHASE1_STRING_PREFIX_LENGTH_UNIT_REVIEW={STRING_PREFIX_LENGTH_REVIEW}",
+    f"PHASE1_STRING_SUFFIX_UNIT_REVIEW={STRING_SUFFIX_REVIEW}",
+    f"PHASE1_STRING_MEMPARSE_UNIT_REVIEW={STRING_MEMPARSE_REVIEW}",
     "PHASE1_FIND_BIT_BENCH_REVIEW=find_bit benchmark smoke pins deterministic next-bit, whole-family, tail-window, same-word, zero-bit, and shared-bit scan checksums plus the live loop counts so helper-local scan regressions cannot hide behind a generic positive checksum or a silently shrunk workload",
     "PHASE1_FIND_BIT_BENCH_KEYS=PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM,PHASE1_BENCH_FIND_BIT_FAMILY_CHECKSUM,PHASE1_BENCH_FIND_TAIL_WINDOW_CHECKSUM,PHASE1_BENCH_FIND_SAME_WORD_CHECKSUM",
     "PHASE1_FIND_BIT_BENCH_ITERATIONS=PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS,PHASE1_BENCH_FIND_SAME_WORD_ITERATIONS,PHASE1_BENCH_FIND_NEXT_ZERO_BIT_ITERATIONS,PHASE1_BENCH_FIND_NEXT_AND_BIT_ITERATIONS",
@@ -184,6 +227,128 @@ REQUIRED_EXACT_CHECKSUMS = {
     "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM": 1484000,
 }
 
+EXPECTED_MANIFEST_FIELDS = {
+    "tools/lib/bitmap.zig": {
+        "fixture": "zigux/tests/fixtures/phase1_helpers.json",
+        "alias_unit_test_anchor": 'tools/lib/bitmap.zig:test "bitmap underscore aliases preserve bitmap helper semantics"',
+        "alias_unit_test_contract": (
+            "Direct Zig unit coverage keeps bitmap_weight(), bitmap_and(), bitmap_andnot(), "
+            "bitmap_or(), bitmap_xor(), bitmap_equal(), bitmap_intersects(), bitmap_subset(), "
+            "bitmap_set(), bitmap_clear(), and bitmap_scnprintf() aligned with the camelCase "
+            "helpers across the same caller-selected bit window."
+        ),
+    },
+    "tools/lib/find_bit.zig": {
+        "fixture": "zigux/tests/fixtures/phase1_helpers.json",
+        "alias_unit_test_anchor": 'tools/lib/find_bit.zig:test "find underscore aliases preserve scan semantics"',
+        "alias_unit_test_contract": (
+            "Direct Zig unit coverage keeps find_first_bit(), find_first_and_bit(), "
+            "find_first_zero_bit(), find_next_bit(), find_next_and_bit(), and "
+            "find_next_zero_bit() aligned with the camelCase scan helpers across the same "
+            "caller-selected bit windows and tail clamps."
+        ),
+        "mask_unit_test_anchor": 'tools/lib/find_bit.zig:test "word helpers keep linux-style mask and sizing boundaries"',
+        "mask_unit_test_contract": (
+            "Direct Zig unit coverage keeps bitsToWords(), firstWordMask(), and lastWordMask() "
+            "aligned with Linux-style whole-word, partial-word, and wrapped-start boundaries so "
+            "exported mask helpers remain reviewable without relying only on indirect scan coverage."
+        ),
+        "boundary_unit_test_anchor": 'tools/lib/find_bit.zig:test "empty and boundary scans return nbits"',
+        "boundary_unit_test_contract": (
+            "Direct Zig unit coverage keeps empty and out-of-range scan boundaries aligned by "
+            "returning nbits for zero-length bitmaps, start-at-nbits searches, and fully set "
+            "zero-bit windows that must not report past the declared range."
+        ),
+        "low_level_unit_test_anchor": 'tools/lib/find_bit.zig:test "find low-level underscore entry points preserve same-word and tail-clamped scan semantics"',
+        "low_level_unit_test_contract": (
+            "Direct Zig unit coverage keeps _find_first_bit(), _find_first_and_bit(), "
+            "_find_first_zero_bit(), _find_next_bit(), _find_next_and_bit(), and "
+            "_find_next_zero_bit() aligned with the public scan helpers across same-word "
+            "inclusive starts and tail-clamped caller-selected bit windows."
+        ),
+        "small_bitmap_unit_test_anchor": 'tools/lib/find_bit.zig:test "single-word scans keep linux small-bitmap semantics"',
+        "small_bitmap_unit_test_contract": (
+            "Direct Zig unit coverage keeps single-word set, zero, and shared-bit scans aligned "
+            "with Linux small-bitmap semantics by masking out-of-range tail bits while "
+            "preserving inclusive in-range matches inside one word."
+        ),
+    },
+    "tools/lib/rbtree.zig": {
+        "fixture": "zigux/tests/fixtures/phase1_helpers.json",
+        "summary": RBTREE_SUMMARY,
+        "alias_gap_note": RBTREE_ALIAS_GAP_NOTE,
+        "iterator_unit_test_anchor": 'tools/lib/rbtree.zig:test "rbtree iterateMatches streams only the duplicate range"',
+        "iterator_unit_test_contract": (
+            "Direct Zig unit coverage keeps iterateMatches() aligned so duplicate-key iteration "
+            "yields only the equal-key range and cleanly reports no match for missing keys."
+        ),
+        "reverse_unit_test_anchor": 'tools/lib/rbtree.zig:test "rbtree iterateMatchesReverse streams only the duplicate range in reverse"',
+        "reverse_unit_test_contract": (
+            "Direct Zig unit coverage keeps findLast(), prevMatch(), and iterateMatchesReverse() "
+            "aligned so reverse duplicate-key lookups start at the rightmost match, walk back "
+            "through the equal-key range, and cleanly report no match for missing keys."
+        ),
+    },
+    "tools/lib/string.zig": {
+        "fixture": "zigux/tests/fixtures/phase1_helpers.json",
+        "summary": (
+            "Committed C-backed parity coverage includes Linux-style bool parsing for true, false, "
+            "and invalid forms, C-string-aware strlcpy length and truncation behavior, in-place "
+            "whitespace and replacement helpers including embedded-NUL remove_spaces handling, and "
+            "first-mismatch memchrInv detection, while direct Zig review anchors now also record "
+            "C-string equality, prefix, prefix-length, suffix, and memparse coverage for the "
+            "newer helper surface already shipped on master."
+        ),
+        "unit_test_anchor": 'tools/lib/string.zig:test "memchrInv scans aligned and misaligned long buffers"',
+        "unit_test_contract": (
+            "Direct Zig unit coverage keeps memchrInv honest for both aligned and misaligned long "
+            "buffers beyond the short C-backed fixture cases."
+        ),
+        "cstring_unit_test_anchor": 'tools/lib/string.zig:test "strlcpy stops at the first embedded NUL in the source"',
+        "cstring_unit_test_contract": (
+            "Direct Zig unit coverage keeps strlcpy aligned with C-string semantics by stopping at "
+            "the first embedded NUL, preserving truncation behavior, and leaving zero-sized "
+            "destinations untouched."
+        ),
+        "equality_unit_test_anchor": 'tools/lib/string.zig:test "streq matches C-string equality semantics"',
+        "equality_unit_test_contract": (
+            "Direct Zig unit coverage keeps strEq() and streq() aligned with C-string equality "
+            "semantics for exact, empty, length-mismatched, case-sensitive, and embedded-NUL "
+            "comparisons."
+        ),
+        "alias_unit_test_anchor": 'tools/lib/string.zig:test "trimSpaces and strim trim trailing whitespace before an embedded NUL"',
+        "alias_unit_test_contract": (
+            "Direct Zig unit coverage keeps trimSpaces and strim aligned with C-string semantics "
+            "by trimming trailing whitespace that appears before the first embedded NUL while "
+            "preserving bytes beyond that terminator."
+        ),
+        "prefix_unit_test_anchor": 'tools/lib/string.zig:test "strstarts matches kernel prefix semantics"',
+        "prefix_unit_test_contract": (
+            "Direct Zig unit coverage keeps strStarts and strstarts aligned with kernel-style "
+            "prefix semantics for exact, empty-prefix, shorter-input, and case-sensitive "
+            "comparisons."
+        ),
+        "prefix_length_unit_test_anchor": 'tools/lib/string.zig:test "strHasPrefix returns the matched prefix length with C-string semantics"',
+        "prefix_length_unit_test_contract": (
+            "Direct Zig unit coverage keeps strHasPrefix and str_has_prefix aligned by returning "
+            "the matched C-string prefix length for exact and embedded-NUL prefixes while "
+            "rejecting mismatches and longer prefixes."
+        ),
+        "suffix_unit_test_anchor": 'tools/lib/string.zig:test "str_ends_with matches kernel suffix semantics"',
+        "suffix_unit_test_contract": (
+            "Direct Zig unit coverage keeps strEndsWith, str_ends_with, and strends aligned with "
+            "kernel-style suffix semantics for exact, empty-suffix, shorter-input, and "
+            "case-sensitive comparisons."
+        ),
+        "memparse_unit_test_anchor": 'tools/lib/string.zig:test "memparse forwards the header-level string helper surface"',
+        "memparse_unit_test_contract": (
+            "Direct Zig unit coverage keeps memparse aligned by preserving decimal, hexadecimal, "
+            "suffix-bearing, and invalid inputs without changing the parsed value or rest pointer "
+            "contract."
+        ),
+    },
+}
+
 
 def run_validator(root: Path) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
@@ -221,39 +386,7 @@ def build_manifest() -> dict[str, object]:
         "status": "closed",
         "helper_count": 13,
         "helpers": HELPERS,
-        "helper_review_notes": {
-            "tools/lib/bitmap.zig": {
-                "fixture": "zigux/tests/fixtures/phase1_helpers.json",
-                "alias_unit_test_anchor": 'tools/lib/bitmap.zig:test "bitmap underscore aliases preserve bitmap helper semantics"',
-                "alias_unit_test_contract": "Direct Zig unit coverage keeps bitmap_weight(), bitmap_and(), bitmap_andnot(), bitmap_or(), bitmap_xor(), bitmap_equal(), bitmap_intersects(), bitmap_subset(), bitmap_set(), bitmap_clear(), and bitmap_scnprintf() aligned with the camelCase helpers across the same caller-selected bit window.",
-            },
-            "tools/lib/find_bit.zig": {
-                "fixture": "zigux/tests/fixtures/phase1_helpers.json",
-                "alias_unit_test_anchor": 'tools/lib/find_bit.zig:test "find underscore aliases preserve scan semantics"',
-                "alias_unit_test_contract": "Direct Zig unit coverage keeps find_first_bit(), find_first_and_bit(), find_first_zero_bit(), find_next_bit(), find_next_and_bit(), and find_next_zero_bit() aligned with the camelCase scan helpers across the same caller-selected bit windows and tail clamps.",
-                "mask_unit_test_anchor": 'tools/lib/find_bit.zig:test "word helpers keep linux-style mask and sizing boundaries"',
-                "mask_unit_test_contract": "Direct Zig unit coverage keeps bitsToWords(), firstWordMask(), and lastWordMask() aligned with Linux-style whole-word, partial-word, and wrapped-start boundaries so exported mask helpers remain reviewable without relying only on indirect scan coverage.",
-                "boundary_unit_test_anchor": 'tools/lib/find_bit.zig:test "empty and boundary scans return nbits"',
-                "boundary_unit_test_contract": "Direct Zig unit coverage keeps empty and out-of-range scan boundaries aligned by returning nbits for zero-length bitmaps, start-at-nbits searches, and fully set zero-bit windows that must not report past the declared range.",
-                "low_level_unit_test_anchor": 'tools/lib/find_bit.zig:test "find low-level underscore entry points preserve same-word and tail-clamped scan semantics"',
-                "low_level_unit_test_contract": "Direct Zig unit coverage keeps _find_first_bit(), _find_first_and_bit(), _find_first_zero_bit(), _find_next_bit(), _find_next_and_bit(), and _find_next_zero_bit() aligned with the public scan helpers across same-word inclusive starts and tail-clamped caller-selected bit windows.",
-                "small_bitmap_unit_test_anchor": 'tools/lib/find_bit.zig:test "single-word scans keep linux small-bitmap semantics"',
-                "small_bitmap_unit_test_contract": "Direct Zig unit coverage keeps single-word set, zero, and shared-bit scans aligned with Linux small-bitmap semantics by masking out-of-range tail bits while preserving inclusive in-range matches inside one word.",
-            },
-            "tools/lib/rbtree.zig": {
-                "fixture": "zigux/tests/fixtures/phase1_helpers.json",
-                "summary": RBTREE_SUMMARY,
-                "alias_gap_note": RBTREE_ALIAS_GAP_NOTE,
-                "iterator_unit_test_anchor": 'tools/lib/rbtree.zig:test "rbtree iterateMatches streams only the duplicate range"',
-                "iterator_unit_test_contract": "Direct Zig unit coverage keeps iterateMatches() aligned so duplicate-key iteration yields only the equal-key range and cleanly reports no match for missing keys.",
-                "reverse_unit_test_anchor": 'tools/lib/rbtree.zig:test "rbtree iterateMatchesReverse streams only the duplicate range in reverse"',
-                "reverse_unit_test_contract": "Direct Zig unit coverage keeps findLast(), prevMatch(), and iterateMatchesReverse() aligned so reverse duplicate-key lookups start at the rightmost match, walk back through the equal-key range, and cleanly report no match for missing keys.",
-            },
-            "tools/lib/string.zig": {
-                "fixture": "zigux/tests/fixtures/phase1_helpers.json",
-                "memparse_unit_test_contract": "Direct Zig unit coverage keeps memparse aligned by preserving decimal, hexadecimal, suffix-bearing, and invalid inputs without changing the parsed value or rest pointer contract.",
-            },
-        },
+        "helper_review_notes": copy.deepcopy(EXPECTED_MANIFEST_FIELDS),
     }
 
 
@@ -317,7 +450,6 @@ def validate_manifest(root: Path, manifest: dict[str, object], missing: list[str
         missing.append("manifest:status=closed")
     if manifest.get("helper_count") != 13:
         missing.append("manifest:helper_count=13")
-
     helpers = manifest.get("helpers")
     if helpers != HELPERS:
         missing.append("manifest:helpers")
@@ -327,46 +459,16 @@ def validate_manifest(root: Path, manifest: dict[str, object], missing: list[str
                 missing.append(f"manifest_file:{rel}")
 
     review = manifest.get("helper_review_notes", {})
-    find_bit = review.get("tools/lib/find_bit.zig", {})
-    rbtree = review.get("tools/lib/rbtree.zig", {})
-    string = review.get("tools/lib/string.zig", {})
-
-    if find_bit.get("mask_unit_test_anchor") != 'tools/lib/find_bit.zig:test "word helpers keep linux-style mask and sizing boundaries"':
-        missing.append("manifest:find_bit.mask_unit_test_anchor")
-    if find_bit.get("mask_unit_test_contract") != "Direct Zig unit coverage keeps bitsToWords(), firstWordMask(), and lastWordMask() aligned with Linux-style whole-word, partial-word, and wrapped-start boundaries so exported mask helpers remain reviewable without relying only on indirect scan coverage.":
-        missing.append("manifest:find_bit.mask_unit_test_contract")
-    if find_bit.get("boundary_unit_test_anchor") != 'tools/lib/find_bit.zig:test "empty and boundary scans return nbits"':
-        missing.append("manifest:find_bit.boundary_unit_test_anchor")
-    if find_bit.get("boundary_unit_test_contract") != "Direct Zig unit coverage keeps empty and out-of-range scan boundaries aligned by returning nbits for zero-length bitmaps, start-at-nbits searches, and fully set zero-bit windows that must not report past the declared range.":
-        missing.append("manifest:find_bit.boundary_unit_test_contract")
-    if find_bit.get("low_level_unit_test_anchor") != 'tools/lib/find_bit.zig:test "find low-level underscore entry points preserve same-word and tail-clamped scan semantics"':
-        missing.append("manifest:find_bit.low_level_unit_test_anchor")
-    if find_bit.get("low_level_unit_test_contract") != "Direct Zig unit coverage keeps _find_first_bit(), _find_first_and_bit(), _find_first_zero_bit(), _find_next_bit(), _find_next_and_bit(), and _find_next_zero_bit() aligned with the public scan helpers across same-word inclusive starts and tail-clamped caller-selected bit windows.":
-        missing.append("manifest:find_bit.low_level_unit_test_contract")
-    if find_bit.get("small_bitmap_unit_test_anchor") != 'tools/lib/find_bit.zig:test "single-word scans keep linux small-bitmap semantics"':
-        missing.append("manifest:find_bit.small_bitmap_unit_test_anchor")
-    if find_bit.get("small_bitmap_unit_test_contract") != "Direct Zig unit coverage keeps single-word set, zero, and shared-bit scans aligned with Linux small-bitmap semantics by masking out-of-range tail bits while preserving inclusive in-range matches inside one word.":
-        missing.append("manifest:find_bit.small_bitmap_unit_test_contract")
-    if rbtree.get("summary") != RBTREE_SUMMARY:
-        missing.append("manifest:rbtree.summary")
-    if rbtree.get("alias_gap_note") != RBTREE_ALIAS_GAP_NOTE:
-        missing.append("manifest:rbtree.alias_gap_note")
-    if rbtree.get("iterator_unit_test_anchor") != 'tools/lib/rbtree.zig:test "rbtree iterateMatches streams only the duplicate range"':
-        missing.append("manifest:rbtree.iterator_unit_test_anchor")
-    if rbtree.get("iterator_unit_test_contract") != "Direct Zig unit coverage keeps iterateMatches() aligned so duplicate-key iteration yields only the equal-key range and cleanly reports no match for missing keys.":
-        missing.append("manifest:rbtree.iterator_unit_test_contract")
-    if rbtree.get("reverse_unit_test_anchor") != 'tools/lib/rbtree.zig:test "rbtree iterateMatchesReverse streams only the duplicate range in reverse"':
-        missing.append("manifest:rbtree.reverse_unit_test_anchor")
-    if rbtree.get("reverse_unit_test_contract") != "Direct Zig unit coverage keeps findLast(), prevMatch(), and iterateMatchesReverse() aligned so reverse duplicate-key lookups start at the rightmost match, walk back through the equal-key range, and cleanly report no match for missing keys.":
-        missing.append("manifest:rbtree.reverse_unit_test_contract")
-    if string.get("memparse_unit_test_contract") != "Direct Zig unit coverage keeps memparse aligned by preserving decimal, hexadecimal, suffix-bearing, and invalid inputs without changing the parsed value or rest pointer contract.":
-        missing.append("manifest:string.memparse_unit_test_contract")
+    for helper, expected_fields in EXPECTED_MANIFEST_FIELDS.items():
+        actual_fields = review.get(helper, {})
+        for key, expected_value in expected_fields.items():
+            if actual_fields.get(key) != expected_value:
+                missing.append(f"manifest:{helper}:{key}")
 
 
 def validate_expectations(expectations: dict[str, object], missing: list[str]) -> None:
     if expectations.get("status") != "pass":
         missing.append("bench:status=pass")
-
     iterations = expectations.get("iterations", {})
     exact = expectations.get("exact_checksums", {})
     checksums = expectations.get("checksums", [])
@@ -414,6 +516,16 @@ def validate_tree(root: Path) -> tuple[int, list[str]]:
     return (1 if missing else 0), missing
 
 
+def replace_once(text: str, marker: str) -> str:
+    return text.replace(marker, "", 1)
+
+
+def mutate_helper_field(manifest: dict[str, object], helper: str, key: str, value: str) -> dict[str, object]:
+    mutated = copy.deepcopy(manifest)
+    mutated["helper_review_notes"][helper][key] = value
+    return mutated
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase1_closure_selftest_") as tmp_dir:
         tmp_root = Path(tmp_dir)
@@ -423,119 +535,102 @@ def run_self_test() -> int:
         if code != 0:
             raise SystemExit(f"phase1-self-test:baseline_failed:{','.join(missing)}")
 
+        total_cases = 1
+
         closure_path = tmp_root / "Documentation" / "zigux" / "phase1-closure.md"
         original_closure = closure_path.read_text(encoding="utf-8")
-        closure_path.write_text(original_closure.replace("PHASE1_STRING_MEMPARSE_UNIT_REVIEW=string memparse preserves decimal, hexadecimal, suffix-bearing, and invalid inputs without changing the parsed value or rest pointer contract", "", 1), encoding="utf-8")
-        expect_missing_marker("closure_memparse", tmp_root, "closure:PHASE1_STRING_MEMPARSE_UNIT_REVIEW=string memparse preserves decimal, hexadecimal, suffix-bearing, and invalid inputs without changing the parsed value or rest pointer contract")
-        closure_path.write_text(original_closure, encoding="utf-8")
-
-        closure_path.write_text(original_closure.replace("PHASE1_FIND_BIT_MASK_UNIT_REVIEW=find_bit mask and sizing helpers keep Linux-style whole-word, partial-word, and wrapped-start boundaries reviewable without relying only on indirect scan coverage", "", 1), encoding="utf-8")
-        expect_missing_marker("closure_find_bit_mask_review", tmp_root, "closure:PHASE1_FIND_BIT_MASK_UNIT_REVIEW=find_bit mask and sizing helpers keep Linux-style whole-word, partial-word, and wrapped-start boundaries reviewable without relying only on indirect scan coverage")
-        closure_path.write_text(original_closure, encoding="utf-8")
-
-        closure_path.write_text(original_closure.replace("PHASE1_FIND_BIT_BOUNDARY_UNIT_REVIEW=find_bit empty and out-of-range scans return nbits for zero-length bitmaps, start-at-nbits searches, and fully set zero-bit windows that must not report past the declared range", "", 1), encoding="utf-8")
-        expect_missing_marker("closure_find_bit_boundary_review", tmp_root, "closure:PHASE1_FIND_BIT_BOUNDARY_UNIT_REVIEW=find_bit empty and out-of-range scans return nbits for zero-length bitmaps, start-at-nbits searches, and fully set zero-bit windows that must not report past the declared range")
-        closure_path.write_text(original_closure, encoding="utf-8")
-
-        closure_path.write_text(original_closure.replace("PHASE1_FIND_BIT_SMALL_BITMAP_UNIT_REVIEW=find_bit single-word set zero and shared-bit scans keep Linux small-bitmap semantics aligned by masking out-of-range tail bits while preserving inclusive in-range matches inside one word", "", 1), encoding="utf-8")
-        expect_missing_marker("closure_find_bit_small_bitmap_review", tmp_root, "closure:PHASE1_FIND_BIT_SMALL_BITMAP_UNIT_REVIEW=find_bit single-word set zero and shared-bit scans keep Linux small-bitmap semantics aligned by masking out-of-range tail bits while preserving inclusive in-range matches inside one word")
-        closure_path.write_text(original_closure, encoding="utf-8")
-
-        closure_path.write_text(original_closure.replace("PHASE1_RBTREE_ITERATE_UNIT_REVIEW=rbtree iterateMatches yields only the equal-key duplicate range and cleanly reports no match for missing keys", "", 1), encoding="utf-8")
-        expect_missing_marker("closure_rbtree_iterate_review", tmp_root, "closure:PHASE1_RBTREE_ITERATE_UNIT_REVIEW=rbtree iterateMatches yields only the equal-key duplicate range and cleanly reports no match for missing keys")
-        closure_path.write_text(original_closure, encoding="utf-8")
-
-        closure_path.write_text(original_closure.replace("PHASE1_RBTREE_REVERSE_UNIT_REVIEW=rbtree findLast, prevMatch, and iterateMatchesReverse keep reverse duplicate-key lookup walks aligned from the rightmost match back through the equal-key range while still reporting no match for missing keys", "", 1), encoding="utf-8")
-        expect_missing_marker("closure_rbtree_reverse_review", tmp_root, "closure:PHASE1_RBTREE_REVERSE_UNIT_REVIEW=rbtree findLast, prevMatch, and iterateMatchesReverse keep reverse duplicate-key lookup walks aligned from the rightmost match back through the equal-key range while still reporting no match for missing keys")
-        closure_path.write_text(original_closure, encoding="utf-8")
-
-        closure_path.write_text(original_closure.replace("PHASE1_RBTREE_BENCH_KEYS=PHASE1_BENCH_RBTREE_CHECKSUM,PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM,PHASE1_BENCH_RBTREE_CACHED_CHECKSUM,PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM,PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM", "", 1), encoding="utf-8")
-        expect_missing_marker("closure_rbtree_bench_keys", tmp_root, "closure:PHASE1_RBTREE_BENCH_KEYS=PHASE1_BENCH_RBTREE_CHECKSUM,PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM,PHASE1_BENCH_RBTREE_CACHED_CHECKSUM,PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM,PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM")
-        closure_path.write_text(original_closure, encoding="utf-8")
-
-        closure_path.write_text(original_closure.replace("PHASE1_RBTREE_ALIAS_GAP_NOTE=the closed Phase 1 rbtree tranche still excludes Linux-style rb_* alias parity for the already-ported entry points, and that remaining surface stays explicitly out of scope until a later bounded repair lands", "", 1), encoding="utf-8")
-        expect_missing_marker("closure_rbtree_alias_gap_note", tmp_root, "closure:PHASE1_RBTREE_ALIAS_GAP_NOTE=the closed Phase 1 rbtree tranche still excludes Linux-style rb_* alias parity for the already-ported entry points, and that remaining surface stays explicitly out of scope until a later bounded repair lands")
-        closure_path.write_text(original_closure, encoding="utf-8")
-
-        closure_path.write_text(original_closure.replace(RBTREE_ALIAS_GAP_GATE, "", 1), encoding="utf-8")
-        expect_missing_marker("closure_rbtree_alias_gap_gate", tmp_root, f"closure:{RBTREE_ALIAS_GAP_GATE}")
-        closure_path.write_text(original_closure, encoding="utf-8")
+        closure_cases = [
+            ("closure_memparse", f"PHASE1_STRING_MEMPARSE_UNIT_REVIEW={STRING_MEMPARSE_REVIEW}"),
+            ("closure_string_summary", f"PHASE1_STRING_REVIEW={STRING_SUMMARY}"),
+            ("closure_string_cstring", f"PHASE1_STRING_CSTRING_UNIT_REVIEW={STRING_CSTRING_REVIEW}"),
+            ("closure_string_equality", f"PHASE1_STRING_EQUALITY_UNIT_REVIEW={STRING_EQUALITY_REVIEW}"),
+            ("closure_string_alias", f"PHASE1_STRING_ALIAS_UNIT_REVIEW={STRING_ALIAS_REVIEW}"),
+            ("closure_string_prefix", f"PHASE1_STRING_PREFIX_UNIT_REVIEW={STRING_PREFIX_REVIEW}"),
+            ("closure_string_prefix_length", f"PHASE1_STRING_PREFIX_LENGTH_UNIT_REVIEW={STRING_PREFIX_LENGTH_REVIEW}"),
+            ("closure_string_suffix", f"PHASE1_STRING_SUFFIX_UNIT_REVIEW={STRING_SUFFIX_REVIEW}"),
+            ("closure_find_bit_mask_review", "PHASE1_FIND_BIT_MASK_UNIT_REVIEW=find_bit mask and sizing helpers keep Linux-style whole-word, partial-word, and wrapped-start boundaries reviewable without relying only on indirect scan coverage"),
+            ("closure_find_bit_boundary_review", "PHASE1_FIND_BIT_BOUNDARY_UNIT_REVIEW=find_bit empty and out-of-range scans return nbits for zero-length bitmaps, start-at-nbits searches, and fully set zero-bit windows that must not report past the declared range"),
+            ("closure_find_bit_small_bitmap_review", "PHASE1_FIND_BIT_SMALL_BITMAP_UNIT_REVIEW=find_bit single-word set zero and shared-bit scans keep Linux small-bitmap semantics aligned by masking out-of-range tail bits while preserving inclusive in-range matches inside one word"),
+            ("closure_rbtree_iterate_review", "PHASE1_RBTREE_ITERATE_UNIT_REVIEW=rbtree iterateMatches yields only the equal-key duplicate range and cleanly reports no match for missing keys"),
+            ("closure_rbtree_reverse_review", "PHASE1_RBTREE_REVERSE_UNIT_REVIEW=rbtree findLast, prevMatch, and iterateMatchesReverse keep reverse duplicate-key lookup walks aligned from the rightmost match back through the equal-key range while still reporting no match for missing keys"),
+            ("closure_rbtree_bench_keys", "PHASE1_RBTREE_BENCH_KEYS=PHASE1_BENCH_RBTREE_CHECKSUM,PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM,PHASE1_BENCH_RBTREE_CACHED_CHECKSUM,PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM,PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM"),
+            ("closure_rbtree_alias_gap_note", "PHASE1_RBTREE_ALIAS_GAP_NOTE=the closed Phase 1 rbtree tranche still excludes Linux-style rb_* alias parity for the already-ported entry points, and that remaining surface stays explicitly out of scope until a later bounded repair lands"),
+            ("closure_rbtree_alias_gap_gate", RBTREE_ALIAS_GAP_GATE),
+        ]
+        for label, marker in closure_cases:
+            closure_path.write_text(replace_once(original_closure, marker), encoding="utf-8")
+            expect_missing_marker(label, tmp_root, f"closure:{marker}")
+            closure_path.write_text(original_closure, encoding="utf-8")
+            total_cases += 1
 
         bench_checker_path = tmp_root / "scripts" / "zigux" / "check-phase1-bench.py"
         original_bench_checker = bench_checker_path.read_text(encoding="utf-8")
-        bench_checker_path.write_text(original_bench_checker.replace("print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=14')", "", 1), encoding="utf-8")
-        expect_missing_marker("bench_self_test_count", tmp_root, "bench_checker:print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=14')")
+        bench_checker_path.write_text(
+            replace_once(original_bench_checker, "print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=14')"),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "bench_self_test_count",
+            tmp_root,
+            "bench_checker:print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=14')",
+        )
         bench_checker_path.write_text(original_bench_checker, encoding="utf-8")
+        total_cases += 1
 
         manifest_path = tmp_root / "zigux" / "tests" / "fixtures" / "phase1_helper_manifest.json"
         original_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        mutated_manifest = json.loads(json.dumps(original_manifest))
-        mutated_manifest["helper_review_notes"]["tools/lib/rbtree.zig"]["summary"] = ""
-        write_json(manifest_path, mutated_manifest)
-        expect_missing_marker("rbtree_summary", tmp_root, "manifest:rbtree.summary")
-        write_json(manifest_path, original_manifest)
-
-        mutated_manifest = json.loads(json.dumps(original_manifest))
-        mutated_manifest["helper_review_notes"]["tools/lib/rbtree.zig"]["alias_gap_note"] = ""
-        write_json(manifest_path, mutated_manifest)
-        expect_missing_marker("rbtree_alias_gap_note", tmp_root, "manifest:rbtree.alias_gap_note")
-        write_json(manifest_path, original_manifest)
-
-        mutated_manifest = json.loads(json.dumps(original_manifest))
-        mutated_manifest["helper_review_notes"]["tools/lib/rbtree.zig"]["iterator_unit_test_contract"] = ""
-        write_json(manifest_path, mutated_manifest)
-        expect_missing_marker("rbtree_iterator_contract", tmp_root, "manifest:rbtree.iterator_unit_test_contract")
-        write_json(manifest_path, original_manifest)
-
-        mutated_manifest = json.loads(json.dumps(original_manifest))
-        mutated_manifest["helper_review_notes"]["tools/lib/rbtree.zig"]["reverse_unit_test_contract"] = ""
-        write_json(manifest_path, mutated_manifest)
-        expect_missing_marker("rbtree_reverse_contract", tmp_root, "manifest:rbtree.reverse_unit_test_contract")
-        write_json(manifest_path, original_manifest)
-
-        mutated_manifest = json.loads(json.dumps(original_manifest))
-        mutated_manifest["helper_review_notes"]["tools/lib/find_bit.zig"]["mask_unit_test_contract"] = ""
-        write_json(manifest_path, mutated_manifest)
-        expect_missing_marker("find_bit_mask_contract", tmp_root, "manifest:find_bit.mask_unit_test_contract")
-        write_json(manifest_path, original_manifest)
-
-        mutated_manifest = json.loads(json.dumps(original_manifest))
-        mutated_manifest["helper_review_notes"]["tools/lib/find_bit.zig"]["boundary_unit_test_contract"] = ""
-        write_json(manifest_path, mutated_manifest)
-        expect_missing_marker("find_bit_boundary_contract", tmp_root, "manifest:find_bit.boundary_unit_test_contract")
-        write_json(manifest_path, original_manifest)
-
-        mutated_manifest = json.loads(json.dumps(original_manifest))
-        mutated_manifest["helper_review_notes"]["tools/lib/find_bit.zig"]["low_level_unit_test_contract"] = ""
-        write_json(manifest_path, mutated_manifest)
-        expect_missing_marker("find_bit_low_level_contract", tmp_root, "manifest:find_bit.low_level_unit_test_contract")
-        write_json(manifest_path, original_manifest)
-
-        mutated_manifest = json.loads(json.dumps(original_manifest))
-        mutated_manifest["helper_review_notes"]["tools/lib/find_bit.zig"]["small_bitmap_unit_test_contract"] = ""
-        write_json(manifest_path, mutated_manifest)
-        expect_missing_marker("find_bit_small_bitmap_contract", tmp_root, "manifest:find_bit.small_bitmap_unit_test_contract")
-        write_json(manifest_path, original_manifest)
-
-        mutated_manifest = json.loads(json.dumps(original_manifest))
-        mutated_manifest["helper_review_notes"]["tools/lib/string.zig"]["memparse_unit_test_contract"] = ""
-        write_json(manifest_path, mutated_manifest)
-        expect_missing_marker("string_memparse_contract", tmp_root, "manifest:string.memparse_unit_test_contract")
-        write_json(manifest_path, original_manifest)
+        manifest_cases = [
+            ("rbtree_summary", "tools/lib/rbtree.zig", "summary"),
+            ("rbtree_alias_gap_note", "tools/lib/rbtree.zig", "alias_gap_note"),
+            ("rbtree_iterator_contract", "tools/lib/rbtree.zig", "iterator_unit_test_contract"),
+            ("rbtree_reverse_contract", "tools/lib/rbtree.zig", "reverse_unit_test_contract"),
+            ("find_bit_mask_contract", "tools/lib/find_bit.zig", "mask_unit_test_contract"),
+            ("find_bit_boundary_contract", "tools/lib/find_bit.zig", "boundary_unit_test_contract"),
+            ("find_bit_low_level_contract", "tools/lib/find_bit.zig", "low_level_unit_test_contract"),
+            ("find_bit_small_bitmap_contract", "tools/lib/find_bit.zig", "small_bitmap_unit_test_contract"),
+            ("string_summary", "tools/lib/string.zig", "summary"),
+            ("string_unit_anchor", "tools/lib/string.zig", "unit_test_anchor"),
+            ("string_cstring_contract", "tools/lib/string.zig", "cstring_unit_test_contract"),
+            ("string_equality_contract", "tools/lib/string.zig", "equality_unit_test_contract"),
+            ("string_alias_contract", "tools/lib/string.zig", "alias_unit_test_contract"),
+            ("string_prefix_contract", "tools/lib/string.zig", "prefix_unit_test_contract"),
+            ("string_prefix_length_contract", "tools/lib/string.zig", "prefix_length_unit_test_contract"),
+            ("string_suffix_contract", "tools/lib/string.zig", "suffix_unit_test_contract"),
+            ("string_memparse_contract", "tools/lib/string.zig", "memparse_unit_test_contract"),
+        ]
+        for label, helper, key in manifest_cases:
+            mutated_manifest = mutate_helper_field(original_manifest, helper, key, "")
+            write_json(manifest_path, mutated_manifest)
+            expect_missing_marker(label, tmp_root, f"manifest:{helper}:{key}")
+            write_json(manifest_path, original_manifest)
+            total_cases += 1
 
         expectations_path = tmp_root / "zigux" / "tests" / "fixtures" / "phase1_bench_expectations.json"
         expectations = json.loads(expectations_path.read_text(encoding="utf-8"))
         expectations["exact_checksums"]["PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM"] = 1
         write_json(expectations_path, expectations)
-        expect_missing_marker("rbtree_postorder_checksum", tmp_root, "bench:exact_checksums.PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM=1484000")
+        expect_missing_marker(
+            "rbtree_postorder_checksum",
+            tmp_root,
+            "bench:exact_checksums.PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM=1484000",
+        )
+        total_cases += 1
 
         rbtree_path = tmp_root / "tools" / "lib" / "rbtree.zig"
         original_rbtree = rbtree_path.read_text(encoding="utf-8")
-        rbtree_path.write_text(original_rbtree + "\npub fn rb_first(root: *const Root) ?*Node { return first(root); }\n", encoding="utf-8")
-        expect_missing_marker("rbtree_alias_source", tmp_root, "rbtree_source:unexpected_alias:pub fn rb_first(")
+        rbtree_path.write_text(
+            original_rbtree + "\npub fn rb_first(root: *const Root) ?*Node { return first(root); }\n",
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "rbtree_alias_source",
+            tmp_root,
+            "rbtree_source:unexpected_alias:pub fn rb_first(",
+        )
+        total_cases += 1
 
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=21")
+    print(f"PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT={total_cases}")
     return 0
 
 
