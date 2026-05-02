@@ -239,6 +239,13 @@ int main(void)
 	print_u32_case("tcpudpv6-nofold", "tcp carry payload even",
 		       csum_tcpudp_v6_nofold(tcp_v6_saddr, tcp_v6_daddr, sizeof(tcp_v6_payload), 6,
 				     partial_bytes(tcp_v6_payload, sizeof(tcp_v6_payload), 0)));
+	print_u32_case("tcpudpv6-nofold", "icmpv6 preserves upper declared length bits",
+		       csum_tcpudp_v6_nofold(
+			       (const unsigned char[]){ 0xfd, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+						0x12, 0x34, 0x56, 0x78, 0x00, 0x00, 0x00, 0x01 },
+			       (const unsigned char[]){ 0xfd, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+						0x87, 0x65, 0x43, 0x21, 0x00, 0x00, 0x00, 0x02 },
+			       0x00010001U, 58, partial_bytes((const unsigned char *)"v6len", 5, 0)));
 
 	print_u16_case("carry-discipline", "all-ones odd payload with saturated seed",
 		       csum_fold(partial_bytes(all_ones_odd, sizeof(all_ones_odd), 0xffffffffU)));
