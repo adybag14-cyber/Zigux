@@ -408,6 +408,36 @@ def run_self_test() -> int:
         )
         scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
 
+        scripts_readme_path.write_text(
+            original_scripts_readme.replace(
+                "Documentation/zigux/phase8-perf-buffer-poll-slice.md",
+                "Documentation/zigux/phase8-perf-buffer-slice.md",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "scripts_readme_note_surface",
+            tmp_root,
+            "scripts/zigux/README.md:Documentation/zigux/phase8-perf-buffer-poll-slice.md",
+        )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
+        scripts_readme_path.write_text(
+            original_scripts_readme.replace(
+                "zigux/tests/phase8_perf_buffer_poll.zig",
+                "zigux/tests/phase8_perf_buffer_wait.zig",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "scripts_readme_test_surface",
+            tmp_root,
+            "scripts/zigux/README.md:zigux/tests/phase8_perf_buffer_poll.zig",
+        )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
         bridge_boundary_path = tmp_root / "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md"
         original_bridge_boundary = bridge_boundary_path.read_text(encoding="utf-8")
         bridge_boundary_path.write_text(
@@ -570,7 +600,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST=pass")
-    print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST_CASE_COUNT=18")
+    print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST_CASE_COUNT=20")
     return 0
 
 
