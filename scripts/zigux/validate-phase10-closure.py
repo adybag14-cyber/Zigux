@@ -85,9 +85,9 @@ WORKFLOW_MARKERS = [
 ]
 
 BUILD_MARKERS = [
-    'phase10-virtio-ring-survey-tests',
-    'phase10-virtio-input-survey-tests',
-    'phase10-virtio-mmio-survey-tests',
+    "phase10-virtio-ring-survey-tests",
+    "phase10-virtio-input-survey-tests",
+    "phase10-virtio-mmio-survey-tests",
 ]
 
 RING_SURVEY_MARKERS = [
@@ -148,6 +148,19 @@ EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS = [
 EXPECTED_CORE_HELPERS = [
     "phase10-config-generation-summary-helper",
     "phase10-config-delivery-disposition-helper",
+]
+
+EXPECTED_RING_HELPERS = [
+    "phase10-virtqueue-shape-helper",
+    "phase10-used-buffer-polling-helper",
+    "phase10-callback-disable-helper",
+    "phase10-callback-enable-helper",
+    "phase10-callback-enable-prepare-helper",
+    "phase10-callback-delay-helper",
+    "phase10-notify-prepare-helper",
+    "phase10-queue-reset-guard-helper",
+    "phase10-queue-reset-helper",
+    "phase10-broken-queue-recovery-helper",
 ]
 
 EXPECTED_INPUT_HELPERS = [
@@ -294,6 +307,9 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         landed_core = closure_manifest.get("landed_core_helper_evidence")
         if landed_core != {"zigux/tests/phase10_virtio_core_manifest.json": EXPECTED_CORE_HELPERS}:
             missing.append("closure_manifest:landed_core_helper_evidence")
+        landed_ring = closure_manifest.get("landed_ring_helper_evidence")
+        if landed_ring != {"zigux/tests/phase10_virtio_ring_manifest.json": EXPECTED_RING_HELPERS}:
+            missing.append("closure_manifest:landed_ring_helper_evidence")
         landed_input = closure_manifest.get("landed_input_helper_evidence")
         if landed_input != {"zigux/tests/phase10_virtio_input_manifest.json": EXPECTED_INPUT_HELPERS}:
             missing.append("closure_manifest:landed_input_helper_evidence")
@@ -382,6 +398,9 @@ def write_fixture(root: Path) -> None:
         "landed_core_helper_evidence": {
             "zigux/tests/phase10_virtio_core_manifest.json": EXPECTED_CORE_HELPERS,
         },
+        "landed_ring_helper_evidence": {
+            "zigux/tests/phase10_virtio_ring_manifest.json": EXPECTED_RING_HELPERS,
+        },
         "landed_input_helper_evidence": {
             "zigux/tests/phase10_virtio_input_manifest.json": EXPECTED_INPUT_HELPERS,
         },
@@ -437,6 +456,19 @@ def run_self_test() -> int:
                 f"markers={','.join(missing_markers) if missing_markers else 'none'}"
             )
 
+        closure_manifest_path = root / "zigux/tests/phase10_closure_manifest.json"
+        closure_manifest = json.loads(closure_manifest_path.read_text(encoding="utf-8"))
+        closure_manifest["landed_ring_helper_evidence"] = {
+            "zigux/tests/phase10_virtio_ring_manifest.json": EXPECTED_RING_HELPERS[:-1]
+        }
+        closure_manifest_path.write_text(json.dumps(closure_manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "ring_helper_guard",
+            root,
+            "closure_manifest:landed_ring_helper_evidence",
+        )
+        write_fixture(root)
+
         ring_manifest_path = root / "zigux/tests/phase10_virtio_ring_manifest.json"
         ring_manifest = json.loads(ring_manifest_path.read_text(encoding="utf-8"))
         ring_manifest["gaps"][0]["status"] = "blocked_on_risky_transport"
@@ -459,7 +491,7 @@ def run_self_test() -> int:
         write_fixture(root)
 
     print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=2")
+    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=3")
     return 0
 
 
