@@ -125,6 +125,26 @@ test "phase 8 cpu mask starter slice keeps the online CPU eligibility predicate 
     try std.testing.expect(cpu_mask.isPerfBufferCpuOnlineEligible(3, 2, &online));
 }
 
+test "phase 8 cpu mask starter slice plans auto-selected CPU indices below the deferred routing boundary" {
+    const possible = [_]bool{ true, true, false, true, true };
+    const online = [_]bool{ false, true, true, false, true };
+
+    const planned = try cpu_mask.planPerfBufferAutoCpuIndices(std.testing.allocator, &possible, &online, 2);
+    defer std.testing.allocator.free(planned);
+
+    try std.testing.expectEqualSlices(usize, &.{ 1, 4 }, planned);
+}
+
+test "phase 8 cpu mask starter slice keeps truncated online masks explicit in auto mode" {
+    const possible = [_]bool{ true, false, true, true };
+    const short_online = [_]bool{ true, false };
+
+    const planned = try cpu_mask.planPerfBufferAutoCpuIndices(std.testing.allocator, &possible, &short_online, 0);
+    defer std.testing.allocator.free(planned);
+
+    try std.testing.expectEqualSlices(usize, &.{0}, planned);
+}
+
 test "phase 8 cpu mask reader interface keeps failures explicit" {
     const ReaderError = error{InjectedReadFailure};
     const ReaderState = struct {
