@@ -112,6 +112,14 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
     );
     defer std.testing.allocator.free(build_inventory_checker);
 
+    const build_inventory_fixture = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/fixtures/phase7_build_inventory.json",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(build_inventory_fixture);
+
     const make_wrapper_checker = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "scripts/zigux/check-phase7-make-wrapper.py",
@@ -241,6 +249,11 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
 
     try expectContains(build_inventory_checker, "PHASE7_BUILD_INVENTORY_SELF_TEST=pass");
     try expectContains(build_inventory_checker, "PHASE7_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=11");
+
+    try expectContains(build_inventory_fixture, "\"shared_validation_gates\": [");
+    try expectContains(build_inventory_fixture, "\"shared_validation_commands\": [");
+    try expectContains(build_inventory_fixture, "\"scripts/zigux/check-phase7-build-inventory.py\"");
+    try expectContains(build_inventory_fixture, "\"scripts/zigux/check-phase7-build-inventory.py --self-test\"");
 
     try expectContains(make_wrapper_checker, "PHASE7_MAKE_WRAPPER_SELF_TEST=pass");
     try expectContains(make_wrapper_checker, "check-phase7-make-wrapper.py --self-test");
