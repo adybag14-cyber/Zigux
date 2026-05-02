@@ -165,7 +165,7 @@
         "string.memchr_inv_index",
         "string.memchr_inv_none"
       ],
-      "summary": "Committed C-backed parity coverage includes Linux-style bool parsing for true, false, and invalid forms, C-string-aware strlcpy length and truncation behavior, in-place whitespace and replacement helpers including embedded-NUL remove_spaces handling, and first-mismatch memchrInv detection.",
+      "summary": "Committed C-backed parity coverage includes Linux-style bool parsing for true, false, and invalid forms, C-string-aware strlcpy length and truncation behavior, in-place whitespace and replacement helpers including embedded-NUL remove_spaces handling, and first-mismatch memchrInv detection, while direct Zig review anchors now also record C-string equality, prefix, prefix-length, suffix, and memparse forwarding coverage for the newer helper surface already shipped on master.",
       "unit_test_anchor": "tools/lib/string.zig:test \"memchrInv scans aligned and misaligned long buffers\"",
       "unit_test_contract": "Direct Zig unit coverage keeps memchrInv honest for both aligned and misaligned long buffers beyond the short C-backed fixture cases.",
       "cstring_unit_test_anchor": "tools/lib/string.zig:test \"strlcpy stops at the first embedded NUL in the source\"",
