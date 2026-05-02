@@ -89,8 +89,8 @@ static void print_runtime_typed_cases(const uint32_t *values, size_t value_count
     } cases[] = {
         { "runtime-typed-hit", 55, values, value_count, compare_u32 },
         { "runtime-typed-hit", 34, descending_values, descending_count, compare_descending_u32 },
-        { "runtime-typed-miss", 20, values, value_count, compare_u32 },
-        { "runtime-typed-miss", 20, descending_values, descending_count, compare_descending_u32 },
+        { "runtime-typed-miss-ascending", 20, values, value_count, compare_u32 },
+        { "runtime-typed-miss-descending", 20, descending_values, descending_count, compare_descending_u32 },
     };
 
     for (size_t idx = 0; idx < sizeof(cases) / sizeof(cases[0]); idx++) {
@@ -110,8 +110,8 @@ static void print_runtime_raw_cases(const uint32_t *values, size_t value_count, 
     } cases[] = {
         { "runtime-raw-hit", 55, values, value_count, compare_u32 },
         { "runtime-raw-hit", 34, descending_values, descending_count, compare_descending_u32 },
-        { "runtime-raw-miss", 20, values, value_count, compare_u32 },
-        { "runtime-raw-miss", 20, descending_values, descending_count, compare_descending_u32 },
+        { "runtime-raw-miss-ascending", 20, values, value_count, compare_u32 },
+        { "runtime-raw-miss-descending", 20, descending_values, descending_count, compare_descending_u32 },
     };
 
     for (size_t idx = 0; idx < sizeof(cases) / sizeof(cases[0]); idx++) {
