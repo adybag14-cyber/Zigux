@@ -28,6 +28,8 @@ Phase 7 is where Zigux starts moving from earlier standalone helper ports into r
 
 This current slice keeps the work bounded to runtime-safe leaf helpers with explicit integration with validation substrate through `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-build-inventory.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_survey.zig`, and `zigux/tests/phase7_build.zig`.
 
+The survey-backed review packet stays rooted at `repo_root` through `zigux/tests/phase7_build.zig`, so the helper note, sample-root boundary, shared build inventory fixture, and validator-first route remain machine-checked together instead of drifting into helper-local notes.
+
 This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane. Current `master` keeps string-helper reviewability in the helper and test bundle under `lib/string_helpers.zig`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_survey.zig`, and `zigux/tests/phase7_build.zig`, while the four Phase 5 `samples/zigux/` anchors remain `bytestream_fifo`, `kobject_example`, `kretprobe_example`, and `trace_events_sample`.
 
 Review note:
@@ -52,8 +54,8 @@ Review note:
 3. keep the helper wired through the Zigux convenience target
 - `make -C zigux phase7`
 
-4. keep the helper-only roadmap and sample-root boundary explicit
-- `zigux/tests/phase7_string_helpers_survey.zig`
+4. keep the helper-only roadmap, sample-root, and shared inventory review surface machine-checked from `repo_root`
+- `zig test zigux/tests/phase7_string_helpers_survey.zig`
 
 ## Current parity surface
 
