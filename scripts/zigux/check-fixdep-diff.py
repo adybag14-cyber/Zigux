@@ -325,7 +325,7 @@ def run_self_test() -> int:
     )
 
     print('FIXDEP_SELF_TEST=pass')
-    print('FIXDEP_SELF_TEST_CASE_COUNT=8')
+    print('FIXDEP_SELF_TEST_CASE_COUNT=9')
     return 0
 
 
