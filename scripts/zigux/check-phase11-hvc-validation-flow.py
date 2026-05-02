@@ -16,6 +16,8 @@ WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 
 MAKEFILE_MARKERS = [
     "phase11-validate:",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-build-inventory.py --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-build-inventory.py",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-layout-assert-surface.py --self-test",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-layout-assert-surface.py",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-validation-flow.py --self-test",
@@ -24,7 +26,8 @@ MAKEFILE_MARKERS = [
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-cleanup-alignment.py",
 ]
 MAKEFILE_ORDERED_MARKERS = [
-    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-build-inventory.py",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-build-inventory.py --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-build-inventory.py\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-layout-assert-surface.py --self-test",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-layout-assert-surface.py\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-validation-flow.py --self-test",
@@ -137,6 +140,7 @@ def clone_fixture_root(destination_root: Path) -> None:
         "\n".join(
             [
                 "phase11-validate:",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-build-inventory.py --self-test",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-build-inventory.py",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-layout-assert-surface.py --self-test",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-layout-assert-surface.py",
@@ -203,6 +207,38 @@ def run_self_test() -> int:
             "makefile_layout_assert_self_test_hook",
             tmp_root,
             "make:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-layout-assert-surface.py --self-test",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        makefile_path.write_text(
+            original_makefile.replace(
+                "scripts/zigux/check-phase11-build-inventory.py --self-test",
+                "scripts/zigux/check-phase11-build-inventory.py",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "makefile_build_inventory_self_test_hook",
+            tmp_root,
+            "make:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-build-inventory.py --self-test",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        makefile_path.write_text(
+            original_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-build-inventory.py --self-test\n"
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-build-inventory.py\n",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-build-inventory.py\n"
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-build-inventory.py --self-test\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "makefile_build_inventory_self_test_order",
+            tmp_root,
+            "make-order:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-build-inventory.py\n",
         )
         makefile_path.write_text(original_makefile, encoding="utf-8")
 
@@ -375,7 +411,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE11_HVC_VALIDATION_FLOW_SELF_TEST=pass")
-    print("PHASE11_HVC_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=10")
+    print("PHASE11_HVC_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
