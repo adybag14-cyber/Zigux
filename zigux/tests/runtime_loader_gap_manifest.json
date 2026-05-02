@@ -203,6 +203,12 @@
       "kind": "runtime_loader_scaffold",
       "path": "samples/zigux/runtime_kretprobe_loader.zig",
       "role": "owns the kretprobe loader-plan projection plus the without-substrate rollback path into the shared runtime request surface"
+    },
+    {
+      "id": "trace-events-loader-blocked-scaffold",
+      "kind": "runtime_loader_scaffold_boundary",
+      "path": "samples/zigux/runtime_trace_events_loader.zig",
+      "role": "owns the bounded trace-events loader-plan scaffold plus the without-substrate fallback while keeping the adjacent sample-only blocker, tracepoint-registration lifecycle wiring, thread creation, and polling or event-loop substrate explicit under the separate trace-core freeze boundary"
     }
   ],
   "ownership_map": [
@@ -249,6 +255,10 @@
     {
       "surface": "samples/zigux/runtime_kretprobe_loader.zig",
       "owns": "kretprobe loader-plan projection plus the without-substrate rollback path into the shared runtime request surface"
+    },
+    {
+      "surface": "samples/zigux/runtime_trace_events_loader.zig",
+      "owns": "bounded trace-events loader-plan scaffold plus the without-substrate fallback while keeping the adjacent sample-only blocker, thread creation, polling or event-loop substrate, and tracepoint-registration lifecycle wiring explicit under the separate trace-core freeze boundary"
     }
   ],
   "gaps": [
@@ -341,7 +351,7 @@
       "status": "starter_landed",
       "kind": "runtime_substrate",
       "zigux_destination": "zigux/kernel/runtime_loader.zig",
-      "why_now": "The shared runtime-loader request surface now carries staged entry and exit symbol names from all three landed sample-side loader plans, and the kretprobe lane keeps `register_kretprobe` plus `unregister_kretprobe` as metadata-only registration labels, so the common lifecycle contract is explicit even though no real runtime execution or registration path exists yet."
+      "why_now": "The shared runtime-loader request surface now carries staged entry and exit symbol names from all three landed sample-side loader plans, and the kretprobe lane keeps `register_kretprobe` plus `unregister_kretprobe` as metadata-only registration labels, so the common lifecycle contract is explicit even though no real runtime execution or registration path exists."
     }
   ]
 }
