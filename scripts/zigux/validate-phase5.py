@@ -572,7 +572,7 @@ survey_note_expectations = {
     },
     "phase5_trace_events_sample_manifest.json": {
         "sample_test_command": "zig test samples/zigux/trace_events_sample.zig",
-        "sample_test_result": "All 4 tests passed.",
+        "sample_test_result": "All 5 tests passed.",
         "survey_test_command": "zig test zigux/tests/phase5_trace_events_sample_survey.zig",
         "survey_test_result": "All 2 tests passed.",
     },
