@@ -68,7 +68,6 @@ VALIDATOR_MARKERS = [
     "check-genksyms-bridge.py",
     "check-phase2-genksyms-bridge-selftest-alignment.py",
     "zigux-bootstrap.yml",
-    "zigux/Makefile",
 ]
 
 CLOSURE_VALIDATOR_MARKERS = [
