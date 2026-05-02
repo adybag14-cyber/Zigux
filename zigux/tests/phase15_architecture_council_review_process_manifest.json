@@ -29,6 +29,7 @@
     "replay command",
     "retained discussion state",
     "automatic return-to-blocked trigger",
+    "rollback threshold",
     "indefinite-C policy link or applicability note",
     "reopen triggers",
     "parity scorecard link or blocker record"
@@ -229,6 +230,13 @@
       "kind": "governance_sync",
       "zigux_destination": "zigux/tests/phase15_architecture_council_review_process_manifest.json",
       "why_now": "The review-process packet already requires the dedicated indefinite-C policy link for stay-in-C requests, so the current approval and ownership evidence-path inventory must list that same policy note instead of leaving one governance surface implied."
+    },
+    {
+      "id": "phase15-review-process-ownership-evidence-rollback-threshold-sync",
+      "status": "starter_landed",
+      "kind": "governance_sync",
+      "zigux_destination": "zigux/tests/phase15_architecture_council_review_process_manifest.json",
+      "why_now": "The review-process packet already requires rollback-threshold proof for stay-in-C reviews, so the current ownership-evidence inventory must list that same rollback threshold instead of leaving the scorecard and anchor-template evidence ahead of the machine-checked packet inventory."
     }
   ]
 }
