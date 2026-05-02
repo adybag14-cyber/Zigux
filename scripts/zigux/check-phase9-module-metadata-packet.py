@@ -17,6 +17,7 @@ SURVEY_TEST_PATH = "zigux/tests/runtime_module_metadata_survey.zig"
 PHASE9_BUILD_PATH = "zigux/tests/phase9_build.zig"
 LOADER_GAP_SURVEY_PATH = "Documentation/zigux/phase9-runtime-loader-gap-survey.md"
 RUNTIME_LOADER_PATH = "zigux/kernel/runtime_loader.zig"
+TESTS_README_PATH = "zigux/tests/README.md"
 
 REQUIRED_FILES = [
     SURVEY_PATH,
@@ -25,6 +26,7 @@ REQUIRED_FILES = [
     PHASE9_BUILD_PATH,
     LOADER_GAP_SURVEY_PATH,
     RUNTIME_LOADER_PATH,
+    TESTS_README_PATH,
 ]
 
 SURVEY_REQUIRED_MARKERS = [
@@ -92,6 +94,16 @@ RUNTIME_LOADER_REQUIRED_MARKERS = [
     "exit_symbol",
     "handoff_stage",
     "allocator_handoff",
+]
+
+TESTS_README_REQUIRED_MARKERS = [
+    "`zigux/tests/runtime_module_metadata_survey.zig`",
+    "`zigux/tests/runtime_module_metadata_manifest.json`",
+    "`scripts/zigux/validate-phase9.py`",
+    "`make -C zigux phase9-validate`",
+    "keep the dedicated Phase 9 module-metadata packet explicit beside the loader-gap packet",
+    "`Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md`",
+    "absent depmod-facing metadata without implying `.modinfo`, `MODULE_ALIAS()`, or `scripts/depmod.sh` parity",
 ]
 
 EXPECTED_DEPMOD_GAP_SURFACES = [
@@ -165,12 +177,10 @@ def validate_manifest_packet(root: Path) -> list[str]:
             if summary.get(key) != value:
                 failures.append(f"manifest:summary_{key}_drift")
 
-    depmod_gap_surfaces = manifest.get("depmod_gap_surfaces")
-    if depmod_gap_surfaces != EXPECTED_DEPMOD_GAP_SURFACES:
+    if manifest.get("depmod_gap_surfaces") != EXPECTED_DEPMOD_GAP_SURFACES:
         failures.append("manifest:depmod_gap_surfaces_drift")
 
-    runtime_loader_plans = manifest.get("runtime_loader_plans")
-    if runtime_loader_plans != [
+    if manifest.get("runtime_loader_plans") != [
         "samples/zigux/runtime_atomic64_loader.zig",
         "samples/zigux/runtime_bitmap_loader.zig",
         "samples/zigux/runtime_kretprobe_loader.zig",
@@ -238,6 +248,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     phase9_build_text = read_text(root, PHASE9_BUILD_PATH)
     loader_gap_survey_text = read_text(root, LOADER_GAP_SURVEY_PATH)
     runtime_loader_text = read_text(root, RUNTIME_LOADER_PATH)
+    tests_readme_text = read_text(root, TESTS_README_PATH)
 
     failures: list[str] = []
 
@@ -256,6 +267,9 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     for marker in RUNTIME_LOADER_REQUIRED_MARKERS:
         if marker not in runtime_loader_text:
             failures.append(f"runtime_loader:{marker}")
+    for marker in TESTS_README_REQUIRED_MARKERS:
+        if marker not in tests_readme_text:
+            failures.append(f"tests_readme:{marker}")
 
     failures.extend(validate_manifest_packet(root))
     return [], failures
@@ -396,6 +410,18 @@ def write_fixture_tree(root: Path) -> None:
         ),
         encoding="utf-8",
     )
+    (root / TESTS_README_PATH).write_text(
+        "\n".join(
+            [
+                "# zigux/tests",
+                "",
+                "- keep the current Phase 9 runtime bundle reviewable through `zigux/tests/phase9_build.zig`, `zigux/tests/runtime_loader_gap_survey.zig`, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_module_metadata_survey.zig`, `zigux/tests/runtime_module_metadata_manifest.json`, `scripts/zigux/validate-phase9.py`, `make -C zigux phase9-validate`, and the focused `make -C zigux phase9-trace-events-survey` replay instead of widening into ad hoc runtime-slice checks",
+                "- keep the dedicated Phase 9 module-metadata packet explicit beside the loader-gap packet: `Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md`, `zigux/tests/runtime_module_metadata_manifest.json`, and `zigux/tests/runtime_module_metadata_survey.zig` should continue to record the starter-descriptor surface and absent depmod-facing metadata without implying `.modinfo`, `MODULE_ALIAS()`, or `scripts/depmod.sh` parity",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
 
 
 def expect_missing_marker(label: str, root: Path, expected_marker: str) -> None:
@@ -508,9 +534,26 @@ def run_self_test() -> int:
             tmp_root,
             "survey:- `python3 scripts/zigux/check-phase9-module-metadata-packet.py`",
         )
+        survey_path.write_text(original_survey, encoding="utf-8")
+
+        tests_readme_path = tmp_root / TESTS_README_PATH
+        original_tests_readme = tests_readme_path.read_text(encoding="utf-8")
+        tests_readme_path.write_text(
+            original_tests_readme.replace(
+                "keep the dedicated Phase 9 module-metadata packet explicit beside the loader-gap packet",
+                "keep the dedicated Phase 9 packet explicit beside the loader-gap packet",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "tests_readme_packet_summary",
+            tmp_root,
+            "tests_readme:keep the dedicated Phase 9 module-metadata packet explicit beside the loader-gap packet",
+        )
 
     print("PHASE9_MODULE_METADATA_PACKET_SELF_TEST=pass")
-    print("PHASE9_MODULE_METADATA_PACKET_SELF_TEST_CASE_COUNT=7")
+    print("PHASE9_MODULE_METADATA_PACKET_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
@@ -550,11 +593,20 @@ def main() -> int:
         print("MISSING_PHASE9_MODULE_METADATA_PACKET_MARKERS_END")
         return 1
 
+    required_marker_count = (
+        len(SURVEY_REQUIRED_MARKERS)
+        + len(PHASE9_BUILD_REQUIRED_MARKERS)
+        + len(SURVEY_TEST_REQUIRED_MARKERS)
+        + len(LOADER_GAP_SURVEY_REQUIRED_MARKERS)
+        + len(RUNTIME_LOADER_REQUIRED_MARKERS)
+        + len(TESTS_README_REQUIRED_MARKERS)
+        + 10
+    )
     print("PHASE9_MODULE_METADATA_PACKET=pass")
     print(f"PHASE9_MODULE_METADATA_PACKET_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE9_MODULE_METADATA_PACKET_REQUIRED_MARKER_COUNT="
-        f"{len(SURVEY_REQUIRED_MARKERS) + len(PHASE9_BUILD_REQUIRED_MARKERS) + len(SURVEY_TEST_REQUIRED_MARKERS) + len(LOADER_GAP_SURVEY_REQUIRED_MARKERS) + len(RUNTIME_LOADER_REQUIRED_MARKERS) + 10}"
+        f"{required_marker_count}"
     )
     return 0
 
