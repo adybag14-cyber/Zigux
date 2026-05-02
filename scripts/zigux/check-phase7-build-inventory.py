@@ -6,12 +6,14 @@ import json
 from pathlib import Path
 import re
 import sys
+import tempfile
 
 
 ROOT = Path(__file__).resolve().parents[2]
 BUILD_PATH = ROOT / "zigux" / "tests" / "phase7_build.zig"
 MAKEFILE_PATH = ROOT / "zigux" / "Makefile"
 FIXTURE_PATH = ROOT / "zigux" / "tests" / "fixtures" / "phase7_build_inventory.json"
+REQUIRED_PATHS = [BUILD_PATH, MAKEFILE_PATH, FIXTURE_PATH]
 
 IMPORTED_HELPER_RE = re.compile(
     r'createImportedTestRoot\(\s*b,\s*target,\s*optimize,\s*"([^"]+)",\s*"([^"]+)",\s*"([^"]+)"',
@@ -33,6 +35,26 @@ MAKEFILE_COMMAND_RE = re.compile(
     r"\$\(PYTHON\)\s+(scripts/zigux/[A-Za-z0-9._-]+\.py(?: --self-test)?)"
 )
 UNEXPECTED_BUILD_MARKERS = ["../../tools/lib/", "zigux/tests/build.zig"]
+
+
+def rel_or_abs(path: Path, root: Path = ROOT) -> str:
+    if path.is_relative_to(root):
+        return str(path.relative_to(root))
+    return str(path)
+
+
+def collect_missing_paths(
+    paths: list[Path] | tuple[Path, ...], root: Path = ROOT
+) -> list[str]:
+    return [rel_or_abs(path, root) for path in paths if not path.exists()]
+
+
+def print_missing_paths(missing: list[str]) -> None:
+    print("PHASE7_BUILD_INVENTORY=fail")
+    print("PHASE7_BUILD_INVENTORY_MISSING_FILES_START")
+    for item in missing:
+        print(item)
+    print("PHASE7_BUILD_INVENTORY_MISSING_FILES_END")
 
 
 def load_fixture() -> dict[str, object]:
@@ -151,6 +173,23 @@ def run_self_test() -> int:
 
     build_text = BUILD_PATH.read_text(encoding="utf-8")
     makefile_text = MAKEFILE_PATH.read_text(encoding="utf-8")
+
+    with tempfile.TemporaryDirectory(prefix="phase7_build_inventory_selftest_") as tmp_dir:
+        tmp_root = Path(tmp_dir)
+        existing = tmp_root / "present.txt"
+        existing.write_text("ok\n", encoding="utf-8")
+        missing = tmp_root / "missing.txt"
+        missing_paths = collect_missing_paths([existing, missing], tmp_root)
+        if missing_paths != ["missing.txt"]:
+            raise SystemExit("phase7-build-inventory:self-test:missing_path_preflight")
+
+    try:
+        render_validation_commands("phase7-test:\n\t@true\n")
+    except ValueError as exc:
+        if str(exc) != "missing phase7-validate block":
+            raise SystemExit("phase7-build-inventory:self-test:validate_block_error_shape")
+    else:
+        raise SystemExit("phase7-build-inventory:self-test:validate_block_error_missing")
 
     cwd_drift_text, replacements = re.subn(
         r'("phase7-argv-split-survey-tests",\s*argv_split_survey_root_module,\s*)repo_root(\s*,\s*\))',
@@ -297,7 +336,7 @@ def run_self_test() -> int:
         raise SystemExit("phase7-build-inventory:self-test:validation_gate_order_command_shape")
 
     print("PHASE7_BUILD_INVENTORY_SELF_TEST=pass")
-    print("PHASE7_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=11")
+    print("PHASE7_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
@@ -312,11 +351,23 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
+    missing = collect_missing_paths(REQUIRED_PATHS)
+    if missing:
+        print_missing_paths(missing)
+        return 1
+
     if args.self_test:
         return run_self_test()
 
     fixture = load_fixture()
-    generated = render_inventory()
+    try:
+        generated = render_inventory()
+    except ValueError as exc:
+        print("PHASE7_BUILD_INVENTORY=fail")
+        print("PHASE7_BUILD_INVENTORY_ERROR_START")
+        print(str(exc))
+        print("PHASE7_BUILD_INVENTORY_ERROR_END")
+        return 1
     if generated != fixture:
         print_mismatch(fixture, generated)
         return 1
