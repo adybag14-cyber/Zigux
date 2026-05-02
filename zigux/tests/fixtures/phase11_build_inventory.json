@@ -5,9 +5,11 @@
     "phase11-bcm2835-wdt-tests",
     "phase11-bcm2835-wdt-survey-tests",
     "phase11-dw-wdt-tests",
+    "phase11-dw-wdt-remove-idle-split-tests",
     "phase11-dw-wdt-survey-tests",
     "phase11-uapi-header-parity-survey-tests",
     "phase11-hvc-console-tests",
+    "phase11-hvc-console-poll-retry-split-tests",
     "phase11-hvc-console-survey-tests"
   ],
   "shared_test_depend_steps": [
@@ -16,9 +18,11 @@
     "run_phase11_bcm2835_wdt_tests",
     "run_phase11_bcm2835_wdt_survey_tests",
     "run_phase11_dw_wdt_tests",
+    "run_phase11_dw_wdt_remove_idle_split_tests",
     "run_phase11_dw_wdt_survey_tests",
     "run_phase11_uapi_header_parity_survey_tests",
-    "run_phase11_hvc_console_tests"
+    "run_phase11_hvc_console_tests",
+    "run_phase11_hvc_console_poll_retry_split_tests"
   ],
   "module_root_source_files": [
     {
@@ -62,6 +66,10 @@
       "path": "phase11_dw_wdt.zig"
     },
     {
+      "module": "phase11_dw_wdt_remove_idle_split_module",
+      "path": "phase11_dw_wdt_remove_idle_split.zig"
+    },
+    {
       "module": "phase11_dw_wdt_survey_module",
       "path": "phase11_dw_wdt_survey.zig"
     },
@@ -76,6 +84,10 @@
     {
       "module": "phase11_hvc_console_module",
       "path": "phase11_hvc_console.zig"
+    },
+    {
+      "module": "phase11_hvc_console_poll_retry_split_module",
+      "path": "phase11_hvc_console_poll_retry_split.zig"
     },
     {
       "module": "phase11_hvc_console_survey_module",
@@ -104,6 +116,11 @@
       "imported_module": "dw_wdt_module"
     },
     {
+      "module": "phase11_dw_wdt_remove_idle_split_module",
+      "import_name": "dw_wdt",
+      "imported_module": "dw_wdt_module"
+    },
+    {
       "module": "phase11_uapi_header_parity_survey_module",
       "import_name": "layout_assert",
       "imported_module": "layout_assert_module"
@@ -115,6 +132,11 @@
     },
     {
       "module": "phase11_hvc_console_module",
+      "import_name": "hvc_console",
+      "imported_module": "hvc_console_module"
+    },
+    {
+      "module": "phase11_hvc_console_poll_retry_split_module",
       "import_name": "hvc_console",
       "imported_module": "hvc_console_module"
     },
@@ -146,6 +168,10 @@
       "root_module": "phase11_dw_wdt_module"
     },
     {
+      "test": "phase11-dw-wdt-remove-idle-split-tests",
+      "root_module": "phase11_dw_wdt_remove_idle_split_module"
+    },
+    {
       "test": "phase11-dw-wdt-survey-tests",
       "root_module": "phase11_dw_wdt_survey_module"
     },
@@ -156,6 +182,10 @@
     {
       "test": "phase11-hvc-console-tests",
       "root_module": "phase11_hvc_console_module"
+    },
+    {
+      "test": "phase11-hvc-console-poll-retry-split-tests",
+      "root_module": "phase11_hvc_console_poll_retry_split_module"
     },
     {
       "test": "phase11-hvc-console-survey-tests",
