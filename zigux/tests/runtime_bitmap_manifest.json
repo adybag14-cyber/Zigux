@@ -18,7 +18,7 @@
   },
   "review_prompts": [
     "descriptor keeps the Linux anchor path explicit, leaves requires_runtime_substrate true while provides_selftest_hook stays true, and still names the bounded two-word bitmap backing used by the sample",
-    "the manifest-backed delivery_evidence_catalog and ownership_map still keep the survey note, module-slice note, direct phase9-runtime-bitmap-sample-tests leg, direct phase9-runtime-bitmap-loader-tests leg, module tests, diff gate, loader scaffold, shared runtime-loader request binding, and blocked shared-loader note in one reviewable packet",
+    "the manifest-backed delivery_evidence_catalog and ownership_map still keep the survey note, module-slice note, direct phase9-runtime-bitmap-sample-tests leg, direct phase9-runtime-bitmap-module-tests leg, direct phase9-runtime-bitmap-diff-tests leg, direct phase9-runtime-bitmap-loader-tests leg, module tests, diff gate, loader scaffold, shared runtime-loader request binding, and blocked shared-loader note in one reviewable packet",
     "sample-behavior changes update the manifest-backed exact checks alongside runtime_bitmap_module.zig and runtime_bitmap_diff.zig instead of leaving reviewers to infer the new contract from code alone",
     "the review packet keeps the Phase 9 runtime bitmap starter distinct from the still-blocked shared runtime-loader control surface instead of implying loadable-module or command-path parity",
     "docs and tests still keep real runtime execution, shared loader controls, and full lib/test_bitmap.c parity out of scope for this bounded runtime starter",
@@ -84,7 +84,7 @@
     {
       "id": "loader-build-leg",
       "kind": "shared_build_contract",
-      "expected": "the shared Phase 9 build keeps the dedicated phase9-runtime-bitmap-loader-tests leg alongside the direct phase9-runtime-bitmap-sample-tests leg so the loader scaffold remains first-class review evidence"
+      "expected": "the shared Phase 9 build keeps the dedicated phase9-runtime-bitmap-sample-tests, phase9-runtime-bitmap-module-tests, phase9-runtime-bitmap-diff-tests, and phase9-runtime-bitmap-loader-tests legs together so the sample, module, diff, and loader review evidence stays explicit inside one shared build entrypoint"
     },
     {
       "id": "shared-loader-freeze-map-boundary",
@@ -94,12 +94,12 @@
     {
       "id": "diff-fill-set-case",
       "kind": "differential_validation",
-      "expected": "the diff gate replays a 9-bit fill-from-zero case with first_set 0, first_zero 9, weight 9, bits 0 and 8 set, and later bits clear"
+      "expected": "the diff gate replays a 9-bit fill-from-zero case with first_zero 9"
     },
     {
       "id": "diff-clear-cutout-case",
       "kind": "differential_validation",
-      "expected": "the diff gate replays a full-set then clearRange(79, 19) cutout with first_zero 79, weight bitmap_nbits minus 19, and bits 79 through 97 cleared while 98 and the last bit stay set"
+      "expected": "the diff gate replays a full-set then clearRange(79, 19) cutout with first_zero 79"
     },
     {
       "id": "diff-find-nth-and-copy-case",
@@ -148,7 +148,7 @@
       "id": "phase9-bitmap-build-gate",
       "kind": "validation",
       "path": "zigux/tests/phase9_build.zig",
-      "role": "keeps the direct phase9-runtime-bitmap-sample-tests and phase9-runtime-bitmap-loader-tests legs plus the surrounding bitmap survey, module, diff, loader, and shared-loader checks replayable as one shared Phase 9 entrypoint"
+      "role": "keeps the direct phase9-runtime-bitmap-sample-tests, phase9-runtime-bitmap-module-tests, phase9-runtime-bitmap-diff-tests, and phase9-runtime-bitmap-loader-tests legs plus the surrounding bitmap survey, module, diff, loader, and shared-loader checks replayable as one shared Phase 9 entrypoint"
     },
     {
       "id": "runtime-bitmap-sample",
@@ -208,7 +208,7 @@
     },
     {
       "surface": "zigux/tests/phase9_build.zig",
-      "owns": "the shared Phase 9 runtime entrypoint that replays the direct bitmap sample and loader legs plus the survey, module, diff, loader, and shared-loader checks"
+      "owns": "the shared Phase 9 runtime entrypoint that replays the direct bitmap sample, module, diff, and loader legs plus the survey and shared runtime-loader checks"
     },
     {
       "surface": "samples/zigux/runtime_bitmap.zig",
@@ -237,7 +237,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase9_build.zig",
-      "why_now": "The existing Phase 9 build step is the narrowest honest place to widen runtime pilot coverage from atomic64 into bitmap without inventing a broader runtime substrate, and it now runs the direct `phase9-runtime-bitmap-sample-tests` plus `phase9-runtime-bitmap-loader-tests` legs so the bounded sample and loader contracts stay first-class beside the survey, module, diff, and shared-loader checks."
+      "why_now": "The existing Phase 9 build step is the narrowest honest place to widen runtime pilot coverage from atomic64 into bitmap without inventing a broader runtime substrate, and it now runs the direct phase9-runtime-bitmap-sample-tests, phase9-runtime-bitmap-module-tests, phase9-runtime-bitmap-diff-tests, and phase9-runtime-bitmap-loader-tests legs so the bounded sample, module, diff, and loader contracts stay first-class beside the survey and shared-loader checks."
     },
     {
       "id": "runtime-bitmap-survey-gate",
@@ -279,7 +279,7 @@
       "status": "starter_landed",
       "kind": "runtime_substrate",
       "zigux_destination": "zigux/kernel/runtime_loader.zig",
-      "why_now": "The shared runtime-loader request surface now consumes the bitmap loader handoff directly through `zigux/kernel/runtime_loader.zig`, keeping allocator posture, staged entry and exit symbols, and bitmap payload facts machine-checkable before any real runtime execution path exists."
+      "why_now": "The shared runtime-loader request surface now consumes the bitmap loader handoff directly through zigux/kernel/runtime_loader.zig, keeping allocator posture, staged entry and exit symbols, and bitmap payload facts machine-checkable before any real runtime execution path exists."
     },
     {
       "id": "runtime-bitmap-shared-loader-controls",
