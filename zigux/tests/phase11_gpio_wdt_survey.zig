@@ -34,7 +34,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_driver_scaffold");
 }
 
-test "phase11 gpio_wdt survey manifest records the refreshed starter state and remaining gap" {
+test "phase11 gpio_wdt survey manifest records the refreshed starter state, module slice, and remaining gap" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -69,6 +69,14 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
         .limited(32 * 1024),
     );
     defer std.testing.allocator.free(slice_doc);
+
+    const module_slice_doc = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase11-gpio-wdt-module-slice.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(module_slice_doc);
 
     const survey_doc = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
@@ -147,6 +155,11 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "The next honest bounded step inside the same Phase 11 lane is to leave the starter parked unless fresh repo inspection finds another comparably small simple-driver, teardown, or failure-mode drift inside `gpio_wdt`.") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "Keep descriptor-backed preflight, reboot glue, and broader watchdog registration work blocked from this slice.") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "move from that metadata-only registration plan to the first bounded register-device call surface") == null);
+    try std.testing.expect(std.mem.indexOf(u8, module_slice_doc, "`gpio_wdt_lab` descriptor") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_slice_doc, "`summarizeTeardown()` helper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_slice_doc, "`registerDeviceCallSummary()` surface explicit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_slice_doc, "The next honest bounded step inside the same Phase 11 lane is to leave this starter parked unless fresh repo inspection finds another comparably small teardown or failure-mode drift inside `gpio_wdt`.") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_slice_doc, "Avoid widening straight into descriptor-backed preflight, reboot glue, or broader watchdog registration work from this packet.") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, expected_commit_pin) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "platformDriverIdentitySummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "gpio-wdt") != null);
