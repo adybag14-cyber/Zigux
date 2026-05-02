@@ -1,18 +1,25 @@
 const std = @import("std");
 
-pub fn acquire() void {
+fn orderedProbe(comptime order: std.builtin.AtomicOrder) void {
     var fence_word = std.atomic.Value(u8).init(0);
-    _ = fence_word.load(.acquire);
+    switch (order) {
+        .acquire => _ = fence_word.load(.acquire),
+        .release => fence_word.store(0, .release),
+        .seq_cst => _ = fence_word.swap(0, .seq_cst),
+        else => @compileError("barrier probes only model acquire, release, and seq_cst ordering"),
+    }
+}
+
+pub fn acquire() void {
+    orderedProbe(.acquire);
 }
 
 pub fn release() void {
-    var fence_word = std.atomic.Value(u8).init(0);
-    fence_word.store(0, .release);
+    orderedProbe(.release);
 }
 
 pub fn full() void {
-    var fence_word = std.atomic.Value(u8).init(0);
-    _ = fence_word.swap(0, .seq_cst);
+    orderedProbe(.seq_cst);
 }
 
 test "phase3 barrier wrappers stay local to each barrier probe" {
