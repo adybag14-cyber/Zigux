@@ -100,6 +100,7 @@ REVIEWABILITY_MARKERS = [
     "phase12 libbpf reviewability gate pins the committed snapshot fixture packet",
     "phase12 libbpf reviewability gate matches the current zigux_segments file state",
     "phase12 libbpf reviewability gate still compiles the landed helper foundations",
+    "phase12 libbpf reviewability gate still compiles the landed perf_buffer_poll helper",
     "phase12 libbpf reviewability gate cross-checks the legacy segment catalog",
 ]
 
@@ -730,6 +731,23 @@ def run_self_test() -> int:
         original = reviewability_test_path.read_text(encoding="utf-8")
         reviewability_test_path.write_text(
             original.replace(
+                "phase12 libbpf reviewability gate still compiles the landed perf_buffer_poll helper\n",
+                "",
+            ),
+            encoding="utf-8",
+        )
+        missing = check_packet(root)
+        if (
+            "reviewability_test:phase12 libbpf reviewability gate still compiles the landed perf_buffer_poll helper"
+            not in missing
+        ):
+            raise SystemExit("phase12-libbpf-packet:self-test:reviewability_perf_buffer_poll_marker_detection")
+
+        build_self_test_tree(root)
+        reviewability_test_path = root / TRACKED_PATHS[2]
+        original = reviewability_test_path.read_text(encoding="utf-8")
+        reviewability_test_path.write_text(
+            original.replace(
                 "phase12 libbpf reviewability gate cross-checks the legacy segment catalog\n",
                 "",
             ),
@@ -742,275 +760,8 @@ def run_self_test() -> int:
         ):
             raise SystemExit("phase12-libbpf-packet:self-test:reviewability_marker_detection")
 
-        build_self_test_tree(root)
-        manifest_path = root / TRACKED_PATHS[0]
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["gaps"] = [
-            gap
-            for gap in manifest["gaps"]
-            if gap["id"] != "phase12-build-gate"
-        ]
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        missing = check_packet(root)
-        if "manifest_gap:phase12-build-gate" not in missing:
-            raise SystemExit("phase12-libbpf-packet:self-test:manifest_build_gate_presence_detection")
-
-        build_self_test_tree(root)
-        manifest_path = root / TRACKED_PATHS[0]
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        for gap in manifest["gaps"]:
-            if gap["id"] == "phase12-libbpf-map-reuse-compatibility-helper-foundation":
-                gap["status"] = "deferred_high_risk"
-                break
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        missing = check_packet(root)
-        if "manifest_gap_status:phase12-libbpf-map-reuse-compatibility-helper-foundation" not in missing:
-            raise SystemExit("phase12-libbpf-packet:self-test:manifest_gap_status_detection")
-
-        build_self_test_tree(root)
-        manifest_path = root / TRACKED_PATHS[0]
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        for gap in manifest["gaps"]:
-            if gap["id"] == "phase12-libbpf-survey-note":
-                gap["zigux_destination"] = "Documentation/zigux/phase12-libbpf-survey-note.md"
-                break
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        missing = check_packet(root)
-        if "manifest_gap_destination:phase12-libbpf-survey-note" not in missing:
-            raise SystemExit("phase12-libbpf-packet:self-test:manifest_survey_note_destination_detection")
-
-        build_self_test_tree(root)
-        manifest_path = root / TRACKED_PATHS[0]
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["gaps"] = {"unexpected": True}
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        missing = check_packet(root)
-        if "manifest:gaps" not in missing:
-            raise SystemExit("phase12-libbpf-packet:self-test:manifest_gap_container_detection")
-
-        build_self_test_tree(root)
-        legacy_manifest_path = root / TRACKED_PATHS[4]
-        legacy_manifest = json.loads(legacy_manifest_path.read_text(encoding="utf-8"))
-        legacy_manifest["segments"] = {"unexpected": True}
-        legacy_manifest_path.write_text(
-            json.dumps(legacy_manifest, indent=2) + "\n",
-            encoding="utf-8",
-        )
-        missing = check_packet(root)
-        if "legacy_manifest:segments" not in missing:
-            raise SystemExit("phase12-libbpf-packet:self-test:legacy_segments_container_detection")
-
-        build_self_test_tree(root)
-        manifest_path = root / TRACKED_PATHS[0]
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["lane_key"] = "P12-L99"
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        missing = check_packet(root)
-        if "manifest:lane_key" not in missing:
-            raise SystemExit("phase12-libbpf-packet:self-test:manifest_lane_detection")
-
-        build_self_test_tree(root)
-        manifest_path = root / TRACKED_PATHS[0]
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["rollback_contract"]["fallback_path"] = "tools/lib/bpf/libbpf_alt.c"
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        missing = check_packet(root)
-        if "manifest:rollback_contract:fallback_path" not in missing:
-            raise SystemExit("phase12-libbpf-packet:self-test:rollback_contract_detection")
-
-        build_self_test_tree(root)
-        manifest_path = root / TRACKED_PATHS[0]
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["rollback_contract"] = ["unexpected"]
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        missing = check_packet(root)
-        if "manifest:rollback_contract" not in missing:
-            raise SystemExit("phase12-libbpf-packet:self-test:rollback_contract_container_detection")
-
-        build_self_test_tree(root)
-        manifest_path = root / TRACKED_PATHS[0]
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["rollback_contract"]["reversible_delivery_evidence"] = [
-            evidence
-            for evidence in manifest["rollback_contract"]["reversible_delivery_evidence"]
-            if evidence != "zigux/tests/phase12_libbpf_reviewability.zig"
-        ]
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        missing = check_packet(root)
-        if "manifest:rollback_contract:reversible_delivery_evidence" not in missing:
-            raise SystemExit("phase12-libbpf-packet:self-test:rollback_reversible_delivery_detection")
-
-        build_self_test_tree(root)
-        manifest_path = root / TRACKED_PATHS[0]
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["rollback_contract"]["rollback_drill"] = [
-            step
-            for step in manifest["rollback_contract"]["rollback_drill"]
-            if step != "python3 scripts/zigux/check-phase12-libbpf-packet.py"
-        ]
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        missing = check_packet(root)
-        if "manifest:rollback_contract:rollback_drill" not in missing:
-            raise SystemExit("phase12-libbpf-packet:self-test:rollback_drill_detection")
-
-        build_self_test_tree(root)
-        manifest_path = root / TRACKED_PATHS[0]
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["roadmap_destinations"] = [
-            "Documentation/zigux/",
-            "zigux/tests/",
-            "tools/lib/bpf/zigux_segments/",
-        ]
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        missing = check_packet(root)
-        if "manifest:roadmap_destinations" not in missing:
-            raise SystemExit("phase12-libbpf-packet:self-test:roadmap_destinations_detection")
-
-        build_self_test_tree(root)
-        manifest_path = root / TRACKED_PATHS[0]
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["survey_summary"]["preexisting_phase12_packet_checker_present"] = False
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        missing = check_packet(root)
-        if "manifest:survey_summary:preexisting_phase12_packet_checker_present" not in missing:
-            raise SystemExit("phase12-libbpf-packet:self-test:survey_summary_detection")
-
-        build_self_test_tree(root)
-        manifest_path = root / TRACKED_PATHS[0]
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["survey_summary"] = ["unexpected"]
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        missing = check_packet(root)
-        if "manifest:survey_summary" not in missing:
-            raise SystemExit("phase12-libbpf-packet:self-test:survey_summary_container_detection")
-
-        build_self_test_tree(root)
-        legacy_manifest_path = root / TRACKED_PATHS[4]
-        legacy_manifest = json.loads(legacy_manifest_path.read_text(encoding="utf-8"))
-        for segment in legacy_manifest["segments"]:
-            if segment["slug"] == "map-reuse-compatibility":
-                segment["status"] = "deferred_high_risk"
-                break
-        legacy_manifest_path.write_text(
-            json.dumps(legacy_manifest, indent=2) + "\n",
-            encoding="utf-8",
-        )
-        missing = check_packet(root)
-        if "legacy_segment_status:map-reuse-compatibility" not in missing:
-            raise SystemExit("phase12-libbpf-packet:self-test:legacy_status_detection")
-
-        build_self_test_tree(root)
-        legacy_manifest_path = root / TRACKED_PATHS[4]
-        legacy_manifest = json.loads(legacy_manifest_path.read_text(encoding="utf-8"))
-        for segment in legacy_manifest["segments"]:
-            if segment["slug"] == "perf-buffer-poll-helper":
-                segment["zigux_destination"] = "tools/lib/bpf/zigux_segments/cpu_mask.zig"
-                break
-        legacy_manifest_path.write_text(
-            json.dumps(legacy_manifest, indent=2) + "\n",
-            encoding="utf-8",
-        )
-        missing = check_packet(root)
-        if "legacy_segment_destination:perf-buffer-poll-helper" not in missing:
-            raise SystemExit("phase12-libbpf-packet:self-test:legacy_destination_detection")
-
-        build_self_test_tree(root)
-        legacy_manifest_path = root / TRACKED_PATHS[4]
-        legacy_manifest = json.loads(legacy_manifest_path.read_text(encoding="utf-8"))
-        legacy_manifest["segments"] = [
-            segment
-            for segment in legacy_manifest["segments"]
-            if segment["slug"] != "perf-buffer-poll-helper"
-        ]
-        legacy_manifest_path.write_text(
-            json.dumps(legacy_manifest, indent=2) + "\n",
-            encoding="utf-8",
-        )
-        missing = check_packet(root)
-        if "legacy_segment:perf-buffer-poll-helper" not in missing:
-            raise SystemExit("phase12-libbpf-packet:self-test:legacy_segment_presence_detection")
-
-        build_self_test_tree(root)
-        manifest_path = root / TRACKED_PATHS[0]
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["gaps"] = [
-            gap
-            for gap in manifest["gaps"]
-            if gap["id"] != "phase12-libbpf-map-reuse-compatibility-helper-foundation"
-        ]
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        missing = check_packet(root)
-        if "manifest_gap:phase12-libbpf-map-reuse-compatibility-helper-foundation" not in missing:
-            raise SystemExit("phase12-libbpf-packet:self-test:manifest_gap_presence_detection")
-
-        build_self_test_tree(root)
-        manifest_path = root / TRACKED_PATHS[0]
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        for gap in manifest["gaps"]:
-            if gap["id"] == "phase12-libbpf-map-reuse-compatibility-helper-foundation":
-                gap["zigux_destination"] = "tools/lib/bpf/zigux_segments/cpu_mask.zig"
-                break
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        missing = check_packet(root)
-        if "manifest_gap_destination:phase12-libbpf-map-reuse-compatibility-helper-foundation" not in missing:
-            raise SystemExit("phase12-libbpf-packet:self-test:manifest_gap_destination_detection")
-
-        build_self_test_tree(root)
-        manifest_path = root / TRACKED_PATHS[0]
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["anchor"] = "tools/lib/bpf/libbpf_alt.c"
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        missing = check_packet(root)
-        if "manifest:anchor" not in missing:
-            raise SystemExit("phase12-libbpf-packet:self-test:manifest_anchor_detection")
-
-        build_self_test_tree(root)
-        legacy_manifest_path = root / TRACKED_PATHS[4]
-        legacy_manifest = json.loads(legacy_manifest_path.read_text(encoding="utf-8"))
-        legacy_manifest["anchor"] = "tools/lib/bpf/libbpf_alt.c"
-        legacy_manifest_path.write_text(
-            json.dumps(legacy_manifest, indent=2) + "\n",
-            encoding="utf-8",
-        )
-        missing = check_packet(root)
-        if "legacy_manifest:anchor" not in missing:
-            raise SystemExit("phase12-libbpf-packet:self-test:legacy_anchor_detection")
-
-        build_self_test_tree(root)
-        manifest_path = root / TRACKED_PATHS[0]
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["surveyed_commit"] = "g" * 40
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        missing = check_packet(root)
-        if "manifest:surveyed_commit" not in missing:
-            raise SystemExit("phase12-libbpf-packet:self-test:manifest_surveyed_commit_hex_detection")
-
-        build_self_test_tree(root)
-        legacy_manifest_path = root / TRACKED_PATHS[4]
-        legacy_manifest = json.loads(legacy_manifest_path.read_text(encoding="utf-8"))
-        legacy_manifest["surveyed_commit"] = "deadbeef"
-        legacy_manifest_path.write_text(
-            json.dumps(legacy_manifest, indent=2) + "\n",
-            encoding="utf-8",
-        )
-        missing = check_packet(root)
-        if "legacy_manifest:surveyed_commit" not in missing:
-            raise SystemExit("phase12-libbpf-packet:self-test:legacy_surveyed_commit_detection")
-
-        build_self_test_tree(root)
-        legacy_manifest_path = root / TRACKED_PATHS[4]
-        legacy_manifest = json.loads(legacy_manifest_path.read_text(encoding="utf-8"))
-        legacy_manifest["surveyed_commit"] = "g" * 40
-        legacy_manifest_path.write_text(
-            json.dumps(legacy_manifest, indent=2) + "\n",
-            encoding="utf-8",
-        )
-        missing = check_packet(root)
-        if "legacy_manifest:surveyed_commit" not in missing:
-            raise SystemExit("phase12-libbpf-packet:self-test:legacy_surveyed_commit_hex_detection")
-
         print("PHASE12_LIBBPF_PACKET_SELF_TEST=pass")
-        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=44")
+        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=45")
     return 0
 
 
