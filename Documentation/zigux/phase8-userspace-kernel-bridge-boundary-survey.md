@@ -62,15 +62,16 @@ The current libbpf bridge packet is also helper-first:
 
 ## Review gate
 
-The shared review path now fail-closes through the dedicated tests-readme alignment checker and its built-in self-test before the broader validator, focused survey replay, focused survey build replay, and shared build replay run, so this cross-slice boundary note stays tied to the same docs-root, tests-root, Makefile, workflow, and segmented libbpf packet that current `master` already ships.
+The shared review path now follows the same validator-first Phase 8 sequence that current `master` publishes through `zigux/Makefile`: the broader validator self-test still runs first, the dedicated tests-readme alignment checker and its self-test stay in the same fail-closed packet, and only then do the focused survey and shared build replays run, so this cross-slice boundary note stays tied to the same docs-root, tests-root, Makefile, workflow, and segmented libbpf packet that current `master` already ships.
 
-1. `python3 scripts/zigux/check-phase8-tests-readme-alignment.py --self-test`
-2. `python3 scripts/zigux/check-phase8-tests-readme-alignment.py`
+1. `python3 scripts/zigux/validate-phase8.py --self-test`
+2. `python3 scripts/zigux/check-phase8-tests-readme-alignment.py --self-test`
 3. `python3 scripts/zigux/validate-phase8.py`
-4. `make -C zigux phase8-validate`
-5. `zig test zigux/tests/phase8_libbpf_segments.zig`
-6. `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all`
-7. `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
+4. `python3 scripts/zigux/check-phase8-tests-readme-alignment.py`
+5. `make -C zigux phase8-validate`
+6. `zig test zigux/tests/phase8_libbpf_segments.zig`
+7. `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all`
+8. `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
 
 ## Non-goals
 
