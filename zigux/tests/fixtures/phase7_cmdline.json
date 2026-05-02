@@ -78,6 +78,7 @@
   "parse_option_str": {
     "assignment_not_bare": false,
     "empty_between_commas": true,
+    "empty_source": false,
     "empty_trailing_comma": false,
     "exact_bare_option": true,
     "nul_stop_bare_scan": false
