@@ -40,6 +40,11 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const kprobe_example_survey_module = b.createModule(.{
+        .root_source_file = b.path("phase4_kprobe_example_survey.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
     const test_fsmount_survey_module = b.createModule(.{
         .root_source_file = b.path("phase4_test_fsmount_survey.zig"),
         .target = target,
@@ -68,6 +73,11 @@ pub fn build(b: *std.Build) void {
         .root_module = atomic64_diff_survey_module,
     });
     const run_atomic64_diff_survey_tests = b.addRunArtifact(atomic64_diff_survey_tests);
+    const kprobe_example_survey_tests = b.addTest(.{
+        .name = "phase4-kprobe-example-survey-tests",
+        .root_module = kprobe_example_survey_module,
+    });
+    const run_kprobe_example_survey_tests = b.addRunArtifact(kprobe_example_survey_tests);
     const test_fsmount_survey_tests = b.addTest(.{
         .name = "phase4-test-fsmount-survey-tests",
         .root_module = test_fsmount_survey_module,
@@ -85,6 +95,11 @@ pub fn build(b: *std.Build) void {
     );
     atomic64_step.dependOn(&run_atomic64_diff_tests.step);
     atomic64_step.dependOn(&run_atomic64_diff_survey_tests.step);
+    const kprobe_example_step = b.step(
+        "phase4-kprobe-example-survey",
+        "Run the Phase 4 kprobe_example survey gate without claiming a landed Zig sample",
+    );
+    kprobe_example_step.dependOn(&run_kprobe_example_survey_tests.step);
     const test_fsmount_step = b.step(
         "phase4-test-fsmount-survey",
         "Run the Phase 4 test_fsmount survey gate without claiming a landed Zig sample",
@@ -110,6 +125,7 @@ pub fn build(b: *std.Build) void {
     const test_step = b.step("test", "Run Phase 4 differential validation and survey tests");
     test_step.dependOn(&run_atomic64_diff_tests.step);
     test_step.dependOn(&run_atomic64_diff_survey_tests.step);
+    test_step.dependOn(&run_kprobe_example_survey_tests.step);
     test_step.dependOn(&run_test_fsmount_survey_tests.step);
     test_step.dependOn(&run_perf_baseline_survey_tests.step);
     test_step.dependOn(&run_bitmap_diff_tests.step);
