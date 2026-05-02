@@ -75,7 +75,7 @@ test "phase13 libfs manifest records the landed close-bookkeeping slice and the 
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_reviewability_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 16), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 17), manifest.gaps.len);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, expected_surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE13_SURVEYED_COMMIT=") != null);
 
@@ -91,6 +91,7 @@ test "phase13 libfs manifest records the landed close-bookkeeping slice and the 
     try std.testing.expect(descriptor.provides_directory_close_planning);
     try std.testing.expect(descriptor.provides_transaction_buffer_planning);
     try std.testing.expect(descriptor.provides_transaction_read_release_planning);
+    try std.testing.expect(descriptor.provides_open_private_data_planning);
     try std.testing.expect(!descriptor.touches_live_dcache);
     try std.testing.expect(!descriptor.touches_live_inode_state);
 
@@ -98,6 +99,7 @@ test "phase13 libfs manifest records the landed close-bookkeeping slice and the 
     var ready_next_count: usize = 0;
     var blocked_count: usize = 0;
     var saw_close_release = false;
+    var saw_simple_open = false;
     var saw_blocked_cursor_helpers = false;
     var saw_blocked_inode_lifecycle = false;
 
@@ -128,6 +130,13 @@ test "phase13 libfs manifest records the landed close-bookkeeping slice and the 
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "exported descriptor") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "cursor-reposition planning") != null);
         }
+        if (std.mem.eql(u8, gap.id, "phase13-libfs-simple-open-private-data-planning")) {
+            saw_simple_open = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "simple_open()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "inode->i_private") != null);
+        }
         if (std.mem.eql(u8, gap.id, "phase13-libfs-dcache-cursor-helpers")) {
             saw_blocked_cursor_helpers = true;
             try std.testing.expectEqualStrings("blocked_on_vfs_state", gap.status);
@@ -142,10 +151,11 @@ test "phase13 libfs manifest records the landed close-bookkeeping slice and the 
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 14), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 15), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 2), blocked_count);
     try std.testing.expect(saw_close_release);
+    try std.testing.expect(saw_simple_open);
     try std.testing.expect(saw_blocked_cursor_helpers);
     try std.testing.expect(saw_blocked_inode_lifecycle);
 }
