@@ -160,8 +160,14 @@ REQUIRED_MMIO_SNIPPETS = (
     "fn scopeFromPolicy(policy: interop_policy.DecodedInteropPolicy) narrow.ScopeError!narrow.UnsafeScopeTag {",
     "pub fn readScopedWithPolicy(",
     "pub fn writeScopedWithPolicy(",
+    "pub fn read8Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u8 {",
+    "pub fn write8Policy(",
+    "pub fn read16Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u16 {",
+    "pub fn write16Policy(",
     "pub fn read32Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u32 {",
     "pub fn write32Policy(",
+    "pub fn read64Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u64 {",
+    "pub fn write64Policy(",
     'test "phase3 mmio wrapper consumes decoded interop policy"',
     'test "phase3 mmio wrapper keeps declared scope explicit across widths"',
     'test "phase3 mmio wrapper rejects misaligned scoped accesses"',
@@ -506,7 +512,7 @@ def run_self_test() -> int:
         _write(
             root,
             MMIO_REL,
-            'fn scopeFromPolicy(policy: interop_policy.DecodedInteropPolicy) narrow.ScopeError!narrow.UnsafeScopeTag { _ = policy; }\npub fn readScopedWithPolicy(comptime T: type, policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!T { _ = T; _ = policy; _ = base_addr; _ = offset; }\npub fn writeScopedWithPolicy(comptime T: type, policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize, value: T) narrow.ScopeError!void { _ = T; _ = policy; _ = base_addr; _ = offset; _ = value; }\npub fn read16Scoped(scope: narrow.UnsafeScopeTag, base_addr: usize, offset: usize) narrow.ScopeError!u16 { _ = scope; _ = base_addr; _ = offset; }\npub fn write16Scoped() void {}\npub fn read32Scoped(scope: narrow.UnsafeScopeTag, base_addr: usize, offset: usize) narrow.ScopeError!u32 { _ = scope; _ = base_addr; _ = offset; }\npub fn write32Scoped() void {}\npub fn read32Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u32 { _ = policy; _ = base_addr; _ = offset; }\npub fn write32Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize, value: u32) narrow.ScopeError!void { _ = policy; _ = base_addr; _ = offset; _ = value; }\ntest "phase3 mmio wrapper consumes decoded interop policy" {}\ntest "phase3 mmio wrapper keeps declared scope explicit across widths" {}\ntest "phase3 mmio wrapper rejects misaligned scoped accesses" {}\n',
+            'fn scopeFromPolicy(policy: interop_policy.DecodedInteropPolicy) narrow.ScopeError!narrow.UnsafeScopeTag { _ = policy; }\npub fn readScopedWithPolicy(comptime T: type, policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!T { _ = T; _ = policy; _ = base_addr; _ = offset; }\npub fn writeScopedWithPolicy(comptime T: type, policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize, value: T) narrow.ScopeError!void { _ = T; _ = policy; _ = base_addr; _ = offset; _ = value; }\npub fn read16Scoped(scope: narrow.UnsafeScopeTag, base_addr: usize, offset: usize) narrow.ScopeError!u16 { _ = scope; _ = base_addr; _ = offset; }\npub fn write16Scoped() void {}\npub fn read32Scoped(scope: narrow.UnsafeScopeTag, base_addr: usize, offset: usize) narrow.ScopeError!u32 { _ = scope; _ = base_addr; _ = offset; }\npub fn write32Scoped() void {}\npub fn read8Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u8 { _ = policy; _ = base_addr; _ = offset; }\npub fn write8Policy() void {}\npub fn read16Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u16 { _ = policy; _ = base_addr; _ = offset; }\npub fn write16Policy() void {}\npub fn read32Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u32 { _ = policy; _ = base_addr; _ = offset; }\npub fn write32Policy() void {}\npub fn read64Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u64 { _ = policy; _ = base_addr; _ = offset; }\npub fn write64Policy() void {}\ntest "phase3 mmio wrapper consumes decoded interop policy" {}\ntest "phase3 mmio wrapper keeps declared scope explicit across widths" {}\ntest "phase3 mmio wrapper rejects misaligned scoped accesses" {}\n',
         )
         _write(
             root,
@@ -814,11 +820,58 @@ def run_self_test() -> int:
         assert "missing_mmio_snippet:pub fn readScopedWithPolicy(" in issues
         assert "missing_mmio_snippet:pub fn writeScopedWithPolicy(" in issues
         assert (
+            "missing_mmio_snippet:pub fn read8Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u8 {"
+            in issues
+        )
+        assert "missing_mmio_snippet:pub fn write8Policy(" in issues
+        assert (
+            "missing_mmio_snippet:pub fn read16Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u16 {"
+            in issues
+        )
+        assert "missing_mmio_snippet:pub fn write16Policy(" in issues
+        assert (
             "missing_mmio_snippet:pub fn read32Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u32 {"
             in issues
         )
         assert "missing_mmio_snippet:pub fn write32Policy(" in issues
+        assert (
+            "missing_mmio_snippet:pub fn read64Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u64 {"
+            in issues
+        )
+        assert "missing_mmio_snippet:pub fn write64Policy(" in issues
         assert 'missing_mmio_snippet:test "phase3 mmio wrapper consumes decoded interop policy"' in issues
+
+        _write(
+            root,
+            MMIO_REL,
+            "\n".join(
+                [
+                    "fn scopeFromPolicy(policy: interop_policy.DecodedInteropPolicy) narrow.ScopeError!narrow.UnsafeScopeTag { _ = policy; }",
+                    "pub fn readScopedWithPolicy(comptime T: type, policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!T { _ = T; _ = policy; _ = base_addr; _ = offset; }",
+                    "pub fn writeScopedWithPolicy(comptime T: type, policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize, value: T) narrow.ScopeError!void { _ = T; _ = policy; _ = base_addr; _ = offset; _ = value; }",
+                    "pub fn read16Scoped(scope: narrow.UnsafeScopeTag, base_addr: usize, offset: usize) narrow.ScopeError!u16 { _ = scope; _ = base_addr; _ = offset; }",
+                    "pub fn write16Scoped() void {}",
+                    "pub fn read32Scoped(scope: narrow.UnsafeScopeTag, base_addr: usize, offset: usize) narrow.ScopeError!u32 { _ = scope; _ = base_addr; _ = offset; }",
+                    "pub fn write32Scoped() void {}",
+                    "pub fn read8Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u8 { _ = policy; _ = base_addr; _ = offset; }",
+                    "pub fn write8Policy() void {}",
+                    "pub fn read16Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u16 { _ = policy; _ = base_addr; _ = offset; }",
+                    "pub fn write16Policy() void {}",
+                    "pub fn read32Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u32 { _ = policy; _ = base_addr; _ = offset; }",
+                    "pub fn write32Policy() void {}",
+                    "pub fn write64Policy() void {}",
+                    'test "phase3 mmio wrapper consumes decoded interop policy" {}',
+                    'test "phase3 mmio wrapper keeps declared scope explicit across widths" {}',
+                    'test "phase3 mmio wrapper rejects misaligned scoped accesses" {}',
+                    "",
+                ]
+            ),
+        )
+        issues = validate(root)
+        assert (
+            "missing_mmio_snippet:pub fn read64Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u64 {"
+            in issues
+        )
 
         _write(
             root,
