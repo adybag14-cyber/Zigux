@@ -29,6 +29,14 @@ test "phase3 low-level wrappers stay inside the documented ABI surface" {
     const mismatch = atomic.compareExchange(u32, &value, 9, 19, .seq_cst, .seq_cst);
     try std.testing.expectEqual(@as(?u32, 21), mismatch);
     try std.testing.expectEqual(@as(u32, 21), value);
+    try std.testing.expectEqual(@as(u32, 21), atomic.fetchMax(u32, &value, 29, .seq_cst));
+    try std.testing.expectEqual(@as(u32, 29), value);
+    try std.testing.expectEqual(@as(u32, 29), atomic.fetchMax(u32, &value, 25, .seq_cst));
+    try std.testing.expectEqual(@as(u32, 29), value);
+    try std.testing.expectEqual(@as(u32, 29), atomic.fetchMin(u32, &value, 17, .seq_cst));
+    try std.testing.expectEqual(@as(u32, 17), value);
+    try std.testing.expectEqual(@as(u32, 17), atomic.fetchMin(u32, &value, 19, .seq_cst));
+    try std.testing.expectEqual(@as(u32, 17), value);
 
     var weak_value: u32 = 31;
     var attempts: usize = 0;
