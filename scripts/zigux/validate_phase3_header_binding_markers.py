@@ -80,10 +80,33 @@ HEADER_BINDING_MARKERS = {
         'root_module.addImport("uapi_version", uapi_version_module);',
         '"phase3-export-uapi-test",',
     ),
+    "zigux/tests/phase3_export_uapi_layout_build.zig": (
+        '.root_source_file = b.path("../kernel/export_shim.zig"),',
+        'export_shim_module.addImport("abi_bindings", abi_bindings_module);',
+        '.root_source_file = b.path("../uapi/version.zig"),',
+        'uapi_version_module.addImport("abi_bindings", abi_bindings_module);',
+        '.root_source_file = b.path("phase3_export_uapi_layout.zig"),',
+        'export_shim_module.addImport("uapi_version", uapi_version_module);',
+        'root_module.addImport("abi_bindings", abi_bindings_module);',
+        'root_module.addImport("export_shim", export_shim_module);',
+        'root_module.addImport("uapi_version", uapi_version_module);',
+        '"phase3-export-uapi-layout-test",',
+    ),
+    "zigux/tests/phase3_export_uapi_layout.zig": (
+        'test "phase3 export shim and uapi keep canonical boundary layout" {',
+        "try std.testing.expectEqual(@as(usize, 8), @sizeOf(abi.BoundaryHeader));",
+        "try std.testing.expectEqual(@as(usize, 8), @sizeOf(abi.ExportStatus));",
+        'try std.testing.expectEqual(@as(usize, 4), @offsetOf(abi.BoundaryHeader, "abi_version"));',
+        'try std.testing.expectEqual(@as(usize, 6), @offsetOf(abi.ExportStatus, "flags"));',
+        "try std.testing.expect(export_shim.isCanonicalHeader(header));",
+        "try std.testing.expect(uapi_version.isCanonical(uapi_header));",
+    ),
     "zigux/tests/fixtures/phase3_abi_manifest.json": (
         '"zigux/tests/build.zig",',
         '"zigux/tests/phase3_export_uapi_build.zig",',
         '"zigux/tests/phase3_export_uapi.zig",',
+        '"zigux/tests/phase3_export_uapi_layout_build.zig",',
+        '"zigux/tests/phase3_export_uapi_layout.zig",',
     ),
     "scripts/zigux/validate-phase3-export-uapi-survey.py": (
         "REQUIRED_SURVEY_MARKERS = (",
@@ -202,7 +225,7 @@ def run_self_test() -> int:
             f"header-binding-marker: scripts/zigux/validate-phase3-export-uapi-survey.py missing {export_uapi_survey_marker}",
         ]
 
-        manifest_marker = HEADER_BINDING_MARKERS["zigux/tests/fixtures/phase3_abi_manifest.json"][1]
+        manifest_marker = HEADER_BINDING_MARKERS["zigux/tests/fixtures/phase3_abi_manifest.json"][3]
         manifest_file = root / "zigux/tests/fixtures/phase3_abi_manifest.json"
         manifest_file.write_text(
             manifest_file.read_text(encoding="utf-8").replace(manifest_marker + "\n", "", 1),
@@ -217,6 +240,43 @@ def run_self_test() -> int:
             f"header-binding-marker: zigux/tests/phase3_export_uapi_build.zig missing {export_uapi_build_marker}",
             f"header-binding-marker: zigux/tests/fixtures/phase3_abi_manifest.json missing {manifest_marker}",
             f"header-binding-marker: scripts/zigux/validate-phase3-export-uapi-survey.py missing {export_uapi_survey_marker}",
+        ]
+
+        export_uapi_layout_build_marker = HEADER_BINDING_MARKERS["zigux/tests/phase3_export_uapi_layout_build.zig"][4]
+        export_uapi_layout_build = root / "zigux/tests/phase3_export_uapi_layout_build.zig"
+        export_uapi_layout_build.write_text(
+            export_uapi_layout_build.read_text(encoding="utf-8").replace(export_uapi_layout_build_marker + "\n", "", 1),
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert validate_header_binding_markers(root) == [
+            f"header-binding-marker: include/zigux/abi.h missing {first_marker}",
+            f"header-binding-marker: zigux/bindings/abi.zig missing {notify_ack_marker}",
+            f"header-binding-marker: zigux/tests/build.zig missing {build_marker}",
+            f"header-binding-marker: zigux/tests/build.zig missing {interop_build_marker}",
+            f"header-binding-marker: zigux/tests/phase3_export_uapi_build.zig missing {export_uapi_build_marker}",
+            f"header-binding-marker: zigux/tests/fixtures/phase3_abi_manifest.json missing {manifest_marker}",
+            f"header-binding-marker: scripts/zigux/validate-phase3-export-uapi-survey.py missing {export_uapi_survey_marker}",
+            f"header-binding-marker: zigux/tests/phase3_export_uapi_layout_build.zig missing {export_uapi_layout_build_marker}",
+        ]
+
+        export_uapi_layout_marker = HEADER_BINDING_MARKERS["zigux/tests/phase3_export_uapi_layout.zig"][0]
+        export_uapi_layout = root / "zigux/tests/phase3_export_uapi_layout.zig"
+        export_uapi_layout.write_text(
+            export_uapi_layout.read_text(encoding="utf-8").replace(export_uapi_layout_marker + "\n", "", 1),
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert validate_header_binding_markers(root) == [
+            f"header-binding-marker: include/zigux/abi.h missing {first_marker}",
+            f"header-binding-marker: zigux/bindings/abi.zig missing {notify_ack_marker}",
+            f"header-binding-marker: zigux/tests/build.zig missing {build_marker}",
+            f"header-binding-marker: zigux/tests/build.zig missing {interop_build_marker}",
+            f"header-binding-marker: zigux/tests/phase3_export_uapi_build.zig missing {export_uapi_build_marker}",
+            f"header-binding-marker: zigux/tests/fixtures/phase3_abi_manifest.json missing {manifest_marker}",
+            f"header-binding-marker: scripts/zigux/validate-phase3-export-uapi-survey.py missing {export_uapi_survey_marker}",
+            f"header-binding-marker: zigux/tests/phase3_export_uapi_layout.zig missing {export_uapi_layout_marker}",
+            f"header-binding-marker: zigux/tests/phase3_export_uapi_layout_build.zig missing {export_uapi_layout_build_marker}",
         ]
 
     print("PHASE3_HEADER_BINDING_MARKER_SELF_TEST=pass")
