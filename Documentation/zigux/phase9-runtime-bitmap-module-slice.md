@@ -8,7 +8,7 @@ This document tracks the first bounded Phase 9 runtime bitmap starter under `sam
 - `PHASE9_SLICE=runtime-bitmap-module-starter`
 - `PHASE9_LANE_KEY=P9-L08`
 - `PHASE9_SURVEYED_COMMIT=3ba64cd4e41a4de1c8fd8dbaecb23702ad9701a3`
-- scope: lifecycle starter, bitmap range mutation and copy behavior, bounded differential coverage, bounded parse-and-print replay including duplicate bit-list normalization and empty formatting, adjacent loader scaffold plus shared loader-request binding, dedicated Phase 9 test wiring, and adjacent manifest plus survey packet alignment only
+- scope: lifecycle starter, bitmap range mutation and copy behavior, bounded differential coverage, bounded parse-and-print replay including duplicate bit-list normalization, empty formatting, and transactional failed-init recovery, adjacent loader scaffold plus shared loader-request binding, dedicated Phase 9 test wiring, and adjacent manifest plus survey packet alignment only
 - product boundary:
   - `samples/zigux/runtime_bitmap.zig`
   - `samples/zigux/runtime_bitmap_loader.zig`
@@ -35,7 +35,7 @@ No parity scorecard entry or Architecture Council status-change request is attac
 - guarded lifecycle transitions for `cold`, `initialized`, `selftest_complete`, and `exited`
 - a bounded two-word runtime bitmap backing store with explicit `setRange`, `clearRange`, `copyFrom`, source-lifecycle guard behavior, and a direct post-selftest mutation replay proof that stays reviewable before exit
 - summary checks that reuse `zigux/helpers/bitmap_view.zig` for `first_set`, `first_zero`, and `weight`
-- a bounded parse-and-print replay that keeps direct sample bit-list parsing and formatting reviewable through `initFromBitList()` and `formatSetBits()`, including duplicate bit-list normalization to canonical set-bit output plus empty parse-and-print replay, without claiming a broader runtime parsing or printing surface
+- a bounded parse-and-print replay that keeps direct sample bit-list parsing and formatting reviewable through `initFromBitList()` and `formatSetBits()`, including duplicate bit-list normalization to canonical set-bit output plus empty parse-and-print replay, while failed parsed or direct init attempts stay cold and empty until a clean follow-up init succeeds, without claiming a broader runtime parsing or printing surface
 - a table-driven differential gate that replays a few `lib/test_bitmap.c` expectations for set, clear, summary, and copy behavior
 - a tiny sample-side loader handoff scaffold that names bounded entry and exit symbols, pins the full `first_set`, `first_zero`, `weight`, and `nbits` handoff summary, preserves explicit shared command-name handoff evidence for both waiting and released request shapes, and emits both waiting and released shared runtime-loader request shapes for the no-substrate path without claiming a real module loader
 - a shared runtime-loader request binding in `zigux/kernel/runtime_loader.zig` that now consumes the bitmap handoff shape, allocator posture, staged entry or exit symbols, and explicit shared command-name preservation without claiming live execution
