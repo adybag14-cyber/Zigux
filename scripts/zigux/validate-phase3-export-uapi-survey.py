@@ -563,7 +563,7 @@ def run_self_test() -> int:
         _replace_blob_markers_with_head(root, survey_path)
         assert validate(root) == []
 
-        survey_path.writeText(REQUIRED_SURVEY_MARKERS[0] + "\n", encoding="utf-8")
+        survey_path.write_text(REQUIRED_SURVEY_MARKERS[0] + "\n", encoding="utf-8")
         issues = validate(root)
         assert any(issue.startswith("missing_survey_marker:") for issue in issues)
         assert any(issue.startswith("missing_survey_snippet:") for issue in issues)
