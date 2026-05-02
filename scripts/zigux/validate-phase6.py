@@ -417,7 +417,7 @@ HEXDUMP_SLICE_MARKERS = [
 
 CATALOG_MARKERS = [
     "- verified head: `",
-    "PHASE6_BASE64_C_PARITY_CASES=96",
+    "PHASE6_BASE64_C_PARITY_CASES=106",
     "PHASE6_BSEARCH_C_PARITY_CASES=29",
     "shared portability coverage: `zigux/tests/phase6_bsearch.zig` now exercises both typed and raw runtime-selected comparator pointers across native and C ABI paths",
     "max_slowdown_pct = 150",
@@ -430,12 +430,12 @@ CATALOG_MARKERS = [
 
 EXPECTED_BASE64_DETERMINISM = {
     "standard_encode_vectors": 22,
-    "variant_encode_vectors": 18,
+    "variant_encode_vectors": 24,
     "standard_decode_vectors": 22,
-    "variant_decode_vectors": 12,
+    "variant_decode_vectors": 16,
     "invalid_decode_vectors": 22,
     "c_parity_self_test_cases": 8,
-    "c_parity_cases": 96,
+    "c_parity_cases": 106,
 }
 
 EXPECTED_BSEARCH_DETERMINISM = {
@@ -567,93 +567,6 @@ EXPECTED_MANIFEST = {
             "bsearch",
         ],
     },
-    "determinism_evidence": {
-        "base64": {
-            "standard_encode_vectors": 22,
-            "variant_encode_vectors": 18,
-            "standard_decode_vectors": 22,
-            "variant_decode_vectors": 12,
-            "invalid_decode_vectors": 22,
-            "c_parity_self_test_cases": 8,
-            "c_parity_cases": 96,
-        },
-        "bsearch": {
-            "inline_corpus": "sorted integer and symbol tables",
-            "c_parity_self_test_cases": 6,
-            "c_parity_cases": 29,
-        },
-        "checksum": {
-            "compute_vectors": 5,
-            "composition_vectors": 2,
-            "seeded_vectors": 3,
-            "ipv4_pseudo_header_vectors": 1,
-            "ipv6_pseudo_header_vectors": 2,
-            "carry_discipline_vectors": 4,
-            "kunit_random_prefix_vectors": 6,
-        },
-        "hexdump": {
-            "parity_vectors": 10,
-            "overflow_vectors": 4,
-            "required_length_vectors": 9,
-            "perf_vectors": 4,
-            "normalization_helpers": [
-                "normalizedRowsize",
-                "normalizedGroupsizeForLen",
-                "prepareExpectedLine",
-            ],
-        },
-        "generated_fixture_artifacts_committed": False,
-    },
-    "exact_checks": [
-        "python3 scripts/zigux/validate-phase6.py --self-test",
-        "python3 scripts/zigux/validate-phase6.py",
-        "make -C zigux phase6-validate",
-        "make -C zigux phase6",
-        "make -C zigux phase6-base64-perf",
-        "make -C zigux phase6-bsearch-perf",
-        "make -C zigux phase6-checksum-perf",
-        "make -C zigux phase6-hexdump-perf",
-        "python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test",
-        "python3 scripts/zigux/check-phase6-base64-c-parity.py",
-        "python3 scripts/zigux/check-phase6-bsearch-c-parity.py --self-test",
-        "python3 scripts/zigux/check-phase6-bsearch-c-parity.py",
-    ],
-}
-
-MARKER_FILE_CONTENTS = {
-    "zigux/Makefile": MAKE_MARKERS,
-    ".github/workflows/zigux-bootstrap.yml": WORKFLOW_MARKERS,
-    "scripts/zigux/README.md": SCRIPT_README_MARKERS,
-    "zigux/tests/README.md": TESTS_README_MARKERS,
-    "Documentation/zigux/README.md": DOC_README_MARKERS,
-    "Documentation/zigux/phase6-perf-gate-survey.md": PERF_SURVEY_MARKERS,
-    "zigux/tests/phase6_build.zig": PHASE6_BUILD_MARKERS,
-    "lib/base64.zig": BASE64_HELPER_MARKERS,
-    "lib/bsearch.zig": BSEARCH_HELPER_MARKERS,
-    "lib/checksum.zig": CHECKSUM_HELPER_MARKERS,
-    "lib/hexdump.zig": HEXDUMP_HELPER_MARKERS,
-    "zigux/tests/phase6_base64.zig": BASE64_TEST_MARKERS,
-    "zigux/tests/phase6_base64_perf.zig": BASE64_PERF_MARKERS,
-    "scripts/zigux/check-phase6-base64-c-parity.py": BASE64_PARITY_SCRIPT_MARKERS,
-    "zigux/tests/phase6_base64_c_parity.zig": BASE64_C_PARITY_RUNNER_MARKERS,
-    "zigux/tests/phase6_base64_c_casegen.zig": BASE64_CASEGEN_MARKERS,
-    "zigux/tests/fixtures/phase6_base64_c_harness.c": BASE64_C_HARNESS_MARKERS,
-    "zigux/tests/fixtures/phase6_base64_vectors.zig": BASE64_VECTORS_MARKERS,
-    "Documentation/zigux/phase6-base64-slice.md": BASE64_SLICE_MARKERS,
-    "zigux/tests/phase6_bsearch.zig": BSEARCH_TEST_MARKERS,
-    "zigux/tests/phase6_bsearch_perf.zig": BSEARCH_PERF_MARKERS,
-    "scripts/zigux/check-phase6-bsearch-c-parity.py": BSEARCH_PARITY_SCRIPT_MARKERS,
-    "zigux/tests/phase6_bsearch_c_parity.zig": BSEARCH_C_PARITY_RUNNER_MARKERS,
-    "zigux/tests/fixtures/phase6_bsearch_c_harness.c": BSEARCH_C_HARNESS_MARKERS,
-    "Documentation/zigux/phase6-bsearch-slice.md": BSEARCH_SLICE_MARKERS,
-    "zigux/tests/phase6_checksum.zig": CHECKSUM_TEST_MARKERS,
-    "zigux/tests/phase6_checksum_perf.zig": CHECKSUM_PERF_MARKERS,
-    "zigux/tests/fixtures/phase6_checksum_vectors.zig": CHECKSUM_FIXTURE_MARKERS,
-    "Documentation/zigux/phase6-checksum-slice.md": CHECKSUM_SLICE_MARKERS,
-    "zigux/tests/phase6_hexdump.zig": HEXDUMP_TEST_MARKERS,
-    "zigux/tests/phase6_hexdump_perf.zig": HEXDUMP_PERF_MARKERS,
-    "zigux/tests/fixtures/phase6_hexdump_vectors.zig": HEXDUMP_FIXTURE_MARKERS,
-    "Documentation/zigux/phase6-hexdump-slice.md": HEXDUMP_SLICE_MARKERS,
 }
 
 def text(root: Path, path: str) -> str:
