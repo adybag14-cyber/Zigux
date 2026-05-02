@@ -119,38 +119,30 @@ The current tests check:
 
 ## Gates
 
-The shared review path now fail-closes through the shared Phase 8 validator, the dedicated tests-readme alignment checker, and both built-in self-tests before the focused survey and shared build replays run, so this survey stays tied to the same docs-root, tests-root, Makefile, workflow, and segmented libbpf packet that the repo already ships.
+The shared review path now fail-closes through the shared Phase 8 validator, the dedicated tests-readme alignment checker, the dedicated perf-buffer poll gate checker, and all three built-in self-tests before the focused survey, focused perf-buffer poll shard, and shared build replays run, so this survey stays tied to the same docs-root, tests-root, Makefile, workflow, and segmented libbpf packet that the repo already ships.
 
 1. `python3 scripts/zigux/validate-phase8.py --self-test`
 2. `python3 scripts/zigux/check-phase8-tests-readme-alignment.py --self-test`
-3. `python3 scripts/zigux/validate-phase8.py`
-4. `python3 scripts/zigux/check-phase8-tests-readme-alignment.py`
-5. `make -C zigux phase8-validate`
-6. `zig test zigux/tests/phase8_libbpf_segments.zig`
-7. `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all`
-8. `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
-9. `make -C zigux phase8`
+3. `python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py --self-test`
+4. `python3 scripts/zigux/validate-phase8.py`
+5. `python3 scripts/zigux/check-phase8-tests-readme-alignment.py`
+6. `python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py`
+7. `make -C zigux phase8-validate`
+8. `zig test zigux/tests/phase8_libbpf_segments.zig`
+9. `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all`
+10. `make -C zigux phase8-perf-buffer-poll-test`
+11. `zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all`
+12. `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
+13. `make -C zigux phase8`
 
-## Latest verification snapshot
+## Latest committed gate snapshot
 
 - provenance and anchor alignment rechecked against inspected `master` head `f5a4d6990f701937b2a3bb9ae723bb6d0f27ba21`
-- focused Zig replay rerun against inspected `master` head `f5a4d6990f701937b2a3bb9ae723bb6d0f27ba21`
-- `python3 scripts/zigux/validate-phase8.py --self-test`
-  - `PHASE8_VALIDATOR_SELF_TEST=pass`
-  - `PHASE8_VALIDATOR_SELF_TEST_CASE_COUNT=12`
-- `python3 scripts/zigux/check-phase8-tests-readme-alignment.py --self-test`
-  - `PHASE8_TESTS_README_ALIGNMENT_SELF_TEST=pass`
-  - `PHASE8_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=22`
-- `python3 scripts/zigux/check-phase8-tests-readme-alignment.py`
-  - `PHASE8_TESTS_README_ALIGNMENT=pass`
-- `zig test zigux/tests/phase8_libbpf_segments.zig`
-  - all `5/5` focused libbpf segment tests passed
-- `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all`
-  - `Build Summary: 3/3 steps succeeded; 5/5 tests passed`
-- `python3 scripts/zigux/validate-phase8.py`
-  - `PHASE8_VALIDATION=pass`
-- `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
-  - `Build Summary: 22/22 steps succeeded; 73/73 tests passed`
+- the committed `phase8-validate` bundle in `zigux/Makefile` now routes through `validate-phase8.py`, `check-phase8-tests-readme-alignment.py`, and `check-phase8-perf-buffer-poll-gate.py` in both self-test and live modes before the focused and shared replay steps
+- `scripts/zigux/check-phase8-tests-readme-alignment.py` currently publishes `PHASE8_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=33`
+- `scripts/zigux/check-phase8-perf-buffer-poll-gate.py` currently publishes `PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST_CASE_COUNT=7`
+- `.github/workflows/zigux-bootstrap.yml` currently keeps a dedicated `Run focused Phase 8 perf-buffer poll tests` step wired to `zigux/tests/phase8_perf_buffer_poll_only_build.zig`
+- `Documentation/zigux/phase8-perf-buffer-poll-slice.md` and `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md` both keep the dedicated checker plus the focused perf-buffer poll shard explicit inside the same shared Phase 8 tooling packet
 
 ## Non-goals
 
