@@ -517,6 +517,38 @@ def run_self_test() -> int:
         _replace_blob_markers_with_head(root, survey_path)
         assert validate(root) == []
 
+        current_survey = survey_path.read_text(encoding="utf-8")
+        layout_assert_blob = _marker_value_from_text(current_survey, "PHASE3_LAYOUT_ASSERT_BLOB_SHA")
+        assert layout_assert_blob is not None
+        survey_path.write_text(
+            current_survey.replace(
+                f"PHASE3_LAYOUT_ASSERT_BLOB_SHA={layout_assert_blob}",
+                "PHASE3_LAYOUT_ASSERT_BLOB_SHA=not-a-sha",
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate(root)
+        assert "invalid_survey_blob_sha:PHASE3_LAYOUT_ASSERT_BLOB_SHA:not-a-sha" in issues
+
+        survey_path.write_text(
+            current_survey,
+            encoding="utf-8",
+            newline="\n",
+        )
+        survey_path.write_text(
+            survey_path.read_text(encoding="utf-8").replace(head, "not-a-sha"),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate(root)
+        assert "invalid_surveyed_commit:not-a-sha" in issues
+
+        survey_path.write_text(
+            current_survey,
+            encoding="utf-8",
+            newline="\n",
+        )
         missing_commit = "fedcba9876543210fedcba9876543210fedcba98"
         survey_path.write_text(
             survey_path.read_text(encoding="utf-8").replace(head, missing_commit),
