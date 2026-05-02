@@ -236,8 +236,35 @@ pub fn findFirst(key: anytype, root: *const Root, cmp: *const fn (@TypeOf(key), 
     return match;
 }
 
+pub fn findLast(key: anytype, root: *const Root, cmp: *const fn (@TypeOf(key), *const Node) i32) ?*Node {
+    var node = root.node;
+    var match: ?*Node = null;
+
+    while (node) |current| {
+        const order = cmp(key, current);
+        if (order < 0) {
+            node = current.left;
+        } else {
+            if (order == 0) {
+                match = current;
+            }
+            node = current.right;
+        }
+    }
+
+    return match;
+}
+
 pub fn nextMatch(key: anytype, node: *const Node, cmp: *const fn (@TypeOf(key), *const Node) i32) ?*Node {
     const candidate = next(node) orelse return null;
+    if (cmp(key, candidate) != 0) {
+        return null;
+    }
+    return candidate;
+}
+
+pub fn prevMatch(key: anytype, node: *const Node, cmp: *const fn (@TypeOf(key), *const Node) i32) ?*Node {
+    const candidate = prev(node) orelse return null;
     if (cmp(key, candidate) != 0) {
         return null;
     }
@@ -263,6 +290,28 @@ pub fn iterateMatches(key: anytype, root: *const Root, cmp: *const fn (@TypeOf(k
         .key = key,
         .cmp = cmp,
         .next_node = findFirst(key, root, cmp),
+    };
+}
+
+fn ReverseMatchIterator(comptime Key: type) type {
+    return struct {
+        key: Key,
+        cmp: *const fn (Key, *const Node) i32,
+        next_node: ?*Node,
+
+        pub fn next(self: *@This()) ?*Node {
+            const current = self.next_node orelse return null;
+            self.next_node = prevMatch(self.key, current, self.cmp);
+            return current;
+        }
+    };
+}
+
+pub fn iterateMatchesReverse(key: anytype, root: *const Root, cmp: *const fn (@TypeOf(key), *const Node) i32) ReverseMatchIterator(@TypeOf(key)) {
+    return .{
+        .key = key,
+        .cmp = cmp,
+        .next_node = findLast(key, root, cmp),
     };
 }
 
