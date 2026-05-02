@@ -7,7 +7,7 @@ This document records the bounded Phase 15 handoff lane for synthesizing the rem
 - `PHASE15_LANE_KEY=P15-Y01`
 - `PHASE15_STATUS=handoff_next_steps_survey_landed`
 - `PHASE15_SLICE=phase-handoff-and-next-bound-synthesis`
-- scope: one dedicated handoff note, one manifest, one Zig test, one shared `phase15_build.zig` follow-up, and one docs-index refresh that keep the roadmap contract, the bootstrap ledger anchor, the current governance packet, the open handoff gaps, and the parked next steps reviewable in one place
+- scope: one dedicated handoff note, one manifest, one Zig test, one dedicated docs-root reviewability guard, one shared `phase15_build.zig` follow-up, and one docs-index refresh that keep the roadmap contract, the bootstrap ledger anchor, the current governance packet, the open handoff gaps, and the parked next steps reviewable in one place
 - survey provenance refreshed against published readiness evidence verified at `master` head `ef7b33b6922d05e5ef514fb4efa588316ce6dda8`
 - product boundary:
   - `zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md`
@@ -23,6 +23,7 @@ This document records the bounded Phase 15 handoff lane for synthesizing the rem
   - `Documentation/zigux/phase15-handoff-next-steps-survey.md`
   - `zigux/tests/phase15_handoff_next_steps_manifest.json`
   - `zigux/tests/phase15_handoff_next_steps.zig`
+  - `zigux/tests/phase15_docs_root_reviewability.zig`
   - `zigux/tests/phase15_build.zig`
   - `zigux/Makefile`
   - `.github/workflows/zigux-bootstrap.yml`
@@ -59,9 +60,10 @@ This note exists to answer those questions directly and keep the Phase 15 tranch
 - `Documentation/zigux/phase15-indefinite-c-policy.md` records the explicit long-term stay-in-C posture and exception rules
 - `Documentation/zigux/phase15-readiness-gate-survey.md` records the landed governance bundle, the parked handoff, and that the full shared Phase 15 replay is green on current `master`
 - `zigux/tests/phase15_build.zig` replays the dedicated handoff packet alongside the other Phase 15 governance tests
+- `zigux/tests/phase15_docs_root_reviewability.zig` keeps the current docs-root summary drift explicit against the dedicated readiness and handoff packets inside that same shared Phase 15 replay surface
 - `Documentation/zigux/README.md` points at this handoff packet from the docs root, but the current Phase 15 summary there still carries the older broader-replay-drift wording even though the dedicated readiness and handoff packets now record the shared replay as green
 
-That means the current handoff packet is no longer waiting on review-process replay repair. The shared replay surface is green again, but one bounded handoff gap still remains above the deeper blocker posture: the docs-root Phase 15 summary has not yet been refreshed to match the dedicated readiness and handoff packet.
+That means the current handoff packet is no longer waiting on review-process replay repair. The shared replay surface is green again, the dedicated docs-root reviewability guard is landed, but one bounded handoff gap still remains above the deeper blocker posture: the docs-root Phase 15 summary has not yet been refreshed to match the dedicated readiness and handoff packet.
 
 ## Open Handoff Gaps
 
@@ -104,7 +106,7 @@ Trust the parked Phase 15 handoff only while all of the following stay true:
 3. the shared bootstrap workflow still runs `Run Phase 15 governance tests`
 4. the local replay path still runs through `zig build test --build-file zigux/tests/phase15_build.zig`
 5. the convenience replay path still runs through `make -C zigux phase15`
-6. the now-green shared replay posture, the docs-root release-evidence drift, the named reopen triggers, and the deeper status-change blocker all stay explicit, with no new policy or implementation scope reopened silently inside the parked handoff packet
+6. the now-green shared replay posture, the docs-root release-evidence drift, the dedicated docs-root reviewability guard under `zigux/tests/phase15_docs_root_reviewability.zig`, the named reopen triggers, and the deeper status-change blocker all stay explicit, with no new policy or implementation scope reopened silently inside the parked handoff packet
 
 If any one of those six conditions stops being true, this parked handoff must be refreshed before future Phase 15 maintenance claims can be trusted.
 
@@ -115,6 +117,7 @@ The current lane state is:
 - landed `phase15-handoff-next-steps-doc`
 - landed `phase15-handoff-next-steps-manifest`
 - landed `phase15-handoff-next-steps-test`
+- landed `phase15-docs-root-reviewability-guard`
 - landed `phase15-build-gate-handoff-next-steps`
 - landed `phase15-docs-index-handoff-pointer`
 - blocked `phase15-docs-root-summary-drift-blocker`
