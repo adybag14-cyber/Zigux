@@ -58,6 +58,12 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    const phase15_docs_root_reviewability_module = b.createModule(.{
+        .root_source_file = b.path("phase15_docs_root_reviewability.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
     const phase15_indefinite_c_policy_tests = b.addTest(.{
         .name = "phase15-indefinite-c-policy-tests",
         .root_module = phase15_indefinite_c_policy_module,
@@ -76,6 +82,12 @@ pub fn build(b: *std.Build) void {
     });
     const run_phase15_handoff_next_steps_tests = b.addRunArtifact(phase15_handoff_next_steps_tests);
 
+    const phase15_docs_root_reviewability_tests = b.addTest(.{
+        .name = "phase15-docs-root-reviewability-tests",
+        .root_module = phase15_docs_root_reviewability_module,
+    });
+    const run_phase15_docs_root_reviewability_tests = b.addRunArtifact(phase15_docs_root_reviewability_tests);
+
     const test_step = b.step("test", "Run Phase 15 governance tests");
     test_step.dependOn(&run_phase15_freeze_map_governance_tests.step);
     test_step.dependOn(&run_phase15_parity_scorecard_tests.step);
@@ -83,4 +95,5 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_phase15_indefinite_c_policy_tests.step);
     test_step.dependOn(&run_phase15_readiness_gate_tests.step);
     test_step.dependOn(&run_phase15_handoff_next_steps_tests.step);
+    test_step.dependOn(&run_phase15_docs_root_reviewability_tests.step);
 }
