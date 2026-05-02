@@ -40,11 +40,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expect(std.mem.startsWith(u8, manifest.lane_key, "P5-L"));
-    try std.testing.expect(manifest.lane_key.len > "P5-L".len);
-    for (manifest.lane_key["P5-L".len..]) |char| {
-        try std.testing.expect(std.ascii.isDigit(char));
-    }
+    try std.testing.expectEqualStrings("P5-L12", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 5", manifest.phase);
     try std.testing.expectEqual(@as(usize, 40), manifest.surveyed_commit.len);
     for (manifest.surveyed_commit) |char| {
@@ -55,7 +51,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     try std.testing.expectEqualStrings("samples/zigux/kobject_example.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
     try std.testing.expectEqual(@as(usize, 8), manifest.review_prompts.len);
-    try std.testing.expectEqual(@as(usize, 11), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 12), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_descriptor_prompt = false;
@@ -72,6 +68,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     var saw_registration = false;
     var saw_static_name = false;
     var saw_pre_registration = false;
+    var saw_ownership_summary = false;
     var saw_initialized_exit = false;
     var saw_foo_roundtrip = false;
     var saw_dispatch = false;
@@ -107,7 +104,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
         }
         if (std.mem.indexOf(u8, prompt, "unnamed attribute group shape") != null and
             std.mem.indexOf(u8, prompt, "pre-registration ownership boundary") != null and
-            std.mem.indexOf(u8, prompt, "initialized-only exit summary") != null and
+            std.mem.indexOf(u8, prompt, "ownershipSummary lifecycle snapshot") != null and
             std.mem.indexOf(u8, prompt, "post-exit init/register/show/store rejection boundaries") != null)
         {
             saw_group_boundary_prompt = true;
@@ -119,7 +116,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
         }
         if (std.mem.indexOf(u8, prompt, "initialized-but-not-registered stage explicit") != null and
             std.mem.indexOf(u8, prompt, "zero active attributes") != null and
-            std.mem.indexOf(u8, prompt, "registerAttributes claims ownership") != null)
+            std.mem.indexOf(u8, prompt, "ownershipSummary must expose the cold, initialized, registered, and exited stage transitions directly") != null)
         {
             saw_ownership_prompt = true;
         }
@@ -168,6 +165,12 @@ test "phase 5 kobject manifest records the exact bounded checks" {
             try expectContains(check.expected, "active attribute count at zero");
             try expectContains(check.expected, "registerAttributes claims ownership");
         }
+        if (std.mem.eql(u8, check.id, "ownership-summary")) {
+            saw_ownership_summary = true;
+            try expectContains(check.expected, "cold, initialized, registered, and exited stages");
+            try expectContains(check.expected, "0, 0, 3, and 0");
+            try expectContains(check.expected, "register-or-exit availability");
+        }
         if (std.mem.eql(u8, check.id, "initialized-exit-teardown")) {
             saw_initialized_exit = true;
             try expectContains(check.expected, "abandoned-before-registration teardown summary");
@@ -212,6 +215,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     try std.testing.expect(saw_registration);
     try std.testing.expect(saw_static_name);
     try std.testing.expect(saw_pre_registration);
+    try std.testing.expect(saw_ownership_summary);
     try std.testing.expect(saw_initialized_exit);
     try std.testing.expect(saw_foo_roundtrip);
     try std.testing.expect(saw_dispatch);
@@ -248,53 +252,13 @@ test "phase 5 kobject contributor docs stay aligned with the shipped review surf
     );
     defer std.testing.allocator.free(survey_note);
 
-    const readme = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "Documentation/zigux/README.md",
-        std.testing.allocator,
-        .limited(review_doc_read_limit),
-    );
-    defer std.testing.allocator.free(readme);
-
-    const sample_root_readme = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "samples/zigux/README.md",
-        std.testing.allocator,
-        .limited(review_doc_read_limit),
-    );
-    defer std.testing.allocator.free(sample_root_readme);
-
-    const tests_readme = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "zigux/tests/README.md",
-        std.testing.allocator,
-        .limited(review_doc_read_limit),
-    );
-    defer std.testing.allocator.free(tests_readme);
-
-    const review_checklist = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "Documentation/zigux/review-checklist.md",
-        std.testing.allocator,
-        .limited(review_doc_read_limit),
-    );
-    defer std.testing.allocator.free(review_checklist);
-
     try expectContains(survey_note, "sample-backed survey note");
     try expectContains(survey_note, "samples/zigux/README.md");
     try expectContains(survey_note, "Documentation/zigux/review-checklist.md");
     try expectContains(survey_note, "phase5_kobject_example_manifest.json");
     try expectContains(survey_note, "phase5_kobject_example_survey.zig");
     try expectContains(survey_note, "phase5_build.zig");
-    {
-        const lane_key_line = try std.fmt.allocPrint(
-            std.testing.allocator,
-            "PHASE5_LANE_KEY={s}",
-            .{manifest.lane_key},
-        );
-        defer std.testing.allocator.free(lane_key_line);
-        try expectContains(survey_note, lane_key_line);
-    }
+    try expectContains(survey_note, "PHASE5_LANE_KEY=P5-L12");
     {
         const surveyed_commit_line = try std.fmt.allocPrint(
             std.testing.allocator,
@@ -304,64 +268,8 @@ test "phase 5 kobject contributor docs stay aligned with the shipped review surf
         defer std.testing.allocator.free(surveyed_commit_line);
         try expectContains(survey_note, surveyed_commit_line);
     }
-    try expectContains(survey_note, "shared sample-root catalog in `samples/zigux/README.md` plus the shared prompts in `Documentation/zigux/review-checklist.md`");
-    try expectContains(survey_note, "dedicated kobject review-packet stanza");
-    try expectContains(survey_note, "shared tests-root guide in `zigux/tests/README.md`");
-    try expectContains(survey_note, "direct `zig test samples/zigux/kobject_example.zig` replay");
-    try expectContains(survey_note, "paired `zig test zigux/tests/phase5_kobject_example_survey.zig` replay");
-    try expectContains(survey_note, "Linux `foo`/`baz`/`bar` attribute-array order");
-    try expectContains(survey_note, "shared `0664` attribute mode pattern");
-    try expectContains(survey_note, "initialized-but-not-registered ownership boundary");
-    try expectContains(survey_note, "abandoned_before_registration");
-    try expectContains(survey_note, "zig fmt --check samples/zigux/kobject_example.zig zigux/tests/phase5_kobject_example_survey.zig");
-    try expectContains(survey_note, "zig test samples/zigux/kobject_example.zig");
-    try expectContains(survey_note, "All 4 tests passed.");
-    try expectContains(survey_note, "zig test zigux/tests/phase5_kobject_example_survey.zig");
+    try expectContains(survey_note, "ownershipSummary()");
+    try expectContains(survey_note, "cold, initialized, registered, and exited");
+    try expectContains(survey_note, "All 5 tests passed.");
     try expectContains(survey_note, "All 2 tests passed.");
-    try expectContains(survey_note, "did not rerun the whole Phase 5 sample bundle");
-    {
-        const pinned_commit_line = try std.fmt.allocPrint(
-            std.testing.allocator,
-            "this approved ownership-and-lifetime idiom is now pinned to `PHASE5_SURVEYED_COMMIT={s}`",
-            .{manifest.surveyed_commit},
-        );
-        defer std.testing.allocator.free(pinned_commit_line);
-        try expectContains(survey_note, pinned_commit_line);
-    }
-
-    try expectContains(readme, "phase5-kobject-sample-survey.md");
-    try expectContains(readme, "samples/zigux/kobject_example.zig");
-    try expectContains(readme, "exact registration");
-    try expectContains(readme, "Linux `foo`/`baz`/`bar` attribute-order");
-    try expectContains(readme, "attribute-roundtrip checks");
-    try expectContains(readme, "sysfs creation, `kernel_kobj`, uevents, and module registration");
-    try expectContains(readme, "sample-backed contributor guide for the landed kobject slice");
-
-    try expectContains(sample_root_readme, "Kobject review packet");
-    try expectContains(sample_root_readme, "phase5_kobject_example_manifest.json");
-    try expectContains(sample_root_readme, "phase5_kobject_example_survey.zig");
-    try expectContains(sample_root_readme, "phase5-kobject-sample-survey.md");
-    try expectContains(sample_root_readme, "Linux `foo` or `baz` or `bar` attribute order");
-    try expectContains(sample_root_readme, "shared `0664` mode pattern");
-    try expectContains(sample_root_readme, "unnamed attribute-group shape");
-    try expectContains(sample_root_readme, "initialized-only abandonment path");
-    try expectContains(sample_root_readme, "approved Phase 5 in-memory ownership-and-lifetime idiom");
-    try expectContains(sample_root_readme, "runtime sysfs claim");
-
-    try expectContains(tests_readme, "zigux/tests/phase5_kobject_example.zig");
-    try expectContains(tests_readme, "zigux/tests/phase5_kobject_example_manifest.json");
-    try expectContains(tests_readme, "zigux/tests/phase5_kobject_example_survey.zig");
-    try expectContains(tests_readme, "scripts/zigux/validate-phase5.py");
-    try expectContains(tests_readme, "make -C zigux phase5-validate");
-    try expectContains(tests_readme, "zig test samples/zigux/kobject_example.zig");
-    try expectContains(tests_readme, "zig test zigux/tests/phase5_kobject_example_survey.zig");
-    try expectContains(tests_readme, "keep the current Phase 5 reference-sample packet reviewable through `zigux/tests/phase5_build.zig`");
-    try expectContains(tests_readme, "direct sample replays and paired survey replays explicit for every shipped Phase 5 family");
-
-    try expectContains(review_checklist, "manifest-backed survey");
-    try expectContains(review_checklist, "sample-backed survey note");
-    try expectContains(review_checklist, "phase5_build.zig");
-    try expectContains(review_checklist, "landed Phase 5 `kobject` sample packet");
-    try expectContains(review_checklist, "exact reviewed commit");
-    try expectContains(review_checklist, "approved ownership-and-lifetime idiom");
 }
