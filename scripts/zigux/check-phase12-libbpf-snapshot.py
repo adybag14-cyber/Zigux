@@ -55,8 +55,12 @@ def validate_manifest_packet(manifest: dict[str, object]) -> dict[str, str]:
     }
 
 
+def expected_lane_marker_text(lane_key: str) -> str:
+    return f"PHASE12_LANE_KEY={lane_key}"
+
+
 def validate_lane_marker_alignment(root: Path, manifest_packet: dict[str, str]) -> None:
-    lane_marker = f"PHASE12_LANE_KEY={manifest_packet['lane_key']}"
+    lane_marker = expected_lane_marker_text(manifest_packet["lane_key"])
     survey_note = (root / SURVEY_NOTE_REL_PATH).read_text(encoding="utf-8")
     if lane_marker not in survey_note:
         raise SystemExit("invalid Phase 12 libbpf survey note lane marker")
@@ -203,7 +207,8 @@ def copy_required_tree(root: Path) -> None:
 def run_self_test() -> int:
     live_manifest = json.loads((ROOT / MANIFEST_REL_PATH).read_text(encoding="utf-8"))
     manifest_packet = validate_manifest_packet(live_manifest)
-    if manifest_packet["lane_key"] != "P12-L16":
+    lane_marker = expected_lane_marker_text(manifest_packet["lane_key"])
+    if manifest_packet["lane_key"] != live_manifest["lane_key"]:
         raise SystemExit("phase12-libbpf-snapshot:self-test:lane_key_round_trip")
     if manifest_packet["phase"] != "Phase 12":
         raise SystemExit("phase12-libbpf-snapshot:self-test:phase_round_trip")
@@ -283,7 +288,7 @@ def run_self_test() -> int:
         copy_required_tree(note_root)
         note_path = note_root / SURVEY_NOTE_REL_PATH
         note_path.write_text(
-            note_path.read_text(encoding="utf-8").replace("PHASE12_LANE_KEY=P12-L16\n", ""),
+            note_path.read_text(encoding="utf-8").replace(f"{lane_marker}\n", ""),
             encoding="utf-8",
         )
         expect_system_exit(
@@ -297,7 +302,7 @@ def run_self_test() -> int:
         copy_required_tree(segment_root)
         segment_test_path = segment_root / SEGMENT_TEST_REL_PATH
         segment_test_path.write_text(
-            segment_test_path.read_text(encoding="utf-8").replace("PHASE12_LANE_KEY=P12-L16", "PHASE12_LANE_KEY=P12-L99"),
+            segment_test_path.read_text(encoding="utf-8").replace(lane_marker, expected_lane_marker_text("P12-L99")),
             encoding="utf-8",
         )
         expect_system_exit(
