@@ -99,6 +99,26 @@ pub const RecoveryIoQueueMapSummary = struct {
     requires_poll_map_restore: bool,
 };
 
+pub const RecoveryRestoreSummary = struct {
+    anchor: []const u8,
+    request_queues: u16,
+    default_queues: u16,
+    read_queues: u16,
+    poll_queues: u16,
+    total_queues: u16,
+    control_queue_index: u16,
+    event_queue_index: u16,
+    first_request_queue_index: u16,
+    first_poll_queue_index: ?u16,
+    event_buffer_count: u16,
+    requires_find_vqs: bool,
+    requires_io_queue_map_restore: bool,
+    requires_device_ready: bool,
+    requires_event_rearm: bool,
+    preserves_scsi_host_registration: bool,
+    reruns_host_scan: bool,
+};
+
 pub const ProbeRequest = struct {
     num_queues: u16,
     requested_poll_queues: u16 = 0,
@@ -456,6 +476,33 @@ pub const VirtioScsiQueueLab = struct {
             .requires_blk_mq_map_restore = true,
             .requires_virtio_affinity_restore = layout.default_queues > 0,
             .requires_poll_map_restore = layout.poll_queues > 0,
+        };
+    }
+
+    pub fn recoveryRestoreSummary(self: *const Self) !RecoveryRestoreSummary {
+        if (!self.transport_frozen) {
+            return error.TransportNotFrozen;
+        }
+
+        const layout = self.frozen_layout orelse return error.QueueLayoutUnavailable;
+        return .{
+            .anchor = descriptor().anchor,
+            .request_queues = layout.request_queues,
+            .default_queues = layout.default_queues,
+            .read_queues = layout.read_queues,
+            .poll_queues = layout.poll_queues,
+            .total_queues = layout.total_queues,
+            .control_queue_index = layout.control_queue_index,
+            .event_queue_index = layout.event_queue_index,
+            .first_request_queue_index = layout.first_request_queue_index,
+            .first_poll_queue_index = layout.first_poll_queue_index,
+            .event_buffer_count = layout.event_buffer_count,
+            .requires_find_vqs = true,
+            .requires_io_queue_map_restore = true,
+            .requires_device_ready = true,
+            .requires_event_rearm = true,
+            .preserves_scsi_host_registration = true,
+            .reruns_host_scan = false,
         };
     }
 
