@@ -29,6 +29,19 @@ The live repo already has a bounded `drivers/virtio/virtio.zig` core starter wit
 - the live repo still does not model real descriptor tables, DMA helpers, interrupt callbacks, or transport-backed MMIO queue reset execution.
 - this means the roadmap's "virtqueue wrappers first, MMIO wrappers later" rule is still satisfied through the landed MMIO interrupt-ack rung, and more speculative in-memory ring work should stay parked while the remaining transport-facing MMIO blocker stays explicit.
 
+## Freeze-Boundary Posture
+
+- `PHASE10_FREEZE_MAP=Documentation/zigux/freeze-map.md`
+- `PHASE10_FREEZE_BOUNDARY_STATUS=aligned`
+- `PHASE10_RISKY_TRANSPORT_POSTURE=blocked_on_risky_transport`
+- `PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=yes`
+- `PHASE10_ARCHITECTURE_COUNCIL_REOPEN_ATTACHED=no`
+- `PHASE10_FORBIDDEN_TRANSPORT_CLAIMS=queue_setup_reset_paths,irq_parity,dma_paths,input_registration_lifecycle,probe_remove_lifecycle`
+- the freeze-in-C anchors remain `kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, and `net/core/skbuff.c`
+- the separate Phase 14 study-only anchors remain `kernel/workqueue.c` and `kernel/trace/ring_buffer.c`
+- allowed Phase 10 delivery still stays inside `drivers/virtio/*.zig` plus `zigux/helpers/`
+- this survey uses the landed MMIO interrupt-ack rung only as evidence that no smaller ready transport follow-up remains ahead of `phase10-mmio-lifecycle-and-irq-paths`; it does not reopen `queue_setup_reset_paths`, `irq_parity`, `dma_paths`, `input_registration_lifecycle`, or `probe_remove_lifecycle`
+
 ## Recorded gaps
 
 The survey manifest now records:
