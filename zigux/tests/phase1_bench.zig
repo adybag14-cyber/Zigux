@@ -322,7 +322,13 @@ fn findAndBitBench() struct { checksum: u64 } {
     return .{ .checksum = checksum };
 }
 
-fn stringBench() !struct { checksum: u64 } {
+fn stringBench() !struct {
+    checksum: u64,
+    bool_trim_checksum: u64,
+    memchr_checksum: u64,
+    compare_checksum: u64,
+    memparse_checksum: u64,
+} {
     var aligned = [_]u8{'a'} ** 24;
     aligned[17] = 'X';
 
@@ -335,21 +341,71 @@ fn stringBench() !struct { checksum: u64 } {
     var trailing_storage = [_]u8{'a'} ** 26;
     trailing_storage[25] = 'X';
 
+    const embedded_source = [_]u8{ 'z', 'i', 'g', 0, 'x' };
+    const embedded_prefix = [_]u8{ 'z', 'i', 'g', 0, 'u', 'x' };
+    const embedded_suffix = [_]u8{ 'i', 'g', 0, 'u', 'x' };
+    const embedded_eq = [_]u8{ 'z', 'i', 'g', 0, 'u', 'x' };
+
     var checksum: u64 = 0;
+    var bool_trim_checksum: u64 = 0;
+    var memchr_checksum: u64 = 0;
+    var compare_checksum: u64 = 0;
+    var memparse_checksum: u64 = 0;
     var idx: usize = 0;
     while (idx < iterations_string) : (idx += 1) {
         const enabled = try string.strtobool(if ((idx & 1) == 0) "on" else "0");
         var trim_buf = [_]u8{ ' ', '\t', 'h', 'i', ' ', '\n' };
         const trimmed = string.trimSpaces(&trim_buf);
+        const aligned_idx = string.memchrInv(&aligned, 'a').?;
+        const misaligned_idx = string.memchrInv(misaligned_storage[1..], 'a').?;
+        const prefix_idx = string.memchrInv(prefix_storage[1..], 'a').?;
+        const trailing_idx = string.memchrInv(trailing_storage[1..], 'a').?;
+
         checksum +%= @as(u64, @intFromBool(enabled));
         checksum +%= @intCast(trimmed.len);
-        checksum +%= string.memchrInv(&aligned, 'a').?;
-        checksum +%= string.memchrInv(misaligned_storage[1..], 'a').?;
-        checksum +%= string.memchrInv(prefix_storage[1..], 'a').?;
-        checksum +%= string.memchrInv(trailing_storage[1..], 'a').?;
+        checksum +%= aligned_idx;
+        checksum +%= misaligned_idx;
+        checksum +%= prefix_idx;
+        checksum +%= trailing_idx;
+
+        const skipped = string.skipSpaces("   hello");
+        var remove_buf = [_]u8{ 'a', ' ', 'b', 0, ' ', 'x' };
+        const removed = string.removeSpaces(&remove_buf);
+        var replace_buf = [_]u8{ 'a', '-', 'b', 0, '-' };
+        const replace_end = @intFromPtr(string.strreplace(replace_buf[0 .. replace_buf.len - 1], '-', '_')) - @intFromPtr(replace_buf[0..].ptr);
+
+        bool_trim_checksum +%= @as(u64, @intFromBool(enabled));
+        bool_trim_checksum +%= @intCast(trimmed.len + skipped.len + removed.len + replace_end);
+
+        memchr_checksum +%= aligned_idx;
+        memchr_checksum +%= misaligned_idx;
+        memchr_checksum +%= prefix_idx;
+        memchr_checksum +%= trailing_idx;
+
+        compare_checksum +%= @as(u64, @intFromBool(string.streq("zigux", "zigux")));
+        compare_checksum +%= @as(u64, @intFromBool(string.streq(&embedded_source, &embedded_eq)));
+        compare_checksum +%= @as(u64, @intFromBool(string.strstarts("zigux", "zig")));
+        compare_checksum +%= @intCast(string.str_has_prefix("zigux", "zig"));
+        compare_checksum +%= @as(u64, @intFromBool(string.strends("zigux", "gux")));
+        compare_checksum +%= @as(u64, @intFromBool(string.strstarts(&embedded_source, &embedded_prefix)));
+        compare_checksum +%= @as(u64, @intFromBool(string.strends(&embedded_source, &embedded_suffix)));
+
+        const parsed = switch (idx % 3) {
+            0 => string.memparse("64KiB rest"),
+            1 => string.memparse("0x20M"),
+            else => string.memparse("xyz"),
+        };
+        memparse_checksum +%= parsed.value >> 10;
+        memparse_checksum +%= parsed.rest.len;
     }
 
-    return .{ .checksum = checksum };
+    return .{
+        .checksum = checksum,
+        .bool_trim_checksum = bool_trim_checksum,
+        .memchr_checksum = memchr_checksum,
+        .compare_checksum = compare_checksum,
+        .memparse_checksum = memparse_checksum,
+    };
 }
 
 fn hweightBench() struct { checksum: u64 } {
@@ -641,6 +697,10 @@ pub fn main(init: std.process.Init) !void {
     std.debug.assert(find_zero_bit_result.checksum != 0);
     std.debug.assert(find_and_bit_result.checksum != 0);
     std.debug.assert(string_result.checksum != 0);
+    std.debug.assert(string_result.bool_trim_checksum != 0);
+    std.debug.assert(string_result.memchr_checksum != 0);
+    std.debug.assert(string_result.compare_checksum != 0);
+    std.debug.assert(string_result.memparse_checksum != 0);
     std.debug.assert(hweight_result.checksum != 0);
     std.debug.assert(list_sort_result.checksum != 0);
     std.debug.assert(rbtree_result.checksum != 0);
@@ -670,6 +730,10 @@ pub fn main(init: std.process.Init) !void {
     try stdout_writer.interface.print("PHASE1_BENCH_FIND_NEXT_AND_BIT_CHECKSUM={d}\n", .{find_and_bit_result.checksum});
     try stdout_writer.interface.print("PHASE1_BENCH_STRING_ITERATIONS={d}\n", .{iterations_string});
     try stdout_writer.interface.print("PHASE1_BENCH_STRING_CHECKSUM={d}\n", .{string_result.checksum});
+    try stdout_writer.interface.print("PHASE1_BENCH_STRING_BOOL_TRIM_CHECKSUM={d}\n", .{string_result.bool_trim_checksum});
+    try stdout_writer.interface.print("PHASE1_BENCH_STRING_MEMCHR_CHECKSUM={d}\n", .{string_result.memchr_checksum});
+    try stdout_writer.interface.print("PHASE1_BENCH_STRING_COMPARE_CHECKSUM={d}\n", .{string_result.compare_checksum});
+    try stdout_writer.interface.print("PHASE1_BENCH_STRING_MEMPARSE_CHECKSUM={d}\n", .{string_result.memparse_checksum});
     try stdout_writer.interface.print("PHASE1_BENCH_HWEIGHT_ITERATIONS={d}\n", .{iterations_hweight});
     try stdout_writer.interface.print("PHASE1_BENCH_HWEIGHT_CHECKSUM={d}\n", .{hweight_result.checksum});
     try stdout_writer.interface.print("PHASE1_BENCH_LIST_SORT_ITERATIONS={d}\n", .{iterations_list_sort});
