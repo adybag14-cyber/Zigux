@@ -23,7 +23,7 @@ This note records the current export-shim and UAPI boundary for the bounded Phas
 - `PHASE3_EXPORT_UAPI_TEST_BLOB_SHA=40e49566fa959bcbda976ce3142b76c591e4c79f`
 - `PHASE3_EXPORT_UAPI_LAYOUT_BUILD_BLOB_SHA=081b0624641588ea987a6562ac32781cfe93013f`
 - `PHASE3_EXPORT_UAPI_LAYOUT_TEST_BLOB_SHA=abdb943d7eb1ec6cf72025727fd2896d75b9eb25`
-- `PHASE3_ABI_MANIFEST_BLOB_SHA=d553cf38524af7349534668d31f85cd34edd9c5f`
+- `PHASE3_ABI_MANIFEST_BLOB_SHA=760ba7ab77d925e70eb7840b6468b16ddd1b4750`
 - `PHASE3_EXPORT_UAPI_GATE=zig build phase3-export-uapi-test --build-file zigux/tests/phase3_export_uapi_build.zig`
 - `PHASE3_EXPORT_UAPI_LAYOUT_GATE=zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig`
 - `PHASE3_ABI_BUILD_SMOKE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi --check-build-smoke`
