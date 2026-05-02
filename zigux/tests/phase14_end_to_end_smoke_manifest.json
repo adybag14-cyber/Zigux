@@ -162,6 +162,7 @@
     "review_checklist_has_concurrency_audit_prompt": true,
     "smoke_note_records_owner_and_rollback": true,
     "smoke_note_records_risk_bundle": true,
+    "smoke_note_records_review_blocker_status": true,
     "smoke_note_records_rollback_threshold": true,
     "smoke_note_records_fallback_path": true,
     "smoke_note_records_return_to_blocked_triggers": true,
