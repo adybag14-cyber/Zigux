@@ -401,7 +401,13 @@ test "phase11 shared header parity survey keeps the header boundary explicit" {
     try std.testing.expect(std.mem.indexOf(u8, hvc_survey, "layout_assert.assertOffset(HvOpsLayout, \"dtr_rts\", 64);") != null);
     try std.testing.expect(std.mem.indexOf(u8, hvc_survey, "test \"phase11 hvc console survey keeps bounded hv_ops callback signature proofs\" {") != null);
     try std.testing.expect(std.mem.indexOf(u8, hvc_survey, "assertExactType(@FieldType(HvOpsLayout, \"get_chars\"), ?*const fn (u32, [*]u8, usize) callconv(.c) isize);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_survey, "assertExactType(@FieldType(HvOpsLayout, \"put_chars\"), ?*const fn (u32, [*]const u8, usize) callconv(.c) isize);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_survey, "assertExactType(@FieldType(HvOpsLayout, \"flush\"), ?*const fn (u32, bool) callconv(.c) c_int);") != null);
     try std.testing.expect(std.mem.indexOf(u8, hvc_survey, "assertExactType(@FieldType(HvOpsLayout, \"notifier_add\"), ?*const fn (*HvcStruct, c_int) callconv(.c) c_int);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_survey, "assertExactType(@FieldType(HvOpsLayout, \"notifier_del\"), ?*const fn (*HvcStruct, c_int) callconv(.c) void);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_survey, "assertExactType(@FieldType(HvOpsLayout, \"notifier_hangup\"), ?*const fn (*HvcStruct, c_int) callconv(.c) void);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_survey, "assertExactType(@FieldType(HvOpsLayout, \"tiocmget\"), ?*const fn (*HvcStruct) callconv(.c) c_int);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_survey, "assertExactType(@FieldType(HvOpsLayout, \"tiocmset\"), ?*const fn (*HvcStruct, c_uint, c_uint) callconv(.c) c_int);") != null);
     try std.testing.expect(std.mem.indexOf(u8, hvc_survey, "assertExactType(@FieldType(HvOpsLayout, \"dtr_rts\"), ?*const fn (*HvcStruct, bool) callconv(.c) void);") != null);
     try std.testing.expectEqual(@as(usize, 11), inventory.build_test_names.len);
     try std.testing.expectEqual(@as(usize, 10), inventory.shared_test_depend_steps.len);
