@@ -83,6 +83,22 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     );
     defer std.testing.allocator.free(rbtree_slice);
 
+    const build_inventory_checker = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "scripts/zigux/check-phase7-build-inventory.py",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(build_inventory_checker);
+
+    const build_inventory_fixture = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/fixtures/phase7_build_inventory.json",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(build_inventory_fixture);
+
     const rbtree_parity_checker = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "scripts/zigux/check-phase7-rbtree-parity.py",
@@ -186,6 +202,20 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     try expectContains(rbtree_slice, "`python3 scripts/zigux/check-phase7-make-wrapper.py`");
     try expectContains(rbtree_slice, "`make -C zigux phase7-validate`");
     try expectContains(rbtree_slice, "`zig build test --build-file zigux/tests/phase7_build.zig --summary all`");
+    try expectContains(build_inventory_checker, "BUILD_PATH = ROOT / \"zigux\" / \"tests\" / \"phase7_build.zig\"");
+    try expectContains(build_inventory_checker, "FIXTURE_PATH = ROOT / \"zigux\" / \"tests\" / \"fixtures\" / \"phase7_build_inventory.json\"");
+    try expectContains(build_inventory_checker, "\"shared_validation_gates\"");
+    try expectContains(build_inventory_checker, "\"shared_validation_commands\"");
+    try expectContains(build_inventory_checker, "\"scripts/zigux/check-phase7-build-inventory.py --self-test\"");
+    try expectContains(build_inventory_checker, "\"scripts/zigux/check-phase7-build-inventory.py\"");
+    try expectContains(build_inventory_fixture, "\"shared_validation_gates\"");
+    try expectContains(build_inventory_fixture, "\"shared_validation_commands\"");
+    try expectContains(build_inventory_fixture, "\"scripts/zigux/check-phase7-build-inventory.py\"");
+    try expectContains(build_inventory_fixture, "\"phase7-rbtree-tests\"");
+    try expectContains(build_inventory_fixture, "\"phase7-rbtree-survey-tests\"");
+    try expectContains(build_inventory_fixture, "\"run_rbtree_tests\"");
+    try expectContains(build_inventory_fixture, "\"run_rbtree_survey_tests\"");
+    try expectContains(build_inventory_fixture, "\"../../lib/rbtree.zig\"");
     try expectContains(rbtree_parity_checker, "SOURCE = ROOT / \"lib\" / \"rbtree.c\"");
     try expectContains(rbtree_parity_checker, "FIXTURE = ROOT / \"zigux\" / \"tests\" / \"fixtures\" / \"phase7_rbtree.json\"");
     try expectContains(rbtree_parity_checker, "HARNESS = ROOT / \"zigux\" / \"tests\" / \"fixtures\" / \"phase7_rbtree_c_harness.c\"");
