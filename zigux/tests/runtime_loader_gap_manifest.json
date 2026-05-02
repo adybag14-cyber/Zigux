@@ -21,6 +21,17 @@
     "staged_init_exit_symbols_are_review_only": true,
     "kretprobe_registration_labels_are_metadata_only": true,
     "live_initcall_or_registration_path_present": false,
+    "shared_request_boundary_surface": "zigux/kernel/runtime_loader.zig",
+    "shared_request_boundary_guard": "RuntimeLoadRequest.keepsPreExecutionLifecycleBoundaryExplicit",
+    "review_only_loader_plan_surfaces": [
+      "samples/zigux/runtime_atomic64_loader.zig",
+      "samples/zigux/runtime_bitmap_loader.zig",
+      "samples/zigux/runtime_kretprobe_loader.zig"
+    ],
+    "metadata_only_registration_surfaces": [
+      "samples/zigux/runtime_kretprobe_loader.zig",
+      "zigux/kernel/runtime_loader.zig"
+    ],
     "forbidden_live_calls": [
       "module_init()",
       "module_exit()",
@@ -281,7 +292,7 @@
       "status": "starter_landed",
       "kind": "runtime_substrate",
       "zigux_destination": "zigux/tests/runtime_loader_gap_manifest.json",
-      "why_now": "The shared manifest now records the current pre-execution lifecycle boundary directly: staged init and exit symbols stay review-only, kretprobe registration labels stay metadata-only, and no live `module_init()`, `module_exit()`, `register_kretprobe()`, or `unregister_kretprobe()` path is claimed anywhere in this packet."
+      "why_now": "The shared manifest now records the current pre-execution lifecycle boundary directly: `zigux/kernel/runtime_loader.zig` keeps `RuntimeLoadRequest.keepsPreExecutionLifecycleBoundaryExplicit` as the common guard, the three landed sample-side loader plans keep staged init and exit symbols review-only, the kretprobe lane keeps `register_kretprobe` plus `unregister_kretprobe` metadata-only, and no live `module_init()`, `module_exit()`, `register_kretprobe()`, or `unregister_kretprobe()` path is claimed anywhere in this packet."
     },
     {
       "id": "runtime-loader-plan-inputs",
