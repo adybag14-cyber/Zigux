@@ -34,8 +34,11 @@ WORKFLOW_MARKERS = [
     "python3 scripts/zigux/check-phase11-hvc-cleanup-alignment.py --self-test",
     "Validate Phase 11 simple-driver bundle",
     "make -C zigux phase11-validate",
+    "Run Phase 11 watchdog and console tests",
+    "zig build test --build-file zigux/tests/phase11_build.zig --summary all",
+    "Run dedicated Phase 11 hvc survey replay",
+    "make -C zigux phase11-hvc-survey",
 ]
-
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
@@ -44,7 +47,12 @@ def read_text(root: Path, rel_path: str) -> str:
 def validate(root: Path) -> list[str]:
     missing: list[str] = []
 
-    for rel_path in [SCRIPT_NAME, CHECKER_PATH, MAKEFILE_PATH, WORKFLOW_PATH]:
+    for rel_path in [
+        SCRIPT_NAME,
+        CHECKER_PATH,
+        MAKEFILE_PATH,
+        WORKFLOW_PATH,
+    ]:
         if not (root / rel_path).exists():
             missing.append(f"missing:{rel_path}")
     if missing:
@@ -135,12 +143,15 @@ def clone_fixture_root(destination_root: Path) -> None:
                 "        run: python3 scripts/zigux/check-phase11-hvc-cleanup-alignment.py --self-test",
                 "      - name: Validate Phase 11 simple-driver bundle",
                 "        run: make -C zigux phase11-validate",
+                "      - name: Run Phase 11 watchdog and console tests",
+                "        run: zig build test --build-file zigux/tests/phase11_build.zig --summary all",
+                "      - name: Run dedicated Phase 11 hvc survey replay",
+                "        run: make -C zigux phase11-hvc-survey",
                 "",
             ]
         ),
         encoding="utf-8",
     )
-
 
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase11_hvc_flow_") as tmp_dir:
@@ -217,6 +228,21 @@ def run_self_test() -> int:
             "workflow_cleanup_self_test_step",
             tmp_root,
             "workflow:Self-test Phase 11 hvc cleanup alignment checker",
+        )
+        workflow_path.write_text(original_workflow, encoding="utf-8")
+
+        workflow_path.write_text(
+            original_workflow.replace(
+                "Run Phase 11 watchdog and console tests",
+                "Run Phase 11 shared tests",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "workflow_shared_test_step",
+            tmp_root,
+            "workflow:Run Phase 11 watchdog and console tests",
         )
         workflow_path.write_text(original_workflow, encoding="utf-8")
 
