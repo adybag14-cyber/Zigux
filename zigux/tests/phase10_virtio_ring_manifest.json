@@ -10,6 +10,36 @@
   "freeze_map": "Documentation/zigux/freeze-map.md",
   "freeze_boundary_status": "aligned",
   "risky_transport_posture": "blocked_on_risky_transport",
+  "roadmap_parity_evidence": {
+    "virtqueue_wrappers": {
+      "status": "starter_landed",
+      "evidence": [
+        "drivers/virtio/virtio_ring.zig",
+        "zigux/tests/phase10_virtio_ring.zig",
+        "zigux/tests/phase10_virtio_ring_manifest.json",
+        "Documentation/zigux/phase10-virtio-ring-survey.md"
+      ]
+    },
+    "lab_only_driver_validation": {
+      "status": "starter_landed",
+      "evidence": [
+        "zigux/tests/phase10_build.zig",
+        "zigux/tests/phase10_virtio_ring_survey.zig",
+        "scripts/zigux/validate-phase10.py",
+        "scripts/zigux/validate-phase10-closure.py",
+        "zigux/Makefile"
+      ]
+    },
+    "dual_implementations_for_risky_areas": {
+      "status": "blocked_on_risky_transport",
+      "evidence": [
+        "phase10-mmio-lifecycle-and-irq-paths",
+        "queue_setup_reset_paths",
+        "irq_parity",
+        "dma_paths"
+      ]
+    }
+  },
   "forbidden_transport_claims": [
     "queue_setup_reset_paths",
     "irq_parity",
