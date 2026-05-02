@@ -94,6 +94,12 @@ test "phase13 notifier/list survey records the landed read-only generic notifier
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("66b55d8a9a800345097f3c04b9f95130b1f8d0b8", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 5), manifest.anchors.len);
+    try std.testing.expectEqualStrings("include/linux/list.h", manifest.anchors[0]);
+    try std.testing.expectEqualStrings("include/linux/notifier.h", manifest.anchors[1]);
+    try std.testing.expectEqualStrings("include/linux/acpi_amd_wbrf.h", manifest.anchors[2]);
+    try std.testing.expectEqualStrings("include/net/dsa.h", manifest.anchors[3]);
+    try std.testing.expectEqualStrings("include/linux/watchdog.h", manifest.anchors[4]);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_scope, "read-only notifier foothold") != null);
     try std.testing.expect(manifest.survey_summary.landed_generic_notifier_abi_present);
     try std.testing.expect(manifest.survey_summary.landed_generic_notifier_build_surface_present);
     try std.testing.expect(manifest.survey_summary.landed_generic_notifier_helper_present);
@@ -134,8 +140,11 @@ test "phase13 notifier/list survey records the landed read-only generic notifier
     try std.testing.expect(std.mem.indexOf(u8, dsa_header_text, "struct raw_notifier_head\tnh;") != null);
     try std.testing.expect(std.mem.indexOf(u8, watchdog_header_text, "struct notifier_block reboot_nb;") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "lane key: `P13-L18`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`include/net/dsa.h`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`include/linux/watchdog.h`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/bindings/notifier_abi.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/helpers/notifier_chain_view.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`viewFromHead`, `isEmpty`, `length`, and `summarize`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "landed packet-local evidence instead of as inherited preexisting groundwork") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "share the same small companion API shape") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "registration, callback execution, SRCU, and blocking notifier semantics remain out of scope") != null);
