@@ -1,5 +1,5 @@
 const std = @import("std");
-const current_surveyed_commit = "3ba64cd4e41a4de1c8fd8dbaecb23702ad9701a3";
+const current_surveyed_commit = "ec9aa1b15a34e581625da1056956ecb5dd6cd76a";
 
 const SurveySummary = struct {
     atomic64_test_c_lines: usize,
@@ -92,9 +92,7 @@ fn gitBlobShaHex(payload: []const u8) [40]u8 {
     var digest: [20]u8 = undefined;
     hasher.final(&digest);
 
-    var hex: [40]u8 = undefined;
-    _ = std.fmt.bufPrint(&hex, "{}", .{std.fmt.fmtSliceHexLower(&digest)}) catch unreachable;
-    return hex;
+    return std.fmt.bytesToHex(digest, .lower);
 }
 
 fn expectGateEvidenceBlob(
