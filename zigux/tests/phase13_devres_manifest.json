@@ -92,7 +92,7 @@
       "status": "starter_landed",
       "kind": "resource_helper_wrapper",
       "zigux_destination": "lib/devres.zig",
-      "why_now": "The helper lab now models __devm_ioremap_resource(), devm_ioremap_resource(), devm_ioremap_resource_uc(), and devm_ioremap_resource_wc() around memory-resource validation, overflow-safe inclusive size calculation, pretty-name construction, request-region gating, remap cleanup, and non-posted resolution."
+      "why_now": "The helper lab now models __devm_ioremap_resource(), keeps the direct devm_ioremap_resource() plain wrapper explicit, and covers devm_ioremap_resource_uc() plus devm_ioremap_resource_wc() around memory-resource validation, overflow-safe inclusive size calculation, pretty-name construction, request-region gating, remap cleanup, and non-posted resolution."
     },
     {
       "id": "phase13-devres-devicetree-iomap-planner",
