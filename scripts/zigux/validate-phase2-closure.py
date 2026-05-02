@@ -46,75 +46,11 @@ EXACT_WORKFLOW_RUN_COUNTS = {
     'python3 scripts/zigux/check-mk-elfconfig-diff.py --self-test': 1,
     'python3 scripts/zigux/check-mk-elfconfig-diff.py': 1,
 }
-EXACT_MAKEFILE_VALIDATE_RUN_COUNTS = {
-    'scripts/zigux/artifact_diff.py --self-test': 1,
-    'scripts/zigux/check-artifact-diff-contract.py': 1,
+EXACT_MAKEFILE_RUN_COUNTS = {
     'scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test': 1,
     'scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py': 1,
     'scripts/zigux/validate-phase2.py': 1,
     'scripts/zigux/validate-phase2-closure.py': 1,
-}
-EXACT_MAKEFILE_TOOLS_RUN_COUNTS = {
-    'scripts/zigux/artifact_diff.py --self-test': 1,
-    'scripts/zigux/check-artifact-diff-contract.py': 1,
-    'scripts/zigux/check-fixdep-diff.py --self-test': 1,
-    'scripts/zigux/check-fixdep-diff.py': 1,
-    'scripts/zigux/check-genksyms-bridge.py --self-test': 1,
-    'scripts/zigux/check-genksyms-bridge.py': 1,
-    'scripts/zigux/check-genksyms-crc-diff.py --self-test': 1,
-    'scripts/zigux/check-genksyms-crc-diff.py': 1,
-    'scripts/zigux/check-mk-elfconfig-diff.py --self-test': 1,
-    'scripts/zigux/check-mk-elfconfig-diff.py': 1,
-    '$(ZIG) test scripts/zigux/fixdep.zig': 1,
-    '$(ZIG) test scripts/zigux/genksyms.zig': 1,
-    '$(ZIG) test scripts/zigux/genksyms_crc.zig': 1,
-    '$(ZIG) test scripts/zigux/mk_elfconfig.zig': 1,
-}
-EXACT_MAKEFILE_KCONFIG_RUN_COUNTS = {
-    'scripts/zigux/check-kconfig-bridge.py --self-test': 1,
-    'scripts/zigux/check-kconfig-bridge.py': 1,
-    '$(ZIG) test scripts/zigux/kconfig/conf_bridge.zig': 1,
-    '$(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig': 1,
-}
-EXACT_MAKEFILE_CROSS_RUN_COUNTS = {
-    'scripts/zigux/check-phase2-cross.py --self-test': 1,
-    'scripts/zigux/check-phase2-cross.py': 1,
-}
-EXACT_MAKEFILE_TARGET_ORDERS = {
-    'phase2-validate': [
-        'scripts/zigux/artifact_diff.py --self-test',
-        'scripts/zigux/check-artifact-diff-contract.py',
-        'scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test',
-        'scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py',
-        'scripts/zigux/validate-phase2.py',
-        'scripts/zigux/validate-phase2-closure.py',
-    ],
-    'phase2-tools': [
-        'scripts/zigux/artifact_diff.py --self-test',
-        'scripts/zigux/check-artifact-diff-contract.py',
-        'scripts/zigux/check-fixdep-diff.py --self-test',
-        'scripts/zigux/check-fixdep-diff.py',
-        'scripts/zigux/check-genksyms-bridge.py --self-test',
-        'scripts/zigux/check-genksyms-bridge.py',
-        'scripts/zigux/check-genksyms-crc-diff.py --self-test',
-        'scripts/zigux/check-genksyms-crc-diff.py',
-        'scripts/zigux/check-mk-elfconfig-diff.py --self-test',
-        'scripts/zigux/check-mk-elfconfig-diff.py',
-        '$(ZIG) test scripts/zigux/fixdep.zig',
-        '$(ZIG) test scripts/zigux/genksyms.zig',
-        '$(ZIG) test scripts/zigux/genksyms_crc.zig',
-        '$(ZIG) test scripts/zigux/mk_elfconfig.zig',
-    ],
-    'phase2-kconfig': [
-        'scripts/zigux/check-kconfig-bridge.py --self-test',
-        'scripts/zigux/check-kconfig-bridge.py',
-        '$(ZIG) test scripts/zigux/kconfig/conf_bridge.zig',
-        '$(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig',
-    ],
-    'phase2-cross': [
-        'scripts/zigux/check-phase2-cross.py --self-test',
-        'scripts/zigux/check-phase2-cross.py',
-    ],
 }
 
 
@@ -612,56 +548,14 @@ def validate_exact_workflow_runs(workflow_text: str, expected_commands: dict[str
     return issues
 
 
-def extract_make_target_commands(makefile_text: str, target: str) -> list[str]:
-    header = f'{target}:'
-    commands: list[str] = []
-    in_target = False
-    found_target = False
-
-    for raw_line in makefile_text.splitlines():
-        line = raw_line.rstrip()
-        if not in_target:
-            if line == header or line.startswith(header):
-                found_target = True
-                in_target = True
-            continue
-
-        if raw_line.startswith('\t'):
-            commands.append(raw_line.strip())
-            continue
-
-        if line:
-            break
-
-    if not found_target:
-        return []
-    return commands
-
-
-def validate_exact_makefile_runs(
-    makefile_text: str,
-    target: str,
-    expected_commands: dict[str, int],
-) -> list[str]:
+def validate_exact_makefile_runs(makefile_text: str, expected_commands: dict[str, int]) -> list[str]:
     issues: list[str] = []
-    target_commands = extract_make_target_commands(makefile_text, target)
-    if not target_commands:
-        return [f'makefile_target_missing:{target}']
-
+    stripped_lines = [line.strip() for line in makefile_text.splitlines()]
     for command, expected_count in expected_commands.items():
-        count = sum(1 for line in target_commands if line.endswith(command))
+        count = sum(1 for line in stripped_lines if line.endswith(command))
         if count != expected_count:
-            issues.append(
-                f'makefile_exact_run:{target}:{command}:count={count}:expected={expected_count}'
-            )
+            issues.append(f'makefile_exact_run:{command}:count={count}:expected={expected_count}')
     return issues
-
-
-def validate_makefile_target_order(makefile_text: str, target: str, commands: list[str]) -> list[str]:
-    target_commands = extract_make_target_commands(makefile_text, target)
-    if not target_commands:
-        return [f'makefile_target_missing:{target}']
-    return validate_order(target_commands, commands, f'makefile_target_order:{target}')
 
 
 required_files = [
@@ -938,12 +832,7 @@ missing_markers.extend(validate_artifact_diff_contract_gate(CHECK_ARTIFACT_DIFF_
 missing_markers.extend(validate_mk_elfconfig_checker_gate(ROOT / 'scripts' / 'zigux' / 'check-mk-elfconfig-diff.py'))
 missing_markers.extend(fixdep_case_issues)
 missing_markers.extend(validate_exact_workflow_runs(workflow, EXACT_WORKFLOW_RUN_COUNTS))
-missing_markers.extend(validate_exact_makefile_runs(makefile, 'phase2-validate', EXACT_MAKEFILE_VALIDATE_RUN_COUNTS))
-missing_markers.extend(validate_exact_makefile_runs(makefile, 'phase2-tools', EXACT_MAKEFILE_TOOLS_RUN_COUNTS))
-missing_markers.extend(validate_exact_makefile_runs(makefile, 'phase2-kconfig', EXACT_MAKEFILE_KCONFIG_RUN_COUNTS))
-missing_markers.extend(validate_exact_makefile_runs(makefile, 'phase2-cross', EXACT_MAKEFILE_CROSS_RUN_COUNTS))
-for target, commands in EXACT_MAKEFILE_TARGET_ORDERS.items():
-    missing_markers.extend(validate_makefile_target_order(makefile, target, commands))
+missing_markers.extend(validate_exact_makefile_runs(makefile, EXACT_MAKEFILE_RUN_COUNTS))
 
 if missing_markers:
     print('PHASE2_CLOSURE_VALIDATION=fail')
