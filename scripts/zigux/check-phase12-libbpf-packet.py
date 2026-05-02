@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from pathlib import Path
 import tempfile
@@ -238,6 +239,19 @@ def has_valid_commit(value: object) -> bool:
     return isinstance(value, str) and len(value) == 40
 
 
+def file_digest(root: Path, rel_path: str) -> dict[str, object]:
+    data = (root / rel_path).read_bytes()
+    return {
+        "path": rel_path,
+        "bytes": len(data),
+        "sha256": hashlib.sha256(data).hexdigest(),
+    }
+
+
+def expected_snapshot_files(root: Path) -> list[dict[str, object]]:
+    return [file_digest(root, rel_path) for rel_path in TRACKED_PATHS]
+
+
 def check_manifest_rollback_contract(rollback_contract: object, missing: list[str]) -> None:
     if not isinstance(rollback_contract, dict):
         missing.append("manifest:rollback_contract")
@@ -320,6 +334,13 @@ def check_packet(root: Path) -> list[str]:
         actual_paths = [entry.get("path") for entry in files if isinstance(entry, dict)]
         if actual_paths != TRACKED_PATHS:
             missing.append("snapshot:tracked_paths")
+        else:
+            expected_files = expected_snapshot_files(root)
+            for entry, expected in zip(files, expected_files):
+                if entry.get("bytes") != expected["bytes"]:
+                    missing.append(f"snapshot:bytes:{expected['path']}")
+                if entry.get("sha256") != expected["sha256"]:
+                    missing.append(f"snapshot:sha256:{expected['path']}")
 
     if surveyed_commit:
         if surveyed_commit not in survey_note:
@@ -401,13 +422,6 @@ def build_self_test_tree(root: Path) -> None:
             for slug, status, destination in LEGACY_SEGMENT_SPECS
         ],
     }
-    snapshot = {
-        "lane_key": "P12-L16",
-        "phase": "Phase 12",
-        "surveyed_commit": surveyed_commit,
-        "tracked_file_count": len(TRACKED_PATHS),
-        "files": [{"path": rel_path, "bytes": 1, "sha256": "0" * 64} for rel_path in TRACKED_PATHS],
-    }
     survey_note = "\n".join(
         [
             f"surveyed head {surveyed_commit}",
@@ -418,7 +432,6 @@ def build_self_test_tree(root: Path) -> None:
     reviewability_test = "\n".join(REVIEWABILITY_MARKERS)
 
     write(root / TRACKED_PATHS[0], json.dumps(manifest, indent=2) + "\n")
-    write(root / "zigux/tests/fixtures/phase12_libbpf_snapshot.json", json.dumps(snapshot, indent=2) + "\n")
     write(root / TRACKED_PATHS[3], survey_note + "\n")
     write(root / TRACKED_PATHS[1], segment_test + "\n")
     write(root / TRACKED_PATHS[2], reviewability_test + "\n")
@@ -431,6 +444,15 @@ def build_self_test_tree(root: Path) -> None:
         if "skeleton.zig" in rel_path or "object_loader.zig" in rel_path or "relocation.zig" in rel_path:
             continue
         write(root / rel_path, "// synthetic helper\n")
+
+    snapshot = {
+        "lane_key": "P12-L16",
+        "phase": "Phase 12",
+        "surveyed_commit": surveyed_commit,
+        "tracked_file_count": len(TRACKED_PATHS),
+        "files": expected_snapshot_files(root),
+    }
+    write(root / "zigux/tests/fixtures/phase12_libbpf_snapshot.json", json.dumps(snapshot, indent=2) + "\n")
 
 
 def run_self_test() -> int:
@@ -498,6 +520,24 @@ def run_self_test() -> int:
         missing = check_packet(root)
         if "snapshot:tracked_file_count" not in missing:
             raise SystemExit("phase12-libbpf-packet:self-test:tracked_count_detection")
+
+        build_self_test_tree(root)
+        snapshot_path = root / "zigux/tests/fixtures/phase12_libbpf_snapshot.json"
+        snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
+        snapshot["files"][0]["bytes"] = int(snapshot["files"][0]["bytes"]) + 1
+        snapshot_path.write_text(json.dumps(snapshot, indent=2) + "\n", encoding="utf-8")
+        missing = check_packet(root)
+        if "snapshot:bytes:zigux/tests/phase12_libbpf_manifest.json" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:tracked_bytes_detection")
+
+        build_self_test_tree(root)
+        snapshot_path = root / "zigux/tests/fixtures/phase12_libbpf_snapshot.json"
+        snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
+        snapshot["files"][-1]["sha256"] = "f" * 64
+        snapshot_path.write_text(json.dumps(snapshot, indent=2) + "\n", encoding="utf-8")
+        missing = check_packet(root)
+        if "snapshot:sha256:tools/lib/bpf/zigux_segments/manifest.json" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:tracked_sha_detection")
 
         build_self_test_tree(root)
         snapshot_path = root / "zigux/tests/fixtures/phase12_libbpf_snapshot.json"
@@ -701,7 +741,7 @@ def run_self_test() -> int:
             raise SystemExit("phase12-libbpf-packet:self-test:legacy_surveyed_commit_detection")
 
         print("PHASE12_LIBBPF_PACKET_SELF_TEST=pass")
-        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=21")
+        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=23")
     return 0
 
 
