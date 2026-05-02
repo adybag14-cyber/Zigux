@@ -46,8 +46,8 @@ REQUIRED_SURVEY_MARKERS = (
     "PHASE3_UNSAFE_SCOPE=narrow-mmio-and-raw-pointer-bridge",
     "PHASE3_MMIO_PATH=zigux/helpers/mmio.zig",
     "PHASE3_POLICY_UNSAFE_GATE=zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig",
-    "PHASE3_BOUNDARY_GAP=no-second-boundary-helper-consumes-decoded-policy-beyond-focused-replay",
-    "PHASE3_NEXT_BOUNDED_STEP=keep-the-policy-and-unsafe-surface-narrow-until-one-roadmap-backed-boundary-helper-needs-a-typed-interop-policy-consumer",
+    "PHASE3_BOUNDARY_GAP=no-boundary-helper-beyond-scoped-mmio-consumes-decoded-policy-yet",
+    "PHASE3_NEXT_BOUNDED_STEP=keep-the-policy-and-unsafe-surface-narrow-until-one-roadmap-backed-boundary-helper-beyond-scoped-mmio-needs-a-typed-interop-policy-consumer",
 )
 
 REQUIRED_SURVEY_SNIPPETS = (
@@ -63,6 +63,8 @@ REQUIRED_SURVEY_SNIPPETS = (
     "typed interop-policy",
     "`init`, `encode`, and round-trip replay helpers",
     "`action()`, `permitsVolatileMmio()`, and `permitsRawPointerBridge()` accessors",
+    "readScopedWithPolicy",
+    "`mmio.write32Policy()` and `mmio.read32Policy()`",
 )
 
 REQUIRED_SURVEY_PATHS = (
@@ -418,11 +420,11 @@ def run_self_test() -> int:
                     "- `PHASE3_UNSAFE_SCOPE=narrow-mmio-and-raw-pointer-bridge`",
                     "- `PHASE3_MMIO_PATH=zigux/helpers/mmio.zig`",
                     "- `PHASE3_POLICY_UNSAFE_GATE=zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig`",
-                    "- `PHASE3_BOUNDARY_GAP=no-second-boundary-helper-consumes-decoded-policy-beyond-focused-replay`",
-                    "- `PHASE3_NEXT_BOUNDED_STEP=keep-the-policy-and-unsafe-surface-narrow-until-one-roadmap-backed-boundary-helper-needs-a-typed-interop-policy-consumer`",
+                    "- `PHASE3_BOUNDARY_GAP=no-boundary-helper-beyond-scoped-mmio-consumes-decoded-policy-yet`",
+                    "- `PHASE3_NEXT_BOUNDED_STEP=keep-the-policy-and-unsafe-surface-narrow-until-one-roadmap-backed-boundary-helper-beyond-scoped-mmio-needs-a-typed-interop-policy-consumer`",
                     "",
                     f"This survey is pinned to verified `master` head `{PLACEHOLDER_COMMIT}`.",
-                    "The packet names zigux/helpers/layout_assert.zig, zigux/helpers/panic_policy.zig, zigux/helpers/allocator_policy.zig, zigux/helpers/interop_policy.zig, zigux/unsafe/narrow.zig, zigux/helpers/mmio.zig, zigux/tests/phase3_policy_unsafe_build.zig, and zigux/tests/phase3_policy_unsafe.zig, and it keeps the typed interop-policy boundary explicit through `init`, `encode`, and round-trip replay helpers plus direct `action()`, `permitsVolatileMmio()`, and `permitsRawPointerBridge()` accessors.",
+                    "The packet names zigux/helpers/layout_assert.zig, zigux/helpers/panic_policy.zig, zigux/helpers/allocator_policy.zig, zigux/helpers/interop_policy.zig, zigux/unsafe/narrow.zig, zigux/helpers/mmio.zig, zigux/tests/phase3_policy_unsafe_build.zig, and zigux/tests/phase3_policy_unsafe.zig, and it keeps the typed interop-policy boundary explicit through `init`, `encode`, and round-trip replay helpers plus direct `action()`, `permitsVolatileMmio()`, and `permitsRawPointerBridge()` accessors. The scoped MMIO packet now also exposes readScopedWithPolicy and the focused replay reaches the bridge through `mmio.write32Policy()` and `mmio.read32Policy()`, so the remaining gap is any typed-policy boundary helper beyond scoped MMIO.",
                     "",
                     *_blob_marker_lines(),
                 ]
