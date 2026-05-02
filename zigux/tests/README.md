@@ -138,7 +138,9 @@ Key entrypoints
 - `scripts/zigux/validate-phase6.py`
 - `scripts/zigux/validate-phase7.py`
 - `scripts/zigux/check-phase7-build-inventory.py`
+- `scripts/zigux/check-phase7-make-wrapper.py`
 - `scripts/zigux/check-phase7-cmdline-parity.py`
+- `scripts/zigux/check-phase7-rbtree-parity.py`
 - `scripts/zigux/validate-phase8.py`
 - `scripts/zigux/validate-phase9.py`
 - `scripts/zigux/validate-phase10.py`
