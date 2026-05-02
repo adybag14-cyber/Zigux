@@ -466,11 +466,19 @@ def build_self_test_tree(root: Path) -> None:
     write(root / TRACKED_PATHS[1], segment_test + "\n")
     write(root / TRACKED_PATHS[2], reviewability_test + "\n")
     write(root / TRACKED_PATHS[4], json.dumps(legacy_manifest, indent=2) + "\n")
-    for rel_path in {
-        destination for _, _, destination in PHASE12_GAP_SPECS if destination.endswith(".zig")
-    } | {
-        destination for _, _, destination in LEGACY_SEGMENT_SPECS if destination.endswith(".zig")
-    }:
+    synthetic_helper_paths = (
+        {
+            destination
+            for _, _, destination in PHASE12_GAP_SPECS
+            if destination.endswith(".zig")
+        }
+        | {
+            destination
+            for _, _, destination in LEGACY_SEGMENT_SPECS
+            if destination.endswith(".zig")
+        }
+    ) - set(TRACKED_PATHS)
+    for rel_path in synthetic_helper_paths:
         if "skeleton.zig" in rel_path or "object_loader.zig" in rel_path or "relocation.zig" in rel_path:
             continue
         write(root / rel_path, "// synthetic helper\n")
@@ -528,7 +536,7 @@ def run_self_test() -> int:
         build_self_test_tree(root)
         survey_note_path = root / TRACKED_PATHS[3]
         original = survey_note_path.read_text(encoding="utf-8")
-        survey_note_path.write_text(
+        survey_note_path.writeText(
             original.replace(
                 "optional probes still degrade gracefully, mandatory probes still fail hard\n",
                 "",
@@ -669,6 +677,27 @@ def run_self_test() -> int:
         build_self_test_tree(root)
         manifest_path = root / TRACKED_PATHS[0]
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["gaps"] = {"unexpected": True}
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        missing = check_packet(root)
+        if "manifest:gaps" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:manifest_gap_container_detection")
+
+        build_self_test_tree(root)
+        legacy_manifest_path = root / TRACKED_PATHS[4]
+        legacy_manifest = json.loads(legacy_manifest_path.read_text(encoding="utf-8"))
+        legacy_manifest["segments"] = {"unexpected": True}
+        legacy_manifest_path.write_text(
+            json.dumps(legacy_manifest, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        missing = check_packet(root)
+        if "legacy_manifest:segments" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:legacy_segments_container_detection")
+
+        build_self_test_tree(root)
+        manifest_path = root / TRACKED_PATHS[0]
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["lane_key"] = "P12-L99"
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         missing = check_packet(root)
@@ -796,7 +825,7 @@ def run_self_test() -> int:
             raise SystemExit("phase12-libbpf-packet:self-test:legacy_surveyed_commit_detection")
 
         print("PHASE12_LIBBPF_PACKET_SELF_TEST=pass")
-        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=25")
+        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=27")
     return 0
 
 
