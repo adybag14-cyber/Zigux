@@ -114,6 +114,20 @@ test "phase 8 bridge boundary survey stays wired into the shared packet" {
     try expectContains(bridge_note, "ready-buffer bookkeeping");
     try expectContains(bridge_note, "no standalone timer helper");
     try expectContains(bridge_note, "no standalone clockevent helper");
+    try expectContains(bridge_note, "## Roadmap gap snapshot");
+    try expectContains(bridge_note, "`tools/lib/subcmd/*.zig`");
+    try expectContains(bridge_note, "helper-first foothold through `exec-cmd.zig` and `help.zig`");
+    try expectContains(bridge_note, "direct process-launch and command-discovery side effects");
+    try expectContains(bridge_note, "`opendir()`, `readdir()`, and raw `ioctl()` terminal probing");
+    try expectContains(bridge_note, "`tools/lib/symbol/*.zig`");
+    try expectContains(bridge_note, "parser-first foothold through `kallsyms.zig`");
+    try expectContains(bridge_note, "broader `api/io.h` parity and downstream ELF-emission behavior");
+    try expectContains(bridge_note, "`tools/lib/bpf/zigux_segments/`");
+    try expectContains(bridge_note, "segmented-plan requirement");
+    try expectContains(bridge_note, "blocked object-model or ELF-loader follow-ons");
+    try expectContains(bridge_note, "`output-stable tooling behavior`");
+    try expectContains(bridge_note, "full directory-backed command discovery");
+    try expectContains(bridge_note, "broader libbpf runtime output behavior");
 
     try expectContains(phase8_build, "phase8_bridge_boundary_survey.zig");
     try expectContains(phase8_build, "phase8-bridge-boundary-survey-tests");
