@@ -125,6 +125,25 @@ test "phase3 low-level wrappers stay inside the documented ABI surface" {
         .unsafe_scope = @intFromEnum(abi.UnsafeScope.none),
         .reserved = 0,
     });
+    try mmio.write8Policy(mmio_policy, base, 0, 0x2a);
+    try std.testing.expectEqual(@as(u8, 0x2a), try mmio.read8Policy(mmio_policy, base, 0));
+    try mmio.write16Policy(mmio_policy, base, 2, 0x7bcd);
+    try std.testing.expectEqual(@as(u16, 0x7bcd), try mmio.read16Policy(mmio_policy, base, 2));
+    try mmio.write32Policy(mmio_policy, base, 8, 0xdecafbad);
+    try std.testing.expectEqual(@as(u32, 0xdecafbad), regs[2]);
+    try std.testing.expectEqual(@as(u32, 0xdecafbad), try mmio.read32Policy(mmio_policy, base, 8));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.write8Policy(raw_pointer_policy, base, 0, 1));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.read8Policy(raw_pointer_policy, base, 0));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.write8Policy(none_policy, base, 0, 1));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.read8Policy(none_policy, base, 0));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.write16Policy(raw_pointer_policy, base, 0, 1));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.read16Policy(raw_pointer_policy, base, 0));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.write16Policy(none_policy, base, 0, 1));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.read16Policy(none_policy, base, 0));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.write32Policy(raw_pointer_policy, base, 0, 1));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.read32Policy(raw_pointer_policy, base, 0));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.write32Policy(none_policy, base, 0, 1));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.read32Policy(none_policy, base, 0));
     try mmio.write64Policy(mmio_policy, base64, @sizeOf(u64), 0x1111_2222_3333_4444);
     try std.testing.expectEqual(@as(u64, 0x1111_2222_3333_4444), regs64[1]);
     try std.testing.expectEqual(@as(u64, 0x1111_2222_3333_4444), try mmio.read64Policy(mmio_policy, base64, @sizeOf(u64)));
