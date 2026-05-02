@@ -328,6 +328,21 @@ def run_self_test() -> int:
         )
         workflow_path.write_text(original_workflow, encoding="utf-8")
 
+        workflow_path.write_text(
+            original_workflow.replace(
+                "      - name: Run Phase 9 runtime helper tests\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "workflow_phase9_runtime_helper_step",
+            tmp_root,
+            "workflow:Run Phase 9 runtime helper tests",
+        )
+        workflow_path.write_text(original_workflow, encoding="utf-8")
+
         survey_path.write_text(
             original_survey.replace(
                 "- `python3 scripts/zigux/check-phase9-loader-non-owner-boundary.py --self-test`\n",
@@ -445,6 +460,21 @@ def run_self_test() -> int:
         )
         module_metadata_survey_path.write_text(original_module_metadata_survey, encoding="utf-8")
 
+        module_metadata_survey_path.write_text(
+            original_module_metadata_survey.replace(
+                "- `zig build test --build-file zigux/tests/phase9_build.zig --summary all`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "module_metadata_shared_build_gate",
+            tmp_root,
+            "module_metadata_survey:- `zig build test --build-file zigux/tests/phase9_build.zig --summary all`\n",
+        )
+        module_metadata_survey_path.write_text(original_module_metadata_survey, encoding="utf-8")
+
         makefile_path.write_text(
             original_makefile.replace(
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-module-metadata-packet.py --self-test\n",
@@ -516,7 +546,7 @@ def run_self_test() -> int:
         makefile_path.write_text(original_makefile, encoding="utf-8")
 
     print("PHASE9_VALIDATION_FLOW_SELF_TEST=pass")
-    print("PHASE9_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=15")
+    print("PHASE9_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=17")
     return 0
 
 
