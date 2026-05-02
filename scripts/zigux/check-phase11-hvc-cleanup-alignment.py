@@ -39,6 +39,18 @@ MATRIX_MARKERS = [
     "host-free khvcd, notifier, remove, or cleanup handoff",
 ]
 
+POLL_RETRY_SPLIT_MARKERS = [
+    'test "phase11 hvc console keeps irq-backed drained reads distinct when __hvc_poll can or cannot sleep" {',
+    "    try std.testing.expect(drained_without_sleep.read_poll_pending_after_drain);",
+    "    try std.testing.expect(!drained_with_sleep.read_poll_pending_after_drain);",
+    'test "phase11 hvc console keeps may-sleep drained reads retry-armed when irq delivery is unavailable" {',
+    "    try std.testing.expect(irq_free_drained.read_poll_armed_without_irq);",
+    "    try std.testing.expect(!irq_backed_drained.read_poll_pending_after_drain);",
+    'test "phase11 hvc console keeps partial write progress distinct from stalled __hvc_poll retries" {',
+    "    try std.testing.expect(partial_write.write_progress_resets_timeout);",
+    "    try std.testing.expect(stalled_write.stalled_write_uses_min_timeout);",
+]
+
 
 def resolve_root() -> Path:
     args = sys.argv[1:]
@@ -86,6 +98,7 @@ def validate(root: Path) -> list[str]:
     survey = read_text(root, REQUIRED_FILES["survey"])
     slice_note = read_text(root, REQUIRED_FILES["slice"])
     matrix = read_text(root, REQUIRED_FILES["matrix"])
+    poll_retry_split = read_text(root, REQUIRED_FILES["poll_retry_split"])
 
     for marker in SURVEY_MARKERS:
         expected = marker.format(commit=commit)
@@ -101,6 +114,10 @@ def validate(root: Path) -> list[str]:
     for marker in MATRIX_MARKERS:
         if marker not in matrix:
             missing.append(f"matrix:{marker}")
+
+    for marker in POLL_RETRY_SPLIT_MARKERS:
+        if marker not in poll_retry_split:
+            missing.append(f"poll_retry_split:{marker}")
 
     return missing
 
@@ -175,7 +192,28 @@ def clone_fixture_root(destination_root: Path) -> None:
     )
     (destination_root / REQUIRED_FILES["poll_retry_split"]).parent.mkdir(parents=True, exist_ok=True)
     (destination_root / REQUIRED_FILES["poll_retry_split"]).write_text(
-        "test \"phase11 hvc console keeps the poll retry split placeholder reviewable\" {}\n",
+        "\n".join(
+            [
+                "const std = @import(\"std\");",
+                "const hvc_console = @import(\"hvc_console\");",
+                "",
+                'test "phase11 hvc console keeps irq-backed drained reads distinct when __hvc_poll can or cannot sleep" {',
+                "    try std.testing.expect(drained_without_sleep.read_poll_pending_after_drain);",
+                "    try std.testing.expect(!drained_with_sleep.read_poll_pending_after_drain);",
+                "}",
+                "",
+                'test "phase11 hvc console keeps may-sleep drained reads retry-armed when irq delivery is unavailable" {',
+                "    try std.testing.expect(irq_free_drained.read_poll_armed_without_irq);",
+                "    try std.testing.expect(!irq_backed_drained.read_poll_pending_after_drain);",
+                "}",
+                "",
+                'test "phase11 hvc console keeps partial write progress distinct from stalled __hvc_poll retries" {',
+                "    try std.testing.expect(partial_write.write_progress_resets_timeout);",
+                "    try std.testing.expect(stalled_write.stalled_write_uses_min_timeout);",
+                "}",
+                "",
+            ]
+        ),
         encoding="utf-8",
     )
 
@@ -305,6 +343,22 @@ def run_self_test() -> int:
         slice_path.write_text(original_slice, encoding="utf-8")
 
         poll_retry_split_path = tmp_root / REQUIRED_FILES["poll_retry_split"]
+        original_poll_retry_split = poll_retry_split_path.read_text(encoding="utf-8")
+        poll_retry_split_path.write_text(
+            original_poll_retry_split.replace(
+                "    try std.testing.expect(stalled_write.stalled_write_uses_min_timeout);\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "poll_retry_split_stalled_write_marker",
+            tmp_root,
+            "poll_retry_split:    try std.testing.expect(stalled_write.stalled_write_uses_min_timeout);",
+        )
+        poll_retry_split_path.write_text(original_poll_retry_split, encoding="utf-8")
+
         poll_retry_split_path.unlink()
         expect_missing(
             "poll_retry_split_file_presence",
@@ -313,7 +367,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE11_HVC_CLEANUP_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE11_HVC_CLEANUP_ALIGNMENT_SELF_TEST_CASE_COUNT=8")
+    print("PHASE11_HVC_CLEANUP_ALIGNMENT_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
