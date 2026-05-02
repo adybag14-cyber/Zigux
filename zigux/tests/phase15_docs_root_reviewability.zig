@@ -1,0 +1,41 @@
+const std = @import("std");
+
+fn readAlloc(io: std.Io, path: []const u8, limit: usize) ![]u8 {
+    return std.Io.Dir.cwd().readFileAlloc(io, path, std.testing.allocator, .limited(limit));
+}
+
+fn expectContains(haystack: []const u8, needle: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+}
+
+test "phase15 docs-root reviewability keeps the current handoff drift explicit" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const docs_readme = try readAlloc(io_instance.io(), "Documentation/zigux/README.md", 16 * 1024);
+    defer std.testing.allocator.free(docs_readme);
+
+    const readiness_doc = try readAlloc(io_instance.io(), "Documentation/zigux/phase15-readiness-gate-survey.md", 16 * 1024);
+    defer std.testing.allocator.free(readiness_doc);
+
+    const handoff_doc = try readAlloc(io_instance.io(), "Documentation/zigux/phase15-handoff-next-steps-survey.md", 16 * 1024);
+    defer std.testing.allocator.free(handoff_doc);
+
+    try expectContains(docs_readme, "Phase 15 notes");
+    try expectContains(docs_readme, "phase15-freeze-map-governance.md");
+    try expectContains(docs_readme, "phase15-architecture-council-review-process.md");
+    try expectContains(docs_readme, "phase15-parity-scorecard.md");
+    try expectContains(docs_readme, "phase15-indefinite-c-policy.md");
+    try expectContains(docs_readme, "phase15-readiness-gate-survey.md");
+    try expectContains(docs_readme, "phase15-handoff-next-steps-survey.md");
+    try expectContains(docs_readme, "zigux/tests/phase15_build.zig");
+    try expectContains(docs_readme, "make -C zigux phase15");
+
+    try expectContains(readiness_doc, "docs-root Phase 15 summary still says the handoff includes remaining broader replay drift on current `master`");
+    try expectContains(readiness_doc, "The dedicated replay surfaces are green on current `master`");
+    try expectContains(readiness_doc, "phase15-docs-root-summary-drift-blocker");
+
+    try expectContains(handoff_doc, "docs-root Phase 15 summary still says the handoff includes remaining broader replay drift on current `master`");
+    try expectContains(handoff_doc, "The broader shared replay is green on current `master`");
+    try expectContains(handoff_doc, "phase15-docs-root-summary-drift-blocker");
+}
