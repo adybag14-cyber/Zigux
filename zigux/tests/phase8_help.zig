@@ -132,9 +132,11 @@ test "phase 8 help docs keep the parked stable-output boundary explicit" {
     try expectContains(slice_note, "PHASE8_SLICE=help-command-source-and-terminal-starter");
     try expectContains(slice_note, "tools/lib/subcmd/help.zig");
     try expectContains(slice_note, "zigux/tests/phase8_help.zig");
+    try expectContains(slice_note, "zigux/tests/phase8_help_only_build.zig");
     try expectContains(slice_note, "stable command-list manipulation logic");
     try expectContains(slice_note, "section-level output stays testable");
     try expectContains(slice_note, "list_commands()");
+    try expectContains(slice_note, "make -C zigux phase8-help-test");
     try expectContains(slice_note, "does not yet claim:");
     try expectContains(slice_note, "cmd_help()");
 }
