@@ -865,6 +865,28 @@ def run_self_test() -> int:
         )
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
+        scripts_readme_path.write_text(
+            original_scripts_readme + "\nABS_MT_SLOT remains the single ready-next helper step\n",
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "scripts_readme_stale_ready_next_marker",
+            tmp_root,
+            "script_readme:stale_marker:ABS_MT_SLOT remains the single ready-next helper step",
+        )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
+        tests_readme_path.write_text(
+            original_tests_readme + "\nthree manifest-backed survey records\n",
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "tests_readme_stale_manifest_count_marker",
+            tmp_root,
+            "tests_readme:stale_marker:three manifest-backed survey records",
+        )
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
+
         mmio_test_path = tmp_root / "zigux/tests/phase10_virtio_mmio.zig"
         original_mmio_test = mmio_test_path.read_text(encoding="utf-8")
         mmio_test_path.write_text(
@@ -900,7 +922,7 @@ def run_self_test() -> int:
         doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
 
     print("PHASE10_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_VALIDATOR_SELF_TEST_CASE_COUNT=14")
+    print("PHASE10_VALIDATOR_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
