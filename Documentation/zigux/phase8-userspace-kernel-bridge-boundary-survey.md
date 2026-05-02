@@ -84,7 +84,8 @@ The shared review path now follows the same validator-first Phase 8 sequence tha
 8. `zig test zigux/tests/phase8_libbpf_segments.zig`
 9. `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all`
 10. `make -C zigux phase8-perf-buffer-poll-test`
-11. `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
+11. `zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all`
+12. `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
 
 ## Non-goals
 
