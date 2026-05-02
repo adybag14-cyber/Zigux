@@ -255,6 +255,57 @@ def run_self_test() -> int:
         assert lines == render_result_lines(matched, details)
         covered_cases.append('json_invalid_both')
 
+        matched, details = compare_artifacts('json', missing, json_a)
+        assert not matched
+        assert details['expected_exists'] is False
+        assert details['actual_exists'] is True
+        assert render_result_lines(matched, details) == [
+            'ARTIFACT_DIFF=fail',
+            'MODE=json',
+            f'EXPECTED={missing}',
+            f'ACTUAL={json_a}',
+            'EXPECTED_EXISTS=False',
+            'ACTUAL_EXISTS=True',
+        ]
+        exit_code, lines = capture_emit_result(matched, details)
+        assert exit_code == 1
+        assert lines == render_result_lines(matched, details)
+        covered_cases.append('json_missing_expected')
+
+        matched, details = compare_artifacts('json', json_a, missing)
+        assert not matched
+        assert details['expected_exists'] is True
+        assert details['actual_exists'] is False
+        assert render_result_lines(matched, details) == [
+            'ARTIFACT_DIFF=fail',
+            'MODE=json',
+            f'EXPECTED={json_a}',
+            f'ACTUAL={missing}',
+            'EXPECTED_EXISTS=True',
+            'ACTUAL_EXISTS=False',
+        ]
+        exit_code, lines = capture_emit_result(matched, details)
+        assert exit_code == 1
+        assert lines == render_result_lines(matched, details)
+        covered_cases.append('json_missing_actual')
+
+        matched, details = compare_artifacts('json', missing, other_missing)
+        assert not matched
+        assert details['expected_exists'] is False
+        assert details['actual_exists'] is False
+        assert render_result_lines(matched, details) == [
+            'ARTIFACT_DIFF=fail',
+            'MODE=json',
+            f'EXPECTED={missing}',
+            f'ACTUAL={other_missing}',
+            'EXPECTED_EXISTS=False',
+            'ACTUAL_EXISTS=False',
+        ]
+        exit_code, lines = capture_emit_result(matched, details)
+        assert exit_code == 1
+        assert lines == render_result_lines(matched, details)
+        covered_cases.append('json_missing_both')
+
         blob_a.write_bytes(b'zigux-artifact-diff')
         blob_b.write_bytes(b'zigux-artifact-diff')
         matched, details = compare_artifacts('sha256', blob_a, blob_b)
