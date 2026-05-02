@@ -8,7 +8,7 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
-test "phase15 docs-root reviewability keeps the current handoff drift explicit" {
+test "phase15 docs-root reviewability keeps the current handoff alignment explicit" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -30,12 +30,14 @@ test "phase15 docs-root reviewability keeps the current handoff drift explicit" 
     try expectContains(docs_readme, "phase15-handoff-next-steps-survey.md");
     try expectContains(docs_readme, "zigux/tests/phase15_build.zig");
     try expectContains(docs_readme, "make -C zigux phase15");
+    try expectContains(docs_readme, "only remaining blocked work is the deep-core status-change evidence");
+    try std.testing.expect(std.mem.indexOf(u8, docs_readme, "remaining broader replay drift on current `master`") == null);
 
-    try expectContains(readiness_doc, "docs-root Phase 15 summary still says the handoff includes remaining broader replay drift on current `master`");
-    try expectContains(readiness_doc, "The dedicated replay surfaces are green on current `master`");
-    try expectContains(readiness_doc, "phase15-docs-root-summary-drift-blocker");
+    try expectContains(readiness_doc, "docs-root Phase 15 summary now matches the dedicated readiness and handoff packet");
+    try expectContains(readiness_doc, "phase15-docs-root-summary-alignment");
+    try expectContains(readiness_doc, "phase15-deep-core-status-change-blocker");
 
-    try expectContains(handoff_doc, "docs-root Phase 15 summary still says the handoff includes remaining broader replay drift on current `master`");
-    try expectContains(handoff_doc, "The broader shared replay is green on current `master`");
-    try expectContains(handoff_doc, "phase15-docs-root-summary-drift-blocker");
+    try expectContains(handoff_doc, "docs-root release evidence now matches the dedicated maintenance packet");
+    try expectContains(handoff_doc, "phase15-docs-root-summary-alignment");
+    try expectContains(handoff_doc, "phase15-deep-core-status-change-blocker");
 }
