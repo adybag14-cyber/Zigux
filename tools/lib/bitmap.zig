@@ -687,6 +687,7 @@ test "bitmap scnprintf collapses contiguous ranges" {
 test "bitmap scnprintf truncates and keeps a terminator slot" {
     var map = [_]Word{0};
     setRange(&map, 1, 3);
+    setRange(&map, 7, 1);
 
     var buffer = [_]u8{ 0xaa, 0xaa, 0xaa, 0xaa };
     const len = scnprintf(&map, 8, &buffer);
