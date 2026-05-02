@@ -141,11 +141,11 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
     try expectContains(string_helpers_slice, "Current `master` keeps string-helper reviewability in the helper and test bundle");
     try expectContains(string_helpers_slice, "the four Phase 5 `samples/zigux/` anchors remain `bytestream_fifo`, `kobject_example`, `kretprobe_example`, and `trace_events_sample`.");
     try expectContains(string_helpers_slice, "zigux/tests/fixtures/phase7_string_helpers_escape_vectors.zig");
-    try expectContains(string_helpers_slice, "integration with validation substrate through `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_survey.zig`, and `zigux/tests/phase7_build.zig`.");
+    try expectContains(string_helpers_slice, "integration with validation substrate through `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-build-inventory.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_survey.zig`, and `zigux/tests/phase7_build.zig`.");
     try expectContains(string_helpers_slice, "`python3 scripts/zigux/validate-phase7.py --self-test`");
     try expectContains(string_helpers_slice, "`make -C zigux phase7-validate`");
     try expectContains(string_helpers_slice, "`zig build test --build-file zigux/tests/phase7_build.zig --summary all`");
-    try expectContains(string_helpers_slice, "prove the shared Phase 7 validator packet still fails closed before the helper replay runs");
+    try expectContains(string_helpers_slice, "prove the shared Phase 7 validator packet plus the build-inventory and make-wrapper gates still fail closed before the helper replay runs");
     try expectContains(string_helpers_slice, "`parse_int_array()` over the bounded allocator-backed starter path");
     try expectContains(string_helpers_slice, "`parse_int_array_user()` over the bounded copy-and-parse starter path");
     try expectContains(string_helpers_slice, "`kstrdup_quotable()` over the bounded escape-then-duplicate path");
