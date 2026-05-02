@@ -52,7 +52,7 @@ REQUIRED_SURVEY_SNIPPETS = (
     "no relaxed-order barrier variants are shipped in the current packet",
     "no broader kernel-style atomic helper family is shipped in the current packet",
     "no MMIO family wider than the direct and scoped 8-bit, 16-bit, 32-bit, and 64-bit accessors is shipped in the current packet",
-    "`zigux/tests/phase3_low_level_wrappers.zig` now keeps the strong and weak compare-exchange replay, barrier probe, denied-scope checks, width-specific direct and scoped 32-bit and 64-bit MMIO coverage, misalignment failures, overflow failures, and the shared `MmioRange` layout assertion reviewable without having to infer them from the broader `phase3_abi` bundle alone",
+    "`zigux/tests/phase3_low_level_wrappers.zig` now keeps the strong and weak compare-exchange replay, barrier probe, denied-scope checks, width-specific direct and scoped 8-bit, 16-bit, 32-bit, and 64-bit MMIO coverage, misalignment failures, overflow failures, and the shared `MmioRange` layout assertion reviewable without having to infer them from the broader `phase3_abi` bundle alone",
     "This is real roadmap-backed progress.",
 )
 
@@ -359,7 +359,7 @@ def run_self_test() -> int:
                     "The packet keeps it explicit that no relaxed-order barrier variants are shipped in the current packet.",
                     "The packet keeps it explicit that no broader kernel-style atomic helper family is shipped in the current packet.",
                     "The packet keeps it explicit that no MMIO family wider than the direct and scoped 8-bit, 16-bit, 32-bit, and 64-bit accessors is shipped in the current packet.",
-                    "`zigux/tests/phase3_low_level_wrappers.zig` now keeps the strong and weak compare-exchange replay, barrier probe, denied-scope checks, width-specific direct and scoped 32-bit and 64-bit MMIO coverage, misalignment failures, overflow failures, and the shared `MmioRange` layout assertion reviewable without having to infer them from the broader `phase3_abi` bundle alone",
+                    "`zigux/tests/phase3_low_level_wrappers.zig` now keeps the strong and weak compare-exchange replay, barrier probe, denied-scope checks, width-specific direct and scoped 8-bit, 16-bit, 32-bit, and 64-bit MMIO coverage, misalignment failures, overflow failures, and the shared `MmioRange` layout assertion reviewable without having to infer them from the broader `phase3_abi` bundle alone",
                     "This is real roadmap-backed progress.",
                     "",
                     *_blob_marker_lines(),
