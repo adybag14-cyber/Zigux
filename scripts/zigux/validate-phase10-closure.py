@@ -14,6 +14,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/freeze-map.md",
+    "Documentation/zigux/phase10-virtio-core-survey.md",
     "Documentation/zigux/phase10-virtio-ring-survey.md",
     "Documentation/zigux/phase10-virtio-input-survey.md",
     "Documentation/zigux/phase10-virtio-mmio-survey.md",
@@ -24,6 +25,7 @@ REQUIRED_FILES = [
     "zigux/tests/phase10_build.zig",
     "zigux/tests/phase10_closure_manifest.json",
     "zigux/tests/phase10_virtio_core_manifest.json",
+    "zigux/tests/phase10_virtio_core_survey.zig",
     "zigux/tests/phase10_virtio_ring_manifest.json",
     "zigux/tests/phase10_virtio_input_manifest.json",
     "zigux/tests/phase10_virtio_mmio_manifest.json",
@@ -86,9 +88,16 @@ WORKFLOW_MARKERS = [
 ]
 
 BUILD_MARKERS = [
+    "phase10-virtio-core-survey-tests",
     "phase10-virtio-ring-survey-tests",
     "phase10-virtio-input-survey-tests",
     "phase10-virtio-mmio-survey-tests",
+]
+
+CORE_SURVEY_MARKERS = [
+    "phase10-config-generation-summary-helper",
+    "phase10-config-delivery-disposition-helper",
+    "phase10-core-probe-remove-lifecycle",
 ]
 
 RING_SURVEY_MARKERS = [
@@ -288,6 +297,12 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     check_markers(missing, "makefile", read_text(root, "zigux/Makefile"), MAKEFILE_MARKERS)
     check_markers(missing, "workflow", read_text(root, ".github/workflows/zigux-bootstrap.yml"), WORKFLOW_MARKERS)
     check_markers(missing, "phase10_build", read_text(root, "zigux/tests/phase10_build.zig"), BUILD_MARKERS)
+    check_markers(
+        missing,
+        "core_survey",
+        read_text(root, "Documentation/zigux/phase10-virtio-core-survey.md"),
+        CORE_SURVEY_MARKERS,
+    )
     check_markers(missing, "ring_survey", read_text(root, "Documentation/zigux/phase10-virtio-ring-survey.md"), RING_SURVEY_MARKERS)
     check_markers(missing, "input_survey", read_text(root, "Documentation/zigux/phase10-virtio-input-survey.md"), INPUT_SURVEY_MARKERS)
     check_markers(missing, "mmio_survey", read_text(root, "Documentation/zigux/phase10-virtio-mmio-survey.md"), MMIO_SURVEY_MARKERS)
@@ -368,6 +383,7 @@ def write_fixture(root: Path) -> None:
         "Documentation/zigux/README.md": "\n".join(DOCS_README_MARKERS) + "\n",
         "Documentation/zigux/review-checklist.md": "\n".join(CHECKLIST_MARKERS) + "\n",
         "Documentation/zigux/freeze-map.md": "\n".join(FREEZE_MAP_MARKERS) + "\n",
+        "Documentation/zigux/phase10-virtio-core-survey.md": "\n".join(CORE_SURVEY_MARKERS) + "\n",
         "Documentation/zigux/phase10-virtio-ring-survey.md": "\n".join(RING_SURVEY_MARKERS) + "\n",
         "Documentation/zigux/phase10-virtio-input-survey.md": "\n".join(INPUT_SURVEY_MARKERS) + "\n",
         "Documentation/zigux/phase10-virtio-mmio-survey.md": "\n".join(MMIO_SURVEY_MARKERS) + "\n",
@@ -444,6 +460,15 @@ def expect_missing_marker(label: str, root: Path, marker: str) -> None:
         raise SystemExit(f"phase10-closure-self-test:{label}:expected:{marker}:actual:{actual}")
 
 
+def expect_missing_file(label: str, root: Path, rel_path: str) -> None:
+    missing_files, missing_markers = validate(root)
+    if missing_markers:
+        raise SystemExit(f"phase10-closure-self-test:{label}:unexpected_markers:{','.join(missing_markers)}")
+    if rel_path not in missing_files:
+        actual = ",".join(missing_files) if missing_files else "none"
+        raise SystemExit(f"phase10-closure-self-test:{label}:expected_file:{rel_path}:actual:{actual}")
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase10_closure_") as tmp_dir:
         root = Path(tmp_dir) / "repo"
@@ -484,6 +509,48 @@ def run_self_test() -> int:
             "docs_root_closure_ledger_marker",
             root,
             "docs_readme:zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
+        )
+        write_fixture(root)
+
+        core_survey_path = root / "Documentation/zigux/phase10-virtio-core-survey.md"
+        original_core_survey = core_survey_path.read_text(encoding="utf-8")
+        core_survey_path.write_text(
+            original_core_survey.replace(
+                "phase10-config-delivery-disposition-helper",
+                "phase10-config-delivery-marker-drift",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "core_survey_marker_guard",
+            root,
+            "core_survey:phase10-config-delivery-disposition-helper",
+        )
+        write_fixture(root)
+
+        build_path = root / "zigux/tests/phase10_build.zig"
+        original_build = build_path.read_text(encoding="utf-8")
+        build_path.write_text(
+            original_build.replace(
+                "phase10-virtio-core-survey-tests",
+                "phase10-core-survey-build-drift",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "core_survey_build_guard",
+            root,
+            "phase10_build:phase10-virtio-core-survey-tests",
+        )
+        write_fixture(root)
+
+        (root / "zigux/tests/phase10_virtio_core_survey.zig").unlink()
+        expect_missing_file(
+            "core_survey_gate_file_guard",
+            root,
+            "zigux/tests/phase10_virtio_core_survey.zig",
         )
         write_fixture(root)
 
@@ -542,7 +609,7 @@ def run_self_test() -> int:
         write_fixture(root)
 
     print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=7")
+    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
@@ -574,6 +641,7 @@ total_markers = (
     + len(MAKEFILE_MARKERS)
     + len(WORKFLOW_MARKERS)
     + len(BUILD_MARKERS)
+    + len(CORE_SURVEY_MARKERS)
     + len(RING_SURVEY_MARKERS)
     + len(INPUT_SURVEY_MARKERS)
     + len(MMIO_SURVEY_MARKERS)
