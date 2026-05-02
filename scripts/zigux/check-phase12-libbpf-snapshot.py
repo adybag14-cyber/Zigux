@@ -5,6 +5,7 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+import re
 import subprocess
 import sys
 import tempfile
@@ -20,6 +21,7 @@ TRACKED_PATHS = [
     "Documentation/zigux/phase12-libbpf-segment-survey.md",
     "tools/lib/bpf/zigux_segments/manifest.json",
 ]
+HEX40 = re.compile(r"^[0-9a-f]{40}$")
 
 
 def validate_manifest_packet(manifest: dict[str, object]) -> dict[str, str]:
@@ -30,7 +32,7 @@ def validate_manifest_packet(manifest: dict[str, object]) -> dict[str, str]:
         raise SystemExit("invalid Phase 12 libbpf lane_key")
     if not isinstance(phase, str) or phase != "Phase 12":
         raise SystemExit("invalid Phase 12 libbpf phase")
-    if not isinstance(surveyed_commit, str) or len(surveyed_commit) != 40:
+    if not isinstance(surveyed_commit, str) or not HEX40.fullmatch(surveyed_commit):
         raise SystemExit("invalid Phase 12 libbpf surveyed_commit")
     return {
         "lane_key": lane_key,
@@ -143,6 +145,14 @@ def run_self_test() -> int:
         "invalid Phase 12 libbpf surveyed_commit",
     )
 
+    invalid_nonhex_commit_manifest = dict(live_manifest)
+    invalid_nonhex_commit_manifest["surveyed_commit"] = "g" * 40
+    expect_system_exit(
+        "invalid_nonhex_surveyed_commit",
+        lambda: validate_manifest_packet(invalid_nonhex_commit_manifest),
+        "invalid Phase 12 libbpf surveyed_commit",
+    )
+
     first = render_snapshot()
     second = render_snapshot()
     if first != second:
@@ -218,7 +228,7 @@ def run_self_test() -> int:
     expect_snapshot_mismatch("fixture_tracked_order_drift", drifted_order)
 
     print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST=pass")
-    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT=26")
+    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT=27")
     return 0
 
 
