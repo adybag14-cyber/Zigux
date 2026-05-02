@@ -57,6 +57,7 @@ PHASE2_GENKSYMS_BRIDGE_ALIGNMENT_REQUIRED_SOURCE_MARKERS = [
 ]
 PHASE2_CROSS_REQUIRED_SOURCE_MARKERS = [
     "phase2-cross:tool_manifest_path_missing:",
+    "phase2-cross:self-test:explicit_target_failure:",
     "print('PHASE2_CROSS_SELF_TEST_CASE_COUNT=9')",
 ]
 PHASE2_KCONFIG_REQUIRED_SOURCE_MARKERS = [
