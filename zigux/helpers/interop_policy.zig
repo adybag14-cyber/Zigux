@@ -40,6 +40,10 @@ pub const DecodedInteropPolicy = struct {
         return allocator_policy.requiresResetOnInit(self.allocator_mode);
     }
 
+    pub fn unsafeScope(self: DecodedInteropPolicy) narrow.UnsafeScopeTag {
+        return self.unsafe_scope;
+    }
+
     pub fn permitsVolatileMmio(self: DecodedInteropPolicy) bool {
         return narrow.permitsVolatileMmio(self.unsafe_scope);
     }
@@ -103,6 +107,7 @@ test "phase3 interop policy decoder keeps the boundary typed" {
     try std.testing.expect(decoded.permitsGlobalFallback());
     try std.testing.expect(decoded.initializesOwnedState());
     try std.testing.expect(!decoded.requiresResetOnInit());
+    try std.testing.expectEqual(narrow.UnsafeScopeTag.volatile_mmio, decoded.unsafeScope());
     try std.testing.expect(decoded.permitsVolatileMmio());
     try std.testing.expect(!decoded.permitsRawPointerBridge());
 }
@@ -170,7 +175,7 @@ test "phase3 interop policy keeps canonical abi encoding explicit" {
     const round_trip = try decode(encoded);
     try std.testing.expectEqual(decoded.panic_mode, round_trip.panic_mode);
     try std.testing.expectEqual(decoded.allocator_mode, round_trip.allocator_mode);
-    try std.testing.expectEqual(decoded.unsafe_scope, round_trip.unsafe_scope);
+    try std.testing.expectEqual(decoded.unsafeScope(), round_trip.unsafeScope());
 }
 
 test "phase3 interop policy encode helper preserves explicit policy behavior" {
