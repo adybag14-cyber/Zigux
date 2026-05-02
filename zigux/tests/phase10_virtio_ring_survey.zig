@@ -147,6 +147,8 @@ test "phase10 virtio ring survey manifest records the live queue-discipline pack
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig build test --build-file zigux/tests/phase10_build.zig --summary all") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_FREEZE_MAP=Documentation/zigux/freeze-map.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_FREEZE_BOUNDARY_STATUS=aligned") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_FREEZE_BOUNDARY_OWNER=P10-L10") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_FREEZE_BOUNDARY_ROLLBACK_OWNER=P10-L10") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_RISKY_TRANSPORT_POSTURE=blocked_on_risky_transport") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=yes") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_ARCHITECTURE_COUNCIL_REOPEN_ATTACHED=no") != null);
@@ -165,6 +167,7 @@ test "phase10 virtio ring survey manifest records the live queue-discipline pack
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "wrapper-first or study-only posture") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "kernel/workqueue_bridge.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "kernel/trace/ring_buffer.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "retire the lane back to its parked review-only posture") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "it does not reopen `queue_setup_reset_paths`, `irq_parity`, `dma_paths`, `input_registration_lifecycle`, or `probe_remove_lifecycle`") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "config-window, config-write, and interrupt-ack helpers are already landed") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "leave this packet parked unless a future Phase 10 review can split `phase10-mmio-lifecycle-and-irq-paths` into a smaller transport-safe observation helper") != null);
