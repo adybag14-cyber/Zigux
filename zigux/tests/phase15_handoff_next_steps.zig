@@ -10,6 +10,7 @@ const RepoEvidence = struct {
     phase15_make_target_present: bool,
     shared_ci_phase15_present: bool,
     docs_index_handoff_pointer_present: bool,
+    docs_root_reviewability_guard_present: bool,
     phase15_replay_green_on_current_master: bool,
     docs_root_phase15_summary_aligned: bool,
     deep_core_status_change_ready: bool,
@@ -78,6 +79,7 @@ test "phase 15 handoff manifest records the parked governance contract" {
     try std.testing.expect(manifest.repo_evidence.phase15_make_target_present);
     try std.testing.expect(manifest.repo_evidence.shared_ci_phase15_present);
     try std.testing.expect(manifest.repo_evidence.docs_index_handoff_pointer_present);
+    try std.testing.expect(manifest.repo_evidence.docs_root_reviewability_guard_present);
     try std.testing.expect(manifest.repo_evidence.phase15_replay_green_on_current_master);
     try std.testing.expect(!manifest.repo_evidence.docs_root_phase15_summary_aligned);
     try std.testing.expect(!manifest.repo_evidence.deep_core_status_change_ready);
@@ -138,6 +140,14 @@ test "phase 15 handoff note keeps the open gaps and parked next steps explicit" 
     );
     defer std.testing.allocator.free(workflow);
 
+    const docs_root_reviewability_test = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase15_docs_root_reviewability.zig",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(docs_root_reviewability_test);
+
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "PHASE15_LANE_KEY=P15-Y01") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "## Roadmap Versus Ledger") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "## Current Handoff Surface") != null);
@@ -147,6 +157,7 @@ test "phase 15 handoff note keeps the open gaps and parked next steps explicit" 
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "## Maintenance Handoff Contract") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "shared bootstrap workflow still runs `Run Phase 15 governance tests`") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "shared replay surface is green again") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "zigux/tests/phase15_docs_root_reviewability.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "phase15-docs-root-summary-drift-blocker") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "phase15-deep-core-status-change-blocker") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "make -C zigux phase15") != null);
@@ -157,4 +168,6 @@ test "phase 15 handoff note keeps the open gaps and parked next steps explicit" 
     try std.testing.expect(std.mem.indexOf(u8, docs_readme, "Documentation/zigux/phase15-handoff-next-steps-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, docs_readme, "remaining broader replay drift on current `master`") != null);
     try std.testing.expect(std.mem.indexOf(u8, workflow, "Run Phase 15 governance tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, docs_root_reviewability_test, "Documentation/zigux/phase15-handoff-next-steps-survey.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, docs_root_reviewability_test, "The broader shared replay is green on current `master`") != null);
 }
