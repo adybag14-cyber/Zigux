@@ -266,6 +266,8 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expect(saw_lifecycle_guards);
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[0], "procfs parity"));
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[1], "kfifo_from_user or kfifo_to_user parity"));
+    try std.testing.expect(std.mem.eql(u8, manifest.non_goals[2], "loadable module registration"));
+    try std.testing.expect(std.mem.eql(u8, manifest.non_goals[3], "locking or blocking semantics"));
 }
 
 test "phase 5 bytestream fifo contributor docs stay aligned with the shipped review surface" {
