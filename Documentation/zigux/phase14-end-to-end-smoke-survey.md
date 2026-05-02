@@ -70,7 +70,7 @@ This lane stays narrow on purpose. It does not add a new bridge. It verifies tha
   - `phase14-end-to-end-smoke-tests`: root `phase14_end_to_end_smoke_survey.zig`, coverage `focused_and_full_bundle` through dedicated shard `phase14-smoke` plus the shared `zig build test --build-file zigux/tests/phase14_build.zig --summary all` replay
 - anchor packets in the current smoke bundle:
   - workqueue: `zigux/tests/phase14_workqueue_bridge_manifest.json`, lane `P14-L01`, surveyed commit `542acd7b12c52211ef9a8bd790fa2e2b3367cbf0`, ready-next `phase14-workqueue-delayed-timer-handoff-followup`, blocked `phase14-workqueue-live-execution-blocker`
-  - skbuff: `zigux/tests/phase14_skbuff_bridge_manifest.json`, lane `P14-L12`, surveyed commit `f65e3d897847bf205198e5c47a41782085620579`, ready-next `phase14-skbuff-direct-xmit-identity-drop-followup`, blocked `phase14-skbuff-live-ownership-blocker`
+  - skbuff: `zigux/tests/phase14_skbuff_bridge_manifest.json`, lane `P14-L09`, surveyed commit `6689715b1930c419e49a44b1c2dd317548a08c1d`, ready-next `phase14-skbuff-direct-xmit-identity-drop-followup`, blocked `phase14-skbuff-live-ownership-blocker`
   - ring buffer: `zigux/tests/phase14_ring_buffer_manifest.json`, lane `P14-L08`, surveyed commit `f9a7a6e93c8e6a1b6550fd7b2aa5571729aab05b`, blocked `phase14-ring-buffer-zig-port-blocker`
   - RCU tree: `zigux/tests/phase14_rcu_tree_manifest.json`, lane `P14-L15`, surveyed commit `e2075a1902926ea5f25f724134e48f04108e9240`, blocked `phase14-rcu-tree-bridge-blocker`
 
