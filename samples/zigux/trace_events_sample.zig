@@ -48,6 +48,20 @@ pub const ReplaySummary = struct {
     checked_focus: []const SampleFocus,
 };
 
+pub const CallbackBoundarySummary = struct {
+    stage_before_replay: SampleStage,
+    stage_after_recovery: SampleStage,
+    callback_iteration_count: i32,
+    missing_registration_rejected: bool,
+    underflow_before_registration_rejected: bool,
+    double_registration_rejected: bool,
+    invalid_callback_count_rejected: bool,
+    armed_exit_rejected: bool,
+    callback_path_checked: bool,
+    registration_depth_after_recovery: usize,
+    total_event_calls_after_recovery: usize,
+};
+
 pub const LifecycleSummary = struct {
     stage: SampleStage,
     init_run_count: usize,
@@ -190,6 +204,64 @@ pub const TraceEventsReferenceSample = struct {
         self.total_event_calls += function_callback_family_count;
     }
 
+    pub fn runCallbackBoundaryRecoveryReplay(self: *Self) !CallbackBoundarySummary {
+        if (self.stage() != .initialized) return error.InvalidLifecycleTransition;
+
+        var missing_registration_rejected = false;
+        self.replayFunctionIteration(5) catch |err| switch (err) {
+            error.FunctionCallbackNotRegistered => missing_registration_rejected = true,
+            else => return err,
+        };
+        if (!missing_registration_rejected) return error.ExpectedCallbackBoundaryRejection;
+
+        var underflow_before_registration_rejected = false;
+        self.unregisterFunctionCallback() catch |err| switch (err) {
+            error.RegistrationUnderflow => underflow_before_registration_rejected = true,
+            else => return err,
+        };
+        if (!underflow_before_registration_rejected) return error.ExpectedRegistrationUnderflow;
+
+        try self.registerFunctionCallback();
+
+        var double_registration_rejected = false;
+        self.registerFunctionCallback() catch |err| switch (err) {
+            error.CallbackAlreadyRegistered => double_registration_rejected = true,
+            else => return err,
+        };
+        if (!double_registration_rejected) return error.ExpectedDoubleRegistrationRejection;
+
+        var invalid_callback_count_rejected = false;
+        self.replayFunctionIteration(-1) catch |err| switch (err) {
+            error.InvalidIterationCount => invalid_callback_count_rejected = true,
+            else => return err,
+        };
+        if (!invalid_callback_count_rejected) return error.ExpectedInvalidCallbackCountRejection;
+
+        var armed_exit_rejected = false;
+        self.exit() catch |err| switch (err) {
+            error.OutstandingRegistration => armed_exit_rejected = true,
+            else => return err,
+        };
+        if (!armed_exit_rejected) return error.ExpectedOutstandingRegistrationRejection;
+
+        try self.replayFunctionIteration(5);
+        try self.unregisterFunctionCallback();
+
+        return .{
+            .stage_before_replay = .initialized,
+            .stage_after_recovery = self.stage(),
+            .callback_iteration_count = self.last_function_count,
+            .missing_registration_rejected = missing_registration_rejected,
+            .underflow_before_registration_rejected = underflow_before_registration_rejected,
+            .double_registration_rejected = double_registration_rejected,
+            .invalid_callback_count_rejected = invalid_callback_count_rejected,
+            .armed_exit_rejected = armed_exit_rejected,
+            .callback_path_checked = self.saw_function_callback_path,
+            .registration_depth_after_recovery = self.registration_depth,
+            .total_event_calls_after_recovery = self.total_event_calls,
+        };
+    }
+
     pub fn runAnchorReplay(self: *Self) !ReplaySummary {
         if (self.stage() != .initialized) return error.InvalidLifecycleTransition;
 
@@ -325,6 +397,33 @@ test "trace-events sample replays every modulo-selected string and formatted mes
     }
 }
 
+test "trace-events sample exposes callback boundary recovery as one bounded replay" {
+    var sample = TraceEventsReferenceSample{};
+
+    try sample.init();
+    const replay = try sample.runCallbackBoundaryRecoveryReplay();
+
+    try std.testing.expectEqual(SampleStage.initialized, replay.stage_before_replay);
+    try std.testing.expectEqual(SampleStage.initialized, replay.stage_after_recovery);
+    try std.testing.expectEqual(@as(i32, 5), replay.callback_iteration_count);
+    try std.testing.expect(replay.missing_registration_rejected);
+    try std.testing.expect(replay.underflow_before_registration_rejected);
+    try std.testing.expect(replay.double_registration_rejected);
+    try std.testing.expect(replay.invalid_callback_count_rejected);
+    try std.testing.expect(replay.armed_exit_rejected);
+    try std.testing.expect(replay.callback_path_checked);
+    try std.testing.expectEqual(@as(usize, 0), replay.registration_depth_after_recovery);
+    try std.testing.expectEqual(@as(usize, 2), replay.total_event_calls_after_recovery);
+
+    const lifecycle = sample.lifecycleSummary();
+    try std.testing.expectEqual(SampleStage.initialized, lifecycle.stage);
+    try std.testing.expectEqual(@as(usize, 1), lifecycle.init_run_count);
+    try std.testing.expectEqual(@as(usize, 0), lifecycle.replay_run_count);
+    try std.testing.expectEqual(@as(usize, 0), lifecycle.exit_run_count);
+    try std.testing.expectEqual(@as(usize, 0), lifecycle.registration_depth);
+    try std.testing.expectEqual(@as(usize, 2), lifecycle.total_event_calls);
+}
+
 test "trace-events sample rejects every mutable entry point after exit" {
     var sample = TraceEventsReferenceSample{};
 
@@ -350,21 +449,12 @@ test "trace-events sample keeps callback registration single-live" {
     try std.testing.expectEqual(@as(usize, 0), initial_lifecycle.exit_run_count);
     try std.testing.expectEqual(@as(usize, 0), initial_lifecycle.registration_depth);
     try std.testing.expectEqual(@as(usize, 0), initial_lifecycle.total_event_calls);
-    try std.testing.expectError(error.FunctionCallbackNotRegistered, sample.replayFunctionIteration(5));
-    const after_unregistered_callback = sample.lifecycleSummary();
-    try std.testing.expectEqual(SampleStage.initialized, after_unregistered_callback.stage);
-    try std.testing.expectEqual(@as(usize, 1), after_unregistered_callback.init_run_count);
-    try std.testing.expectEqual(@as(usize, 0), after_unregistered_callback.replay_run_count);
-    try std.testing.expectEqual(@as(usize, 0), after_unregistered_callback.exit_run_count);
-    try std.testing.expectEqual(@as(usize, 0), after_unregistered_callback.registration_depth);
-    try std.testing.expectEqual(@as(usize, 0), after_unregistered_callback.total_event_calls);
-    try std.testing.expectError(error.RegistrationUnderflow, sample.unregisterFunctionCallback());
-    try sample.registerFunctionCallback();
-    try std.testing.expectError(error.CallbackAlreadyRegistered, sample.registerFunctionCallback());
-    try std.testing.expectError(error.InvalidIterationCount, sample.replayFunctionIteration(-1));
-    try std.testing.expectError(error.OutstandingRegistration, sample.exit());
-    try std.testing.expectEqual(@as(usize, 1), sample.registration_depth);
-    try sample.replayFunctionIteration(5);
-    try sample.unregisterFunctionCallback();
+
+    const replay = try sample.runCallbackBoundaryRecoveryReplay();
+    try std.testing.expect(replay.missing_registration_rejected);
+    try std.testing.expect(replay.underflow_before_registration_rejected);
+    try std.testing.expect(replay.double_registration_rejected);
+    try std.testing.expect(replay.invalid_callback_count_rejected);
+    try std.testing.expect(replay.armed_exit_rejected);
     try std.testing.expectEqual(@as(usize, 0), sample.registration_depth);
 }
