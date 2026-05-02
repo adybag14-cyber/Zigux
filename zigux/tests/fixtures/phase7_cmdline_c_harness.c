@@ -60,12 +60,20 @@ static void run_get_option_section(void)
 {
     char range_input[] = "3-5";
     char plus_input[] = "+7,panic";
+    char wrapped_positive_input[] = "18446744073709551615,tail";
+    char wrapped_negative_input[] = "-18446744073709551615,tail";
     char *range_rest = range_input;
     char *plus_rest = plus_input;
+    char *wrapped_positive_rest = wrapped_positive_input;
+    char *wrapped_negative_rest = wrapped_negative_input;
     int range_value = -1;
     int plus_value = -1;
+    int wrapped_positive_value = 0;
+    int wrapped_negative_value = 0;
     int range_rc = get_option(&range_rest, &range_value);
     int plus_rc = get_option(&plus_rest, &plus_value);
+    int wrapped_positive_rc = get_option(&wrapped_positive_rest, &wrapped_positive_value);
+    int wrapped_negative_rc = get_option(&wrapped_negative_rest, &wrapped_negative_value);
 
     printf("\"get_option\":{");
     printf("\"range\":{");
@@ -79,6 +87,18 @@ static void run_get_option_section(void)
     printf("\"value\":%d,", plus_value);
     printf("\"rest\":");
     emit_json_string(plus_rest);
+    printf("},");
+    printf("\"wrapped_positive_low_word\":{");
+    printf("\"rc\":%d,", wrapped_positive_rc);
+    printf("\"value\":%d,", wrapped_positive_value);
+    printf("\"rest\":");
+    emit_json_string(wrapped_positive_rest);
+    printf("},");
+    printf("\"wrapped_negative_low_word\":{");
+    printf("\"rc\":%d,", wrapped_negative_rc);
+    printf("\"value\":%d,", wrapped_negative_value);
+    printf("\"rest\":");
+    emit_json_string(wrapped_negative_rest);
     printf("}}");
 }
 
