@@ -57,7 +57,7 @@ Without this matrix, the slice and survey named the right next step but did not 
 - inspected `master` head: `f0aacb8c3c98b9c3b25c0908067a97c0db54c230`
 - focused compile replay:
   - `zig test --dep gpio_wdt -Mroot=zigux/tests/phase11_gpio_wdt.zig -Mgpio_wdt=drivers/watchdog/gpio_wdt.zig`
-  - result: `11/11` focused gpio watchdog tests passed
+  - result: `12/12` focused gpio watchdog tests passed
 - focused survey replay:
   - `zig test zigux/tests/phase11_gpio_wdt_survey.zig`
   - result: `1/1` survey tests passed
