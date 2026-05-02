@@ -91,9 +91,9 @@ The exact checks currently recorded in `zigux/tests/phase5_trace_events_sample_m
     - `Build Summary: 17/17 steps succeeded; 29/29 tests passed`
     - `phase5-bytestream-fifo-tests 5 pass (5 total)`
     - `phase5-bytestream-fifo-survey-tests 2 pass (2 total)`
-    - `phase5-kobject-example-tests 3 pass (3 total)`
+    - `phase5-kobject-example-tests 5 pass (5 total)`
     - `phase5-kobject-example-survey-tests 2 pass (2 total)`
-    - `phase5-kretprobe-example-tests 1 pass (1 total)`
+    - `phase5-kretprobe-example-tests 5 pass (5 total)`
     - `phase5-kretprobe-example-survey-tests 2 pass (2 total)`
     - `phase5-trace-events-sample-tests 5 pass (5 total)`
     - `phase5-trace-events-sample-survey-tests 2 pass (2 total)`
