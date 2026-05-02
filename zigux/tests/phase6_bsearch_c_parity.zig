@@ -127,8 +127,8 @@ fn writeRuntimeTypedCases(
     }{
         .{ .label = "runtime-typed-hit", .key = 55, .values = ascending_values, .compare = compareU32 },
         .{ .label = "runtime-typed-hit", .key = 34, .values = descending_values, .compare = compareDescendingU32 },
-        .{ .label = "runtime-typed-miss", .key = 20, .values = ascending_values, .compare = compareU32 },
-        .{ .label = "runtime-typed-miss", .key = 20, .values = descending_values, .compare = compareDescendingU32 },
+        .{ .label = "runtime-typed-miss-ascending", .key = 20, .values = ascending_values, .compare = compareU32 },
+        .{ .label = "runtime-typed-miss-descending", .key = 20, .values = descending_values, .compare = compareDescendingU32 },
     };
 
     for (cases) |case| {
@@ -149,8 +149,8 @@ fn writeRuntimeRawCases(
     }{
         .{ .label = "runtime-raw-hit", .key = 55, .values = ascending_values, .compare = compareOpaqueU32 },
         .{ .label = "runtime-raw-hit", .key = 34, .values = descending_values, .compare = compareOpaqueDescendingU32 },
-        .{ .label = "runtime-raw-miss", .key = 20, .values = ascending_values, .compare = compareOpaqueU32 },
-        .{ .label = "runtime-raw-miss", .key = 20, .values = descending_values, .compare = compareOpaqueDescendingU32 },
+        .{ .label = "runtime-raw-miss-ascending", .key = 20, .values = ascending_values, .compare = compareOpaqueU32 },
+        .{ .label = "runtime-raw-miss-descending", .key = 20, .values = descending_values, .compare = compareOpaqueDescendingU32 },
     };
 
     for (cases) |case| {
