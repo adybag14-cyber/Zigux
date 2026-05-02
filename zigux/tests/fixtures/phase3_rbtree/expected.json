@@ -1,0 +1,1 @@
+{"constants":{"root_flag_empty":1,"root_flag_cached":2,"root_flag_leftmost_valid":4},"structs":{"zigux_rbtree_root_view":{"size":24,"align":8,"offsets":{"root_addr":0,"leftmost_addr":8,"flags":16,"reserved":20}}}}
