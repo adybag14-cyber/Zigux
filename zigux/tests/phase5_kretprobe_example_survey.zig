@@ -262,8 +262,11 @@ test "phase 5 kretprobe contributor docs stay aligned with the shipped review su
         try expectContains(survey_note, surveyed_commit_line);
     }
     try expectContains(survey_note, "- `Documentation/zigux/review-checklist.md`");
+    try expectContains(survey_note, "- `zigux/tests/README.md`");
     try expectContains(survey_note, "shared sample-root catalog in `samples/zigux/README.md`");
     try expectContains(survey_note, "shared `Documentation/zigux/review-checklist.md` prompts are part of that boundary now");
+    try expectContains(survey_note, "shared tests-root guide in `zigux/tests/README.md` is part of that same contributor packet now");
+    try expectContains(survey_note, "the direct `zig test samples/zigux/kretprobe_example.zig` replay, the paired `zig test zigux/tests/phase5_kretprobe_example_survey.zig` replay");
     try expectContains(survey_note, "Latest verification snapshot");
     try expectContains(survey_note, "zig test samples/zigux/kretprobe_example.zig");
     try expectContains(survey_note, "All 1 tests passed.");
