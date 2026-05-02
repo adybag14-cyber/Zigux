@@ -80,6 +80,7 @@
     "tools/lib/find_bit.zig": {
       "fixture": "zigux/tests/fixtures/phase1_helpers.json",
       "evidence_keys": [
+        "find_bit.bits_per_long",
         "find_bit.first",
         "find_bit.next_after_6",
         "find_bit.next_after_word",
