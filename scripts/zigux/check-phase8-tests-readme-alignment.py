@@ -91,6 +91,7 @@ SCRIPTS_README_MARKERS = [
     "zigux/tests/phase8_bridge_boundary_survey.zig",
     "zigux/tests/phase8_libbpf_segments_only_build.zig",
     "zigux/tests/phase8_perf_buffer_poll.zig",
+    "zigux/tests/phase8_perf_buffer_poll_only_build.zig",
 ]
 
 WORKFLOW_MARKERS = [
@@ -339,6 +340,7 @@ def clone_fixture_root(destination_root: Path) -> None:
                 "- zigux/tests/phase8_bridge_boundary_survey.zig",
                 "- zigux/tests/phase8_libbpf_segments_only_build.zig",
                 "- zigux/tests/phase8_perf_buffer_poll.zig",
+                "- zigux/tests/phase8_perf_buffer_poll_only_build.zig",
                 "",
             ]
         ),
@@ -829,6 +831,21 @@ def run_self_test() -> int:
         )
         scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
 
+        scripts_readme_path.write_text(
+            original_scripts_readme.replace(
+                "- zigux/tests/phase8_perf_buffer_poll_only_build.zig\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "scripts_readme_perf_buffer_poll_only_build",
+            tmp_root,
+            "scripts_readme:zigux/tests/phase8_perf_buffer_poll_only_build.zig",
+        )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
         workflow_path = tmp_root / REQUIRED_FILES["workflow"]
         original_workflow = workflow_path.read_text(encoding="utf-8")
         workflow_path.write_text(
@@ -881,7 +898,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=33")
+    print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=34")
     return 0
 
 
