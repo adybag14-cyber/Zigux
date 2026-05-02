@@ -161,8 +161,10 @@ phase7: phase7-validate phase7-test
 phase8-validate:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase8.py --self-test
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-tests-readme-alignment.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-perf-buffer-poll-gate.py --self-test
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase8.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-tests-readme-alignment.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-perf-buffer-poll-gate.py
 
 phase8-exec-cmd-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) test tools/lib/subcmd/exec-cmd.zig
