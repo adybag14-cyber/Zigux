@@ -444,6 +444,21 @@ def run_self_test() -> int:
 
         helper_path.write_text(
             original_helper.replace(
+                "pub const WaitClass = enum {",
+                "pub const WaitGroup = enum {",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "helper_wait_class_surface",
+            tmp_root,
+            "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig:pub const WaitClass = enum {",
+        )
+        helper_path.write_text(original_helper, encoding="utf-8")
+
+        helper_path.write_text(
+            original_helper.replace(
                 'test "summarizeProcessRecords keeps perf_buffer__process_records fail-fast ordering and processed record totals explicit"',
                 'test "summarizeProcessRecords keeps perf_buffer__process_records ordering explicit"',
                 1,
@@ -555,7 +570,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST=pass")
-    print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST_CASE_COUNT=17")
+    print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST_CASE_COUNT=18")
     return 0
 
 
