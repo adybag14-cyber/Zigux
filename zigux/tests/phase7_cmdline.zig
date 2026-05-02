@@ -270,3 +270,17 @@ test "phase 7 getOptions matches malformed-range counting from the Linux KUnit c
         try expectGetOptionsCase(case);
     }
 }
+
+test "phase 7 large wrapped numeric inputs stay runtime-safe and match low-word C semantics" {
+    var positive_rest: []const u8 = "18446744073709551615,tail";
+    var positive_value: i32 = 0;
+    try std.testing.expectEqual(@as(u8, 2), cmdline.getOption(&positive_rest, &positive_value));
+    try std.testing.expectEqual(@as(i32, -1), positive_value);
+    try std.testing.expectEqualStrings("tail", positive_rest);
+
+    var negative_rest: []const u8 = "-18446744073709551615,tail";
+    var negative_value: i32 = 0;
+    try std.testing.expectEqual(@as(u8, 2), cmdline.getOption(&negative_rest, &negative_value));
+    try std.testing.expectEqual(@as(i32, 1), negative_value);
+    try std.testing.expectEqualStrings("tail", negative_rest);
+}
