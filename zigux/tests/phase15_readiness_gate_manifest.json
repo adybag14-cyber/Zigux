@@ -1,7 +1,7 @@
 {
   "lane_key": "P15-L01",
   "phase": "Phase 15",
-  "surveyed_commit": "ef7b33b6922d05e5ef514fb4efa588316ce6dda8",
+  "surveyed_commit": "77d1209e4c74efade82757d00d4d6dcfbe5e397e",
   "roadmap_phase_title": "Full-Parity Blockers and Long-Term Governance",
   "roadmap_requirements": [
     "freeze map",
