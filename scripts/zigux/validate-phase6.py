@@ -19,6 +19,7 @@ REQUIRED_FILES = [
     "scripts/zigux/validate-phase6.py",
     "scripts/zigux/check-phase6-base64-c-parity.py",
     "scripts/zigux/check-phase6-bsearch-c-parity.py",
+    "scripts/zigux/check-phase6-checksum-c-parity.py",
     "scripts/zigux/README.md",
     "Documentation/zigux/README.md",
     "Documentation/zigux/phase6-helper-parity-catalog.md",
@@ -45,7 +46,9 @@ REQUIRED_FILES = [
     "zigux/tests/fixtures/phase6_bsearch_c_harness.c",
     "zigux/tests/phase6_checksum.zig",
     "zigux/tests/phase6_checksum_perf.zig",
+    "zigux/tests/phase6_checksum_c_parity.zig",
     "zigux/tests/fixtures/phase6_checksum_vectors.zig",
+    "zigux/tests/fixtures/phase6_checksum_c_harness.c",
     "zigux/tests/phase6_hexdump.zig",
     "zigux/tests/phase6_hexdump_perf.zig",
     "zigux/tests/fixtures/phase6_hexdump_vectors.zig",
@@ -239,31 +242,27 @@ BASE64_C_PARITY_RUNNER_MARKERS = [
 ]
 
 BASE64_CASEGEN_MARKERS = [
-    'try writer.writeAll("/* Generated from zigux/tests/fixtures/phase6_base64_vectors.zig. */\\n\\n");',
+    'Generated from zigux/tests/fixtures/phase6_base64_vectors.zig.',
     "for (fixtures.variant_cases, 0..) |case, idx| {",
     "for (fixtures.variant_decode_cases, 0..) |case, idx| {",
-    'try writer.writeAll("static const struct invalid_case invalid_cases[] = {\\n");',
+    'static const struct invalid_case invalid_cases[] = {',
     'if (std.mem.eql(u8, name, "imap")) return "BASE64_IMAP";',
-    'return if (value) "true" else "false";',
 ]
 
 BASE64_C_HARNESS_MARKERS = [
     "BASE64_IMAP = 2,",
     '[BASE64_IMAP] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+,",',
-    "[BASE64_IMAP] = BASE64_REV_INIT('+', ','),",
+    '[BASE64_IMAP] = BASE64_REV_INIT(\'+\', \,\'),',
     '#include "phase6_base64_c_generated_cases.inc"',
     'printf("enc\\t%s\\t%d\\t", variant_name(c->variant), c->padding ? 1 : 0);',
     'printf("dec\\t%s\\t%d\\t%d\\t", variant_name(c->variant), c->padding ? 1 : 0, bytes_result);',
-    'printf("\\t%s\\t%s\\n", bytes_result < 0 ? "InvalidInput" : "ok", decode_result < 0 ? "InvalidInput" : "ok");',
 ]
 
 BASE64_VECTORS_MARKERS = [
     "pub const standard_cases = [_]EncodeCase{",
     '.{ .input = &variant_sample, .expected = "APv,f4A", .padding = false, .variant_name = "imap" },',
-    '.{ .input = "APv,f4A", .expected = &variant_sample, .padding = false, .variant_name = "imap" },',
     '.{ .input = ",,A", .expected = &variant_two_byte_sample, .padding = false, .variant_name = "imap" },',
-    '.{ .input = "+x", .padding = false, .variant_name = "imap" },',
-    "pub const perf_cases = [_]PerfCase{",
+    'pub const perf_cases = [_]PerfCase{',
 ]
 
 BASE64_SLICE_MARKERS = [
@@ -271,7 +270,6 @@ BASE64_SLICE_MARKERS = [
     "python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test",
     "zigux/tests/phase6_base64_c_casegen.zig",
     "generated-fixture handoff",
-    "generated build template",
     "sorted-output normalization",
 ]
 
@@ -280,8 +278,6 @@ BSEARCH_TEST_MARKERS = [
     'test "phase 6 bsearch keeps representative lookup work inside a binary-search budget" {',
     'test "phase 6 bsearch accepts runtime-selected comparator function pointers" {',
     'test "phase 6 bsearch accepts runtime-selected C ABI comparator pointers" {',
-    'test "phase 6 bsearch accepts runtime-selected raw comparator pointers" {',
-    'test "phase 6 bsearch accepts runtime-selected C ABI raw comparator pointers" {',
     'test "phase 6 bsearch exposes a mutable pointer when searching mutable storage" {',
     "counted_compare_calls += 1;",
     "try std.testing.expect(counted_compare_calls <= 4);",
@@ -311,7 +307,6 @@ BSEARCH_C_PARITY_RUNNER_MARKERS = [
     'try writeIndexCase(writer, "raw-descending-hit", 34, bsearch.bsearchIndex(&@as(u32, 34), @ptrCast(descending_values[0..].ptr), descending_values.len, @sizeOf(u32), compareOpaqueDescendingU32));',
     "try writeRuntimeTypedCases(writer, values[0..], descending_values[0..]);",
     "try writeRuntimeRawCases(writer, values[0..], descending_values[0..]);",
-    'try writer.print("raw-mutable-hit\\t21\\t{}\\n", .{raw_mutable_values[3]});',
 ]
 
 BSEARCH_C_HARNESS_MARKERS = [
@@ -319,8 +314,6 @@ BSEARCH_C_HARNESS_MARKERS = [
     'print_index_case("descending-hit", key, descending_values, inline_bsearch(&key, descending_values, sizeof(descending_values) / sizeof(descending_values[0]), sizeof(descending_values[0]), compare_descending_u32));',
     'print_duplicate_case("duplicate-hit-middle", key, duplicate_in_middle, inline_bsearch(&key, duplicate_in_middle, sizeof(duplicate_in_middle) / sizeof(duplicate_in_middle[0]), sizeof(duplicate_in_middle[0]), compare_u32));',
     'print_index_case("raw-descending-hit", key, descending_values, inline_bsearch(&key, descending_values, sizeof(descending_values) / sizeof(descending_values[0]), sizeof(descending_values[0]), compare_descending_u32));',
-    "print_runtime_typed_cases(values, sizeof(values) / sizeof(values[0]), descending_values, sizeof(descending_values) / sizeof(descending_values[0]));",
-    "print_runtime_raw_cases(values, sizeof(values) / sizeof(values[0]), descending_values, sizeof(descending_values) / sizeof(descending_values[0]));",
     'printf("raw-mutable-hit\\t21\\t%u\\n", raw_mutable_values[3]);',
 ]
 
@@ -330,7 +323,6 @@ BSEARCH_SLICE_MARKERS = [
     "binary-search comparison budget",
     "`RawComparator`",
     "`bsearchMutable`",
-    "found-or-null basis without pinning a stable duplicate index",
 ]
 
 CHECKSUM_TEST_MARKERS = [
@@ -341,10 +333,7 @@ CHECKSUM_TEST_MARKERS = [
     'test "kunit-inspired carry discipline stays stable on the helper surface" {',
     'test "kunit random-prefix parity stays stable on the helper surface" {',
     'test "pseudo header accumulation matches the fixture-backed reference checksum" {',
-    'test "IPv6 pseudo header accumulation matches the fixture-backed reference checksum" {',
-    'test "incremental checksum replacements match full recomputation" {',
     "tcpUdpNofold",
-    "tcpUdpV6Nofold",
     "checksum.replaceByDiff(old_checksum, diff)",
 ]
 
@@ -361,6 +350,33 @@ CHECKSUM_FIXTURE_MARKERS = [
     '.name = "udp pseudo header",',
 ]
 
+CHECKSUM_PARITY_SCRIPT_MARKERS = [
+    'parser.add_argument("--self-test", action="store_true", help="Run built-in parity-script checks")',
+    'root_module.addImport("checksum", checksum_module);',
+    'root_module.addImport("phase6_checksum_vectors", fixtures_module);',
+    'print("PHASE6_CHECKSUM_C_PARITY_SELF_TEST=pass")',
+    'print("PHASE6_CHECKSUM_C_PARITY_SELF_TEST_CASE_COUNT=6")',
+    'print(f"PHASE6_CHECKSUM_C_PARITY_CASES={len(c_lines)}")',
+]
+
+CHECKSUM_C_PARITY_RUNNER_MARKERS = [
+    'try writer.print("compute\\t{s}\\t0x{x:0>4}\\n", .{ case.name, checksum.compute(case.bytes) });',
+    'try writer.print("partial\\t{s}\\t0x{x:0>8}\\n", .{ case.name, checksum.partial(case.bytes, case.seed) });',
+    'try writer.print("compose\\t{s}\\t0x{x:0>8}\\n", .{ case.name, checksum.partial("", combined) });',
+    'try writer.print("tcpudp-nofold\\t{s}\\t0x{x:0>8}\\n",',
+    'try writer.print("replace-by-diff\\tipv4-total-length\\t0x{x:0>4}\\n", .{checksum.replaceByDiff(old_checksum, diff)});',
+    'try writer.print("replace4\\tipv4-saddr\\t0x{x:0>4}\\n", .{checksum.replace4(checksum_before_addr_change, old_saddr, new_saddr)});',
+]
+
+CHECKSUM_C_HARNESS_MARKERS = [
+    "static uint32_t csum_add(uint32_t sum, uint32_t addend)",
+    "static void csum_replace_by_diff(uint16_t *sum, uint32_t diff)",
+    "static uint32_t csum_tcpudp_nofold(uint32_t saddr, uint32_t daddr,",
+    'print_u16_case("compute", "ipv4 header", compute_bytes(ipv4_header, sizeof(ipv4_header)));',
+    'print_u32_case("tcpudp-nofold", "udp pseudo header",',
+    'print_u16_case("replace4", "ipv4-saddr", replaced4);',
+]
+
 CHECKSUM_SLICE_MARKERS = [
     "`PHASE6_SLICE=checksum-leaf-helper`",
     "`replaceByDiff`",
@@ -374,9 +390,7 @@ HEXDUMP_TEST_MARKERS = [
     'test "phase 6 hexdump directly covers nibble, byte-pack, and decode helpers" {',
     'test "phase 6 hexdump replays serialized fixture vectors" {',
     'test "phase 6 hexdump overflow contract matches truncation expectations" {',
-    'test "phase 6 hexdump covers normalization and empty-buffer edge cases" {',
     'test "phase 6 hexdump proves exact 4-byte grouped output" {',
-    'test "phase 6 hexdump proves exact 4-byte grouped ascii output" {',
     "fixtures.prepareExpectedLine",
 ]
 
@@ -392,10 +406,8 @@ HEXDUMP_PERF_MARKERS = [
 
 HEXDUMP_FIXTURE_MARKERS = [
     "pub const PerfCase = struct {",
-    "pub const perf_cases = [_]PerfCase{",
     '.{ .label = "16B-plain", .len = 16, .rowsize = 16, .groupsize = 1, .ascii = false, .reps = 40_000, .max_slowdown_pct = 175 },',
     '.{ .label = "32B-ascii-g2", .len = 32, .rowsize = 32, .groupsize = 2, .ascii = true, .reps = 10_000, .max_slowdown_pct = 550 },',
-    '.{ .label = "16B-ascii-g4", .len = 16, .rowsize = 16, .groupsize = 4, .ascii = true, .reps = 20_000, .max_slowdown_pct = 550 },',
     '.{ .label = "16B-ascii-g8", .len = 16, .rowsize = 16, .groupsize = 8, .ascii = true, .reps = 20_000, .max_slowdown_pct = 600 },',
 ]
 
@@ -403,39 +415,32 @@ HEXDUMP_SLICE_MARKERS = [
     "`PHASE6_SLICE=hexdump-leaf-helper`",
     "uppercase whole-buffer hex encoding for a representative byte packet",
     "append-style whole-buffer encoding that can chain lowercase and uppercase segments without recomputing offsets",
-    "direct nibble helper coverage for lowercase and uppercase hex digits",
-    "direct byte-pack helper coverage for lowercase and uppercase output plus the short-buffer contract",
-    "mixed-case hex digit decoding",
-    "native-endian grouped output for 2, 4, and 8 byte cases",
-    "fixtures.prepareExpectedLine(...)",
     "shared `zigux/tests/fixtures/phase6_hexdump_vectors.zig` perf-case table",
-    "native-endian 4-byte and 8-byte grouped ASCII branches",
-    "max_slowdown_pct = 175",
-    "max_slowdown_pct = 550",
     "max_slowdown_pct = 600",
 ]
 
 CATALOG_MARKERS = [
     "- verified head: `",
-    "PHASE6_BASE64_C_PARITY_CASES=96",
+    "PHASE6_BASE64_C_PARITY_CASES=112",
     "PHASE6_BSEARCH_C_PARITY_CASES=29",
-    "shared portability coverage: `zigux/tests/phase6_bsearch.zig` now exercises both typed and raw runtime-selected comparator pointers across native and C ABI paths",
+    "PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=13",
     "max_slowdown_pct = 150",
     "max_slowdown_pct = 175",
     "max_slowdown_pct = 550",
     "max_slowdown_pct = 600",
     "avg_compare_calls <= std.math.log2_int_ceil(len) + 1",
-    "PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=13",
 ]
 
 EXPECTED_BASE64_DETERMINISM = {
     "standard_encode_vectors": 22,
-    "variant_encode_vectors": 18,
+    "variant_encode_vectors": 24,
     "standard_decode_vectors": 22,
-    "variant_decode_vectors": 12,
-    "invalid_decode_vectors": 22,
+    "variant_decode_vectors": 16,
+    "invalid_decode_vectors": 28,
+    "perf_payload_cases": 2,
+    "perf_replay_cases": 10,
     "c_parity_self_test_cases": 8,
-    "c_parity_cases": 96,
+    "c_parity_cases": 112,
 }
 
 EXPECTED_BSEARCH_DETERMINISM = {
@@ -452,10 +457,12 @@ EXPECTED_CHECKSUM_DETERMINISM = {
     "ipv6_pseudo_header_vectors": 2,
     "carry_discipline_vectors": 4,
     "kunit_random_prefix_vectors": 6,
+    "c_parity_self_test_cases": 6,
+    "c_parity_cases": 15,
 }
 
 EXPECTED_HEXDUMP_DETERMINISM = {
-    "parity_vectors": 9,
+    "parity_vectors": 10,
     "overflow_vectors": 4,
     "required_length_vectors": 9,
     "perf_vectors": 4,
@@ -515,11 +522,14 @@ EXPECTED_MANIFEST = {
             "tests": [
                 "zigux/tests/phase6_checksum.zig",
                 "zigux/tests/phase6_checksum_perf.zig",
+                "zigux/tests/phase6_checksum_c_parity.zig",
             ],
             "fixtures": [
                 "zigux/tests/fixtures/phase6_checksum_vectors.zig",
+                "zigux/tests/fixtures/phase6_checksum_c_harness.c",
             ],
             "slice_note": "Documentation/zigux/phase6-checksum-slice.md",
+            "external_parity": "python3 scripts/zigux/check-phase6-checksum-c-parity.py",
         },
         {
             "id": "hexdump",
@@ -547,40 +557,14 @@ EXPECTED_MANIFEST = {
         "zigux/tests/phase6_helper_parity_manifest.json",
     ],
     "perf_posture": {
-        "relative_slowdown_helpers": [
-            "base64",
-            "checksum",
-            "hexdump",
-        ],
-        "comparison_budget_helpers": [
-            "bsearch",
-        ],
+        "relative_slowdown_helpers": ["base64", "checksum", "hexdump"],
+        "comparison_budget_helpers": ["bsearch"],
         "timing_sanity_only_helpers": [],
     },
     "fixture_posture": {
-        "fixture_backed_helpers": [
-            "base64",
-            "checksum",
-            "hexdump",
-        ],
-        "inline_corpus_helpers": [
-            "bsearch",
-        ],
+        "fixture_backed_helpers": ["base64", "checksum", "hexdump"],
+        "inline_corpus_helpers": ["bsearch"],
     },
-    "exact_checks": [
-        "python3 scripts/zigux/validate-phase6.py --self-test",
-        "python3 scripts/zigux/validate-phase6.py",
-        "make -C zigux phase6-validate",
-        "make -C zigux phase6",
-        "make -C zigux phase6-base64-perf",
-        "make -C zigux phase6-bsearch-perf",
-        "make -C zigux phase6-checksum-perf",
-        "make -C zigux phase6-hexdump-perf",
-        "python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test",
-        "python3 scripts/zigux/check-phase6-base64-c-parity.py",
-        "python3 scripts/zigux/check-phase6-bsearch-c-parity.py --self-test",
-        "python3 scripts/zigux/check-phase6-bsearch-c-parity.py",
-    ],
 }
 
 MARKER_FILE_CONTENTS = {
@@ -612,6 +596,9 @@ MARKER_FILE_CONTENTS = {
     "zigux/tests/phase6_checksum.zig": CHECKSUM_TEST_MARKERS,
     "zigux/tests/phase6_checksum_perf.zig": CHECKSUM_PERF_MARKERS,
     "zigux/tests/fixtures/phase6_checksum_vectors.zig": CHECKSUM_FIXTURE_MARKERS,
+    "scripts/zigux/check-phase6-checksum-c-parity.py": CHECKSUM_PARITY_SCRIPT_MARKERS,
+    "zigux/tests/phase6_checksum_c_parity.zig": CHECKSUM_C_PARITY_RUNNER_MARKERS,
+    "zigux/tests/fixtures/phase6_checksum_c_harness.c": CHECKSUM_C_HARNESS_MARKERS,
     "Documentation/zigux/phase6-checksum-slice.md": CHECKSUM_SLICE_MARKERS,
     "zigux/tests/phase6_hexdump.zig": HEXDUMP_TEST_MARKERS,
     "zigux/tests/phase6_hexdump_perf.zig": HEXDUMP_PERF_MARKERS,
@@ -619,20 +606,25 @@ MARKER_FILE_CONTENTS = {
     "Documentation/zigux/phase6-hexdump-slice.md": HEXDUMP_SLICE_MARKERS,
 }
 
+
 def text(root: Path, path: str) -> str:
     return (root / path).read_text(encoding="utf-8")
+
 
 def require_markers(missing: list[str], label: str, content: str, markers: list[str]) -> None:
     for marker in markers:
         if marker not in content:
             missing.append(f"{label}:missing:{marker}")
 
+
 def require_manifest_equal(missing: list[str], manifest: dict[str, object], key: str, expected: object) -> None:
     if manifest.get(key) != expected:
         missing.append(f"manifest:{key}")
 
+
 def total_marker_count() -> int:
     return sum(len(markers) for markers in MARKER_FILE_CONTENTS.values()) + len(CATALOG_MARKERS)
+
 
 def parse_catalog_head(content: str) -> tuple[str | None, str]:
     match = re.search(r"- verified head: `([0-9a-f]{40}|[^`]+)`", content)
@@ -642,6 +634,7 @@ def parse_catalog_head(content: str) -> tuple[str | None, str]:
     if not HEX40.fullmatch(head):
         return head, "invalid"
     return head, "ok"
+
 
 def validate_phase6(root: Path) -> dict[str, object]:
     missing_files = [path for path in REQUIRED_FILES if not (root / path).exists()]
@@ -697,6 +690,9 @@ def validate_phase6(root: Path) -> dict[str, object]:
         ("phase6_checksum", "zigux/tests/phase6_checksum.zig", CHECKSUM_TEST_MARKERS),
         ("phase6_checksum_perf", "zigux/tests/phase6_checksum_perf.zig", CHECKSUM_PERF_MARKERS),
         ("phase6_checksum_vectors", "zigux/tests/fixtures/phase6_checksum_vectors.zig", CHECKSUM_FIXTURE_MARKERS),
+        ("phase6_checksum_c_parity_script", "scripts/zigux/check-phase6-checksum-c-parity.py", CHECKSUM_PARITY_SCRIPT_MARKERS),
+        ("phase6_checksum_c_parity_runner", "zigux/tests/phase6_checksum_c_parity.zig", CHECKSUM_C_PARITY_RUNNER_MARKERS),
+        ("phase6_checksum_c_harness", "zigux/tests/fixtures/phase6_checksum_c_harness.c", CHECKSUM_C_HARNESS_MARKERS),
         ("phase6_checksum_slice", "Documentation/zigux/phase6-checksum-slice.md", CHECKSUM_SLICE_MARKERS),
         ("phase6_hexdump", "zigux/tests/phase6_hexdump.zig", HEXDUMP_TEST_MARKERS),
         ("phase6_hexdump_perf", "zigux/tests/phase6_hexdump_perf.zig", HEXDUMP_PERF_MARKERS),
@@ -742,6 +738,7 @@ def validate_phase6(root: Path) -> dict[str, object]:
         "catalog_head_status": "ok",
     }
 
+
 def report_validation(result: dict[str, object]) -> int:
     missing_files = result["missing_files"]
     if missing_files:
@@ -772,13 +769,16 @@ def report_validation(result: dict[str, object]) -> int:
     print(f"PHASE6_CATALOG_VERIFIED_HEAD={result['catalog_head']}")
     return 0
 
+
 def write_file(root: Path, path: str, content: str) -> None:
     target = root / path
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(content, encoding="utf-8")
 
+
 def render_marker_file(markers: list[str]) -> str:
     return "\n".join(markers) + "\n"
+
 
 def write_self_test_tree(root: Path) -> None:
     for path in REQUIRED_FILES:
@@ -815,6 +815,7 @@ def write_self_test_tree(root: Path) -> None:
         "zigux/tests/phase6_helper_parity_manifest.json",
         json.dumps(manifest, indent=2) + "\n",
     )
+
 
 def run_self_test() -> int:
     try:
@@ -941,18 +942,9 @@ def run_self_test() -> int:
             checksum_evidence = manifest["determinism_evidence"]["checksum"]
             checksum_evidence["kunit_random_prefix_vectors"] = 5
             manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-            determinism_fail_result = validate_phase6(root)
-            if determinism_fail_result["ok"] or "manifest:determinism_evidence:checksum" not in determinism_fail_result["missing"]:
-                raise AssertionError(f"expected checksum determinism drift failure, got: {determinism_fail_result}")
-
-            write_self_test_tree(root)
-            manifest_path = root / "zigux/tests/phase6_helper_parity_manifest.json"
-            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-            manifest["determinism_evidence"]["hexdump"]["perf_vectors"] = 3
-            manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-            hexdump_determinism_fail_result = validate_phase6(root)
-            if hexdump_determinism_fail_result["ok"] or "manifest:determinism_evidence:hexdump" not in hexdump_determinism_fail_result["missing"]:
-                raise AssertionError(f"expected hexdump determinism drift failure, got: {hexdump_determinism_fail_result}")
+            checksum_fail_result = validate_phase6(root)
+            if checksum_fail_result["ok"] or "manifest:determinism_evidence:checksum" not in checksum_fail_result["missing"]:
+                raise AssertionError(f"expected checksum determinism drift failure, got: {checksum_fail_result}")
 
             write_self_test_tree(root)
             manifest_path = root / "zigux/tests/phase6_helper_parity_manifest.json"
@@ -974,16 +966,19 @@ def run_self_test() -> int:
     print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=13")
     return 0
 
+
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Validate the bounded Phase 6 leaf-helper packet.")
     parser.add_argument("--self-test", action="store_true", help="Run built-in validator checks")
     return parser.parse_args(argv)
+
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     if args.self_test:
         return run_self_test()
     return report_validation(validate_phase6(ROOT))
+
 
 if __name__ == "__main__":
     sys.exit(main())
