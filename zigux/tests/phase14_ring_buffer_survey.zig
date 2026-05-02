@@ -340,4 +340,9 @@ test "phase 14 ring-buffer survey note records the landed resize, recovery, and 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "buffer->cpumask") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "never freed when the CPU goes down") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase14-ring-buffer-cpu-hotplug-lifetime-followup") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Attached toolchain fallback guidance") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "when `zig` is not on `PATH`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "make -C zigux phase14-validate PYTHON=python3 ZIG=<attached-zig-path>") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "<attached-zig-path> build test --build-file zigux/tests/phase14_build.zig --summary all") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "make -C zigux phase14 ZIG=<attached-zig-path>") != null);
 }
