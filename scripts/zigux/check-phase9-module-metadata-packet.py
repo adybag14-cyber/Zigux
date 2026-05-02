@@ -18,6 +18,9 @@ PHASE9_BUILD_PATH = "zigux/tests/phase9_build.zig"
 LOADER_GAP_SURVEY_PATH = "Documentation/zigux/phase9-runtime-loader-gap-survey.md"
 RUNTIME_LOADER_PATH = "zigux/kernel/runtime_loader.zig"
 TESTS_README_PATH = "zigux/tests/README.md"
+ATOMIC64_LOADER_PATH = "samples/zigux/runtime_atomic64_loader.zig"
+BITMAP_LOADER_PATH = "samples/zigux/runtime_bitmap_loader.zig"
+KRETPROBE_LOADER_PATH = "samples/zigux/runtime_kretprobe_loader.zig"
 
 REQUIRED_FILES = [
     SURVEY_PATH,
@@ -27,6 +30,9 @@ REQUIRED_FILES = [
     LOADER_GAP_SURVEY_PATH,
     RUNTIME_LOADER_PATH,
     TESTS_README_PATH,
+    ATOMIC64_LOADER_PATH,
+    BITMAP_LOADER_PATH,
+    KRETPROBE_LOADER_PATH,
 ]
 
 SURVEY_REQUIRED_MARKERS = [
@@ -68,17 +74,25 @@ PHASE9_BUILD_REQUIRED_MARKERS = [
 SURVEY_TEST_REQUIRED_MARKERS = [
     'test "runtime module metadata manifest keeps the dedicated descriptor and depmod-gap packet explicit" {',
     'test "runtime module metadata survey note keeps descriptor fields, shared loader metadata, and depmod gaps explicit" {',
+    'test "runtime module metadata survey proves the landed loader-plan scaffolds stay explicit and sample-only bounded" {',
     'test "runtime module metadata survey proves the live starter descriptors and shared loader metadata surface directly" {',
     '"Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md"',
     '"zigux/tests/runtime_module_metadata_manifest.json"',
     '"Documentation/zigux/phase9-runtime-loader-gap-survey.md"',
     '"zigux/kernel/runtime_loader.zig"',
+    '"samples/zigux/runtime_atomic64_loader.zig"',
+    '"samples/zigux/runtime_bitmap_loader.zig"',
+    '"samples/zigux/runtime_kretprobe_loader.zig"',
     '"samples/zigux/runtime_trace_events.zig"',
     '"MODULE_INFO()"',
     '"MODULE_ALIAS()"',
     '"scripts/depmod.sh"',
     '"RuntimeLoadRequest"',
-    '"runtime_trace_events_loader.zig"',
+    "runtime_trace_events_loader.zig",
+    "perf-runtime-kretprobe",
+    "register_kretprobe",
+    "waitingOnRuntimeSubstrate",
+    "releasedWithoutSubstrate",
 ]
 
 LOADER_GAP_SURVEY_REQUIRED_MARKERS = [
@@ -94,6 +108,46 @@ RUNTIME_LOADER_REQUIRED_MARKERS = [
     "exit_symbol",
     "handoff_stage",
     "allocator_handoff",
+]
+
+ATOMIC64_LOADER_REQUIRED_MARKERS = [
+    "pub const RuntimeAtomic64LoadPlan = struct",
+    "pub fn toSharedRequest(plan: RuntimeAtomic64LoadPlan) runtime_loader.RuntimeLoadRequest",
+    '"zigux_runtime_atomic64_init"',
+    '"zigux_runtime_atomic64_exit"',
+    "waitingOnRuntimeSubstrate",
+    "releasedWithoutSubstrate",
+    "perf-runtime-atomic64",
+]
+
+BITMAP_LOADER_REQUIRED_MARKERS = [
+    "pub const RuntimeBitmapLoadPlan = struct",
+    "pub fn toSharedRequest(plan: RuntimeBitmapLoadPlan) runtime_loader.RuntimeLoadRequest",
+    '"zigux_runtime_bitmap_init"',
+    '"zigux_runtime_bitmap_exit"',
+    "waitingOnRuntimeSubstrate",
+    "releasedWithoutSubstrate",
+    "perf-runtime-bitmap",
+]
+
+KRETPROBE_LOADER_REQUIRED_MARKERS = [
+    "pub const RuntimeKretprobeLoadPlan = struct",
+    "pub fn toSharedRequest(plan: RuntimeKretprobeLoadPlan) runtime_loader.RuntimeLoadRequest",
+    '"register_kretprobe"',
+    '"unregister_kretprobe"',
+    '"zigux_runtime_kretprobe_init"',
+    '"zigux_runtime_kretprobe_exit"',
+    "waitingOnRuntimeSubstrate",
+    "releasedWithoutSubstrate",
+    "perf-runtime-kretprobe",
+]
+
+LOADER_PLAN_FORBIDDEN_MARKERS = [
+    "MODULE_INFO(",
+    "MODULE_ALIAS(",
+    ".modinfo",
+    "modules.alias",
+    "scripts/depmod.sh",
 ]
 
 TESTS_README_REQUIRED_MARKERS = [
@@ -249,6 +303,9 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     loader_gap_survey_text = read_text(root, LOADER_GAP_SURVEY_PATH)
     runtime_loader_text = read_text(root, RUNTIME_LOADER_PATH)
     tests_readme_text = read_text(root, TESTS_README_PATH)
+    atomic64_loader_text = read_text(root, ATOMIC64_LOADER_PATH)
+    bitmap_loader_text = read_text(root, BITMAP_LOADER_PATH)
+    kretprobe_loader_text = read_text(root, KRETPROBE_LOADER_PATH)
 
     failures: list[str] = []
 
@@ -267,6 +324,22 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     for marker in RUNTIME_LOADER_REQUIRED_MARKERS:
         if marker not in runtime_loader_text:
             failures.append(f"runtime_loader:{marker}")
+    for marker in ATOMIC64_LOADER_REQUIRED_MARKERS:
+        if marker not in atomic64_loader_text:
+            failures.append(f"atomic64_loader:{marker}")
+    for marker in BITMAP_LOADER_REQUIRED_MARKERS:
+        if marker not in bitmap_loader_text:
+            failures.append(f"bitmap_loader:{marker}")
+    for marker in KRETPROBE_LOADER_REQUIRED_MARKERS:
+        if marker not in kretprobe_loader_text:
+            failures.append(f"kretprobe_loader:{marker}")
+    for marker in LOADER_PLAN_FORBIDDEN_MARKERS:
+        if marker in atomic64_loader_text:
+            failures.append(f"atomic64_loader_forbidden:{marker}")
+        if marker in bitmap_loader_text:
+            failures.append(f"bitmap_loader_forbidden:{marker}")
+        if marker in kretprobe_loader_text:
+            failures.append(f"kretprobe_loader_forbidden:{marker}")
     for marker in TESTS_README_REQUIRED_MARKERS:
         if marker not in tests_readme_text:
             failures.append(f"tests_readme:{marker}")
@@ -279,6 +352,7 @@ def write_fixture_tree(root: Path) -> None:
     (root / "Documentation/zigux").mkdir(parents=True, exist_ok=True)
     (root / "zigux/tests").mkdir(parents=True, exist_ok=True)
     (root / "zigux/kernel").mkdir(parents=True, exist_ok=True)
+    (root / "samples/zigux").mkdir(parents=True, exist_ok=True)
 
     commit = "5a2398b1223d2c1e39c84c500f684244f4182eff"
     manifest = {
@@ -364,17 +438,25 @@ def write_fixture_tree(root: Path) -> None:
             [
                 'test "runtime module metadata manifest keeps the dedicated descriptor and depmod-gap packet explicit" {',
                 'test "runtime module metadata survey note keeps descriptor fields, shared loader metadata, and depmod gaps explicit" {',
+                'test "runtime module metadata survey proves the landed loader-plan scaffolds stay explicit and sample-only bounded" {',
                 'test "runtime module metadata survey proves the live starter descriptors and shared loader metadata surface directly" {',
                 f'"{SURVEY_PATH}"',
                 f'"{MANIFEST_PATH}"',
                 f'"{LOADER_GAP_SURVEY_PATH}"',
                 f'"{RUNTIME_LOADER_PATH}"',
+                f'"{ATOMIC64_LOADER_PATH}"',
+                f'"{BITMAP_LOADER_PATH}"',
+                f'"{KRETPROBE_LOADER_PATH}"',
                 '"samples/zigux/runtime_trace_events.zig"',
                 '"MODULE_INFO()"',
                 '"MODULE_ALIAS()"',
                 '"scripts/depmod.sh"',
                 '"RuntimeLoadRequest"',
-                '"runtime_trace_events_loader.zig"',
+                'runtime_trace_events_loader.zig',
+                'waitingOnRuntimeSubstrate',
+                'releasedWithoutSubstrate',
+                'register_kretprobe',
+                'perf-runtime-kretprobe',
                 "",
             ]
         ),
@@ -405,6 +487,53 @@ def write_fixture_tree(root: Path) -> None:
                 "    handoff_stage: u8,",
                 "    allocator_handoff: u8,",
                 "};",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    (root / ATOMIC64_LOADER_PATH).write_text(
+        "\n".join(
+            [
+                "pub const RuntimeAtomic64LoadPlan = struct {};",
+                "pub fn toSharedRequest(plan: RuntimeAtomic64LoadPlan) runtime_loader.RuntimeLoadRequest {",
+                '    _ = "zigux_runtime_atomic64_init";',
+                '    _ = "zigux_runtime_atomic64_exit";',
+                '    _ = "perf-runtime-atomic64";',
+                "    return undefined.waitingOnRuntimeSubstrate().releasedWithoutSubstrate();",
+                "}",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    (root / BITMAP_LOADER_PATH).write_text(
+        "\n".join(
+            [
+                "pub const RuntimeBitmapLoadPlan = struct {};",
+                "pub fn toSharedRequest(plan: RuntimeBitmapLoadPlan) runtime_loader.RuntimeLoadRequest {",
+                '    _ = "zigux_runtime_bitmap_init";',
+                '    _ = "zigux_runtime_bitmap_exit";',
+                '    _ = "perf-runtime-bitmap";',
+                "    return undefined.waitingOnRuntimeSubstrate().releasedWithoutSubstrate();",
+                "}",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    (root / KRETPROBE_LOADER_PATH).write_text(
+        "\n".join(
+            [
+                "pub const RuntimeKretprobeLoadPlan = struct {};",
+                "pub fn toSharedRequest(plan: RuntimeKretprobeLoadPlan) runtime_loader.RuntimeLoadRequest {",
+                '    _ = "register_kretprobe";',
+                '    _ = "unregister_kretprobe";',
+                '    _ = "zigux_runtime_kretprobe_init";',
+                '    _ = "zigux_runtime_kretprobe_exit";',
+                '    _ = "perf-runtime-kretprobe";',
+                "    return undefined.waitingOnRuntimeSubstrate().releasedWithoutSubstrate();",
+                "}",
                 "",
             ]
         ),
@@ -470,15 +599,28 @@ def run_self_test() -> int:
         survey_test_path = tmp_root / SURVEY_TEST_PATH
         original_survey_test = survey_test_path.read_text(encoding="utf-8")
         survey_test_path.write_text(
-            original_survey_test.replace('"runtime_trace_events_loader.zig"', "", 1),
+            original_survey_test.replace('"samples/zigux/runtime_kretprobe_loader.zig"', "", 1),
             encoding="utf-8",
         )
         expect_missing_marker(
-            "survey_test_trace_events_loader_boundary",
+            "survey_test_loader_plan_path",
             tmp_root,
-            'survey_test:"runtime_trace_events_loader.zig"',
+            'survey_test:"samples/zigux/runtime_kretprobe_loader.zig"',
         )
         survey_test_path.write_text(original_survey_test, encoding="utf-8")
+
+        kretprobe_loader_path = tmp_root / KRETPROBE_LOADER_PATH
+        original_kretprobe_loader = kretprobe_loader_path.read_text(encoding="utf-8")
+        kretprobe_loader_path.write_text(
+            original_kretprobe_loader.replace('"register_kretprobe"', "", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "kretprobe_loader_register_api",
+            tmp_root,
+            'kretprobe_loader:"register_kretprobe"',
+        )
+        kretprobe_loader_path.write_text(original_kretprobe_loader, encoding="utf-8")
 
         phase9_build_path = tmp_root / PHASE9_BUILD_PATH
         original_phase9_build = phase9_build_path.read_text(encoding="utf-8")
@@ -553,7 +695,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE9_MODULE_METADATA_PACKET_SELF_TEST=pass")
-    print("PHASE9_MODULE_METADATA_PACKET_SELF_TEST_CASE_COUNT=8")
+    print("PHASE9_MODULE_METADATA_PACKET_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
@@ -599,6 +741,10 @@ def main() -> int:
         + len(SURVEY_TEST_REQUIRED_MARKERS)
         + len(LOADER_GAP_SURVEY_REQUIRED_MARKERS)
         + len(RUNTIME_LOADER_REQUIRED_MARKERS)
+        + len(ATOMIC64_LOADER_REQUIRED_MARKERS)
+        + len(BITMAP_LOADER_REQUIRED_MARKERS)
+        + len(KRETPROBE_LOADER_REQUIRED_MARKERS)
+        + (len(LOADER_PLAN_FORBIDDEN_MARKERS) * 3)
         + len(TESTS_README_REQUIRED_MARKERS)
         + 10
     )
