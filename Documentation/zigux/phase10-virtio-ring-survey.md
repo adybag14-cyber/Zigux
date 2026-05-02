@@ -40,6 +40,7 @@ The live repo already has a bounded `drivers/virtio/virtio.zig` core starter wit
 - the freeze-in-C anchors remain `kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, and `net/core/skbuff.c`
 - the separate Phase 14 study-only anchors remain `kernel/workqueue.c` and `kernel/trace/ring_buffer.c`
 - allowed Phase 10 delivery still stays inside `drivers/virtio/*.zig` plus `zigux/helpers/`
+- the separate Phase 14 packet still owns those study-only anchors through `boundary maps`, `concurrency audits`, `explicit stay-in-C decisions where warranted`, and `wrapper-first or study-only posture`, and `kernel/workqueue_bridge.zig` plus `kernel/trace/ring_buffer.zig` remain only future Phase 14 destinations
 - this survey uses the landed MMIO interrupt-ack rung only as evidence that no smaller ready transport follow-up remains ahead of `phase10-mmio-lifecycle-and-irq-paths`; it does not reopen `queue_setup_reset_paths`, `irq_parity`, `dma_paths`, `input_registration_lifecycle`, or `probe_remove_lifecycle`
 
 ## Recorded gaps
