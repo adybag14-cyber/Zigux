@@ -8,7 +8,7 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 - `PHASE5_SLICE=kobject-reference-sample-starter`
 - `PHASE5_LANE_KEY=P5-L12`
 - `PHASE5_SURVEYED_COMMIT=a1c6f22f0efad22fb31f9a7608b8b52b70cbbaf9`
-- scope: roadmap-vs-repo sample delivery, approved ownership-and-lifetime guidance, and exact bounded checks for the landed `samples/zigux/` kobject-style replay
+- scope: roadmap-vs-repo sample reviewability, approved ownership-and-lifetime guidance, and exact bounded checks for the landed `samples/zigux/` kobject-style replay
 - product boundary:
   - `Documentation/zigux/phase5-kobject-sample-survey.md`
   - `Documentation/zigux/README.md`
