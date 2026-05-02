@@ -15,6 +15,7 @@ pub const ModuleDescriptor = struct {
     provides_rule_insertion_planning: bool,
     provides_rule_tree_search_planning: bool,
     provides_rule_tree_link_planning: bool,
+    provides_rule_lookup_planning: bool,
     provides_rule_materialization_planning: bool,
     provides_rule_release_planning: bool,
     touches_live_object_trees: bool,
@@ -106,12 +107,6 @@ pub const RuleTreeSearchPlan = struct {
     resulting_num_rules: u32,
 };
 
-pub const TreeLinkMode = enum {
-    initialize_root,
-    attach_left,
-    attach_right,
-};
-
 pub const RuleTreeLinkPlan = struct {
     anchor: []const u8,
     root: TreeRoot,
@@ -120,6 +115,21 @@ pub const RuleTreeLinkPlan = struct {
     performs_rb_link_node: bool,
     performs_rb_insert_color: bool,
     resulting_num_rules: u32,
+};
+
+pub const RuleLookupPlan = struct {
+    anchor: []const u8,
+    root: TreeRoot,
+    search_depth: usize,
+    search_steps: [max_tree_search_depth]TreeSearchStep,
+    found_existing_rule: bool,
+    matched_key_data: ?u64,
+};
+
+pub const TreeLinkMode = enum {
+    initialize_root,
+    attach_left,
+    attach_right,
 };
 
 pub const RuleMaterializationMode = enum {
@@ -167,6 +177,7 @@ pub const RulesetHelperLab = struct {
             .provides_rule_insertion_planning = true,
             .provides_rule_tree_search_planning = true,
             .provides_rule_tree_link_planning = true,
+            .provides_rule_lookup_planning = true,
             .provides_rule_materialization_planning = true,
             .provides_rule_release_planning = true,
             .touches_live_object_trees = false,
@@ -515,5 +526,53 @@ pub const RulesetHelperLab = struct {
             .performs_rb_insert_color = true,
             .resulting_num_rules = search_plan.resulting_num_rules,
         };
+    }
+
+    pub fn planRuleLookup(key_type: KeyType, root_present: bool, search_key_data: u64, walker_keys: []const u64) !RuleLookupPlan {
+        var plan = RuleLookupPlan{
+            .anchor = descriptor().anchor,
+            .root = selectRoot(key_type),
+            .search_depth = 0,
+            .search_steps = [_]TreeSearchStep{.{ .node_key_data = 0, .direction = .left }} ** max_tree_search_depth,
+            .found_existing_rule = false,
+            .matched_key_data = null,
+        };
+
+        if (!root_present) {
+            if (walker_keys.len != 0) {
+                return error.UnexpectedWalkerPath;
+            }
+            return plan;
+        }
+
+        if (walker_keys.len == 0) {
+            return error.MissingRootNode;
+        }
+        if (walker_keys.len > max_tree_search_depth) {
+            return error.TooDeepSearch;
+        }
+
+        for (walker_keys, 0..) |walker_key, i| {
+            const direction: SearchDirection = if (walker_key == search_key_data)
+                .match
+            else if (walker_key < search_key_data)
+                .right
+            else
+                .left;
+
+            plan.search_steps[i] = .{
+                .node_key_data = walker_key,
+                .direction = direction,
+            };
+            plan.search_depth += 1;
+
+            if (direction == .match) {
+                plan.found_existing_rule = true;
+                plan.matched_key_data = walker_key;
+                return plan;
+            }
+        }
+
+        return plan;
     }
 };
