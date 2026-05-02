@@ -46,22 +46,21 @@ test "phase 5 kretprobe sample keeps symbol retargeting and handler boundaries e
     try std.testing.expectError(error.InvalidLifecycleTransition, module.entryHandler(true, 100));
     try std.testing.expectError(error.InvalidSymbolName, module.retargetSymbol(""));
 
-    try module.retargetSymbol("do_sys_openat2");
-    try module.init();
+    const replay = try module.runRetargetRecoveryReplay();
+    try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", replay.anchor);
+    try std.testing.expectEqualStrings("do_sys_openat2", replay.symbol_name);
+    try std.testing.expect(replay.skipped_kernel_thread_path_checked);
+    try std.testing.expectEqual(@as(i64, 199), replay.rejected_timestamp_ns);
+    try std.testing.expectEqual(@as(usize, 9), replay.return_value);
+    try std.testing.expectEqual(@as(i64, 60), replay.duration_ns);
+    try std.testing.expectEqual(@as(usize, @sizeOf(i64)), replay.private_data_size_bytes);
+    try std.testing.expectEqual(sample.KretprobeExampleSample.default_maxactive, replay.maxactive);
+    try std.testing.expectEqual(sample.SampleStage.initialized, replay.stage_after_recovery);
     try std.testing.expectEqualStrings("do_sys_openat2", module.symbol_name);
-    try std.testing.expectEqual(sample.KretprobeExampleSample.default_maxactive, module.maxactiveBudget());
-    try std.testing.expectEqual(@as(usize, @sizeOf(i64)), module.privateDataSizeBytes());
-    try std.testing.expect(!(try module.entryHandler(false, 11)));
     try std.testing.expectEqual(@as(usize, 1), module.skipped_kernel_threads);
-    try std.testing.expect(try module.entryHandler(true, 100));
-    try std.testing.expectEqual(sample.SampleStage.armed, module.stage());
-    try std.testing.expectError(error.OutstandingProbeInstance, module.entryHandler(true, 120));
-
-    const result = try module.retHandler(37, 145);
-    try std.testing.expectEqual(@as(usize, 37), result.retval);
-    try std.testing.expectEqual(@as(i64, 45), result.duration_ns);
-    try std.testing.expectEqual(@as(usize, 37), module.last_retval);
-    try std.testing.expectEqual(@as(i64, 45), module.last_duration_ns);
+    try std.testing.expectEqual(@as(usize, 9), module.last_retval);
+    try std.testing.expectEqual(@as(i64, 60), module.last_duration_ns);
+    try std.testing.expectEqual(@as(i64, -1), module.instance_data.entry_stamp_ns);
 
     try module.recordMissedInstance();
     try std.testing.expectEqual(@as(usize, 1), module.nmissed);
@@ -91,6 +90,7 @@ test "phase 5 kretprobe sample makes ownership and teardown boundaries explicit"
     try module.init();
     try std.testing.expectEqual(sample.SampleStage.initialized, module.stage());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.init());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runRetargetRecoveryReplay());
     try std.testing.expect(try module.entryHandler(true, 200));
     try std.testing.expectError(error.OutstandingProbeInstance, module.exit());
     try std.testing.expectError(error.InvalidTimestampOrder, module.retHandler(9, 199));
