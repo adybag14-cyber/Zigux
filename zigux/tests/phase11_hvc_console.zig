@@ -275,6 +275,34 @@ test "phase11 hvc console keeps final-close teardown sequencing reviewable" {
     }));
 }
 
+test "phase11 hvc console keeps non-final-close teardown deferred" {
+    var console = try hvc_console.HvcConsoleLab.init(15);
+    _ = console.instantiate(0xf0);
+
+    const deferred_teardown = try console.summarizeCloseTeardown(.{
+        .close = .{
+            .port_initialized = true,
+            .open_count_before_close = 2,
+        },
+        .hupcl = true,
+        .dtr_rts_present = true,
+        .notifier_del_present = true,
+    });
+    try std.testing.expectEqual(@as(usize, 15), deferred_teardown.slot_index);
+    try std.testing.expectEqual(@as(u32, 0xf0), deferred_teardown.vtermno);
+    try std.testing.expect(deferred_teardown.adapter_present);
+    try std.testing.expect(!deferred_teardown.final_close);
+    try std.testing.expect(!deferred_teardown.close_skipped);
+    try std.testing.expect(!deferred_teardown.tty_detached);
+    try std.testing.expect(!deferred_teardown.dtr_rts_drop_requested);
+    try std.testing.expect(!deferred_teardown.notifier_del_pending);
+    try std.testing.expect(!deferred_teardown.cancel_resize_pending);
+    try std.testing.expect(!deferred_teardown.wait_until_sent_required);
+    try std.testing.expectEqual(@as(usize, 100), deferred_teardown.close_wait_hz_divisor);
+    try std.testing.expect(!deferred_teardown.clears_port_initialized);
+    try std.testing.expect(deferred_teardown.keeps_console_binding);
+}
+
 test "phase11 hvc console keeps notifier-add failure close cleanup boundaries reviewable" {
     var console = try hvc_console.HvcConsoleLab.init(13);
     _ = console.instantiate(0xd0);
