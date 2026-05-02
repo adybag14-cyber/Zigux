@@ -365,7 +365,7 @@ if "`make -C zigux phase14-test ZIG=<attached-zig-path>`" in survey_note:
 
 for index, shard in enumerate(compile_shards):
     if not isinstance(shard, dict):
-        missing.append(f"manifest:compile_shards:{index}")
+        missing.append(f"manifest:compile_shards:{index}:shape")
         continue
     artifact_name = shard.get("artifact_name")
     root_source_file = shard.get("root_source_file")
@@ -450,7 +450,7 @@ expected_run_symbols = [
     "run_phase14_rcu_tree_survey_tests",
     "run_phase14_end_to_end_smoke_tests",
 ]
-if actual_depend_steps != expected_runSymbols:
+if actual_depend_steps != expected_run_symbols:
     missing.append("phase14_build:full_bundle_route_mismatch")
 if actual_smoke_depend_steps != ["run_phase14_end_to_end_smoke_tests"]:
     missing.append("phase14_build:smoke_route_mismatch")
