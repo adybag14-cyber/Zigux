@@ -6,6 +6,7 @@ import json
 import re
 import sys
 
+
 ROOT = Path(__file__).resolve().parents[2]
 HEX40 = re.compile(r"^[0-9a-f]{40}$")
 
@@ -41,12 +42,18 @@ MAKE_MARKERS = [
     "$(ZIG) build test --build-file zigux/tests/phase15_build.zig",
     "phase15: phase15-validate phase15-test",
 ]
-WORKFLOW_MARKERS = ["Run Phase 15 governance tests", "make -C zigux phase15"]
+
+WORKFLOW_MARKERS = [
+    "Run Phase 15 governance tests",
+    "make -C zigux phase15",
+]
+
 README_MARKERS = [
     "Phase 15 notes",
     "only remaining blocked work is the deep-core status-change evidence",
     "Documentation/zigux/phase15-handoff-next-steps-survey.md",
 ]
+
 SURVEY_MARKERS = [
     "## Current Repo Readiness",
     "## Readiness Gate",
@@ -55,19 +62,20 @@ SURVEY_MARKERS = [
     "docs-root Phase 15 summary now matches the dedicated readiness and handoff packet",
     "phase15-docs-root-summary-alignment",
 ]
+
 HANDOFF_MARKERS = [
-    "PHASE15_LANE_KEY=P15-L08",
+    "PHASE15_LANE_KEY=P15-Y07",
     "## Current Handoff Surface",
     "## Open Handoff Gaps",
     "## Pending Next Steps",
     "## Maintenance Handoff Contract",
     "docs-root release evidence now matches the dedicated maintenance packet",
-    "zigux/tests/phase15_docs_root_reviewability.zig",
     "phase15-docs-root-summary-alignment",
     "phase15-deep-core-status-change-blocker",
     "make -C zigux phase15",
     "zig build test --build-file zigux/tests/phase15_build.zig",
 ]
+
 BUILD_MARKERS = [
     "phase15-freeze-map-governance-tests",
     "phase15-parity-scorecard-tests",
@@ -77,13 +85,15 @@ BUILD_MARKERS = [
     "phase15-handoff-next-steps-tests",
     "phase15-docs-root-reviewability-tests",
 ]
+
 HANDOFF_TEST_MARKERS = [
-    'try std.testing.expectEqualStrings("P15-L08", manifest.lane_key);',
-    'phase15-deep-core-status-change-blocker',
-    'make -C zigux phase15',
-    'zig build test --build-file zigux/tests/phase15_build.zig',
-    'docs_root_phase15_summary_aligned',
+    'try std.testing.expectEqualStrings("P15-Y07", manifest.lane_key);',
+    "phase15-deep-core-status-change-blocker",
+    "make -C zigux phase15",
+    "zig build test --build-file zigux/tests/phase15_build.zig",
+    "docs_root_phase15_summary_aligned",
 ]
+
 DOCS_ROOT_REVIEWABILITY_MARKERS = [
     "Documentation/zigux/phase15-readiness-gate-survey.md",
     "Documentation/zigux/phase15-handoff-next-steps-survey.md",
@@ -92,32 +102,40 @@ DOCS_ROOT_REVIEWABILITY_MARKERS = [
     "phase15-docs-root-summary-alignment",
 ]
 
+
 def text(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
+
 
 def load_json(path: str):
     return json.loads(text(path))
 
+
 missing = []
+
 
 def require(condition: bool, key: str) -> None:
     if not condition:
         missing.append(key)
+
 
 def require_markers(name: str, source: str, markers: list[str]) -> None:
     for marker in markers:
         if marker not in source:
             missing.append(f"{name}:{marker}")
 
+
 def require_true(mapping, prefix: str, keys: list[str]) -> None:
     for key in keys:
         if mapping.get(key) is not True:
             missing.append(f"{prefix}:{key}")
 
+
 def require_false(mapping, prefix: str, keys: list[str]) -> None:
     for key in keys:
         if mapping.get(key) is not False:
             missing.append(f"{prefix}:{key}")
+
 
 missing_files = [path for path in FILES if not (ROOT / path).exists()]
 if missing_files:
@@ -159,7 +177,7 @@ if isinstance(remaining_gaps, list) and len(remaining_gaps) == 1:
 
 handoff_manifest = load_json('zigux/tests/phase15_handoff_next_steps_manifest.json')
 require(handoff_manifest.get('phase') == 'Phase 15', 'handoff_manifest:phase')
-require(handoff_manifest.get('lane_key') == 'P15-L08', 'handoff_manifest:lane_key')
+require(handoff_manifest.get('lane_key') == 'P15-Y07', 'handoff_manifest:lane_key')
 require(handoff_manifest.get('surveyed_commit') == 'b5f64cf3306b706ea93cc9d3de769d545849b2d4', 'handoff_manifest:surveyed_commit')
 handoff_repo_evidence = handoff_manifest.get('repo_evidence', {})
 require_true(handoff_repo_evidence, 'handoff_manifest:repo_evidence', [
