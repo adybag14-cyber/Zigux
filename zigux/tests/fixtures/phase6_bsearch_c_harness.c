@@ -120,6 +120,34 @@ static void print_runtime_raw_cases(const uint32_t *values, size_t value_count, 
     }
 }
 
+static void print_runtime_typed_mutable_case(const char *label, uint32_t key, const uint32_t *source_values, size_t count, cmp_func_t compare)
+{
+    uint32_t mutable_values[7];
+    memcpy(mutable_values, source_values, count * sizeof(source_values[0]));
+    uint32_t *found = inline_bsearch(&key, mutable_values, count, sizeof(mutable_values[0]), compare);
+
+    if (found != NULL) {
+        *found += 1;
+        printf("%s\t%u\t%u\n", label, key, *found);
+    } else {
+        printf("%s\t%u\tnull\n", label, key);
+    }
+}
+
+static void print_runtime_raw_mutable_case(const char *label, uint32_t key, const uint32_t *source_values, size_t count, cmp_func_t compare)
+{
+    uint32_t mutable_values[7];
+    memcpy(mutable_values, source_values, count * sizeof(source_values[0]));
+    uint32_t *found = inline_bsearch(&key, mutable_values, count, sizeof(mutable_values[0]), compare);
+
+    if (found != NULL) {
+        *found += 1;
+        printf("%s\t%u\t%u\n", label, key, *found);
+    } else {
+        printf("%s\t%u\tnull\n", label, key);
+    }
+}
+
 int main(void)
 {
     static const uint32_t values[] = { 3, 8, 13, 21, 34, 55, 89 };
@@ -134,8 +162,6 @@ int main(void)
         { "kmalloc", 0x1400u },
         { "schedule", 0x1800u },
     };
-    uint32_t mutable_values[] = { 3, 8, 13, 21, 34, 55, 89 };
-    uint32_t raw_mutable_values[] = { 3, 8, 13, 21, 34, 55, 89 };
 
     {
         const uint32_t key = 3;
@@ -223,26 +249,20 @@ int main(void)
         else
             printf("sym-miss\tvfree\tnull\n");
     }
-    {
-        const uint32_t key = 21;
-        uint32_t *found = inline_bsearch(&key, mutable_values, sizeof(mutable_values) / sizeof(mutable_values[0]), sizeof(mutable_values[0]), compare_u32);
-        if (found != NULL) {
-            *found = 22;
-            printf("mutable-hit\t21\t%u\n", mutable_values[3]);
-        } else {
-            printf("mutable-hit\t21\tnull\n");
-        }
-    }
-    {
-        const uint32_t key = 21;
-        uint32_t *found = inline_bsearch(&key, raw_mutable_values, sizeof(raw_mutable_values) / sizeof(raw_mutable_values[0]), sizeof(raw_mutable_values[0]), compare_u32);
-        if (found != NULL) {
-            *found = 22;
-            printf("raw-mutable-hit\t21\t%u\n", raw_mutable_values[3]);
-        } else {
-            printf("raw-mutable-hit\t21\tnull\n");
-        }
-    }
+    print_runtime_typed_mutable_case(
+        "mutable-hit",
+        34,
+        descending_values,
+        sizeof(descending_values) / sizeof(descending_values[0]),
+        compare_descending_u32
+    );
+    print_runtime_raw_mutable_case(
+        "raw-mutable-hit",
+        34,
+        descending_values,
+        sizeof(descending_values) / sizeof(descending_values[0]),
+        compare_descending_u32
+    );
 
     return 0;
 }
