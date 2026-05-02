@@ -16,12 +16,12 @@ MANIFEST_PATH = "zigux/tests/runtime_module_metadata_manifest.json"
 SURVEY_TEST_PATH = "zigux/tests/runtime_module_metadata_survey.zig"
 CHECKER_PATH = "scripts/zigux/check-phase9-module-metadata-packet.py"
 PHASE9_BUILD_PATH = "zigux/tests/phase9_build.zig"
-LOADER_GAP_SURVEY_PATH = "Documentation/zigux/phase9-runtime-loader-gap-survey.md"
 RUNTIME_LOADER_PATH = "zigux/kernel/runtime_loader.zig"
 TESTS_README_PATH = "zigux/tests/README.md"
 ATOMIC64_LOADER_PATH = "samples/zigux/runtime_atomic64_loader.zig"
 BITMAP_LOADER_PATH = "samples/zigux/runtime_bitmap_loader.zig"
 KRETPROBE_LOADER_PATH = "samples/zigux/runtime_kretprobe_loader.zig"
+TRACE_EVENTS_LOADER_PATH = "samples/zigux/runtime_trace_events_loader.zig"
 
 REQUIRED_FILES = [
     SURVEY_PATH,
@@ -29,12 +29,12 @@ REQUIRED_FILES = [
     SURVEY_TEST_PATH,
     CHECKER_PATH,
     PHASE9_BUILD_PATH,
-    LOADER_GAP_SURVEY_PATH,
     RUNTIME_LOADER_PATH,
     TESTS_README_PATH,
     ATOMIC64_LOADER_PATH,
     BITMAP_LOADER_PATH,
     KRETPROBE_LOADER_PATH,
+    TRACE_EVENTS_LOADER_PATH,
 ]
 
 SURVEY_REQUIRED_MARKERS = [
@@ -51,6 +51,9 @@ SURVEY_REQUIRED_MARKERS = [
     "handoff_stage",
     "allocator_handoff",
     "samples/zigux/runtime_trace_events_loader.zig",
+    "four landed loader-plan files now stay at",
+    "the shared runtime loader currently exposes three tagged loader lanes: `atomic64`, `bitmap`, and `kretprobe`",
+    "still stops outside that shared `RuntimeLoadRequest` union",
     "MODULE_INFO()",
     "MODULE_ALIAS()",
     ".modinfo",
@@ -75,16 +78,17 @@ PHASE9_BUILD_REQUIRED_MARKERS = [
 
 SURVEY_TEST_REQUIRED_MARKERS = [
     'test "runtime module metadata manifest keeps the dedicated descriptor and depmod-gap packet explicit" {',
+    'test "runtime module metadata docs stay aligned with the manifest-backed surveyed commit" {',
     'test "runtime module metadata survey note keeps descriptor fields, shared loader metadata, and depmod gaps explicit" {',
-    'test "runtime module metadata survey proves the landed loader-plan scaffolds stay explicit and sample-only bounded" {',
+    'test "runtime module metadata survey proves the landed loader-plan scaffolds stay explicit and the shared metadata boundary stays narrow" {',
     'test "runtime module metadata survey proves the live starter descriptors and shared loader metadata surface directly" {',
     '"Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md"',
     '"zigux/tests/runtime_module_metadata_manifest.json"',
-    '"Documentation/zigux/phase9-runtime-loader-gap-survey.md"',
     '"zigux/kernel/runtime_loader.zig"',
     '"samples/zigux/runtime_atomic64_loader.zig"',
     '"samples/zigux/runtime_bitmap_loader.zig"',
     '"samples/zigux/runtime_kretprobe_loader.zig"',
+    '"samples/zigux/runtime_trace_events_loader.zig"',
     '"samples/zigux/runtime_trace_events.zig"',
     '"scripts/zigux/check-phase9-module-metadata-packet.py"',
     '"zigux/tests/phase9_build.zig"',
@@ -93,16 +97,12 @@ SURVEY_TEST_REQUIRED_MARKERS = [
     '"MODULE_ALIAS()"',
     '"scripts/depmod.sh"',
     '"RuntimeLoadRequest"',
-    "runtime_trace_events_loader.zig",
-    "perf-runtime-kretprobe",
-    "register_kretprobe",
-    "waitingOnRuntimeSubstrate",
-    "releasedWithoutSubstrate",
-]
-
-LOADER_GAP_SURVEY_REQUIRED_MARKERS = [
-    "samples/zigux/runtime_trace_events_loader.zig",
-    "sample-only blocked runtime pilot",
+    'std.testing.expect(std.mem.indexOf(u8, runtime_trace_events_loader, "RuntimeLoadRequest") == null);',
+    'waitingOnRuntimeSubstrate',
+    'releasedWithoutSubstrate',
+    'register_kretprobe',
+    'foo_bar_reg',
+    'foo_bar_unreg',
 ]
 
 RUNTIME_LOADER_REQUIRED_MARKERS = [
@@ -147,6 +147,22 @@ KRETPROBE_LOADER_REQUIRED_MARKERS = [
     "perf-runtime-kretprobe",
 ]
 
+TRACE_EVENTS_LOADER_REQUIRED_MARKERS = [
+    'const runtime_loader = @import("runtime_loader");',
+    "pub const LoaderStage = runtime_loader.LoaderStage;",
+    "pub const RuntimeTraceEventsLoadPlan = struct",
+    "register_api",
+    "unregister_api",
+    "main_thread_label",
+    "function_thread_label",
+    "pub fn requestRuntimeLoad",
+    "pub fn releaseWithoutSubstrate",
+    '"zigux_runtime_trace_events_init"',
+    '"zigux_runtime_trace_events_exit"',
+    '"foo_bar_reg"',
+    '"foo_bar_unreg"',
+]
+
 LOADER_PLAN_FORBIDDEN_MARKERS = [
     "MODULE_INFO(",
     "MODULE_ALIAS(",
@@ -178,8 +194,8 @@ EXPECTED_DEPMOD_GAP_SURFACES = [
 
 EXPECTED_REVIEW_PROMPTS = [
     "the four runtime starter descriptors still agree on name, anchor, requires_runtime_substrate, and provides_selftest_hook instead of drifting into sample-local metadata stories",
-    "the shared RuntimeLoadRequest metadata surface still stays limited to the current reviewable fields and three landed loader lanes rather than implying a fourth live trace-events loader lane",
-    "the dedicated survey packet still keeps MODULE_INFO(), MODULE_ALIAS(), .modinfo, modules.alias, modules.order, modules.builtin, Module.symvers, and scripts/depmod.sh explicit as absent depmod-facing surfaces instead of counting starter descriptors as shipped loadable-module parity",
+    "the four landed loader plans stay explicit, and the shared RuntimeLoadRequest metadata surface still stays limited to the current reviewable fields and three landed loader lanes instead of pretending the trace-events loader has already joined the shared union",
+    "the dedicated survey packet still keeps MODULE_INFO(), MODULE_ALIAS(), .modinfo, modules.alias, modules.order, modules.builtin, Module.symvers, and scripts/depmod.sh explicit as absent depmod-facing surfaces instead of counting starter descriptors or loader scaffolds as shipped loadable-module parity",
 ]
 
 
@@ -231,12 +247,12 @@ def validate_manifest_packet(root: Path) -> list[str]:
         expected_summary = {
             "runtime_descriptor_count": 4,
             "runtime_loader_lane_count": 3,
-            "runtime_loader_plan_count": 3,
-            "runtime_sample_only_blocked_count": 1,
+            "runtime_loader_plan_count": 4,
+            "runtime_sample_only_blocked_count": 0,
             "shared_metadata_field_count": 9,
             "depmod_gap_count": 8,
             "shared_runtime_loader_present": True,
-            "runtime_trace_events_loader_present": False,
+            "runtime_trace_events_loader_present": True,
         }
         for key, value in expected_summary.items():
             if summary.get(key) != value:
@@ -249,14 +265,13 @@ def validate_manifest_packet(root: Path) -> list[str]:
         "samples/zigux/runtime_atomic64_loader.zig",
         "samples/zigux/runtime_bitmap_loader.zig",
         "samples/zigux/runtime_kretprobe_loader.zig",
+        "samples/zigux/runtime_trace_events_loader.zig",
     ]:
         failures.append("manifest:runtime_loader_plans_drift")
 
     sample_only_blocked = manifest.get("runtime_sample_only_blocked")
-    if not isinstance(sample_only_blocked, list) or len(sample_only_blocked) != 1:
+    if sample_only_blocked != []:
         failures.append("manifest:runtime_sample_only_blocked_drift")
-    elif sample_only_blocked[0].get("blocked_loader_path") != "samples/zigux/runtime_trace_events_loader.zig":
-        failures.append("manifest:blocked_loader_path_drift")
 
     delivery_evidence = manifest.get("delivery_evidence_catalog")
     if not isinstance(delivery_evidence, list):
@@ -269,8 +284,8 @@ def validate_manifest_packet(root: Path) -> list[str]:
             ("runtime-module-metadata-packet-checker", CHECKER_PATH),
             ("phase9-build-gate", PHASE9_BUILD_PATH),
             ("phase9-tests-readme-guide", TESTS_README_PATH),
-            ("runtime-loader-gap-note", LOADER_GAP_SURVEY_PATH),
             ("shared-runtime-loader-contract", RUNTIME_LOADER_PATH),
+            ("runtime-trace-events-loader-plan", TRACE_EVENTS_LOADER_PATH),
         }
         actual_pairs = {
             (entry.get("id"), entry.get("path"))
@@ -291,8 +306,8 @@ def validate_manifest_packet(root: Path) -> list[str]:
             CHECKER_PATH,
             PHASE9_BUILD_PATH,
             TESTS_README_PATH,
-            LOADER_GAP_SURVEY_PATH,
             RUNTIME_LOADER_PATH,
+            TRACE_EVENTS_LOADER_PATH,
         }
         actual_surfaces = {
             entry.get("surface")
@@ -317,12 +332,12 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     survey_text = read_text(root, SURVEY_PATH)
     survey_test_text = read_text(root, SURVEY_TEST_PATH)
     phase9_build_text = read_text(root, PHASE9_BUILD_PATH)
-    loader_gap_survey_text = read_text(root, LOADER_GAP_SURVEY_PATH)
     runtime_loader_text = read_text(root, RUNTIME_LOADER_PATH)
     tests_readme_text = read_text(root, TESTS_README_PATH)
     atomic64_loader_text = read_text(root, ATOMIC64_LOADER_PATH)
     bitmap_loader_text = read_text(root, BITMAP_LOADER_PATH)
     kretprobe_loader_text = read_text(root, KRETPROBE_LOADER_PATH)
+    trace_events_loader_text = read_text(root, TRACE_EVENTS_LOADER_PATH)
 
     failures: list[str] = []
 
@@ -335,9 +350,6 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     for marker in SURVEY_TEST_REQUIRED_MARKERS:
         if marker not in survey_test_text:
             failures.append(f"survey_test:{marker}")
-    for marker in LOADER_GAP_SURVEY_REQUIRED_MARKERS:
-        if marker not in loader_gap_survey_text:
-            failures.append(f"loader_gap_survey:{marker}")
     for marker in RUNTIME_LOADER_REQUIRED_MARKERS:
         if marker not in runtime_loader_text:
             failures.append(f"runtime_loader:{marker}")
@@ -350,6 +362,9 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     for marker in KRETPROBE_LOADER_REQUIRED_MARKERS:
         if marker not in kretprobe_loader_text:
             failures.append(f"kretprobe_loader:{marker}")
+    for marker in TRACE_EVENTS_LOADER_REQUIRED_MARKERS:
+        if marker not in trace_events_loader_text:
+            failures.append(f"trace_events_loader:{marker}")
     for marker in LOADER_PLAN_FORBIDDEN_MARKERS:
         if marker in atomic64_loader_text:
             failures.append(f"atomic64_loader_forbidden:{marker}")
@@ -357,6 +372,8 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             failures.append(f"bitmap_loader_forbidden:{marker}")
         if marker in kretprobe_loader_text:
             failures.append(f"kretprobe_loader_forbidden:{marker}")
+        if marker in trace_events_loader_text:
+            failures.append(f"trace_events_loader_forbidden:{marker}")
     for marker in TESTS_README_REQUIRED_MARKERS:
         if marker not in tests_readme_text:
             failures.append(f"tests_readme:{marker}")
@@ -372,7 +389,7 @@ def write_fixture_tree(root: Path) -> None:
     (root / "zigux/kernel").mkdir(parents=True, exist_ok=True)
     (root / "samples/zigux").mkdir(parents=True, exist_ok=True)
 
-    commit = "5a2398b1223d2c1e39c84c500f684244f4182eff"
+    commit = "949994db4046ec70abf044d1b2ea874fde9bc4a6"
     manifest = {
         "lane_key": "P9-L07",
         "phase": "Phase 9",
@@ -380,24 +397,20 @@ def write_fixture_tree(root: Path) -> None:
         "survey_summary": {
             "runtime_descriptor_count": 4,
             "runtime_loader_lane_count": 3,
-            "runtime_loader_plan_count": 3,
-            "runtime_sample_only_blocked_count": 1,
+            "runtime_loader_plan_count": 4,
+            "runtime_sample_only_blocked_count": 0,
             "shared_metadata_field_count": 9,
             "depmod_gap_count": 8,
             "shared_runtime_loader_present": True,
-            "runtime_trace_events_loader_present": False,
+            "runtime_trace_events_loader_present": True,
         },
         "runtime_loader_plans": [
             "samples/zigux/runtime_atomic64_loader.zig",
             "samples/zigux/runtime_bitmap_loader.zig",
             "samples/zigux/runtime_kretprobe_loader.zig",
+            "samples/zigux/runtime_trace_events_loader.zig",
         ],
-        "runtime_sample_only_blocked": [
-            {
-                "sample_path": "samples/zigux/runtime_trace_events.zig",
-                "blocked_loader_path": "samples/zigux/runtime_trace_events_loader.zig",
-            }
-        ],
+        "runtime_sample_only_blocked": [],
         "depmod_gap_surfaces": EXPECTED_DEPMOD_GAP_SURFACES,
         "delivery_evidence_catalog": [
             {"id": "runtime-module-metadata-survey-note", "path": SURVEY_PATH},
@@ -406,8 +419,8 @@ def write_fixture_tree(root: Path) -> None:
             {"id": "runtime-module-metadata-packet-checker", "path": CHECKER_PATH},
             {"id": "phase9-build-gate", "path": PHASE9_BUILD_PATH},
             {"id": "phase9-tests-readme-guide", "path": TESTS_README_PATH},
-            {"id": "runtime-loader-gap-note", "path": LOADER_GAP_SURVEY_PATH},
             {"id": "shared-runtime-loader-contract", "path": RUNTIME_LOADER_PATH},
+            {"id": "runtime-trace-events-loader-plan", "path": TRACE_EVENTS_LOADER_PATH},
         ],
         "ownership_map": [
             {"surface": SURVEY_PATH},
@@ -416,8 +429,8 @@ def write_fixture_tree(root: Path) -> None:
             {"surface": CHECKER_PATH},
             {"surface": PHASE9_BUILD_PATH},
             {"surface": TESTS_README_PATH},
-            {"surface": LOADER_GAP_SURVEY_PATH},
             {"surface": RUNTIME_LOADER_PATH},
+            {"surface": TRACE_EVENTS_LOADER_PATH},
         ],
         "review_prompts": EXPECTED_REVIEW_PROMPTS,
     }
@@ -431,7 +444,11 @@ def write_fixture_tree(root: Path) -> None:
                 f"- `PHASE9_SURVEYED_COMMIT={commit}`",
                 "ModuleDescriptor keeps requires_runtime_substrate and provides_selftest_hook explicit.",
                 "RuntimeLoadRequest keeps module_name, command_name, entry_symbol, exit_symbol, handoff_stage, and allocator_handoff explicit.",
-                "The packet names samples/zigux/runtime_trace_events_loader.zig plus MODULE_INFO(), MODULE_ALIAS(), .modinfo, modules.alias, modules.order, modules.builtin, Module.symvers, and scripts/depmod.sh directly.",
+                "The current survey packet is pinned to `master` commit `949994db4046ec70abf044d1b2ea874fde9bc4a6`.",
+                "The shared runtime loader currently exposes three tagged loader lanes: `atomic64`, `bitmap`, and `kretprobe`.",
+                "four landed loader-plan files now stay at `samples/zigux/runtime_atomic64_loader.zig`, `samples/zigux/runtime_bitmap_loader.zig`, `samples/zigux/runtime_kretprobe_loader.zig`, and `samples/zigux/runtime_trace_events_loader.zig`.",
+                "The dedicated `samples/zigux/runtime_trace_events_loader.zig` scaffold is now landed too, but it still stops outside that shared `RuntimeLoadRequest` union.",
+                "The packet names MODULE_INFO(), MODULE_ALIAS(), .modinfo, modules.alias, modules.order, modules.builtin, Module.symvers, and scripts/depmod.sh directly.",
                 "## Gates",
                 "",
                 "1. run the shared validator self-test plus the dedicated metadata checker self-test",
@@ -461,16 +478,17 @@ def write_fixture_tree(root: Path) -> None:
         "\n".join(
             [
                 'test "runtime module metadata manifest keeps the dedicated descriptor and depmod-gap packet explicit" {',
+                'test "runtime module metadata docs stay aligned with the manifest-backed surveyed commit" {',
                 'test "runtime module metadata survey note keeps descriptor fields, shared loader metadata, and depmod gaps explicit" {',
-                'test "runtime module metadata survey proves the landed loader-plan scaffolds stay explicit and sample-only bounded" {',
+                'test "runtime module metadata survey proves the landed loader-plan scaffolds stay explicit and the shared metadata boundary stays narrow" {',
                 'test "runtime module metadata survey proves the live starter descriptors and shared loader metadata surface directly" {',
                 f'"{SURVEY_PATH}"',
                 f'"{MANIFEST_PATH}"',
-                f'"{LOADER_GAP_SURVEY_PATH}"',
                 f'"{RUNTIME_LOADER_PATH}"',
                 f'"{ATOMIC64_LOADER_PATH}"',
                 f'"{BITMAP_LOADER_PATH}"',
                 f'"{KRETPROBE_LOADER_PATH}"',
+                f'"{TRACE_EVENTS_LOADER_PATH}"',
                 '"samples/zigux/runtime_trace_events.zig"',
                 f'"{CHECKER_PATH}"',
                 f'"{PHASE9_BUILD_PATH}"',
@@ -479,11 +497,12 @@ def write_fixture_tree(root: Path) -> None:
                 '"MODULE_ALIAS()"',
                 '"scripts/depmod.sh"',
                 '"RuntimeLoadRequest"',
-                'runtime_trace_events_loader.zig',
+                'std.testing.expect(std.mem.indexOf(u8, runtime_trace_events_loader, "RuntimeLoadRequest") == null);',
                 'waitingOnRuntimeSubstrate',
                 'releasedWithoutSubstrate',
                 'register_kretprobe',
-                'perf-runtime-kretprobe',
+                'foo_bar_reg',
+                'foo_bar_unreg',
                 "",
             ]
         ),
@@ -501,10 +520,6 @@ def write_fixture_tree(root: Path) -> None:
                 "",
             ]
         ),
-        encoding="utf-8",
-    )
-    (root / LOADER_GAP_SURVEY_PATH).write_text(
-        "samples/zigux/runtime_trace_events_loader.zig\nsample-only blocked runtime pilot\n",
         encoding="utf-8",
     )
     (root / RUNTIME_LOADER_PATH).write_text(
@@ -565,6 +580,28 @@ def write_fixture_tree(root: Path) -> None:
                 '    _ = "perf-runtime-kretprobe";',
                 "    return undefined.waitingOnRuntimeSubstrate().releasedWithoutSubstrate();",
                 "}",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    (root / TRACE_EVENTS_LOADER_PATH).write_text(
+        "\n".join(
+            [
+                'const runtime_loader = @import("runtime_loader");',
+                "pub const LoaderStage = runtime_loader.LoaderStage;",
+                "pub const RuntimeTraceEventsLoadPlan = struct {",
+                "    register_api: []const u8,",
+                "    unregister_api: []const u8,",
+                "    main_thread_label: []const u8,",
+                "    function_thread_label: []const u8,",
+                "};",
+                'pub fn requestRuntimeLoad() void { _ = "waitingOnRuntimeSubstrate"; }',
+                'pub fn releaseWithoutSubstrate() void { _ = "releasedWithoutSubstrate"; }',
+                'const _entry = "zigux_runtime_trace_events_init";',
+                'const _exit = "zigux_runtime_trace_events_exit";',
+                'const _register = "foo_bar_reg";',
+                'const _unregister = "foo_bar_unreg";',
                 "",
             ]
         ),
@@ -642,28 +679,28 @@ def run_self_test() -> int:
         survey_test_path = tmp_root / SURVEY_TEST_PATH
         original_survey_test = survey_test_path.read_text(encoding="utf-8")
         survey_test_path.write_text(
-            original_survey_test.replace('"samples/zigux/runtime_kretprobe_loader.zig"', "", 1),
+            original_survey_test.replace('"samples/zigux/runtime_trace_events_loader.zig"', "", 1),
             encoding="utf-8",
         )
         expect_missing_marker(
-            "survey_test_loader_plan_path",
+            "survey_test_trace_events_loader_path",
             tmp_root,
-            'survey_test:"samples/zigux/runtime_kretprobe_loader.zig"',
+            'survey_test:"samples/zigux/runtime_trace_events_loader.zig"',
         )
         survey_test_path.write_text(original_survey_test, encoding="utf-8")
 
-        kretprobe_loader_path = tmp_root / KRETPROBE_LOADER_PATH
-        original_kretprobe_loader = kretprobe_loader_path.read_text(encoding="utf-8")
-        kretprobe_loader_path.write_text(
-            original_kretprobe_loader.replace('"register_kretprobe"', "", 1),
+        trace_events_loader_path = tmp_root / TRACE_EVENTS_LOADER_PATH
+        original_trace_events_loader = trace_events_loader_path.read_text(encoding="utf-8")
+        trace_events_loader_path.write_text(
+            original_trace_events_loader.replace('"foo_bar_reg"', "", 1),
             encoding="utf-8",
         )
         expect_missing_marker(
-            "kretprobe_loader_register_api",
+            "trace_events_loader_register_label",
             tmp_root,
-            'kretprobe_loader:"register_kretprobe"',
+            'trace_events_loader:"foo_bar_reg"',
         )
-        kretprobe_loader_path.write_text(original_kretprobe_loader, encoding="utf-8")
+        trace_events_loader_path.write_text(original_trace_events_loader, encoding="utf-8")
 
         phase9_build_path = tmp_root / PHASE9_BUILD_PATH
         original_phase9_build = phase9_build_path.read_text(encoding="utf-8")
@@ -677,19 +714,6 @@ def run_self_test() -> int:
             "phase9_build:phase9-runtime-module-metadata-survey-tests",
         )
         phase9_build_path.write_text(original_phase9_build, encoding="utf-8")
-
-        loader_gap_path = tmp_root / LOADER_GAP_SURVEY_PATH
-        original_loader_gap = loader_gap_path.read_text(encoding="utf-8")
-        loader_gap_path.write_text(
-            original_loader_gap.replace("sample-only blocked runtime pilot", "", 1),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "loader_gap_sample_only_boundary",
-            tmp_root,
-            "loader_gap_survey:sample-only blocked runtime pilot",
-        )
-        loader_gap_path.write_text(original_loader_gap, encoding="utf-8")
 
         survey_path.write_text(
             original_survey.replace(
@@ -769,7 +793,7 @@ def run_self_test() -> int:
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
     print("PHASE9_MODULE_METADATA_PACKET_SELF_TEST=pass")
-    print("PHASE9_MODULE_METADATA_PACKET_SELF_TEST_CASE_COUNT=13")
+    print("PHASE9_MODULE_METADATA_PACKET_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
@@ -813,14 +837,14 @@ def main() -> int:
         len(SURVEY_REQUIRED_MARKERS)
         + len(PHASE9_BUILD_REQUIRED_MARKERS)
         + len(SURVEY_TEST_REQUIRED_MARKERS)
-        + len(LOADER_GAP_SURVEY_REQUIRED_MARKERS)
         + len(RUNTIME_LOADER_REQUIRED_MARKERS)
         + len(ATOMIC64_LOADER_REQUIRED_MARKERS)
         + len(BITMAP_LOADER_REQUIRED_MARKERS)
         + len(KRETPROBE_LOADER_REQUIRED_MARKERS)
-        + (len(LOADER_PLAN_FORBIDDEN_MARKERS) * 3)
+        + len(TRACE_EVENTS_LOADER_REQUIRED_MARKERS)
+        + (len(LOADER_PLAN_FORBIDDEN_MARKERS) * 4)
         + len(TESTS_README_REQUIRED_MARKERS)
-        + 10
+        + 8
     )
     print("PHASE9_MODULE_METADATA_PACKET=pass")
     print(f"PHASE9_MODULE_METADATA_PACKET_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
