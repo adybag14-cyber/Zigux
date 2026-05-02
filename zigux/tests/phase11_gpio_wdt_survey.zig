@@ -46,6 +46,14 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
     );
     defer std.testing.allocator.free(manifest_json);
 
+    const driver_source = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "drivers/watchdog/gpio_wdt.zig",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(driver_source);
+
     const matrix_doc = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/phase11-gpio-wdt-validation-matrix.md",
@@ -61,6 +69,14 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
         .limited(32 * 1024),
     );
     defer std.testing.allocator.free(slice_doc);
+
+    const survey_doc = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase11-gpio-wdt-survey.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(survey_doc);
 
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
@@ -79,8 +95,16 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_survey_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_module_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_validation_matrix_present);
-    try std.testing.expectEqual(@as(usize, 14), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 15), manifest.gaps.len);
 
+    try std.testing.expect(std.mem.indexOf(u8, driver_source, "pub const PlatformDriverRegistrationMode = enum") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_source, "pub const PlatformDriverIdentitySummary = struct") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_source, "pub fn platformDriverIdentitySummary() PlatformDriverIdentitySummary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_source, ".driver_name = \"gpio-wdt\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_source, ".of_compatible = \"linux,wdt-gpio\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_source, ".probe_callback = \"gpio_wdt_probe\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_source, ".default_registration_mode = .module_platform_driver") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_source, ".supports_arch_initcall_override = true") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "PHASE11_GPIO_WDT_STATUS=metadata_teardown_and_register_device_surface_landed") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "## Shared Replay Surface") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "phase11-gpio-wdt-tests") != null);
@@ -99,10 +123,19 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "watchdog-info identity") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "summarizeTeardown()") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "registerDeviceCallSummary()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_doc, "platformDriverIdentitySummary()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_doc, "gpio-wdt") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_doc, "linux,wdt-gpio") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_doc, "module_platform_driver()") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "first bounded `devm_watchdog_register_device()` request") != null);
-    try std.testing.expect(std.mem.indexOf(u8, slice_doc, "The next honest bounded step inside the same Phase 11 lane is to leave the starter parked unless fresh repo inspection finds another comparably small teardown or failure-mode drift inside `gpio_wdt`.") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_doc, "The next honest bounded step inside the same Phase 11 lane is to leave the starter parked unless fresh repo inspection finds another comparably small simple-driver, teardown, or failure-mode drift inside `gpio_wdt`.") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "Keep descriptor-backed preflight, reboot glue, and broader watchdog registration work blocked from this slice.") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "move from that metadata-only registration plan to the first bounded register-device call surface") == null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "platformDriverIdentitySummary()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "gpio-wdt") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "linux,wdt-gpio") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "module_platform_driver()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "The next honest bounded step inside the same lane is to leave this starter parked unless fresh repo inspection finds another comparably small simple-driver, teardown, or failure-mode drift inside `gpio_wdt`.") != null);
 
     var starter_landed_count: usize = 0;
     var blocked_count: usize = 0;
@@ -113,6 +146,7 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
     var saw_slice_note = false;
     var saw_validation_matrix = false;
     var saw_metadata_followup = false;
+    var saw_platform_driver_identity_followup = false;
     var saw_stop_followup = false;
     var saw_handoff_followup = false;
     var saw_plan_followup = false;
@@ -141,6 +175,7 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
             saw_doc_gate = true;
             try std.testing.expectEqualStrings("Documentation/zigux/phase11-gpio-wdt-survey.md", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "platform-driver shell") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "teardown-facing") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hardware-validation posture") != null);
         }
@@ -151,6 +186,7 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hw_algo") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "heartbeat margin") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "platform-driver shell") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "teardown-facing") != null);
         }
 
@@ -165,6 +201,7 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
             saw_slice_note = true;
             try std.testing.expectEqualStrings("Documentation/zigux/phase11-gpio-wdt-slice.md", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "platform-driver shell") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "teardown-facing") != null);
         }
 
@@ -186,6 +223,18 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "WDIOF_SETTIMEOUT") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "WDIOF_MAGICCLOSE") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "WDIOF_KEEPALIVEPING") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase11-gpio-wdt-platform-driver-identity-followup")) {
+            saw_platform_driver_identity_followup = true;
+            try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "platformDriverIdentitySummary()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "gpio-wdt") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "linux,wdt-gpio") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "gpio_wdt_probe()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "module_platform_driver()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "CONFIG_GPIO_WATCHDOG_ARCH_INITCALL") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-gpio-wdt-probe-summary-followup")) {
@@ -238,7 +287,7 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 13), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 14), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_doc_gate);
@@ -247,6 +296,7 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
     try std.testing.expect(saw_slice_note);
     try std.testing.expect(saw_validation_matrix);
     try std.testing.expect(saw_metadata_followup);
+    try std.testing.expect(saw_platform_driver_identity_followup);
     try std.testing.expect(saw_stop_followup);
     try std.testing.expect(saw_handoff_followup);
     try std.testing.expect(saw_plan_followup);
