@@ -11,6 +11,7 @@ ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
 SURVEY_REL = "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md"
 MMIO_REL = "zigux/helpers/mmio.zig"
 POLICY_TEST_REL = "zigux/tests/phase3_policy_unsafe.zig"
+POLICY_BUILD_REL = "zigux/tests/phase3_policy_unsafe_build.zig"
 
 REQUIRED_SURVEY_MARKERS = (
     "PHASE3_MMIO_TYPED_POLICY_CONSUMER=zigux/helpers/mmio.zig",
@@ -44,6 +45,21 @@ REQUIRED_POLICY_TEST_SNIPPETS = (
     "try std.testing.expectError(error.UnsafeScopeDenied, mmio.read32Policy(raw_pointer_policy, base32, 0));",
 )
 
+REQUIRED_POLICY_BUILD_SNIPPETS = (
+    "const interop_policy_module = b.createModule(.{",
+    'interop_policy_module.addImport("abi_bindings", abi_bindings_module);',
+    'interop_policy_module.addImport("panic_policy", panic_policy_module);',
+    'interop_policy_module.addImport("allocator_policy", allocator_policy_module);',
+    'interop_policy_module.addImport("narrow_unsafe", narrow_unsafe_module);',
+    "const mmio_module = b.createModule(.{",
+    'mmio_module.addImport("abi_bindings", abi_bindings_module);',
+    'mmio_module.addImport("interop_policy", interop_policy_module);',
+    'mmio_module.addImport("narrow_unsafe", narrow_unsafe_module);',
+    'root_module.addImport("interop_policy", interop_policy_module);',
+    'root_module.addImport("mmio", mmio_module);',
+    '"phase3-policy-unsafe-test",',
+)
+
 
 def _read_text(root: Path, rel: str, issues: list[str]) -> str:
     path = root / rel
@@ -65,6 +81,7 @@ def validate(root: Path) -> list[str]:
     survey = _read_text(root, SURVEY_REL, issues)
     mmio = _read_text(root, MMIO_REL, issues)
     policy_test = _read_text(root, POLICY_TEST_REL, issues)
+    policy_build = _read_text(root, POLICY_BUILD_REL, issues)
 
     if survey:
         _check_snippets(survey, REQUIRED_SURVEY_MARKERS, "missing_survey_marker", issues)
@@ -73,6 +90,8 @@ def validate(root: Path) -> list[str]:
         _check_snippets(mmio, REQUIRED_MMIO_SNIPPETS, "missing_mmio_snippet", issues)
     if policy_test:
         _check_snippets(policy_test, REQUIRED_POLICY_TEST_SNIPPETS, "missing_policy_test_snippet", issues)
+    if policy_build:
+        _check_snippets(policy_build, REQUIRED_POLICY_BUILD_SNIPPETS, "missing_policy_build_snippet", issues)
 
     return issues
 
@@ -142,6 +161,11 @@ def run_self_test() -> int:
                     "",
                 )
             ),
+        )
+        _write(
+            root,
+            POLICY_BUILD_REL,
+            "\n".join(REQUIRED_POLICY_BUILD_SNIPPETS) + "\n",
         )
 
         assert validate(root) == []
@@ -345,6 +369,24 @@ def run_self_test() -> int:
                     "",
                 )
             ),
+        )
+        _write(
+            root,
+            POLICY_BUILD_REL,
+            "\n".join(
+                snippet
+                for snippet in REQUIRED_POLICY_BUILD_SNIPPETS
+                if snippet != 'root_module.addImport("mmio", mmio_module);'
+            )
+            + "\n",
+        )
+        issues = validate(root)
+        assert 'missing_policy_build_snippet:root_module.addImport("mmio", mmio_module);' in issues
+
+        _write(
+            root,
+            POLICY_BUILD_REL,
+            "\n".join(REQUIRED_POLICY_BUILD_SNIPPETS) + "\n",
         )
         _write(
             root,
