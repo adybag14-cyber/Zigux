@@ -354,6 +354,36 @@ def run_self_test() -> int:
         makefile_path.write_text(original_makefile, encoding="utf-8")
 
         makefile_path.write_text(
+            original_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-module-metadata-packet.py --self-test\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "module_metadata_self_test_hook",
+            tmp_root,
+            "makefile:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-module-metadata-packet.py --self-test\n",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        makefile_path.write_text(
+            original_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-module-metadata-packet.py\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "module_metadata_live_hook",
+            tmp_root,
+            "makefile:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-module-metadata-packet.py\n",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        makefile_path.write_text(
             original_makefile.replace("phase9-module-metadata-survey:\n", "", 1),
             encoding="utf-8",
         )
@@ -377,6 +407,36 @@ def run_self_test() -> int:
 
         module_metadata_survey_path = tmp_root / MODULE_METADATA_SURVEY_PATH
         original_module_metadata_survey = module_metadata_survey_path.read_text(encoding="utf-8")
+        module_metadata_survey_path.write_text(
+            original_module_metadata_survey.replace(
+                "- `python3 scripts/zigux/check-phase9-module-metadata-packet.py --self-test`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "module_metadata_survey_self_test_gate",
+            tmp_root,
+            "module_metadata_survey:- `python3 scripts/zigux/check-phase9-module-metadata-packet.py --self-test`\n",
+        )
+        module_metadata_survey_path.write_text(original_module_metadata_survey, encoding="utf-8")
+
+        module_metadata_survey_path.write_text(
+            original_module_metadata_survey.replace(
+                "- `python3 scripts/zigux/check-phase9-module-metadata-packet.py`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "module_metadata_survey_live_gate",
+            tmp_root,
+            "module_metadata_survey:- `python3 scripts/zigux/check-phase9-module-metadata-packet.py`\n",
+        )
+        module_metadata_survey_path.write_text(original_module_metadata_survey, encoding="utf-8")
+
         module_metadata_survey_path.write_text(
             original_module_metadata_survey.replace(
                 "- `make -C zigux phase9-module-metadata-survey`\n",
@@ -449,7 +509,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE9_VALIDATION_FLOW_SELF_TEST=pass")
-    print("PHASE9_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=8")
+    print("PHASE9_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
