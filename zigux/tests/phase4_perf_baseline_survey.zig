@@ -392,6 +392,7 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, current_surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "phase4_perf_baseline_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "pending threshold-plan record per shipped rollback gate") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "make -C zigux phase4-runtime-atomic64-diff") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "make -C zigux phase4-bitmap-diff") != null);
 
     var starter_landed_count: usize = 0;
