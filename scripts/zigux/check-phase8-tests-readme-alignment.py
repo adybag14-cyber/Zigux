@@ -460,6 +460,51 @@ def run_self_test() -> int:
         )
         doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
 
+        doc_readme_path.write_text(
+            original_doc_readme.replace(
+                "## Phase 8 notes\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "doc_readme_phase8_notes_heading",
+            tmp_root,
+            "doc_readme:Phase 8 notes",
+        )
+        doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
+
+        doc_readme_path.write_text(
+            original_doc_readme.replace(
+                "- Documentation/zigux/phase8-perf-buffer-poll-slice.md\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "doc_readme_perf_slice_reference",
+            tmp_root,
+            "doc_readme:Documentation/zigux/phase8-perf-buffer-poll-slice.md",
+        )
+        doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
+
+        doc_readme_path.write_text(
+            original_doc_readme.replace(
+                "- zigux/tests/phase8_bpf_type_names.zig\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "doc_readme_bpf_type_names",
+            tmp_root,
+            "doc_readme:zigux/tests/phase8_bpf_type_names.zig",
+        )
+        doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
+
         perf_slice_path = tmp_root / REQUIRED_FILES["perf_slice"]
         original_perf_slice = perf_slice_path.read_text(encoding="utf-8")
         perf_slice_path.write_text(
@@ -606,7 +651,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=19")
+    print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=22")
     return 0
 
 
