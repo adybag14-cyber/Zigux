@@ -81,6 +81,7 @@ pub const variant_sample = [_]u8{ 0x00, 0xfb, 0xff, 0x7f, 0x80 };
 pub const variant_one_byte_sample = [_]u8{0xfb};
 pub const variant_two_byte_sample = [_]u8{ 0xff, 0xf0 };
 pub const multi_quartet_variant_sample = [_]u8{ 0xfb, 0xff, 0xef, 0xff, 0xf0 };
+pub const long_multi_quartet_variant_sample = [_]u8{ 0xfb, 0xff, 0xef, 0xff, 0xf0, 0xfb, 0xff };
 
 pub const variant_cases = [_]VariantCase{
     .{ .input = &variant_sample, .expected = "APv/f4A", .padding = false, .variant_name = "std" },
@@ -95,6 +96,12 @@ pub const variant_cases = [_]VariantCase{
     .{ .input = &multi_quartet_variant_sample, .expected = "-__v__A=", .padding = true, .variant_name = "urlsafe" },
     .{ .input = &multi_quartet_variant_sample, .expected = "+,,v,,A", .padding = false, .variant_name = "imap" },
     .{ .input = &multi_quartet_variant_sample, .expected = "+,,v,,A=", .padding = true, .variant_name = "imap" },
+    .{ .input = &long_multi_quartet_variant_sample, .expected = "+//v//D7/w", .padding = false, .variant_name = "std" },
+    .{ .input = &long_multi_quartet_variant_sample, .expected = "+//v//D7/w==", .padding = true, .variant_name = "std" },
+    .{ .input = &long_multi_quartet_variant_sample, .expected = "-__v__D7_w", .padding = false, .variant_name = "urlsafe" },
+    .{ .input = &long_multi_quartet_variant_sample, .expected = "-__v__D7_w==", .padding = true, .variant_name = "urlsafe" },
+    .{ .input = &long_multi_quartet_variant_sample, .expected = "+,,v,,D7,w", .padding = false, .variant_name = "imap" },
+    .{ .input = &long_multi_quartet_variant_sample, .expected = "+,,v,,D7,w==", .padding = true, .variant_name = "imap" },
     .{ .input = &variant_one_byte_sample, .expected = "+w", .padding = false, .variant_name = "std" },
     .{ .input = &variant_one_byte_sample, .expected = "+w==", .padding = true, .variant_name = "std" },
     .{ .input = &variant_one_byte_sample, .expected = "-w", .padding = false, .variant_name = "urlsafe" },
@@ -176,6 +183,10 @@ pub const variant_decode_cases = [_]DecodeCase{
     .{ .input = "-__v__A=", .expected = &multi_quartet_variant_sample, .padding = true, .variant_name = "urlsafe" },
     .{ .input = "+,,v,,A", .expected = &multi_quartet_variant_sample, .padding = false, .variant_name = "imap" },
     .{ .input = "+,,v,,A=", .expected = &multi_quartet_variant_sample, .padding = true, .variant_name = "imap" },
+    .{ .input = "-__v__D7_w", .expected = &long_multi_quartet_variant_sample, .padding = false, .variant_name = "urlsafe" },
+    .{ .input = "-__v__D7_w==", .expected = &long_multi_quartet_variant_sample, .padding = true, .variant_name = "urlsafe" },
+    .{ .input = "+,,v,,D7,w", .expected = &long_multi_quartet_variant_sample, .padding = false, .variant_name = "imap" },
+    .{ .input = "+,,v,,D7,w==", .expected = &long_multi_quartet_variant_sample, .padding = true, .variant_name = "imap" },
     .{ .input = "-w", .expected = &variant_one_byte_sample, .padding = false, .variant_name = "urlsafe" },
     .{ .input = "-w==", .expected = &variant_one_byte_sample, .padding = true, .variant_name = "urlsafe" },
     .{ .input = "+w", .expected = &variant_one_byte_sample, .padding = false, .variant_name = "imap" },
