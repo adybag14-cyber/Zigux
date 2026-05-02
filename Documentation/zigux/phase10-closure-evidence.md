@@ -67,7 +67,7 @@ The current roadmap-facing reading is:
 
 - `virtqueue wrappers`: `starter_landed` through `drivers/virtio/virtio_ring.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`, and `Documentation/zigux/phase10-virtio-ring-survey.md`
 - `MMIO wrappers`: `starter_landed` through `drivers/virtio/virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_manifest.json`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, and `Documentation/zigux/phase10-virtio-mmio-survey.md`
-- `lab-only driver validation`: `starter_landed` through `zigux/tests/phase10_build.zig`, `scripts/zigux/check-phase10-closure-inventory.py`, `scripts/zigux/validate-phase10-closure.py`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and the shared `make -C zigux phase10-{validate,test}` entrypoints
+- `lab-only driver validation`: `starter_landed` through `zigux/tests/phase10_build.zig`, `scripts/zigux/check-phase10-closure-inventory.py`, `scripts/zigux/validate-phase10.py`, `scripts/zigux/validate-phase10-closure.py`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and the shared `make -C zigux phase10-{validate,test}` entrypoints
 - `dual implementations for risky areas`: `blocked_on_risky_transport` because the current ring, input, and MMIO manifests still keep MMIO lifecycle paths, queue setup or reset, IRQ parity, DMA-facing paths, input registration lifecycle, and probe or remove work out of scope until smaller helpers land first
 
 This keeps the closure packet aligned with the roadmap's real Phase 10 requirements: queue-facing lab wrappers are landed, the bounded MMIO register-window, queue-register, queue-notify, queue-address, config-window, config-write, and interrupt-ack helpers are now landed, the lab validation gate is real, and risky transport expansion is still intentionally blocked.
@@ -110,7 +110,7 @@ The current Phase 10 tranche is only considered evidence-verified when all of th
 6. Linux-style combined Phase 10 entrypoint
 - `make -C zigux phase10`
 
-These checks now fail closed on the direct closure-inventory packet plus the shared closure packet and the current MMIO ladder through bounded interrupt acknowledgement, so `zigux/tests/phase10_closure_manifest.json`, `zigux-alpha/PHASE10_CLOSURE_LEDGER.md`, `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-virtio-mmio-survey.md`, and `zigux/tests/phase10_virtio_mmio_manifest.json` stay machine-checked together at the same interrupt-ack rung.
+These checks now fail closed on the direct closure-inventory packet, the wider shared `scripts/zigux/validate-phase10.py` gate reached by the published validate wrapper, the shared closure packet, and the current MMIO ladder through bounded interrupt acknowledgement, so `zigux/tests/phase10_closure_manifest.json`, `zigux-alpha/PHASE10_CLOSURE_LEDGER.md`, `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-virtio-mmio-survey.md`, and `zigux/tests/phase10_virtio_mmio_manifest.json` stay machine-checked together at the same interrupt-ack rung.
 
 - `PHASE10_CLOSURE_INVENTORY_GATE=python3 scripts/zigux/check-phase10-closure-inventory.py`
 - `PHASE10_CLOSURE_GATE=python3 scripts/zigux/validate-phase10-closure.py`
