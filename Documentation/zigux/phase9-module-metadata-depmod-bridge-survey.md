@@ -104,14 +104,22 @@ That is more honest than counting starter descriptors as if they already closed 
 
 ## Gates
 
-1. run the shared validator
-- `python3 scripts/zigux/validate-phase9.py`
+1. run the shared validator self-test plus the dedicated metadata checker self-test
+- `python3 scripts/zigux/validate-phase9.py --self-test`
+- `python3 scripts/zigux/check-phase9-module-metadata-packet.py --self-test`
 
-2. run the shared Phase 9 runtime bundle
+2. run the shared validator and the dedicated metadata checker
+- `python3 scripts/zigux/validate-phase9.py`
+- `python3 scripts/zigux/check-phase9-module-metadata-packet.py`
+
+3. run the shared Phase 9 runtime bundle
 - `zig build test --build-file zigux/tests/phase9_build.zig --summary all`
 
-3. run the focused metadata survey replay
+4. run the focused metadata survey replay
 - `zig test zigux/tests/runtime_module_metadata_survey.zig`
+
+5. run the shared convenience target
+- `make -C zigux phase9-validate`
 
 ## Non-goals
 
