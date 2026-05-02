@@ -236,6 +236,8 @@ def validate_kconfig_bridge_manifest(cases_path: Path) -> list[str]:
             'kconfig': 'Kconfig',
             'config': 'out/.config',
             'arch': 'riscv64',
+            'autoconfig': 'generated/phase2/auto-sync.conf',
+            'autoheader': 'generated/phase2/autoconf-sync.h',
             'nosilentupdate': '1',
             'expected': 'syncconfig_expected.json',
         },
@@ -272,6 +274,7 @@ def validate_kconfig_bridge_manifest(cases_path: Path) -> list[str]:
             'kconfig': 'Kconfig',
             'config': 'yes/.config',
             'arch': 'riscv64',
+            'allconfig_env': 'arch/riscv/configs/allyes-seed.config',
             'expected': 'allyesconfig_expected.json',
         },
         {
