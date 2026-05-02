@@ -381,3 +381,31 @@ test "phase13 landlock syscalls ruleset fd creation plan captures file-operation
     try std.testing.expect(plan.transfers_ruleset_to_fd_on_success);
     try std.testing.expect(plan.releases_ruleset_on_fd_failure);
 }
+
+
+test "phase13 landlock ruleset fops planner keeps release and dummy handler contracts explicit" {
+    const release = syscalls.SyscallsHelperLab.planRulesetFops(.release);
+    try std.testing.expectEqualStrings("security/landlock/syscalls.c", release.anchor);
+    try std.testing.expectEqual(syscalls.RulesetFopsOperation.release, release.operation);
+    try std.testing.expectEqual(@as(u32, 0), release.enables_mode);
+    try std.testing.expect(release.drops_ruleset_reference);
+    try std.testing.expect(release.returns_zero);
+    try std.testing.expect(!release.returns_einval);
+    try std.testing.expect(!release.mutates_ruleset_state);
+
+    const read = syscalls.SyscallsHelperLab.planRulesetFops(.read);
+    try std.testing.expectEqual(syscalls.RulesetFopsOperation.read, read.operation);
+    try std.testing.expectEqual(syscalls.fmode_can_read, read.enables_mode);
+    try std.testing.expect(!read.drops_ruleset_reference);
+    try std.testing.expect(!read.returns_zero);
+    try std.testing.expect(read.returns_einval);
+    try std.testing.expect(!read.mutates_ruleset_state);
+
+    const write = syscalls.SyscallsHelperLab.planRulesetFops(.write);
+    try std.testing.expectEqual(syscalls.RulesetFopsOperation.write, write.operation);
+    try std.testing.expectEqual(syscalls.fmode_can_write, write.enables_mode);
+    try std.testing.expect(!write.drops_ruleset_reference);
+    try std.testing.expect(!write.returns_zero);
+    try std.testing.expect(write.returns_einval);
+    try std.testing.expect(!write.mutates_ruleset_state);
+}
