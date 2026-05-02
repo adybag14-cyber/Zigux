@@ -165,7 +165,7 @@
         "string.memchr_inv_index",
         "string.memchr_inv_none"
       ],
-      "summary": "Committed C-backed parity coverage includes Linux-style bool parsing for true, false, and invalid forms, C-string-aware strlcpy length and truncation behavior, in-place whitespace and replacement helpers including embedded-NUL remove_spaces handling, and first-mismatch memchrInv detection, while direct Zig review anchors now also record C-string equality, prefix, prefix-length, suffix, and memparse forwarding coverage for the newer helper surface already shipped on master.",
+      "summary": "Committed C-backed parity coverage includes Linux-style bool parsing for true, false, and invalid forms, C-string-aware strlcpy length and truncation behavior, in-place whitespace and replacement helpers including embedded-NUL remove_spaces handling, and first-mismatch memchrInv detection, while direct Zig review anchors now also record C-string equality, prefix, prefix-length, suffix, and memparse coverage for the newer helper surface already shipped on master.",
       "unit_test_anchor": "tools/lib/string.zig:test \"memchrInv scans aligned and misaligned long buffers\"",
       "unit_test_contract": "Direct Zig unit coverage keeps memchrInv honest for both aligned and misaligned long buffers beyond the short C-backed fixture cases.",
       "cstring_unit_test_anchor": "tools/lib/string.zig:test \"strlcpy stops at the first embedded NUL in the source\"",
@@ -181,7 +181,7 @@
       "suffix_unit_test_anchor": "tools/lib/string.zig:test \"str_ends_with matches kernel suffix semantics\"",
       "suffix_unit_test_contract": "Direct Zig unit coverage keeps strEndsWith, str_ends_with, and strends aligned with kernel-style suffix semantics for exact, empty-suffix, shorter-input, and case-sensitive comparisons.",
       "memparse_unit_test_anchor": "tools/lib/string.zig:test \"memparse forwards the header-level string helper surface\"",
-      "memparse_unit_test_contract": "Direct Zig unit coverage keeps memparse aligned by forwarding decimal, hexadecimal, suffix-bearing, and invalid inputs through the shared command-line parser without changing the parsed value or rest pointer contract."
+      "memparse_unit_test_contract": "Direct Zig unit coverage keeps memparse aligned by preserving decimal, hexadecimal, suffix-bearing, and invalid inputs without changing the parsed value or rest pointer contract."
     }
   }
 }
