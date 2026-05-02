@@ -1,7 +1,7 @@
 {
-  "lane_key": "P3-L01",
+  "lane_key": "P3-L02",
   "roadmap_phase": "Phase 3",
-  "surveyed_commit": "de9ce0d08cc56cf962acc2ab36c0cb202a7b6a1c",
+  "surveyed_commit": "1bd3631e936dd38e98ee90fdc1f9aab6faa8e183",
   "roadmap_anchors": [
     "rust/exports.c",
     "lib/bitmap.c",
@@ -19,6 +19,7 @@
     "cpumask",
     "list",
     "hlist",
+    "rbtree",
     "err_ptr",
     "xarray",
     "idr",
@@ -29,17 +30,21 @@
   ],
   "rbtree_evidence": [
     "Documentation/zigux/phase3-rbtree-interop-survey.md",
-    "tools/lib/rbtree.zig",
-    "lib/rbtree.zig",
+    "Documentation/zigux/phase3-rbtree-slice.md",
     "Documentation/zigux/phase1-closure.md",
     "Documentation/zigux/phase7-rbtree-slice.md",
+    "tools/lib/rbtree.zig",
+    "lib/rbtree.zig",
+    "zigux/helpers/rbtree_view.zig",
+    "zigux/tests/phase3_rbtree_survey.zig",
+    "zigux/tests/phase3_rbtree_manifest.json",
     "zigux/tests/phase7_rbtree.zig",
     "zigux/tests/phase7_rbtree_survey.zig",
     "zigux/tests/phase7_rbtree_manifest.json"
   ],
-  "current_interop_gap": "rbtree-interop-slice-still-missing",
-  "current_rbtree_status": "phase3-survey-exists-but-phase3-interop-slice-is-missing",
-  "next_bounded_step": "small-phase3-rbtree-interop-slice-before-more-chrdev-growth",
+  "current_interop_gap": "curated-rbtree-c-binding-surface-still-missing",
+  "current_rbtree_status": "phase3-helper-packet-exists-but-curated-c-binding-surface-is-still-missing",
+  "next_bounded_step": "curated-rbtree-boundary-header-and-parity-fixture-before-more-chrdev-growth",
   "adjacent_growth_marker": "chrdev-plan-growth-exceeds-roadmap-anchors",
   "delivery_evidence": [
     {
@@ -51,25 +56,33 @@
       "path": "Documentation/zigux/phase3-rbtree-interop-survey.md"
     },
     {
+      "kind": "documentation",
+      "path": "Documentation/zigux/phase3-rbtree-slice.md"
+    },
+    {
+      "kind": "helper",
+      "path": "zigux/helpers/rbtree_view.zig"
+    },
+    {
       "kind": "validation",
-      "path": "scripts/zigux/validate-phase3-roadmap-gap-survey.py"
+      "path": "zigux/tests/phase3_rbtree_survey.zig"
     },
     {
       "kind": "manifest",
-      "path": "zigux/tests/phase3_roadmap_gap_manifest.json"
+      "path": "zigux/tests/phase3_rbtree_manifest.json"
     },
     {
       "kind": "validation",
-      "path": "zigux/tests/phase3_roadmap_gap_survey.zig"
+      "path": "scripts/zigux/validate-phase3-roadmap-gap-survey.py"
     }
   ],
   "gaps": [
     {
-      "id": "phase3-rbtree-boundary-slice",
-      "status": "missing",
+      "id": "phase3-rbtree-boundary-record",
+      "status": "helper_landed_binding_followup_pending",
       "kind": "roadmap_anchor",
-      "path": "lib/rbtree.c",
-      "why_now": "The roadmap names lib/rbtree.c as a Phase 3 anchor, but current master still has no curated Phase 3 helper, dump, fixture, or slice note for it."
+      "path": "include/zigux/abi.h",
+      "why_now": "The helper-local Phase 3 packet now exists, but current master still has no curated ABI record, Zig binding shape, or parity fixture for a boundary-facing rbtree contract."
     },
     {
       "id": "phase3-uapi-breadth",
@@ -83,7 +96,7 @@
       "status": "adjacent_only",
       "kind": "review_boundary",
       "path": "zigux/helpers/chrdev_open_plan.zig",
-      "why_now": "The longer chrdev planning ladder is real repo state, but it is adjacent exploratory growth and should not be mistaken for closure of the still-missing roadmap-backed rbtree boundary slice."
+      "why_now": "The longer chrdev planning ladder is real repo state, but it is adjacent exploratory growth and should not be mistaken for closure of the still-incomplete roadmap-backed rbtree boundary contract."
     }
   ]
 }
