@@ -541,4 +541,4 @@ print(f"PHASE14_BUILD_DEPEND_STEP_COUNT={len(actual_depend_steps)}")
 print(f"PHASE14_COMPILE_ARTIFACT_COUNT={len(expected_build_test_names)}")
 print(f"PHASE14_FOCUSED_SHARD_COUNT={focused_shard_count}")
 print(f"PHASE14_ANCHOR_LOCAL_STEP_COUNT={anchor_local_step_count}")
-print(f"PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT={full_bundle_only_count})"
+print(f"PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT={full_bundle_only_count}")
