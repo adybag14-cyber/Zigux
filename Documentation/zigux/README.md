@@ -118,6 +118,7 @@ Phase 11 notes
 Phase 12 notes
 - `Documentation/zigux/phase12-release-readiness-survey.md` is now the release-facing PMO note for the active Phase 12 tranche, and it keeps the shared validator path, the bounded cross-compile smoke packet, and the mixed raw-GitHub fallback posture in one place without claiming global closure.
 - `Documentation/zigux/phase12-cross-compile-smoke.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` now stay explicit from the docs root as adjacent Phase 12 release-coordination notes, so the approved non-native musl target replay and the current mixed public-read fallback split are visible alongside the driver and libbpf survey packet.
+- the docs-root Phase 12 release packet now also states the mixed fallback split directly: `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` remain the dedicated commit-pinned public fallback artifacts, while `Documentation/zigux/phase12-virtio-net-survey.md` and `Documentation/zigux/phase12-libbpf-segment-survey.md` still rely on shared-tree-only fallback reads.
 - `Documentation/zigux/phase12-virtio-net-survey.md`
 - `Documentation/zigux/phase12-nvme-pci-survey.md`
 - `Documentation/zigux/phase12-nvme-pci-slice.md`
