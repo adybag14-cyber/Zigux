@@ -73,6 +73,11 @@ SURVEY_REQUIRED_MARKERS = [
     "- `make -C zigux phase9-module-metadata-survey`",
 ]
 
+MODULE_METADATA_SURVEY_EXACT_ONCE_MARKERS = [
+    "- `python3 scripts/zigux/check-phase9-module-metadata-packet.py --self-test`\n",
+    "- `python3 scripts/zigux/check-phase9-module-metadata-packet.py`\n",
+]
+
 MAKEFILE_REQUIRED_MARKERS = [
     "PHONY += phase9-validate phase9-test phase9-loader-gap-survey phase9-non-owner-boundary-survey phase9-module-metadata-survey phase9-kretprobe-survey phase9-trace-events-survey phase9",
     "phase9-module-metadata-survey:",
@@ -215,6 +220,10 @@ def collect_missing_files(root: Path) -> list[str]:
     return [rel_path for rel_path in REQUIRED_FILES if not (root / rel_path).exists()]
 
 
+def count_exact_occurrence(text: str, marker: str) -> int:
+    return text.count(marker)
+
+
 def extract_markdown_surveyed_commit(text: str, label: str) -> tuple[str | None, str | None]:
     match = re.search(r"`PHASE9_SURVEYED_COMMIT=([0-9a-f]{40})`", text)
     if not match:
@@ -353,6 +362,9 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     for marker in SURVEY_REQUIRED_MARKERS:
         if marker not in survey_text:
             failures.append(f"survey:{marker}")
+    for marker in MODULE_METADATA_SURVEY_EXACT_ONCE_MARKERS:
+        if count_exact_occurrence(survey_text, marker) != 1:
+            failures.append(f"survey_exact:{marker}")
     for marker in MAKEFILE_REQUIRED_MARKERS:
         if marker not in makefile_text:
             failures.append(f"makefile:{marker}")
@@ -764,6 +776,21 @@ def run_self_test() -> int:
 
         survey_path.write_text(
             original_survey.replace(
+                "- `python3 scripts/zigux/check-phase9-module-metadata-packet.py --self-test`\n",
+                "- `python3 scripts/zigux/check-phase9-module-metadata-packet.py --self-test`\n- `python3 scripts/zigux/check-phase9-module-metadata-packet.py --self-test`\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "survey_checker_duplicate_self_test_gate",
+            tmp_root,
+            "survey_exact:- `python3 scripts/zigux/check-phase9-module-metadata-packet.py --self-test`\n",
+        )
+        survey_path.write_text(original_survey, encoding="utf-8")
+
+        survey_path.write_text(
+            original_survey.replace(
                 "- `python3 scripts/zigux/check-phase9-module-metadata-packet.py`\n",
                 "",
                 1,
@@ -774,6 +801,21 @@ def run_self_test() -> int:
             "survey_checker_live_gate",
             tmp_root,
             "survey:- `python3 scripts/zigux/check-phase9-module-metadata-packet.py`",
+        )
+        survey_path.write_text(original_survey, encoding="utf-8")
+
+        survey_path.write_text(
+            original_survey.replace(
+                "- `python3 scripts/zigux/check-phase9-module-metadata-packet.py`\n",
+                "- `python3 scripts/zigux/check-phase9-module-metadata-packet.py`\n- `python3 scripts/zigux/check-phase9-module-metadata-packet.py`\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "survey_checker_duplicate_live_gate",
+            tmp_root,
+            "survey_exact:- `python3 scripts/zigux/check-phase9-module-metadata-packet.py`\n",
         )
         survey_path.write_text(original_survey, encoding="utf-8")
 
@@ -872,7 +914,7 @@ def run_self_test() -> int:
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
     print("PHASE9_MODULE_METADATA_PACKET_SELF_TEST=pass")
-    print("PHASE9_MODULE_METADATA_PACKET_SELF_TEST_CASE_COUNT=16")
+    print("PHASE9_MODULE_METADATA_PACKET_SELF_TEST_CASE_COUNT=18")
     return 0
 
 
