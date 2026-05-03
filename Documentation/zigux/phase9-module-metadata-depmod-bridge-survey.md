@@ -13,6 +13,7 @@ This note records the current Phase 9 runtime module-metadata surface and the st
   - `zigux/tests/runtime_module_metadata_manifest.json`
   - `zigux/tests/runtime_module_metadata_survey.zig`
   - `scripts/zigux/check-phase9-module-metadata-packet.py`
+  - `zigux/Makefile`
   - `zigux/tests/phase9_build.zig`
   - `zigux/tests/README.md`
   - `zigux/kernel/runtime_loader.zig`
@@ -89,7 +90,7 @@ Those surfaces are therefore still absent from the current runtime starter famil
 
 ## Delivery ownership map
 
-The shared replay route is part of this dedicated metadata packet too, because the note, focused replay, shared Phase 9 bundle, tests-root guide, and fail-closed checker all need to describe the same bounded metadata story.
+The shared replay route is part of this dedicated metadata packet too, because the note, focused replay, shared Phase 9 bundle, tests-root guide, fail-closed checker, and wrapper routes all need to describe the same bounded metadata story.
 
 The dedicated metadata packet keeps one bounded ownership split:
 
@@ -97,6 +98,7 @@ The dedicated metadata packet keeps one bounded ownership split:
 - `zigux/tests/runtime_module_metadata_manifest.json` owns the machine-readable counts, exact file list, metadata field inventory, and depmod-gap catalog
 - `zigux/tests/runtime_module_metadata_survey.zig` owns the focused replay that proves the note, manifest, starter descriptors, shared loader metadata, and the dedicated trace-events loader scaffold still agree
 - `scripts/zigux/check-phase9-module-metadata-packet.py` owns the fail-closed checker for this dedicated metadata packet, including the survey note, focused replay, shared Phase 9 bundle replay entrypoint, tests-root guidance, and the dedicated trace-events loader scaffold markers
+- `zigux/Makefile` owns the focused `phase9-module-metadata-survey` wrapper plus the shared `phase9-validate` wrapper route that keep the dedicated metadata replay visible beside the broader Phase 9 runtime packet
 - `zigux/tests/phase9_build.zig` owns the shared Phase 9 runtime bundle replay entrypoint that includes `phase9-runtime-module-metadata-survey-tests` beside the adjacent runtime packets
 - `zigux/tests/README.md` owns the tests-root guidance that keeps the dedicated metadata checker and shared replay route explicit beside the broader Phase 9 runtime packet
 - `zigux/kernel/runtime_loader.zig` owns the shared `RuntimeLoadRequest` metadata fields and the current three-lane loader union
