@@ -33,6 +33,11 @@ SURVEY_MARKERS = [
     "`tools/lib/bpf/libbpf.c`",
     "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md",
     "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md",
+    "https://github.com/adybag14-cyber/Zigux/tree/master/drivers/net",
+    "https://github.com/adybag14-cyber/Zigux/tree/master/tools/lib/bpf",
+    "https://github.com/adybag14-cyber/Zigux/tree/master/Documentation/zigux",
+    "https://github.com/adybag14-cyber/Zigux/tree/master/zigux/tests",
+    "PHASE12_SHARED_TREE_READBACK_ROOT_COUNT=4",
 ]
 
 TEST_MARKERS = [
@@ -43,6 +48,15 @@ TEST_MARKERS = [
     "shared_tree_only",
     "commit_pinned_raw_catalog",
     "commit_pinned_raw_map",
+    "shared_tree_readback_root_count",
+    "shared_tree_readback_roots",
+]
+
+EXPECTED_SHARED_TREE_READBACK_ROOTS = [
+    "https://github.com/adybag14-cyber/Zigux/tree/master/drivers/net",
+    "https://github.com/adybag14-cyber/Zigux/tree/master/tools/lib/bpf",
+    "https://github.com/adybag14-cyber/Zigux/tree/master/Documentation/zigux",
+    "https://github.com/adybag14-cyber/Zigux/tree/master/zigux/tests",
 ]
 
 EXPECTED_ANCHORS = {
@@ -102,10 +116,15 @@ def validate_manifest(manifest: dict[str, object]) -> list[str]:
         "commit_pinned_raw_fallback_catalog_count": 1,
         "commit_pinned_raw_fallback_map_count": 1,
         "shared_tree_only_anchor_count": 2,
+        "shared_tree_readback_root_count": 4,
     }
     for key, value in expected_scalars.items():
         if manifest.get(key) != value:
             missing.append(f"manifest:{key}")
+
+    readback_roots = manifest.get("shared_tree_readback_roots")
+    if readback_roots != EXPECTED_SHARED_TREE_READBACK_ROOTS:
+        missing.append("manifest:shared_tree_readback_roots")
 
     anchors = manifest.get("anchors")
     if not isinstance(anchors, list) or len(anchors) != 4:
@@ -277,6 +296,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"PHASE12_RAW_GITHUB_COVERAGE_ANCHOR_COUNT={len(anchors)}")
     print(f"PHASE12_RAW_GITHUB_COVERAGE_SHARED_TREE_ONLY_COUNT={shared_tree_only}")
     print(f"PHASE12_RAW_GITHUB_COVERAGE_COMMIT_PINNED_COUNT={commit_pinned}")
+    print(f"PHASE12_RAW_GITHUB_COVERAGE_SHARED_TREE_ROOT_COUNT={manifest['shared_tree_readback_root_count']}")
     return 0
 
 
