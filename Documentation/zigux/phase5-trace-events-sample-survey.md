@@ -54,7 +54,7 @@ The sample intentionally stays small:
 - it uses a tiny `init()` -> `replayMainIteration()` -> `registerFunctionCallback()` -> `replayFunctionIteration()` -> `unregisterFunctionCallback()` -> `exit()` lifecycle so ownership and teardown stay explicit, including unregister-underflow rejection before a callback is armed and `OutstandingRegistration` rejection if `exit()` is attempted while one callback is still live
 - it provides one bounded self-check through `runAnchorReplay()` instead of implying a runtime-ready trace-events module
 
-The exact checks currently recorded in `zigux/tests/phase5_trace_events_sample_manifest.json` and exercised through `zigux/tests/phase5_build.zig` are:
+The exact checks currently recorded in `zigux/tests/phase5_trace_events_sample_manifest.json`, exercised directly through `zigux/tests/phase5_trace_events_sample.zig`, and exercised through `zigux/tests/phase5_build.zig` are:
 
 - the in-memory sample keeps `samples/trace_events/trace-events-sample.c` explicit and stays in the non-runtime sample lane
 - `runAnchorReplay()` formats iter=7, selects Gandalf, and exposes selected-string slot `2` from the Linux `random_strings` table for `len = 2`
