@@ -32,6 +32,7 @@ REQUIRED_FILES = [
     "zigux/tests/phase12_libbpf_segments.zig",
     "zigux/tests/phase12_libbpf_reviewability.zig",
     "Documentation/zigux/phase12-libbpf-segment-survey.md",
+    "Documentation/zigux/review-checklist.md",
 ]
 EXPECTED_BUILD_TEST_NAMES = [
     "phase12-libbpf-segment-survey-tests",
@@ -105,6 +106,9 @@ SCRIPTS_README_MARKERS = [
     "phase12_libbpf_only_build.zig",
     "focused libbpf-only replay hook",
 ]
+REVIEW_CHECKLIST_MARKERS = [
+    "if the change touches the focused Phase 12 libbpf-only replay packet, do `python3 scripts/zigux/check-phase12-libbpf-focused-replay.py --self-test`, `scripts/zigux/check-phase12-libbpf-focused-replay.py`, `scripts/zigux/validate-phase12.py`, `zigux/tests/phase12_libbpf_only_build.zig`, `zigux/tests/phase12_libbpf_manifest.json`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` still agree on the same dedicated replay shard, review-note hook, and validator-first rollback path instead of leaving that narrower libbpf gate implied behind the broader packet checks?",
+]
 VALIDATE_PHASE12_MARKERS = [
     "check-phase12-libbpf-focused-replay.py --self-test",
     "check-phase12-libbpf-focused-replay.py",
@@ -177,6 +181,7 @@ def collect_missing(
     survey_note_text: str,
     manifest_text: str,
     scripts_readme_text: str,
+    review_checklist_text: str,
     validate_phase12_text: str,
     makefile_text: str,
     workflow_text: str,
@@ -186,6 +191,7 @@ def collect_missing(
     missing.extend(collect_marker_misses(survey_note_text, SURVEY_NOTE_MARKERS, "survey_note"))
     missing.extend(collect_marker_misses(manifest_text, MANIFEST_MARKERS, "manifest"))
     missing.extend(collect_marker_misses(scripts_readme_text, SCRIPTS_README_MARKERS, "scripts_readme"))
+    missing.extend(collect_marker_misses(review_checklist_text, REVIEW_CHECKLIST_MARKERS, "review_checklist"))
     missing.extend(collect_marker_misses(validate_phase12_text, VALIDATE_PHASE12_MARKERS, "validate_phase12"))
     missing.extend(collect_marker_misses(makefile_text, MAKEFILE_MARKERS, "makefile"))
     missing.extend(collect_marker_misses(workflow_text, WORKFLOW_MARKERS, "workflow"))
@@ -227,6 +233,7 @@ def build_live_inputs() -> dict[str, object]:
         "survey_note_text": read_text("Documentation/zigux/phase12-libbpf-segment-survey.md"),
         "manifest_text": read_text("zigux/tests/phase12_libbpf_manifest.json"),
         "scripts_readme_text": read_text("scripts/zigux/README.md"),
+        "review_checklist_text": read_text("Documentation/zigux/review-checklist.md"),
         "validate_phase12_text": read_text("scripts/zigux/validate-phase12.py"),
         "makefile_text": read_text("zigux/Makefile"),
         "workflow_text": read_text(".github/workflows/zigux-bootstrap.yml"),
@@ -245,6 +252,7 @@ def run_self_test() -> int:
         "survey_note_text": "\n".join(SURVEY_NOTE_MARKERS) + "\n",
         "manifest_text": "\n".join(MANIFEST_MARKERS) + "\n",
         "scripts_readme_text": "\n".join(SCRIPTS_README_MARKERS) + "\n",
+        "review_checklist_text": "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n",
         "validate_phase12_text": "\n".join(VALIDATE_PHASE12_MARKERS) + "\n",
         "makefile_text": "\n".join(MAKEFILE_MARKERS) + "\n",
         "workflow_text": "\n".join(WORKFLOW_MARKERS) + "\n",
@@ -366,6 +374,22 @@ def run_self_test() -> int:
     missing = collect_missing(
         **{
             **base_inputs,
+            "review_checklist_text": base_inputs["review_checklist_text"].replace(
+                REVIEW_CHECKLIST_MARKERS[0] + "\n",
+                "",
+                1,
+            ),
+        }
+    )
+    expect_contains(
+        "review_checklist_marker_detection",
+        missing,
+        f"review_checklist:{REVIEW_CHECKLIST_MARKERS[0]}",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
             "validate_phase12_text": base_inputs["validate_phase12_text"].replace(
                 "zigux/Makefile\n",
                 "",
@@ -411,7 +435,7 @@ def run_self_test() -> int:
     )
 
     print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST=pass")
-    print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST_CASE_COUNT=12")
+    print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
