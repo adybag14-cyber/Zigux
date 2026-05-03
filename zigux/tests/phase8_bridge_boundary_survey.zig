@@ -287,6 +287,8 @@ test "phase 8 bridge boundary survey still matches the live helper surfaces" {
     try expectContains(bridge_note, "cached `/sys/devices/system/cpu/possible` counts");
     try expectContains(bridge_note, "libbpf_num_possible_cpus()");
     try expectContains(bridge_note, "online CPU filtering");
+    try expectContains(bridge_note, "pure caller-pinned positive CPU planning");
+    try expectContains(bridge_note, "pure auto-selected CPU planning from already-injected possible and online masks");
     try expectContains(bridge_note, "per-CPU perf-event-array map updates");
     try expectContains(bridge_note, "epoll-backed perf FD registration");
     try expectContains(bridge_note, "Documentation/zigux/phase8-perf-buffer-poll-slice.md");
@@ -299,6 +301,8 @@ test "phase 8 bridge boundary survey still matches the live helper surfaces" {
     try expectContains(libbpf_survey_note, "skip_missing_pinned_map");
     try expectContains(cpu_mask_note, "a bounded auto-CPU count clamp that mirrors libbpf's perf-buffer map-budget sizing");
     try expectContains(cpu_mask_note, "a pure online-CPU eligibility predicate that mirrors libbpf's automatic-budget offline skip rule");
+    try expectContains(cpu_mask_note, "a pure caller-pinned positive CPU planner that mirrors libbpf's explicit positive `cpu_cnt` branch as sequential CPU indices");
+    try expectContains(cpu_mask_note, "a pure auto-selected CPU planner that consumes already-injected possible and online masks");
     try expectContains(cpu_mask_note, "perf-buffer-online-cpu-routing");
     try expectContains(poll_note, "cumulative processed-record count");
     try expectContains(poll_note, "first failing ready buffer");
@@ -319,11 +323,17 @@ test "phase 8 bridge boundary survey still matches the live helper surfaces" {
     try expectContains(help_helper, "pub fn writeCommandSectionsForTerminal(");
     try expectContains(cpu_mask_helper, "pub fn derivePerfBufferAutoCpuCount(possible_cpu_count: usize, map_max_entries: u32) usize {");
     try expectContains(cpu_mask_helper, "pub fn isPerfBufferCpuOnlineEligible(cpu_index: usize, requested_cpu_count: i32, online_mask: []const bool) bool {");
+    try expectContains(cpu_mask_helper, "pub fn planPerfBufferAutoCpuIndices(");
+    try expectContains(cpu_mask_helper, "pub fn planPerfBufferCpuIndices(");
     try expectContains(cpu_mask_helper, "test \"derivePerfBufferAutoCpuCount keeps perf-buffer auto sizing within the map budget\"");
     try expectContains(cpu_mask_helper, "test \"isPerfBufferCpuOnlineEligible keeps the bounded online CPU predicate explicit\"");
     try expectContains(cpu_mask_helper, "test \"isPerfBufferCpuOnlineEligible bypasses the online mask when the caller pins a positive CPU budget\"");
+    try expectContains(cpu_mask_helper, "test \"planPerfBufferAutoCpuIndices keeps auto-selected CPU routing pure and budget-bounded\"");
+    try expectContains(cpu_mask_helper, "test \"planPerfBufferCpuIndices keeps caller-pinned positive CPU counts sequential without widening into routing parity\"");
     try expectContains(cpu_mask_test, "test \"phase 8 cpu mask starter slice keeps perf-buffer auto CPU sizing bounded without claiming routing parity\"");
     try expectContains(cpu_mask_test, "test \"phase 8 cpu mask starter slice keeps the online CPU eligibility predicate helper-first\"");
+    try expectContains(cpu_mask_test, "test \"phase 8 cpu mask starter slice plans auto-selected CPU indices below the deferred routing boundary\"");
+    try expectContains(cpu_mask_test, "test \"phase 8 cpu mask starter slice plans caller-pinned CPU indices without widening into routing parity\"");
     try expectContains(poll_test, "test \"phase 8 perf-buffer poll docs keep the bounded wait-result helper explicit\"");
     try expectContains(poll_test, "test \"phase 8 perf-buffer poll helper keeps ready-buffer processing fail-fast below epoll parity\"");
     try expectContains(poll_test, "no standalone timer helper");
