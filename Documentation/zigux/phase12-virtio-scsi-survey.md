@@ -98,7 +98,10 @@ This survey slice does not claim:
 2. run the dedicated Phase 12 build
 - `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
 
-3. run the convenience target
+3. run the focused recovery-state replay
+- `zig test zigux/tests/phase12_virtio_scsi_recovery_state.zig`
+
+4. run the convenience target
 - `make -C zigux phase12`
 
 ## Next bounded step
