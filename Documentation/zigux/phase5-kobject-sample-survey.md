@@ -75,19 +75,19 @@ Current sample behavior was re-verified against the latest visible `master` head
 
 The exact verification commands and observed results for this narrow verification pass were:
 
-- `zig fmt --check samples/zigux/kobject_example.zig zigux/tests/phase5_kobject_example_survey.zig`
-  - observed result: formatting already matched the edited files
+- `zig fmt --check samples/zigux/kobject_example.zig zigux/tests/phase5_kobject_example.zig`
+  - observed result: formatting already matched the current sample and the focused exact-check body
 - `zig test samples/zigux/kobject_example.zig`
-  - observed result: `1/5 kobject_example.test.kobject sample replay keeps the anchor reviewable and non-runtime...OK`
+  - observed result: `1/5 kobject_example.test.kobject sample replay keeps the descriptor and anchor reviewable and non-runtime...OK`
   - observed result: `2/5 kobject_example.test.kobject sample keeps shared dispatch and parse failures explicit...OK`
   - observed result: `3/5 kobject_example.test.kobject sample keeps the pre-registration ownership boundary explicit...OK`
   - observed result: `4/5 kobject_example.test.kobject sample makes ownership snapshots reviewable across lifecycle stages...OK`
   - observed result: `5/5 kobject_example.test.kobject sample teardown keeps ownership boundaries explicit...OK`
   - observed result: `All 5 tests passed.`
+- focused exact-check replay for `zigux/tests/phase5_kobject_example.zig` via a minimal scratch build wrapper over the current `master` sample and test bodies
+  - observed result: completed successfully under the same attached Zig toolchain
 - `zig test zigux/tests/phase5_kobject_example_survey.zig`
-  - observed result: `1/2 phase5_kobject_example_survey.test.phase 5 kobject manifest records the exact bounded checks...OK`
-  - observed result: `2/2 phase5_kobject_example_survey.test.phase 5 kobject contributor docs stay aligned with the shipped review surface...OK`
-  - observed result: `All 2 tests passed.`
+  - observed result: not rerun in this bounded verification pass after the note and manifest were refreshed to the verified head; current live file inspection still showed the two-check survey gate and its prompts aligned with the landed packet
 
 The shared `zigux/tests/phase5_build.zig` entrypoint remains the umbrella review gate recorded in the manifest and contributor prompts, but this bounded verification pass did not rerun the whole Phase 5 sample bundle.
 
