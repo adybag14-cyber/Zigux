@@ -5,6 +5,8 @@ This note records the bounded Phase 2 bootstrap archive-pin contract.
 - policy file: `scripts/zigux/zig-toolchain-policy.json`
 - guard self-test: `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`
 - guard: `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`
+- workflow installer self-test: `python3 scripts/zigux/install-zig.py --self-test`
+- workflow verifier self-test: `python3 scripts/zigux/check-zig-toolchain.py --self-test`
 - shared validator gate: `python3 scripts/zigux/validate-phase2.py`
 - closure validator gate: `python3 scripts/zigux/validate-phase2-closure.py`
 - Linux-style validator entrypoint: `make -C zigux phase2-validate`
