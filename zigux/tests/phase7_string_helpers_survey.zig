@@ -308,7 +308,7 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
     try expectContains(string_helpers_tests, "phase 7 stringEscapeMem covers the bounded escape subset");
     try expectContains(string_helpers_tests, "phase 7 stringEscapeMem reports truncated output length without forcing a terminator");
 
-    try expectContains(string_helpers_manifest, "\"lane_key\": \"P7-L01\"");
+    try expectContains(string_helpers_manifest, "\"lane_key\": \"P7-L04\"");
     try expectContains(string_helpers_manifest, "\"anchor\": \"lib/string_helpers.c\"");
     try expectContains(string_helpers_manifest, "\"lib/string_helpers.zig\"");
     try expectContains(string_helpers_manifest, "\"phase7-string-helpers-manifest-packet\"");
