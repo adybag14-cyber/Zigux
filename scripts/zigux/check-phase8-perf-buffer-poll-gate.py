@@ -68,6 +68,8 @@ REQUIRED_MARKERS = {
         "make -C zigux phase8-validate",
     ],
     "scripts/zigux/validate-phase8.py": [
+        "Documentation/zigux/phase8-perf-buffer-poll-slice.md",
+        "zigux/tests/phase8_perf_buffer_poll.zig",
         "zigux/tests/phase8_perf_buffer_poll_only_build.zig",
         "phase8-perf-buffer-poll-test:",
         "Run focused Phase 8 perf-buffer poll tests",
@@ -181,6 +183,8 @@ required_workflow_markers = [
 ]
 
 required_phase8_perf_buffer_poll_markers = [
+    "Documentation/zigux/phase8-perf-buffer-poll-slice.md",
+    "zigux/tests/phase8_perf_buffer_poll.zig",
     "phase8-perf-buffer-poll-tests",
 ]
 """,
@@ -774,6 +778,36 @@ def run_self_test() -> int:
 
         validator_path.write_text(
             original_validator.replace(
+                "Documentation/zigux/phase8-perf-buffer-poll-slice.md",
+                "Documentation/zigux/phase8-perf-buffer-slice.md",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "validator_perf_buffer_poll_note_surface",
+            tmp_root,
+            "scripts/zigux/validate-phase8.py:Documentation/zigux/phase8-perf-buffer-poll-slice.md",
+        )
+        validator_path.write_text(original_validator, encoding="utf-8")
+
+        validator_path.write_text(
+            original_validator.replace(
+                "zigux/tests/phase8_perf_buffer_poll.zig",
+                "zigux/tests/phase8_perf_buffer_wait.zig",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "validator_perf_buffer_poll_test_surface",
+            tmp_root,
+            "scripts/zigux/validate-phase8.py:zigux/tests/phase8_perf_buffer_poll.zig",
+        )
+        validator_path.write_text(original_validator, encoding="utf-8")
+
+        validator_path.write_text(
+            original_validator.replace(
                 "phase8-perf-buffer-poll-test:",
                 "phase8-perf-buffer-test:",
                 1,
@@ -898,7 +932,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST=pass")
-    print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST_CASE_COUNT=38")
+    print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST_CASE_COUNT=40")
     return 0
 
 
