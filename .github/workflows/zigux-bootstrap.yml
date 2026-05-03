@@ -106,6 +106,12 @@ jobs:
       - name: Check Phase 2 genksyms bridge alignment
         run: python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py
 
+      - name: Self-test Phase 2 kconfig alignment checker
+        run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test
+
+      - name: Check Phase 2 kconfig alignment
+        run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py
+
       - name: Self-test bounded fixdep checker
         run: python3 scripts/zigux/check-fixdep-diff.py --self-test
 
