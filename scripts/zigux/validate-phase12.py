@@ -271,7 +271,7 @@ SELF_TEST_SOURCE_MARKERS = [
 
 MANIFEST_SPECS = {
     "phase12_virtio_net_manifest.json": {
-        "lane_key": "P12-L04",
+        "lane_key": "P12-L01",
         "anchor": "drivers/net/virtio_net.c",
         "gap_count": 14,
         "roadmap_destinations": ["drivers/net/virtio_net.zig", "zigux/tests/"],
@@ -336,7 +336,6 @@ MANIFEST_SPECS = {
             "zigux/Makefile",
         ],
         "raw_fallback_raw_paths": [
-            "drivers/scsi/virtio_scsi.c",
             "drivers/scsi/virtio_scsi.zig",
             "zigux/tests/phase12_virtio_scsi.zig",
             "zigux/tests/phase12_virtio_scsi_manifest.json",
@@ -348,15 +347,17 @@ MANIFEST_SPECS = {
             "zigux/Makefile",
         ],
         "raw_fallback_current_markers": [
-            "## Last bounded replay note",
-            "current_shared_build_command: `zig build test --build-file zigux/tests/phase12_build.zig --summary all`",
-            "current_shared_build_result: `",
-            "current_focused_survey_command: `zig test zigux/tests/phase12_virtio_scsi_survey.zig`",
-            "current_focused_survey_result: `",
+            "- lane_key: `P12-L12`",
+            "- phase: `Phase 12`",
+            "- scope: `drivers/scsi/virtio_scsi | high-risk storage queueing and DMA parity`",
+            "- public current-master tree fallback:",
+            "- public raw artifact fallback:",
+            "- bounded current packet files:",
+            "- rollback note:",
         ],
         "raw_fallback_latest_recheck_markers": [
-            "## Latest repo-head recheck",
-            "This section preserves the last connector-era `master` comparison that was intentionally written back into this archival packet.",
+            "## Latest Live Recheck",
+            "- this archival packet has been superseded on current `master` by lane `P12-L12`; keep this catalog only as historical degraded-read evidence for the same bounded virtio_scsi survey packet.",
             "- rechecked_public_master_head: `",
             "- verification_method: connector-backed current-`master` reads of ",
             "- observed_behavior: current `master` still keeps this lane's degraded-readback contract archival rather than live-head truth;",
