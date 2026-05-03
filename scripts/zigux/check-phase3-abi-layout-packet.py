@@ -31,6 +31,15 @@ REQUIRED_CONSTANTS = (
     ("root_flag_leftmost_valid", "ROOT_FLAG_LEFTMOST_VALID", "ZIGUX_RBTREE_ROOT_FLAG_LEFTMOST_VALID"),
 )
 
+SHARED_RBTREE_SAMPLE_KEY = "rbtree_cached_leftmost_root"
+SHARED_RBTREE_SAMPLE_MARKER = "PHASE3_SHARED_RBTREE_SAMPLE_RECORD=cached-leftmost-root"
+SHARED_RBTREE_SAMPLE_RECORD = {
+    "root_addr": 0x2000,
+    "leftmost_addr": 0x1800,
+    "flags": 0x6,
+    "reserved": 0,
+}
+
 
 def _read_text(root: Path, rel: str, issues: list[str]) -> str:
     path = root / rel
@@ -51,6 +60,8 @@ def validate(root: Path) -> list[str]:
 
     expected_structs: dict[str, object] = {}
     expected_constants: dict[str, object] = {}
+    expected_records: dict[str, object] = {}
+    saw_expected_records = False
     if expected_text:
         try:
             parsed = json.loads(expected_text)
@@ -59,12 +70,17 @@ def validate(root: Path) -> list[str]:
         else:
             expected_structs = parsed.get("structs", {})
             expected_constants = parsed.get("constants", {})
+            saw_expected_records = "records" in parsed
+            expected_records = parsed.get("records", {})
             if not isinstance(expected_structs, dict):
                 issues.append("invalid_expected_json:structs-not-object")
                 expected_structs = {}
             if not isinstance(expected_constants, dict):
                 issues.append("invalid_expected_json:constants-not-object")
                 expected_constants = {}
+            if not isinstance(expected_records, dict):
+                issues.append("invalid_expected_json:records-not-object")
+                expected_records = {}
 
     if expected_structs and len(expected_structs) != len(CANONICAL_LAYOUTS):
         issues.append(
@@ -95,6 +111,29 @@ def validate(root: Path) -> list[str]:
         if c_harness_text and c_name not in c_harness_text:
             issues.append(f"missing_phase3_abi_c_harness_rbtree_constant:{c_name}")
 
+    if saw_expected_records and SHARED_RBTREE_SAMPLE_KEY not in expected_records:
+        issues.append(f"missing_expected_record:{SHARED_RBTREE_SAMPLE_KEY}")
+    elif saw_expected_records and expected_records.get(SHARED_RBTREE_SAMPLE_KEY) != SHARED_RBTREE_SAMPLE_RECORD:
+        issues.append(f"unexpected_expected_record:{SHARED_RBTREE_SAMPLE_KEY}")
+
+    if phase3_abi_text:
+        if SHARED_RBTREE_SAMPLE_MARKER not in phase3_abi_text:
+            issues.append("missing_phase3_abi_rbtree_sample_marker")
+        if ".flags = rbtree.ROOT_FLAG_CACHED | rbtree.ROOT_FLAG_LEFTMOST_VALID," not in phase3_abi_text:
+            issues.append("missing_phase3_abi_rbtree_sample_flags")
+
+    if phase3_abi_dump_text:
+        if f'"{SHARED_RBTREE_SAMPLE_KEY}"' not in phase3_abi_dump_text:
+            issues.append(f"missing_phase3_abi_dump_record:{SHARED_RBTREE_SAMPLE_KEY}")
+        if ".{rbtree.ROOT_FLAG_CACHED | rbtree.ROOT_FLAG_LEFTMOST_VALID}" not in phase3_abi_dump_text:
+            issues.append("missing_phase3_abi_dump_rbtree_sample_flags")
+
+    if c_harness_text:
+        if f'"{SHARED_RBTREE_SAMPLE_KEY}"' not in c_harness_text:
+            issues.append(f"missing_phase3_abi_c_harness_record:{SHARED_RBTREE_SAMPLE_KEY}")
+        if "ZIGUX_RBTREE_ROOT_FLAG_CACHED | ZIGUX_RBTREE_ROOT_FLAG_LEFTMOST_VALID" not in c_harness_text:
+            issues.append("missing_phase3_abi_c_harness_rbtree_sample_flags")
+
     return issues
 
 
@@ -111,6 +150,9 @@ def run_self_test() -> int:
                 json_name: index + 1
                 for index, (json_name, _, _) in enumerate(REQUIRED_CONSTANTS)
             },
+            "records": {
+                SHARED_RBTREE_SAMPLE_KEY: dict(SHARED_RBTREE_SAMPLE_RECORD),
+            },
             "structs": {
                 json_name: {"size": 0, "align": 0, "offsets": {}}
                 for json_name, _, _, _ in CANONICAL_LAYOUTS
@@ -125,6 +167,15 @@ def run_self_test() -> int:
             "\n".join(
                 [*(f"layout_assert.{assert_name}();" for _, _, assert_name, _ in CANONICAL_LAYOUTS)]
                 + [*(f"const _ = rbtree.{zig_name};" for _, zig_name, _ in REQUIRED_CONSTANTS)]
+                + [
+                    f"// {SHARED_RBTREE_SAMPLE_MARKER}",
+                    "const cached_root: rbtree.RootView = .{",
+                    "    .root_addr = 0x2000,",
+                    "    .leftmost_addr = 0x1800,",
+                    "    .flags = rbtree.ROOT_FLAG_CACHED | rbtree.ROOT_FLAG_LEFTMOST_VALID,",
+                    "    .reserved = 0,",
+                    "};",
+                ]
             )
             + "\n",
             encoding="utf-8",
@@ -133,6 +184,10 @@ def run_self_test() -> int:
             "\n".join(
                 [*(f'writeStructLayout(writer, "{json_name}", {module_name}.{zig_name}, true);' for json_name, zig_name, _, module_name in CANONICAL_LAYOUTS)]
                 + [*(f"const _ = rbtree.{zig_name};" for _, zig_name, _ in REQUIRED_CONSTANTS)]
+                + [
+                    f'const _ = "{SHARED_RBTREE_SAMPLE_KEY}";',
+                    "try writer.print(\"{d}\", .{rbtree.ROOT_FLAG_CACHED | rbtree.ROOT_FLAG_LEFTMOST_VALID});",
+                ]
             )
             + "\n",
             encoding="utf-8",
@@ -141,6 +196,10 @@ def run_self_test() -> int:
             "\n".join(
                 [*(f'{{"{json_name}", sizeof(struct {json_name}), _Alignof(struct {json_name}), 0, 0}},' for json_name, _, _, _ in CANONICAL_LAYOUTS)]
                 + [*(c_name for _, _, c_name in REQUIRED_CONSTANTS)]
+                + [
+                    f'"{SHARED_RBTREE_SAMPLE_KEY}"',
+                    "ZIGUX_RBTREE_ROOT_FLAG_CACHED | ZIGUX_RBTREE_ROOT_FLAG_LEFTMOST_VALID",
+                ]
             )
             + "\n",
             encoding="utf-8",
@@ -149,25 +208,23 @@ def run_self_test() -> int:
         assert validate(root) == []
 
         reduced_expected = dict(expected)
-        reduced_expected["structs"] = dict(expected["structs"])
-        reduced_expected["structs"].pop(CANONICAL_LAYOUTS[-1][0])
+        reduced_expected["records"] = {}
         (root / EXPECTED_REL).write_text(json.dumps(reduced_expected), encoding="utf-8")
         issues = validate(root)
-        assert "unexpected_expected_struct_count:6!= 7" in issues
-        assert f"missing_expected_struct:{CANONICAL_LAYOUTS[-1][0]}" in issues
+        assert f"missing_expected_record:{SHARED_RBTREE_SAMPLE_KEY}" in issues
         (root / EXPECTED_REL).write_text(json.dumps(expected), encoding="utf-8")
 
         phase3_abi_dump_path = root / PHASE3_ABI_DUMP_REL
         phase3_abi_dump_path.write_text(
             phase3_abi_dump_path.read_text(encoding="utf-8").replace(
-                f'writeStructLayout(writer, "{CANONICAL_LAYOUTS[-1][0]}", {CANONICAL_LAYOUTS[-1][3]}.{CANONICAL_LAYOUTS[-1][1]}, true);\n',
+                f'const _ = "{SHARED_RBTREE_SAMPLE_KEY}";\n',
                 "",
                 1,
             ),
             encoding="utf-8",
         )
         issues = validate(root)
-        assert f"missing_phase3_abi_dump_layout:{CANONICAL_LAYOUTS[-1][0]}" in issues
+        assert f"missing_phase3_abi_dump_record:{SHARED_RBTREE_SAMPLE_KEY}" in issues
 
     print("PHASE3_ABI_LAYOUT_PACKET_SELF_TEST=pass")
     return 0
