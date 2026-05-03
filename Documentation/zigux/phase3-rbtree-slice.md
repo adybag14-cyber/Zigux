@@ -15,14 +15,15 @@ This document records the first bounded Phase 3 helper packet around the roadmap
   - `zigux/tests/phase3_rbtree_root_view_survey.zig`
   - `zigux/tests/phase3_rbtree_manifest.json`
 - `PHASE3_RBTREE_DEDICATED_BOUNDARY_PARITY=zigux/tests/fixtures/phase3_rbtree/expected.json,zigux/tests/fixtures/phase3_rbtree/phase3_rbtree_c_harness.c`
-- `PHASE3_RBTREE_SHARED_BOUNDARY_GAP=shared-abi-root-view-lift-still-missing`
-- `PHASE3_RBTREE_SHARED_BOUNDARY_TARGET=include/zigux/abi.h,zigux/bindings/abi.zig,zigux/tests/fixtures/phase3_abi/`
+- `PHASE3_RBTREE_SHARED_BOUNDARY_STATUS=shared-root-view-lift-landed`
+- `PHASE3_RBTREE_SHARED_BOUNDARY_PACKET=include/zigux/abi.h,zigux/bindings/abi.zig,zigux/tests/phase3_abi.zig,zigux/tests/phase3_abi_dump.zig,zigux/tests/fixtures/phase3_abi/expected.json`
+- `PHASE3_RBTREE_SHARED_BOUNDARY_GUARDS=scripts/zigux/check-phase3-abi-layout-packet.py,scripts/zigux/check-phase3-rbtree-shared-lift-contract.py`
 
 ## Why this slice exists
 
 The roadmap gap note has been pointing at the missing Phase 3 `rbtree` helper family for a while.
 
-This slice keeps the next move deliberately small:
+This slice kept the next move deliberately small:
 
 - one helper-local summary view over the existing runtime `rbtree` packet
 - one reusable root-view helper around the dedicated Phase 3 binding packet
@@ -30,7 +31,9 @@ This slice keeps the next move deliberately small:
 - explicit first-node and last-node address reporting
 - one machine-checked survey packet that records the narrowed remaining gap
 
-That gives Phase 3 a real `zigux/helpers/rbtree_*` foothold without pretending the shared ABI lift is already complete.
+That gave Phase 3 a real `zigux/helpers/rbtree_*` foothold without pretending the shared ABI lift had already happened.
+
+This slice already carries both the dedicated `rbtree` boundary packet and the first shared root-view lift into the canonical Phase 3 ABI packet.
 
 ## Gates
 
@@ -57,21 +60,23 @@ This slice already carries:
 
 - a dedicated `rbtree` root-view record in `include/zigux/rbtree.h` and `zigux/bindings/rbtree.zig`
 - a dedicated C-vs-Zig parity replay in `zigux/tests/fixtures/phase3_rbtree/expected.json` and `zigux/tests/fixtures/phase3_rbtree/phase3_rbtree_c_harness.c`
+- a shared `rbtree` root-view record in `include/zigux/abi.h` and `zigux/bindings/abi.zig`
+- a shared C-vs-Zig parity replay for the same root view in `zigux/tests/phase3_abi.zig`, `zigux/tests/phase3_abi_dump.zig`, and `zigux/tests/fixtures/phase3_abi/expected.json`
 
 This slice does not yet claim:
 
-- a shared `rbtree` record in `include/zigux/abi.h`
-- a matching shared `zigux/bindings/abi.zig` layout type
-- a shared `zigux/tests/fixtures/phase3_abi/` parity replay for the `rbtree` root view
+- broader shared `rbtree` node or iterator records beyond the landed root-view packet
+- wider shared helper growth beyond the current root-view layout and root-flag contract
+- any excuse to widen Phase 3 chrdev-tail churn under the name of `rbtree` progress
 
-The remaining honest Phase 3 `rbtree` gap after this step is the shared ABI lift, not the absence of a dedicated boundary packet.
+The remaining honest Phase 3 `rbtree` gap after this step is broader shared-surface expansion only if a roadmap-backed boundary really needs more than the current root-view packet.
 
 ## Next bounded step
 
-The next honest follow-up is one curated shared Phase 3 `rbtree` root-view lift:
+The next honest follow-up is to keep the shared `rbtree` packet reviewable and bounded rather than pretending the lane still needs the first lift.
 
-- one shared header-and-binding shape
-- one shared parity fixture
-- one validator-backed survey refresh
+That means:
 
-That keeps the roadmap-backed `rbtree` anchor moving without widening into more char-device planning churn.
+- keep the dedicated and shared parity fixtures aligned
+- keep the slice and survey notes honest about what has already landed
+- only widen the shared ABI surface if a concrete roadmap-backed consumer needs more than the current root-view layout and flags
