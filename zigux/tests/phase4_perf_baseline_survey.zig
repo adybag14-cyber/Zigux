@@ -444,6 +444,12 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "pending threshold-plan record per shipped rollback gate") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "make -C zigux phase4-runtime-atomic64-diff") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "make -C zigux phase4-bitmap-diff") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "threshold_pending_until_runtime_atomic64_scope_widens") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "pending_scope_widening") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "unapproved_until_runtime_atomic64_scope_widens") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "pending_bounded_benchmark") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "unapproved_until_bitmap_gate_grows_beyond_bounded_correctness_checks") != null);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
