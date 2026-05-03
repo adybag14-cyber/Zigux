@@ -83,6 +83,13 @@ BUILD_ROOT_DRIFT_SCRIPT = (
     "missing_root_source_file:../helpers/missing_plan.zig:zigux/helpers/missing_plan.zig",
 )
 
+CANONICAL_SURVEY_MANIFEST_SCRIPT = (
+    "check-phase3-canonical-survey-manifest.py",
+    "PHASE3_CANONICAL_SURVEY_MANIFEST=fail",
+    "canonical-survey-manifest-gate",
+    "missing_manifest_survey_script:scripts/zigux/validate-phase3-roadmap-gap-survey.py",
+)
+
 
 def _run_script_self_test(script_name: str) -> int:
     script_path = ROOT / "scripts" / "zigux" / script_name
@@ -126,7 +133,10 @@ def _collect_script_validation_issues(
 
 
 def _run_survey_aggregation_self_test() -> int:
-    cases = SURVEY_VALIDATION_SCRIPTS + (BUILD_ROOT_DRIFT_SCRIPT,)
+    cases = SURVEY_VALIDATION_SCRIPTS + (
+        BUILD_ROOT_DRIFT_SCRIPT,
+        CANONICAL_SURVEY_MANIFEST_SCRIPT,
+    )
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_survey_aggregation_") as tmp_dir:
         root = type(ROOT)(tmp_dir)
@@ -189,7 +199,11 @@ def main() -> int:
             result = _run_script_self_test(script_name)
             if result != 0:
                 return result
-        return _run_script_self_test(BUILD_ROOT_DRIFT_SCRIPT[0])
+        for script_name, _, _, _ in (BUILD_ROOT_DRIFT_SCRIPT, CANONICAL_SURVEY_MANIFEST_SCRIPT):
+            result = _run_script_self_test(script_name)
+            if result != 0:
+                return result
+        return 0
 
     slices = select_slices(discover_phase3_slices(), args.slug)
     if not slices:
@@ -215,13 +229,17 @@ def main() -> int:
                 issue_prefix,
             )
         )
-    issues.extend(
-        _collect_script_validation_issues(
-            BUILD_ROOT_DRIFT_SCRIPT[0],
-            BUILD_ROOT_DRIFT_SCRIPT[1],
-            BUILD_ROOT_DRIFT_SCRIPT[2],
+    for script_name, failure_banner, issue_prefix, _ in (
+        BUILD_ROOT_DRIFT_SCRIPT,
+        CANONICAL_SURVEY_MANIFEST_SCRIPT,
+    ):
+        issues.extend(
+            _collect_script_validation_issues(
+                script_name,
+                failure_banner,
+                issue_prefix,
+            )
         )
-    )
     if issues:
         print("PHASE3_VALIDATION=fail")
         for issue in issues:
