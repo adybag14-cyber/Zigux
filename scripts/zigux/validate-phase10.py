@@ -110,6 +110,7 @@ FORBIDDEN_TESTS_README_MARKERS = [
 
 DOC_README_MARKERS = [
     "python3 scripts/zigux/validate-phase10.py",
+    "python3 scripts/zigux/check-phase10-harness-coverage.py",
     "make -C zigux phase10-validate",
     "phase10-closure-evidence.md",
     "same nine published Phase 10 docs named by the shared closure packet",
@@ -118,6 +119,10 @@ DOC_README_MARKERS = [
     "phase10-virtio-mmio-slice.md",
     "phase10-virtio-input-slice.md",
     "phase10-virtio-input-survey.md",
+    "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
+    "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
+    "focused harness replays",
+    "queue-handling and ready-state gate",
     "registration-preflight helper",
     "queue-callback preflight helper",
     "landed probe-preflight helper",
@@ -486,6 +491,9 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             "phase10-virtio-input-queue-callback-preflight-helper": "starter_landed",
             "phase10-virtio-input-probe-preflight-helper": "starter_landed",
             "phase10-virtio-input-registration-lifecycle": "blocked_on_risky_transport",
+            "phase10-virtio-input-survey-note": "starter_landed",
+            "phase10-virtio-input-slice-note": "starter_landed",
+            "phase10-virtio-input-module-note": "starter_landed",
         }
         starter_count = 0
         ready_count = 0
@@ -505,8 +513,9 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             missing.append(f"manifest:ready_next_count={ready_count}")
         if blocked_count != 1:
             missing.append(f"manifest:blocked_count={blocked_count}")
-        if starter_count < 9:
+        if starter_count < 12:
             missing.append(f"manifest:starter_count={starter_count}")
+
         for gap_id, status in expected_statuses.items():
             gap = find_gap(manifest, gap_id)
             if gap is None:
@@ -515,27 +524,27 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             if gap.get("status") != status:
                 missing.append(f"manifest:gap_status:{gap_id}={gap.get('status')}")
 
-        capability_gap = find_gap(manifest, "phase10-virtio-input-capability-setup-helper")
-        if capability_gap is not None:
-            why_now = str(capability_gap.get("why_now", ""))
-            if "bitmap" not in why_now:
-                missing.append("manifest:capability_gap:bitmap")
-            if "ABS metadata" not in why_now:
-                missing.append("manifest:capability_gap:ABS_metadata")
+        multitouch_gap = find_gap(manifest, "phase10-virtio-input-multitouch-slot-helper")
+        if multitouch_gap is not None:
+            why_now = str(multitouch_gap.get("why_now", ""))
+            if "ABS_MT_SLOT" not in why_now:
+                missing.append("manifest:multitouch_gap:ABS_MT_SLOT")
+            if "absolute bitmap" not in why_now:
+                missing.append("manifest:multitouch_gap:absolute_bitmap")
+            if "tracking IDs" not in why_now:
+                missing.append("manifest:multitouch_gap:tracking_ids")
 
-        registration_preflight_gap = find_gap(manifest, "phase10-virtio-input-registration-preflight-helper")
-        if registration_preflight_gap is not None:
-            why_now = str(registration_preflight_gap.get("why_now", ""))
-            if "registration intent" not in why_now:
-                missing.append("manifest:registration_preflight_gap:registration_intent")
-            if "input_register_device()" not in why_now:
-                missing.append("manifest:registration_preflight_gap:input_register_device()")
+        teardown_gap = find_gap(manifest, "phase10-virtio-input-teardown-observation-helper")
+        if teardown_gap is not None:
+            why_now = str(teardown_gap.get("why_now", ""))
+            if "free_pages_exact" not in why_now:
+                missing.append("manifest:teardown_gap:free_pages_exact")
+            if "destroy path" not in why_now:
+                missing.append("manifest:teardown_gap:destroy_path")
 
-        ready_gap = find_gap(manifest, "phase10-virtio-input-queue-callback-preflight-helper")
-        if ready_gap is not None:
-            why_now = str(ready_gap.get("why_now", ""))
-            if "registration intent is staged" not in why_now:
-                missing.append("manifest:ready_gap:registration_intent_is_staged")
+        registration_gap = find_gap(manifest, "phase10-virtio-input-registration-preflight-helper")
+        if registration_gap is not None:
+            why_now = str(registration_gap.get("why_now", ""))
             if "event queue is filled" not in why_now:
                 missing.append("manifest:ready_gap:event_queue_is_filled")
             if "status queue is configured" not in why_now:
@@ -1013,6 +1022,36 @@ def run_self_test() -> int:
         original_doc_readme = doc_readme_path.read_text(encoding="utf-8")
         doc_readme_path.write_text(
             original_doc_readme.replace(
+                "python3 scripts/zigux/check-phase10-harness-coverage.py",
+                "python3 scripts/zigux/check-phase10-harness-coverage-drift.py",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "doc_readme_harness_coverage_gate",
+            tmp_root,
+            "doc_readme:python3 scripts/zigux/check-phase10-harness-coverage.py",
+        )
+        doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
+
+        doc_readme_path.write_text(
+            original_doc_readme.replace(
+                "queue-handling and ready-state gate",
+                "queue-handling gate drift",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "doc_readme_harness_ready_state_phrase",
+            tmp_root,
+            "doc_readme:queue-handling and ready-state gate",
+        )
+        doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
+
+        doc_readme_path.write_text(
+            original_doc_readme.replace(
                 "same nine published Phase 10 docs named by the shared closure packet",
                 "same published Phase 10 docs",
                 1,
@@ -1027,7 +1066,7 @@ def run_self_test() -> int:
         doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
 
     print("PHASE10_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_VALIDATOR_SELF_TEST_CASE_COUNT=21")
+    print("PHASE10_VALIDATOR_SELF_TEST_CASE_COUNT=23")
     return 0
 
 
