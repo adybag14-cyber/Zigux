@@ -156,10 +156,15 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
         try std.Io.Dir.cwd().access(io_instance.io(), path, .{});
     }
 
-    std.Io.Dir.cwd().access(io_instance.io(), "samples/zigux/string_helpers_sample.zig", .{}) catch |err| switch (err) {
-        error.FileNotFound => {},
-        else => return err,
-    };
+    var samples_dir = try std.Io.Dir.cwd().openDir(io_instance.io(), "samples/zigux", .{ .iterate = true });
+    defer samples_dir.close(io_instance.io());
+
+    var samples_iter = samples_dir.iterate();
+    while (try samples_iter.next(io_instance.io())) |entry| {
+        if (entry.kind != .file) continue;
+        if (!std.mem.endsWith(u8, entry.name, ".zig")) continue;
+        try std.testing.expect(std.mem.indexOf(u8, entry.name, "string") == null);
+    }
 
     try expectContains(roadmap, "## Phase 5: Samples and Reference Patterns");
     try expectContains(roadmap, "samples/kfifo/bytestream-example.c");
