@@ -37,17 +37,19 @@ Later runtime starters, loader-side follow-ons, and blocked pilots
 - `samples/zigux/runtime_atomic64_loader.zig`
 - `samples/zigux/runtime_bitmap.zig`
 - `samples/zigux/runtime_bitmap_loader.zig`
+- `samples/zigux/runtime_bitmap_top_bit_contract.zig`
+- `samples/zigux/runtime_bitmap_top_bit_build.zig`
 - `samples/zigux/runtime_kretprobe.zig`
 - `samples/zigux/runtime_kretprobe_loader.zig`
 - `samples/zigux/runtime_trace_events.zig`
 - `samples/zigux/runtime_trace_events_loader.zig`
 - `samples/zigux/runtime_trace_events.zig` is still a sample-only blocked Phase 9 pilot on current `master`; the bounded `samples/zigux/runtime_trace_events_loader.zig` scaffold is shipped now, but keep it separate from the loader-backed follow-ons above because the runtime-substrate handoff still stays blocked
-- the runtime bitmap pair `samples/zigux/runtime_bitmap.zig` and `samples/zigux/runtime_bitmap_loader.zig` stays a later Phase 9 runtime pilot packet rooted in `lib/test_bitmap.c`; keep it cataloged here as follow-on work rather than treating it as a fifth approved Phase 5 reference idiom
+- the runtime bitmap packet rooted in `lib/test_bitmap.c` now includes `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and the focused `samples/zigux/runtime_bitmap_top_bit_contract.zig` plus `samples/zigux/runtime_bitmap_top_bit_build.zig` companion replay; keep that family cataloged here as later Phase 9 follow-on work rather than treating it as a fifth approved Phase 5 reference idiom
 
 Review rules
 - keep the four Phase 5 reference samples reviewable as bounded in-memory or non-runtime idiom readings
 - do not treat the later `runtime_*` files in this directory as Phase 5 approved reference idioms
-- keep the bitmap runtime pilot visibly separate from the approved Phase 5 idiom set: `samples/zigux/runtime_bitmap.zig` and `samples/zigux/runtime_bitmap_loader.zig` belong with the Phase 9 runtime bitmap survey packet, not the four roadmap-approved Phase 5 anchor samples
+- keep the bitmap runtime pilot visibly separate from the approved Phase 5 idiom set: `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, `samples/zigux/runtime_bitmap_top_bit_contract.zig`, and `samples/zigux/runtime_bitmap_top_bit_build.zig` belong with the Phase 9 runtime bitmap survey packet, not the four roadmap-approved Phase 5 anchor samples
 - keep `samples/zigux/runtime_trace_events.zig` explicit as a sample-only blocked Phase 9 pilot even though `samples/zigux/runtime_trace_events_loader.zig` is now shipped as a bounded scaffold, so the shared sample-root packet does not imply a cleared runtime-substrate handoff or a fully loader-backed runtime follow-on
 - keep sample-root notes aligned with `Documentation/zigux/phase5-kfifo-sample-survey.md`, `Documentation/zigux/phase5-kobject-sample-survey.md`, `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `Documentation/zigux/phase5-trace-events-sample-survey.md`, `Documentation/zigux/README.md`, and `Documentation/zigux/review-checklist.md`
 - when `samples/zigux/kobject_example.zig`, `samples/zigux/kretprobe_example.zig`, or `samples/zigux/trace_events_sample.zig` changes, keep this sample-root catalog aligned with the focused replay test, manifest-backed survey, and sample-backed survey note instead of leaving the root-level contributor packet FIFO-only or partial
@@ -61,6 +63,7 @@ Focused local replays
 - verify the kobject sample directly: `zig test samples/zigux/kobject_example.zig`
 - verify the kretprobe sample directly: `zig test samples/zigux/kretprobe_example.zig`
 - verify the trace-events sample directly: `zig test samples/zigux/trace_events_sample.zig`
+- verify the focused runtime bitmap top-bit companion replay directly: `zig build test --build-file samples/zigux/runtime_bitmap_top_bit_build.zig --summary all`
 - verify the bytestream FIFO survey packet directly from the repo root: `zig test zigux/tests/phase5_bytestream_fifo_survey.zig`
 - verify the kobject survey packet directly from the repo root: `zig test zigux/tests/phase5_kobject_example_survey.zig`
 - verify the kretprobe survey packet directly from the repo root: `zig test zigux/tests/phase5_kretprobe_example_survey.zig`
@@ -69,7 +72,7 @@ Focused local replays
 Helper-boundary checks
 - verify the current approved Phase 5 reference sample inventory still resolves to the four roadmap anchors only: `find samples/zigux -maxdepth 1 -type f | sort | rg '/(bytestream_fifo|kobject_example|kretprobe_example|trace_events_sample)\.zig$'`
 - verify the later `runtime_*` starters still stay cataloged separately from the approved Phase 5 anchors: `find samples/zigux -maxdepth 1 -type f | sort | rg '/runtime_.*\.zig$'`
-- verify the runtime bitmap pair still stays cataloged as Phase 9 follow-on work rather than a fifth approved Phase 5 idiom: `rg -n "runtime_bitmap\.zig|runtime_bitmap_loader\.zig|Phase 9 runtime pilot packet|fifth approved Phase 5 reference idiom" samples/zigux/README.md`
+- verify the runtime bitmap family still stays cataloged as Phase 9 follow-on work rather than a fifth approved Phase 5 idiom: `rg -n "runtime_bitmap\.zig|runtime_bitmap_loader\.zig|runtime_bitmap_top_bit_contract\.zig|runtime_bitmap_top_bit_build\.zig|Phase 9 follow-on work|fifth approved Phase 5 reference idiom" samples/zigux/README.md`
 - verify the trace-events runtime starter still stays sample-only even though its bounded loader scaffold is now shipped: `rg -n "runtime_trace_events\.zig|runtime_trace_events_loader\.zig|sample-only blocked Phase 9 pilot|bounded `samples/zigux/runtime_trace_events_loader.zig` scaffold is shipped now|runtime-substrate handoff still stays blocked" samples/zigux/README.md`
 - verify no Phase 5 string sample has appeared under this sample root: `find samples/zigux -maxdepth 1 -type f | sort | rg '/.*string.*\.zig$'`
 - verify the shared docs still keep string-helper evidence in Phase 7 instead of `samples/zigux/`: `rg -n "samples/zigux/\\*string\\*|Phase 7 helper bundle|helper-only under \`lib/string_helpers.zig\`|phase7_string_helpers.zig|phase7_build.zig" Documentation/zigux/README.md Documentation/zigux/review-checklist.md Documentation/zigux/phase7-string-helpers-slice.md samples/zigux/README.md`
