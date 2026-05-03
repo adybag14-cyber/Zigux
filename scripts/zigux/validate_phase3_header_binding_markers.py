@@ -48,8 +48,9 @@ HEADER_BINDING_MARKERS = {
         "pub fn isValid(view: RootView) bool {",
     ),
     "Documentation/zigux/phase3-abi-slice.md": (
-        "PHASE3_CURRENT_INTEROP_FAMILIES=bitmap-cpumask-list-hlist-errptr-xarray-idr-ida-minor-alloc-dev-region-cdev-chrdev",
-        "minor-allocation, dev-region, cdev, and chrdev planning and notification chains",
+        "PHASE3_CURRENT_INTEROP_FAMILIES=bitmap-cpumask-rbtree-list-hlist-errptr-xarray-idr-ida-minor-alloc-dev-region-cdev-chrdev",
+        "PHASE3_CURRENT_INTEROP_GAP_DETAIL=live-build-graph-now-carries-deep-chrdev-tail-packets-while-dedicated-rbtree-boundary-is-landed-but-curated-shared-abi-rbtree-root-view-is-still-missing",
+        "dedicated rbtree boundary packet plus minor-allocation, dev-region, cdev, and chrdev planning and notification chains",
     ),
     "zigux/tests/build.zig": (
         "const phase3_dump_module = b.createModule(.{",
