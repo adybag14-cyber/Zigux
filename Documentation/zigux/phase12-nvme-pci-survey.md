@@ -104,8 +104,8 @@ This survey slice does not claim:
 - older shared-lane validator and survey failures recorded in earlier versions of this note are historical-only evidence; this lane now leaves any fresh shared-tranche status claim to the owner of the validator or neighboring survey packet.
 - the same archived packet now also carries `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, and the dedicated survey gate reads that note back as part of the archived reviewability surface.
 - the current live starter now also carries the bounded `phase12-nvme-pci-doorbell-window-helper` surface, but this lane has not repinned the archived raw fallback map or current-master replay head around it.
-- this NVMe lane did not rerun the shared Phase 12 validator or shared Zig replay in the current pass, so the next shared-tranche status update belongs to the owner of the validator or virtio_net survey packet rather than to this note.
-- even on the archived packet-local replay, the shared bundle still reached `phase12-nvme-pci-tests 11 pass (11 total)` and `phase12-nvme-pci-survey-tests 1 pass (1 total)` before the unrelated cross-lane stop recorded at the time.
+- this NVMe lane reran the focused NVMe driver replay against live readback in the current pass, but it still did not rerun the shared Phase 12 validator or shared Zig replay, so the next shared-tranche status update belongs to the owner of the validator or virtio_net survey packet rather than to this note.
+- the current owner-lane scratch replay of the live readback reached `phase12-nvme-pci-tests 15 pass (15 total)` with the attached Zig toolchain, while the archived packet-local replay still records `phase12-nvme-pci-survey-tests 1 pass (1 total)` before the unrelated cross-lane stop captured at the time.
 
 ## Next bounded step
 
