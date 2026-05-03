@@ -117,6 +117,7 @@ SHARED_PACKET_SNIPPETS = {
         "const empty_root = rbtree.empty();",
         "try std.testing.expect(!rbtree.hasRoot(empty_root));",
         "const cached_root: rbtree.RootView = .{",
+        "try std.testing.expect(rbtree.hasRoot(cached_root));",
         "const uncached_root: rbtree.RootView = .{",
     ),
     SHARED_ABI_DUMP_REL: (
@@ -315,6 +316,15 @@ def run_self_test() -> int:
         assert any(
             issue.startswith(
                 f"missing_shared_packet:{SHARED_ABI_TEST_REL}:try std.testing.expect(!rbtree.hasRoot(empty_root));"
+            )
+            for issue in issues
+        )
+
+        write(root, SHARED_ABI_TEST_REL, "\n".join(snippet for snippet in SHARED_PACKET_SNIPPETS[SHARED_ABI_TEST_REL] if snippet != "try std.testing.expect(rbtree.hasRoot(cached_root));") + "\n")
+        issues = validate(root)
+        assert any(
+            issue.startswith(
+                f"missing_shared_packet:{SHARED_ABI_TEST_REL}:try std.testing.expect(rbtree.hasRoot(cached_root));"
             )
             for issue in issues
         )
