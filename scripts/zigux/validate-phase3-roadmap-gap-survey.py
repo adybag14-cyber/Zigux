@@ -41,6 +41,7 @@ REQUIRED_SURVEY_SNIPPETS = (
     "`python3 scripts/zigux/validate-phase3.py`",
     "`make -C zigux phase3-validate`",
     "the bootstrap workflow replays the same shared validator route before the broader Phase 3 ABI and interop tests run",
+    "`python3 scripts/zigux/validate-phase3-rbtree-interop-survey.py` also stays inside that same validator-first route so the dedicated `rbtree` survey, shared-lift contract, and remaining shared-ABI gap stay reviewable without becoming a standalone release path",
     "one shared header-and-binding shape",
     "one shared ABI replay path that no longer depends on the dedicated `rbtree` include path",
     "one validator-backed note refresh",
