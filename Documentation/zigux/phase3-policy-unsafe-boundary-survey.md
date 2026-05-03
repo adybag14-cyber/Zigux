@@ -50,7 +50,7 @@ It does require the current tree to say clearly which policy rules are already l
 
 ## Live Repo Reality
 
-This survey is pinned to verified `master` head `bc2373f7deedf021c73beaae29555a9ac6b0536d` for the directly coupled policy-and-unsafe packet, and it now also records packet-local blob IDs for the curated helper, build, test, manifest, and slice-note files so shallow history alone does not turn a reviewable packet into a false validation failure.
+This survey now treats `PHASE3_SURVEYED_COMMIT=bc2373f7deedf021c73beaae29555a9ac6b0536d` as the last fully resurveyed shared-head anchor for the directly coupled policy-and-unsafe packet, while the packet-local blob IDs above remain the authoritative current evidence for those helper, build, test, manifest, and slice-note paths when later `master` movement does not change the packet itself.
 
 The current tree already carries a real bounded policy-and-unsafe substrate:
 
