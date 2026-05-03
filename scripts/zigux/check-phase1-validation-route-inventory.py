@@ -347,6 +347,17 @@ def self_test() -> int:
         expect_failure(script, root, "missing_file:zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md")
         total_cases += 1
 
+        missing_file_cases = [
+            ("scripts/zigux/README.md", fixture_text(scripts_entries)),
+            ("zigux/Makefile", fixture_text(makefile_entries)),
+        ]
+        for rel, baseline in missing_file_cases:
+            path = root / rel
+            path.unlink()
+            expect_failure(script, root, f"missing_file:{rel}")
+            write(path, baseline)
+            total_cases += 1
+
     print("PHASE1_VALIDATION_ROUTE_INVENTORY_SELF_TEST=pass")
     print(f"PHASE1_VALIDATION_ROUTE_INVENTORY_SELF_TEST_CASE_COUNT={total_cases}")
     return 0
