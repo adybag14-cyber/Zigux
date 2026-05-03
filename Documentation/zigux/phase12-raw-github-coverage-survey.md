@@ -26,12 +26,25 @@ Current public-read coverage stays intentionally mixed:
 - one anchor keeps a commit-pinned raw fallback map for the archived NVMe packet: `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`
 - two anchors remain shared-tree-only fallback reads: `virtio_net` and `libbpf`
 
-That split is the real current public boundary for this lane. It keeps the surviving `virtio_scsi` packet reviewable when connector-backed reads are flaky, preserves the archived `nvme_pci` raw-path packet, and does not overstate equivalent live-head replay coverage for the other two Phase 12 anchors.
+That split is the real current public boundary for this lane. It keeps the surviving `virtio_scsi` packet reviewable when connector-backed reads are flaky, preserves the archived `nvme_pci` raw-path packet, gives the shared-tree-only side one compact set of public readback roots, and does not overstate equivalent live-head replay coverage for the other two Phase 12 anchors.
 
 - `PHASE12_ROADMAP_ANCHOR_COUNT=4`
 - `PHASE12_COMMIT_PINNED_RAW_FALLBACK_COUNT=2`
 - `PHASE12_SHARED_TREE_ONLY_FALLBACK_COUNT=2`
 - `PHASE12_RELEASE_COORDINATION_SURVEY=Documentation/zigux/phase12-release-readiness-survey.md`
+
+## Shared-Tree-Only Readback Roots
+
+Use these stable tree roots when the connector can no longer keep `virtio_net` or `libbpf` readable enough for the shared-tree-only side of this packet:
+
+- `https://github.com/adybag14-cyber/Zigux/tree/master/drivers/net`
+- `https://github.com/adybag14-cyber/Zigux/tree/master/tools/lib/bpf`
+- `https://github.com/adybag14-cyber/Zigux/tree/master/Documentation/zigux`
+- `https://github.com/adybag14-cyber/Zigux/tree/master/zigux/tests`
+
+Those four roots are intentionally smaller than the commit-pinned `virtio_scsi` catalog or the archived NVMe raw map. They keep the two shared-tree-only anchors reviewable without implying that `virtio_net` or `libbpf` already ship equivalent raw pinned packet coverage.
+
+- `PHASE12_SHARED_TREE_READBACK_ROOT_COUNT=4`
 
 ## Roadmap Comparison
 
