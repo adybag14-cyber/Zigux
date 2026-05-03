@@ -44,6 +44,7 @@ FILES = [
     "zigux/tests/phase13_notifier_list_manifest.json",
     "zigux/tests/phase13_libfs_reviewability.zig",
     "zigux/tests/phase13_devres_dma_coherent.zig",
+    "zigux/tests/phase13_devres_iounmap_reviewability.zig",
     "zigux/tests/phase13_devres_reviewability.zig",
     "zigux/tests/phase13_landlock_syscalls_reviewability.zig",
     "zigux/tests/phase13_notifier_list_reviewability.zig",
@@ -101,11 +102,12 @@ RELEASE_MARKERS = [
     "PHASE13_VALIDATE_ENTRYPOINT=make -C zigux phase13-validate",
     "PHASE13_SHARED_BUILD_PRESENT=yes",
     "PHASE13_SHARED_MAKE_TARGET_PRESENT=yes",
-    "PHASE13_SHARED_REPLAY_STEP_COUNT=10",
+    "PHASE13_SHARED_REPLAY_STEP_COUNT=11",
     "PHASE13_RELEASE_CLOSED=no",
     "The current release packet also carries one active Phase 13 boundary reminder on `master`:",
     "`python3 scripts/zigux/validate-phase13-release.py`, `make -C zigux phase13-validate`, `zig build test --build-file zigux/tests/phase13_build.zig --summary all`, and `make -C zigux phase13` are the published validator-first and shared replay path for the current packet",
     "the shared release packet also keeps the dedicated `scripts/zigux/check-phase13-devres-packet.py` guard visible as part of that published review path, so the stricter helper-first `devres` boundary contract is not left implicit in `zigux/Makefile` alone",
+    "the shared release packet now also keeps the dedicated `phase13-devres-iounmap-reviewability-tests` gate visible through `zigux/tests/phase13_devres_iounmap_reviewability.zig` so the helper-advertised `devm_iounmap()` planning surface does not look smaller than the actual shared replay on current `master`",
     "the earlier `expected statement, found 'EOF'` note for `zigux/tests/phase13_landlock_ruleset.zig` is now historical: the current checked-in ruleset test file is syntactically complete, its dedicated ruleset helper replay still passes against `security/landlock/ruleset.zig`, and the broader shared replay has already been rerun successfully on `master`",
     "the remaining live ruleset blocker is the same one already recorded by the manifest-backed survey packet: `rb_replace_node()`, live object ownership transfer, hierarchy lifetime, and workqueue-backed teardown are still outside the current helper-only lane",
     "The current manifest lane ownership carried by the release packet is:",
@@ -117,6 +119,7 @@ RELEASE_MARKERS = [
     "the adjacent notifier-list packet now stays visible as roadmap-adjacent release evidence, and its shared replay surface includes the landed read-only generic notifier foothold through `zigux/bindings/notifier_abi.zig`, the dedicated exported C header `include/zigux/notifier_abi.h`, and `zigux/helpers/notifier_chain_view.zig`",
     "lib/devres.c`: helper slice landed, dedicated tests present, roadmap traceability present, manifest-backed survey present, and helper-first MMIO or resource planners keep live DMA-backed mappings and scatterlist ownership explicitly blocked",
     "the shared replay now also keeps the adjacent helper-first coherent DMA alloc/free bookkeeping replay visible through `phase13-devres-dma-coherent-tests` without turning the blocked devres DMA/scatterlist boundary into a live DMA-backed mapping claim",
+    "the shared replay now also keeps the dedicated `phase13-devres-iounmap-reviewability-tests` gate visible through `zigux/tests/phase13_devres_iounmap_reviewability.zig` so the helper-advertised `devm_iounmap()` planning surface does not look smaller than the actual shared replay on current `master`",
     "the shared replay now also keeps the dedicated Landlock syscall reviewability gate visible through `phase13-landlock-syscalls-reviewability-tests` so the manifest-backed syscall helper packet does not look smaller than the actual published replay on current `master`",
     "phase13_notifier_list_reviewability.zig",
     "zig build test --build-file zigux/tests/phase13_build.zig --summary all",
@@ -125,10 +128,12 @@ RELEASE_MARKERS = [
 RELEASE_EXACT_COUNT_MARKERS = {
     "`python3 scripts/zigux/validate-phase13-release.py`, `make -C zigux phase13-validate`, `zig build test --build-file zigux/tests/phase13_build.zig --summary all`, and `make -C zigux phase13` are the published validator-first and shared replay path for the current packet": 1,
     "the shared release packet also keeps the dedicated `scripts/zigux/check-phase13-devres-packet.py` guard visible as part of that published review path, so the stricter helper-first `devres` boundary contract is not left implicit in `zigux/Makefile` alone": 1,
+    "the shared release packet now also keeps the dedicated `phase13-devres-iounmap-reviewability-tests` gate visible through `zigux/tests/phase13_devres_iounmap_reviewability.zig` so the helper-advertised `devm_iounmap()` planning surface does not look smaller than the actual shared replay on current `master`": 1,
     "the earlier `expected statement, found 'EOF'` note for `zigux/tests/phase13_landlock_ruleset.zig` is now historical: the current checked-in ruleset test file is syntactically complete, its dedicated ruleset helper replay still passes against `security/landlock/ruleset.zig`, and the broader shared replay has already been rerun successfully on `master`": 1,
     "the remaining live ruleset blocker is the same one already recorded by the manifest-backed survey packet: `rb_replace_node()`, live object ownership transfer, hierarchy lifetime, and workqueue-backed teardown are still outside the current helper-only lane": 1,
     "the adjacent notifier-list packet now stays visible as roadmap-adjacent release evidence, and its shared replay surface includes the landed read-only generic notifier foothold through `zigux/bindings/notifier_abi.zig`, the dedicated exported C header `include/zigux/notifier_abi.h`, and `zigux/helpers/notifier_chain_view.zig`": 1,
     "the shared replay now also keeps the adjacent helper-first coherent DMA alloc/free bookkeeping replay visible through `phase13-devres-dma-coherent-tests` without turning the blocked devres DMA/scatterlist boundary into a live DMA-backed mapping claim": 1,
+    "the shared replay now also keeps the dedicated `phase13-devres-iounmap-reviewability-tests` gate visible through `zigux/tests/phase13_devres_iounmap_reviewability.zig` so the helper-advertised `devm_iounmap()` planning surface does not look smaller than the actual shared replay on current `master`": 1,
     "the shared replay now also keeps the dedicated Landlock syscall reviewability gate visible through `phase13-landlock-syscalls-reviewability-tests` so the manifest-backed syscall helper packet does not look smaller than the actual published replay on current `master`": 1,
 }
 
@@ -214,6 +219,7 @@ BUILD_NAME_MARKERS = [
     "phase13-libfs-tests",
     "phase13-devres-tests",
     "phase13-devres-dma-coherent-tests",
+    "phase13-devres-iounmap-reviewability-tests",
     "phase13-landlock-ruleset-tests",
     "phase13-landlock-syscalls-tests",
     "phase13-landlock-syscalls-reviewability-tests",
@@ -235,6 +241,7 @@ RELEASE_EVIDENCE_CORE_PATHS = [
     "zigux/Makefile",
     "zigux/tests/phase13_build.zig",
     "zigux/tests/phase13_devres_dma_coherent.zig",
+    "zigux/tests/phase13_devres_iounmap_reviewability.zig",
     "zigux/tests/phase13_landlock_syscalls_reviewability.zig",
     "zigux/bindings/notifier_abi.zig",
     "include/zigux/notifier_abi.h",
@@ -381,6 +388,7 @@ def main() -> int:
             "zigux/tests/phase13_libfs_reviewability.zig",
             "zigux/tests/phase13_devres.zig",
             "zigux/tests/phase13_devres_dma_coherent.zig",
+            "zigux/tests/phase13_devres_iounmap_reviewability.zig",
             "zigux/tests/phase13_devres_reviewability.zig",
             "zigux/tests/phase13_landlock_syscalls_reviewability.zig",
             "zigux/tests/phase13_notifier_list_reviewability.zig",
@@ -409,6 +417,7 @@ def main() -> int:
         "zigux/tests/phase13_libfs_manifest.json",
         "zigux/tests/phase13_devres_manifest.json",
         "zigux/tests/phase13_devres_dma_coherent.zig",
+        "zigux/tests/phase13_devres_iounmap_reviewability.zig",
         "zigux/tests/phase13_landlock_ruleset_manifest.json",
         "zigux/tests/phase13_landlock_syscalls_manifest.json",
         "zigux/tests/phase13_landlock_syscalls_reviewability.zig",
@@ -442,7 +451,7 @@ def main() -> int:
         if build_name not in release_text:
             missing.append(f"release:shared_replay_step:{build_name}")
     depend_steps = BUILD_DEPEND_STEP_RE.findall(build_text)
-    if len(depend_steps) != 10:
+    if len(depend_steps) != 11:
         missing.append(f"build:depend_step_count={len(depend_steps)}")
 
     for manifest_path, lane_key, anchor in [
