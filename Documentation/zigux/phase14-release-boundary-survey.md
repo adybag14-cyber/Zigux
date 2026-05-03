@@ -6,14 +6,18 @@ This document records the current release-planning reading for the roadmap's Pha
 
 - `PHASE14_STATUS=study_only`
 - `PHASE14_RELEASE_BOUNDARY=present`
-- `PHASE14_SHARED_REPLAY_PRESENT=no`
+- `PHASE14_SHARED_REPLAY_PRESENT=yes`
 - `PHASE14_RELEASE_CLOSED=no`
-- scope: release-facing sequencing for the roadmap's core-adjacent anchors, with `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` held in study-only posture and `kernel/rcu/tree.c` plus `net/core/skbuff.c` kept under the Phase 15 freeze-in-C governance packet
+- scope: release-facing sequencing for the roadmap's core-adjacent anchors, with a validator-backed shared smoke packet that keeps `kernel/workqueue.c`, `kernel/trace/ring_buffer.c`, `net/core/skbuff.c`, and `kernel/rcu/tree.c` reviewable without reclassifying the tranche as active subsystem delivery
 - product boundary:
   - `zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md`
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/review-checklist.md`
   - `Documentation/zigux/phase14-release-boundary-survey.md`
+  - `Documentation/zigux/phase14-end-to-end-smoke-survey.md`
+  - `zigux/tests/phase14_end_to_end_smoke_manifest.json`
+  - `scripts/zigux/validate-phase14.py`
+  - `zigux/tests/phase14_build.zig`
   - `Documentation/zigux/README.md`
   - `Documentation/zigux/phase15-readiness-gate-survey.md`
   - `Documentation/zigux/phase15-handoff-next-steps-survey.md`
@@ -27,41 +31,44 @@ The roadmap still names a distinct Phase 14 tranche between the active Phase 13 
 - `kernel/rcu/tree.c`
 - `net/core/skbuff.c`
 
-But the release-facing docs on current `master` were already explicit about Phase 13 and Phase 15 while leaving that sequencing step implicit.
+The release-facing docs on current `master` were already explicit about Phase 13 and Phase 15, but this sequencing step still needed one honest PMO reading that matches the repo's actual Phase 14 state.
 
-That created a PMO ambiguity:
+That state is now more specific than "no release meaning at all" and narrower than "active delivery tranche":
 
-- reviewers could read the docs root as if Phase 14 had no current release meaning at all
-- or they could misread the missing summary as permission to treat Phase 14 like another active delivery tranche
+- the repo does ship a validator-backed shared smoke packet for the four Phase 14 anchors
+- that packet exists to keep the bounded study-only and freeze-in-C evidence aligned
+- it does not reopen live subsystem delivery, status-change claims, or bridge-first implementation scope
 
-The honest release reading is narrower.
+The honest release reading is therefore precise.
 
-Phase 14 is not an active implementation packet. It is the release-planning boundary that keeps the core-adjacent roadmap tranche visible while the freeze map and governance notes decide what must remain study-only or frozen in C.
+Phase 14 is still not an active implementation packet. It is a study-only release boundary with one shared smoke lane that keeps the core-adjacent roadmap tranche reviewable while the freeze map and governance notes decide what must remain study-only or frozen in C.
 
 ## Current release reading
 
 The current Phase 14 release-facing reading is:
 
+- shared smoke packet: `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `scripts/zigux/validate-phase14.py`, `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, and `zig build test --build-file zigux/tests/phase14_build.zig --summary all` now keep the four-anchor boundary map, the focused smoke shard, and the shared full-bundle replay explicit from a study-only posture
 - `kernel/workqueue.c`: boundary-study-only anchor; future work, if any, stays limited to boundary maps, concurrency audits, and wrapper-first or study-only review surfaces such as the roadmap's `kernel/workqueue_bridge.zig` destination
 - `kernel/trace/ring_buffer.c`: boundary-study-only anchor; future work, if any, stays limited to the same study-only posture and does not become an active replay or parity claim without stronger evidence
-- `kernel/rcu/tree.c`: remains blocked from active delivery and is currently governed by the Phase 15 readiness and handoff packet rather than an active Phase 14 release lane
-- `net/core/skbuff.c`: remains blocked from active delivery and is currently governed by the same Phase 15 freeze-in-C and readiness packet rather than an active Phase 14 release lane
-- the release packet for this tranche is therefore sequencing and boundary guidance only; there is no dedicated shared Phase 14 replay gate on current `master`, and that absence is intentional until a narrower study packet exists
+- `kernel/rcu/tree.c`: remains blocked from active delivery and is currently governed by the shared smoke packet plus the Phase 15 readiness and handoff packet rather than an active Phase 14 delivery lane
+- `net/core/skbuff.c`: remains blocked from active delivery and is currently governed by the same shared smoke packet plus the Phase 15 freeze-in-C and readiness packet rather than an active Phase 14 delivery lane
+- the release packet for this tranche is therefore study-only sequencing plus smoke-backed boundary guidance; the shared smoke gate is real, but it remains a reviewability packet rather than a release-closure or status-change claim
 
 - `PHASE14_ROADMAP_ANCHOR_COUNT=4`
 - `PHASE14_STUDY_ONLY_ANCHOR_COUNT=2`
 - `PHASE14_FREEZE_IN_C_GOVERNED_COUNT=2`
-- `PHASE14_ACTIVE_REPLAY_GATE_COUNT=0`
+- `PHASE14_SHARED_SMOKE_GATE_COUNT=1`
+- `PHASE14_ACTIVE_DELIVERY_GATE_COUNT=0`
 
 ## Boundary
 
 This survey does not claim:
 
 - active Phase 14 implementation closure
-- a new core-adjacent Zig bridge, wrapper, or parity lane on current `master`
+- a new core-adjacent Zig bridge, wrapper, or parity lane beyond the existing study-only smoke packet
 - permission to treat `kernel/rcu/tree.c` or `net/core/skbuff.c` as released study-only work when the freeze map still keeps them blocked under the governance packet
 - any Architecture Council status change for the freeze-map anchors
 
 ## Next bounded step
 
-Keep this lane parked unless the repo lands a narrower Phase 14 study packet worth indexing from the docs root. If that happens, the next honest PMO follow-up is to add that concrete study artifact to this survey and the docs-root summary without widening it into a new active delivery claim.
+Keep this lane parked unless the shared smoke packet or one of the four anchor-local Phase 14 manifests moves. If that happens, refresh this release-boundary reading and the docs-root Phase 14 summary so the release-facing story keeps matching the validator-backed smoke packet without widening it into a new active delivery claim.
