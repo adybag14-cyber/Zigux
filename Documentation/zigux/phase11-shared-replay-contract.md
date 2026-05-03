@@ -22,10 +22,14 @@ Run these in the published validator-first order before trusting the shared repl
 - `python3 scripts/zigux/check-phase11-hvc-validation-flow.py`
 - `python3 scripts/zigux/check-phase11-hvc-cleanup-alignment.py --self-test`
 - `python3 scripts/zigux/check-phase11-hvc-cleanup-alignment.py`
+- `python3 scripts/zigux/check-phase11-shared-replay-contract.py --self-test`
+- `python3 scripts/zigux/check-phase11-shared-replay-contract.py`
 - `python3 scripts/zigux/validate-phase11.py --self-test`
 - `python3 scripts/zigux/validate-phase11.py`
 
 The published wrapper remains `make -C zigux phase11-validate`.
+
+The same contract is fail-closed by `python3 scripts/zigux/check-phase11-shared-replay-contract.py` before the broader validator runs.
 
 ## Shared Replay Surface
 
@@ -73,6 +77,7 @@ The minimum agreement surface for that kind of change is:
 - `zigux/tests/fixtures/phase11_build_inventory.json`
 - `scripts/zigux/check-phase11-build-inventory.py`
 - `scripts/zigux/check-phase11-hvc-validation-flow.py`
+- `scripts/zigux/check-phase11-shared-replay-contract.py`
 - `scripts/zigux/validate-phase11.py`
 - `zigux/tests/phase11_hvc_console_survey.zig`
 
