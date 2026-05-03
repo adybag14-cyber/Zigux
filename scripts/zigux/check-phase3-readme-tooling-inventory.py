@@ -15,9 +15,7 @@ REQUIRED_PHASE3_FLOW_SNIPPETS = (
     "`validate-phase3.py` is the validator-first entrypoint for the shared Phase 3 ABI and interop packet, and `make -C zigux phase3-validate` plus the bootstrap workflow replay that same route before the broader build-backed or survey-backed checks run.",
     "`validate-phase3-roadmap-gap-survey.py`, `validate-phase3-rbtree-interop-survey.py`, `check-phase3-rbtree-shared-lift-contract.py`, `validate-phase3-export-uapi-survey.py`, `validate-phase3-low-level-wrapper-survey.py`, `validate-phase3-policy-unsafe-survey.py`, `check-phase3-policy-unsafe-mmio-consumer.py`, `check-phase3-abi-layout-packet.py`, `check-phase3-abi-binding-constants.py`, `check-phase3-tooling-packet.py`, `check-phase3-readme-tooling-inventory.py`, `check-phase3-validation-flow.py`, `check-phase3-build-roots.py`, and `check-phase3-canonical-survey-manifest.py` stay as supporting checks inside that validator-first route rather than standalone bootstrap or release entrypoints.",
 )
-EXACT_ONCE_PHASE3_FLOW_SNIPPETS = (
-    REQUIRED_PHASE3_FLOW_SNIPPETS[0],
-)
+EXACT_ONCE_PHASE3_FLOW_SNIPPETS = REQUIRED_PHASE3_FLOW_SNIPPETS
 
 
 def _ordered_unique(entries: list[str]) -> list[str]:
@@ -321,6 +319,7 @@ def run_self_test() -> int:
             f"missing_phase3_flow_snippet:{REQUIRED_PHASE3_FLOW_SNIPPETS[0]}",
             f"missing_phase3_flow_snippet:{REQUIRED_PHASE3_FLOW_SNIPPETS[1]}",
             f"unexpected_phase3_flow_snippet_count:0:{REQUIRED_PHASE3_FLOW_SNIPPETS[0]}",
+            f"unexpected_phase3_flow_snippet_count:0:{REQUIRED_PHASE3_FLOW_SNIPPETS[1]}",
         ]
         if issues != expected:
             raise SystemExit(
@@ -362,6 +361,30 @@ def run_self_test() -> int:
                     "- `artifact_diff.py`",
                     helper_lines,
                     "",
+                    _fixture_phase3_flow() + f"- {REQUIRED_PHASE3_FLOW_SNIPPETS[1]}",
+                )
+            ),
+        )
+        issues = validate(root)
+        expected = [
+            f"unexpected_phase3_flow_snippet_count:2:{REQUIRED_PHASE3_FLOW_SNIPPETS[1]}"
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-readme-tooling-inventory-self-test:duplicate_phase3_supporting_checks_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+        _write(
+            root / README_REL,
+            "\n".join(
+                (
+                    "# scripts/zigux",
+                    "",
+                    "Current bootstrap helpers",
+                    "- `artifact_diff.py`",
+                    helper_lines,
+                    "",
                     _fixture_phase3_flow(),
                 )
             ),
@@ -376,7 +399,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
-    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=6")
+    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
