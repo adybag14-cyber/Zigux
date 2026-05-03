@@ -242,6 +242,7 @@ test "phase13 landlock ruleset descriptor stays anchored to ruleset.c" {
     try std.testing.expect(descriptor.provides_rule_tree_link_planning);
     try std.testing.expect(descriptor.provides_rule_lookup_planning);
     try std.testing.expect(descriptor.provides_rule_materialization_planning);
+    try std.testing.expect(descriptor.provides_rule_replacement_planning);
     try std.testing.expect(descriptor.provides_rule_release_planning);
     try std.testing.expect(!descriptor.touches_live_object_trees);
     try std.testing.expect(!descriptor.touches_live_hierarchy);
@@ -364,7 +365,7 @@ test "phase13 landlock ruleset lookup planner stays read-only" {
     try std.testing.expectError(error.UnexpectedWalkerPath, ruleset.RulesetHelperLab.planRuleLookup(.inode, false, 1, &[_]u64{1}));
 }
 
-test "phase13 landlock ruleset materialization and release planners stay data-only" {
+test "phase13 landlock ruleset materialization, replacement, and release planners stay data-only" {
     const materialized = try ruleset.RulesetHelperLab.planRuleMaterialization(.inode, &[_]ruleset.Layer{
         .{ .level = 1, .access = 0x1 },
     }, .{ .level = 2, .access = 0x2 });
@@ -372,6 +373,31 @@ test "phase13 landlock ruleset materialization and release planners stay data-on
     try std.testing.expect(materialized.initializes_rb_node);
     try std.testing.expect(materialized.would_acquire_object_reference);
     try std.testing.expectEqual(@as(usize, 2), materialized.resulting_rule.num_layers);
+
+    const matched_search = try ruleset.RulesetHelperLab.planRuleTreeSearch(.inode, true, 30, &[_]u64{ 40, 30 }, 7);
+    try std.testing.expect(matched_search.matched_existing_rule);
+    try std.testing.expectEqual(@as(?u64, 30), matched_search.parent_key_data);
+    try std.testing.expectEqual(@as(?ruleset.InsertionSite, null), matched_search.insertion_site);
+    try std.testing.expectEqual(@as(u32, 7), matched_search.resulting_num_rules);
+
+    const replacement = try ruleset.RulesetHelperLab.planRuleReplacement(matched_search, materialized);
+    try std.testing.expectEqualStrings("security/landlock/ruleset.c", replacement.anchor);
+    try std.testing.expectEqual(ruleset.TreeRoot.inode, replacement.root);
+    try std.testing.expectEqual(ruleset.KeyType.inode, replacement.key_type);
+    try std.testing.expectEqual(@as(u64, 30), replacement.matched_key_data);
+    try std.testing.expect(replacement.reuses_existing_rule_slot);
+    try std.testing.expect(replacement.performs_rb_replace_node);
+    try std.testing.expect(replacement.would_release_previous_rule);
+    try std.testing.expect(replacement.would_release_previous_object_reference);
+    try std.testing.expectEqual(@as(u32, 7), replacement.resulting_num_rules);
+
+    const copy_only = try ruleset.RulesetHelperLab.planRuleMaterialization(.net_port, &[_]ruleset.Layer{
+        .{ .level = 1, .access = 0x7 },
+    }, null);
+    try std.testing.expectError(error.InvalidReplacementMaterialization, ruleset.RulesetHelperLab.planRuleReplacement(matched_search, copy_only));
+
+    const unmatched_search = try ruleset.RulesetHelperLab.planRuleTreeSearch(.inode, true, 35, &[_]u64{30}, 7);
+    try std.testing.expectError(error.MissingMatchingRule, ruleset.RulesetHelperLab.planRuleReplacement(unmatched_search, materialized));
 
     const release = ruleset.RulesetHelperLab.planRuleRelease(.inode, true);
     try std.testing.expectEqualStrings("security/landlock/ruleset.c", release.anchor);
