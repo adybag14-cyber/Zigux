@@ -84,6 +84,11 @@ REVIEW_CHECKLIST_MARKERS = [
     "Documentation/zigux/phase15-indefinite-c-policy.md",
     "automatic return-to-blocked trigger",
     "current maintenance-mode handoff aligned",
+    "if the change touches the shared Phase 15 maintenance-mode handoff packet",
+    "Documentation/zigux/phase15-handoff-next-steps-survey.md",
+    "zigux/tests/phase15_docs_root_reviewability.zig",
+    "named reopen triggers",
+    "phase15-deep-core-status-change-blocker",
     "if the change touches the shared Phase 15 Architecture Council review-process packet",
     "indefinite-C policy link or explicit non-applicability note",
 ]
