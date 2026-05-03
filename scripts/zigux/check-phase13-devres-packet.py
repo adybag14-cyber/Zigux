@@ -17,6 +17,7 @@ REQUIRED_FILES = [
     "zigux/tests/phase13_devres_dma_coherent.zig",
     "zigux/tests/phase13_devres_reviewability.zig",
     "zigux/tests/phase13_devres_iounmap_reviewability.zig",
+    "zigux/tests/phase13_devres_iomap_reviewability.zig",
     "zigux/tests/phase13_devres_manifest.json",
     "zigux/tests/phase13_build.zig",
     "Documentation/zigux/phase13-devres-slice.md",
@@ -64,6 +65,15 @@ IOUNMAP_REVIEWABILITY_MARKERS = [
     "pub fn planManagedIounmap(",
 ]
 
+IOMAP_REVIEWABILITY_MARKERS = [
+    'test "phase13 devres of_iomap descriptor keeps the planner explicit"',
+    'test "phase13 devres of_iomap planner keeps translated size explicit on success"',
+    'test "phase13 devres of_iomap planner rejects address-translation misses before managed remap"',
+    'test "phase13 devres of_iomap planner preserves translated size on downstream remap failure"',
+    'try expectContains(devres_source, ".provides_of_iomap_planning = true");',
+    'try expectContains(devres_source, "pub fn planDeviceTreeIomap(");',
+]
+
 REVIEWABILITY_MARKERS = [
     'test "phase13 devres manifest records the current helper boundary and explicit dma/scatterlist blockers"',
     'try std.testing.expect(!descriptor.touches_live_dma);',
@@ -104,9 +114,11 @@ BUILD_MARKERS = [
     "../../lib/devres_dma_coherent.zig",
     "phase13_devres_dma_coherent.zig",
     "phase13_devres_iounmap_reviewability.zig",
+    "phase13_devres_iomap_reviewability.zig",
     "phase13-devres-tests",
     "phase13-devres-dma-coherent-tests",
     "phase13-devres-iounmap-reviewability-tests",
+    "phase13-devres-iomap-reviewability-tests",
     "phase13-devres-reviewability-tests",
 ]
 
@@ -177,6 +189,7 @@ def _check_repo(root: Path) -> list[str]:
     dma_coherent_tests_text = _read(root / "zigux/tests/phase13_devres_dma_coherent.zig")
     reviewability_text = _read(root / "zigux/tests/phase13_devres_reviewability.zig")
     iounmap_reviewability_text = _read(root / "zigux/tests/phase13_devres_iounmap_reviewability.zig")
+    iomap_reviewability_text = _read(root / "zigux/tests/phase13_devres_iomap_reviewability.zig")
     manifest_text = _read(root / "zigux/tests/phase13_devres_manifest.json")
     build_text = _read(root / "zigux/tests/phase13_build.zig")
     survey_text = _read(root / "Documentation/zigux/phase13-devres-survey.md")
@@ -189,6 +202,7 @@ def _check_repo(root: Path) -> list[str]:
     _require_markers(missing, "devres_tests", devres_tests_text, DEVRES_TEST_MARKERS)
     _require_markers(missing, "devres_dma_coherent_tests", dma_coherent_tests_text, DMA_COHERENT_TEST_MARKERS)
     _require_markers(missing, "iounmap_reviewability", iounmap_reviewability_text, IOUNMAP_REVIEWABILITY_MARKERS)
+    _require_markers(missing, "iomap_reviewability", iomap_reviewability_text, IOMAP_REVIEWABILITY_MARKERS)
     _require_markers(missing, "reviewability", reviewability_text, REVIEWABILITY_MARKERS)
     _require_markers(missing, "survey", survey_text, SURVEY_MARKERS)
     _require_exact_counts(missing, "survey", survey_text, SURVEY_EXACT_COUNT_MARKERS)
@@ -289,6 +303,10 @@ def _run_self_test() -> int:
         )
         (root / "zigux/tests/phase13_devres_iounmap_reviewability.zig").write_text(
             "\n".join(IOUNMAP_REVIEWABILITY_MARKERS) + "\n",
+            encoding="utf-8",
+        )
+        (root / "zigux/tests/phase13_devres_iomap_reviewability.zig").write_text(
+            "\n".join(IOMAP_REVIEWABILITY_MARKERS) + "\n",
             encoding="utf-8",
         )
         (root / "Documentation/zigux/phase13-devres-survey.md").write_text(
@@ -425,7 +443,7 @@ def main() -> int:
     print(f"PHASE13_DEVRES_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE13_DEVRES_MARKER_COUNT="
-        f"{len(DEVRES_MARKERS) + len(DMA_COHERENT_MARKERS) + len(DEVRES_TEST_MARKERS) + len(DMA_COHERENT_TEST_MARKERS) + len(IOUNMAP_REVIEWABILITY_MARKERS) + len(REVIEWABILITY_MARKERS) + len(SURVEY_MARKERS) + len(SURVEY_EXACT_COUNT_MARKERS) + len(SLICE_MARKERS) + len(BUILD_MARKERS) + len(SCRIPTS_README_MARKERS) + len(SCRIPTS_README_EXACT_COUNT_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(REVIEW_CHECKLIST_EXACT_COUNT_MARKERS)}"
+        f"{len(DEVRES_MARKERS) + len(DMA_COHERENT_MARKERS) + len(DEVRES_TEST_MARKERS) + len(DMA_COHERENT_TEST_MARKERS) + len(IOUNMAP_REVIEWABILITY_MARKERS) + len(IOMAP_REVIEWABILITY_MARKERS) + len(REVIEWABILITY_MARKERS) + len(SURVEY_MARKERS) + len(SURVEY_EXACT_COUNT_MARKERS) + len(SLICE_MARKERS) + len(BUILD_MARKERS) + len(SCRIPTS_README_MARKERS) + len(SCRIPTS_README_EXACT_COUNT_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(REVIEW_CHECKLIST_EXACT_COUNT_MARKERS)}"
     )
     return 0
 
