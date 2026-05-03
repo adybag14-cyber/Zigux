@@ -195,7 +195,7 @@
       "suffix_unit_test_anchor": "tools/lib/string.zig:test \"str_ends_with matches kernel suffix semantics\"",
       "suffix_unit_test_contract": "Direct Zig unit coverage keeps strEndsWith, str_ends_with, and strends aligned with kernel-style suffix semantics for exact, empty-suffix, shorter-input, and case-sensitive comparisons.",
       "memparse_unit_test_anchor": "tools/lib/string.zig:test \"memparse forwards the header-level string helper surface\"",
-      "memparse_unit_test_contract": "Direct Zig unit coverage keeps memparse aligned by forwarding decimal, hexadecimal, suffix-bearing, and invalid inputs through the shared command-line parser without changing the parsed value or rest pointer contract."
+      "memparse_unit_test_contract": "Direct Zig unit coverage keeps memparse aligned by preserving decimal, hexadecimal, suffix-bearing, and invalid inputs without changing the parsed value or rest pointer contract."
     }
   }
 }
