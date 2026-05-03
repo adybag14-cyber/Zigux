@@ -686,7 +686,7 @@ for marker in [
     "a tiny final-close teardown summary",
     "a tiny notifier-add open handoff summary",
     "a khvcd worker-entry summary",
-    "The next honest bounded step inside the same Phase 11 lane is to leave the starter parked unless fresh repo inspection finds another comparably small host-free sysrq or khvcd handoff that is not already covered by the notifier-add open handoff, the `struct winsize` layout proof, the `struct hv_ops` layout proof, and the `hv_ops` callback-signature proof; otherwise avoid widening straight into live tty teardown, notifier execution, sysrq handling, live khvcd worker behavior, `struct hvc_struct`, or host-backed teardown.",
+    "The next honest bounded step inside the same Phase 11 lane is to leave the starter parked unless fresh repo inspection finds another comparably small host-free sysrq or khvcd handoff that is not already covered by the notifier-add open handoff, the bounded sysrq helper, the `struct winsize` layout proof, the `struct hv_ops` layout proof, and the `hv_ops` callback-signature proof; otherwise avoid widening straight into live tty teardown, notifier execution, live sysrq execution, live khvcd worker behavior, `struct hvc_struct`, or host-backed teardown.",
 ]:
     if marker not in hvc_survey_doc:
         missing.append(f"phase11_hvc_console_docs:survey:{marker}")
@@ -699,8 +699,8 @@ for marker in [
     "adds a tiny khvcd sleep-and-reschedule handoff summary that keeps the pre-sleep kick check, the interruptible-state recheck, untimed schedule versus timed backoff selection, and running-state restore reviewable without claiming live worker execution",
     "adds a tiny `hvc_hangup()` disconnect summary that keeps resize-cancel ordering, the stale-count guard, tty detach, outbuf clearing, and notifier-hangup boundaries reviewable without claiming notifier callback execution",
     "adds a tiny `hvc_remove()` handoff summary that keeps console-lock slot clearing, the paired `vtermnos[]` and `cons_ops[]` release, `tty_port_put()` ordering, `tty_vhangup()` follow-through, and the keep-IRQ-until-hangup teardown boundary reviewable without claiming live console locking or IRQ teardown",
-    "This slice does not claim tty-driver registration, khvcd polling or execution, sysrq handling, notifier callback execution, hotplug discovery, or live hypervisor-backed reads and writes yet.",
-    "The next honest bounded step inside the same Phase 11 lane is to leave this starter parked unless another comparably small host-free sysrq or khvcd handoff becomes obvious; otherwise avoid widening straight into live tty teardown, live khvcd worker behavior, or host-backed teardown.",
+    "This slice does not claim tty-driver registration, khvcd polling or execution, live sysrq execution, notifier callback execution, hotplug discovery, or live hypervisor-backed reads and writes yet.",
+    "The next honest bounded step inside the same Phase 11 lane is to leave this starter parked unless another comparably small host-free notifier callback or khvcd handoff becomes obvious; otherwise avoid widening straight into live tty teardown, live khvcd worker behavior, or host-backed teardown.",
 ]:
     if marker not in hvc_slice_doc:
         missing.append(f"phase11_hvc_console_docs:slice:{marker}")
