@@ -9,6 +9,7 @@ Keep `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, and `Do
 Keep the tests-root replay packet explicit:
 - `zigux/tests/phase10_build.zig`
 - `zigux/tests/phase10_closure_manifest.json`
+- `zigux/tests/phase10_virtio_core_manifest.json`
 - `zigux/tests/phase10_virtio_input_multitouch_preflight.zig`
 - `zigux/tests/phase10_virtio_mmio_queue_isolation.zig`
 - `zigux/tests/phase10_virtio_ring_manifest.json`
@@ -19,7 +20,7 @@ Keep the tests-root replay packet explicit:
 - `scripts/zigux/validate-phase10-closure.py`
 
 Tests-root reviewer prompt:
-- Do the shared Phase 10 build, closure manifest, focused multitouch preflight, focused MMIO queue-isolation replay, and harness-coverage checker still describe the same validator-first lab bundle rather than a set of unrelated virtio starter files?
+- Do the shared Phase 10 build, the shared closure manifest, all four lane survey manifests, the focused multitouch preflight replay, the focused MMIO queue-isolation replay, and the harness-coverage checker still describe the same validator-first lab bundle rather than a set of unrelated virtio starter files?
 
 ## Phase 11 tests-root packet
 
