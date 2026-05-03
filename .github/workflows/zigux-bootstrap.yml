@@ -356,8 +356,14 @@ jobs:
       - name: Self-test Phase 11 shared replay contract checker
         run: python3 scripts/zigux/check-phase11-shared-replay-contract.py --self-test
 
+      - name: Self-test Phase 11 header boundary packet checker
+        run: python3 scripts/zigux/check-phase11-header-boundary-packet.py --self-test
+
       - name: Validate Phase 11 shared replay contract
         run: python3 scripts/zigux/check-phase11-shared-replay-contract.py
+
+      - name: Validate Phase 11 header boundary packet
+        run: python3 scripts/zigux/check-phase11-header-boundary-packet.py
 
       - name: Validate Phase 11 simple-driver bundle
         run: make -C zigux phase11-validate
