@@ -143,6 +143,7 @@ def run_self_test() -> int:
             ("phase3-test", BUILD_FILE_REL),
             ("phase3-low-level-wrappers-test", ABI_LOW_LEVEL_BUILD_FILE_REL),
             ("phase3-export-uapi-test", ABI_EXPORT_UAPI_BUILD_FILE_REL),
+            ("phase3-export-uapi-layout-test", ABI_EXPORT_UAPI_LAYOUT_BUILD_FILE_REL),
             ("phase3-policy-unsafe-test", ABI_POLICY_UNSAFE_BUILD_FILE_REL),
         )
         assert validate_slices(
@@ -201,6 +202,7 @@ def run_self_test() -> int:
             f"build phase3-test --build-file {root / 'zigux/tests/build.zig'}",
             f"build phase3-low-level-wrappers-test --build-file {root / 'zigux/tests/phase3_low_level_wrappers_build.zig'}",
             f"build phase3-export-uapi-test --build-file {root / 'zigux/tests/phase3_export_uapi_build.zig'}",
+            f"build phase3-export-uapi-layout-test --build-file {root / 'zigux/tests/phase3_export_uapi_layout_build.zig'}",
             f"build phase3-policy-unsafe-test --build-file {root / 'zigux/tests/phase3_policy_unsafe_build.zig'}",
         ]
 
