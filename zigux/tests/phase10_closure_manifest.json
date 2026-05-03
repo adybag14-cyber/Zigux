@@ -14,6 +14,7 @@
   "risky_transport_posture": "blocked_on_risky_transport",
   "allowed_roadmap_destinations": [
     "drivers/virtio/*.zig",
+    "zigux/kernel/",
     "zigux/helpers/"
   ],
   "allowed_evidence_kinds": [
