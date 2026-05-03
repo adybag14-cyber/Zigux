@@ -44,6 +44,7 @@ pub const OwnershipSummary = struct {
     init_runs: usize,
     register_runs: usize,
     exit_runs: usize,
+    can_run_anchor_replay: bool,
     can_register_attributes: bool,
     can_exit: bool,
 };
@@ -167,6 +168,7 @@ pub const KobjectExampleSample = struct {
             .init_runs = self.init_runs,
             .register_runs = self.register_runs,
             .exit_runs = self.exit_runs,
+            .can_run_anchor_replay = current_stage == .initialized,
             .can_register_attributes = current_stage == .initialized,
             .can_exit = current_stage == .initialized or current_stage == .registered,
         };
@@ -394,6 +396,7 @@ test "kobject sample keeps the pre-registration ownership boundary explicit" {
     try std.testing.expectEqual(SampleStage.cold, sample.stage());
     try std.testing.expectEqual(@as(usize, 0), sample.activeAttrCount());
     try std.testing.expect(!sample.attributesAreAccessible());
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.runAnchorReplay());
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.registerAttributes());
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.showValue("foo"));
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.storeValue("foo", "1\n"));
@@ -416,6 +419,7 @@ test "kobject sample makes ownership snapshots reviewable through a sample-owned
     try std.testing.expectEqual(@as(usize, 0), replay.cold.init_runs);
     try std.testing.expectEqual(@as(usize, 0), replay.cold.register_runs);
     try std.testing.expectEqual(@as(usize, 0), replay.cold.exit_runs);
+    try std.testing.expect(!replay.cold.can_run_anchor_replay);
     try std.testing.expect(!replay.cold.can_register_attributes);
     try std.testing.expect(!replay.cold.can_exit);
 
@@ -425,6 +429,7 @@ test "kobject sample makes ownership snapshots reviewable through a sample-owned
     try std.testing.expectEqual(@as(usize, 1), replay.initialized.init_runs);
     try std.testing.expectEqual(@as(usize, 0), replay.initialized.register_runs);
     try std.testing.expectEqual(@as(usize, 0), replay.initialized.exit_runs);
+    try std.testing.expect(replay.initialized.can_run_anchor_replay);
     try std.testing.expect(replay.initialized.can_register_attributes);
     try std.testing.expect(replay.initialized.can_exit);
 
@@ -434,6 +439,7 @@ test "kobject sample makes ownership snapshots reviewable through a sample-owned
     try std.testing.expectEqual(@as(usize, 1), replay.registered.init_runs);
     try std.testing.expectEqual(@as(usize, 1), replay.registered.register_runs);
     try std.testing.expectEqual(@as(usize, 0), replay.registered.exit_runs);
+    try std.testing.expect(!replay.registered.can_run_anchor_replay);
     try std.testing.expect(!replay.registered.can_register_attributes);
     try std.testing.expect(replay.registered.can_exit);
 
@@ -453,6 +459,7 @@ test "kobject sample makes ownership snapshots reviewable through a sample-owned
     try std.testing.expectEqual(@as(usize, 1), replay.exited.init_runs);
     try std.testing.expectEqual(@as(usize, 1), replay.exited.register_runs);
     try std.testing.expectEqual(@as(usize, 1), replay.exited.exit_runs);
+    try std.testing.expect(!replay.exited.can_run_anchor_replay);
     try std.testing.expect(!replay.exited.can_register_attributes);
     try std.testing.expect(!replay.exited.can_exit);
 }
@@ -473,6 +480,7 @@ test "kobject sample teardown keeps ownership boundaries explicit" {
     try std.testing.expectEqual(@as(usize, 1), initialized_exit.exit_runs);
     try std.testing.expectError(error.InvalidLifecycleTransition, initialized_sample.init());
     try std.testing.expectError(error.InvalidLifecycleTransition, initialized_sample.registerAttributes());
+    try std.testing.expectError(error.InvalidLifecycleTransition, initialized_sample.runAnchorReplay());
     try std.testing.expectError(error.InvalidLifecycleTransition, initialized_sample.showValue("foo"));
     try std.testing.expectError(error.InvalidLifecycleTransition, initialized_sample.storeValue("foo", "1\n"));
     try std.testing.expectError(error.InvalidLifecycleTransition, initialized_sample.exit());
@@ -496,6 +504,7 @@ test "kobject sample teardown keeps ownership boundaries explicit" {
     try std.testing.expectEqual(@as(i32, 0), registered_sample.bar);
     try std.testing.expectError(error.InvalidLifecycleTransition, registered_sample.init());
     try std.testing.expectError(error.InvalidLifecycleTransition, registered_sample.registerAttributes());
+    try std.testing.expectError(error.InvalidLifecycleTransition, registered_sample.runAnchorReplay());
     try std.testing.expectError(error.InvalidLifecycleTransition, registered_sample.showValue("foo"));
     try std.testing.expectError(error.InvalidLifecycleTransition, registered_sample.storeValue("foo", "1\n"));
     try std.testing.expectError(error.InvalidLifecycleTransition, registered_sample.exit());
