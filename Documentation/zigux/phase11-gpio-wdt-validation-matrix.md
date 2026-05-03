@@ -65,12 +65,15 @@ Without this matrix, the slice and survey named the right next step but did not 
 - active continuity owner: `P11-Y01`
 - later continuity note: the same landed review packet was revisited under `P11-L03` for teardown-facing verification and `P11-L05` for wording-only matrix cleanup while the archived manifest identity stayed fixed
 - inspected `master` head: `d62742e7ff0747ed15f71f67d505f68ea15ec7ab`
-- focused compile replay:
+- focused head-refresh compile check performed in this pass:
+  - `zig fmt --check zigux/tests/phase11_gpio_wdt_survey.zig`
+  - `zig test --test-no-exec zigux/tests/phase11_gpio_wdt_survey.zig`
+  - result: the refreshed survey file stayed format-clean and compiled without errors after the inspected-head pin moved to `d62742e7ff0747ed15f71f67d505f68ea15ec7ab`
+- carried-forward last full repo-local replay for the unchanged driver and test packet:
   - `zig test --dep gpio_wdt -Mroot=zigux/tests/phase11_gpio_wdt.zig -Mgpio_wdt=drivers/watchdog/gpio_wdt.zig`
-  - result: `14/14` focused gpio watchdog tests passed
-- focused survey replay:
+  - result: `14/14` focused gpio watchdog tests passed before this review-only head refresh
   - `zig test zigux/tests/phase11_gpio_wdt_survey.zig`
-  - result: `1/1` survey tests passed
+  - result: `1/1` survey tests passed before this review-only head refresh
 - bounded conclusion:
   - current compile, teardown, and register-device review surfaces still pass as landed; this refresh only moves the machine-checkable verification head forward to the latest inspected `master` while keeping the helper surface unchanged
 
