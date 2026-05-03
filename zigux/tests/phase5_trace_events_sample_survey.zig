@@ -54,6 +54,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     var saw_docs_prompt = false;
     var saw_payload_prompt = false;
     var saw_lifecycle_prompt = false;
+    var saw_cycle_prompt = false;
     var saw_callback_prompt = false;
     var saw_non_goal_prompt = false;
     var saw_descriptor_check = false;
@@ -113,6 +114,13 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
         {
             saw_lifecycle_prompt = true;
         }
+        if (std.mem.indexOf(u8, prompt, "runStringFormattingCycleReplay()") != null and
+            std.mem.indexOf(u8, prompt, "full modulo-selected string cycle") != null and
+            std.mem.indexOf(u8, prompt, "selected-string slot cues") != null and
+            std.mem.indexOf(u8, prompt, "iter-format messages") != null)
+        {
+            saw_cycle_prompt = true;
+        }
         if (std.mem.indexOf(u8, prompt, "single live") != null and
             std.mem.indexOf(u8, prompt, "replayFunctionIteration before registration") != null and
             std.mem.indexOf(u8, prompt, "FunctionCallbackNotRegistered") != null and
@@ -160,6 +168,8 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
         }
         if (std.mem.eql(u8, check.id, "modulo-string-cycle")) {
             saw_modulo_cycle_check = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "runStringFormattingCycleReplay()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "five public cases") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "Mother Goose") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "Snoopy") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "Gandalf") != null);
@@ -247,6 +257,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     try std.testing.expect(saw_docs_prompt);
     try std.testing.expect(saw_payload_prompt);
     try std.testing.expect(saw_lifecycle_prompt);
+    try std.testing.expect(saw_cycle_prompt);
     try std.testing.expect(saw_callback_prompt);
     try std.testing.expect(saw_exit_prompt);
     try std.testing.expect(saw_sync_prompt);
@@ -366,6 +377,7 @@ test "phase 5 trace-events contributor docs stay aligned with the shipped review
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "exact inspected `master` head") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "floating branch label") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "CREATE_TRACE_POINTS") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "runStringFormattingCycleReplay()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "FunctionCallbackNotRegistered") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "before a callback is registered") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "second `registerFunctionCallback()`") != null);
@@ -376,6 +388,7 @@ test "phase 5 trace-events contributor docs stay aligned with the shipped review
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Mother Goose") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "One ring to rule them all") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "counts `0` through `4`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "five public cases") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "selected-string slot `2`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "main iteration `7`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "function-callback iteration `9`") != null);
@@ -387,6 +400,7 @@ test "phase 5 trace-events contributor docs stay aligned with the shipped review
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`ownership_and_lifetime`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "The exact checks currently recorded in `zigux/tests/phase5_trace_events_sample_manifest.json`, exercised directly through `zigux/tests/phase5_trace_events_sample.zig`, and exercised through `zigux/tests/phase5_build.zig` are:") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Latest verification snapshot") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "trace-events sample replays every modulo-selected string and formatted message through one bounded replay") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig test samples/zigux/trace_events_sample.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig test zigux/tests/phase5_trace_events_sample_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Build Summary: 17/17 steps succeeded; 28/28 tests passed") != null);
