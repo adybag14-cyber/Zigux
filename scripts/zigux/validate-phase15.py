@@ -144,6 +144,7 @@ HANDOFF_MARKERS = [
     "## Open Handoff Gaps",
     "## Pending Next Steps",
     "## Maintenance Handoff Contract",
+    "zigux/tests/phase15_docs_root_reviewability.zig",
     "docs-root release evidence now matches the dedicated maintenance packet",
     "phase15-docs-root-summary-alignment",
     "phase15-deep-core-status-change-blocker",
