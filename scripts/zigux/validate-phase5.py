@@ -92,6 +92,19 @@ TEXT_MARKERS = {
         "zig test zigux/tests/phase5_kretprobe_example_survey.zig",
         "zig test zigux/tests/phase5_trace_events_sample_survey.zig",
         "make -C zigux phase5-validate",
+        "samples/zigux/runtime_bitmap.zig",
+        "samples/zigux/runtime_bitmap_loader.zig",
+        "separate Phase 9 runtime bitmap survey packet",
+        "samples/zigux/runtime_trace_events.zig",
+        "sample-only blocked Phase 9 pilot",
+        "samples/zigux/runtime_trace_events_loader.zig",
+        "runtime-substrate handoff still stays blocked",
+        "current `master` still ships no `samples/zigux/*string*` or `samples/zigux/*cmdline*` Phase 5 reference sample",
+        "lib/string_helpers.zig",
+        "zigux/tests/phase7_string_helpers.zig",
+        "lib/cmdline.zig",
+        "zigux/tests/phase7_cmdline.zig",
+        "zigux/tests/phase7_build.zig",
     ],
     "Documentation/zigux/README.md": [
         "Phase 5 notes",
@@ -626,6 +639,51 @@ def run_self_test() -> int:
 
         tmp_root = Path(tmp)
         copy_tree(ROOT, tmp_root)
+        tests_readme = tmp_root / "zigux/tests/README.md"
+        text = tests_readme.read_text(encoding="utf-8").replace(
+            "separate Phase 9 runtime bitmap survey packet",
+            "later runtime bitmap follow-on work",
+            1,
+        )
+        tests_readme.write_text(text, encoding="utf-8")
+        missing = validate_phase5(tmp_root)
+        if missing["ok"] or "zigux/tests/README.md:missing:separate Phase 9 runtime bitmap survey packet" not in missing["missing"]:
+            print("PHASE5_VALIDATOR_SELF_TEST=fail")
+            print("PHASE5_VALIDATOR_SELF_TEST_REASON=tests-readme-runtime-bitmap-boundary-gap")
+            return 1
+
+        tmp_root = Path(tmp)
+        copy_tree(ROOT, tmp_root)
+        tests_readme = tmp_root / "zigux/tests/README.md"
+        text = tests_readme.read_text(encoding="utf-8").replace(
+            "runtime-substrate handoff still stays blocked",
+            "runtime-substrate handoff now cleared",
+            1,
+        )
+        tests_readme.write_text(text, encoding="utf-8")
+        missing = validate_phase5(tmp_root)
+        if missing["ok"] or "zigux/tests/README.md:missing:runtime-substrate handoff still stays blocked" not in missing["missing"]:
+            print("PHASE5_VALIDATOR_SELF_TEST=fail")
+            print("PHASE5_VALIDATOR_SELF_TEST_REASON=tests-readme-runtime-trace-events-boundary-gap")
+            return 1
+
+        tmp_root = Path(tmp)
+        copy_tree(ROOT, tmp_root)
+        tests_readme = tmp_root / "zigux/tests/README.md"
+        text = tests_readme.read_text(encoding="utf-8").replace(
+            "current `master` still ships no `samples/zigux/*string*` or `samples/zigux/*cmdline*` Phase 5 reference sample",
+            "current `master` keeps helper-only sample boundaries separate",
+            1,
+        )
+        tests_readme.write_text(text, encoding="utf-8")
+        missing = validate_phase5(tmp_root)
+        if missing["ok"] or "zigux/tests/README.md:missing:current `master` still ships no `samples/zigux/*string*` or `samples/zigux/*cmdline*` Phase 5 reference sample" not in missing["missing"]:
+            print("PHASE5_VALIDATOR_SELF_TEST=fail")
+            print("PHASE5_VALIDATOR_SELF_TEST_REASON=tests-readme-phase7-boundary-gap")
+            return 1
+
+        tmp_root = Path(tmp)
+        copy_tree(ROOT, tmp_root)
         docs_readme = tmp_root / "Documentation/zigux/README.md"
         text = docs_readme.read_text(encoding="utf-8").replace(
             "zig test zigux/tests/phase5_trace_events_sample_survey.zig",
@@ -685,7 +743,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE5_VALIDATOR_SELF_TEST=pass")
-    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=17")
+    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=20")
     return 0
 
 
