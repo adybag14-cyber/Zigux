@@ -13,15 +13,15 @@ This note records one exact readback snapshot for the current Phase 4 rollback-o
 - `PHASE4_BUILD_BLOB_SHA=19472845adf51822a5775340c31aa3bd5db57a97`
 - `PHASE4_MAKEFILE_BLOB_SHA=bb60a69322ae95dd335511adf337177d40f545b1`
 - `PHASE4_WORKFLOW_BLOB_SHA=00bcad2fb5fe8fb71ca48807531ca7027e90517d`
-- `PHASE4_KPROBE_EXAMPLE_MANIFEST_BLOB_SHA=c2c7eac7f476f306f5756c6df056ea6225ceb92d`
-- `PHASE4_KPROBE_EXAMPLE_SURVEY_BLOB_SHA=affb5bebf2c0d440529ecee54abc0a327c20422e`
+- `PHASE4_KPROBE_EXAMPLE_MANIFEST_BLOB_SHA=5b811166ce295cebf49ed0ae2df7b9e4d852c9fd`
+- `PHASE4_KPROBE_EXAMPLE_SURVEY_BLOB_SHA=6cf535d0e870137ce717adb579c2cf8d406fd6dc`
 - `PHASE4_TEST_FSMOUNT_MANIFEST_BLOB_SHA=7171b6d3f3c407c708d56fd6bb275e2cba44add5`
 - `PHASE4_TEST_FSMOUNT_SURVEY_BLOB_SHA=006f9c54cfa12c3029979f5256192465778790b6`
 - `PHASE4_PERF_BASELINE_MANIFEST_BLOB_SHA=e66248e68cfa3a844b469ae83390b49f50fa57e7`
 - `PHASE4_PERF_BASELINE_SURVEY_BLOB_SHA=4925d39bf888cdc80f3e25fff78bff9e0ea6c1ad`
 - `PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=2a001ec217dc3acc6d77c08a66707346a950f353`
 - `PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=0a87912c199d2107f85a3ce05e6e6aa049d33e75`
-- `PHASE4_DOC_README_BLOB_SHA=89cf66f05388ee311fa5d53a95257bc0abe7565`
+- `PHASE4_DOC_README_BLOB_SHA=89cf66f05388ee311fa5d53a95257bcf0abe7565`
 - `PHASE4_SCRIPT_README_BLOB_SHA=63dc6baf6080e45a217a3fbdb06ca53951583f16`
 - `PHASE4_TESTS_README_BLOB_SHA=824cc865585149812626ec139bfa2a338e658ecd`
 - `PHASE4_VALIDATOR_SELF_TEST=pass`
@@ -58,7 +58,7 @@ The current packet stayed aligned across the following readbacks on `master`:
 - the runtime atomic64 reversible-delivery packet remains explicit on the inspected head: `lib/atomic64_test.c` stays the source of truth, removing `atomic64_diff.zig` from the shared `phase4_build.zig` entrypoint is the documented rollback move, `runtime_atomic64_diff.zig` remains the single replay body, and the existing Phase 9 runtime atomic64 starter remains the forward path.
 - the current perf-baseline packet still carries one pending threshold-plan record per shipped rollback gate, pinning `make -C zigux phase4-runtime-atomic64-diff` and `make -C zigux phase4-bitmap-diff` beside the still-unapproved benchmark-command and acceptable-limit placeholders, so the benchmark command and acceptable limit remain intentionally unapproved rather than implied.
 - `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` still expose the same Phase 4 rollback-readiness packet, including the `phase4-kprobe-example-survey`, `phase4-test-fsmount-survey`, and `phase4-perf-baseline-survey` local replay routes, the `phase4-runtime-atomic64-diff-survey-tests`, `phase4-kprobe-example-survey-tests`, `phase4-test-fsmount-survey-tests`, and `phase4-perf-baseline-survey-tests` shared build entries, the dedicated `check-phase4-gate-evidence.py` checker, and the current `perf_thresholds_unapproved_until_bounded_phase4_benchmarks_land` posture.
-- the current shared build still carries the separate `phase4-kprobe-example-survey-tests` packet too, and this exact blob ledger now pins that shared-build-backed survey follow-up through `zigux/tests/phase4_kprobe_example_manifest.json` plus `zigux/tests/phase4_kprobe_example_survey.zig`, even though that roadmap row still remains survey-only because `samples/zigux/kprobe_example.zig` is still absent on `master`.
+- the current shared build still carries the separate `phase4-kprobe-example-survey-tests` packet too, and this exact blob ledger now pins that shared-build-backed survey follow-up through `zigux/tests/phase4_kprobe_example_manifest.json` plus `zigux/tests/phase4_kprobe_example_survey.zig`; the dedicated `make -C zigux phase4-kprobe-example-survey` wrapper is now part of the published local replay surface even though the shared validator still does not fail closed on the kprobe survey packet itself.
 
 ## Current Conclusion
 
@@ -66,6 +66,6 @@ The current Phase 4 rollback-ownership and lab-matrix packet is again pinned to 
 
 The remaining roadmap-backed gaps are still the same bounded ones:
 
-- `samples/zigux/kprobe_example.zig` is still absent, while the shared-build-backed survey packet remains reviewable through `make -C zigux phase4-kprobe-example-survey`, `phase4-kprobe-example-survey-tests`, and the exact blob-ledger evidence recorded above.
+- `samples/zigux/kprobe_example.zig` is still absent, while the shared-build-backed survey packet remains reviewable through `make -C zigux phase4-kprobe-example-survey`, `phase4-kprobe-example-survey-tests`, and the exact blob-ledger evidence recorded above; the shared validator still does not fail closed on the kprobe survey packet itself.
 - `samples/zigux/test_fsmount.zig` is still absent and remains C-anchor-only through `make M=samples/vfs` and `c_anchor_only_until_test_fsmount_starter_lands`.
 - perf baselines and acceptable limits for `zigux/tests/atomic64_diff.zig` and `zigux/tests/bitmap_diff.zig` are still intentionally unapproved.
