@@ -92,9 +92,10 @@ test "phase10 virtio input survey manifest records the live starter and remainin
     for (manifest.surveyed_commit) |ch| {
         try std.testing.expect(std.ascii.isHex(ch));
     }
-    try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
+    try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expectEqualStrings("drivers/virtio/*.zig", manifest.roadmap_destinations[0]);
-    try std.testing.expectEqualStrings("zigux/helpers/", manifest.roadmap_destinations[1]);
+    try std.testing.expectEqualStrings("zigux/kernel/", manifest.roadmap_destinations[1]);
+    try std.testing.expectEqualStrings("zigux/helpers/", manifest.roadmap_destinations[2]);
     try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", manifest.freeze_map);
     try std.testing.expectEqualStrings("aligned", manifest.freeze_boundary_status);
     try std.testing.expectEqualStrings("blocked_on_risky_transport", manifest.risky_transport_posture);
@@ -125,6 +126,7 @@ test "phase10 virtio input survey manifest records the live starter and remainin
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "kernel/workqueue.c") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "kernel/trace/ring_buffer.c") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/*.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/kernel/") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/helpers/") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "boundary maps") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "concurrency audits") != null);
