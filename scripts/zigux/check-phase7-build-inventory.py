@@ -295,6 +295,59 @@ def run_self_test() -> int:
     if cmdline_cwd_drift["run_cwds"].get("phase7-cmdline-survey-tests") is not None:
         raise SystemExit("phase7-build-inventory:self-test:cmdline_repo_root_drift")
 
+    string_helpers_cwd_drift_text, replacements = re.subn(
+        r'("phase7-string-helpers-survey-tests",\s*string_helpers_survey_root_module,\s*)repo_root(\s*,\s*\))',
+        r"\1null\2",
+        build_text,
+        count=1,
+        flags=re.S,
+    )
+    if replacements != 1:
+        raise SystemExit(
+            "phase7-build-inventory:self-test:string_helpers_cwd_drift_rewrite"
+        )
+
+    string_helpers_cwd_drift = render_inventory_from_text(
+        string_helpers_cwd_drift_text,
+        makefile_text,
+    )
+    if string_helpers_cwd_drift == fixture:
+        raise SystemExit(
+            "phase7-build-inventory:self-test:string_helpers_cwd_drift_detection"
+        )
+    if first["run_cwds"].get("phase7-string-helpers-survey-tests") != "repo_root":
+        raise SystemExit(
+            "phase7-build-inventory:self-test:string_helpers_repo_root_baseline"
+        )
+    if (
+        string_helpers_cwd_drift["run_cwds"].get("phase7-string-helpers-survey-tests")
+        is not None
+    ):
+        raise SystemExit(
+            "phase7-build-inventory:self-test:string_helpers_repo_root_drift"
+        )
+
+    rbtree_cwd_drift_text, replacements = re.subn(
+        r'("phase7-rbtree-survey-tests",\s*rbtree_survey_root_module,\s*)repo_root(\s*,\s*\))',
+        r"\1null\2",
+        build_text,
+        count=1,
+        flags=re.S,
+    )
+    if replacements != 1:
+        raise SystemExit("phase7-build-inventory:self-test:rbtree_cwd_drift_rewrite")
+
+    rbtree_cwd_drift = render_inventory_from_text(
+        rbtree_cwd_drift_text,
+        makefile_text,
+    )
+    if rbtree_cwd_drift == fixture:
+        raise SystemExit("phase7-build-inventory:self-test:rbtree_cwd_drift_detection")
+    if first["run_cwds"].get("phase7-rbtree-survey-tests") != "repo_root":
+        raise SystemExit("phase7-build-inventory:self-test:rbtree_repo_root_baseline")
+    if rbtree_cwd_drift["run_cwds"].get("phase7-rbtree-survey-tests") is not None:
+        raise SystemExit("phase7-build-inventory:self-test:rbtree_repo_root_drift")
+
     string_helpers_helper_path_drift_text, replacements = re.subn(
         r'("phase7_string_helpers\.zig",\s*"string_helpers",\s*")\.\./\.\./lib/string_helpers\.zig("\s*,)',
         r'\1../../lib/cmdline.zig\2',
@@ -481,7 +534,7 @@ def run_self_test() -> int:
         raise SystemExit("phase7-build-inventory:self-test:shared_test_command_drift_shape")
 
     print("PHASE7_BUILD_INVENTORY_SELF_TEST=pass")
-    print("PHASE7_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=19")
+    print("PHASE7_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=21")
     return 0
 
 
