@@ -30,19 +30,20 @@ def read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
-def require_markers(label: str, text: str, markers: list[str]) -> list[str]:
-    missing: list[str] = []
+def require_exact_count(label: str, text: str, markers: list[str], expected_count: int) -> list[str]:
+    issues: list[str] = []
     for marker in markers:
-        if marker not in text:
-            missing.append(f"{label}:{marker}")
-    return missing
+        actual_count = text.count(marker)
+        if actual_count != expected_count:
+            issues.append(f"{label}:{actual_count}:{marker}")
+    return issues
 
 
 def validate_docs_root(docs_root_text: str, survey_text: str) -> list[str]:
-    missing = require_markers("docs_root", docs_root_text, DOCS_ROOT_LINES)
-    missing.extend(require_markers("survey", survey_text, SURVEY_LINES))
-    if HEX40_NOTE not in survey_text:
-        missing.append(f"survey:{HEX40_NOTE}")
+    missing = require_exact_count("docs_root", docs_root_text, DOCS_ROOT_LINES, 1)
+    missing.extend(require_exact_count("survey", survey_text, SURVEY_LINES, 1))
+    if survey_text.count(HEX40_NOTE) != 1:
+        missing.append(f"survey:{survey_text.count(HEX40_NOTE)}:{HEX40_NOTE}")
     return missing
 
 
@@ -75,6 +76,20 @@ Phase 14 notes
             "missing_survey_entrypoint",
             docs_root_text,
             survey_text.replace("PHASE14_VALIDATE_ENTRYPOINT=make -C zigux phase14-validate", ""),
+            True,
+        ),
+        (
+            "duplicate_docs_root_smoke_gate",
+            docs_root_text
+            + "\n- `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `scripts/zigux/validate-phase14.py`, `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, and `zigux/tests/phase14_build.zig` now provide one validator-backed shared smoke gate for that study-only four-anchor packet; it stays a reviewability lane rather than a closure or active subsystem delivery claim.",
+            survey_text,
+            True,
+        ),
+        (
+            "duplicate_survey_provenance",
+            docs_root_text,
+            survey_text
+            + "\n- survey provenance captured against verified `master` head `bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb`",
             True,
         ),
     ]
