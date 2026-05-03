@@ -36,6 +36,10 @@ pub const PlatformDriverRegistrationMode = enum {
     arch_initcall_platform_driver,
 };
 
+pub const NowayoutDefaultSource = enum {
+    watchdog_nowayout,
+};
+
 pub const ModuleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
@@ -79,6 +83,17 @@ pub const PlatformDriverIdentitySummary = struct {
     supports_arch_initcall_override: bool,
     of_match_table_ready: bool,
     platform_probe_ready: bool,
+};
+
+pub const NowayoutPolicySummary = struct {
+    anchor: []const u8,
+    module_param_name: []const u8,
+    default_source: NowayoutDefaultSource,
+    module_param_declared: bool,
+    module_param_is_bool: bool,
+    default_follows_watchdog_nowayout: bool,
+    applied_via_watchdog_set_nowayout: bool,
+    bounded_to_summary_bookkeeping: bool,
 };
 
 pub const ProbeSummary = struct {
@@ -318,6 +333,19 @@ pub const GpioWatchdogLab = struct {
             .supports_arch_initcall_override = true,
             .of_match_table_ready = true,
             .platform_probe_ready = true,
+        };
+    }
+
+    pub fn nowayoutPolicySummary() NowayoutPolicySummary {
+        return .{
+            .anchor = descriptor().anchor,
+            .module_param_name = "nowayout",
+            .default_source = .watchdog_nowayout,
+            .module_param_declared = true,
+            .module_param_is_bool = true,
+            .default_follows_watchdog_nowayout = true,
+            .applied_via_watchdog_set_nowayout = true,
+            .bounded_to_summary_bookkeeping = true,
         };
     }
 
