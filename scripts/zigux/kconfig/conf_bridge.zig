@@ -89,6 +89,7 @@ const ValidateExtraArgError = error{
     MissingModeArg,
     UnexpectedModeArg,
     EmptyModeArg,
+    EmptyAllConfigPath,
 };
 
 const ParseRequestArgsError = ValidateExtraArgError || error{
@@ -189,6 +190,11 @@ fn validateExtraArg(mode: Mode, extra_arg: ?[]const u8) ValidateExtraArgError!vo
     }
 
     if (supportsAllConfig(mode)) {
+        if (extra_arg) |allconfig| {
+            if (allconfig.len == 0) {
+                return error.EmptyAllConfigPath;
+            }
+        }
         return;
     }
 
@@ -310,6 +316,13 @@ pub fn main(init: std.process.Init) !void {
             var stderr_buffer: [160]u8 = undefined;
             var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
             try stderr_writer.interface.writeAll("Error: mode argument must not be empty\n");
+            try stderr_writer.interface.flush();
+            std.process.exit(1);
+        },
+        error.EmptyAllConfigPath => {
+            var stderr_buffer: [160]u8 = undefined;
+            var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
+            try stderr_writer.interface.writeAll("Error: KCONFIG_ALLCONFIG path must not be empty\n");
             try stderr_writer.interface.flush();
             std.process.exit(1);
         },
@@ -588,6 +601,17 @@ test "conf bridge prefers explicit allconfig over env fallback" {
     applyModeEnvFallbacks(&request, "all.config", null, null, "include/config/auto.conf", "include/generated/autoconf.h", null);
 
     try std.testing.expectEqualStrings("arch/arm64/configs/tiny.config", request.allconfig.?);
+}
+
+test "conf bridge rejects explicit empty allconfig cli paths" {
+    try std.testing.expectError(error.EmptyAllConfigPath, parseRequestArgs(&.{
+        "conf_bridge",
+        "allnoconfig",
+        "Kconfig",
+        "none/.config",
+        "arm64",
+        "",
+    }));
 }
 
 test "conf bridge uses allconfig env fallback for allconfig modes" {
