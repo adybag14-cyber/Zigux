@@ -15,6 +15,7 @@ required_files = [
     ROOT / "scripts" / "zigux" / "check-phase7-build-inventory.py",
     ROOT / "scripts" / "zigux" / "check-phase7-make-wrapper.py",
     ROOT / "scripts" / "zigux" / "check-phase7-cmdline-parity.py",
+    ROOT / "scripts" / "zigux" / "check-phase7-argv-split-packet.py",
     ROOT / "scripts" / "zigux" / "check-phase7-argv-split-parity.py",
     ROOT / "scripts" / "zigux" / "check-phase7-rbtree-parity.py",
     ROOT / "scripts" / "zigux" / "README.md",
@@ -268,6 +269,19 @@ def run_self_test() -> int:
         )
         makefile_path.write_text(original_makefile, encoding="utf-8")
 
+        doc_path = tmp_root / "Documentation" / "zigux" / "phase7-argv-split-slice.md"
+        original_doc = doc_path.read_text(encoding="utf-8")
+        doc_path.write_text(
+            original_doc.replace("`scripts/zigux/check-phase7-argv-split-packet.py`", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_packet_doc_marker",
+            tmp_root,
+            "Documentation/zigux/phase7-argv-split-slice.md: `scripts/zigux/check-phase7-argv-split-packet.py`",
+        )
+        doc_path.write_text(original_doc, encoding="utf-8")
+
         workflow_path = tmp_root / ".github" / "workflows" / "zigux-bootstrap.yml"
         original_workflow = workflow_path.read_text(encoding="utf-8")
         workflow_path.write_text(
@@ -330,7 +344,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=6")
+    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
@@ -409,6 +423,39 @@ def main() -> int:
             print(f"zigux/tests/fixtures/phase7_argv_split.json: {item}")
         print("PHASE7_ARGV_SPLIT_FIXTURE_SHAPE_END")
         return 1
+
+    packet_checker = ROOT / "scripts" / "zigux" / "check-phase7-argv-split-packet.py"
+    packet_commands = [
+        (
+            [sys.executable, str(packet_checker), "--self-test"],
+            "PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_FAILED_START",
+            "PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_FAILED_END",
+        ),
+        (
+            [sys.executable, str(packet_checker)],
+            "PHASE7_ARGV_SPLIT_PACKET_CHECK_FAILED_START",
+            "PHASE7_ARGV_SPLIT_PACKET_CHECK_FAILED_END",
+        ),
+    ]
+    for command, start_banner, end_banner in packet_commands:
+        result = subprocess.run(
+            command,
+            cwd=str(ROOT),
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode != 0:
+            print("PHASE7_VALIDATION=fail")
+            print(start_banner)
+            stdout = result.stdout.strip()
+            stderr = result.stderr.strip()
+            if stdout:
+                print(stdout)
+            if stderr:
+                print(stderr)
+            print(end_banner)
+            return 1
 
     for target_name, expected_lines in expected_make_expansions.items():
         result = subprocess.run(
