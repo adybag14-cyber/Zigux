@@ -136,7 +136,13 @@ FIXTURE_TEXT = {
             "",
             "- `check-phase8-tests-readme-alignment.py`",
             "- `check-phase8-perf-buffer-poll-gate.py`",
+            "",
+            "## Phase 8 flow",
             "- `make -C zigux phase8-validate`",
+            "- `zigux/tests/phase8_bridge_boundary_survey.zig`",
+            "- `zigux/tests/phase8_libbpf_segments_only_build.zig`",
+            "- `zigux/tests/phase8_perf_buffer_poll.zig`",
+            "- `zigux/tests/phase8_perf_buffer_poll_only_build.zig`",
             "",
         ]
     )
@@ -259,6 +265,23 @@ def run_self_test() -> int:
         )
         validator_path.write_text(original_validator, encoding="utf-8")
 
+        makefile_path = tmp_root / "zigux/Makefile"
+        original_makefile = makefile_path.read_text(encoding="utf-8")
+        makefile_path.write_text(
+            original_makefile.replace(
+                "phase8-perf-buffer-poll-test:\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "makefile_perf_buffer_poll_target",
+            tmp_root,
+            "zigux/Makefile:phase8-perf-buffer-poll-test:",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
         tests_checker_path = tmp_root / "scripts/zigux/check-phase8-tests-readme-alignment.py"
         original_tests_checker = tests_checker_path.read_text(encoding="utf-8")
         tests_checker_path.write_text(
@@ -292,6 +315,38 @@ def run_self_test() -> int:
             "zigux/tests/README.md:`zigux/tests/phase8_perf_buffer_poll_only_build.zig`",
         )
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
+
+        scripts_readme_path = tmp_root / "scripts/zigux/README.md"
+        original_scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
+        scripts_readme_path.write_text(
+            original_scripts_readme.replace(
+                "- `check-phase8-perf-buffer-poll-gate.py`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "scripts_readme_perf_buffer_poll_gate_checker",
+            tmp_root,
+            "scripts/zigux/README.md:`check-phase8-perf-buffer-poll-gate.py`",
+        )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
+        scripts_readme_path.write_text(
+            original_scripts_readme.replace(
+                "- `make -C zigux phase8-validate`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "scripts_readme_phase8_validate_route",
+            tmp_root,
+            "scripts/zigux/README.md:`make -C zigux phase8-validate`",
+        )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
 
         bridge_path = tmp_root / "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md"
         original_bridge = bridge_path.read_text(encoding="utf-8")
@@ -340,7 +395,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE8_VALIDATOR_FLOW_SELF_TEST=pass")
-    print("PHASE8_VALIDATOR_FLOW_SELF_TEST_CASE_COUNT=6")
+    print("PHASE8_VALIDATOR_FLOW_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
