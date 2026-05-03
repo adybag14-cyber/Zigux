@@ -14,6 +14,11 @@ RBTREE_SLICE_REL = "Documentation/zigux/phase3-rbtree-slice.md"
 DEDICATED_EXPECTED_REL = "zigux/tests/fixtures/phase3_rbtree/expected.json"
 DEDICATED_HEADER_REL = "include/zigux/rbtree.h"
 DEDICATED_BINDING_REL = "zigux/bindings/rbtree.zig"
+SHARED_ABI_HEADER_REL = "include/zigux/abi.h"
+SHARED_ABI_BINDING_REL = "zigux/bindings/abi.zig"
+SHARED_PHASE3_ABI_REL = "zigux/tests/phase3_abi.zig"
+SHARED_PHASE3_ABI_DUMP_REL = "zigux/tests/phase3_abi_dump.zig"
+SHARED_PHASE3_ABI_C_HARNESS_REL = "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c"
 SHARED_CONTRACT_REL = "zigux/tests/phase3_rbtree_shared_contract.zig"
 PHASE3_MANIFEST_REL = "zigux/tests/fixtures/phase3_abi_manifest.json"
 
@@ -27,7 +32,7 @@ REQUIRED_SURVEY_MARKERS = (
 REQUIRED_SURVEY_SNIPPETS = (
     "`python3 scripts/zigux/check-phase3-rbtree-shared-lift-contract.py` keeps the dedicated root-view layout, constants, and shared-lift note aligned before the shared ABI packet grows",
     "the shared lift should reuse the dedicated `zigux_rbtree_root_view` layout and `root_flag_empty`, `root_flag_cached`, and `root_flag_leftmost_valid` constants unchanged so the contract stays reviewable across the existing dedicated parity fixture",
-    "`zigux/tests/phase3_rbtree_shared_contract.zig` now keeps that planned shared packet layout and constant contract machine-checked even before the full shared header lift lands",
+    "`zigux/tests/phase3_rbtree_shared_contract.zig` now keeps that planned shared packet layout and constant contract machine-checked before the full shared header lift lands",
     "the shared Phase 3 ABI manifest now explicitly catalogs the dedicated `rbtree` boundary header, binding, dump, survey, and parity fixture files so the remaining gap is the shared header and binding lift itself rather than whether the dedicated packet belongs to the shared ABI tranche",
 )
 
@@ -42,23 +47,25 @@ REQUIRED_ROADMAP_GAP_SNIPPETS = (
 )
 
 REQUIRED_RBTREE_SLICE_MARKERS = (
-    "PHASE3_RBTREE_SHARED_BOUNDARY_STATUS=shared-root-view-lift-landed",
-    "PHASE3_RBTREE_SHARED_BOUNDARY_PACKET=include/zigux/abi.h,zigux/bindings/abi.zig,zigux/tests/phase3_abi.zig,zigux/tests/phase3_abi_dump.zig,zigux/tests/fixtures/phase3_abi/expected.json",
+    "PHASE3_RBTREE_SHARED_BOUNDARY_STATUS=shared-root-view-lift-still-missing",
+    "PHASE3_RBTREE_SHARED_BOUNDARY_GAP=shared-abi-root-view-lift-still-missing",
     "PHASE3_RBTREE_SHARED_BOUNDARY_GUARDS=scripts/zigux/check-phase3-abi-layout-packet.py,scripts/zigux/check-phase3-rbtree-shared-lift-contract.py",
 )
 
 REQUIRED_RBTREE_SLICE_SNIPPETS = (
-    "This slice already carries both the dedicated `rbtree` boundary packet and the first shared root-view lift into the canonical Phase 3 ABI packet.",
-    "a shared `rbtree` root-view record in `include/zigux/abi.h` and `zigux/bindings/abi.zig`",
-    "a shared C-vs-Zig parity replay for the same root view in `zigux/tests/phase3_abi.zig`, `zigux/tests/phase3_abi_dump.zig`, and `zigux/tests/fixtures/phase3_abi/expected.json`",
-    "The next honest follow-up is to keep the shared `rbtree` packet reviewable and bounded rather than pretending the lane still needs the first lift.",
+    "This slice now carries the dedicated `rbtree` boundary packet but not yet the first shared root-view lift into the canonical Phase 3 ABI packet.",
+    "a shared `rbtree` record in `include/zigux/abi.h` and `zigux/bindings/abi.zig`",
+    "a shared Phase 3 ABI root-view implementation that no longer depends on `include/zigux/rbtree.h` and `zigux/bindings/rbtree.zig`",
+    "The remaining honest Phase 3 `rbtree` gap after this step is the shared ABI lift, not the absence of a dedicated boundary packet.",
+    "The next honest follow-up is one curated shared Phase 3 `rbtree` root-view lift:",
 )
 
 STALE_RBTREE_SLICE_SNIPPETS = (
-    "`PHASE3_RBTREE_SHARED_BOUNDARY_GAP=shared-abi-root-view-lift-still-missing`",
-    "This slice does not yet claim:\n\n- a shared `rbtree` record in `include/zigux/abi.h`",
-    "The remaining honest Phase 3 `rbtree` gap after this step is the shared ABI lift, not the absence of a dedicated boundary packet.",
-    "The next honest follow-up is one curated shared Phase 3 `rbtree` root-view lift:",
+    "PHASE3_RBTREE_SHARED_BOUNDARY_STATUS=shared-root-view-lift-landed",
+    "PHASE3_RBTREE_SHARED_BOUNDARY_PACKET=include/zigux/abi.h,zigux/bindings/abi.zig,zigux/tests/phase3_abi.zig,zigux/tests/phase3_abi_dump.zig,zigux/tests/fixtures/phase3_abi/expected.json",
+    "This slice already carries both the dedicated `rbtree` boundary packet and the first shared root-view lift into the canonical Phase 3 ABI packet.",
+    "a shared `rbtree` root-view record in `include/zigux/abi.h` and `zigux/bindings/abi.zig`",
+    "The next honest follow-up is to keep the shared `rbtree` packet reviewable and bounded rather than pretending the lane still needs the first lift.",
 )
 
 REQUIRED_SHARED_CONTRACT_SNIPPETS = (
@@ -82,6 +89,46 @@ REQUIRED_SHARED_MANIFEST_RBTREE_FILES = (
     "Documentation/zigux/phase3-rbtree-slice.md",
     "Documentation/zigux/phase3-rbtree-interop-survey.md",
 )
+
+REQUIRED_PENDING_SHARED_PACKET_SNIPPETS = {
+    SHARED_PHASE3_ABI_REL: (
+        'const rbtree = @import("rbtree_bindings");',
+        "layout_assert.assertRbtreeRootViewLayout();",
+        "layout_assert.assertSize(rbtree.RootView, @sizeOf(usize) * 2 + 8);",
+        "const cached_root: rbtree.RootView = .{",
+        "rbtree.ROOT_FLAG_CACHED | rbtree.ROOT_FLAG_LEFTMOST_VALID",
+    ),
+    SHARED_PHASE3_ABI_DUMP_REL: (
+        'const rbtree = @import("rbtree_bindings");',
+        'writeStructLayout(writer, "zigux_rbtree_root_view", rbtree.RootView, false);',
+        'try writer.writeAll(",\\"root_flag_empty\\":");',
+        "rbtree.ROOT_FLAG_EMPTY",
+        "rbtree.ROOT_FLAG_CACHED",
+        "rbtree.ROOT_FLAG_LEFTMOST_VALID",
+    ),
+    SHARED_PHASE3_ABI_C_HARNESS_REL: (
+        "#include <zigux/rbtree.h>",
+        "offsetof(struct zigux_rbtree_root_view, root_addr)",
+        "ZIGUX_RBTREE_ROOT_FLAG_EMPTY",
+        "ZIGUX_RBTREE_ROOT_FLAG_CACHED",
+        "ZIGUX_RBTREE_ROOT_FLAG_LEFTMOST_VALID",
+    ),
+}
+
+STALE_SHARED_LIFT_TOKENS = {
+    SHARED_ABI_HEADER_REL: (
+        "#define ZIGUX_RBTREE_ROOT_FLAG_EMPTY 1U",
+        "#define ZIGUX_RBTREE_ROOT_FLAG_CACHED 2U",
+        "#define ZIGUX_RBTREE_ROOT_FLAG_LEFTMOST_VALID 4U",
+        "struct zigux_rbtree_root_view {",
+    ),
+    SHARED_ABI_BINDING_REL: (
+        "pub const ROOT_FLAG_EMPTY: u32 = 1;",
+        "pub const ROOT_FLAG_CACHED: u32 = 2;",
+        "pub const ROOT_FLAG_LEFTMOST_VALID: u32 = 4;",
+        "pub const RootView = extern struct {",
+    ),
+}
 
 EXPECTED_CONSTANTS = {
     "root_flag_empty": 1,
@@ -118,6 +165,11 @@ def validate(root: Path) -> list[str]:
     expected_text = _read_text(root, DEDICATED_EXPECTED_REL, issues)
     header_text = _read_text(root, DEDICATED_HEADER_REL, issues)
     binding_text = _read_text(root, DEDICATED_BINDING_REL, issues)
+    shared_abi_header_text = _read_text(root, SHARED_ABI_HEADER_REL, issues)
+    shared_abi_binding_text = _read_text(root, SHARED_ABI_BINDING_REL, issues)
+    shared_phase3_abi_text = _read_text(root, SHARED_PHASE3_ABI_REL, issues)
+    shared_phase3_abi_dump_text = _read_text(root, SHARED_PHASE3_ABI_DUMP_REL, issues)
+    shared_phase3_abi_c_harness_text = _read_text(root, SHARED_PHASE3_ABI_C_HARNESS_REL, issues)
     shared_contract_text = _read_text(root, SHARED_CONTRACT_REL, issues)
     manifest_text = _read_text(root, PHASE3_MANIFEST_REL, issues)
 
@@ -186,6 +238,25 @@ def validate(root: Path) -> list[str]:
             if token not in binding_text:
                 issues.append(f"missing_dedicated_binding_token:{token}")
 
+    for rel, text in (
+        (SHARED_PHASE3_ABI_REL, shared_phase3_abi_text),
+        (SHARED_PHASE3_ABI_DUMP_REL, shared_phase3_abi_dump_text),
+        (SHARED_PHASE3_ABI_C_HARNESS_REL, shared_phase3_abi_c_harness_text),
+    ):
+        if text:
+            for snippet in REQUIRED_PENDING_SHARED_PACKET_SNIPPETS[rel]:
+                if snippet not in text:
+                    issues.append(f"missing_pending_shared_packet_snippet:{rel}:{snippet}")
+
+    for rel, text in (
+        (SHARED_ABI_HEADER_REL, shared_abi_header_text),
+        (SHARED_ABI_BINDING_REL, shared_abi_binding_text),
+    ):
+        if text:
+            for token in STALE_SHARED_LIFT_TOKENS[rel]:
+                if token in text:
+                    issues.append(f"unexpected_shared_lift_token:{rel}:{token}")
+
     if expected_text:
         try:
             expected = json.loads(expected_text)
@@ -213,6 +284,11 @@ def run_self_test() -> int:
             DEDICATED_EXPECTED_REL,
             DEDICATED_HEADER_REL,
             DEDICATED_BINDING_REL,
+            SHARED_ABI_HEADER_REL,
+            SHARED_ABI_BINDING_REL,
+            SHARED_PHASE3_ABI_REL,
+            SHARED_PHASE3_ABI_DUMP_REL,
+            SHARED_PHASE3_ABI_C_HARNESS_REL,
             SHARED_CONTRACT_REL,
             PHASE3_MANIFEST_REL,
         ):
@@ -273,6 +349,26 @@ def run_self_test() -> int:
             + "\n",
             encoding="utf-8",
         )
+        (root / SHARED_ABI_HEADER_REL).write_text(
+            "struct zigux_cpumask_view { unsigned long bits_addr; zigux_u32 nr_cpu_ids; zigux_u32 reserved; };\n",
+            encoding="utf-8",
+        )
+        (root / SHARED_ABI_BINDING_REL).write_text(
+            "pub const CpuMaskView = extern struct { bits_addr: usize, nr_cpu_ids: u32, reserved: u32, };\n",
+            encoding="utf-8",
+        )
+        (root / SHARED_PHASE3_ABI_REL).write_text(
+            "\n".join(REQUIRED_PENDING_SHARED_PACKET_SNIPPETS[SHARED_PHASE3_ABI_REL]) + "\n",
+            encoding="utf-8",
+        )
+        (root / SHARED_PHASE3_ABI_DUMP_REL).write_text(
+            "\n".join(REQUIRED_PENDING_SHARED_PACKET_SNIPPETS[SHARED_PHASE3_ABI_DUMP_REL]) + "\n",
+            encoding="utf-8",
+        )
+        (root / SHARED_PHASE3_ABI_C_HARNESS_REL).write_text(
+            "\n".join(REQUIRED_PENDING_SHARED_PACKET_SNIPPETS[SHARED_PHASE3_ABI_C_HARNESS_REL]) + "\n",
+            encoding="utf-8",
+        )
         (root / SHARED_CONTRACT_REL).write_text(
             "\n".join(REQUIRED_SHARED_CONTRACT_SNIPPETS) + "\n",
             encoding="utf-8",
@@ -303,6 +399,17 @@ def run_self_test() -> int:
             "\n".join(REQUIRED_SHARED_CONTRACT_SNIPPETS) + "\n",
             encoding="utf-8",
         )
+        (root / SHARED_ABI_BINDING_REL).write_text(
+            "pub const ROOT_FLAG_EMPTY: u32 = 1;\n",
+            encoding="utf-8",
+        )
+        issues = validate(root)
+        assert f"unexpected_shared_lift_token:{SHARED_ABI_BINDING_REL}:pub const ROOT_FLAG_EMPTY: u32 = 1;" in issues
+
+        (root / SHARED_ABI_BINDING_REL).write_text(
+            "pub const CpuMaskView = extern struct { bits_addr: usize, nr_cpu_ids: u32, reserved: u32, };\n",
+            encoding="utf-8",
+        )
         (root / PHASE3_MANIFEST_REL).write_text(json.dumps({"files": []}), encoding="utf-8")
         issues = validate(root)
         assert f"missing_shared_contract_manifest_entry:{REQUIRED_SHARED_MANIFEST_RBTREE_FILES[0]}" in issues
@@ -313,7 +420,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check that the shared Phase 3 rbtree lift contract stays aligned with the dedicated boundary packet."
+        description="Check that the planned shared Phase 3 rbtree lift contract stays aligned with the dedicated boundary packet."
     )
     parser.add_argument("--self-test", action="store_true", help="Run isolated checker tests without reading the full repo.")
     args = parser.parse_args()
