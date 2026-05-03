@@ -56,7 +56,6 @@
         "zigux/tests/phase10_build.zig",
         "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
         "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
-        "scripts/zigux/check-phase10-harness-coverage.py",
         "scripts/zigux/check-phase10-closure-inventory.py",
         "scripts/zigux/check-phase10-harness-coverage.py",
         "scripts/zigux/validate-phase10.py",
