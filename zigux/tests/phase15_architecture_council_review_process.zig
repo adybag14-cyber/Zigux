@@ -83,12 +83,21 @@ const Manifest = struct {
 };
 
 const expected_lane_key = "P15-L07";
-const expected_surveyed_commit = "d918be7ded6383c13cbd5eea4ca4aa4f3cdafee4";
 
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
         std.mem.eql(u8, status, "ready_next") or
         std.mem.eql(u8, status, "blocked_on_stay_in_c_evidence");
+}
+
+fn isLowerHex40(value: []const u8) bool {
+    if (value.len != 40) return false;
+    for (value) |byte| {
+        const is_digit = byte >= '0' and byte <= '9';
+        const is_lower_hex = byte >= 'a' and byte <= 'f';
+        if (!is_digit and !is_lower_hex) return false;
+    }
+    return true;
 }
 
 test "phase 15 architecture council review-process manifest records current trigger, packet, and handoff behavior" {
@@ -109,7 +118,7 @@ test "phase 15 architecture council review-process manifest records current trig
     const manifest = parsed.value;
     try std.testing.expectEqualStrings(expected_lane_key, manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings(expected_surveyed_commit, manifest.surveyed_commit);
+    try std.testing.expect(isLowerHex40(manifest.surveyed_commit));
     try std.testing.expectEqualStrings("Architecture Council review process", manifest.roadmap_requirement);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-architecture-council-review-process.md", manifest.anchor);
     try std.testing.expectEqualStrings("no_freeze_map_status_change_approved", manifest.current_approval_state);
@@ -240,6 +249,19 @@ test "phase 15 architecture council review-process note stays aligned with check
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
+    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase15_architecture_council_review_process_manifest.json",
+        std.testing.allocator,
+        .limited(24 * 1024),
+    );
+    defer std.testing.allocator.free(manifest_json);
+
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    defer parsed.deinit();
+
+    const manifest = parsed.value;
+
     const review_process = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/phase15-architecture-council-review-process.md",
@@ -264,6 +286,14 @@ test "phase 15 architecture council review-process note stays aligned with check
     );
     defer std.testing.allocator.free(docs_root);
 
+    const expected_provenance = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "survey provenance refreshed against verified `master` head `{s}`",
+        .{manifest.surveyed_commit},
+    );
+    defer std.testing.allocator.free(expected_provenance);
+
+    try std.testing.expect(std.mem.indexOf(u8, review_process, expected_provenance) != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "PHASE15_LANE_KEY=P15-L07") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "## Trigger Conditions") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "## Required Review Packet") != null);
