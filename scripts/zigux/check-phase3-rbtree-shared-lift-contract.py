@@ -398,39 +398,39 @@ def run_self_test() -> int:
             for issue in issues
         )
 
-        dump_empty_root = 'try writer.writeAll("},\\\\\\\"records\\\\\\\":{\\\\\\\"rbtree_empty_root\\\\\\\":{\\\\\\\"root_addr\\\\\\\":");'
+        dump_empty_root = SHARED_PACKET_SNIPPETS[SHARED_ABI_DUMP_REL][2]
         issues = shared_packet_issues_without(SHARED_ABI_DUMP_REL, dump_empty_root)
         assert f"missing_shared_packet:{SHARED_ABI_DUMP_REL}:{dump_empty_root}" in issues
 
-        dump_cached_leftmost = 'try writer.writeAll(",\\\\\\\"reserved\\\\\\\":0},\\\\\\\"rbtree_cached_leftmost_root\\\\\\\":{\\\\\\\"root_addr\\\\\\\":");'
+        dump_cached_leftmost = SHARED_PACKET_SNIPPETS[SHARED_ABI_DUMP_REL][3]
         issues = shared_packet_issues_without(SHARED_ABI_DUMP_REL, dump_cached_leftmost)
         assert f"missing_shared_packet:{SHARED_ABI_DUMP_REL}:{dump_cached_leftmost}" in issues
 
-        dump_uncached_root = 'try writer.writeAll(",\\\\\\\"reserved\\\\\\\":0},\\\\\\\"rbtree_uncached_root\\\\\\\":{\\\\\\\"root_addr\\\\\\\":");'
+        dump_uncached_root = SHARED_PACKET_SNIPPETS[SHARED_ABI_DUMP_REL][4]
         issues = shared_packet_issues_without(SHARED_ABI_DUMP_REL, dump_uncached_root)
         assert f"missing_shared_packet:{SHARED_ABI_DUMP_REL}:{dump_uncached_root}" in issues
 
-        harness_empty_root = 'fputs("},\\\\\\\"records\\\\\\\":{\\\\\\\"rbtree_empty_root\\\\\\\":{\\\\\\\"root_addr\\\\\\\":", stdout);'
+        harness_empty_root = SHARED_PACKET_SNIPPETS[SHARED_ABI_HARNESS_REL][2]
         issues = shared_packet_issues_without(SHARED_ABI_HARNESS_REL, harness_empty_root)
         assert f"missing_shared_packet:{SHARED_ABI_HARNESS_REL}:{harness_empty_root}" in issues
 
-        harness_cached_leftmost = 'fputs(",\\\\\\\"reserved\\\\\\\":0},\\\\\\\"rbtree_cached_leftmost_root\\\\\\\":{\\\\\\\"root_addr\\\\\\\":", stdout);'
+        harness_cached_leftmost = SHARED_PACKET_SNIPPETS[SHARED_ABI_HARNESS_REL][3]
         issues = shared_packet_issues_without(SHARED_ABI_HARNESS_REL, harness_cached_leftmost)
         assert f"missing_shared_packet:{SHARED_ABI_HARNESS_REL}:{harness_cached_leftmost}" in issues
 
-        harness_uncached_root = 'fputs(",\\\\\\\"reserved\\\\\\\":0},\\\\\\\"rbtree_uncached_root\\\\\\\":{\\\\\\\"root_addr\\\\\\\":", stdout);'
+        harness_uncached_root = SHARED_PACKET_SNIPPETS[SHARED_ABI_HARNESS_REL][4]
         issues = shared_packet_issues_without(SHARED_ABI_HARNESS_REL, harness_uncached_root)
         assert f"missing_shared_packet:{SHARED_ABI_HARNESS_REL}:{harness_uncached_root}" in issues
 
-        expected_empty_root = '"rbtree_empty_root":{"root_addr":0,"leftmost_addr":0,"flags":1,"reserved":0}'
+        expected_empty_root = SHARED_PACKET_SNIPPETS[SHARED_ABI_EXPECTED_REL][0]
         issues = shared_packet_issues_without(SHARED_ABI_EXPECTED_REL, expected_empty_root)
         assert f"missing_shared_packet:{SHARED_ABI_EXPECTED_REL}:{expected_empty_root}" in issues
 
-        expected_cached_leftmost = '"rbtree_cached_leftmost_root":{"root_addr":8192,"leftmost_addr":6144,"flags":6,"reserved":0}'
+        expected_cached_leftmost = SHARED_PACKET_SNIPPETS[SHARED_ABI_EXPECTED_REL][1]
         issues = shared_packet_issues_without(SHARED_ABI_EXPECTED_REL, expected_cached_leftmost)
         assert f"missing_shared_packet:{SHARED_ABI_EXPECTED_REL}:{expected_cached_leftmost}" in issues
 
-        expected_uncached_root = '"rbtree_uncached_root":{"root_addr":9216,"leftmost_addr":0,"flags":0,"reserved":0}'
+        expected_uncached_root = SHARED_PACKET_SNIPPETS[SHARED_ABI_EXPECTED_REL][2]
         issues = shared_packet_issues_without(SHARED_ABI_EXPECTED_REL, expected_uncached_root)
         assert f"missing_shared_packet:{SHARED_ABI_EXPECTED_REL}:{expected_uncached_root}" in issues
 
