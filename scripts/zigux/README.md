@@ -37,6 +37,7 @@ Current bootstrap helpers
 - `validate-phase4.py`
 - `check-phase4-gate-evidence.py`
 - `check-phase4-kprobe-example-packet.py`
+- `check-phase4-workflow-route-counts.py`
 - `validate-phase5.py`
 - `validate-phase6.py`
 - `check-phase6-docs-root-external-parity.py`
