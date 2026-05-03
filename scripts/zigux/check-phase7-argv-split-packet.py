@@ -18,6 +18,8 @@ else:
 
 REQUIRED_FILES = [
     SCRIPT_PATH,
+    ROOT / "Documentation" / "zigux" / "README.md",
+    ROOT / "scripts" / "zigux" / "README.md",
     ROOT / "scripts" / "zigux" / "check-phase7-argv-split-parity.py",
     ROOT / "Documentation" / "zigux" / "phase7-argv-split-slice.md",
     ROOT / "lib" / "argv_split.zig",
@@ -43,6 +45,24 @@ REQUIRED_DOC_MARKERS = [
     "`make -C zigux phase7`",
     "leading-NUL truncation to zero argv entries",
 ]
+
+REQUIRED_DOCS_ROOT_MARKERS = [
+    "`python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test`",
+    "`python3 scripts/zigux/check-phase7-argv-split-packet.py`",
+]
+
+REQUIRED_DOCS_ROOT_EXACT_COUNT_MARKERS = {
+    "`python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test`": 1,
+    "`python3 scripts/zigux/check-phase7-argv-split-packet.py`": 1,
+}
+
+REQUIRED_SCRIPTS_ROOT_MARKERS = [
+    "- `check-phase7-argv-split-packet.py`",
+]
+
+REQUIRED_SCRIPTS_ROOT_EXACT_COUNT_MARKERS = {
+    "- `check-phase7-argv-split-packet.py`": 1,
+}
 
 REQUIRED_PARITY_MARKERS = [
     'SELF_TEST_PAYLOAD_ENV = "PHASE7_ARGV_SPLIT_PARITY_SELFTEST_PAYLOAD"',
@@ -120,6 +140,19 @@ def read(path: Path) -> str:
 
 
 SELF_TEST_FILE_CONTENTS = {
+    "Documentation/zigux/README.md": "\n".join(
+        [
+            "`python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test`",
+            "`python3 scripts/zigux/check-phase7-argv-split-packet.py`",
+            "",
+        ]
+    ),
+    "scripts/zigux/README.md": "\n".join(
+        [
+            "- `check-phase7-argv-split-packet.py`",
+            "",
+        ]
+    ),
     "scripts/zigux/check-phase7-argv-split-parity.py": "\n".join(
         [
             'SELF_TEST_PAYLOAD_ENV = "PHASE7_ARGV_SPLIT_PARITY_SELFTEST_PAYLOAD"',
@@ -276,6 +309,66 @@ def run_self_test() -> int:
         )
         doc_path.write_text(original_doc, encoding="utf-8")
 
+        docs_root_path = tmp_root / "Documentation" / "zigux" / "README.md"
+        original_docs_root = read(docs_root_path)
+        docs_root_path.write_text(
+            original_docs_root.replace(
+                "`python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test`",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "docs_root_packet_self_test_marker",
+            tmp_root,
+            "Documentation/zigux/README.md: `python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test`",
+        )
+        docs_root_path.write_text(original_docs_root, encoding="utf-8")
+
+        docs_root_path.write_text(
+            original_docs_root.replace(
+                "`python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test`",
+                "`python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test`, `python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "docs_root_packet_self_test_duplicate",
+            tmp_root,
+            "Documentation/zigux/README.md: exact_count:`python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test`:2!=1",
+        )
+        docs_root_path.write_text(original_docs_root, encoding="utf-8")
+
+        scripts_root_path = tmp_root / "scripts" / "zigux" / "README.md"
+        original_scripts_root = read(scripts_root_path)
+        scripts_root_path.write_text(
+            original_scripts_root.replace("- `check-phase7-argv-split-packet.py`\n", "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "scripts_root_packet_marker",
+            tmp_root,
+            "scripts/zigux/README.md: - `check-phase7-argv-split-packet.py`",
+        )
+        scripts_root_path.write_text(original_scripts_root, encoding="utf-8")
+
+        scripts_root_path.write_text(
+            original_scripts_root.replace(
+                "- `check-phase7-argv-split-packet.py`\n",
+                "- `check-phase7-argv-split-packet.py`\n- `check-phase7-argv-split-packet.py`\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "scripts_root_packet_duplicate",
+            tmp_root,
+            "scripts/zigux/README.md: exact_count:- `check-phase7-argv-split-packet.py`:2!=1",
+        )
+        scripts_root_path.write_text(original_scripts_root, encoding="utf-8")
+
         makefile_path = tmp_root / "zigux" / "Makefile"
         original_makefile = read(makefile_path)
         makefile_path.write_text(
@@ -379,7 +472,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
-    print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT=9")
+    print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
@@ -387,6 +480,18 @@ def assert_markers(label: str, content: str, markers: list[str], missing: list[t
     for marker in markers:
         if marker not in content:
             missing.append((label, marker))
+
+
+def assert_exact_count_markers(
+    label: str,
+    content: str,
+    expected_counts: dict[str, int],
+    missing: list[tuple[str, str]],
+) -> None:
+    for marker, expected_count in expected_counts.items():
+        actual_count = content.count(marker)
+        if actual_count != expected_count:
+            missing.append((label, f"exact_count:{marker}:{actual_count}!={expected_count}"))
 
 
 if "--self-test" in sys.argv[1:]:
@@ -401,6 +506,8 @@ if missing_files:
     print("PHASE7_ARGV_SPLIT_PACKET_MISSING_FILES_END")
     raise SystemExit(1)
 
+docs_root = read(ROOT / "Documentation" / "zigux" / "README.md")
+scripts_root = read(ROOT / "scripts" / "zigux" / "README.md")
 doc = read(ROOT / "Documentation" / "zigux" / "phase7-argv-split-slice.md")
 parity = read(ROOT / "scripts" / "zigux" / "check-phase7-argv-split-parity.py")
 makefile = read(ROOT / "zigux" / "Makefile")
@@ -411,6 +518,20 @@ helper = read(ROOT / "lib" / "argv_split.zig")
 manifest = json.loads(read(ROOT / "zigux" / "tests" / "phase7_argv_split_manifest.json"))
 
 missing_markers: list[tuple[str, str]] = []
+assert_markers("Documentation/zigux/README.md", docs_root, REQUIRED_DOCS_ROOT_MARKERS, missing_markers)
+assert_exact_count_markers(
+    "Documentation/zigux/README.md",
+    docs_root,
+    REQUIRED_DOCS_ROOT_EXACT_COUNT_MARKERS,
+    missing_markers,
+)
+assert_markers("scripts/zigux/README.md", scripts_root, REQUIRED_SCRIPTS_ROOT_MARKERS, missing_markers)
+assert_exact_count_markers(
+    "scripts/zigux/README.md",
+    scripts_root,
+    REQUIRED_SCRIPTS_ROOT_EXACT_COUNT_MARKERS,
+    missing_markers,
+)
 assert_markers("Documentation/zigux/phase7-argv-split-slice.md", doc, REQUIRED_DOC_MARKERS, missing_markers)
 assert_markers("scripts/zigux/check-phase7-argv-split-parity.py", parity, REQUIRED_PARITY_MARKERS, missing_markers)
 assert_markers("zigux/Makefile", makefile, REQUIRED_MAKE_MARKERS, missing_markers)
@@ -466,5 +587,5 @@ print("PHASE7_ARGV_SPLIT_PACKET=pass")
 print(f"PHASE7_ARGV_SPLIT_PACKET_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
 print(
     "PHASE7_ARGV_SPLIT_PACKET_REQUIRED_MARKER_COUNT="
-    f"{len(REQUIRED_DOC_MARKERS) + len(REQUIRED_PARITY_MARKERS) + len(REQUIRED_MAKE_MARKERS) + len(REQUIRED_BUILD_MARKERS) + len(REQUIRED_TEST_MARKERS) + len(REQUIRED_SURVEY_MARKERS) + len(REQUIRED_HELPER_MARKERS)}"
+    f"{len(REQUIRED_DOCS_ROOT_MARKERS) + len(REQUIRED_DOCS_ROOT_EXACT_COUNT_MARKERS) + len(REQUIRED_SCRIPTS_ROOT_MARKERS) + len(REQUIRED_SCRIPTS_ROOT_EXACT_COUNT_MARKERS) + len(REQUIRED_DOC_MARKERS) + len(REQUIRED_PARITY_MARKERS) + len(REQUIRED_MAKE_MARKERS) + len(REQUIRED_BUILD_MARKERS) + len(REQUIRED_TEST_MARKERS) + len(REQUIRED_SURVEY_MARKERS) + len(REQUIRED_HELPER_MARKERS)}"
 )
