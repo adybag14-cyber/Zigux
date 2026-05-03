@@ -155,7 +155,7 @@ test "phase11 bcm2835_wdt registration summary records watchdog registration and
 
     const not_controller = watchdog.registrationSummary(false, false, false);
     try std.testing.expect(!not_controller.bootloader_running);
-    try std.testing.expect(!not_controller.framework_marks_hw_RUNNING);
+    try std.testing.expect(!not_controller.framework_marks_hw_running);
     try std.testing.expect(not_controller.register_device_requested);
     try std.testing.expect(!not_controller.system_power_controller);
     try std.testing.expect(!not_controller.poweroff_handler_present);
@@ -299,7 +299,7 @@ test "phase11 bcm2835_wdt poweroff summary only arms the halt reset when bcm2835
     try std.testing.expect(!missing.poweroff_handler_owned_by_driver);
     try std.testing.expect(!missing.poweroff_callback_ready);
     try std.testing.expect(!missing.poweroff_path_available);
-    try std.testing.expect(!missing.blocked_without_SYSTEM_POWER_CONTROLLER);
+    try std.testing.expect(!missing.blocked_without_system_power_controller);
     try std.testing.expect(missing.blocked_without_poweroff_handler);
     try std.testing.expect(!missing.blocked_by_poweroff_handler_conflict);
     try std.testing.expectEqual(@as(u32, 0x0000_0010), missing.registers.rsts);
@@ -331,7 +331,7 @@ test "phase11 bcm2835_wdt remove summary only clears the shared poweroff handler
     try std.testing.expect(owned.poweroff_handler_owned_by_driver);
     try std.testing.expect(owned.remove_callback_ready);
     try std.testing.expect(owned.watchdog_teardown_managed_by_devm);
-    try std.testing.expect(owned.remove_callback_scope_limited_TO_POWEROFF_OWNER);
+    try std.testing.expect(owned.remove_callback_scope_limited_to_poweroff_owner);
     try std.testing.expect(owned.clear_poweroff_handler_requested);
     try std.testing.expect(!owned.clear_poweroff_handler_blocked_by_conflict);
     try std.testing.expect(!owned.clear_poweroff_handler_skipped_without_system_power_controller);
