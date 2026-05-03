@@ -389,7 +389,7 @@ test "phase 15 indefinite-C policy note preserves stay-in-C boundary language" {
 
     const expected_provenance = try std.fmt.allocPrint(
         std.testing.allocator,
-        "survey provenance refreshed against verified `master` head `{s}`",
+        "survey provenance refreshed against verified `master` head {s}",
         .{manifest.surveyed_commit},
     );
     defer std.testing.allocator.free(expected_provenance);
@@ -450,7 +450,11 @@ test "phase 15 indefinite-C policy note preserves stay-in-C boundary language" {
     try expectContains(policy_note, "That closes the current policy gap for the roadmap requirement `policy for code that remains in C indefinitely`.");
     try expectContains(policy_note, "Documentation/zigux/README.md");
     try expectContains(policy_note, "zigux/Makefile");
-    try expectContains(policy_note, "no bounded scheduler seam is approved yet");
+    try expectContains(policy_note, "`kernel/sched/core.c`: `blocked_no_bounded_scheduler_seam`; no bounded scheduler seam is approved yet");
+    try expectContains(policy_note, "`mm/page_alloc.c`: `blocked_no_bounded_allocator_seam`; no bounded allocator seam is approved yet");
+    try expectContains(policy_note, "`kernel/rcu/tree.c`: `blocked_phase14_followup_still_wider_than_allowed_rcu_seam`; the current RCU follow-up is still wider than the allowed seam");
+    try expectContains(policy_note, "`net/core/skbuff.c`: `blocked_packet_lifetime_boundary_still_too_wide`; the current skbuff follow-up is still wider than the allowed packet-lifetime boundary");
+    try expectContains(policy_note, "Those exact blocker dispositions match the current evidence-archive templates so the stay-in-C packet does not drift into looser prose than the blocker records reviewers must rely on later.");
     try expectContains(policy_note, "next future target: wait for one of the named reopen triggers or the deep-core blocker posture to change before opening another Phase 15 slice");
 
     try expectContains(docs_root, "Phase 15 notes");
