@@ -165,15 +165,20 @@ def run_self_test() -> int:
         raise SystemExit("phase7-build-inventory:self-test:fixture_match")
     if len(first["run_labels"]) != len(first["shared_test_depend_steps"]):
         raise SystemExit("phase7-build-inventory:self-test:depend_step_count")
-    if len(first["shared_validation_gates"]) != 5:
+    if len(first["shared_validation_gates"]) != 6:
         raise SystemExit("phase7-build-inventory:self-test:validation_gate_count")
-    if len(first["shared_validation_commands"]) != 10:
+    if len(first["shared_validation_commands"]) != 12:
         raise SystemExit("phase7-build-inventory:self-test:validation_command_count")
     if first["shared_validation_commands"][2:4] != [
         "scripts/zigux/check-phase7-build-inventory.py --self-test",
         "scripts/zigux/check-phase7-build-inventory.py",
     ]:
         raise SystemExit("phase7-build-inventory:self-test:build_inventory_command_pair")
+    if first["shared_validation_commands"][8:10] != [
+        "scripts/zigux/check-phase7-argv-split-parity.py --self-test",
+        "scripts/zigux/check-phase7-argv-split-parity.py",
+    ]:
+        raise SystemExit("phase7-build-inventory:self-test:argv_split_command_pair")
 
     drifted = dict(first)
     drifted["run_labels"] = ["phase7-mismatch"]
@@ -337,6 +342,28 @@ def run_self_test() -> int:
     if validation_command_pair_drift["shared_validation_gates"] != fixture["shared_validation_gates"]:
         raise SystemExit("phase7-build-inventory:self-test:validation_command_pair_gate_shape")
 
+    argv_split_command_pair_drift_text = makefile_text.replace(
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-parity.py --self-test\n",
+        "",
+        1,
+    )
+    if argv_split_command_pair_drift_text == makefile_text:
+        raise SystemExit("phase7-build-inventory:self-test:argv_split_command_pair_drift_rewrite")
+
+    argv_split_command_pair_drift = render_inventory_from_text(
+        build_text,
+        argv_split_command_pair_drift_text,
+    )
+    if argv_split_command_pair_drift == fixture:
+        raise SystemExit("phase7-build-inventory:self-test:argv_split_command_pair_drift_detection")
+    if (
+        "scripts/zigux/check-phase7-argv-split-parity.py --self-test"
+        in argv_split_command_pair_drift["shared_validation_commands"]
+    ):
+        raise SystemExit("phase7-build-inventory:self-test:argv_split_command_pair_drift_shape")
+    if argv_split_command_pair_drift["shared_validation_gates"] != fixture["shared_validation_gates"]:
+        raise SystemExit("phase7-build-inventory:self-test:argv_split_command_pair_gate_shape")
+
     validation_gate_order_drift_text, replacements = re.subn(
         r'(\tcd \$\(ZIGUX_ROOT\) && \$\(PYTHON\) scripts/zigux/check-phase7-build-inventory\.py --self-test\n)'
         r'(\tcd \$\(ZIGUX_ROOT\) && \$\(PYTHON\) scripts/zigux/check-phase7-build-inventory\.py\n)',
@@ -359,7 +386,7 @@ def run_self_test() -> int:
         raise SystemExit("phase7-build-inventory:self-test:validation_gate_order_command_shape")
 
     print("PHASE7_BUILD_INVENTORY_SELF_TEST=pass")
-    print("PHASE7_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=14")
+    print("PHASE7_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
