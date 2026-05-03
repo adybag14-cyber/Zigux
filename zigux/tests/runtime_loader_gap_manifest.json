@@ -26,10 +26,12 @@
     "review_only_loader_plan_surfaces": [
       "samples/zigux/runtime_atomic64_loader.zig",
       "samples/zigux/runtime_bitmap_loader.zig",
-      "samples/zigux/runtime_kretprobe_loader.zig"
+      "samples/zigux/runtime_kretprobe_loader.zig",
+      "samples/zigux/runtime_trace_events_loader.zig"
     ],
     "metadata_only_registration_surfaces": [
       "samples/zigux/runtime_kretprobe_loader.zig",
+      "samples/zigux/runtime_trace_events_loader.zig",
       "zigux/kernel/runtime_loader.zig"
     ],
     "forbidden_live_calls": [
