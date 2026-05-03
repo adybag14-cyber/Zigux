@@ -106,11 +106,18 @@ FORBIDDEN_WORKFLOW_SNIPPETS = (
     "run: python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test\n",
 )
 
+REQUIRED_DOCS_ROOT_RBTREE_SNIPPET = (
+    "`Documentation/zigux/phase3-rbtree-interop-survey.md` records the dedicated `rbtree` boundary packet, "
+    "and `scripts/zigux/validate-phase3-rbtree-interop-survey.py` remains a supporting survey check inside "
+    "that shared validator-first route."
+)
+
 REQUIRED_DOCS_ROOT_SNIPPETS = (
     "`scripts/zigux/validate-phase3.py`, `make -C zigux phase3-validate`, and the bootstrap workflow are the "
     "validator-first route for the shared Phase 3 review packet; the dedicated survey scripts listed below stay "
     "supporting checks inside that shared gate rather than standalone release entrypoints.",
     "`scripts/zigux/validate-phase3-roadmap-gap-survey.py` remains a supporting survey check inside that shared validator-first route",
+    REQUIRED_DOCS_ROOT_RBTREE_SNIPPET,
     "`scripts/zigux/validate-phase3-export-uapi-survey.py` remains a supporting survey check inside that shared validator-first route",
     "`scripts/zigux/validate-phase3-low-level-wrapper-survey.py` now keeps that dedicated low-level wrapper survey packet explicit alongside the broader roadmap-gap, export/UAPI, and policy/unsafe Phase 3 notes",
     "`scripts/zigux/validate-phase3-policy-unsafe-survey.py` remains a supporting survey check inside that shared validator-first route",
@@ -118,8 +125,9 @@ REQUIRED_DOCS_ROOT_SNIPPETS = (
 
 EXACT_ONCE_DOCS_ROOT_SNIPPETS = (
     REQUIRED_DOCS_ROOT_SNIPPETS[0],
-    "`scripts/zigux/validate-phase3-roadmap-gap-survey.py` remains a supporting survey check inside that shared validator-first route",
-    "`scripts/zigux/validate-phase3-export-uapi-survey.py` remains a supporting survey check inside that shared validator-first route",
+    REQUIRED_DOCS_ROOT_SNIPPETS[1],
+    REQUIRED_DOCS_ROOT_SNIPPETS[2],
+    REQUIRED_DOCS_ROOT_SNIPPETS[3],
 )
 
 EXPECTED_PHASE3_README_FLOW_COUNT = 2
@@ -291,10 +299,10 @@ def _fixture_docs_root() -> str:
         "Phase 3 notes\n"
         f"- {REQUIRED_DOCS_ROOT_SNIPPETS[0]}\n"
         f"- {REQUIRED_DOCS_ROOT_SNIPPETS[1]}, and `make -C zigux phase3-validate` plus the bootstrap workflow keep that survey note explicit.\n"
-        "- `Documentation/zigux/phase3-rbtree-interop-survey.md` records the dedicated `rbtree` boundary packet, and `scripts/zigux/validate-phase3-rbtree-interop-survey.py` remains a supporting survey check inside that shared validator-first route.\n"
-        f"- {REQUIRED_DOCS_ROOT_SNIPPETS[2]}, and `make -C zigux phase3-validate` now keeps that dedicated export-shim and UAPI boundary survey packet explicit alongside the broader roadmap-gap note.\n"
-        f"- {REQUIRED_DOCS_ROOT_SNIPPETS[3]}, including the packet-local blob markers that make direct connector-era readback reviewable without a trustworthy branch-tip SHA.\n"
-        f"- {REQUIRED_DOCS_ROOT_SNIPPETS[4]}, and `make -C zigux phase3-validate` plus the bootstrap workflow now keep that dedicated policy-and-unsafe survey packet explicit alongside the broader ABI slice note.\n"
+        f"- {REQUIRED_DOCS_ROOT_SNIPPETS[2]}\n"
+        f"- {REQUIRED_DOCS_ROOT_SNIPPETS[3]}, and `make -C zigux phase3-validate` now keeps that dedicated export-shim and UAPI boundary survey packet explicit alongside the broader roadmap-gap note.\n"
+        f"- {REQUIRED_DOCS_ROOT_SNIPPETS[4]}, including the packet-local blob markers that make direct connector-era readback reviewable without a trustworthy branch-tip SHA.\n"
+        f"- {REQUIRED_DOCS_ROOT_SNIPPETS[5]}, and `make -C zigux phase3-validate` plus the bootstrap workflow now keep that dedicated policy-and-unsafe survey packet explicit alongside the broader ABI slice note.\n"
     )
 
 
@@ -330,8 +338,20 @@ def run_self_test() -> int:
         if baseline:
             raise SystemExit("phase3-validation-flow-self-test:baseline_failed:" + ",".join(baseline))
 
+        duplicated_rbtree_docs_root = _fixture_docs_root() + f"- {REQUIRED_DOCS_ROOT_SNIPPETS[2]}\n"
+        _write(root, DOCS_ROOT_REL, duplicated_rbtree_docs_root)
+        issues = validate(root)
+        expected = [
+            f"unexpected_docs_root_snippet_count:2:{REQUIRED_DOCS_ROOT_SNIPPETS[2]}",
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-validation-flow-self-test:duplicate_rbtree_docs_root_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
         print("PHASE3_VALIDATION_FLOW_SELF_TEST=pass")
-        print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=28")
+        print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=29")
         return 0
 
 
