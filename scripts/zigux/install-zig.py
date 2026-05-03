@@ -162,13 +162,13 @@ def run_self_test() -> int:
             'channel': '0.17.0-dev.87+9b177a7d2',
             'minimum_version': '0.17.0-dev.87+9b177a7d2',
             'archive_sha256': {
-                'x86_64-linux': '313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77',
+                'x86_64-linux': 'a3eae1cdb9643cf68e09e97574fb6780699e05148c270e52347faa293b80d858',
             },
         }
     ) == (
         '0.17.0-dev.87+9b177a7d2',
         '0.17.0-dev.87+9b177a7d2',
-        {'x86_64-linux': '313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77'},
+        {'x86_64-linux': 'a3eae1cdb9643cf68e09e97574fb6780699e05148c270e52347faa293b80d858'},
     )
     assert is_version_key('0.17.0-dev.87+9b177a7d2')
     assert not is_version_key('master')
@@ -200,6 +200,7 @@ def run_self_test() -> int:
         'https://ziglang.org/builds/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz'
     )
     sample = Path('/tmp/zigux-toolchain-check') / 'sample.bin'
+    sample.parent.mkdir(parents=True, exist_ok=True)
     sample.write_bytes(b'zigux-toolchain')
     assert sha256_file(sample) == '187643e96a97359df9f137c811446d257d418f500e30ac264db38e19edd466cf'
     try:
