@@ -49,7 +49,7 @@ REQUIRED_PHASE2_FILES = [
     PHASE2_CROSS_ALIGNMENT_CHECKER,
     PHASE2_CROSS_CHECKER,
     TOOLCHAIN_PIN_SCOPE_CHECKER,
-    ROOT / "scripts" / "zigux" / "check-mk-elfconfig-diff.py",
+    ROOT / "scripts" / "zigux" / "check-mk_elfconfig-diff.py",
     ROOT / "scripts" / "zigux" / "fixdep.zig",
     ROOT / "scripts" / "zigux" / "genksyms.zig",
     ROOT / "scripts" / "zigux" / "genksyms_crc.zig",
@@ -64,7 +64,7 @@ REQUIRED_PHASE2_FILES = [
     FIXDEP_CASES,
 ]
 PHASE2_GENKSYMS_BRIDGE_ALIGNMENT_REQUIRED_SOURCE_MARKERS = [
-    "PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=9",
+    "PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=10",
     '"python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test": 1',
     '"python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py": 1',
 ]
