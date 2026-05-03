@@ -121,6 +121,7 @@ REVIEW_PROCESS_MARKERS = [
     "decision record ID: pending_no_architecture_council_request",
     "no Architecture Council approval claim",
     "Documentation/zigux/phase15-indefinite-c-policy.md",
+    "phase15-review-process-freeze-map-governance-handoff-sync",
 ]
 
 INDEFINITE_POLICY_NOTE_MARKERS = [
@@ -622,7 +623,7 @@ require(
 )
 
 review_process_gaps = review_process_manifest.get("gaps")
-require(isinstance(review_process_gaps, list) and len(review_process_gaps) == 19, "review_process_manifest:gaps")
+require(isinstance(review_process_gaps, list) and len(review_process_gaps) == 20, "review_process_manifest:gaps")
 if isinstance(review_process_gaps, list):
     gap_ids = {gap.get("id") for gap in review_process_gaps}
     require(
@@ -630,6 +631,7 @@ if isinstance(review_process_gaps, list):
             "phase15-review-process-lane-identity-provenance-refresh",
             "phase15-review-process-indefinite-c-evidence-path-sync",
             "phase15-review-process-ownership-evidence-rollback-threshold-sync",
+            "phase15-review-process-freeze-map-governance-handoff-sync",
         }.issubset(gap_ids),
         "review_process_manifest:required_gap_ids",
     )
