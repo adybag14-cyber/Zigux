@@ -15,6 +15,7 @@ BUILD_SMOKE_DEPEND_STEP_RE = re.compile(r"phase14_smoke_step\.dependOn\(&([A-Za-
 
 FILES = [
     "scripts/zigux/validate-phase14.py",
+    "scripts/zigux/check-phase14-docs-root-smoke-summary.py",
     "scripts/zigux/README.md",
     "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
     "Documentation/zigux/phase14-workqueue-bridge-survey.md",
@@ -37,6 +38,8 @@ FILES = [
 MAKE_MARKERS = [
     "PHONY += phase14-validate phase14-smoke phase14-test phase14",
     "phase14-validate:",
+    "scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test",
+    "scripts/zigux/check-phase14-docs-root-smoke-summary.py",
     "scripts/zigux/validate-phase14.py",
     "phase14-smoke:",
     "$(ZIG) build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all",
