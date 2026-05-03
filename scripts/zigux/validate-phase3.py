@@ -5,7 +5,13 @@ import argparse
 import subprocess
 import tempfile
 
-from validate_phase3_core import ROOT, discover_phase3_slices, select_slices, validate_slices
+from validate_phase3_core import (
+    ROOT,
+    discover_phase3_slices,
+    select_slices,
+    validate_slices,
+    validate_source_markers,
+)
 from validate_phase3_header_binding_markers import (
     run_self_test as run_header_binding_marker_self_test,
     validate_header_binding_markers,
@@ -100,6 +106,12 @@ CANONICAL_SURVEY_MANIFEST_SCRIPT = (
     "PHASE3_CANONICAL_SURVEY_MANIFEST=fail",
     "canonical-survey-manifest-gate",
     "missing_manifest_survey_script:scripts/zigux/validate-phase3-roadmap-gap-survey.py",
+)
+
+POLICY_UNSAFE_BUILD_WIRING_MARKERS = (
+    'root_module.addImport("abi_bindings", abi_bindings_module);',
+    'root_module.addImport("interop_policy", interop_policy_module);',
+    'root_module.addImport("mmio", mmio_module);',
 )
 
 
@@ -223,6 +235,60 @@ def _run_survey_aggregation_self_test() -> int:
     return 0
 
 
+def _run_policy_unsafe_build_wiring_self_test() -> int:
+    rel = "zigux/tests/phase3_policy_unsafe_build.zig"
+    with tempfile.TemporaryDirectory(prefix="zigux_phase3_policy_unsafe_build_markers_") as tmp_dir:
+        root = type(ROOT)(tmp_dir)
+        build_path = root / rel
+        build_path.parent.mkdir(parents=True, exist_ok=True)
+
+        build_path.write_text(
+            "\n".join(
+                (
+                    'root_module.addImport("panic_policy", panic_policy_module);',
+                    'root_module.addImport("allocator_policy", allocator_policy_module);',
+                    'root_module.addImport("layout_assert", layout_assert_module);',
+                    'root_module.addImport("narrow_unsafe", narrow_unsafe_module);',
+                    "",
+                )
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate_source_markers(
+            root,
+            {rel: POLICY_UNSAFE_BUILD_WIRING_MARKERS},
+        )
+        assert issues == [
+            'source-marker: zigux/tests/phase3_policy_unsafe_build.zig missing root_module.addImport("abi_bindings", abi_bindings_module);',
+            'source-marker: zigux/tests/phase3_policy_unsafe_build.zig missing root_module.addImport("interop_policy", interop_policy_module);',
+            'source-marker: zigux/tests/phase3_policy_unsafe_build.zig missing root_module.addImport("mmio", mmio_module);',
+        ]
+
+        build_path.write_text(
+            "\n".join(
+                (
+                    'root_module.addImport("abi_bindings", abi_bindings_module);',
+                    'root_module.addImport("panic_policy", panic_policy_module);',
+                    'root_module.addImport("allocator_policy", allocator_policy_module);',
+                    'root_module.addImport("interop_policy", interop_policy_module);',
+                    'root_module.addImport("layout_assert", layout_assert_module);',
+                    'root_module.addImport("mmio", mmio_module);',
+                    'root_module.addImport("narrow_unsafe", narrow_unsafe_module);',
+                    "",
+                )
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert validate_source_markers(
+            root,
+            {rel: POLICY_UNSAFE_BUILD_WIRING_MARKERS},
+        ) == []
+
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate the bounded Phase 3 slice catalog and metadata.")
     parser.add_argument("--slug", action="append", default=[], help="Only validate the named Phase 3 slug. Repeat to validate more than one.")
@@ -240,6 +306,9 @@ def main() -> int:
         if result != 0:
             return result
         result = run_header_binding_marker_self_test()
+        if result != 0:
+            return result
+        result = _run_policy_unsafe_build_wiring_self_test()
         if result != 0:
             return result
         result = _run_survey_aggregation_self_test()
@@ -271,6 +340,16 @@ def main() -> int:
             zig_path=args.zig,
         )
     )
+    policy_unsafe_build_path = ROOT / "zigux/tests/phase3_policy_unsafe_build.zig"
+    if policy_unsafe_build_path.exists():
+        issues.extend(
+            validate_source_markers(
+                ROOT,
+                {
+                    "zigux/tests/phase3_policy_unsafe_build.zig": POLICY_UNSAFE_BUILD_WIRING_MARKERS,
+                },
+            )
+        )
     for script_name, failure_banner, issue_prefix, _ in SURVEY_VALIDATION_SCRIPTS:
         issues.extend(
             _collect_script_validation_issues(
