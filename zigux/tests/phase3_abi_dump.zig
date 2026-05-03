@@ -85,7 +85,11 @@ pub fn main(init: std.process.Init) !void {
     try writer.print("{d}", .{abi.MINOR_ALLOC_FLAG_FOUND});
     try writer.writeAll(",\"minor_alloc_flag_exhausted\":");
     try writer.print("{d}", .{abi.MINOR_ALLOC_FLAG_EXHAUSTED});
-    try writer.writeAll("},\"records\":{\"rbtree_cached_leftmost_root\":{\"root_addr\":");
+    try writer.writeAll("},\"records\":{\"rbtree_empty_root\":{\"root_addr\":");
+    try writer.print("{d}", .{0});
+    try writer.writeAll(",\"leftmost_addr\":0,\"flags\":");
+    try writer.print("{d}", .{rbtree.ROOT_FLAG_EMPTY});
+    try writer.writeAll(",\"reserved\":0},\"rbtree_cached_leftmost_root\":{\"root_addr\":");
     try writer.print("{d}", .{0x2000});
     try writer.writeAll(",\"leftmost_addr\":");
     try writer.print("{d}", .{0x1800});
