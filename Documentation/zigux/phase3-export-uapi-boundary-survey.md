@@ -12,6 +12,8 @@ This note records the current export-shim and UAPI boundary for the bounded Phas
 - `PHASE3_EXPORT_SHIM_BLOB_SHA=8088979409f872b3efd904799d09ec23a2d59ca2`
 - `PHASE3_C_HEADER_PATH=include/linux/zigux.h`
 - `PHASE3_C_HEADER_STATUS=shared-abi-relay-status-and-interop-helper-aggregation-landed`
+- `PHASE3_C_HEADER_BOUNDARY_OWNERSHIP=export-uapi-packet-owns-boundary-wording-helper-slices-own-semantic-growth`
+- `PHASE3_C_HEADER_GROWTH_RULE=explicit-resurvey-required-before-new-c-header-entry-points`
 - `PHASE3_UAPI_ROOT=zigux/uapi`
 - `PHASE3_UAPI_SCOPE=version-and-boundary-header`
 - `PHASE3_UAPI_STATUS=version-header-and-compatibility-surface-landed`
@@ -52,7 +54,7 @@ This survey keeps `PHASE3_SURVEYED_COMMIT=784b64d82982923ab4d1bec751cfbf26b49dfe
 The current tree already carries the first bounded export and UAPI boundary surface:
 
 - `zigux/kernel/export_shim.zig` exposes explicit `canonicalHeader`, `versionedHeader`, `header`, `headerCompatibility`, `canonicalizeHeader`, `ok`, `errno`, `isOk`, `normalize`, `isCompatibleHeader`, and `isCanonicalHeader` helpers around the curated `ExportStatus` and `BoundaryHeader` ABI types, with `HeaderCompatibility` keeping canonical-versus-future-compatible classification named at the same boundary
-- `include/linux/zigux.h` now sits inside the same bounded packet as the C-facing relay for those shared ABI types: the C-facing helper header still relays the shared `BoundaryHeader` and `ExportStatus` ABI types through `#include <zigux/abi.h>` while broader named C-side boundary-header helpers stay intentionally deferred, but current `master` no longer leaves that file as only a narrow relay-and-status shim because the same header also carries multiple already-landed Phase 3 interop helper families beyond the export/UAPI starter
+- `include/linux/zigux.h` now sits inside the same bounded packet as the C-facing relay for those shared ABI types: the C-facing helper header still relays the shared `BoundaryHeader` and `ExportStatus` ABI types through `#include <zigux/abi.h>` while broader named C-side boundary-header helpers stay intentionally deferred, but current `master` no longer leaves that file as only a narrow relay-and-status shim because the same header also carries multiple already-landed Phase 3 interop helper families beyond the export/UAPI starter; this packet now explicitly owns the boundary wording and growth rule for `include/linux/zigux.h`, while slice-local validators still own semantic proof for the already-landed helper families collected there
 - the export shim and `zigux/uapi/version.zig` now carry the same shared boundary-header construction and compatibility contract without widening the packet beyond the existing ABI types
 - the export shim and `zigux/uapi/version.zig` now also keep canonical-size header checks separate from broader future-compatible header acceptance, so the packet distinguishes exact current-shape replay from forward-compatible boundary tolerance without widening the UAPI surface
 - packet-local blob evidence now also records the broadened shared ABI slice reality in `Documentation/zigux/phase3-abi-slice.md`, including the current interop-family catalog and the still-missing shared `rbtree` root-view lift, so this export/UAPI survey packet stays aligned with the broader ABI packet instead of aging against an older shared-boundary snapshot
@@ -116,6 +118,7 @@ The next honest follow-on inside this boundary family is still narrow:
 - keep the current export shim, boundary-header, and compatibility-classification surface narrow until a roadmap-backed interop slice needs one more reviewable boundary helper
 - keep `zigux/uapi/` at version-plus-boundary-header scope until a concrete Phase 3 slice needs one additional curated Zig-side public constant, type, or helper surface
 - do not treat this lane as permission to add more unrelated helper growth to `include/linux/zigux.h`; if another Phase 3 slice needs new C-side boundary entry points, resurvey this packet explicitly so the broader header growth stays visible instead of being mistaken for export/UAPI closure
+- keep the ownership split explicit: this survey owns boundary wording and resurvey rules for `include/linux/zigux.h`, while slice-local helper packets own behavioral validation for the already-landed helper families gathered there
 - refresh the packet-local `*_BLOB_SHA` markers whenever the directly coupled export/UAPI packet paths are deliberately resurveyed after boundary-local changes
 - refresh `PHASE3_SURVEYED_COMMIT` only when the whole export/UAPI packet is deliberately resurveyed against a confirmed shared head
 
