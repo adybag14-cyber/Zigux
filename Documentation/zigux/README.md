@@ -144,6 +144,11 @@ Phase 13 notes
 - `make -C zigux phase13-validate` is the current validator-first entrypoint for the shared Phase 13 release-discipline packet.
 - `zigux/tests/phase13_build.zig` and `make -C zigux phase13` remain the published shared replay path; the earlier `phase13_landlock_ruleset.zig` EOF blocker note is now historical, the shared replay has already been rerun successfully on current `master`, and the remaining live `P13-L12` blocker is the manifest-backed helper boundary around `rb_replace_node()`, live object ownership transfer, hierarchy lifetime, and workqueue-backed teardown.
 
+Phase 14 notes
+- `Documentation/zigux/phase14-release-boundary-survey.md` now makes the roadmap's core-adjacent sequencing step explicit from the docs root, so release-facing review no longer jumps directly from the active Phase 13 helper tranche to the Phase 15 governance packet.
+- the current Phase 14 release reading is intentionally boundary-only: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay in study-only posture, while `kernel/rcu/tree.c` and `net/core/skbuff.c` remain blocked under the Phase 15 freeze-in-C governance packet rather than being treated as an active release lane.
+- there is no dedicated shared Phase 14 replay gate on current `master`, and that absence is the current release signal rather than a missing closure artifact; this tranche stays parked until the repo lands a narrower study packet worth indexing from the docs root.
+
 Phase 15 notes
 - `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-parity-scorecard.md`, and `Documentation/zigux/phase15-indefinite-c-policy.md` are the current governance bundle for the roadmap's freeze map, Architecture Council review process, parity scorecard, and stay-in-C policy.
 - the current roadmap-versus-repo indefinite-C policy gap is closed locally across that governance bundle, the docs root, and the shared `zig build test --build-file zigux/tests/phase15_build.zig` plus `make -C zigux phase15` replay path, so the only remaining blocked work is the deep-core status-change evidence still needed before any freeze-in-C anchor can reopen.
