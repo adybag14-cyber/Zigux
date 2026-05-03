@@ -11,6 +11,7 @@ This document records the bounded Phase 6 leaf-helper validation slice for Zigux
 - product boundary:
   - `lib/hexdump.zig`
   - `zigux/tests/phase6_hexdump.zig`
+  - `zigux/tests/phase6_hexdump_perf.zig`
   - `zigux/tests/phase6_hexdump_c_parity.zig`
   - `zigux/tests/fixtures/phase6_hexdump_vectors.zig`
   - `zigux/tests/fixtures/phase6_hexdump_c_harness.c`
@@ -98,4 +99,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Leave the hexdump helper lane parked unless fresh repo inspection finds a concrete new parity, perf, or directly coupled review-packet gap in this exact slice.
+Leave the hexdump helper lane parked unless fresh repo inspection finds a concrete parity, perf, or directly coupled review-packet drift inside `lib/hexdump.zig`, `zigux/tests/phase6_hexdump.zig`, `zigux/tests/phase6_hexdump_perf.zig`, `zigux/tests/phase6_hexdump_c_parity.zig`, `zigux/tests/fixtures/phase6_hexdump_vectors.zig`, `zigux/tests/fixtures/phase6_hexdump_c_harness.c`, `scripts/zigux/check-phase6-hexdump-c-parity.py`, or the shared Phase 6 packet. The current shared Phase 6 catalog, manifest, and validator markers already acknowledge the live 4-case hexdump perf table and 27-case parity replay, so the next same-family follow-up should stay hexdump-local unless one of those shared surfaces drifts again.
