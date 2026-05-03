@@ -7,7 +7,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-SELF_TEST_CASE_COUNT = 6
+SELF_TEST_CASE_COUNT = 8
 
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 MAKEFILE_PATH = Path("zigux/Makefile")
@@ -36,6 +36,11 @@ REQUIRED_MAKEFILE_MARKERS = [
     "phase4: phase4-validate phase4-test",
 ]
 
+REQUIRED_MAKEFILE_COUNTS = {
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-kprobe-example-packet.py --self-test": 1,
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-kprobe-example-packet.py": 1,
+}
+
 REQUIRED_DOC_MARKERS = [
     "`make -C zigux phase4-validate`",
     "`make -C zigux phase4-test`",
@@ -48,6 +53,10 @@ def read_text(root: Path, relative_path: Path) -> str:
 
 def count_occurrences(text: str, needle: str) -> int:
     return text.count(needle)
+
+
+def count_exact_line(text: str, needle: str) -> int:
+    return sum(1 for line in text.splitlines() if line == needle)
 
 
 def validate(root: Path) -> list[str]:
@@ -72,6 +81,12 @@ def validate(root: Path) -> list[str]:
     for marker in REQUIRED_MAKEFILE_MARKERS:
         if marker not in makefile_text:
             missing.append(f"makefile_marker:{marker}")
+    for needle, expected_count in REQUIRED_MAKEFILE_COUNTS.items():
+        actual_count = count_exact_line(makefile_text, needle)
+        if actual_count != expected_count:
+            missing.append(
+                f"makefile_count:{needle}:expected={expected_count}:actual={actual_count}"
+            )
 
     for relative_path in [DOCS_ROOT_PATH, SCRIPTS_README_PATH, TESTS_README_PATH]:
         file_text = read_text(root, relative_path)
@@ -111,6 +126,8 @@ def build_fixture_tree(root: Path) -> None:
         "\n".join(
             [
                 "phase4-validate:",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-kprobe-example-packet.py --self-test",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-kprobe-example-packet.py",
                 "\tpython3 scripts/zigux/validate-phase4.py",
                 "phase4-test:",
                 "\tzig build test --build-file zigux/tests/phase4_build.zig --summary all",
@@ -190,6 +207,35 @@ def run_self_test() -> int:
             count += 1
 
             build_fixture_tree(root)
+            makefile = root / MAKEFILE_PATH
+            makefile.write_text(
+                makefile.read_text(encoding="utf-8").replace(
+                    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-kprobe-example-packet.py --self-test\n",
+                    "",
+                    1,
+                ),
+                encoding="utf-8",
+            )
+            expect_contains(
+                validate(root),
+                "makefile_count:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-kprobe-example-packet.py --self-test:expected=1:actual=0",
+            )
+            count += 1
+
+            build_fixture_tree(root)
+            makefile = root / MAKEFILE_PATH
+            makefile.write_text(
+                makefile.read_text(encoding="utf-8")
+                + "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-kprobe-example-packet.py\n",
+                encoding="utf-8",
+            )
+            expect_contains(
+                validate(root),
+                "makefile_count:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-kprobe-example-packet.py:expected=1:actual=2",
+            )
+            count += 1
+
+            build_fixture_tree(root)
             docs_root = root / DOCS_ROOT_PATH
             docs_root.write_text(
                 "Phase 4 notes\n`make -C zigux phase4-validate`\n",
@@ -252,7 +298,7 @@ def main() -> int:
     print(f"PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_CHECK_COUNT="
-        f"{len(REQUIRED_WORKFLOW_COUNTS) + len(REQUIRED_MAKEFILE_MARKERS) + len(REQUIRED_DOC_MARKERS) * 3}"
+        f"{len(REQUIRED_WORKFLOW_COUNTS) + len(REQUIRED_MAKEFILE_MARKERS) + len(REQUIRED_MAKEFILE_COUNTS) + len(REQUIRED_DOC_MARKERS) * 3}"
     )
     return 0
 
