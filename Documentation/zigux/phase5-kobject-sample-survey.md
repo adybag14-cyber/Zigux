@@ -20,7 +20,7 @@ This sample-backed survey note keeps the top-level docs-root guide in `Documenta
 
 The landed sample remains an approved Phase 5 ownership-and-lifetime idiom. `ownershipSummary()` now keeps replay readiness reviewable alongside the cold, initialized, registered, and exited stages, so reviewers do not have to infer when `runAnchorReplay()` is valid from method guards alone. `runInitializedExitReplay()` now keeps the initialized-only abandonment path sample-owned too, so the direct sample packet no longer leaves that exit summary as a one-off assertion trail.
 
-The note still points back to the direct `zig test samples/zigux/kobject_example.zig` replay, the focused shared-build replay in `zigux/tests/phase5_kobject_example.zig`, the paired `zig test zigux/tests/phase5_kobject_example_survey.zig` replay, and the shared `phase5_build.zig` entrypoint.
+The note still points back to the direct `zig test samples/zigux/kobject_example.zig` replay, the focused `zigux/tests/phase5_kobject_example.zig` replay that is wired through the shared `zigux/tests/phase5_build.zig` entrypoint rather than exposed as a standalone direct command, the paired `zig test zigux/tests/phase5_kobject_example_survey.zig` replay, and the shared `phase5_build.zig` entrypoint.
 
 Exact reviewability cues remain explicit:
 
@@ -35,6 +35,7 @@ Latest verification snapshot:
   - `All 5 tests passed.`
 - `zig test zigux/tests/phase5_kobject_example_survey.zig`
   - `All 2 tests passed.`
+- the focused `zigux/tests/phase5_kobject_example.zig` replay remains part of the shipped `phase5_build.zig` packet rather than a standalone direct `zig test` command, so this note keeps that surface explicit without overstating a separate direct replay.
 
 The shared `zigux/tests/phase5_build.zig` entrypoint remains the umbrella review gate recorded in the manifest and contributor prompts, but this bounded verification pass did not rerun the whole Phase 5 sample bundle.
 
