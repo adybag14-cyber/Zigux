@@ -19,7 +19,10 @@ SHARED_ABI_BINDING_REL = "zigux/bindings/abi.zig"
 SHARED_ABI_TEST_REL = "zigux/tests/phase3_abi.zig"
 SHARED_ABI_DUMP_REL = "zigux/tests/phase3_abi_dump.zig"
 SHARED_ABI_HARNESS_REL = "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c"
+SHARED_ABI_EXPECTED_REL = "zigux/tests/fixtures/phase3_abi/expected.json"
 SHARED_CONTRACT_REL = "zigux/tests/phase3_rbtree_shared_contract.zig"
+SHARED_CONTRACT_CHECK_REL = "scripts/zigux/check-phase3-rbtree-shared-lift-contract.py"
+SHARED_SURVEY_VALIDATE_REL = "scripts/zigux/validate-phase3-rbtree-interop-survey.py"
 MANIFEST_REL = "zigux/tests/fixtures/phase3_abi_manifest.json"
 
 SURVEY_MARKERS = (
@@ -27,21 +30,24 @@ SURVEY_MARKERS = (
     "PHASE3_RBTREE_SHARED_LAYOUT_CONTRACT=zigux_rbtree_root_view-reused-unchanged-in-shared-phase3-abi-packet",
     "PHASE3_RBTREE_SHARED_CONSTANT_CONTRACT=root_flag_empty,root_flag_cached,root_flag_leftmost_valid",
     "PHASE3_RBTREE_SHARED_CONTRACT=zigux/tests/phase3_rbtree_shared_contract.zig",
+    "PHASE3_RBTREE_SHARED_PACKET_CATALOG=phase3_abi_manifest-catalogs-dedicated-rbtree-boundary-plus-shared-replay-and-lift-guards",
 )
 
 SURVEY_SNIPPETS = (
     "the shared Phase 3 ABI packet already replays `zigux_rbtree_root_view`",
-    "shared replay, and shared-lift note aligned before the shared ABI packet grows",
+    "shared replay, shared manifest catalog, and shared-lift note aligned before the shared ABI packet grows",
 )
 
 ROADMAP_MARKERS = (
     "PHASE3_CURRENT_SHARED_RBTREE_REPLAY=zigux/tests/phase3_abi.zig,zigux/tests/phase3_abi_dump.zig,zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c,zigux/tests/fixtures/phase3_abi/expected.json",
     "PHASE3_CURRENT_RBTREE_SHARED_LAYOUT_CONTRACT=shared-phase3-abi-replay-already-reuses-dedicated-rbtree-layout-shared-header-lift-still-missing",
+    "PHASE3_CURRENT_RBTREE_SHARED_CATALOG=phase3-abi-manifest-catalogs-shared-rbtree-replay-and-lift-guards",
 )
 
 ROADMAP_SNIPPETS = (
     "the shared ABI replay already covers `zigux_rbtree_root_view`",
     "reuse the dedicated `zigux_rbtree_root_view` layout and flag constants unchanged",
+    "the shared ABI manifest now also catalogs that shared replay and its lift guards",
 )
 
 SLICE_MARKERS = (
@@ -52,6 +58,7 @@ SLICE_MARKERS = (
 
 SLICE_SNIPPETS = (
     "shared Phase 3 ABI parity replay that still reuses the dedicated `rbtree` header and Zig binding",
+    "the shared ABI manifest now catalogs both that dedicated packet and the shared ABI replay plus the lift guards",
     "a shared `rbtree` record in `include/zigux/abi.h` and `zigux/bindings/abi.zig`",
     "a shared Phase 3 ABI root-view implementation that no longer depends on `include/zigux/rbtree.h` and `zigux/bindings/rbtree.zig`",
 )
@@ -84,12 +91,18 @@ SHARED_PACKET_SNIPPETS = {
     SHARED_ABI_DUMP_REL: (
         'const rbtree = @import("rbtree_bindings");',
         'writeStructLayout(writer, "zigux_rbtree_root_view", rbtree.RootView, false);',
-        'try writer.writeAll(",\\"root_flag_empty\\":");',
+        'try writer.writeAll(",\\\"root_flag_empty\\\":");',
     ),
     SHARED_ABI_HARNESS_REL: (
         "#include <zigux/rbtree.h>",
         "offsetof(struct zigux_rbtree_root_view, root_addr)",
         "ZIGUX_RBTREE_ROOT_FLAG_EMPTY",
+    ),
+    SHARED_ABI_EXPECTED_REL: (
+        '"root_flag_empty":1',
+        '"root_flag_cached":2',
+        '"root_flag_leftmost_valid":4',
+        '"zigux_rbtree_root_view":{"size":24,"align":8,"offsets":{"root_addr":0,"leftmost_addr":8,"flags":16,"reserved":20}}',
     ),
 }
 
@@ -113,8 +126,14 @@ MANIFEST_PATHS = (
     "zigux/tests/phase3_rbtree_shared_contract.zig",
     "zigux/tests/fixtures/phase3_rbtree/expected.json",
     "zigux/tests/fixtures/phase3_rbtree/phase3_rbtree_c_harness.c",
+    "zigux/tests/phase3_abi.zig",
+    "zigux/tests/phase3_abi_dump.zig",
+    "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c",
+    "zigux/tests/fixtures/phase3_abi/expected.json",
     "Documentation/zigux/phase3-rbtree-slice.md",
     "Documentation/zigux/phase3-rbtree-interop-survey.md",
+    "scripts/zigux/check-phase3-rbtree-shared-lift-contract.py",
+    "scripts/zigux/validate-phase3-rbtree-interop-survey.py",
 )
 
 EXPECTED_CONSTANTS = {
@@ -227,6 +246,11 @@ def run_self_test() -> int:
         write(root, SHARED_ABI_BINDING_REL, SHARED_ABI_FORBIDDEN[SHARED_ABI_BINDING_REL][0] + "\n")
         issues = validate(root)
         assert any(issue.startswith("unexpected_shared_lift:") for issue in issues)
+
+        write(root, SHARED_ABI_BINDING_REL, "// clean\n")
+        write(root, MANIFEST_REL, json.dumps({"files": [entry for entry in MANIFEST_PATHS if entry != SHARED_CONTRACT_CHECK_REL]}))
+        issues = validate(root)
+        assert f"missing_manifest_entry:{SHARED_CONTRACT_CHECK_REL}" in issues
 
     print("PHASE3_RBTREE_SHARED_LIFT_CONTRACT_SELF_TEST=pass")
     return 0
