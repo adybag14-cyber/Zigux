@@ -53,6 +53,14 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     );
     defer std.testing.allocator.free(sample_source);
 
+    const helper_review_source = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase5_bytestream_fifo.zig",
+        std.testing.allocator,
+        .limited(review_doc_read_limit),
+    );
+    defer std.testing.allocator.free(helper_review_source);
+
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
 
@@ -72,6 +80,16 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expectEqual(@as(usize, 8), manifest.review_prompts.len);
     try std.testing.expectEqual(@as(usize, 17), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
+
+    try std.testing.expect(std.mem.indexOf(u8, helper_review_source, "phase 5 bytestream fifo sample keeps bounded helper behavior explicit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, helper_review_source, "empty_preview.total_visible") != null);
+    try std.testing.expect(std.mem.indexOf(u8, helper_review_source, "preview_replay.preview_total_visible") != null);
+    try std.testing.expect(std.mem.indexOf(u8, helper_review_source, "!module.pushByte(255)") != null);
+    try std.testing.expect(std.mem.indexOf(u8, helper_review_source, "short_drain") != null);
+    try std.testing.expect(std.mem.indexOf(u8, helper_review_source, "phase 5 bytestream fifo reset clears queue state without restarting lifecycle bookkeeping") != null);
+    try std.testing.expect(std.mem.indexOf(u8, helper_review_source, ".wraparound_requeue") != null);
+    try std.testing.expect(std.mem.indexOf(u8, helper_review_source, ".non_destructive_snapshot") != null);
+    try std.testing.expect(std.mem.indexOf(u8, helper_review_source, ".preview_truncation") != null);
 
     var saw_embedded_pattern = false;
     var saw_anchor_pattern = false;
