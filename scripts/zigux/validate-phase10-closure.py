@@ -107,6 +107,17 @@ EXPECTED_SURVEYED_COMMITS = {
     "mmio": "0945df1cf664a3582d7241f859183a13f3f04adb",
 }
 
+EXPECTED_LANDED_INPUT_HELPER_EVIDENCE = {
+    "zigux/tests/phase10_virtio_input_manifest.json": [
+        "phase10-virtio-input-capability-setup-helper",
+        "phase10-virtio-input-multitouch-slot-helper",
+        "phase10-virtio-input-teardown-observation-helper",
+        "phase10-virtio-input-registration-preflight-helper",
+        "phase10-virtio-input-queue-callback-preflight-helper",
+        "phase10-virtio-input-probe-preflight-helper",
+    ],
+}
+
 REQUIRED_FILES = [
     "Documentation/zigux/phase10-closure-evidence.md",
     "Documentation/zigux/README.md",
@@ -408,6 +419,9 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
                         if path not in evidence:
                             missing.append(f"closure_manifest:roadmap_parity_scoreboard:lab_only_driver_validation:evidence:{path}")
 
+        if closure_manifest.get("landed_input_helper_evidence") != EXPECTED_LANDED_INPUT_HELPER_EVIDENCE:
+            missing.append("closure_manifest:landed_input_helper_evidence")
+
     ring_manifest = load_json(root, "zigux/tests/phase10_virtio_ring_manifest.json")
     if not isinstance(ring_manifest, dict):
         missing.append("ring_manifest:type")
@@ -487,6 +501,7 @@ def write_fixture(root: Path) -> None:
                 ],
             }
         },
+        "landed_input_helper_evidence": EXPECTED_LANDED_INPUT_HELPER_EVIDENCE,
     }
 
     ring_manifest = {
@@ -564,6 +579,18 @@ def run_self_test() -> int:
         closure_manifest["survey_provenance"]["lane_keys"]["input"] = "P10-L13"
         closure_manifest_path.write_text(json.dumps(closure_manifest, indent=2) + "\n", encoding="utf-8")
         expect_missing_marker("survey_lane_guard", root, "closure_manifest:survey_provenance:lane_keys")
+        write_fixture(root)
+
+        closure_manifest = json.loads(closure_manifest_path.read_text(encoding="utf-8"))
+        closure_manifest["landed_input_helper_evidence"]["zigux/tests/phase10_virtio_input_manifest.json"] = [
+            "phase10-virtio-input-capability-setup-helper",
+            "phase10-virtio-input-multitouch-slot-helper",
+            "phase10-virtio-input-teardown-observation-helper",
+            "phase10-virtio-input-registration-preflight-helper",
+            "phase10-virtio-input-queue-callback-preflight-helper",
+        ]
+        closure_manifest_path.write_text(json.dumps(closure_manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker("landed_input_probe_preflight_guard", root, "closure_manifest:landed_input_helper_evidence")
         write_fixture(root)
 
         build_path = root / "zigux/tests/phase10_build.zig"
@@ -783,7 +810,7 @@ def run_self_test() -> int:
         expect_missing_file("queue_isolation_file_guard", root, "zigux/tests/phase10_virtio_mmio_queue_isolation.zig")
 
     print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=21")
+    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=22")
     return 0
 
 
