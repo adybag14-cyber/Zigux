@@ -129,7 +129,6 @@ def run_self_test() -> int:
             + "\n",
             encoding="utf-8",
         )
-        (root / PHASE3_ABI_DUMP_REL).writeText = None
         (root / PHASE3_ABI_DUMP_REL).write_text(
             "\n".join(
                 [*(f'writeStructLayout(writer, "{json_name}", {module_name}.{zig_name}, true);' for json_name, zig_name, _, module_name in CANONICAL_LAYOUTS)]
