@@ -82,8 +82,6 @@ REQUIRED_WORKFLOW_SNIPPETS = (
     "run: python3 scripts/zigux/validate-phase3.py --self-test\n",
     "name: Self-test Phase 3 validation flow checker",
     "run: python3 scripts/zigux/check-phase3-validation-flow.py --self-test\n",
-    "name: Self-test Phase 3 wrapper generator",
-    "run: python3 scripts/zigux/generate-phase3-check-wrappers.py --self-test\n",
     "name: Validate Phase 3 wrapper templates\n",
     "run: python3 scripts/zigux/run-phase3-checks.py --self-test\n",
     "name: Validate Phase 3 README tooling inventory",
@@ -107,6 +105,10 @@ EXACT_ONCE_WORKFLOW_TITLE_SNIPPETS = (
     "name: Check Phase 3 validation flow\n",
     "name: Self-test Phase 3 validator\n",
     "name: Self-test Phase 3 validation flow checker\n",
+    "name: Self-test Phase 3 catalog\n",
+    "name: Audit Phase 3 documentation sync\n",
+    "name: Check Phase 3 slug sanity\n",
+    "name: Self-test Phase 3 shared helper\n",
     "name: Self-test Phase 3 wrapper generator\n",
     "name: Validate Phase 3 wrapper templates\n",
     "name: Self-test Phase 3 runner\n",
@@ -322,10 +324,18 @@ def _fixture_workflow() -> str:
         "        run: python3 scripts/zigux/validate-phase3.py --self-test\n"
         "      - name: Self-test Phase 3 validation flow checker\n"
         "        run: python3 scripts/zigux/check-phase3-validation-flow.py --self-test\n"
-        "      - name: Self-test Phase 3 wrapper generator\n"
-        "        run: python3 scripts/zigux/generate-phase3-check-wrappers.py --self-test\n"
+        "      - name: Self-test Phase 3 catalog\n"
+        "        run: python3 scripts/zigux/phase3_catalog.py --self-test\n"
+        "      - name: Audit Phase 3 documentation sync\n"
+        "        run: python3 scripts/zigux/phase3_catalog.py --audit-doc-sync\n"
+        "      - name: Check Phase 3 slug sanity\n"
+        "        run: python3 scripts/zigux/phase3_catalog.py --check-slug-sanity\n"
+        "      - name: Self-test Phase 3 shared helper\n"
+        "        run: python3 scripts/zigux/phase3_check_lib.py --self-test\n"
         "      - name: Self-test Phase 3 runner\n"
         "        run: python3 scripts/zigux/run-phase3-checks.py --self-test\n"
+        "      - name: Self-test Phase 3 wrapper generator\n"
+        "        run: python3 scripts/zigux/generate-phase3-check-wrappers.py --self-test\n"
         "      - name: Validate Phase 3 wrapper templates\n"
         "        run: python3 scripts/zigux/generate-phase3-check-wrappers.py --check\n"
         "      - name: Self-test Phase 3 README tooling inventory checker\n"
@@ -500,6 +510,74 @@ def run_self_test() -> int:
             )
 
         _write(root, WORKFLOW_REL, _fixture_workflow())
+        duplicated_validation_catalog_workflow_title = (
+            _fixture_workflow()
+            + "      - name: Self-test Phase 3 catalog\n"
+            + "        run: python3 scripts/zigux/phase3_check_lib.py --self-test\n"
+        )
+        _write(root, WORKFLOW_REL, duplicated_validation_catalog_workflow_title)
+        issues = validate(root)
+        expected = [
+            "unexpected_workflow_snippet_count:2:name: Self-test Phase 3 catalog\n",
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-validation-flow-self-test:duplicate_phase3_catalog_workflow_title_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+        _write(root, WORKFLOW_REL, _fixture_workflow())
+        duplicated_audit_doc_sync_workflow_title = (
+            _fixture_workflow()
+            + "      - name: Audit Phase 3 documentation sync\n"
+            + "        run: python3 scripts/zigux/phase3_check_lib.py --self-test\n"
+        )
+        _write(root, WORKFLOW_REL, duplicated_audit_doc_sync_workflow_title)
+        issues = validate(root)
+        expected = [
+            "unexpected_workflow_snippet_count:2:name: Audit Phase 3 documentation sync\n",
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-validation-flow-self-test:duplicate_audit_doc_sync_workflow_title_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+        _write(root, WORKFLOW_REL, _fixture_workflow())
+        duplicated_slug_sanity_workflow_title = (
+            _fixture_workflow()
+            + "      - name: Check Phase 3 slug sanity\n"
+            + "        run: python3 scripts/zigux/phase3_check_lib.py --self-test\n"
+        )
+        _write(root, WORKFLOW_REL, duplicated_slug_sanity_workflow_title)
+        issues = validate(root)
+        expected = [
+            "unexpected_workflow_snippet_count:2:name: Check Phase 3 slug sanity\n",
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-validation-flow-self-test:duplicate_slug_sanity_workflow_title_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+        _write(root, WORKFLOW_REL, _fixture_workflow())
+        duplicated_shared_helper_workflow_title = (
+            _fixture_workflow()
+            + "      - name: Self-test Phase 3 shared helper\n"
+            + "        run: python3 scripts/zigux/phase3_catalog.py --self-test\n"
+        )
+        _write(root, WORKFLOW_REL, duplicated_shared_helper_workflow_title)
+        issues = validate(root)
+        expected = [
+            "unexpected_workflow_snippet_count:2:name: Self-test Phase 3 shared helper\n",
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-validation-flow-self-test:duplicate_shared_helper_workflow_title_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+        _write(root, WORKFLOW_REL, _fixture_workflow())
         duplicated_wrapper_generator_workflow_title = (
             _fixture_workflow()
             + "      - name: Self-test Phase 3 wrapper generator\n"
@@ -567,7 +645,7 @@ def run_self_test() -> int:
                 + (",".join(issues) if issues else "none")
             )
 
-        _write(root, WORKFLOW_REL, _fixture_workflow())
+        _write(root, DOCS_ROOT_REL, _fixture_docs_root())
         duplicated_rbtree_docs_root = _fixture_docs_root() + f"- {REQUIRED_DOCS_ROOT_SNIPPETS[2]}\n"
         _write(root, DOCS_ROOT_REL, duplicated_rbtree_docs_root)
         issues = validate(root)
@@ -625,7 +703,7 @@ def run_self_test() -> int:
             )
 
         print("PHASE3_VALIDATION_FLOW_SELF_TEST=pass")
-        print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=41")
+        print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=45")
         return 0
 
 
