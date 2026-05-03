@@ -629,6 +629,16 @@ def run_self_test() -> int:
         write_fixture(root)
 
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["roadmap_parity_scoreboard"]["dual_implementations_for_risky_areas"]["status"] = "starter_landed"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "manifest_dual_implementations_scoreboard_status",
+            root,
+            "manifest:roadmap_parity_scoreboard",
+        )
+        write_fixture(root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["survey_provenance"]["surveyed_commits"]["mmio"] = "deadbeef"
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         expect_missing_marker(
@@ -649,6 +659,20 @@ def run_self_test() -> int:
             "manifest_landed_core_helpers",
             root,
             "manifest:landed_core_helper_evidence",
+        )
+        write_fixture(root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["landed_ring_helper_evidence"] = {
+            "zigux/tests/phase10_virtio_ring_manifest.json": [
+                "phase10-virtqueue-shape-helper"
+            ]
+        }
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "manifest_landed_ring_helpers",
+            root,
+            "manifest:landed_ring_helper_evidence",
         )
         write_fixture(root)
 
@@ -764,7 +788,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_CLOSURE_INVENTORY_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_INVENTORY_SELF_TEST_CASE_COUNT=28")
+    print("PHASE10_CLOSURE_INVENTORY_SELF_TEST_CASE_COUNT=30")
     return 0
 
 
