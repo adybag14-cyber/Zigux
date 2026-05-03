@@ -627,6 +627,68 @@ test "conf bridge uses allconfig env fallback for allconfig modes" {
     try std.testing.expectEqualStrings("all.config", request.allconfig.?);
 }
 
+test "conf bridge defaults to oldaskconfig when mode is omitted" {
+    const request = try parseRequestArgs(&.{
+        "conf_bridge",
+        "Kconfig",
+        ".config",
+        "x86_64",
+    });
+
+    try std.testing.expectEqual(Mode.oldaskconfig, request.mode);
+    try std.testing.expectEqualStrings("Kconfig", request.kconfig);
+    try std.testing.expectEqualStrings(".config", request.config);
+    try std.testing.expectEqualStrings("x86_64", request.arch);
+    try std.testing.expectEqual(@as(?[]const u8, null), request.mode_arg);
+    try std.testing.expectEqual(@as(?[]const u8, null), request.allconfig);
+}
+
+test "conf bridge uses randconfig env fallback for seed and probability" {
+    var request = try parseRequestArgs(&.{
+        "conf_bridge",
+        "randconfig",
+        "Kconfig",
+        "rand/.config",
+        "x86",
+    });
+    applyModeEnvFallbacks(
+        &request,
+        "seed/allrandom.config",
+        "0xC0FFEE",
+        "10:20:30",
+        "include/config/auto.conf",
+        "include/generated/autoconf.h",
+        null,
+    );
+
+    try std.testing.expectEqualStrings("seed/allrandom.config", request.allconfig.?);
+    try std.testing.expectEqualStrings("0xC0FFEE", request.seed.?);
+    try std.testing.expectEqualStrings("10:20:30", request.probability.?);
+}
+
+test "conf bridge uses syncconfig env fallbacks for output paths" {
+    var request = try parseRequestArgs(&.{
+        "conf_bridge",
+        "syncconfig",
+        "Kconfig",
+        "out/.config",
+        "riscv64",
+    });
+    applyModeEnvFallbacks(
+        &request,
+        null,
+        null,
+        null,
+        "generated/phase2/auto-sync.conf",
+        "generated/phase2/autoconf-sync.h",
+        "1",
+    );
+
+    try std.testing.expectEqualStrings("generated/phase2/auto-sync.conf", request.autoconfig.?);
+    try std.testing.expectEqualStrings("generated/phase2/autoconf-sync.h", request.autoheader.?);
+    try std.testing.expectEqualStrings("1", request.nosilentupdate.?);
+}
+
 test "conf bridge emits allmodconfig argv and env" {
     const Capture = struct {
         list: std.ArrayList(u8),
