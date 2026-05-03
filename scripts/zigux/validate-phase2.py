@@ -25,6 +25,7 @@ CHECK_FIXDEP = ROOT / "scripts" / "zigux" / "check-fixdep-diff.py"
 CHECK_KCONFIG_BRIDGE = ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py"
 WORKFLOW_FILE = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 MAKEFILE_FILE = ROOT / "zigux" / "Makefile"
+README_FILE = ROOT / "scripts" / "zigux" / "README.md"
 PHASE2_TOOL_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json"
 PHASE2_CROSS_TARGETS = ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json"
 FIXDEP_CASES = ROOT / "zigux" / "tests" / "fixtures" / "fixdep" / "cases.json"
@@ -62,6 +63,7 @@ REQUIRED_PHASE2_FILES = [
     ROOT / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig",
     ROOT / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig",
     WORKFLOW_FILE,
+    README_FILE,
     ROOT / "Documentation" / "zigux" / "phase2-closure.md",
     MAKEFILE_FILE,
     PHASE2_TOOL_MANIFEST,
@@ -85,6 +87,12 @@ PHASE2_GENKSYMS_BRIDGE_ALIGNMENT_REQUIRED_SOURCE_MARKERS = [
     "PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=14",
     '"python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test": 1',
     '"python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py": 1',
+]
+PHASE2_GENKSYMS_REQUIRED_README_MARKERS = [
+    "check-genksyms-bridge.py --self-test",
+    "check-phase2-genksyms-bridge-selftest-alignment.py --self-test",
+    "check-phase2-genksyms-bridge-selftest-alignment.py",
+    "check-genksyms-crc-diff.py --self-test",
 ]
 PHASE2_KCONFIG_ALIGNMENT_REQUIRED_SOURCE_MARKERS = [
     "PHASE2_KCONFIG_ALIGNMENT_SELF_TEST=pass",
@@ -451,6 +459,13 @@ def main() -> int:
             GENKSYMS_BRIDGE_ALIGNMENT_CHECKER,
             label="phase2_genksyms_bridge_alignment_checker",
             required_markers=PHASE2_GENKSYMS_BRIDGE_ALIGNMENT_REQUIRED_SOURCE_MARKERS,
+        )
+    )
+    issues.extend(
+        validate_source_markers(
+            README_FILE,
+            label="phase2_genksyms_readme",
+            required_markers=PHASE2_GENKSYMS_REQUIRED_README_MARKERS,
         )
     )
     issues.extend(
