@@ -14,4 +14,6 @@ The module-facing surface stays intentionally narrow:
 
 This slice does not claim platform-driver registration, GPIO descriptor lookup, watchdog-core registration, reboot integration beyond summary bookkeeping, module parameter wiring beyond `nowayout` bookkeeping, or hardware validation coverage yet.
 
+The active continuity owner for this review packet is `P11-Y01`, while the archived manifest identity remains `P11-L04` for traceability.
+
 The next honest bounded step inside the same Phase 11 lane is to leave this starter parked unless fresh repo inspection finds another comparably small teardown or failure-mode drift inside `gpio_wdt`. Avoid widening straight into descriptor-backed preflight, reboot glue, or broader watchdog registration work from this packet.
