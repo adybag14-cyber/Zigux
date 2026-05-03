@@ -18,6 +18,7 @@ DEFAULT_CLOSURE_DOC = ROOT / "Documentation" / "zigux" / "phase1-closure.md"
 DEFAULT_BENCH_CHECKER = ROOT / "scripts" / "zigux" / "check-phase1-bench.py"
 DEFAULT_WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 DEFAULT_SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
+DEFAULT_DOCS_README = ROOT / "Documentation" / "zigux" / "README.md"
 
 FIND_BIT_BENCH_KEYS = (
     "PHASE1_FIND_BIT_BENCH_KEYS=PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM,"
@@ -91,6 +92,11 @@ REQUIRED_SCRIPTS_README_SNIPPETS = {
     ),
 }
 
+REQUIRED_DOCS_README_SNIPPETS = {
+    "current_closure_records_heading": "Current closure records",
+    "phase1_closure_listing": "- `Documentation/zigux/phase1-closure.md`",
+}
+
 
 def validate_text(prefix: str, source: str, required_snippets: dict[str, str]) -> list[str]:
     missing: list[str] = []
@@ -116,6 +122,7 @@ def run_check(
     bench_checker_path: Path,
     workflow_path: Path,
     scripts_readme_path: Path,
+    docs_readme_path: Path,
 ) -> int:
     validator_source = validator_path.read_text(encoding="utf-8")
     closure_validator_source = closure_validator_path.read_text(encoding="utf-8")
@@ -123,6 +130,7 @@ def run_check(
     bench_checker_source = bench_checker_path.read_text(encoding="utf-8")
     workflow_source = workflow_path.read_text(encoding="utf-8")
     scripts_readme_source = scripts_readme_path.read_text(encoding="utf-8")
+    docs_readme_source = docs_readme_path.read_text(encoding="utf-8")
 
     missing = [
         *validate_text("phase1_validator_find_bit", validator_source, REQUIRED_VALIDATOR_SNIPPETS),
@@ -143,6 +151,7 @@ def run_check(
         ),
         *validate_exact_lines("phase1_validator_find_bit_workflow", workflow_source, REQUIRED_WORKFLOW_SNIPPETS),
         *validate_text("phase1_validator_find_bit_scripts_readme", scripts_readme_source, REQUIRED_SCRIPTS_README_SNIPPETS),
+        *validate_text("phase1_validator_find_bit_docs_readme", docs_readme_source, REQUIRED_DOCS_README_SNIPPETS),
     ]
     if missing:
         print("PHASE1_FIND_BIT_VALIDATOR_ANCHOR_CHECK=fail")
@@ -155,7 +164,7 @@ def run_check(
     print("PHASE1_FIND_BIT_VALIDATOR_ANCHOR_CHECK=pass")
     print(
         "PHASE1_FIND_BIT_VALIDATOR_ANCHOR_COUNT="
-        f"{len(REQUIRED_VALIDATOR_SNIPPETS) + len(REQUIRED_CLOSURE_VALIDATOR_SNIPPETS) + len(REQUIRED_CLOSURE_DOC_SNIPPETS) + len(REQUIRED_BENCH_CHECKER_SNIPPETS) + len(REQUIRED_WORKFLOW_SNIPPETS) + len(REQUIRED_SCRIPTS_README_SNIPPETS)}"
+        f"{len(REQUIRED_VALIDATOR_SNIPPETS) + len(REQUIRED_CLOSURE_VALIDATOR_SNIPPETS) + len(REQUIRED_CLOSURE_DOC_SNIPPETS) + len(REQUIRED_BENCH_CHECKER_SNIPPETS) + len(REQUIRED_WORKFLOW_SNIPPETS) + len(REQUIRED_SCRIPTS_README_SNIPPETS) + len(REQUIRED_DOCS_README_SNIPPETS)}"
     )
     print(f"PHASE1_FIND_BIT_VALIDATOR_PATH={validator_path}")
     print(f"PHASE1_FIND_BIT_CLOSURE_VALIDATOR_PATH={closure_validator_path}")
@@ -163,6 +172,7 @@ def run_check(
     print(f"PHASE1_FIND_BIT_BENCH_CHECKER_PATH={bench_checker_path}")
     print(f"PHASE1_FIND_BIT_VALIDATOR_WORKFLOW_PATH={workflow_path}")
     print(f"PHASE1_FIND_BIT_VALIDATOR_SCRIPTS_README_PATH={scripts_readme_path}")
+    print(f"PHASE1_FIND_BIT_VALIDATOR_DOCS_README_PATH={docs_readme_path}")
     return 0
 
 
@@ -174,6 +184,7 @@ def expect_missing(
     bench_checker_text: str,
     workflow_text: str,
     scripts_readme_text: str,
+    docs_readme_text: str,
     expected: str,
 ) -> None:
     missing = [
@@ -199,6 +210,11 @@ def expect_missing(
             scripts_readme_text,
             REQUIRED_SCRIPTS_README_SNIPPETS,
         ),
+        *validate_text(
+            "phase1_validator_find_bit_docs_readme",
+            docs_readme_text,
+            REQUIRED_DOCS_README_SNIPPETS,
+        ),
     ]
     if expected not in missing:
         raise SystemExit(
@@ -213,6 +229,7 @@ def run_self_test() -> int:
     bench_checker_baseline = "\n".join(REQUIRED_BENCH_CHECKER_SNIPPETS.values()) + "\n"
     workflow_baseline = "\n".join(REQUIRED_WORKFLOW_SNIPPETS.values()) + "\n"
     scripts_readme_baseline = "\n".join(REQUIRED_SCRIPTS_README_SNIPPETS.values()) + "\n"
+    docs_readme_baseline = "\n".join(REQUIRED_DOCS_README_SNIPPETS.values()) + "\n"
 
     baseline_missing = [
         *validate_text("phase1_validator_find_bit", validator_baseline, REQUIRED_VALIDATOR_SNIPPETS),
@@ -237,6 +254,11 @@ def run_self_test() -> int:
             scripts_readme_baseline,
             REQUIRED_SCRIPTS_README_SNIPPETS,
         ),
+        *validate_text(
+            "phase1_validator_find_bit_docs_readme",
+            docs_readme_baseline,
+            REQUIRED_DOCS_README_SNIPPETS,
+        ),
     ]
     if baseline_missing:
         raise SystemExit(
@@ -255,6 +277,7 @@ def run_self_test() -> int:
             bench_checker_baseline,
             workflow_baseline,
             scripts_readme_baseline,
+            docs_readme_baseline,
             f"phase1_validator_find_bit:{label}",
         )
         total_cases += 1
@@ -268,6 +291,7 @@ def run_self_test() -> int:
             bench_checker_baseline,
             workflow_baseline,
             scripts_readme_baseline,
+            docs_readme_baseline,
             f"phase1_closure_validator_find_bit:{label}",
         )
         total_cases += 1
@@ -281,6 +305,7 @@ def run_self_test() -> int:
             bench_checker_baseline,
             workflow_baseline,
             scripts_readme_baseline,
+            docs_readme_baseline,
             f"phase1_closure_doc_find_bit:{label}",
         )
         total_cases += 1
@@ -294,6 +319,7 @@ def run_self_test() -> int:
             bench_checker_baseline.replace(snippet, "", 1),
             workflow_baseline,
             scripts_readme_baseline,
+            docs_readme_baseline,
             f"phase1_bench_checker_find_bit:{label}",
         )
         total_cases += 1
@@ -310,6 +336,7 @@ def run_self_test() -> int:
             bench_checker_baseline,
             "\n".join(mutated_workflow_lines) + "\n",
             scripts_readme_baseline,
+            docs_readme_baseline,
             f"phase1_validator_find_bit_workflow:{label}",
         )
         total_cases += 1
@@ -323,7 +350,22 @@ def run_self_test() -> int:
             bench_checker_baseline,
             workflow_baseline,
             scripts_readme_baseline.replace(snippet, "", 1),
+            docs_readme_baseline,
             f"phase1_validator_find_bit_scripts_readme:{label}",
+        )
+        total_cases += 1
+
+    for label, snippet in REQUIRED_DOCS_README_SNIPPETS.items():
+        expect_missing(
+            label,
+            validator_baseline,
+            closure_validator_baseline,
+            closure_doc_baseline,
+            bench_checker_baseline,
+            workflow_baseline,
+            scripts_readme_baseline,
+            docs_readme_baseline.replace(snippet, "", 1),
+            f"phase1_validator_find_bit_docs_readme:{label}",
         )
         total_cases += 1
 
@@ -335,12 +377,14 @@ def run_self_test() -> int:
         temp_bench_checker = tmp_root / "check-phase1-bench.py"
         temp_workflow = tmp_root / "zigux-bootstrap.yml"
         temp_scripts_readme = tmp_root / "README.md"
+        temp_docs_readme = tmp_root / "docs-README.md"
         temp_validator.write_text(validator_baseline, encoding="utf-8")
         temp_closure_validator.write_text(closure_validator_baseline, encoding="utf-8")
         temp_closure_doc.write_text(closure_doc_baseline, encoding="utf-8")
         temp_bench_checker.write_text(bench_checker_baseline, encoding="utf-8")
         temp_workflow.write_text(workflow_baseline, encoding="utf-8")
         temp_scripts_readme.write_text(scripts_readme_baseline, encoding="utf-8")
+        temp_docs_readme.write_text(docs_readme_baseline, encoding="utf-8")
         if (
             run_check(
                 temp_validator,
@@ -349,6 +393,7 @@ def run_self_test() -> int:
                 temp_bench_checker,
                 temp_workflow,
                 temp_scripts_readme,
+                temp_docs_readme,
             )
             != 0
         ):
@@ -363,8 +408,8 @@ def run_self_test() -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
-            "Fail closed if the Phase 1 find_bit validators stop naming the shipped tail-start, "
-            "zero-sized, or six-key bench evidence packet."
+            "Fail closed if the Phase 1 find_bit validators or docs-root index stop naming the shipped "
+            "tail-start, zero-sized, or six-key bench evidence packet."
         )
     )
     parser.add_argument(
@@ -403,6 +448,12 @@ def main() -> int:
         default=DEFAULT_SCRIPTS_README,
         help="Path to the scripts/zigux README to inspect.",
     )
+    parser.add_argument(
+        "--docs-readme",
+        type=Path,
+        default=DEFAULT_DOCS_README,
+        help="Path to the Documentation/zigux README to inspect.",
+    )
     parser.add_argument("--self-test", action="store_true", help="Run the built-in checker self-test.")
     args = parser.parse_args()
 
@@ -416,6 +467,7 @@ def main() -> int:
         args.bench_checker,
         args.workflow,
         args.scripts_readme,
+        args.docs_readme,
     )
 
 
