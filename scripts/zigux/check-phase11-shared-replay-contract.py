@@ -28,7 +28,7 @@ README_MARKERS = [
 ]
 DOCS_README_MARKERS = [
     "`Documentation/zigux/phase11-shared-replay-contract.md` now keeps the shared-versus-dedicated replay boundary explicit from the docs root",
-    "`python3 scripts/zigux/check-phase11-build-inventory.py`, `python3 scripts/zigux/check-phase11-layout-assert-surface.py`, `python3 scripts/zigux/check-phase11-hvc-validation-flow.py`, and `python3 scripts/zigux/check-phase11-hvc-cleanup-alignment.py` now keep the build snapshot, layout-assert review surface, shared-versus-dedicated hvc replay contract, and current hvc cleanup packet explicit as the pre-replay Phase 11 delivery gate behind `make -C zigux phase11-validate`.",
+    "`python3 scripts/zigux/check-phase11-build-inventory.py`, `python3 scripts/zigux/check-phase11-layout-assert-surface.py`, `python3 scripts/zigux/check-phase11-hvc-validation-flow.py`, `python3 scripts/zigux/check-phase11-hvc-cleanup-alignment.py`, and `python3 scripts/zigux/check-phase11-shared-replay-contract.py` now keep the build snapshot, layout-assert review surface, the shared replay-contract note, the current hvc cleanup packet, and the shared-versus-dedicated replay boundary explicit as the pre-replay Phase 11 delivery gate behind `make -C zigux phase11-validate`.",
     "`python3 scripts/zigux/validate-phase11.py`, `zigux/tests/fixtures/phase11_build_inventory.json`, `make -C zigux phase11-validate`, and `make -C zigux phase11` now define the shared Phase 11 reviewability path, with the dedicated `zigux/tests/phase11_hvc_console_survey.zig` archival replay still kept separate from `zigux/tests/phase11_build.zig`.",
 ]
 TESTS_README_MARKERS = [
@@ -79,8 +79,11 @@ FORBIDDEN_BUILD_MARKERS = [
 ]
 SHARED_REPLAY_NOTE_MARKERS = [
     "# Phase 11 Shared Replay Contract",
+    "python3 scripts/zigux/check-phase11-shared-replay-contract.py --self-test",
+    "python3 scripts/zigux/check-phase11-shared-replay-contract.py",
     "python3 scripts/zigux/validate-phase11.py --self-test",
     "make -C zigux phase11-validate",
+    "The same contract is fail-closed by `python3 scripts/zigux/check-phase11-shared-replay-contract.py` before the broader validator runs.",
     "zig build test --build-file zigux/tests/phase11_build.zig --summary all",
     "make -C zigux phase11-hvc-survey",
     "Documentation/zigux/review-checklist.md",
@@ -88,6 +91,7 @@ SHARED_REPLAY_NOTE_MARKERS = [
     "zigux/tests/fixtures/phase11_build_inventory.json",
     "scripts/zigux/check-phase11-build-inventory.py",
     "scripts/zigux/check-phase11-hvc-validation-flow.py",
+    "scripts/zigux/check-phase11-shared-replay-contract.py",
     "zigux/tests/phase11_hvc_console_survey.zig",
 ]
 REVIEW_CHECKLIST_MARKERS = [
@@ -238,10 +242,14 @@ def write_fixture_tree(root: Path) -> None:
                 "",
                 "## Pre-Replay Checker Stack",
                 "",
+                "- `python3 scripts/zigux/check-phase11-shared-replay-contract.py --self-test`",
+                "- `python3 scripts/zigux/check-phase11-shared-replay-contract.py`",
                 "- `python3 scripts/zigux/validate-phase11.py --self-test`",
                 "- `python3 scripts/zigux/validate-phase11.py`",
                 "",
                 "The published wrapper remains `make -C zigux phase11-validate`.",
+                "",
+                "The same contract is fail-closed by `python3 scripts/zigux/check-phase11-shared-replay-contract.py` before the broader validator runs.",
                 "",
                 "## Shared Replay Surface",
                 "",
@@ -262,6 +270,7 @@ def write_fixture_tree(root: Path) -> None:
                 "- `zigux/tests/fixtures/phase11_build_inventory.json`",
                 "- `scripts/zigux/check-phase11-build-inventory.py`",
                 "- `scripts/zigux/check-phase11-hvc-validation-flow.py`",
+                "- `scripts/zigux/check-phase11-shared-replay-contract.py`",
                 "- `zigux/tests/phase11_hvc_console_survey.zig`",
                 "",
             ]
@@ -307,6 +316,17 @@ def run_self_test() -> int:
             "missing_docs_root_contract_marker",
             run_checker(tmp_root),
             f"docs_readme:{DOCS_README_MARKERS[0]}",
+        )
+        write_text(docs_readme_path, docs_readme_backup)
+
+        write_text(
+            docs_readme_path,
+            docs_readme_backup.replace(DOCS_README_MARKERS[1] + "\n", "", 1),
+        )
+        expect_missing(
+            "missing_docs_root_checker_gate",
+            run_checker(tmp_root),
+            f"docs_readme:{DOCS_README_MARKERS[1]}",
         )
         write_text(docs_readme_path, docs_readme_backup)
 
@@ -411,6 +431,21 @@ def run_self_test() -> int:
         note_backup = text(note_path)
         write_text(
             note_path,
+            note_backup.replace(
+                "- `python3 scripts/zigux/check-phase11-shared-replay-contract.py --self-test`\n",
+                "",
+                1,
+            ),
+        )
+        expect_missing(
+            "missing_note_checker_self_test",
+            run_checker(tmp_root),
+            "shared_replay_note:python3 scripts/zigux/check-phase11-shared-replay-contract.py --self-test",
+        )
+        write_text(note_path, note_backup)
+
+        write_text(
+            note_path,
             note_backup.replace("- `Documentation/zigux/review-checklist.md`\n", "", 1),
         )
         expect_missing(
@@ -444,7 +479,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST=pass")
-    print("PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT=12")
+    print("PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
