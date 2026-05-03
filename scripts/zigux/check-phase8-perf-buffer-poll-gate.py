@@ -43,6 +43,9 @@ REQUIRED_MARKERS = {
         "zigux/tests/phase8_perf_buffer_poll_only_build.zig",
         "make -C zigux phase8-perf-buffer-poll-test",
         "wait-result classification",
+        "cumulative processed-record count",
+        "first failing ready buffer",
+        "non-ready wait observations cannot claim record processing",
         "no standalone timer helper",
         "no standalone clockevent helper",
     ],
@@ -70,8 +73,12 @@ REQUIRED_MARKERS = {
     ],
     "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig": [
         "pub const WaitClass = enum {",
+        "pub const PollExecutionSummary = struct {",
         "pub fn summarizeProcessRecords(",
+        "pub fn summarizePollExecution(",
         "test \"summarizeProcessRecords keeps perf_buffer__process_records fail-fast ordering and processed record totals explicit\"",
+        "test \"summarizePollExecution keeps ready-buffer processing inside the observed epoll budget\"",
+        "test \"summarizePollExecution rejects impossible processing outside the live perf_buffer__poll wait result\"",
     ],
     "zigux/Makefile": [
         "PHONY += phase8-validate phase8-exec-cmd-test phase8-help-test phase8-kallsyms-test phase8-libbpf-segments-test phase8-perf-buffer-poll-test phase8-test phase8",
@@ -94,6 +101,8 @@ REQUIRED_MARKERS = {
     ],
     "zigux/tests/phase8_perf_buffer_poll.zig": [
         "test \"phase 8 perf-buffer poll helper stays wired into focused and shared Phase 8 builds\"",
+        "test \"phase 8 perf-buffer poll helper keeps execution bookkeeping aligned with the observed ready-event budget\"",
+        "test \"phase 8 perf-buffer poll helper rejects impossible post-wait record processing\"",
         "phase8_perf_buffer_poll_only_build.zig",
         "phase8-perf-buffer-poll-tests",
     ],
@@ -126,6 +135,9 @@ FIXTURE_TEXT = {
 - `zigux/tests/phase8_perf_buffer_poll_only_build.zig`
 - `make -C zigux phase8-perf-buffer-poll-test`
 - wait-result classification
+- cumulative processed-record count
+- first failing ready buffer
+- non-ready wait observations cannot claim record processing
 - no standalone timer helper
 - no standalone clockevent helper
 """,
@@ -170,9 +182,16 @@ required_phase8_perf_buffer_poll_markers = [
     nonblocking,
 };
 
+pub const PollExecutionSummary = struct {
+    processed_record_count: usize,
+};
+
 pub fn summarizeProcessRecords() void {}
+pub fn summarizePollExecution() void {}
 
 test "summarizeProcessRecords keeps perf_buffer__process_records fail-fast ordering and processed record totals explicit" {}
+test "summarizePollExecution keeps ready-buffer processing inside the observed epoll budget" {}
+test "summarizePollExecution rejects impossible processing outside the live perf_buffer__poll wait result" {}
 """,
     "zigux/Makefile": """PHONY += phase8-validate phase8-exec-cmd-test phase8-help-test phase8-kallsyms-test phase8-libbpf-segments-test phase8-perf-buffer-poll-test phase8-test phase8
 
@@ -205,6 +224,9 @@ const perf_buffer_poll_tests = b.addTest(.{
     _ = "phase8_perf_buffer_poll_only_build.zig";
     _ = "phase8-perf-buffer-poll-tests";
 }
+
+test "phase 8 perf-buffer poll helper keeps execution bookkeeping aligned with the observed ready-event budget" {}
+test "phase 8 perf-buffer poll helper rejects impossible post-wait record processing" {}
 """,
     "zigux/tests/phase8_perf_buffer_poll_only_build.zig": """const root_module = b.createModule(.{
     .root_source_file = b.path("phase8_perf_buffer_poll.zig"),
@@ -339,6 +361,51 @@ def run_self_test() -> int:
             "note_wait_result_classification",
             tmp_root,
             "Documentation/zigux/phase8-perf-buffer-poll-slice.md:wait-result classification",
+        )
+        note_path.write_text(original_note, encoding="utf-8")
+
+        note_path.write_text(
+            original_note.replace(
+                "cumulative processed-record count",
+                "processed-record count",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "note_processed_record_count",
+            tmp_root,
+            "Documentation/zigux/phase8-perf-buffer-poll-slice.md:cumulative processed-record count",
+        )
+        note_path.write_text(original_note, encoding="utf-8")
+
+        note_path.write_text(
+            original_note.replace(
+                "first failing ready buffer",
+                "first ready buffer",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "note_first_failing_ready_buffer",
+            tmp_root,
+            "Documentation/zigux/phase8-perf-buffer-poll-slice.md:first failing ready buffer",
+        )
+        note_path.write_text(original_note, encoding="utf-8")
+
+        note_path.write_text(
+            original_note.replace(
+                "non-ready wait observations cannot claim record processing",
+                "non-ready wait observations stay explicit",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "note_non_ready_processing_guard",
+            tmp_root,
+            "Documentation/zigux/phase8-perf-buffer-poll-slice.md:non-ready wait observations cannot claim record processing",
         )
         note_path.write_text(original_note, encoding="utf-8")
 
@@ -579,6 +646,36 @@ def run_self_test() -> int:
 
         helper_path.write_text(
             original_helper.replace(
+                "pub const PollExecutionSummary = struct {",
+                "pub const PollRunSummary = struct {",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "helper_poll_execution_summary_surface",
+            tmp_root,
+            "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig:pub const PollExecutionSummary = struct {",
+        )
+        helper_path.write_text(original_helper, encoding="utf-8")
+
+        helper_path.write_text(
+            original_helper.replace(
+                "pub fn summarizePollExecution(",
+                "pub fn summarizePollRun(",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "helper_poll_execution_surface",
+            tmp_root,
+            "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig:pub fn summarizePollExecution(",
+        )
+        helper_path.write_text(original_helper, encoding="utf-8")
+
+        helper_path.write_text(
+            original_helper.replace(
                 'test "summarizeProcessRecords keeps perf_buffer__process_records fail-fast ordering and processed record totals explicit"',
                 'test "summarizeProcessRecords keeps perf_buffer__process_records ordering explicit"',
                 1,
@@ -589,6 +686,36 @@ def run_self_test() -> int:
             "helper_process_records_test_surface",
             tmp_root,
             'tools/lib/bpf/zigux_segments/perf_buffer_poll.zig:test "summarizeProcessRecords keeps perf_buffer__process_records fail-fast ordering and processed record totals explicit"',
+        )
+        helper_path.write_text(original_helper, encoding="utf-8")
+
+        helper_path.write_text(
+            original_helper.replace(
+                'test "summarizePollExecution keeps ready-buffer processing inside the observed epoll budget"',
+                'test "summarizePollExecution keeps observed event accounting explicit"',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "helper_poll_execution_budget_test_surface",
+            tmp_root,
+            'tools/lib/bpf/zigux_segments/perf_buffer_poll.zig:test "summarizePollExecution keeps ready-buffer processing inside the observed epoll budget"',
+        )
+        helper_path.write_text(original_helper, encoding="utf-8")
+
+        helper_path.write_text(
+            original_helper.replace(
+                'test "summarizePollExecution rejects impossible processing outside the live perf_buffer__poll wait result"',
+                'test "summarizePollExecution rejects impossible processing outside the wait result"',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "helper_poll_execution_guard_test_surface",
+            tmp_root,
+            'tools/lib/bpf/zigux_segments/perf_buffer_poll.zig:test "summarizePollExecution rejects impossible processing outside the live perf_buffer__poll wait result"',
         )
         helper_path.write_text(original_helper, encoding="utf-8")
 
@@ -688,6 +815,36 @@ def run_self_test() -> int:
         )
         poll_test_path.write_text(original_poll_test, encoding="utf-8")
 
+        poll_test_path.write_text(
+            original_poll_test.replace(
+                'test "phase 8 perf-buffer poll helper keeps execution bookkeeping aligned with the observed ready-event budget"',
+                'test "phase 8 perf-buffer poll helper keeps observed event accounting explicit"',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "poll_test_execution_budget_surface",
+            tmp_root,
+            'zigux/tests/phase8_perf_buffer_poll.zig:test "phase 8 perf-buffer poll helper keeps execution bookkeeping aligned with the observed ready-event budget"',
+        )
+        poll_test_path.write_text(original_poll_test, encoding="utf-8")
+
+        poll_test_path.write_text(
+            original_poll_test.replace(
+                'test "phase 8 perf-buffer poll helper rejects impossible post-wait record processing"',
+                'test "phase 8 perf-buffer poll helper rejects impossible post-wait processing"',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "poll_test_execution_guard_surface",
+            tmp_root,
+            'zigux/tests/phase8_perf_buffer_poll.zig:test "phase 8 perf-buffer poll helper rejects impossible post-wait record processing"',
+        )
+        poll_test_path.write_text(original_poll_test, encoding="utf-8")
+
         focused_build_path = tmp_root / "zigux/tests/phase8_perf_buffer_poll_only_build.zig"
         original_focused_build = focused_build_path.read_text(encoding="utf-8")
         focused_build_path.write_text(
@@ -705,7 +862,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST=pass")
-    print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST_CASE_COUNT=27")
+    print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST_CASE_COUNT=36")
     return 0
 
 
