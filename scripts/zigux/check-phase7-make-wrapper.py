@@ -78,22 +78,24 @@ REQUIRED_VALIDATOR_TEXT_MARKERS = [
 ]
 
 VALIDATOR_ALIGNMENT_LINES = {
-    "phase7-validate": [
-        "python3 scripts/zigux/check-phase7-build-inventory.py --self-test",
-        "python3 scripts/zigux/check-phase7-build-inventory.py",
-    ],
-    "phase7": [
-        "python3 scripts/zigux/check-phase7-build-inventory.py --self-test",
-        "python3 scripts/zigux/check-phase7-build-inventory.py",
-    ],
+    "phase7-validate": EXPECTED_MAKE_EXPANSIONS["phase7-validate"],
+    "phase7-test": EXPECTED_MAKE_EXPANSIONS["phase7-test"],
+    "phase7": EXPECTED_MAKE_EXPANSIONS["phase7"],
 }
+
+
+def display_path(path: Path) -> str:
+    try:
+        return str(path.relative_to(ROOT))
+    except ValueError:
+        return str(path)
 
 
 def load_validator_make_expansions(
     validator_path: Path,
 ) -> tuple[dict[str, list[str]] | None, list[str]]:
     if not validator_path.exists():
-        return None, [f"missing validator source: {validator_path.relative_to(ROOT)}"]
+        return None, [f"missing validator source: {display_path(validator_path)}"]
 
     validator_text = validator_path.read_text(encoding="utf-8")
     failures = [
@@ -107,7 +109,7 @@ def load_validator_make_expansions(
     except SyntaxError as exc:
         failures.append(
             "validator source parse failure: "
-            f"{validator_path.relative_to(ROOT)}:{exc.lineno}:{exc.offset}: {exc.msg}"
+            f"{display_path(validator_path)}:{exc.lineno}:{exc.offset}: {exc.msg}"
         )
         return None, failures
 
@@ -377,6 +379,24 @@ def run_self_test() -> int:
             validator_path,
             {
                 **EXPECTED_MAKE_EXPANSIONS,
+                "phase7-validate": [
+                    line
+                    for line in EXPECTED_MAKE_EXPANSIONS["phase7-validate"]
+                    if line != "python3 scripts/zigux/check-phase7-cmdline-parity.py"
+                ],
+            },
+        )
+        expect_failure(
+            "missing_validator_cmdline_live",
+            tmp_root,
+            fake_make_env,
+            "validator phase7-validate expansion missing: python3 scripts/zigux/check-phase7-cmdline-parity.py",
+        )
+
+        write_validator_fixture(
+            validator_path,
+            {
+                **EXPECTED_MAKE_EXPANSIONS,
                 "phase7": [
                     line
                     for line in EXPECTED_MAKE_EXPANSIONS["phase7"]
@@ -408,6 +428,24 @@ def run_self_test() -> int:
             tmp_root,
             fake_make_env,
             "validator phase7 expansion missing: python3 scripts/zigux/check-phase7-build-inventory.py",
+        )
+
+        write_validator_fixture(
+            validator_path,
+            {
+                **EXPECTED_MAKE_EXPANSIONS,
+                "phase7": [
+                    line
+                    for line in EXPECTED_MAKE_EXPANSIONS["phase7"]
+                    if line != "python3 scripts/zigux/check-phase7-cmdline-parity.py"
+                ],
+            },
+        )
+        expect_failure(
+            "missing_validator_cmdline_live_in_bundle",
+            tmp_root,
+            fake_make_env,
+            "validator phase7 expansion missing: python3 scripts/zigux/check-phase7-cmdline-parity.py",
         )
 
         write_validator_fixture(
@@ -513,7 +551,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE7_MAKE_WRAPPER_SELF_TEST=pass")
-    print("PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT=11")
+    print("PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
