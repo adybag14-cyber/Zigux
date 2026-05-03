@@ -6,6 +6,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `lib
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-atomic64-survey`
+- `PHASE9_LANE_KEY=P9-L04`
 - `PHASE9_SURVEYED_COMMIT=f5a4d6990f701937b2a3bb9ae723bb6d0f27ba21`
 - scope: survey manifest, manifest-backed delivery catalog and ownership map, dedicated runtime survey gate, direct `phase9-runtime-atomic64-sample-tests`, `phase9-runtime-atomic64-module-tests`, `phase9-runtime-atomic64-diff-tests`, and `phase9-runtime-atomic64-loader-tests` shared-build legs, landed sample-backed module starter, landed module gate, landed diff gate, landed loader scaffold with prepared counter-summary snapshot replay, landed shared loader-request binding, and the lane-level review note that keeps the remaining roadmap blocker explicit without claiming loadable-module parity
 - product boundary:
