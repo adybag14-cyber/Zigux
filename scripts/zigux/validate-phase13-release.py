@@ -44,6 +44,7 @@ FILES = [
     "zigux/tests/phase13_landlock_syscalls_reviewability.zig",
     "zigux/tests/phase13_notifier_list_reviewability.zig",
     "zigux/bindings/notifier_abi.zig",
+    "include/zigux/notifier_abi.h",
     "zigux/helpers/notifier_chain_view.zig",
 ]
 
@@ -106,7 +107,7 @@ RELEASE_MARKERS = [
     "`security/landlock/ruleset.c` through `zigux/tests/phase13_landlock_ruleset_manifest.json` lane `P13-L12`",
     "`security/landlock/syscalls.c` through `zigux/tests/phase13_landlock_syscalls_manifest.json` lane `P13-L16`",
     "adjacent notifier-list reviewability evidence through `zigux/tests/phase13_notifier_list_manifest.json` lane `P13-L19`",
-    "the adjacent notifier-list packet now stays visible as roadmap-adjacent release evidence, and its shared replay surface includes the landed read-only generic notifier foothold through `zigux/bindings/notifier_abi.zig` and `zigux/helpers/notifier_chain_view.zig`",
+    "the adjacent notifier-list packet now stays visible as roadmap-adjacent release evidence, and its shared replay surface includes the landed read-only generic notifier foothold through `zigux/bindings/notifier_abi.zig`, the dedicated exported C header `include/zigux/notifier_abi.h`, and `zigux/helpers/notifier_chain_view.zig`",
     "lib/devres.c`: helper slice landed, dedicated tests present, roadmap traceability present, manifest-backed survey present, and helper-first MMIO or resource planners keep live DMA-backed mappings and scatterlist ownership explicitly blocked",
     "the shared replay now also keeps the adjacent helper-first coherent DMA alloc/free bookkeeping replay visible through `phase13-devres-dma-coherent-tests` without turning the blocked devres DMA/scatterlist boundary into a live DMA-backed mapping claim",
     "the shared replay now also keeps the dedicated Landlock syscall reviewability gate visible through `phase13-landlock-syscalls-reviewability-tests` so the manifest-backed syscall helper packet does not look smaller than the actual published replay on current `master`",
@@ -119,7 +120,7 @@ TRACEABILITY_MARKERS = [
     "`zigux/tests/phase13_build.zig`",
     "`zigux/Makefile` via `make -C zigux phase13`",
     "`lib/devres.c` is represented by real helper code, real tests, a manifest-backed survey packet, and explicit blocked DMA/scatterlist boundary evidence",
-    "the same shared packet also keeps `zigux/bindings/notifier_abi.zig`, `zigux/helpers/notifier_chain_view.zig`, `zigux/tests/phase13_notifier_list_reviewability.zig`, and `Documentation/zigux/phase13-notifier-list-survey.md` visible as roadmap-adjacent release-facing evidence without changing the roadmap's four-anchor count",
+    "the same shared packet also keeps `zigux/bindings/notifier_abi.zig`, `include/zigux/notifier_abi.h`, `zigux/helpers/notifier_chain_view.zig`, `zigux/tests/phase13_notifier_list_reviewability.zig`, and `Documentation/zigux/phase13-notifier-list-survey.md` visible as roadmap-adjacent release-facing evidence without changing the roadmap's four-anchor count",
     "reviewability gate: `zigux/tests/phase13_landlock_syscalls_reviewability.zig`",
 ]
 
@@ -135,7 +136,7 @@ DOCS_ROOT_MARKERS = [
 
 SCRIPT_README_MARKERS = [
     "Phase 13 flow",
-    "`validate-phase13-release.py` keeps `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/Makefile`, and `zigux/tests/phase13_build.zig` aligned as one shared release-discipline packet, including the focused `libfs` packet, the adjacent `phase13-devres-dma-coherent-tests` helper evidence, the dedicated `phase13-landlock-syscalls-reviewability-tests` gate, and the adjacent notifier-list release evidence instead of leaving the Phase 13 review path split across isolated docs or build wiring.",
+    "`check-phase13-libfs-packet.py`, `check-phase13-notifier-packet.py`, and `validate-phase13-release.py` keep `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/Makefile`, and `zigux/tests/phase13_build.zig` aligned as one shared release-discipline packet, including the focused `libfs` packet, the adjacent `phase13-devres-dma-coherent-tests` helper evidence, the dedicated `phase13-landlock-syscalls-reviewability-tests` gate, and the adjacent notifier-list release evidence instead of leaving the Phase 13 review path split across isolated docs or build wiring.",
     "`make -C zigux phase13-validate` runs that dedicated release validator before the broader shared replay.",
     "`make -C zigux phase13` routes through the validator before the shared replay, so the local convenience path matches the release-facing review contract.",
     "`Documentation/zigux/phase13-devres-survey.md`, `zigux/tests/phase13_devres_manifest.json`, `zigux/tests/phase13_devres_dma_coherent.zig`, and `zigux/tests/phase13_devres_reviewability.zig` keep the helper-first `devres` packet explicit about adjacent coherent-DMA bookkeeping while live DMA-backed mappings and scatterlist ownership stay blocked rather than implied.",
@@ -200,6 +201,7 @@ RELEASE_EVIDENCE_CORE_PATHS = [
     "zigux/tests/phase13_devres_dma_coherent.zig",
     "zigux/tests/phase13_landlock_syscalls_reviewability.zig",
     "zigux/bindings/notifier_abi.zig",
+    "include/zigux/notifier_abi.h",
     "zigux/helpers/notifier_chain_view.zig",
 ]
 
@@ -320,6 +322,7 @@ def main() -> int:
             "zigux/tests/phase13_devres_reviewability.zig",
             "zigux/tests/phase13_notifier_list_reviewability.zig",
             "zigux/bindings/notifier_abi.zig",
+            "include/zigux/notifier_abi.h",
             "zigux/helpers/notifier_chain_view.zig",
         ]:
             if rel not in product_boundary:
@@ -349,6 +352,7 @@ def main() -> int:
         "zigux/tests/phase13_devres_reviewability.zig",
         "zigux/tests/phase13_notifier_list_reviewability.zig",
         "zigux/bindings/notifier_abi.zig",
+        "include/zigux/notifier_abi.h",
         "zigux/helpers/notifier_chain_view.zig",
     ]:
         if rel not in release_text:
