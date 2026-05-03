@@ -104,9 +104,10 @@ test "phase10 virtio ring survey manifest records the live queue-discipline pack
     for (manifest.surveyed_commit) |ch| {
         try std.testing.expect(std.ascii.isHex(ch));
     }
-    try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
+    try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expectEqualStrings("drivers/virtio/*.zig", manifest.roadmap_destinations[0]);
-    try std.testing.expectEqualStrings("zigux/helpers/", manifest.roadmap_destinations[1]);
+    try std.testing.expectEqualStrings("zigux/kernel/", manifest.roadmap_destinations[1]);
+    try std.testing.expectEqualStrings("zigux/helpers/", manifest.roadmap_destinations[2]);
     try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", manifest.anchor);
     try std.testing.expectEqualStrings("aligned", manifest.freeze_boundary_status);
     try std.testing.expectEqualStrings("blocked_on_risky_transport", manifest.risky_transport_posture);
@@ -189,6 +190,9 @@ test "phase10 virtio ring survey manifest records the live queue-discipline pack
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-mmio-interrupt-ack-helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "no smaller ready transport follow-up remains ahead of the still-blocked lifecycle and IRQ packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Do not reopen the ring lane") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/*.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/kernel/") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/helpers/") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "broken-queue recovery") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "phase10-mmio-lifecycle-and-irq-paths") != null);
