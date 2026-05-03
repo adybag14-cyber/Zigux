@@ -23,6 +23,12 @@ HEADER_BINDING_MARKERS = {
         "#define zigux_assert_layout(type, expected_size) \\",
         "zigux_bitmap_view_from_words(const unsigned long *words, zigux_u32 nbits)",
     ),
+    "include/zigux/rbtree.h": (
+        "#define ZIGUX_RBTREE_ROOT_FLAG_EMPTY 1U",
+        "#define ZIGUX_RBTREE_ROOT_FLAG_CACHED 2U",
+        "#define ZIGUX_RBTREE_ROOT_FLAG_LEFTMOST_VALID 4U",
+        "struct zigux_rbtree_root_view {",
+    ),
     "zigux/bindings/abi.zig": (
         "pub const ABI_VERSION: u16 = 1;",
         "pub const STATUS_FLAG_ERROR: u16 = 1;",
@@ -33,6 +39,13 @@ HEADER_BINDING_MARKERS = {
         "pub const CHRDEV_NOTIFY_MASK_SUCCESS: u32 = 1;",
         "pub const CHRDEV_NOTIFY_STATUS_DELIVERED: u32 = 1;",
         "pub const CHRDEV_NOTIFY_ACK_STATUS_ACKED: u32 = 1;",
+    ),
+    "zigux/bindings/rbtree.zig": (
+        "pub const ROOT_FLAG_EMPTY: u32 = 1;",
+        "pub const ROOT_FLAG_CACHED: u32 = 2;",
+        "pub const ROOT_FLAG_LEFTMOST_VALID: u32 = 4;",
+        "pub const RootView = extern struct {",
+        "pub fn isValid(view: RootView) bool {",
     ),
     "Documentation/zigux/phase3-abi-slice.md": (
         "PHASE3_CURRENT_INTEROP_FAMILIES=bitmap-cpumask-list-hlist-errptr-xarray-idr-ida-minor-alloc-dev-region-cdev-chrdev",
@@ -103,6 +116,8 @@ HEADER_BINDING_MARKERS = {
         "try std.testing.expect(uapi_version.isCanonical(uapi_header));",
     ),
     "zigux/tests/fixtures/phase3_abi_manifest.json": (
+        '"include/zigux/rbtree.h",',
+        '"zigux/bindings/rbtree.zig",',
         '"zigux/tests/build.zig",',
         '"zigux/tests/phase3_export_uapi_build.zig",',
         '"zigux/tests/phase3_export_uapi.zig",',
@@ -179,6 +194,26 @@ def run_self_test() -> int:
         issues = validate_header_binding_markers(root)
         assert f"header-binding-marker: include/zigux/abi.h missing {first_marker}" in issues
         assert f"header-binding-marker: zigux/bindings/abi.zig missing {notify_ack_marker}" in issues
+
+        rbtree_header_marker = HEADER_BINDING_MARKERS["include/zigux/rbtree.h"][-1]
+        rbtree_header = root / "include/zigux/rbtree.h"
+        rbtree_header.write_text(
+            rbtree_header.read_text(encoding="utf-8").replace(rbtree_header_marker + "\n", "", 1),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate_header_binding_markers(root)
+        assert f"header-binding-marker: include/zigux/rbtree.h missing {rbtree_header_marker}" in issues
+
+        rbtree_binding_marker = HEADER_BINDING_MARKERS["zigux/bindings/rbtree.zig"][3]
+        rbtree_bindings = root / "zigux/bindings/rbtree.zig"
+        rbtree_bindings.write_text(
+            rbtree_bindings.read_text(encoding="utf-8").replace(rbtree_binding_marker + "\n", "", 1),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate_header_binding_markers(root)
+        assert f"header-binding-marker: zigux/bindings/rbtree.zig missing {rbtree_binding_marker}" in issues
 
         build_marker = HEADER_BINDING_MARKERS["zigux/tests/build.zig"][6]
         build_file = root / "zigux/tests/build.zig"
