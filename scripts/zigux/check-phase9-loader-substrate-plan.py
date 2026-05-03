@@ -96,11 +96,27 @@ TRACE_EVENTS_LOADER_REQUIRED_MARKERS = [
     "\"foo_bar_unreg\"",
 ]
 
+TRACE_EVENTS_LOADER_REQUIRED_CONTROL_SURFACE_MARKERS = [
+    "\"perf-runtime-trace-events\"",
+    "error.InvalidCommandName",
+]
+
 TRACE_EVENTS_LOADER_FORBIDDEN_MARKERS = [
     "requestSharedRuntimeLoad",
     "releaseSharedRuntimeLoadWithoutSubstrate",
     "RuntimeLoadRequest",
     "toSharedRequest(",
+]
+
+TRACE_EVENTS_LOADER_FORBIDDEN_CONTROL_SURFACE_MARKERS = [
+    "ExtractArgv0Result.command_name",
+    "Config.exec_path_env",
+    "\"PERF_EXEC_PATH\"",
+    "env.get(\"PATH\")",
+    "env_lines",
+    "env_columns",
+    "argv_policy",
+    "activation_env",
 ]
 
 EXPECTED_LIFECYCLE_BOUNDARY_SUMMARY = {
@@ -341,9 +357,15 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     for marker in TRACE_EVENTS_LOADER_REQUIRED_MARKERS:
         if marker not in trace_events_loader_text:
             missing_markers.append(f"trace_events_loader:{marker}")
+    for marker in TRACE_EVENTS_LOADER_REQUIRED_CONTROL_SURFACE_MARKERS:
+        if marker not in trace_events_loader_text:
+            missing_markers.append(f"trace_events_loader_control_surface:{marker}")
     for marker in TRACE_EVENTS_LOADER_FORBIDDEN_MARKERS:
         if marker in trace_events_loader_text:
             missing_markers.append(f"trace_events_loader_forbidden:{marker}")
+    for marker in TRACE_EVENTS_LOADER_FORBIDDEN_CONTROL_SURFACE_MARKERS:
+        if marker in trace_events_loader_text:
+            missing_markers.append(f"trace_events_loader_control_surface_forbidden:{marker}")
 
     missing_markers.extend(validate_manifest_alignment(root))
     return [], missing_markers
@@ -518,6 +540,8 @@ def write_fixture_tree(root: Path) -> None:
                 "pub fn prepareWithCommandName() void {}",
                 "pub fn requestRuntimeLoad() void {}",
                 "pub fn releasePlanWithoutSubstrate() void {}",
+                'const review_only_command_name = "perf-runtime-trace-events";',
+                "const invalid_command_name = error.InvalidCommandName;",
                 'const register_api = "foo_bar_reg";',
                 'const unregister_api = "foo_bar_unreg";',
                 "",
@@ -747,6 +771,21 @@ def run_self_test() -> int:
         trace_events_loader_path.write_text(original_trace_events_loader, encoding="utf-8")
 
         trace_events_loader_path.write_text(
+            original_trace_events_loader.replace(
+                'const review_only_command_name = "perf-runtime-trace-events";',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "trace_events_loader_review_only_command_name",
+            tmp_root,
+            'trace_events_loader_control_surface:"perf-runtime-trace-events"',
+        )
+        trace_events_loader_path.write_text(original_trace_events_loader, encoding="utf-8")
+
+        trace_events_loader_path.write_text(
             original_trace_events_loader + "\npub fn requestSharedRuntimeLoad() void {}\n",
             encoding="utf-8",
         )
@@ -757,8 +796,19 @@ def run_self_test() -> int:
         )
         trace_events_loader_path.write_text(original_trace_events_loader, encoding="utf-8")
 
+        trace_events_loader_path.write_text(
+            original_trace_events_loader + '\nconst env_hint = "PERF_EXEC_PATH";\n',
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "trace_events_loader_forbidden_phase8_env_marker",
+            tmp_root,
+            'trace_events_loader_control_surface_forbidden:"PERF_EXEC_PATH"',
+        )
+        trace_events_loader_path.write_text(original_trace_events_loader, encoding="utf-8")
+
     print("PHASE9_LOADER_SUBSTRATE_PLAN_SELF_TEST=pass")
-    print("PHASE9_LOADER_SUBSTRATE_PLAN_SELF_TEST_CASE_COUNT=15")
+    print("PHASE9_LOADER_SUBSTRATE_PLAN_SELF_TEST_CASE_COUNT=17")
     return 0
 
 
@@ -801,7 +851,7 @@ def main() -> int:
     print("PHASE9_LOADER_SUBSTRATE_PLAN=pass")
     print(
         "PHASE9_LOADER_SUBSTRATE_PLAN_MARKER_COUNT="
-        f"{len(SURVEY_REQUIRED_MARKERS) + len(SUBSTRATE_PLAN_REQUIRED_MARKERS) + len(REVIEW_CHECKLIST_REQUIRED_MARKERS) + len(SAMPLES_README_REQUIRED_MARKERS) + len(MAKEFILE_REQUIRED_MARKERS) + len(TRACE_EVENTS_LOADER_REQUIRED_MARKERS) + len(TRACE_EVENTS_LOADER_FORBIDDEN_MARKERS) + 16}"
+        f"{len(SURVEY_REQUIRED_MARKERS) + len(SUBSTRATE_PLAN_REQUIRED_MARKERS) + len(REVIEW_CHECKLIST_REQUIRED_MARKERS) + len(SAMPLES_README_REQUIRED_MARKERS) + len(MAKEFILE_REQUIRED_MARKERS) + len(TRACE_EVENTS_LOADER_REQUIRED_MARKERS) + len(TRACE_EVENTS_LOADER_REQUIRED_CONTROL_SURFACE_MARKERS) + len(TRACE_EVENTS_LOADER_FORBIDDEN_MARKERS) + len(TRACE_EVENTS_LOADER_FORBIDDEN_CONTROL_SURFACE_MARKERS) + 16}"
     )
     return 0
 
