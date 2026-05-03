@@ -130,7 +130,37 @@ def capture_emit_result(matched: bool, details: dict[str, object]) -> tuple[int,
     return exit_code, stream.getvalue().splitlines()
 
 
+EXPECTED_SELF_TEST_CASES = [
+    'text_pass',
+    'text_mismatch',
+    'json_pass',
+    'json_mismatch',
+    'json_invalid_expected',
+    'json_invalid_actual',
+    'json_invalid_both',
+    'json_missing_expected',
+    'json_missing_actual',
+    'json_missing_both',
+    'sha256_pass',
+    'sha256_drift',
+    'text_missing_expected',
+    'text_missing_actual',
+    'text_missing_both',
+    'sha256_missing_expected',
+    'sha256_missing_actual',
+    'sha256_missing_both',
+]
+
+
+def assert_self_test_catalog_shape() -> None:
+    if len(set(EXPECTED_SELF_TEST_CASES)) != len(EXPECTED_SELF_TEST_CASES):
+        raise AssertionError(
+            f'artifact-diff self-test cases must stay unique: {EXPECTED_SELF_TEST_CASES}'
+        )
+
+
 def run_self_test() -> int:
+    assert_self_test_catalog_shape()
     covered_cases: list[str] = []
 
     with tempfile.TemporaryDirectory(prefix='zigux_artifact_diff_') as tmp_dir_str:
@@ -442,9 +472,15 @@ def run_self_test() -> int:
         assert lines == render_result_lines(matched, details)
         covered_cases.append('sha256_missing_both')
 
+    if covered_cases != EXPECTED_SELF_TEST_CASES:
+        raise AssertionError(
+            'artifact-diff self-test case catalog drifted: '
+            f'expected {EXPECTED_SELF_TEST_CASES}, got {covered_cases}'
+        )
+
     print('ARTIFACT_DIFF_SELF_TEST=pass')
-    print(f'ARTIFACT_DIFF_SELF_TEST_CASE_COUNT={len(covered_cases)}')
-    print('ARTIFACT_DIFF_SELF_TEST_CASES=' + ','.join(covered_cases))
+    print(f'ARTIFACT_DIFF_SELF_TEST_CASE_COUNT={len(EXPECTED_SELF_TEST_CASES)}')
+    print('ARTIFACT_DIFF_SELF_TEST_CASES=' + ','.join(EXPECTED_SELF_TEST_CASES))
     return 0
 
 
