@@ -73,6 +73,8 @@ When the shared-versus-dedicated replay contract changes, keep these contributor
 
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
+- `Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md`
+- `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 
@@ -91,7 +93,10 @@ The minimum agreement surface for that kind of change is:
 - `scripts/zigux/check-phase11-shared-replay-contract.py`
 - `scripts/zigux/check-phase11-header-boundary-packet.py`
 - `scripts/zigux/validate-phase11.py`
+- `Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md`
+- `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
 - `zigux/tests/phase11_hvc_console_survey.zig`
+- `zigux/tests/phase11_uapi_header_parity_manifest.json`
 - `zigux/tests/phase11_uapi_header_parity_survey.zig`
 
 If those files drift apart, the Phase 11 delivery packet stops being reviewable even if individual Zig test files still look plausible in isolation.
