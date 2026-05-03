@@ -54,13 +54,13 @@ That is a better state than before, because the repo now has a real dedicated Ph
 
 ## Validation Route
 
-The dedicated roadmap-gap survey is reviewed through the shared validator-first path rather than as a standalone bootstrap entrypoint.
+The dedicated roadmap-gap survey is reviewed through the shared validator-first path rather than as a standalone bootstrap or release entrypoint.
 
 - `python3 scripts/zigux/validate-phase3.py`
 - `make -C zigux phase3-validate`
 - the bootstrap workflow replays the same shared validator route before the broader Phase 3 ABI and interop tests run
 - `python3 scripts/zigux/check-phase3-canonical-survey-manifest.py` stays inside that same validator-first route so the canonical survey-script list in `validate-phase3.py` and the committed `zigux/tests/fixtures/phase3_abi_manifest.json` packet cannot drift apart silently
-- `python3 scripts/zigux/validate-phase3-rbtree-interop-survey.py` also stays inside that same validator-first route so the dedicated `rbtree` survey, shared-lift contract, and remaining shared-ABI gap stay reviewable without becoming a standalone release path
+- `python3 scripts/zigux/validate-phase3-roadmap-gap-survey.py`, `python3 scripts/zigux/validate-phase3-rbtree-interop-survey.py`, `python3 scripts/zigux/check-phase3-rbtree-shared-lift-contract.py`, `python3 scripts/zigux/validate-phase3-export-uapi-survey.py`, `python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py`, and `python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py` stay as supporting checks inside that same validator-first route instead of standalone release paths
 
 ## Next Bounded Step
 
