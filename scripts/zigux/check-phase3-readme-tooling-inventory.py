@@ -1,0 +1,128 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+from pathlib import Path
+import tempfile
+
+
+ROOT = Path(__file__).resolve().parents[2]
+README_REL = "scripts/zigux/README.md"
+REQUIRED_TOOLING_ENTRIES = (
+    "check-phase3-abi-layout-packet.py",
+    "check-phase3-build-roots.py",
+    "check-phase3-policy-unsafe-mmio-consumer.py",
+    "check-phase3-rbtree-shared-lift-contract.py",
+    "check-phase3-readme-tooling-inventory.py",
+    "check-phase3-tooling-packet.py",
+    "check-phase3-validation-flow.py",
+    "generate-phase3-check-wrappers.py",
+    "phase3_check_lib.py",
+    "validate-phase3-rbtree-interop-survey.py",
+)
+
+
+def validate(root: Path) -> list[str]:
+    readme_path = root / README_REL
+    try:
+        readme = readme_path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return [f"missing_readme:{README_REL}"]
+
+    issues: list[str] = []
+    for basename in REQUIRED_TOOLING_ENTRIES:
+        rel = f"scripts/zigux/{basename}"
+        if not (root / rel).exists():
+            issues.append(f"missing_repo_file:{rel}")
+        if f"- `{basename}`" not in readme:
+            issues.append(f"missing_readme_entry:{basename}")
+    return issues
+
+
+def _write(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8", newline="\n")
+
+
+def run_self_test() -> int:
+    with tempfile.TemporaryDirectory(prefix="zigux_phase3_readme_tooling_inventory_") as tmp_dir:
+        root = Path(tmp_dir) / "repo"
+
+        for basename in REQUIRED_TOOLING_ENTRIES:
+            _write(root / "scripts" / "zigux" / basename, "# stub\n")
+
+        helper_lines = "\n".join(f"- `{basename}`" for basename in REQUIRED_TOOLING_ENTRIES)
+        _write(
+            root / README_REL,
+            "# scripts/zigux\n\nCurrent bootstrap helpers\n"
+            + helper_lines
+            + "\n",
+        )
+
+        issues = validate(root)
+        if issues:
+            raise SystemExit(
+                "phase3-readme-tooling-inventory-self-test:baseline_failed:" + ",".join(issues)
+            )
+
+        _write(
+            root / README_REL,
+            "# scripts/zigux\n\nCurrent bootstrap helpers\n"
+            + "\n".join(
+                f"- `{basename}`"
+                for basename in REQUIRED_TOOLING_ENTRIES
+                if basename != REQUIRED_TOOLING_ENTRIES[0]
+            )
+            + "\n",
+        )
+        issues = validate(root)
+        expected = f"missing_readme_entry:{REQUIRED_TOOLING_ENTRIES[0]}"
+        if issues != [expected]:
+            raise SystemExit(
+                "phase3-readme-tooling-inventory-self-test:missing_readme_entry_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+        _write(
+            root / README_REL,
+            "# scripts/zigux\n\nCurrent bootstrap helpers\n" + helper_lines + "\n",
+        )
+        (root / "scripts" / "zigux" / REQUIRED_TOOLING_ENTRIES[-1]).unlink()
+        issues = validate(root)
+        expected = f"missing_repo_file:scripts/zigux/{REQUIRED_TOOLING_ENTRIES[-1]}"
+        if issues != [expected]:
+            raise SystemExit(
+                "phase3-readme-tooling-inventory-self-test:missing_repo_file_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
+    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=2")
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="Keep the scripts/zigux README inventory aligned with the live Phase 3 tooling packet."
+    )
+    parser.add_argument("--self-test", action="store_true", help="Run isolated checker coverage.")
+    parser.add_argument("root", nargs="?", help="Optional repo root override.")
+    args = parser.parse_args()
+
+    if args.self_test:
+        return run_self_test()
+
+    issues = validate(Path(args.root).resolve() if args.root else ROOT)
+    if issues:
+        print("PHASE3_README_TOOLING_INVENTORY=fail")
+        for issue in issues:
+            print(issue)
+        return 1
+
+    print("PHASE3_README_TOOLING_INVENTORY=pass")
+    print(f"PHASE3_README_TOOLING_INVENTORY_ENTRY_COUNT={len(REQUIRED_TOOLING_ENTRIES)}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
