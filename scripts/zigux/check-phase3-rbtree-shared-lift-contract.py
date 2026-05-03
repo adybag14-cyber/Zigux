@@ -20,12 +20,14 @@ REQUIRED_SURVEY_MARKERS = (
     "PHASE3_RBTREE_SHARED_LAYOUT_CONTRACT=zigux_rbtree_root_view-reused-unchanged-in-shared-phase3-abi-packet",
     "PHASE3_RBTREE_SHARED_CONSTANT_CONTRACT=root_flag_empty,root_flag_cached,root_flag_leftmost_valid",
     "PHASE3_RBTREE_SHARED_CONTRACT=zigux/tests/phase3_rbtree_shared_contract.zig",
+    "PHASE3_RBTREE_SHARED_PACKET_CATALOG=phase3_abi_manifest-catalogs-dedicated-rbtree-boundary-packet",
 )
 
 REQUIRED_SURVEY_SNIPPETS = (
     "`python3 scripts/zigux/check-phase3-rbtree-shared-lift-contract.py` keeps the dedicated root-view layout, constants, and shared-lift note aligned before the shared ABI packet grows",
     "the shared lift should reuse the dedicated `zigux_rbtree_root_view` layout and `root_flag_empty`, `root_flag_cached`, and `root_flag_leftmost_valid` constants unchanged so the contract stays reviewable across the existing dedicated parity fixture",
     "`zigux/tests/phase3_rbtree_shared_contract.zig` now keeps that planned shared packet layout and constant contract machine-checked even before the full shared header lift lands",
+    "the shared Phase 3 ABI manifest now explicitly catalogs the dedicated `rbtree` boundary header, binding, dump, survey, and parity fixture files so the remaining gap is the shared header and binding lift itself rather than whether the dedicated packet belongs to the shared ABI tranche",
 )
 
 REQUIRED_ROADMAP_GAP_MARKERS = (
@@ -45,6 +47,19 @@ REQUIRED_SHARED_CONTRACT_SNIPPETS = (
     "rbtree.ROOT_FLAG_EMPTY",
     "rbtree.ROOT_FLAG_CACHED",
     "rbtree.ROOT_FLAG_LEFTMOST_VALID",
+)
+
+REQUIRED_SHARED_MANIFEST_RBTREE_FILES = (
+    "include/zigux/rbtree.h",
+    "zigux/bindings/rbtree.zig",
+    "zigux/tests/phase3_rbtree_dump.zig",
+    "zigux/tests/phase3_rbtree_survey.zig",
+    "zigux/tests/phase3_rbtree_manifest.json",
+    "zigux/tests/phase3_rbtree_shared_contract.zig",
+    "zigux/tests/fixtures/phase3_rbtree/expected.json",
+    "zigux/tests/fixtures/phase3_rbtree/phase3_rbtree_c_harness.c",
+    "Documentation/zigux/phase3-rbtree-slice.md",
+    "Documentation/zigux/phase3-rbtree-interop-survey.md",
 )
 
 EXPECTED_CONSTANTS = {
@@ -105,8 +120,10 @@ def validate(root: Path) -> list[str]:
             if snippet not in shared_contract_text:
                 issues.append(f"missing_shared_contract_snippet:{snippet}")
 
-    if manifest_text and f'"{SHARED_CONTRACT_REL}"' not in manifest_text:
-        issues.append(f"missing_shared_contract_manifest_entry:{SHARED_CONTRACT_REL}")
+    if manifest_text:
+        for rel in REQUIRED_SHARED_MANIFEST_RBTREE_FILES:
+            if f'"{rel}"' not in manifest_text:
+                issues.append(f"missing_shared_contract_manifest_entry:{rel}")
 
     if header_text:
         for token in (
@@ -223,7 +240,7 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         (root / PHASE3_MANIFEST_REL).write_text(
-            json.dumps({"files": [SHARED_CONTRACT_REL]}),
+            json.dumps({"files": list(REQUIRED_SHARED_MANIFEST_RBTREE_FILES)}),
             encoding="utf-8",
         )
 
@@ -239,7 +256,7 @@ def run_self_test() -> int:
         )
         (root / PHASE3_MANIFEST_REL).write_text(json.dumps({"files": []}), encoding="utf-8")
         issues = validate(root)
-        assert f"missing_shared_contract_manifest_entry:{SHARED_CONTRACT_REL}" in issues
+        assert f"missing_shared_contract_manifest_entry:{REQUIRED_SHARED_MANIFEST_RBTREE_FILES[0]}" in issues
 
     print("PHASE3_RBTREE_SHARED_LIFT_CONTRACT_SELF_TEST=pass")
     return 0
