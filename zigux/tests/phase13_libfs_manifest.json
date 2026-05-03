@@ -125,6 +125,13 @@
       "why_now": "The libfs helper lab now models the tiny simple_open() private-data handoff in pure planning form so Zigux can keep the inode->i_private to file->private_data borrow explicit without claiming live inode mutation, open-time allocation, or broader file lifecycle ownership."
     },
     {
+      "id": "phase13-libfs-addressability-helper",
+      "status": "ready_next",
+      "kind": "filesystem_helper_wrapper",
+      "zigux_destination": "fs/libfs.zig",
+      "why_now": "The current packet still leaves one roadmap-aligned pure helper available before the live-state blockers take over: generic_check_addressable() is a bounded block-size, overflow, and addressability check that can be modeled without claiming live superblock, page-cache, or inode ownership."
+    },
+    {
       "id": "phase13-libfs-dcache-cursor-helpers",
       "status": "blocked_on_vfs_state",
       "kind": "filesystem_helper_wrapper",
