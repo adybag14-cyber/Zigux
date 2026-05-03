@@ -77,6 +77,8 @@ MAKEFILE_EXACT_ONCE_MARKERS = [
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py\n",
     "phase9-loader-gap-survey:\n",
     "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_loader_gap_survey.zig\n",
+    "phase9-non-owner-boundary-survey:\n",
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_loader_non_owner_boundary_survey.zig\n",
     "phase9-module-metadata-survey:\n",
     "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_module_metadata_survey.zig\n",
     "phase9-kretprobe-survey:\n",
@@ -586,6 +588,62 @@ def run_self_test() -> int:
         )
         makefile_path.write_text(original_makefile, encoding="utf-8")
 
+        makefile_path.write_text(
+            original_makefile.replace("phase9-non-owner-boundary-survey:\n", "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "non_owner_boundary_target",
+            tmp_root,
+            "makefile:phase9-non-owner-boundary-survey:",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        makefile_path.write_text(
+            original_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_loader_non_owner_boundary_survey.zig\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "non_owner_boundary_command",
+            tmp_root,
+            "makefile:\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_loader_non_owner_boundary_survey.zig\n",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        makefile_path.write_text(
+            original_makefile.replace(
+                "phase9-non-owner-boundary-survey:\n",
+                "phase9-non-owner-boundary-survey:\n\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_loader_non_owner_boundary_survey.zig\n\nphase9-non-owner-boundary-survey:\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "non_owner_boundary_duplicate_target",
+            tmp_root,
+            "makefile_exact:phase9-non-owner-boundary-survey:\n",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        makefile_path.write_text(
+            original_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_loader_non_owner_boundary_survey.zig\n",
+                "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_loader_non_owner_boundary_survey.zig\n\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_loader_non_owner_boundary_survey.zig\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "non_owner_boundary_duplicate_command",
+            tmp_root,
+            "makefile_exact:\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_loader_non_owner_boundary_survey.zig\n",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
         module_metadata_survey_path = tmp_root / MODULE_METADATA_SURVEY_PATH
         original_module_metadata_survey = module_metadata_survey_path.read_text(encoding="utf-8")
         module_metadata_survey_path.write_text(
@@ -940,7 +998,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE9_VALIDATION_FLOW_SELF_TEST=pass")
-    print("PHASE9_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=31")
+    print("PHASE9_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=35")
     return 0
 
 
