@@ -86,7 +86,7 @@ RELEASE_MARKERS = [
     "`lib/devres.c` through `zigux/tests/phase13_devres_manifest.json` lane `P13-L10`",
     "`security/landlock/ruleset.c` through `zigux/tests/phase13_landlock_ruleset_manifest.json` lane `P13-L12`",
     "`security/landlock/syscalls.c` through `zigux/tests/phase13_landlock_syscalls_manifest.json` lane `P13-L16`",
-    "adjacent notifier-list reviewability evidence through `zigux/tests/phase13_notifier_list_manifest.json` lane `P13-L18`",
+    "adjacent notifier-list reviewability evidence through `zigux/tests/phase13_notifier_list_manifest.json` lane `P13-L19`",
     "the adjacent notifier-list packet now stays visible as roadmap-adjacent release evidence, and its shared replay surface includes the landed read-only generic notifier foothold through `zigux/bindings/notifier_abi.zig` and `zigux/helpers/notifier_chain_view.zig`",
     "lib/devres.c`: helper slice landed, dedicated tests present, roadmap traceability present, manifest-backed survey present, and helper-first MMIO or resource planners keep live DMA-backed mappings and scatterlist ownership explicitly blocked",
     "the shared replay now also keeps the adjacent helper-first coherent DMA alloc/free bookkeeping replay visible through `phase13-devres-dma-coherent-tests` without turning the blocked devres DMA/scatterlist boundary into a live DMA-backed mapping claim",
@@ -106,27 +106,18 @@ TRACEABILITY_MARKERS = [
 DOCS_ROOT_MARKERS = [
     "Phase 13 notes",
     "`Documentation/zigux/phase13-roadmap-traceability.md` now maps the four shared-helper roadmap anchors `fs/libfs.c`, `lib/devres.c`, `security/landlock/ruleset.c`, and `security/landlock/syscalls.c` to the live Zigux evidence so the current Phase 13 packet is visible from the docs root.",
+    "`Documentation/zigux/phase13-release-notes-survey.md` records the active Phase 13 release-discipline packet, including the validator-first entrypoints, the four manifest-backed roadmap anchors, and the current helper-first non-goals, so release-facing review does not depend on the traceability note alone.",
     "`Documentation/zigux/phase13-libfs-survey.md`, `Documentation/zigux/phase13-devres-survey.md`, `Documentation/zigux/phase13-landlock-ruleset-survey.md`, and `Documentation/zigux/phase13-landlock-syscalls-survey.md` plus the four `zigux/tests/phase13_*_manifest.json` files now keep the current helper-first boundaries explicit instead of implying broader runtime parity.",
     "`make -C zigux phase13-validate` is the current validator-first entrypoint for the shared Phase 13 release-discipline packet.",
-    "`zigux/tests/phase13_build.zig` and `make -C zigux phase13` remain the published shared replay path; the earlier `phase13_landlock_ruleset.zig` EOF blocker note is now historical, and the remaining live `P13-L12` blocker is the manifest-backed helper boundary around `rb_replace_node()`, live object ownership transfer, hierarchy lifetime, and workqueue-backed teardown.",
+    "`zigux/tests/phase13_build.zig` and `make -C zigux phase13` remain the published shared replay path; the earlier `phase13_landlock_ruleset.zig` EOF blocker note is now historical, the shared replay has already been rerun successfully on current `master`, and the remaining live `P13-L12` blocker is the manifest-backed helper boundary around `rb_replace_node()`, live object ownership transfer, hierarchy lifetime, and workqueue-backed teardown.",
 ]
 
 SCRIPT_README_MARKERS = [
-    "Current bootstrap helpers",
-    "`validate-phase13-release.py`",
     "Phase 13 flow",
-    "`Documentation/zigux/phase13-release-notes-survey.md`",
-    "`Documentation/zigux/phase13-roadmap-traceability.md`",
-    "`Documentation/zigux/review-checklist.md`",
-    "`scripts/zigux/README.md`",
-    "`make -C zigux phase13-validate`",
-    "`zigux/tests/phase13_build.zig`",
-    "`make -C zigux phase13` routes through the validator before the shared replay",
-    "`Documentation/zigux/phase13-devres-survey.md`",
-    "`zigux/tests/phase13_devres_manifest.json`",
-    "`zigux/tests/phase13_devres_dma_coherent.zig`",
-    "`zigux/tests/phase13_devres_reviewability.zig`",
-    "adjacent coherent-DMA bookkeeping while live DMA-backed mappings and scatterlist ownership stay blocked rather than implied",
+    "`validate-phase13-release.py` keeps `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/Makefile`, and `zigux/tests/phase13_build.zig` aligned as one shared release-discipline packet instead of leaving the Phase 13 review path split across isolated docs or build wiring.",
+    "`make -C zigux phase13-validate` runs that dedicated release validator before the broader shared replay.",
+    "`make -C zigux phase13` routes through the validator before the shared replay, so the local convenience path matches the release-facing review contract.",
+    "`Documentation/zigux/phase13-devres-survey.md`, `zigux/tests/phase13_devres_manifest.json`, `zigux/tests/phase13_devres_dma_coherent.zig`, and `zigux/tests/phase13_devres_reviewability.zig` keep the helper-first `devres` packet explicit about adjacent coherent-DMA bookkeeping while live DMA-backed mappings and scatterlist ownership stay blocked rather than implied.",
 ]
 
 REVIEW_CHECKLIST_MARKERS = [
@@ -384,7 +375,7 @@ for marker in DEVRES_REVIEWABILITY_MARKERS:
 notifier_manifest = load_json("zigux/tests/phase13_notifier_list_manifest.json")
 if notifier_manifest.get("phase") != "Phase 13":
     missing.append("zigux/tests/phase13_notifier_list_manifest.json:phase")
-if notifier_manifest.get("lane_key") != "P13-L18":
+if notifier_manifest.get("lane_key") != "P13-L19":
     missing.append("zigux/tests/phase13_notifier_list_manifest.json:lane_key")
 notifier_summary = notifier_manifest.get("survey_summary")
 if not isinstance(notifier_summary, dict):
