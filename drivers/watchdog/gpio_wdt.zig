@@ -259,6 +259,32 @@ pub const RegisterDeviceCallSummary = struct {
     blocked_on_reboot_glue: bool,
 };
 
+pub const RegisterDeviceFailureMode = enum {
+    none,
+    descriptor_preflight_pending,
+    platform_registration_pending,
+    reboot_glue_pending,
+};
+
+pub const RegisterDeviceFailureSummary = struct {
+    anchor: []const u8,
+    hw_algo: HardwareAlgorithm,
+    requested_line: ProbeLineRequest,
+    start_mode: ProbeStartMode,
+    always_running: bool,
+    nowayout: bool,
+    register_device_requested: bool,
+    remains_summary_only: bool,
+    primary_failure_mode: RegisterDeviceFailureMode,
+    failure_mode_count: u8,
+    descriptor_preflight_pending: bool,
+    platform_registration_pending: bool,
+    reboot_glue_pending: bool,
+    preserves_registration_running_state: bool,
+    preserves_registration_line_state: bool,
+    preserves_registration_line_is_output: bool,
+};
+
 pub const GpioWatchdogLab = struct {
     const Self = @This();
 
@@ -663,6 +689,40 @@ pub const GpioWatchdogLab = struct {
             .blocked_on_gpio_descriptor = true,
             .blocked_on_platform_registration = true,
             .blocked_on_reboot_glue = true,
+        };
+    }
+
+    pub fn registerDeviceFailureSummary(self: *const Self, nowayout: bool) RegisterDeviceFailureSummary {
+        const call = self.registerDeviceCallSummary(nowayout);
+        var failure_mode_count: u8 = 0;
+        if (call.blocked_on_gpio_descriptor) failure_mode_count += 1;
+        if (call.blocked_on_platform_registration) failure_mode_count += 1;
+        if (call.blocked_on_reboot_glue) failure_mode_count += 1;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .hw_algo = self.hw_algo,
+            .requested_line = call.requested_line,
+            .start_mode = call.start_mode,
+            .always_running = self.always_running,
+            .nowayout = nowayout,
+            .register_device_requested = call.register_device_requested,
+            .remains_summary_only = failure_mode_count > 0,
+            .primary_failure_mode = if (call.blocked_on_gpio_descriptor)
+                .descriptor_preflight_pending
+            else if (call.blocked_on_platform_registration)
+                .platform_registration_pending
+            else if (call.blocked_on_reboot_glue)
+                .reboot_glue_pending
+            else
+                .none,
+            .failure_mode_count = failure_mode_count,
+            .descriptor_preflight_pending = call.blocked_on_gpio_descriptor,
+            .platform_registration_pending = call.blocked_on_platform_registration,
+            .reboot_glue_pending = call.blocked_on_reboot_glue,
+            .preserves_registration_running_state = call.reaches_registration_running,
+            .preserves_registration_line_state = call.reaches_registration_line_state,
+            .preserves_registration_line_is_output = call.reaches_registration_line_is_output,
         };
     }
 
