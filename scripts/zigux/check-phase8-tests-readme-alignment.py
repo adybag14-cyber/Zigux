@@ -660,6 +660,21 @@ def run_self_test() -> int:
 
         perf_slice_path.write_text(
             original_perf_slice.replace(
+                "- phase8-perf-buffer-poll-tests\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "perf_slice_artifact_name",
+            tmp_root,
+            "perf_slice:phase8-perf-buffer-poll-tests",
+        )
+        perf_slice_path.write_text(original_perf_slice, encoding="utf-8")
+
+        perf_slice_path.write_text(
+            original_perf_slice.replace(
                 "- make -C zigux phase8-perf-buffer-poll-test\n",
                 "",
                 1,
@@ -930,7 +945,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=36")
+    print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=37")
     return 0
 
 
