@@ -46,6 +46,11 @@ TESTS_README_MARKERS = [
     "four lane survey manifests plus the shared `zigux/tests/phase10_closure_manifest.json`",
 ]
 
+TESTS_README_EXACT_ONCE_MARKERS = [
+    "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
+    "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
+]
+
 DOCS_README_MARKERS = [
     "python3 scripts/zigux/check-phase10-harness-coverage.py",
     "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
@@ -71,6 +76,8 @@ CLOSURE_NOTE_MARKERS = [
 ]
 
 CLOSURE_NOTE_EXACT_ONCE_MARKERS = [
+    "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
+    "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
     "PHASE10_TEST_COUNT=11",
 ]
 
@@ -139,6 +146,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         check_markers(missing, name, read_text(root, rel_path), markers)
 
     for name, rel_path, markers in [
+        ("tests_readme", "zigux/tests/README.md", TESTS_README_EXACT_ONCE_MARKERS),
         ("docs_readme", "Documentation/zigux/README.md", DOCS_README_EXACT_ONCE_MARKERS),
         (
             "closure_note",
@@ -425,6 +433,17 @@ def run_self_test() -> int:
         )
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
+        tests_readme_path.write_text(
+            original_tests_readme + "\nzigux/tests/phase10_virtio_input_multitouch_preflight.zig\n",
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "tests_readme_multitouch_duplicate",
+            root,
+            "tests_readme:count:zigux/tests/phase10_virtio_input_multitouch_preflight.zig=2",
+        )
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
+
         closure_note_path = root / "Documentation/zigux/phase10-closure-evidence.md"
         original_closure_note = closure_note_path.read_text(encoding="utf-8")
         closure_note_path.write_text(
@@ -450,6 +469,17 @@ def run_self_test() -> int:
             "closure_note_test_count_duplicate",
             root,
             "closure_note:count:PHASE10_TEST_COUNT=11=2",
+        )
+        closure_note_path.write_text(original_closure_note, encoding="utf-8")
+
+        closure_note_path.write_text(
+            original_closure_note + "\nzigux/tests/phase10_virtio_mmio_queue_isolation.zig\n",
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "closure_note_queue_isolation_duplicate",
+            root,
+            "closure_note:count:zigux/tests/phase10_virtio_mmio_queue_isolation.zig=2",
         )
         closure_note_path.write_text(original_closure_note, encoding="utf-8")
 
@@ -535,7 +565,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=19")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=20")
     return 0
 
 
@@ -562,5 +592,5 @@ print("PHASE10_HARNESS_COVERAGE=pass")
 print(f"PHASE10_HARNESS_REQUIRED_FILE_COUNT={len(FILES)}")
 print(
     "PHASE10_HARNESS_REQUIRED_MARKER_COUNT="
-    f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_MARKERS) + len(DOCS_README_MARKERS) + len(DOCS_README_EXACT_ONCE_MARKERS) + len(BUILD_MARKERS) + len(CLOSURE_NOTE_MARKERS) + len(CLOSURE_NOTE_EXACT_ONCE_MARKERS) + len(INPUT_PREFLIGHT_TEST_MARKERS) + len(MMIO_QUEUE_ISOLATION_TEST_MARKERS)}"
+    f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_MARKERS) + len(TESTS_README_EXACT_ONCE_MARKERS) + len(DOCS_README_MARKERS) + len(DOCS_README_EXACT_ONCE_MARKERS) + len(BUILD_MARKERS) + len(CLOSURE_NOTE_MARKERS) + len(CLOSURE_NOTE_EXACT_ONCE_MARKERS) + len(INPUT_PREFLIGHT_TEST_MARKERS) + len(MMIO_QUEUE_ISOLATION_TEST_MARKERS)}"
 )
