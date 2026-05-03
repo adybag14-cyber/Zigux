@@ -10,6 +10,7 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[2]
 PHASE2_CROSS_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross.py"
 PHASE2_VALIDATOR = ROOT / "scripts" / "zigux" / "validate-phase2.py"
+PHASE2_CLOSURE_VALIDATOR = ROOT / "scripts" / "zigux" / "validate-phase2-closure.py"
 WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 MAKEFILE = ROOT / "zigux" / "Makefile"
 README = ROOT / "scripts" / "zigux" / "README.md"
@@ -49,6 +50,12 @@ PHASE2_VALIDATOR_MARKERS = [
     "PHASE2_CROSS_ALIGNMENT_REQUIRED_SOURCE_MARKERS",
     "phase2_cross_alignment_checker",
     "str(PHASE2_CROSS_ALIGNMENT_CHECKER)",
+]
+
+PHASE2_CLOSURE_VALIDATOR_MARKERS = [
+    "CHECK_PHASE2_CROSS_SELFTEST_ALIGNMENT = ROOT / 'scripts' / 'zigux' / 'check-phase2-cross-selftest-alignment.py'",
+    "'PHASE2_CROSS_ALIGNMENT_SELF_TEST=python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test'",
+    "'PHASE2_CROSS_ALIGNMENT_GATE=python3 scripts/zigux/check-phase2-cross-selftest-alignment.py'",
 ]
 
 README_MARKERS = [
@@ -239,6 +246,17 @@ def run_self_test() -> int:
         f"phase2_validator:missing_marker:{PHASE2_VALIDATOR_MARKERS[1]}",
     )
 
+    closure_validator_text = "\n".join(PHASE2_CLOSURE_VALIDATOR_MARKERS)
+    expect_exact_issue(
+        "closure_validator_marker_failure",
+        validate_required_markers(
+            closure_validator_text.replace(PHASE2_CLOSURE_VALIDATOR_MARKERS[0], "", 1),
+            label="phase2_closure_validator",
+            markers=PHASE2_CLOSURE_VALIDATOR_MARKERS,
+        ),
+        f"phase2_closure_validator:missing_marker:{PHASE2_CLOSURE_VALIDATOR_MARKERS[0]}",
+    )
+
     readme_text = "\n".join(README_MARKERS)
     expect_exact_issue(
         "readme_marker_failure",
@@ -281,7 +299,7 @@ def run_self_test() -> int:
             raise SystemExit("phase2-cross-alignment:self-test:json_round_trip")
 
     print("PHASE2_CROSS_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=15")
+    print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
@@ -298,6 +316,7 @@ def main() -> int:
     required_files = [
         PHASE2_CROSS_CHECKER,
         PHASE2_VALIDATOR,
+        PHASE2_CLOSURE_VALIDATOR,
         WORKFLOW,
         MAKEFILE,
         README,
@@ -330,6 +349,13 @@ def main() -> int:
             PHASE2_VALIDATOR.read_text(encoding="utf-8"),
             label="phase2_validator",
             markers=PHASE2_VALIDATOR_MARKERS,
+        )
+    )
+    issues.extend(
+        validate_required_markers(
+            PHASE2_CLOSURE_VALIDATOR.read_text(encoding="utf-8"),
+            label="phase2_closure_validator",
+            markers=PHASE2_CLOSURE_VALIDATOR_MARKERS,
         )
     )
     issues.extend(
