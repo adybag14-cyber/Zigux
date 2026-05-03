@@ -180,7 +180,7 @@ No additional helper should be called Phase 1 work unless this document and the 
 - string prefix unit-test anchor: `tools/lib/string.zig:test "strstarts matches kernel prefix semantics"`
 - string prefix-length unit-test anchor: `tools/lib/string.zig:test "strHasPrefix returns the matched prefix length with C-string semantics"`
 - string suffix unit-test anchor: `tools/lib/string.zig:test "str_ends_with matches kernel suffix semantics"`
-- string memparse unit-test anchor: `tools/lib/string.zig:test "memparse forwards the header-level string helper surface"`
+- string memparse unit-test anchor: `tools/lib/string.zig:test "memparse preserves the header-level string helper contract"`
 
 - `PHASE1_STRING_FIXTURE=zigux/tests/fixtures/phase1_helpers.json`
 - `PHASE1_STRING_REVIEW=string parity covers Linux-style bool parsing for true, false, and invalid forms, C-string-aware strlcpy length and truncation behavior, whitespace cleanup including embedded-NUL remove_spaces handling, replacement, and memchrInv mismatch detection`
