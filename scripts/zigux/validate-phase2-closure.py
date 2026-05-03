@@ -444,7 +444,7 @@ def validate_phase2_cross_alignment_checker_gate(checker_script: Path) -> list[s
     required_markers = {
         'self_test_arg': 'parser.add_argument("--self-test"',
         'self_test_pass_marker': 'print("PHASE2_CROSS_ALIGNMENT_SELF_TEST=pass")',
-        'self_test_case_count_marker': 'print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=8")',
+        'self_test_case_count_marker': 'print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=13")',
         'validator_anchor': 'PHASE2_VALIDATOR = ROOT / "scripts" / "zigux" / "validate-phase2.py"',
         'closure_doc_anchor': 'CLOSURE_DOC = ROOT / "Documentation" / "zigux" / "phase2-closure.md"',
         'targets_manifest_anchor': 'TARGETS_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json"',
