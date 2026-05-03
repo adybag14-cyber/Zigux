@@ -50,7 +50,7 @@ It does require the current tree to say clearly which policy rules are already l
 
 ## Live Repo Reality
 
-This survey now treats `PHASE3_SURVEYED_COMMIT=bc2373f7deedf021c73beaae29555a9ac6b0536d` as the last fully resurveyed shared-head anchor for the directly coupled policy-and-unsafe packet, while the packet-local blob IDs above remain the authoritative current evidence for those helper, build, test, manifest, and slice-note paths when later `master` movement does not change the packet itself.
+This survey now treats `PHASE3_SURVEYED_COMMIT=bc2373f7deedf021c73beaae29555a9ac6b0536d` as the last fully resurveyed shared-head anchor for the directly coupled policy-and-unsafe packet, not as a claim that the current `master` head still equals that commit. For current-truth checks, the packet-local blob IDs above are the authoritative evidence for those helper, build, test, manifest, and slice-note paths whenever later `master` movement leaves the packet unchanged.
 
 The current tree already carries a real bounded policy-and-unsafe substrate:
 
