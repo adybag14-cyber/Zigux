@@ -992,6 +992,32 @@ test "setupPath updates PATH using stored exec path, argv0 path, and fallback de
         inherited_empty,
     );
     try std.testing.expectEqualStrings(inherited_empty, inherited_empty_env.get("PATH").?);
+
+    var inherited_relative_env = EnvMap.init(std.testing.allocator);
+    defer inherited_relative_env.deinit();
+    try execCmdInit(&inherited_relative_env, config);
+
+    var inherited_relative_state = ExecCmdState{};
+    defer inherited_relative_state.deinit(std.testing.allocator);
+    try setArgv0Path(std.testing.allocator, &inherited_relative_state, "scripts");
+    try inherited_relative_env.set("PERF_EXEC_PATH", "tools/bin");
+    try inherited_relative_env.set("PATH", "/usr/bin");
+
+    const inherited_relative = try setupPath(
+        std.testing.allocator,
+        &inherited_relative_env,
+        inherited_relative_state,
+        config,
+        "/repo",
+    );
+    defer std.testing.allocator.free(inherited_relative);
+
+    try std.testing.expectEqualStrings("tools/bin", inherited_relative_env.get("PERF_EXEC_PATH").?);
+    try std.testing.expectEqualStrings(
+        "/repo/tools/bin:/repo/scripts:/usr/bin",
+        inherited_relative,
+    );
+    try std.testing.expectEqualStrings(inherited_relative, inherited_relative_env.get("PATH").?);
 }
 
 test "setupPath ignores an empty argv0 directory sentinel extracted from root-only argv0" {
