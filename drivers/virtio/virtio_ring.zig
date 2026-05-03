@@ -151,6 +151,19 @@ pub const BrokenQueueRecoverySummary = struct {
     notification_count_after_recovery: usize,
 };
 
+pub const QueueTeardownSummary = struct {
+    anchor: []const u8,
+    queue_index: u16,
+    broken: bool,
+    callback_enabled: bool,
+    outstanding_chain_count: u16,
+    pending_used_chain_count: u16,
+    unpublished_chain_count: u16,
+    notification_count: usize,
+    requires_poll_before_teardown: bool,
+    ready_for_drained_teardown: bool,
+};
+
 pub const VirtioRingLab = struct {
     const Self = @This();
     const QueueSlot = struct {
@@ -473,6 +486,26 @@ pub const VirtioRingLab = struct {
         };
     }
 
+    pub fn teardownSummary(self: *const Self, queue_index: u16) !QueueTeardownSummary {
+        const index = try checkedQueueIndex(queue_index);
+        const slot = self.queues[index];
+        if (!slot.active) return error.QueueNotDefined;
+
+        const pending_used_chain_count = slot.last_used_idx -% slot.last_polled_used_idx;
+        return .{
+            .anchor = descriptor().anchor,
+            .queue_index = queue_index,
+            .broken = slot.broken,
+            .callback_enabled = slot.callback_enabled,
+            .outstanding_chain_count = slot.outstanding_chain_count,
+            .pending_used_chain_count = pending_used_chain_count,
+            .unpublished_chain_count = slot.num_added,
+            .notification_count = slot.notification_count,
+            .requires_poll_before_teardown = pending_used_chain_count != 0,
+            .ready_for_drained_teardown = slot.outstanding_chain_count == 0 and pending_used_chain_count == 0 and slot.num_added == 0,
+        };
+    }
+
     pub fn queueShapeSummary(self: *const Self, queue_index: u16) !QueueShapeSummary {
         const index = try checkedQueueIndex(queue_index);
         const slot = self.queues[index];
@@ -608,4 +641,52 @@ test "phase10 virtio ring recovery guard reports outstanding and unpolled debt b
     try std.testing.expectEqual(@as(u16, 0), guard.unpublished_chain_count);
     try std.testing.expect(!guard.recovery_allowed);
     try std.testing.expectError(error.QueueResetRequiresDrainedQueue, ring.recoverBrokenQueue(2));
+}
+
+test "phase10 virtio ring teardown summary marks drained broken queues ready for parked teardown" {
+    var ring = VirtioRingLab{};
+    try ring.defineQueue(3, 8, .packed_ring, true, true);
+
+    try ring.publishDescriptorChain(3);
+    _ = try ring.prepareKick(3);
+    try ring.recordUsedChains(3, 1);
+    _ = try ring.pollUsedBuffers(3);
+    _ = try ring.breakQueue(3);
+
+    const summary = try ring.teardownSummary(3);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", summary.anchor);
+    try std.testing.expectEqual(@as(u16, 3), summary.queue_index);
+    try std.testing.expect(summary.broken);
+    try std.testing.expect(summary.callback_enabled);
+    try std.testing.expectEqual(@as(u16, 0), summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), summary.pending_used_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), summary.unpublished_chain_count);
+    try std.testing.expectEqual(@as(usize, 1), summary.notification_count);
+    try std.testing.expect(!summary.requires_poll_before_teardown);
+    try std.testing.expect(summary.ready_for_drained_teardown);
+}
+
+test "phase10 virtio ring teardown summary keeps publish and poll debt visible" {
+    var ring = VirtioRingLab{};
+    try ring.defineQueue(4, 8, .split, true, false);
+
+    try ring.publishDescriptorChain(4);
+
+    var summary = try ring.teardownSummary(4);
+    try std.testing.expectEqual(@as(u16, 1), summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), summary.pending_used_chain_count);
+    try std.testing.expectEqual(@as(u16, 1), summary.unpublished_chain_count);
+    try std.testing.expect(!summary.requires_poll_before_teardown);
+    try std.testing.expect(!summary.ready_for_drained_teardown);
+
+    _ = try ring.prepareKick(4);
+    try ring.recordUsedChains(4, 1);
+    _ = try ring.disableCallback(4);
+
+    summary = try ring.teardownSummary(4);
+    try std.testing.expectEqual(@as(u16, 0), summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 1), summary.pending_used_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), summary.unpublished_chain_count);
+    try std.testing.expect(summary.requires_poll_before_teardown);
+    try std.testing.expect(!summary.ready_for_drained_teardown);
 }
