@@ -39,6 +39,8 @@ REQUIRED_MAKEFILE_SNIPPETS = (
 )
 
 EXACT_ONCE_MAKEFILE_SNIPPETS = (
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-validation-flow.py --self-test\n",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-validation-flow.py\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/generate-phase3-check-wrappers.py --self-test\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/generate-phase3-check-wrappers.py --check\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test\n",
@@ -87,6 +89,8 @@ REQUIRED_WORKFLOW_SNIPPETS = (
 )
 
 EXACT_ONCE_WORKFLOW_SNIPPETS = (
+    "run: python3 scripts/zigux/check-phase3-validation-flow.py\n",
+    "run: python3 scripts/zigux/check-phase3-validation-flow.py --self-test\n",
     "run: python3 scripts/zigux/generate-phase3-check-wrappers.py --self-test\n",
     "run: python3 scripts/zigux/generate-phase3-check-wrappers.py --check\n",
     "run: python3 scripts/zigux/check-phase3-readme-tooling-inventory.py\n",
@@ -333,6 +337,39 @@ def run_self_test() -> int:
         if baseline:
             raise SystemExit("phase3-validation-flow-self-test:baseline_failed:" + ",".join(baseline))
 
+        duplicated_validation_flow_makefile = (
+            _fixture_makefile()
+            + "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-validation-flow.py\n"
+        )
+        _write(root, MAKEFILE_REL, duplicated_validation_flow_makefile)
+        issues = validate(root)
+        expected = [
+            "unexpected_makefile_snippet_count:2:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-validation-flow.py\n",
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-validation-flow-self-test:duplicate_validation_flow_makefile_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+        _write(root, MAKEFILE_REL, _fixture_makefile())
+        duplicated_validation_flow_workflow = (
+            _fixture_workflow()
+            + "      - name: Check Phase 3 validation flow again\n"
+            + "        run: python3 scripts/zigux/check-phase3-validation-flow.py\n"
+        )
+        _write(root, WORKFLOW_REL, duplicated_validation_flow_workflow)
+        issues = validate(root)
+        expected = [
+            "unexpected_workflow_snippet_count:2:run: python3 scripts/zigux/check-phase3-validation-flow.py\n",
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-validation-flow-self-test:duplicate_validation_flow_workflow_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+        _write(root, WORKFLOW_REL, _fixture_workflow())
         duplicated_rbtree_docs_root = _fixture_docs_root() + f"- {REQUIRED_DOCS_ROOT_SNIPPETS[2]}\n"
         _write(root, DOCS_ROOT_REL, duplicated_rbtree_docs_root)
         issues = validate(root)
@@ -370,7 +407,7 @@ def run_self_test() -> int:
             )
 
         print("PHASE3_VALIDATION_FLOW_SELF_TEST=pass")
-        print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=31")
+        print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=33")
         return 0
 
 
