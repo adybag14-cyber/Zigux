@@ -70,6 +70,7 @@ Current bootstrap helpers
 - `check-genksyms-crc-diff.py`
 - `check-kconfig-bridge.py`
 - `check-phase2-cross.py`
+- `check-phase2-toolchain-pin-scope.py`
 - `check-mk-elfconfig-diff.py`
 - `check-phase6-base64-c-parity.py`
 - `check-phase6-bsearch-c-parity.py`
@@ -107,6 +108,8 @@ Phase 2 flow
 - `validate-phase1.py` now also checks that `zigux/tests/fixtures/phase1_helpers.json` keeps the exact committed top-level helper sections and evidence-key shape, so stale Phase 1 expected-output drift fails before parity replay.
 - `validate-phase2.py` checks that the bounded Phase 2 helper inventory, fixture set, workflow wiring, and docs markers stay in sync before the parity lanes run.
 - `validate-phase2-closure.py` confirms the closed Phase 2 tranche still matches the workflow, the closure docs, and the Phase 2 manifests.
+- `check-phase2-toolchain-pin-scope.py --self-test` exercises the dedicated pin-scope guard without needing the full repo tree.
+- `check-phase2-toolchain-pin-scope.py` keeps `scripts/zigux/zig-toolchain-policy.json`, the bootstrap workflow `install-zig.py --dest .zig-toolchain` and `check-zig-toolchain.py` steps, and `validate-phase2.py` aligned around the current `x86_64-linux`-only archive pin until another bootstrap runner target gains first-class workflow evidence.
 - `check-fixdep-diff.py --self-test` exercises the bounded fixdep checker packet itself before the shared `phase2-tools` and bootstrap workflow entrypoints replay live artifacts, so case-manifest drift, explicit-tool drift, and unsupported stdout-mode changes cannot hide behind a locally passing parity run.
 - `check-fixdep-diff.py` compares the bounded `fixdep.zig` output against the committed fixture set, including the multi-target, escaped-whitespace, escaped-colon, comment-only no-target, and missing-dependency failure artifacts under `zigux/tests/fixtures/fixdep/`, reruns both the C tool and Zig tool to prove repeat-run artifact determinism, and now also fails if any success-path fixdep case starts emitting unexpected stderr noise.
 - `check-genksyms-bridge.py --self-test` exercises the bounded `genksyms` bridge checker packet itself before the Linux-style `phase2-tools` entrypoint replays live bridge artifacts, so missing-expected-fixture drift, duplicate expected-fixture wiring, stderr-mode contract drift, and repeat-run compare coverage cannot hide behind a locally passing bridge replay.
