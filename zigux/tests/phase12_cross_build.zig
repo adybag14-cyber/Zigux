@@ -44,6 +44,12 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     phase12_virtio_scsi_module.addImport("virtio_scsi", virtio_scsi_module);
+    const phase12_virtio_scsi_recovery_state_module = b.createModule(.{
+        .root_source_file = b.path("phase12_virtio_scsi_recovery_state.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase12_virtio_scsi_recovery_state_module.addImport("virtio_scsi", virtio_scsi_module);
     const phase12_virtio_scsi_syntax_lab_module = b.createModule(.{
         .root_source_file = b.path("phase12_virtio_scsi_syntax_lab.zig"),
         .target = target,
@@ -146,6 +152,10 @@ pub fn build(b: *std.Build) void {
         .name = "phase12-cross-virtio-scsi-tests",
         .root_module = phase12_virtio_scsi_module,
     });
+    const phase12_virtio_scsi_recovery_state_tests = b.addTest(.{
+        .name = "phase12-cross-virtio-scsi-recovery-state-tests",
+        .root_module = phase12_virtio_scsi_recovery_state_module,
+    });
     const phase12_virtio_scsi_survey_tests = b.addTest(.{
         .name = "phase12-cross-virtio-scsi-survey-tests",
         .root_module = phase12_virtio_scsi_survey_module,
@@ -177,6 +187,7 @@ pub fn build(b: *std.Build) void {
     cross_step.dependOn(&phase12_virtio_net_survey_tests.step);
     cross_step.dependOn(&phase12_virtio_net_syntax_lab_tests.step);
     cross_step.dependOn(&phase12_virtio_scsi_tests.step);
+    cross_step.dependOn(&phase12_virtio_scsi_recovery_state_tests.step);
     cross_step.dependOn(&phase12_virtio_scsi_survey_tests.step);
     cross_step.dependOn(&phase12_virtio_scsi_syntax_lab_tests.step);
     cross_step.dependOn(&phase12_raw_github_coverage_survey_tests.step);
