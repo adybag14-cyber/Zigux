@@ -322,6 +322,19 @@ fn expectTailHelperRoundTrip(
     try std.testing.expectEqual(expected.len, try bytes(padded_tail, true, variant));
 }
 
+fn expectPublicShortRoundTrip(variant: Variant, payload: []const u8, padding: bool) !void {
+    var encoded: [4]u8 = undefined;
+    var decoded: [2]u8 = undefined;
+
+    const encoded_len = try encode(encoded[0..], payload, padding, variant);
+    try std.testing.expectEqual(chars(payload.len, padding), encoded_len);
+    try std.testing.expectEqual(payload.len, try bytes(encoded[0..encoded_len], padding, variant));
+
+    const decoded_len = try decode(decoded[0..], encoded[0..encoded_len], padding, variant);
+    try std.testing.expectEqual(payload.len, decoded_len);
+    try std.testing.expectEqualSlices(u8, payload, decoded[0..decoded_len]);
+}
+
 fn expectExhaustiveTailCanonicality(variant: Variant) !void {
     const table = alphabet(variant);
     var two_char_tail: [2]u8 = undefined;
@@ -609,6 +622,32 @@ test "decode and bytes reject non-canonical tail bits across variants" {
     try std.testing.expectError(DecodeError.InvalidInput, decode(buf[0..], "__B", false, .urlsafe));
     try std.testing.expectError(DecodeError.InvalidInput, bytes(",,B", false, .imap));
     try std.testing.expectError(DecodeError.InvalidInput, decode(buf[0..], ",,B", false, .imap));
+}
+
+test "public encode and decode exhaustively round-trip short payloads across variants" {
+    const variants = [_]Variant{ .std, .urlsafe, .imap };
+    const paddings = [_]bool{ false, true };
+    var one_byte = [_]u8{0};
+    var two_bytes = [_]u8{ 0, 0 };
+
+    inline for (variants) |variant| {
+        inline for (paddings) |padding| {
+            try expectPublicShortRoundTrip(variant, "", padding);
+
+            for (0..256) |first| {
+                one_byte[0] = @intCast(first);
+                try expectPublicShortRoundTrip(variant, one_byte[0..], padding);
+            }
+
+            for (0..256) |first| {
+                two_bytes[0] = @intCast(first);
+                for (0..256) |second| {
+                    two_bytes[1] = @intCast(second);
+                    try expectPublicShortRoundTrip(variant, two_bytes[0..], padding);
+                }
+            }
+        }
+    }
 }
 
 test "decodeTail exhaustively accepts only canonical short tails across variants" {
