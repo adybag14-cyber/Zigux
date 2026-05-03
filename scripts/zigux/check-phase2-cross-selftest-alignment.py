@@ -127,6 +127,13 @@ def validate_exact_makefile_runs(text: str) -> list[str]:
     return issues
 
 
+def expect_exact_issue(label: str, issues: list[str], expected_issue: str) -> None:
+    if issues != [expected_issue]:
+        raise SystemExit(
+            f"phase2-cross-alignment:self-test:{label}:expected={expected_issue!r}:actual={issues!r}"
+        )
+
+
 def run_self_test() -> int:
     valid_targets = {
         "phase": "Phase 2",
@@ -173,29 +180,66 @@ def run_self_test() -> int:
     if validate_exact_makefile_runs(makefile_text):
         raise SystemExit("phase2-cross-alignment:self-test:makefile_counts")
 
-    marker_issues = validate_required_markers(
-        "alpha\nbeta\ngamma",
-        label="sample",
-        markers=["alpha", "gamma"],
+    checker_text = "\n".join(PHASE2_CROSS_CHECKER_MARKERS)
+    if validate_required_markers(
+        checker_text,
+        label="phase2_cross_checker",
+        markers=PHASE2_CROSS_CHECKER_MARKERS,
+    ):
+        raise SystemExit("phase2-cross-alignment:self-test:checker_markers")
+    expect_exact_issue(
+        "checker_marker_failure",
+        validate_required_markers(
+            checker_text.replace(PHASE2_CROSS_CHECKER_MARKERS[0] + "\n", "", 1),
+            label="phase2_cross_checker",
+            markers=PHASE2_CROSS_CHECKER_MARKERS,
+        ),
+        f"phase2_cross_checker:missing_marker:{PHASE2_CROSS_CHECKER_MARKERS[0]}",
     )
-    if marker_issues:
-        raise SystemExit("phase2-cross-alignment:self-test:marker_presence")
 
-    marker_issues = validate_required_markers(
-        "alpha\nbeta\ngamma",
-        label="sample",
-        markers=["delta"],
+    validator_text = "\n".join(PHASE2_VALIDATOR_MARKERS)
+    expect_exact_issue(
+        "validator_marker_failure",
+        validate_required_markers(
+            validator_text.replace(PHASE2_VALIDATOR_MARKERS[1], "", 1),
+            label="phase2_validator",
+            markers=PHASE2_VALIDATOR_MARKERS,
+        ),
+        f"phase2_validator:missing_marker:{PHASE2_VALIDATOR_MARKERS[1]}",
     )
-    if marker_issues != ["sample:missing_marker:delta"]:
-        raise SystemExit("phase2-cross-alignment:self-test:marker_failure_shape")
+
+    readme_text = "\n".join(README_MARKERS)
+    expect_exact_issue(
+        "readme_marker_failure",
+        validate_required_markers(
+            readme_text.replace(README_MARKERS[0], "", 1),
+            label="scripts_readme",
+            markers=README_MARKERS,
+        ),
+        f"scripts_readme:missing_marker:{README_MARKERS[0]}",
+    )
+
+    closure_text = "\n".join(CLOSURE_MARKERS)
+    expect_exact_issue(
+        "closure_marker_failure",
+        validate_required_markers(
+            closure_text.replace(CLOSURE_MARKERS[0], "", 1),
+            label="phase2_closure_doc",
+            markers=CLOSURE_MARKERS,
+        ),
+        f"phase2_closure_doc:missing_marker:{CLOSURE_MARKERS[0]}",
+    )
 
     toolchain_notes_text = "\n".join(TOOLCHAIN_NOTES_MARKERS)
-    if validate_required_markers(
-        toolchain_notes_text,
-        label="toolchain_notes",
-        markers=TOOLCHAIN_NOTES_MARKERS,
-    ):
-        raise SystemExit("phase2-cross-alignment:self-test:toolchain_notes_markers")
+    expect_exact_issue(
+        "toolchain_notes_marker_failure",
+        validate_required_markers(
+            toolchain_notes_text.replace(TOOLCHAIN_NOTES_MARKERS[0], "", 1),
+            label="toolchain_notes",
+            markers=TOOLCHAIN_NOTES_MARKERS,
+        ),
+        f"toolchain_notes:missing_marker:{TOOLCHAIN_NOTES_MARKERS[0]}",
+    )
 
     with tempfile.TemporaryDirectory(prefix="phase2_cross_alignment_selftest_") as tmp_dir_str:
         tmp_root = Path(tmp_dir_str)
@@ -206,7 +250,7 @@ def run_self_test() -> int:
             raise SystemExit("phase2-cross-alignment:self-test:json_round_trip")
 
     print("PHASE2_CROSS_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=8")
+    print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
