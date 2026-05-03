@@ -2,7 +2,7 @@
 
 This note records the current shared-versus-focused replay contract for the active Phase 12 complex-driver and heavy-helper tranche on `master`.
 
-It is intentionally review-first documentation. It does not claim a fresh local replay result; it captures the live packet shape already wired through the shared validator, the shared build inventory, the bounded libbpf packet checkers, and the dedicated focused libbpf-only replay shard.
+It is intentionally review-first documentation. It does not claim a fresh local replay result; it captures the live packet shape already wired through the shared validator, the shared build inventory, the bounded libbpf packet checkers, the raw-GitHub coverage checker, the release-readiness packet guard, and the dedicated focused libbpf-only replay shard.
 
 ## Scope
 
@@ -24,11 +24,15 @@ Run these in the published validator-first order before trusting the shared repl
 - `python3 scripts/zigux/check-phase12-libbpf-focused-replay.py`
 - `python3 scripts/zigux/check-phase12-raw-github-coverage.py --self-test`
 - `python3 scripts/zigux/check-phase12-raw-github-coverage.py`
+- `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`
+- `python3 scripts/zigux/check-phase12-release-readiness-packet.py`
 - `python3 scripts/zigux/validate-phase12.py`
 
 The published wrapper remains `make -C zigux phase12-validate`.
 
 The focused libbpf-only replay checker is intentionally part of that stack before the broader validator runs, so the dedicated shard can fail closed on its own build-root, review-note, Makefile, and workflow contract before the shared Phase 12 packet claims aligned evidence.
+
+The release-readiness packet checker is intentionally part of that same stack before the broader validator runs, so the active-not-closed PMO reading, the approved cross-target smoke set, and the mixed two commit-pinned versus two shared-tree-only fallback split fail closed beside the shared replay contract instead of drifting into separate note-only maintenance.
 
 ## Shared Replay Surface
 
@@ -64,6 +68,7 @@ The shared and focused Phase 12 gates now enforce the same narrower libbpf-only 
 - `scripts/zigux/check-phase12-libbpf-focused-replay.py` fails closed on the dedicated focused replay hook inside `Documentation/zigux/review-checklist.md` and the matching shared-validator surface.
 - `scripts/zigux/validate-phase12.py` now exact-counts that same review-checklist prompt, so the broader shared validator runtime path matches the duplicate-drift protection already enforced by the narrower libbpf checkers.
 - the current contract is therefore reviewable in both directions: the focused shard keeps its own dedicated replay boundary explicit, and the broader shared validator also refuses silent duplication or disappearance of that same contributor-facing review hook.
+- the same shared contract now also stays coupled to `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-cross-compile-smoke.md`, and `Documentation/zigux/phase12-raw-github-coverage-survey.md`, so the release-facing PMO packet, the approved non-native smoke packet, and the mixed public-read fallback packet name the same pre-replay checker stack instead of drifting into parallel Phase 12 stories.
 
 ## Contributor Sync Points
 
@@ -71,6 +76,9 @@ When the shared-versus-focused replay contract changes, keep these contributor-f
 
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
+- `Documentation/zigux/phase12-release-readiness-survey.md`
+- `Documentation/zigux/phase12-cross-compile-smoke.md`
+- `Documentation/zigux/phase12-raw-github-coverage-survey.md`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 - `Documentation/zigux/phase12-libbpf-segment-survey.md`
@@ -89,10 +97,14 @@ The minimum agreement surface for that kind of change is:
 - `scripts/zigux/check-phase12-libbpf-packet.py`
 - `scripts/zigux/check-phase12-libbpf-focused-replay.py`
 - `scripts/zigux/check-phase12-raw-github-coverage.py`
+- `scripts/zigux/check-phase12-release-readiness-packet.py`
 - `zigux/tests/phase12_build.zig`
 - `zigux/tests/phase12_libbpf_only_build.zig`
 - `zigux/tests/fixtures/phase12_build_inventory.json`
 - `zigux/tests/phase12_libbpf_manifest.json`
+- `Documentation/zigux/phase12-release-readiness-survey.md`
+- `Documentation/zigux/phase12-cross-compile-smoke.md`
+- `Documentation/zigux/phase12-raw-github-coverage-survey.md`
 - `Documentation/zigux/phase12-libbpf-segment-survey.md`
 - `Documentation/zigux/phase12-virtio-net-survey.md`
 - `Documentation/zigux/phase12-nvme-pci-survey.md`
