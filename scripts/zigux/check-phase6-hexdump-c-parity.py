@@ -170,7 +170,11 @@ def run_self_test() -> int:
         'root_module.addImport("phase6_hexdump_vectors", fixtures_module);' in build_text,
         True,
     )
-    assert_equal("build_text_runner", str(ZIG_RUNNER) in build_text, True)
+    assert_equal(
+        "build_text_runner_and_surface_count",
+        str(ZIG_RUNNER) in build_text and len(EXPECTED_SORTED_LINES) == 29,
+        True,
+    )
     assert_equal(
         "sorted_lines",
         sorted_lines("hexToBin\tA\t10\ndump\tplain\t3\tabc\n"),
