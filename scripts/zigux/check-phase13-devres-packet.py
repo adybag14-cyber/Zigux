@@ -60,8 +60,10 @@ REVIEWABILITY_MARKERS = [
     'test "phase13 devres manifest records the current helper boundary and explicit dma/scatterlist blockers"',
     'try std.testing.expect(!descriptor.touches_live_dma);',
     'try std.testing.expect(!descriptor.touches_live_scatterlist);',
+    'try std.testing.expectEqual(@as(usize, 1), blocked_live_mmio_count);',
     'try std.testing.expectEqual(@as(usize, 1), blocked_dma_count);',
     'try std.testing.expectEqual(@as(usize, 1), blocked_scatterlist_count);',
+    'try std.testing.expect(saw_live_mmio_blocker);',
     'try std.testing.expect(saw_dma_blocker);',
     'try std.testing.expect(saw_scatterlist_blocker);',
 ]
@@ -71,11 +73,13 @@ SURVEY_MARKERS = [
     "- `PHASE13_STATUS=active`",
     "- `PHASE13_SLICE=devres-helper-dma-scatterlist-boundary-reviewability`",
     "helper-first iomap or resource planners plus explicit DMA/scatterlist blockers pinned to the current repo state",
+    "live MMIO side effects such as `devres_alloc_node()` ownership, `devres_add()` installation, `devm_request_mem_region()` side effects, and direct `ioremap()` or `iounmap()` execution against real hardware state",
     "live DMA-backed helpers such as `dmam_alloc_coherent()`, `dmam_free_coherent()`, `dma_map_resource()`, `dma_unmap_resource()`, or `dma_map_sgtable()` ownership and execution",
     "live scatter-gather ownership such as `struct scatterlist`, `sg_table`, `sg_*` iteration, merge, or detach-time cleanup behavior",
 ]
 
 SURVEY_EXACT_COUNT_MARKERS = {
+    "live MMIO side effects such as `devres_alloc_node()` ownership, `devres_add()` installation, `devm_request_mem_region()` side effects, and direct `ioremap()` or `iounmap()` execution against real hardware state": 1,
     "live DMA-backed helpers such as `dmam_alloc_coherent()`, `dmam_free_coherent()`, `dma_map_resource()`, `dma_unmap_resource()`, or `dma_map_sgtable()` ownership and execution": 1,
     "live scatter-gather ownership such as `struct scatterlist`, `sg_table`, `sg_*` iteration, merge, or detach-time cleanup behavior": 1,
 }
@@ -112,6 +116,7 @@ REVIEW_CHECKLIST_EXACT_COUNT_MARKERS = {
 }
 
 EXPECTED_GAP_STATUS = {
+    "phase13-devres-live-mmio-side-effects": "blocked_on_live_mmio_state",
     "phase13-devres-live-dma-mappings": "blocked_on_dma_state",
     "phase13-devres-live-scatterlist-ownership": "blocked_on_scatterlist_state",
     "phase13-devres-managed-resource-planner": "starter_landed",
