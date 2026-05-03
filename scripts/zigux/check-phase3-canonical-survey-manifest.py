@@ -75,7 +75,18 @@ def validate(root: Path) -> list[str]:
     if not isinstance(files, list):
         return [f"missing_manifest_files:{MANIFEST_REL}"]
 
-    canonical_rels, issues = _canonical_survey_script_rels(root)
+    file_count = manifest.get("file_count")
+    if not isinstance(file_count, int):
+        return [f"missing_manifest_file_count:{MANIFEST_REL}"]
+
+    issues: list[str] = []
+    if file_count != len(files):
+        issues.append(
+            f"unexpected_manifest_file_count:{MANIFEST_REL}:{file_count}:{len(files)}"
+        )
+
+    canonical_rels, canonical_issues = _canonical_survey_script_rels(root)
+    issues.extend(canonical_issues)
     listed = {entry for entry in files if isinstance(entry, str)}
     for rel in canonical_rels:
         if rel not in listed:
@@ -144,8 +155,11 @@ def run_self_test() -> int:
         broken_manifest["files"] = [rel for rel in canonical_rels if rel != canonical_rels[0]]
         _write(manifest_path, json.dumps(broken_manifest, indent=2) + "\n")
         issues = validate(root)
-        expected = f"missing_manifest_survey_script:{canonical_rels[0]}"
-        if issues != [expected]:
+        expected = [
+            f"unexpected_manifest_file_count:{MANIFEST_REL}:{len(canonical_rels)}:{len(canonical_rels) - 1}",
+            f"missing_manifest_survey_script:{canonical_rels[0]}",
+        ]
+        if issues != expected:
             raise SystemExit(
                 "phase3-canonical-survey-manifest-self-test:missing_manifest_guard_failed:"
                 + (",".join(issues) if issues else "none")
@@ -155,13 +169,37 @@ def run_self_test() -> int:
         _write(manifest_path, json.dumps(broken_manifest, indent=2) + "\n")
         (root / canonical_rels[-1]).unlink()
         issues = validate(root)
-        expected = f"missing_repo_survey_script:{canonical_rels[-1]}"
-        if issues != [expected]:
+        expected = [f"missing_repo_survey_script:{canonical_rels[-1]}"]
+        if issues != expected:
             raise SystemExit(
                 "phase3-canonical-survey-manifest-self-test:missing_repo_file_guard_failed:"
                 + (",".join(issues) if issues else "none")
             )
         _write(root / canonical_rels[-1], "# stub\n")
+
+        broken_manifest["file_count"] = len(canonical_rels) + 3
+        _write(manifest_path, json.dumps(broken_manifest, indent=2) + "\n")
+        issues = validate(root)
+        expected = [
+            f"unexpected_manifest_file_count:{MANIFEST_REL}:{len(canonical_rels) + 3}:{len(canonical_rels)}"
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-canonical-survey-manifest-self-test:file_count_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+        broken_manifest.pop("file_count")
+        _write(manifest_path, json.dumps(broken_manifest, indent=2) + "\n")
+        issues = validate(root)
+        expected = [f"missing_manifest_file_count:{MANIFEST_REL}"]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-canonical-survey-manifest-self-test:missing_file_count_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+        broken_manifest["file_count"] = len(canonical_rels)
+        _write(manifest_path, json.dumps(broken_manifest, indent=2) + "\n")
 
         _write(
             root / VALIDATOR_REL,
@@ -177,8 +215,8 @@ def run_self_test() -> int:
             ),
         )
         issues = validate(root)
-        expected = "missing_validator_constant:BUILD_ROOT_DRIFT_SCRIPT"
-        if issues != [expected]:
+        expected = ["missing_validator_constant:BUILD_ROOT_DRIFT_SCRIPT"]
+        if issues != expected:
             raise SystemExit(
                 "phase3-canonical-survey-manifest-self-test:missing_build_root_constant_guard_failed:"
                 + (",".join(issues) if issues else "none")
@@ -198,8 +236,8 @@ def run_self_test() -> int:
             ),
         )
         issues = validate(root)
-        expected = "missing_validator_constant:CANONICAL_SURVEY_MANIFEST_SCRIPT"
-        if issues != [expected]:
+        expected = ["missing_validator_constant:CANONICAL_SURVEY_MANIFEST_SCRIPT"]
+        if issues != expected:
             raise SystemExit(
                 "phase3-canonical-survey-manifest-self-test:missing_canonical_manifest_constant_guard_failed:"
                 + (",".join(issues) if issues else "none")
@@ -220,15 +258,15 @@ def run_self_test() -> int:
             ),
         )
         issues = validate(root)
-        expected = "invalid_survey_entry:'broken-entry'"
-        if issues != [expected]:
+        expected = ["invalid_survey_entry:'broken-entry'"]
+        if issues != expected:
             raise SystemExit(
                 "phase3-canonical-survey-manifest-self-test:invalid_survey_entry_guard_failed:"
                 + (",".join(issues) if issues else "none")
             )
 
     print("PHASE3_CANONICAL_SURVEY_MANIFEST_SELF_TEST=pass")
-    print("PHASE3_CANONICAL_SURVEY_MANIFEST_SELF_TEST_CASE_COUNT=5")
+    print("PHASE3_CANONICAL_SURVEY_MANIFEST_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
