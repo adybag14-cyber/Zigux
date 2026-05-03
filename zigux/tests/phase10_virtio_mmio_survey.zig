@@ -118,7 +118,7 @@ test "phase10 virtio mmio survey manifest records the landed interrupt-ack rung 
         try std.testing.expectEqualStrings(claim, manifest.forbidden_transport_claims[index]);
     }
     try std.testing.expect(manifest.survey_summary.virtio_mmio_c_lines >= 800);
-    try std.testing.expectEqual(@as(usize, 9), manifest.survey_summary.preexisting_phase10_test_files);
+    try std.testing.expectEqual(@as(usize, 10), manifest.survey_summary.preexisting_phase10_test_files);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_core_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_core_survey_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase10_build_present);
@@ -142,6 +142,7 @@ test "phase10 virtio mmio survey manifest records the landed interrupt-ack rung 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-mmio-interrupt-ack-helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-virtio-mmio-slice-note") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-mmio-lifecycle-and-irq-paths") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase10_virtio_mmio_queue_isolation.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_FREEZE_MAP=Documentation/zigux/freeze-map.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_FREEZE_BOUNDARY_STATUS=aligned") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=yes") != null);
