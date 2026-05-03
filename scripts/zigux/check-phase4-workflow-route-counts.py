@@ -7,7 +7,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-SELF_TEST_CASE_COUNT = 8
+SELF_TEST_CASE_COUNT = 10
 
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 MAKEFILE_PATH = Path("zigux/Makefile")
@@ -244,6 +244,30 @@ def run_self_test() -> int:
             expect_contains(
                 validate(root),
                 "doc_marker:Documentation/zigux/README.md:`make -C zigux phase4-test`",
+            )
+            count += 1
+
+            build_fixture_tree(root)
+            scripts_readme = root / SCRIPTS_README_PATH
+            scripts_readme.write_text(
+                "Phase 4 notes\n`make -C zigux phase4-test`\n",
+                encoding="utf-8",
+            )
+            expect_contains(
+                validate(root),
+                "doc_marker:scripts/zigux/README.md:`make -C zigux phase4-validate`",
+            )
+            count += 1
+
+            build_fixture_tree(root)
+            tests_readme = root / TESTS_README_PATH
+            tests_readme.write_text(
+                "Phase 4 notes\n`make -C zigux phase4-validate`\n",
+                encoding="utf-8",
+            )
+            expect_contains(
+                validate(root),
+                "doc_marker:zigux/tests/README.md:`make -C zigux phase4-test`",
             )
             count += 1
 
