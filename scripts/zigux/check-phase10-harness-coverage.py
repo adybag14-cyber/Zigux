@@ -286,6 +286,16 @@ def run_self_test() -> int:
 
         manifest_path = root / "zigux/tests/phase10_closure_manifest.json"
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["test_count"] = 10
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "closure_manifest_test_count",
+            root,
+            "closure_manifest:test_count=11",
+        )
+        write_fixture(root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["tests"] = ["zigux/tests/phase10_virtio_input_multitouch_preflight.zig"]
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         expect_missing_marker(
@@ -312,7 +322,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=5")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
