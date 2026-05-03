@@ -87,8 +87,11 @@ Phase 2 is only considered closed when all of the following are green:
 6. bounded kconfig bridge parity and determinism
 - `python3 scripts/zigux/check-kconfig-bridge.py --self-test`
 - `python3 scripts/zigux/check-kconfig-bridge.py`
+- `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test`
+- `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py`
 - the checker self-test must stay in the Linux-style `phase2-kconfig` path before live replay so manifest-ordering and failure-shape drift cannot hide behind the bounded bridge artifacts
 - the checker self-test must emit `KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=6` so the bounded synthetic four-conf-case plus two-confdata-case packet stays explicit before live replay
+- the dedicated alignment checker keeps `check-kconfig-bridge.py`, `scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, `zigux/tests/fixtures/kconfig_bridge/cases.json`, the bootstrap workflow route, and `zigux/Makefile` in sync before closure evidence stays green
 - the conf bridge packet must keep required positional input rejection explicit: empty `Kconfig`, `.config`, and `ARCH` values must fail before bridge JSON emission
 - conf and confdata repeat-run JSON determinism is required before closure evidence stays green, and confdata replay must also stay stable across a second binary rebuild in the same check packet
 
@@ -138,6 +141,8 @@ Phase 2 is only considered closed when all of the following are green:
 - `PHASE2_MK_ELFCONFIG_DETERMINISM=check-mk-elfconfig-diff.py replays C and Zig outputs twice before comparing artifacts`
 - `PHASE2_KCONFIG_BRIDGE_SELF_TEST=python3 scripts/zigux/check-kconfig-bridge.py --self-test`
 - `PHASE2_KCONFIG_BRIDGE_GATE=python3 scripts/zigux/check-kconfig-bridge.py`
+- `PHASE2_KCONFIG_ALIGNMENT_SELF_TEST=python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test`
+- `PHASE2_KCONFIG_ALIGNMENT_GATE=python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py`
 - `PHASE2_KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=6`
 - `PHASE2_KCONFIG_BRIDGE_DETERMINISM=check-kconfig-bridge.py replays conf and confdata outputs twice and compares a rebuilt confdata binary against the same JSON artifacts`
 - `PHASE2_KCONFIG_BRIDGE_REQUIRED_INPUT_POLICY=conf bridge rejects empty Kconfig, .config, and ARCH positional inputs before emitting bridge JSON`
