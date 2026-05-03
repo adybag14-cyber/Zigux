@@ -30,7 +30,7 @@ const Manifest = struct {
     gaps: []const Gap,
 };
 
-const expected_surveyed_commit = "cbc60805a6fb2cac485beb113c5d9d47f07ebdee";
+const expected_surveyed_commit = "2ef17e85413ac1deb218f41250c9521990f4e5d0";
 
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
@@ -105,7 +105,7 @@ test "phase13 libfs manifest records the landed close-bookkeeping slice and the 
     try std.testing.expect(descriptor.provides_offset_seek_helpers);
     try std.testing.expect(descriptor.provides_directory_emit_planning);
     try std.testing.expect(descriptor.provides_directory_cursor_preconditions);
-    try std.testing.expect(descriptor.provides_directory_cursor_reposition_planning);
+    try std.testing.expect(descriptor.provides_DIRECTORY_CURSOR_REPOSITION_PLANNING);
     try std.testing.expect(descriptor.provides_directory_close_planning);
     try std.testing.expect(descriptor.provides_transaction_buffer_planning);
     try std.testing.expect(descriptor.provides_transaction_read_release_planning);
