@@ -241,7 +241,7 @@ test "phase12 libbpf survey note records rollback and archived surveyed head" {
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "rollback owner: `BPF Tooling Lane`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "fallback path: keep `tools/lib/bpf/libbpf.c` as the source of truth") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "reversible delivery evidence: this Phase 12 packet only adds `zigux/tests/phase12_libbpf_segments.zig`, `zigux/tests/phase12_libbpf_reviewability.zig`, and this survey note around preexisting helper foundations") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "rollback drill: run `make -C zigux phase12-validate`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "rollback drill: run `python3 scripts/zigux/check-phase12-build-inventory.py --self-test`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "repair `scripts/zigux/check-phase12-libbpf-snapshot.py` plus `zigux/tests/fixtures/phase12_libbpf_snapshot.json` first") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-libbpf-segment-survey-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-libbpf-reviewability-tests") != null);
