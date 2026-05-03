@@ -29,7 +29,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_ABI_SLICE_DOC_BLOB_SHA=ae10cff373709470ac777e97feec257ea069f8a0`
 - `PHASE3_POLICY_UNSAFE_BUILD_BLOB_SHA=c6a5192365517139ddaf5f3fbe9350f9508a5dc7`
 - `PHASE3_POLICY_UNSAFE_TEST_BLOB_SHA=a97252d1d8a9f255037bf7a4c473182b0ac9f76f`
-- `PHASE3_ABI_MANIFEST_BLOB_SHA=ab535e6811678ce9d26bb28e0122bc23cc4e2660`
+- `PHASE3_ABI_MANIFEST_BLOB_SHA=760ba7ab77d925e70eb7840b6468b16ddd1b4750`
 - `PHASE3_POLICY_UNSAFE_GATE=zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig`
 - `PHASE3_BOUNDARY_GAP=typed-policy-mmio-consumer-landed-no-third-boundary-helper-beyond-focused-replay`
 - `PHASE3_NEXT_BOUNDED_STEP=keep-the-policy-and-unsafe-surface-narrow-until-one-roadmap-backed-helper-beyond-mmio-needs-a-typed-interop-policy-consumer`
