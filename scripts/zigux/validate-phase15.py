@@ -14,6 +14,7 @@ FILES = [
     "scripts/zigux/validate-phase15.py",
     "Documentation/zigux/README.md",
     "Documentation/zigux/freeze-map.md",
+    "Documentation/zigux/phase15-freeze-map-governance.md",
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase15-architecture-council-review-process.md",
     "Documentation/zigux/phase15-parity-scorecard.md",
@@ -25,6 +26,8 @@ FILES = [
     ".github/workflows/zigux-bootstrap.yml",
     "zigux/Makefile",
     "zigux/tests/phase15_build.zig",
+    "zigux/tests/phase15_freeze_map_manifest.json",
+    "zigux/tests/phase15_freeze_map_governance.zig",
     "zigux/tests/phase15_architecture_council_review_process_manifest.json",
     "zigux/tests/phase15_architecture_council_review_process.zig",
     "zigux/tests/phase15_parity_scorecard.json",
@@ -71,6 +74,15 @@ TESTS_README_MARKERS = [
     "make -C zigux phase15-validate",
     "make -C zigux phase15",
     "blocked deep-core status-change posture",
+]
+
+FREEZE_MAP_NOTE_MARKERS = [
+    "PHASE15_LANE_KEY=arch-council",
+    "## Roadmap versus repo reality",
+    "## Current blocker posture",
+    "phase15-deep-core-status-change-blocker",
+    "make -C zigux phase15",
+    "zig build test --build-file zigux/tests/phase15_build.zig",
 ]
 
 SURVEY_MARKERS = [
@@ -158,90 +170,146 @@ def require_false(mapping, prefix: str, keys: list[str]) -> None:
 
 missing_files = [path for path in FILES if not (ROOT / path).exists()]
 if missing_files:
-    print('PHASE15_VALIDATION=fail')
-    print('MISSING_PHASE15_FILES_START')
+    print("PHASE15_VALIDATION=fail")
+    print("MISSING_PHASE15_FILES_START")
     for path in missing_files:
         print(path)
-    print('MISSING_PHASE15_FILES_END')
+    print("MISSING_PHASE15_FILES_END")
     sys.exit(1)
 
-require_markers('make', text('zigux/Makefile'), MAKE_MARKERS)
-require_markers('workflow', text('.github/workflows/zigux-bootstrap.yml'), WORKFLOW_MARKERS)
-require_markers('readme', text('Documentation/zigux/README.md'), README_MARKERS)
-require_markers('scripts_readme', text('scripts/zigux/README.md'), SCRIPTS_README_MARKERS)
-require_markers('tests_readme', text('zigux/tests/README.md'), TESTS_README_MARKERS)
-require_markers('survey', text('Documentation/zigux/phase15-readiness-gate-survey.md'), SURVEY_MARKERS)
-require_markers('handoff', text('Documentation/zigux/phase15-handoff-next-steps-survey.md'), HANDOFF_MARKERS)
-require_markers('handoff_test', text('zigux/tests/phase15_handoff_next_steps.zig'), HANDOFF_TEST_MARKERS)
-require_markers('docs_root_reviewability', text('zigux/tests/phase15_docs_root_reviewability.zig'), DOCS_ROOT_REVIEWABILITY_MARKERS)
-require_markers('build', text('zigux/tests/phase15_build.zig'), BUILD_MARKERS)
+require_markers("make", text("zigux/Makefile"), MAKE_MARKERS)
+require_markers("workflow", text(".github/workflows/zigux-bootstrap.yml"), WORKFLOW_MARKERS)
+require_markers("readme", text("Documentation/zigux/README.md"), README_MARKERS)
+require_markers("scripts_readme", text("scripts/zigux/README.md"), SCRIPTS_README_MARKERS)
+require_markers("tests_readme", text("zigux/tests/README.md"), TESTS_README_MARKERS)
+require_markers(
+    "freeze_map_note",
+    text("Documentation/zigux/phase15-freeze-map-governance.md"),
+    FREEZE_MAP_NOTE_MARKERS,
+)
+require_markers("survey", text("Documentation/zigux/phase15-readiness-gate-survey.md"), SURVEY_MARKERS)
+require_markers("handoff", text("Documentation/zigux/phase15-handoff-next-steps-survey.md"), HANDOFF_MARKERS)
+require_markers("handoff_test", text("zigux/tests/phase15_handoff_next_steps.zig"), HANDOFF_TEST_MARKERS)
+require_markers("docs_root_reviewability", text("zigux/tests/phase15_docs_root_reviewability.zig"), DOCS_ROOT_REVIEWABILITY_MARKERS)
+require_markers("build", text("zigux/tests/phase15_build.zig"), BUILD_MARKERS)
 
-readiness_manifest = load_json('zigux/tests/phase15_readiness_gate_manifest.json')
-require(readiness_manifest.get('phase') == 'Phase 15', 'manifest:phase')
-require(readiness_manifest.get('lane_key') == 'P15-L01', 'manifest:lane_key')
-require(readiness_manifest.get('surveyed_commit') == 'b5f64cf3306b706ea93cc9d3de769d545849b2d4', 'manifest:surveyed_commit')
-repo_evidence = readiness_manifest.get('repo_evidence', {})
-require_true(repo_evidence, 'manifest:repo_evidence', [
-    'freeze_map_present', 'review_checklist_present', 'review_process_present', 'parity_scorecard_present',
-    'indefinite_c_policy_present', 'handoff_next_steps_present', 'phase15_build_present',
-    'phase15_make_target_present', 'shared_ci_phase15_present', 'phase15_replay_green_on_current_master',
-    'docs_root_phase15_summary_aligned',
+freeze_map_manifest = load_json("zigux/tests/phase15_freeze_map_manifest.json")
+require(freeze_map_manifest.get("phase") == "Phase 15", "freeze_map_manifest:phase")
+require(freeze_map_manifest.get("lane_key") == "arch-council", "freeze_map_manifest:lane_key")
+require(
+    isinstance(freeze_map_manifest.get("surveyed_commit"), str)
+    and HEX40.fullmatch(freeze_map_manifest["surveyed_commit"]),
+    "freeze_map_manifest:surveyed_commit",
+)
+require(
+    freeze_map_manifest.get("anchor") == "Documentation/zigux/freeze-map.md",
+    "freeze_map_manifest:anchor",
+)
+require(
+    freeze_map_manifest.get("roadmap_freeze_in_c_targets")
+    == freeze_map_manifest.get("freeze_in_c_targets"),
+    "freeze_map_manifest:freeze_in_c_targets",
+)
+require(
+    freeze_map_manifest.get("roadmap_study_only_targets")
+    == freeze_map_manifest.get("study_only_targets"),
+    "freeze_map_manifest:study_only_targets",
+)
+current_blockers = freeze_map_manifest.get("current_blockers")
+require(isinstance(current_blockers, list) and len(current_blockers) == 4, "freeze_map_manifest:current_blockers")
+governance_requirements = freeze_map_manifest.get("governance_requirements")
+require(
+    isinstance(governance_requirements, list)
+    and {item.get("id") for item in governance_requirements} == {
+        "freeze-map-council-decision",
+        "freeze-map-lane-ownership",
+        "freeze-map-parity-gate",
+        "freeze-map-rollback-threshold",
+        "freeze-map-stay-in-c-policy",
+        "freeze-map-stay-in-c-closeout",
+    },
+    "freeze_map_manifest:governance_requirements",
+)
+freeze_map_gaps = freeze_map_manifest.get("gaps")
+require(isinstance(freeze_map_gaps, list) and len(freeze_map_gaps) >= 1, "freeze_map_manifest:gaps")
+if isinstance(freeze_map_gaps, list):
+    blocked_gaps = [gap for gap in freeze_map_gaps if gap.get("id") == "phase15-deep-core-status-change-blocker"]
+    require(len(blocked_gaps) == 1, "freeze_map_manifest:deep_core_gap")
+    if len(blocked_gaps) == 1:
+        gap = blocked_gaps[0]
+        require(gap.get("status") == "blocked_on_stay_in_c_evidence", "freeze_map_manifest:deep_core_gap:status")
+        require(
+            gap.get("zigux_destination") == "Documentation/zigux/phase15-parity-scorecard.md",
+            "freeze_map_manifest:deep_core_gap:zigux_destination",
+        )
+
+readiness_manifest = load_json("zigux/tests/phase15_readiness_gate_manifest.json")
+require(readiness_manifest.get("phase") == "Phase 15", "manifest:phase")
+require(readiness_manifest.get("lane_key") == "P15-L01", "manifest:lane_key")
+require(readiness_manifest.get("surveyed_commit") == "b5f64cf3306b706ea93cc9d3de769d545849b2d4", "manifest:surveyed_commit")
+repo_evidence = readiness_manifest.get("repo_evidence", {})
+require_true(repo_evidence, "manifest:repo_evidence", [
+    "freeze_map_present", "review_checklist_present", "review_process_present", "parity_scorecard_present",
+    "indefinite_c_policy_present", "handoff_next_steps_present", "phase15_build_present",
+    "phase15_make_target_present", "shared_ci_phase15_present", "phase15_replay_green_on_current_master",
+    "docs_root_phase15_summary_aligned",
 ])
-require_false(repo_evidence, 'manifest:repo_evidence', ['deep_core_status_change_ready'])
-remaining_gaps = readiness_manifest.get('remaining_gaps')
-require(isinstance(remaining_gaps, list) and len(remaining_gaps) == 1, 'manifest:remaining_gaps')
+require_false(repo_evidence, "manifest:repo_evidence", ["deep_core_status_change_ready"])
+remaining_gaps = readiness_manifest.get("remaining_gaps")
+require(isinstance(remaining_gaps, list) and len(remaining_gaps) == 1, "manifest:remaining_gaps")
 if isinstance(remaining_gaps, list) and len(remaining_gaps) == 1:
     gap = remaining_gaps[0]
-    require(gap.get('id') == 'phase15-deep-core-status-change-blocker', 'manifest:remaining_gaps:id')
-    require(gap.get('status') == 'blocked_on_stay_in_c_evidence', 'manifest:remaining_gaps:status')
-    require(gap.get('zigux_destination') == 'Documentation/zigux/phase15-parity-scorecard.md', 'manifest:remaining_gaps:zigux_destination')
+    require(gap.get("id") == "phase15-deep-core-status-change-blocker", "manifest:remaining_gaps:id")
+    require(gap.get("status") == "blocked_on_stay_in_c_evidence", "manifest:remaining_gaps:status")
+    require(gap.get("zigux_destination") == "Documentation/zigux/phase15-parity-scorecard.md", "manifest:remaining_gaps:zigux_destination")
 
-handoff_manifest = load_json('zigux/tests/phase15_handoff_next_steps_manifest.json')
-require(handoff_manifest.get('phase') == 'Phase 15', 'handoff_manifest:phase')
-require(handoff_manifest.get('lane_key') == 'P15-Y08', 'handoff_manifest:lane_key')
-require(handoff_manifest.get('surveyed_commit') == 'b5f64cf3306b706ea93cc9d3de769d545849b2d4', 'handoff_manifest:surveyed_commit')
-handoff_repo_evidence = handoff_manifest.get('repo_evidence', {})
-require_true(handoff_repo_evidence, 'handoff_manifest:repo_evidence', [
-    'freeze_map_governance_present', 'review_process_present', 'parity_scorecard_present',
-    'indefinite_c_policy_present', 'readiness_gate_present', 'phase15_build_present',
-    'phase15_make_target_present', 'shared_ci_phase15_present', 'docs_index_handoff_pointer_present',
-    'docs_root_reviewability_guard_present', 'phase15_replay_green_on_current_master',
-    'docs_root_phase15_summary_aligned',
+handoff_manifest = load_json("zigux/tests/phase15_handoff_next_steps_manifest.json")
+require(handoff_manifest.get("phase") == "Phase 15", "handoff_manifest:phase")
+require(handoff_manifest.get("lane_key") == "P15-Y08", "handoff_manifest:lane_key")
+require(handoff_manifest.get("surveyed_commit") == "b5f64cf3306b706ea93cc9d3de769d545849b2d4", "handoff_manifest:surveyed_commit")
+handoff_repo_evidence = handoff_manifest.get("repo_evidence", {})
+require_true(handoff_repo_evidence, "handoff_manifest:repo_evidence", [
+    "freeze_map_governance_present", "review_process_present", "parity_scorecard_present",
+    "indefinite_c_policy_present", "readiness_gate_present", "phase15_build_present",
+    "phase15_make_target_present", "shared_ci_phase15_present", "docs_index_handoff_pointer_present",
+    "docs_root_reviewability_guard_present", "phase15_replay_green_on_current_master",
+    "docs_root_phase15_summary_aligned",
 ])
-require_false(handoff_repo_evidence, 'handoff_manifest:repo_evidence', ['deep_core_status_change_ready'])
-open_handoff_gaps = handoff_manifest.get('open_handoff_gaps')
-require(isinstance(open_handoff_gaps, list) and len(open_handoff_gaps) == 1, 'handoff_manifest:open_handoff_gaps')
+require_false(handoff_repo_evidence, "handoff_manifest:repo_evidence", ["deep_core_status_change_ready"])
+open_handoff_gaps = handoff_manifest.get("open_handoff_gaps")
+require(isinstance(open_handoff_gaps, list) and len(open_handoff_gaps) == 1, "handoff_manifest:open_handoff_gaps")
 if isinstance(open_handoff_gaps, list) and len(open_handoff_gaps) == 1:
     gap = open_handoff_gaps[0]
-    require(gap.get('id') == 'phase15-deep-core-status-change-blocker', 'handoff_manifest:open_handoff_gaps:id')
-    require(gap.get('status') == 'blocked_on_stay_in_c_evidence', 'handoff_manifest:open_handoff_gaps:status')
+    require(gap.get("id") == "phase15-deep-core-status-change-blocker", "handoff_manifest:open_handoff_gaps:id")
+    require(gap.get("status") == "blocked_on_stay_in_c_evidence", "handoff_manifest:open_handoff_gaps:status")
 
-review_process_manifest = load_json('zigux/tests/phase15_architecture_council_review_process_manifest.json')
-require(review_process_manifest.get('phase') == 'Phase 15', 'review_process_manifest:phase')
-require(isinstance(review_process_manifest.get('lane_key'), str) and review_process_manifest['lane_key'].startswith('P15-L'), 'review_process_manifest:lane_key')
-require(isinstance(review_process_manifest.get('surveyed_commit'), str) and HEX40.fullmatch(review_process_manifest['surveyed_commit']), 'review_process_manifest:surveyed_commit')
+review_process_manifest = load_json("zigux/tests/phase15_architecture_council_review_process_manifest.json")
+require(review_process_manifest.get("phase") == "Phase 15", "review_process_manifest:phase")
+require(isinstance(review_process_manifest.get("lane_key"), str) and review_process_manifest["lane_key"].startswith("P15-L"), "review_process_manifest:lane_key")
+require(isinstance(review_process_manifest.get("surveyed_commit"), str) and HEX40.fullmatch(review_process_manifest["surveyed_commit"]), "review_process_manifest:surveyed_commit")
 
-scorecard_manifest = load_json('zigux/tests/phase15_parity_scorecard.json')
-require(scorecard_manifest.get('phase') == 'Phase 15', 'scorecard_manifest:phase')
-require(scorecard_manifest.get('lane_key') == 'P15-L12', 'scorecard_manifest:lane_key')
+scorecard_manifest = load_json("zigux/tests/phase15_parity_scorecard.json")
+require(scorecard_manifest.get("phase") == "Phase 15", "scorecard_manifest:phase")
+require(scorecard_manifest.get("lane_key") == "P15-L12", "scorecard_manifest:lane_key")
 
 if missing:
-    print('PHASE15_VALIDATION=fail')
-    print('PHASE15_VALIDATION_MISSING_START')
+    print("PHASE15_VALIDATION=fail")
+    print("PHASE15_VALIDATION_MISSING_START")
     for item in missing:
         print(item)
-    print('PHASE15_VALIDATION_MISSING_END')
+    print("PHASE15_VALIDATION_MISSING_END")
     sys.exit(1)
 
-print('PHASE15_VALIDATION=pass')
-print(f'PHASE15_REQUIRED_FILE_COUNT={len(FILES)}')
+print("PHASE15_VALIDATION=pass")
+print(f"PHASE15_REQUIRED_FILE_COUNT={len(FILES)}")
 print(
-    'PHASE15_REQUIRED_MARKER_COUNT=' + str(
+    "PHASE15_REQUIRED_MARKER_COUNT=" + str(
         len(MAKE_MARKERS)
         + len(WORKFLOW_MARKERS)
         + len(README_MARKERS)
         + len(SCRIPTS_README_MARKERS)
         + len(TESTS_README_MARKERS)
+        + len(FREEZE_MAP_NOTE_MARKERS)
         + len(SURVEY_MARKERS)
         + len(HANDOFF_MARKERS)
         + len(HANDOFF_TEST_MARKERS)
@@ -249,4 +317,4 @@ print(
         + len(BUILD_MARKERS)
     )
 )
-print('PHASE15_REMAINING_BLOCKERS=phase15-deep-core-status-change-blocker')
+print("PHASE15_REMAINING_BLOCKERS=phase15-deep-core-status-change-blocker")
