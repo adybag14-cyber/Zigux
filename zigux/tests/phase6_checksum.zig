@@ -225,3 +225,54 @@ test "incremental checksum replacements match full recomputation" {
 
     try std.testing.expectEqual(checksum.compute(&ipv4_header), checksum.replace4(checksum_before_addr_change, old_saddr, new_saddr));
 }
+
+test "perf fixtures stay bounded and deterministic for checksum-only replay" {
+    const expected = [_]struct {
+        label: []const u8,
+        len: usize,
+        reps: usize,
+        seed: u32,
+        max_slowdown_pct: u16,
+        expected_partial: u32,
+        expected_folded: u16,
+    }{
+        .{
+            .label = "64",
+            .len = 64,
+            .reps = 20_000,
+            .seed = 0,
+            .max_slowdown_pct = 150,
+            .expected_partial = 0xa3b1,
+            .expected_folded = 0x5c4e,
+        },
+        .{
+            .label = "1501",
+            .len = 1501,
+            .reps = 4_000,
+            .seed = 0x1234_5678,
+            .max_slowdown_pct = 150,
+            .expected_partial = 0x3ac5,
+            .expected_folded = 0xc53a,
+        },
+    };
+
+    try std.testing.expectEqual(expected.len, fixtures.perf_cases.len);
+
+    for (expected, fixtures.perf_cases) |want, actual| {
+        try std.testing.expectEqualStrings(want.label, actual.label);
+        try std.testing.expectEqual(want.len, actual.len);
+        try std.testing.expectEqual(want.reps, actual.reps);
+        try std.testing.expectEqual(want.seed, actual.seed);
+        try std.testing.expectEqual(want.max_slowdown_pct, actual.max_slowdown_pct);
+
+        const payload = try std.testing.allocator.alloc(u8, actual.len);
+        defer std.testing.allocator.free(payload);
+        fixtures.fillPerfPayload(payload);
+
+        const actual_partial = checksum.partial(payload, actual.seed);
+        try std.testing.expectEqual(want.expected_partial, actual_partial);
+        try std.testing.expectEqual(want.expected_partial, referencePartial(payload, actual.seed));
+        try std.testing.expectEqual(want.expected_folded, checksum.fold(actual_partial));
+        try std.testing.expectEqual(want.expected_folded, referenceFoldedChecksum(payload, actual.seed));
+    }
+}
