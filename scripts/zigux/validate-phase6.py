@@ -68,6 +68,7 @@ MAKE_MARKERS = [
 
 CATALOG_MARKERS = [
     "PHASE6_BASE64_C_PARITY_CASES=112",
+    "PHASE6_BSEARCH_C_PARITY_SELF_TEST_CASE_COUNT=6",
     "PHASE6_BSEARCH_C_PARITY_CASES=29",
     "PHASE6_CHECKSUM_C_PARITY_SELF_TEST_CASE_COUNT=10",
     "PHASE6_CHECKSUM_C_PARITY_CASES=22",
@@ -80,7 +81,7 @@ CATALOG_MARKERS = [
     "max_slowdown_pct = 550",
     "max_slowdown_pct = 600",
     "avg_compare_calls <= std.math.log2_int_ceil(len) + 1",
-    "PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=31",
+    "PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=34",
 ]
 
 PERF_SURVEY_MARKERS = [
@@ -179,6 +180,24 @@ HEXDUMP_FIXTURE_MARKERS = [
     '.{ .label = "32B-ascii-g2", .len = 32, .rowsize = 32, .groupsize = 2, .ascii = true, .reps = 10_000, .max_slowdown_pct = 550 },',
     '.{ .label = "16B-ascii-g4", .len = 16, .rowsize = 16, .groupsize = 4, .ascii = true, .reps = 20_000, .max_slowdown_pct = 550 },',
     '.{ .label = "16B-ascii-g8", .len = 16, .rowsize = 16, .groupsize = 8, .ascii = true, .reps = 20_000, .max_slowdown_pct = 600 },',
+]
+
+BSEARCH_PARITY_SCRIPT_MARKERS = [
+    'print("PHASE6_BSEARCH_C_PARITY_SELF_TEST=pass")',
+    'print("PHASE6_BSEARCH_C_PARITY_SELF_TEST_CASE_COUNT=6")',
+    'print(f"PHASE6_BSEARCH_C_PARITY_CASES={len(c_lines)}")',
+]
+
+BSEARCH_PARITY_RUNNER_MARKERS = [
+    'const descending_values = [_]u32{ 89, 55, 34, 21, 13, 8, 3 };',
+    'try writeRuntimeTypedMutableCase(writer, "mutable-hit", 34, compareDescendingU32, descending_values[0..]);',
+    'try writer.print("sym-hit\\tkmalloc\\t0x{x}\\n", .{item.address});',
+]
+
+BSEARCH_PARITY_HARNESS_MARKERS = [
+    'static const uint32_t descending_values[] = { 89, 55, 34, 21, 13, 8, 3 };',
+    'print_runtime_typed_mutable_case(',
+    'printf("%s\\t%u\\t%td\\n", label, key, found - base);',
 ]
 
 CHECKSUM_PARITY_SCRIPT_MARKERS = [
@@ -483,6 +502,9 @@ def validate_phase6(root: Path) -> dict[str, object]:
     require_markers(missing, "hexdump_perf", text(root, "zigux/tests/phase6_hexdump_perf.zig"), HEXDUMP_PERF_MARKERS)
     require_markers(missing, "checksum_vectors", text(root, "zigux/tests/fixtures/phase6_checksum_vectors.zig"), CHECKSUM_FIXTURE_MARKERS)
     require_markers(missing, "hexdump_vectors", text(root, "zigux/tests/fixtures/phase6_hexdump_vectors.zig"), HEXDUMP_FIXTURE_MARKERS)
+    require_markers(missing, "bsearch_parity_script", text(root, "scripts/zigux/check-phase6-bsearch-c-parity.py"), BSEARCH_PARITY_SCRIPT_MARKERS)
+    require_markers(missing, "bsearch_parity_runner", text(root, "zigux/tests/phase6_bsearch_c_parity.zig"), BSEARCH_PARITY_RUNNER_MARKERS)
+    require_markers(missing, "bsearch_parity_harness", text(root, "zigux/tests/fixtures/phase6_bsearch_c_harness.c"), BSEARCH_PARITY_HARNESS_MARKERS)
     require_markers(missing, "checksum_parity_script", text(root, "scripts/zigux/check-phase6-checksum-c-parity.py"), CHECKSUM_PARITY_SCRIPT_MARKERS)
     require_markers(missing, "checksum_parity_runner", text(root, "zigux/tests/phase6_checksum_c_parity.zig"), CHECKSUM_PARITY_RUNNER_MARKERS)
     require_markers(missing, "checksum_parity_harness", text(root, "zigux/tests/fixtures/phase6_checksum_c_harness.c"), CHECKSUM_PARITY_HARNESS_MARKERS)
@@ -527,7 +549,7 @@ def report_validation(result: dict[str, object]) -> int:
         return 1
     print("PHASE6_VALIDATION=pass")
     print(f"PHASE6_CATALOG_VERIFIED_HEAD={result['catalog_head']}")
-    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=31")
+    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=34")
     return 0
 
 
@@ -557,6 +579,9 @@ def build_self_test_tree(root: Path) -> None:
     write(root, "zigux/tests/phase6_hexdump_perf.zig", "\n".join(HEXDUMP_PERF_MARKERS) + "\n")
     write(root, "zigux/tests/fixtures/phase6_checksum_vectors.zig", "\n".join(CHECKSUM_FIXTURE_MARKERS) + "\n")
     write(root, "zigux/tests/fixtures/phase6_hexdump_vectors.zig", "\n".join(HEXDUMP_FIXTURE_MARKERS) + "\n")
+    write(root, "scripts/zigux/check-phase6-bsearch-c-parity.py", "\n".join(BSEARCH_PARITY_SCRIPT_MARKERS) + "\n")
+    write(root, "zigux/tests/phase6_bsearch_c_parity.zig", "\n".join(BSEARCH_PARITY_RUNNER_MARKERS) + "\n")
+    write(root, "zigux/tests/fixtures/phase6_bsearch_c_harness.c", "\n".join(BSEARCH_PARITY_HARNESS_MARKERS) + "\n")
     write(root, "scripts/zigux/check-phase6-checksum-c-parity.py", "\n".join(CHECKSUM_PARITY_SCRIPT_MARKERS) + "\n")
     write(root, "zigux/tests/phase6_checksum_c_parity.zig", "\n".join(CHECKSUM_PARITY_RUNNER_MARKERS) + "\n")
     write(root, "zigux/tests/fixtures/phase6_checksum_c_harness.c", "\n".join(CHECKSUM_PARITY_HARNESS_MARKERS) + "\n")
@@ -753,6 +778,24 @@ def run_self_test() -> int:
                 raise AssertionError("missing bsearch helper manifest failure")
 
             build_self_test_tree(root)
+            bsearch_parity_script = root / "scripts/zigux/check-phase6-bsearch-c-parity.py"
+            bsearch_parity_script.write_text("", encoding="utf-8")
+            if 'bsearch_parity_script:missing:print("PHASE6_BSEARCH_C_PARITY_SELF_TEST=pass")' not in validate_phase6(root)["missing"]:
+                raise AssertionError("missing bsearch parity script failure")
+
+            build_self_test_tree(root)
+            bsearch_parity_runner = root / "zigux/tests/phase6_bsearch_c_parity.zig"
+            bsearch_parity_runner.write_text("", encoding="utf-8")
+            if 'bsearch_parity_runner:missing:const descending_values = [_]u32{ 89, 55, 34, 21, 13, 8, 3 };' not in validate_phase6(root)["missing"]:
+                raise AssertionError("missing bsearch parity runner failure")
+
+            build_self_test_tree(root)
+            bsearch_parity_harness = root / "zigux/tests/fixtures/phase6_bsearch_c_harness.c"
+            bsearch_parity_harness.write_text("", encoding="utf-8")
+            if 'bsearch_parity_harness:missing:static const uint32_t descending_values[] = { 89, 55, 34, 21, 13, 8, 3 };' not in validate_phase6(root)["missing"]:
+                raise AssertionError("missing bsearch parity harness failure")
+
+            build_self_test_tree(root)
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
             manifest["helpers"][3]["slice_note"] = "Documentation/zigux/phase6-hexdump-slice.md -- drift"
             manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
@@ -796,7 +839,7 @@ def run_self_test() -> int:
         return 1
 
     print("PHASE6_VALIDATOR_SELF_TEST=pass")
-    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=31")
+    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=34")
     return 0
 
 
