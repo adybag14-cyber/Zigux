@@ -233,7 +233,7 @@ def _run_self_test() -> int:
                 {"id": "phase13-libfs-inode-and-pseudofs-lifecycle", "status": "blocked_on_vfs_state"},
             ],
         }
-        (root / "zigux/tests/phase13_libfs_manifest.json").writeText(
+        (root / "zigux/tests/phase13_libfs_manifest.json").write_text(
             json.dumps(manifest, indent=2) + "\n",
             encoding="utf-8",
         )
