@@ -191,7 +191,7 @@ test "phase14 skbuff bridge manifest records the boundary-map foothold and froze
         }
         if (std.mem.eql(u8, gap.id, "phase14-skbuff-direct-xmit-identity-drop-followup")) {
             saw_direct_xmit_followup = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("net/core/skbuff_bridge.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "__dev_direct_xmit()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "skb != orig_skb") != null);
@@ -203,8 +203,8 @@ test "phase14 skbuff bridge manifest records the boundary-map foothold and froze
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 15), landed_count);
-    try std.testing.expectEqual(@as(usize, 1), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 16), landed_count);
+    try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_boundary_map);
     try std.testing.expect(saw_audit_outline);
@@ -287,7 +287,7 @@ test "phase14 skbuff bridge notes record the direct-xmit governance boundary" {
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "qdisc publication, queue ownership, and skb lifetime ownership remain in C") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "direct-xmit governance note") != null);
-    try std.testing.expect(std.mem.indexOf(u8, slice_note, "identity-drop follow-up") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "identity-drop checkpoint") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "observational only") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "qdisc publication, queue ownership, and skb lifetime ownership remain explicitly in C") != null);
 }
