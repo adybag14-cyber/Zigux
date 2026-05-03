@@ -365,6 +365,7 @@ def validate_kconfig_bridge_manifest(cases_path: Path) -> list[str]:
         {'name': 'escaped_strings', 'input': 'escaped_strings.config', 'expected': 'escaped_strings_expected.json'},
         {'name': 'explicit_n_tristate', 'input': 'explicit_n_tristate.config', 'expected': 'explicit_n_tristate_expected.json'},
         {'name': 'final_trailing_carriage_return', 'input': 'final_trailing_carriage_return.config', 'expected': 'final_trailing_carriage_return_expected.json'},
+        {'name': 'final_unterminated_unset_comment', 'input': 'final_unterminated_unset_comment.config', 'expected': 'final_unterminated_unset_comment_expected.json'},
         {'name': 'ignore_non_config_lines', 'input': 'ignore_non_config_lines.config', 'expected': 'ignore_non_config_lines_expected.json'},
         {'name': 'malformed_quoted_string', 'input': 'malformed_quoted_string.config', 'expected': 'malformed_quoted_string_expected.json'},
         {'name': 'negative_signed_numeric_kinds', 'input': 'negative_signed_numeric_kinds.config', 'expected': 'negative_signed_numeric_kinds_expected.json'},
@@ -373,6 +374,7 @@ def validate_kconfig_bridge_manifest(cases_path: Path) -> list[str]:
         {'name': 'sample', 'input': 'sample.config', 'expected': 'sample_expected.json'},
         {'name': 'sample_crlf', 'input': 'sample_crlf.config', 'expected': 'sample_crlf_expected.json'},
         {'name': 'signed_numeric_kinds', 'input': 'signed_numeric_kinds.config', 'expected': 'signed_numeric_kinds_expected.json'},
+        {'name': 'trailing_escaped_backslash', 'input': 'trailing_escaped_backslash.config', 'expected': 'trailing_escaped_backslash_expected.json'},
     ]
 
     expected_mode_order = [case['mode'] for case in expected_conf_cases]
@@ -701,12 +703,12 @@ required_closure_markers = [
     'confdata bridge rejects empty config path arguments',
     'confdata bridge escapes low control bytes in emitted json',
     'PHASE2_KCONFIG_BRIDGE_CONF_CASE_COUNT=16',
-    'PHASE2_KCONFIG_BRIDGE_CONFDATA_CASE_COUNT=16',
+    'PHASE2_KCONFIG_BRIDGE_CONFDATA_CASE_COUNT=18',
     'PHASE2_KCONFIG_BRIDGE_ALLCONFIG_CASES=zigux/tests/fixtures/kconfig_bridge/allnoconfig_expected.json,zigux/tests/fixtures/kconfig_bridge/randconfig_expected.json',
     'PHASE2_KCONFIG_BRIDGE_ARGUMENT_CASES=zigux/tests/fixtures/kconfig_bridge/defconfig_expected.json,zigux/tests/fixtures/kconfig_bridge/savedefconfig_expected.json',
     'PHASE2_KCONFIG_BRIDGE_LOW_CONTROL_CASE=zigux/tests/fixtures/kconfig_bridge/escaped_low_control_bytes_expected.json',
     'PHASE2_KCONFIG_BRIDGE_MANIFEST_POLICY=check-kconfig-bridge.py rejects uncovered modes, malformed manifests, duplicate fixture references, orphaned fixture files, and non-canonical confdata names before replay',
-    'PHASE2_KCONFIG_BRIDGE_EVIDENCE=artifact fixtures plus conf bridge mode coverage, allconfig env, mode-arg, manifest-determinism, confdata escaped-control decode, empty-string, empty-symbol, explicit-n, malformed-quote, signed-numeric, quoted-suffix, CRLF, empty-path rejection, and low-control JSON emission anchors are required for closure',
+    'PHASE2_KCONFIG_BRIDGE_EVIDENCE=artifact fixtures plus conf bridge mode coverage, allconfig env, mode-arg, manifest-determinism, confdata escaped-control decode, empty-string, empty-symbol, explicit-n, malformed-quote, signed-numeric, trailing-unset-comment, quoted-suffix, CRLF, trailing-escaped-backslash, empty-path rejection, and low-control JSON emission anchors are required for closure',
     'PHASE2_MK_ELFCONFIG_GATE=python3 scripts/zigux/check-mk-elfconfig-diff.py',
     'PHASE2_MK_ELFCONFIG_DETERMINISM=check-mk-elfconfig-diff.py replays C and Zig outputs twice before comparing artifacts',
     'PHASE2_CROSS_SELF_TEST=python3 scripts/zigux/check-phase2-cross.py --self-test',
