@@ -36,10 +36,16 @@ MAKEFILE_COMMAND_RE = re.compile(
     r"\$\(PYTHON\)\s+(scripts/zigux/[A-Za-z0-9._-]+\.py(?: --self-test)?)"
 )
 MAKEFILE_TEST_COMMAND_RE = re.compile(
-    r"\$\(ZIG\)\s+(build test --build-file zigux/tests/phase7_build\.zig --summary all)"
+    r"\$\(ZIG\)\s+(build test --build-file zigux/tests/[A-Za-z0-9_]+\.zig(?: --summary all)?)"
 )
 UNEXPECTED_BUILD_MARKERS = ["../../tools/lib/", "zigux/tests/build.zig"]
 EXPECTED_SHARED_TEST_COMMAND = "zig build test --build-file zigux/tests/phase7_build.zig --summary all"
+EXPECTED_REPO_ROOT_RUN_CWDS = [
+    "phase7-cmdline-survey-tests",
+    "phase7-argv-split-survey-tests",
+    "phase7-string-helpers-survey-tests",
+    "phase7-rbtree-survey-tests",
+]
 
 
 def rel_or_abs(path: Path, root: Path = ROOT) -> str:
@@ -184,6 +190,11 @@ def run_self_test() -> int:
         raise SystemExit("phase7-build-inventory:self-test:fixture_match")
     if len(first["run_labels"]) != len(first["shared_test_depend_steps"]):
         raise SystemExit("phase7-build-inventory:self-test:depend_step_count")
+    for run_label in EXPECTED_REPO_ROOT_RUN_CWDS:
+        if first["run_cwds"].get(run_label) != "repo_root":
+            raise SystemExit(
+                f"phase7-build-inventory:self-test:repo_root_cwd_baseline:{run_label}"
+            )
     if len(first["shared_validation_gates"]) != 6:
         raise SystemExit("phase7-build-inventory:self-test:validation_gate_count")
     if len(first["shared_validation_commands"]) != 12:
@@ -266,6 +277,24 @@ def run_self_test() -> int:
     if cwd_drift["run_cwds"].get("phase7-argv-split-survey-tests") is not None:
         raise SystemExit("phase7-build-inventory:self-test:argv_split_repo_root_drift")
 
+    cmdline_cwd_drift_text, replacements = re.subn(
+        r'("phase7-cmdline-survey-tests",\s*cmdline_survey_root_module,\s*)repo_root(\s*,\s*\))',
+        r"\1null\2",
+        build_text,
+        count=1,
+        flags=re.S,
+    )
+    if replacements != 1:
+        raise SystemExit("phase7-build-inventory:self-test:cmdline_cwd_drift_rewrite")
+
+    cmdline_cwd_drift = render_inventory_from_text(cmdline_cwd_drift_text, makefile_text)
+    if cmdline_cwd_drift == fixture:
+        raise SystemExit("phase7-build-inventory:self-test:cmdline_cwd_drift_detection")
+    if first["run_cwds"].get("phase7-cmdline-survey-tests") != "repo_root":
+        raise SystemExit("phase7-build-inventory:self-test:cmdline_repo_root_baseline")
+    if cmdline_cwd_drift["run_cwds"].get("phase7-cmdline-survey-tests") is not None:
+        raise SystemExit("phase7-build-inventory:self-test:cmdline_repo_root_drift")
+
     string_helpers_helper_path_drift_text, replacements = re.subn(
         r'("phase7_string_helpers\.zig",\s*"string_helpers",\s*")\.\./\.\./lib/string_helpers\.zig("\s*,)',
         r'\1../../lib/cmdline.zig\2',
@@ -322,6 +351,26 @@ def run_self_test() -> int:
         raise SystemExit("phase7-build-inventory:self-test:dependency_drift_shape")
     if len(dependency_steps) != len(first["shared_test_depend_steps"]) - 1:
         raise SystemExit("phase7-build-inventory:self-test:dependency_drift_count")
+
+    survey_dependency_drift_text = build_text.replace(
+        "    test_step.dependOn(&run_string_helpers_survey_tests.step);\n",
+        "",
+        1,
+    )
+    if survey_dependency_drift_text == build_text:
+        raise SystemExit("phase7-build-inventory:self-test:survey_dependency_drift_rewrite")
+
+    survey_dependency_drift = render_inventory_from_text(
+        survey_dependency_drift_text,
+        makefile_text,
+    )
+    if survey_dependency_drift == fixture:
+        raise SystemExit("phase7-build-inventory:self-test:survey_dependency_drift_detection")
+    survey_dependency_steps = survey_dependency_drift["shared_test_depend_steps"]
+    if "run_string_helpers_survey_tests" in survey_dependency_steps:
+        raise SystemExit("phase7-build-inventory:self-test:survey_dependency_drift_shape")
+    if len(survey_dependency_steps) != len(first["shared_test_depend_steps"]) - 1:
+        raise SystemExit("phase7-build-inventory:self-test:survey_dependency_drift_count")
 
     validation_gate_drift_text, replacements = re.subn(
         r"scripts/zigux/check-phase7-build-inventory\.py",
@@ -432,7 +481,7 @@ def run_self_test() -> int:
         raise SystemExit("phase7-build-inventory:self-test:shared_test_command_drift_shape")
 
     print("PHASE7_BUILD_INVENTORY_SELF_TEST=pass")
-    print("PHASE7_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=17")
+    print("PHASE7_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=19")
     return 0
 
 
@@ -472,6 +521,50 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     if generated != fixture:
         print_mismatch(fixture, generated)
+        return 1
+
+    build_inventory_errors: list[str] = []
+    if generated.get("repo_root_path") != "../..":
+        build_inventory_errors.append("repo_root_path")
+    if generated.get("shared_validation_gates") != [
+        "scripts/zigux/validate-phase7.py",
+        "scripts/zigux/check-phase7-build-inventory.py",
+        "scripts/zigux/check-phase7-make-wrapper.py",
+        "scripts/zigux/check-phase7-cmdline-parity.py",
+        "scripts/zigux/check-phase7-argv-split-parity.py",
+        "scripts/zigux/check-phase7-rbtree-parity.py",
+    ]:
+        build_inventory_errors.append("shared_validation_gates")
+    if generated.get("shared_validation_commands") != [
+        "scripts/zigux/validate-phase7.py --self-test",
+        "scripts/zigux/validate-phase7.py",
+        "scripts/zigux/check-phase7-build-inventory.py --self-test",
+        "scripts/zigux/check-phase7-build-inventory.py",
+        "scripts/zigux/check-phase7-make-wrapper.py --self-test",
+        "scripts/zigux/check-phase7-make-wrapper.py",
+        "scripts/zigux/check-phase7-cmdline-parity.py --self-test",
+        "scripts/zigux/check-phase7-cmdline-parity.py",
+        "scripts/zigux/check-phase7-argv-split-parity.py --self-test",
+        "scripts/zigux/check-phase7-argv-split-parity.py",
+        "scripts/zigux/check-phase7-rbtree-parity.py --self-test",
+        "scripts/zigux/check-phase7-rbtree-parity.py",
+    ]:
+        build_inventory_errors.append("shared_validation_commands")
+    if generated.get("unexpected_build_markers") != UNEXPECTED_BUILD_MARKERS:
+        build_inventory_errors.append("unexpected_build_markers")
+    if len(generated.get("run_labels", [])) != 8:
+        build_inventory_errors.append("run_labels")
+    if len(generated.get("shared_test_depend_steps", [])) != 8:
+        build_inventory_errors.append("shared_test_depend_steps")
+    for run_label in EXPECTED_REPO_ROOT_RUN_CWDS:
+        if generated.get("run_cwds", {}).get(run_label) != "repo_root":
+            build_inventory_errors.append(f"run_cwds:{run_label}")
+    if build_inventory_errors:
+        print("PHASE7_BUILD_INVENTORY=fail")
+        print("PHASE7_BUILD_INVENTORY_SHAPE_START")
+        for item in build_inventory_errors:
+            print(f"zigux/tests/fixtures/phase7_build_inventory.json: {item}")
+        print("PHASE7_BUILD_INVENTORY_SHAPE_END")
         return 1
 
     print("PHASE7_BUILD_INVENTORY=pass")
