@@ -139,6 +139,9 @@ required_script_readme_markers = [
     "`check-phase7-argv-split-parity.py`",
     "`check-phase7-rbtree-parity.py`",
 ]
+required_script_readme_exact_count_markers = {
+    "- `check-phase7-argv-split-packet.py`": 1,
+}
 required_tests_readme_markers = [
     "`zigux/tests/phase7_build.zig`",
     "`zigux/tests/fixtures/phase7_build_inventory.json`",
@@ -166,6 +169,10 @@ required_doc_readme_markers = [
     "`make -C zigux phase7-test`",
     "`make -C zigux phase7`",
 ]
+required_doc_readme_exact_count_markers = {
+    "`python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test`": 1,
+    "`python3 scripts/zigux/check-phase7-argv-split-packet.py`": 1,
+}
 required_phase7_build_markers = [
     "fn createImportedTestRoot(",
     "fn createStandaloneTestRoot(",
@@ -235,6 +242,19 @@ def collect_missing_markers(label: str, content: str, markers: list[str]) -> lis
     return [(label, marker) for marker in markers if marker not in content]
 
 
+def collect_exact_count_marker_drift(
+    label: str,
+    content: str,
+    exact_counts: dict[str, int],
+) -> list[tuple[str, str]]:
+    drift: list[tuple[str, str]] = []
+    for marker, expected_count in exact_counts.items():
+        actual_count = content.count(marker)
+        if actual_count != expected_count:
+            drift.append((label, f"exact_count:{marker}:{actual_count}!={expected_count}"))
+    return drift
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase7_validator_selftest_") as tmp_dir:
         tmp_root = Path(tmp_dir)
@@ -298,6 +318,21 @@ def run_self_test() -> int:
 
         script_readme_path.write_text(
             original_script_readme.replace(
+                "- `check-phase7-argv-split-packet.py`\n",
+                "- `check-phase7-argv-split-packet.py`\n- `check-phase7-argv-split-packet.py`\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_packet_script_readme_duplicate",
+            tmp_root,
+            "scripts/zigux/README.md: exact_count:- `check-phase7-argv-split-packet.py`:2!=1",
+        )
+        script_readme_path.write_text(original_script_readme, encoding="utf-8")
+
+        script_readme_path.write_text(
+            original_script_readme.replace(
                 "- `check-phase7-argv-split-parity.py`\n",
                 "",
                 1,
@@ -338,6 +373,36 @@ def run_self_test() -> int:
             "argv_split_packet_doc_readme_marker",
             tmp_root,
             "Documentation/zigux/README.md: `python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test`",
+        )
+        doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
+
+        doc_readme_path.write_text(
+            original_doc_readme.replace(
+                "`python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test`",
+                "`python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test`, `python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_packet_doc_readme_duplicate_self_test_marker",
+            tmp_root,
+            "Documentation/zigux/README.md: exact_count:`python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test`:2!=1",
+        )
+        doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
+
+        doc_readme_path.write_text(
+            original_doc_readme.replace(
+                "`python3 scripts/zigux/check-phase7-argv-split-packet.py`",
+                "`python3 scripts/zigux/check-phase7-argv-split-packet.py`, `python3 scripts/zigux/check-phase7-argv-split-packet.py`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_packet_doc_readme_duplicate_marker",
+            tmp_root,
+            "Documentation/zigux/README.md: exact_count:`python3 scripts/zigux/check-phase7-argv-split-packet.py`:2!=1",
         )
         doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
 
@@ -450,7 +515,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=13")
+    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
@@ -478,8 +543,22 @@ def main() -> int:
     missing_markers.extend(collect_missing_markers("zigux/Makefile", makefile, required_make_markers))
     missing_markers.extend(collect_missing_markers(".github/workflows/zigux-bootstrap.yml", workflow, required_workflow_markers))
     missing_markers.extend(collect_missing_markers("scripts/zigux/README.md", script_readme, required_script_readme_markers))
+    missing_markers.extend(
+        collect_exact_count_marker_drift(
+            "scripts/zigux/README.md",
+            script_readme,
+            required_script_readme_exact_count_markers,
+        )
+    )
     missing_markers.extend(collect_missing_markers("zigux/tests/README.md", tests_readme, required_tests_readme_markers))
     missing_markers.extend(collect_missing_markers("Documentation/zigux/README.md", doc_readme, required_doc_readme_markers))
+    missing_markers.extend(
+        collect_exact_count_marker_drift(
+            "Documentation/zigux/README.md",
+            doc_readme,
+            required_doc_readme_exact_count_markers,
+        )
+    )
     missing_markers.extend(collect_missing_markers("zigux/tests/phase7_build.zig", phase7_build, required_phase7_build_markers))
     missing_markers.extend(
         [("zigux/tests/phase7_build.zig", marker) for marker in unexpected_phase7_build_markers if marker in phase7_build]
@@ -607,7 +686,7 @@ def main() -> int:
     print(f"PHASE7_REQUIRED_FILE_COUNT={len(required_files)}")
     print(
         "PHASE7_REQUIRED_MARKER_COUNT="
-        f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_phase7_build_markers)}"
+        f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_script_readme_exact_count_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_doc_readme_exact_count_markers) + len(required_phase7_build_markers)}"
     )
     return 0
 
