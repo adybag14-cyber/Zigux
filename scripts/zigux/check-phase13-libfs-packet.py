@@ -49,6 +49,10 @@ REVIEWABILITY_MARKERS = [
 SURVEY_MARKERS = [
     "PHASE13_STATUS=active",
     "PHASE13_SLICE=libfs-helper-reviewability",
+    "landed `phase13-build-gate`",
+    "landed `phase13-make-target`",
+    "landed `phase13-libfs-starter`",
+    "landed `phase13-libfs-tests`",
     "phase13-libfs-dcache-dir-close-release-bookkeeping",
     "phase13-libfs-simple-open-private-data-planning",
     "python3 scripts/zigux/check-phase13-libfs-packet.py",
@@ -63,6 +67,10 @@ SLICE_MARKERS = [
 TRACEABILITY_MARKERS = [
     "### `fs/libfs.c`",
     "implementation anchor: `fs/libfs.zig`",
+    "landed `phase13-build-gate`",
+    "landed `phase13-make-target`",
+    "landed `phase13-libfs-starter`",
+    "landed `phase13-libfs-tests`",
     "phase13-libfs-dcache-dir-close-release-bookkeeping",
     "phase13-libfs-simple-open-private-data-planning",
     "phase13-libfs-dcache-cursor-helpers",
@@ -151,6 +159,10 @@ def _check_repo(root: Path) -> list[str]:
         if isinstance(gap, dict) and gap.get("status") == "starter_landed"
     }
     for expected in (
+        "phase13-build-gate",
+        "phase13-make-target",
+        "phase13-libfs-starter",
+        "phase13-libfs-tests",
         "phase13-libfs-dcache-dir-close-release-bookkeeping",
         "phase13-libfs-simple-open-private-data-planning",
     ):
@@ -195,6 +207,10 @@ def _run_self_test() -> int:
             "surveyed_commit": surveyed_commit,
             "anchor": "fs/libfs.c",
             "gaps": [
+                {"id": "phase13-build-gate", "status": "starter_landed"},
+                {"id": "phase13-make-target", "status": "starter_landed"},
+                {"id": "phase13-libfs-starter", "status": "starter_landed"},
+                {"id": "phase13-libfs-tests", "status": "starter_landed"},
                 {"id": "phase13-libfs-dcache-dir-close-release-bookkeeping", "status": "starter_landed"},
                 {"id": "phase13-libfs-simple-open-private-data-planning", "status": "starter_landed"},
                 {"id": "phase13-libfs-dcache-cursor-helpers", "status": "blocked_on_vfs_state"},
