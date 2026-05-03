@@ -73,7 +73,7 @@ test "phase10 virtio core survey manifest records the live core validation bundl
 
     const manifest = parsed.value;
     const closure_manifest = closure_parsed.value;
-    try std.testing.expectEqualStrings("P10-L03", manifest.lane_key);
+    try std.testing.expectEqualStrings("P10-Y01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 10", manifest.phase);
     try std.testing.expectEqualStrings("drivers/virtio/virtio.c", manifest.anchor);
     try std.testing.expectEqualStrings("d30cbe483a2f019ae797b309a29556bd58fe00d0", manifest.surveyed_commit);
