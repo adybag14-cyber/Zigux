@@ -86,7 +86,12 @@ CLOSURE_MARKERS = [
 ]
 
 
-def expected_toolchain_notes_markers(channel: str, minimum_version: str) -> list[str]:
+def expected_toolchain_notes_markers(
+    channel: str,
+    minimum_version: str,
+    pin_target: str,
+    pin_digest: str,
+) -> list[str]:
     return [
         "check-phase2-toolchain-pin-scope.py --self-test",
         "check-phase2-toolchain-pin-scope.py",
@@ -96,6 +101,10 @@ def expected_toolchain_notes_markers(channel: str, minimum_version: str) -> list
         "check-zig-toolchain.py",
         f"current pinned Zig channel: `{channel}`",
         f"current minimum Zig version: `{minimum_version}`",
+        f"current pinned bootstrap archive target: `{pin_target}`",
+        f"current pinned bootstrap archive sha256 (`{pin_target}`): `{pin_digest}`",
+        "the archive pin must stay limited to `x86_64-linux` until a new bootstrap runner target gains first-class workflow evidence",
+        f"the three-target compile matrix in `zigux/tests/fixtures/phase2_cross_targets.json` stays separate from the `{pin_target}` bootstrap archive pin",
     ]
 
 
@@ -477,6 +486,8 @@ def run_self_test() -> int:
     toolchain_notes_markers = expected_toolchain_notes_markers(
         valid_policy["channel"],
         valid_policy["minimum_version"],
+        EXPECTED_PIN_TARGETS[0],
+        valid_policy["archive_sha256"][EXPECTED_PIN_TARGETS[0]],
     )
     toolchain_notes_text = "\n".join(toolchain_notes_markers)
     if validate_required_markers(
@@ -518,6 +529,59 @@ def run_self_test() -> int:
     ):
         raise SystemExit("phase2-toolchain-pin-scope:self-test:toolchain_notes_minimum_marker")
 
+    missing_toolchain_target = "\n".join(
+        marker
+        for marker in toolchain_notes_markers
+        if marker != f"current pinned bootstrap archive target: `{EXPECTED_PIN_TARGETS[0]}`"
+    )
+    marker_issues = validate_required_markers(
+        missing_toolchain_target,
+        label="toolchain_notes",
+        markers=toolchain_notes_markers,
+    )
+    if (
+        f"toolchain_notes:missing_marker:current pinned bootstrap archive target: `{EXPECTED_PIN_TARGETS[0]}`"
+        not in marker_issues
+    ):
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:toolchain_notes_target_marker")
+
+    missing_toolchain_sha = "\n".join(
+        marker
+        for marker in toolchain_notes_markers
+        if marker
+        != "current pinned bootstrap archive sha256 (`x86_64-linux`): `313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77`"
+    )
+    marker_issues = validate_required_markers(
+        missing_toolchain_sha,
+        label="toolchain_notes",
+        markers=toolchain_notes_markers,
+    )
+    if (
+        "toolchain_notes:missing_marker:current pinned bootstrap archive sha256 (`x86_64-linux`): "
+        "`313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77`"
+        not in marker_issues
+    ):
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:toolchain_notes_sha_marker")
+
+    missing_matrix_separation = "\n".join(
+        marker
+        for marker in toolchain_notes_markers
+        if marker
+        != "the three-target compile matrix in `zigux/tests/fixtures/phase2_cross_targets.json` stays separate from the `x86_64-linux` bootstrap archive pin"
+    )
+    marker_issues = validate_required_markers(
+        missing_matrix_separation,
+        label="toolchain_notes",
+        markers=toolchain_notes_markers,
+    )
+    if (
+        "toolchain_notes:missing_marker:the three-target compile matrix in "
+        "`zigux/tests/fixtures/phase2_cross_targets.json` stays separate from the "
+        "`x86_64-linux` bootstrap archive pin"
+        not in marker_issues
+    ):
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:toolchain_notes_matrix_marker")
+
     closure_text = "\n".join(CLOSURE_MARKERS)
     if validate_required_markers(closure_text, label="closure", markers=CLOSURE_MARKERS):
         raise SystemExit("phase2-toolchain-pin-scope:self-test:closure_markers")
@@ -550,7 +614,7 @@ def run_self_test() -> int:
             raise SystemExit("phase2-toolchain-pin-scope:self-test:json_round_trip")
 
     print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass")
-    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=29")
+    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=32")
     return 0
 
 
@@ -588,11 +652,28 @@ def main() -> int:
     issues.extend(validate_policy(policy))
     channel = policy.get("channel")
     minimum_version = policy.get("minimum_version")
+    archive_sha256 = policy.get("archive_sha256")
     toolchain_notes_markers: list[str] = []
+    pin_target = EXPECTED_PIN_TARGETS[0]
+    pin_digest = "<missing-archive-sha256>"
+    if isinstance(archive_sha256, dict):
+        digest = archive_sha256.get(pin_target)
+        if isinstance(digest, str) and digest:
+            pin_digest = digest
     if isinstance(channel, str) and channel and isinstance(minimum_version, str) and minimum_version:
-        toolchain_notes_markers = expected_toolchain_notes_markers(channel, minimum_version)
+        toolchain_notes_markers = expected_toolchain_notes_markers(
+            channel,
+            minimum_version,
+            pin_target,
+            pin_digest,
+        )
     else:
-        toolchain_notes_markers = expected_toolchain_notes_markers("<missing-channel>", "<missing-minimum-version>")
+        toolchain_notes_markers = expected_toolchain_notes_markers(
+            "<missing-channel>",
+            "<missing-minimum-version>",
+            pin_target,
+            pin_digest,
+        )
     issues.extend(
         validate_required_markers(
             PHASE2_VALIDATOR.read_text(encoding="utf-8"),
