@@ -15,6 +15,10 @@ SURVEY_PATH = "Documentation/zigux/phase9-runtime-loader-gap-survey.md"
 MODULE_METADATA_SURVEY_PATH = "Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md"
 TRACE_EVENTS_SURVEY_PATH = "Documentation/zigux/phase9-runtime-trace-events-survey.md"
 KRETPROBE_SURVEY_PATH = "Documentation/zigux/phase9-runtime-kretprobe-survey.md"
+PHASE9_BUILD_PATH = "zigux/tests/phase9_build.zig"
+LOADER_SUBSTRATE_PLAN_PATH = "Documentation/zigux/phase9-runtime-loader-substrate-plan.md"
+NON_OWNER_BOUNDARY_SURVEY_PATH = "zigux/tests/runtime_loader_non_owner_boundary_survey.zig"
+MODULE_METADATA_SURVEY_TEST_PATH = "zigux/tests/runtime_module_metadata_survey.zig"
 LOADER_SUBSTRATE_CHECKER_PATH = "scripts/zigux/check-phase9-loader-substrate-plan.py"
 COMMIT_ALIGNMENT_CHECKER_PATH = "scripts/zigux/check-phase9-runtime-loader-commit-alignment.py"
 NON_OWNER_BOUNDARY_CHECKER_PATH = "scripts/zigux/check-phase9-loader-non-owner-boundary.py"
@@ -27,6 +31,10 @@ REQUIRED_FILES = [
     MODULE_METADATA_SURVEY_PATH,
     TRACE_EVENTS_SURVEY_PATH,
     KRETPROBE_SURVEY_PATH,
+    PHASE9_BUILD_PATH,
+    LOADER_SUBSTRATE_PLAN_PATH,
+    NON_OWNER_BOUNDARY_SURVEY_PATH,
+    MODULE_METADATA_SURVEY_TEST_PATH,
     LOADER_SUBSTRATE_CHECKER_PATH,
     COMMIT_ALIGNMENT_CHECKER_PATH,
     NON_OWNER_BOUNDARY_CHECKER_PATH,
@@ -115,6 +123,22 @@ KRETPROBE_SURVEY_MARKERS = [
     "phase9-runtime-kretprobe-survey-tests",
 ]
 
+PHASE9_BUILD_MARKERS = [
+    "phase9-runtime-loader-gap-survey-tests",
+    "phase9-runtime-loader-non-owner-boundary-survey-tests",
+    "phase9-runtime-module-metadata-survey-tests",
+    "phase9-runtime-trace-events-survey-tests",
+    "phase9-runtime-kretprobe-survey-tests",
+]
+
+LOADER_SUBSTRATE_PLAN_MARKERS = [
+    "`PHASE9_SLICE=shared-runtime-loader-substrate-plan`",
+    "`zigux/kernel/runtime_loader.zig`",
+    "`samples/zigux/runtime_trace_events_loader.zig`",
+    "allocator_handoff",
+    "make -C zigux phase9-validate",
+]
+
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
@@ -139,6 +163,8 @@ def validate(root: Path) -> list[str]:
         "module_metadata_survey": read_text(root, MODULE_METADATA_SURVEY_PATH),
         "trace_events_survey": read_text(root, TRACE_EVENTS_SURVEY_PATH),
         "kretprobe_survey": read_text(root, KRETPROBE_SURVEY_PATH),
+        "phase9_build": read_text(root, PHASE9_BUILD_PATH),
+        "loader_substrate_plan": read_text(root, LOADER_SUBSTRATE_PLAN_PATH),
     }
 
     for marker in MAKEFILE_MARKERS:
@@ -159,11 +185,18 @@ def validate(root: Path) -> list[str]:
     for marker in KRETPROBE_SURVEY_MARKERS:
         if marker not in texts["kretprobe_survey"]:
             failures.append(f"kretprobe_survey:{marker}")
+    for marker in PHASE9_BUILD_MARKERS:
+        if marker not in texts["phase9_build"]:
+            failures.append(f"phase9_build:{marker}")
+    for marker in LOADER_SUBSTRATE_PLAN_MARKERS:
+        if marker not in texts["loader_substrate_plan"]:
+            failures.append(f"loader_substrate_plan:{marker}")
 
     return failures
 
 
 def write_fixture_tree(root: Path) -> None:
+    (root / "zigux/tests").mkdir(parents=True, exist_ok=True)
     (root / "zigux").mkdir(parents=True, exist_ok=True)
     (root / ".github/workflows").mkdir(parents=True, exist_ok=True)
     (root / "Documentation/zigux").mkdir(parents=True, exist_ok=True)
@@ -311,7 +344,37 @@ def write_fixture_tree(root: Path) -> None:
         ),
         encoding="utf-8",
     )
+    (root / PHASE9_BUILD_PATH).write_text(
+        "\n".join(
+            [
+                "phase9-runtime-loader-gap-survey-tests",
+                "phase9-runtime-loader-non-owner-boundary-survey-tests",
+                "phase9-runtime-module-metadata-survey-tests",
+                "phase9-runtime-trace-events-survey-tests",
+                "phase9-runtime-kretprobe-survey-tests",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    (root / LOADER_SUBSTRATE_PLAN_PATH).write_text(
+        "\n".join(
+            [
+                "# Phase 9 Shared Runtime Loader Substrate Plan",
+                "",
+                "- `PHASE9_SLICE=shared-runtime-loader-substrate-plan`",
+                "- `zigux/kernel/runtime_loader.zig`",
+                "- `samples/zigux/runtime_trace_events_loader.zig`",
+                "allocator_handoff",
+                "make -C zigux phase9-validate",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
     for rel_path in (
+        NON_OWNER_BOUNDARY_SURVEY_PATH,
+        MODULE_METADATA_SURVEY_TEST_PATH,
         LOADER_SUBSTRATE_CHECKER_PATH,
         COMMIT_ALIGNMENT_CHECKER_PATH,
         NON_OWNER_BOUNDARY_CHECKER_PATH,
@@ -511,6 +574,43 @@ def run_self_test() -> int:
         )
         kretprobe_survey_path.write_text(original_kretprobe_survey, encoding="utf-8")
 
+        phase9_build_path = tmp_root / PHASE9_BUILD_PATH
+        original_phase9_build = phase9_build_path.read_text(encoding="utf-8")
+        phase9_build_path.write_text(
+            original_phase9_build.replace("phase9-runtime-loader-non-owner-boundary-survey-tests", "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "phase9_build_non_owner_boundary_leg",
+            tmp_root,
+            "phase9_build:phase9-runtime-loader-non-owner-boundary-survey-tests",
+        )
+        phase9_build_path.write_text(original_phase9_build, encoding="utf-8")
+
+        phase9_build_path.write_text(
+            original_phase9_build.replace("phase9-runtime-module-metadata-survey-tests", "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "phase9_build_module_metadata_leg",
+            tmp_root,
+            "phase9_build:phase9-runtime-module-metadata-survey-tests",
+        )
+        phase9_build_path.write_text(original_phase9_build, encoding="utf-8")
+
+        loader_substrate_plan_path = tmp_root / LOADER_SUBSTRATE_PLAN_PATH
+        original_loader_substrate_plan = loader_substrate_plan_path.read_text(encoding="utf-8")
+        loader_substrate_plan_path.write_text(
+            original_loader_substrate_plan.replace("allocator_handoff", "allocator boundary", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "loader_substrate_allocator_marker",
+            tmp_root,
+            "loader_substrate_plan:allocator_handoff",
+        )
+        loader_substrate_plan_path.write_text(original_loader_substrate_plan, encoding="utf-8")
+
         checker_path = tmp_root / MODULE_METADATA_CHECKER_PATH
         checker_path.unlink()
         expect_failure(
@@ -520,7 +620,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE9_VALIDATION_FLOW_SELF_TEST=pass")
-    print("PHASE9_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=14")
+    print("PHASE9_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=17")
     return 0
 
 
@@ -556,7 +656,7 @@ def main() -> int:
     print("PHASE9_VALIDATION_FLOW=pass")
     print(
         "PHASE9_VALIDATION_FLOW_MARKER_COUNT="
-        f"{len(MAKEFILE_MARKERS) + len(WORKFLOW_MARKERS) + len(SURVEY_MARKERS) + len(MODULE_METADATA_SURVEY_MARKERS) + len(TRACE_EVENTS_SURVEY_MARKERS) + len(KRETPROBE_SURVEY_MARKERS)}"
+        f"{len(MAKEFILE_MARKERS) + len(WORKFLOW_MARKERS) + len(SURVEY_MARKERS) + len(MODULE_METADATA_SURVEY_MARKERS) + len(TRACE_EVENTS_SURVEY_MARKERS) + len(KRETPROBE_SURVEY_MARKERS) + len(PHASE9_BUILD_MARKERS) + len(LOADER_SUBSTRATE_PLAN_MARKERS)}"
     )
     return 0
 
