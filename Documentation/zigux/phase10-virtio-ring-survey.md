@@ -52,7 +52,7 @@ The live repo already has a bounded `drivers/virtio/virtio.zig` core starter wit
 - `PHASE10_RING_ROADMAP_VIRTQUEUE_WRAPPERS=starter_landed`
 - evidence: `drivers/virtio/virtio_ring.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`, and `Documentation/zigux/phase10-virtio-ring-survey.md`
 - `PHASE10_RING_ROADMAP_LAB_ONLY_DRIVER_VALIDATION=starter_landed`
-- evidence: `zigux/tests/phase10_build.zig`, `zigux/tests/phase10_virtio_ring_survey.zig`, `scripts/zigux/check-phase10-closure-inventory.py`, `scripts/zigux/validate-phase10.py`, `scripts/zigux/validate-phase10-closure.py`, and `zigux/Makefile`
+- evidence: `zigux/tests/phase10_build.zig`, `zigux/tests/phase10_virtio_ring_survey.zig`, `scripts/zigux/check-phase10-closure-inventory.py`, `scripts/zigux/check-phase10-harness-coverage.py`, `scripts/zigux/validate-phase10.py`, `scripts/zigux/validate-phase10-closure.py`, and `zigux/Makefile`
 - `PHASE10_RING_ROADMAP_DUAL_IMPLEMENTATIONS_FOR_RISKY_AREAS=blocked_on_risky_transport`
 - evidence: `phase10-mmio-lifecycle-and-irq-paths`, `queue_setup_reset_paths`, `irq_parity`, and `dma_paths`
 
@@ -104,9 +104,10 @@ This survey slice does not yet claim:
 - `python3 scripts/zigux/check-phase10-closure-inventory.py`
 - `python3 scripts/zigux/validate-phase10.py`
 - `python3 scripts/zigux/validate-phase10-closure.py`
+- `python3 scripts/zigux/check-phase10-harness-coverage.py`
 - `make -C zigux phase10-validate`
 
-The direct closure-inventory guard now appears here explicitly because the manifest-backed ring packet depends on that published closure path to keep the landed broken-queue recovery rung and the parked MMIO lifecycle blocker fail-closed together.
+The direct closure-inventory guard and the direct harness-coverage replay now appear here explicitly because the manifest-backed ring packet depends on that published closure path to keep the landed broken-queue recovery rung, the focused multitouch-ready and queue-isolation harness replays, and the parked MMIO lifecycle blocker fail-closed together.
 
 2. run the dedicated Phase 10 build
 - `zig build test --build-file zigux/tests/phase10_build.zig --summary all`
