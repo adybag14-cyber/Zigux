@@ -5,6 +5,13 @@ pub const MemparseResult = struct {
     rest: []const u8,
 };
 
+const ParseMagnitudeResult = struct {
+    value: u64,
+    overflowed: bool,
+    next_index: usize,
+    parsed_any: bool,
+};
+
 fn digitValue(ch: u8, base: u8) ?u8 {
     const value = std.fmt.charToDigit(ch, base) catch return null;
     return @intCast(value);
@@ -40,6 +47,36 @@ fn parseBase(text: []const u8, start: usize) struct {
     return .{ .base = 10, .digits_start = start };
 }
 
+fn parseMagnitude(text: []const u8, start: usize, base: u8, limit: u64) ParseMagnitudeResult {
+    var idx = start;
+    var parsed_any = false;
+    var overflowed = false;
+    var magnitude: u64 = 0;
+
+    while (idx < text.len) : (idx += 1) {
+        const digit = digitValue(text[idx], base) orelse break;
+        parsed_any = true;
+
+        if (!overflowed) {
+            const base_u64 = @as(u64, base);
+            const digit_u64 = @as(u64, digit);
+            if (magnitude > (limit - digit_u64) / base_u64) {
+                magnitude = limit;
+                overflowed = true;
+            } else {
+                magnitude = magnitude * base_u64 + digit_u64;
+            }
+        }
+    }
+
+    return .{
+        .value = magnitude,
+        .overflowed = overflowed,
+        .next_index = idx,
+        .parsed_any = parsed_any,
+    };
+}
+
 fn applySuffix(value: u64, suffix: u8) u64 {
     return switch (suffix) {
         'E', 'e' => value << 60,
@@ -55,26 +92,22 @@ fn applySuffix(value: u64, suffix: u8) u64 {
 pub fn memparse(text: []const u8) MemparseResult {
     const prefix = parseSignedPrefix(text);
     const base_info = parseBase(text, prefix.start);
+    const signed_limit = @as(u64, std.math.maxInt(i64)) + @intFromBool(prefix.negative);
+    const parsed = parseMagnitude(text, base_info.digits_start, base_info.base, signed_limit);
 
-    var idx = base_info.digits_start;
-    var parsed_any = false;
-    var magnitude: u64 = 0;
-
-    while (idx < text.len) : (idx += 1) {
-        const digit = digitValue(text[idx], base_info.base) orelse break;
-        parsed_any = true;
-        magnitude = magnitude * base_info.base + digit;
-    }
-
-    if (!parsed_any) {
+    if (!parsed.parsed_any) {
         return .{ .value = 0, .rest = text };
     }
 
-    var signed_value: i64 = @bitCast(magnitude);
-    if (prefix.negative) {
-        signed_value = -signed_value;
-    }
+    const signed_value: i64 = if (prefix.negative)
+        if (parsed.value == @as(u64, 1) << 63)
+            std.math.minInt(i64)
+        else
+            -@as(i64, @intCast(parsed.value))
+    else
+        @as(i64, @intCast(parsed.value));
 
+    var idx = parsed.next_index;
     var result: u64 = @bitCast(signed_value);
     if (idx < text.len) {
         result = applySuffix(result, text[idx]);
@@ -139,4 +172,20 @@ test "memparse reports no-conversion via unchanged rest" {
     const invalid = memparse("xyz");
     try std.testing.expectEqual(@as(u64, 0), invalid.value);
     try std.testing.expectEqualStrings("xyz", invalid.rest);
+}
+
+test "memparse saturates signed overflow instead of trapping" {
+    const positive = memparse("9223372036854775808");
+    try std.testing.expectEqual(@as(u64, std.math.maxInt(i64)), positive.value);
+    try std.testing.expectEqualStrings("", positive.rest);
+
+    const negative = memparse("-9223372036854775809");
+    try std.testing.expectEqual(@as(u64, @bitCast(@as(i64, std.math.minInt(i64)))), negative.value);
+    try std.testing.expectEqualStrings("", negative.rest);
+}
+
+test "memparse applies suffix shifts after signed saturation" {
+    const saturated = memparse("18446744073709551615K");
+    try std.testing.expectEqual(@as(u64, 18446744073709550592), saturated.value);
+    try std.testing.expectEqualStrings("", saturated.rest);
 }
