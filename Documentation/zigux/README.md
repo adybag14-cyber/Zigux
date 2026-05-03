@@ -21,6 +21,10 @@ Current closure records
 - `Documentation/zigux/phase1-closure.md`
 - `Documentation/zigux/phase2-closure.md`
 
+Phase 1 notes
+- `Documentation/zigux/phase1-closure.md` remains the dedicated closure packet for the bounded host-side `tools/lib/*.zig` helper tranche, and `zigux/tests/fixtures/phase1_helper_manifest.json` plus `zigux/tests/phase1_helpers.zig` keep the closed helper inventory and parity-backed replay surface explicit from the docs root.
+- `python3 scripts/zigux/validate-phase1.py`, `python3 scripts/zigux/validate-phase1-closure.py`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` are the current validator-first and replay entrypoints for that bounded host-side helper packet.
+
 Phase 2 notes
 - `python3 scripts/zigux/artifact_diff.py --self-test` is now part of the published Phase 2 closure path through `Documentation/zigux/phase2-closure.md`, `Documentation/zigux/artifact-diff.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile`, so shared comparison drift fails before the bounded host-tool parity lanes run.
 - `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`, `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`, `scripts/zigux/zig-toolchain-policy.json`, `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, and the bootstrap workflow `install-zig.py --dest .zig-toolchain` plus `check-zig-toolchain.py` path now keep the bounded `x86_64-linux` archive pin visible from the docs root until another bootstrap runner target gains first-class workflow evidence.
