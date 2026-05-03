@@ -6,7 +6,10 @@ const SurveySummary = struct {
     preexisting_phase11_watchdog_lanes: usize,
     hvc_console_header_present: bool,
     hvc_console_zig_present: bool,
+    hvc_console_sysrq_present: bool,
     hvc_console_test_present: bool,
+    hvc_console_modem_control_split_present: bool,
+    hvc_console_poll_retry_split_present: bool,
     hvc_console_survey_gate_present: bool,
     hvc_console_survey_note_present: bool,
 };
@@ -124,7 +127,10 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
     try std.testing.expectEqual(@as(usize, 3), manifest.survey_summary.preexisting_phase11_watchdog_lanes);
     try std.testing.expect(manifest.survey_summary.hvc_console_header_present);
     try std.testing.expect(manifest.survey_summary.hvc_console_zig_present);
+    try std.testing.expect(manifest.survey_summary.hvc_console_sysrq_present);
     try std.testing.expect(manifest.survey_summary.hvc_console_test_present);
+    try std.testing.expect(manifest.survey_summary.hvc_console_modem_control_split_present);
+    try std.testing.expect(manifest.survey_summary.hvc_console_poll_retry_split_present);
     try std.testing.expect(manifest.survey_summary.hvc_console_survey_gate_present);
     try std.testing.expect(manifest.survey_summary.hvc_console_survey_note_present);
     try std.testing.expectEqual(@as(usize, 16), manifest.gaps.len);
@@ -424,6 +430,14 @@ test "phase11 hvc console survey keeps the shared replay separate but exposes an
     );
     defer std.testing.allocator.free(build_zig);
 
+    const sysrq_helper = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "drivers/tty/hvc/hvc_console_sysrq.zig",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(sysrq_helper);
+
     const modem_control_split = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "zigux/tests/phase11_hvc_console_modem_control_split.zig",
@@ -443,6 +457,14 @@ test "phase11 hvc console survey keeps the shared replay separate but exposes an
     try expectSurveyedCommitProvenance(survey_note, manifest.surveyed_commit);
     try std.testing.expect(std.mem.indexOf(u8, build_zig, "const phase11_hvc_console_tests = b.addTest") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_zig, "test_step.dependOn(&run_phase11_hvc_console_tests.step);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_zig, "const hvc_console_sysrq_module = b.createModule") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_zig, "phase11_hvc_console_poll_retry_split_module.addImport(\"hvc_console_sysrq\", hvc_console_sysrq_module);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sysrq_helper, "pub const SysrqHandoffRequest") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sysrq_helper, "pub const SysrqHandoffSnapshot") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sysrq_helper, "pub fn summarizeSysrqHandoff") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sysrq_helper, "toggles_sysrq_mode") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sysrq_helper, "invokes_sysrq_handler") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sysrq_helper, "keeps_live_sysrq_execution_out_of_scope = true") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_zig, "const phase11_hvc_console_modem_control_split_tests = b.addTest") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_zig, "test_step.dependOn(&run_phase11_hvc_console_modem_control_split_tests.step);") != null);
     try std.testing.expect(std.mem.indexOf(u8, modem_control_split, "phase11 hvc console keeps tiocmget and tiocmset fallback on missing hv_ops callbacks") != null);
@@ -451,6 +473,10 @@ test "phase11 hvc console survey keeps the shared replay separate but exposes an
     try std.testing.expect(std.mem.indexOf(u8, build_zig, "test_step.dependOn(&run_phase11_hvc_console_poll_retry_split_tests.step);") != null);
     try std.testing.expect(std.mem.indexOf(u8, poll_retry_split, "phase11 hvc console keeps irq-backed drained reads distinct when __hvc_poll can or cannot sleep") != null);
     try std.testing.expect(std.mem.indexOf(u8, poll_retry_split, "phase11 hvc console keeps partial write progress distinct from stalled __hvc_poll retries") != null);
+    try std.testing.expect(std.mem.indexOf(u8, poll_retry_split, "phase11 hvc console keeps sysrq toggle handoff distinct from literal fallback on the primary console") != null);
+    try std.testing.expect(std.mem.indexOf(u8, poll_retry_split, "phase11 hvc console keeps pending sysrq dispatch separate from ordinary poll bytes") != null);
+    try std.testing.expect(std.mem.indexOf(u8, poll_retry_split, "phase11 hvc console keeps non-kernel ^O as a literal byte without toggling sysrq state") != null);
+    try std.testing.expect(std.mem.indexOf(u8, poll_retry_split, "phase11 hvc console keeps sysrq handoff unavailable after teardown") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_zig, "const phase11_hvc_console_survey_tests = b.addTest") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_zig, "const hvc_console_survey_step = b.step") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_zig, "\"hvc-console-survey\"") != null);
