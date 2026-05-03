@@ -12,6 +12,7 @@
   ],
   "approval_evidence_paths": [
     "Documentation/zigux/phase15-architecture-council-review-process.md",
+    "Documentation/zigux/phase15-freeze-map-governance.md",
     "Documentation/zigux/phase15-parity-scorecard.md",
     "Documentation/zigux/phase15-indefinite-c-policy.md",
     "Documentation/zigux/phase15-evidence-archives/kernel-sched-core.md",
@@ -35,6 +36,7 @@
     "parity scorecard link or blocker record"
   ],
   "ownership_evidence_paths": [
+    "Documentation/zigux/phase15-freeze-map-governance.md",
     "Documentation/zigux/phase15-parity-scorecard.md",
     "Documentation/zigux/phase15-indefinite-c-policy.md",
     "Documentation/zigux/phase15-evidence-archives/kernel-sched-core.md",
