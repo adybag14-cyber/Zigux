@@ -3,7 +3,7 @@
 - `PHASE5_STATUS=active`
 - `PHASE5_SLICE=kobject-reference-sample-starter`
 - `PHASE5_LANE_KEY=P5-L12`
-- `PHASE5_SURVEYED_COMMIT=db7498c99a89c4d166eede6dc59c43d32459c2f5`
+- `PHASE5_SURVEYED_COMMIT=affdebd460c9c33ce939c7535cdb929352648e93`
 - scope: roadmap-vs-repo sample reviewability, approved ownership-and-lifetime guidance, and exact bounded checks for the landed `samples/zigux/` kobject-style replay
 - product boundary:
   - `Documentation/zigux/README.md`
@@ -58,7 +58,7 @@ The current gap is no longer "Zigux has no kobject sample guidance." The more pr
 
 - the repo now has a reviewable Phase 5 `kobject_example` sample plus manifest-backed checks for directory naming, ordered attributes, shared `b` dispatch, parse failures, ownership summaries, initialized-only abandonment, and teardown
 - this sample must remain visibly separate from later runtime-facing work so contributors do not over-claim runtime substrate coverage
-- this approved ownership-and-lifetime idiom is pinned to `PHASE5_SURVEYED_COMMIT=db7498c99a89c4d166eede6dc59c43d32459c2f5` so the survey note, manifest-backed checks, shared sample-root catalog, shared tests-root guide, shared review checklist, and focused shared-build replay all point at the same inspected `master` head
+- this approved ownership-and-lifetime idiom is pinned to `PHASE5_SURVEYED_COMMIT=affdebd460c9c33ce939c7535cdb929352648e93` so the survey note, manifest-backed checks, shared sample-root catalog, shared tests-root guide, shared review checklist, and focused shared-build replay all point at the same inspected `master` head
 - the Phase 5 roadmap's four named sample anchors are now all represented by bounded `samples/zigux/` reference readings, but that does not widen this slice into runtime sysfs or module-delivery claims
 
 ## Next bounded step
