@@ -125,10 +125,18 @@ MAKEFILE_MARKERS = [
     "scripts/zigux/check-phase12-libbpf-focused-replay.py --self-test",
     "scripts/zigux/check-phase12-libbpf-focused-replay.py",
 ]
+MAKEFILE_EXACT_COUNTS = {
+    "scripts/zigux/check-phase12-libbpf-focused-replay.py --self-test": 1,
+    "scripts/zigux/check-phase12-libbpf-focused-replay.py": 2,
+}
 WORKFLOW_MARKERS = [
     "check-phase12-libbpf-focused-replay.py --self-test",
     "check-phase12-libbpf-focused-replay.py",
 ]
+WORKFLOW_EXACT_COUNTS = {
+    "check-phase12-libbpf-focused-replay.py --self-test": 1,
+    "check-phase12-libbpf-focused-replay.py": 2,
+}
 
 
 def read_text(path: str) -> str:
@@ -137,6 +145,15 @@ def read_text(path: str) -> str:
 
 def collect_marker_misses(text: str, markers: list[str], prefix: str) -> list[str]:
     return [f"{prefix}:{marker}" for marker in markers if marker not in text]
+
+
+def collect_exact_count_misses(text: str, expected_counts: dict[str, int], prefix: str) -> list[str]:
+    missing: list[str] = []
+    for marker, expected_count in expected_counts.items():
+        actual_count = text.count(marker)
+        if actual_count != expected_count:
+            missing.append(f"{prefix}:{marker}:expected={expected_count}:actual={actual_count}")
+    return missing
 
 
 def collect_build_misses(build_text: str) -> list[str]:
@@ -200,7 +217,9 @@ def collect_missing(
     missing.extend(collect_marker_misses(review_checklist_text, REVIEW_CHECKLIST_MARKERS, "review_checklist"))
     missing.extend(collect_marker_misses(validate_phase12_text, VALIDATE_PHASE12_MARKERS, "validate_phase12"))
     missing.extend(collect_marker_misses(makefile_text, MAKEFILE_MARKERS, "makefile"))
+    missing.extend(collect_exact_count_misses(makefile_text, MAKEFILE_EXACT_COUNTS, "makefile_count"))
     missing.extend(collect_marker_misses(workflow_text, WORKFLOW_MARKERS, "workflow"))
+    missing.extend(collect_exact_count_misses(workflow_text, WORKFLOW_EXACT_COUNTS, "workflow_count"))
     return missing
 
 
@@ -445,6 +464,19 @@ def run_self_test() -> int:
     missing = collect_missing(
         **{
             **base_inputs,
+            "makefile_text": base_inputs["makefile_text"]
+            + "scripts/zigux/check-phase12-libbpf-focused-replay.py --self-test\n",
+        }
+    )
+    expect_contains(
+        "makefile_exact_count_detection",
+        missing,
+        "makefile_count:scripts/zigux/check-phase12-libbpf-focused-replay.py --self-test:expected=1:actual=2",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
             "workflow_text": base_inputs["workflow_text"].replace(
                 "check-phase12-libbpf-focused-replay.py --self-test\n",
                 "",
@@ -458,8 +490,21 @@ def run_self_test() -> int:
         "workflow:check-phase12-libbpf-focused-replay.py --self-test",
     )
 
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "workflow_text": base_inputs["workflow_text"]
+            + "check-phase12-libbpf-focused-replay.py\n",
+        }
+    )
+    expect_contains(
+        "workflow_exact_count_detection",
+        missing,
+        "workflow_count:check-phase12-libbpf-focused-replay.py:expected=2:actual=3",
+    )
+
     print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST=pass")
-    print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST_CASE_COUNT=14")
+    print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
