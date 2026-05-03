@@ -89,6 +89,23 @@ fn applySuffix(value: u64, suffix: u8) u64 {
     };
 }
 
+fn consumeOptionalUnitTail(text: []const u8, idx: *usize) void {
+    if (idx.* >= text.len) {
+        return;
+    }
+
+    if ((text[idx.*] == 'i' or text[idx.*] == 'I') and idx.* + 1 < text.len and
+        (text[idx.* + 1] == 'B' or text[idx.* + 1] == 'b'))
+    {
+        idx.* += 2;
+        return;
+    }
+
+    if (text[idx.*] == 'B' or text[idx.*] == 'b') {
+        idx.* += 1;
+    }
+}
+
 pub fn memparse(text: []const u8) MemparseResult {
     const prefix = parseSignedPrefix(text);
     const base_info = parseBase(text, prefix.start);
@@ -112,7 +129,10 @@ pub fn memparse(text: []const u8) MemparseResult {
     if (idx < text.len) {
         result = applySuffix(result, text[idx]);
         switch (text[idx]) {
-            'E', 'e', 'P', 'p', 'T', 't', 'G', 'g', 'M', 'm', 'K', 'k' => idx += 1,
+            'E', 'e', 'P', 'p', 'T', 't', 'G', 'g', 'M', 'm', 'K', 'k' => {
+                idx += 1;
+                consumeOptionalUnitTail(text, &idx);
+            },
             else => {},
         }
     }
@@ -132,6 +152,24 @@ test "memparse handles decimal hexadecimal octal and suffixes" {
     const octal = memparse("010K");
     try std.testing.expectEqual(@as(u64, 8 << 10), octal.value);
     try std.testing.expectEqualStrings("", octal.rest);
+}
+
+test "memparse accepts optional binary unit tails" {
+    const kib = memparse("64KiB rest");
+    try std.testing.expectEqual(@as(u64, 64 << 10), kib.value);
+    try std.testing.expectEqualStrings(" rest", kib.rest);
+
+    const mb = memparse("2MB!");
+    try std.testing.expectEqual(@as(u64, 2 << 20), mb.value);
+    try std.testing.expectEqualStrings("!", mb.rest);
+
+    const gib = memparse("1GiB trailing");
+    try std.testing.expectEqual(@as(u64, 1) << 30, gib.value);
+    try std.testing.expectEqualStrings(" trailing", gib.rest);
+
+    const lowercase_kib = memparse("3kib.");
+    try std.testing.expectEqual(@as(u64, 3 << 10), lowercase_kib.value);
+    try std.testing.expectEqualStrings(".", lowercase_kib.rest);
 }
 
 test "memparse handles signed and explicit positive prefixes" {
