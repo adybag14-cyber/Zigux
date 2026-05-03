@@ -28,6 +28,8 @@ test "phase15 docs-root reviewability keeps the current handoff alignment explic
     try expectContains(docs_readme, "phase15-indefinite-c-policy.md");
     try expectContains(docs_readme, "phase15-readiness-gate-survey.md");
     try expectContains(docs_readme, "phase15-handoff-next-steps-survey.md");
+    try expectContains(docs_readme, "python3 scripts/zigux/validate-phase15.py");
+    try expectContains(docs_readme, "make -C zigux phase15-validate");
     try expectContains(docs_readme, "zigux/tests/phase15_build.zig");
     try expectContains(docs_readme, "make -C zigux phase15");
     try expectContains(docs_readme, "only remaining blocked work is the deep-core status-change evidence");
