@@ -3,6 +3,9 @@ const std = @import("std");
 const SurveySummary = struct {
     virtio_ring_c_lines: usize,
     preexisting_phase10_test_files: usize,
+    preexisting_phase10_build_present: bool,
+    preexisting_virtio_core_zig_present: bool,
+    preexisting_phase10_core_doc_present: bool,
     preexisting_virtio_ring_zig_present: bool,
     preexisting_virtio_ring_reset_reuse_test_present: bool,
     preexisting_virtio_ring_doc_present: bool,
@@ -90,6 +93,22 @@ test "phase10 virtio ring survey manifest records the live queue-discipline pack
     );
     defer std.testing.allocator.free(phase10_build);
 
+    const virtio_core = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "drivers/virtio/virtio.zig",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(virtio_core);
+
+    const core_survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase10-virtio-core-survey.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(core_survey_note);
+
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{
         .ignore_unknown_fields = true,
     });
@@ -122,6 +141,9 @@ test "phase10 virtio ring survey manifest records the live queue-discipline pack
     try std.testing.expectEqualStrings("phase10-mmio-lifecycle-and-irq-paths", manifest.roadmap_parity_evidence.dual_implementations_for_risky_areas.evidence[0]);
     try std.testing.expect(manifest.survey_summary.virtio_ring_c_lines >= 3000);
     try std.testing.expectEqual(@as(usize, 4), manifest.survey_summary.preexisting_phase10_test_files);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase10_build_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_virtio_core_zig_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase10_core_doc_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_ring_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_ring_reset_reuse_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_ring_doc_present);
@@ -144,6 +166,12 @@ test "phase10 virtio ring survey manifest records the live queue-discipline pack
         try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.zig", gap.zigux_destination);
         try std.testing.expect(gap.why_now.len != 0);
     }
+
+    const core_gap = findGap(manifest.gaps, "phase10-virtio-core-lab-starter") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("starter_landed", core_gap.status);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio.zig", core_gap.zigux_destination);
+    try std.testing.expect(std.mem.indexOf(u8, core_gap.why_now, "queue callback bookkeeping") != null);
+    try std.testing.expect(std.mem.indexOf(u8, core_gap.why_now, "notification accounting") != null);
 
     const config_write_gap = findGap(manifest.gaps, "phase10-mmio-config-write-helper") orelse return error.TestUnexpectedResult;
     try std.testing.expectEqualStrings("starter_landed", config_write_gap.status);
@@ -179,6 +207,13 @@ test "phase10 virtio ring survey manifest records the live queue-discipline pack
         try std.testing.expectEqualStrings(helper_id, ring_helper_evidence.array.items[index].string);
     }
 
+    try std.testing.expect(std.mem.indexOf(u8, virtio_core, "pub const QueueDescriptorShapeSummary = struct") != null);
+    try std.testing.expect(std.mem.indexOf(u8, virtio_core, "pub fn notifyQueueUsed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, virtio_core, "pub const ConfigGenerationSummary = struct") != null);
+    try std.testing.expect(std.mem.indexOf(u8, core_survey_note, "phase10-virtio-core-lab-starter") != null);
+    try std.testing.expect(std.mem.indexOf(u8, core_survey_note, "phase10-config-generation-summary-helper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, core_survey_note, "phase10-config-delivery-disposition-helper") != null);
+
     try std.testing.expect(std.mem.indexOf(u8, survey_note, manifest.surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_RING_ROADMAP_SCOREBOARD_ROWS=3") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_RING_ROADMAP_VIRTQUEUE_WRAPPERS=starter_landed") != null);
@@ -193,6 +228,7 @@ test "phase10 virtio ring survey manifest records the live queue-discipline pack
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/*.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/kernel/") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/helpers/") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Documentation/zigux/phase10-virtio-core-survey.md") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "broken-queue recovery") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "phase10-mmio-lifecycle-and-irq-paths") != null);
