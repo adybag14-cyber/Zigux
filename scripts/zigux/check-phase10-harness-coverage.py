@@ -216,6 +216,19 @@ def expect_missing_marker(label: str, root: Path, expected_marker: str) -> None:
         )
 
 
+def expect_missing_file(label: str, root: Path, expected_file: str) -> None:
+    missing_files, missing_markers = validate(root)
+    if missing_markers:
+        raise SystemExit(
+            f"phase10-harness-self-test:{label}:unexpected_missing_markers:{','.join(missing_markers)}"
+        )
+    if expected_file not in missing_files:
+        actual = ",".join(missing_files) if missing_files else "none"
+        raise SystemExit(
+            f"phase10-harness-self-test:{label}:expected_missing_file:{expected_file}:actual:{actual}"
+        )
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase10_harness_") as tmp_dir:
         root = Path(tmp_dir)
@@ -412,8 +425,26 @@ def run_self_test() -> int:
         )
         write_fixture(root)
 
+        input_preflight_path = root / "zigux/tests/phase10_virtio_input_multitouch_preflight.zig"
+        original_input_preflight = input_preflight_path.read_text(encoding="utf-8")
+        input_preflight_path.unlink()
+        expect_missing_file(
+            "input_preflight_file",
+            root,
+            "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
+        )
+        input_preflight_path.write_text(original_input_preflight, encoding="utf-8")
+
         queue_isolation_path = root / "zigux/tests/phase10_virtio_mmio_queue_isolation.zig"
         original_queue_isolation = queue_isolation_path.read_text(encoding="utf-8")
+        queue_isolation_path.unlink()
+        expect_missing_file(
+            "queue_isolation_file",
+            root,
+            "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
+        )
+        queue_isolation_path.write_text(original_queue_isolation, encoding="utf-8")
+
         queue_isolation_path.write_text(
             original_queue_isolation.replace(
                 "QueueReadyBlocksAddressRewrite",
@@ -429,7 +460,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=13")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
