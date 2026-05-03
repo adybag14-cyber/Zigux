@@ -80,6 +80,9 @@ REQUIRED_POLICY_TEST_SNIPPETS = (
 )
 
 REQUIRED_POLICY_BUILD_SNIPPETS = (
+    "const layout_assert_module = b.createModule(.{",
+    'layout_assert_module.addImport("abi_bindings", abi_bindings_module);',
+    'layout_assert_module.addImport("rbtree_bindings", rbtree_bindings_module);',
     "const interop_policy_module = b.createModule(.{",
     'interop_policy_module.addImport("abi_bindings", abi_bindings_module);',
     'interop_policy_module.addImport("panic_policy", panic_policy_module);',
@@ -90,6 +93,7 @@ REQUIRED_POLICY_BUILD_SNIPPETS = (
     'mmio_module.addImport("interop_policy", interop_policy_module);',
     'mmio_module.addImport("narrow_unsafe", narrow_unsafe_module);',
     'root_module.addImport("interop_policy", interop_policy_module);',
+    'root_module.addImport("layout_assert", layout_assert_module);',
     'root_module.addImport("mmio", mmio_module);',
     '"phase3-policy-unsafe-test",',
 )
@@ -202,6 +206,20 @@ def run_self_test() -> int:
         _write(root, INTEROP_POLICY_REL, "\n".join(snippet for snippet in REQUIRED_INTEROP_POLICY_SNIPPETS if "constPointerAt" not in snippet) + "\n")
         issues = validate(root)
         assert "missing_interop_policy_snippet:    pub fn constPointerAt(" in issues
+
+        _write(root, INTEROP_POLICY_REL, "\n".join(REQUIRED_INTEROP_POLICY_SNIPPETS) + "\n")
+        _write(
+            root,
+            POLICY_BUILD_REL,
+            "\n".join(
+                snippet
+                for snippet in REQUIRED_POLICY_BUILD_SNIPPETS
+                if snippet != 'root_module.addImport("layout_assert", layout_assert_module);'
+            )
+            + "\n",
+        )
+        issues = validate(root)
+        assert 'missing_policy_build_snippet:root_module.addImport("layout_assert", layout_assert_module);' in issues
 
     print("PHASE3_POLICY_UNSAFE_MMIO_CONSUMER_SELF_TEST=pass")
     return 0
