@@ -2,15 +2,18 @@
 from __future__ import annotations
 
 import argparse
+import json
 import tempfile
 from pathlib import Path
 
 
 SCRIPT_PATH = Path(__file__).resolve()
 ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
-SELF_TEST_CASE_COUNT = 5
+SELF_TEST_CASE_COUNT = 7
 
 DOCS_ROOT_PATH = Path("Documentation/zigux/README.md")
+MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
+MAKEFILE_PATH = Path("zigux/Makefile")
 REQUIRED_SCRIPT_PATHS = [
     Path("scripts/zigux/check-phase6-base64-c-parity.py"),
     Path("scripts/zigux/check-phase6-bsearch-c-parity.py"),
@@ -26,6 +29,14 @@ EXTERNAL_PARITY_LINE = (
     "external C-vs-Zig review hooks for the bounded base64, bsearch, checksum, "
     "and hexdump portability surfaces."
 )
+REQUIRED_MANIFEST_EXACT_CHECKS = [
+    "python3 scripts/zigux/check-phase6-docs-root-external-parity.py --self-test",
+    "python3 scripts/zigux/check-phase6-docs-root-external-parity.py",
+]
+REQUIRED_MAKEFILE_LINES = [
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-docs-root-external-parity.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-docs-root-external-parity.py",
+]
 
 
 def read_text(root: Path, relative_path: Path) -> str:
@@ -36,10 +47,14 @@ def normalized_lines(text: str) -> list[str]:
     return [line.strip() for line in text.splitlines()]
 
 
+def count_exact_line(lines: list[str], expected: str) -> int:
+    return sum(1 for line in lines if line == expected)
+
+
 def validate(root: Path) -> list[str]:
     missing: list[str] = []
 
-    required_paths = [DOCS_ROOT_PATH, *REQUIRED_SCRIPT_PATHS]
+    required_paths = [DOCS_ROOT_PATH, MANIFEST_PATH, MAKEFILE_PATH, *REQUIRED_SCRIPT_PATHS]
     for relative_path in required_paths:
         if not (root / relative_path).exists():
             missing.append(f"missing_file:{relative_path.as_posix()}")
@@ -48,12 +63,34 @@ def validate(root: Path) -> list[str]:
         return missing
 
     docs_root_lines = normalized_lines(read_text(root, DOCS_ROOT_PATH))
-    actual_count = sum(1 for line in docs_root_lines if line == EXTERNAL_PARITY_LINE)
+    actual_count = count_exact_line(docs_root_lines, EXTERNAL_PARITY_LINE)
     if actual_count != 1:
         missing.append(
             "docs_root_external_parity_line:"
             f"expected=1:actual={actual_count}"
         )
+
+    manifest = json.loads(read_text(root, MANIFEST_PATH))
+    exact_checks = manifest.get("exact_checks")
+    if not isinstance(exact_checks, list):
+        missing.append("manifest_exact_checks:invalid")
+    else:
+        for command in REQUIRED_MANIFEST_EXACT_CHECKS:
+            actual_count = sum(1 for item in exact_checks if item == command)
+            if actual_count != 1:
+                missing.append(
+                    "manifest_exact_checks:"
+                    f"expected=1:actual={actual_count}:{command}"
+                )
+
+    makefile_lines = normalized_lines(read_text(root, MAKEFILE_PATH))
+    for line in REQUIRED_MAKEFILE_LINES:
+        actual_count = count_exact_line(makefile_lines, line)
+        if actual_count != 1:
+            missing.append(
+                "makefile_checker_line:"
+                f"expected=1:actual={actual_count}:{line}"
+            )
 
     return missing
 
@@ -66,6 +103,12 @@ def write(root: Path, relative_path: Path, content: str) -> None:
 
 def build_fixture_tree(root: Path) -> None:
     write(root, DOCS_ROOT_PATH, f"{EXTERNAL_PARITY_LINE}\n")
+    write(
+        root,
+        MANIFEST_PATH,
+        json.dumps({"exact_checks": REQUIRED_MANIFEST_EXACT_CHECKS}, indent=2) + "\n",
+    )
+    write(root, MAKEFILE_PATH, "\n".join(REQUIRED_MAKEFILE_LINES) + "\n")
     for relative_path in REQUIRED_SCRIPT_PATHS:
         write(root, relative_path, "# placeholder\n")
 
@@ -131,6 +174,31 @@ def run_self_test() -> int:
             )
             count += 1
 
+            build_fixture_tree(root)
+            manifest_path = root / MANIFEST_PATH
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            manifest["exact_checks"] = manifest["exact_checks"][1:]
+            manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+            expect_contains(
+                validate(root),
+                "manifest_exact_checks:expected=1:actual=0:python3 scripts/zigux/check-phase6-docs-root-external-parity.py --self-test",
+            )
+            count += 1
+
+            build_fixture_tree(root)
+            makefile = root / MAKEFILE_PATH
+            kept_lines = [
+                line
+                for line in makefile.read_text(encoding="utf-8").splitlines()
+                if line != REQUIRED_MAKEFILE_LINES[1]
+            ]
+            makefile.write_text("\n".join(kept_lines) + "\n", encoding="utf-8")
+            expect_contains(
+                validate(root),
+                "makefile_checker_line:expected=1:actual=0:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-docs-root-external-parity.py",
+            )
+            count += 1
+
             if count != SELF_TEST_CASE_COUNT:
                 raise AssertionError(
                     f"expected {SELF_TEST_CASE_COUNT} self-test cases, got {count}"
@@ -165,8 +233,8 @@ def main() -> int:
         return 1
 
     print("PHASE6_DOCS_ROOT_EXTERNAL_PARITY=pass")
-    print("PHASE6_DOCS_ROOT_EXTERNAL_PARITY_REQUIRED_FILE_COUNT=5")
-    print("PHASE6_DOCS_ROOT_EXTERNAL_PARITY_REQUIRED_LINE_COUNT=1")
+    print("PHASE6_DOCS_ROOT_EXTERNAL_PARITY_REQUIRED_FILE_COUNT=7")
+    print("PHASE6_DOCS_ROOT_EXTERNAL_PARITY_REQUIRED_LINE_COUNT=5")
     return 0
 
 
