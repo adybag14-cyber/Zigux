@@ -46,6 +46,7 @@ REQUIRED_MARKERS = {
         "`check-phase8-tests-readme-alignment.py`",
         "`check-phase8-perf-buffer-poll-gate.py`",
         "`make -C zigux phase8-validate`",
+        "`Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`",
     ],
     "zigux/Makefile": [
         "scripts/zigux/check-phase8-tests-readme-alignment.py --self-test",
@@ -139,6 +140,7 @@ FIXTURE_TEXT = {
             "",
             "## Phase 8 flow",
             "- `make -C zigux phase8-validate`",
+            "- `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`",
             "- `zigux/tests/phase8_bridge_boundary_survey.zig`",
             "- `zigux/tests/phase8_libbpf_segments_only_build.zig`",
             "- `zigux/tests/phase8_perf_buffer_poll.zig`",
@@ -348,6 +350,21 @@ def run_self_test() -> int:
         )
         scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
 
+        scripts_readme_path.write_text(
+            original_scripts_readme.replace(
+                "- `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "scripts_readme_bridge_boundary_note",
+            tmp_root,
+            "scripts/zigux/README.md:`Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`",
+        )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
         bridge_path = tmp_root / "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md"
         original_bridge = bridge_path.read_text(encoding="utf-8")
         bridge_path.write_text(
@@ -395,7 +412,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE8_VALIDATOR_FLOW_SELF_TEST=pass")
-    print("PHASE8_VALIDATOR_FLOW_SELF_TEST_CASE_COUNT=9")
+    print("PHASE8_VALIDATOR_FLOW_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
