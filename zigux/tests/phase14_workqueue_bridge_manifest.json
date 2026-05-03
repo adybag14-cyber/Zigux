@@ -136,10 +136,10 @@
     },
     {
       "id": "phase14-workqueue-delayed-timer-handoff-followup",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "concurrency_audit",
       "zigux_destination": "kernel/workqueue_bridge.zig",
-      "why_now": "The next honest Phase 14 step is to audit `delayed_work_timer_fn()` and its handoff back into `__queue_work()` so Zigux can describe timer-expiry ownership and requeue boundaries without claiming timer-base, CPU-affinity, or requeue parity."
+      "why_now": "The bridge now records `delayed_work_timer_fn()` as the timer-expiry handoff back into `__queue_work()`, so Zigux can describe delayed timer ownership and requeue boundaries without claiming timer-base, CPU-affinity, or requeue parity."
     },
     {
       "id": "phase14-workqueue-live-execution-blocker",
