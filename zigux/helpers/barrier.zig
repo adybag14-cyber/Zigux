@@ -5,8 +5,9 @@ fn orderedProbe(comptime order: std.builtin.AtomicOrder) void {
     switch (order) {
         .acquire => _ = fence_word.load(.acquire),
         .release => fence_word.store(0, .release),
+        .acq_rel => _ = fence_word.swap(0, .acq_rel),
         .seq_cst => _ = fence_word.swap(0, .seq_cst),
-        else => @compileError("barrier probes only model acquire, release, and seq_cst ordering"),
+        else => @compileError("barrier probes only model acquire, release, acq_rel, and seq_cst ordering"),
     }
 }
 
@@ -18,6 +19,10 @@ pub fn release() void {
     orderedProbe(.release);
 }
 
+pub fn acquireRelease() void {
+    orderedProbe(.acq_rel);
+}
+
 pub fn full() void {
     orderedProbe(.seq_cst);
 }
@@ -25,6 +30,7 @@ pub fn full() void {
 test "phase3 barrier wrappers stay local to each barrier probe" {
     acquire();
     release();
+    acquireRelease();
     full();
     try std.testing.expect(true);
 }
