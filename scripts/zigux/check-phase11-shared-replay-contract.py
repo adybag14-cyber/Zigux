@@ -280,7 +280,7 @@ def write_fixture_tree(root: Path) -> None:
 
 
 def run_self_test() -> int:
-    with tempfile.TemporaryDirectory(prefix="zigux_phase11_shared_replay_contract_") as tmp_dir:
+    with tempfile.TemporaryDirectory(prefix="zigux_phase11_shared_replay_contract_\") as tmp_dir:
         tmp_root = Path(tmp_dir)
         write_fixture_tree(tmp_root)
 
@@ -375,6 +375,21 @@ def run_self_test() -> int:
         )
         write_text(makefile_path, makefile_backup)
 
+        write_text(
+            makefile_path,
+            makefile_backup.replace(
+                "scripts/zigux/check-phase11-shared-replay-contract.py\n",
+                "",
+                1,
+            ),
+        )
+        expect_missing(
+            "missing_makefile_checker_run_hook",
+            run_checker(tmp_root),
+            "makefile:scripts/zigux/check-phase11-shared-replay-contract.py",
+        )
+        write_text(makefile_path, makefile_backup)
+
         workflow_path = tmp_root / ".github/workflows/zigux-bootstrap.yml"
         workflow_backup = text(workflow_path)
         write_text(
@@ -429,7 +444,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST=pass")
-    print("PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT=11")
+    print("PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
