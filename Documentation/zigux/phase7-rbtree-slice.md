@@ -77,8 +77,11 @@ The current starter slice covers:
 - `rb_add()` via `add()`
 - `rb_find()` via `find()`
 - `rb_find_first()` via `findFirst()`
+- `rb_find_last()` via `findLast()`
 - `rb_next_match()` via `nextMatch()`
+- `rb_prev_match()` via `prevMatch()`
 - duplicate-range iterator helper via `iterateMatches()`
+- reverse duplicate-range iterator helper via `iterateMatchesReverse()`
 - `rb_find_add()` via `findAdd()`
 - `rb_erase()` via `erase()`
 - `rb_erase_init()`-style detached-node reset via `eraseInit()`
@@ -96,6 +99,7 @@ The current tests check:
 - ordered inserts and sorted forward traversal
 - reverse traversal via `last()` and `prev()`
 - duplicate-key lookup ranges via `findFirst()`, `nextMatch()`, and `iterateMatches()`
+- reverse duplicate-key lookup ranges via `findLast()`, `prevMatch()`, and `iterateMatchesReverse()`
 - duplicate-aware find-or-insert behavior via `findAdd()`
 - erase-and-replace consistency after structural updates
 - detached-node ownership discipline after `erase()` and `replaceNode()`, where callers must still run `clearNode()` before `emptyNode()` becomes true
