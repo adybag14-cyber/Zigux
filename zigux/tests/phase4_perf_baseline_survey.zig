@@ -271,7 +271,7 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
         "unapproved_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
         manifest.pending_threshold_plans[1].acceptable_limit,
     );
-    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_threshold_plans[1].why_not_approved_yet, "rounded-fill survey gap") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_threshold_plans[1].why_not_approved_yet, "correctness-first rollback packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_threshold_plans[1].why_not_approved_yet, "acceptable limit") != null);
 
     const atomic64_manifest_json = try std.Io.Dir.cwd().readFileAlloc(
