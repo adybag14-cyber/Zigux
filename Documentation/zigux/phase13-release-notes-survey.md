@@ -70,6 +70,7 @@ What this record needs to say, in one place, is how to read that bundle today:
 - the shared release packet now needs to say plainly that `devres` is manifest-backed while still blocking live DMA-backed mappings and scatterlist ownership, that the adjacent coherent DMA replay is part of the shared build without turning that blocked boundary into a live DMA-backed mapping claim, and that the adjacent notifier packet now includes the dedicated exported C header `include/zigux/notifier_abi.h` alongside `zigux/bindings/notifier_abi.zig`, `zigux/helpers/notifier_chain_view.zig`, and `phase13-notifier-list-reviewability-tests` instead of leaving that export surface visible only in the packet-local survey note
 - `Documentation/zigux/README.md` now also keeps the dedicated `zigux/tests/phase13_landlock_syscalls_reviewability.zig` gate and the roadmap-adjacent notifier evidence (`zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, and `zigux/helpers/notifier_chain_view.zig`) visible from the docs root, so the top-level Phase 13 summary does not undercount the actual thirteen-step shared replay on current `master`
 - the shared release packet also needs to say plainly that the dedicated `phase13-landlock-ruleset-reviewability-tests` and `phase13-landlock-syscalls-reviewability-tests` steps are part of the same shared replay packet instead of floating only in `zigux/tests/phase13_build.zig`
+- the shared release packet also needs to separate historical manifest-owner lane keys from the newer helper-versus-verify sequencing lanes, so future runs do not reopen helper-local libfs or devres work from the shared release note alone
 
 This survey keeps that release reading aligned without inventing new helper progress.
 
@@ -116,6 +117,14 @@ The current manifest lane ownership carried by the release packet is:
 - `security/landlock/ruleset.c` through `zigux/tests/phase13_landlock_ruleset_manifest.json` lane `P13-L12`
 - `security/landlock/syscalls.c` through `zigux/tests/phase13_landlock_syscalls_manifest.json` lane `P13-L16`
 - adjacent notifier-list reviewability evidence through `zigux/tests/phase13_notifier_list_manifest.json` lane `P13-L19`
+
+Shared helper sequencing on top of those manifest-owner keys is now:
+
+- `fs/libfs.c`: keep the pure helper-next step under `P13-L01` for `generic_check_addressable()`, and keep `P13-L03` verification-only unless a real helper landing or traceability drift appears
+- `lib/devres.c`: keep helper expansion parked behind `P13-L06` until a concrete exported-helper gap appears, and keep `P13-L07` verification-only unless a focused devres replay fails or a helper-local regression surfaces
+- `security/landlock/ruleset.c`: keep the remaining helper-only boundary work, if any, under `P13-L12` and do not reopen it from shared release notes unless the manifest-backed packet or shared replay drifts
+- `security/landlock/syscalls.c`: keep `P13-L16` narrowed to packet drift or tiny validation-only cleanup and do not widen it from the shared release packet into new syscall helper scope
+- shared release-discipline or docs-root follow-up should stay note-local and should not consume helper-local work already assigned to those narrower same-family lanes
 
 The current shared replay inventory is:
 
@@ -212,4 +221,4 @@ This survey does not claim:
 
 ## Next bounded step
 
-If this Phase 13 release-discipline lane reopens, the next honest follow-up is to keep the shared release packet aligned with the already-green shared replay while the dedicated `P13-L12` Landlock ruleset lane advances its remaining helper-only boundary work, and only then return to separate helper-first `dmam_alloc_coherent()` or scatterlist planner follow-up work without widening this shared note into live DMA-backed helper or scatterlist ownership claims.
+If this Phase 13 release-discipline lane reopens, keep the shared note aligned with the already-green shared replay, treat the manifest lane keys as packet-owner identifiers rather than the only live sequencing cues, let the narrower helper-family lanes consume their own next steps first, and only return here for another note-local or validator-local anti-overlap correction instead of reopening helper-local libfs, devres, or Landlock work from the shared release packet.
