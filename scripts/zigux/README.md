@@ -69,6 +69,7 @@ Current bootstrap helpers
 - `check-phase11-hvc-validation-flow.py`
 - `check-phase11-hvc-cleanup-alignment.py`
 - `check-phase11-shared-replay-contract.py`
+- `check-phase11-header-boundary-packet.py`
 - `check-phase12-build-inventory.py`
 - `check-phase12-libbpf-snapshot.py`
 - `check-phase12-libbpf-packet.py`
@@ -87,7 +88,6 @@ Current bootstrap helpers
 - `validate-phase3-rbtree-interop-survey.py`
 - `validate-phase3-export-uapi-survey.py`
 - `validate-phase3-low-level-wrapper-survey.py`
-- `validate-phase3-policy-unsafe-survey.py`
 - `validate_phase3_header_binding_markers.py`
 - `validate_phase3_selftest.py`
 - `generate-phase3-check-wrappers.py`
@@ -155,7 +155,7 @@ Phase 2 flow
 
 Phase 11 flow
 - `make -C zigux phase11-validate` is the validator-first entrypoint for the active simple-driver packet around `zigux/tests/phase11_build.zig`, `zigux/tests/fixtures/phase11_build_inventory.json`, `zigux/tests/phase11_gpio_wdt_manifest.json`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_hvc_console_manifest.json`, and `zigux/tests/phase11_uapi_header_parity_manifest.json`.
-- `check-phase11-build-inventory.py --self-test`, `check-phase11-build-inventory.py`, `check-phase11-layout-assert-surface.py --self-test`, `check-phase11-layout-assert-surface.py`, `check-phase11-hvc-validation-flow.py --self-test`, `check-phase11-hvc-validation-flow.py`, `check-phase11-hvc-cleanup-alignment.py --self-test`, `check-phase11-hvc-cleanup-alignment.py`, `check-phase11-shared-replay-contract.py --self-test`, `check-phase11-shared-replay-contract.py`, `validate-phase11.py --self-test`, and `validate-phase11.py` keep the pre-replay checker stack aligned across `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`.
+- `check-phase11-build-inventory.py --self-test`, `check-phase11-build-inventory.py`, `check-phase11-layout-assert-surface.py --self-test`, `check-phase11-layout-assert-surface.py`, `check-phase11-hvc-validation-flow.py --self-test`, `check-phase11-hvc-validation-flow.py`, `check-phase11-hvc-cleanup-alignment.py --self-test`, `check-phase11-hvc-cleanup-alignment.py`, `check-phase11-shared-replay-contract.py --self-test`, `check-phase11-shared-replay-contract.py`, `check-phase11-header-boundary-packet.py --self-test`, `check-phase11-header-boundary-packet.py`, `validate-phase11.py --self-test`, and `validate-phase11.py` keep the pre-replay checker stack aligned across `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `zigux/tests/phase11_uapi_header_parity_manifest.json`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`.
 - `make -C zigux phase11-hvc-survey` remains the dedicated archival replay for `zigux/tests/phase11_hvc_console_survey.zig`, while `make -C zigux phase11` and `zigux/tests/phase11_build.zig` keep the shared watchdog-and-console starter replay explicit.
 - `Documentation/zigux/phase11-shared-replay-contract.md`, the dedicated hvc_console survey note and validation matrix, `zigux/tests/fixtures/phase11_build_inventory.json`, and the Phase 11 manifest set keep the exact shared-versus-dedicated replay commands and observed outcome lines reviewable instead of leaving the current hvc split implicit.
 
