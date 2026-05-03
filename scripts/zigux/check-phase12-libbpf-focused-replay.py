@@ -287,6 +287,18 @@ def run_self_test() -> int:
         **{
             **base_inputs,
             "build_text": base_inputs["build_text"].replace(
+                '    .root_source_file = b.path("phase12_libbpf_reviewability.zig"),',
+                '    .root_source_file = b.path("phase12_libbpf_reviewability_drift.zig"),',
+                1,
+            ),
+        }
+    )
+    expect_contains("module_root_detection", missing, "build:module_root_source_files")
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "build_text": base_inputs["build_text"].replace(
                 'phase12_libbpf_reviewability_module.addImport("logging", libbpf_logging_module);',
                 'phase12_libbpf_reviewability_module.addImport("logging", libbpf_pin_path_module);',
                 1,
@@ -294,6 +306,18 @@ def run_self_test() -> int:
         }
     )
     expect_contains("module_import_detection", missing, "build:module_imports")
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "build_text": base_inputs["build_text"].replace(
+                "    .root_module = phase12_libbpf_reviewability_module,",
+                "    .root_module = phase12_libbpf_segments_module,",
+                1,
+            ),
+        }
+    )
+    expect_contains("test_root_module_detection", missing, "build:test_root_modules")
 
     missing = collect_missing(
         **{
@@ -387,7 +411,7 @@ def run_self_test() -> int:
     )
 
     print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST=pass")
-    print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST_CASE_COUNT=10")
+    print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
