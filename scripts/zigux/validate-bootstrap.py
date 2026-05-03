@@ -12,10 +12,14 @@ required_files = [
     ROOT / 'Documentation' / 'zigux' / 'README.md',
     ROOT / 'Documentation' / 'zigux' / 'review-checklist.md',
     ROOT / 'Documentation' / 'zigux' / 'freeze-map.md',
+    ROOT / 'Documentation' / 'zigux' / 'phase2-toolchain-bootstrap-notes.md',
+    ROOT / 'Documentation' / 'zigux' / 'phase2-closure.md',
     ROOT / 'scripts' / 'zigux' / 'README.md',
     ROOT / 'scripts' / 'zigux' / 'check-zig-toolchain.py',
+    ROOT / 'scripts' / 'zigux' / 'check-phase2-toolchain-pin-scope.py',
     ROOT / 'scripts' / 'zigux' / 'install-zig.py',
     ROOT / 'scripts' / 'zigux' / 'zig-toolchain-policy.json',
+    ROOT / 'scripts' / 'zigux' / 'validate-phase2.py',
     ROOT / 'scripts' / 'zigux' / 'validate-phase6.py',
     ROOT / 'zigux' / 'tests' / 'README.md',
     ROOT / 'zigux' / 'Makefile',
@@ -256,6 +260,108 @@ if missing_installer_markers:
     print('MISSING_INSTALLER_MARKERS_END')
     sys.exit(1)
 
+phase2_validator = (ROOT / 'scripts' / 'zigux' / 'validate-phase2.py').read_text(encoding='utf-8')
+required_phase2_validator_markers = [
+    'TOOLCHAIN_PIN_SCOPE_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py"',
+    '"PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass"',
+    '"PHASE2_TOOLCHAIN_PIN_SCOPE=pass"',
+    'str(TOOLCHAIN_PIN_SCOPE_CHECKER)',
+    'toolchain_pin_scope_checker',
+]
+missing_phase2_validator_markers = [
+    marker for marker in required_phase2_validator_markers if marker not in phase2_validator
+]
+if missing_phase2_validator_markers:
+    print('BOOTSTRAP_VALIDATION=fail')
+    print('MISSING_PHASE2_VALIDATOR_MARKERS_START')
+    for marker in missing_phase2_validator_markers:
+        print(marker)
+    print('MISSING_PHASE2_VALIDATOR_MARKERS_END')
+    sys.exit(1)
+
+phase2_pin_scope_checker = (
+    ROOT / 'scripts' / 'zigux' / 'check-phase2-toolchain-pin-scope.py'
+).read_text(encoding='utf-8')
+required_phase2_pin_scope_checker_markers = [
+    'PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass',
+    'PHASE2_TOOLCHAIN_PIN_SCOPE=pass',
+    'TOOLCHAIN_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"',
+    'CLOSURE_DOC = ROOT / "Documentation" / "zigux" / "phase2-closure.md"',
+    'README_MARKERS = [',
+    'TOOLCHAIN_NOTES_MARKERS = [',
+    'CLOSURE_MARKERS = [',
+]
+missing_phase2_pin_scope_checker_markers = [
+    marker for marker in required_phase2_pin_scope_checker_markers if marker not in phase2_pin_scope_checker
+]
+if missing_phase2_pin_scope_checker_markers:
+    print('BOOTSTRAP_VALIDATION=fail')
+    print('MISSING_PHASE2_PIN_SCOPE_CHECKER_MARKERS_START')
+    for marker in missing_phase2_pin_scope_checker_markers:
+        print(marker)
+    print('MISSING_PHASE2_PIN_SCOPE_CHECKER_MARKERS_END')
+    sys.exit(1)
+
+scripts_readme = (ROOT / 'scripts' / 'zigux' / 'README.md').read_text(encoding='utf-8')
+required_scripts_readme_pin_scope_markers = [
+    'check-phase2-toolchain-pin-scope.py --self-test',
+    'check-phase2-toolchain-pin-scope.py',
+    'zig-toolchain-policy.json',
+    'x86_64-linux',
+]
+missing_scripts_readme_pin_scope_markers = [
+    marker for marker in required_scripts_readme_pin_scope_markers if marker not in scripts_readme
+]
+if missing_scripts_readme_pin_scope_markers:
+    print('BOOTSTRAP_VALIDATION=fail')
+    print('MISSING_SCRIPTS_README_PIN_SCOPE_MARKERS_START')
+    for marker in missing_scripts_readme_pin_scope_markers:
+        print(marker)
+    print('MISSING_SCRIPTS_README_PIN_SCOPE_MARKERS_END')
+    sys.exit(1)
+
+phase2_toolchain_notes = (
+    ROOT / 'Documentation' / 'zigux' / 'phase2-toolchain-bootstrap-notes.md'
+).read_text(encoding='utf-8')
+required_phase2_toolchain_notes_markers = [
+    'check-phase2-toolchain-pin-scope.py --self-test',
+    'check-phase2-toolchain-pin-scope.py',
+    'zig-toolchain-policy.json',
+    'x86_64-linux',
+    'install-zig.py --dest .zig-toolchain',
+    'check-zig-toolchain.py',
+]
+missing_phase2_toolchain_notes_markers = [
+    marker for marker in required_phase2_toolchain_notes_markers if marker not in phase2_toolchain_notes
+]
+if missing_phase2_toolchain_notes_markers:
+    print('BOOTSTRAP_VALIDATION=fail')
+    print('MISSING_PHASE2_TOOLCHAIN_NOTES_MARKERS_START')
+    for marker in missing_phase2_toolchain_notes_markers:
+        print(marker)
+    print('MISSING_PHASE2_TOOLCHAIN_NOTES_MARKERS_END')
+    sys.exit(1)
+
+phase2_closure = (ROOT / 'Documentation' / 'zigux' / 'phase2-closure.md').read_text(encoding='utf-8')
+required_phase2_closure_markers = [
+    '## Toolchain Pin Scope',
+    'scripts/zigux/zig-toolchain-policy.json',
+    'scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test',
+    'scripts/zigux/check-phase2-toolchain-pin-scope.py',
+    'x86_64-linux',
+    'PHASE2_TOOLCHAIN_PIN_SCOPE_POLICY=',
+]
+missing_phase2_closure_markers = [
+    marker for marker in required_phase2_closure_markers if marker not in phase2_closure
+]
+if missing_phase2_closure_markers:
+    print('BOOTSTRAP_VALIDATION=fail')
+    print('MISSING_PHASE2_CLOSURE_PIN_SCOPE_MARKERS_START')
+    for marker in missing_phase2_closure_markers:
+        print(marker)
+    print('MISSING_PHASE2_CLOSURE_PIN_SCOPE_MARKERS_END')
+    sys.exit(1)
+
 makefile = (ROOT / 'zigux' / 'Makefile').read_text(encoding='utf-8')
 required_make_markers = [
     'phase6-validate:',
@@ -285,5 +391,5 @@ print('BOOTSTRAP_VALIDATION=pass')
 print(f'BOOTSTRAP_REQUIRED_FILE_COUNT={len(required_files)}')
 print(
     'BOOTSTRAP_REQUIRED_MARKER_COUNT='
-    f"{len(required_markers) + len(required_workflow_markers) + len(required_toolchain_markers) + len(required_installer_markers) + len(required_make_markers)}"
+    f"{len(required_markers) + len(required_workflow_markers) + len(required_toolchain_markers) + len(required_installer_markers) + len(required_phase2_validator_markers) + len(required_phase2_pin_scope_checker_markers) + len(required_scripts_readme_pin_scope_markers) + len(required_phase2_toolchain_notes_markers) + len(required_phase2_closure_markers) + len(required_make_markers)}"
 )
