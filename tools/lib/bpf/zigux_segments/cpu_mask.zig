@@ -191,6 +191,28 @@ pub fn planPerfBufferAutoCpuIndices(
     return planned.toOwnedSlice(allocator);
 }
 
+pub fn planPerfBufferCpuIndices(
+    allocator: std.mem.Allocator,
+    possible_mask: []const bool,
+    online_mask: []const bool,
+    requested_cpu_count: i32,
+    map_max_entries: u32,
+) ![]usize {
+    if (requested_cpu_count > 0) {
+        var planned = std.ArrayList(usize).empty;
+        errdefer planned.deinit(allocator);
+
+        const requested = @as(usize, @intCast(requested_cpu_count));
+        try planned.ensureTotalCapacity(allocator, requested);
+        for (0..requested) |cpu_index| {
+            planned.appendAssumeCapacity(cpu_index);
+        }
+        return planned.toOwnedSlice(allocator);
+    }
+
+    return planPerfBufferAutoCpuIndices(allocator, possible_mask, online_mask, map_max_entries);
+}
+
 pub fn countPossibleCpus(mask: []const bool) usize {
     var count: usize = 0;
     for (mask) |present| {
@@ -409,4 +431,30 @@ test "planPerfBufferAutoCpuIndices skips offline or truncated online candidates 
     defer std.testing.allocator.free(planned);
 
     try std.testing.expectEqualSlices(usize, &.{0}, planned);
+}
+
+test "planPerfBufferCpuIndices keeps caller-pinned positive CPU counts sequential without widening into routing parity" {
+    const planned = try planPerfBufferCpuIndices(
+        std.testing.allocator,
+        &.{ false, false },
+        &.{ false },
+        3,
+        1,
+    );
+    defer std.testing.allocator.free(planned);
+
+    try std.testing.expectEqualSlices(usize, &.{ 0, 1, 2 }, planned);
+}
+
+test "planPerfBufferCpuIndices reuses bounded auto planning for zero or negative requested CPU counts" {
+    const possible = [_]bool{ true, true, false, true, true };
+    const online = [_]bool{ false, true, true, false, true };
+
+    const zero_requested = try planPerfBufferCpuIndices(std.testing.allocator, &possible, &online, 0, 2);
+    defer std.testing.allocator.free(zero_requested);
+    try std.testing.expectEqualSlices(usize, &.{ 1, 4 }, zero_requested);
+
+    const negative_requested = try planPerfBufferCpuIndices(std.testing.allocator, &possible, &online, -1, 2);
+    defer std.testing.allocator.free(negative_requested);
+    try std.testing.expectEqualSlices(usize, &.{ 1, 4 }, negative_requested);
 }
