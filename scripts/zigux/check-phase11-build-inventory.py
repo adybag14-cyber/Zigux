@@ -37,6 +37,9 @@ FORBIDDEN_BUILD_MARKERS = [
 DEDICATED_SURVEY_REPLAYS = [
     "zigux/tests/phase11_hvc_console_survey.zig",
 ]
+SHARED_ADJUNCT_REPLAY_TESTS = {
+    "phase11-dw-wdt-suspend-resume-tests": "zigux/tests/phase11_dw_wdt_suspend_resume.zig",
+}
 SHARED_REPLAY_MARKERS = [
     {
         "path": "zigux/tests/phase11_dw_wdt_suspend_resume.zig",
@@ -93,19 +96,28 @@ def render_inventory() -> dict[str, object]:
         for item in module_root_source_files
     }
     shared_split_replays = []
+    shared_adjunct_replays = []
     for item in test_root_modules:
         test_name = item["test"]
-        if not test_name.endswith(SPLIT_TEST_SUFFIX):
-            continue
         root_path = root_path_by_module.get(item["root_module"])
         if root_path is None:
             continue
-        shared_split_replays.append(
-            {
-                "test": test_name,
-                "path": (Path("zigux/tests") / root_path).as_posix(),
-            }
-        )
+        test_path = (Path("zigux/tests") / root_path).as_posix()
+        if test_name.endswith(SPLIT_TEST_SUFFIX):
+            shared_split_replays.append(
+                {
+                    "test": test_name,
+                    "path": test_path,
+                }
+            )
+            continue
+        if test_name in SHARED_ADJUNCT_REPLAY_TESTS:
+            shared_adjunct_replays.append(
+                {
+                    "test": test_name,
+                    "path": test_path,
+                }
+            )
     return {
         "build_test_names": BUILD_TEST_NAME_RE.findall(build_text),
         "shared_test_depend_steps": BUILD_DEPEND_STEP_RE.findall(build_text),
@@ -122,6 +134,7 @@ def render_inventory() -> dict[str, object]:
         "forbidden_markers": FORBIDDEN_BUILD_MARKERS,
         "dedicated_survey_replays": DEDICATED_SURVEY_REPLAYS,
         "shared_split_replays": shared_split_replays,
+        "shared_adjunct_replays": shared_adjunct_replays,
         "shared_replay_markers": SHARED_REPLAY_MARKERS,
     }
 
@@ -246,93 +259,93 @@ def expect_stdout(label: str, result: subprocess.CompletedProcess[str], expected
 
 
 def write_self_test_fixture(root: Path) -> None:
-    build_text = """const std = @import("std");
+    build_text = """const std = @import(\"std\");
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
     const dw_wdt_module = b.createModule(.{
-        .root_source_file = b.path("../../drivers/watchdog/dw_wdt.zig"),
+        .root_source_file = b.path(\"../../drivers/watchdog/dw_wdt.zig\"),
         .target = target,
         .optimize = optimize,
     });
     const phase11_dw_wdt_suspend_resume_module = b.createModule(.{
-        .root_source_file = b.path("phase11_dw_wdt_suspend_resume.zig"),
+        .root_source_file = b.path(\"phase11_dw_wdt_suspend_resume.zig\"),
         .target = target,
         .optimize = optimize,
     });
-    phase11_dw_wdt_suspend_resume_module.addImport("dw_wdt", dw_wdt_module);
+    phase11_dw_wdt_suspend_resume_module.addImport(\"dw_wdt\", dw_wdt_module);
     const phase11_dw_wdt_remove_idle_split_module = b.createModule(.{
-        .root_source_file = b.path("phase11_dw_wdt_remove_idle_split.zig"),
+        .root_source_file = b.path(\"phase11_dw_wdt_remove_idle_split.zig\"),
         .target = target,
         .optimize = optimize,
     });
-    phase11_dw_wdt_remove_idle_split_module.addImport("dw_wdt", dw_wdt_module);
+    phase11_dw_wdt_remove_idle_split_module.addImport(\"dw_wdt\", dw_wdt_module);
 
     const hvc_console_module = b.createModule(.{
-        .root_source_file = b.path("../../drivers/tty/hvc/hvc_console.zig"),
+        .root_source_file = b.path(\"../../drivers/tty/hvc/hvc_console.zig\"),
         .target = target,
         .optimize = optimize,
     });
     const phase11_hvc_console_modem_control_split_module = b.createModule(.{
-        .root_source_file = b.path("phase11_hvc_console_modem_control_split.zig"),
+        .root_source_file = b.path(\"phase11_hvc_console_modem_control_split.zig\"),
         .target = target,
         .optimize = optimize,
     });
-    phase11_hvc_console_modem_control_split_module.addImport("hvc_console", hvc_console_module);
+    phase11_hvc_console_modem_control_split_module.addImport(\"hvc_console\", hvc_console_module);
     const phase11_hvc_console_poll_retry_split_module = b.createModule(.{
-        .root_source_file = b.path("phase11_hvc_console_poll_retry_split.zig"),
+        .root_source_file = b.path(\"phase11_hvc_console_poll_retry_split.zig\"),
         .target = target,
         .optimize = optimize,
     });
-    phase11_hvc_console_poll_retry_split_module.addImport("hvc_console", hvc_console_module);
+    phase11_hvc_console_poll_retry_split_module.addImport(\"hvc_console\", hvc_console_module);
 
     const phase11_dw_wdt_suspend_resume_tests = b.addTest(.{
-        .name = "phase11-dw-wdt-suspend-resume-tests",
+        .name = \"phase11-dw-wdt-suspend-resume-tests\",
         .root_module = phase11_dw_wdt_suspend_resume_module,
     });
     const run_phase11_dw_wdt_suspend_resume_tests = b.addRunArtifact(
         phase11_dw_wdt_suspend_resume_tests,
     );
     const phase11_dw_wdt_remove_idle_split_tests = b.addTest(.{
-        .name = "phase11-dw-wdt-remove-idle-split-tests",
+        .name = \"phase11-dw-wdt-remove-idle-split-tests\",
         .root_module = phase11_dw_wdt_remove_idle_split_module,
     });
     const run_phase11_dw_wdt_remove_idle_split_tests = b.addRunArtifact(
         phase11_dw_wdt_remove_idle_split_tests,
     );
     const phase11_hvc_console_modem_control_split_tests = b.addTest(.{
-        .name = "phase11-hvc-console-modem-control-split-tests",
+        .name = \"phase11-hvc-console-modem-control-split-tests\",
         .root_module = phase11_hvc_console_modem_control_split_module,
     });
     const run_phase11_hvc_console_modem_control_split_tests = b.addRunArtifact(
         phase11_hvc_console_modem_control_split_tests,
     );
     const phase11_hvc_console_poll_retry_split_tests = b.addTest(.{
-        .name = "phase11-hvc-console-poll-retry-split-tests",
+        .name = \"phase11-hvc-console-poll-retry-split-tests\",
         .root_module = phase11_hvc_console_poll_retry_split_module,
     });
     const run_phase11_hvc_console_poll_retry_split_tests = b.addRunArtifact(
         phase11_hvc_console_poll_retry_split_tests,
     );
     const phase11_hvc_console_survey_tests = b.addTest(.{
-        .name = "phase11-hvc-console-survey-tests",
+        .name = \"phase11-hvc-console-survey-tests\",
         .root_module = phase11_hvc_console_poll_retry_split_module,
     });
     const run_phase11_hvc_console_survey_tests = b.addRunArtifact(
         phase11_hvc_console_survey_tests,
     );
 
-    const test_step = b.step("test", "Run Phase 11 starter and survey tests");
+    const test_step = b.step(\"test\", \"Run Phase 11 starter and survey tests\");
     test_step.dependOn(&run_phase11_dw_wdt_suspend_resume_tests.step);
     test_step.dependOn(&run_phase11_dw_wdt_remove_idle_split_tests.step);
     test_step.dependOn(&run_phase11_hvc_console_modem_control_split_tests.step);
     test_step.dependOn(&run_phase11_hvc_console_poll_retry_split_tests.step);
 
     const hvc_console_survey_step = b.step(
-        "hvc-console-survey",
-        "Run the dedicated Phase 11 hvc_console survey replay",
+        \"hvc-console-survey\",
+        \"Run the dedicated Phase 11 hvc_console survey replay\",
     );
     hvc_console_survey_step.dependOn(&run_phase11_hvc_console_survey_tests.step);
 }
@@ -380,6 +393,9 @@ pub fn build(b: *std.Build) void {
             {"test": "phase11-dw-wdt-remove-idle-split-tests", "path": "zigux/tests/phase11_dw_wdt_remove_idle_split.zig"},
             {"test": "phase11-hvc-console-modem-control-split-tests", "path": "zigux/tests/phase11_hvc_console_modem_control_split.zig"},
             {"test": "phase11-hvc-console-poll-retry-split-tests", "path": "zigux/tests/phase11_hvc_console_poll_retry_split.zig"},
+        ],
+        "shared_adjunct_replays": [
+            {"test": "phase11-dw-wdt-suspend-resume-tests", "path": "zigux/tests/phase11_dw_wdt_suspend_resume.zig"},
         ],
         "shared_replay_markers": SHARED_REPLAY_MARKERS,
     }
@@ -483,6 +499,7 @@ def run_self_test() -> int:
         )
         write_text(build_path, build_backup)
 
+        build_path.writeText if False else None
         build_path.write_text(
             build_backup.replace(
                 "    hvc_console_survey_step.dependOn(&run_phase11_hvc_console_survey_tests.step);\n",
@@ -511,6 +528,16 @@ def run_self_test() -> int:
         fixture_path.write_text(fixture_backup, encoding="utf-8")
 
         fixture = json.loads(fixture_backup)
+        fixture["shared_adjunct_replays"] = []
+        fixture_path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
+        expect_stdout(
+            "shared_adjunct_replay_fixture_drift",
+            run_checker(tmp_root),
+            "ARTIFACT_DIFF=fail",
+        )
+        fixture_path.write_text(fixture_backup, encoding="utf-8")
+
+        fixture = json.loads(fixture_backup)
         fixture["shared_replay_markers"] = []
         fixture_path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
         expect_stdout(
@@ -521,7 +548,7 @@ def run_self_test() -> int:
         fixture_path.write_text(fixture_backup, encoding="utf-8")
 
     print("PHASE11_BUILD_INVENTORY_SELF_TEST=pass")
-    print("PHASE11_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=9")
+    print("PHASE11_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
