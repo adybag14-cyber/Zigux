@@ -23,6 +23,27 @@ REQUIRED_TOOLING_FILES = (
     "scripts/zigux/validate_phase3_core.py",
     "scripts/zigux/validate_phase3_selftest.py",
 )
+REQUIRED_README_TOOLING_FILES = (
+    "scripts/zigux/check-phase3-abi-layout-packet.py",
+    "scripts/zigux/check-phase3-build-roots.py",
+    "scripts/zigux/check-phase3-canonical-survey-manifest.py",
+    "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py",
+    "scripts/zigux/check-phase3-rbtree-shared-lift-contract.py",
+    "scripts/zigux/check-phase3-readme-tooling-inventory.py",
+    "scripts/zigux/check-phase3-tooling-packet.py",
+    "scripts/zigux/check-phase3-validation-flow.py",
+    "scripts/zigux/generate-phase3-check-wrappers.py",
+    "scripts/zigux/phase3_catalog.py",
+    "scripts/zigux/phase3_check_lib.py",
+    "scripts/zigux/run-phase3-checks.py",
+    "scripts/zigux/validate-phase3.py",
+    "scripts/zigux/validate-phase3-export-uapi-survey.py",
+    "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
+    "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
+    "scripts/zigux/validate-phase3-rbtree-interop-survey.py",
+    "scripts/zigux/validate-phase3-roadmap-gap-survey.py",
+    "scripts/zigux/validate_phase3_selftest.py",
+)
 
 
 def validate(root: Path) -> list[str]:
@@ -46,6 +67,9 @@ def validate(root: Path) -> list[str]:
     for rel in REQUIRED_TOOLING_FILES:
         if rel in listed and not (root / rel).exists():
             issues.append(f"missing_repo_file:{rel}")
+    for rel in REQUIRED_README_TOOLING_FILES:
+        if not (root / rel).exists():
+            issues.append(f"missing_readme_tooling_file:{rel}")
     return issues
 
 
@@ -60,6 +84,8 @@ def run_self_test() -> int:
         manifest_path = root / MANIFEST_REL
 
         for rel in REQUIRED_TOOLING_FILES:
+            _write(root / rel, "# stub\n")
+        for rel in REQUIRED_README_TOOLING_FILES:
             _write(root / rel, "# stub\n")
 
         _write(
@@ -94,17 +120,29 @@ def run_self_test() -> int:
 
         broken_manifest["files"] = list(REQUIRED_TOOLING_FILES)
         _write(manifest_path, json.dumps(broken_manifest, indent=2) + "\n")
-        (root / REQUIRED_TOOLING_FILES[-1]).unlink()
+        repo_only_rel = "scripts/zigux/validate_phase3_core.py"
+        (root / repo_only_rel).unlink()
         issues = validate(root)
-        expected = f"missing_repo_file:{REQUIRED_TOOLING_FILES[-1]}"
+        expected = f"missing_repo_file:{repo_only_rel}"
         if issues != [expected]:
             raise SystemExit(
                 "phase3-tooling-packet-self-test:missing_repo_file_guard_failed:"
                 + (",".join(issues) if issues else "none")
             )
 
+        _write(root / repo_only_rel, "# stub\n")
+        readme_only_rel = "scripts/zigux/validate-phase3-roadmap-gap-survey.py"
+        (root / readme_only_rel).unlink()
+        issues = validate(root)
+        expected = f"missing_readme_tooling_file:{readme_only_rel}"
+        if issues != [expected]:
+            raise SystemExit(
+                "phase3-tooling-packet-self-test:missing_readme_tooling_file_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
     print("PHASE3_TOOLING_PACKET_SELF_TEST=pass")
-    print("PHASE3_TOOLING_PACKET_SELF_TEST_CASE_COUNT=2")
+    print("PHASE3_TOOLING_PACKET_SELF_TEST_CASE_COUNT=3")
     return 0
 
 
@@ -128,6 +166,7 @@ def main() -> int:
 
     print("PHASE3_TOOLING_PACKET=pass")
     print(f"PHASE3_TOOLING_PACKET_FILE_COUNT={len(REQUIRED_TOOLING_FILES)}")
+    print(f"PHASE3_TOOLING_PACKET_README_FILE_COUNT={len(REQUIRED_README_TOOLING_FILES)}")
     return 0
 
 
