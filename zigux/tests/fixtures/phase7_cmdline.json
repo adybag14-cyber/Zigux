@@ -5,6 +5,11 @@
       "rest": "+7,panic",
       "value": 0
     },
+    "leading_plus_hex": {
+      "rc": 0,
+      "rest": "+0x10,panic",
+      "value": 0
+    },
     "range": {
       "rc": 3,
       "rest": "-5",
