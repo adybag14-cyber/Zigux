@@ -56,9 +56,11 @@ The current parked slice covers:
 - `prepare_exec_cmd()`-style argv prefixing with a trailing null slot for later `execv()` plumbing
 - `buildDeferredExecvCall()` as the launch-free `execv_cmd()` handoff that packages the prepared argv vector for later use without claiming any direct `execvp()` side effect
 - `planDeferredExecvCall()` as the combined launch-free wrapper that keeps rebuilt `PATH` state and the deferred `execv_cmd()` argv packet in one reviewable handoff without widening into scheduler-facing execution behavior
+- `planDeferredExecvCallWithPwd()` as the matching launch-free wrapper that threads the stat-backed logical-`PWD` proof through the same deferred `execv_cmd()` packet so the combined helper path can stay aligned with `get_pwd_cwd()`-style location choice instead of silently dropping back to physical cwd handling
 - a pure `collectExeclArgs()` helper that models the `execl_cmd()` argument collector, including the C helper's legacy post-fetch `MAX_ARGS` overflow guard where a terminating null that lands in slot `MAX_ARGS` still fails, plus its required trailing null terminator, without claiming any direct process-launch behavior
 - `buildDeferredExeclCall()` plus the tiny `DeferredExecCall` carrier so the `execl_cmd()` path can now hand off one fully prepared future `execvp()` argv packet without launching a process, waiting for completion, or claiming any queue ownership
 - `planDeferredExeclCall()` as the combined launch-free wrapper that keeps rebuilt `PATH` state and the deferred `execl_cmd()` argv packet in one reviewable handoff without widening into scheduler-facing execution behavior
+- `planDeferredExeclCallWithPwd()` as the matching launch-free wrapper that keeps the deferred `execl_cmd()` handoff aligned with the same stat-backed logical-`PWD` proof before the packet reaches any future launch surface
 
 The current tests check:
 
@@ -72,9 +74,11 @@ The current tests check:
 - prepared argv vectors start with the configured executable name and keep a trailing null terminator, including the empty-tail case
 - the deferred `execv_cmd()` handoff packages both populated and empty-tail argv vectors without widening into `execvp()` behavior
 - the combined deferred `execv_cmd()` planner keeps rebuilt `PATH` state and the future argv packet aligned in one launch-free handoff without claiming direct execution or queue ownership
+- the new PWD-aware deferred `execv_cmd()` planner keeps that same combined handoff aligned with logical `PWD` when the injected identities match instead of leaving the stat-backed `get_pwd_cwd()` proof trapped one helper layer lower
 - the pure `execl_cmd()` collector preserves the command head, stops at the first null terminator, accepts only the last null-terminated shape that stays below `MAX_ARGS`, rejects the C helper's legacy null-slot overflow shape where the terminating null itself lands in slot `MAX_ARGS`, rejects a missing terminator, and still stops before any real `execvp()` call exists
 - the deferred-exec handoff helper prepends the configured executable name to the collected `execl_cmd()` packet, keeps the trailing null terminator, preserves the empty-tail `execl_cmd(cmd, NULL)` shape, and stays launch-free so the reviewable surface stops before any real `execvp()` side effect
 - the combined deferred `execl_cmd()` planner keeps rebuilt `PATH` state and the future argv packet aligned in one launch-free handoff without claiming direct execution or queue ownership
+- the new PWD-aware deferred `execl_cmd()` planner keeps that same combined handoff aligned with the stat-backed logical-`PWD` proof and still falls back cleanly when the injected identities do not match
 
 ## Non-goals
 
@@ -90,4 +94,4 @@ This slice still does not claim:
 
 ## Next bounded step
 
-Keep `tools/lib/subcmd/exec-cmd.zig` parked unless repo review finds one more tiny helper-only guard inside this file family; the `get_pwd_cwd()` stat-backed same-location proof now flows through both the helper-local choice layer and the bounded `setupPathWithPwd()` wrapper, while the deferred `execv_cmd()` and `execl_cmd()` packets now both have raw argv builders plus combined launch-free planner handoffs recorded explicitly without widening into launch behavior, so future Phase 8 work should usually continue in sibling files instead of smuggling `execvp()` ownership, retry or queue semantics, or any `kernel/workqueue.c` boundary claim into this parked tooling slice.
+Keep `tools/lib/subcmd/exec-cmd.zig` parked unless repo review finds one more tiny helper-only guard inside this file family; the `get_pwd_cwd()` stat-backed same-location proof now flows through both the helper-local choice layer, the bounded `setupPathWithPwd()` wrapper, and the combined deferred `execv_cmd()` plus `execl_cmd()` planners without widening into launch behavior, so future Phase 8 work should usually continue in sibling files instead of smuggling `execvp()` ownership, retry or queue semantics, or any `kernel/workqueue.c` boundary claim into this parked tooling slice.
