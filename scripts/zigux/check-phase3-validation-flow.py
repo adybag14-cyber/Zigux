@@ -28,6 +28,8 @@ REQUIRED_MAKEFILE_SNIPPETS = (
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/phase3_check_lib.py --self-test\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/generate-phase3-check-wrappers.py --self-test\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/generate-phase3-check-wrappers.py --check\n",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test\n",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-readme-tooling-inventory.py\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/run-phase3-checks.py --self-test\n",
 )
 
@@ -66,6 +68,10 @@ REQUIRED_WORKFLOW_SNIPPETS = (
     "run: python3 scripts/zigux/check-phase3-validation-flow.py --self-test\n",
     "name: Self-test Phase 3 wrapper generator",
     "run: python3 scripts/zigux/generate-phase3-check-wrappers.py --self-test\n",
+    "name: Validate Phase 3 README tooling inventory",
+    "run: python3 scripts/zigux/check-phase3-readme-tooling-inventory.py\n",
+    "name: Self-test Phase 3 README tooling inventory checker",
+    "run: python3 scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test\n",
 )
 
 FORBIDDEN_WORKFLOW_SNIPPETS = (
@@ -153,6 +159,8 @@ def _fixture_makefile() -> str:
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/phase3_check_lib.py --self-test\n"
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/generate-phase3-check-wrappers.py --self-test\n"
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/generate-phase3-check-wrappers.py --check\n"
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test\n"
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-readme-tooling-inventory.py\n"
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/run-phase3-checks.py --self-test\n"
         "\n"
         "phase3-abi:\n"
@@ -181,6 +189,10 @@ def _fixture_workflow() -> str:
         "        run: python3 scripts/zigux/check-phase3-validation-flow.py --self-test\n"
         "      - name: Self-test Phase 3 wrapper generator\n"
         "        run: python3 scripts/zigux/generate-phase3-check-wrappers.py --self-test\n"
+        "      - name: Self-test Phase 3 README tooling inventory checker\n"
+        "        run: python3 scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test\n"
+        "      - name: Validate Phase 3 README tooling inventory\n"
+        "        run: python3 scripts/zigux/check-phase3-readme-tooling-inventory.py\n"
     )
 
 
@@ -224,6 +236,22 @@ def run_self_test() -> int:
         issues = validate(root)
         assert (
             "missing_makefile_snippet:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/generate-phase3-check-wrappers.py --self-test\n"
+            in issues
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8", newline="\n")
+
+        makefile_path.write_text(
+            original_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-readme-tooling-inventory.py\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate(root)
+        assert (
+            "missing_makefile_snippet:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-readme-tooling-inventory.py\n"
             in issues
         )
         makefile_path.write_text(original_makefile, encoding="utf-8", newline="\n")
@@ -305,6 +333,22 @@ def run_self_test() -> int:
         workflow_path.write_text(original_workflow, encoding="utf-8", newline="\n")
 
         workflow_path.write_text(
+            original_workflow.replace(
+                "run: python3 scripts/zigux/check-phase3-readme-tooling-inventory.py\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate(root)
+        assert (
+            "missing_workflow_snippet:run: python3 scripts/zigux/check-phase3-readme-tooling-inventory.py\n"
+            in issues
+        )
+        workflow_path.write_text(original_workflow, encoding="utf-8", newline="\n")
+
+        workflow_path.write_text(
             original_workflow
             + "      - name: Check Phase 3 roadmap gap survey\n"
             + "        run: python3 scripts/zigux/validate-phase3-roadmap-gap-survey.py\n",
@@ -333,7 +377,7 @@ def run_self_test() -> int:
         workflow_path.write_text(original_workflow, encoding="utf-8", newline="\n")
 
     print("PHASE3_VALIDATION_FLOW_SELF_TEST=pass")
-    print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=9")
+    print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
