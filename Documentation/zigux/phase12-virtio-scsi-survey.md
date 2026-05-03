@@ -24,6 +24,8 @@ That still matters even after the first Zigux starter landed because `virtio_scs
 
 The highest-value honest step in this lane is therefore to keep the survey, validation, and risk notes aligned with the bounded starter that now exists, rather than pretending the lane is still pre-driver or widening into premature runtime scaffolding.
 
+The packet now also keeps its rollback owner explicit as `Virtio SCSI Lane`, so survey-only refreshes do not borrow the neighboring NVMe PCI storage label.
+
 ## Survey findings
 
 - `drivers/scsi/virtio_scsi.c` is present on `master` and is large enough to cross multiple subsystem boundaries at once: virtio config, virtqueue topology, SCSI host setup, blk-mq queue planning, and event or TMF handling.
@@ -74,8 +76,8 @@ The restore-sequencing summary now sits beside that same bounded packet as revie
 
 ## Rollback And Reversible Delivery
 
-- owner: `Storage Driver Lane`
-- rollback owner: `Storage Driver Lane`
+- owner: `Virtio SCSI Lane`
+- rollback owner: `Virtio SCSI Lane`
 - fallback path: keep `drivers/scsi/virtio_scsi.c` as the source of truth, keep the bounded `drivers/scsi/virtio_scsi.zig` queue-layout, recovery, probe snapshot, host-limit summary, queue-depth summary, and io-queue-map helpers reviewable in isolation through `zigux/tests/phase12_virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi_recovery_state.zig`, and `zigux/tests/phase12_virtio_scsi_survey.zig`, keep `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` pinned to its inspected commit for degraded readback, and drop the direct `phase12-virtio-scsi-tests`, `phase12-virtio-scsi-syntax-lab-tests`, `phase12-virtio-scsi-recovery-state-tests`, plus `phase12-virtio-scsi-survey-tests` entries out of `zigux/tests/phase12_build.zig` if the shared packet regresses.
 - reversible delivery evidence: this Phase 12 packet only adds one bounded `drivers/scsi/virtio_scsi.zig` starter, its paired `zigux/tests/phase12_virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi_recovery_state.zig`, and `zigux/tests/phase12_virtio_scsi_survey.zig` review gates, the raw fallback catalog, and this survey note around the existing C anchor, so the lane can be narrowed again without inventing DMA-backed request ownership, `Scsi_Host` lifecycle parity, or blk-mq runtime claims.
 - rollback drill: run `make -C zigux phase12-validate`; if the virtio_scsi packet is the only failing slice, repair `Documentation/zigux/phase12-virtio-scsi-survey.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, or `zigux/tests/phase12_virtio_scsi_survey.zig` first when only the reviewability record drifted, otherwise remove the `phase12-virtio-scsi-tests`, `phase12-virtio-scsi-syntax-lab-tests`, `phase12-virtio-scsi-recovery-state-tests`, and `phase12-virtio-scsi-survey-tests` entries from `zigux/tests/phase12_build.zig`, keep `drivers/scsi/virtio_scsi.c` plus the bounded Zig starter unchanged, then rerun `make -C zigux phase12-validate` followed by `zig build test --build-file zigux/tests/phase12_build.zig --summary all` so the shared Phase 12 tranche stays truthful while the survey packet is repaired.
