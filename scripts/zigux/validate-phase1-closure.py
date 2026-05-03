@@ -39,7 +39,7 @@ REQUIRED_CLOSURE_MARKERS = [
     "PHASE1_HELPER_COUNT=13",
     "PHASE1_CLOSURE_GATE=python3 scripts/zigux/validate-phase1-closure.py",
     "PHASE1_CLOSURE_SELF_TEST_GATE=python3 scripts/zigux/validate-phase1-closure.py --self-test",
-    "PHASE1_STRING_MEMPARSE_UNIT_REVIEW=string memparse preserves decimal, hexadecimal, suffix-bearing, and invalid inputs without changing the parsed value or rest pointer contract",
+    "PHASE1_STRING_MEMPARSE_UNIT_REVIEW=string memparse preserves decimal, hexadecimal, suffix-bearing, invalid, and binary-unit-tail inputs including optional trailing B forms without changing the parsed value or rest pointer contract",
     "PHASE1_RBTREE_POSTORDER_SAFE_REBALANCE_UNIT_REVIEW=rbtree iteratePostorderSafe stays aligned across erase-driven rebalancing so the walk still reaches each remaining node exactly once after the current node is removed",
     "PHASE1_RBTREE_BENCH_KEYS=PHASE1_BENCH_RBTREE_CHECKSUM,PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM,PHASE1_BENCH_RBTREE_CACHED_CHECKSUM,PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM,PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM",
 ]
@@ -124,7 +124,7 @@ REQUIRED_EXACT_CHECKSUMS = {
     "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM": 1188000,
     "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 196000,
     "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM": 3484000,
-    "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM": 1484000,
+    "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM": 1488000,
 }
 
 REQUIRED_MANIFEST_FIELDS = {
