@@ -1,17 +1,6 @@
 const std = @import("std");
 const bsearch = @import("bsearch");
-
-const PerfCase = struct {
-    label: []const u8,
-    len: usize,
-    reps: usize,
-};
-
-const perf_cases = [_]PerfCase{
-    .{ .label = "256", .len = 256, .reps = 2_000 },
-    .{ .label = "4096", .len = 4096, .reps = 500 },
-    .{ .label = "65536", .len = 65536, .reps = 64 },
-};
+const fixtures = @import("fixtures/phase6_bsearch_vectors.zig");
 
 const TypedVariant = struct {
     label: []const u8,
@@ -32,7 +21,7 @@ var compare_calls: usize = 0;
 pub fn main(init: std.process.Init) !void {
     const io = init.io;
 
-    for (perf_cases) |case| {
+    for (fixtures.perf_cases) |case| {
         const result = try runPerfCase(case, io);
         std.debug.print(
             "phase6-bsearch-perf {s} len={} reps={} ns_per_lookup={} avg_compare_calls={d:.2} max_compare_calls={} max_compare_budget={}\n",
@@ -140,7 +129,7 @@ fn benchTime(io: std.Io) i96 {
     return std.Io.Clock.awake.now(io).nanoseconds;
 }
 
-fn runPerfCase(case: PerfCase, io: std.Io) !PerfResult {
+fn runPerfCase(case: fixtures.PerfCase, io: std.Io) !PerfResult {
     const allocator = std.heap.page_allocator;
     const values = try allocator.alloc(u32, case.len);
     defer allocator.free(values);
@@ -154,10 +143,9 @@ fn runPerfCase(case: PerfCase, io: std.Io) !PerfResult {
         value.* = values[values.len - 1 - idx];
     }
 
-    const query_count = 32;
-    var queries: [query_count]u32 = undefined;
-    var expected_hits: [query_count]bool = undefined;
-    seedDeterministicQueries(case.len, values, &queries, &expected_hits);
+    var queries: [fixtures.query_count]u32 = undefined;
+    var expected_hits: [fixtures.query_count]bool = undefined;
+    fixtures.seedDeterministicQueries(case.len, values, &queries, &expected_hits);
 
     var prng = std.Random.DefaultPrng.init(0x5a17_2026_0700_0007);
     const random = prng.random();
@@ -189,7 +177,7 @@ fn runPerfCase(case: PerfCase, io: std.Io) !PerfResult {
 
     var total_compare_calls: usize = 0;
     var max_compare_calls: usize = 0;
-    const total_lookups = case.reps * query_count * (typed_variants.len + raw_variants.len);
+    const total_lookups = case.reps * fixtures.query_count * (typed_variants.len + raw_variants.len);
     const started_at = benchTime(io);
     const max_compare_budget = std.math.log2_int_ceil(usize, case.len) + 1;
 
@@ -244,34 +232,5 @@ fn expectFoundOrMiss(expected_hit: bool, found: ?usize, variant_label: []const u
         try std.testing.expect(found != null);
     } else {
         try std.testing.expect(found == null);
-    }
-}
-
-fn seedDeterministicQueries(
-    len: usize,
-    values: []const u32,
-    queries: *[32]u32,
-    expected_hits: *[32]bool,
-) void {
-    const quarter = len / 4;
-    const middle = len / 2;
-    const last = len - 1;
-    const deterministic_pairs = [_]struct {
-        query: u32,
-        hit: bool,
-    }{
-        .{ .query = values[0], .hit = true },
-        .{ .query = values[0] + 1, .hit = false },
-        .{ .query = values[quarter], .hit = true },
-        .{ .query = values[quarter] + 1, .hit = false },
-        .{ .query = values[middle], .hit = true },
-        .{ .query = values[middle] + 1, .hit = false },
-        .{ .query = values[last], .hit = true },
-        .{ .query = values[last] + 1, .hit = false },
-    };
-
-    for (deterministic_pairs, 0..) |pair, idx| {
-        queries[idx] = pair.query;
-        expected_hits[idx] = pair.hit;
     }
 }
