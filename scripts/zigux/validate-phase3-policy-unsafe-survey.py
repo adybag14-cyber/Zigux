@@ -510,7 +510,7 @@ def run_self_test() -> int:
                     "pub fn assertInteropPolicyLayout() void {}",
                     "pub fn assertMmioRangeLayout() void {}",
                     "pub fn assertRbtreeRootViewLayout() void {}",
-                    "test \"phase3 layout assertions cover canonical bindings\" {",
+                    'test "phase3 layout assertions cover canonical bindings" {',
                     "    assertRbtreeRootViewLayout();",
                     "}",
                     "",
@@ -933,6 +933,18 @@ def run_self_test() -> int:
         assert "missing_policy_build_snippet:const rbtree_bindings_module = b.createModule(.{" in issues
         assert 'missing_policy_build_snippet:.root_source_file = b.path("../bindings/rbtree.zig"),' in issues
         assert 'missing_policy_build_snippet:layout_assert_module.addImport("rbtree_bindings", rbtree_bindings_module);' in issues
+
+        _write(
+            root,
+            POLICY_UNSAFE_BUILD_REL,
+            "\n".join(
+                snippet
+                for snippet in REQUIRED_POLICY_BUILD_SNIPPETS
+                if snippet != 'root_module.addImport("mmio", mmio_module);'
+            ) + "\n",
+        )
+        issues = validate(root)
+        assert 'missing_policy_build_snippet:root_module.addImport("mmio", mmio_module);' in issues
 
     print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass")
     return 0
