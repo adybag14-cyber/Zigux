@@ -100,7 +100,7 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
     try std.testing.expectEqualStrings("P12-L04", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
     try std.testing.expectEqualStrings("drivers/net/virtio_net.c", manifest.anchor);
-    try std.testing.expectEqualStrings("f5a4d6990f701937b2a3bb9ae723bb6d0f27ba21", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("bc2373f7deedf021c73beaae29555a9ac6b0536d", manifest.surveyed_commit);
     try std.testing.expect(isLowerHexCommit(manifest.surveyed_commit));
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.virtio_net_c_lines >= 7000);
@@ -264,7 +264,9 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "packet budget bytes") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "minimum buffer length") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "headroom") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "required headroom") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "recycled room reuse") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "fresh allocation bytes") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-virtio-net-runtime-data-path")) {
@@ -312,6 +314,7 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig test zigux/tests/phase12_virtio_net_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "first rollback and drift check before broader shared Phase 12 validation") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "build-graph-only compile-smoke proof") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "recycled-room reuse, and fresh-allocation bytes") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, driver_file, "pub const VirtioNetProbeLab = struct") != null);
     try std.testing.expect(std.mem.indexOf(u8, driver_file, "pub fn captureProbeSnapshot") != null);
@@ -320,4 +323,6 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
     try std.testing.expect(std.mem.indexOf(u8, driver_file, "pub fn planQueueResume") != null);
     try std.testing.expect(std.mem.indexOf(u8, driver_file, "pub fn planMergeableReceiveRefill") != null);
     try std.testing.expect(std.mem.indexOf(u8, driver_file, "pub const MergeableReceiveRefillSummary = struct") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_file, "recycled_room_bytes") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_file, "fresh_allocation_bytes") != null);
 }
