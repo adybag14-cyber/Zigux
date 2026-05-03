@@ -34,7 +34,9 @@ REQUIRED_FILES = [
     "zigux/tests/phase12_libbpf_reviewability.zig",
     "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
     "Documentation/zigux/phase12-libbpf-segment-survey.md",
+    "Documentation/zigux/phase12-shared-replay-contract.md",
     "Documentation/zigux/review-checklist.md",
+    "zigux/tests/README.md",
 ]
 EXPECTED_BUILD_TEST_NAMES = [
     "phase12-libbpf-segment-survey-tests",
@@ -103,6 +105,11 @@ SURVEY_NOTE_MARKERS = [
     "python3 scripts/zigux/check-phase12-libbpf-focused-replay.py",
     "zig build test --build-file zigux/tests/phase12_libbpf_only_build.zig --summary all",
 ]
+CONTRACT_NOTE_MARKERS = [
+    "The focused libbpf-only replay checker is intentionally part of that stack before the broader validator runs",
+    "- `python3 scripts/zigux/check-phase12-libbpf-focused-replay.py --self-test`",
+    "- `zig build test --build-file zigux/tests/phase12_libbpf_only_build.zig --summary all`",
+]
 MANIFEST_MARKERS = [
     "check-phase12-libbpf-focused-replay.py --self-test",
     "check-phase12-libbpf-focused-replay.py",
@@ -115,6 +122,9 @@ SCRIPTS_README_MARKERS = [
 ]
 DOCS_ROOT_README_MARKERS = [
     "the active Phase 12 heavy-helper survey packet now also keeps the bounded `tools/lib/bpf/zigux_segments/` helper foundations, the reproducibility snapshot, the focused libbpf-only replay shard rooted in `scripts/zigux/check-phase12-libbpf-focused-replay.py` plus `zigux/tests/phase12_libbpf_only_build.zig`, the still-deferred file-path-and-handle bridge and perf-buffer-online-cpu-routing boundaries, and the blocked object-model, loader, and relocation split visible from the top-level docs index.",
+]
+TESTS_README_MARKERS = [
+    "keep `Documentation/zigux/phase12-shared-replay-contract.md`, `zigux/tests/phase12_build.zig`, `zigux/tests/phase12_libbpf_only_build.zig`, `scripts/zigux/check-phase12-libbpf-focused-replay.py`, `scripts/zigux/validate-phase12.py`, and `zigux/tests/phase12_libbpf_manifest.json` aligned so the tests root names the same shared-versus-focused libbpf replay boundary as the docs-root contract note instead of leaving the dedicated shard implied behind the broader shared build inventory.",
 ]
 REVIEW_CHECKLIST_MARKERS = [
     "if the change touches the focused Phase 12 libbpf-only replay packet, do `python3 scripts/zigux/check-phase12-libbpf-focused-replay.py --self-test`, `scripts/zigux/check-phase12-libbpf-focused-replay.py`, `scripts/zigux/validate-phase12.py`, `zigux/tests/phase12_libbpf_only_build.zig`, `zigux/tests/phase12_libbpf_manifest.json`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` still agree on the same dedicated replay shard, review-note hook, and validator-first rollback path instead of leaving that narrower libbpf gate implied behind the broader packet checks?",
@@ -213,9 +223,11 @@ def collect_missing(
     build_text: str,
     reviewability_text: str,
     survey_note_text: str,
+    contract_note_text: str,
     manifest_text: str,
     scripts_readme_text: str,
     docs_root_readme_text: str,
+    tests_readme_text: str,
     review_checklist_text: str,
     validate_phase12_text: str,
     makefile_text: str,
@@ -225,9 +237,11 @@ def collect_missing(
     missing.extend(collect_build_misses(build_text))
     missing.extend(collect_marker_misses(reviewability_text, REVIEWABILITY_MARKERS, "reviewability"))
     missing.extend(collect_marker_misses(survey_note_text, SURVEY_NOTE_MARKERS, "survey_note"))
+    missing.extend(collect_marker_misses(contract_note_text, CONTRACT_NOTE_MARKERS, "contract_note"))
     missing.extend(collect_marker_misses(manifest_text, MANIFEST_MARKERS, "manifest"))
     missing.extend(collect_marker_misses(scripts_readme_text, SCRIPTS_README_MARKERS, "scripts_readme"))
     missing.extend(collect_marker_misses(docs_root_readme_text, DOCS_ROOT_README_MARKERS, "docs_root_readme"))
+    missing.extend(collect_marker_misses(tests_readme_text, TESTS_README_MARKERS, "tests_readme"))
     missing.extend(collect_marker_misses(review_checklist_text, REVIEW_CHECKLIST_MARKERS, "review_checklist"))
     missing.extend(
         collect_exact_count_misses(
@@ -285,9 +299,11 @@ def build_live_inputs() -> dict[str, object]:
         "build_text": read_text("zigux/tests/phase12_libbpf_only_build.zig"),
         "reviewability_text": read_text("zigux/tests/phase12_libbpf_reviewability.zig"),
         "survey_note_text": read_text("Documentation/zigux/phase12-libbpf-segment-survey.md"),
+        "contract_note_text": read_text("Documentation/zigux/phase12-shared-replay-contract.md"),
         "manifest_text": read_text("zigux/tests/phase12_libbpf_manifest.json"),
         "scripts_readme_text": read_text("scripts/zigux/README.md"),
         "docs_root_readme_text": read_text("Documentation/zigux/README.md"),
+        "tests_readme_text": read_text("zigux/tests/README.md"),
         "review_checklist_text": read_text("Documentation/zigux/review-checklist.md"),
         "validate_phase12_text": read_text("scripts/zigux/validate-phase12.py"),
         "makefile_text": read_text("zigux/Makefile"),
@@ -306,9 +322,11 @@ def run_self_test() -> int:
         "build_text": build_synthetic_build_text(),
         "reviewability_text": "\n".join(REVIEWABILITY_MARKERS) + "\n",
         "survey_note_text": "\n".join(SURVEY_NOTE_MARKERS) + "\n",
+        "contract_note_text": "\n".join(CONTRACT_NOTE_MARKERS) + "\n",
         "manifest_text": "\n".join(MANIFEST_MARKERS) + "\n",
         "scripts_readme_text": "\n".join(SCRIPTS_README_MARKERS) + "\n",
         "docs_root_readme_text": "\n".join(DOCS_ROOT_README_MARKERS) + "\n",
+        "tests_readme_text": "\n".join(TESTS_README_MARKERS) + "\n",
         "review_checklist_text": "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n",
         "validate_phase12_text": "\n".join(
             [
@@ -356,6 +374,34 @@ def run_self_test() -> int:
         "perf_buffer_poll_file_detection",
         missing,
         "missing_file:tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "present_files": {
+                path
+                for path in REQUIRED_FILES
+                if path != "Documentation/zigux/phase12-shared-replay-contract.md"
+            },
+        }
+    )
+    expect_contains(
+        "contract_note_file_detection",
+        missing,
+        "missing_file:Documentation/zigux/phase12-shared-replay-contract.md",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "present_files": {path for path in REQUIRED_FILES if path != "zigux/tests/README.md"},
+        }
+    )
+    expect_contains(
+        "tests_readme_file_detection",
+        missing,
+        "missing_file:zigux/tests/README.md",
     )
 
     missing = collect_missing(
@@ -485,6 +531,22 @@ def run_self_test() -> int:
     missing = collect_missing(
         **{
             **base_inputs,
+            "contract_note_text": base_inputs["contract_note_text"].replace(
+                CONTRACT_NOTE_MARKERS[0] + "\n",
+                "",
+                1,
+            ),
+        }
+    )
+    expect_contains(
+        "contract_note_marker_detection",
+        missing,
+        f"contract_note:{CONTRACT_NOTE_MARKERS[0]}",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
             "manifest_text": base_inputs["manifest_text"].replace(
                 "phase12_libbpf_only_build.zig\n",
                 "",
@@ -524,6 +586,22 @@ def run_self_test() -> int:
         "docs_root_readme_marker_detection",
         missing,
         f"docs_root_readme:{DOCS_ROOT_README_MARKERS[0]}",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "tests_readme_text": base_inputs["tests_readme_text"].replace(
+                TESTS_README_MARKERS[0] + "\n",
+                "",
+                1,
+            ),
+        }
+    )
+    expect_contains(
+        "tests_readme_marker_detection",
+        missing,
+        f"tests_readme:{TESTS_README_MARKERS[0]}",
     )
 
     missing = collect_missing(
@@ -699,7 +777,7 @@ def run_self_test() -> int:
     )
 
     print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST=pass")
-    print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST_CASE_COUNT=26")
+    print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST_CASE_COUNT=30")
     return 0
 
 
