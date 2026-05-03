@@ -133,6 +133,19 @@ test "phase3 low-level wrappers stay inside the documented ABI surface" {
     try mmio.write32Policy(mmio_policy, base, 8, 0xdecafbad);
     try std.testing.expectEqual(@as(u32, 0xdecafbad), regs[2]);
     try std.testing.expectEqual(@as(u32, 0xdecafbad), try mmio.read32Policy(mmio_policy, base, 8));
+    try mmio.write64Policy(mmio_policy, base64, @sizeOf(u64), 0x1111_2222_3333_4444);
+    try std.testing.expectEqual(@as(u64, 0x1111_2222_3333_4444), regs64[1]);
+    try std.testing.expectEqual(@as(u64, 0x1111_2222_3333_4444), try mmio.read64Policy(mmio_policy, base64, @sizeOf(u64)));
+    try mmio.writeScopedWithPolicy(u8, mmio_policy, base, 1, 0x3c);
+    try std.testing.expectEqual(@as(u8, 0x3c), try mmio.readScopedWithPolicy(u8, mmio_policy, base, 1));
+    try mmio.writeScopedWithPolicy(u16, mmio_policy, base, 0, 0x6bcd);
+    try std.testing.expectEqual(@as(u16, 0x6bcd), try mmio.readScopedWithPolicy(u16, mmio_policy, base, 0));
+    try mmio.writeScopedWithPolicy(u32, mmio_policy, base, 4, 0xcafe_babe);
+    try std.testing.expectEqual(@as(u32, 0xcafe_babe), regs[1]);
+    try std.testing.expectEqual(@as(u32, 0xcafe_babe), try mmio.readScopedWithPolicy(u32, mmio_policy, base, 4));
+    try mmio.writeScopedWithPolicy(u64, mmio_policy, base64, 0, 0x5555_6666_7777_8888);
+    try std.testing.expectEqual(@as(u64, 0x5555_6666_7777_8888), regs64[0]);
+    try std.testing.expectEqual(@as(u64, 0x5555_6666_7777_8888), try mmio.readScopedWithPolicy(u64, mmio_policy, base64, 0));
     try std.testing.expectError(error.UnsafeScopeDenied, mmio.write8Policy(raw_pointer_policy, base, 0, 1));
     try std.testing.expectError(error.UnsafeScopeDenied, mmio.read8Policy(raw_pointer_policy, base, 0));
     try std.testing.expectError(error.UnsafeScopeDenied, mmio.write8Policy(none_policy, base, 0, 1));
@@ -145,13 +158,18 @@ test "phase3 low-level wrappers stay inside the documented ABI surface" {
     try std.testing.expectError(error.UnsafeScopeDenied, mmio.read32Policy(raw_pointer_policy, base, 0));
     try std.testing.expectError(error.UnsafeScopeDenied, mmio.write32Policy(none_policy, base, 0, 1));
     try std.testing.expectError(error.UnsafeScopeDenied, mmio.read32Policy(none_policy, base, 0));
-    try mmio.write64Policy(mmio_policy, base64, @sizeOf(u64), 0x1111_2222_3333_4444);
-    try std.testing.expectEqual(@as(u64, 0x1111_2222_3333_4444), regs64[1]);
-    try std.testing.expectEqual(@as(u64, 0x1111_2222_3333_4444), try mmio.read64Policy(mmio_policy, base64, @sizeOf(u64)));
     try std.testing.expectError(error.UnsafeScopeDenied, mmio.write64Policy(raw_pointer_policy, base64, 0, 1));
     try std.testing.expectError(error.UnsafeScopeDenied, mmio.read64Policy(raw_pointer_policy, base64, 0));
     try std.testing.expectError(error.UnsafeScopeDenied, mmio.write64Policy(none_policy, base64, 0, 1));
     try std.testing.expectError(error.UnsafeScopeDenied, mmio.read64Policy(none_policy, base64, 0));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.writeScopedWithPolicy(u8, raw_pointer_policy, base, 0, 1));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.readScopedWithPolicy(u8, raw_pointer_policy, base, 0));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.writeScopedWithPolicy(u16, none_policy, base, 0, 1));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.readScopedWithPolicy(u16, none_policy, base, 0));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.writeScopedWithPolicy(u32, raw_pointer_policy, base, 0, 1));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.readScopedWithPolicy(u32, raw_pointer_policy, base, 0));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.writeScopedWithPolicy(u64, none_policy, base64, 0, 1));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.readScopedWithPolicy(u64, none_policy, base64, 0));
 }
 
 test "phase3 low-level wrapper ABI range shape stays stable" {
