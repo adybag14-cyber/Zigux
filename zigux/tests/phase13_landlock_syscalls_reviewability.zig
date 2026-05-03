@@ -35,6 +35,18 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
+fn expectGap(manifest: Manifest, id: []const u8, status: []const u8, destination: []const u8) !void {
+    for (manifest.gaps) |gap| {
+        if (!std.mem.eql(u8, gap.id, id)) continue;
+
+        try std.testing.expectEqualStrings(status, gap.status);
+        try std.testing.expectEqualStrings(destination, gap.zigux_destination);
+        return;
+    }
+
+    return error.MissingManifestGap;
+}
+
 test "phase13 landlock syscalls reviewability ties helper, survey, manifest, and build wiring together" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -61,6 +73,7 @@ test "phase13 landlock syscalls reviewability ties helper, survey, manifest, and
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_reviewability_present);
     try std.testing.expectEqual(@as(usize, 17), manifest.gaps.len);
+    try expectGap(manifest, "phase13-landlock-ruleset-fops-followup", "starter_landed", "security/landlock/syscalls.zig");
 
     const descriptor = syscalls.SyscallsHelperLab.descriptor();
     try std.testing.expectEqualStrings("landlock_syscalls_helper_lab", descriptor.name);
