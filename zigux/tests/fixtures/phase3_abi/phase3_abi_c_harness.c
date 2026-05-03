@@ -189,7 +189,9 @@ int main(void)
     fprintf(stdout, "%lu", 0x1800UL);
     fputs(",\"flags\":", stdout);
     fprintf(stdout, "%u", ZIGUX_RBTREE_ROOT_FLAG_CACHED | ZIGUX_RBTREE_ROOT_FLAG_LEFTMOST_VALID);
-    fputs(",\"reserved\":0}},\"structs\":{", stdout);
+    fputs(",\"reserved\":0},\"rbtree_uncached_root\":{\"root_addr\":", stdout);
+    fprintf(stdout, "%lu", 0x2400UL);
+    fputs(",\"leftmost_addr\":0,\"flags\":0,\"reserved\":0}},\"structs\":{", stdout);
     for (size_t i = 0; i < ARRAY_SIZE(layouts); ++i)
         emit_layout(stdout, &layouts[i], i + 1 < ARRAY_SIZE(layouts));
     fputs("}}\n", stdout);
