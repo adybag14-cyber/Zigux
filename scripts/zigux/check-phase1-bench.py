@@ -10,6 +10,7 @@ import subprocess
 
 ROOT = Path(__file__).resolve().parents[2]
 EXPECTATIONS = ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_bench_expectations.json'
+BENCH_BUILD_FILE = 'zigux/tests/build.zig'
 
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
@@ -497,7 +498,7 @@ def main() -> int:
     validate_expectations_shape(expectations)
 
     result = run(
-        [zig, 'build', 'bench', '--build-file', 'zigux/tests/phase1_bench_build.zig', '-Doptimize=ReleaseSafe'],
+        [zig, 'build', 'bench', '--build-file', BENCH_BUILD_FILE, '-Doptimize=ReleaseSafe'],
         cwd=str(ROOT),
         capture_output=True,
     )
@@ -574,6 +575,7 @@ def main() -> int:
     print('PHASE1_BENCH_CHECK=pass')
     print(f'PHASE1_BENCH_EXPECTATIONS={EXPECTATIONS}')
     print(f'PHASE1_BENCH_ZIG={zig}')
+    print(f'PHASE1_BENCH_BUILD_FILE={BENCH_BUILD_FILE}')
     return 0
 
 
