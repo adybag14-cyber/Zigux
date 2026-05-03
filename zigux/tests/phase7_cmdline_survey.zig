@@ -320,4 +320,5 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
 
     try expectContains(phase7_build, "phase7_cmdline_survey.zig");
     try expectContains(phase7_build, "phase7-cmdline-survey-tests");
+    try expectContains(phase7_build, "cmdline_survey_root_module,\n        repo_root,");
 }
