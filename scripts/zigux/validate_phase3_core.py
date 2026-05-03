@@ -688,6 +688,7 @@ def build_smoke_commands(entry: Phase3Slice) -> tuple[tuple[str, str], ...]:
             ("phase3-test", BUILD_FILE_REL),
             ("phase3-low-level-wrappers-test", ABI_LOW_LEVEL_BUILD_FILE_REL),
             ("phase3-export-uapi-test", ABI_EXPORT_UAPI_BUILD_FILE_REL),
+            ("phase3-export-uapi-layout-test", ABI_EXPORT_UAPI_LAYOUT_BUILD_FILE_REL),
             ("phase3-policy-unsafe-test", ABI_POLICY_UNSAFE_BUILD_FILE_REL),
         )
     return ((entry.build_step, BUILD_FILE_REL),)
