@@ -39,6 +39,16 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_stay_in_c_evidence");
 }
 
+fn isLowerHex40(value: []const u8) bool {
+    if (value.len != 40) return false;
+    for (value) |byte| {
+        const is_digit = byte >= '0' and byte <= '9';
+        const is_lower_hex = byte >= 'a' and byte <= 'f';
+        if (!is_digit and !is_lower_hex) return false;
+    }
+    return true;
+}
+
 fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
@@ -88,7 +98,7 @@ test "phase 15 indefinite-C policy manifest records current policy, exception, a
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P15-L16", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("6689715b1930c419e49a44b1c2dd317548a08c1d", manifest.surveyed_commit);
+    try std.testing.expect(isLowerHex40(manifest.surveyed_commit));
     try std.testing.expectEqualStrings("policy for code that remains in C indefinitely", manifest.roadmap_requirement);
     try std.testing.expectEqual(@as(usize, 4), manifest.anchors.len);
     try std.testing.expectEqual(@as(usize, 8), manifest.supporting_artifacts.len);
@@ -268,6 +278,19 @@ test "phase 15 indefinite-C policy note preserves stay-in-C boundary language" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
+    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase15_indefinite_c_policy.json",
+        std.testing.allocator,
+        .limited(24 * 1024),
+    );
+    defer std.testing.allocator.free(manifest_json);
+
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    defer parsed.deinit();
+
+    const manifest = parsed.value;
+
     const policy_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/phase15-indefinite-c-policy.md",
@@ -364,6 +387,15 @@ test "phase 15 indefinite-C policy note preserves stay-in-C boundary language" {
     );
     defer std.testing.allocator.free(net_core_skbuff_archive);
 
+    const expected_provenance = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "survey provenance refreshed against verified `master` head `{s}`",
+        .{manifest.surveyed_commit},
+    );
+    defer std.testing.allocator.free(expected_provenance);
+
+    try expectContains(policy_note, expected_provenance);
+    try expectContains(policy_note, "PHASE15_LANE_KEY=P15-L16");
     try expectContains(policy_note, "## When the indefinite-C policy applies");
     try expectContains(policy_note, "## Required recorded fields");
     try expectContains(policy_note, "## Allowed work after an indefinite-C outcome");
@@ -378,7 +410,6 @@ test "phase 15 indefinite-C policy note preserves stay-in-C boundary language" {
     try expectContains(policy_note, "landed `phase15-indefinite-c-maintenance-handoff`");
     try expectContains(policy_note, "landed `phase15-indefinite-c-automatic-return-to-blocked-gate`");
     try expectContains(policy_note, "landed `phase15-indefinite-c-reopen-trigger-catalog`");
-    try expectContains(policy_note, "PHASE15_LANE_KEY=P15-L16");
     try expectContains(policy_note, "Documentation/zigux/phase15-evidence-archives/");
     try expectContains(policy_note, "retired_from_active_discussion");
     try expectContains(policy_note, "no silent exception path");
