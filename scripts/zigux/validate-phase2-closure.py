@@ -15,6 +15,7 @@ CHECK_KCONFIG_BRIDGE = ROOT / 'scripts' / 'zigux' / 'check-kconfig-bridge.py'
 CHECK_FIXDEP = ROOT / 'scripts' / 'zigux' / 'check-fixdep-diff.py'
 CHECK_ARTIFACT_DIFF_CONTRACT = ROOT / 'scripts' / 'zigux' / 'check-artifact-diff-contract.py'
 CHECK_PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT = ROOT / 'scripts' / 'zigux' / 'check-phase2-genksyms-bridge-selftest-alignment.py'
+CHECK_PHASE2_KCONFIG_SELFTEST_ALIGNMENT = ROOT / 'scripts' / 'zigux' / 'check-phase2-kconfig-selftest-alignment.py'
 CHECK_PHASE2_CROSS_SELFTEST_ALIGNMENT = ROOT / 'scripts' / 'zigux' / 'check-phase2-cross-selftest-alignment.py'
 CHECK_PHASE2_TOOLCHAIN_PIN_SCOPE = ROOT / 'scripts' / 'zigux' / 'check-phase2-toolchain-pin-scope.py'
 TOOLCHAIN_POLICY = ROOT / 'scripts' / 'zigux' / 'zig-toolchain-policy.json'
@@ -44,6 +45,8 @@ EXACT_WORKFLOW_RUN_COUNTS = {
     'python3 scripts/zigux/check-genksyms-crc-diff.py': 1,
     'python3 scripts/zigux/check-kconfig-bridge.py --self-test': 1,
     'python3 scripts/zigux/check-kconfig-bridge.py': 1,
+    'python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test': 1,
+    'python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py': 1,
     'python3 scripts/zigux/check-phase2-cross.py --self-test': 2,
     'python3 scripts/zigux/check-phase2-cross.py --target ${{ matrix.zig_target }}': 1,
     'python3 scripts/zigux/check-zig-toolchain.py': 2,
@@ -56,6 +59,8 @@ EXACT_WORKFLOW_RUN_COUNTS = {
 EXACT_MAKEFILE_RUN_COUNTS = {
     'scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test': 1,
     'scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py': 1,
+    'scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test': 1,
+    'scripts/zigux/check-phase2-kconfig-selftest-alignment.py': 1,
     'scripts/zigux/validate-phase2.py': 1,
     'scripts/zigux/validate-phase2-closure.py': 1,
 }
@@ -602,6 +607,7 @@ required_files = [
     ROOT / 'scripts' / 'zigux' / 'check-fixdep-diff.py',
     ROOT / 'scripts' / 'zigux' / 'check-genksyms-bridge.py',
     ROOT / 'scripts' / 'zigux' / 'check-phase2-genksyms-bridge-selftest-alignment.py',
+    CHECK_PHASE2_KCONFIG_SELFTEST_ALIGNMENT,
     CHECK_PHASE2_CROSS_SELFTEST_ALIGNMENT,
     CHECK_PHASE2_TOOLCHAIN_PIN_SCOPE,
     TOOLCHAIN_POLICY,
@@ -753,6 +759,8 @@ required_workflow_markers = [
     'python3 scripts/zigux/check-genksyms-crc-diff.py',
     'python3 scripts/zigux/check-kconfig-bridge.py --self-test',
     'python3 scripts/zigux/check-kconfig-bridge.py',
+    'python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test',
+    'python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py',
     'python3 scripts/zigux/check-phase2-cross.py --self-test',
     'python3 scripts/zigux/check-phase2-cross.py --target',
     'python3 scripts/zigux/check-mk-elfconfig-diff.py',
@@ -815,6 +823,8 @@ required_makefile_markers = [
     'check-genksyms-bridge.py',
     'check-phase2-genksyms-bridge-selftest-alignment.py --self-test',
     'check-phase2-genksyms-bridge-selftest-alignment.py',
+    'check-phase2-kconfig-selftest-alignment.py --self-test',
+    'check-phase2-kconfig-selftest-alignment.py',
     'check-genksyms-crc-diff.py',
     'check-kconfig-bridge.py',
     'check-mk-elfconfig-diff.py',
