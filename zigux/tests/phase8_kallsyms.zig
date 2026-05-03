@@ -529,6 +529,23 @@ test "phase 8 kallsyms review checklist keeps the parked parser packet reviewabl
     try expectContains(review_checklist, "`api/io.h`");
 }
 
+test "phase 8 kallsyms shared help-plus-symbol shard stays reviewable" {
+    const shared_build = try readWorkspaceFile(
+        std.testing.allocator,
+        "zigux/tests/phase8_help_kallsyms_only_build.zig",
+        16 * 1024,
+    );
+    defer std.testing.allocator.free(shared_build);
+
+    try expectContains(shared_build, "../../tools/lib/subcmd/help.zig");
+    try expectContains(shared_build, "../../tools/lib/symbol/kallsyms.zig");
+    try expectContains(shared_build, "phase8_help.zig");
+    try expectContains(shared_build, "phase8_kallsyms.zig");
+    try expectContains(shared_build, "phase8-help-tests");
+    try expectContains(shared_build, "phase8-kallsyms-tests");
+    try expectContains(shared_build, "Run focused Phase 8 help and kallsyms tests");
+}
+
 test "phase 8 kallsyms evidence still matches the live C helper anchors" {
     const kallsyms_c = try readWorkspaceFile(
         std.testing.allocator,
