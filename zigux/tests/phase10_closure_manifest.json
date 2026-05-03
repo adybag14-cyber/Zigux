@@ -106,7 +106,7 @@
   "survey_provenance": {
     "source": "manifest_derived",
     "lane_keys": {
-      "core": "P10-L03",
+      "core": "P10-Y01",
       "ring": "P10-L08",
       "input": "P10-L13",
       "mmio": "P10-L18"
