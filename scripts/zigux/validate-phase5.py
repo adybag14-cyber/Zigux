@@ -262,6 +262,7 @@ MANIFEST_EXPECTATIONS = {
             "registration-step",
             "static-name-no-uevent-boundary",
             "pre-registration-boundary",
+            "replay-readiness-boundary",
             "ownership-summary",
             "initialized-exit-teardown",
             "foo-roundtrip",
@@ -477,6 +478,18 @@ def run_self_test() -> int:
         if missing["ok"] or "zigux/tests/phase5_kobject_example_manifest.json:exact_ids" not in missing["missing"]:
             print("PHASE5_VALIDATOR_SELF_TEST=fail")
             print("PHASE5_VALIDATOR_SELF_TEST_REASON=kobject-exact-check-gap")
+            return 1
+
+        tmp_root = Path(tmp)
+        copy_tree(ROOT, tmp_root)
+        manifest_path = tmp_root / "zigux/tests/phase5_kobject_example_manifest.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["exact_checks"][6]["id"] = "replay-readiness-boundary-drift"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        missing = validate_phase5(tmp_root)
+        if missing["ok"] or "zigux/tests/phase5_kobject_example_manifest.json:exact_ids" not in missing["missing"]:
+            print("PHASE5_VALIDATOR_SELF_TEST=fail")
+            print("PHASE5_VALIDATOR_SELF_TEST_REASON=kobject-replay-readiness-gap")
             return 1
 
         tmp_root = Path(tmp)
@@ -789,7 +802,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE5_VALIDATOR_SELF_TEST=pass")
-    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=23")
+    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=24")
     return 0
 
 
