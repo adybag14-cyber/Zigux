@@ -241,5 +241,23 @@
       "test": "phase11-hvc-console-poll-retry-split-tests",
       "path": "zigux/tests/phase11_hvc_console_poll_retry_split.zig"
     }
+  ],
+  "shared_replay_markers": [
+    {
+      "path": "zigux/tests/phase11_dw_wdt_suspend_resume.zig",
+      "marker": "    try std.testing.expect(summary.resume_preserves_timeout_programming);"
+    },
+    {
+      "path": "zigux/tests/phase11_dw_wdt_remove_idle_split.zig",
+      "marker": "    try std.testing.expect(reset_available_summary.remove_clears_interrupt_status);"
+    },
+    {
+      "path": "zigux/tests/phase11_hvc_console_modem_control_split.zig",
+      "marker": "    try std.testing.expectEqual(@as(c_int, -7), summary.tiocmset_result);"
+    },
+    {
+      "path": "zigux/tests/phase11_hvc_console_poll_retry_split.zig",
+      "marker": "    try std.testing.expect(dispatch.invokes_sysrq_handler);"
+    }
   ]
 }
