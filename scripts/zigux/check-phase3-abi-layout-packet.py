@@ -7,6 +7,8 @@ import re
 import tempfile
 from pathlib import Path
 
+from validate_phase3_core import PHASE3_SHARED_RBTREE_RECORD_MARKERS
+
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -22,14 +24,14 @@ CANONICAL_LAYOUTS = (
     ("zigux_mmio_range", "MmioRange", "assertMmioRangeLayout", "abi"),
     ("zigux_interop_policy", "InteropPolicy", "assertInteropPolicyLayout", "abi"),
     ("zigux_bitmap_view", "BitmapView", "assertBitmapViewLayout", "abi"),
-    ("zigux_cpumask_view", "CpuMaskView", "assertCpuMaskViewLayout", "abi"),
+    ("zigux_cpumask_view", "CpuMaskView", "assertCpumaskViewLayout", "abi"),
     ("zigux_list_head_ref", "ListHeadRef", "assertListHeadRefLayout", "abi"),
     ("zigux_list_view", "ListView", "assertListViewLayout", "abi"),
     ("zigux_list_summary", "ListSummary", "assertListSummaryLayout", "abi"),
-    ("zigux_hlist_head_ref", "HListHeadRef", "assertHListHeadRefLayout", "abi"),
-    ("zigux_hlist_node_ref", "HListNodeRef", "assertHListNodeRefLayout", "abi"),
-    ("zigux_hlist_view", "HListView", "assertHListViewLayout", "abi"),
-    ("zigux_hlist_summary", "HListSummary", "assertHListSummaryLayout", "abi"),
+    ("zigux_hlist_head_ref", "HListHeadRef", "assertHlistHeadRefLayout", "abi"),
+    ("zigux_hlist_node_ref", "HListNodeRef", "assertHlistNodeRefLayout", "abi"),
+    ("zigux_hlist_view", "HListView", "assertHlistViewLayout", "abi"),
+    ("zigux_hlist_summary", "HListSummary", "assertHlistSummaryLayout", "abi"),
     ("zigux_rbtree_root_view", "RootView", "assertRbtreeRootViewLayout", "rbtree"),
 )
 
@@ -64,9 +66,13 @@ SELF_TEST_EXTRA_CONSTANT_KEYS = (
 )
 
 SHARED_RBTREE_SAMPLE_MARKER = "PHASE3_SHARED_RBTREE_SAMPLE_RECORDS=empty-root,cached-leftmost-root,uncached-root"
+SHARED_RBTREE_PHASE3_MARKERS = {
+    "rbtree_empty_root": PHASE3_SHARED_RBTREE_RECORD_MARKERS[:2],
+    "rbtree_cached_leftmost_root": PHASE3_SHARED_RBTREE_RECORD_MARKERS[2:4],
+    "rbtree_uncached_root": PHASE3_SHARED_RBTREE_RECORD_MARKERS[4:6],
+}
 SHARED_RBTREE_SAMPLE_RECORDS = {
     "rbtree_empty_root": {
-        "phase3_snippet": "const empty_root = rbtree.empty();",
         "phase3_value_snippet": "try std.testing.expectEqual(@as(u32, rbtree.ROOT_FLAG_EMPTY), empty_root.flags);",
         "dump_snippet": '"rbtree_empty_root"',
         "dump_value_snippet": 'try writer.print("{d}", .{rbtree.ROOT_FLAG_EMPTY});\n    try writer.writeAll(",\\\"reserved\\\":0},\\\"rbtree_cached_leftmost_root\\\":{\\\"root_addr\\\":");',
@@ -80,14 +86,12 @@ SHARED_RBTREE_SAMPLE_RECORDS = {
         },
     },
     "rbtree_cached_leftmost_root": {
-        "phase3_snippet": "const cached_root: rbtree.RootView = .{",
         "phase3_value_snippet": "try std.testing.expectEqual(@as(usize, 0x1800), cached_root.leftmost_addr);",
         "phase3_presence_snippets": (
             "try std.testing.expect(rbtree.isValid(cached_root));",
             "try std.testing.expect(!rbtree.isEmpty(cached_root));",
             "try std.testing.expect(rbtree.isCached(cached_root));",
             "try std.testing.expect(rbtree.hasLeftmost(cached_root));",
-            "try std.testing.expect(rbtree.hasRoot(cached_root));",
             "try std.testing.expect(rbtree.isCanonical(cached_root));",
         ),
         "dump_snippet": '"rbtree_cached_leftmost_root"',
@@ -100,14 +104,12 @@ SHARED_RBTREE_SAMPLE_RECORDS = {
         },
     },
     "rbtree_uncached_root": {
-        "phase3_snippet": "const uncached_root: rbtree.RootView = .{",
         "phase3_value_snippet": "try std.testing.expectEqual(@as(usize, 0x2400), uncached_root.root_addr);",
         "phase3_presence_snippets": (
             "try std.testing.expect(rbtree.isValid(uncached_root));",
             "try std.testing.expect(!rbtree.isEmpty(uncached_root));",
             "try std.testing.expect(!rbtree.isCached(uncached_root));",
             "try std.testing.expect(!rbtree.hasLeftmost(uncached_root));",
-            "try std.testing.expect(rbtree.hasRoot(uncached_root));",
             "try std.testing.expect(rbtree.isCanonical(uncached_root));",
         ),
         "dump_snippet": '"rbtree_uncached_root"',
@@ -302,13 +304,16 @@ def validate(root: Path) -> list[str]:
             issues.append(f"unexpected_expected_record:{record_name}")
 
         if phase3_abi_text:
-            if record_contract["phase3_snippet"] not in phase3_abi_text:
+            phase3_markers = SHARED_RBTREE_PHASE3_MARKERS[record_name]
+            if phase3_markers[0] not in phase3_abi_text:
                 issues.append(f"missing_phase3_abi_record:{record_name}")
             if record_contract["phase3_value_snippet"] not in phase3_abi_text:
                 issues.append(f"missing_phase3_abi_record_value:{record_name}")
             for snippet in record_contract.get("phase3_presence_snippets", ()):
                 if snippet not in phase3_abi_text:
                     issues.append(f"missing_phase3_abi_record_presence:{record_name}:{snippet}")
+            if phase3_markers[1] not in phase3_abi_text:
+                issues.append(f"missing_phase3_abi_record_presence:{record_name}:{phase3_markers[1]}")
 
         if phase3_abi_dump_text and record_contract["dump_snippet"] not in phase3_abi_dump_text:
             issues.append(f"missing_phase3_abi_dump_record:{record_name}")
@@ -436,8 +441,7 @@ def run_self_test() -> int:
                     DUMP_CONSTANT_PACKET_END,
                     'try writer.print("{d}", .{0});',
                     'try writer.writeAll(",\\\"leftmost_addr\\\":0,\\\"flags\\\":");',
-                    'try writer.print("{d}", .{rbtree.ROOT_FLAG_EMPTY});',
-                    'try writer.writeAll(",\\\"reserved\\\":0},\\\"rbtree_cached_leftmost_root\\\":{\\\"root_addr\\\":");',
+                    SHARED_RBTREE_SAMPLE_RECORDS["rbtree_empty_root"]["dump_value_snippet"],
                 ]
                 + [*(f'writeStructLayout(writer, "{json_name}", {module_name}.{zig_name}, true);' for json_name, zig_name, _, module_name in CANONICAL_LAYOUTS[:-1])]
                 + [f'writeStructLayout(writer, "{CANONICAL_LAYOUTS[-1][0]}", {CANONICAL_LAYOUTS[-1][3]}.{CANONICAL_LAYOUTS[-1][1]}, false);']
@@ -468,8 +472,7 @@ def run_self_test() -> int:
                     HARNESS_CONSTANT_PACKET_END,
                     'fprintf(stdout, "%lu", 0UL);',
                     'fputs(",\\\"leftmost_addr\\\":0,\\\"flags\\\":", stdout);',
-                    'fprintf(stdout, "%u", ZIGUX_RBTREE_ROOT_FLAG_EMPTY);',
-                    'fputs(",\\\"reserved\\\":0},\\\"rbtree_cached_leftmost_root\\\":{\\\"root_addr\\\":", stdout);',
+                    SHARED_RBTREE_SAMPLE_RECORDS["rbtree_empty_root"]["harness_value_snippet"],
                 ]
                 + [*(f'{{"{json_name}", sizeof(struct {json_name}), _Alignof(struct {json_name}), 0, 0}},' for json_name, _, _, _ in CANONICAL_LAYOUTS)]
                 + [*(c_name for _, _, _, c_name in REQUIRED_CONSTANTS)]
