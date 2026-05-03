@@ -137,17 +137,6 @@
       "why_now": "The remaining cpu-mask-adjacent perf-buffer path is the smallest libbpf surface that still crosses live /sys cpu-mask file reads, cached possible-cpu counts, online CPU filtering, perf-event-array map updates, epoll registration, timeout-driven perf-buffer polling, and the interrupt-routing contract for perf-buffer delivery, so roadmap discipline says keep it explicit as a deferred boundary instead of quietly treating the landed parser helper and bounded wait-result bookkeeping helper as broader routing or timing parity."
     },
     {
-      "id": "P8-L15-S12",
-      "slug": "perf-buffer-poll-helper",
-      "status": "starter_landed",
-      "kind": "helper_first",
-      "anchor_ranges": [
-        "tools/lib/bpf/libbpf.c:14111-14428"
-      ],
-      "zigux_destination": "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
-      "why_now": "The bounded perf_buffer__poll() wait-result and ready-buffer bookkeeping helper can land as a pure utility slice that keeps timeout classes, ready-buffer accounting, and fail-fast process-record ordering reviewable without claiming epoll registration, online CPU routing, callback delivery, or timer ownership parity."
-    },
-    {
       "id": "P8-L15-S05",
       "slug": "skeleton-population",
       "status": "blocked_on_object_model",
