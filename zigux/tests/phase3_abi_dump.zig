@@ -25,7 +25,7 @@ fn writeStructLayout(writer: anytype, comptime name: []const u8, comptime T: typ
 
 pub fn main(init: std.process.Init) !void {
     const io = init.io;
-    var stdout_buffer: [1024]u8 = undefined;
+    var stdout_buffer: [4096]u8 = undefined;
     var stdout_writer = Io.File.stdout().writer(io, &stdout_buffer);
     const writer = &stdout_writer.interface;
 
@@ -57,6 +57,22 @@ pub fn main(init: std.process.Init) !void {
     try writer.print("{d}", .{@intFromEnum(abi.UnsafeScope.volatile_mmio)});
     try writer.writeAll(",\"unsafe_scope_raw_pointer_bridge\":");
     try writer.print("{d}", .{@intFromEnum(abi.UnsafeScope.raw_pointer_bridge)});
+    try writer.writeAll(",\"list_flag_empty\":");
+    try writer.print("{d}", .{abi.LIST_FLAG_EMPTY});
+    try writer.writeAll(",\"list_flag_singular\":");
+    try writer.print("{d}", .{abi.LIST_FLAG_SINGULAR});
+    try writer.writeAll(",\"list_flag_circular\":");
+    try writer.print("{d}", .{abi.LIST_FLAG_CIRCULAR});
+    try writer.writeAll(",\"list_flag_truncated\":");
+    try writer.print("{d}", .{abi.LIST_FLAG_TRUNCATED});
+    try writer.writeAll(",\"hlist_flag_empty\":");
+    try writer.print("{d}", .{abi.HLIST_FLAG_EMPTY});
+    try writer.writeAll(",\"hlist_flag_singular\":");
+    try writer.print("{d}", .{abi.HLIST_FLAG_SINGULAR});
+    try writer.writeAll(",\"hlist_flag_terminated\":");
+    try writer.print("{d}", .{abi.HLIST_FLAG_TERMINATED});
+    try writer.writeAll(",\"hlist_flag_truncated\":");
+    try writer.print("{d}", .{abi.HLIST_FLAG_TRUNCATED});
     try writer.writeAll(",\"root_flag_empty\":");
     try writer.print("{d}", .{rbtree.ROOT_FLAG_EMPTY});
     try writer.writeAll(",\"root_flag_cached\":");
@@ -82,6 +98,13 @@ pub fn main(init: std.process.Init) !void {
     try writeStructLayout(writer, "zigux_interop_policy", abi.InteropPolicy, true);
     try writeStructLayout(writer, "zigux_bitmap_view", abi.BitmapView, true);
     try writeStructLayout(writer, "zigux_cpumask_view", abi.CpuMaskView, true);
+    try writeStructLayout(writer, "zigux_list_head_ref", abi.ListHeadRef, true);
+    try writeStructLayout(writer, "zigux_list_view", abi.ListView, true);
+    try writeStructLayout(writer, "zigux_list_summary", abi.ListSummary, true);
+    try writeStructLayout(writer, "zigux_hlist_head_ref", abi.HListHeadRef, true);
+    try writeStructLayout(writer, "zigux_hlist_node_ref", abi.HListNodeRef, true);
+    try writeStructLayout(writer, "zigux_hlist_view", abi.HListView, true);
+    try writeStructLayout(writer, "zigux_hlist_summary", abi.HListSummary, true);
     try writeStructLayout(writer, "zigux_rbtree_root_view", rbtree.RootView, false);
     try writer.writeAll("}}\n");
     try writer.flush();
