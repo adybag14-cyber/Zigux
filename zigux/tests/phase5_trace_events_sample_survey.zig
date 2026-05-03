@@ -332,6 +332,7 @@ test "phase 5 trace-events contributor docs stay aligned with the shipped review
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "sample-backed survey note") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Documentation/zigux/README.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Documentation/zigux/review-checklist.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase5_trace_events_sample.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_trace_events_sample_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_trace_events_sample_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_build.zig") != null);
@@ -384,6 +385,7 @@ test "phase 5 trace-events contributor docs stay aligned with the shipped review
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`checked_focus`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`payload_shape`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`ownership_and_lifetime`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "The exact checks currently recorded in `zigux/tests/phase5_trace_events_sample_manifest.json`, exercised directly through `zigux/tests/phase5_trace_events_sample.zig`, and exercised through `zigux/tests/phase5_build.zig` are:") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Latest verification snapshot") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig test samples/zigux/trace_events_sample.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig test zigux/tests/phase5_trace_events_sample_survey.zig") != null);
