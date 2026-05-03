@@ -67,7 +67,11 @@ CORE_SURVEY_TEST_MARKERS = [
     'if (std.mem.eql(u8, gap.id, "phase10-core-probe-remove-lifecycle")) {',
 ]
 
-EXPECTED_ROADMAP_DESTINATIONS = ["drivers/virtio/*.zig", "zigux/helpers/"]
+EXPECTED_ROADMAP_DESTINATIONS = [
+    "drivers/virtio/*.zig",
+    "zigux/kernel/",
+    "zigux/helpers/",
+]
 EXPECTED_LANDED_CORE_HELPERS = [
     "phase10-config-generation-summary-helper",
     "phase10-config-delivery-disposition-helper",
