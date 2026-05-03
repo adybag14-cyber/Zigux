@@ -18,11 +18,15 @@ DOCS_ROOT_LINES = [
 ]
 
 SURVEY_LINES = [
-    "PHASE14_SHARED_LANE=P14-L01",
-    "PHASE14_VALIDATE_ENTRYPOINT=make -C zigux phase14-validate",
-    "make -C zigux phase14-smoke",
-    "zigux/tests/phase14_build.zig",
-    "reviewability lane rather than a closure or active subsystem delivery claim",
+    "- PHASE14_SHARED_LANE=P14-L01",
+    "- PHASE14_VALIDATE_ENTRYPOINT=make -C zigux phase14-validate",
+    "- make -C zigux phase14-smoke",
+    "- zigux/tests/phase14_build.zig",
+    "- reviewability lane rather than a closure or active subsystem delivery claim",
+    "- make -C zigux phase14-validate PYTHON=python3 ZIG=<attached-zig-path>",
+    "- make -C zigux phase14-smoke ZIG=<attached-zig-path>",
+    "- make -C zigux phase14-test ZIG=<attached-zig-path>",
+    "- make -C zigux phase14 ZIG=<attached-zig-path>",
 ]
 
 RELEASE_BOUNDARY_LINES = [
@@ -42,12 +46,21 @@ def read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def count_exact_line(text: str, marker: str) -> int:
+    return sum(1 for line in text.splitlines() if line.strip() == marker)
+
+
 def require_exact_count(
-    label: str, text: str, markers: list[str], expected_count: int
+    label: str,
+    text: str,
+    markers: list[str],
+    expected_count: int,
+    *,
+    exact_line: bool = False,
 ) -> list[str]:
     issues: list[str] = []
     for marker in markers:
-        actual_count = text.count(marker)
+        actual_count = count_exact_line(text, marker) if exact_line else text.count(marker)
         if actual_count != expected_count:
             issues.append(f"{label}:{actual_count}:{marker}")
     return issues
@@ -60,7 +73,9 @@ def validate_phase14_summary_surfaces(
     scripts_readme_text: str,
 ) -> list[str]:
     missing = require_exact_count("docs_root", docs_root_text, DOCS_ROOT_LINES, 1)
-    missing.extend(require_exact_count("survey", survey_text, SURVEY_LINES, 1))
+    missing.extend(
+        require_exact_count("survey", survey_text, SURVEY_LINES, 1, exact_line=True)
+    )
     missing.extend(
         require_exact_count(
             "release_boundary", release_boundary_text, RELEASE_BOUNDARY_LINES, 1
@@ -91,6 +106,10 @@ Phase 14 notes
 - make -C zigux phase14-smoke
 - zigux/tests/phase14_build.zig
 - reviewability lane rather than a closure or active subsystem delivery claim
+- make -C zigux phase14-validate PYTHON=python3 ZIG=<attached-zig-path>
+- make -C zigux phase14-smoke ZIG=<attached-zig-path>
+- make -C zigux phase14-test ZIG=<attached-zig-path>
+- make -C zigux phase14 ZIG=<attached-zig-path>
 """.strip()
 
     release_boundary_text = """
@@ -182,6 +201,25 @@ Current bootstrap helpers
             survey_text,
             release_boundary_text,
             scripts_readme_text + "\n- `check-phase14-docs-root-smoke-summary.py`",
+            True,
+        ),
+        (
+            "missing_attached_toolchain_phase14_test",
+            docs_root_text,
+            survey_text.replace(
+                "make -C zigux phase14-test ZIG=<attached-zig-path>", ""
+            ),
+            release_boundary_text,
+            scripts_readme_text,
+            True,
+        ),
+        (
+            "duplicate_attached_toolchain_phase14_smoke",
+            docs_root_text,
+            survey_text
+            + "\n- make -C zigux phase14-smoke ZIG=<attached-zig-path>",
+            release_boundary_text,
+            scripts_readme_text,
             True,
         ),
     ]
