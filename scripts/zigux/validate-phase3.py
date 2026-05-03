@@ -63,6 +63,12 @@ SURVEY_VALIDATION_SCRIPTS = (
         "missing_expected_struct:zigux_cpumask_view",
     ),
     (
+        "check-phase3-abi-binding-constants.py",
+        "PHASE3_ABI_BINDING_CONSTANTS=fail",
+        "abi-binding-constants-gate",
+        "binding_missing_enum_member:Facility.kernel",
+    ),
+    (
         "check-phase3-tooling-packet.py",
         "PHASE3_TOOLING_PACKET=fail",
         "tooling-packet-gate",
