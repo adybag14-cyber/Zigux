@@ -297,6 +297,20 @@ def run_self_test() -> int:
     missing = collect_missing(
         **{
             **base_inputs,
+            "present_files": {
+                path for path in REQUIRED_FILES if path != "zigux/tests/phase12_libbpf_only_build.zig"
+            },
+        }
+    )
+    expect_contains(
+        "missing_build_shard_detection",
+        missing,
+        "missing_file:zigux/tests/phase12_libbpf_only_build.zig",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
             "build_text": base_inputs["build_text"].replace(
                 '    .name = "phase12-libbpf-reviewability-tests",',
                 '    .name = "phase12-libbpf-reviewability-drift",',
@@ -504,7 +518,7 @@ def run_self_test() -> int:
     )
 
     print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST=pass")
-    print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST_CASE_COUNT=16")
+    print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST_CASE_COUNT=17")
     return 0
 
 
