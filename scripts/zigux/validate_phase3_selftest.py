@@ -313,7 +313,6 @@ def run_self_test() -> int:
         rbtree_shared_markers = _shared_rbtree_phase3_abi_markers()
 
         def assert_missing_rbtree_shared_marker(missing_marker: str) -> None:
-            rbtree_shared_marker_fixture.writeText = None
             rbtree_shared_marker_fixture.write_text(
                 "\n".join(marker for marker in rbtree_shared_markers if marker != missing_marker) + "\n",
                 encoding="utf-8",
