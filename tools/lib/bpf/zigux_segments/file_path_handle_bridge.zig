@@ -48,6 +48,20 @@ pub const TokenPreparationFailurePlan = struct {
     }
 };
 
+pub const ReusePinnedMapOpenDisposition = enum {
+    prevented,
+    optional_probe,
+};
+
+pub const ReusePinnedMapOpenPlan = struct {
+    disposition: ReusePinnedMapOpenDisposition,
+    pin_path: []const u8,
+
+    pub fn requiresPinnedMapOpen(self: ReusePinnedMapOpenPlan) bool {
+        return self.disposition == .optional_probe;
+    }
+};
+
 pub const ReusePinnedMapOpenFailureDisposition = enum {
     skip_missing_pinned_map,
     fail,
@@ -263,6 +277,23 @@ pub fn resolveTokenPreparationAcquisition(has_feat_cache: bool) TokenPreparation
     };
 }
 
+pub fn planReusePinnedMapOpen(pin_path: ?[]const u8) ReusePinnedMapOpenPlan {
+    const path = pin_path orelse return .{
+        .disposition = .prevented,
+        .pin_path = "",
+    };
+    if (path.len == 0) {
+        return .{
+            .disposition = .prevented,
+            .pin_path = "",
+        };
+    }
+    return .{
+        .disposition = .optional_probe,
+        .pin_path = path,
+    };
+}
+
 pub fn classifyReusePinnedMapOpenFailure(err_code: i32) ReusePinnedMapOpenFailurePlan {
     if (err_code == -@as(i32, @intFromEnum(linux_errno.NOENT))) {
         return .{
@@ -454,6 +485,23 @@ test "resolveTokenPreparationAcquisition keeps token-fd ownership explicit after
     try std.testing.expect(prepared.should_store_token_fd);
     try std.testing.expect(prepared.should_store_feat_cache_token_fd);
     try std.testing.expect(prepared.succeeded());
+}
+
+test "planReusePinnedMapOpen keeps pinned-map preflight explicit without claiming reopen io" {
+    const prevented_null = planReusePinnedMapOpen(null);
+    try std.testing.expectEqual(ReusePinnedMapOpenDisposition.prevented, prevented_null.disposition);
+    try std.testing.expectEqualStrings("", prevented_null.pin_path);
+    try std.testing.expect(!prevented_null.requiresPinnedMapOpen());
+
+    const prevented_empty = planReusePinnedMapOpen("");
+    try std.testing.expectEqual(ReusePinnedMapOpenDisposition.prevented, prevented_empty.disposition);
+    try std.testing.expectEqualStrings("", prevented_empty.pin_path);
+    try std.testing.expect(!prevented_empty.requiresPinnedMapOpen());
+
+    const planned = planReusePinnedMapOpen("/sys/fs/bpf/reused_map");
+    try std.testing.expectEqual(ReusePinnedMapOpenDisposition.optional_probe, planned.disposition);
+    try std.testing.expectEqualStrings("/sys/fs/bpf/reused_map", planned.pin_path);
+    try std.testing.expect(planned.requiresPinnedMapOpen());
 }
 
 test "classifyReusePinnedMapOpenFailure keeps missing pinned-map lookup distinct from hard failures" {
