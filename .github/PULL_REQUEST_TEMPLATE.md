@@ -1,6 +1,7 @@
 # Zigux Pull Request Checklist
 
 Use this template for bounded product work in `adybag14-cyber/Zigux`.
+See `.github/CONTRIBUTING.md` for the shared validator-first contributor workflow and docs-sync expectations.
 
 ## Scope
 - roadmap phase:
