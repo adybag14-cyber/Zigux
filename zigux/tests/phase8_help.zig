@@ -177,6 +177,71 @@ test "phase 8 help focused replay keeps main-only output free of stray PATH head
     try std.testing.expect(std.mem.indexOf(u8, rendered.writer.buffered(), "elsewhere on your $PATH") == null);
 }
 
+test "phase 8 help focused replay keeps shared column width stable when PATH commands are longer" {
+    const exec_entries = [_]help.DirectoryEntry{
+        .{ .name = "perf-report.exe", .is_executable = true },
+        .{ .name = "perf-stat", .is_executable = true },
+    };
+    const path_entries = [_]help.DirectoryEntry{
+        .{ .name = "perf-annotate", .is_executable = true },
+    };
+
+    var source = FixtureSource{
+        .dirs = &.{
+            .{ .path = "/opt/perf/bin", .entries = &exec_entries },
+            .{ .path = "/usr/bin", .entries = &path_entries },
+        },
+    };
+
+    var main_cmds = help.CmdNames.init(std.testing.allocator);
+    defer main_cmds.deinit();
+    var other_cmds = help.CmdNames.init(std.testing.allocator);
+    defer other_cmds.deinit();
+
+    try help.loadCommandListsFromEnvPath(
+        std.testing.allocator,
+        null,
+        "/opt/perf/bin",
+        "/opt/perf/bin:/usr/bin",
+        &main_cmds,
+        &other_cmds,
+        &source,
+        FixtureSource.populate,
+    );
+
+    try std.testing.expectEqual(@as(usize, 2), main_cmds.count());
+    try std.testing.expectEqual(@as(usize, 1), other_cmds.count());
+    try std.testing.expectEqual(@as(usize, 8), help.longestNameLenAcrossLists(main_cmds, other_cmds));
+
+    var rendered: std.Io.Writer.Allocating = .init(std.testing.allocator);
+    defer rendered.deinit();
+
+    try help.writeCommandSectionsForTerminal(
+        &rendered.writer,
+        "perf",
+        "/opt/perf/bin",
+        main_cmds,
+        other_cmds,
+        null,
+        "120",
+        null,
+    );
+
+    const main_rule = [_]u8{'-'} ** 33;
+    const other_rule = [_]u8{'-'} ** 43;
+    const expected = std.fmt.comptimePrint(
+        "available perf in '/opt/perf/bin'\n{s}\n" ++
+            "  report   stat\n" ++
+            "\n" ++
+            "perf available from elsewhere on your $PATH\n{s}\n" ++
+            "  annotate\n" ++
+            "\n",
+        .{ main_rule[0..], other_rule[0..] },
+    );
+
+    try std.testing.expectEqualStrings(expected, rendered.writer.buffered());
+}
+
 test "phase 8 help docs keep the parked stable-output boundary explicit" {
     const slice_note = try readWorkspaceFile(
         std.testing.allocator,
