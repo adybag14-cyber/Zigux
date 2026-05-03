@@ -26,7 +26,8 @@
     "devres_dma_coherent_test_sha256": "898655bd8bdcdbad0074011ae92b3ca3f4c5272d58812253ea8b2aa0542f8dce",
     "preexisting_devres_dma_coherent_zig_present": true,
     "preexisting_phase13_devres_dma_coherent_test_present": true,
-    "preexisting_phase13_devres_iounmap_reviewability_present": true
+    "preexisting_phase13_devres_iounmap_reviewability_present": true,
+    "preexisting_phase13_devres_iomap_reviewability_present": true
   },
   "gaps": [
     {
