@@ -62,6 +62,8 @@ The current checksum helper surface exercised by this slice covers:
 - `from32to16`
 - `fold`
 - `unfold`
+- `add16`
+- `sub16`
 - `replaceByDiff`
 - `replace4`
 - `replace2`
@@ -80,6 +82,7 @@ The current tests check:
 - 6 imported KUnit random-prefix lengths through the committed fixture corpus
 - pseudo-header accumulation parity for the committed IPv4 UDP-style checksum vector
 - IPv6 pseudo-header accumulation parity for 3 committed UDP, TCP, and ICMPv6-style checksum vectors, including the upper-length-bits regression fixture
+- 16-bit carry-helper parity for wrapped add and subtract edge cases before the incremental replacement helpers consume that contract
 - incremental checksum replacement parity for payload word updates, 16-bit IPv4 header field replacement, 32-bit IPv4 address replacement, and diff-based checksum repair
 - an external C-vs-Zig spot check through `python3 scripts/zigux/check-phase6-checksum-c-parity.py`, `zigux/tests/phase6_checksum_c_parity.zig`, and `zigux/tests/fixtures/phase6_checksum_c_harness.c` so the current `lib/checksum.c` arithmetic surface stays directly reviewable beside the committed Zig fixture packet; the live parity runner now replays 22 direct outputs across 5 compute cases, 3 seeded partial cases, 2 composition cases, 1 IPv4 pseudo-header nofold case, 3 IPv6 pseudo-header nofold cases, 4 carry-discipline folds, and 4 incremental replacement outputs
 - shared fixture-backed checksum vectors stored in `zigux/tests/fixtures/phase6_checksum_vectors.zig` and consumed by `zigux/tests/phase6_checksum.zig`, while `lib/checksum.zig` keeps only helper-local arithmetic and regression checks so the leaf helper no longer depends on the shared Phase 6 fixture packet
