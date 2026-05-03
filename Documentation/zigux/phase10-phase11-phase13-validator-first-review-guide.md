@@ -57,6 +57,8 @@ Keep the pre-replay checker stack explicit:
 - `python3 scripts/zigux/check-phase11-hvc-cleanup-alignment.py`
 - `python3 scripts/zigux/check-phase11-shared-replay-contract.py --self-test`
 - `python3 scripts/zigux/check-phase11-shared-replay-contract.py`
+- `python3 scripts/zigux/check-phase11-header-boundary-packet.py --self-test`
+- `python3 scripts/zigux/check-phase11-header-boundary-packet.py`
 - `python3 scripts/zigux/validate-phase11.py --self-test`
 - `python3 scripts/zigux/validate-phase11.py`
 - `make -C zigux phase11-validate`
@@ -66,25 +68,27 @@ Keep the pre-replay checker stack explicit:
 Keep these evidence surfaces aligned in the same review:
 - `Documentation/zigux/phase11-shared-replay-contract.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
+- `Documentation/zigux/phase11-uapi-header-parity-survey.md`
 - `scripts/zigux/check-phase11-build-inventory.py`
 - `scripts/zigux/check-phase11-layout-assert-surface.py`
 - `scripts/zigux/check-phase11-hvc-validation-flow.py`
 - `scripts/zigux/check-phase11-hvc-cleanup-alignment.py`
 - `scripts/zigux/check-phase11-shared-replay-contract.py`
+- `scripts/zigux/check-phase11-header-boundary-packet.py`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
 - `zigux/tests/phase11_build.zig`
 - `zigux/tests/phase11_hvc_console_survey.zig`
+- `zigux/tests/phase11_uapi_header_parity_manifest.json`
 - `zigux/tests/phase11_gpio_wdt_manifest.json`
 - `zigux/tests/phase11_bcm2835_wdt_manifest.json`
 - `zigux/tests/phase11_dw_wdt_manifest.json`
 - `zigux/tests/phase11_hvc_console_manifest.json`
-- `zigux/tests/phase11_uapi_header_parity_manifest.json`
 - `zigux/Makefile`
 - `.github/workflows/zigux-bootstrap.yml`
 
 Reviewer prompts:
 - Does the shared Phase 11 replay still stay separate from the dedicated archival `hvc_console` survey?
-- Do the pre-replay checkers still describe the same delivery contract that the shared build inventory and manifests claim?
+- Do the pre-replay checkers still describe the same delivery contract that the shared build inventory, the shared header-boundary packet, and the Phase 11 manifests claim?
 
 ## Phase 13: Shared-helper release packet
 
@@ -131,7 +135,7 @@ Reviewer prompt:
 
 Keep these reviewer questions explicit when `Documentation/zigux/review-checklist.md` or other shared contributor surfaces are refreshed:
 - Phase 10: do `Documentation/zigux/phase10-closure-evidence.md`, `zigux/tests/phase10_closure_manifest.json`, `scripts/zigux/check-phase10-harness-coverage.py`, `zigux/tests/phase10_virtio_input_multitouch_preflight.zig`, and `zigux/tests/phase10_virtio_mmio_queue_isolation.zig` still describe the same validator-first lab bundle and focused harness evidence?
-- Phase 11: do `Documentation/zigux/phase11-shared-replay-contract.md`, `scripts/zigux/check-phase11-build-inventory.py`, `scripts/zigux/check-phase11-layout-assert-surface.py`, `scripts/zigux/check-phase11-hvc-validation-flow.py`, `scripts/zigux/check-phase11-hvc-cleanup-alignment.py`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `zigux/tests/phase11_build.zig`, and `zigux/tests/phase11_hvc_console_survey.zig` still keep the pre-replay stack and shared-versus-dedicated `hvc_console` split aligned?
+- Phase 11: do `Documentation/zigux/phase11-shared-replay-contract.md`, `scripts/zigux/check-phase11-build-inventory.py`, `scripts/zigux/check-phase11-layout-assert-surface.py`, `scripts/zigux/check-phase11-hvc-validation-flow.py`, `scripts/zigux/check-phase11-hvc-cleanup-alignment.py`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `zigux/tests/phase11_build.zig`, `zigux/tests/phase11_hvc_console_survey.zig`, and `zigux/tests/phase11_uapi_header_parity_manifest.json` still keep the pre-replay stack, the shared-versus-dedicated `hvc_console` split, and the shared header-boundary packet aligned?
 - Phase 13: do `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/README.md`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, and `zigux/helpers/notifier_chain_view.zig` still keep the validator-first release path, the dedicated Landlock syscall reviewability gate, and the adjacent notifier evidence aligned?
 
 ## Shared review rule
