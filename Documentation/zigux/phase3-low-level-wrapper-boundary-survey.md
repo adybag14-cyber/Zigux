@@ -10,9 +10,9 @@ This note records the current atomic, barrier, and MMIO boundary for the bounded
 - `PHASE3_ATOMIC_STATUS=bounded-helper-surface-and-mismatch-replay-landed`
 - `PHASE3_ATOMIC_BLOB_SHA=c890e7422e21c92ce98cc5d7ee9731132b709d73`
 - `PHASE3_BARRIER_PATH=zigux/helpers/barrier.zig`
-- `PHASE3_BARRIER_SCOPE=acquire-release-full`
+- `PHASE3_BARRIER_SCOPE=acquire-release-acquire-release-combined-full`
 - `PHASE3_BARRIER_STATUS=throwaway-probe-barriers-landed`
-- `PHASE3_BARRIER_BLOB_SHA=26db8e6f18b1ef0b49d61a2ce1daa64f57c1ac48`
+- `PHASE3_BARRIER_BLOB_SHA=409abd11b3df741121f39f758359ca298c5e1c45`
 - `PHASE3_MMIO_PATH=zigux/helpers/mmio.zig`
 - `PHASE3_MMIO_SCOPE=range-read8-read16-read32-read64-write8-write16-write32-write64-plus-scoped-read8-write8-read16-write16-read32-write32-read64-write64-plus-policy-read8-write8-read16-write16-read32-write32-read64-write64-and-generic-policy-bridges`
 - `PHASE3_MMIO_STATUS=scoped-width-specific-mmio-and-policy-bridge-landed`
@@ -20,12 +20,12 @@ This note records the current atomic, barrier, and MMIO boundary for the bounded
 - `PHASE3_LOW_LEVEL_BUILD_PATH=zigux/tests/phase3_low_level_wrappers_build.zig`
 - `PHASE3_LOW_LEVEL_BUILD_BLOB_SHA=5ff32e1306830195e248c26b2125cb6f9b2418c9`
 - `PHASE3_LOW_LEVEL_TEST_PATH=zigux/tests/phase3_low_level_wrappers.zig`
-- `PHASE3_LOW_LEVEL_TEST_BLOB_SHA=0cc693a0da6891b61540ba9af573256054205037`
-- `PHASE3_ABI_SLICE_DOC_BLOB_SHA=896b72546a4f2d124453956db41ea95b0a48cd3d`
+- `PHASE3_LOW_LEVEL_TEST_BLOB_SHA=77e702f153997a9f94b8c45ae46ba9eebf6480db`
+- `PHASE3_ABI_SLICE_DOC_BLOB_SHA=45b04d1ba4424ed9d9fe73ee679f918dc970e4f9`
 - `PHASE3_ABI_MANIFEST_BLOB_SHA=06f0da0e3c00bc3205c2d7fe73cfe6376a0e1b2e`
 - `PHASE3_LOW_LEVEL_GATE=zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`
 - `PHASE3_BOUNDARY_GAP=no-relaxed-order-barrier-variants-or-broader-kernel-style-atomic-family-is-shipped-yet`
-- `PHASE3_NEXT_BOUNDED_STEP=keep-the-low-level-wrapper-packet-narrow-until-one-roadmap-backed-boundary-slice-needs-an-expanded-barrier-or-atomic-helper`
+- `PHASE3_NEXT_BOUNDED_STEP=keep-the-low-level-wrapper-packet-narrow-until-one-roadmap-backed-boundary-slice-needs-another-explicit-atomic-or-mmio-helper`
 
 ## Roadmap Contract
 
@@ -49,11 +49,11 @@ This survey is anchored to packet-local blob IDs because the current connector r
 The current tree already carries a real bounded low-level wrapper packet:
 
 - `zigux/helpers/atomic.zig` currently limits the approved helper surface to `load`, `store`, `exchange`, `fetchAdd`, `fetchSub`, `fetchAnd`, `fetchOr`, `fetchXor`, `fetchMin`, `fetchMax`, `compareExchange`, and `compareExchangeWeak`, all parameterized by Zig atomic order rather than widening into a broader kernel-style helper family.
-- `zigux/helpers/barrier.zig` currently limits the approved barrier surface to `acquire`, `release`, and `full`, each expressed through a throwaway ordered atomic probe so the helper does not keep hidden shared state.
+- `zigux/helpers/barrier.zig` currently limits the approved barrier surface to `acquire`, `release`, `acquireRelease`, and `full`, each expressed through a throwaway ordered atomic probe so the helper does not keep hidden shared state.
 - `zigux/helpers/mmio.zig` currently limits the approved MMIO surface to `range`, `read8`, `read16`, `read32`, `read64`, `write8`, `write16`, `write32`, and `write64`, plus the scoped `read8`, `write8`, `read16`, `write16`, `read32`, `write32`, `read64`, and `write64` entry points, the width-specific `read8Policy`, `write8Policy`, `read16Policy`, `write16Policy`, `read32Policy`, `write32Policy`, `read64Policy`, and `write64Policy` entry points, and the generic `readScopedWithPolicy` plus `writeScopedWithPolicy` bridges that keep decoded-policy MMIO access routed back through the declared narrow unsafe layer.
 - `zigux/tests/phase3_low_level_wrappers_build.zig` and `zigux/tests/phase3_low_level_wrappers.zig` keep the atomic, barrier, direct-plus-scoped MMIO, and width-specific policy-aware MMIO packet reviewable on one focused compile-and-test path, and the focused build now also wires the current `interop_policy` dependency that `zigux/helpers/mmio.zig` imports.
 - `zigux/tests/phase3_policy_unsafe.zig` and `scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py` keep the broader whole-record interop-policy decode and second-boundary-helper MMIO story reviewable beside that focused low-level gate, so the decoded-policy MMIO surface stays explicit across both focused packets without widening the low-level wrapper lane into the broader policy-and-unsafe packet.
-- `zigux/tests/phase3_low_level_wrappers.zig` now keeps the strong and weak compare-exchange replay, `fetchMin()` and `fetchMax()` replay, barrier probe, denied-scope checks, width-specific direct, scoped, and policy-aware 8-bit, 16-bit, 32-bit, and 64-bit MMIO coverage, denied-scope policy failures, misalignment failures, overflow failures, and the shared `MmioRange` layout assertion reviewable without having to infer them from the broader `phase3_abi` bundle alone.
+- `zigux/tests/phase3_low_level_wrappers.zig` now keeps the strong and weak compare-exchange replay, `fetchMin()` and `fetchMax()` replay, the acquire-only, release-only, combined acquire-plus-release, and full barrier probes, denied-scope checks, width-specific direct, scoped, and policy-aware 8-bit, 16-bit, 32-bit, and 64-bit MMIO coverage, denied-scope policy failures, misalignment failures, overflow failures, and the shared `MmioRange` layout assertion reviewable without having to infer them from the broader `phase3_abi` bundle alone.
 
 This is real roadmap-backed progress.
 It is also still a deliberately narrow packet:
@@ -79,7 +79,7 @@ Those helpers exist and are reviewable.
 
 The remaining gap for this boundary packet is breadth, not presence:
 
-- the current packet intentionally stops short of relaxed-order or Linux-style expanded barrier helpers
+- the current packet intentionally stops short of relaxed-order or broader Linux-style barrier helpers beyond the combined acquire-plus-release fence
 - the current packet intentionally stops short of a broader kernel-style atomic helper family beyond the currently approved bounded surface
 - the current packet intentionally stops short of wider MMIO families beyond the currently approved direct, scoped, and decoded-policy 8-bit, 16-bit, 32-bit, and 64-bit helpers
 
