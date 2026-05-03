@@ -12,6 +12,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
   - `tools/lib/subcmd/help.zig`
   - `zigux/tests/phase8_help.zig`
   - `zigux/tests/phase8_help_only_build.zig`
+  - `zigux/tests/phase8_help_kallsyms_only_build.zig`
   - `zigux/tests/phase8_build.zig`
 
 ## Why this slice exists
@@ -28,11 +29,15 @@ This lane keeps the shipped `help.zig` parked slice aligned with the stable comm
 2. run the focused Phase 8 help replay
 - `zig build test --build-file zigux/tests/phase8_help_only_build.zig --summary all`
 
-3. run the dedicated Phase 8 tooling gate
+3. run the focused shared help and symbol gate
+- `zig build test --build-file zigux/tests/phase8_help_kallsyms_only_build.zig --summary all`
+
+4. run the dedicated Phase 8 tooling gate
 - `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
 
-4. run the convenience targets
+5. run the convenience targets
 - `make -C zigux phase8-help-test`
+- `make -C zigux phase8-help-kallsyms-test`
 - `make -C zigux phase8`
 
 ## Current parity surface
@@ -81,4 +86,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-The current bounded gap versus the broader Phase 8 tooling packet is now the focused replay path rather than missing helper behavior: `help.zig` can be reviewed through its own `phase8_help_only_build.zig` shard without hiding inside the full shared bundle. Park this lane unless a fresh helper-only parity gap appears; the next honest follow-up should only reopen it for another exact formatting or command-source parity edge rather than widening into direct environment reads, directory walking, or full CLI behavior.
+The current bounded gap versus the broader Phase 8 tooling packet is now the replay shape rather than missing helper behavior: `help.zig` can be reviewed through its own `phase8_help_only_build.zig` shard and the parked shared `phase8_help_kallsyms_only_build.zig` shard without hiding only inside the full tooling bundle. Park this lane unless a fresh helper-only parity gap appears; the next honest follow-up should only reopen it for another exact formatting or command-source parity edge rather than widening into direct environment reads, directory walking, or full CLI behavior.
