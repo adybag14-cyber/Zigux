@@ -69,6 +69,15 @@ MAKEFILE_MARKERS = [
     "phase9: phase9-validate phase9-test",
 ]
 
+MAKEFILE_EXACT_ONCE_MARKERS = [
+    "phase9-loader-gap-survey:\n",
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_loader_gap_survey.zig\n",
+    "phase9-module-metadata-survey:\n",
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_module_metadata_survey.zig\n",
+    "phase9-trace-events-survey:\n",
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) test --dep runtime_trace_events_sample -Mroot=zigux/tests/runtime_trace_events_survey.zig -Mruntime_trace_events_sample=samples/zigux/runtime_trace_events.zig\n",
+]
+
 WORKFLOW_MARKERS = [
     "Self-test Phase 9 runtime validator",
     "Validate Phase 9 runtime gates",
@@ -93,6 +102,10 @@ SURVEY_MARKERS = [
     "- `make -C zigux phase9`\n",
 ]
 
+SURVEY_EXACT_ONCE_MARKERS = [
+    "- `make -C zigux phase9-loader-gap-survey`\n",
+]
+
 MODULE_METADATA_SURVEY_MARKERS = [
     "- `python3 scripts/zigux/validate-phase9.py --self-test`\n",
     "- `python3 scripts/zigux/check-phase9-module-metadata-packet.py --self-test`\n",
@@ -104,12 +117,20 @@ MODULE_METADATA_SURVEY_MARKERS = [
     "- `make -C zigux phase9-module-metadata-survey`\n",
 ]
 
+MODULE_METADATA_SURVEY_EXACT_ONCE_MARKERS = [
+    "- `make -C zigux phase9-module-metadata-survey`\n",
+]
+
 TRACE_EVENTS_SURVEY_MARKERS = [
     "- `zig test --dep runtime_trace_events_sample -Mroot=zigux/tests/runtime_trace_events_survey.zig -Mruntime_trace_events_sample=samples/zigux/runtime_trace_events.zig`\n",
     "- `make -C zigux phase9-trace-events-survey`\n",
     "- `zig build test --build-file zigux/tests/phase9_build.zig --summary all`\n",
     "phase9-runtime-trace-events-module-tests",
     "phase9-runtime-trace-events-survey-tests",
+]
+
+TRACE_EVENTS_SURVEY_EXACT_ONCE_MARKERS = [
+    "- `make -C zigux phase9-trace-events-survey`\n",
 ]
 
 KRETPROBE_SURVEY_MARKERS = [
@@ -148,6 +169,10 @@ def collect_missing_files(root: Path) -> list[str]:
     return [rel_path for rel_path in REQUIRED_FILES if not (root / rel_path).exists()]
 
 
+def count_exact_occurrence(text: str, marker: str) -> int:
+    return text.count(marker)
+
+
 def validate(root: Path) -> list[str]:
     failures: list[str] = []
 
@@ -170,18 +195,30 @@ def validate(root: Path) -> list[str]:
     for marker in MAKEFILE_MARKERS:
         if marker not in texts["makefile"]:
             failures.append(f"makefile:{marker}")
+    for marker in MAKEFILE_EXACT_ONCE_MARKERS:
+        if count_exact_occurrence(texts["makefile"], marker) != 1:
+            failures.append(f"makefile_exact:{marker}")
     for marker in WORKFLOW_MARKERS:
         if marker not in texts["workflow"]:
             failures.append(f"workflow:{marker}")
     for marker in SURVEY_MARKERS:
         if marker not in texts["survey"]:
             failures.append(f"survey:{marker}")
+    for marker in SURVEY_EXACT_ONCE_MARKERS:
+        if count_exact_occurrence(texts["survey"], marker) != 1:
+            failures.append(f"survey_exact:{marker}")
     for marker in MODULE_METADATA_SURVEY_MARKERS:
         if marker not in texts["module_metadata_survey"]:
             failures.append(f"module_metadata_survey:{marker}")
+    for marker in MODULE_METADATA_SURVEY_EXACT_ONCE_MARKERS:
+        if count_exact_occurrence(texts["module_metadata_survey"], marker) != 1:
+            failures.append(f"module_metadata_survey_exact:{marker}")
     for marker in TRACE_EVENTS_SURVEY_MARKERS:
         if marker not in texts["trace_events_survey"]:
             failures.append(f"trace_events_survey:{marker}")
+    for marker in TRACE_EVENTS_SURVEY_EXACT_ONCE_MARKERS:
+        if count_exact_occurrence(texts["trace_events_survey"], marker) != 1:
+            failures.append(f"trace_events_survey_exact:{marker}")
     for marker in KRETPROBE_SURVEY_MARKERS:
         if marker not in texts["kretprobe_survey"]:
             failures.append(f"kretprobe_survey:{marker}")
@@ -537,6 +574,21 @@ def run_self_test() -> int:
         )
         survey_path.write_text(original_survey, encoding="utf-8")
 
+        survey_path.write_text(
+            original_survey.replace(
+                "- `make -C zigux phase9-loader-gap-survey`\n",
+                "- `make -C zigux phase9-loader-gap-survey`\n- `make -C zigux phase9-loader-gap-survey`\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "loader_gap_duplicate_make_gate",
+            tmp_root,
+            "survey_exact:- `make -C zigux phase9-loader-gap-survey`\n",
+        )
+        survey_path.write_text(original_survey, encoding="utf-8")
+
         trace_events_survey_path = tmp_root / TRACE_EVENTS_SURVEY_PATH
         original_trace_events_survey = trace_events_survey_path.read_text(encoding="utf-8")
         trace_events_survey_path.write_text(
@@ -558,6 +610,21 @@ def run_self_test() -> int:
             "trace_events_make_gate",
             tmp_root,
             "trace_events_survey:- `make -C zigux phase9-trace-events-survey`\n",
+        )
+        trace_events_survey_path.write_text(original_trace_events_survey, encoding="utf-8")
+
+        trace_events_survey_path.write_text(
+            original_trace_events_survey.replace(
+                "- `make -C zigux phase9-trace-events-survey`\n",
+                "- `make -C zigux phase9-trace-events-survey`\n- `make -C zigux phase9-trace-events-survey`\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "trace_events_duplicate_make_gate",
+            tmp_root,
+            "trace_events_survey_exact:- `make -C zigux phase9-trace-events-survey`\n",
         )
         trace_events_survey_path.write_text(original_trace_events_survey, encoding="utf-8")
 
@@ -611,6 +678,36 @@ def run_self_test() -> int:
         )
         loader_substrate_plan_path.write_text(original_loader_substrate_plan, encoding="utf-8")
 
+        makefile_path.write_text(
+            original_makefile.replace(
+                "phase9-module-metadata-survey:\n",
+                "phase9-module-metadata-survey:\n\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_module_metadata_survey.zig\n\nphase9-module-metadata-survey:\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "module_metadata_duplicate_target",
+            tmp_root,
+            "makefile_exact:phase9-module-metadata-survey:\n",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        makefile_path.write_text(
+            original_makefile.replace(
+                "phase9-trace-events-survey:\n",
+                "phase9-trace-events-survey:\n\tcd $(ZIGUX_ROOT) && $(ZIG) test --dep runtime_trace_events_sample -Mroot=zigux/tests/runtime_trace_events_survey.zig -Mruntime_trace_events_sample=samples/zigux/runtime_trace_events.zig\n\nphase9-trace-events-survey:\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "trace_events_duplicate_target",
+            tmp_root,
+            "makefile_exact:phase9-trace-events-survey:\n",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
         checker_path = tmp_root / MODULE_METADATA_CHECKER_PATH
         checker_path.unlink()
         expect_failure(
@@ -620,7 +717,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE9_VALIDATION_FLOW_SELF_TEST=pass")
-    print("PHASE9_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=17")
+    print("PHASE9_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=21")
     return 0
 
 
@@ -656,7 +753,7 @@ def main() -> int:
     print("PHASE9_VALIDATION_FLOW=pass")
     print(
         "PHASE9_VALIDATION_FLOW_MARKER_COUNT="
-        f"{len(MAKEFILE_MARKERS) + len(WORKFLOW_MARKERS) + len(SURVEY_MARKERS) + len(MODULE_METADATA_SURVEY_MARKERS) + len(TRACE_EVENTS_SURVEY_MARKERS) + len(KRETPROBE_SURVEY_MARKERS) + len(PHASE9_BUILD_MARKERS) + len(LOADER_SUBSTRATE_PLAN_MARKERS)}"
+        f"{len(MAKEFILE_MARKERS) + len(MAKEFILE_EXACT_ONCE_MARKERS) + len(WORKFLOW_MARKERS) + len(SURVEY_MARKERS) + len(SURVEY_EXACT_ONCE_MARKERS) + len(MODULE_METADATA_SURVEY_MARKERS) + len(MODULE_METADATA_SURVEY_EXACT_ONCE_MARKERS) + len(TRACE_EVENTS_SURVEY_MARKERS) + len(TRACE_EVENTS_SURVEY_EXACT_ONCE_MARKERS) + len(KRETPROBE_SURVEY_MARKERS) + len(PHASE9_BUILD_MARKERS) + len(LOADER_SUBSTRATE_PLAN_MARKERS)}"
     )
     return 0
 
