@@ -107,6 +107,12 @@ pub fn build(b: *std.Build) void {
         repo_root,
     );
 
+    const run_kobject_example_sample_tests = addTestRun(
+        b,
+        "phase5-kobject-example-sample-tests",
+        kobject_example_sample_module,
+        null,
+    );
     const run_phase5_kobject_example_tests = addTestRun(
         b,
         "phase5-kobject-example-tests",
@@ -148,6 +154,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_bytestream_fifo_sample_tests.step);
     test_step.dependOn(&run_phase5_bytestream_fifo_tests.step);
     test_step.dependOn(&run_phase5_bytestream_fifo_survey_tests.step);
+    test_step.dependOn(&run_kobject_example_sample_tests.step);
     test_step.dependOn(&run_phase5_kobject_example_tests.step);
     test_step.dependOn(&run_phase5_kobject_example_survey_tests.step);
     test_step.dependOn(&run_phase5_kretprobe_example_tests.step);
