@@ -122,6 +122,7 @@ test "phase 7 rbtree replaceNode and postorder helpers preserve structure" {
     }
 
     try std.testing.expectEqual(@as(usize, 4), count);
+    try std.testing.expectEqual(@as(?*rbtree.Node, null), rbtree.nextPostorder(null));
 }
 
 test "phase 7 rbtree balancing helpers keep ordered insert erase traversal stable" {
