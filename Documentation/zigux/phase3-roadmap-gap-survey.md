@@ -60,6 +60,7 @@ The dedicated roadmap-gap survey is reviewed through the shared validator-first 
 - `make -C zigux phase3-validate`
 - the bootstrap workflow replays the same shared validator route before the broader Phase 3 ABI and interop tests run
 - `python3 scripts/zigux/check-phase3-canonical-survey-manifest.py` stays inside that same validator-first route so the canonical survey-script list in `validate-phase3.py` and the committed `zigux/tests/fixtures/phase3_abi_manifest.json` packet cannot drift apart silently
+- `python3 scripts/zigux/validate-phase3-rbtree-interop-survey.py` also stays inside that same validator-first route so the dedicated `rbtree` survey, shared-lift contract, and remaining shared-ABI gap stay reviewable without becoming a standalone release path
 
 ## Next Bounded Step
 
