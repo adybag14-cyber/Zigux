@@ -34,6 +34,15 @@ The bounded Phase 2 cross-target compile set is:
 - `PHASE2_CROSS_TARGET_COUNT=3`
 - manifest: `zigux/tests/fixtures/phase2_cross_targets.json`
 
+## Toolchain Pin Scope
+
+The bounded Phase 2 bootstrap archive pin remains intentionally limited to the current workflow host runner target:
+
+- `x86_64-linux`
+- policy file: `scripts/zigux/zig-toolchain-policy.json`
+- guard: `scripts/zigux/check-phase2-toolchain-pin-scope.py`
+- the archive pin must not broaden beyond `x86_64-linux` until a new bootstrap runner target gains first-class workflow evidence
+
 ## Closure Gates
 
 Phase 2 is only considered closed when all of the following are green:
@@ -87,10 +96,15 @@ Phase 2 is only considered closed when all of the following are green:
 - `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`
 - the dedicated alignment checker keeps `check-phase2-cross.py`, `scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, `Documentation/zigux/phase2-closure.md`, and `zigux/tests/fixtures/phase2_cross_targets.json` in sync before closure evidence stays green
 
-8. bounded shared phase2 validator gate
+8. bounded phase2 toolchain pin-scope guard
+- `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`
+- `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`
+- the dedicated pin-scope guard keeps `scripts/zigux/zig-toolchain-policy.json`, the bootstrap workflow `install-zig.py --dest .zig-toolchain` and `check-zig-toolchain.py` steps, and `scripts/zigux/validate-phase2.py` aligned around the current `x86_64-linux`-only archive pin until a new bootstrap runner target gains first-class workflow evidence
+
+9. bounded shared phase2 validator gate
 - `python3 scripts/zigux/validate-phase2.py`
 
-9. bounded phase2 unit gates
+10. bounded phase2 unit gates
 - `zig test scripts/zigux/fixdep.zig`
 - `zig test scripts/zigux/genksyms.zig`
 - `zig test scripts/zigux/genksyms_crc.zig`
@@ -98,7 +112,7 @@ Phase 2 is only considered closed when all of the following are green:
 - `zig test scripts/zigux/kconfig/conf_bridge.zig`
 - `zig test scripts/zigux/kconfig/confdata_bridge.zig`
 
-10. closure validation
+11. closure validation
 - `python3 scripts/zigux/validate-phase2-closure.py`
 
 - `PHASE2_ARTIFACT_DIFF_SELF_TEST=python3 scripts/zigux/artifact_diff.py --self-test`
@@ -127,6 +141,9 @@ Phase 2 is only considered closed when all of the following are green:
 - `PHASE2_CROSS_ALIGNMENT_SELF_TEST=python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`
 - `PHASE2_CROSS_ALIGNMENT_GATE=python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`
 - `PHASE2_CROSS_MANIFEST_POLICY=check-phase2-cross.py rejects duplicate tool entries, duplicate requested targets, unexpected explicit targets, duplicate manifest targets, and manifest-count drift before live compile replay`
+- `PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`
+- `PHASE2_TOOLCHAIN_PIN_SCOPE_GATE=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`
+- `PHASE2_TOOLCHAIN_PIN_SCOPE_POLICY=scripts/zigux/zig-toolchain-policy.json keeps the bootstrap archive pin limited to x86_64-linux until a new runner target gains first-class workflow evidence`
 - `PHASE2_SHARED_VALIDATOR=python3 scripts/zigux/validate-phase2.py`
 - `PHASE2_CLOSURE_GATE=python3 scripts/zigux/validate-phase2-closure.py`
 
