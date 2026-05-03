@@ -89,7 +89,7 @@
     {
       "id": "diff-add-and-bitwise-cases",
       "kind": "differential_validation",
-      "expected": "the diff gate replays the onestwos add path plus the bounded or, and, xor, and andnot families from lib/atomic64_test.c against the in-memory starter"
+      "expected": "the diff gate replays the onestwos add path, the wide onestwos decrement path, the negative-one increment path, plus the bounded or, and, xor, and andnot families from lib/atomic64_test.c"
     },
     {
       "id": "diff-swap-and-guard-cases",
@@ -192,7 +192,7 @@
     },
     {
       "surface": "zigux/tests/phase9_build.zig",
-      "owns": "the shared Phase 9 runtime entrypoint that replays the direct atomic64 sample and loader legs plus the survey, module, diff, loader, and shared-loader checks"
+      "owns": "the shared Phase 9 runtime entrypoint that replays the direct atomic64 sample and loader legs plus the survey, module, diff, loader, and shared runtime-loader checks"
     },
     {
       "surface": "samples/zigux/runtime_atomic64.zig",
