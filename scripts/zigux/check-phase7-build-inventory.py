@@ -430,7 +430,7 @@ def run_self_test() -> int:
     survey_dependency_steps = survey_dependency_drift["shared_test_depend_steps"]
     if "run_string_helpers_survey_tests" in survey_dependency_steps:
         raise SystemExit("phase7-build-inventory:self-test:survey_dependency_drift_shape")
-    if len(survey_dependency_steps) != len(first["shared_test_dependSteps"]) - 1:
+    if len(survey_dependency_steps) != len(first["shared_test_depend_steps"]) - 1:
         raise SystemExit("phase7-build-inventory:self-test:survey_dependency_drift_count")
 
     validation_gate_drift_text, replacements = re.subn(
