@@ -654,6 +654,30 @@ def run_self_test() -> int:
         scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8", newline="\n")
 
         scripts_readme_path.write_text(
+            original_scripts_readme.replace(REQUIRED_SCRIPTS_README_SNIPPETS[1], "", 1),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate(root)
+        assert (
+            "missing_scripts_readme_snippet:" + REQUIRED_SCRIPTS_README_SNIPPETS[1]
+            in issues
+        )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8", newline="\n")
+
+        scripts_readme_path.write_text(
+            original_scripts_readme + "\n- " + REQUIRED_SCRIPTS_README_SNIPPETS[0] + "\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate(root)
+        assert (
+            "unexpected_scripts_readme_snippet_count:2:" + REQUIRED_SCRIPTS_README_SNIPPETS[0]
+            in issues
+        )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8", newline="\n")
+
+        scripts_readme_path.write_text(
             original_scripts_readme + "\n- " + REQUIRED_SCRIPTS_README_SNIPPETS[1] + "\n",
             encoding="utf-8",
             newline="\n",
@@ -666,7 +690,7 @@ def run_self_test() -> int:
         scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8", newline="\n")
 
     print("PHASE3_VALIDATION_FLOW_SELF_TEST=pass")
-    print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=25")
+    print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=27")
     return 0
 
 
