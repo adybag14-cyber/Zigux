@@ -75,7 +75,7 @@ test "phase14 skbuff bridge manifest records the boundary-map foothold and froze
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_skbuff_manifest_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_skbuff_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_skbuff_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 16), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 17), manifest.gaps.len);
 
     var landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -89,6 +89,7 @@ test "phase14 skbuff bridge manifest records the boundary-map foothold and froze
     var saw_tail_publication_audit = false;
     var saw_validate_xmit_audit = false;
     var saw_validate_xmit_followup = false;
+    var saw_governance_note = false;
     var saw_direct_xmit_followup = false;
     var saw_blocker = false;
 
@@ -156,6 +157,15 @@ test "phase14 skbuff bridge manifest records the boundary-map foothold and froze
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "gso_size") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "gso_segs") != null);
         }
+        if (std.mem.eql(u8, gap.id, "phase14-skbuff-direct-xmit-governance-note")) {
+            saw_governance_note = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase14-skbuff-bridge-survey.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "__dev_direct_xmit()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "skb != orig_skb") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "qdisc publication") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue ownership") != null);
+        }
         if (std.mem.eql(u8, gap.id, "phase14-skbuff-live-ownership-blocker")) {
             saw_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_stay_in_c_evidence", gap.status);
@@ -193,7 +203,7 @@ test "phase14 skbuff bridge manifest records the boundary-map foothold and froze
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 14), landed_count);
+    try std.testing.expectEqual(@as(usize, 15), landed_count);
     try std.testing.expectEqual(@as(usize, 1), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_boundary_map);
@@ -205,6 +215,7 @@ test "phase14 skbuff bridge manifest records the boundary-map foothold and froze
     try std.testing.expect(saw_tail_publication_audit);
     try std.testing.expect(saw_validate_xmit_audit);
     try std.testing.expect(saw_validate_xmit_followup);
+    try std.testing.expect(saw_governance_note);
     try std.testing.expect(saw_direct_xmit_followup);
     try std.testing.expect(saw_blocker);
 }
@@ -245,7 +256,7 @@ test "phase14 skbuff bridge descriptor stays at boundary-map posture" {
     try std.testing.expect(audit.checkpoints[10].guard == .validate_xmit_list_republish_contract);
 }
 
-test "phase14 skbuff bridge survey note records the active lane marker" {
+test "phase14 skbuff bridge notes record the direct-xmit governance boundary" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -257,11 +268,27 @@ test "phase14 skbuff bridge survey note records the active lane marker" {
     );
     defer std.testing.allocator.free(survey_note);
 
+    const slice_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase14-skbuff-bridge-slice.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(slice_note);
+
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_LANE_KEY=P14-L09") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_SLICE=skbuff-direct-xmit-identity-drop") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "tail->next = skb") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "validate_xmit_skb()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase14-skbuff-direct-xmit-governance-note") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase14-skbuff-direct-xmit-identity-drop-followup") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "observational-only") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "qdisc publication, queue ownership, and skb lifetime ownership remain in C") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "direct-xmit governance note") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "identity-drop follow-up") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "observational only") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "qdisc publication, queue ownership, and skb lifetime ownership remain explicitly in C") != null);
 }
 
 test "phase14 skbuff bridge compile contract stays wired into the shared bundle" {
@@ -290,7 +317,7 @@ test "phase14 skbuff bridge compile contract stays wired into the shared bundle"
     try std.testing.expect(std.mem.indexOf(u8, phase14_build, ".name = \"phase14-skbuff-bridge-tests\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase14_build, "test_step.dependOn(&run_phase14_skbuff_bridge_tests.step);") != null);
 
-    try std.testing.expect(std.mem.indexOf(u8, smoke_manifest, "\"lane_key\": \"P14-L09\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_manifest, "\"lane_key\": \"P14-L01\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_manifest, "\"artifact_name\": \"phase14-skbuff-bridge-tests\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_manifest, "\"root_source_file\": \"phase14_skbuff_bridge.zig\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_manifest, "\"bridge_import\": \"skbuff_bridge\"") != null);
