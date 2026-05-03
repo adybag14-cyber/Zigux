@@ -25,6 +25,7 @@ This document records the current release-discipline reading for the active boun
   - `Documentation/zigux/phase12-libbpf-segment-survey.md`
   - `scripts/zigux/check-phase12-cross.py`
   - `scripts/zigux/check-phase12-libbpf-focused-replay.py`
+  - `scripts/zigux/check-phase12-release-readiness-packet.py`
   - `scripts/zigux/validate-phase12.py`
   - `zigux/tests/phase12_cross_build.zig`
   - `zigux/tests/phase12_libbpf_only_build.zig`
@@ -38,6 +39,7 @@ The live repo already carries real Phase 12 survey notes, shared validation wiri
 This survey closes that PMO gap without widening driver scope:
 
 - the current tranche is active, not closed
+- the release-facing note now also names `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test` plus `python3 scripts/zigux/check-phase12-release-readiness-packet.py` as the dedicated PMO packet guard, so this release-coordination note has its own fail-closed review hook instead of relying only on the broader validator and reviewer habit
 - the shared validator-first path remains `python3 scripts/zigux/validate-phase12.py`, `make -C zigux phase12-validate`, `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, and `make -C zigux phase12`
 - the non-native compile-smoke packet is an explicit part of the release reading through `Documentation/zigux/phase12-cross-compile-smoke.md`, `python3 scripts/zigux/check-phase12-cross.py --zig <zig-path>`, and `zigux/tests/phase12_cross_build.zig`
 - the public-read fallback posture is intentionally mixed and should stay explicit instead of being inferred from whichever anchor most recently gained a pinned raw catalog
@@ -84,6 +86,7 @@ The current bounded release-evidence set is:
 - `scripts/zigux/check-phase12-libbpf-focused-replay.py`
 - `scripts/zigux/check-phase12-libbpf-packet.py`
 - `scripts/zigux/check-phase12-libbpf-snapshot.py`
+- `scripts/zigux/check-phase12-release-readiness-packet.py`
 - `scripts/zigux/validate-phase12.py`
 - `zigux/tests/phase12_cross_build.zig`
 - `zigux/tests/phase12_build.zig`
@@ -103,20 +106,24 @@ The current bounded release-evidence set is:
 1. validate the shared Phase 12 survey packet
 - `python3 scripts/zigux/validate-phase12.py`
 
-2. run the make-level validation entrypoint
+2. run the dedicated release-readiness packet checker
+- `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`
+- `python3 scripts/zigux/check-phase12-release-readiness-packet.py`
+
+3. run the make-level validation entrypoint
 - `make -C zigux phase12-validate`
 
-3. replay the bounded cross-compile smoke packet
+4. replay the bounded cross-compile smoke packet
 - `python3 scripts/zigux/check-phase12-cross.py --zig <zig-path>`
 
-4. run the focused libbpf-only replay shard
+5. run the focused libbpf-only replay shard
 - `python3 scripts/zigux/check-phase12-libbpf-focused-replay.py`
 - `zig build test --build-file zigux/tests/phase12_libbpf_only_build.zig --summary all`
 
-5. run the shared Phase 12 build replay
+6. run the shared Phase 12 build replay
 - `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
 
-6. run the Linux-style combined Phase 12 entrypoint
+7. run the Linux-style combined Phase 12 entrypoint
 - `make -C zigux phase12`
 
 ## Non-goals
@@ -131,4 +138,4 @@ This survey does not claim:
 
 ## Next bounded step
 
-If this PMO lane reopens, the next honest follow-up is to fail-close the shared Phase 12 validator and scripts index on this release-readiness survey itself, so `scripts/zigux/validate-phase12.py` and `scripts/zigux/README.md` must keep the mixed fallback split, the bounded cross-compile packet, the shared review-checklist packet, and the active-not-closed PMO reading explicit instead of leaving this release-facing note easier to drift than the surrounding driver and fallback artifacts.
+If this PMO lane reopens, the next honest follow-up is to fail-close the shared Phase 12 validator and scripts index on this release-readiness survey plus its dedicated checker, so `scripts/zigux/validate-phase12.py` and `scripts/zigux/README.md` must keep the mixed fallback split, the bounded cross-compile packet, the shared review-checklist packet, the dedicated release-readiness guard, and the active-not-closed PMO reading explicit instead of leaving this release-facing note easier to drift than the surrounding driver and fallback artifacts.
