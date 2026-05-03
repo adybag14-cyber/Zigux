@@ -53,6 +53,15 @@ pub const PollSummary = struct {
     first_error: ?i32,
 };
 
+pub const PollExecutionSummary = struct {
+    poll: PollSummary,
+    attempted_ready_buffer_count: usize,
+    completed_ready_buffer_count: usize,
+    processed_record_count: usize,
+    first_process_error_index: ?usize,
+    first_process_error: ?i32,
+};
+
 pub const PollError = error{
     InvalidTimeout,
     ReadyCountExceedsObservedEvents,
@@ -60,6 +69,8 @@ pub const PollError = error{
     TimeoutObservationHasReadyBuffer,
     InterruptedObservationHasReadyBuffer,
     FailedObservationHasBufferState,
+    ReadyBufferProcessingExceedsObservedEvents,
+    NonReadyWaitHasProcessedRecords,
 };
 
 fn hasAnyBufferState(summary: ReadyBufferSummary) bool {
@@ -210,6 +221,38 @@ pub fn summarizePoll(
     };
 }
 
+pub fn summarizePollExecution(
+    timeout_ms: i32,
+    observation: WaitObservation,
+    buffers: []const BufferObservation,
+    process_observations: []const ProcessRecordObservation,
+) PollError!PollExecutionSummary {
+    const poll = try summarizePoll(timeout_ms, observation, buffers);
+    const process = summarizeProcessRecords(process_observations);
+
+    switch (poll.outcome) {
+        .ready => {
+            if (process.attempted_count > poll.observed_ready_events) {
+                return PollError.ReadyBufferProcessingExceedsObservedEvents;
+            }
+        },
+        .timeout, .interrupted, .failed => {
+            if (process.attempted_count != 0) {
+                return PollError.NonReadyWaitHasProcessedRecords;
+            }
+        },
+    }
+
+    return .{
+        .poll = poll,
+        .attempted_ready_buffer_count = process.attempted_count,
+        .completed_ready_buffer_count = process.completed_count,
+        .processed_record_count = process.processed_record_count,
+        .first_process_error_index = process.first_error_index,
+        .first_process_error = process.first_error,
+    };
+}
+
 test "classifyWaitClass keeps perf_buffer__poll timeout classes explicit" {
     try std.testing.expectEqual(WaitClass.indefinite, try classifyWaitClass(-1));
     try std.testing.expectEqual(WaitClass.nonblocking, try classifyWaitClass(0));
@@ -301,6 +344,44 @@ test "summarizeProcessRecords keeps perf_buffer__process_records fail-fast order
     try std.testing.expectEqual(@as(usize, 6), success.processed_record_count);
     try std.testing.expectEqual(@as(?usize, null), success.first_error_index);
     try std.testing.expectEqual(@as(?i32, null), success.first_error);
+}
+
+test "summarizePollExecution keeps ready-buffer processing inside the observed epoll budget" {
+    const buffers = [_]BufferObservation{
+        .{ .ready = true },
+        .{ .ready = true },
+        .{ .error_code = -32 },
+    };
+    const summary = try summarizePollExecution(12, .{ .ready_events = 3 }, &buffers, &.{
+        .{ .records_processed = 4 },
+        .{ .result = -11 },
+        .{ .records_processed = 9 },
+    });
+
+    try std.testing.expectEqual(PollOutcome.ready, summary.poll.outcome);
+    try std.testing.expectEqual(@as(usize, 2), summary.attempted_ready_buffer_count);
+    try std.testing.expectEqual(@as(usize, 1), summary.completed_ready_buffer_count);
+    try std.testing.expectEqual(@as(usize, 4), summary.processed_record_count);
+    try std.testing.expectEqual(@as(?usize, 1), summary.first_process_error_index);
+    try std.testing.expectEqual(@as(?i32, -11), summary.first_process_error);
+}
+
+test "summarizePollExecution rejects impossible processing outside the live perf_buffer__poll wait result" {
+    try std.testing.expectError(
+        PollError.NonReadyWaitHasProcessedRecords,
+        summarizePollExecution(0, .timed_out, &.{}, &.{.{ .records_processed = 1 }}),
+    );
+    try std.testing.expectError(
+        PollError.NonReadyWaitHasProcessedRecords,
+        summarizePollExecution(-1, .interrupted, &.{}, &.{.{ .records_processed = 1 }}),
+    );
+    try std.testing.expectError(
+        PollError.ReadyBufferProcessingExceedsObservedEvents,
+        summarizePollExecution(5, .{ .ready_events = 1 }, &.{.{ .ready = true }}, &.{
+            .{ .records_processed = 1 },
+            .{ .records_processed = 2 },
+        }),
+    );
 }
 
 test "summarizePoll rejects impossible buffer state for timeout interrupt and failed wait results" {
