@@ -41,6 +41,10 @@ RELEASE_BOUNDARY_LINES = [
 
 SCRIPTS_README_LINES = [
     "- `check-phase14-docs-root-smoke-summary.py`",
+    "`make -C zigux phase14-validate PYTHON=python3 ZIG=<attached-zig-path>`",
+    "`make -C zigux phase14-smoke ZIG=<attached-zig-path>`",
+    "`make -C zigux phase14-test ZIG=<attached-zig-path>`",
+    "`make -C zigux phase14 ZIG=<attached-zig-path>`",
 ]
 
 
@@ -128,6 +132,10 @@ Phase 14 notes
 Current bootstrap helpers
 - `validate-phase14.py`
 - `check-phase14-docs-root-smoke-summary.py`
+
+Phase 14 flow
+- `check-phase14-docs-root-smoke-summary.py --self-test` and `check-phase14-docs-root-smoke-summary.py` keep the docs-root Phase 14 smoke summary and the shared smoke survey fail-closed around the same validator-backed `phase14-validate`, focused `phase14-smoke`, and study-only reviewability wording before the broader shared validator runs.
+- attached-toolchain fallback commands stay explicit in the scripts index too: `make -C zigux phase14-validate PYTHON=python3 ZIG=<attached-zig-path>`, `make -C zigux phase14-smoke ZIG=<attached-zig-path>`, `make -C zigux phase14-test ZIG=<attached-zig-path>`, and `make -C zigux phase14 ZIG=<attached-zig-path>`.
 """.strip()
 
     cases = [
@@ -257,6 +265,25 @@ Current bootstrap helpers
             + "\n- make -C zigux phase14-smoke ZIG=<attached-zig-path>",
             release_boundary_text,
             scripts_readme_text,
+            True,
+        ),
+        (
+            "missing_scripts_readme_phase14_test_fallback",
+            docs_root_text,
+            survey_text,
+            release_boundary_text,
+            scripts_readme_text.replace(
+                "`make -C zigux phase14-test ZIG=<attached-zig-path>`, ", ""
+            ),
+            True,
+        ),
+        (
+            "duplicate_scripts_readme_phase14_validate_fallback",
+            docs_root_text,
+            survey_text,
+            release_boundary_text,
+            scripts_readme_text
+            + "\n- duplicate: `make -C zigux phase14-validate PYTHON=python3 ZIG=<attached-zig-path>`",
             True,
         ),
     ]
