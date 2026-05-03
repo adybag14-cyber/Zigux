@@ -105,6 +105,7 @@ Traceability summary:
 Current repo evidence:
 - implementation anchor: `security/landlock/ruleset.zig`
 - dedicated tests: `zigux/tests/phase13_landlock_ruleset.zig`
+- reviewability gate: `zigux/tests/phase13_landlock_ruleset_reviewability.zig`
 - manifest: `zigux/tests/phase13_landlock_ruleset_manifest.json`
 - manifest `surveyed_commit`: `8812ad875b0307da2cc0fa3588b9a24325b85e17`
 - shared build entry: `zigux/tests/phase13_build.zig`
@@ -117,6 +118,7 @@ Current lane state recorded in the manifest:
 - landed `phase13-make-target`
 - landed `phase13-landlock-ruleset-starter`
 - landed `phase13-landlock-ruleset-test-gate`
+- landed `phase13-landlock-ruleset-reviewability-gate`
 - landed `phase13-landlock-ruleset-slice-note`
 - landed `phase13-landlock-ruleset-survey-note`
 - landed `phase13-landlock-rule-layer-merge-followup`
@@ -128,7 +130,7 @@ Current lane state recorded in the manifest:
 - blocked `phase13-landlock-live-tree-state-blocker`
 
 Traceability summary:
-- this anchor stays helper-first and manifest-backed: the current ruleset helper packet is wired through the shared Phase 13 build and make entrypoints, records its dedicated slice plus survey notes, and now includes layer-merge, tree-search, tree-link, rule-lookup, materialization, and release planners while still refusing to claim `rb_replace_node()`, live object ownership transfer, hierarchy lifetime, or workqueue-backed teardown as pure in-memory slice work.
+- this anchor stays helper-first and manifest-backed: the current ruleset helper packet is wired through the shared Phase 13 build and make entrypoints, records its dedicated reviewability gate plus slice and survey notes, and now includes layer-merge, tree-search, tree-link, rule-lookup, materialization, and release planners while still refusing to claim `rb_replace_node()`, live object ownership transfer, hierarchy lifetime, or workqueue-backed teardown as pure in-memory slice work.
 
 ### `security/landlock/syscalls.c`
 
