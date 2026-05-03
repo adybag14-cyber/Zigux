@@ -575,8 +575,18 @@ def self_test() -> int:
         if code == 0:
             print("PHASE1_VALIDATOR_SELF_TEST=fail")
             return 1
-
         manifest["helper_review_notes"]["tools/lib/string.zig"]["memparse_unit_test_contract"] = MANIFEST_EXPECTATIONS["tools/lib/string.zig"]["memparse_unit_test_contract"]
+        write(root / "zigux/tests/fixtures/phase1_helper_manifest.json", json.dumps(manifest, indent=2) + "\n")
+
+        manifest["helper_review_notes"]["tools/lib/string.zig"]["prefix_length_unit_test_anchor"] = "old anchor"
+        write(root / "zigux/tests/fixtures/phase1_helper_manifest.json", json.dumps(manifest, indent=2) + "\n")
+        code = os.spawnve(os.P_WAIT, sys.executable, [sys.executable, __file__], env)
+        if code == 0:
+            print("PHASE1_VALIDATOR_SELF_TEST=fail")
+            return 1
+        manifest["helper_review_notes"]["tools/lib/string.zig"]["prefix_length_unit_test_anchor"] = MANIFEST_EXPECTATIONS["tools/lib/string.zig"]["prefix_length_unit_test_anchor"]
+        write(root / "zigux/tests/fixtures/phase1_helper_manifest.json", json.dumps(manifest, indent=2) + "\n")
+
         manifest["helper_review_notes"]["tools/lib/rbtree.zig"]["reverse_unit_test_contract"] = "old wording"
         write(root / "zigux/tests/fixtures/phase1_helper_manifest.json", json.dumps(manifest, indent=2) + "\n")
         code = os.spawnve(os.P_WAIT, sys.executable, [sys.executable, __file__], env)
@@ -585,7 +595,7 @@ def self_test() -> int:
             return 1
 
     print("PHASE1_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_VALIDATOR_SELF_TEST_CASE_COUNT=8")
+    print("PHASE1_VALIDATOR_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
