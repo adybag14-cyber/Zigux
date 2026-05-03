@@ -79,9 +79,9 @@ Phase 2 is only considered closed when all of the following are green:
 - the dedicated alignment checker keeps the bridge checker, shared validator, closure validator, workflow wiring, Makefile route, scripts index, and 26-case manifest packet in sync before closure evidence stays green
 
 5. bounded mk_elfconfig artifact parity and determinism
-- `python3 scripts/zigux/check-mk_elfconfig-diff.py --self-test`
+- `python3 scripts/zigux/check-mk-elfconfig-diff.py --self-test`
 - the checker self-test must stay in the Linux-style `phase2-tools` path before live artifact replay so fixture-shape and explicit-tool drift cannot hide behind local compiler or Zig availability
-- `python3 scripts/zigux/check-mk_elfconfig-diff.py`
+- `python3 scripts/zigux/check-mk-elfconfig-diff.py`
 - repeat-run determinism is required for both the bounded C tool and the Zig tool before closure evidence stays green
 
 6. bounded kconfig bridge parity and determinism
@@ -128,14 +128,14 @@ Phase 2 is only considered closed when all of the following are green:
 - `PHASE2_GENKSYMS_CRC_SELF_TEST=python3 scripts/zigux/check-genksyms-crc-diff.py --self-test`
 - `PHASE2_GENKSYMS_CRC_GATE=python3 scripts/zigux/check-genksyms-crc-diff.py`
 - `PHASE2_GENKSYMS_CRC_DETERMINISM=check-genksyms-crc-diff.py replays C and Zig outputs twice before comparing artifacts`
-- `PHASE2_MK_ELFCONFIG_SELF_TEST=python3 scripts/zigux/check-mk_elfconfig-diff.py --self-test`
+- `PHASE2_MK_ELFCONFIG_SELF_TEST=python3 scripts/zigux/check-mk-elfconfig-diff.py --self-test`
 - `PHASE2_GENKSYMS_BRIDGE_SELF_TEST=python3 scripts/zigux/check-genksyms-bridge.py --self-test`
 - `PHASE2_GENKSYMS_BRIDGE_GATE=python3 scripts/zigux/check-genksyms-bridge.py`
 - `PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST=python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test`
 - `PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_GATE=python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py`
 - `PHASE2_GENKSYMS_BRIDGE_DETERMINISM=check-genksyms-bridge.py replays C and Zig bridge outputs twice before comparing artifacts`
-- `PHASE2_MK_ELFCONFIG_GATE=python3 scripts/zigux/check-mk_elfconfig-diff.py`
-- `PHASE2_MK_ELFCONFIG_DETERMINISM=check-mk_elfconfig-diff.py replays C and Zig outputs twice before comparing artifacts`
+- `PHASE2_MK_ELFCONFIG_GATE=python3 scripts/zigux/check-mk-elfconfig-diff.py`
+- `PHASE2_MK_ELFCONFIG_DETERMINISM=check-mk-elfconfig-diff.py replays C and Zig outputs twice before comparing artifacts`
 - `PHASE2_KCONFIG_BRIDGE_SELF_TEST=python3 scripts/zigux/check-kconfig-bridge.py --self-test`
 - `PHASE2_KCONFIG_BRIDGE_GATE=python3 scripts/zigux/check-kconfig-bridge.py`
 - `PHASE2_KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=6`
