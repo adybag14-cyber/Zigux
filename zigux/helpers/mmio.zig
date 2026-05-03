@@ -16,12 +16,29 @@ fn scopeFromPolicy(policy: interop_policy.DecodedInteropPolicy) narrow.ScopeErro
     return policy.unsafe_scope;
 }
 
+fn ensureApprovedPolicyWidth(comptime T: type) void {
+    switch (@typeInfo(T)) {
+        .int => |int_info| {
+            if (int_info.signedness != .unsigned) {
+                @compileError("mmio policy bridges only support unsigned integer widths");
+            }
+        },
+        else => @compileError("mmio policy bridges only support integer widths"),
+    }
+
+    const bits = @bitSizeOf(T);
+    if (!(bits == 8 or bits == 16 or bits == 32 or bits == 64)) {
+        @compileError("mmio policy bridges only support 8, 16, 32, or 64-bit widths");
+    }
+}
+
 pub fn readScopedWithPolicy(
     comptime T: type,
     policy: interop_policy.DecodedInteropPolicy,
     base_addr: usize,
     offset: usize,
 ) narrow.ScopeError!T {
+    ensureApprovedPolicyWidth(T);
     const ptr = try narrow.scopedPointerAt(T, try scopeFromPolicy(policy), base_addr, offset);
     return ptr.*;
 }
@@ -33,6 +50,7 @@ pub fn writeScopedWithPolicy(
     offset: usize,
     value: T,
 ) narrow.ScopeError!void {
+    ensureApprovedPolicyWidth(T);
     const ptr = try narrow.scopedPointerAt(T, try scopeFromPolicy(policy), base_addr, offset);
     ptr.* = value;
 }
@@ -237,6 +255,17 @@ test "phase3 mmio wrapper consumes decoded interop policy" {
     try std.testing.expectEqual(@as(u64, 0x0123_4567_89ab_cdef), regs64[1]);
     try std.testing.expectEqual(@as(u64, 0x0123_4567_89ab_cdef), try read64Policy(mmio_policy, base64, @sizeOf(u64)));
 
+    try writeScopedWithPolicy(u8, mmio_policy, base32, 1, 0x3c);
+    try std.testing.expectEqual(@as(u8, 0x3c), try readScopedWithPolicy(u8, mmio_policy, base32, 1));
+    try writeScopedWithPolicy(u16, mmio_policy, base32, 0, 0x7bcd);
+    try std.testing.expectEqual(@as(u16, 0x7bcd), try readScopedWithPolicy(u16, mmio_policy, base32, 0));
+    try writeScopedWithPolicy(u32, mmio_policy, base32, @sizeOf(u32), 0xdecafbad);
+    try std.testing.expectEqual(@as(u32, 0xdecafbad), regs32[1]);
+    try std.testing.expectEqual(@as(u32, 0xdecafbad), try readScopedWithPolicy(u32, mmio_policy, base32, @sizeOf(u32)));
+    try writeScopedWithPolicy(u64, mmio_policy, base64, 0, 0x5555_6666_7777_8888);
+    try std.testing.expectEqual(@as(u64, 0x5555_6666_7777_8888), regs64[0]);
+    try std.testing.expectEqual(@as(u64, 0x5555_6666_7777_8888), try readScopedWithPolicy(u64, mmio_policy, base64, 0));
+
     try std.testing.expectError(error.UnsafeScopeDenied, write32Policy(raw_pointer_policy, base32, 0, 1));
     try std.testing.expectError(error.UnsafeScopeDenied, read32Policy(raw_pointer_policy, base32, 0));
     try std.testing.expectError(error.UnsafeScopeDenied, write32Policy(none_policy, base32, 0, 1));
@@ -245,6 +274,10 @@ test "phase3 mmio wrapper consumes decoded interop policy" {
     try std.testing.expectError(error.UnsafeScopeDenied, read64Policy(raw_pointer_policy, base64, 0));
     try std.testing.expectError(error.UnsafeScopeDenied, write64Policy(none_policy, base64, 0, 1));
     try std.testing.expectError(error.UnsafeScopeDenied, read64Policy(none_policy, base64, 0));
+    try std.testing.expectError(error.UnsafeScopeDenied, writeScopedWithPolicy(u16, raw_pointer_policy, base32, 0, 1));
+    try std.testing.expectError(error.UnsafeScopeDenied, readScopedWithPolicy(u16, raw_pointer_policy, base32, 0));
+    try std.testing.expectError(error.UnsafeScopeDenied, writeScopedWithPolicy(u64, none_policy, base64, 0, 1));
+    try std.testing.expectError(error.UnsafeScopeDenied, readScopedWithPolicy(u64, none_policy, base64, 0));
 }
 
 test "phase3 mmio wrapper keeps declared scope explicit across widths" {
