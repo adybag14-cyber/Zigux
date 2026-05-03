@@ -77,6 +77,12 @@ pub const RuntimeTraceEventsLoader = struct {
         return self.cached_plan orelse error.MissingLoadPlan;
     }
 
+    pub fn releasePlanWithoutSubstrate(self: *Self) !RuntimeTraceEventsLoadPlan {
+        const plan = self.cached_plan orelse error.MissingLoadPlan;
+        try self.releaseWithoutSubstrate();
+        return plan;
+    }
+
     pub fn releaseWithoutSubstrate(self: *Self) !void {
         if (self.stage_state != .waiting_on_runtime_substrate) return error.InvalidLoaderState;
         self.stage_state = .released_without_substrate;
@@ -190,7 +196,29 @@ test "runtime trace-events loader keeps the release-without-substrate fallback e
     _ = try loader.prepare(&module);
     _ = try loader.requestRuntimeLoad();
 
-    try loader.releaseWithoutSubstrate();
+    const released_plan = try loader.releasePlanWithoutSubstrate();
     try std.testing.expectEqual(LoaderStage.released_without_substrate, loader.stage());
+    try std.testing.expectEqualStrings("runtime_trace_events", released_plan.module_name);
+    try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample.c", released_plan.anchor);
+    try std.testing.expectEqualStrings("zigux_runtime_trace_events_init", released_plan.entry_symbol);
+    try std.testing.expectEqualStrings("zigux_runtime_trace_events_exit", released_plan.exit_symbol);
+    try std.testing.expectEqualStrings("foo_bar_reg", released_plan.register_api);
+    try std.testing.expectEqualStrings("foo_bar_unreg", released_plan.unregister_api);
+    try std.testing.expectEqualStrings("event-sample", released_plan.main_thread_label);
+    try std.testing.expectEqualStrings("event-sample-fn", released_plan.function_thread_label);
+    try std.testing.expect(released_plan.requires_runtime_substrate);
+    try std.testing.expect(released_plan.provides_selftest_hook);
+    try std.testing.expectEqual(runtime_trace_events_sample.ModuleStage.selftest_complete, released_plan.handoff_stage);
+    try std.testing.expectEqual(runtime_trace_events_sample.ModuleStage.selftest_complete, released_plan.summary.stage);
+    try std.testing.expectEqual(@as(usize, 0), released_plan.summary.registration_depth);
+    try std.testing.expectEqual(@as(usize, 6), released_plan.summary.main_thread_events);
+    try std.testing.expectEqual(@as(usize, 2), released_plan.summary.fn_thread_events);
+    try std.testing.expectEqual(@as(usize, 8), released_plan.summary.total_events);
+    try std.testing.expectEqual(@as(usize, 1), released_plan.summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), released_plan.summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), released_plan.summary.exit_runs);
+    try std.testing.expectEqualStrings("foo_bar_reg", released_plan.summary.last_register_label orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqualStrings("foo_bar_unreg", released_plan.summary.last_unregister_label orelse return error.ExpectedFunctionPayload);
     try std.testing.expectError(error.InvalidLoaderState, loader.requestRuntimeLoad());
+    try std.testing.expectError(error.InvalidLoaderState, loader.releasePlanWithoutSubstrate());
 }
