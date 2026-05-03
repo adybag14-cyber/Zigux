@@ -58,6 +58,7 @@ WORKFLOW_MARKERS = [
 README_MARKERS = [
     "Phase 15 notes",
     "only remaining blocked work is the deep-core status-change evidence",
+    "Documentation/zigux/phase15-indefinite-c-policy.md",
     "Documentation/zigux/phase15-handoff-next-steps-survey.md",
 ]
 
@@ -178,6 +179,7 @@ INDEFINITE_POLICY_TEST_MARKERS = [
 ]
 
 DOCS_ROOT_REVIEWABILITY_MARKERS = [
+    "Documentation/zigux/phase15-indefinite-c-policy.md",
     "Documentation/zigux/phase15-readiness-gate-survey.md",
     "Documentation/zigux/phase15-handoff-next-steps-survey.md",
     "only remaining blocked work is the deep-core status-change evidence",
