@@ -226,6 +226,34 @@ test "incremental checksum replacements match full recomputation" {
     try std.testing.expectEqual(checksum.compute(&ipv4_header), checksum.replace4(checksum_before_addr_change, old_saddr, new_saddr));
 }
 
+test "fixture inventory and representative checksum cases stay reviewable" {
+    try std.testing.expectEqual(@as(usize, 5), fixtures.compute_cases.len);
+    try std.testing.expectEqual(@as(usize, 2), fixtures.composition_cases.len);
+    try std.testing.expectEqual(@as(usize, 3), fixtures.seeded_cases.len);
+    try std.testing.expectEqual(@as(usize, 1), fixtures.pseudo_header_cases.len);
+    try std.testing.expectEqual(@as(usize, 3), fixtures.ipv6_pseudo_header_cases.len);
+    try std.testing.expectEqual(@as(usize, 4), fixtures.carry_discipline_cases.len);
+    try std.testing.expectEqual(@as(usize, 6), fixtures.kunit_random_prefix_cases.len);
+    try std.testing.expectEqual(@as(usize, 2), fixtures.perf_cases.len);
+
+    try std.testing.expectEqualStrings("ipv4 header", fixtures.compute_cases[2].name);
+    try std.testing.expectEqual(@as(u16, 0x9c5d), fixtures.compute_cases[2].expected_compute);
+
+    try std.testing.expectEqualStrings("icmpv6 preserves upper declared length bits", fixtures.ipv6_pseudo_header_cases[2].name);
+    try std.testing.expectEqual(@as(u32, 0x0001_0001), fixtures.ipv6_pseudo_header_cases[2].declared_len);
+    try std.testing.expectEqual(@as(u16, 0x81ef), fixtures.ipv6_pseudo_header_cases[2].expected_compute);
+
+    try std.testing.expectEqualStrings("two-byte no-carry seed stays one step below overflow", fixtures.carry_discipline_cases[3].name);
+    try std.testing.expectEqual(@as(u32, 0xfbfb), fixtures.carry_discipline_cases[3].expected_partial);
+
+    try std.testing.expectEqualStrings("64", fixtures.perf_cases[0].label);
+    try std.testing.expectEqual(@as(usize, 20_000), fixtures.perf_cases[0].reps);
+    try std.testing.expectEqual(@as(u16, 150), fixtures.perf_cases[0].max_slowdown_pct);
+
+    try std.testing.expectEqualStrings("1501", fixtures.perf_cases[1].label);
+    try std.testing.expectEqual(@as(u32, 0x1234_5678), fixtures.perf_cases[1].seed);
+}
+
 test "perf fixtures stay bounded and deterministic for checksum-only replay" {
     const expected = [_]struct {
         label: []const u8,
