@@ -12,6 +12,9 @@ ROOT = Path(__file__).resolve().parents[2]
 
 POLICY = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
 WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
+MAKEFILE = ROOT / "zigux" / "Makefile"
+README = ROOT / "scripts" / "zigux" / "README.md"
+CLOSURE_DOC = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
 PHASE2_VALIDATOR = ROOT / "scripts" / "zigux" / "validate-phase2.py"
 
 EXPECTED_PIN_TARGETS = [
@@ -23,6 +26,11 @@ ARCHIVE_SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 EXACT_WORKFLOW_RUN_COUNTS = {
     "python3 scripts/zigux/install-zig.py --dest .zig-toolchain": 2,
     "python3 scripts/zigux/check-zig-toolchain.py": 2,
+}
+
+EXACT_MAKEFILE_RUN_COUNTS = {
+    "scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test": 1,
+    "scripts/zigux/check-phase2-toolchain-pin-scope.py": 1,
 }
 
 WORKFLOW_FORBIDDEN_FRAGMENTS = [
@@ -38,6 +46,21 @@ PHASE2_VALIDATOR_MARKERS = [
     "\"PHASE2_TOOLCHAIN_PIN_SCOPE=pass\"",
     "str(TOOLCHAIN_PIN_SCOPE_CHECKER)",
     "toolchain_pin_scope_checker",
+]
+
+README_MARKERS = [
+    "check-phase2-toolchain-pin-scope.py --self-test",
+    "check-phase2-toolchain-pin-scope.py",
+    "zig-toolchain-policy.json",
+    "x86_64-linux",
+]
+
+CLOSURE_MARKERS = [
+    "scripts/zigux/zig-toolchain-policy.json",
+    "scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+    "scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "x86_64-linux",
+    "PHASE2_TOOLCHAIN_PIN_SCOPE_POLICY=",
 ]
 
 
@@ -87,6 +110,16 @@ def validate_exact_workflow_runs(text: str) -> list[str]:
     for fragment in WORKFLOW_FORBIDDEN_FRAGMENTS:
         if fragment in text:
             issues.append(f"workflow_forbidden_fragment:{fragment}")
+    return issues
+
+
+def validate_exact_makefile_runs(text: str) -> list[str]:
+    issues: list[str] = []
+    stripped_lines = [line.strip() for line in text.splitlines()]
+    for command, expected_count in EXACT_MAKEFILE_RUN_COUNTS.items():
+        count = sum(1 for line in stripped_lines if line.endswith(command))
+        if count != expected_count:
+            issues.append(f"makefile_exact_run:{command}:count={count}:expected={expected_count}")
     return issues
 
 
@@ -142,6 +175,15 @@ def run_self_test() -> int:
     if not any(issue.startswith("workflow_forbidden_fragment:") for issue in issues):
         raise SystemExit("phase2-toolchain-pin-scope:self-test:workflow_forbidden_fragment")
 
+    makefile_text = "\n".join(
+        [
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
+        ]
+    )
+    if validate_exact_makefile_runs(makefile_text):
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:makefile_counts")
+
     marker_issues = validate_required_markers(
         "alpha\nbeta\ngamma",
         label="sample",
@@ -158,6 +200,14 @@ def run_self_test() -> int:
     if marker_issues != ["sample:missing_marker:delta"]:
         raise SystemExit("phase2-toolchain-pin-scope:self-test:marker_failure_shape")
 
+    readme_text = "\n".join(README_MARKERS)
+    if validate_required_markers(readme_text, label="readme", markers=README_MARKERS):
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:readme_markers")
+
+    closure_text = "\n".join(CLOSURE_MARKERS)
+    if validate_required_markers(closure_text, label="closure", markers=CLOSURE_MARKERS):
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:closure_markers")
+
     with tempfile.TemporaryDirectory(prefix="phase2_toolchain_pin_scope_") as tmp_dir_str:
         tmp_root = Path(tmp_dir_str)
         manifest_path = tmp_root / "toolchain.json"
@@ -167,7 +217,7 @@ def run_self_test() -> int:
             raise SystemExit("phase2-toolchain-pin-scope:self-test:json_round_trip")
 
     print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass")
-    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=7")
+    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
@@ -184,6 +234,9 @@ def main() -> int:
     required_files = [
         POLICY,
         WORKFLOW,
+        MAKEFILE,
+        README,
+        CLOSURE_DOC,
         PHASE2_VALIDATOR,
     ]
     missing = [str(path.relative_to(ROOT)) for path in required_files if not path.exists()]
@@ -204,7 +257,22 @@ def main() -> int:
             markers=PHASE2_VALIDATOR_MARKERS,
         )
     )
+    issues.extend(
+        validate_required_markers(
+            README.read_text(encoding="utf-8"),
+            label="scripts_readme",
+            markers=README_MARKERS,
+        )
+    )
+    issues.extend(
+        validate_required_markers(
+            CLOSURE_DOC.read_text(encoding="utf-8"),
+            label="phase2_closure_doc",
+            markers=CLOSURE_MARKERS,
+        )
+    )
     issues.extend(validate_exact_workflow_runs(WORKFLOW.read_text(encoding="utf-8")))
+    issues.extend(validate_exact_makefile_runs(MAKEFILE.read_text(encoding="utf-8")))
 
     if issues:
         print("PHASE2_TOOLCHAIN_PIN_SCOPE=fail")
