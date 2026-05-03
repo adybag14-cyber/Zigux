@@ -84,9 +84,10 @@ That means the Phase 15 tranche is governance-landed and the parked handoff is m
 The next honest bounded step around this lane is to keep the handoff narrow:
 
 1. leave this handoff lane parked unless the shared Phase 15 replay drifts again, a named reopen trigger now fits the evidence packet again, or a deep-core blocker change makes a refreshed synthesis necessary
-2. rerun `python3 scripts/zigux/validate-phase15.py`, `make -C zigux phase15-validate`, `zig build test --build-file zigux/tests/phase15_build.zig`, and `make -C zigux phase15` before refreshing neighboring governance packets when one of those conditions changes
+2. if drift is packet-local inside `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-parity-scorecard.md`, or `Documentation/zigux/phase15-indefinite-c-policy.md`, refresh that dedicated packet first and return to this handoff lane only when shared replay, docs-root alignment, or cross-packet synthesis drifts
+3. when one of those shared conditions changes, rerun `python3 scripts/zigux/validate-phase15.py`, `make -C zigux phase15-validate`, `zig build test --build-file zigux/tests/phase15_build.zig`, and `make -C zigux phase15` before refreshing neighboring governance packets
 
-If none of those conditions is true, the right action is still not another new Phase 15 slice. The right action is to leave the tranche parked and keep this handoff note honest about the now-green validator-first route, the aligned docs-root release evidence, and the still-blocked deep-core status changes.
+If none of those conditions is true, the right action is still not another new Phase 15 slice. The right action is to leave the tranche parked and keep this handoff note honest about the now-green validator-first route, the aligned docs-root release evidence, the packet-local-first sequencing rule for neighboring governance notes, and the still-blocked deep-core status changes.
 
 ## Maintenance Handoff Contract
 
