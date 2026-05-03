@@ -104,6 +104,17 @@ pub const RecoveryIoQueueMapSummary = struct {
     requires_poll_map_restore: bool,
 };
 
+pub const RecoveryEventRefillSummary = struct {
+    anchor: []const u8,
+    event_queue_index: u16,
+    event_buffer_count: u16,
+    request_queue_count: u16,
+    poll_queue_count: u16,
+    requires_event_queue_refill: bool,
+    requires_event_buffer_repost: bool,
+    requires_kick_event_all: bool,
+};
+
 pub const RecoveryRestoreSummary = struct {
     anchor: []const u8,
     request_queues: u16,
@@ -486,6 +497,24 @@ pub const VirtioScsiQueueLab = struct {
             .requires_blk_mq_map_restore = true,
             .requires_virtio_affinity_restore = layout.default_queues > 0,
             .requires_poll_map_restore = layout.poll_queues > 0,
+        };
+    }
+
+    pub fn recoveryEventRefillSummary(self: *const Self) !RecoveryEventRefillSummary {
+        if (!self.transport_frozen) {
+            return error.TransportNotFrozen;
+        }
+
+        const layout = self.frozen_layout orelse return error.QueueLayoutUnavailable;
+        return .{
+            .anchor = descriptor().anchor,
+            .event_queue_index = layout.event_queue_index,
+            .event_buffer_count = layout.event_buffer_count,
+            .request_queue_count = layout.request_queues,
+            .poll_queue_count = layout.poll_queues,
+            .requires_event_queue_refill = true,
+            .requires_event_buffer_repost = layout.event_buffer_count > 0,
+            .requires_kick_event_all = layout.event_buffer_count > 0,
         };
     }
 
