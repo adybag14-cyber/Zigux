@@ -11,6 +11,7 @@ This document records the bounded Phase 6 leaf-helper validation slice for Zigux
 - product boundary:
   - `lib/checksum.zig`
   - `zigux/tests/phase6_checksum.zig`
+  - `zigux/tests/phase6_checksum_perf.zig`
   - `zigux/tests/fixtures/phase6_checksum_vectors.zig`
   - `zigux/tests/phase6_checksum_c_parity.zig`
   - `zigux/tests/fixtures/phase6_checksum_c_harness.c`
