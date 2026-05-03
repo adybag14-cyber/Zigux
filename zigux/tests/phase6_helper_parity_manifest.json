@@ -162,6 +162,8 @@
   "exact_checks": [
     "python3 scripts/zigux/validate-phase6.py --self-test",
     "python3 scripts/zigux/validate-phase6.py",
+    "python3 scripts/zigux/check-phase6-docs-root-external-parity.py --self-test",
+    "python3 scripts/zigux/check-phase6-docs-root-external-parity.py",
     "make -C zigux phase6-validate",
     "make -C zigux phase6",
     "make -C zigux phase6-perf",
