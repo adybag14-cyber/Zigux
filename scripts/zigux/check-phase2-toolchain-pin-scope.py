@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[2]
 POLICY = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
 WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 MAKEFILE = ROOT / "zigux" / "Makefile"
-README = ROOT / "scripts" / "zigux/README.md"
+README = ROOT / "scripts" / "zigux" / "README.md"
 TOOLCHAIN_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
 CLOSURE_DOC = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
 PHASE2_VALIDATOR = ROOT / "scripts" / "zigux" / "validate-phase2.py"
@@ -604,7 +604,7 @@ def main() -> int:
     if issues:
         print("PHASE2_TOOLCHAIN_PIN_SCOPE=fail")
         print("INVALID_PHASE2_TOOLCHAIN_PIN_SCOPE_START")
-        for item in issues
+        for item in issues:
             print(item)
         print("INVALID_PHASE2_TOOLCHAIN_PIN_SCOPE_END")
         return 1
