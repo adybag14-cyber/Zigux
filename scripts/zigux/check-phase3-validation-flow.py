@@ -113,6 +113,7 @@ REQUIRED_DOCS_ROOT_SNIPPETS = (
 
 EXACT_ONCE_DOCS_ROOT_SNIPPETS = (
     "`scripts/zigux/validate-phase3.py`, `make -C zigux phase3-validate`, and the bootstrap workflow are the validator-first route for the shared Phase 3 review packet; the dedicated survey scripts listed below stay supporting checks inside that shared gate rather than standalone release entrypoints.",
+    "`scripts/zigux/validate-phase3-roadmap-gap-survey.py` remains a supporting survey check inside that shared validator-first route",
 )
 
 
@@ -575,6 +576,30 @@ def run_self_test() -> int:
         docs_root_path.write_text(original_docs_root, encoding="utf-8", newline="\n")
 
         docs_root_path.write_text(
+            original_docs_root.replace(REQUIRED_DOCS_ROOT_SNIPPETS[1], "", 1),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate(root)
+        assert (
+            "missing_docs_root_snippet:" + REQUIRED_DOCS_ROOT_SNIPPETS[1]
+            in issues
+        )
+        docs_root_path.write_text(original_docs_root, encoding="utf-8", newline="\n")
+
+        docs_root_path.write_text(
+            original_docs_root + "\n- " + REQUIRED_DOCS_ROOT_SNIPPETS[1] + "\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate(root)
+        assert (
+            "unexpected_docs_root_snippet_count:2:" + REQUIRED_DOCS_ROOT_SNIPPETS[1]
+            in issues
+        )
+        docs_root_path.write_text(original_docs_root, encoding="utf-8", newline="\n")
+
+        docs_root_path.write_text(
             original_docs_root.replace(REQUIRED_DOCS_ROOT_SNIPPETS[2], "", 1),
             encoding="utf-8",
             newline="\n",
@@ -587,7 +612,7 @@ def run_self_test() -> int:
         docs_root_path.write_text(original_docs_root, encoding="utf-8", newline="\n")
 
     print("PHASE3_VALIDATION_FLOW_SELF_TEST=pass")
-    print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=22")
+    print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=23")
     return 0
 
 
