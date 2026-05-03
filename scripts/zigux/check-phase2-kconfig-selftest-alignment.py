@@ -70,6 +70,13 @@ EXPECTED_MAKEFILE_RUN_COUNTS = {
     "scripts/zigux/check-phase2-kconfig-selftest-alignment.py": 1,
 }
 
+EXPECTED_MAKEFILE_KCONFIG_ROUTE_COUNTS = {
+    "scripts/zigux/check-kconfig-bridge.py --self-test": 1,
+    "scripts/zigux/check-kconfig-bridge.py": 1,
+    "$(ZIG) test scripts/zigux/kconfig/conf_bridge.zig": 1,
+    "$(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig": 1,
+}
+
 KCONFIG_CHECKER_MARKERS = [
     "parser.add_argument('--self-test'",
     "print('KCONFIG_BRIDGE_SELF_TEST=pass')",
@@ -121,10 +128,14 @@ def validate_exact_workflow_runs(text: str) -> list[str]:
     return issues
 
 
-def validate_exact_makefile_runs(text: str) -> list[str]:
+def validate_exact_makefile_runs(
+    text: str,
+    *,
+    expected_counts: dict[str, int] = EXPECTED_MAKEFILE_RUN_COUNTS,
+) -> list[str]:
     issues: list[str] = []
     stripped_lines = [line.strip() for line in text.splitlines()]
-    for command, expected_count in EXPECTED_MAKEFILE_RUN_COUNTS.items():
+    for command, expected_count in expected_counts.items():
         count = sum(1 for line in stripped_lines if line.endswith(command))
         if count != expected_count:
             issues.append(f"makefile_exact_run:{command}:count={count}:expected={expected_count}")
@@ -409,6 +420,9 @@ def main() -> int:
         print("MISSING_PHASE2_KCONFIG_ALIGNMENT_FILES_END")
         return 1
 
+    workflow_text = WORKFLOW.read_text(encoding="utf-8")
+    makefile_text = MAKEFILE.read_text(encoding="utf-8")
+
     issues: list[str] = []
     issues.extend(
         validate_required_markers(
@@ -431,8 +445,14 @@ def main() -> int:
             markers=PHASE2_CLOSURE_VALIDATOR_MARKERS,
         )
     )
-    issues.extend(validate_exact_workflow_runs(WORKFLOW.read_text(encoding="utf-8")))
-    issues.extend(validate_exact_makefile_runs(MAKEFILE.read_text(encoding="utf-8")))
+    issues.extend(validate_exact_workflow_runs(workflow_text))
+    issues.extend(validate_exact_makefile_runs(makefile_text))
+    issues.extend(
+        validate_exact_makefile_runs(
+            makefile_text,
+            expected_counts=EXPECTED_MAKEFILE_KCONFIG_ROUTE_COUNTS,
+        )
+    )
     issues.extend(validate_cases(load_json_object(CASES, label="cases")))
 
     if issues:
