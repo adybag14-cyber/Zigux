@@ -62,6 +62,24 @@ pub const CallbackBoundarySummary = struct {
     total_event_calls_after_recovery: usize,
 };
 
+pub const StringFormattingCase = struct {
+    iteration_count: i32,
+    selected_string: []const u8,
+    selected_string_slot: usize,
+    formatted_message: [16]u8,
+    formatted_message_len: usize,
+};
+
+pub const StringFormattingCycleSummary = struct {
+    stage_before_replay: SampleStage,
+    stage_after_replay: SampleStage,
+    cases: [5]StringFormattingCase,
+    total_event_calls_after_cycle: usize,
+    conditional_paths_checked: bool,
+    vararg_payload_path_checked: bool,
+    relative_location_path_checked: bool,
+};
+
 pub const LifecycleSummary = struct {
     stage: SampleStage,
     init_run_count: usize,
@@ -262,6 +280,38 @@ pub const TraceEventsReferenceSample = struct {
         };
     }
 
+    pub fn runStringFormattingCycleReplay(self: *Self) !StringFormattingCycleSummary {
+        if (self.stage() != .initialized) return error.InvalidLifecycleTransition;
+
+        var cases: [random_strings.len]StringFormattingCase = undefined;
+        for (random_strings, 0..) |expected_string, i| {
+            const count: i32 = @intCast(i);
+            try self.replayMainIteration(count);
+
+            var formatted_message: [16]u8 = [_]u8{0} ** 16;
+            const message = self.formattedMessage();
+            @memcpy(formatted_message[0..message.len], message);
+
+            cases[i] = .{
+                .iteration_count = count,
+                .selected_string = expected_string,
+                .selected_string_slot = self.selected_string_slot,
+                .formatted_message = formatted_message,
+                .formatted_message_len = message.len,
+            };
+        }
+
+        return .{
+            .stage_before_replay = .initialized,
+            .stage_after_replay = self.stage(),
+            .cases = cases,
+            .total_event_calls_after_cycle = self.total_event_calls,
+            .conditional_paths_checked = self.saw_conditional_path,
+            .vararg_payload_path_checked = self.saw_vararg_payload,
+            .relative_location_path_checked = self.saw_rel_loc_payload,
+        };
+    }
+
     pub fn runAnchorReplay(self: *Self) !ReplaySummary {
         if (self.stage() != .initialized) return error.InvalidLifecycleTransition;
 
@@ -370,7 +420,8 @@ test "trace-events sample replay keeps the anchor reviewable and non-runtime" {
     try std.testing.expectEqual(@as(usize, 8), exited_lifecycle.total_event_calls);
 }
 
-test "trace-events sample replays every modulo-selected string and formatted message" {
+test "trace-events sample replays every modulo-selected string and formatted message through one bounded replay" {
+    var sample = TraceEventsReferenceSample{};
     const expected_strings = [_][]const u8{
         "Mother Goose",
         "Snoopy",
@@ -378,23 +429,36 @@ test "trace-events sample replays every modulo-selected string and formatted mes
         "Frodo",
         "One ring to rule them all",
     };
+    var message_buffer: [16]u8 = undefined;
+
+    try sample.init();
+    const cycle = try sample.runStringFormattingCycleReplay();
+
+    try std.testing.expectEqual(SampleStage.initialized, cycle.stage_before_replay);
+    try std.testing.expectEqual(SampleStage.initialized, cycle.stage_after_replay);
+    try std.testing.expect(cycle.conditional_paths_checked);
+    try std.testing.expect(cycle.vararg_payload_path_checked);
+    try std.testing.expect(cycle.relative_location_path_checked);
+    try std.testing.expectEqual(@as(usize, expected_strings.len * TraceEventsReferenceSample.event_family_count), cycle.total_event_calls_after_cycle);
 
     for (expected_strings, 0..) |expected_string, count| {
-        var sample = TraceEventsReferenceSample{};
-        var message_buffer: [16]u8 = undefined;
-        try sample.init();
-        try sample.replayMainIteration(@intCast(count));
-
-        try std.testing.expectEqualStrings(expected_string, sample.selected_string);
-        try std.testing.expectEqual(@as(usize, count), sample.selected_string_slot);
+        const case = cycle.cases[count];
+        try std.testing.expectEqual(@as(i32, @intCast(count)), case.iteration_count);
+        try std.testing.expectEqualStrings(expected_string, case.selected_string);
+        try std.testing.expectEqual(@as(usize, count), case.selected_string_slot);
         try std.testing.expectEqualStrings(
             try std.fmt.bufPrint(&message_buffer, "iter={d}", .{count}),
-            sample.formattedMessage(),
+            case.formatted_message[0..case.formatted_message_len],
         );
-        try std.testing.expect(sample.saw_vararg_payload);
-        try std.testing.expect(sample.saw_rel_loc_payload);
-        try std.testing.expect(sample.saw_conditional_path);
     }
+
+    const lifecycle = sample.lifecycleSummary();
+    try std.testing.expectEqual(SampleStage.initialized, lifecycle.stage);
+    try std.testing.expectEqual(@as(usize, 1), lifecycle.init_run_count);
+    try std.testing.expectEqual(@as(usize, 0), lifecycle.replay_run_count);
+    try std.testing.expectEqual(@as(usize, 0), lifecycle.exit_run_count);
+    try std.testing.expectEqual(@as(usize, 0), lifecycle.registration_depth);
+    try std.testing.expectEqual(@as(usize, expected_strings.len * TraceEventsReferenceSample.event_family_count), lifecycle.total_event_calls);
 }
 
 test "trace-events sample exposes callback boundary recovery as one bounded replay" {
