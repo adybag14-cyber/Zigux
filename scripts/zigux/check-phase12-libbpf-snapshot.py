@@ -406,6 +406,33 @@ def run_self_test() -> int:
     second = render_snapshot()
     if first != second:
         raise SystemExit("phase12-libbpf-snapshot:self-test:repeat_run_stability")
+
+    original_render_snapshot = globals()["render_snapshot"]
+    repeat_run_state = {"calls": 0}
+
+    def unstable_render_snapshot(root: Path = ROOT) -> dict[str, object]:
+        repeat_run_state["calls"] += 1
+        snapshot = original_render_snapshot(root)
+        if repeat_run_state["calls"] == 2:
+            snapshot = dict(snapshot)
+            snapshot["surveyed_commit"] = "0" * 40
+        return snapshot
+
+    try:
+        globals()["render_snapshot"] = unstable_render_snapshot
+        drift_exit_code, drift_lines = run_snapshot_check()
+    finally:
+        globals()["render_snapshot"] = original_render_snapshot
+
+    if drift_exit_code != 1:
+        raise SystemExit("phase12-libbpf-snapshot:self-test:repeat_run_drift_exit_code")
+    expected_drift_lines = [
+        "PHASE12_LIBBPF_SNAPSHOT=fail",
+        "PHASE12_LIBBPF_REPEAT_RUN=drift",
+    ]
+    if drift_lines != expected_drift_lines:
+        raise SystemExit("phase12-libbpf-snapshot:self-test:repeat_run_drift_lines")
+
     if first["tracked_file_count"] != len(TRACKED_PATHS):
         raise SystemExit("phase12-libbpf-snapshot:self-test:tracked_file_count")
 
@@ -529,7 +556,7 @@ def run_self_test() -> int:
             raise SystemExit("phase12-libbpf-snapshot:self-test:missing_lines")
 
     print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST=pass")
-    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT=39")
+    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT=40")
     return 0
 
 
