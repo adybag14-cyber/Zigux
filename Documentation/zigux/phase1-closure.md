@@ -159,17 +159,22 @@ No additional helper should be called Phase 1 work unless this document and the 
 
 - `tools/lib/string.zig` closure includes committed C-backed parity coverage for Linux-style bool parsing, C-string-aware `strlcpy` length and truncation behavior, in-place whitespace and replacement helpers including embedded-NUL `remove_spaces` handling, and first-mismatch `memchrInv` detection.
 - `tools/lib/string.zig` direct Zig unit coverage also keeps `strlcpy` aligned with C-string semantics by stopping at the first embedded NUL, preserving truncation behavior, and leaving zero-sized destinations untouched.
+- `tools/lib/string.zig` direct Zig unit coverage also keeps `strscpy` aligned with bounded kernel copy semantics for exact-fit, truncation, embedded-NUL, and zero-sized destination cases.
 - `tools/lib/string.zig` direct Zig unit coverage also keeps `strEq()` and `streq()` aligned with C-string equality semantics for exact, empty, length-mismatched, case-sensitive, and embedded-NUL comparisons.
+- `tools/lib/string.zig` direct Zig unit coverage also keeps `sysfsStreq()` and `sysfs_streq()` aligned by treating a single trailing newline as equivalent to C-string termination while still rejecting non-terminal newline and content mismatches.
 - `tools/lib/string.zig` direct Zig unit coverage keeps `memchrInv` honest for both aligned and misaligned long buffers beyond the short C-backed fixture cases.
 - `tools/lib/string.zig` direct Zig unit coverage also keeps `trimSpaces` and `strim` aligned with C-string semantics by trimming trailing whitespace that appears before the first embedded NUL while preserving bytes beyond that terminator.
 - `tools/lib/string.zig` direct Zig unit coverage also keeps `strStarts` and `strstarts` aligned with kernel-style prefix semantics for exact, empty-prefix, shorter-input, and case-sensitive comparisons.
 - `tools/lib/string.zig` direct Zig unit coverage also keeps `strHasPrefix` and `str_has_prefix` aligned by returning the matched C-string prefix length for exact and embedded-NUL prefixes while rejecting mismatches and longer prefixes.
 - `tools/lib/string.zig` direct Zig unit coverage also keeps `strEndsWith`, `str_ends_with`, and `strends` aligned with kernel-style suffix semantics for exact, empty-suffix, shorter-input, and case-sensitive comparisons.
 - `tools/lib/string.zig` direct Zig unit coverage also keeps the header-level `memparse()` string surface aligned by preserving decimal, hexadecimal, suffix-bearing, and invalid inputs without changing the parsed value or rest pointer contract.
+- `tools/lib/string.zig` direct Zig unit coverage also keeps `memparse()` binary-unit-tail replays aligned so `KiB` and optional trailing `B` forms preserve the same parsed value and rest pointer contract as the base suffix cases already recorded in the closure validator.
 - string fixture authority: `zigux/tests/fixtures/phase1_helpers.json`
 - string manifest review anchor: `zigux/tests/fixtures/phase1_helper_manifest.json`
 - string c-string unit-test anchor: `tools/lib/string.zig:test "strlcpy stops at the first embedded NUL in the source"`
+- string strscpy unit-test anchor: `tools/lib/string.zig:test "strscpy mirrors bounded kernel copy semantics"`
 - string equality unit-test anchor: `tools/lib/string.zig:test "streq matches C-string equality semantics"`
+- string sysfs unit-test anchor: `tools/lib/string.zig:test "sysfsStreq treats a trailing newline as equivalent to C-string termination"`
 - string direct unit-test anchor: `tools/lib/string.zig:test "memchrInv scans aligned and misaligned long buffers"`
 - string alias unit-test anchor: `tools/lib/string.zig:test "trimSpaces and strim trim trailing whitespace before an embedded NUL"`
 - string prefix unit-test anchor: `tools/lib/string.zig:test "strstarts matches kernel prefix semantics"`
@@ -180,7 +185,9 @@ No additional helper should be called Phase 1 work unless this document and the 
 - `PHASE1_STRING_FIXTURE=zigux/tests/fixtures/phase1_helpers.json`
 - `PHASE1_STRING_REVIEW=string parity covers Linux-style bool parsing for true, false, and invalid forms, C-string-aware strlcpy length and truncation behavior, whitespace cleanup including embedded-NUL remove_spaces handling, replacement, and memchrInv mismatch detection`
 - `PHASE1_STRING_CSTRING_UNIT_REVIEW=string strlcpy stops at the first embedded NUL, preserves truncation behavior, and leaves zero-sized destinations untouched`
+- `PHASE1_STRING_STRSCPY_UNIT_REVIEW=string strscpy keeps bounded kernel copy semantics aligned for exact-fit, truncation, embedded-NUL, and zero-sized destination cases`
 - `PHASE1_STRING_EQUALITY_UNIT_REVIEW=string strEq and streq keep C-string equality aligned for exact, empty, length-mismatched, case-sensitive, and embedded-NUL comparisons`
+- `PHASE1_STRING_SYSFS_UNIT_REVIEW=string sysfsStreq and sysfs_streq treat a single trailing newline as equivalent to C-string termination while still rejecting non-terminal newline and content mismatches`
 - `PHASE1_STRING_UNIT_REVIEW=string memchrInv aligned and misaligned long-buffer scans stay consistent beyond the short C-backed fixture cases`
 - `PHASE1_STRING_ALIAS_UNIT_REVIEW=string trimSpaces and strim trim trailing whitespace before the first embedded NUL while preserving bytes beyond that terminator`
 - `PHASE1_STRING_PREFIX_UNIT_REVIEW=string strStarts and strstarts keep kernel-style prefix checks aligned for exact, empty-prefix, shorter-input, and case-sensitive comparisons`
