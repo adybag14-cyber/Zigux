@@ -26,6 +26,7 @@ REQUIRED_FILES = [
     "scripts/zigux/check-phase1-bitmap-validator-anchors.py",
     "scripts/zigux/check-phase1-find-bit-validator-anchors.py",
     "scripts/zigux/check-phase1-route-summary-counts.py",
+    "scripts/zigux/check-phase1-validation-route-inventory.py",
     "scripts/zigux/check-phase1-parity.py",
     "scripts/zigux/check-phase1-bench.py",
     "scripts/zigux/validate-phase1-closure.py",
@@ -54,7 +55,7 @@ SCRIPTS_ROOT_LINES = {
     ),
     "scripts_root_phase1_review_hooks_count": (
         "scripts/zigux/README.md",
-        "- `check-phase1-bitmap-validator-anchors.py --self-test`, `check-phase1-bitmap-validator-anchors.py`, `check-phase1-find-bit-validator-anchors.py --self-test`, `check-phase1-find-bit-validator-anchors.py`, `check-phase1-route-summary-counts.py --self-test`, `check-phase1-route-summary-counts.py`, `check-phase1-parity.py --self-test`, `check-phase1-parity.py`, `check-phase1-bench.py --self-test`, `check-phase1-bench.py`, `validate-phase1-closure.py --self-test`, and `validate-phase1-closure.py` are the bounded fail-closed review hooks around that same closed Phase 1 helper tranche.",
+        "- `check-phase1-bitmap-validator-anchors.py --self-test`, `check-phase1-bitmap-validator-anchors.py`, `check-phase1-find-bit-validator-anchors.py --self-test`, `check-phase1-find-bit-validator-anchors.py`, `check-phase1-route-summary-counts.py --self-test`, `check-phase1-route-summary-counts.py`, `check-phase1-validation-route-inventory.py --self-test`, `check-phase1-validation-route-inventory.py`, `check-phase1-parity.py --self-test`, `check-phase1-parity.py`, `check-phase1-bench.py --self-test`, `check-phase1-bench.py`, `validate-phase1-closure.py --self-test`, and `validate-phase1-closure.py` are the bounded fail-closed review hooks around that same closed Phase 1 helper tranche.",
         1,
     ),
 }
@@ -316,9 +317,9 @@ def self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="phase1-validation-route-inventory-") as tmp:
         root = Path(tmp)
         script = root / "scripts/zigux/check-phase1-validation-route-inventory.py"
-        write(script, Path(__file__).read_text(encoding="utf-8"))
         for rel in REQUIRED_FILES:
             write(root / rel, "// fixture\n")
+        write(script, Path(__file__).read_text(encoding="utf-8"))
 
         write(root / "Documentation/zigux/README.md", fixture_text(docs_entries))
         write(root / "scripts/zigux/README.md", fixture_text(scripts_entries))
