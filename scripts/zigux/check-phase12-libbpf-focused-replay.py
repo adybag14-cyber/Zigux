@@ -32,6 +32,7 @@ REQUIRED_FILES = [
     "zigux/tests/phase12_libbpf_manifest.json",
     "zigux/tests/phase12_libbpf_segments.zig",
     "zigux/tests/phase12_libbpf_reviewability.zig",
+    "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
     "Documentation/zigux/phase12-libbpf-segment-survey.md",
     "Documentation/zigux/review-checklist.md",
 ]
@@ -311,6 +312,20 @@ def run_self_test() -> int:
     missing = collect_missing(
         **{
             **base_inputs,
+            "present_files": {
+                path for path in REQUIRED_FILES if path != "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"
+            },
+        }
+    )
+    expect_contains(
+        "perf_buffer_poll_file_detection",
+        missing,
+        "missing_file:tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
             "build_text": base_inputs["build_text"].replace(
                 '    .name = "phase12-libbpf-reviewability-tests",',
                 '    .name = "phase12-libbpf-reviewability-drift",',
@@ -518,7 +533,7 @@ def run_self_test() -> int:
     )
 
     print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST=pass")
-    print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST_CASE_COUNT=17")
+    print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST_CASE_COUNT=18")
     return 0
 
 
