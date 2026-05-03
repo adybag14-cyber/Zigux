@@ -264,7 +264,7 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
     try expectContains(validate_phase7, "(\"zigux/tests/phase7_string_helpers_survey.zig\", phase7_string_helpers_survey, required_phase7_string_helpers_survey_markers),");
 
     try expectContains(build_inventory_checker, "PHASE7_BUILD_INVENTORY_SELF_TEST=pass");
-    try expectContains(build_inventory_checker, "PHASE7_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=14");
+    try expectContains(build_inventory_checker, "PHASE7_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=15");
 
     try expectContains(build_inventory_fixture, "\"shared_validation_gates\": [");
     try expectContains(build_inventory_fixture, "\"shared_validation_commands\": [");
