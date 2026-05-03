@@ -191,7 +191,7 @@ TEXT_MARKERS = {
 
 MANIFEST_EXPECTATIONS = {
     "zigux/tests/phase5_bytestream_fifo_manifest.json": {
-        "lane_key": "P5-L01",
+        "lane_key": "P5-L04",
         "phase": "Phase 5",
         "anchor": "samples/kfifo/bytestream-example.c",
         "sample_path": "samples/zigux/bytestream_fifo.zig",
