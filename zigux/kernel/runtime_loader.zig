@@ -143,6 +143,17 @@ pub const RuntimeLoadRequest = struct {
             std.mem.endsWith(u8, self.exit_symbol, "_exit");
     }
 
+    pub fn keepsLaneBoundInitExitSymbolsExplicit(self: RuntimeLoadRequest) bool {
+        const expected_entry, const expected_exit = switch (self.payload) {
+            .atomic64 => .{ "zigux_runtime_atomic64_init", "zigux_runtime_atomic64_exit" },
+            .bitmap => .{ "zigux_runtime_bitmap_init", "zigux_runtime_bitmap_exit" },
+            .kretprobe => .{ "zigux_runtime_kretprobe_init", "zigux_runtime_kretprobe_exit" },
+        };
+
+        return std.mem.eql(u8, self.entry_symbol, expected_entry) and
+            std.mem.eql(u8, self.exit_symbol, expected_exit);
+    }
+
     pub fn keepsStageConsistentWithRuntimeSubstrate(self: RuntimeLoadRequest) bool {
         return if (self.requires_runtime_substrate)
             self.handoff_stage == .waiting_on_runtime_substrate or
@@ -212,6 +223,7 @@ pub const RuntimeLoadRequest = struct {
             self.keepsInitExitContractExplicit() and
             self.keepsLaneIdentityExplicit() and
             self.keepsStagedInitExitNamingExplicit() and
+            self.keepsLaneBoundInitExitSymbolsExplicit() and
             self.keepsStageConsistentWithRuntimeSubstrate() and
             self.keepsAllocatorInitFlowConsistent() and
             self.keepsSelftestHookConsistent() and
@@ -298,6 +310,7 @@ test "runtime loader request keeps bitmap handoff state explicit" {
     try std.testing.expect(request.isWaitingOnRuntimeSubstrate());
     try std.testing.expect(request.keepsCommandNameExplicit());
     try std.testing.expect(request.keepsInitExitContractExplicit());
+    try std.testing.expect(request.keepsLaneBoundInitExitSymbolsExplicit());
     try std.testing.expect(request.keepsStageConsistentWithRuntimeSubstrate());
     try std.testing.expect(request.keepsAllocatorInitFlowConsistent());
     try std.testing.expect(request.keepsSelftestHookConsistent());
@@ -311,6 +324,7 @@ test "runtime loader request keeps bitmap handoff state explicit" {
     try std.testing.expectEqual(LoaderLane.bitmap, waiting.lane());
     try std.testing.expect(waiting.isWaitingOnRuntimeSubstrate());
     try std.testing.expect(!waiting.isReleasedWithoutSubstrate());
+    try std.testing.expect(waiting.keepsLaneBoundInitExitSymbolsExplicit());
     try std.testing.expect(waiting.keepsStageConsistentWithRuntimeSubstrate());
     try std.testing.expect(waiting.keepsSelftestHookConsistent());
     try std.testing.expect(waiting.keepsPreExecutionLifecycleBoundaryExplicit());
@@ -323,6 +337,7 @@ test "runtime loader request keeps bitmap handoff state explicit" {
     try std.testing.expect(released.isReleasedWithoutSubstrate());
     try std.testing.expect(released.keepsCommandNameExplicit());
     try std.testing.expect(released.keepsInitExitContractExplicit());
+    try std.testing.expect(released.keepsLaneBoundInitExitSymbolsExplicit());
     try std.testing.expect(released.keepsStageConsistentWithRuntimeSubstrate());
     try std.testing.expect(released.keepsAllocatorInitFlowConsistent());
     try std.testing.expect(released.keepsSelftestHookConsistent());
@@ -358,6 +373,7 @@ test "runtime loader request keeps atomic64 handoff state explicit" {
     try std.testing.expect(request.isWaitingOnRuntimeSubstrate());
     try std.testing.expect(request.keepsCommandNameExplicit());
     try std.testing.expect(request.keepsInitExitContractExplicit());
+    try std.testing.expect(request.keepsLaneBoundInitExitSymbolsExplicit());
     try std.testing.expect(request.keepsStageConsistentWithRuntimeSubstrate());
     try std.testing.expect(request.keepsAllocatorInitFlowConsistent());
     try std.testing.expect(request.keepsSelftestHookConsistent());
@@ -371,6 +387,7 @@ test "runtime loader request keeps atomic64 handoff state explicit" {
     try std.testing.expectEqual(LoaderLane.atomic64, waiting.lane());
     try std.testing.expect(waiting.isWaitingOnRuntimeSubstrate());
     try std.testing.expect(!waiting.isReleasedWithoutSubstrate());
+    try std.testing.expect(waiting.keepsLaneBoundInitExitSymbolsExplicit());
     try std.testing.expect(waiting.keepsStageConsistentWithRuntimeSubstrate());
     try std.testing.expect(waiting.keepsSelftestHookConsistent());
     try std.testing.expect(waiting.keepsPreExecutionLifecycleBoundaryExplicit());
@@ -383,6 +400,7 @@ test "runtime loader request keeps atomic64 handoff state explicit" {
     try std.testing.expect(released.isReleasedWithoutSubstrate());
     try std.testing.expect(released.keepsCommandNameExplicit());
     try std.testing.expect(released.keepsInitExitContractExplicit());
+    try std.testing.expect(released.keepsLaneBoundInitExitSymbolsExplicit());
     try std.testing.expect(released.keepsStageConsistentWithRuntimeSubstrate());
     try std.testing.expect(released.keepsAllocatorInitFlowConsistent());
     try std.testing.expect(released.keepsSelftestHookConsistent());
@@ -430,6 +448,7 @@ test "runtime loader request keeps kretprobe handoff state explicit" {
     try std.testing.expect(request.isWaitingOnRuntimeSubstrate());
     try std.testing.expect(request.keepsCommandNameExplicit());
     try std.testing.expect(request.keepsInitExitContractExplicit());
+    try std.testing.expect(request.keepsLaneBoundInitExitSymbolsExplicit());
     try std.testing.expect(request.keepsStageConsistentWithRuntimeSubstrate());
     try std.testing.expect(request.keepsAllocatorInitFlowConsistent());
     try std.testing.expect(request.keepsSelftestHookConsistent());
@@ -441,6 +460,7 @@ test "runtime loader request keeps kretprobe handoff state explicit" {
     try std.testing.expectEqual(LoaderLane.kretprobe, waiting.lane());
     try std.testing.expect(waiting.isWaitingOnRuntimeSubstrate());
     try std.testing.expect(!waiting.isReleasedWithoutSubstrate());
+    try std.testing.expect(waiting.keepsLaneBoundInitExitSymbolsExplicit());
     try std.testing.expect(waiting.keepsStageConsistentWithRuntimeSubstrate());
     try std.testing.expect(waiting.keepsSelftestHookConsistent());
     try std.testing.expect(waiting.keepsPreExecutionLifecycleBoundaryExplicit());
@@ -453,6 +473,7 @@ test "runtime loader request keeps kretprobe handoff state explicit" {
     try std.testing.expect(released.isReleasedWithoutSubstrate());
     try std.testing.expect(released.keepsCommandNameExplicit());
     try std.testing.expect(released.keepsInitExitContractExplicit());
+    try std.testing.expect(released.keepsLaneBoundInitExitSymbolsExplicit());
     try std.testing.expect(released.keepsStageConsistentWithRuntimeSubstrate());
     try std.testing.expect(released.keepsAllocatorInitFlowConsistent());
     try std.testing.expect(released.keepsSelftestHookConsistent());
@@ -540,6 +561,7 @@ test "runtime loader request preserves explicit command names across runtime-lan
         try std.testing.expect(request.command_name != null);
         try std.testing.expect(request.keepsCommandNameExplicit());
         try std.testing.expect(request.keepsInitExitContractExplicit());
+        try std.testing.expect(request.keepsLaneBoundInitExitSymbolsExplicit());
         try std.testing.expect(request.keepsSelftestHookConsistent());
         try std.testing.expect(request.keepsPreExecutionLifecycleBoundaryExplicit());
         try std.testing.expect(!request.isWaitingOnRuntimeSubstrate());
@@ -556,6 +578,7 @@ test "runtime loader request preserves explicit command names across runtime-lan
         try std.testing.expect(!waiting.isReleasedWithoutSubstrate());
         try std.testing.expect(waiting.keepsCommandNameExplicit());
         try std.testing.expect(waiting.keepsInitExitContractExplicit());
+        try std.testing.expect(waiting.keepsLaneBoundInitExitSymbolsExplicit());
         try std.testing.expect(waiting.keepsStageConsistentWithRuntimeSubstrate());
         try std.testing.expect(waiting.keepsSelftestHookConsistent());
         try std.testing.expect(waiting.keepsPreExecutionLifecycleBoundaryExplicit());
@@ -570,6 +593,7 @@ test "runtime loader request preserves explicit command names across runtime-lan
         try std.testing.expect(released.isReleasedWithoutSubstrate());
         try std.testing.expect(released.keepsCommandNameExplicit());
         try std.testing.expect(released.keepsInitExitContractExplicit());
+        try std.testing.expect(released.keepsLaneBoundInitExitSymbolsExplicit());
         try std.testing.expect(released.keepsStageConsistentWithRuntimeSubstrate());
         try std.testing.expect(released.keepsSelftestHookConsistent());
         try std.testing.expect(released.keepsPreExecutionLifecycleBoundaryExplicit());
@@ -895,6 +919,73 @@ test "runtime loader request rejects implicit init-exit and live lifecycle hando
     try std.testing.expect(no_substrate_released.keepsSharedHandoffContractExplicit());
 }
 
+test "runtime loader request rejects cross-lane staged init-exit drift" {
+    const wrong_bitmap_symbols = RuntimeLoadRequest{
+        .module_name = "runtime_bitmap",
+        .command_name = null,
+        .anchor = "lib/test_bitmap.c",
+        .entry_symbol = "zigux_runtime_atomic64_init",
+        .exit_symbol = "zigux_runtime_atomic64_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .handoff_stage = .waiting_on_runtime_substrate,
+        .allocator_handoff = allocatorHandoffFor(.kernel_heap),
+        .payload = .{
+            .bitmap = .{
+                .first_set = 0,
+                .first_zero = 1,
+                .weight = 4,
+                .nbits = 128,
+                .init_runs = 1,
+                .selftest_runs = 1,
+                .exit_runs = 0,
+            },
+        },
+    };
+    try std.testing.expect(wrong_bitmap_symbols.keepsInitExitContractExplicit());
+    try std.testing.expect(wrong_bitmap_symbols.keepsLaneIdentityExplicit());
+    try std.testing.expect(wrong_bitmap_symbols.keepsStagedInitExitNamingExplicit());
+    try std.testing.expect(!wrong_bitmap_symbols.keepsLaneBoundInitExitSymbolsExplicit());
+    try std.testing.expect(wrong_bitmap_symbols.keepsPreExecutionLifecycleBoundaryExplicit());
+    try std.testing.expect(!wrong_bitmap_symbols.keepsSharedHandoffContractExplicit());
+
+    const wrong_kretprobe_symbols = RuntimeLoadRequest{
+        .module_name = "runtime_kretprobe",
+        .command_name = null,
+        .anchor = "samples/kprobes/kretprobe_example.c",
+        .entry_symbol = "zigux_runtime_bitmap_init",
+        .exit_symbol = "zigux_runtime_bitmap_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .handoff_stage = .waiting_on_runtime_substrate,
+        .allocator_handoff = allocatorHandoffFor(.kernel_heap),
+        .payload = .{
+            .kretprobe = .{
+                .register_api = "register_kretprobe",
+                .unregister_api = "unregister_kretprobe",
+                .symbol_name = "do_sys_openat2",
+                .maxactive = 20,
+                .private_data_bytes = 24,
+                .active_instances = 0,
+                .skipped_kernel_threads = 0,
+                .nmissed = 0,
+                .last_retval = 0,
+                .last_duration_ns = 0,
+                .init_runs = 1,
+                .selftest_runs = 0,
+                .exit_runs = 0,
+                .entry_timestamp_armed = false,
+            },
+        },
+    };
+    try std.testing.expect(wrong_kretprobe_symbols.keepsInitExitContractExplicit());
+    try std.testing.expect(wrong_kretprobe_symbols.keepsLaneIdentityExplicit());
+    try std.testing.expect(wrong_kretprobe_symbols.keepsStagedInitExitNamingExplicit());
+    try std.testing.expect(!wrong_kretprobe_symbols.keepsLaneBoundInitExitSymbolsExplicit());
+    try std.testing.expect(wrong_kretprobe_symbols.keepsPreExecutionLifecycleBoundaryExplicit());
+    try std.testing.expect(!wrong_kretprobe_symbols.keepsSharedHandoffContractExplicit());
+}
+
 test "runtime loader request rejects cross-lane identity drift" {
     const wrong_bitmap_anchor = RuntimeLoadRequest{
         .module_name = "runtime_bitmap",
@@ -920,6 +1011,7 @@ test "runtime loader request rejects cross-lane identity drift" {
     };
     try std.testing.expect(wrong_bitmap_anchor.keepsInitExitContractExplicit());
     try std.testing.expect(!wrong_bitmap_anchor.keepsLaneIdentityExplicit());
+    try std.testing.expect(wrong_bitmap_anchor.keepsLaneBoundInitExitSymbolsExplicit());
     try std.testing.expect(wrong_bitmap_anchor.keepsPreExecutionLifecycleBoundaryExplicit());
     try std.testing.expect(!wrong_bitmap_anchor.keepsSharedHandoffContractExplicit());
 
@@ -954,6 +1046,7 @@ test "runtime loader request rejects cross-lane identity drift" {
     };
     try std.testing.expect(wrong_kretprobe_module.keepsInitExitContractExplicit());
     try std.testing.expect(!wrong_kretprobe_module.keepsLaneIdentityExplicit());
+    try std.testing.expect(wrong_kretprobe_module.keepsLaneBoundInitExitSymbolsExplicit());
     try std.testing.expect(wrong_kretprobe_module.keepsPreExecutionLifecycleBoundaryExplicit());
     try std.testing.expect(!wrong_kretprobe_module.keepsSharedHandoffContractExplicit());
 }
