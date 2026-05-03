@@ -20,6 +20,7 @@ test "phase3 rbtree survey records the landed helper packet and narrowed remaini
     const manifest_json = @embedFile("phase3_rbtree_manifest.json");
     const slice_note = @embedFile("../../Documentation/zigux/phase3-rbtree-slice.md");
     const helper = @embedFile("../helpers/rbtree_view.zig");
+    const root_view_helper = @embedFile("../helpers/rbtree_root_view.zig");
     const roadmap_gap = @embedFile("../../Documentation/zigux/phase3-roadmap-gap-survey.md");
 
     const parsed = try std.json.parseFromSlice(Manifest, allocator, manifest_json, .{});
@@ -32,9 +33,11 @@ test "phase3 rbtree survey records the landed helper packet and narrowed remaini
     try std.testing.expectEqualStrings("helper_landed_binding_followup_pending", manifest.status);
     try std.testing.expectEqualStrings("zigux/helpers/rbtree_view.zig", manifest.roadmap_destination);
     try std.testing.expectEqualStrings("curated-rbtree-c-binding-surface-still-missing", manifest.remaining_gap);
-    try std.testing.expectEqual(@as(usize, 7), manifest.file_count);
-    try std.testing.expectEqual(@as(usize, 7), manifest.files.len);
+    try std.testing.expectEqual(@as(usize, 9), manifest.file_count);
+    try std.testing.expectEqual(@as(usize, 9), manifest.files.len);
 
+    try expectContains(manifest_json, "zigux/helpers/rbtree_root_view.zig");
+    try expectContains(manifest_json, "zigux/tests/phase3_rbtree_root_view_survey.zig");
     try expectContains(manifest_json, "zigux/tests/phase3_rbtree_dump.zig");
     try expectContains(manifest_json, "zigux/tests/fixtures/phase3_rbtree/expected.json");
     try expectContains(manifest_json, "zigux/tests/fixtures/phase3_rbtree/phase3_rbtree_c_harness.c");
@@ -44,14 +47,22 @@ test "phase3 rbtree survey records the landed helper packet and narrowed remaini
     try expectContains(helper, "TRUNCATED_FLAG");
     try expectContains(helper, "ROOT_BLACK_FLAG");
 
+    try expectContains(root_view_helper, "pub const KNOWN_FLAG_MASK");
+    try expectContains(root_view_helper, "pub fn canonicalize");
+    try expectContains(root_view_helper, "pub fn cached");
+    try expectContains(root_view_helper, "rbtree.ROOT_FLAG_LEFTMOST_VALID");
+
     try expectContains(slice_note, "PHASE3_SLICE=rbtree-helper-interop");
     try expectContains(slice_note, "`zig test zigux/helpers/rbtree_view.zig`");
+    try expectContains(slice_note, "`zig test zigux/helpers/rbtree_root_view.zig`");
     try expectContains(slice_note, "`zig test zigux/tests/phase3_rbtree_survey.zig`");
+    try expectContains(slice_note, "`zig test zigux/tests/phase3_rbtree_root_view_survey.zig`");
     try expectContains(slice_note, "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py");
     try expectContains(slice_note, "PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig");
     try expectContains(slice_note, "PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug rbtree");
     try expectContains(slice_note, "curated C header and binding surface");
+    try expectContains(slice_note, "reusable root-view helper around the dedicated Phase 3 binding packet");
 
-    try expectContains(roadmap_gap, "PHASE3_CURRENT_RBTREE_STATUS=phase3-helper-packet-exists-but-curated-c-binding-surface-is-still-missing");
-    try expectContains(roadmap_gap, "PHASE3_INTEROP_GAP=curated-rbtree-c-binding-surface-still-missing");
+    try expectContains(roadmap_gap, "PHASE3_CURRENT_RBTREE_STATUS=phase3-dedicated-rbtree-boundary-exists-shared-abi-lift-still-missing");
+    try expectContains(roadmap_gap, "PHASE3_INTEROP_GAP=shared-phase3-abi-rbtree-lift-still-missing");
 }
