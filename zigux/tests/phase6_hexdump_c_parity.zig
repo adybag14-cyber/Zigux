@@ -2,20 +2,31 @@ const std = @import("std");
 const hexdump = @import("hexdump");
 const fixtures = @import("phase6_hexdump_vectors");
 
-fn printDumpCase(writer: anytype, case: fixtures.ParityCase) !void {
+fn printNamedDumpCase(
+    writer: anytype,
+    name: []const u8,
+    len: usize,
+    rowsize: usize,
+    groupsize: usize,
+    ascii: bool,
+) !void {
     var linebuf: [fixtures.test_hexdump_buf_size]u8 = undefined;
     const required = hexdump.hexDumpToBuffer(
-        fixtures.data_b[0..case.len],
-        case.rowsize,
-        case.groupsize,
+        fixtures.data_b[0..len],
+        rowsize,
+        groupsize,
         linebuf[0..],
-        case.ascii,
+        ascii,
     );
     try writer.print("dump\t{s}\t{}\t{s}\n", .{
-        case.name,
+        name,
         required,
         std.mem.sliceTo(linebuf[0..], 0),
     });
+}
+
+fn printDumpCase(writer: anytype, case: fixtures.ParityCase) !void {
+    try printNamedDumpCase(writer, case.name, case.len, case.rowsize, case.groupsize, case.ascii);
 }
 
 fn printOverflowCase(writer: anytype, case: fixtures.OverflowCase) !void {
@@ -95,6 +106,9 @@ pub fn main() !void {
             try printDumpCase(writer, case);
         }
     }
+
+    try printNamedDumpCase(writer, "plain rowsize-16 group-2", 16, 16, 2, false);
+    try printNamedDumpCase(writer, "ascii rowsize-16 group-2", 16, 16, 2, true);
 
     for (fixtures.overflow_cases) |case| {
         try printOverflowCase(writer, case);
