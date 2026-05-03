@@ -265,8 +265,17 @@ def run_self_test() -> int:
                 + (",".join(issues) if issues else "none")
             )
 
+        (root / VALIDATOR_REL).unlink()
+        issues = validate(root)
+        expected = [f"missing_validator:{VALIDATOR_REL}"]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-canonical-survey-manifest-self-test:missing_validator_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
     print("PHASE3_CANONICAL_SURVEY_MANIFEST_SELF_TEST=pass")
-    print("PHASE3_CANONICAL_SURVEY_MANIFEST_SELF_TEST_CASE_COUNT=7")
+    print("PHASE3_CANONICAL_SURVEY_MANIFEST_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
