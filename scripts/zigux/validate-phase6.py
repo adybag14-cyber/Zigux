@@ -14,7 +14,7 @@ ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.p
 HEX40 = re.compile(r"^[0-9a-f]{40}$")
 SELF_TEST_HEAD = "0123456789abcdef0123456789abcdef01234567"
 SELF_TEST_MUTATED_HEAD = "fedcba9876543210fedcba9876543210fedcba98"
-SELF_TEST_CASE_COUNT = 34
+SELF_TEST_CASE_COUNT = 35
 
 EXPECTED_SHARED_GATES = [
     "zigux/tests/phase6_build.zig",
@@ -84,7 +84,7 @@ CATALOG_MARKERS = [
     "max_slowdown_pct = 550",
     "max_slowdown_pct = 600",
     "avg_compare_calls <= std.math.log2_int_ceil(len) + 1",
-    "PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=34",
+    "PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=35",
 ]
 
 PERF_SURVEY_MARKERS = [
@@ -775,6 +775,12 @@ def run_self_test() -> int:
             bsearch_runner = root / "zigux/tests/phase6_bsearch_c_parity.zig"
             bsearch_runner.unlink()
             expect_missing_file(validate_phase6(root), "zigux/tests/phase6_bsearch_c_parity.zig")
+            count += 1
+
+            build_self_test_tree(root)
+            bsearch_vectors = root / "zigux/tests/fixtures/phase6_bsearch_vectors.zig"
+            bsearch_vectors.unlink()
+            expect_missing_file(validate_phase6(root), "zigux/tests/fixtures/phase6_bsearch_vectors.zig")
             count += 1
 
             build_self_test_tree(root)
