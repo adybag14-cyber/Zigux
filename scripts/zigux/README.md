@@ -73,6 +73,7 @@ Current bootstrap helpers
 - `check-phase12-libbpf-packet.py`
 - `check-phase12-libbpf-focused-replay.py`
 - `check-phase12-raw-github-coverage.py`
+- `check-phase12-release-readiness-packet.py`
 - `validate-phase12.py`
 - `check-phase13-libfs-packet.py`
 - `check-phase13-devres-packet.py`
