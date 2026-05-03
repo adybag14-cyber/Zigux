@@ -57,7 +57,10 @@ test "phase12 virtio net probe snapshot plans multiqueue control and rss state" 
     try std.testing.expectEqual(@as(u16, 0), snapshot.required_headroom_bytes);
     try std.testing.expectEqual(virtio_net.XdpConstraint.not_requested, snapshot.xdp_constraint);
     try std.testing.expectEqual(virtio_net.RssSummary.active, snapshot.rss_summary);
-    try std.testing.expectEqual(virtio_net.QueueFallbackReason.none, snapshot.fallback_reason);
+    try std.testing.expectEqual(
+        virtio_net.QueueFallbackReason.requested_queue_pairs_clamped,
+        snapshot.fallback_reason,
+    );
     try std.testing.expectEqual(virtio_net.RecoveryState.stable, snapshot.recovery_state);
     try std.testing.expectEqual(virtio_net.QueueRecoveryAction.clamp_queue_pairs, snapshot.queue_recovery_action);
 }
@@ -171,6 +174,10 @@ test "phase12 virtio net freeze and restore preserve queue recovery intent" {
     try std.testing.expectEqual(@as(u16, 2), freeze.remembered_total_queue_count);
     try std.testing.expectEqual(@as(?u16, null), freeze.remembered_control_queue_index);
     try std.testing.expectEqual(virtio_net.RssSummary.requested_but_unavailable, freeze.remembered_rss_summary);
+    try std.testing.expectEqual(
+        virtio_net.QueueFallbackReason.multiqueue_not_negotiated,
+        freeze.remembered_fallback_reason,
+    );
     try std.testing.expectEqual(virtio_net.RecoveryState.renegotiate_features, freeze.remembered_recovery_state);
     try std.testing.expectEqual(virtio_net.QueueRecoveryAction.renegotiate_features, freeze.remembered_queue_recovery_action);
     try std.testing.expectEqual(@as(u16, 0), freeze.recovery_generation);
@@ -189,6 +196,10 @@ test "phase12 virtio net freeze and restore preserve queue recovery intent" {
     try std.testing.expectEqual(@as(u16, 1), restore.remembered_planned_queue_pairs);
     try std.testing.expectEqual(@as(u16, 2), restore.remembered_total_queue_count);
     try std.testing.expectEqual(@as(?u16, null), restore.remembered_control_queue_index);
+    try std.testing.expectEqual(
+        virtio_net.QueueFallbackReason.multiqueue_not_negotiated,
+        restore.remembered_fallback_reason,
+    );
     try std.testing.expectEqual(virtio_net.RecoveryState.renegotiate_features, restore.remembered_recovery_state);
     try std.testing.expectEqual(virtio_net.QueueRecoveryAction.renegotiate_features, restore.remembered_queue_recovery_action);
     try std.testing.expectEqual(@as(u16, 1), restore.recovery_generation);
@@ -227,6 +238,7 @@ test "phase12 virtio net queue resume planning keeps active multiqueue scope vis
     try std.testing.expectEqual(@as(u16, 7), resume_plan.resume_total_queue_count);
     try std.testing.expectEqual(@as(?u16, 6), resume_plan.resume_control_queue_index);
     try std.testing.expectEqual(virtio_net.RssSummary.active, resume_plan.remembered_rss_summary);
+    try std.testing.expectEqual(virtio_net.QueueFallbackReason.none, resume_plan.remembered_fallback_reason);
     try std.testing.expectEqual(virtio_net.QueueRecoveryAction.none, resume_plan.remembered_queue_recovery_action);
     try std.testing.expect(resume_plan.requires_control_queue_restore);
     try std.testing.expect(resume_plan.requires_rss_reapply);
@@ -252,6 +264,10 @@ test "phase12 virtio net recovery summaries preserve clamp versus single-queue f
     try std.testing.expectEqual(@as(u16, 4), clamp_snapshot.planned_queue_pairs);
     try std.testing.expectEqual(virtio_net.RssSummary.active, clamp_snapshot.rss_summary);
     try std.testing.expectEqual(
+        virtio_net.QueueFallbackReason.requested_queue_pairs_clamped,
+        clamp_snapshot.fallback_reason,
+    );
+    try std.testing.expectEqual(
         virtio_net.QueueRecoveryAction.clamp_queue_pairs,
         clamp_snapshot.queue_recovery_action,
     );
@@ -264,6 +280,10 @@ test "phase12 virtio net recovery summaries preserve clamp versus single-queue f
     try std.testing.expectEqual(@as(u16, 9), clamp_resume.resume_total_queue_count);
     try std.testing.expectEqual(@as(?u16, 8), clamp_resume.resume_control_queue_index);
     try std.testing.expectEqual(virtio_net.RssSummary.active, clamp_resume.remembered_rss_summary);
+    try std.testing.expectEqual(
+        virtio_net.QueueFallbackReason.requested_queue_pairs_clamped,
+        clamp_resume.remembered_fallback_reason,
+    );
     try std.testing.expectEqual(
         virtio_net.QueueRecoveryAction.clamp_queue_pairs,
         clamp_resume.remembered_queue_recovery_action,
@@ -315,6 +335,10 @@ test "phase12 virtio net recovery summaries preserve clamp versus single-queue f
         single_queue_resume.remembered_rss_summary,
     );
     try std.testing.expectEqual(
+        virtio_net.QueueFallbackReason.missing_control_vq,
+        single_queue_resume.remembered_fallback_reason,
+    );
+    try std.testing.expectEqual(
         virtio_net.QueueRecoveryAction.degrade_to_single_queue,
         single_queue_resume.remembered_queue_recovery_action,
     );
@@ -349,6 +373,10 @@ test "phase12 virtio net queue resume planning distinguishes renegotiation from 
     try std.testing.expectEqual(@as(u16, 2), renegotiate_resume.resume_total_queue_count);
     try std.testing.expectEqual(@as(?u16, null), renegotiate_resume.resume_control_queue_index);
     try std.testing.expectEqual(
+        virtio_net.QueueFallbackReason.multiqueue_not_negotiated,
+        renegotiate_resume.remembered_fallback_reason,
+    );
+    try std.testing.expectEqual(
         virtio_net.QueueRecoveryAction.renegotiate_features,
         renegotiate_resume.remembered_queue_recovery_action,
     );
@@ -376,6 +404,7 @@ test "phase12 virtio net queue resume planning distinguishes renegotiation from 
     try std.testing.expectEqual(@as(u16, 5), reset_resume.resume_total_queue_count);
     try std.testing.expectEqual(@as(?u16, 4), reset_resume.resume_control_queue_index);
     try std.testing.expectEqual(virtio_net.RssSummary.not_requested, reset_resume.remembered_rss_summary);
+    try std.testing.expectEqual(virtio_net.QueueFallbackReason.none, reset_resume.remembered_fallback_reason);
     try std.testing.expectEqual(
         virtio_net.QueueRecoveryAction.require_reset,
         reset_resume.remembered_queue_recovery_action,
