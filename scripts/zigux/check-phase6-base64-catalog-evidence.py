@@ -16,7 +16,7 @@ MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
 PARITY_SCRIPT_PATH = Path("scripts/zigux/check-phase6-base64-c-parity.py")
 
 SELF_TEST_CASE_COUNT = 10
-PARITY_CASE_COUNT = 112
+PARITY_CASE_COUNT = 122
 CATALOG_EVIDENCE_SELF_TEST_CASE_COUNT = 6
 
 CATALOG_MARKERS = [
@@ -122,7 +122,7 @@ def run_self_test() -> int:
                 raise AssertionError("pass tree should validate")
 
             build_self_test_tree(root)
-            write(root, CATALOG_PATH, "# x\nPHASE6_BASE64_C_PARITY_CASES=112\n")
+            write(root, CATALOG_PATH, "# x\nPHASE6_BASE64_C_PARITY_CASES=122\n")
             if f"catalog:missing:PHASE6_BASE64_C_PARITY_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}" not in validate(root):
                 raise AssertionError("missing catalog self-test marker failure")
 
