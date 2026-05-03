@@ -180,6 +180,12 @@ def run_self_test() -> int:
     if "policy:minimum_version:expected_non_empty_string" not in issues:
         raise SystemExit("phase2-toolchain-pin-scope:self-test:minimum_version_missing")
 
+    bad_archive_object = dict(valid_policy)
+    bad_archive_object["archive_sha256"] = []
+    issues = validate_policy(bad_archive_object)
+    if "policy:archive_sha256:expected_object" not in issues:
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:archive_object_shape")
+
     bad_keys = {
         "phase": "Phase 2",
         "channel": "0.17.0-dev.87+9b177a7d2",
@@ -435,7 +441,7 @@ def run_self_test() -> int:
             raise SystemExit("phase2-toolchain-pin-scope:self-test:json_round_trip")
 
     print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass")
-    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=23")
+    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=24")
     return 0
 
 
