@@ -14,6 +14,7 @@ CLOSURE_NOTE = "Documentation/zigux/phase10-closure-evidence.md"
 DOCS_ROOT = "Documentation/zigux/README.md"
 CLOSURE_MANIFEST = "zigux/tests/phase10_closure_manifest.json"
 CLOSURE_LEDGER = "zigux-alpha/PHASE10_CLOSURE_LEDGER.md"
+HARNESS_CHECKER = "scripts/zigux/check-phase10-harness-coverage.py"
 
 EXPECTED_DOCS = [
     "Documentation/zigux/phase10-virtio-core-slice.md",
@@ -89,6 +90,7 @@ EXPECTED_STUDY_ONLY_ANCHORS = [
 EXPECTED_EXACT_CHECKS = [
     "python3 scripts/zigux/check-phase10-closure-inventory.py",
     "python3 scripts/zigux/validate-phase10-closure.py",
+    "python3 scripts/zigux/check-phase10-harness-coverage.py",
     "zig build test --build-file zigux/tests/phase10_build.zig --summary all",
     "make -C zigux phase10-validate",
     "make -C zigux phase10-test",
@@ -168,6 +170,7 @@ EXPECTED_SCOREBOARD = {
             "zigux/tests/phase10_build.zig",
             "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
             "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
+            "scripts/zigux/check-phase10-harness-coverage.py",
             "scripts/zigux/check-phase10-closure-inventory.py",
             "scripts/zigux/validate-phase10.py",
             "scripts/zigux/validate-phase10-closure.py",
@@ -281,6 +284,7 @@ REQUIRED_FILES = [
     DOCS_ROOT,
     CLOSURE_MANIFEST,
     CLOSURE_LEDGER,
+    HARNESS_CHECKER,
     *EXPECTED_DOCS,
     *EXPECTED_MANIFESTS,
     *EXPECTED_DRIVERS,
@@ -294,6 +298,7 @@ CLOSURE_NOTE_MARKERS = [
     "PHASE10_TEST_COUNT=11",
     "PHASE10_CLOSURE_INVENTORY_GATE=python3 scripts/zigux/check-phase10-closure-inventory.py",
     "PHASE10_CLOSURE_GATE=python3 scripts/zigux/validate-phase10-closure.py",
+    "PHASE10_HARNESS_COVERAGE_GATE=python3 scripts/zigux/check-phase10-harness-coverage.py",
     "PHASE10_BUILD_GATE=zig build test --build-file zigux/tests/phase10_build.zig --summary all",
     "PHASE10_VALIDATE_ENTRYPOINT=make -C zigux phase10-validate",
     "PHASE10_TEST_ENTRYPOINT=make -C zigux phase10-test",
@@ -313,6 +318,7 @@ DOCS_ROOT_MARKERS = [
 LEDGER_MARKERS = [
     "PHASE10_LEDGER_INVENTORY_VALIDATE=scripts/zigux/check-phase10-closure-inventory.py",
     "PHASE10_LEDGER_VALIDATE=scripts/zigux/validate-phase10-closure.py",
+    "PHASE10_LEDGER_HARNESS_COVERAGE_VALIDATE=scripts/zigux/check-phase10-harness-coverage.py",
     "PHASE10_LEDGER_SHARED_VALIDATE=scripts/zigux/validate-phase10.py",
     "PHASE10_LEDGER_CORE_SLICE=Documentation/zigux/phase10-virtio-core-slice.md",
     "PHASE10_LEDGER_CORE_SURVEY=Documentation/zigux/phase10-virtio-core-survey.md",
@@ -349,10 +355,11 @@ LEDGER_MARKERS = [
     "PHASE10_LEDGER_ENTRYPOINTS=make -C zigux phase10-validate,make -C zigux phase10-test,make -C zigux phase10",
     "PHASE10_LEDGER_EXACT_CHECK_1=python3 scripts/zigux/check-phase10-closure-inventory.py",
     "PHASE10_LEDGER_EXACT_CHECK_2=python3 scripts/zigux/validate-phase10-closure.py",
-    "PHASE10_LEDGER_EXACT_CHECK_3=zig build test --build-file zigux/tests/phase10_build.zig --summary all",
-    "PHASE10_LEDGER_EXACT_CHECK_4=make -C zigux phase10-validate",
-    "PHASE10_LEDGER_EXACT_CHECK_5=make -C zigux phase10-test",
-    "PHASE10_LEDGER_EXACT_CHECK_6=make -C zigux phase10",
+    "PHASE10_LEDGER_EXACT_CHECK_3=python3 scripts/zigux/check-phase10-harness-coverage.py",
+    "PHASE10_LEDGER_EXACT_CHECK_4=zig build test --build-file zigux/tests/phase10_build.zig --summary all",
+    "PHASE10_LEDGER_EXACT_CHECK_5=make -C zigux phase10-validate",
+    "PHASE10_LEDGER_EXACT_CHECK_6=make -C zigux phase10-test",
+    "PHASE10_LEDGER_EXACT_CHECK_7=make -C zigux phase10",
     "PHASE10_LEDGER_BLOCKERS=phase10-virtio-input-registration-lifecycle,phase10-mmio-lifecycle-and-irq-paths",
     "PHASE10_LEDGER_LANDED_MMIO_HELPERS=phase10-mmio-register-window-helper,phase10-mmio-queue-register-helper,phase10-mmio-queue-notify-helper,phase10-mmio-queue-address-helper,phase10-mmio-config-window-helper,phase10-mmio-config-write-helper,phase10-mmio-interrupt-ack-helper",
 ]
@@ -435,6 +442,8 @@ def write_fixture(root: Path) -> None:
             path.write_text("\n".join(DOCS_ROOT_MARKERS) + "\n", encoding="utf-8")
         elif rel_path == CLOSURE_LEDGER:
             path.write_text("\n".join(LEDGER_MARKERS) + "\n", encoding="utf-8")
+        elif rel_path == HARNESS_CHECKER:
+            path.write_text("fixture\n", encoding="utf-8")
         elif rel_path == CLOSURE_MANIFEST:
             manifest = dict(EXPECTED_MANIFEST_SCALARS)
             manifest.update(
@@ -499,6 +508,10 @@ def run_self_test() -> int:
                 f"markers={','.join(missing_markers) if missing_markers else 'none'}"
             )
 
+        (root / HARNESS_CHECKER).unlink()
+        expect_missing_file("missing_harness_checker", root, HARNESS_CHECKER)
+        write_fixture(root)
+
         (root / "Documentation/zigux/phase10-virtio-input-module-slice.md").unlink()
         expect_missing_file(
             "missing_input_module_slice_doc",
@@ -536,6 +549,21 @@ def run_self_test() -> int:
         )
         note_path.write_text(original_note, encoding="utf-8")
 
+        note_path.write_text(
+            original_note.replace(
+                "PHASE10_HARNESS_COVERAGE_GATE=python3 scripts/zigux/check-phase10-harness-coverage.py",
+                "PHASE10_HARNESS_COVERAGE_GATE=missing",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "closure_note_harness_gate",
+            root,
+            "closure:PHASE10_HARNESS_COVERAGE_GATE=python3 scripts/zigux/check-phase10-harness-coverage.py",
+        )
+        note_path.write_text(original_note, encoding="utf-8")
+
         docs_root_path = root / DOCS_ROOT
         original_docs_root = docs_root_path.read_text(encoding="utf-8")
         docs_root_path.write_text(
@@ -555,6 +583,21 @@ def run_self_test() -> int:
 
         ledger_path = root / CLOSURE_LEDGER
         original_ledger = ledger_path.read_text(encoding="utf-8")
+        ledger_path.write_text(
+            original_ledger.replace(
+                "PHASE10_LEDGER_HARNESS_COVERAGE_VALIDATE=scripts/zigux/check-phase10-harness-coverage.py",
+                "PHASE10_LEDGER_HARNESS_COVERAGE_VALIDATE=missing",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "ledger_harness_gate_marker",
+            root,
+            "ledger:PHASE10_LEDGER_HARNESS_COVERAGE_VALIDATE=scripts/zigux/check-phase10-harness-coverage.py",
+        )
+        ledger_path.write_text(original_ledger, encoding="utf-8")
+
         ledger_path.write_text(
             original_ledger.replace(
                 "PHASE10_LEDGER_SURVEY_MMIO_LANE=P10-L18",
@@ -820,7 +863,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_CLOSURE_INVENTORY_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_INVENTORY_SELF_TEST_CASE_COUNT=32")
+    print("PHASE10_CLOSURE_INVENTORY_SELF_TEST_CASE_COUNT=34")
     return 0
 
 
