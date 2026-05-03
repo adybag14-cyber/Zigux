@@ -42,6 +42,7 @@ pub const QueueFallbackReason = enum {
     multiqueue_not_negotiated,
     missing_control_vq,
     invalid_max_queue_pairs,
+    requested_queue_pairs_clamped,
 };
 
 pub const RecoveryState = enum {
@@ -147,6 +148,7 @@ pub const QueueRecoverySummary = struct {
     remembered_total_queue_count: u16,
     remembered_control_queue_index: ?u16,
     remembered_rss_summary: RssSummary,
+    remembered_fallback_reason: QueueFallbackReason,
     remembered_recovery_state: RecoveryState,
     remembered_queue_recovery_action: QueueRecoveryAction,
     recovery_generation: u16,
@@ -174,6 +176,7 @@ pub const QueueResumeSummary = struct {
     resume_total_queue_count: u16,
     resume_control_queue_index: ?u16,
     remembered_rss_summary: RssSummary,
+    remembered_fallback_reason: QueueFallbackReason,
     remembered_queue_recovery_action: QueueRecoveryAction,
     requires_control_queue_restore: bool,
     requires_rss_reapply: bool,
@@ -267,6 +270,10 @@ pub const VirtioNetProbeLab = struct {
             }
         } else if (request.requested_queue_pairs > 1) {
             fallback_reason = .multiqueue_not_negotiated;
+        }
+
+        if (fallback_reason == .none and request.requested_queue_pairs > max_queue_pairs) {
+            fallback_reason = .requested_queue_pairs_clamped;
         }
 
         const planned_queue_pairs = @min(request.requested_queue_pairs, max_queue_pairs);
@@ -456,6 +463,7 @@ pub const VirtioNetProbeLab = struct {
             .remembered_total_queue_count = snapshot.total_queue_count,
             .remembered_control_queue_index = snapshot.control_queue_index,
             .remembered_rss_summary = snapshot.rss_summary,
+            .remembered_fallback_reason = snapshot.fallback_reason,
             .remembered_recovery_state = snapshot.recovery_state,
             .remembered_queue_recovery_action = snapshot.queue_recovery_action,
             .recovery_generation = recovery_generation,
@@ -490,6 +498,7 @@ pub const VirtioNetProbeLab = struct {
             .resume_total_queue_count = snapshot.total_queue_count,
             .resume_control_queue_index = snapshot.control_queue_index,
             .remembered_rss_summary = snapshot.rss_summary,
+            .remembered_fallback_reason = snapshot.fallback_reason,
             .remembered_queue_recovery_action = snapshot.queue_recovery_action,
             .requires_control_queue_restore = requires_control_queue_restore,
             .requires_rss_reapply = requires_rss_reapply,
