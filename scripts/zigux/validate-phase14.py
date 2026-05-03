@@ -17,6 +17,7 @@ FILES = [
     "scripts/zigux/validate-phase14.py",
     "scripts/zigux/check-phase14-docs-root-smoke-summary.py",
     "scripts/zigux/README.md",
+    "Documentation/zigux/README.md",
     "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
     "Documentation/zigux/phase14-workqueue-bridge-survey.md",
     "Documentation/zigux/phase14-skbuff-bridge-survey.md",
@@ -115,7 +116,9 @@ RELEASE_MARKERS = [
     "PHASE14_CONCURRENCY_AUDIT_SCOPE=anchor-local-packets-only",
     "PHASE14_ATTACHED_TOOLCHAIN_FALLBACK=ZIG=<attached-zig-path>",
     "scripts/zigux/validate-phase14.py",
+    "scripts/zigux/check-phase14-docs-root-smoke-summary.py",
     "scripts/zigux/README.md",
+    "Documentation/zigux/README.md",
     "phase14_workqueue_bridge_manifest.json",
     "phase14_skbuff_bridge_manifest.json",
     "phase14_ring_buffer_manifest.json",
@@ -281,7 +284,7 @@ else:
                 missing.append(f"survey:rollback_trigger:{item}")
 
 shared_smoke_surfaces = manifest.get("shared_smoke_surfaces")
-if not isinstance(shared_smoke_surfaces, list) or len(shared_smoke_surfaces) != 10:
+if not isinstance(shared_smoke_surfaces, list) or len(shared_smoke_surfaces) != 12:
     missing.append("manifest:shared_smoke_surfaces")
 
 smoke_commands = manifest.get("smoke_commands")
