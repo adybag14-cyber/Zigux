@@ -638,19 +638,19 @@ def run_self_test() -> int:
             tmp_dir,
             name='final_trailing_carriage_return',
             input_bytes=b'CONFIG_DECIMAL=7\r',
-            expected_json='{"counts":{"set":1,"unset":0},"entries":[{"name":"CONFIG_DECIMAL","kind":"value","value":"7\\r"}]}\n',
+            expected_json='{"counts":{"set":1,"unset":0},"entries":[{"name":"CONFIG_DECIMAL","kind":"int","value":"7"}]}\n',
         )
         assert trailing_cr_input.read_bytes() == b'CONFIG_DECIMAL=7\r'
-        assert trailing_cr_expected.read_text(encoding='utf-8') == '{"counts":{"set":1,"unset":0},"entries":[{"name":"CONFIG_DECIMAL","kind":"value","value":"7\\r"}]}\n'
+        assert trailing_cr_expected.read_text(encoding='utf-8') == '{"counts":{"set":1,"unset":0},"entries":[{"name":"CONFIG_DECIMAL","kind":"int","value":"7"}]}\n'
 
         final_unset_input, final_unset_expected = write_synthetic_confdata_case(
             tmp_dir,
             name='final_unterminated_unset_comment',
             input_bytes=b'CONFIG_ALPHA=y\n# CONFIG_DEBUG is not set\r',
-            expected_json='{"counts":{"set":1,"unset":0},"entries":[{"name":"CONFIG_ALPHA","kind":"tristate","value":"y"}]}\n',
+            expected_json='{"counts":{"set":1,"unset":1},"entries":[{"name":"CONFIG_ALPHA","kind":"tristate","value":"y"},{"name":"CONFIG_DEBUG","kind":"unset","value":"n"}]}\n',
         )
         assert final_unset_input.read_bytes() == b'CONFIG_ALPHA=y\n# CONFIG_DEBUG is not set\r'
-        assert final_unset_expected.read_text(encoding='utf-8') == '{"counts":{"set":1,"unset":0},"entries":[{"name":"CONFIG_ALPHA","kind":"tristate","value":"y"}]}\n'
+        assert final_unset_expected.read_text(encoding='utf-8') == '{"counts":{"set":1,"unset":1},"entries":[{"name":"CONFIG_ALPHA","kind":"tristate","value":"y"},{"name":"CONFIG_DEBUG","kind":"unset","value":"n"}]}\n'
 
         print(f'KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT={total_self_test_cases}')
 
@@ -768,7 +768,7 @@ def main() -> int:
             tmp_dir,
             name='final_trailing_carriage_return',
             input_bytes=b'CONFIG_DECIMAL=7\r',
-            expected_json='{"counts":{"set":1,"unset":0},"entries":[{"name":"CONFIG_DECIMAL","kind":"value","value":"7\\r"}]}\n',
+            expected_json='{"counts":{"set":1,"unset":0},"entries":[{"name":"CONFIG_DECIMAL","kind":"int","value":"7"}]}\n',
         )
         check_confdata_case(
             confdata_exe,
@@ -783,7 +783,7 @@ def main() -> int:
             tmp_dir,
             name='final_unterminated_unset_comment',
             input_bytes=b'CONFIG_ALPHA=y\n# CONFIG_DEBUG is not set\r',
-            expected_json='{"counts":{"set":1,"unset":0},"entries":[{"name":"CONFIG_ALPHA","kind":"tristate","value":"y"}]}\n',
+            expected_json='{"counts":{"set":1,"unset":1},"entries":[{"name":"CONFIG_ALPHA","kind":"tristate","value":"y"},{"name":"CONFIG_DEBUG","kind":"unset","value":"n"}]}\n',
         )
         check_confdata_case(
             confdata_exe,
