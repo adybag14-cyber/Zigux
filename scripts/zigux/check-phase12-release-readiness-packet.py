@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[2]
 REQUIRED_FILES = [
     "Documentation/zigux/phase12-release-readiness-survey.md",
     "Documentation/zigux/README.md",
+    "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase12-cross-compile-smoke.md",
     "Documentation/zigux/phase12-raw-github-coverage-survey.md",
     "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md",
@@ -62,6 +63,14 @@ DOCS_ROOT_EXACT_COUNT_MARKERS = {
     "the docs-root Phase 12 release packet now also states the mixed fallback split directly: `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` remain the dedicated commit-pinned public fallback artifacts, while `Documentation/zigux/phase12-virtio-net-survey.md` and `Documentation/zigux/phase12-libbpf-segment-survey.md` still rely on shared-tree-only fallback reads.": 1,
 }
 
+REVIEW_CHECKLIST_MARKERS = [
+    "if the change touches the Phase 12 release-facing PMO packet, do `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/README.md`, `Documentation/zigux/phase12-cross-compile-smoke.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `scripts/zigux/validate-phase12.py`, and `make -C zigux phase12-validate` still keep the active-not-closed release posture, the approved `x86_64-linux-musl`, `aarch64-linux-musl`, and `riscv64-linux-musl` smoke set, and the current two commit-pinned versus two shared-tree-only fallback split explicit?",
+]
+
+REVIEW_CHECKLIST_EXACT_COUNT_MARKERS = {
+    "if the change touches the Phase 12 release-facing PMO packet, do `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/README.md`, `Documentation/zigux/phase12-cross-compile-smoke.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `scripts/zigux/validate-phase12.py`, and `make -C zigux phase12-validate` still keep the active-not-closed release posture, the approved `x86_64-linux-musl`, `aarch64-linux-musl`, and `riscv64-linux-musl` smoke set, and the current two commit-pinned versus two shared-tree-only fallback split explicit?": 1,
+}
+
 CROSS_SMOKE_MARKERS = [
     "x86_64-linux-musl",
     "aarch64-linux-musl",
@@ -100,6 +109,7 @@ def collect_missing(
     present_files: set[str],
     survey_text: str,
     docs_root_text: str,
+    review_checklist_text: str,
     cross_smoke_text: str,
     raw_coverage_text: str,
 ) -> list[str]:
@@ -108,6 +118,14 @@ def collect_missing(
     missing.extend(collect_exact_count_misses(survey_text, SURVEY_EXACT_COUNT_MARKERS, "survey_count"))
     missing.extend(collect_marker_misses(docs_root_text, DOCS_ROOT_MARKERS, "docs_root"))
     missing.extend(collect_exact_count_misses(docs_root_text, DOCS_ROOT_EXACT_COUNT_MARKERS, "docs_root_count"))
+    missing.extend(collect_marker_misses(review_checklist_text, REVIEW_CHECKLIST_MARKERS, "review_checklist"))
+    missing.extend(
+        collect_exact_count_misses(
+            review_checklist_text,
+            REVIEW_CHECKLIST_EXACT_COUNT_MARKERS,
+            "review_checklist_count",
+        )
+    )
     missing.extend(collect_marker_misses(cross_smoke_text, CROSS_SMOKE_MARKERS, "cross_smoke"))
     missing.extend(collect_marker_misses(raw_coverage_text, RAW_COVERAGE_MARKERS, "raw_coverage"))
     return missing
@@ -118,6 +136,7 @@ def build_live_inputs() -> dict[str, object]:
         "present_files": {path for path in REQUIRED_FILES if (ROOT / path).exists()},
         "survey_text": read_text("Documentation/zigux/phase12-release-readiness-survey.md"),
         "docs_root_text": read_text("Documentation/zigux/README.md"),
+        "review_checklist_text": read_text("Documentation/zigux/review-checklist.md"),
         "cross_smoke_text": read_text("Documentation/zigux/phase12-cross-compile-smoke.md"),
         "raw_coverage_text": read_text("Documentation/zigux/phase12-raw-github-coverage-survey.md"),
     }
@@ -136,6 +155,7 @@ def run_self_test() -> int:
         "present_files": set(REQUIRED_FILES),
         "survey_text": "\n".join(SURVEY_MARKERS) + "\n",
         "docs_root_text": "\n".join(DOCS_ROOT_MARKERS) + "\n",
+        "review_checklist_text": "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n",
         "cross_smoke_text": "\n".join(CROSS_SMOKE_MARKERS) + "\n",
         "raw_coverage_text": "\n".join(RAW_COVERAGE_MARKERS) + "\n",
     }
@@ -205,15 +225,43 @@ def run_self_test() -> int:
     missing = collect_missing(
         **{
             **base_inputs,
-            "docs_root_text": base_inputs["docs_root_text"]
-            + DOCS_ROOT_MARKERS[5]
-            + "\n",
+            "docs_root_text": base_inputs["docs_root_text"] + DOCS_ROOT_MARKERS[5] + "\n",
         }
     )
     expect_contains(
         "docs_root_exact_count_detection",
         missing,
         f"docs_root_count:{DOCS_ROOT_MARKERS[5]}:expected=1:actual=2",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "review_checklist_text": base_inputs["review_checklist_text"].replace(
+                REVIEW_CHECKLIST_MARKERS[0] + "\n",
+                "",
+                1,
+            ),
+        }
+    )
+    expect_contains(
+        "review_checklist_marker_detection",
+        missing,
+        f"review_checklist:{REVIEW_CHECKLIST_MARKERS[0]}",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "review_checklist_text": base_inputs["review_checklist_text"]
+            + REVIEW_CHECKLIST_MARKERS[0]
+            + "\n",
+        }
+    )
+    expect_contains(
+        "review_checklist_exact_count_detection",
+        missing,
+        f"review_checklist_count:{REVIEW_CHECKLIST_MARKERS[0]}:expected=1:actual=2",
     )
 
     missing = collect_missing(
@@ -241,7 +289,7 @@ def run_self_test() -> int:
     expect_contains("raw_coverage_marker_detection", missing, "raw_coverage:shared-tree-only")
 
     print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST=pass")
-    print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT=8")
+    print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
@@ -263,3 +311,4 @@ print("PHASE12_RELEASE_READINESS_PACKET=pass")
 print(f"PHASE12_RELEASE_READINESS_PACKET_FILE_COUNT={len(REQUIRED_FILES)}")
 print(f"PHASE12_RELEASE_READINESS_SURVEY_MARKER_COUNT={len(SURVEY_MARKERS)}")
 print(f"PHASE12_RELEASE_READINESS_DOCS_ROOT_MARKER_COUNT={len(DOCS_ROOT_MARKERS)}")
+print(f"PHASE12_RELEASE_READINESS_REVIEW_CHECKLIST_MARKER_COUNT={len(REVIEW_CHECKLIST_MARKERS)}")
