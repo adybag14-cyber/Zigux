@@ -19,6 +19,7 @@ FILES = [
     "scripts/zigux/README.md",
     "Documentation/zigux/README.md",
     "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
+    "Documentation/zigux/phase14-release-boundary-survey.md",
     "Documentation/zigux/phase14-workqueue-bridge-survey.md",
     "Documentation/zigux/phase14-skbuff-bridge-survey.md",
     "Documentation/zigux/phase14-ring-buffer-survey.md",
@@ -125,6 +126,15 @@ RELEASE_MARKERS = [
     "phase14_rcu_tree_manifest.json",
 ]
 
+RELEASE_BOUNDARY_MARKERS = [
+    "PHASE14_RELEASE_BOUNDARY=present",
+    "PHASE14_SHARED_REPLAY_PRESENT=yes",
+    "shared smoke packet: `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `scripts/zigux/validate-phase14.py`, `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, and `zig build test --build-file zigux/tests/phase14_build.zig --summary all` now keep the four-anchor boundary map, the focused smoke shard, and the shared full-bundle replay explicit from a study-only posture",
+    "PHASE14_SHARED_SMOKE_GATE_COUNT=1",
+    "PHASE14_ACTIVE_DELIVERY_GATE_COUNT=0",
+    "Keep this lane parked unless the shared smoke packet or one of the four anchor-local Phase 14 manifests moves. If that happens, refresh this release-boundary reading and the docs-root Phase 14 summary so the release-facing story keeps matching the validator-backed smoke packet without widening it into a new active delivery claim.",
+]
+
 CHECKLIST_MARKERS = [
     "is there a stated rollback owner and fallback path?",
     "if the change touches the shared Phase 14 smoke packet, do `scripts/zigux/validate-phase14.py`, `scripts/zigux/README.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `zigux/tests/phase14_end_to_end_smoke_survey.zig`, `zigux/tests/phase14_build.zig`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/freeze-map.md`, and the four Phase 14 anchor-local manifests plus survey notes still agree on the same exact validator-backed smoke commands, the same focused `phase14-smoke` shard commands, ready-next versus blocked posture, stay-in-C boundary, named owner, validation gate, rollback owner, rollback threshold, automatic return-to-blocked trigger catalog, roadmap risk bundle (`hidden runtime behavior`, `memory-ordering mistakes`, `overpromising full parity`, `deep-core scope creep`), and explicit ZAR-to-product transfer rationale?",
@@ -224,6 +234,7 @@ for name, source, markers in [
     ("make", text("zigux/Makefile"), MAKE_MARKERS),
     ("workflow", text(".github/workflows/zigux-bootstrap.yml"), WORKFLOW_MARKERS),
     ("survey", survey_note, RELEASE_MARKERS),
+    ("release_boundary", text("Documentation/zigux/phase14-release-boundary-survey.md"), RELEASE_BOUNDARY_MARKERS),
     ("checklist", text("Documentation/zigux/review-checklist.md"), CHECKLIST_MARKERS),
     ("build", text("zigux/tests/phase14_build.zig"), BUILD_MARKERS),
 ]:
@@ -284,7 +295,7 @@ else:
                 missing.append(f"survey:rollback_trigger:{item}")
 
 shared_smoke_surfaces = manifest.get("shared_smoke_surfaces")
-if not isinstance(shared_smoke_surfaces, list) or len(shared_smoke_surfaces) != 12:
+if not isinstance(shared_smoke_surfaces, list) or len(shared_smoke_surfaces) != 13:
     missing.append("manifest:shared_smoke_surfaces")
 
 smoke_commands = manifest.get("smoke_commands")
@@ -336,6 +347,7 @@ required_summary_keys = [
     "scripts_readme_records_return_to_blocked_triggers",
     "scripts_readme_records_boundary_map",
     "scripts_readme_records_concurrency_audit_scope",
+    "release_boundary_note_records_shared_smoke_packet",
     "freeze_map_lists_workqueue_c",
     "freeze_map_lists_skbuff_c",
     "freeze_map_lists_ring_buffer_c",
@@ -573,7 +585,7 @@ if missing:
 
 print("PHASE14_VALIDATION=pass")
 print(f"PHASE14_REQUIRED_FILE_COUNT={len(FILES)}")
-print(f"PHASE14_REQUIRED_MARKER_COUNT={len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(SCRIPT_README_MARKERS) + len(RELEASE_MARKERS) + len(CHECKLIST_MARKERS) + len(BUILD_MARKERS)}")
+print(f"PHASE14_REQUIRED_MARKER_COUNT={len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(SCRIPT_README_MARKERS) + len(RELEASE_MARKERS) + len(RELEASE_BOUNDARY_MARKERS) + len(CHECKLIST_MARKERS) + len(BUILD_MARKERS)}")
 print(f"PHASE14_ANCHOR_PACKET_COUNT={len(anchor_packets)}")
 print(f"PHASE14_BUILD_TEST_COUNT={len(expected_build_test_names)}")
 print(f"PHASE14_BUILD_DEPEND_STEP_COUNT={len(actual_depend_steps)}")
