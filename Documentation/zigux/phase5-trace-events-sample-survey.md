@@ -48,7 +48,7 @@ The repo now carries that bounded sample in `samples/zigux/trace_events_sample.z
 The sample intentionally stays small:
 
 - it keeps the Linux anchor path explicit in `TraceEventsReferenceSample.descriptor()`
-- it models only the bounded array payload, selected string, public selected-string slot and payload-length cues, public main-path and callback-path iteration cues, `iter=%d` message, `0xdeadbeef` bitmask word, conditional-family coverage, and one single-live register-then-unregister callback idiom in memory
+- it models only the bounded array payload, selected string, public selected-string slot and payload-length cues, public main-path and callback-path iteration cues, the `iter=%d` message, and the dedicated `runStringFormattingCycleReplay()` summary that keeps the full modulo-selected string cycle reviewable through one public five-case replay
 - it now makes the replay summary itself carry explicit `vararg_payload_path_checked`, `relative_location_path_checked`, and `function_callback_path_checked` flags so reviewers do not have to infer those paths from private sample state
 - it now exposes `lifecycleSummary()` so the public review surface can read stage plus init, replay, and exit counts, registration depth, and total event calls without private field access
 - it uses a tiny `init()` -> `replayMainIteration()` -> `registerFunctionCallback()` -> `replayFunctionIteration()` -> `unregisterFunctionCallback()` -> `exit()` lifecycle so ownership and teardown stay explicit, including unregister-underflow rejection before a callback is armed and `OutstandingRegistration` rejection if `exit()` is attempted while one callback is still live
@@ -58,9 +58,9 @@ The exact checks currently recorded in `zigux/tests/phase5_trace_events_sample_m
 
 - the in-memory sample keeps `samples/trace_events/trace-events-sample.c` explicit and stays in the non-runtime sample lane
 - `runAnchorReplay()` formats iter=7, selects Gandalf, and exposes selected-string slot `2` from the Linux `random_strings` table for `len = 2`
+- the dedicated `runStringFormattingCycleReplay()` summary replays counts `0` through `4` through five public cases so the full modulo-selected string cycle stays explicit: `Mother Goose`, `Snoopy`, `Gandalf`, `Frodo`, and `One ring to rule them all`
 - the replay summary now exposes main iteration `7` and function-callback iteration `9` so the Linux `cnt`-driven split between the two thread paths stays reviewable without reading private sample state
 - the replay exposes payload length `2` and keeps the `1,2` payload prefix plus a zero sentinel so the Linux array idiom remains reviewable in memory
-- the sample self-check replays counts `0` through `4` so the full modulo-selected string cycle stays explicit: `Mother Goose`, `Snoopy`, `Gandalf`, `Frodo`, and `One ring to rule them all`
 - the replay records the `0xdeadbeef` bitmask word and marks the relative-location payload path as checked in the replay summary
 - the replay marks the vararg payload path as checked so the `fmt` plus `va_list` `trace_foo_bar` idiom stays explicit in the public replay summary
 - the replay records six main-thread event calls and two function-callback event calls for a total of eight bounded tracepoint-family calls
@@ -79,7 +79,7 @@ The exact checks currently recorded in `zigux/tests/phase5_trace_events_sample_m
 - exact commands and observed results:
   - `zig test samples/zigux/trace_events_sample.zig`
     - `1/5 trace_events_sample.test.trace-events sample replay keeps the anchor reviewable and non-runtime...OK`
-    - `2/5 trace_events_sample.test.trace-events sample replays every modulo-selected string and formatted message...OK`
+    - `2/5 trace_events_sample.test.trace-events sample replays every modulo-selected string and formatted message through one bounded replay...OK`
     - `3/5 trace_events_sample.test.trace-events sample exposes callback boundary recovery as one bounded replay...OK`
     - `4/5 trace_events_sample.test.trace-events sample rejects every mutable entry point after exit...OK`
     - `5/5 trace_events_sample.test.trace-events sample keeps callback registration single-live...OK`
@@ -108,9 +108,9 @@ When a contributor updates `samples/zigux/trace_events_sample.zig` or its direct
 - do the sample-backed survey note, `samples/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/README.md`, and `Documentation/zigux/review-checklist.md` still describe the same bounded replay contract and keep this Phase 5 sample visibly separate from the later Phase 9 runtime pilot?
 - do `zigux/tests/phase5_trace_events_sample_manifest.json` and `zigux/tests/phase5_trace_events_sample_survey.zig` still describe the exact selected-string-slot, payload-length, main-iteration, callback-iteration, vararg-payload, lifecycle-summary, message, relative-location, callback-path, and teardown contract run through `zigux/tests/phase5_build.zig`?
 - does `lifecycleSummary()` still keep stage plus init, replay, and exit counts, registration depth, and total event calls visible without private field access?
-- do the sample self-check and the manifest-backed exact-check packet still keep the full modulo-selected string cycle explicit across counts `0` through `4` instead of only one reviewed string case?
+- does `runStringFormattingCycleReplay()` still keep the full modulo-selected string cycle explicit across counts `0` through `4` through five public cases instead of reducing the review surface to only one reviewed string case?
 - do the sample self-check and `zigux/tests/phase5_trace_events_sample.zig` still assert the exact `checked_focus` list and order instead of only its length?
-- does the in-memory replay still keep the array payload, selected string, selected-string slot, payload length, and `iter=%d` message reviewable instead of hiding them behind runtime thread state?
+- do the in-memory replay and `runStringFormattingCycleReplay()` still keep the array payload, selected string, selected-string slot, payload length, and `iter=%d` message reviewable instead of hiding them behind runtime thread state?
 - does function-callback replay stay a single-live register-then-unregister idiom, including rejection of a second `registerFunctionCallback()` call while one callback is already registered, rather than implying `kthread_run()`, thread scheduling, or tracepoint enablement parity?
 - before a callback is registered, does the sample still reject `replayFunctionIteration()` with `FunctionCallbackNotRegistered` so the callback-entry boundary stays explicit without relying on private state?
 - before callback balance returns to zero, does the sample still reject `unregisterFunctionCallback()` underflow and reject `exit()` with `OutstandingRegistration` while a callback remains armed, so the ownership boundary is explicit before teardown?
