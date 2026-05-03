@@ -7,7 +7,7 @@ import sys
 import tempfile
 
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[2]
 
 DOCS = [
     "Documentation/zigux/phase10-closure-evidence.md",
