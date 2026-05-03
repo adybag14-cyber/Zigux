@@ -26,7 +26,7 @@ Exact reviewability cues remain explicit:
 
 - `ownershipSummary()` keeps replay readiness plus the `cold`, `initialized`, `registered`, and `exited` stages directly reviewable
 - the replay-readiness boundary only allows `runAnchorReplay()` in the initialized stage
-- the pre-registration zero-active-attributes boundary, initialized-only abandonment path, and post-exit rejection boundaries remain explicit
+- the pre-registration zero-active-attributes boundary, initialized-only abandonment path, registered teardown summary, and post-exit rejection boundaries remain explicit
 - sysfs creation, `kernel_kobj` integration, uevents, and loadable module registration remain out of scope
 
 Latest verification snapshot:
