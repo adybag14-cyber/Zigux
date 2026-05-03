@@ -75,6 +75,8 @@ REQUIRED_CLOSURE_MARKERS = [
     "PHASE1_RBTREE_POSTORDER_SAFE_UNIT_REVIEW=rbtree iteratePostorderSafe caches exactly one step ahead so callers can invalidate the current node without truncating the remaining postorder walk",
     "PHASE1_RBTREE_POSTORDER_SAFE_REBALANCE_UNIT_REVIEW=rbtree iteratePostorderSafe stays aligned across erase-driven rebalancing so the walk still reaches each remaining node exactly once after the current node is removed",
     "PHASE1_RBTREE_BENCH_KEYS=PHASE1_BENCH_RBTREE_CHECKSUM,PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM,PHASE1_BENCH_RBTREE_CACHED_CHECKSUM,PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM,PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM",
+    "PHASE1_RBTREE_ALIAS_GAP_NOTE=the closed Phase 1 rbtree tranche still excludes Linux-style rb_* alias parity for the already-ported entry points, and that remaining surface stays explicitly out of scope until a later bounded repair lands",
+    "PHASE1_RBTREE_ALIAS_GAP_GATE=phase1 closure validation fails closed if tools/lib/rbtree.zig grows Linux-style rb_* aliases before the closed helper tranche is deliberately reopened",
 ]
 
 REQUIRED_WORKFLOW_MARKERS = [
@@ -270,6 +272,8 @@ REQUIRED_MANIFEST_FIELDS = {
         "tail_word_boundary_unit_test_contract": "Direct Zig unit coverage keeps set, zero, and shared-bit tail scans aligned when the search starts exactly at the first tail-word bit index, so the first in-range tail match remains reachable without rereading an earlier full-word result.",
     },
     "tools/lib/rbtree.zig": {
+        "shared_parity_scope_note": "The committed shared Phase 1 fixture still stops at traversal, replaceNode, eraseInit, postorder traversal, and detached-node state checks; duplicate-key search, duplicate-range iterators, and cached-root minima tracking are currently recorded as direct Zig unit coverage only in this closed tranche.",
+        "alias_gap_note": "Linux-style rb_* alias surface parity is still missing for the already-ported entry points, and that remaining surface stays explicitly out of scope for the closed Phase 1 tranche until a later bounded repair lands.",
         "cached_find_add_unit_test_contract": "Direct Zig unit coverage keeps findAddCached() aligned so equal-key probes return the original resident node, distinct inserts still link into the cached tree, and RootCached continues to expose the same leftmost node as the underlying tree root.",
         "postorder_iterator_unit_test_contract": "Direct Zig unit coverage keeps iteratePostorder() aligned so the explicit iterator visits each node exactly once in left-right-root order and reports exhaustion cleanly after the full walk.",
         "postorder_safe_unit_test_contract": "Direct Zig unit coverage keeps iteratePostorderSafe() aligned by caching exactly one step ahead so callers can invalidate the current node without truncating the remaining postorder walk.",
@@ -510,10 +514,36 @@ def self_test() -> int:
         expect_failure(root, "workflow_phase1_bench_count:expected=1:actual=2")
         write(root / ".github/workflows/zigux-bootstrap.yml", "\n".join(REQUIRED_WORKFLOW_MARKERS) + "\n")
 
+        write(
+            root / "Documentation/zigux/phase1-closure.md",
+            "\n".join(marker for marker in REQUIRED_CLOSURE_MARKERS if not marker.startswith("PHASE1_RBTREE_ALIAS_GAP_NOTE=")) + "\n",
+        )
+        expect_failure(root, "closure:PHASE1_RBTREE_ALIAS_GAP_NOTE=the closed Phase 1 rbtree tranche still excludes Linux-style rb_* alias parity for the already-ported entry points, and that remaining surface stays explicitly out of scope until a later bounded repair lands")
+        write(root / "Documentation/zigux/phase1-closure.md", "\n".join(REQUIRED_CLOSURE_MARKERS) + "\n")
+
+        write(
+            root / "Documentation/zigux/phase1-closure.md",
+            "\n".join(marker for marker in REQUIRED_CLOSURE_MARKERS if not marker.startswith("PHASE1_RBTREE_ALIAS_GAP_GATE=")) + "\n",
+        )
+        expect_failure(root, "closure:PHASE1_RBTREE_ALIAS_GAP_GATE=phase1 closure validation fails closed if tools/lib/rbtree.zig grows Linux-style rb_* aliases before the closed helper tranche is deliberately reopened")
+        write(root / "Documentation/zigux/phase1-closure.md", "\n".join(REQUIRED_CLOSURE_MARKERS) + "\n")
+
         manifest = fixture_manifest()
         manifest["helper_review_notes"]["tools/lib/string.zig"]["memparse_unit_test_contract"] = "drift"
         write(root / "zigux/tests/fixtures/phase1_helper_manifest.json", json.dumps(manifest, indent=2) + "\n")
         expect_failure(root, "manifest:tools/lib/string.zig:memparse_unit_test_contract")
+        write(root / "zigux/tests/fixtures/phase1_helper_manifest.json", json.dumps(fixture_manifest(), indent=2) + "\n")
+
+        manifest = fixture_manifest()
+        manifest["helper_review_notes"]["tools/lib/rbtree.zig"]["shared_parity_scope_note"] = "drift"
+        write(root / "zigux/tests/fixtures/phase1_helper_manifest.json", json.dumps(manifest, indent=2) + "\n")
+        expect_failure(root, "manifest:tools/lib/rbtree.zig:shared_parity_scope_note")
+        write(root / "zigux/tests/fixtures/phase1_helper_manifest.json", json.dumps(fixture_manifest(), indent=2) + "\n")
+
+        manifest = fixture_manifest()
+        manifest["helper_review_notes"]["tools/lib/rbtree.zig"]["alias_gap_note"] = "drift"
+        write(root / "zigux/tests/fixtures/phase1_helper_manifest.json", json.dumps(manifest, indent=2) + "\n")
+        expect_failure(root, "manifest:tools/lib/rbtree.zig:alias_gap_note")
         write(root / "zigux/tests/fixtures/phase1_helper_manifest.json", json.dumps(fixture_manifest(), indent=2) + "\n")
 
         manifest = fixture_manifest()
@@ -556,7 +586,7 @@ def self_test() -> int:
         expect_failure(root, "rbtree_source:unexpected_alias:pub fn rb_first(")
 
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=18")
+    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=22")
     return 0
 
 
