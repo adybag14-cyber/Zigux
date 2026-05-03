@@ -82,6 +82,9 @@ Keep the validator-first release route explicit:
 - `make -C zigux phase13`
 
 Keep these evidence surfaces aligned in the same review:
+- `scripts/zigux/README.md`
+- `Documentation/zigux/README.md`
+- `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase13-release-notes-survey.md`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
 - `Documentation/zigux/phase13-libfs-survey.md`
@@ -99,7 +102,7 @@ Keep these evidence surfaces aligned in the same review:
 - `.github/workflows/zigux-bootstrap.yml`
 
 Reviewer prompt:
-- Does the shared Phase 13 packet still route through the release validator before the ten-step replay bundle, with the notifier packet kept explicit as adjacent release evidence rather than an untracked side lane?
+- Does the shared Phase 13 packet still route through the release validator before the ten-step replay bundle, with the scripts index, docs-root summary, and review checklist all naming the same Landlock syscall reviewability gate and adjacent notifier evidence rather than letting those release surfaces drift apart?
 
 ## Shared review rule
 
