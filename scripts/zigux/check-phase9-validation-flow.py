@@ -19,6 +19,7 @@ PHASE9_BUILD_PATH = "zigux/tests/phase9_build.zig"
 LOADER_SUBSTRATE_PLAN_PATH = "Documentation/zigux/phase9-runtime-loader-substrate-plan.md"
 NON_OWNER_BOUNDARY_SURVEY_PATH = "zigux/tests/runtime_loader_non_owner_boundary_survey.zig"
 MODULE_METADATA_SURVEY_TEST_PATH = "zigux/tests/runtime_module_metadata_survey.zig"
+LOADER_ALLOCATOR_INIT_FLOW_TEST_PATH = "zigux/tests/runtime_loader_allocator_init_flow.zig"
 LOADER_SUBSTRATE_CHECKER_PATH = "scripts/zigux/check-phase9-loader-substrate-plan.py"
 COMMIT_ALIGNMENT_CHECKER_PATH = "scripts/zigux/check-phase9-runtime-loader-commit-alignment.py"
 NON_OWNER_BOUNDARY_CHECKER_PATH = "scripts/zigux/check-phase9-loader-non-owner-boundary.py"
@@ -35,6 +36,7 @@ REQUIRED_FILES = [
     LOADER_SUBSTRATE_PLAN_PATH,
     NON_OWNER_BOUNDARY_SURVEY_PATH,
     MODULE_METADATA_SURVEY_TEST_PATH,
+    LOADER_ALLOCATOR_INIT_FLOW_TEST_PATH,
     LOADER_SUBSTRATE_CHECKER_PATH,
     COMMIT_ALIGNMENT_CHECKER_PATH,
     NON_OWNER_BOUNDARY_CHECKER_PATH,
@@ -154,6 +156,7 @@ KRETPROBE_SURVEY_EXACT_ONCE_MARKERS = [
 PHASE9_BUILD_MARKERS = [
     "phase9-runtime-loader-gap-survey-tests",
     "phase9-runtime-loader-non-owner-boundary-survey-tests",
+    "phase9-runtime-loader-allocator-init-flow-tests",
     "phase9-runtime-module-metadata-survey-tests",
     "phase9-runtime-trace-events-survey-tests",
     "phase9-runtime-kretprobe-survey-tests",
@@ -397,6 +400,7 @@ def write_fixture_tree(root: Path) -> None:
             [
                 "phase9-runtime-loader-gap-survey-tests",
                 "phase9-runtime-loader-non-owner-boundary-survey-tests",
+                "phase9-runtime-loader-allocator-init-flow-tests",
                 "phase9-runtime-module-metadata-survey-tests",
                 "phase9-runtime-trace-events-survey-tests",
                 "phase9-runtime-kretprobe-survey-tests",
@@ -423,6 +427,7 @@ def write_fixture_tree(root: Path) -> None:
     for rel_path in (
         NON_OWNER_BOUNDARY_SURVEY_PATH,
         MODULE_METADATA_SURVEY_TEST_PATH,
+        LOADER_ALLOCATOR_INIT_FLOW_TEST_PATH,
         LOADER_SUBSTRATE_CHECKER_PATH,
         COMMIT_ALIGNMENT_CHECKER_PATH,
         NON_OWNER_BOUNDARY_CHECKER_PATH,
@@ -707,6 +712,17 @@ def run_self_test() -> int:
         phase9_build_path.write_text(original_phase9_build, encoding="utf-8")
 
         phase9_build_path.write_text(
+            original_phase9_build.replace("phase9-runtime-loader-allocator-init-flow-tests", "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "phase9_build_allocator_init_flow_leg",
+            tmp_root,
+            "phase9_build:phase9-runtime-loader-allocator-init-flow-tests",
+        )
+        phase9_build_path.write_text(original_phase9_build, encoding="utf-8")
+
+        phase9_build_path.write_text(
             original_phase9_build.replace("phase9-runtime-module-metadata-survey-tests", "", 1),
             encoding="utf-8",
         )
@@ -799,7 +815,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE9_VALIDATION_FLOW_SELF_TEST=pass")
-    print("PHASE9_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=26")
+    print("PHASE9_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=27")
     return 0
 
 
