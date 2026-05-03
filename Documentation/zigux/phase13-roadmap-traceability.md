@@ -24,7 +24,7 @@ Shared tranche entrypoints already present on `master`:
 - the same shared packet now also keeps `zigux/tests/phase13_landlock_syscalls_reviewability.zig` visible as dedicated reviewability evidence for the landed `phase13-landlock-syscalls-reviewability-tests` replay step, so the syscall anchor does not look smaller than the current shared build on `master`
 - `lib/devres.c` is represented by real helper code, real tests, a manifest-backed survey packet, and explicit blocked DMA/scatterlist boundary evidence
 - the same shared packet also keeps `zigux/tests/phase13_devres_dma_coherent.zig` and `phase13-devres-dma-coherent-tests` visible as adjacent helper-first coherent DMA alloc/free bookkeeping evidence, so the current shared replay exposes that bounded support slice without turning the blocked `devres` DMA/scatterlist boundary into a live mapping claim
-- the same shared packet also keeps `zigux/tests/phase13_devres_iounmap_reviewability.zig`, `zigux/tests/phase13_devres_iomap_reviewability.zig`, and `zigux/tests/phase13_landlock_ruleset_reviewability.zig` visible as dedicated reviewability evidence for the landed `phase13-devres-iounmap-reviewability-tests`, `phase13-devres-iomap-reviewability-tests`, and `phase13-landlock-ruleset-reviewability-tests` replay steps, so the `devres` and ruleset anchors do not look smaller than the current shared build on `master`
+- the same shared packet also keeps `zigux/tests/phase13_devres_iounmap_reviewability.zig`, `zigux/tests/phase13_devres_iomap_reviewability.zig`, `zigux/tests/phase13_devres_wrapper_reviewability.zig`, and `zigux/tests/phase13_landlock_ruleset_reviewability.zig` visible as dedicated reviewability evidence for the landed `phase13-devres-iounmap-reviewability-tests`, `phase13-devres-iomap-reviewability-tests`, `phase13-devres-wrapper-reviewability-tests`, and `phase13-landlock-ruleset-reviewability-tests` replay steps, so the `devres` and ruleset anchors do not look smaller than the current shared build on `master`
 - the same shared packet also keeps `zigux/bindings/notifier_abi.zig`, `include/zigux/notifier_abi.h`, `zigux/helpers/notifier_chain_view.zig`, `zigux/tests/phase13_notifier_list_reviewability.zig`, and `Documentation/zigux/phase13-notifier-list-survey.md` visible as roadmap-adjacent release-facing evidence without changing the roadmap's four-anchor count
 
 ## Anchor-to-repo map
@@ -70,7 +70,7 @@ Current repo evidence:
 - implementation anchor: `lib/devres.zig`
 - dedicated tests: `zigux/tests/phase13_devres.zig`
 - adjacent coherent-DMA replay: `zigux/tests/phase13_devres_dma_coherent.zig`
-- reviewability gate: `zigux/tests/phase13_devres_reviewability.zig`
+- reviewability gates: `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_iounmap_reviewability.zig`, `zigux/tests/phase13_devres_iomap_reviewability.zig`, and `zigux/tests/phase13_devres_wrapper_reviewability.zig`
 - manifest: `zigux/tests/phase13_devres_manifest.json`
 - manifest `surveyed_commit`: `aa01b37be5500e6a1e4f959c9fe07f0e39d39bfb`
 - shared build entry: `zigux/tests/phase13_build.zig`
@@ -99,7 +99,7 @@ Current lane state recorded in the manifest:
 - blocked `phase13-devres-live-arch-memtype-state`
 
 Traceability summary:
-- this anchor stays roadmap-aligned and manifest-backed, and the helper packet now covers the shared build gate, make target, dedicated slice note, managed ioremap, resource-planner, ioport, direct non-posted wrapper, and arch write-combine bookkeeping helpers while the shared replay also keeps the adjacent coherent DMA alloc/free bookkeeping evidence visible, all while still refusing to claim live MMIO side effects, live DMA-backed mappings, scatterlist ownership, live device-tree walking, or global arch-memtype mutation.
+- this anchor stays roadmap-aligned and manifest-backed, and the helper packet now covers the shared build gate, make target, dedicated slice note, managed ioremap, resource-planner, ioport, direct non-posted wrapper, direct plain/UC/WC/NP ioremap wrapper-family reviewability, and arch write-combine bookkeeping helpers while the shared replay also keeps the adjacent coherent DMA alloc/free bookkeeping evidence visible, all while still refusing to claim live MMIO side effects, live DMA-backed mappings, scatterlist ownership, live device-tree walking, or global arch-memtype mutation.
 
 ### `security/landlock/ruleset.c`
 
