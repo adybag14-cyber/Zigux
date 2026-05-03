@@ -10,7 +10,7 @@ This document records the bounded Phase 14 survey lane around `kernel/trace/ring
 - `PHASE14_SURVEYED_COMMIT=f9a7a6e93c8e6a1b6550fd7b2aa5571729aab05b`
 - scope: the dedicated Phase 14 ring-buffer survey gate, its manifest, the shared Phase 14 build wiring, and this lane note that keeps the roadmap gap explicit without shipping a Zig bridge
 - survey provenance refreshed against verified `master` head `f9a7a6e93c8e6a1b6550fd7b2aa5571729aab05b`
-- live follow-up: current repo inspection added one more bounded hotplug-lifetime audit around `trace_rb_cpu_prepare()` and the CPU-online publication path without widening this packet into a repin, bridge claim, or wrapper-first implementation
+- live follow-up: current repo inspection added one more bounded remote-reader metadata audit around `rb_read_remote_meta_page()` and `__rb_get_reader_page_from_remote()` without widening this packet into a repin, bridge claim, or wrapper-first implementation
 - product boundary:
   - `zigux/tests/phase14_ring_buffer_survey.zig`
   - `zigux/tests/phase14_ring_buffer_manifest.json`
@@ -45,6 +45,13 @@ The honest Phase 14 move here is therefore not to start a `ring_buffer.zig` file
 - `wakeup-watermark-mmap-boundary`: keep `rb_wake_up_waiters()`, `rb_watermark_hit()`, `ring_buffer_wait()`, `ring_buffer_poll_wait()`, and `rb_update_meta_page()` in C because irq-work wakeups, full-waiter watermarks, and mapped-reader publication still describe one shared reader-visible contract.
 - `tracefs-mapping-limitations`: keep `ring_buffer_map()`, `ring_buffer_resize()`, `ring_buffer_swap_cpu()`, `ring_buffer_map_get_reader()`, and `tracing_buffers_splice_read()` in C because mapped-reader lockouts, snapshot restrictions, and splice fallback remain one shared tracefs-facing policy surface.
 - `reader-page-consume-boundary`: keep `rb_get_reader_page()`, `ring_buffer_read_start()`, and `ring_buffer_consume()` in C because reader-page swaps, lost-event publication, iterator setup, and reader-side resize pinning still form one shared handoff rather than a wrapper-safe helper seam.
+
+## Remote-reader metadata audit
+
+- `rb_read_remote_meta_page()` is not a side-channel helper. It refuses to fabricate metadata unless the remote buffer registered a `meta_page_update` callback, invokes that callback to refresh the exporter-visible page, and only then republishes the mapped-reader counters through the same meta-page contract, so remote metadata publication still depends on callback-owned producer state.
+- `__rb_get_reader_page_from_remote()` keeps page import coupled to that same callback boundary. The remote path can only advance once the current reader page is fully consumed, then it asks the remote `reader_page()` callback for the next page and refuses to pretend a handoff happened when the callback returns nothing useful or leaves the reader effectively caught up with the remote commit state.
+- Lost-event accounting remains in the same C-owned handoff. When a new remote page really arrives, `__rb_get_reader_page_from_remote()` updates `lost_events` from the exported overrun delta and `rb_read_remote_meta_page()` then republishes the refreshed reader position and counters through the same mapped meta-page shape, which means remote imports still bundle page movement, accounting, and metadata refresh together.
+- The surrounding docs explain why this should stay conservative. `Documentation/trace/ring-buffer-design.rst` already says readers serialize around one reader page and `Documentation/trace/ring-buffer-map.rst` says mapped readers compete unpredictably, so the extra remote callbacks deepen the same shared contract instead of creating an isolated Zig seam.
 
 ## Overwrite and lost-event audit
 
@@ -154,6 +161,7 @@ The current lane state is:
 - landed `phase14-ring-buffer-survey-gate`
 - landed `phase14-ring-buffer-survey-note`
 - landed `phase14-ring-buffer-boundary-decision-checklist`
+- landed `phase14-ring-buffer-remote-reader-metadata-followup`
 - landed `phase14-ring-buffer-overwrite-audit`
 - landed `phase14-ring-buffer-wakeup-mmap-followup`
 - landed `phase14-ring-buffer-splice-resize-followup`
@@ -197,4 +205,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Keep the Phase 14 ring-buffer packet parked unless it drifts again or a future study-only step can stay narrower than the existing resize, rollback, reader-page, mapped-reader, kill-switch-recovery, and hotplug-lifetime audits; the next honest follow-up would need another concrete source-of-truth drift or a still-smaller tracefs evidence gap instead of reopening bridge code or generic tracing UX work.
+Keep the Phase 14 ring-buffer packet parked unless it drifts again or a future study-only step can stay narrower than the existing remote-reader, resize, rollback, reader-page, mapped-reader, kill-switch-recovery, and hotplug-lifetime audits; the next honest follow-up would need another concrete source-of-truth drift or a still-smaller tracefs evidence gap instead of reopening bridge code or generic tracing UX work.
