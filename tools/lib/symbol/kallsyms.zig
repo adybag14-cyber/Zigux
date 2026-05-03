@@ -282,6 +282,32 @@ pub fn kallsymsParseContents(
     return callback_state.result;
 }
 
+pub fn kallsymsParseChunked(
+    allocator: std.mem.Allocator,
+    reader_context: anytype,
+    comptime next_chunk: fn (@TypeOf(reader_context)) anyerror!?[]const u8,
+    context: ?*anyopaque,
+    process_symbol: ProcessSymbolFn,
+) !i32 {
+    var callback_state = ProcessSymbolCallbackState{
+        .context = context,
+        .process_symbol = process_symbol,
+    };
+
+    forEachParsedChunked(
+        allocator,
+        reader_context,
+        next_chunk,
+        &callback_state,
+        ProcessSymbolCallbackState.process,
+    ) catch |err| switch (err) {
+        error.StopParsing => return callback_state.result,
+        else => return err,
+    };
+
+    return callback_state.result;
+}
+
 pub fn kallsymsParseReader(
     allocator: std.mem.Allocator,
     reader: anytype,
@@ -810,6 +836,31 @@ test "kallsymsParse wrappers preserve the C-shaped callback contract and bounded
     try std.testing.expectEqualStrings("weak_handler", contents_state.names.items[1]);
     try std.testing.expectEqual(@as(u8, 'W'), contents_state.symbol_types.items[1]);
     try std.testing.expectEqual(@as(u64, 0xffffffff81000200), contents_state.starts.items[1]);
+
+    var chunked_state = ChunkFixtureState{
+        .chunks = &.{
+            "ffffffff81000000 T start",
+            "up_64\ngarbage\nffff",
+            "ffff81000200 W weak_handler\nffffffff81000300 t ignored_after_stop\n",
+        },
+    };
+    var chunked_callback_state = CallbackState.init();
+    defer chunked_callback_state.deinit(std.testing.allocator);
+
+    const chunked_result = try kallsymsParseChunked(
+        std.testing.allocator,
+        &chunked_state,
+        nextFixtureChunk,
+        &chunked_callback_state,
+        CallbackState.collect,
+    );
+
+    try std.testing.expectEqual(@as(i32, 23), chunked_result);
+    try std.testing.expectEqual(@as(usize, 2), chunked_callback_state.names.items.len);
+    try std.testing.expectEqualStrings("startup_64", chunked_callback_state.names.items[0]);
+    try std.testing.expectEqualStrings("weak_handler", chunked_callback_state.names.items[1]);
+    try std.testing.expectEqual(@as(u8, 'W'), chunked_callback_state.symbol_types.items[1]);
+    try std.testing.expectEqual(@as(u64, 0xffffffff81000200), chunked_callback_state.starts.items[1]);
 
     var reader_state = CallbackState.init();
     defer reader_state.deinit(std.testing.allocator);
