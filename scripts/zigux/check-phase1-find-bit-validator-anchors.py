@@ -102,8 +102,11 @@ REQUIRED_MAKEFILE_SNIPPETS = {
     "live_step": "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-find-bit-validator-anchors.py",
 }
 
-REQUIRED_SCRIPTS_README_LINES = {
+REQUIRED_SCRIPTS_README_EXACT_LINES = {
     "helper_listing": "- `check-phase1-find-bit-validator-anchors.py`",
+}
+
+REQUIRED_SCRIPTS_README_SNIPPETS = {
     "self_test_command": (
         "`check-phase1-find-bit-validator-anchors.py --self-test` and "
         "`check-phase1-find-bit-validator-anchors.py`"
@@ -133,6 +136,15 @@ def validate_exact_lines(prefix: str, source: str, required_lines: dict[str, str
     lines = [line.strip() for line in source.splitlines()]
     for label, required_line in required_lines.items():
         actual_count = sum(1 for line in lines if line == required_line)
+        if actual_count != 1:
+            missing.append(f"{prefix}:{label}:expected=1:actual={actual_count}")
+    return missing
+
+
+def validate_snippet_counts(prefix: str, source: str, required_snippets: dict[str, str]) -> list[str]:
+    missing: list[str] = []
+    for label, snippet in required_snippets.items():
+        actual_count = source.count(snippet)
         if actual_count != 1:
             missing.append(f"{prefix}:{label}:expected=1:actual={actual_count}")
     return missing
@@ -176,7 +188,16 @@ def run_check(
         ),
         *validate_exact_lines("phase1_validator_find_bit_workflow", workflow_source, REQUIRED_WORKFLOW_SNIPPETS),
         *validate_exact_lines("phase1_validator_find_bit_makefile", makefile_source, REQUIRED_MAKEFILE_SNIPPETS),
-        *validate_exact_lines("phase1_validator_find_bit_scripts_readme", scripts_readme_source, REQUIRED_SCRIPTS_README_LINES),
+        *validate_exact_lines(
+            "phase1_validator_find_bit_scripts_readme",
+            scripts_readme_source,
+            REQUIRED_SCRIPTS_README_EXACT_LINES,
+        ),
+        *validate_snippet_counts(
+            "phase1_validator_find_bit_scripts_readme",
+            scripts_readme_source,
+            REQUIRED_SCRIPTS_README_SNIPPETS,
+        ),
         *validate_exact_lines("phase1_validator_find_bit_docs_readme", docs_readme_source, REQUIRED_DOCS_README_LINES),
     ]
     if missing:
@@ -190,7 +211,7 @@ def run_check(
     print("PHASE1_FIND_BIT_VALIDATOR_ANCHOR_CHECK=pass")
     print(
         "PHASE1_FIND_BIT_VALIDATOR_ANCHOR_COUNT="
-        f"{len(REQUIRED_VALIDATOR_SNIPPETS) + len(REQUIRED_CLOSURE_VALIDATOR_SNIPPETS) + len(REQUIRED_CLOSURE_DOC_SNIPPETS) + len(REQUIRED_BENCH_CHECKER_SNIPPETS) + len(REQUIRED_WORKFLOW_SNIPPETS) + len(REQUIRED_MAKEFILE_SNIPPETS) + len(REQUIRED_SCRIPTS_README_LINES) + len(REQUIRED_DOCS_README_LINES)}"
+        f"{len(REQUIRED_VALIDATOR_SNIPPETS) + len(REQUIRED_CLOSURE_VALIDATOR_SNIPPETS) + len(REQUIRED_CLOSURE_DOC_SNIPPETS) + len(REQUIRED_BENCH_CHECKER_SNIPPETS) + len(REQUIRED_WORKFLOW_SNIPPETS) + len(REQUIRED_MAKEFILE_SNIPPETS) + len(REQUIRED_SCRIPTS_README_EXACT_LINES) + len(REQUIRED_SCRIPTS_README_SNIPPETS) + len(REQUIRED_DOCS_README_LINES)}"
     )
     print(f"PHASE1_FIND_BIT_VALIDATOR_PATH={validator_path}")
     print(f"PHASE1_FIND_BIT_CLOSURE_VALIDATOR_PATH={closure_validator_path}")
@@ -237,7 +258,12 @@ def expect_missing(
         *validate_exact_lines(
             "phase1_validator_find_bit_scripts_readme",
             scripts_readme_text,
-            REQUIRED_SCRIPTS_README_LINES,
+            REQUIRED_SCRIPTS_README_EXACT_LINES,
+        ),
+        *validate_snippet_counts(
+            "phase1_validator_find_bit_scripts_readme",
+            scripts_readme_text,
+            REQUIRED_SCRIPTS_README_SNIPPETS,
         ),
         *validate_exact_lines(
             "phase1_validator_find_bit_docs_readme",
@@ -258,7 +284,12 @@ def run_self_test() -> int:
     bench_checker_baseline = "\n".join(REQUIRED_BENCH_CHECKER_SNIPPETS.values()) + "\n"
     workflow_baseline = "\n".join(REQUIRED_WORKFLOW_SNIPPETS.values()) + "\n"
     makefile_baseline = "\n".join(REQUIRED_MAKEFILE_SNIPPETS.values()) + "\n"
-    scripts_readme_baseline = "\n".join(REQUIRED_SCRIPTS_README_LINES.values()) + "\n"
+    scripts_readme_baseline = (
+        "\n".join(REQUIRED_SCRIPTS_README_EXACT_LINES.values())
+        + "\n"
+        + "\n".join(REQUIRED_SCRIPTS_README_SNIPPETS.values())
+        + "\n"
+    )
     docs_readme_baseline = "\n".join(REQUIRED_DOCS_README_LINES.values()) + "\n"
 
     baseline_missing = [
@@ -283,7 +314,12 @@ def run_self_test() -> int:
         *validate_exact_lines(
             "phase1_validator_find_bit_scripts_readme",
             scripts_readme_baseline,
-            REQUIRED_SCRIPTS_README_LINES,
+            REQUIRED_SCRIPTS_README_EXACT_LINES,
+        ),
+        *validate_snippet_counts(
+            "phase1_validator_find_bit_scripts_readme",
+            scripts_readme_baseline,
+            REQUIRED_SCRIPTS_README_SNIPPETS,
         ),
         *validate_exact_lines(
             "phase1_validator_find_bit_docs_readme",
@@ -421,7 +457,35 @@ def run_self_test() -> int:
         )
         total_cases += 1
 
-    for label, snippet in REQUIRED_SCRIPTS_README_LINES.items():
+    for label, snippet in REQUIRED_SCRIPTS_README_EXACT_LINES.items():
+        expect_missing(
+            label,
+            validator_baseline,
+            closure_validator_baseline,
+            closure_doc_baseline,
+            bench_checker_baseline,
+            workflow_baseline,
+            makefile_baseline,
+            scripts_readme_baseline.replace(snippet, "", 1),
+            docs_readme_baseline,
+            f"phase1_validator_find_bit_scripts_readme:{label}:expected=1:actual=0",
+        )
+        total_cases += 1
+        expect_missing(
+            f"{label}_duplicate",
+            validator_baseline,
+            closure_validator_baseline,
+            closure_doc_baseline,
+            bench_checker_baseline,
+            workflow_baseline,
+            makefile_baseline,
+            scripts_readme_baseline + snippet + "\n",
+            docs_readme_baseline,
+            f"phase1_validator_find_bit_scripts_readme:{label}:expected=1:actual=2",
+        )
+        total_cases += 1
+
+    for label, snippet in REQUIRED_SCRIPTS_README_SNIPPETS.items():
         expect_missing(
             label,
             validator_baseline,
