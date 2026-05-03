@@ -4,7 +4,7 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 
 ## Status
 
-- `PHASE5_STATUS=active`
+- `PHASE5_STATUS=parked`
 - `PHASE5_LANE_KEY=P5-L04`
 - `PHASE5_SLICE=kfifo-reference-sample-starter`
 - `PHASE5_SURVEYED_COMMIT=a15760c3e46103fd41ae0da852b61f612e9116c6`
