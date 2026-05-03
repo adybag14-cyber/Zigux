@@ -149,6 +149,24 @@ The current substrate-plan packet is pinned to `master` commit `1383062a0df7f7a3
             )
         survey_path.write_text(baseline_survey, encoding="utf-8")
 
+        substrate_path.write_text(
+            baseline_substrate.replace(
+                PINNED_COMMIT_TEMPLATE.format(
+                    commit="1383062a0df7f7a360df54db685454b3e69798af"
+                ),
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        substrate_errors = validate(root)
+        if "substrate_plan:missing_pinned_commit_sentence" not in substrate_errors:
+            raise SystemExit(
+                "phase9-loader-commit-alignment:self-test:expected_substrate_pinned_sentence_failure:"
+                + ",".join(substrate_errors or ["none"])
+            )
+        substrate_path.write_text(baseline_substrate, encoding="utf-8")
+
         manifest_path.write_text("{\n  \"surveyed_commit\": \"invalid\"\n}\n", encoding="utf-8")
         manifest_errors = validate(root)
         if "manifest:missing_or_invalid_surveyed_commit" not in manifest_errors:
@@ -158,7 +176,7 @@ The current substrate-plan packet is pinned to `master` commit `1383062a0df7f7a3
             )
 
     print("PHASE9_LOADER_COMMIT_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE9_LOADER_COMMIT_ALIGNMENT_SELF_TEST_CASE_COUNT=3")
+    print("PHASE9_LOADER_COMMIT_ALIGNMENT_SELF_TEST_CASE_COUNT=4")
     return 0
 
 
