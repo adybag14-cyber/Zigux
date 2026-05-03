@@ -43,7 +43,7 @@ REQUIRED_VALIDATOR_SNIPPETS = {
     "closure_tail_word_boundary_review": (
         '"PHASE1_FIND_BIT_TAIL_WORD_BOUNDARY_UNIT_REVIEW=find_bit tail-clamped set zero and '
         'shared-bit scans keep the first in-range tail-word match reachable when the search '
-        'starts exactly at the tail-word-boundary instead of rereading an earlier full-word result"'
+        'starts exactly at the tail-word boundary instead of rereading an earlier full-word result"'
     ),
     "manifest_tail_start_anchor_marker": (
         '"tail_start_unit_test_anchor": '
