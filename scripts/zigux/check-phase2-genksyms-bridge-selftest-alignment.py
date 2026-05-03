@@ -180,8 +180,8 @@ def validate_cases(root: Path) -> list[str]:
     version_case = by_name.get("version", {})
     if version_case.get("mode") != "process_json":
         issues.append("cases:version:mode=process_json")
-    if version_case.get("argv") != ["--ver"]:
-        issues.append("cases:version:argv=['--ver']")
+    if version_case.get("argv") != ["-Vd", "--reference", "foo.symref"]:
+        issues.append("cases:version:argv=['-Vd', '--reference', 'foo.symref']")
 
     invalid_case = by_name.get("invalid_option", {})
     if invalid_case.get("normalize_stderr") is not True:
@@ -277,7 +277,7 @@ def build_fixture_cases() -> str:
             case["mode"] = "process_json"
             case["expected"] = "help_expected.json"
         elif name == "version":
-            case["argv"] = ["--ver"]
+            case["argv"] = ["-Vd", "--reference", "foo.symref"]
             case["mode"] = "process_json"
             case["expected"] = "version_expected.json"
         elif name == "invalid_option":
