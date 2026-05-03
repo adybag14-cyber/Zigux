@@ -8,7 +8,7 @@
   "survey_summary": {
     "phase6_leaf_helper_count": 4,
     "runtime_sample_count": 4,
-    "runtime_loader_plan_count": 3,
+    "runtime_loader_plan_count": 4,
     "runtime_sample_only_blocked_count": 1,
     "phase8_command_environment_surface_count": 2,
     "cross_phase_non_owner_surface_count": 4,
@@ -73,7 +73,8 @@
   "runtime_loader_plans": [
     "samples/zigux/runtime_atomic64_loader.zig",
     "samples/zigux/runtime_bitmap_loader.zig",
-    "samples/zigux/runtime_kretprobe_loader.zig"
+    "samples/zigux/runtime_kretprobe_loader.zig",
+    "samples/zigux/runtime_trace_events_loader.zig"
   ],
   "runtime_sample_only_blocked": [
     {
