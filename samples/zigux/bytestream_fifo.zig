@@ -33,6 +33,12 @@ pub const sample_review_focus = [_]SampleFocus{
     .ownership_and_lifetime,
 };
 
+pub const preview_boundary_focus = [_]SampleFocus{
+    .wraparound_requeue,
+    .non_destructive_snapshot,
+    .preview_truncation,
+};
+
 pub const sample_review_non_goals = [_][]const u8{
     "procfs parity",
     "kfifo_from_user or kfifo_to_user parity",
@@ -83,6 +89,19 @@ pub const ReplaySummary = struct {
     final_sequence: [fifo_capacity]u8,
     checked_focus: []const SampleFocus,
     storage_backing: StorageBacking,
+};
+
+pub const PreviewBoundarySummary = struct {
+    stage_before_replay: SampleStage,
+    stage_after_replay: SampleStage,
+    snapshot_len: usize,
+    snapshot_prefix: [4]u8,
+    preview_len: usize,
+    preview_total_visible: usize,
+    preview_truncated: bool,
+    preview_prefix: [8]u8,
+    queue_len_after_preview: usize,
+    checked_focus: []const SampleFocus,
 };
 
 pub const LifecycleSummary = struct {
@@ -301,12 +320,55 @@ pub const BytestreamFifoSample = struct {
         };
     }
 
+    fn runPreviewBoundaryReplayInternal(self: *Self) !PreviewBoundarySummary {
+        self.reset();
+
+        const hello_len = self.enqueueSlice("hello");
+        if (hello_len != 5) return error.UnexpectedInitialCopyCount;
+
+        var value: u8 = 0;
+        while (value < 10) : (value += 1) {
+            if (!self.pushByte(value)) return error.UnexpectedInitialFillFailure;
+        }
+
+        var discard: [7]u8 = undefined;
+        const discard_count = self.dequeueSlice(discard[0..]);
+        if (discard_count != discard.len) return error.UnexpectedBoundaryDiscardCount;
+
+        const requeue_count = self.enqueueSlice(&.{ 0, 1 });
+        if (requeue_count != 2) return error.UnexpectedRequeueCount;
+
+        var snapshot_prefix: [4]u8 = undefined;
+        const snapshot_len = self.snapshotInto(snapshot_prefix[0..]);
+
+        var preview_prefix: [8]u8 = [_]u8{0} ** 8;
+        const preview = self.previewInto(preview_prefix[0..]);
+
+        return .{
+            .stage_before_replay = .initialized,
+            .stage_after_replay = .initialized,
+            .snapshot_len = snapshot_len,
+            .snapshot_prefix = snapshot_prefix,
+            .preview_len = preview.copied,
+            .preview_total_visible = preview.total_visible,
+            .preview_truncated = preview.truncated,
+            .preview_prefix = preview_prefix,
+            .queue_len_after_preview = self.count(),
+            .checked_focus = &preview_boundary_focus,
+        };
+    }
+
     pub fn runAnchorReplay(self: *Self) !ReplaySummary {
         if (self.stage() != .initialized) return error.InvalidLifecycleTransition;
 
         const replay = try self.runAnchorReplayInternal();
         self.stage_state = .replay_complete;
         return replay;
+    }
+
+    pub fn runPreviewBoundaryReplay(self: *Self) !PreviewBoundarySummary {
+        if (self.stage() != .initialized) return error.InvalidLifecycleTransition;
+        return self.runPreviewBoundaryReplayInternal();
     }
 
     pub fn exit(self: *Self) !void {
@@ -401,6 +463,8 @@ test "bytestream fifo sample replays the Linux anchor result sequence" {
 }
 
 test "bytestream fifo sample keeps helper boundaries explicit" {
+    const expected_preview_focus = preview_boundary_focus;
+
     var sample = BytestreamFifoSample{};
 
     try std.testing.expectEqual(@as(?u8, null), sample.peekByte());
@@ -426,23 +490,22 @@ test "bytestream fifo sample keeps helper boundaries explicit" {
     try std.testing.expectEqual(@as(usize, 0), sample.count());
     try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
 
-    try std.testing.expectEqual(@as(usize, 5), sample.enqueueSlice("hello"));
-    var value: u8 = 0;
-    while (value < 10) : (value += 1) {
-        try std.testing.expect(sample.pushByte(value));
-    }
-    var discard: [7]u8 = undefined;
-    try std.testing.expectEqual(@as(usize, discard.len), sample.dequeueSlice(discard[0..]));
-    try std.testing.expectEqual(@as(usize, 2), sample.enqueueSlice(&.{ 0, 1 }));
-
-    var wraparound_preview: [8]u8 = [_]u8{0} ** 8;
-    const preview_result = sample.previewInto(wraparound_preview[0..]);
-    try std.testing.expectEqual(@as(usize, wraparound_preview.len), preview_result.copied);
-    try std.testing.expectEqual(@as(usize, 10), preview_result.total_visible);
-    try std.testing.expect(preview_result.truncated);
-    try std.testing.expectEqualSlices(u8, &.{ 2, 3, 4, 5, 6, 7, 8, 9 }, wraparound_preview[0..]);
+    const preview_replay = try sample.runPreviewBoundaryReplay();
+    try std.testing.expectEqual(SampleStage.initialized, preview_replay.stage_before_replay);
+    try std.testing.expectEqual(SampleStage.initialized, preview_replay.stage_after_replay);
+    try std.testing.expectEqual(@as(usize, 4), preview_replay.snapshot_len);
+    try std.testing.expectEqualSlices(u8, &.{ 2, 3, 4, 5 }, preview_replay.snapshot_prefix[0..]);
+    try std.testing.expectEqual(@as(usize, 8), preview_replay.preview_len);
+    try std.testing.expectEqual(@as(usize, 10), preview_replay.preview_total_visible);
+    try std.testing.expect(preview_replay.preview_truncated);
+    try std.testing.expectEqualSlices(u8, &.{ 2, 3, 4, 5, 6, 7, 8, 9 }, preview_replay.preview_prefix[0..]);
+    try std.testing.expectEqual(@as(usize, 10), preview_replay.queue_len_after_preview);
     try std.testing.expectEqual(@as(usize, 10), sample.count());
     try std.testing.expectEqual(@as(usize, fifo_capacity - 10), sample.available());
+    try std.testing.expectEqual(@as(usize, expected_preview_focus.len), preview_replay.checked_focus.len);
+    for (expected_preview_focus, preview_replay.checked_focus) |expected, actual| {
+        try std.testing.expectEqual(expected, actual);
+    }
 
     sample.reset();
     var fill: u8 = 0;
@@ -489,12 +552,16 @@ test "bytestream fifo sample keeps ownership and lifetime guards explicit" {
     try std.testing.expectEqual(SampleStage.cold, sample.stage());
     try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.runAnchorReplay());
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.runPreviewBoundaryReplay());
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.exit());
 
     try sample.init();
     try std.testing.expectEqual(SampleStage.initialized, sample.stage());
     try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.init());
+
+    _ = try sample.runPreviewBoundaryReplay();
+    try std.testing.expectEqual(SampleStage.initialized, sample.stage());
 
     _ = try sample.runAnchorReplay();
     try std.testing.expectEqual(SampleStage.replay_complete, sample.stage());
@@ -505,6 +572,7 @@ test "bytestream fifo sample keeps ownership and lifetime guards explicit" {
     try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
     try std.testing.expectEqual(@as(usize, 1), sample.init_runs);
     try std.testing.expectEqual(@as(usize, 1), sample.exit_runs);
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.runPreviewBoundaryReplay());
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.runAnchorReplay());
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.exit());
 }
@@ -522,6 +590,14 @@ test "bytestream fifo sample reset clears queue state without rewinding lifecycl
     try std.testing.expectEqual(@as(usize, 0), sample.count());
     try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
     try std.testing.expectEqual(@as(?u8, null), sample.peekByte());
+
+    _ = try sample.runPreviewBoundaryReplay();
+    sample.reset();
+    try std.testing.expectEqual(SampleStage.initialized, sample.stage());
+    try std.testing.expectEqual(@as(usize, 1), sample.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), sample.exit_runs);
+    try std.testing.expectEqual(@as(usize, 0), sample.count());
+    try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
 
     _ = try sample.runAnchorReplay();
     sample.reset();
