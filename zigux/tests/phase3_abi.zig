@@ -179,6 +179,7 @@ test "phase3 abi slice keeps the boundary helpers constructible" {
     try std.testing.expect(!rbtree.isEmpty(cached_root));
     try std.testing.expect(rbtree.isCached(cached_root));
     try std.testing.expect(rbtree.hasLeftmost(cached_root));
+    try std.testing.expect(rbtree.hasRoot(cached_root));
     try std.testing.expect(rbtree.isCanonical(cached_root));
 
     const uncached_root: rbtree.RootView = .{
