@@ -74,6 +74,8 @@ MAKEFILE_EXACT_ONCE_MARKERS = [
     "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_loader_gap_survey.zig\n",
     "phase9-module-metadata-survey:\n",
     "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_module_metadata_survey.zig\n",
+    "phase9-kretprobe-survey:\n",
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_kretprobe_survey.zig\n",
     "phase9-trace-events-survey:\n",
     "\tcd $(ZIGUX_ROOT) && $(ZIG) test --dep runtime_trace_events_sample -Mroot=zigux/tests/runtime_trace_events_survey.zig -Mruntime_trace_events_sample=samples/zigux/runtime_trace_events.zig\n",
 ]
@@ -730,6 +732,36 @@ def run_self_test() -> int:
 
         makefile_path.write_text(
             original_makefile.replace(
+                "phase9-kretprobe-survey:\n",
+                "phase9-kretprobe-survey:\n\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_kretprobe_survey.zig\n\nphase9-kretprobe-survey:\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "kretprobe_duplicate_target",
+            tmp_root,
+            "makefile_exact:phase9-kretprobe-survey:\n",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        makefile_path.write_text(
+            original_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_kretprobe_survey.zig\n",
+                "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_kretprobe_survey.zig\n\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_kretprobe_survey.zig\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "kretprobe_duplicate_command",
+            tmp_root,
+            "makefile_exact:\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_kretprobe_survey.zig\n",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        makefile_path.write_text(
+            original_makefile.replace(
                 "phase9-trace-events-survey:\n",
                 "phase9-trace-events-survey:\n\tcd $(ZIGUX_ROOT) && $(ZIG) test --dep runtime_trace_events_sample -Mroot=zigux/tests/runtime_trace_events_survey.zig -Mruntime_trace_events_sample=samples/zigux/runtime_trace_events.zig\n\nphase9-trace-events-survey:\n",
                 1,
@@ -752,7 +784,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE9_VALIDATION_FLOW_SELF_TEST=pass")
-    print("PHASE9_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=23")
+    print("PHASE9_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=25")
     return 0
 
 
