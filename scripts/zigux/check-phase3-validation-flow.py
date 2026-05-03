@@ -52,6 +52,18 @@ REQUIRED_WORKFLOW_SNIPPETS = (
     "run: python3 scripts/zigux/check-phase3-validation-flow.py --self-test\n",
 )
 
+FORBIDDEN_WORKFLOW_SNIPPETS = (
+    "run: python3 scripts/zigux/validate-phase3-roadmap-gap-survey.py\n",
+    "run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py\n",
+    "run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py\n",
+    "run: python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py\n",
+    "run: python3 scripts/zigux/validate-phase3-roadmap-gap-survey.py --self-test\n",
+    "run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test\n",
+    "run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test\n",
+    "run: python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test\n",
+)
+
+
 def _read_text(root: Path, rel: str, issues: list[str]) -> str:
     path = root / rel
     try:
@@ -97,6 +109,7 @@ def validate(root: Path) -> list[str]:
     _require_snippets(makefile, REQUIRED_MAKEFILE_SNIPPETS, "missing_makefile_snippet", issues)
     _reject_snippets(makefile, FORBIDDEN_MAKEFILE_SNIPPETS, "unexpected_makefile_snippet", issues)
     _require_snippets(workflow, REQUIRED_WORKFLOW_SNIPPETS, "missing_workflow_snippet", issues)
+    _reject_snippets(workflow, FORBIDDEN_WORKFLOW_SNIPPETS, "unexpected_workflow_snippet", issues)
 
     return issues
 
@@ -199,8 +212,22 @@ def run_self_test() -> int:
         )
         workflow_path.write_text(original_workflow, encoding="utf-8", newline="\n")
 
+        workflow_path.write_text(
+            original_workflow
+            + "      - name: Check Phase 3 roadmap gap survey\n"
+            + "        run: python3 scripts/zigux/validate-phase3-roadmap-gap-survey.py\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate(root)
+        assert (
+            "unexpected_workflow_snippet:run: python3 scripts/zigux/validate-phase3-roadmap-gap-survey.py\n"
+            in issues
+        )
+        workflow_path.write_text(original_workflow, encoding="utf-8", newline="\n")
+
     print("PHASE3_VALIDATION_FLOW_SELF_TEST=pass")
-    print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=3")
+    print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=4")
     return 0
 
 
