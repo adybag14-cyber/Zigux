@@ -17,6 +17,7 @@ PHASE2_CROSS_ALIGNMENT_CHECKER = (
 )
 PHASE2_CROSS_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross.py"
 TOOLCHAIN_PIN_SCOPE_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py"
+CHECK_FIXDEP = ROOT / "scripts" / "zigux" / "check-fixdep-diff.py"
 CHECK_KCONFIG_BRIDGE = ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py"
 WORKFLOW_FILE = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 MAKEFILE_FILE = ROOT / "zigux" / "Makefile"
@@ -40,7 +41,7 @@ REQUIRED_PHASE2_FILES = [
     CLOSURE_VALIDATOR,
     ROOT / "scripts" / "zigux" / "artifact_diff.py",
     ROOT / "scripts" / "zigux" / "check-artifact-diff-contract.py",
-    ROOT / "scripts" / "zigux" / "check-fixdep-diff.py",
+    CHECK_FIXDEP,
     ROOT / "scripts" / "zigux" / "check-genksyms-bridge.py",
     GENKSYMS_BRIDGE_ALIGNMENT_CHECKER,
     ROOT / "scripts" / "zigux" / "check-genksyms-crc-diff.py",
@@ -83,6 +84,26 @@ PHASE2_TOOLCHAIN_PIN_SCOPE_REQUIRED_SOURCE_MARKERS = [
     '"python3 scripts/zigux/check-zig-toolchain.py": 2',
     'EXPECTED_PIN_TARGETS = [',
 ]
+PHASE2_FIXDEP_REQUIRED_SOURCE_MARKERS = [
+    "FIXDEP_SELF_TEST=pass",
+    "FIXDEP_SELF_TEST_CASE_COUNT=11",
+    "validate_tool_sources(C_FIXDEP, ZIG_FIXDEP)",
+    "expected_stderr_path = expected_stderr or implicit_expected_stderr",
+    "diff_text(c_actual, c_repeat)",
+    "diff_text(zig_actual, zig_repeat)",
+    "diff_text(c_actual_stderr, zig_actual_stderr)",
+    "diff_text(c_actual_stderr, c_repeat_stderr)",
+    "diff_text(zig_actual_stderr, zig_repeat_stderr)",
+    "print('FIXDEP_DETERMINISM=pass')",
+]
+PHASE2_FIXDEP_REQUIRED_WORKFLOW_COUNTS = {
+    "python3 scripts/zigux/check-fixdep-diff.py --self-test": 1,
+    "python3 scripts/zigux/check-fixdep-diff.py": 1,
+}
+PHASE2_FIXDEP_REQUIRED_MAKEFILE_COUNTS = {
+    "scripts/zigux/check-fixdep-diff.py --self-test": 1,
+    "scripts/zigux/check-fixdep-diff.py": 1,
+}
 PHASE2_KCONFIG_REQUIRED_SOURCE_MARKERS = [
     "assert total_self_test_cases == 6",
     "print(f'KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT={total_self_test_cases}')",
@@ -357,9 +378,31 @@ def main() -> int:
     )
     issues.extend(
         validate_source_markers(
+            CHECK_FIXDEP,
+            label="phase2_fixdep_checker",
+            required_markers=PHASE2_FIXDEP_REQUIRED_SOURCE_MARKERS,
+        )
+    )
+    issues.extend(
+        validate_source_markers(
             CHECK_KCONFIG_BRIDGE,
             label="phase2_kconfig_bridge_checker",
             required_markers=PHASE2_KCONFIG_REQUIRED_SOURCE_MARKERS,
+        )
+    )
+    issues.extend(
+        validate_exact_command_counts(
+            WORKFLOW_FILE,
+            label="phase2_fixdep_workflow",
+            expected_counts=PHASE2_FIXDEP_REQUIRED_WORKFLOW_COUNTS,
+            workflow_mode=True,
+        )
+    )
+    issues.extend(
+        validate_exact_command_counts(
+            MAKEFILE_FILE,
+            label="phase2_fixdep_makefile",
+            expected_counts=PHASE2_FIXDEP_REQUIRED_MAKEFILE_COUNTS,
         )
     )
     issues.extend(
