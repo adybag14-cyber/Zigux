@@ -153,6 +153,27 @@ test "phase4 kprobe_example survey manifest records the landed survey packet and
         .limited(64 * 1024),
     );
     defer std.testing.allocator.free(phase4_gate_evidence);
+    const doc_readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/README.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(doc_readme);
+    const script_readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "scripts/zigux/README.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(script_readme);
+    const tests_readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/README.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(tests_readme);
     const zig_sample_present = blk: {
         std.Io.Dir.cwd().access(io_instance.io(), "samples/zigux/kprobe_example.zig", .{}) catch |err| switch (err) {
             error.FileNotFound => break :blk false,
@@ -163,7 +184,7 @@ test "phase4 kprobe_example survey manifest records the landed survey packet and
 
     const live_summary = SurveySummary{
         .kprobe_makefile_replay_present = std.mem.indexOf(u8, kprobes_makefile, "obj-$(CONFIG_SAMPLE_KPROBES) += kprobe_example.o") != null,
-        .kprobe_anchor_symbol_present = std.mem.indexOf(u8, anchor, "static char symbol[KSYM_NAME_LEN] = \\\"kernel_clone\\\";") != null,
+        .kprobe_anchor_symbol_present = std.mem.indexOf(u8, anchor, "static char symbol[KSYM_NAME_LEN] = \"kernel_clone\";") != null,
         .zig_sample_present = zig_sample_present,
         .phase4_build_present = std.mem.indexOf(u8, phase4_build, "phase4_kprobe_example_survey.zig") != null and
             std.mem.indexOf(u8, phase4_build, manifest.shared_build_replay) != null and
@@ -224,6 +245,19 @@ test "phase4 kprobe_example survey manifest records the landed survey packet and
     try std.testing.expect(std.mem.indexOf(u8, anchor, "kernel_clone") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_build, "phase4-kprobe-example-survey-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_build, "phase4-kprobe-example-survey") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, "| `zigux/tests/phase4_kprobe_example_survey.zig` |") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, "shared `phase4-kprobe-example-survey-tests` replay") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, "make -C zigux phase4-kprobe-example-survey") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, "c_anchor_only_until_kprobe_example_starter_lands") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "shared validator still does not fail closed on the kprobe survey packet itself") != null);
+    try std.testing.expect(std.mem.indexOf(u8, doc_readme, "phase4-kprobe-example-survey") != null);
+    try std.testing.expect(std.mem.indexOf(u8, doc_readme, "phase4-kprobe-example-survey-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, doc_readme, "still-absent `samples/zigux/kprobe_example.zig` sample explicitly survey-only") != null);
+    try std.testing.expect(std.mem.indexOf(u8, script_readme, "make -C zigux phase4-kprobe-example-survey") != null);
+    try std.testing.expect(std.mem.indexOf(u8, script_readme, "phase4-kprobe-example-survey-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, script_readme, "check-phase4-kprobe-example-packet.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "zigux/tests/phase4_kprobe_example_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "zigux/tests/phase4_kprobe_example_manifest.json") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "make -C zigux phase4-kprobe-example-survey") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tests_readme, "c_anchor_only_until_kprobe_example_starter_lands") != null);
 }
