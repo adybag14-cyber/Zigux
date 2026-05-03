@@ -22,7 +22,7 @@ This note records the current export-shim and UAPI boundary for the bounded Phas
 - `PHASE3_EXPORT_UAPI_BUILD_BLOB_SHA=17778c41309a0bfb1c2c026622938059c2dd41f9`
 - `PHASE3_EXPORT_UAPI_TEST_BLOB_SHA=21f3b377c9ef82e559a4c87f2fcab87bfc90f924`
 - `PHASE3_EXPORT_UAPI_LAYOUT_BUILD_BLOB_SHA=081b0624641588ea987a6562ac32781cfe93013f`
-- `PHASE3_EXPORT_UAPI_LAYOUT_TEST_BLOB_SHA=abdb943d7eb1ec6cf72025727fd2896d75b9eb25`
+- `PHASE3_EXPORT_UAPI_LAYOUT_TEST_BLOB_SHA=3b8cb112602ff250f62ef68275a049a11c3a13d4`
 - `PHASE3_ABI_MANIFEST_BLOB_SHA=06f0da0e3c00bc3205c2d7fe73cfe6376a0e1b2e`
 - `PHASE3_EXPORT_UAPI_GATE=zig build phase3-export-uapi-test --build-file zigux/tests/phase3_export_uapi_build.zig`
 - `PHASE3_EXPORT_UAPI_LAYOUT_GATE=zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig`
