@@ -20,13 +20,13 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase12-libbpf-segment-survey.md",
     "scripts/zigux/README.md",
     "scripts/zigux/check-phase12-cross.py",
-    "scripts/zigux/check-phase12-raw-github-coverage.py",
     "scripts/zigux/check-phase12-libbpf-focused-replay.py",
+    "scripts/zigux/check-phase12-raw-github-coverage.py",
     "scripts/zigux/check-phase12-release-readiness-packet.py",
     "scripts/zigux/validate-phase12.py",
+    "zigux/tests/phase12_libbpf_only_build.zig",
     "zigux/tests/phase12_raw_github_coverage_manifest.json",
     "zigux/tests/phase12_raw_github_coverage_survey.zig",
-    "zigux/tests/phase12_libbpf_only_build.zig",
     "zigux/Makefile",
 ]
 
@@ -50,6 +50,7 @@ SURVEY_MARKERS = [
     "Documentation/zigux/README.md` now also mirrors the mixed fallback split directly",
     "approved non-native musl targets `x86_64-linux-musl`, `aarch64-linux-musl`, and `riscv64-linux-musl`",
     "the release-facing note now also names `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test` plus `python3 scripts/zigux/check-phase12-release-readiness-packet.py` as the dedicated PMO packet guard, so this release-coordination note has its own fail-closed review hook instead of relying only on the broader validator and reviewer habit",
+    "that same mixed fallback packet is also backed by `scripts/zigux/check-phase12-raw-github-coverage.py`, `zigux/tests/phase12_raw_github_coverage_manifest.json`, and `zigux/tests/phase12_raw_github_coverage_survey.zig`, so the release-facing note now names the checker and manifest-backed survey evidence instead of treating the split as prose-only release guidance",
     "PHASE12_COMMIT_PINNED_RAW_FALLBACK_COUNT=2",
     "PHASE12_SHARED_TREE_ONLY_FALLBACK_COUNT=2",
     "PHASE12_APPROVED_CROSS_TARGET_COUNT=3",
@@ -59,10 +60,11 @@ SURVEY_MARKERS = [
 SURVEY_EXACT_COUNT_MARKERS = {
     "Documentation/zigux/README.md` now also mirrors the mixed fallback split directly": 1,
     "scripts/zigux/check-phase12-cross.py": 2,
-    "scripts/zigux/check-phase12-raw-github-coverage.py": 2,
-    "zigux/tests/phase12_raw_github_coverage_manifest.json": 2,
-    "zigux/tests/phase12_raw_github_coverage_survey.zig": 2,
+    "scripts/zigux/check-phase12-raw-github-coverage.py": 3,
+    "zigux/tests/phase12_raw_github_coverage_manifest.json": 3,
+    "zigux/tests/phase12_raw_github_coverage_survey.zig": 3,
     "the release-facing note now also names `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test` plus `python3 scripts/zigux/check-phase12-release-readiness-packet.py` as the dedicated PMO packet guard, so this release-coordination note has its own fail-closed review hook instead of relying only on the broader validator and reviewer habit": 1,
+    "that same mixed fallback packet is also backed by `scripts/zigux/check-phase12-raw-github-coverage.py`, `zigux/tests/phase12_raw_github_coverage_manifest.json`, and `zigux/tests/phase12_raw_github_coverage_survey.zig`, so the release-facing note now names the checker and manifest-backed survey evidence instead of treating the split as prose-only release guidance": 1,
     "PHASE12_COMMIT_PINNED_RAW_FALLBACK_COUNT=2": 1,
     "PHASE12_SHARED_TREE_ONLY_FALLBACK_COUNT=2": 1,
     "PHASE12_APPROVED_CROSS_TARGET_COUNT=3": 1,
@@ -132,6 +134,7 @@ CROSS_SMOKE_MARKERS = [
 RAW_COVERAGE_MARKERS = [
     "commit-pinned",
     "shared-tree-only",
+    "Documentation/zigux/phase12-release-readiness-survey.md",
     "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md",
     "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md",
     "Documentation/zigux/phase12-virtio-net-survey.md",
@@ -308,6 +311,38 @@ def run_self_test() -> int:
             "present_files": {
                 path
                 for path in REQUIRED_FILES
+                if path != "scripts/zigux/check-phase12-libbpf-focused-replay.py"
+            },
+        }
+    )
+    expect_contains(
+        "focused_replay_checker_file_detection",
+        missing,
+        "missing_file:scripts/zigux/check-phase12-libbpf-focused-replay.py",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "present_files": {
+                path
+                for path in REQUIRED_FILES
+                if path != "zigux/tests/phase12_libbpf_only_build.zig"
+            },
+        }
+    )
+    expect_contains(
+        "focused_replay_build_file_detection",
+        missing,
+        "missing_file:zigux/tests/phase12_libbpf_only_build.zig",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "present_files": {
+                path
+                for path in REQUIRED_FILES
                 if path != "scripts/zigux/check-phase12-raw-github-coverage.py"
             },
         }
@@ -353,38 +388,6 @@ def run_self_test() -> int:
     missing = collect_missing(
         **{
             **base_inputs,
-            "present_files": {
-                path
-                for path in REQUIRED_FILES
-                if path != "scripts/zigux/check-phase12-libbpf-focused-replay.py"
-            },
-        }
-    )
-    expect_contains(
-        "focused_replay_checker_file_detection",
-        missing,
-        "missing_file:scripts/zigux/check-phase12-libbpf-focused-replay.py",
-    )
-
-    missing = collect_missing(
-        **{
-            **base_inputs,
-            "present_files": {
-                path
-                for path in REQUIRED_FILES
-                if path != "zigux/tests/phase12_libbpf_only_build.zig"
-            },
-        }
-    )
-    expect_contains(
-        "focused_replay_build_file_detection",
-        missing,
-        "missing_file:zigux/tests/phase12_libbpf_only_build.zig",
-    )
-
-    missing = collect_missing(
-        **{
-            **base_inputs,
             "survey_text": base_inputs["survey_text"].replace(
                 "PHASE12_RELEASE_CLOSED=no\n",
                 "",
@@ -419,6 +422,35 @@ def run_self_test() -> int:
     )
     expect_contains("survey_release_guard_detection", missing, f"survey:{release_guard_marker}")
 
+    raw_coverage_packet_marker = (
+        "that same mixed fallback packet is also backed by `scripts/zigux/check-phase12-raw-github-coverage.py`, "
+        "`zigux/tests/phase12_raw_github_coverage_manifest.json`, and `zigux/tests/phase12_raw_github_coverage_survey.zig`, "
+        "so the release-facing note now names the checker and manifest-backed survey evidence instead of treating the split as prose-only release guidance"
+    )
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "survey_text": base_inputs["survey_text"].replace(raw_coverage_packet_marker + "\n", "", 1),
+        }
+    )
+    expect_contains(
+        "survey_raw_coverage_packet_detection",
+        missing,
+        f"survey:{raw_coverage_packet_marker}",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "survey_text": base_inputs["survey_text"] + raw_coverage_packet_marker + "\n",
+        }
+    )
+    expect_contains(
+        "survey_raw_coverage_packet_exact_count_detection",
+        missing,
+        f"survey_count:{raw_coverage_packet_marker}:expected=1:actual=2",
+    )
+
     missing = collect_missing(
         **{
             **base_inputs,
@@ -448,7 +480,7 @@ def run_self_test() -> int:
     expect_contains(
         "survey_raw_coverage_checker_detection",
         missing,
-        "survey_count:scripts/zigux/check-phase12-raw-github-coverage.py:expected=2:actual=1",
+        "survey_count:scripts/zigux/check-phase12-raw-github-coverage.py:expected=3:actual=2",
     )
 
     missing = collect_missing(
@@ -622,7 +654,7 @@ def run_self_test() -> int:
     expect_contains("raw_coverage_marker_detection", missing, "raw_coverage:shared-tree-only")
 
     print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST=pass")
-    print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT=27")
+    print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT=30")
     return 0
 
 
