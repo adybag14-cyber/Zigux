@@ -13,7 +13,7 @@
     "the sample keeps the Linux my_data-style private entry timestamp explicit and reviewable instead of burying it in unstructured state",
     "the sample keeps the Linux maxactive budget explicit through a fixed helper-backed reviewable ceiling for this in-memory-only reference slice instead of implying runtime pressure tuning",
     "symbol retargeting stays a pre-init in-memory choice instead of implying module_param or runtime registration parity",
-    "sample-behavior changes update the manifest-backed replay and teardown contract instead of leaving reviewers to infer it from code alone",
+    "sample-behavior changes update the manifest-backed replay, zigux/tests/phase5_kretprobe_example.zig, and the direct runRetargetRecoveryReplay()/runOwnershipBoundaryReplay() helper contract instead of leaving reviewers to infer the new boundary from code alone",
     "docs and tests still keep register_kretprobe, unregister_kretprobe, pt_regs return extraction, and loadable module wiring out of scope for this Phase 5 sample"
   ],
   "exact_checks": [
