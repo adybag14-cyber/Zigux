@@ -10,11 +10,13 @@ ROOT = Path(__file__).resolve().parents[2]
 MAKEFILE_REL = "zigux/Makefile"
 WORKFLOW_REL = ".github/workflows/zigux-bootstrap.yml"
 DOCS_ROOT_REL = "Documentation/zigux/README.md"
+SCRIPTS_README_REL = "scripts/zigux/README.md"
 
 REQUIRED_FILES = (
     MAKEFILE_REL,
     WORKFLOW_REL,
     DOCS_ROOT_REL,
+    SCRIPTS_README_REL,
 )
 
 REQUIRED_MAKEFILE_SNIPPETS = (
@@ -116,6 +118,13 @@ EXACT_ONCE_DOCS_ROOT_SNIPPETS = (
     "`scripts/zigux/validate-phase3-roadmap-gap-survey.py` remains a supporting survey check inside that shared validator-first route",
 )
 
+REQUIRED_SCRIPTS_README_SNIPPETS = (
+    "`validate-phase3.py` is the validator-first entrypoint for the shared Phase 3 ABI and interop packet, and `make -C zigux phase3-validate` plus the bootstrap workflow replay that same route before the broader build-backed or survey-backed checks run.",
+    "`validate-phase3-roadmap-gap-survey.py`, `validate-phase3-rbtree-interop-survey.py`, `check-phase3-rbtree-shared-lift-contract.py`, `validate-phase3-export-uapi-survey.py`, `validate-phase3-low-level-wrapper-survey.py`, `validate-phase3-policy-unsafe-survey.py`, `check-phase3-policy-unsafe-mmio-consumer.py`, `check-phase3-abi-layout-packet.py`, `check-phase3-abi-binding-constants.py`, `check-phase3-tooling-packet.py`, `check-phase3-readme-tooling-inventory.py`, `check-phase3-validation-flow.py`, `check-phase3-build-roots.py`, and `check-phase3-canonical-survey-manifest.py` stay as supporting checks inside that validator-first route rather than standalone bootstrap or release entrypoints.",
+)
+
+EXACT_ONCE_SCRIPTS_README_SNIPPETS = REQUIRED_SCRIPTS_README_SNIPPETS
+
 
 def _read_text(root: Path, rel: str, issues: list[str]) -> str:
     path = root / rel
@@ -173,6 +182,7 @@ def validate(root: Path) -> list[str]:
     makefile = _read_text(root, MAKEFILE_REL, issues)
     workflow = _read_text(root, WORKFLOW_REL, issues)
     docs_root = _read_text(root, DOCS_ROOT_REL, issues)
+    scripts_readme = _read_text(root, SCRIPTS_README_REL, issues)
     _require_snippets(makefile, REQUIRED_MAKEFILE_SNIPPETS, "missing_makefile_snippet", issues)
     _require_exact_count(makefile, EXACT_ONCE_MAKEFILE_SNIPPETS, "unexpected_makefile_snippet_count", 1, issues)
     _require_snippets(makefile, REQUIRED_PHASE3_ABI_MAKEFILE_SNIPPETS, "missing_makefile_snippet", issues)
@@ -182,6 +192,14 @@ def validate(root: Path) -> list[str]:
     _reject_snippets(workflow, FORBIDDEN_WORKFLOW_SNIPPETS, "unexpected_workflow_snippet", issues)
     _require_snippets(docs_root, REQUIRED_DOCS_ROOT_SNIPPETS, "missing_docs_root_snippet", issues)
     _require_exact_count(docs_root, EXACT_ONCE_DOCS_ROOT_SNIPPETS, "unexpected_docs_root_snippet_count", 1, issues)
+    _require_snippets(scripts_readme, REQUIRED_SCRIPTS_README_SNIPPETS, "missing_scripts_readme_snippet", issues)
+    _require_exact_count(
+        scripts_readme,
+        EXACT_ONCE_SCRIPTS_README_SNIPPETS,
+        "unexpected_scripts_readme_snippet_count",
+        1,
+        issues,
+    )
 
     return issues
 
@@ -259,12 +277,23 @@ def _fixture_docs_root() -> str:
     )
 
 
+def _fixture_scripts_readme() -> str:
+    return (
+        "# scripts/zigux\n"
+        "\n"
+        "Phase 3 flow\n"
+        f"- {REQUIRED_SCRIPTS_README_SNIPPETS[0]}\n"
+        f"- {REQUIRED_SCRIPTS_README_SNIPPETS[1]}\n"
+    )
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_validation_flow_") as tmp_dir:
         root = Path(tmp_dir)
         _write(root, MAKEFILE_REL, _fixture_makefile())
         _write(root, WORKFLOW_REL, _fixture_workflow())
         _write(root, DOCS_ROOT_REL, _fixture_docs_root())
+        _write(root, SCRIPTS_README_REL, _fixture_scripts_readme())
 
         baseline = validate(root)
         if baseline:
@@ -557,8 +586,7 @@ def run_self_test() -> int:
         )
         issues = validate(root)
         assert (
-            "missing_docs_root_snippet:"
-            + REQUIRED_DOCS_ROOT_SNIPPETS[0]
+            "missing_docs_root_snippet:" + REQUIRED_DOCS_ROOT_SNIPPETS[0]
             in issues
         )
         docs_root_path.write_text(original_docs_root, encoding="utf-8", newline="\n")
@@ -611,8 +639,34 @@ def run_self_test() -> int:
         )
         docs_root_path.write_text(original_docs_root, encoding="utf-8", newline="\n")
 
+        scripts_readme_path = root / SCRIPTS_README_REL
+        original_scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
+        scripts_readme_path.write_text(
+            original_scripts_readme.replace(REQUIRED_SCRIPTS_README_SNIPPETS[0], "", 1),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate(root)
+        assert (
+            "missing_scripts_readme_snippet:" + REQUIRED_SCRIPTS_README_SNIPPETS[0]
+            in issues
+        )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8", newline="\n")
+
+        scripts_readme_path.write_text(
+            original_scripts_readme + "\n- " + REQUIRED_SCRIPTS_README_SNIPPETS[1] + "\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate(root)
+        assert (
+            "unexpected_scripts_readme_snippet_count:2:" + REQUIRED_SCRIPTS_README_SNIPPETS[1]
+            in issues
+        )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8", newline="\n")
+
     print("PHASE3_VALIDATION_FLOW_SELF_TEST=pass")
-    print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=23")
+    print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=25")
     return 0
 
 
@@ -637,7 +691,7 @@ def main() -> int:
     print("PHASE3_VALIDATION_FLOW=pass")
     print(
         "PHASE3_VALIDATION_FLOW_MARKER_COUNT="
-        f"{len(REQUIRED_MAKEFILE_SNIPPETS) + len(REQUIRED_PHASE3_ABI_MAKEFILE_SNIPPETS) + len(REQUIRED_WORKFLOW_SNIPPETS) + len(REQUIRED_DOCS_ROOT_SNIPPETS)}"
+        f"{len(REQUIRED_MAKEFILE_SNIPPETS) + len(REQUIRED_PHASE3_ABI_MAKEFILE_SNIPPETS) + len(REQUIRED_WORKFLOW_SNIPPETS) + len(REQUIRED_DOCS_ROOT_SNIPPETS) + len(REQUIRED_SCRIPTS_README_SNIPPETS)}"
     )
     return 0
 
