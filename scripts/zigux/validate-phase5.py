@@ -478,6 +478,18 @@ def run_self_test() -> int:
 
         tmp_root = Path(tmp)
         copy_tree(ROOT, tmp_root)
+        manifest_path = tmp_root / "zigux/tests/phase5_trace_events_sample_manifest.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["exact_checks"][9]["id"] = "checked-focus-order-drift"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        missing = validate_phase5(tmp_root)
+        if missing["ok"] or "zigux/tests/phase5_trace_events_sample_manifest.json:exact_ids" not in missing["missing"]:
+            print("PHASE5_VALIDATOR_SELF_TEST=fail")
+            print("PHASE5_VALIDATOR_SELF_TEST_REASON=trace-events-exact-check-gap")
+            return 1
+
+        tmp_root = Path(tmp)
+        copy_tree(ROOT, tmp_root)
         note_path = tmp_root / "Documentation/zigux/phase5-kfifo-sample-survey.md"
         note_text = note_path.read_text(encoding="utf-8").replace(
             MANIFEST_EXPECTATIONS["zigux/tests/phase5_bytestream_fifo_manifest.json"]["survey_summary"],
@@ -672,7 +684,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE5_VALIDATOR_SELF_TEST=pass")
-    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=16")
+    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=17")
     return 0
 
 
