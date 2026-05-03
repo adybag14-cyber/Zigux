@@ -81,6 +81,7 @@ Current bootstrap helpers
 - `check-phase13-notifier-packet.py`
 - `validate-phase13-release.py`
 - `validate-phase14.py`
+- `check-phase14-docs-root-smoke-summary.py`
 - `validate-phase15.py`
 - `validate-phase3-roadmap-gap-survey.py`
 - `validate-phase3-rbtree-interop-survey.py`
@@ -161,6 +162,7 @@ Phase 8 flow
 
 Phase 14 flow
 - `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, and `zig build test --build-file zigux/tests/phase14_build.zig --summary all` are the current shared review path for the Phase 14 boundary-only smoke packet.
+- `check-phase14-docs-root-smoke-summary.py --self-test` and `check-phase14-docs-root-smoke-summary.py` keep the docs-root Phase 14 smoke summary and the shared smoke survey fail-closed around the same validator-backed `phase14-validate`, focused `phase14-smoke`, and study-only reviewability wording before the broader shared validator runs.
 - `validate-phase14.py` keeps `Documentation/zigux/phase14-release-boundary-survey.md`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/freeze-map.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `zigux/tests/phase14_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` aligned around the same validator-backed smoke commands, anchor list, rollback owners, automatic return-to-blocked triggers, and bounded study-only posture.
 - the same shared flow keeps the current `phase14-smoke` shard explicit for the four roadmap anchors while leaving `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` in boundary-study posture and `kernel/rcu/tree.c` plus `net/core/skbuff.c` in the blocked Phase 15 freeze-in-C governance packet.
 - `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/freeze-map.md`, and `zigux/tests/phase14_end_to_end_smoke_survey.zig` keep the exact rollback threshold, automatic return-to-blocked trigger list, and ZAR-to-product transfer rationale visible from the docs root rather than relying on run memory.
