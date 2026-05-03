@@ -149,6 +149,14 @@ fn expectGateEvidenceCount(
     try std.testing.expectEqual(expected, value);
 }
 
+fn expectSourceHas(source: []const u8, marker: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, source, marker) != null);
+}
+
+fn expectSourceLacks(source: []const u8, marker: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, source, marker) == null);
+}
+
 test "phase4 runtime atomic64 survey manifest records the shipped bounded gate, roadmap entrypoint, and remaining broader-surface gap" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -382,6 +390,14 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate, 
 
     try std.testing.expectEqualDeep(live_summary, manifest.survey_summary);
     try expectAtomic64MatrixGovernanceRow(phase4_validation_matrix);
+    try expectSourceHas(atomic64_diff, "@import(\"runtime_atomic64_diff.zig\")");
+    try expectSourceLacks(atomic64_diff, "@import(\"runtime_atomic64_sample\")");
+    try expectSourceLacks(atomic64_diff, "runSelftest()");
+    try expectSourceLacks(atomic64_diff, "post_selftest_summary");
+    try expectSourceHas(phase4_build, ".root_source_file = b.path(\"atomic64_diff.zig\")");
+    try expectSourceLacks(phase4_build, ".root_source_file = b.path(\"runtime_atomic64_diff.zig\")");
+    try expectSourceHas(phase9_build, ".root_source_file = b.path(\"runtime_atomic64_diff.zig\")");
+    try expectSourceLacks(phase9_build, ".root_source_file = b.path(\"atomic64_diff.zig\")");
     try std.testing.expect(
         std.mem.indexOf(
             u8,
