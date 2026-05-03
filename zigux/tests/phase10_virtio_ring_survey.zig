@@ -115,7 +115,7 @@ test "phase10 virtio ring survey manifest records the live queue-discipline pack
     try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_parity_evidence.virtqueue_wrappers.evidence.len);
     try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.zig", manifest.roadmap_parity_evidence.virtqueue_wrappers.evidence[0]);
     try std.testing.expectEqualStrings("starter_landed", manifest.roadmap_parity_evidence.lab_only_driver_validation.status);
-    try std.testing.expectEqual(@as(usize, 5), manifest.roadmap_parity_evidence.lab_only_driver_validation.evidence.len);
+    try std.testing.expectEqual(@as(usize, 7), manifest.roadmap_parity_evidence.lab_only_driver_validation.evidence.len);
     try std.testing.expectEqualStrings("zigux/tests/phase10_build.zig", manifest.roadmap_parity_evidence.lab_only_driver_validation.evidence[0]);
     try std.testing.expectEqualStrings("blocked_on_risky_transport", manifest.roadmap_parity_evidence.dual_implementations_for_risky_areas.status);
     try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_parity_evidence.dual_implementations_for_risky_areas.evidence.len);
