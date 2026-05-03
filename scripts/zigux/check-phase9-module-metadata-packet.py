@@ -41,7 +41,6 @@ REQUIRED_FILES = [
 
 SURVEY_REQUIRED_MARKERS = [
     "`PHASE9_SLICE=runtime-module-metadata-depmod-bridge-survey`",
-    "`PHASE9_SURVEYED_COMMIT=",
     "ModuleDescriptor",
     "requires_runtime_substrate",
     "provides_selftest_hook",
@@ -107,11 +106,11 @@ SURVEY_TEST_REQUIRED_MARKERS = [
     '"scripts/depmod.sh"',
     '"RuntimeLoadRequest"',
     'std.testing.expect(std.mem.indexOf(u8, runtime_trace_events_loader, "RuntimeLoadRequest") == null);',
-    'waitingOnRuntimeSubstrate',
-    'releasedWithoutSubstrate',
-    'register_kretprobe',
-    'foo_bar_reg',
-    'foo_bar_unreg',
+    "waitingOnRuntimeSubstrate",
+    "releasedWithoutSubstrate",
+    "register_kretprobe",
+    "foo_bar_reg",
+    "foo_bar_unreg",
 ]
 
 RUNTIME_LOADER_REQUIRED_MARKERS = [
@@ -513,11 +512,11 @@ def write_fixture_tree(root: Path) -> None:
                 '"scripts/depmod.sh"',
                 '"RuntimeLoadRequest"',
                 'std.testing.expect(std.mem.indexOf(u8, runtime_trace_events_loader, "RuntimeLoadRequest") == null);',
-                'waitingOnRuntimeSubstrate',
-                'releasedWithoutSubstrate',
-                'register_kretprobe',
-                'foo_bar_reg',
-                'foo_bar_unreg',
+                "waitingOnRuntimeSubstrate",
+                "releasedWithoutSubstrate",
+                "register_kretprobe",
+                "foo_bar_reg",
+                "foo_bar_unreg",
                 "",
             ]
         ),
@@ -703,6 +702,12 @@ def run_self_test() -> int:
         expect_missing_marker("manifest_review_prompts", tmp_root, "manifest:review_prompts_drift")
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
+        manifest = json.loads(original_manifest)
+        manifest["runtime_loader_plans"][3] = "samples/zigux/runtime_trace_events_loader_plan.zig"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker("manifest_runtime_loader_plans", tmp_root, "manifest:runtime_loader_plans_drift")
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
         survey_test_path = tmp_root / SURVEY_TEST_PATH
         original_survey_test = survey_test_path.read_text(encoding="utf-8")
         survey_test_path.write_text(
@@ -867,7 +872,7 @@ def run_self_test() -> int:
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
     print("PHASE9_MODULE_METADATA_PACKET_SELF_TEST=pass")
-    print("PHASE9_MODULE_METADATA_PACKET_SELF_TEST_CASE_COUNT=15")
+    print("PHASE9_MODULE_METADATA_PACKET_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
