@@ -19,9 +19,10 @@ Before editing a Zigux packet:
 
 1. identify the roadmap phase, bounded slice, and owning lane
 2. name the Linux anchor file or tree path
-3. check `Documentation/zigux/review-checklist.md` for the shared review prompts
-4. find the packet's validator-first entrypoint in `scripts/zigux/README.md`
-5. find the focused replay or survey entrypoint in `zigux/tests/README.md`
+3. read `CONTRIBUTING.md` for the short contributor entrypoint and phase-first validator map
+4. check `Documentation/zigux/review-checklist.md` for the shared review prompts
+5. find the packet's validator-first entrypoint in `scripts/zigux/README.md`
+6. find the focused replay or survey entrypoint in `zigux/tests/README.md`
 
 If the change touches a Phase 5 sample or a later `runtime_*` starter under `samples/zigux/`, also check `samples/zigux/README.md` so approved reference samples do not drift into runtime-follow-on claims.
 
@@ -59,6 +60,7 @@ Examples from current `master`:
 
 Use these files as the shared contributor packet, depending on scope:
 
+- `CONTRIBUTING.md` for the short contributor entrypoint and phase-first validator map
 - `Documentation/zigux/review-checklist.md` for review prompts and boundary checks
 - `scripts/zigux/README.md` for validator-first commands and checker ownership
 - `zigux/tests/README.md` for focused replay and survey entrypoints
@@ -82,5 +84,6 @@ Keep these repo-wide rules explicit in contributor work:
 A contributor-facing packet is ready when:
 
 - the review checklist, validator path, focused replay path, and owning note all describe the same bounded slice
+- any workflow-only change keeps `CONTRIBUTING.md` plus this guide aligned with the same review checklist, scripts guide, and tests guide packet
 - the updated packet has a narrow validation result or an explicit blocker note
 - the change does not overstate runtime parity, transport scope, or frozen-area status
