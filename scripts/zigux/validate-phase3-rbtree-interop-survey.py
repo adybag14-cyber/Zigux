@@ -175,7 +175,6 @@ def run_self_test() -> int:
         for rel in RBTREE_FREE_BOUNDARY_PATHS:
             for clean_rel in RBTREE_FREE_BOUNDARY_PATHS:
                 boundary_path = root / clean_rel
-                boundary_path.writeText if False else None
                 boundary_path.write_text("// ok\n", encoding="utf-8")
             boundary = root / rel
             boundary.write_text("// rbtree drift\n", encoding="utf-8")
