@@ -179,9 +179,9 @@
         "string.memchr_inv_index",
         "string.memchr_inv_none"
       ],
-      "summary": "Committed C-backed parity coverage includes Linux-style bool parsing for true, false, and invalid forms, C-string-aware strlcpy length and truncation behavior, in-place whitespace and replacement helpers including embedded-NUL remove_spaces handling, and first-mismatch memchrInv detection, while direct Zig review anchors now also record strscpy, C-string equality, sysfs newline-equivalence, prefix, prefix-length, suffix, and memparse coverage for the newer helper surface already shipped on master.",
+      "summary": "Committed C-backed parity coverage includes Linux-style bool parsing for true, false, and invalid forms, C-string-aware strlcpy length and truncation behavior, in-place whitespace and replacement helpers including embedded-NUL remove_spaces handling, and first-mismatch memchrInv detection, while direct Zig review anchors now also record strscpy, deeper memchrInv cutoff, dirty-word, high-bit, and zero-value boundary coverage, sysfs newline-equivalence, prefix, prefix-length, suffix, and memparse binary-unit-tail coverage for the newer helper surface already shipped on master.",
       "unit_test_anchor": "tools/lib/string.zig:test \"memchrInv scans aligned and misaligned long buffers\"",
-      "unit_test_contract": "Direct Zig unit coverage keeps memchrInv honest for both aligned and misaligned long buffers beyond the short C-backed fixture cases.",
+      "unit_test_contract": "Direct Zig unit coverage keeps memchrInv honest across aligned and misaligned long buffers, the short-versus-long cutoff boundary, earliest dirty-word mismatch selection, high-bit byte scans, and zero-value word-boundary scans beyond the short C-backed fixture cases.",
       "cstring_unit_test_anchor": "tools/lib/string.zig:test \"strlcpy stops at the first embedded NUL in the source\"",
       "cstring_unit_test_contract": "Direct Zig unit coverage keeps strlcpy aligned with C-string semantics by stopping at the first embedded NUL, preserving truncation behavior, and leaving zero-sized destinations untouched.",
       "strscpy_unit_test_anchor": "tools/lib/string.zig:test \"strscpy mirrors bounded kernel copy semantics\"",
@@ -199,7 +199,7 @@
       "suffix_unit_test_anchor": "tools/lib/string.zig:test \"str_ends_with matches kernel suffix semantics\"",
       "suffix_unit_test_contract": "Direct Zig unit coverage keeps strEndsWith, str_ends_with, and strends aligned with kernel-style suffix semantics for exact, empty-suffix, shorter-input, and case-sensitive comparisons.",
       "memparse_unit_test_anchor": "tools/lib/string.zig:test \"memparse forwards the header-level string helper surface\"",
-      "memparse_unit_test_contract": "Direct Zig unit coverage keeps memparse aligned by preserving decimal, hexadecimal, suffix-bearing, and invalid inputs without changing the parsed value or rest pointer contract."
+      "memparse_unit_test_contract": "Direct Zig unit coverage keeps memparse aligned by preserving decimal, hexadecimal, suffix-bearing, invalid, and binary-unit-tail inputs including optional trailing B forms without changing the parsed value or rest pointer contract."
     }
   }
 }
