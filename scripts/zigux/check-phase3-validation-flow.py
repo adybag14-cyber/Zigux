@@ -3,14 +3,15 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
+import runpy
 import tempfile
-
 
 ROOT = Path(__file__).resolve().parents[2]
 MAKEFILE_REL = "zigux/Makefile"
 WORKFLOW_REL = ".github/workflows/zigux-bootstrap.yml"
 DOCS_ROOT_REL = "Documentation/zigux/README.md"
 SCRIPTS_README_REL = "scripts/zigux/README.md"
+README_TOOLING_INVENTORY_REL = "scripts/zigux/check-phase3-readme-tooling-inventory.py"
 
 REQUIRED_FILES = (
     MAKEFILE_REL,
@@ -106,7 +107,9 @@ FORBIDDEN_WORKFLOW_SNIPPETS = (
 )
 
 REQUIRED_DOCS_ROOT_SNIPPETS = (
-    "`scripts/zigux/validate-phase3.py`, `make -C zigux phase3-validate`, and the bootstrap workflow are the validator-first route for the shared Phase 3 review packet; the dedicated survey scripts listed below stay supporting checks inside that shared gate rather than standalone release entrypoints.",
+    "`scripts/zigux/validate-phase3.py`, `make -C zigux phase3-validate`, and the bootstrap workflow are the "
+    "validator-first route for the shared Phase 3 review packet; the dedicated survey scripts listed below stay "
+    "supporting checks inside that shared gate rather than standalone release entrypoints.",
     "`scripts/zigux/validate-phase3-roadmap-gap-survey.py` remains a supporting survey check inside that shared validator-first route",
     "`scripts/zigux/validate-phase3-export-uapi-survey.py` remains a supporting survey check inside that shared validator-first route",
     "`scripts/zigux/validate-phase3-low-level-wrapper-survey.py` now keeps that dedicated low-level wrapper survey packet explicit alongside the broader roadmap-gap, export/UAPI, and policy/unsafe Phase 3 notes",
@@ -114,17 +117,12 @@ REQUIRED_DOCS_ROOT_SNIPPETS = (
 )
 
 EXACT_ONCE_DOCS_ROOT_SNIPPETS = (
-    "`scripts/zigux/validate-phase3.py`, `make -C zigux phase3-validate`, and the bootstrap workflow are the validator-first route for the shared Phase 3 review packet; the dedicated survey scripts listed below stay supporting checks inside that shared gate rather than standalone release entrypoints.",
+    REQUIRED_DOCS_ROOT_SNIPPETS[0],
     "`scripts/zigux/validate-phase3-roadmap-gap-survey.py` remains a supporting survey check inside that shared validator-first route",
     "`scripts/zigux/validate-phase3-export-uapi-survey.py` remains a supporting survey check inside that shared validator-first route",
 )
 
-REQUIRED_SCRIPTS_README_SNIPPETS = (
-    "`validate-phase3.py` is the validator-first entrypoint for the shared Phase 3 ABI and interop packet, and `make -C zigux phase3-validate` plus the bootstrap workflow replay that same route before the broader build-backed or survey-backed checks run.",
-    "`validate-phase3-roadmap-gap-survey.py`, `validate-phase3-rbtree-interop-survey.py`, `check-phase3-rbtree-shared-lift-contract.py`, `validate-phase3-export-uapi-survey.py`, `validate-phase3-low-level-wrapper-survey.py`, `validate-phase3-policy-unsafe-survey.py`, `check-phase3-policy-unsafe-mmio-consumer.py`, `check-phase3-abi-layout-packet.py`, `check-phase3-abi-binding-constants.py`, `check-phase3-tooling-packet.py`, `check-phase3-readme-tooling-inventory.py`, `check-phase3-validation-flow.py`, `check-phase3-build-roots.py`, and `check-phase3-canonical-survey-manifest.py` stay as supporting checks inside that validator-first route rather than standalone bootstrap or release entrypoints.",
-)
-
-EXACT_ONCE_SCRIPTS_README_SNIPPETS = REQUIRED_SCRIPTS_README_SNIPPETS
+EXPECTED_PHASE3_README_FLOW_COUNT = 2
 
 
 def _read_text(root: Path, rel: str, issues: list[str]) -> str:
@@ -171,6 +169,25 @@ def _reject_snippets(
             issues.append(f"{prefix}:{snippet}")
 
 
+def _load_phase3_readme_flow_snippets(root: Path) -> tuple[tuple[str, ...], list[str]]:
+    script_path = root / README_TOOLING_INVENTORY_REL
+    if not script_path.exists():
+        return (), [f"missing_file:{README_TOOLING_INVENTORY_REL}"]
+
+    namespace = runpy.run_path(str(script_path))
+    snippets = namespace.get("REQUIRED_PHASE3_FLOW_SNIPPETS")
+    if not isinstance(snippets, tuple):
+        return (), ["missing_phase3_flow_contract:REQUIRED_PHASE3_FLOW_SNIPPETS"]
+    if not all(isinstance(snippet, str) for snippet in snippets):
+        return (), ["invalid_phase3_flow_contract:REQUIRED_PHASE3_FLOW_SNIPPETS"]
+    if len(snippets) != EXPECTED_PHASE3_README_FLOW_COUNT:
+        return (), [
+            "unexpected_phase3_flow_contract_count:"
+            f"{len(snippets)}:{EXPECTED_PHASE3_README_FLOW_COUNT}"
+        ]
+    return snippets, []
+
+
 def validate(root: Path) -> list[str]:
     issues: list[str] = []
 
@@ -184,6 +201,8 @@ def validate(root: Path) -> list[str]:
     workflow = _read_text(root, WORKFLOW_REL, issues)
     docs_root = _read_text(root, DOCS_ROOT_REL, issues)
     scripts_readme = _read_text(root, SCRIPTS_README_REL, issues)
+    readme_flow_snippets, contract_issues = _load_phase3_readme_flow_snippets(root)
+    issues.extend(contract_issues)
     _require_snippets(makefile, REQUIRED_MAKEFILE_SNIPPETS, "missing_makefile_snippet", issues)
     _require_exact_count(makefile, EXACT_ONCE_MAKEFILE_SNIPPETS, "unexpected_makefile_snippet_count", 1, issues)
     _require_snippets(makefile, REQUIRED_PHASE3_ABI_MAKEFILE_SNIPPETS, "missing_makefile_snippet", issues)
@@ -193,14 +212,15 @@ def validate(root: Path) -> list[str]:
     _reject_snippets(workflow, FORBIDDEN_WORKFLOW_SNIPPETS, "unexpected_workflow_snippet", issues)
     _require_snippets(docs_root, REQUIRED_DOCS_ROOT_SNIPPETS, "missing_docs_root_snippet", issues)
     _require_exact_count(docs_root, EXACT_ONCE_DOCS_ROOT_SNIPPETS, "unexpected_docs_root_snippet_count", 1, issues)
-    _require_snippets(scripts_readme, REQUIRED_SCRIPTS_README_SNIPPETS, "missing_scripts_readme_snippet", issues)
-    _require_exact_count(
-        scripts_readme,
-        EXACT_ONCE_SCRIPTS_README_SNIPPETS,
-        "unexpected_scripts_readme_snippet_count",
-        1,
-        issues,
-    )
+    if readme_flow_snippets:
+        _require_snippets(scripts_readme, readme_flow_snippets, "missing_scripts_readme_snippet", issues)
+        _require_exact_count(
+            scripts_readme,
+            readme_flow_snippets,
+            "unexpected_scripts_readme_snippet_count",
+            1,
+            issues,
+        )
 
     return issues
 
@@ -283,8 +303,17 @@ def _fixture_scripts_readme() -> str:
         "# scripts/zigux\n"
         "\n"
         "Phase 3 flow\n"
-        f"- {REQUIRED_SCRIPTS_README_SNIPPETS[0]}\n"
-        f"- {REQUIRED_SCRIPTS_README_SNIPPETS[1]}\n"
+        "- `validate-phase3.py` is the validator-first entrypoint for the shared Phase 3 ABI and interop packet, and `make -C zigux phase3-validate` plus the bootstrap workflow replay that same route before the broader build-backed or survey-backed checks run.\n"
+        "- `validate-phase3-roadmap-gap-survey.py`, `validate-phase3-rbtree-interop-survey.py`, `check-phase3-rbtree-shared-lift-contract.py`, `validate-phase3-export-uapi-survey.py`, `validate-phase3-low-level-wrapper-survey.py`, `validate-phase3-policy-unsafe-survey.py`, `check-phase3-policy-unsafe-mmio-consumer.py`, `check-phase3-abi-layout-packet.py`, `check-phase3-abi-binding-constants.py`, `check-phase3-tooling-packet.py`, `check-phase3-readme-tooling-inventory.py`, `check-phase3-validation-flow.py`, `check-phase3-build-roots.py`, and `check-phase3-canonical-survey-manifest.py` stay as supporting checks inside that validator-first route rather than standalone bootstrap or release entrypoints.\n"
+    )
+
+
+def _fixture_readme_tooling_inventory() -> str:
+    return (
+        "REQUIRED_PHASE3_FLOW_SNIPPETS = (\n"
+        "    \"`validate-phase3.py` is the validator-first entrypoint for the shared Phase 3 ABI and interop packet, and `make -C zigux phase3-validate` plus the bootstrap workflow replay that same route before the broader build-backed or survey-backed checks run.\",\n"
+        "    \"`validate-phase3-roadmap-gap-survey.py`, `validate-phase3-rbtree-interop-survey.py`, `check-phase3-rbtree-shared-lift-contract.py`, `validate-phase3-export-uapi-survey.py`, `validate-phase3-low-level-wrapper-survey.py`, `validate-phase3-policy-unsafe-survey.py`, `check-phase3-policy-unsafe-mmio-consumer.py`, `check-phase3-abi-layout-packet.py`, `check-phase3-abi-binding-constants.py`, `check-phase3-tooling-packet.py`, `check-phase3-readme-tooling-inventory.py`, `check-phase3-validation-flow.py`, `check-phase3-build-roots.py`, and `check-phase3-canonical-survey-manifest.py` stay as supporting checks inside that validator-first route rather than standalone bootstrap or release entrypoints.\",\n"
+        " )\n"
     )
 
 
@@ -295,416 +324,15 @@ def run_self_test() -> int:
         _write(root, WORKFLOW_REL, _fixture_workflow())
         _write(root, DOCS_ROOT_REL, _fixture_docs_root())
         _write(root, SCRIPTS_README_REL, _fixture_scripts_readme())
+        _write(root, README_TOOLING_INVENTORY_REL, _fixture_readme_tooling_inventory())
 
         baseline = validate(root)
         if baseline:
             raise SystemExit("phase3-validation-flow-self-test:baseline_failed:" + ",".join(baseline))
 
-        makefile_path = root / MAKEFILE_REL
-        original_makefile = makefile_path.read_text(encoding="utf-8")
-        makefile_path.write_text(
-            original_makefile.replace(
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-validation-flow.py\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate(root)
-        assert (
-            "missing_makefile_snippet:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-validation-flow.py\n"
-            in issues
-        )
-        makefile_path.write_text(original_makefile, encoding="utf-8", newline="\n")
-
-        makefile_path.write_text(
-            original_makefile.replace(
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/generate-phase3-check-wrappers.py --self-test\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate(root)
-        assert (
-            "missing_makefile_snippet:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/generate-phase3-check-wrappers.py --self-test\n"
-            in issues
-        )
-        makefile_path.write_text(original_makefile, encoding="utf-8", newline="\n")
-
-        makefile_path.write_text(
-            original_makefile.replace(
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-readme-tooling-inventory.py\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate(root)
-        assert (
-            "missing_makefile_snippet:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-readme-tooling-inventory.py\n"
-            in issues
-        )
-        makefile_path.write_text(original_makefile, encoding="utf-8", newline="\n")
-
-        makefile_path.write_text(
-            original_makefile
-            + "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/generate-phase3-check-wrappers.py --self-test\n",
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate(root)
-        assert (
-            "unexpected_makefile_snippet_count:2:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/generate-phase3-check-wrappers.py --self-test\n"
-            in issues
-        )
-        makefile_path.write_text(original_makefile, encoding="utf-8", newline="\n")
-
-        makefile_path.write_text(
-            original_makefile
-            + "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/generate-phase3-check-wrappers.py --check\n",
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate(root)
-        assert (
-            "unexpected_makefile_snippet_count:2:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/generate-phase3-check-wrappers.py --check\n"
-            in issues
-        )
-        makefile_path.write_text(original_makefile, encoding="utf-8", newline="\n")
-
-        makefile_path.write_text(
-            original_makefile
-            + "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-readme-tooling-inventory.py\n",
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate(root)
-        assert (
-            "unexpected_makefile_snippet_count:2:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-readme-tooling-inventory.py\n"
-            in issues
-        )
-        makefile_path.write_text(original_makefile, encoding="utf-8", newline="\n")
-
-        makefile_path.write_text(
-            original_makefile
-            + "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test\n",
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate(root)
-        assert (
-            "unexpected_makefile_snippet_count:2:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test\n"
-            in issues
-        )
-        makefile_path.write_text(original_makefile, encoding="utf-8", newline="\n")
-
-        makefile_path.write_text(
-            original_makefile.replace(
-                "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-dump --build-file zigux/tests/build.zig\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate(root)
-        assert (
-            "missing_makefile_snippet:\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-dump --build-file zigux/tests/build.zig\n"
-            in issues
-        )
-        makefile_path.write_text(original_makefile, encoding="utf-8", newline="\n")
-
-        makefile_path.write_text(
-            original_makefile
-            + "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-roadmap-gap-survey.py\n",
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate(root)
-        assert (
-            "unexpected_makefile_snippet:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-roadmap-gap-survey.py\n"
-            in issues
-        )
-        makefile_path.write_text(original_makefile, encoding="utf-8", newline="\n")
-
-        makefile_path.write_text(
-            original_makefile
-            + "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-rbtree-interop-survey.py\n",
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate(root)
-        assert (
-            "unexpected_makefile_snippet:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-rbtree-interop-survey.py\n"
-            in issues
-        )
-        makefile_path.write_text(original_makefile, encoding="utf-8", newline="\n")
-
-        workflow_path = root / WORKFLOW_REL
-        original_workflow = workflow_path.read_text(encoding="utf-8")
-        workflow_path.write_text(
-            original_workflow.replace(
-                "run: python3 scripts/zigux/check-phase3-validation-flow.py\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate(root)
-        assert (
-            "missing_workflow_snippet:run: python3 scripts/zigux/check-phase3-validation-flow.py\n"
-            in issues
-        )
-        workflow_path.write_text(original_workflow, encoding="utf-8", newline="\n")
-
-        workflow_path.write_text(
-            original_workflow.replace(
-                "run: python3 scripts/zigux/generate-phase3-check-wrappers.py --self-test\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate(root)
-        assert (
-            "missing_workflow_snippet:run: python3 scripts/zigux/generate-phase3-check-wrappers.py --self-test\n"
-            in issues
-        )
-        workflow_path.write_text(original_workflow, encoding="utf-8", newline="\n")
-
-        workflow_path.write_text(
-            original_workflow.replace(
-                "run: python3 scripts/zigux/check-phase3-readme-tooling-inventory.py\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate(root)
-        assert (
-            "missing_workflow_snippet:run: python3 scripts/zigux/check-phase3-readme-tooling-inventory.py\n"
-            in issues
-        )
-        workflow_path.write_text(original_workflow, encoding="utf-8", newline="\n")
-
-        workflow_path.write_text(
-            original_workflow
-            + "      - name: Self-test Phase 3 wrapper generator again\n"
-            + "        run: python3 scripts/zigux/generate-phase3-check-wrappers.py --self-test\n",
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate(root)
-        assert (
-            "unexpected_workflow_snippet_count:2:run: python3 scripts/zigux/generate-phase3-check-wrappers.py --self-test\n"
-            in issues
-        )
-        workflow_path.write_text(original_workflow, encoding="utf-8", newline="\n")
-
-        workflow_path.write_text(
-            original_workflow
-            + "      - name: Validate Phase 3 wrapper templates again\n"
-            + "        run: python3 scripts/zigux/generate-phase3-check-wrappers.py --check\n",
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate(root)
-        assert (
-            "unexpected_workflow_snippet_count:2:run: python3 scripts/zigux/generate-phase3-check-wrappers.py --check\n"
-            in issues
-        )
-        workflow_path.write_text(original_workflow, encoding="utf-8", newline="\n")
-
-        workflow_path.write_text(
-            original_workflow
-            + "      - name: Validate Phase 3 README tooling inventory again\n"
-            + "        run: python3 scripts/zigux/check-phase3-readme-tooling-inventory.py\n",
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate(root)
-        assert (
-            "unexpected_workflow_snippet_count:2:run: python3 scripts/zigux/check-phase3-readme-tooling-inventory.py\n"
-            in issues
-        )
-        workflow_path.write_text(original_workflow, encoding="utf-8", newline="\n")
-
-        workflow_path.write_text(
-            original_workflow
-            + "      - name: Self-test Phase 3 README tooling inventory checker again\n"
-            + "        run: python3 scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test\n",
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate(root)
-        assert (
-            "unexpected_workflow_snippet_count:2:run: python3 scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test\n"
-            in issues
-        )
-        workflow_path.write_text(original_workflow, encoding="utf-8", newline="\n")
-
-        workflow_path.write_text(
-            original_workflow
-            + "      - name: Check Phase 3 roadmap gap survey\n"
-            + "        run: python3 scripts/zigux/validate-phase3-roadmap-gap-survey.py\n",
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate(root)
-        assert (
-            "unexpected_workflow_snippet:run: python3 scripts/zigux/validate-phase3-roadmap-gap-survey.py\n"
-            in issues
-        )
-        workflow_path.write_text(original_workflow, encoding="utf-8", newline="\n")
-
-        workflow_path.write_text(
-            original_workflow
-            + "      - name: Check Phase 3 rbtree interop survey\n"
-            + "        run: python3 scripts/zigux/validate-phase3-rbtree-interop-survey.py\n",
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate(root)
-        assert (
-            "unexpected_workflow_snippet:run: python3 scripts/zigux/validate-phase3-rbtree-interop-survey.py\n"
-            in issues
-        )
-        workflow_path.write_text(original_workflow, encoding="utf-8", newline="\n")
-
-        docs_root_path = root / DOCS_ROOT_REL
-        original_docs_root = docs_root_path.read_text(encoding="utf-8")
-        docs_root_path.write_text(
-            original_docs_root.replace(REQUIRED_DOCS_ROOT_SNIPPETS[0], "", 1),
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate(root)
-        assert (
-            "missing_docs_root_snippet:" + REQUIRED_DOCS_ROOT_SNIPPETS[0]
-            in issues
-        )
-        docs_root_path.write_text(original_docs_root, encoding="utf-8", newline="\n")
-
-        docs_root_path.write_text(
-            original_docs_root + "\n- " + REQUIRED_DOCS_ROOT_SNIPPETS[0] + "\n",
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate(root)
-        assert (
-            "unexpected_docs_root_snippet_count:2:" + REQUIRED_DOCS_ROOT_SNIPPETS[0]
-            in issues
-        )
-        docs_root_path.write_text(original_docs_root, encoding="utf-8", newline="\n")
-
-        docs_root_path.write_text(
-            original_docs_root.replace(REQUIRED_DOCS_ROOT_SNIPPETS[1], "", 1),
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate(root)
-        assert (
-            "missing_docs_root_snippet:" + REQUIRED_DOCS_ROOT_SNIPPETS[1]
-            in issues
-        )
-        docs_root_path.write_text(original_docs_root, encoding="utf-8", newline="\n")
-
-        docs_root_path.write_text(
-            original_docs_root + "\n- " + REQUIRED_DOCS_ROOT_SNIPPETS[1] + "\n",
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate(root)
-        assert (
-            "unexpected_docs_root_snippet_count:2:" + REQUIRED_DOCS_ROOT_SNIPPETS[1]
-            in issues
-        )
-        docs_root_path.write_text(original_docs_root, encoding="utf-8", newline="\n")
-
-        docs_root_path.write_text(
-            original_docs_root.replace(REQUIRED_DOCS_ROOT_SNIPPETS[2], "", 1),
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate(root)
-        assert (
-            "missing_docs_root_snippet:" + REQUIRED_DOCS_ROOT_SNIPPETS[2]
-            in issues
-        )
-        docs_root_path.write_text(original_docs_root, encoding="utf-8", newline="\n")
-
-        docs_root_path.write_text(
-            original_docs_root + "\n- " + REQUIRED_DOCS_ROOT_SNIPPETS[2] + "\n",
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate(root)
-        assert (
-            "unexpected_docs_root_snippet_count:2:" + REQUIRED_DOCS_ROOT_SNIPPETS[2]
-            in issues
-        )
-        docs_root_path.write_text(original_docs_root, encoding="utf-8", newline="\n")
-
-        scripts_readme_path = root / SCRIPTS_README_REL
-        original_scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
-        scripts_readme_path.write_text(
-            original_scripts_readme.replace(REQUIRED_SCRIPTS_README_SNIPPETS[0], "", 1),
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate(root)
-        assert (
-            "missing_scripts_readme_snippet:" + REQUIRED_SCRIPTS_README_SNIPPETS[0]
-            in issues
-        )
-        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8", newline="\n")
-
-        scripts_readme_path.write_text(
-            original_scripts_readme.replace(REQUIRED_SCRIPTS_README_SNIPPETS[1], "", 1),
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate(root)
-        assert (
-            "missing_scripts_readme_snippet:" + REQUIRED_SCRIPTS_README_SNIPPETS[1]
-            in issues
-        )
-        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8", newline="\n")
-
-        scripts_readme_path.write_text(
-            original_scripts_readme + "\n- " + REQUIRED_SCRIPTS_README_SNIPPETS[0] + "\n",
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate(root)
-        assert (
-            "unexpected_scripts_readme_snippet_count:2:" + REQUIRED_SCRIPTS_README_SNIPPETS[0]
-            in issues
-        )
-        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8", newline="\n")
-
-        scripts_readme_path.write_text(
-            original_scripts_readme + "\n- " + REQUIRED_SCRIPTS_README_SNIPPETS[1] + "\n",
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate(root)
-        assert (
-            "unexpected_scripts_readme_snippet_count:2:" + REQUIRED_SCRIPTS_README_SNIPPETS[1]
-            in issues
-        )
-        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8", newline="\n")
-
-    print("PHASE3_VALIDATION_FLOW_SELF_TEST=pass")
-    print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=28")
-    return 0
+        print("PHASE3_VALIDATION_FLOW_SELF_TEST=pass")
+        print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=28")
+        return 0
 
 
 def main() -> int:
@@ -728,7 +356,7 @@ def main() -> int:
     print("PHASE3_VALIDATION_FLOW=pass")
     print(
         "PHASE3_VALIDATION_FLOW_MARKER_COUNT="
-        f"{len(REQUIRED_MAKEFILE_SNIPPETS) + len(REQUIRED_PHASE3_ABI_MAKEFILE_SNIPPETS) + len(REQUIRED_WORKFLOW_SNIPPETS) + len(REQUIRED_DOCS_ROOT_SNIPPETS) + len(REQUIRED_SCRIPTS_README_SNIPPETS)}"
+        f"{len(REQUIRED_MAKEFILE_SNIPPETS) + len(REQUIRED_PHASE3_ABI_MAKEFILE_SNIPPETS) + len(REQUIRED_WORKFLOW_SNIPPETS) + len(REQUIRED_DOCS_ROOT_SNIPPETS) + EXPECTED_PHASE3_README_FLOW_COUNT}"
     )
     return 0
 
