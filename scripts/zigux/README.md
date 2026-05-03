@@ -191,3 +191,7 @@ Phase 12 flow
 Phase 15 flow
 - keep the current Phase 15 governance packet reviewable through `zigux/tests/phase15_build.zig`, `zigux/tests/phase15_architecture_council_review_process.zig`, `zigux/tests/phase15_parity_scorecard.zig`, `zigux/tests/phase15_indefinite_c_policy.zig`, `zigux/tests/phase15_readiness_gate.zig`, `zigux/tests/phase15_handoff_next_steps.zig`, `zigux/tests/phase15_docs_root_reviewability.zig`, `scripts/zigux/validate-phase15.py`, `make -C zigux phase15-validate`, `make -C zigux phase15`, and `zig build test --build-file zigux/tests/phase15_build.zig` so the shared governance replay and docs-root maintenance packet stay aligned.
 - keep the paired manifest-backed Phase 15 governance packet explicit too: `zigux/tests/phase15_architecture_council_review_process_manifest.json`, `zigux/tests/phase15_parity_scorecard.json`, `zigux/tests/phase15_indefinite_c_policy.json`, `zigux/tests/phase15_readiness_gate_manifest.json`, and `zigux/tests/phase15_handoff_next_steps_manifest.json` should continue to name the same governance evidence, replay path, and blocked deep-core status-change posture as the docs root and validator.
+
+Phase 2 implementation surface addendum
+- `check-kconfig-bridge.py --self-test` stays paired with `check-kconfig-bridge.py` before live bounded replay.
+- The bounded Phase 2 implementation roots remain `genksyms.zig`, `genksyms_crc.zig`, `mk_elfconfig.zig`, `kconfig/conf_bridge.zig`, and `kconfig/confdata_bridge.zig` so the scripts index names the same implementation surface the shared closure validator expects.
