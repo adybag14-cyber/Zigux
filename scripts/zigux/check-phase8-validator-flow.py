@@ -17,6 +17,7 @@ REQUIRED_FILES = [
     "zigux/Makefile",
     "zigux/tests/README.md",
     "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
+    "Documentation/zigux/phase8-perf-buffer-poll-slice.md",
 ]
 
 REQUIRED_MARKERS = {
@@ -69,6 +70,11 @@ REQUIRED_MARKERS = {
         "`python3 scripts/zigux/check-phase8-tests-readme-alignment.py`",
         "`python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py`",
         "`make -C zigux phase8-perf-buffer-poll-test`",
+    ],
+    "Documentation/zigux/phase8-perf-buffer-poll-slice.md": [
+        "`python3 scripts/zigux/check-phase8-validator-flow.py --self-test`",
+        "`python3 scripts/zigux/check-phase8-validator-flow.py`",
+        "PHASE8_VALIDATOR_FLOW_SELF_TEST_CASE_COUNT=10",
     ],
 }
 
@@ -184,6 +190,17 @@ FIXTURE_TEXT = {
             "- `python3 scripts/zigux/check-phase8-tests-readme-alignment.py`",
             "- `python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py`",
             "- `make -C zigux phase8-perf-buffer-poll-test`",
+            "",
+        ]
+    )
+    + "\n",
+    "Documentation/zigux/phase8-perf-buffer-poll-slice.md": "\n".join(
+        [
+            "# Phase 8 Perf-Buffer Poll Slice",
+            "",
+            "- `python3 scripts/zigux/check-phase8-validator-flow.py --self-test`",
+            "- `python3 scripts/zigux/check-phase8-validator-flow.py`",
+            "- `PHASE8_VALIDATOR_FLOW_SELF_TEST_CASE_COUNT=10`",
             "",
         ]
     )
@@ -410,9 +427,41 @@ def run_self_test() -> int:
             tmp_root,
             "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md:`python3 scripts/zigux/check-phase8-tests-readme-alignment.py`",
         )
+        bridge_path.write_text(original_bridge, encoding="utf-8")
+
+        poll_note_path = tmp_root / "Documentation/zigux/phase8-perf-buffer-poll-slice.md"
+        original_poll_note = poll_note_path.read_text(encoding="utf-8")
+        poll_note_path.write_text(
+            original_poll_note.replace(
+                "- `python3 scripts/zigux/check-phase8-validator-flow.py --self-test`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "poll_note_validator_flow_self_test_step",
+            tmp_root,
+            "Documentation/zigux/phase8-perf-buffer-poll-slice.md:`python3 scripts/zigux/check-phase8-validator-flow.py --self-test`",
+        )
+        poll_note_path.write_text(original_poll_note, encoding="utf-8")
+
+        poll_note_path.write_text(
+            original_poll_note.replace(
+                "- `PHASE8_VALIDATOR_FLOW_SELF_TEST_CASE_COUNT=10`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "poll_note_validator_flow_case_count",
+            tmp_root,
+            "Documentation/zigux/phase8-perf-buffer-poll-slice.md:PHASE8_VALIDATOR_FLOW_SELF_TEST_CASE_COUNT=10",
+        )
 
     print("PHASE8_VALIDATOR_FLOW_SELF_TEST=pass")
-    print("PHASE8_VALIDATOR_FLOW_SELF_TEST_CASE_COUNT=10")
+    print("PHASE8_VALIDATOR_FLOW_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
