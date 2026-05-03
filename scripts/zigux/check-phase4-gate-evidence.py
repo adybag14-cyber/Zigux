@@ -16,6 +16,11 @@ SURVEYED_COMMIT_MANIFESTS = [
     "zigux/tests/phase4_test_fsmount_manifest.json",
     "zigux/tests/phase4_perf_baseline_manifest.json",
 ]
+SURVEYED_COMMIT_SURVEYS = [
+    "zigux/tests/phase4_runtime_atomic64_diff_survey.zig",
+    "zigux/tests/phase4_test_fsmount_survey.zig",
+    "zigux/tests/phase4_perf_baseline_survey.zig",
+]
 
 REQUIRED_MARKERS = [
     "PHASE4_EVIDENCE_DATE=",
@@ -142,6 +147,35 @@ def collect_shared_surveyed_commit_markers(root: Path, gate_evidence: str) -> li
                 f"{relative_path}:{surveyed_commit}:{shared_commit}"
             )
 
+    if shared_commit is not None:
+        expected_survey_marker = f'const current_surveyed_commit = "{shared_commit}"'
+        survey_prefix = 'const current_surveyed_commit = "'
+        for relative_path in SURVEYED_COMMIT_SURVEYS:
+            target = root / relative_path
+            if not target.exists():
+                missing.append(f"file:{relative_path}")
+                continue
+            survey_text = read_text(root, relative_path)
+            if expected_survey_marker in survey_text:
+                continue
+            start = survey_text.find(survey_prefix)
+            if start == -1:
+                missing.append(f"phase4_gate_evidence:surveyed_commit:{relative_path}")
+                continue
+            value_start = start + len(survey_prefix)
+            value_end = survey_text.find('"', value_start)
+            if value_end == -1:
+                missing.append(f"phase4_gate_evidence:surveyed_commit:{relative_path}")
+                continue
+            surveyed_commit = survey_text[value_start:value_end]
+            if not is_hex_sha(surveyed_commit):
+                missing.append(f"phase4_gate_evidence:surveyed_commit:{relative_path}")
+                continue
+            missing.append(
+                "phase4_gate_evidence:shared_surveyed_commit_mismatch:"
+                f"{relative_path}:{surveyed_commit}:{shared_commit}"
+            )
+
     if shared_commit is not None and shared_commit not in gate_evidence:
         missing.append(f"phase4_gate_evidence:{shared_commit}")
 
@@ -238,11 +272,20 @@ def write_fixture_tree(root: Path) -> None:
         )
         + "\n",
         "zigux/tests/phase4_test_fsmount_manifest.json": minimal_manifest,
-        "zigux/tests/phase4_test_fsmount_survey.zig": "phase4 test_fsmount survey fixture\n",
+        "zigux/tests/phase4_test_fsmount_survey.zig": (
+            f'const current_surveyed_commit = "{SHARED_SURVEYED_COMMIT}";\n'
+            "phase4 test_fsmount survey fixture\n"
+        ),
         "zigux/tests/phase4_perf_baseline_manifest.json": minimal_manifest,
-        "zigux/tests/phase4_perf_baseline_survey.zig": "phase4 perf baseline survey fixture\n",
+        "zigux/tests/phase4_perf_baseline_survey.zig": (
+            f'const current_surveyed_commit = "{SHARED_SURVEYED_COMMIT}";\n'
+            "phase4 perf baseline survey fixture\n"
+        ),
         "zigux/tests/phase4_runtime_atomic64_diff_manifest.json": minimal_manifest,
-        "zigux/tests/phase4_runtime_atomic64_diff_survey.zig": "phase4 runtime atomic64 survey fixture\n",
+        "zigux/tests/phase4_runtime_atomic64_diff_survey.zig": (
+            f'const current_surveyed_commit = "{SHARED_SURVEYED_COMMIT}";\n'
+            "phase4 runtime atomic64 survey fixture\n"
+        ),
         "Documentation/zigux/README.md": "phase4 doc readme fixture\n",
         "scripts/zigux/README.md": "phase4 script readme fixture\n",
         "zigux/tests/README.md": "phase4 tests readme fixture\n",
@@ -398,6 +441,24 @@ def run_self_test() -> int:
         missing = validate_root(root)
         assert any(
             marker.startswith("phase4_gate_evidence:shared_surveyed_commit_mismatch:")
+            for marker in missing
+        ), missing
+
+        write_fixture_tree(root)
+        perf_survey = root / "zigux/tests/phase4_perf_baseline_survey.zig"
+        perf_survey.write_text(
+            perf_survey.read_text(encoding="utf-8").replace(
+                SHARED_SURVEYED_COMMIT,
+                "0" * 40,
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert any(
+            marker.startswith(
+                "phase4_gate_evidence:shared_surveyed_commit_mismatch:zigux/tests/phase4_perf_baseline_survey.zig:"
+            )
             for marker in missing
         ), missing
 
