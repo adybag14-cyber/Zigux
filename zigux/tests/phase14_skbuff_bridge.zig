@@ -57,7 +57,7 @@ test "phase14 skbuff bridge manifest records the boundary-map foothold and froze
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P14-L09", manifest.lane_key);
+    try std.testing.expectEqualStrings("P14-L12", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
     try std.testing.expectEqualStrings("net/core/skbuff.c", manifest.anchor);
     try std.testing.expectEqualStrings("6689715b1930c419e49a44b1c2dd317548a08c1d", manifest.surveyed_commit);
@@ -277,7 +277,7 @@ test "phase14 skbuff bridge notes record the direct-xmit governance boundary" {
     );
     defer std.testing.allocator.free(slice_note);
 
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_LANE_KEY=P14-L09") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_LANE_KEY=P14-L12") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_SLICE=skbuff-direct-xmit-identity-drop") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "tail->next = skb") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "validate_xmit_skb()") != null);
