@@ -1,6 +1,7 @@
 const std = @import("std");
 const Io = std.Io;
 const abi = @import("abi_bindings");
+const rbtree = @import("rbtree_bindings");
 
 fn writeStructLayout(writer: anytype, comptime name: []const u8, comptime T: type, comma: bool) !void {
     try writer.writeAll("\"");
@@ -56,6 +57,12 @@ pub fn main(init: std.process.Init) !void {
     try writer.print("{d}", .{@intFromEnum(abi.UnsafeScope.volatile_mmio)});
     try writer.writeAll(",\"unsafe_scope_raw_pointer_bridge\":");
     try writer.print("{d}", .{@intFromEnum(abi.UnsafeScope.raw_pointer_bridge)});
+    try writer.writeAll(",\"root_flag_empty\":");
+    try writer.print("{d}", .{rbtree.ROOT_FLAG_EMPTY});
+    try writer.writeAll(",\"root_flag_cached\":");
+    try writer.print("{d}", .{rbtree.ROOT_FLAG_CACHED});
+    try writer.writeAll(",\"root_flag_leftmost_valid\":");
+    try writer.print("{d}", .{rbtree.ROOT_FLAG_LEFTMOST_VALID});
     try writer.writeAll(",\"minor_alloc_flag_truncated\":");
     try writer.print("{d}", .{abi.MINOR_ALLOC_FLAG_TRUNCATED});
     try writer.writeAll(",\"minor_alloc_flag_found\":");
@@ -68,7 +75,8 @@ pub fn main(init: std.process.Init) !void {
     try writeStructLayout(writer, "zigux_mmio_range", abi.MmioRange, true);
     try writeStructLayout(writer, "zigux_interop_policy", abi.InteropPolicy, true);
     try writeStructLayout(writer, "zigux_bitmap_view", abi.BitmapView, true);
-    try writeStructLayout(writer, "zigux_cpumask_view", abi.CpuMaskView, false);
+    try writeStructLayout(writer, "zigux_cpumask_view", abi.CpuMaskView, true);
+    try writeStructLayout(writer, "zigux_rbtree_root_view", rbtree.RootView, false);
     try writer.writeAll("}}\n");
     try writer.flush();
 }
