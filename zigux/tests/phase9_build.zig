@@ -162,6 +162,12 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const runtime_loader_allocator_init_flow_module = b.createModule(.{
+        .root_source_file = b.path("runtime_loader_allocator_init_flow.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    runtime_loader_allocator_init_flow_module.addImport("runtime_loader", runtime_loader_module);
     const runtime_loader_non_owner_boundary_survey_module = b.createModule(.{
         .root_source_file = b.path("runtime_loader_non_owner_boundary_survey.zig"),
         .target = target,
@@ -279,13 +285,18 @@ pub fn build(b: *std.Build) void {
         .root_module = runtime_loader_gap_survey_module,
     });
     const run_runtime_loader_gap_survey_tests = b.addRunArtifact(runtime_loader_gap_survey_tests);
+    const runtime_loader_allocator_init_flow_tests = b.addTest(.{
+        .name = "phase9-runtime-loader-allocator-init-flow-tests",
+        .root_module = runtime_loader_allocator_init_flow_module,
+    });
+    const run_runtime_loader_allocator_init_flow_tests = b.addRunArtifact(runtime_loader_allocator_init_flow_tests);
     const runtime_loader_non_owner_boundary_survey_tests = b.addTest(.{
         .name = "phase9-runtime-loader-non-owner-boundary-survey-tests",
         .root_module = runtime_loader_non_owner_boundary_survey_module,
     });
     const run_runtime_loader_non_owner_boundary_survey_tests = b.addRunArtifact(runtime_loader_non_owner_boundary_survey_tests);
 
-    const test_step = b.step("test", "Run Phase 9 runtime atomic64, bitmap, trace-events, kretprobe, loader-gap, non-owner-boundary, and module-metadata survey tests");
+    const test_step = b.step("test", "Run Phase 9 runtime atomic64, bitmap, trace-events, kretprobe, loader, allocator-init-flow, loader-gap, non-owner-boundary, and module-metadata survey tests");
     test_step.dependOn(&run_runtime_atomic64_module_tests.step);
     test_step.dependOn(&run_runtime_atomic64_loader_tests.step);
     test_step.dependOn(&run_runtime_atomic64_sample_tests.step);
@@ -308,5 +319,6 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_runtime_trace_events_survey_tests.step);
     test_step.dependOn(&run_runtime_kretprobe_survey_tests.step);
     test_step.dependOn(&run_runtime_loader_gap_survey_tests.step);
+    test_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);
     test_step.dependOn(&run_runtime_loader_non_owner_boundary_survey_tests.step);
 }
