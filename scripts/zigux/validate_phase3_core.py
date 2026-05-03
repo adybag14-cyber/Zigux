@@ -103,6 +103,15 @@ ABI_REVIEW_CHECKLIST_MARKERS = (
     "- if the change touches the shared Phase 3 ABI substrate packet, do `zigux/kernel/export_shim.zig`, `zigux/uapi/version.zig`, `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, and `scripts/zigux/validate-phase3-export-uapi-survey.py` still keep explicit status codes plus canonical-versus-compatible boundary-header checks reviewable in one place?",
     "- if the change touches the shared Phase 3 ABI substrate packet, do `zigux/helpers/panic_policy.zig`, `zigux/helpers/allocator_policy.zig`, `zigux/helpers/interop_policy.zig`, `zigux/helpers/atomic.zig`, `zigux/helpers/barrier.zig`, `zigux/helpers/mmio.zig`, `zigux/unsafe/narrow.zig`, `zigux/tests/phase3_low_level_wrappers.zig`, and `zigux/tests/phase3_policy_unsafe.zig` still keep policy-byte decoding, denied-scope checks, misalignment guards, and overflow guards explicit under the focused replay gates?",
 )
+PHASE3_SHARED_RBTREE_ROOT_MARKERS = (
+    "// PHASE3_SHARED_RBTREE_SAMPLE_RECORDS=empty-root,cached-leftmost-root,uncached-root",
+    "const empty_root = rbtree.empty();",
+    "try std.testing.expect(!rbtree.hasRoot(empty_root));",
+    "const cached_root: rbtree.RootView = .{",
+    "try std.testing.expect(rbtree.hasRoot(cached_root));",
+    "const uncached_root: rbtree.RootView = .{",
+    "try std.testing.expect(rbtree.hasRoot(uncached_root));",
+)
 ABI_REQUIRED_SOURCE_MARKERS = {
     "zigux/kernel/export_shim.zig": (
         "pub fn header(flags: u16) abi.BoundaryHeader {",
@@ -299,13 +308,7 @@ ABI_REQUIRED_SOURCE_MARKERS = {
         "try std.testing.expect(allocator_policy.requiresExplicitCaller(.caller_provided));",
         "const range = mmio.range(0x1000, 0x40, 4);",
         "try std.testing.expectEqual(narrow.UnsafeScopeTag.raw_pointer_bridge, narrow.scopeFromInteropPolicyBytes(2, 0).?);",
-        "// PHASE3_SHARED_RBTREE_SAMPLE_RECORDS=empty-root,cached-leftmost-root,uncached-root",
-        "const empty_root = rbtree.empty();",
-        "try std.testing.expect(!rbtree.hasRoot(empty_root));",
-        "const cached_root: rbtree.RootView = .{",
-        "try std.testing.expect(rbtree.hasRoot(cached_root));",
-        "const uncached_root: rbtree.RootView = .{",
-        "try std.testing.expect(rbtree.hasRoot(uncached_root));",
+        *PHASE3_SHARED_RBTREE_ROOT_MARKERS,
     ),
 }
 ABI_REQUIRED_EXPECTED_CONSTANTS = {
