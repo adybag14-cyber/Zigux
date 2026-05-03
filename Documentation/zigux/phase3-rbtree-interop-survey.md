@@ -18,7 +18,7 @@ This note records the current state of the roadmap-backed `lib/rbtree.c` anchor 
 - `PHASE3_RBTREE_SHARED_LAYOUT_CONTRACT=zigux_rbtree_root_view-reused-unchanged-in-shared-phase3-abi-packet`
 - `PHASE3_RBTREE_SHARED_CONSTANT_CONTRACT=root_flag_empty,root_flag_cached,root_flag_leftmost_valid`
 - `PHASE3_RBTREE_SHARED_CONTRACT=zigux/tests/phase3_rbtree_shared_contract.zig`
-- `PHASE3_RBTREE_SHARED_PACKET_CATALOG=phase3_abi_manifest-catalogs-dedicated-rbtree-boundary-packet`
+- `PHASE3_RBTREE_SHARED_PACKET_CATALOG=phase3_abi_manifest-catalogs-dedicated-rbtree-boundary-plus-shared-replay-and-lift-guards`
 - `PHASE3_RBTREE_SURVEY_GATE=python3 scripts/zigux/validate-phase3-rbtree-interop-survey.py`
 - `PHASE3_RBTREE_SHARED_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi`
 - `PHASE3_RBTREE_SHARED_MAKE_GATE=make -C zigux phase3-validate`
@@ -43,7 +43,7 @@ This Phase 3 lane now adds both the helper-local packet and a dedicated boundary
 - `Documentation/zigux/phase3-rbtree-slice.md`, `zigux/tests/phase3_rbtree_survey.zig`, `zigux/tests/phase3_rbtree_root_view_survey.zig`, and `zigux/tests/phase3_rbtree_manifest.json` keep the landed helper packet machine-checked
 - `zigux/tests/phase3_rbtree_shared_contract.zig` now keeps that planned shared packet layout and constant contract machine-checked before the full shared header lift lands
 - the shared Phase 3 ABI packet already replays `zigux_rbtree_root_view` through `zigux/tests/phase3_abi.zig`, `zigux/tests/phase3_abi_dump.zig`, `zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c`, and `zigux/tests/fixtures/phase3_abi/expected.json`
-- the shared Phase 3 ABI manifest now explicitly catalogs the dedicated `rbtree` boundary header, binding, dump, survey, and parity fixture files so the remaining gap is the shared header and binding lift itself rather than whether the dedicated packet belongs to the shared ABI tranche
+- the shared Phase 3 ABI manifest now explicitly catalogs the dedicated `rbtree` boundary header, binding, dump, survey, and parity fixture files, the shared ABI replay files, and the lift guards, so the remaining gap is the shared header and binding lift itself rather than whether the current packet is fully inventoried
 
 That means the remaining Phase 3 gap is no longer “no curated C header, bindings record, or parity fixture exists.” The remaining gap is that current `master` still has no shared `rbtree` record inside `include/zigux/abi.h` and `zigux/bindings/abi.zig`, and the shared `phase3_abi` replay still reaches `rbtree` through `include/zigux/rbtree.h` and `zigux/bindings/rbtree.zig` rather than through a curated shared record.
 
@@ -52,7 +52,7 @@ That means the remaining Phase 3 gap is no longer “no curated C header, bindin
 The live Phase 3 validation packet already exposes this survey through dedicated and shared gates:
 
 - `python3 scripts/zigux/validate-phase3-rbtree-interop-survey.py` keeps this dedicated survey note, the broader `Documentation/zigux/phase3-roadmap-gap-survey.md` note, and the repo-backed evidence paths aligned
-- `python3 scripts/zigux/check-phase3-rbtree-shared-lift-contract.py` keeps the dedicated root-view layout, constants, shared replay, and shared-lift note aligned before the shared ABI packet grows
+- `python3 scripts/zigux/check-phase3-rbtree-shared-lift-contract.py` now keeps the dedicated root-view layout, constants, shared replay, shared manifest catalog, and shared-lift note aligned before the shared ABI packet grows
 - `python3 scripts/zigux/validate-phase3.py --slug abi` keeps that dedicated `rbtree` gap visible inside the shared Phase 3 ABI validation packet instead of leaving it as prose-only context
 - `make -C zigux phase3-validate` remains the shared wrapper entrypoint for the broader bounded ABI packet, so this survey stays reviewable through the same published Phase 3 gate
 
