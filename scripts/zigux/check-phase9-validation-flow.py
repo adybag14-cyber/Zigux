@@ -487,6 +487,17 @@ def run_self_test() -> int:
         )
         trace_events_survey_path.write_text(original_trace_events_survey, encoding="utf-8")
 
+        trace_events_survey_path.write_text(
+            original_trace_events_survey.replace("- `make -C zigux phase9-trace-events-survey`\n", "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "trace_events_make_gate",
+            tmp_root,
+            "trace_events_survey:- `make -C zigux phase9-trace-events-survey`\n",
+        )
+        trace_events_survey_path.write_text(original_trace_events_survey, encoding="utf-8")
+
         kretprobe_survey_path = tmp_root / KRETPROBE_SURVEY_PATH
         original_kretprobe_survey = kretprobe_survey_path.read_text(encoding="utf-8")
         kretprobe_survey_path.write_text(
@@ -509,7 +520,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE9_VALIDATION_FLOW_SELF_TEST=pass")
-    print("PHASE9_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=13")
+    print("PHASE9_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
