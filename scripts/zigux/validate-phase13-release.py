@@ -134,6 +134,10 @@ DOCS_ROOT_MARKERS = [
     "`zigux/tests/phase13_build.zig` and `make -C zigux phase13` remain the published shared replay path; the earlier `phase13_landlock_ruleset.zig` EOF blocker note is now historical, the shared replay has already been rerun successfully on current `master`, and the remaining live `P13-L12` blocker is the manifest-backed helper boundary around `rb_replace_node()`, live object ownership transfer, hierarchy lifetime, and workqueue-backed teardown.",
 ]
 
+DOCS_ROOT_EXACT_COUNT_MARKERS = {
+    "`Documentation/zigux/README.md` now also keeps the dedicated `zigux/tests/phase13_landlock_syscalls_reviewability.zig` gate and the roadmap-adjacent notifier evidence (`zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, and `zigux/helpers/notifier_chain_view.zig`) visible from the docs root, so the top-level Phase 13 summary does not undercount the actual ten-step shared replay on current `master`.": 1,
+}
+
 SCRIPT_README_MARKERS = [
     "Phase 13 flow",
     "`check-phase13-libfs-packet.py`, `check-phase13-notifier-packet.py`, and `validate-phase13-release.py` keep `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/Makefile`, and `zigux/tests/phase13_build.zig` aligned as one shared release-discipline packet, including the focused `libfs` packet, the adjacent `phase13-devres-dma-coherent-tests` helper evidence, the dedicated `phase13-landlock-syscalls-reviewability-tests` gate, and the adjacent notifier-list release evidence instead of leaving the Phase 13 review path split across isolated docs or build wiring.",
@@ -152,6 +156,10 @@ REVIEW_CHECKLIST_MARKERS = [
     "while keeping live DMA-backed mappings and scatterlist ownership blocked rather than implied?",
     "if the change touches the shared Phase 13 release-discipline packet, do `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, `zigux/helpers/notifier_chain_view.zig`, and `Documentation/zigux/phase13-notifier-list-survey.md` still keep the adjacent notifier packet explicit as roadmap-adjacent release evidence rather than a fifth roadmap anchor?",
 ]
+
+REVIEW_CHECKLIST_EXACT_COUNT_MARKERS = {
+    "if the change touches the shared Phase 13 release-discipline packet, do `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/validate-phase13-release.py`, and `Documentation/zigux/phase13-release-notes-survey.md` still keep the docs-root Phase 13 reviewability sentence explicit around `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, and `zigux/helpers/notifier_chain_view.zig` so the top-level Phase 13 summary does not undercount the ten-step shared replay?": 1,
+}
 
 DEVRES_SURVEY_MARKERS = [
     "# Phase 13 devres helper DMA/scatterlist boundary survey",
@@ -283,6 +291,24 @@ def main() -> int:
             missing,
             "workflow",
             source_by_name["workflow"],
+            marker,
+            expected_count,
+        )
+
+    for marker, expected_count in DOCS_ROOT_EXACT_COUNT_MARKERS.items():
+        require_exact_count(
+            missing,
+            "docs_root",
+            source_by_name["docs_root"],
+            marker,
+            expected_count,
+        )
+
+    for marker, expected_count in REVIEW_CHECKLIST_EXACT_COUNT_MARKERS.items():
+        require_exact_count(
+            missing,
+            "review_checklist",
+            source_by_name["review_checklist"],
             marker,
             expected_count,
         )
@@ -471,7 +497,7 @@ def main() -> int:
     print(f"PHASE13_RELEASE_REQUIRED_FILE_COUNT={len(FILES)}")
     print(
         "PHASE13_RELEASE_REQUIRED_MARKER_COUNT="
-        f"{len(MAKE_MARKERS) + len(MAKE_EXACT_COUNT_MARKERS) + len(WORKFLOW_MARKERS) + len(WORKFLOW_EXACT_COUNT_MARKERS) + len(RELEASE_MARKERS) + len(TRACEABILITY_MARKERS) + len(DOCS_ROOT_MARKERS) + len(SCRIPT_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(DEVRES_SURVEY_MARKERS) + len(DEVRES_REVIEWABILITY_MARKERS)}"
+        f"{len(MAKE_MARKERS) + len(MAKE_EXACT_COUNT_MARKERS) + len(WORKFLOW_MARKERS) + len(WORKFLOW_EXACT_COUNT_MARKERS) + len(RELEASE_MARKERS) + len(TRACEABILITY_MARKERS) + len(DOCS_ROOT_MARKERS) + len(DOCS_ROOT_EXACT_COUNT_MARKERS) + len(SCRIPT_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(REVIEW_CHECKLIST_EXACT_COUNT_MARKERS) + len(DEVRES_SURVEY_MARKERS) + len(DEVRES_REVIEWABILITY_MARKERS)}"
     )
     print(f"PHASE13_RELEASE_BUILD_TEST_COUNT={len(build_names)}")
     print(f"PHASE13_RELEASE_BUILD_DEPEND_STEP_COUNT={len(depend_steps)}")
