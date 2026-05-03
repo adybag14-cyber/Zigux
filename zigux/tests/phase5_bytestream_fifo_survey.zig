@@ -58,7 +58,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
 
     const manifest = parsed.value;
     const expected_focus = expectedReplayFocus();
-    try std.testing.expectEqualStrings("P5-L01", manifest.lane_key);
+    try std.testing.expectEqualStrings("P5-L04", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 5", manifest.phase);
     try std.testing.expectEqual(@as(usize, 40), manifest.surveyed_commit.len);
     for (manifest.surveyed_commit) |char| {
