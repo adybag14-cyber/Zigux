@@ -20,6 +20,8 @@ REQUIRED_FILES = [
     "zigux/tests/phase13_build.zig",
     "Documentation/zigux/phase13-devres-slice.md",
     "Documentation/zigux/phase13-devres-survey.md",
+    "scripts/zigux/README.md",
+    "Documentation/zigux/review-checklist.md",
 ]
 
 DEVRES_MARKERS = [
@@ -93,6 +95,22 @@ BUILD_MARKERS = [
     "phase13-devres-reviewability-tests",
 ]
 
+SCRIPTS_README_MARKERS = [
+    "`check-phase13-devres-packet.py` keeps the helper-first `devres` packet and its blocked DMA/scatterlist boundary visible in that same shared Phase 13 release flow instead of leaving the live devres guard implicit in the Makefile wiring and packet-local survey assets.",
+]
+
+SCRIPTS_README_EXACT_COUNT_MARKERS = {
+    "`check-phase13-devres-packet.py` keeps the helper-first `devres` packet and its blocked DMA/scatterlist boundary visible in that same shared Phase 13 release flow instead of leaving the live devres guard implicit in the Makefile wiring and packet-local survey assets.": 1,
+}
+
+REVIEW_CHECKLIST_MARKERS = [
+    "if the change touches the shared Phase 13 release-discipline packet, do `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase13-devres-survey.md`, `zigux/tests/phase13_devres_manifest.json`, `zigux/tests/phase13_devres_dma_coherent.zig`, and `zigux/tests/phase13_devres_reviewability.zig` still keep the scripts-root devres inventory sentence and its adjacent coherent-DMA plus reviewability evidence explicit so reviewer guidance does not drift behind the stricter shared validator contract?",
+]
+
+REVIEW_CHECKLIST_EXACT_COUNT_MARKERS = {
+    "if the change touches the shared Phase 13 release-discipline packet, do `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase13-devres-survey.md`, `zigux/tests/phase13_devres_manifest.json`, `zigux/tests/phase13_devres_dma_coherent.zig`, and `zigux/tests/phase13_devres_reviewability.zig` still keep the scripts-root devres inventory sentence and its adjacent coherent-DMA plus reviewability evidence explicit so reviewer guidance does not drift behind the stricter shared validator contract?": 1,
+}
+
 EXPECTED_GAP_STATUS = {
     "phase13-devres-live-dma-mappings": "blocked_on_dma_state",
     "phase13-devres-live-scatterlist-ownership": "blocked_on_scatterlist_state",
@@ -145,6 +163,8 @@ def _check_repo(root: Path) -> list[str]:
     build_text = _read(root / "zigux/tests/phase13_build.zig")
     survey_text = _read(root / "Documentation/zigux/phase13-devres-survey.md")
     slice_text = _read(root / "Documentation/zigux/phase13-devres-slice.md")
+    scripts_readme_text = _read(root / "scripts/zigux/README.md")
+    review_checklist_text = _read(root / "Documentation/zigux/review-checklist.md")
 
     _require_markers(missing, "devres", devres_text, DEVRES_MARKERS)
     _require_markers(missing, "devres_dma_coherent", dma_coherent_text, DMA_COHERENT_MARKERS)
@@ -155,6 +175,25 @@ def _check_repo(root: Path) -> list[str]:
     _require_exact_counts(missing, "survey", survey_text, SURVEY_EXACT_COUNT_MARKERS)
     _require_markers(missing, "slice", slice_text, SLICE_MARKERS)
     _require_markers(missing, "build", build_text, BUILD_MARKERS)
+    _require_markers(missing, "scripts_readme", scripts_readme_text, SCRIPTS_README_MARKERS)
+    _require_exact_counts(
+        missing,
+        "scripts_readme",
+        scripts_readme_text,
+        SCRIPTS_README_EXACT_COUNT_MARKERS,
+    )
+    _require_markers(
+        missing,
+        "review_checklist",
+        review_checklist_text,
+        REVIEW_CHECKLIST_MARKERS,
+    )
+    _require_exact_counts(
+        missing,
+        "review_checklist",
+        review_checklist_text,
+        REVIEW_CHECKLIST_EXACT_COUNT_MARKERS,
+    )
 
     manifest = json.loads(manifest_text)
     if manifest.get("lane_key") != "P13-L10":
@@ -209,7 +248,7 @@ def _check_repo(root: Path) -> list[str]:
 def _run_self_test() -> int:
     with tempfile.TemporaryDirectory() as tmp:
         root = Path(tmp)
-        for rel in ("lib", "zigux/tests", "Documentation/zigux"):
+        for rel in ("lib", "zigux/tests", "Documentation/zigux", "scripts/zigux"):
             (root / rel).mkdir(parents=True, exist_ok=True)
 
         case_count = 0
@@ -237,6 +276,14 @@ def _run_self_test() -> int:
             encoding="utf-8",
         )
         (root / "zigux/tests/phase13_build.zig").write_text("\n".join(BUILD_MARKERS) + "\n", encoding="utf-8")
+        (root / "scripts/zigux/README.md").write_text(
+            "\n".join(SCRIPTS_README_MARKERS) + "\n",
+            encoding="utf-8",
+        )
+        (root / "Documentation/zigux/review-checklist.md").write_text(
+            "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n",
+            encoding="utf-8",
+        )
         manifest = {
             "lane_key": "P13-L10",
             "phase": "Phase 13",
@@ -286,6 +333,45 @@ def _run_self_test() -> int:
                 print(item)
             return 1
         case_count += 1
+        survey_path.write_text(
+            f"- `PHASE13_SURVEYED_COMMIT={surveyed_commit}`\n" + "\n".join(SURVEY_MARKERS) + "\n",
+            encoding="utf-8",
+        )
+
+        scripts_readme_path = root / "scripts/zigux/README.md"
+        original_scripts_readme = _read(scripts_readme_path)
+        scripts_readme_path.write_text(
+            original_scripts_readme + SCRIPTS_README_MARKERS[0] + "\n",
+            encoding="utf-8",
+        )
+        missing = _check_repo(root)
+        expected_missing = (
+            "scripts_readme:exact_count:"
+            + SCRIPTS_README_MARKERS[0]
+            + ":2!=1"
+        )
+        if expected_missing not in missing:
+            print("PHASE13_DEVRES_PACKET_SELF_TEST=fail")
+            print("missing exact-count failure for duplicate scripts-readme devres marker")
+            for item in missing:
+                print(item)
+            return 1
+        case_count += 1
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
+        review_checklist_path = root / "Documentation/zigux/review-checklist.md"
+        original_review_checklist = _read(review_checklist_path)
+        review_checklist_path.write_text("", encoding="utf-8")
+        missing = _check_repo(root)
+        expected_missing = "review_checklist:" + REVIEW_CHECKLIST_MARKERS[0]
+        if expected_missing not in missing:
+            print("PHASE13_DEVRES_PACKET_SELF_TEST=fail")
+            print("missing required review-checklist devres marker did not fail")
+            for item in missing:
+                print(item)
+            return 1
+        case_count += 1
+        review_checklist_path.write_text(original_review_checklist, encoding="utf-8")
 
     print("PHASE13_DEVRES_PACKET_SELF_TEST=pass")
     print(f"PHASE13_DEVRES_PACKET_SELF_TEST_CASE_COUNT={case_count}")
@@ -314,7 +400,7 @@ def main() -> int:
     print(f"PHASE13_DEVRES_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE13_DEVRES_MARKER_COUNT="
-        f"{len(DEVRES_MARKERS) + len(DMA_COHERENT_MARKERS) + len(DEVRES_TEST_MARKERS) + len(DMA_COHERENT_TEST_MARKERS) + len(REVIEWABILITY_MARKERS) + len(SURVEY_MARKERS) + len(SURVEY_EXACT_COUNT_MARKERS) + len(SLICE_MARKERS) + len(BUILD_MARKERS)}"
+        f"{len(DEVRES_MARKERS) + len(DMA_COHERENT_MARKERS) + len(DEVRES_TEST_MARKERS) + len(DMA_COHERENT_TEST_MARKERS) + len(REVIEWABILITY_MARKERS) + len(SURVEY_MARKERS) + len(SURVEY_EXACT_COUNT_MARKERS) + len(SLICE_MARKERS) + len(BUILD_MARKERS) + len(SCRIPTS_README_MARKERS) + len(SCRIPTS_README_EXACT_COUNT_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(REVIEW_CHECKLIST_EXACT_COUNT_MARKERS)}"
     )
     return 0
 
