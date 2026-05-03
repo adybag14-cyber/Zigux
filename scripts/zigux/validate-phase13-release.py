@@ -14,8 +14,11 @@ SURVEYED_COMMIT_RE = re.compile(r"[0-9a-f]{40}")
 
 FILES = [
     "scripts/zigux/validate-phase13-release.py",
+    "scripts/zigux/check-phase13-libfs-packet.py",
     "scripts/zigux/check-phase13-devres-packet.py",
+    "scripts/zigux/check-phase13-notifier-packet.py",
     "scripts/zigux/README.md",
+    "Documentation/zigux/README.md",
     "Documentation/zigux/phase13-release-notes-survey.md",
     "Documentation/zigux/phase13-roadmap-traceability.md",
     "Documentation/zigux/phase13-libfs-slice.md",
