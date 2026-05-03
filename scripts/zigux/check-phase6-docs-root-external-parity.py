@@ -40,6 +40,10 @@ REQUIRED_TESTS_README_LINES = [
     "- `zigux/tests/fixtures/phase6_base64_c_harness.c`",
     "- `zigux/tests/phase6_bsearch_c_parity.zig`",
     "- `zigux/tests/fixtures/phase6_bsearch_c_harness.c`",
+    "- `zigux/tests/phase6_checksum_c_parity.zig`",
+    "- `zigux/tests/fixtures/phase6_checksum_c_harness.c`",
+    "- `zigux/tests/phase6_hexdump_c_parity.zig`",
+    "- `zigux/tests/fixtures/phase6_hexdump_c_harness.c`",
 ]
 REQUIRED_MANIFEST_EXACT_CHECKS = [
     "python3 scripts/zigux/check-phase6-docs-root-external-parity.py --self-test",
@@ -325,7 +329,7 @@ def main() -> int:
 
     print("PHASE6_DOCS_ROOT_EXTERNAL_PARITY=pass")
     print("PHASE6_DOCS_ROOT_EXTERNAL_PARITY_REQUIRED_FILE_COUNT=9")
-    print("PHASE6_DOCS_ROOT_EXTERNAL_PARITY_REQUIRED_LINE_COUNT=11")
+    print("PHASE6_DOCS_ROOT_EXTERNAL_PARITY_REQUIRED_LINE_COUNT=15")
     return 0
 
 
