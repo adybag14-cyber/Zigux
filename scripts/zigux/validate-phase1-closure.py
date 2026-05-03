@@ -36,6 +36,7 @@ REQUIRED_FILE_RELS = [
     "zigux/tests/fixtures/phase1_helpers.json",
     "zigux/tests/fixtures/phase1_helpers_c_harness.c",
     "zigux/tests/phase1_bench.zig",
+    "zigux/tests/phase1_helpers.zig",
 ]
 
 REQUIRED_HELPERS = [
@@ -96,6 +97,14 @@ REQUIRED_BUILD_MARKERS = [
     '.name = "phase1-bench",',
     'const run_bench = b.addRunArtifact(bench);',
     'const bench_step = b.step("bench", "Run Phase 1 helper benchmark smoke");',
+]
+
+REQUIRED_HELPER_TEST_MARKERS = [
+    'const argv_split = @import("argv_split");',
+    '@embedFile("fixtures/phase1_helpers.json")',
+    'test "phase 1 helper modules import cleanly" {',
+    'test "phase 1 helper ports match committed parity fixture" {',
+    'test "phase 1 bitmap allocation helpers keep ownership and zeroing explicit" {',
 ]
 
 REQUIRED_LEDGER_MARKERS = [
@@ -330,6 +339,7 @@ def main() -> int:
     check_contains("closure", "Documentation/zigux/phase1-closure.md", REQUIRED_CLOSURE_MARKERS, missing)
     check_contains("workflow", ".github/workflows/zigux-bootstrap.yml", REQUIRED_WORKFLOW_MARKERS, missing)
     check_contains("build", "zigux/tests/build.zig", REQUIRED_BUILD_MARKERS, missing)
+    check_contains("helper_tests", "zigux/tests/phase1_helpers.zig", REQUIRED_HELPER_TEST_MARKERS, missing)
     check_contains("ledger", "zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md", REQUIRED_LEDGER_MARKERS, missing)
     check_contains("bench_checker", "scripts/zigux/check-phase1-bench.py", REQUIRED_BENCH_CHECKER_MARKERS, missing)
     check_contains("parity_checker", "scripts/zigux/check-phase1-parity.py", REQUIRED_PARITY_CHECKER_MARKERS, missing)
@@ -349,6 +359,7 @@ def main() -> int:
         REQUIRED_CLOSURE_MARKERS,
         REQUIRED_WORKFLOW_MARKERS,
         REQUIRED_BUILD_MARKERS,
+        REQUIRED_HELPER_TEST_MARKERS,
         REQUIRED_LEDGER_MARKERS,
         REQUIRED_BENCH_CHECKER_MARKERS,
         REQUIRED_PARITY_CHECKER_MARKERS,
@@ -405,6 +416,7 @@ def self_test() -> int:
         write(root / "Documentation/zigux/phase1-closure.md", "\n".join(REQUIRED_CLOSURE_MARKERS) + "\n")
         write(root / ".github/workflows/zigux-bootstrap.yml", "\n".join(REQUIRED_WORKFLOW_MARKERS) + "\n")
         write(root / "zigux/tests/build.zig", "\n".join(REQUIRED_BUILD_MARKERS) + "\n")
+        write(root / "zigux/tests/phase1_helpers.zig", "\n".join(REQUIRED_HELPER_TEST_MARKERS) + "\n")
         write(root / "zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md", "\n".join(REQUIRED_LEDGER_MARKERS) + "\n")
         write(root / "scripts/zigux/check-phase1-bench.py", "\n".join(REQUIRED_BENCH_CHECKER_MARKERS) + "\n")
         write(root / "scripts/zigux/check-phase1-parity.py", "\n".join(REQUIRED_PARITY_CHECKER_MARKERS) + "\n")
@@ -441,6 +453,10 @@ def self_test() -> int:
         write(root / "zigux/Makefile", "phase1-validate:\n")
         expect_failure(root, "makefile:PHONY += phase1-validate phase1-test phase1-bench phase1")
         write(root / "zigux/Makefile", "\n".join(REQUIRED_MAKEFILE_MARKERS) + "\n")
+
+        write(root / "zigux/tests/phase1_helpers.zig", "// fixture\n")
+        expect_failure(root, 'helper_tests:const argv_split = @import("argv_split");')
+        write(root / "zigux/tests/phase1_helpers.zig", "\n".join(REQUIRED_HELPER_TEST_MARKERS) + "\n")
 
         write(
             root / "zigux/Makefile",
@@ -502,7 +518,7 @@ def self_test() -> int:
         expect_failure(root, "rbtree_source:unexpected_alias:pub fn rb_first(")
 
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=15")
+    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
