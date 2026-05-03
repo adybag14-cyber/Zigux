@@ -14,6 +14,9 @@ This document records the first bounded Phase 3 helper packet around the roadmap
   - `zigux/tests/phase3_rbtree_survey.zig`
   - `zigux/tests/phase3_rbtree_root_view_survey.zig`
   - `zigux/tests/phase3_rbtree_manifest.json`
+- `PHASE3_RBTREE_DEDICATED_BOUNDARY_PARITY=zigux/tests/fixtures/phase3_rbtree/expected.json,zigux/tests/fixtures/phase3_rbtree/phase3_rbtree_c_harness.c`
+- `PHASE3_RBTREE_SHARED_BOUNDARY_GAP=shared-abi-root-view-lift-still-missing`
+- `PHASE3_RBTREE_SHARED_BOUNDARY_TARGET=include/zigux/abi.h,zigux/bindings/abi.zig,zigux/tests/fixtures/phase3_abi/`
 
 ## Why this slice exists
 
@@ -27,7 +30,7 @@ This slice keeps the next move deliberately small:
 - explicit first-node and last-node address reporting
 - one machine-checked survey packet that records the narrowed remaining gap
 
-That gives Phase 3 a real `zigux/helpers/rbtree_*` foothold without pretending the curated C header and binding surface is already complete.
+That gives Phase 3 a real `zigux/helpers/rbtree_*` foothold without pretending the shared ABI lift is already complete.
 
 ## Gates
 
@@ -50,15 +53,25 @@ That gives Phase 3 a real `zigux/helpers/rbtree_*` foothold without pretending t
 
 ## Boundary
 
+This slice already carries:
+
+- a dedicated `rbtree` root-view record in `include/zigux/rbtree.h` and `zigux/bindings/rbtree.zig`
+- a dedicated C-vs-Zig parity replay in `zigux/tests/fixtures/phase3_rbtree/expected.json` and `zigux/tests/fixtures/phase3_rbtree/phase3_rbtree_c_harness.c`
+
 This slice does not yet claim:
 
-- a new C-facing `include/linux/zigux.h` helper surface
-- new `include/zigux/abi.h` structs
-- new `zigux/bindings/abi.zig` layout types
-- a C-vs-Zig parity fixture for `rbtree` boundary records
+- a shared `rbtree` record in `include/zigux/abi.h`
+- a matching shared `zigux/bindings/abi.zig` layout type
+- a shared `zigux/tests/fixtures/phase3_abi/` parity replay for the `rbtree` root view
 
-The remaining honest Phase 3 `rbtree` gap after this step is the curated header-and-binding surface, not the total absence of a helper packet.
+The remaining honest Phase 3 `rbtree` gap after this step is the shared ABI lift, not the absence of a dedicated boundary packet.
 
 ## Next bounded step
 
-The next honest follow-up is a curated `rbtree` boundary contract in the existing ABI packet, with one small header-and-binding shape plus one parity fixture, before any further Phase 3 char-device growth.
+The next honest follow-up is one curated shared Phase 3 `rbtree` root-view lift:
+
+- one shared header-and-binding shape
+- one shared parity fixture
+- one validator-backed survey refresh
+
+That keeps the roadmap-backed `rbtree` anchor moving without widening into more char-device planning churn.
