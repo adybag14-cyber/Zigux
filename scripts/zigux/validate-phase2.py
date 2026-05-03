@@ -13,6 +13,9 @@ CHECK_GENKSYMS_BRIDGE = ROOT / "scripts" / "zigux" / "check-genksyms-bridge.py"
 GENKSYMS_BRIDGE_ALIGNMENT_CHECKER = (
     ROOT / "scripts" / "zigux" / "check-phase2-genksyms-bridge-selftest-alignment.py"
 )
+KCONFIG_ALIGNMENT_CHECKER = (
+    ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py"
+)
 PHASE2_CROSS_ALIGNMENT_CHECKER = (
     ROOT / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py"
 )
@@ -47,6 +50,7 @@ REQUIRED_PHASE2_FILES = [
     GENKSYMS_BRIDGE_ALIGNMENT_CHECKER,
     ROOT / "scripts" / "zigux" / "check-genksyms-crc-diff.py",
     CHECK_KCONFIG_BRIDGE,
+    KCONFIG_ALIGNMENT_CHECKER,
     PHASE2_CROSS_ALIGNMENT_CHECKER,
     PHASE2_CROSS_CHECKER,
     TOOLCHAIN_PIN_SCOPE_CHECKER,
@@ -81,6 +85,12 @@ PHASE2_GENKSYMS_BRIDGE_ALIGNMENT_REQUIRED_SOURCE_MARKERS = [
     "PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=12",
     '"python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test": 1',
     '"python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py": 1',
+]
+PHASE2_KCONFIG_ALIGNMENT_REQUIRED_SOURCE_MARKERS = [
+    "PHASE2_KCONFIG_ALIGNMENT_SELF_TEST=pass",
+    "PHASE2_KCONFIG_ALIGNMENT_SELF_TEST_CASE_COUNT=9",
+    '"python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test": 1',
+    '"python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py": 1',
 ]
 PHASE2_CROSS_ALIGNMENT_REQUIRED_SOURCE_MARKERS = [
     "PHASE2_CROSS_ALIGNMENT_SELF_TEST=pass",
@@ -156,6 +166,14 @@ PHASE2_KCONFIG_REQUIRED_MAKEFILE_COUNTS = {
     "scripts/zigux/check-kconfig-bridge.py": 1,
     "$(ZIG) test scripts/zigux/kconfig/conf_bridge.zig": 1,
     "$(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig": 1,
+}
+PHASE2_KCONFIG_ALIGNMENT_REQUIRED_WORKFLOW_COUNTS = {
+    "python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test": 1,
+    "python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py": 1,
+}
+PHASE2_KCONFIG_ALIGNMENT_REQUIRED_MAKEFILE_COUNTS = {
+    "scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test": 1,
+    "scripts/zigux/check-phase2-kconfig-selftest-alignment.py": 1,
 }
 PHASE2_CROSS_ALIGNMENT_REQUIRED_MAKEFILE_COUNTS = {
     "scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test": 1,
@@ -434,6 +452,13 @@ def main() -> int:
     )
     issues.extend(
         validate_source_markers(
+            KCONFIG_ALIGNMENT_CHECKER,
+            label="phase2_kconfig_alignment_checker",
+            required_markers=PHASE2_KCONFIG_ALIGNMENT_REQUIRED_SOURCE_MARKERS,
+        )
+    )
+    issues.extend(
+        validate_source_markers(
             PHASE2_CROSS_ALIGNMENT_CHECKER,
             label="phase2_cross_alignment_checker",
             required_markers=PHASE2_CROSS_ALIGNMENT_REQUIRED_SOURCE_MARKERS,
@@ -515,6 +540,21 @@ def main() -> int:
     issues.extend(
         validate_exact_command_counts(
             WORKFLOW_FILE,
+            label="phase2_kconfig_alignment_workflow",
+            expected_counts=PHASE2_KCONFIG_ALIGNMENT_REQUIRED_WORKFLOW_COUNTS,
+            workflow_mode=True,
+        )
+    )
+    issues.extend(
+        validate_exact_command_counts(
+            MAKEFILE_FILE,
+            label="phase2_kconfig_alignment_makefile",
+            expected_counts=PHASE2_KCONFIG_ALIGNMENT_REQUIRED_MAKEFILE_COUNTS,
+        )
+    )
+    issues.extend(
+        validate_exact_command_counts(
+            WORKFLOW_FILE,
             label="phase2_cross_alignment_workflow",
             expected_counts=PHASE2_CROSS_ALIGNMENT_REQUIRED_WORKFLOW_COUNTS,
             workflow_mode=True,
@@ -538,6 +578,14 @@ def main() -> int:
 
     result = subprocess.run(
         [sys.executable, str(GENKSYMS_BRIDGE_ALIGNMENT_CHECKER)],
+        cwd=ROOT,
+    )
+    if result.returncode != 0:
+        print("PHASE2_VALIDATION=fail")
+        return result.returncode
+
+    result = subprocess.run(
+        [sys.executable, str(KCONFIG_ALIGNMENT_CHECKER)],
         cwd=ROOT,
     )
     if result.returncode != 0:
