@@ -82,11 +82,14 @@ test "phase13 libfs manifest records the landed close-bookkeeping slice and the 
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_reviewability_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 17), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 18), manifest.gaps.len);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, expected_surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE13_SURVEYED_COMMIT=") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "generic_check_addressable()") != null);
     try std.testing.expect(std.mem.indexOf(u8, traceability_note, expected_surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, traceability_note, "`fs/libfs.c`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, traceability_note, "phase13-libfs-addressability-helper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, traceability_note, "generic_check_addressable()") != null);
     try std.testing.expect(std.mem.indexOf(u8, traceability_note, "phase13-libfs-dcache-dir-close-release-bookkeeping") != null);
     try std.testing.expect(std.mem.indexOf(u8, traceability_note, "phase13-libfs-simple-open-private-data-planning") != null);
     try std.testing.expect(std.mem.indexOf(u8, traceability_note, "phase13-libfs-dcache-cursor-helpers") != null);
@@ -115,6 +118,7 @@ test "phase13 libfs manifest records the landed close-bookkeeping slice and the 
     var blocked_count: usize = 0;
     var saw_close_release = false;
     var saw_simple_open = false;
+    var saw_addressability_helper = false;
     var saw_blocked_cursor_helpers = false;
     var saw_blocked_inode_lifecycle = false;
 
@@ -152,6 +156,13 @@ test "phase13 libfs manifest records the landed close-bookkeeping slice and the 
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "simple_open()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "inode->i_private") != null);
         }
+        if (std.mem.eql(u8, gap.id, "phase13-libfs-addressability-helper")) {
+            saw_addressability_helper = true;
+            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "generic_check_addressable()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "block-size") != null);
+        }
         if (std.mem.eql(u8, gap.id, "phase13-libfs-dcache-cursor-helpers")) {
             saw_blocked_cursor_helpers = true;
             try std.testing.expectEqualStrings("blocked_on_vfs_state", gap.status);
@@ -167,10 +178,11 @@ test "phase13 libfs manifest records the landed close-bookkeeping slice and the 
     }
 
     try std.testing.expectEqual(@as(usize, 15), starter_landed_count);
-    try std.testing.expectEqual(@as(usize, 0), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 1), ready_next_count);
     try std.testing.expectEqual(@as(usize, 2), blocked_count);
     try std.testing.expect(saw_close_release);
     try std.testing.expect(saw_simple_open);
+    try std.testing.expect(saw_addressability_helper);
     try std.testing.expect(saw_blocked_cursor_helpers);
     try std.testing.expect(saw_blocked_inode_lifecycle);
 }
