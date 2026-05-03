@@ -1,0 +1,282 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import tempfile
+from pathlib import Path
+
+
+SURVEYED_COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
+
+REQUIRED_FILES = [
+    "lib/devres.zig",
+    "lib/devres_dma_coherent.zig",
+    "zigux/tests/phase13_devres.zig",
+    "zigux/tests/phase13_devres_dma_coherent.zig",
+    "zigux/tests/phase13_devres_reviewability.zig",
+    "zigux/tests/phase13_devres_manifest.json",
+    "zigux/tests/phase13_build.zig",
+    "Documentation/zigux/phase13-devres-slice.md",
+    "Documentation/zigux/phase13-devres-survey.md",
+]
+
+DEVRES_MARKERS = [
+    "provides_ioremap_resource_plain_wrapper_planning: bool,",
+    "provides_arch_phys_wc_token_planning: bool,",
+    "provides_arch_io_wc_memtype_planning: bool,",
+    "touches_live_dma: bool,",
+    "touches_live_scatterlist: bool,",
+    "pub fn planManagedIoremapResourcePlain(",
+    "pub fn planArchPhysWcAdd(",
+    "pub fn planArchIoReserveMemtypeWc(",
+]
+
+DMA_COHERENT_MARKERS = [
+    "provides_dma_coherent_lifetime_planning: bool,",
+    "touches_live_dma: bool,",
+    "touches_live_scatterlist: bool,",
+    "pub fn planManagedDmaCoherentAlloc(",
+    "pub fn planManagedDmaCoherentFree(",
+]
+
+DEVRES_TEST_MARKERS = [
+    'test "phase13 devres plans a plain managed ioremap resource wrapper"',
+    'test "phase13 devres propagates plain managed resource wrapper failures"',
+    'test "phase13 devres plans devm_of_iomap around translated resources and optional size reporting"',
+    "planManagedIoremapResourcePlain(",
+]
+
+DMA_COHERENT_TEST_MARKERS = [
+    'test "phase13 devres descriptor records helper-first dma coherent planning"',
+    "planManagedDmaCoherentAlloc(",
+    "planManagedDmaCoherentFree(",
+]
+
+REVIEWABILITY_MARKERS = [
+    'test "phase13 devres manifest records the current helper boundary and explicit dma/scatterlist blockers"',
+    'try std.testing.expect(!descriptor.touches_live_dma);',
+    'try std.testing.expect(!descriptor.touches_live_scatterlist);',
+    'try std.testing.expectEqual(@as(usize, 1), blocked_dma_count);',
+    'try std.testing.expectEqual(@as(usize, 1), blocked_scatterlist_count);',
+    'try std.testing.expect(saw_dma_blocker);',
+    'try std.testing.expect(saw_scatterlist_blocker);',
+]
+
+SURVEY_MARKERS = [
+    "# Phase 13 devres helper DMA/scatterlist boundary survey",
+    "- `PHASE13_STATUS=active`",
+    "- `PHASE13_SLICE=devres-helper-dma-scatterlist-boundary-reviewability`",
+    "helper-first iomap or resource planners plus explicit DMA/scatterlist blockers pinned to the current repo state",
+    "live DMA-backed helpers such as `dmam_alloc_coherent()`, `dmam_free_coherent()`, `dma_map_resource()`, `dma_unmap_resource()`, or `dma_map_sgtable()` ownership and execution",
+    "live scatter-gather ownership such as `struct scatterlist`, `sg_table`, `sg_*` iteration, merge, or detach-time cleanup behavior",
+]
+
+SLICE_MARKERS = [
+    "pure helper-first foothold anchored to `lib/devres.c`",
+    "adds one adjacent helper-first coherent DMA lifetime planner in `lib/devres_dma_coherent.zig`",
+    "does not expose `dma_map_*`, `dma_unmap_*`, `dma_map_sgtable()`, `struct scatterlist`, `sg_table`, or `sg_*` traversal behavior at all",
+    "without widening into live mappings, generic devres groups, or cross-subsystem device-resource state",
+]
+
+BUILD_MARKERS = [
+    "../../lib/devres_dma_coherent.zig",
+    "phase13_devres_dma_coherent.zig",
+    "phase13-devres-tests",
+    "phase13-devres-dma-coherent-tests",
+    "phase13-devres-reviewability-tests",
+]
+
+EXPECTED_GAP_STATUS = {
+    "phase13-devres-live-dma-mappings": "blocked_on_dma_state",
+    "phase13-devres-live-scatterlist-ownership": "blocked_on_scatterlist_state",
+    "phase13-devres-managed-resource-planner": "starter_landed",
+    "phase13-devres-devicetree-iomap-planner": "starter_landed",
+    "phase13-devres-arch-phys-wc-token-planner": "starter_landed",
+    "phase13-devres-arch-io-memtype-planner": "starter_landed",
+}
+
+
+def _read(path: Path) -> str:
+    return path.read_text(encoding="utf-8")
+
+
+def _require_markers(missing: list[str], label: str, text: str, markers: list[str]) -> None:
+    for marker in markers:
+        if marker not in text:
+            missing.append(f"{label}:{marker}")
+
+
+def _check_repo(root: Path) -> list[str]:
+    missing: list[str] = []
+    for rel in REQUIRED_FILES:
+        if not (root / rel).exists():
+            missing.append(f"missing_file:{rel}")
+
+    if missing:
+        return missing
+
+    devres_text = _read(root / "lib/devres.zig")
+    dma_coherent_text = _read(root / "lib/devres_dma_coherent.zig")
+    devres_tests_text = _read(root / "zigux/tests/phase13_devres.zig")
+    dma_coherent_tests_text = _read(root / "zigux/tests/phase13_devres_dma_coherent.zig")
+    reviewability_text = _read(root / "zigux/tests/phase13_devres_reviewability.zig")
+    manifest_text = _read(root / "zigux/tests/phase13_devres_manifest.json")
+    build_text = _read(root / "zigux/tests/phase13_build.zig")
+    survey_text = _read(root / "Documentation/zigux/phase13-devres-survey.md")
+    slice_text = _read(root / "Documentation/zigux/phase13-devres-slice.md")
+
+    _require_markers(missing, "devres", devres_text, DEVRES_MARKERS)
+    _require_markers(missing, "devres_dma_coherent", dma_coherent_text, DMA_COHERENT_MARKERS)
+    _require_markers(missing, "devres_tests", devres_tests_text, DEVRES_TEST_MARKERS)
+    _require_markers(missing, "devres_dma_coherent_tests", dma_coherent_tests_text, DMA_COHERENT_TEST_MARKERS)
+    _require_markers(missing, "reviewability", reviewability_text, REVIEWABILITY_MARKERS)
+    _require_markers(missing, "survey", survey_text, SURVEY_MARKERS)
+    _require_markers(missing, "slice", slice_text, SLICE_MARKERS)
+    _require_markers(missing, "build", build_text, BUILD_MARKERS)
+
+    manifest = json.loads(manifest_text)
+    if manifest.get("lane_key") != "P13-L10":
+        missing.append("manifest:lane_key")
+    if manifest.get("phase") != "Phase 13":
+        missing.append("manifest:phase")
+    if manifest.get("anchor") != "lib/devres.c":
+        missing.append("manifest:anchor")
+
+    surveyed_commit = manifest.get("surveyed_commit")
+    if not isinstance(surveyed_commit, str) or not SURVEYED_COMMIT_RE.fullmatch(surveyed_commit):
+        missing.append("manifest:surveyed_commit")
+    else:
+        if f"- `PHASE13_SURVEYED_COMMIT={surveyed_commit}`" not in survey_text:
+            missing.append("survey:surveyed_commit")
+        if f'try std.testing.expectEqualStrings("{surveyed_commit}", manifest.surveyed_commit);' not in reviewability_text:
+            missing.append("reviewability:surveyed_commit")
+
+    survey_summary = manifest.get("survey_summary")
+    if not isinstance(survey_summary, dict):
+        missing.append("manifest:survey_summary")
+    else:
+        for key in (
+            "preexisting_phase13_build_present",
+            "preexisting_phase13_make_target_present",
+            "preexisting_devres_zig_present",
+            "preexisting_phase13_devres_test_present",
+            "preexisting_phase13_devres_slice_present",
+            "preexisting_phase13_devres_reviewability_present",
+            "preexisting_phase13_devres_survey_present",
+        ):
+            if survey_summary.get(key) is not True:
+                missing.append(f"manifest:{key}")
+
+    gaps = manifest.get("gaps")
+    if not isinstance(gaps, list):
+        missing.append("manifest:gaps")
+        return missing
+
+    gap_lookup = {
+        gap.get("id"): gap.get("status")
+        for gap in gaps
+        if isinstance(gap, dict) and isinstance(gap.get("id"), str)
+    }
+    for gap_id, expected_status in EXPECTED_GAP_STATUS.items():
+        if gap_lookup.get(gap_id) != expected_status:
+            missing.append(f"manifest:{gap_id}:{expected_status}")
+
+    return missing
+
+
+def _run_self_test() -> int:
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        for rel in ("lib", "zigux/tests", "Documentation/zigux"):
+            (root / rel).mkdir(parents=True, exist_ok=True)
+
+        surveyed_commit = "aa01b37be5500e6a1e4f959c9fe07f0e39d39bfb"
+        (root / "lib/devres.zig").write_text("\n".join(DEVRES_MARKERS) + "\n", encoding="utf-8")
+        (root / "lib/devres_dma_coherent.zig").write_text("\n".join(DMA_COHERENT_MARKERS) + "\n", encoding="utf-8")
+        (root / "zigux/tests/phase13_devres.zig").write_text("\n".join(DEVRES_TEST_MARKERS) + "\n", encoding="utf-8")
+        (root / "zigux/tests/phase13_devres_dma_coherent.zig").write_text("\n".join(DMA_COHERENT_TEST_MARKERS) + "\n", encoding="utf-8")
+        (root / "zigux/tests/phase13_devres_reviewability.zig").write_text(
+            "\n".join(
+                [
+                    f'try std.testing.expectEqualStrings("{surveyed_commit}", manifest.surveyed_commit);',
+                    *REVIEWABILITY_MARKERS,
+                ]
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        (root / "Documentation/zigux/phase13-devres-survey.md").write_text(
+            f"- `PHASE13_SURVEYED_COMMIT={surveyed_commit}`\n" + "\n".join(SURVEY_MARKERS) + "\n",
+            encoding="utf-8",
+        )
+        (root / "Documentation/zigux/phase13-devres-slice.md").write_text(
+            "\n".join(SLICE_MARKERS) + "\n",
+            encoding="utf-8",
+        )
+        (root / "zigux/tests/phase13_build.zig").write_text("\n".join(BUILD_MARKERS) + "\n", encoding="utf-8")
+        manifest = {
+            "lane_key": "P13-L10",
+            "phase": "Phase 13",
+            "surveyed_commit": surveyed_commit,
+            "anchor": "lib/devres.c",
+            "survey_summary": {
+                "preexisting_phase13_build_present": True,
+                "preexisting_phase13_make_target_present": True,
+                "preexisting_devres_zig_present": True,
+                "preexisting_phase13_devres_test_present": True,
+                "preexisting_phase13_devres_slice_present": True,
+                "preexisting_phase13_devres_reviewability_present": True,
+                "preexisting_phase13_devres_survey_present": True,
+            },
+            "gaps": [
+                {"id": gap_id, "status": status}
+                for gap_id, status in EXPECTED_GAP_STATUS.items()
+            ],
+        }
+        (root / "zigux/tests/phase13_devres_manifest.json").write_text(
+            json.dumps(manifest, indent=2) + "\n",
+            encoding="utf-8",
+        )
+
+        missing = _check_repo(root)
+        if missing:
+            print("PHASE13_DEVRES_PACKET_SELF_TEST=fail")
+            for item in missing:
+                print(item)
+            return 1
+
+    print("PHASE13_DEVRES_PACKET_SELF_TEST=pass")
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--self-test", action="store_true")
+    parser.add_argument("--root", default=".")
+    args = parser.parse_args()
+
+    if args.self_test:
+        return _run_self_test()
+
+    missing = _check_repo(Path(args.root).resolve())
+    if missing:
+        print("PHASE13_DEVRES_PACKET=fail")
+        print("PHASE13_DEVRES_PACKET_MISSING_START")
+        for item in missing:
+            print(item)
+        print("PHASE13_DEVRES_PACKET_MISSING_END")
+        return 1
+
+    print("PHASE13_DEVRES_PACKET=pass")
+    print(f"PHASE13_DEVRES_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
+    print(
+        "PHASE13_DEVRES_MARKER_COUNT="
+        f"{len(DEVRES_MARKERS) + len(DMA_COHERENT_MARKERS) + len(DEVRES_TEST_MARKERS) + len(DMA_COHERENT_TEST_MARKERS) + len(REVIEWABILITY_MARKERS) + len(SURVEY_MARKERS) + len(SLICE_MARKERS) + len(BUILD_MARKERS)}"
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
