@@ -73,14 +73,16 @@ def _canonical_readme_entries(root: Path) -> tuple[list[str], list[str]]:
     return _ordered_unique(basenames), issues
 
 
-def _makefile_target_helper_entries(root: Path, target_name: str) -> tuple[list[str], list[str]]:
+def _makefile_target_raw_helper_records(
+    root: Path, target_name: str
+) -> tuple[list[tuple[str, bool]], list[str]]:
     makefile_path = root / MAKEFILE_REL
     try:
         makefile = makefile_path.read_text(encoding="utf-8")
     except FileNotFoundError:
         return [], [f"missing_makefile:{MAKEFILE_REL}"]
 
-    entries: list[str] = []
+    entries: list[tuple[str, bool]] = []
     in_target = False
     for line in makefile.splitlines():
         stripped = line.strip()
@@ -94,11 +96,49 @@ def _makefile_target_helper_entries(root: Path, target_name: str) -> tuple[list[
             continue
         rel = "scripts/zigux/" + stripped.split("scripts/zigux/", 1)[1].split()[0]
         if rel.endswith(".py"):
-            entries.append(Path(rel).name)
+            entries.append((Path(rel).name, "--self-test" in stripped))
 
     if not entries:
         return [], [f"missing_makefile_target_entries:{target_name}"]
-    return _ordered_unique(entries), []
+    return entries, []
+
+
+def _require_makefile_target_route_count(
+    entries: list[tuple[str, bool]],
+    target_name: str,
+    basename: str,
+    expected_live_count: int,
+    expected_self_test_count: int,
+    issues: list[str],
+) -> None:
+    live_count = sum(1 for entry, is_self_test in entries if entry == basename and not is_self_test)
+    self_test_count = sum(1 for entry, is_self_test in entries if entry == basename and is_self_test)
+    if live_count != expected_live_count:
+        issues.append(
+            f"unexpected_makefile_live_route_count:{target_name}:{live_count}:{basename}"
+        )
+    if self_test_count != expected_self_test_count:
+        issues.append(
+            f"unexpected_makefile_self_test_route_count:{target_name}:{self_test_count}:{basename}"
+        )
+
+
+def _makefile_target_helper_entries(root: Path, target_name: str) -> tuple[list[str], list[str]]:
+    entries, issues = _makefile_target_raw_helper_records(root, target_name)
+    if issues:
+        return [], issues
+    ordered_entries = _ordered_unique([basename for basename, _ in entries])
+    for basename in ordered_entries:
+        expected_self_test_count = 0 if basename.startswith("validate-") else 1
+        _require_makefile_target_route_count(
+            entries,
+            target_name,
+            basename,
+            1,
+            expected_self_test_count,
+            issues,
+        )
+    return ordered_entries, issues
 
 
 def _makefile_named_helper_entries(
@@ -106,15 +146,14 @@ def _makefile_named_helper_entries(
     target_name: str,
     required_entries: tuple[str, ...],
 ) -> tuple[list[str], list[str]]:
-    entries, issues = _makefile_target_helper_entries(root, target_name)
+    entries, issues = _makefile_target_raw_helper_records(root, target_name)
     if issues:
         return [], issues
 
-    filtered = [basename for basename in entries if basename in required_entries]
     for basename in required_entries:
-        if basename not in filtered:
-            issues.append(f"missing_makefile_target_entry:{target_name}:{basename}")
-    return filtered, issues
+        _require_makefile_target_route_count(entries, target_name, basename, 1, 1, issues)
+    filtered = [basename for basename, _ in entries if basename in required_entries]
+    return _ordered_unique(filtered), issues
 
 
 def _helper_section_entries(readme: str) -> tuple[list[str], list[str]]:
@@ -404,6 +443,45 @@ def run_self_test() -> int:
         if issues != expected:
             raise SystemExit(
                 "phase3-readme-tooling-inventory-self-test:missing_phase2_makefile_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+        _write(root / MAKEFILE_REL, _fixture_makefile())
+
+        _write(
+            root / MAKEFILE_REL,
+            _fixture_makefile().replace(
+                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py\n',
+                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py\n'
+                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py\n',
+                1,
+            ),
+        )
+        issues = validate(root)
+        expected = [
+            "unexpected_makefile_live_route_count:phase11-validate::2:check-phase11-shared-replay-contract.py"
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-readme-tooling-inventory-self-test:duplicate_phase11_makefile_route_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+        _write(
+            root / MAKEFILE_REL,
+            _fixture_makefile().replace(
+                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py\n',
+                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py\n'
+                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py\n',
+                1,
+            ),
+        )
+        issues = validate(root)
+        expected = [
+            "unexpected_makefile_live_route_count:phase13-validate::2:check-phase13-devres-packet.py"
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-readme-tooling-inventory-self-test:duplicate_phase13_makefile_route_guard_failed:"
                 + (",".join(issues) if issues else "none")
             )
         _write(root / MAKEFILE_REL, _fixture_makefile())
@@ -709,7 +787,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
-    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=12")
+    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
