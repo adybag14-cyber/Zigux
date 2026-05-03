@@ -23,6 +23,8 @@ REQUIRED_FILES = [
     "scripts/zigux/README.md",
     "scripts/zigux/artifact_diff.py",
     "scripts/zigux/check-phase1-bench.py",
+    "scripts/zigux/check-phase1-bitmap-validator-anchors.py",
+    "scripts/zigux/check-phase1-find-bit-validator-anchors.py",
     "scripts/zigux/check-phase1-parity.py",
     "scripts/zigux/check-phase1-route-summary-counts.py",
     "scripts/zigux/install-zig.py",
@@ -190,6 +192,10 @@ WORKFLOW_LINES = {
     "run: python3 scripts/zigux/validate-phase1.py": 1,
     "run: python3 scripts/zigux/validate-phase1-closure.py": 1,
     "run: python3 scripts/zigux/validate-phase1-closure.py --self-test": 1,
+    "run: python3 scripts/zigux/check-phase1-bitmap-validator-anchors.py": 1,
+    "run: python3 scripts/zigux/check-phase1-bitmap-validator-anchors.py --self-test": 1,
+    "run: python3 scripts/zigux/check-phase1-find-bit-validator-anchors.py": 1,
+    "run: python3 scripts/zigux/check-phase1-find-bit-validator-anchors.py --self-test": 1,
     "run: python3 scripts/zigux/check-phase1-route-summary-counts.py": 1,
     "run: python3 scripts/zigux/check-phase1-route-summary-counts.py --self-test": 1,
     "run: python3 scripts/zigux/check-phase1-bench.py": 1,
@@ -505,8 +511,8 @@ def main() -> int:
         return fail("MISSING_PHASE1_MARKERS", marker_issues)
 
     marker_count = sum(len(markers) for _, markers in MARKER_GROUPS.values()) + len(
-        PHASE1_CLOSURE_PREFIX_COUNTS
-    ) + len(EXACT_COUNT_MARKERS)
+        WORKFLOW_LINES
+    ) + len(PHASE1_CLOSURE_PREFIX_COUNTS) + len(EXACT_COUNT_MARKERS)
     print("PHASE1_VALIDATION=pass")
     print(f"PHASE1_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(f"PHASE1_REQUIRED_MARKER_COUNT={marker_count}")
@@ -624,6 +630,40 @@ def self_test() -> int:
         workflow_text = workflow_path.read_text(encoding="utf-8")
         workflow_path.write_text(
             workflow_text.replace(
+                "run: python3 scripts/zigux/check-phase1-bitmap-validator-anchors.py --self-test\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        code = os.spawnve(os.P_WAIT, sys.executable, [sys.executable, __file__], env)
+        if code == 0:
+            print("PHASE1_VALIDATOR_SELF_TEST=fail")
+            return 1
+        write(
+            root / ".github/workflows/zigux-bootstrap.yml",
+            "\n".join(MARKER_GROUPS["workflow"][1]) + "\n" + "\n".join(WORKFLOW_LINES.keys()) + "\n",
+        )
+
+        workflow_path.write_text(
+            workflow_text.replace(
+                "run: python3 scripts/zigux/check-phase1-find-bit-validator-anchors.py\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        code = os.spawnve(os.P_WAIT, sys.executable, [sys.executable, __file__], env)
+        if code == 0:
+            print("PHASE1_VALIDATOR_SELF_TEST=fail")
+            return 1
+        write(
+            root / ".github/workflows/zigux-bootstrap.yml",
+            "\n".join(MARKER_GROUPS["workflow"][1]) + "\n" + "\n".join(WORKFLOW_LINES.keys()) + "\n",
+        )
+
+        workflow_path.write_text(
+            workflow_text.replace(
                 "run: python3 scripts/zigux/check-phase1-route-summary-counts.py --self-test\n",
                 "",
                 1,
@@ -646,6 +686,22 @@ def self_test() -> int:
             print("PHASE1_VALIDATOR_SELF_TEST=fail")
             return 1
         write(root / "scripts/zigux/check-phase1-route-summary-counts.py", "// marker fixture\n")
+
+        bitmap_checker_path = root / "scripts/zigux/check-phase1-bitmap-validator-anchors.py"
+        bitmap_checker_path.unlink()
+        code = os.spawnve(os.P_WAIT, sys.executable, [sys.executable, __file__], env)
+        if code == 0:
+            print("PHASE1_VALIDATOR_SELF_TEST=fail")
+            return 1
+        write(root / "scripts/zigux/check-phase1-bitmap-validator-anchors.py", "// marker fixture\n")
+
+        find_bit_checker_path = root / "scripts/zigux/check-phase1-find-bit-validator-anchors.py"
+        find_bit_checker_path.unlink()
+        code = os.spawnve(os.P_WAIT, sys.executable, [sys.executable, __file__], env)
+        if code == 0:
+            print("PHASE1_VALIDATOR_SELF_TEST=fail")
+            return 1
+        write(root / "scripts/zigux/check-phase1-find-bit-validator-anchors.py", "// marker fixture\n")
 
         closure_path = root / "Documentation/zigux/phase1-closure.md"
         closure_text = closure_path.read_text(encoding="utf-8")
@@ -800,7 +856,7 @@ def self_test() -> int:
             return 1
 
     print("PHASE1_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_VALIDATOR_SELF_TEST_CASE_COUNT=22")
+    print("PHASE1_VALIDATOR_SELF_TEST_CASE_COUNT=26")
     return 0
 
 
