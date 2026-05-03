@@ -1,5 +1,5 @@
 {
-  "lane_key": "P11-L13",
+  "lane_key": "P11-L18",
   "phase": "Phase 11",
   "surveyed_commit": "2b69a66cc0b0524dfc2e55d0119d8eb41fc47a62",
   "anchor": "drivers/tty/hvc/hvc_console.c",
