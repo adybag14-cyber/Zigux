@@ -20,6 +20,8 @@ const Manifest = struct {
     commit_pinned_raw_fallback_catalog_count: usize,
     commit_pinned_raw_fallback_map_count: usize,
     shared_tree_only_anchor_count: usize,
+    shared_tree_readback_root_count: usize,
+    shared_tree_readback_roots: []const []const u8,
     anchors: []const Anchor,
 };
 
@@ -81,7 +83,18 @@ test "phase12 raw GitHub coverage survey keeps the roadmap-wide public-read spli
     try std.testing.expectEqual(@as(usize, 1), manifest.commit_pinned_raw_fallback_catalog_count);
     try std.testing.expectEqual(@as(usize, 1), manifest.commit_pinned_raw_fallback_map_count);
     try std.testing.expectEqual(@as(usize, 2), manifest.shared_tree_only_anchor_count);
+    try std.testing.expectEqual(@as(usize, 4), manifest.shared_tree_readback_root_count);
+    try std.testing.expectEqual(@as(usize, 4), manifest.shared_tree_readback_roots.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.anchors.len);
+
+    for ([_][]const u8{
+        "https://github.com/adybag14-cyber/Zigux/tree/master/drivers/net",
+        "https://github.com/adybag14-cyber/Zigux/tree/master/tools/lib/bpf",
+        "https://github.com/adybag14-cyber/Zigux/tree/master/Documentation/zigux",
+        "https://github.com/adybag14-cyber/Zigux/tree/master/zigux/tests",
+    }, 0..) |expected_root, index| {
+        try std.testing.expectEqualStrings(expected_root, manifest.shared_tree_readback_roots[index]);
+    }
 
     var shared_tree_only_count: usize = 0;
     var commit_pinned_catalog_count: usize = 0;
@@ -133,6 +146,11 @@ test "phase12 raw GitHub coverage survey keeps the roadmap-wide public-read spli
         "a8daee106057a542aa03f2983662bec7c06584bb",
         "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md",
         "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md",
+        "https://github.com/adybag14-cyber/Zigux/tree/master/drivers/net",
+        "https://github.com/adybag14-cyber/Zigux/tree/master/tools/lib/bpf",
+        "https://github.com/adybag14-cyber/Zigux/tree/master/Documentation/zigux",
+        "https://github.com/adybag14-cyber/Zigux/tree/master/zigux/tests",
+        "PHASE12_SHARED_TREE_READBACK_ROOT_COUNT=4",
     }) |marker| {
         try std.testing.expect(std.mem.indexOf(u8, survey_note, marker) != null);
     }
