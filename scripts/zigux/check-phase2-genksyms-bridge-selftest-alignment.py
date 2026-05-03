@@ -116,6 +116,7 @@ MAKEFILE_VALIDATE_ORDER = [
 MAKEFILE_TOOL_COUNTS = {
     "scripts/zigux/check-genksyms-bridge.py --self-test": 1,
     "scripts/zigux/check-genksyms-bridge.py": 1,
+    "$(ZIG) test scripts/zigux/genksyms.zig": 1,
 }
 
 
@@ -324,6 +325,7 @@ def clone_fixture_root(root: Path) -> None:
         "phase2-tools:",
         "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test",
         "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py",
+        "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms.zig",
     ]
     write(root / REQUIRED_FILES["makefile"], "\n".join(makefile_lines) + "\n")
     write(root / REQUIRED_FILES["cases"], build_fixture_cases())
@@ -422,6 +424,23 @@ def run_self_test() -> int:
         )
         clone_fixture_root(root)
 
+        makefile_path = root / REQUIRED_FILES["makefile"]
+        original = makefile_path.read_text(encoding="utf-8")
+        write(
+            makefile_path,
+            original.replace(
+                "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms.zig\n",
+                "",
+                1,
+            ),
+        )
+        expect_issue(
+            "makefile_genksyms_zig_test_count",
+            root,
+            "makefile_tools:$(ZIG) test scripts/zigux/genksyms.zig:count=0:expected=1",
+        )
+        clone_fixture_root(root)
+
         cases_path = root / REQUIRED_FILES["cases"]
         payload = json.loads(cases_path.read_text(encoding="utf-8"))
         payload["cases"][11]["argv"] = ["--help"]
@@ -436,7 +455,7 @@ def run_self_test() -> int:
         expect_issue("version_expected_file", root, "cases:version:expected=version_expected.json")
 
     print("PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=10")
+    print("PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
