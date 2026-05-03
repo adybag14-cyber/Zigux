@@ -24,6 +24,7 @@ REQUIRED_SURVEY_MARKERS = (
     "PHASE3_REPO_REALITY=chrdev-plan-growth-exceeds-roadmap-anchors",
     "PHASE3_INTEROP_GAP=shared-phase3-abi-rbtree-lift-still-missing",
     "PHASE3_NEXT_BOUNDED_STEP=shared-abi-rbtree-root-view-before-more-chrdev-growth",
+    "PHASE3_VALIDATION_ROUTE=scripts/zigux/validate-phase3.py,make -C zigux phase3-validate,.github/workflows/zigux-bootstrap.yml",
 )
 
 REQUIRED_SURVEY_SNIPPETS = (
@@ -31,6 +32,10 @@ REQUIRED_SURVEY_SNIPPETS = (
     "there is still no curated `rbtree` record in `include/zigux/abi.h`",
     "there is still no matching shared `zigux/bindings/abi.zig` layout type for a Phase 3 `rbtree` boundary packet",
     "there is still no shared C-vs-Zig parity fixture for a Phase 3 `rbtree` root view inside `zigux/tests/fixtures/phase3_abi/`",
+    "The dedicated roadmap-gap survey is reviewed through the shared validator-first path rather than as a standalone bootstrap entrypoint.",
+    "`python3 scripts/zigux/validate-phase3.py`",
+    "`make -C zigux phase3-validate`",
+    "the bootstrap workflow replays the same shared validator route before the broader Phase 3 ABI and interop tests run",
     "one shared header-and-binding shape",
     "one shared parity fixture",
     "one validator-backed note refresh",
