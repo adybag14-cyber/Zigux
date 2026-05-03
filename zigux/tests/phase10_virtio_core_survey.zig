@@ -73,11 +73,14 @@ test "phase10 virtio core survey manifest records the live core validation bundl
 
     const manifest = parsed.value;
     const closure_manifest = closure_parsed.value;
-    try std.testing.expectEqualStrings("P10-Y01", manifest.lane_key);
+    try std.testing.expectEqualStrings("P10-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 10", manifest.phase);
     try std.testing.expectEqualStrings("drivers/virtio/virtio.c", manifest.anchor);
     try std.testing.expectEqualStrings("d30cbe483a2f019ae797b309a29556bd58fe00d0", manifest.surveyed_commit);
-    try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
+    try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
+    try std.testing.expectEqualStrings("drivers/virtio/*.zig", manifest.roadmap_destinations[0]);
+    try std.testing.expectEqualStrings("zigux/kernel/", manifest.roadmap_destinations[1]);
+    try std.testing.expectEqualStrings("zigux/helpers/", manifest.roadmap_destinations[2]);
     try std.testing.expect(manifest.survey_summary.virtio_c_lines >= 700);
     try std.testing.expectEqual(@as(usize, 9), manifest.survey_summary.preexisting_phase10_test_files);
     try std.testing.expect(manifest.survey_summary.preexisting_phase10_build_present);
@@ -98,6 +101,8 @@ test "phase10 virtio core survey manifest records the live core validation bundl
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-config-delivery-disposition-helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-config-driver-toggle-guard-helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-core-probe-remove-lifecycle") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_CORE_ALLOWED_ROADMAP_DESTINATIONS=drivers/virtio/*.zig,zigux/kernel/,zigux/helpers/") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_CORE_RISKY_TRANSPORT_POSTURE=blocked_on_risky_transport") != null);
     try std.testing.expect(closure_manifest == .object);
 
     const survey_provenance = closure_manifest.object.get("survey_provenance") orelse return error.TestUnexpectedResult;
