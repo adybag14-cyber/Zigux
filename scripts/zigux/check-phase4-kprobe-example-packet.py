@@ -347,6 +347,22 @@ def run_self_test() -> int:
     missing = collect_missing(
         **{
             **base_inputs,
+            "matrix_text": base_inputs["matrix_text"].replace(
+                "phase4-kprobe-example-survey-tests\n",
+                "",
+                1,
+            ),
+        }
+    )
+    expect_contains(
+        "matrix_marker_detection",
+        missing,
+        "matrix:phase4-kprobe-example-survey-tests",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
             "kprobe_anchor_text": "",
         }
     )
@@ -357,7 +373,7 @@ def run_self_test() -> int:
     )
 
     print("PHASE4_KPROBE_EXAMPLE_PACKET_SELF_TEST=pass")
-    print("PHASE4_KPROBE_EXAMPLE_PACKET_SELF_TEST_CASE_COUNT=9")
+    print("PHASE4_KPROBE_EXAMPLE_PACKET_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
