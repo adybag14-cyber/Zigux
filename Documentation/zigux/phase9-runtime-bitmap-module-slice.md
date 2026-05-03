@@ -23,7 +23,7 @@ This document tracks the first bounded Phase 9 runtime bitmap starter under `sam
 
 The Phase 9 roadmap explicitly names `lib/test_bitmap.c` as a runtime pilot anchor and recommends `zigux/tests/runtime_*` plus `samples/zigux/runtime_*` as the bounded Zigux destinations.
 
-The live repo already had an atomic64 starter under the same Phase 9 review path, but it still had no matching bitmap pilot. This slice lands the smallest honest bitmap follow-on step: a sample-backed lifecycle scaffold that reuses the existing bitmap-view helper without claiming loadable-module parity or broad bitmap API coverage.
+The live repo already has matching atomic64 and bitmap starters under the same Phase 9 review path. This slice now tracks the bitmap side of that pair as the smallest honest bitmap follow-on step: a sample-backed lifecycle scaffold that reuses the existing bitmap-view helper without claiming loadable-module parity or broad bitmap API coverage.
 
 This bounded starter also stays underneath the freeze map's study boundary. `Documentation/zigux/freeze-map.md` keeps `kernel/workqueue.c` in `Study / Boundary Only`, so this starter may describe the bounded in-memory sample, the sample-side loader scaffold, and the shared loader-request binding, but it must not imply workqueue parity, scheduler transport ownership, or any Architecture Council-approved status change for that study-only anchor.
 
