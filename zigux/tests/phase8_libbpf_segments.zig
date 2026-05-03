@@ -364,6 +364,14 @@ test "phase 8 docs keep the deferred irq routing and timer boundary explicit" {
         survey_note,
         "That eleven-segment catalog intentionally excludes the separate `perf_buffer_poll.zig` adjunct packet",
     );
+    try expectContains(
+        survey_note,
+        "historical `P8-L15-S..` prefix as a stable segment catalog identifier",
+    );
+    try expectContains(
+        survey_note,
+        "active scheduled ownership and cleanup lane for this packet is `P8-Y04`",
+    );
     try expectContains(survey_note, "perf-buffer-online-cpu-routing");
     try expectContains(survey_note, "interrupt-routing-sensitive timing boundary");
     try expectContains(survey_note, "no standalone timer helper");
