@@ -19,9 +19,10 @@ SELF_TEST_CASE_COUNT = 10
 PARITY_CASE_COUNT = 122
 VARIANT_ENCODE_VECTORS = 30
 VARIANT_DECODE_VECTORS = 20
-CATALOG_EVIDENCE_SELF_TEST_CASE_COUNT = 8
+CATALOG_EVIDENCE_SELF_TEST_CASE_COUNT = 9
 
 CATALOG_MARKERS = [
+    "shared packet posture: parked after the current helper-local parity and perf surface cleared the bounded Phase 6 goal",
     f"PHASE6_BASE64_C_PARITY_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}",
     f"PHASE6_BASE64_C_PARITY_CASES={PARITY_CASE_COUNT}",
 ]
@@ -140,6 +141,11 @@ def run_self_test() -> int:
             build_self_test_tree(root)
             if validate(root):
                 raise AssertionError("pass tree should validate")
+
+            build_self_test_tree(root)
+            write(root, CATALOG_PATH, "# x\nPHASE6_BASE64_C_PARITY_CASES=122\n")
+            if f"catalog:missing:{CATALOG_MARKERS[0]}" not in validate(root):
+                raise AssertionError("missing parked posture marker failure")
 
             build_self_test_tree(root)
             write(root, CATALOG_PATH, "# x\nPHASE6_BASE64_C_PARITY_CASES=122\n")
