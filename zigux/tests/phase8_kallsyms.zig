@@ -497,6 +497,7 @@ test "phase 8 kallsyms docs keep the parked parser boundary explicit" {
     try expectContains(slice_note, "tools/lib/symbol/kallsyms.zig");
     try expectContains(slice_note, "zigux/tests/phase8_kallsyms.zig");
     try expectContains(slice_note, "zigux/tests/phase8_kallsyms_only_build.zig");
+    try expectContains(slice_note, "zigux/tests/phase8_help_kallsyms_only_build.zig");
     try expectContains(slice_note, "serious repo-hosted tooling");
     try expectContains(slice_note, "helper-local `tools/lib/symbol/kallsyms.zig` tests own");
     try expectContains(slice_note, "focused `zigux/tests/phase8_kallsyms.zig` replay");
@@ -507,6 +508,7 @@ test "phase 8 kallsyms docs keep the parked parser boundary explicit" {
     try expectContains(slice_note, "kallsymsParse()");
     try expectContains(slice_note, "kallsymsParseInDir()");
     try expectContains(slice_note, "make -C zigux phase8-kallsyms-test");
+    try expectContains(slice_note, "zig build test --build-file zigux/tests/phase8_help_kallsyms_only_build.zig --summary all");
     try expectContains(slice_note, "does not yet claim:");
     try expectContains(slice_note, "api/io.h");
 }
