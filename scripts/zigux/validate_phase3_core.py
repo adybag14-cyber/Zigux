@@ -295,6 +295,13 @@ ABI_REQUIRED_SOURCE_MARKERS = {
         "try std.testing.expect(allocator_policy.requiresExplicitCaller(.caller_provided));",
         "const range = mmio.range(0x1000, 0x40, 4);",
         "try std.testing.expectEqual(narrow.UnsafeScopeTag.raw_pointer_bridge, narrow.scopeFromInteropPolicyBytes(2, 0).?);",
+        "// PHASE3_SHARED_RBTREE_SAMPLE_RECORDS=empty-root,cached-leftmost-root,uncached-root",
+        "const empty_root = rbtree.empty();",
+        "try std.testing.expect(!rbtree.hasRoot(empty_root));",
+        "const cached_root: rbtree.RootView = .{",
+        "try std.testing.expect(rbtree.hasRoot(cached_root));",
+        "const uncached_root: rbtree.RootView = .{",
+        "try std.testing.expect(rbtree.hasRoot(uncached_root));",
     ),
 }
 ABI_REQUIRED_EXPECTED_CONSTANTS = {
