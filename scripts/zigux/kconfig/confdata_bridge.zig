@@ -95,7 +95,7 @@ fn nextConfigLine(input: []const u8, cursor: *usize) ?[]const u8 {
     }
 
     cursor.* = input.len;
-    return remaining;
+    return trimTrailingCarriageReturn(remaining);
 }
 
 fn decodeQuotedString(allocator: std.mem.Allocator, raw_value: []const u8) ![]u8 {
@@ -492,7 +492,7 @@ test "confdata bridge accepts CRLF config lines" {
     try std.testing.expectEqual(EntryKind.unset, summary.entries[2].kind);
 }
 
-test "confdata bridge keeps a trailing carriage return on the final unterminated line" {
+test "confdata bridge normalizes a trailing carriage return on the final unterminated line" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(
         allocator,
@@ -504,11 +504,11 @@ test "confdata bridge keeps a trailing carriage return on the final unterminated
     try std.testing.expectEqual(@as(usize, 0), summary.unset_count);
     try std.testing.expectEqual(@as(usize, 1), summary.entries.len);
     try std.testing.expectEqualStrings("CONFIG_DECIMAL", summary.entries[0].name);
-    try std.testing.expectEqual(EntryKind.value, summary.entries[0].kind);
-    try std.testing.expectEqualStrings("7\r", summary.entries[0].value);
+    try std.testing.expectEqual(EntryKind.int, summary.entries[0].kind);
+    try std.testing.expectEqualStrings("7", summary.entries[0].value);
 }
 
-test "confdata bridge ignores a final unset comment without a terminating newline" {
+test "confdata bridge recognizes a final unset comment without a terminating newline once trailing CR is normalized" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(
         allocator,
@@ -517,11 +517,14 @@ test "confdata bridge ignores a final unset comment without a terminating newlin
     defer deinitSummary(allocator, &summary);
 
     try std.testing.expectEqual(@as(usize, 1), summary.set_count);
-    try std.testing.expectEqual(@as(usize, 0), summary.unset_count);
-    try std.testing.expectEqual(@as(usize, 1), summary.entries.len);
+    try std.testing.expectEqual(@as(usize, 1), summary.unset_count);
+    try std.testing.expectEqual(@as(usize, 2), summary.entries.len);
     try std.testing.expectEqualStrings("CONFIG_ALPHA", summary.entries[0].name);
     try std.testing.expectEqual(EntryKind.tristate, summary.entries[0].kind);
     try std.testing.expectEqualStrings("y", summary.entries[0].value);
+    try std.testing.expectEqualStrings("CONFIG_DEBUG", summary.entries[1].name);
+    try std.testing.expectEqual(EntryKind.unset, summary.entries[1].kind);
+    try std.testing.expectEqualStrings("n", summary.entries[1].value);
 }
 
 test "confdata bridge keeps explicit n assignments as tristate values" {
