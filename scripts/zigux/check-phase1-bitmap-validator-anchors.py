@@ -152,11 +152,12 @@ def validate_text(prefix: str, source: str, snippets: dict[str, str]) -> list[st
 
 
 def validate_exact_lines(prefix: str, source: str, required_lines: dict[str, str]) -> list[str]:
-    stripped = {line.strip() for line in source.splitlines()}
+    lines = [line.strip() for line in source.splitlines()]
     missing: list[str] = []
     for label, required_line in required_lines.items():
-        if required_line not in stripped:
-            missing.append(f"{prefix}:{label}")
+        actual_count = sum(1 for line in lines if line == required_line)
+        if actual_count != 1:
+            missing.append(f"{prefix}:{label}:expected=1:actual={actual_count}")
     return missing
 
 
@@ -285,7 +286,16 @@ def run_self_test() -> int:
             manifest_baseline,
             "\n".join(mutated_lines) + "\n",
             makefile_baseline,
-            f"phase1_bitmap_workflow:{label}",
+            f"phase1_bitmap_workflow:{label}:expected=1:actual=0",
+        )
+        total_cases += 1
+        expect_missing(
+            f"{label}_duplicate",
+            closure_doc_baseline,
+            manifest_baseline,
+            workflow_baseline + line + "\n",
+            makefile_baseline,
+            f"phase1_bitmap_workflow:{label}:expected=1:actual=2",
         )
         total_cases += 1
 
@@ -297,7 +307,16 @@ def run_self_test() -> int:
             manifest_baseline,
             workflow_baseline,
             "\n".join(mutated_lines) + "\n",
-            f"phase1_bitmap_makefile:{label}",
+            f"phase1_bitmap_makefile:{label}:expected=1:actual=0",
+        )
+        total_cases += 1
+        expect_missing(
+            f"{label}_duplicate",
+            closure_doc_baseline,
+            manifest_baseline,
+            workflow_baseline,
+            makefile_baseline + line + "\n",
+            f"phase1_bitmap_makefile:{label}:expected=1:actual=2",
         )
         total_cases += 1
 
