@@ -63,7 +63,7 @@ The manifest-backed catalog for this slice now names which file owns each part o
 - `samples/zigux/runtime_kretprobe.zig` owns the bounded in-memory kretprobe starter contract, direct embedded sample replay, lifecycle staging, per-instance timestamp bookkeeping, and selftest-hook metadata
 - `samples/zigux/runtime_kretprobe_loader.zig` owns the sample-side loader projection, explicit shared `command_name` preservation, waiting_on_runtime_substrate handoff, released_without_substrate fallback, and kretprobe payload summary
 - `zigux/kernel/runtime_loader.zig` owns the shared runtime-loader request contract that consumes the kretprobe loader handoff, allocator posture, and staged entry and exit symbols
-- `Documentation/zigux/phase9-runtime-loader-gap-survey.md` owns the blocked shared command-name, argv-policy, and environment-derived activation-control posture that keeps the kretprobe packet pre-execution
+- `Documentation/zigux/phase9-runtime-loader-gap-survey.md` owns the blocked shared command-name, argv-policy, and environment-derived activation-control posture plus the adjacent no-live initcall-or-registration boundary that keep the kretprobe packet pre-execution
 
 ## Recorded gaps
 
