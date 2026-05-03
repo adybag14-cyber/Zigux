@@ -8,7 +8,7 @@ This document tracks the first bounded Phase 9 runtime atomic64 starter under `s
 - `PHASE9_SLICE=runtime-atomic64-module-starter`
 - `PHASE9_LANE_KEY=P9-L04`
 - `PHASE9_SURVEYED_COMMIT=f5a4d6990f701937b2a3bb9ae723bb6d0f27ba21`
-- scope: lifecycle starter, direct sample-test and direct loader-test shared-build wiring, adjacent loader scaffold, prepared loader-summary snapshot replay, shared loader-request binding, selftest summary, and survey-manifest closure only
+- scope: lifecycle starter, direct sample, module, diff, and loader shared-build wiring, adjacent loader scaffold, prepared loader-summary snapshot replay, shared loader-request binding, selftest summary, and survey-manifest closure only
 - product boundary:
   - `samples/zigux/runtime_atomic64.zig`
   - `samples/zigux/runtime_atomic64_loader.zig`
@@ -23,7 +23,7 @@ The live Phase 9 tree had already identified `lib/atomic64_test.c` as the runtim
 
 The adjacent shared runtime-loader blocker also remains underneath the freeze map's study boundary. `Documentation/zigux/freeze-map.md` keeps `kernel/workqueue.c` in `Study / Boundary Only`, so this starter may describe the bounded in-memory sample, the sample-side loader scaffold, and the shared loader-request binding, but it must not imply workqueue parity, scheduler transport ownership, or any Architecture Council-approved status change for that study-only anchor.
 
-No parity scorecard entry or Architecture Council status-change request is attached to this runtime atomic64 starter packet. The reviewable evidence here remains limited to the shipped starter, its direct sample and loader build legs, the shared loader-request binding, and the still-blocked shared loader-control posture that keeps the packet pre-execution.
+No parity scorecard entry or Architecture Council status-change request is attached to this runtime atomic64 starter packet. The reviewable evidence here remains limited to the shipped starter, its direct sample, module, diff, and loader build legs, the shared loader-request binding, and the still-blocked shared loader-control posture that keeps the packet pre-execution.
 
 ## Landed starter surface
 
@@ -37,7 +37,7 @@ No parity scorecard entry or Architecture Council status-change request is attac
 - a landed sample-side loader scaffold under `samples/zigux/runtime_atomic64_loader.zig` plus a shared runtime-loader request binding under `zigux/kernel/runtime_loader.zig`
 - a prepared loader-summary snapshot replay that freezes the four-field `RuntimeAtomic64Summary` handoff before later sample mutation and keeps that same snapshot explicit through both `waiting_on_runtime_substrate` and `released_without_substrate` review paths
 - a bounded shared `command_name` preservation check in `samples/zigux/runtime_atomic64_loader.zig` that keeps a synthetic non-null loader request reviewable through both `waiting_on_runtime_substrate` and `released_without_substrate` without claiming live argv policy or runtime execution
-- dedicated Phase 9 tests, including direct `phase9-runtime-atomic64-sample-tests` and `phase9-runtime-atomic64-loader-tests` legs, and a `make -C zigux phase9` entry
+- dedicated Phase 9 tests, including direct `phase9-runtime-atomic64-sample-tests`, `phase9-runtime-atomic64-module-tests`, `phase9-runtime-atomic64-diff-tests`, and `phase9-runtime-atomic64-loader-tests` legs, plus a `make -C zigux phase9` entry
 
 ## Non-goals
 
@@ -53,7 +53,7 @@ This slice does not yet claim:
 
 1. run the dedicated Phase 9 build
 - `zig build test --build-file zigux/tests/phase9_build.zig`
-- this shared build includes the direct `phase9-runtime-atomic64-sample-tests` and `phase9-runtime-atomic64-loader-tests` legs alongside the atomic64 module, diff, survey, loader, and shared runtime-loader checks
+- this shared build includes the direct `phase9-runtime-atomic64-sample-tests`, `phase9-runtime-atomic64-module-tests`, `phase9-runtime-atomic64-diff-tests`, and `phase9-runtime-atomic64-loader-tests` legs alongside the atomic64 module, diff, survey, loader, and shared runtime-loader checks
 
 2. run the convenience target
 - `make -C zigux phase9`
