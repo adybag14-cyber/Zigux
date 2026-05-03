@@ -159,6 +159,28 @@ def assert_self_test_catalog_shape() -> None:
         )
 
 
+def assert_repeatable_case(
+    mode: str,
+    expected: Path,
+    actual: Path,
+    expected_matched: bool,
+    expected_lines: list[str],
+    *,
+    repeat_count: int = 2,
+) -> None:
+    if repeat_count < 1:
+        raise ValueError(f'repeat_count must be positive, got {repeat_count}')
+
+    expected_exit_code = 0 if expected_matched else 1
+    for _ in range(repeat_count):
+        matched, details = compare_artifacts(mode, expected, actual)
+        assert matched is expected_matched
+        assert render_result_lines(matched, details) == expected_lines
+        exit_code, lines = capture_emit_result(matched, details)
+        assert exit_code == expected_exit_code
+        assert lines == expected_lines
+
+
 def run_self_test() -> int:
     assert_self_test_catalog_shape()
     covered_cases: list[str] = []
@@ -252,6 +274,14 @@ def run_self_test() -> int:
         assert exit_code == 1
         assert lines == render_result_lines(matched, details)
         covered_cases.append('json_invalid_expected')
+        # Keep the published JSON error marker stable across back-to-back runs.
+        assert_repeatable_case(
+            'json',
+            invalid_json,
+            json_a,
+            False,
+            render_result_lines(matched, details),
+        )
 
         matched, details = compare_artifacts('json', json_a, invalid_json)
         assert not matched
@@ -267,6 +297,14 @@ def run_self_test() -> int:
         assert exit_code == 1
         assert lines == render_result_lines(matched, details)
         covered_cases.append('json_invalid_actual')
+        # Keep the paired actual-side JSON error marker stable too.
+        assert_repeatable_case(
+            'json',
+            json_a,
+            invalid_json,
+            False,
+            render_result_lines(matched, details),
+        )
 
         other_invalid_json.write_text('{"beta": [1,\n', encoding='utf-8', newline='\n')
         matched, details = compare_artifacts('json', invalid_json, other_invalid_json)
@@ -471,6 +509,14 @@ def run_self_test() -> int:
         assert exit_code == 1
         assert lines == render_result_lines(matched, details)
         covered_cases.append('sha256_missing_both')
+        # The both-missing binary failure shape is part of the published contract.
+        assert_repeatable_case(
+            'sha256',
+            missing,
+            other_missing,
+            False,
+            render_result_lines(matched, details),
+        )
 
     if covered_cases != EXPECTED_SELF_TEST_CASES:
         raise AssertionError(
