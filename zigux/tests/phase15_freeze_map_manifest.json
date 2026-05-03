@@ -1,5 +1,5 @@
 {
-  "lane_key": "P15-L01",
+  "lane_key": "P15-Y01",
   "phase": "Phase 15",
   "surveyed_commit": "d918be7ded6383c13cbd5eea4ca4aa4f3cdafee4",
   "anchor": "Documentation/zigux/freeze-map.md",
@@ -34,6 +34,32 @@
     "mm/page_alloc.c: blocked_no_bounded_allocator_seam",
     "kernel/rcu/tree.c: blocked_phase14_followup_still_wider_than_allowed_rcu_seam",
     "net/core/skbuff.c: blocked_packet_lifetime_boundary_still_too_wide"
+  ],
+  "blocker_ownership_records": [
+    {
+      "anchor": "kernel/sched/core.c",
+      "lane_owner": "Architecture Council",
+      "validation_gate": "dedicated Phase 15 scorecard test and manifest replay, plus a future lane-local parity harness before any status change",
+      "rollback_owner": "Architecture Council + PMO / Release Management"
+    },
+    {
+      "anchor": "mm/page_alloc.c",
+      "lane_owner": "Architecture Council",
+      "validation_gate": "dedicated Phase 15 scorecard test and manifest replay, plus a future lane-local parity harness before any status change",
+      "rollback_owner": "Architecture Council + Validation and Perf Team"
+    },
+    {
+      "anchor": "kernel/rcu/tree.c",
+      "lane_owner": "ABI and Runtime Team",
+      "validation_gate": "dedicated Phase 15 scorecard test and manifest replay, existing Phase 14 survey evidence must stay green, and a future lane-local parity harness before any status change",
+      "rollback_owner": "Architecture Council + ABI and Runtime Team"
+    },
+    {
+      "anchor": "net/core/skbuff.c",
+      "lane_owner": "Shared Subsystems Pod",
+      "validation_gate": "dedicated Phase 15 scorecard test and manifest replay, existing Phase 14 survey evidence must stay green, and a future lane-local parity harness before any status change",
+      "rollback_owner": "Architecture Council + Shared Subsystems Pod"
+    }
   ],
   "governance_requirements": [
     {
@@ -98,7 +124,7 @@
       "status": "starter_landed",
       "kind": "lane_note",
       "zigux_destination": "Documentation/zigux/phase15-freeze-map-governance.md",
-      "why_now": "The freeze-map-specific lane note now needs to reflect the active Phase 15 scheduled lane key, the latest visible current-head survey, and the explicit rollback-threshold rule already present in the root policy layer instead of preserving an owner-only marker that no longer matches the current scheduled maintenance packet."
+      "why_now": "The freeze-map-specific lane note now needs to reflect the active Phase 15 scheduled lane key, the latest visible current-head survey, and the explicit rollback-threshold rule already present in the root policy layer instead of preserving an older maintenance packet marker."
     },
     {
       "id": "phase15-build-gate",
@@ -148,6 +174,13 @@
       "kind": "policy_sync",
       "zigux_destination": "Documentation/zigux/phase15-freeze-map-governance.md",
       "why_now": "The packet-local note and manifest now need to carry the same rollback-threshold rule that the root freeze map already requires for any reopened freeze-in-C review."
+    },
+    {
+      "id": "phase15-blocker-ownership-sync",
+      "status": "starter_landed",
+      "kind": "ownership_sync",
+      "zigux_destination": "Documentation/zigux/phase15-freeze-map-governance.md",
+      "why_now": "The freeze-map packet now needs to restate the already-landed per-anchor lane owner, validation gate, and rollback owner inventory so blocker reviews do not depend on an implicit scorecard lookup."
     },
     {
       "id": "phase15-deep-core-status-change-blocker",
