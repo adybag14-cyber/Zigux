@@ -960,7 +960,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=38")
+    print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=36")
     return 0
 
 
