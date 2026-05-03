@@ -415,6 +415,44 @@ test "phase11 gpio_wdt register-device call summary keeps the first bounded requ
     try std.testing.expect(dormant_call.blocked_on_reboot_glue);
 }
 
+test "phase11 gpio_wdt register-device failure summary keeps the remaining blockers explicit" {
+    var prestarted_watchdog = try gpio_wdt.GpioWatchdogLab.init(.toggle, 20, true);
+    const prestarted_failure = prestarted_watchdog.registerDeviceFailureSummary(true);
+    try std.testing.expectEqual(gpio_wdt.HardwareAlgorithm.toggle, prestarted_failure.hw_algo);
+    try std.testing.expectEqual(gpio_wdt.ProbeLineRequest.input, prestarted_failure.requested_line);
+    try std.testing.expectEqual(gpio_wdt.ProbeStartMode.start_before_register, prestarted_failure.start_mode);
+    try std.testing.expect(prestarted_failure.always_running);
+    try std.testing.expect(prestarted_failure.nowayout);
+    try std.testing.expect(prestarted_failure.register_device_requested);
+    try std.testing.expect(prestarted_failure.remains_summary_only);
+    try std.testing.expectEqual(gpio_wdt.RegisterDeviceFailureMode.descriptor_preflight_pending, prestarted_failure.primary_failure_mode);
+    try std.testing.expectEqual(@as(u8, 3), prestarted_failure.failure_mode_count);
+    try std.testing.expect(prestarted_failure.descriptor_preflight_pending);
+    try std.testing.expect(prestarted_failure.platform_registration_pending);
+    try std.testing.expect(prestarted_failure.reboot_glue_pending);
+    try std.testing.expect(prestarted_failure.preserves_registration_running_state);
+    try std.testing.expect(prestarted_failure.preserves_registration_line_state);
+    try std.testing.expect(prestarted_failure.preserves_registration_line_is_output);
+
+    var dormant_watchdog = try gpio_wdt.GpioWatchdogLab.init(.level, 500, false);
+    const dormant_failure = dormant_watchdog.registerDeviceFailureSummary(false);
+    try std.testing.expectEqual(gpio_wdt.HardwareAlgorithm.level, dormant_failure.hw_algo);
+    try std.testing.expectEqual(gpio_wdt.ProbeLineRequest.output_low, dormant_failure.requested_line);
+    try std.testing.expectEqual(gpio_wdt.ProbeStartMode.register_only, dormant_failure.start_mode);
+    try std.testing.expect(!dormant_failure.always_running);
+    try std.testing.expect(!dormant_failure.nowayout);
+    try std.testing.expect(dormant_failure.register_device_requested);
+    try std.testing.expect(dormant_failure.remains_summary_only);
+    try std.testing.expectEqual(gpio_wdt.RegisterDeviceFailureMode.descriptor_preflight_pending, dormant_failure.primary_failure_mode);
+    try std.testing.expectEqual(@as(u8, 3), dormant_failure.failure_mode_count);
+    try std.testing.expect(dormant_failure.descriptor_preflight_pending);
+    try std.testing.expect(dormant_failure.platform_registration_pending);
+    try std.testing.expect(dormant_failure.reboot_glue_pending);
+    try std.testing.expect(!dormant_failure.preserves_registration_running_state);
+    try std.testing.expect(!dormant_failure.preserves_registration_line_state);
+    try std.testing.expect(dormant_failure.preserves_registration_line_is_output);
+}
+
 test "phase11 gpio_wdt platform-driver identity keeps probe ownership and wrapper choice explicit" {
     const surface = gpio_wdt.GpioWatchdogLab.platformDriverIdentitySummary();
     try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.c", surface.anchor);
@@ -442,6 +480,13 @@ test "phase11 gpio_wdt registration planning enums include the first real call s
     try std.testing.expectEqual(@as(usize, 2), wrapper_fields.len);
     try std.testing.expectEqualStrings("module_platform_driver", wrapper_fields[0].name);
     try std.testing.expectEqualStrings("arch_initcall_platform_driver", wrapper_fields[1].name);
+
+    const failure_mode_fields = @typeInfo(gpio_wdt.RegisterDeviceFailureMode).@"enum".fields;
+    try std.testing.expectEqual(@as(usize, 4), failure_mode_fields.len);
+    try std.testing.expectEqualStrings("none", failure_mode_fields[0].name);
+    try std.testing.expectEqualStrings("descriptor_preflight_pending", failure_mode_fields[1].name);
+    try std.testing.expectEqualStrings("platform_registration_pending", failure_mode_fields[2].name);
+    try std.testing.expectEqualStrings("reboot_glue_pending", failure_mode_fields[3].name);
 }
 
 test "phase11 gpio_wdt always-running toggle teardown keeps the line asserted without disable" {
