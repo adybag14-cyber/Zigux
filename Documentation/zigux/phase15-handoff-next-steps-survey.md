@@ -59,11 +59,12 @@ This note exists to answer those questions directly and keep the Phase 15 tranch
 - `Documentation/zigux/phase15-parity-scorecard.md` records the four deep-core anchors, their owners, archive paths, retained stay-in-C closeout state, reopen-trigger catalog, and the aligned maintenance-mode handoff for the shared replay-covered governance packet
 - `Documentation/zigux/phase15-indefinite-c-policy.md` records the explicit long-term stay-in-C posture and exception rules
 - `Documentation/zigux/phase15-readiness-gate-survey.md` records the landed governance bundle, the parked handoff, and that the full shared Phase 15 replay is green on current `master`
+- `python3 scripts/zigux/validate-phase15.py` plus `make -C zigux phase15-validate` keep the validator-first governance route explicit before the shared replay and convenience path are trusted
 - `zigux/tests/phase15_build.zig` replays the dedicated handoff packet alongside the other Phase 15 governance tests
 - `zigux/tests/phase15_docs_root_reviewability.zig` keeps the current docs-root summary alignment explicit against the dedicated readiness and handoff packets inside that same shared Phase 15 replay surface
 - `Documentation/zigux/README.md` points at this handoff packet from the docs root and now matches the dedicated readiness and handoff packet on the same maintenance-mode replay posture
 
-That means the parked handoff packet is no longer waiting on docs-root release-evidence cleanup or review-process replay repair. The shared replay surface is green again, the dedicated docs-root reviewability guard is landed, and the remaining longer-lived handoff gap sits below that layer: the deep-core blocker posture is still unchanged.
+That means the parked handoff packet is no longer waiting on docs-root release-evidence cleanup or review-process replay repair. The validator-first route and shared replay surface are green again, the dedicated docs-root reviewability guard is landed, and the remaining longer-lived handoff gap sits below that layer: the deep-core blocker posture is still unchanged.
 
 ## Open Handoff Gaps
 
@@ -83,9 +84,9 @@ That means the Phase 15 tranche is governance-landed and the parked handoff is m
 The next honest bounded step around this lane is to keep the handoff narrow:
 
 1. leave this handoff lane parked unless the shared Phase 15 replay drifts again, a named reopen trigger now fits the evidence packet again, or a deep-core blocker change makes a refreshed synthesis necessary
-2. rerun `zig build test --build-file zigux/tests/phase15_build.zig` and `make -C zigux phase15` before refreshing neighboring governance packets when one of those conditions changes
+2. rerun `python3 scripts/zigux/validate-phase15.py`, `make -C zigux phase15-validate`, `zig build test --build-file zigux/tests/phase15_build.zig`, and `make -C zigux phase15` before refreshing neighboring governance packets when one of those conditions changes
 
-If none of those conditions is true, the right action is still not another new Phase 15 slice. The right action is to leave the tranche parked and keep this handoff note honest about the now-green replay, the aligned docs-root release evidence, and the still-blocked deep-core status changes.
+If none of those conditions is true, the right action is still not another new Phase 15 slice. The right action is to leave the tranche parked and keep this handoff note honest about the now-green validator-first route, the aligned docs-root release evidence, and the still-blocked deep-core status changes.
 
 ## Maintenance Handoff Contract
 
@@ -94,11 +95,12 @@ Trust the parked Phase 15 handoff only while all of the following stay true:
 1. the roadmap-required governance bundle remains present
 2. the bootstrap ledger anchor remains visible as the documented starting point
 3. the shared bootstrap workflow still runs `Run Phase 15 governance tests`
-4. the local replay path still runs through `zig build test --build-file zigux/tests/phase15_build.zig`
-5. the convenience replay path still runs through `make -C zigux phase15`
-6. the now-green shared replay posture, the docs-root release-evidence alignment, the dedicated docs-root reviewability guard under `zigux/tests/phase15_docs_root_reviewability.zig`, the named reopen triggers, and the deeper status-change blocker all stay explicit, with no new policy or implementation scope reopened silently inside the parked handoff packet
+4. the validator-first path still runs through `python3 scripts/zigux/validate-phase15.py` and `make -C zigux phase15-validate`
+5. the local replay path still runs through `zig build test --build-file zigux/tests/phase15_build.zig`
+6. the convenience replay path still runs through `make -C zigux phase15`
+7. the now-green validator-first route, the shared replay posture, the docs-root release-evidence alignment, the dedicated docs-root reviewability guard under `zigux/tests/phase15_docs_root_reviewability.zig`, the named reopen triggers, and the deeper status-change blocker all stay explicit, with no new policy or implementation scope reopened silently inside the parked handoff packet
 
-If any one of those six conditions stops being true, this parked handoff must be refreshed before future Phase 15 maintenance claims can be trusted.
+If any one of those seven conditions stops being true, this parked handoff must be refreshed before future Phase 15 maintenance claims can be trusted.
 
 ## Recorded Gaps
 
@@ -126,12 +128,16 @@ This slice does not claim:
 
 ## Gates
 
-1. run the dedicated Phase 15 build
+1. run the validator-first gate
+- `python3 scripts/zigux/validate-phase15.py`
+- `make -C zigux phase15-validate`
+
+2. run the dedicated Phase 15 build
 - `zig build test --build-file zigux/tests/phase15_build.zig`
 
-2. run the convenience target
+3. run the convenience target
 - `make -C zigux phase15`
 
 ## Next bounded step
 
-Keep this handoff lane parked unless the shared replay drifts again, a named reopen trigger now fits the evidence packet again, or the deep-core blocker posture changes enough to justify a narrower follow-up. When one of those conditions changes, rerun the focused handoff guard plus the shared `make -C zigux phase15` replay before refreshing this parked-next-step synthesis.
+Keep this handoff lane parked unless the shared replay drifts again, a named reopen trigger now fits the evidence packet again, or the deep-core blocker posture changes enough to justify a narrower follow-up. When one of those conditions changes, rerun the focused handoff guard, `python3 scripts/zigux/validate-phase15.py`, `make -C zigux phase15-validate`, and the shared `make -C zigux phase15` replay before refreshing this parked-next-step synthesis.
