@@ -11,6 +11,7 @@ This document records the current release-discipline reading for the active Phas
 - scope: roadmap traceability, shared helper replay entrypoints, the four manifest-backed survey packets already present on `master`, the adjacent notifier-list reviewability packet plus its landed read-only generic notifier foothold and dedicated exported C header, and the explicit helper-only `devres` DMA/scatterlist boundary plus its adjacent coherent DMA replay
 - product boundary:
   - `scripts/zigux/validate-phase13-release.py`
+  - `scripts/zigux/check-phase13-devres-packet.py`
   - `scripts/zigux/README.md`
   - `Documentation/zigux/phase13-release-notes-survey.md`
   - `Documentation/zigux/phase13-roadmap-traceability.md`
@@ -60,6 +61,7 @@ What this record needs to say, in one place, is how to read that bundle today:
 - the current tranche is reviewable through `python3 scripts/zigux/validate-phase13-release.py`, `make -C zigux phase13-validate`, `zig build test --build-file zigux/tests/phase13_build.zig --summary all`, and `make -C zigux phase13`
 - the shared bootstrap workflow mirrors that same validator-first release path through `Validate Phase 13 release-discipline packet` and `Run Phase 13 shared helper tests`, so release-facing reviewability is not hidden only in local commands
 - the validator helper itself is part of the published evidence packet through `scripts/zigux/README.md`, so the fast-check contract is documented alongside the release note instead of living only in the script and workflow wiring
+- the shared release packet also keeps the dedicated `scripts/zigux/check-phase13-devres-packet.py` guard visible as part of that published review path, so the stricter helper-first `devres` boundary contract is not left implicit in `zigux/Makefile` alone
 - `libfs`, `devres`, `landlock/ruleset`, and `landlock/syscalls` all already have manifest-backed survey packets
 - the shared release packet now needs to say plainly that `devres` is manifest-backed while still blocking live DMA-backed mappings and scatterlist ownership, that the adjacent coherent DMA replay is part of the shared build without turning that blocked boundary into a live DMA-backed mapping claim, and that the adjacent notifier packet now includes the dedicated exported C header `include/zigux/notifier_abi.h` alongside `zigux/bindings/notifier_abi.zig`, `zigux/helpers/notifier_chain_view.zig`, and `phase13-notifier-list-reviewability-tests` instead of leaving that export surface visible only in the packet-local survey note
 - `Documentation/zigux/README.md` now also keeps the dedicated `zigux/tests/phase13_landlock_syscalls_reviewability.zig` gate and the roadmap-adjacent notifier evidence (`zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, and `zigux/helpers/notifier_chain_view.zig`) visible from the docs root, so the top-level Phase 13 summary does not undercount the actual ten-step shared replay on current `master`
@@ -93,6 +95,7 @@ The current Phase 13 release-facing reading is:
 The current release packet also carries one active Phase 13 boundary reminder on `master`:
 
 - `python3 scripts/zigux/validate-phase13-release.py`, `make -C zigux phase13-validate`, `zig build test --build-file zigux/tests/phase13_build.zig --summary all`, and `make -C zigux phase13` are the published validator-first and shared replay path for the current packet
+- the shared release packet also keeps the dedicated `scripts/zigux/check-phase13-devres-packet.py` guard visible as part of that published review path, so the stricter helper-first `devres` boundary contract is not left implicit in `zigux/Makefile` alone
 - the earlier `expected statement, found 'EOF'` note for `zigux/tests/phase13_landlock_ruleset.zig` is now historical: the current checked-in ruleset test file is syntactically complete, its dedicated ruleset helper replay still passes against `security/landlock/ruleset.zig`, and the broader shared replay has already been rerun successfully on `master`
 - the remaining live ruleset blocker is the same one already recorded by the manifest-backed survey packet: `rb_replace_node()`, live object ownership transfer, hierarchy lifetime, and workqueue-backed teardown are still outside the current helper-only lane
 
@@ -131,6 +134,7 @@ The adjacent notifier-list reviewability packet remains useful release evidence,
 The current bounded release-evidence set is:
 
 - `scripts/zigux/validate-phase13-release.py`
+- `scripts/zigux/check-phase13-devres-packet.py`
 - `scripts/zigux/README.md`
 - `Documentation/zigux/phase13-release-notes-survey.md`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
