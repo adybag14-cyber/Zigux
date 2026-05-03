@@ -253,6 +253,60 @@ test "phase10 virtio core keeps registration identity stable across reset and re
     try std.testing.expectEqualStrings("virtio:d00001000v00001AF4", summary.modalias);
 }
 
+test "phase10 virtio core records exact driver id-table matches from virtio.c" {
+    var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 2, 5 });
+
+    try std.testing.expectError(error.DeviceIdentityNotRegistered, device.driverIdMatchSummary(&.{
+        .{ .device_id = 0x1040, .vendor_id = 0x1AF4 },
+    }));
+
+    _ = try device.registerDeviceIdentity(7, 0x1040, 0x1AF4);
+
+    const summary = try device.driverIdMatchSummary(&.{
+        .{ .device_id = 0x1000, .vendor_id = 0x1AF4 },
+        .{ .device_id = 0x1040, .vendor_id = 0x1AF4 },
+        .{ .device_id = virtio_core.any_id, .vendor_id = virtio_core.any_id },
+    });
+
+    try std.testing.expectEqualStrings("drivers/virtio/virtio.c", summary.anchor);
+    try std.testing.expectEqual(@as(u32, 0x1040), summary.device_id);
+    try std.testing.expectEqual(@as(u32, 0x1AF4), summary.vendor_id);
+    try std.testing.expectEqual(@as(usize, 3), summary.candidate_count);
+    try std.testing.expect(summary.matched);
+    try std.testing.expectEqual(@as(?usize, 1), summary.matched_rule_index);
+    try std.testing.expect(!summary.matched_device_any);
+    try std.testing.expect(!summary.matched_vendor_any);
+}
+
+test "phase10 virtio core models wildcard and unmatched driver id-table paths" {
+    var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 3, 9 });
+    _ = try device.registerDeviceIdentity(5, 0x1052, 0x1AF4);
+
+    var summary = try device.driverIdMatchSummary(&.{
+        .{ .device_id = virtio_core.any_id, .vendor_id = 0x1AF4 },
+    });
+    try std.testing.expect(summary.matched);
+    try std.testing.expectEqual(@as(?usize, 0), summary.matched_rule_index);
+    try std.testing.expect(summary.matched_device_any);
+    try std.testing.expect(!summary.matched_vendor_any);
+
+    summary = try device.driverIdMatchSummary(&.{
+        .{ .device_id = 0x1052, .vendor_id = virtio_core.any_id },
+    });
+    try std.testing.expect(summary.matched);
+    try std.testing.expectEqual(@as(?usize, 0), summary.matched_rule_index);
+    try std.testing.expect(!summary.matched_device_any);
+    try std.testing.expect(summary.matched_vendor_any);
+
+    summary = try device.driverIdMatchSummary(&.{
+        .{ .device_id = 0x1040, .vendor_id = 0x1AF4 },
+    });
+    try std.testing.expect(!summary.matched);
+    try std.testing.expectEqual(@as(?usize, null), summary.matched_rule_index);
+    try std.testing.expect(!summary.matched_device_any);
+    try std.testing.expect(!summary.matched_vendor_any);
+}
+
 test "phase10 virtio core delivers config changes immediately when core and driver paths are enabled" {
     var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 2, 5 });
 
