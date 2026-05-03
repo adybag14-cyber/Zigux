@@ -95,6 +95,7 @@
     "scripts/zigux/check-phase7-rbtree-parity.py --self-test",
     "scripts/zigux/check-phase7-rbtree-parity.py"
   ],
+  "shared_test_command": "zig build test --build-file zigux/tests/phase7_build.zig --summary all",
   "unexpected_build_markers": [
     "../../tools/lib/",
     "zigux/tests/build.zig"
