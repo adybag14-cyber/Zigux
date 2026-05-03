@@ -6,12 +6,16 @@ const SurveySummary = struct {
     previous_surveyed_commit: []const u8,
     devres_helper_sha256: []const u8,
     devres_test_sha256: []const u8,
+    devres_dma_coherent_helper_sha256: []const u8,
+    devres_dma_coherent_test_sha256: []const u8,
     devres_helper_matches_previous_surveyed_commit: bool,
     devres_test_matches_previous_surveyed_commit: bool,
     preexisting_phase13_build_present: bool,
     preexisting_phase13_make_target_present: bool,
     preexisting_devres_zig_present: bool,
+    preexisting_devres_dma_coherent_zig_present: bool,
     preexisting_phase13_devres_test_present: bool,
+    preexisting_phase13_devres_dma_coherent_test_present: bool,
     preexisting_phase13_devres_slice_present: bool,
     preexisting_phase13_devres_reviewability_present: bool,
     preexisting_phase13_devres_survey_present: bool,
@@ -77,16 +81,20 @@ test "phase13 devres manifest records the current helper boundary and explicit d
     try std.testing.expectEqualStrings("66b55d8a9a800345097f3c04b9f95130b1f8d0b8", manifest.survey_summary.previous_surveyed_commit);
     try std.testing.expectEqualStrings("11b2d4e475b7d21c1086679a438a851f1f12df15aa655b75e8a78fee7427bc21", manifest.survey_summary.devres_helper_sha256);
     try std.testing.expectEqualStrings("7dc45ab99f46d5424e3d757f720e58654aaea326b13db1af601be88c3cbff476", manifest.survey_summary.devres_test_sha256);
+    try std.testing.expectEqualStrings("944f595b5434603dd21e77b33af03d317613e2f2f1a81d574c9d1b5f4e422c05", manifest.survey_summary.devres_dma_coherent_helper_sha256);
+    try std.testing.expectEqualStrings("898655bd8bdcdbad0074011ae92b3ca3f4c5272d58812253ea8b2aa0542f8dce", manifest.survey_summary.devres_dma_coherent_test_sha256);
     try std.testing.expect(!manifest.survey_summary.devres_helper_matches_previous_surveyed_commit);
     try std.testing.expect(manifest.survey_summary.devres_test_matches_previous_surveyed_commit);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_make_target_present);
     try std.testing.expect(manifest.survey_summary.preexisting_devres_zig_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_devres_dma_coherent_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_test_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_dma_coherent_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_slice_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_reviewability_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_survey_present);
-    try std.testing.expectEqual(@as(usize, 19), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 20), manifest.gaps.len);
 
     const descriptor = devres.DevresHelperLab.descriptor();
     try std.testing.expectEqualStrings("lib/devres.c", descriptor.anchor);
@@ -266,6 +274,7 @@ test "phase13 devres manifest records the current helper boundary and explicit d
     var saw_ioport = false;
     var saw_arch_phys_wc = false;
     var saw_arch_io_memtype = false;
+    var saw_dma_coherent = false;
     var saw_live_mmio_blocker = false;
     var saw_dma_blocker = false;
     var saw_scatterlist_blocker = false;
@@ -384,6 +393,14 @@ test "phase13 devres manifest records the current helper boundary and explicit d
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "devm_arch_io_reserve_memtype_wc") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "arch_io_free_memtype_wc") != null);
         }
+        if (std.mem.eql(u8, gap.id, "phase13-devres-dma-coherent-lifetime-planner")) {
+            saw_dma_coherent = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("lib/devres_dma_coherent.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dmam_alloc_coherent()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dmam_free_coherent()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "scatterlist ownership") != null);
+        }
         if (std.mem.eql(u8, gap.id, "phase13-devres-live-mmio-side-effects")) {
             saw_live_mmio_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_live_mmio_state", gap.status);
@@ -428,7 +445,7 @@ test "phase13 devres manifest records the current helper boundary and explicit d
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 14), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 15), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_live_mmio_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_dma_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_scatterlist_count);
@@ -448,6 +465,7 @@ test "phase13 devres manifest records the current helper boundary and explicit d
     try std.testing.expect(saw_ioport);
     try std.testing.expect(saw_arch_phys_wc);
     try std.testing.expect(saw_arch_io_memtype);
+    try std.testing.expect(saw_dma_coherent);
     try std.testing.expect(saw_live_mmio_blocker);
     try std.testing.expect(saw_dma_blocker);
     try std.testing.expect(saw_scatterlist_blocker);
