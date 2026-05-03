@@ -108,7 +108,7 @@
     "lane_keys": {
       "core": "P10-L01",
       "ring": "P10-L08",
-      "input": "P10-L13",
+      "input": "P10-Y04",
       "mmio": "P10-L18"
     },
     "surveyed_commits": {
