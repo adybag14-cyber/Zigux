@@ -113,6 +113,13 @@ def validate_expected_surface(lines: list[str], expected_lines: list[str], label
         )
 
 
+def validate_matching_surface(c_lines: list[str], zig_lines: list[str], label: str) -> None:
+    if c_lines != zig_lines:
+        raise SystemExit(
+            f"phase6-base64-c-parity:{label}:c_output_mismatch:expected={c_lines!r}:actual={zig_lines!r}"
+        )
+
+
 def parse_zig_string_literal(expr: str) -> bytes:
     try:
         value = ast.literal_eval("b" + expr)
@@ -349,9 +356,19 @@ pub const invalid_decode_cases = [_]InvalidDecodeCase{
         "phase6-base64-c-parity:self-test-missing-case:unexpected_output:"
         f"expected={sample_expected!r}:actual={missing_std_encode_case!r}",
     )
+    mismatched_zig_lines = [
+        line if line != "inv\tstd\t1\t5a67003d\tInvalidInput\tInvalidInput" else "inv\tstd\t1\t5a67003d\tInvalidInput\tok"
+        for line in sample_expected
+    ]
+    expect_system_exit(
+        "mismatch_case",
+        lambda: validate_matching_surface(sample_expected, mismatched_zig_lines, "self-test-mismatch"),
+        "phase6-base64-c-parity:self-test-mismatch:c_output_mismatch:"
+        f"expected={sample_expected!r}:actual={mismatched_zig_lines!r}",
+    )
 
     print("PHASE6_BASE64_C_PARITY_SELF_TEST=pass")
-    print("PHASE6_BASE64_C_PARITY_SELF_TEST_CASE_COUNT=9")
+    print("PHASE6_BASE64_C_PARITY_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
@@ -406,8 +423,11 @@ def main() -> int:
     validate_expected_surface(c_lines, expected_lines, "c")
     validate_expected_surface(zig_lines, expected_lines, "zig")
 
-    if c_lines != zig_lines:
+    try:
+        validate_matching_surface(c_lines, zig_lines, "c-vs-zig")
+    except SystemExit as exc:
         print("PHASE6_BASE64_C_PARITY=fail")
+        print(str(exc))
         print("C_OUTPUT_START")
         print(c_run.stdout.rstrip())
         print("C_OUTPUT_END")
