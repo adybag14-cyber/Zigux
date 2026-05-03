@@ -7,10 +7,16 @@ This document records a bounded Phase 6 leaf-helper validation slice for Zigux.
 - `PHASE6_STATUS=active`
 - `PHASE6_SLICE=base64-leaf-helper`
 - scope: first low-risk base64 helper coverage only
+- lane posture: parked after the current parity surface cleared the bounded helper goal
 - product boundary:
   - `lib/base64.zig`
   - `zigux/tests/phase6_base64.zig`
+  - `zigux/tests/phase6_base64_perf.zig`
+  - `zigux/tests/phase6_base64_c_parity.zig`
+  - `zigux/tests/phase6_base64_c_casegen.zig`
   - `zigux/tests/fixtures/phase6_base64_vectors.zig`
+  - `zigux/tests/fixtures/phase6_base64_c_harness.c`
+  - `scripts/zigux/check-phase6-base64-c-parity.py`
   - `zigux/tests/phase6_build.zig`
   - `zigux/Makefile`
 
@@ -75,6 +81,8 @@ The current tests check:
 - extra kernel KUnit parity vectors for uppercase, lowercase, and digit-heavy standard cases
 - a deterministic base64 perf harness that now consumes the shared fixture module's payload and replay-matrix tables, compares the helper against the padded `std.base64.standard` reference path, the padded and unpadded `std.base64.url_safe{,_no_pad}` reference paths, and translated padded plus unpadded IMAP reference paths, and rejects regressions beyond the current fixture-backed encode and decode slowdown budgets using a median-of-three slowdown sample while rechecking round-trip correctness
 
+This is enough evidence to leave the bounded base64 helper lane parked unless a concrete new parity, perf, or directly coupled review-packet gap appears in the live repo.
+
 ## Non-goals
 
 This slice does not yet claim:
@@ -85,4 +93,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Leave this helper parked unless fresh repo inspection shows a concrete parity or slowdown drift in the current standard, URL-safe, or IMAP packet. The current review packet already carries the generated-fixture handoff through `zigux/tests/phase6_base64_c_casegen.zig`, so the next reopen should stay narrow: either widen that representative external C-vs-Zig corpus further or retire the current spot check if a better shared parity substrate replaces it.
+Leave the base64 helper lane parked unless fresh repo inspection finds a concrete parity, perf, or directly coupled review-packet gap inside `lib/base64.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_base64_perf.zig`, `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/phase6_base64_c_casegen.zig`, `zigux/tests/fixtures/phase6_base64_vectors.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, `scripts/zigux/check-phase6-base64-c-parity.py`, or the shared Phase 6 packet. If reviewers want the shared packet to enumerate the current base64 evidence more explicitly, the next same-family follow-up should stay narrow to `Documentation/zigux/phase6-helper-parity-catalog.md`, `zigux/tests/phase6_helper_parity_manifest.json`, and any directly coupled validator markers so those shared surfaces also acknowledge the live base64 perf and external parity packet more directly.
