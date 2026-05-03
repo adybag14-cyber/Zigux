@@ -1,0 +1,183 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import json
+from pathlib import Path
+import runpy
+import tempfile
+
+
+ROOT = Path(__file__).resolve().parents[2]
+MANIFEST_REL = "zigux/tests/fixtures/phase3_abi_manifest.json"
+VALIDATOR_REL = "scripts/zigux/validate-phase3.py"
+
+
+def _ordered_unique(entries: list[str]) -> list[str]:
+    ordered: list[str] = []
+    seen: set[str] = set()
+    for entry in entries:
+        if entry in seen:
+            continue
+        seen.add(entry)
+        ordered.append(entry)
+    return ordered
+
+
+def _canonical_survey_script_rels(root: Path) -> tuple[list[str], list[str]]:
+    validator_path = root / VALIDATOR_REL
+    if not validator_path.exists():
+        return [], [f"missing_validator:{VALIDATOR_REL}"]
+
+    namespace = runpy.run_path(str(validator_path))
+    issues: list[str] = []
+    rels: list[str] = []
+
+    survey_scripts = namespace.get("SURVEY_VALIDATION_SCRIPTS")
+    if not isinstance(survey_scripts, tuple):
+        issues.append("missing_validator_constant:SURVEY_VALIDATION_SCRIPTS")
+    else:
+        for entry in survey_scripts:
+            if not (isinstance(entry, tuple) and entry and isinstance(entry[0], str)):
+                issues.append(f"invalid_survey_entry:{entry!r}")
+                continue
+            rels.append(f"scripts/zigux/{entry[0]}")
+
+    build_root_script = namespace.get("BUILD_ROOT_DRIFT_SCRIPT")
+    if not (isinstance(build_root_script, tuple) and build_root_script and isinstance(build_root_script[0], str)):
+        issues.append("missing_validator_constant:BUILD_ROOT_DRIFT_SCRIPT")
+    else:
+        rels.append(f"scripts/zigux/{build_root_script[0]}")
+
+    return _ordered_unique(rels), issues
+
+
+def validate(root: Path) -> list[str]:
+    manifest_path = root / MANIFEST_REL
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        return [f"missing_manifest:{MANIFEST_REL}"]
+    except json.JSONDecodeError as exc:
+        return [f"invalid_manifest_json:{MANIFEST_REL}:{exc}"]
+
+    files = manifest.get("files")
+    if not isinstance(files, list):
+        return [f"missing_manifest_files:{MANIFEST_REL}"]
+
+    canonical_rels, issues = _canonical_survey_script_rels(root)
+    listed = {entry for entry in files if isinstance(entry, str)}
+    for rel in canonical_rels:
+        if rel not in listed:
+            issues.append(f"missing_manifest_survey_script:{rel}")
+        if rel in listed and not (root / rel).exists():
+            issues.append(f"missing_repo_survey_script:{rel}")
+    return issues
+
+
+def _write(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8", newline="\n")
+
+
+def run_self_test() -> int:
+    with tempfile.TemporaryDirectory(prefix="zigux_phase3_canonical_survey_manifest_") as tmp_dir:
+        root = Path(tmp_dir) / "repo"
+
+        _write(
+            root / VALIDATOR_REL,
+            "\n".join(
+                (
+                    "SURVEY_VALIDATION_SCRIPTS = (",
+                    '    ("validate-phase3-roadmap-gap-survey.py", "PHASE3_ROADMAP_GAP_SURVEY=fail", "roadmap-gap", "missing_roadmap_anchor"),',
+                    '    ("validate-phase3-rbtree-interop-survey.py", "PHASE3_RBTREE_INTEROP_SURVEY=fail", "rbtree-gap", "missing_rbtree_anchor"),',
+                    ")",
+                    'BUILD_ROOT_DRIFT_SCRIPT = ("check-phase3-build-roots.py", "PHASE3_BUILD_ROOTS=fail", "build-roots", "missing_root")',
+                    "",
+                )
+            ),
+        )
+
+        canonical_rels = (
+            "scripts/zigux/validate-phase3-roadmap-gap-survey.py",
+            "scripts/zigux/validate-phase3-rbtree-interop-survey.py",
+            "scripts/zigux/check-phase3-build-roots.py",
+        )
+        for rel in canonical_rels:
+            _write(root / rel, "# stub\n")
+
+        _write(
+            root / MANIFEST_REL,
+            json.dumps(
+                {
+                    "phase": "Phase 3",
+                    "status": "active",
+                    "slice": "abi-substrate-skeleton",
+                    "files": list(canonical_rels),
+                    "file_count": len(canonical_rels),
+                },
+                indent=2,
+            )
+            + "\n",
+        )
+
+        issues = validate(root)
+        if issues:
+            raise SystemExit(
+                "phase3-canonical-survey-manifest-self-test:baseline_failed:" + ",".join(issues)
+            )
+
+        manifest_path = root / MANIFEST_REL
+        broken_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        broken_manifest["files"] = [rel for rel in canonical_rels if rel != canonical_rels[0]]
+        _write(manifest_path, json.dumps(broken_manifest, indent=2) + "\n")
+        issues = validate(root)
+        expected = f"missing_manifest_survey_script:{canonical_rels[0]}"
+        if issues != [expected]:
+            raise SystemExit(
+                "phase3-canonical-survey-manifest-self-test:missing_manifest_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+        broken_manifest["files"] = list(canonical_rels)
+        _write(manifest_path, json.dumps(broken_manifest, indent=2) + "\n")
+        (root / canonical_rels[-1]).unlink()
+        issues = validate(root)
+        expected = f"missing_repo_survey_script:{canonical_rels[-1]}"
+        if issues != [expected]:
+            raise SystemExit(
+                "phase3-canonical-survey-manifest-self-test:missing_repo_file_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+    print("PHASE3_CANONICAL_SURVEY_MANIFEST_SELF_TEST=pass")
+    print("PHASE3_CANONICAL_SURVEY_MANIFEST_SELF_TEST_CASE_COUNT=2")
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="Keep the Phase 3 manifest aligned with the validator's canonical survey-script list."
+    )
+    parser.add_argument("--self-test", action="store_true", help="Run isolated checker coverage.")
+    parser.add_argument("root", nargs="?", help="Optional repo root override.")
+    args = parser.parse_args()
+
+    if args.self_test:
+        return run_self_test()
+
+    issues = validate(Path(args.root).resolve() if args.root else ROOT)
+    if issues:
+        print("PHASE3_CANONICAL_SURVEY_MANIFEST=fail")
+        for issue in issues:
+            print(issue)
+        return 1
+
+    canonical_rels, _ = _canonical_survey_script_rels(Path(args.root).resolve() if args.root else ROOT)
+    print("PHASE3_CANONICAL_SURVEY_MANIFEST=pass")
+    print(f"PHASE3_CANONICAL_SURVEY_SCRIPT_COUNT={len(canonical_rels)}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
