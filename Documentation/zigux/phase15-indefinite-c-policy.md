@@ -49,10 +49,12 @@ That closes the current policy gap for the roadmap requirement `policy for code 
 
 The remaining blocked work is not another missing policy artifact. It is the already-recorded deep-core status-change blocker:
 
-- no bounded scheduler seam is approved yet
-- no bounded page-allocator seam is approved yet
-- the current RCU follow-up is still wider than the allowed seam
-- the current skbuff follow-up is still wider than the allowed packet-lifetime boundary
+- `kernel/sched/core.c`: `blocked_no_bounded_scheduler_seam`; no bounded scheduler seam is approved yet
+- `mm/page_alloc.c`: `blocked_no_bounded_allocator_seam`; no bounded allocator seam is approved yet
+- `kernel/rcu/tree.c`: `blocked_phase14_followup_still_wider_than_allowed_rcu_seam`; the current RCU follow-up is still wider than the allowed seam
+- `net/core/skbuff.c`: `blocked_packet_lifetime_boundary_still_too_wide`; the current skbuff follow-up is still wider than the allowed packet-lifetime boundary
+
+Those exact blocker dispositions match the current evidence-archive templates so the stay-in-C packet does not drift into looser prose than the blocker records reviewers must rely on later.
 
 This lane therefore stays in maintenance mode unless one of those blocker postures changes enough to justify another bounded indefinite-C follow-up.
 
