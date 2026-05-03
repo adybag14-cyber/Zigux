@@ -40,6 +40,15 @@ pub fn assertOffset(comptime T: type, comptime field_name: []const u8, comptime 
     }
 }
 
+fn assertInteropPolicyByteValue(comptime label: []const u8, comptime actual: anytype, comptime expected: u8) void {
+    if (actual != expected) {
+        @compileError(std.fmt.comptimePrint(
+            "interop policy byte mismatch for {s}: expected {d}, got {d}",
+            .{ label, expected, actual },
+        ));
+    }
+}
+
 pub fn assertBoundaryHeaderLayout() void {
     assertSize(abi.BoundaryHeader, 8);
     assertAlign(abi.BoundaryHeader, 4);
@@ -62,6 +71,18 @@ pub fn assertExportStatusLayout() void {
     assertOffset(abi.ExportStatus, "flags", 6);
 }
 
+pub fn assertInteropPolicyModeValues() void {
+    assertInteropPolicyByteValue("panic_mode.abort", @intFromEnum(abi.PanicMode.abort), 0);
+    assertInteropPolicyByteValue("panic_mode.bug", @intFromEnum(abi.PanicMode.bug), 1);
+    assertInteropPolicyByteValue("panic_mode.warn", @intFromEnum(abi.PanicMode.warn), 2);
+    assertInteropPolicyByteValue("allocator_mode.caller_provided", @intFromEnum(abi.AllocatorMode.caller_provided), 0);
+    assertInteropPolicyByteValue("allocator_mode.kernel_heap", @intFromEnum(abi.AllocatorMode.kernel_heap), 1);
+    assertInteropPolicyByteValue("allocator_mode.arena", @intFromEnum(abi.AllocatorMode.arena), 2);
+    assertInteropPolicyByteValue("unsafe_scope.none", @intFromEnum(abi.UnsafeScope.none), 0);
+    assertInteropPolicyByteValue("unsafe_scope.volatile_mmio", @intFromEnum(abi.UnsafeScope.volatile_mmio), 1);
+    assertInteropPolicyByteValue("unsafe_scope.raw_pointer_bridge", @intFromEnum(abi.UnsafeScope.raw_pointer_bridge), 2);
+}
+
 pub fn assertInteropPolicyLayout() void {
     assertSize(abi.InteropPolicy, 4);
     assertAlign(abi.InteropPolicy, 1);
@@ -73,6 +94,7 @@ pub fn assertInteropPolicyLayout() void {
     assertOffset(abi.InteropPolicy, "allocator_mode", 1);
     assertOffset(abi.InteropPolicy, "unsafe_scope", 2);
     assertOffset(abi.InteropPolicy, "reserved", 3);
+    assertInteropPolicyModeValues();
 }
 
 pub fn assertMmioRangeLayout() void {
