@@ -387,6 +387,28 @@ test "single-word scans keep linux small-bitmap semantics" {
     try std.testing.expectEqual(@as(usize, nbits), findNextAndBit(&lhs, &rhs, nbits, 10));
 }
 
+test "single-word scans keep the last in-range bit reachable from an inclusive start" {
+    const nbits: usize = 12;
+    const tail_bit: usize = nbits - 1;
+    const out_of_range_bit: usize = 15;
+
+    const set_bits = [_]Word{(@as(Word, 1) << tail_bit) | (@as(Word, 1) << out_of_range_bit)};
+    try std.testing.expectEqual(@as(usize, tail_bit), findFirstBit(&set_bits, nbits));
+    try std.testing.expectEqual(@as(usize, tail_bit), findNextBit(&set_bits, nbits, tail_bit));
+    try std.testing.expectEqual(@as(usize, nbits), findNextBit(&set_bits, nbits, tail_bit + 1));
+
+    const zero_bits = [_]Word{(~@as(Word, 0) & ~(@as(Word, 1) << tail_bit)) & ~(@as(Word, 1) << out_of_range_bit)};
+    try std.testing.expectEqual(@as(usize, tail_bit), findFirstZeroBit(&zero_bits, nbits));
+    try std.testing.expectEqual(@as(usize, tail_bit), findNextZeroBit(&zero_bits, nbits, tail_bit));
+    try std.testing.expectEqual(@as(usize, nbits), findNextZeroBit(&zero_bits, nbits, tail_bit + 1));
+
+    const lhs = [_]Word{(@as(Word, 1) << tail_bit) | (@as(Word, 1) << out_of_range_bit)};
+    const rhs = [_]Word{(@as(Word, 1) << tail_bit) | (@as(Word, 1) << out_of_range_bit)};
+    try std.testing.expectEqual(@as(usize, tail_bit), findFirstAndBit(&lhs, &rhs, nbits));
+    try std.testing.expectEqual(@as(usize, tail_bit), findNextAndBit(&lhs, &rhs, nbits, tail_bit));
+    try std.testing.expectEqual(@as(usize, nbits), findNextAndBit(&lhs, &rhs, nbits, tail_bit + 1));
+}
+
 test "single-word scans ignore matches that exist only beyond nbits" {
     const nbits: usize = 12;
     const out_of_range_bit = 15;
