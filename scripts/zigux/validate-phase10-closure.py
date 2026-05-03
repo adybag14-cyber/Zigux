@@ -243,6 +243,21 @@ MMIO_SURVEY_MARKERS = [
     "phase10-mmio-config-write-helper",
     "phase10-mmio-interrupt-ack-helper",
     "phase10-mmio-lifecycle-and-irq-paths",
+    "PHASE10_FREEZE_MAP=Documentation/zigux/freeze-map.md",
+    "PHASE10_FREEZE_BOUNDARY_STATUS=aligned",
+    "PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=yes",
+    "PHASE10_ARCHITECTURE_COUNCIL_REOPEN_ATTACHED=no",
+    "PHASE10_ALLOWED_EVIDENCE_KINDS=driver_local_lab_slices,survey_manifests,shared_validation_gates",
+    "PHASE10_FORBIDDEN_TRANSPORT_CLAIMS=queue_setup_reset_paths,irq_parity,dma_paths,input_registration_lifecycle,probe_remove_lifecycle",
+    "kernel/workqueue.c",
+    "kernel/trace/ring_buffer.c",
+    "boundary maps",
+    "concurrency audits",
+    "explicit stay-in-C decisions where warranted",
+    "wrapper-first or study-only posture",
+    "drivers/virtio/*.zig",
+    "zigux/kernel/",
+    "zigux/helpers/",
 ]
 
 
@@ -584,6 +599,23 @@ def run_self_test() -> int:
         )
         write_fixture(root)
 
+        mmio_survey_path = root / "Documentation/zigux/phase10-virtio-mmio-survey.md"
+        original_mmio_survey = mmio_survey_path.read_text(encoding="utf-8")
+        mmio_survey_path.write_text(
+            original_mmio_survey.replace(
+                "PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=yes",
+                "PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=drift",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "mmio_survey_reopen_guard",
+            root,
+            "mmio_survey:PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=yes",
+        )
+        write_fixture(root)
+
         docs_readme_path = root / "Documentation/zigux/README.md"
         original_docs_readme = docs_readme_path.read_text(encoding="utf-8")
         docs_readme_path.write_text(
@@ -707,7 +739,7 @@ def run_self_test() -> int:
         expect_missing_file("queue_isolation_file_guard", root, "zigux/tests/phase10_virtio_mmio_queue_isolation.zig")
 
     print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=17")
+    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=18")
     return 0
 
 
