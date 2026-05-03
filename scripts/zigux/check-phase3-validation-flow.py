@@ -116,6 +116,7 @@ REQUIRED_DOCS_ROOT_SNIPPETS = (
 EXACT_ONCE_DOCS_ROOT_SNIPPETS = (
     "`scripts/zigux/validate-phase3.py`, `make -C zigux phase3-validate`, and the bootstrap workflow are the validator-first route for the shared Phase 3 review packet; the dedicated survey scripts listed below stay supporting checks inside that shared gate rather than standalone release entrypoints.",
     "`scripts/zigux/validate-phase3-roadmap-gap-survey.py` remains a supporting survey check inside that shared validator-first route",
+    "`scripts/zigux/validate-phase3-export-uapi-survey.py` remains a supporting survey check inside that shared validator-first route",
 )
 
 REQUIRED_SCRIPTS_README_SNIPPETS = (
@@ -270,7 +271,7 @@ def _fixture_docs_root() -> str:
         "Phase 3 notes\n"
         f"- {REQUIRED_DOCS_ROOT_SNIPPETS[0]}\n"
         f"- {REQUIRED_DOCS_ROOT_SNIPPETS[1]}, and `make -C zigux phase3-validate` plus the bootstrap workflow keep that survey note explicit.\n"
-        f"- `Documentation/zigux/phase3-rbtree-interop-survey.md` records the dedicated `rbtree` boundary packet, and `scripts/zigux/validate-phase3-rbtree-interop-survey.py` remains a supporting survey check inside that shared validator-first route.\n"
+        "- `Documentation/zigux/phase3-rbtree-interop-survey.md` records the dedicated `rbtree` boundary packet, and `scripts/zigux/validate-phase3-rbtree-interop-survey.py` remains a supporting survey check inside that shared validator-first route.\n"
         f"- {REQUIRED_DOCS_ROOT_SNIPPETS[2]}, and `make -C zigux phase3-validate` now keeps that dedicated export-shim and UAPI boundary survey packet explicit alongside the broader roadmap-gap note.\n"
         f"- {REQUIRED_DOCS_ROOT_SNIPPETS[3]}, including the packet-local blob markers that make direct connector-era readback reviewable without a trustworthy branch-tip SHA.\n"
         f"- {REQUIRED_DOCS_ROOT_SNIPPETS[4]}, and `make -C zigux phase3-validate` plus the bootstrap workflow now keep that dedicated policy-and-unsafe survey packet explicit alongside the broader ABI slice note.\n"
@@ -639,6 +640,18 @@ def run_self_test() -> int:
         )
         docs_root_path.write_text(original_docs_root, encoding="utf-8", newline="\n")
 
+        docs_root_path.write_text(
+            original_docs_root + "\n- " + REQUIRED_DOCS_ROOT_SNIPPETS[2] + "\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate(root)
+        assert (
+            "unexpected_docs_root_snippet_count:2:" + REQUIRED_DOCS_ROOT_SNIPPETS[2]
+            in issues
+        )
+        docs_root_path.write_text(original_docs_root, encoding="utf-8", newline="\n")
+
         scripts_readme_path = root / SCRIPTS_README_REL
         original_scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
         scripts_readme_path.write_text(
@@ -690,7 +703,7 @@ def run_self_test() -> int:
         scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8", newline="\n")
 
     print("PHASE3_VALIDATION_FLOW_SELF_TEST=pass")
-    print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=27")
+    print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=28")
     return 0
 
 
