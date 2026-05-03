@@ -487,6 +487,20 @@ def run_self_test() -> int:
         write_fixture(root)
 
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"] = [
+            path
+            for path in manifest["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"]
+            if path != "scripts/zigux/check-phase10-harness-coverage.py"
+        ]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "lab_validation_scoreboard_harness_evidence_guard",
+            root,
+            "manifest:roadmap_parity_scoreboard",
+        )
+        write_fixture(root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["survey_provenance"]["lane_keys"]["core"] = "P10-L03"
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         expect_missing_marker("survey_lane_guard", root, "manifest:survey_provenance")
@@ -596,7 +610,7 @@ def run_self_test() -> int:
             raise SystemExit("required_file_guard_failed")
 
     print("PHASE10_CLOSURE_INVENTORY_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_INVENTORY_SELF_TEST_CASE_COUNT=12")
+    print("PHASE10_CLOSURE_INVENTORY_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
