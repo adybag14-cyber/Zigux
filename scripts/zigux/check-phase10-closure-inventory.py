@@ -48,8 +48,10 @@ EXPECTED_TESTS = [
     "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
     "zigux/tests/phase10_virtio_ring_survey.zig",
     "zigux/tests/phase10_virtio_input.zig",
-    "zigux/tests/phase10_virtio_input_survey.zig",
+    "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
     "zigux/tests/phase10_virtio_mmio.zig",
+    "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
+    "zigux/tests/phase10_virtio_input_survey.zig",
     "zigux/tests/phase10_virtio_mmio_survey.zig",
 ]
 
@@ -164,6 +166,8 @@ EXPECTED_SCOREBOARD = {
         "status": "starter_landed",
         "evidence": [
             "zigux/tests/phase10_build.zig",
+            "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
+            "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
             "scripts/zigux/check-phase10-closure-inventory.py",
             "scripts/zigux/validate-phase10.py",
             "scripts/zigux/validate-phase10-closure.py",
@@ -287,7 +291,7 @@ CLOSURE_NOTE_MARKERS = [
     "PHASE10_DOC_COUNT=9",
     "PHASE10_MANIFEST_COUNT=4",
     "PHASE10_DRIVER_COUNT=4",
-    "PHASE10_TEST_COUNT=9",
+    "PHASE10_TEST_COUNT=11",
     "PHASE10_CLOSURE_INVENTORY_GATE=python3 scripts/zigux/check-phase10-closure-inventory.py",
     "PHASE10_CLOSURE_GATE=python3 scripts/zigux/validate-phase10-closure.py",
     "PHASE10_BUILD_GATE=zig build test --build-file zigux/tests/phase10_build.zig --summary all",
