@@ -122,8 +122,12 @@ REVIEW_GUIDE_MARKERS = [
 TESTS_COMPANION_MARKERS = [
     "## Phase 11 tests-root packet",
     "- `scripts/zigux/check-phase11-shared-replay-contract.py`",
+    "- `zigux/tests/phase11_dw_wdt_suspend_resume.zig`",
+    "- `zigux/tests/phase11_dw_wdt_remove_idle_split.zig`",
+    "- `zigux/tests/phase11_hvc_console_modem_control_split.zig`",
+    "- `zigux/tests/phase11_hvc_console_poll_retry_split.zig`",
     "- Do the pre-replay Phase 11 checkers still describe the same delivery contract that `zigux/tests/phase11_build.zig` and `zigux/tests/fixtures/phase11_build_inventory.json` claim?",
-    "- Does `zigux/tests/phase11_hvc_console_survey.zig` still stay separate as the dedicated archival replay while the shared starter packet remains under `zigux/tests/phase11_build.zig` and the shared header-boundary packet stays explicit through `scripts/zigux/check-phase11-header-boundary-packet.py`?",
+    "- Does `zigux/tests/phase11_hvc_console_survey.zig` still stay separate as the dedicated archival replay while the shared starter packet remains under `zigux/tests/phase11_build.zig`, explicitly includes `zigux/tests/phase11_dw_wdt_suspend_resume.zig`, `zigux/tests/phase11_dw_wdt_remove_idle_split.zig`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, and `zigux/tests/phase11_hvc_console_poll_retry_split.zig`, and keeps the shared header-boundary packet explicit through `scripts/zigux/check-phase11-header-boundary-packet.py`?",
 ]
 EXPECTED_SHARED_SPLIT_REPLAYS = [
     {
@@ -677,12 +681,12 @@ def run_self_test() -> int:
 
         write_text(
             tests_companion_path,
-            tests_companion_backup.replace(TESTS_COMPANION_MARKERS[3] + "\n", "", 1),
+            tests_companion_backup.replace(TESTS_COMPANION_MARKERS[-1] + "\n", "", 1),
         )
         expect_missing(
-            "missing_tests_companion_header_boundary_prompt",
+            "missing_tests_companion_expanded_boundary_prompt",
             run_checker(tmp_root),
-            f"tests_companion:{TESTS_COMPANION_MARKERS[3]}",
+            f"tests_companion:{TESTS_COMPANION_MARKERS[-1]}",
         )
 
     print("PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST=pass")
