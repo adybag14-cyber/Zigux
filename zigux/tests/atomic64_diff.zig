@@ -7,6 +7,8 @@ const phase4_build_source = @embedFile("phase4_build.zig");
 const phase4_makefile_source = @embedFile("../Makefile");
 const phase9_build_source = @embedFile("phase9_build.zig");
 const validate_phase4_source = @embedFile("../../scripts/zigux/validate-phase4.py");
+const phase4_gate_evidence_source = @embedFile("../../Documentation/zigux/phase4-gate-evidence.md");
+const check_phase4_gate_evidence_source = @embedFile("../../scripts/zigux/check-phase4-gate-evidence.py");
 
 comptime {
     _ = runtime_atomic64_diff;
@@ -30,6 +32,14 @@ fn expectManifestMarker(marker: []const u8) !void {
 
 fn expectValidatorMarker(marker: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, validate_phase4_source, marker) != null);
+}
+
+fn expectGateEvidenceMarker(marker: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence_source, marker) != null);
+}
+
+fn expectGateEvidenceCheckerMarker(marker: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, check_phase4_gate_evidence_source, marker) != null);
 }
 
 fn expectWorkspaceMarker(path: []const u8, marker: []const u8, limit: usize) !void {
@@ -149,6 +159,21 @@ test "atomic64 diff wrapper checks the published phase4 make entrypoints directl
     try expectPhase4MakefileMarker(
         "$(ZIG) build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig",
     );
+}
+
+test "atomic64 diff wrapper keeps the dedicated phase4 gate-evidence checker explicit" {
+    try expectPhase4MakefileMarker("scripts/zigux/check-phase4-gate-evidence.py --self-test");
+    try expectPhase4MakefileMarker("scripts/zigux/check-phase4-gate-evidence.py");
+    try expectGateEvidenceCheckerMarker("PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA");
+    try expectGateEvidenceCheckerMarker("REQUIRED_RUNTIME_ATOMIC64_REVERSIBLE_DELIVERY_MARKERS");
+    try expectGateEvidenceCheckerMarker("make -C zigux phase4-validate");
+    try expectGateEvidenceCheckerMarker("make -C zigux phase4-test");
+    try expectGateEvidenceCheckerMarker("PHASE4_GATE_EVIDENCE_TARGET_COUNT");
+    try expectGateEvidenceMarker("`PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA=");
+    try expectGateEvidenceMarker("`PHASE4_GATE_EVIDENCE_SELF_TEST=pass`");
+    try expectGateEvidenceMarker("`PHASE4_GATE_EVIDENCE_CHECK=pass`");
+    try expectGateEvidenceMarker("`PHASE4_GATE_EVIDENCE_TARGET_COUNT=15`");
+    try expectGateEvidenceMarker("the dedicated `scripts/zigux/check-phase4-gate-evidence.py` checker");
 }
 
 test "atomic64 diff wrapper keeps phase4 validator aligned with wrapper and runtime split" {
