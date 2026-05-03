@@ -142,6 +142,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
                     "zigux/tests/phase10_build.zig",
                     "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
                     "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
+                    "scripts/zigux/check-phase10-harness-coverage.py",
                 ]:
                     if path not in evidence:
                         missing.append(
@@ -176,6 +177,7 @@ def write_fixture(root: Path) -> None:
                     "zigux/tests/phase10_build.zig",
                     "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
                     "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
+                    "scripts/zigux/check-phase10-harness-coverage.py",
                 ]
             }
         },
@@ -305,6 +307,19 @@ def run_self_test() -> int:
         )
         write_fixture(root)
 
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        evidence = manifest["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"]
+        manifest["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"] = [
+            path for path in evidence if path != "scripts/zigux/check-phase10-harness-coverage.py"
+        ]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "closure_manifest_harness_evidence",
+            root,
+            "closure_manifest:roadmap_parity_scoreboard:lab_only_driver_validation:evidence:scripts/zigux/check-phase10-harness-coverage.py",
+        )
+        write_fixture(root)
+
         queue_isolation_path = root / "zigux/tests/phase10_virtio_mmio_queue_isolation.zig"
         original_queue_isolation = queue_isolation_path.read_text(encoding="utf-8")
         queue_isolation_path.write_text(
@@ -322,7 +337,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=6")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
