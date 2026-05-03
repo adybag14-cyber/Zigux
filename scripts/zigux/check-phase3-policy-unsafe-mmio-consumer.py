@@ -83,6 +83,11 @@ REQUIRED_POLICY_TEST_SNIPPETS = (
 )
 
 REQUIRED_POLICY_BUILD_SNIPPETS = (
+    "const rbtree_bindings_module = b.createModule(.{",
+    '.root_source_file = b.path("../bindings/rbtree.zig"),',
+    "const layout_assert_module = b.createModule(.{",
+    'layout_assert_module.addImport("abi_bindings", abi_bindings_module);',
+    'layout_assert_module.addImport("rbtree_bindings", rbtree_bindings_module);',
     "const interop_policy_module = b.createModule(.{",
     'interop_policy_module.addImport("abi_bindings", abi_bindings_module);',
     'interop_policy_module.addImport("panic_policy", panic_policy_module);',
@@ -93,6 +98,7 @@ REQUIRED_POLICY_BUILD_SNIPPETS = (
     'mmio_module.addImport("interop_policy", interop_policy_module);',
     'mmio_module.addImport("narrow_unsafe", narrow_unsafe_module);',
     'root_module.addImport("interop_policy", interop_policy_module);',
+    'root_module.addImport("layout_assert", layout_assert_module);',
     'root_module.addImport("mmio", mmio_module);',
     '"phase3-policy-unsafe-test",',
 )
@@ -215,6 +221,34 @@ def run_self_test() -> int:
         issues = validate(root)
         assert "missing_policy_test_snippet:try std.testing.expectError(error.UnsafeScopeDenied, none_policy.constSliceAt(u32, base, words.len));" in issues
         assert "missing_policy_test_snippet:try std.testing.expectError(error.UnsafeScopeDenied, none_policy.constPointerAt(u32, base));" in issues
+
+        _write(root, POLICY_TEST_REL, "\n".join(REQUIRED_POLICY_TEST_SNIPPETS) + "\n")
+        _write(
+            root,
+            POLICY_BUILD_REL,
+            "\n".join(
+                snippet
+                for snippet in REQUIRED_POLICY_BUILD_SNIPPETS
+                if snippet != 'layout_assert_module.addImport("rbtree_bindings", rbtree_bindings_module);'
+            )
+            + "\n",
+        )
+        issues = validate(root)
+        assert 'missing_policy_build_snippet:layout_assert_module.addImport("rbtree_bindings", rbtree_bindings_module);' in issues
+
+        _write(root, POLICY_BUILD_REL, "\n".join(REQUIRED_POLICY_BUILD_SNIPPETS) + "\n")
+        _write(
+            root,
+            POLICY_BUILD_REL,
+            "\n".join(
+                snippet
+                for snippet in REQUIRED_POLICY_BUILD_SNIPPETS
+                if snippet != 'root_module.addImport("layout_assert", layout_assert_module);'
+            )
+            + "\n",
+        )
+        issues = validate(root)
+        assert 'missing_policy_build_snippet:root_module.addImport("layout_assert", layout_assert_module);' in issues
 
     print("PHASE3_POLICY_UNSAFE_MMIO_CONSUMER_SELF_TEST=pass")
     return 0
