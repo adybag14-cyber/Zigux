@@ -251,6 +251,14 @@ def run_self_test() -> int:
     else:
         raise SystemExit("phase7-build-inventory:self-test:test_block_error_missing")
 
+    try:
+        render_shared_test_command("phase7-test:\n\t@true\n")
+    except ValueError as exc:
+        if str(exc) != "missing phase7-test compile command":
+            raise SystemExit("phase7-build-inventory:self-test:test_command_error_shape")
+    else:
+        raise SystemExit("phase7-build-inventory:self-test:test_command_error_missing")
+
     stale_marker_drift_text = (
         build_text
         + "\n// stale phase7 drift markers: zigux/tests/build.zig ../../tools/lib/\n"
@@ -534,7 +542,7 @@ def run_self_test() -> int:
         raise SystemExit("phase7-build-inventory:self-test:shared_test_command_drift_shape")
 
     print("PHASE7_BUILD_INVENTORY_SELF_TEST=pass")
-    print("PHASE7_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=21")
+    print("PHASE7_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=22")
     return 0
 
 
@@ -606,7 +614,7 @@ def main(argv: list[str] | None = None) -> int:
     if generated.get("unexpected_build_markers") != UNEXPECTED_BUILD_MARKERS:
         build_inventory_errors.append("unexpected_build_markers")
     if len(generated.get("run_labels", [])) != 8:
-        build_inventory_errors.append("run_labels")
+        build_inventoryErrors.append("run_labels")
     if len(generated.get("shared_test_depend_steps", [])) != 8:
         build_inventory_errors.append("shared_test_depend_steps")
     for run_label in EXPECTED_REPO_ROOT_RUN_CWDS:
