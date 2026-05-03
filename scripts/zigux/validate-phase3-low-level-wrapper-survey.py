@@ -438,6 +438,22 @@ def run_self_test() -> int:
         _write(root, MMIO_REL, "\n".join(REQUIRED_MMIO_SNIPPETS) + "\n")
         _write(
             root,
+            MAKEFILE_REL,
+            "\n".join(
+                snippet
+                for snippet in REQUIRED_MAKEFILE_SNIPPETS
+                if snippet != "scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test"
+            ) + "\n",
+        )
+        issues = validate(root)
+        assert (
+            "missing_makefile_snippet:scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test"
+            in issues
+        )
+
+        _write(root, MAKEFILE_REL, "\n".join(REQUIRED_MAKEFILE_SNIPPETS) + "\n")
+        _write(
+            root,
             LOW_LEVEL_TEST_REL,
             "\n".join(
                 snippet
