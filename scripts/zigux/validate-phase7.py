@@ -31,6 +31,7 @@ required_files = [
     ROOT / "zigux" / "tests" / "phase7_string_helpers_survey.zig",
     ROOT / "zigux" / "tests" / "phase7_cmdline.zig",
     ROOT / "zigux" / "tests" / "phase7_cmdline_survey.zig",
+    ROOT / "zigux" / "tests" / "phase7_cmdline_manifest.json",
     ROOT / "zigux" / "tests" / "phase7_argv_split.zig",
     ROOT / "zigux" / "tests" / "phase7_argv_split_survey.zig",
     ROOT / "zigux" / "tests" / "phase7_argv_split_manifest.json",
@@ -320,8 +321,16 @@ def run_self_test() -> int:
             "zigux/tests/fixtures/phase7_argv_split.json: leading_nul_stays_empty",
         )
 
+        cmdline_manifest_path = tmp_root / "zigux" / "tests" / "phase7_cmdline_manifest.json"
+        cmdline_manifest_path.unlink()
+        expect_missing_marker(
+            "cmdline_manifest_required_file",
+            tmp_root,
+            "zigux/tests/phase7_cmdline_manifest.json",
+        )
+
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=5")
+    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
