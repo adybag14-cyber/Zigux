@@ -446,10 +446,7 @@ test "runtime atomic64 diff gate keeps selftest family coverage explicit" {
     try std.testing.expectError(error.InvalidLifecycleTransition, module.addCounter(1));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.subCounter(1));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.swapCounter(7));
-    try std.testing.expectError(error.InvalidLifecycleTransition, module.compareSwapCounter(
-        std.math.minInt(i64),
-        7,
-    ));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.compareSwapCounter(std.math.minInt(i64), 7));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.orCounter(1));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.andCounter(1));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.xorCounter(1));
@@ -546,19 +543,22 @@ test "runtime atomic64 diff gate keeps post-selftest replay explicit" {
     try std.testing.expectEqual(seed + 2, module.snapshotCounter());
 
     const add_unless = try module.addUnlessCounter(3, 0);
-    try std.testing.expectEqual(seed + 2, add_unless.previous);
-    try std.testing.expect(add_unless.changed);
-    try std.testing.expectEqual(seed + 5, module.snapshotCounter());
+    try std.testing.expectEqual(seed + 2, add_unless.previous); try std.testing.expect(add_unless.changed); try std.testing.expectEqual(seed + 5, module.snapshotCounter());
 
     const inc_not_zero = try module.incNotZeroCounter();
-    try std.testing.expectEqual(seed + 5, inc_not_zero.previous);
-    try std.testing.expect(inc_not_zero.changed);
-    try std.testing.expectEqual(seed + 6, module.snapshotCounter());
+    try std.testing.expectEqual(seed + 5, inc_not_zero.previous); try std.testing.expect(inc_not_zero.changed); try std.testing.expectEqual(seed + 6, module.snapshotCounter());
 
     const dec_if_positive = try module.decIfPositiveCounter();
-    try std.testing.expectEqual(seed + 5, dec_if_positive.result);
-    try std.testing.expect(dec_if_positive.changed);
-    try std.testing.expectEqual(seed + 5, module.snapshotCounter());
+    try std.testing.expectEqual(seed + 5, dec_if_positive.result); try std.testing.expect(dec_if_positive.changed); try std.testing.expectEqual(seed + 5, module.snapshotCounter());
+
+    const rewind_to_zero = try module.addUnlessCounter(-(seed + 5), -1);
+    try std.testing.expectEqual(seed + 5, rewind_to_zero.previous); try std.testing.expect(rewind_to_zero.changed); try std.testing.expectEqual(@as(i64, 0), module.snapshotCounter());
+
+    const blocked_add_unless = try module.addUnlessCounter(3, 0);
+    try std.testing.expectEqual(@as(i64, 0), blocked_add_unless.previous); try std.testing.expect(!blocked_add_unless.changed); try std.testing.expectEqual(@as(i64, 0), module.snapshotCounter());
+
+    const zero_inc_not_zero = try module.incNotZeroCounter(); const zero_dec_if_positive = try module.decIfPositiveCounter();
+    try std.testing.expectEqual(@as(i64, 0), zero_inc_not_zero.previous); try std.testing.expect(!zero_inc_not_zero.changed); try std.testing.expectEqual(@as(i64, -1), zero_dec_if_positive.result); try std.testing.expect(!zero_dec_if_positive.changed); try std.testing.expectEqual(@as(i64, 0), module.snapshotCounter());
 
     try module.exit();
     try std.testing.expectEqual(sample.ModuleStage.exited, module.stage());
