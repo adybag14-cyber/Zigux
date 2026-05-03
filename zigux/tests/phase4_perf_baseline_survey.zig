@@ -28,6 +28,7 @@ const PendingThresholdPlan = struct {
     surface: []const u8,
     gate_owner: []const u8,
     gate_rollback_owner: []const u8,
+    threshold_posture: []const u8,
     current_correctness_replay: []const u8,
     benchmark_command: []const u8,
     acceptable_limit: []const u8,
@@ -110,6 +111,20 @@ fn expectedUnapprovedPlaceholder(posture: []const u8) ?[]const u8 {
     }
     if (std.mem.eql(u8, posture, "threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks")) {
         return "unapproved_until_bitmap_gate_grows_beyond_bounded_correctness_checks";
+    }
+    return null;
+}
+
+fn findSurveyedGate(manifest: Manifest, surface: []const u8) ?SurveyedGate {
+    for (manifest.surveyed_gates) |surveyed_gate| {
+        if (std.mem.eql(u8, surveyed_gate.surface, surface)) return surveyed_gate;
+    }
+    return null;
+}
+
+fn findPendingThresholdPlan(manifest: Manifest, surface: []const u8) ?PendingThresholdPlan {
+    for (manifest.pending_threshold_plans) |pending_plan| {
+        if (std.mem.eql(u8, pending_plan.surface, surface)) return pending_plan;
     }
     return null;
 }
@@ -198,18 +213,26 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
     );
     try std.testing.expectEqual(@as(usize, 2), manifest.pending_threshold_plans.len);
 
-    for (manifest.surveyed_gates, manifest.pending_threshold_plans) |surveyed_gate, pending_plan| {
-        try std.testing.expectEqualStrings(surveyed_gate.surface, pending_plan.surface);
+    for (manifest.surveyed_gates) |surveyed_gate| {
+        const pending_plan = findPendingThresholdPlan(manifest, surveyed_gate.surface) orelse return error.TestUnexpectedResult;
         try std.testing.expectEqualStrings(surveyed_gate.gate_owner, pending_plan.gate_owner);
         try std.testing.expectEqualStrings(surveyed_gate.gate_rollback_owner, pending_plan.gate_rollback_owner);
+        try std.testing.expectEqualStrings(surveyed_gate.threshold_posture, pending_plan.threshold_posture);
+    }
 
-        const expected_replay = expectedCorrectnessReplay(surveyed_gate.surface) orelse unreachable;
+    for (manifest.pending_threshold_plans) |pending_plan| {
+        const surveyed_gate = findSurveyedGate(manifest, pending_plan.surface) orelse return error.TestUnexpectedResult;
+        try std.testing.expectEqualStrings(surveyed_gate.gate_owner, pending_plan.gate_owner);
+        try std.testing.expectEqualStrings(surveyed_gate.gate_rollback_owner, pending_plan.gate_rollback_owner);
+        try std.testing.expectEqualStrings(surveyed_gate.threshold_posture, pending_plan.threshold_posture);
+
+        const expected_replay = expectedCorrectnessReplay(pending_plan.surface) orelse unreachable;
         try std.testing.expectEqualStrings(expected_replay, pending_plan.current_correctness_replay);
 
-        const expected_status = expectedPendingStatus(surveyed_gate.threshold_posture) orelse unreachable;
+        const expected_status = expectedPendingStatus(pending_plan.threshold_posture) orelse unreachable;
         try std.testing.expectEqualStrings(expected_status, pending_plan.status);
 
-        const expected_placeholder = expectedUnapprovedPlaceholder(surveyed_gate.threshold_posture) orelse unreachable;
+        const expected_placeholder = expectedUnapprovedPlaceholder(pending_plan.threshold_posture) orelse unreachable;
         try std.testing.expectEqualStrings(expected_placeholder, pending_plan.benchmark_command);
         try std.testing.expectEqualStrings(expected_placeholder, pending_plan.acceptable_limit);
     }
@@ -225,6 +248,10 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
     try std.testing.expectEqualStrings(
         "ABI and Runtime Team",
         manifest.pending_threshold_plans[0].gate_rollback_owner,
+    );
+    try std.testing.expectEqualStrings(
+        "threshold_pending_until_runtime_atomic64_scope_widens",
+        manifest.pending_threshold_plans[0].threshold_posture,
     );
     try std.testing.expectEqualStrings(
         "make -C zigux phase4-runtime-atomic64-diff",
@@ -254,6 +281,10 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
     try std.testing.expectEqualStrings(
         "Shared Subsystems Pod",
         manifest.pending_threshold_plans[1].gate_rollback_owner,
+    );
+    try std.testing.expectEqualStrings(
+        "threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
+        manifest.pending_threshold_plans[1].threshold_posture,
     );
     try std.testing.expectEqualStrings(
         "make -C zigux phase4-bitmap-diff",
