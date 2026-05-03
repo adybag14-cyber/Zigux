@@ -86,12 +86,60 @@ const WinsizeLayout = extern struct {
     ws_ypixel: u16,
 };
 
+const HvcStruct = opaque {};
+
+const HvcInstantiateFn = *const fn (u32, c_int, *const HvOpsLayout) callconv(.c) c_int;
+const HvcAllocFn = *const fn (u32, c_int, *const HvOpsLayout, c_int) callconv(.c) ?*HvcStruct;
+const HvcRemoveFn = *const fn (*HvcStruct) callconv(.c) void;
+const HvcPollFn = *const fn (*HvcStruct) callconv(.c) c_int;
+const HvcKickFn = *const fn () callconv(.c) void;
+const HvcResizeFn = *const fn (*HvcStruct, WinsizeLayout) callconv(.c) void;
+const HvcNotifierAddIrqFn = *const fn (*HvcStruct, c_int) callconv(.c) c_int;
+const HvcNotifierDelIrqFn = *const fn (*HvcStruct, c_int) callconv(.c) void;
+const HvcNotifierHangupIrqFn = *const fn (*HvcStruct, c_int) callconv(.c) void;
+
+const HvOpsLayout = extern struct {
+    get_chars: ?*const fn (u32, [*]u8, usize) callconv(.c) isize,
+    put_chars: ?*const fn (u32, [*]const u8, usize) callconv(.c) isize,
+    flush: ?*const fn (u32, bool) callconv(.c) c_int,
+    notifier_add: ?*const fn (*HvcStruct, c_int) callconv(.c) c_int,
+    notifier_del: ?*const fn (*HvcStruct, c_int) callconv(.c) void,
+    notifier_hangup: ?*const fn (*HvcStruct, c_int) callconv(.c) void,
+    tiocmget: ?*const fn (*HvcStruct) callconv(.c) c_int,
+    tiocmset: ?*const fn (*HvcStruct, c_uint, c_uint) callconv(.c) c_int,
+    dtr_rts: ?*const fn (*HvcStruct, bool) callconv(.c) void,
+};
+
+const HvcExportSurface = extern struct {
+    hvc_instantiate: HvcInstantiateFn,
+    hvc_alloc: HvcAllocFn,
+    hvc_remove: HvcRemoveFn,
+    hvc_poll: HvcPollFn,
+    hvc_kick: HvcKickFn,
+    __hvc_resize: HvcResizeFn,
+    notifier_add_irq: HvcNotifierAddIrqFn,
+    notifier_del_irq: HvcNotifierDelIrqFn,
+    notifier_hangup_irq: HvcNotifierHangupIrqFn,
+};
+
 fn expectSurveyedCommitProvenance(survey_note: []const u8, surveyed_commit: []const u8) !void {
     try std.testing.expectEqual(@as(usize, 40), surveyed_commit.len);
     for (surveyed_commit) |byte| {
         try std.testing.expect(std.ascii.isHex(byte));
     }
     try std.testing.expect(std.mem.indexOf(u8, survey_note, surveyed_commit) != null);
+}
+
+fn assertExactType(
+    comptime Actual: type,
+    comptime Expected: type,
+) void {
+    if (Actual != Expected) {
+        @compileError(std.fmt.comptimePrint(
+            "type mismatch: expected {s}, found {s}",
+            .{ @typeName(Expected), @typeName(Actual) },
+        ));
+    }
 }
 
 fn isAllowedStatus(status: []const u8) bool {
@@ -156,7 +204,7 @@ test "phase11 shared header parity manifest records the bounded layout checkpoin
     try std.testing.expect(manifest.survey_summary.dw_wdt_manifest_present);
     try std.testing.expect(manifest.survey_summary.hvc_console_survey_note_present);
     try std.testing.expect(manifest.survey_summary.hvc_console_manifest_present);
-    try std.testing.expectEqual(@as(usize, 8), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 9), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -167,6 +215,7 @@ test "phase11 shared header parity manifest records the bounded layout checkpoin
     var saw_hvc_snapshot_check = false;
     var saw_watchdog_layout_checkpoint = false;
     var saw_winsize_layout_checkpoint = false;
+    var saw_hvc_export_signature_assert = false;
     var saw_phase3_followup = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -238,6 +287,17 @@ test "phase11 shared header parity manifest records the bounded layout checkpoin
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "ws_row") != null);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase11-hvc-console-export-signature-assert")) {
+            saw_hvc_export_signature_assert = true;
+            try std.testing.expectEqualStrings("zigux/tests/phase11_uapi_header_parity_survey.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hvc_instantiate()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "__hvc_resize()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "notifier_*_irq()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "C calling convention") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "struct winsize") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase11-phase3-interop-followup")) {
             saw_phase3_followup = true;
             try std.testing.expectEqualStrings("Documentation/zigux/phase11-uapi-header-parity-survey.md", gap.zigux_destination);
@@ -251,7 +311,7 @@ test "phase11 shared header parity manifest records the bounded layout checkpoin
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 7), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 8), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), ready_next_count);
     try std.testing.expect(saw_note);
     try std.testing.expect(saw_gate);
@@ -260,6 +320,7 @@ test "phase11 shared header parity manifest records the bounded layout checkpoin
     try std.testing.expect(saw_hvc_snapshot_check);
     try std.testing.expect(saw_watchdog_layout_checkpoint);
     try std.testing.expect(saw_winsize_layout_checkpoint);
+    try std.testing.expect(saw_hvc_export_signature_assert);
     try std.testing.expect(saw_phase3_followup);
 }
 
@@ -380,9 +441,13 @@ test "phase11 shared header parity survey keeps the header boundary explicit" {
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "hvc_kick()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "notifier_*_irq()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "backed by code instead of prose alone") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "exported-helper signature checkpoint") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`hvc_instantiate()`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`__hvc_resize()`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "four driver-local ABI checkpoints") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "bounded exported hvc helper signature proofs") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase11_hvc_console_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared-versus-dedicated replay") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "three driver-local ABI checkpoints") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "callback-signature proofs") != null);
     try std.testing.expect(std.mem.indexOf(u8, watchdog_uapi_header, "struct watchdog_info") != null);
     try std.testing.expect(std.mem.indexOf(u8, watchdog_uapi_header, "__u32 options") != null);
@@ -448,6 +513,9 @@ test "phase11 shared header parity survey keeps the header boundary explicit" {
     try std.testing.expect(std.mem.indexOf(u8, hvc_survey, "assertExactType(@FieldType(HvOpsLayout, \"tiocmget\"), ?*const fn (*HvcStruct) callconv(.c) c_int);") != null);
     try std.testing.expect(std.mem.indexOf(u8, hvc_survey, "assertExactType(@FieldType(HvOpsLayout, \"tiocmset\"), ?*const fn (*HvcStruct, c_uint, c_uint) callconv(.c) c_int);") != null);
     try std.testing.expect(std.mem.indexOf(u8, hvc_survey, "assertExactType(@FieldType(HvOpsLayout, \"dtr_rts\"), ?*const fn (*HvcStruct, bool) callconv(.c) void);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_survey, "test \"phase11 hvc console survey keeps bounded exported helper signature proofs\" {") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_survey, "assertExactType(@FieldType(HvcExportSurface, \"hvc_instantiate\"), HvcInstantiateFn);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_survey, "assertExactType(@FieldType(HvcExportSurface, \"notifier_hangup_irq\"), HvcNotifierHangupIrqFn);") != null);
     try std.testing.expectEqual(@as(usize, 13), inventory.build_test_names.len);
     try std.testing.expectEqual(@as(usize, 12), inventory.shared_test_depend_steps.len);
     try std.testing.expectEqual(@as(usize, 19), inventory.module_root_source_files.len);
@@ -576,5 +644,19 @@ test "phase11 shared header parity survey keeps a bounded winsize layout proof" 
         layout_assert.assertOffset(WinsizeLayout, "ws_col", 2);
         layout_assert.assertOffset(WinsizeLayout, "ws_xpixel", 4);
         layout_assert.assertOffset(WinsizeLayout, "ws_ypixel", 6);
+    }
+}
+
+test "phase11 shared header parity survey keeps bounded exported helper signature proofs" {
+    comptime {
+        assertExactType(@FieldType(HvcExportSurface, "hvc_instantiate"), HvcInstantiateFn);
+        assertExactType(@FieldType(HvcExportSurface, "hvc_alloc"), HvcAllocFn);
+        assertExactType(@FieldType(HvcExportSurface, "hvc_remove"), HvcRemoveFn);
+        assertExactType(@FieldType(HvcExportSurface, "hvc_poll"), HvcPollFn);
+        assertExactType(@FieldType(HvcExportSurface, "hvc_kick"), HvcKickFn);
+        assertExactType(@FieldType(HvcExportSurface, "__hvc_resize"), HvcResizeFn);
+        assertExactType(@FieldType(HvcExportSurface, "notifier_add_irq"), HvcNotifierAddIrqFn);
+        assertExactType(@FieldType(HvcExportSurface, "notifier_del_irq"), HvcNotifierDelIrqFn);
+        assertExactType(@FieldType(HvcExportSurface, "notifier_hangup_irq"), HvcNotifierHangupIrqFn);
     }
 }
