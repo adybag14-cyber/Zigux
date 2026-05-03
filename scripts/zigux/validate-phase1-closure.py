@@ -284,7 +284,12 @@ REQUIRED_MANIFEST_FIELDS = {
         "empty_unit_test_contract": "Direct Zig unit coverage keeps bitmap_scnprintf() from mutating a non-empty caller buffer when no bits are set, matching the committed empty-bitmap parity fixture contract.",
     },
     "tools/lib/find_bit.zig": {
+        "tail_start_unit_test_anchor": 'tools/lib/find_bit.zig:test "tail scans keep the last in-range bit reachable from an inclusive start"',
+        "tail_start_unit_test_contract": "Direct Zig unit coverage keeps tail-clamped set, zero, and shared-bit scans aligned when the inclusive start lands on the last in-range bit, while later starts still return nbits instead of leaking the out-of-range tail.",
+        "tail_word_boundary_unit_test_anchor": 'tools/lib/find_bit.zig:test "tail scans honor an exact tail-word boundary start"',
         "tail_word_boundary_unit_test_contract": "Direct Zig unit coverage keeps set, zero, and shared-bit tail scans aligned when the search starts exactly at the first tail-word bit index, so the first in-range tail match remains reachable without rereading an earlier full-word result.",
+        "zero_sized_unit_test_anchor": 'tools/lib/find_bit.zig:test "zero-sized scans ignore populated backing words"',
+        "zero_sized_unit_test_contract": "Direct Zig unit coverage keeps zero-length set, zero, and shared-bit scans aligned by returning 0 even when backing words are populated, so declared nbits stays authoritative over caller storage.",
     },
     "tools/lib/rbtree.zig": {
         "shared_parity_scope_note": "The committed shared Phase 1 fixture still stops at traversal, replaceNode, eraseInit, postorder traversal, and detached-node state checks; duplicate-key search, duplicate-range iterators, and cached-root minima tracking are currently recorded as direct Zig unit coverage only in this closed tranche.",
@@ -586,6 +591,24 @@ def self_test() -> int:
         write(root / "zigux/tests/fixtures/phase1_helper_manifest.json", json.dumps(fixture_manifest(), indent=2) + "\n")
 
         manifest = fixture_manifest()
+        manifest["helper_review_notes"]["tools/lib/find_bit.zig"]["tail_start_unit_test_contract"] = "drift"
+        write(root / "zigux/tests/fixtures/phase1_helper_manifest.json", json.dumps(manifest, indent=2) + "\n")
+        expect_failure(root, "manifest:tools/lib/find_bit.zig:tail_start_unit_test_contract")
+        write(root / "zigux/tests/fixtures/phase1_helper_manifest.json", json.dumps(fixture_manifest(), indent=2) + "\n")
+
+        manifest = fixture_manifest()
+        manifest["helper_review_notes"]["tools/lib/find_bit.zig"]["tail_word_boundary_unit_test_anchor"] = "drift"
+        write(root / "zigux/tests/fixtures/phase1_helper_manifest.json", json.dumps(manifest, indent=2) + "\n")
+        expect_failure(root, "manifest:tools/lib/find_bit.zig:tail_word_boundary_unit_test_anchor")
+        write(root / "zigux/tests/fixtures/phase1_helper_manifest.json", json.dumps(fixture_manifest(), indent=2) + "\n")
+
+        manifest = fixture_manifest()
+        manifest["helper_review_notes"]["tools/lib/find_bit.zig"]["zero_sized_unit_test_contract"] = "drift"
+        write(root / "zigux/tests/fixtures/phase1_helper_manifest.json", json.dumps(manifest, indent=2) + "\n")
+        expect_failure(root, "manifest:tools/lib/find_bit.zig:zero_sized_unit_test_contract")
+        write(root / "zigux/tests/fixtures/phase1_helper_manifest.json", json.dumps(fixture_manifest(), indent=2) + "\n")
+
+        manifest = fixture_manifest()
         manifest["helper_review_notes"]["tools/lib/string.zig"]["memparse_unit_test_contract"] = "drift"
         write(root / "zigux/tests/fixtures/phase1_helper_manifest.json", json.dumps(manifest, indent=2) + "\n")
         expect_failure(root, "manifest:tools/lib/string.zig:memparse_unit_test_contract")
@@ -643,7 +666,7 @@ def self_test() -> int:
         expect_failure(root, "rbtree_source:unexpected_alias:pub fn rb_first(")
 
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=24")
+    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=27")
     return 0
 
 
