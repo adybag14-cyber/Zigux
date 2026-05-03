@@ -11,6 +11,13 @@ ROOT = Path(__file__).resolve().parents[2]
 README_REL = "scripts/zigux/README.md"
 TOOLING_PACKET_SCRIPT_REL = "scripts/zigux/check-phase3-tooling-packet.py"
 README_HELPER_SECTION = "Current bootstrap helpers"
+REQUIRED_PHASE3_FLOW_SNIPPETS = (
+    "`validate-phase3.py` is the validator-first entrypoint for the shared Phase 3 ABI and interop packet, and `make -C zigux phase3-validate` plus the bootstrap workflow replay that same route before the broader build-backed or survey-backed checks run.",
+    "`validate-phase3-roadmap-gap-survey.py`, `validate-phase3-rbtree-interop-survey.py`, `check-phase3-rbtree-shared-lift-contract.py`, `validate-phase3-export-uapi-survey.py`, `validate-phase3-low-level-wrapper-survey.py`, `validate-phase3-policy-unsafe-survey.py`, `check-phase3-policy-unsafe-mmio-consumer.py`, `check-phase3-abi-layout-packet.py`, `check-phase3-abi-binding-constants.py`, `check-phase3-tooling-packet.py`, `check-phase3-readme-tooling-inventory.py`, `check-phase3-validation-flow.py`, `check-phase3-build-roots.py`, and `check-phase3-canonical-survey-manifest.py` stay as supporting checks inside that validator-first route rather than standalone bootstrap or release entrypoints.",
+)
+EXACT_ONCE_PHASE3_FLOW_SNIPPETS = (
+    REQUIRED_PHASE3_FLOW_SNIPPETS[0],
+)
 
 
 def _ordered_unique(entries: list[str]) -> list[str]:
@@ -93,6 +100,30 @@ def _helper_section_entries(readme: str) -> tuple[list[str], list[str]]:
     return entries, issues
 
 
+def _require_snippets(
+    text: str,
+    snippets: tuple[str, ...],
+    prefix: str,
+    issues: list[str],
+) -> None:
+    for snippet in snippets:
+        if snippet not in text:
+            issues.append(f"{prefix}:{snippet}")
+
+
+def _require_exact_count(
+    text: str,
+    snippets: tuple[str, ...],
+    prefix: str,
+    expected_count: int,
+    issues: list[str],
+) -> None:
+    for snippet in snippets:
+        actual_count = text.count(snippet)
+        if actual_count != expected_count:
+            issues.append(f"{prefix}:{actual_count}:{snippet}")
+
+
 def validate(root: Path) -> list[str]:
     readme_path = root / README_REL
     try:
@@ -103,6 +134,14 @@ def validate(root: Path) -> list[str]:
     required_entries, issues = _canonical_readme_entries(root)
     readme_entries, section_issues = _helper_section_entries(readme)
     issues.extend(section_issues)
+    _require_snippets(readme, REQUIRED_PHASE3_FLOW_SNIPPETS, "missing_phase3_flow_snippet", issues)
+    _require_exact_count(
+        readme,
+        EXACT_ONCE_PHASE3_FLOW_SNIPPETS,
+        "unexpected_phase3_flow_snippet_count",
+        1,
+        issues,
+    )
 
     required_set = set(required_entries)
     readme_set = set(readme_entries)
@@ -127,6 +166,17 @@ def validate(root: Path) -> list[str]:
 def _write(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8", newline="\n")
+
+
+def _fixture_phase3_flow() -> str:
+    return "\n".join(
+        (
+            "Phase 3 flow",
+            f"- {REQUIRED_PHASE3_FLOW_SNIPPETS[0]}",
+            f"- {REQUIRED_PHASE3_FLOW_SNIPPETS[1]}",
+            "",
+        )
+    )
 
 
 def run_self_test() -> int:
@@ -171,6 +221,7 @@ def run_self_test() -> int:
                     "- `artifact_diff.py`",
                     helper_lines,
                     "",
+                    _fixture_phase3_flow(),
                 )
             ),
         )
@@ -194,6 +245,7 @@ def run_self_test() -> int:
                         if rel != tooling_packet_rels[0]
                     ],
                     "",
+                    _fixture_phase3_flow(),
                 )
             ),
         )
@@ -216,6 +268,7 @@ def run_self_test() -> int:
                     f"- `{Path(tooling_packet_rels[0]).name}`",
                     *[f"- `{Path(rel).name}`" for rel in tooling_packet_rels[2:]],
                     "",
+                    _fixture_phase3_flow(),
                 )
             ),
         )
@@ -238,6 +291,7 @@ def run_self_test() -> int:
                     f"- `{Path(tooling_packet_rels[0]).name}`",
                     *[f"- `{Path(rel).name}`" for rel in tooling_packet_rels[1:]],
                     "",
+                    _fixture_phase3_flow(),
                 )
             ),
         )
@@ -262,6 +316,56 @@ def run_self_test() -> int:
                 )
             ),
         )
+        issues = validate(root)
+        expected = [
+            f"missing_phase3_flow_snippet:{REQUIRED_PHASE3_FLOW_SNIPPETS[0]}",
+            f"missing_phase3_flow_snippet:{REQUIRED_PHASE3_FLOW_SNIPPETS[1]}",
+            f"unexpected_phase3_flow_snippet_count:0:{REQUIRED_PHASE3_FLOW_SNIPPETS[0]}",
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-readme-tooling-inventory-self-test:missing_phase3_flow_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+        _write(
+            root / README_REL,
+            "\n".join(
+                (
+                    "# scripts/zigux",
+                    "",
+                    "Current bootstrap helpers",
+                    "- `artifact_diff.py`",
+                    helper_lines,
+                    "",
+                    _fixture_phase3_flow() + f"- {REQUIRED_PHASE3_FLOW_SNIPPETS[0]}",
+                )
+            ),
+        )
+        issues = validate(root)
+        expected = [
+            f"unexpected_phase3_flow_snippet_count:2:{REQUIRED_PHASE3_FLOW_SNIPPETS[0]}"
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-readme-tooling-inventory-self-test:duplicate_phase3_flow_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+        _write(
+            root / README_REL,
+            "\n".join(
+                (
+                    "# scripts/zigux",
+                    "",
+                    "Current bootstrap helpers",
+                    "- `artifact_diff.py`",
+                    helper_lines,
+                    "",
+                    _fixture_phase3_flow(),
+                )
+            ),
+        )
         (root / tooling_packet_rels[-1]).unlink()
         issues = validate(root)
         expected = f"missing_repo_file:{tooling_packet_rels[-1]}"
@@ -272,7 +376,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
-    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=4")
+    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
