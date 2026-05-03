@@ -142,6 +142,7 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
     try expectClear(&map, 8);
     try expectSet(&map, 9);
 
+    // The shipped Zig helper still keeps bitmap_fill(35) at the requested whole-word-rounded prefix boundary.
     // bitmap_fill() matches the Linux rounded whole-word contract at the 35-bit edge.
     try std.testing.expectEqual(bits_per_long, roundedPrefixLen(35));
     try expectCurrentFillPrefix(&map, 35, roundedPrefixLen(35), "0-63");
@@ -187,9 +188,10 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
     try expectSet(&map, bits_per_long * 2);
 }
 
-test "bitmap diff gate keeps rounded fill parity explicit against lib/test_bitmap.c" {
+test "bitmap diff survey keeps the current rounded fill drifts explicit against lib/test_bitmap.c and records the resolved 115-bit fill parity" {
     var map = [_]Word{0} ** word_count;
 
+    // No longer true that the current Zig helper stops at bit 114; the 115-bit fill now rounds to the Linux two-word anchor.
     // The Linux anchor rounds fill(115) to two whole words and the Zig helper now matches it.
     try std.testing.expectEqual(bits_per_long * 2, roundedPrefixLen(115));
     try expectCurrentFillPrefix(&map, 115, roundedPrefixLen(115), "0-127");
