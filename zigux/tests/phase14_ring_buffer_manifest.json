@@ -225,7 +225,7 @@
       "status": "blocked_on_stay_in_c_evidence",
       "kind": "freeze_map",
       "zigux_destination": "kernel/trace/ring_buffer.zig",
-      "why_now": "The roadmap allows `kernel/trace/ring_buffer.zig` only if years of evidence justify it, and the current survey still shows deep commit, per-CPU page, reader, wakeup, mmap, and overwrite coupling that should remain in the C implementation."
+      "why_now": "The roadmap allows `kernel/trace/ring_buffer.zig` only if years of evidence justify it, and the current survey still shows deep commit, per-CPU page, reader, wakeup, mmap, overwrite, resize, mapped-reader lifetime, and hotplug publication coupling that remains C-owned. Future reconsideration must cite one fresh source-of-truth change or one smaller tracefs evidence gap that cleanly narrows a single contract; otherwise this packet stays parked and the blocker remains in force."
     }
   ]
 }
