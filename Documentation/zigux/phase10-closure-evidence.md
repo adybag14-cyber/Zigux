@@ -14,7 +14,9 @@ This document records the current closure evidence for the active bounded Phase 
   - `drivers/virtio/virtio_input.zig`
   - `drivers/virtio/virtio_mmio.zig`
   - `zigux/tests/phase10_build.zig`
+  - `zigux/tests/phase10_virtio_input_multitouch_preflight.zig`
   - `zigux/tests/phase10_virtio_mmio.zig`
+  - `zigux/tests/phase10_virtio_mmio_queue_isolation.zig`
   - `zigux/tests/phase10_closure_manifest.json`
   - `scripts/zigux/check-phase10-closure-inventory.py`
   - `scripts/zigux/validate-phase10-closure.py`
@@ -43,14 +45,18 @@ The current bounded Phase 10 evidence set is:
 - `zigux/tests/phase10_virtio_ring_manifest.json`
 - `zigux/tests/phase10_virtio_input_manifest.json`
 - `zigux/tests/phase10_virtio_mmio_manifest.json`
+- `zigux/tests/phase10_virtio_input_multitouch_preflight.zig`
+- `zigux/tests/phase10_virtio_mmio_queue_isolation.zig`
 
 - `PHASE10_DOC_COUNT=9`
 - `PHASE10_MANIFEST_COUNT=4`
 - `PHASE10_DRIVER_COUNT=4`
-- `PHASE10_TEST_COUNT=9`
+- `PHASE10_TEST_COUNT=11`
 - `PHASE10_HAS_VIRTIO_MMIO_ZIG=yes`
 
 The shared closure manifest now carries explicit landed-helper evidence for the core config summaries, the ring queue-discipline ladder through broken-queue recovery, the input capability-setup, multitouch-slot, teardown-observation, and preflight ladder through probe preflight, and the MMIO helper ladder through bounded interrupt acknowledgement. The shared closure guards therefore keep the current ring, input, and MMIO helper ladders explicit instead of letting the shared packet stop one rung earlier than the live survey manifests.
+
+The same closure packet now also keeps the already-landed focused harness coverage explicit: the multitouch-ready input preflight replay and the MMIO multi-queue isolation replay are part of the Phase 10 evidence set rather than being left visible only from `zigux/tests/phase10_build.zig`.
 
 ## Roadmap Parity Scoreboard
 
@@ -67,7 +73,7 @@ The current roadmap-facing reading is:
 
 - `virtqueue wrappers`: `starter_landed` through `drivers/virtio/virtio_ring.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`, and `Documentation/zigux/phase10-virtio-ring-survey.md`
 - `MMIO wrappers`: `starter_landed` through `drivers/virtio/virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_manifest.json`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, and `Documentation/zigux/phase10-virtio-mmio-survey.md`
-- `lab-only driver validation`: `starter_landed` through `zigux/tests/phase10_build.zig`, `scripts/zigux/check-phase10-closure-inventory.py`, `scripts/zigux/validate-phase10.py`, `scripts/zigux/validate-phase10-closure.py`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and the shared `make -C zigux phase10-{validate,test}` entrypoints
+- `lab-only driver validation`: `starter_landed` through `zigux/tests/phase10_build.zig`, `zigux/tests/phase10_virtio_input_multitouch_preflight.zig`, `zigux/tests/phase10_virtio_mmio_queue_isolation.zig`, `scripts/zigux/check-phase10-closure-inventory.py`, `scripts/zigux/validate-phase10.py`, `scripts/zigux/validate-phase10-closure.py`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and the shared `make -C zigux phase10-{validate,test}` entrypoints
 - `dual implementations for risky areas`: `blocked_on_risky_transport` because the current ring, input, and MMIO manifests still keep MMIO lifecycle paths, queue setup or reset, IRQ parity, DMA-facing paths, input registration lifecycle, and probe or remove work out of scope until smaller helpers land first
 
 This keeps the closure packet aligned with the roadmap's real Phase 10 requirements: queue-facing lab wrappers are landed, the bounded MMIO register-window, queue-register, queue-notify, queue-address, config-window, config-write, and interrupt-ack helpers are now landed, the lab validation gate is real, and risky transport expansion is still intentionally blocked.
@@ -110,7 +116,7 @@ The current Phase 10 tranche is only considered evidence-verified when all of th
 6. Linux-style combined Phase 10 entrypoint
 - `make -C zigux phase10`
 
-These checks now fail closed on the direct closure-inventory packet, the wider shared `scripts/zigux/validate-phase10.py` gate reached by the published validate wrapper, the shared closure packet, and the current MMIO ladder through bounded interrupt acknowledgement, so `zigux/tests/phase10_closure_manifest.json`, `zigux-alpha/PHASE10_CLOSURE_LEDGER.md`, `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-virtio-mmio-survey.md`, and `zigux/tests/phase10_virtio_mmio_manifest.json` stay machine-checked together at the same interrupt-ack rung.
+These checks now fail closed on the direct closure-inventory packet, the wider shared `scripts/zigux/validate-phase10.py` gate reached by the published validate wrapper, the shared closure packet, the input multitouch-ready preflight replay, the MMIO queue-isolation replay, and the current MMIO ladder through bounded interrupt acknowledgement, so `zigux/tests/phase10_closure_manifest.json`, `zigux-alpha/PHASE10_CLOSURE_LEDGER.md`, `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-virtio-mmio-survey.md`, and `zigux/tests/phase10_virtio_mmio_manifest.json` stay machine-checked together at the same interrupt-ack rung.
 
 - `PHASE10_CLOSURE_INVENTORY_GATE=python3 scripts/zigux/check-phase10-closure-inventory.py`
 - `PHASE10_CLOSURE_GATE=python3 scripts/zigux/validate-phase10-closure.py`
@@ -159,7 +165,9 @@ The exact current reading of the live repo is:
 - `Documentation/zigux/phase10-virtio-core-survey.md`, `zigux/tests/phase10_virtio_core_manifest.json`, and `zigux/tests/phase10_virtio_core_survey.zig` record the already-landed core survey surface, including the config-generation summary helper plus the config-delivery disposition helper that make the last in-memory config-change branch outcome explicit before risky lifecycle work
 - `drivers/virtio/virtio_ring.zig` is the bounded virtqueue helper starter
 - `drivers/virtio/virtio_input.zig` is the bounded input-driver starter
+- `zigux/tests/phase10_virtio_input_multitouch_preflight.zig` keeps the ready-state input preflight packet honest by proving multitouch slot metadata survives into the later queue-callback and probe handoff summaries
 - `drivers/virtio/virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio.zig`, and `Documentation/zigux/phase10-virtio-mmio-slice.md` now record the bounded MMIO register-window, queue-register, queue-notify, queue-address, config-window, config-write, and interrupt-ack starter surface
+- `zigux/tests/phase10_virtio_mmio_queue_isolation.zig` keeps the queue-address planning and notify bookkeeping honest across queue-selection changes instead of leaving that multi-queue boundary implicit inside the shared build only
 - `Documentation/zigux/phase10-virtio-mmio-survey.md` and `zigux/tests/phase10_virtio_mmio_manifest.json` now agree that the interrupt-ack helper is landed while MMIO lifecycle and IRQ work remain blocked
 
 This means the current evidence bundle is reviewable, but Phase 10 is not globally closed:
