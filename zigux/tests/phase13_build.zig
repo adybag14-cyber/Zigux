@@ -95,6 +95,11 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     phase13_devres_reviewability_module.addImport("devres", devres_module);
+    const phase13_devres_wrapper_reviewability_module = b.createModule(.{
+        .root_source_file = b.path("phase13_devres_wrapper_reviewability.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
     const phase13_notifier_list_reviewability_module = b.createModule(.{
         .root_source_file = b.path("phase13_notifier_list_reviewability.zig"),
         .target = target,
@@ -173,6 +178,11 @@ pub fn build(b: *std.Build) void {
         .root_module = phase13_devres_reviewability_module,
     });
     const run_phase13_devres_reviewability_tests = b.addRunArtifact(phase13_devres_reviewability_tests);
+    const phase13_devres_wrapper_reviewability_tests = b.addTest(.{
+        .name = "phase13-devres-wrapper-reviewability-tests",
+        .root_module = phase13_devres_wrapper_reviewability_module,
+    });
+    const run_phase13_devres_wrapper_reviewability_tests = b.addRunArtifact(phase13_devres_wrapper_reviewability_tests);
     const phase13_notifier_list_reviewability_tests = b.addTest(.{
         .name = "phase13-notifier-list-reviewability-tests",
         .root_module = phase13_notifier_list_reviewability_module,
@@ -196,6 +206,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_phase13_landlock_syscalls_reviewability_tests.step);
     test_step.dependOn(&run_phase13_libfs_reviewability_tests.step);
     test_step.dependOn(&run_phase13_devres_reviewability_tests.step);
+    test_step.dependOn(&run_phase13_devres_wrapper_reviewability_tests.step);
     test_step.dependOn(&run_phase13_notifier_list_reviewability_tests.step);
     test_step.dependOn(&run_phase13_notifier_chain_view_tests.step);
 }
