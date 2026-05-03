@@ -230,7 +230,7 @@ test "phase14 skbuff bridge descriptor stays at boundary-map posture" {
     try std.testing.expectEqualStrings("boundary_map_only", descriptor.posture);
     try std.testing.expect(descriptor.provides_boundary_map);
     try std.testing.expect(descriptor.provides_lifetime_audit_outline);
-    try std.testing.expect(descriptor.provides_stayInC_decisions);
+    try std.testing.expect(descriptor.provides_stay_in_c_decisions);
     try std.testing.expect(!descriptor.touches_live_allocators);
     try std.testing.expect(!descriptor.touches_live_refcounts);
     try std.testing.expect(!descriptor.touches_live_destructors);
