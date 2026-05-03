@@ -8,6 +8,10 @@ pub fn canonicalHeader(flags: u16) abi.BoundaryHeader {
     return uapi_version.canonicalHeader(flags);
 }
 
+pub fn versionedHeader(size: u32, version: u16, flags: u16) abi.BoundaryHeader {
+    return uapi_version.versionedHeader(size, version, flags);
+}
+
 pub fn header(flags: u16) abi.BoundaryHeader {
     return canonicalHeader(flags);
 }
@@ -74,6 +78,7 @@ test "phase3 export shim keeps failure encoding explicit" {
 
     const hdr = canonicalHeader(0x10);
     try std.testing.expectEqual(hdr, header(0x10));
+    try std.testing.expectEqual(hdr, versionedHeader(@sizeOf(abi.BoundaryHeader), abi.ABI_VERSION, 0x10));
     try std.testing.expectEqual(@as(u32, @sizeOf(abi.BoundaryHeader)), hdr.size);
     try std.testing.expectEqual(abi.ABI_VERSION, hdr.abi_version);
     try std.testing.expectEqual(@as(u16, 0x10), hdr.flags);
@@ -116,6 +121,13 @@ test "phase3 export shim separates canonical headers from broader compatibility"
     try std.testing.expectEqual(HeaderCompatibility.future_compatible, headerCompatibility(future_compatible).?);
     try std.testing.expect(!isCanonicalHeader(future_compatible));
     try std.testing.expect(isCompatibleHeader(future_compatible));
+}
+
+test "phase3 export shim versioned header relay keeps arbitrary replay explicit" {
+    const replay = versionedHeader(uapi_version.header_size + 4, abi.ABI_VERSION + 1, 0x31);
+    try std.testing.expectEqual(replay, uapi_version.versionedHeader(uapi_version.header_size + 4, abi.ABI_VERSION + 1, 0x31));
+    try std.testing.expect(headerCompatibility(replay) == null);
+    try std.testing.expect(canonicalizeHeader(replay) == null);
 }
 
 test "phase3 export shim canonicalizes compatible headers back to the current shape" {
