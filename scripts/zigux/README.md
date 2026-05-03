@@ -67,6 +67,7 @@ Current bootstrap helpers
 - `check-phase12-raw-github-coverage.py`
 - `validate-phase12.py`
 - `check-phase13-libfs-packet.py`
+- `check-phase13-devres-packet.py`
 - `check-phase13-notifier-packet.py`
 - `validate-phase13-release.py`
 - `validate-phase14.py`
@@ -103,7 +104,7 @@ Zig toolchain gate
 
 Phase 1 flow
 - `validate-phase1.py` is the validator-first entrypoint for the closed host-helper packet around `tools/lib/bitmap.zig`, `tools/lib/find_bit.zig`, `tools/lib/string.zig`, and `tools/lib/rbtree.zig` plus the bounded supporting helpers and committed `zigux/tests/fixtures/phase1_helpers.json` corpus.
-- the same validator keeps `Documentation/zigux/phase1-closure.md`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_helper_manifest.json`, and the workflow hooks aligned, including the committed `PHASE1_FIND_BIT_TAIL_START_UNIT_REVIEW` and `PHASE1_FIND_BIT_ZERO_SIZED_UNIT_REVIEW` closure markers for the tail-start and zero-sized `find_bit` parity packet.
+- the same validator keeps `Documentation/zigux/phase1-closure.md`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, and the workflow hooks aligned, including the committed `PHASE1_FIND_BIT_TAIL_START_UNIT_REVIEW` and `PHASE1_FIND_BIT_ZERO_SIZED_UNIT_REVIEW` closure markers for the tail-start and zero-sized `find_bit` parity packet.
 - `Documentation/zigux/README.md`, `Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` stay aligned as the bounded Phase 1 helper inventory and validator-first replay packet.
 - `check-phase1-find-bit-validator-anchors.py --self-test` and `check-phase1-find-bit-validator-anchors.py` keep `validate-phase1.py` fail-closed around those shipped `find_bit` tail-start and zero-sized closure markers plus the matching `phase1_helper_manifest.json` tail-start and zero-sized anchor checks, so the primary Phase 1 validator cannot silently stop naming that closed evidence packet.
 - `check-phase1-parity.py --self-test`, `check-phase1-parity.py`, `check-phase1-bench.py --self-test`, `check-phase1-bench.py`, `validate-phase1-closure.py --self-test`, and `validate-phase1-closure.py` are the bounded fail-closed review hooks around that same closed Phase 1 helper tranche.
@@ -181,4 +182,4 @@ Phase 6 flow
 - `validate-phase6.py` keeps the shipped Phase 6 leaf-helper packet aligned across `scripts/zigux/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/phase6-helper-parity-catalog.md`, `zigux/tests/phase6_helper_parity_manifest.json`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, the bootstrap workflow, and the four helper-local slice notes before any shared replay claims stay green.
 - `validate-phase6.py --self-test` exercises the shared Phase 6 marker walk in a compact synthetic tree and fails if catalog-head provenance, script-README wording, perf-survey markers, shared-gates inventory, manifest `surveyed_commit`, or helper-local determinism evidence drifts.
 - `make -C zigux phase6-validate` is the validator-first entrypoint for the current Phase 6 review packet.
-- `make -C zigux phase6` is the shared replay path for the bounded `base64`, `bsearch`, `checksum`, and `hexdump` helper…
+- `make -C zigux phase6` is the shared replay path for the bounded `base64`, `bsearch`, `checksum`, and `hexdump` helper
