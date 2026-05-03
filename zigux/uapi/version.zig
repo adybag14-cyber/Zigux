@@ -139,6 +139,9 @@ test "phase3 uapi canonicalizes compatible headers without widening the boundary
     const future_compatible = compatibleHeader(header_size + 16, 0x66);
     try std.testing.expectEqual(canonical, canonicalizeHeader(future_compatible).?);
 
+    const undersized = compatibleHeader(header_size - 1, 0x66);
+    try std.testing.expect(canonicalizeHeader(undersized) == null);
+
     const incompatible_version = versionedHeader(header_size, abi.ABI_VERSION + 1, 0x66);
     try std.testing.expect(canonicalizeHeader(incompatible_version) == null);
 }
