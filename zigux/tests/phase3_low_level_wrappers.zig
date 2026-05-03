@@ -54,6 +54,7 @@ test "phase3 low-level wrappers stay inside the documented ABI surface" {
 
     barrier.acquire();
     barrier.release();
+    barrier.acquireRelease();
     barrier.full();
 
     var regs = [_]u32{ 0, 0, 0 };
