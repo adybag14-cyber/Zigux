@@ -126,6 +126,14 @@ REQUIRED_SHARED_LIFT_CHECK_SNIPPETS = (
 )
 
 REQUIRED_ABI_MANIFEST_ENTRIES = (
+    '"include/zigux/rbtree.h"',
+    '"zigux/bindings/rbtree.zig"',
+    '"zigux/tests/phase3_rbtree_survey.zig"',
+    '"zigux/tests/phase3_rbtree_manifest.json"',
+    '"zigux/tests/phase3_abi.zig"',
+    '"zigux/tests/phase3_abi_dump.zig"',
+    '"zigux/tests/fixtures/phase3_abi/expected.json"',
+    '"zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c"',
     '"scripts/zigux/check-phase3-rbtree-shared-lift-contract.py"',
     '"Documentation/zigux/phase3-rbtree-interop-survey.md"',
     '"Documentation/zigux/phase3-rbtree-slice.md"',
@@ -288,6 +296,20 @@ def run_self_test() -> int:
         abi_manifest_path.write_text(REQUIRED_ABI_MANIFEST_ENTRIES[0] + "\n", encoding="utf-8")
         issues = validate(root)
         assert any(issue.startswith("missing_abi_manifest_entry:") for issue in issues)
+        abi_manifest_path.write_text(
+            "\n".join(REQUIRED_ABI_MANIFEST_ENTRIES) + "\n",
+            encoding="utf-8",
+        )
+
+        abi_manifest_path.write_text(
+            "\n".join(
+                entry for entry in REQUIRED_ABI_MANIFEST_ENTRIES if entry != '"zigux/tests/phase3_abi.zig"'
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        issues = validate(root)
+        assert "missing_abi_manifest_entry:zigux/tests/phase3_abi.zig" in issues
         abi_manifest_path.write_text(
             "\n".join(REQUIRED_ABI_MANIFEST_ENTRIES) + "\n",
             encoding="utf-8",
