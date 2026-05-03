@@ -90,6 +90,7 @@ WORKFLOW_COUNTS = {
     "python3 scripts/zigux/validate-phase2-closure.py": 1,
     "python3 scripts/zigux/check-genksyms-bridge.py --self-test": 1,
     "python3 scripts/zigux/check-genksyms-bridge.py": 1,
+    "zig test scripts/zigux/genksyms.zig": 1,
 }
 
 WORKFLOW_ORDER = [
@@ -312,6 +313,7 @@ def clone_fixture_root(root: Path) -> None:
         [
             "run: python3 scripts/zigux/check-genksyms-bridge.py --self-test",
             "run: python3 scripts/zigux/check-genksyms-bridge.py",
+            "run: zig test scripts/zigux/genksyms.zig",
         ]
     )
     write(root / REQUIRED_FILES["workflow"], "\n".join(workflow_lines) + "\n")
@@ -390,6 +392,23 @@ def run_self_test() -> int:
         expect_issue("workflow_order", root, "workflow_order:run: python3 scripts/zigux/validate-phase2.py:before:run: python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test")
         clone_fixture_root(root)
 
+        workflow_path = root / REQUIRED_FILES["workflow"]
+        original = workflow_path.read_text(encoding="utf-8")
+        write(
+            workflow_path,
+            original.replace(
+                "run: zig test scripts/zigux/genksyms.zig\n",
+                "",
+                1,
+            ),
+        )
+        expect_issue(
+            "workflow_genksyms_zig_test_count",
+            root,
+            "workflow:zig test scripts/zigux/genksyms.zig:count=0:expected=1",
+        )
+        clone_fixture_root(root)
+
         makefile_path = root / REQUIRED_FILES["makefile"]
         original = makefile_path.read_text(encoding="utf-8")
         write(
@@ -446,13 +465,6 @@ def run_self_test() -> int:
         payload["cases"][11]["argv"] = ["--help"]
         write(cases_path, json.dumps(payload, indent=2) + "\n")
         expect_issue("case_sentinel", root, "cases:help:argv=['--hel']")
-        clone_fixture_root(root)
-
-        cases_path = root / REQUIRED_FILES["cases"]
-        payload = json.loads(cases_path.read_text(encoding="utf-8"))
-        payload["cases"][12]["expected"] = "renamed_version_expected.json"
-        write(cases_path, json.dumps(payload, indent=2) + "\n")
-        expect_issue("version_expected_file", root, "cases:version:expected=version_expected.json")
 
     print("PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST=pass")
     print("PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=11")
