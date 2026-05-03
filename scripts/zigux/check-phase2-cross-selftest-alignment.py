@@ -166,10 +166,17 @@ def run_self_test() -> int:
     if validate_exact_workflow_runs(workflow_text):
         raise SystemExit("phase2-cross-alignment:self-test:workflow_counts")
 
-    bad_workflow = "run: python3 scripts/zigux/check-phase2-cross.py --self-test"
-    issues = validate_exact_workflow_runs(bad_workflow)
-    if not any(issue.startswith("workflow_exact_run:") for issue in issues):
-        raise SystemExit("phase2-cross-alignment:self-test:workflow_count_failure")
+    bad_workflow = "\n".join(
+        [
+            "run: python3 scripts/zigux/check-phase2-cross.py --self-test",
+            "run: python3 scripts/zigux/check-phase2-cross.py --self-test",
+        ]
+    )
+    expect_exact_issue(
+        "workflow_matrix_run_failure",
+        validate_exact_workflow_runs(bad_workflow),
+        "workflow_exact_run:python3 scripts/zigux/check-phase2-cross.py --target ${{ matrix.zig_target }}:count=0:expected=1",
+    )
 
     makefile_text = "\n".join(
         [
