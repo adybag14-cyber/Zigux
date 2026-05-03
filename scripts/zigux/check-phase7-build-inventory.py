@@ -31,10 +31,15 @@ RUN_CALL_RE = re.compile(
 DEPEND_STEP_RE = re.compile(r"test_step\.dependOn\(&([A-Za-z0-9_]+)\.step\);")
 BUILD_PATH_RE = re.compile(r'b\.path\("([^"]+)"\)')
 PHASE7_VALIDATE_BLOCK_RE = re.compile(r"^phase7-validate:\n((?:\t.*\n)+)", re.M)
+PHASE7_TEST_BLOCK_RE = re.compile(r"^phase7-test:\n((?:\t.*\n)+)", re.M)
 MAKEFILE_COMMAND_RE = re.compile(
     r"\$\(PYTHON\)\s+(scripts/zigux/[A-Za-z0-9._-]+\.py(?: --self-test)?)"
 )
+MAKEFILE_TEST_COMMAND_RE = re.compile(
+    r"\$\(ZIG\)\s+(build test --build-file zigux/tests/phase7_build\.zig --summary all)"
+)
 UNEXPECTED_BUILD_MARKERS = ["../../tools/lib/", "zigux/tests/build.zig"]
+EXPECTED_SHARED_TEST_COMMAND = "zig build test --build-file zigux/tests/phase7_build.zig --summary all"
 
 
 def rel_or_abs(path: Path, root: Path = ROOT) -> str:
@@ -86,6 +91,19 @@ def render_validation_commands(makefile_text: str) -> list[str]:
     return commands
 
 
+def render_shared_test_command(makefile_text: str) -> str:
+    match = PHASE7_TEST_BLOCK_RE.search(makefile_text)
+    if match is None:
+        raise ValueError("missing phase7-test block")
+
+    for line in match.group(1).splitlines():
+        command_match = MAKEFILE_TEST_COMMAND_RE.search(line)
+        if command_match is not None:
+            return f"zig {command_match.group(1)}"
+
+    raise ValueError("missing phase7-test compile command")
+
+
 def render_validation_gates(validation_commands: list[str]) -> list[str]:
     gates: list[str] = []
     for command in validation_commands:
@@ -129,6 +147,7 @@ def render_inventory_from_text(
         "shared_test_depend_steps": DEPEND_STEP_RE.findall(build_text),
         "shared_validation_gates": render_validation_gates(validation_commands),
         "shared_validation_commands": validation_commands,
+        "shared_test_command": render_shared_test_command(makefile_text),
         "unexpected_build_markers": UNEXPECTED_BUILD_MARKERS,
     }
 
@@ -179,6 +198,8 @@ def run_self_test() -> int:
         "scripts/zigux/check-phase7-argv-split-parity.py",
     ]:
         raise SystemExit("phase7-build-inventory:self-test:argv_split_command_pair")
+    if first["shared_test_command"] != EXPECTED_SHARED_TEST_COMMAND:
+        raise SystemExit("phase7-build-inventory:self-test:shared_test_command")
 
     drifted = dict(first)
     drifted["run_labels"] = ["phase7-mismatch"]
@@ -210,6 +231,14 @@ def run_self_test() -> int:
             raise SystemExit("phase7-build-inventory:self-test:validate_block_error_shape")
     else:
         raise SystemExit("phase7-build-inventory:self-test:validate_block_error_missing")
+
+    try:
+        render_shared_test_command("phase7-validate:\n\t@true\n")
+    except ValueError as exc:
+        if str(exc) != "missing phase7-test block":
+            raise SystemExit("phase7-build-inventory:self-test:test_block_error_shape")
+    else:
+        raise SystemExit("phase7-build-inventory:self-test:test_block_error_missing")
 
     stale_marker_drift_text = (
         build_text
@@ -385,8 +414,25 @@ def run_self_test() -> int:
     if validation_gate_order_drift["shared_validation_commands"] == fixture["shared_validation_commands"]:
         raise SystemExit("phase7-build-inventory:self-test:validation_gate_order_command_shape")
 
+    shared_test_command_drift_text = makefile_text.replace(
+        "$(ZIG) build test --build-file zigux/tests/phase7_build.zig --summary all",
+        "$(ZIG) build test --build-file zigux/tests/build.zig",
+        1,
+    )
+    if shared_test_command_drift_text == makefile_text:
+        raise SystemExit("phase7-build-inventory:self-test:shared_test_command_drift_rewrite")
+
+    shared_test_command_drift = render_inventory_from_text(
+        build_text,
+        shared_test_command_drift_text,
+    )
+    if shared_test_command_drift == fixture:
+        raise SystemExit("phase7-build-inventory:self-test:shared_test_command_drift_detection")
+    if shared_test_command_drift["shared_test_command"] != "zig build test --build-file zigux/tests/build.zig":
+        raise SystemExit("phase7-build-inventory:self-test:shared_test_command_drift_shape")
+
     print("PHASE7_BUILD_INVENTORY_SELF_TEST=pass")
-    print("PHASE7_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=15")
+    print("PHASE7_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=17")
     return 0
 
 
@@ -438,6 +484,10 @@ def main(argv: list[str] | None = None) -> int:
     print(
         "PHASE7_BUILD_INVENTORY_VALIDATION_COMMAND_COUNT="
         f"{len(generated['shared_validation_commands'])}"
+    )
+    print(
+        "PHASE7_BUILD_INVENTORY_SHARED_TEST_COMMAND="
+        f"{generated['shared_test_command']}"
     )
     return 0
 
