@@ -228,6 +228,7 @@ MARKER_GROUPS = {
             "PHASE1_FIND_BIT_LOW_LEVEL_UNIT_REVIEW=find_bit low-level underscore entry points preserve same-word inclusive starts and tail-clamped set, shared-bit, and zero-bit scan behavior across the same caller-selected bit windows as the public helpers",
             "PHASE1_FIND_BIT_SMALL_BITMAP_UNIT_REVIEW=find_bit single-word set zero and shared-bit scans keep Linux small-bitmap semantics aligned by masking out-of-range tail bits while preserving inclusive in-range matches inside one word",
             "PHASE1_FIND_BIT_TAIL_START_UNIT_REVIEW=find_bit tail-clamped set zero and shared-bit scans keep the last in-range bit reachable from an inclusive start while later starts still return nbits instead of leaking the out-of-range tail",
+            "PHASE1_FIND_BIT_TAIL_WORD_BOUNDARY_UNIT_REVIEW=find_bit tail-clamped set zero and shared-bit scans keep the first in-range tail-word match reachable when the search starts exactly at the tail-word boundary instead of rereading an earlier full-word result",
             "PHASE1_FIND_BIT_ZERO_SIZED_UNIT_REVIEW=find_bit zero-length set zero and shared-bit scans return 0 even when backing words are populated so declared nbits stays authoritative over caller storage",
             "PHASE1_STRING_MEMPARSE_UNIT_REVIEW=string memparse preserves decimal, hexadecimal, suffix-bearing, invalid, and binary-unit-tail inputs including optional trailing B forms without changing the parsed value or rest pointer contract",
             "PHASE1_RBTREE_DUPLICATE_SEARCH_UNIT_REVIEW=rbtree duplicate-key search stays aligned after erase and same-key replace so findFirst, findLast, and duplicate-range iterators report the surviving equal-key window in both directions",
@@ -502,6 +503,22 @@ def self_test() -> int:
             print("PHASE1_VALIDATOR_SELF_TEST=fail")
             return 1
 
+        closure_path = root / "Documentation/zigux/phase1-closure.md"
+        closure_text = closure_path.read_text(encoding="utf-8")
+        closure_path.write_text(
+            closure_text.replace(
+                "PHASE1_FIND_BIT_TAIL_WORD_BOUNDARY_UNIT_REVIEW=find_bit tail-clamped set zero and shared-bit scans keep the first in-range tail-word match reachable when the search starts exactly at the tail-word boundary instead of rereading an earlier full-word result\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        code = os.spawnve(os.P_WAIT, sys.executable, [sys.executable, __file__], env)
+        if code == 0:
+            print("PHASE1_VALIDATOR_SELF_TEST=fail")
+            return 1
+        write(root / "Documentation/zigux/phase1-closure.md", "\n".join(MARKER_GROUPS["phase1_closure"][1]) + "\n" + "\n".join(PHASE1_CLOSURE_PREFIX_COUNTS.keys()) + "\n")
+
         manifest["helper_review_notes"]["tools/lib/string.zig"]["memparse_unit_test_contract"] = "old wording"
         write(root / "zigux/tests/fixtures/phase1_helper_manifest.json", json.dumps(manifest, indent=2) + "\n")
         code = os.spawnve(os.P_WAIT, sys.executable, [sys.executable, __file__], env)
@@ -518,7 +535,7 @@ def self_test() -> int:
             return 1
 
     print("PHASE1_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_VALIDATOR_SELF_TEST_CASE_COUNT=3")
+    print("PHASE1_VALIDATOR_SELF_TEST_CASE_COUNT=4")
     return 0
 
 
