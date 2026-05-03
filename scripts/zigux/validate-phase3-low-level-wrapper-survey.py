@@ -51,7 +51,7 @@ REQUIRED_SURVEY_SNIPPETS = (
     "`zigux/helpers/atomic.zig` currently limits the approved helper surface to `load`, `store`, `exchange`, `fetchAdd`, `fetchSub`, `fetchAnd`, `fetchOr`, `fetchXor`, `fetchMin`, `fetchMax`, `compareExchange`, and `compareExchangeWeak`",
     "`zigux/helpers/barrier.zig` currently limits the approved barrier surface to `acquire`, `release`, and `full`",
     "`zigux/helpers/mmio.zig` currently limits the approved MMIO surface to `range`, `read8`, `read16`, `read32`, `read64`, `write8`, `write16`, `write32`, and `write64`, plus the scoped `read8`, `write8`, `read16`, `write16`, `read32`, `write32`, `read64`, and `write64` entry points, the width-specific `read8Policy`, `write8Policy`, `read16Policy`, `write16Policy`, `read32Policy`, `write32Policy`, `read64Policy`, and `write64Policy` entry points, and the generic `readScopedWithPolicy` plus `writeScopedWithPolicy` bridges",
-    "`zigux/tests/phase3_policy_unsafe.zig` and `scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py` keep the decoded-policy MMIO bridge reviewable beside that focused low-level gate",
+    "`zigux/tests/phase3_policy_unsafe.zig` and `scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py` keep the broader whole-record interop-policy decode and second-boundary-helper MMIO story reviewable beside that focused low-level gate",
     "no relaxed-order barrier variants are shipped in the current packet",
     "no broader kernel-style atomic helper family is shipped in the current packet",
     "no MMIO family wider than the direct, scoped, and decoded-policy 8-bit, 16-bit, 32-bit, and 64-bit accessors is shipped in the current packet",
