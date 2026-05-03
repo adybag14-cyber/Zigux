@@ -60,6 +60,8 @@ Phase 2 is only considered closed when all of the following are green:
 - the bounded stdout write-failure proof is anchored by `zigux/tests/fixtures/fixdep/sample_output_write_expected.stderr.txt`, which keeps the C-style `fixdep: not all data was written to the output` exit-1 surface explicit inside the closed Phase 2 packet
 - `scripts/zigux/fixdep.zig` now keeps dependency-file reads aligned with the C helper by reading the full file size and mapping short writes to the same output error surface
 - `PHASE2_FIXDEP_CASE_COUNT=10`
+- `PHASE2_FIXDEP_SHARED_STDOUT_PACKET=zigux/tests/fixtures/fixdep/sample_expected.txt,zigux/tests/fixtures/fixdep/sample_multi_target_expected.txt,zigux/tests/fixtures/fixdep/sample_escaped_space_expected.txt,zigux/tests/fixtures/fixdep/sample_escaped_colon_expected.txt,zigux/tests/fixtures/fixdep/sample_concatenated_expected.txt,zigux/tests/fixtures/fixdep/sample_comment_only_expected.txt,zigux/tests/fixtures/fixdep/sample_missing_dep_expected.txt,zigux/tests/fixtures/fixdep/sample_output_write_expected.txt`
+- `PHASE2_FIXDEP_SHARED_STDERR_PACKET=zigux/tests/fixtures/fixdep/sample_comment_only_expected.stderr.txt,zigux/tests/fixtures/fixdep/sample_missing_dep_expected.stderr.txt,zigux/tests/fixtures/fixdep/sample_output_write_expected.stderr.txt`
 - `PHASE2_FIXDEP_OUTPUT_WRITE_CASE=zigux/tests/fixtures/fixdep/sample_output_write_expected.stderr.txt`
 
 3. bounded genksyms CRC artifact parity and determinism
@@ -152,7 +154,7 @@ Phase 2 is only considered closed when all of the following are green:
 The bounded `fixdep` closure packet remains closed because both the shared artifact lane and the helper-local unit lane cover the published edge cases:
 
 - shared fixture packet:
-  `sample_expected.txt`, `sample_multi_target_expected.txt`, `sample_escaped_space_expected.txt`, `sample_escaped_colon_expected.txt`, `sample_concatenated_expected.txt`, `sample_comment_only_expected.stderr.txt`, `sample_missing_dep_expected.stderr.txt`, `sample_output_write_expected.stderr.txt`
+  `cases.json`, `sample_expected.txt`, `sample_multi_target_expected.txt`, `sample_escaped_space_expected.txt`, `sample_escaped_colon_expected.txt`, `sample_concatenated_expected.txt`, `sample_comment_only_expected.txt`, `sample_comment_only_expected.stderr.txt`, `sample_missing_dep_expected.txt`, `sample_missing_dep_expected.stderr.txt`, `sample_output_write_expected.txt`, `sample_output_write_expected.stderr.txt`
 - helper-local anchors in `scripts/zigux/fixdep.zig`:
   `dep parsing skips escaped-newline comments before the first target`
   `dep parsing continues dependency tokens across escaped newlines`
