@@ -19,6 +19,7 @@ This document tracks the first bounded Phase 9 runtime trace-events starter unde
   - `zigux/tests/phase9_build.zig`
   - `Documentation/zigux/phase9-runtime-trace-events-survey.md`
   - `Documentation/zigux/phase9-runtime-trace-events-module-slice.md`
+  - `Documentation/zigux/review-checklist.md`
   - `Documentation/zigux/freeze-map.md`
 
 ## Why this slice exists
@@ -28,6 +29,8 @@ The Phase 9 roadmap explicitly names `samples/trace_events/trace-events-sample.c
 The live repo already had atomic64 and bitmap starters under the same Phase 9 review path, but it still had no trace-events pilot at all. This slice lands the smallest honest trace-events follow-on step: a sample-backed lifecycle scaffold that models bounded event families and callback registration without claiming kernel thread, tracepoint macro, or loadable-module parity.
 
 This bounded starter also stays underneath the trace-core freeze-map boundary. `Documentation/zigux/freeze-map.md` keeps `kernel/trace/ring_buffer.c` in `Study / Boundary Only`, so this slice must not imply ring-buffer parity, deep trace transport ownership, or any Architecture Council-approved status change for the frozen trace core.
+
+The same governance packet also treats `Documentation/zigux/review-checklist.md` as the review-side owner for the trace-core freeze-boundary prompt, so the `Study / Boundary Only` posture stays explicit during review beside the module-slice note, the manifest-backed survey packet, and the freeze map instead of living in only one document.
 
 No parity scorecard entry or Architecture Council status-change request is attached to this Phase 9 lane. This module slice only records the active study boundary and does not reopen the trace-core freeze posture.
 
