@@ -22,6 +22,8 @@
     "preexisting_phase12_survey_note_present": true,
     "preexisting_virtio_scsi_zig_present": true,
     "preexisting_phase12_virtio_scsi_test_present": true,
+    "preexisting_phase12_virtio_scsi_syntax_lab_test_present": true,
+    "preexisting_phase12_virtio_scsi_recovery_state_test_present": true,
     "preexisting_phase12_virtio_scsi_slice_note_present": true,
     "preexisting_phase12_raw_github_fallback_catalog_present": true,
     "raw_github_tree_fallback_count": 3,
@@ -108,6 +110,20 @@
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_virtio_scsi.zig",
       "why_now": "Dedicated driver tests now keep the starter honest around poll-queue clamping, stable global virtqueue indexes, the bounded freeze or restore contract, repeated transport-reset replanning across recovery generations, fresh recovery queue-depth and io-queue-map summaries after restore, the host-limit summary helper that clamps cmd_per_lun, and the queue-depth summary helper that mirrors `virtscsi_change_queue_depth()` before any Scsi_Host registration work."
+    },
+    {
+      "id": "phase12-virtio-scsi-syntax-lab-tests",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase12_virtio_scsi_syntax_lab.zig",
+      "why_now": "Dedicated syntax-lab coverage now keeps the bounded export surface for the queue lab, request-queue enums, descriptor flags, probe snapshot, host-limit summary, queue-depth summary, io-queue-map summary, and recovery summaries reviewable without claiming live DMA or `Scsi_Host` lifecycle work."
+    },
+    {
+      "id": "phase12-virtio-scsi-recovery-state-tests",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase12_virtio_scsi_recovery_state.zig",
+      "why_now": "Dedicated recovery-state coverage now proves restore clears stale queue-depth state, replans later freeze generations from the new topology, and keeps the bounded transport-reset packet honest before any live `scsi_scan_host()`, blk-mq submission, or DMA-backed request flow is attempted."
     },
     {
       "id": "phase12-virtio-scsi-slice-note",
