@@ -29,14 +29,19 @@ def _canonical_readme_entries(root: Path) -> tuple[list[str], list[str]]:
         return [], [f"missing_tooling_packet_script:{TOOLING_PACKET_SCRIPT_REL}"]
 
     namespace = runpy.run_path(str(tooling_packet_path))
-    raw_entries = namespace.get("REQUIRED_README_TOOLING_FILES")
     issues: list[str] = []
+
+    canonical_helper = namespace.get("canonical_readme_tooling_files")
+    if callable(canonical_helper):
+        raw_entries, helper_issues = canonical_helper(root)
+        issues.extend(helper_issues)
+    else:
+        raw_entries = namespace.get("REQUIRED_README_TOOLING_FILES")
+        if not isinstance(raw_entries, tuple):
+            issues.append("missing_tooling_packet_constant:REQUIRED_README_TOOLING_FILES")
+            return [], issues
+
     basenames: list[str] = []
-
-    if not isinstance(raw_entries, tuple):
-        issues.append("missing_tooling_packet_constant:REQUIRED_README_TOOLING_FILES")
-        return [], issues
-
     for rel in raw_entries:
         if not isinstance(rel, str):
             issues.append(f"invalid_tooling_packet_entry:{rel!r}")
@@ -79,29 +84,20 @@ def run_self_test() -> int:
         tooling_packet_rels = (
             "scripts/zigux/check-phase3-build-roots.py",
             "scripts/zigux/check-phase3-canonical-survey-manifest.py",
-            "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py",
-            "scripts/zigux/check-phase3-rbtree-shared-lift-contract.py",
             "scripts/zigux/check-phase3-readme-tooling-inventory.py",
             "scripts/zigux/check-phase3-tooling-packet.py",
             "scripts/zigux/check-phase3-validation-flow.py",
-            "scripts/zigux/generate-phase3-check-wrappers.py",
-            "scripts/zigux/phase3_catalog.py",
-            "scripts/zigux/phase3_check_lib.py",
-            "scripts/zigux/run-phase3-checks.py",
-            "scripts/zigux/validate-phase3.py",
-            "scripts/zigux/validate_phase3_selftest.py",
-            "scripts/zigux/validate-phase3-export-uapi-survey.py",
-            "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
-            "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
-            "scripts/zigux/validate-phase3-rbtree-interop-survey.py",
-            "scripts/zigux/validate-phase3-roadmap-gap-survey.py",
         )
 
         tooling_packet_script = "\n".join(
             (
-                "REQUIRED_README_TOOLING_FILES = (",
-                *[f"    {rel!r}," for rel in tooling_packet_rels],
-                ")",
+                "def canonical_readme_tooling_files(root):",
+                "    return (",
+                "        [",
+                *[f"            {rel!r}," for rel in tooling_packet_rels],
+                "        ],",
+                "        [],",
+                "    )",
                 "",
             )
         )
