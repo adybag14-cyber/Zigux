@@ -41,6 +41,7 @@ RELEASE_BOUNDARY_LINES = [
 
 SCRIPTS_README_LINES = [
     "- `check-phase14-docs-root-smoke-summary.py`",
+    "`Documentation/zigux/phase14-release-boundary-survey.md`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/freeze-map.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, and `zigux/tests/phase14_end_to_end_smoke_survey.zig` keep the exact rollback threshold",
     "`make -C zigux phase14-validate PYTHON=python3 ZIG=<attached-zig-path>`",
     "`make -C zigux phase14-smoke ZIG=<attached-zig-path>`",
     "`make -C zigux phase14-test ZIG=<attached-zig-path>`",
@@ -135,6 +136,7 @@ Current bootstrap helpers
 
 Phase 14 flow
 - `check-phase14-docs-root-smoke-summary.py --self-test` and `check-phase14-docs-root-smoke-summary.py` keep the docs-root Phase 14 smoke summary and the shared smoke survey fail-closed around the same validator-backed `phase14-validate`, focused `phase14-smoke`, and study-only reviewability wording before the broader shared validator runs.
+- `Documentation/zigux/phase14-release-boundary-survey.md`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/freeze-map.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, and `zigux/tests/phase14_end_to_end_smoke_survey.zig` keep the exact rollback threshold, automatic return-to-blocked trigger list, and ZAR-to-product transfer rationale visible from the docs root rather than relying on run memory.
 - attached-toolchain fallback commands stay explicit in the scripts index too: `make -C zigux phase14-validate PYTHON=python3 ZIG=<attached-zig-path>`, `make -C zigux phase14-smoke ZIG=<attached-zig-path>`, `make -C zigux phase14-test ZIG=<attached-zig-path>`, and `make -C zigux phase14 ZIG=<attached-zig-path>`.
 """.strip()
 
@@ -238,6 +240,26 @@ Phase 14 flow
             survey_text,
             release_boundary_text,
             scripts_readme_text.replace("- `check-phase14-docs-root-smoke-summary.py`", ""),
+            True,
+        ),
+        (
+            "missing_scripts_readme_release_boundary_line",
+            docs_root_text,
+            survey_text,
+            release_boundary_text,
+            scripts_readme_text.replace(
+                "- `Documentation/zigux/phase14-release-boundary-survey.md`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/freeze-map.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, and `zigux/tests/phase14_end_to_end_smoke_survey.zig` keep the exact rollback threshold, automatic return-to-blocked trigger list, and ZAR-to-product transfer rationale visible from the docs root rather than relying on run memory.\n",
+                "",
+            ),
+            True,
+        ),
+        (
+            "duplicate_scripts_readme_release_boundary_line",
+            docs_root_text,
+            survey_text,
+            release_boundary_text,
+            scripts_readme_text
+            + "\n- `Documentation/zigux/phase14-release-boundary-survey.md`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/freeze-map.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, and `zigux/tests/phase14_end_to_end_smoke_survey.zig` keep the exact rollback threshold, automatic return-to-blocked trigger list, and ZAR-to-product transfer rationale visible from the docs root rather than relying on run memory.",
             True,
         ),
         (
