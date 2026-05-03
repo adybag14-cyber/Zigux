@@ -56,10 +56,10 @@ HELPERS = [
     "tools/lib/find_bit.zig",
     "tools/lib/hweight.zig",
     "tools/lib/list_sort.zig",
+    "tools/lib/rbtree.zig",
     "tools/lib/slab.zig",
     "tools/lib/str_error_r.zig",
     "tools/lib/string.zig",
-    "tools/lib/rbtree.zig",
     "tools/lib/vsprintf.zig",
     "tools/lib/zalloc.zig",
 ]
