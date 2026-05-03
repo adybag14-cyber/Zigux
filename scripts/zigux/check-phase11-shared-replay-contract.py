@@ -18,6 +18,8 @@ BUILD_PATH = ROOT / "zigux/tests/phase11_build.zig"
 FIXTURE_PATH = ROOT / "zigux/tests/fixtures/phase11_build_inventory.json"
 SHARED_REPLAY_NOTE_PATH = ROOT / "Documentation/zigux/phase11-shared-replay-contract.md"
 REVIEW_CHECKLIST_PATH = ROOT / "Documentation/zigux/review-checklist.md"
+REVIEW_GUIDE_PATH = ROOT / "Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md"
+TESTS_COMPANION_PATH = ROOT / "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"
 
 README_MARKERS = [
     "Phase 11 flow",
@@ -45,8 +47,8 @@ MAKEFILE_MARKERS = [
     "scripts/zigux/check-phase11-hvc-validation-flow.py",
     "scripts/zigux/check-phase11-hvc-cleanup-alignment.py --self-test",
     "scripts/zigux/check-phase11-hvc-cleanup-alignment.py",
-    "scripts/zigux/check-phase11-shared-replay-contract.py --self-test",
-    "scripts/zigux/check-phase11-shared-replay-contract.py",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py\n\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase11.py --self-test",
     "scripts/zigux/validate-phase11.py --self-test",
     "scripts/zigux/validate-phase11.py",
     "phase11-hvc-survey:",
@@ -102,6 +104,20 @@ REVIEW_CHECKLIST_MARKERS = [
     "- if the change touches the shared Phase 11 tooling path, do `zigux/tests/phase11_build.zig`, `zigux/tests/fixtures/phase11_build_inventory.json`, and `zigux/tests/phase11_hvc_console_survey.zig` still agree on the exact shared build inventory and the dedicated-survey boundary instead of silently implying that every Phase 11 survey gate already runs in the shared path?",
     "- if the change touches the shared Phase 11 replay contract packet, do `Documentation/zigux/phase11-shared-replay-contract.md`, `scripts/zigux/validate-phase11.py`, `zigux/tests/phase11_build.zig`, `zigux/tests/fixtures/phase11_build_inventory.json`, and `zigux/tests/phase11_hvc_console_survey.zig` still agree on the same shared-versus-dedicated replay boundary instead of leaving that packet split implicit?",
 ]
+REVIEW_GUIDE_MARKERS = [
+    "## Phase 11: Simple-driver packet",
+    "- `python3 scripts/zigux/check-phase11-shared-replay-contract.py --self-test`",
+    "- `python3 scripts/zigux/check-phase11-shared-replay-contract.py`",
+    "- `Documentation/zigux/phase11-shared-replay-contract.md`",
+    "- `scripts/zigux/check-phase11-shared-replay-contract.py`",
+    "- Does the shared Phase 11 replay still stay separate from the dedicated archival `hvc_console` survey?",
+]
+TESTS_COMPANION_MARKERS = [
+    "## Phase 11 tests-root packet",
+    "- `scripts/zigux/check-phase11-shared-replay-contract.py`",
+    "- Do the pre-replay Phase 11 checkers still describe the same delivery contract that `zigux/tests/phase11_build.zig` and `zigux/tests/fixtures/phase11_build_inventory.json` claim?",
+    "- Does `zigux/tests/phase11_hvc_console_survey.zig` still stay separate as the dedicated archival replay while the shared starter packet remains under `zigux/tests/phase11_build.zig`?",
+]
 EXPECTED_SHARED_SPLIT_REPLAYS = [
     {
         "test": "phase11-dw-wdt-remove-idle-split-tests",
@@ -155,6 +171,8 @@ def validate_contract(root: Path) -> int:
         ("build", root / BUILD_PATH, BUILD_MARKERS),
         ("shared_replay_note", root / SHARED_REPLAY_NOTE_PATH, SHARED_REPLAY_NOTE_MARKERS),
         ("review_checklist", root / REVIEW_CHECKLIST_PATH, REVIEW_CHECKLIST_MARKERS),
+        ("review_guide", root / REVIEW_GUIDE_PATH, REVIEW_GUIDE_MARKERS),
+        ("tests_companion", root / TESTS_COMPANION_PATH, TESTS_COMPANION_MARKERS),
     ]:
         source = text(path)
         for marker in markers:
@@ -185,6 +203,8 @@ def validate_contract(root: Path) -> int:
     print(f"PHASE11_SHARED_SPLIT_REPLAY_COUNT={len(EXPECTED_SHARED_SPLIT_REPLAYS)}")
     print(f"PHASE11_SHARED_REPLAY_NOTE_MARKER_COUNT={len(SHARED_REPLAY_NOTE_MARKERS)}")
     print(f"PHASE11_SHARED_REPLAY_CHECKLIST_MARKER_COUNT={len(REVIEW_CHECKLIST_MARKERS)}")
+    print(f"PHASE11_SHARED_REVIEW_GUIDE_MARKER_COUNT={len(REVIEW_GUIDE_MARKERS)}")
+    print(f"PHASE11_SHARED_TESTS_COMPANION_MARKER_COUNT={len(TESTS_COMPANION_MARKERS)}")
     return 0
 
 
@@ -289,6 +309,14 @@ def write_fixture_tree(root: Path) -> None:
         + "\n",
     )
     write_text(
+        root / "Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md",
+        "\n".join(REVIEW_GUIDE_MARKERS) + "\n",
+    )
+    write_text(
+        root / "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+        "\n".join(TESTS_COMPANION_MARKERS) + "\n",
+    )
+    write_text(
         root / "scripts/zigux/check-phase11-shared-replay-contract.py",
         Path(__file__).read_text(encoding="utf-8"),
     )
@@ -389,7 +417,7 @@ def run_self_test() -> int:
         write_text(
             makefile_path,
             makefile_backup.replace(
-                "scripts/zigux/check-phase11-shared-replay-contract.py --self-test\n",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py --self-test\n",
                 "",
                 1,
             ),
@@ -397,14 +425,14 @@ def run_self_test() -> int:
         expect_missing(
             "missing_makefile_checker_self_test",
             run_checker(tmp_root),
-            "makefile:scripts/zigux/check-phase11-shared-replay-contract.py --self-test",
+            "makefile:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py --self-test",
         )
         write_text(makefile_path, makefile_backup)
 
         write_text(
             makefile_path,
             makefile_backup.replace(
-                "scripts/zigux/check-phase11-shared-replay-contract.py\n",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py\n",
                 "",
                 1,
             ),
@@ -412,7 +440,7 @@ def run_self_test() -> int:
         expect_missing(
             "missing_makefile_checker_run_hook",
             run_checker(tmp_root),
-            "makefile:scripts/zigux/check-phase11-shared-replay-contract.py",
+            "makefile:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py\n\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase11.py --self-test",
         )
         write_text(makefile_path, makefile_backup)
 
@@ -516,9 +544,35 @@ def run_self_test() -> int:
             run_checker(tmp_root),
             f"review_checklist:{REVIEW_CHECKLIST_MARKERS[2]}",
         )
+        write_text(checklist_path, checklist_backup)
+
+        review_guide_path = tmp_root / "Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md"
+        review_guide_backup = text(review_guide_path)
+        write_text(
+            review_guide_path,
+            review_guide_backup.replace(REVIEW_GUIDE_MARKERS[1] + "\n", "", 1),
+        )
+        expect_missing(
+            "missing_review_guide_checker_self_test",
+            run_checker(tmp_root),
+            f"review_guide:{REVIEW_GUIDE_MARKERS[1]}",
+        )
+        write_text(review_guide_path, review_guide_backup)
+
+        tests_companion_path = tmp_root / "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"
+        tests_companion_backup = text(tests_companion_path)
+        write_text(
+            tests_companion_path,
+            tests_companion_backup.replace(TESTS_COMPANION_MARKERS[1] + "\n", "", 1),
+        )
+        expect_missing(
+            "missing_tests_companion_checker_marker",
+            run_checker(tmp_root),
+            f"tests_companion:{TESTS_COMPANION_MARKERS[1]}",
+        )
 
     print("PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST=pass")
-    print("PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT=17")
+    print("PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT=19")
     return 0
 
 
