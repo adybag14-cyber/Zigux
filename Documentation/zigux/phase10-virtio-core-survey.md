@@ -6,7 +6,7 @@ This document tracks the bounded Phase 10 survey lane around `drivers/virtio/vir
 
 - `PHASE10_STATUS=active`
 - `PHASE10_SLICE=virtio-core-survey`
-- lane: `P10-Y01`
+- lane: `P10-L01`
 - surveyed inspected `master` head: `d30cbe483a2f019ae797b309a29556bd58fe00d0`
 - scope: survey manifest, dedicated survey gate, shared Phase 10 build wiring, and a lane-level note that compares the already-landed core starter against the remaining roadmap gap
 - product boundary:
@@ -53,6 +53,18 @@ The survey manifest now records:
 - the still-blocked `phase10-core-probe-remove-lifecycle`
 
 This keeps the lane reviewable without overstating progress: the core starter is real and materially useful, including the bounded driver ID-table match path, the last config-change branch outcome, the nested driver-toggle guard, and one bounded remove-side handoff, but the broader lifecycle and transport-facing parts of `virtio.c` remain intentionally out of scope.
+
+## Roadmap Boundary
+
+- `PHASE10_CORE_ALLOWED_ROADMAP_DESTINATIONS=drivers/virtio/*.zig,zigux/kernel/,zigux/helpers/`
+- `PHASE10_CORE_RISKY_TRANSPORT_POSTURE=blocked_on_risky_transport`
+- `PHASE10_CORE_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=yes`
+- `PHASE10_CORE_ARCHITECTURE_COUNCIL_REOPEN_ATTACHED=no`
+- `PHASE10_CORE_FORBIDDEN_TRANSPORT_CLAIMS=queue_setup_reset_paths,irq_parity,dma_paths,input_registration_lifecycle,probe_remove_lifecycle`
+
+The Phase 10 roadmap keeps this core lane inside `drivers/virtio/*.zig`, with justified bridge helpers allowed in `zigux/kernel/` or `zigux/helpers/` where needed, while the wider transport-facing posture stays intentionally blocked. This survey therefore records the same bounded roadmap reading that the adjacent input, ring, and MMIO survey packets already publish instead of leaving the core packet's destination policy implicit.
+
+That same boundary means this note is still not using the landed driver-ID, remove-side bookkeeping, config-generation, config-delivery, or config-driver-toggle helpers as a pretext for transport-backed reset, queue setup, MMIO, DMA, or lifecycle parity claims. Those broader steps remain outside this lane until a later Phase 10 packet can justify them with explicit risky-transport evidence.
 
 ## Non-goals
 
