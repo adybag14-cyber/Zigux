@@ -19,6 +19,7 @@ Current bootstrap helpers
 - `check-phase1-bitmap-validator-anchors.py`
 - `check-phase1-find-bit-validator-anchors.py`
 - `check-phase1-route-summary-counts.py`
+- `check-phase1-validation-route-inventory.py`
 - `check-phase1-bench.py`
 - `validate-phase1-closure.py`
 - `validate-phase2.py`
