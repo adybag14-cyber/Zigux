@@ -357,7 +357,7 @@ test "phase14 workqueue bridge survey status block keeps review packet aligned" 
     );
     defer std.testing.allocator.free(survey_note);
 
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_SLICE=workqueue-delayed-timer-handoff-audit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_SLICE=workqueue-blocked-maintenance") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_LANE_KEY=P14-Y05") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "landed `phase14-workqueue-delayed-timer-handoff-followup`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "delayed_work_timer_fn()") != null);
