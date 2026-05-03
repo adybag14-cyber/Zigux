@@ -48,6 +48,7 @@ FILES = [
     "zigux/tests/phase13_devres_iounmap_reviewability.zig",
     "zigux/tests/phase13_devres_iomap_reviewability.zig",
     "zigux/tests/phase13_devres_reviewability.zig",
+    "zigux/tests/phase13_devres_wrapper_reviewability.zig",
     "zigux/tests/phase13_landlock_syscalls_reviewability.zig",
     "zigux/tests/phase13_notifier_list_reviewability.zig",
     "zigux/bindings/notifier_abi.zig",
@@ -240,6 +241,7 @@ BUILD_NAME_MARKERS = [
     "phase13-landlock-syscalls-reviewability-tests",
     "phase13-libfs-reviewability-tests",
     "phase13-devres-reviewability-tests",
+    "phase13-devres-wrapper-reviewability-tests",
     "phase13-notifier-list-reviewability-tests",
     "phase13-notifier-chain-view-tests",
 ]
@@ -438,7 +440,7 @@ def main() -> int:
         if build_name not in release_text:
             missing.append(f"release:shared_replay_step:{build_name}")
     depend_steps = BUILD_DEPEND_STEP_RE.findall(build_text)
-    if len(depend_steps) != 13:
+    if len(depend_steps) != 14:
         missing.append(f"build:depend_step_count={len(depend_steps)}")
 
     for manifest_path, lane_key, anchor in [
