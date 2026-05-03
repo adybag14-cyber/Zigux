@@ -130,6 +130,10 @@ REQUIRED_DOCS_ROOT_SNIPPETS = (
 EXACT_ONCE_DOCS_ROOT_SNIPPETS = REQUIRED_DOCS_ROOT_SNIPPETS
 
 EXPECTED_PHASE3_README_FLOW_COUNT = 2
+DEFAULT_PHASE3_README_FLOW_SNIPPETS = (
+    "`validate-phase3.py` is the validator-first entrypoint for the shared Phase 3 ABI and interop packet, and `make -C zigux phase3-validate` plus the bootstrap workflow replay that same route before the broader build-backed or survey-backed checks run.",
+    "`validate-phase3-roadmap-gap-survey.py`, `validate-phase3-rbtree-interop-survey.py`, `check-phase3-rbtree-shared-lift-contract.py`, `validate-phase3-export-uapi-survey.py`, `validate-phase3-low-level-wrapper-survey.py`, `validate-phase3-policy-unsafe-survey.py`, `check-phase3-policy-unsafe-mmio-consumer.py`, `check-phase3-abi-layout-packet.py`, `check-phase3-abi-binding-constants.py`, `check-phase3-tooling-packet.py`, `check-phase3-readme-tooling-inventory.py`, `check-phase3-validation-flow.py`, `check-phase3-build-roots.py`, and `check-phase3-canonical-survey-manifest.py` stay as supporting checks inside that validator-first route rather than standalone bootstrap or release entrypoints.",
+)
 
 
 def _read_text(root: Path, rel: str, issues: list[str]) -> str:
@@ -176,6 +180,18 @@ def _reject_snippets(
             issues.append(f"{prefix}:{snippet}")
 
 
+def _find_duplicate_snippets(snippets: tuple[str, ...]) -> list[str]:
+    duplicates: list[str] = []
+    seen: set[str] = set()
+    for snippet in snippets:
+        if snippet in seen:
+            if snippet not in duplicates:
+                duplicates.append(snippet)
+            continue
+        seen.add(snippet)
+    return duplicates
+
+
 def _load_phase3_readme_flow_snippets(root: Path) -> tuple[tuple[str, ...], list[str]]:
     script_path = root / README_TOOLING_INVENTORY_REL
     if not script_path.exists():
@@ -192,6 +208,14 @@ def _load_phase3_readme_flow_snippets(root: Path) -> tuple[tuple[str, ...], list
             "unexpected_phase3_flow_contract_count:"
             f"{len(snippets)}:{EXPECTED_PHASE3_README_FLOW_COUNT}"
         ]
+
+    duplicates = _find_duplicate_snippets(snippets)
+    if duplicates:
+        return (), [
+            f"duplicate_phase3_flow_contract_snippet:{snippet}"
+            for snippet in duplicates
+        ]
+
     return snippets, []
 
 
@@ -310,18 +334,22 @@ def _fixture_scripts_readme() -> str:
         "# scripts/zigux\n"
         "\n"
         "Phase 3 flow\n"
-        "- `validate-phase3.py` is the validator-first entrypoint for the shared Phase 3 ABI and interop packet, and `make -C zigux phase3-validate` plus the bootstrap workflow replay that same route before the broader build-backed or survey-backed checks run.\n"
-        "- `validate-phase3-roadmap-gap-survey.py`, `validate-phase3-rbtree-interop-survey.py`, `check-phase3-rbtree-shared-lift-contract.py`, `validate-phase3-export-uapi-survey.py`, `validate-phase3-low-level-wrapper-survey.py`, `validate-phase3-policy-unsafe-survey.py`, `check-phase3-policy-unsafe-mmio-consumer.py`, `check-phase3-abi-layout-packet.py`, `check-phase3-abi-binding-constants.py`, `check-phase3-tooling-packet.py`, `check-phase3-readme-tooling-inventory.py`, `check-phase3-validation-flow.py`, `check-phase3-build-roots.py`, and `check-phase3-canonical-survey-manifest.py` stay as supporting checks inside that validator-first route rather than standalone bootstrap or release entrypoints.\n"
+        f"- {DEFAULT_PHASE3_README_FLOW_SNIPPETS[0]}\n"
+        f"- {DEFAULT_PHASE3_README_FLOW_SNIPPETS[1]}\n"
     )
 
 
-def _fixture_readme_tooling_inventory() -> str:
-    return (
-        "REQUIRED_PHASE3_FLOW_SNIPPETS = (\n"
-        "    \"`validate-phase3.py` is the validator-first entrypoint for the shared Phase 3 ABI and interop packet, and `make -C zigux phase3-validate` plus the bootstrap workflow replay that same route before the broader build-backed or survey-backed checks run.\",\n"
-        "    \"`validate-phase3-roadmap-gap-survey.py`, `validate-phase3-rbtree-interop-survey.py`, `check-phase3-rbtree-shared-lift-contract.py`, `validate-phase3-export-uapi-survey.py`, `validate-phase3-low-level-wrapper-survey.py`, `validate-phase3-policy-unsafe-survey.py`, `check-phase3-policy-unsafe-mmio-consumer.py`, `check-phase3-abi-layout-packet.py`, `check-phase3-abi-binding-constants.py`, `check-phase3-tooling-packet.py`, `check-phase3-readme-tooling-inventory.py`, `check-phase3-validation-flow.py`, `check-phase3-build-roots.py`, and `check-phase3-canonical-survey-manifest.py` stay as supporting checks inside that validator-first route rather than standalone bootstrap or release entrypoints.\",\n"
-        " )\n"
-    )
+def _fixture_readme_tooling_inventory(
+    *snippets: str,
+) -> str:
+    if not snippets:
+        snippets = DEFAULT_PHASE3_README_FLOW_SNIPPETS
+    lines = ["REQUIRED_PHASE3_FLOW_SNIPPETS = ("]
+    for snippet in snippets:
+        lines.append(f'    "{snippet}",')
+    lines.append(" )")
+    lines.append("")
+    return "\n".join(lines)
 
 
 def run_self_test() -> int:
@@ -406,8 +434,28 @@ def run_self_test() -> int:
                 + (",".join(issues) if issues else "none")
             )
 
+        _write(root, DOCS_ROOT_REL, _fixture_docs_root())
+        duplicated_contract_snippet = DEFAULT_PHASE3_README_FLOW_SNIPPETS[0]
+        _write(
+            root,
+            README_TOOLING_INVENTORY_REL,
+            _fixture_readme_tooling_inventory(
+                duplicated_contract_snippet,
+                duplicated_contract_snippet,
+            ),
+        )
+        issues = validate(root)
+        expected = [
+            f"duplicate_phase3_flow_contract_snippet:{duplicated_contract_snippet}",
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-validation-flow-self-test:duplicate_phase3_flow_contract_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
         print("PHASE3_VALIDATION_FLOW_SELF_TEST=pass")
-        print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=33")
+        print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=34")
         return 0
 
 
