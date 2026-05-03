@@ -1,5 +1,5 @@
 {
-  "lane_key": "arch-council",
+  "lane_key": "P15-L01",
   "phase": "Phase 15",
   "surveyed_commit": "d918be7ded6383c13cbd5eea4ca4aa4f3cdafee4",
   "anchor": "Documentation/zigux/freeze-map.md",
@@ -98,7 +98,7 @@
       "status": "starter_landed",
       "kind": "lane_note",
       "zigux_destination": "Documentation/zigux/phase15-freeze-map-governance.md",
-      "why_now": "The freeze-map-specific lane note now needs to reflect the active Architecture Council maintenance lane, the latest visible current-head survey, and the explicit rollback-threshold rule already present in the root policy layer instead of preserving an older maintenance snapshot."
+      "why_now": "The freeze-map-specific lane note now needs to reflect the active Phase 15 scheduled lane key, the latest visible current-head survey, and the explicit rollback-threshold rule already present in the root policy layer instead of preserving an owner-only marker that no longer matches the current scheduled maintenance packet."
     },
     {
       "id": "phase15-build-gate",
