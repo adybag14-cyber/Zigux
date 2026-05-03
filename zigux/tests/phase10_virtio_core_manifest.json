@@ -85,6 +85,13 @@
       "why_now": "The live helper already records whether a bound driver exposes config_changed, which mirrors the drv && drv->config_changed branch closely enough for review without pretending probe or remove lifecycle parity."
     },
     {
+      "id": "phase10-driver-id-match-helper",
+      "status": "starter_landed",
+      "kind": "lab_driver_starter",
+      "zigux_destination": "drivers/virtio/virtio.zig",
+      "why_now": "The live helper now records bounded device and vendor ID-table matching, including VIRTIO_DEV_ANY_ID wildcards and first-match ordering, which mirrors virtio_id_match() and the virtio_dev_match() scan closely enough for review without widening into probe or remove lifecycle work."
+    },
+    {
       "id": "phase10-driver-remove-bookkeeping-helper",
       "status": "starter_landed",
       "kind": "lab_driver_starter",
