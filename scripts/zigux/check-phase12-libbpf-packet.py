@@ -18,6 +18,7 @@ TRACKED_PATHS = [
 ]
 SNAPSHOT_FIXTURE_PATH = "zigux/tests/fixtures/phase12_libbpf_snapshot.json"
 REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
+VALIDATE_PHASE12_PATH = "scripts/zigux/validate-phase12.py"
 FOCUSED_REPLAY_REQUIRED_PATHS = [
     "scripts/zigux/check-phase12-libbpf-focused-replay.py",
     "zigux/tests/phase12_libbpf_only_build.zig",
@@ -26,6 +27,7 @@ REQUIRED_PATHS = [
     *TRACKED_PATHS,
     SNAPSHOT_FIXTURE_PATH,
     REVIEW_CHECKLIST_PATH,
+    VALIDATE_PHASE12_PATH,
     *FOCUSED_REPLAY_REQUIRED_PATHS,
 ]
 
@@ -125,6 +127,10 @@ REVIEWABILITY_MARKERS = [
 ]
 
 REVIEW_CHECKLIST_MARKERS = [
+    "if the change touches the focused Phase 12 libbpf-only replay packet, do `python3 scripts/zigux/check-phase12-libbpf-focused-replay.py --self-test`, `scripts/zigux/check-phase12-libbpf-focused-replay.py`, `scripts/zigux/validate-phase12.py`, `zigux/tests/phase12_libbpf_only_build.zig`, `zigux/tests/phase12_libbpf_manifest.json`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` still agree on the same dedicated replay shard, review-note hook, and validator-first rollback path instead of leaving that narrower libbpf gate implied behind the broader packet checks?",
+]
+
+VALIDATE_PHASE12_FOCUSED_REPLAY_MARKERS = [
     "if the change touches the focused Phase 12 libbpf-only replay packet, do `python3 scripts/zigux/check-phase12-libbpf-focused-replay.py --self-test`, `scripts/zigux/check-phase12-libbpf-focused-replay.py`, `scripts/zigux/validate-phase12.py`, `zigux/tests/phase12_libbpf_only_build.zig`, `zigux/tests/phase12_libbpf_manifest.json`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` still agree on the same dedicated replay shard, review-note hook, and validator-first rollback path instead of leaving that narrower libbpf gate implied behind the broader packet checks?",
 ]
 
@@ -381,6 +387,7 @@ def check_packet(root: Path) -> list[str]:
     segment_test = read_text(root, TRACKED_PATHS[1])
     reviewability_test = read_text(root, TRACKED_PATHS[2])
     review_checklist = read_text(root, REVIEW_CHECKLIST_PATH)
+    validate_phase12 = read_text(root, VALIDATE_PHASE12_PATH)
     focused_replay_checker = read_text(root, FOCUSED_REPLAY_REQUIRED_PATHS[0])
     focused_replay_build = read_text(root, FOCUSED_REPLAY_REQUIRED_PATHS[1])
 
@@ -443,6 +450,12 @@ def check_packet(root: Path) -> list[str]:
     check_text_markers(segment_test, SEGMENT_TEST_MARKERS, "segment_test", missing)
     check_text_markers(reviewability_test, REVIEWABILITY_MARKERS, "reviewability_test", missing)
     check_text_markers(review_checklist, REVIEW_CHECKLIST_MARKERS, "review_checklist", missing)
+    check_text_markers(
+        validate_phase12,
+        VALIDATE_PHASE12_FOCUSED_REPLAY_MARKERS,
+        "validate_phase12",
+        missing,
+    )
     check_text_markers(
         focused_replay_build,
         FOCUSED_REPLAY_BUILD_MARKERS,
@@ -527,6 +540,7 @@ def build_self_test_tree(root: Path) -> None:
     segment_test = "\n".join([f'const current_surveyed_commit = "{surveyed_commit}";', *SEGMENT_TEST_MARKERS])
     reviewability_test = "\n".join(REVIEWABILITY_MARKERS)
     review_checklist = "\n".join(REVIEW_CHECKLIST_MARKERS)
+    validate_phase12 = "\n".join(VALIDATE_PHASE12_FOCUSED_REPLAY_MARKERS)
     focused_replay_checker = "\n".join(FOCUSED_REPLAY_CHECKER_MARKERS)
     focused_replay_build = "\n".join(FOCUSED_REPLAY_BUILD_MARKERS)
 
@@ -536,6 +550,7 @@ def build_self_test_tree(root: Path) -> None:
     write(root / TRACKED_PATHS[2], reviewability_test + "\n")
     write(root / TRACKED_PATHS[4], json.dumps(legacy_manifest, indent=2) + "\n")
     write(root / REVIEW_CHECKLIST_PATH, review_checklist + "\n")
+    write(root / VALIDATE_PHASE12_PATH, validate_phase12 + "\n")
     write(root / FOCUSED_REPLAY_REQUIRED_PATHS[0], focused_replay_checker + "\n")
     write(root / FOCUSED_REPLAY_REQUIRED_PATHS[1], focused_replay_build + "\n")
     synthetic_helper_paths = (
@@ -595,6 +610,13 @@ def run_self_test() -> int:
         missing = check_packet(root)
         if f"missing_file:{REVIEW_CHECKLIST_PATH}" not in missing:
             raise SystemExit("phase12-libbpf-packet:self-test:missing_review_checklist_detection")
+
+        build_self_test_tree(root)
+        validate_phase12_path = root / VALIDATE_PHASE12_PATH
+        validate_phase12_path.unlink()
+        missing = check_packet(root)
+        if f"missing_file:{VALIDATE_PHASE12_PATH}" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:missing_validate_phase12_detection")
 
         build_self_test_tree(root)
         focused_replay_checker_path = root / FOCUSED_REPLAY_REQUIRED_PATHS[0]
@@ -741,6 +763,20 @@ def run_self_test() -> int:
         missing = check_packet(root)
         if f"review_checklist:{REVIEW_CHECKLIST_MARKERS[0]}" not in missing:
             raise SystemExit("phase12-libbpf-packet:self-test:review_checklist_marker_detection")
+
+        build_self_test_tree(root)
+        validate_phase12_path = root / VALIDATE_PHASE12_PATH
+        original = validate_phase12_path.read_text(encoding="utf-8")
+        validate_phase12_path.write_text(
+            original.replace(
+                VALIDATE_PHASE12_FOCUSED_REPLAY_MARKERS[0] + "\n",
+                "",
+            ),
+            encoding="utf-8",
+        )
+        missing = check_packet(root)
+        if f"validate_phase12:{VALIDATE_PHASE12_FOCUSED_REPLAY_MARKERS[0]}" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:validate_phase12_marker_detection")
 
         build_self_test_tree(root)
         focused_replay_build_path = root / FOCUSED_REPLAY_REQUIRED_PATHS[1]
@@ -964,7 +1000,7 @@ def run_self_test() -> int:
             raise SystemExit("phase12-libbpf-packet:self-test:reviewability_marker_detection")
 
         print("PHASE12_LIBBPF_PACKET_SELF_TEST=pass")
-        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=56")
+        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=58")
     return 0
 
 
