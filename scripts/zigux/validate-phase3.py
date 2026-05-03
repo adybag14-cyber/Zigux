@@ -179,6 +179,44 @@ def _run_survey_aggregation_self_test() -> int:
                 assert issues == [f"{issue_prefix}: {issue_line}"]
                 aggregated.extend(issues)
             assert len(aggregated) == len(cases)
+
+            stderr_only_script = "stderr-only-survey.py"
+            (scripts_dir / stderr_only_script).write_text(
+                "\n".join(
+                    (
+                        "#!/usr/bin/env python3",
+                        "import sys",
+                        "print('synthetic stderr drift', file=sys.stderr)",
+                        "raise SystemExit(1)",
+                    )
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            issues = _collect_script_validation_issues(
+                stderr_only_script,
+                "PHASE3_STDERR_ONLY=fail",
+                "stderr-only-gate",
+            )
+            assert issues == ["stderr-only-gate: stderr: synthetic stderr drift"]
+
+            silent_script = "silent-nonzero-survey.py"
+            (scripts_dir / silent_script).write_text(
+                "\n".join(
+                    (
+                        "#!/usr/bin/env python3",
+                        "raise SystemExit(7)",
+                    )
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            issues = _collect_script_validation_issues(
+                silent_script,
+                "PHASE3_SILENT_NONZERO=fail",
+                "silent-nonzero-gate",
+            )
+            assert issues == [f"silent-nonzero-gate: {silent_script} exited with status 7"]
         finally:
             globals()["ROOT"] = original_root
 
