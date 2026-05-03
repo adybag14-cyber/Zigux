@@ -234,6 +234,28 @@ def run_self_test() -> int:
                     "# scripts/zigux",
                     "",
                     "Current bootstrap helpers",
+                    f"- `{Path(tooling_packet_rels[0]).name}`",
+                    f"- `{Path(tooling_packet_rels[0]).name}`",
+                    *[f"- `{Path(rel).name}`" for rel in tooling_packet_rels[1:]],
+                    "",
+                )
+            ),
+        )
+        issues = validate(root)
+        expected = [f"duplicate_readme_entry:{Path(tooling_packet_rels[0]).name}"]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-readme-tooling-inventory-self-test:duplicate_readme_entry_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+        _write(
+            root / README_REL,
+            "\n".join(
+                (
+                    "# scripts/zigux",
+                    "",
+                    "Current bootstrap helpers",
                     "- `artifact_diff.py`",
                     helper_lines,
                     "",
@@ -250,7 +272,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
-    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=3")
+    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=4")
     return 0
 
 
