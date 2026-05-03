@@ -7,6 +7,8 @@ This note records the bounded Phase 2 bootstrap archive-pin contract.
 - guard: `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`
 - shared validator gate: `python3 scripts/zigux/validate-phase2.py`
 - closure validator gate: `python3 scripts/zigux/validate-phase2-closure.py`
+- Linux-style validator entrypoint: `make -C zigux phase2-validate`
+- Linux-style tranche entrypoint: `make -C zigux phase2`
 - closure note: `Documentation/zigux/phase2-closure.md`
 - workflow install path: `python3 scripts/zigux/install-zig.py --dest .zig-toolchain`
 - workflow verification path: `python3 scripts/zigux/check-zig-toolchain.py`
@@ -17,3 +19,4 @@ This note records the bounded Phase 2 bootstrap archive-pin contract.
 - the archive pin must stay limited to `x86_64-linux` until a new bootstrap runner target gains first-class workflow evidence
 - the three-target compile matrix in `zigux/tests/fixtures/phase2_cross_targets.json` stays separate from the `x86_64-linux` bootstrap archive pin
 - the shared and closure validators above are the fail-closed route that keeps this note in the bounded Phase 2 toolchain tranche instead of leaving it as stand-alone reference text
+- the Linux-style `make -C zigux phase2-validate` and `make -C zigux phase2` routes keep the dedicated note tied to the same kbuild-facing replay surface named by the shared validators and closure note
