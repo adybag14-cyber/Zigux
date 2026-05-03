@@ -396,6 +396,7 @@ def validate_kconfig_checker_gate(checker_script: Path) -> list[str]:
     required_markers = {
         'self_test_arg': "parser.add_argument('--self-test'",
         'self_test_pass_marker': "print('KCONFIG_BRIDGE_SELF_TEST=pass')",
+        'self_test_case_count_marker': "print(f'KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT={total_self_test_cases}')",
         'unexpected_conf_mode_guard': 'UNEXPECTED_CONF_BRIDGE_MODES_START',
         'unsorted_conf_case_guard': 'UNSORTED_CONF_CASE_ORDER_START',
         'unsorted_confdata_case_guard': 'UNSORTED_CONFDATA_CASE_ORDER_START',
