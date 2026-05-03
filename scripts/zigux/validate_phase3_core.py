@@ -207,6 +207,10 @@ ABI_REQUIRED_SOURCE_MARKERS = {
         "try std.testing.expect(uapi_version.isCompatibleSize(future_compatible_header.size));",
     ),
     "zigux/tests/phase3_export_uapi_build.zig": (
+        '.root_source_file = b.path("../kernel/export_shim.zig"),',
+        'export_shim_module.addImport("abi_bindings", abi_bindings_module);',
+        '.root_source_file = b.path("../uapi/version.zig"),',
+        'uapi_version_module.addImport("abi_bindings", abi_bindings_module);',
         '.root_source_file = b.path("phase3_export_uapi.zig"),',
         'export_shim_module.addImport("uapi_version", uapi_version_module);',
         'root_module.addImport("abi_bindings", abi_bindings_module);',
