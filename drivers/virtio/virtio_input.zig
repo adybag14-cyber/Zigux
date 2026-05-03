@@ -142,6 +142,8 @@ pub const RegistrationPreflightSummary = struct {
     staged_abs_param_count: usize,
     multitouch_enabled: bool,
     multitouch_slot_intent: bool,
+    multitouch_slot_required: bool,
+    multitouch_slot_requirement_ready: bool,
     multitouch_slots_ready: bool,
     multitouch_slot_count: usize,
     ready_for_registration: bool,
@@ -457,12 +459,15 @@ pub const VirtioInputLab = struct {
         const identity_ready = self.name_len != 0 and self.serial_len != 0 and self.phys_len != 0;
 
         const multitouch_slot_intent = self.findAbsInfoIndex(abs_mt_slot) != null;
+        const multitouch_slot_required = self.multitouch_enabled;
         var multitouch_slots_ready = true;
+        var multitouch_slot_requirement_ready = !multitouch_slot_required;
         var multitouch_slot_count: usize = 0;
         if (multitouch_slot_intent) {
             const slot_summary = try self.multitouchSlotPlanSummary();
             multitouch_slot_count = slot_summary.slot_count;
             multitouch_slots_ready = slot_summary.initializes_slots;
+            multitouch_slot_requirement_ready = slot_summary.initializes_slots;
         }
 
         return .{
@@ -473,9 +478,13 @@ pub const VirtioInputLab = struct {
             .staged_abs_param_count = capability_summary.staged_abs_param_count,
             .multitouch_enabled = self.multitouch_enabled,
             .multitouch_slot_intent = multitouch_slot_intent,
+            .multitouch_slot_required = multitouch_slot_required,
+            .multitouch_slot_requirement_ready = multitouch_slot_requirement_ready,
             .multitouch_slots_ready = multitouch_slots_ready,
             .multitouch_slot_count = multitouch_slot_count,
-            .ready_for_registration = identity_ready and capability_summary.staged_capability_count != 0 and multitouch_slots_ready,
+            .ready_for_registration = identity_ready and
+                capability_summary.staged_capability_count != 0 and
+                multitouch_slot_requirement_ready,
         };
     }
 
