@@ -17,7 +17,7 @@ pub fn addressOf(ptr: anytype) usize {
 }
 
 pub fn byteOffset(base: usize, offset: usize) usize {
-    return base + offset;
+    return checkedByteOffset(base, offset) catch unreachable;
 }
 
 pub fn checkedByteOffset(base: usize, offset: usize) ScopeError!usize {
@@ -124,6 +124,7 @@ pub fn scopedConstPointerAt(comptime T: type, scope: UnsafeScopeTag, addr: usize
 test "phase3 narrow unsafe wrappers stay bounded" {
     var value: u32 = 0;
     const base = addressOf(&value);
+    try std.testing.expectEqual(base + @sizeOf(u32), try checkedByteOffset(base, @sizeOf(u32)));
     const ptr = try pointerAt(u32, .volatile_mmio, base, 0);
     ptr.* = 11;
     try std.testing.expectEqual(@as(u32, 11), value);
