@@ -87,6 +87,11 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     phase11_uapi_header_parity_survey_module.addImport("hvc_console", hvc_console_module);
+    const hvc_console_sysrq_module = b.createModule(.{
+        .root_source_file = b.path("../../drivers/tty/hvc/hvc_console_sysrq.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
     const phase11_hvc_console_module = b.createModule(.{
         .root_source_file = b.path("phase11_hvc_console.zig"),
         .target = target,
@@ -105,6 +110,7 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     phase11_hvc_console_poll_retry_split_module.addImport("hvc_console", hvc_console_module);
+    phase11_hvc_console_poll_retry_split_module.addImport("hvc_console_sysrq", hvc_console_sysrq_module);
     const phase11_hvc_console_survey_module = b.createModule(.{
         .root_source_file = b.path("phase11_hvc_console_survey.zig"),
         .target = target,
