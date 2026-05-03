@@ -17,6 +17,7 @@ Use this checklist before opening or merging Zigux product work.
 - is there a stated performance gate if the code is algorithmic, queueing-sensitive, or driver-facing?
 - is there a stated rollback owner and fallback path?
 - if the change is a reference sample under `samples/zigux/`, is the self-check or behavior replay explicit and small enough to stay reviewable?
+- if the change touches the active Phase 10, Phase 11, or Phase 13 contributor packet, does `Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md` stay aligned with the same validator-first checker stack, shared replay path, and adjacent evidence files named by the packet-local docs and manifests?
 
 ## ABI and Runtime
 - if the change touches the shared Phase 3 ABI substrate packet, do `include/zigux/abi.h`, `include/linux/zigux.h`, `zigux/bindings/abi.zig`, `zigux/tests/phase3_abi.zig`, and `zigux/tests/fixtures/phase3_abi/expected.json` still agree on the same canonical boundary layouts, constants, and fixture-backed dump contract?
