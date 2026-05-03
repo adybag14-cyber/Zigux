@@ -540,6 +540,21 @@ def run_self_test() -> int:
         )
         input_preflight_path.write_text(original_input_preflight, encoding="utf-8")
 
+        input_preflight_path.write_text(
+            original_input_preflight.replace(
+                "probePreflightSummary()",
+                "probePreflightSummaryDrift()",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "input_preflight_probe_summary_marker",
+            root,
+            "input_preflight_test:probePreflightSummary()",
+        )
+        input_preflight_path.write_text(original_input_preflight, encoding="utf-8")
+
         queue_isolation_path = root / "zigux/tests/phase10_virtio_mmio_queue_isolation.zig"
         original_queue_isolation = queue_isolation_path.read_text(encoding="utf-8")
         queue_isolation_path.unlink()
@@ -565,7 +580,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=20")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=21")
     return 0
 
 
