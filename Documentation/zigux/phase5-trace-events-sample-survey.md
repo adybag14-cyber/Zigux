@@ -6,8 +6,8 @@ This sample-backed survey note tracks the bounded Phase 5 reference-sample surve
 
 - `PHASE5_STATUS=active`
 - `PHASE5_SLICE=trace-events-reference-sample-starter`
-- `PHASE5_LANE_KEY=P5-L24`
-- `PHASE5_SURVEYED_COMMIT=3ba64cd4e41a4de1c8fd8dbaecb23702ad9701a3`
+- `PHASE5_LANE_KEY=P5-L16`
+- `PHASE5_SURVEYED_COMMIT=d46fb91493e6e9126d5111bf0e5b21184e0ec1d1`
 - scope: roadmap-vs-repo sample delivery, approved payload and callback idiom guidance, contributor refresh cues, and exact bounded checks for the landed `samples/zigux/` trace-events replay
 - product boundary:
   - `Documentation/zigux/phase5-trace-events-sample-survey.md`
@@ -74,7 +74,7 @@ The exact checks currently recorded in `zigux/tests/phase5_trace_events_sample_m
 
 ## Latest verification snapshot
 
-- inspected `master` head: `3ba64cd4e41a4de1c8fd8dbaecb23702ad9701a3`
+- inspected `master` head: `d46fb91493e6e9126d5111bf0e5b21184e0ec1d1`
 - attached Zig toolchain: `0.17.0-dev.87+9b177a7d2`
 - exact commands and observed results:
   - `zig test samples/zigux/trace_events_sample.zig`
@@ -126,7 +126,7 @@ The current gap is no longer "Zigux has no trace-events sample guidance." The mo
 - the repo now has a reviewable Phase 5 `trace_events_sample` reference sample plus manifest-backed checks for payload shape, string selection, selected-string slot cues, payload-length cues, main-path and callback-path iteration cues, formatted messages, bounded family counts, lifecycle-summary counts, the exact `checked_focus` review surface, vararg-payload coverage, relative-location coverage, callback-path coverage, and teardown
 - this sample must remain visibly separate from the later Phase 9 runtime `trace-events` starter so contributors do not over-claim runtime substrate coverage
 - the Phase 5 roadmap's four named sample anchors are now all represented by bounded `samples/zigux/` reference readings, but that does not close the separate Phase 9 runtime pilot tranche
-- this approved payload-and-callback idiom is now pinned to `PHASE5_SURVEYED_COMMIT=3ba64cd4e41a4de1c8fd8dbaecb23702ad9701a3` so the sample-backed survey note, latest verification snapshot, sample-root catalog boundary, manifest-backed survey, and shared `phase5_build.zig` replay all point at the same inspected `master` head
+- this approved payload-and-callback idiom is now pinned to `PHASE5_SURVEYED_COMMIT=d46fb91493e6e9126d5111bf0e5b21184e0ec1d1` so the sample-backed survey note, latest verification snapshot, sample-root catalog boundary, manifest-backed survey, and shared `phase5_build.zig` replay all point at the same inspected `master` head
 
 ## Review gates for this survey
 
@@ -152,4 +152,4 @@ This survey does not yet claim:
 
 ## Next bounded step
 
-Leave this trace-events survey lane parked unless fresh repo inspection finds one more directly coupled replay-summary or contributor-guidance wording drift inside the landed `trace_events_sample` packet, while keeping the sample visibly separate from the later Phase 9 runtime pilot and preserving the exact verification packet recorded under `P5-L24`.
+Leave this trace-events survey lane parked unless fresh repo inspection finds one more directly coupled replay-summary or contributor-guidance wording drift inside the landed `trace_events_sample` packet, while keeping the sample visibly separate from the later Phase 9 runtime pilot and preserving the exact verification packet recorded under `P5-L16`.
