@@ -27,9 +27,11 @@ SURVEY_MARKERS = [
     "Documentation/zigux/phase12-virtio-net-survey.md",
     "Documentation/zigux/phase12-libbpf-segment-survey.md",
     "scripts/zigux/check-phase12-libbpf-focused-replay.py",
+    "scripts/zigux/check-phase12-release-readiness-packet.py",
     "zigux/tests/phase12_libbpf_only_build.zig",
     "Documentation/zigux/README.md` now also mirrors the mixed fallback split directly",
     "approved non-native musl targets `x86_64-linux-musl`, `aarch64-linux-musl`, and `riscv64-linux-musl`",
+    "the release-facing note now also names `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test` plus `python3 scripts/zigux/check-phase12-release-readiness-packet.py` as the dedicated PMO packet guard, so this release-coordination note has its own fail-closed review hook instead of relying only on the broader validator and reviewer habit",
     "PHASE12_COMMIT_PINNED_RAW_FALLBACK_COUNT=2",
     "PHASE12_SHARED_TREE_ONLY_FALLBACK_COUNT=2",
     "PHASE12_APPROVED_CROSS_TARGET_COUNT=3",
@@ -38,6 +40,7 @@ SURVEY_MARKERS = [
 
 SURVEY_EXACT_COUNT_MARKERS = {
     "Documentation/zigux/README.md` now also mirrors the mixed fallback split directly": 1,
+    "the release-facing note now also names `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test` plus `python3 scripts/zigux/check-phase12-release-readiness-packet.py` as the dedicated PMO packet guard, so this release-coordination note has its own fail-closed review hook instead of relying only on the broader validator and reviewer habit": 1,
     "PHASE12_COMMIT_PINNED_RAW_FALLBACK_COUNT=2": 1,
     "PHASE12_SHARED_TREE_ONLY_FALLBACK_COUNT=2": 1,
     "PHASE12_APPROVED_CROSS_TARGET_COUNT=3": 1,
@@ -174,6 +177,19 @@ def run_self_test() -> int:
         "survey_count:PHASE12_RELEASE_CLOSED=no:expected=1:actual=2",
     )
 
+    release_guard_marker = (
+        "the release-facing note now also names `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test` plus "
+        "`python3 scripts/zigux/check-phase12-release-readiness-packet.py` as the dedicated PMO packet guard, so this release-coordination "
+        "note has its own fail-closed review hook instead of relying only on the broader validator and reviewer habit"
+    )
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "survey_text": base_inputs["survey_text"].replace(release_guard_marker + "\n", "", 1),
+        }
+    )
+    expect_contains("survey_release_guard_detection", missing, f"survey:{release_guard_marker}")
+
     missing = collect_missing(
         **{
             **base_inputs,
@@ -225,7 +241,7 @@ def run_self_test() -> int:
     expect_contains("raw_coverage_marker_detection", missing, "raw_coverage:shared-tree-only")
 
     print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST=pass")
-    print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT=7")
+    print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
