@@ -13,6 +13,7 @@ MANIFEST_REL = "zigux/tests/fixtures/phase3_abi_manifest.json"
 VALIDATOR_REL = "scripts/zigux/validate-phase3.py"
 REQUIRED_TOOLING_FILES = (
     "scripts/zigux/check-phase3-abi-layout-packet.py",
+    "scripts/zigux/check-phase3-abi-binding-constants.py",
     "scripts/zigux/check-phase3-build-roots.py",
     "scripts/zigux/check-phase3-canonical-survey-manifest.py",
     "scripts/zigux/check-phase3-readme-tooling-inventory.py",
@@ -133,6 +134,7 @@ def run_self_test() -> int:
                     '    ("validate-phase3-roadmap-gap-survey.py", "PHASE3_ROADMAP_GAP_SURVEY=fail", "roadmap-gap", "missing_roadmap_anchor"),',
                     '    ("validate-phase3-rbtree-interop-survey.py", "PHASE3_RBTREE_INTEROP_SURVEY=fail", "rbtree-gap", "missing_rbtree_anchor"),',
                     '    ("check-phase3-rbtree-shared-lift-contract.py", "PHASE3_RBTREE_SHARED_LIFT_CONTRACT=fail", "shared-lift", "missing_contract_anchor"),',
+                    '    ("check-phase3-abi-binding-constants.py", "PHASE3_ABI_BINDING_CONSTANTS=fail", "abi-binding-constants", "missing_binding_constant_anchor"),',
                     ")",
                     'BUILD_ROOT_DRIFT_SCRIPT = ("check-phase3-build-roots.py", "PHASE3_BUILD_ROOTS=fail", "build-roots", "missing_root")',
                     'CANONICAL_SURVEY_MANIFEST_SCRIPT = ("check-phase3-canonical-survey-manifest.py", "PHASE3_CANONICAL_SURVEY_MANIFEST=fail", "canonical-manifest", "missing_manifest_anchor")',
