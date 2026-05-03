@@ -99,42 +99,71 @@ DEDICATED_BINDING_TOKENS = (
     "pub const RootView = extern struct {",
 )
 
-SHARED_CONTRACT_SNIPPETS = (
+SHARED_CONTRACT_PREFIX_SNIPPETS = (
     "PHASE3_RBTREE_SHARED_LAYOUT_CONTRACT",
     "PHASE3_RBTREE_SHARED_CONSTANT_CONTRACT",
     "PHASE3_RBTREE_SHARED_SAMPLE_RECORDS=empty-root,cached-leftmost-root,uncached-root",
-    "const empty_root = rbtree.empty();",
-    "try std.testing.expect(rbtree.isEmpty(empty_root));",
-    "try std.testing.expect(!rbtree.hasRoot(empty_root));",
-    "const cached_root: rbtree.RootView = .{",
+)
+
+SHARED_CONTRACT_CACHED_DETAIL_SNIPPETS = (
     "try std.testing.expectEqual(@as(usize, 0x2000), cached_root.root_addr);",
     "try std.testing.expectEqual(@as(usize, 0x1800), cached_root.leftmost_addr);",
     "try std.testing.expectEqual(@as(u32, rbtree.ROOT_FLAG_CACHED | rbtree.ROOT_FLAG_LEFTMOST_VALID), cached_root.flags);",
     "try std.testing.expectEqual(@as(u32, 0), cached_root.reserved);",
-    "try std.testing.expect(rbtree.hasRoot(cached_root));",
-    "const uncached_root: rbtree.RootView = .{",
+)
+
+SHARED_CONTRACT_UNCACHED_DETAIL_SNIPPETS = (
     "try std.testing.expectEqual(@as(usize, 0x2400), uncached_root.root_addr);",
     "try std.testing.expectEqual(@as(usize, 0), uncached_root.leftmost_addr);",
     "try std.testing.expectEqual(@as(u32, 0), uncached_root.flags);",
     "try std.testing.expectEqual(@as(u32, 0), uncached_root.reserved);",
-    "try std.testing.expect(rbtree.hasRoot(uncached_root));",
+)
+
+SHARED_CONTRACT_SNIPPETS = (
+    *SHARED_CONTRACT_PREFIX_SNIPPETS,
+    PHASE3_SHARED_RBTREE_RECORD_MARKERS[0],
+    PHASE3_SHARED_RBTREE_RECORD_MARKERS[1],
+    PHASE3_SHARED_RBTREE_RECORD_MARKERS[2],
+    *SHARED_CONTRACT_CACHED_DETAIL_SNIPPETS,
+    PHASE3_SHARED_RBTREE_RECORD_MARKERS[3],
+    PHASE3_SHARED_RBTREE_RECORD_MARKERS[4],
+    *SHARED_CONTRACT_UNCACHED_DETAIL_SNIPPETS,
+    PHASE3_SHARED_RBTREE_RECORD_MARKERS[5],
+)
+
+SHARED_ABI_TEST_PREFIX_SNIPPETS = (
+    'const rbtree = @import("rbtree_bindings");',
+    "layout_assert.assertRbtreeRootViewLayout();",
+)
+
+SHARED_ABI_TEST_CACHED_DETAIL_SNIPPETS = (
+    "try std.testing.expectEqual(@as(usize, 0x2000), cached_root.root_addr);",
+    "try std.testing.expectEqual(@as(usize, 0x1800), cached_root.leftmost_addr);",
+    "try std.testing.expectEqual(@as(u32, rbtree.ROOT_FLAG_CACHED | rbtree.ROOT_FLAG_LEFTMOST_VALID), cached_root.flags);",
+    "try std.testing.expectEqual(@as(u32, 0), cached_root.reserved);",
+)
+
+SHARED_ABI_TEST_UNCACHED_DETAIL_SNIPPETS = (
+    "try std.testing.expectEqual(@as(usize, 0x2400), uncached_root.root_addr);",
+    "try std.testing.expectEqual(@as(usize, 0), uncached_root.leftmost_addr);",
+    "try std.testing.expectEqual(@as(u32, 0), uncached_root.flags);",
+    "try std.testing.expectEqual(@as(u32, 0), uncached_root.reserved);",
+)
+
+SHARED_ABI_TEST_SNIPPETS = (
+    *SHARED_ABI_TEST_PREFIX_SNIPPETS,
+    PHASE3_SHARED_RBTREE_RECORD_MARKERS[0],
+    PHASE3_SHARED_RBTREE_RECORD_MARKERS[1],
+    PHASE3_SHARED_RBTREE_RECORD_MARKERS[2],
+    *SHARED_ABI_TEST_CACHED_DETAIL_SNIPPETS,
+    PHASE3_SHARED_RBTREE_RECORD_MARKERS[3],
+    PHASE3_SHARED_RBTREE_RECORD_MARKERS[4],
+    *SHARED_ABI_TEST_UNCACHED_DETAIL_SNIPPETS,
+    PHASE3_SHARED_RBTREE_RECORD_MARKERS[5],
 )
 
 SHARED_PACKET_SNIPPETS = {
-    SHARED_ABI_TEST_REL: (
-        'const rbtree = @import("rbtree_bindings");',
-        "layout_assert.assertRbtreeRootViewLayout();",
-        "const empty_root = rbtree.empty();",
-        "try std.testing.expect(!rbtree.hasRoot(empty_root));",
-        "const cached_root: rbtree.RootView = .{",
-        "try std.testing.expect(rbtree.hasRoot(cached_root));",
-        "const uncached_root: rbtree.RootView = .{",
-        "try std.testing.expectEqual(@as(usize, 0x2400), uncached_root.root_addr);",
-        "try std.testing.expectEqual(@as(usize, 0), uncached_root.leftmost_addr);",
-        "try std.testing.expectEqual(@as(u32, 0), uncached_root.flags);",
-        "try std.testing.expectEqual(@as(u32, 0), uncached_root.reserved);",
-        "try std.testing.expect(rbtree.hasRoot(uncached_root));",
-    ),
+    SHARED_ABI_TEST_REL: SHARED_ABI_TEST_SNIPPETS,
     SHARED_ABI_DUMP_REL: (
         'const rbtree = @import("rbtree_bindings");',
         'writeStructLayout(writer, "zigux_rbtree_root_view", rbtree.RootView, false);',
