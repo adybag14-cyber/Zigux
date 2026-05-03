@@ -57,14 +57,13 @@ The bounded libbpf-only replay remains separate from the shared build packet:
 
 That boundary is intentional. The focused shard keeps the heavy-helper lane reviewable without silently implying that every libbpf-facing replay already runs inside `zigux/tests/phase12_build.zig`, and it gives the repo one smaller replay surface for the landed `tools/lib/bpf/zigux_segments/` footing while the larger shared validator still carries the cross-anchor Phase 12 packet.
 
-## Active Contract Gap
+## Shared Validator Contract
 
-The current shared review packet is real but not fully symmetrical yet.
+The shared and focused Phase 12 gates now enforce the same narrower libbpf-only review hook explicitly.
 
-- `scripts/zigux/check-phase12-libbpf-focused-replay.py` and `scripts/zigux/check-phase12-libbpf-packet.py` already fail closed on the dedicated focused replay hook inside `Documentation/zigux/review-checklist.md` and the matching shared-validator surface.
-- `scripts/zigux/validate-phase12.py` still needs its own direct exact-count follow-up for that same focused replay hook, so the shared validator runtime path can match the duplicate-drift protection that the narrower libbpf checkers already enforce.
-
-This note exists partly to keep that remaining boundary explicit until the larger shared validator file can be updated through a lossless whole-file publish path.
+- `scripts/zigux/check-phase12-libbpf-focused-replay.py` fails closed on the dedicated focused replay hook inside `Documentation/zigux/review-checklist.md` and the matching shared-validator surface.
+- `scripts/zigux/validate-phase12.py` now exact-counts that same review-checklist prompt, so the broader shared validator runtime path matches the duplicate-drift protection already enforced by the narrower libbpf checkers.
+- the current contract is therefore reviewable in both directions: the focused shard keeps its own dedicated replay boundary explicit, and the broader shared validator also refuses silent duplication or disappearance of that same contributor-facing review hook.
 
 ## Contributor Sync Points
 
