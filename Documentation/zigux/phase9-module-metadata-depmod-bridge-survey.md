@@ -4,7 +4,7 @@ This note records the current Phase 9 runtime module-metadata surface and the st
 
 ## Status
 
-- `PHASE9_STATUS=active`
+- `PHASE9_STATUS=parked`
 - `PHASE9_SLICE=runtime-module-metadata-depmod-bridge-survey`
 - `PHASE9_SURVEYED_COMMIT=949994db4046ec70abf044d1b2ea874fde9bc4a6`
 - scope: dedicated metadata survey note, manifest-backed survey gate, and a bounded review packet for the current runtime starter descriptors, four landed loader-side scaffolds, the shared runtime-loader metadata fields, and the still-absent depmod-facing surfaces
@@ -156,4 +156,4 @@ This slice does not claim:
 
 ## Next bounded step
 
-If a future Phase 9 lane reopens this metadata family, keep the next step narrow: either add one real metadata-export surface that the current starter family can prove end-to-end, or teach the shared `RuntimeLoadRequest` handoff to consume the already-landed trace-events loader scaffold without overstating depmod parity.
+If a future Phase 9 lane reopens this metadata family, keep the next step narrow: first teach `scripts/zigux/validate-phase9.py` to require this dedicated module-metadata packet's survey note, manifest, focused replay, dedicated checker, and shared `phase9-module-metadata-survey` build leg so the shared validator matches the already-landed review surface. Only after that lands should later work consider adding a real metadata-export surface or extending the shared handoff to the trace-events loader scaffold without overstating depmod parity.
