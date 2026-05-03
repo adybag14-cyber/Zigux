@@ -132,7 +132,7 @@ REVIEW_PROCESS_MARKERS = [
 ]
 
 INDEFINITE_POLICY_NOTE_MARKERS = [
-    "PHASE15_LANE_KEY=P15-L16",
+    "PHASE15_LANE_KEY=P15-Y04",
     "## Current Policy Gap",
     "## Exception request checklist",
     "## Automatic Return-To-Blocked Rule",
@@ -200,7 +200,7 @@ HANDOFF_TEST_MARKERS = [
 ]
 
 INDEFINITE_POLICY_TEST_MARKERS = [
-    'try std.testing.expectEqualStrings("P15-L16", manifest.lane_key);',
+    'try std.testing.expectEqualStrings("P15-Y04", manifest.lane_key);',
     'try std.testing.expectEqualStrings("policy for code that remains in C indefinitely", manifest.roadmap_requirement);',
     'try expectContains(policy_note, "## Current Policy Gap");',
     'try expectContains(policy_note, "## Maintenance-Mode Handoff");',
@@ -668,7 +668,7 @@ require(
 
 indefinite_c_manifest = load_json("zigux/tests/phase15_indefinite_c_policy.json")
 require(indefinite_c_manifest.get("phase") == "Phase 15", "indefinite_c_manifest:phase")
-require(indefinite_c_manifest.get("lane_key") == "P15-L16", "indefinite_c_manifest:lane_key")
+require(indefinite_c_manifest.get("lane_key") == "P15-Y04", "indefinite_c_manifest:lane_key")
 require(
     isinstance(indefinite_c_manifest.get("surveyed_commit"), str)
     and HEX40.fullmatch(indefinite_c_manifest["surveyed_commit"]),
