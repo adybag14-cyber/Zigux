@@ -53,6 +53,12 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     phase13_devres_iounmap_reviewability_module.addImport("devres", devres_module);
+    const phase13_devres_iomap_reviewability_module = b.createModule(.{
+        .root_source_file = b.path("phase13_devres_iomap_reviewability.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase13_devres_iomap_reviewability_module.addImport("devres", devres_module);
     const phase13_landlock_ruleset_module = b.createModule(.{
         .root_source_file = b.path("phase13_landlock_ruleset.zig"),
         .target = target,
@@ -126,6 +132,11 @@ pub fn build(b: *std.Build) void {
         .root_module = phase13_devres_iounmap_reviewability_module,
     });
     const run_phase13_devres_iounmap_reviewability_tests = b.addRunArtifact(phase13_devres_iounmap_reviewability_tests);
+    const phase13_devres_iomap_reviewability_tests = b.addTest(.{
+        .name = "phase13-devres-iomap-reviewability-tests",
+        .root_module = phase13_devres_iomap_reviewability_module,
+    });
+    const run_phase13_devres_iomap_reviewability_tests = b.addRunArtifact(phase13_devres_iomap_reviewability_tests);
     const phase13_landlock_ruleset_tests = b.addTest(.{
         .name = "phase13-landlock-ruleset-tests",
         .root_module = phase13_landlock_ruleset_module,
@@ -167,6 +178,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_phase13_devres_tests.step);
     test_step.dependOn(&run_phase13_devres_dma_coherent_tests.step);
     test_step.dependOn(&run_phase13_devres_iounmap_reviewability_tests.step);
+    test_step.dependOn(&run_phase13_devres_iomap_reviewability_tests.step);
     test_step.dependOn(&run_phase13_landlock_ruleset_tests.step);
     test_step.dependOn(&run_phase13_landlock_syscalls_tests.step);
     test_step.dependOn(&run_phase13_landlock_syscalls_reviewability_tests.step);
