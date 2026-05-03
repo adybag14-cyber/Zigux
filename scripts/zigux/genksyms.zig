@@ -13,8 +13,12 @@ pub const Request = struct {
     show_version: bool = false,
 };
 
+pub const HelpCommand = struct {
+    show_version: bool = false,
+};
+
 pub const Command = union(enum) {
-    help,
+    help: HelpCommand,
     request: Request,
 };
 
@@ -239,7 +243,7 @@ fn parseLongOption(allocator: std.mem.Allocator, args: []const []const u8, index
             }
 
             switch (spec.kind) {
-                .help => return .{ .command = .help },
+                .help => return .{ .command = .{ .help = .{ .show_version = request.show_version } } },
                 .version => {
                     request.show_version = true;
                     return .none;
@@ -289,7 +293,7 @@ fn parseShortOptions(allocator: std.mem.Allocator, args: []const []const u8, ind
     var short_index: usize = 1;
     while (short_index < arg.len) : (short_index += 1) {
         switch (arg[short_index]) {
-            'h' => return .{ .command = .help },
+            'h' => return .{ .command = .{ .help = .{ .show_version = request.show_version } } },
             'V' => request.show_version = true,
             'd' => request.debug_level += 1,
             'w' => request.warnings = true,
@@ -410,9 +414,12 @@ pub fn main(init: std.process.Init) !void {
     };
 
     switch (command) {
-        .help => {
+        .help => |help| {
             var stderr_buffer: [512]u8 = undefined;
             var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
+            if (help.show_version) {
+                try stderr_writer.interface.writeAll(version_text);
+            }
             try stderr_writer.interface.writeAll(usage_text);
             try stderr_writer.interface.flush();
         },
@@ -538,7 +545,30 @@ test "genksyms bridge accepts abbreviated unique action long options" {
 
     const help_outcome = try parseArgs(std.testing.allocator, &.{"--hel"});
     switch (help_outcome) {
-        .command => |command| try std.testing.expect(command == .help),
+        .command => |command| switch (command) {
+            .help => |help| try std.testing.expect(!help.show_version),
+            else => return error.UnexpectedCommand,
+        },
+        .failure => return error.UnexpectedFailure,
+    }
+}
+
+test "genksyms bridge preserves version side effect before help exit" {
+    const short_outcome = try parseArgs(std.testing.allocator, &.{"-Vh"});
+    switch (short_outcome) {
+        .command => |command| switch (command) {
+            .help => |help| try std.testing.expect(help.show_version),
+            else => return error.UnexpectedCommand,
+        },
+        .failure => return error.UnexpectedFailure,
+    }
+
+    const long_outcome = try parseArgs(std.testing.allocator, &.{ "--version", "--hel" });
+    switch (long_outcome) {
+        .command => |command| switch (command) {
+            .help => |help| try std.testing.expect(help.show_version),
+            else => return error.UnexpectedCommand,
+        },
         .failure => return error.UnexpectedFailure,
     }
 }
