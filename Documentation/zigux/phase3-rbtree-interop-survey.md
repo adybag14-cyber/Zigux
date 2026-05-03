@@ -14,6 +14,8 @@ This note records the current state of the roadmap-backed `lib/rbtree.c` anchor 
 - `PHASE3_RBTREE_PHASE3_BOUNDARY_STATUS=dedicated-boundary-landed-shared-abi-lift-still-missing`
 - `PHASE3_RBTREE_NON_GOALS=no-balancing-port,no-export-shim-growth,no-uapi-growth`
 - `PHASE3_RBTREE_NEXT_BOUNDED_STEP=one-shared-phase3-abi-rbtree-root-view`
+- `PHASE3_RBTREE_SHARED_LAYOUT_CONTRACT=zigux_rbtree_root_view-reused-unchanged-in-shared-phase3-abi-packet`
+- `PHASE3_RBTREE_SHARED_CONSTANT_CONTRACT=root_flag_empty,root_flag_cached,root_flag_leftmost_valid`
 - `PHASE3_RBTREE_SURVEY_GATE=python3 scripts/zigux/validate-phase3-rbtree-interop-survey.py`
 - `PHASE3_RBTREE_SHARED_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi`
 - `PHASE3_RBTREE_SHARED_MAKE_GATE=make -C zigux phase3-validate`
@@ -43,6 +45,7 @@ That means the remaining Phase 3 gap is no longer “no curated C header, bindin
 The live Phase 3 validation packet already exposes this survey through dedicated and shared gates:
 
 - `python3 scripts/zigux/validate-phase3-rbtree-interop-survey.py` keeps this dedicated survey note, the broader `Documentation/zigux/phase3-roadmap-gap-survey.md` note, and the repo-backed evidence paths aligned
+- `python3 scripts/zigux/check-phase3-rbtree-shared-lift-contract.py` keeps the dedicated root-view layout, constants, and shared-lift note aligned before the shared ABI packet grows
 - `python3 scripts/zigux/validate-phase3.py --slug abi` keeps that dedicated `rbtree` gap visible inside the shared Phase 3 ABI validation packet instead of leaving it as prose-only context
 - `make -C zigux phase3-validate` remains the shared wrapper entrypoint for the broader bounded ABI packet, so this survey stays reviewable through the same published Phase 3 gate
 
@@ -69,3 +72,4 @@ The next honest same-lane follow-on is one small shared Phase 3 `rbtree` ABI lif
 - one curated read-mostly ABI record in the shared packet
 - one matching shared Zig binding shape
 - one committed shared parity fixture that keeps the contract reviewable without widening into a full balancing port
+- the shared lift should reuse the dedicated `zigux_rbtree_root_view` layout and `root_flag_empty`, `root_flag_cached`, and `root_flag_leftmost_valid` constants unchanged so the contract stays reviewable across the existing dedicated parity fixture
