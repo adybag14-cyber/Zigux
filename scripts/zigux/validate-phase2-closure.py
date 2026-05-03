@@ -460,7 +460,7 @@ def validate_phase2_cross_alignment_checker_gate(checker_script: Path) -> list[s
     required_markers = {
         'self_test_arg': 'parser.add_argument("--self-test"',
         'self_test_pass_marker': 'print("PHASE2_CROSS_ALIGNMENT_SELF_TEST=pass")',
-        'self_test_case_count_marker': 'print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=15")',
+        'self_test_case_count_marker': 'print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=16")',
         'validator_anchor': 'PHASE2_VALIDATOR = ROOT / "scripts" / "zigux" / "validate-phase2.py"',
         'closure_doc_anchor': 'CLOSURE_DOC = ROOT / "Documentation" / "zigux" / "phase2-closure.md"',
         'targets_manifest_anchor': 'TARGETS_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json"',
@@ -501,9 +501,11 @@ def validate_genksyms_crc_checker_gate(checker_script: Path) -> list[str]:
     required_markers = {
         'self_test_arg': "parser.add_argument('--self-test'",
         'self_test_pass_marker': "print('GENKSYMS_CRC_SELF_TEST=pass')",
-        'self_test_case_count_marker': "print('GENKSYMS_CRC_SELF_TEST_CASE_COUNT=7')",
-        'missing_expected_fixture_guard': 'expected:missing_fixture:',
-        'unexpected_fixture_guard': 'expected:unexpected_fixture:',
+        'self_test_case_count_marker': "print('GENKSYMS_CRC_SELF_TEST_CASE_COUNT=11')",
+        'missing_fixture_guard': 'genksyms-crc:self-test:missing_expected_fixture',
+        'missing_input_guard': 'genksyms-crc:self-test:missing_input_fixture',
+        'orphaned_expected_guard': 'orphaned_expected:',
+        'orphaned_input_guard': 'orphaned_input:',
         'mismatch_contract_guard': 'genksyms-crc:self-test:mismatch_contract',
         'repeat_c_compare': "run(diff_base + [str(c_actual), str(c_repeat)], cwd=str(ROOT))",
         'repeat_zig_compare': "run(diff_base + [str(zig_actual), str(zig_repeat)], cwd=str(ROOT))",
