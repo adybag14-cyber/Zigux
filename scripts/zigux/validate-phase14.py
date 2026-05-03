@@ -138,7 +138,7 @@ BUILD_MARKERS = [
     "test_step.dependOn(&run_phase14_skbuff_bridge_tests.step);",
     "test_step.dependOn(&run_phase14_ring_buffer_survey_tests.step);",
     "test_step.dependOn(&run_phase14_rcu_tree_survey_tests.step);",
-    "test_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);",
+    "test_step.dependOn(&run_phase14_end-to-end-smoke-tests.step);",
 ]
 
 FREEZE_MAP_MARKERS = [
@@ -577,5 +577,5 @@ print(f"PHASE14_BUILD_DEPEND_STEP_COUNT={len(actual_depend_steps)}")
 print(f"PHASE14_COMPILE_ARTIFACT_COUNT={len(expected_build_test_names)}")
 print(f"PHASE14_FOCUSED_SHARD_COUNT={focused_shard_count}")
 print(f"PHASE14_ANCHOR_LOCAL_STEP_COUNT={anchor_local_step_count}")
-print(f"PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT={full_bundle_only_count})
+print(f"PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT={full_bundle_only_count}")
 print(f"PHASE14_SCRIPTS_README_EXACT_COUNT_MARKER_COUNT={len(SCRIPT_README_EXACT_COUNT_MARKERS)}")
