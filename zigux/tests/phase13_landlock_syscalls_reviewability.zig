@@ -100,6 +100,16 @@ test "phase13 landlock syscalls reviewability ties helper, survey, manifest, and
     try expectContains(survey_note, "landed `phase13-landlock-syscalls-reviewability-gate`");
     try expectContains(survey_note, "manifest-backed reviewability gate");
 
+    const traceability_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase13-roadmap-traceability.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(traceability_note);
+
+    try expectContains(traceability_note, "future docs-root, release-note, or checklist updates should keep the dedicated `zigux/tests/phase13_landlock_syscalls_reviewability.zig` gate visible together with the roadmap-adjacent notifier packet, including `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, `include/zigux/notifier_abi.h`, and `zigux/helpers/notifier_chain_view.zig`, while continuing to describe Phase 13 closure through the four manifest-backed roadmap anchors only");
+
     const build_file = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "zigux/tests/phase13_build.zig",
