@@ -6,7 +6,8 @@ from pathlib import Path
 import runpy
 import tempfile
 
-ROOT = Path(__file__).resolve().parents[2]
+_SELF_PATH = Path(__file__).resolve()
+ROOT = _SELF_PATH.parents[2] if len(_SELF_PATH.parents) > 2 else Path.cwd().resolve()
 MAKEFILE_REL = "zigux/Makefile"
 WORKFLOW_REL = ".github/workflows/zigux-bootstrap.yml"
 DOCS_ROOT_REL = "Documentation/zigux/README.md"
@@ -99,6 +100,13 @@ EXACT_ONCE_WORKFLOW_SNIPPETS = (
     "run: python3 scripts/zigux/check-phase3-readme-tooling-inventory.py\n",
     "run: python3 scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test\n",
     "run: python3 scripts/zigux/run-phase3-checks.py --self-test\n",
+)
+
+EXACT_ONCE_WORKFLOW_TITLE_SNIPPETS = (
+    "name: Check Phase 3 validation flow\n",
+    "name: Self-test Phase 3 validation flow checker\n",
+    "name: Validate Phase 3 README tooling inventory\n",
+    "name: Self-test Phase 3 README tooling inventory checker\n",
 )
 
 FORBIDDEN_WORKFLOW_SNIPPETS = (
@@ -244,6 +252,7 @@ def validate(root: Path) -> list[str]:
     _reject_snippets(makefile, FORBIDDEN_MAKEFILE_SNIPPETS, "unexpected_makefile_snippet", issues)
     _require_snippets(workflow, REQUIRED_WORKFLOW_SNIPPETS, "missing_workflow_snippet", issues)
     _require_exact_count(workflow, EXACT_ONCE_WORKFLOW_SNIPPETS, "unexpected_workflow_snippet_count", 1, issues)
+    _require_exact_count(workflow, EXACT_ONCE_WORKFLOW_TITLE_SNIPPETS, "unexpected_workflow_snippet_count", 1, issues)
     _reject_snippets(workflow, FORBIDDEN_WORKFLOW_SNIPPETS, "unexpected_workflow_snippet", issues)
     _require_snippets(docs_root, REQUIRED_DOCS_ROOT_SNIPPETS, "missing_docs_root_snippet", issues)
     _require_exact_count(docs_root, EXACT_ONCE_DOCS_ROOT_SNIPPETS, "unexpected_docs_root_snippet_count", 1, issues)
@@ -431,6 +440,40 @@ def run_self_test() -> int:
         if issues != expected:
             raise SystemExit(
                 "phase3-validation-flow-self-test:duplicate_runner_workflow_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+        _write(root, WORKFLOW_REL, _fixture_workflow())
+        duplicated_validation_flow_workflow_title = (
+            _fixture_workflow()
+            + "      - name: Check Phase 3 validation flow\n"
+            + "        run: python3 scripts/zigux/phase3_catalog.py --check-slug-sanity\n"
+        )
+        _write(root, WORKFLOW_REL, duplicated_validation_flow_workflow_title)
+        issues = validate(root)
+        expected = [
+            "unexpected_workflow_snippet_count:2:name: Check Phase 3 validation flow\n",
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-validation-flow-self-test:duplicate_validation_flow_workflow_title_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+        _write(root, WORKFLOW_REL, _fixture_workflow())
+        duplicated_readme_inventory_workflow_title = (
+            _fixture_workflow()
+            + "      - name: Validate Phase 3 README tooling inventory\n"
+            + "        run: python3 scripts/zigux/phase3_catalog.py --audit-doc-sync\n"
+        )
+        _write(root, WORKFLOW_REL, duplicated_readme_inventory_workflow_title)
+        issues = validate(root)
+        expected = [
+            "unexpected_workflow_snippet_count:2:name: Validate Phase 3 README tooling inventory\n",
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-validation-flow-self-test:duplicate_readme_inventory_workflow_title_guard_failed:"
                 + (",".join(issues) if issues else "none")
             )
 
