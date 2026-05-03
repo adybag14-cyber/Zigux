@@ -38,7 +38,7 @@ REQUIRED_SURVEY_MARKERS = (
     "PHASE3_EXPORT_UAPI_GATE=zig build phase3-export-uapi-test --build-file zigux/tests/phase3_export_uapi_build.zig",
     "PHASE3_EXPORT_UAPI_LAYOUT_GATE=zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
     "PHASE3_ABI_BUILD_SMOKE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi --check-build-smoke",
-    "PHASE3_ABI_BUILD_SMOKE_STATUS=shared-validator-replays-export-uapi-boundary",
+    "PHASE3_ABI_BUILD_SMOKE_STATUS=shared-validator-replays-export-uapi-boundary-and-layout",
     "PHASE3_BOUNDARY_GAP=broader-curated-uapi-shims-still-deferred",
     "PHASE3_NEXT_BOUNDED_STEP=keep-boundary-header-surface-narrow-until-one-roadmap-backed-interop-slice-needs-another-curated-uapi-or-export-entry",
 )
@@ -50,7 +50,7 @@ REQUIRED_SURVEY_SNIPPETS = (
     "zigux/tests/phase3_export_uapi_layout.zig",
     "zigux/tests/fixtures/phase3_abi_manifest.json",
     "python3 scripts/zigux/validate-phase3.py --slug abi --check-build-smoke",
-    "phase3-dump`, `phase3-low-level-wrappers-test`, `phase3-export-uapi-test`, and `phase3-policy-unsafe-test`",
+    "phase3-dump`, `phase3-low-level-wrappers-test`, `phase3-export-uapi-test`, `phase3-export-uapi-layout-test`, and `phase3-policy-unsafe-test`",
     "part of the shared ABI build-smoke proof rather than only a boundary-local survey gate",
     "named version and size predicates",
     "keep canonical-size header checks separate from broader future-compatible header acceptance",
