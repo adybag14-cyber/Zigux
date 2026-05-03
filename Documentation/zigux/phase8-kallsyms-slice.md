@@ -12,6 +12,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
   - `tools/lib/symbol/kallsyms.zig`
   - `zigux/tests/phase8_kallsyms.zig`
   - `zigux/tests/phase8_kallsyms_only_build.zig`
+  - `zigux/tests/phase8_help_kallsyms_only_build.zig`
   - `zigux/tests/phase8_build.zig`
 
 ## Why this slice exists
@@ -28,11 +29,15 @@ The live repo already has the parse-first `kallsyms.zig` parked slice, the injec
 2. run the focused shared kallsyms gate
 - `zig build test --build-file zigux/tests/phase8_kallsyms_only_build.zig --summary all`
 
-3. run the dedicated Phase 8 tooling gate
+3. run the focused shared help and symbol gate
+- `zig build test --build-file zigux/tests/phase8_help_kallsyms_only_build.zig --summary all`
+
+4. run the dedicated Phase 8 tooling gate
 - `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
 
-4. run the convenience targets
+5. run the convenience targets
 - `make -C zigux phase8-kallsyms-test`
+- `make -C zigux phase8-help-kallsyms-test`
 - `make -C zigux phase8`
 
 ## Current parity surface
@@ -72,4 +77,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Park the `kallsyms` lane unless a fresh parity gap appears; the parked slice now covers the integrated parser-and-wrapper packet while the helper-local matrix stays owned by `tools/lib/symbol/kallsyms.zig`, so the next honest follow-up should only reopen this lane for another exact parser or callback-contract edge rather than widening into ELF emission or downstream symbol plumbing.
+Park the `kallsyms` lane unless a fresh parity gap appears; the parked slice now covers the integrated parser-and-wrapper packet while the helper-local matrix stays owned by `tools/lib/symbol/kallsyms.zig`, and the new shared `phase8_help_kallsyms_only_build.zig` shard keeps the parked help-plus-symbol packet reviewable without rerunning the full Phase 8 bundle. The next honest follow-up should only reopen this lane for another exact parser or callback-contract edge rather than widening into ELF emission or downstream symbol plumbing.
