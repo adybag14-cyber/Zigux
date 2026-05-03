@@ -45,6 +45,16 @@ def _shared_rbtree_phase3_abi_markers() -> tuple[str, ...]:
     )
 
 
+RBTREE_SHARED_MISSING_MARKER_CASES = (
+    "const empty_root = rbtree.empty();",
+    "const cached_root: rbtree.RootView = .{",
+    "const uncached_root: rbtree.RootView = .{",
+    "try std.testing.expect(!rbtree.hasRoot(empty_root));",
+    "try std.testing.expect(rbtree.hasRoot(cached_root));",
+    "try std.testing.expect(rbtree.hasRoot(uncached_root));",
+)
+
+
 def _write_phase3_slice(
     paths: Phase3Paths,
     *,
@@ -334,24 +344,8 @@ def run_self_test() -> int:
             root,
             {"phase3-rbtree-shared-marker-fixture.zig": rbtree_shared_markers},
         ) == []
-        assert_missing_rbtree_shared_marker(
-            "const empty_root = rbtree.empty();"
-        )
-        assert_missing_rbtree_shared_marker(
-            "const cached_root: rbtree.RootView = .{"
-        )
-        assert_missing_rbtree_shared_marker(
-            "const uncached_root: rbtree.RootView = .{"
-        )
-        assert_missing_rbtree_shared_marker(
-            "try std.testing.expect(!rbtree.hasRoot(empty_root));"
-        )
-        assert_missing_rbtree_shared_marker(
-            "try std.testing.expect(rbtree.hasRoot(cached_root));"
-        )
-        assert_missing_rbtree_shared_marker(
-            "try std.testing.expect(rbtree.hasRoot(uncached_root));"
-        )
+        for missing_marker in RBTREE_SHARED_MISSING_MARKER_CASES:
+            assert_missing_rbtree_shared_marker(missing_marker)
 
     print("PHASE3_VALIDATOR_SELF_TEST=pass")
     print("PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT=18")
