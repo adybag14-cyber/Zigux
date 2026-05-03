@@ -345,6 +345,8 @@ LEDGER_MARKERS = [
     "PHASE10_LEDGER_FORBIDDEN_TRANSPORT_CLAIMS=queue_setup_reset_paths,irq_parity,dma_paths,input_registration_lifecycle,probe_remove_lifecycle",
     "PHASE10_LEDGER_PHASE14_STUDY_ONLY_ANCHORS=kernel/workqueue.c,kernel/trace/ring_buffer.c",
     "PHASE10_LEDGER_MAKEFILE=zigux/Makefile",
+    "PHASE10_LEDGER_WORKFLOW=.github/workflows/zigux-bootstrap.yml",
+    "PHASE10_LEDGER_ENTRYPOINTS=make -C zigux phase10-validate,make -C zigux phase10-test,make -C zigux phase10",
     "PHASE10_LEDGER_EXACT_CHECK_1=python3 scripts/zigux/check-phase10-closure-inventory.py",
     "PHASE10_LEDGER_EXACT_CHECK_2=python3 scripts/zigux/validate-phase10-closure.py",
     "PHASE10_LEDGER_EXACT_CHECK_3=zig build test --build-file zigux/tests/phase10_build.zig --summary all",
@@ -598,6 +600,36 @@ def run_self_test() -> int:
         )
         ledger_path.write_text(original_ledger, encoding="utf-8")
 
+        ledger_path.write_text(
+            original_ledger.replace(
+                "PHASE10_LEDGER_WORKFLOW=.github/workflows/zigux-bootstrap.yml",
+                "PHASE10_LEDGER_WORKFLOW=missing",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "ledger_workflow_marker",
+            root,
+            "ledger:PHASE10_LEDGER_WORKFLOW=.github/workflows/zigux-bootstrap.yml",
+        )
+        ledger_path.write_text(original_ledger, encoding="utf-8")
+
+        ledger_path.write_text(
+            original_ledger.replace(
+                "PHASE10_LEDGER_ENTRYPOINTS=make -C zigux phase10-validate,make -C zigux phase10-test,make -C zigux phase10",
+                "PHASE10_LEDGER_ENTRYPOINTS=missing",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "ledger_entrypoints_marker",
+            root,
+            "ledger:PHASE10_LEDGER_ENTRYPOINTS=make -C zigux phase10-validate,make -C zigux phase10-test,make -C zigux phase10",
+        )
+        ledger_path.write_text(original_ledger, encoding="utf-8")
+
         manifest_path = root / CLOSURE_MANIFEST
 
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -788,7 +820,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_CLOSURE_INVENTORY_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_INVENTORY_SELF_TEST_CASE_COUNT=30")
+    print("PHASE10_CLOSURE_INVENTORY_SELF_TEST_CASE_COUNT=32")
     return 0
 
 
