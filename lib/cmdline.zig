@@ -227,21 +227,23 @@ fn getRange(str: *[]const u8, lower: i32, out: []i32) ?usize {
 
     str.* = str.*[1..];
     const parsed = parseSignedPrefix(str.*) orelse return null;
+    const upper = std.math.cast(i32, parsed.value) orelse return null;
 
-    const upper = parsed.value;
-    const delta = upper - @as(i64, lower);
+    const lower_wide: i64 = lower;
+    const upper_wide: i64 = upper;
+    const delta = std.math.sub(i64, upper_wide, lower_wide) catch return null;
     if (delta < 0) {
         return null;
     }
 
     var written: usize = 0;
-    var x = lower;
-    while (written < out.len and @as(i64, x) < upper) : (written += 1) {
-        out[written] = x;
-        x += 1;
+    var current_value = lower_wide;
+    while (written < out.len and current_value < upper_wide) : (written += 1) {
+        out[written] = @intCast(current_value);
+        current_value += 1;
     }
 
-    return @intCast(delta);
+    return std.math.cast(usize, delta);
 }
 
 fn cStringPrefix(s: []const u8) []const u8 {
@@ -517,6 +519,18 @@ test "getOptions stops at array capacity even when a range still has an upper bo
     const validate_rest = getOptions("1-4,8", 0, &validate);
     try std.testing.expectEqualStrings("", validate_rest);
     try std.testing.expectEqualSlices(i32, &[_]i32{ 5, 0, 0, 0, 0, 0, 0, 0 }, &validate);
+}
+
+test "getOptions fails closed on out-of-range range bounds instead of trapping" {
+    var values = [_]i32{ 0, 0, 0 };
+    const rest = getOptions("2147483647-2147483648,9", values.len, &values);
+    try std.testing.expectEqualStrings("2147483648,9", rest);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 0, 2147483647, 0 }, &values);
+
+    var validate = [_]i32{0};
+    const validate_rest = getOptions("2147483647-2147483648", 0, &validate);
+    try std.testing.expectEqualStrings("2147483648", validate_rest);
+    try std.testing.expectEqual(@as(i32, 0), validate[0]);
 }
 
 test "memparse handles size suffixes and reports where parsing stopped" {
