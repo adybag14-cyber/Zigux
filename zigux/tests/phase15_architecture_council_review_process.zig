@@ -276,6 +276,11 @@ test "phase 15 architecture council review-process note stays aligned with check
     try std.testing.expect(std.mem.indexOf(u8, review_process, "make -C zigux phase15") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "retired_from_active_discussion") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "no Architecture Council approval is currently recorded") != null);
+    try expectOccurrenceCount(
+        review_process,
+        "no Architecture Council approval is currently recorded for a freeze-map status change",
+        1,
+    );
     try std.testing.expect(std.mem.indexOf(u8, review_process, "the current bounded evidence is the freeze map, this review-process note, the review checklist hook, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, and the reserved per-anchor templates under `Documentation/zigux/phase15-evidence-archives/`") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "current approval evidence is explicit negative evidence rather than silence") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "requested decision bucket: pending_no_request") != null);
