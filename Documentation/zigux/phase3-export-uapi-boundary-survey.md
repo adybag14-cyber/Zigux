@@ -18,12 +18,12 @@ This note records the current export-shim and UAPI boundary for the bounded Phas
 - `PHASE3_UAPI_VERSION_BLOB_SHA=ee01f0d9b6faf6cfbb9e12f11d8c267870a0a654`
 - `PHASE3_LINUX_HEADER_BLOB_SHA=c8cfd9590d2d0039ad087bb020a236fdc0a2b4ff`
 - `PHASE3_ABI_HEADER_BLOB_SHA=c588b6d2c81659ff8996495d001dd1ebad7df1b1`
-- `PHASE3_ABI_SLICE_DOC_BLOB_SHA=ae10cff373709470ac777e97feec257ea069f8a0`
+- `PHASE3_ABI_SLICE_DOC_BLOB_SHA=9eb69fa5f0af9c6648d5cb4efeac6c344f72bc4e`
 - `PHASE3_EXPORT_UAPI_BUILD_BLOB_SHA=17778c41309a0bfb1c2c026622938059c2dd41f9`
 - `PHASE3_EXPORT_UAPI_TEST_BLOB_SHA=40e49566fa959bcbda976ce3142b76c591e4c79f`
 - `PHASE3_EXPORT_UAPI_LAYOUT_BUILD_BLOB_SHA=081b0624641588ea987a6562ac32781cfe93013f`
 - `PHASE3_EXPORT_UAPI_LAYOUT_TEST_BLOB_SHA=abdb943d7eb1ec6cf72025727fd2896d75b9eb25`
-- `PHASE3_ABI_MANIFEST_BLOB_SHA=760ba7ab77d925e70eb7840b6468b16ddd1b4750`
+- `PHASE3_ABI_MANIFEST_BLOB_SHA=06f0da0e3c00bc3205c2d7fe73cfe6376a0e1b2e`
 - `PHASE3_EXPORT_UAPI_GATE=zig build phase3-export-uapi-test --build-file zigux/tests/phase3_export_uapi_build.zig`
 - `PHASE3_EXPORT_UAPI_LAYOUT_GATE=zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig`
 - `PHASE3_ABI_BUILD_SMOKE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi --check-build-smoke`
@@ -55,7 +55,7 @@ The current tree already carries the first bounded export and UAPI boundary surf
 - `include/linux/zigux.h` now sits inside the same bounded packet as the C-facing relay for those shared ABI types: the C-facing helper header still relays the shared `BoundaryHeader` and `ExportStatus` ABI types through `#include <zigux/abi.h>` while broader named C-side boundary-header helpers stay intentionally deferred, but current `master` no longer leaves that file as only a narrow relay-and-status shim because the same header also carries multiple already-landed Phase 3 interop helper families beyond the export/UAPI starter
 - the export shim and `zigux/uapi/version.zig` now carry the same shared boundary-header construction and compatibility contract without widening the packet beyond the existing ABI types
 - the export shim and `zigux/uapi/version.zig` now also keep canonical-size header checks separate from broader future-compatible header acceptance, so the packet distinguishes exact current-shape replay from forward-compatible boundary tolerance without widening the UAPI surface
-- the same surveyed head now also includes the landed policy-and-unsafe substrate tightening in `Documentation/zigux/phase3-abi-slice.md` and `zigux/tests/fixtures/phase3_abi_manifest.json`, so this export/UAPI survey pin stays aligned with the broader ABI packet instead of aging against a pre-policy snapshot
+- packet-local blob evidence now also records the landed policy-and-unsafe substrate tightening in `Documentation/zigux/phase3-abi-slice.md` and `zigux/tests/fixtures/phase3_abi_manifest.json`, so this export/UAPI survey packet stays aligned with the broader ABI packet instead of aging against a pre-policy snapshot
 - `zigux/uapi/version.zig` now exports `abi_version`, `header_size`, `Header`, `canonicalHeader`, `boundaryHeader`, `compatibleHeader`, `Compatibility`, `compatibility`, `isCurrentAbiVersion`, `isCompatibleSize`, `isCanonicalSize`, `isCompatible`, and `isCanonical`
 - `zigux/kernel/export_shim.zig` now re-exports that same named boundary-header classification through `HeaderCompatibility` and `headerCompatibility`, so callers can distinguish canonical and broader future-compatible headers without recombining multiple boolean checks by hand
 - `zigux/tests/phase3_export_uapi.zig` now keeps the narrow kernel-side export shim aligned with the UAPI packet's named current-version and current-size predicates, the explicit named canonical constructor, the explicit forward-compatible header constructor, and the named compatibility classifier, so the shared boundary rule stays reviewable without widening the kernel shim itself
