@@ -76,7 +76,7 @@ Phase 6 notes
 - `zigux/tests/phase6_helper_parity_manifest.json` stays the machine-readable companion for that same packet, keeping the helper inventory, shared gates, perf posture, and fixture posture aligned with the reviewer-facing catalog.
 - `python3 scripts/zigux/validate-phase6.py`, `make -C zigux phase6-validate`, and `make -C zigux phase6` are the published validator-first shared replay path for the current Phase 6 helper tranche.
 - `make -C zigux phase6-base64-perf`, `make -C zigux phase6-bsearch-perf`, `make -C zigux phase6-checksum-perf`, and `make -C zigux phase6-hexdump-perf` keep the current helper-local slowdown and comparison-budget gates explicit instead of implying broader runtime-core performance claims.
-- `python3 scripts/zigux/check-phase6-base64-c-parity.py` and `python3 scripts/zigux/check-phase6-bsearch-c-parity.py` are the shipped external C-vs-Zig review hooks for the bounded base64 and bsearch portability surfaces.
+- `python3 scripts/zigux/check-phase6-base64-c-parity.py`, `python3 scripts/zigux/check-phase6-bsearch-c-parity.py`, `python3 scripts/zigux/check-phase6-checksum-c-parity.py`, and `python3 scripts/zigux/check-phase6-hexdump-c-parity.py` are the shipped external C-vs-Zig review hooks for the bounded base64, bsearch, checksum, and hexdump portability surfaces.
 
 Phase 7 notes
 - `Documentation/zigux/phase7-string-helpers-slice.md`, `Documentation/zigux/phase7-cmdline-slice.md`, `Documentation/zigux/phase7-argv-split-slice.md`, and `Documentation/zigux/phase7-rbtree-slice.md` keep the current string-helpers, cmdline, argv-split, and rbtree packet explicit as one runtime-safe leaf-helper tranche.
