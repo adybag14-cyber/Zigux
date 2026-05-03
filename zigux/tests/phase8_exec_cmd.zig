@@ -203,7 +203,9 @@ test "phase 8 exec-cmd review checklist keeps deferred handoff review wording al
     try expectContains(review_checklist, "parked Phase 8 `exec-cmd` helper packet");
     try expectContains(review_checklist, "Documentation/zigux/phase8-exec-cmd-slice.md");
     try expectContains(review_checklist, "zigux/tests/phase8_exec_cmd.zig");
+    try expectContains(review_checklist, "zigux/tests/phase8_exec_cmd_only_build.zig");
     try expectContains(review_checklist, "deferred execution helper-only");
+    try expectContains(review_checklist, "make -C zigux phase8-exec-cmd-test");
     try expectContains(review_checklist, "kernel/workqueue.c");
     try expectContains(review_checklist, "separate `kernel/workqueue.c` Phase 14 boundary-study target");
     try expectContains(review_checklist, "`execv_cmd()`");
