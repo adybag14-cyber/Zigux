@@ -20,15 +20,16 @@ test "phase 8 cpu mask starter slice parses dense masks and counts possible CPUs
     try std.testing.expect(parsed.values[8]);
 }
 
-test "phase 8 cpu mask starter slice keeps the C delimiter loop bounded while still allowing sscanf-style leading whitespace" {
-    const parsed = try cpu_mask.parseCpuMaskString(std.testing.allocator, "\n 0-1,\r4\n6\n");
+test "phase 8 cpu mask starter slice keeps the C delimiter loop bounded while still allowing sscanf-style token-leading whitespace" {
+    const parsed = try cpu_mask.parseCpuMaskString(std.testing.allocator, "\n 0-1,\x0b4\n\x0c6,\r8\n");
     defer parsed.deinit(std.testing.allocator);
 
-    try std.testing.expectEqual(@as(usize, 4), cpu_mask.countPossibleCpus(parsed.values));
+    try std.testing.expectEqual(@as(usize, 5), cpu_mask.countPossibleCpus(parsed.values));
     try std.testing.expect(parsed.values[0]);
     try std.testing.expect(parsed.values[1]);
     try std.testing.expect(parsed.values[4]);
     try std.testing.expect(parsed.values[6]);
+    try std.testing.expect(parsed.values[8]);
 
     try std.testing.expectError(error.EmptyCpuRange, cpu_mask.parseCpuMaskString(std.testing.allocator, ",\n"));
     try std.testing.expectError(error.InvalidCpuRange, cpu_mask.parseCpuMaskString(std.testing.allocator, ",\n\r"));
@@ -54,10 +55,10 @@ test "phase 8 cpu mask starter slice accepts plus-prefixed CPU tokens like the l
 }
 
 test "phase 8 cpu mask starter slice keeps sscanf-style whitespace after range dashes in parity with the live C helper" {
-    const parsed = try cpu_mask.parseCpuMaskString(std.testing.allocator, "0- 3,+5-\t6,+8-\r9\n");
+    const parsed = try cpu_mask.parseCpuMaskString(std.testing.allocator, "0- 3,+5-\t6,+8-\r9,+11-\x0c12\n");
     defer parsed.deinit(std.testing.allocator);
 
-    try std.testing.expectEqual(@as(usize, 8), cpu_mask.countPossibleCpus(parsed.values));
+    try std.testing.expectEqual(@as(usize, 10), cpu_mask.countPossibleCpus(parsed.values));
     try std.testing.expect(parsed.values[0]);
     try std.testing.expect(parsed.values[1]);
     try std.testing.expect(parsed.values[2]);
@@ -68,6 +69,9 @@ test "phase 8 cpu mask starter slice keeps sscanf-style whitespace after range d
     try std.testing.expect(!parsed.values[7]);
     try std.testing.expect(parsed.values[8]);
     try std.testing.expect(parsed.values[9]);
+    try std.testing.expect(!parsed.values[10]);
+    try std.testing.expect(parsed.values[11]);
+    try std.testing.expect(parsed.values[12]);
 }
 
 test "phase 8 cpu mask reader interface accepts chunked sysfs-style input" {
