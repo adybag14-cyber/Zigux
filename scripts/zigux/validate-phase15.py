@@ -38,6 +38,7 @@ FILES = [
     "zigux/tests/phase15_readiness_gate.zig",
     "zigux/tests/phase15_handoff_next_steps_manifest.json",
     "zigux/tests/phase15_handoff_next_steps.zig",
+    "zigux/tests/phase15_evidence_archive_templates.zig",
     "zigux/tests/phase15_docs_root_reviewability.zig",
 ]
 
@@ -171,6 +172,7 @@ BUILD_MARKERS = [
     "phase15-readiness-gate-tests",
     "phase15-handoff-next-steps-tests",
     "phase15-docs-root-reviewability-tests",
+    "phase15-evidence-archive-templates-tests",
 ]
 
 HANDOFF_TEST_MARKERS = [
@@ -188,6 +190,15 @@ INDEFINITE_POLICY_TEST_MARKERS = [
     'try expectContains(policy_note, "## Maintenance-Mode Handoff");',
     'try expectContains(policy_note, "phase15-deep-core-status-change-blocker");',
     'try expectContains(policy_note, "That closes the current policy gap for the roadmap requirement `policy for code that remains in C indefinitely`.");',
+]
+
+EVIDENCE_ARCHIVE_TEMPLATE_TEST_MARKERS = [
+    "Documentation/zigux/phase15-evidence-archives/kernel-sched-core.md",
+    "pending_until_bounded_scheduler_seam_exists",
+    "blocked_no_bounded_scheduler_seam",
+    "Documentation/zigux/phase15-indefinite-c-policy.md",
+    "retained discussion state after closeout: `retired_from_active_discussion`",
+    "no Architecture Council approval claim",
 ]
 
 DOCS_ROOT_REVIEWABILITY_MARKERS = [
@@ -373,6 +384,11 @@ require_markers(
     "indefinite_policy_test",
     text("zigux/tests/phase15_indefinite_c_policy.zig"),
     INDEFINITE_POLICY_TEST_MARKERS,
+)
+require_markers(
+    "evidence_archive_template_test",
+    text("zigux/tests/phase15_evidence_archive_templates.zig"),
+    EVIDENCE_ARCHIVE_TEMPLATE_TEST_MARKERS,
 )
 require_markers("docs_root_reviewability", text("zigux/tests/phase15_docs_root_reviewability.zig"), DOCS_ROOT_REVIEWABILITY_MARKERS)
 require_markers("build", text("zigux/tests/phase15_build.zig"), BUILD_MARKERS)
@@ -760,10 +776,11 @@ print(
         + len(INDEFINITE_POLICY_NOTE_MARKERS)
         + len(SURVEY_MARKERS)
         + len(HANDOFF_MARKERS)
+        + len(BUILD_MARKERS)
         + len(HANDOFF_TEST_MARKERS)
         + len(INDEFINITE_POLICY_TEST_MARKERS)
+        + len(EVIDENCE_ARCHIVE_TEMPLATE_TEST_MARKERS)
         + len(DOCS_ROOT_REVIEWABILITY_MARKERS)
-        + len(BUILD_MARKERS)
     )
 )
 print("PHASE15_REMAINING_BLOCKERS=phase15-deep-core-status-change-blocker")
