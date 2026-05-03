@@ -58,6 +58,7 @@ The remaining blocked work is still the already-recorded deep-core status-change
 - anchors with Phase 14 survey evidence linked: `2 / 4`
 - reserved evidence-archive templates present: `4 / 4`
 - anchors with explicit blocker dispositions recorded: `4 / 4`
+- anchors with explicit lane-owner plus rollback-owner coverage: `4 / 4`
 - required review-process record fields tracked in the manifest: `15`
 - reopen-trigger catalog entries tracked in the manifest: `3`
 - repo evidence checks currently green: `15 / 15`
@@ -65,7 +66,7 @@ The remaining blocked work is still the already-recorded deep-core status-change
 - blocked scorecard gaps: `1 / 20`
 - replay surfaces currently recorded: `3 / 3`
 
-This summary is a reporting layer for the current maintenance-mode packet, not a new status claim. It says the governance bundle is fully inventoried and replay-backed across the dedicated `zigux/tests/phase15_build.zig` gate, the `make -C zigux phase15` convenience target, and the shared bootstrap workflow, while still keeping one explicit blocked gap for deep-core status changes.
+This summary is a reporting layer for the current maintenance-mode packet, not a new status claim. It says the governance bundle is fully inventoried and replay-backed across the dedicated `zigux/tests/phase15_build.zig` gate, the `make -C zigux phase15` convenience target, and the shared bootstrap workflow. It also shows that every freeze-in-C anchor still carries both a current lane owner and a rollback owner, while still keeping one explicit blocked gap for deep-core status changes.
 
 ## Scorecard Entries
 
