@@ -213,6 +213,14 @@ def run_self_test() -> int:
         assert exit_code == 0
         assert lines == render_result_lines(matched, details)
         covered_cases.append('text_pass')
+        # Prove the stable pass path stays deterministic across back-to-back runs.
+        assert_repeatable_case(
+            'text',
+            text_a,
+            text_b,
+            True,
+            render_result_lines(matched, details),
+        )
 
         text_b.write_text('alpha\nBETA\n', encoding='utf-8', newline='\n')
         matched, details = compare_artifacts('text', text_a, text_b)
@@ -257,6 +265,14 @@ def run_self_test() -> int:
         assert exit_code == 1
         assert lines == render_result_lines(matched, details)
         covered_cases.append('json_mismatch')
+        # Keep the direct JSON mismatch output deterministic too.
+        assert_repeatable_case(
+            'json',
+            json_a,
+            json_b,
+            False,
+            render_result_lines(matched, details),
+        )
 
         invalid_json.write_text('{"alpha": 1,\n', encoding='utf-8', newline='\n')
         matched, details = compare_artifacts('json', invalid_json, json_a)
@@ -407,6 +423,14 @@ def run_self_test() -> int:
         assert exit_code == 1
         assert lines == render_result_lines(matched, details)
         covered_cases.append('sha256_drift')
+        # Keep the digest drift output stable across repeat runs as well.
+        assert_repeatable_case(
+            'sha256',
+            blob_a,
+            blob_b,
+            False,
+            render_result_lines(matched, details),
+        )
 
         matched, details = compare_artifacts('text', missing, text_a)
         assert not matched
