@@ -123,7 +123,15 @@ TEXT_MARKERS = {
         "Kretprobe review packet",
         "Trace-events review packet",
         "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
+        "zig test samples/zigux/bytestream_fifo.zig",
         "zig test zigux/tests/phase5_bytestream_fifo.zig",
+        "zig test samples/zigux/kobject_example.zig",
+        "zig test samples/zigux/kretprobe_example.zig",
+        "zig test samples/zigux/trace_events_sample.zig",
+        "zig test zigux/tests/phase5_bytestream_fifo_survey.zig",
+        "zig test zigux/tests/phase5_kobject_example_survey.zig",
+        "zig test zigux/tests/phase5_kretprobe_example_survey.zig",
+        "zig test zigux/tests/phase5_trace_events_sample_survey.zig",
         "current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample",
         "current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample",
         "sample-only blocked Phase 9 pilot",
@@ -490,6 +498,21 @@ def run_self_test() -> int:
         copy_tree(ROOT, tmp_root)
         sample_root = tmp_root / "samples/zigux/README.md"
         text = sample_root.read_text(encoding="utf-8").replace(
+            "zig test samples/zigux/kretprobe_example.zig",
+            "zig test samples/zigux/kretprobe_review.zig",
+            1,
+        )
+        sample_root.write_text(text, encoding="utf-8")
+        missing = validate_phase5(tmp_root)
+        if missing["ok"] or "samples/zigux/README.md:missing:zig test samples/zigux/kretprobe_example.zig" not in missing["missing"]:
+            print("PHASE5_VALIDATOR_SELF_TEST=fail")
+            print("PHASE5_VALIDATOR_SELF_TEST_REASON=sample-root-focused-replay-gap")
+            return 1
+
+        tmp_root = Path(tmp)
+        copy_tree(ROOT, tmp_root)
+        sample_root = tmp_root / "samples/zigux/README.md"
+        text = sample_root.read_text(encoding="utf-8").replace(
             "- `samples/zigux/runtime_trace_events_loader.zig`\n",
             "",
             1,
@@ -592,7 +615,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE5_VALIDATOR_SELF_TEST=pass")
-    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=12")
+    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
