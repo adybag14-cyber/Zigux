@@ -28,6 +28,8 @@ The Phase 9 roadmap explicitly names `lib/test_bitmap.c` as a runtime pilot anch
 
 The live repo originally needed a survey-shaped review anchor that could record what the runtime bitmap lane had already shipped versus what still depends on a shared runtime substrate. This note stays in place after the bounded starter sample, direct sample leg, direct module leg, direct diff leg, direct loader leg, module gate, diff gate, loader scaffold, and shared loader-request binding landed, so the lane can keep comparing the current pilot-module surface against the roadmap without pretending that Zigux already has a real loadable bitmap module.
 
+This survey note is also not a Phase 5 sample-root approval: `samples/zigux/runtime_bitmap.zig` and `samples/zigux/runtime_bitmap_loader.zig` stay here as the separate Phase 9 runtime bitmap pilot rooted in `lib/test_bitmap.c`, not as a fifth approved Phase 5 reference idiom under `samples/zigux/`.
+
 The shared runtime-loader blocker that still governs this bitmap packet also sits underneath the freeze map's study boundary. `Documentation/zigux/freeze-map.md` keeps `kernel/workqueue.c` in `Study / Boundary Only`, so this lane may ship a bounded in-memory starter, sample-side loader scaffold, shared loader-request binding, and direct bitmap replay evidence, but it must not imply workqueue parity, scheduler transport ownership, or any Architecture Council-approved status change for that study-only anchor.
 
 No parity scorecard entry or Architecture Council status-change request is attached to this Phase 9 runtime bitmap lane. The evidence here remains limited to the runtime starter, loader scaffold, shared request binding, module and diff gates, and the still-blocked shared loader-control posture that keeps the packet pre-execution.
@@ -39,6 +41,7 @@ No parity scorecard entry or Architecture Council status-change request is attac
 - the live Phase 9 bitmap lane already carried dedicated runtime bitmap test files before this survey note landed.
 - the live Phase 9 bitmap lane already carried a sample-backed runtime bitmap starter under `samples/zigux/`.
 - the live repo already carried shared `zigux/tests/phase9_build.zig` wiring and a bitmap module-slice note before this survey note landed.
+- the live repo still keeps that runtime bitmap pair outside the four approved Phase 5 reference samples, so this survey packet stays reviewable as later runtime follow-on evidence rather than Phase 5 sample closure.
 
 ## Roadmap snapshot
 
@@ -107,6 +110,7 @@ The manifest-backed ownership packet for this slice now keeps the current delive
 When a contributor updates `samples/zigux/runtime_bitmap.zig` or its directly coupled Phase 9 review files, keep these prompts explicit:
 
 - does the descriptor still keep the Linux anchor path explicit, leave `requires_runtime_substrate = true` while `provides_selftest_hook = true`, and still name the bounded two-word bitmap backing?
+- does the survey note still say plainly that `samples/zigux/runtime_bitmap.zig` plus `samples/zigux/runtime_bitmap_loader.zig` are the separate Phase 9 runtime bitmap pilot rather than a fifth approved Phase 5 reference idiom under `samples/zigux/`?
 - do the manifest-backed delivery catalog and ownership map still keep `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`, `zigux/tests/runtime_bitmap_manifest.json`, `zigux/tests/runtime_bitmap_survey.zig`, `zigux/tests/runtime_bitmap_module.zig`, `zigux/tests/runtime_bitmap_diff.zig`, `samples/zigux/runtime_bitmap_loader.zig`, `zigux/kernel/runtime_loader.zig`, and the direct `phase9-runtime-bitmap-sample-tests`, `phase9-runtime-bitmap-module-tests`, `phase9-runtime-bitmap-diff-tests`, and `phase9-runtime-bitmap-loader-tests` shared-build legs describing one exact lifecycle, summary, sparse `nthSetBit()` replay, post-selftest mutation replay, copy, loader handoff, explicit shared command-name preservation, prepared-summary snapshot replay, and diff-case packet run through `zigux/tests/phase9_build.zig`?
 - if the runtime bitmap sample behavior changes, is the manifest updated alongside the module and diff checks instead of leaving reviewers to infer the new contract from code alone?
 - if `initFromBitList()` or `initWithSetBits()` changes separator parsing, out-of-bounds handling, duplicate-normalization replay, empty parse-and-print replay, repeat-init lifecycle guards, or transactional failed-init behavior, is that stricter direct-sample contract refreshed in the manifest-backed exact checks instead of being left implicit in code?
