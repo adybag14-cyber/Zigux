@@ -13,6 +13,7 @@ This document records the current release-discipline reading for the active boun
 - product boundary:
   - `Documentation/zigux/phase12-release-readiness-survey.md`
   - `Documentation/zigux/review-checklist.md`
+  - `Documentation/zigux/phase12-shared-replay-contract.md`
   - `Documentation/zigux/phase12-cross-compile-smoke.md`
   - `Documentation/zigux/phase12-raw-github-coverage-survey.md`
   - `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`
@@ -46,6 +47,7 @@ This survey closes that PMO gap without widening driver scope:
 - the release packet should say plainly which anchors have commit-pinned public fallback artifacts today and which still rely on shared-tree fallback reads only
 - the release packet should also keep the current four-way owner split explicit so `virtio_net`, `nvme_pci`, `virtio_scsi`, and `libbpf` do not collapse back into one fuzzy storage label during PMO review
 - the release packet should keep the shared review checklist visible as part of the same PMO evidence surface so degraded-workflow, build-inventory, raw-fallback, and focused libbpf-only replay questions do not live only in reviewer habit
+- the dedicated Phase 12 PMO checklist question now restates the active-not-closed release posture, the approved three-target musl smoke set, and the current two commit-pinned versus two shared-tree-only fallback split in one release-facing prompt instead of leaving that summary only in the survey note and docs root
 
 ## Current release reading
 
@@ -60,6 +62,7 @@ The current Phase 12 release-facing reading is:
 - the shared-tree-only side of that fallback split is now also bounded by four published readback roots in `Documentation/zigux/phase12-raw-github-coverage-survey.md`: `https://github.com/adybag14-cyber/Zigux/tree/master/drivers/net`, `https://github.com/adybag14-cyber/Zigux/tree/master/tools/lib/bpf`, `https://github.com/adybag14-cyber/Zigux/tree/master/Documentation/zigux`, and `https://github.com/adybag14-cyber/Zigux/tree/master/zigux/tests`, so degraded public review of `virtio_net` and `libbpf` no longer depends on ad hoc tree discovery
 - `Documentation/zigux/review-checklist.md` now remains part of the same release-facing packet and carries the shared degraded-workflow, build-inventory, raw-fallback, focused libbpf-only replay, and dedicated Phase 12 PMO release-readiness prompts, so PMO review does not rely on the docs root alone to keep those release checks visible
 - the dedicated Phase 12 PMO checklist question now restates the active-not-closed release posture, the approved three-target musl smoke set, and the current two commit-pinned versus two shared-tree-only fallback split in one release-facing prompt instead of leaving that summary only in the survey note and docs root
+- `Documentation/zigux/phase12-shared-replay-contract.md` now stays inside the same release packet as the shared-versus-focused replay contract note, keeping the release-readiness packet guard, the raw-GitHub coverage checker, the focused libbpf-only replay shard, and the broader `make -C zigux phase12-validate` before `make -C zigux phase12` handoff explicit in one contributor-facing place instead of leaving that preflight stack split across disconnected notes
 - the shared replay packet stays reviewable through `zigux/tests/phase12_build.zig`, `make -C zigux phase12-validate`, and `make -C zigux phase12`
 - the compile-smoke packet now stays explicit for the approved non-native musl targets `x86_64-linux-musl`, `aarch64-linux-musl`, and `riscv64-linux-musl` instead of living only as implicit test wiring
 - the raw-fallback packet now keeps the split explicit: two anchors have dedicated commit-pinned fallback artifacts, and two anchors still rely on shared-tree fallback reads
@@ -76,6 +79,7 @@ The current bounded release-evidence set is:
 
 - `Documentation/zigux/phase12-release-readiness-survey.md`
 - `Documentation/zigux/review-checklist.md`
+- `Documentation/zigux/phase12-shared-replay-contract.md`
 - `Documentation/zigux/phase12-cross-compile-smoke.md`
 - `Documentation/zigux/phase12-raw-github-coverage-survey.md`
 - `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`
