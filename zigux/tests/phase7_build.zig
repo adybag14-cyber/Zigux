@@ -3,6 +3,7 @@ const std = @import("std");
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
+    const repo_root = b.path("../..");
 
     const string_helpers_module = b.createModule(.{
         .root_source_file = b.path("../../lib/string_helpers.zig"),
@@ -95,6 +96,7 @@ pub fn build(b: *std.Build) void {
         .root_module = string_helpers_sample_survey_root_module,
     });
     const run_string_helpers_sample_survey_tests = b.addRunArtifact(string_helpers_sample_survey_tests);
+    run_string_helpers_sample_survey_tests.setCwd(repo_root);
 
     const cmdline_tests = b.addTest(.{
         .name = "phase7-cmdline-tests",
