@@ -16,14 +16,18 @@ EXPECTED_LANE_KEY = "P12-L02"
 EXPECTED_BUILD_STEP = "cross"
 EXPECTED_BUILD_MARKERS = [
     ("virtio_net_syntax_lab_module", 'b.path("phase12_virtio_net_syntax_lab.zig")'),
+    ("virtio_scsi_recovery_state_module", 'b.path("phase12_virtio_scsi_recovery_state.zig")'),
     ("virtio_scsi_syntax_lab_module", 'b.path("phase12_virtio_scsi_syntax_lab.zig")'),
     ("raw_github_coverage_module", 'b.path("phase12_raw_github_coverage_survey.zig")'),
     ("virtio_net_syntax_lab_import", 'phase12_virtio_net_syntax_lab_module.addImport("virtio_net", virtio_net_module);'),
+    ("virtio_scsi_recovery_state_import", 'phase12_virtio_scsi_recovery_state_module.addImport("virtio_scsi", virtio_scsi_module);'),
     ("virtio_scsi_syntax_lab_import", 'phase12_virtio_scsi_syntax_lab_module.addImport("virtio_scsi", virtio_scsi_module);'),
     ("virtio_net_syntax_lab_test", '.name = "phase12-cross-virtio-net-syntax-lab-tests"'),
+    ("virtio_scsi_recovery_state_test", '.name = "phase12-cross-virtio-scsi-recovery-state-tests"'),
     ("virtio_scsi_syntax_lab_test", '.name = "phase12-cross-virtio-scsi-syntax-lab-tests"'),
     ("raw_github_coverage_test", '.name = "phase12-cross-raw-github-coverage-survey-tests"'),
     ("virtio_net_syntax_lab_step", "cross_step.dependOn(&phase12_virtio_net_syntax_lab_tests.step);"),
+    ("virtio_scsi_recovery_state_step", "cross_step.dependOn(&phase12_virtio_scsi_recovery_state_tests.step);"),
     ("virtio_scsi_syntax_lab_step", "cross_step.dependOn(&phase12_virtio_scsi_syntax_lab_tests.step);"),
     ("raw_github_coverage_step", "cross_step.dependOn(&phase12_raw_github_coverage_survey_tests.step);"),
 ]
@@ -208,6 +212,17 @@ def run_self_test() -> int:
         "phase12-cross:build_marker:virtio_net_syntax_lab_module",
     )
 
+    missing_scsi_recovery_state = build_text.replace(
+        'b.path("phase12_virtio_scsi_recovery_state.zig")',
+        'b.path("phase12_virtio_scsi_recovery_state_missing.zig")',
+        1,
+    )
+    expect_system_exit(
+        "build_marker_scsi_recovery_state",
+        lambda: validate_build_text(missing_scsi_recovery_state),
+        "phase12-cross:build_marker:virtio_scsi_recovery_state_module",
+    )
+
     missing_raw_github_step = build_text.replace(
         "cross_step.dependOn(&phase12_raw_github_coverage_survey_tests.step);",
         "cross_step.dependOn(&phase12_libbpf_segments_tests.step);",
@@ -220,7 +235,7 @@ def run_self_test() -> int:
     )
 
     print("PHASE12_CROSS_SELF_TEST=pass")
-    print("PHASE12_CROSS_SELF_TEST_CASE_COUNT=12")
+    print("PHASE12_CROSS_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
