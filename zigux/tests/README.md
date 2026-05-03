@@ -52,7 +52,9 @@ Key entrypoints
 - `zigux/tests/fixtures/phase6_checksum_c_harness.c`
 - `zigux/tests/phase6_hexdump.zig`
 - `zigux/tests/phase6_hexdump_perf.zig`
+- `zigux/tests/phase6_hexdump_c_parity.zig`
 - `zigux/tests/fixtures/phase6_hexdump_vectors.zig`
+- `zigux/tests/fixtures/phase6_hexdump_c_harness.c`
 - `Documentation/zigux/phase6-helper-parity-catalog.md`
 - `Documentation/zigux/phase6-perf-gate-survey.md`
 - `zigux/tests/phase6_helper_parity_manifest.json`
