@@ -74,6 +74,7 @@ Current bootstrap helpers
 - `check-phase6-base64-c-parity.py`
 - `check-phase6-bsearch-c-parity.py`
 - `check-phase6-checksum-c-parity.py`
+- `check-phase6-hexdump-c-parity.py`
 
 Zig toolchain gate
 - `check-zig-toolchain.py` verifies that the selected Zig binary exists and satisfies the configured minimum version.
@@ -155,7 +156,7 @@ Phase 6 flow
 - `make -C zigux phase6-validate` is the validator-first entrypoint for the current Phase 6 review packet.
 - `make -C zigux phase6` is the shared replay path for the bounded `base64`, `bsearch`, `checksum`, and `hexdump` helper tests after the validator passes.
 - the per-helper perf targets stay reviewable as explicit make entrypoints: `make -C zigux phase6-base64-perf`, `make -C zigux phase6-bsearch-perf`, `make -C zigux phase6-checksum-perf`, and `make -C zigux phase6-hexdump-perf`.
-- `check-phase6-base64-c-parity.py`, `check-phase6-bsearch-c-parity.py`, and `check-phase6-checksum-c-parity.py` remain the three external parity spot checks for the portability-sensitive helper slices.
+- `check-phase6-base64-c-parity.py`, `check-phase6-bsearch-c-parity.py`, `check-phase6-checksum-c-parity.py`, and `check-phase6-hexdump-c-parity.py` remain the four external parity spot checks for the portability-sensitive helper slices.
 
 Phase 7 flow
 - `validate-phase7.py` keeps the shipped runtime-safe leaf-helper packet aligned across `scripts/zigux/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, the four Phase 7 slice notes, `zigux/tests/phase7_build.zig`, `zigux/tests/fixtures/phase7_build_inventory.json`, `zigux/Makefile`, the bootstrap workflow, the dedicated helper and survey tests, the repo-root manifest-backed survey packet, and the four helper roots in `lib/`.
