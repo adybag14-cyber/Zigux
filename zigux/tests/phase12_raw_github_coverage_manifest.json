@@ -8,6 +8,13 @@
   "commit_pinned_raw_fallback_catalog_count": 1,
   "commit_pinned_raw_fallback_map_count": 1,
   "shared_tree_only_anchor_count": 2,
+  "shared_tree_readback_root_count": 4,
+  "shared_tree_readback_roots": [
+    "https://github.com/adybag14-cyber/Zigux/tree/master/drivers/net",
+    "https://github.com/adybag14-cyber/Zigux/tree/master/tools/lib/bpf",
+    "https://github.com/adybag14-cyber/Zigux/tree/master/Documentation/zigux",
+    "https://github.com/adybag14-cyber/Zigux/tree/master/zigux/tests"
+  ],
   "anchors": [
     {
       "id": "virtio_net",
