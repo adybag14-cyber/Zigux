@@ -120,7 +120,6 @@ README_MARKERS = [
     "repeat-run and artifact-drift self-test",
     "focused libbpf-only replay hook",
     "the current active storage-driver survey packet stays explicit through `Documentation/zigux/phase12-virtio-scsi-survey.md`, `Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, and the paired `zigux/tests/phase12_virtio_scsi_{manifest,survey}.zig` files, so the queue-layout, recovery, probe snapshot, host-limit summary, queue-depth summary, and io-queue-map starters remain visible without overstating the still-blocked DMA-backed queue ownership, `Scsi_Host` lifecycle, or blk-mq follow-up.",
-    "Build Summary: 23/23 steps succeeded; 58/58 tests passed",
 ]
 DOCS_ROOT_MARKERS = [
     "Phase 12 notes",
@@ -145,6 +144,7 @@ DOCS_ROOT_MARKERS = [
 CHECKLIST_MARKERS = [
     "is there a stated rollback owner and fallback path?",
     "if the change is a Phase 12 complex-driver or heavy-helper slice, do `scripts/zigux/validate-phase12.py`, `zigux/tests/phase12_build.zig`, the four Phase 12 manifests, and the four Phase 12 survey notes still agree on the same bounded tranche, exact surveyed commits, approved roadmap destinations, shared replay contract, and explicit DMA versus object-model blocker posture?",
+    "if the change touches the shared Phase 12 degraded-workflow packet, do `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `zigux/tests/phase12_raw_github_coverage_manifest.json`, `zigux/tests/phase12_raw_github_coverage_survey.zig`, `scripts/zigux/check-phase12-raw-github-coverage.py`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, and `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` still keep the roadmap-wide public-read split explicit, including the current one commit-pinned raw catalog, one archival raw map, and two shared-tree-only anchors, instead of implying equivalent commit-pinned fallback coverage for every Phase 12 anchor?",
     "if the change touches the shared Phase 12 degraded-workflow packet, do the workflow path, README notes, review checklist, and `zigux/tests/phase12_virtio_scsi_survey.zig` still agree that `make -C zigux phase12` runs the validator before the shared Zig replay?",
     "if the change touches the shared Phase 12 tooling path, do `scripts/zigux/check-phase12-build-inventory.py`, `zigux/tests/phase12_build.zig`, `zigux/tests/fixtures/phase12_build_inventory.json`, and the shared Phase 12 manifests still agree on the exact shared build inventory instead of leaving the replay shape implicit?",
     "if the change touches the shared Phase 12 libbpf snapshot packet, do `python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test`, `scripts/zigux/check-phase12-libbpf-snapshot.py`, `zigux/tests/fixtures/phase12_libbpf_snapshot.json`, `zigux/tests/phase12_libbpf_manifest.json`, `zigux/tests/phase12_libbpf_segments.zig`, `zigux/tests/phase12_libbpf_reviewability.zig`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, and `tools/lib/bpf/zigux_segments/manifest.json` still agree on the same bounded five-file reproducibility packet, exact surveyed commit, and repeat-run-stable self-test contract instead of leaving the bounded libbpf snapshot discipline in run memory only?",
@@ -340,27 +340,17 @@ MANIFEST_SPECS = {
             "zigux/tests/phase12_virtio_scsi.zig",
             "zigux/tests/phase12_virtio_scsi_manifest.json",
             "zigux/tests/phase12_virtio_scsi_survey.zig",
+            "zigux/tests/phase12_build.zig",
             "Documentation/zigux/phase12-virtio-scsi-slice.md",
             "Documentation/zigux/phase12-virtio-scsi-survey.md",
             "scripts/zigux/validate-phase12.py",
             "zigux/Makefile",
         ],
         "raw_fallback_current_markers": [
-            "- lane_key: `P12-L12`",
-            "- phase: `Phase 12`",
-            "- scope: `drivers/scsi/virtio_scsi | high-risk storage queueing and DMA parity`",
-            "- public current-master tree fallback:",
-            "- public raw artifact fallback:",
-            "- bounded current packet files:",
-            "- rollback note:",
+            "The shared validator flow remains `python3 scripts/zigux/validate-phase12.py`, `make -C zigux phase12-validate`, and `make -C zigux phase12`, with the raw fallback catalog acting only as a read-only review aid while the same bounded survey packet stays grounded in `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, and `Documentation/zigux/phase12-virtio-scsi-survey.md`.",
         ],
         "raw_fallback_latest_recheck_markers": [
-            "## Latest Live Recheck",
-            "- this archival packet has been superseded on current `master` by lane `P12-L12`; keep this catalog only as historical degraded-read evidence for the same bounded virtio_scsi survey packet.",
-            "- rechecked_public_master_head: `",
-            "- verification_method: connector-backed current-`master` reads of ",
-            "- observed_behavior: current `master` still keeps this lane's degraded-readback contract archival rather than live-head truth;",
-            "- replay_limit: this runtime could not clone the repository directly (`CONNECT tunnel failed, response 403`), so this recheck records exact live file-state evidence rather than a fresh local rerun of `python3 scripts/zigux/validate-phase12.py` or `zig test zigux/tests/phase12_virtio_scsi_survey.zig`.",
+            "Latest bounded recheck: the shared packet now also keeps `zigux/tests/phase12_virtio_scsi_recovery_state.zig` explicit beside `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `Documentation/zigux/phase12-virtio-scsi-slice.md`, `scripts/zigux/validate-phase12.py`, and `make -C zigux phase12`, so restore-time queue reinitialization, queue-depth capture, and io-queue-map recovery remain visible without widening into DMA-backed queue ownership or live `Scsi_Host` lifecycle claims.",
         ],
         "raw_fallback_rollback_markers": [
             "## Rollback And Reversible Delivery",
