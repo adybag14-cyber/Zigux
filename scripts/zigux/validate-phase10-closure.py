@@ -138,9 +138,12 @@ DOCS_README_MARKERS = [
     "zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
     "python3 scripts/zigux/check-phase10-closure-inventory.py",
     "python3 scripts/zigux/validate-phase10-closure.py",
+    "python3 scripts/zigux/check-phase10-harness-coverage.py",
     "make -C zigux phase10-validate",
     "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
     "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
+    "focused harness replays",
+    "queue-handling and ready-state gate",
 ]
 
 CHECKLIST_MARKERS = [
@@ -517,6 +520,40 @@ def run_self_test() -> int:
         expect_missing_marker("closure_note_harness_gate_guard", root, "closure:PHASE10_HARNESS_COVERAGE_GATE=python3 scripts/zigux/check-phase10-harness-coverage.py")
         write_fixture(root)
 
+        docs_readme_path = root / "Documentation/zigux/README.md"
+        original_docs_readme = docs_readme_path.read_text(encoding="utf-8")
+        docs_readme_path.write_text(
+            original_docs_readme.replace(
+                "python3 scripts/zigux/check-phase10-harness-coverage.py",
+                "python3 scripts/zigux/check-phase10-harness-coverage-drift.py",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "docs_readme_harness_gate_guard",
+            root,
+            "docs_readme:python3 scripts/zigux/check-phase10-harness-coverage.py",
+        )
+        write_fixture(root)
+
+        docs_readme_path = root / "Documentation/zigux/README.md"
+        original_docs_readme = docs_readme_path.read_text(encoding="utf-8")
+        docs_readme_path.write_text(
+            original_docs_readme.replace(
+                "queue-handling and ready-state gate",
+                "queue-handling gate drift",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "docs_readme_ready_state_phrase_guard",
+            root,
+            "docs_readme:queue-handling and ready-state gate",
+        )
+        write_fixture(root)
+
         ledger_path = root / "zigux-alpha/PHASE10_CLOSURE_LEDGER.md"
         original_ledger = ledger_path.read_text(encoding="utf-8")
         ledger_path.write_text(
@@ -556,7 +593,7 @@ def run_self_test() -> int:
         expect_missing_file("queue_isolation_file_guard", root, "zigux/tests/phase10_virtio_mmio_queue_isolation.zig")
 
     print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=8")
+    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
