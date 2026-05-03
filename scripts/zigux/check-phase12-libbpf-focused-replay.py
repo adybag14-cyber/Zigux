@@ -119,6 +119,9 @@ DOCS_ROOT_README_MARKERS = [
 REVIEW_CHECKLIST_MARKERS = [
     "if the change touches the focused Phase 12 libbpf-only replay packet, do `python3 scripts/zigux/check-phase12-libbpf-focused-replay.py --self-test`, `scripts/zigux/check-phase12-libbpf-focused-replay.py`, `scripts/zigux/validate-phase12.py`, `zigux/tests/phase12_libbpf_only_build.zig`, `zigux/tests/phase12_libbpf_manifest.json`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` still agree on the same dedicated replay shard, review-note hook, and validator-first rollback path instead of leaving that narrower libbpf gate implied behind the broader packet checks?",
 ]
+REVIEW_CHECKLIST_EXACT_COUNTS = {
+    REVIEW_CHECKLIST_MARKERS[0]: 1,
+}
 VALIDATE_PHASE12_MARKERS = [
     "check-phase12-libbpf-focused-replay.py --self-test",
     "check-phase12-libbpf-focused-replay.py",
@@ -127,6 +130,9 @@ VALIDATE_PHASE12_MARKERS = [
     "zigux/Makefile",
     ".github/workflows/zigux-bootstrap.yml",
 ]
+VALIDATE_PHASE12_EXACT_COUNTS = {
+    REVIEW_CHECKLIST_MARKERS[0]: 1,
+}
 MAKEFILE_MARKERS = [
     "scripts/zigux/check-phase12-libbpf-focused-replay.py --self-test",
     "scripts/zigux/check-phase12-libbpf-focused-replay.py",
@@ -223,7 +229,21 @@ def collect_missing(
     missing.extend(collect_marker_misses(scripts_readme_text, SCRIPTS_README_MARKERS, "scripts_readme"))
     missing.extend(collect_marker_misses(docs_root_readme_text, DOCS_ROOT_README_MARKERS, "docs_root_readme"))
     missing.extend(collect_marker_misses(review_checklist_text, REVIEW_CHECKLIST_MARKERS, "review_checklist"))
+    missing.extend(
+        collect_exact_count_misses(
+            review_checklist_text,
+            REVIEW_CHECKLIST_EXACT_COUNTS,
+            "review_checklist_count",
+        )
+    )
     missing.extend(collect_marker_misses(validate_phase12_text, VALIDATE_PHASE12_MARKERS, "validate_phase12"))
+    missing.extend(
+        collect_exact_count_misses(
+            validate_phase12_text,
+            VALIDATE_PHASE12_EXACT_COUNTS,
+            "validate_phase12_count",
+        )
+    )
     missing.extend(collect_marker_misses(makefile_text, MAKEFILE_MARKERS, "makefile"))
     missing.extend(collect_exact_count_misses(makefile_text, MAKEFILE_EXACT_COUNTS, "makefile_count"))
     missing.extend(collect_marker_misses(workflow_text, WORKFLOW_MARKERS, "workflow"))
@@ -290,7 +310,13 @@ def run_self_test() -> int:
         "scripts_readme_text": "\n".join(SCRIPTS_README_MARKERS) + "\n",
         "docs_root_readme_text": "\n".join(DOCS_ROOT_README_MARKERS) + "\n",
         "review_checklist_text": "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n",
-        "validate_phase12_text": "\n".join(VALIDATE_PHASE12_MARKERS) + "\n",
+        "validate_phase12_text": "\n".join(
+            [
+                REVIEW_CHECKLIST_MARKERS[0],
+                *VALIDATE_PHASE12_MARKERS,
+            ]
+        )
+        + "\n",
         "makefile_text": "\n".join(MAKEFILE_MARKERS) + "\n",
         "workflow_text": "\n".join(WORKFLOW_MARKERS) + "\n",
     }
@@ -503,7 +529,23 @@ def run_self_test() -> int:
     missing = collect_missing(
         **{
             **base_inputs,
-            "validate_phase12_text": base_inputs["validate_phase12_text"].replace(
+            "review_checklist_text": base_inputs["review_checklist_text"]
+            + REVIEW_CHECKLIST_MARKERS[0]
+            + "\n",
+        }
+    )
+    expect_contains(
+        "review_checklist_exact_count_detection",
+        missing,
+        f"review_checklist_count:{REVIEW_CHECKLIST_MARKERS[0]}:expected=1:actual=2",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "validate_phase12_text": base_inputs["validate_phase12_text"]
+            .replace(REVIEW_CHECKLIST_MARKERS[0] + "\n", "", 1)
+            .replace(
                 "zigux/Makefile\n",
                 "",
                 1,
@@ -519,7 +561,9 @@ def run_self_test() -> int:
     missing = collect_missing(
         **{
             **base_inputs,
-            "validate_phase12_text": base_inputs["validate_phase12_text"].replace(
+            "validate_phase12_text": base_inputs["validate_phase12_text"]
+            .replace(REVIEW_CHECKLIST_MARKERS[0] + "\n", "", 1)
+            .replace(
                 "phase12_libbpf_only_build.zig\n",
                 "",
                 1,
@@ -535,7 +579,9 @@ def run_self_test() -> int:
     missing = collect_missing(
         **{
             **base_inputs,
-            "validate_phase12_text": base_inputs["validate_phase12_text"].replace(
+            "validate_phase12_text": base_inputs["validate_phase12_text"]
+            .replace(REVIEW_CHECKLIST_MARKERS[0] + "\n", "", 1)
+            .replace(
                 "check-phase12-libbpf-focused-replay.py --self-test\n",
                 "",
                 1,
@@ -551,7 +597,23 @@ def run_self_test() -> int:
     missing = collect_missing(
         **{
             **base_inputs,
-            "validate_phase12_text": base_inputs["validate_phase12_text"].replace(
+            "validate_phase12_text": base_inputs["validate_phase12_text"]
+            + REVIEW_CHECKLIST_MARKERS[0]
+            + "\n",
+        }
+    )
+    expect_contains(
+        "validate_phase12_exact_count_detection",
+        missing,
+        f"validate_phase12_count:{REVIEW_CHECKLIST_MARKERS[0]}:expected=1:actual=2",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "validate_phase12_text": base_inputs["validate_phase12_text"]
+            .replace(REVIEW_CHECKLIST_MARKERS[0] + "\n", "", 1)
+            .replace(
                 "Documentation/zigux/phase12-libbpf-segment-survey.md\n",
                 "",
                 1,
@@ -622,7 +684,7 @@ def run_self_test() -> int:
     )
 
     print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST=pass")
-    print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST_CASE_COUNT=23")
+    print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST_CASE_COUNT=25")
     return 0
 
 
