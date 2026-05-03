@@ -56,7 +56,7 @@ REQUIRED_SURVEY_SNIPPETS = (
     "no broader kernel-style atomic helper family is shipped in the current packet",
     "no MMIO family wider than the direct, scoped, and decoded-policy 8-bit, 16-bit, 32-bit, and 64-bit accessors is shipped in the current packet",
     "This is real roadmap-backed progress.",
-    "`zigux/tests/phase3_low_level_wrappers.zig` now keeps the strong and weak compare-exchange replay, `fetchMin()` and `fetchMax()` replay, barrier probe, denied-scope checks, width-specific direct and scoped 8-bit, 16-bit, 32-bit, and 64-bit MMIO coverage, misalignment failures, overflow failures, and the shared `MmioRange` layout assertion reviewable without having to infer them from the broader `phase3_abi` bundle alone.",
+    "`zigux/tests/phase3_low_level_wrappers.zig` now keeps the strong and weak compare-exchange replay, `fetchMin()` and `fetchMax()` replay, barrier probe, denied-scope checks, width-specific direct, scoped, and policy-aware 8-bit, 16-bit, 32-bit, and 64-bit MMIO coverage, denied-scope policy failures, misalignment failures, overflow failures, and the shared `MmioRange` layout assertion reviewable without having to infer them from the broader `phase3_abi` bundle alone.",
 )
 
 REQUIRED_SURVEY_PATHS = (
@@ -146,6 +146,13 @@ REQUIRED_LOW_LEVEL_TEST_SNIPPETS = (
     "mmio.write16(base, 2, 0xabcd);",
     "mmio.write32(base, 8, 0x12345678);",
     "mmio.write64(base64, @sizeOf(u64), 0x0123_4567_89ab_cdef);",
+    "try mmio.write8Policy(mmio_policy, base, 0, 0x2a);",
+    "try std.testing.expectEqual(@as(u8, 0x2a), try mmio.read8Policy(mmio_policy, base, 0));",
+    "try mmio.write16Policy(mmio_policy, base, 2, 0x7bcd);",
+    "try std.testing.expectEqual(@as(u16, 0x7bcd), try mmio.read16Policy(mmio_policy, base, 2));",
+    "try mmio.write32Policy(mmio_policy, base, 8, 0xdecafbad);",
+    "try std.testing.expectEqual(@as(u32, 0xdecafbad), regs[2]);",
+    "try std.testing.expectEqual(@as(u32, 0xdecafbad), try mmio.read32Policy(mmio_policy, base, 8));",
     "try mmio.write64Policy(mmio_policy, base64, @sizeOf(u64), 0x1111_2222_3333_4444);",
     "try std.testing.expectEqual(@as(u64, 0x1111_2222_3333_4444), try mmio.read64Policy(mmio_policy, base64, @sizeOf(u64)));",
     "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write64Policy(raw_pointer_policy, base64, 0, 1));",
@@ -496,6 +503,52 @@ def run_self_test() -> int:
         issues = validate(root)
         assert (
             "missing_abi_slice_snippet:PHASE3_ATOMIC_SCOPE=load-store-exchange-compare-exchange-compare-exchange-weak-fetch-add-fetch-sub-fetch-and-fetch-or-fetch-xor-fetch-min-fetch-max"
+            in issues
+        )
+
+        _write(
+            root,
+            ABI_SLICE_REL,
+            "\n".join(REQUIRED_ABI_SLICE_SNIPPETS) + "\n",
+        )
+        _write(
+            root,
+            LOW_LEVEL_TEST_REL,
+            "\n".join(
+                snippet
+                for snippet in REQUIRED_LOW_LEVEL_TEST_SNIPPETS
+                if snippet != "try mmio.write16Policy(mmio_policy, base, 2, 0x7bcd);"
+            ) + "\n",
+        )
+        issues = validate(root)
+        assert "missing_low_level_test_snippet:try mmio.write16Policy(mmio_policy, base, 2, 0x7bcd);" in issues
+
+        _write(
+            root,
+            LOW_LEVEL_TEST_REL,
+            "\n".join(REQUIRED_LOW_LEVEL_TEST_SNIPPETS) + "\n",
+        )
+        _write(
+            root,
+            SURVEY_REL,
+            "\n".join([
+                "# Phase 3 Low-Level Wrapper Boundary Survey",
+                "",
+                *[f"- `{marker}`" for marker in REQUIRED_SURVEY_MARKERS],
+                "",
+                *[
+                    snippet
+                    for snippet in REQUIRED_SURVEY_SNIPPETS
+                    if snippet
+                    != "`zigux/tests/phase3_low_level_wrappers.zig` now keeps the strong and weak compare-exchange replay, `fetchMin()` and `fetchMax()` replay, barrier probe, denied-scope checks, width-specific direct, scoped, and policy-aware 8-bit, 16-bit, 32-bit, and 64-bit MMIO coverage, denied-scope policy failures, misalignment failures, overflow failures, and the shared `MmioRange` layout assertion reviewable without having to infer them from the broader `phase3_abi` bundle alone."
+                ],
+                "",
+                *_blob_marker_lines(),
+            ]) + "\n",
+        )
+        issues = validate(root)
+        assert (
+            "missing_survey_snippet:`zigux/tests/phase3_low_level_wrappers.zig` now keeps the strong and weak compare-exchange replay, `fetchMin()` and `fetchMax()` replay, barrier probe, denied-scope checks, width-specific direct, scoped, and policy-aware 8-bit, 16-bit, 32-bit, and 64-bit MMIO coverage, denied-scope policy failures, misalignment failures, overflow failures, and the shared `MmioRange` layout assertion reviewable without having to infer them from the broader `phase3_abi` bundle alone."
             in issues
         )
 
