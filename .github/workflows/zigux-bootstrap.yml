@@ -308,6 +308,12 @@ jobs:
       - name: Self-test Phase 10 shared validator
         run: python3 scripts/zigux/validate-phase10.py --self-test
 
+      - name: Self-test Phase 10 harness coverage checker
+        run: python3 scripts/zigux/check-phase10-harness-coverage.py --self-test
+
+      - name: Validate Phase 10 focused harness coverage
+        run: python3 scripts/zigux/check-phase10-harness-coverage.py
+
       - name: Validate Phase 10 closure evidence
         run: make -C zigux phase10-validate
 
