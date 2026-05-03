@@ -428,7 +428,7 @@ if isinstance(freeze_map_gaps, list):
 readiness_manifest = load_json("zigux/tests/phase15_readiness_gate_manifest.json")
 require(readiness_manifest.get("phase") == "Phase 15", "manifest:phase")
 require(readiness_manifest.get("lane_key") == "P15-L01", "manifest:lane_key")
-require(readiness_manifest.get("surveyed_commit") == "b5f64cf3306b706ea93cc9d3de769d545849b2d4", "manifest:surveyed_commit")
+require(readiness_manifest.get("surveyed_commit") == "304eec2c524a203d8653eb78fb568d8e87462b24", "manifest:surveyed_commit")
 repo_evidence = readiness_manifest.get("repo_evidence", {})
 require_true(repo_evidence, "manifest:repo_evidence", [
     "freeze_map_present", "review_checklist_present", "review_process_present", "parity_scorecard_present",
@@ -448,7 +448,7 @@ if isinstance(remaining_gaps, list) and len(remaining_gaps) == 1:
 handoff_manifest = load_json("zigux/tests/phase15_handoff_next_steps_manifest.json")
 require(handoff_manifest.get("phase") == "Phase 15", "handoff_manifest:phase")
 require(handoff_manifest.get("lane_key") == "P15-Y08", "handoff_manifest:lane_key")
-require(handoff_manifest.get("surveyed_commit") == "b5f64cf3306b706ea93cc9d3de769d545849b2d4", "handoff_manifest:surveyed_commit")
+require(handoff_manifest.get("surveyed_commit") == "304eec2c524a203d8653eb78fb568d8e87462b24", "handoff_manifest:surveyed_commit")
 handoff_repo_evidence = handoff_manifest.get("repo_evidence", {})
 require_true(handoff_repo_evidence, "handoff_manifest:repo_evidence", [
     "freeze_map_governance_present", "review_process_present", "parity_scorecard_present",
