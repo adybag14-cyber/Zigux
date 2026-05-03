@@ -132,7 +132,7 @@ test "phase10 virtio mmio survey manifest records the landed interrupt-ack rung 
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_input_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_input_survey_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_mmio_zig_present);
-    try std.testing.expect(manifest.gaps.len >= 14);
+    try std.testing.expectEqual(@as(usize, 19), manifest.gaps.len);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, manifest.surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10_virtio_ring_reset_reuse.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Documentation/zigux/phase10-virtio-ring-survey.md") != null);
@@ -355,9 +355,9 @@ test "phase10 virtio mmio survey manifest records the landed interrupt-ack rung 
         }
     }
 
-    try std.testing.expect(starter_landed_count >= 12);
+    try std.testing.expectEqual(@as(usize, 18), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
-    try std.testing.expect(blocked_count >= 1);
+    try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_ring_helper);
     try std.testing.expect(saw_ring_slice_note);
     try std.testing.expect(saw_ring_callback_delay);
