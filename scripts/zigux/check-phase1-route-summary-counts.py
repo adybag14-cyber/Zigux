@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+import subprocess
 import sys
 import tempfile
 from pathlib import Path
@@ -130,9 +131,21 @@ def fixture_text(entries: list[str]) -> str:
 def expect_failure(script: Path, root: Path, expected: str) -> None:
     env = dict(os.environ)
     env["ZIGUX_PHASE1_ROOT"] = str(root)
-    code = os.spawnve(os.P_WAIT, sys.executable, [sys.executable, str(script)], env)
-    if code == 0:
+    result = subprocess.run(
+        [sys.executable, str(script)],
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.returncode == 0:
         raise SystemExit(f"phase1-route-summary-self-test:expected_failure:{expected}")
+    combined_output = result.stdout + result.stderr
+    if expected not in combined_output:
+        raise SystemExit(
+            "phase1-route-summary-self-test:missing_expected_output:"
+            f"expected={expected!r}:actual={combined_output!r}"
+        )
 
 
 def expect_missing_and_duplicate(
