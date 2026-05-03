@@ -7,6 +7,7 @@ The module-facing surface stays intentionally narrow:
 - exposes a `gpio_wdt_lab` descriptor that keeps the lane scoped to a simple driver starter rather than live platform registration
 - snapshots the bounded `hw_algo`, heartbeat-margin, `always-running`, `nowayout`, timeout-init, parent-linkage, and stop-on-reboot bookkeeping surfaced during probe
 - models the in-memory start, ping, stop, disable, and nowayout-aware stop-request paths without claiming GPIO descriptor ownership or watchdog-core registration
+- keeps the starter-local `nowayout` policy contract explicit through `nowayoutPolicySummary()`, so the `nowayout` module parameter name, the `watchdog_nowayout` default source, and the bounded `watchdog_set_nowayout()` application boundary stay reviewable as bookkeeping rather than being rediscovered later during live registration work
 - adds an explicit `summarizeTeardown()` helper so `gpio_wdt_disable()`-style eternal-ping ordering, toggle-versus-level disable fallout, and `always-running` versus `nowayout` stop failure modes stay reviewable beside the current starter
 - records the first chosen watchdog-registration surface as metadata-only planning, together with the validation focus that preceded the now-landed bounded register-device call summary
 - keeps the first bounded `registerDeviceCallSummary()` surface explicit so the starter records one real watchdog-core handoff boundary without claiming the live `devm_watchdog_register_device()` call
