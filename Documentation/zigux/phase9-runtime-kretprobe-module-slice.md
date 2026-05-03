@@ -20,12 +20,18 @@ This document tracks the first bounded Phase 9 runtime kretprobe starter under `
   - `zigux/tests/phase9_build.zig`
   - `Documentation/zigux/phase9-runtime-kretprobe-module-slice.md`
   - `Documentation/zigux/phase9-runtime-kretprobe-survey.md`
+  - `Documentation/zigux/phase9-runtime-loader-gap-survey.md`
+  - `Documentation/zigux/freeze-map.md`
 
 ## Why this slice exists
 
 The Phase 9 roadmap explicitly names `samples/kprobes/kretprobe_example.c` as a runtime pilot anchor and recommends `zigux/tests/runtime_*` plus `samples/zigux/runtime_*` as the bounded Zigux destinations.
 
 The live repo already had runtime pilot starters for atomic64, bitmap, and trace-events, but it still had no kretprobe lane foothold. This slice lands the smallest honest kretprobe follow-on step: a sample-backed lifecycle scaffold that models bounded per-instance private entry timestamps, return values, duration, missed-instance bookkeeping, a direct embedded sample replay, and the loader handoff plan plus shared loader-request binding without claiming `register_kretprobe()` or loadable-module parity.
+
+The same shared runtime-loader blocker that still governs the bounded kretprobe packet also sits underneath the freeze map's study boundary. `Documentation/zigux/freeze-map.md` keeps `kernel/workqueue.c` in `Study / Boundary Only`, so this slice may document the pre-execution handoff, rollback, and shared request facts, but it must not imply workqueue parity, scheduler transport ownership, or any Architecture Council-approved status change for that study-only anchor.
+
+No parity scorecard entry or Architecture Council status-change request is attached to this lane. The shipped evidence remains limited to the bounded starter, loader handoff, shared binding, and survey-manifest closure packet while the broader runtime loader stays pre-execution.
 
 ## Landed starter surface
 
@@ -53,6 +59,8 @@ This slice does not yet claim:
 - real `register_kretprobe()` or `unregister_kretprobe()` parity
 - architecture-specific register extraction parity for `regs_return_value()`
 - shared runtime-loader command-name, argv-policy, or environment-derived activation controls
+- parity or ownership for `kernel/workqueue.c`
+- any freeze-map status change for the scheduler-facing workqueue boundary without an Architecture Council decision
 
 ## Gates
 
@@ -70,4 +78,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Stay in the Phase 9 runtime kretprobe lane and keep broader work blocked until the shared runtime-loader control surface grows a real owner for command-name, argv-policy, or environment-derived activation handling, rather than reopening already-landed sample, survey, manifest, loader, module, or diff scaffolding.
+Stay in the Phase 9 runtime kretprobe lane and keep broader work blocked until the shared runtime-loader control surface grows a real owner for command-name, argv-policy, or environment-derived activation handling, rather than reopening already-landed sample, survey, manifest, loader, module, or diff scaffolding, while keeping `kernel/workqueue.c` in study-only status unless the Architecture Council explicitly reopens that anchor.
