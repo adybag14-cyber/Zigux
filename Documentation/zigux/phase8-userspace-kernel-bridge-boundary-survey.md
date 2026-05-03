@@ -91,6 +91,7 @@ The newer dedicated validator-route audit now sits beside that published wrapper
 
 - `python3 scripts/zigux/check-phase8-validator-flow.py --self-test`
 - `python3 scripts/zigux/check-phase8-validator-flow.py`
+- `scripts/zigux/check-phase8-validator-flow.py` currently publishes `PHASE8_VALIDATOR_FLOW_SELF_TEST_CASE_COUNT=10`
 
 ## Non-goals
 
