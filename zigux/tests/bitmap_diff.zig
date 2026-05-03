@@ -212,6 +212,17 @@ test "bitmap diff gate records exact cross-boundary set and clear checks" {
     try expectSet(&map, 97);
     try expectClear(&map, 98);
 
+    bitmap.fill(&map, 115);
+    // test_fill_set carried-forward bitmap_fill(115) from the exact 0-63,79-97 anchor state closes back over the gap to 0-127
+    try std.testing.expectEqual(@as(usize, roundedPrefixLen(115)), weight(&map, bitmap_nbits));
+    try std.testing.expectEqual(@as(usize, 0), firstSet(&map, bitmap_nbits));
+    try std.testing.expectEqual(@as(usize, roundedPrefixLen(115)), firstZero(&map, bitmap_nbits));
+    try expectPrintedList(&map, bitmap_nbits, "0-127");
+    try expectSet(&map, 114);
+    try expectSet(&map, 115);
+    try expectSet(&map, bits_per_long * 2 - 1);
+    try expectClear(&map, bits_per_long * 2);
+
     bitmap.fill(&map, bitmap_nbits);
     zeroPrefix(&map, 35);
     // test_zero_clear bitmap_clear crosses the 79..97 window from the exact 64..1023 anchor state
