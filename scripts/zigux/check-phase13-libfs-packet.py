@@ -65,7 +65,8 @@ SURVEY_MARKERS = [
 SLICE_MARKERS = [
     "dcache_dir_close() release planner",
     "simple_open() planner",
-    "The next honest bounded step in this same lane is to leave the remaining cursor-backed helpers plus inode and pseudo-filesystem lifecycle work blocked on live VFS state",
+    "The next honest bounded step in this same lane is a pure `generic_check_addressable()` addressability planner",
+    "After that, the remaining cursor-backed helpers plus inode and pseudo-filesystem lifecycle work stay blocked on live VFS state.",
 ]
 
 TRACEABILITY_MARKERS = [
@@ -232,7 +233,7 @@ def _run_self_test() -> int:
                 {"id": "phase13-libfs-inode-and-pseudofs-lifecycle", "status": "blocked_on_vfs_state"},
             ],
         }
-        (root / "zigux/tests/phase13_libfs_manifest.json").write_text(
+        (root / "zigux/tests/phase13_libfs_manifest.json").writeText(
             json.dumps(manifest, indent=2) + "\n",
             encoding="utf-8",
         )
