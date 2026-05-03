@@ -14,6 +14,7 @@ WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 MAKEFILE = ROOT / "zigux" / "Makefile"
 README = ROOT / "scripts" / "zigux" / "README.md"
 CLOSURE_DOC = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
+TOOLCHAIN_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
 TARGETS_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json"
 
 EXPECTED_TARGETS = [
@@ -57,6 +58,11 @@ README_MARKERS = [
     "duplicate tool entries",
     "duplicate manifest targets",
     "unexpected explicit targets",
+]
+
+TOOLCHAIN_NOTES_MARKERS = [
+    "phase2_cross_targets.json",
+    "separate from the `x86_64-linux` bootstrap archive pin",
 ]
 
 CLOSURE_MARKERS = [
@@ -183,6 +189,14 @@ def run_self_test() -> int:
     if marker_issues != ["sample:missing_marker:delta"]:
         raise SystemExit("phase2-cross-alignment:self-test:marker_failure_shape")
 
+    toolchain_notes_text = "\n".join(TOOLCHAIN_NOTES_MARKERS)
+    if validate_required_markers(
+        toolchain_notes_text,
+        label="toolchain_notes",
+        markers=TOOLCHAIN_NOTES_MARKERS,
+    ):
+        raise SystemExit("phase2-cross-alignment:self-test:toolchain_notes_markers")
+
     with tempfile.TemporaryDirectory(prefix="phase2_cross_alignment_selftest_") as tmp_dir_str:
         tmp_root = Path(tmp_dir_str)
         manifest_path = tmp_root / "phase2_cross_targets.json"
@@ -213,6 +227,7 @@ def main() -> int:
         MAKEFILE,
         README,
         CLOSURE_DOC,
+        TOOLCHAIN_NOTES,
         TARGETS_MANIFEST,
     ]
     missing = [str(path.relative_to(ROOT)) for path in required_files if not path.exists()]
@@ -254,6 +269,13 @@ def main() -> int:
             CLOSURE_DOC.read_text(encoding="utf-8"),
             label="phase2_closure_doc",
             markers=CLOSURE_MARKERS,
+        )
+    )
+    issues.extend(
+        validate_required_markers(
+            TOOLCHAIN_NOTES.read_text(encoding="utf-8"),
+            label="toolchain_notes",
+            markers=TOOLCHAIN_NOTES_MARKERS,
         )
     )
     issues.extend(validate_exact_workflow_runs(WORKFLOW.read_text(encoding="utf-8")))
