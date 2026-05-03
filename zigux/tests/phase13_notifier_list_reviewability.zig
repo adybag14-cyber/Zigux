@@ -66,6 +66,8 @@ test "phase13 notifier/list survey records the landed read-only generic notifier
     defer std.testing.allocator.free(notifier_abi_text);
     const notifier_c_header_text = try readRepoFile(io_instance.io(), std.testing.allocator, "include/zigux/notifier_abi.h");
     defer std.testing.allocator.free(notifier_c_header_text);
+    const linux_zigux_header_text = try readRepoFile(io_instance.io(), std.testing.allocator, "include/linux/zigux.h");
+    defer std.testing.allocator.free(linux_zigux_header_text);
     const list_c_header_text = try readRepoFile(io_instance.io(), std.testing.allocator, "include/zigux/list_view.h");
     defer std.testing.allocator.free(list_c_header_text);
     const list_view_text = try readRepoFile(io_instance.io(), std.testing.allocator, "zigux/helpers/list_view.zig");
@@ -134,6 +136,11 @@ test "phase13 notifier/list survey records the landed read-only generic notifier
     try std.testing.expect(std.mem.indexOf(u8, notifier_c_header_text, "zigux_notifier_chain_length_bounded") != null);
     try std.testing.expect(std.mem.indexOf(u8, notifier_c_header_text, "zigux_notifier_chain_summarize") != null);
     try std.testing.expect(std.mem.indexOf(u8, notifier_c_header_text, "ZIGUX_NOTIFIER_CHAIN_FLAG_PRIORITY_NONINCREASING") != null);
+    try std.testing.expect(std.mem.indexOf(u8, linux_zigux_header_text, "struct zigux_notifier_chain_view") == null);
+    try std.testing.expect(std.mem.indexOf(u8, linux_zigux_header_text, "struct zigux_notifier_chain_summary") == null);
+    try std.testing.expect(std.mem.indexOf(u8, linux_zigux_header_text, "zigux_notifier_chain_view_from_head") == null);
+    try std.testing.expect(std.mem.indexOf(u8, linux_zigux_header_text, "zigux_notifier_chain_summarize") == null);
+    try std.testing.expect(std.mem.indexOf(u8, linux_zigux_header_text, "ZIGUX_NOTIFIER_CHAIN_FLAG_PRIORITY_NONINCREASING") == null);
     try std.testing.expect(std.mem.indexOf(u8, list_c_header_text, "struct zigux_list_view") != null);
     try std.testing.expect(std.mem.indexOf(u8, list_c_header_text, "struct zigux_list_summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, list_c_header_text, "struct zigux_hlist_view") != null);
