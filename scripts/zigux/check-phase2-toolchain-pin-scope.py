@@ -17,6 +17,7 @@ README = ROOT / "scripts" / "zigux" / "README.md"
 TOOLCHAIN_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
 CLOSURE_DOC = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
 PHASE2_VALIDATOR = ROOT / "scripts" / "zigux" / "validate-phase2.py"
+PHASE2_CLOSURE_VALIDATOR = ROOT / "scripts" / "zigux" / "validate-phase2-closure.py"
 
 EXPECTED_PIN_TARGETS = [
     "x86_64-linux",
@@ -54,6 +55,14 @@ PHASE2_VALIDATOR_MARKERS = [
     "\"PHASE2_TOOLCHAIN_PIN_SCOPE=pass\"",
     "str(TOOLCHAIN_PIN_SCOPE_CHECKER)",
     "toolchain_pin_scope_checker",
+]
+
+PHASE2_CLOSURE_VALIDATOR_MARKERS = [
+    "CHECK_PHASE2_TOOLCHAIN_PIN_SCOPE = ROOT / 'scripts' / 'zigux' / 'check-phase2-toolchain-pin-scope.py'",
+    "'PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test'",
+    "'PHASE2_TOOLCHAIN_PIN_SCOPE_GATE=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py'",
+    "'scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test': 1",
+    "'scripts/zigux/check-phase2-toolchain-pin-scope.py': 1",
 ]
 
 README_MARKERS = [
@@ -550,6 +559,7 @@ def main() -> int:
         TOOLCHAIN_NOTES,
         CLOSURE_DOC,
         PHASE2_VALIDATOR,
+        PHASE2_CLOSURE_VALIDATOR,
     ]
     missing = [str(path.relative_to(ROOT)) for path in required_files if not path.exists()]
     if missing:
@@ -575,6 +585,13 @@ def main() -> int:
             PHASE2_VALIDATOR.read_text(encoding="utf-8"),
             label="phase2_validator",
             markers=PHASE2_VALIDATOR_MARKERS,
+        )
+    )
+    issues.extend(
+        validate_required_markers(
+            PHASE2_CLOSURE_VALIDATOR.read_text(encoding="utf-8"),
+            label="phase2_closure_validator",
+            markers=PHASE2_CLOSURE_VALIDATOR_MARKERS,
         )
     )
     issues.extend(
