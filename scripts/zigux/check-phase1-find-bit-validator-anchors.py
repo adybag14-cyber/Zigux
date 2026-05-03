@@ -111,6 +111,7 @@ REQUIRED_SCRIPTS_README_SNIPPETS = {
     "flow_note": (
         "matching `phase1_helper_manifest.json` tail-start and zero-sized anchor checks"
     ),
+    "tail_word_boundary_note": "the paired tail-word-boundary anchor review",
 }
 
 REQUIRED_DOCS_README_SNIPPETS = {
