@@ -16,6 +16,7 @@ PHASE2_CROSS_ALIGNMENT_CHECKER = (
     ROOT / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py"
 )
 PHASE2_CROSS_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross.py"
+TOOLCHAIN_PIN_SCOPE_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py"
 CHECK_KCONFIG_BRIDGE = ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py"
 WORKFLOW_FILE = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 MAKEFILE_FILE = ROOT / "zigux" / "Makefile"
@@ -45,6 +46,7 @@ REQUIRED_PHASE2_FILES = [
     CHECK_KCONFIG_BRIDGE,
     PHASE2_CROSS_ALIGNMENT_CHECKER,
     PHASE2_CROSS_CHECKER,
+    TOOLCHAIN_PIN_SCOPE_CHECKER,
     ROOT / "scripts" / "zigux" / "check-mk-elfconfig-diff.py",
     ROOT / "scripts" / "zigux" / "fixdep.zig",
     ROOT / "scripts" / "zigux" / "genksyms.zig",
@@ -71,6 +73,13 @@ PHASE2_CROSS_REQUIRED_SOURCE_MARKERS = [
     "phase2-cross:tool_manifest_path_missing:",
     "phase2-cross:self-test:explicit_target_failure:",
     "print('PHASE2_CROSS_SELF_TEST_CASE_COUNT=9')",
+]
+PHASE2_TOOLCHAIN_PIN_SCOPE_REQUIRED_SOURCE_MARKERS = [
+    "print(\"PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass\")",
+    "print(\"PHASE2_TOOLCHAIN_PIN_SCOPE=pass\")",
+    '"python3 scripts/zigux/install-zig.py --dest .zig-toolchain": 2',
+    '"python3 scripts/zigux/check-zig-toolchain.py": 2',
+    'EXPECTED_PIN_TARGETS = [',
 ]
 PHASE2_KCONFIG_REQUIRED_SOURCE_MARKERS = [
     "assert total_self_test_cases == 6",
@@ -212,6 +221,13 @@ def main() -> int:
     )
     issues.extend(
         validate_source_markers(
+            TOOLCHAIN_PIN_SCOPE_CHECKER,
+            label="toolchain_pin_scope_checker",
+            required_markers=PHASE2_TOOLCHAIN_PIN_SCOPE_REQUIRED_SOURCE_MARKERS,
+        )
+    )
+    issues.extend(
+        validate_source_markers(
             CHECK_KCONFIG_BRIDGE,
             label="phase2_kconfig_bridge_checker",
             required_markers=PHASE2_KCONFIG_REQUIRED_SOURCE_MARKERS,
@@ -251,6 +267,14 @@ def main() -> int:
 
     result = subprocess.run(
         [sys.executable, str(PHASE2_CROSS_ALIGNMENT_CHECKER)],
+        cwd=ROOT,
+    )
+    if result.returncode != 0:
+        print("PHASE2_VALIDATION=fail")
+        return result.returncode
+
+    result = subprocess.run(
+        [sys.executable, str(TOOLCHAIN_PIN_SCOPE_CHECKER)],
         cwd=ROOT,
     )
     if result.returncode != 0:
