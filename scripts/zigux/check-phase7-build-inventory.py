@@ -61,6 +61,18 @@ def load_fixture() -> dict[str, object]:
     return json.loads(FIXTURE_PATH.read_text(encoding="utf-8"))
 
 
+def collect_unexpected_build_hits(build_text: str) -> list[str]:
+    return [marker for marker in UNEXPECTED_BUILD_MARKERS if marker in build_text]
+
+
+def print_unexpected_build_hits(hits: list[str]) -> None:
+    print("PHASE7_BUILD_INVENTORY=fail")
+    print("PHASE7_BUILD_INVENTORY_STALE_MARKERS_START")
+    for marker in hits:
+        print(marker)
+    print("PHASE7_BUILD_INVENTORY_STALE_MARKERS_END")
+
+
 def render_validation_commands(makefile_text: str) -> list[str]:
     match = PHASE7_VALIDATE_BLOCK_RE.search(makefile_text)
     if match is None:
@@ -174,6 +186,9 @@ def run_self_test() -> int:
     build_text = BUILD_PATH.read_text(encoding="utf-8")
     makefile_text = MAKEFILE_PATH.read_text(encoding="utf-8")
 
+    if collect_unexpected_build_hits(build_text):
+        raise SystemExit("phase7-build-inventory:self-test:unexpected_marker_baseline")
+
     with tempfile.TemporaryDirectory(prefix="phase7_build_inventory_selftest_") as tmp_dir:
         tmp_root = Path(tmp_dir)
         existing = tmp_root / "present.txt"
@@ -190,6 +205,14 @@ def run_self_test() -> int:
             raise SystemExit("phase7-build-inventory:self-test:validate_block_error_shape")
     else:
         raise SystemExit("phase7-build-inventory:self-test:validate_block_error_missing")
+
+    stale_marker_drift_text = (
+        build_text
+        + "\n// stale phase7 drift markers: zigux/tests/build.zig ../../tools/lib/\n"
+    )
+    stale_marker_hits = collect_unexpected_build_hits(stale_marker_drift_text)
+    if stale_marker_hits != UNEXPECTED_BUILD_MARKERS:
+        raise SystemExit("phase7-build-inventory:self-test:stale_marker_detection")
 
     cwd_drift_text, replacements = re.subn(
         r'("phase7-argv-split-survey-tests",\s*argv_split_survey_root_module,\s*)repo_root(\s*,\s*\))',
@@ -336,7 +359,7 @@ def run_self_test() -> int:
         raise SystemExit("phase7-build-inventory:self-test:validation_gate_order_command_shape")
 
     print("PHASE7_BUILD_INVENTORY_SELF_TEST=pass")
-    print("PHASE7_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=13")
+    print("PHASE7_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
@@ -354,6 +377,12 @@ def main(argv: list[str] | None = None) -> int:
     missing = collect_missing_paths(REQUIRED_PATHS)
     if missing:
         print_missing_paths(missing)
+        return 1
+
+    build_text = BUILD_PATH.read_text(encoding="utf-8")
+    unexpected_hits = collect_unexpected_build_hits(build_text)
+    if unexpected_hits:
+        print_unexpected_build_hits(unexpected_hits)
         return 1
 
     if args.self_test:
