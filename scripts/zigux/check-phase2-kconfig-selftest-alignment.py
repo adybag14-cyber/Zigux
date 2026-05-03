@@ -11,6 +11,7 @@ SCRIPT_PATH = Path(__file__).resolve()
 ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
 KCONFIG_CHECKER = ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py"
 WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
+MAKEFILE = ROOT / "zigux" / "Makefile"
 CASES = ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "cases.json"
 
 EXPECTED_CONF_CASE_ORDER = [
@@ -62,6 +63,11 @@ EXPECTED_WORKFLOW_RUN_COUNTS = {
     "zig test scripts/zigux/kconfig/confdata_bridge.zig": 1,
 }
 
+EXPECTED_MAKEFILE_RUN_COUNTS = {
+    "scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test": 1,
+    "scripts/zigux/check-phase2-kconfig-selftest-alignment.py": 1,
+}
+
 KCONFIG_CHECKER_MARKERS = [
     "parser.add_argument('--self-test'",
     "print('KCONFIG_BRIDGE_SELF_TEST=pass')",
@@ -97,6 +103,16 @@ def validate_exact_workflow_runs(text: str) -> list[str]:
         count = sum(1 for line in text.splitlines() if line.strip() == expected_line)
         if count != expected_count:
             issues.append(f"workflow_exact_run:{command}:count={count}:expected={expected_count}")
+    return issues
+
+
+def validate_exact_makefile_runs(text: str) -> list[str]:
+    issues: list[str] = []
+    stripped_lines = [line.strip() for line in text.splitlines()]
+    for command, expected_count in EXPECTED_MAKEFILE_RUN_COUNTS.items():
+        count = sum(1 for line in stripped_lines if line.endswith(command))
+        if count != expected_count:
+            issues.append(f"makefile_exact_run:{command}:count={count}:expected={expected_count}")
     return issues
 
 
@@ -240,6 +256,20 @@ def run_self_test() -> int:
     if not any(issue.startswith("workflow_exact_run:") for issue in workflow_issues):
         raise SystemExit("phase2-kconfig-alignment:self-test:workflow_missing_failure")
 
+    valid_makefile = "\n".join(
+        [
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+        ]
+    ) + "\n"
+    if validate_exact_makefile_runs(valid_makefile):
+        raise SystemExit("phase2-kconfig-alignment:self-test:makefile_counts")
+
+    invalid_makefile = "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test\n"
+    makefile_issues = validate_exact_makefile_runs(invalid_makefile)
+    if not any(issue.startswith("makefile_exact_run:") for issue in makefile_issues):
+        raise SystemExit("phase2-kconfig-alignment:self-test:makefile_missing_failure")
+
     valid_checker = "\n".join(KCONFIG_CHECKER_MARKERS) + "\n"
     if validate_required_markers(
         valid_checker,
@@ -285,6 +315,7 @@ def run_self_test() -> int:
         tmp_root = Path(tmp_dir_str)
         write(tmp_root / "scripts" / "zigux" / "check-kconfig-bridge.py", valid_checker)
         write(tmp_root / ".github" / "workflows" / "zigux-bootstrap.yml", valid_workflow)
+        write(tmp_root / "zigux" / "Makefile", valid_makefile)
         write(
             tmp_root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "cases.json",
             build_valid_cases_json(),
@@ -298,13 +329,13 @@ def run_self_test() -> int:
             raise SystemExit("phase2-kconfig-alignment:self-test:json_round_trip")
 
     print("PHASE2_KCONFIG_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_KCONFIG_ALIGNMENT_SELF_TEST_CASE_COUNT=7")
+    print("PHASE2_KCONFIG_ALIGNMENT_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Keep the Phase 2 kconfig checker, fixture manifest, and workflow gate aligned."
+        description="Keep the Phase 2 kconfig checker, fixture manifest, workflow gate, and Linux-style make route aligned."
     )
     parser.add_argument("--self-test", action="store_true", help="Run built-in alignment checks")
     args = parser.parse_args()
@@ -312,7 +343,7 @@ def main() -> int:
     if args.self_test:
         return run_self_test()
 
-    required_files = [KCONFIG_CHECKER, WORKFLOW, CASES]
+    required_files = [KCONFIG_CHECKER, WORKFLOW, MAKEFILE, CASES]
     missing = [str(path) for path in required_files if not path.exists()]
     if missing:
         print("PHASE2_KCONFIG_ALIGNMENT=fail")
@@ -331,6 +362,7 @@ def main() -> int:
         )
     )
     issues.extend(validate_exact_workflow_runs(WORKFLOW.read_text(encoding="utf-8")))
+    issues.extend(validate_exact_makefile_runs(MAKEFILE.read_text(encoding="utf-8")))
     issues.extend(validate_cases(load_json_object(CASES, label="cases")))
 
     if issues:
