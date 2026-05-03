@@ -21,6 +21,7 @@
     "preexisting_phase13_devres_test_present": true,
     "preexisting_phase13_devres_slice_present": true,
     "preexisting_phase13_devres_reviewability_present": true,
+    "preexisting_phase13_devres_iounmap_reviewability_present": true,
     "preexisting_phase13_devres_survey_present": true
   },
   "gaps": [
@@ -65,6 +66,13 @@
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_devres_reviewability.zig",
       "why_now": "A dedicated reviewability gate ties the helper lab, dedicated tests, manifest lane marker, and survey note together so the active helper-first devres packet and its explicit live-state blockers stay machine-checkable on the live head."
+    },
+    {
+      "id": "phase13-devres-iounmap-reviewability-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase13_devres_iounmap_reviewability.zig",
+      "why_now": "The dedicated iounmap reviewability gate source-scans the helper descriptor and replays exact-match plus release-miss `devm_iounmap()` planning so the helper-advertised `provides_iounmap_call_planning` surface stays explicit inside the broader devres packet instead of living only in the helper lab or survey prose."
     },
     {
       "id": "phase13-devres-survey-note",
