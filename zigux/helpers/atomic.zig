@@ -1,10 +1,33 @@
 const std = @import("std");
 
+fn ensureLoadOrder(comptime order: std.builtin.AtomicOrder) void {
+    switch (order) {
+        .unordered, .monotonic, .acquire, .seq_cst => {},
+        .release, .acq_rel => @compileError("atomic load only accepts unordered, monotonic, acquire, or seq_cst ordering"),
+    }
+}
+
+fn ensureStoreOrder(comptime order: std.builtin.AtomicOrder) void {
+    switch (order) {
+        .unordered, .monotonic, .release, .seq_cst => {},
+        .acquire, .acq_rel => @compileError("atomic store only accepts unordered, monotonic, release, or seq_cst ordering"),
+    }
+}
+
+fn ensureCompareExchangeFailureOrder(comptime order: std.builtin.AtomicOrder) void {
+    switch (order) {
+        .unordered, .monotonic, .acquire, .seq_cst => {},
+        .release, .acq_rel => @compileError("compareExchange failure ordering only accepts unordered, monotonic, acquire, or seq_cst"),
+    }
+}
+
 pub fn load(comptime T: type, ptr: *const T, comptime order: std.builtin.AtomicOrder) T {
+    ensureLoadOrder(order);
     return @atomicLoad(T, ptr, order);
 }
 
 pub fn store(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) void {
+    ensureStoreOrder(order);
     @atomicStore(T, ptr, value, order);
 }
 
@@ -48,6 +71,7 @@ pub fn compareExchange(
     comptime success_order: std.builtin.AtomicOrder,
     comptime failure_order: std.builtin.AtomicOrder,
 ) ?T {
+    ensureCompareExchangeFailureOrder(failure_order);
     return @cmpxchgStrong(T, ptr, expected_value, new_value, success_order, failure_order);
 }
 
@@ -59,6 +83,7 @@ pub fn compareExchangeWeak(
     comptime success_order: std.builtin.AtomicOrder,
     comptime failure_order: std.builtin.AtomicOrder,
 ) ?T {
+    ensureCompareExchangeFailureOrder(failure_order);
     return @cmpxchgWeak(T, ptr, expected_value, new_value, success_order, failure_order);
 }
 
@@ -102,4 +127,14 @@ test "phase3 atomic wrappers behave predictably" {
     try std.testing.expectEqual(@as(u32, 17), value);
     try std.testing.expectEqual(@as(u32, 17), fetchMin(u32, &value, 19, .seq_cst));
     try std.testing.expectEqual(@as(u32, 17), value);
+}
+
+test "phase3 atomic wrappers accept valid non-seq-cst orderings" {
+    var value: u32 = 0;
+    store(u32, &value, 9, .release);
+    try std.testing.expectEqual(@as(u32, 9), load(u32, &value, .acquire));
+
+    var cmp: u32 = 3;
+    try std.testing.expectEqual(@as(?u32, null), compareExchange(u32, &cmp, 3, 5, .acq_rel, .acquire));
+    try std.testing.expectEqual(@as(u32, 5), cmp);
 }
