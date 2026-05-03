@@ -111,7 +111,8 @@ def render_inventory() -> dict[str, object]:
                 }
             )
             continue
-        if test_name in SHARED_ADJUNCT_REPLAY_TESTS:
+        expected_adjunct_path = SHARED_ADJUNCT_REPLAY_TESTS.get(test_name)
+        if expected_adjunct_path is not None and test_path == expected_adjunct_path:
             shared_adjunct_replays.append(
                 {
                     "test": test_name,
@@ -499,7 +500,6 @@ def run_self_test() -> int:
         )
         write_text(build_path, build_backup)
 
-        build_path.writeText if False else None
         build_path.write_text(
             build_backup.replace(
                 "    hvc_console_survey_step.dependOn(&run_phase11_hvc_console_survey_tests.step);\n",
