@@ -402,6 +402,14 @@ test "phase11 hvc console survey keeps the shared replay separate but exposes an
     );
     defer std.testing.allocator.free(build_zig);
 
+    const modem_control_split = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase11_hvc_console_modem_control_split.zig",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(modem_control_split);
+
     const poll_retry_split = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "zigux/tests/phase11_hvc_console_poll_retry_split.zig",
@@ -413,6 +421,10 @@ test "phase11 hvc console survey keeps the shared replay separate but exposes an
     try expectSurveyedCommitProvenance(survey_note, manifest.surveyed_commit);
     try std.testing.expect(std.mem.indexOf(u8, build_zig, "const phase11_hvc_console_tests = b.addTest") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_zig, "test_step.dependOn(&run_phase11_hvc_console_tests.step);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_zig, "const phase11_hvc_console_modem_control_split_tests = b.addTest") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_zig, "test_step.dependOn(&run_phase11_hvc_console_modem_control_split_tests.step);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, modem_control_split, "phase11 hvc console keeps tiocmget and tiocmset fallback on missing hv_ops callbacks") != null);
+    try std.testing.expect(std.mem.indexOf(u8, modem_control_split, "phase11 hvc console keeps tiocmset masks live when tiocmget falls back") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_zig, "const phase11_hvc_console_poll_retry_split_tests = b.addTest") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_zig, "test_step.dependOn(&run_phase11_hvc_console_poll_retry_split_tests.step);") != null);
     try std.testing.expect(std.mem.indexOf(u8, poll_retry_split, "phase11 hvc console keeps irq-backed drained reads distinct when __hvc_poll can or cannot sleep") != null);
