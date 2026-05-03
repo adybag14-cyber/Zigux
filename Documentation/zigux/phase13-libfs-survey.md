@@ -6,7 +6,7 @@ This document records the bounded Phase 13 survey and reviewability lane around 
 
 - `PHASE13_STATUS=active`
 - `PHASE13_SLICE=libfs-helper-reviewability`
-- `PHASE13_SURVEYED_COMMIT=d62742e7ff0747ed15f71f67d505f68ea15ec7ab`
+- `PHASE13_SURVEYED_COMMIT=6652be8dc1038fe40868a604ba9bd864620f5342`
 - scope: the landed `fs/libfs.zig` helper slice, its dedicated Phase 13 tests, the shared Phase 13 build wiring, and the lane notes that compare the current wrapper footing against the roadmap
 - product boundary:
   - `fs/libfs.zig`
@@ -31,7 +31,7 @@ The live Zigux tree is no longer survey-only here. It already carries a small `f
 
 - `fs/libfs.c` remains broad enough to cross several VFS boundaries at once: dentries, directory iteration, inode bookkeeping, pseudo-filesystem mounting, and generic buffer-copy helpers.
 - the live repo now has a landed `fs/libfs.zig` helper slice plus `zigux/tests/phase13_libfs.zig`, and both the explicit standalone `zig test` entrypoints with `libfs` module wiring plus `zigux/tests/phase13_build.zig` compile that helper and reviewability path.
-- the current survey packet is pinned to inspected `master` head `d62742e7ff0747ed15f71f67d505f68ea15ec7ab` so future lane runs can detect note and manifest drift before widening helper coverage.
+- the current survey packet is pinned to inspected `master` head `6652be8dc1038fe40868a604ba9bd864620f5342` so future lane runs can detect note and manifest drift before widening helper coverage.
 - the current helper slice stays intentionally narrow around `simple_statfs()` defaults, the `always_delete_dentry()` policy, the branch decisions inside `simple_lookup()`, the pure buffer-copy helper trio, the early `dcache_dir_lseek()` and `offset_dir_llseek()` seek-policy surface, one tiny `dcache_readdir()`-adjacent emit planner, one bounded `dcache_dir_open()` / `dcache_readdir()` cursor-precondition planner, one bounded `dcache_dir_close()` release planner, a bounded `simple_transaction_get()` / `simple_transaction_set()` staging-buffer planner, a pure `simple_transaction_read()` / `simple_transaction_release()` follow-up, and a pure `simple_open()` private-data handoff planner.
 - the reviewability gate, the focused packet checker, and the manifest now tie the current helper slice, tests, build wire, slice note, survey note, and the directly coupled Phase 13 roadmap traceability note together so future runs can verify the exact libfs lane state before widening helper coverage, including the exported descriptor metadata for the already-landed cursor-reposition planning surface and the new simple-open planning surface.
 - one roadmap-aligned pure shared-helper gap still remains before the lane has to stop at live-state blockers: `generic_check_addressable()` is still absent from `fs/libfs.zig`, even though it is a bounded block-size, overflow, and addressability check that does not require live dcache, inode, or pseudo-filesystem ownership.
@@ -91,7 +91,7 @@ This slice does not claim:
 
 ## Latest verification snapshot
 
-- inspected head: `d62742e7ff0747ed15f71f67d505f68ea15ec7ab`
+- inspected head: `6652be8dc1038fe40868a604ba9bd864620f5342`
 - `python3 scripts/zigux/check-phase13-libfs-packet.py`: passed
 - `zig test fs/libfs.zig`: passed (`0` embedded tests; parse and compile check only)
 - `zig test --dep libfs -Mroot=zigux/tests/phase13_libfs.zig -Mlibfs=fs/libfs.zig`: passed (`23/23` tests)
