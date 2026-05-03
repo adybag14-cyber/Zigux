@@ -372,11 +372,17 @@ pub const KretprobeExampleSample = struct {
 test "kretprobe sample replay keeps the anchor reviewable and non-runtime" {
     const expected_focus = sample_review_focus;
     const expected_non_goals = sample_review_non_goals;
+    const descriptor = KretprobeExampleSample.descriptor();
     const contract = KretprobeExampleSample.reviewContract();
 
     var sample = KretprobeExampleSample{};
     try sample.init();
     const replay = try sample.runAnchorReplay();
+
+    try std.testing.expectEqualStrings("kretprobe_example", descriptor.name);
+    try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", descriptor.anchor);
+    try std.testing.expect(!descriptor.requires_runtime_substrate);
+    try std.testing.expect(descriptor.provides_selfcheck);
 
     try std.testing.expectEqual(@as(usize, expected_focus.len), contract.focus.len);
     for (expected_focus, contract.focus) |expected, actual| {
