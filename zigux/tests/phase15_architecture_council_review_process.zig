@@ -132,7 +132,7 @@ test "phase 15 architecture council review-process manifest records current trig
     try std.testing.expectEqualStrings("ownership_or_validation_changed", manifest.ownership_refresh_trigger);
     try std.testing.expectEqual(@as(usize, 2), manifest.ownership_refresh_fields.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.decision_buckets.len);
-    try std.testing.expectEqual(@as(usize, 20), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 21), manifest.gaps.len);
 
     try std.testing.expectEqualStrings("requested decision bucket", manifest.approval_evidence_fields[0]);
     try std.testing.expectEqualStrings("decision record ID", manifest.approval_evidence_fields[1]);
@@ -221,6 +221,7 @@ test "phase 15 architecture council review-process manifest records current trig
     var saw_indefinite_c_evidence_sync = false;
     var saw_ownership_evidence_rollback_threshold_sync = false;
     var saw_freeze_map_governance_handoff_sync = false;
+    var saw_scripts_tests_root_handoff_sync = false;
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(isAllowedStatus(gap.status));
         try std.testing.expect(gap.id.len > 0);
@@ -247,16 +248,24 @@ test "phase 15 architecture council review-process manifest records current trig
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "freeze-map-governance companion") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "maintenance mode") != null);
         }
+        if (std.mem.eql(u8, gap.id, "phase15-review-process-scripts-tests-root-handoff-sync")) {
+            saw_scripts_tests_root_handoff_sync = true;
+            try std.testing.expectEqualStrings("handoff_sync", gap.kind);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "scripts-root") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "tests-root") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shared release-discipline route") != null);
+        }
 
         for (manifest.gaps[i + 1 ..]) |other| {
             try std.testing.expect(!std.mem.eql(u8, gap.id, other.id));
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 20), landed_count);
+    try std.testing.expectEqual(@as(usize, 21), landed_count);
     try std.testing.expect(saw_indefinite_c_evidence_sync);
     try std.testing.expect(saw_ownership_evidence_rollback_threshold_sync);
     try std.testing.expect(saw_freeze_map_governance_handoff_sync);
+    try std.testing.expect(saw_scripts_tests_root_handoff_sync);
 }
 
 test "phase 15 architecture council review-process note stays aligned with checklist and handoff language" {
@@ -359,6 +368,7 @@ test "phase 15 architecture council review-process note stays aligned with check
     try std.testing.expect(std.mem.indexOf(u8, review_process, "phase15-review-process-indefinite-c-evidence-path-sync") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "phase15-review-process-ownership-evidence-rollback-threshold-sync") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "phase15-review-process-freeze-map-governance-handoff-sync") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_process, "phase15-review-process-scripts-tests-root-handoff-sync") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, checklist, "decision record ID, lane owner, rollback owner, validation gate summary, evidence archive path, latest blocker disposition, benchmark notes, and replay command explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "does the packet name the automatic return-to-blocked trigger") != null);
