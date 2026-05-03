@@ -33,10 +33,6 @@
       "path": "../../drivers/virtio/virtio.zig"
     },
     {
-      "module": "virtio_ring_module",
-      "path": "../../drivers/virtio/virtio_ring.zig"
-    },
-    {
       "module": "virtio_net_module",
       "path": "../../drivers/net/virtio_net.zig"
     },
@@ -122,11 +118,6 @@
       "module": "virtio_net_module",
       "import_name": "virtio",
       "imported_module": "virtio_core_module"
-    },
-    {
-      "module": "virtio_net_module",
-      "import_name": "virtio_ring",
-      "imported_module": "virtio_ring_module"
     },
     {
       "module": "phase12_virtio_net_module",
