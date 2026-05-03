@@ -25,6 +25,11 @@ REQUIRED_CLOSURE_SNIPPETS = {
         "active-word clearing partial-tail fill masking copied-tail preservation and predicate "
         "results across the same declared bit window"
     ),
+    "alias_review": (
+        "PHASE1_BITMAP_ALIAS_UNIT_REVIEW=bitmap underscore alias entry points preserve the same "
+        "caller-selected window semantics as the camelCase helpers for weight bitwise range and "
+        "formatting operations"
+    ),
     "allocator_alias_review": (
         "PHASE1_BITMAP_ALLOCATOR_ALIAS_UNIT_REVIEW=bitmap bitmap_alloc bitmap_zalloc and "
         "bitmap_free stay aligned with bitmapAlloc bitmapZalloc and bitmapFree for partial-word "
@@ -50,6 +55,10 @@ REQUIRED_CLOSURE_SNIPPETS = {
         "untouched when no bits are set, matching the committed empty-bitmap parity fixture "
         "contract"
     ),
+    "alias_anchor": (
+        "- bitmap alias unit-test anchor: `tools/lib/bitmap.zig:test "
+        "\"bitmap underscore aliases preserve bitmap helper semantics\"`"
+    ),
     "double_underscore_anchor": (
         "- bitmap double-underscore alias unit-test anchor: `tools/lib/bitmap.zig:test "
         "\"bitmap double-underscore aliases preserve core helper semantics\"`"
@@ -70,6 +79,15 @@ REQUIRED_MANIFEST_FIELDS = {
         "bitmap_empty(), and bitmap_full() aligned with zero(), fill(), copy(), empty(), and "
         "full() for active-word clearing, partial-tail fill masking, copied-tail preservation, "
         "and predicate results across the same declared bit window."
+    ),
+    "alias_unit_test_anchor": (
+        'tools/lib/bitmap.zig:test "bitmap underscore aliases preserve bitmap helper semantics"'
+    ),
+    "alias_unit_test_contract": (
+        "Direct Zig unit coverage keeps bitmap_weight(), bitmap_and(), bitmap_andnot(), "
+        "bitmap_or(), bitmap_xor(), bitmap_equal(), bitmap_intersects(), bitmap_subset(), "
+        "bitmap_set(), bitmap_clear(), and bitmap_scnprintf() aligned with the camelCase "
+        "helpers across the same caller-selected bit window."
     ),
     "allocator_alias_unit_test_anchor": (
         'tools/lib/bitmap.zig:test "bitmap underscore allocator aliases preserve allocation and '
@@ -142,6 +160,7 @@ REQUIRED_MAKEFILE_LINES = {
     "self_test_step": "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-bitmap-validator-anchors.py --self-test",
     "live_step": "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-bitmap-validator-anchors.py",
 }
+
 
 def validate_text(prefix: str, source: str, snippets: dict[str, str]) -> list[str]:
     missing: list[str] = []
@@ -264,7 +283,6 @@ def run_self_test() -> int:
         )
         total_cases += 1
 
-    manifest = json.loads(manifest_baseline)
     for field in REQUIRED_MANIFEST_FIELDS:
         mutated = json.loads(manifest_baseline)
         mutated["helper_review_notes"]["tools/lib/bitmap.zig"][field] = "drift"
@@ -343,8 +361,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Fail closed if the shared Phase 1 validation lane stops naming the shipped bitmap "
-            "header-alias, allocator-alias, double-underscore-alias, size-helper, xor-window, "
-            "tail-mask, zero-bit, or empty-bitmap review packet."
+            "header-alias, underscore-alias, allocator-alias, double-underscore-alias, "
+            "size-helper, xor-window, tail-mask, zero-bit, or empty-bitmap review packet."
         )
     )
     parser.add_argument(
