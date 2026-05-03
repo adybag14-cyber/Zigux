@@ -15,6 +15,7 @@ WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 MAKEFILE = ROOT / "zigux" / "Makefile"
 README = ROOT / "scripts" / "zigux" / "README.md"
 TOOLCHAIN_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
+REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux" / "review-checklist.md"
 CLOSURE_DOC = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
 PHASE2_VALIDATOR = ROOT / "scripts" / "zigux" / "validate-phase2.py"
 PHASE2_CLOSURE_VALIDATOR = ROOT / "scripts" / "zigux" / "validate-phase2-closure.py"
@@ -75,6 +76,18 @@ README_MARKERS = [
     "make -C zigux phase2-validate",
     "make -C zigux phase2",
     "kbuild-facing review path",
+]
+
+REVIEW_CHECKLIST_MARKERS = [
+    "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
+    "scripts/zigux/zig-toolchain-policy.json",
+    "scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "scripts/zigux/validate-phase2.py",
+    "scripts/zigux/validate-phase2-closure.py",
+    ".github/workflows/zigux-bootstrap.yml",
+    "zigux/Makefile",
+    "make -C zigux phase2-validate",
+    "make -C zigux phase2",
 ]
 
 CLOSURE_MARKERS = [
@@ -634,6 +647,7 @@ def main() -> int:
         MAKEFILE,
         README,
         TOOLCHAIN_NOTES,
+        REVIEW_CHECKLIST,
         CLOSURE_DOC,
         PHASE2_VALIDATOR,
         PHASE2_CLOSURE_VALIDATOR,
@@ -693,6 +707,13 @@ def main() -> int:
             README.read_text(encoding="utf-8"),
             label="scripts_readme",
             markers=README_MARKERS,
+        )
+    )
+    issues.extend(
+        validate_required_markers(
+            REVIEW_CHECKLIST.read_text(encoding="utf-8"),
+            label="review_checklist",
+            markers=REVIEW_CHECKLIST_MARKERS,
         )
     )
     issues.extend(
