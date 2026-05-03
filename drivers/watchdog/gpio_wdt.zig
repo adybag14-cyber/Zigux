@@ -36,6 +36,11 @@ pub const PlatformDriverRegistrationMode = enum {
     arch_initcall_platform_driver,
 };
 
+pub const DescriptorLookupMode = enum {
+    input,
+    output_low,
+};
+
 pub const NowayoutDefaultSource = enum {
     watchdog_nowayout,
 };
@@ -83,6 +88,18 @@ pub const PlatformDriverIdentitySummary = struct {
     supports_arch_initcall_override: bool,
     of_match_table_ready: bool,
     platform_probe_ready: bool,
+};
+
+pub const DescriptorRequestSummary = struct {
+    anchor: []const u8,
+    hw_algo: HardwareAlgorithm,
+    requested_line: ProbeLineRequest,
+    lookup_mode: DescriptorLookupMode,
+    descriptor_requested_with_null_connection_id: bool,
+    descriptor_lookup_is_devm_managed: bool,
+    lookup_happens_before_timeout_init: bool,
+    lookup_happens_before_register_device: bool,
+    blocked_on_live_gpio: bool,
 };
 
 pub const NowayoutPolicySummary = struct {
@@ -199,6 +216,7 @@ pub const RegistrationPlanSummary = struct {
     watchdog_info_ready: bool,
     watchdog_ops_ready: bool,
     watchdog_device_ready: bool,
+    descriptor_request_ready: bool,
     timeout_init_requested: bool,
     parent_attached: bool,
     stop_on_reboot: bool,
@@ -223,6 +241,7 @@ pub const RegisterDeviceCallSummary = struct {
     watchdog_info_ready: bool,
     watchdog_ops_ready: bool,
     watchdog_device_ready: bool,
+    descriptor_request_ready: bool,
     watchdog_drvdata_set: bool,
     min_timeout_sec: u32,
     default_timeout_sec: u32,
@@ -333,6 +352,28 @@ pub const GpioWatchdogLab = struct {
             .supports_arch_initcall_override = true,
             .of_match_table_ready = true,
             .platform_probe_ready = true,
+        };
+    }
+
+    pub fn descriptorRequestSummary(self: *const Self) DescriptorRequestSummary {
+        const requested_line: ProbeLineRequest = switch (self.hw_algo) {
+            .toggle => .input,
+            .level => .output_low,
+        };
+
+        return .{
+            .anchor = descriptor().anchor,
+            .hw_algo = self.hw_algo,
+            .requested_line = requested_line,
+            .lookup_mode = switch (self.hw_algo) {
+                .toggle => .input,
+                .level => .output_low,
+            },
+            .descriptor_requested_with_null_connection_id = true,
+            .descriptor_lookup_is_devm_managed = true,
+            .lookup_happens_before_timeout_init = true,
+            .lookup_happens_before_register_device = true,
+            .blocked_on_live_gpio = true,
         };
     }
 
@@ -565,6 +606,7 @@ pub const GpioWatchdogLab = struct {
 
     pub fn registrationPlanSummary(self: *const Self, nowayout: bool) RegistrationPlanSummary {
         const handoff = self.registrationHandoffSummary(nowayout);
+        const descriptor_request = self.descriptorRequestSummary();
         return .{
             .anchor = descriptor().anchor,
             .hw_algo = self.hw_algo,
@@ -577,6 +619,7 @@ pub const GpioWatchdogLab = struct {
             .watchdog_info_ready = true,
             .watchdog_ops_ready = true,
             .watchdog_device_ready = true,
+            .descriptor_request_ready = descriptor_request.descriptor_lookup_is_devm_managed,
             .timeout_init_requested = handoff.timeout_init_requested,
             .parent_attached = handoff.parent_attached,
             .stop_on_reboot = handoff.stop_on_reboot,
@@ -604,6 +647,7 @@ pub const GpioWatchdogLab = struct {
             .watchdog_info_ready = plan.watchdog_info_ready,
             .watchdog_ops_ready = plan.watchdog_ops_ready,
             .watchdog_device_ready = plan.watchdog_device_ready,
+            .descriptor_request_ready = plan.descriptor_request_ready,
             .watchdog_drvdata_set = true,
             .min_timeout_sec = soft_timeout_min,
             .default_timeout_sec = soft_timeout_default,
