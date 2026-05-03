@@ -11,6 +11,7 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[2]
 
 SURVEY_PATH = "Documentation/zigux/phase9-runtime-loader-gap-survey.md"
+DOC_README_PATH = "Documentation/zigux/README.md"
 MANIFEST_PATH = "zigux/tests/runtime_loader_gap_manifest.json"
 REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 MAKEFILE_PATH = "zigux/Makefile"
@@ -53,6 +54,16 @@ REVIEW_CHECKLIST_LINE = (
     "Phase 9 runtime evidence?"
 )
 
+DOC_README_MARKERS = [
+    "scripts/zigux/kconfig/conf_bridge.zig",
+    "scripts/zigux/kconfig/confdata_bridge.zig",
+    "rust/exports.c",
+    "zigux/kernel/export_shim.zig",
+    "Phase 2 config-surface bridge references",
+    "Phase 3 export-boundary references",
+    "Phase 9 runtime evidence",
+]
+
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
@@ -62,6 +73,7 @@ def validate(root: Path) -> list[str]:
     failures: list[str] = []
 
     survey_text = read_text(root, SURVEY_PATH)
+    doc_readme = read_text(root, DOC_README_PATH)
     review_checklist = read_text(root, REVIEW_CHECKLIST_PATH)
     makefile_text = read_text(root, MAKEFILE_PATH)
     manifest = json.loads(read_text(root, MANIFEST_PATH))
@@ -100,6 +112,9 @@ def validate(root: Path) -> list[str]:
 
     if REVIEW_CHECKLIST_LINE not in review_checklist:
         failures.append("review_checklist:four_surface_non_owner_line")
+    for marker in DOC_README_MARKERS:
+        if marker not in doc_readme:
+            failures.append(f"doc_readme:{marker}")
 
     if TARGET_NAME not in makefile_text:
         failures.append("makefile:non_owner_boundary_target_missing")
@@ -123,6 +138,19 @@ def write_fixture_tree(root: Path) -> None:
                 "rust/exports.c",
                 "zigux/kernel/export_shim.zig",
                 "boundary references instead of Phase 9 runtime evidence",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (root / DOC_README_PATH).write_text(
+        "\n".join(
+            [
+                "# Zigux Documentation",
+                "",
+                "Phase 9 notes",
+                "- `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig` stay explicit as Phase 2 config-surface bridge references, while `rust/exports.c` and `zigux/kernel/export_shim.zig` stay explicit as Phase 3 export-boundary references around the shared Phase 9 packet.",
+                "- the current docs-root summary keeps those non-owner references visibly separate from direct Phase 9 runtime evidence.",
             ]
         )
         + "\n",
@@ -194,6 +222,24 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
 
+        doc_readme_path = tmp_root / DOC_README_PATH
+        original_doc_readme = doc_readme_path.read_text(encoding="utf-8")
+        doc_readme_path.write_text(
+            original_doc_readme.replace(
+                "Phase 2 config-surface bridge references",
+                "Phase 2 references",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        failures = validate(tmp_root)
+        if "doc_readme:Phase 2 config-surface bridge references" not in failures:
+            raise SystemExit(
+                "phase9-loader-non-owner-selftest:expected_docs_root_failure:"
+                + ",".join(failures or ["none"])
+            )
+        doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
+
         makefile_path = tmp_root / MAKEFILE_PATH
         makefile_path.write_text(
             "PHONY += phase9-validate phase9-test phase9-loader-gap-survey phase9-kretprobe-survey phase9-trace-events-survey phase9\n",
@@ -249,7 +295,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE9_LOADER_NON_OWNER_BOUNDARY_SELF_TEST=pass")
-    print("PHASE9_LOADER_NON_OWNER_BOUNDARY_SELF_TEST_CASE_COUNT=6")
+    print("PHASE9_LOADER_NON_OWNER_BOUNDARY_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
