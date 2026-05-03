@@ -163,6 +163,12 @@
       "kind": "documentation",
       "path": "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
       "role": "owns the still-blocked shared command-name, argv-policy, and environment-derived activation-control posture that keeps the atomic64 packet pre-execution"
+    },
+    {
+      "id": "runtime-atomic64-freeze-map",
+      "kind": "governance",
+      "path": "Documentation/zigux/freeze-map.md",
+      "role": "owns the study-only kernel/workqueue.c boundary and the Architecture Council reopen rule that keep this atomic64 packet out of scheduler-facing parity claims"
     }
   ],
   "ownership_map": [
@@ -209,6 +215,10 @@
     {
       "surface": "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
       "owns": "the blocked shared command-name, argv-policy, and environment-derived activation-control posture that keeps the atomic64 packet pre-execution"
+    },
+    {
+      "surface": "Documentation/zigux/freeze-map.md",
+      "owns": "the study-only kernel/workqueue.c boundary and the Architecture Council reopen rule that keep this atomic64 packet out of scheduler-facing parity claims"
     }
   ],
   "gaps": [
