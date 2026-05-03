@@ -5,6 +5,7 @@
     "phase11-bcm2835-wdt-tests",
     "phase11-bcm2835-wdt-survey-tests",
     "phase11-dw-wdt-tests",
+    "phase11-dw-wdt-suspend-resume-tests",
     "phase11-dw-wdt-remove-idle-split-tests",
     "phase11-dw-wdt-survey-tests",
     "phase11-uapi-header-parity-survey-tests",
@@ -19,6 +20,7 @@
     "run_phase11_bcm2835_wdt_tests",
     "run_phase11_bcm2835_wdt_survey_tests",
     "run_phase11_dw_wdt_tests",
+    "run_phase11_dw_wdt_suspend_resume_tests",
     "run_phase11_dw_wdt_remove_idle_split_tests",
     "run_phase11_dw_wdt_survey_tests",
     "run_phase11_uapi_header_parity_survey_tests",
@@ -66,6 +68,10 @@
     {
       "module": "phase11_dw_wdt_module",
       "path": "phase11_dw_wdt.zig"
+    },
+    {
+      "module": "phase11_dw_wdt_suspend_resume_module",
+      "path": "phase11_dw_wdt_suspend_resume.zig"
     },
     {
       "module": "phase11_dw_wdt_remove_idle_split_module",
@@ -118,6 +124,11 @@
     },
     {
       "module": "phase11_dw_wdt_module",
+      "import_name": "dw_wdt",
+      "imported_module": "dw_wdt_module"
+    },
+    {
+      "module": "phase11_dw_wdt_suspend_resume_module",
       "import_name": "dw_wdt",
       "imported_module": "dw_wdt_module"
     },
@@ -177,6 +188,10 @@
     {
       "test": "phase11-dw-wdt-tests",
       "root_module": "phase11_dw_wdt_module"
+    },
+    {
+      "test": "phase11-dw-wdt-suspend-resume-tests",
+      "root_module": "phase11_dw_wdt_suspend_resume_module"
     },
     {
       "test": "phase11-dw-wdt-remove-idle-split-tests",
