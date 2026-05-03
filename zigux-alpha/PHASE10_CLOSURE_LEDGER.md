@@ -9,6 +9,7 @@ This focused ledger records the current closure-evidence bundle for the active P
 - `PHASE10_LEDGER_EVIDENCE=Documentation/zigux/phase10-closure-evidence.md`
 - `PHASE10_LEDGER_INVENTORY_VALIDATE=scripts/zigux/check-phase10-closure-inventory.py`
 - `PHASE10_LEDGER_VALIDATE=scripts/zigux/validate-phase10-closure.py`
+- `PHASE10_LEDGER_HARNESS_COVERAGE_VALIDATE=scripts/zigux/check-phase10-harness-coverage.py`
 - `PHASE10_LEDGER_SHARED_VALIDATE=scripts/zigux/validate-phase10.py`
 - `PHASE10_LEDGER_MANIFEST=zigux/tests/phase10_closure_manifest.json`
 - `PHASE10_LEDGER_CORE_SLICE=Documentation/zigux/phase10-virtio-core-slice.md`
@@ -43,7 +44,7 @@ This focused ledger records the current closure-evidence bundle for the active P
 - `PHASE10_LEDGER_MMIO_WRAPPERS=starter_landed`
 - `PHASE10_LEDGER_SCOREBOARD_MMIO_EVIDENCE=drivers/virtio/virtio_mmio.zig,zigux/tests/phase10_virtio_mmio.zig,zigux/tests/phase10_virtio_mmio_manifest.json,Documentation/zigux/phase10-virtio-mmio-slice.md,Documentation/zigux/phase10-virtio-mmio-survey.md`
 - `PHASE10_LEDGER_ROADMAP_LAB_ONLY_DRIVER_VALIDATION=starter_landed`
-- `PHASE10_LEDGER_SCOREBOARD_LAB_ONLY_DRIVER_VALIDATION_EVIDENCE=zigux/tests/phase10_build.zig,zigux/tests/phase10_virtio_input_multitouch_preflight.zig,zigux/tests/phase10_virtio_mmio_queue_isolation.zig,scripts/zigux/check-phase10-closure-inventory.py,scripts/zigux/validate-phase10.py,scripts/zigux/validate-phase10-closure.py,Documentation/zigux/phase10-closure-evidence.md,zigux/Makefile,.github/workflows/zigux-bootstrap.yml`
+- `PHASE10_LEDGER_SCOREBOARD_LAB_ONLY_DRIVER_VALIDATION_EVIDENCE=zigux/tests/phase10_build.zig,zigux/tests/phase10_virtio_input_multitouch_preflight.zig,zigux/tests/phase10_virtio_mmio_queue_isolation.zig,scripts/zigux/check-phase10-harness-coverage.py,scripts/zigux/check-phase10-closure-inventory.py,scripts/zigux/validate-phase10.py,scripts/zigux/validate-phase10-closure.py,Documentation/zigux/phase10-closure-evidence.md,zigux/Makefile,.github/workflows/zigux-bootstrap.yml`
 - `PHASE10_LEDGER_ROADMAP_DUAL_IMPLEMENTATIONS_FOR_RISKY_AREAS=blocked_on_risky_transport`
 - `PHASE10_LEDGER_SCOREBOARD_DUAL_IMPLEMENTATIONS_EVIDENCE=Documentation/zigux/phase10-closure-evidence.md,zigux/tests/phase10_virtio_ring_manifest.json,zigux/tests/phase10_virtio_input_manifest.json,zigux/tests/phase10_virtio_mmio_manifest.json`
 - `PHASE10_LEDGER_ALLOWED_ROADMAP_DESTINATIONS=drivers/virtio/*.zig,zigux/helpers/`
@@ -57,10 +58,11 @@ This focused ledger records the current closure-evidence bundle for the active P
 - `PHASE10_LEDGER_ENTRYPOINTS=make -C zigux phase10-validate,make -C zigux phase10-test,make -C zigux phase10`
 - `PHASE10_LEDGER_EXACT_CHECK_1=python3 scripts/zigux/check-phase10-closure-inventory.py`
 - `PHASE10_LEDGER_EXACT_CHECK_2=python3 scripts/zigux/validate-phase10-closure.py`
-- `PHASE10_LEDGER_EXACT_CHECK_3=zig build test --build-file zigux/tests/phase10_build.zig --summary all`
-- `PHASE10_LEDGER_EXACT_CHECK_4=make -C zigux phase10-validate`
-- `PHASE10_LEDGER_EXACT_CHECK_5=make -C zigux phase10-test`
-- `PHASE10_LEDGER_EXACT_CHECK_6=make -C zigux phase10`
+- `PHASE10_LEDGER_EXACT_CHECK_3=python3 scripts/zigux/check-phase10-harness-coverage.py`
+- `PHASE10_LEDGER_EXACT_CHECK_4=zig build test --build-file zigux/tests/phase10_build.zig --summary all`
+- `PHASE10_LEDGER_EXACT_CHECK_5=make -C zigux phase10-validate`
+- `PHASE10_LEDGER_EXACT_CHECK_6=make -C zigux phase10-test`
+- `PHASE10_LEDGER_EXACT_CHECK_7=make -C zigux phase10`
 - `PHASE10_LEDGER_NEXT_STEP=leave_parked_unless_phase10-virtio-input-registration-lifecycle_or_phase10-mmio-lifecycle-and-irq-paths_splits_smaller`
 - `PHASE10_LEDGER_BLOCKERS=phase10-virtio-input-registration-lifecycle,phase10-mmio-lifecycle-and-irq-paths`
 - `PHASE10_LEDGER_LANDED_MMIO_HELPERS=phase10-mmio-register-window-helper,phase10-mmio-queue-register-helper,phase10-mmio-queue-notify-helper,phase10-mmio-queue-address-helper,phase10-mmio-config-window-helper,phase10-mmio-config-write-helper,phase10-mmio-interrupt-ack-helper`
@@ -75,19 +77,20 @@ The same manifest also carries the survey-provenance packet for the current clos
 
 The same closure packet also stays reviewable through the dedicated core lab gate plus the dedicated core, ring, input, and MMIO survey gates, and now also the focused multitouch-preflight plus queue-isolation replays, so this ledger names the parked queue-handling and ready-state harness surface explicitly instead of letting those two replays live only inside the shared build wiring.
 
-The direct closure-inventory checker now also stays explicit beside the shared closure validator and the wider Phase 10 validator, so the parked packet keeps its named docs, manifests, drivers, and tests reviewable even when the combined `make -C zigux phase10-validate` wrapper is not the only command under inspection.
+The direct closure-inventory checker now also stays explicit beside the dedicated harness-coverage checker, the shared closure validator, and the wider Phase 10 validator, so the parked packet keeps its named docs, manifests, drivers, and tests reviewable even when the combined `make -C zigux phase10-validate` wrapper is not the only command under inspection.
 
 The shared closure note and manifest also keep the roadmap-boundary packet explicit: Phase 10 stays limited to `drivers/virtio/*.zig` plus justified helper bridges, the allowed evidence stays limited to driver-local lab slices, survey manifests, and shared validation gates, and any future freeze-boundary status change still needs an Architecture Council reopen record before this tranche can widen.
 
 The same freeze-boundary packet keeps `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` in the separate Phase 14 study-only family, so this ledger now records those parked anchors directly instead of leaving them implicit in the companion closure note.
 
-The shared closure manifest, the dedicated MMIO survey gate, the shared Phase 10 validator, and the dedicated MMIO survey now agree that the landed MMIO helper ladder reaches bounded interrupt acknowledgement, so this ledger keeps that reviewable helper-and-validation set explicit instead of collapsing the MMIO packet into only its remaining transport blocker.
+The shared closure manifest, the dedicated MMIO survey gate, the dedicated harness-coverage checker, the shared Phase 10 validator, and the dedicated MMIO survey now agree that the landed MMIO helper ladder reaches bounded interrupt acknowledgement, so this ledger keeps that reviewable helper-and-validation set explicit instead of collapsing the MMIO packet into only its remaining transport blocker.
 
 The exact replay packet for the current closure bundle is:
 
 1. `python3 scripts/zigux/check-phase10-closure-inventory.py`
 2. `python3 scripts/zigux/validate-phase10-closure.py`
-3. `zig build test --build-file zigux/tests/phase10_build.zig --summary all`
-4. `make -C zigux phase10-validate`
-5. `make -C zigux phase10-test`
-6. `make -C zigux phase10`
+3. `python3 scripts/zigux/check-phase10-harness-coverage.py`
+4. `zig build test --build-file zigux/tests/phase10_build.zig --summary all`
+5. `make -C zigux phase10-validate`
+6. `make -C zigux phase10-test`
+7. `make -C zigux phase10`
