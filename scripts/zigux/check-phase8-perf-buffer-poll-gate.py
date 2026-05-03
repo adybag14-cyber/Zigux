@@ -485,6 +485,36 @@ def run_self_test() -> int:
         )
         bridge_boundary_path.write_text(original_bridge_boundary, encoding="utf-8")
 
+        bridge_boundary_path.write_text(
+            original_bridge_boundary.replace(
+                "no standalone timer helper",
+                "no standalone timer boundary",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "bridge_boundary_timer_phrase",
+            tmp_root,
+            "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md:no standalone timer helper",
+        )
+        bridge_boundary_path.write_text(original_bridge_boundary, encoding="utf-8")
+
+        bridge_boundary_path.write_text(
+            original_bridge_boundary.replace(
+                "no standalone clockevent helper",
+                "no standalone clockevent boundary",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "bridge_boundary_clockevent_phrase",
+            tmp_root,
+            "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md:no standalone clockevent helper",
+        )
+        bridge_boundary_path.write_text(original_bridge_boundary, encoding="utf-8")
+
         helper_path = tmp_root / "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"
         original_helper = helper_path.read_text(encoding="utf-8")
         helper_path.write_text(
@@ -630,7 +660,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST=pass")
-    print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST_CASE_COUNT=22")
+    print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST_CASE_COUNT=24")
     return 0
 
 
