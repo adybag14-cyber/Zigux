@@ -17,7 +17,8 @@ TRACKED_PATHS = [
     "tools/lib/bpf/zigux_segments/manifest.json",
 ]
 SNAPSHOT_FIXTURE_PATH = "zigux/tests/fixtures/phase12_libbpf_snapshot.json"
-REQUIRED_PATHS = [*TRACKED_PATHS, SNAPSHOT_FIXTURE_PATH]
+REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
+REQUIRED_PATHS = [*TRACKED_PATHS, SNAPSHOT_FIXTURE_PATH, REVIEW_CHECKLIST_PATH]
 
 EXPECTED_ROADMAP_DESTINATIONS = [
     "tools/lib/bpf/zigux_segments/",
@@ -112,6 +113,10 @@ REVIEWABILITY_MARKERS = [
     "phase12 libbpf reviewability gate still compiles the landed helper foundations",
     "phase12 libbpf reviewability gate still compiles the landed perf_buffer_poll helper",
     "phase12 libbpf reviewability gate cross-checks the legacy segment catalog",
+]
+
+REVIEW_CHECKLIST_MARKERS = [
+    "if the change touches the focused Phase 12 libbpf-only replay packet, do `python3 scripts/zigux/check-phase12-libbpf-focused-replay.py --self-test`, `scripts/zigux/check-phase12-libbpf-focused-replay.py`, `scripts/zigux/validate-phase12.py`, `zigux/tests/phase12_libbpf_only_build.zig`, `zigux/tests/phase12_libbpf_manifest.json`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` still agree on the same dedicated replay shard, review-note hook, and validator-first rollback path instead of leaving that narrower libbpf gate implied behind the broader packet checks?",
 ]
 
 PHASE12_GAP_SPECS = [
@@ -338,6 +343,7 @@ def check_packet(root: Path) -> list[str]:
     survey_note = read_text(root, TRACKED_PATHS[3])
     segment_test = read_text(root, TRACKED_PATHS[1])
     reviewability_test = read_text(root, TRACKED_PATHS[2])
+    review_checklist = read_text(root, REVIEW_CHECKLIST_PATH)
 
     if manifest.get("lane_key") != "P12-L16":
         missing.append("manifest:lane_key")
@@ -405,6 +411,10 @@ def check_packet(root: Path) -> list[str]:
     for marker in REVIEWABILITY_MARKERS:
         if marker not in reviewability_test:
             missing.append(f"reviewability_test:{marker}")
+
+    for marker in REVIEW_CHECKLIST_MARKERS:
+        if marker not in review_checklist:
+            missing.append(f"review_checklist:{marker}")
 
     manifest_gaps = manifest.get("gaps")
     if not isinstance(manifest_gaps, list):
@@ -476,12 +486,14 @@ def build_self_test_tree(root: Path) -> None:
     )
     segment_test = "\n".join([f'const current_surveyed_commit = "{surveyed_commit}";', *SEGMENT_TEST_MARKERS])
     reviewability_test = "\n".join(REVIEWABILITY_MARKERS)
+    review_checklist = "\n".join(REVIEW_CHECKLIST_MARKERS)
 
     write(root / TRACKED_PATHS[0], json.dumps(manifest, indent=2) + "\n")
     write(root / TRACKED_PATHS[3], survey_note + "\n")
     write(root / TRACKED_PATHS[1], segment_test + "\n")
     write(root / TRACKED_PATHS[2], reviewability_test + "\n")
     write(root / TRACKED_PATHS[4], json.dumps(legacy_manifest, indent=2) + "\n")
+    write(root / REVIEW_CHECKLIST_PATH, review_checklist + "\n")
     synthetic_helper_paths = (
         {
             destination
@@ -532,6 +544,13 @@ def run_self_test() -> int:
         missing = check_packet(root)
         if f"missing_file:{SNAPSHOT_FIXTURE_PATH}" not in missing:
             raise SystemExit("phase12-libbpf-packet:self-test:missing_snapshot_fixture_detection")
+
+        build_self_test_tree(root)
+        review_checklist_path = root / REVIEW_CHECKLIST_PATH
+        review_checklist_path.unlink()
+        missing = check_packet(root)
+        if f"missing_file:{REVIEW_CHECKLIST_PATH}" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:missing_review_checklist_detection")
 
         build_self_test_tree(root)
         manifest_path = root / TRACKED_PATHS[0]
@@ -641,6 +660,20 @@ def run_self_test() -> int:
         missing = check_packet(root)
         if "survey_note:python3 scripts/zigux/check-phase12-libbpf-packet.py --self-test" not in missing:
             raise SystemExit("phase12-libbpf-packet:self-test:missing_marker_detection")
+
+        build_self_test_tree(root)
+        review_checklist_path = root / REVIEW_CHECKLIST_PATH
+        original = review_checklist_path.read_text(encoding="utf-8")
+        review_checklist_path.write_text(
+            original.replace(
+                REVIEW_CHECKLIST_MARKERS[0] + "\n",
+                "",
+            ),
+            encoding="utf-8",
+        )
+        missing = check_packet(root)
+        if f"review_checklist:{REVIEW_CHECKLIST_MARKERS[0]}" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:review_checklist_marker_detection")
 
         build_self_test_tree(root)
         survey_note_path = root / TRACKED_PATHS[3]
@@ -834,7 +867,7 @@ def run_self_test() -> int:
             raise SystemExit("phase12-libbpf-packet:self-test:reviewability_marker_detection")
 
         print("PHASE12_LIBBPF_PACKET_SELF_TEST=pass")
-        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=50")
+        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=52")
     return 0
 
 
