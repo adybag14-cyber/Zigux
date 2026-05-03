@@ -14,6 +14,7 @@ This document records the first bounded hardware-validation matrix for the Zigux
   - `zigux/tests/phase11_gpio_wdt_manifest.json`
   - `zigux/tests/phase11_gpio_wdt_survey.zig`
   - `Documentation/zigux/phase11-gpio-wdt-slice.md`
+  - `Documentation/zigux/phase11-gpio-wdt-module-slice.md`
   - `zigux/tests/phase11_build.zig`
   - `.github/workflows/zigux-bootstrap.yml`
 
@@ -25,6 +26,7 @@ The bounded starter now covers `hw_algo` parsing, heartbeat-margin validation, a
 - which direct watchdog-info identity and option flags are already preserved as starter-local evidence
 - which teardown-facing stop outcomes are already preserved as test-backed evidence
 - which disable-order and failure-mode checkpoints are now explicit in one helper instead of implied by end-state assertions alone
+- which module-facing checkpoints stay aligned with the shared replay, the slice note, and the focused survey gate
 - which registration-facing checkpoints are now explicit call-surface evidence rather than live behavior
 - which areas must remain out of scope after that first bounded `devm_watchdog_register_device()` request summary lands
 
