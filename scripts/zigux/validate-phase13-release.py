@@ -144,6 +144,7 @@ SCRIPT_README_MARKERS = [
 
 REVIEW_CHECKLIST_MARKERS = [
     "if the change touches the shared Phase 13 release-discipline packet, do `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/validate-phase13-release.py`, `zigux/Makefile`, and `zigux/tests/phase13_build.zig` still agree",
+    "if the change touches the shared Phase 13 release-discipline packet, do `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/validate-phase13-release.py`, and `Documentation/zigux/phase13-release-notes-survey.md` still keep the docs-root Phase 13 reviewability sentence explicit around `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, and `zigux/helpers/notifier_chain_view.zig` so the top-level Phase 13 summary does not undercount the ten-step shared replay?",
     "does `make -C zigux phase13` routes through `make -C zigux phase13-validate` before the shared replay",
     "and that the shared replay still names the same ten steps?",
     "if the shared replay is currently blocked on `master`, does `Documentation/zigux/phase13-release-notes-survey.md` still name the exact blocker, the owning lane, and the fact that `phase13-validate` is green while `phase13-test` is not?",
