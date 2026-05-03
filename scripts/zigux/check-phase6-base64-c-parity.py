@@ -300,13 +300,6 @@ def run_self_test() -> int:
         "missing fixture source: /tmp/phase6-missing-fixture.zig",
     )
     build_text = build_zig_build_text()
-    assert_equal(
-        "build_text",
-        'root_module.addImport("base64", base64_module);' in build_text
-        and str(ROOT / "lib" / "base64.zig") in build_text
-        and str(ZIG_RUNNER) in build_text,
-        True,
-    )
     sample_fixture = """
 const variant_sample = [_]u8{ 0xfb };
 const invalid_with_nul = [_]u8{ 'Z', 'g', 0, '=' };
@@ -335,10 +328,18 @@ pub const invalid_decode_cases = [_]InvalidDecodeCase{
             "inv\tstd\t1\t5a67003d\tInvalidInput\tInvalidInput",
         ]
     )
-    validate_expected_surface(
-        expected_surface_from_fixture_text(sample_fixture),
-        sample_expected,
-        "self-test-positive",
+    assert_equal(
+        "build_text_and_surface",
+        'root_module.addImport("base64", base64_module);' in build_text
+        and str(ROOT / "lib" / "base64.zig") in build_text
+        and str(ZIG_RUNNER) in build_text
+        and expected_surface_from_fixture_text(sample_fixture) == sample_expected,
+        True,
+    )
+    expect_system_exit(
+        "unsupported_byte_token",
+        lambda: parse_byte_constants("const bad = [_]u8{ bogus };"),
+        "phase6-base64-c-parity:unsupported_byte_token:bogus",
     )
     unexpected_lines = sample_expected + ["unexpected-extra\tstd\t1\tbogus\tok"]
     expect_system_exit(
