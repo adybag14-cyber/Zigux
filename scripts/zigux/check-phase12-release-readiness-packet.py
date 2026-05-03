@@ -16,6 +16,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase12-raw-github-coverage-survey.md",
     "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md",
     "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md",
+    "scripts/zigux/README.md",
     "scripts/zigux/check-phase12-cross.py",
     "scripts/zigux/check-phase12-release-readiness-packet.py",
     "scripts/zigux/validate-phase12.py",
@@ -78,6 +79,14 @@ REVIEW_CHECKLIST_EXACT_COUNT_MARKERS = {
     "if the change touches the Phase 12 release-facing PMO packet, do `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/README.md`, `Documentation/zigux/phase12-cross-compile-smoke.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `scripts/zigux/validate-phase12.py`, and `make -C zigux phase12-validate` still keep the active-not-closed release posture, the approved `x86_64-linux-musl`, `aarch64-linux-musl`, and `riscv64-linux-musl` smoke set, and the current two commit-pinned versus two shared-tree-only fallback split explicit?": 1,
 }
 
+SCRIPTS_README_MARKERS = [
+    "check-phase12-release-readiness-packet.py",
+]
+
+SCRIPTS_README_EXACT_COUNT_MARKERS = {
+    "check-phase12-release-readiness-packet.py": 1,
+}
+
 VALIDATOR_MARKERS = [
     "scripts/zigux/check-phase12-release-readiness-packet.py --self-test",
     "scripts/zigux/check-phase12-release-readiness-packet.py",
@@ -132,6 +141,7 @@ def collect_missing(
     survey_text: str,
     docs_root_text: str,
     review_checklist_text: str,
+    scripts_readme_text: str,
     validator_text: str,
     makefile_text: str,
     cross_smoke_text: str,
@@ -148,6 +158,14 @@ def collect_missing(
             review_checklist_text,
             REVIEW_CHECKLIST_EXACT_COUNT_MARKERS,
             "review_checklist_count",
+        )
+    )
+    missing.extend(collect_marker_misses(scripts_readme_text, SCRIPTS_README_MARKERS, "scripts_readme"))
+    missing.extend(
+        collect_exact_count_misses(
+            scripts_readme_text,
+            SCRIPTS_README_EXACT_COUNT_MARKERS,
+            "scripts_readme_count",
         )
     )
     missing.extend(collect_marker_misses(validator_text, VALIDATOR_MARKERS, "validator"))
@@ -173,6 +191,7 @@ def build_live_inputs() -> dict[str, object]:
         "survey_text": read_text("Documentation/zigux/phase12-release-readiness-survey.md"),
         "docs_root_text": read_text("Documentation/zigux/README.md"),
         "review_checklist_text": read_text("Documentation/zigux/review-checklist.md"),
+        "scripts_readme_text": read_text("scripts/zigux/README.md"),
         "validator_text": read_text("scripts/zigux/validate-phase12.py"),
         "cross_smoke_text": read_text("Documentation/zigux/phase12-cross-compile-smoke.md"),
         "raw_coverage_text": read_text("Documentation/zigux/phase12-raw-github-coverage-survey.md"),
@@ -194,6 +213,7 @@ def run_self_test() -> int:
         "survey_text": "\n".join(SURVEY_MARKERS + ["scripts/zigux/check-phase12-cross.py"]) + "\n",
         "docs_root_text": "\n".join(DOCS_ROOT_MARKERS) + "\n",
         "review_checklist_text": "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n",
+        "scripts_readme_text": "\n".join(SCRIPTS_README_MARKERS) + "\n",
         "validator_text": "\n".join(VALIDATOR_MARKERS) + "\n",
         "cross_smoke_text": "\n".join(CROSS_SMOKE_MARKERS) + "\n",
         "raw_coverage_text": "\n".join(RAW_COVERAGE_MARKERS) + "\n",
@@ -327,6 +347,31 @@ def run_self_test() -> int:
     missing = collect_missing(
         **{
             **base_inputs,
+            "scripts_readme_text": "",
+        }
+    )
+    expect_contains(
+        "scripts_readme_marker_detection",
+        missing,
+        "scripts_readme:check-phase12-release-readiness-packet.py",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "scripts_readme_text": base_inputs["scripts_readme_text"]
+            + "check-phase12-release-readiness-packet.py\n",
+        }
+    )
+    expect_contains(
+        "scripts_readme_exact_count_detection",
+        missing,
+        "scripts_readme_count:check-phase12-release-readiness-packet.py:expected=1:actual=2",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
             "validator_text": base_inputs["validator_text"].replace(
                 "Documentation/zigux/phase12-release-readiness-survey.md\n",
                 "",
@@ -343,7 +388,8 @@ def run_self_test() -> int:
     missing = collect_missing(
         **{
             **base_inputs,
-            "validator_text": base_inputs["validator_text"] + "scripts/zigux/check-phase12-release-readiness-packet.py\n",
+            "validator_text": base_inputs["validator_text"]
+            + "scripts/zigux/check-phase12-release-readiness-packet.py\n",
         }
     )
     expect_contains(
@@ -383,7 +429,7 @@ def run_self_test() -> int:
     expect_contains("raw_coverage_marker_detection", missing, "raw_coverage:shared-tree-only")
 
     print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST=pass")
-    print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT=16")
+    print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT=18")
     return 0
 
 
@@ -406,6 +452,7 @@ print(f"PHASE12_RELEASE_READINESS_PACKET_FILE_COUNT={len(REQUIRED_FILES)}")
 print(f"PHASE12_RELEASE_READINESS_SURVEY_MARKER_COUNT={len(SURVEY_MARKERS)}")
 print(f"PHASE12_RELEASE_READINESS_DOCS_ROOT_MARKER_COUNT={len(DOCS_ROOT_MARKERS)}")
 print(f"PHASE12_RELEASE_READINESS_REVIEW_CHECKLIST_MARKER_COUNT={len(REVIEW_CHECKLIST_MARKERS)}")
+print(f"PHASE12_RELEASE_READINESS_SCRIPTS_README_MARKER_COUNT={len(SCRIPTS_README_MARKERS)}")
 print(f"PHASE12_RELEASE_READINESS_VALIDATOR_MARKER_COUNT={len(VALIDATOR_MARKERS)}")
 print(
     "PHASE12_RELEASE_READINESS_SHARED_VALIDATE_WIRES_PACKET_GUARD="
