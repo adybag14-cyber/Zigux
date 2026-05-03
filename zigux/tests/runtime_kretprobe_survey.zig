@@ -350,7 +350,7 @@ test "phase 9 runtime kretprobe survey manifest records the landed ownership pac
     try std.testing.expect(saw_loader_command_name_prompt);
     try std.testing.expect(saw_shared_build_prompt);
     try std.testing.expect(saw_roadmap_gap_prompt);
-    try std.testing.expect(saw_lifecycle_summary_check);
+    try std.testing.expect(saw_lifecycleSummary_check);
     try std.testing.expect(saw_maxactive_preinit_check);
     try std.testing.expect(saw_loader_rollback_check);
     try std.testing.expect(saw_loader_command_name_check);
@@ -412,6 +412,22 @@ test "phase 9 runtime kretprobe docs keep the ownership packet and shared-build 
     );
     defer std.testing.allocator.free(module_test);
 
+    const sample_file = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "samples/zigux/runtime_kretprobe.zig",
+        24 * 1024,
+    );
+    defer std.testing.allocator.free(sample_file);
+
+    const loader_file = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "samples/zigux/runtime_kretprobe_loader.zig",
+        24 * 1024,
+    );
+    defer std.testing.allocator.free(loader_file);
+
     const runtime_loader_file = try readWorkspaceFile(
         io_instance.io(),
         std.testing.allocator,
@@ -419,6 +435,14 @@ test "phase 9 runtime kretprobe docs keep the ownership packet and shared-build 
         40 * 1024,
     );
     defer std.testing.allocator.free(runtime_loader_file);
+
+    const phase9_build_file = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "zigux/tests/phase9_build.zig",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(phase9_build_file);
 
     const required_survey_markers = [_][]const u8{
         "`PHASE9_LANE_KEY=P9-L16`",
@@ -484,6 +508,48 @@ test "phase 9 runtime kretprobe docs keep the ownership packet and shared-build 
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "OutstandingProbeInstance") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "selftest_complete") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "`nmissed` replay") != null);
+
+    const required_sample_markers = [_][]const u8{
+        "pub const RuntimeKretprobeSummary = struct",
+        "pub fn configureMaxactive",
+        "pub fn runSelftest",
+        "pub fn entryHandler",
+        "entry_timestamp_armed = self.active_instances > 0",
+        "test \"runtime kretprobe sample keeps failed exit rollback explicit in the direct sample leg\"",
+        "test \"runtime kretprobe sample keeps lifecycle replay and summary accounting explicit\"",
+    };
+    for (required_sample_markers) |marker| {
+        try std.testing.expect(std.mem.indexOf(u8, sample_file, marker) != null);
+    }
+
+    const required_loader_markers = [_][]const u8{
+        "pub fn planForWithCommandName",
+        "pub fn releaseSharedRuntimeLoadWithoutSubstrate",
+        "pub fn toSharedRequest",
+        "error.EmptyCommandName",
+        "\"perf-runtime-kretprobe\"",
+        "request.releasedWithoutSubstrate()",
+        "entry_timestamp_armed = plan.summary.entry_timestamp_armed",
+    };
+    for (required_loader_markers) |marker| {
+        try std.testing.expect(std.mem.indexOf(u8, loader_file, marker) != null);
+    }
+
+    const required_phase9_build_markers = [_][]const u8{
+        ".name = \"phase9-runtime-kretprobe-sample-tests\"",
+        ".name = \"phase9-runtime-kretprobe-module-tests\"",
+        ".name = \"phase9-runtime-kretprobe-diff-tests\"",
+        ".name = \"phase9-runtime-kretprobe-loader-tests\"",
+        ".name = \"phase9-runtime-kretprobe-survey-tests\"",
+        "test_step.dependOn(&run_runtime_kretprobe_sample_tests.step);",
+        "test_step.dependOn(&run_runtime_kretprobe_module_tests.step);",
+        "test_step.dependOn(&run_runtime_kretprobe_diff_tests.step);",
+        "test_step.dependOn(&run_runtime_kretprobe_loader_tests.step);",
+        "test_step.dependOn(&run_runtime_kretprobe_survey_tests.step);",
+    };
+    for (required_phase9_build_markers) |marker| {
+        try std.testing.expect(std.mem.indexOf(u8, phase9_build_file, marker) != null);
+    }
 
     try std.testing.expect(std.mem.indexOf(u8, runtime_loader_file, "pub fn keepsPreExecutionLifecycleBoundaryExplicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, runtime_loader_file, "\"module_init\"") != null);
