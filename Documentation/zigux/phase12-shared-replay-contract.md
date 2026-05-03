@@ -51,6 +51,17 @@ The current shared replay inventory explicitly keeps these packet families insid
 
 Those shared replay markers are the same ones tracked in `zigux/tests/fixtures/phase12_build_inventory.json` and checked by `scripts/zigux/check-phase12-build-inventory.py`.
 
+## Rollback Lab Contract
+
+The shared rollback-lab packet keeps the same owner map and fallback posture that the packet-local survey notes already publish.
+
+- `Network Driver Lane` owns the bounded `virtio_net` packet against `drivers/net/virtio_net.c`.
+- `Storage Driver Lane` owns the bounded `nvme_pci` and `virtio_scsi` packets against `drivers/nvme/host/pci.c` and `drivers/scsi/virtio_scsi.c`.
+- `BPF Tooling Lane` owns the bounded libbpf helper packet against `tools/lib/bpf/libbpf.c`.
+- reversible delivery remains limited to the bounded Zig starters, survey notes, review gates, and snapshot fixtures around those C anchors; this contract does not authorize DMA-backed queue ownership, `Scsi_Host` lifecycle parity, live blk-mq routing, loader/object-model rollout, or other broader runtime claims.
+- the shared rollback drill remains `make -C zigux phase12-validate` before `zig build test --build-file zigux/tests/phase12_build.zig --summary all` reruns the broader tranche.
+- if drift is isolated to one packet-local review surface, repair that packet-local note, survey gate, or snapshot fixture first; if the shared replay itself regresses, remove the affected direct replay entries from `zigux/tests/phase12_build.zig`, keep the C anchors plus bounded Zig starters unchanged, and only then re-run the shared rollback drill so the published tranche stays truthful while the narrower packet is repaired.
+
 ## Focused Boundary
 
 The bounded libbpf-only replay remains separate from the shared build packet:
