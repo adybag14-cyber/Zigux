@@ -50,11 +50,13 @@ REQUIRED_MARKERS = {
         "`Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`",
     ],
     "zigux/Makefile": [
+        "PHONY += phase8-validate phase8-exec-cmd-test phase8-help-test phase8-kallsyms-test phase8-libbpf-segments-test phase8-perf-buffer-poll-test phase8-test phase8",
         "scripts/zigux/check-phase8-tests-readme-alignment.py --self-test",
         "scripts/zigux/check-phase8-perf-buffer-poll-gate.py --self-test",
         "scripts/zigux/check-phase8-tests-readme-alignment.py",
         "scripts/zigux/check-phase8-perf-buffer-poll-gate.py",
         "phase8-perf-buffer-poll-test:",
+        "phase8: phase8-validate phase8-exec-cmd-test phase8-help-test phase8-kallsyms-test phase8-libbpf-segments-test phase8-perf-buffer-poll-test phase8-test",
     ],
     "zigux/tests/README.md": [
         "`zigux/tests/phase8_libbpf_segments.zig`",
@@ -157,12 +159,14 @@ FIXTURE_TEXT = {
     + "\n",
     "zigux/Makefile": "\n".join(
         [
+            "PHONY += phase8-validate phase8-exec-cmd-test phase8-help-test phase8-kallsyms-test phase8-libbpf-segments-test phase8-perf-buffer-poll-test phase8-test phase8",
             "phase8-validate:",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-tests-readme-alignment.py --self-test",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-perf-buffer-poll-gate.py --self-test",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-tests-readme-alignment.py",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-perf-buffer-poll-gate.py",
             "phase8-perf-buffer-poll-test:",
+            "phase8: phase8-validate phase8-exec-cmd-test phase8-help-test phase8-kallsyms-test phase8-libbpf-segments-test phase8-perf-buffer-poll-test phase8-test",
             "",
         ]
     )
@@ -298,6 +302,36 @@ def run_self_test() -> int:
             "makefile_perf_buffer_poll_target",
             tmp_root,
             "zigux/Makefile:phase8-perf-buffer-poll-test:",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        makefile_path.write_text(
+            original_makefile.replace(
+                "PHONY += phase8-validate phase8-exec-cmd-test phase8-help-test phase8-kallsyms-test phase8-libbpf-segments-test phase8-perf-buffer-poll-test phase8-test phase8\n",
+                "PHONY += phase8-validate phase8-exec-cmd-test phase8-help-test phase8-kallsyms-test phase8-libbpf-segments-test phase8-test phase8\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "makefile_phase8_phony_route",
+            tmp_root,
+            "zigux/Makefile:PHONY += phase8-validate phase8-exec-cmd-test phase8-help-test phase8-kallsyms-test phase8-libbpf-segments-test phase8-perf-buffer-poll-test phase8-test phase8",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        makefile_path.write_text(
+            original_makefile.replace(
+                "phase8: phase8-validate phase8-exec-cmd-test phase8-help-test phase8-kallsyms-test phase8-libbpf-segments-test phase8-perf-buffer-poll-test phase8-test\n",
+                "phase8: phase8-validate phase8-exec-cmd-test phase8-help-test phase8-kallsyms-test phase8-libbpf-segments-test phase8-test\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "makefile_phase8_aggregate_route",
+            tmp_root,
+            "zigux/Makefile:phase8: phase8-validate phase8-exec-cmd-test phase8-help-test phase8-kallsyms-test phase8-libbpf-segments-test phase8-perf-buffer-poll-test phase8-test",
         )
         makefile_path.write_text(original_makefile, encoding="utf-8")
 
@@ -461,7 +495,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE8_VALIDATOR_FLOW_SELF_TEST=pass")
-    print("PHASE8_VALIDATOR_FLOW_SELF_TEST_CASE_COUNT=12")
+    print("PHASE8_VALIDATOR_FLOW_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
