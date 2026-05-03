@@ -52,6 +52,17 @@ The dedicated archival replay remains separate from the shared build packet:
 
 That boundary is intentional. The shared packet should keep the exact shared replay inventory explicit without silently implying that every `hvc_console` survey gate already runs inside `zigux/tests/phase11_build.zig`.
 
+## Contributor Sync Points
+
+When the shared-versus-dedicated replay contract changes, keep these contributor-facing guidance surfaces aligned with this note:
+
+- `Documentation/zigux/README.md`
+- `Documentation/zigux/review-checklist.md`
+- `scripts/zigux/README.md`
+- `zigux/tests/README.md`
+
+Those surfaces are where contributors usually discover the Phase 11 route before they open the deeper packet notes, so any replay-contract change should stay explicit there as well.
+
 ## Review Use
 
 Use this note when a simple-driver change touches the shared Phase 11 test packet, the pre-replay checker stack, or the split replay inventory.
