@@ -7,7 +7,7 @@ This document tracks the first bounded Phase 9 runtime trace-events starter unde
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-trace-events-module-starter`
 - `PHASE9_LANE_KEY=P9-L12`
-- `PHASE9_SURVEYED_COMMIT=f5a4d6990f701937b2a3bb9ae723bb6d0f27ba21`
+- `PHASE9_SURVEYED_COMMIT=d46fb91493e6e9126d5111bf0e5b21184e0ec1d1`
 - scope: lifecycle starter, bounded event-emission and registration behavior, a machine-checkable diagnostics summary with explicit main-thread and function-thread event totals plus explicit replay run counters, direct sample-local selftest, failed-exit rollback proof, exit proof, a tiny payload-oriented diff gate, a blocked loader scaffold, dedicated Phase 9 test wiring, and lane-local survey-manifest closure only
 - product boundary:
   - `samples/zigux/runtime_trace_events.zig`
