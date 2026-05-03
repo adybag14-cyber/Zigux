@@ -37,6 +37,9 @@ pub fn canReturnPolicyByte(panic_mode: u8) bool {
 }
 
 test "phase3 panic policy stays explicit" {
+    try std.testing.expectEqual(Action.abort_now, actionFor(.abort));
+    try std.testing.expectEqual(Action.bug_check, actionFor(.bug));
+    try std.testing.expectEqual(Action.warn_and_return, actionFor(.warn));
     try std.testing.expect(!canReturn(.abort));
     try std.testing.expect(!canReturn(.bug));
     try std.testing.expect(canReturn(.warn));
