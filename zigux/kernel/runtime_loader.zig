@@ -127,6 +127,11 @@ pub const RuntimeLoadRequest = struct {
             !std.mem.eql(u8, self.entry_symbol, self.exit_symbol);
     }
 
+    pub fn keepsStagedInitExitNamingExplicit(self: RuntimeLoadRequest) bool {
+        return std.mem.endsWith(u8, self.entry_symbol, "_init") and
+            std.mem.endsWith(u8, self.exit_symbol, "_exit");
+    }
+
     pub fn keepsStageConsistentWithRuntimeSubstrate(self: RuntimeLoadRequest) bool {
         return if (self.requires_runtime_substrate)
             self.handoff_stage == .waiting_on_runtime_substrate or
@@ -194,6 +199,7 @@ pub const RuntimeLoadRequest = struct {
     pub fn keepsSharedHandoffContractExplicit(self: RuntimeLoadRequest) bool {
         return self.keepsCommandNameExplicit() and
             self.keepsInitExitContractExplicit() and
+            self.keepsStagedInitExitNamingExplicit() and
             self.keepsStageConsistentWithRuntimeSubstrate() and
             self.keepsAllocatorInitFlowConsistent() and
             self.keepsSelftestHookConsistent() and
@@ -558,6 +564,69 @@ test "runtime loader request preserves explicit command names across runtime-lan
         try std.testing.expect(released.keepsLifecyclePayloadConsistent());
         try std.testing.expect(released.keepsSharedHandoffContractExplicit());
     }
+}
+
+test "runtime loader request rejects ambiguous staged init-exit naming" {
+    const wrong_entry_suffix = RuntimeLoadRequest{
+        .module_name = "runtime_bitmap",
+        .command_name = null,
+        .anchor = "lib/test_bitmap.c",
+        .entry_symbol = "zigux_runtime_bitmap_start",
+        .exit_symbol = "zigux_runtime_bitmap_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .handoff_stage = .waiting_on_runtime_substrate,
+        .allocator_handoff = allocatorHandoffFor(.kernel_heap),
+        .payload = .{
+            .bitmap = .{
+                .first_set = 0,
+                .first_zero = 1,
+                .weight = 4,
+                .nbits = 128,
+                .init_runs = 1,
+                .selftest_runs = 1,
+                .exit_runs = 0,
+            },
+        },
+    };
+    try std.testing.expect(wrong_entry_suffix.keepsInitExitContractExplicit());
+    try std.testing.expect(!wrong_entry_suffix.keepsStagedInitExitNamingExplicit());
+    try std.testing.expect(wrong_entry_suffix.keepsPreExecutionLifecycleBoundaryExplicit());
+    try std.testing.expect(!wrong_entry_suffix.keepsSharedHandoffContractExplicit());
+
+    const swapped_suffixes = RuntimeLoadRequest{
+        .module_name = "runtime_kretprobe",
+        .command_name = null,
+        .anchor = "samples/kprobes/kretprobe_example.c",
+        .entry_symbol = "zigux_runtime_kretprobe_exit",
+        .exit_symbol = "zigux_runtime_kretprobe_init",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .handoff_stage = .waiting_on_runtime_substrate,
+        .allocator_handoff = allocatorHandoffFor(.kernel_heap),
+        .payload = .{
+            .kretprobe = .{
+                .register_api = "register_kretprobe",
+                .unregister_api = "unregister_kretprobe",
+                .symbol_name = "do_sys_openat2",
+                .maxactive = 20,
+                .private_data_bytes = 24,
+                .active_instances = 0,
+                .skipped_kernel_threads = 0,
+                .nmissed = 0,
+                .last_retval = 0,
+                .last_duration_ns = 0,
+                .init_runs = 1,
+                .selftest_runs = 0,
+                .exit_runs = 0,
+                .entry_timestamp_armed = false,
+            },
+        },
+    };
+    try std.testing.expect(swapped_suffixes.keepsInitExitContractExplicit());
+    try std.testing.expect(!swapped_suffixes.keepsStagedInitExitNamingExplicit());
+    try std.testing.expect(swapped_suffixes.keepsPreExecutionLifecycleBoundaryExplicit());
+    try std.testing.expect(!swapped_suffixes.keepsSharedHandoffContractExplicit());
 }
 
 test "runtime loader request rejects implicit init-exit and live lifecycle handoff contracts" {
