@@ -23,6 +23,8 @@
     "indefinite_c_policy_present": true,
     "handoff_next_steps_present": true,
     "phase15_build_present": true,
+    "phase15_validator_script_present": true,
+    "phase15_validate_target_present": true,
     "phase15_make_target_present": true,
     "shared_ci_phase15_present": true,
     "phase15_replay_green_on_current_master": true,
