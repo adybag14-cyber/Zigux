@@ -479,6 +479,44 @@ def run_self_test() -> int:
             "\n".join([
                 "// PHASE3_SHARED_RBTREE_SAMPLE_RECORDS=empty-root,cached-leftmost-root,uncached-root",
                 "const empty_root = rbtree.empty();",
+                "const cached_root: rbtree.RootView = .{",
+                "try std.testing.expect(rbtree.hasRoot(cached_root));",
+                "const uncached_root: rbtree.RootView = .{",
+                "try std.testing.expect(rbtree.hasRoot(uncached_root));",
+                "",
+            ]),
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert validate_source_markers(
+            root,
+            {"phase3-rbtree-shared-marker-fixture.zig": rbtree_shared_markers},
+        ) == [
+            "source-marker: phase3-rbtree-shared-marker-fixture.zig missing try std.testing.expect(!rbtree.hasRoot(empty_root));"
+        ]
+        rbtree_shared_marker_fixture.write_text(
+            "\n".join([
+                "// PHASE3_SHARED_RBTREE_SAMPLE_RECORDS=empty-root,cached-leftmost-root,uncached-root",
+                "const empty_root = rbtree.empty();",
+                "try std.testing.expect(!rbtree.hasRoot(empty_root));",
+                "const cached_root: rbtree.RootView = .{",
+                "const uncached_root: rbtree.RootView = .{",
+                "try std.testing.expect(rbtree.hasRoot(uncached_root));",
+                "",
+            ]),
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert validate_source_markers(
+            root,
+            {"phase3-rbtree-shared-marker-fixture.zig": rbtree_shared_markers},
+        ) == [
+            "source-marker: phase3-rbtree-shared-marker-fixture.zig missing try std.testing.expect(rbtree.hasRoot(cached_root));"
+        ]
+        rbtree_shared_marker_fixture.write_text(
+            "\n".join([
+                "// PHASE3_SHARED_RBTREE_SAMPLE_RECORDS=empty-root,cached-leftmost-root,uncached-root",
+                "const empty_root = rbtree.empty();",
                 "try std.testing.expect(!rbtree.hasRoot(empty_root));",
                 "const cached_root: rbtree.RootView = .{",
                 "try std.testing.expect(rbtree.hasRoot(cached_root));",
@@ -699,7 +737,7 @@ def run_self_test() -> int:
         ]
 
     print("PHASE3_VALIDATOR_SELF_TEST=pass")
-    print("PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT=13")
+    print("PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
