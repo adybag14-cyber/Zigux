@@ -66,6 +66,8 @@
       "range_unit_test_contract": "Direct Zig unit coverage keeps cross-word setRange() and clearRange() aligned by preserving the first-word start mask, fully covering interior words, clamping the last word, and restoring the whole window to zero on clear.",
       "copy_unit_test_anchor": "tools/lib/bitmap.zig:test \"bitmap copyClearTail clears out-of-range bits in the last copied word\"",
       "copy_unit_test_contract": "Direct Zig unit coverage keeps copy() and copyClearTail() aligned by preserving copied source words while forcing tail bits above nbits back to zero in the final copied word.",
+      "copy_alias_unit_test_anchor": "tools/lib/bitmap.zig:test \"bitmap copy aliases preserve tail clearing and extension semantics\"",
+      "copy_alias_unit_test_contract": "Direct Zig unit coverage keeps bitmap_copy_clear_tail() and bitmap_copy_and_extend() aligned with copyClearTail() and copyAndExtend() by preserving tail masking in the final copied word and zero-filled extension across the remaining word window.",
       "bitwise_unit_test_anchor": "tools/lib/bitmap.zig:test \"bitmap and andnot equal intersects subset\"",
       "bitwise_unit_test_contract": "Direct Zig unit coverage keeps andBits(), andNotBits(), xorBits(), equal(), intersects(), and subset() aligned on the shared caller-selected bit window instead of leaking unrelated tail bits.",
       "xor_unit_test_anchor": "tools/lib/bitmap.zig:test \"bitmap xor across a multiword tail still lets callers clamp the last word\"",
