@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[2]
 MANIFEST_REL = "zigux/tests/fixtures/phase3_abi_manifest.json"
 REQUIRED_TOOLING_FILES = (
     "scripts/zigux/check-phase3-build-roots.py",
+    "scripts/zigux/check-phase3-readme-tooling-inventory.py",
     "scripts/zigux/check-phase3-tooling-packet.py",
     "scripts/zigux/check-phase3-validation-flow.py",
     "scripts/zigux/generate-phase3-check-wrappers.py",
