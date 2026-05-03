@@ -7,13 +7,16 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 - `PHASE7_STATUS=parked`
 - `PHASE7_SLICE=argv-split-runtime-leaf`
 - scope: first low-risk argv tokenization helpers only
-- lane state: helper and fixture slice landed; parked unless a new `argv_split.c` parity issue appears
+- lane state: helper, fixture, survey, and dedicated external parity slice landed; parked unless a new `argv_split.c` parity issue appears
 - product boundary:
   - `lib/argv_split.zig`
   - `zigux/tests/phase7_argv_split.zig`
   - `zigux/tests/phase7_argv_split_survey.zig`
   - `zigux/tests/phase7_argv_split_manifest.json`
   - `zigux/tests/fixtures/phase7_argv_split_vectors.zig`
+  - `zigux/tests/fixtures/phase7_argv_split.json`
+  - `zigux/tests/fixtures/phase7_argv_split_c_harness.c`
+  - `scripts/zigux/check-phase7-argv-split-parity.py`
   - `zigux/tests/phase7_build.zig`
 
 ## Why this slice exists
@@ -21,6 +24,8 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 Phase 7 explicitly calls out `lib/argv_split.c` as one of the first reusable in-kernel leaf libraries that should move into the Zigux product path.
 
 This current slice keeps the work bounded to runtime-safe leaf helpers with explicit integration with validation substrate through `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-build-inventory.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `zigux/tests/phase7_argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, and `zigux/tests/phase7_build.zig`.
+
+The committed C parity replay through `scripts/zigux/check-phase7-argv-split-parity.py` stays beside that validation substrate so the helper-only slice remains externally reviewable without widening the shared Phase 7 wrapper path.
 
 This current slice keeps the work bounded to the smallest runtime-safe ownership-preserving surface:
 
@@ -52,6 +57,10 @@ This current slice keeps the work bounded to the smallest runtime-safe ownership
 4. keep the roadmap survey record machine-checked from `repo_root`
 - `zig test zigux/tests/phase7_argv_split_survey.zig`
 
+5. check the committed C parity fixture and its dedicated checker self-test
+- `python3 scripts/zigux/check-phase7-argv-split-parity.py --self-test`
+- `python3 scripts/zigux/check-phase7-argv-split-parity.py`
+
 ## Current parity surface
 
 The current landed slice covers:
@@ -79,6 +88,7 @@ The current tests check:
 - repeated teardown safety so an already-cleared `ArgvSplitResult` can be passed through `deinit()` again without freeing the shared empty sentinel state
 - allocator-failure cleanup that proves the shared Phase 7 gate also exercises the intermediate allocation teardown path already covered by the direct helper tests
 - a machine-checked survey record that keeps the Phase 7 roadmap anchor and landed review surfaces explicit without advertising active same-lane work
+- committed C-vs-Zig parity for whitespace collapse, blank input, first-NUL stop behavior, leading-NUL truncation, and the quote-literal non-goal through `zigux/tests/fixtures/phase7_argv_split.json` plus `zigux/tests/fixtures/phase7_argv_split_c_harness.c`
 
 The dedicated Phase 7 review gate now imports a focused fixture module under `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, while the helper self-tests keep the same bounded parity surface local to `lib/argv_split.zig`.
 
@@ -93,7 +103,6 @@ This slice still does not yet claim:
 - shell-style quote parsing
 - escape-sequence processing
 - a null-terminated pointer-vector API that mirrors the raw kernel allocation layout exactly
-- generated C fixture parity artifacts
 
 ## Next bounded step
 
