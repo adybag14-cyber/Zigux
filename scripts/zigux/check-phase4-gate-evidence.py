@@ -451,7 +451,7 @@ def run_self_test() -> int:
 
         write_fixture_tree(root)
         perf_manifest = root / "zigux/tests/phase4_perf_baseline_manifest.json"
-        perf_manifest.writeText(
+        perf_manifest.write_text(
             json.dumps({"surveyed_commit": "0" * 40}) + "\n",
             encoding="utf-8",
         )
