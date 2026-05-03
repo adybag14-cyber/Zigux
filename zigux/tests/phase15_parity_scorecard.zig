@@ -69,6 +69,7 @@ const ScorecardMetrics = struct {
     anchors_with_phase14_survey_evidence: usize,
     reserved_evidence_archive_templates: usize,
     anchors_with_explicit_blocker_dispositions: usize,
+    anchors_with_explicit_owner_and_rollback_owner: usize,
     required_review_process_record_fields: usize,
     reopen_trigger_catalog_entries: usize,
     repo_evidence_checks_green: usize,
@@ -137,6 +138,14 @@ fn expectTemplate(io: std.Io, anchor: AnchorScorecard) !void {
     try expectContains(template_doc, "ownership_or_validation_changed");
     try expectContains(template_doc, "no Architecture Council approval claim");
     try expectContains(template_doc, "written rationale");
+}
+
+fn countAnchorsWithExplicitOwnerCoverage(anchors: []const AnchorScorecard) usize {
+    var total: usize = 0;
+    for (anchors) |anchor| {
+        if (anchor.lane_owner.len > 0 and anchor.rollback_owner.len > 0) total += 1;
+    }
+    return total;
 }
 
 fn countRepoEvidenceGreen(repo_evidence: RepoEvidence) usize {
@@ -213,6 +222,8 @@ test "phase 15 parity scorecard manifest tracks the current roadmap gap honestly
     try std.testing.expectEqual(@as(usize, 20), manifest.gaps.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.scorecard_metrics.freeze_in_c_anchor_count);
     try std.testing.expectEqual(@as(usize, 2), manifest.scorecard_metrics.anchors_with_phase14_survey_evidence);
+    try std.testing.expectEqual(@as(usize, 4), manifest.scorecard_metrics.anchors_with_explicit_owner_and_rollback_owner);
+    try std.testing.expectEqual(manifest.scorecard_metrics.anchors_with_explicit_owner_and_rollback_owner, countAnchorsWithExplicitOwnerCoverage(manifest.anchors));
     try std.testing.expectEqual(@as(usize, 15), manifest.scorecard_metrics.repo_evidence_checks_green);
     try std.testing.expectEqual(manifest.scorecard_metrics.repo_evidence_checks_green, countRepoEvidenceGreen(manifest.repo_evidence));
     try std.testing.expectEqual(@as(usize, 19), manifest.scorecard_metrics.landed_scorecard_gaps);
@@ -253,6 +264,8 @@ test "phase 15 parity scorecard manifest tracks the current roadmap gap honestly
         try std.testing.expect(anchor.council_inputs.len >= 3);
         try std.testing.expect(anchor.evidence_thresholds.len >= 3);
         try std.testing.expect(anchor.validation_gates.len >= 3);
+        try std.testing.expect(anchor.lane_owner.len > 0);
+        try std.testing.expect(anchor.rollback_owner.len > 0);
         try std.testing.expect(anchor.evidence_archive.linked_evidence.len >= 2);
         try std.testing.expectEqualStrings("zig build test --build-file zigux/tests/phase15_build.zig", anchor.evidence_archive.replay_command);
         try expectContains(anchor.evidence_archive.latest_blocker_disposition, "blocked");
@@ -306,6 +319,7 @@ test "phase 15 parity scorecard docs keep the parity-tracking survey aligned" {
     try expectContains(scorecard_doc, "Documentation/zigux/README.md");
     try expectContains(scorecard_doc, "Documentation/zigux/phase15-handoff-next-steps-survey.md");
     try expectContains(scorecard_doc, "shared replay path");
+    try expectContains(scorecard_doc, "anchors with explicit lane-owner plus rollback-owner coverage: `4 / 4`");
     try expectContains(scorecard_doc, "required review-process record fields tracked in the manifest: `15`");
     try expectContains(scorecard_doc, "repo evidence checks currently green: `15 / 15`");
     try expectContains(scorecard_doc, "landed scorecard gaps: `19 / 20`");
@@ -319,6 +333,7 @@ test "phase 15 parity scorecard docs keep the parity-tracking survey aligned" {
     try expectContains(scorecard_doc, "the written rationale for why the current product state needs council attention now");
     try expectContains(scorecard_doc, "phase15-scorecard-review-packet-field-sync");
     try expectContains(scorecard_doc, "shared bootstrap workflow now runs the landed Phase 15 governance bundle through `make -C zigux phase15`");
+    try expectContains(scorecard_doc, "every freeze-in-C anchor still carries both a current lane owner and a rollback owner");
     try expectContains(review_process_doc, "trigger-specific refreshed evidence by path");
     try expectContains(review_process_doc, "ownership_or_validation_changed");
     try expectContains(review_process_doc, "rollback-threshold");
