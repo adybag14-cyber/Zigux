@@ -35,6 +35,8 @@ REQUIRED_SCRIPTS_README_LINES = [
     "- `check-phase6-docs-root-external-parity.py`",
 ]
 REQUIRED_TESTS_README_LINES = [
+    "- `scripts/zigux/check-phase6-docs-root-external-parity.py`",
+    "- `scripts/zigux/check-phase6-base64-catalog-evidence.py`",
     "- `zigux/tests/phase6_base64_c_parity.zig`",
     "- `zigux/tests/phase6_base64_c_casegen.zig`",
     "- `zigux/tests/fixtures/phase6_base64_c_harness.c`",
@@ -222,7 +224,7 @@ def run_self_test() -> int:
             )
             expect_contains(
                 validate(root),
-                "tests_readme_external_portability_line:expected=1:actual=0:- `zigux/tests/phase6_base64_c_parity.zig`",
+                "tests_readme_external_portability_line:expected=1:actual=0:- `scripts/zigux/check-phase6-docs-root-external-parity.py`",
             )
             count += 1
 
@@ -241,7 +243,7 @@ def run_self_test() -> int:
             )
             expect_contains(
                 validate(root),
-                "tests_readme_external_portability_line:expected=1:actual=2:- `zigux/tests/phase6_base64_c_parity.zig`",
+                "tests_readme_external_portability_line:expected=1:actual=2:- `scripts/zigux/check-phase6-docs-root-external-parity.py`",
             )
             count += 1
 
@@ -329,7 +331,7 @@ def main() -> int:
 
     print("PHASE6_DOCS_ROOT_EXTERNAL_PARITY=pass")
     print("PHASE6_DOCS_ROOT_EXTERNAL_PARITY_REQUIRED_FILE_COUNT=9")
-    print("PHASE6_DOCS_ROOT_EXTERNAL_PARITY_REQUIRED_LINE_COUNT=15")
+    print("PHASE6_DOCS_ROOT_EXTERNAL_PARITY_REQUIRED_LINE_COUNT=17")
     return 0
 
 
