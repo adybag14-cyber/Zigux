@@ -13,11 +13,13 @@ ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.p
 SHARED_SURVEYED_COMMIT = "3ba64cd4e41a4de1c8fd8dbaecb23702ad9701a3"
 SURVEYED_COMMIT_MANIFESTS = [
     "zigux/tests/phase4_runtime_atomic64_diff_manifest.json",
+    "zigux/tests/phase4_kprobe_example_manifest.json",
     "zigux/tests/phase4_test_fsmount_manifest.json",
     "zigux/tests/phase4_perf_baseline_manifest.json",
 ]
 SURVEYED_COMMIT_SURVEYS = [
     "zigux/tests/phase4_runtime_atomic64_diff_survey.zig",
+    "zigux/tests/phase4_kprobe_example_survey.zig",
     "zigux/tests/phase4_test_fsmount_survey.zig",
     "zigux/tests/phase4_perf_baseline_survey.zig",
 ]
@@ -38,6 +40,7 @@ REQUIRED_MARKERS = [
 ]
 
 REQUIRED_SURVEY_ALIGNMENT_MARKERS = [
+    "phase4_kprobe_example_survey.zig",
     "phase4_test_fsmount_survey.zig",
     "phase4_perf_baseline_survey.zig",
     "phase4_runtime_atomic64_diff_survey.zig",
@@ -88,6 +91,8 @@ PHASE4_GATE_EVIDENCE_BLOB_TARGETS = {
     "PHASE4_BUILD_BLOB_SHA": "zigux/tests/phase4_build.zig",
     "PHASE4_MAKEFILE_BLOB_SHA": "zigux/Makefile",
     "PHASE4_WORKFLOW_BLOB_SHA": ".github/workflows/zigux-bootstrap.yml",
+    "PHASE4_KPROBE_EXAMPLE_MANIFEST_BLOB_SHA": "zigux/tests/phase4_kprobe_example_manifest.json",
+    "PHASE4_KPROBE_EXAMPLE_SURVEY_BLOB_SHA": "zigux/tests/phase4_kprobe_example_survey.zig",
     "PHASE4_TEST_FSMOUNT_MANIFEST_BLOB_SHA": "zigux/tests/phase4_test_fsmount_manifest.json",
     "PHASE4_TEST_FSMOUNT_SURVEY_BLOB_SHA": "zigux/tests/phase4_test_fsmount_survey.zig",
     "PHASE4_PERF_BASELINE_MANIFEST_BLOB_SHA": "zigux/tests/phase4_perf_baseline_manifest.json",
@@ -278,6 +283,11 @@ def write_fixture_tree(root: Path) -> None:
             ]
         )
         + "\n",
+        "zigux/tests/phase4_kprobe_example_manifest.json": minimal_manifest,
+        "zigux/tests/phase4_kprobe_example_survey.zig": (
+            f'const current_surveyed_commit = "{SHARED_SURVEYED_COMMIT}";\n'
+            "phase4 kprobe example survey fixture\n"
+        ),
         "zigux/tests/phase4_test_fsmount_manifest.json": minimal_manifest,
         "zigux/tests/phase4_test_fsmount_survey.zig": (
             f'const current_surveyed_commit = "{SHARED_SURVEYED_COMMIT}";\n'
@@ -321,7 +331,7 @@ def write_fixture_tree(root: Path) -> None:
         "",
         "## Exact Readback Evidence",
         "",
-        f"- synthetic fixture keeps shared surveyed snapshot `{SHARED_SURVEYED_COMMIT}` explicit through `phase4_runtime_atomic64_diff_survey.zig`, `phase4_test_fsmount_survey.zig`, and `phase4_perf_baseline_survey.zig`.",
+        f"- synthetic fixture keeps shared surveyed snapshot `{SHARED_SURVEYED_COMMIT}` explicit through `phase4_runtime_atomic64_diff_survey.zig`, `phase4_kprobe_example_survey.zig`, `phase4_test_fsmount_survey.zig`, and `phase4_perf_baseline_survey.zig`.",
         "- synthetic fixture keeps `Self-test Phase 4 validator` plus `python3 scripts/zigux/validate-phase4.py --self-test` explicit beside `Validate Phase 4 diff gates` and `Run Phase 4 diff tests`.",
         "- on the synthetic workflow, there is one `make -C zigux phase4-validate` run line and one `make -C zigux phase4-test` run line under the Phase 4 steps, and the checker keeps those exact counts fail-closed beside the broader route markers.",
         "- synthetic fixture keeps the runtime atomic64 reversible-delivery packet explicit: `lib/atomic64_test.c` stays the source of truth, removing `atomic64_diff.zig` from the shared `phase4_build.zig` entrypoint is the documented rollback move, `runtime_atomic64_diff.zig` remains the single replay body, and the existing Phase 9 runtime atomic64 starter remains the forward path.",
@@ -411,7 +421,7 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         missing = validate_root(root)
-        assert "phase4_gate_evidence:PHASE4_GATE_EVIDENCE_TARGET_COUNT=15" in missing, missing
+        assert "phase4_gate_evidence:PHASE4_GATE_EVIDENCE_TARGET_COUNT=17" in missing, missing
 
         write_fixture_tree(root)
         gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
@@ -441,7 +451,7 @@ def run_self_test() -> int:
 
         write_fixture_tree(root)
         perf_manifest = root / "zigux/tests/phase4_perf_baseline_manifest.json"
-        perf_manifest.write_text(
+        perf_manifest.writeText(
             json.dumps({"surveyed_commit": "0" * 40}) + "\n",
             encoding="utf-8",
         )
@@ -709,6 +719,42 @@ def run_self_test() -> int:
         missing = validate_root(root)
         assert any(
             marker.startswith("phase4_gate_evidence:PHASE4_DOC_README_BLOB_SHA:")
+            for marker in missing
+        ), missing
+
+        write_fixture_tree(root)
+        gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
+        gate_evidence.write_text(
+            gate_evidence.read_text(encoding="utf-8").replace(
+                "PHASE4_KPROBE_EXAMPLE_MANIFEST_BLOB_SHA=",
+                "PHASE4_KPROBE_EXAMPLE_MANIFEST_BLOB_SHA=broken",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert any(
+            marker.startswith(
+                "phase4_gate_evidence:PHASE4_KPROBE_EXAMPLE_MANIFEST_BLOB_SHA:"
+            )
+            for marker in missing
+        ), missing
+
+        write_fixture_tree(root)
+        gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
+        gate_evidence.write_text(
+            gate_evidence.read_text(encoding="utf-8").replace(
+                "PHASE4_KPROBE_EXAMPLE_SURVEY_BLOB_SHA=",
+                "PHASE4_KPROBE_EXAMPLE_SURVEY_BLOB_SHA=broken",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert any(
+            marker.startswith(
+                "phase4_gate_evidence:PHASE4_KPROBE_EXAMPLE_SURVEY_BLOB_SHA:"
+            )
             for marker in missing
         ), missing
 
