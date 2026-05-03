@@ -139,4 +139,4 @@ This survey does not claim:
 
 ## Next bounded step
 
-If this PMO lane reopens, the next honest follow-up is to fail-close the shared Phase 12 validator and scripts index on this release-readiness survey plus its dedicated checker, so `scripts/zigux/validate-phase12.py` and `scripts/zigux/README.md` must keep the mixed fallback split, the bounded cross-compile packet, the shared review-checklist packet, the dedicated release-readiness guard, and the active-not-closed PMO reading explicit instead of leaving this release-facing note easier to drift than the surrounding driver and fallback artifacts.
+If this PMO lane reopens, the next honest follow-up is to fail-close the shared Phase 12 validator on this release-readiness survey plus its dedicated checker, so `scripts/zigux/validate-phase12.py` must keep the mixed fallback split, the bounded cross-compile packet, the shared review-checklist packet, the dedicated release-readiness guard, and the active-not-closed PMO reading explicit instead of leaving this release-facing note easier to drift than the surrounding driver and fallback artifacts.
