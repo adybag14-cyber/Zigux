@@ -14,6 +14,13 @@ const Gap = struct {
     why_now: []const u8,
 };
 
+const BlockerOwnershipRecord = struct {
+    anchor: []const u8,
+    lane_owner: []const u8,
+    validation_gate: []const u8,
+    rollback_owner: []const u8,
+};
+
 const Manifest = struct {
     lane_key: []const u8,
     phase: []const u8,
@@ -25,6 +32,7 @@ const Manifest = struct {
     study_only_targets: []const []const u8,
     repo_reality_evidence_paths: []const []const u8,
     current_blockers: []const []const u8,
+    blocker_ownership_records: []const BlockerOwnershipRecord,
     governance_requirements: []const GovernanceRequirement,
     gaps: []const Gap,
 };
@@ -55,7 +63,7 @@ test "phase 15 freeze-map governance manifest records the active lane and blocke
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P15-L01", manifest.lane_key);
+    try std.testing.expectEqualStrings("P15-Y01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
     try std.testing.expectEqualStrings("d918be7ded6383c13cbd5eea4ca4aa4f3cdafee4", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", manifest.anchor);
@@ -65,8 +73,9 @@ test "phase 15 freeze-map governance manifest records the active lane and blocke
     try std.testing.expectEqual(@as(usize, 2), manifest.study_only_targets.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.repo_reality_evidence_paths.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.current_blockers.len);
+    try std.testing.expectEqual(@as(usize, 4), manifest.blocker_ownership_records.len);
     try std.testing.expectEqual(@as(usize, 6), manifest.governance_requirements.len);
-    try std.testing.expectEqual(@as(usize, 10), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 11), manifest.gaps.len);
 
     try std.testing.expectEqualStrings("kernel/sched/core.c", manifest.roadmap_freeze_in_c_targets[0]);
     try std.testing.expectEqualStrings("mm/page_alloc.c", manifest.roadmap_freeze_in_c_targets[1]);
@@ -79,11 +88,31 @@ test "phase 15 freeze-map governance manifest records the active lane and blocke
     try std.testing.expectEqualStrings("kernel/rcu/tree.c: blocked_phase14_followup_still_wider_than_allowed_rcu_seam", manifest.current_blockers[2]);
     try std.testing.expectEqualStrings("net/core/skbuff.c: blocked_packet_lifetime_boundary_still_too_wide", manifest.current_blockers[3]);
 
+    try std.testing.expectEqualStrings("kernel/sched/core.c", manifest.blocker_ownership_records[0].anchor);
+    try std.testing.expectEqualStrings("Architecture Council", manifest.blocker_ownership_records[0].lane_owner);
+    try std.testing.expectEqualStrings("Architecture Council + PMO / Release Management", manifest.blocker_ownership_records[0].rollback_owner);
+    try std.testing.expect(hasSubstring(manifest.blocker_ownership_records[0].validation_gate, "future lane-local parity harness"));
+
+    try std.testing.expectEqualStrings("mm/page_alloc.c", manifest.blocker_ownership_records[1].anchor);
+    try std.testing.expectEqualStrings("Architecture Council", manifest.blocker_ownership_records[1].lane_owner);
+    try std.testing.expectEqualStrings("Architecture Council + Validation and Perf Team", manifest.blocker_ownership_records[1].rollback_owner);
+
+    try std.testing.expectEqualStrings("kernel/rcu/tree.c", manifest.blocker_ownership_records[2].anchor);
+    try std.testing.expectEqualStrings("ABI and Runtime Team", manifest.blocker_ownership_records[2].lane_owner);
+    try std.testing.expectEqualStrings("Architecture Council + ABI and Runtime Team", manifest.blocker_ownership_records[2].rollback_owner);
+    try std.testing.expect(hasSubstring(manifest.blocker_ownership_records[2].validation_gate, "existing Phase 14 survey evidence must stay green"));
+
+    try std.testing.expectEqualStrings("net/core/skbuff.c", manifest.blocker_ownership_records[3].anchor);
+    try std.testing.expectEqualStrings("Shared Subsystems Pod", manifest.blocker_ownership_records[3].lane_owner);
+    try std.testing.expectEqualStrings("Architecture Council + Shared Subsystems Pod", manifest.blocker_ownership_records[3].rollback_owner);
+    try std.testing.expect(hasSubstring(manifest.blocker_ownership_records[3].validation_gate, "existing Phase 14 survey evidence must stay green"));
+
     var landed_count: usize = 0;
     var blocked_count: usize = 0;
     var saw_note = false;
     var saw_roadmap_vs_repo_reality = false;
     var saw_rollback_threshold_sync = false;
+    var saw_blocker_ownership_sync = false;
     var saw_rollback_threshold_requirement = false;
 
     for (manifest.governance_requirements) |requirement| {
@@ -117,17 +146,22 @@ test "phase 15 freeze-map governance manifest records the active lane and blocke
             saw_rollback_threshold_sync = true;
             try std.testing.expectEqualStrings("Documentation/zigux/phase15-freeze-map-governance.md", gap.zigux_destination);
         }
+        if (std.mem.eql(u8, gap.id, "phase15-blocker-ownership-sync")) {
+            saw_blocker_ownership_sync = true;
+            try std.testing.expectEqualStrings("Documentation/zigux/phase15-freeze-map-governance.md", gap.zigux_destination);
+        }
     }
 
-    try std.testing.expectEqual(@as(usize, 9), landed_count);
+    try std.testing.expectEqual(@as(usize, 10), landed_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_note);
     try std.testing.expect(saw_roadmap_vs_repo_reality);
     try std.testing.expect(saw_rollback_threshold_sync);
+    try std.testing.expect(saw_blocker_ownership_sync);
     try std.testing.expect(saw_rollback_threshold_requirement);
 }
 
-test "phase 15 freeze-map governance note keeps the active lane, current head, rollback threshold, and unchanged blocker posture explicit" {
+test "phase 15 freeze-map governance note keeps the active lane, current head, ownership inventory, rollback threshold, and unchanged blocker posture explicit" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -139,13 +173,20 @@ test "phase 15 freeze-map governance note keeps the active lane, current head, r
     );
     defer std.testing.allocator.free(note);
 
-    try std.testing.expect(hasSubstring(note, "PHASE15_LANE_KEY=P15-L01"));
+    try std.testing.expect(hasSubstring(note, "PHASE15_LANE_KEY=P15-Y01"));
     try std.testing.expect(hasSubstring(note, "d918be7ded6383c13cbd5eea4ca4aa4f3cdafee4"));
+    try std.testing.expect(hasSubstring(note, "## Current blocker ownership"));
+    try std.testing.expect(hasSubstring(note, "Architecture Council + PMO / Release Management"));
+    try std.testing.expect(hasSubstring(note, "Architecture Council + Validation and Perf Team"));
+    try std.testing.expect(hasSubstring(note, "Architecture Council + ABI and Runtime Team"));
+    try std.testing.expect(hasSubstring(note, "Architecture Council + Shared Subsystems Pod"));
+    try std.testing.expect(hasSubstring(note, "existing Phase 14 survey evidence must stay green"));
     try std.testing.expect(hasSubstring(note, "rollback threshold"));
     try std.testing.expect(hasSubstring(note, "forces the anchor back to its blocked freeze posture"));
     try std.testing.expect(hasSubstring(note, "phase15-rollback-threshold-rule-present"));
+    try std.testing.expect(hasSubstring(note, "phase15-blocker-ownership-present"));
     try std.testing.expect(hasSubstring(note, "closed_docs_root_summary_alignment_landed_in_readiness_and_handoff_packets"));
-    try std.testing.expect(hasSubstring(note, "docs-root summary alignment drift is now already closed by the dedicated readiness and handoff packets"));
+    try std.testing.expect(hasSubstring(note, "docs-root summary drift is already closed in the dedicated readiness and handoff packets"));
     try std.testing.expect(hasSubstring(note, "blocked_no_bounded_scheduler_seam"));
     try std.testing.expect(hasSubstring(note, "blocked_no_bounded_allocator_seam"));
     try std.testing.expect(hasSubstring(note, "blocked_phase14_followup_still_wider_than_allowed_rcu_seam"));
