@@ -11,7 +11,7 @@ This document records the bounded Phase 14 survey lane around `kernel/workqueue.
 - `PHASE14_STATUS_BUCKET=study_only`
 - `PHASE14_ROLLBACK_OWNER=Repo Tooling Pod`
 - `PHASE14_REVIEW_BLOCKER_STATUS=blocked_on_stay_in_c_evidence`
-- scope: the landed `kernel/workqueue_bridge.zig` boundary map plus its expanded concurrency audit outline and new flush-color, barrier-insertion, in-flight release, drain-or-cancel, disable-or-delayed-cancel, and delayed-submission alias checkpoints, its dedicated Phase 14 test gate and manifest, the shared Phase 14 build wiring, and the lane notes that compare the new foothold against the roadmap
+- scope: the landed `kernel/workqueue_bridge.zig` boundary map plus its expanded concurrency audit outline and new flush-color, barrier-insertion, in-flight release, drain-or-cancel, disable-or-delayed-cancel, delayed-submission alias, and delayed-timer handoff checkpoints, its dedicated Phase 14 test gate and manifest, the shared Phase 14 build wiring, and the lane notes that compare the new foothold against the roadmap
 - product boundary:
   - `kernel/workqueue_bridge.zig`
   - `zigux/tests/phase14_workqueue_bridge.zig`
@@ -37,8 +37,8 @@ This packet now states its guardrails directly instead of relying on the shared 
 - `lib/test_workqueue.c` shows there is already a kernel-side test surface around real execution behavior, which reinforces that the first Zigux artifact should be descriptive and reviewable rather than another runtime.
 - the live repo already had `zigux/kernel/export_shim.zig`, which made a kernel-adjacent Phase 14 boundary-map file a natural next step without inventing a new namespace.
 - the new `kernel/workqueue_bridge.zig` starter stays intentionally narrow around boundary recording for submission routing, allocation and attrs, flush or cancel coordination, worker-pool concurrency ownership, and rescuer or scheduler hooks.
-- the bridge now carries an expanded concurrency audit outline around `manage_workers()`, `worker_pool` forward-progress fields, the `__queue_work()` `max_active` gate, the irq-disabled `try_to_grab_pending()` or `queue_work_on()` PENDING-bit claim window, the unbound `__queue_work()` `pwq->refcnt` retry loop, the `__queue_work()` `last_pool->lock` handoff, the `__flush_workqueue()` flush-color cascade, the `start_flush_work()` barrier insertion path, the `pwq_dec_nr_in_flight()` in-flight release path, the `drain_workqueue()` or `__flush_work()` or `__cancel_work_sync()` reflush-and-cancel checkpoint, the disable-depth and delayed-cancel sync checkpoint around `__cancel_work()`, `clear_pending_if_disabled()`, `__cancel_work_sync()`, and `cancel_delayed_work_sync()`, the delayed-wrapper alias checkpoint around `disable_delayed_work()`, `disable_delayed_work_sync()`, and `enable_delayed_work()`, the newly landed delayed-submission alias checkpoint around `queue_delayed_work_on()`, `mod_delayed_work_on()`, and `__queue_delayed_work()`, the `process_one_work()` unlock or relock execution window, the `worker_thread()` idle sleep transition, `rescuer_thread()`, and `wq_worker_running()` or `wq_worker_sleeping()`, still without claiming live execution ownership.
-- the next honest workqueue-facing step is now a delayed-timer handoff follow-up around `delayed_work_timer_fn()` and its handoff back into `__queue_work()` so the lane names timer-expiry ownership and requeue boundaries before any wrapper claims timer-base, CPU-affinity, or requeue parity.
+- the bridge now carries an expanded concurrency audit outline around `manage_workers()`, `worker_pool` forward-progress fields, the `__queue_work()` `max_active` gate, the irq-disabled `try_to_grab_pending()` or `queue_work_on()` PENDING-bit claim window, the unbound `__queue_work()` `pwq->refcnt` retry loop, the `__queue_work()` `last_pool->lock` handoff, the `__flush_workqueue()` flush-color cascade, the `start_flush_work()` barrier insertion path, the `pwq_dec_nr_in_flight()` in-flight release path, the `drain_workqueue()` or `__flush_work()` or `__cancel_work_sync()` reflush-and-cancel checkpoint, the disable-depth and delayed-cancel sync checkpoint around `__cancel_work()`, `clear_pending_if_disabled()`, `__cancel_work_sync()`, and `cancel_delayed_work_sync()`, the delayed-wrapper alias checkpoint around `disable_delayed_work()`, `disable_delayed_work_sync()`, and `enable_delayed_work()`, the delayed-submission alias checkpoint around `queue_delayed_work_on()`, `mod_delayed_work_on()`, and `__queue_delayed_work()`, the newly landed delayed timer-expiry checkpoint around `delayed_work_timer_fn()` and its handoff back into `__queue_work()`, the `process_one_work()` unlock or relock execution window, the `worker_thread()` idle sleep transition, `rescuer_thread()`, and `wq_worker_running()` or `wq_worker_sleeping()`, still without claiming live execution ownership.
+- the delayed timer handoff audit now closes the last review-only ready-next step in this workqueue packet; what remains is blocked live execution and ownership work that still belongs in C.
 
 ## Recorded gaps
 
@@ -60,7 +60,7 @@ The current lane state is:
 - landed `phase14-workqueue-disable-delayed-followup`
 - landed `phase14-workqueue-delayed-disable-wrapper-followup`
 - landed `phase14-workqueue-delayed-submission-alias-followup`
-- ready-next `phase14-workqueue-delayed-timer-handoff-followup`
+- landed `phase14-workqueue-delayed-timer-handoff-followup`
 - blocked `phase14-workqueue-live-execution-blocker`
 
 This keeps the lane explicit without overstating progress: Zigux now has a real Phase 14 boundary map for workqueue ownership and non-goals, but it still does not claim live worker-pool execution, scheduler-hook parity, or a direct `kernel/workqueue.c` rewrite.
@@ -88,4 +88,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 14 workqueue lane and add one tiny `kernel/workqueue_bridge.zig` delayed-timer handoff audit next, limited to `delayed_work_timer_fn()` and its handoff back into `__queue_work()` so the bridge records timer-expiry ownership and requeue boundaries before any wrapper claims timer-base, CPU-affinity, or requeue parity.
+Leave this lane in blocked maintenance unless the shared Phase 14 smoke packet or this workqueue survey drifts. Any reopen should stay review-only and keep timer-base, CPU-affinity, and requeue ownership in C.
