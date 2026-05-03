@@ -323,11 +323,17 @@ def self_test() -> int:
         expect_failure(root, "bench:exact_checksums.PHASE1_BENCH_STRING_MEMPARSE_CHECKSUM=437855789")
         write(root / "zigux/tests/fixtures/phase1_bench_expectations.json", json.dumps(fixture_expectations(), indent=2) + "\n")
 
+        expectations = fixture_expectations()
+        expectations["iterations"]["PHASE1_BENCH_RBTREE_ITERATIONS"] = 1
+        write(root / "zigux/tests/fixtures/phase1_bench_expectations.json", json.dumps(expectations, indent=2) + "\n")
+        expect_failure(root, "bench:iterations.PHASE1_BENCH_RBTREE_ITERATIONS=4000")
+        write(root / "zigux/tests/fixtures/phase1_bench_expectations.json", json.dumps(fixture_expectations(), indent=2) + "\n")
+
         write(root / "tools/lib/rbtree.zig", "pub fn rb_first() void {}\n")
         expect_failure(root, "rbtree_source:unexpected_alias:pub fn rb_first(")
 
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=6")
+    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
