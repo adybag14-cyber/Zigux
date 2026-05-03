@@ -28,7 +28,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_MMIO_TYPED_POLICY_CONSUMER=zigux/helpers/mmio.zig`
 - `PHASE3_ABI_SLICE_DOC_BLOB_SHA=f94429cbbd16020ee81322918ba12dfa2f3b6466`
 - `PHASE3_POLICY_UNSAFE_BUILD_BLOB_SHA=c6a5192365517139ddaf5f3fbe9350f9508a5dc7`
-- `PHASE3_POLICY_UNSAFE_TEST_BLOB_SHA=40b2d90494df0b46d725f7182188827f28201796`
+- `PHASE3_POLICY_UNSAFE_TEST_BLOB_SHA=6a165fe1b7567f90b9032a79d2911324b13f28b3`
 - `PHASE3_ABI_MANIFEST_BLOB_SHA=06f0da0e3c00bc3205c2d7fe73cfe6376a0e1b2e`
 - `PHASE3_POLICY_UNSAFE_GATE=zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig`
 - `PHASE3_BOUNDARY_GAP=typed-policy-mmio-consumer-landed-no-third-boundary-helper-beyond-focused-replay`
