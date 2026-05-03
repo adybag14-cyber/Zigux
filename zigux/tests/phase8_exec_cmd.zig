@@ -66,6 +66,48 @@ test "phase 8 exec-cmd focused replay keeps deferred path preparation and argv h
     try std.testing.expectEqualStrings("--stdio", execl_plan.call.argv[3].?);
     try std.testing.expectEqual(@as(?[]const u8, null), execl_plan.call.argv[4]);
 }
+test "phase 8 exec-cmd focused replay keeps PWD-aware deferred planners explicit" {
+    const config = exec_cmd.Config{ .exec_name = "perf", .prefix = "/usr/libexec/perf-core", .exec_path = "libexec/perf-core", .exec_path_env = "PERF_EXEC_PATH" };
+    const cwd_identity = exec_cmd.FileIdentity{ .device = 11, .inode = 7 };
+    const matching_pwd_identity = exec_cmd.FileIdentity{ .device = 11, .inode = 7 };
+    const different_pwd_identity = exec_cmd.FileIdentity{ .device = 12, .inode = 7 };
+
+    var execv_env = exec_cmd.EnvMap.init(std.testing.allocator);
+    defer execv_env.deinit();
+    var execv_state = exec_cmd.ExecCmdState{};
+    defer execv_state.deinit(std.testing.allocator);
+    try exec_cmd.execCmdInit(&execv_env, config);
+    try exec_cmd.setArgvExecPath(std.testing.allocator, &execv_env, &execv_state, config, "tools/bin");
+    try exec_cmd.setArgv0Path(std.testing.allocator, &execv_state, "scripts");
+    try execv_env.set("PATH", "/usr/bin:/bin");
+    var execv_plan = try exec_cmd.planDeferredExecvCallWithPwd(std.testing.allocator, &execv_env, execv_state, config, "/repo", "/logical/repo", cwd_identity, matching_pwd_identity, &[_][]const u8{ "record", "-a" });
+    defer execv_plan.deinit(std.testing.allocator);
+    try std.testing.expectEqualStrings("/logical/repo/tools/bin:/logical/repo/scripts:/usr/bin:/bin", execv_plan.path);
+    try std.testing.expectEqualStrings(execv_plan.path, execv_env.get("PATH").?);
+    try std.testing.expectEqual(@as(usize, 4), execv_plan.call.argv.len);
+    try std.testing.expectEqualStrings("perf", execv_plan.call.argv[0].?);
+    try std.testing.expectEqualStrings("record", execv_plan.call.argv[1].?);
+    try std.testing.expectEqualStrings("-a", execv_plan.call.argv[2].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), execv_plan.call.argv[3]);
+
+    var execl_env = exec_cmd.EnvMap.init(std.testing.allocator);
+    defer execl_env.deinit();
+    var execl_state = exec_cmd.ExecCmdState{};
+    defer execl_state.deinit(std.testing.allocator);
+    try exec_cmd.execCmdInit(&execl_env, config);
+    try exec_cmd.setArgvExecPath(std.testing.allocator, &execl_env, &execl_state, config, "tools/bin");
+    try exec_cmd.setArgv0Path(std.testing.allocator, &execl_state, "scripts");
+    try execl_env.set("PATH", "/usr/bin:/bin");
+    var execl_plan = try exec_cmd.planDeferredExeclCallWithPwd(std.testing.allocator, &execl_env, execl_state, config, "/repo", "/logical/repo", cwd_identity, different_pwd_identity, "record", &[_]?[]const u8{ "-a", null });
+    defer execl_plan.deinit(std.testing.allocator);
+    try std.testing.expectEqualStrings("/repo/tools/bin:/repo/scripts:/usr/bin:/bin", execl_plan.path);
+    try std.testing.expectEqualStrings(execl_plan.path, execl_env.get("PATH").?);
+    try std.testing.expectEqual(@as(usize, 4), execl_plan.call.argv.len);
+    try std.testing.expectEqualStrings("perf", execl_plan.call.argv[0].?);
+    try std.testing.expectEqualStrings("record", execl_plan.call.argv[1].?);
+    try std.testing.expectEqualStrings("-a", execl_plan.call.argv[2].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), execl_plan.call.argv[3]);
+}
 test "phase 8 exec-cmd focused replay keeps the empty-tail execl handoff explicit" {
     const config = exec_cmd.Config{ .exec_name = "perf", .prefix = "/usr/libexec/perf-core", .exec_path = "libexec/perf-core", .exec_path_env = "PERF_EXEC_PATH" };
     var env = exec_cmd.EnvMap.init(std.testing.allocator);
@@ -106,6 +148,8 @@ test "phase 8 exec-cmd docs keep the parked deferred execution boundary explicit
     try expectContains(slice_note, "scheduler-facing transport ownership");
     try expectContains(slice_note, "empty-tail `execl_cmd(cmd, NULL)` shape");
     try expectContains(slice_note, "`planDeferredExeclCall()`");
+    try expectContains(slice_note, "`planDeferredExecvCallWithPwd()`");
+    try expectContains(slice_note, "`planDeferredExeclCallWithPwd()`");
 }
 test "phase 8 exec-cmd docs keep the validator alias and Phase 14 wording reviewable" {
     const slice_note = try readWorkspaceFile(std.testing.allocator, "Documentation/zigux/phase8-exec-cmd-slice.md", 32 * 1024);
