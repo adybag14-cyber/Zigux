@@ -163,8 +163,9 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue planner, doorbell-window helper, PRP buffer-shape helper, PRP metadata helper, and pointer-selection helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "historical-only evidence") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "fresh owner-lane replay") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "focused NVMe driver replay against live readback") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-nvme-pci-survey-tests") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-nvme-pci-tests 11 pass (11 total)") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-nvme-pci-tests 15 pass (15 total)") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-nvme-pci-raw-github-fallback-map.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "current live starter now also carries one bounded doorbell-window helper") != null);
 
