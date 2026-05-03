@@ -1,0 +1,66 @@
+{
+  "lane_key": "P7-L01",
+  "phase": "Phase 7",
+  "anchor": "lib/string_helpers.c",
+  "roadmap_destinations": [
+    "lib/string_helpers.zig"
+  ],
+  "survey_summary": {
+    "preexisting_phase7_test_files": 1,
+    "preexisting_phase7_fixture_modules": 1,
+    "preexisting_phase7_build_present": true,
+    "preexisting_phase7_doc_present": true,
+    "preexisting_phase7_helper_present": true
+  },
+  "gaps": [
+    {
+      "id": "phase7-build-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase7_build.zig",
+      "why_now": "The shared Phase 7 build step is the narrowest honest review gate for keeping the string_helpers runtime leaf helper inside the existing in-kernel helper tranche."
+    },
+    {
+      "id": "phase7-string-helpers-helper",
+      "status": "starter_landed",
+      "kind": "runtime_leaf_helper",
+      "zigux_destination": "lib/string_helpers.zig",
+      "why_now": "The roadmap names lib/string_helpers.zig directly, and the live helper now keeps the bounded sysfs, whitespace, formatting, escape, counted integer-array, duplication, and string-array ownership helpers reviewable as one runtime-safe leaf packet."
+    },
+    {
+      "id": "phase7-string-helpers-dedicated-tests",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase7_string_helpers.zig",
+      "why_now": "A dedicated Phase 7 gate keeps the bounded string_helpers starter surface reviewable around sysfs matching, formatter truncation, deterministic escape fixtures, counted integer-array parsing, duplication ownership, and string-array teardown behavior."
+    },
+    {
+      "id": "phase7-string-helpers-shared-fixtures",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/fixtures/phase7_string_helpers_escape_vectors.zig",
+      "why_now": "The shared fixture layer keeps the deterministic escape and unescape corpus reviewable from one source instead of leaving those serialized cases helper-local only."
+    },
+    {
+      "id": "phase7-string-helpers-slice-note",
+      "status": "starter_landed",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase7-string-helpers-slice.md",
+      "why_now": "The slice note records the bounded product surface, non-goals, and validator-first handoff so the Phase 7 lane stays tied to the actual runtime helper instead of widening into string-family churn."
+    },
+    {
+      "id": "phase7-string-helpers-manifest-packet",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase7_string_helpers_manifest.json",
+      "why_now": "A dedicated manifest keeps the roadmap anchor, bounded helper surface, shared fixture layer, and directly coupled survey packet machine-readable in the same way as the sibling Phase 7 helper lanes."
+    },
+    {
+      "id": "phase7-string-helpers-survey-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase7_string_helpers_survey.zig",
+      "why_now": "A machine-checked survey gate keeps the roadmap anchor, dedicated manifest-backed packet, and landed validation surfaces explicit without reopening helper behavior."
+    }
+  ]
+}
