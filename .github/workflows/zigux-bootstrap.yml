@@ -94,6 +94,12 @@ jobs:
       - name: Check Phase 1 route summary counts
         run: python3 scripts/zigux/check-phase1-route-summary-counts.py
 
+      - name: Self-test Phase 1 validation route inventory checker
+        run: python3 scripts/zigux/check-phase1-validation-route-inventory.py --self-test
+
+      - name: Check Phase 1 validation route inventory
+        run: python3 scripts/zigux/check-phase1-validation-route-inventory.py
+
       - name: Validate Phase 1 closure
         run: python3 scripts/zigux/validate-phase1-closure.py
 
