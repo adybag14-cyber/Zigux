@@ -40,6 +40,16 @@ fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "blocked_on_stay_in_c_evidence");
 }
 
+fn isLowerHex40(value: []const u8) bool {
+    if (value.len != 40) return false;
+    for (value) |byte| {
+        const is_digit = byte >= '0' and byte <= '9';
+        const is_lower_hex = byte >= 'a' and byte <= 'f';
+        if (!is_digit and !is_lower_hex) return false;
+    }
+    return true;
+}
+
 test "phase 15 readiness manifest records the roadmap, ledger, and current repo posture" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -52,13 +62,21 @@ test "phase 15 readiness manifest records the roadmap, ledger, and current repo 
     );
     defer std.testing.allocator.free(manifest_json);
 
+    const readiness_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase15-readiness-gate-survey.md",
+        std.testing.allocator,
+        .limited(24 * 1024),
+    );
+    defer std.testing.allocator.free(readiness_note);
+
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
 
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P15-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("304eec2c524a203d8653eb78fb568d8e87462b24", manifest.surveyed_commit);
+    try std.testing.expect(isLowerHex40(manifest.surveyed_commit));
     try std.testing.expectEqualStrings("Full-Parity Blockers and Long-Term Governance", manifest.roadmap_phase_title);
     try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_requirements.len);
     try std.testing.expectEqualStrings("freeze map", manifest.roadmap_requirements[0]);
@@ -70,6 +88,15 @@ test "phase 15 readiness manifest records the roadmap, ledger, and current repo 
     try std.testing.expectEqualStrings("Documentation/zigux/README.md", manifest.ledger_scope[0]);
     try std.testing.expectEqualStrings("Documentation/zigux/review-checklist.md", manifest.ledger_scope[1]);
     try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", manifest.ledger_scope[2]);
+
+    const readiness_provenance = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "survey provenance refreshed against verified `master` head `{s}`",
+        .{manifest.surveyed_commit},
+    );
+    defer std.testing.allocator.free(readiness_provenance);
+
+    try std.testing.expect(std.mem.indexOf(u8, readiness_note, readiness_provenance) != null);
 
     try std.testing.expect(manifest.repo_evidence.freeze_map_present);
     try std.testing.expect(manifest.repo_evidence.review_checklist_present);
