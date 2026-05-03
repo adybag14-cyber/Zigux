@@ -99,6 +99,18 @@ test "phase 7 getOptions keeps array-capacity stop behavior explicit when a rang
     try std.testing.expectEqualSlices(i32, &[_]i32{ 5, 0, 0, 0, 0, 0, 0, 0 }, &validate);
 }
 
+test "phase 7 getOptions fails closed on out-of-range range bounds instead of trapping" {
+    var values = [_]i32{ 0, 0, 0 };
+    const rest = cmdline.getOptions("2147483647-2147483648,9", values.len, &values);
+    try std.testing.expectEqualStrings("2147483648,9", rest);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 0, 2147483647, 0 }, &values);
+
+    var validate = [_]i32{0};
+    const validate_rest = cmdline.getOptions("2147483647-2147483648", 0, &validate);
+    try std.testing.expectEqualStrings("2147483648", validate_rest);
+    try std.testing.expectEqual(@as(i32, 0), validate[0]);
+}
+
 test "phase 7 memparse preserves suffix scaling and stop index semantics" {
     var index: usize = 0;
     try std.testing.expectEqual(@as(u64, 64 * 1024), cmdline.memparse("64K,panic", &index));
