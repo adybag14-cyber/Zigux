@@ -133,16 +133,23 @@ PHASE2_GENKSYMS_BRIDGE_REQUIRED_MAKEFILE_COUNTS = {
 PHASE2_KCONFIG_REQUIRED_SOURCE_MARKERS = [
     "assert total_self_test_cases == 6",
     "print(f'KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT={total_self_test_cases}')",
+    "compare_text_artifacts(actual, repeat)",
+    "compare_text_artifacts(actual, rebuild)",
+    "compare_text_artifacts(default_actual, default_repeat)",
+    "compare_text_artifacts(default_actual, default_rebuild)",
+    "print('KCONFIG_BRIDGE_DETERMINISM=pass')",
 ]
 PHASE2_KCONFIG_REQUIRED_WORKFLOW_COUNTS = {
     "python3 scripts/zigux/check-kconfig-bridge.py --self-test": 1,
     "python3 scripts/zigux/check-kconfig-bridge.py": 1,
     "zig test scripts/zigux/kconfig/conf_bridge.zig": 1,
+    "zig test scripts/zigux/kconfig/confdata_bridge.zig": 1,
 }
 PHASE2_KCONFIG_REQUIRED_MAKEFILE_COUNTS = {
     "scripts/zigux/check-kconfig-bridge.py --self-test": 1,
     "scripts/zigux/check-kconfig-bridge.py": 1,
     "$(ZIG) test scripts/zigux/kconfig/conf_bridge.zig": 1,
+    "$(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig": 1,
 }
 PHASE2_CROSS_ALIGNMENT_REQUIRED_MAKEFILE_COUNTS = {
     "scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test": 1,
