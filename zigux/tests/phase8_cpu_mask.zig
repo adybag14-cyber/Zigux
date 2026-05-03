@@ -145,6 +145,32 @@ test "phase 8 cpu mask starter slice keeps truncated online masks explicit in au
     try std.testing.expectEqualSlices(usize, &.{0}, planned);
 }
 
+test "phase 8 cpu mask starter slice plans caller-pinned CPU indices without widening into routing parity" {
+    const planned = try cpu_mask.planPerfBufferCpuIndices(
+        std.testing.allocator,
+        &.{ false, false },
+        &.{ false },
+        3,
+        1,
+    );
+    defer std.testing.allocator.free(planned);
+
+    try std.testing.expectEqualSlices(usize, &.{ 0, 1, 2 }, planned);
+}
+
+test "phase 8 cpu mask starter slice keeps zero or negative requested CPU counts on the bounded auto planner" {
+    const possible = [_]bool{ true, true, false, true, true };
+    const online = [_]bool{ false, true, true, false, true };
+
+    const zero_requested = try cpu_mask.planPerfBufferCpuIndices(std.testing.allocator, &possible, &online, 0, 2);
+    defer std.testing.allocator.free(zero_requested);
+    try std.testing.expectEqualSlices(usize, &.{ 1, 4 }, zero_requested);
+
+    const negative_requested = try cpu_mask.planPerfBufferCpuIndices(std.testing.allocator, &possible, &online, -1, 2);
+    defer std.testing.allocator.free(negative_requested);
+    try std.testing.expectEqualSlices(usize, &.{ 1, 4 }, negative_requested);
+}
+
 test "phase 8 cpu mask reader interface keeps failures explicit" {
     const ReaderError = error{InjectedReadFailure};
     const ReaderState = struct {
