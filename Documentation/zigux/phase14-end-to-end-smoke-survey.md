@@ -30,7 +30,9 @@ This document records the shared Phase 14 smoke lane that verifies the current b
 - survey provenance captured against verified `master` head `a1c6f22f0efad22fb31f9a7608b8b52b70cbbaf9`
 - shared smoke boundary:
   - `scripts/zigux/validate-phase14.py`
+  - `scripts/zigux/check-phase14-docs-root-smoke-summary.py`
   - `scripts/zigux/README.md`
+  - `Documentation/zigux/README.md`
   - `zigux/tests/phase14_end_to_end_smoke_manifest.json`
   - `zigux/tests/phase14_end_to_end_smoke_survey.zig`
   - `zigux/tests/phase14_build.zig`
@@ -78,7 +80,7 @@ This lane stays narrow on purpose. It does not add a new bridge. It verifies tha
 ## Shared smoke findings
 
 - `zigux/tests/phase14_build.zig` is the shared Phase 14 replay entrypoint and now includes the dedicated smoke survey alongside the four anchor-local packets.
-- `scripts/zigux/validate-phase14.py` and `scripts/zigux/README.md` keep the fast shared-smoke contract explicit, so the note, manifest, make targets, workflow path, and smoke-shard entrypoint are checked before the slower replay claims stay current.
+- `scripts/zigux/check-phase14-docs-root-smoke-summary.py`, `Documentation/zigux/README.md`, `scripts/zigux/validate-phase14.py`, and `scripts/zigux/README.md` now keep the fast shared-smoke contract explicit, so the docs-root summary, shared note, manifest, make targets, workflow path, and smoke-shard entrypoint are checked before the slower replay claims stay current.
 - `zigux/tests/phase14_build.zig` now exposes one dedicated shared `phase14-smoke` shard, and all four anchor-local artifacts still replay only through the heavier `test` bundle.
 - `zigux/tests/phase14_build.zig` now also keeps the routing boundary explicit: the full `test` bundle depends on all five compile artifacts exactly once, while the focused `phase14-smoke` shard depends only on the shared smoke survey artifact.
 - `zigux/Makefile` now exposes `make -C zigux phase14-validate` before the full `make -C zigux phase14` replay and also keeps `make -C zigux phase14-smoke` available as the focused shared smoke shard.
@@ -109,13 +111,13 @@ This lane stays narrow on purpose. It does not add a new bridge. It verifies tha
 - fallback path: Keep `kernel/workqueue.c`, `net/core/skbuff.c`, `kernel/trace/ring_buffer.c`, and `kernel/rcu/tree.c` as the source of truth, keep the shared smoke packet limited to validator-backed survey evidence, and fall back to blocked shared-packet maintenance if the rollback contract stops being explicit.
 - required evidence:
   - named owner, validation gate, and rollback owner recorded together in the shared smoke manifest and survey note
-  - shared smoke validator, focused `phase14-smoke` shard, and full `phase14` replay commands recorded together beside the same stay-in-C boundary
+  - shared smoke validator, dedicated docs-root smoke checker, focused `phase14-smoke` shard, full `phase14` replay commands, and the docs-root summary recorded together beside the same stay-in-C boundary
   - anchor packet surveyed commits plus ready-next versus blocked posture refreshed in the shared smoke packet whenever any Phase 14 anchor-local manifest moves
 - automatic return-to-blocked triggers:
   - any shared smoke packet edit that drops the named validation gate or rollback owner
-  - missing fallback path or study-only stay-in-C wording in the shared manifest, survey note, review checklist, or `scripts/zigux/README.md`
+  - missing fallback path or study-only stay-in-C wording in the shared manifest, survey note, review checklist, `Documentation/zigux/README.md`, or `scripts/zigux/README.md`
   - any anchor-local manifest refresh that changes a quoted surveyed commit or lane key without refreshing the shared smoke packet
-  - loss of the focused `phase14-smoke` replay contract or the validator-backed `make -C zigux phase14-validate` entrypoint from the shared packet
+  - loss of the dedicated docs-root smoke checker, the docs-root summary, the focused `phase14-smoke` replay contract, or the validator-backed `make -C zigux phase14-validate` entrypoint from the shared packet
 
 ## Non-goals
 
