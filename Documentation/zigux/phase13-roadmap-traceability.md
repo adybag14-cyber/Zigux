@@ -21,6 +21,7 @@ Shared tranche entrypoints already present on `master`:
 - `zigux/tests/phase13_build.zig`
 - `zigux/Makefile` via `make -C zigux phase13`
 - `Documentation/zigux/phase13-release-notes-survey.md` keeps the active validator-first release reading for those same four roadmap anchors visible instead of leaving the current survey packet implicit outside this traceability note
+- the same shared packet now also keeps `zigux/tests/phase13_landlock_syscalls_reviewability.zig` visible as dedicated reviewability evidence for the landed `phase13-landlock-syscalls-reviewability-tests` replay step, so the syscall anchor does not look smaller than the actual ten-step shared build on current `master`
 - `lib/devres.c` is represented by real helper code, real tests, a manifest-backed survey packet, and explicit blocked DMA/scatterlist boundary evidence
 - the same shared packet also keeps `zigux/tests/phase13_devres_dma_coherent.zig` and `phase13-devres-dma-coherent-tests` visible as adjacent helper-first coherent DMA alloc/free bookkeeping evidence, so the current shared replay exposes that bounded support slice without turning the blocked `devres` DMA/scatterlist boundary into a live mapping claim
 - the same shared packet also keeps `zigux/bindings/notifier_abi.zig`, `zigux/helpers/notifier_chain_view.zig`, `zigux/tests/phase13_notifier_list_reviewability.zig`, and `Documentation/zigux/phase13-notifier-list-survey.md` visible as roadmap-adjacent release-facing evidence without changing the roadmap's four-anchor count
