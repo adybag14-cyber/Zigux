@@ -453,6 +453,29 @@ test "phase12 virtio net upgrades hdr_len shape for udp tunnel support" {
     try std.testing.expect(snapshot.uses_udp_tunnel_header);
 }
 
+test "phase12 virtio net upgrades hdr_len shape for host udp tunnel support" {
+    var lab = try virtio_net.VirtioNetProbeLab.init(&.{
+        virtio_net.feature_control_vq,
+        virtio_net.feature_hash_report,
+        virtio_net.feature_host_udp_tunnel_gso,
+    });
+
+    const snapshot = try lab.captureProbeSnapshot(.{
+        .driver_feature_bits = &.{
+            virtio_net.feature_control_vq,
+            virtio_net.feature_hash_report,
+            virtio_net.feature_host_udp_tunnel_gso,
+        },
+        .requested_queue_pairs = 1,
+        .max_queue_pairs = 1,
+    });
+
+    try std.testing.expectEqual(virtio_net.HeaderShape.hash_report_tunnel, snapshot.header_shape);
+    try std.testing.expectEqual(@as(u16, 24), snapshot.hdr_len_bytes);
+    try std.testing.expect(snapshot.uses_hash_report_header);
+    try std.testing.expect(snapshot.uses_udp_tunnel_header);
+}
+
 test "phase12 virtio net blocks mergeable xdp when split headers stay required" {
     var lab = try virtio_net.VirtioNetProbeLab.init(&.{
         virtio_net.feature_mergeable_rx_buffers,
