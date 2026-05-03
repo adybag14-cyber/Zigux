@@ -300,5 +300,127 @@ def main() -> int:
     return result.returncode
 
 
+def load_fixdep_cases(cases_path: Path) -> list[dict[str, object]]:
+    data = load_json(cases_path)
+    if not isinstance(data, list):
+        raise ValueError("fixdep cases manifest must be a JSON list")
+    return data
+
+
+def validate_expected_fixdep_cases(cases_path: Path) -> list[str]:
+    cases = load_fixdep_cases(cases_path)
+    expected_cases = {
+        "sample": {
+            "depfile": "sample.d",
+            "target": "sample.o",
+            "cmdline": "clang -Iinclude -DZIGUX_SAMPLE -c zigux/tests/fixtures/fixdep/sample.c -o sample.o",
+            "expected": "sample_expected.txt",
+            "expected_exit_code": 0,
+        },
+        "sample_multi_target": {
+            "depfile": "sample_multi_target.d",
+            "target": "module/sample2.o",
+            "cmdline": "clang -Iinclude -DZIGUX_MULTI -c zigux/tests/fixtures/fixdep/sample2.c -o module/sample2.o",
+            "expected": "sample_multi_target_expected.txt",
+            "expected_exit_code": 0,
+        },
+        "sample_escaped_space": {
+            "depfile": "sample_escaped_space.d",
+            "target": "sample_escaped_space.o",
+            "cmdline": "clang -c zigux/tests/fixtures/fixdep/sample_escaped_space_source.c -o sample_escaped_space.o",
+            "expected": "sample_escaped_space_expected.txt",
+            "expected_exit_code": 0,
+        },
+        "sample_escaped_colon": {
+            "depfile": "sample_escaped_colon.d",
+            "target": "sample_escaped_colon.o",
+            "cmdline": "clang -c zigux/tests/fixtures/fixdep/sample_escaped_colon_source.c -o sample_escaped_colon.o",
+            "expected": "sample_escaped_colon_expected.txt",
+            "expected_exit_code": 0,
+        },
+        "sample_concatenated": {
+            "depfile": "sample_concatenated.d",
+            "target": "sample_concatenated.o",
+            "cmdline": "clang -c zigux/tests/fixtures/fixdep/sample_concatenated_source.c -o sample_concatenated.o",
+            "expected": "sample_concatenated_expected.txt",
+            "expected_exit_code": 0,
+        },
+        "sample_comment_only": {
+            "depfile": "sample_comment_only.d",
+            "target": "sample_comment_only.o",
+            "cmdline": "clang -Iinclude -DZIGUX_SAMPLE -c zigux/tests/fixtures/fixdep/sample.c -o sample_comment_only.o",
+            "expected": "sample_comment_only_expected.txt",
+            "expected_stderr": "sample_comment_only_expected.stderr.txt",
+            "expected_exit_code": 1,
+        },
+        "sample_comment_only_stdout_full": {
+            "depfile": "sample_comment_only.d",
+            "target": "sample_comment_only_stdout_full.o",
+            "cmdline": "clang -Iinclude -DZIGUX_SAMPLE -c zigux/tests/fixtures/fixdep/sample.c -o sample_comment_only_stdout_full.o",
+            "expected": "sample_output_write_expected.txt",
+            "expected_stderr": "sample_comment_only_expected.stderr.txt",
+            "expected_exit_code": 1,
+            "stdout_mode": "dev_full",
+        },
+        "sample_missing_dep": {
+            "depfile": "sample_missing_dep.d",
+            "target": "sample_missing_dep.o",
+            "cmdline": "clang -c zigux/tests/fixtures/fixdep/sample_missing_dep_source.c -o sample_missing_dep.o",
+            "expected": "sample_missing_dep_expected.txt",
+            "expected_stderr": "sample_missing_dep_expected.stderr.txt",
+            "expected_exit_code": 2,
+        },
+        "sample_missing_dep_stdout_full": {
+            "depfile": "sample_missing_dep.d",
+            "target": "sample_missing_dep_stdout_full.o",
+            "cmdline": "clang -c zigux/tests/fixtures/fixdep/sample_missing_dep_source.c -o sample_missing_dep_stdout_full.o",
+            "expected": "sample_output_write_expected.txt",
+            "expected_stderr": "sample_missing_dep_expected.stderr.txt",
+            "expected_exit_code": 2,
+            "stdout_mode": "dev_full",
+        },
+        "sample_output_write": {
+            "depfile": "sample.d",
+            "target": "sample_output_write.o",
+            "cmdline": "clang -Iinclude -DZIGUX_SAMPLE -c zigux/tests/fixtures/fixdep/sample.c -o sample_output_write.o",
+            "expected": "sample_output_write_expected.txt",
+            "expected_stderr": "sample_output_write_expected.stderr.txt",
+            "expected_exit_code": 1,
+            "stdout_mode": "dev_full",
+        },
+    }
+
+    issues: list[str] = []
+    seen_names: set[str] = set()
+    for case in cases:
+        name = case.get("name")
+        if not isinstance(name, str) or not name:
+            issues.append("fixdep_cases:missing_name")
+            continue
+        if name in seen_names:
+            issues.append(f"fixdep_cases:duplicate_name:{name}")
+            continue
+        seen_names.add(name)
+
+        expected_case = expected_cases.get(name)
+        if expected_case is None:
+            issues.append(f"fixdep_cases:unexpected_name:{name}")
+            continue
+
+        for field_name, expected_value in expected_case.items():
+            actual_value = case.get(field_name, 0 if field_name == "expected_exit_code" else None)
+            if actual_value != expected_value:
+                issues.append(
+                    f"fixdep_cases:{name}:{field_name}={actual_value!r},expected={expected_value!r}"
+                )
+
+    missing_names = sorted(set(expected_cases) - seen_names)
+    for name in missing_names:
+        issues.append(f"fixdep_cases:missing_name:{name}")
+    if len(cases) != len(expected_cases):
+        issues.append(f"fixdep_cases:count={len(cases)},expected={len(expected_cases)}")
+    return issues
+
+
 if __name__ == "__main__":
     raise SystemExit(main())
