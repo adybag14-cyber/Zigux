@@ -42,6 +42,7 @@
     "scripts/zigux/check-phase3-abi.py",
     "scripts/zigux/check-phase3-abi-layout-packet.py",
     "scripts/zigux/check-phase3-build-roots.py",
+    "scripts/zigux/check-phase3-canonical-survey-manifest.py",
     "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py",
     "scripts/zigux/check-phase3-rbtree-shared-lift-contract.py",
     "scripts/zigux/check-phase3-readme-tooling-inventory.py",
@@ -68,5 +69,5 @@
     "scripts/zigux/validate_phase3_core.py",
     "scripts/zigux/validate_phase3_selftest.py"
   ],
-  "file_count": 64
+  "file_count": 65
 }
