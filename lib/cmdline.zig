@@ -596,6 +596,20 @@ test "nextArg preserves leading equals sentinels and trims trailing spaces" {
     try std.testing.expectEqualStrings("", cStringPrefix(spaced.rest));
 }
 
+test "nextArg keeps empty quoted bare tokens isolated from the trailing cursor" {
+    var empty_quoted = [_]u8{ '"', '"', ' ', 'n', 'e', 'x', 't', 0 };
+    const parsed = nextArg(empty_quoted[0..]);
+    try std.testing.expectEqualStrings("", parsed.param);
+    try std.testing.expectEqual(@as(?[]const u8, null), parsed.value);
+    try std.testing.expectEqualStrings("next", cStringPrefix(parsed.rest));
+
+    var terminal_empty_quoted = [_]u8{ '"', '"', 0 };
+    const terminal = nextArg(terminal_empty_quoted[0..]);
+    try std.testing.expectEqualStrings("", terminal.param);
+    try std.testing.expectEqual(@as(?[]const u8, null), terminal.value);
+    try std.testing.expectEqualStrings("", cStringPrefix(terminal.rest));
+}
+
 test "nextArg matches serialized edge fixtures" {
     for (next_arg_cases) |case| {
         try expectNextArgFixture(case);
