@@ -334,11 +334,17 @@ def run_self_test() -> int:
             in issues
         )
 
+        issues = shared_contract_issues_without("const cached_root: rbtree.RootView = .{")
+        assert f"missing_snippet:{SHARED_CONTRACT_REL}:const cached_root: rbtree.RootView = .{{" in issues
+
         issues = shared_contract_issues_without("try std.testing.expect(rbtree.hasRoot(cached_root));")
         assert (
             f"missing_snippet:{SHARED_CONTRACT_REL}:try std.testing.expect(rbtree.hasRoot(cached_root));"
             in issues
         )
+
+        issues = shared_contract_issues_without("const uncached_root: rbtree.RootView = .{")
+        assert f"missing_snippet:{SHARED_CONTRACT_REL}:const uncached_root: rbtree.RootView = .{{" in issues
 
         issues = shared_contract_issues_without("try std.testing.expect(rbtree.hasRoot(uncached_root));")
         assert (
@@ -360,10 +366,26 @@ def run_self_test() -> int:
             for issue in issues
         )
 
+        issues = shared_abi_test_issues_without("const cached_root: rbtree.RootView = .{")
+        assert any(
+            issue.startswith(
+                f"missing_shared_packet:{SHARED_ABI_TEST_REL}:const cached_root: rbtree.RootView = .{{"
+            )
+            for issue in issues
+        )
+
         issues = shared_abi_test_issues_without("try std.testing.expect(rbtree.hasRoot(cached_root));")
         assert any(
             issue.startswith(
                 f"missing_shared_packet:{SHARED_ABI_TEST_REL}:try std.testing.expect(rbtree.hasRoot(cached_root));"
+            )
+            for issue in issues
+        )
+
+        issues = shared_abi_test_issues_without("const uncached_root: rbtree.RootView = .{")
+        assert any(
+            issue.startswith(
+                f"missing_shared_packet:{SHARED_ABI_TEST_REL}:const uncached_root: rbtree.RootView = .{{"
             )
             for issue in issues
         )
@@ -402,6 +424,7 @@ def run_self_test() -> int:
         assert f"missing_manifest_entry:{SHARED_CONTRACT_CHECK_REL}" in issues
 
     print("PHASE3_RBTREE_SHARED_LIFT_CONTRACT_SELF_TEST=pass")
+    print("PHASE3_RBTREE_SHARED_LIFT_CONTRACT_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
