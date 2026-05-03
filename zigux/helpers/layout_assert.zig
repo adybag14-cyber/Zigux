@@ -1,5 +1,6 @@
 const std = @import("std");
 const abi = @import("abi_bindings");
+const rbtree = @import("rbtree_bindings");
 
 pub fn assertSize(comptime T: type, comptime expected: usize) void {
     if (@sizeOf(T) != expected) {
@@ -107,6 +108,19 @@ pub fn assertCpuMaskViewLayout() void {
     assertOffset(abi.CpuMaskView, "reserved", @sizeOf(usize) + 4);
 }
 
+pub fn assertRbtreeRootViewLayout() void {
+    assertSize(rbtree.RootView, @sizeOf(usize) * 2 + 8);
+    assertAlign(rbtree.RootView, @alignOf(usize));
+    assertFieldType(rbtree.RootView, "root_addr", usize);
+    assertFieldType(rbtree.RootView, "leftmost_addr", usize);
+    assertFieldType(rbtree.RootView, "flags", u32);
+    assertFieldType(rbtree.RootView, "reserved", u32);
+    assertOffset(rbtree.RootView, "root_addr", 0);
+    assertOffset(rbtree.RootView, "leftmost_addr", @sizeOf(usize));
+    assertOffset(rbtree.RootView, "flags", @sizeOf(usize) * 2);
+    assertOffset(rbtree.RootView, "reserved", @sizeOf(usize) * 2 + 4);
+}
+
 test "phase3 layout assertions cover canonical bindings" {
     comptime {
         assertBoundaryHeaderLayout();
@@ -115,5 +129,6 @@ test "phase3 layout assertions cover canonical bindings" {
         assertMmioRangeLayout();
         assertBitmapViewLayout();
         assertCpuMaskViewLayout();
+        assertRbtreeRootViewLayout();
     }
 }
