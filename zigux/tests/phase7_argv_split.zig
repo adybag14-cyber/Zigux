@@ -131,12 +131,17 @@ test "phase 7 argvSplit deinit clears exported storage and argv views" {
     try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[split.argv.len]);
 
     split.deinit(std.testing.allocator);
+    var blank = try argv_split.argvSplitWithArgc(std.testing.allocator, "", null);
+    defer blank.deinit(std.testing.allocator);
 
     try std.testing.expectEqual(@as(usize, 0), split.storage.len);
     try std.testing.expectEqual(@as(u8, 0), split.storage[split.storage.len]);
     try std.testing.expectEqual(@as(usize, 0), split.argv.len);
     try std.testing.expectEqual(@as(usize, 1), split.argv_null_terminated.len);
     try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
+    try std.testing.expect(split.storage.ptr == blank.storage.ptr);
+    try std.testing.expect(split.argv_null_terminated.ptr == blank.argv_null_terminated.ptr);
+    try std.testing.expect(split.cArgv() == blank.cArgv());
 }
 
 test "phase 7 argvSplit deinit stays safe when called after teardown already cleared the result" {
