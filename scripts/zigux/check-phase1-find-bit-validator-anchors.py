@@ -39,6 +39,11 @@ REQUIRED_VALIDATOR_SNIPPETS = {
         'scans return 0 even when backing words are populated so declared nbits stays '
         'authoritative over caller storage"'
     ),
+    "closure_tail_word_boundary_review": (
+        '"PHASE1_FIND_BIT_TAIL_WORD_BOUNDARY_UNIT_REVIEW=find_bit tail-clamped set zero and '
+        'shared-bit scans keep the first in-range tail-word match reachable when the search '
+        'starts exactly at the tail-word boundary instead of rereading an earlier full-word result"'
+    ),
     "manifest_tail_start_anchor_marker": (
         '"tail_start_unit_test_anchor": '
         '\'tools/lib/find_bit.zig:test "tail scans keep the last in-range bit reachable from an inclusive start"\''
@@ -58,6 +63,16 @@ REQUIRED_VALIDATOR_SNIPPETS = {
         '"Direct Zig unit coverage keeps zero-length set, zero, and shared-bit scans aligned by '
         'returning 0 even when backing words are populated, so declared nbits stays '
         'authoritative over caller storage.",'
+    ),
+    "manifest_tail_word_boundary_anchor_marker": (
+        '"tail_word_boundary_unit_test_anchor": '
+        '\'tools/lib/find_bit.zig:test "tail scans honor an exact tail-word boundary start"\''
+    ),
+    "manifest_tail_word_boundary_contract_marker": (
+        '"tail_word_boundary_unit_test_contract": '
+        '"Direct Zig unit coverage keeps set, zero, and shared-bit tail scans aligned when the '
+        'search starts exactly at the first tail-word bit index, so the first in-range tail '
+        'match remains reachable without rereading an earlier full-word result.",'
     ),
 }
 
@@ -409,7 +424,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Fail closed if the Phase 1 find_bit validators or docs-root index stop naming the shipped "
-            "tail-start, zero-sized, or six-key bench evidence packet."
+            "tail-start, tail-word-boundary, zero-sized, or six-key bench evidence packet."
         )
     )
     parser.add_argument(
