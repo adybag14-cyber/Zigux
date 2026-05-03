@@ -453,6 +453,22 @@ def run_self_test() -> int:
     missing = collect_missing(
         **{
             **base_inputs,
+            "reviewability_text": base_inputs["reviewability_text"].replace(
+                REVIEWABILITY_MARKERS[2] + "\n",
+                "",
+                1,
+            ),
+        }
+    )
+    expect_contains(
+        "reviewability_wait_class_detection",
+        missing,
+        f"reviewability:{REVIEWABILITY_MARKERS[2]}",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
             "survey_note_text": base_inputs["survey_note_text"].replace(
                 "python3 scripts/zigux/check-phase12-libbpf-focused-replay.py --self-test\n",
                 "",
@@ -516,7 +532,6 @@ def run_self_test() -> int:
             "review_checklist_text": base_inputs["review_checklist_text"].replace(
                 REVIEW_CHECKLIST_MARKERS[0] + "\n",
                 "",
-                1,
             ),
         }
     )
@@ -684,7 +699,7 @@ def run_self_test() -> int:
     )
 
     print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST=pass")
-    print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST_CASE_COUNT=25")
+    print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST_CASE_COUNT=26")
     return 0
 
 
