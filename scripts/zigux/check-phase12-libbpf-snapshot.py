@@ -29,9 +29,13 @@ REVIEWABILITY_TEST_REL_PATH = TRACKED_PATHS[2]
 SURVEY_NOTE_REL_PATH = TRACKED_PATHS[3]
 REQUIRED_PATHS = [*TRACKED_PATHS, FIXTURE_REL_PATH, ARTIFACT_DIFF_REL_PATH]
 HEX40 = re.compile(r"^[0-9a-f]{40}$")
+REVIEWABILITY_SNAPSHOT_TEST_NAME = (
+    'test "phase12 libbpf reviewability gate pins the committed snapshot fixture packet"'
+)
 REVIEWABILITY_SNAPSHOT_MARKERS = [
-    'test "phase12 libbpf reviewability gate pins the committed snapshot fixture packet"',
+    REVIEWABILITY_SNAPSHOT_TEST_NAME,
     "try std.testing.expectEqual(expected_paths.len, snapshot.tracked_file_count);",
+    "try std.testing.expectEqual(expected_paths.len, snapshot.files.len);",
     "try std.testing.expectEqualStrings(expected_path, entry.path);",
     "zigux/tests/phase12_libbpf_manifest.json",
     "zigux/tests/phase12_libbpf_segments.zig",
@@ -80,10 +84,21 @@ def validate_lane_marker_alignment(root: Path, manifest_packet: dict[str, str]) 
         raise SystemExit("invalid Phase 12 libbpf segment test lane marker")
 
 
+def reviewability_snapshot_gate_source(reviewability_test: str) -> str:
+    start = reviewability_test.find(REVIEWABILITY_SNAPSHOT_TEST_NAME)
+    if start < 0:
+        raise SystemExit("invalid Phase 12 libbpf reviewability snapshot markers")
+    next_test = reviewability_test.find('\ntest "', start + len(REVIEWABILITY_SNAPSHOT_TEST_NAME))
+    if next_test < 0:
+        return reviewability_test[start:]
+    return reviewability_test[start:next_test]
+
+
 def validate_reviewability_snapshot_gate(root: Path) -> None:
     reviewability_test = (root / REVIEWABILITY_TEST_REL_PATH).read_text(encoding="utf-8")
+    snapshot_gate = reviewability_snapshot_gate_source(reviewability_test)
     for marker in REVIEWABILITY_SNAPSHOT_MARKERS:
-        if marker not in reviewability_test:
+        if snapshot_gate.count(marker) != 1:
             raise SystemExit("invalid Phase 12 libbpf reviewability snapshot markers")
 
 
@@ -348,6 +363,23 @@ def run_self_test() -> int:
             "invalid Phase 12 libbpf reviewability snapshot markers",
         )
 
+    with tempfile.TemporaryDirectory(prefix="zigux_phase12_libbpf_snapshot_reviewability_files_len_") as tmp_dir_str:
+        reviewability_root = Path(tmp_dir_str)
+        copy_required_tree(reviewability_root)
+        reviewability_test_path = reviewability_root / REVIEWABILITY_TEST_REL_PATH
+        reviewability_test_path.write_text(
+            reviewability_test_path.read_text(encoding="utf-8").replace(
+                "try std.testing.expectEqual(expected_paths.len, snapshot.files.len);\n",
+                "",
+            ),
+            encoding="utf-8",
+        )
+        expect_system_exit(
+            "invalid_reviewability_files_len_marker",
+            lambda: load_manifest_packet(reviewability_root),
+            "invalid Phase 12 libbpf reviewability snapshot markers",
+        )
+
     with tempfile.TemporaryDirectory(prefix="zigux_phase12_libbpf_snapshot_reviewability_path_assertion_") as tmp_dir_str:
         reviewability_root = Path(tmp_dir_str)
         copy_required_tree(reviewability_root)
@@ -380,6 +412,24 @@ def run_self_test() -> int:
         )
         expect_system_exit(
             "invalid_reviewability_tracked_path_marker",
+            lambda: load_manifest_packet(reviewability_root),
+            "invalid Phase 12 libbpf reviewability snapshot markers",
+        )
+
+    with tempfile.TemporaryDirectory(prefix="zigux_phase12_libbpf_snapshot_reviewability_duplicate_path_") as tmp_dir_str:
+        reviewability_root = Path(tmp_dir_str)
+        copy_required_tree(reviewability_root)
+        reviewability_test_path = reviewability_root / REVIEWABILITY_TEST_REL_PATH
+        reviewability_test_path.write_text(
+            reviewability_test_path.read_text(encoding="utf-8").replace(
+                "zigux/tests/phase12_libbpf_manifest.json\n",
+                "zigux/tests/phase12_libbpf_manifest.json\nzigux/tests/phase12_libbpf_manifest.json\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_system_exit(
+            "invalid_reviewability_duplicate_path_marker",
             lambda: load_manifest_packet(reviewability_root),
             "invalid Phase 12 libbpf reviewability snapshot markers",
         )
@@ -556,7 +606,7 @@ def run_self_test() -> int:
             raise SystemExit("phase12-libbpf-snapshot:self-test:missing_lines")
 
     print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST=pass")
-    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT=40")
+    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT=42")
     return 0
 
 
