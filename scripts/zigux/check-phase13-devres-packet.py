@@ -73,6 +73,11 @@ SURVEY_MARKERS = [
     "live scatter-gather ownership such as `struct scatterlist`, `sg_table`, `sg_*` iteration, merge, or detach-time cleanup behavior",
 ]
 
+SURVEY_EXACT_COUNT_MARKERS = {
+    "live DMA-backed helpers such as `dmam_alloc_coherent()`, `dmam_free_coherent()`, `dma_map_resource()`, `dma_unmap_resource()`, or `dma_map_sgtable()` ownership and execution": 1,
+    "live scatter-gather ownership such as `struct scatterlist`, `sg_table`, `sg_*` iteration, merge, or detach-time cleanup behavior": 1,
+}
+
 SLICE_MARKERS = [
     "pure helper-first foothold anchored to `lib/devres.c`",
     "adds one adjacent helper-first coherent DMA lifetime planner in `lib/devres_dma_coherent.zig`",
@@ -108,6 +113,20 @@ def _require_markers(missing: list[str], label: str, text: str, markers: list[st
             missing.append(f"{label}:{marker}")
 
 
+def _require_exact_counts(
+    missing: list[str],
+    label: str,
+    text: str,
+    markers: dict[str, int],
+) -> None:
+    for marker, expected_count in markers.items():
+        actual_count = text.count(marker)
+        if actual_count != expected_count:
+            missing.append(
+                f"{label}:exact_count:{marker}:{actual_count}!={expected_count}"
+            )
+
+
 def _check_repo(root: Path) -> list[str]:
     missing: list[str] = []
     for rel in REQUIRED_FILES:
@@ -133,6 +152,7 @@ def _check_repo(root: Path) -> list[str]:
     _require_markers(missing, "devres_dma_coherent_tests", dma_coherent_tests_text, DMA_COHERENT_TEST_MARKERS)
     _require_markers(missing, "reviewability", reviewability_text, REVIEWABILITY_MARKERS)
     _require_markers(missing, "survey", survey_text, SURVEY_MARKERS)
+    _require_exact_counts(missing, "survey", survey_text, SURVEY_EXACT_COUNT_MARKERS)
     _require_markers(missing, "slice", slice_text, SLICE_MARKERS)
     _require_markers(missing, "build", build_text, BUILD_MARKERS)
 
@@ -192,6 +212,7 @@ def _run_self_test() -> int:
         for rel in ("lib", "zigux/tests", "Documentation/zigux"):
             (root / rel).mkdir(parents=True, exist_ok=True)
 
+        case_count = 0
         surveyed_commit = "aa01b37be5500e6a1e4f959c9fe07f0e39d39bfb"
         (root / "lib/devres.zig").write_text("\n".join(DEVRES_MARKERS) + "\n", encoding="utf-8")
         (root / "lib/devres_dma_coherent.zig").write_text("\n".join(DMA_COHERENT_MARKERS) + "\n", encoding="utf-8")
@@ -246,8 +267,28 @@ def _run_self_test() -> int:
             for item in missing:
                 print(item)
             return 1
+        case_count += 1
+
+        duplicate_marker = next(iter(SURVEY_EXACT_COUNT_MARKERS))
+        survey_path = root / "Documentation/zigux/phase13-devres-survey.md"
+        survey_path.write_text(
+            _read(survey_path) + duplicate_marker + "\n",
+            encoding="utf-8",
+        )
+        missing = _check_repo(root)
+        expected_missing = (
+            f"survey:exact_count:{duplicate_marker}:2!=1"
+        )
+        if expected_missing not in missing:
+            print("PHASE13_DEVRES_PACKET_SELF_TEST=fail")
+            print("missing exact-count failure for duplicate survey blocker marker")
+            for item in missing:
+                print(item)
+            return 1
+        case_count += 1
 
     print("PHASE13_DEVRES_PACKET_SELF_TEST=pass")
+    print(f"PHASE13_DEVRES_PACKET_SELF_TEST_CASE_COUNT={case_count}")
     return 0
 
 
@@ -273,7 +314,7 @@ def main() -> int:
     print(f"PHASE13_DEVRES_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE13_DEVRES_MARKER_COUNT="
-        f"{len(DEVRES_MARKERS) + len(DMA_COHERENT_MARKERS) + len(DEVRES_TEST_MARKERS) + len(DMA_COHERENT_TEST_MARKERS) + len(REVIEWABILITY_MARKERS) + len(SURVEY_MARKERS) + len(SLICE_MARKERS) + len(BUILD_MARKERS)}"
+        f"{len(DEVRES_MARKERS) + len(DMA_COHERENT_MARKERS) + len(DEVRES_TEST_MARKERS) + len(DMA_COHERENT_TEST_MARKERS) + len(REVIEWABILITY_MARKERS) + len(SURVEY_MARKERS) + len(SURVEY_EXACT_COUNT_MARKERS) + len(SLICE_MARKERS) + len(BUILD_MARKERS)}"
     )
     return 0
 
