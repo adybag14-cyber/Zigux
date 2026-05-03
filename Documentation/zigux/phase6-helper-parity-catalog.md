@@ -27,12 +27,13 @@ The shared replay and gating surface for that packet is:
 - `zigux/tests/README.md`
 - `zigux/tests/phase6_helper_parity_manifest.json`
 
-This shared catalog exists so reviewers can confirm, in one place, that the roadmap-backed Phase 6 packet still stops at the four leaf helpers and that the docs, validator, workflow, perf-gate survey, and test entrypoints all describe the same shipped surface. The manifest is the compact machine-readable companion for that same packet, while this note keeps the reviewer-facing perf and fixture posture explicit.
+This shared catalog exists so reviewers can confirm, in one place, that the roadmap-backed Phase 6 packet still stops at the four leaf helpers and that the docs, validator, workflow, perf-gate survey, and test entrypoints all describe the same shipped surface. The manifest is the compact machine-readable companion for that same packet, while this note keeps the reviewer-facing perf and fixture posture explicit. The per-helper evidence blocks below also map each Zig port back to its exact Linux roadmap anchor so the shared survey does not drift into a Zig-only reading of the tranche.
 
 ## Current helper evidence
 
 ### base64
 
+- roadmap anchor: `lib/base64.c`
 - helper: `lib/base64.zig`
 - tests: `zigux/tests/phase6_base64.zig`
 - perf: `zigux/tests/phase6_base64_perf.zig`
@@ -43,6 +44,7 @@ This shared catalog exists so reviewers can confirm, in one place, that the road
 
 ### bsearch
 
+- roadmap anchor: `lib/bsearch.c`
 - helper: `lib/bsearch.zig`
 - tests: `zigux/tests/phase6_bsearch.zig`
 - shared portability coverage: `zigux/tests/phase6_bsearch.zig` now exercises both typed and raw runtime-selected comparator pointers across native and C ABI paths
@@ -54,6 +56,7 @@ This shared catalog exists so reviewers can confirm, in one place, that the road
 
 ### checksum
 
+- roadmap anchor: `lib/checksum.c`
 - helper: `lib/checksum.zig`
 - tests: `zigux/tests/phase6_checksum.zig`
 - perf: `zigux/tests/phase6_checksum_perf.zig`
@@ -65,6 +68,7 @@ This shared catalog exists so reviewers can confirm, in one place, that the road
 
 ### hexdump
 
+- roadmap anchor: `lib/hexdump.c`
 - helper: `lib/hexdump.zig`
 - tests: `zigux/tests/phase6_hexdump.zig`
 - perf: `zigux/tests/phase6_hexdump_perf.zig`
