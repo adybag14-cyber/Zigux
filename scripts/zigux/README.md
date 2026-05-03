@@ -43,6 +43,7 @@ Current bootstrap helpers
 - `check-phase7-build-inventory.py`
 - `check-phase7-make-wrapper.py`
 - `check-phase7-cmdline-parity.py`
+- `check-phase7-argv-split-parity.py`
 - `check-phase7-rbtree-parity.py`
 - `validate-phase8.py`
 - `check-phase8-tests-readme-alignment.py`
