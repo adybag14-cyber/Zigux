@@ -9,18 +9,12 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
-    const virtio_ring_module = b.createModule(.{
-        .root_source_file = b.path("../../drivers/virtio/virtio_ring.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
     const virtio_net_module = b.createModule(.{
         .root_source_file = b.path("../../drivers/net/virtio_net.zig"),
         .target = target,
         .optimize = optimize,
     });
     virtio_net_module.addImport("virtio", virtio_core_module);
-    virtio_net_module.addImport("virtio_ring", virtio_ring_module);
     const phase12_virtio_net_module = b.createModule(.{
         .root_source_file = b.path("phase12_virtio_net.zig"),
         .target = target,
