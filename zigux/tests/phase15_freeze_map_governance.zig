@@ -63,7 +63,7 @@ test "phase 15 freeze-map governance manifest records the active lane and blocke
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P15-Y01", manifest.lane_key);
+    try std.testing.expectEqualStrings("P15-L04", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
     try std.testing.expectEqualStrings("d918be7ded6383c13cbd5eea4ca4aa4f3cdafee4", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", manifest.anchor);
@@ -173,7 +173,7 @@ test "phase 15 freeze-map governance note keeps the active lane, current head, o
     );
     defer std.testing.allocator.free(note);
 
-    try std.testing.expect(hasSubstring(note, "PHASE15_LANE_KEY=P15-Y01"));
+    try std.testing.expect(hasSubstring(note, "PHASE15_LANE_KEY=P15-L04"));
     try std.testing.expect(hasSubstring(note, "d918be7ded6383c13cbd5eea4ca4aa4f3cdafee4"));
     try std.testing.expect(hasSubstring(note, "## Current blocker ownership"));
     try std.testing.expect(hasSubstring(note, "Architecture Council + PMO / Release Management"));
