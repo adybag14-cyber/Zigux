@@ -339,7 +339,7 @@ required_phase2_pin_scope_checker_markers = [
     'TOOLCHAIN_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"',
     'CLOSURE_DOC = ROOT / "Documentation" / "zigux" / "phase2-closure.md"',
     'README_MARKERS = [',
-    'TOOLCHAIN_NOTES_MARKERS = [',
+    'def expected_toolchain_notes_markers(channel: str, minimum_version: str) -> list[str]:',
     'CLOSURE_MARKERS = [',
 ]
 missing_phase2_pin_scope_checker_markers = [
