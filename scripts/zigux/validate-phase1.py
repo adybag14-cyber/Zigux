@@ -278,11 +278,26 @@ PHASE1_CLOSURE_PREFIX_COUNTS = {
 
 MANIFEST_EXPECTATIONS = {
     "tools/lib/string.zig": {
+        "unit_test_anchor": 'tools/lib/string.zig:test "memchrInv scans aligned and misaligned long buffers"',
+        "unit_test_contract": "Direct Zig unit coverage keeps memchrInv honest for both aligned and misaligned long buffers beyond the short C-backed fixture cases.",
+        "cstring_unit_test_anchor": 'tools/lib/string.zig:test "strlcpy stops at the first embedded NUL in the source"',
+        "cstring_unit_test_contract": "Direct Zig unit coverage keeps strlcpy aligned with C-string semantics by stopping at the first embedded NUL, preserving truncation behavior, and leaving zero-sized destinations untouched.",
+        "strscpy_unit_test_anchor": 'tools/lib/string.zig:test "strscpy mirrors bounded kernel copy semantics"',
+        "strscpy_unit_test_contract": "Direct Zig unit coverage keeps strscpy aligned with bounded kernel copy semantics for exact-fit, truncation, embedded-NUL, and zero-sized destination cases.",
+        "equality_unit_test_anchor": 'tools/lib/string.zig:test "streq matches C-string equality semantics"',
+        "equality_unit_test_contract": "Direct Zig unit coverage keeps strEq() and streq() aligned with C-string equality semantics for exact, empty, length-mismatched, case-sensitive, and embedded-NUL comparisons.",
+        "sysfs_unit_test_anchor": 'tools/lib/string.zig:test "sysfsStreq treats a trailing newline as equivalent to C-string termination"',
+        "sysfs_unit_test_contract": "Direct Zig unit coverage keeps sysfsStreq() and sysfs_streq() aligned by treating a single trailing newline as equivalent to C-string termination while still rejecting non-terminal newline and content mismatches.",
+        "alias_unit_test_anchor": 'tools/lib/string.zig:test "trimSpaces and strim trim trailing whitespace before an embedded NUL"',
+        "alias_unit_test_contract": "Direct Zig unit coverage keeps trimSpaces and strim aligned with C-string semantics by trimming trailing whitespace that appears before the first embedded NUL while preserving bytes beyond that terminator.",
         "memparse_unit_test_anchor": 'tools/lib/string.zig:test "memparse forwards the header-level string helper surface"',
         "memparse_unit_test_contract": "Direct Zig unit coverage keeps memparse aligned by preserving decimal, hexadecimal, suffix-bearing, and invalid inputs without changing the parsed value or rest pointer contract.",
         "prefix_unit_test_anchor": 'tools/lib/string.zig:test "strstarts matches kernel prefix semantics"',
+        "prefix_unit_test_contract": "Direct Zig unit coverage keeps strStarts and strstarts aligned with kernel-style prefix semantics for exact, empty-prefix, shorter-input, and case-sensitive comparisons.",
         "prefix_length_unit_test_anchor": 'tools/lib/string.zig:test "strHasPrefix returns the matched prefix length with C-string semantics"',
+        "prefix_length_unit_test_contract": "Direct Zig unit coverage keeps strHasPrefix and str_has_prefix aligned by returning the matched C-string prefix length for exact and embedded-NUL prefixes while rejecting mismatches and longer prefixes.",
         "suffix_unit_test_anchor": 'tools/lib/string.zig:test "str_ends_with matches kernel suffix semantics"',
+        "suffix_unit_test_contract": "Direct Zig unit coverage keeps strEndsWith, str_ends_with, and strends aligned with kernel-style suffix semantics for exact, empty-suffix, shorter-input, and case-sensitive comparisons.",
     },
     "tools/lib/rbtree.zig": {
         "summary": "Committed C-backed parity coverage includes ordered forward and reverse traversal plus replaceNode, eraseInit, postorder traversal, and detached-node state checks, while Linux-style rb_* alias parity remains explicitly out of scope for this closed Phase 1 tranche.",
