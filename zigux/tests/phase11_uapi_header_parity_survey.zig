@@ -43,6 +43,8 @@ const BuildInventory = struct {
     test_root_modules: []const TestRootModule,
     forbidden_markers: []const []const u8,
     dedicated_survey_replays: []const []const u8,
+    shared_split_replays: []const SharedSplitReplay,
+    shared_replay_markers: []const SharedReplayMarker,
 };
 
 const ModuleRootSourceFile = struct {
@@ -59,6 +61,16 @@ const ModuleImport = struct {
 const TestRootModule = struct {
     @"test": []const u8,
     root_module: []const u8,
+};
+
+const SharedSplitReplay = struct {
+    @"test": []const u8,
+    path: []const u8,
+};
+
+const SharedReplayMarker = struct {
+    path: []const u8,
+    marker: []const u8,
 };
 
 const WatchdogInfoLayout = extern struct {
@@ -483,6 +495,22 @@ test "phase11 shared header parity survey keeps the header boundary explicit" {
     try std.testing.expectEqualStrings("phase11_hvc_console_survey_module", inventory.test_root_modules[12].root_module);
     try std.testing.expectEqualStrings("test_step.dependOn(&run_phase11_hvc_console_survey_tests.step);", inventory.forbidden_markers[0]);
     try std.testing.expectEqualStrings("zigux/tests/phase11_hvc_console_survey.zig", inventory.dedicated_survey_replays[0]);
+    try std.testing.expectEqual(@as(usize, 3), inventory.shared_split_replays.len);
+    try std.testing.expectEqualStrings("phase11-dw-wdt-remove-idle-split-tests", inventory.shared_split_replays[0].@"test");
+    try std.testing.expectEqualStrings("zigux/tests/phase11_dw_wdt_remove_idle_split.zig", inventory.shared_split_replays[0].path);
+    try std.testing.expectEqualStrings("phase11-hvc-console-modem-control-split-tests", inventory.shared_split_replays[1].@"test");
+    try std.testing.expectEqualStrings("zigux/tests/phase11_hvc_console_modem_control_split.zig", inventory.shared_split_replays[1].path);
+    try std.testing.expectEqualStrings("phase11-hvc-console-poll-retry-split-tests", inventory.shared_split_replays[2].@"test");
+    try std.testing.expectEqualStrings("zigux/tests/phase11_hvc_console_poll_retry_split.zig", inventory.shared_split_replays[2].path);
+    try std.testing.expectEqual(@as(usize, 4), inventory.shared_replay_markers.len);
+    try std.testing.expectEqualStrings("zigux/tests/phase11_dw_wdt_suspend_resume.zig", inventory.shared_replay_markers[0].path);
+    try std.testing.expectEqualStrings("    try std.testing.expect(summary.resume_preserves_timeout_programming);", inventory.shared_replay_markers[0].marker);
+    try std.testing.expectEqualStrings("zigux/tests/phase11_dw_wdt_remove_idle_split.zig", inventory.shared_replay_markers[1].path);
+    try std.testing.expectEqualStrings("    try std.testing.expect(reset_available_summary.remove_clears_interrupt_status);", inventory.shared_replay_markers[1].marker);
+    try std.testing.expectEqualStrings("zigux/tests/phase11_hvc_console_modem_control_split.zig", inventory.shared_replay_markers[2].path);
+    try std.testing.expectEqualStrings("    try std.testing.expectEqual(@as(c_int, -7), summary.tiocmset_result);", inventory.shared_replay_markers[2].marker);
+    try std.testing.expectEqualStrings("zigux/tests/phase11_hvc_console_poll_retry_split.zig", inventory.shared_replay_markers[3].path);
+    try std.testing.expectEqualStrings("    try std.testing.expect(dispatch.invokes_sysrq_handler);", inventory.shared_replay_markers[3].marker);
 }
 
 test "phase11 shared header parity survey keeps the hvc snapshot aligned with the bounded header mirror" {
