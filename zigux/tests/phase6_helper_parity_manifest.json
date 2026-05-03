@@ -135,8 +135,8 @@
       "ipv6_pseudo_header_vectors": 3,
       "carry_discipline_vectors": 4,
       "kunit_random_prefix_vectors": 6,
-      "c_parity_self_test_cases": 10,
-      "c_parity_cases": 22
+      "c_parity_self_test_cases": 11,
+      "c_parity_cases": 27
     },
     "hexdump": {
       "parity_vectors": 10,
