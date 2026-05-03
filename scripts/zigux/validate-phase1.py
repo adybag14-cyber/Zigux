@@ -390,17 +390,17 @@ MANIFEST_EXPECTATIONS = {
     },
     "tools/lib/rbtree.zig": {
         "summary": "Committed C-backed parity coverage includes ordered forward and reverse traversal plus replaceNode, eraseInit, postorder traversal, and detached-node state checks, while Linux-style rb_* alias parity remains explicitly out of scope for this closed Phase 1 tranche.",
-        "duplicate_search_unit_test_anchor": 'tools/lib/rbtree.zig:test "rbtree duplicate search stays aligned after erase and same-key replace"',
+        "duplicate_search_unit_test_anchor": "tools/lib/rbtree.zig:test \"rbtree duplicate search stays aligned after erase and same-key replace\"",
         "duplicate_search_unit_test_contract": "Direct Zig unit coverage keeps duplicate-key search aligned after erase() and same-key replaceNode() so findFirst(), findLast(), and duplicate-range iterators continue to report the surviving equal-key window in both directions.",
-        "cached_duplicate_unit_test_anchor": 'tools/lib/rbtree.zig:test "rbtree cached root tracks duplicate minima across replace and erase"',
+        "cached_duplicate_unit_test_anchor": "tools/lib/rbtree.zig:test \"rbtree cached root tracks duplicate minima across replace and erase\"",
         "cached_duplicate_unit_test_contract": "Direct Zig unit coverage keeps RootCached duplicate minima aligned when eraseCached() promotes the next equal-key minimum and replaceNodeCached() leaves the cached first node unchanged for non-leftmost replacement.",
-        "cached_findadd_unit_test_anchor": 'tools/lib/rbtree.zig:test "rbtree cached findAdd returns the resident duplicate"',
+        "cached_findadd_unit_test_anchor": "tools/lib/rbtree.zig:test \"rbtree cached findAdd returns the resident duplicate\"",
         "cached_findadd_unit_test_contract": "Direct Zig unit coverage keeps findAddCached() aligned by returning the original equal-key resident node, still linking new distinct keys into the cached tree, and keeping the cached first node aligned with the underlying tree root.",
-        "iterate_unit_test_anchor": 'tools/lib/rbtree.zig:test "rbtree iterateMatches stops at duplicate-range boundaries"',
+        "iterate_unit_test_anchor": "tools/lib/rbtree.zig:test \"rbtree iterateMatches stops at duplicate-range boundaries\"",
         "iterate_unit_test_contract": "Direct Zig unit coverage keeps iterateMatches() yielding only the equal-key duplicate range and cleanly reporting no match for missing keys.",
-        "reverse_unit_test_anchor": 'tools/lib/rbtree.zig:test "rbtree reverse duplicate walks stay aligned"',
+        "reverse_unit_test_anchor": "tools/lib/rbtree.zig:test \"rbtree reverse duplicate walks stay aligned\"",
         "reverse_unit_test_contract": "Direct Zig unit coverage keeps findLast(), prevMatch(), and iterateMatchesReverse() aligned from the rightmost duplicate back through the equal-key range while still reporting no match for missing keys.",
-        "postorder_safe_rebalance_unit_test_anchor": 'tools/lib/rbtree.zig:test "rbtree iteratePostorderSafe survives erase-driven rebalancing"',
+        "postorder_safe_rebalance_unit_test_anchor": "tools/lib/rbtree.zig:test \"rbtree iteratePostorderSafe survives erase-driven rebalancing\"",
         "postorder_safe_rebalance_unit_test_contract": "Direct Zig unit coverage keeps iteratePostorderSafe() aligned across erase-driven rebalancing so the walk still reaches each remaining node exactly once after the current node is removed.",
     },
 }
@@ -409,60 +409,61 @@ def read_text(rel: str) -> str:
     return (ROOT / rel).read_text(encoding="utf-8")
 
 
-def fail(label: str, details: list[str]) -> int:
+def fail(header: str, details: list[str]) -> int:
     print("PHASE1_VALIDATION=fail")
-    print(f"{label}_START")
-    for item in details:
-        print(item)
-    print(f"{label}_END")
+    print(f"{header}_START")
+    for detail in details:
+        print(detail)
+    print(f"{header}_END")
     return 1
 
 
 def validate_fixture_shape() -> list[str]:
+    fixture = json.loads(read_text("zigux/tests/fixtures/phase1_helpers.json"))
     issues: list[str] = []
-    data = json.loads((ROOT / "zigux/tests/fixtures/phase1_helpers.json").read_text(encoding="utf-8"))
-    for section, fields in FIXTURE_SHAPE.items():
-        payload = data.get(section)
-        if not isinstance(payload, dict):
-            issues.append(f"phase1_helpers:{section}:missing_section")
+    for section, required_keys in FIXTURE_SHAPE.items():
+        data = fixture.get(section)
+        if not isinstance(data, dict):
+            issues.append(f"phase1_helpers:{section}:missing")
             continue
-        for field in fields:
-            if field not in payload:
-                issues.append(f"phase1_helpers:{section}:{field}:missing_key")
+        for key in sorted(required_keys):
+            if key not in data:
+                issues.append(f"phase1_helpers:{section}.{key}:missing")
     return issues
 
 
 def validate_manifest_shape() -> list[str]:
+    manifest = json.loads(read_text("zigux/tests/fixtures/phase1_helper_manifest.json"))
     issues: list[str] = []
-    data = json.loads((ROOT / "zigux/tests/fixtures/phase1_helper_manifest.json").read_text(encoding="utf-8"))
-    if data.get("phase") != "Phase 1":
+    if manifest.get("phase") != "Phase 1":
         issues.append("phase1_manifest:phase:mismatch")
-    if data.get("status") != "closed":
+    if manifest.get("status") != "closed":
         issues.append("phase1_manifest:status:mismatch")
-    if data.get("helper_count") != len(HELPERS):
-        issues.append("phase1_manifest:helper_count:mismatch")
-    if data.get("helpers") != HELPERS:
+    if manifest.get("helper_count") != len(HELPERS):
+        issues.append(
+            f"phase1_manifest:helper_count:expected={len(HELPERS)}:actual={manifest.get('helper_count')}"
+        )
+    if manifest.get("helpers") != HELPERS:
         issues.append("phase1_manifest:helpers:mismatch")
 
-    review_notes = data.get("helper_review_notes")
-    if not isinstance(review_notes, dict):
+    notes = manifest.get("helper_review_notes")
+    if not isinstance(notes, dict):
         return ["phase1_manifest:helper_review_notes:missing"]
 
-    for helper, expected in MANIFEST_EXPECTATIONS.items():
-        actual = review_notes.get(helper)
-        if not isinstance(actual, dict):
-            issues.append(f"phase1_manifest:{helper}:missing_review_notes")
+    for helper, fields in MANIFEST_EXPECTATIONS.items():
+        helper_notes = notes.get(helper)
+        if not isinstance(helper_notes, dict):
+            issues.append(f"phase1_manifest:{helper}:missing")
             continue
-        for key, value in expected.items():
-            if actual.get(key) != value:
-                issues.append(f"phase1_manifest:{helper}:{key}:mismatch")
+        for field, expected in fields.items():
+            if helper_notes.get(field) != expected:
+                issues.append(f"phase1_manifest:{helper}:{field}:mismatch")
     return issues
 
 
 def validate_marker_groups() -> list[str]:
     issues: list[str] = []
     texts = {name: read_text(rel) for name, (rel, _) in MARKER_GROUPS.items()}
-
     for name, (_, markers) in MARKER_GROUPS.items():
         text = texts[name]
         for marker in markers:
