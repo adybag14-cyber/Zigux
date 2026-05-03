@@ -161,6 +161,7 @@ required_doc_readme_markers = [
     "`python3 scripts/zigux/check-phase7-argv-split-parity.py --self-test`",
     "`python3 scripts/zigux/check-phase7-argv-split-parity.py`",
     "`make -C zigux phase7-validate`",
+    "`make -C zigux phase7-test`",
     "`make -C zigux phase7`",
 ]
 required_phase7_build_markers = [
@@ -191,7 +192,7 @@ expected_argv_split_fixture = {
     "leading_nul_stays_empty": {"argc": 0, "argv": []},
     "quote_characters_stay_literal": {
         "argc": 3,
-        "argv": ['root="/dev/sda', '1"', "single"],
+        "argv": ['root=\"/dev/sda', '1\"', "single"],
     },
     "whitespace_collapse": {
         "argc": 3,
@@ -338,6 +339,21 @@ def run_self_test() -> int:
         )
         doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
 
+        doc_readme_path.write_text(
+            original_doc_readme.replace(
+                "`make -C zigux phase7-test`",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "phase7_test_doc_readme_marker",
+            tmp_root,
+            "Documentation/zigux/README.md: `make -C zigux phase7-test`",
+        )
+        doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
+
         workflow_path = tmp_root / ".github" / "workflows" / "zigux-bootstrap.yml"
         original_workflow = workflow_path.read_text(encoding="utf-8")
         workflow_path.write_text(
@@ -417,7 +433,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=11")
+    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
