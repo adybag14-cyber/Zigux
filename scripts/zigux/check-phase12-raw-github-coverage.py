@@ -12,6 +12,9 @@ FILES = [
     "Documentation/zigux/phase12-raw-github-coverage-survey.md",
     "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md",
     "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md",
+    "Documentation/zigux/phase12-release-readiness-survey.md",
+    "Documentation/zigux/README.md",
+    "Documentation/zigux/review-checklist.md",
     "zigux/tests/phase12_raw_github_coverage_manifest.json",
     "zigux/tests/phase12_raw_github_coverage_survey.zig",
     "zigux/Makefile",
@@ -38,6 +41,33 @@ SURVEY_MARKERS = [
     "https://github.com/adybag14-cyber/Zigux/tree/master/Documentation/zigux",
     "https://github.com/adybag14-cyber/Zigux/tree/master/zigux/tests",
     "PHASE12_SHARED_TREE_READBACK_ROOT_COUNT=4",
+]
+
+DOCS_ROOT_MARKERS = [
+    "Documentation/zigux/phase12-release-readiness-survey.md",
+    "Documentation/zigux/phase12-raw-github-coverage-survey.md",
+    "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md",
+    "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md",
+    "the docs-root Phase 12 release packet now also states the mixed fallback split directly",
+    "Documentation/zigux/phase12-virtio-net-survey.md",
+    "Documentation/zigux/phase12-libbpf-segment-survey.md",
+]
+
+RELEASE_MARKERS = [
+    "Documentation/zigux/phase12-raw-github-coverage-survey.md",
+    "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md",
+    "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md",
+    "PHASE12_COMMIT_PINNED_RAW_FALLBACK_COUNT=2",
+    "PHASE12_SHARED_TREE_ONLY_FALLBACK_COUNT=2",
+    "the raw-fallback packet now keeps the split explicit: two anchors have dedicated commit-pinned fallback artifacts, and two anchors still rely on shared-tree fallback reads",
+]
+
+CHECKLIST_MARKERS = [
+    "if the change touches the shared Phase 12 degraded-workflow packet",
+    "Documentation/zigux/phase12-raw-github-coverage-survey.md",
+    "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md",
+    "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md",
+    "including the current one commit-pinned raw catalog, one archival raw map, and two shared-tree-only anchors",
 ]
 
 TEST_MARKERS = [
@@ -156,6 +186,9 @@ def validate_markers() -> list[str]:
     missing: list[str] = []
     make_text = read_text("zigux/Makefile")
     survey_text = read_text("Documentation/zigux/phase12-raw-github-coverage-survey.md")
+    docs_root_text = read_text("Documentation/zigux/README.md")
+    release_text = read_text("Documentation/zigux/phase12-release-readiness-survey.md")
+    checklist_text = read_text("Documentation/zigux/review-checklist.md")
     test_text = read_text("zigux/tests/phase12_raw_github_coverage_survey.zig")
     raw_catalog_text = read_text("Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md")
     raw_map_text = read_text("Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md")
@@ -166,6 +199,15 @@ def validate_markers() -> list[str]:
     for marker in SURVEY_MARKERS:
         if marker not in survey_text:
             missing.append(f"survey:{marker}")
+    for marker in DOCS_ROOT_MARKERS:
+        if marker not in docs_root_text:
+            missing.append(f"docs_root:{marker}")
+    for marker in RELEASE_MARKERS:
+        if marker not in release_text:
+            missing.append(f"release:{marker}")
+    for marker in CHECKLIST_MARKERS:
+        if marker not in checklist_text:
+            missing.append(f"checklist:{marker}")
     for marker in TEST_MARKERS:
         if marker not in test_text:
             missing.append(f"test:{marker}")
@@ -266,8 +308,27 @@ def run_self_test() -> int:
     finally:
         raw_map_path.write_text(original_raw_map, encoding="utf-8")
 
+    release_path = ROOT / "Documentation/zigux/phase12-release-readiness-survey.md"
+    original_release = release_path.read_text(encoding="utf-8")
+    release_path.write_text(
+        original_release.replace(
+            "PHASE12_SHARED_TREE_ONLY_FALLBACK_COUNT=2",
+            "PHASE12_SHARED_TREE_ONLY_FALLBACK_COUNT=3",
+            1,
+        ),
+        encoding="utf-8",
+    )
+    try:
+        expect_missing(
+            "release_marker",
+            validate_tree(),
+            "release:PHASE12_SHARED_TREE_ONLY_FALLBACK_COUNT=2",
+        )
+    finally:
+        release_path.write_text(original_release, encoding="utf-8")
+
     print("PHASE12_RAW_GITHUB_COVERAGE_SELF_TEST=pass")
-    print("PHASE12_RAW_GITHUB_COVERAGE_SELF_TEST_CASE_COUNT=4")
+    print("PHASE12_RAW_GITHUB_COVERAGE_SELF_TEST_CASE_COUNT=5")
     return 0
 
 
