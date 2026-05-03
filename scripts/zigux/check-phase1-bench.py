@@ -111,6 +111,20 @@ def validate_expectations_shape(expectations: dict[str, object]) -> None:
             f'{optional_bitmap_checksum}'
         )
 
+    optional_find_bit_checksum = next(
+        (
+            key
+            for key in sorted(metric_groups['checksums'])
+            if key.startswith('PHASE1_BENCH_FIND_')
+        ),
+        None,
+    )
+    if optional_find_bit_checksum is not None:
+        raise SystemExit(
+            'phase1-bench:expectations:checksums:find_bit_exact_required:'
+            f'{optional_find_bit_checksum}'
+        )
+
     for bitmap_exact_checksum in sorted(metric_groups['exact_checksums']):
         if not bitmap_exact_checksum.startswith('PHASE1_BENCH_BITMAP_'):
             continue
@@ -426,6 +440,26 @@ def run_self_test() -> int:
     else:
         raise SystemExit('phase1-bench:self-test:invalid_bitmap_missing_iterations:unexpected_pass')
 
+    invalid_find_bit_optional = {
+        **find_bit_expectations,
+        'exact_checksums': {
+            key: value
+            for key, value in find_bit_expectations['exact_checksums'].items()
+            if key != 'PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM'
+        },
+        'checksums': ['PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM'],
+    }
+    try:
+        validate_expectations_shape(invalid_find_bit_optional)
+    except SystemExit as exc:
+        assert_equal(
+            'invalid_find_bit_optional',
+            str(exc),
+            'phase1-bench:expectations:checksums:find_bit_exact_required:PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM',
+        )
+    else:
+        raise SystemExit('phase1-bench:self-test:invalid_find_bit_optional:unexpected_pass')
+
     invalid_find_bit_missing_next_iterations = {
         **find_bit_expectations,
         'iterations': {
@@ -480,7 +514,7 @@ def run_self_test() -> int:
         raise SystemExit('phase1-bench:self-test:invalid_rbtree_missing_iterations:unexpected_pass')
 
     print('PHASE1_BENCH_SELF_TEST=pass')
-    print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=18')
+    print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=19')
     return 0
 
 
