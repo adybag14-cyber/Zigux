@@ -286,7 +286,7 @@ EXPECTED_BASE64_DETERMINISM = {
     "invalid_decode_vectors": 28,
     "perf_payload_cases": 2,
     "perf_replay_cases": 10,
-    "c_parity_self_test_cases": 9,
+    "c_parity_self_test_cases": 10,
     "c_parity_cases": 112,
 }
 
