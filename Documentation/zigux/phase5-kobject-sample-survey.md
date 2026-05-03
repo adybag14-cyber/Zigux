@@ -7,7 +7,7 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 - `PHASE5_STATUS=active`
 - `PHASE5_SLICE=kobject-reference-sample-starter`
 - `PHASE5_LANE_KEY=P5-L12`
-- `PHASE5_SURVEYED_COMMIT=a1c6f22f0efad22fb31f9a7608b8b52b70cbbaf9`
+- `PHASE5_SURVEYED_COMMIT=affdebd460c9c33ce939c7535cdb929352648e93`
 - scope: roadmap-vs-repo sample reviewability, approved ownership-and-lifetime guidance, and exact bounded checks for the landed `samples/zigux/` kobject-style replay
 - product boundary:
   - `Documentation/zigux/phase5-kobject-sample-survey.md`
@@ -71,7 +71,7 @@ The exact checks currently recorded in `zigux/tests/phase5_kobject_example_manif
 
 ## Latest verification snapshot
 
-Current sample behavior was re-verified against the latest visible `master` head surfaced through GitHub connector metadata on 2026-05-02 with the attached Zig toolchain.
+Current sample behavior was re-verified against the latest visible `master` head `affdebd460c9c33ce939c7535cdb929352648e93` on 2026-05-03 with the attached Zig toolchain.
 
 The exact verification commands and observed results for this narrow verification pass were:
 
