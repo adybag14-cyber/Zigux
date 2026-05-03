@@ -127,6 +127,7 @@ If multiple triggers are cited together, each trigger's minimum evidence must st
 - replay before trusting this parked handoff:
   - `zig build test --build-file zigux/tests/phase15_build.zig`
   - `make -C zigux phase15`
+- keep `scripts/zigux/README.md`, `scripts/zigux/validate-phase15.py`, and `zigux/tests/README.md` aligned with the same parked governance bundle so the scripts-root validator path and tests-root guidance path do not drift away from the Architecture Council handoff while this lane remains parked
 - reopen only when one of the named catalog triggers now fits the evidence packet, when the shared Phase 15 replay drifts, or when the deep-core blocker posture changes enough to justify a new bounded review-process follow-up
 - next future target: wait for one of the named reopen triggers, a shared Phase 15 replay drift, or the deep-core blocker posture to change before opening another Phase 15 slice
 
