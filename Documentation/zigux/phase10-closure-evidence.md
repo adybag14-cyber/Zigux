@@ -79,7 +79,7 @@ The same closure packet now also keeps the already-landed focused harness covera
 ## Survey Provenance
 
 - `PHASE10_SURVEY_PROVENANCE_SOURCE=manifest_derived`
-- `PHASE10_SURVEY_CORE_LANE=P10-L03`
+- `PHASE10_SURVEY_CORE_LANE=P10-L01`
 - `PHASE10_SURVEY_RING_LANE=P10-L08`
 - `PHASE10_SURVEY_INPUT_LANE=P10-Y04`
 - `PHASE10_SURVEY_MMIO_LANE=P10-L18`
