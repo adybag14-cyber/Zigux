@@ -33,6 +33,22 @@ test "phase3 export shim and uapi stay aligned" {
     try std.testing.expectEqual(header, export_shim.canonicalizeHeader(header).?);
     try std.testing.expectEqual(header, uapi_version.canonicalizeHeader(header).?);
 
+    const canonical_positive = export_shim.normalize(.{
+        .code = 5,
+        .facility = @intFromEnum(abi.Facility.kernel),
+        .flags = @as(u16, abi.STATUS_FLAG_ERROR | 0x80),
+    });
+    try std.testing.expectEqual(@as(u16, 0), canonical_positive.flags);
+    try std.testing.expect(export_shim.isOk(canonical_positive));
+
+    const canonical_negative = export_shim.normalize(.{
+        .code = -5,
+        .facility = @intFromEnum(abi.Facility.kernel),
+        .flags = 0x80,
+    });
+    try std.testing.expectEqual(@as(u16, abi.STATUS_FLAG_ERROR), canonical_negative.flags);
+    try std.testing.expect(!export_shim.isOk(canonical_negative));
+
     const undersized_header = uapi_version.compatibleHeader(uapi_version.header_size - 1, 0x11);
     try std.testing.expect(!uapi_version.isCompatibleSize(undersized_header.size));
     try std.testing.expect(export_shim.headerCompatibility(undersized_header) == null);
