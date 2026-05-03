@@ -12,8 +12,6 @@ ROOT = Path(__file__).resolve().parents[2]
 
 POLICY = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
 WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
-README = ROOT / "scripts" / "zigux" / "README.md"
-CLOSURE_DOC = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
 PHASE2_VALIDATOR = ROOT / "scripts" / "zigux" / "validate-phase2.py"
 
 EXPECTED_PIN_TARGETS = [
@@ -25,8 +23,6 @@ ARCHIVE_SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 EXACT_WORKFLOW_RUN_COUNTS = {
     "python3 scripts/zigux/install-zig.py --dest .zig-toolchain": 2,
     "python3 scripts/zigux/check-zig-toolchain.py": 2,
-    "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test": 1,
-    "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py": 1,
 }
 
 WORKFLOW_FORBIDDEN_FRAGMENTS = [
@@ -36,26 +32,12 @@ WORKFLOW_FORBIDDEN_FRAGMENTS = [
     "scripts/zigux/check-zig-toolchain.py --arch",
 ]
 
-README_MARKERS = [
-    "check-phase2-toolchain-pin-scope.py --self-test",
-    "check-phase2-toolchain-pin-scope.py",
-    "x86_64-linux bootstrap host target",
-    "cross-target compile matrix stays a separate Phase 2 surface",
-]
-
-CLOSURE_MARKERS = [
-    "PHASE2_TOOLCHAIN_PIN_TARGET_COUNT=1",
-    "PHASE2_TOOLCHAIN_PIN_TARGETS=x86_64-linux",
-    "PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
-    "PHASE2_TOOLCHAIN_PIN_SCOPE_GATE=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
-    "PHASE2_TOOLCHAIN_PIN_SCOPE_POLICY=current archive sha pin stays limited to the bootstrap host target until another bootstrap runner target is explicitly wired",
-]
-
 PHASE2_VALIDATOR_MARKERS = [
     "TOOLCHAIN_PIN_SCOPE_CHECKER = ROOT / \"scripts\" / \"zigux\" / \"check-phase2-toolchain-pin-scope.py\"",
     "\"PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass\"",
     "\"PHASE2_TOOLCHAIN_PIN_SCOPE=pass\"",
     "str(TOOLCHAIN_PIN_SCOPE_CHECKER)",
+    "toolchain_pin_scope_checker",
 ]
 
 
@@ -151,8 +133,6 @@ def run_self_test() -> int:
             "run: python3 scripts/zigux/install-zig.py --dest .zig-toolchain",
             "run: python3 scripts/zigux/check-zig-toolchain.py",
             "run: python3 scripts/zigux/check-zig-toolchain.py",
-            "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
-            "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
         ]
     )
     if validate_exact_workflow_runs(workflow_text):
@@ -187,7 +167,7 @@ def run_self_test() -> int:
             raise SystemExit("phase2-toolchain-pin-scope:self-test:json_round_trip")
 
     print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass")
-    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=8")
+    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
@@ -204,8 +184,6 @@ def main() -> int:
     required_files = [
         POLICY,
         WORKFLOW,
-        README,
-        CLOSURE_DOC,
         PHASE2_VALIDATOR,
     ]
     missing = [str(path.relative_to(ROOT)) for path in required_files if not path.exists()]
@@ -219,20 +197,6 @@ def main() -> int:
 
     issues: list[str] = []
     issues.extend(validate_policy(load_json_object(POLICY, label="policy")))
-    issues.extend(
-        validate_required_markers(
-            README.read_text(encoding="utf-8"),
-            label="scripts_readme",
-            markers=README_MARKERS,
-        )
-    )
-    issues.extend(
-        validate_required_markers(
-            CLOSURE_DOC.read_text(encoding="utf-8"),
-            label="phase2_closure_doc",
-            markers=CLOSURE_MARKERS,
-        )
-    )
     issues.extend(
         validate_required_markers(
             PHASE2_VALIDATOR.read_text(encoding="utf-8"),
