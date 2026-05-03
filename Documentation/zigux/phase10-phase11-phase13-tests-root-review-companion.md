@@ -31,6 +31,7 @@ Keep the shared-versus-dedicated replay boundary explicit:
 - `scripts/zigux/check-phase11-layout-assert-surface.py`
 - `scripts/zigux/check-phase11-hvc-validation-flow.py`
 - `scripts/zigux/check-phase11-hvc-cleanup-alignment.py`
+- `scripts/zigux/check-phase11-shared-replay-contract.py`
 - `scripts/zigux/validate-phase11.py`
 
 Tests-root reviewer prompts:
@@ -59,7 +60,7 @@ Tests-root reviewer prompt:
 
 Keep these reviewer questions explicit when `zigux/tests/README.md` or other shared contributor-facing workflow notes are refreshed:
 - Phase 10: do `Documentation/zigux/phase10-closure-evidence.md`, `zigux/tests/phase10_closure_manifest.json`, `scripts/zigux/check-phase10-harness-coverage.py`, `zigux/tests/phase10_virtio_input_multitouch_preflight.zig`, and `zigux/tests/phase10_virtio_mmio_queue_isolation.zig` still describe the same validator-first lab bundle and focused harness evidence?
-- Phase 11: do `Documentation/zigux/phase11-shared-replay-contract.md`, `scripts/zigux/check-phase11-build-inventory.py`, `scripts/zigux/check-phase11-layout-assert-surface.py`, `scripts/zigux/check-phase11-hvc-validation-flow.py`, `scripts/zigux/check-phase11-hvc-cleanup-alignment.py`, `zigux/tests/phase11_build.zig`, and `zigux/tests/phase11_hvc_console_survey.zig` still keep the pre-replay stack and shared-versus-dedicated `hvc_console` split aligned?
+- Phase 11: do `Documentation/zigux/phase11-shared-replay-contract.md`, `scripts/zigux/check-phase11-build-inventory.py`, `scripts/zigux/check-phase11-layout-assert-surface.py`, `scripts/zigux/check-phase11-hvc-validation-flow.py`, `scripts/zigux/check-phase11-hvc-cleanup-alignment.py`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `zigux/tests/phase11_build.zig`, and `zigux/tests/phase11_hvc_console_survey.zig` still keep the pre-replay stack and shared-versus-dedicated `hvc_console` split aligned?
 - Phase 13: do `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/README.md`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, and `zigux/helpers/notifier_chain_view.zig` still keep the validator-first release path and adjacent notifier evidence aligned?
 
 ## Shared rule
