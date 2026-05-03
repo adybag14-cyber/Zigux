@@ -133,6 +133,11 @@ CLOSURE_MARKERS = [
     "phase10-mmio-lifecycle-and-irq-paths",
 ]
 
+CLOSURE_EXACT_ONCE_MARKERS = [
+    "PHASE10_HARNESS_COVERAGE_GATE=python3 scripts/zigux/check-phase10-harness-coverage.py",
+    "PHASE10_TEST_COUNT=11",
+]
+
 DOCS_README_MARKERS = [
     "Documentation/zigux/phase10-closure-evidence.md",
     "zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
@@ -142,6 +147,12 @@ DOCS_README_MARKERS = [
     "make -C zigux phase10-validate",
     "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
     "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
+    "focused harness replays",
+    "queue-handling and ready-state gate",
+]
+
+DOCS_README_EXACT_ONCE_MARKERS = [
+    "python3 scripts/zigux/check-phase10-harness-coverage.py",
     "focused harness replays",
     "queue-handling and ready-state gate",
 ]
@@ -170,6 +181,13 @@ LEDGER_MARKERS = [
     "PHASE10_LEDGER_INPUT_MULTITOUCH_PREFLIGHT_GATE=zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
     "PHASE10_LEDGER_MMIO_QUEUE_ISOLATION_GATE=zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
     "PHASE10_LEDGER_SCOREBOARD_LAB_ONLY_DRIVER_VALIDATION_EVIDENCE=zigux/tests/phase10_build.zig,zigux/tests/phase10_virtio_input_multitouch_preflight.zig,zigux/tests/phase10_virtio_mmio_queue_isolation.zig,scripts/zigux/check-phase10-harness-coverage.py,scripts/zigux/check-phase10-closure-inventory.py,scripts/zigux/validate-phase10.py,scripts/zigux/validate-phase10-closure.py,Documentation/zigux/phase10-closure-evidence.md,zigux/Makefile,.github/workflows/zigux-bootstrap.yml",
+]
+
+LEDGER_EXACT_ONCE_MARKERS = [
+    "PHASE10_LEDGER_HARNESS_COVERAGE_VALIDATE=scripts/zigux/check-phase10-harness-coverage.py",
+    "PHASE10_LEDGER_INPUT_MULTITOUCH_PREFLIGHT_GATE=zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
+    "PHASE10_LEDGER_MMIO_QUEUE_ISOLATION_GATE=zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
+    "PHASE10_LEDGER_EXACT_CHECK_3=python3 scripts/zigux/check-phase10-harness-coverage.py",
 ]
 
 MAKEFILE_MARKERS = [
@@ -239,6 +257,14 @@ def check_markers(missing: list[str], label: str, text: str, markers: list[str])
             missing.append(f"{label}:{marker}")
 
 
+def check_exact_count(
+    missing: list[str], label: str, text: str, marker: str, expected: int = 1
+) -> None:
+    actual = text.count(marker)
+    if actual != expected:
+        missing.append(f"{label}:count:{marker}={actual}")
+
+
 def find_gap(manifest: dict[str, object], gap_id: str) -> dict[str, object] | None:
     gaps = manifest.get("gaps")
     if not isinstance(gaps, list):
@@ -256,11 +282,15 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
 
     missing: list[str] = []
 
-    check_markers(missing, "closure", read_text(root, "Documentation/zigux/phase10-closure-evidence.md"), CLOSURE_MARKERS)
-    check_markers(missing, "docs_readme", read_text(root, "Documentation/zigux/README.md"), DOCS_README_MARKERS)
+    closure_text = read_text(root, "Documentation/zigux/phase10-closure-evidence.md")
+    docs_readme_text = read_text(root, "Documentation/zigux/README.md")
+    ledger_text = read_text(root, "zigux-alpha/PHASE10_CLOSURE_LEDGER.md")
+
+    check_markers(missing, "closure", closure_text, CLOSURE_MARKERS)
+    check_markers(missing, "docs_readme", docs_readme_text, DOCS_README_MARKERS)
     check_markers(missing, "checklist", read_text(root, "Documentation/zigux/review-checklist.md"), CHECKLIST_MARKERS)
     check_markers(missing, "freeze_map", read_text(root, "Documentation/zigux/freeze-map.md"), FREEZE_MAP_MARKERS)
-    check_markers(missing, "ledger", read_text(root, "zigux-alpha/PHASE10_CLOSURE_LEDGER.md"), LEDGER_MARKERS)
+    check_markers(missing, "ledger", ledger_text, LEDGER_MARKERS)
     check_markers(missing, "makefile", read_text(root, "zigux/Makefile"), MAKEFILE_MARKERS)
     check_markers(missing, "workflow", read_text(root, ".github/workflows/zigux-bootstrap.yml"), WORKFLOW_MARKERS)
     check_markers(missing, "phase10_build", read_text(root, "zigux/tests/phase10_build.zig"), BUILD_MARKERS)
@@ -268,6 +298,13 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     check_markers(missing, "ring_survey", read_text(root, "Documentation/zigux/phase10-virtio-ring-survey.md"), RING_SURVEY_MARKERS)
     check_markers(missing, "input_survey", read_text(root, "Documentation/zigux/phase10-virtio-input-survey.md"), INPUT_SURVEY_MARKERS)
     check_markers(missing, "mmio_survey", read_text(root, "Documentation/zigux/phase10-virtio-mmio-survey.md"), MMIO_SURVEY_MARKERS)
+
+    for marker in CLOSURE_EXACT_ONCE_MARKERS:
+        check_exact_count(missing, "closure", closure_text, marker)
+    for marker in DOCS_README_EXACT_ONCE_MARKERS:
+        check_exact_count(missing, "docs_readme", docs_readme_text, marker)
+    for marker in LEDGER_EXACT_ONCE_MARKERS:
+        check_exact_count(missing, "ledger", ledger_text, marker)
 
     closure_manifest = load_json(root, "zigux/tests/phase10_closure_manifest.json")
     if not isinstance(closure_manifest, dict):
@@ -355,7 +392,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
 
 def write_fixture(root: Path) -> None:
     text_fixture = {
-        "Documentation/zigux/phase10-closure-evidence.md": "\n".join(CLOSURE_MARKERS) + "\n",
+        "Documentation/zigux/phase10-closure-evidence.md": "\n".join(CLOSURE_MARKERS) + "\nPHASE10_TEST_COUNT=11\n",
         "Documentation/zigux/README.md": "\n".join(DOCS_README_MARKERS) + "\n",
         "Documentation/zigux/review-checklist.md": "\n".join(CHECKLIST_MARKERS) + "\n",
         "Documentation/zigux/freeze-map.md": "\n".join(FREEZE_MAP_MARKERS) + "\n",
@@ -365,7 +402,7 @@ def write_fixture(root: Path) -> None:
         "Documentation/zigux/phase10-virtio-mmio-survey.md": "\n".join(MMIO_SURVEY_MARKERS) + "\n",
         "scripts/zigux/check-phase10-harness-coverage.py": "fixture\n",
         "scripts/zigux/check-phase10-closure-inventory.py": "fixture\n",
-        "zigux-alpha/PHASE10_CLOSURE_LEDGER.md": "\n".join(LEDGER_MARKERS) + "\n",
+        "zigux-alpha/PHASE10_CLOSURE_LEDGER.md": "\n".join(LEDGER_MARKERS + LEDGER_EXACT_ONCE_MARKERS[3:4]) + "\n",
         "zigux/Makefile": "\n".join(MAKEFILE_MARKERS) + "\n",
         ".github/workflows/zigux-bootstrap.yml": "\n".join(WORKFLOW_MARKERS) + "\n",
         "zigux/tests/phase10_build.zig": "\n".join(BUILD_MARKERS) + "\n",
@@ -520,6 +557,30 @@ def run_self_test() -> int:
         expect_missing_marker("closure_note_harness_gate_guard", root, "closure:PHASE10_HARNESS_COVERAGE_GATE=python3 scripts/zigux/check-phase10-harness-coverage.py")
         write_fixture(root)
 
+        closure_note_path = root / "Documentation/zigux/phase10-closure-evidence.md"
+        original_closure_note = closure_note_path.read_text(encoding="utf-8")
+        closure_note_path.write_text(
+            original_closure_note + "\nPHASE10_HARNESS_COVERAGE_GATE=python3 scripts/zigux/check-phase10-harness-coverage.py\n",
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "closure_note_harness_gate_duplicate",
+            root,
+            "closure:count:PHASE10_HARNESS_COVERAGE_GATE=python3 scripts/zigux/check-phase10-harness-coverage.py=2",
+        )
+        write_fixture(root)
+
+        closure_note_path.write_text(
+            original_closure_note + "\nPHASE10_TEST_COUNT=11\n",
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "closure_note_test_count_duplicate",
+            root,
+            "closure:count:PHASE10_TEST_COUNT=11=2",
+        )
+        write_fixture(root)
+
         docs_readme_path = root / "Documentation/zigux/README.md"
         original_docs_readme = docs_readme_path.read_text(encoding="utf-8")
         docs_readme_path.write_text(
@@ -554,6 +615,30 @@ def run_self_test() -> int:
         )
         write_fixture(root)
 
+        docs_readme_path = root / "Documentation/zigux/README.md"
+        original_docs_readme = docs_readme_path.read_text(encoding="utf-8")
+        docs_readme_path.write_text(
+            original_docs_readme + "\nqueue-handling and ready-state gate\n",
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "docs_readme_ready_state_phrase_duplicate",
+            root,
+            "docs_readme:count:queue-handling and ready-state gate=2",
+        )
+        write_fixture(root)
+
+        docs_readme_path.write_text(
+            original_docs_readme + "\npython3 scripts/zigux/check-phase10-harness-coverage.py\n",
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "docs_readme_harness_gate_duplicate",
+            root,
+            "docs_readme:count:python3 scripts/zigux/check-phase10-harness-coverage.py=2",
+        )
+        write_fixture(root)
+
         ledger_path = root / "zigux-alpha/PHASE10_CLOSURE_LEDGER.md"
         original_ledger = ledger_path.read_text(encoding="utf-8")
         ledger_path.write_text(
@@ -563,6 +648,8 @@ def run_self_test() -> int:
         expect_missing_marker("ledger_preflight_guard", root, "ledger:PHASE10_LEDGER_INPUT_MULTITOUCH_PREFLIGHT_GATE=zigux/tests/phase10_virtio_input_multitouch_preflight.zig")
         write_fixture(root)
 
+        ledger_path = root / "zigux-alpha/PHASE10_CLOSURE_LEDGER.md"
+        original_ledger = ledger_path.read_text(encoding="utf-8")
         ledger_path.write_text(
             original_ledger.replace(
                 "PHASE10_LEDGER_HARNESS_COVERAGE_VALIDATE=scripts/zigux/check-phase10-harness-coverage.py",
@@ -575,6 +662,30 @@ def run_self_test() -> int:
             "ledger_harness_gate_guard",
             root,
             "ledger:PHASE10_LEDGER_HARNESS_COVERAGE_VALIDATE=scripts/zigux/check-phase10-harness-coverage.py",
+        )
+        write_fixture(root)
+
+        ledger_path = root / "zigux-alpha/PHASE10_CLOSURE_LEDGER.md"
+        original_ledger = ledger_path.read_text(encoding="utf-8")
+        ledger_path.write_text(
+            original_ledger + "\nPHASE10_LEDGER_HARNESS_COVERAGE_VALIDATE=scripts/zigux/check-phase10-harness-coverage.py\n",
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "ledger_harness_gate_duplicate",
+            root,
+            "ledger:count:PHASE10_LEDGER_HARNESS_COVERAGE_VALIDATE=scripts/zigux/check-phase10-harness-coverage.py=2",
+        )
+        write_fixture(root)
+
+        ledger_path.write_text(
+            original_ledger + "\nPHASE10_LEDGER_MMIO_QUEUE_ISOLATION_GATE=zigux/tests/phase10_virtio_mmio_queue_isolation.zig\n",
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "ledger_queue_isolation_duplicate",
+            root,
+            "ledger:count:PHASE10_LEDGER_MMIO_QUEUE_ISOLATION_GATE=zigux/tests/phase10_virtio_mmio_queue_isolation.zig=2",
         )
         write_fixture(root)
 
@@ -593,7 +704,7 @@ def run_self_test() -> int:
         expect_missing_file("queue_isolation_file_guard", root, "zigux/tests/phase10_virtio_mmio_queue_isolation.zig")
 
     print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=12")
+    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=17")
     return 0
 
 
@@ -618,10 +729,13 @@ if missing_markers:
 
 total_markers = (
     len(CLOSURE_MARKERS)
+    + len(CLOSURE_EXACT_ONCE_MARKERS)
     + len(DOCS_README_MARKERS)
+    + len(DOCS_README_EXACT_ONCE_MARKERS)
     + len(CHECKLIST_MARKERS)
     + len(FREEZE_MAP_MARKERS)
     + len(LEDGER_MARKERS)
+    + len(LEDGER_EXACT_ONCE_MARKERS)
     + len(MAKEFILE_MARKERS)
     + len(WORKFLOW_MARKERS)
     + len(BUILD_MARKERS)
