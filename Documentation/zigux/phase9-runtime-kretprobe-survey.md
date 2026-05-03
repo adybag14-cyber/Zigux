@@ -16,11 +16,11 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `sam
   - `zigux/tests/runtime_kretprobe_manifest.json`
   - `zigux/tests/runtime_kretprobe_survey.zig`
   - `zigux/tests/runtime_kretprobe_module.zig`
-  - `zigux/tests/runtime_kretprobe_diff.zig`
   - `zigux/tests/phase9_build.zig`
   - `Documentation/zigux/phase9-runtime-kretprobe-survey.md`
   - `Documentation/zigux/phase9-runtime-kretprobe-module-slice.md`
   - `Documentation/zigux/phase9-runtime-loader-gap-survey.md`
+  - `Documentation/zigux/freeze-map.md`
 
 ## Why this slice exists
 
@@ -31,6 +31,10 @@ This `P9-L16` verification pass keeps the survey artifacts anchored to the curre
 In other words, the current survey packet is pinned to `master` commit `fe8a43ea2e186da0da152198b571dff57ea3c38c` while this bounded helper-step replay remains under review.
 
 The live repo now has a bounded `runtime_kretprobe` starter, a direct embedded sample replay, dedicated module tests, a dedicated diff gate, a bounded loader-handoff scaffold, a shared loader-request binding under `zigux/kernel/runtime_loader.zig`, and shared Phase 9 build coverage, so this survey note keeps that shipped packet reviewable through a manifest-backed delivery catalog and ownership map instead of leaving the sample and shared-build surface implied.
+
+The shared runtime-loader blocker that still governs this kretprobe packet also sits underneath the freeze map's study boundary. `Documentation/zigux/freeze-map.md` keeps `kernel/workqueue.c` in `Study / Boundary Only`, so this lane may ship a bounded in-memory starter, loader-handoff scaffold, shared loader-request binding, and direct replay evidence, but it must not imply workqueue parity, scheduler transport ownership, or any Architecture Council-approved status change for that study-only anchor.
+
+No parity scorecard entry or Architecture Council status-change request is attached to this Phase 9 kretprobe lane. The evidence here remains limited to the runtime starter, loader scaffold, shared request binding, module and diff gates, and the still-blocked shared loader-control posture that keeps the packet pre-execution.
 
 ## Survey findings
 
@@ -56,7 +60,7 @@ The live repo now has a bounded `runtime_kretprobe` starter, a direct embedded s
 
 The manifest-backed catalog for this slice now names which file owns each part of the current delivery packet:
 
-- `Documentation/zigux/phase9-runtime-kretprobe-survey.md` owns the roadmap anchor note, shipped review packet summary, explicit shared-build evidence, and remaining shared-loader blocker wording
+- `Documentation/zigux/phase9-runtime-kretprobe-survey.md` owns the roadmap anchor note, shipped review packet summary, explicit shared-build evidence, the freeze-map boundary note, and remaining shared-loader blocker wording
 - `Documentation/zigux/phase9-runtime-kretprobe-module-slice.md` owns the bounded starter surface, lifecycle summary, loader handoff wording, and shared-build-leg explanation for the shipped packet
 - `zigux/tests/runtime_kretprobe_manifest.json` owns the manifest-backed exact checks, delivery catalog, and ownership map for the current runtime kretprobe packet
 - `zigux/tests/runtime_kretprobe_survey.zig` owns the machine-checkable replay of the manifest-backed ownership packet, shared-build legs, and adjacent blocked shared-loader note
@@ -66,7 +70,8 @@ The manifest-backed catalog for this slice now names which file owns each part o
 - `samples/zigux/runtime_kretprobe.zig` owns the bounded in-memory kretprobe starter contract, direct embedded sample replay, lifecycle staging, per-instance timestamp bookkeeping, public `runFailedExitRecoveryReplay()`, and selftest-hook metadata
 - `samples/zigux/runtime_kretprobe_loader.zig` owns the sample-side loader projection, explicit shared `command_name` preservation, waiting_on_runtime_substrate handoff, released_without_substrate fallback, and kretprobe payload summary
 - `zigux/kernel/runtime_loader.zig` owns the shared runtime-loader request contract that consumes the kretprobe loader handoff, allocator posture, and staged entry and exit symbols
-- `Documentation/zigux/phase9-runtime-loader-gap-survey.md` owns the blocked shared command-name, argv-policy, and environment-derived activation-control posture that keeps the kretprobe packet pre-execution
+- `Documentation/zigux/phase9-runtime-loader-gap-survey.md` owns the blocked shared command-name, argv-policy, environment-derived activation-control posture that keeps the kretprobe packet pre-execution
+- `Documentation/zigux/freeze-map.md` owns the study-only `kernel/workqueue.c` boundary, the no-parity-scorecard posture, and the Architecture Council reopen rule for any scheduler-facing status change tied to this pre-execution kretprobe packet
 
 ## Recorded gaps
 
@@ -123,7 +128,9 @@ This survey slice does not yet claim:
 - loadable-module init and exit parity for kretprobes inside Zigux
 - shared runtime-loader command-name, argv-policy, or environment-derived activation controls
 - true runtime execution or lifecycle parity through a shared loader path
+- parity or ownership for `kernel/workqueue.c`
+- any freeze-map status change for the scheduler-facing workqueue boundary without an Architecture Council decision
 
 ## Next bounded step
 
-Stay in the Phase 9 runtime kretprobe lane and keep future work narrowly aimed at the remaining shared runtime-loader control blocker, rather than reopening already-landed sample, survey, manifest, loader-scaffold, shared binding, module-gate, or diff-gate scaffolding.
+Stay in the Phase 9 runtime kretprobe lane and keep future work narrowly aimed at the remaining shared runtime-loader control blocker, rather than reopening already-landed sample, survey, manifest, loader-scaffold, shared binding, module-gate, or diff-gate scaffolding, while keeping `kernel/workqueue.c` in study-only status unless the Architecture Council explicitly reopens that anchor.
