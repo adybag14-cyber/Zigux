@@ -361,4 +361,20 @@ test "phase14 workqueue bridge survey status block keeps review packet aligned" 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "delayed_work_timer_fn()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "__queue_work()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Leave this lane in blocked maintenance") != null);
+
+    const slice_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase14-workqueue-bridge-slice.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(slice_note);
+
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "parked in blocked maintenance") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "mod_delayed_work_on()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "try_to_grab_pending()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "__queue_delayed_work()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "timer-base") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "CPU-affinity") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "requeue ownership") != null);
 }
