@@ -115,6 +115,10 @@ RELEASE_MARKERS = [
     "zig build test --build-file zigux/tests/phase13_build.zig --summary all",
 ]
 
+RELEASE_EXACT_COUNT_MARKERS = {
+    "`python3 scripts/zigux/validate-phase13-release.py`, `make -C zigux phase13-validate`, `zig build test --build-file zigux/tests/phase13_build.zig --summary all`, and `make -C zigux phase13` are the published validator-first and shared replay path for the current packet": 1,
+}
+
 TRACEABILITY_MARKERS = [
     "Shared tranche entrypoints already present on `master`:",
     "`zigux/tests/phase13_build.zig`",
@@ -291,6 +295,15 @@ def main() -> int:
             missing,
             "workflow",
             source_by_name["workflow"],
+            marker,
+            expected_count,
+        )
+
+    for marker, expected_count in RELEASE_EXACT_COUNT_MARKERS.items():
+        require_exact_count(
+            missing,
+            "release",
+            source_by_name["release"],
             marker,
             expected_count,
         )
@@ -497,7 +510,7 @@ def main() -> int:
     print(f"PHASE13_RELEASE_REQUIRED_FILE_COUNT={len(FILES)}")
     print(
         "PHASE13_RELEASE_REQUIRED_MARKER_COUNT="
-        f"{len(MAKE_MARKERS) + len(MAKE_EXACT_COUNT_MARKERS) + len(WORKFLOW_MARKERS) + len(WORKFLOW_EXACT_COUNT_MARKERS) + len(RELEASE_MARKERS) + len(TRACEABILITY_MARKERS) + len(DOCS_ROOT_MARKERS) + len(DOCS_ROOT_EXACT_COUNT_MARKERS) + len(SCRIPT_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(REVIEW_CHECKLIST_EXACT_COUNT_MARKERS) + len(DEVRES_SURVEY_MARKERS) + len(DEVRES_REVIEWABILITY_MARKERS)}"
+        f"{len(MAKE_MARKERS) + len(MAKE_EXACT_COUNT_MARKERS) + len(WORKFLOW_MARKERS) + len(WORKFLOW_EXACT_COUNT_MARKERS) + len(RELEASE_MARKERS) + len(RELEASE_EXACT_COUNT_MARKERS) + len(TRACEABILITY_MARKERS) + len(DOCS_ROOT_MARKERS) + len(DOCS_ROOT_EXACT_COUNT_MARKERS) + len(SCRIPT_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(REVIEW_CHECKLIST_EXACT_COUNT_MARKERS) + len(DEVRES_SURVEY_MARKERS) + len(DEVRES_REVIEWABILITY_MARKERS)}"
     )
     print(f"PHASE13_RELEASE_BUILD_TEST_COUNT={len(build_names)}")
     print(f"PHASE13_RELEASE_BUILD_DEPEND_STEP_COUNT={len(depend_steps)}")
