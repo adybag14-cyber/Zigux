@@ -1,5 +1,5 @@
 {
-  "lane_key": "P13-L18",
+  "lane_key": "P13-L19",
   "phase": "Phase 13",
   "surveyed_commit": "66b55d8a9a800345097f3c04b9f95130b1f8d0b8",
   "anchors": [
@@ -9,7 +9,7 @@
     "include/net/dsa.h",
     "include/linux/watchdog.h"
   ],
-  "roadmap_scope": "Phase 13 is the shared helper tranche, but its named anchors remain libfs, devres, and Landlock, so this lane stays bounded to a read-only notifier foothold that mirrors upstream generic notifier shapes without promoting notifier/list interop to a new named anchor.",
+  "roadmap_scope": "Phase 13 is the shared helper tranche, but its named anchors remain libfs, devres, and Landlock, so this lane stays bounded to a read-only notifier foothold that mirrors upstream generic notifier shapes without promoting notifier/list interop to a new named anchor. The next closure step adds a dedicated exported C header so the shared notifier ABI packet is reviewable on both sides of the Zigux boundary while keeping registration and callback execution out of scope.",
   "survey_summary": {
     "preexisting_phase13_build_present": true,
     "preexisting_phase3_build_present": true,
@@ -26,7 +26,8 @@
     "preexisting_public_same_struct_list_notifier_anchor_present": true,
     "landed_generic_notifier_abi_present": true,
     "landed_generic_notifier_build_surface_present": true,
-    "landed_generic_notifier_helper_present": true
+    "landed_generic_notifier_helper_present": true,
+    "landed_generic_notifier_c_header_surface_present": true
   },
   "gaps": [
     {
@@ -41,7 +42,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_notifier_list_reviewability.zig",
-      "why_now": "The reviewability gate now records the landed Zigux-side notifier binding and helper foothold instead of only the earlier absence proof."
+      "why_now": "The reviewability gate now records the landed Zigux-side notifier binding, helper, and dedicated exported C header foothold instead of only the earlier absence proof."
     },
     {
       "id": "phase13-notifier-list-survey-note",
@@ -69,7 +70,7 @@
       "status": "preexisting_phase3_surface",
       "kind": "shared_helper_surface",
       "zigux_destination": "zigux/helpers/list_view.zig",
-      "why_now": "The existing list, hlist, and raw-notifier helpers now expose the same bounded `viewFromHead`, `isEmpty`, `length`, and `summarize` read-only API shape, which keeps the interop story reviewable without widening into mutation or callback execution."
+      "why_now": "The existing list, hlist, and raw-notifier helpers now expose the same bounded viewFromHead, isEmpty, length, and summarize read-only API shape, which keeps the interop story reviewable without widening into mutation or callback execution."
     },
     {
       "id": "phase3-list-hlist-replay-surface",
@@ -125,14 +126,21 @@
       "status": "starter_landed",
       "kind": "shared_helper_surface",
       "zigux_destination": "zigux/bindings/notifier_abi.zig",
-      "why_now": "This run lands the smallest reusable Zigux-side generic notifier mirror: read-only `notifier_block` and `raw_notifier_head` references plus bounded chain view and summary structs."
+      "why_now": "The earlier notifier packet landed the smallest reusable Zigux-side generic notifier mirror: read-only notifier_block and raw_notifier_head references plus bounded chain view and summary structs."
     },
     {
       "id": "phase13-generic-notifier-helper-foothold",
       "status": "starter_landed",
       "kind": "shared_helper_surface",
       "zigux_destination": "zigux/helpers/notifier_chain_view.zig",
-      "why_now": "This run also lands the bounded helper that surveys raw notifier-chain linkage with empty, terminated, truncated, and self-loop coverage while staying out of registration, callback execution, SRCU, and blocking semantics."
+      "why_now": "The earlier notifier packet also landed the bounded helper that surveys raw notifier-chain linkage with empty, terminated, truncated, and self-loop coverage while staying out of registration, callback execution, SRCU, and blocking semantics."
+    },
+    {
+      "id": "phase13-generic-notifier-c-header-foothold",
+      "status": "starter_landed",
+      "kind": "shared_helper_surface",
+      "zigux_destination": "include/zigux/notifier_abi.h",
+      "why_now": "This run closes the exported-boundary gap with a dedicated read-only C header that mirrors the notifier block, raw notifier head, bounded chain view, and bounded summary plus the same small companion helper API shape."
     }
   ]
 }
