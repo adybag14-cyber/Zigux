@@ -40,7 +40,7 @@ This Phase 3 lane now adds both the helper-local packet and a dedicated boundary
 - `include/zigux/rbtree.h` and `zigux/bindings/rbtree.zig` define a dedicated `rbtree` root view outside the shared ABI packet
 - `zigux/tests/phase3_rbtree_dump.zig` plus `zigux/tests/fixtures/phase3_rbtree/expected.json` and `zigux/tests/fixtures/phase3_rbtree/phase3_rbtree_c_harness.c` keep that dedicated boundary replayable across C and Zig
 - `Documentation/zigux/phase3-rbtree-slice.md`, `zigux/tests/phase3_rbtree_survey.zig`, `zigux/tests/phase3_rbtree_root_view_survey.zig`, and `zigux/tests/phase3_rbtree_manifest.json` keep the landed helper packet machine-checked
-- `zigux/tests/phase3_rbtree_shared_contract.zig` now keeps that planned shared packet layout and constant contract machine-checked even before the full shared header lift lands
+- `zigux/tests/phase3_rbtree_shared_contract.zig` now keeps that planned shared packet layout and constant contract machine-checked before the full shared header lift lands
 - the shared Phase 3 ABI manifest now explicitly catalogs the dedicated `rbtree` boundary header, binding, dump, survey, and parity fixture files so the remaining gap is the shared header and binding lift itself rather than whether the dedicated packet belongs to the shared ABI tranche
 
 That means the remaining Phase 3 gap is no longer “no curated C header, bindings record, or parity fixture exists.” The remaining gap is that current `master` still has no shared `rbtree` record inside `include/zigux/abi.h`, `zigux/bindings/abi.zig`, and the shared `phase3_abi` fixture packet.
