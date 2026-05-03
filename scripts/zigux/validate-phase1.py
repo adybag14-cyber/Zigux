@@ -56,10 +56,10 @@ HELPERS = [
     "tools/lib/find_bit.zig",
     "tools/lib/hweight.zig",
     "tools/lib/list_sort.zig",
-    "tools/lib/rbtree.zig",
     "tools/lib/slab.zig",
     "tools/lib/str_error_r.zig",
     "tools/lib/string.zig",
+    "tools/lib/rbtree.zig",
     "tools/lib/vsprintf.zig",
     "tools/lib/zalloc.zig",
 ]
@@ -231,7 +231,7 @@ MARKER_GROUPS = {
             "PHASE1_CLOSURE_GATE=python3 scripts/zigux/validate-phase1-closure.py",
             "PHASE1_CLOSURE_SELF_TEST_GATE=python3 scripts/zigux/validate-phase1-closure.py --self-test",
             "PHASE1_PARITY_SELF_TEST_GATE=python3 scripts/zigux/check-phase1-parity.py --self-test",
-            "PHASE1_BITMAP_ZERO_BIT_UNIT_REVIEW=",
+            "PHASE1_BITMAP_ZERO_BIT_UNIT_REVIEW=bitmap zero-length helper calls stay side-effect free so zero fill copy copyClearTail orBits xorBits scans and formatting leave caller-owned buffers untouched when nbits is zero",
             "PHASE1_FIND_BIT_MASK_UNIT_REVIEW=find_bit mask and sizing helpers keep Linux-style whole-word, partial-word, and wrapped-start boundaries reviewable without relying only on indirect scan coverage",
             "PHASE1_FIND_BIT_BOUNDARY_UNIT_REVIEW=find_bit empty and out-of-range scans return nbits for zero-length bitmaps, start-at-nbits searches, and fully set zero-bit windows that must not report past the declared range",
             "PHASE1_FIND_BIT_LOW_LEVEL_UNIT_REVIEW=find_bit low-level underscore entry points preserve same-word inclusive starts and tail-clamped set, shared-bit, and zero-bit scan behavior across the same caller-selected bit windows as the public helpers",
@@ -292,6 +292,10 @@ PHASE1_CLOSURE_PREFIX_COUNTS = {
 }
 
 MANIFEST_EXPECTATIONS = {
+    "tools/lib/bitmap.zig": {
+        "zero_bit_unit_test_anchor": 'tools/lib/bitmap.zig:test "bitmap zero-bit helpers stay explicit no-ops"',
+        "zero_bit_unit_test_contract": "Direct Zig unit coverage keeps zero-length helper calls explicit and side-effect free so zero(), fill(), copy(), copyClearTail(), orBits(), xorBits(), scans, and formatting all leave caller-owned buffers untouched when nbits is zero.",
+    },
     "tools/lib/string.zig": {
         "unit_test_anchor": 'tools/lib/string.zig:test "memchrInv scans aligned and misaligned long buffers"',
         "unit_test_contract": "Direct Zig unit coverage keeps memchrInv honest across aligned and misaligned long buffers, the short-versus-long cutoff boundary, earliest dirty-word mismatch selection, high-bit byte scans, and zero-value word-boundary scans beyond the short C-backed fixture cases.",
@@ -538,6 +542,15 @@ def self_test() -> int:
         manifest["helper_review_notes"]["tools/lib/find_bit.zig"]["tail_word_boundary_unit_test_anchor"] = MANIFEST_EXPECTATIONS["tools/lib/find_bit.zig"]["tail_word_boundary_unit_test_anchor"]
         write(root / "zigux/tests/fixtures/phase1_helper_manifest.json", json.dumps(manifest, indent=2) + "\n")
 
+        manifest["helper_review_notes"]["tools/lib/bitmap.zig"]["zero_bit_unit_test_anchor"] = "old anchor"
+        write(root / "zigux/tests/fixtures/phase1_helper_manifest.json", json.dumps(manifest, indent=2) + "\n")
+        code = os.spawnve(os.P_WAIT, sys.executable, [sys.executable, __file__], env)
+        if code == 0:
+            print("PHASE1_VALIDATOR_SELF_TEST=fail")
+            return 1
+        manifest["helper_review_notes"]["tools/lib/bitmap.zig"]["zero_bit_unit_test_anchor"] = MANIFEST_EXPECTATIONS["tools/lib/bitmap.zig"]["zero_bit_unit_test_anchor"]
+        write(root / "zigux/tests/fixtures/phase1_helper_manifest.json", json.dumps(manifest, indent=2) + "\n")
+
         manifest["helper_review_notes"]["tools/lib/string.zig"]["memparse_unit_test_contract"] = "old wording"
         write(root / "zigux/tests/fixtures/phase1_helper_manifest.json", json.dumps(manifest, indent=2) + "\n")
         code = os.spawnve(os.P_WAIT, sys.executable, [sys.executable, __file__], env)
@@ -554,7 +567,7 @@ def self_test() -> int:
             return 1
 
     print("PHASE1_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_VALIDATOR_SELF_TEST_CASE_COUNT=5")
+    print("PHASE1_VALIDATOR_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
