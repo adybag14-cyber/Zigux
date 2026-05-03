@@ -53,6 +53,12 @@ REQUIRED_SELF_TEST_ROUTE_MARKERS = [
     "Run Phase 4 diff tests",
 ]
 
+REQUIRED_KPROBE_SURVEY_STATUS_MARKERS = [
+    "make -C zigux phase4-kprobe-example-survey",
+    "phase4-kprobe-example-survey-tests",
+    "shared validator still does not fail closed on the kprobe survey packet itself",
+]
+
 EXACT_WORKFLOW_RUN_COUNT_MARKERS = [
     "one `make -C zigux phase4-validate` run line",
     "one `make -C zigux phase4-test` run line",
@@ -231,6 +237,9 @@ def validate_root(root: Path) -> list[str]:
     for marker in REQUIRED_SELF_TEST_ROUTE_MARKERS:
         if marker not in gate_evidence:
             missing.append(f"phase4_gate_evidence:{marker}")
+    for marker in REQUIRED_KPROBE_SURVEY_STATUS_MARKERS:
+        if marker not in gate_evidence:
+            missing.append(f"phase4_gate_evidence:kprobe_survey_status:{marker}")
     if workflow is not None:
         missing.extend(collect_exact_workflow_run_count_markers(workflow, gate_evidence))
     for marker in REQUIRED_RUNTIME_ATOMIC64_REVERSIBLE_DELIVERY_MARKERS:
@@ -336,6 +345,7 @@ def write_fixture_tree(root: Path) -> None:
         "- on the synthetic workflow, there is one `make -C zigux phase4-validate` run line and one `make -C zigux phase4-test` run line under the Phase 4 steps, and the checker keeps those exact counts fail-closed beside the broader route markers.",
         "- synthetic fixture keeps the runtime atomic64 reversible-delivery packet explicit: `lib/atomic64_test.c` stays the source of truth, removing `atomic64_diff.zig` from the shared `phase4_build.zig` entrypoint is the documented rollback move, `runtime_atomic64_diff.zig` remains the single replay body, and the existing Phase 9 runtime atomic64 starter remains the forward path.",
         "- synthetic fixture keeps one pending threshold-plan record per shipped rollback gate explicit, pinning `make -C zigux phase4-runtime-atomic64-diff` and `make -C zigux phase4-bitmap-diff` beside the still-unapproved benchmark-command and acceptable-limit placeholders.",
+        "- synthetic fixture keeps the kprobe survey packet explicit through `make -C zigux phase4-kprobe-example-survey`, `phase4-kprobe-example-survey-tests`, and the still-open note that the shared validator still does not fail closed on the kprobe survey packet itself.",
         "",
         "## Current Conclusion",
         "",
@@ -594,6 +604,38 @@ def run_self_test() -> int:
                 "phase4_gate_evidence:perf_baseline_pending_threshold_plan:"
             )
             for marker in missing
+        ), missing
+
+        write_fixture_tree(root)
+        gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
+        gate_evidence.write_text(
+            gate_evidence.read_text(encoding="utf-8").replace(
+                "make -C zigux phase4-kprobe-example-survey",
+                "make -C zigux phase4-kprobe-example-survey-missing",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert (
+            "phase4_gate_evidence:kprobe_survey_status:make -C zigux phase4-kprobe-example-survey"
+            in missing
+        ), missing
+
+        write_fixture_tree(root)
+        gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
+        gate_evidence.write_text(
+            gate_evidence.read_text(encoding="utf-8").replace(
+                "shared validator still does not fail closed on the kprobe survey packet itself",
+                "shared validator now fails closed on the kprobe survey packet itself",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert (
+            "phase4_gate_evidence:kprobe_survey_status:shared validator still does not fail closed on the kprobe survey packet itself"
+            in missing
         ), missing
 
         write_fixture_tree(root)
