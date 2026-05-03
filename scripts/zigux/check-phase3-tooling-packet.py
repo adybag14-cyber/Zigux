@@ -117,6 +117,15 @@ def validate(root: Path) -> list[str]:
     if not isinstance(files, list):
         return [f"missing_manifest_files:{MANIFEST_REL}"]
 
+    file_count = manifest.get("file_count")
+    if not isinstance(file_count, int):
+        return [f"invalid_manifest_file_count:{MANIFEST_REL}:{file_count!r}"]
+    expected_file_count = len(files)
+    if file_count != expected_file_count:
+        return [
+            f"unexpected_manifest_file_count:{MANIFEST_REL}:{file_count}:{expected_file_count}"
+        ]
+
     issues: list[str] = []
     listed = {entry for entry in files if isinstance(entry, str)}
 
@@ -205,10 +214,51 @@ def run_self_test() -> int:
             raise SystemExit("phase3-tooling-packet-self-test:baseline_failed:" + ",".join(issues))
 
         broken_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        broken_manifest["file_count"] = len(REQUIRED_TOOLING_FILES) - 1
+        _write(manifest_path, json.dumps(broken_manifest, indent=2) + "\n")
+        issues = validate(root)
+        expected = [
+            f"unexpected_manifest_file_count:{MANIFEST_REL}:{len(REQUIRED_TOOLING_FILES) - 1}:{len(REQUIRED_TOOLING_FILES)}"
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-tooling-packet-self-test:manifest_file_count_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+        broken_manifest["file_count"] = str(len(REQUIRED_TOOLING_FILES))
+        _write(manifest_path, json.dumps(broken_manifest, indent=2) + "\n")
+        issues = validate(root)
+        expected = [
+            f"invalid_manifest_file_count:{MANIFEST_REL}:{str(len(REQUIRED_TOOLING_FILES))!r}"
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-tooling-packet-self-test:manifest_file_count_type_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+        _write(
+            manifest_path,
+            json.dumps(
+                {
+                    "phase": "Phase 3",
+                    "status": "active",
+                    "slice": "abi-substrate-skeleton",
+                    "files": list(REQUIRED_TOOLING_FILES),
+                    "file_count": len(REQUIRED_TOOLING_FILES),
+                },
+                indent=2,
+            )
+            + "\n",
+        )
+
+        broken_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         missing_manifest_rel = "scripts/zigux/validate_phase3_header_binding_markers.py"
         broken_manifest["files"] = [
             rel for rel in REQUIRED_TOOLING_FILES if rel != missing_manifest_rel
         ]
+        broken_manifest["file_count"] = len(broken_manifest["files"])
         _write(manifest_path, json.dumps(broken_manifest, indent=2) + "\n")
         issues = validate(root)
         if issues != [f"missing_tooling_file:{missing_manifest_rel}"]:
@@ -266,7 +316,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE3_TOOLING_PACKET_SELF_TEST=pass")
-    print("PHASE3_TOOLING_PACKET_SELF_TEST_CASE_COUNT=5")
+    print("PHASE3_TOOLING_PACKET_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
