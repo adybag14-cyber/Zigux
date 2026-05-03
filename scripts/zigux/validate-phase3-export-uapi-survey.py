@@ -613,6 +613,13 @@ def run_self_test() -> int:
         _replace_blob_markers_with_head(root, survey_path)
         assert validate(root) == []
 
+        export_shim_path = root / EXPORT_SHIM_REL
+        original_export_shim = export_shim_path.read_text(encoding="utf-8")
+        export_shim_path.write_text(original_export_shim + "// drift\n", encoding="utf-8")
+        issues = validate(root)
+        assert f"surveyed_blob_drift:{EXPORT_SHIM_REL}" in issues
+        export_shim_path.write_text(original_export_shim, encoding="utf-8")
+
         survey_path.write_text(REQUIRED_SURVEY_MARKERS[0] + "\n", encoding="utf-8")
         issues = validate(root)
         assert any(issue.startswith("missing_survey_marker:") for issue in issues)
