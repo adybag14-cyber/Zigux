@@ -215,6 +215,23 @@ def run_self_test() -> int:
         _write(root, INTEROP_POLICY_REL, "\n".join(REQUIRED_INTEROP_POLICY_SNIPPETS) + "\n")
         _write(
             root,
+            MMIO_REL,
+            "\n".join(
+                snippet
+                for snippet in REQUIRED_MMIO_SNIPPETS
+                if snippet
+                != "pub fn read64Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u64 {"
+            ) + "\n",
+        )
+        issues = validate(root)
+        assert (
+            "missing_mmio_snippet:pub fn read64Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u64 {"
+            in issues
+        )
+
+        _write(root, MMIO_REL, "\n".join(REQUIRED_MMIO_SNIPPETS) + "\n")
+        _write(
+            root,
             POLICY_TEST_REL,
             "\n".join(snippet for snippet in REQUIRED_POLICY_TEST_SNIPPETS if "none_policy.constSliceAt" not in snippet and "none_policy.constPointerAt" not in snippet) + "\n",
         )
