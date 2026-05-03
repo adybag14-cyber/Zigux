@@ -240,6 +240,23 @@ def run_self_test() -> int:
         assert "missing_policy_test_snippet:try std.testing.expectError(error.UnsafeScopeDenied, none_policy.constPointerAt(u32, base));" in issues
 
         _write(root, POLICY_TEST_REL, "\n".join(REQUIRED_POLICY_TEST_SNIPPETS) + "\n")
+        _write(
+            root,
+            POLICY_TEST_REL,
+            "\n".join(
+                snippet
+                for snippet in REQUIRED_POLICY_TEST_SNIPPETS
+                if snippet
+                != "try std.testing.expectError(error.AddressOverflow, raw_pointer_policy.constSliceAt(u32, 4, std.math.maxInt(usize)));"
+            ) + "\n",
+        )
+        issues = validate(root)
+        assert (
+            "missing_policy_test_snippet:try std.testing.expectError(error.AddressOverflow, raw_pointer_policy.constSliceAt(u32, 4, std.math.maxInt(usize)));"
+            in issues
+        )
+
+        _write(root, POLICY_TEST_REL, "\n".join(REQUIRED_POLICY_TEST_SNIPPETS) + "\n")
         _write(root, SURVEY_REL, "\n".join(
             (
                 "# Phase 3 Policy and Unsafe Boundary Survey",
