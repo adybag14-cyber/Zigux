@@ -260,6 +260,8 @@ test "bitmap diff gate records exact full-width fill and zero endpoints" {
 test "bitmap diff gate keeps zero-nbits bitmap helpers as explicit no-ops" {
     var map = [_]Word{ 0xaaaa, 0xbbbb };
     const src = [_]Word{ 0x5555, 0xcccc };
+    const lhs = [_]Word{ 0x1357, 0x2468 };
+    const rhs = [_]Word{ 0xf0f0, 0x0f0f };
     var buffer = [_]u8{ 0xaa, 0xaa, 0xaa, 0xaa };
 
     bitmap.setRange(&map, 0, 0);
@@ -278,6 +280,18 @@ test "bitmap diff gate keeps zero-nbits bitmap helpers as explicit no-ops" {
     try std.testing.expectEqualSlices(Word, &[_]Word{ 0xaaaa, 0xbbbb }, &map);
 
     bitmap.copyClearTail(&map, &src, 0);
+    try std.testing.expectEqualSlices(Word, &[_]Word{ 0xaaaa, 0xbbbb }, &map);
+
+    bitmap.orBits(&map, &lhs, &rhs, 0);
+    try std.testing.expectEqualSlices(Word, &[_]Word{ 0xaaaa, 0xbbbb }, &map);
+
+    bitmap.xorBits(&map, &lhs, &rhs, 0);
+    try std.testing.expectEqualSlices(Word, &[_]Word{ 0xaaaa, 0xbbbb }, &map);
+
+    try std.testing.expect(!bitmap.andBits(&map, &lhs, &rhs, 0));
+    try std.testing.expectEqualSlices(Word, &[_]Word{ 0xaaaa, 0xbbbb }, &map);
+
+    try std.testing.expect(!bitmap.andNotBits(&map, &lhs, &rhs, 0));
     try std.testing.expectEqualSlices(Word, &[_]Word{ 0xaaaa, 0xbbbb }, &map);
 
     try std.testing.expectEqual(@as(usize, 0), firstSet(&[_]Word{}, 0));
