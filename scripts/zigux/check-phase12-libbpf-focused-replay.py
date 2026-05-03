@@ -478,6 +478,22 @@ def run_self_test() -> int:
     missing = collect_missing(
         **{
             **base_inputs,
+            "validate_phase12_text": base_inputs["validate_phase12_text"].replace(
+                "phase12_libbpf_only_build.zig\n",
+                "",
+                1,
+            ),
+        }
+    )
+    expect_contains(
+        "validate_phase12_build_shard_detection",
+        missing,
+        "validate_phase12:phase12_libbpf_only_build.zig",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
             "makefile_text": base_inputs["makefile_text"].replace(
                 "scripts/zigux/check-phase12-libbpf-focused-replay.py",
                 "scripts/zigux/check-phase12-libbpf-focused-replay-drift.py",
@@ -533,7 +549,7 @@ def run_self_test() -> int:
     )
 
     print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST=pass")
-    print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST_CASE_COUNT=18")
+    print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST_CASE_COUNT=19")
     return 0
 
 
