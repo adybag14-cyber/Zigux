@@ -13,6 +13,7 @@ EXPECTED_CONTRACT_CASES = [
     'helper_self_test',
     'helper_self_test_repeat',
     'cli_missing_required_args',
+    'cli_missing_actual_operand',
     'text_pass',
     'text_pass_repeat',
     'text_mismatch',
@@ -291,6 +292,20 @@ def main() -> int:
 
         expected.write_text('alpha\nbeta\n', encoding='utf-8', newline='\n')
         actual.write_text('alpha\nbeta\n', encoding='utf-8', newline='\n')
+
+        run_error_contract_case(
+            ['--mode', 'text', str(expected)],
+            2,
+            [],
+            expected_stderr_markers=[
+                'usage: artifact_diff.py',
+                '--mode {text,json,sha256}',
+                'artifact_diff.py: error: --mode, expected, and actual are required unless --self-test is set',
+            ],
+            expected_stderr_last_line='artifact_diff.py: error: --mode, expected, and actual are required unless --self-test is set',
+        )
+        covered_cases.append('cli_missing_actual_operand')
+
         run_contract_case(
             ['--mode', 'text', str(expected), str(actual)],
             0,
