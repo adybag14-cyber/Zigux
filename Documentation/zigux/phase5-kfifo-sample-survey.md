@@ -35,6 +35,8 @@ Fresh repo inspection now shows that `samples/zigux/` carries all four roadmap-a
 - `runtime_atomic64_loader.zig`
 - `runtime_bitmap.zig`
 - `runtime_bitmap_loader.zig`
+- `runtime_bitmap_top_bit_contract.zig`
+- `runtime_bitmap_top_bit_build.zig`
 - `runtime_kretprobe.zig`
 - `runtime_kretprobe_loader.zig`
 - `runtime_trace_events.zig`
