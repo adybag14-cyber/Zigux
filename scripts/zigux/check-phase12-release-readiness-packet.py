@@ -5,7 +5,8 @@ from pathlib import Path
 import sys
 
 
-ROOT = Path(__file__).resolve().parents[2]
+_resolved = Path(__file__).resolve()
+ROOT = _resolved.parents[2] if len(_resolved.parents) > 2 else _resolved.parent
 
 REQUIRED_FILES = [
     "Documentation/zigux/phase12-release-readiness-survey.md",
@@ -16,6 +17,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md",
     "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md",
     "scripts/zigux/check-phase12-cross.py",
+    "zigux/Makefile",
 ]
 
 SURVEY_MARKERS = [
@@ -74,6 +76,9 @@ REVIEW_CHECKLIST_EXACT_COUNT_MARKERS = {
     "if the change touches the Phase 12 release-facing PMO packet, do `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/README.md`, `Documentation/zigux/phase12-cross-compile-smoke.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `scripts/zigux/validate-phase12.py`, and `make -C zigux phase12-validate` still keep the active-not-closed release posture, the approved `x86_64-linux-musl`, `aarch64-linux-musl`, and `riscv64-linux-musl` smoke set, and the current two commit-pinned versus two shared-tree-only fallback split explicit?": 1,
 }
 
+MAKEFILE_SELF_TEST_MARKER = "scripts/zigux/check-phase12-release-readiness-packet.py --self-test"
+MAKEFILE_RUN_MARKER = "scripts/zigux/check-phase12-release-readiness-packet.py"
+
 CROSS_SMOKE_MARKERS = [
     "x86_64-linux-musl",
     "aarch64-linux-musl",
@@ -113,6 +118,7 @@ def collect_missing(
     survey_text: str,
     docs_root_text: str,
     review_checklist_text: str,
+    makefile_text: str,
     cross_smoke_text: str,
     raw_coverage_text: str,
 ) -> list[str]:
@@ -134,6 +140,10 @@ def collect_missing(
     return missing
 
 
+def shared_validate_wires_release_guard(makefile_text: str) -> bool:
+    return MAKEFILE_SELF_TEST_MARKER in makefile_text and MAKEFILE_RUN_MARKER in makefile_text
+
+
 def build_live_inputs() -> dict[str, object]:
     return {
         "present_files": {path for path in REQUIRED_FILES if (ROOT / path).exists()},
@@ -142,6 +152,7 @@ def build_live_inputs() -> dict[str, object]:
         "review_checklist_text": read_text("Documentation/zigux/review-checklist.md"),
         "cross_smoke_text": read_text("Documentation/zigux/phase12-cross-compile-smoke.md"),
         "raw_coverage_text": read_text("Documentation/zigux/phase12-raw-github-coverage-survey.md"),
+        "makefile_text": read_text("zigux/Makefile"),
     }
 
 
@@ -161,6 +172,7 @@ def run_self_test() -> int:
         "review_checklist_text": "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n",
         "cross_smoke_text": "\n".join(CROSS_SMOKE_MARKERS) + "\n",
         "raw_coverage_text": "\n".join(RAW_COVERAGE_MARKERS) + "\n",
+        "makefile_text": "\n".join([MAKEFILE_SELF_TEST_MARKER, MAKEFILE_RUN_MARKER, "scripts/zigux/validate-phase12.py"]) + "\n",
     }
 
     missing = collect_missing(**base_inputs)
@@ -287,6 +299,12 @@ def run_self_test() -> int:
         f"review_checklist_count:{REVIEW_CHECKLIST_MARKERS[0]}:expected=1:actual=2",
     )
 
+    if not shared_validate_wires_release_guard(base_inputs["makefile_text"]):
+        raise SystemExit("phase12-release-readiness-self-test:unexpected_makefile_wireup_failure")
+
+    if shared_validate_wires_release_guard(base_inputs["makefile_text"].replace(MAKEFILE_SELF_TEST_MARKER + "\n", "", 1)):
+        raise SystemExit("phase12-release-readiness-self-test:makefile_wireup_detection_failed")
+
     missing = collect_missing(
         **{
             **base_inputs,
@@ -312,7 +330,7 @@ def run_self_test() -> int:
     expect_contains("raw_coverage_marker_detection", missing, "raw_coverage:shared-tree-only")
 
     print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST=pass")
-    print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT=12")
+    print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
@@ -335,3 +353,7 @@ print(f"PHASE12_RELEASE_READINESS_PACKET_FILE_COUNT={len(REQUIRED_FILES)}")
 print(f"PHASE12_RELEASE_READINESS_SURVEY_MARKER_COUNT={len(SURVEY_MARKERS)}")
 print(f"PHASE12_RELEASE_READINESS_DOCS_ROOT_MARKER_COUNT={len(DOCS_ROOT_MARKERS)}")
 print(f"PHASE12_RELEASE_READINESS_REVIEW_CHECKLIST_MARKER_COUNT={len(REVIEW_CHECKLIST_MARKERS)}")
+print(
+    "PHASE12_RELEASE_READINESS_SHARED_VALIDATE_WIRES_PACKET_GUARD="
+    + ("yes" if shared_validate_wires_release_guard(live_inputs["makefile_text"]) else "no")
+)
