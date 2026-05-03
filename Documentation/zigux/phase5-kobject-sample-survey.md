@@ -66,6 +66,28 @@ The current gap is no longer "Zigux has no kobject sample guidance." The more pr
 - this approved ownership-and-lifetime idiom is pinned to `PHASE5_SURVEYED_COMMIT=affdebd460c9c33ce939c7535cdb929352648e93` so the survey note, manifest-backed checks, shared sample-root catalog, shared tests-root guide, shared review checklist, and focused shared-build replay all point at the same inspected `master` head
 - the Phase 5 roadmap's four named sample anchors are now all represented by bounded `samples/zigux/` reference readings, but that does not widen this slice into runtime sysfs or module-delivery claims
 
+## Review gates for this survey
+
+1. confirm the Phase 5 anchor is still the Linux kobject example
+   - `rg -n "samples/kobject/kobject-example.c|Phase 5" Documentation/zigux samples`
+2. confirm the current `samples/zigux/` surface keeps the Phase 5 and later runtime lanes distinct
+   - `find samples/zigux -maxdepth 1 -type f | sort | rg "kobject_example|runtime_"`
+3. run the focused self-check that keeps the ownership-and-lifetime replay explicit
+   - `zig test samples/zigux/kobject_example.zig`
+4. run the manifest-backed survey gate from the repo root so the exact-check record stays readable
+   - `zig test zigux/tests/phase5_kobject_example_survey.zig`
+5. run the exact bounded Phase 5 sample checks
+   - `zig build test --build-file zigux/tests/phase5_build.zig --summary all`
+
+## Non-goals
+
+This survey does not yet claim:
+
+- sysfs file creation parity
+- `kernel_kobj` integration
+- uevent delivery
+- loadable module registration
+
 ## Next bounded step
 
 Leave this kobject survey lane parked unless fresh repo inspection finds one more directly coupled contributor-guidance or exact-replay wording drift inside the landed `kobject_example` packet.
