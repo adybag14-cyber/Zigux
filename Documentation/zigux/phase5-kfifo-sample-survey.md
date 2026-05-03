@@ -116,7 +116,7 @@ The exact checks currently recorded in `zigux/tests/phase5_bytestream_fifo_manif
 
 ## Latest verification snapshot
 
-The latest recorded focused verification snapshot for this packet remains the 2026-05-01 replay against `master` commit `f5f4aa86602580b500f4d0ab8640ec6029e82e46` with the attached Zig toolchain.
+The latest direct Zig replay recorded for this packet remains the 2026-05-01 run against `master` commit `f5f4aa86602580b500f4d0ab8640ec6029e82e46` with the attached Zig toolchain.
 
 The exact focused verification commands and observed results for the bytestream-local packet were:
 
@@ -133,7 +133,7 @@ The exact focused verification commands and observed results for the bytestream-
 
 The shared `zigux/tests/phase5_build.zig` entrypoint remains the umbrella review gate recorded in the manifest and contributor prompts, but this bounded verification pass did not rerun the whole Phase 5 sample bundle, so this note no longer republishes the older pre-expansion shared test count.
 
-This note's 2026-05-02 refresh repins the inspected-head provenance to `PHASE5_SURVEYED_COMMIT=a15760c3e46103fd41ae0da852b61f612e9116c6` after readback confirmed that the bytestream sample, the paired survey gate, and the shared `phase5_build.zig` entrypoint still keep the same bounded bytestream review surface on current `master` without republishing that older whole-bundle total.
+This note's 2026-05-02 refresh was provenance-only: it repins the inspected-head marker to `PHASE5_SURVEYED_COMMIT=a15760c3e46103fd41ae0da852b61f612e9116c6` after readback confirmed that the bytestream sample, the paired survey gate, and the shared `phase5_build.zig` entrypoint still keep the same bounded bytestream review surface on current `master` without claiming a newer direct Zig replay or republishing that older whole-bundle total.
 
 Those recorded runs confirmed that the shipped bytestream FIFO sample still matches the exact bounded checks above: the embedded 32-byte queue reaches length `15` after the initial replay setup, drains `"hello"` first, drains and requeues `0` and `1`, skips `2`, peeks `3`, preserves the truncated replay preview prefix `[3,4,5,6,7,8,9,0]`, preserves the exact 32-byte snapshot and final drain sequence `[3,4,5,6,7,8,9,0,1,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42]`, and keeps the helper-only preview truncation, reset, and lifecycle guards green under the shared Phase 5 build entrypoint.
 
