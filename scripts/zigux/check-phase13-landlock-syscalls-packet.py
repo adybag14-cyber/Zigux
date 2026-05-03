@@ -197,7 +197,6 @@ def _run_self_test() -> int:
 
         surveyed_commit = "9c17b0790799d8240ef9f964903f5ce2db64af89"
         (root / "security/landlock/syscalls.zig").write_text("\n".join(SYSCALLS_MARKERS) + "\n", encoding="utf-8")
-        (root / "zigux/tests/phase13_landlock_syscalls.zig").writeText = None
         (root / "zigux/tests/phase13_landlock_syscalls.zig").write_text(
             f'const expected_surveyed_commit = "{surveyed_commit}"\n' + "\n".join(TEST_MARKERS) + "\n",
             encoding="utf-8",
