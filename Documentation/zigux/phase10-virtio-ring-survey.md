@@ -41,7 +41,7 @@ The live repo already has a bounded `drivers/virtio/virtio.zig` core starter wit
 - `PHASE10_FORBIDDEN_TRANSPORT_CLAIMS=queue_setup_reset_paths,irq_parity,dma_paths,input_registration_lifecycle,probe_remove_lifecycle`
 - the freeze-in-C anchors remain `kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, and `net/core/skbuff.c`
 - the separate Phase 14 study-only anchors remain `kernel/workqueue.c` and `kernel/trace/ring_buffer.c`
-- allowed Phase 10 delivery still stays inside `drivers/virtio/*.zig` plus `zigux/helpers/`
+- allowed Phase 10 delivery still stays inside `drivers/virtio/*.zig` plus justified bridge helpers in `zigux/kernel/` or `zigux/helpers/`
 - the separate Phase 14 packet still owns those study-only anchors through `boundary maps`, `concurrency audits`, `explicit stay-in-C decisions where warranted`, and `wrapper-first or study-only posture`, and `kernel/workqueue_bridge.zig` plus `kernel/trace/ring_buffer.zig` remain only future Phase 14 destinations
 - this survey uses the landed MMIO interrupt-ack rung only as evidence that no smaller ready transport follow-up remains ahead of `phase10-mmio-lifecycle-and-irq-paths`; it does not reopen `queue_setup_reset_paths`, `irq_parity`, `dma_paths`, `input_registration_lifecycle`, or `probe_remove_lifecycle`
 - if the note, focused survey gate, or manifest stops carrying this freeze packet, the rollback owner for this lane is `P10-L10`, which must retire the lane back to its parked review-only posture instead of widening into new helper or transport claims
