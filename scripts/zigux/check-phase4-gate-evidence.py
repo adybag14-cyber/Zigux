@@ -491,7 +491,6 @@ def run_self_test() -> int:
 
         write_fixture_tree(root)
         test_fsmount_manifest = root / "zigux/tests/phase4_test_fsmount_manifest.json"
-        test_fsmount_manifest.writeText = None
         test_fsmount_manifest.write_text("{}\n", encoding="utf-8")
         missing = validate_root(root)
         assert (
@@ -853,6 +852,7 @@ def run_self_test() -> int:
             for marker in missing
         ), missing
 
+        write_fixtureTree = None
         write_fixture_tree(root)
         gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
         gate_evidence.write_text(
