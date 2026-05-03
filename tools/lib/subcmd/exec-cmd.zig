@@ -152,6 +152,10 @@ pub fn makeNonrelativePath(allocator: std.mem.Allocator, cwd: []const u8, path: 
         return error.MissingCurrentWorkingDirectory;
     }
 
+    if (cwd.len == 1 and cwd[0] == '/') {
+        return std.fmt.allocPrint(allocator, "/{s}", .{path});
+    }
+
     return std.fmt.allocPrint(allocator, "{s}/{s}", .{ cwd, path });
 }
 
@@ -645,7 +649,7 @@ test "buildSearchPath rewrites relative entries against the working directory" {
     );
     defer std.testing.allocator.free(root_cwd);
     try std.testing.expectEqualStrings(
-        "//tools/bin://scripts:/usr/bin",
+        "/tools/bin:/scripts:/usr/bin",
         root_cwd,
     );
 }
@@ -1206,6 +1210,35 @@ test "setupPath ignores an empty argv0 directory sentinel extracted from root-on
 
     try std.testing.expectEqualStrings(
         "/repo/tools/bin:/usr/bin",
+        updated,
+    );
+    try std.testing.expectEqualStrings(updated, env.get("PATH").?);
+}
+
+test "setupPath normalizes root cwd relative entries without duplicate separators" {
+    const config = Config{
+        .exec_name = "perf",
+        .prefix = "/usr/libexec/perf-core",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var env = EnvMap.init(std.testing.allocator);
+    defer env.deinit();
+
+    var state = ExecCmdState{};
+    defer state.deinit(std.testing.allocator);
+
+    try execCmdInit(&env, config);
+    try setArgvExecPath(std.testing.allocator, &env, &state, config, "tools/bin");
+    try setArgv0Path(std.testing.allocator, &state, "scripts");
+    try env.set("PATH", "/usr/bin");
+
+    const updated = try setupPath(std.testing.allocator, &env, state, config, "/");
+    defer std.testing.allocator.free(updated);
+
+    try std.testing.expectEqualStrings(
+        "/tools/bin:/scripts:/usr/bin",
         updated,
     );
     try std.testing.expectEqualStrings(updated, env.get("PATH").?);
