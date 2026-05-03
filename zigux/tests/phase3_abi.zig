@@ -152,7 +152,7 @@ test "phase3 abi slice keeps the boundary helpers constructible" {
     try std.testing.expect(narrow.permitsRawPointerBridgePolicyBytes(2, 0));
     try std.testing.expect(!narrow.permitsVolatileMmioPolicyBytes(2, 0));
 
-    // PHASE3_SHARED_RBTREE_SAMPLE_RECORD=cached-leftmost-root
+    // PHASE3_SHARED_RBTREE_SAMPLE_RECORDS=cached-leftmost-root,uncached-root
     const cached_root: rbtree.RootView = .{
         .root_addr = 0x2000,
         .leftmost_addr = 0x1800,
@@ -167,4 +167,22 @@ test "phase3 abi slice keeps the boundary helpers constructible" {
     try std.testing.expect(!rbtree.isEmpty(cached_root));
     try std.testing.expect(rbtree.isCached(cached_root));
     try std.testing.expect(rbtree.hasLeftmost(cached_root));
+    try std.testing.expect(rbtree.isCanonical(cached_root));
+
+    const uncached_root: rbtree.RootView = .{
+        .root_addr = 0x2400,
+        .leftmost_addr = 0,
+        .flags = 0,
+        .reserved = 0,
+    };
+    try std.testing.expectEqual(@as(usize, 0x2400), uncached_root.root_addr);
+    try std.testing.expectEqual(@as(usize, 0), uncached_root.leftmost_addr);
+    try std.testing.expectEqual(@as(u32, 0), uncached_root.flags);
+    try std.testing.expectEqual(@as(u32, 0), uncached_root.reserved);
+    try std.testing.expect(rbtree.isValid(uncached_root));
+    try std.testing.expect(!rbtree.isEmpty(uncached_root));
+    try std.testing.expect(!rbtree.isCached(uncached_root));
+    try std.testing.expect(!rbtree.hasLeftmost(uncached_root));
+    try std.testing.expect(rbtree.hasRoot(uncached_root));
+    try std.testing.expect(rbtree.isCanonical(uncached_root));
 }
