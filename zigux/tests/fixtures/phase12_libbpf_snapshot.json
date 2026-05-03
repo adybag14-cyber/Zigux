@@ -21,8 +21,8 @@
     },
     {
       "path": "Documentation/zigux/phase12-libbpf-segment-survey.md",
-      "bytes": 15376,
-      "sha256": "749eb69fb9936058ace9364aaf28d29ca7236962bec8e1ec0b586fb3e27e1b7e"
+      "bytes": 16246,
+      "sha256": "9d3b408309dcebf6f392f21aaa64c80abc05a5a6b164bbdaf5baf1a9414d209f"
     },
     {
       "path": "tools/lib/bpf/zigux_segments/manifest.json",
