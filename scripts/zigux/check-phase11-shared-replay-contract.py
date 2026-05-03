@@ -29,7 +29,7 @@ README_MARKERS = [
 DOCS_README_MARKERS = [
     "`Documentation/zigux/phase11-shared-replay-contract.md` now keeps the shared-versus-dedicated replay boundary explicit from the docs root",
     "`python3 scripts/zigux/check-phase11-build-inventory.py`, `python3 scripts/zigux/check-phase11-layout-assert-surface.py`, `python3 scripts/zigux/check-phase11-hvc-validation-flow.py`, `python3 scripts/zigux/check-phase11-hvc-cleanup-alignment.py`, and `python3 scripts/zigux/check-phase11-shared-replay-contract.py` now keep the build snapshot, layout-assert review surface, the shared replay-contract note, the current hvc cleanup packet, and the shared-versus-dedicated replay boundary explicit as the pre-replay Phase 11 delivery gate behind `make -C zigux phase11-validate`.",
-    "`python3 scripts/zigux/validate-phase11.py`, `zigux/tests/fixtures/phase11_build_inventory.json`, `make -C zigux phase11-validate`, and `make -C zigux phase11` now define the shared Phase 11 reviewability path, with the dedicated `zigux/tests/phase11_hvc_console_survey.zig` archival replay still kept separate from `zigux/tests/phase11_build.zig`.",
+    "`python3 scripts/zigux/check-phase11-shared-replay-contract.py`, `python3 scripts/zigux/validate-phase11.py`, `zigux/tests/fixtures/phase11_build_inventory.json`, `make -C zigux phase11-validate`, and `make -C zigux phase11` now define the shared Phase 11 reviewability path, with the dedicated `zigux/tests/phase11_hvc_console_survey.zig` archival replay still kept separate from `zigux/tests/phase11_build.zig`.",
 ]
 TESTS_README_MARKERS = [
     "keep `Documentation/zigux/phase11-shared-replay-contract.md`, `zigux/tests/phase11_build.zig`, `zigux/tests/fixtures/phase11_build_inventory.json`, `zigux/tests/phase11_hvc_console_survey.zig`, and `scripts/zigux/validate-phase11.py` aligned",
@@ -86,7 +86,10 @@ SHARED_REPLAY_NOTE_MARKERS = [
     "The same contract is fail-closed by `python3 scripts/zigux/check-phase11-shared-replay-contract.py` before the broader validator runs.",
     "zig build test --build-file zigux/tests/phase11_build.zig --summary all",
     "make -C zigux phase11-hvc-survey",
+    "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
+    "scripts/zigux/README.md",
+    "zigux/tests/README.md",
     "zigux/tests/phase11_build.zig",
     "zigux/tests/fixtures/phase11_build_inventory.json",
     "scripts/zigux/check-phase11-build-inventory.py",
@@ -262,7 +265,10 @@ def write_fixture_tree(root: Path) -> None:
                 "",
                 "## Contributor Sync Points",
                 "",
+                "- `Documentation/zigux/README.md`",
                 "- `Documentation/zigux/review-checklist.md`",
+                "- `scripts/zigux/README.md`",
+                "- `zigux/tests/README.md`",
                 "",
                 "## Review Use",
                 "",
@@ -446,12 +452,45 @@ def run_self_test() -> int:
 
         write_text(
             note_path,
+            note_backup.replace("- `Documentation/zigux/README.md`\n", "", 1),
+        )
+        expect_missing(
+            "missing_note_docs_root_sync_point",
+            run_checker(tmp_root),
+            "shared_replay_note:Documentation/zigux/README.md",
+        )
+        write_text(note_path, note_backup)
+
+        write_text(
+            note_path,
             note_backup.replace("- `Documentation/zigux/review-checklist.md`\n", "", 1),
         )
         expect_missing(
             "missing_note_checklist_sync_point",
             run_checker(tmp_root),
             "shared_replay_note:Documentation/zigux/review-checklist.md",
+        )
+        write_text(note_path, note_backup)
+
+        write_text(
+            note_path,
+            note_backup.replace("- `scripts/zigux/README.md`\n", "", 1),
+        )
+        expect_missing(
+            "missing_note_scripts_root_sync_point",
+            run_checker(tmp_root),
+            "shared_replay_note:scripts/zigux/README.md",
+        )
+        write_text(note_path, note_backup)
+
+        write_text(
+            note_path,
+            note_backup.replace("- `zigux/tests/README.md`\n", "", 1),
+        )
+        expect_missing(
+            "missing_note_tests_root_sync_point",
+            run_checker(tmp_root),
+            "shared_replay_note:zigux/tests/README.md",
         )
         write_text(note_path, note_backup)
 
@@ -479,7 +518,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST=pass")
-    print("PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT=14")
+    print("PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT=17")
     return 0
 
 
