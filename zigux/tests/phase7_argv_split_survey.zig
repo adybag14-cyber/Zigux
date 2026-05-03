@@ -91,6 +91,30 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     );
     defer std.testing.allocator.free(phase7_build);
 
+    const makefile = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/Makefile",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(makefile);
+
+    const build_inventory_fixture = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/fixtures/phase7_build_inventory.json",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(build_inventory_fixture);
+
+    const argv_split_parity_checker = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "scripts/zigux/check-phase7-argv-split-parity.py",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(argv_split_parity_checker);
+
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P7-L12", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 7", manifest.phase);
@@ -190,4 +214,12 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(manifest_json, "\"id\": \"phase7-argv-split-shared-fixtures\"");
     try expectContains(phase7_build, "phase7-argv-split-survey-tests");
     try expectContains(phase7_build, "repo_root");
+    try expectContains(makefile, "scripts/zigux/check-phase7-argv-split-parity.py --self-test");
+    try expectContains(makefile, "scripts/zigux/check-phase7-argv-split-parity.py");
+    try expectContains(build_inventory_fixture, "\"scripts/zigux/check-phase7-argv-split-parity.py\"");
+    try expectContains(build_inventory_fixture, "\"scripts/zigux/check-phase7-argv-split-parity.py --self-test\"");
+    try expectContains(argv_split_parity_checker, "SOURCE = ROOT / \"lib\" / \"argv_split.c\"");
+    try expectContains(argv_split_parity_checker, "FIXTURE = ROOT / \"zigux\" / \"tests\" / \"fixtures\" / \"phase7_argv_split.json\"");
+    try expectContains(argv_split_parity_checker, "HARNESS = ROOT / \"zigux\" / \"tests\" / \"fixtures\" / \"phase7_argv_split_c_harness.c\"");
+    try expectContains(argv_split_parity_checker, "PHASE7_ARGV_SPLIT_PARITY_SELF_TEST_CASE_COUNT=3");
 }
