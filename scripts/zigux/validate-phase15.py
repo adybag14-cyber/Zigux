@@ -137,6 +137,8 @@ INDEFINITE_POLICY_NOTE_MARKERS = [
 SURVEY_MARKERS = [
     "## Current Repo Readiness",
     "## Readiness Gate",
+    "python3 scripts/zigux/validate-phase15.py",
+    "make -C zigux phase15-validate",
     "make -C zigux phase15",
     "zig build test --build-file zigux/tests/phase15_build.zig",
     "docs-root Phase 15 summary now matches the dedicated readiness and handoff packet",
@@ -149,6 +151,8 @@ HANDOFF_MARKERS = [
     "## Open Handoff Gaps",
     "## Pending Next Steps",
     "## Maintenance Handoff Contract",
+    "python3 scripts/zigux/validate-phase15.py",
+    "make -C zigux phase15-validate",
     "zigux/tests/phase15_docs_root_reviewability.zig",
     "docs-root release evidence now matches the dedicated maintenance packet",
     "phase15-docs-root-summary-alignment",
