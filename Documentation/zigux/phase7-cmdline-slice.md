@@ -51,14 +51,19 @@ This current slice therefore stays inside helpers that:
 3. run the shared Phase 7 helper gate
 - `zig build test --build-file zigux/tests/phase7_build.zig --summary all`
 
-4. keep the manifest-backed survey record machine-checked from `repo_root`
+4. keep the helper wired through the Zigux convenience target
+- `make -C zigux phase7`
+
+5. keep the manifest-backed survey record machine-checked from `repo_root`
 - `zig test zigux/tests/phase7_cmdline_survey.zig`
 
-5. check the committed C parity fixture and its dedicated checker self-test
+6. check the committed C parity fixture and its dedicated checker self-test
 - `python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test`
 - `python3 scripts/zigux/check-phase7-cmdline-parity.py`
 
 The shared Phase 7 validator packet plus the build-inventory, make-wrapper, and dedicated cmdline parity self-tests stay the published fail-closed handoff before helper replay, while the committed cmdline parity fixture keeps the narrower helper surface externally reviewable.
+
+The shared build-inventory gate and published `make -C zigux phase7` convenience path stay in that same review packet, so the committed `zigux/tests/fixtures/phase7_build_inventory.json` snapshot and the one-command wrapper route remain explicit instead of living only in the broader shared Phase 7 notes.
 
 ## Current parity surface
 
