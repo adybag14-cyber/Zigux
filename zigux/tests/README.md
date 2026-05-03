@@ -195,6 +195,7 @@ Phase 10 guidance
 
 Phase 11 guidance
 - keep the current Phase 11 simple-driver packet reviewable through `zigux/tests/phase11_build.zig`, `scripts/zigux/validate-phase11.py`, `make -C zigux phase11-validate`, and `zigux/tests/fixtures/phase11_build_inventory.json` instead of widening into ad hoc driver-local bootstrap claims.
+- keep `Documentation/zigux/phase11-shared-replay-contract.md`, `zigux/tests/phase11_build.zig`, `zigux/tests/fixtures/phase11_build_inventory.json`, `zigux/tests/phase11_hvc_console_survey.zig`, and `scripts/zigux/validate-phase11.py` aligned so the tests root names the same shared-versus-dedicated replay boundary as the docs-root and validator-first packet.
 - keep the shared-versus-dedicated replay boundary explicit: `zigux/tests/phase11_build.zig` remains the shared replay for the landed starter packet, while `zigux/tests/phase11_hvc_console_survey.zig` remains the dedicated archival replay for the exact shared-versus-dedicated delivery contract.
 
 Phase 12 guidance
