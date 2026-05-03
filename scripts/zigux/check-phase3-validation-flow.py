@@ -103,7 +103,9 @@ EXACT_ONCE_WORKFLOW_SNIPPETS = (
 )
 
 EXACT_ONCE_WORKFLOW_TITLE_SNIPPETS = (
+    "name: Validate Phase 3 slices\n",
     "name: Check Phase 3 validation flow\n",
+    "name: Self-test Phase 3 validator\n",
     "name: Self-test Phase 3 validation flow checker\n",
     "name: Self-test Phase 3 wrapper generator\n",
     "name: Self-test Phase 3 runner\n",
@@ -446,6 +448,40 @@ def run_self_test() -> int:
             )
 
         _write(root, WORKFLOW_REL, _fixture_workflow())
+        duplicated_validate_phase3_slices_workflow_title = (
+            _fixture_workflow()
+            + "      - name: Validate Phase 3 slices\n"
+            + "        run: python3 scripts/zigux/phase3_catalog.py --audit-doc-sync\n"
+        )
+        _write(root, WORKFLOW_REL, duplicated_validate_phase3_slices_workflow_title)
+        issues = validate(root)
+        expected = [
+            "unexpected_workflow_snippet_count:2:name: Validate Phase 3 slices\n",
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-validation-flow-self-test:duplicate_validate_phase3_slices_workflow_title_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+        _write(root, WORKFLOW_REL, _fixture_workflow())
+        duplicated_phase3_validator_workflow_title = (
+            _fixture_workflow()
+            + "      - name: Self-test Phase 3 validator\n"
+            + "        run: python3 scripts/zigux/phase3_catalog.py --self-test\n"
+        )
+        _write(root, WORKFLOW_REL, duplicated_phase3_validator_workflow_title)
+        issues = validate(root)
+        expected = [
+            "unexpected_workflow_snippet_count:2:name: Self-test Phase 3 validator\n",
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-validation-flow-self-test:duplicate_phase3_validator_workflow_title_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+        _write(root, WORKFLOW_REL, _fixture_workflow())
         duplicated_validation_flow_workflow_title = (
             _fixture_workflow()
             + "      - name: Check Phase 3 validation flow\n"
@@ -571,7 +607,7 @@ def run_self_test() -> int:
             )
 
         print("PHASE3_VALIDATION_FLOW_SELF_TEST=pass")
-        print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=38")
+        print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=40")
         return 0
 
 
