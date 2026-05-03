@@ -10,6 +10,7 @@ HERE = Path(__file__).resolve()
 ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
 SURVEY_REL = "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md"
 MMIO_REL = "zigux/helpers/mmio.zig"
+INTEROP_POLICY_REL = "zigux/helpers/interop_policy.zig"
 POLICY_TEST_REL = "zigux/tests/phase3_policy_unsafe.zig"
 POLICY_BUILD_REL = "zigux/tests/phase3_policy_unsafe_build.zig"
 
@@ -23,6 +24,8 @@ REQUIRED_SURVEY_SNIPPETS = (
     "`zigux/helpers/mmio.zig` is now the shipped second boundary helper that consumes `DecodedInteropPolicy` directly outside the focused `phase3_policy_unsafe` test packet",
     "That same focused replay now reaches the typed-policy MMIO surface through `read8Policy()`, `write8Policy()`, `read16Policy()`, `write16Policy()`, `read32Policy()`, `write32Policy()`, `read64Policy()`, and `write64Policy()` so the whole width-specific decoded-policy MMIO family stays attached to the same narrow boundary packet instead of leaving 8-bit, 16-bit, or 64-bit governance implicit.",
     "the current tree does not yet ship a third Phase 3 boundary helper that consumes `DecodedInteropPolicy` directly beyond the focused replay and the scoped MMIO helper",
+    "and it now also exposes direct raw-pointer bridge readers through `constSliceAt()` and `constPointerAt()` without widening the packet into a broader runtime caller surface",
+    "- `zigux/helpers/interop_policy.zig` now proves typed decoding through the focused replay, keeps direct raw-pointer bridge reads reviewable through `constSliceAt()` and `constPointerAt()`, and still stays inside the same bounded policy record rather than widening into a broader runtime surface",
 )
 
 REQUIRED_MMIO_SNIPPETS = (
@@ -38,6 +41,14 @@ REQUIRED_MMIO_SNIPPETS = (
     "pub fn read64Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u64 {",
     "pub fn write64Policy(",
     'test "phase3 mmio wrapper consumes decoded interop policy"',
+)
+
+REQUIRED_INTEROP_POLICY_SNIPPETS = (
+    "    pub fn constSliceAt(",
+    "        return narrow.scopedConstSliceAt(T, self.unsafe_scope, base, len);",
+    "    pub fn constPointerAt(",
+    "        return narrow.scopedConstPointerAt(T, self.unsafe_scope, addr);",
+    'test "phase3 interop policy decoder keeps raw-pointer bridge consumers explicit"',
 )
 
 REQUIRED_POLICY_TEST_SNIPPETS = (
@@ -58,6 +69,14 @@ REQUIRED_POLICY_TEST_SNIPPETS = (
     "try std.testing.expectError(error.UnsafeScopeDenied, mmio.read32Policy(raw_pointer_policy, base32, 0));",
     "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write64Policy(raw_pointer_policy, base64, 0, 1));",
     "try std.testing.expectError(error.UnsafeScopeDenied, mmio.read64Policy(raw_pointer_policy, base64, 0));",
+    'test "phase3 policy gate reaches raw-pointer bridge consumers through decoded policy"',
+    "const words_slice = try raw_pointer_policy.constSliceAt(u32, base, words.len);",
+    "const second_word = try raw_pointer_policy.constPointerAt(u32, base + @sizeOf(u32));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, mmio_policy.constSliceAt(u32, base, words.len));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, mmio_policy.constPointerAt(u32, base));",
+    "try std.testing.expectError(error.MisalignedAccess, raw_pointer_policy.constSliceAt(u32, base + 1, 1));",
+    "try std.testing.expectError(error.MisalignedAccess, raw_pointer_policy.constPointerAt(u32, base + 1));",
+    "try std.testing.expectError(error.AddressOverflow, raw_pointer_policy.constSliceAt(u32, 4, std.math.maxInt(usize)));",
 )
 
 REQUIRED_POLICY_BUILD_SNIPPETS = (
@@ -95,6 +114,7 @@ def validate(root: Path) -> list[str]:
     issues: list[str] = []
     survey = _read_text(root, SURVEY_REL, issues)
     mmio = _read_text(root, MMIO_REL, issues)
+    interop_policy = _read_text(root, INTEROP_POLICY_REL, issues)
     policy_test = _read_text(root, POLICY_TEST_REL, issues)
     policy_build = _read_text(root, POLICY_BUILD_REL, issues)
 
@@ -103,6 +123,8 @@ def validate(root: Path) -> list[str]:
         _check_snippets(survey, REQUIRED_SURVEY_SNIPPETS, "missing_survey_snippet", issues)
     if mmio:
         _check_snippets(mmio, REQUIRED_MMIO_SNIPPETS, "missing_mmio_snippet", issues)
+    if interop_policy:
+        _check_snippets(interop_policy, REQUIRED_INTEROP_POLICY_SNIPPETS, "missing_interop_policy_snippet", issues)
     if policy_test:
         _check_snippets(policy_test, REQUIRED_POLICY_TEST_SNIPPETS, "missing_policy_test_snippet", issues)
     if policy_build:
@@ -131,14 +153,13 @@ def run_self_test() -> int:
                     "- `PHASE3_BOUNDARY_GAP=typed-policy-mmio-consumer-landed-no-third-boundary-helper-beyond-focused-replay`",
                     "- `PHASE3_NEXT_BOUNDED_STEP=keep-the-policy-and-unsafe-surface-narrow-until-one-roadmap-backed-helper-beyond-mmio-needs-a-typed-interop-policy-consumer`",
                     "",
-                    REQUIRED_SURVEY_SNIPPETS[0],
-                    REQUIRED_SURVEY_SNIPPETS[1],
-                    REQUIRED_SURVEY_SNIPPETS[2],
+                    *REQUIRED_SURVEY_SNIPPETS,
                     "",
                 )
             ),
         )
         _write(root, MMIO_REL, "\n".join(REQUIRED_MMIO_SNIPPETS) + "\n")
+        _write(root, INTEROP_POLICY_REL, "\n".join(REQUIRED_INTEROP_POLICY_SNIPPETS) + "\n")
         _write(root, POLICY_TEST_REL, "\n".join(REQUIRED_POLICY_TEST_SNIPPETS) + "\n")
         _write(root, POLICY_BUILD_REL, "\n".join(REQUIRED_POLICY_BUILD_SNIPPETS) + "\n")
         assert validate(root) == []
@@ -148,19 +169,39 @@ def run_self_test() -> int:
         assert "missing_policy_test_snippet:try mmio.write64Policy(mmio_policy, base64, @sizeOf(u64), 0x1111_2222_3333_4444);" in issues
 
         _write(root, POLICY_TEST_REL, "\n".join(REQUIRED_POLICY_TEST_SNIPPETS) + "\n")
-        _write(root, SURVEY_REL, "\n".join((
-            "# Phase 3 Policy and Unsafe Boundary Survey",
-            "",
-            "- `PHASE3_MMIO_TYPED_POLICY_CONSUMER=zigux/helpers/mmio.zig`",
-            "- `PHASE3_BOUNDARY_GAP=typed-policy-mmio-consumer-landed-no-third-boundary-helper-beyond-focused-replay`",
-            "- `PHASE3_NEXT_BOUNDED_STEP=keep-the-policy-and-unsafe-surface-narrow-until-one-roadmap-backed-helper-beyond-mmio-needs-a-typed-interop-policy-consumer`",
-            "",
-            REQUIRED_SURVEY_SNIPPETS[0],
-            REQUIRED_SURVEY_SNIPPETS[2],
-            "",
-        )) + "\n")
+        _write(root, SURVEY_REL, "\n".join(
+            (
+                "# Phase 3 Policy and Unsafe Boundary Survey",
+                "",
+                "- `PHASE3_MMIO_TYPED_POLICY_CONSUMER=zigux/helpers/mmio.zig`",
+                "- `PHASE3_BOUNDARY_GAP=typed-policy-mmio-consumer-landed-no-third-boundary-helper-beyond-focused-replay`",
+                "- `PHASE3_NEXT_BOUNDED_STEP=keep-the-policy-and-unsafe-surface-narrow-until-one-roadmap-backed-helper-beyond-mmio-needs-a-typed-interop-policy-consumer`",
+                "",
+                REQUIRED_SURVEY_SNIPPETS[0],
+                REQUIRED_SURVEY_SNIPPETS[2],
+                REQUIRED_SURVEY_SNIPPETS[3],
+                "",
+            )
+        ) + "\n")
         issues = validate(root)
         assert f"missing_survey_snippet:{REQUIRED_SURVEY_SNIPPETS[1]}" in issues
+        assert f"missing_survey_snippet:{REQUIRED_SURVEY_SNIPPETS[4]}" in issues
+
+        _write(root, SURVEY_REL, "\n".join(
+            (
+                "# Phase 3 Policy and Unsafe Boundary Survey",
+                "",
+                "- `PHASE3_MMIO_TYPED_POLICY_CONSUMER=zigux/helpers/mmio.zig`",
+                "- `PHASE3_BOUNDARY_GAP=typed-policy-mmio-consumer-landed-no-third-boundary-helper-beyond-focused-replay`",
+                "- `PHASE3_NEXT_BOUNDED_STEP=keep-the-policy-and-unsafe-surface-narrow-until-one-roadmap-backed-helper-beyond-mmio-needs-a-typed-interop-policy-consumer`",
+                "",
+                *REQUIRED_SURVEY_SNIPPETS,
+                "",
+            )
+        ) + "\n")
+        _write(root, INTEROP_POLICY_REL, "\n".join(snippet for snippet in REQUIRED_INTEROP_POLICY_SNIPPETS if "constPointerAt" not in snippet) + "\n")
+        issues = validate(root)
+        assert "missing_interop_policy_snippet:    pub fn constPointerAt(" in issues
 
     print("PHASE3_POLICY_UNSAFE_MMIO_CONSUMER_SELF_TEST=pass")
     return 0
@@ -168,7 +209,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Validate that the Phase 3 policy/unsafe packet still records and tests the full typed-policy MMIO consumer surface."
+        description="Validate that the Phase 3 policy/unsafe packet still records and tests the full typed-policy MMIO consumer surface plus the direct raw-pointer bridge readers."
     )
     parser.add_argument("--self-test", action="store_true", help="Run isolated validator coverage.")
     parser.add_argument("root", nargs="?", help="Optional repo root override.")
