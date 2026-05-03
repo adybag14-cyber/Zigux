@@ -96,7 +96,7 @@ Keep this lane parked unless the survey packet drifts again or the roadmap-appro
 
 Latest verification snapshot:
 
-- lane key refreshed to `P12-L04` while keeping the same bounded virtio_net survey-packet scope
+- lane key refreshed to `P12-L01` while keeping the same bounded virtio_net survey-packet scope
 - the published `surveyed_commit` remains the last packet-local verification head `bc2373f7deedf021c73beaae29555a9ac6b0536d`; this note now keeps that archived evidence explicit instead of calling it the current `master` tip
 - this lane now treats the focused `zig test zigux/tests/phase12_virtio_net_survey.zig` replay as the first rollback and drift check before broader shared Phase 12 validation
 - the syntax lab is intentionally a build-graph-only compile-smoke proof through `phase12-virtio-net-syntax-lab-tests`, not a standalone `zig test` contract outside the injected `virtio_net` imports, and it now keeps the descriptor, request, snapshot, queue-recovery, queue-resume, and refill review types reachable alongside the bounded enum surface
