@@ -79,7 +79,7 @@ test "phase13 landlock ruleset manifest records the shipped helper lab and remai
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 14), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -88,6 +88,7 @@ test "phase13 landlock ruleset manifest records the shipped helper lab and remai
     var saw_make_target = false;
     var saw_starter = false;
     var saw_test_gate = false;
+    var saw_reviewability_gate = false;
     var saw_slice_note = false;
     var saw_survey_note = false;
     var saw_merge_followup = false;
@@ -136,6 +137,11 @@ test "phase13 landlock ruleset manifest records the shipped helper lab and remai
             saw_test_gate = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/phase13_landlock_ruleset.zig", gap.zigux_destination);
+        }
+        if (std.mem.eql(u8, gap.id, "phase13-landlock-ruleset-reviewability-gate")) {
+            saw_reviewability_gate = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("zigux/tests/phase13_landlock_ruleset_reviewability.zig", gap.zigux_destination);
         }
         if (std.mem.eql(u8, gap.id, "phase13-landlock-ruleset-slice-note")) {
             saw_slice_note = true;
@@ -203,13 +209,14 @@ test "phase13 landlock ruleset manifest records the shipped helper lab and remai
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 12), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 13), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_make_target);
     try std.testing.expect(saw_starter);
     try std.testing.expect(saw_test_gate);
+    try std.testing.expect(saw_reviewability_gate);
     try std.testing.expect(saw_slice_note);
     try std.testing.expect(saw_survey_note);
     try std.testing.expect(saw_merge_followup);
