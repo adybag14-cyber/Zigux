@@ -64,6 +64,7 @@ ABI_REQUIRED_MANIFEST_FILES = (
     "Documentation/zigux/phase3-rbtree-interop-survey.md",
     "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
     "scripts/zigux/check-phase3-abi.py",
+    "scripts/zigux/check-phase3-abi-layout-packet.py",
     "scripts/zigux/run-phase3-checks.py",
     "scripts/zigux/phase3_check_lib.py",
     "scripts/zigux/validate-phase3-roadmap-gap-survey.py",
