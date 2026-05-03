@@ -21,6 +21,7 @@ REQUIRED_SURVEY_MARKERS = (
 
 REQUIRED_SURVEY_SNIPPETS = (
     "`zigux/helpers/mmio.zig` is now the shipped second boundary helper that consumes `DecodedInteropPolicy` directly outside the focused `phase3_policy_unsafe` test packet",
+    "That same focused replay now reaches the typed-policy MMIO surface through `read8Policy()`, `write8Policy()`, `read16Policy()`, `write16Policy()`, `read32Policy()`, `write32Policy()`, `read64Policy()`, and `write64Policy()` so the whole width-specific decoded-policy MMIO family stays attached to the same narrow boundary packet instead of leaving 8-bit, 16-bit, or 64-bit governance implicit.",
     "the current tree does not yet ship a third Phase 3 boundary helper that consumes `DecodedInteropPolicy` directly beyond the focused replay and the scoped MMIO helper",
 )
 
@@ -41,8 +42,22 @@ REQUIRED_MMIO_SNIPPETS = (
 
 REQUIRED_POLICY_TEST_SNIPPETS = (
     'test "phase3 policy gate reaches a second boundary helper through decoded policy"',
+    "try mmio.write8Policy(mmio_policy, base32, 0, 0x2a);",
+    "try std.testing.expectEqual(@as(u8, 0x2a), try mmio.read8Policy(mmio_policy, base32, 0));",
+    "try mmio.write16Policy(mmio_policy, base32, 2, 0x7bcd);",
+    "try std.testing.expectEqual(@as(u16, 0x7bcd), try mmio.read16Policy(mmio_policy, base32, 2));",
+    "try mmio.write32Policy(mmio_policy, base32, @sizeOf(u32), 0xdecafbad);",
+    "try std.testing.expectEqual(@as(u32, 0xdecafbad), try mmio.read32Policy(mmio_policy, base32, @sizeOf(u32)));",
+    "try mmio.write64Policy(mmio_policy, base64, @sizeOf(u64), 0x1111_2222_3333_4444);",
+    "try std.testing.expectEqual(@as(u64, 0x1111_2222_3333_4444), try mmio.read64Policy(mmio_policy, base64, @sizeOf(u64)));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write8Policy(raw_pointer_policy, base32, 0, 1));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.read8Policy(raw_pointer_policy, base32, 0));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write16Policy(raw_pointer_policy, base32, 0, 1));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.read16Policy(raw_pointer_policy, base32, 0));",
     "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write32Policy(raw_pointer_policy, base32, 0, 1));",
     "try std.testing.expectError(error.UnsafeScopeDenied, mmio.read32Policy(raw_pointer_policy, base32, 0));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write64Policy(raw_pointer_policy, base64, 0, 1));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.read64Policy(raw_pointer_policy, base64, 0));",
 )
 
 REQUIRED_POLICY_BUILD_SNIPPETS = (
@@ -116,290 +131,36 @@ def run_self_test() -> int:
                     "- `PHASE3_BOUNDARY_GAP=typed-policy-mmio-consumer-landed-no-third-boundary-helper-beyond-focused-replay`",
                     "- `PHASE3_NEXT_BOUNDED_STEP=keep-the-policy-and-unsafe-surface-narrow-until-one-roadmap-backed-helper-beyond-mmio-needs-a-typed-interop-policy-consumer`",
                     "",
-                    "`zigux/helpers/mmio.zig` is now the shipped second boundary helper that consumes `DecodedInteropPolicy` directly outside the focused `phase3_policy_unsafe` test packet.",
-                    "`zigux/helpers/mmio.zig` now keeps the width-specific `read8Policy`, `write8Policy`, `read16Policy`, `write16Policy`, `read32Policy`, `write32Policy`, `read64Policy`, and `write64Policy` entry points plus the generic `readScopedWithPolicy()` and `writeScopedWithPolicy()` bridges inside that same bounded typed-policy consumer packet.",
-                    "the current tree does not yet ship a third Phase 3 boundary helper that consumes `DecodedInteropPolicy` directly beyond the focused replay and the scoped MMIO helper.",
+                    REQUIRED_SURVEY_SNIPPETS[0],
+                    REQUIRED_SURVEY_SNIPPETS[1],
+                    REQUIRED_SURVEY_SNIPPETS[2],
                     "",
                 )
             ),
         )
-        _write(
-            root,
-            MMIO_REL,
-            "\n".join(
-                (
-                    "fn scopeFromPolicy(policy: interop_policy.DecodedInteropPolicy) narrow.ScopeError!narrow.UnsafeScopeTag {",
-                    "    _ = policy;",
-                    "}",
-                    "pub fn readScopedWithPolicy(",
-                    "pub fn writeScopedWithPolicy(",
-                    "pub fn read8Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u8 {",
-                    "    _ = policy; _ = base_addr; _ = offset; }",
-                    "pub fn write8Policy(",
-                    "pub fn read16Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u16 {",
-                    "    _ = policy; _ = base_addr; _ = offset; }",
-                    "pub fn write16Policy(",
-                    "pub fn read32Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u32 {",
-                    "    _ = policy; _ = base_addr; _ = offset; }",
-                    "pub fn write32Policy(",
-                    "pub fn read64Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u64 {",
-                    "    _ = policy; _ = base_addr; _ = offset; }",
-                    "pub fn write64Policy(",
-                    'test "phase3 mmio wrapper consumes decoded interop policy"',
-                    "",
-                )
-            ),
-        )
-        _write(
-            root,
-            POLICY_TEST_REL,
-            "\n".join(
-                (
-                    'test "phase3 policy gate reaches a second boundary helper through decoded policy"',
-                    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write32Policy(raw_pointer_policy, base32, 0, 1));",
-                    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.read32Policy(raw_pointer_policy, base32, 0));",
-                    "",
-                )
-            ),
-        )
-        _write(
-            root,
-            POLICY_BUILD_REL,
-            "\n".join(REQUIRED_POLICY_BUILD_SNIPPETS) + "\n",
-        )
-
+        _write(root, MMIO_REL, "\n".join(REQUIRED_MMIO_SNIPPETS) + "\n")
+        _write(root, POLICY_TEST_REL, "\n".join(REQUIRED_POLICY_TEST_SNIPPETS) + "\n")
+        _write(root, POLICY_BUILD_REL, "\n".join(REQUIRED_POLICY_BUILD_SNIPPETS) + "\n")
         assert validate(root) == []
 
-        _write(
-            root,
-            SURVEY_REL,
-            "\n".join(
-                (
-                    "# Phase 3 Policy and Unsafe Boundary Survey",
-                    "",
-                    "- `PHASE3_BOUNDARY_GAP=typed-policy-mmio-consumer-landed-no-third-boundary-helper-beyond-focused-replay`",
-                    "",
-                )
-            ),
-        )
+        _write(root, POLICY_TEST_REL, "\n".join(snippet for snippet in REQUIRED_POLICY_TEST_SNIPPETS if "write64Policy" not in snippet) + "\n")
         issues = validate(root)
-        assert "missing_survey_marker:PHASE3_MMIO_TYPED_POLICY_CONSUMER=zigux/helpers/mmio.zig" in issues
+        assert "missing_policy_test_snippet:try mmio.write64Policy(mmio_policy, base64, @sizeOf(u64), 0x1111_2222_3333_4444);" in issues
 
-        _write(
-            root,
-            SURVEY_REL,
-            "\n".join(
-                (
-                    "# Phase 3 Policy and Unsafe Boundary Survey",
-                    "",
-                    "- `PHASE3_MMIO_TYPED_POLICY_CONSUMER=zigux/helpers/mmio.zig`",
-                    "- `PHASE3_BOUNDARY_GAP=typed-policy-mmio-consumer-landed-no-third-boundary-helper-beyond-focused-replay`",
-                    "- `PHASE3_NEXT_BOUNDED_STEP=keep-the-policy-and-unsafe-surface-narrow-until-one-roadmap-backed-helper-beyond-mmio-needs-a-typed-interop-policy-consumer`",
-                    "",
-                    "`zigux/helpers/mmio.zig` is now the shipped second boundary helper that consumes `DecodedInteropPolicy` directly outside the focused `phase3_policy_unsafe` test packet.",
-                    "`zigux/helpers/mmio.zig` now keeps the width-specific `read8Policy`, `write8Policy`, `read16Policy`, `write16Policy`, `read32Policy`, `write32Policy`, `read64Policy`, and `write64Policy` entry points plus the generic `readScopedWithPolicy()` and `writeScopedWithPolicy()` bridges inside that same bounded typed-policy consumer packet.",
-                    "",
-                )
-            ),
-        )
+        _write(root, POLICY_TEST_REL, "\n".join(REQUIRED_POLICY_TEST_SNIPPETS) + "\n")
+        _write(root, SURVEY_REL, "\n".join((
+            "# Phase 3 Policy and Unsafe Boundary Survey",
+            "",
+            "- `PHASE3_MMIO_TYPED_POLICY_CONSUMER=zigux/helpers/mmio.zig`",
+            "- `PHASE3_BOUNDARY_GAP=typed-policy-mmio-consumer-landed-no-third-boundary-helper-beyond-focused-replay`",
+            "- `PHASE3_NEXT_BOUNDED_STEP=keep-the-policy-and-unsafe-surface-narrow-until-one-roadmap-backed-helper-beyond-mmio-needs-a-typed-interop-policy-consumer`",
+            "",
+            REQUIRED_SURVEY_SNIPPETS[0],
+            REQUIRED_SURVEY_SNIPPETS[2],
+            "",
+        )) + "\n")
         issues = validate(root)
-        assert (
-            "missing_survey_snippet:the current tree does not yet ship a third Phase 3 boundary helper that consumes `DecodedInteropPolicy` directly beyond the focused replay and the scoped MMIO helper"
-            in issues
-        )
-
-        _write(
-            root,
-            SURVEY_REL,
-            "\n".join(
-                (
-                    "# Phase 3 Policy and Unsafe Boundary Survey",
-                    "",
-                    "- `PHASE3_MMIO_TYPED_POLICY_CONSUMER=zigux/helpers/mmio.zig`",
-                    "- `PHASE3_BOUNDARY_GAP=typed-policy-mmio-consumer-landed-no-third-boundary-helper-beyond-focused-replay`",
-                    "- `PHASE3_NEXT_BOUNDED_STEP=keep-the-policy-and-unsafe-surface-narrow-until-one-roadmap-backed-helper-beyond-mmio-needs-a-typed-interop-policy-consumer`",
-                    "",
-                    "`zigux/helpers/mmio.zig` is now the shipped second boundary helper that consumes `DecodedInteropPolicy` directly outside the focused `phase3_policy_unsafe` test packet.",
-                    "`zigux/helpers/mmio.zig` now keeps the width-specific `read8Policy`, `write8Policy`, `read16Policy`, `write16Policy`, `read32Policy`, `write32Policy`, `read64Policy`, and `write64Policy` entry points plus the generic `readScopedWithPolicy()` and `writeScopedWithPolicy()` bridges inside that same bounded typed-policy consumer packet.",
-                    "the current tree does not yet ship a third Phase 3 boundary helper that consumes `DecodedInteropPolicy` directly beyond the focused replay and the scoped MMIO helper.",
-                    "",
-                )
-            ),
-        )
-        _write(
-            root,
-            MMIO_REL,
-            "\n".join(
-                (
-                    "fn scopeFromPolicy(policy: interop_policy.DecodedInteropPolicy) narrow.ScopeError!narrow.UnsafeScopeTag {",
-                    "    _ = policy;",
-                    "}",
-                    "pub fn read8Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u8 {",
-                    "    _ = policy; _ = base_addr; _ = offset; }",
-                    "pub fn write8Policy(",
-                    "pub fn read16Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u16 {",
-                    "    _ = policy; _ = base_addr; _ = offset; }",
-                    "pub fn write16Policy(",
-                    "pub fn read32Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u32 {",
-                    "    _ = policy; _ = base_addr; _ = offset; }",
-                    "pub fn write32Policy(",
-                    "pub fn read64Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u64 {",
-                    "    _ = policy; _ = base_addr; _ = offset; }",
-                    "pub fn write64Policy(",
-                    'test "phase3 mmio wrapper consumes decoded interop policy"',
-                    "",
-                )
-            ),
-        )
-        issues = validate(root)
-        assert "missing_mmio_snippet:pub fn readScopedWithPolicy(" in issues
-
-        _write(
-            root,
-            MMIO_REL,
-            "\n".join(
-                (
-                    "fn scopeFromPolicy(policy: interop_policy.DecodedInteropPolicy) narrow.ScopeError!narrow.UnsafeScopeTag {",
-                    "    _ = policy;",
-                    "}",
-                    "pub fn readScopedWithPolicy(",
-                    "pub fn writeScopedWithPolicy(",
-                    "pub fn read8Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u8 {",
-                    "    _ = policy; _ = base_addr; _ = offset; }",
-                    "pub fn write8Policy(",
-                    "pub fn read16Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u16 {",
-                    "    _ = policy; _ = base_addr; _ = offset; }",
-                    "pub fn write16Policy(",
-                    "pub fn read32Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u32 {",
-                    "    _ = policy; _ = base_addr; _ = offset; }",
-                    "pub fn write32Policy(",
-                    "pub fn read64Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u64 {",
-                    "    _ = policy; _ = base_addr; _ = offset; }",
-                    "pub fn write64Policy(",
-                    "",
-                )
-            ),
-        )
-        issues = validate(root)
-        assert 'missing_mmio_snippet:test "phase3 mmio wrapper consumes decoded interop policy"' in issues
-
-        _write(
-            root,
-            MMIO_REL,
-            "\n".join(
-                (
-                    "fn scopeFromPolicy(policy: interop_policy.DecodedInteropPolicy) narrow.ScopeError!narrow.UnsafeScopeTag {",
-                    "    _ = policy;",
-                    "}",
-                    "pub fn writeScopedWithPolicy(",
-                    "pub fn read8Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u8 {",
-                    "    _ = policy; _ = base_addr; _ = offset; }",
-                    "pub fn write8Policy(",
-                    "pub fn read16Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u16 {",
-                    "    _ = policy; _ = base_addr; _ = offset; }",
-                    "pub fn write16Policy(",
-                    "pub fn read32Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u32 {",
-                    "    _ = policy; _ = base_addr; _ = offset; }",
-                    "pub fn write32Policy(",
-                    "pub fn read64Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u64 {",
-                    "    _ = policy; _ = base_addr; _ = offset; }",
-                    "pub fn write64Policy(",
-                    'test "phase3 mmio wrapper consumes decoded interop policy"',
-                    "",
-                )
-            ),
-        )
-        issues = validate(root)
-        assert 'missing_mmio_snippet:pub fn readScopedWithPolicy(' in issues
-
-        _write(
-            root,
-            MMIO_REL,
-            "\n".join(
-                (
-                    "fn scopeFromPolicy(policy: interop_policy.DecodedInteropPolicy) narrow.ScopeError!narrow.UnsafeScopeTag {",
-                    "    _ = policy;",
-                    "}",
-                    "pub fn readScopedWithPolicy(",
-                    "pub fn writeScopedWithPolicy(",
-                    "pub fn read8Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u8 {",
-                    "    _ = policy; _ = base_addr; _ = offset; }",
-                    "pub fn write8Policy(",
-                    "pub fn read16Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u16 {",
-                    "    _ = policy; _ = base_addr; _ = offset; }",
-                    "pub fn write16Policy(",
-                    "pub fn read32Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u32 {",
-                    "    _ = policy; _ = base_addr; _ = offset; }",
-                    "pub fn write32Policy(",
-                    "pub fn write64Policy(",
-                    'test "phase3 mmio wrapper consumes decoded interop policy"',
-                    "",
-                )
-            ),
-        )
-        issues = validate(root)
-        assert (
-            "missing_mmio_snippet:pub fn read64Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u64 {"
-            in issues
-        )
-
-        _write(
-            root,
-            MMIO_REL,
-            "\n".join(
-                (
-                    "fn scopeFromPolicy(policy: interop_policy.DecodedInteropPolicy) narrow.ScopeError!narrow.UnsafeScopeTag {",
-                    "    _ = policy;",
-                    "}",
-                    "pub fn readScopedWithPolicy(",
-                    "pub fn writeScopedWithPolicy(",
-                    "pub fn read8Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u8 {",
-                    "    _ = policy; _ = base_addr; _ = offset; }",
-                    "pub fn write8Policy(",
-                    "pub fn read16Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u16 {",
-                    "    _ = policy; _ = base_addr; _ = offset; }",
-                    "pub fn write16Policy(",
-                    "pub fn read32Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u32 {",
-                    "    _ = policy; _ = base_addr; _ = offset; }",
-                    "pub fn write32Policy(",
-                    "pub fn read64Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u64 {",
-                    "    _ = policy; _ = base_addr; _ = offset; }",
-                    "pub fn write64Policy(",
-                    'test "phase3 mmio wrapper consumes decoded interop policy"',
-                    "",
-                )
-            ),
-        )
-        _write(
-            root,
-            POLICY_BUILD_REL,
-            "\n".join(
-                snippet
-                for snippet in REQUIRED_POLICY_BUILD_SNIPPETS
-                if snippet != 'root_module.addImport("mmio", mmio_module);'
-            )
-            + "\n",
-        )
-        issues = validate(root)
-        assert 'missing_policy_build_snippet:root_module.addImport("mmio", mmio_module);' in issues
-
-        _write(
-            root,
-            POLICY_BUILD_REL,
-            "\n".join(REQUIRED_POLICY_BUILD_SNIPPETS) + "\n",
-        )
-        _write(
-            root,
-            POLICY_TEST_REL,
-            "\n".join(
-                (
-                    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write32Policy(raw_pointer_policy, base32, 0, 1));",
-                    "",
-                )
-            ),
-        )
-        issues = validate(root)
-        assert 'missing_policy_test_snippet:test "phase3 policy gate reaches a second boundary helper through decoded policy"' in issues
+        assert f"missing_survey_snippet:{REQUIRED_SURVEY_SNIPPETS[1]}" in issues
 
     print("PHASE3_POLICY_UNSAFE_MMIO_CONSUMER_SELF_TEST=pass")
     return 0
