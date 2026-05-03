@@ -42,6 +42,10 @@ REQUIRED_MAKEFILE_SNIPPETS = (
 EXACT_ONCE_MAKEFILE_SNIPPETS = (
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-validation-flow.py --self-test\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-validation-flow.py\n",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/phase3_catalog.py --self-test\n",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/phase3_catalog.py --audit-doc-sync\n",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/phase3_catalog.py --check-slug-sanity\n",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/phase3_check_lib.py --self-test\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/generate-phase3-check-wrappers.py --self-test\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/generate-phase3-check-wrappers.py --check\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test\n",
@@ -425,6 +429,66 @@ def run_self_test() -> int:
                 + (",".join(issues) if issues else "none")
             )
 
+        duplicated_catalog_self_test_makefile = (
+            _fixture_makefile()
+            + "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/phase3_catalog.py --self-test\n"
+        )
+        _write(root, MAKEFILE_REL, duplicated_catalog_self_test_makefile)
+        issues = validate(root)
+        expected = [
+            "unexpected_makefile_snippet_count:2:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/phase3_catalog.py --self-test\n",
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-validation-flow-self-test:duplicate_catalog_self_test_makefile_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+        duplicated_catalog_audit_makefile = (
+            _fixture_makefile()
+            + "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/phase3_catalog.py --audit-doc-sync\n"
+        )
+        _write(root, MAKEFILE_REL, duplicated_catalog_audit_makefile)
+        issues = validate(root)
+        expected = [
+            "unexpected_makefile_snippet_count:2:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/phase3_catalog.py --audit-doc-sync\n",
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-validation-flow-self-test:duplicate_catalog_audit_makefile_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+        duplicated_catalog_slug_makefile = (
+            _fixture_makefile()
+            + "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/phase3_catalog.py --check-slug-sanity\n"
+        )
+        _write(root, MAKEFILE_REL, duplicated_catalog_slug_makefile)
+        issues = validate(root)
+        expected = [
+            "unexpected_makefile_snippet_count:2:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/phase3_catalog.py --check-slug-sanity\n",
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-validation-flow-self-test:duplicate_catalog_slug_makefile_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+        duplicated_shared_helper_makefile = (
+            _fixture_makefile()
+            + "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/phase3_check_lib.py --self-test\n"
+        )
+        _write(root, MAKEFILE_REL, duplicated_shared_helper_makefile)
+        issues = validate(root)
+        expected = [
+            "unexpected_makefile_snippet_count:2:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/phase3_check_lib.py --self-test\n",
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-validation-flow-self-test:duplicate_shared_helper_makefile_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
         _write(root, MAKEFILE_REL, _fixture_makefile())
         duplicated_validation_flow_workflow = (
             _fixture_workflow()
@@ -645,6 +709,7 @@ def run_self_test() -> int:
                 + (",".join(issues) if issues else "none")
             )
 
+        _write(root, WORKFLOW_REL, _fixture_workflow())
         _write(root, DOCS_ROOT_REL, _fixture_docs_root())
         duplicated_rbtree_docs_root = _fixture_docs_root() + f"- {REQUIRED_DOCS_ROOT_SNIPPETS[2]}\n"
         _write(root, DOCS_ROOT_REL, duplicated_rbtree_docs_root)
@@ -703,7 +768,7 @@ def run_self_test() -> int:
             )
 
         print("PHASE3_VALIDATION_FLOW_SELF_TEST=pass")
-        print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=45")
+        print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=49")
         return 0
 
 
