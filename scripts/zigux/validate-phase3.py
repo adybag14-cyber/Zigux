@@ -27,6 +27,12 @@ SURVEY_VALIDATION_SCRIPTS = (
         "missing_rbtree_interop_anchor",
     ),
     (
+        "check-phase3-rbtree-shared-lift-contract.py",
+        "PHASE3_RBTREE_SHARED_LIFT_CONTRACT=fail",
+        "rbtree-shared-lift-contract-gate",
+        "missing_layout_contract_marker:PHASE3_RBTREE_SHARED_LAYOUT_CONTRACT=zigux_rbtree_root_view-reused-unchanged-in-shared-phase3-abi-packet",
+    ),
+    (
         "validate-phase3-export-uapi-survey.py",
         "PHASE3_EXPORT_UAPI_SURVEY=fail",
         "export-uapi-survey-gate",
