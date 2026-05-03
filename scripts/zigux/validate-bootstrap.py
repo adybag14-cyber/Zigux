@@ -80,6 +80,10 @@ required_workflow_markers = [
     'zigux/tests/phase8_build.zig',
     'Run Phase 9 runtime helper tests',
     'zigux/tests/phase9_build.zig',
+    'Self-test Phase 10 harness coverage checker',
+    'python3 scripts/zigux/check-phase10-harness-coverage.py --self-test',
+    'Validate Phase 10 focused harness coverage',
+    'python3 scripts/zigux/check-phase10-harness-coverage.py',
     'Run Phase 10 virtio helper tests',
     'zigux/tests/phase10_build.zig',
     'Run Phase 11 watchdog and console tests',
@@ -180,6 +184,53 @@ if (
     print(f'workflow:phase11_hvc_survey_command_count={workflow_phase11_hvc_survey_command_count},expected=1')
     print(f'workflow:phase11_hvc_survey_step_count={workflow_phase11_hvc_survey_step_count},expected=1')
     print('MISSING_WORKFLOW_PHASE11_WIRING_END')
+    sys.exit(1)
+
+phase10_harness_self_test_command = 'python3 scripts/zigux/check-phase10-harness-coverage.py --self-test'
+phase10_harness_self_test_step = 'Self-test Phase 10 harness coverage checker'
+phase10_harness_validate_command = 'python3 scripts/zigux/check-phase10-harness-coverage.py'
+phase10_harness_validate_step = 'Validate Phase 10 focused harness coverage'
+workflow_phase10_harness_self_test_command_count = len(
+    re.findall(
+        r'^\s*run:\s+python3 scripts/zigux/check-phase10-harness-coverage\.py --self-test\s*$',
+        workflow,
+        flags=re.MULTILINE,
+    )
+)
+workflow_phase10_harness_self_test_step_count = workflow.count(phase10_harness_self_test_step)
+workflow_phase10_harness_validate_command_count = len(
+    re.findall(
+        r'^\s*run:\s+python3 scripts/zigux/check-phase10-harness-coverage\.py\s*$',
+        workflow,
+        flags=re.MULTILINE,
+    )
+)
+workflow_phase10_harness_validate_step_count = workflow.count(phase10_harness_validate_step)
+if (
+    workflow_phase10_harness_self_test_command_count != 1
+    or workflow_phase10_harness_self_test_step_count != 1
+    or workflow_phase10_harness_validate_command_count != 1
+    or workflow_phase10_harness_validate_step_count != 1
+):
+    print('BOOTSTRAP_VALIDATION=fail')
+    print('MISSING_WORKFLOW_PHASE10_HARNESS_WIRING_START')
+    print(
+        'workflow:phase10_harness_self_test_command_count='
+        f'{workflow_phase10_harness_self_test_command_count},expected=1'
+    )
+    print(
+        'workflow:phase10_harness_self_test_step_count='
+        f'{workflow_phase10_harness_self_test_step_count},expected=1'
+    )
+    print(
+        'workflow:phase10_harness_validate_command_count='
+        f'{workflow_phase10_harness_validate_command_count},expected=1'
+    )
+    print(
+        'workflow:phase10_harness_validate_step_count='
+        f'{workflow_phase10_harness_validate_step_count},expected=1'
+    )
+    print('MISSING_WORKFLOW_PHASE10_HARNESS_WIRING_END')
     sys.exit(1)
 
 toolchain_policy = json.loads((ROOT / 'scripts' / 'zigux' / 'zig-toolchain-policy.json').read_text(encoding='utf-8'))
@@ -364,6 +415,11 @@ required_make_markers = [
     'scripts/zigux/validate-phase6.py',
     'phase6-test:',
     'zigux/tests/phase6_build.zig',
+    'phase10-validate:',
+    'scripts/zigux/check-phase10-harness-coverage.py --self-test',
+    'scripts/zigux/check-phase10-harness-coverage.py',
+    'phase10-test:',
+    'zigux/tests/phase10_build.zig',
     'phase14-validate:',
     'scripts/zigux/validate-phase14.py',
     'phase14-smoke:',
@@ -525,6 +581,43 @@ if phase2_shared_validation_makefile_count_issues:
     for issue in phase2_shared_validation_makefile_count_issues:
         print(issue)
     print('MISSING_PHASE2_SHARED_VALIDATION_BOOTSTRAP_MAKEFILE_COUNTS_END')
+    sys.exit(1)
+
+phase10_harness_makefile_exact_counts = {
+    'makefile:target:phase10-validate': 1,
+    'makefile:run:scripts/zigux/check-phase10-harness-coverage.py --self-test': 1,
+    'makefile:run:scripts/zigux/check-phase10-harness-coverage.py': 1,
+}
+phase10_harness_makefile_observed_counts = {
+    'makefile:target:phase10-validate': len(
+        re.findall(r'^phase10-validate:\s*$', makefile, flags=re.MULTILINE)
+    ),
+    'makefile:run:scripts/zigux/check-phase10-harness-coverage.py --self-test': len(
+        re.findall(
+            r'^\s*cd \$\(ZIGUX_ROOT\) && \$\(PYTHON\) scripts/zigux/check-phase10-harness-coverage\.py --self-test\s*$',
+            makefile,
+            flags=re.MULTILINE,
+        )
+    ),
+    'makefile:run:scripts/zigux/check-phase10-harness-coverage.py': len(
+        re.findall(
+            r'^\s*cd \$\(ZIGUX_ROOT\) && \$\(PYTHON\) scripts/zigux/check-phase10-harness-coverage\.py\s*$',
+            makefile,
+            flags=re.MULTILINE,
+        )
+    ),
+}
+phase10_harness_makefile_count_issues = [
+    f'{key}={phase10_harness_makefile_observed_counts[key]},expected={expected}'
+    for key, expected in phase10_harness_makefile_exact_counts.items()
+    if phase10_harness_makefile_observed_counts[key] != expected
+]
+if phase10_harness_makefile_count_issues:
+    print('BOOTSTRAP_VALIDATION=fail')
+    print('MISSING_PHASE10_HARNESS_BOOTSTRAP_MAKEFILE_COUNTS_START')
+    for issue in phase10_harness_makefile_count_issues:
+        print(issue)
+    print('MISSING_PHASE10_HARNESS_BOOTSTRAP_MAKEFILE_COUNTS_END')
     sys.exit(1)
 
 print('BOOTSTRAP_VALIDATION=pass')
