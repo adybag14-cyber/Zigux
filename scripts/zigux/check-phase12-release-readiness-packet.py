@@ -10,6 +10,7 @@ ROOT = _resolved.parents[2] if len(_resolved.parents) > 2 else _resolved.parent
 
 REQUIRED_FILES = [
     "Documentation/zigux/phase12-release-readiness-survey.md",
+    "Documentation/zigux/phase12-shared-replay-contract.md",
     "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase12-cross-compile-smoke.md",
@@ -99,6 +100,14 @@ VALIDATOR_EXACT_COUNT_MARKERS = {
     "Documentation/zigux/phase12-release-readiness-survey.md": 1,
 }
 
+CONTRACT_NOTE_MARKERS = [
+    "The release-readiness packet checker is intentionally part of that same stack before the broader validator runs",
+    "- `Documentation/zigux/phase12-release-readiness-survey.md`",
+    "- `Documentation/zigux/phase12-cross-compile-smoke.md`",
+    "- `Documentation/zigux/phase12-raw-github-coverage-survey.md`",
+    "- `scripts/zigux/check-phase12-release-readiness-packet.py`",
+]
+
 MAKEFILE_SELF_TEST_MARKER = "scripts/zigux/check-phase12-release-readiness-packet.py --self-test"
 MAKEFILE_RUN_MARKER = "scripts/zigux/check-phase12-release-readiness-packet.py"
 
@@ -139,6 +148,7 @@ def collect_missing(
     *,
     present_files: set[str],
     survey_text: str,
+    contract_note_text: str,
     docs_root_text: str,
     review_checklist_text: str,
     scripts_readme_text: str,
@@ -150,6 +160,7 @@ def collect_missing(
     missing = [f"missing_file:{path}" for path in REQUIRED_FILES if path not in present_files]
     missing.extend(collect_marker_misses(survey_text, SURVEY_MARKERS, "survey"))
     missing.extend(collect_exact_count_misses(survey_text, SURVEY_EXACT_COUNT_MARKERS, "survey_count"))
+    missing.extend(collect_marker_misses(contract_note_text, CONTRACT_NOTE_MARKERS, "contract_note"))
     missing.extend(collect_marker_misses(docs_root_text, DOCS_ROOT_MARKERS, "docs_root"))
     missing.extend(collect_exact_count_misses(docs_root_text, DOCS_ROOT_EXACT_COUNT_MARKERS, "docs_root_count"))
     missing.extend(collect_marker_misses(review_checklist_text, REVIEW_CHECKLIST_MARKERS, "review_checklist"))
@@ -189,6 +200,7 @@ def build_live_inputs() -> dict[str, object]:
     return {
         "present_files": {path for path in REQUIRED_FILES if (ROOT / path).exists()},
         "survey_text": read_text("Documentation/zigux/phase12-release-readiness-survey.md"),
+        "contract_note_text": read_text("Documentation/zigux/phase12-shared-replay-contract.md"),
         "docs_root_text": read_text("Documentation/zigux/README.md"),
         "review_checklist_text": read_text("Documentation/zigux/review-checklist.md"),
         "scripts_readme_text": read_text("scripts/zigux/README.md"),
@@ -211,6 +223,7 @@ def run_self_test() -> int:
     base_inputs = {
         "present_files": set(REQUIRED_FILES),
         "survey_text": "\n".join(SURVEY_MARKERS + ["scripts/zigux/check-phase12-cross.py"]) + "\n",
+        "contract_note_text": "\n".join(CONTRACT_NOTE_MARKERS) + "\n",
         "docs_root_text": "\n".join(DOCS_ROOT_MARKERS) + "\n",
         "review_checklist_text": "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n",
         "scripts_readme_text": "\n".join(SCRIPTS_README_MARKERS) + "\n",
@@ -231,6 +244,22 @@ def run_self_test() -> int:
         "missing_file_detection",
         missing,
         "missing_file:Documentation/zigux/phase12-release-readiness-survey.md",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "present_files": {
+                path
+                for path in REQUIRED_FILES
+                if path != "Documentation/zigux/phase12-shared-replay-contract.md"
+            },
+        }
+    )
+    expect_contains(
+        "contract_note_file_detection",
+        missing,
+        "missing_file:Documentation/zigux/phase12-shared-replay-contract.md",
     )
 
     missing = collect_missing(
@@ -288,6 +317,22 @@ def run_self_test() -> int:
         "survey_cross_checker_exact_count_detection",
         missing,
         "survey_count:scripts/zigux/check-phase12-cross.py:expected=2:actual=3",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "contract_note_text": base_inputs["contract_note_text"].replace(
+                CONTRACT_NOTE_MARKERS[0] + "\n",
+                "",
+                1,
+            ),
+        }
+    )
+    expect_contains(
+        "contract_note_marker_detection",
+        missing,
+        f"contract_note:{CONTRACT_NOTE_MARKERS[0]}",
     )
 
     missing = collect_missing(
@@ -429,7 +474,7 @@ def run_self_test() -> int:
     expect_contains("raw_coverage_marker_detection", missing, "raw_coverage:shared-tree-only")
 
     print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST=pass")
-    print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT=18")
+    print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT=20")
     return 0
 
 
