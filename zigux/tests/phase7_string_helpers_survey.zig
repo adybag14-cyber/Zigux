@@ -72,6 +72,14 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
     );
     defer std.testing.allocator.free(string_helpers_tests);
 
+    const string_helpers_manifest = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase7_string_helpers_manifest.json",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(string_helpers_manifest);
+
     const escape_vectors = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "zigux/tests/fixtures/phase7_string_helpers_escape_vectors.zig",
@@ -227,7 +235,8 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
     try expectContains(string_helpers_slice, "Current `master` keeps string-helper reviewability in the helper and test bundle");
     try expectContains(string_helpers_slice, "the four Phase 5 `samples/zigux/` anchors remain `bytestream_fifo`, `kobject_example`, `kretprobe_example`, and `trace_events_sample`.");
     try expectContains(string_helpers_slice, "zigux/tests/fixtures/phase7_string_helpers_escape_vectors.zig");
-    try expectContains(string_helpers_slice, "integration with validation substrate through `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-build-inventory.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_survey.zig`, and `zigux/tests/phase7_build.zig`.");
+    try expectContains(string_helpers_slice, "zigux/tests/phase7_string_helpers_manifest.json");
+    try expectContains(string_helpers_slice, "integration with validation substrate through `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-build-inventory.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_manifest.json`, `zigux/tests/phase7_string_helpers_survey.zig`, and `zigux/tests/phase7_build.zig`.");
     try expectContains(string_helpers_slice, "`python3 scripts/zigux/validate-phase7.py --self-test`");
     try expectContains(string_helpers_slice, "`make -C zigux phase7-validate`");
     try expectContains(string_helpers_slice, "`zig build test --build-file zigux/tests/phase7_build.zig --summary all`");
@@ -262,6 +271,7 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
     try expectContains(validate_phase7, "check-phase7-build-inventory.py --self-test");
     try expectContains(validate_phase7, "zigux/tests/fixtures/phase7_build_inventory.json");
     try expectContains(validate_phase7, "(\"zigux/tests/phase7_string_helpers_survey.zig\", phase7_string_helpers_survey, required_phase7_string_helpers_survey_markers),");
+    try expectContains(validate_phase7, "\"zigux\" / \"tests\" / \"phase7_string_helpers_manifest.json\"");
 
     try expectContains(build_inventory_checker, "PHASE7_BUILD_INVENTORY_SELF_TEST=pass");
     try expectContains(build_inventory_checker, "PHASE7_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=15");
@@ -297,6 +307,13 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
     try expectContains(string_helpers_tests, "phase 7 stringGetSize returns snprintf-style length on truncation");
     try expectContains(string_helpers_tests, "phase 7 stringEscapeMem covers the bounded escape subset");
     try expectContains(string_helpers_tests, "phase 7 stringEscapeMem reports truncated output length without forcing a terminator");
+
+    try expectContains(string_helpers_manifest, "\"lane_key\": \"P7-L01\"");
+    try expectContains(string_helpers_manifest, "\"anchor\": \"lib/string_helpers.c\"");
+    try expectContains(string_helpers_manifest, "\"lib/string_helpers.zig\"");
+    try expectContains(string_helpers_manifest, "\"phase7-string-helpers-manifest-packet\"");
+    try expectContains(string_helpers_manifest, "\"zigux/tests/phase7_string_helpers_manifest.json\"");
+    try expectContains(string_helpers_manifest, "\"zigux/tests/fixtures/phase7_string_helpers_escape_vectors.zig\"");
 
     try expectContains(escape_vectors, "pub const unescape_cases");
     try expectContains(escape_vectors, "pub const escape_cases");
