@@ -9,6 +9,7 @@ const SurveySummary = struct {
     preexisting_virtio_input_zig_present: bool,
     preexisting_phase12_build_present: bool,
     preexisting_phase12_virtio_net_survey_present: bool,
+    preexisting_phase12_virtio_net_syntax_lab_present: bool,
     preexisting_phase12_survey_note_present: bool,
     preexisting_virtio_net_zig_present: bool,
 };
@@ -111,6 +112,7 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_input_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_net_survey_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_net_syntax_lab_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_survey_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_net_zig_present);
     try std.testing.expectEqual(@as(usize, 14), manifest.gaps.len);
