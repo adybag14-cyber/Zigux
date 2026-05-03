@@ -145,9 +145,12 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
         "samples/zigux/runtime_atomic64_loader.zig",
         "samples/zigux/runtime_bitmap.zig",
         "samples/zigux/runtime_bitmap_loader.zig",
+        "samples/zigux/runtime_bitmap_top_bit_contract.zig",
+        "samples/zigux/runtime_bitmap_top_bit_build.zig",
         "samples/zigux/runtime_kretprobe.zig",
         "samples/zigux/runtime_kretprobe_loader.zig",
         "samples/zigux/runtime_trace_events.zig",
+        "samples/zigux/runtime_trace_events_loader.zig",
     };
     for (expected_sample_files) |path| {
         try std.Io.Dir.cwd().access(io_instance.io(), path, .{});
@@ -178,10 +181,18 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
     try expectContains(samples_readme, "Later runtime starters, loader-side follow-ons, and blocked pilots");
     try expectContains(samples_readme, "samples/zigux/runtime_atomic64.zig");
     try expectContains(samples_readme, "samples/zigux/runtime_bitmap.zig");
+    try expectContains(samples_readme, "samples/zigux/runtime_bitmap_top_bit_contract.zig");
+    try expectContains(samples_readme, "samples/zigux/runtime_bitmap_top_bit_build.zig");
     try expectContains(samples_readme, "samples/zigux/runtime_kretprobe.zig");
     try expectContains(samples_readme, "samples/zigux/runtime_trace_events.zig");
+    try expectContains(samples_readme, "samples/zigux/runtime_trace_events_loader.zig");
+    try expectContains(samples_readme, "runtime bitmap packet rooted in `lib/test_bitmap.c` now includes `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and the focused `samples/zigux/runtime_bitmap_top_bit_contract.zig` plus `samples/zigux/runtime_bitmap_top_bit_build.zig` companion replay");
+    try expectContains(samples_readme, "`samples/zigux/runtime_trace_events.zig` is still a sample-only blocked Phase 9 pilot on current `master`; the bounded `samples/zigux/runtime_trace_events_loader.zig` scaffold is shipped now");
     try expectContains(samples_readme, "no `samples/zigux/*string*` Phase 5 reference sample");
     try expectContains(samples_readme, "keep string-helper evidence under the separate Phase 7 helper bundle");
+    try expectContains(samples_readme, "treat any new `samples/zigux/*string*.zig` file as review-blocking until the roadmap-backed Phase 7 helper bundle is intentionally widened");
+    try expectContains(samples_readme, "verify no Phase 5 string sample has appeared under this sample root");
+    try expectContains(samples_readme, "verify the shipped string-helper and cmdline evidence still live under the separate Phase 7 helper bundle and shared build gate: `python3 scripts/zigux/validate-phase7.py`");
 
     try expectContains(docs_readme, "`samples/zigux/README.md` is the shared Phase 5 sample-root catalog");
     try expectContains(docs_readme, "the Phase 7 string-helpers slice is intentionally helper-only");
