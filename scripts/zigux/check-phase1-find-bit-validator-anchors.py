@@ -129,10 +129,11 @@ def validate_text(prefix: str, source: str, required_snippets: dict[str, str]) -
 
 def validate_exact_lines(prefix: str, source: str, required_lines: dict[str, str]) -> list[str]:
     missing: list[str] = []
-    lines = {line.strip() for line in source.splitlines()}
+    lines = [line.strip() for line in source.splitlines()]
     for label, required_line in required_lines.items():
-        if required_line not in lines:
-            missing.append(f"{prefix}:{label}")
+        actual_count = sum(1 for line in lines if line == required_line)
+        if actual_count != 1:
+            missing.append(f"{prefix}:{label}:expected=1:actual={actual_count}")
     return missing
 
 
@@ -371,7 +372,20 @@ def run_self_test() -> int:
             makefile_baseline,
             scripts_readme_baseline,
             docs_readme_baseline,
-            f"phase1_validator_find_bit_workflow:{label}",
+            f"phase1_validator_find_bit_workflow:{label}:expected=1:actual=0",
+        )
+        total_cases += 1
+        expect_missing(
+            f"{label}_duplicate",
+            validator_baseline,
+            closure_validator_baseline,
+            closure_doc_baseline,
+            bench_checker_baseline,
+            workflow_baseline + snippet + "\n",
+            makefile_baseline,
+            scripts_readme_baseline,
+            docs_readme_baseline,
+            f"phase1_validator_find_bit_workflow:{label}:expected=1:actual=2",
         )
         total_cases += 1
 
@@ -389,7 +403,20 @@ def run_self_test() -> int:
             "\n".join(mutated_makefile_lines) + "\n",
             scripts_readme_baseline,
             docs_readme_baseline,
-            f"phase1_validator_find_bit_makefile:{label}",
+            f"phase1_validator_find_bit_makefile:{label}:expected=1:actual=0",
+        )
+        total_cases += 1
+        expect_missing(
+            f"{label}_duplicate",
+            validator_baseline,
+            closure_validator_baseline,
+            closure_doc_baseline,
+            bench_checker_baseline,
+            workflow_baseline,
+            makefile_baseline + snippet + "\n",
+            scripts_readme_baseline,
+            docs_readme_baseline,
+            f"phase1_validator_find_bit_makefile:{label}:expected=1:actual=2",
         )
         total_cases += 1
 
