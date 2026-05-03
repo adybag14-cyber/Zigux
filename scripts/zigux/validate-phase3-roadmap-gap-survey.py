@@ -11,6 +11,24 @@ ROOT = _HERE.parents[2] if len(_HERE.parents) > 2 else _HERE.parent
 SURVEY_REL = "Documentation/zigux/phase3-roadmap-gap-survey.md"
 DOCS_README_REL = "Documentation/zigux/README.md"
 
+FULL_SUPPORTING_CHECKS_SNIPPET = (
+    "`python3 scripts/zigux/validate-phase3-roadmap-gap-survey.py`, "
+    "`python3 scripts/zigux/validate-phase3-rbtree-interop-survey.py`, "
+    "`python3 scripts/zigux/check-phase3-rbtree-shared-lift-contract.py`, "
+    "`python3 scripts/zigux/validate-phase3-export-uapi-survey.py`, "
+    "`python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py`, "
+    "`python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py`, "
+    "`python3 scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py`, "
+    "`python3 scripts/zigux/check-phase3-abi-layout-packet.py`, "
+    "`python3 scripts/zigux/check-phase3-abi-binding-constants.py`, "
+    "`python3 scripts/zigux/check-phase3-tooling-packet.py`, "
+    "`python3 scripts/zigux/check-phase3-readme-tooling-inventory.py`, "
+    "`python3 scripts/zigux/check-phase3-validation-flow.py`, "
+    "`python3 scripts/zigux/check-phase3-build-roots.py`, and "
+    "`python3 scripts/zigux/check-phase3-canonical-survey-manifest.py` stay as "
+    "supporting checks inside that same validator-first route instead of standalone release paths"
+)
+
 REQUIRED_SURVEY_MARKERS = (
     "PHASE3_ROADMAP_ANCHORS=rust/exports.c,lib/bitmap.c,lib/rbtree.c,lib/cpumask.c",
     "PHASE3_CURRENT_EXPORT_SHIM=zigux/kernel/export_shim.zig",
@@ -43,6 +61,7 @@ REQUIRED_SURVEY_SNIPPETS = (
     "`python3 scripts/zigux/validate-phase3.py`",
     "`make -C zigux phase3-validate`",
     "the bootstrap workflow replays the same shared validator route before the broader Phase 3 ABI and interop tests run",
+    FULL_SUPPORTING_CHECKS_SNIPPET,
     "`python3 scripts/zigux/validate-phase3-rbtree-interop-survey.py` also stays inside that same validator-first route so the dedicated `rbtree` survey, shared-lift contract, and remaining shared-ABI gap stay reviewable without becoming a standalone release path",
     "one shared header-and-binding shape",
     "one shared ABI replay path that no longer depends on the dedicated `rbtree` include path",
@@ -54,6 +73,7 @@ EXACT_ONCE_SURVEY_SNIPPETS = (
     "`python3 scripts/zigux/validate-phase3.py`",
     "`make -C zigux phase3-validate`",
     "the bootstrap workflow replays the same shared validator route before the broader Phase 3 ABI and interop tests run",
+    FULL_SUPPORTING_CHECKS_SNIPPET,
     "`python3 scripts/zigux/validate-phase3-rbtree-interop-survey.py` also stays inside that same validator-first route so the dedicated `rbtree` survey, shared-lift contract, and remaining shared-ABI gap stay reviewable without becoming a standalone release path",
 )
 
