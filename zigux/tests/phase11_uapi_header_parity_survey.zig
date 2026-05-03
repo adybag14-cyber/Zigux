@@ -141,7 +141,7 @@ test "phase11 shared header parity manifest records the bounded layout checkpoin
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P11-L17", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
-    try std.testing.expectEqualStrings("3d975b828c647fa9398109b0bf44e298ec1a05e1", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("b244e4000e4e0db717e76190df37aca797b58020", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("include/uapi/linux/watchdog.h and include/uapi/asm-generic/termios.h", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_build_present);
