@@ -7,6 +7,7 @@ This document records the bounded Phase 7 runtime leaf-helper slice for Zigux ar
 - `PHASE7_STATUS=parked`
 - `PHASE7_SLICE=rbtree-runtime-leaf`
 - scope: first bounded balancing and traversal helpers
+- lane state: helper, fixture, survey, and parity-adapter slice landed; parked unless a new `rbtree.c` parity issue appears
 - product boundary:
   - `lib/rbtree.zig`
   - `zigux/tests/phase7_rbtree.zig`
@@ -15,6 +16,7 @@ This document records the bounded Phase 7 runtime leaf-helper slice for Zigux ar
   - `zigux/tests/phase7_build.zig`
   - `zigux/tests/fixtures/phase7_rbtree.json`
   - `zigux/tests/fixtures/phase7_rbtree_c_harness.c`
+  - `scripts/zigux/check-phase7-rbtree-parity.py`
 
 ## Why this slice exists
 
