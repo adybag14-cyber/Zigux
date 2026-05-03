@@ -21,8 +21,12 @@
     "preexisting_phase13_devres_test_present": true,
     "preexisting_phase13_devres_slice_present": true,
     "preexisting_phase13_devres_reviewability_present": true,
-    "preexisting_phase13_devres_iounmap_reviewability_present": true,
-    "preexisting_phase13_devres_survey_present": true
+    "preexisting_phase13_devres_survey_present": true,
+    "devres_dma_coherent_helper_sha256": "944f595b5434603dd21e77b33af03d317613e2f2f1a81d574c9d1b5f4e422c05",
+    "devres_dma_coherent_test_sha256": "898655bd8bdcdbad0074011ae92b3ca3f4c5272d58812253ea8b2aa0542f8dce",
+    "preexisting_devres_dma_coherent_zig_present": true,
+    "preexisting_phase13_devres_dma_coherent_test_present": true,
+    "preexisting_phase13_devres_iounmap_reviewability_present": true
   },
   "gaps": [
     {
@@ -72,7 +76,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_devres_iounmap_reviewability.zig",
-      "why_now": "The dedicated iounmap reviewability gate source-scans the helper descriptor and replays exact-match plus release-miss `devm_iounmap()` planning so the helper-advertised `provides_iounmap_call_planning` surface stays explicit inside the broader devres packet instead of living only in the helper lab or survey prose."
+      "why_now": "The dedicated iounmap reviewability gate source-scans the helper descriptor and replays exact-match plus release-miss devm_iounmap() planning so the helper-advertised provides_iounmap_call_planning surface stays explicit inside the broader devres packet instead of living only in the helper lab or survey prose."
     },
     {
       "id": "phase13-devres-survey-note",
@@ -129,6 +133,13 @@
       "kind": "resource_helper_wrapper",
       "zigux_destination": "lib/devres.zig",
       "why_now": "The helper lab now keeps devm_arch_io_reserve_memtype_wc() helper-first by retaining the reserved range for detach-time release through arch_io_free_memtype_wc() and freeing the release record on failure."
+    },
+    {
+      "id": "phase13-devres-dma-coherent-lifetime-planner",
+      "status": "starter_landed",
+      "kind": "resource_helper_wrapper",
+      "zigux_destination": "lib/devres_dma_coherent.zig",
+      "why_now": "The helper packet now keeps dmam_alloc_coherent() and dmam_free_coherent() helper-first in a dedicated sibling planner that records release-record allocation, success-path retention of the returned CPU address plus DMA handle for detach-time cleanup, free-on-partial-failure cleanup when either half of the coherent mapping never materializes, and exact free-time tuple matching without claiming live DMA-backed execution or scatterlist ownership."
     },
     {
       "id": "phase13-devres-live-mmio-side-effects",
