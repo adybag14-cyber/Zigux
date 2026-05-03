@@ -141,6 +141,7 @@ test "atomic64 diff wrapper stays a thin phase4 entrypoint" {
 }
 
 test "atomic64 diff wrapper keeps roadmap entrypoint and rollback evidence aligned" {
+    try expectManifestMarker("\"lane_key\": \"P4-L04\"");
     try expectManifestMarker("\"zigux/tests/atomic64_diff.zig\"");
     try expectManifestMarker("\"roadmap_atomic64_wrapper_targets_runtime_diff\": true");
     try expectManifestMarker("\"phase4_build_uses_atomic64_wrapper\": true");
@@ -235,6 +236,7 @@ test "atomic64 diff wrapper keeps the dedicated phase4 gate-evidence checker exp
     try expectGateEvidenceMarker("`PHASE4_GATE_EVIDENCE_CHECK=pass`");
     try expectGateEvidenceMarker("`PHASE4_GATE_EVIDENCE_TARGET_COUNT=15`");
     try expectGateEvidenceMarker("the dedicated `scripts/zigux/check-phase4-gate-evidence.py` checker");
+    try expectGateEvidenceMarker("3ba64cd4e41a4de1c8fd8dbaecb23702ad9701a3");
 }
 
 test "atomic64 diff wrapper keeps phase4 validator aligned with wrapper and runtime split" {
