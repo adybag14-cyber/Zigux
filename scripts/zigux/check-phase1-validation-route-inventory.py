@@ -194,6 +194,11 @@ MAKEFILE_LINES = {
         "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-validation-route-inventory.py",
         1,
     ),
+    "makefile_phase1_validate_self_test_count": (
+        "zigux/Makefile",
+        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase1.py --self-test",
+        1,
+    ),
     "makefile_phase1_validate_count": (
         "zigux/Makefile",
         "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase1.py",
