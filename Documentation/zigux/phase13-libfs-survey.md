@@ -17,6 +17,7 @@ This document records the bounded Phase 13 survey and reviewability lane around 
   - `zigux/Makefile`
   - `Documentation/zigux/phase13-libfs-slice.md`
   - `Documentation/zigux/phase13-libfs-survey.md`
+  - `Documentation/zigux/phase13-roadmap-traceability.md`
 
 ## Why this slice exists
 
@@ -32,7 +33,7 @@ The live Zigux tree is no longer survey-only here. It already carries a small `f
 - the live repo now has a landed `fs/libfs.zig` helper slice plus `zigux/tests/phase13_libfs.zig`, and both the explicit standalone `zig test` entrypoints with `libfs` module wiring plus `zigux/tests/phase13_build.zig` compile that helper and reviewability path.
 - the current survey packet is pinned to inspected `master` head `d62742e7ff0747ed15f71f67d505f68ea15ec7ab` so future lane runs can detect note and manifest drift before widening helper coverage.
 - the current helper slice stays intentionally narrow around `simple_statfs()` defaults, the `always_delete_dentry()` policy, the branch decisions inside `simple_lookup()`, the pure buffer-copy helper trio, the early `dcache_dir_lseek()` and `offset_dir_llseek()` seek-policy surface, one tiny `dcache_readdir()`-adjacent emit planner, one bounded `dcache_dir_open()` / `dcache_readdir()` cursor-precondition planner, one bounded `dcache_dir_close()` release planner, a bounded `simple_transaction_get()` / `simple_transaction_set()` staging-buffer planner, a pure `simple_transaction_read()` / `simple_transaction_release()` follow-up, and a pure `simple_open()` private-data handoff planner.
-- the reviewability gate and manifest tie the current helper slice, tests, build wire, slice note, and survey note together so future runs can verify the exact Phase 13 lane state before widening helper coverage, including the exported descriptor metadata for the already-landed cursor-reposition planning surface and the new simple-open planning surface.
+- the reviewability gate, the focused packet checker, and the manifest now tie the current helper slice, tests, build wire, slice note, survey note, and the directly coupled Phase 13 roadmap traceability note together so future runs can verify the exact libfs lane state before widening helper coverage, including the exported descriptor metadata for the already-landed cursor-reposition planning surface and the new simple-open planning surface.
 - directory cursor helpers such as `dcache_dir_open()` and the deeper cursor-backed `dcache_readdir()` traversal remain riskier because they depend on cursor dentries, sibling lists, lock ordering, and reschedule-aware traversal.
 
 ## Recorded gaps
