@@ -29,6 +29,7 @@ test "phase11 dw_wdt exposes the fixed-top timeout matrix in ascending order" {
     try std.testing.expectEqual(@as(usize, dw_wdt.num_tops), windows.len);
     try std.testing.expectEqual(@as(u32, 0), windows[0].top_val);
     try std.testing.expectEqual(@as(u32, 2), windows[0].sec);
+    try std.testing.expectEqual(@as(u32, 0), windows[0].msec);
     try std.testing.expectEqual(@as(u32, 15), windows[15].top_val);
     try std.testing.expectEqual(@as(u32, 65_536), windows[15].sec);
 
@@ -79,6 +80,7 @@ test "phase11 dw_wdt start and ping select the nearest fixed top in reset mode" 
 
     var runtime = try watchdog.start();
     try std.testing.expect(runtime.running);
+    try std.testing.expect(runtime.hardware_running);
     try std.testing.expectEqual(dw_wdt.ResponseMode.reset, runtime.response_mode);
     try std.testing.expectEqual(
         dw_wdt.control_reg_wdt_en_mask,
