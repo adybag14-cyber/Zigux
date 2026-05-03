@@ -384,7 +384,7 @@ MANIFEST_EXPECTATIONS = {
         "tail_start_unit_test_anchor": 'tools/lib/find_bit.zig:test "tail scans keep the last in-range bit reachable from an inclusive start"',
         "tail_start_unit_test_contract": "Direct Zig unit coverage keeps tail-clamped set, zero, and shared-bit scans aligned when the inclusive start lands on the last in-range bit, while later starts still return nbits instead of leaking the out-of-range tail.",
         "tail_word_boundary_unit_test_anchor": 'tools/lib/find_bit.zig:test "tail scans honor an exact tail-word boundary start"',
-        "tail_word_boundary_unit_test_contract": "Direct Zig unit coverage keeps set, zero, and shared-bit tail scans aligned when the search starts exactly at the first tail-word bit index, so the first in-range tail match remains reachable without rereading an earlier full-word result.",
+        "tail_wordBoundary_unit_test_contract": "Direct Zig unit coverage keeps set, zero, and shared-bit tail scans aligned when the search starts exactly at the first tail-word bit index, so the first in-range tail match remains reachable without rereading an earlier full-word result.",
         "zero_sized_unit_test_anchor": 'tools/lib/find_bit.zig:test "zero-sized scans ignore populated backing words"',
         "zero_sized_unit_test_contract": "Direct Zig unit coverage keeps zero-length set, zero, and shared-bit scans aligned by returning 0 even when backing words are populated, so declared nbits stays authoritative over caller storage.",
     },
@@ -392,43 +392,68 @@ MANIFEST_EXPECTATIONS = {
         "summary": "Committed C-backed parity coverage includes ordered forward and reverse traversal plus replaceNode, eraseInit, postorder traversal, and detached-node state checks, while Linux-style rb_* alias parity remains explicitly out of scope for this closed Phase 1 tranche.",
         "duplicate_search_unit_test_anchor": 'tools/lib/rbtree.zig:test "rbtree duplicate search stays aligned after erase and same-key replace"',
         "duplicate_search_unit_test_contract": "Direct Zig unit coverage keeps duplicate-key search aligned after erase() and same-key replaceNode() so findFirst(), findLast(), and duplicate-range iterators continue to report the surviving equal-key window in both directions.",
-        "cached_duplicate_unit_test_anchor": 'tools/lib/rbtree.zig:test "rbtree cached duplicate minima stay aligned across erase and replace"',
+        "cached_duplicate_unit_test_anchor": 'tools/lib/rbtree.zig:test "rbtree cached root tracks duplicate minima across replace and erase"',
         "cached_duplicate_unit_test_contract": "Direct Zig unit coverage keeps RootCached duplicate minima aligned when eraseCached() promotes the next equal-key minimum and replaceNodeCached() leaves the cached first node unchanged for non-leftmost replacement.",
-        "cached_findadd_unit_test_anchor": 'tools/lib/rbtree.zig:test "rbtree findAddCached returns the resident duplicate and links new keys"',
-        "cached_findadd_unit_test_contract": "Direct Zig unit coverage keeps findAddCached() aligned by returning the original equal-key resident node, still linking new distinct keys into the cached tree, and preserving the cached first node as the tree minimum.",
-        "iterate_unit_test_anchor": 'tools/lib/rbtree.zig:test "rbtree iterateMatches stays within the duplicate-key window"',
-        "iterate_unit_test_contract": "Direct Zig unit coverage keeps iterateMatches() aligned by yielding only the equal-key duplicate range while cleanly reporting no match for missing keys.",
-        "reverse_unit_test_anchor": 'tools/lib/rbtree.zig:test "rbtree reverse duplicate walks stay aligned from the last match"',
-        "reverse_unit_test_contract": "Direct Zig unit coverage keeps findLast(), prevMatch(), and iterateMatchesReverse() aligned from the rightmost duplicate-key match back through the equal-key window while still reporting no match for missing keys.",
-        "postorder_safe_unit_test_anchor": 'tools/lib/rbtree.zig:test "rbtree iteratePostorderSafe stays aligned across erase-driven rebalancing"',
-        "postorder_safe_unit_test_contract": "Direct Zig unit coverage keeps iteratePostorderSafe() aligned across erase-driven rebalancing so the walk still visits each remaining node exactly once after the current node is removed.",
+        "cached_findadd_unit_test_anchor": 'tools/lib/rbtree.zig:test "rbtree cached findAdd returns the resident duplicate"',
+        "cached_findadd_unit_test_contract": "Direct Zig unit coverage keeps findAddCached() aligned by returning the original equal-key resident node, still linking new distinct keys into the cached tree, and keeping the cached first node aligned with the underlying tree root.",
+        "iterate_unit_test_anchor": 'tools/lib/rbtree.zig:test "rbtree iterateMatches stops at duplicate-range boundaries"',
+        "iterate_unit_test_contract": "Direct Zig unit coverage keeps iterateMatches() yielding only the equal-key duplicate range and cleanly reporting no match for missing keys.",
+        "reverse_unit_test_anchor": 'tools/lib/rbtree.zig:test "rbtree reverse duplicate walks stay aligned"',
+        "reverse_unit_test_contract": "Direct Zig unit coverage keeps findLast(), prevMatch(), and iterateMatchesReverse() aligned from the rightmost duplicate back through the equal-key range while still reporting no match for missing keys.",
+        "postorder_safe_unit_test_anchor": 'tools/lib/rbtree.zig:test "rbtree postorder safe iteration survives erase-driven rebalancing"',
+        "postorder_safe_unit_test_contract": "Direct Zig unit coverage keeps iteratePostorderSafe() aligned across erase-driven rebalancing so the walk still reaches each remaining node exactly once after the current node is removed.",
+    },
+    "tools/lib/argv_split.zig": {
+        "summary": "Committed C-backed parity coverage remains sufficient for the bounded argv_split helper; no extra direct Zig-only unit anchors are required in the closed Phase 1 tranche.",
+    },
+    "tools/lib/cmdline.zig": {
+        "summary": "Committed C-backed parity coverage remains sufficient for the bounded cmdline helper; no extra direct Zig-only unit anchors are required in the closed Phase 1 tranche.",
+    },
+    "tools/lib/ctype.zig": {
+        "summary": "Committed C-backed parity coverage remains sufficient for the bounded ctype helper; no extra direct Zig-only unit anchors are required in the closed Phase 1 tranche.",
+    },
+    "tools/lib/hweight.zig": {
+        "summary": "Committed C-backed parity coverage remains sufficient for the bounded hweight helper; no extra direct Zig-only unit anchors are required in the closed Phase 1 tranche.",
+    },
+    "tools/lib/list_sort.zig": {
+        "summary": "Committed C-backed parity coverage remains sufficient for the bounded list_sort helper; no extra direct Zig-only unit anchors are required in the closed Phase 1 tranche.",
+    },
+    "tools/lib/slab.zig": {
+        "summary": "Committed C-backed parity coverage remains sufficient for the bounded slab helper; no extra direct Zig-only unit anchors are required in the closed Phase 1 tranche.",
+    },
+    "tools/lib/str_error_r.zig": {
+        "summary": "Committed C-backed parity coverage remains sufficient for the bounded str_error_r helper; no extra direct Zig-only unit anchors are required in the closed Phase 1 tranche.",
+    },
+    "tools/lib/vsprintf.zig": {
+        "summary": "Committed C-backed parity coverage remains sufficient for the bounded vsprintf helper; no extra direct Zig-only unit anchors are required in the closed Phase 1 tranche.",
+    },
+    "tools/lib/zalloc.zig": {
+        "summary": "Committed C-backed parity coverage remains sufficient for the bounded zalloc helper; no extra direct Zig-only unit anchors are required in the closed Phase 1 tranche.",
     },
 }
+
+
+def fail(label: str, issues: list[str]) -> int:
+    print("PHASE1_VALIDATION=fail")
+    print(f"{label}_START")
+    for issue in issues:
+        print(issue)
+    print(f"{label}_END")
+    return 1
 
 
 def read_text(rel: str) -> str:
     return (ROOT / rel).read_text(encoding="utf-8")
 
 
-def fail(label: str, issues: list[str]) -> int:
-    print(f"{label}=fail")
-    for issue in issues:
-        print(issue)
-    return 1
-
-
 def validate_fixture_shape() -> list[str]:
     issues: list[str] = []
     fixture = json.loads(read_text("zigux/tests/fixtures/phase1_helpers.json"))
-    actual_sections = set(fixture)
-    expected_sections = set(FIXTURE_SHAPE)
-    if actual_sections != expected_sections:
-        missing = sorted(expected_sections - actual_sections)
-        extra = sorted(actual_sections - expected_sections)
-        if missing:
-            issues.extend(f"phase1_fixture:missing_section:{section}" for section in missing)
-        if extra:
-            issues.extend(f"phase1_fixture:extra_section:{section}" for section in extra)
+    if set(fixture) != set(FIXTURE_SHAPE):
+        missing_sections = sorted(set(FIXTURE_SHAPE) - set(fixture))
+        extra_sections = sorted(set(fixture) - set(FIXTURE_SHAPE))
+        issues.extend(f"phase1_fixture:missing_section:{name}" for name in missing_sections)
+        issues.extend(f"phase1_fixture:extra_section:{name}" for name in extra_sections)
     for section, expected_keys in FIXTURE_SHAPE.items():
         value = fixture.get(section)
         if not isinstance(value, dict):
@@ -815,7 +840,7 @@ def self_test() -> int:
         if code == 0:
             print("PHASE1_VALIDATOR_SELF_TEST=fail")
             return 1
-        manifest["helper_review_notes"]["tools/lib/find_bit.zig"]["tail_word_boundary_unit_test_contract"] = MANIFEST_EXPECTATIONS["tools/lib/find_bit.zig"]["tail_word_boundary_unit_test_contract"]
+        manifest["helper_review_notes"]["tools/lib/find_bit.zig"]["tail_wordBoundary_unit_test_contract"] = MANIFEST_EXPECTATIONS["tools/lib/find_bit.zig"]["tail_wordBoundary_unit_test_contract"]
         write(root / "zigux/tests/fixtures/phase1_helper_manifest.json", json.dumps(manifest, indent=2) + "\n")
 
         manifest["helper_review_notes"]["tools/lib/find_bit.zig"]["zero_sized_unit_test_anchor"] = "old anchor"
