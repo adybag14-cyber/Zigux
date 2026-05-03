@@ -16,6 +16,8 @@ CHECK_FIXDEP = ROOT / 'scripts' / 'zigux' / 'check-fixdep-diff.py'
 CHECK_ARTIFACT_DIFF_CONTRACT = ROOT / 'scripts' / 'zigux' / 'check-artifact-diff-contract.py'
 CHECK_PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT = ROOT / 'scripts' / 'zigux' / 'check-phase2-genksyms-bridge-selftest-alignment.py'
 CHECK_PHASE2_CROSS_SELFTEST_ALIGNMENT = ROOT / 'scripts' / 'zigux' / 'check-phase2-cross-selftest-alignment.py'
+CHECK_PHASE2_TOOLCHAIN_PIN_SCOPE = ROOT / 'scripts' / 'zigux' / 'check-phase2-toolchain-pin-scope.py'
+TOOLCHAIN_POLICY = ROOT / 'scripts' / 'zigux' / 'zig-toolchain-policy.json'
 EXPECTED_TOOL_MANIFEST_TOOLS = [
     'scripts/zigux/fixdep.zig',
     'scripts/zigux/genksyms.zig',
@@ -588,6 +590,8 @@ required_files = [
     ROOT / 'scripts' / 'zigux' / 'check-genksyms-bridge.py',
     ROOT / 'scripts' / 'zigux' / 'check-phase2-genksyms-bridge-selftest-alignment.py',
     CHECK_PHASE2_CROSS_SELFTEST_ALIGNMENT,
+    CHECK_PHASE2_TOOLCHAIN_PIN_SCOPE,
+    TOOLCHAIN_POLICY,
     ROOT / 'scripts' / 'zigux' / 'check-genksyms-crc-diff.py',
     ROOT / 'scripts' / 'zigux' / 'check-kconfig-bridge.py',
     ROOT / 'scripts' / 'zigux' / 'check-mk-elfconfig-diff.py',
@@ -650,6 +654,9 @@ required_closure_markers = [
     'PHASE2_STATUS=closed',
     'PHASE2_TOOL_COUNT=6',
     'PHASE2_CROSS_TARGET_COUNT=3',
+    'x86_64-linux',
+    'scripts/zigux/zig-toolchain-policy.json',
+    'scripts/zigux/check-phase2-toolchain-pin-scope.py',
     'PHASE2_FIXDEP_GATE=python3 scripts/zigux/check-fixdep-diff.py',
     'PHASE2_FIXDEP_DETERMINISM=check-fixdep-diff.py replays C and Zig outputs twice before comparing artifacts',
     'PHASE2_FIXDEP_FULL_READ_POLICY=fixdep.zig reads dependency files at full C-helper size and maps short writes to fixdep output errors',
@@ -705,6 +712,9 @@ required_closure_markers = [
     'PHASE2_CROSS_ALIGNMENT_SELF_TEST=python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test',
     'PHASE2_CROSS_ALIGNMENT_GATE=python3 scripts/zigux/check-phase2-cross-selftest-alignment.py',
     'PHASE2_CROSS_MANIFEST_POLICY=check-phase2-cross.py rejects duplicate tool entries, duplicate requested targets, unexpected explicit targets, duplicate manifest targets, and manifest-count drift before live compile replay',
+    'PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test',
+    'PHASE2_TOOLCHAIN_PIN_SCOPE_GATE=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py',
+    'PHASE2_TOOLCHAIN_PIN_SCOPE_POLICY=scripts/zigux/zig-toolchain-policy.json keeps the bootstrap archive pin limited to x86_64-linux until a new runner target gains first-class workflow evidence',
     'PHASE2_SHARED_VALIDATOR=python3 scripts/zigux/validate-phase2.py',
     'PHASE2_CLOSURE_GATE=python3 scripts/zigux/validate-phase2-closure.py',
     'PHASE2_ARTIFACT_DIFF_SELF_TEST=python3 scripts/zigux/artifact_diff.py --self-test',
@@ -730,9 +740,9 @@ required_workflow_markers = [
     'python3 scripts/zigux/check-genksyms-crc-diff.py',
     'python3 scripts/zigux/check-kconfig-bridge.py --self-test',
     'python3 scripts/zigux/check-kconfig-bridge.py',
-    'python3 scripts/zigux/check-mk-elfconfig-diff.py',
     'python3 scripts/zigux/check-phase2-cross.py --self-test',
     'python3 scripts/zigux/check-phase2-cross.py --target',
+    'python3 scripts/zigux/check-mk-elfconfig-diff.py',
     'python3 scripts/zigux/validate-phase2-closure.py',
     'zig test scripts/zigux/fixdep.zig',
     'zig test scripts/zigux/genksyms.zig',
@@ -758,6 +768,10 @@ required_readme_markers = [
     'check-kconfig-bridge.py',
     'check-phase2-cross.py --self-test',
     'duplicate tool entries',
+    'check-phase2-toolchain-pin-scope.py --self-test',
+    'check-phase2-toolchain-pin-scope.py',
+    'zig-toolchain-policy.json',
+    'x86_64-linux',
     'check-mk-elfconfig-diff.py',
     'check-phase2-cross.py',
     'genksyms.zig',
