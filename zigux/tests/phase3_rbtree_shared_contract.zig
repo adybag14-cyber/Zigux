@@ -38,6 +38,10 @@ test "phase3 shared rbtree contract keeps the shared replay root samples explici
         .flags = rbtree.ROOT_FLAG_CACHED | rbtree.ROOT_FLAG_LEFTMOST_VALID,
         .reserved = 0,
     };
+    try std.testing.expectEqual(@as(usize, 0x2000), cached_root.root_addr);
+    try std.testing.expectEqual(@as(usize, 0x1800), cached_root.leftmost_addr);
+    try std.testing.expectEqual(@as(u32, rbtree.ROOT_FLAG_CACHED | rbtree.ROOT_FLAG_LEFTMOST_VALID), cached_root.flags);
+    try std.testing.expectEqual(@as(u32, 0), cached_root.reserved);
     try std.testing.expect(rbtree.isValid(cached_root));
     try std.testing.expect(!rbtree.isEmpty(cached_root));
     try std.testing.expect(rbtree.isCached(cached_root));
@@ -51,6 +55,10 @@ test "phase3 shared rbtree contract keeps the shared replay root samples explici
         .flags = 0,
         .reserved = 0,
     };
+    try std.testing.expectEqual(@as(usize, 0x2400), uncached_root.root_addr);
+    try std.testing.expectEqual(@as(usize, 0), uncached_root.leftmost_addr);
+    try std.testing.expectEqual(@as(u32, 0), uncached_root.flags);
+    try std.testing.expectEqual(@as(u32, 0), uncached_root.reserved);
     try std.testing.expect(rbtree.isValid(uncached_root));
     try std.testing.expect(!rbtree.isEmpty(uncached_root));
     try std.testing.expect(!rbtree.isCached(uncached_root));
