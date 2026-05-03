@@ -5,6 +5,9 @@ This note records the bounded Phase 2 bootstrap archive-pin contract.
 - policy file: `scripts/zigux/zig-toolchain-policy.json`
 - guard self-test: `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`
 - guard: `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`
+- shared validator gate: `python3 scripts/zigux/validate-phase2.py`
+- closure validator gate: `python3 scripts/zigux/validate-phase2-closure.py`
+- closure note: `Documentation/zigux/phase2-closure.md`
 - workflow install path: `python3 scripts/zigux/install-zig.py --dest .zig-toolchain`
 - workflow verification path: `python3 scripts/zigux/check-zig-toolchain.py`
 - current pinned Zig channel: `0.17.0-dev.87+9b177a7d2`
@@ -13,3 +16,4 @@ This note records the bounded Phase 2 bootstrap archive-pin contract.
 - current pinned bootstrap archive sha256 (`x86_64-linux`): `a3eae1cdb9643cf68e09e97574fb6780699e05148c270e52347faa293b80d858`
 - the archive pin must stay limited to `x86_64-linux` until a new bootstrap runner target gains first-class workflow evidence
 - the three-target compile matrix in `zigux/tests/fixtures/phase2_cross_targets.json` stays separate from the `x86_64-linux` bootstrap archive pin
+- the shared and closure validators above are the fail-closed route that keeps this note in the bounded Phase 2 toolchain tranche instead of leaving it as stand-alone reference text
