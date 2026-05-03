@@ -55,6 +55,7 @@ REQUIRED_FILES = [
     "zigux/tests/phase6_hexdump_c_parity.zig",
     "zigux/tests/fixtures/phase6_base64_vectors.zig",
     "zigux/tests/fixtures/phase6_base64_c_harness.c",
+    "zigux/tests/fixtures/phase6_bsearch_vectors.zig",
     "zigux/tests/fixtures/phase6_bsearch_c_harness.c",
     "zigux/tests/fixtures/phase6_checksum_c_harness.c",
     "zigux/tests/fixtures/phase6_hexdump_c_harness.c",
@@ -261,7 +262,7 @@ EXPECTED_MANIFEST = {
         "timing_sanity_only_helpers": [],
     },
     "fixture_posture": {
-        "fixture_backed_helpers": ["base64", "checksum", "hexdump"],
+        "fixture_backed_helpers": ["base64", "bsearch", "checksum", "hexdump"],
         "inline_corpus_helpers": ["bsearch"],
     },
 }
@@ -302,6 +303,8 @@ EXPECTED_BASE64_DETERMINISM = {
 
 EXPECTED_BSEARCH_DETERMINISM = {
     "inline_corpus": "sorted integer and symbol tables",
+    "perf_fixture_cases": 3,
+    "deterministic_probe_prefix_cases": 8,
     "c_parity_self_test_cases": 6,
     "c_parity_cases": 29,
 }
@@ -366,6 +369,7 @@ EXPECTED_BSEARCH_HELPER = {
         "zigux/tests/phase6_bsearch_c_parity.zig",
     ],
     "fixtures": [
+        "zigux/tests/fixtures/phase6_bsearch_vectors.zig",
         "zigux/tests/fixtures/phase6_bsearch_c_harness.c",
     ],
     "slice_note": "Documentation/zigux/phase6-bsearch-slice.md",
