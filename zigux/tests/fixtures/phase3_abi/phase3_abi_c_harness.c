@@ -65,6 +65,42 @@ static const struct layout_field zigux_cpumask_view_fields[] = {
     {"reserved", offsetof(struct zigux_cpumask_view, reserved)},
 };
 
+static const struct layout_field zigux_list_head_ref_fields[] = {
+    {"next_addr", offsetof(struct zigux_list_head_ref, next_addr)},
+    {"prev_addr", offsetof(struct zigux_list_head_ref, prev_addr)},
+};
+
+static const struct layout_field zigux_list_view_fields[] = {
+    {"head_addr", offsetof(struct zigux_list_view, head_addr)},
+    {"max_nodes", offsetof(struct zigux_list_view, max_nodes)},
+    {"reserved", offsetof(struct zigux_list_view, reserved)},
+};
+
+static const struct layout_field zigux_list_summary_fields[] = {
+    {"length", offsetof(struct zigux_list_summary, length)},
+    {"flags", offsetof(struct zigux_list_summary, flags)},
+};
+
+static const struct layout_field zigux_hlist_head_ref_fields[] = {
+    {"first_addr", offsetof(struct zigux_hlist_head_ref, first_addr)},
+};
+
+static const struct layout_field zigux_hlist_node_ref_fields[] = {
+    {"next_addr", offsetof(struct zigux_hlist_node_ref, next_addr)},
+    {"pprev_addr", offsetof(struct zigux_hlist_node_ref, pprev_addr)},
+};
+
+static const struct layout_field zigux_hlist_view_fields[] = {
+    {"head_addr", offsetof(struct zigux_hlist_view, head_addr)},
+    {"max_nodes", offsetof(struct zigux_hlist_view, max_nodes)},
+    {"reserved", offsetof(struct zigux_hlist_view, reserved)},
+};
+
+static const struct layout_field zigux_hlist_summary_fields[] = {
+    {"length", offsetof(struct zigux_hlist_summary, length)},
+    {"flags", offsetof(struct zigux_hlist_summary, flags)},
+};
+
 static const struct layout_field zigux_rbtree_root_view_fields[] = {
     {"root_addr", offsetof(struct zigux_rbtree_root_view, root_addr)},
     {"leftmost_addr", offsetof(struct zigux_rbtree_root_view, leftmost_addr)},
@@ -79,6 +115,13 @@ static const struct layout_desc layouts[] = {
     {"zigux_interop_policy", sizeof(struct zigux_interop_policy), _Alignof(struct zigux_interop_policy), ARRAY_SIZE(zigux_interop_policy_fields), zigux_interop_policy_fields},
     {"zigux_bitmap_view", sizeof(struct zigux_bitmap_view), _Alignof(struct zigux_bitmap_view), ARRAY_SIZE(zigux_bitmap_view_fields), zigux_bitmap_view_fields},
     {"zigux_cpumask_view", sizeof(struct zigux_cpumask_view), _Alignof(struct zigux_cpumask_view), ARRAY_SIZE(zigux_cpumask_view_fields), zigux_cpumask_view_fields},
+    {"zigux_list_head_ref", sizeof(struct zigux_list_head_ref), _Alignof(struct zigux_list_head_ref), ARRAY_SIZE(zigux_list_head_ref_fields), zigux_list_head_ref_fields},
+    {"zigux_list_view", sizeof(struct zigux_list_view), _Alignof(struct zigux_list_view), ARRAY_SIZE(zigux_list_view_fields), zigux_list_view_fields},
+    {"zigux_list_summary", sizeof(struct zigux_list_summary), _Alignof(struct zigux_list_summary), ARRAY_SIZE(zigux_list_summary_fields), zigux_list_summary_fields},
+    {"zigux_hlist_head_ref", sizeof(struct zigux_hlist_head_ref), _Alignof(struct zigux_hlist_head_ref), ARRAY_SIZE(zigux_hlist_head_ref_fields), zigux_hlist_head_ref_fields},
+    {"zigux_hlist_node_ref", sizeof(struct zigux_hlist_node_ref), _Alignof(struct zigux_hlist_node_ref), ARRAY_SIZE(zigux_hlist_node_ref_fields), zigux_hlist_node_ref_fields},
+    {"zigux_hlist_view", sizeof(struct zigux_hlist_view), _Alignof(struct zigux_hlist_view), ARRAY_SIZE(zigux_hlist_view_fields), zigux_hlist_view_fields},
+    {"zigux_hlist_summary", sizeof(struct zigux_hlist_summary), _Alignof(struct zigux_hlist_summary), ARRAY_SIZE(zigux_hlist_summary_fields), zigux_hlist_summary_fields},
     {"zigux_rbtree_root_view", sizeof(struct zigux_rbtree_root_view), _Alignof(struct zigux_rbtree_root_view), ARRAY_SIZE(zigux_rbtree_root_view_fields), zigux_rbtree_root_view_fields},
 };
 
@@ -112,6 +155,22 @@ int main(void)
     fprintf(stdout, "%u", ZIGUX_UNSAFE_VOLATILE_MMIO);
     fputs(",\"unsafe_scope_raw_pointer_bridge\":", stdout);
     fprintf(stdout, "%u", ZIGUX_UNSAFE_RAW_POINTER_BRIDGE);
+    fputs(",\"list_flag_empty\":", stdout);
+    fprintf(stdout, "%u", ZIGUX_LIST_FLAG_EMPTY);
+    fputs(",\"list_flag_singular\":", stdout);
+    fprintf(stdout, "%u", ZIGUX_LIST_FLAG_SINGULAR);
+    fputs(",\"list_flag_circular\":", stdout);
+    fprintf(stdout, "%u", ZIGUX_LIST_FLAG_CIRCULAR);
+    fputs(",\"list_flag_truncated\":", stdout);
+    fprintf(stdout, "%u", ZIGUX_LIST_FLAG_TRUNCATED);
+    fputs(",\"hlist_flag_empty\":", stdout);
+    fprintf(stdout, "%u", ZIGUX_HLIST_FLAG_EMPTY);
+    fputs(",\"hlist_flag_singular\":", stdout);
+    fprintf(stdout, "%u", ZIGUX_HLIST_FLAG_SINGULAR);
+    fputs(",\"hlist_flag_terminated\":", stdout);
+    fprintf(stdout, "%u", ZIGUX_HLIST_FLAG_TERMINATED);
+    fputs(",\"hlist_flag_truncated\":", stdout);
+    fprintf(stdout, "%u", ZIGUX_HLIST_FLAG_TRUNCATED);
     fputs(",\"root_flag_empty\":", stdout);
     fprintf(stdout, "%u", ZIGUX_RBTREE_ROOT_FLAG_EMPTY);
     fputs(",\"root_flag_cached\":", stdout);
