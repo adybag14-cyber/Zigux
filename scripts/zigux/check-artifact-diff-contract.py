@@ -100,35 +100,44 @@ def run_error_contract_case(
     *,
     expected_stderr_markers: list[str],
     expected_stderr_last_line: str,
+    repeat_count: int = 1,
 ) -> None:
-    completed = subprocess.run(
-        [sys.executable, str(ARTIFACT_DIFF), *args],
-        check=False,
-        capture_output=True,
-        text=True,
-        cwd=ROOT,
-    )
-    stdout_lines = completed.stdout.splitlines()
-    stderr_lines = completed.stderr.splitlines()
-    stderr_text = completed.stderr
-    if completed.returncode != expected_exit:
-        raise AssertionError(
-            f'expected exit {expected_exit}, got {completed.returncode}: stdout={stdout_lines} stderr={stderr_lines}'
+    if repeat_count < 1:
+        raise ValueError(f'repeat_count must be positive, got {repeat_count}')
+
+    for attempt in range(1, repeat_count + 1):
+        completed = subprocess.run(
+            [sys.executable, str(ARTIFACT_DIFF), *args],
+            check=False,
+            capture_output=True,
+            text=True,
+            cwd=ROOT,
         )
-    if stdout_lines != expected_stdout_lines:
-        raise AssertionError(f'unexpected stdout lines: {stdout_lines}')
-    if not stderr_lines:
-        raise AssertionError('expected parser stderr output, got none')
-    for marker in expected_stderr_markers:
-        if marker not in stderr_text:
+        stdout_lines = completed.stdout.splitlines()
+        stderr_lines = completed.stderr.splitlines()
+        stderr_text = completed.stderr
+        if completed.returncode != expected_exit:
             raise AssertionError(
-                f'missing stderr marker {marker!r} in parser contract output: {stderr_lines}'
+                f'attempt {attempt}: expected exit {expected_exit}, got {completed.returncode}: stdout={stdout_lines} stderr={stderr_lines}'
             )
-    if stderr_lines[-1] != expected_stderr_last_line:
-        raise AssertionError(
-            'unexpected parser error line: '
-            f'expected {expected_stderr_last_line!r}, got {stderr_lines[-1]!r}'
-        )
+        if stdout_lines != expected_stdout_lines:
+            raise AssertionError(
+                f'attempt {attempt}: unexpected stdout lines: {stdout_lines}'
+            )
+        if not stderr_lines:
+            raise AssertionError(
+                f'attempt {attempt}: expected parser stderr output, got none'
+            )
+        for marker in expected_stderr_markers:
+            if marker not in stderr_text:
+                raise AssertionError(
+                    f'attempt {attempt}: missing stderr marker {marker!r} in parser contract output: {stderr_lines}'
+                )
+        if stderr_lines[-1] != expected_stderr_last_line:
+            raise AssertionError(
+                f'attempt {attempt}: unexpected parser error line: '
+                f'expected {expected_stderr_last_line!r}, got {stderr_lines[-1]!r}'
+            )
 
 
 def assert_contract_catalog_shape() -> None:
@@ -400,6 +409,8 @@ def main() -> int:
     covered_cases.append('helper_self_test')
     covered_cases.append('helper_self_test_repeat')
 
+    # Parser-generated stderr is part of the published CLI contract too, so
+    # rerun it to prove the missing-argument shape stays deterministic.
     run_error_contract_case(
         [],
         2,
@@ -410,6 +421,7 @@ def main() -> int:
             'artifact_diff.py: error: --mode, expected, and actual are required unless --self-test is set',
         ],
         expected_stderr_last_line='artifact_diff.py: error: --mode, expected, and actual are required unless --self-test is set',
+        repeat_count=2,
     )
     covered_cases.append('cli_missing_required_args')
 
@@ -440,6 +452,7 @@ def main() -> int:
                 'artifact_diff.py: error: --mode, expected, and actual are required unless --self-test is set',
             ],
             expected_stderr_last_line='artifact_diff.py: error: --mode, expected, and actual are required unless --self-test is set',
+            repeat_count=2,
         )
         covered_cases.append('cli_missing_actual_operand')
 
