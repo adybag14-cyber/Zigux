@@ -353,12 +353,24 @@ static void run_cmdline_section(void)
 	char *octal_rest = endptr;
 	unsigned long long invalid = memparse("xyz", &endptr);
 	char *invalid_rest = endptr;
+	unsigned long long kib = memparse("64KiB rest", &endptr);
+	char *kib_rest = endptr;
+	unsigned long long mb = memparse("2MB!", &endptr);
+	char *mb_rest = endptr;
+	unsigned long long gib = memparse("1GiB trailing", &endptr);
+	char *gib_rest = endptr;
+	unsigned long long lowercase_kib = memparse("3kib.", &endptr);
+	char *lowercase_kib_rest = endptr;
 
 	printf("\"cmdline\":{");
 	printf("\"decimal_k\":{\"value\":%llu,\"rest\":\"%s\"},", decimal, decimal_rest);
 	printf("\"hex_m\":{\"value\":%llu,\"rest\":\"%s\"},", hexadecimal, hex_rest);
 	printf("\"octal_k\":{\"value\":%llu,\"rest\":\"%s\"},", octal, octal_rest);
-	printf("\"invalid\":{\"value\":%llu,\"rest\":\"%s\"}", invalid, invalid_rest);
+	printf("\"invalid\":{\"value\":%llu,\"rest\":\"%s\"},", invalid, invalid_rest);
+	printf("\"kib\":{\"value\":%llu,\"rest\":\"%s\"},", kib, kib_rest);
+	printf("\"mb\":{\"value\":%llu,\"rest\":\"%s\"},", mb, mb_rest);
+	printf("\"gib\":{\"value\":%llu,\"rest\":\"%s\"},", gib, gib_rest);
+	printf("\"lowercase_kib\":{\"value\":%llu,\"rest\":\"%s\"}", lowercase_kib, lowercase_kib_rest);
 	printf("}");
 }
 
