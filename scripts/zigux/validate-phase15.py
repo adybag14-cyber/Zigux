@@ -78,6 +78,15 @@ TESTS_README_MARKERS = [
     "blocked deep-core status-change posture",
 ]
 
+REVIEW_CHECKLIST_MARKERS = [
+    "if the change touches the freeze-map governance packet",
+    "Documentation/zigux/phase15-indefinite-c-policy.md",
+    "automatic return-to-blocked trigger",
+    "current maintenance-mode handoff aligned",
+    "if the change touches the shared Phase 15 Architecture Council review-process packet",
+    "indefinite-C policy link or explicit non-applicability note",
+]
+
 FREEZE_MAP_NOTE_MARKERS = [
     "PHASE15_LANE_KEY=arch-council",
     "## Roadmap versus repo reality",
@@ -323,6 +332,7 @@ require_markers("workflow", text(".github/workflows/zigux-bootstrap.yml"), WORKF
 require_markers("readme", text("Documentation/zigux/README.md"), README_MARKERS)
 require_markers("scripts_readme", text("scripts/zigux/README.md"), SCRIPTS_README_MARKERS)
 require_markers("tests_readme", text("zigux/tests/README.md"), TESTS_README_MARKERS)
+require_markers("review_checklist", text("Documentation/zigux/review-checklist.md"), REVIEW_CHECKLIST_MARKERS)
 require_markers(
     "freeze_map_note",
     text("Documentation/zigux/phase15-freeze-map-governance.md"),
@@ -708,6 +718,7 @@ print(
         + len(README_MARKERS)
         + len(SCRIPTS_README_MARKERS)
         + len(TESTS_README_MARKERS)
+        + len(REVIEW_CHECKLIST_MARKERS)
         + len(FREEZE_MAP_NOTE_MARKERS)
         + len(REVIEW_PROCESS_MARKERS)
         + len(INDEFINITE_POLICY_NOTE_MARKERS)
