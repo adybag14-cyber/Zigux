@@ -13,7 +13,10 @@ test "phase 5 kobject sample stays in the reference-sample lane" {
 test "phase 5 kobject sample replays bounded attribute registration and roundtrips" {
     var module = sample.KobjectExampleSample{};
     try module.init();
+    const initialized = module.ownershipSummary();
+    try std.testing.expect(initialized.can_run_anchor_replay);
     const replay = try module.runAnchorReplay();
+    const registered = module.ownershipSummary();
     const expected_focus = [_]sample.SampleFocus{
         .bounded_attribute_roundtrip,
         .shared_attribute_dispatch,
@@ -58,6 +61,9 @@ test "phase 5 kobject sample replays bounded attribute registration and roundtri
     try std.testing.expectEqualStrings("-5\n", replay.bar_value.text[0..replay.bar_value.len]);
     try std.testing.expectEqualSlices(sample.SampleFocus, &expected_focus, replay.checked_focus);
     try std.testing.expectEqual(sample.SampleStage.registered, module.stage());
+    try std.testing.expect(!registered.can_run_anchor_replay);
+    try std.testing.expect(!registered.can_register_attributes);
+    try std.testing.expect(registered.can_exit);
 }
 
 test "phase 5 kobject sample keeps shared attribute dispatch and parse failures explicit" {
@@ -77,17 +83,22 @@ test "phase 5 kobject sample keeps shared attribute dispatch and parse failures 
 test "phase 5 kobject sample makes ownership and lifetime boundaries explicit" {
     var module = sample.KobjectExampleSample{};
 
+    const cold = module.ownershipSummary();
     try std.testing.expectEqual(sample.SampleStage.cold, module.stage());
     try std.testing.expect(!module.attributesAreAccessible());
     try std.testing.expectEqual(@as(usize, 0), module.activeAttrCount());
+    try std.testing.expect(!cold.can_run_anchor_replay);
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runAnchorReplay());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.registerAttributes());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.storeValue("foo", "1\n"));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.showValue("foo"));
 
     try module.init();
+    const initialized = module.ownershipSummary();
     try std.testing.expectEqual(sample.SampleStage.initialized, module.stage());
     try std.testing.expect(!module.attributesAreAccessible());
     try std.testing.expectEqual(@as(usize, 0), module.activeAttrCount());
+    try std.testing.expect(initialized.can_run_anchor_replay);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.storeValue("foo", "1\n"));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.showValue("foo"));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.init());
@@ -110,6 +121,7 @@ test "phase 5 kobject sample makes ownership and lifetime boundaries explicit" {
     try std.testing.expectEqual(@as(i32, 0), module.bar);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.init());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.registerAttributes());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runAnchorReplay());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.showValue("foo"));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.storeValue("foo", "1\n"));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
@@ -125,6 +137,7 @@ test "phase 5 kobject sample records sample-owned lifecycle replay explicitly" {
     try std.testing.expectEqual(@as(usize, 0), replay.cold.init_runs);
     try std.testing.expectEqual(@as(usize, 0), replay.cold.register_runs);
     try std.testing.expectEqual(@as(usize, 0), replay.cold.exit_runs);
+    try std.testing.expect(!replay.cold.can_run_anchor_replay);
     try std.testing.expect(!replay.cold.can_register_attributes);
     try std.testing.expect(!replay.cold.can_exit);
 
@@ -134,6 +147,7 @@ test "phase 5 kobject sample records sample-owned lifecycle replay explicitly" {
     try std.testing.expectEqual(@as(usize, 1), replay.initialized.init_runs);
     try std.testing.expectEqual(@as(usize, 0), replay.initialized.register_runs);
     try std.testing.expectEqual(@as(usize, 0), replay.initialized.exit_runs);
+    try std.testing.expect(replay.initialized.can_run_anchor_replay);
     try std.testing.expect(replay.initialized.can_register_attributes);
     try std.testing.expect(replay.initialized.can_exit);
 
@@ -143,6 +157,7 @@ test "phase 5 kobject sample records sample-owned lifecycle replay explicitly" {
     try std.testing.expectEqual(@as(usize, 1), replay.registered.init_runs);
     try std.testing.expectEqual(@as(usize, 1), replay.registered.register_runs);
     try std.testing.expectEqual(@as(usize, 0), replay.registered.exit_runs);
+    try std.testing.expect(!replay.registered.can_run_anchor_replay);
     try std.testing.expect(!replay.registered.can_register_attributes);
     try std.testing.expect(replay.registered.can_exit);
 
@@ -162,8 +177,10 @@ test "phase 5 kobject sample records sample-owned lifecycle replay explicitly" {
     try std.testing.expectEqual(@as(usize, 1), replay.exited.init_runs);
     try std.testing.expectEqual(@as(usize, 1), replay.exited.register_runs);
     try std.testing.expectEqual(@as(usize, 1), replay.exited.exit_runs);
+    try std.testing.expect(!replay.exited.can_run_anchor_replay);
     try std.testing.expect(!replay.exited.can_register_attributes);
     try std.testing.expect(!replay.exited.can_exit);
+
     try std.testing.expectEqual(sample.SampleStage.exited, module.stage());
     try std.testing.expect(!module.attributesAreAccessible());
     try std.testing.expectEqual(@as(usize, 0), module.activeAttrCount());
@@ -175,6 +192,7 @@ test "phase 5 kobject sample records sample-owned lifecycle replay explicitly" {
     try std.testing.expectEqual(@as(usize, 1), module.exit_runs);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.init());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.registerAttributes());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runAnchorReplay());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.showValue("foo"));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.storeValue("foo", "1\n"));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
