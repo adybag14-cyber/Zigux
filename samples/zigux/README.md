@@ -65,6 +65,7 @@ Focused local replays
 - verify the kobject sample directly: `zig test samples/zigux/kobject_example.zig`
 - verify the kretprobe sample directly: `zig test samples/zigux/kretprobe_example.zig`
 - verify the trace-events sample directly: `zig test samples/zigux/trace_events_sample.zig`
+- keep the focused shared-build replays explicit too: `zigux/tests/phase5_kobject_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, and `zigux/tests/phase5_trace_events_sample.zig` remain part of the shipped packet through `zig build test --build-file zigux/tests/phase5_build.zig --summary all`, even though this contributor guide does not publish standalone direct `zig test` commands for those three shared-build-only checks
 - verify the focused runtime bitmap top-bit companion replay directly: `zig build test --build-file samples/zigux/runtime_bitmap_top_bit_build.zig --summary all`
 - verify the bytestream FIFO survey packet directly from the repo root: `zig test zigux/tests/phase5_bytestream_fifo_survey.zig`
 - verify the kobject survey packet directly from the repo root: `zig test zigux/tests/phase5_kobject_example_survey.zig`
