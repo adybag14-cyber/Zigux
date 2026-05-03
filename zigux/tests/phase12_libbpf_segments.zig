@@ -22,6 +22,8 @@ const SurveySummary = struct {
     preexisting_phase12_reviewability_gate_present: bool,
     preexisting_phase12_snapshot_checker_present: bool,
     preexisting_phase12_packet_checker_present: bool,
+    preexisting_phase12_focused_replay_checker_present: bool,
+    preexisting_phase12_focused_replay_build_present: bool,
 };
 
 const Gap = struct {
@@ -94,6 +96,8 @@ test "phase12 libbpf survey manifest records the bounded heavy-helper packet" {
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_reviewability_gate_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_snapshot_checker_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_packet_checker_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase12_focused_replay_checker_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase12_focused_replay_build_present);
     try std.testing.expectEqual(@as(usize, 17), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
