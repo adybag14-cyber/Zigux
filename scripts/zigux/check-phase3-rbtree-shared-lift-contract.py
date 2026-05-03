@@ -105,8 +105,16 @@ SHARED_CONTRACT_SNIPPETS = (
     "try std.testing.expect(rbtree.isEmpty(empty_root));",
     "try std.testing.expect(!rbtree.hasRoot(empty_root));",
     "const cached_root: rbtree.RootView = .{",
+    "try std.testing.expectEqual(@as(usize, 0x2000), cached_root.root_addr);",
+    "try std.testing.expectEqual(@as(usize, 0x1800), cached_root.leftmost_addr);",
+    "try std.testing.expectEqual(@as(u32, rbtree.ROOT_FLAG_CACHED | rbtree.ROOT_FLAG_LEFTMOST_VALID), cached_root.flags);",
+    "try std.testing.expectEqual(@as(u32, 0), cached_root.reserved);",
     "try std.testing.expect(rbtree.hasRoot(cached_root));",
     "const uncached_root: rbtree.RootView = .{",
+    "try std.testing.expectEqual(@as(usize, 0x2400), uncached_root.root_addr);",
+    "try std.testing.expectEqual(@as(usize, 0), uncached_root.leftmost_addr);",
+    "try std.testing.expectEqual(@as(u32, 0), uncached_root.flags);",
+    "try std.testing.expectEqual(@as(u32, 0), uncached_root.reserved);",
     "try std.testing.expect(rbtree.hasRoot(uncached_root));",
 )
 
@@ -302,6 +310,14 @@ def run_self_test() -> int:
         write(root, SHARED_CONTRACT_REL, "\n".join(snippet for snippet in SHARED_CONTRACT_SNIPPETS if snippet != "try std.testing.expect(rbtree.hasRoot(cached_root));") + "\n")
         issues = validate(root)
         assert f"missing_snippet:{SHARED_CONTRACT_REL}:try std.testing.expect(rbtree.hasRoot(cached_root));" in issues
+
+        write(root, SHARED_CONTRACT_REL, "\n".join(snippet for snippet in SHARED_CONTRACT_SNIPPETS if snippet != "try std.testing.expectEqual(@as(usize, 0x2000), cached_root.root_addr);") + "\n")
+        issues = validate(root)
+        assert f"missing_snippet:{SHARED_CONTRACT_REL}:try std.testing.expectEqual(@as(usize, 0x2000), cached_root.root_addr);" in issues
+
+        write(root, SHARED_CONTRACT_REL, "\n".join(snippet for snippet in SHARED_CONTRACT_SNIPPETS if snippet != "try std.testing.expectEqual(@as(usize, 0x2400), uncached_root.root_addr);") + "\n")
+        issues = validate(root)
+        assert f"missing_snippet:{SHARED_CONTRACT_REL}:try std.testing.expectEqual(@as(usize, 0x2400), uncached_root.root_addr);" in issues
 
         write(root, SHARED_CONTRACT_REL, "\n".join(SHARED_CONTRACT_SNIPPETS) + "\n")
         write(root, SHARED_ABI_TEST_REL, 'const rbtree = @import("rbtree_bindings");\n')
