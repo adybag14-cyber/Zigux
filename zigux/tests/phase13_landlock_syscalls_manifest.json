@@ -48,6 +48,13 @@
       "why_now": "A dedicated Phase 13 test gate now checks both the helper behavior and the survey manifest so future runs can see the narrow syscall starter and the still-missing kernel state in one place."
     },
     {
+      "id": "phase13-landlock-syscalls-reviewability-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase13_landlock_syscalls_reviewability.zig",
+      "why_now": "The dedicated reviewability gate now keeps the helper surface, manifest, survey note, and shared Phase 13 build wiring aligned so future runs can detect packet drift before widening into live file-descriptor or credential state."
+    },
+    {
       "id": "phase13-landlock-syscalls-slice-note",
       "status": "starter_landed",
       "kind": "documentation",
