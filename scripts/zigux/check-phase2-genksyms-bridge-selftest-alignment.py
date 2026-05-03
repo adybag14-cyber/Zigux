@@ -182,6 +182,8 @@ def validate_cases(root: Path) -> list[str]:
         issues.append("cases:version:mode=process_json")
     if version_case.get("argv") != ["-Vd", "--reference", "foo.symref"]:
         issues.append("cases:version:argv=['-Vd', '--reference', 'foo.symref']")
+    if version_case.get("expected") != "version_expected.json":
+        issues.append("cases:version:expected=version_expected.json")
 
     invalid_case = by_name.get("invalid_option", {})
     if invalid_case.get("normalize_stderr") is not True:
@@ -425,9 +427,16 @@ def run_self_test() -> int:
         payload["cases"][11]["argv"] = ["--help"]
         write(cases_path, json.dumps(payload, indent=2) + "\n")
         expect_issue("case_sentinel", root, "cases:help:argv=['--hel']")
+        clone_fixture_root(root)
+
+        cases_path = root / REQUIRED_FILES["cases"]
+        payload = json.loads(cases_path.read_text(encoding="utf-8"))
+        payload["cases"][12]["expected"] = "renamed_version_expected.json"
+        write(cases_path, json.dumps(payload, indent=2) + "\n")
+        expect_issue("version_expected_file", root, "cases:version:expected=version_expected.json")
 
     print("PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=9")
+    print("PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
