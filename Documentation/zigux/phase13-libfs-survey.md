@@ -40,11 +40,12 @@ The live Zigux tree is no longer survey-only here. It already carries a small `f
 
 The current lane state is:
 
-- landed `phase13-libfs-helper-starter`
-- landed `phase13-libfs-test-gate`
 - landed `phase13-build-gate`
-- landed `phase13-libfs-reviewability-gate`
+- landed `phase13-make-target`
+- landed `phase13-libfs-starter`
+- landed `phase13-libfs-tests`
 - landed `phase13-libfs-slice-note`
+- landed `phase13-libfs-reviewability-gate`
 - landed `phase13-libfs-survey-note`
 - landed `phase13-libfs-offset-seek-helper`
 - landed `phase13-libfs-directory-emit-helper`
