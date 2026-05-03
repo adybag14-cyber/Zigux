@@ -91,9 +91,13 @@ ABI_REQUIRED_DOC_MARKERS = (
     "PHASE3_BARRIER_SCOPE=acquire-release-acquire-release-combined-full",
     "PHASE3_MMIO_SCOPE=range-read8-read16-read32-read64-write8-write16-write32-write64-plus-scoped-read8-write8-read16-write16-read32-write32-read64-write64-plus-policy-read8-write8-read16-write16-read32-write32-read64-write64-and-generic-policy-bridges",
     "PHASE3_ROADMAP_ANCHORS=rust-exports-lib-bitmap-lib-rbtree-lib-cpumask",
-    "PHASE3_CURRENT_INTEROP_FAMILIES=bitmap-cpumask-list-hlist-errptr-xarray-idr-ida-minor-alloc-dev-region-cdev-chrdev",
+    "PHASE3_CURRENT_INTEROP_FAMILIES=bitmap-cpumask-rbtree-list-hlist-errptr-xarray-idr-ida-minor-alloc-dev-region-cdev-chrdev",
+    "PHASE3_CURRENT_INTEROP_FAMILIES_DETAIL=bitmap-cpumask-rbtree-dedicated-boundary-list-hlist-errptr-xarray-idr-ida-minor-alloc-dev-region-cdev-chrdev-notify-ack-window-delivery-guard",
     "PHASE3_CURRENT_INTEROP_GAP=repo-now-carries-curated-phase3-parity-slices-beyond-the-original-roadmap-anchor-set",
+    "PHASE3_CURRENT_INTEROP_GAP_DETAIL=live-build-graph-now-carries-deep-chrdev-tail-packets-while-the-shared-phase3-abi-replay-already-covers-rbtree-root-view-through-dedicated-bindings-and-the-curated-shared-abi-h-plus-abi-zig-lift-is-still-missing",
+    "PHASE3_NEXT_SAFE_STEP=shared-rbtree-root-view-lift-only-before-any-more-shared-abi-growth",
 )
+
 ABI_REVIEW_CHECKLIST_MARKERS = (
     "- if the change touches the shared Phase 3 ABI substrate packet, do `include/zigux/abi.h`, `include/linux/zigux.h`, `zigux/bindings/abi.zig`, `zigux/tests/phase3_abi.zig`, and `zigux/tests/fixtures/phase3_abi/expected.json` still agree on the same canonical boundary layouts, constants, and fixture-backed dump contract?",
     "- if the change touches the shared Phase 3 ABI substrate packet, do `zigux/kernel/export_shim.zig`, `zigux/uapi/version.zig`, `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, and `scripts/zigux/validate-phase3-export-uapi-survey.py` still keep explicit status codes plus canonical-versus-compatible boundary-header checks reviewable in one place?",
@@ -373,7 +377,6 @@ LOW_LEVEL_WRAPPER_EXPORTS = {
         "write64",
     ),
 }
-
 
 def _phase3_paths_for_root(root: Path) -> Phase3Paths:
     return Phase3Paths(
