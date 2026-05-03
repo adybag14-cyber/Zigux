@@ -34,6 +34,7 @@ The live Zigux tree is no longer survey-only here. It already carries a small `f
 - the current survey packet is pinned to inspected `master` head `d62742e7ff0747ed15f71f67d505f68ea15ec7ab` so future lane runs can detect note and manifest drift before widening helper coverage.
 - the current helper slice stays intentionally narrow around `simple_statfs()` defaults, the `always_delete_dentry()` policy, the branch decisions inside `simple_lookup()`, the pure buffer-copy helper trio, the early `dcache_dir_lseek()` and `offset_dir_llseek()` seek-policy surface, one tiny `dcache_readdir()`-adjacent emit planner, one bounded `dcache_dir_open()` / `dcache_readdir()` cursor-precondition planner, one bounded `dcache_dir_close()` release planner, a bounded `simple_transaction_get()` / `simple_transaction_set()` staging-buffer planner, a pure `simple_transaction_read()` / `simple_transaction_release()` follow-up, and a pure `simple_open()` private-data handoff planner.
 - the reviewability gate, the focused packet checker, and the manifest now tie the current helper slice, tests, build wire, slice note, survey note, and the directly coupled Phase 13 roadmap traceability note together so future runs can verify the exact libfs lane state before widening helper coverage, including the exported descriptor metadata for the already-landed cursor-reposition planning surface and the new simple-open planning surface.
+- one roadmap-aligned pure shared-helper gap still remains before the lane has to stop at live-state blockers: `generic_check_addressable()` is still absent from `fs/libfs.zig`, even though it is a bounded block-size, overflow, and addressability check that does not require live dcache, inode, or pseudo-filesystem ownership.
 - directory cursor helpers such as `dcache_dir_open()` and the deeper cursor-backed `dcache_readdir()` traversal remain riskier because they depend on cursor dentries, sibling lists, lock ordering, and reschedule-aware traversal.
 
 ## Recorded gaps
@@ -55,10 +56,11 @@ The current lane state is:
 - landed `phase13-libfs-dcache-cursor-reposition-bookkeeping`
 - landed `phase13-libfs-dcache-dir-close-release-bookkeeping`
 - landed `phase13-libfs-simple-open-private-data-planning`
+- ready_next `phase13-libfs-addressability-helper`
 - blocked `phase13-libfs-dcache-cursor-helpers`
 - blocked `phase13-libfs-inode-and-pseudofs-lifecycle`
 
-This keeps the lane explicit without overstating progress: Zigux now has a real `fs/libfs.zig` helper slice plus a reviewability checkpoint, a bounded cursor-precondition planner, a bounded post-scan cursor-reposition planner, a bounded close-path release planner, a bounded transaction-buffer planner, a pure transaction read/release follow-up, and a pure simple-open private-data planner, but it still does not claim live dcache parity, mutable file-private transaction state, pseudo-filesystem mounting, inode lifecycle work, rename-state behavior, or cursor-backed directory traversal.
+This keeps the lane explicit without overstating progress: Zigux now has a real `fs/libfs.zig` helper slice plus a reviewability checkpoint, a bounded cursor-precondition planner, a bounded post-scan cursor-reposition planner, a bounded close-path release planner, a bounded transaction-buffer planner, a pure transaction read/release follow-up, and a pure simple-open private-data planner, while `generic_check_addressable()` remains the next honest non-live shared-helper extension before the packet has to stop at cursor-backed traversal, inode lifecycle work, and pseudo-filesystem ownership.
 
 ## Non-goals
 
@@ -97,4 +99,4 @@ This slice does not claim:
 
 ## Next bounded step
 
-Keep the Phase 13 libfs lane helper-first and leave the remaining cursor-backed helpers plus inode and pseudo-filesystem lifecycle paths blocked on live VFS state unless a future run can isolate another equally small non-live boundary.
+Keep the Phase 13 libfs lane helper-first and add a pure `generic_check_addressable()` addressability helper before revisiting any cursor-backed helpers, inode lifecycle work, or pseudo-filesystem paths that still depend on live VFS state.
