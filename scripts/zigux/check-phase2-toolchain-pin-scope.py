@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[2]
 POLICY = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
 WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 MAKEFILE = ROOT / "zigux" / "Makefile"
-README = ROOT / "scripts" / "zigux" / "README.md"
+README = ROOT / "scripts" / "zigux/README.md"
 TOOLCHAIN_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
 CLOSURE_DOC = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
 PHASE2_VALIDATOR = ROOT / "scripts" / "zigux" / "validate-phase2.py"
@@ -382,6 +382,26 @@ def run_self_test() -> int:
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2.py",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2-closure.py",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2-closure.py",
+            ]
+        )
+    )
+    if not any(
+        issue.startswith(
+            "makefile_exact_run:scripts/zigux/validate-phase2-closure.py:count=2:expected=1"
+        )
+        for issue in issues
+    ):
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:makefile_validate_phase2_closure_duplicate")
+
+    issues = validate_exact_makefile_runs(
+        "\n".join(
+            [
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2.py",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2-closure.py",
@@ -584,7 +604,7 @@ def main() -> int:
     if issues:
         print("PHASE2_TOOLCHAIN_PIN_SCOPE=fail")
         print("INVALID_PHASE2_TOOLCHAIN_PIN_SCOPE_START")
-        for item in issues:
+        for item in issues
             print(item)
         print("INVALID_PHASE2_TOOLCHAIN_PIN_SCOPE_END")
         return 1
