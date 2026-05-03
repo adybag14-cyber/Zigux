@@ -10,7 +10,7 @@ Current repo state on `master`:
 - `zigux/helpers/list_view.zig` and `zigux/helpers/hlist_view.zig` still summarize bounded `list_head` and `hlist_head` traversal without touching live mutation
 - `zigux/bindings/notifier_abi.zig` now mirrors the generic read-only notifier shapes through `NotifierBlockRef`, `RawNotifierHeadRef`, `NotifierChainView`, and `NotifierChainSummary`
 - `zigux/helpers/notifier_chain_view.zig` now provides the bounded raw-notifier traversal helper with empty, terminated, truncated, self-loop, and priority-order coverage
-- `include/zigux/notifier_abi.h` now mirrors that same read-only packet on the exported C side and keeps the dedicated exported C header small instead of widening `include/linux/zigux.h`
+- `include/zigux/notifier_abi.h` now mirrors that same read-only packet on the exported C side, keeps `zigux_notifier_chain_view_valid()` explicit for reserved or zero-bounded views, and keeps the dedicated exported C header small instead of widening `include/linux/zigux.h`
 - the list, hlist, and raw-notifier helpers now share the same small companion API shape: `viewFromHead`, `isEmpty`, `length`, and `summarize`
 - `zigux/tests/phase13_notifier_list_manifest.json` now records the notifier binding, helper, dedicated exported C header, and shared Phase 13 build hook as landed packet-local evidence instead of as inherited preexisting groundwork
 - `zigux/tests/phase13_build.zig` still compiles both the reviewability gate and the new notifier helper directly inside the shared Phase 13 replay
@@ -23,5 +23,6 @@ Why this matters for Phase 13:
 - the earlier survey-only gap is now closed on both sides of the Zigux boundary through the Zig binding, the Zig helper, and the dedicated exported C header
 - the shared companion API shape across the list, hlist, and notifier helpers keeps the interop story more reviewable without widening it into mutation or execution behavior
 - the dedicated exported C header makes the shared notifier packet reusable for C-facing review surfaces without forcing broader kernel helper churn
+- the exported C-side validity guard keeps reserved or zero-bounded view rejection reviewable before callers rely on empty, length, or summarize across the boundary
 - the list and hlist view surface remains the natural companion for this work, which keeps the interop story helper-first and read-only
 - registration, callback execution, SRCU, and blocking notifier semantics remain out of scope
