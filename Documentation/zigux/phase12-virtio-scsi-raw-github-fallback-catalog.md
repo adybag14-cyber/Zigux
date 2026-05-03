@@ -1,10 +1,11 @@
 # Phase 12 Virtio SCSI Raw GitHub Fallback Catalog
 
-This catalog records the exact read-only GitHub fallback coverage verified for the historical `P12-L09` packet when connector-backed reads are flaky or incomplete.
+This catalog records the exact read-only GitHub fallback coverage first verified for the historical `P12-L09` packet and still retained by the active `P12-L12` survey lane when connector-backed reads are flaky or incomplete.
 
 ## Verified head
 
-- lane: `P12-L09`
+- active_survey_lane: `P12-L12`
+- historical_fallback_lane: `P12-L09`
 - phase: `Phase 12`
 - verified_master_head: `7d653d8c5e57207763c07c1b1d020b514738c7f3`
 - verification_scope: commit-pinned raw file reads plus the three public tree entry points needed to inspect the bounded `virtio_scsi` lane
@@ -115,7 +116,7 @@ These fields record the last bounded replay note captured for this pinned fallba
   - `docs_root_readme:Documentation/zigux/phase12-virtio-scsi-slice.md`
   - `docs_root_readme:Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`
   - `docs_root_readme:the active Phase 12 network-driver survey packet now keeps the bounded `drivers/net/virtio_net.zig` probe snapshot, queue-recovery summary, queue-resume summary, `hdr_len`, receive-path, and mergeable-refill helpers visible from the top-level docs index`
-  - `docs_root_readme:the same top-level Phase 12 packet now also keeps the bounded `drivers/nvme/host/pci.zig` queue planner, PRP buffer-shape helper, and pointer-selection helper visible from the docs index`
+  - `docs_root_readme:the same top-level Phase 12 packet now also keeps the bounded `drivers/nvme/host/pci.zig` queue planner, PRP buffer-shape helper, and pointer-selection helper visible from the top-level docs index`
   - `docs_root_readme:the active Phase 12 storage-driver survey packet now keeps the bounded `drivers/scsi/virtio_scsi.zig` queue-layout, recovery, probe snapshot, host-limit summary, queue-depth summary, and io-queue-map starters visible from the top-level docs index`
   - `docs_root_readme:`zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `scripts/zigux/validate-phase12.py`, `make -C zigux phase12-validate`, and `make -C zigux phase12` now keep that same storage-driver survey packet reviewable through the shared Phase 12 tranche`
   - `review_checklist:if the change is a Phase 12 complex-driver or heavy-helper slice, do `scripts/zigux/validate-phase12.py`, `zigux/tests/phase12_build.zig`, the four Phase 12 manifests, and the four Phase 12 survey notes still agree on the same bounded tranche, exact surveyed commits, approved roadmap destinations, shared replay contract, and explicit DMA versus object-model blocker posture?`
