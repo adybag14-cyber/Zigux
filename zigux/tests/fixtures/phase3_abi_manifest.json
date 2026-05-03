@@ -23,6 +23,7 @@
     "zigux/tests/phase3_policy_unsafe_build.zig",
     "zigux/tests/phase3_policy_unsafe.zig",
     "zigux/tests/phase3_abi.zig",
+    "zigux/tests/phase3_rbtree_shared_contract.zig",
     "zigux/tests/phase3_export_uapi_build.zig",
     "zigux/tests/phase3_export_uapi.zig",
     "zigux/tests/phase3_export_uapi_layout_build.zig",
@@ -53,5 +54,5 @@
     "scripts/zigux/validate_phase3_core.py",
     "scripts/zigux/validate_phase3_selftest.py"
   ],
-  "file_count": 49
+  "file_count": 50
 }
