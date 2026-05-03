@@ -54,6 +54,11 @@ DOCS_README_MARKERS = [
     "queue-handling and ready-state gate",
 ]
 
+DOCS_README_EXACT_ONCE_MARKERS = [
+    "python3 scripts/zigux/check-phase10-harness-coverage.py",
+    "queue-handling and ready-state gate",
+]
+
 BUILD_MARKERS = [
     "phase10-virtio-input-multitouch-preflight-tests",
     "phase10-virtio-mmio-queue-isolation-tests",
@@ -62,6 +67,10 @@ BUILD_MARKERS = [
 CLOSURE_NOTE_MARKERS = [
     "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
     "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
+    "PHASE10_TEST_COUNT=11",
+]
+
+CLOSURE_NOTE_EXACT_ONCE_MARKERS = [
     "PHASE10_TEST_COUNT=11",
 ]
 
@@ -94,6 +103,14 @@ def check_markers(missing: list[str], label: str, text: str, markers: list[str])
             missing.append(f"{label}:{marker}")
 
 
+def check_exact_count(
+    missing: list[str], label: str, text: str, marker: str, expected: int = 1
+) -> None:
+    actual = text.count(marker)
+    if actual != expected:
+        missing.append(f"{label}:count:{marker}={actual}")
+
+
 def validate(root: Path) -> tuple[list[str], list[str]]:
     missing_files = [path for path in FILES if not (root / path).exists()]
     if missing_files:
@@ -120,6 +137,18 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         ),
     ]:
         check_markers(missing, name, read_text(root, rel_path), markers)
+
+    for name, rel_path, markers in [
+        ("docs_readme", "Documentation/zigux/README.md", DOCS_README_EXACT_ONCE_MARKERS),
+        (
+            "closure_note",
+            "Documentation/zigux/phase10-closure-evidence.md",
+            CLOSURE_NOTE_EXACT_ONCE_MARKERS,
+        ),
+    ]:
+        text = read_text(root, rel_path)
+        for marker in markers:
+            check_exact_count(missing, name, text, marker)
 
     closure_manifest = load_json(root, "zigux/tests/phase10_closure_manifest.json")
     if closure_manifest.get("test_count") != 11:
@@ -308,6 +337,28 @@ def run_self_test() -> int:
         )
         docs_readme_path.write_text(original_docs_readme, encoding="utf-8")
 
+        docs_readme_path.write_text(
+            original_docs_readme + "\npython3 scripts/zigux/check-phase10-harness-coverage.py\n",
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "docs_readme_harness_gate_duplicate",
+            root,
+            "docs_readme:count:python3 scripts/zigux/check-phase10-harness-coverage.py=2",
+        )
+        docs_readme_path.write_text(original_docs_readme, encoding="utf-8")
+
+        docs_readme_path.write_text(
+            original_docs_readme + "\nqueue-handling and ready-state gate\n",
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "docs_readme_ready_state_phrase_duplicate",
+            root,
+            "docs_readme:count:queue-handling and ready-state gate=2",
+        )
+        docs_readme_path.write_text(original_docs_readme, encoding="utf-8")
+
         build_path = root / "zigux/tests/phase10_build.zig"
         original_build = build_path.read_text(encoding="utf-8")
         build_path.write_text(
@@ -391,6 +442,17 @@ def run_self_test() -> int:
         )
         closure_note_path.write_text(original_closure_note, encoding="utf-8")
 
+        closure_note_path.write_text(
+            original_closure_note + "\nPHASE10_TEST_COUNT=11\n",
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "closure_note_test_count_duplicate",
+            root,
+            "closure_note:count:PHASE10_TEST_COUNT=11=2",
+        )
+        closure_note_path.write_text(original_closure_note, encoding="utf-8")
+
         manifest_path = root / "zigux/tests/phase10_closure_manifest.json"
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["test_count"] = 10
@@ -460,7 +522,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=15")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=18")
     return 0
 
 
@@ -487,5 +549,5 @@ print("PHASE10_HARNESS_COVERAGE=pass")
 print(f"PHASE10_HARNESS_REQUIRED_FILE_COUNT={len(FILES)}")
 print(
     "PHASE10_HARNESS_REQUIRED_MARKER_COUNT="
-    f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_MARKERS) + len(DOCS_README_MARKERS) + len(BUILD_MARKERS) + len(CLOSURE_NOTE_MARKERS) + len(INPUT_PREFLIGHT_TEST_MARKERS) + len(MMIO_QUEUE_ISOLATION_TEST_MARKERS)}"
+    f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_MARKERS) + len(DOCS_README_MARKERS) + len(DOCS_README_EXACT_ONCE_MARKERS) + len(BUILD_MARKERS) + len(CLOSURE_NOTE_MARKERS) + len(CLOSURE_NOTE_EXACT_ONCE_MARKERS) + len(INPUT_PREFLIGHT_TEST_MARKERS) + len(MMIO_QUEUE_ISOLATION_TEST_MARKERS)}"
 )
