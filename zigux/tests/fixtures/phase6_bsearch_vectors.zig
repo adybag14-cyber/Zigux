@@ -1,3 +1,5 @@
+const std = @import("std");
+
 pub const PerfCase = struct {
     label: []const u8,
     len: usize,
@@ -38,5 +40,42 @@ pub fn seedDeterministicQueries(
     for (deterministic_pairs, 0..) |pair, idx| {
         queries[idx] = pair.query;
         expected_hits[idx] = pair.hit;
+    }
+}
+
+test "phase 6 bsearch perf fixture preserves the documented case matrix" {
+    try std.testing.expectEqual(@as(usize, 32), query_count);
+    try std.testing.expectEqual(@as(usize, 3), perf_cases.len);
+
+    const expected = [_]PerfCase{
+        .{ .label = "256", .len = 256, .reps = 2_000 },
+        .{ .label = "4096", .len = 4096, .reps = 500 },
+        .{ .label = "65536", .len = 65536, .reps = 64 },
+    };
+
+    for (perf_cases, expected, 0..) |actual, wanted, idx| {
+        try std.testing.expectEqualStrings(wanted.label, actual.label);
+        try std.testing.expectEqual(wanted.len, actual.len);
+        try std.testing.expectEqual(wanted.reps, actual.reps);
+        if (idx > 0) {
+            try std.testing.expect(perf_cases[idx - 1].len < actual.len);
+            try std.testing.expect(perf_cases[idx - 1].reps > actual.reps);
+        }
+    }
+}
+
+test "phase 6 bsearch perf fixture seeds fixed edge quarter midpoint and tail probes first" {
+    const values = [_]u32{ 0, 2, 4, 6, 8, 10, 12, 14 };
+    var queries: [query_count]u32 = undefined;
+    var expected_hits: [query_count]bool = undefined;
+
+    seedDeterministicQueries(values.len, values[0..], &queries, &expected_hits);
+
+    const expected_queries = [_]u32{ 0, 1, 4, 5, 8, 9, 14, 15 };
+    const expected_probe_hits = [_]bool{ true, false, true, false, true, false, true, false };
+
+    for (expected_queries, expected_probe_hits, 0..) |expected_query, expected_hit, idx| {
+        try std.testing.expectEqual(expected_query, queries[idx]);
+        try std.testing.expectEqual(expected_hit, expected_hits[idx]);
     }
 }
