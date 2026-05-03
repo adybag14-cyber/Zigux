@@ -126,8 +126,7 @@
       "argv": [
         "-Vd",
         "--reference",
-        "foo.symref",
-        "--version"
+        "foo.symref"
       ],
       "mode": "process_json",
       "expected": "version_expected.json"
