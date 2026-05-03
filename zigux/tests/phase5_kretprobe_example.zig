@@ -68,15 +68,17 @@ test "phase 5 kretprobe sample keeps symbol retargeting and handler boundaries e
 
 test "phase 5 kretprobe sample keeps the maxactive ceiling immutable" {
     var module = sample.KretprobeExampleSample{};
+    const replay = try module.runMaxactiveBudgetReplay();
 
-    try std.testing.expectEqual(sample.KretprobeExampleSample.default_maxactive, module.maxactiveBudget());
-    try module.init();
-
-    const before_replay_budget = module.maxactiveBudget();
-    try std.testing.expectEqual(sample.KretprobeExampleSample.default_maxactive, before_replay_budget);
-
-    const replay = try module.runAnchorReplay();
-    try std.testing.expectEqual(before_replay_budget, replay.maxactive);
+    try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", replay.anchor);
+    try std.testing.expectEqualStrings(sample.KretprobeExampleSample.default_symbol_name, replay.symbol_name);
+    try std.testing.expectEqual(sample.KretprobeExampleSample.default_maxactive, replay.budget_before_init);
+    try std.testing.expectEqual(sample.KretprobeExampleSample.default_maxactive, replay.budget_after_init);
+    try std.testing.expectEqual(sample.KretprobeExampleSample.default_maxactive, replay.replay_budget);
+    try std.testing.expectEqual(sample.KretprobeExampleSample.default_maxactive, replay.budget_after_replay);
+    try std.testing.expectEqual(@as(usize, 1), replay.missed_instances);
+    try std.testing.expectEqual(@as(usize, 1), replay.replay_runs);
+    try std.testing.expectEqual(sample.SampleStage.replay_complete, replay.stage_after_replay);
     try std.testing.expectEqual(sample.KretprobeExampleSample.default_maxactive, module.maxactiveBudget());
 }
 
