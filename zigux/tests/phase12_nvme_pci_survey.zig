@@ -85,6 +85,30 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
     try std.testing.expect(manifest.survey_summary.nvme_pci_raw_fallback_map_present);
     try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);
 
+    const driver_source = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "drivers/nvme/host/pci.zig",
+        std.testing.allocator,
+        .limited(48 * 1024),
+    );
+    defer std.testing.allocator.free(driver_source);
+
+    const driver_tests = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase12_nvme_pci.zig",
+        std.testing.allocator,
+        .limited(48 * 1024),
+    );
+    defer std.testing.allocator.free(driver_tests);
+
+    const phase12_build = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase12_build.zig",
+        std.testing.allocator,
+        .limited(48 * 1024),
+    );
+    defer std.testing.allocator.free(phase12_build);
+
     const slice_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/phase12-nvme-pci-slice.md",
@@ -108,6 +132,25 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
         .limited(32 * 1024),
     );
     defer std.testing.allocator.free(raw_fallback_map);
+
+    try std.testing.expect(std.mem.indexOf(u8, driver_source, "pub const IoQueueCountPlanSummary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_source, "pub const PrpMetadataPlanSummary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_source, "pub const DoorbellWindowSummary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_source, "pub fn planIoQueueCount(") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_source, "pub fn planPrpMetadata(") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_source, "pub fn planDoorbellWindow(") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, driver_tests, "phase12 nvme pci io queue count helper negotiates controller and planner caps") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_tests, "phase12 nvme pci io queue count helper rejects empty negotiation and respects reset freeze") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_tests, "phase12 nvme pci prp metadata helper quantifies descriptor DMA footprint") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_tests, "phase12 nvme pci prp metadata helper respects reset freeze and resumes after reset") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_tests, "phase12 nvme pci doorbell window helper summarizes planned admin and io register aperture") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_tests, "phase12 nvme pci doorbell window helper tracks reset state without claiming live irq routing") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12-nvme-pci-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12-nvme-pci-survey-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "test_step.dependOn(&run_phase12_nvme_pci_tests.step);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "test_step.dependOn(&run_phase12_nvme_pci_survey_tests.step);") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "doorbell-window helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "PRP metadata helper") != null);
