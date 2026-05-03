@@ -49,7 +49,7 @@ The sample intentionally stays small:
 - it keeps the Linux anchor path explicit in `KretprobeExampleSample.descriptor()`
 - it models only the default symbol name, a pre-init retarget hook, kernel-thread skip behavior, a single per-instance timestamp record, return-duration replay, a `maxactiveBudget()` helper that keeps the Linux `maxactive = 20` cue fixed, and a bounded `nmissed` summary in memory
 - it uses a tiny `init()` -> `entryHandler()` -> `retHandler()` -> `recordMissedInstance()` -> `exit()` lifecycle so ownership and teardown stay explicit
-- it keeps bounded replay helpers through `runAnchorReplay()`, `runRetargetRecoveryReplay()`, and `runOwnershipBoundaryReplay()` instead of implying a runtime-ready kretprobe implementation
+- it keeps bounded replay helpers through `runAnchorReplay()`, `runRetargetRecoveryReplay()`, `runMaxactiveBudgetReplay()`, and `runOwnershipBoundaryReplay()` instead of implying a runtime-ready kretprobe implementation
 
 The exact checks currently recorded in `zigux/tests/phase5_kretprobe_example_manifest.json` and exercised through `zigux/tests/phase5_build.zig` are:
 
@@ -59,7 +59,7 @@ The exact checks currently recorded in `zigux/tests/phase5_kretprobe_example_man
 - the in-memory sample keeps a single private entry-timestamp record so the Linux `struct my_data` anchor shape stays explicit as one `i64`-sized word
 - the replay records return value `42` and duration `75 ns` after an entry timestamp of `100` and a return timestamp of `175`
 - `retHandler()` rejects a return timestamp of `199` after an entry timestamp of `200`, then accepts `260` and reports duration `60 ns` while clearing the private entry timestamp
-- the in-memory sample keeps the Linux `maxactive` budget explicit through `maxactiveBudget()` at `20` concurrent instances even though this Phase 5 slice does not model registration-pressure handling
+- `runMaxactiveBudgetReplay()` keeps the Linux `maxactive` budget explicit through `maxactiveBudget()` at `20` concurrent instances even though this Phase 5 slice does not model registration-pressure handling
 - the replay records one missed instance so the exit-side `nmissed` summary stays reviewable without claiming registration-pressure parity
 - `runOwnershipBoundaryReplay()` rejects `exit()` on an armed sample until `retHandler()` clears the outstanding tracked instance
 - after `runOwnershipBoundaryReplay()` exits the sample rejects later `recordMissedInstance()`, `entryHandler()`, or `retHandler()` calls
@@ -86,13 +86,13 @@ The exact checks currently recorded in `zigux/tests/phase5_kretprobe_example_man
 When a contributor updates `samples/zigux/kretprobe_example.zig` or its directly coupled Phase 5 test files, keep these prompts explicit:
 
 - does `KretprobeExampleSample.descriptor()` still name `samples/kprobes/kretprobe_example.c` and keep `requires_runtime_substrate = false` plus `provides_selfcheck = true`?
-- do `zigux/tests/phase5_kretprobe_example_manifest.json` and `zigux/tests/phase5_kretprobe_example_survey.zig` still describe the exact skip, pre-init retargeting, timestamp-order boundary, private-data, return-value, duration, fixed `maxactive`, missed-summary, and sample-owned ownership replay contract run through `zigux/tests/phase5_build.zig`?
+- do `zigux/tests/phase5_kretprobe_example_manifest.json` and `zigux/tests/phase5_kretprobe_example_survey.zig` still describe the exact skip, pre-init retargeting, timestamp-order boundary, private-data, return-value, duration, fixed `maxactive`, missed-summary, and sample-owned `runRetargetRecoveryReplay()`, `runMaxactiveBudgetReplay()`, and `runOwnershipBoundaryReplay()` contract run through `zigux/tests/phase5_build.zig`?
 - does `zigux/tests/phase5_kretprobe_example_manifest.json` still pin the exact surveyed commit for the inspected `master` head instead of a floating branch label?
 - does the sample-backed survey note, `samples/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/README.md`, and `Documentation/zigux/review-checklist.md` still keep this landed Phase 5 kretprobe slice distinct from the separate `samples/zigux/runtime_kretprobe.zig` and `samples/zigux/runtime_kretprobe_loader.zig` Phase 9 follow-ons while pointing reviewers at the shared `phase5_build.zig` entrypoint?
 - does the sample keep the Linux `struct my_data`-style private entry timestamp explicit as one `i64`-sized in-memory word instead of hiding the anchor's private-data cue in unstructured state?
 - does the sample keep the Linux `maxactive = 20` budget explicit through `maxactiveBudget()` as a fixed reviewable in-memory ceiling instead of silently drifting away from the anchor or implying runtime tuning support?
 - does symbol retargeting stay a pre-init in-memory choice instead of implying `module_param` or runtime registration parity?
-- does `runOwnershipBoundaryReplay()` still keep the armed-exit rejection and post-exit handler rejection boundaries explicit as sample-owned replay instead of leaving them to ad hoc test-body assembly?
+- does `runRetargetRecoveryReplay()`, `runMaxactiveBudgetReplay()`, and `runOwnershipBoundaryReplay()` still keep the retargeting, fixed-budget, armed-exit rejection, and post-exit handler rejection boundaries explicit as sample-owned replay instead of leaving them to ad hoc test-body assembly?
 - if the sample behavior changes, is the manifest updated alongside the replay and teardown contract instead of leaving reviewers to infer the new boundary from code alone?
 - do the docs and tests still say clearly that `register_kretprobe()`, `unregister_kretprobe()`, `pt_regs` return extraction, and loadable module wiring remain out of scope for this Phase 5 sample?
 
