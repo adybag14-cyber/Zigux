@@ -216,6 +216,26 @@ test "argvSplit duplicates the input before tokenizing" {
     try std.testing.expectEqualStrings("two", split.argv[1]);
 }
 
+test "argvSplit tokens stay inside the owned storage copy" {
+    var split = try argvSplit(std.testing.allocator, "console=ttyS0 root=/dev/vda rw");
+    defer split.deinit(std.testing.allocator);
+
+    const storage_start = @intFromPtr(split.storage.ptr);
+    const storage_end = storage_start + split.storage.len;
+    const c_argv = split.cArgv();
+
+    for (split.argv, 0..) |token, index| {
+        const token_start = @intFromPtr(token.ptr);
+        const token_end = token_start + token.len;
+        const offset = token_start - storage_start;
+
+        try std.testing.expect(token_start >= storage_start);
+        try std.testing.expect(token_end <= storage_end);
+        try std.testing.expectEqual(@intFromPtr(token.ptr), @intFromPtr(c_argv[index].?));
+        try std.testing.expectEqual(@as(u8, 0), split.storage[offset + token.len]);
+    }
+}
+
 test "argvSplit preserves C-string termination for the final token and argv vector" {
     var split = try argvSplit(std.testing.allocator, "console=ttyS0 root=/dev/vda");
     defer split.deinit(std.testing.allocator);
