@@ -33,6 +33,8 @@ EXPECTED_CROSS_TARGETS = [
     'riscv64-linux-musl',
 ]
 EXACT_WORKFLOW_RUN_COUNTS = {
+    'python3 scripts/zigux/install-zig.py --self-test': 1,
+    'python3 scripts/zigux/check-zig-toolchain.py --self-test': 1,
     'python3 scripts/zigux/artifact_diff.py --self-test': 1,
     'python3 scripts/zigux/check-artifact-diff-contract.py': 1,
     'python3 scripts/zigux/check-fixdep-diff.py --self-test': 1,
@@ -499,7 +501,10 @@ def validate_genksyms_crc_checker_gate(checker_script: Path) -> list[str]:
     required_markers = {
         'self_test_arg': "parser.add_argument('--self-test'",
         'self_test_pass_marker': "print('GENKSYMS_CRC_SELF_TEST=pass')",
-        'self_test_case_count_mark…57 tokens truncated…'mismatch_contract_guard': 'genksyms-crc:self-test:mismatch_contract',
+        'self_test_case_count_marker': "print('GENKSYMS_CRC_SELF_TEST_CASE_COUNT=7')",
+        'missing_expected_fixture_guard': 'expected:missing_fixture:',
+        'unexpected_fixture_guard': 'expected:unexpected_fixture:',
+        'mismatch_contract_guard': 'genksyms-crc:self-test:mismatch_contract',
         'repeat_c_compare': "run(diff_base + [str(c_actual), str(c_repeat)], cwd=str(ROOT))",
         'repeat_zig_compare': "run(diff_base + [str(zig_actual), str(zig_repeat)], cwd=str(ROOT))",
         'determinism_marker': "print('GENKSYMS_CRC_DETERMINISM=pass')",
