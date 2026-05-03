@@ -18,7 +18,16 @@ TRACKED_PATHS = [
 ]
 SNAPSHOT_FIXTURE_PATH = "zigux/tests/fixtures/phase12_libbpf_snapshot.json"
 REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
-REQUIRED_PATHS = [*TRACKED_PATHS, SNAPSHOT_FIXTURE_PATH, REVIEW_CHECKLIST_PATH]
+FOCUSED_REPLAY_REQUIRED_PATHS = [
+    "scripts/zigux/check-phase12-libbpf-focused-replay.py",
+    "zigux/tests/phase12_libbpf_only_build.zig",
+]
+REQUIRED_PATHS = [
+    *TRACKED_PATHS,
+    SNAPSHOT_FIXTURE_PATH,
+    REVIEW_CHECKLIST_PATH,
+    *FOCUSED_REPLAY_REQUIRED_PATHS,
+]
 
 EXPECTED_ROADMAP_DESTINATIONS = [
     "tools/lib/bpf/zigux_segments/",
@@ -117,6 +126,28 @@ REVIEWABILITY_MARKERS = [
 
 REVIEW_CHECKLIST_MARKERS = [
     "if the change touches the focused Phase 12 libbpf-only replay packet, do `python3 scripts/zigux/check-phase12-libbpf-focused-replay.py --self-test`, `scripts/zigux/check-phase12-libbpf-focused-replay.py`, `scripts/zigux/validate-phase12.py`, `zigux/tests/phase12_libbpf_only_build.zig`, `zigux/tests/phase12_libbpf_manifest.json`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` still agree on the same dedicated replay shard, review-note hook, and validator-first rollback path instead of leaving that narrower libbpf gate implied behind the broader packet checks?",
+]
+
+FOCUSED_REPLAY_BUILD_MARKERS = [
+    'const phase12_libbpf_segments_module = b.createModule(.{',
+    '.root_source_file = b.path("phase12_libbpf_segments.zig"),',
+    'const phase12_libbpf_reviewability_module = b.createModule(.{',
+    '.root_source_file = b.path("phase12_libbpf_reviewability.zig"),',
+    '.name = "phase12-libbpf-segment-survey-tests",',
+    '.name = "phase12-libbpf-reviewability-tests",',
+    "test_step.dependOn(&run_phase12_libbpf_segments_tests.step);",
+    "test_step.dependOn(&run_phase12_libbpf_reviewability_tests.step);",
+]
+
+FOCUSED_REPLAY_CHECKER_MARKERS = [
+    "scripts/zigux/check-phase12-libbpf-focused-replay.py",
+    "zigux/tests/phase12_libbpf_only_build.zig",
+    "phase12-libbpf-segment-survey-tests",
+    "phase12-libbpf-reviewability-tests",
+    "focused libbpf-only replay hook",
+    "Documentation/zigux/phase12-libbpf-segment-survey.md",
+    "zigux/Makefile",
+    ".github/workflows/zigux-bootstrap.yml",
 ]
 
 PHASE12_GAP_SPECS = [
@@ -328,6 +359,12 @@ def check_manifest_survey_summary(survey_summary: object, missing: list[str]) ->
             missing.append(f"manifest:survey_summary:{key}")
 
 
+def check_text_markers(source_text: str, markers: list[str], prefix: str, missing: list[str]) -> None:
+    for marker in markers:
+        if marker not in source_text:
+            missing.append(f"{prefix}:{marker}")
+
+
 def check_packet(root: Path) -> list[str]:
     missing: list[str] = []
     for rel_path in REQUIRED_PATHS:
@@ -344,6 +381,8 @@ def check_packet(root: Path) -> list[str]:
     segment_test = read_text(root, TRACKED_PATHS[1])
     reviewability_test = read_text(root, TRACKED_PATHS[2])
     review_checklist = read_text(root, REVIEW_CHECKLIST_PATH)
+    focused_replay_checker = read_text(root, FOCUSED_REPLAY_REQUIRED_PATHS[0])
+    focused_replay_build = read_text(root, FOCUSED_REPLAY_REQUIRED_PATHS[1])
 
     if manifest.get("lane_key") != "P12-L16":
         missing.append("manifest:lane_key")
@@ -400,21 +439,22 @@ def check_packet(root: Path) -> list[str]:
         if surveyed_commit not in segment_test:
             missing.append("segment_test:surveyed_commit")
 
-    for marker in SURVEY_NOTE_MARKERS:
-        if marker not in survey_note:
-            missing.append(f"survey_note:{marker}")
-
-    for marker in SEGMENT_TEST_MARKERS:
-        if marker not in segment_test:
-            missing.append(f"segment_test:{marker}")
-
-    for marker in REVIEWABILITY_MARKERS:
-        if marker not in reviewability_test:
-            missing.append(f"reviewability_test:{marker}")
-
-    for marker in REVIEW_CHECKLIST_MARKERS:
-        if marker not in review_checklist:
-            missing.append(f"review_checklist:{marker}")
+    check_text_markers(survey_note, SURVEY_NOTE_MARKERS, "survey_note", missing)
+    check_text_markers(segment_test, SEGMENT_TEST_MARKERS, "segment_test", missing)
+    check_text_markers(reviewability_test, REVIEWABILITY_MARKERS, "reviewability_test", missing)
+    check_text_markers(review_checklist, REVIEW_CHECKLIST_MARKERS, "review_checklist", missing)
+    check_text_markers(
+        focused_replay_build,
+        FOCUSED_REPLAY_BUILD_MARKERS,
+        "focused_replay_build",
+        missing,
+    )
+    check_text_markers(
+        focused_replay_checker,
+        FOCUSED_REPLAY_CHECKER_MARKERS,
+        "focused_replay_checker",
+        missing,
+    )
 
     manifest_gaps = manifest.get("gaps")
     if not isinstance(manifest_gaps, list):
@@ -487,6 +527,8 @@ def build_self_test_tree(root: Path) -> None:
     segment_test = "\n".join([f'const current_surveyed_commit = "{surveyed_commit}";', *SEGMENT_TEST_MARKERS])
     reviewability_test = "\n".join(REVIEWABILITY_MARKERS)
     review_checklist = "\n".join(REVIEW_CHECKLIST_MARKERS)
+    focused_replay_checker = "\n".join(FOCUSED_REPLAY_CHECKER_MARKERS)
+    focused_replay_build = "\n".join(FOCUSED_REPLAY_BUILD_MARKERS)
 
     write(root / TRACKED_PATHS[0], json.dumps(manifest, indent=2) + "\n")
     write(root / TRACKED_PATHS[3], survey_note + "\n")
@@ -494,6 +536,8 @@ def build_self_test_tree(root: Path) -> None:
     write(root / TRACKED_PATHS[2], reviewability_test + "\n")
     write(root / TRACKED_PATHS[4], json.dumps(legacy_manifest, indent=2) + "\n")
     write(root / REVIEW_CHECKLIST_PATH, review_checklist + "\n")
+    write(root / FOCUSED_REPLAY_REQUIRED_PATHS[0], focused_replay_checker + "\n")
+    write(root / FOCUSED_REPLAY_REQUIRED_PATHS[1], focused_replay_build + "\n")
     synthetic_helper_paths = (
         {
             destination
@@ -505,7 +549,7 @@ def build_self_test_tree(root: Path) -> None:
             for _, _, destination in LEGACY_SEGMENT_SPECS
             if destination.endswith(".zig")
         }
-    ) - set(TRACKED_PATHS)
+    ) - set(TRACKED_PATHS) - set(FOCUSED_REPLAY_REQUIRED_PATHS)
     for rel_path in synthetic_helper_paths:
         if "skeleton.zig" in rel_path or "object_loader.zig" in rel_path or "relocation.zig" in rel_path:
             continue
@@ -551,6 +595,20 @@ def run_self_test() -> int:
         missing = check_packet(root)
         if f"missing_file:{REVIEW_CHECKLIST_PATH}" not in missing:
             raise SystemExit("phase12-libbpf-packet:self-test:missing_review_checklist_detection")
+
+        build_self_test_tree(root)
+        focused_replay_checker_path = root / FOCUSED_REPLAY_REQUIRED_PATHS[0]
+        focused_replay_checker_path.unlink()
+        missing = check_packet(root)
+        if f"missing_file:{FOCUSED_REPLAY_REQUIRED_PATHS[0]}" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:missing_focused_replay_checker_detection")
+
+        build_self_test_tree(root)
+        focused_replay_build_path = root / FOCUSED_REPLAY_REQUIRED_PATHS[1]
+        focused_replay_build_path.unlink()
+        missing = check_packet(root)
+        if f"missing_file:{FOCUSED_REPLAY_REQUIRED_PATHS[1]}" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:missing_focused_replay_build_detection")
 
         build_self_test_tree(root)
         manifest_path = root / TRACKED_PATHS[0]
@@ -674,6 +732,36 @@ def run_self_test() -> int:
         missing = check_packet(root)
         if f"review_checklist:{REVIEW_CHECKLIST_MARKERS[0]}" not in missing:
             raise SystemExit("phase12-libbpf-packet:self-test:review_checklist_marker_detection")
+
+        build_self_test_tree(root)
+        focused_replay_build_path = root / FOCUSED_REPLAY_REQUIRED_PATHS[1]
+        original = focused_replay_build_path.read_text(encoding="utf-8")
+        focused_replay_build_path.write_text(
+            original.replace(
+                '.name = "phase12-libbpf-reviewability-tests",\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = check_packet(root)
+        if 'focused_replay_build:.name = "phase12-libbpf-reviewability-tests",' not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:focused_replay_build_marker_detection")
+
+        build_self_test_tree(root)
+        focused_replay_checker_path = root / FOCUSED_REPLAY_REQUIRED_PATHS[0]
+        original = focused_replay_checker_path.read_text(encoding="utf-8")
+        focused_replay_checker_path.write_text(
+            original.replace(
+                "focused libbpf-only replay hook\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = check_packet(root)
+        if "focused_replay_checker:focused libbpf-only replay hook" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:focused_replay_checker_marker_detection")
 
         build_self_test_tree(root)
         survey_note_path = root / TRACKED_PATHS[3]
@@ -867,13 +955,13 @@ def run_self_test() -> int:
             raise SystemExit("phase12-libbpf-packet:self-test:reviewability_marker_detection")
 
         print("PHASE12_LIBBPF_PACKET_SELF_TEST=pass")
-        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=52")
+        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=55")
     return 0
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Check the bounded Phase 12 libbpf packet across the manifest, survey note, snapshot fixture, and reviewability gates."
+        description="Check the bounded Phase 12 libbpf packet across the manifest, survey note, snapshot fixture, reviewability gates, and focused replay packet."
     )
     parser.add_argument(
         "--self-test",
@@ -897,6 +985,7 @@ def main(argv: list[str] | None = None) -> int:
 
     print("PHASE12_LIBBPF_PACKET_ALIGNMENT=pass")
     print(f"PHASE12_LIBBPF_PACKET_TRACKED_FILE_COUNT={len(TRACKED_PATHS)}")
+    print(f"PHASE12_LIBBPF_PACKET_FOCUSED_REPLAY_FILE_COUNT={len(FOCUSED_REPLAY_REQUIRED_PATHS)}")
     print(f"PHASE12_LIBBPF_PACKET_GAP_COUNT={len(PHASE12_GAP_SPECS)}")
     print(f"PHASE12_LIBBPF_PACKET_LEGACY_SEGMENT_COUNT={len(LEGACY_SEGMENT_SPECS)}")
     return 0
