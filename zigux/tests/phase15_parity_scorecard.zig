@@ -293,6 +293,12 @@ test "phase 15 parity scorecard docs keep the parity-tracking survey aligned" {
     const docs_readme = try readAlloc(io_instance.io(), "Documentation/zigux/README.md", 32 * 1024);
     defer std.testing.allocator.free(docs_readme);
 
+    const makefile = try readAlloc(io_instance.io(), "zigux/Makefile", 64 * 1024);
+    defer std.testing.allocator.free(makefile);
+
+    const bootstrap_workflow = try readAlloc(io_instance.io(), ".github/workflows/zigux-bootstrap.yml", 64 * 1024);
+    defer std.testing.allocator.free(bootstrap_workflow);
+
     try expectContains(scorecard_doc, "PHASE15_LANE_KEY=P15-Y03");
     try expectContains(scorecard_doc, "## Current Parity-Tracking Gap");
     try expectContains(scorecard_doc, "That closes the current parity-tracking gap for the roadmap requirement `parity scorecard`.");
@@ -312,6 +318,7 @@ test "phase 15 parity scorecard docs keep the parity-tracking survey aligned" {
     try expectContains(scorecard_doc, "refreshed lane-owner and rollback-owner evidence whenever the cited reopen trigger is `ownership_or_validation_changed`");
     try expectContains(scorecard_doc, "the written rationale for why the current product state needs council attention now");
     try expectContains(scorecard_doc, "phase15-scorecard-review-packet-field-sync");
+    try expectContains(scorecard_doc, "shared bootstrap workflow now runs the landed Phase 15 governance bundle through `make -C zigux phase15`");
     try expectContains(review_process_doc, "trigger-specific refreshed evidence by path");
     try expectContains(review_process_doc, "ownership_or_validation_changed");
     try expectContains(review_process_doc, "rollback-threshold");
@@ -319,6 +326,12 @@ test "phase 15 parity scorecard docs keep the parity-tracking survey aligned" {
     try expectContains(indefinite_c_policy_doc, "parity scorecard");
     try expectContains(docs_readme, "Phase 15 notes");
     try expectContains(docs_readme, "phase15-parity-scorecard.md");
+    try expectContains(makefile, "PHONY += phase15-validate phase15-test phase15");
+    try expectContains(makefile, "phase15-test:");
+    try expectContains(makefile, "zig build test --build-file zigux/tests/phase15_build.zig");
+    try expectContains(makefile, "phase15: phase15-validate phase15-test");
+    try expectContains(bootstrap_workflow, "Run Phase 15 governance tests");
+    try expectContains(bootstrap_workflow, "run: make -C zigux phase15");
 }
 
 test "phase 15 parity scorecard gap inventory stays bounded" {
