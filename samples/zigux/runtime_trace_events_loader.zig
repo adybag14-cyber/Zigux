@@ -211,6 +211,30 @@ test "runtime trace-events loader snapshots the prepared summary before later sa
     try std.testing.expectEqual(@as(i32, -1), pending_plan.summary.last_fn_count);
 }
 
+test "runtime trace-events loader can release the prepared plan only after a runtime-load request" {
+    var idle_loader = RuntimeTraceEventsLoader{};
+    try std.testing.expectEqual(LoaderStage.idle, idle_loader.stage());
+    try std.testing.expectError(error.InvalidLoaderState, idle_loader.requestRuntimeLoad());
+    try std.testing.expectError(error.MissingLoadPlan, idle_loader.releasePlanWithoutSubstrate());
+    try std.testing.expectError(error.InvalidLoaderState, idle_loader.releaseWithoutSubstrate());
+    try std.testing.expectEqual(LoaderStage.idle, idle_loader.stage());
+
+    var module = runtime_trace_events_sample.RuntimeTraceEventsSample{};
+    try module.init();
+    _ = try module.runSelftest();
+
+    var prepared_loader = RuntimeTraceEventsLoader{};
+    const prepared = try prepared_loader.prepareWithCommandName(&module, "perf-runtime-trace-events");
+    try std.testing.expectEqual(LoaderStage.prepared, prepared_loader.stage());
+    try std.testing.expectEqualStrings("perf-runtime-trace-events", prepared.command_name.?);
+    try std.testing.expectError(error.InvalidLoaderState, prepared_loader.releasePlanWithoutSubstrate());
+    try std.testing.expectEqual(LoaderStage.prepared, prepared_loader.stage());
+
+    const pending_plan = try prepared_loader.requestRuntimeLoad();
+    try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, prepared_loader.stage());
+    try std.testing.expectEqualStrings("perf-runtime-trace-events", pending_plan.command_name.?);
+}
+
 test "runtime trace-events loader keeps the release-without-substrate fallback explicit" {
     var module = runtime_trace_events_sample.RuntimeTraceEventsSample{};
     try module.init();
