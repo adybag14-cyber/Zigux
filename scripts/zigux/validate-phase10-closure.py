@@ -93,6 +93,13 @@ EXPECTED_CLOSURE_MANIFEST = {
     "architecture_council_reopen_attached": False,
 }
 
+EXPECTED_SURVEY_LANE_KEYS = {
+    "core": "P10-L01",
+    "ring": "P10-L08",
+    "input": "P10-Y04",
+    "mmio": "P10-L18",
+}
+
 EXPECTED_SURVEYED_COMMITS = {
     "core": "d30cbe483a2f019ae797b309a29556bd58fe00d0",
     "ring": "fe8a43ea2e186da0da152198b571dff57ea3c38c",
@@ -122,6 +129,11 @@ CLOSURE_MARKERS = [
     "PHASE10_STATUS=active",
     "PHASE10_TRANCHE=virtio-lab-bundle",
     "PHASE10_ALLOWED_ROADMAP_DESTINATIONS=drivers/virtio/*.zig,zigux/kernel/,zigux/helpers/",
+    "PHASE10_SURVEY_PROVENANCE_SOURCE=manifest_derived",
+    "PHASE10_SURVEY_CORE_LANE=P10-L01",
+    "PHASE10_SURVEY_RING_LANE=P10-L08",
+    "PHASE10_SURVEY_INPUT_LANE=P10-Y04",
+    "PHASE10_SURVEY_MMIO_LANE=P10-L18",
     "PHASE10_CLOSURE_INVENTORY_GATE=python3 scripts/zigux/check-phase10-closure-inventory.py",
     "PHASE10_CLOSURE_GATE=python3 scripts/zigux/validate-phase10-closure.py",
     "PHASE10_HARNESS_COVERAGE_GATE=python3 scripts/zigux/check-phase10-harness-coverage.py",
@@ -180,6 +192,11 @@ LEDGER_MARKERS = [
     "PHASE10_LEDGER_VALIDATE=scripts/zigux/validate-phase10-closure.py",
     "PHASE10_LEDGER_HARNESS_COVERAGE_VALIDATE=scripts/zigux/check-phase10-harness-coverage.py",
     "PHASE10_LEDGER_MANIFEST=zigux/tests/phase10_closure_manifest.json",
+    "PHASE10_LEDGER_SURVEY_PROVENANCE_SOURCE=manifest_derived",
+    "PHASE10_LEDGER_SURVEY_CORE_LANE=P10-L01",
+    "PHASE10_LEDGER_SURVEY_RING_LANE=P10-L08",
+    "PHASE10_LEDGER_SURVEY_INPUT_LANE=P10-Y04",
+    "PHASE10_LEDGER_SURVEY_MMIO_LANE=P10-L18",
     "PHASE10_LEDGER_ALLOWED_ROADMAP_DESTINATIONS=drivers/virtio/*.zig,zigux/kernel/,zigux/helpers/",
     "PHASE10_LEDGER_INPUT_MULTITOUCH_PREFLIGHT_GATE=zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
     "PHASE10_LEDGER_MMIO_QUEUE_ISOLATION_GATE=zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
@@ -362,6 +379,8 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         else:
             if survey_provenance.get("source") != "manifest_derived":
                 missing.append("closure_manifest:survey_provenance:source")
+            if survey_provenance.get("lane_keys") != EXPECTED_SURVEY_LANE_KEYS:
+                missing.append("closure_manifest:survey_provenance:lane_keys")
             if survey_provenance.get("surveyed_commits") != EXPECTED_SURVEYED_COMMITS:
                 missing.append("closure_manifest:survey_provenance:surveyed_commits")
 
@@ -448,12 +467,7 @@ def write_fixture(root: Path) -> None:
         "exact_checks": EXPECTED_EXACT_CHECKS,
         "survey_provenance": {
             "source": "manifest_derived",
-            "lane_keys": {
-                "core": "P10-L03",
-                "ring": "P10-L08",
-                "input": "P10-L13",
-                "mmio": "P10-L18",
-            },
+            "lane_keys": EXPECTED_SURVEY_LANE_KEYS,
             "surveyed_commits": EXPECTED_SURVEYED_COMMITS,
         },
         "roadmap_parity_scoreboard": {
@@ -546,6 +560,12 @@ def run_self_test() -> int:
         expect_missing_marker("tests_inventory_guard", root, "closure_manifest:tests")
         write_fixture(root)
 
+        closure_manifest = json.loads(closure_manifest_path.read_text(encoding="utf-8"))
+        closure_manifest["survey_provenance"]["lane_keys"]["input"] = "P10-L13"
+        closure_manifest_path.write_text(json.dumps(closure_manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker("survey_lane_guard", root, "closure_manifest:survey_provenance:lane_keys")
+        write_fixture(root)
+
         build_path = root / "zigux/tests/phase10_build.zig"
         original_build = build_path.read_text(encoding="utf-8")
         build_path.write_text(
@@ -562,6 +582,13 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         expect_missing_marker("closure_note_queue_isolation_guard", root, "closure:zigux/tests/phase10_virtio_mmio_queue_isolation.zig")
+        write_fixture(root)
+
+        closure_note_path.write_text(
+            original_closure_note.replace("PHASE10_SURVEY_INPUT_LANE=P10-Y04", "PHASE10_SURVEY_INPUT_LANE=P10-L13", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker("closure_note_input_lane_guard", root, "closure:PHASE10_SURVEY_INPUT_LANE=P10-Y04")
         write_fixture(root)
 
         closure_note_path.write_text(
@@ -677,6 +704,23 @@ def run_self_test() -> int:
         ledger_path = root / "zigux-alpha/PHASE10_CLOSURE_LEDGER.md"
         original_ledger = ledger_path.read_text(encoding="utf-8")
         ledger_path.write_text(
+            original_ledger.replace(
+                "PHASE10_LEDGER_SURVEY_INPUT_LANE=P10-Y04",
+                "PHASE10_LEDGER_SURVEY_INPUT_LANE=P10-L13",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "ledger_input_lane_guard",
+            root,
+            "ledger:PHASE10_LEDGER_SURVEY_INPUT_LANE=P10-Y04",
+        )
+        write_fixture(root)
+
+        ledger_path = root / "zigux-alpha/PHASE10_CLOSURE_LEDGER.md"
+        original_ledger = ledger_path.read_text(encoding="utf-8")
+        ledger_path.write_text(
             original_ledger.replace("PHASE10_LEDGER_INPUT_MULTITOUCH_PREFLIGHT_GATE=zigux/tests/phase10_virtio_input_multitouch_preflight.zig", "PHASE10_LEDGER_INPUT_MULTITOUCH_PREFLIGHT_GATE=drift", 1),
             encoding="utf-8",
         )
@@ -739,7 +783,7 @@ def run_self_test() -> int:
         expect_missing_file("queue_isolation_file_guard", root, "zigux/tests/phase10_virtio_mmio_queue_isolation.zig")
 
     print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=18")
+    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=21")
     return 0
 
 
