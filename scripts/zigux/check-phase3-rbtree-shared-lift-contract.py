@@ -166,6 +166,32 @@ SHARED_ABI_FORBIDDEN = {
     ),
 }
 
+SHARED_CONTRACT_SELF_TEST_SNIPPETS = (
+    "try std.testing.expect(!rbtree.hasRoot(empty_root));",
+    "const cached_root: rbtree.RootView = .{",
+    "try std.testing.expect(rbtree.hasRoot(cached_root));",
+    "const uncached_root: rbtree.RootView = .{",
+    "try std.testing.expect(rbtree.hasRoot(uncached_root));",
+)
+
+SHARED_PACKET_SELF_TEST_CASES = (
+    (SHARED_ABI_TEST_REL, "const empty_root = rbtree.empty();"),
+    (SHARED_ABI_TEST_REL, "try std.testing.expect(!rbtree.hasRoot(empty_root));"),
+    (SHARED_ABI_TEST_REL, "const cached_root: rbtree.RootView = .{"),
+    (SHARED_ABI_TEST_REL, "try std.testing.expect(rbtree.hasRoot(cached_root));"),
+    (SHARED_ABI_TEST_REL, "const uncached_root: rbtree.RootView = .{"),
+    (SHARED_ABI_TEST_REL, "try std.testing.expect(rbtree.hasRoot(uncached_root));"),
+    (SHARED_ABI_DUMP_REL, SHARED_PACKET_SNIPPETS[SHARED_ABI_DUMP_REL][2]),
+    (SHARED_ABI_DUMP_REL, SHARED_PACKET_SNIPPETS[SHARED_ABI_DUMP_REL][3]),
+    (SHARED_ABI_DUMP_REL, SHARED_PACKET_SNIPPETS[SHARED_ABI_DUMP_REL][4]),
+    (SHARED_ABI_HARNESS_REL, SHARED_PACKET_SNIPPETS[SHARED_ABI_HARNESS_REL][2]),
+    (SHARED_ABI_HARNESS_REL, SHARED_PACKET_SNIPPETS[SHARED_ABI_HARNESS_REL][3]),
+    (SHARED_ABI_HARNESS_REL, SHARED_PACKET_SNIPPETS[SHARED_ABI_HARNESS_REL][4]),
+    (SHARED_ABI_EXPECTED_REL, SHARED_PACKET_SNIPPETS[SHARED_ABI_EXPECTED_REL][0]),
+    (SHARED_ABI_EXPECTED_REL, SHARED_PACKET_SNIPPETS[SHARED_ABI_EXPECTED_REL][1]),
+    (SHARED_ABI_EXPECTED_REL, SHARED_PACKET_SNIPPETS[SHARED_ABI_EXPECTED_REL][2]),
+)
+
 MANIFEST_PATHS = (
     "include/zigux/rbtree.h",
     "zigux/bindings/rbtree.zig",
@@ -282,6 +308,22 @@ def write(root: Path, rel: str, text: str) -> None:
     path.write_text(text, encoding="utf-8", newline="\n")
 
 
+def assert_missing_shared_contract_snippet(root: Path, snippet: str) -> None:
+    write(
+        root,
+        SHARED_CONTRACT_REL,
+        "\n".join(item for item in SHARED_CONTRACT_SNIPPETS if item != snippet) + "\n",
+    )
+    issues = validate(root)
+    assert f"missing_snippet:{SHARED_CONTRACT_REL}:{snippet}" in issues
+
+
+def assert_missing_shared_packet_snippet(root: Path, rel: str, snippet: str) -> None:
+    write(root, rel, "\n".join(item for item in SHARED_PACKET_SNIPPETS[rel] if item != snippet) + "\n")
+    issues = validate(root)
+    assert f"missing_shared_packet:{rel}:{snippet}" in issues
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_rbtree_shared_lift_") as tmp_dir:
         root = Path(tmp_dir)
@@ -305,22 +347,6 @@ def run_self_test() -> int:
         )
         assert validate(root) == []
 
-        def shared_contract_issues_without(snippet: str) -> list[str]:
-            write(
-                root,
-                SHARED_CONTRACT_REL,
-                "\n".join(item for item in SHARED_CONTRACT_SNIPPETS if item != snippet) + "\n",
-            )
-            return validate(root)
-
-        def shared_packet_issues_without(rel: str, snippet: str) -> list[str]:
-            write(
-                root,
-                rel,
-                "\n".join(item for item in SHARED_PACKET_SNIPPETS[rel] if item != snippet) + "\n",
-            )
-            return validate(root)
-
         write(root, SHARED_CONTRACT_REL, "PHASE3_RBTREE_SHARED_LAYOUT_CONTRACT\n")
         issues = validate(root)
         assert any(
@@ -328,111 +354,11 @@ def run_self_test() -> int:
             for issue in issues
         )
 
-        issues = shared_contract_issues_without("try std.testing.expect(!rbtree.hasRoot(empty_root));")
-        assert (
-            f"missing_snippet:{SHARED_CONTRACT_REL}:try std.testing.expect(!rbtree.hasRoot(empty_root));"
-            in issues
-        )
+        for snippet in SHARED_CONTRACT_SELF_TEST_SNIPPETS:
+            assert_missing_shared_contract_snippet(root, snippet)
 
-        issues = shared_contract_issues_without("const cached_root: rbtree.RootView = .{")
-        assert f"missing_snippet:{SHARED_CONTRACT_REL}:const cached_root: rbtree.RootView = .{{" in issues
-
-        issues = shared_contract_issues_without("try std.testing.expect(rbtree.hasRoot(cached_root));")
-        assert (
-            f"missing_snippet:{SHARED_CONTRACT_REL}:try std.testing.expect(rbtree.hasRoot(cached_root));"
-            in issues
-        )
-
-        issues = shared_contract_issues_without("const uncached_root: rbtree.RootView = .{")
-        assert f"missing_snippet:{SHARED_CONTRACT_REL}:const uncached_root: rbtree.RootView = .{{" in issues
-
-        issues = shared_contract_issues_without("try std.testing.expect(rbtree.hasRoot(uncached_root));")
-        assert (
-            f"missing_snippet:{SHARED_CONTRACT_REL}:try std.testing.expect(rbtree.hasRoot(uncached_root));"
-            in issues
-        )
-
-        issues = shared_packet_issues_without(SHARED_ABI_TEST_REL, "const empty_root = rbtree.empty();")
-        assert any(
-            issue.startswith(f"missing_shared_packet:{SHARED_ABI_TEST_REL}:const empty_root = rbtree.empty();")
-            for issue in issues
-        )
-
-        issues = shared_packet_issues_without(SHARED_ABI_TEST_REL, "try std.testing.expect(!rbtree.hasRoot(empty_root));")
-        assert any(
-            issue.startswith(
-                f"missing_shared_packet:{SHARED_ABI_TEST_REL}:try std.testing.expect(!rbtree.hasRoot(empty_root));"
-            )
-            for issue in issues
-        )
-
-        issues = shared_packet_issues_without(SHARED_ABI_TEST_REL, "const cached_root: rbtree.RootView = .{")
-        assert any(
-            issue.startswith(
-                f"missing_shared_packet:{SHARED_ABI_TEST_REL}:const cached_root: rbtree.RootView = .{{"
-            )
-            for issue in issues
-        )
-
-        issues = shared_packet_issues_without(SHARED_ABI_TEST_REL, "try std.testing.expect(rbtree.hasRoot(cached_root));")
-        assert any(
-            issue.startswith(
-                f"missing_shared_packet:{SHARED_ABI_TEST_REL}:try std.testing.expect(rbtree.hasRoot(cached_root));"
-            )
-            for issue in issues
-        )
-
-        issues = shared_packet_issues_without(SHARED_ABI_TEST_REL, "const uncached_root: rbtree.RootView = .{")
-        assert any(
-            issue.startswith(
-                f"missing_shared_packet:{SHARED_ABI_TEST_REL}:const uncached_root: rbtree.RootView = .{{"
-            )
-            for issue in issues
-        )
-
-        issues = shared_packet_issues_without(SHARED_ABI_TEST_REL, "try std.testing.expect(rbtree.hasRoot(uncached_root));")
-        assert any(
-            issue.startswith(
-                f"missing_shared_packet:{SHARED_ABI_TEST_REL}:try std.testing.expect(rbtree.hasRoot(uncached_root));"
-            )
-            for issue in issues
-        )
-
-        dump_empty_root = SHARED_PACKET_SNIPPETS[SHARED_ABI_DUMP_REL][2]
-        issues = shared_packet_issues_without(SHARED_ABI_DUMP_REL, dump_empty_root)
-        assert f"missing_shared_packet:{SHARED_ABI_DUMP_REL}:{dump_empty_root}" in issues
-
-        dump_cached_leftmost = SHARED_PACKET_SNIPPETS[SHARED_ABI_DUMP_REL][3]
-        issues = shared_packet_issues_without(SHARED_ABI_DUMP_REL, dump_cached_leftmost)
-        assert f"missing_shared_packet:{SHARED_ABI_DUMP_REL}:{dump_cached_leftmost}" in issues
-
-        dump_uncached_root = SHARED_PACKET_SNIPPETS[SHARED_ABI_DUMP_REL][4]
-        issues = shared_packet_issues_without(SHARED_ABI_DUMP_REL, dump_uncached_root)
-        assert f"missing_shared_packet:{SHARED_ABI_DUMP_REL}:{dump_uncached_root}" in issues
-
-        harness_empty_root = SHARED_PACKET_SNIPPETS[SHARED_ABI_HARNESS_REL][2]
-        issues = shared_packet_issues_without(SHARED_ABI_HARNESS_REL, harness_empty_root)
-        assert f"missing_shared_packet:{SHARED_ABI_HARNESS_REL}:{harness_empty_root}" in issues
-
-        harness_cached_leftmost = SHARED_PACKET_SNIPPETS[SHARED_ABI_HARNESS_REL][3]
-        issues = shared_packet_issues_without(SHARED_ABI_HARNESS_REL, harness_cached_leftmost)
-        assert f"missing_shared_packet:{SHARED_ABI_HARNESS_REL}:{harness_cached_leftmost}" in issues
-
-        harness_uncached_root = SHARED_PACKET_SNIPPETS[SHARED_ABI_HARNESS_REL][4]
-        issues = shared_packet_issues_without(SHARED_ABI_HARNESS_REL, harness_uncached_root)
-        assert f"missing_shared_packet:{SHARED_ABI_HARNESS_REL}:{harness_uncached_root}" in issues
-
-        expected_empty_root = SHARED_PACKET_SNIPPETS[SHARED_ABI_EXPECTED_REL][0]
-        issues = shared_packet_issues_without(SHARED_ABI_EXPECTED_REL, expected_empty_root)
-        assert f"missing_shared_packet:{SHARED_ABI_EXPECTED_REL}:{expected_empty_root}" in issues
-
-        expected_cached_leftmost = SHARED_PACKET_SNIPPETS[SHARED_ABI_EXPECTED_REL][1]
-        issues = shared_packet_issues_without(SHARED_ABI_EXPECTED_REL, expected_cached_leftmost)
-        assert f"missing_shared_packet:{SHARED_ABI_EXPECTED_REL}:{expected_cached_leftmost}" in issues
-
-        expected_uncached_root = SHARED_PACKET_SNIPPETS[SHARED_ABI_EXPECTED_REL][2]
-        issues = shared_packet_issues_without(SHARED_ABI_EXPECTED_REL, expected_uncached_root)
-        assert f"missing_shared_packet:{SHARED_ABI_EXPECTED_REL}:{expected_uncached_root}" in issues
+        for rel, snippet in SHARED_PACKET_SELF_TEST_CASES:
+            assert_missing_shared_packet_snippet(root, rel, snippet)
 
         write(root, SHARED_ABI_TEST_REL, "\n".join(SHARED_PACKET_SNIPPETS[SHARED_ABI_TEST_REL]) + "\n")
         write(root, SHARED_ABI_DUMP_REL, "\n".join(SHARED_PACKET_SNIPPETS[SHARED_ABI_DUMP_REL]) + "\n")
