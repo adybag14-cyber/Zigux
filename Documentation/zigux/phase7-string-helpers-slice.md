@@ -11,6 +11,7 @@ This document starts a bounded Phase 7 runtime leaf-helper slice for Zigux.
 - product boundary:
   - `lib/string_helpers.zig`
   - `zigux/tests/phase7_string_helpers.zig`
+  - `zigux/tests/phase7_string_helpers_manifest.json`
   - `zigux/tests/phase7_string_helpers_survey.zig`
   - `zigux/tests/fixtures/phase7_string_helpers_escape_vectors.zig`
   - `zigux/tests/phase7_build.zig`
@@ -26,16 +27,16 @@ Phase 7 is where Zigux starts moving from earlier standalone helper ports into r
 - benefit from explicit pointer and termination handling
 - can be validated with a focused Zig gate before deeper formatting, escaping, or allocation-backed helpers are attempted
 
-This current slice keeps the work bounded to runtime-safe leaf helpers with explicit integration with validation substrate through `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-build-inventory.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_survey.zig`, and `zigux/tests/phase7_build.zig`.
+This current slice keeps the work bounded to runtime-safe leaf helpers with explicit integration with validation substrate through `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-build-inventory.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_manifest.json`, `zigux/tests/phase7_string_helpers_survey.zig`, and `zigux/tests/phase7_build.zig`.
 
-The survey-backed review packet stays rooted at `repo_root` through `zigux/tests/phase7_build.zig`, so the helper note, sample-root boundary, shared build inventory fixture, and validator-first route remain machine-checked together instead of drifting into helper-local notes.
+The survey-backed review packet stays rooted at `repo_root` through `zigux/tests/phase7_build.zig`, and the dedicated manifest in `zigux/tests/phase7_string_helpers_manifest.json` keeps the roadmap anchor, bounded helper surface, and directly coupled validation packet machine-readable together instead of drifting into helper-local notes.
 
-This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane. Current `master` keeps string-helper reviewability in the helper and test bundle under `lib/string_helpers.zig`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_survey.zig`, and `zigux/tests/phase7_build.zig`, while the four Phase 5 `samples/zigux/` anchors remain `bytestream_fifo`, `kobject_example`, `kretprobe_example`, and `trace_events_sample`.
+This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane. Current `master` keeps string-helper reviewability in the helper and test bundle under `lib/string_helpers.zig`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_manifest.json`, `zigux/tests/phase7_string_helpers_survey.zig`, and `zigux/tests/phase7_build.zig`, while the four Phase 5 `samples/zigux/` anchors remain `bytestream_fifo`, `kobject_example`, `kretprobe_example`, and `trace_events_sample`.
 
 Review note:
 - helper-local test runs cannot import that fixture from outside the helper module path; keep both packets aligned when those serialized cases change
 - no `samples/zigux/*string*` Phase 5 reference sample is expected here; `samples/zigux/README.md` remains the shared sample-root catalog while this leaf-helper evidence stays under the separate Phase 7 helper bundle
-- the shared build-inventory fixture stays part of this parked review packet, so `zigux/tests/fixtures/phase7_build_inventory.json` plus the published `make -C zigux phase7-validate` wrapper path stay explicit instead of living only in the broader shared Phase 7 notes
+- the shared build-inventory fixture plus the dedicated string-helpers manifest stay part of this parked review packet, so `zigux/tests/fixtures/phase7_build_inventory.json`, `zigux/tests/phase7_string_helpers_manifest.json`, and the published `make -C zigux phase7-validate` wrapper path stay explicit instead of living only in the broader shared Phase 7 notes
 
 ## Gates
 
