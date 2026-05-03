@@ -78,6 +78,14 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
     );
     defer std.testing.allocator.free(syntax_lab_file);
 
+    const direct_test_file = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase12_virtio_net.zig",
+        std.testing.allocator,
+        .limited(96 * 1024),
+    );
+    defer std.testing.allocator.free(direct_test_file);
+
     const driver_file = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "drivers/net/virtio_net.zig",
@@ -136,6 +144,9 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
     try std.testing.expect(std.mem.indexOf(u8, syntax_lab_file, "QueueResumeScope.data_control_and_rss") != null);
     try std.testing.expect(std.mem.indexOf(u8, syntax_lab_file, "HeaderShape.hash_report_tunnel") != null);
     try std.testing.expect(std.mem.indexOf(u8, syntax_lab_file, "MergeableReceiveRefillSummary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, direct_test_file, "test \"phase12 virtio net restore clears stale refill planning state\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, direct_test_file, "planMergeableReceiveRefill(4)") != null);
+    try std.testing.expect(std.mem.indexOf(u8, direct_test_file, "error.ProbeSnapshotUnavailable") != null);
 
     var starter_landed_count: usize = 0;
     var blocked_count: usize = 0;
@@ -249,6 +260,8 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "resume immediately") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "RSS") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "restore clears stale refill planning state") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "fresh probe snapshot") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-virtio-net-receive-path-summary")) {
@@ -317,6 +330,8 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "first rollback and drift check before broader shared Phase 12 validation") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "build-graph-only compile-smoke proof") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "recycled-room reuse, and fresh-allocation bytes") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "restore clears stale refill planning state") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "fresh probe snapshot") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, driver_file, "pub const VirtioNetProbeLab = struct") != null);
     try std.testing.expect(std.mem.indexOf(u8, driver_file, "pub fn captureProbeSnapshot") != null);
