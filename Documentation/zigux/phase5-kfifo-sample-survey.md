@@ -108,7 +108,7 @@ The exact checks currently recorded in `zigux/tests/phase5_bytestream_fifo_manif
 - the descriptor and replay keep the sample on a fixed embedded 32-byte ring buffer rather than dynamic or runtime-backed storage
 - empty-queue peek and skip return `null`, `snapshotInto()` leaves queue order intact, pushing past capacity returns `false`, and `reset()` restores an empty queue
 - draining a three-byte destination from the queued string `"hello"` yields `"hel"`, leaves the remaining prefix `"lo"` queued in order, and a follow-up drain on the now-empty queue returns `0`
-- after the wraparound replay setup, `snapshotInto()` truncates to the destination length, so an 8-byte preview yields `[2,3,4,5,6,7,8,9]` while leaving the queue length at `10`
+- after the wraparound replay setup, `snapshotInto()` truncates to the destination length and `previewInto()` surfaces that same bounded preview, so an 8-byte preview yields `[2,3,4,5,6,7,8,9]` while leaving the queue length at `10`
 - queue-only reset clears buffered bytes back to an empty queue but does not rewind lifecycle state or the `init_runs` and `exit_runs` bookkeeping counters
 - the replay advertises exactly seven review-focus areas: `bounded_fifo_order`, `wraparound_requeue`, `peek_and_skip`, `non_destructive_snapshot`, `preview_truncation`, `reset_and_replay`, and `ownership_and_lifetime`
 - the sample starts in a cold state, requires `init()` before replay, records `replay_complete` after the self-check, and `exit()` returns it to an empty bounded state
