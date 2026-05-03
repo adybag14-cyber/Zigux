@@ -145,6 +145,8 @@ required_tests_readme_markers = [
     "`scripts/zigux/validate-phase7.py`",
     "`scripts/zigux/check-phase7-build-inventory.py`",
     "`scripts/zigux/check-phase7-make-wrapper.py`",
+    "`scripts/zigux/check-phase7-rbtree-parity.py --self-test`",
+    "`scripts/zigux/check-phase7-rbtree-parity.py`",
 ]
 required_doc_readme_markers = [
     "`Documentation/zigux/phase7-string-helpers-slice.md`",
@@ -334,6 +336,23 @@ def run_self_test() -> int:
         )
         workflow_path.write_text(original_workflow, encoding="utf-8")
 
+        tests_readme_path = tmp_root / "zigux" / "tests" / "README.md"
+        original_tests_readme = tests_readme_path.read_text(encoding="utf-8")
+        tests_readme_path.write_text(
+            original_tests_readme.replace(
+                "`scripts/zigux/check-phase7-rbtree-parity.py --self-test`",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "tests_readme_rbtree_self_test_marker",
+            tmp_root,
+            "zigux/tests/README.md: `scripts/zigux/check-phase7-rbtree-parity.py --self-test`",
+        )
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
+
         build_inventory_path = tmp_root / "zigux" / "tests" / "fixtures" / "phase7_build_inventory.json"
         original_build_inventory = json.loads(build_inventory_path.read_text(encoding="utf-8"))
         drifted_build_inventory = dict(original_build_inventory)
@@ -379,7 +398,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=9")
+    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
