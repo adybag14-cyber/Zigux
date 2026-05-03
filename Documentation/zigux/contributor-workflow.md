@@ -1,102 +1,86 @@
-# Zigux Contributor Workflow
+# Zigux Contributor Workflow Guide
 
-This guide is the short path for contributors who need to land one bounded Zigux improvement without widening scope or guessing at the repo's current delivery rules.
+This guide is the shared contributor-facing workflow for Zigux product changes.
 
-## Start With The Product Packet
+## Purpose
 
-Before editing anything, inspect the current packet that owns your slice.
+Use this guide when a change touches Zigux product code, validation, manifests, surveys, or review-facing documentation.
 
-Read these in order:
-- `Documentation/zigux/README.md`
-- `Documentation/zigux/review-checklist.md`
-- `Documentation/zigux/freeze-map.md` when the slice is near deep-core or study-only boundaries
-- the owning phase note under `Documentation/zigux/`
-- the owning validator under `scripts/zigux/`
-- the owning shared replay entrypoint under `zigux/Makefile` or `zigux/tests/`
-- the manifest, survey note, or fixture packet that the validator already treats as source-of-truth evidence
+The goal is to keep every bounded Zigux slice reviewable in the same way:
 
-If those files do not point at the same bounded lane, fix that drift first instead of adding more surface area.
+- name the roadmap phase and Linux anchor clearly
+- keep owner, validation gate, and rollback path explicit
+- update the code, manifests, docs, and replay entrypoints together
+- prefer validator-first review paths before broader replay commands
 
-## Choose Work That Counts
+## Start here
 
-Prefer contributions that:
-- improve a real helper, ABI slice, harness, validator, manifest, or review packet
-- close a real docs or workflow gap around an already-landed tranche
-- make a bounded phase packet more trustworthy by keeping docs, manifests, workflow hooks, and replay entrypoints aligned
-- clarify rollback posture, explicit non-goals, or blocked-next-step status for a shipped slice
+Before editing a Zigux packet:
 
-Avoid changes that mostly create noise:
-- new wrappers or dumps without new validation or product value
-- mixed-phase edits in one change
-- fake parallel subsystem growth under a Zigux namespace
-- experimental ZAR-shaped surfaces that do not reduce current Zigux product risk
+1. identify the roadmap phase, bounded slice, and owning lane
+2. name the Linux anchor file or tree path
+3. check `Documentation/zigux/review-checklist.md` for the shared review prompts
+4. find the packet's validator-first entrypoint in `scripts/zigux/README.md`
+5. find the focused replay or survey entrypoint in `zigux/tests/README.md`
 
-## Working Rules
+If the change touches a Phase 5 sample or a later `runtime_*` starter under `samples/zigux/`, also check `samples/zigux/README.md` so approved reference samples do not drift into runtime-follow-on claims.
 
-Use these rules on every change:
-- keep one roadmap-backed lane per change
-- keep the Linux anchor, phase, and status bucket explicit in docs and review notes
-- keep runtime-risky or ABI-risky work validator-first
-- keep survey or manifest packets honest about what is shipped, what is blocked, and what is only review scaffolding
-- keep unsafe scope narrow and visibly owned
-- keep deep-core freeze boundaries explicit unless the roadmap and governance packet say otherwise
+## Shared packet rule
 
-## Validator-First Flow
+Treat each bounded Zigux slice as one review packet.
 
-The default Zigux workflow is:
-1. choose one bounded slice
-2. update the code or docs that own that slice
-3. update the paired manifest, survey note, shared replay file, or Makefile hook in the same change when needed
-4. run the validator-first command for that phase
-5. run the broader replay command for that phase if the validator is green
-6. report exactly what ran, what passed, and what remains blocked
+When you change one part of the packet, update the other parts that make the same claim:
 
-Use these published entrypoints:
-- Phase 1: `python3 scripts/zigux/validate-phase1.py` and `python3 scripts/zigux/validate-phase1-closure.py`
-- Phase 2: `make -C zigux phase2-validate` then `make -C zigux phase2`
-- Phase 3: `make -C zigux phase3-validate` then `make -C zigux phase3`
-- Phase 4: `make -C zigux phase4-validate` then `make -C zigux phase4`
-- Phase 5: `make -C zigux phase5-validate` then `make -C zigux phase5`
-- Phase 6: `make -C zigux phase6-validate` then `make -C zigux phase6`
-- Phase 7: `make -C zigux phase7-validate` then `make -C zigux phase7`
-- Phase 8: `make -C zigux phase8-validate` then `make -C zigux phase8`
-- Phase 9: `make -C zigux phase9-validate` then `make -C zigux phase9`
-- Phase 10: `make -C zigux phase10-validate` then `make -C zigux phase10`
-- Phase 11: `make -C zigux phase11-validate` then `make -C zigux phase11`
-- Phase 12: `make -C zigux phase12-validate` then `make -C zigux phase12`
-- Phase 13: `make -C zigux phase13-validate` then `make -C zigux phase13`
-- Phase 14: `make -C zigux phase14-validate` then `make -C zigux phase14`
-- Phase 15: `make -C zigux phase15-validate` then `make -C zigux phase15`
+- implementation file or helper root
+- manifest or fixture snapshot
+- survey or slice note under `Documentation/zigux/`
+- focused replay under `zigux/tests/`
+- validator or checker under `scripts/zigux/`
+- shared make or workflow entrypoint when that packet is already wired there
 
-If your slice has a more focused replay, run it too.
-Examples already published in the repo include `make -C zigux phase8-perf-buffer-poll-test`, `make -C zigux phase9-trace-events-survey`, `make -C zigux phase11-hvc-survey`, and `make -C zigux phase14-smoke`.
+Do not leave a slice reviewable only from code or only from prose.
 
-## Keep The Shared Surfaces Aligned
+## Validator-first workflow
 
-Contributors should check these shared surfaces whenever a packet changes:
-- `Documentation/zigux/README.md` for the docs-root index and current phase summary
-- `Documentation/zigux/review-checklist.md` for merge-time review questions
-- `scripts/zigux/README.md` for validator-first routes and helper responsibilities
-- `zigux/tests/README.md` for replay, survey, and shared-build guidance
+Use the narrowest honest validation path first.
 
-When a slice is manifest-backed or survey-backed, keep the owning manifest, survey note, validator, and replay path aligned in the same change. Do not rely on run memory or an issue thread to explain missing context.
+1. run the packet's checker or validator from `scripts/zigux/README.md`
+2. run the focused replay named by `zigux/tests/README.md` or `samples/zigux/README.md`
+3. run the broader `make -C zigux phaseX-validate` or shared build path only when that packet already belongs to a wider tranche
+4. record blockers plainly when a broader shared replay is red for unrelated reasons
 
-## How To Describe Results
+Examples from current `master`:
 
-A good close-out says:
-- which lane, phase, and bounded target were changed
-- why that change was the highest-value unfinished step inside the packet
-- which validator-first and broader replay commands ran
-- whether the result is fully green or partially blocked
-- what the next bounded step is
+- Phase 5 samples use `make -C zigux phase5-validate` before the shared `phase5_build.zig` replay
+- Phase 9 runtime work keeps `make -C zigux phase9-validate` explicit before `make -C zigux phase9`
+- Phase 13 release-discipline work keeps `make -C zigux phase13-validate` explicit before the shared replay
 
-If something is blocked, say what is blocked and what evidence is still missing. Do not turn partial validation into a closure claim.
+## Contributor-facing docs to keep aligned
 
-## When To Stop
+Use these files as the shared contributor packet, depending on scope:
 
-Stop and escalate instead of widening the change when:
-- the next step crosses into another phase or lane
-- the current packet needs a roadmap or governance decision first
-- the deep-core freeze map would need a status change
-- the validator and the docs disagree about what the packet owns
-- the only available follow-up is wrapper churn rather than a real product improvement
+- `Documentation/zigux/review-checklist.md` for review prompts and boundary checks
+- `scripts/zigux/README.md` for validator-first commands and checker ownership
+- `zigux/tests/README.md` for focused replay and survey entrypoints
+- `samples/zigux/README.md` for approved Phase 5 sample boundaries and later runtime follow-ons
+- the owning phase note under `Documentation/zigux/` for bounded scope, non-goals, and surveyed-commit evidence
+
+If a change alters how contributors are supposed to review or replay a slice, update every applicable guide in the same pass.
+
+## Review reminders
+
+Keep these repo-wide rules explicit in contributor work:
+
+- avoid mirror-tree sprawl and deep-core scope creep
+- keep freeze-map or study-only boundaries explicit instead of implied
+- prefer bounded helper, harness, manifest, and survey work over wrapper proliferation
+- keep `surveyed_commit` or equivalent inspected-head markers in sync when the packet uses them
+- separate approved Phase 5 reference samples from later Phase 9 runtime starters in the same tree
+
+## Done criteria
+
+A contributor-facing packet is ready when:
+
+- the review checklist, validator path, focused replay path, and owning note all describe the same bounded slice
+- the updated packet has a narrow validation result or an explicit blocker note
+- the change does not overstate runtime parity, transport scope, or frozen-area status
