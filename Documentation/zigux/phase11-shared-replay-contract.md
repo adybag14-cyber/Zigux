@@ -93,6 +93,7 @@ The minimum agreement surface for that kind of change is:
 - `scripts/zigux/check-phase11-shared-replay-contract.py`
 - `scripts/zigux/check-phase11-header-boundary-packet.py`
 - `scripts/zigux/validate-phase11.py`
+- `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md`
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
 - `zigux/tests/phase11_hvc_console_survey.zig`
