@@ -193,6 +193,14 @@ BASE64_CATALOG_EVIDENCE_MARKERS = [
     'print("PHASE6_BASE64_CATALOG_EVIDENCE=pass")',
 ]
 
+DOCS_ROOT_EXTERNAL_PARITY_SCRIPT_MARKERS = [
+    'print("PHASE6_DOCS_ROOT_EXTERNAL_PARITY_SELF_TEST=pass")',
+    'print(f"PHASE6_DOCS_ROOT_EXTERNAL_PARITY_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}")',
+    'print("PHASE6_DOCS_ROOT_EXTERNAL_PARITY=pass")',
+    'print("PHASE6_DOCS_ROOT_EXTERNAL_PARITY_REQUIRED_FILE_COUNT=8")',
+    'print("PHASE6_DOCS_ROOT_EXTERNAL_PARITY_REQUIRED_LINE_COUNT=6")',
+]
+
 BSEARCH_PARITY_SCRIPT_MARKERS = [
     'print("PHASE6_BSEARCH_C_PARITY_SELF_TEST=pass")',
     'print("PHASE6_BSEARCH_C_PARITY_SELF_TEST_CASE_COUNT=6")',
@@ -518,6 +526,7 @@ def validate_phase6(root: Path) -> dict[str, object]:
     require_markers(missing, "checksum_vectors", text(root, "zigux/tests/fixtures/phase6_checksum_vectors.zig"), CHECKSUM_FIXTURE_MARKERS)
     require_markers(missing, "hexdump_vectors", text(root, "zigux/tests/fixtures/phase6_hexdump_vectors.zig"), HEXDUMP_FIXTURE_MARKERS)
     require_markers(missing, "base64_catalog_evidence_script", text(root, "scripts/zigux/check-phase6-base64-catalog-evidence.py"), BASE64_CATALOG_EVIDENCE_MARKERS)
+    require_markers(missing, "docs_root_external_parity_script", text(root, "scripts/zigux/check-phase6-docs-root-external-parity.py"), DOCS_ROOT_EXTERNAL_PARITY_SCRIPT_MARKERS)
     require_markers(missing, "bsearch_parity_script", text(root, "scripts/zigux/check-phase6-bsearch-c-parity.py"), BSEARCH_PARITY_SCRIPT_MARKERS)
     require_markers(missing, "bsearch_parity_runner", text(root, "zigux/tests/phase6_bsearch_c_parity.zig"), BSEARCH_PARITY_RUNNER_MARKERS)
     require_markers(missing, "bsearch_parity_harness", text(root, "zigux/tests/fixtures/phase6_bsearch_c_harness.c"), BSEARCH_PARITY_HARNESS_MARKERS)
@@ -596,6 +605,7 @@ def build_self_test_tree(root: Path) -> None:
     write(root, "zigux/tests/fixtures/phase6_checksum_vectors.zig", "\n".join(CHECKSUM_FIXTURE_MARKERS) + "\n")
     write(root, "zigux/tests/fixtures/phase6_hexdump_vectors.zig", "\n".join(HEXDUMP_FIXTURE_MARKERS) + "\n")
     write(root, "scripts/zigux/check-phase6-base64-catalog-evidence.py", "\n".join(BASE64_CATALOG_EVIDENCE_MARKERS) + "\n")
+    write(root, "scripts/zigux/check-phase6-docs-root-external-parity.py", "\n".join(DOCS_ROOT_EXTERNAL_PARITY_SCRIPT_MARKERS) + "\n")
     write(root, "scripts/zigux/check-phase6-bsearch-c-parity.py", "\n".join(BSEARCH_PARITY_SCRIPT_MARKERS) + "\n")
     write(root, "zigux/tests/phase6_bsearch_c_parity.zig", "\n".join(BSEARCH_PARITY_RUNNER_MARKERS) + "\n")
     write(root, "zigux/tests/fixtures/phase6_bsearch_c_harness.c", "\n".join(BSEARCH_PARITY_HARNESS_MARKERS) + "\n")
@@ -771,8 +781,8 @@ def run_self_test() -> int:
 
             build_self_test_tree(root)
             docs_root_checker = root / "scripts/zigux/check-phase6-docs-root-external-parity.py"
-            docs_root_checker.unlink()
-            expect_missing_file(validate_phase6(root), "scripts/zigux/check-phase6-docs-root-external-parity.py")
+            docs_root_checker.write_text("", encoding="utf-8")
+            expect_contains(validate_phase6(root), 'docs_root_external_parity_script:missing:print("PHASE6_DOCS_ROOT_EXTERNAL_PARITY_SELF_TEST=pass")')
             count += 1
 
             build_self_test_tree(root)
