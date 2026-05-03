@@ -76,7 +76,7 @@ pub fn argvSplitWithArgc(
     var argv = try allocator.alloc([:0]u8, argc);
     errdefer allocator.free(argv);
 
-    var argv_null_terminated = try allocator.alloc(?[*:0]const u8, argc + 1);
+    var argv_null_terminated = try allocArgvNullTerminated(allocator, argc);
     errdefer allocator.free(argv_null_terminated);
 
     var arg_index: usize = 0;
@@ -129,6 +129,14 @@ fn hasAnyArg(text: []const u8) bool {
         }
     }
     return false;
+}
+
+fn allocArgvNullTerminated(
+    allocator: std.mem.Allocator,
+    argc: usize,
+) ![]?[*:0]const u8 {
+    const argv_null_terminated_len = try std.math.add(usize, argc, 1);
+    return allocator.alloc(?[*:0]const u8, argv_null_terminated_len);
 }
 
 const ArgvFixture = struct {
@@ -355,5 +363,12 @@ test "argvSplit frees intermediate allocations when allocator failure interrupts
         std.testing.allocator,
         runArgvSplitWithFailingAllocator,
         .{"console=ttyS0 root=/dev/vda rw"},
+    );
+}
+
+test "argvSplit reports overflow before sizing the null-terminated argv vector" {
+    try std.testing.expectError(
+        error.Overflow,
+        allocArgvNullTerminated(std.testing.allocator, std.math.maxInt(usize)),
     );
 }
