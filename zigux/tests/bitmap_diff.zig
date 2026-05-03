@@ -196,6 +196,24 @@ test "bitmap diff gate keeps rounded fill parity explicit against lib/test_bitma
     try expectSet(&map, 114);
     try expectSet(&map, 115);
     try expectSet(&map, bits_per_long * 2 - 1);
+
+    bitmap.zero(&map, bitmap_nbits);
+    bitmap.setRange(&map, 0, 9);
+    bitmap.fill(&map, 35);
+    bitmap.setRange(&map, 79, 19);
+    // The carried-forward sparse state from lib/test_bitmap.c::test_fill_set still
+    // rounds fill(115) to the same two whole words instead of depending on a cleared map.
+    bitmap.fill(&map, 115);
+    try std.testing.expectEqual(roundedPrefixLen(115), weight(&map, bitmap_nbits));
+    try std.testing.expectEqual(@as(usize, 0), firstSet(&map, bitmap_nbits));
+    try std.testing.expectEqual(roundedPrefixLen(115), firstZero(&map, bitmap_nbits));
+    try expectPrintedList(&map, bitmap_nbits, "0-127");
+    try expectSet(&map, 8);
+    try expectSet(&map, 79);
+    try expectSet(&map, 114);
+    try expectSet(&map, 115);
+    try expectSet(&map, bits_per_long * 2 - 1);
+    try expectClear(&map, bits_per_long * 2);
 }
 
 test "bitmap diff gate records exact cross-boundary set and clear checks" {
