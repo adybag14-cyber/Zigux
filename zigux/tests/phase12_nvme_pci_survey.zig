@@ -168,6 +168,11 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-nvme-pci-tests 15 pass (15 total)") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-nvme-pci-raw-github-fallback-map.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "current live starter now also carries one bounded doorbell-window helper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Rollback And Reversible Delivery") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "owner: `NVMe PCI Lane`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "rollback owner: `NVMe PCI Lane`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "fallback path: keep `drivers/nvme/host/pci.c` as the source of truth") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "rollback drill: run `make -C zigux phase12-validate`") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_map, "PHASE12_LANE_KEY=P12-L08") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_map, current_surveyed_commit) != null);
