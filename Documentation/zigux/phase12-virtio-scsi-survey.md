@@ -59,6 +59,8 @@ The survey manifest now records:
 - the landed `phase12-virtio-scsi-survey-note`
 - the landed `phase12-virtio-scsi-driver-starter`
 - the landed `phase12-virtio-scsi-driver-tests`
+- the landed `phase12-virtio-scsi-syntax-lab-tests`
+- the landed `phase12-virtio-scsi-recovery-state-tests`
 - the landed `phase12-virtio-scsi-slice-note`
 - the landed `phase12-virtio-scsi-raw-github-fallback-catalog`
 - the landed `phase12-virtio-scsi-probe-config-snapshot-starter`
@@ -67,7 +69,7 @@ The survey manifest now records:
 - the landed `phase12-virtio-scsi-io-queue-map-summary-starter`
 - the still-blocked `phase12-virtio-scsi-runtime-queues-and-scan`
 
-This keeps the lane explicit without overstating progress: Zigux now has a bounded virtio_scsi queue-layout, recovery, probe snapshot, host-limit summary, queue-depth summary, io-queue-map starters, a dedicated syntax-lab replay, a dedicated restore-sequencing replay, and an exact raw fallback evidence packet, but it still does not claim command submission, event completion, TMF flow, SCSI-host registration, PM callback wiring, or DMA-backed virtqueue ownership.
+This keeps the lane explicit without overstating progress: Zigux now has a bounded virtio_scsi queue-layout, recovery, probe snapshot, host-limit summary, queue-depth summary, and io-queue-map starters, plus dedicated syntax-lab and recovery-state replays that keep the export surface and bounded restore-generation behavior reviewable, but it still does not claim command submission, event completion, TMF flow, SCSI-host registration, PM callback wiring, or DMA-backed virtqueue ownership.
 The restore-sequencing summary now sits beside that same bounded packet as review-only recovery evidence rather than a claim of live transport-reset or host-registration parity.
 
 ## Rollback And Reversible Delivery
