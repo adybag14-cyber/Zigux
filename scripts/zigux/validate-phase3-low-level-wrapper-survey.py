@@ -34,7 +34,7 @@ REQUIRED_SURVEY_MARKERS = (
     "PHASE3_ATOMIC_SCOPE=load-store-exchange-compare-exchange-compare-exchange-weak-fetch-add-fetch-sub-fetch-and-fetch-or-fetch-xor-fetch-min-fetch-max",
     "PHASE3_ATOMIC_STATUS=bounded-helper-surface-and-mismatch-replay-landed",
     "PHASE3_BARRIER_PATH=zigux/helpers/barrier.zig",
-    "PHASE3_BARRIER_SCOPE=acquire-release-full",
+    "PHASE3_BARRIER_SCOPE=acquire-release-acquire-release-combined-full",
     "PHASE3_BARRIER_STATUS=throwaway-probe-barriers-landed",
     "PHASE3_MMIO_PATH=zigux/helpers/mmio.zig",
     "PHASE3_MMIO_SCOPE=range-read8-read16-read32-read64-write8-write16-write32-write64-plus-scoped-read8-write8-read16-write16-read32-write32-read64-write64-plus-policy-read8-write8-read16-write16-read32-write32-read64-write64-and-generic-policy-bridges",
@@ -43,20 +43,20 @@ REQUIRED_SURVEY_MARKERS = (
     "PHASE3_LOW_LEVEL_TEST_PATH=zigux/tests/phase3_low_level_wrappers.zig",
     "PHASE3_LOW_LEVEL_GATE=zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
     "PHASE3_BOUNDARY_GAP=no-relaxed-order-barrier-variants-or-broader-kernel-style-atomic-family-is-shipped-yet",
-    "PHASE3_NEXT_BOUNDED_STEP=keep-the-low-level-wrapper-packet-narrow-until-one-roadmap-backed-boundary-slice-needs-an-expanded-barrier-or-atomic-helper",
+    "PHASE3_NEXT_BOUNDED_STEP=keep-the-low-level-wrapper-packet-narrow-until-one-roadmap-backed-boundary-slice-needs-another-explicit-atomic-or-mmio-helper",
 )
 
 REQUIRED_SURVEY_SNIPPETS = (
     "approved atomic, barrier, and MMIO wrappers",
     "`zigux/helpers/atomic.zig` currently limits the approved helper surface to `load`, `store`, `exchange`, `fetchAdd`, `fetchSub`, `fetchAnd`, `fetchOr`, `fetchXor`, `fetchMin`, `fetchMax`, `compareExchange`, and `compareExchangeWeak`",
-    "`zigux/helpers/barrier.zig` currently limits the approved barrier surface to `acquire`, `release`, and `full`",
+    "`zigux/helpers/barrier.zig` currently limits the approved barrier surface to `acquire`, `release`, `acquireRelease`, and `full`",
     "`zigux/helpers/mmio.zig` currently limits the approved MMIO surface to `range`, `read8`, `read16`, `read32`, `read64`, `write8`, `write16`, `write32`, and `write64`, plus the scoped `read8`, `write8`, `read16`, `write16`, `read32`, `write32`, `read64`, and `write64` entry points, the width-specific `read8Policy`, `write8Policy`, `read16Policy`, `write16Policy`, `read32Policy`, `write32Policy`, `read64Policy`, and `write64Policy` entry points, and the generic `readScopedWithPolicy` plus `writeScopedWithPolicy` bridges",
     "`zigux/tests/phase3_policy_unsafe.zig` and `scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py` keep the broader whole-record interop-policy decode and second-boundary-helper MMIO story reviewable beside that focused low-level gate",
     "no relaxed-order barrier variants are shipped in the current packet",
     "no broader kernel-style atomic helper family is shipped in the current packet",
     "no MMIO family wider than the direct, scoped, and decoded-policy 8-bit, 16-bit, 32-bit, and 64-bit accessors is shipped in the current packet",
     "This is real roadmap-backed progress.",
-    "`zigux/tests/phase3_low_level_wrappers.zig` now keeps the strong and weak compare-exchange replay, `fetchMin()` and `fetchMax()` replay, barrier probe, denied-scope checks, width-specific direct, scoped, and policy-aware 8-bit, 16-bit, 32-bit, and 64-bit MMIO coverage, denied-scope policy failures, misalignment failures, overflow failures, and the shared `MmioRange` layout assertion reviewable without having to infer them from the broader `phase3_abi` bundle alone.",
+    "`zigux/tests/phase3_low_level_wrappers.zig` now keeps the strong and weak compare-exchange replay, `fetchMin()` and `fetchMax()` replay, the acquire-only, release-only, combined acquire-plus-release, and full barrier probes, denied-scope checks, width-specific direct, scoped, and policy-aware 8-bit, 16-bit, 32-bit, and 64-bit MMIO coverage, denied-scope policy failures, misalignment failures, overflow failures, and the shared `MmioRange` layout assertion reviewable without having to infer them from the broader `phase3_abi` bundle alone.",
 )
 
 REQUIRED_SURVEY_PATHS = (
@@ -107,6 +107,7 @@ REQUIRED_ATOMIC_SNIPPETS = (
 REQUIRED_BARRIER_SNIPPETS = (
     "pub fn acquire() void {",
     "pub fn release() void {",
+    "pub fn acquireRelease() void {",
     "pub fn full() void {",
 )
 
@@ -141,6 +142,7 @@ REQUIRED_LOW_LEVEL_TEST_SNIPPETS = (
     "atomic.fetchMin(u32, &value, 17, .seq_cst)",
     "const mismatch = atomic.compareExchange(u32, &value, 9, 19, .seq_cst, .seq_cst);",
     "atomic.compareExchangeWeak(u32, &weak_value, 31, 34, .seq_cst, .seq_cst)",
+    "barrier.acquireRelease();",
     "barrier.full();",
     "mmio.write8(base, 1, 0x5a);",
     "mmio.write16(base, 2, 0xabcd);",
@@ -540,7 +542,7 @@ def run_self_test() -> int:
                     snippet
                     for snippet in REQUIRED_SURVEY_SNIPPETS
                     if snippet
-                    != "`zigux/tests/phase3_low_level_wrappers.zig` now keeps the strong and weak compare-exchange replay, `fetchMin()` and `fetchMax()` replay, barrier probe, denied-scope checks, width-specific direct, scoped, and policy-aware 8-bit, 16-bit, 32-bit, and 64-bit MMIO coverage, denied-scope policy failures, misalignment failures, overflow failures, and the shared `MmioRange` layout assertion reviewable without having to infer them from the broader `phase3_abi` bundle alone."
+                    != "`zigux/tests/phase3_low_level_wrappers.zig` now keeps the strong and weak compare-exchange replay, `fetchMin()` and `fetchMax()` replay, the acquire-only, release-only, combined acquire-plus-release, and full barrier probes, denied-scope checks, width-specific direct, scoped, and policy-aware 8-bit, 16-bit, 32-bit, and 64-bit MMIO coverage, denied-scope policy failures, misalignment failures, overflow failures, and the shared `MmioRange` layout assertion reviewable without having to infer them from the broader `phase3_abi` bundle alone."
                 ],
                 "",
                 *_blob_marker_lines(),
@@ -548,7 +550,7 @@ def run_self_test() -> int:
         )
         issues = validate(root)
         assert (
-            "missing_survey_snippet:`zigux/tests/phase3_low_level_wrappers.zig` now keeps the strong and weak compare-exchange replay, `fetchMin()` and `fetchMax()` replay, barrier probe, denied-scope checks, width-specific direct, scoped, and policy-aware 8-bit, 16-bit, 32-bit, and 64-bit MMIO coverage, denied-scope policy failures, misalignment failures, overflow failures, and the shared `MmioRange` layout assertion reviewable without having to infer them from the broader `phase3_abi` bundle alone."
+            "missing_survey_snippet:`zigux/tests/phase3_low_level_wrappers.zig` now keeps the strong and weak compare-exchange replay, `fetchMin()` and `fetchMax()` replay, the acquire-only, release-only, combined acquire-plus-release, and full barrier probes, denied-scope checks, width-specific direct, scoped, and policy-aware 8-bit, 16-bit, 32-bit, and 64-bit MMIO coverage, denied-scope policy failures, misalignment failures, overflow failures, and the shared `MmioRange` layout assertion reviewable without having to infer them from the broader `phase3_abi` bundle alone."
             in issues
         )
 
