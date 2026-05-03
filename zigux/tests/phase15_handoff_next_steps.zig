@@ -58,7 +58,7 @@ test "phase 15 handoff manifest records the parked governance contract" {
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P15-Y08", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("b5f64cf3306b706ea93cc9d3de769d545849b2d4", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("304eec2c524a203d8653eb78fb568d8e87462b24", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Full-Parity Blockers and Long-Term Governance", manifest.roadmap_phase_title);
     try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_requirements.len);
     try std.testing.expectEqualStrings("freeze map", manifest.roadmap_requirements[0]);
