@@ -97,26 +97,42 @@ DEDICATED_BINDING_TOKENS = (
     "pub const RootView = extern struct {",
 )
 
+SHARED_CONTRACT_SNIPPETS = (
+    "PHASE3_RBTREE_SHARED_LAYOUT_CONTRACT",
+    "PHASE3_RBTREE_SHARED_CONSTANT_CONTRACT",
+    "PHASE3_RBTREE_SHARED_SAMPLE_RECORDS=empty-root,cached-leftmost-root,uncached-root",
+    "const empty_root = rbtree.empty();",
+    "try std.testing.expect(rbtree.isEmpty(empty_root));",
+    "const uncached_root: rbtree.RootView = .{",
+    "try std.testing.expect(rbtree.hasRoot(uncached_root));",
+)
+
 SHARED_PACKET_SNIPPETS = {
     SHARED_ABI_TEST_REL: (
         'const rbtree = @import("rbtree_bindings");',
         "layout_assert.assertRbtreeRootViewLayout();",
+        "const empty_root = rbtree.empty();",
         "const cached_root: rbtree.RootView = .{",
+        "const uncached_root: rbtree.RootView = .{",
     ),
     SHARED_ABI_DUMP_REL: (
         'const rbtree = @import("rbtree_bindings");',
         'writeStructLayout(writer, "zigux_rbtree_root_view", rbtree.RootView, false);',
-        'try writer.writeAll(",\\\"root_flag_empty\\\":");',
+        'try writer.writeAll("},\\\"records\\\":{\\\"rbtree_empty_root\\\":{\\\"root_addr\\\":");',
+        'try writer.writeAll(",\\\"reserved\\\":0},\\\"rbtree_cached_leftmost_root\\\":{\\\"root_addr\\\":");',
+        'try writer.writeAll(",\\\"reserved\\\":0},\\\"rbtree_uncached_root\\\":{\\\"root_addr\\\":");',
     ),
     SHARED_ABI_HARNESS_REL: (
         "#include <zigux/rbtree.h>",
         "offsetof(struct zigux_rbtree_root_view, root_addr)",
-        "ZIGUX_RBTREE_ROOT_FLAG_EMPTY",
+        'fputs("},\\\"records\\\":{\\\"rbtree_empty_root\\\":{\\\"root_addr\\\":", stdout);',
+        'fputs(",\\\"reserved\\\":0},\\\"rbtree_cached_leftmost_root\\\":{\\\"root_addr\\\":", stdout);',
+        'fputs(",\\\"reserved\\\":0},\\\"rbtree_uncached_root\\\":{\\\"root_addr\\\":", stdout);',
     ),
     SHARED_ABI_EXPECTED_REL: (
-        '"root_flag_empty":1',
-        '"root_flag_cached":2',
-        '"root_flag_leftmost_valid":4',
+        '"rbtree_empty_root":{"root_addr":0,"leftmost_addr":0,"flags":1,"reserved":0}',
+        '"rbtree_cached_leftmost_root":{"root_addr":8192,"leftmost_addr":6144,"flags":6,"reserved":0}',
+        '"rbtree_uncached_root":{"root_addr":9216,"leftmost_addr":0,"flags":0,"reserved":0}',
         '"zigux_rbtree_root_view":{"size":24,"align":8,"offsets":{"root_addr":0,"leftmost_addr":8,"flags":16,"reserved":20}}',
     ),
 }
@@ -216,13 +232,7 @@ def validate(root: Path) -> list[str]:
     require_absent(slice_text, SLICE_REL, STALE_SLICE_SNIPPETS, "stale_snippet", issues)
     require_contains(header, DEDICATED_HEADER_REL, DEDICATED_HEADER_TOKENS, "missing_token", issues)
     require_contains(binding, DEDICATED_BINDING_REL, DEDICATED_BINDING_TOKENS, "missing_token", issues)
-    require_contains(
-        shared_contract,
-        SHARED_CONTRACT_REL,
-        ("PHASE3_RBTREE_SHARED_LAYOUT_CONTRACT", "PHASE3_RBTREE_SHARED_CONSTANT_CONTRACT"),
-        "missing_snippet",
-        issues,
-    )
+    require_contains(shared_contract, SHARED_CONTRACT_REL, SHARED_CONTRACT_SNIPPETS, "missing_snippet", issues)
 
     for rel, snippets in SHARED_PACKET_SNIPPETS.items():
         require_contains(read_text(root, rel, issues), rel, snippets, "missing_shared_packet", issues)
@@ -264,7 +274,7 @@ def run_self_test() -> int:
         write(root, REVIEW_CHECKLIST_REL, "\n".join(REVIEW_CHECKLIST_SNIPPETS) + "\n")
         write(root, DEDICATED_HEADER_REL, "\n".join(DEDICATED_HEADER_TOKENS) + "\n")
         write(root, DEDICATED_BINDING_REL, "\n".join(DEDICATED_BINDING_TOKENS) + "\n")
-        write(root, SHARED_CONTRACT_REL, "PHASE3_RBTREE_SHARED_LAYOUT_CONTRACT\nPHASE3_RBTREE_SHARED_CONSTANT_CONTRACT\n")
+        write(root, SHARED_CONTRACT_REL, "\n".join(SHARED_CONTRACT_SNIPPETS) + "\n")
         for rel, snippets in SHARED_PACKET_SNIPPETS.items():
             write(root, rel, "\n".join(snippets) + "\n")
         for rel in SHARED_ABI_FORBIDDEN:
@@ -277,6 +287,22 @@ def run_self_test() -> int:
         )
         assert validate(root) == []
 
+        write(root, SHARED_CONTRACT_REL, "PHASE3_RBTREE_SHARED_LAYOUT_CONTRACT\n")
+        issues = validate(root)
+        assert any(
+            issue.startswith(f"missing_snippet:{SHARED_CONTRACT_REL}:PHASE3_RBTREE_SHARED_SAMPLE_RECORDS=")
+            for issue in issues
+        )
+
+        write(root, SHARED_CONTRACT_REL, "\n".join(SHARED_CONTRACT_SNIPPETS) + "\n")
+        write(root, SHARED_ABI_TEST_REL, 'const rbtree = @import("rbtree_bindings");\n')
+        issues = validate(root)
+        assert any(
+            issue.startswith(f"missing_shared_packet:{SHARED_ABI_TEST_REL}:const empty_root = rbtree.empty();")
+            for issue in issues
+        )
+
+        write(root, SHARED_ABI_TEST_REL, "\n".join(SHARED_PACKET_SNIPPETS[SHARED_ABI_TEST_REL]) + "\n")
         write(root, ABI_SLICE_REL, ABI_SLICE_SNIPPETS[0] + "\n")
         issues = validate(root)
         assert any(issue.startswith(f"missing_snippet:{ABI_SLICE_REL}:") for issue in issues)
