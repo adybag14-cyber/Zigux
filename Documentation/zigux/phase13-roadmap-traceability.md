@@ -24,7 +24,7 @@ Shared tranche entrypoints already present on `master`:
 - the same shared packet now also keeps `zigux/tests/phase13_landlock_syscalls_reviewability.zig` visible as dedicated reviewability evidence for the landed `phase13-landlock-syscalls-reviewability-tests` replay step, so the syscall anchor does not look smaller than the actual ten-step shared build on current `master`
 - `lib/devres.c` is represented by real helper code, real tests, a manifest-backed survey packet, and explicit blocked DMA/scatterlist boundary evidence
 - the same shared packet also keeps `zigux/tests/phase13_devres_dma_coherent.zig` and `phase13-devres-dma-coherent-tests` visible as adjacent helper-first coherent DMA alloc/free bookkeeping evidence, so the current shared replay exposes that bounded support slice without turning the blocked `devres` DMA/scatterlist boundary into a live mapping claim
-- the same shared packet also keeps `zigux/bindings/notifier_abi.zig`, `zigux/helpers/notifier_chain_view.zig`, `zigux/tests/phase13_notifier_list_reviewability.zig`, and `Documentation/zigux/phase13-notifier-list-survey.md` visible as roadmap-adjacent release-facing evidence without changing the roadmap's four-anchor count
+- the same shared packet also keeps `zigux/bindings/notifier_abi.zig`, `include/zigux/notifier_abi.h`, `zigux/helpers/notifier_chain_view.zig`, `zigux/tests/phase13_notifier_list_reviewability.zig`, and `Documentation/zigux/phase13-notifier-list-survey.md` visible as roadmap-adjacent release-facing evidence without changing the roadmap's four-anchor count
 
 ## Anchor-to-repo map
 
@@ -164,15 +164,16 @@ The shared Phase 13 replay on `master` also includes one adjacent reviewability 
 - manifest `surveyed_commit`: `66b55d8a9a800345097f3c04b9f95130b1f8d0b8`
 - survey note: `Documentation/zigux/phase13-notifier-list-survey.md`
 - read-only generic notifier ABI foothold: `zigux/bindings/notifier_abi.zig`
+- dedicated exported C header foothold: `include/zigux/notifier_abi.h`
 - bounded raw-notifier traversal helper: `zigux/helpers/notifier_chain_view.zig`
 
 Why this packet belongs here but stays outside the anchor count:
 
-- it documents roadmap-adjacent shared-helper footing around preexisting `list_head` or `hlist` ABI surfaces, public generic-notifier header anchors, and the now-landed Zigux-side generic notifier ABI or helper foothold
+- it documents roadmap-adjacent shared-helper footing around preexisting `list_head` or `hlist` ABI surfaces, public generic-notifier header anchors, and the now-landed Zigux-side generic notifier ABI, dedicated exported C header, or helper foothold
 - it is already part of the shared `zigux/tests/phase13_build.zig` replay through both `phase13-notifier-list-reviewability-tests` and `phase13-notifier-chain-view-tests`, so future runs need to see why those tests exist without mistaking them for a new roadmap closure claim
-- it keeps the next honest same-family follow-up explicit: preserve this tiny read-only notifier ABI or helper foothold as roadmap-adjacent support evidence, and only widen later work if the shared-helper tranche genuinely needs more than the bounded helper-first linkage survey already landed here
+- it keeps the next honest same-family follow-up explicit: preserve this tiny read-only notifier ABI, exported C header, and helper foothold as roadmap-adjacent support evidence, and only widen later work if the shared-helper tranche genuinely needs more than the bounded helper-first linkage survey already landed here
 
 Traceability consequence:
 - the four roadmap anchors above remain the only Phase 13 anchor count for this note
 - the notifier-list packet is supporting evidence for the current shared-helper tranche, not a substitute for `fs/libfs.c`, `lib/devres.c`, `security/landlock/ruleset.c`, or `security/landlock/syscalls.c`
-- future release-note or checklist updates should keep this packet visible as adjacent reviewability evidence, while continuing to describe Phase 13 closure through the four manifest-backed roadmap anchors only
+- future release-note or checklist updates should keep this packet visible as adjacent reviewability evidence, including the dedicated exported C header, while continuing to describe Phase 13 closure through the four manifest-backed roadmap anchors only
