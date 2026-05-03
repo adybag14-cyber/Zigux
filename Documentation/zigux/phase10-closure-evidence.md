@@ -76,6 +76,20 @@ The shared closure manifest now carries explicit landed-helper evidence for the 
 
 The same closure packet now also keeps the already-landed focused harness coverage explicit: the ring drained-reset reuse replay, the multitouch-ready input preflight replay, and the MMIO multi-queue isolation replay are part of the Phase 10 evidence set rather than being left visible only from `zigux/tests/phase10_build.zig`, and the dedicated `scripts/zigux/check-phase10-harness-coverage.py` replay is now part of the exact closure contract instead of only indirect supporting evidence.
 
+## Survey Provenance
+
+- `PHASE10_SURVEY_PROVENANCE_SOURCE=manifest_derived`
+- `PHASE10_SURVEY_CORE_LANE=P10-L03`
+- `PHASE10_SURVEY_RING_LANE=P10-L08`
+- `PHASE10_SURVEY_INPUT_LANE=P10-L13`
+- `PHASE10_SURVEY_MMIO_LANE=P10-L18`
+- `PHASE10_SURVEY_CORE_COMMIT=f5a4d6990f701937b2a3bb9ae723bb6d0f27ba21`
+- `PHASE10_SURVEY_RING_COMMIT=fe8a43ea2e186da0da152198b571dff57ea3c38c`
+- `PHASE10_SURVEY_INPUT_COMMIT=f5a4d6990f701937b2a3bb9ae723bb6d0f27ba21`
+- `PHASE10_SURVEY_MMIO_COMMIT=0945df1cf664a3582d7241f859183a13f3f04adb`
+
+The shared closure manifest and the dedicated Phase 10 closure ledger already carry this provenance packet, but the main closure evidence note had still been leaving those exact lane owners and inspected heads implicit. Mirroring them here keeps the closure bundle reviewer-facing and self-contained, so the core, ring, input, and MMIO survey notes can be traced back to their bounded lane packets without hopping out to the JSON manifest first.
+
 ## Roadmap Parity Scoreboard
 
 This scoreboard records the current parity evidence against the Phase 10 roadmap requirements rather than against full driver parity.
