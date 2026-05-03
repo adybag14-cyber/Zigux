@@ -18,6 +18,7 @@ HVC_MATRIX_PATH = Path("Documentation/zigux/phase11-hvc-console-validation-matri
 SHARED_REPLAY_NOTE_PATH = Path("Documentation/zigux/phase11-shared-replay-contract.md")
 REVIEW_GUIDE_PATH = Path("Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md")
 TESTS_COMPANION_PATH = Path("Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md")
+SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
 MAKEFILE_PATH = Path("zigux/Makefile")
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 
@@ -64,6 +65,12 @@ TESTS_COMPANION_MARKERS = [
     "- Does `zigux/tests/phase11_hvc_console_survey.zig` still stay separate as the dedicated archival replay while the shared starter packet remains under `zigux/tests/phase11_build.zig` and the shared header-boundary packet stays explicit through `scripts/zigux/check-phase11-header-boundary-packet.py`?",
 ]
 
+SCRIPTS_README_MARKERS = [
+    "- `check-phase11-header-boundary-packet.py`",
+    "`check-phase11-header-boundary-packet.py --self-test`",
+    "keep the shared UAPI/header-boundary packet explicit beside the watchdog, `hvc_console`, and shared-versus-dedicated replay notes",
+]
+
 MAKEFILE_MARKERS = [
     "scripts/zigux/check-phase11-header-boundary-packet.py --self-test",
     "scripts/zigux/check-phase11-header-boundary-packet.py",
@@ -89,6 +96,7 @@ def validate_packet(root: Path) -> int:
         ("shared_replay_note", root / SHARED_REPLAY_NOTE_PATH, SHARED_REPLAY_NOTE_MARKERS),
         ("review_guide", root / REVIEW_GUIDE_PATH, REVIEW_GUIDE_MARKERS),
         ("tests_companion", root / TESTS_COMPANION_PATH, TESTS_COMPANION_MARKERS),
+        ("scripts_readme", root / SCRIPTS_README_PATH, SCRIPTS_README_MARKERS),
         ("makefile", root / MAKEFILE_PATH, MAKEFILE_MARKERS),
         ("workflow", root / WORKFLOW_PATH, WORKFLOW_MARKERS),
     ]:
@@ -141,6 +149,7 @@ def validate_packet(root: Path) -> int:
     print(f"PHASE11_HEADER_BOUNDARY_SHARED_REPLAY_NOTE_MARKER_COUNT={len(SHARED_REPLAY_NOTE_MARKERS)}")
     print(f"PHASE11_HEADER_BOUNDARY_REVIEW_GUIDE_MARKER_COUNT={len(REVIEW_GUIDE_MARKERS)}")
     print(f"PHASE11_HEADER_BOUNDARY_TESTS_COMPANION_MARKER_COUNT={len(TESTS_COMPANION_MARKERS)}")
+    print(f"PHASE11_HEADER_BOUNDARY_SCRIPTS_README_MARKER_COUNT={len(SCRIPTS_README_MARKERS)}")
     print(f"PHASE11_HEADER_BOUNDARY_MAKEFILE_MARKER_COUNT={len(MAKEFILE_MARKERS)}")
     print(f"PHASE11_HEADER_BOUNDARY_WORKFLOW_MARKER_COUNT={len(WORKFLOW_MARKERS)}")
     return 0
@@ -178,6 +187,7 @@ def write_fixture_tree(root: Path) -> None:
     write_text(root / SHARED_REPLAY_NOTE_PATH, "\n".join(SHARED_REPLAY_NOTE_MARKERS) + "\n")
     write_text(root / REVIEW_GUIDE_PATH, "\n".join(REVIEW_GUIDE_MARKERS) + "\n")
     write_text(root / TESTS_COMPANION_PATH, "\n".join(TESTS_COMPANION_MARKERS) + "\n")
+    write_text(root / SCRIPTS_README_PATH, "\n".join(SCRIPTS_README_MARKERS) + "\n")
     write_text(
         root / MAKEFILE_PATH,
         "\n".join(MAKEFILE_MARKERS) + "\n",
@@ -263,6 +273,19 @@ def run_self_test() -> int:
         )
         write_text(manifest_path, json.dumps(manifest_backup, indent=2) + "\n")
 
+        scripts_readme_path = tmp_root / SCRIPTS_README_PATH
+        scripts_readme_backup = text(scripts_readme_path)
+        write_text(
+            scripts_readme_path,
+            scripts_readme_backup.replace(SCRIPTS_README_MARKERS[0] + "\n", "", 1),
+        )
+        expect_missing(
+            "missing_scripts_readme_header_boundary_marker",
+            run_checker(tmp_root),
+            f"scripts_readme:{SCRIPTS_README_MARKERS[0]}",
+        )
+        write_text(scripts_readme_path, scripts_readme_backup)
+
         makefile_path = tmp_root / MAKEFILE_PATH
         makefile_backup = text(makefile_path)
         write_text(
@@ -337,7 +360,7 @@ def run_self_test() -> int:
         write_text(tests_companion_path, tests_companion_backup)
 
     print("PHASE11_HEADER_BOUNDARY_PACKET_SELF_TEST=pass")
-    print("PHASE11_HEADER_BOUNDARY_PACKET_SELF_TEST_CASE_COUNT=8")
+    print("PHASE11_HEADER_BOUNDARY_PACKET_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
