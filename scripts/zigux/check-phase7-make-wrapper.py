@@ -22,6 +22,8 @@ EXPECTED_MAKE_EXPANSIONS = {
         "python3 scripts/zigux/check-phase7-make-wrapper.py",
         "python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test",
         "python3 scripts/zigux/check-phase7-cmdline-parity.py",
+        "python3 scripts/zigux/check-phase7-argv-split-parity.py --self-test",
+        "python3 scripts/zigux/check-phase7-argv-split-parity.py",
         "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test",
         "python3 scripts/zigux/check-phase7-rbtree-parity.py",
     ],
@@ -37,6 +39,8 @@ EXPECTED_MAKE_EXPANSIONS = {
         "python3 scripts/zigux/check-phase7-make-wrapper.py",
         "python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test",
         "python3 scripts/zigux/check-phase7-cmdline-parity.py",
+        "python3 scripts/zigux/check-phase7-argv-split-parity.py --self-test",
+        "python3 scripts/zigux/check-phase7-argv-split-parity.py",
         "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test",
         "python3 scripts/zigux/check-phase7-rbtree-parity.py",
         "zig build test --build-file zigux/tests/phase7_build.zig --summary all",
@@ -57,6 +61,8 @@ UNEXPECTED_MAKE_EXPANSIONS = {
         "python3 scripts/zigux/check-phase7-make-wrapper.py",
         "python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test",
         "python3 scripts/zigux/check-phase7-cmdline-parity.py",
+        "python3 scripts/zigux/check-phase7-argv-split-parity.py --self-test",
+        "python3 scripts/zigux/check-phase7-argv-split-parity.py",
         "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test",
         "python3 scripts/zigux/check-phase7-rbtree-parity.py",
         "zig build test --build-file zigux/tests/build.zig",
@@ -417,6 +423,8 @@ def run_self_test() -> int:
                     "python3 scripts/zigux/check-phase7-make-wrapper.py",
                     "python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test",
                     "python3 scripts/zigux/check-phase7-cmdline-parity.py",
+                    "python3 scripts/zigux/check-phase7-argv-split-parity.py --self-test",
+                    "python3 scripts/zigux/check-phase7-argv-split-parity.py",
                     "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test",
                     "python3 scripts/zigux/check-phase7-rbtree-parity.py",
                 ],
@@ -453,6 +461,44 @@ def run_self_test() -> int:
             fake_make_path,
             {
                 **EXPECTED_MAKE_EXPANSIONS,
+                "phase7-validate": [
+                    line
+                    for line in EXPECTED_MAKE_EXPANSIONS["phase7-validate"]
+                    if line
+                    != "python3 scripts/zigux/check-phase7-argv-split-parity.py --self-test"
+                ],
+            },
+        )
+        expect_failure(
+            "missing_argv_split_selftest",
+            tmp_root,
+            fake_make_env,
+            "phase7-validate: missing expected wrapper expansion: python3 scripts/zigux/check-phase7-argv-split-parity.py --self-test",
+        )
+
+        make_fake_make(
+            fake_make_path,
+            {
+                **EXPECTED_MAKE_EXPANSIONS,
+                "phase7": [
+                    line
+                    for line in EXPECTED_MAKE_EXPANSIONS["phase7"]
+                    if line
+                    != "python3 scripts/zigux/check-phase7-argv-split-parity.py"
+                ],
+            },
+        )
+        expect_failure(
+            "missing_argv_split_live_in_bundle",
+            tmp_root,
+            fake_make_env,
+            "phase7: missing expected wrapper expansion: python3 scripts/zigux/check-phase7-argv-split-parity.py",
+        )
+
+        make_fake_make(
+            fake_make_path,
+            {
+                **EXPECTED_MAKE_EXPANSIONS,
                 "phase7": [
                     *EXPECTED_MAKE_EXPANSIONS["phase7"],
                     "zig build test --build-file zigux/tests/build.zig",
@@ -467,7 +513,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE7_MAKE_WRAPPER_SELF_TEST=pass")
-    print("PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT=9")
+    print("PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
