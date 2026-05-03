@@ -9,6 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 
 REQUIRED_FILES = [
+    "scripts/zigux/validate-phase4.py",
     "zigux/tests/phase4_kprobe_example_manifest.json",
     "zigux/tests/phase4_kprobe_example_survey.zig",
     "zigux/tests/phase4_build.zig",
@@ -46,7 +47,7 @@ MANIFEST_REQUIRED_GAPS = {
     "phase4-kprobe-example-survey-manifest": ("starter_landed", "zigux/tests/phase4_kprobe_example_manifest.json"),
     "phase4-kprobe-example-survey-gate": ("starter_landed", "zigux/tests/phase4_kprobe_example_survey.zig"),
     "phase4-kprobe-example-c-anchor-replay": ("starter_landed", "samples/kprobes/kprobe_example.c"),
-    "phase4-kprobe-example-shared-validator-promotion": ("ready_next", "scripts/zigux/validate-phase4.py"),
+    "phase4-kprobe-example-shared-validator-promotion": ("starter_landed", "scripts/zigux/validate-phase4.py"),
     "phase4-kprobe-example-zig-sample": ("ready_next", "samples/zigux/kprobe_example.zig"),
 }
 
@@ -58,7 +59,14 @@ SURVEY_MARKERS = [
     "phase4-kprobe-example-survey-tests",
     "phase4-kprobe-example-survey",
     "samples/zigux/kprobe_example.zig",
-    "shared validator still does not fail closed on the kprobe survey packet itself",
+    "scripts/zigux/validate-phase4.py",
+]
+
+VALIDATOR_MARKERS = [
+    "scripts/zigux/check-phase4-kprobe-example-packet.py",
+    "zigux/tests/phase4_kprobe_example_manifest.json",
+    "zigux/tests/phase4_kprobe_example_survey.zig",
+    "phase4-kprobe-example-survey-tests",
 ]
 
 BUILD_MARKERS = [
@@ -93,10 +101,6 @@ SCRIPTS_README_MARKERS = [
     "phase4-kprobe-example-survey-tests",
 ]
 
-SCRIPTS_README_EXACT_ONCE_MARKERS = [
-    "`check-phase4-kprobe-example-packet.py --self-test` and `check-phase4-kprobe-example-packet.py` keep `zigux/tests/phase4_kprobe_example_manifest.json`, `zigux/tests/phase4_kprobe_example_survey.zig`, `zigux/tests/phase4_build.zig`, `Documentation/zigux/phase4-validation-matrix.md`, `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/README.md`, and the current `samples/kprobes` C anchor fail-closed around the published survey-only kprobe packet while the broader `validate-phase4.py` promotion stays open.",
-]
-
 TESTS_README_MARKERS = [
     "zigux/tests/phase4_kprobe_example_survey.zig",
     "zigux/tests/phase4_kprobe_example_manifest.json",
@@ -111,7 +115,6 @@ GATE_EVIDENCE_MARKERS = [
     "phase4-kprobe-example-survey-tests",
     "zigux/tests/phase4_kprobe_example_survey.zig",
     "zigux/tests/phase4_kprobe_example_manifest.json",
-    "shared validator still does not fail closed on the kprobe survey packet itself",
 ]
 
 EXACT_ONCE_TEXT_MARKERS = {
@@ -120,7 +123,6 @@ EXACT_ONCE_TEXT_MARKERS = {
         "direct `zig build phase4-kprobe-example-survey --build-file zigux/tests/phase4_build.zig`",
         "still-absent `samples/zigux/kprobe_example.zig` sample explicitly survey-only",
     ],
-    "scripts_readme": SCRIPTS_README_EXACT_ONCE_MARKERS,
     "tests_readme": ["make -C zigux phase4-kprobe-example-survey"],
     "gate_evidence": [
         "PHASE4_KPROBE_EXAMPLE_MANIFEST_BLOB_SHA=",
@@ -214,6 +216,7 @@ def collect_missing(
     present_files: set[str],
     manifest: dict[str, object],
     survey_text: str,
+    validator_text: str,
     build_text: str,
     matrix_text: str,
     docs_root_text: str,
@@ -226,6 +229,7 @@ def collect_missing(
     missing = [f"missing_file:{path}" for path in REQUIRED_FILES if path not in present_files]
     missing.extend(collect_manifest_misses(manifest))
     missing.extend(collect_text_misses(survey_text, SURVEY_MARKERS, "survey"))
+    missing.extend(collect_text_misses(validator_text, VALIDATOR_MARKERS, "validator"))
     missing.extend(collect_text_misses(build_text, BUILD_MARKERS, "build"))
     missing.extend(collect_text_misses(matrix_text, MATRIX_MARKERS, "matrix"))
     missing.extend(collect_text_misses(docs_root_text, DOCS_ROOT_MARKERS, "docs_root"))
@@ -246,13 +250,6 @@ def collect_missing(
     missing.extend(
         collect_exact_once_misses(
             docs_root_text, EXACT_ONCE_TEXT_MARKERS["docs_root"], "docs_root"
-        )
-    )
-    missing.extend(
-        collect_exact_once_misses(
-            scripts_readme_text,
-            EXACT_ONCE_TEXT_MARKERS["scripts_readme"],
-            "scripts_readme",
         )
     )
     missing.extend(
@@ -279,6 +276,7 @@ def build_live_inputs() -> dict[str, object]:
         "present_files": {path for path in REQUIRED_FILES if (ROOT / path).exists()},
         "manifest": json.loads(read_text("zigux/tests/phase4_kprobe_example_manifest.json")),
         "survey_text": read_text("zigux/tests/phase4_kprobe_example_survey.zig"),
+        "validator_text": read_text("scripts/zigux/validate-phase4.py"),
         "build_text": read_text("zigux/tests/phase4_build.zig"),
         "matrix_text": read_text("Documentation/zigux/phase4-validation-matrix.md"),
         "docs_root_text": read_text("Documentation/zigux/README.md"),
@@ -319,13 +317,12 @@ def run_self_test() -> int:
         "present_files": set(REQUIRED_FILES),
         "manifest": base_manifest,
         "survey_text": "\n".join(SURVEY_MARKERS) + "\n",
+        "validator_text": "\n".join(VALIDATOR_MARKERS) + "\n",
         "build_text": "\n".join(BUILD_MARKERS) + "\n",
         "matrix_text": "\n".join(MATRIX_MARKERS)
         + "\n| `zigux/tests/phase4_kprobe_example_survey.zig` | survey gate |\n",
         "docs_root_text": "\n".join(DOCS_ROOT_MARKERS) + "\n",
-        "scripts_readme_text": "\n".join(
-            SCRIPTS_README_MARKERS + SCRIPTS_README_EXACT_ONCE_MARKERS
-        ) + "\n",
+        "scripts_readme_text": "\n".join(SCRIPTS_README_MARKERS) + "\n",
         "tests_readme_text": "\n".join(TESTS_README_MARKERS) + "\n",
         "gate_evidence_text": "\n".join(GATE_EVIDENCE_MARKERS) + "\n",
         "kprobe_makefile_text": ANCHOR_MARKERS[0][1] + "\n",
@@ -344,7 +341,7 @@ def run_self_test() -> int:
     expect_contains(
         "missing_file_detection",
         missing,
-        "missing_file:zigux/tests/phase4_kprobe_example_manifest.json",
+        "missing_file:scripts/zigux/validate-phase4.py",
     )
 
     broken_manifest = json.loads(json.dumps(base_manifest))
@@ -383,11 +380,22 @@ def run_self_test() -> int:
         "manifest:gap_duplicate:phase4-kprobe-example-survey-manifest",
     )
 
+    broken_manifest = json.loads(json.dumps(base_manifest))
+    for gap in broken_manifest["gaps"]:
+        if gap["id"] == "phase4-kprobe-example-shared-validator-promotion":
+            gap["status"] = "ready_next"
+    missing = collect_missing(**{**base_inputs, "manifest": broken_manifest})
+    expect_contains(
+        "manifest_validator_promotion_status_detection",
+        missing,
+        "manifest:gap_status:phase4-kprobe-example-shared-validator-promotion:expected=starter_landed:actual=ready_next",
+    )
+
     missing = collect_missing(
         **{
             **base_inputs,
             "survey_text": base_inputs["survey_text"].replace(
-                "shared validator still does not fail closed on the kprobe survey packet itself\n",
+                "scripts/zigux/validate-phase4.py\n",
                 "",
                 1,
             ),
@@ -396,7 +404,23 @@ def run_self_test() -> int:
     expect_contains(
         "survey_marker_detection",
         missing,
-        "survey:shared validator still does not fail closed on the kprobe survey packet itself",
+        "survey:scripts/zigux/validate-phase4.py",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "validator_text": base_inputs["validator_text"].replace(
+                "phase4-kprobe-example-survey-tests\n",
+                "",
+                1,
+            ),
+        }
+    )
+    expect_contains(
+        "validator_marker_detection",
+        missing,
+        "validator:phase4-kprobe-example-survey-tests",
     )
 
     missing = collect_missing(
@@ -471,20 +495,6 @@ def run_self_test() -> int:
         "scripts_readme_marker_detection",
         missing,
         "scripts_readme:check-phase4-kprobe-example-packet.py --self-test",
-    )
-
-    missing = collect_missing(
-        **{
-            **base_inputs,
-            "scripts_readme_text": base_inputs["scripts_readme_text"]
-            + SCRIPTS_README_EXACT_ONCE_MARKERS[0]
-            + "\n",
-        }
-    )
-    expect_contains(
-        "scripts_readme_exact_detection",
-        missing,
-        "scripts_readme_exact:`check-phase4-kprobe-example-packet.py --self-test` and `check-phase4-kprobe-example-packet.py` keep `zigux/tests/phase4_kprobe_example_manifest.json`, `zigux/tests/phase4_kprobe_example_survey.zig`, `zigux/tests/phase4_build.zig`, `Documentation/zigux/phase4-validation-matrix.md`, `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/README.md`, and the current `samples/kprobes` C anchor fail-closed around the published survey-only kprobe packet while the broader `validate-phase4.py` promotion stays open.:count=2",
     )
 
     missing = collect_missing(
@@ -587,7 +597,7 @@ def run_self_test() -> int:
     )
 
     print("PHASE4_KPROBE_EXAMPLE_PACKET_SELF_TEST=pass")
-    print("PHASE4_KPROBE_EXAMPLE_PACKET_SELF_TEST_CASE_COUNT=18")
+    print("PHASE4_KPROBE_EXAMPLE_PACKET_SELF_TEST_CASE_COUNT=19")
     return 0
 
 
