@@ -182,7 +182,7 @@ def validate(root: Path) -> list[str]:
     if abi_manifest:
         for entry in REQUIRED_ABI_MANIFEST_ENTRIES:
             if entry not in abi_manifest:
-                issues.append(f"missing_abi_manifest_entry:{entry.strip('"')}" )
+                issues.append("missing_abi_manifest_entry:" + entry.strip('"'))
 
     for rel in RBTREE_FREE_BOUNDARY_PATHS:
         text = _read_text(root, rel, issues)
