@@ -25,12 +25,22 @@ SURVEY_LINES = [
     "reviewability lane rather than a closure or active subsystem delivery claim",
 ]
 
+RELEASE_BOUNDARY_LINES = [
+    "PHASE14_SHARED_REPLAY_PRESENT=yes",
+    "shared smoke packet: `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `scripts/zigux/validate-phase14.py`, `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, and `zig build test --build-file zigux/tests/phase14_build.zig --summary all` now keep the four-anchor boundary map, the focused smoke shard, and the shared full-bundle replay explicit from a study-only posture",
+    "PHASE14_SHARED_SMOKE_GATE_COUNT=1",
+    "PHASE14_ACTIVE_DELIVERY_GATE_COUNT=0",
+    "Keep this lane parked unless the shared smoke packet or one of the four anchor-local Phase 14 manifests moves. If that happens, refresh this release-boundary reading and the docs-root Phase 14 summary so the release-facing story keeps matching the validator-backed smoke packet without widening it into a new active delivery claim.",
+]
+
 
 def read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
-def require_exact_count(label: str, text: str, markers: list[str], expected_count: int) -> list[str]:
+def require_exact_count(
+    label: str, text: str, markers: list[str], expected_count: int
+) -> list[str]:
     issues: list[str] = []
     for marker in markers:
         actual_count = text.count(marker)
@@ -39,9 +49,16 @@ def require_exact_count(label: str, text: str, markers: list[str], expected_coun
     return issues
 
 
-def validate_docs_root(docs_root_text: str, survey_text: str) -> list[str]:
+def validate_phase14_summary_surfaces(
+    docs_root_text: str, survey_text: str, release_boundary_text: str
+) -> list[str]:
     missing = require_exact_count("docs_root", docs_root_text, DOCS_ROOT_LINES, 1)
     missing.extend(require_exact_count("survey", survey_text, SURVEY_LINES, 1))
+    missing.extend(
+        require_exact_count(
+            "release_boundary", release_boundary_text, RELEASE_BOUNDARY_LINES, 1
+        )
+    )
     if survey_text.count(HEX40_NOTE) != 1:
         missing.append(f"survey:{survey_text.count(HEX40_NOTE)}:{HEX40_NOTE}")
     return missing
@@ -64,18 +81,30 @@ Phase 14 notes
 - reviewability lane rather than a closure or active subsystem delivery claim
 """.strip()
 
+    release_boundary_text = """
+- PHASE14_SHARED_REPLAY_PRESENT=yes
+- shared smoke packet: `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `scripts/zigux/validate-phase14.py`, `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, and `zig build test --build-file zigux/tests/phase14_build.zig --summary all` now keep the four-anchor boundary map, the focused smoke shard, and the shared full-bundle replay explicit from a study-only posture
+- PHASE14_SHARED_SMOKE_GATE_COUNT=1
+- PHASE14_ACTIVE_DELIVERY_GATE_COUNT=0
+- Keep this lane parked unless the shared smoke packet or one of the four anchor-local Phase 14 manifests moves. If that happens, refresh this release-boundary reading and the docs-root Phase 14 summary so the release-facing story keeps matching the validator-backed smoke packet without widening it into a new active delivery claim.
+""".strip()
+
     cases = [
-        ("happy_path", docs_root_text, survey_text, False),
+        ("happy_path", docs_root_text, survey_text, release_boundary_text, False),
         (
             "missing_docs_root_smoke_gate",
             docs_root_text.replace("validator-backed shared smoke gate", "shared smoke gate"),
             survey_text,
+            release_boundary_text,
             True,
         ),
         (
             "missing_survey_entrypoint",
             docs_root_text,
-            survey_text.replace("PHASE14_VALIDATE_ENTRYPOINT=make -C zigux phase14-validate", ""),
+            survey_text.replace(
+                "PHASE14_VALIDATE_ENTRYPOINT=make -C zigux phase14-validate", ""
+            ),
+            release_boundary_text,
             True,
         ),
         (
@@ -83,6 +112,7 @@ Phase 14 notes
             docs_root_text
             + "\n- `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `scripts/zigux/validate-phase14.py`, `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, and `zigux/tests/phase14_build.zig` now provide one validator-backed shared smoke gate for that study-only four-anchor packet; it stays a reviewability lane rather than a closure or active subsystem delivery claim.",
             survey_text,
+            release_boundary_text,
             True,
         ),
         (
@@ -90,12 +120,35 @@ Phase 14 notes
             docs_root_text,
             survey_text
             + "\n- survey provenance captured against verified `master` head `bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb`",
+            release_boundary_text,
+            True,
+        ),
+        (
+            "missing_release_boundary_smoke_gate",
+            docs_root_text,
+            survey_text,
+            release_boundary_text.replace("shared full-bundle replay", "full-bundle replay"),
+            True,
+        ),
+        (
+            "duplicate_release_boundary_status",
+            docs_root_text,
+            survey_text,
+            release_boundary_text + "\n- PHASE14_SHARED_REPLAY_PRESENT=yes",
             True,
         ),
     ]
 
-    for name, docs_text, survey_value, should_fail in cases:
-        missing = validate_docs_root(docs_text, survey_value)
+    for (
+        name,
+        docs_text,
+        survey_value,
+        release_boundary_value,
+        should_fail,
+    ) in cases:
+        missing = validate_phase14_summary_surfaces(
+            docs_text, survey_value, release_boundary_value
+        )
         failed = bool(missing)
         if failed != should_fail:
             print(f"PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST={name}:fail")
@@ -117,8 +170,10 @@ def main(argv: list[str]) -> int:
 
     docs_root_path = ROOT / "Documentation/zigux/README.md"
     survey_path = ROOT / "Documentation/zigux/phase14-end-to-end-smoke-survey.md"
+    release_boundary_path = ROOT / "Documentation/zigux/phase14-release-boundary-survey.md"
 
-    missing_files = [str(path) for path in (docs_root_path, survey_path) if not path.exists()]
+    required_paths = [docs_root_path, survey_path, release_boundary_path]
+    missing_files = [str(path) for path in required_paths if not path.exists()]
     if missing_files:
         print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY=fail")
         print("MISSING_FILES_START")
@@ -127,7 +182,11 @@ def main(argv: list[str]) -> int:
         print("MISSING_FILES_END")
         return 1
 
-    missing = validate_docs_root(read(docs_root_path), read(survey_path))
+    missing = validate_phase14_summary_surfaces(
+        read(docs_root_path),
+        read(survey_path),
+        read(release_boundary_path),
+    )
     if missing:
         print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY=fail")
         print("MISSING_MARKERS_START")
@@ -139,6 +198,7 @@ def main(argv: list[str]) -> int:
     print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY=pass")
     print(f"PHASE14_DOCS_ROOT_MARKER_COUNT={len(DOCS_ROOT_LINES)}")
     print(f"PHASE14_SURVEY_MARKER_COUNT={len(SURVEY_LINES) + 1}")
+    print(f"PHASE14_RELEASE_BOUNDARY_MARKER_COUNT={len(RELEASE_BOUNDARY_LINES)}")
     return 0
 
 
