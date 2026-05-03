@@ -106,6 +106,16 @@ PHASE2_FIXDEP_REQUIRED_MAKEFILE_COUNTS = {
     "scripts/zigux/check-fixdep-diff.py": 1,
     "$(ZIG) test scripts/zigux/fixdep.zig": 1,
 }
+PHASE2_GENKSYMS_BRIDGE_REQUIRED_WORKFLOW_COUNTS = {
+    "python3 scripts/zigux/check-genksyms-bridge.py --self-test": 1,
+    "python3 scripts/zigux/check-genksyms-bridge.py": 1,
+    "zig test scripts/zigux/genksyms.zig": 1,
+}
+PHASE2_GENKSYMS_BRIDGE_REQUIRED_MAKEFILE_COUNTS = {
+    "scripts/zigux/check-genksyms-bridge.py --self-test": 1,
+    "scripts/zigux/check-genksyms-bridge.py": 1,
+    "$(ZIG) test scripts/zigux/genksyms.zig": 1,
+}
 PHASE2_KCONFIG_REQUIRED_SOURCE_MARKERS = [
     "assert total_self_test_cases == 6",
     "print(f'KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT={total_self_test_cases}')",
@@ -434,6 +444,21 @@ def main() -> int:
             MAKEFILE_FILE,
             label="phase2_fixdep_makefile",
             expected_counts=PHASE2_FIXDEP_REQUIRED_MAKEFILE_COUNTS,
+        )
+    )
+    issues.extend(
+        validate_exact_command_counts(
+            WORKFLOW_FILE,
+            label="phase2_genksyms_bridge_workflow",
+            expected_counts=PHASE2_GENKSYMS_BRIDGE_REQUIRED_WORKFLOW_COUNTS,
+            workflow_mode=True,
+        )
+    )
+    issues.extend(
+        validate_exact_command_counts(
+            MAKEFILE_FILE,
+            label="phase2_genksyms_bridge_makefile",
+            expected_counts=PHASE2_GENKSYMS_BRIDGE_REQUIRED_MAKEFILE_COUNTS,
         )
     )
     issues.extend(
