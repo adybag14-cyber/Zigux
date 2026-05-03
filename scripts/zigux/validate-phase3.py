@@ -62,6 +62,12 @@ SURVEY_VALIDATION_SCRIPTS = (
         "abi-layout-packet-gate",
         "missing_expected_struct:zigux_cpumask_view",
     ),
+    (
+        "check-phase3-tooling-packet.py",
+        "PHASE3_TOOLING_PACKET=fail",
+        "tooling-packet-gate",
+        "missing_tooling_file:scripts/zigux/check-phase3-build-roots.py",
+    ),
 )
 
 BUILD_ROOT_DRIFT_SCRIPT = (
