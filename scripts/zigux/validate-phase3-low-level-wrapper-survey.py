@@ -521,6 +521,22 @@ def run_self_test() -> int:
 
         _write(
             root,
+            LOW_LEVEL_BUILD_REL,
+            "\n".join(
+                snippet
+                for snippet in REQUIRED_LOW_LEVEL_BUILD_SNIPPETS
+                if snippet != 'mmio_helpers_module.addImport("interop_policy", interop_policy_module);'
+            ) + "\n",
+        )
+        issues = validate(root)
+        assert (
+            'missing_low_level_build_snippet:mmio_helpers_module.addImport("interop_policy", interop_policy_module);'
+            in issues
+        )
+        _write(root, LOW_LEVEL_BUILD_REL, "\n".join(REQUIRED_LOW_LEVEL_BUILD_SNIPPETS) + "\n")
+
+        _write(
+            root,
             POLICY_UNSAFE_TEST_REL,
             "\n".join(REQUIRED_POLICY_UNSAFE_TEST_SNIPPETS) + "\n",
         )
