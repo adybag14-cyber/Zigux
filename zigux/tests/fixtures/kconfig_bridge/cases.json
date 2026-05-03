@@ -176,6 +176,11 @@
       "expected": "explicit_n_tristate_expected.json"
     },
     {
+      "name": "final_trailing_carriage_return",
+      "input": "final_trailing_carriage_return.config",
+      "expected": "final_trailing_carriage_return_expected.json"
+    },
+    {
       "name": "ignore_non_config_lines",
       "input": "ignore_non_config_lines.config",
       "expected": "ignore_non_config_lines_expected.json"
