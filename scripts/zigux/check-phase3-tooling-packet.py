@@ -14,10 +14,13 @@ MANIFEST_REL = "zigux/tests/fixtures/phase3_abi_manifest.json"
 VALIDATOR_REL = "scripts/zigux/validate-phase3.py"
 
 REQUIRED_TOOLING_FILES = (
+    "scripts/zigux/check-phase3-abi.py",
     "scripts/zigux/check-phase3-abi-layout-packet.py",
     "scripts/zigux/check-phase3-abi-binding-constants.py",
     "scripts/zigux/check-phase3-build-roots.py",
     "scripts/zigux/check-phase3-canonical-survey-manifest.py",
+    "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py",
+    "scripts/zigux/check-phase3-rbtree-shared-lift-contract.py",
     "scripts/zigux/check-phase3-readme-tooling-inventory.py",
     "scripts/zigux/check-phase3-tooling-packet.py",
     "scripts/zigux/check-phase3-validation-flow.py",
@@ -26,6 +29,11 @@ REQUIRED_TOOLING_FILES = (
     "scripts/zigux/phase3_check_lib.py",
     "scripts/zigux/run-phase3-checks.py",
     "scripts/zigux/validate-phase3.py",
+    "scripts/zigux/validate-phase3-roadmap-gap-survey.py",
+    "scripts/zigux/validate-phase3-rbtree-interop-survey.py",
+    "scripts/zigux/validate-phase3-export-uapi-survey.py",
+    "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
+    "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
     "scripts/zigux/validate_phase3_header_binding_markers.py",
     "scripts/zigux/validate_phase3_core.py",
     "scripts/zigux/validate_phase3_selftest.py",
