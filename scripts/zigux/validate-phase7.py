@@ -134,6 +134,7 @@ required_script_readme_markers = [
     "`check-phase7-build-inventory.py`",
     "`check-phase7-make-wrapper.py`",
     "`check-phase7-cmdline-parity.py`",
+    "`check-phase7-argv-split-parity.py`",
     "`check-phase7-rbtree-parity.py`",
 ]
 required_tests_readme_markers = [
@@ -269,6 +270,23 @@ def run_self_test() -> int:
         )
         makefile_path.write_text(original_makefile, encoding="utf-8")
 
+        script_readme_path = tmp_root / "scripts" / "zigux" / "README.md"
+        original_script_readme = script_readme_path.read_text(encoding="utf-8")
+        script_readme_path.write_text(
+            original_script_readme.replace(
+                "- `check-phase7-argv-split-parity.py`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_script_readme_marker",
+            tmp_root,
+            "scripts/zigux/README.md: `check-phase7-argv-split-parity.py`",
+        )
+        script_readme_path.write_text(original_script_readme, encoding="utf-8")
+
         doc_path = tmp_root / "Documentation" / "zigux" / "phase7-argv-split-slice.md"
         original_doc = doc_path.read_text(encoding="utf-8")
         doc_path.write_text(
@@ -344,7 +362,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=7")
+    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
