@@ -110,6 +110,18 @@ GATE_EVIDENCE_MARKERS = [
     "shared validator still does not fail closed on the kprobe survey packet itself",
 ]
 
+EXACT_ONCE_TEXT_MARKERS = {
+    "matrix": ["| `zigux/tests/phase4_kprobe_example_survey.zig` | survey gate |"],
+    "docs_root": [
+        "direct `zig build phase4-kprobe-example-survey --build-file zigux/tests/phase4_build.zig`",
+    ],
+    "tests_readme": ["make -C zigux phase4-kprobe-example-survey"],
+    "gate_evidence": [
+        "PHASE4_KPROBE_EXAMPLE_MANIFEST_BLOB_SHA=",
+        "PHASE4_KPROBE_EXAMPLE_SURVEY_BLOB_SHA=",
+    ],
+}
+
 ANCHOR_MARKERS = [
     ("makefile", "obj-$(CONFIG_SAMPLE_KPROBES) += kprobe_example.o"),
     ("anchor", 'static char symbol[KSYM_NAME_LEN] = "kernel_clone";'),
@@ -122,6 +134,15 @@ def read_text(path: str) -> str:
 
 def collect_text_misses(text: str, markers: list[str], prefix: str) -> list[str]:
     return [f"{prefix}:{marker}" for marker in markers if marker not in text]
+
+
+def collect_exact_once_misses(text: str, markers: list[str], prefix: str) -> list[str]:
+    missing: list[str] = []
+    for marker in markers:
+        count = text.count(marker)
+        if count != 1:
+            missing.append(f"{prefix}_exact:{marker}:count={count}")
+    return missing
 
 
 def collect_manifest_misses(manifest: dict[str, object]) -> list[str]:
@@ -154,11 +175,17 @@ def collect_manifest_misses(manifest: dict[str, object]) -> list[str]:
         missing.append("manifest:gaps:missing")
         return missing
 
-    gap_index = {
-        gap.get("id"): gap
-        for gap in gaps
-        if isinstance(gap, dict) and isinstance(gap.get("id"), str)
-    }
+    gap_index = {}
+    for gap in gaps:
+        if not isinstance(gap, dict):
+            continue
+        gap_id = gap.get("id")
+        if isinstance(gap_id, str):
+            if gap_id in gap_index:
+                missing.append(f"manifest:gap_duplicate:{gap_id}")
+            else:
+                gap_index[gap_id] = gap
++
     for gap_id, (expected_status, expected_destination) in MANIFEST_REQUIRED_GAPS.items():
         gap = gap_index.get(gap_id)
         if gap is None:
@@ -204,6 +231,28 @@ def collect_missing(
     )
     missing.extend(
         collect_text_misses(gate_evidence_text, GATE_EVIDENCE_MARKERS, "gate_evidence")
+    )
+    missing.extend(
+        collect_exact_once_misses(
+            matrix_text, EXACT_ONCE_TEXT_MARKERS["matrix"], "matrix"
+        )
+    )
+    missing.extend(
+        collect_exact_once_misses(
+            docs_root_text, EXACT_ONCE_TEXT_MARKERS["docs_root"], "docs_root"
+        )
+    )
+    missing.extend(
+        collect_exact_once_misses(
+            tests_readme_text, EXACT_ONCE_TEXT_MARKERS["tests_readme"], "tests_readme"
+        )
+    )
+    missing.extend(
+        collect_exact_once_misses(
+            gate_evidence_text,
+            EXACT_ONCE_TEXT_MARKERS["gate_evidence"],
+            "gate_evidence",
+        )
     )
     for prefix, marker in ANCHOR_MARKERS:
         target_text = kprobe_makefile_text if prefix == "makefile" else kprobe_anchor_text
@@ -258,7 +307,8 @@ def run_self_test() -> int:
         "manifest": base_manifest,
         "survey_text": "\n".join(SURVEY_MARKERS) + "\n",
         "build_text": "\n".join(BUILD_MARKERS) + "\n",
-        "matrix_text": "\n".join(MATRIX_MARKERS) + "\n",
+        "matrix_text": "\n".join(MATRIX_MARKERS)
+        + "\n| `zigux/tests/phase4_kprobe_example_survey.zig` | survey gate |\n",
         "docs_root_text": "\n".join(DOCS_ROOT_MARKERS) + "\n",
         "scripts_readme_text": "\n".join(SCRIPTS_README_MARKERS) + "\n",
         "tests_readme_text": "\n".join(TESTS_README_MARKERS) + "\n",
@@ -307,6 +357,15 @@ def run_self_test() -> int:
         "manifest_gap_detection",
         missing,
         "manifest:gap_missing:phase4-kprobe-example-zig-sample",
+    )
+
+    broken_manifest = json.loads(json.dumps(base_manifest))
+    broken_manifest["gaps"].append(dict(broken_manifest["gaps"][0]))
+    missing = collect_missing(**{**base_inputs, "manifest": broken_manifest})
+    expect_contains(
+        "manifest_duplicate_gap_detection",
+        missing,
+        "manifest:gap_duplicate:phase4-kprobe-example-survey-manifest",
     )
 
     missing = collect_missing(
@@ -360,6 +419,19 @@ def run_self_test() -> int:
     missing = collect_missing(
         **{
             **base_inputs,
+            "docs_root_text": base_inputs["docs_root_text"]
+            + "direct `zig build phase4-kprobe-example-survey --build-file zigux/tests/phase4_build.zig`\n",
+        }
+    )
+    expect_contains(
+        "docs_root_exact_detection",
+        missing,
+        "docs_root_exact:direct `zig build phase4-kprobe-example-survey --build-file zigux/tests/phase4_build.zig`:count=2",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
             "scripts_readme_text": base_inputs["scripts_readme_text"].replace(
                 "check-phase4-kprobe-example-packet.py --self-test\n",
                 "",
@@ -392,6 +464,19 @@ def run_self_test() -> int:
     missing = collect_missing(
         **{
             **base_inputs,
+            "tests_readme_text": base_inputs["tests_readme_text"]
+            + "make -C zigux phase4-kprobe-example-survey\n",
+        }
+    )
+    expect_contains(
+        "tests_readme_exact_detection",
+        missing,
+        "tests_readme_exact:make -C zigux phase4-kprobe-example-survey:count=2",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
             "gate_evidence_text": base_inputs["gate_evidence_text"].replace(
                 "PHASE4_KPROBE_EXAMPLE_SURVEY_BLOB_SHA=\n",
                 "",
@@ -403,6 +488,19 @@ def run_self_test() -> int:
         "gate_evidence_marker_detection",
         missing,
         "gate_evidence:PHASE4_KPROBE_EXAMPLE_SURVEY_BLOB_SHA=",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "gate_evidence_text": base_inputs["gate_evidence_text"]
+            + "PHASE4_KPROBE_EXAMPLE_MANIFEST_BLOB_SHA=\n",
+        }
+    )
+    expect_contains(
+        "gate_evidence_exact_detection",
+        missing,
+        "gate_evidence_exact:PHASE4_KPROBE_EXAMPLE_MANIFEST_BLOB_SHA=:count=2",
     )
 
     missing = collect_missing(
@@ -424,6 +522,19 @@ def run_self_test() -> int:
     missing = collect_missing(
         **{
             **base_inputs,
+            "matrix_text": base_inputs["matrix_text"]
+            + "| `zigux/tests/phase4_kprobe_example_survey.zig` | survey gate |\n",
+        }
+    )
+    expect_contains(
+        "matrix_exact_detection",
+        missing,
+        "matrix_exact:| `zigux/tests/phase4_kprobe_example_survey.zig` | survey gate |:count=2",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
             "kprobe_anchor_text": "",
         }
     )
@@ -434,7 +545,7 @@ def run_self_test() -> int:
     )
 
     print("PHASE4_KPROBE_EXAMPLE_PACKET_SELF_TEST=pass")
-    print("PHASE4_KPROBE_EXAMPLE_PACKET_SELF_TEST_CASE_COUNT=12")
+    print("PHASE4_KPROBE_EXAMPLE_PACKET_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
