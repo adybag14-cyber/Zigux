@@ -150,6 +150,9 @@ CHECKLIST_MARKERS = [
     "if the change touches the shared Phase 12 libbpf snapshot packet, do `python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test`, `scripts/zigux/check-phase12-libbpf-snapshot.py`, `zigux/tests/fixtures/phase12_libbpf_snapshot.json`, `zigux/tests/phase12_libbpf_manifest.json`, `zigux/tests/phase12_libbpf_segments.zig`, `zigux/tests/phase12_libbpf_reviewability.zig`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, and `tools/lib/bpf/zigux_segments/manifest.json` still agree on the same bounded five-file reproducibility packet, exact surveyed commit, and repeat-run-stable self-test contract instead of leaving the bounded libbpf snapshot discipline in run memory only?",
     "if the change touches the focused Phase 12 libbpf-only replay packet, do `python3 scripts/zigux/check-phase12-libbpf-focused-replay.py --self-test`, `scripts/zigux/check-phase12-libbpf-focused-replay.py`, `scripts/zigux/validate-phase12.py`, `zigux/tests/phase12_libbpf_only_build.zig`, `zigux/tests/phase12_libbpf_manifest.json`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` still agree on the same dedicated replay shard, review-note hook, and validator-first rollback path instead of leaving that narrower libbpf gate implied behind the broader packet checks?",
 ]
+CHECKLIST_EXACT_COUNTS = {
+    "if the change touches the focused Phase 12 libbpf-only replay packet, do `python3 scripts/zigux/check-phase12-libbpf-focused-replay.py --self-test`, `scripts/zigux/check-phase12-libbpf-focused-replay.py`, `scripts/zigux/validate-phase12.py`, `zigux/tests/phase12_libbpf_only_build.zig`, `zigux/tests/phase12_libbpf_manifest.json`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` still agree on the same dedicated replay shard, review-note hook, and validator-first rollback path instead of leaving that narrower libbpf gate implied behind the broader packet checks?": 1,
+}
 PHASE12_PACKET_MARKERS = {
     "phase12_virtio_net_test": (
         "phase12 virtio net probe starter stays anchored to virtio_net.c",
@@ -346,12 +349,6 @@ MANIFEST_SPECS = {
         ],
         "raw_fallback_current_markers": [
             "## Last bounded replay note",
-            "These fields record the last bounded replay note captured for this pinned fallback packet.",
-            "They are historical replay evidence, not live-head truth for newer `master` commits",
-            "current_master_replay_head: `",
-            "current_shared_validator_command: `python3 scripts/zigux/validate-phase12.py`",
-            "current_shared_validator_result: `PHASE12_VALIDATION=",
-            "current_shared_validator_missing_markers:",
             "current_shared_build_command: `zig build test --build-file zigux/tests/phase12_build.zig --summary all`",
             "current_shared_build_result: `",
             "current_focused_survey_command: `zig test zigux/tests/phase12_virtio_scsi_survey.zig`",
@@ -551,6 +548,15 @@ def expect_catalog_marker(catalog_text: str, marker: str, missing_key: str, miss
         missing.append(missing_key)
 
 
+def collect_exact_count_misses(text: str, expected_counts: dict[str, int], prefix: str) -> list[str]:
+    missing: list[str] = []
+    for marker, expected_count in expected_counts.items():
+        actual_count = text.count(marker)
+        if actual_count != expected_count:
+            missing.append(f"{prefix}:{marker}:expected={expected_count}:actual={actual_count}")
+    return missing
+
+
 def expect_libbpf_snapshot_fixture(
     snapshot: dict[str, object], manifest: dict[str, object], missing: list[str]
 ) -> None:
@@ -615,6 +621,14 @@ for name, source, markers in [
     for marker in markers:
         if marker not in source:
             missing.append(f"{name}:{marker}")
+
+missing.extend(
+    collect_exact_count_misses(
+        text("Documentation/zigux/review-checklist.md"),
+        CHECKLIST_EXACT_COUNTS,
+        "review_checklist_count",
+    )
+)
 
 build_text = text("zigux/tests/phase12_build.zig")
 for marker in FORBIDDEN_BUILD_MARKERS:
