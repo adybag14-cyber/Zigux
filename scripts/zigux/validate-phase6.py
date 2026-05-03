@@ -93,6 +93,18 @@ PERF_SURVEY_MARKERS = [
     "max_slowdown_pct = 600",
 ]
 
+BASE64_SLICE_MARKERS = [
+    "variant alphabet parity for URL-safe and IMAP output with and without padding",
+    "the same `zigux/tests/fixtures/phase6_base64_vectors.zig` module now owns both the deterministic 64-byte and 1-kibibyte perf payload corpus and the shipped ten-case padded and unpadded standard, URL-safe, and IMAP perf replay matrix that `zigux/tests/phase6_base64_perf.zig` consumes directly",
+    "a small external C-vs-Zig spot-check harness that now also carries a built-in `--self-test` path for its missing-path guards, generated build template, sorted-output normalization, and representative-output fail-closed drift checks before it regenerates the transient `zigux/tests/fixtures/phase6_base64_c_generated_cases.inc` include payload through `zigux/tests/phase6_base64_c_casegen.zig`",
+]
+
+BSEARCH_SLICE_MARKERS = [
+    "runtime-selected comparator function pointers preserve the same found-or-null behavior across ascending and descending sorted slices",
+    "focused Zig Phase 6 tests now also prove runtime-selected descending typed and raw mutable-pointer write-through behavior instead of leaving that contract only to the external C-vs-Zig parity replay",
+    "a representative external C-vs-Zig parity replay currently replays 29 sorted lookup cases covering integer hits and misses, singleton and empty-slice behavior, ascending and descending comparator-driven lookups, direct raw-helper hit and miss behavior, raw descending lookup behavior, duplicate hits across beginning, middle, and end duplicate runs on a found-or-null basis without pinning a stable duplicate index, runtime-selected typed and raw comparator-pointer lookups across ascending and descending sorted slices for both hit and miss cases with distinct ascending-versus-descending miss labels, heterogeneous string-key lookup, and runtime-selected descending typed and raw mutable-pointer write-through behavior",
+]
+
 CHECKSUM_SLICE_MARKERS = [
     "an external C-vs-Zig spot check through `python3 scripts/zigux/check-phase6-checksum-c-parity.py`, `zigux/tests/phase6_checksum_c_parity.zig`, and `zigux/tests/fixtures/phase6_checksum_c_harness.c` so the current `lib/checksum.c` arithmetic surface stays directly reviewable beside the committed Zig fixture packet; the live parity runner now replays 22 direct outputs across 5 compute cases, 3 seeded partial cases, 2 composition cases, 1 IPv4 pseudo-header nofold case, 3 IPv6 pseudo-header nofold cases, 4 carry-discipline folds, and 4 incremental replacement outputs",
     "a replayable perf-sanity harness reports representative checksum cost per call and per byte while rechecking parity against the widened-accumulator `referencePartial` path on deterministic 64-byte and 1501-byte payloads, and it currently fail-closes on `max_slowdown_pct = 150` for both committed perf cases",
@@ -455,6 +467,8 @@ def validate_phase6(root: Path) -> dict[str, object]:
     missing: list[str] = []
     require_markers(missing, "catalog", catalog, CATALOG_MARKERS)
     require_markers(missing, "perf_survey", text(root, "Documentation/zigux/phase6-perf-gate-survey.md"), PERF_SURVEY_MARKERS)
+    require_markers(missing, "base64_slice", text(root, "Documentation/zigux/phase6-base64-slice.md"), BASE64_SLICE_MARKERS)
+    require_markers(missing, "bsearch_slice", text(root, "Documentation/zigux/phase6-bsearch-slice.md"), BSEARCH_SLICE_MARKERS)
     require_markers(missing, "checksum_slice", text(root, "Documentation/zigux/phase6-checksum-slice.md"), CHECKSUM_SLICE_MARKERS)
     require_markers(missing, "hexdump_slice", text(root, "Documentation/zigux/phase6-hexdump-slice.md"), HEXDUMP_SLICE_MARKERS)
     require_markers(missing, "scripts_readme", text(root, "scripts/zigux/README.md"), SCRIPTS_README_MARKERS)
@@ -527,6 +541,8 @@ def build_self_test_tree(root: Path) -> None:
         write(root, path, "placeholder\n")
     write(root, "Documentation/zigux/phase6-helper-parity-catalog.md", "\n".join([f"# x", f"- verified head: `{SELF_TEST_HEAD}`", *CATALOG_MARKERS]) + "\n")
     write(root, "Documentation/zigux/phase6-perf-gate-survey.md", "\n".join(PERF_SURVEY_MARKERS) + "\n")
+    write(root, "Documentation/zigux/phase6-base64-slice.md", "\n".join(BASE64_SLICE_MARKERS) + "\n")
+    write(root, "Documentation/zigux/phase6-bsearch-slice.md", "\n".join(BSEARCH_SLICE_MARKERS) + "\n")
     write(root, "Documentation/zigux/phase6-checksum-slice.md", "\n".join(CHECKSUM_SLICE_MARKERS) + "\n")
     write(root, "Documentation/zigux/phase6-hexdump-slice.md", "\n".join(HEXDUMP_SLICE_MARKERS) + "\n")
     write(root, "scripts/zigux/README.md", "\n".join(SCRIPTS_README_MARKERS) + "\n")
