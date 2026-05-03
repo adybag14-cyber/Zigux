@@ -299,6 +299,13 @@ MANIFEST_EXPECTATIONS = {
         "suffix_unit_test_anchor": 'tools/lib/string.zig:test "str_ends_with matches kernel suffix semantics"',
         "suffix_unit_test_contract": "Direct Zig unit coverage keeps strEndsWith, str_ends_with, and strends aligned with kernel-style suffix semantics for exact, empty-suffix, shorter-input, and case-sensitive comparisons.",
     },
+    "tools/lib/find_bit.zig": {
+        "tail_start_unit_test_anchor": 'tools/lib/find_bit.zig:test "tail scans keep the last in-range bit reachable from an inclusive start"',
+        "tail_start_unit_test_contract": "Direct Zig unit coverage keeps tail-clamped set, zero, and shared-bit scans aligned when the inclusive start lands on the last in-range bit, while later starts still return `nbits` instead of leaking the out-of-range tail.",
+        "tail_word_boundary_unit_test_contract": "Direct Zig unit coverage keeps set, zero, and shared-bit tail scans aligned when the search starts exactly at the first tail-word bit index, so the first in-range tail match remains reachable without rereading an earlier full-word result.",
+        "zero_sized_unit_test_anchor": 'tools/lib/find_bit.zig:test "zero-sized scans ignore populated backing words"',
+        "zero_sized_unit_test_contract": "Direct Zig unit coverage keeps zero-length set, zero, and shared-bit scans aligned by returning `0` even when backing words are populated, so declared `nbits` stays authoritative over caller storage.",
+    },
     "tools/lib/rbtree.zig": {
         "summary": "Committed C-backed parity coverage includes ordered forward and reverse traversal plus replaceNode, eraseInit, postorder traversal, and detached-node state checks, while Linux-style rb_* alias parity remains explicitly out of scope for this closed Phase 1 tranche.",
         "cached_find_add_unit_test_anchor": 'tools/lib/rbtree.zig:test "rbtree findAddCached preserves duplicate ownership and leftmost cache"',
