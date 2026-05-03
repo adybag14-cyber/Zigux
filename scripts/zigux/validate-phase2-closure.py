@@ -458,7 +458,7 @@ def validate_phase2_cross_alignment_checker_gate(checker_script: Path) -> list[s
     required_markers = {
         'self_test_arg': 'parser.add_argument("--self-test"',
         'self_test_pass_marker': 'print("PHASE2_CROSS_ALIGNMENT_SELF_TEST=pass")',
-        'self_test_case_count_marker': 'print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=13")',
+        'self_test_case_count_marker': 'print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=15")',
         'validator_anchor': 'PHASE2_VALIDATOR = ROOT / "scripts" / "zigux" / "validate-phase2.py"',
         'closure_doc_anchor': 'CLOSURE_DOC = ROOT / "Documentation" / "zigux" / "phase2-closure.md"',
         'targets_manifest_anchor': 'TARGETS_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json"',
@@ -499,10 +499,7 @@ def validate_genksyms_crc_checker_gate(checker_script: Path) -> list[str]:
     required_markers = {
         'self_test_arg': "parser.add_argument('--self-test'",
         'self_test_pass_marker': "print('GENKSYMS_CRC_SELF_TEST=pass')",
-        'self_test_case_count_marker': "print('GENKSYMS_CRC_SELF_TEST_CASE_COUNT=4')",
-        'explicit_zig_guard': 'genksyms-crc:self-test:explicit_zig_passthrough',
-        'explicit_cc_guard': 'genksyms-crc:self-test:explicit_cc_passthrough',
-        'mismatch_contract_guard': 'genksyms-crc:self-test:mismatch_contract',
+        'self_test_case_count_mark…57 tokens truncated…'mismatch_contract_guard': 'genksyms-crc:self-test:mismatch_contract',
         'repeat_c_compare': "run(diff_base + [str(c_actual), str(c_repeat)], cwd=str(ROOT))",
         'repeat_zig_compare': "run(diff_base + [str(zig_actual), str(zig_repeat)], cwd=str(ROOT))",
         'determinism_marker': "print('GENKSYMS_CRC_DETERMINISM=pass')",
@@ -545,7 +542,7 @@ def validate_artifact_diff_contract_gate(checker_script: Path) -> list[str]:
         'sha256_pass_case': 'SHA256=0051a1ffdd63accde60d9c9893094b287388cecb4fcc734a204ea5a36a5c3576',
         'sha256_fail_case': 'EXPECTED_SHA256=',
         'sha256_fail_actual_case': 'ACTUAL_SHA256=',
-        'contract_pass_marker': "print('ARTIFACT_DIFF_CONTRACT=pass')",
+        'contract_pass_marker': 'expected_contract_summary_lines()',
     }
 
     issues: list[str] = []
