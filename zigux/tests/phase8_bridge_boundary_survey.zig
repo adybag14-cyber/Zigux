@@ -283,6 +283,12 @@ test "phase 8 bridge boundary survey still matches the live helper surfaces" {
     try expectContains(bridge_note, "`should_close_token_fd`");
     try expectContains(bridge_note, "`should_store_token_fd`");
     try expectContains(bridge_note, "`should_mark_map_pinned`");
+    try expectContains(bridge_note, "/sys/devices/system/cpu/online");
+    try expectContains(bridge_note, "cached `/sys/devices/system/cpu/possible` counts");
+    try expectContains(bridge_note, "libbpf_num_possible_cpus()");
+    try expectContains(bridge_note, "online CPU filtering");
+    try expectContains(bridge_note, "per-CPU perf-event-array map updates");
+    try expectContains(bridge_note, "epoll-backed perf FD registration");
     try expectContains(bridge_note, "Documentation/zigux/phase8-perf-buffer-poll-slice.md");
     try expectContains(bridge_note, "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig");
     try expectContains(bridge_note, "zigux/tests/phase8_perf_buffer_poll.zig");
