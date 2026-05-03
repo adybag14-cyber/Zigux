@@ -113,6 +113,7 @@ EXPECTED_GAP_DESTINATIONS = {
     "phase7-argv-split-survey-gate": "zigux/tests/phase7_argv_split_survey.zig",
 }
 
+
 def read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
@@ -344,8 +345,24 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
 
+        manifest = json.loads(read(manifest_path))
+        for gap in manifest["gaps"]:
+            if gap["id"] == "phase7-argv-split-helper":
+                gap["zigux_destination"] = "lib/cmdline.zig"
+                break
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_failure(
+            "manifest_gap_destination",
+            tmp_root,
+            "gaps:phase7-argv-split-helper:zigux_destination",
+        )
+        manifest_path.write_text(
+            SELF_TEST_FILE_CONTENTS["zigux/tests/phase7_argv_split_manifest.json"],
+            encoding="utf-8",
+        )
+
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
-    print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT=7")
+    print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
