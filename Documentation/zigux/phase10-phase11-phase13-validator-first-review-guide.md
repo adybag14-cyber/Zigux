@@ -123,6 +123,12 @@ Keep these evidence surfaces aligned in the same review:
 - `zigux/tests/phase13_devres_manifest.json`
 - `zigux/tests/phase13_landlock_ruleset_manifest.json`
 - `zigux/tests/phase13_landlock_syscalls_manifest.json`
+- `zigux/tests/phase13_libfs_reviewability.zig`
+- `zigux/tests/phase13_devres_dma_coherent.zig`
+- `zigux/tests/phase13_devres_iounmap_reviewability.zig`
+- `zigux/tests/phase13_devres_iomap_reviewability.zig`
+- `zigux/tests/phase13_devres_reviewability.zig`
+- `zigux/tests/phase13_landlock_ruleset_reviewability.zig`
 - `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
 - `zigux/tests/phase13_notifier_list_manifest.json`
 - `zigux/tests/phase13_notifier_list_reviewability.zig`
@@ -133,7 +139,7 @@ Keep these evidence surfaces aligned in the same review:
 - `.github/workflows/zigux-bootstrap.yml`
 
 Reviewer prompt:
-- Does the shared Phase 13 packet still route through the release validator before the ten-step replay bundle, with the scripts index, docs-root summary, review checklist, the dedicated devres packet guard, and the adjacent notifier evidence all naming the same Landlock syscall reviewability and Phase 13 helper anchors rather than letting those release surfaces drift apart?
+- Does the shared Phase 13 packet still route through the release validator before the thirteen-step replay bundle, with the scripts index, docs-root summary, review checklist, the dedicated devres packet guard, the devres coherent-DMA plus `iounmap` and `iomap` reviewability gates, the Landlock ruleset plus syscall reviewability gates, and the adjacent notifier evidence all naming the same shared helper surfaces rather than letting those release surfaces drift apart?
 
 ## Checklist carryover prompts
 
