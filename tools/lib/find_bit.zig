@@ -387,6 +387,20 @@ test "single-word scans keep linux small-bitmap semantics" {
     try std.testing.expectEqual(@as(usize, nbits), findNextAndBit(&lhs, &rhs, nbits, 10));
 }
 
+test "single-word next scans stay inclusive from bit zero" {
+    const nbits: usize = 12;
+
+    const set_bits = [_]Word{(@as(Word, 1) << 3) | (@as(Word, 1) << 9) | (@as(Word, 1) << 15)};
+    try std.testing.expectEqual(@as(usize, 3), findNextBit(&set_bits, nbits, 0));
+
+    const zero_bits = [_]Word{(~@as(Word, 0) & ~(@as(Word, 1) << 2) & ~(@as(Word, 1) << 8)) & ~(@as(Word, 1) << 14)};
+    try std.testing.expectEqual(@as(usize, 2), findNextZeroBit(&zero_bits, nbits, 0));
+
+    const lhs = [_]Word{(@as(Word, 1) << 4) | (@as(Word, 1) << 9) | (@as(Word, 1) << 15)};
+    const rhs = [_]Word{(@as(Word, 1) << 1) | (@as(Word, 1) << 4) | (@as(Word, 1) << 9)};
+    try std.testing.expectEqual(@as(usize, 4), findNextAndBit(&lhs, &rhs, nbits, 0));
+}
+
 test "single-word scans keep the last in-range bit reachable from an inclusive start" {
     const nbits: usize = 12;
     const tail_bit: usize = nbits - 1;
