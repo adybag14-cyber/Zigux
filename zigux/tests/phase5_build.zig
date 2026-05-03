@@ -88,6 +88,12 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    const run_bytestream_fifo_sample_tests = addTestRun(
+        b,
+        "phase5-bytestream-fifo-sample-tests",
+        bytestream_fifo_sample_module,
+        null,
+    );
     const run_phase5_bytestream_fifo_tests = addTestRun(
         b,
         "phase5-bytestream-fifo-tests",
@@ -139,6 +145,7 @@ pub fn build(b: *std.Build) void {
     );
 
     const test_step = b.step("test", "Run Phase 5 reference sample checks");
+    test_step.dependOn(&run_bytestream_fifo_sample_tests.step);
     test_step.dependOn(&run_phase5_bytestream_fifo_tests.step);
     test_step.dependOn(&run_phase5_bytestream_fifo_survey_tests.step);
     test_step.dependOn(&run_phase5_kobject_example_tests.step);
