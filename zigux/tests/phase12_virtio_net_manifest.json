@@ -96,7 +96,7 @@
       "status": "starter_landed",
       "kind": "complex_driver_followup",
       "zigux_destination": "drivers/net/virtio_net.zig",
-      "why_now": "The new queue-resume summary keeps one bounded recovery-facing handoff after freeze by reporting whether the remembered queue plan can resume immediately, needs feature renegotiation, or needs reset, plus whether data queues, the control queue, and RSS state must be rebuilt before any live queue activation."
+      "why_now": "The new queue-resume summary keeps one bounded recovery-facing handoff after freeze by reporting whether the remembered queue plan can resume immediately, needs feature renegotiation, or needs reset, plus whether data queues, the control queue, and RSS state must be rebuilt before any live queue activation. That same handoff now has to keep ownership honest about receive-side work too: restore clears stale refill planning state, so mergeable-refill budgeting must be re-derived from a fresh probe snapshot instead of being silently carried across recovery."
     },
     {
       "id": "phase12-virtio-net-receive-path-summary",
