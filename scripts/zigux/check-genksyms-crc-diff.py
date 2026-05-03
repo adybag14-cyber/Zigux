@@ -55,6 +55,19 @@ def windows_to_wsl(path: Path) -> str:
     return f'/mnt/{drive}{tail}'
 
 
+def validate_fixture_layout(fixture_dir: Path, expected: Path, input_path: Path) -> list[str]:
+    issues: list[str] = []
+    if not expected.exists():
+        issues.append('genksyms-crc:self-test:missing_expected_fixture')
+    if not input_path.exists():
+        issues.append('genksyms-crc:self-test:missing_input_fixture')
+    for extra in sorted(path.name for path in fixture_dir.glob('*_expected.json') if path.name != expected.name):
+        issues.append(f'orphaned_expected:{extra}')
+    for extra in sorted(path.name for path in fixture_dir.glob('*.txt') if path.name != input_path.name):
+        issues.append(f'orphaned_input:{extra}')
+    return issues
+
+
 def compile_run_c_wsl(tmp_dir: Path, exe: Path, actual: Path, compiler: str) -> None:
     script_path = tmp_dir / 'run_genksyms_crc_c.sh'
     lines = [
@@ -102,6 +115,10 @@ def compare_json_artifacts(expected: Path, actual: Path) -> None:
 
 
 def run_self_test() -> int:
+    layout_issues = validate_fixture_layout(FIXTURE_DIR, EXPECTED, INPUT)
+    if layout_issues:
+        raise SystemExit(layout_issues[0])
+
     with tempfile.TemporaryDirectory(prefix='zigux_genksyms_crc_selftest_') as tmp_dir_str:
         tmp_dir = Path(tmp_dir_str)
         expected = tmp_dir / 'expected.json'
@@ -131,8 +148,62 @@ def run_self_test() -> int:
         if mismatch_check.returncode != 1 or 'ARTIFACT_DIFF=fail' not in mismatch_check.stdout:
             raise SystemExit('genksyms-crc:self-test:mismatch_contract')
 
+        missing_expected_dir = tmp_dir / 'missing_expected_fixture'
+        missing_expected_dir.mkdir()
+        missing_expected_input = missing_expected_dir / 'inputs.txt'
+        missing_expected_input.write_text('zigux_demo 0x12345678\n', encoding='utf-8', newline='\n')
+        missing_expected_issues = validate_fixture_layout(
+            missing_expected_dir,
+            missing_expected_dir / 'expected.json',
+            missing_expected_input,
+        )
+        if 'genksyms-crc:self-test:missing_expected_fixture' not in missing_expected_issues:
+            raise SystemExit('genksyms-crc:self-test:missing_expected_fixture')
+
+        missing_input_dir = tmp_dir / 'missing_input_fixture'
+        missing_input_dir.mkdir()
+        missing_input_expected = missing_input_dir / 'expected.json'
+        missing_input_expected.write_text('{"crc":"0x12345678","symbol":"zigux_demo"}\n', encoding='utf-8', newline='\n')
+        missing_input_issues = validate_fixture_layout(
+            missing_input_dir,
+            missing_input_expected,
+            missing_input_dir / 'inputs.txt',
+        )
+        if 'genksyms-crc:self-test:missing_input_fixture' not in missing_input_issues:
+            raise SystemExit('genksyms-crc:self-test:missing_input_fixture')
+
+        orphaned_expected_dir = tmp_dir / 'orphaned_expected_fixture'
+        orphaned_expected_dir.mkdir()
+        orphaned_expected_expected = orphaned_expected_dir / 'expected.json'
+        orphaned_expected_expected.write_text('{"crc":"0x12345678","symbol":"zigux_demo"}\n', encoding='utf-8', newline='\n')
+        orphaned_expected_input = orphaned_expected_dir / 'inputs.txt'
+        orphaned_expected_input.write_text('zigux_demo 0x12345678\n', encoding='utf-8', newline='\n')
+        (orphaned_expected_dir / 'extra_expected.json').write_text('{"crc":"0x12345678","symbol":"zigux_extra"}\n', encoding='utf-8', newline='\n')
+        orphaned_expected_issues = validate_fixture_layout(
+            orphaned_expected_dir,
+            orphaned_expected_expected,
+            orphaned_expected_input,
+        )
+        if 'orphaned_expected:extra_expected.json' not in orphaned_expected_issues:
+            raise SystemExit('genksyms-crc:self-test:orphaned_expected_fixture')
+
+        orphaned_input_dir = tmp_dir / 'orphaned_input_fixture'
+        orphaned_input_dir.mkdir()
+        orphaned_input_expected = orphaned_input_dir / 'expected.json'
+        orphaned_input_expected.write_text('{"crc":"0x12345678","symbol":"zigux_demo"}\n', encoding='utf-8', newline='\n')
+        orphaned_input_input = orphaned_input_dir / 'inputs.txt'
+        orphaned_input_input.write_text('zigux_demo 0x12345678\n', encoding='utf-8', newline='\n')
+        (orphaned_input_dir / 'extra_inputs.txt').write_text('zigux_extra 0x12345679\n', encoding='utf-8', newline='\n')
+        orphaned_input_issues = validate_fixture_layout(
+            orphaned_input_dir,
+            orphaned_input_expected,
+            orphaned_input_input,
+        )
+        if 'orphaned_input:extra_inputs.txt' not in orphaned_input_issues:
+            raise SystemExit('genksyms-crc:self-test:orphaned_input_fixture')
+
     print('GENKSYMS_CRC_SELF_TEST=pass')
-    print('GENKSYMS_CRC_SELF_TEST_CASE_COUNT=4')
+    print('GENKSYMS_CRC_SELF_TEST_CASE_COUNT=11')
     return 0
 
 
@@ -146,6 +217,15 @@ def main() -> int:
 
     if args.self_test:
         return run_self_test()
+
+    layout_issues = validate_fixture_layout(FIXTURE_DIR, EXPECTED, INPUT)
+    if layout_issues:
+        print('GENKSYMS_CRC_DIFF=fail')
+        print('INVALID_GENKSYMS_CRC_FIXTURE_LAYOUT_START')
+        for issue in layout_issues:
+            print(issue)
+        print('INVALID_GENKSYMS_CRC_FIXTURE_LAYOUT_END')
+        return 1
 
     compiler = args.cc or os.environ.get('CC') or ('gcc' if os.name == 'nt' and shutil.which('wsl') else find_compiler(None))
     zig = find_zig(args.zig)
