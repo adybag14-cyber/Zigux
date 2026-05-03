@@ -37,6 +37,7 @@ BUILD_MARKERS = [
 CORE_DOC_MARKERS = [
     "phase10-config-generation-summary-helper",
     "phase10-config-delivery-disposition-helper",
+    "phase10-config-driver-toggle-guard-helper",
     "phase10-core-probe-remove-lifecycle",
 ]
 
@@ -44,12 +45,15 @@ CORE_HELPER_MARKERS = [
     "pub const ConfigGenerationSummary = struct {",
     "pub const DriverBindingSummary = struct {",
     "pub const DriverRemoveSummary = struct {",
+    "if (self.config_driver_disabled) return error.ConfigDriverAlreadyDisabled;",
+    "if (!self.config_driver_disabled) return error.ConfigDriverAlreadyEnabled;",
     "pub fn configGenerationSummary(self: *const Self) ConfigGenerationSummary {",
     "pub fn driverBindingSummary(self: *const Self) DriverBindingSummary {",
     "pub fn removeDriver(self: *Self) !DriverRemoveSummary {",
 ]
 
 CORE_TEST_MARKERS = [
+    'test "phase10 virtio core rejects nested driver config toggles and only flushes pending change after a valid enable" {',
     'test "phase10 virtio core records bounded driver binding around config_changed" {',
     'test "phase10 virtio core models bounded driver remove bookkeeping without transport reset" {',
     'test "phase10 virtio core records config generation while change delivery is deferred" {',
@@ -59,7 +63,7 @@ CORE_SURVEY_TEST_MARKERS = [
     'test "phase10 virtio core survey manifest records the live core validation bundle" {',
     'try std.testing.expectEqualStrings("P10-Y01", manifest.lane_key);',
     'const expected_landed_core_helpers = [_][]const u8{',
-    'if (std.mem.eql(u8, gap.id, "phase10-config-delivery-disposition-helper")) {',
+    'if (std.mem.eql(u8, gap.id, "phase10-config-driver-toggle-guard-helper")) {',
     'if (std.mem.eql(u8, gap.id, "phase10-core-probe-remove-lifecycle")) {',
 ]
 
@@ -67,6 +71,7 @@ EXPECTED_ROADMAP_DESTINATIONS = ["drivers/virtio/*.zig", "zigux/helpers/"]
 EXPECTED_LANDED_CORE_HELPERS = [
     "phase10-config-generation-summary-helper",
     "phase10-config-delivery-disposition-helper",
+    "phase10-config-driver-toggle-guard-helper",
 ]
 
 
@@ -140,7 +145,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             missing.append("manifest:survey_summary:preexisting_phase10_test_files")
 
     gaps = manifest.get("gaps")
-    if not isinstance(gaps, list) or len(gaps) < 13:
+    if not isinstance(gaps, list) or len(gaps) < 14:
         missing.append("manifest:gaps")
     else:
         starter_count = 0
@@ -154,7 +159,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             elif gap.get("status") == "blocked_on_risky_transport":
                 blocked_count += 1
 
-        if starter_count < 12:
+        if starter_count < 13:
             missing.append(f"manifest:starter_count={starter_count}")
         if blocked_count != 1:
             missing.append(f"manifest:blocked_count={blocked_count}")
@@ -172,6 +177,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             "phase10-driver-remove-bookkeeping-helper": "starter_landed",
             "phase10-config-generation-summary-helper": "starter_landed",
             "phase10-config-delivery-disposition-helper": "starter_landed",
+            "phase10-config-driver-toggle-guard-helper": "starter_landed",
             "phase10-core-probe-remove-lifecycle": "blocked_on_risky_transport",
         }
         for gap_id, status in expected_statuses.items():
@@ -205,6 +211,14 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
                 missing.append("manifest:delivery_gap:__virtio_config_changed()")
             if "no handler was bound" not in why_now:
                 missing.append("manifest:delivery_gap:no_handler_was_bound")
+
+        toggle_gap = find_gap(manifest, "phase10-config-driver-toggle-guard-helper")
+        if toggle_gap is not None:
+            why_now = str(toggle_gap.get("why_now", ""))
+            if "virtio_config_driver_disable()" not in why_now:
+                missing.append("manifest:toggle_gap:virtio_config_driver_disable()")
+            if "virtio_config_driver_enable()" not in why_now:
+                missing.append("manifest:toggle_gap:virtio_config_driver_enable()")
 
         blocked_gap = find_gap(manifest, "phase10-core-probe-remove-lifecycle")
         if blocked_gap is not None:
@@ -274,16 +288,16 @@ def run_self_test() -> int:
         original_manifest = manifest_path.read_text(encoding="utf-8")
         manifest_path.write_text(
             original_manifest.replace(
-                '"phase10-config-delivery-disposition-helper"',
-                '"phase10-config-delivery-disposition-helper-drift"',
+                '"phase10-config-driver-toggle-guard-helper"',
+                '"phase10-config-driver-toggle-guard-helper-drift"',
                 1,
             ),
             encoding="utf-8",
         )
         expect_missing_marker(
-            "core_manifest_delivery_gap_id",
+            "core_manifest_toggle_gap_id",
             tmp_root,
-            "manifest:gap:phase10-config-delivery-disposition-helper",
+            "manifest:gap:phase10-config-driver-toggle-guard-helper",
         )
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
@@ -357,8 +371,8 @@ def run_self_test() -> int:
         original_closure = closure_path.read_text(encoding="utf-8")
         closure_path.write_text(
             original_closure.replace(
-                '"phase10-config-delivery-disposition-helper"',
-                '"phase10-config-delivery-disposition-helper-drift"',
+                '"phase10-config-driver-toggle-guard-helper"',
+                '"phase10-config-driver-toggle-guard-helper-drift"',
                 1,
             ),
             encoding="utf-8",
