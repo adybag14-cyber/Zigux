@@ -54,10 +54,13 @@ This current slice keeps the work bounded to the smallest runtime-safe ownership
 3. run the shared Phase 7 helper gate
 - `zig build test --build-file zigux/tests/phase7_build.zig --summary all`
 
-4. keep the roadmap survey record machine-checked from `repo_root`
+4. keep the helper wired through the Zigux convenience target
+- `make -C zigux phase7`
+
+5. keep the roadmap survey record machine-checked from `repo_root`
 - `zig test zigux/tests/phase7_argv_split_survey.zig`
 
-5. check the committed C parity fixture and its dedicated checker self-test
+6. check the committed C parity fixture and its dedicated checker self-test
 - `python3 scripts/zigux/check-phase7-argv-split-parity.py --self-test`
 - `python3 scripts/zigux/check-phase7-argv-split-parity.py`
 
@@ -94,7 +97,7 @@ The dedicated Phase 7 review gate now imports a focused fixture module under `zi
 
 The manifest-backed survey packet stays rooted at `repo_root` through `zigux/tests/phase7_build.zig` so `zigux/tests/phase7_argv_split_manifest.json` remains a reviewable ownership record instead of a helper-local detail.
 
-The shared Phase 7 validator packet plus the build-inventory and make-wrapper self-tests stay in that same review packet, so the committed `zigux/tests/fixtures/phase7_build_inventory.json` snapshot and the published `make -C zigux phase7-validate` wrapper path remain explicit instead of living only in the broader shared Phase 7 notes.
+The shared Phase 7 validator packet plus the build-inventory and make-wrapper self-tests stay in that same review packet, so the committed `zigux/tests/fixtures/phase7_build_inventory.json` snapshot, the published `make -C zigux phase7-validate` wrapper path, and the one-command `make -C zigux phase7` bundle remain explicit instead of living only in the broader shared Phase 7 notes.
 
 ## Non-goals
 
