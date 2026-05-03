@@ -153,6 +153,42 @@ def run_self_test() -> int:
         )
         issues = validate(root)
         assert f"missing_phase3_abi_dump_layout:{CANONICAL_LAYOUTS[1][0]}" in issues
+        phase3_abi_dump_path.write_text(
+            "\n".join(
+                f'writeStructLayout(writer, "{c_name}", abi.{zig_name}, true);'
+                for c_name, zig_name, _ in CANONICAL_LAYOUTS
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+
+        phase3_abi_path = root / PHASE3_ABI_REL
+        phase3_abi_path.write_text(
+            phase3_abi_path.read_text(encoding="utf-8").replace(
+                f"layout_assert.{CANONICAL_LAYOUTS[2][2]}();\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate(root)
+        assert f"missing_phase3_abi_layout_call:{CANONICAL_LAYOUTS[2][2]}" in issues
+        phase3_abi_path.write_text(
+            "\n".join(f"layout_assert.{assert_name}();" for _, _, assert_name in CANONICAL_LAYOUTS) + "\n",
+            encoding="utf-8",
+        )
+
+        c_harness_path = root / PHASE3_ABI_C_HARNESS_REL
+        c_harness_path.write_text(
+            c_harness_path.read_text(encoding="utf-8").replace(
+                f'{{"{CANONICAL_LAYOUTS[3][0]}", sizeof(struct {CANONICAL_LAYOUTS[3][0]}), _Alignof(struct {CANONICAL_LAYOUTS[3][0]}), 0, 0}},\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate(root)
+        assert f"missing_phase3_abi_c_harness_layout:{CANONICAL_LAYOUTS[3][0]}" in issues
 
     print("PHASE3_ABI_LAYOUT_PACKET_SELF_TEST=pass")
     return 0
