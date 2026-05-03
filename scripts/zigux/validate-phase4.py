@@ -154,7 +154,7 @@ def validate_root(root: Path) -> list[str]:
                 "make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m",
                 "phase4-kprobe-example-survey-tests",
                 "samples/zigux/kprobe_example.zig",
-                "shared validator still does not fail closed on the kprobe survey packet itself",
+                "shared validator now fails closed on the kprobe survey packet itself",
             ],
         )
     )
@@ -175,7 +175,7 @@ def validate_root(root: Path) -> list[str]:
     if 'static char symbol[KSYM_NAME_LEN] = "kernel_clone";' not in read_text(root, "samples/kprobes/kprobe_example.c"):
         missing.append("kprobe_anchor:symbol")
 
-    if "shared validator still does not fail closed on the kprobe survey packet itself" not in gate_evidence:
+    if "shared validator now fails closed on the kprobe survey packet itself" not in gate_evidence:
         missing.append("gate_evidence:kprobe_note")
     for marker, rel in GATE_EVIDENCE_TARGETS.items():
         expected = blob_sha((root / rel).read_bytes())
@@ -214,7 +214,7 @@ def write_fixture_tree(root: Path) -> None:
             "make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m",
             "phase4-kprobe-example-survey-tests",
             "samples/zigux/kprobe_example.zig",
-            "shared validator still does not fail closed on the kprobe survey packet itself",
+            "shared validator now fails closed on the kprobe survey packet itself",
         ]) + "\n",
         "zigux/tests/phase4_test_fsmount_manifest.json": json.dumps({"anchor": "samples/vfs/test-fsmount.c"}),
         "zigux/tests/phase4_test_fsmount_survey.zig": "phase4-test-fsmount-survey-tests\n",
@@ -231,7 +231,7 @@ def write_fixture_tree(root: Path) -> None:
     evidence = [
         "PHASE4_EVIDENCE_MODE=github_connector_readback",
         "PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions",
-        "shared validator still does not fail closed on the kprobe survey packet itself",
+        "shared validator now fails closed on the kprobe survey packet itself",
     ]
     for marker, rel in GATE_EVIDENCE_TARGETS.items():
         evidence.append(f"{marker}={blob_sha((root / rel).read_bytes())}")
