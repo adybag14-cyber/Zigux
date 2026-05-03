@@ -141,6 +141,7 @@ TEXT_MARKERS = {
         "zig test zigux/tests/phase5_kobject_example_survey.zig",
         "zig test zigux/tests/phase5_kretprobe_example_survey.zig",
         "zig test zigux/tests/phase5_trace_events_sample_survey.zig",
+        "approved payload-and-callback idiom",
         "current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample",
         "current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample",
         "sample-only blocked Phase 9 pilot",
