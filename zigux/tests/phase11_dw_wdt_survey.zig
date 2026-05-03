@@ -220,6 +220,8 @@ test "phase11 dw_wdt survey manifest and validation matrix record the landed lif
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "dedicated idle remove-time pending-interrupt split replay") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "zigux/tests/phase11_dw_wdt_remove_idle_split.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the focused `dw_wdt` driver and survey replays for this landed starter packet remain green") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the focused `dw_wdt` driver and survey replays for this landed starter packet remain green, but this archival watchdog note no longer claims that the whole current shared Phase 11 validator is green when unrelated non-watchdog drift can reopen elsewhere on `master`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the legacy carried-forward marker text remains \"latest carried-forward shared replay status remains `PHASE11_VALIDATION=pass` for the landed starter packet\" only as archival validator continuity for this bounded note") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "This lane still does not claim platform-driver registration") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "keeps the DesignWare non-stoppable stop semantics explicit when reset control is unavailable") != null);
