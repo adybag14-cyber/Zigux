@@ -104,7 +104,7 @@ REVIEW_CHECKLIST_MARKERS = [
 ]
 
 FREEZE_MAP_NOTE_MARKERS = [
-    "PHASE15_LANE_KEY=arch-council",
+    "PHASE15_LANE_KEY=P15-L04",
     "## Roadmap versus repo reality",
     "## Current blocker posture",
     "phase15-deep-core-status-change-blocker",
@@ -411,7 +411,7 @@ require_markers("build", text("zigux/tests/phase15_build.zig"), BUILD_MARKERS)
 
 freeze_map_manifest = load_json("zigux/tests/phase15_freeze_map_manifest.json")
 require(freeze_map_manifest.get("phase") == "Phase 15", "freeze_map_manifest:phase")
-require(freeze_map_manifest.get("lane_key") == "arch-council", "freeze_map_manifest:lane_key")
+require(freeze_map_manifest.get("lane_key") == "P15-L04", "freeze_map_manifest:lane_key")
 require(
     isinstance(freeze_map_manifest.get("surveyed_commit"), str)
     and HEX40.fullmatch(freeze_map_manifest["surveyed_commit"]),
@@ -638,7 +638,7 @@ require(
 )
 
 review_process_gaps = review_process_manifest.get("gaps")
-require(isinstance(review_process_gaps, list) and len(review_process_gaps) == 20, "review_process_manifest:gaps")
+require(isinstance(review_process_gaps, list) and len(review_process_gaps) == 21, "review_process_manifest:gaps")
 if isinstance(review_process_gaps, list):
     gap_ids = {gap.get("id") for gap in review_process_gaps}
     require(
