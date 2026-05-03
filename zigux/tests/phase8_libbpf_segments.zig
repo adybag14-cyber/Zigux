@@ -415,6 +415,22 @@ test "phase 8 docs keep the bounded fdinfo map_extra parsing explicit" {
     try expectContains(survey_note, "explicit `map_flags` and `map_extra` bases");
 }
 
+test "phase 8 bridge boundary note keeps reuse-open and reuse-resolution planning explicit" {
+    const bridge_note = try readWorkspaceFile(
+        std.testing.allocator,
+        "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(bridge_note);
+
+    try expectContains(bridge_note, "classifyReusePinnedMapOpenFailure()");
+    try expectContains(bridge_note, "resolveReusePinnedMapAttempt()");
+    try expectContains(bridge_note, "missing pinned-map lookup versus hard open failure");
+    try expectContains(bridge_note, "`reused`, `incompatible_map`, and `reuse_fd_failed`");
+    try expectContains(bridge_note, "`should_close_pin_fd`");
+    try expectContains(bridge_note, "`should_mark_map_pinned`");
+}
+
 test "phase 8 docs and manifest keep the deferred file-path resource boundary explicit" {
     const survey_note = try readWorkspaceFile(
         std.testing.allocator,
