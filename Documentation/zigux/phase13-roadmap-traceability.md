@@ -56,11 +56,12 @@ Current lane state recorded in the manifest:
 - landed `phase13-libfs-dcache-cursor-reposition-bookkeeping`
 - landed `phase13-libfs-dcache-dir-close-release-bookkeeping`
 - landed `phase13-libfs-simple-open-private-data-planning`
+- ready_next `phase13-libfs-addressability-helper`
 - blocked `phase13-libfs-dcache-cursor-helpers`
 - blocked `phase13-libfs-inode-and-pseudofs-lifecycle`
 
 Traceability summary:
-- this anchor stays roadmap-aligned and manifest-backed, and the helper packet now includes the tiny `dcache_dir_close()` release-bookkeeping boundary plus the pure `simple_open()` private-data handoff while still refusing to claim broader cursor traversal, inode lifecycle, or pseudo-filesystem ownership.
+- this anchor stays roadmap-aligned and manifest-backed, and the helper packet now includes the tiny `dcache_dir_close()` release-bookkeeping boundary plus the pure `simple_open()` private-data handoff while still leaving one more honest pure follow-up in `generic_check_addressable()` before the lane has to stop at broader cursor traversal, inode lifecycle, or pseudo-filesystem ownership.
 
 ### `lib/devres.c`
 
