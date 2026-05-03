@@ -63,7 +63,7 @@ This keeps the lane concrete and reviewable without overstating MMIO progress: t
 - `PHASE10_ALLOWED_EVIDENCE_KINDS=driver_local_lab_slices,survey_manifests,shared_validation_gates`
 - `PHASE10_FORBIDDEN_TRANSPORT_CLAIMS=queue_setup_reset_paths,irq_parity,dma_paths,input_registration_lifecycle,probe_remove_lifecycle`
 
-The roadmap keeps this lane inside `drivers/virtio/*.zig`, while the freeze map still keeps the deep-core anchors in C and the study-only transport-adjacent anchors in the separate Phase 14 family:
+The roadmap keeps Phase 10 delivery rooted in `drivers/virtio/*.zig`, with justified bridge helpers allowed in `zigux/kernel/` or `zigux/helpers/` where needed, while the freeze map still keeps the deep-core anchors in C and the study-only transport-adjacent anchors in the separate Phase 14 family:
 
 - `kernel/sched/core.c`
 - `mm/page_alloc.c`
@@ -78,7 +78,8 @@ This MMIO survey therefore records an aligned freeze-boundary reading rather tha
 
 - no Architecture Council reopen request is attached to this Phase 10 MMIO lane
 - no parity scorecard entry here reopens `kernel/workqueue.c` or `kernel/trace/ring_buffer.c`
-- the allowed evidence stays limited to driver-local lab slices, survey manifests, and shared validation gates inside `drivers/virtio/*.zig`
+- the allowed roadmap destinations for this lane family stay limited to `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`, while the current MMIO packet itself remains driver-local
+- the allowed evidence stays limited to driver_local_lab_slices, survey manifests, and shared validation gates
 
 ## Non-goals
 
