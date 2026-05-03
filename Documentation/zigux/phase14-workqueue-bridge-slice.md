@@ -15,4 +15,4 @@ The current bridge stays intentionally narrow:
 
 This slice still does not claim live worker pools, work execution, hotplug transitions, flush semantics, cancellation completion, mayday escalation, rescuer threads, or scheduler-visible worker-state transitions.
 
-This slice now leaves the lane in blocked maintenance until the shared Phase 14 smoke packet or the workqueue survey drifts; any reopen should stay review-only and keep timer-base, CPU-affinity, and requeue ownership in C.
+The next honest bounded step in this same lane is to audit `mod_delayed_work_on()` zero-delay rearm, its `try_to_grab_pending()` ownership checks, and the choice between `__queue_work()` versus `__queue_delayed_work()` so the bridge keeps delayed rearm ownership reviewable without claiming timer-base, CPU-affinity, or live requeue parity.
