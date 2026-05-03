@@ -11,6 +11,10 @@ This document records the bounded Phase 6 leaf-helper validation slice for Zigux
 - product boundary:
   - `lib/bsearch.zig`
   - `zigux/tests/phase6_bsearch.zig`
+  - `zigux/tests/phase6_bsearch_perf.zig`
+  - `zigux/tests/phase6_bsearch_c_parity.zig`
+  - `zigux/tests/fixtures/phase6_bsearch_c_harness.c`
+  - `scripts/zigux/check-phase6-bsearch-c-parity.py`
   - `zigux/tests/phase6_build.zig`
   - `zigux/Makefile`
 
@@ -92,4 +96,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Leave the Phase 6 bsearch lane parked unless fresh repo inspection shows a concrete regression in the helper, its Zig parity tests, the bounded perf-sanity harness, or the representative external C-vs-Zig parity replay. There is no richer upstream `bsearch` fixture family to port right now, so the next honest follow-up would be a newly observed drift rather than speculative fixture growth.
+Leave the Phase 6 bsearch lane parked unless fresh repo inspection finds a concrete parity, perf, or directly coupled review-packet drift inside `lib/bsearch.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_perf.zig`, `zigux/tests/phase6_bsearch_c_parity.zig`, `zigux/tests/fixtures/phase6_bsearch_c_harness.c`, `scripts/zigux/check-phase6-bsearch-c-parity.py`, or the shared Phase 6 packet. If reviewers want the shared packet to enumerate the current bsearch evidence more explicitly, the next same-family follow-up should stay narrow to `Documentation/zigux/phase6-helper-parity-catalog.md`, `zigux/tests/phase6_helper_parity_manifest.json`, and any directly coupled validator markers so those shared surfaces also acknowledge the live bounded perf and external parity packet more directly.
