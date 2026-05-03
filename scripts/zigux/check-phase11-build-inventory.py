@@ -307,7 +307,7 @@ pub fn build(b: *std.Build) void {
         "shared_test_depend_steps": [
             "run_phase11_dw_wdt_suspend_resume_tests",
             "run_phase11_dw_wdt_remove_idle_split_tests",
-            "run_phase11_hvc_console_modem_control_split_tests",
+            "run_phase11_hvc_console_modem_CONTROL_split_tests",
             "run_phase11_hvc_console_poll_retry_split_tests",
         ],
         "module_root_source_files": [
@@ -551,7 +551,6 @@ def run_self_test() -> int:
 
         hvc_poll_split = tmp_root / "zigux/tests/phase11_hvc_console_poll_retry_split.zig"
         hvc_poll_backup = hvc_poll_split.read_text(encoding="utf-8")
-        hvc_poll_split.writeText = None
         hvc_poll_split.write_text("// marker removed\n", encoding="utf-8")
         expect_missing_replay_marker(
             "missing_hvc_poll_retry_marker",
