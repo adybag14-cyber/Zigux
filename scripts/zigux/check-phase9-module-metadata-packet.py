@@ -79,7 +79,7 @@ MODULE_METADATA_SURVEY_EXACT_ONCE_MARKERS = [
 ]
 
 MAKEFILE_REQUIRED_MARKERS = [
-    "PHONY += phase9-validate phase9-test phase9-loader-gap-survey phase9-non-owner-boundary-survey phase9-module-metadata-survey phase9-kretprobe-survey phase9-trace-events-survey phase9",
+    "PHONY += phase9-validate phase9-test phase9-loader-gap-survey phase9-loader-commit-alignment-survey phase9-non-owner-boundary-survey phase9-module-metadata-survey phase9-kretprobe-survey phase9-trace-events-survey phase9",
     "phase9-module-metadata-survey:",
     "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_module_metadata_survey.zig\n",
 ]
@@ -541,7 +541,7 @@ def write_fixture_tree(root: Path) -> None:
     (root / MAKEFILE_PATH).write_text(
         "\n".join(
             [
-                "PHONY += phase9-validate phase9-test phase9-loader-gap-survey phase9-non-owner-boundary-survey phase9-module-metadata-survey phase9-kretprobe-survey phase9-trace-events-survey phase9",
+                "PHONY += phase9-validate phase9-test phase9-loader-gap-survey phase9-loader-commit-alignment-survey phase9-non-owner-boundary-survey phase9-module-metadata-survey phase9-kretprobe-survey phase9-trace-events-survey phase9",
                 "",
                 "phase9-module-metadata-survey:",
                 "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_module_metadata_survey.zig",
@@ -823,6 +823,21 @@ def run_self_test() -> int:
         original_makefile = makefile_path.read_text(encoding="utf-8")
         makefile_path.write_text(
             original_makefile.replace(
+                "phase9-loader-commit-alignment-survey ",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "makefile_loader_commit_alignment_route",
+            tmp_root,
+            "makefile:PHONY += phase9-validate phase9-test phase9-loader-gap-survey phase9-loader-commit-alignment-survey phase9-non-owner-boundary-survey phase9-module-metadata-survey phase9-kretprobe-survey phase9-trace-events-survey phase9",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        makefile_path.write_text(
+            original_makefile.replace(
                 "phase9-module-metadata-survey:\n",
                 "",
                 1,
@@ -914,7 +929,7 @@ def run_self_test() -> int:
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
     print("PHASE9_MODULE_METADATA_PACKET_SELF_TEST=pass")
-    print("PHASE9_MODULE_METADATA_PACKET_SELF_TEST_CASE_COUNT=18")
+    print("PHASE9_MODULE_METADATA_PACKET_SELF_TEST_CASE_COUNT=19")
     return 0
 
 
