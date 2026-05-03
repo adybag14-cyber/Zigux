@@ -23,13 +23,28 @@ CANONICAL_LAYOUTS = (
     ("zigux_interop_policy", "InteropPolicy", "assertInteropPolicyLayout", "abi"),
     ("zigux_bitmap_view", "BitmapView", "assertBitmapViewLayout", "abi"),
     ("zigux_cpumask_view", "CpuMaskView", "assertCpuMaskViewLayout", "abi"),
+    ("zigux_list_head_ref", "ListHeadRef", "assertListHeadRefLayout", "abi"),
+    ("zigux_list_view", "ListView", "assertListViewLayout", "abi"),
+    ("zigux_list_summary", "ListSummary", "assertListSummaryLayout", "abi"),
+    ("zigux_hlist_head_ref", "HListHeadRef", "assertHListHeadRefLayout", "abi"),
+    ("zigux_hlist_node_ref", "HListNodeRef", "assertHListNodeRefLayout", "abi"),
+    ("zigux_hlist_view", "HListView", "assertHListViewLayout", "abi"),
+    ("zigux_hlist_summary", "HListSummary", "assertHListSummaryLayout", "abi"),
     ("zigux_rbtree_root_view", "RootView", "assertRbtreeRootViewLayout", "rbtree"),
 )
 
 REQUIRED_CONSTANTS = (
-    ("root_flag_empty", "ROOT_FLAG_EMPTY", "ZIGUX_RBTREE_ROOT_FLAG_EMPTY"),
-    ("root_flag_cached", "ROOT_FLAG_CACHED", "ZIGUX_RBTREE_ROOT_FLAG_CACHED"),
-    ("root_flag_leftmost_valid", "ROOT_FLAG_LEFTMOST_VALID", "ZIGUX_RBTREE_ROOT_FLAG_LEFTMOST_VALID"),
+    ("list_flag_empty", "abi", "LIST_FLAG_EMPTY", "ZIGUX_LIST_FLAG_EMPTY"),
+    ("list_flag_singular", "abi", "LIST_FLAG_SINGULAR", "ZIGUX_LIST_FLAG_SINGULAR"),
+    ("list_flag_circular", "abi", "LIST_FLAG_CIRCULAR", "ZIGUX_LIST_FLAG_CIRCULAR"),
+    ("list_flag_truncated", "abi", "LIST_FLAG_TRUNCATED", "ZIGUX_LIST_FLAG_TRUNCATED"),
+    ("hlist_flag_empty", "abi", "HLIST_FLAG_EMPTY", "ZIGUX_HLIST_FLAG_EMPTY"),
+    ("hlist_flag_singular", "abi", "HLIST_FLAG_SINGULAR", "ZIGUX_HLIST_FLAG_SINGULAR"),
+    ("hlist_flag_terminated", "abi", "HLIST_FLAG_TERMINATED", "ZIGUX_HLIST_FLAG_TERMINATED"),
+    ("hlist_flag_truncated", "abi", "HLIST_FLAG_TRUNCATED", "ZIGUX_HLIST_FLAG_TRUNCATED"),
+    ("root_flag_empty", "rbtree", "ROOT_FLAG_EMPTY", "ZIGUX_RBTREE_ROOT_FLAG_EMPTY"),
+    ("root_flag_cached", "rbtree", "ROOT_FLAG_CACHED", "ZIGUX_RBTREE_ROOT_FLAG_CACHED"),
+    ("root_flag_leftmost_valid", "rbtree", "ROOT_FLAG_LEFTMOST_VALID", "ZIGUX_RBTREE_ROOT_FLAG_LEFTMOST_VALID"),
 )
 
 SHARED_RBTREE_SAMPLE_KEY = "rbtree_cached_leftmost_root"
@@ -41,10 +56,10 @@ SHARED_RBTREE_SAMPLE_RECORD = {
     "reserved": 0,
 }
 
-DUMP_CONSTANT_PACKET_START = 'try writer.writeAll(",\\\"constants\\\":{\\\"root_flag_empty\\\":");'
-DUMP_CONSTANT_PACKET_END = 'try writer.writeAll("},\\\"records\\\":{");'
-HARNESS_CONSTANT_PACKET_START = 'fputs(",\\\"constants\\\":{\\\"root_flag_empty\\\":", stdout);'
-HARNESS_CONSTANT_PACKET_END = 'fputs("},\\\"structs\\\":{", stdout);'
+DUMP_CONSTANT_PACKET_START = 'try writer.writeAll(",\\\"constants\\\":{\\\"facility_kernel\\\":");'
+DUMP_CONSTANT_PACKET_END = 'try writer.writeAll("},\\\"records\\\":{\\\"rbtree_cached_leftmost_root\\\":{\\\"root_addr\\\":");'
+HARNESS_CONSTANT_PACKET_START = 'fputs(",\\\"constants\\\":{\\\"facility_kernel\\\":", stdout);'
+HARNESS_CONSTANT_PACKET_END = 'fputs("},\\\"records\\\":{\\\"rbtree_cached_leftmost_root\\\":{\\\"root_addr\\\":", stdout);'
 CONSTANT_PACKET_KEY_RE = re.compile(r'\\\"([a-z0-9_]+)\\\":')
 
 
@@ -160,15 +175,15 @@ def validate(root: Path) -> list[str]:
         if c_harness_text and f'{{"{json_name}", sizeof(struct {json_name}), _Alignof(struct {json_name})' not in c_harness_text:
             issues.append(f"missing_phase3_abi_c_harness_layout:{json_name}")
 
-    for json_name, zig_name, c_name in REQUIRED_CONSTANTS:
+    for json_name, module_name, zig_name, c_name in REQUIRED_CONSTANTS:
         if expected_constants and json_name not in expected_constants:
             issues.append(f"missing_expected_constant:{json_name}")
-        if phase3_abi_text and f"rbtree.{zig_name}" not in phase3_abi_text:
-            issues.append(f"missing_phase3_abi_rbtree_constant:{zig_name}")
-        if phase3_abi_dump_text and f"rbtree.{zig_name}" not in phase3_abi_dump_text:
-            issues.append(f"missing_phase3_abi_dump_rbtree_constant:{zig_name}")
+        if phase3_abi_text and f"{module_name}.{zig_name}" not in phase3_abi_text:
+            issues.append(f"missing_phase3_abi_constant:{zig_name}")
+        if phase3_abi_dump_text and f"{module_name}.{zig_name}" not in phase3_abi_dump_text:
+            issues.append(f"missing_phase3_abi_dump_constant:{zig_name}")
         if c_harness_text and c_name not in c_harness_text:
-            issues.append(f"missing_phase3_abi_c_harness_rbtree_constant:{c_name}")
+            issues.append(f"missing_phase3_abi_c_harness_constant:{c_name}")
 
     if expected_constants and phase3_abi_dump_text:
         dump_constant_keys, dump_constant_issues = _extract_constant_packet_keys(
@@ -247,7 +262,7 @@ def run_self_test() -> int:
             "abi_version": 1,
             "constants": {
                 json_name: index + 1
-                for index, (json_name, _, _) in enumerate(REQUIRED_CONSTANTS)
+                for index, (json_name, _, _, _) in enumerate(REQUIRED_CONSTANTS)
             },
             "records": {
                 SHARED_RBTREE_SAMPLE_KEY: dict(SHARED_RBTREE_SAMPLE_RECORD),
@@ -265,7 +280,7 @@ def run_self_test() -> int:
         (root / PHASE3_ABI_REL).write_text(
             "\n".join(
                 [*(f"layout_assert.{assert_name}();" for _, _, assert_name, _ in CANONICAL_LAYOUTS)]
-                + [*(f"const _ = rbtree.{zig_name};" for _, zig_name, _ in REQUIRED_CONSTANTS)]
+                + [*(f"const _ = {module_name}.{zig_name};" for _, module_name, zig_name, _ in REQUIRED_CONSTANTS)]
                 + [
                     f"// {SHARED_RBTREE_SAMPLE_MARKER}",
                     "const cached_root: rbtree.RootView = .{",
@@ -282,13 +297,13 @@ def run_self_test() -> int:
         (root / PHASE3_ABI_DUMP_REL).write_text(
             "\n".join(
                 [
-                    'try writer.writeAll(",\\\"constants\\\":{\\\"root_flag_empty\\\":");',
-                    'try writer.writeAll(",\\\"root_flag_cached\\\":");',
-                    'try writer.writeAll(",\\\"root_flag_leftmost_valid\\\":");',
-                    'try writer.writeAll("},\\\"records\\\":{");',
+                    'try writer.writeAll(",\\\"constants\\\":{\\\"facility_kernel\\\":");',
+                    'try writer.writeAll(",\\\"list_flag_empty\\\":");',
+                    'try writer.writeAll(",\\\"hlist_flag_empty\\\":");',
+                    'try writer.writeAll("},\\\"records\\\":{\\\"rbtree_cached_leftmost_root\\\":{\\\"root_addr\\\":");',
                 ]
                 + [*(f'writeStructLayout(writer, "{json_name}", {module_name}.{zig_name}, true);' for json_name, zig_name, _, module_name in CANONICAL_LAYOUTS)]
-                + [*(f"const _ = rbtree.{zig_name};" for _, zig_name, _ in REQUIRED_CONSTANTS)]
+                + [*(f"const _ = {module_name}.{zig_name};" for _, module_name, zig_name, _ in REQUIRED_CONSTANTS)]
                 + [
                     f'const _ = "{SHARED_RBTREE_SAMPLE_KEY}";',
                     'try writer.print("{d}", .{rbtree.ROOT_FLAG_CACHED | rbtree.ROOT_FLAG_LEFTMOST_VALID});',
@@ -300,13 +315,13 @@ def run_self_test() -> int:
         (root / PHASE3_ABI_C_HARNESS_REL).write_text(
             "\n".join(
                 [
-                    'fputs(",\\\"constants\\\":{\\\"root_flag_empty\\\":", stdout);',
-                    'fputs(",\\\"root_flag_cached\\\":", stdout);',
-                    'fputs(",\\\"root_flag_leftmost_valid\\\":", stdout);',
-                    'fputs("},\\\"structs\\\":{", stdout);',
+                    'fputs(",\\\"constants\\\":{\\\"facility_kernel\\\":", stdout);',
+                    'fputs(",\\\"list_flag_empty\\\":", stdout);',
+                    'fputs(",\\\"hlist_flag_empty\\\":", stdout);',
+                    'fputs("},\\\"records\\\":{\\\"rbtree_cached_leftmost_root\\\":{\\\"root_addr\\\":", stdout);',
                 ]
                 + [*(f'{{"{json_name}", sizeof(struct {json_name}), _Alignof(struct {json_name}), 0, 0}},' for json_name, _, _, _ in CANONICAL_LAYOUTS)]
-                + [*(c_name for _, _, c_name in REQUIRED_CONSTANTS)]
+                + [*(c_name for _, _, _, c_name in REQUIRED_CONSTANTS)]
                 + [
                     f'"{SHARED_RBTREE_SAMPLE_KEY}"',
                     "ZIGUX_RBTREE_ROOT_FLAG_CACHED | ZIGUX_RBTREE_ROOT_FLAG_LEFTMOST_VALID",
@@ -339,8 +354,8 @@ def run_self_test() -> int:
 
         phase3_abi_dump_path.write_text(
             phase3_abi_dump_path.read_text(encoding="utf-8").replace(
-                'try writer.writeAll(",\\\"root_flag_leftmost_valid\\\":");\n',
-                'try writer.writeAll(",\\\"root_flag_leftmost_invalid\\\":");\n',
+                'try writer.writeAll(",\\\"hlist_flag_empty\\\":");\n',
+                'try writer.writeAll(",\\\"hlist_flag_missing\\\":");\n',
                 1,
             ),
             encoding="utf-8",
@@ -348,7 +363,7 @@ def run_self_test() -> int:
         issues = validate(root)
         assert (
             f"constant_set_mismatch:{PHASE3_ABI_DUMP_REL}:{EXPECTED_REL}:"
-            "missing=root_flag_leftmost_valid:unexpected=root_flag_leftmost_invalid"
+            "missing=hlist_flag_empty:unexpected=hlist_flag_missing"
         ) in issues
 
     print("PHASE3_ABI_LAYOUT_PACKET_SELF_TEST=pass")
