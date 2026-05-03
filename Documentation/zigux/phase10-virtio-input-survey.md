@@ -58,7 +58,7 @@ This keeps the lane concrete and reviewable without overstating progress: the st
 - `PHASE10_ARCHITECTURE_COUNCIL_REOPEN_ATTACHED=no`
 - `PHASE10_FORBIDDEN_TRANSPORT_CLAIMS=queue_setup_reset_paths,irq_parity,dma_paths,input_registration_lifecycle,probe_remove_lifecycle`
 
-The roadmap keeps this lane inside `drivers/virtio/*.zig` and `zigux/helpers/`, while the freeze map still keeps the deep-core anchors in C and the study-only transport-adjacent anchors in the separate Phase 14 family:
+The roadmap keeps this lane inside `drivers/virtio/*.zig`, with justified bridge helpers allowed in `zigux/kernel/` or `zigux/helpers/` where needed, while the freeze map still keeps the deep-core anchors in C and the study-only transport-adjacent anchors in the separate Phase 14 family:
 
 - `kernel/sched/core.c`
 - `mm/page_alloc.c`
@@ -73,7 +73,7 @@ This input survey therefore records an aligned freeze-boundary reading rather th
 
 - no Architecture Council reopen request is attached to this Phase 10 input lane
 - no parity scorecard entry here reopens `kernel/workqueue.c` or `kernel/trace/ring_buffer.c`
-- the current lane may only point at `drivers/virtio/*.zig` and `zigux/helpers/` as roadmap destinations while the risky transport posture stays blocked
+- the allowed roadmap destinations for this lane family stay limited to `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`, while the risky transport posture stays blocked
 
 ## Non-goals
 
