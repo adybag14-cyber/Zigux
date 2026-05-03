@@ -56,12 +56,31 @@ MAKE_MARKERS = [
     "phase13: phase13-validate phase13-test",
 ]
 
+MAKE_EXACT_COUNT_MARKERS = {
+    "phase13-validate:": 1,
+    "scripts/zigux/check-phase13-libfs-packet.py --self-test": 1,
+    "scripts/zigux/check-phase13-libfs-packet.py\n": 1,
+    "scripts/zigux/check-phase13-notifier-packet.py --self-test": 1,
+    "scripts/zigux/check-phase13-notifier-packet.py\n": 1,
+    "scripts/zigux/validate-phase13-release.py": 1,
+    "phase13-test:": 1,
+    "$(ZIG) build test --build-file zigux/tests/phase13_build.zig --summary all": 1,
+    "phase13: phase13-validate phase13-test": 1,
+}
+
 WORKFLOW_MARKERS = [
     "Validate Phase 13 release-discipline packet",
     "make -C zigux phase13-validate",
     "Run Phase 13 shared helper tests",
     "zig build test --build-file zigux/tests/phase13_build.zig --summary all",
 ]
+
+WORKFLOW_EXACT_COUNT_MARKERS = {
+    "- name: Validate Phase 13 release-discipline packet": 1,
+    "run: make -C zigux phase13-validate": 1,
+    "- name: Run Phase 13 shared helper tests": 1,
+    "run: zig build test --build-file zigux/tests/phase13_build.zig --summary all": 1,
+}
 
 RELEASE_MARKERS = [
     "PHASE13_STATUS=active",
@@ -141,12 +160,12 @@ DEVRES_SURVEY_MARKERS = [
 
 DEVRES_REVIEWABILITY_MARKERS = [
     'test "phase13 devres manifest records the current helper boundary and explicit dma/scatterlist blockers"',
-    'try std.testing.expect(!descriptor.touches_live_dma);',
-    'try std.testing.expect(!descriptor.touches_live_scatterlist);',
-    'try std.testing.expectEqual(@as(usize, 1), blocked_dma_count);',
-    'try std.testing.expectEqual(@as(usize, 1), blocked_scatterlist_count);',
-    'try std.testing.expect(saw_dma_blocker);',
-    'try std.testing.expect(saw_scatterlist_blocker);',
+    "try std.testing.expect(!descriptor.touches_live_dma);",
+    "try std.testing.expect(!descriptor.touches_live_scatterlist);",
+    "try std.testing.expectEqual(@as(usize, 1), blocked_dma_count);",
+    "try std.testing.expectEqual(@as(usize, 1), blocked_scatterlist_count);",
+    "try std.testing.expect(saw_dma_blocker);",
+    "try std.testing.expect(saw_scatterlist_blocker);",
 ]
 
 DEVRES_MANIFEST_GAP_EXPECTATIONS = [
@@ -203,34 +222,108 @@ def section_text(source: str, start_marker: str, end_marker: str) -> str | None:
     return source[start:end]
 
 
-missing_files = [path for path in FILES if not (ROOT / path).exists()]
-if missing_files:
-    print("PHASE13_RELEASE_VALIDATION=fail")
-    print("MISSING_PHASE13_RELEASE_FILES_START")
-    for path in missing_files:
-        print(path)
-    print("MISSING_PHASE13_RELEASE_FILES_END")
-    sys.exit(1)
+def require_exact_count(
+    missing: list[str],
+    label: str,
+    source: str,
+    marker: str,
+    expected_count: int,
+) -> None:
+    actual_count = source.count(marker)
+    if actual_count != expected_count:
+        missing.append(
+            f"{label}:exact_count:{marker}:{actual_count}!={expected_count}"
+        )
 
-missing: list[str] = []
-for name, source, markers in [
-    ("docs_root", text("Documentation/zigux/README.md"), DOCS_ROOT_MARKERS),
-    ("scripts_readme", text("scripts/zigux/README.md"), SCRIPT_README_MARKERS),
-    ("make", text("zigux/Makefile"), MAKE_MARKERS),
-    ("workflow", text(".github/workflows/zigux-bootstrap.yml"), WORKFLOW_MARKERS),
-    ("release", text("Documentation/zigux/phase13-release-notes-survey.md"), RELEASE_MARKERS),
-    ("traceability", text("Documentation/zigux/phase13-roadmap-traceability.md"), TRACEABILITY_MARKERS),
-    ("review_checklist", text("Documentation/zigux/review-checklist.md"), REVIEW_CHECKLIST_MARKERS),
-]:
-    for marker in markers:
-        if marker not in source:
-            missing.append(f"{name}:{marker}")
 
-release_text = text("Documentation/zigux/phase13-release-notes-survey.md")
-product_boundary = section_text(release_text, "product boundary:\n", "\n## Why this record exists")
-if product_boundary is None:
-    missing.append("release:product_boundary_section")
-else:
+def main() -> int:
+    missing_files = [path for path in FILES if not (ROOT / path).exists()]
+    if missing_files:
+        print("PHASE13_RELEASE_VALIDATION=fail")
+        print("MISSING_PHASE13_RELEASE_FILES_START")
+        for path in missing_files:
+            print(path)
+        print("MISSING_PHASE13_RELEASE_FILES_END")
+        return 1
+
+    missing: list[str] = []
+    source_by_name = {
+        "docs_root": text("Documentation/zigux/README.md"),
+        "scripts_readme": text("scripts/zigux/README.md"),
+        "make": text("zigux/Makefile"),
+        "workflow": text(".github/workflows/zigux-bootstrap.yml"),
+        "release": text("Documentation/zigux/phase13-release-notes-survey.md"),
+        "traceability": text("Documentation/zigux/phase13-roadmap-traceability.md"),
+        "review_checklist": text("Documentation/zigux/review-checklist.md"),
+    }
+
+    for name, markers in [
+        ("docs_root", DOCS_ROOT_MARKERS),
+        ("scripts_readme", SCRIPT_README_MARKERS),
+        ("make", MAKE_MARKERS),
+        ("workflow", WORKFLOW_MARKERS),
+        ("release", RELEASE_MARKERS),
+        ("traceability", TRACEABILITY_MARKERS),
+        ("review_checklist", REVIEW_CHECKLIST_MARKERS),
+    ]:
+        source = source_by_name[name]
+        for marker in markers:
+            if marker not in source:
+                missing.append(f"{name}:{marker}")
+
+    for marker, expected_count in MAKE_EXACT_COUNT_MARKERS.items():
+        require_exact_count(missing, "make", source_by_name["make"], marker, expected_count)
+
+    for marker, expected_count in WORKFLOW_EXACT_COUNT_MARKERS.items():
+        require_exact_count(
+            missing,
+            "workflow",
+            source_by_name["workflow"],
+            marker,
+            expected_count,
+        )
+
+    release_text = source_by_name["release"]
+    product_boundary = section_text(release_text, "product boundary:\n", "\n## Why this record exists")
+    if product_boundary is None:
+        missing.append("release:product_boundary_section")
+    else:
+        for rel in [
+            "scripts/zigux/validate-phase13-release.py",
+            "scripts/zigux/README.md",
+            "Documentation/zigux/phase13-release-notes-survey.md",
+            "Documentation/zigux/phase13-roadmap-traceability.md",
+            "Documentation/zigux/README.md",
+            "Documentation/zigux/review-checklist.md",
+            ".github/workflows/zigux-bootstrap.yml",
+            "zigux/tests/phase13_build.zig",
+            "zigux/Makefile",
+            "Documentation/zigux/phase13-libfs-slice.md",
+            "Documentation/zigux/phase13-libfs-survey.md",
+            "Documentation/zigux/phase13-devres-slice.md",
+            "Documentation/zigux/phase13-devres-survey.md",
+            "Documentation/zigux/phase13-landlock-ruleset-slice.md",
+            "Documentation/zigux/phase13-landlock-ruleset-survey.md",
+            "Documentation/zigux/phase13-landlock-syscalls-slice.md",
+            "Documentation/zigux/phase13-landlock-syscalls-survey.md",
+            "Documentation/zigux/phase13-notifier-list-survey.md",
+            "zigux/tests/phase13_libfs_manifest.json",
+            "zigux/tests/phase13_libfs_reviewability.zig",
+            "zigux/tests/phase13_devres_manifest.json",
+            "zigux/tests/phase13_devres.zig",
+            "zigux/tests/phase13_devres_dma_coherent.zig",
+            "zigux/tests/phase13_landlock_ruleset_manifest.json",
+            "zigux/tests/phase13_landlock_syscalls_manifest.json",
+            "zigux/tests/phase13_landlock_syscalls_reviewability.zig",
+            "zigux/tests/phase13_notifier_list_manifest.json",
+            "zigux/tests/phase13_devres_reviewability.zig",
+            "zigux/tests/phase13_notifier_list_reviewability.zig",
+            "zigux/bindings/notifier_abi.zig",
+            "zigux/helpers/notifier_chain_view.zig",
+        ]:
+            if rel not in product_boundary:
+                missing.append(f"release:product_boundary_path:{rel}")
+
     for rel in [
         "scripts/zigux/validate-phase13-release.py",
         "scripts/zigux/README.md",
@@ -238,22 +331,15 @@ else:
         "Documentation/zigux/phase13-roadmap-traceability.md",
         "Documentation/zigux/README.md",
         "Documentation/zigux/review-checklist.md",
-        ".github/workflows/zigux-bootstrap.yml",
         "zigux/tests/phase13_build.zig",
         "zigux/Makefile",
-        "Documentation/zigux/phase13-libfs-slice.md",
         "Documentation/zigux/phase13-libfs-survey.md",
-        "Documentation/zigux/phase13-devres-slice.md",
         "Documentation/zigux/phase13-devres-survey.md",
-        "Documentation/zigux/phase13-landlock-ruleset-slice.md",
         "Documentation/zigux/phase13-landlock-ruleset-survey.md",
-        "Documentation/zigux/phase13-landlock-syscalls-slice.md",
         "Documentation/zigux/phase13-landlock-syscalls-survey.md",
         "Documentation/zigux/phase13-notifier-list-survey.md",
         "zigux/tests/phase13_libfs_manifest.json",
-        "zigux/tests/phase13_libfs_reviewability.zig",
         "zigux/tests/phase13_devres_manifest.json",
-        "zigux/tests/phase13_devres.zig",
         "zigux/tests/phase13_devres_dma_coherent.zig",
         "zigux/tests/phase13_landlock_ruleset_manifest.json",
         "zigux/tests/phase13_landlock_syscalls_manifest.json",
@@ -264,151 +350,127 @@ else:
         "zigux/bindings/notifier_abi.zig",
         "zigux/helpers/notifier_chain_view.zig",
     ]:
-        if rel not in product_boundary:
-            missing.append(f"release:product_boundary_path:{rel}")
+        if rel not in release_text:
+            missing.append(f"release:evidence_path:{rel}")
 
-for rel in [
-    "scripts/zigux/validate-phase13-release.py",
-    "scripts/zigux/README.md",
-    "Documentation/zigux/phase13-release-notes-survey.md",
-    "Documentation/zigux/phase13-roadmap-traceability.md",
-    "Documentation/zigux/README.md",
-    "Documentation/zigux/review-checklist.md",
-    "zigux/tests/phase13_build.zig",
-    "zigux/Makefile",
-    "Documentation/zigux/phase13-libfs-survey.md",
-    "Documentation/zigux/phase13-devres-survey.md",
-    "Documentation/zigux/phase13-landlock-ruleset-survey.md",
-    "Documentation/zigux/phase13-landlock-syscalls-survey.md",
-    "Documentation/zigux/phase13-notifier-list-survey.md",
-    "zigux/tests/phase13_libfs_manifest.json",
-    "zigux/tests/phase13_devres_manifest.json",
-    "zigux/tests/phase13_devres_dma_coherent.zig",
-    "zigux/tests/phase13_landlock_ruleset_manifest.json",
-    "zigux/tests/phase13_landlock_syscalls_manifest.json",
-    "zigux/tests/phase13_landlock_syscalls_reviewability.zig",
-    "zigux/tests/phase13_notifier_list_manifest.json",
-    "zigux/tests/phase13_devres_reviewability.zig",
-    "zigux/tests/phase13_notifier_list_reviewability.zig",
-    "zigux/bindings/notifier_abi.zig",
-    "zigux/helpers/notifier_chain_view.zig",
-]:
-    if rel not in release_text:
-        missing.append(f"release:evidence_path:{rel}")
+    release_evidence = section_text(
+        release_text,
+        "The current bounded release-evidence set is:\n",
+        "\n## Gates",
+    )
+    if release_evidence is None:
+        missing.append("release:evidence_set_section")
+    else:
+        for rel in RELEASE_EVIDENCE_CORE_PATHS:
+            if rel not in release_evidence:
+                missing.append(f"release:evidence_set_path:{rel}")
 
-release_evidence = section_text(
-    release_text,
-    "The current bounded release-evidence set is:\n",
-    "\n## Gates",
-)
-if release_evidence is None:
-    missing.append("release:evidence_set_section")
-else:
-    for rel in RELEASE_EVIDENCE_CORE_PATHS:
-        if rel not in release_evidence:
-            missing.append(f"release:evidence_set_path:{rel}")
+    build_text = text("zigux/tests/phase13_build.zig")
+    build_names = BUILD_TEST_NAME_RE.findall(build_text)
+    if build_names != BUILD_NAME_MARKERS:
+        missing.append("build:test_names")
+    for build_name in BUILD_NAME_MARKERS:
+        if build_name not in release_text:
+            missing.append(f"release:shared_replay_step:{build_name}")
+    depend_steps = BUILD_DEPEND_STEP_RE.findall(build_text)
+    if len(depend_steps) != 10:
+        missing.append(f"build:depend_step_count={len(depend_steps)}")
 
-build_text = text("zigux/tests/phase13_build.zig")
-build_names = BUILD_TEST_NAME_RE.findall(build_text)
-if build_names != BUILD_NAME_MARKERS:
-    missing.append("build:test_names")
-for build_name in BUILD_NAME_MARKERS:
-    if build_name not in release_text:
-        missing.append(f"release:shared_replay_step:{build_name}")
-depend_steps = BUILD_DEPEND_STEP_RE.findall(build_text)
-if len(depend_steps) != 10:
-    missing.append(f"build:depend_step_count={len(depend_steps)}")
+    for manifest_path, lane_key, anchor in [
+        ("zigux/tests/phase13_libfs_manifest.json", "P13-L04", "fs/libfs.c"),
+        ("zigux/tests/phase13_devres_manifest.json", "P13-L10", "lib/devres.c"),
+        ("zigux/tests/phase13_landlock_ruleset_manifest.json", "P13-L12", "security/landlock/ruleset.c"),
+        ("zigux/tests/phase13_landlock_syscalls_manifest.json", "P13-L16", "security/landlock/syscalls.c"),
+    ]:
+        manifest = load_json(manifest_path)
+        if manifest.get("phase") != "Phase 13":
+            missing.append(f"{manifest_path}:phase")
+        if manifest.get("lane_key") != lane_key:
+            missing.append(f"{manifest_path}:lane_key")
+        if manifest.get("anchor") != anchor:
+            missing.append(f"{manifest_path}:anchor")
+        summary = manifest.get("survey_summary")
+        if not isinstance(summary, dict):
+            missing.append(f"{manifest_path}:survey_summary")
+            continue
+        if summary.get("preexisting_phase13_build_present") is not True:
+            missing.append(f"{manifest_path}:build_present")
+        if summary.get("preexisting_phase13_make_target_present") is not True:
+            missing.append(f"{manifest_path}:make_present")
 
-for manifest_path, lane_key, anchor in [
-    ("zigux/tests/phase13_libfs_manifest.json", "P13-L04", "fs/libfs.c"),
-    ("zigux/tests/phase13_devres_manifest.json", "P13-L10", "lib/devres.c"),
-    ("zigux/tests/phase13_landlock_ruleset_manifest.json", "P13-L12", "security/landlock/ruleset.c"),
-    ("zigux/tests/phase13_landlock_syscalls_manifest.json", "P13-L16", "security/landlock/syscalls.c"),
-]:
-    manifest = load_json(manifest_path)
-    if manifest.get("phase") != "Phase 13":
-        missing.append(f"{manifest_path}:phase")
-    if manifest.get("lane_key") != lane_key:
-        missing.append(f"{manifest_path}:lane_key")
-    if manifest.get("anchor") != anchor:
-        missing.append(f"{manifest_path}:anchor")
-    summary = manifest.get("survey_summary")
-    if not isinstance(summary, dict):
-        missing.append(f"{manifest_path}:survey_summary")
-        continue
-    if summary.get("preexisting_phase13_build_present") is not True:
-        missing.append(f"{manifest_path}:build_present")
-    if summary.get("preexisting_phase13_make_target_present") is not True:
-        missing.append(f"{manifest_path}:make_present")
+    syscalls_manifest = load_json("zigux/tests/phase13_landlock_syscalls_manifest.json")
+    syscalls_summary = syscalls_manifest.get("survey_summary")
+    if not isinstance(syscalls_summary, dict):
+        missing.append("zigux/tests/phase13_landlock_syscalls_manifest.json:survey_summary")
+    else:
+        if syscalls_summary.get("preexisting_phase13_landlock_syscalls_reviewability_present") is not True:
+            missing.append("zigux/tests/phase13_landlock_syscalls_manifest.json:reviewability_present")
 
-syscalls_manifest = load_json("zigux/tests/phase13_landlock_syscalls_manifest.json")
-syscalls_summary = syscalls_manifest.get("survey_summary")
-if not isinstance(syscalls_summary, dict):
-    missing.append("zigux/tests/phase13_landlock_syscalls_manifest.json:survey_summary")
-else:
-    if syscalls_summary.get("preexisting_phase13_landlock_syscalls_reviewability_present") is not True:
-        missing.append("zigux/tests/phase13_landlock_syscalls_manifest.json:reviewability_present")
+    devres_manifest = load_json("zigux/tests/phase13_devres_manifest.json")
+    for blocked in ["blocked_on_dma_state", "blocked_on_scatterlist_state"]:
+        if not any(gap.get("status") == blocked for gap in devres_manifest.get("gaps", []) if isinstance(gap, dict)):
+            missing.append(f"zigux/tests/phase13_devres_manifest.json:{blocked}")
 
-devres_manifest = load_json("zigux/tests/phase13_devres_manifest.json")
-for blocked in ["blocked_on_dma_state", "blocked_on_scatterlist_state"]:
-    if not any(gap.get("status") == blocked for gap in devres_manifest.get("gaps", []) if isinstance(gap, dict)):
-        missing.append(f"zigux/tests/phase13_devres_manifest.json:{blocked}")
+    for gap_id, status in DEVRES_MANIFEST_GAP_EXPECTATIONS:
+        if not any(
+            isinstance(gap, dict) and gap.get("id") == gap_id and gap.get("status") == status
+            for gap in devres_manifest.get("gaps", [])
+        ):
+            missing.append(f"zigux/tests/phase13_devres_manifest.json:{gap_id}:{status}")
 
-for gap_id, status in DEVRES_MANIFEST_GAP_EXPECTATIONS:
-    if not any(
-        isinstance(gap, dict) and gap.get("id") == gap_id and gap.get("status") == status
-        for gap in devres_manifest.get("gaps", [])
-    ):
-        missing.append(f"zigux/tests/phase13_devres_manifest.json:{gap_id}:{status}")
+    devres_surveyed_commit = devres_manifest.get("surveyed_commit")
+    if not isinstance(devres_surveyed_commit, str) or SURVEYED_COMMIT_RE.fullmatch(devres_surveyed_commit) is None:
+        missing.append("zigux/tests/phase13_devres_manifest.json:surveyed_commit")
+    else:
+        devres_survey_text = text("Documentation/zigux/phase13-devres-survey.md")
+        devres_traceability_text = text("Documentation/zigux/phase13-roadmap-traceability.md")
+        if f"- `PHASE13_SURVEYED_COMMIT={devres_surveyed_commit}`" not in devres_survey_text:
+            missing.append("Documentation/zigux/phase13-devres-survey.md:surveyed_commit")
+        if f"- manifest `surveyed_commit`: `{devres_surveyed_commit}`" not in devres_traceability_text:
+            missing.append("Documentation/zigux/phase13-roadmap-traceability.md:devres_surveyed_commit")
+        for marker in DEVRES_SURVEY_MARKERS:
+            if marker not in devres_survey_text:
+                missing.append(f"Documentation/zigux/phase13-devres-survey.md:{marker}")
 
-devres_surveyed_commit = devres_manifest.get("surveyed_commit")
-if not isinstance(devres_surveyed_commit, str) or SURVEYED_COMMIT_RE.fullmatch(devres_surveyed_commit) is None:
-    missing.append("zigux/tests/phase13_devres_manifest.json:surveyed_commit")
-else:
-    devres_survey_text = text("Documentation/zigux/phase13-devres-survey.md")
-    devres_traceability_text = text("Documentation/zigux/phase13-roadmap-traceability.md")
-    if f"- `PHASE13_SURVEYED_COMMIT={devres_surveyed_commit}`" not in devres_survey_text:
-        missing.append("Documentation/zigux/phase13-devres-survey.md:surveyed_commit")
-    if f"- manifest `surveyed_commit`: `{devres_surveyed_commit}`" not in devres_traceability_text:
-        missing.append("Documentation/zigux/phase13-roadmap-traceability.md:devres_surveyed_commit")
-    for marker in DEVRES_SURVEY_MARKERS:
-        if marker not in devres_survey_text:
-            missing.append(f"Documentation/zigux/phase13-devres-survey.md:{marker}")
+    devres_reviewability_text = text("zigux/tests/phase13_devres_reviewability.zig")
+    for marker in DEVRES_REVIEWABILITY_MARKERS:
+        if marker not in devres_reviewability_text:
+            missing.append(f"zigux/tests/phase13_devres_reviewability.zig:{marker}")
 
-devres_reviewability_text = text("zigux/tests/phase13_devres_reviewability.zig")
-for marker in DEVRES_REVIEWABILITY_MARKERS:
-    if marker not in devres_reviewability_text:
-        missing.append(f"zigux/tests/phase13_devres_reviewability.zig:{marker}")
+    notifier_manifest = load_json("zigux/tests/phase13_notifier_list_manifest.json")
+    if notifier_manifest.get("phase") != "Phase 13":
+        missing.append("zigux/tests/phase13_notifier_list_manifest.json:phase")
+    if notifier_manifest.get("lane_key") != "P13-L19":
+        missing.append("zigux/tests/phase13_notifier_list_manifest.json:lane_key")
+    notifier_summary = notifier_manifest.get("survey_summary")
+    if not isinstance(notifier_summary, dict):
+        missing.append("zigux/tests/phase13_notifier_list_manifest.json:survey_summary")
+    else:
+        if notifier_summary.get("preexisting_phase13_build_present") is not True:
+            missing.append("zigux/tests/phase13_notifier_list_manifest.json:build_present")
+        if notifier_summary.get("preexisting_generic_notifier_abi_present") is not True:
+            missing.append("zigux/tests/phase13_notifier_list_manifest.json:notifier_abi_present")
+        if notifier_summary.get("preexisting_generic_notifier_helper_present") is not True:
+            missing.append("zigux/tests/phase13_notifier_list_manifest.json:notifier_helper_present")
 
-notifier_manifest = load_json("zigux/tests/phase13_notifier_list_manifest.json")
-if notifier_manifest.get("phase") != "Phase 13":
-    missing.append("zigux/tests/phase13_notifier_list_manifest.json:phase")
-if notifier_manifest.get("lane_key") != "P13-L19":
-    missing.append("zigux/tests/phase13_notifier_list_manifest.json:lane_key")
-notifier_summary = notifier_manifest.get("survey_summary")
-if not isinstance(notifier_summary, dict):
-    missing.append("zigux/tests/phase13_notifier_list_manifest.json:survey_summary")
-else:
-    if notifier_summary.get("preexisting_phase13_build_present") is not True:
-        missing.append("zigux/tests/phase13_notifier_list_manifest.json:build_present")
-    if notifier_summary.get("preexisting_generic_notifier_abi_present") is not True:
-        missing.append("zigux/tests/phase13_notifier_list_manifest.json:notifier_abi_present")
-    if notifier_summary.get("preexisting_generic_notifier_helper_present") is not True:
-        missing.append("zigux/tests/phase13_notifier_list_manifest.json:notifier_helper_present")
+    if missing:
+        print("PHASE13_RELEASE_VALIDATION=fail")
+        print("PHASE13_RELEASE_VALIDATION_MISSING_START")
+        for item in missing:
+            print(item)
+        print("PHASE13_RELEASE_VALIDATION_MISSING_END")
+        return 1
 
-if missing:
-    print("PHASE13_RELEASE_VALIDATION=fail")
-    print("PHASE13_RELEASE_VALIDATION_MISSING_START")
-    for item in missing:
-        print(item)
-    print("PHASE13_RELEASE_VALIDATION_MISSING_END")
-    sys.exit(1)
+    print("PHASE13_RELEASE_VALIDATION=pass")
+    print(f"PHASE13_RELEASE_REQUIRED_FILE_COUNT={len(FILES)}")
+    print(
+        "PHASE13_RELEASE_REQUIRED_MARKER_COUNT="
+        f"{len(MAKE_MARKERS) + len(MAKE_EXACT_COUNT_MARKERS) + len(WORKFLOW_MARKERS) + len(WORKFLOW_EXACT_COUNT_MARKERS) + len(RELEASE_MARKERS) + len(TRACEABILITY_MARKERS) + len(DOCS_ROOT_MARKERS) + len(SCRIPT_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(DEVRES_SURVEY_MARKERS) + len(DEVRES_REVIEWABILITY_MARKERS)}"
+    )
+    print(f"PHASE13_RELEASE_BUILD_TEST_COUNT={len(build_names)}")
+    print(f"PHASE13_RELEASE_BUILD_DEPEND_STEP_COUNT={len(depend_steps)}")
+    return 0
 
-print("PHASE13_RELEASE_VALIDATION=pass")
-print(f"PHASE13_RELEASE_REQUIRED_FILE_COUNT={len(FILES)}")
-print(
-    "PHASE13_RELEASE_REQUIRED_MARKER_COUNT="
-    f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(RELEASE_MARKERS) + len(TRACEABILITY_MARKERS) + len(DOCS_ROOT_MARKERS) + len(SCRIPT_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(DEVRES_SURVEY_MARKERS) + len(DEVRES_REVIEWABILITY_MARKERS)}"
-)
-print(f"PHASE13_RELEASE_BUILD_TEST_COUNT={len(build_names)}")
-print(f"PHASE13_RELEASE_BUILD_DEPEND_STEP_COUNT={len(depend_steps)}")
+
+if __name__ == "__main__":
+    raise SystemExit(main())
