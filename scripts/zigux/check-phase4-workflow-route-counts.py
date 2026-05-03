@@ -7,7 +7,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-SELF_TEST_CASE_COUNT = 10
+SELF_TEST_CASE_COUNT = 16
 
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 MAKEFILE_PATH = Path("zigux/Makefile")
@@ -33,18 +33,47 @@ REQUIRED_WORKFLOW_COUNTS = {
 REQUIRED_MAKEFILE_MARKERS = [
     "phase4-validate:",
     "phase4-test:",
+    "phase4-runtime-atomic64-diff:",
+    "phase4-test-fsmount-survey:",
+    "phase4-kprobe-example-survey:",
+    "phase4-perf-baseline-survey:",
+    "phase4-bitmap-diff:",
     "phase4: phase4-validate phase4-test",
 ]
 
 REQUIRED_MAKEFILE_COUNTS = {
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-kprobe-example-packet.py --self-test": 1,
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-kprobe-example-packet.py": 1,
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig": 1,
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig": 1,
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase4-kprobe-example-survey --build-file zigux/tests/phase4_build.zig": 1,
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig": 1,
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig": 1,
 }
 
-REQUIRED_DOC_MARKERS = [
-    "`make -C zigux phase4-validate`",
-    "`make -C zigux phase4-test`",
-]
+REQUIRED_DOC_MARKERS = {
+    DOCS_ROOT_PATH: [
+        "`make -C zigux phase4-validate`",
+        "`make -C zigux phase4-test`",
+        "direct `zig build phase4-kprobe-example-survey --build-file zigux/tests/phase4_build.zig`",
+        "`make -C zigux phase4-test-fsmount-survey`",
+        "`make -C zigux phase4-perf-baseline-survey`",
+    ],
+    SCRIPTS_README_PATH: [
+        "`make -C zigux phase4-validate`",
+        "`make -C zigux phase4-test`",
+        "`make -C zigux phase4-kprobe-example-survey`",
+        "`make -C zigux phase4-test-fsmount-survey`",
+        "`make -C zigux phase4-perf-baseline-survey`",
+    ],
+    TESTS_README_PATH: [
+        "`make -C zigux phase4-validate`",
+        "`make -C zigux phase4-test`",
+        "`make -C zigux phase4-kprobe-example-survey`",
+        "`make -C zigux phase4-test-fsmount-survey`",
+        "`make -C zigux phase4-perf-baseline-survey`",
+    ],
+}
 
 
 def read_text(root: Path, relative_path: Path) -> str:
@@ -88,9 +117,9 @@ def validate(root: Path) -> list[str]:
                 f"makefile_count:{needle}:expected={expected_count}:actual={actual_count}"
             )
 
-    for relative_path in [DOCS_ROOT_PATH, SCRIPTS_README_PATH, TESTS_README_PATH]:
+    for relative_path, markers in REQUIRED_DOC_MARKERS.items():
         file_text = read_text(root, relative_path)
-        for marker in REQUIRED_DOC_MARKERS:
+        for marker in markers:
             if marker not in file_text:
                 missing.append(f"doc_marker:{relative_path.as_posix()}:{marker}")
 
@@ -131,21 +160,48 @@ def build_fixture_tree(root: Path) -> None:
                 "\tpython3 scripts/zigux/validate-phase4.py",
                 "phase4-test:",
                 "\tzig build test --build-file zigux/tests/phase4_build.zig --summary all",
+                "phase4-runtime-atomic64-diff:",
+                "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig",
+                "phase4-test-fsmount-survey:",
+                "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
+                "phase4-kprobe-example-survey:",
+                "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase4-kprobe-example-survey --build-file zigux/tests/phase4_build.zig",
+                "phase4-perf-baseline-survey:",
+                "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig",
+                "phase4-bitmap-diff:",
+                "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig",
                 "phase4: phase4-validate phase4-test",
             ]
         )
         + "\n",
     )
-    docs_stub = "\n".join(
+    write(
+        root,
+        DOCS_ROOT_PATH,
+        "\n".join(
+            [
+                "Phase 4 notes",
+                "`make -C zigux phase4-validate`",
+                "`make -C zigux phase4-test`",
+                "direct `zig build phase4-kprobe-example-survey --build-file zigux/tests/phase4_build.zig`",
+                "`make -C zigux phase4-test-fsmount-survey`",
+                "`make -C zigux phase4-perf-baseline-survey`",
+            ]
+        )
+        + "\n",
+    )
+    shared_readme_stub = "\n".join(
         [
             "Phase 4 notes",
             "`make -C zigux phase4-validate`",
             "`make -C zigux phase4-test`",
+            "`make -C zigux phase4-kprobe-example-survey`",
+            "`make -C zigux phase4-test-fsmount-survey`",
+            "`make -C zigux phase4-perf-baseline-survey`",
         ]
     ) + "\n"
-    write(root, DOCS_ROOT_PATH, docs_stub)
-    write(root, SCRIPTS_README_PATH, docs_stub)
-    write(root, TESTS_README_PATH, docs_stub)
+    write(root, SCRIPTS_README_PATH, shared_readme_stub)
+    write(root, TESTS_README_PATH, shared_readme_stub)
 
 
 def expect_contains(items: list[str], needle: str) -> None:
@@ -238,24 +294,109 @@ def run_self_test() -> int:
             build_fixture_tree(root)
             docs_root = root / DOCS_ROOT_PATH
             docs_root.write_text(
-                "Phase 4 notes\n`make -C zigux phase4-validate`\n",
+                docs_root.read_text(encoding="utf-8").replace(
+                    "direct `zig build phase4-kprobe-example-survey --build-file zigux/tests/phase4_build.zig`\n",
+                    "",
+                    1,
+                ),
                 encoding="utf-8",
             )
             expect_contains(
                 validate(root),
-                "doc_marker:Documentation/zigux/README.md:`make -C zigux phase4-test`",
+                "doc_marker:Documentation/zigux/README.md:direct `zig build phase4-kprobe-example-survey --build-file zigux/tests/phase4_build.zig`",
+            )
+            count += 1
+
+            build_fixture_tree(root)
+            docs_root = root / DOCS_ROOT_PATH
+            docs_root.write_text(
+                docs_root.read_text(encoding="utf-8").replace(
+                    "`make -C zigux phase4-test-fsmount-survey`\n",
+                    "",
+                    1,
+                ),
+                encoding="utf-8",
+            )
+            expect_contains(
+                validate(root),
+                "doc_marker:Documentation/zigux/README.md:`make -C zigux phase4-test-fsmount-survey`",
+            )
+            count += 1
+
+            build_fixture_tree(root)
+            docs_root = root / DOCS_ROOT_PATH
+            docs_root.write_text(
+                docs_root.read_text(encoding="utf-8").replace(
+                    "`make -C zigux phase4-perf-baseline-survey`\n",
+                    "",
+                    1,
+                ),
+                encoding="utf-8",
+            )
+            expect_contains(
+                validate(root),
+                "doc_marker:Documentation/zigux/README.md:`make -C zigux phase4-perf-baseline-survey`",
             )
             count += 1
 
             build_fixture_tree(root)
             scripts_readme = root / SCRIPTS_README_PATH
             scripts_readme.write_text(
-                "Phase 4 notes\n`make -C zigux phase4-test`\n",
+                scripts_readme.read_text(encoding="utf-8").replace(
+                    "`make -C zigux phase4-kprobe-example-survey`\n",
+                    "",
+                    1,
+                ),
                 encoding="utf-8",
             )
             expect_contains(
                 validate(root),
-                "doc_marker:scripts/zigux/README.md:`make -C zigux phase4-validate`",
+                "doc_marker:scripts/zigux/README.md:`make -C zigux phase4-kprobe-example-survey`",
+            )
+            count += 1
+
+            build_fixture_tree(root)
+            tests_readme = root / TESTS_README_PATH
+            tests_readme.write_text(
+                tests_readme.read_text(encoding="utf-8").replace(
+                    "`make -C zigux phase4-perf-baseline-survey`\n",
+                    "",
+                    1,
+                ),
+                encoding="utf-8",
+            )
+            expect_contains(
+                validate(root),
+                "doc_marker:zigux/tests/README.md:`make -C zigux phase4-perf-baseline-survey`",
+            )
+            count += 1
+
+            build_fixture_tree(root)
+            makefile = root / MAKEFILE_PATH
+            makefile.write_text(
+                makefile.read_text(encoding="utf-8").replace(
+                    "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase4-kprobe-example-survey --build-file zigux/tests/phase4_build.zig\n",
+                    "",
+                    1,
+                ),
+                encoding="utf-8",
+            )
+            expect_contains(
+                validate(root),
+                "makefile_count:\tcd $(ZIGUX_ROOT) && $(ZIG) build phase4-kprobe-example-survey --build-file zigux/tests/phase4_build.zig:expected=1:actual=0",
+            )
+            count += 1
+
+            build_fixture_tree(root)
+            makefile = root / MAKEFILE_PATH
+            makefile.write_text(
+                makefile.read_text(encoding="utf-8")
+                + "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig\n",
+                encoding="utf-8",
+            )
+            expect_contains(
+                validate(root),
+                "makefile_count:\tcd $(ZIGUX_ROOT) && $(ZIG) build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig:expected=1:actual=2",
             )
             count += 1
 
@@ -282,6 +423,22 @@ def run_self_test() -> int:
             expect_contains(
                 validate(root),
                 "makefile_marker:phase4: phase4-validate phase4-test",
+            )
+            count += 1
+
+            build_fixture_tree(root)
+            makefile = root / MAKEFILE_PATH
+            makefile.write_text(
+                makefile.read_text(encoding="utf-8").replace(
+                    "phase4-runtime-atomic64-diff:\n",
+                    "",
+                    1,
+                ),
+                encoding="utf-8",
+            )
+            expect_contains(
+                validate(root),
+                "makefile_marker:phase4-runtime-atomic64-diff:",
             )
             count += 1
 
@@ -322,7 +479,7 @@ def main() -> int:
     print(f"PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_CHECK_COUNT="
-        f"{len(REQUIRED_WORKFLOW_COUNTS) + len(REQUIRED_MAKEFILE_MARKERS) + len(REQUIRED_MAKEFILE_COUNTS) + len(REQUIRED_DOC_MARKERS) * 3}"
+        f"{len(REQUIRED_WORKFLOW_COUNTS) + len(REQUIRED_MAKEFILE_MARKERS) + len(REQUIRED_MAKEFILE_COUNTS) + sum(len(markers) for markers in REQUIRED_DOC_MARKERS.values())}"
     )
     return 0
 
