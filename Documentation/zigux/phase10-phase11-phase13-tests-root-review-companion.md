@@ -57,6 +57,14 @@ Keep the shared release replay packet explicit:
 - `zigux/tests/phase13_devres_manifest.json`
 - `zigux/tests/phase13_landlock_ruleset_manifest.json`
 - `zigux/tests/phase13_landlock_syscalls_manifest.json`
+- `zigux/tests/phase13_libfs_reviewability.zig`
+- `zigux/tests/phase13_devres_dma_coherent.zig`
+- `zigux/tests/phase13_devres_iounmap_reviewability.zig`
+- `zigux/tests/phase13_devres_iomap_reviewability.zig`
+- `zigux/tests/phase13_devres_reviewability.zig`
+- `zigux/tests/phase13_devres_wrapper_reviewability.zig`
+- `zigux/tests/phase13_landlock_ruleset_reviewability.zig`
+- `zigux/tests/phase13_landlock_ruleset_fops_sync.zig`
 - `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
 - `zigux/tests/phase13_notifier_list_manifest.json`
 - `zigux/tests/phase13_notifier_list_reviewability.zig`
@@ -67,14 +75,14 @@ Keep the shared release replay packet explicit:
 - `scripts/zigux/validate-phase13-release.py`
 
 Tests-root reviewer prompt:
-- Do the shared Phase 13 build, the four roadmap-anchor manifests plus the adjacent notifier-list manifest, the dedicated devres packet guard, the Landlock syscall reviewability replay, and the adjacent notifier reviewability packet still name the same validator-first release path and evidence bundle instead of drifting into separate stories?
+- Do the shared Phase 13 build, the four roadmap-anchor manifests plus the adjacent notifier-list manifest, the dedicated devres packet guard, the libfs reviewability replay, the devres coherent-DMA plus `iounmap`, `iomap`, plain-wrapper, and helper reviewability replays, the Landlock ruleset plus ruleset-fops-sync plus syscall reviewability replays, and the adjacent notifier reviewability packet still name the same validator-first release path and evidence bundle instead of drifting into separate stories?
 
 ## Checklist carryover prompts
 
 Keep these reviewer questions explicit when `zigux/tests/README.md` or other shared contributor-facing workflow notes are refreshed:
 - Phase 10: do `Documentation/zigux/phase10-closure-evidence.md`, `zigux/tests/phase10_closure_manifest.json`, `scripts/zigux/check-phase10-closure-inventory.py`, `scripts/zigux/check-phase10-core-packet.py`, `scripts/zigux/check-phase10-harness-coverage.py`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `zigux/tests/phase10_virtio_input_multitouch_preflight.zig`, and `zigux/tests/phase10_virtio_mmio_queue_isolation.zig` still describe the same validator-first lab bundle and focused harness evidence?
 - Phase 11: do `Documentation/zigux/phase11-shared-replay-contract.md`, `scripts/zigux/check-phase11-build-inventory.py`, `scripts/zigux/check-phase11-layout-assert-surface.py`, `scripts/zigux/check-phase11-hvc-validation-flow.py`, `scripts/zigux/check-phase11-hvc-cleanup-alignment.py`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `zigux/tests/phase11_build.zig`, `zigux/tests/phase11_dw_wdt_suspend_resume.zig`, `zigux/tests/phase11_dw_wdt_remove_idle_split.zig`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, `zigux/tests/phase11_hvc_console_poll_retry_split.zig`, `zigux/tests/phase11_hvc_console_survey.zig`, and `zigux/tests/phase11_uapi_header_parity_manifest.json` still keep the pre-replay stack, the shared-versus-dedicated `hvc_console` split, and the shared header-boundary packet aligned?
-- Phase 13: do `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/README.md`, `zigux/tests/phase13_build.zig`, `zigux/tests/phase13_libfs_manifest.json`, `zigux/tests/phase13_devres_manifest.json`, `zigux/tests/phase13_landlock_ruleset_manifest.json`, `zigux/tests/phase13_landlock_syscalls_manifest.json`, `zigux/tests/phase13_notifier_list_manifest.json`, `scripts/zigux/check-phase13-devres-packet.py`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, `include/zigux/notifier_abi.h`, and `zigux/helpers/notifier_chain_view.zig` still keep the validator-first release path, the four roadmap-anchor manifests plus the adjacent notifier-list manifest, the dedicated devres packet guard, and the adjacent notifier evidence aligned?
+- Phase 13: do `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/README.md`, `zigux/tests/phase13_build.zig`, `zigux/tests/phase13_libfs_manifest.json`, `zigux/tests/phase13_devres_manifest.json`, `zigux/tests/phase13_landlock_ruleset_manifest.json`, `zigux/tests/phase13_landlock_syscalls_manifest.json`, `zigux/tests/phase13_notifier_list_manifest.json`, `scripts/zigux/check-phase13-devres-packet.py`, `zigux/tests/phase13_libfs_reviewability.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_devres_iounmap_reviewability.zig`, `zigux/tests/phase13_devres_iomap_reviewability.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_wrapper_reviewability.zig`, `zigux/tests/phase13_landlock_ruleset_reviewability.zig`, `zigux/tests/phase13_landlock_ruleset_fops_sync.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, `include/zigux/notifier_abi.h`, and `zigux/helpers/notifier_chain_view.zig` still keep the validator-first release path, the four roadmap-anchor manifests plus the adjacent notifier-list manifest, the dedicated devres packet guard, the extra libfs, devres, and Landlock reviewability gates, and the adjacent notifier evidence aligned?
 
 ## Shared rule
 
