@@ -11,7 +11,7 @@ This note records the current export-shim and UAPI boundary for the bounded Phas
 - `PHASE3_EXPORT_SHIM_STATUS=normalize-and-compatibility-helpers-landed`
 - `PHASE3_EXPORT_SHIM_BLOB_SHA=14178035d18bb8e89e68a34519b8affcb3827189`
 - `PHASE3_C_HEADER_PATH=include/linux/zigux.h`
-- `PHASE3_C_HEADER_STATUS=shared-abi-relay-and-status-helpers-landed`
+- `PHASE3_C_HEADER_STATUS=shared-abi-relay-status-and-interop-helper-aggregation-landed`
 - `PHASE3_UAPI_ROOT=zigux/uapi`
 - `PHASE3_UAPI_SCOPE=version-and-boundary-header`
 - `PHASE3_UAPI_STATUS=version-header-and-compatibility-surface-landed`
