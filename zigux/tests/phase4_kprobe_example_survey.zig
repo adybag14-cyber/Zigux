@@ -153,6 +153,13 @@ test "phase4 kprobe_example survey manifest records the landed survey packet and
         .limited(64 * 1024),
     );
     defer std.testing.allocator.free(phase4_gate_evidence);
+    const phase4_validator = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "scripts/zigux/validate-phase4.py",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(phase4_validator);
     const doc_readme = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/README.md",
@@ -184,7 +191,7 @@ test "phase4 kprobe_example survey manifest records the landed survey packet and
 
     const live_summary = SurveySummary{
         .kprobe_makefile_replay_present = std.mem.indexOf(u8, kprobes_makefile, "obj-$(CONFIG_SAMPLE_KPROBES) += kprobe_example.o") != null,
-        .kprobe_anchor_symbol_present = std.mem.indexOf(u8, anchor, "static char symbol[KSYM_NAME_LEN] = \"kernel_clone\";") != null,
+        .kprobe_anchor_symbol_present = std.mem.indexOf(u8, anchor, "static char symbol[KSYM_NAME_LEN] = \\\"kernel_clone\\\";") != null,
         .zig_sample_present = zig_sample_present,
         .phase4_build_present = std.mem.indexOf(u8, phase4_build, "phase4_kprobe_example_survey.zig") != null and
             std.mem.indexOf(u8, phase4_build, manifest.shared_build_replay) != null and
@@ -198,8 +205,7 @@ test "phase4 kprobe_example survey manifest records the landed survey packet and
             std.mem.indexOf(u8, phase4_matrix, "samples/zigux/kprobe_example.zig") != null,
         .phase4_gate_evidence_present = std.mem.indexOf(u8, phase4_gate_evidence, "phase4-kprobe-example-survey-tests") != null and
             std.mem.indexOf(u8, phase4_gate_evidence, "zigux/tests/phase4_kprobe_example_survey.zig") != null and
-            std.mem.indexOf(u8, phase4_gate_evidence, "zigux/tests/phase4_kprobe_example_manifest.json") != null and
-            std.mem.indexOf(u8, phase4_gate_evidence, "shared validator still does not fail closed on the kprobe survey packet itself") != null,
+            std.mem.indexOf(u8, phase4_gate_evidence, "zigux/tests/phase4_kprobe_example_manifest.json") != null,
     };
     try std.testing.expectEqualDeep(live_summary, manifest.survey_summary);
 
@@ -221,10 +227,10 @@ test "phase4 kprobe_example survey manifest records the landed survey packet and
 
         if (std.mem.eql(u8, gap.id, "phase4-kprobe-example-shared-validator-promotion")) {
             saw_validator_promotion_gap = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("scripts/zigux/validate-phase4.py", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "make -C zigux phase4-kprobe-example-survey") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "validate-phase4.py") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "fails closed") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase4-kprobe-example-zig-sample")) {
@@ -238,8 +244,8 @@ test "phase4 kprobe_example survey manifest records the landed survey packet and
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 3), starter_landed_count);
-    try std.testing.expectEqual(@as(usize, 2), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 4), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 1), ready_next_count);
     try std.testing.expect(saw_validator_promotion_gap);
     try std.testing.expect(saw_sample_gap);
     try std.testing.expect(std.mem.indexOf(u8, anchor, "kernel_clone") != null);
@@ -249,7 +255,10 @@ test "phase4 kprobe_example survey manifest records the landed survey packet and
     try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, "shared `phase4-kprobe-example-survey-tests` replay") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, "make -C zigux phase4-kprobe-example-survey") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, "c_anchor_only_until_kprobe_example_starter_lands") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "shared validator still does not fail closed on the kprobe survey packet itself") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_validator, "scripts/zigux/check-phase4-kprobe-example-packet.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_validator, "zigux/tests/phase4_kprobe_example_manifest.json") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_validator, "zigux/tests/phase4_kprobe_example_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_validator, "phase4-kprobe-example-survey-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, doc_readme, "phase4-kprobe-example-survey") != null);
     try std.testing.expect(std.mem.indexOf(u8, doc_readme, "phase4-kprobe-example-survey-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, doc_readme, "still-absent `samples/zigux/kprobe_example.zig` sample explicitly survey-only") != null);
