@@ -87,6 +87,10 @@ SCRIPT_README_MARKERS = [
     "when `zig` is not on `PATH`",
 ]
 
+SCRIPT_README_EXACT_COUNT_MARKERS = [
+    "- `check-phase14-docs-root-smoke-summary.py`",
+]
+
 RELEASE_MARKERS = [
     "PHASE14_STATUS=active",
     "PHASE14_SLICE=end-to-end-smoke-verification",
@@ -187,6 +191,18 @@ def expect_marker(source_name: str, source_text: str, marker: str, missing: list
         missing.append(f"{source_name}:{marker}")
 
 
+def expect_exact_count(
+    source_name: str,
+    source_text: str,
+    marker: str,
+    expected_count: int,
+    missing: list[str],
+) -> None:
+    actual_count = source_text.count(marker)
+    if actual_count != expected_count:
+        missing.append(f"{source_name}:count={actual_count}:{marker}")
+
+
 missing_files = [path for path in FILES if not (ROOT / path).exists()]
 if missing_files:
     print("PHASE14_VALIDATION=fail")
@@ -210,6 +226,9 @@ for name, source, markers in [
 ]:
     for marker in markers:
         expect_marker(name, source, marker, missing)
+
+for marker in SCRIPT_README_EXACT_COUNT_MARKERS:
+    expect_exact_count("scripts_readme", scripts_readme_text, marker, 1, missing)
 
 freeze_map_text = text("Documentation/zigux/freeze-map.md")
 for marker in FREEZE_MAP_MARKERS:
@@ -558,4 +577,5 @@ print(f"PHASE14_BUILD_DEPEND_STEP_COUNT={len(actual_depend_steps)}")
 print(f"PHASE14_COMPILE_ARTIFACT_COUNT={len(expected_build_test_names)}")
 print(f"PHASE14_FOCUSED_SHARD_COUNT={focused_shard_count}")
 print(f"PHASE14_ANCHOR_LOCAL_STEP_COUNT={anchor_local_step_count}")
-print(f"PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT={full_bundle_only_count}")
+print(f"PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT={full_bundle_only_count})
+print(f"PHASE14_SCRIPTS_README_EXACT_COUNT_MARKER_COUNT={len(SCRIPT_README_EXACT_COUNT_MARKERS)}")
