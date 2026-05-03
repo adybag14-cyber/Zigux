@@ -8,9 +8,11 @@ import runpy
 import tempfile
 
 
-ROOT = Path(__file__).resolve().parents[2]
+_SELF = Path(__file__).resolve()
+ROOT = _SELF.parents[2] if len(_SELF.parents) > 2 else _SELF.parent
 MANIFEST_REL = "zigux/tests/fixtures/phase3_abi_manifest.json"
 VALIDATOR_REL = "scripts/zigux/validate-phase3.py"
+
 REQUIRED_TOOLING_FILES = (
     "scripts/zigux/check-phase3-abi-layout-packet.py",
     "scripts/zigux/check-phase3-abi-binding-constants.py",
@@ -24,9 +26,11 @@ REQUIRED_TOOLING_FILES = (
     "scripts/zigux/phase3_check_lib.py",
     "scripts/zigux/run-phase3-checks.py",
     "scripts/zigux/validate-phase3.py",
+    "scripts/zigux/validate_phase3_header_binding_markers.py",
     "scripts/zigux/validate_phase3_core.py",
     "scripts/zigux/validate_phase3_selftest.py",
 )
+
 README_PACKET_STATIC_FILES = (
     "scripts/zigux/check-phase3-readme-tooling-inventory.py",
     "scripts/zigux/check-phase3-tooling-packet.py",
@@ -36,6 +40,7 @@ README_PACKET_STATIC_FILES = (
     "scripts/zigux/phase3_check_lib.py",
     "scripts/zigux/run-phase3-checks.py",
     "scripts/zigux/validate-phase3.py",
+    "scripts/zigux/validate_phase3_header_binding_markers.py",
     "scripts/zigux/validate_phase3_selftest.py",
 )
 
@@ -83,15 +88,14 @@ def _raw_readme_tooling_files(root: Path) -> tuple[list[str], list[str]]:
 
 def canonical_readme_tooling_files(root: Path) -> tuple[list[str], list[str]]:
     raw_rels, issues = _raw_readme_tooling_files(root)
-    duplicate_rels: list[str] = []
+    duplicates: list[str] = []
     seen: set[str] = set()
     for rel in raw_rels:
-        if rel in seen and rel not in duplicate_rels:
-            duplicate_rels.append(rel)
+        if rel in seen and rel not in duplicates:
+            duplicates.append(rel)
             continue
         seen.add(rel)
-
-    issues.extend(f"duplicate_readme_tooling_file:{rel}" for rel in duplicate_rels)
+    issues.extend(f"duplicate_readme_tooling_file:{rel}" for rel in duplicates)
     return _ordered_unique(raw_rels), issues
 
 
@@ -115,11 +119,11 @@ def validate(root: Path) -> list[str]:
 
     issues: list[str] = []
     listed = {entry for entry in files if isinstance(entry, str)}
+
     for rel in REQUIRED_TOOLING_FILES:
         if rel not in listed:
             issues.append(f"missing_tooling_file:{rel}")
-    for rel in REQUIRED_TOOLING_FILES:
-        if rel in listed and not (root / rel).exists():
+        elif not (root / rel).exists():
             issues.append(f"missing_repo_file:{rel}")
 
     readme_files, readme_issues = canonical_readme_tooling_files(root)
@@ -127,6 +131,7 @@ def validate(root: Path) -> list[str]:
     for rel in readme_files:
         if not (root / rel).exists():
             issues.append(f"missing_readme_tooling_file:{rel}")
+
     return issues
 
 
@@ -135,27 +140,34 @@ def _write(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8", newline="\n")
 
 
+def _fixture_validator(*extra_survey_files: str) -> str:
+    survey_files = (
+        "validate-phase3-roadmap-gap-survey.py",
+        "validate-phase3-rbtree-interop-survey.py",
+        "check-phase3-rbtree-shared-lift-contract.py",
+        "check-phase3-abi-binding-constants.py",
+        *extra_survey_files,
+    )
+    lines = ["SURVEY_VALIDATION_SCRIPTS = ("]
+    for name in survey_files:
+        lines.append(f'    ("{name}", "FAIL", "gate", "issue"),')
+    lines.extend(
+        (
+            ")",
+            'BUILD_ROOT_DRIFT_SCRIPT = ("check-phase3-build-roots.py", "FAIL", "gate", "issue")',
+            'CANONICAL_SURVEY_MANIFEST_SCRIPT = ("check-phase3-canonical-survey-manifest.py", "FAIL", "gate", "issue")',
+            "",
+        )
+    )
+    return "\n".join(lines)
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_tooling_packet_") as tmp_dir:
         root = Path(tmp_dir) / "repo"
         manifest_path = root / MANIFEST_REL
 
-        _write(
-            root / VALIDATOR_REL,
-            "\n".join(
-                (
-                    "SURVEY_VALIDATION_SCRIPTS = (",
-                    '    ("validate-phase3-roadmap-gap-survey.py", "PHASE3_ROADMAP_GAP_SURVEY=fail", "roadmap-gap", "missing_roadmap_anchor"),',
-                    '    ("validate-phase3-rbtree-interop-survey.py", "PHASE3_RBTREE_INTEROP_SURVEY=fail", "rbtree-gap", "missing_rbtree_anchor"),',
-                    '    ("check-phase3-rbtree-shared-lift-contract.py", "PHASE3_RBTREE_SHARED_LIFT_CONTRACT=fail", "shared-lift", "missing_contract_anchor"),',
-                    '    ("check-phase3-abi-binding-constants.py", "PHASE3_ABI_BINDING_CONSTANTS=fail", "abi-binding-constants", "missing_binding_constant_anchor"),',
-                    ")",
-                    'BUILD_ROOT_DRIFT_SCRIPT = ("check-phase3-build-roots.py", "PHASE3_BUILD_ROOTS=fail", "build-roots", "missing_root")',
-                    'CANONICAL_SURVEY_MANIFEST_SCRIPT = ("check-phase3-canonical-survey-manifest.py", "PHASE3_CANONICAL_SURVEY_MANIFEST=fail", "canonical-manifest", "missing_manifest_anchor")',
-                    "",
-                )
-            ),
-        )
+        _write(root / VALIDATOR_REL, _fixture_validator())
 
         for rel in REQUIRED_TOOLING_FILES:
             if rel == VALIDATOR_REL:
@@ -193,23 +205,36 @@ def run_self_test() -> int:
             raise SystemExit("phase3-tooling-packet-self-test:baseline_failed:" + ",".join(issues))
 
         broken_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        broken_manifest["files"] = [rel for rel in REQUIRED_TOOLING_FILES if rel != REQUIRED_TOOLING_FILES[0]]
+        missing_manifest_rel = "scripts/zigux/validate_phase3_header_binding_markers.py"
+        broken_manifest["files"] = [
+            rel for rel in REQUIRED_TOOLING_FILES if rel != missing_manifest_rel
+        ]
         _write(manifest_path, json.dumps(broken_manifest, indent=2) + "\n")
         issues = validate(root)
-        expected = f"missing_tooling_file:{REQUIRED_TOOLING_FILES[0]}"
-        if issues != [expected]:
+        if issues != [f"missing_tooling_file:{missing_manifest_rel}"]:
             raise SystemExit(
                 "phase3-tooling-packet-self-test:missing_manifest_guard_failed:"
                 + (",".join(issues) if issues else "none")
             )
 
-        broken_manifest["files"] = list(REQUIRED_TOOLING_FILES)
-        _write(manifest_path, json.dumps(broken_manifest, indent=2) + "\n")
+        _write(
+            manifest_path,
+            json.dumps(
+                {
+                    "phase": "Phase 3",
+                    "status": "active",
+                    "slice": "abi-substrate-skeleton",
+                    "files": list(REQUIRED_TOOLING_FILES),
+                    "file_count": len(REQUIRED_TOOLING_FILES),
+                },
+                indent=2,
+            )
+            + "\n",
+        )
         repo_only_rel = "scripts/zigux/validate_phase3_core.py"
         (root / repo_only_rel).unlink()
         issues = validate(root)
-        expected = f"missing_repo_file:{repo_only_rel}"
-        if issues != [expected]:
+        if issues != [f"missing_repo_file:{repo_only_rel}"]:
             raise SystemExit(
                 "phase3-tooling-packet-self-test:missing_repo_file_guard_failed:"
                 + (",".join(issues) if issues else "none")
@@ -219,8 +244,7 @@ def run_self_test() -> int:
         readme_only_rel = "scripts/zigux/validate-phase3-roadmap-gap-survey.py"
         (root / readme_only_rel).unlink()
         issues = validate(root)
-        expected = f"missing_readme_tooling_file:{readme_only_rel}"
-        if issues != [expected]:
+        if issues != [f"missing_readme_tooling_file:{readme_only_rel}"]:
             raise SystemExit(
                 "phase3-tooling-packet-self-test:missing_readme_tooling_file_guard_failed:"
                 + (",".join(issues) if issues else "none")
@@ -229,31 +253,20 @@ def run_self_test() -> int:
         _write(root / readme_only_rel, "# stub\n")
         _write(
             root / VALIDATOR_REL,
-            "\n".join(
-                (
-                    "SURVEY_VALIDATION_SCRIPTS = (",
-                    '    ("validate-phase3-roadmap-gap-survey.py", "PHASE3_ROADMAP_GAP_SURVEY=fail", "roadmap-gap", "missing_roadmap_anchor"),',
-                    '    ("check-phase3-build-roots.py", "PHASE3_BUILD_ROOTS=fail", "build-roots", "missing_root"),',
-                    '    ("validate-phase3-rbtree-interop-survey.py", "PHASE3_RBTREE_INTEROP_SURVEY=fail", "rbtree-gap", "missing_rbtree_anchor"),',
-                    '    ("check-phase3-rbtree-shared-lift-contract.py", "PHASE3_RBTREE_SHARED_LIFT_CONTRACT=fail", "shared-lift", "missing_contract_anchor"),',
-                    '    ("check-phase3-abi-binding-constants.py", "PHASE3_ABI_BINDING_CONSTANTS=fail", "abi-binding-constants", "missing_binding_constant_anchor"),',
-                    ")",
-                    'BUILD_ROOT_DRIFT_SCRIPT = ("check-phase3-build-roots.py", "PHASE3_BUILD_ROOTS=fail", "build-roots", "missing_root")',
-                    'CANONICAL_SURVEY_MANIFEST_SCRIPT = ("check-phase3-canonical-survey-manifest.py", "PHASE3_CANONICAL_SURVEY_MANIFEST=fail", "canonical-manifest", "missing_manifest_anchor")',
-                    "",
-                )
-            ),
+            _fixture_validator("validate_phase3_header_binding_markers.py"),
         )
         issues = validate(root)
-        expected = ["duplicate_readme_tooling_file:scripts/zigux/check-phase3-build-roots.py"]
+        expected = [
+            "duplicate_readme_tooling_file:scripts/zigux/validate_phase3_header_binding_markers.py"
+        ]
         if issues != expected:
             raise SystemExit(
-                "phase3-tooling-packet-self-test:duplicate_readme_tooling_file_guard_failed:"
+                "phase3-tooling-packet-self-test:duplicate_header_binding_guard_failed:"
                 + (",".join(issues) if issues else "none")
             )
 
     print("PHASE3_TOOLING_PACKET_SELF_TEST=pass")
-    print("PHASE3_TOOLING_PACKET_SELF_TEST_CASE_COUNT=4")
+    print("PHASE3_TOOLING_PACKET_SELF_TEST_CASE_COUNT=5")
     return 0
 
 
