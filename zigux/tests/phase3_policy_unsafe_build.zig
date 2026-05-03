@@ -21,12 +21,18 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     allocator_policy_module.addImport("abi_bindings", abi_bindings_module);
+    const rbtree_bindings_module = b.createModule(.{
+        .root_source_file = b.path("../bindings/rbtree.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
     const layout_assert_module = b.createModule(.{
         .root_source_file = b.path("../helpers/layout_assert.zig"),
         .target = target,
         .optimize = optimize,
     });
     layout_assert_module.addImport("abi_bindings", abi_bindings_module);
+    layout_assert_module.addImport("rbtree_bindings", rbtree_bindings_module);
     const narrow_unsafe_module = b.createModule(.{
         .root_source_file = b.path("../unsafe/narrow.zig"),
         .target = target,
