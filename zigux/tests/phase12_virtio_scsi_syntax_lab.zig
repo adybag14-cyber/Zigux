@@ -12,6 +12,7 @@ test "phase12 virtio scsi syntax lab keeps bounded queue exports reachable" {
     _ = virtio_scsi.RecoverySummary;
     _ = virtio_scsi.RecoveryQueuePlan;
     _ = virtio_scsi.RecoveryIoQueueMapSummary;
+    _ = virtio_scsi.RecoveryRestoreSummary;
     _ = virtio_scsi.ProbeRequest;
     _ = virtio_scsi.ProbeSnapshot;
     _ = virtio_scsi.HostLimitRequest;
