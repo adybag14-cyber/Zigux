@@ -836,8 +836,41 @@ def run_self_test() -> int:
                 + (",".join(issues) if issues else "none")
             )
 
+        (root / README_TOOLING_INVENTORY_REL).unlink()
+        issues = validate(root)
+        expected = [f"missing_file:{README_TOOLING_INVENTORY_REL}"]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-validation-flow-self-test:missing_phase3_flow_contract_file_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+        _write(root, README_TOOLING_INVENTORY_REL, "OTHER = ()\n")
+        issues = validate(root)
+        expected = ["missing_phase3_flow_contract:REQUIRED_PHASE3_FLOW_SNIPPETS"]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-validation-flow-self-test:missing_phase3_flow_contract_constant_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+        _write(
+            root,
+            README_TOOLING_INVENTORY_REL,
+            _fixture_readme_tooling_inventory(DEFAULT_PHASE3_README_FLOW_SNIPPETS[0]),
+        )
+        issues = validate(root)
+        expected = [
+            f"unexpected_phase3_flow_contract_count:1:{EXPECTED_PHASE3_README_FLOW_COUNT}",
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-validation-flow-self-test:unexpected_phase3_flow_contract_count_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
         print("PHASE3_VALIDATION_FLOW_SELF_TEST=pass")
-        print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=53")
+        print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=56")
         return 0
 
 
