@@ -60,6 +60,8 @@ README_MARKERS = [
     "only remaining blocked work is the deep-core status-change evidence",
     "Documentation/zigux/phase15-indefinite-c-policy.md",
     "Documentation/zigux/phase15-handoff-next-steps-survey.md",
+    "python3 scripts/zigux/validate-phase15.py",
+    "make -C zigux phase15-validate",
 ]
 
 SCRIPTS_README_MARKERS = [
@@ -192,6 +194,8 @@ DOCS_ROOT_REVIEWABILITY_MARKERS = [
     "Documentation/zigux/phase15-indefinite-c-policy.md",
     "Documentation/zigux/phase15-readiness-gate-survey.md",
     "Documentation/zigux/phase15-handoff-next-steps-survey.md",
+    "python3 scripts/zigux/validate-phase15.py",
+    "make -C zigux phase15-validate",
     "only remaining blocked work is the deep-core status-change evidence",
     "docs-root Phase 15 summary now matches the dedicated readiness and handoff packet",
     "phase15-docs-root-summary-alignment",
