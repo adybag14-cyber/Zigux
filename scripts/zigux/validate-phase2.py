@@ -49,7 +49,7 @@ REQUIRED_PHASE2_FILES = [
     PHASE2_CROSS_ALIGNMENT_CHECKER,
     PHASE2_CROSS_CHECKER,
     TOOLCHAIN_PIN_SCOPE_CHECKER,
-    ROOT / "scripts" / "zigux" / "check-mk_elfconfig-diff.py",
+    ROOT / "scripts" / "zigux" / "check-mk-elfconfig-diff.py",
     ROOT / "scripts" / "zigux" / "fixdep.zig",
     ROOT / "scripts" / "zigux" / "genksyms.zig",
     ROOT / "scripts" / "zigux" / "genksyms_crc.zig",
