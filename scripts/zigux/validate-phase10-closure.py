@@ -93,7 +93,7 @@ EXPECTED_CLOSURE_MANIFEST = {
 }
 
 EXPECTED_SURVEYED_COMMITS = {
-    "core": "f5a4d6990f701937b2a3bb9ae723bb6d0f27ba21",
+    "core": "d30cbe483a2f019ae797b309a29556bd58fe00d0",
     "ring": "fe8a43ea2e186da0da152198b571dff57ea3c38c",
     "input": "f5a4d6990f701937b2a3bb9ae723bb6d0f27ba21",
     "mmio": "0945df1cf664a3582d7241f859183a13f3f04adb",
