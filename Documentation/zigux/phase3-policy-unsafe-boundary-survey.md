@@ -4,7 +4,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 
 ## Status
 
-- `PHASE3_SURVEYED_COMMIT=524d3a92b5a8b468149c2c20bf4c7a23ae96705a`
+- `PHASE3_SURVEYED_COMMIT=010a97372666e2d3ee308616ba19eb48fa24f0b9`
 - `PHASE3_LAYOUT_ASSERT_PATH=zigux/helpers/layout_assert.zig`
 - `PHASE3_LAYOUT_ASSERT_SCOPE=canonical-bindings`
 - `PHASE3_LAYOUT_ASSERT_STATUS=canonical-layout-assertions-landed`
@@ -28,7 +28,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_MMIO_TYPED_POLICY_CONSUMER=zigux/helpers/mmio.zig`
 - `PHASE3_ABI_SLICE_DOC_BLOB_SHA=896b72546a4f2d124453956db41ea95b0a48cd3d`
 - `PHASE3_POLICY_UNSAFE_BUILD_BLOB_SHA=b8b22a949673c47f3512aac54bfa643cd593600c`
-- `PHASE3_POLICY_UNSAFE_TEST_BLOB_SHA=275d367f35ad9f19f21b1ce481349799b27cafb5`
+- `PHASE3_POLICY_UNSAFE_TEST_BLOB_SHA=12c752cdc3c83f1575402fd1523ed42229c0a47b`
 - `PHASE3_ABI_MANIFEST_BLOB_SHA=06f0da0e3c00bc3205c2d7fe73cfe6376a0e1b2e`
 - `PHASE3_POLICY_UNSAFE_GATE=zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig`
 - `PHASE3_BOUNDARY_GAP=typed-policy-mmio-consumer-landed-no-third-boundary-helper-beyond-focused-replay`
@@ -50,7 +50,7 @@ It does require the current tree to say clearly which policy rules are already l
 
 ## Live Repo Reality
 
-This survey is pinned to verified `master` head `524d3a92b5a8b468149c2c20bf4c7a23ae96705a` for the directly coupled policy-and-unsafe packet, and it now also records packet-local blob IDs for the curated helper, build, test, manifest, and slice-note files so shallow history alone does not turn a reviewable packet into a false validation failure.
+This survey is pinned to verified `master` head `010a97372666e2d3ee308616ba19eb48fa24f0b9` for the directly coupled policy-and-unsafe packet, and it now also records packet-local blob IDs for the curated helper, build, test, manifest, and slice-note files so shallow history alone does not turn a reviewable packet into a false validation failure.
 
 The current tree already carries a real bounded policy-and-unsafe substrate:
 
