@@ -557,9 +557,10 @@ fn rbtreeBench() struct {
         while (safe_iterator.next()) |node| {
             const entry: *const RbEntry = @fieldParentPtr("node", node);
             postorder_safe_checksum +%= @intCast(entry.key + 89);
-            rbtree.clearNode(node);
+            rbtree.eraseInit(node, &safe_root);
             postorder_safe_checksum +%= @intFromBool(rbtree.emptyNode(node));
         }
+        postorder_safe_checksum +%= @intFromBool(rbtree.emptyRoot(&safe_root));
         postorder_safe_checksum +%= @intFromBool(safe_iterator.next() == null);
 
         var duplicate_entries = [_]RbDuplicateEntry{
