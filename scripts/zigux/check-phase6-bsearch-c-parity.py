@@ -175,16 +175,14 @@ def run_self_test() -> int:
         "phase6-bsearch-c-parity:self-test-unexpected-case:unexpected_output:"
         f"expected={EXPECTED_SORTED_LINES!r}:actual={unexpected_lines!r}",
     )
+    missing_runtime_raw_descending = [
+        line for line in EXPECTED_SORTED_LINES if line != "runtime-raw-miss-descending\t20\tnull"
+    ]
     expect_system_exit(
-        "mismatch_surface",
-        lambda: validate_matching_surface(
-            ["u32-hit\t3\t0", "runtime-typed-hit\t55\t5"],
-            ["u32-hit\t3\t0", "runtime-typed-hit\t55\t4"],
-            "self-test-mismatch",
-        ),
-        "phase6-bsearch-c-parity:self-test-mismatch:c_output_mismatch:"
-        "expected=['u32-hit\\t3\\t0', 'runtime-typed-hit\\t55\\t5']:"
-        "actual=['u32-hit\\t3\\t0', 'runtime-typed-hit\\t55\\t4']",
+        "missing_case",
+        lambda: validate_expected_surface(missing_runtime_raw_descending, "self-test-missing-case"),
+        "phase6-bsearch-c-parity:self-test-missing-case:unexpected_output:"
+        f"expected={EXPECTED_SORTED_LINES!r}:actual={missing_runtime_raw_descending!r}",
     )
     print("PHASE6_BSEARCH_C_PARITY_SELF_TEST=pass")
     print("PHASE6_BSEARCH_C_PARITY_SELF_TEST_CASE_COUNT=6")
