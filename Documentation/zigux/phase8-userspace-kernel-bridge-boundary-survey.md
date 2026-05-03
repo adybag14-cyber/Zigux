@@ -70,6 +70,13 @@ The current bridge packet now matches the roadmap shape, but it still leaves a b
 - `tools/lib/bpf/zigux_segments/`: the repo now meets the segmented-plan requirement through helper-first starter slices plus the bounded perf-buffer poll adjunct, but the remaining roadmap gap is still direct `/proc/.../fdinfo` reads, `open()` or `close()` ownership, `bpf_obj_get()` reopen flows, `bpf_token_create()` handle lifecycle parity, `perf-buffer-online-cpu-routing`, and the blocked object-model or ELF-loader follow-ons
 - `output-stable tooling behavior`: the repo currently proves this only for helper-local command formatting and reviewable wait-result summaries, so it still does not claim live command execution, full directory-backed command discovery, or broader libbpf runtime output behavior
 
+## Tooling lane sequencing
+
+- `exec-cmd`, `help`, and `kallsyms` remain packet-local tooling lanes. Their next follow-up should stay inside the owning helper, focused Phase 8 test, slice note, and directly coupled checklist wording instead of reopening the shared bridge packet to repeat helper-local evidence.
+- `Documentation/zigux/phase8-libbpf-segment-survey.md` plus `tools/lib/bpf/zigux_segments/manifest.json` remain the owning packet for the eleven-segment libbpf catalog and the six landed helper-first starter slices. This bridge note may reference that catalog, but it should not retag segment ownership, restate catalog counts as new progress, or absorb helper-local gate details that belong to the survey packet.
+- `Documentation/zigux/phase8-perf-buffer-poll-slice.md`, `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`, and `zigux/tests/phase8_perf_buffer_poll.zig` own the bounded wait-result and ready-buffer bookkeeping adjunct. This shared bridge packet only names that helper as a neighboring boundary and must not treat it as closure for the broader `perf-buffer-online-cpu-routing` segment.
+- the shared bridge packet owns only the cross-lane deferral wording: direct process launch, directory and terminal probes, `/proc/.../fdinfo` reads, bpffs handle lifecycle, and interrupt-routing-sensitive perf-buffer behavior. If one of those boundaries moves, refresh this note and the directly coupled shared Phase 8 survey gates without duplicating helper-local test growth across the packet-local tooling lanes.
+
 ## Review gate
 
 The shared review path still follows the same validator-first Phase 8 sequence that current `master` publishes through `zigux/Makefile`: the broader validator self-test runs first, the dedicated validator-route audit plus the dedicated tests-readme alignment checker and the dedicated perf-buffer poll gate checker each keep their self-test and live pass inside the same fail-closed packet, and only then do the focused survey, focused perf-buffer poll shard, and shared build replays run, so this cross-slice boundary note stays tied to the same docs-root, tests-root, Makefile, workflow, and segmented libbpf packet that current `master` already ships.
@@ -114,4 +121,4 @@ This survey does not reopen or claim:
 
 ## Next bounded step
 
-Keep the current Phase 8 bridge packet parked unless repo reality exposes one more helper-first tooling slice that stays smaller than the existing deferred command or handle boundaries. If this note reopens, the next honest move should still be survey or validator precision around those explicit boundaries rather than widening into direct syscall-backed, parser-emission, or process-launch behavior.
+Keep this shared bridge packet parked unless repo reality changes one of the shared deferred boundaries or exposes a real cross-lane overlap risk inside the current Phase 8 tooling packet. The next honest move should refresh this note plus the directly coupled shared survey gates, not reopen helper-local `exec-cmd`, `help`, `kallsyms`, or libbpf catalog packets just to restate already-landed evidence.
