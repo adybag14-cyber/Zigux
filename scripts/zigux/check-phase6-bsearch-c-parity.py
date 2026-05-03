@@ -158,11 +158,21 @@ def run_self_test() -> int:
         "missing runner: /tmp/phase6-missing-runner.zig",
     )
     build_text = build_zig_build_text()
+    descending_runtime_lines = {
+        "descending-hit\t34\t2",
+        "descending-miss\t20\tnull",
+        "runtime-typed-hit\t34\t2",
+        "runtime-typed-miss-descending\t20\tnull",
+        "runtime-raw-hit\t34\t2",
+        "runtime-raw-miss-descending\t20\tnull",
+    }
     assert_equal(
         "build_text_paths",
         'root_module.addImport("bsearch", bsearch_module);' in build_text
         and str(ROOT / "lib" / "bsearch.zig") in build_text
         and str(ZIG_RUNNER) in build_text
+        and len(EXPECTED_SORTED_LINES) == 29
+        and descending_runtime_lines.issubset(EXPECTED_SORTED_LINES)
         and sorted_lines("mutable-hit\t34\t35\nascending-hit\t34\t4\n") == ["ascending-hit\t34\t4", "mutable-hit\t34\t35"],
         True,
     )
