@@ -223,6 +223,35 @@ def run_self_test() -> int:
         assert "missing_policy_test_snippet:try std.testing.expectError(error.UnsafeScopeDenied, none_policy.constPointerAt(u32, base));" in issues
 
         _write(root, POLICY_TEST_REL, "\n".join(REQUIRED_POLICY_TEST_SNIPPETS) + "\n")
+        _write(root, SURVEY_REL, "\n".join(
+            (
+                "# Phase 3 Policy and Unsafe Boundary Survey",
+                "",
+                "- `PHASE3_BOUNDARY_GAP=typed-policy-mmio-consumer-landed-no-third-boundary-helper-beyond-focused-replay`",
+                "- `PHASE3_NEXT_BOUNDED_STEP=keep-the-policy-and-unsafe-surface-narrow-until-one-roadmap-backed-helper-beyond-mmio-needs-a-typed-interop-policy-consumer`",
+                "",
+                *REQUIRED_SURVEY_SNIPPETS,
+                "",
+            )
+        ) + "\n")
+        issues = validate(root)
+        assert (
+            "missing_survey_marker:PHASE3_MMIO_TYPED_POLICY_CONSUMER=zigux/helpers/mmio.zig"
+            in issues
+        )
+
+        _write(root, SURVEY_REL, "\n".join(
+            (
+                "# Phase 3 Policy and Unsafe Boundary Survey",
+                "",
+                "- `PHASE3_MMIO_TYPED_POLICY_CONSUMER=zigux/helpers/mmio.zig`",
+                "- `PHASE3_BOUNDARY_GAP=typed-policy-mmio-consumer-landed-no-third-boundary-helper-beyond-focused-replay`",
+                "- `PHASE3_NEXT_BOUNDED_STEP=keep-the-policy-and-unsafe-surface-narrow-until-one-roadmap-backed-helper-beyond-mmio-needs-a-typed-interop-policy-consumer`",
+                "",
+                *REQUIRED_SURVEY_SNIPPETS,
+                "",
+            )
+        ) + "\n")
         _write(
             root,
             POLICY_BUILD_REL,
