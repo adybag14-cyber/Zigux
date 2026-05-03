@@ -17,10 +17,13 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase12-raw-github-coverage-survey.md",
     "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md",
     "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md",
+    "Documentation/zigux/phase12-libbpf-segment-survey.md",
     "scripts/zigux/README.md",
     "scripts/zigux/check-phase12-cross.py",
+    "scripts/zigux/check-phase12-libbpf-focused-replay.py",
     "scripts/zigux/check-phase12-release-readiness-packet.py",
     "scripts/zigux/validate-phase12.py",
+    "zigux/tests/phase12_libbpf_only_build.zig",
     "zigux/Makefile",
 ]
 
@@ -265,6 +268,54 @@ def run_self_test() -> int:
     missing = collect_missing(
         **{
             **base_inputs,
+            "present_files": {
+                path
+                for path in REQUIRED_FILES
+                if path != "Documentation/zigux/phase12-libbpf-segment-survey.md"
+            },
+        }
+    )
+    expect_contains(
+        "libbpf_survey_file_detection",
+        missing,
+        "missing_file:Documentation/zigux/phase12-libbpf-segment-survey.md",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "present_files": {
+                path
+                for path in REQUIRED_FILES
+                if path != "scripts/zigux/check-phase12-libbpf-focused-replay.py"
+            },
+        }
+    )
+    expect_contains(
+        "focused_replay_checker_file_detection",
+        missing,
+        "missing_file:scripts/zigux/check-phase12-libbpf-focused-replay.py",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "present_files": {
+                path
+                for path in REQUIRED_FILES
+                if path != "zigux/tests/phase12_libbpf_only_build.zig"
+            },
+        }
+    )
+    expect_contains(
+        "focused_replay_build_file_detection",
+        missing,
+        "missing_file:zigux/tests/phase12_libbpf_only_build.zig",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
             "survey_text": base_inputs["survey_text"].replace(
                 "PHASE12_RELEASE_CLOSED=no\n",
                 "",
@@ -474,7 +525,7 @@ def run_self_test() -> int:
     expect_contains("raw_coverage_marker_detection", missing, "raw_coverage:shared-tree-only")
 
     print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST=pass")
-    print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT=20")
+    print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT=23")
     return 0
 
 
