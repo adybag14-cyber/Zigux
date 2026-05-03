@@ -37,6 +37,22 @@ REQUIRED_FILE_RELS = [
     "zigux/tests/phase1_bench.zig",
 ]
 
+REQUIRED_HELPERS = [
+    "tools/lib/argv_split.zig",
+    "tools/lib/bitmap.zig",
+    "tools/lib/cmdline.zig",
+    "tools/lib/ctype.zig",
+    "tools/lib/find_bit.zig",
+    "tools/lib/hweight.zig",
+    "tools/lib/list_sort.zig",
+    "tools/lib/rbtree.zig",
+    "tools/lib/slab.zig",
+    "tools/lib/str_error_r.zig",
+    "tools/lib/string.zig",
+    "tools/lib/vsprintf.zig",
+    "tools/lib/zalloc.zig",
+]
+
 REQUIRED_DOCS_ROOT_MARKERS = [
     "- `Documentation/zigux/phase1-closure.md` remains the dedicated closure packet for the bounded host-side `tools/lib/*.zig` helper tranche, and `zigux/tests/fixtures/phase1_helper_manifest.json` plus `zigux/tests/phase1_helpers.zig` keep the closed helper inventory and parity-backed replay surface explicit from the docs root.",
     "- `python3 scripts/zigux/validate-phase1.py`, `python3 scripts/zigux/validate-phase1-closure.py`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` are the current validator-first and replay entrypoints for that bounded host-side helper packet.",
@@ -264,6 +280,8 @@ def validate_manifest(missing: list[str]) -> None:
         missing.append("manifest:status=closed")
     if manifest.get("helper_count") != 13:
         missing.append("manifest:helper_count=13")
+    if manifest.get("helpers") != REQUIRED_HELPERS:
+        missing.append("manifest:helpers")
     review = manifest.get("helper_review_notes", {})
     for helper, fields in REQUIRED_MANIFEST_FIELDS.items():
         actual = review.get(helper, {})
@@ -343,6 +361,7 @@ def fixture_manifest() -> dict[str, object]:
         "phase": "Phase 1",
         "status": "closed",
         "helper_count": 13,
+        "helpers": REQUIRED_HELPERS,
         "helper_review_notes": review,
     }
 
@@ -448,6 +467,12 @@ def self_test() -> int:
         expect_failure(root, "manifest:tools/lib/rbtree.zig:postorder_safe_rebalance_unit_test_contract")
         write(root / "zigux/tests/fixtures/phase1_helper_manifest.json", json.dumps(fixture_manifest(), indent=2) + "\n")
 
+        manifest = fixture_manifest()
+        manifest["helpers"] = REQUIRED_HELPERS[:-1]
+        write(root / "zigux/tests/fixtures/phase1_helper_manifest.json", json.dumps(manifest, indent=2) + "\n")
+        expect_failure(root, "manifest:helpers")
+        write(root / "zigux/tests/fixtures/phase1_helper_manifest.json", json.dumps(fixture_manifest(), indent=2) + "\n")
+
         expectations = fixture_expectations()
         expectations["exact_checksums"]["PHASE1_BENCH_STRING_MEMPARSE_CHECKSUM"] = 1
         write(root / "zigux/tests/fixtures/phase1_bench_expectations.json", json.dumps(expectations, indent=2) + "\n")
@@ -464,7 +489,7 @@ def self_test() -> int:
         expect_failure(root, "rbtree_source:unexpected_alias:pub fn rb_first(")
 
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=13")
+    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
