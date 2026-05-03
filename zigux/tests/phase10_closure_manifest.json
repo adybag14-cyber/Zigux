@@ -99,6 +99,7 @@
         "samples/zigux/runtime_atomic64_loader.zig",
         "samples/zigux/runtime_bitmap_loader.zig",
         "samples/zigux/runtime_kretprobe_loader.zig",
+        "samples/zigux/runtime_trace_events_loader.zig",
         "samples/zigux/runtime_trace_events.zig"
       ]
     }
