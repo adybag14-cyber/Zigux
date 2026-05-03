@@ -73,8 +73,8 @@ CATALOG_MARKERS = [
     "PHASE6_BASE64_C_PARITY_CASES=122",
     "PHASE6_BSEARCH_C_PARITY_SELF_TEST_CASE_COUNT=6",
     "PHASE6_BSEARCH_C_PARITY_CASES=29",
-    "PHASE6_CHECKSUM_C_PARITY_SELF_TEST_CASE_COUNT=10",
-    "PHASE6_CHECKSUM_C_PARITY_CASES=22",
+    "PHASE6_CHECKSUM_C_PARITY_SELF_TEST_CASE_COUNT=11",
+    "PHASE6_CHECKSUM_C_PARITY_CASES=27",
     "PHASE6_HEXDUMP_C_PARITY_SELF_TEST_CASE_COUNT=8",
     "PHASE6_HEXDUMP_C_PARITY_CASES=29",
     "max_encode_slowdown_pct = 190",
@@ -110,7 +110,7 @@ BSEARCH_SLICE_MARKERS = [
 ]
 
 CHECKSUM_SLICE_MARKERS = [
-    "an external C-vs-Zig spot check through `python3 scripts/zigux/check-phase6-checksum-c-parity.py`, `zigux/tests/phase6_checksum_c_parity.zig`, and `zigux/tests/fixtures/phase6_checksum_c_harness.c` so the current `lib/checksum.c` arithmetic surface stays directly reviewable beside the committed Zig fixture packet; the live parity runner now replays 22 direct outputs across 5 compute cases, 3 seeded partial cases, 2 composition cases, 1 IPv4 pseudo-header nofold case, 3 IPv6 pseudo-header nofold cases, 4 carry-discipline folds, and 4 incremental replacement outputs",
+    "an external C-vs-Zig spot check through `python3 scripts/zigux/check-phase6-checksum-c-parity.py`, `zigux/tests/phase6_checksum_c_parity.zig`, and `zigux/tests/fixtures/phase6_checksum_c_harness.c` so the current `lib/checksum.c` arithmetic surface stays directly reviewable beside the committed Zig fixture packet; the live parity runner now replays 27 direct outputs across 5 compute cases, 3 seeded partial cases, 2 composition cases, 1 IPv4 pseudo-header nofold case, 3 IPv6 pseudo-header nofold cases, 4 carry-discipline folds, 5 direct `add16` and `sub16` carry-helper outputs, and 4 incremental replacement outputs",
     "a replayable perf-sanity harness reports representative checksum cost per call and per byte while rechecking parity against the widened-accumulator `referencePartial` path on deterministic 64-byte and 1501-byte payloads, and it currently fail-closes on `max_slowdown_pct = 150` for both committed perf cases",
 ]
 
@@ -212,7 +212,7 @@ BSEARCH_PARITY_HARNESS_MARKERS = [
 
 CHECKSUM_PARITY_SCRIPT_MARKERS = [
     'print("PHASE6_CHECKSUM_C_PARITY_SELF_TEST=pass")',
-    'print("PHASE6_CHECKSUM_C_PARITY_SELF_TEST_CASE_COUNT=10")',
+    'print("PHASE6_CHECKSUM_C_PARITY_SELF_TEST_CASE_COUNT=11")',
     'print(f"PHASE6_CHECKSUM_C_PARITY_CASES={len(c_lines)}")',
 ]
 
@@ -318,8 +318,8 @@ EXPECTED_CHECKSUM_DETERMINISM = {
     "ipv6_pseudo_header_vectors": 3,
     "carry_discipline_vectors": 4,
     "kunit_random_prefix_vectors": 6,
-    "c_parity_self_test_cases": 10,
-    "c_parity_cases": 22,
+    "c_parity_self_test_cases": 11,
+    "c_parity_cases": 27,
 }
 
 EXPECTED_HEXDUMP_DETERMINISM = {
@@ -710,8 +710,8 @@ def run_self_test() -> int:
 
             build_self_test_tree(root)
             catalog = root / "Documentation/zigux/phase6-helper-parity-catalog.md"
-            catalog.write_text(catalog.read_text(encoding="utf-8").replace("PHASE6_CHECKSUM_C_PARITY_CASES=22", "", 1), encoding="utf-8")
-            expect_contains(validate_phase6(root), "catalog:missing:PHASE6_CHECKSUM_C_PARITY_CASES=22")
+            catalog.write_text(catalog.read_text(encoding="utf-8").replace("PHASE6_CHECKSUM_C_PARITY_CASES=27", "", 1), encoding="utf-8")
+            expect_contains(validate_phase6(root), "catalog:missing:PHASE6_CHECKSUM_C_PARITY_CASES=27")
             count += 1
 
             build_self_test_tree(root)
@@ -831,7 +831,7 @@ def run_self_test() -> int:
 
             build_self_test_tree(root)
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-            manifest["determinism_evidence"]["checksum"]["c_parity_cases"] = 21
+            manifest["determinism_evidence"]["checksum"]["c_parity_cases"] = 26
             manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
             expect_contains(validate_phase6(root), "manifest:determinism_evidence:checksum")
             count += 1
