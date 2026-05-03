@@ -176,4 +176,4 @@ Why this packet belongs here but stays outside the anchor count:
 Traceability consequence:
 - the four roadmap anchors above remain the only Phase 13 anchor count for this note
 - the notifier-list packet is supporting evidence for the current shared-helper tranche, not a substitute for `fs/libfs.c`, `lib/devres.c`, `security/landlock/ruleset.c`, or `security/landlock/syscalls.c`
-- future release-note or checklist updates should keep this packet visible as adjacent reviewability evidence, including the dedicated exported C header, while continuing to describe Phase 13 closure through the four manifest-backed roadmap anchors only
+- future docs-root, release-note, or checklist updates should keep the dedicated `zigux/tests/phase13_landlock_syscalls_reviewability.zig` gate visible together with the roadmap-adjacent notifier packet, including `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, `include/zigux/notifier_abi.h`, and `zigux/helpers/notifier_chain_view.zig`, while continuing to describe Phase 13 closure through the four manifest-backed roadmap anchors only
