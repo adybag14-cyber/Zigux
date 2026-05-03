@@ -26,7 +26,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `lib
 
 The Phase 9 roadmap explicitly names `lib/test_bitmap.c` as a runtime pilot anchor and recommends `zigux/tests/runtime_*` plus `samples/zigux/runtime_*` as the bounded Zigux destinations.
 
-The live repo originally needed a survey-shaped review anchor that could record what the runtime bitmap lane had already shipped versus what still depends on a shared runtime substrate. This note stays in place after the bounded starter sample, direct sample leg, direct module leg, direct diff leg, direct loader leg, module gate, diff gate, loader scaffold, and shared loader-request binding landed, so the lane can keep comparing the current pilot-module surface against the roadmap without pretending that Zigux already has a real loadable bitmap module.
+This survey-shaped review anchor records what the runtime bitmap lane has already shipped versus what still depends on a shared runtime substrate. This note stays in place after the bounded starter sample, direct sample leg, direct module leg, direct diff leg, direct loader leg, module gate, diff gate, loader scaffold, and shared loader-request binding landed, so the lane can keep comparing the current pilot-module surface against the roadmap without pretending that Zigux already has a real loadable bitmap module.
 
 This survey note is also not a Phase 5 sample-root approval: `samples/zigux/runtime_bitmap.zig` and `samples/zigux/runtime_bitmap_loader.zig` stay here as the separate Phase 9 runtime bitmap pilot rooted in `lib/test_bitmap.c`, not as a fifth approved Phase 5 reference idiom under `samples/zigux/`.
 
