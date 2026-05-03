@@ -55,7 +55,7 @@ Keep the shared release replay packet explicit:
 - `scripts/zigux/validate-phase13-release.py`
 
 Tests-root reviewer prompt:
-- Do the shared Phase 13 build, the four roadmap-anchor manifests, the dedicated devres packet guard, the Landlock syscall reviewability replay, and the adjacent notifier reviewability packet still name the same validator-first release path and evidence bundle instead of drifting into separate stories?
+- Do the shared Phase 13 build, the four roadmap-anchor manifests plus the adjacent notifier-list manifest, the dedicated devres packet guard, the Landlock syscall reviewability replay, and the adjacent notifier reviewability packet still name the same validator-first release path and evidence bundle instead of drifting into separate stories?
 
 ## Checklist carryover prompts
 
