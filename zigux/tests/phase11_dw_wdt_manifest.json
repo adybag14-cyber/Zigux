@@ -1,7 +1,7 @@
 {
-  "lane_key": "P11-L11",
+  "lane_key": "P11-L10",
   "phase": "Phase 11",
-  "surveyed_commit": "b2deef651d140045bdfb1d3675a3c18fde80de0e",
+  "surveyed_commit": "907e65f13e0035306d4106dec0ca3b3eb2fc7179",
   "anchor": "drivers/watchdog/dw_wdt.c",
   "roadmap_destinations": [
     "drivers/watchdog/*.zig",
@@ -44,7 +44,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase11-dw-wdt-survey.md",
-      "why_now": "The survey note now anchors the live dw_wdt lane to `master` `b2deef651d140045bdfb1d3675a3c18fde80de0e` so later runs can extend the same Phase 11 slice without rediscovering the landed platform-resource preflight packet, remove-handoff teardown evidence, validation-matrix evidence, or the current review packet provenance."
+      "why_now": "The survey note now anchors the live dw_wdt lane to `master` `907e65f13e0035306d4106dec0ca3b3eb2fc7179` so later runs can extend the same Phase 11 slice without rediscovering the landed platform-resource preflight packet, remove-handoff teardown evidence, validation-matrix evidence, or the current review packet provenance."
     },
     {
       "id": "phase11-dw-wdt-driver-starter",
