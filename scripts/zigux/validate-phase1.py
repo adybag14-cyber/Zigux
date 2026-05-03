@@ -141,7 +141,16 @@ FIXTURE_SHAPE = {
         "cleared_node_empty",
     },
     "argv_split": {"argc", "argv", "blank_argc"},
-    "cmdline": {"decimal_k", "hex_m", "octal_k", "invalid"},
+    "cmdline": {
+        "decimal_k",
+        "hex_m",
+        "octal_k",
+        "invalid",
+        "kib",
+        "mb",
+        "gib",
+        "lowercase_kib",
+    },
     "ctype": {
         "mask_A",
         "mask_a",
