@@ -13,6 +13,7 @@ The live repo state is now:
 - `drivers/tty/hvc/hvc_console.h` still routes its exported resize surface through `struct winsize`, so `include/uapi/asm-generic/termios.h` remains the owner of `ws_row`, `ws_col`, `ws_xpixel`, and `ws_ypixel` rather than the Phase 11 hvc starter
 - the shared Phase 11 header survey gate now also carries one bounded `layout_assert` checkpoint for `struct winsize`, pinning size 8, alignment 2, exact `u16` field types, and field offsets 0, 2, 4, and 6 so the hvc resize boundary stays reviewable without claiming tty-core or `struct hvc_struct` ownership
 - `zigux/tests/phase11_build.zig` now replays the shared Phase 11 UAPI or driver-header survey gate alongside the watchdog starter and watchdog survey tests plus the bounded `hvc_console` starter test, while `zigux/tests/phase11_hvc_console_survey.zig` remains a dedicated replay path recorded by `zigux/tests/fixtures/phase11_build_inventory.json`
+- `scripts/zigux/check-phase11-header-boundary-packet.py`, `make -C zigux phase11-validate`, and the bootstrap workflow step `Validate Phase 11 header boundary packet` now keep this shared header packet explicit before the broader `Validate Phase 11 simple-driver bundle` gate claims aligned delivery evidence
 
 This shared lane still does not claim full UAPI ownership, watchdog-core parity, tty-core parity, `struct hvc_struct` parity, or a reusable interop substrate for shared public headers.
 
