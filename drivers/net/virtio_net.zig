@@ -186,6 +186,8 @@ pub const MergeableReceiveRefillSummary = struct {
     packet_budget_bytes: u32,
     min_buf_len_bytes: u32,
     required_headroom_bytes: u16,
+    recycled_room_bytes: u32,
+    fresh_allocation_bytes: u32,
     big_packet_reason: BigPacketReason,
 };
 
@@ -512,6 +514,11 @@ pub const VirtioNetProbeLab = struct {
             @max(@max(per_buffer_budget, hdr_len_bytes) - hdr_len_bytes, good_packet_len)
         else
             good_packet_len;
+        const recycled_room_bytes = if (snapshot.mergeable_rx_buffers)
+            @min(@as(u32, snapshot.required_headroom_bytes), min_buf_len_bytes)
+        else
+            0;
+        const fresh_allocation_bytes = min_buf_len_bytes - recycled_room_bytes;
 
         return .{
             .anchor = descriptor().anchor,
@@ -520,6 +527,8 @@ pub const VirtioNetProbeLab = struct {
             .packet_budget_bytes = packet_budget_bytes,
             .min_buf_len_bytes = min_buf_len_bytes,
             .required_headroom_bytes = snapshot.required_headroom_bytes,
+            .recycled_room_bytes = recycled_room_bytes,
+            .fresh_allocation_bytes = fresh_allocation_bytes,
             .big_packet_reason = snapshot.big_packet_reason,
         };
     }
