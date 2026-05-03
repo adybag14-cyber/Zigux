@@ -108,6 +108,71 @@ pub fn assertCpuMaskViewLayout() void {
     assertOffset(abi.CpuMaskView, "reserved", @sizeOf(usize) + 4);
 }
 
+pub fn assertListHeadRefLayout() void {
+    assertSize(abi.ListHeadRef, @sizeOf(usize) * 2);
+    assertAlign(abi.ListHeadRef, @alignOf(usize));
+    assertFieldType(abi.ListHeadRef, "next_addr", usize);
+    assertFieldType(abi.ListHeadRef, "prev_addr", usize);
+    assertOffset(abi.ListHeadRef, "next_addr", 0);
+    assertOffset(abi.ListHeadRef, "prev_addr", @sizeOf(usize));
+}
+
+pub fn assertListViewLayout() void {
+    assertSize(abi.ListView, @sizeOf(usize) + 8);
+    assertAlign(abi.ListView, @alignOf(usize));
+    assertFieldType(abi.ListView, "head_addr", usize);
+    assertFieldType(abi.ListView, "max_nodes", u32);
+    assertFieldType(abi.ListView, "reserved", u32);
+    assertOffset(abi.ListView, "head_addr", 0);
+    assertOffset(abi.ListView, "max_nodes", @sizeOf(usize));
+    assertOffset(abi.ListView, "reserved", @sizeOf(usize) + 4);
+}
+
+pub fn assertListSummaryLayout() void {
+    assertSize(abi.ListSummary, 8);
+    assertAlign(abi.ListSummary, 4);
+    assertFieldType(abi.ListSummary, "length", u32);
+    assertFieldType(abi.ListSummary, "flags", u32);
+    assertOffset(abi.ListSummary, "length", 0);
+    assertOffset(abi.ListSummary, "flags", 4);
+}
+
+pub fn assertHListHeadRefLayout() void {
+    assertSize(abi.HListHeadRef, @sizeOf(usize));
+    assertAlign(abi.HListHeadRef, @alignOf(usize));
+    assertFieldType(abi.HListHeadRef, "first_addr", usize);
+    assertOffset(abi.HListHeadRef, "first_addr", 0);
+}
+
+pub fn assertHListNodeRefLayout() void {
+    assertSize(abi.HListNodeRef, @sizeOf(usize) * 2);
+    assertAlign(abi.HListNodeRef, @alignOf(usize));
+    assertFieldType(abi.HListNodeRef, "next_addr", usize);
+    assertFieldType(abi.HListNodeRef, "pprev_addr", usize);
+    assertOffset(abi.HListNodeRef, "next_addr", 0);
+    assertOffset(abi.HListNodeRef, "pprev_addr", @sizeOf(usize));
+}
+
+pub fn assertHListViewLayout() void {
+    assertSize(abi.HListView, @sizeOf(usize) + 8);
+    assertAlign(abi.HListView, @alignOf(usize));
+    assertFieldType(abi.HListView, "head_addr", usize);
+    assertFieldType(abi.HListView, "max_nodes", u32);
+    assertFieldType(abi.HListView, "reserved", u32);
+    assertOffset(abi.HListView, "head_addr", 0);
+    assertOffset(abi.HListView, "max_nodes", @sizeOf(usize));
+    assertOffset(abi.HListView, "reserved", @sizeOf(usize) + 4);
+}
+
+pub fn assertHListSummaryLayout() void {
+    assertSize(abi.HListSummary, 8);
+    assertAlign(abi.HListSummary, 4);
+    assertFieldType(abi.HListSummary, "length", u32);
+    assertFieldType(abi.HListSummary, "flags", u32);
+    assertOffset(abi.HListSummary, "length", 0);
+    assertOffset(abi.HListSummary, "flags", 4);
+}
+
 pub fn assertRbtreeRootViewLayout() void {
     assertSize(rbtree.RootView, @sizeOf(usize) * 2 + 8);
     assertAlign(rbtree.RootView, @alignOf(usize));
@@ -129,6 +194,13 @@ test "phase3 layout assertions cover canonical bindings" {
         assertMmioRangeLayout();
         assertBitmapViewLayout();
         assertCpuMaskViewLayout();
+        assertListHeadRefLayout();
+        assertListViewLayout();
+        assertListSummaryLayout();
+        assertHListHeadRefLayout();
+        assertHListNodeRefLayout();
+        assertHListViewLayout();
+        assertHListSummaryLayout();
         assertRbtreeRootViewLayout();
     }
 }
