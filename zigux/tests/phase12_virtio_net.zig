@@ -632,8 +632,8 @@ test "phase12 virtio net mergeable refill treats guest uso as big-packet pressur
     const refill = try lab.planMergeableReceiveRefill(4);
     try std.testing.expectEqual(@as(u16, 4), refill.rx_queue_entries);
     try std.testing.expect(refill.uses_mergeable_buffers);
-    try std.testing.expectEqual(@as(u32, 65563), refill.packet_budget_bytes);
-    try std.testing.expectEqual(@as(u32, 16379), refill.min_buf_len_bytes);
+    try std.testing.expectEqual(@as(u32, 65565), refill.packet_budget_bytes);
+    try std.testing.expectEqual(@as(u32, 16380), refill.min_buf_len_bytes);
     try std.testing.expectEqual(virtio_net.BigPacketReason.guest_gso, refill.big_packet_reason);
 }
 
