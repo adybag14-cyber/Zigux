@@ -15,7 +15,7 @@ This document records the first bounded Phase 3 helper packet around the roadmap
   - `zigux/tests/phase3_rbtree_root_view_survey.zig`
   - `zigux/tests/phase3_rbtree_manifest.json`
 - `PHASE3_RBTREE_DEDICATED_BOUNDARY_PARITY=zigux/tests/fixtures/phase3_rbtree/expected.json,zigux/tests/fixtures/phase3_rbtree/phase3_rbtree_c_harness.c`
-- `PHASE3_RBTREE_SHARED_BOUNDARY_STATUS=shared-root-view-lift-still-missing`
+- `PHASE3_RBTREE_SHARED_BOUNDARY_STATUS=shared-parity-replay-present-shared-root-view-lift-still-missing`
 - `PHASE3_RBTREE_SHARED_BOUNDARY_GAP=shared-abi-root-view-lift-still-missing`
 - `PHASE3_RBTREE_SHARED_BOUNDARY_GUARDS=scripts/zigux/check-phase3-abi-layout-packet.py,scripts/zigux/check-phase3-rbtree-shared-lift-contract.py`
 
@@ -33,7 +33,7 @@ This slice kept the next move deliberately small:
 
 That gave Phase 3 a real `zigux/helpers/rbtree_*` foothold without pretending the shared ABI lift had already happened.
 
-This slice now carries the dedicated `rbtree` boundary packet but not yet the first shared root-view lift into the canonical Phase 3 ABI packet.
+This slice now carries the dedicated `rbtree` boundary packet, and it also carries a shared Phase 3 ABI parity replay that still reuses the dedicated `rbtree` header and Zig binding rather than a curated shared record.
 
 ## Gates
 
@@ -77,6 +77,6 @@ The remaining honest Phase 3 `rbtree` gap after this step is the shared ABI lift
 The next honest follow-up is one curated shared Phase 3 `rbtree` root-view lift:
 
 - one shared header-and-binding shape
-- one shared parity fixture that no longer depends on the dedicated `rbtree` binding include path
+- one shared ABI replay path that no longer depends on the dedicated `rbtree` header and binding include path
 - one validator-backed note refresh
 - reuse the dedicated `zigux_rbtree_root_view` layout and flag constants unchanged
