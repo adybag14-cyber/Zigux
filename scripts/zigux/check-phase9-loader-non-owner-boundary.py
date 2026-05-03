@@ -224,6 +224,21 @@ def run_self_test() -> int:
                 + ",".join(failures or ["none"])
             )
 
+        manifest_path = tmp_root / MANIFEST_PATH
+        original_manifest = manifest_path.read_text(encoding="utf-8")
+        manifest = json.loads(original_manifest)
+        manifest["non_owner_surfaces"][2]["why_non_owner"] = (
+            "rust/exports.c stays as runtime evidence."
+        )
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        failures = validate(tmp_root)
+        if "manifest:rust/exports.c:why_non_owner" not in failures:
+            raise SystemExit(
+                "phase9-loader-non-owner-selftest:expected_manifest_why_non_owner_failure:"
+                + ",".join(failures or ["none"])
+            )
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
         survey_test_path = tmp_root / SURVEY_TEST_PATH
         survey_test_path.unlink()
         failures = validate(tmp_root)
@@ -234,7 +249,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE9_LOADER_NON_OWNER_BOUNDARY_SELF_TEST=pass")
-    print("PHASE9_LOADER_NON_OWNER_BOUNDARY_SELF_TEST_CASE_COUNT=5")
+    print("PHASE9_LOADER_NON_OWNER_BOUNDARY_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
