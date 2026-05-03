@@ -228,8 +228,27 @@ def run_self_test() -> int:
     finally:
         make_path.write_text(original_make, encoding="utf-8")
 
+    raw_map_path = ROOT / "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md"
+    original_raw_map = raw_map_path.read_text(encoding="utf-8")
+    raw_map_path.write_text(
+        original_raw_map.replace(
+            "PHASE12_SURVEYED_COMMIT=8b69e4dfd04553afeb08c0ecbf3060f800e7ecd1",
+            "PHASE12_SURVEYED_COMMIT=8B69E4DFD04553AFEB08C0ECBF3060F800E7ECD1",
+            1,
+        ),
+        encoding="utf-8",
+    )
+    try:
+        expect_missing(
+            "raw_map_surveyed_commit",
+            validate_tree(),
+            "raw_map:surveyed_commit",
+        )
+    finally:
+        raw_map_path.write_text(original_raw_map, encoding="utf-8")
+
     print("PHASE12_RAW_GITHUB_COVERAGE_SELF_TEST=pass")
-    print("PHASE12_RAW_GITHUB_COVERAGE_SELF_TEST_CASE_COUNT=3")
+    print("PHASE12_RAW_GITHUB_COVERAGE_SELF_TEST_CASE_COUNT=4")
     return 0
 
 
