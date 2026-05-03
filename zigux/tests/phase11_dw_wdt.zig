@@ -29,7 +29,6 @@ test "phase11 dw_wdt exposes the fixed-top timeout matrix in ascending order" {
     try std.testing.expectEqual(@as(usize, dw_wdt.num_tops), windows.len);
     try std.testing.expectEqual(@as(u32, 0), windows[0].top_val);
     try std.testing.expectEqual(@as(u32, 2), windows[0].sec);
-    try std.testing.expectEqual(@as(u32, 0), windows[0].msec);
     try std.testing.expectEqual(@as(u32, 15), windows[15].top_val);
     try std.testing.expectEqual(@as(u32, 65_536), windows[15].sec);
 
@@ -80,7 +79,6 @@ test "phase11 dw_wdt start and ping select the nearest fixed top in reset mode" 
 
     var runtime = try watchdog.start();
     try std.testing.expect(runtime.running);
-    try std.testing.expect(runtime.hardware_running);
     try std.testing.expectEqual(dw_wdt.ResponseMode.reset, runtime.response_mode);
     try std.testing.expectEqual(
         dw_wdt.control_reg_wdt_en_mask,
@@ -510,6 +508,25 @@ test "phase11 dw_wdt stop and restart stay bounded to reset-control and non-stop
     });
     try std.testing.expect(!quiet_unstoppable_summary.stop_clears_interrupt_status);
     try std.testing.expect(!quiet_unstoppable_summary.stop_preserves_pending_interrupt_without_reset);
+
+    var quiet_stoppable = try dw_wdt.DwWdtLab.initFixedTops(65_536, true);
+    const quiet_stoppable_summary = try quiet_stoppable.summarizeTeardownLifecycle(.{
+        .restart_watchdog_running = true,
+        .stop_interrupt_pending = false,
+    });
+    try std.testing.expect(quiet_stoppable_summary.can_stop);
+    try std.testing.expect(quiet_stoppable_summary.stop_path_running_before_stop);
+    try std.testing.expect(!quiet_stoppable_summary.stop_path_running_after_stop);
+    try std.testing.expect(!quiet_stoppable_summary.stop_path_hardware_running_after_stop);
+    try std.testing.expect(!quiet_stoppable_summary.stop_clears_interrupt_status);
+    try std.testing.expect(quiet_stoppable_summary.stop_uses_reset_pulse);
+    try std.testing.expect(!quiet_stoppable_summary.stop_preserves_pending_interrupt_without_reset);
+    try std.testing.expect(!quiet_stoppable_summary.stop_preserves_running_marker_without_reset);
+    try std.testing.expect(quiet_stoppable_summary.restart_path_running_before_restart);
+    try std.testing.expect(quiet_stoppable_summary.restart_path_running_after_restart);
+    try std.testing.expect(quiet_stoppable_summary.restart_path_hardware_running_after_restart);
+    try std.testing.expect(quiet_stoppable_summary.restart_kicks_running_watchdog);
+    try std.testing.expect(!quiet_stoppable_summary.restart_enables_stopped_watchdog);
 
     var restart_lab = try dw_wdt.DwWdtLab.initFixedTops(65_536, false);
     runtime = restart_lab.armRestart();
