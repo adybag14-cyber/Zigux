@@ -9,10 +9,15 @@ import sys
 import tempfile
 
 
-ROOT = Path(__file__).resolve().parent
+SCRIPT_PATH = Path(__file__).resolve()
+SCRIPT_DIR = SCRIPT_PATH.parent
+if (SCRIPT_DIR / "zigux").exists() and (SCRIPT_DIR / "lib").exists() and (SCRIPT_DIR / "Documentation").exists():
+    ROOT = SCRIPT_DIR
+else:
+    ROOT = SCRIPT_DIR.parents[1]
 
 REQUIRED_FILES = [
-    ROOT / "check-phase7-argv-split-packet.py",
+    SCRIPT_PATH,
     ROOT / "scripts" / "zigux" / "check-phase7-argv-split-parity.py",
     ROOT / "Documentation" / "zigux" / "phase7-argv-split-slice.md",
     ROOT / "lib" / "argv_split.zig",
