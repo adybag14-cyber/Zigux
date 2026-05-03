@@ -50,6 +50,28 @@ const HvOpsLayout = extern struct {
     dtr_rts: ?*const fn (*HvcStruct, bool) callconv(.c) void,
 };
 
+const HvcInstantiateFn = *const fn (u32, c_int, *const HvOpsLayout) callconv(.c) c_int;
+const HvcAllocFn = *const fn (u32, c_int, *const HvOpsLayout, c_int) callconv(.c) ?*HvcStruct;
+const HvcRemoveFn = *const fn (*HvcStruct) callconv(.c) void;
+const HvcPollFn = *const fn (*HvcStruct) callconv(.c) c_int;
+const HvcKickFn = *const fn () callconv(.c) void;
+const HvcResizeFn = *const fn (*HvcStruct, WinsizeLayout) callconv(.c) void;
+const HvcNotifierAddIrqFn = *const fn (*HvcStruct, c_int) callconv(.c) c_int;
+const HvcNotifierDelIrqFn = *const fn (*HvcStruct, c_int) callconv(.c) void;
+const HvcNotifierHangupIrqFn = *const fn (*HvcStruct, c_int) callconv(.c) void;
+
+const HvcExportSurface = extern struct {
+    hvc_instantiate: HvcInstantiateFn,
+    hvc_alloc: HvcAllocFn,
+    hvc_remove: HvcRemoveFn,
+    hvc_poll: HvcPollFn,
+    hvc_kick: HvcKickFn,
+    __hvc_resize: HvcResizeFn,
+    notifier_add_irq: HvcNotifierAddIrqFn,
+    notifier_del_irq: HvcNotifierDelIrqFn,
+    notifier_hangup_irq: HvcNotifierHangupIrqFn,
+};
+
 fn expectSurveyedCommitProvenance(survey_note: []const u8, surveyed_commit: []const u8) !void {
     try std.testing.expectEqual(@as(usize, 40), surveyed_commit.len);
     for (surveyed_commit) |byte| {
@@ -534,5 +556,19 @@ test "phase11 hvc console survey keeps bounded hv_ops callback signature proofs"
         assertExactType(@FieldType(HvOpsLayout, "tiocmget"), ?*const fn (*HvcStruct) callconv(.c) c_int);
         assertExactType(@FieldType(HvOpsLayout, "tiocmset"), ?*const fn (*HvcStruct, c_uint, c_uint) callconv(.c) c_int);
         assertExactType(@FieldType(HvOpsLayout, "dtr_rts"), ?*const fn (*HvcStruct, bool) callconv(.c) void);
+    }
+}
+
+test "phase11 hvc console survey keeps bounded exported helper signature proofs" {
+    comptime {
+        assertExactType(@FieldType(HvcExportSurface, "hvc_instantiate"), HvcInstantiateFn);
+        assertExactType(@FieldType(HvcExportSurface, "hvc_alloc"), HvcAllocFn);
+        assertExactType(@FieldType(HvcExportSurface, "hvc_remove"), HvcRemoveFn);
+        assertExactType(@FieldType(HvcExportSurface, "hvc_poll"), HvcPollFn);
+        assertExactType(@FieldType(HvcExportSurface, "hvc_kick"), HvcKickFn);
+        assertExactType(@FieldType(HvcExportSurface, "__hvc_resize"), HvcResizeFn);
+        assertExactType(@FieldType(HvcExportSurface, "notifier_add_irq"), HvcNotifierAddIrqFn);
+        assertExactType(@FieldType(HvcExportSurface, "notifier_del_irq"), HvcNotifierDelIrqFn);
+        assertExactType(@FieldType(HvcExportSurface, "notifier_hangup_irq"), HvcNotifierHangupIrqFn);
     }
 }
