@@ -15,6 +15,7 @@
     "preexisting_phase13_make_target_present": true,
     "preexisting_syscalls_zig_present": true,
     "preexisting_phase13_landlock_syscalls_test_present": true,
+    "preexisting_phase13_landlock_syscalls_reviewability_present": true,
     "preexisting_phase13_landlock_syscalls_slice_note_present": true,
     "preexisting_phase13_landlock_syscalls_survey_note_present": true
   },
