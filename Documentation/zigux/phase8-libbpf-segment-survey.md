@@ -4,7 +4,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling survey for Z
 
 ## Status
 
-- `PHASE8_STATUS=active`
+- `PHASE8_STATUS=parked`
 - `PHASE8_SLICE=libbpf-segment-survey`
 - scope: segment manifest plus six landed helper-first starter slices, the separate bounded perf-buffer poll bookkeeping adjunct, one deferred resource boundary, one deferred interrupt-routing boundary, one blocked object-model follow-on, and two deferred loader-facing follow-ons
 - survey checkpoint: refreshed against inspected `master` head `897cdd2f62c4428d2a050275a187950e161b66eb`
