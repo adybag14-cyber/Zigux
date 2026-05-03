@@ -32,6 +32,7 @@ DOCS_README_MARKERS = [
     "`Documentation/zigux/phase11-shared-replay-contract.md` now keeps the shared-versus-dedicated replay boundary explicit from the docs root",
     "`python3 scripts/zigux/check-phase11-build-inventory.py`, `python3 scripts/zigux/check-phase11-layout-assert-surface.py`, `python3 scripts/zigux/check-phase11-hvc-validation-flow.py`, `python3 scripts/zigux/check-phase11-hvc-cleanup-alignment.py`, and `python3 scripts/zigux/check-phase11-shared-replay-contract.py` now keep the build snapshot, layout-assert review surface, the shared replay-contract note, the current hvc cleanup packet, and the shared-versus-dedicated replay boundary explicit as the pre-replay Phase 11 delivery gate behind `make -C zigux phase11-validate`.",
     "`python3 scripts/zigux/check-phase11-shared-replay-contract.py`, `python3 scripts/zigux/validate-phase11.py`, `zigux/tests/fixtures/phase11_build_inventory.json`, `make -C zigux phase11-validate`, and `make -C zigux phase11` now define the shared Phase 11 reviewability path, with the dedicated `zigux/tests/phase11_hvc_console_survey.zig` archival replay still kept separate from `zigux/tests/phase11_build.zig`.",
+    "the active Phase 11 simple-driver packet now keeps the four roadmap-backed driver lanes visible from the top-level docs index while keeping the paired UAPI header parity survey explicit as the shared tranche-close boundary.",
 ]
 TESTS_README_MARKERS = [
     "keep `Documentation/zigux/phase11-shared-replay-contract.md`, `zigux/tests/phase11_build.zig`, `zigux/tests/fixtures/phase11_build_inventory.json`, `zigux/tests/phase11_hvc_console_survey.zig`, and `scripts/zigux/validate-phase11.py` aligned",
@@ -83,6 +84,8 @@ SHARED_REPLAY_NOTE_MARKERS = [
     "# Phase 11 Shared Replay Contract",
     "python3 scripts/zigux/check-phase11-shared-replay-contract.py --self-test",
     "python3 scripts/zigux/check-phase11-shared-replay-contract.py",
+    "python3 scripts/zigux/check-phase11-header-boundary-packet.py --self-test",
+    "python3 scripts/zigux/check-phase11-header-boundary-packet.py",
     "python3 scripts/zigux/validate-phase11.py --self-test",
     "make -C zigux phase11-validate",
     "The same contract is fail-closed by `python3 scripts/zigux/check-phase11-shared-replay-contract.py` before the broader validator runs.",
@@ -98,6 +101,8 @@ SHARED_REPLAY_NOTE_MARKERS = [
     "scripts/zigux/check-phase11-hvc-validation-flow.py",
     "scripts/zigux/check-phase11-shared-replay-contract.py",
     "zigux/tests/phase11_hvc_console_survey.zig",
+    "The paired UAPI and driver-header parity boundary also stays explicit in the same pre-replay gate stack:",
+    "zigux/tests/phase11_uapi_header_parity_survey.zig",
 ]
 REVIEW_CHECKLIST_MARKERS = [
     "- if the change is a Phase 11 simple-driver slice, do `scripts/zigux/validate-phase11.py`, `zigux/tests/phase11_build.zig`, the four driver-local Phase 11 manifests, and `zigux/tests/phase11_uapi_header_parity_manifest.json` still agree on the same bounded simple-driver scope, shared replay contract, and explicit ready-next versus blocked follow-up posture?",
@@ -109,14 +114,16 @@ REVIEW_GUIDE_MARKERS = [
     "- `python3 scripts/zigux/check-phase11-shared-replay-contract.py --self-test`",
     "- `python3 scripts/zigux/check-phase11-shared-replay-contract.py`",
     "- `Documentation/zigux/phase11-shared-replay-contract.md`",
+    "- `Documentation/zigux/phase11-uapi-header-parity-survey.md`",
     "- `scripts/zigux/check-phase11-shared-replay-contract.py`",
+    "- `scripts/zigux/check-phase11-header-boundary-packet.py`",
     "- Does the shared Phase 11 replay still stay separate from the dedicated archival `hvc_console` survey?",
 ]
 TESTS_COMPANION_MARKERS = [
     "## Phase 11 tests-root packet",
     "- `scripts/zigux/check-phase11-shared-replay-contract.py`",
     "- Do the pre-replay Phase 11 checkers still describe the same delivery contract that `zigux/tests/phase11_build.zig` and `zigux/tests/fixtures/phase11_build_inventory.json` claim?",
-    "- Does `zigux/tests/phase11_hvc_console_survey.zig` still stay separate as the dedicated archival replay while the shared starter packet remains under `zigux/tests/phase11_build.zig`?",
+    "- Does `zigux/tests/phase11_hvc_console_survey.zig` still stay separate as the dedicated archival replay while the shared starter packet remains under `zigux/tests/phase11_build.zig` and the shared header-boundary packet stays explicit through `scripts/zigux/check-phase11-header-boundary-packet.py`?",
 ]
 EXPECTED_SHARED_SPLIT_REPLAYS = [
     {
@@ -279,6 +286,8 @@ def write_fixture_tree(root: Path) -> None:
                 "",
                 "- `python3 scripts/zigux/check-phase11-shared-replay-contract.py --self-test`",
                 "- `python3 scripts/zigux/check-phase11-shared-replay-contract.py`",
+                "- `python3 scripts/zigux/check-phase11-header-boundary-packet.py --self-test`",
+                "- `python3 scripts/zigux/check-phase11-header-boundary-packet.py`",
                 "- `python3 scripts/zigux/validate-phase11.py --self-test`",
                 "- `python3 scripts/zigux/validate-phase11.py`",
                 "",
@@ -294,6 +303,10 @@ def write_fixture_tree(root: Path) -> None:
                 "",
                 "- `make -C zigux phase11-hvc-survey`",
                 "- `zigux/tests/phase11_hvc_console_survey.zig`",
+                "",
+                "The paired UAPI and driver-header parity boundary also stays explicit in the same pre-replay gate stack:",
+                "",
+                "- `zigux/tests/phase11_uapi_header_parity_survey.zig`",
                 "",
                 "## Contributor Sync Points",
                 "",
@@ -375,6 +388,17 @@ def run_self_test() -> int:
             "missing_docs_root_checker_gate",
             run_checker(tmp_root),
             f"docs_readme:{DOCS_README_MARKERS[1]}",
+        )
+        write_text(docs_readme_path, docs_readme_backup)
+
+        write_text(
+            docs_readme_path,
+            docs_readme_backup.replace(DOCS_README_MARKERS[3] + "\n", "", 1),
+        )
+        expect_missing(
+            "missing_docs_root_header_boundary_summary",
+            run_checker(tmp_root),
+            f"docs_readme:{DOCS_README_MARKERS[3]}",
         )
         write_text(docs_readme_path, docs_readme_backup)
 
@@ -518,6 +542,36 @@ def run_self_test() -> int:
 
         write_text(
             note_path,
+            note_backup.replace(
+                "- `python3 scripts/zigux/check-phase11-header-boundary-packet.py --self-test`\n",
+                "",
+                1,
+            ),
+        )
+        expect_missing(
+            "missing_note_header_boundary_self_test",
+            run_checker(tmp_root),
+            "shared_replay_note:python3 scripts/zigux/check-phase11-header-boundary-packet.py --self-test",
+        )
+        write_text(note_path, note_backup)
+
+        write_text(
+            note_path,
+            note_backup.replace(
+                "The paired UAPI and driver-header parity boundary also stays explicit in the same pre-replay gate stack:\n",
+                "",
+                1,
+            ),
+        )
+        expect_missing(
+            "missing_note_header_boundary_section",
+            run_checker(tmp_root),
+            "shared_replay_note:The paired UAPI and driver-header parity boundary also stays explicit in the same pre-replay gate stack:",
+        )
+        write_text(note_path, note_backup)
+
+        write_text(
+            note_path,
             note_backup.replace("- `Documentation/zigux/README.md`\n", "", 1),
         )
         expect_missing(
@@ -597,6 +651,17 @@ def run_self_test() -> int:
         )
         write_text(review_guide_path, review_guide_backup)
 
+        write_text(
+            review_guide_path,
+            review_guide_backup.replace(REVIEW_GUIDE_MARKERS[5] + "\n", "", 1),
+        )
+        expect_missing(
+            "missing_review_guide_header_boundary_checker",
+            run_checker(tmp_root),
+            f"review_guide:{REVIEW_GUIDE_MARKERS[5]}",
+        )
+        write_text(review_guide_path, review_guide_backup)
+
         tests_companion_path = tmp_root / "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"
         tests_companion_backup = text(tests_companion_path)
         write_text(
@@ -608,9 +673,20 @@ def run_self_test() -> int:
             run_checker(tmp_root),
             f"tests_companion:{TESTS_COMPANION_MARKERS[1]}",
         )
+        write_text(tests_companion_path, tests_companion_backup)
+
+        write_text(
+            tests_companion_path,
+            tests_companion_backup.replace(TESTS_COMPANION_MARKERS[3] + "\n", "", 1),
+        )
+        expect_missing(
+            "missing_tests_companion_header_boundary_prompt",
+            run_checker(tmp_root),
+            f"tests_companion:{TESTS_COMPANION_MARKERS[3]}",
+        )
 
     print("PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST=pass")
-    print("PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT=21")
+    print("PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT=26")
     return 0
 
 
