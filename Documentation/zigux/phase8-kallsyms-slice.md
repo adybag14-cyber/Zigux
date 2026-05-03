@@ -37,7 +37,7 @@ The live repo already has the parse-first `kallsyms.zig` parked slice, the injec
 
 5. run the convenience targets
 - `make -C zigux phase8-kallsyms-test`
-- `make -C zigux phase8-help-kallsyms-test`
+- `zig build test --build-file zigux/tests/phase8_help_kallsyms_only_build.zig --summary all`
 - `make -C zigux phase8`
 
 ## Current parity surface
