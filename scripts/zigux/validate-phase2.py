@@ -205,6 +205,7 @@ def load_fixdep_cases(cases_path: Path) -> list[dict[str, object]]:
 
 def validate_expected_fixdep_cases(cases_path: Path) -> list[str]:
     cases = load_fixdep_cases(cases_path)
+    fixture_dir = cases_path.parent
     expected_cases = {
         "sample": {
             "depfile": "sample.d",
@@ -288,7 +289,11 @@ def validate_expected_fixdep_cases(cases_path: Path) -> list[str]:
 
     issues: list[str] = []
     seen_names: set[str] = set()
-    for case in cases:
+    for index, case in enumerate(cases):
+        if not isinstance(case, dict):
+            issues.append(f"fixdep_cases:entry[{index}]:expected_object")
+            continue
+
         name = case.get("name")
         if not isinstance(name, str) or not name:
             issues.append("fixdep_cases:missing_name")
@@ -309,6 +314,30 @@ def validate_expected_fixdep_cases(cases_path: Path) -> list[str]:
                 issues.append(
                     f"fixdep_cases:{name}:{field_name}={actual_value!r},expected={expected_value!r}"
                 )
+
+        depfile = case.get("depfile")
+        if not isinstance(depfile, str) or not depfile:
+            issues.append(f"fixdep_cases:{name}:missing_non_empty_depfile")
+        elif not (fixture_dir / depfile).exists():
+            issues.append(f"fixdep_cases:missing_depfile:{depfile}")
+
+        expected_stdout_name = case.get("expected_stdout", case.get("expected"))
+        if not isinstance(expected_stdout_name, str) or not expected_stdout_name:
+            issues.append(f"fixdep_cases:{name}:missing_expected_output")
+        elif not (fixture_dir / expected_stdout_name).exists():
+            issues.append(f"fixdep_cases:missing_expected_output:{expected_stdout_name}")
+
+        expected_exit_code = int(case.get("expected_exit_code", 0))
+        if expected_exit_code != 0:
+            expected_stderr_name = case.get("expected_stderr")
+            if not isinstance(expected_stderr_name, str) or not expected_stderr_name:
+                issues.append(f"fixdep_cases:{name}:missing_expected_stderr")
+            elif not (fixture_dir / expected_stderr_name).exists():
+                issues.append(f"fixdep_cases:missing_expected_stderr:{expected_stderr_name}")
+
+        stdout_mode = case.get("stdout_mode")
+        if stdout_mode not in (None, "dev_full"):
+            issues.append(f"fixdep_cases:{name}:unsupported_stdout_mode:{stdout_mode!r}")
 
     missing_names = sorted(set(expected_cases) - seen_names)
     for name in missing_names:
