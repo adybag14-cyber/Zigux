@@ -4,7 +4,7 @@ This note records the current roadmap-to-repo traceability for the Phase 14 core
 
 ## Why this note exists
 
-The Phase 14 roadmap already names these anchors as study-only or freeze-in-C work, and the repo already carries anchor-local manifests plus survey notes for each one. What was still missing on `master` was one cross-anchor note that ties those packets back to the roadmap in one place, names the current shared evidence path, and makes the retained-in-C concurrency ownership obvious without forcing readers to hop across three separate lane notes.
+The Phase 14 roadmap already names these anchors as study-only or freeze-in-C work, and the repo already carries anchor-local manifests plus survey notes for each one. This cross-anchor note keeps those packets tied back to the roadmap in one place, names the current shared evidence path, and makes the retained-in-C concurrency ownership obvious without forcing readers to hop across three separate lane notes.
 
 This note stays narrow on purpose. It does not add a bridge, reopen a freeze decision, or claim a new status. It only records the current bounded evidence bundle and the explicit reasons these anchors still stay in C.
 
