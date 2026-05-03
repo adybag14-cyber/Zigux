@@ -22,8 +22,8 @@
     "the manifest-backed delivery_evidence_catalog and ownership_map still keep the survey note, module-slice note, sample starter, survey gate, module gate, diff gate, loader scaffold, shared loader binding, shared loader-gap note, and shared Phase 9 build entrypoint in one reviewable packet",
     "the shared Phase 9 build entrypoint still names the dedicated phase9-runtime-kretprobe-sample-tests, phase9-runtime-kretprobe-module-tests, phase9-runtime-kretprobe-diff-tests, phase9-runtime-kretprobe-loader-tests, and phase9-runtime-kretprobe-survey-tests legs instead of leaving the shipped replay surface implicit",
     "sample or loader-behavior changes update the manifest-backed exact checks alongside runtime_kretprobe_module.zig, runtime_kretprobe_diff.zig, and the survey docs instead of leaving reviewers to infer the new contract from code alone",
-    "the survey packet keeps the broader shared runtime-loader command-name, argv-policy, and environment-derived activation handling blocked so the kretprobe pilot remains pre-execution",
-    "the survey packet still compares the landed selftest-hook starter against the remaining `first loadable Zigux runtime modules` and `runtime module lifecycle parity` roadmap steps, and now names the adjacent no-live `module_init()`, `module_exit()`, `register_kretprobe()`, and `unregister_kretprobe()` boundary explicitly instead of treating this bounded pilot module as Phase 9 closure"
+    "the survey packet keeps the broader shared runtime-loader command-name, argv-policy, and environment-derived activation handling blocked, keeps Documentation/zigux/freeze-map.md explicit beside that blocker, and leaves the kernel/workqueue.c study boundary, no-parity-scorecard posture, and Architecture Council reopen rule reviewable so the kretprobe pilot remains pre-execution",
+    "the survey packet still compares the landed selftest-hook starter against the remaining `first loadable Zigux runtime modules` and `runtime module lifecycle parity` roadmap steps, and now names the adjacent no-live `module_init()`, `module_exit()`, `register_kretprobe()`, and `unregister_kretprobe()` boundary explicitly, keeps the freeze-map workqueue boundary in the same reviewable packet, and does not treat this bounded pilot module as Phase 9 closure or a freeze-map status-change request"
   ],
   "exact_checks": [
     {
@@ -59,12 +59,12 @@
     {
       "id": "shared-loader-controls-blocker",
       "kind": "runtime_control_surface",
-      "expected": "the survey packet keeps broader shared runtime-loader command-name, argv-policy, environment-derived activation handling, and the adjacent no-live initcall-or-registration boundary blocked so the kretprobe pilot remains pre-execution"
+      "expected": "the survey packet keeps broader shared runtime-loader command-name, argv-policy, environment-derived activation handling, the adjacent no-live initcall-or-registration boundary, and Documentation/zigux/freeze-map.md with kernel/workqueue.c still in Study / Boundary Only so the kretprobe pilot remains pre-execution without any parity-scorecard-backed or Architecture-Council-approved status change"
     },
     {
       "id": "roadmap-gap-vs-pilot-module",
       "kind": "roadmap_gap",
-      "expected": "the survey packet states that selftest hooks are landed, starter lifecycle transitions are reviewable, the shared lifecycle-boundary summary still forbids live `module_init()`, `module_exit()`, `register_kretprobe()`, and `unregister_kretprobe()` paths, and the remaining `first loadable Zigux runtime modules` plus `runtime module lifecycle parity` roadmap steps stay blocked until the shared runtime-loader controls can support a real registration path"
+      "expected": "the survey packet states that selftest hooks are landed, starter lifecycle transitions are reviewable, the shared lifecycle-boundary summary still forbids live `module_init()`, `module_exit()`, `register_kretprobe()`, and `unregister_kretprobe()` paths, keeps Documentation/zigux/freeze-map.md explicit, records that no parity scorecard entry or Architecture Council status-change request is attached while kernel/workqueue.c stays Study / Boundary Only, and leaves the remaining `first loadable Zigux runtime modules` plus `runtime module lifecycle parity` roadmap steps blocked until the shared runtime-loader controls can support a real registration path"
     }
   ],
   "delivery_evidence_catalog": [
@@ -72,13 +72,13 @@
       "id": "runtime-kretprobe-survey-note",
       "kind": "documentation",
       "path": "Documentation/zigux/phase9-runtime-kretprobe-survey.md",
-      "role": "records the roadmap anchor, shipped review packet, ownership summary, shared-build evidence, and the exact remaining roadmap gap without implying live register or unregister parity"
+      "role": "records the roadmap anchor, shipped review packet, explicit shared-build evidence, freeze-map workqueue boundary note, and the exact remaining roadmap gap without implying live register or unregister parity"
     },
     {
       "id": "runtime-kretprobe-module-slice",
       "kind": "documentation",
       "path": "Documentation/zigux/phase9-runtime-kretprobe-module-slice.md",
-      "role": "records the bounded starter surface, lifecycle summary, loader handoff, and explicit shared-build legs for the shipped runtime kretprobe packet"
+      "role": "records the bounded starter surface, lifecycle summary, loader handoff, shared-build legs, and freeze-map study-boundary restatement for the shipped runtime kretprobe packet"
     },
     {
       "id": "runtime-kretprobe-manifest",
@@ -132,17 +132,17 @@
       "id": "runtime-loader-gap-note",
       "kind": "documentation",
       "path": "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
-      "role": "owns the still-blocked shared command-name, argv-policy, environment-derived activation-control posture, and adjacent no-live initcall-or-registration boundary that keep the kretprobe packet pre-execution"
+      "role": "owns the still-blocked shared command-name, argv-policy, environment-derived activation-control posture, and adjacent no-live initcall-or-registration boundary that keep the kretprobe packet pre-execution beneath the study-only kernel/workqueue.c freeze boundary"
     }
   ],
   "ownership_map": [
     {
       "surface": "Documentation/zigux/phase9-runtime-kretprobe-survey.md",
-      "owns": "the roadmap anchor note, shipped review packet summary, explicit shared-build evidence, and remaining shared-loader blocker wording"
+      "owns": "the roadmap anchor note, shipped review packet summary, explicit shared-build evidence, freeze-map boundary note, and remaining shared-loader blocker wording"
     },
     {
       "surface": "Documentation/zigux/phase9-runtime-kretprobe-module-slice.md",
-      "owns": "the bounded starter surface, lifecycle summary, loader handoff wording, and shared-build-leg explanation for the shipped packet"
+      "owns": "the bounded starter surface, lifecycle summary, loader handoff wording, shared-build-leg explanation, and freeze-map study-boundary restatement for the shipped packet"
     },
     {
       "surface": "zigux/tests/runtime_kretprobe_manifest.json",
@@ -178,7 +178,7 @@
     },
     {
       "surface": "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
-      "owns": "the blocked shared command-name, argv-policy, environment-derived activation-control posture, and adjacent no-live initcall-or-registration boundary that keep the kretprobe packet pre-execution"
+      "owns": "the blocked shared command-name, argv-policy, environment-derived activation-control posture, the adjacent no-live initcall-or-registration boundary, and the pre-execution study-boundary posture that keep the kretprobe packet blocked"
     }
   ],
   "gaps": [
@@ -236,7 +236,7 @@
       "status": "blocked_on_runtime_substrate",
       "kind": "runtime_control_surface",
       "zigux_destination": "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
-      "why_now": "The kretprobe pilot still depends on the broader shared runtime-loader control surface tracked by the runtime loader gap survey: command-name, argv-policy, and environment-derived activation handling are still absent, the adjacent shared lifecycle-boundary summary still records no live `module_init()`, `module_exit()`, `register_kretprobe()`, or `unregister_kretprobe()` path, so the pilot remains pre-execution and the roadmap's `first loadable Zigux runtime modules` plus `runtime module lifecycle parity` steps stay blocked even though the selftest-hook surface is already landed."
+      "why_now": "The kretprobe pilot still depends on the broader shared runtime-loader control surface tracked by the runtime loader gap survey: command-name, argv-policy, and environment-derived activation handling are still absent, the adjacent shared lifecycle-boundary summary still records no live `module_init()`, `module_exit()`, `register_kretprobe()`, or `unregister_kretprobe()` path, kernel/workqueue.c remains Study / Boundary Only under Documentation/zigux/freeze-map.md, so the pilot remains pre-execution and the roadmap's `first loadable Zigux runtime modules` plus `runtime module lifecycle parity` steps stay blocked even though the selftest-hook surface is already landed."
     }
   ],
   "non_goals": [
@@ -244,6 +244,6 @@
     "real register_kretprobe or unregister_kretprobe parity",
     "architecture-specific pt_regs handling or real return-value extraction parity",
     "shared runtime-loader command-name, argv-policy, or environment activation controls",
-    "true runtime execution or lifecycle parity through a shared loader path"
+    "true runtime execution or lifecycle parity through a shared loader path or any parity or status-change claim for kernel/workqueue.c without an Architecture Council decision"
   ]
 }
