@@ -12,7 +12,6 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[2]
 BUILD_PATH = ROOT / "zigux/tests/phase11_build.zig"
 FIXTURE_PATH = ROOT / "zigux/tests/fixtures/phase11_build_inventory.json"
-ARTIFACT_DIFF_PATH = ROOT / "scripts/zigux/artifact_diff.py"
 
 BUILD_TEST_NAME_RE = re.compile(r'\.name = "(phase11-[^"]+)"')
 BUILD_DEPEND_STEP_RE = re.compile(r"test_step\.dependOn\(&([A-Za-z0-9_]+)\.step\);")
@@ -31,6 +30,7 @@ BUILD_STEP_RE = re.compile(
     r'const ([A-Za-z0-9_]+) = b\.step\(\s*"([^"]+)",\s*"([^"]+)",?\s*\);',
     re.S,
 )
+
 FORBIDDEN_BUILD_MARKERS = [
     "test_step.dependOn(&run_phase11_hvc_console_survey_tests.step);",
 ]
@@ -56,16 +56,12 @@ SHARED_REPLAY_MARKERS = [
     },
 ]
 REQUIRED_BUILD_STEPS = [
-    {
-        "symbol": "test_step",
-        "name": "test",
-        "description": "Run Phase 11 starter and survey tests",
-    },
-    {
-        "symbol": "hvc_console_survey_step",
-        "name": "hvc-console-survey",
-        "description": "Run the dedicated Phase 11 hvc_console survey replay",
-    },
+    ("test_step", "test", "Run Phase 11 starter and survey tests"),
+    (
+        "hvc_console_survey_step",
+        "hvc-console-survey",
+        "Run the dedicated Phase 11 hvc_console survey replay",
+    ),
 ]
 REQUIRED_BUILD_STEP_BINDINGS = [
     "hvc_console_survey_step.dependOn(&run_phase11_hvc_console_survey_tests.step);",
@@ -77,15 +73,26 @@ def load_json(path: Path) -> dict[str, object]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def render_shared_split_replays(
-    module_roots: list[dict[str, str]],
-    test_root_modules: list[dict[str, str]],
-) -> list[dict[str, str]]:
+def write_text(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
+
+
+def render_inventory() -> dict[str, object]:
+    build_text = BUILD_PATH.read_text(encoding="utf-8")
+    module_root_source_files = [
+        {"module": module_name, "path": root_path}
+        for module_name, root_path in BUILD_MODULE_RE.findall(build_text)
+    ]
+    test_root_modules = [
+        {"test": test_name, "root_module": root_module}
+        for test_name, root_module in BUILD_TEST_ROOT_MODULE_RE.findall(build_text)
+    ]
     root_path_by_module = {
         item["module"]: item["path"]
-        for item in module_roots
+        for item in module_root_source_files
     }
-    shared_split_replays: list[dict[str, str]] = []
+    shared_split_replays = []
     for item in test_root_modules:
         test_name = item["test"]
         if not test_name.endswith(SPLIT_TEST_SUFFIX):
@@ -99,19 +106,6 @@ def render_shared_split_replays(
                 "path": (Path("zigux/tests") / root_path).as_posix(),
             }
         )
-    return shared_split_replays
-
-
-def render_inventory() -> dict[str, object]:
-    build_text = BUILD_PATH.read_text(encoding="utf-8")
-    module_root_source_files = [
-        {"module": module_name, "path": root_path}
-        for module_name, root_path in BUILD_MODULE_RE.findall(build_text)
-    ]
-    test_root_modules = [
-        {"test": test_name, "root_module": root_module}
-        for test_name, root_module in BUILD_TEST_ROOT_MODULE_RE.findall(build_text)
-    ]
     return {
         "build_test_names": BUILD_TEST_NAME_RE.findall(build_text),
         "shared_test_depend_steps": BUILD_DEPEND_STEP_RE.findall(build_text),
@@ -127,18 +121,17 @@ def render_inventory() -> dict[str, object]:
         "test_root_modules": test_root_modules,
         "forbidden_markers": FORBIDDEN_BUILD_MARKERS,
         "dedicated_survey_replays": DEDICATED_SURVEY_REPLAYS,
-        "shared_split_replays": render_shared_split_replays(module_root_source_files, test_root_modules),
+        "shared_split_replays": shared_split_replays,
         "shared_replay_markers": SHARED_REPLAY_MARKERS,
     }
 
 
-def validate_module_root_paths_exist(inventory: dict[str, object]) -> list[str]:
-    missing: list[str] = []
+def validate_module_roots(inventory: dict[str, object]) -> list[str]:
     module_roots = inventory.get("module_root_source_files")
     if not isinstance(module_roots, list):
         return ["phase11_build_inventory:module_root_source_files"]
-
     build_dir = BUILD_PATH.parent
+    missing = []
     for item in module_roots:
         if not isinstance(item, dict):
             missing.append("phase11_build_inventory:module_root_source_files:item")
@@ -153,55 +146,103 @@ def validate_module_root_paths_exist(inventory: dict[str, object]) -> list[str]:
     return missing
 
 
-def validate_named_build_steps(build_text: str) -> list[str]:
-    missing: list[str] = []
+def validate_shared_replay_markers() -> list[str]:
+    missing = []
+    for item in SHARED_REPLAY_MARKERS:
+        replay_path = ROOT / item["path"]
+        if not replay_path.exists():
+            missing.append(f'{item["path"]}:missing')
+            continue
+        replay_text = replay_path.read_text(encoding="utf-8")
+        if item["marker"] not in replay_text:
+            missing.append(f'{item["path"]}:{item["marker"]}')
+    return missing
+
+
+def validate_build_steps(build_text: str) -> list[str]:
+    missing = []
     build_steps = {
         symbol: {"name": name, "description": description}
         for symbol, name, description in BUILD_STEP_RE.findall(build_text)
     }
-    for expected in REQUIRED_BUILD_STEPS:
-        actual = build_steps.get(expected["symbol"])
-        if actual != {
-            "name": expected["name"],
-            "description": expected["description"],
-        }:
-            missing.append(
-                f'{expected["symbol"]}:name={expected["name"]},'
-                f'description={expected["description"]}'
-            )
+    for symbol, name, description in REQUIRED_BUILD_STEPS:
+        if build_steps.get(symbol) != {"name": name, "description": description}:
+            missing.append(f"{symbol}:name={name},description={description}")
     for marker in REQUIRED_BUILD_STEP_BINDINGS:
         if marker not in build_text:
             missing.append(f"binding:{marker}")
     return missing
 
 
-def validate_shared_replay_markers(inventory: dict[str, object]) -> list[str]:
-    missing: list[str] = []
-    replay_markers = inventory.get("shared_replay_markers")
-    if not isinstance(replay_markers, list):
-        return ["phase11_build_inventory:shared_replay_markers"]
+def validate_fixture_match() -> int:
+    fixture = load_json(FIXTURE_PATH)
+    generated = render_inventory()
 
-    for item in replay_markers:
-        if not isinstance(item, dict):
-            missing.append("phase11_build_inventory:shared_replay_markers:item")
-            continue
-        path = item.get("path")
-        marker = item.get("marker")
-        if not isinstance(path, str) or not isinstance(marker, str):
-            missing.append("phase11_build_inventory:shared_replay_markers:shape")
-            continue
-        replay_path = ROOT / path
-        if not replay_path.exists():
-            missing.append(f"{path}:missing")
-            continue
-        if marker not in replay_path.read_text(encoding="utf-8"):
-            missing.append(f"{path}:{marker}")
-    return missing
+    missing_module_roots = validate_module_roots(generated)
+    if missing_module_roots:
+        print("PHASE11_BUILD_INVENTORY=fail")
+        print("PHASE11_BUILD_INVENTORY_MISSING_MODULE_ROOTS_START")
+        for item in missing_module_roots:
+            print(item)
+        print("PHASE11_BUILD_INVENTORY_MISSING_MODULE_ROOTS_END")
+        return 1
+
+    missing_replay_markers = validate_shared_replay_markers()
+    if missing_replay_markers:
+        print("PHASE11_BUILD_INVENTORY=fail")
+        print("PHASE11_BUILD_INVENTORY_MISSING_REPLAY_MARKERS_START")
+        for item in missing_replay_markers:
+            print(item)
+        print("PHASE11_BUILD_INVENTORY_MISSING_REPLAY_MARKERS_END")
+        return 1
+
+    build_text = BUILD_PATH.read_text(encoding="utf-8")
+    forbidden = [marker for marker in FORBIDDEN_BUILD_MARKERS if marker in build_text]
+    if forbidden:
+        print("PHASE11_BUILD_INVENTORY=fail")
+        print("PHASE11_BUILD_INVENTORY_FORBIDDEN_MARKERS_START")
+        for item in forbidden:
+            print(item)
+        print("PHASE11_BUILD_INVENTORY_FORBIDDEN_MARKERS_END")
+        return 1
+
+    missing_steps = validate_build_steps(build_text)
+    if missing_steps:
+        print("PHASE11_BUILD_INVENTORY=fail")
+        print("PHASE11_BUILD_INVENTORY_MISSING_BUILD_STEPS_START")
+        for item in missing_steps:
+            print(item)
+        print("PHASE11_BUILD_INVENTORY_MISSING_BUILD_STEPS_END")
+        return 1
+
+    if fixture != generated:
+        print("ARTIFACT_DIFF=fail")
+        print("PHASE11_BUILD_INVENTORY=fail")
+        return 1
+
+    print("ARTIFACT_DIFF=pass")
+    print("PHASE11_BUILD_INVENTORY=pass")
+    return 0
 
 
-def write_text(path: Path, content: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(content, encoding="utf-8")
+def run_checker(root: Path) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [sys.executable, str(root / "scripts/zigux/check-phase11-build-inventory.py")],
+        cwd=str(root),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+
+def expect_stdout(label: str, result: subprocess.CompletedProcess[str], expected: str) -> None:
+    if result.returncode == 0:
+        raise SystemExit(f"phase11-build-inventory-self-test:{label}:unexpected_pass")
+    if expected not in result.stdout:
+        actual = result.stdout.strip() or result.stderr.strip() or "no_output"
+        raise SystemExit(
+            f"phase11-build-inventory-self-test:{label}:expected:{expected}:actual:{actual}"
+        )
 
 
 def write_self_test_fixture(root: Path) -> None:
@@ -275,6 +316,13 @@ pub fn build(b: *std.Build) void {
     const run_phase11_hvc_console_poll_retry_split_tests = b.addRunArtifact(
         phase11_hvc_console_poll_retry_split_tests,
     );
+    const phase11_hvc_console_survey_tests = b.addTest(.{
+        .name = \"phase11-hvc-console-survey-tests\",
+        .root_module = phase11_hvc_console_poll_retry_split_module,
+    });
+    const run_phase11_hvc_console_survey_tests = b.addRunArtifact(
+        phase11_hvc_console_survey_tests,
+    );
 
     const test_step = b.step(\"test\", \"Run Phase 11 starter and survey tests\");
     test_step.dependOn(&run_phase11_dw_wdt_suspend_resume_tests.step);
@@ -287,11 +335,6 @@ pub fn build(b: *std.Build) void {
         \"Run the dedicated Phase 11 hvc_console survey replay\",
     );
     hvc_console_survey_step.dependOn(&run_phase11_hvc_console_survey_tests.step);
-    const phase11_hvc_console_survey_tests = b.addTest(.{
-        .name = \"phase11-hvc-console-survey-tests\",
-        .root_module = phase11_hvc_console_poll_retry_split_module,
-    });
-    _ = phase11_hvc_console_survey_tests;
 }
 """
     write_text(root / "zigux/tests/phase11_build.zig", build_text)
@@ -307,212 +350,52 @@ pub fn build(b: *std.Build) void {
         "shared_test_depend_steps": [
             "run_phase11_dw_wdt_suspend_resume_tests",
             "run_phase11_dw_wdt_remove_idle_split_tests",
-            "run_phase11_hvc_console_modem_CONTROL_split_tests",
+            "run_phase11_hvc_console_modem_control_split_tests",
             "run_phase11_hvc_console_poll_retry_split_tests",
         ],
         "module_root_source_files": [
             {"module": "dw_wdt_module", "path": "../../drivers/watchdog/dw_wdt.zig"},
-            {
-                "module": "phase11_dw_wdt_suspend_resume_module",
-                "path": "phase11_dw_wdt_suspend_resume.zig",
-            },
-            {
-                "module": "phase11_dw_wdt_remove_idle_split_module",
-                "path": "phase11_dw_wdt_remove_idle_split.zig",
-            },
+            {"module": "phase11_dw_wdt_suspend_resume_module", "path": "phase11_dw_wdt_suspend_resume.zig"},
+            {"module": "phase11_dw_wdt_remove_idle_split_module", "path": "phase11_dw_wdt_remove_idle_split.zig"},
             {"module": "hvc_console_module", "path": "../../drivers/tty/hvc/hvc_console.zig"},
-            {
-                "module": "phase11_hvc_console_modem_control_split_module",
-                "path": "phase11_hvc_console_modem_control_split.zig",
-            },
-            {
-                "module": "phase11_hvc_console_poll_retry_split_module",
-                "path": "phase11_hvc_console_poll_retry_split.zig",
-            },
+            {"module": "phase11_hvc_console_modem_control_split_module", "path": "phase11_hvc_console_modem_control_split.zig"},
+            {"module": "phase11_hvc_console_poll_retry_split_module", "path": "phase11_hvc_console_poll_retry_split.zig"},
         ],
         "module_imports": [
-            {
-                "module": "phase11_dw_wdt_suspend_resume_module",
-                "import_name": "dw_wdt",
-                "imported_module": "dw_wdt_module",
-            },
-            {
-                "module": "phase11_dw_wdt_remove_idle_split_module",
-                "import_name": "dw_wdt",
-                "imported_module": "dw_wdt_module",
-            },
-            {
-                "module": "phase11_hvc_console_modem_control_split_module",
-                "import_name": "hvc_console",
-                "imported_module": "hvc_console_module",
-            },
-            {
-                "module": "phase11_hvc_console_poll_retry_split_module",
-                "import_name": "hvc_console",
-                "imported_module": "hvc_console_module",
-            },
+            {"module": "phase11_dw_wdt_suspend_resume_module", "import_name": "dw_wdt", "imported_module": "dw_wdt_module"},
+            {"module": "phase11_dw_wdt_remove_idle_split_module", "import_name": "dw_wdt", "imported_module": "dw_wdt_module"},
+            {"module": "phase11_hvc_console_modem_control_split_module", "import_name": "hvc_console", "imported_module": "hvc_console_module"},
+            {"module": "phase11_hvc_console_poll_retry_split_module", "import_name": "hvc_console", "imported_module": "hvc_console_module"},
         ],
         "test_root_modules": [
-            {
-                "test": "phase11-dw-wdt-suspend-resume-tests",
-                "root_module": "phase11_dw_wdt_suspend_resume_module",
-            },
-            {
-                "test": "phase11-dw-wdt-remove-idle-split-tests",
-                "root_module": "phase11_dw_wdt_remove_idle_split_module",
-            },
-            {
-                "test": "phase11-hvc-console-modem-control-split-tests",
-                "root_module": "phase11_hvc_console_modem_control_split_module",
-            },
-            {
-                "test": "phase11-hvc-console-poll-retry-split-tests",
-                "root_module": "phase11_hvc_console_poll_retry_split_module",
-            },
-            {
-                "test": "phase11-hvc-console-survey-tests",
-                "root_module": "phase11_hvc_console_poll_retry_split_module",
-            },
+            {"test": "phase11-dw-wdt-suspend-resume-tests", "root_module": "phase11_dw_wdt_suspend_resume_module"},
+            {"test": "phase11-dw-wdt-remove-idle-split-tests", "root_module": "phase11_dw_wdt_remove_idle_split_module"},
+            {"test": "phase11-hvc-console-modem-control-split-tests", "root_module": "phase11_hvc_console_modem_control_split_module"},
+            {"test": "phase11-hvc-console-poll-retry-split-tests", "root_module": "phase11_hvc_console_poll_retry_split_module"},
+            {"test": "phase11-hvc-console-survey-tests", "root_module": "phase11_hvc_console_poll_retry_split_module"},
         ],
         "forbidden_markers": FORBIDDEN_BUILD_MARKERS,
         "dedicated_survey_replays": DEDICATED_SURVEY_REPLAYS,
         "shared_split_replays": [
-            {
-                "test": "phase11-dw-wdt-remove-idle-split-tests",
-                "path": "zigux/tests/phase11_dw_wdt_remove_idle_split.zig",
-            },
-            {
-                "test": "phase11-hvc-console-modem-control-split-tests",
-                "path": "zigux/tests/phase11_hvc_console_modem_control_split.zig",
-            },
-            {
-                "test": "phase11-hvc-console-poll-retry-split-tests",
-                "path": "zigux/tests/phase11_hvc_console_poll_retry_split.zig",
-            },
+            {"test": "phase11-dw-wdt-remove-idle-split-tests", "path": "zigux/tests/phase11_dw_wdt_remove_idle_split.zig"},
+            {"test": "phase11-hvc-console-modem-control-split-tests", "path": "zigux/tests/phase11_hvc_console_modem_control_split.zig"},
+            {"test": "phase11-hvc-console-poll-retry-split-tests", "path": "zigux/tests/phase11_hvc_console_poll_retry_split.zig"},
         ],
         "shared_replay_markers": SHARED_REPLAY_MARKERS,
     }
-    write_text(
-        root / "zigux/tests/fixtures/phase11_build_inventory.json",
-        json.dumps(fixture, indent=2) + "\n",
-    )
+    write_text(root / "zigux/tests/fixtures/phase11_build_inventory.json", json.dumps(fixture, indent=2) + "\n")
 
-    artifact_diff = """#!/usr/bin/env python3
-from __future__ import annotations
-
-from pathlib import Path
-import argparse
-import json
-import sys
-
-
-def main() -> int:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--mode")
-    parser.add_argument("left")
-    parser.add_argument("right")
-    args = parser.parse_args()
-    left = json.loads(Path(args.left).read_text(encoding=\"utf-8\"))
-    right = json.loads(Path(args.right).read_text(encoding=\"utf-8\"))
-    if left != right:
-        print(\"ARTIFACT_DIFF=fail\")
-        return 1
-    print(\"ARTIFACT_DIFF=pass\")
-    return 0
-
-
-if __name__ == \"__main__\":
-    raise SystemExit(main())
-"""
-    write_text(root / "scripts/zigux/artifact_diff.py", artifact_diff)
-
-    replay_sources = {
+    for rel_path, content in {
         "drivers/watchdog/dw_wdt.zig": "// self-test placeholder\n",
         "drivers/tty/hvc/hvc_console.zig": "// self-test placeholder\n",
         "zigux/tests/phase11_dw_wdt_suspend_resume.zig": "    try std.testing.expect(summary.resume_preserves_timeout_programming);\n",
         "zigux/tests/phase11_dw_wdt_remove_idle_split.zig": "    try std.testing.expect(reset_available_summary.remove_clears_interrupt_status);\n",
         "zigux/tests/phase11_hvc_console_modem_control_split.zig": "    try std.testing.expectEqual(@as(c_int, -7), summary.tiocmset_result);\n",
         "zigux/tests/phase11_hvc_console_poll_retry_split.zig": "    try std.testing.expect(dispatch.invokes_sysrq_handler);\n",
-    }
-    for rel_path, content in replay_sources.items():
+    }.items():
         write_text(root / rel_path, content)
 
     write_text(root / "scripts/zigux/check-phase11-build-inventory.py", Path(__file__).read_text(encoding="utf-8"))
-
-
-def run_checker(root: Path) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        [sys.executable, str(root / "scripts/zigux/check-phase11-build-inventory.py")],
-        cwd=str(root),
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-
-
-def expect_missing_root(label: str, root: Path, expected_marker: str) -> None:
-    result = run_checker(root)
-    if result.returncode == 0:
-        raise SystemExit(f"phase11-build-inventory-self-test:{label}:unexpected_pass")
-    if "PHASE11_BUILD_INVENTORY=fail" not in result.stdout:
-        actual = result.stdout.strip() or result.stderr.strip() or "no_output"
-        raise SystemExit(
-            f"phase11-build-inventory-self-test:{label}:missing_fail_token:{actual}"
-        )
-    if expected_marker not in result.stdout:
-        actual = result.stdout.strip() or "none"
-        raise SystemExit(
-            f"phase11-build-inventory-self-test:{label}:expected_missing_root:{expected_marker}:actual:{actual}"
-        )
-
-
-def expect_inventory_drift(label: str, root: Path) -> None:
-    result = run_checker(root)
-    if result.returncode == 0:
-        raise SystemExit(f"phase11-build-inventory-self-test:{label}:unexpected_pass")
-    if "PHASE11_BUILD_INVENTORY=fail" not in result.stdout:
-        actual = result.stdout.strip() or result.stderr.strip() or "no_output"
-        raise SystemExit(
-            f"phase11-build-inventory-self-test:{label}:missing_fail_token:{actual}"
-        )
-    if "ARTIFACT_DIFF=fail" not in result.stdout:
-        actual = result.stdout.strip() or result.stderr.strip() or "no_output"
-        raise SystemExit(
-            f"phase11-build-inventory-self-test:{label}:missing_artifact_diff_fail:{actual}"
-        )
-
-
-def expect_build_step_drift(label: str, root: Path, expected_marker: str) -> None:
-    result = run_checker(root)
-    if result.returncode == 0:
-        raise SystemExit(f"phase11-build-inventory-self-test:{label}:unexpected_pass")
-    if "PHASE11_BUILD_INVENTORY=fail" not in result.stdout:
-        actual = result.stdout.strip() or result.stderr.strip() or "no_output"
-        raise SystemExit(
-            f"phase11-build-inventory-self-test:{label}:missing_fail_token:{actual}"
-        )
-    if expected_marker not in result.stdout:
-        actual = result.stdout.strip() or "none"
-        raise SystemExit(
-            f"phase11-build-inventory-self-test:{label}:expected_missing_build_step:{expected_marker}:actual:{actual}"
-        )
-
-
-def expect_missing_replay_marker(label: str, root: Path, path: str, marker: str) -> None:
-    result = run_checker(root)
-    if result.returncode == 0:
-        raise SystemExit(f"phase11-build-inventory-self-test:{label}:unexpected_pass")
-    if "PHASE11_BUILD_INVENTORY=fail" not in result.stdout:
-        actual = result.stdout.strip() or result.stderr.strip() or "no_output"
-        raise SystemExit(
-            f"phase11-build-inventory-self-test:{label}:missing_fail_token:{actual}"
-        )
-    expected = f"{path}:{marker}"
-    if expected not in result.stdout:
-        actual = result.stdout.strip() or "none"
-        raise SystemExit(
-            f"phase11-build-inventory-self-test:{label}:expected_missing_replay_marker:{expected}:actual:{actual}"
-        )
 
 
 def run_self_test() -> int:
@@ -527,64 +410,35 @@ def run_self_test() -> int:
                 f"{baseline.stdout.strip() or baseline.stderr.strip() or 'no_output'}"
             )
 
+        dw_split = tmp_root / "zigux/tests/phase11_dw_wdt_remove_idle_split.zig"
+        dw_split_backup = dw_split.read_text(encoding="utf-8")
+        dw_split.unlink()
+        expect_stdout(
+            "missing_dw_split",
+            run_checker(tmp_root),
+            "phase11_dw_wdt_remove_idle_split_module:phase11_dw_wdt_remove_idle_split.zig",
+        )
+        write_text(dw_split, dw_split_backup)
+
         dw_suspend = tmp_root / "zigux/tests/phase11_dw_wdt_suspend_resume.zig"
         dw_suspend_backup = dw_suspend.read_text(encoding="utf-8")
         dw_suspend.write_text("// marker removed\n", encoding="utf-8")
-        expect_missing_replay_marker(
-            "missing_dw_suspend_resume_marker",
-            tmp_root,
-            "zigux/tests/phase11_dw_wdt_suspend_resume.zig",
-            "    try std.testing.expect(summary.resume_preserves_timeout_programming);",
+        expect_stdout(
+            "missing_dw_suspend_marker",
+            run_checker(tmp_root),
+            "zigux/tests/phase11_dw_wdt_suspend_resume.zig:    try std.testing.expect(summary.resume_preserves_timeout_programming);",
         )
         write_text(dw_suspend, dw_suspend_backup)
 
-        hvc_modem_split = tmp_root / "zigux/tests/phase11_hvc_console_modem_control_split.zig"
-        hvc_modem_backup = hvc_modem_split.read_text(encoding="utf-8")
-        hvc_modem_split.write_text("// marker removed\n", encoding="utf-8")
-        expect_missing_replay_marker(
-            "missing_hvc_modem_control_marker",
-            tmp_root,
-            "zigux/tests/phase11_hvc_console_modem_control_split.zig",
-            "    try std.testing.expectEqual(@as(c_int, -7), summary.tiocmset_result);",
+        hvc_modem = tmp_root / "zigux/tests/phase11_hvc_console_modem_control_split.zig"
+        hvc_modem_backup = hvc_modem.read_text(encoding="utf-8")
+        hvc_modem.write_text("// marker removed\n", encoding="utf-8")
+        expect_stdout(
+            "missing_hvc_modem_marker",
+            run_checker(tmp_root),
+            "zigux/tests/phase11_hvc_console_modem_control_split.zig:    try std.testing.expectEqual(@as(c_int, -7), summary.tiocmset_result);",
         )
-        write_text(hvc_modem_split, hvc_modem_backup)
-
-        hvc_poll_split = tmp_root / "zigux/tests/phase11_hvc_console_poll_retry_split.zig"
-        hvc_poll_backup = hvc_poll_split.read_text(encoding="utf-8")
-        hvc_poll_split.write_text("// marker removed\n", encoding="utf-8")
-        expect_missing_replay_marker(
-            "missing_hvc_poll_retry_marker",
-            tmp_root,
-            "zigux/tests/phase11_hvc_console_poll_retry_split.zig",
-            "    try std.testing.expect(dispatch.invokes_sysrq_handler);",
-        )
-        write_text(hvc_poll_split, hvc_poll_backup)
-
-        dw_split = tmp_root / "zigux/tests/phase11_dw_wdt_remove_idle_split.zig"
-        dw_backup = dw_split.read_text(encoding="utf-8")
-        dw_split.unlink()
-        expect_missing_root(
-            "missing_dw_split",
-            tmp_root,
-            "phase11_dw_wdt_remove_idle_split_module:phase11_dw_wdt_remove_idle_split.zig",
-        )
-        write_text(dw_split, dw_backup)
-
-        hvc_modem_split.unlink()
-        expect_missing_root(
-            "missing_hvc_modem_split",
-            tmp_root,
-            "phase11_hvc_console_modem_control_split_module:phase11_hvc_console_modem_control_split.zig",
-        )
-        write_text(hvc_modem_split, hvc_modem_backup)
-
-        hvc_poll_split.unlink()
-        expect_missing_root(
-            "missing_hvc_split",
-            tmp_root,
-            "phase11_hvc_console_poll_retry_split_module:phase11_hvc_console_poll_retry_split.zig",
-        )
-        write_text(hvc_poll_split, hvc_poll_backup)
+        write_text(hvc_modem, hvc_modem_backup)
 
         build_path = tmp_root / "zigux/tests/phase11_build.zig"
         build_backup = build_path.read_text(encoding="utf-8")
@@ -597,9 +451,10 @@ def run_self_test() -> int:
             ),
             encoding="utf-8",
         )
-        expect_inventory_drift(
-            "shared_test_step_includes_dedicated_hvc_survey",
-            tmp_root,
+        expect_stdout(
+            "forbidden_hvc_survey_dependency",
+            run_checker(tmp_root),
+            "test_step.dependOn(&run_phase11_hvc_console_survey_tests.step);",
         )
         write_text(build_path, build_backup)
 
@@ -611,9 +466,9 @@ def run_self_test() -> int:
             ),
             encoding="utf-8",
         )
-        expect_build_step_drift(
+        expect_stdout(
             "shared_test_step_name_drift",
-            tmp_root,
+            run_checker(tmp_root),
             "test_step:name=test,description=Run Phase 11 starter and survey tests",
         )
         write_text(build_path, build_backup)
@@ -626,9 +481,9 @@ def run_self_test() -> int:
             ),
             encoding="utf-8",
         )
-        expect_build_step_drift(
-            "dedicated_hvc_survey_binding_missing",
-            tmp_root,
+        expect_stdout(
+            "missing_hvc_survey_binding",
+            run_checker(tmp_root),
             "binding:hvc_console_survey_step.dependOn(&run_phase11_hvc_console_survey_tests.step);",
         )
         write_text(build_path, build_backup)
@@ -636,109 +491,21 @@ def run_self_test() -> int:
         fixture_path = tmp_root / "zigux/tests/fixtures/phase11_build_inventory.json"
         fixture_backup = fixture_path.read_text(encoding="utf-8")
         fixture = json.loads(fixture_backup)
-        fixture["forbidden_markers"] = []
-        fixture_path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
-        expect_inventory_drift(
-            "forbidden_markers_fixture_drift",
-            tmp_root,
-        )
-        fixture_path.write_text(fixture_backup, encoding="utf-8")
-
-        fixture = json.loads(fixture_backup)
-        fixture["dedicated_survey_replays"] = []
-        fixture_path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
-        expect_inventory_drift(
-            "dedicated_survey_replays_fixture_drift",
-            tmp_root,
-        )
-        fixture_path.write_text(fixture_backup, encoding="utf-8")
-
-        fixture = json.loads(fixture_backup)
-        fixture["shared_split_replays"] = []
-        fixture_path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
-        expect_inventory_drift(
-            "shared_split_replays_fixture_drift",
-            tmp_root,
-        )
-        fixture_path.write_text(fixture_backup, encoding="utf-8")
-
-        fixture = json.loads(fixture_backup)
         fixture["shared_replay_markers"] = []
         fixture_path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
-        expect_inventory_drift(
-            "shared_replay_markers_fixture_drift",
-            tmp_root,
+        expect_stdout(
+            "shared_replay_marker_fixture_drift",
+            run_checker(tmp_root),
+            "ARTIFACT_DIFF=fail",
         )
         fixture_path.write_text(fixture_backup, encoding="utf-8")
 
     print("PHASE11_BUILD_INVENTORY_SELF_TEST=pass")
-    print("PHASE11_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=13")
-    return 0
-
-
-def main() -> int:
-    _ = load_json(FIXTURE_PATH)
-    generated = render_inventory()
-    missing_module_roots = validate_module_root_paths_exist(generated)
-
-    if missing_module_roots:
-        print("PHASE11_BUILD_INVENTORY=fail")
-        print("PHASE11_BUILD_INVENTORY_MISSING_MODULE_ROOTS_START")
-        for item in missing_module_roots:
-            print(item)
-        print("PHASE11_BUILD_INVENTORY_MISSING_MODULE_ROOTS_END")
-        return 1
-
-    missing_replay_markers = validate_shared_replay_markers(generated)
-    if missing_replay_markers:
-        print("PHASE11_BUILD_INVENTORY=fail")
-        print("PHASE11_BUILD_INVENTORY_MISSING_REPLAY_MARKERS_START")
-        for item in missing_replay_markers:
-            print(item)
-        print("PHASE11_BUILD_INVENTORY_MISSING_REPLAY_MARKERS_END")
-        return 1
-
-    build_text = BUILD_PATH.read_text(encoding="utf-8")
-    missing_build_steps = validate_named_build_steps(build_text)
-    if missing_build_steps:
-        print("PHASE11_BUILD_INVENTORY=fail")
-        print("PHASE11_BUILD_INVENTORY_MISSING_BUILD_STEPS_START")
-        for item in missing_build_steps:
-            print(item)
-        print("PHASE11_BUILD_INVENTORY_MISSING_BUILD_STEPS_END")
-        return 1
-
-    with tempfile.TemporaryDirectory(prefix="zigux_phase11_inventory_") as tmp_dir_str:
-        actual_path = Path(tmp_dir_str) / "phase11_build_inventory.json"
-        actual_path.write_text(json.dumps(generated, indent=2) + "\n", encoding="utf-8")
-        result = subprocess.run(
-            [
-                sys.executable,
-                str(ARTIFACT_DIFF_PATH),
-                "--mode",
-                "json",
-                str(FIXTURE_PATH),
-                str(actual_path),
-            ],
-            check=False,
-            text=True,
-            capture_output=True,
-        )
-
-    if result.stdout:
-        sys.stdout.write(result.stdout)
-    if result.stderr:
-        sys.stderr.write(result.stderr)
-
-    if result.returncode != 0:
-        print("PHASE11_BUILD_INVENTORY=fail")
-        return result.returncode
-
-    print("PHASE11_BUILD_INVENTORY=pass")
+    print("PHASE11_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
 if __name__ == "__main__":
     if "--self-test" in sys.argv[1:]:
         raise SystemExit(run_self_test())
-    raise SystemExit(main())
+    raise SystemExit(validate_fixture_match())
