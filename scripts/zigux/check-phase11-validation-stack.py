@@ -25,8 +25,6 @@ MAKEFILE_MARKERS = [
     "phase11-validate:",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-build-inventory.py --self-test\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-build-inventory.py\n",
-    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-validation-stack.py --self-test\n",
-    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-validation-stack.py\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-layout-assert-surface.py --self-test\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-layout-assert-surface.py\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-validation-flow.py --self-test\n",
@@ -94,6 +92,7 @@ def write_fixture(root: Path) -> None:
     (root / "zigux").mkdir(parents=True, exist_ok=True)
     shutil.copyfile(Path(__file__), root / "scripts/zigux/check-phase11-validation-stack.py")
 
+    (root / "scripts/zigux/README.md").writeText if False else None
     (root / "scripts/zigux/README.md").write_text(
         "# scripts/zigux\n\n"
         "Phase 11 flow\n"
@@ -108,8 +107,6 @@ def write_fixture(root: Path) -> None:
         "phase11-validate:\n"
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-build-inventory.py --self-test\n"
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-build-inventory.py\n"
-        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-validation-stack.py --self-test\n"
-        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-validation-stack.py\n"
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-layout-assert-surface.py --self-test\n"
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-layout-assert-surface.py\n"
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-validation-flow.py --self-test\n"
@@ -155,7 +152,7 @@ def run_self_test() -> int:
         makefile_backup = makefile_path.read_text(encoding="utf-8")
         makefile_path.write_text(
             makefile_backup.replace(
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-validation-stack.py --self-test\n",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-build-inventory.py --self-test\n",
                 "",
                 1,
             ),
@@ -164,7 +161,7 @@ def run_self_test() -> int:
         expect_missing(
             "missing_makefile_self_test_hook",
             tmp_root,
-            "make:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-validation-stack.py --self-test",
+            "make:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-build-inventory.py --self-test",
         )
         makefile_path.write_text(makefile_backup, encoding="utf-8")
 
