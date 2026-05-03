@@ -98,7 +98,7 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P12-L04", manifest.lane_key);
+    try std.testing.expectEqualStrings("P12-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
     try std.testing.expectEqualStrings("drivers/net/virtio_net.c", manifest.anchor);
     try std.testing.expectEqualStrings("bc2373f7deedf021c73beaae29555a9ac6b0536d", manifest.surveyed_commit);
