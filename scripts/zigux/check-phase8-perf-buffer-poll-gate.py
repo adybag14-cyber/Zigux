@@ -293,6 +293,21 @@ def run_self_test() -> int:
         )
         makefile_path.write_text(original_makefile, encoding="utf-8")
 
+        makefile_path.write_text(
+            original_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-perf-buffer-poll-gate.py\n",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-perf-buffer-poll-self.py\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "makefile_live_hook",
+            tmp_root,
+            "zigux/Makefile:scripts/zigux/check-phase8-perf-buffer-poll-gate.py",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
         tests_readme_path = tmp_root / "zigux/tests/README.md"
         original_tests_readme = tests_readme_path.read_text(encoding="utf-8")
         tests_readme_path.write_text(
@@ -312,6 +327,21 @@ def run_self_test() -> int:
 
         note_path = tmp_root / "Documentation/zigux/phase8-perf-buffer-poll-slice.md"
         original_note = note_path.read_text(encoding="utf-8")
+        note_path.write_text(
+            original_note.replace(
+                "wait-result classification",
+                "wait-result summary",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "note_wait_result_classification",
+            tmp_root,
+            "Documentation/zigux/phase8-perf-buffer-poll-slice.md:wait-result classification",
+        )
+        note_path.write_text(original_note, encoding="utf-8")
+
         note_path.write_text(
             original_note.replace(
                 "no standalone timer helper",
@@ -660,7 +690,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST=pass")
-    print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST_CASE_COUNT=24")
+    print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST_CASE_COUNT=26")
     return 0
 
 
