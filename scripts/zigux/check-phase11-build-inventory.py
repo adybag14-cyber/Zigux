@@ -440,6 +440,16 @@ def run_self_test() -> int:
         )
         write_text(hvc_modem, hvc_modem_backup)
 
+        hvc_poll_retry = tmp_root / "zigux/tests/phase11_hvc_console_poll_retry_split.zig"
+        hvc_poll_retry_backup = hvc_poll_retry.read_text(encoding="utf-8")
+        hvc_poll_retry.write_text("// marker removed\n", encoding="utf-8")
+        expect_stdout(
+            "missing_hvc_poll_retry_marker",
+            run_checker(tmp_root),
+            "zigux/tests/phase11_hvc_console_poll_retry_split.zig:    try std.testing.expect(dispatch.invokes_sysrq_handler);",
+        )
+        write_text(hvc_poll_retry, hvc_poll_retry_backup)
+
         build_path = tmp_root / "zigux/tests/phase11_build.zig"
         build_backup = build_path.read_text(encoding="utf-8")
         build_path.write_text(
@@ -501,7 +511,7 @@ def run_self_test() -> int:
         fixture_path.write_text(fixture_backup, encoding="utf-8")
 
     print("PHASE11_BUILD_INVENTORY_SELF_TEST=pass")
-    print("PHASE11_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=7")
+    print("PHASE11_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
