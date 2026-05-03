@@ -364,6 +364,33 @@ test "phase10 virtio core keeps config changes pending while the driver path is 
     try std.testing.expectEqual(virtio_core.ConfigChangeDisposition.none, summary.last_disposition);
 }
 
+test "phase10 virtio core rejects nested driver config toggles and only flushes pending change after a valid enable" {
+    var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 5, 10 });
+
+    device.acknowledge();
+    try device.attachDriver();
+    try device.setConfigChangedHandlerPresent(true);
+
+    try device.disableConfigDriver();
+    try std.testing.expectError(error.ConfigDriverAlreadyDisabled, device.disableConfigDriver());
+
+    try device.noteConfigChanged();
+    var summary = device.configChangeSummary();
+    try std.testing.expect(summary.driver_disabled);
+    try std.testing.expect(summary.change_pending);
+    try std.testing.expectEqual(@as(usize, 0), summary.delivery_count);
+    try std.testing.expectEqual(virtio_core.ConfigChangeDisposition.deferred_until_enabled, summary.last_disposition);
+
+    try device.enableConfigDriver();
+    try std.testing.expectError(error.ConfigDriverAlreadyEnabled, device.enableConfigDriver());
+
+    summary = device.configChangeSummary();
+    try std.testing.expect(!summary.driver_disabled);
+    try std.testing.expect(!summary.change_pending);
+    try std.testing.expectEqual(@as(usize, 1), summary.delivery_count);
+    try std.testing.expectEqual(virtio_core.ConfigChangeDisposition.delivered_to_handler, summary.last_disposition);
+}
+
 test "phase10 virtio core does not fabricate config delivery when driver re-enables without pending change" {
     var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 3, 9 });
 
