@@ -478,11 +478,20 @@ def run_self_test() -> int:
         issues = validate(root)
         assert "missing_low_level_test_snippet:atomic.fetchMax(u32, &value, 29, .seq_cst)" in issues
 
+        _write(root, LOW_LEVEL_TEST_REL, "\n".join(REQUIRED_LOW_LEVEL_TEST_SNIPPETS) + "\n")
         _write(
             root,
-            LOW_LEVEL_TEST_REL,
-            "\n".join(REQUIRED_LOW_LEVEL_TEST_SNIPPETS) + "\n",
+            BARRIER_REL,
+            "\n".join(
+                snippet
+                for snippet in REQUIRED_BARRIER_SNIPPETS
+                if snippet != "pub fn acquireRelease() void {"
+            ) + "\n",
         )
+        issues = validate(root)
+        assert "missing_barrier_snippet:pub fn acquireRelease() void {" in issues
+
+        _write(root, BARRIER_REL, "\n".join(REQUIRED_BARRIER_SNIPPETS) + "\n")
         _write(
             root,
             POLICY_UNSAFE_MMIO_CONSUMER_REL,
