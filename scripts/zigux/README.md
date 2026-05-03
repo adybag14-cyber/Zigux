@@ -49,6 +49,7 @@ Current bootstrap helpers
 - `check-phase7-argv-split-parity.py`
 - `check-phase7-rbtree-parity.py`
 - `validate-phase8.py`
+- `check-phase8-validator-flow.py`
 - `check-phase8-tests-readme-alignment.py`
 - `check-phase8-perf-buffer-poll-gate.py`
 - `validate-phase9.py`
