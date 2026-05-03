@@ -250,10 +250,12 @@ test "phase 7 string helper sample survey manifest records the bounded sample-ba
     }
 
     const expected_build_markers = [_][]const u8{
+        "const repo_root = b.path(\"../..\");",
         "../../samples/zigux/string_helpers_sample.zig",
         "phase7-string-helpers-sample-tests",
         "phase7-string-helpers-sample-survey-tests",
         "phase7_string_helpers_sample_survey.zig",
+        "run_string_helpers_sample_survey_tests.setCwd(repo_root);",
         "test_step.dependOn(&run_string_helpers_sample_tests.step);",
         "test_step.dependOn(&run_string_helpers_sample_survey_tests.step);",
     };
