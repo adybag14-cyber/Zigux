@@ -9,7 +9,7 @@ from pathlib import Path
 
 SCRIPT_PATH = Path(__file__).resolve()
 ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
-SELF_TEST_CASE_COUNT = 11
+SELF_TEST_CASE_COUNT = 13
 
 DOCS_ROOT_PATH = Path("Documentation/zigux/README.md")
 SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
@@ -33,6 +33,7 @@ EXTERNAL_PARITY_LINE = (
 )
 REQUIRED_SCRIPTS_README_LINES = [
     "- `check-phase6-docs-root-external-parity.py`",
+    "- `check-phase6-base64-catalog-evidence.py`",
 ]
 REQUIRED_TESTS_README_LINES = [
     "- `scripts/zigux/check-phase6-docs-root-external-parity.py`",
@@ -217,6 +218,30 @@ def run_self_test() -> int:
             count += 1
 
             build_fixture_tree(root)
+            scripts_readme = root / SCRIPTS_README_PATH
+            scripts_readme.write_text(
+                "- `check-phase6-docs-root-external-parity.py`\n",
+                encoding="utf-8",
+            )
+            expect_contains(
+                validate(root),
+                "scripts_readme_checker_line:expected=1:actual=0:- `check-phase6-base64-catalog-evidence.py`",
+            )
+            count += 1
+
+            build_fixture_tree(root)
+            scripts_readme = root / SCRIPTS_README_PATH
+            scripts_readme.write_text(
+                "- `check-phase6-docs-root-external-parity.py`\n- `check-phase6-base64-catalog-evidence.py`\n- `check-phase6-base64-catalog-evidence.py`\n",
+                encoding="utf-8",
+            )
+            expect_contains(
+                validate(root),
+                "scripts_readme_checker_line:expected=1:actual=2:- `check-phase6-base64-catalog-evidence.py`",
+            )
+            count += 1
+
+            build_fixture_tree(root)
             tests_readme = root / TESTS_README_PATH
             tests_readme.write_text(
                 "\n".join(REQUIRED_TESTS_README_LINES[1:]) + "\n",
@@ -331,7 +356,7 @@ def main() -> int:
 
     print("PHASE6_DOCS_ROOT_EXTERNAL_PARITY=pass")
     print("PHASE6_DOCS_ROOT_EXTERNAL_PARITY_REQUIRED_FILE_COUNT=9")
-    print("PHASE6_DOCS_ROOT_EXTERNAL_PARITY_REQUIRED_LINE_COUNT=17")
+    print("PHASE6_DOCS_ROOT_EXTERNAL_PARITY_REQUIRED_LINE_COUNT=18")
     return 0
 
 
