@@ -41,8 +41,17 @@ Current repo evidence:
 - survey note: `Documentation/zigux/phase13-libfs-survey.md`
 
 Current lane state recorded in the manifest:
-- landed `phase13-libfs-helper-starter`
+- landed `phase13-build-gate`
+- landed `phase13-make-target`
+- landed `phase13-libfs-starter`
+- landed `phase13-libfs-tests`
+- landed `phase13-libfs-slice-note`
 - landed `phase13-libfs-reviewability-gate`
+- landed `phase13-libfs-survey-note`
+- landed `phase13-libfs-offset-seek-helper`
+- landed `phase13-libfs-directory-emit-helper`
+- landed `phase13-libfs-transaction-buffer-helper`
+- landed `phase13-libfs-transaction-read-release-followup`
 - landed `phase13-libfs-dcache-cursor-preconditions`
 - landed `phase13-libfs-dcache-cursor-reposition-bookkeeping`
 - landed `phase13-libfs-dcache-dir-close-release-bookkeeping`
