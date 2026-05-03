@@ -10,6 +10,8 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
 README_PATH = ROOT / "scripts/zigux/README.md"
+DOCS_README_PATH = ROOT / "Documentation/zigux/README.md"
+TESTS_README_PATH = ROOT / "zigux/tests/README.md"
 MAKEFILE_PATH = ROOT / "zigux/Makefile"
 WORKFLOW_PATH = ROOT / ".github/workflows/zigux-bootstrap.yml"
 BUILD_PATH = ROOT / "zigux/tests/phase11_build.zig"
@@ -23,6 +25,15 @@ README_MARKERS = [
     "`check-phase11-build-inventory.py`, `check-phase11-layout-assert-surface.py`, `check-phase11-hvc-validation-flow.py`, and `check-phase11-hvc-cleanup-alignment.py` keep the build snapshot, the Phase 11 layout-assert survey surface, the shared-versus-dedicated hvc replay contract, and the current hvc cleanup packet explicit before the broader Phase 11 validator runs.",
     "`validate-phase11.py` keeps those pre-replay gates plus `zigux/tests/fixtures/phase11_build_inventory.json`, `zigux/tests/phase11_gpio_wdt_manifest.json`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_hvc_console_manifest.json`, and `zigux/tests/phase11_uapi_header_parity_manifest.json` aligned with `zigux/tests/phase11_build.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and the dedicated hvc_console survey note and validation matrix.",
     "`make -C zigux phase11-hvc-survey` is the dedicated archival replay for `zigux/tests/phase11_hvc_console_survey.zig`, while `make -C zigux phase11` keeps the shared Phase 11 replay plus that dedicated archival step in one published path.",
+]
+DOCS_README_MARKERS = [
+    "`Documentation/zigux/phase11-shared-replay-contract.md` now keeps the shared-versus-dedicated replay boundary explicit from the docs root",
+    "`python3 scripts/zigux/check-phase11-build-inventory.py`, `python3 scripts/zigux/check-phase11-layout-assert-surface.py`, `python3 scripts/zigux/check-phase11-hvc-validation-flow.py`, and `python3 scripts/zigux/check-phase11-hvc-cleanup-alignment.py` now keep the build snapshot, layout-assert review surface, shared-versus-dedicated hvc replay contract, and current hvc cleanup packet explicit as the pre-replay Phase 11 delivery gate behind `make -C zigux phase11-validate`.",
+    "`python3 scripts/zigux/validate-phase11.py`, `zigux/tests/fixtures/phase11_build_inventory.json`, `make -C zigux phase11-validate`, and `make -C zigux phase11` now define the shared Phase 11 reviewability path, with the dedicated `zigux/tests/phase11_hvc_console_survey.zig` archival replay still kept separate from `zigux/tests/phase11_build.zig`.",
+]
+TESTS_README_MARKERS = [
+    "keep `Documentation/zigux/phase11-shared-replay-contract.md`, `zigux/tests/phase11_build.zig`, `zigux/tests/fixtures/phase11_build_inventory.json`, `zigux/tests/phase11_hvc_console_survey.zig`, and `scripts/zigux/validate-phase11.py` aligned",
+    "keep the shared-versus-dedicated replay boundary explicit: `zigux/tests/phase11_build.zig` remains the shared replay for the landed starter packet, while `zigux/tests/phase11_hvc_console_survey.zig` remains the dedicated archival replay for the exact shared-versus-dedicated delivery contract.",
 ]
 MAKEFILE_MARKERS = [
     "phase11-validate:",
@@ -125,6 +136,8 @@ def validate_contract(root: Path) -> int:
     missing: list[str] = []
     for label, path, markers in [
         ("readme", root / README_PATH, README_MARKERS),
+        ("docs_readme", root / DOCS_README_PATH, DOCS_README_MARKERS),
+        ("tests_readme", root / TESTS_README_PATH, TESTS_README_MARKERS),
         ("makefile", root / MAKEFILE_PATH, MAKEFILE_MARKERS),
         ("workflow", root / WORKFLOW_PATH, WORKFLOW_MARKERS),
         ("build", root / BUILD_PATH, BUILD_MARKERS),
@@ -189,6 +202,8 @@ def expect_missing(label: str, result: subprocess.CompletedProcess[str], marker:
 
 def write_fixture_tree(root: Path) -> None:
     write_text(root / "scripts/zigux/README.md", "\n".join(README_MARKERS) + "\n")
+    write_text(root / "Documentation/zigux/README.md", "\n".join(DOCS_README_MARKERS) + "\n")
+    write_text(root / "zigux/tests/README.md", "\n".join(TESTS_README_MARKERS) + "\n")
     write_text(root / "zigux/Makefile", "\n".join(MAKEFILE_MARKERS) + "\n")
     write_text(root / ".github/workflows/zigux-bootstrap.yml", "\n".join(WORKFLOW_MARKERS) + "\n")
     build_body = "\n".join(
@@ -276,6 +291,32 @@ def run_self_test() -> int:
         expect_missing("missing_readme_section", run_checker(tmp_root), "readme:Phase 11 flow")
         write_text(readme_path, readme_backup)
 
+        docs_readme_path = tmp_root / "Documentation/zigux/README.md"
+        docs_readme_backup = text(docs_readme_path)
+        write_text(
+            docs_readme_path,
+            docs_readme_backup.replace(DOCS_README_MARKERS[0] + "\n", "", 1),
+        )
+        expect_missing(
+            "missing_docs_root_contract_marker",
+            run_checker(tmp_root),
+            f"docs_readme:{DOCS_README_MARKERS[0]}",
+        )
+        write_text(docs_readme_path, docs_readme_backup)
+
+        tests_readme_path = tmp_root / "zigux/tests/README.md"
+        tests_readme_backup = text(tests_readme_path)
+        write_text(
+            tests_readme_path,
+            tests_readme_backup.replace(TESTS_README_MARKERS[1] + "\n", "", 1),
+        )
+        expect_missing(
+            "missing_tests_root_boundary_marker",
+            run_checker(tmp_root),
+            f"tests_readme:{TESTS_README_MARKERS[1]}",
+        )
+        write_text(tests_readme_path, tests_readme_backup)
+
         build_path = tmp_root / "zigux/tests/phase11_build.zig"
         build_backup = text(build_path)
         write_text(
@@ -344,7 +385,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST=pass")
-    print("PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT=6")
+    print("PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
