@@ -25,7 +25,7 @@ FIND_BIT_BENCH_KEYS = (
     "PHASE1_BENCH_FIND_SAME_WORD_CHECKSUM,PHASE1_BENCH_FIND_NEXT_ZERO_BIT_CHECKSUM,"
     "PHASE1_BENCH_FIND_NEXT_AND_BIT_CHECKSUM"
 )
-BENCH_SELF_TEST_COUNT = "print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=16')"
+BENCH_SELF_TEST_COUNT = "print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=18')"
 
 REQUIRED_VALIDATOR_SNIPPETS = {
     "closure_tail_start_review": (
@@ -38,37 +38,32 @@ REQUIRED_VALIDATOR_SNIPPETS = {
         'scans return 0 even when backing words are populated so declared nbits stays '
         'authoritative over caller storage"'
     ),
-    "manifest_tail_start_anchor_marker": '"tail_start_unit_test_anchor",',
-    "manifest_tail_start_contract_marker": '"tail_start_unit_test_contract",',
-    "manifest_zero_sized_anchor_marker": '"zero_sized_unit_test_anchor",',
-    "manifest_zero_sized_contract_marker": '"zero_sized_unit_test_contract",',
-    "manifest_tail_start_anchor_check": (
-        'if find_bit_note.get("tail_start_unit_test_anchor") != '
+    "manifest_tail_start_anchor_marker": (
+        '"tail_start_unit_test_anchor": '
         '\'tools/lib/find_bit.zig:test "tail scans keep the last in-range bit reachable from an inclusive start"\''
     ),
-    "manifest_tail_start_contract_check": (
-        'if find_bit_note.get("tail_start_unit_test_contract") != '
+    "manifest_tail_start_contract_marker": (
+        '"tail_start_unit_test_contract": '
         '"Direct Zig unit coverage keeps tail-clamped set, zero, and shared-bit scans aligned '
         'when the inclusive start lands on the last in-range bit, while later starts still return '
-        'nbits instead of leaking the out-of-range tail."'
+        '`nbits` instead of leaking the out-of-range tail.",'
     ),
-    "manifest_zero_sized_anchor_check": (
-        'if find_bit_note.get("zero_sized_unit_test_anchor") != '
+    "manifest_zero_sized_anchor_marker": (
+        '"zero_sized_unit_test_anchor": '
         '\'tools/lib/find_bit.zig:test "zero-sized scans ignore populated backing words"\''
     ),
-    "manifest_zero_sized_contract_check": (
-        'if find_bit_note.get("zero_sized_unit_test_contract") != '
+    "manifest_zero_sized_contract_marker": (
+        '"zero_sized_unit_test_contract": '
         '"Direct Zig unit coverage keeps zero-length set, zero, and shared-bit scans aligned by '
-        'returning 0 even when backing words are populated, so declared nbits stays authoritative '
-        'over caller storage."'
+        'returning `0` even when backing words are populated, so declared `nbits` stays '
+        'authoritative over caller storage.",'
     ),
 }
 
 REQUIRED_CLOSURE_VALIDATOR_SNIPPETS = {
-    "find_bit_bench_keys_marker": f'"{FIND_BIT_BENCH_KEYS}"',
-    "bench_self_test_count_marker": f'        "{BENCH_SELF_TEST_COUNT}",',
-    "bench_self_test_replace_once": (
-        f'replace_once(original_bench_checker, "{BENCH_SELF_TEST_COUNT}")'
+    "bench_self_test_count_marker": f'"{BENCH_SELF_TEST_COUNT}",',
+    "bench_self_test_expect_failure": (
+        f'expect_failure(root, "bench_checker:{BENCH_SELF_TEST_COUNT}")'
     ),
 }
 
