@@ -33,6 +33,7 @@ EXACT_WORKFLOW_RUN_COUNTS = {
 EXACT_MAKEFILE_RUN_COUNTS = {
     "scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test": 1,
     "scripts/zigux/check-phase2-toolchain-pin-scope.py": 1,
+    "scripts/zigux/check-zig-toolchain.py": 1,
     "scripts/zigux/validate-phase2.py": 1,
 }
 
@@ -208,6 +209,7 @@ def run_self_test() -> int:
         [
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2.py",
         ]
     )
@@ -219,6 +221,24 @@ def run_self_test() -> int:
             [
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2.py",
+            ]
+        )
+    )
+    if not any(
+        issue.startswith("makefile_exact_run:scripts/zigux/check-zig-toolchain.py:count=2:expected=1")
+        for issue in issues
+    ):
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:makefile_toolchain_duplicate")
+
+    issues = validate_exact_makefile_runs(
+        "\n".join(
+            [
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2.py",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2.py",
             ]
@@ -271,7 +291,7 @@ def run_self_test() -> int:
             raise SystemExit("phase2-toolchain-pin-scope:self-test:json_round_trip")
 
     print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass")
-    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=13")
+    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
