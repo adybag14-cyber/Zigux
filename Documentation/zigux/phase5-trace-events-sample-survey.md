@@ -4,7 +4,7 @@ This sample-backed survey note tracks the bounded Phase 5 reference-sample surve
 
 ## Status
 
-- `PHASE5_STATUS=active`
+- `PHASE5_STATUS=parked`
 - `PHASE5_SLICE=trace-events-reference-sample-starter`
 - `PHASE5_LANE_KEY=P5-L24`
 - `PHASE5_SURVEYED_COMMIT=d46fb91493e6e9126d5111bf0e5b21184e0ec1d1`
