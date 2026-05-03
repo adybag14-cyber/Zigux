@@ -32,10 +32,12 @@ REQUIRED_MAKEFILE_SNIPPETS = (
 
 FORBIDDEN_MAKEFILE_SNIPPETS = (
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-roadmap-gap-survey.py\n",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-rbtree-interop-survey.py\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-low-level-wrapper-survey.py\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-policy-unsafe-survey.py\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-roadmap-gap-survey.py --self-test\n",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-rbtree-interop-survey.py --self-test\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py --self-test\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test\n",
@@ -54,10 +56,12 @@ REQUIRED_WORKFLOW_SNIPPETS = (
 
 FORBIDDEN_WORKFLOW_SNIPPETS = (
     "run: python3 scripts/zigux/validate-phase3-roadmap-gap-survey.py\n",
+    "run: python3 scripts/zigux/validate-phase3-rbtree-interop-survey.py\n",
     "run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py\n",
     "run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py\n",
     "run: python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py\n",
     "run: python3 scripts/zigux/validate-phase3-roadmap-gap-survey.py --self-test\n",
+    "run: python3 scripts/zigux/validate-phase3-rbtree-interop-survey.py --self-test\n",
     "run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test\n",
     "run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test\n",
     "run: python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test\n",
@@ -194,6 +198,19 @@ def run_self_test() -> int:
         )
         makefile_path.write_text(original_makefile, encoding="utf-8", newline="\n")
 
+        makefile_path.write_text(
+            original_makefile
+            + "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-rbtree-interop-survey.py\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate(root)
+        assert (
+            "unexpected_makefile_snippet:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-rbtree-interop-survey.py\n"
+            in issues
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8", newline="\n")
+
         workflow_path = root / WORKFLOW_REL
         original_workflow = workflow_path.read_text(encoding="utf-8")
         workflow_path.write_text(
@@ -226,8 +243,22 @@ def run_self_test() -> int:
         )
         workflow_path.write_text(original_workflow, encoding="utf-8", newline="\n")
 
+        workflow_path.write_text(
+            original_workflow
+            + "      - name: Check Phase 3 rbtree interop survey\n"
+            + "        run: python3 scripts/zigux/validate-phase3-rbtree-interop-survey.py\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate(root)
+        assert (
+            "unexpected_workflow_snippet:run: python3 scripts/zigux/validate-phase3-rbtree-interop-survey.py\n"
+            in issues
+        )
+        workflow_path.write_text(original_workflow, encoding="utf-8", newline="\n")
+
     print("PHASE3_VALIDATION_FLOW_SELF_TEST=pass")
-    print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=4")
+    print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
