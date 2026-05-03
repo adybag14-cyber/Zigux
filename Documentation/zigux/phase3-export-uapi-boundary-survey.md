@@ -9,7 +9,7 @@ This note records the current export-shim and UAPI boundary for the bounded Phas
 - `PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig`
 - `PHASE3_EXPORT_SHIM_SCOPE=explicit-status-plus-boundary-header`
 - `PHASE3_EXPORT_SHIM_STATUS=normalize-and-compatibility-helpers-landed`
-- `PHASE3_EXPORT_SHIM_BLOB_SHA=8088979409f872b3efd904799d09ec23a2d59ca2`
+- `PHASE3_EXPORT_SHIM_BLOB_SHA=d368b1fed3b6d0b1563c2f5f15f384d461cf7d50`
 - `PHASE3_C_HEADER_PATH=include/linux/zigux.h`
 - `PHASE3_C_HEADER_STATUS=shared-abi-relay-status-and-interop-helper-aggregation-landed`
 - `PHASE3_C_HEADER_BOUNDARY_OWNERSHIP=export-uapi-packet-owns-boundary-wording-helper-slices-own-semantic-growth`
@@ -22,7 +22,7 @@ This note records the current export-shim and UAPI boundary for the bounded Phas
 - `PHASE3_ABI_HEADER_BLOB_SHA=c588b6d2c81659ff8996495d001dd1ebad7df1b1`
 - `PHASE3_ABI_SLICE_DOC_BLOB_SHA=f94429cbbd16020ee81322918ba12dfa2f3b6466`
 - `PHASE3_EXPORT_UAPI_BUILD_BLOB_SHA=17778c41309a0bfb1c2c026622938059c2dd41f9`
-- `PHASE3_EXPORT_UAPI_TEST_BLOB_SHA=21f3b377c9ef82e559a4c87f2fcab87bfc90f924`
+- `PHASE3_EXPORT_UAPI_TEST_BLOB_SHA=57bb00ea486fc1e601a24681e3e764d21d388db3`
 - `PHASE3_EXPORT_UAPI_LAYOUT_BUILD_BLOB_SHA=081b0624641588ea987a6562ac32781cfe93013f`
 - `PHASE3_EXPORT_UAPI_LAYOUT_TEST_BLOB_SHA=3b8cb112602ff250f62ef68275a049a11c3a13d4`
 - `PHASE3_ABI_MANIFEST_BLOB_SHA=06f0da0e3c00bc3205c2d7fe73cfe6376a0e1b2e`
