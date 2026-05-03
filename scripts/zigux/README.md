@@ -50,15 +50,21 @@ Current bootstrap helpers
 - `check-phase9-module-metadata-packet.py`
 - `validate-phase10.py`
 - `check-phase10-closure-inventory.py`
+- `check-phase10-core-packet.py`
 - `validate-phase10-closure.py`
-- `check-phase11-build-inventory.py`
 - `validate-phase11.py`
+- `check-phase11-build-inventory.py`
+- `check-phase11-layout-assert-surface.py`
+- `check-phase11-hvc-validation-flow.py`
+- `check-phase11-hvc-cleanup-alignment.py`
 - `check-phase12-build-inventory.py`
 - `check-phase12-libbpf-snapshot.py`
 - `check-phase12-libbpf-packet.py`
 - `check-phase12-libbpf-focused-replay.py`
 - `check-phase12-raw-github-coverage.py`
 - `validate-phase12.py`
+- `check-phase13-libfs-packet.py`
+- `check-phase13-notifier-packet.py`
 - `validate-phase13-release.py`
 - `validate-phase14.py`
 - `validate-phase15.py`
@@ -132,6 +138,7 @@ Phase 2 flow
 - `check-genksyms-crc-diff.py` checks the bounded `genksyms_crc.zig` artifact lane and now proves repeat-run JSON determinism for both the bounded C harness and Zig tool before fixture comparison.
 - `check-kconfig-bridge.py --self-test` exercises the bounded kconfig bridge checker packet itself before the Linux-style `phase2-kconfig` entrypoint replays the live bridge artifacts.
 - `check-kconfig-bridge.py` covers the bounded `kconfig/conf_bridge.zig` and `kconfig/confdata_bridge.zig` bridge lanes and now proves repeat-run JSON determinism for both bridge outputs before fixture comparison.
+- `check-phase2-cross-selftest-alignment.py --self-test` and `check-phase2-cross-selftest-alignment.py` keep the shared README, Makefile, workflow, validator, and cross-target packet aligned before the Linux-style `phase2-cross` entrypoint trusts the broader compile lane.
 - `check-phase2-cross.py --self-test` exercises the bounded cross-target checker packet itself before the Linux-style `phase2-cross` entrypoint replays live Zig compiles, so duplicate tool entries, duplicate requested targets, unexpected explicit targets, manifest-count drift, duplicate manifest targets, and explicit-target failure drift cannot hide behind local tool availability.
 - `check-phase2-cross.py` runs the bounded Phase 2 cross-target compile checks.
 - `check-mk-elfconfig-diff.py --self-test` exercises the bounded mk_elfconfig checker packet itself before the Linux-style `phase2-tools` entrypoint replays the live artifact lane, so fixture-shape and explicit-tool drift cannot hide behind local compiler or Zig availability.
@@ -214,7 +221,7 @@ Phase 9 flow
 - the current runtime starter remains a bounded lifecycle-parity posture rather than a claim of live loadable-module execution.
 
 Phase 10 flow
-- `validate-phase10.py` keeps the wider Phase 10 flow aligned across `scripts/zigux/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-survey.md`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, `zigux/tests/README.md`, `zigux/tests/phase10_build.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_input_manifest.json`, `zigux/tests/phase10_virtio_mmio_manifest.json`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_mmio.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `zigux/tests/phase10_virtio_input.zig`, `zigux/tests/phase10_virtio_input_survey.zig`, and `zigux/tests/phase10_virtio_mmio.zig` so the current Phase 10 ring-plus-input-plus-MMIO lab packet stays reviewable through one shared validation surface instead of drifting into isolated file-local claims.
+- `check-phase10-closure-inventory.py`, `check-phase10-core-packet.py`, `validate-phase10.py`, and `validate-phase10-closure.py` keep the shared Phase 10 core packet, closure inventory, validator-first route, and closure evidence aligned across `scripts/zigux/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-survey.md`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, `zigux/tests/README.md`, `zigux/tests/phase10_build.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_input_manifest.json`, `zigux/tests/phase10_virtio_mmio_manifest.json`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_mmio.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `zigux/tests/phase10_virtio_input.zig`, `zigux/tests/phase10_virtio_input_survey.zig`, and `zigux/tests/phase10_virtio_mmio.zig` so the current Phase 10 ring-plus-input-plus-MMIO lab packet stays reviewable through one shared validation surface instead of drifting into isolated file-local claims.
 - `validate-phase10.py --self-test` exercises the shared marker walk in a compact synthetic tree and fails if the published Phase 10 flow, `make -C zigux phase10-validate`, `phase10_build.zig`, the ring manifest-backed packet, the ring reset-reuse replay, the blocked registration-lifecycle contract, or the bounded MMIO interrupt-ack rung is landed only in code without the same review path staying explicit.
 - `check-phase10-closure-inventory.py` keeps the direct Phase 10 closure inventory fail-closed across `Documentation/zigux/phase10-closure-evidence.md`, `zigux/tests/phase10_closure_manifest.json`, `zigux-alpha/PHASE10_CLOSURE_LEDGER.md`, the nine Phase 10 docs, the four Phase 10 manifests, the four virtio driver roots, the nine shared test entrypoints, and the exact six-step replay packet order before the broader closure validator and shared replay route claim aligned evidence.
 - `make -C zigux phase10-validate` is the validator-first entrypoint for the active Phase 10 ring-plus-input-plus-MMIO lab packet.
@@ -238,7 +245,7 @@ Phase 12 flow
 - the current active storage-driver survey packet stays explicit through `Documentation/zigux/phase12-virtio-scsi-survey.md`, `Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, and the paired `zigux/tests/phase12_virtio_scsi_{manifest,survey}.zig` files, so the queue-layout, recovery, probe snapshot, host-limit summary, queue-depth summary, and io-queue-map starters remain visible without overstating the still-blocked DMA-backed queue ownership, `Scsi_Host` lifecycle, or blk-mq follow-up.
 
 Phase 13 flow
-- `validate-phase13-release.py` keeps `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/Makefile`, and `zigux/tests/phase13_build.zig` aligned as one shared release-discipline packet instead of leaving the Phase 13 review path split across isolated docs or build wiring.
+- `check-phase13-libfs-packet.py`, `check-phase13-notifier-packet.py`, and `validate-phase13-release.py` keep `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/Makefile`, `zigux/tests/phase13_build.zig`, the focused `libfs` packet, and the adjacent notifier-list release evidence aligned as one shared release-discipline packet instead of leaving the Phase 13 review path split across isolated docs, build wiring, or packet-local notes.
 - `make -C zigux phase13-validate` runs that dedicated release validator before the broader shared replay.
 - `make -C zigux phase13` routes through the validator before the shared replay, so the local convenience path matches the release-facing review contract.
 - `Documentation/zigux/phase13-devres-survey.md`, `zigux/tests/phase13_devres_manifest.json`, `zigux/tests/phase13_devres_dma_coherent.zig`, and `zigux/tests/phase13_devres_reviewability.zig` keep the helper-first `devres` packet explicit about adjacent coherent-DMA bookkeeping while live DMA-backed mappings and scatterlist ownership stay blocked rather than implied.
