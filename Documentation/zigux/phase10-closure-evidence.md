@@ -14,6 +14,7 @@ This document records the current closure evidence for the active bounded Phase 
   - `drivers/virtio/virtio_input.zig`
   - `drivers/virtio/virtio_mmio.zig`
   - `zigux/tests/phase10_build.zig`
+  - `zigux/tests/phase10_virtio_ring_reset_reuse.zig`
   - `zigux/tests/phase10_virtio_input_multitouch_preflight.zig`
   - `zigux/tests/phase10_virtio_mmio.zig`
   - `zigux/tests/phase10_virtio_mmio_queue_isolation.zig`
@@ -46,6 +47,8 @@ The current bounded Phase 10 evidence set is:
 - `zigux/tests/phase10_virtio_ring_manifest.json`
 - `zigux/tests/phase10_virtio_input_manifest.json`
 - `zigux/tests/phase10_virtio_mmio_manifest.json`
+- `zigux/tests/phase10_virtio_ring_reset_reuse.zig`
+- `zigux/tests/phase10_virtio_ring_survey.zig`
 - `zigux/tests/phase10_virtio_input_multitouch_preflight.zig`
 - `zigux/tests/phase10_virtio_mmio_queue_isolation.zig`
 
@@ -57,7 +60,7 @@ The current bounded Phase 10 evidence set is:
 
 The shared closure manifest now carries explicit landed-helper evidence for the core config summaries, the ring queue-discipline ladder through broken-queue recovery, the input capability-setup, multitouch-slot, teardown-observation, and preflight ladder through probe preflight, and the MMIO helper ladder through bounded interrupt acknowledgement. The shared closure guards therefore keep the current ring, input, and MMIO helper ladders explicit instead of letting the shared packet stop one rung earlier than the live survey manifests.
 
-The same closure packet now also keeps the already-landed focused harness coverage explicit: the multitouch-ready input preflight replay and the MMIO multi-queue isolation replay are part of the Phase 10 evidence set rather than being left visible only from `zigux/tests/phase10_build.zig`, and the dedicated `scripts/zigux/check-phase10-harness-coverage.py` replay is now part of the exact closure contract instead of only indirect supporting evidence.
+The same closure packet now also keeps the already-landed focused harness coverage explicit: the ring drained-reset reuse replay, the multitouch-ready input preflight replay, and the MMIO multi-queue isolation replay are part of the Phase 10 evidence set rather than being left visible only from `zigux/tests/phase10_build.zig`, and the dedicated `scripts/zigux/check-phase10-harness-coverage.py` replay is now part of the exact closure contract instead of only indirect supporting evidence.
 
 ## Roadmap Parity Scoreboard
 
@@ -74,7 +77,7 @@ The current roadmap-facing reading is:
 
 - `virtqueue wrappers`: `starter_landed` through `drivers/virtio/virtio_ring.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`, and `Documentation/zigux/phase10-virtio-ring-survey.md`
 - `MMIO wrappers`: `starter_landed` through `drivers/virtio/virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_manifest.json`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, and `Documentation/zigux/phase10-virtio-mmio-survey.md`
-- `lab-only driver validation`: `starter_landed` through `zigux/tests/phase10_build.zig`, `zigux/tests/phase10_virtio_input_multitouch_preflight.zig`, `zigux/tests/phase10_virtio_mmio_queue_isolation.zig`, `scripts/zigux/check-phase10-harness-coverage.py`, `scripts/zigux/check-phase10-closure-inventory.py`, `scripts/zigux/validate-phase10.py`, `scripts/zigux/validate-phase10-closure.py`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and the shared `make -C zigux phase10-{validate,test}` entrypoints
+- `lab-only driver validation`: `starter_landed` through `zigux/tests/phase10_build.zig`, `zigux/tests/phase10_virtio_input_multitouch_preflight.zig`, `zigux/tests/phase10_virtio_mmio_queue_isolation.zig`, `scripts/zigux/check-phase10-harness-coverage.py`, `scripts/zigux/check-phase10-closure-inventory.py`, `scripts/zigux/validate-phase10.py`, `scripts/zigux/validate-phase10-closure.py`, `Documentation/zigux/phase10-closure-evidence.md`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and the shared `make -C zigux phase10-{validate,test}` entrypoints
 - `dual implementations for risky areas`: `blocked_on_risky_transport` because the current ring, input, and MMIO manifests still keep MMIO lifecycle paths, queue setup or reset, IRQ parity, DMA-facing paths, input registration lifecycle, and probe or remove work out of scope until smaller helpers land first
 
 This keeps the closure packet aligned with the roadmap's real Phase 10 requirements: queue-facing lab wrappers are landed, the bounded MMIO register-window, queue-register, queue-notify, queue-address, config-window, config-write, and interrupt-ack helpers are now landed, the lab validation gate is real, and risky transport expansion is still intentionally blocked.
@@ -169,6 +172,7 @@ The exact current reading of the live repo is:
 - `drivers/virtio/virtio.zig` is the bounded virtio-core starter
 - `Documentation/zigux/phase10-virtio-core-survey.md`, `zigux/tests/phase10_virtio_core_manifest.json`, and `zigux/tests/phase10_virtio_core_survey.zig` record the already-landed core survey surface, including the config-generation summary helper plus the config-delivery disposition helper that make the last in-memory config-change branch outcome explicit before risky lifecycle work
 - `drivers/virtio/virtio_ring.zig` is the bounded virtqueue helper starter
+- `zigux/tests/phase10_virtio_ring_reset_reuse.zig` keeps the drained-reset reuse review surface explicit beside the ring helper ladder so the already-landed queue-reset helper does not read like a prose-only claim
 - `drivers/virtio/virtio_input.zig` is the bounded input-driver starter
 - `zigux/tests/phase10_virtio_input_multitouch_preflight.zig` keeps the ready-state input preflight packet honest by proving multitouch slot metadata survives into the later queue-callback and probe handoff summaries
 - `drivers/virtio/virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio.zig`, and `Documentation/zigux/phase10-virtio-mmio-slice.md` now record the bounded MMIO register-window, queue-register, queue-notify, queue-address, config-window, config-write, and interrupt-ack starter surface
