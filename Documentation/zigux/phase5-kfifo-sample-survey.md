@@ -126,6 +126,13 @@ The exact focused verification commands and observed results for the bytestream-
   - observed result: `3/4 bytestream_fifo.test.bytestream fifo sample keeps ownership and lifetime guards explicit...OK`
   - observed result: `4/4 bytestream_fifo.test.bytestream fifo sample reset clears queue state without rewinding lifecycle bookkeeping...OK`
   - observed result: `All 4 tests passed.`
+- `zig test zigux/tests/phase5_bytestream_fifo.zig`
+  - observed result: `1/5 phase5_bytestream_fifo.test.phase 5 bytestream fifo sample stays in the reference-sample lane...OK`
+  - observed result: `2/5 phase5_bytestream_fifo.test.phase 5 bytestream fifo sample replays exact queue behavior from the Linux anchor...OK`
+  - observed result: `3/5 phase5_bytestream_fifo.test.phase 5 bytestream fifo sample keeps bounded helper behavior explicit...OK`
+  - observed result: `4/5 phase5_bytestream_fifo.test.phase 5 bytestream fifo sample makes ownership and lifetime boundaries explicit...OK`
+  - observed result: `5/5 phase5_bytestream_fifo.test.phase 5 bytestream fifo reset clears queue state without restarting lifecycle bookkeeping...OK`
+  - observed result: `All 5 tests passed.`
 - `zig test zigux/tests/phase5_bytestream_fifo_survey.zig`
   - observed result: `1/2 phase5_bytestream_fifo_survey.test.phase 5 bytestream fifo manifest records the exact bounded checks...OK`
   - observed result: `2/2 phase5_bytestream_fifo_survey.test.phase 5 bytestream fifo contributor docs stay aligned with the shipped review surface...OK`
