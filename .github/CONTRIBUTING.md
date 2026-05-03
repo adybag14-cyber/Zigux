@@ -25,6 +25,13 @@ When a change affects validation or replay wiring, check whether the same change
 
 A docs-only update is still expected when the repo already ships the validator, checker, or replay path but contributors cannot discover it from the shared guidance.
 
+## Active Phase 10, 11, and 13 Packets
+When a change touches the current active contributor packets, keep the shared guide plus the packet-local evidence aligned in the same review instead of updating only one note, one manifest, or one build file.
+
+- Phase 10: keep `Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md`, `Documentation/zigux/phase10-closure-evidence.md`, `zigux/tests/phase10_closure_manifest.json`, `zigux/tests/phase10_build.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_input_manifest.json`, `zigux/tests/phase10_virtio_mmio_manifest.json`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` aligned with the same `make -C zigux phase10-validate` then `make -C zigux phase10` route.
+- Phase 11: keep `Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `zigux/tests/fixtures/phase11_build_inventory.json`, `zigux/tests/phase11_build.zig`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_gpio_wdt_manifest.json`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_uapi_header_parity_manifest.json`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` aligned with the same `make -C zigux phase11-validate`, `make -C zigux phase11`, and dedicated `make -C zigux phase11-hvc-survey` boundary.
+- Phase 13: keep `Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md`, `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/tests/phase13_build.zig`, `zigux/tests/phase13_libfs_manifest.json`, `zigux/tests/phase13_devres_manifest.json`, `zigux/tests/phase13_landlock_ruleset_manifest.json`, `zigux/tests/phase13_landlock_syscalls_manifest.json`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` aligned with the same `make -C zigux phase13-validate` then `make -C zigux phase13` route.
+
 ## Validation Notes To Record
 Include these details in the pull request description:
 - the validator-first command run
