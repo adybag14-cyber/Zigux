@@ -101,6 +101,9 @@ test "phase3 abi slice keeps explicit constants and statuses reviewable" {
     try std.testing.expectEqual(@as(u32, 2), abi.HLIST_FLAG_SINGULAR);
     try std.testing.expectEqual(@as(u32, 4), abi.HLIST_FLAG_TERMINATED);
     try std.testing.expectEqual(@as(u32, 8), abi.HLIST_FLAG_TRUNCATED);
+    try std.testing.expectEqual(@as(u32, 1), abi.MINOR_ALLOC_FLAG_TRUNCATED);
+    try std.testing.expectEqual(@as(u32, 2), abi.MINOR_ALLOC_FLAG_FOUND);
+    try std.testing.expectEqual(@as(u32, 4), abi.MINOR_ALLOC_FLAG_EXHAUSTED);
     try std.testing.expectEqual(@as(u32, 1), rbtree.ROOT_FLAG_EMPTY);
     try std.testing.expectEqual(@as(u32, 2), rbtree.ROOT_FLAG_CACHED);
     try std.testing.expectEqual(@as(u32, 4), rbtree.ROOT_FLAG_LEFTMOST_VALID);
