@@ -49,7 +49,7 @@ The manifest now carries the same roadmap-gap summary in structured form so futu
 
 ## Recorded gaps
 
-The survey manifest now records:
+This survey note now records:
 
 - the landed `phase12-build-gate`
 - the landed `phase12-make-target`
