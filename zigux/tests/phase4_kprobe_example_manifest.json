@@ -44,10 +44,10 @@
     },
     {
       "id": "phase4-kprobe-example-shared-validator-promotion",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "validator_promotion",
       "zigux_destination": "scripts/zigux/validate-phase4.py",
-      "why_now": "The dedicated `make -C zigux phase4-kprobe-example-survey` wrapper and the shared `phase4-kprobe-example-survey-tests` replay are already published, but the broad `validate-phase4.py` contract still does not fail closed on the manifest-backed kprobe survey packet."
+      "why_now": "The shared `validate-phase4.py` contract now fails closed on the manifest-backed kprobe survey packet, so the published validator-first lane no longer depends on the dedicated checker alone to keep that survey surface explicit."
     },
     {
       "id": "phase4-kprobe-example-zig-sample",
