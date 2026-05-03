@@ -20,6 +20,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `lib
   - `Documentation/zigux/phase9-runtime-atomic64-survey.md`
   - `Documentation/zigux/phase9-runtime-atomic64-module-slice.md`
   - `Documentation/zigux/phase9-runtime-loader-gap-survey.md`
+  - `Documentation/zigux/freeze-map.md`
 
 ## Why this slice exists
 
@@ -76,6 +77,7 @@ The manifest-backed ownership packet for this slice now keeps the current delive
 - `samples/zigux/runtime_atomic64_loader.zig` owns the sample-side loader projection, explicit shared `command_name` preservation, prepared counter-summary snapshot replay, `waiting_on_runtime_substrate` handoff, `released_without_substrate` fallback, and atomic64 payload summary
 - `zigux/kernel/runtime_loader.zig` owns the shared runtime-loader request contract that consumes the atomic64 loader handoff, allocator posture, staged entry and exit symbols, and prepared counter-summary snapshot replay
 - `Documentation/zigux/phase9-runtime-loader-gap-survey.md` owns the still-blocked shared command-name, argv-policy, and environment-derived activation-control posture that keeps this atomic64 packet pre-execution
+- `Documentation/zigux/freeze-map.md` owns the study-only `kernel/workqueue.c` boundary and the Architecture Council reopen rule that keep this atomic64 packet out of scheduler-facing parity claims
 
 ## Recorded gaps
 
