@@ -70,6 +70,9 @@ jobs:
       - name: Self-test Zig toolchain checker
         run: python3 scripts/zigux/check-zig-toolchain.py --self-test
 
+      - name: Self-test Phase 1 helper validator
+        run: python3 scripts/zigux/validate-phase1.py --self-test
+
       - name: Validate Phase 1 helper files
         run: python3 scripts/zigux/validate-phase1.py
 
