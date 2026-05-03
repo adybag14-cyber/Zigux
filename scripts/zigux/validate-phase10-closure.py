@@ -96,7 +96,7 @@ EXPECTED_CLOSURE_MANIFEST = {
 EXPECTED_SURVEY_LANE_KEYS = {
     "core": "P10-L01",
     "ring": "P10-L07",
-    "input": "P10-Y05",
+    "input": "P10-L13",
     "mmio": "P10-L18",
 }
 
@@ -143,7 +143,7 @@ CLOSURE_MARKERS = [
     "PHASE10_SURVEY_PROVENANCE_SOURCE=manifest_derived",
     "PHASE10_SURVEY_CORE_LANE=P10-L01",
     "PHASE10_SURVEY_RING_LANE=P10-L07",
-    "PHASE10_SURVEY_INPUT_LANE=P10-Y05",
+    "PHASE10_SURVEY_INPUT_LANE=P10-L13",
     "PHASE10_SURVEY_MMIO_LANE=P10-L18",
     "PHASE10_CLOSURE_INVENTORY_GATE=python3 scripts/zigux/check-phase10-closure-inventory.py",
     "PHASE10_CLOSURE_GATE=python3 scripts/zigux/validate-phase10-closure.py",
@@ -206,7 +206,7 @@ LEDGER_MARKERS = [
     "PHASE10_LEDGER_SURVEY_PROVENANCE_SOURCE=manifest_derived",
     "PHASE10_LEDGER_SURVEY_CORE_LANE=P10-L01",
     "PHASE10_LEDGER_SURVEY_RING_LANE=P10-L07",
-    "PHASE10_LEDGER_SURVEY_INPUT_LANE=P10-Y05",
+    "PHASE10_LEDGER_SURVEY_INPUT_LANE=P10-L13",
     "PHASE10_LEDGER_SURVEY_MMIO_LANE=P10-L18",
     "PHASE10_LEDGER_ALLOWED_ROADMAP_DESTINATIONS=drivers/virtio/*.zig,zigux/kernel/,zigux/helpers/",
     "PHASE10_LEDGER_INPUT_MULTITOUCH_PREFLIGHT_GATE=zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
@@ -576,7 +576,7 @@ def run_self_test() -> int:
         write_fixture(root)
 
         closure_manifest = json.loads(closure_manifest_path.read_text(encoding="utf-8"))
-        closure_manifest["survey_provenance"]["lane_keys"]["input"] = "P10-L13"
+        closure_manifest["survey_provenance"]["lane_keys"]["input"] = "P10-Y05"
         closure_manifest_path.write_text(json.dumps(closure_manifest, indent=2) + "\n", encoding="utf-8")
         expect_missing_marker("survey_lane_guard", root, "closure_manifest:survey_provenance:lane_keys")
         write_fixture(root)
@@ -612,10 +612,10 @@ def run_self_test() -> int:
         write_fixture(root)
 
         closure_note_path.write_text(
-            original_closure_note.replace("PHASE10_SURVEY_INPUT_LANE=P10-Y05", "PHASE10_SURVEY_INPUT_LANE=P10-L13", 1),
+            original_closure_note.replace("PHASE10_SURVEY_INPUT_LANE=P10-L13", "PHASE10_SURVEY_INPUT_LANE=P10-Y05", 1),
             encoding="utf-8",
         )
-        expect_missing_marker("closure_note_input_lane_guard", root, "closure:PHASE10_SURVEY_INPUT_LANE=P10-Y05")
+        expect_missing_marker("closure_note_input_lane_guard", root, "closure:PHASE10_SURVEY_INPUT_LANE=P10-L13")
         write_fixture(root)
 
         closure_note_path.write_text(
@@ -732,8 +732,8 @@ def run_self_test() -> int:
         original_ledger = ledger_path.read_text(encoding="utf-8")
         ledger_path.write_text(
             original_ledger.replace(
-                "PHASE10_LEDGER_SURVEY_INPUT_LANE=P10-Y05",
                 "PHASE10_LEDGER_SURVEY_INPUT_LANE=P10-L13",
+                "PHASE10_LEDGER_SURVEY_INPUT_LANE=P10-Y05",
                 1,
             ),
             encoding="utf-8",
@@ -741,7 +741,7 @@ def run_self_test() -> int:
         expect_missing_marker(
             "ledger_input_lane_guard",
             root,
-            "ledger:PHASE10_LEDGER_SURVEY_INPUT_LANE=P10-Y05",
+            "ledger:PHASE10_LEDGER_SURVEY_INPUT_LANE=P10-L13",
         )
         write_fixture(root)
 
