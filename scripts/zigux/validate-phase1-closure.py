@@ -288,9 +288,27 @@ REQUIRED_MANIFEST_FIELDS = {
 
 RBTREE_UNEXPECTED_ALIAS_MARKERS = ["pub fn rb_first(", "pub fn rb_next_match(", "pub fn rb_erase("]
 
+WORKFLOW_EXACT_COUNT_PREFIXES = {
+    "run: python3 scripts/zigux/check-phase1-bench.py --self-test": "        ",
+    "run: python3 scripts/zigux/check-phase1-bench.py": "        ",
+    "run: python3 scripts/zigux/validate-phase1-closure.py --self-test": "        ",
+    "run: python3 scripts/zigux/validate-phase1-closure.py": "        ",
+}
+
+MAKEFILE_EXACT_COUNT_PREFIXES = {
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-bench.py --self-test": "\t",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-bench.py": "\t",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase1-closure.py --self-test": "\t",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase1-closure.py": "\t",
+}
+
 
 def read_text(rel: str) -> str:
     return (ROOT / rel).read_text(encoding="utf-8")
+
+
+def normalized_lines(rel: str) -> list[str]:
+    return [line.strip() for line in read_text(rel).splitlines()]
 
 
 def fail(items: list[str]) -> int:
@@ -310,7 +328,8 @@ def check_contains(label: str, rel: str, markers: list[str], missing: list[str])
 
 
 def check_exact_count(label: str, rel: str, marker: str, expected: int, missing: list[str]) -> None:
-    actual = read_text(rel).splitlines().count(marker)
+    normalized_marker = marker.strip()
+    actual = sum(1 for line in normalized_lines(rel) if line == normalized_marker)
     if actual != expected:
         missing.append(f"{label}:expected={expected}:actual={actual}")
 
@@ -422,6 +441,11 @@ def fixture_expectations() -> dict[str, object]:
     }
 
 
+def render_fixture_lines(markers: list[str], prefixes: dict[str, str] | None = None) -> str:
+    prefixes = prefixes or {}
+    return "\n".join(f"{prefixes.get(marker, '')}{marker}" for marker in markers) + "\n"
+
+
 def run_validator(root: Path) -> subprocess.CompletedProcess[str]:
     return subprocess.run([sys.executable, str(root / "scripts/zigux/validate-phase1-closure.py")], cwd=root, capture_output=True, text=True, check=False)
 
@@ -442,14 +466,14 @@ def self_test() -> int:
         write(root / "Documentation/zigux/README.md", "\n".join(REQUIRED_DOCS_ROOT_MARKERS) + "\n")
         write(root / "scripts/zigux/README.md", "\n".join(REQUIRED_SCRIPTS_ROOT_MARKERS) + "\n")
         write(root / "Documentation/zigux/phase1-closure.md", "\n".join(REQUIRED_CLOSURE_MARKERS) + "\n")
-        write(root / ".github/workflows/zigux-bootstrap.yml", "\n".join(REQUIRED_WORKFLOW_MARKERS) + "\n")
+        write(root / ".github/workflows/zigux-bootstrap.yml", render_fixture_lines(REQUIRED_WORKFLOW_MARKERS, WORKFLOW_EXACT_COUNT_PREFIXES))
         write(root / "zigux/tests/build.zig", "\n".join(REQUIRED_BUILD_MARKERS) + "\n")
         write(root / "zigux/tests/phase1_helpers.zig", "\n".join(REQUIRED_HELPER_TEST_MARKERS) + "\n")
         write(root / "zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md", "\n".join(REQUIRED_LEDGER_MARKERS) + "\n")
         write(root / "scripts/zigux/check-phase1-bench.py", "\n".join(REQUIRED_BENCH_CHECKER_MARKERS) + "\n")
         write(root / "scripts/zigux/check-phase1-parity.py", "\n".join(REQUIRED_PARITY_CHECKER_MARKERS) + "\n")
         write(root / "scripts/zigux/check-phase1-find-bit-validator-anchors.py", "# fixture\n")
-        write(root / "zigux/Makefile", "\n".join(REQUIRED_MAKEFILE_MARKERS) + "\n")
+        write(root / "zigux/Makefile", render_fixture_lines(REQUIRED_MAKEFILE_MARKERS, MAKEFILE_EXACT_COUNT_PREFIXES))
         write(root / "scripts/zigux/artifact_diff.py", "# fixture\n")
         write(root / "scripts/zigux/install-zig.py", "# fixture\n")
         write(root / "zigux/tests/phase1_bench.zig", "// fixture\n")
@@ -494,7 +518,7 @@ def self_test() -> int:
 
         write(root / "zigux/Makefile", "phase1-validate:\n")
         expect_failure(root, "makefile:PHONY += phase1-validate phase1-test phase1-bench phase1")
-        write(root / "zigux/Makefile", "\n".join(REQUIRED_MAKEFILE_MARKERS) + "\n")
+        write(root / "zigux/Makefile", render_fixture_lines(REQUIRED_MAKEFILE_MARKERS, MAKEFILE_EXACT_COUNT_PREFIXES))
 
         write(root / "zigux/tests/phase1_helpers.zig", "// fixture\n")
         expect_failure(root, 'helper_tests:const argv_split = @import("argv_split");')
@@ -502,17 +526,23 @@ def self_test() -> int:
 
         write(
             root / "zigux/Makefile",
-            "\n".join(REQUIRED_MAKEFILE_MARKERS + ["cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase1-closure.py --self-test"]) + "\n",
+            render_fixture_lines(
+                REQUIRED_MAKEFILE_MARKERS + ["cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase1-closure.py --self-test"],
+                MAKEFILE_EXACT_COUNT_PREFIXES,
+            ),
         )
         expect_failure(root, "makefile_phase1_closure_self_test_count:expected=1:actual=2")
-        write(root / "zigux/Makefile", "\n".join(REQUIRED_MAKEFILE_MARKERS) + "\n")
+        write(root / "zigux/Makefile", render_fixture_lines(REQUIRED_MAKEFILE_MARKERS, MAKEFILE_EXACT_COUNT_PREFIXES))
 
         write(
             root / ".github/workflows/zigux-bootstrap.yml",
-            "\n".join(REQUIRED_WORKFLOW_MARKERS + ["run: python3 scripts/zigux/check-phase1-bench.py"]) + "\n",
+            render_fixture_lines(
+                REQUIRED_WORKFLOW_MARKERS + ["run: python3 scripts/zigux/check-phase1-bench.py"],
+                WORKFLOW_EXACT_COUNT_PREFIXES,
+            ),
         )
         expect_failure(root, "workflow_phase1_bench_count:expected=1:actual=2")
-        write(root / ".github/workflows/zigux-bootstrap.yml", "\n".join(REQUIRED_WORKFLOW_MARKERS) + "\n")
+        write(root / ".github/workflows/zigux-bootstrap.yml", render_fixture_lines(REQUIRED_WORKFLOW_MARKERS, WORKFLOW_EXACT_COUNT_PREFIXES))
 
         write(
             root / "Documentation/zigux/phase1-closure.md",
