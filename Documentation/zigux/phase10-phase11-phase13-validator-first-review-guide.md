@@ -30,6 +30,7 @@ Keep the validator-first route explicit:
 Keep these evidence surfaces aligned in the same review:
 - `Documentation/zigux/phase10-closure-evidence.md`
 - `zigux/tests/phase10_closure_manifest.json`
+- `zigux/tests/phase10_virtio_core_manifest.json`
 - `scripts/zigux/check-phase10-harness-coverage.py`
 - `zigux/tests/phase10_build.zig`
 - `zigux/tests/phase10_virtio_input_multitouch_preflight.zig`
@@ -41,7 +42,7 @@ Keep these evidence surfaces aligned in the same review:
 - `.github/workflows/zigux-bootstrap.yml`
 
 Reviewer prompt:
-- Does the shared Phase 10 packet still read as one validator-first lab bundle rather than a set of independent virtio starter files?
+- Does the shared Phase 10 packet still read as one validator-first lab bundle, with all four lane survey manifests plus the shared closure manifest, rather than a set of independent virtio starter files?
 
 ## Phase 11: Simple-driver packet
 
