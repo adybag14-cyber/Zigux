@@ -517,10 +517,14 @@ def main() -> int:
     else:
         if notifier_summary.get("preexisting_phase13_build_present") is not True:
             missing.append("zigux/tests/phase13_notifier_list_manifest.json:build_present")
-        if notifier_summary.get("preexisting_generic_notifier_abi_present") is not True:
+        if notifier_summary.get("landed_generic_notifier_abi_present") is not True:
             missing.append("zigux/tests/phase13_notifier_list_manifest.json:notifier_abi_present")
-        if notifier_summary.get("preexisting_generic_notifier_helper_present") is not True:
+        if notifier_summary.get("landed_generic_notifier_build_surface_present") is not True:
+            missing.append("zigux/tests/phase13_notifier_list_manifest.json:notifier_build_surface_present")
+        if notifier_summary.get("landed_generic_notifier_helper_present") is not True:
             missing.append("zigux/tests/phase13_notifier_list_manifest.json:notifier_helper_present")
+        if notifier_summary.get("landed_generic_notifier_c_header_surface_present") is not True:
+            missing.append("zigux/tests/phase13_notifier_list_manifest.json:notifier_c_header_present")
 
     if missing:
         print("PHASE13_RELEASE_VALIDATION=fail")
