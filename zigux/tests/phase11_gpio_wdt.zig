@@ -57,6 +57,18 @@ test "phase11 gpio_wdt watchdog metadata summary keeps the simple-driver contrac
     try std.testing.expectEqual(@as(u32, 500), level_metadata.max_hw_heartbeat_ms);
 }
 
+test "phase11 gpio_wdt nowayout policy summary keeps module-param bookkeeping explicit" {
+    const policy = gpio_wdt.GpioWatchdogLab.nowayoutPolicySummary();
+    try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.c", policy.anchor);
+    try std.testing.expectEqualStrings("nowayout", policy.module_param_name);
+    try std.testing.expectEqual(gpio_wdt.NowayoutDefaultSource.watchdog_nowayout, policy.default_source);
+    try std.testing.expect(policy.module_param_declared);
+    try std.testing.expect(policy.module_param_is_bool);
+    try std.testing.expect(policy.default_follows_watchdog_nowayout);
+    try std.testing.expect(policy.applied_via_watchdog_set_nowayout);
+    try std.testing.expect(policy.bounded_to_summary_bookkeeping);
+}
+
 test "phase11 gpio_wdt probe summary keeps startup and registration bookkeeping reviewable" {
     var toggle_watchdog = try gpio_wdt.GpioWatchdogLab.init(.toggle, 20, true);
     const toggle_probe = toggle_watchdog.probeSummary(true);
