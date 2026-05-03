@@ -25,6 +25,7 @@ Current bootstrap helpers
 - `check-phase3-abi.py`
 - `check-phase3-abi-layout-packet.py`
 - `check-phase3-build-roots.py`
+- `check-phase3-canonical-survey-manifest.py`
 - `check-phase3-policy-unsafe-mmio-consumer.py`
 - `check-phase3-rbtree-shared-lift-contract.py`
 - `check-phase3-readme-tooling-inventory.py`
