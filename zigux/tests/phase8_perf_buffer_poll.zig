@@ -32,6 +32,8 @@ test "phase 8 perf-buffer poll docs keep the bounded wait-result helper explicit
     try expectContains(note, "ordered `perf_buffer__process_records()` pass");
     try expectContains(note, "cumulative processed-record count");
     try expectContains(note, "first failing ready buffer");
+    try expectContains(note, "ready-buffer processing attempts cannot exceed observed ready events");
+    try expectContains(note, "non-ready wait observations cannot claim record processing");
     try expectContains(note, "reject impossible post-wait buffer state combinations");
     try expectContains(note, "no standalone timer helper");
     try expectContains(note, "no standalone clockevent helper");
@@ -112,6 +114,39 @@ test "phase 8 perf-buffer poll helper keeps ready-buffer processing fail-fast be
     try std.testing.expectEqual(@as(usize, 5), success.processed_record_count);
     try std.testing.expectEqual(@as(?usize, null), success.first_error_index);
     try std.testing.expectEqual(@as(?i32, null), success.first_error);
+}
+
+test "phase 8 perf-buffer poll helper keeps execution bookkeeping aligned with the observed ready-event budget" {
+    const summary = try perf_buffer_poll.summarizePollExecution(12, .{ .ready_events = 3 }, &.{
+        .{ .ready = true },
+        .{ .ready = true },
+        .{ .error_code = -32 },
+    }, &.{
+        .{ .records_processed = 4 },
+        .{ .result = -11 },
+        .{ .records_processed = 9 },
+    });
+
+    try std.testing.expectEqual(perf_buffer_poll.PollOutcome.ready, summary.poll.outcome);
+    try std.testing.expectEqual(@as(usize, 2), summary.attempted_ready_buffer_count);
+    try std.testing.expectEqual(@as(usize, 1), summary.completed_ready_buffer_count);
+    try std.testing.expectEqual(@as(usize, 4), summary.processed_record_count);
+    try std.testing.expectEqual(@as(?usize, 1), summary.first_process_error_index);
+    try std.testing.expectEqual(@as(?i32, -11), summary.first_process_error);
+}
+
+test "phase 8 perf-buffer poll helper rejects impossible post-wait record processing" {
+    try std.testing.expectError(
+        perf_buffer_poll.PollError.NonReadyWaitHasProcessedRecords,
+        perf_buffer_poll.summarizePollExecution(0, .timed_out, &.{}, &.{.{ .records_processed = 1 }}),
+    );
+    try std.testing.expectError(
+        perf_buffer_poll.PollError.ReadyBufferProcessingExceedsObservedEvents,
+        perf_buffer_poll.summarizePollExecution(5, .{ .ready_events = 1 }, &.{.{ .ready = true }}, &.{
+            .{ .records_processed = 1 },
+            .{ .records_processed = 2 },
+        }),
+    );
 }
 
 test "phase 8 perf-buffer poll helper rejects impossible post-wait buffer state" {
