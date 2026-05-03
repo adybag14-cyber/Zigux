@@ -22,6 +22,7 @@ WORKFLOW_FILE = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 MAKEFILE_FILE = ROOT / "zigux" / "Makefile"
 PHASE2_TOOL_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json"
 PHASE2_CROSS_TARGETS = ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json"
+FIXDEP_CASES = ROOT / "zigux" / "tests" / "fixtures" / "fixdep" / "cases.json"
 EXPECTED_TOOL_MANIFEST_TOOLS = [
     "scripts/zigux/fixdep.zig",
     "scripts/zigux/genksyms.zig",
@@ -59,6 +60,7 @@ REQUIRED_PHASE2_FILES = [
     MAKEFILE_FILE,
     PHASE2_TOOL_MANIFEST,
     PHASE2_CROSS_TARGETS,
+    FIXDEP_CASES,
 ]
 PHASE2_GENKSYMS_BRIDGE_ALIGNMENT_REQUIRED_SOURCE_MARKERS = [
     "PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=9",
@@ -169,135 +171,6 @@ def validate_exact_command_counts(
         if count != expected_count:
             issues.append(f"{label}:{command}:count={count}:expected={expected_count}")
     return issues
-
-
-def main() -> int:
-    missing = [str(path.relative_to(ROOT)) for path in REQUIRED_PHASE2_FILES if not path.exists()]
-    if missing:
-        print("PHASE2_VALIDATION=fail")
-        print("MISSING_PHASE2_SHARED_FILES_START")
-        for item in missing:
-            print(item)
-        print("MISSING_PHASE2_SHARED_FILES_END")
-        return 1
-
-    issues: list[str] = []
-    issues.extend(
-        validate_list_manifest(
-            PHASE2_TOOL_MANIFEST,
-            label="phase2_tool_manifest",
-            count_key="tool_count",
-            expected_count=6,
-            list_key="tools",
-            expected_items=EXPECTED_TOOL_MANIFEST_TOOLS,
-        )
-    )
-    issues.extend(
-        validate_list_manifest(
-            PHASE2_CROSS_TARGETS,
-            label="phase2_cross_targets",
-            count_key="target_count",
-            expected_count=3,
-            list_key="targets",
-            expected_items=EXPECTED_CROSS_TARGETS,
-        )
-    )
-    issues.extend(
-        validate_source_markers(
-            GENKSYMS_BRIDGE_ALIGNMENT_CHECKER,
-            label="phase2_genksyms_bridge_alignment_checker",
-            required_markers=PHASE2_GENKSYMS_BRIDGE_ALIGNMENT_REQUIRED_SOURCE_MARKERS,
-        )
-    )
-    issues.extend(
-        validate_source_markers(
-            PHASE2_CROSS_ALIGNMENT_CHECKER,
-            label="phase2_cross_alignment_checker",
-            required_markers=PHASE2_CROSS_ALIGNMENT_REQUIRED_SOURCE_MARKERS,
-        )
-    )
-    issues.extend(
-        validate_source_markers(
-            PHASE2_CROSS_CHECKER,
-            label="phase2_cross_checker",
-            required_markers=PHASE2_CROSS_REQUIRED_SOURCE_MARKERS,
-        )
-    )
-    issues.extend(
-        validate_source_markers(
-            TOOLCHAIN_PIN_SCOPE_CHECKER,
-            label="toolchain_pin_scope_checker",
-            required_markers=PHASE2_TOOLCHAIN_PIN_SCOPE_REQUIRED_SOURCE_MARKERS,
-        )
-    )
-    issues.extend(
-        validate_source_markers(
-            CHECK_KCONFIG_BRIDGE,
-            label="phase2_kconfig_bridge_checker",
-            required_markers=PHASE2_KCONFIG_REQUIRED_SOURCE_MARKERS,
-        )
-    )
-    issues.extend(
-        validate_exact_command_counts(
-            WORKFLOW_FILE,
-            label="phase2_kconfig_workflow",
-            expected_counts=PHASE2_KCONFIG_REQUIRED_WORKFLOW_COUNTS,
-            workflow_mode=True,
-        )
-    )
-    issues.extend(
-        validate_exact_command_counts(
-            MAKEFILE_FILE,
-            label="phase2_kconfig_makefile",
-            expected_counts=PHASE2_KCONFIG_REQUIRED_MAKEFILE_COUNTS,
-        )
-    )
-    issues.extend(
-        validate_exact_command_counts(
-            MAKEFILE_FILE,
-            label="phase2_cross_alignment_makefile",
-            expected_counts=PHASE2_CROSS_ALIGNMENT_REQUIRED_MAKEFILE_COUNTS,
-        )
-    )
-
-    if issues:
-        print("PHASE2_VALIDATION=fail")
-        print("INVALID_PHASE2_SHARED_METADATA_START")
-        for item in issues:
-            print(item)
-        print("INVALID_PHASE2_SHARED_METADATA_END")
-        return 1
-
-    result = subprocess.run(
-        [sys.executable, str(GENKSYMS_BRIDGE_ALIGNMENT_CHECKER)],
-        cwd=ROOT,
-    )
-    if result.returncode != 0:
-        print("PHASE2_VALIDATION=fail")
-        return result.returncode
-
-    result = subprocess.run(
-        [sys.executable, str(PHASE2_CROSS_ALIGNMENT_CHECKER)],
-        cwd=ROOT,
-    )
-    if result.returncode != 0:
-        print("PHASE2_VALIDATION=fail")
-        return result.returncode
-
-    result = subprocess.run(
-        [sys.executable, str(TOOLCHAIN_PIN_SCOPE_CHECKER)],
-        cwd=ROOT,
-    )
-    if result.returncode != 0:
-        print("PHASE2_VALIDATION=fail")
-        return result.returncode
-
-    result = subprocess.run([sys.executable, str(CLOSURE_VALIDATOR)], cwd=ROOT)
-    if result.returncode == 0:
-        print("PHASE2_VALIDATION=pass")
-    else:
-        print("PHASE2_VALIDATION=fail")
-    return result.returncode
 
 
 def load_fixdep_cases(cases_path: Path) -> list[dict[str, object]]:
@@ -420,6 +293,136 @@ def validate_expected_fixdep_cases(cases_path: Path) -> list[str]:
     if len(cases) != len(expected_cases):
         issues.append(f"fixdep_cases:count={len(cases)},expected={len(expected_cases)}")
     return issues
+
+
+def main() -> int:
+    missing = [str(path.relative_to(ROOT)) for path in REQUIRED_PHASE2_FILES if not path.exists()]
+    if missing:
+        print("PHASE2_VALIDATION=fail")
+        print("MISSING_PHASE2_SHARED_FILES_START")
+        for item in missing:
+            print(item)
+        print("MISSING_PHASE2_SHARED_FILES_END")
+        return 1
+
+    issues: list[str] = []
+    issues.extend(
+        validate_list_manifest(
+            PHASE2_TOOL_MANIFEST,
+            label="phase2_tool_manifest",
+            count_key="tool_count",
+            expected_count=6,
+            list_key="tools",
+            expected_items=EXPECTED_TOOL_MANIFEST_TOOLS,
+        )
+    )
+    issues.extend(
+        validate_list_manifest(
+            PHASE2_CROSS_TARGETS,
+            label="phase2_cross_targets",
+            count_key="target_count",
+            expected_count=3,
+            list_key="targets",
+            expected_items=EXPECTED_CROSS_TARGETS,
+        )
+    )
+    issues.extend(validate_expected_fixdep_cases(FIXDEP_CASES))
+    issues.extend(
+        validate_source_markers(
+            GENKSYMS_BRIDGE_ALIGNMENT_CHECKER,
+            label="phase2_genksyms_bridge_alignment_checker",
+            required_markers=PHASE2_GENKSYMS_BRIDGE_ALIGNMENT_REQUIRED_SOURCE_MARKERS,
+        )
+    )
+    issues.extend(
+        validate_source_markers(
+            PHASE2_CROSS_ALIGNMENT_CHECKER,
+            label="phase2_cross_alignment_checker",
+            required_markers=PHASE2_CROSS_ALIGNMENT_REQUIRED_SOURCE_MARKERS,
+        )
+    )
+    issues.extend(
+        validate_source_markers(
+            PHASE2_CROSS_CHECKER,
+            label="phase2_cross_checker",
+            required_markers=PHASE2_CROSS_REQUIRED_SOURCE_MARKERS,
+        )
+    )
+    issues.extend(
+        validate_source_markers(
+            TOOLCHAIN_PIN_SCOPE_CHECKER,
+            label="toolchain_pin_scope_checker",
+            required_markers=PHASE2_TOOLCHAIN_PIN_SCOPE_REQUIRED_SOURCE_MARKERS,
+        )
+    )
+    issues.extend(
+        validate_source_markers(
+            CHECK_KCONFIG_BRIDGE,
+            label="phase2_kconfig_bridge_checker",
+            required_markers=PHASE2_KCONFIG_REQUIRED_SOURCE_MARKERS,
+        )
+    )
+    issues.extend(
+        validate_exact_command_counts(
+            WORKFLOW_FILE,
+            label="phase2_kconfig_workflow",
+            expected_counts=PHASE2_KCONFIG_REQUIRED_WORKFLOW_COUNTS,
+            workflow_mode=True,
+        )
+    )
+    issues.extend(
+        validate_exact_command_counts(
+            MAKEFILE_FILE,
+            label="phase2_kconfig_makefile",
+            expected_counts=PHASE2_KCONFIG_REQUIRED_MAKEFILE_COUNTS,
+        )
+    )
+    issues.extend(
+        validate_exact_command_counts(
+            MAKEFILE_FILE,
+            label="phase2_cross_alignment_makefile",
+            expected_counts=PHASE2_CROSS_ALIGNMENT_REQUIRED_MAKEFILE_COUNTS,
+        )
+    )
+
+    if issues:
+        print("PHASE2_VALIDATION=fail")
+        print("INVALID_PHASE2_SHARED_METADATA_START")
+        for item in issues:
+            print(item)
+        print("INVALID_PHASE2_SHARED_METADATA_END")
+        return 1
+
+    result = subprocess.run(
+        [sys.executable, str(GENKSYMS_BRIDGE_ALIGNMENT_CHECKER)],
+        cwd=ROOT,
+    )
+    if result.returncode != 0:
+        print("PHASE2_VALIDATION=fail")
+        return result.returncode
+
+    result = subprocess.run(
+        [sys.executable, str(PHASE2_CROSS_ALIGNMENT_CHECKER)],
+        cwd=ROOT,
+    )
+    if result.returncode != 0:
+        print("PHASE2_VALIDATION=fail")
+        return result.returncode
+
+    result = subprocess.run(
+        [sys.executable, str(TOOLCHAIN_PIN_SCOPE_CHECKER)],
+        cwd=ROOT,
+    )
+    if result.returncode != 0:
+        print("PHASE2_VALIDATION=fail")
+        return result.returncode
+
+    result = subprocess.run([sys.executable, str(CLOSURE_VALIDATOR)], cwd=ROOT)
+    if result.returncode == 0:
+        print("PHASE2_VALIDATION=pass")
+    else:
+        print("PHASE2_VALIDATION=fail")
+    return result.returncode
 
 
 if __name__ == "__main__":
