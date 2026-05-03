@@ -14,7 +14,7 @@ ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.p
 HEX40 = re.compile(r"^[0-9a-f]{40}$")
 SELF_TEST_HEAD = "0123456789abcdef0123456789abcdef01234567"
 SELF_TEST_MUTATED_HEAD = "fedcba9876543210fedcba9876543210fedcba98"
-SELF_TEST_CASE_COUNT = 39
+SELF_TEST_CASE_COUNT = 40
 
 EXPECTED_SHARED_GATES = [
     "zigux/tests/phase6_build.zig",
@@ -85,7 +85,7 @@ CATALOG_MARKERS = [
     "max_slowdown_pct = 550",
     "max_slowdown_pct = 600",
     "avg_compare_calls <= std.math.log2_int_ceil(len) + 1",
-    "PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=39",
+    "PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=40",
 ]
 
 PERF_SURVEY_MARKERS = [
@@ -122,6 +122,7 @@ HEXDUMP_SLICE_MARKERS = [
 
 SCRIPTS_README_MARKERS = [
     "validate-phase6.py keeps the shipped Phase 6 leaf-helper packet aligned across `scripts/zigux/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/phase6-helper-parity-catalog.md`, `zigux/tests/phase6_helper_parity_manifest.json`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, the bootstrap workflow, and the four helper-local slice notes before any shared replay claims stay green.",
+    "- `check-phase6-docs-root-external-parity.py`",
     "`validate-phase6.py --self-test` exercises the shared Phase 6 marker walk in a compact synthetic tree and fails if catalog-head provenance, script-README wording, perf-survey markers, shared-gates inventory, manifest `surveyed_commit`, or helper-local determinism evidence drifts.",
 ]
 
@@ -498,14 +499,8 @@ def validate_phase6(root: Path) -> dict[str, object]:
 
     catalog = text(root, "Documentation/zigux/phase6-helper-parity-catalog.md")
     catalog_head, catalog_head_status = parse_catalog_head(catalog)
-    if catalog_head_status != "ok":
-        return {
-            "ok": False,
-            "missing_files": [],
-            "missing": [],
-            "catalog_head": catalog_head or "",
-            "catalog_head_status": catalog_head_status,
-        }
+    if catalog_head is None:
+        catalog_head = ""
 
     missing: list[str] = []
     require_markers(missing, "catalog", catalog, CATALOG_MARKERS)
@@ -549,7 +544,7 @@ def validate_phase6(root: Path) -> dict[str, object]:
         "missing_files": [],
         "missing": missing,
         "catalog_head": catalog_head,
-        "catalog_head_status": "ok",
+        "catalog_head_status": catalog_head_status,
     }
 
 
@@ -689,6 +684,12 @@ def run_self_test() -> int:
             scripts_readme = root / "scripts/zigux/README.md"
             scripts_readme.write_text(scripts_readme.read_text(encoding="utf-8").replace(SCRIPTS_README_MARKERS[0], "", 1), encoding="utf-8")
             expect_contains(validate_phase6(root), f"scripts_readme:missing:{SCRIPTS_README_MARKERS[0]}")
+            count += 1
+
+            build_self_test_tree(root)
+            scripts_readme = root / "scripts/zigux/README.md"
+            scripts_readme.write_text(scripts_readme.read_text(encoding="utf-8").replace(SCRIPTS_README_MARKERS[1], "", 1), encoding="utf-8")
+            expect_contains(validate_phase6(root), f"scripts_readme:missing:{SCRIPTS_README_MARKERS[1]}")
             count += 1
 
             build_self_test_tree(root)
