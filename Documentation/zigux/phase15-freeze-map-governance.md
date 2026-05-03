@@ -15,9 +15,11 @@ This document records the bounded Phase 15 governance lane around `Documentation
   - `Documentation/zigux/phase15-parity-scorecard.md`
   - `Documentation/zigux/phase15-architecture-council-review-process.md`
   - `Documentation/zigux/phase15-indefinite-c-policy.md`
+  - `Documentation/zigux/phase15-evidence-archives/`
   - `scripts/zigux/validate-phase15.py`
   - `zigux/tests/phase15_freeze_map_manifest.json`
   - `zigux/tests/phase15_freeze_map_governance.zig`
+  - `zigux/tests/phase15_evidence_archive_templates.zig`
   - `zigux/tests/phase15_build.zig`
   - `zigux/Makefile`
 
@@ -111,6 +113,7 @@ This slice does not claim:
 - the review hook is present in `Documentation/zigux/review-checklist.md`, which now asks whether freeze-map anchors carry parity-scorecard evidence or blocker state, decision-record links, retained-discussion state, reopen triggers, rollback-threshold language, and an explicit current lane owner for blocked evidence packets
 - the shared review checklist now carries a dedicated freeze-map governance-packet drift gate, so edits to `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, or `Documentation/zigux/phase15-parity-scorecard.md` must keep the rollback threshold, automatic return-to-blocked trigger, retained discussion state, reopen triggers, and the current maintenance-mode handoff aligned
 - the shared validator-first governance gate is present in `scripts/zigux/validate-phase15.py` and `zigux/Makefile`, so freeze-map maintenance edits now keep one explicit pre-replay review boundary through `python3 scripts/zigux/validate-phase15.py` or `make -C zigux phase15-validate` before the wider `make -C zigux phase15` replay path
+- the reserved evidence archive packet remains explicit through `Documentation/zigux/phase15-evidence-archives/` and `zigux/tests/phase15_evidence_archive_templates.zig`, so the per-anchor no-approval posture, retained discussion state, reopen-trigger catalog, and indefinite-C policy links stay reviewable as concrete records instead of only shared prose
 - the current roadmap-versus-repo comparison remains stable: the freeze and study-only lists in `Documentation/zigux/freeze-map.md` still match the roadmap, and the scorecard plus the existing Phase 14 RCU or skbuff survey packets still back the same four deep-core blockers
 - the dedicated local replay surface is present in `zigux/tests/phase15_build.zig` and `zigux/Makefile`, so a focused maintainer run can still use `zig build test --build-file zigux/tests/phase15_build.zig` or `make -C zigux phase15`
 - the shared bootstrap workflow now invokes the Phase 15 gate through `Run Phase 15 governance tests`, so the current freeze-map governance bundle is no longer maintainer-run only
