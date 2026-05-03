@@ -25,10 +25,13 @@ This document records the current release-discipline reading for the active boun
   - `Documentation/zigux/phase12-virtio-scsi-slice.md`
   - `Documentation/zigux/phase12-libbpf-segment-survey.md`
   - `scripts/zigux/check-phase12-cross.py`
+  - `scripts/zigux/check-phase12-raw-github-coverage.py`
   - `scripts/zigux/check-phase12-libbpf-focused-replay.py`
   - `scripts/zigux/check-phase12-release-readiness-packet.py`
   - `scripts/zigux/validate-phase12.py`
   - `zigux/tests/phase12_cross_build.zig`
+  - `zigux/tests/phase12_raw_github_coverage_manifest.json`
+  - `zigux/tests/phase12_raw_github_coverage_survey.zig`
   - `zigux/tests/phase12_libbpf_only_build.zig`
   - `zigux/tests/phase12_build.zig`
   - `zigux/Makefile`
@@ -60,6 +63,7 @@ The current Phase 12 release-facing reading is:
 - `Documentation/zigux/README.md` now also mirrors the mixed fallback split directly, naming `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` as the dedicated commit-pinned fallback artifacts while `Documentation/zigux/phase12-virtio-net-survey.md` and `Documentation/zigux/phase12-libbpf-segment-survey.md` remain shared-tree-only fallback reads
 - the same release packet now also keeps the active complex-driver owner split explicit: `Network Driver Lane` owns the bounded `virtio_net` packet, `NVMe PCI Lane` owns the bounded `nvme_pci` packet, `Virtio SCSI Lane` owns the bounded `virtio_scsi` packet, and `BPF Tooling Lane` owns the bounded libbpf helper packet
 - the shared-tree-only side of that fallback split is now also bounded by four published readback roots in `Documentation/zigux/phase12-raw-github-coverage-survey.md`: `https://github.com/adybag14-cyber/Zigux/tree/master/drivers/net`, `https://github.com/adybag14-cyber/Zigux/tree/master/tools/lib/bpf`, `https://github.com/adybag14-cyber/Zigux/tree/master/Documentation/zigux`, and `https://github.com/adybag14-cyber/Zigux/tree/master/zigux/tests`, so degraded public review of `virtio_net` and `libbpf` no longer depends on ad hoc tree discovery
+- that same mixed fallback packet is also backed by `scripts/zigux/check-phase12-raw-github-coverage.py`, `zigux/tests/phase12_raw_github_coverage_manifest.json`, and `zigux/tests/phase12_raw_github_coverage_survey.zig`, so the release-facing note now names the checker and manifest-backed survey evidence instead of treating the split as prose-only release guidance
 - `Documentation/zigux/review-checklist.md` now remains part of the same release-facing packet and carries the shared degraded-workflow, build-inventory, raw-fallback, focused libbpf-only replay, and dedicated Phase 12 PMO release-readiness prompts, so PMO review does not rely on the docs root alone to keep those release checks visible
 - the dedicated Phase 12 PMO checklist question now restates the active-not-closed release posture, the approved three-target musl smoke set, and the current two commit-pinned versus two shared-tree-only fallback split in one release-facing prompt instead of leaving that summary only in the survey note and docs root
 - `Documentation/zigux/phase12-shared-replay-contract.md` now stays inside the same release packet as the shared-versus-focused replay contract note, keeping the release-readiness packet guard, the raw-GitHub coverage checker, the focused libbpf-only replay shard, and the broader `make -C zigux phase12-validate` before `make -C zigux phase12` handoff explicit in one contributor-facing place instead of leaving that preflight stack split across disconnected notes
@@ -91,6 +95,7 @@ The current bounded release-evidence set is:
 - `Documentation/zigux/phase12-virtio-scsi-slice.md`
 - `Documentation/zigux/phase12-libbpf-segment-survey.md`
 - `scripts/zigux/check-phase12-cross.py`
+- `scripts/zigux/check-phase12-raw-github-coverage.py`
 - `scripts/zigux/check-phase12-libbpf-focused-replay.py`
 - `scripts/zigux/check-phase12-libbpf-packet.py`
 - `scripts/zigux/check-phase12-libbpf-snapshot.py`
@@ -98,6 +103,8 @@ The current bounded release-evidence set is:
 - `scripts/zigux/validate-phase12.py`
 - `zigux/tests/phase12_cross_build.zig`
 - `zigux/tests/phase12_build.zig`
+- `zigux/tests/phase12_raw_github_coverage_survey.zig`
+- `zigux/tests/phase12_raw_github_coverage_manifest.json`
 - `zigux/tests/phase12_libbpf_only_build.zig`
 - `zigux/tests/phase12_libbpf_segments.zig`
 - `zigux/tests/phase12_libbpf_reviewability.zig`
