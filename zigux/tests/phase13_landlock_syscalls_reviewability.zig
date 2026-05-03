@@ -84,6 +84,20 @@ test "phase13 landlock syscalls reviewability ties helper, survey, manifest, and
     try std.testing.expect(!descriptor.touches_live_credentials);
     try std.testing.expect(!descriptor.touches_live_domains);
 
+    const slice_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase13-landlock-syscalls-slice.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(slice_note);
+
+    try expectContains(slice_note, "# Phase 13 Landlock Syscalls Slice");
+    try expectContains(slice_note, "PHASE13_OWNERSHIP_BOUNDARY=ruleset-fd-handoff-helper-only");
+    try expectContains(slice_note, "landlock_put_ruleset()");
+    try expectContains(slice_note, "fop_ruleset_release()");
+    try expectContains(slice_note, "live FD-table ownership remains with the C implementation");
+
     const survey_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/phase13-landlock-syscalls-survey.md",
