@@ -135,6 +135,30 @@ def expect_failure(script: Path, root: Path, expected: str) -> None:
         raise SystemExit(f"phase1-route-summary-self-test:expected_failure:{expected}")
 
 
+def expect_missing_and_duplicate(
+    script: Path,
+    root: Path,
+    rel: str,
+    baseline_entries: list[str],
+    label: str,
+    marker: str,
+) -> None:
+    path = root / rel
+    write(path, fixture_text([entry for entry in baseline_entries if entry != marker]))
+    expect_failure(
+        script,
+        root,
+        f"{label}:expected=1:actual=0",
+    )
+    write(path, fixture_text(baseline_entries + [marker]))
+    expect_failure(
+        script,
+        root,
+        f"{label}:expected=1:actual=2",
+    )
+    write(path, fixture_text(baseline_entries))
+
+
 def self_test() -> int:
     docs_markers = [
         REQUIRED_MARKERS["docs_root_phase1_closure_packet_count"][1],
@@ -153,6 +177,57 @@ def self_test() -> int:
         REQUIRED_ROUTE_LINES["workflow_phase1_route_summary_run_count"][1],
     ]
 
+    marker_cases = [
+        (
+            "Documentation/zigux/README.md",
+            docs_markers,
+            "docs_root_phase1_closure_packet_count",
+            docs_markers[0],
+        ),
+        (
+            "Documentation/zigux/README.md",
+            docs_markers,
+            "docs_root_phase1_entrypoints_count",
+            docs_markers[1],
+        ),
+        (
+            "scripts/zigux/README.md",
+            scripts_markers,
+            "scripts_root_phase1_validator_first_count",
+            scripts_markers[0],
+        ),
+        (
+            "scripts/zigux/README.md",
+            scripts_markers,
+            "scripts_root_phase1_review_hooks_count",
+            scripts_markers[1],
+        ),
+        (
+            "zigux/Makefile",
+            makefile_markers,
+            "makefile_phase1_route_summary_self_test_count",
+            makefile_markers[0],
+        ),
+        (
+            "zigux/Makefile",
+            makefile_markers,
+            "makefile_phase1_route_summary_run_count",
+            makefile_markers[1],
+        ),
+        (
+            ".github/workflows/zigux-bootstrap.yml",
+            workflow_markers,
+            "workflow_phase1_route_summary_self_test_count",
+            workflow_markers[0],
+        ),
+        (
+            ".github/workflows/zigux-bootstrap.yml",
+            workflow_markers,
+            "workflow_phase1_route_summary_run_count",
+            workflow_markers[1],
+        ),
+    ]
+
     with tempfile.TemporaryDirectory(prefix="phase1-route-summary-") as tmp:
         root = Path(tmp)
         script = root / "scripts/zigux/check-phase1-route-summary-counts.py"
@@ -169,64 +244,13 @@ def self_test() -> int:
             print("PHASE1_ROUTE_SUMMARY_COUNTS_SELF_TEST=fail")
             return 1
 
-        write(root / "Documentation/zigux/README.md", "# Zigux Documentation\n")
-        expect_failure(
-            script,
-            root,
-            "docs_root_phase1_closure_packet_count:expected=1:actual=0",
-        )
-        write(root / "Documentation/zigux/README.md", fixture_text(docs_markers))
-
-        write(
-            root / "Documentation/zigux/README.md",
-            fixture_text(docs_markers + [docs_markers[0]]),
-        )
-        expect_failure(
-            script,
-            root,
-            "docs_root_phase1_closure_packet_count:expected=1:actual=2",
-        )
-        write(root / "Documentation/zigux/README.md", fixture_text(docs_markers))
-
-        write(root / "scripts/zigux/README.md", "# scripts/zigux\n")
-        expect_failure(
-            script,
-            root,
-            "scripts_root_phase1_validator_first_count:expected=1:actual=0",
-        )
-        write(root / "scripts/zigux/README.md", fixture_text(scripts_markers))
-
-        write(
-            root / "scripts/zigux/README.md",
-            fixture_text(scripts_markers + [scripts_markers[1]]),
-        )
-        expect_failure(
-            script,
-            root,
-            "scripts_root_phase1_review_hooks_count:expected=1:actual=2",
-        )
-        write(root / "scripts/zigux/README.md", fixture_text(scripts_markers))
-
-        write(root / "zigux/Makefile", fixture_text([makefile_markers[1]]))
-        expect_failure(
-            script,
-            root,
-            "makefile_phase1_route_summary_self_test_count:expected=1:actual=0",
-        )
-        write(root / "zigux/Makefile", fixture_text(makefile_markers))
-
-        write(
-            root / ".github/workflows/zigux-bootstrap.yml",
-            fixture_text(workflow_markers + [workflow_markers[1]]),
-        )
-        expect_failure(
-            script,
-            root,
-            "workflow_phase1_route_summary_run_count:expected=1:actual=2",
-        )
+        total_cases = 1
+        for rel, baseline_entries, label, marker in marker_cases:
+            expect_missing_and_duplicate(script, root, rel, baseline_entries, label, marker)
+            total_cases += 2
 
     print("PHASE1_ROUTE_SUMMARY_COUNTS_SELF_TEST=pass")
-    print("PHASE1_ROUTE_SUMMARY_COUNTS_SELF_TEST_CASE_COUNT=7")
+    print(f"PHASE1_ROUTE_SUMMARY_COUNTS_SELF_TEST_CASE_COUNT={total_cases}")
     return 0
 
 
