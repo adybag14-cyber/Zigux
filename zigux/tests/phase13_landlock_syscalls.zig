@@ -8,6 +8,7 @@ const SurveySummary = struct {
     preexisting_phase13_make_target_present: bool,
     preexisting_syscalls_zig_present: bool,
     preexisting_phase13_landlock_syscalls_test_present: bool,
+    preexisting_phase13_landlock_syscalls_reviewability_present: bool,
     preexisting_phase13_landlock_syscalls_slice_note_present: bool,
     preexisting_phase13_landlock_syscalls_survey_note_present: bool,
 };
@@ -74,9 +75,10 @@ test "phase13 landlock syscalls manifest records the current landed packet" {
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_make_target_present);
     try std.testing.expect(manifest.survey_summary.preexisting_syscalls_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_test_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_reviewability_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 16), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 17), manifest.gaps.len);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, expected_surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE13_SURVEYED_COMMIT=") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, expected_slice_marker) != null);
@@ -87,6 +89,7 @@ test "phase13 landlock syscalls manifest records the current landed packet" {
     var saw_make_target = false;
     var saw_starter = false;
     var saw_test_gate = false;
+    var saw_reviewability_gate = false;
     var saw_slice_note = false;
     var saw_survey_note = false;
     var saw_initialization_gate = false;
@@ -132,6 +135,11 @@ test "phase13 landlock syscalls manifest records the current landed packet" {
             saw_test_gate = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/phase13_landlock_syscalls.zig", gap.zigux_destination);
+        }
+        if (std.mem.eql(u8, gap.id, "phase13-landlock-syscalls-reviewability-gate")) {
+            saw_reviewability_gate = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("zigux/tests/phase13_landlock_syscalls_reviewability.zig", gap.zigux_destination);
         }
         if (std.mem.eql(u8, gap.id, "phase13-landlock-syscalls-slice-note")) {
             saw_slice_note = true;
@@ -221,12 +229,13 @@ test "phase13 landlock syscalls manifest records the current landed packet" {
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 16), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 17), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_make_target);
     try std.testing.expect(saw_starter);
     try std.testing.expect(saw_test_gate);
+    try std.testing.expect(saw_reviewability_gate);
     try std.testing.expect(saw_slice_note);
     try std.testing.expect(saw_survey_note);
     try std.testing.expect(saw_initialization_gate);
