@@ -109,6 +109,8 @@ Phase 11 notes
 - `python3 scripts/zigux/validate-phase11.py`, `zigux/tests/fixtures/phase11_build_inventory.json`, `make -C zigux phase11-validate`, and `make -C zigux phase11` now define the shared Phase 11 reviewability path, with the dedicated `zigux/tests/phase11_hvc_console_survey.zig` archival replay still kept separate from `zigux/tests/phase11_build.zig`.
 
 Phase 12 notes
+- `Documentation/zigux/phase12-release-readiness-survey.md` is now the release-facing PMO note for the active Phase 12 tranche, and it keeps the shared validator path, the bounded cross-compile smoke packet, and the mixed raw-GitHub fallback posture in one place without claiming global closure.
+- `Documentation/zigux/phase12-cross-compile-smoke.md` and `Documentation/zigux/phase12-raw-github-coverage-survey.md` now stay explicit from the docs root as adjacent Phase 12 release-coordination notes, so the approved non-native musl target replay and the current mixed public-read fallback split are visible alongside the driver and libbpf survey packet.
 - `Documentation/zigux/phase12-virtio-net-survey.md`
 - `Documentation/zigux/phase12-nvme-pci-survey.md`
 - `Documentation/zigux/phase12-nvme-pci-slice.md`
