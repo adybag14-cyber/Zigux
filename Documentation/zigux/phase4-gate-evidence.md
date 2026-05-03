@@ -24,8 +24,8 @@ This note records one exact readback snapshot for the current Phase 4 rollback-o
 - `PHASE4_PERF_BASELINE_SURVEY_BLOB_SHA=bf735fc42e1008898bba91844b102447c78ce1e7`
 - `PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=2a001ec217dc3acc6d77c08a66707346a950f353`
 - `PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=b67bec3a6db84cc8123f3a8703d63a63c08ed179`
-- `PHASE4_DOC_README_BLOB_SHA=8a2b2f383239edce131ed85962527a83afe2fcb4`
-- `PHASE4_SCRIPT_README_BLOB_SHA=168654bc9d01ce37169d7bf30245543d7dc02351`
+- `PHASE4_DOC_README_BLOB_SHA=da5fd1ce57422cb85f05e7356110969c93a55e43`
+- `PHASE4_SCRIPT_README_BLOB_SHA=59bf3e5aab8abbffa7fd1be48557174e109eb546`
 - `PHASE4_TESTS_README_BLOB_SHA=a785f56e68497a7528490431ad6a30a2da2b23ec`
 - `PHASE4_VALIDATOR_SELF_TEST=pass`
 - `PHASE4_VALIDATION=pass`
@@ -56,7 +56,7 @@ The current roadmap-backed destinations for that packet remain:
 The current packet stayed aligned across the following readbacks on `master`:
 
 - the exact blob pins above now match the live gate-definition files for this packet, including the refreshed `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`, plus the stable matrix, validator, dedicated gate-evidence checker, dedicated workflow-route checker, `phase4_build.zig`, `phase4_kprobe_example_{manifest,survey}`, `phase4_test_fsmount_{manifest,survey}`, and `phase4_perf_baseline_{manifest,survey}` surfaces.
-- the exact readback in this note was taken on live `master` head `d62742e7ff0747ed15f71f67d505f68ea15ec7ab`, while the shared survey provenance still carried by `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`, `zigux/tests/phase4_kprobe_example_survey.zig`, `zigux/tests/phase4_test_fsmount_survey.zig`, `zigux/tests/phase4_perf_baseline_survey.zig`, and their sibling manifests remains `3ba64cd4e41a4de1c8fd8dbaecb23702ad9701a3` on the current inspected head.
+- the last recorded inspected head for this note remains `d62742e7ff0747ed15f71f67d505f68ea15ec7ab`, while the shared survey provenance still carried by `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`, `zigux/tests/phase4_kprobe_example_survey.zig`, `zigux/tests/phase4_test_fsmount_survey.zig`, `zigux/tests/phase4_perf_baseline_survey.zig`, and their sibling manifests remains `3ba64cd4e41a4de1c8fd8dbaecb23702ad9701a3` on the current inspected head; this bounded maintenance refresh only re-pins the live docs-root and scripts-root blob markers from current connector readback.
 - the current workflow still keeps `Self-test Phase 4 validator` with `python3 scripts/zigux/validate-phase4.py --self-test` beside `Validate Phase 4 diff gates` and `Run Phase 4 diff tests`; on `PHASE4_WORKFLOW_BLOB_SHA=f1ca8789f57a0fc20e4aba72d974c97a6143d323` there is one `make -C zigux phase4-validate` run line and one `make -C zigux phase4-test` run line under the Phase 4 steps.
 - the current `make -C zigux phase4-validate` route in `zigux/Makefile` still expands to `python3 scripts/zigux/artifact_diff.py --self-test`, `python3 scripts/zigux/check-artifact-diff-contract.py`, `python3 scripts/zigux/check-phase4-kprobe-example-packet.py --self-test`, `python3 scripts/zigux/check-phase4-kprobe-example-packet.py`, `python3 scripts/zigux/check-phase4-workflow-route-counts.py --self-test`, `python3 scripts/zigux/check-phase4-workflow-route-counts.py`, `python3 scripts/zigux/validate-phase4.py`, `python3 scripts/zigux/validate-phase4.py --self-test`, `python3 scripts/zigux/check-phase4-gate-evidence.py --self-test`, and `python3 scripts/zigux/check-phase4-gate-evidence.py`, so the external `check-artifact-diff-contract.py` row, the dedicated kprobe packet checker, the dedicated workflow-route checker, the shared validator row, and the dedicated gate-evidence checker row remain the current published host-side preflight packet.
 - the current `make -C zigux phase4-test` route still flows through `zigux/tests/phase4_build.zig` and currently replays `phase4-runtime-atomic64-diff-tests`, `phase4-runtime-atomic64-diff-survey-tests`, `phase4-test-fsmount-survey-tests`, `phase4-kprobe-example-survey-tests`, `phase4-perf-baseline-survey-tests`, and `phase4-bitmap-diff-tests`, so the two shipped Zig rollback gates plus the shared-build-backed survey packets remain on one shared replay surface.
@@ -71,9 +71,9 @@ The current packet stayed aligned across the following readbacks on `master`:
 
 ## Current Conclusion
 
-The current Phase 4 rollback-ownership and lab-matrix packet is again pinned to live published head `d62742e7ff0747ed15f71f67d505f68ea15ec7ab`: the matrix, validator, dedicated gate-evidence checker, dedicated workflow-route checker, Makefile, workflow, the two shipped rollback gates, the four exact blob-ledger survey packets, and the three index surfaces named above now match the exact blob ledger recorded in this note.
+The current Phase 4 rollback-ownership and lab-matrix packet remains aligned on live `master` for the gate-definition files enumerated above: the matrix, validator, dedicated gate-evidence checker, dedicated workflow-route checker, Makefile, workflow, the two shipped rollback gates, the four exact blob-ledger survey packets, and the three index surfaces named above now match the exact blob ledger recorded in this note, including the refreshed docs-root and scripts-root blob pins from current connector readback.
 
-The shared survey provenance inside the four Phase 4 survey packets still reflects `3ba64cd4e41a4de1c8fd8dbaecb23702ad9701a3`, so this note now distinguishes the live exact-readback head from the older shared survey snapshot instead of implying they are the same commit.
+The shared survey provenance inside the four Phase 4 survey packets still reflects `3ba64cd4e41a4de1c8fd8dbaecb23702ad9701a3`, so this note now distinguishes the last recorded inspected head from the older shared survey snapshot instead of implying they are the same commit.
 
 The remaining roadmap-backed gaps are still the same bounded ones:
 
