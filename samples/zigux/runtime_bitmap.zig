@@ -649,3 +649,39 @@ test "runtime bitmap sample keeps transactional init failures explicit in the di
     try std.testing.expect(direct.isSet(1));
     try std.testing.expect(direct.isSet(3));
 }
+
+test "runtime bitmap sample keeps failed range mutations non-destructive in the direct sample leg" {
+    var module = RuntimeBitmapSample{};
+    try module.initWithSetBits(&.{ 0, 5, bitmap_view.bits_per_long, bitmap_view.bits_per_long + 6 });
+
+    const summary_before_failure = module.summary();
+    try std.testing.expectEqual(ModuleStage.initialized, module.stage());
+    try std.testing.expect(module.isSet(0));
+    try std.testing.expect(module.isSet(5));
+    try std.testing.expect(module.isSet(bitmap_view.bits_per_long));
+    try std.testing.expect(module.isSet(bitmap_view.bits_per_long + 6));
+
+    try std.testing.expectError(
+        error.BitRangeOutOfBounds,
+        module.setRange(RuntimeBitmapSample.bitmap_nbits - 1, 2),
+    );
+    try std.testing.expectError(
+        error.BitRangeOutOfBounds,
+        module.clearRange(RuntimeBitmapSample.bitmap_nbits, 1),
+    );
+
+    const summary_after_failure = module.summary();
+    try std.testing.expectEqual(ModuleStage.initialized, module.stage());
+    try std.testing.expectEqual(summary_before_failure.first_set, summary_after_failure.first_set);
+    try std.testing.expectEqual(summary_before_failure.first_zero, summary_after_failure.first_zero);
+    try std.testing.expectEqual(summary_before_failure.weight, summary_after_failure.weight);
+    try std.testing.expectEqual(summary_before_failure.nbits, summary_after_failure.nbits);
+    try std.testing.expectEqual(summary_before_failure.init_runs, summary_after_failure.init_runs);
+    try std.testing.expectEqual(summary_before_failure.selftest_runs, summary_after_failure.selftest_runs);
+    try std.testing.expectEqual(summary_before_failure.exit_runs, summary_after_failure.exit_runs);
+    try std.testing.expect(module.isSet(0));
+    try std.testing.expect(module.isSet(5));
+    try std.testing.expect(module.isSet(bitmap_view.bits_per_long));
+    try std.testing.expect(module.isSet(bitmap_view.bits_per_long + 6));
+    try std.testing.expect(!module.isSet(bitmap_view.bits_per_long + 1));
+}
