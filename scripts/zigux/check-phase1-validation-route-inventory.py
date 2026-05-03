@@ -34,6 +34,7 @@ REQUIRED_FILES = [
     "zigux/Makefile",
     ".github/workflows/zigux-bootstrap.yml",
     "zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md",
+    "zigux/tests/README.md",
 ]
 
 DOCS_ROOT_LINES = {
@@ -66,6 +67,14 @@ SCRIPTS_ROOT_LINES = {
     "scripts_root_phase1_review_hooks_count": (
         "scripts/zigux/README.md",
         "- `check-phase1-bitmap-validator-anchors.py --self-test`, `check-phase1-bitmap-validator-anchors.py`, `check-phase1-find-bit-validator-anchors.py --self-test`, `check-phase1-find-bit-validator-anchors.py`, `check-phase1-route-summary-counts.py --self-test`, `check-phase1-route-summary-counts.py`, `check-phase1-validation-route-inventory.py --self-test`, `check-phase1-validation-route-inventory.py`, `check-phase1-parity.py --self-test`, `check-phase1-parity.py`, `check-phase1-bench.py --self-test`, `check-phase1-bench.py`, `validate-phase1-closure.py --self-test`, and `validate-phase1-closure.py` are the bounded fail-closed review hooks around that same closed Phase 1 helper tranche.",
+        1,
+    ),
+}
+
+TESTS_ROOT_LINES = {
+    "tests_root_phase1_checker_stack_count": (
+        "zigux/tests/README.md",
+        "- keep the closed Phase 1 host-helper packet reviewable through `Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-bitmap-validator-anchors.py`, `scripts/zigux/check-phase1-find-bit-validator-anchors.py`, `scripts/zigux/check-phase1-route-summary-counts.py`, `scripts/zigux/check-phase1-validation-route-inventory.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `scripts/zigux/validate-phase1-closure.py`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `zigux/tests/phase1_helpers.zig`, and `zigux/tests/phase1_bench.zig` so the tests root names the same validator-first replay and fail-closed checker stack as the docs root, scripts root, workflow, and Makefile surfaces.",
         1,
     ),
 }
@@ -240,6 +249,7 @@ ALL_TARGETS = {}
 ALL_TARGETS.update(DOCS_ROOT_LINES)
 ALL_TARGETS.update(CHECKLIST_LINES)
 ALL_TARGETS.update(SCRIPTS_ROOT_LINES)
+ALL_TARGETS.update(TESTS_ROOT_LINES)
 ALL_TARGETS.update(WORKFLOW_LINES)
 ALL_TARGETS.update(MAKEFILE_LINES)
 
@@ -321,6 +331,7 @@ def self_test() -> int:
     docs_entries = [entry[1] for entry in DOCS_ROOT_LINES.values()]
     checklist_entries = [entry[1] for entry in CHECKLIST_LINES.values()]
     scripts_entries = [entry[1] for entry in SCRIPTS_ROOT_LINES.values()]
+    tests_entries = [entry[1] for entry in TESTS_ROOT_LINES.values()]
     workflow_entries = [entry[1] for entry in WORKFLOW_LINES.values()]
     makefile_entries = [entry[1] for entry in MAKEFILE_LINES.values()]
 
@@ -328,6 +339,7 @@ def self_test() -> int:
         *[(entry[0], docs_entries, label, entry[1]) for label, entry in DOCS_ROOT_LINES.items()],
         *[(entry[0], checklist_entries, label, entry[1]) for label, entry in CHECKLIST_LINES.items()],
         *[(entry[0], scripts_entries, label, entry[1]) for label, entry in SCRIPTS_ROOT_LINES.items()],
+        *[(entry[0], tests_entries, label, entry[1]) for label, entry in TESTS_ROOT_LINES.items()],
         *[(entry[0], workflow_entries, label, entry[1]) for label, entry in WORKFLOW_LINES.items()],
         *[(entry[0], makefile_entries, label, entry[1]) for label, entry in MAKEFILE_LINES.items()],
     ]
@@ -342,6 +354,7 @@ def self_test() -> int:
         write(root / "Documentation/zigux/README.md", fixture_text(docs_entries))
         write(root / "Documentation/zigux/review-checklist.md", fixture_text(checklist_entries))
         write(root / "scripts/zigux/README.md", fixture_text(scripts_entries))
+        write(root / "zigux/tests/README.md", fixture_text(tests_entries))
         write(root / ".github/workflows/zigux-bootstrap.yml", fixture_text(workflow_entries))
         write(root / "zigux/Makefile", fixture_text(makefile_entries))
         write(
@@ -368,6 +381,7 @@ def self_test() -> int:
         missing_file_cases = [
             ("Documentation/zigux/review-checklist.md", fixture_text(checklist_entries)),
             ("scripts/zigux/README.md", fixture_text(scripts_entries)),
+            ("zigux/tests/README.md", fixture_text(tests_entries)),
             ("zigux/Makefile", fixture_text(makefile_entries)),
         ]
         for rel, baseline in missing_file_cases:
