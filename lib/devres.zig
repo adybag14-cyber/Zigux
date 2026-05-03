@@ -275,6 +275,17 @@ pub const DevresHelperLab = struct {
         return tracked_address == candidate_address;
     }
 
+    fn planReleaseCall(tracked_address: usize, candidate_address: usize) ManagedIounmapPlan {
+        const release_matches = releaseMatches(tracked_address, candidate_address);
+        return .{
+            .anchor = descriptor().anchor,
+            .tracked_address = tracked_address,
+            .candidate_address = candidate_address,
+            .release_matches = release_matches,
+            .warns_on_release_miss = !release_matches,
+        };
+    }
+
     fn invalidManagedIoremapFailure(requested_type: IoremapType) ManagedIoremapOutcome {
         return .{
             .err = .{
@@ -391,14 +402,7 @@ pub const DevresHelperLab = struct {
     }
 
     pub fn planManagedIounmap(tracked_address: usize, candidate_address: usize) ManagedIounmapPlan {
-        const release_matches = ioremapReleaseMatches(tracked_address, candidate_address);
-        return .{
-            .anchor = descriptor().anchor,
-            .tracked_address = tracked_address,
-            .candidate_address = candidate_address,
-            .release_matches = release_matches,
-            .warns_on_release_miss = !release_matches,
-        };
+        return planReleaseCall(tracked_address, candidate_address);
     }
 
     pub fn planManagedIoportMap(input: ManagedIoportMapInput) !ManagedIoportMapResult {
