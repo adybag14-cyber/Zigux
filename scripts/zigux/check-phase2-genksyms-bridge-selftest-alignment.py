@@ -98,6 +98,9 @@ WORKFLOW_ORDER = [
     "python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test",
     "python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py",
     "python3 scripts/zigux/validate-phase2-closure.py",
+    "python3 scripts/zigux/check-genksyms-bridge.py --self-test",
+    "python3 scripts/zigux/check-genksyms-bridge.py",
+    "zig test scripts/zigux/genksyms.zig",
 ]
 
 MAKEFILE_VALIDATE_COUNTS = {
@@ -309,13 +312,6 @@ def clone_fixture_root(root: Path) -> None:
     write(root / REQUIRED_FILES["closure_validator"], "\n".join(CLOSURE_VALIDATOR_MARKERS) + "\n")
 
     workflow_lines = [f"run: {command}" for command in WORKFLOW_ORDER]
-    workflow_lines.extend(
-        [
-            "run: python3 scripts/zigux/check-genksyms-bridge.py --self-test",
-            "run: python3 scripts/zigux/check-genksyms-bridge.py",
-            "run: zig test scripts/zigux/genksyms.zig",
-        ]
-    )
     write(root / REQUIRED_FILES["workflow"], "\n".join(workflow_lines) + "\n")
 
     makefile_lines = [
@@ -465,9 +461,16 @@ def run_self_test() -> int:
         payload["cases"][11]["argv"] = ["--help"]
         write(cases_path, json.dumps(payload, indent=2) + "\n")
         expect_issue("case_sentinel", root, "cases:help:argv=['--hel']")
+        clone_fixture_root(root)
+
+        cases_path = root / REQUIRED_FILES["cases"]
+        payload = json.loads(cases_path.read_text(encoding="utf-8"))
+        payload["cases"][12]["expected"] = "renamed_version_expected.json"
+        write(cases_path, json.dumps(payload, indent=2) + "\n")
+        expect_issue("version_expected_file", root, "cases:version:expected=version_expected.json")
 
     print("PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=11")
+    print("PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
