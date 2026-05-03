@@ -4,7 +4,7 @@ This document records the bounded Phase 15 governance lane around the Architectu
 
 ## Status
 
-- `PHASE15_LANE_KEY=P15-L07`
+- `PHASE15_LANE_KEY=P15-L08`
 - `PHASE15_STATUS=review_process_slice_landed`
 - `PHASE15_SLICE=architecture-council-review-process-governance-evidence-verification`
 - scope: one review-process note, one dedicated manifest and Zig test, and one bounded governance, approval, and ownership evidence verification follow-up that keeps the explicit no-approval posture, anchor-template ownership packet, the scripts-root validator path, the tests-root guidance path, and current surveyed provenance aligned inside the same Architecture Council packet
@@ -118,7 +118,7 @@ If multiple triggers are cited together, each trigger's minimum evidence must st
 - roadmap handoff: the Architecture Council review process stays honest only while it remains visibly tied to the same Phase 15 governance bundle as the freeze map, parity scorecard, indefinite-C policy, shared replay gate, and parked maintenance-mode next step
 - bootstrap ledger anchor: `docs(zigux): add documentation root, review checklist, and freeze map`
 - current repo handoff: the original documentation-root and freeze-map landing is now carried forward by `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, this review-process note, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `scripts/zigux/README.md`, `scripts/zigux/validate-phase15.py`, `zigux/tests/README.md`, `zigux/tests/phase15_build.zig`, and `make -C zigux phase15`
-- current bounded lane: `P15-L07` keeps the review-process packet narrowed to one same-packet governance, approval, and ownership evidence verification refresh by replacing stale lane markers, older surveyed-head pins, and recorded-gap drift across the review-process note, manifest, and focused test so the Architecture Council handoff stays aligned with the current parked maintenance-mode Phase 15 packet, its scripts-root validator path, its tests-root guidance path, and neighboring governance slices on current `master`, without reopening freeze-map, parity-scorecard, or indefinite-C policy maintenance
+- current bounded lane: `P15-L08` keeps the review-process packet narrowed to one same-packet governance, approval, and ownership evidence verification refresh by replacing stale lane markers, older surveyed-head pins, and recorded-gap drift across the review-process note, manifest, and focused test so the Architecture Council handoff stays aligned with the current parked maintenance-mode Phase 15 packet, its scripts-root validator path, its tests-root guidance path, and neighboring governance slices on current `master`, without reopening freeze-map, parity-scorecard, or indefinite-C policy maintenance
 - maintenance-mode next step: wait for one of the named reopen triggers, a shared Phase 15 replay drift, or the deep-core blocker posture to change before opening another Phase 15 slice
 
 ## Maintenance-Mode Handoff
