@@ -2,6 +2,8 @@
 
 This bounded Phase 13 slice starts `security/landlock/syscalls.zig` with a pure helper-first foothold anchored to `security/landlock/syscalls.c`.
 
+- `PHASE13_OWNERSHIP_BOUNDARY=ruleset-fd-handoff-helper-only`
+
 The current helper stays intentionally narrow:
 
 - reports the ABI shape checks that `build_check_abi()` enforces for `landlock_ruleset_attr`, `landlock_path_beneath_attr`, and `landlock_net_port_attr`
@@ -17,6 +19,7 @@ The current helper stays intentionally narrow:
 - adds one in-memory `add_rule_net_port()` planner that reuses the bounded add-rule validation and makes the copied net-port attrs plus final `landlock_append_net_rule()` handoff explicit without touching live socket, ruleset, or domain state
 - adds one in-memory ruleset-FD creation handoff planner that keeps the fixed `anon_inode_getfd("[landlock-ruleset]", ..., O_RDWR | O_CLOEXEC)` label or flag discipline plus the `landlock_put_ruleset()` failure release responsibility explicit without touching live file operations wiring or FD ownership
 - makes the dedicated `ruleset_fops` contract explicit so the helper records the `fop_ruleset_release()` ownership drop and the dummy read or write handlers that enable `FMODE_CAN_READ` and `FMODE_CAN_WRITE` without claiming live file operations wiring
+- records the ruleset-FD ownership boundary as helper-only planning: `landlock_put_ruleset()` failure release and `fop_ruleset_release()` close-time drop stay explicit here, while live FD-table ownership remains with the C implementation
 
 This slice does not claim anonymous-fd creation, live user-memory copying, path imports, credential preparation, thread synchronization, domain merges, or live syscall enforcement.
 
