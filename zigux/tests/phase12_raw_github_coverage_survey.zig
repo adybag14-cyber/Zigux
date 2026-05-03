@@ -76,7 +76,7 @@ test "phase12 raw GitHub coverage survey keeps the roadmap-wide public-read spli
         manifest.public_read_boundary,
     );
     try std.testing.expectEqualStrings(
-        "a8daee106057a542aa03f2983662bec7c06584bb",
+        "bc2373f7deedf021c73beaae29555a9ac6b0536d",
         manifest.last_replayed_public_head,
     );
     try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_anchor_count);
@@ -143,7 +143,7 @@ test "phase12 raw GitHub coverage survey keeps the roadmap-wide public-read spli
         "one anchor keeps a commit-pinned raw fallback catalog",
         "one anchor keeps a commit-pinned raw fallback map",
         "two anchors remain shared-tree-only fallback reads",
-        "a8daee106057a542aa03f2983662bec7c06584bb",
+        "bc2373f7deedf021c73beaae29555a9ac6b0536d",
         "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md",
         "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md",
         "https://github.com/adybag14-cyber/Zigux/tree/master/drivers/net",
