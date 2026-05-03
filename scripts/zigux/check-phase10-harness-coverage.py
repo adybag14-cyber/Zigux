@@ -17,6 +17,7 @@ FILES = [
     ".github/workflows/zigux-bootstrap.yml",
     "Documentation/zigux/README.md",
     "Documentation/zigux/phase10-closure-evidence.md",
+    "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
     "zigux/tests/phase10_build.zig",
     "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
     "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
@@ -87,6 +88,17 @@ CLOSURE_NOTE_EXACT_ONCE_MARKERS = [
     "PHASE10_TEST_COUNT=11",
 ]
 
+COMPANION_MARKERS = [
+    "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
+    "zigux/tests/phase10_virtio_ring_survey.zig",
+    "focused ring drained-reset reuse replay",
+]
+
+COMPANION_EXACT_ONCE_MARKERS = [
+    "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
+    "zigux/tests/phase10_virtio_ring_survey.zig",
+]
+
 INPUT_PREFLIGHT_TEST_MARKERS = [
     'test "phase10 virtio input queue and probe preflight carry multitouch slot intent through ready state" {',
     "queueCallbackPreflightSummary()",
@@ -139,6 +151,11 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         ("build", "zigux/tests/phase10_build.zig", BUILD_MARKERS),
         ("closure_note", "Documentation/zigux/phase10-closure-evidence.md", CLOSURE_NOTE_MARKERS),
         (
+            "companion",
+            "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+            COMPANION_MARKERS,
+        ),
+        (
             "input_preflight_test",
             "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
             INPUT_PREFLIGHT_TEST_MARKERS,
@@ -159,6 +176,11 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             "closure_note",
             "Documentation/zigux/phase10-closure-evidence.md",
             CLOSURE_NOTE_EXACT_ONCE_MARKERS,
+        ),
+        (
+            "companion",
+            "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+            COMPANION_EXACT_ONCE_MARKERS,
         ),
     ]:
         text = read_text(root, rel_path)
@@ -216,6 +238,7 @@ def write_fixture(root: Path) -> None:
         ".github/workflows/zigux-bootstrap.yml": "\n".join(WORKFLOW_MARKERS) + "\n",
         "Documentation/zigux/README.md": "\n".join(DOCS_README_MARKERS) + "\n",
         "Documentation/zigux/phase10-closure-evidence.md": "\n".join(CLOSURE_NOTE_MARKERS) + "\n",
+        "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": "\n".join(COMPANION_MARKERS) + "\n",
         "zigux/tests/phase10_build.zig": "\n".join(BUILD_MARKERS) + "\n",
         "zigux/tests/phase10_virtio_input_multitouch_preflight.zig": "\n".join(INPUT_PREFLIGHT_TEST_MARKERS) + "\n",
         "zigux/tests/phase10_virtio_mmio_queue_isolation.zig": "\n".join(MMIO_QUEUE_ISOLATION_TEST_MARKERS) + "\n",
@@ -512,6 +535,34 @@ def run_self_test() -> int:
         )
         closure_note_path.write_text(original_closure_note, encoding="utf-8")
 
+        companion_path = root / "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"
+        original_companion = companion_path.read_text(encoding="utf-8")
+        companion_path.write_text(
+            original_companion.replace(
+                "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
+                "zigux/tests/phase10_virtio_ring_reset_reuse_drift.zig",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "companion_ring_reset_reuse_entry",
+            root,
+            "companion:zigux/tests/phase10_virtio_ring_reset_reuse.zig",
+        )
+        companion_path.write_text(original_companion, encoding="utf-8")
+
+        companion_path.write_text(
+            original_companion + "\nzigux/tests/phase10_virtio_ring_survey.zig\n",
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "companion_ring_survey_duplicate",
+            root,
+            "companion:count:zigux/tests/phase10_virtio_ring_survey.zig=2",
+        )
+        companion_path.write_text(original_companion, encoding="utf-8")
+
         manifest_path = root / "zigux/tests/phase10_closure_manifest.json"
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["test_count"] = 10
@@ -609,7 +660,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=23")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=25")
     return 0
 
 
@@ -636,5 +687,5 @@ print("PHASE10_HARNESS_COVERAGE=pass")
 print(f"PHASE10_HARNESS_REQUIRED_FILE_COUNT={len(FILES)}")
 print(
     "PHASE10_HARNESS_REQUIRED_MARKER_COUNT="
-    f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(SCRIPTS_README_MARKERS) + len(SCRIPTS_README_EXACT_ONCE_MARKERS) + len(TESTS_README_MARKERS) + len(TESTS_README_EXACT_ONCE_MARKERS) + len(DOCS_README_MARKERS) + len(DOCS_README_EXACT_ONCE_MARKERS) + len(BUILD_MARKERS) + len(CLOSURE_NOTE_MARKERS) + len(CLOSURE_NOTE_EXACT_ONCE_MARKERS) + len(INPUT_PREFLIGHT_TEST_MARKERS) + len(MMIO_QUEUE_ISOLATION_TEST_MARKERS)}"
+    f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(SCRIPTS_README_MARKERS) + len(SCRIPTS_README_EXACT_ONCE_MARKERS) + len(TESTS_README_MARKERS) + len(TESTS_README_EXACT_ONCE_MARKERS) + len(DOCS_README_MARKERS) + len(DOCS_README_EXACT_ONCE_MARKERS) + len(BUILD_MARKERS) + len(CLOSURE_NOTE_MARKERS) + len(CLOSURE_NOTE_EXACT_ONCE_MARKERS) + len(COMPANION_MARKERS) + len(COMPANION_EXACT_ONCE_MARKERS) + len(INPUT_PREFLIGHT_TEST_MARKERS) + len(MMIO_QUEUE_ISOLATION_TEST_MARKERS)}"
 )
