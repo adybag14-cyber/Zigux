@@ -47,6 +47,14 @@ The dedicated `zigux/tests/phase12_nvme_pci_survey.zig` gate reads this note bac
 - Use the raw pinned URLs when the exact archived Phase 12 NVMe PCI packet text matters more than the moving `master` tip.
 - Leave current-head replay evidence to the owner lanes for the shared validator, the shared build, or a dedicated driver-local current-replay catalog.
 
+## Latest Live Recheck
+
+- rechecked public host-path history on `master` through the GitHub connector rather than a local clone, because direct public clone and raw-fetch paths remain blocked in this runtime.
+- the archived fallback packet is still pinned to `8b69e4dfd04553afeb08c0ecbf3060f800e7ecd1`; it should not be read as the current `master` tip.
+- same-family live deltas after that archived packet now include `feat(zigux): add bounded nvme pci doorbell window helper` (`8809723`), `feat(zigux): add nvme pci queue count planning helper` (`7459e961262eeec728952226725685fd543f3644`), and `fix(nvme): count inline prp pointers for list metadata` (`f718b088df0b025c4ec1a9598be4d97c3c702bdf`).
+- those later commits still stay inside the same bounded helper family: they keep register-aperture planning, controller-versus-planner queue-count negotiation, and one-entry PRP-list metadata semantics reviewable without claiming live DMA mapping, MMIO, IRQ routing, blk-mq submission, or recovery parity.
+- a future current-head replay for this lane should therefore include the queue-count helper and the repaired inline-pointer-count semantics instead of treating them as separate transport expansion.
+
 ## Non-goals
 
 - no `current_master_replay_head`
