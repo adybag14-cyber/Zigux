@@ -2,6 +2,7 @@ const std = @import("std");
 
 pub const feature_bit_capacity: u16 = 128;
 pub const queue_capacity: usize = 8;
+pub const any_id: u32 = 0xffff_ffff;
 
 pub const DeviceStatus = struct {
     pub const acknowledge: u8 = 1;
@@ -97,6 +98,22 @@ pub const DriverRemoveSummary = struct {
     config_core_enabled: bool,
     config_changed_handler_present: bool,
     registered_queue_count: usize,
+};
+
+pub const DriverIdMatchRule = struct {
+    device_id: u32,
+    vendor_id: u32,
+};
+
+pub const DriverIdMatchSummary = struct {
+    anchor: []const u8,
+    device_id: u32,
+    vendor_id: u32,
+    candidate_count: usize,
+    matched: bool,
+    matched_rule_index: ?usize,
+    matched_device_any: bool,
+    matched_vendor_any: bool,
 };
 
 pub const VirtioCoreLabDevice = struct {
@@ -490,6 +507,43 @@ pub const VirtioCoreLabDevice = struct {
             .config_core_enabled = self.config_core_enabled,
             .config_changed_handler_present = self.config_changed_handler_present,
             .registered_queue_count = self.registered_queue_count,
+        };
+    }
+
+    pub fn driverIdMatchSummary(
+        self: *const Self,
+        rules: []const DriverIdMatchRule,
+    ) !DriverIdMatchSummary {
+        if (!self.device_identity_registered) return error.DeviceIdentityNotRegistered;
+
+        for (rules, 0..) |rule, index| {
+            const device_matches = rule.device_id == self.device_id or rule.device_id == any_id;
+            if (!device_matches) continue;
+
+            const vendor_matches = rule.vendor_id == self.vendor_id or rule.vendor_id == any_id;
+            if (!vendor_matches) continue;
+
+            return .{
+                .anchor = descriptor().anchor,
+                .device_id = self.device_id,
+                .vendor_id = self.vendor_id,
+                .candidate_count = rules.len,
+                .matched = true,
+                .matched_rule_index = index,
+                .matched_device_any = rule.device_id == any_id,
+                .matched_vendor_any = rule.vendor_id == any_id,
+            };
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .device_id = self.device_id,
+            .vendor_id = self.vendor_id,
+            .candidate_count = rules.len,
+            .matched = false,
+            .matched_rule_index = null,
+            .matched_device_any = false,
+            .matched_vendor_any = false,
         };
     }
 
