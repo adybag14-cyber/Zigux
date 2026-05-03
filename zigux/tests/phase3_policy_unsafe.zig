@@ -232,6 +232,12 @@ test "phase3 policy gate reaches raw-pointer bridge consumers through decoded po
         .unsafe_scope = @intFromEnum(abi.UnsafeScope.volatile_mmio),
         .reserved = 0,
     });
+    const none_policy = try interop_policy.decode(.{
+        .panic_mode = @intFromEnum(abi.PanicMode.abort),
+        .allocator_mode = @intFromEnum(abi.AllocatorMode.caller_provided),
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.none),
+        .reserved = 0,
+    });
 
     const words_slice = try raw_pointer_policy.constSliceAt(u32, base, words.len);
     try std.testing.expectEqual(@as(u32, 7), words_slice[0]);
@@ -240,6 +246,8 @@ test "phase3 policy gate reaches raw-pointer bridge consumers through decoded po
 
     try std.testing.expectError(error.UnsafeScopeDenied, mmio_policy.constSliceAt(u32, base, words.len));
     try std.testing.expectError(error.UnsafeScopeDenied, mmio_policy.constPointerAt(u32, base));
+    try std.testing.expectError(error.UnsafeScopeDenied, none_policy.constSliceAt(u32, base, words.len));
+    try std.testing.expectError(error.UnsafeScopeDenied, none_policy.constPointerAt(u32, base));
     try std.testing.expectError(error.MisalignedAccess, raw_pointer_policy.constSliceAt(u32, base + 1, 1));
     try std.testing.expectError(error.MisalignedAccess, raw_pointer_policy.constPointerAt(u32, base + 1));
     try std.testing.expectError(error.AddressOverflow, raw_pointer_policy.constSliceAt(u32, 4, std.math.maxInt(usize)));
@@ -264,7 +272,7 @@ test "phase3 narrow unsafe helpers stay explicit" {
     try std.testing.expectError(error.UnsafeScopeDenied, narrow.constSliceAt(u32, .volatile_mmio, base, words.len));
     const words_slice = try narrow.constSliceAt(u32, .raw_pointer_bridge, base, words.len);
     try std.testing.expectEqual(@as(u32, 7), words_slice[0]);
-    try std.testing.expectError(error.UnsafeScopeDenied, narrow.constPointerAt(u32, .volatile_mmio, base + @sizeOf(u32)));
+    try std.testing.expectError(error.UnsafeScopeDenied, narrow.constPointerAt(u32, .volatile_mmio, base));
     const second_word = try narrow.constPointerAt(u32, .raw_pointer_bridge, base + @sizeOf(u32));
     try std.testing.expectEqual(@as(u32, 11), second_word.*);
 }
