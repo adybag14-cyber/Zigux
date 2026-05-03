@@ -118,6 +118,7 @@ TEXT_MARKERS = {
         "make -C zigux phase5",
         "zigux/tests/phase5_build.zig",
         "zig test samples/zigux/bytestream_fifo.zig",
+        "zig test zigux/tests/phase5_bytestream_fifo.zig",
         "zig test samples/zigux/kobject_example.zig",
         "zig test samples/zigux/kretprobe_example.zig",
         "zig test samples/zigux/trace_events_sample.zig",
@@ -699,6 +700,21 @@ def run_self_test() -> int:
 
         tmp_root = Path(tmp)
         copy_tree(ROOT, tmp_root)
+        docs_readme = tmp_root / "Documentation/zigux/README.md"
+        text = docs_readme.read_text(encoding="utf-8").replace(
+            "zig test zigux/tests/phase5_bytestream_fifo.zig",
+            "zig test zigux/tests/phase5_bytestream_fifo_review.zig",
+            1,
+        )
+        docs_readme.write_text(text, encoding="utf-8")
+        missing = validate_phase5(tmp_root)
+        if missing["ok"] or "Documentation/zigux/README.md:missing:zig test zigux/tests/phase5_bytestream_fifo.zig" not in missing["missing"]:
+            print("PHASE5_VALIDATOR_SELF_TEST=fail")
+            print("PHASE5_VALIDATOR_SELF_TEST_REASON=docs-readme-bytestream-helper-replay-gap")
+            return 1
+
+        tmp_root = Path(tmp)
+        copy_tree(ROOT, tmp_root)
         scripts_readme = tmp_root / "scripts/zigux/README.md"
         text = scripts_readme.read_text(encoding="utf-8").replace(
             "zig test samples/zigux/kobject_example.zig",
@@ -743,7 +759,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE5_VALIDATOR_SELF_TEST=pass")
-    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=20")
+    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=21")
     return 0
 
 
