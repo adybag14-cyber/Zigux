@@ -331,6 +331,12 @@ def run_self_test() -> int:
     )
 
     expect_missing_fixture(
+        'missing_depfile_fixture',
+        'sample.d',
+        f'{CASES_PATH}:missing_depfile:sample.d',
+    )
+
+    expect_missing_fixture(
         'missing_expected_output_file',
         'sample_expected.txt',
         f'{CASES_PATH}:missing_expected_output:sample_expected.txt',
@@ -349,7 +355,7 @@ def run_self_test() -> int:
     )
 
     print('FIXDEP_SELF_TEST=pass')
-    print('FIXDEP_SELF_TEST_CASE_COUNT=11')
+    print('FIXDEP_SELF_TEST_CASE_COUNT=12')
     return 0
 
 
