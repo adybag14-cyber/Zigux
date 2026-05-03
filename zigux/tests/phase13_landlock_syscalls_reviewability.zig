@@ -8,6 +8,7 @@ const SurveySummary = struct {
     preexisting_phase13_make_target_present: bool,
     preexisting_syscalls_zig_present: bool,
     preexisting_phase13_landlock_syscalls_test_present: bool,
+    preexisting_phase13_landlock_syscalls_reviewability_gate_present: bool,
     preexisting_phase13_landlock_syscalls_slice_note_present: bool,
     preexisting_phase13_landlock_syscalls_survey_note_present: bool,
 };
@@ -58,6 +59,7 @@ test "phase13 landlock syscalls reviewability ties helper, survey, manifest, and
     try std.testing.expect(manifest.survey_summary.syscalls_c_lines >= 500);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_test_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_reviewability_gate_present);
     try std.testing.expectEqual(@as(usize, 16), manifest.gaps.len);
 
     const descriptor = syscalls.SyscallsHelperLab.descriptor();
