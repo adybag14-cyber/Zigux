@@ -21,6 +21,7 @@ ROOT = repo_root()
 
 REQUIRED_FILES = [
     "Documentation/zigux/README.md",
+    "Documentation/zigux/review-checklist.md",
     "scripts/zigux/README.md",
     "scripts/zigux/validate-phase1.py",
     "scripts/zigux/check-phase1-bitmap-validator-anchors.py",
@@ -44,6 +45,14 @@ DOCS_ROOT_LINES = {
     "docs_root_phase1_entrypoints_count": (
         "Documentation/zigux/README.md",
         "- `python3 scripts/zigux/validate-phase1.py`, `python3 scripts/zigux/validate-phase1-closure.py`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` are the current validator-first and replay entrypoints for that bounded host-side helper packet.",
+        1,
+    ),
+}
+
+CHECKLIST_LINES = {
+    "review_checklist_phase1_packet_count": (
+        "Documentation/zigux/review-checklist.md",
+        "- if the change touches the closed Phase 1 host-helper packet, do `Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `zigux/tests/phase1_helpers.zig`, and `zigux/tests/phase1_bench.zig` still agree on the same closed helper inventory, validator-first replay path, and bench-backed review surface?",
         1,
     ),
 }
@@ -224,6 +233,7 @@ MAKEFILE_LINES = {
 
 ALL_TARGETS = {}
 ALL_TARGETS.update(DOCS_ROOT_LINES)
+ALL_TARGETS.update(CHECKLIST_LINES)
 ALL_TARGETS.update(SCRIPTS_ROOT_LINES)
 ALL_TARGETS.update(WORKFLOW_LINES)
 ALL_TARGETS.update(MAKEFILE_LINES)
@@ -304,12 +314,14 @@ def expect_missing_and_duplicate(
 
 def self_test() -> int:
     docs_entries = [entry[1] for entry in DOCS_ROOT_LINES.values()]
+    checklist_entries = [entry[1] for entry in CHECKLIST_LINES.values()]
     scripts_entries = [entry[1] for entry in SCRIPTS_ROOT_LINES.values()]
     workflow_entries = [entry[1] for entry in WORKFLOW_LINES.values()]
     makefile_entries = [entry[1] for entry in MAKEFILE_LINES.values()]
 
     target_cases = [
         *[(entry[0], docs_entries, label, entry[1]) for label, entry in DOCS_ROOT_LINES.items()],
+        *[(entry[0], checklist_entries, label, entry[1]) for label, entry in CHECKLIST_LINES.items()],
         *[(entry[0], scripts_entries, label, entry[1]) for label, entry in SCRIPTS_ROOT_LINES.items()],
         *[(entry[0], workflow_entries, label, entry[1]) for label, entry in WORKFLOW_LINES.items()],
         *[(entry[0], makefile_entries, label, entry[1]) for label, entry in MAKEFILE_LINES.items()],
@@ -323,6 +335,7 @@ def self_test() -> int:
         write(script, Path(__file__).read_text(encoding="utf-8"))
 
         write(root / "Documentation/zigux/README.md", fixture_text(docs_entries))
+        write(root / "Documentation/zigux/review-checklist.md", fixture_text(checklist_entries))
         write(root / "scripts/zigux/README.md", fixture_text(scripts_entries))
         write(root / ".github/workflows/zigux-bootstrap.yml", fixture_text(workflow_entries))
         write(root / "zigux/Makefile", fixture_text(makefile_entries))
@@ -348,6 +361,7 @@ def self_test() -> int:
         total_cases += 1
 
         missing_file_cases = [
+            ("Documentation/zigux/review-checklist.md", fixture_text(checklist_entries)),
             ("scripts/zigux/README.md", fixture_text(scripts_entries)),
             ("zigux/Makefile", fixture_text(makefile_entries)),
         ]
