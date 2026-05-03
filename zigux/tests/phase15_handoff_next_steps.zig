@@ -16,6 +16,12 @@ const RepoEvidence = struct {
     deep_core_status_change_ready: bool,
 };
 
+const ReadinessRepoEvidence = struct {
+    phase15_replay_green_on_current_master: bool,
+    docs_root_phase15_summary_aligned: bool,
+    deep_core_status_change_ready: bool,
+};
+
 const Gap = struct {
     id: []const u8,
     status: []const u8,
@@ -34,6 +40,12 @@ const Manifest = struct {
     repo_evidence: RepoEvidence,
     open_handoff_gaps: []const Gap,
     pending_next_steps: []const []const u8,
+};
+
+const ReadinessManifest = struct {
+    surveyed_commit: []const u8,
+    repo_evidence: ReadinessRepoEvidence,
+    remaining_gaps: []const Gap,
 };
 
 fn isAllowedStatus(status: []const u8) bool {
@@ -62,6 +74,14 @@ test "phase 15 handoff manifest records the parked governance contract" {
     );
     defer std.testing.allocator.free(manifest_json);
 
+    const readiness_manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase15_readiness_gate_manifest.json",
+        std.testing.allocator,
+        .limited(24 * 1024),
+    );
+    defer std.testing.allocator.free(readiness_manifest_json);
+
     const handoff_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/phase15-handoff-next-steps-survey.md",
@@ -73,10 +93,15 @@ test "phase 15 handoff manifest records the parked governance contract" {
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
 
+    const readiness_parsed = try std.json.parseFromSlice(ReadinessManifest, std.testing.allocator, readiness_manifest_json, .{});
+    defer readiness_parsed.deinit();
+
     const manifest = parsed.value;
+    const readiness_manifest = readiness_parsed.value;
     try std.testing.expectEqualStrings("P15-L10", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
     try std.testing.expect(isLowerHex40(manifest.surveyed_commit));
+    try std.testing.expectEqualStrings(readiness_manifest.surveyed_commit, manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Full-Parity Blockers and Long-Term Governance", manifest.roadmap_phase_title);
     try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_requirements.len);
     try std.testing.expectEqualStrings("freeze map", manifest.roadmap_requirements[0]);
@@ -107,8 +132,21 @@ test "phase 15 handoff manifest records the parked governance contract" {
     try std.testing.expect(manifest.repo_evidence.phase15_replay_green_on_current_master);
     try std.testing.expect(manifest.repo_evidence.docs_root_phase15_summary_aligned);
     try std.testing.expect(!manifest.repo_evidence.deep_core_status_change_ready);
+    try std.testing.expectEqual(
+        readiness_manifest.repo_evidence.phase15_replay_green_on_current_master,
+        manifest.repo_evidence.phase15_replay_green_on_current_master,
+    );
+    try std.testing.expectEqual(
+        readiness_manifest.repo_evidence.docs_root_phase15_summary_aligned,
+        manifest.repo_evidence.docs_root_phase15_summary_aligned,
+    );
+    try std.testing.expectEqual(
+        readiness_manifest.repo_evidence.deep_core_status_change_ready,
+        manifest.repo_evidence.deep_core_status_change_ready,
+    );
 
     try std.testing.expectEqual(@as(usize, 1), manifest.open_handoff_gaps.len);
+    try std.testing.expectEqual(@as(usize, 1), readiness_manifest.remaining_gaps.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.pending_next_steps.len);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[0], "shared Phase 15 replay drifts again") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[0], "named reopen trigger") != null);
@@ -121,7 +159,11 @@ test "phase 15 handoff manifest records the parked governance contract" {
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[2], "make -C zigux phase15") != null);
 
     const gap = manifest.open_handoff_gaps[0];
+    const readiness_gap = readiness_manifest.remaining_gaps[0];
     try std.testing.expect(isAllowedStatus(gap.status));
+    try std.testing.expectEqualStrings(readiness_gap.id, gap.id);
+    try std.testing.expectEqualStrings(readiness_gap.status, gap.status);
+    try std.testing.expectEqualStrings(readiness_gap.zigux_destination, gap.zigux_destination);
     try std.testing.expectEqualStrings("phase15-deep-core-status-change-blocker", gap.id);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-parity-scorecard.md", gap.zigux_destination);
     try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "freeze-in-C posture") != null);
