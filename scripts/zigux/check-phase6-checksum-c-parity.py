@@ -33,6 +33,11 @@ EXPECTED_SORTED_LINES = sorted(
         "carry-discipline\tall-ones even payload with zero seed\t0x0000",
         "carry-discipline\tsingle-byte no-carry seed stays one step below overflow\t0x0004",
         "carry-discipline\ttwo-byte no-carry seed stays one step below overflow\t0x0404",
+        "add16\twrap-plus-one\t0x0001",
+        "add16\tzero-addend-preserves-saturated-sum\t0xffff",
+        "add16\tdouble-saturated-addends-fold-carry\t0xffff",
+        "sub16\tzero-minus-one-wraps\t0xfffe",
+        "sub16\tinverse-of-add16-round-trip\t0x1234",
         "replace\tpayload-word\t0xffffd8dd",
         "replace-by-diff\tipv4-total-length\t0x9c59",
         "replace2\tipv4-total-length\t0x9c59",
@@ -160,6 +165,7 @@ def run_self_test() -> int:
     assert_equal("build_text_checksum_import", 'root_module.addImport("checksum", checksum_module);' in build_text, True)
     assert_equal("build_text_fixtures_import", 'root_module.addImport("phase6_checksum_vectors", fixtures_module);' in build_text, True)
     assert_equal("build_text_runner", str(ZIG_RUNNER) in build_text, True)
+    assert_equal("expected_surface_case_count", len(EXPECTED_SORTED_LINES), 27)
     assert_equal(
         "sorted_lines",
         sorted_lines("partial\tseeded\t0x00000001\ncompute\tempty\t0xffff\n"),
@@ -186,7 +192,7 @@ def run_self_test() -> int:
     )
 
     print("PHASE6_CHECKSUM_C_PARITY_SELF_TEST=pass")
-    print("PHASE6_CHECKSUM_C_PARITY_SELF_TEST_CASE_COUNT=10")
+    print("PHASE6_CHECKSUM_C_PARITY_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
