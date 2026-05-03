@@ -407,6 +407,25 @@ def run_self_test() -> int:
     if validate_required_markers(closure_text, label="closure", markers=CLOSURE_MARKERS):
         raise SystemExit("phase2-toolchain-pin-scope:self-test:closure_markers")
 
+    phase2_validator_text = "\n".join(PHASE2_VALIDATOR_MARKERS)
+    if validate_required_markers(
+        phase2_validator_text,
+        label="phase2_validator",
+        markers=PHASE2_VALIDATOR_MARKERS,
+    ):
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:phase2_validator_markers")
+
+    missing_phase2_validator_marker = "\n".join(
+        marker for marker in PHASE2_VALIDATOR_MARKERS if marker != "toolchain_pin_scope_checker"
+    )
+    marker_issues = validate_required_markers(
+        missing_phase2_validator_marker,
+        label="phase2_validator",
+        markers=PHASE2_VALIDATOR_MARKERS,
+    )
+    if "phase2_validator:missing_marker:toolchain_pin_scope_checker" not in marker_issues:
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:phase2_validator_marker_missing")
+
     with tempfile.TemporaryDirectory(prefix="phase2_toolchain_pin_scope_") as tmp_dir_str:
         tmp_root = Path(tmp_dir_str)
         manifest_path = tmp_root / "toolchain.json"
@@ -416,7 +435,7 @@ def run_self_test() -> int:
             raise SystemExit("phase2-toolchain-pin-scope:self-test:json_round_trip")
 
     print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass")
-    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=21")
+    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=23")
     return 0
 
 
