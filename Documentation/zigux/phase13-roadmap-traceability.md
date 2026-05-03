@@ -159,7 +159,7 @@ The shared Phase 13 replay on `master` also includes one adjacent reviewability 
 
 - reviewability gate: `zigux/tests/phase13_notifier_list_reviewability.zig`
 - manifest: `zigux/tests/phase13_notifier_list_manifest.json`
-- manifest `lane_key`: `P13-L18`
+- manifest `lane_key`: `P13-L19`
 - manifest `surveyed_commit`: `66b55d8a9a800345097f3c04b9f95130b1f8d0b8`
 - survey note: `Documentation/zigux/phase13-notifier-list-survey.md`
 - read-only generic notifier ABI foothold: `zigux/bindings/notifier_abi.zig`
