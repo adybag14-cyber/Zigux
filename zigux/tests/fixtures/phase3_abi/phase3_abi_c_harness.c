@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 #include <linux/zigux.h>
+#include <zigux/rbtree.h>
 
 struct layout_field {
     const char *name;
@@ -64,6 +65,13 @@ static const struct layout_field zigux_cpumask_view_fields[] = {
     {"reserved", offsetof(struct zigux_cpumask_view, reserved)},
 };
 
+static const struct layout_field zigux_rbtree_root_view_fields[] = {
+    {"root_addr", offsetof(struct zigux_rbtree_root_view, root_addr)},
+    {"leftmost_addr", offsetof(struct zigux_rbtree_root_view, leftmost_addr)},
+    {"flags", offsetof(struct zigux_rbtree_root_view, flags)},
+    {"reserved", offsetof(struct zigux_rbtree_root_view, reserved)},
+};
+
 static const struct layout_desc layouts[] = {
     {"zigux_boundary_header", sizeof(struct zigux_boundary_header), _Alignof(struct zigux_boundary_header), ARRAY_SIZE(zigux_boundary_header_fields), zigux_boundary_header_fields},
     {"zigux_export_status", sizeof(struct zigux_export_status), _Alignof(struct zigux_export_status), ARRAY_SIZE(zigux_export_status_fields), zigux_export_status_fields},
@@ -71,6 +79,7 @@ static const struct layout_desc layouts[] = {
     {"zigux_interop_policy", sizeof(struct zigux_interop_policy), _Alignof(struct zigux_interop_policy), ARRAY_SIZE(zigux_interop_policy_fields), zigux_interop_policy_fields},
     {"zigux_bitmap_view", sizeof(struct zigux_bitmap_view), _Alignof(struct zigux_bitmap_view), ARRAY_SIZE(zigux_bitmap_view_fields), zigux_bitmap_view_fields},
     {"zigux_cpumask_view", sizeof(struct zigux_cpumask_view), _Alignof(struct zigux_cpumask_view), ARRAY_SIZE(zigux_cpumask_view_fields), zigux_cpumask_view_fields},
+    {"zigux_rbtree_root_view", sizeof(struct zigux_rbtree_root_view), _Alignof(struct zigux_rbtree_root_view), ARRAY_SIZE(zigux_rbtree_root_view_fields), zigux_rbtree_root_view_fields},
 };
 
 int main(void)
@@ -103,6 +112,12 @@ int main(void)
     fprintf(stdout, "%u", ZIGUX_UNSAFE_VOLATILE_MMIO);
     fputs(",\"unsafe_scope_raw_pointer_bridge\":", stdout);
     fprintf(stdout, "%u", ZIGUX_UNSAFE_RAW_POINTER_BRIDGE);
+    fputs(",\"root_flag_empty\":", stdout);
+    fprintf(stdout, "%u", ZIGUX_RBTREE_ROOT_FLAG_EMPTY);
+    fputs(",\"root_flag_cached\":", stdout);
+    fprintf(stdout, "%u", ZIGUX_RBTREE_ROOT_FLAG_CACHED);
+    fputs(",\"root_flag_leftmost_valid\":", stdout);
+    fprintf(stdout, "%u", ZIGUX_RBTREE_ROOT_FLAG_LEFTMOST_VALID);
     fputs(",\"minor_alloc_flag_truncated\":", stdout);
     fprintf(stdout, "%u", ZIGUX_MINOR_ALLOC_FLAG_TRUNCATED);
     fputs(",\"minor_alloc_flag_found\":", stdout);
