@@ -27,11 +27,12 @@ Avoid:
 1. Pick one roadmap-backed phase and one bounded target family.
 2. Read the owning packet before editing.
    The minimum packet is usually the phase note in `Documentation/zigux/`, the relevant validator in `scripts/zigux/`, the shared replay entrypoint in `zigux/tests/` or `zigux/Makefile`, and the manifest or survey file for that slice.
-3. Make the smallest coherent change that improves the packet.
-4. Update the paired docs or evidence files in the same change.
+3. If the change mainly adjusts contributor guidance, also read `Documentation/zigux/contributor-workflow.md` so the short entrypoint, the longer playbook, and the packet-specific review path stay aligned.
+4. Make the smallest coherent change that improves the packet.
+5. Update the paired docs or evidence files in the same change.
    If you touch a manifest-backed slice, keep the survey note, validator, and replay path aligned too.
-5. Run the validator-first command before the broader replay command.
-6. Record blockers honestly.
+6. Run the validator-first command before the broader replay command.
+7. Record blockers honestly.
    If validation is partial, say exactly what ran and what is still blocked.
 
 ## Validator-first commands
@@ -63,6 +64,7 @@ Keep contributor-facing guidance aligned when you land a bounded workflow change
 - `Documentation/zigux/review-checklist.md` for merge-time review questions
 - `scripts/zigux/README.md` for validator-first entrypoints and helper responsibilities
 - `zigux/tests/README.md` for shared replay and survey guidance
+- `CONTRIBUTING.md` and `Documentation/zigux/contributor-workflow.md` for the shared contributor workflow contract itself when review or replay guidance changes
 
 If one of those surfaces changes for your packet, update it in the same change instead of leaving the workflow implied.
 
