@@ -15,6 +15,8 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase4-validation-matrix.md",
     "Documentation/zigux/phase4-gate-evidence.md",
     "Documentation/zigux/README.md",
+    "scripts/zigux/README.md",
+    "zigux/tests/README.md",
     "samples/kprobes/Makefile",
     "samples/kprobes/kprobe_example.c",
 ]
@@ -62,7 +64,7 @@ SURVEY_MARKERS = [
 BUILD_MARKERS = [
     "phase4_kprobe_example_survey.zig",
     "phase4-kprobe-example-survey-tests",
-    '\"phase4-kprobe-example-survey\"',
+    '"phase4-kprobe-example-survey"',
     "Run the Phase 4 kprobe example survey gate without claiming a landed Zig sample",
 ]
 
@@ -82,6 +84,21 @@ DOCS_ROOT_MARKERS = [
     "direct `zig build phase4-kprobe-example-survey --build-file zigux/tests/phase4_build.zig`",
     "phase4-kprobe-example-survey-tests",
     "still-absent `samples/zigux/kprobe_example.zig` sample explicitly survey-only",
+]
+
+SCRIPTS_README_MARKERS = [
+    "check-phase4-kprobe-example-packet.py --self-test",
+    "check-phase4-kprobe-example-packet.py",
+    "phase4-kprobe-example-survey",
+    "phase4-kprobe-example-survey-tests",
+]
+
+TESTS_README_MARKERS = [
+    "zigux/tests/phase4_kprobe_example_survey.zig",
+    "zigux/tests/phase4_kprobe_example_manifest.json",
+    "make -C zigux phase4-kprobe-example-survey",
+    "phase4-kprobe-example-survey-tests",
+    "c_anchor_only_until_kprobe_example_starter_lands",
 ]
 
 GATE_EVIDENCE_MARKERS = [
@@ -167,6 +184,8 @@ def collect_missing(
     build_text: str,
     matrix_text: str,
     docs_root_text: str,
+    scripts_readme_text: str,
+    tests_readme_text: str,
     gate_evidence_text: str,
     kprobe_makefile_text: str,
     kprobe_anchor_text: str,
@@ -177,6 +196,12 @@ def collect_missing(
     missing.extend(collect_text_misses(build_text, BUILD_MARKERS, "build"))
     missing.extend(collect_text_misses(matrix_text, MATRIX_MARKERS, "matrix"))
     missing.extend(collect_text_misses(docs_root_text, DOCS_ROOT_MARKERS, "docs_root"))
+    missing.extend(
+        collect_text_misses(scripts_readme_text, SCRIPTS_README_MARKERS, "scripts_readme")
+    )
+    missing.extend(
+        collect_text_misses(tests_readme_text, TESTS_README_MARKERS, "tests_readme")
+    )
     missing.extend(
         collect_text_misses(gate_evidence_text, GATE_EVIDENCE_MARKERS, "gate_evidence")
     )
@@ -195,6 +220,8 @@ def build_live_inputs() -> dict[str, object]:
         "build_text": read_text("zigux/tests/phase4_build.zig"),
         "matrix_text": read_text("Documentation/zigux/phase4-validation-matrix.md"),
         "docs_root_text": read_text("Documentation/zigux/README.md"),
+        "scripts_readme_text": read_text("scripts/zigux/README.md"),
+        "tests_readme_text": read_text("zigux/tests/README.md"),
         "gate_evidence_text": read_text("Documentation/zigux/phase4-gate-evidence.md"),
         "kprobe_makefile_text": read_text("samples/kprobes/Makefile"),
         "kprobe_anchor_text": read_text("samples/kprobes/kprobe_example.c"),
@@ -233,6 +260,8 @@ def run_self_test() -> int:
         "build_text": "\n".join(BUILD_MARKERS) + "\n",
         "matrix_text": "\n".join(MATRIX_MARKERS) + "\n",
         "docs_root_text": "\n".join(DOCS_ROOT_MARKERS) + "\n",
+        "scripts_readme_text": "\n".join(SCRIPTS_README_MARKERS) + "\n",
+        "tests_readme_text": "\n".join(TESTS_README_MARKERS) + "\n",
         "gate_evidence_text": "\n".join(GATE_EVIDENCE_MARKERS) + "\n",
         "kprobe_makefile_text": ANCHOR_MARKERS[0][1] + "\n",
         "kprobe_anchor_text": ANCHOR_MARKERS[1][1] + "\n",
@@ -331,6 +360,38 @@ def run_self_test() -> int:
     missing = collect_missing(
         **{
             **base_inputs,
+            "scripts_readme_text": base_inputs["scripts_readme_text"].replace(
+                "check-phase4-kprobe-example-packet.py --self-test\n",
+                "",
+                1,
+            ),
+        }
+    )
+    expect_contains(
+        "scripts_readme_marker_detection",
+        missing,
+        "scripts_readme:check-phase4-kprobe-example-packet.py --self-test",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "tests_readme_text": base_inputs["tests_readme_text"].replace(
+                "make -C zigux phase4-kprobe-example-survey\n",
+                "",
+                1,
+            ),
+        }
+    )
+    expect_contains(
+        "tests_readme_marker_detection",
+        missing,
+        "tests_readme:make -C zigux phase4-kprobe-example-survey",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
             "gate_evidence_text": base_inputs["gate_evidence_text"].replace(
                 "PHASE4_KPROBE_EXAMPLE_SURVEY_BLOB_SHA=\n",
                 "",
@@ -373,7 +434,7 @@ def run_self_test() -> int:
     )
 
     print("PHASE4_KPROBE_EXAMPLE_PACKET_SELF_TEST=pass")
-    print("PHASE4_KPROBE_EXAMPLE_PACKET_SELF_TEST_CASE_COUNT=10")
+    print("PHASE4_KPROBE_EXAMPLE_PACKET_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
