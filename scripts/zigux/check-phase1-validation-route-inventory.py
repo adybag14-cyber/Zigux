@@ -100,6 +100,16 @@ WORKFLOW_LINES = {
         "run: python3 scripts/zigux/check-phase1-route-summary-counts.py",
         1,
     ),
+    "workflow_phase1_route_inventory_self_test_count": (
+        ".github/workflows/zigux-bootstrap.yml",
+        "run: python3 scripts/zigux/check-phase1-validation-route-inventory.py --self-test",
+        1,
+    ),
+    "workflow_phase1_route_inventory_count": (
+        ".github/workflows/zigux-bootstrap.yml",
+        "run: python3 scripts/zigux/check-phase1-validation-route-inventory.py",
+        1,
+    ),
     "workflow_phase1_parity_self_test_count": (
         ".github/workflows/zigux-bootstrap.yml",
         "run: python3 scripts/zigux/check-phase1-parity.py --self-test",
