@@ -52,10 +52,11 @@ def run_contract_case(
     expected_lines: list[str],
     *,
     repeat_count: int = 1,
-) -> None:
+) -> list[str]:
     if repeat_count < 1:
         raise ValueError(f'repeat_count must be positive, got {repeat_count}')
 
+    final_lines: list[str] | None = None
     for attempt in range(1, repeat_count + 1):
         completed = subprocess.run(
             [sys.executable, str(ARTIFACT_DIFF), *args],
@@ -73,6 +74,9 @@ def run_contract_case(
             raise AssertionError(f'attempt {attempt}: unexpected output lines: {lines}')
         if completed.stderr:
             raise AssertionError(f'attempt {attempt}: unexpected stderr: {completed.stderr!r}')
+        final_lines = lines
+    assert final_lines is not None
+    return final_lines
 
 
 def run_error_contract_case(
@@ -148,17 +152,113 @@ def helper_self_test_expected_lines() -> list[str]:
     ]
 
 
+def extract_output_value(lines: list[str], prefix: str) -> str:
+    for line in lines:
+        if line.startswith(prefix):
+            return line[len(prefix) :]
+    raise AssertionError(f'missing output line with prefix {prefix!r}: {lines}')
+
+
+def parse_case_catalog(lines: list[str], count_prefix: str, list_prefix: str) -> list[str]:
+    count_text = extract_output_value(lines, count_prefix)
+    try:
+        expected_count = int(count_text)
+    except ValueError as exc:
+        raise AssertionError(
+            f'invalid integer for {count_prefix!r}: {count_text!r}'
+        ) from exc
+    cases_text = extract_output_value(lines, list_prefix)
+    cases = [] if not cases_text else cases_text.split(',')
+    if len(cases) != expected_count:
+        raise AssertionError(
+            f'count/list drift for {count_prefix!r} and {list_prefix!r}: '
+            f'count={expected_count} cases={cases}'
+        )
+    if len(set(cases)) != len(cases):
+        raise AssertionError(f'duplicate cases in {list_prefix!r}: {cases}')
+    return cases
+
+
+def assert_helper_self_test_output(lines: list[str]) -> None:
+    if extract_output_value(lines, 'ARTIFACT_DIFF_SELF_TEST=') != 'pass':
+        raise AssertionError(f'unexpected helper self-test status: {lines}')
+    cases = parse_case_catalog(
+        lines,
+        'ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=',
+        'ARTIFACT_DIFF_SELF_TEST_CASES=',
+    )
+    expected_cases = [
+        'text_pass',
+        'text_mismatch',
+        'json_pass',
+        'json_mismatch',
+        'json_invalid_expected',
+        'json_invalid_actual',
+        'json_invalid_both',
+        'json_missing_expected',
+        'json_missing_actual',
+        'json_missing_both',
+        'sha256_pass',
+        'sha256_drift',
+        'text_missing_expected',
+        'text_missing_actual',
+        'text_missing_both',
+        'sha256_missing_expected',
+        'sha256_missing_actual',
+        'sha256_missing_both',
+    ]
+    if cases != expected_cases:
+        raise AssertionError(
+            'artifact-diff helper self-test catalog drifted: '
+            f'expected {expected_cases}, got {cases}'
+        )
+
+
+def assert_contract_output(lines: list[str]) -> None:
+    if extract_output_value(lines, 'ARTIFACT_DIFF_CONTRACT=') != 'pass':
+        raise AssertionError(f'unexpected contract status: {lines}')
+    base_cases = parse_case_catalog(
+        lines,
+        'ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=',
+        'ARTIFACT_DIFF_CONTRACT_BASE_CASES=',
+    )
+    if base_cases != BASE_CONTRACT_CASES:
+        raise AssertionError(
+            f'artifact-diff base contract catalog drifted: expected {BASE_CONTRACT_CASES}, got {base_cases}'
+        )
+    repeat_cases = parse_case_catalog(
+        lines,
+        'ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT=',
+        'ARTIFACT_DIFF_CONTRACT_REPEAT_CASES=',
+    )
+    if repeat_cases != REPEAT_CONTRACT_CASES:
+        raise AssertionError(
+            f'artifact-diff repeat contract catalog drifted: expected {REPEAT_CONTRACT_CASES}, got {repeat_cases}'
+        )
+    all_cases = parse_case_catalog(
+        lines,
+        'ARTIFACT_DIFF_CONTRACT_CASE_COUNT=',
+        'ARTIFACT_DIFF_CONTRACT_CASES=',
+    )
+    if all_cases != EXPECTED_CONTRACT_CASES:
+        raise AssertionError(
+            f'artifact-diff full contract catalog drifted: expected {EXPECTED_CONTRACT_CASES}, got {all_cases}'
+        )
+
+
 def main() -> int:
     assert_contract_catalog_shape()
     covered_cases: list[str] = []
 
-    # Replaying the helper's own self-test before the leaf-mode cases
-    # keeps the published self-test packet explicit and reviewable.
-    run_contract_case(
+    # Replaying the helper's own self-test twice keeps the published case
+    # catalog and count deterministic, not just the leaf comparison modes.
+    helper_self_test_lines = run_contract_case(
         ['--self-test'],
         0,
         helper_self_test_expected_lines(),
+        repeat_count=2,
     )
+    assert_helper_self_test_output(helper_self_test_lines)
     covered_cases.append('helper_self_test')
     covered_cases.append('helper_self_test_repeat')
 
@@ -451,10 +551,12 @@ def main() -> int:
         # Replaying the helper self-test after the leaf-mode packet proves
         # that the summary output stays deterministic after the full contract
         # sweep, not only on a clean back-to-back invocation.
-        run_contract_case(
-            ['--self-test'],
-            0,
-            helper_self_test_expected_lines(),
+        assert_helper_self_test_output(
+            run_contract_case(
+                ['--self-test'],
+                0,
+                helper_self_test_expected_lines(),
+            )
         )
 
     if covered_cases != EXPECTED_CONTRACT_CASES:
@@ -470,6 +572,17 @@ def main() -> int:
     print('ARTIFACT_DIFF_CONTRACT_REPEAT_CASES=' + ','.join(REPEAT_CONTRACT_CASES))
     print(f'ARTIFACT_DIFF_CONTRACT_CASE_COUNT={len(EXPECTED_CONTRACT_CASES)}')
     print('ARTIFACT_DIFF_CONTRACT_CASES=' + ','.join(EXPECTED_CONTRACT_CASES))
+    assert_contract_output(
+        [
+            'ARTIFACT_DIFF_CONTRACT=pass',
+            f'ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT={len(BASE_CONTRACT_CASES)}',
+            'ARTIFACT_DIFF_CONTRACT_BASE_CASES=' + ','.join(BASE_CONTRACT_CASES),
+            f'ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT={len(REPEAT_CONTRACT_CASES)}',
+            'ARTIFACT_DIFF_CONTRACT_REPEAT_CASES=' + ','.join(REPEAT_CONTRACT_CASES),
+            f'ARTIFACT_DIFF_CONTRACT_CASE_COUNT={len(EXPECTED_CONTRACT_CASES)}',
+            'ARTIFACT_DIFF_CONTRACT_CASES=' + ','.join(EXPECTED_CONTRACT_CASES),
+        ]
+    )
     return 0
 
 
