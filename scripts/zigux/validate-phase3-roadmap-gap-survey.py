@@ -63,8 +63,12 @@ REQUIRED_SURVEY_PATHS = (
 
 REQUIRED_DOCS_README_SNIPPETS = (
     "`Documentation/zigux/phase3-roadmap-gap-survey.md`",
-    "`scripts/zigux/validate-phase3-roadmap-gap-survey.py`",
-    "`make -C zigux phase3-validate`",
+    "`scripts/zigux/validate-phase3.py`, `make -C zigux phase3-validate`, and the bootstrap workflow are the validator-first route for the shared Phase 3 review packet",
+    "the dedicated survey scripts listed below stay supporting checks inside that shared gate rather than standalone release entrypoints",
+    "`scripts/zigux/validate-phase3-roadmap-gap-survey.py` remains a supporting survey check inside that shared validator-first route",
+    "`scripts/zigux/validate-phase3-export-uapi-survey.py` remains a supporting survey check inside that shared validator-first route",
+    "`scripts/zigux/validate-phase3-low-level-wrapper-survey.py` remains a supporting survey check inside that shared validator-first route",
+    "`scripts/zigux/validate-phase3-policy-unsafe-survey.py` remains a supporting survey check inside that shared validator-first route",
     "the current export shim and current `zigux/uapi/version.zig` boundary",
     "the current `rbtree` gap",
     "the existing Phase 1 and Phase 7 `rbtree` evidence that does not yet close the Phase 3 boundary packet",
