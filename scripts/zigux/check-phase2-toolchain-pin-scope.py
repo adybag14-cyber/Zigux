@@ -14,6 +14,7 @@ POLICY = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
 WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 MAKEFILE = ROOT / "zigux" / "Makefile"
 README = ROOT / "scripts" / "zigux" / "README.md"
+TOOLCHAIN_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
 CLOSURE_DOC = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
 PHASE2_VALIDATOR = ROOT / "scripts" / "zigux" / "validate-phase2.py"
 
@@ -53,6 +54,15 @@ README_MARKERS = [
     "check-phase2-toolchain-pin-scope.py",
     "zig-toolchain-policy.json",
     "x86_64-linux",
+]
+
+TOOLCHAIN_NOTES_MARKERS = [
+    "check-phase2-toolchain-pin-scope.py --self-test",
+    "check-phase2-toolchain-pin-scope.py",
+    "zig-toolchain-policy.json",
+    "x86_64-linux",
+    "install-zig.py --dest .zig-toolchain",
+    "check-zig-toolchain.py",
 ]
 
 CLOSURE_MARKERS = [
@@ -204,6 +214,14 @@ def run_self_test() -> int:
     if validate_required_markers(readme_text, label="readme", markers=README_MARKERS):
         raise SystemExit("phase2-toolchain-pin-scope:self-test:readme_markers")
 
+    toolchain_notes_text = "\n".join(TOOLCHAIN_NOTES_MARKERS)
+    if validate_required_markers(
+        toolchain_notes_text,
+        label="toolchain_notes",
+        markers=TOOLCHAIN_NOTES_MARKERS,
+    ):
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:toolchain_notes_markers")
+
     closure_text = "\n".join(CLOSURE_MARKERS)
     if validate_required_markers(closure_text, label="closure", markers=CLOSURE_MARKERS):
         raise SystemExit("phase2-toolchain-pin-scope:self-test:closure_markers")
@@ -217,7 +235,7 @@ def run_self_test() -> int:
             raise SystemExit("phase2-toolchain-pin-scope:self-test:json_round_trip")
 
     print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass")
-    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=10")
+    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
@@ -236,6 +254,7 @@ def main() -> int:
         WORKFLOW,
         MAKEFILE,
         README,
+        TOOLCHAIN_NOTES,
         CLOSURE_DOC,
         PHASE2_VALIDATOR,
     ]
@@ -262,6 +281,13 @@ def main() -> int:
             README.read_text(encoding="utf-8"),
             label="scripts_readme",
             markers=README_MARKERS,
+        )
+    )
+    issues.extend(
+        validate_required_markers(
+            TOOLCHAIN_NOTES.read_text(encoding="utf-8"),
+            label="toolchain_notes",
+            markers=TOOLCHAIN_NOTES_MARKERS,
         )
     )
     issues.extend(
