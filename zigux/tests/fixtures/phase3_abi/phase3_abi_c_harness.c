@@ -124,7 +124,13 @@ int main(void)
     fprintf(stdout, "%u", ZIGUX_MINOR_ALLOC_FLAG_FOUND);
     fputs(",\"minor_alloc_flag_exhausted\":", stdout);
     fprintf(stdout, "%u", ZIGUX_MINOR_ALLOC_FLAG_EXHAUSTED);
-    fputs("},\"structs\":{", stdout);
+    fputs("},\"records\":{\"rbtree_cached_leftmost_root\":{\"root_addr\":", stdout);
+    fprintf(stdout, "%lu", 0x2000UL);
+    fputs(",\"leftmost_addr\":", stdout);
+    fprintf(stdout, "%lu", 0x1800UL);
+    fputs(",\"flags\":", stdout);
+    fprintf(stdout, "%u", ZIGUX_RBTREE_ROOT_FLAG_CACHED | ZIGUX_RBTREE_ROOT_FLAG_LEFTMOST_VALID);
+    fputs(",\"reserved\":0}},\"structs\":{", stdout);
     for (size_t i = 0; i < ARRAY_SIZE(layouts); ++i)
         emit_layout(stdout, &layouts[i], i + 1 < ARRAY_SIZE(layouts));
     fputs("}}\n", stdout);
