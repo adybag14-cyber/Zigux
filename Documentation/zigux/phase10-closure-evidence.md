@@ -168,13 +168,13 @@ These checks now fail closed on the direct closure-inventory packet, the shared 
 - `PHASE10_FREEZE_STATUS_CHANGE_CLAIM=no`
 - `PHASE10_FREEZE_IN_C_ANCHOR_COUNT=4`
 - `PHASE10_STUDY_ONLY_ANCHOR_COUNT=2`
-- `PHASE10_ALLOWED_ROADMAP_DESTINATIONS=drivers/virtio/*.zig,zigux/helpers/`
+- `PHASE10_ALLOWED_ROADMAP_DESTINATIONS=drivers/virtio/*.zig,zigux/kernel/,zigux/helpers/`
 - `PHASE10_ALLOWED_EVIDENCE_KINDS=driver_local_lab_slices,survey_manifests,shared_validation_gates`
 - `PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=yes`
 - `PHASE10_ARCHITECTURE_COUNCIL_REOPEN_ATTACHED=no`
 - `PHASE10_FORBIDDEN_TRANSPORT_CLAIMS=queue_setup_reset_paths,irq_parity,dma_paths,input_registration_lifecycle,probe_remove_lifecycle`
 
-The roadmap keeps Phase 10 inside bounded virtio delivery under `drivers/virtio/*.zig`, and the freeze map keeps the current deep-core anchors out of active Zigux delivery:
+The roadmap keeps Phase 10 inside bounded virtio delivery under `drivers/virtio/*.zig`, with justified bridge helpers in `zigux/kernel/` or `zigux/helpers/` where needed, and the freeze map keeps the current deep-core anchors out of active Zigux delivery:
 
 - `kernel/sched/core.c`
 - `mm/page_alloc.c`
@@ -212,7 +212,7 @@ This means the current evidence bundle is reviewable, but Phase 10 is not global
 - the bounded MMIO register-window, queue-register, queue-notify, queue-address, config-window, config-write, and interrupt-ack helpers are landed
 - transport-backed queue setup, interrupt handling, DMA-facing paths, and broader lifecycle parity remain out of scope
 - the blocked transport claim set stays explicit: `queue_setup_reset_paths`, `irq_parity`, `dma_paths`, `input_registration_lifecycle`, and `probe_remove_lifecycle`
-- the current lane manifests may only point at `drivers/virtio/*.zig` and `zigux/helpers/` as roadmap destinations while the freeze-boundary status remains aligned
+- the current lane manifests may only point at `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/` as roadmap destinations while the freeze-boundary status remains aligned
 - `Documentation/zigux/freeze-map.md` and `Documentation/zigux/review-checklist.md` remain the shared guardrails for transport-facing claims in this tranche
 - the shared closure manifest now records the landed ring queue-discipline ladder, input capability-setup, multitouch-slot, teardown-observation, and preflight ladder, the dedicated harness-coverage checker, and MMIO helper ladder directly alongside the core helper evidence, so the current manifest-backed transport boundary stays explicit because the core survey records the landed `phase10-config-generation-summary-helper` and `phase10-config-delivery-disposition-helper`, the ring manifest-backed packet records the landed `phase10-virtqueue-shape-helper`, `phase10-used-buffer-polling-helper`, `phase10-callback-disable-helper`, `phase10-callback-enable-helper`, `phase10-callback-enable-prepare-helper`, `phase10-callback-delay-helper`, `phase10-notify-prepare-helper`, `phase10-queue-reset-guard-helper`, `phase10-queue-reset-helper`, and `phase10-broken-queue-recovery-helper`, the input manifest-backed packet records the landed `phase10-virtio-input-capability-setup-helper`, `phase10-virtio-input-multitouch-slot-helper`, `phase10-virtio-input-teardown-observation-helper`, `phase10-virtio-input-registration-preflight-helper`, `phase10-virtio-input-queue-callback-preflight-helper`, and `phase10-virtio-input-probe-preflight-helper`, the MMIO manifest-backed packet records the landed `phase10-mmio-register-window-helper`, `phase10-mmio-queue-register-helper`, `phase10-mmio-queue-notify-helper`, `phase10-mmio-queue-address-helper`, `phase10-mmio-config-window-helper`, `phase10-mmio-config-write-helper`, and `phase10-mmio-interrupt-ack-helper`, and only `phase10-virtio-input-registration-lifecycle` plus `phase10-mmio-lifecycle-and-irq-paths` remain constrained
 
