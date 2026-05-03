@@ -10,6 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 SURVEY_REL = "Documentation/zigux/phase3-rbtree-interop-survey.md"
 ROADMAP_GAP_SURVEY_REL = "Documentation/zigux/phase3-roadmap-gap-survey.md"
+RBTREE_SLICE_REL = "Documentation/zigux/phase3-rbtree-slice.md"
 DEDICATED_EXPECTED_REL = "zigux/tests/fixtures/phase3_rbtree/expected.json"
 DEDICATED_HEADER_REL = "include/zigux/rbtree.h"
 DEDICATED_BINDING_REL = "zigux/bindings/rbtree.zig"
@@ -38,6 +39,26 @@ REQUIRED_ROADMAP_GAP_SNIPPETS = (
     "When that lift lands, it should reuse the dedicated `zigux_rbtree_root_view` layout and `root_flag_empty`, `root_flag_cached`, and `root_flag_leftmost_valid` constants unchanged inside the shared packet.",
     "reuse the dedicated `zigux_rbtree_root_view` layout and flag constants unchanged",
     "`zigux/tests/phase3_rbtree_shared_contract.zig` now keeps that planned shared packet contract machine-checked before the full shared header and binding lift lands.",
+)
+
+REQUIRED_RBTREE_SLICE_MARKERS = (
+    "PHASE3_RBTREE_SHARED_BOUNDARY_STATUS=shared-root-view-lift-landed",
+    "PHASE3_RBTREE_SHARED_BOUNDARY_PACKET=include/zigux/abi.h,zigux/bindings/abi.zig,zigux/tests/phase3_abi.zig,zigux/tests/phase3_abi_dump.zig,zigux/tests/fixtures/phase3_abi/expected.json",
+    "PHASE3_RBTREE_SHARED_BOUNDARY_GUARDS=scripts/zigux/check-phase3-abi-layout-packet.py,scripts/zigux/check-phase3-rbtree-shared-lift-contract.py",
+)
+
+REQUIRED_RBTREE_SLICE_SNIPPETS = (
+    "This slice already carries both the dedicated `rbtree` boundary packet and the first shared root-view lift into the canonical Phase 3 ABI packet.",
+    "a shared `rbtree` root-view record in `include/zigux/abi.h` and `zigux/bindings/abi.zig`",
+    "a shared C-vs-Zig parity replay for the same root view in `zigux/tests/phase3_abi.zig`, `zigux/tests/phase3_abi_dump.zig`, and `zigux/tests/fixtures/phase3_abi/expected.json`",
+    "The next honest follow-up is to keep the shared `rbtree` packet reviewable and bounded rather than pretending the lane still needs the first lift.",
+)
+
+STALE_RBTREE_SLICE_SNIPPETS = (
+    "`PHASE3_RBTREE_SHARED_BOUNDARY_GAP=shared-abi-root-view-lift-still-missing`",
+    "This slice does not yet claim:\n\n- a shared `rbtree` record in `include/zigux/abi.h`",
+    "The remaining honest Phase 3 `rbtree` gap after this step is the shared ABI lift, not the absence of a dedicated boundary packet.",
+    "The next honest follow-up is one curated shared Phase 3 `rbtree` root-view lift:",
 )
 
 REQUIRED_SHARED_CONTRACT_SNIPPETS = (
@@ -93,6 +114,7 @@ def validate(root: Path) -> list[str]:
     issues: list[str] = []
     survey = _read_text(root, SURVEY_REL, issues)
     roadmap_gap = _read_text(root, ROADMAP_GAP_SURVEY_REL, issues)
+    rbtree_slice = _read_text(root, RBTREE_SLICE_REL, issues)
     expected_text = _read_text(root, DEDICATED_EXPECTED_REL, issues)
     header_text = _read_text(root, DEDICATED_HEADER_REL, issues)
     binding_text = _read_text(root, DEDICATED_BINDING_REL, issues)
@@ -115,6 +137,17 @@ def validate(root: Path) -> list[str]:
             if snippet not in roadmap_gap:
                 issues.append(f"missing_roadmap_gap_layout_snippet:{snippet}")
 
+    if rbtree_slice:
+        for marker in REQUIRED_RBTREE_SLICE_MARKERS:
+            if marker not in rbtree_slice:
+                issues.append(f"missing_rbtree_slice_marker:{marker}")
+        for snippet in REQUIRED_RBTREE_SLICE_SNIPPETS:
+            if snippet not in rbtree_slice:
+                issues.append(f"missing_rbtree_slice_snippet:{snippet}")
+        for snippet in STALE_RBTREE_SLICE_SNIPPETS:
+            if snippet in rbtree_slice:
+                issues.append(f"stale_rbtree_slice_snippet:{snippet}")
+
     if shared_contract_text:
         for snippet in REQUIRED_SHARED_CONTRACT_SNIPPETS:
             if snippet not in shared_contract_text:
@@ -122,7 +155,7 @@ def validate(root: Path) -> list[str]:
 
     if manifest_text:
         for rel in REQUIRED_SHARED_MANIFEST_RBTREE_FILES:
-            if f'"{rel}"' not in manifest_text:
+            if f'\"{rel}\"' not in manifest_text:
                 issues.append(f"missing_shared_contract_manifest_entry:{rel}")
 
     if header_text:
@@ -176,6 +209,7 @@ def run_self_test() -> int:
         for rel in (
             SURVEY_REL,
             ROADMAP_GAP_SURVEY_REL,
+            RBTREE_SLICE_REL,
             DEDICATED_EXPECTED_REL,
             DEDICATED_HEADER_REL,
             DEDICATED_BINDING_REL,
@@ -190,6 +224,10 @@ def run_self_test() -> int:
         )
         (root / ROADMAP_GAP_SURVEY_REL).write_text(
             "\n".join((*REQUIRED_ROADMAP_GAP_MARKERS, *REQUIRED_ROADMAP_GAP_SNIPPETS)) + "\n",
+            encoding="utf-8",
+        )
+        (root / RBTREE_SLICE_REL).write_text(
+            "\n".join((*REQUIRED_RBTREE_SLICE_MARKERS, *REQUIRED_RBTREE_SLICE_SNIPPETS)) + "\n",
             encoding="utf-8",
         )
         (root / DEDICATED_EXPECTED_REL).write_text(
@@ -246,6 +284,17 @@ def run_self_test() -> int:
 
         assert validate(root) == []
 
+        (root / RBTREE_SLICE_REL).write_text(
+            "\n".join(REQUIRED_RBTREE_SLICE_MARKERS + REQUIRED_RBTREE_SLICE_SNIPPETS[:1] + STALE_RBTREE_SLICE_SNIPPETS[:1]) + "\n",
+            encoding="utf-8",
+        )
+        issues = validate(root)
+        assert any(issue.startswith("stale_rbtree_slice_snippet:") for issue in issues)
+
+        (root / RBTREE_SLICE_REL).write_text(
+            "\n".join((*REQUIRED_RBTREE_SLICE_MARKERS, *REQUIRED_RBTREE_SLICE_SNIPPETS)) + "\n",
+            encoding="utf-8",
+        )
         (root / SHARED_CONTRACT_REL).write_text(REQUIRED_SHARED_CONTRACT_SNIPPETS[0] + "\n", encoding="utf-8")
         issues = validate(root)
         assert any(issue.startswith("missing_shared_contract_snippet:") for issue in issues)
