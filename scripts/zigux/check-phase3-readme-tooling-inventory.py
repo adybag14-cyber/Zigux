@@ -13,11 +13,12 @@ README_REL = "scripts/zigux/README.md"
 TOOLING_PACKET_SCRIPT_REL = "scripts/zigux/check-phase3-tooling-packet.py"
 MAKEFILE_REL = "zigux/Makefile"
 README_HELPER_SECTION = "Current bootstrap helpers"
-STATIC_REQUIRED_HELPER_ENTRIES = (
-    "check-phase2-kconfig-selftest-alignment.py",
-    "check-phase6-base64-catalog-evidence.py",
-    "check-phase7-argv-split-parity.py",
-)
+PHASE2_REQUIRED_HELPER_ENTRIES = ("check-phase2-kconfig-selftest-alignment.py",)
+PHASE2_VALIDATE_TARGET = "phase2-validate:"
+PHASE6_REQUIRED_HELPER_ENTRIES = ("check-phase6-base64-catalog-evidence.py",)
+PHASE6_VALIDATE_TARGET = "phase6-validate:"
+PHASE7_REQUIRED_HELPER_ENTRIES = ("check-phase7-argv-split-parity.py",)
+PHASE7_VALIDATE_TARGET = "phase7-validate:"
 PHASE11_REQUIRED_HELPER_ENTRIES = ("check-phase11-shared-replay-contract.py",)
 PHASE11_VALIDATE_TARGET = "phase11-validate:"
 PHASE13_VALIDATE_TARGET = "phase13-validate:"
@@ -66,7 +67,6 @@ def _canonical_readme_entries(root: Path) -> tuple[list[str], list[str]]:
             continue
         basenames.append(Path(rel).name)
 
-    basenames.extend(STATIC_REQUIRED_HELPER_ENTRIES)
 
     if not basenames:
         issues.append("missing_tooling_packet_script_entries")
@@ -186,6 +186,21 @@ def validate(root: Path) -> list[str]:
         return [f"missing_readme:{README_REL}"]
 
     phase3_required_entries, issues = _canonical_readme_entries(root)
+    phase2_required_entries, phase2_issues = _makefile_named_helper_entries(
+        root,
+        PHASE2_VALIDATE_TARGET,
+        PHASE2_REQUIRED_HELPER_ENTRIES,
+    )
+    phase6_required_entries, phase6_issues = _makefile_named_helper_entries(
+        root,
+        PHASE6_VALIDATE_TARGET,
+        PHASE6_REQUIRED_HELPER_ENTRIES,
+    )
+    phase7_required_entries, phase7_issues = _makefile_named_helper_entries(
+        root,
+        PHASE7_VALIDATE_TARGET,
+        PHASE7_REQUIRED_HELPER_ENTRIES,
+    )
     phase11_required_entries, phase11_issues = _makefile_named_helper_entries(
         root,
         PHASE11_VALIDATE_TARGET,
@@ -195,10 +210,18 @@ def validate(root: Path) -> list[str]:
         root,
         PHASE13_VALIDATE_TARGET,
     )
+    issues.extend(phase2_issues)
+    issues.extend(phase6_issues)
+    issues.extend(phase7_issues)
     issues.extend(phase11_issues)
     issues.extend(phase13_issues)
     required_entries = _ordered_unique(
-        phase3_required_entries + phase11_required_entries + phase13_required_entries
+        phase3_required_entries
+        + phase2_required_entries
+        + phase6_required_entries
+        + phase7_required_entries
+        + phase11_required_entries
+        + phase13_required_entries
     )
     readme_entries, section_issues = _helper_section_entries(readme)
     issues.extend(section_issues)
@@ -261,6 +284,18 @@ def _fixture_phase3_flow() -> str:
 def _fixture_makefile() -> str:
     return "\n".join(
         (
+            "phase2-validate:",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+            "",
+            "phase6-validate:",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-base64-catalog-evidence.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-base64-catalog-evidence.py",
+            "",
+            "phase7-validate:",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-parity.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-parity.py",
+            "",
             "phase11-validate:",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py --self-test",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py",
@@ -292,9 +327,9 @@ def run_self_test() -> int:
             "scripts/zigux/check-phase3-readme-tooling-inventory.py",
             "scripts/zigux/validate-phase3.py",
         )
-        static_helper_rels = tuple(
-            f"scripts/zigux/{basename}" for basename in STATIC_REQUIRED_HELPER_ENTRIES
-        )
+        phase2_helper_rels = ("scripts/zigux/check-phase2-kconfig-selftest-alignment.py",)
+        phase6_helper_rels = ("scripts/zigux/check-phase6-base64-catalog-evidence.py",)
+        phase7_helper_rels = ("scripts/zigux/check-phase7-argv-split-parity.py",)
         phase11_helper_rels = ("scripts/zigux/check-phase11-shared-replay-contract.py",)
         phase13_helper_rels = (
             "scripts/zigux/check-phase13-libfs-packet.py",
@@ -303,7 +338,12 @@ def run_self_test() -> int:
             "scripts/zigux/validate-phase13-release.py",
         )
         required_rels = (
-            tooling_packet_rels + static_helper_rels + phase11_helper_rels + phase13_helper_rels
+            tooling_packet_rels
+            + phase2_helper_rels
+            + phase6_helper_rels
+            + phase7_helper_rels
+            + phase11_helper_rels
+            + phase13_helper_rels
         )
 
         tooling_packet_script = "\n".join(
@@ -347,6 +387,26 @@ def run_self_test() -> int:
             raise SystemExit(
                 "phase3-readme-tooling-inventory-self-test:baseline_failed:" + ",".join(issues)
             )
+
+        _write(
+            root / MAKEFILE_REL,
+            "\n".join(
+                (
+                    "phase2-validate:",
+                    "\t@true",
+                    "",
+                    _fixture_makefile(),
+                )
+            ),
+        )
+        issues = validate(root)
+        expected = [f"missing_makefile_target_entries:{PHASE2_VALIDATE_TARGET}"]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-readme-tooling-inventory-self-test:missing_phase2_makefile_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+        _write(root / MAKEFILE_REL, _fixture_makefile())
 
         _write(
             root / MAKEFILE_REL,
@@ -500,7 +560,9 @@ def run_self_test() -> int:
         reordered_helper_lines = "\n".join(
             f"- `{Path(rel).name}`"
             for rel in tooling_packet_rels
-            + static_helper_rels
+            + phase2_helper_rels
+            + phase6_helper_rels
+            + phase7_helper_rels
             + phase11_helper_rels
             + reordered_phase13_helper_rels
         )
@@ -647,7 +709,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
-    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=11")
+    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
@@ -671,6 +733,21 @@ def main() -> int:
 
     root = Path(args.root).resolve() if args.root else ROOT
     phase3_required_entries, entry_issues = _canonical_readme_entries(root)
+    phase2_required_entries, phase2_issues = _makefile_named_helper_entries(
+        root,
+        PHASE2_VALIDATE_TARGET,
+        PHASE2_REQUIRED_HELPER_ENTRIES,
+    )
+    phase6_required_entries, phase6_issues = _makefile_named_helper_entries(
+        root,
+        PHASE6_VALIDATE_TARGET,
+        PHASE6_REQUIRED_HELPER_ENTRIES,
+    )
+    phase7_required_entries, phase7_issues = _makefile_named_helper_entries(
+        root,
+        PHASE7_VALIDATE_TARGET,
+        PHASE7_REQUIRED_HELPER_ENTRIES,
+    )
     phase11_required_entries, phase11_issues = _makefile_named_helper_entries(
         root,
         PHASE11_VALIDATE_TARGET,
@@ -680,6 +757,9 @@ def main() -> int:
         root,
         PHASE13_VALIDATE_TARGET,
     )
+    entry_issues.extend(phase2_issues)
+    entry_issues.extend(phase6_issues)
+    entry_issues.extend(phase7_issues)
     entry_issues.extend(phase11_issues)
     entry_issues.extend(phase13_issues)
     if entry_issues:
@@ -691,7 +771,7 @@ def main() -> int:
     print("PHASE3_README_TOOLING_INVENTORY=pass")
     print(
         "PHASE3_README_TOOLING_INVENTORY_ENTRY_COUNT="
-        f"{len(_ordered_unique(phase3_required_entries + phase11_required_entries + phase13_required_entries))}"
+        f"{len(_ordered_unique(phase3_required_entries + phase2_required_entries + phase6_required_entries + phase7_required_entries + phase11_required_entries + phase13_required_entries))}"
     )
     return 0
 
