@@ -1,0 +1,33 @@
+{
+  "blank_input": {
+    "argc": 0,
+    "argv": []
+  },
+  "first_nul_stops": {
+    "argc": 2,
+    "argv": [
+      "root=/dev/vda",
+      "rw"
+    ]
+  },
+  "leading_nul_stays_empty": {
+    "argc": 0,
+    "argv": []
+  },
+  "quote_characters_stay_literal": {
+    "argc": 3,
+    "argv": [
+      "root=\"/dev/sda",
+      "1\"",
+      "single"
+    ]
+  },
+  "whitespace_collapse": {
+    "argc": 3,
+    "argv": [
+      "init=/init",
+      "console=ttyS0",
+      "panic=-1"
+    ]
+  }
+}
