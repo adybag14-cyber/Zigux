@@ -350,7 +350,7 @@ test "phase 9 runtime kretprobe survey manifest records the landed ownership pac
     try std.testing.expect(saw_loader_command_name_prompt);
     try std.testing.expect(saw_shared_build_prompt);
     try std.testing.expect(saw_roadmap_gap_prompt);
-    try std.testing.expect(saw_lifecycleSummary_check);
+    try std.testing.expect(saw_lifecycle_summary_check);
     try std.testing.expect(saw_maxactive_preinit_check);
     try std.testing.expect(saw_loader_rollback_check);
     try std.testing.expect(saw_loader_command_name_check);
