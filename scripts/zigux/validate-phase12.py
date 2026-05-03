@@ -266,7 +266,7 @@ SELF_TEST_SOURCE_MARKERS = [
     'def run_self_test() -> int:',
     'if "--self-test" in sys.argv[1:]:',
     'PHASE12_VALIDATOR_SELF_TEST=pass',
-    'PHASE12_VALIDATOR_SELF_TEST_CASE_COUNT=4',
+    'PHASE12_VALIDATOR_SELF_TEST_CASE_COUNT=5',
 ]
 
 MANIFEST_SPECS = {
@@ -340,24 +340,19 @@ MANIFEST_SPECS = {
             "zigux/tests/phase12_virtio_scsi.zig",
             "zigux/tests/phase12_virtio_scsi_manifest.json",
             "zigux/tests/phase12_virtio_scsi_survey.zig",
-            "zigux/tests/phase12_build.zig",
             "Documentation/zigux/phase12-virtio-scsi-slice.md",
             "Documentation/zigux/phase12-virtio-scsi-survey.md",
             "scripts/zigux/validate-phase12.py",
             "zigux/Makefile",
         ],
         "raw_fallback_current_markers": [
-            "- lane_key: `P12-L12`",
-            "- phase: `Phase 12`",
-            "- scope: `drivers/scsi/virtio_scsi | high-risk storage queueing and DMA parity`",
-            "- public current-master tree fallback:",
-            "- public raw artifact fallback:",
-            "- bounded current packet files:",
-            "- rollback note:",
+            "- current_public_tree: `https://github.com/adybag14-cyber/Zigux/tree/master/drivers/scsi`",
+            "- current_docs_tree: `https://github.com/adybag14-cyber/Zigux/tree/master/Documentation/zigux`",
+            "- current_tests_tree: `https://github.com/adybag14-cyber/Zigux/tree/master/zigux/tests`",
         ],
         "raw_fallback_latest_recheck_markers": [
-            "## Latest Live Recheck",
-            "- this archival packet has been superseded on current `master` by lane `P12-L12`; keep this catalog only as historical degraded-read evidence for the same bounded virtio_scsi survey packet.",
+            "## Latest Live-Head Recheck",
+            "This lane stays archival-first until a future runtime can rerun the dedicated queue-depth and queue-map survey packet.",
             "- rechecked_public_master_head: `",
             "- verification_method: connector-backed current-`master` reads of ",
             "- observed_behavior: current `master` still keeps this lane's degraded-readback contract archival rather than live-head truth;",
@@ -399,6 +394,14 @@ def validate_self_test_surface(source_text: str, manifest_specs: dict[str, objec
         if marker not in source_text:
             missing.append(f"validator_source:{marker}")
 
+    focused_replay_marker = CHECKLIST_MARKERS[-1]
+    focused_replay_count = source_text.count(focused_replay_marker)
+    if focused_replay_count != 1:
+        missing.append(
+            "validator_source_count:"
+            f"{focused_replay_marker}:expected=1:actual={focused_replay_count}"
+        )
+
     nvme_spec = manifest_specs.get("phase12_nvme_pci_manifest.json")
     if not isinstance(nvme_spec, dict) or nvme_spec.get("lane_key") != "P12-L08":
         missing.append("validator_source:phase12_nvme_pci_manifest.json:lane_key=P12-L08")
@@ -439,12 +442,12 @@ def run_self_test() -> int:
     expect_self_test_missing(
         "case_count_token",
         source_text.replace(
-            "PHASE12_VALIDATOR_SELF_TEST_CASE_COUNT=4",
             "PHASE12_VALIDATOR_SELF_TEST_CASE_COUNT=5",
+            "PHASE12_VALIDATOR_SELF_TEST_CASE_COUNT=6",
             1,
         ),
         MANIFEST_SPECS,
-        "validator_source:PHASE12_VALIDATOR_SELF_TEST_CASE_COUNT=4",
+        "validator_source:PHASE12_VALIDATOR_SELF_TEST_CASE_COUNT=5",
     )
 
     expect_self_test_missing(
@@ -458,6 +461,14 @@ def run_self_test() -> int:
         'validator_source:if "--self-test" in sys.argv[1:]:',
     )
 
+    expect_self_test_missing(
+        "focused_replay_duplicate_review_hook",
+        source_text + "\n" + CHECKLIST_MARKERS[-1],
+        MANIFEST_SPECS,
+        "validator_source_count:"
+        f"{CHECKLIST_MARKERS[-1]}:expected=1:actual=2",
+    )
+
     drifted_manifest_specs = json.loads(json.dumps(MANIFEST_SPECS))
     drifted_manifest_specs["phase12_nvme_pci_manifest.json"]["lane_key"] = "P12-L05"
     expect_self_test_missing(
@@ -468,7 +479,7 @@ def run_self_test() -> int:
     )
 
     print("PHASE12_VALIDATOR_SELF_TEST=pass")
-    print("PHASE12_VALIDATOR_SELF_TEST_CASE_COUNT=4")
+    print("PHASE12_VALIDATOR_SELF_TEST_CASE_COUNT=5")
     return 0
 
 
