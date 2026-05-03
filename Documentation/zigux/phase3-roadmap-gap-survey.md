@@ -29,6 +29,7 @@ The largest roadmap-backed interop gap is no longer the total absence of a Phase
 That packet now exists through:
 
 - `zigux/helpers/rbtree_view.zig`
+- `zigux/helpers/rbtree_root_view.zig`
 - `include/zigux/rbtree.h`
 - `zigux/bindings/rbtree.zig`
 - `zigux/tests/phase3_rbtree_dump.zig`
@@ -37,8 +38,10 @@ That packet now exists through:
 - `Documentation/zigux/phase3-rbtree-slice.md`
 - `Documentation/zigux/phase3-rbtree-interop-survey.md`
 - `zigux/tests/phase3_rbtree_survey.zig`
+- `zigux/tests/phase3_rbtree_root_view_survey.zig`
 - `zigux/tests/phase3_rbtree_manifest.json`
 - `zigux/tests/phase3_rbtree_shared_contract.zig`
+- `scripts/zigux/check-phase3-rbtree-shared-lift-contract.py`
 
 The remaining honest gap is narrower:
 
@@ -46,7 +49,7 @@ The remaining honest gap is narrower:
 - there is still no matching shared `zigux/bindings/abi.zig` layout type for a Phase 3 `rbtree` boundary packet
 - the shared `phase3_abi` replay still reaches `rbtree` through `include/zigux/rbtree.h` and `zigux/bindings/rbtree.zig` rather than through a curated shared `abi.h` plus `abi.zig` record
 
-That is a better state than before, because the repo now has a real dedicated Phase 3 `rbtree` boundary packet, and the shared ABI replay already covers `zigux_rbtree_root_view` through `zigux/tests/phase3_abi.zig`, `zigux/tests/phase3_abi_dump.zig`, `zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c`, and `zigux/tests/fixtures/phase3_abi/expected.json`. `zigux/tests/phase3_rbtree_shared_contract.zig` also keeps that planned shared packet contract machine-checked before the full shared header and binding lift lands. When that lift lands, it should reuse the dedicated `zigux_rbtree_root_view` layout and `root_flag_empty`, `root_flag_cached`, and `root_flag_leftmost_valid` constants unchanged inside the shared packet.
+That is a better state than before, because the repo now has a real dedicated Phase 3 `rbtree` boundary packet, and the shared ABI replay already covers `zigux_rbtree_root_view` through `zigux/tests/phase3_abi.zig`, `zigux/tests/phase3_abi_dump.zig`, `zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c`, and `zigux/tests/fixtures/phase3_abi/expected.json`. `zigux/helpers/rbtree_root_view.zig`, `zigux/tests/phase3_rbtree_root_view_survey.zig`, `zigux/tests/phase3_rbtree_shared_contract.zig`, and `scripts/zigux/check-phase3-rbtree-shared-lift-contract.py` now also keep the reusable root-view helper plus the planned shared-lift contract explicit before the canonical shared header and binding grow. `zigux/tests/phase3_rbtree_shared_contract.zig` also keeps that planned shared packet contract machine-checked before the full shared header and binding lift lands. When that lift lands, it should reuse the dedicated `zigux_rbtree_root_view` layout and `root_flag_empty`, `root_flag_cached`, and `root_flag_leftmost_valid` constants unchanged inside the shared packet.
 
 ## Validation Route
 
