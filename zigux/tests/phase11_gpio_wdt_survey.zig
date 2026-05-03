@@ -119,6 +119,8 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state, modu
     );
     defer std.testing.allocator.free(expected_matrix_snapshot_line);
 
+    const expected_active_owner_line = "- active continuity owner for this review packet: `P11-Y01`";
+
     try std.testing.expect(std.mem.indexOf(u8, driver_source, "pub const PlatformDriverRegistrationMode = enum") != null);
     try std.testing.expect(std.mem.indexOf(u8, driver_source, "pub const PlatformDriverIdentitySummary = struct") != null);
     try std.testing.expect(std.mem.indexOf(u8, driver_source, "pub fn platformDriverIdentitySummary() PlatformDriverIdentitySummary") != null);
@@ -129,6 +131,7 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state, modu
     try std.testing.expect(std.mem.indexOf(u8, driver_source, ".supports_arch_initcall_override = true") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "PHASE11_GPIO_WDT_STATUS=metadata_teardown_and_register_device_surface_landed") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, expected_commit_pin) != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, expected_active_owner_line) != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, expected_matrix_snapshot_line) != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "## Shared Replay Surface") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "phase11-gpio-wdt-tests") != null);
@@ -136,6 +139,7 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state, modu
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "zig build test --build-file zigux/tests/phase11_build.zig --summary all") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "zig test zigux/tests/phase11_gpio_wdt_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "- lane key: `P11-L04`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "- active continuity owner: `P11-Y01`") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "direct watchdog metadata surface") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "GPIO Watchdog") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "teardown-facing stop evidence") != null);
@@ -151,6 +155,7 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state, modu
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "gpio-wdt") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "linux,wdt-gpio") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "module_platform_driver()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_doc, "The active continuity owner for this review packet is `P11-Y01`.") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "first bounded `devm_watchdog_register_device()` request") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "The next honest bounded step inside the same Phase 11 lane is to leave the starter parked unless fresh repo inspection finds another comparably small simple-driver, teardown, or failure-mode drift inside `gpio_wdt`.") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "Keep descriptor-backed preflight, reboot glue, and broader watchdog registration work blocked from this slice.") != null);
@@ -158,9 +163,11 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state, modu
     try std.testing.expect(std.mem.indexOf(u8, module_slice_doc, "`gpio_wdt_lab` descriptor") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice_doc, "`summarizeTeardown()` helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice_doc, "`registerDeviceCallSummary()` surface explicit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_slice_doc, "The active continuity owner for this review packet is `P11-Y01`, while the archived manifest identity remains `P11-L04` for traceability.") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice_doc, "The next honest bounded step inside the same Phase 11 lane is to leave this starter parked unless fresh repo inspection finds another comparably small teardown or failure-mode drift inside `gpio_wdt`.") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice_doc, "Avoid widening straight into descriptor-backed preflight, reboot glue, or broader watchdog registration work from this packet.") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, expected_commit_pin) != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, expected_active_owner_line) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "platformDriverIdentitySummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "gpio-wdt") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "linux,wdt-gpio") != null);
