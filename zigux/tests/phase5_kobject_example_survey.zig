@@ -40,7 +40,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P5-L10", manifest.lane_key);
+    try std.testing.expectEqualStrings("P5-L12", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 5", manifest.phase);
     try std.testing.expectEqual(@as(usize, 40), manifest.surveyed_commit.len);
     for (manifest.surveyed_commit) |char| {
@@ -51,7 +51,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     try std.testing.expectEqualStrings("samples/zigux/kobject_example.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
     try std.testing.expectEqual(@as(usize, 8), manifest.review_prompts.len);
-    try std.testing.expectEqual(@as(usize, 12), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 13), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_descriptor_prompt = false;
@@ -68,6 +68,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     var saw_registration = false;
     var saw_static_name = false;
     var saw_pre_registration = false;
+    var saw_replay_readiness = false;
     var saw_ownership_summary = false;
     var saw_initialized_exit = false;
     var saw_foo_roundtrip = false;
@@ -110,14 +111,14 @@ test "phase 5 kobject manifest records the exact bounded checks" {
         {
             saw_group_boundary_prompt = true;
         }
-        if (std.mem.indexOf(u8, prompt, "sample-behavior changes update the manifest-backed") != null and
+        if (std.mem.indexOf(u8, prompt, "replay-readiness") != null and
             std.mem.indexOf(u8, prompt, "infer it from code alone") != null)
         {
             saw_sync_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "initialized-but-not-registered stage explicit") != null and
             std.mem.indexOf(u8, prompt, "zero active attributes") != null and
-            std.mem.indexOf(u8, prompt, "ownershipSummary must expose the cold, initialized, registered, and exited stage transitions directly") != null)
+            std.mem.indexOf(u8, prompt, "ownershipSummary must expose replay readiness plus the cold, initialized, registered, and exited stage transitions directly") != null)
         {
             saw_ownership_prompt = true;
         }
@@ -166,9 +167,15 @@ test "phase 5 kobject manifest records the exact bounded checks" {
             try expectContains(check.expected, "active attribute count at zero");
             try expectContains(check.expected, "registerAttributes claims ownership");
         }
+        if (std.mem.eql(u8, check.id, "replay-readiness-boundary")) {
+            saw_replay_readiness = true;
+            try expectContains(check.expected, "runAnchorReplay reviewable");
+            try expectContains(check.expected, "only in the initialized stage");
+            try expectContains(check.expected, "after the sample has registered or exited");
+        }
         if (std.mem.eql(u8, check.id, "ownership-summary")) {
             saw_ownership_summary = true;
-            try expectContains(check.expected, "cold, initialized, registered, and exited stages");
+            try expectContains(check.expected, "replay readiness plus the cold, initialized, registered, and exited stages");
             try expectContains(check.expected, "0, 0, 3, and 0");
             try expectContains(check.expected, "register-or-exit availability");
         }
@@ -194,7 +201,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
         if (std.mem.eql(u8, check.id, "exit-boundary")) {
             saw_exit = true;
             try expectContains(check.expected, "registered exit returns a teardown summary");
-            try expectContains(check.expected, "rejects later init, registerAttributes, showValue, or storeValue calls");
+            try expectContains(check.expected, "runAnchorReplay");
         }
 
         for (manifest.exact_checks[i + 1 ..]) |other| {
@@ -216,6 +223,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     try std.testing.expect(saw_registration);
     try std.testing.expect(saw_static_name);
     try std.testing.expect(saw_pre_registration);
+    try std.testing.expect(saw_replay_readiness);
     try std.testing.expect(saw_ownership_summary);
     try std.testing.expect(saw_initialized_exit);
     try std.testing.expect(saw_foo_roundtrip);
@@ -294,7 +302,7 @@ test "phase 5 kobject contributor docs stay aligned with the shipped review surf
     try expectContains(survey_note, "phase5_kobject_example_manifest.json");
     try expectContains(survey_note, "phase5_kobject_example_survey.zig");
     try expectContains(survey_note, "phase5_build.zig");
-    try expectContains(survey_note, "PHASE5_LANE_KEY=P5-L10");
+    try expectContains(survey_note, "PHASE5_LANE_KEY=P5-L12");
     {
         const surveyed_commit_line = try std.fmt.allocPrint(
             std.testing.allocator,
@@ -311,6 +319,7 @@ test "phase 5 kobject contributor docs stay aligned with the shipped review surf
     try expectContains(survey_note, "paired `zig test zigux/tests/phase5_kobject_example_survey.zig` replay");
     try expectContains(survey_note, "approved Phase 5 ownership-and-lifetime idiom");
     try expectContains(survey_note, "ownershipSummary()");
+    try expectContains(survey_note, "replay readiness");
     try expectContains(survey_note, "cold, initialized, registered, and exited");
     try expectContains(survey_note, "sysfs creation, `kernel_kobj` integration, uevents, and loadable module registration remain out of scope");
     try expectContains(survey_note, "zig test samples/zigux/kobject_example.zig");
@@ -329,6 +338,7 @@ test "phase 5 kobject contributor docs stay aligned with the shipped review surf
     try expectContains(sample_root_readme, "phase5-kobject-sample-survey.md");
     try expectContains(sample_root_readme, "approved Phase 5 in-memory ownership-and-lifetime idiom");
     try expectContains(sample_root_readme, "pre-registration zero-active-attributes boundary");
+    try expectContains(sample_root_readme, "replay-readiness boundary");
     try expectContains(sample_root_readme, "initialized-only abandonment path");
     try expectContains(sample_root_readme, "post-exit rejection boundaries");
     try expectContains(sample_root_readme, "sysfs creation, `kernel_kobj` integration, uevents, and runtime registration out of scope");
