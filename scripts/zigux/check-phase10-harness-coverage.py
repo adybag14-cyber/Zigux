@@ -218,6 +218,40 @@ def run_self_test() -> int:
                 f"markers={','.join(missing_markers) if missing_markers else 'none'}"
             )
 
+        makefile_path = root / "zigux/Makefile"
+        original_makefile = makefile_path.read_text(encoding="utf-8")
+        makefile_path.write_text(
+            original_makefile.replace(
+                "scripts/zigux/check-phase10-harness-coverage.py --self-test\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "makefile_harness_self_test_hook",
+            root,
+            "make:scripts/zigux/check-phase10-harness-coverage.py --self-test",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        workflow_path = root / ".github/workflows/zigux-bootstrap.yml"
+        original_workflow = workflow_path.read_text(encoding="utf-8")
+        workflow_path.write_text(
+            original_workflow.replace(
+                "Self-test Phase 10 harness coverage checker\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "workflow_harness_self_test_step",
+            root,
+            "workflow:Self-test Phase 10 harness coverage checker",
+        )
+        workflow_path.write_text(original_workflow, encoding="utf-8")
+
         build_path = root / "zigux/tests/phase10_build.zig"
         original_build = build_path.read_text(encoding="utf-8")
         build_path.write_text(
@@ -337,7 +371,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=7")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
