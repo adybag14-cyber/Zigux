@@ -25,7 +25,10 @@ Keep the validator-first route explicit:
 Keep these evidence surfaces aligned in the same review:
 - `Documentation/zigux/phase10-closure-evidence.md`
 - `zigux/tests/phase10_closure_manifest.json`
+- `scripts/zigux/check-phase10-harness-coverage.py`
 - `zigux/tests/phase10_build.zig`
+- `zigux/tests/phase10_virtio_input_multitouch_preflight.zig`
+- `zigux/tests/phase10_virtio_mmio_queue_isolation.zig`
 - `zigux/tests/phase10_virtio_ring_manifest.json`
 - `zigux/tests/phase10_virtio_input_manifest.json`
 - `zigux/tests/phase10_virtio_mmio_manifest.json`
@@ -55,6 +58,10 @@ Keep the pre-replay checker stack explicit:
 Keep these evidence surfaces aligned in the same review:
 - `Documentation/zigux/phase11-shared-replay-contract.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
+- `scripts/zigux/check-phase11-build-inventory.py`
+- `scripts/zigux/check-phase11-layout-assert-surface.py`
+- `scripts/zigux/check-phase11-hvc-validation-flow.py`
+- `scripts/zigux/check-phase11-hvc-cleanup-alignment.py`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
 - `zigux/tests/phase11_build.zig`
 - `zigux/tests/phase11_hvc_console_survey.zig`
@@ -98,11 +105,14 @@ Keep these evidence surfaces aligned in the same review:
 - `zigux/tests/phase13_landlock_ruleset_manifest.json`
 - `zigux/tests/phase13_landlock_syscalls_manifest.json`
 - `zigux/tests/phase13_notifier_list_manifest.json`
+- `zigux/tests/phase13_notifier_list_reviewability.zig`
+- `zigux/bindings/notifier_abi.zig`
+- `zigux/helpers/notifier_chain_view.zig`
 - `zigux/Makefile`
 - `.github/workflows/zigux-bootstrap.yml`
 
 Reviewer prompt:
-- Does the shared Phase 13 packet still route through the release validator before the ten-step replay bundle, with the scripts index, docs-root summary, and review checklist all naming the same Landlock syscall reviewability gate and adjacent notifier evidence rather than letting those release surfaces drift apart?
+- Does the shared Phase 13 packet still route through the release validator before the ten-step replay bundle, with the scripts index, docs-root summary, review checklist, and adjacent notifier evidence all naming the same Landlock syscall reviewability and notifier packet anchors rather than letting those release surfaces drift apart?
 
 ## Shared review rule
 
