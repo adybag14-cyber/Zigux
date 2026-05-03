@@ -91,7 +91,9 @@ pub fn main(init: std.process.Init) !void {
     try writer.print("{d}", .{0x1800});
     try writer.writeAll(",\"flags\":");
     try writer.print("{d}", .{rbtree.ROOT_FLAG_CACHED | rbtree.ROOT_FLAG_LEFTMOST_VALID});
-    try writer.writeAll(",\"reserved\":0}},\"structs\":{");
+    try writer.writeAll(",\"reserved\":0},\"rbtree_uncached_root\":{\"root_addr\":");
+    try writer.print("{d}", .{0x2400});
+    try writer.writeAll(",\"leftmost_addr\":0,\"flags\":0,\"reserved\":0}},\"structs\":{");
     try writeStructLayout(writer, "zigux_boundary_header", abi.BoundaryHeader, true);
     try writeStructLayout(writer, "zigux_export_status", abi.ExportStatus, true);
     try writeStructLayout(writer, "zigux_mmio_range", abi.MmioRange, true);
