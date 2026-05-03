@@ -146,6 +146,32 @@ test "phase 8 file-path-handle bridge keeps token acquisition ownership planning
     try std.testing.expect(prepared.succeeded());
 }
 
+test "phase 8 file-path-handle bridge plans pinned-map reopen probes without claiming bpffs io" {
+    const prevented_null = file_path_handle_bridge.planReusePinnedMapOpen(null);
+    try std.testing.expectEqual(
+        file_path_handle_bridge.ReusePinnedMapOpenDisposition.prevented,
+        prevented_null.disposition,
+    );
+    try std.testing.expectEqualStrings("", prevented_null.pin_path);
+    try std.testing.expect(!prevented_null.requiresPinnedMapOpen());
+
+    const prevented_empty = file_path_handle_bridge.planReusePinnedMapOpen("");
+    try std.testing.expectEqual(
+        file_path_handle_bridge.ReusePinnedMapOpenDisposition.prevented,
+        prevented_empty.disposition,
+    );
+    try std.testing.expectEqualStrings("", prevented_empty.pin_path);
+    try std.testing.expect(!prevented_empty.requiresPinnedMapOpen());
+
+    const planned = file_path_handle_bridge.planReusePinnedMapOpen("/sys/fs/bpf/reused_map");
+    try std.testing.expectEqual(
+        file_path_handle_bridge.ReusePinnedMapOpenDisposition.optional_probe,
+        planned.disposition,
+    );
+    try std.testing.expectEqualStrings("/sys/fs/bpf/reused_map", planned.pin_path);
+    try std.testing.expect(planned.requiresPinnedMapOpen());
+}
+
 test "phase 8 file-path-handle bridge keeps reuse-attempt ownership planning explicit" {
     const incompatible = file_path_handle_bridge.resolveReusePinnedMapAttempt(false, 0);
     try std.testing.expectEqual(
