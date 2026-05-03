@@ -6,6 +6,8 @@ Use this focused contributor guide when a change touches the active Phase 10 vir
 
 The shared scripts index already names the current checker stack for these packets, but reviewers still need one compact place that says which pre-replay gates, shared replay entrypoints, and adjacent evidence files should move together.
 
+Keep `Documentation/zigux/review-checklist.md` and `zigux/tests/README.md` aligned with this note when they describe the same active contributor packets, so checklist prompts, tests-root workflow guidance, and packet-local evidence do not drift into separate stories.
+
 ## Phase 10: Virtio lab packet
 
 Keep the validator-first route explicit:
