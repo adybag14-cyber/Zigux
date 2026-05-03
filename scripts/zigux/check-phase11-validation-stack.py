@@ -92,7 +92,6 @@ def write_fixture(root: Path) -> None:
     (root / "zigux").mkdir(parents=True, exist_ok=True)
     shutil.copyfile(Path(__file__), root / "scripts/zigux/check-phase11-validation-stack.py")
 
-    (root / "scripts/zigux/README.md").writeText if False else None
     (root / "scripts/zigux/README.md").write_text(
         "# scripts/zigux\n\n"
         "Phase 11 flow\n"
