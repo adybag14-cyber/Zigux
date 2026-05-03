@@ -134,6 +134,8 @@ test "phase10 virtio input survey manifest records the live starter and remainin
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "wrapper-first or study-only posture") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "kernel/workqueue_bridge.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "kernel/trace/ring_buffer.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "python3 scripts/zigux/check-phase10-harness-coverage.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "python3 scripts/zigux/validate-phase10.py") == null);
     try std.testing.expect(closure_manifest == .object);
 
     const survey_provenance = closure_manifest.object.get("survey_provenance") orelse return error.TestUnexpectedResult;
@@ -148,6 +150,22 @@ test "phase10 virtio input survey manifest records the live starter and remainin
     const input_surveyed_commit = surveyed_commits.object.get("input") orelse return error.TestUnexpectedResult;
     try std.testing.expect(input_surveyed_commit == .string);
     try std.testing.expectEqualStrings(manifest.surveyed_commit, input_surveyed_commit.string);
+
+    const exact_checks = closure_manifest.object.get("exact_checks") orelse return error.TestUnexpectedResult;
+    try std.testing.expect(exact_checks == .array);
+    var saw_harness_coverage_check = false;
+    var saw_validate_phase10_check = false;
+    for (exact_checks.array.items) |item| {
+        try std.testing.expect(item == .string);
+        if (std.mem.eql(u8, item.string, "python3 scripts/zigux/check-phase10-harness-coverage.py")) {
+            saw_harness_coverage_check = true;
+        }
+        if (std.mem.eql(u8, item.string, "python3 scripts/zigux/validate-phase10.py")) {
+            saw_validate_phase10_check = true;
+        }
+    }
+    try std.testing.expect(saw_harness_coverage_check);
+    try std.testing.expect(!saw_validate_phase10_check);
 
     const landed_input_helper_evidence = closure_manifest.object.get("landed_input_helper_evidence") orelse return error.TestUnexpectedResult;
     try std.testing.expect(landed_input_helper_evidence == .object);
