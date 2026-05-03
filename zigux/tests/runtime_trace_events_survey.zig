@@ -575,6 +575,11 @@ test "phase 9 runtime trace-events blocker keeps the shared build loader-free wh
     try std.testing.expect(std.mem.indexOf(u8, loader_file, "pub fn releaseWithoutSubstrate") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_file, "foo_bar_reg") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_file, "foo_bar_unreg") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_file, "command_name: ?[]const u8") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_file, "pub fn withCommandName") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_file, "pub fn prepareWithCommandName") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_file, "error.InvalidCommandName") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_file, "\"perf-runtime-trace-events\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase9_build, "runtime_trace_events_loader") == null);
     try std.testing.expect(std.mem.indexOf(u8, phase9_build, "phase9-runtime-trace-events-loader-tests") == null);
     try std.testing.expect(std.mem.indexOf(u8, phase9_build, "phase9-runtime-loader-tests") != null);
