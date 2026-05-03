@@ -129,10 +129,16 @@ REVIEWABILITY_MARKERS = [
 REVIEW_CHECKLIST_MARKERS = [
     "if the change touches the focused Phase 12 libbpf-only replay packet, do `python3 scripts/zigux/check-phase12-libbpf-focused-replay.py --self-test`, `scripts/zigux/check-phase12-libbpf-focused-replay.py`, `scripts/zigux/validate-phase12.py`, `zigux/tests/phase12_libbpf_only_build.zig`, `zigux/tests/phase12_libbpf_manifest.json`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` still agree on the same dedicated replay shard, review-note hook, and validator-first rollback path instead of leaving that narrower libbpf gate implied behind the broader packet checks?",
 ]
+REVIEW_CHECKLIST_EXACT_COUNTS = {
+    REVIEW_CHECKLIST_MARKERS[0]: 1,
+}
 
 VALIDATE_PHASE12_FOCUSED_REPLAY_MARKERS = [
     "if the change touches the focused Phase 12 libbpf-only replay packet, do `python3 scripts/zigux/check-phase12-libbpf-focused-replay.py --self-test`, `scripts/zigux/check-phase12-libbpf-focused-replay.py`, `scripts/zigux/validate-phase12.py`, `zigux/tests/phase12_libbpf_only_build.zig`, `zigux/tests/phase12_libbpf_manifest.json`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` still agree on the same dedicated replay shard, review-note hook, and validator-first rollback path instead of leaving that narrower libbpf gate implied behind the broader packet checks?",
 ]
+VALIDATE_PHASE12_FOCUSED_REPLAY_EXACT_COUNTS = {
+    VALIDATE_PHASE12_FOCUSED_REPLAY_MARKERS[0]: 1,
+}
 
 FOCUSED_REPLAY_BUILD_MARKERS = [
     'const phase12_libbpf_segments_module = b.createModule(.{',
@@ -371,6 +377,20 @@ def check_text_markers(source_text: str, markers: list[str], prefix: str, missin
             missing.append(f"{prefix}:{marker}")
 
 
+def check_exact_marker_counts(
+    source_text: str,
+    expected_counts: dict[str, int],
+    prefix: str,
+    missing: list[str],
+) -> None:
+    for marker, expected_count in expected_counts.items():
+        actual_count = source_text.count(marker)
+        if actual_count != expected_count:
+            missing.append(
+                f"{prefix}:{marker}:expected={expected_count}:actual={actual_count}"
+            )
+
+
 def check_packet(root: Path) -> list[str]:
     missing: list[str] = []
     for rel_path in REQUIRED_PATHS:
@@ -450,10 +470,22 @@ def check_packet(root: Path) -> list[str]:
     check_text_markers(segment_test, SEGMENT_TEST_MARKERS, "segment_test", missing)
     check_text_markers(reviewability_test, REVIEWABILITY_MARKERS, "reviewability_test", missing)
     check_text_markers(review_checklist, REVIEW_CHECKLIST_MARKERS, "review_checklist", missing)
+    check_exact_marker_counts(
+        review_checklist,
+        REVIEW_CHECKLIST_EXACT_COUNTS,
+        "review_checklist_count",
+        missing,
+    )
     check_text_markers(
         validate_phase12,
         VALIDATE_PHASE12_FOCUSED_REPLAY_MARKERS,
         "validate_phase12",
+        missing,
+    )
+    check_exact_marker_counts(
+        validate_phase12,
+        VALIDATE_PHASE12_FOCUSED_REPLAY_EXACT_COUNTS,
+        "validate_phase12_count",
         missing,
     )
     check_text_markers(
@@ -765,6 +797,20 @@ def run_self_test() -> int:
             raise SystemExit("phase12-libbpf-packet:self-test:review_checklist_marker_detection")
 
         build_self_test_tree(root)
+        review_checklist_path = root / REVIEW_CHECKLIST_PATH
+        original = review_checklist_path.read_text(encoding="utf-8")
+        review_checklist_path.write_text(
+            original + REVIEW_CHECKLIST_MARKERS[0] + "\n",
+            encoding="utf-8",
+        )
+        missing = check_packet(root)
+        if (
+            f"review_checklist_count:{REVIEW_CHECKLIST_MARKERS[0]}:expected=1:actual=2"
+            not in missing
+        ):
+            raise SystemExit("phase12-libbpf-packet:self-test:review_checklist_exact_count_detection")
+
+        build_self_test_tree(root)
         validate_phase12_path = root / VALIDATE_PHASE12_PATH
         original = validate_phase12_path.read_text(encoding="utf-8")
         validate_phase12_path.write_text(
@@ -777,6 +823,20 @@ def run_self_test() -> int:
         missing = check_packet(root)
         if f"validate_phase12:{VALIDATE_PHASE12_FOCUSED_REPLAY_MARKERS[0]}" not in missing:
             raise SystemExit("phase12-libbpf-packet:self-test:validate_phase12_marker_detection")
+
+        build_self_test_tree(root)
+        validate_phase12_path = root / VALIDATE_PHASE12_PATH
+        original = validate_phase12_path.read_text(encoding="utf-8")
+        validate_phase12_path.write_text(
+            original + VALIDATE_PHASE12_FOCUSED_REPLAY_MARKERS[0] + "\n",
+            encoding="utf-8",
+        )
+        missing = check_packet(root)
+        if (
+            f"validate_phase12_count:{VALIDATE_PHASE12_FOCUSED_REPLAY_MARKERS[0]}:expected=1:actual=2"
+            not in missing
+        ):
+            raise SystemExit("phase12-libbpf-packet:self-test:validate_phase12_exact_count_detection")
 
         build_self_test_tree(root)
         focused_replay_build_path = root / FOCUSED_REPLAY_REQUIRED_PATHS[1]
@@ -1000,7 +1060,7 @@ def run_self_test() -> int:
             raise SystemExit("phase12-libbpf-packet:self-test:reviewability_marker_detection")
 
         print("PHASE12_LIBBPF_PACKET_SELF_TEST=pass")
-        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=58")
+        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=60")
     return 0
 
 
