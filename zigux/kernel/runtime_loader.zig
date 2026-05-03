@@ -127,6 +127,17 @@ pub const RuntimeLoadRequest = struct {
             !std.mem.eql(u8, self.entry_symbol, self.exit_symbol);
     }
 
+    pub fn keepsLaneIdentityExplicit(self: RuntimeLoadRequest) bool {
+        return switch (self.payload) {
+            .atomic64 => std.mem.eql(u8, self.module_name, "runtime_atomic64") and
+                std.mem.eql(u8, self.anchor, "lib/atomic64_test.c"),
+            .bitmap => std.mem.eql(u8, self.module_name, "runtime_bitmap") and
+                std.mem.eql(u8, self.anchor, "lib/test_bitmap.c"),
+            .kretprobe => std.mem.eql(u8, self.module_name, "runtime_kretprobe") and
+                std.mem.eql(u8, self.anchor, "samples/kprobes/kretprobe_example.c"),
+        };
+    }
+
     pub fn keepsStagedInitExitNamingExplicit(self: RuntimeLoadRequest) bool {
         return std.mem.endsWith(u8, self.entry_symbol, "_init") and
             std.mem.endsWith(u8, self.exit_symbol, "_exit");
@@ -199,6 +210,7 @@ pub const RuntimeLoadRequest = struct {
     pub fn keepsSharedHandoffContractExplicit(self: RuntimeLoadRequest) bool {
         return self.keepsCommandNameExplicit() and
             self.keepsInitExitContractExplicit() and
+            self.keepsLaneIdentityExplicit() and
             self.keepsStagedInitExitNamingExplicit() and
             self.keepsStageConsistentWithRuntimeSubstrate() and
             self.keepsAllocatorInitFlowConsistent() and
@@ -881,4 +893,67 @@ test "runtime loader request rejects implicit init-exit and live lifecycle hando
     try std.testing.expect(no_substrate_released.keepsPreExecutionLifecycleBoundaryExplicit());
     try std.testing.expect(no_substrate_released.keepsStageConsistentWithRuntimeSubstrate());
     try std.testing.expect(no_substrate_released.keepsSharedHandoffContractExplicit());
+}
+
+test "runtime loader request rejects cross-lane identity drift" {
+    const wrong_bitmap_anchor = RuntimeLoadRequest{
+        .module_name = "runtime_bitmap",
+        .command_name = null,
+        .anchor = "lib/atomic64_test.c",
+        .entry_symbol = "zigux_runtime_bitmap_init",
+        .exit_symbol = "zigux_runtime_bitmap_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .handoff_stage = .waiting_on_runtime_substrate,
+        .allocator_handoff = allocatorHandoffFor(.kernel_heap),
+        .payload = .{
+            .bitmap = .{
+                .first_set = 0,
+                .first_zero = 1,
+                .weight = 4,
+                .nbits = 128,
+                .init_runs = 1,
+                .selftest_runs = 1,
+                .exit_runs = 0,
+            },
+        },
+    };
+    try std.testing.expect(wrong_bitmap_anchor.keepsInitExitContractExplicit());
+    try std.testing.expect(!wrong_bitmap_anchor.keepsLaneIdentityExplicit());
+    try std.testing.expect(wrong_bitmap_anchor.keepsPreExecutionLifecycleBoundaryExplicit());
+    try std.testing.expect(!wrong_bitmap_anchor.keepsSharedHandoffContractExplicit());
+
+    const wrong_kretprobe_module = RuntimeLoadRequest{
+        .module_name = "runtime_bitmap",
+        .command_name = null,
+        .anchor = "samples/kprobes/kretprobe_example.c",
+        .entry_symbol = "zigux_runtime_kretprobe_init",
+        .exit_symbol = "zigux_runtime_kretprobe_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .handoff_stage = .waiting_on_runtime_substrate,
+        .allocator_handoff = allocatorHandoffFor(.kernel_heap),
+        .payload = .{
+            .kretprobe = .{
+                .register_api = "register_kretprobe",
+                .unregister_api = "unregister_kretprobe",
+                .symbol_name = "do_sys_openat2",
+                .maxactive = 20,
+                .private_data_bytes = 24,
+                .active_instances = 0,
+                .skipped_kernel_threads = 0,
+                .nmissed = 0,
+                .last_retval = 0,
+                .last_duration_ns = 0,
+                .init_runs = 1,
+                .selftest_runs = 0,
+                .exit_runs = 0,
+                .entry_timestamp_armed = false,
+            },
+        },
+    };
+    try std.testing.expect(wrong_kretprobe_module.keepsInitExitContractExplicit());
+    try std.testing.expect(!wrong_kretprobe_module.keepsLaneIdentityExplicit());
+    try std.testing.expect(wrong_kretprobe_module.keepsPreExecutionLifecycleBoundaryExplicit());
+    try std.testing.expect(!wrong_kretprobe_module.keepsSharedHandoffContractExplicit());
 }
