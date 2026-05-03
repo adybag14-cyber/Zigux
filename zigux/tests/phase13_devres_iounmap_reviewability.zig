@@ -27,8 +27,9 @@ test "phase13 devres iounmap descriptor keeps the planner explicit" {
     defer std.testing.allocator.free(devres_source);
 
     try expectContains(devres_source, ".provides_iounmap_call_planning = true");
+    try expectContains(devres_source, "fn planReleaseCall(");
     try expectContains(devres_source, "pub fn planManagedIounmap(");
-    try expectContains(devres_source, ".warns_on_release_miss = !release_matches");
+    try expectContains(devres_source, "return planReleaseCall(tracked_address, candidate_address);");
     try expectNotContains(devres_source, "iounmap(");
 }
 
