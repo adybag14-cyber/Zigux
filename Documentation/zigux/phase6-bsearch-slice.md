@@ -13,6 +13,7 @@ This document records the bounded Phase 6 leaf-helper validation slice for Zigux
   - `zigux/tests/phase6_bsearch.zig`
   - `zigux/tests/phase6_bsearch_perf.zig`
   - `zigux/tests/phase6_bsearch_c_parity.zig`
+  - `zigux/tests/fixtures/phase6_bsearch_vectors.zig`
   - `zigux/tests/fixtures/phase6_bsearch_c_harness.c`
   - `scripts/zigux/check-phase6-bsearch-c-parity.py`
   - `zigux/tests/phase6_build.zig`
@@ -81,8 +82,8 @@ The current tests check:
 - runtime-selected C ABI raw comparator pointers preserve the same found-or-null behavior across ascending and descending sorted slices
 - focused Zig Phase 6 tests now also prove runtime-selected descending typed and raw mutable-pointer write-through behavior instead of leaving that contract only to the external C-vs-Zig parity replay
 - representative lookup work stays inside a bounded binary-search comparison budget on every replayed lookup, not only on average across the perf run
-- inline sorted integer and symbol tables keep the current lookup corpus deterministic without introducing a generated fixture file
-- a replayable perf-sanity harness reports lookup cost plus both average and worst-case comparator work for representative `256`-, `4096`-, and `65536`-entry sorted slices while replaying the same deterministic edge, midpoint, seeded interior, and miss probes through typed and raw comparator paths for both ascending and descending order
+- inline sorted integer and symbol tables keep the current lookup-behavior corpus deterministic, while `zigux/tests/fixtures/phase6_bsearch_vectors.zig` now owns the perf case matrix plus the fixed edge, quarter, midpoint, final-hit, and paired miss probes that seed the shared perf replay
+- a replayable perf-sanity harness reports lookup cost plus both average and worst-case comparator work for representative `256`-, `4096`-, and `65536`-entry sorted slices through the shared `zigux/tests/fixtures/phase6_bsearch_vectors.zig` corpus module while replaying the same deterministic edge, midpoint, seeded interior, and miss probes through typed and raw comparator paths for both ascending and descending order
 - the external parity checker now also carries a built-in `--self-test` path for its missing-path guards, unexpected-extra-output guard, generated build template, and sorted-output normalization so reviewability does not depend only on a locally runnable `zig` plus `cc` pair
 - a representative external C-vs-Zig parity replay currently replays 29 sorted lookup cases covering integer hits and misses, singleton and empty-slice behavior, ascending and descending comparator-driven lookups, direct raw-helper hit and miss behavior, raw descending lookup behavior, duplicate hits across beginning, middle, and end duplicate runs on a found-or-null basis without pinning a stable duplicate index, runtime-selected typed and raw comparator-pointer lookups across ascending and descending sorted slices for both hit and miss cases with distinct ascending-versus-descending miss labels, heterogeneous string-key lookup, and runtime-selected descending typed and raw mutable-pointer write-through behavior
 
@@ -96,4 +97,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Leave the Phase 6 bsearch lane parked unless fresh repo inspection finds a concrete parity, perf, or directly coupled review-packet drift inside `lib/bsearch.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_perf.zig`, `zigux/tests/phase6_bsearch_c_parity.zig`, `zigux/tests/fixtures/phase6_bsearch_c_harness.c`, `scripts/zigux/check-phase6-bsearch-c-parity.py`, or the shared Phase 6 packet. If reviewers want the shared packet to enumerate the current bsearch evidence more explicitly, the next same-family follow-up should stay narrow to `Documentation/zigux/phase6-helper-parity-catalog.md`, `zigux/tests/phase6_helper_parity_manifest.json`, and any directly coupled validator markers so those shared surfaces also acknowledge the live bounded perf and external parity packet more directly.
+Leave the Phase 6 bsearch lane parked unless fresh repo inspection finds a concrete parity, perf, or directly coupled review-packet drift inside `lib/bsearch.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_perf.zig`, `zigux/tests/phase6_bsearch_c_parity.zig`, `zigux/tests/fixtures/phase6_bsearch_vectors.zig`, `zigux/tests/fixtures/phase6_bsearch_c_harness.c`, `scripts/zigux/check-phase6-bsearch-c-parity.py`, or the shared Phase 6 packet. If reviewers want the shared packet to enumerate the current bsearch evidence more explicitly, the next same-family follow-up should stay narrow to `Documentation/zigux/phase6-helper-parity-catalog.md`, `zigux/tests/phase6_helper_parity_manifest.json`, and any directly coupled validator markers so those shared surfaces also acknowledge the live bounded perf and external parity packet more directly.
