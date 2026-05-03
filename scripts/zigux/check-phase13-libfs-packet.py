@@ -40,6 +40,8 @@ TEST_MARKERS = [
 
 REVIEWABILITY_MARKERS = [
     'expected_surveyed_commit = "',
+    'phase13-libfs-addressability-helper',
+    'generic_check_addressable()',
     'phase13-libfs-dcache-dir-close-release-bookkeeping',
     'phase13-libfs-simple-open-private-data-planning',
     'phase13-libfs-dcache-cursor-helpers',
@@ -53,6 +55,8 @@ SURVEY_MARKERS = [
     "landed `phase13-make-target`",
     "landed `phase13-libfs-starter`",
     "landed `phase13-libfs-tests`",
+    "ready_next `phase13-libfs-addressability-helper`",
+    "generic_check_addressable()",
     "phase13-libfs-dcache-dir-close-release-bookkeeping",
     "phase13-libfs-simple-open-private-data-planning",
     "python3 scripts/zigux/check-phase13-libfs-packet.py",
@@ -71,6 +75,8 @@ TRACEABILITY_MARKERS = [
     "landed `phase13-make-target`",
     "landed `phase13-libfs-starter`",
     "landed `phase13-libfs-tests`",
+    "ready_next `phase13-libfs-addressability-helper`",
+    "generic_check_addressable()",
     "phase13-libfs-dcache-dir-close-release-bookkeeping",
     "phase13-libfs-simple-open-private-data-planning",
     "phase13-libfs-dcache-cursor-helpers",
@@ -153,6 +159,14 @@ def _check_repo(root: Path) -> list[str]:
     }:
         missing.append("manifest:blocked_gap_set")
 
+    ready_next_ids = {
+        gap.get("id")
+        for gap in gaps
+        if isinstance(gap, dict) and gap.get("status") == "ready_next"
+    }
+    if ready_next_ids != {"phase13-libfs-addressability-helper"}:
+        missing.append("manifest:ready_next_gap_set")
+
     landed_ids = {
         gap.get("id")
         for gap in gaps
@@ -213,6 +227,7 @@ def _run_self_test() -> int:
                 {"id": "phase13-libfs-tests", "status": "starter_landed"},
                 {"id": "phase13-libfs-dcache-dir-close-release-bookkeeping", "status": "starter_landed"},
                 {"id": "phase13-libfs-simple-open-private-data-planning", "status": "starter_landed"},
+                {"id": "phase13-libfs-addressability-helper", "status": "ready_next"},
                 {"id": "phase13-libfs-dcache-cursor-helpers", "status": "blocked_on_vfs_state"},
                 {"id": "phase13-libfs-inode-and-pseudofs-lifecycle", "status": "blocked_on_vfs_state"},
             ],
