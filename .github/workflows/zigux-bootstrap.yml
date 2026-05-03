@@ -274,6 +274,9 @@ jobs:
       - name: Run Phase 6 leaf helper tests
         run: zig build test --build-file zigux/tests/phase6_build.zig --summary all
 
+      - name: Run Phase 6 perf gates
+        run: make -C zigux phase6-perf
+
       - name: Self-test Phase 7 runtime validator
         run: python3 scripts/zigux/validate-phase7.py --self-test
 
