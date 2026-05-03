@@ -137,6 +137,9 @@ TEXT_MARKERS = {
         "sample-only blocked Phase 9 pilot",
         "bounded `samples/zigux/runtime_trace_events_loader.zig` scaffold is shipped now",
         "- `samples/zigux/runtime_trace_events_loader.zig`",
+        "verify the shared docs still keep string-helper evidence in Phase 7 instead of `samples/zigux/`:",
+        "verify the shared docs still keep cmdline evidence in Phase 7 instead of `samples/zigux/`:",
+        "python3 scripts/zigux/validate-phase7.py",
     ],
     "zigux/tests/phase5_build.zig": [
         '../../samples/zigux/bytestream_fifo.zig',
@@ -498,6 +501,21 @@ def run_self_test() -> int:
         copy_tree(ROOT, tmp_root)
         sample_root = tmp_root / "samples/zigux/README.md"
         text = sample_root.read_text(encoding="utf-8").replace(
+            "python3 scripts/zigux/validate-phase7.py",
+            "python3 scripts/zigux/validate-phase7-phase5.py",
+            1,
+        )
+        sample_root.write_text(text, encoding="utf-8")
+        missing = validate_phase5(tmp_root)
+        if missing["ok"] or "samples/zigux/README.md:missing:python3 scripts/zigux/validate-phase7.py" not in missing["missing"]:
+            print("PHASE5_VALIDATOR_SELF_TEST=fail")
+            print("PHASE5_VALIDATOR_SELF_TEST_REASON=phase7-boundary-validation-gap")
+            return 1
+
+        tmp_root = Path(tmp)
+        copy_tree(ROOT, tmp_root)
+        sample_root = tmp_root / "samples/zigux/README.md"
+        text = sample_root.read_text(encoding="utf-8").replace(
             "zig test samples/zigux/kretprobe_example.zig",
             "zig test samples/zigux/kretprobe_review.zig",
             1,
@@ -615,7 +633,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE5_VALIDATOR_SELF_TEST=pass")
-    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=13")
+    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
