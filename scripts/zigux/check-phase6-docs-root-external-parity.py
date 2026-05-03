@@ -56,6 +56,14 @@ REQUIRED_MAKEFILE_LINES = [
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-docs-root-external-parity.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-docs-root-external-parity.py",
 ]
+REQUIRED_FILE_COUNT = 5 + len(REQUIRED_SCRIPT_PATHS)
+REQUIRED_LINE_COUNT = (
+    1
+    + len(REQUIRED_SCRIPTS_README_LINES)
+    + len(REQUIRED_TESTS_README_LINES)
+    + len(REQUIRED_MANIFEST_EXACT_CHECKS)
+    + len(REQUIRED_MAKEFILE_LINES)
+)
 
 
 def read_text(root: Path, relative_path: Path) -> str:
@@ -355,8 +363,8 @@ def main() -> int:
         return 1
 
     print("PHASE6_DOCS_ROOT_EXTERNAL_PARITY=pass")
-    print("PHASE6_DOCS_ROOT_EXTERNAL_PARITY_REQUIRED_FILE_COUNT=9")
-    print("PHASE6_DOCS_ROOT_EXTERNAL_PARITY_REQUIRED_LINE_COUNT=18")
+    print(f"PHASE6_DOCS_ROOT_EXTERNAL_PARITY_REQUIRED_FILE_COUNT={REQUIRED_FILE_COUNT}")
+    print(f"PHASE6_DOCS_ROOT_EXTERNAL_PARITY_REQUIRED_LINE_COUNT={REQUIRED_LINE_COUNT}")
     return 0
 
 
