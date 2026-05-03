@@ -46,6 +46,8 @@ EXPECTED_SURVEY_SUMMARY = {
     "preexisting_phase12_reviewability_gate_present": True,
     "preexisting_phase12_snapshot_checker_present": True,
     "preexisting_phase12_packet_checker_present": True,
+    "preexisting_phase12_focused_replay_checker_present": True,
+    "preexisting_phase12_focused_replay_build_present": True,
 }
 
 MANIFEST_ROLLBACK_CONTRACT = {
@@ -55,6 +57,8 @@ MANIFEST_ROLLBACK_CONTRACT = {
     "reversible_delivery_evidence": [
         "zigux/tests/phase12_libbpf_segments.zig",
         "zigux/tests/phase12_libbpf_reviewability.zig",
+        "zigux/tests/phase12_libbpf_only_build.zig",
+        "scripts/zigux/check-phase12-libbpf-focused-replay.py",
         "Documentation/zigux/phase12-libbpf-segment-survey.md",
     ],
     "rollback_drill": [
@@ -592,6 +596,28 @@ def run_self_test() -> int:
         build_self_test_tree(root)
         manifest_path = root / TRACKED_PATHS[0]
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["survey_summary"]["preexisting_phase12_focused_replay_checker_present"] = False
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        missing = check_packet(root)
+        if "manifest:survey_summary:preexisting_phase12_focused_replay_checker_present" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:survey_summary_focused_replay_checker_detection")
+
+        build_self_test_tree(root)
+        manifest_path = root / TRACKED_PATHS[0]
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["rollback_contract"]["reversible_delivery_evidence"] = [
+            item
+            for item in manifest["rollback_contract"]["reversible_delivery_evidence"]
+            if item != "zigux/tests/phase12_libbpf_only_build.zig"
+        ]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        missing = check_packet(root)
+        if "manifest:rollback_contract:reversible_delivery_evidence" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:reversible_delivery_evidence_detection")
+
+        build_self_test_tree(root)
+        manifest_path = root / TRACKED_PATHS[0]
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["rollback_contract"]["rollback_drill"] = [
             item
             for item in manifest["rollback_contract"]["rollback_drill"]
@@ -790,7 +816,7 @@ def run_self_test() -> int:
             raise SystemExit("phase12-libbpf-packet:self-test:reviewability_marker_detection")
 
         print("PHASE12_LIBBPF_PACKET_SELF_TEST=pass")
-        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=47")
+        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=49")
     return 0
 
 
