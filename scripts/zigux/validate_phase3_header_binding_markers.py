@@ -262,6 +262,16 @@ def run_self_test() -> int:
         issues = validate_header_binding_markers(root)
         assert f"header-binding-marker: scripts/zigux/validate-phase3-export-uapi-survey.py missing {export_uapi_survey_marker}" in issues
 
+        abi_slice_marker = HEADER_BINDING_MARKERS["Documentation/zigux/phase3-abi-slice.md"][0]
+        abi_slice_doc = root / "Documentation/zigux/phase3-abi-slice.md"
+        abi_slice_doc.write_text(
+            abi_slice_doc.read_text(encoding="utf-8").replace(abi_slice_marker + "\n", "", 1),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate_header_binding_markers(root)
+        assert f"header-binding-marker: Documentation/zigux/phase3-abi-slice.md missing {abi_slice_marker}" in issues
+
         manifest_marker = HEADER_BINDING_MARKERS["zigux/tests/fixtures/phase3_abi_manifest.json"][3]
         manifest_file = root / "zigux/tests/fixtures/phase3_abi_manifest.json"
         manifest_file.write_text(
