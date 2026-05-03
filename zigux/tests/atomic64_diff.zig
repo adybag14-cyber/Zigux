@@ -5,6 +5,7 @@ const runtime_atomic64_diff_source = @embedFile("runtime_atomic64_diff.zig");
 const phase4_runtime_atomic64_manifest_source = @embedFile("phase4_runtime_atomic64_diff_manifest.json");
 const phase4_build_source = @embedFile("phase4_build.zig");
 const phase4_makefile_source = @embedFile("../Makefile");
+const phase4_workflow_source = @embedFile("../../.github/workflows/zigux-bootstrap.yml");
 const phase9_build_source = @embedFile("phase9_build.zig");
 const validate_phase4_source = @embedFile("../../scripts/zigux/validate-phase4.py");
 const phase4_gate_evidence_source = @embedFile("../../Documentation/zigux/phase4-gate-evidence.md");
@@ -54,6 +55,10 @@ fn countOccurrences(haystack: []const u8, needle: []const u8) usize {
     return count;
 }
 
+fn expectSingleOccurrence(haystack: []const u8, needle: []const u8) !void {
+    try std.testing.expectEqual(@as(usize, 1), countOccurrences(haystack, needle));
+}
+
 fn expectRuntimeCaseGroupCardinality(
     group_header: []const u8,
     loop_header: []const u8,
@@ -97,6 +102,10 @@ fn expectPhase4BuildMarker(marker: []const u8) !void {
 
 fn expectPhase4MakefileMarker(marker: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, phase4_makefile_source, marker) != null);
+}
+
+fn expectPhase4WorkflowMarker(marker: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, phase4_workflow_source, marker) != null);
 }
 
 fn expectPhase9BuildMarker(marker: []const u8) !void {
@@ -185,6 +194,32 @@ test "atomic64 diff wrapper checks the published phase4 make entrypoints directl
     try expectPhase4MakefileMarker(
         "$(ZIG) build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig",
     );
+}
+
+test "atomic64 diff wrapper keeps standalone phase4 validator workflow evidence explicit" {
+    try expectPhase4WorkflowMarker("Validate Phase 4 diff gates");
+    try expectPhase4WorkflowMarker("Self-test Phase 4 validator");
+    try expectPhase4WorkflowMarker("Run Phase 4 diff tests");
+    try expectPhase4WorkflowMarker("run: make -C zigux phase4-validate");
+    try expectPhase4WorkflowMarker("run: python3 scripts/zigux/validate-phase4.py --self-test");
+    try expectPhase4WorkflowMarker("run: make -C zigux phase4-test");
+    try expectSingleOccurrence(phase4_workflow_source, "run: make -C zigux phase4-validate");
+    try expectSingleOccurrence(
+        phase4_workflow_source,
+        "run: python3 scripts/zigux/validate-phase4.py --self-test",
+    );
+    try expectSingleOccurrence(phase4_workflow_source, "run: make -C zigux phase4-test");
+    try expectSingleOccurrence(
+        phase4_makefile_source,
+        "scripts/zigux/validate-phase4.py --self-test",
+    );
+    try expectValidatorMarker("print('PHASE4_VALIDATION=pass')");
+    try expectValidatorMarker("print(f'PHASE4_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}')");
+    try expectValidatorMarker("print(f'PHASE4_REQUIRED_MARKER_COUNT={required_marker_count()}')");
+    try expectGateEvidenceMarker("`PHASE4_VALIDATOR_SELF_TEST=pass`");
+    try expectGateEvidenceMarker("`PHASE4_VALIDATION=pass`");
+    try expectGateEvidenceMarker("`PHASE4_REQUIRED_FILE_COUNT=23`");
+    try expectGateEvidenceMarker("`PHASE4_REQUIRED_MARKER_COUNT=236`");
 }
 
 test "atomic64 diff wrapper keeps the dedicated phase4 gate-evidence checker explicit" {
