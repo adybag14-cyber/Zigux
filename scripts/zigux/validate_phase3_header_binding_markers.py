@@ -5,7 +5,8 @@ import tempfile
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[2]
+_HERE = Path(__file__).resolve()
+ROOT = _HERE.parents[2] if len(_HERE.parents) > 2 else _HERE.parent
 
 HEADER_BINDING_MARKERS = {
     "include/zigux/abi.h": (
@@ -257,6 +258,26 @@ def run_self_test() -> int:
         )
         issues = validate_header_binding_markers(root)
         assert f"header-binding-marker: scripts/zigux/check-phase3-abi-layout-packet.py missing {layout_packet_marker}" in issues
+
+        linux_header_marker = HEADER_BINDING_MARKERS["include/linux/zigux.h"][1]
+        linux_header = root / "include/linux/zigux.h"
+        linux_header.write_text(
+            linux_header.read_text(encoding="utf-8").replace(linux_header_marker + "\n", "", 1),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate_header_binding_markers(root)
+        assert f"header-binding-marker: include/linux/zigux.h missing {linux_header_marker}" in issues
+
+        shared_validator_marker = HEADER_BINDING_MARKERS["scripts/zigux/validate-phase3.py"][1]
+        shared_validator = root / "scripts/zigux/validate-phase3.py"
+        shared_validator.write_text(
+            shared_validator.read_text(encoding="utf-8").replace(shared_validator_marker + "\n", "", 1),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate_header_binding_markers(root)
+        assert f"header-binding-marker: scripts/zigux/validate-phase3.py missing {shared_validator_marker}" in issues
 
     print("PHASE3_HEADER_BINDING_MARKER_SELF_TEST=pass")
     return 0
