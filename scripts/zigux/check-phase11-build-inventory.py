@@ -289,6 +289,11 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const hvc_console_sysrq_module = b.createModule(.{
+        .root_source_file = b.path(\"../../drivers/tty/hvc/hvc_console_sysrq.zig\"),
+        .target = target,
+        .optimize = optimize,
+    });
     const phase11_hvc_console_modem_control_split_module = b.createModule(.{
         .root_source_file = b.path(\"phase11_hvc_console_modem_control_split.zig\"),
         .target = target,
@@ -301,6 +306,7 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     phase11_hvc_console_poll_retry_split_module.addImport(\"hvc_console\", hvc_console_module);
+    phase11_hvc_console_poll_retry_split_module.addImport(\"hvc_console_sysrq\", hvc_console_sysrq_module);
 
     const phase11_dw_wdt_suspend_resume_tests = b.addTest(.{
         .name = \"phase11-dw-wdt-suspend-resume-tests\",
@@ -372,6 +378,7 @@ pub fn build(b: *std.Build) void {
             {"module": "phase11_dw_wdt_suspend_resume_module", "path": "phase11_dw_wdt_suspend_resume.zig"},
             {"module": "phase11_dw_wdt_remove_idle_split_module", "path": "phase11_dw_wdt_remove_idle_split.zig"},
             {"module": "hvc_console_module", "path": "../../drivers/tty/hvc/hvc_console.zig"},
+            {"module": "hvc_console_sysrq_module", "path": "../../drivers/tty/hvc/hvc_console_sysrq.zig"},
             {"module": "phase11_hvc_console_modem_control_split_module", "path": "phase11_hvc_console_modem_control_split.zig"},
             {"module": "phase11_hvc_console_poll_retry_split_module", "path": "phase11_hvc_console_poll_retry_split.zig"},
         ],
@@ -380,6 +387,7 @@ pub fn build(b: *std.Build) void {
             {"module": "phase11_dw_wdt_remove_idle_split_module", "import_name": "dw_wdt", "imported_module": "dw_wdt_module"},
             {"module": "phase11_hvc_console_modem_control_split_module", "import_name": "hvc_console", "imported_module": "hvc_console_module"},
             {"module": "phase11_hvc_console_poll_retry_split_module", "import_name": "hvc_console", "imported_module": "hvc_console_module"},
+            {"module": "phase11_hvc_console_poll_retry_split_module", "import_name": "hvc_console_sysrq", "imported_module": "hvc_console_sysrq_module"},
         ],
         "test_root_modules": [
             {"test": "phase11-dw-wdt-suspend-resume-tests", "root_module": "phase11_dw_wdt_suspend_resume_module"},
@@ -405,6 +413,7 @@ pub fn build(b: *std.Build) void {
     for rel_path, content in {
         "drivers/watchdog/dw_wdt.zig": "// self-test placeholder\n",
         "drivers/tty/hvc/hvc_console.zig": "// self-test placeholder\n",
+        "drivers/tty/hvc/hvc_console_sysrq.zig": "// self-test placeholder\n",
         "zigux/tests/phase11_dw_wdt_suspend_resume.zig": "    try std.testing.expect(summary.resume_preserves_timeout_programming);\n",
         "zigux/tests/phase11_dw_wdt_remove_idle_split.zig": "    try std.testing.expect(reset_available_summary.remove_clears_interrupt_status);\n",
         "zigux/tests/phase11_hvc_console_modem_control_split.zig": "    try std.testing.expectEqual(@as(c_int, -7), summary.tiocmset_result);\n",
@@ -467,8 +476,19 @@ def run_self_test() -> int:
         )
         write_text(hvc_poll_retry, hvc_poll_retry_backup)
 
+        hvc_sysrq = tmp_root / "drivers/tty/hvc/hvc_console_sysrq.zig"
+        hvc_sysrq_backup = hvc_sysrq.read_text(encoding="utf-8")
+        hvc_sysrq.unlink()
+        expect_stdout(
+            "missing_hvc_sysrq_module_root",
+            run_checker(tmp_root),
+            "hvc_console_sysrq_module:../../drivers/tty/hvc/hvc_console_sysrq.zig",
+        )
+        write_text(hvc_sysrq, hvc_sysrq_backup)
+
         build_path = tmp_root / "zigux/tests/phase11_build.zig"
         build_backup = build_path.read_text(encoding="utf-8")
+        build_path.writeText = None
         build_path.write_text(
             build_backup.replace(
                 "    test_step.dependOn(&run_phase11_hvc_console_poll_retry_split_tests.step);\n",
@@ -548,7 +568,7 @@ def run_self_test() -> int:
         fixture_path.write_text(fixture_backup, encoding="utf-8")
 
     print("PHASE11_BUILD_INVENTORY_SELF_TEST=pass")
-    print("PHASE11_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=10")
+    print("PHASE11_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
