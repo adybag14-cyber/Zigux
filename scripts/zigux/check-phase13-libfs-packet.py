@@ -19,6 +19,7 @@ REQUIRED_FILES = [
     "zigux/Makefile",
     "Documentation/zigux/phase13-libfs-slice.md",
     "Documentation/zigux/phase13-libfs-survey.md",
+    "Documentation/zigux/phase13-roadmap-traceability.md",
 ]
 
 LIBFS_MARKERS = [
@@ -59,6 +60,15 @@ SLICE_MARKERS = [
     "The next honest bounded step in this same lane is to leave the remaining cursor-backed helpers plus inode and pseudo-filesystem lifecycle work blocked on live VFS state",
 ]
 
+TRACEABILITY_MARKERS = [
+    "### `fs/libfs.c`",
+    "implementation anchor: `fs/libfs.zig`",
+    "phase13-libfs-dcache-dir-close-release-bookkeeping",
+    "phase13-libfs-simple-open-private-data-planning",
+    "phase13-libfs-dcache-cursor-helpers",
+    "phase13-libfs-inode-and-pseudofs-lifecycle",
+]
+
 MAKE_MARKERS = [
     "phase13-validate:",
     "scripts/zigux/check-phase13-libfs-packet.py --self-test",
@@ -90,6 +100,7 @@ def _check_repo(root: Path) -> list[str]:
     reviewability_text = _read(root / "zigux/tests/phase13_libfs_reviewability.zig")
     survey_text = _read(root / "Documentation/zigux/phase13-libfs-survey.md")
     slice_text = _read(root / "Documentation/zigux/phase13-libfs-slice.md")
+    traceability_text = _read(root / "Documentation/zigux/phase13-roadmap-traceability.md")
     make_text = _read(root / "zigux/Makefile")
 
     _require_markers(missing, "libfs", libfs_text, LIBFS_MARKERS)
@@ -97,6 +108,7 @@ def _check_repo(root: Path) -> list[str]:
     _require_markers(missing, "reviewability", reviewability_text, REVIEWABILITY_MARKERS)
     _require_markers(missing, "survey", survey_text, SURVEY_MARKERS)
     _require_markers(missing, "slice", slice_text, SLICE_MARKERS)
+    _require_markers(missing, "traceability", traceability_text, TRACEABILITY_MARKERS)
     _require_markers(missing, "make", make_text, MAKE_MARKERS)
 
     manifest = json.loads(_read(root / "zigux/tests/phase13_libfs_manifest.json"))
@@ -114,6 +126,8 @@ def _check_repo(root: Path) -> list[str]:
             missing.append("survey:surveyed_commit")
         if surveyed_commit not in reviewability_text:
             missing.append("reviewability:surveyed_commit")
+        if surveyed_commit not in traceability_text:
+            missing.append("traceability:surveyed_commit")
 
     gaps = manifest.get("gaps")
     if not isinstance(gaps, list):
@@ -169,6 +183,10 @@ def _run_self_test() -> int:
             encoding="utf-8",
         )
         (root / "Documentation/zigux/phase13-libfs-slice.md").write_text("\n".join(SLICE_MARKERS) + "\n", encoding="utf-8")
+        (root / "Documentation/zigux/phase13-roadmap-traceability.md").write_text(
+            f"manifest `surveyed_commit`: `{surveyed_commit}`\n" + "\n".join(TRACEABILITY_MARKERS) + "\n",
+            encoding="utf-8",
+        )
         (root / "zigux/Makefile").write_text("\n".join(MAKE_MARKERS) + "\n", encoding="utf-8")
         (root / "zigux/tests/phase13_build.zig").write_text("placeholder\n", encoding="utf-8")
         manifest = {
@@ -221,7 +239,7 @@ def main() -> int:
     print(f"PHASE13_LIBFS_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE13_LIBFS_MARKER_COUNT="
-        f"{len(LIBFS_MARKERS) + len(TEST_MARKERS) + len(REVIEWABILITY_MARKERS) + len(SURVEY_MARKERS) + len(SLICE_MARKERS) + len(MAKE_MARKERS)}"
+        f"{len(LIBFS_MARKERS) + len(TEST_MARKERS) + len(REVIEWABILITY_MARKERS) + len(SURVEY_MARKERS) + len(SLICE_MARKERS) + len(TRACEABILITY_MARKERS) + len(MAKE_MARKERS)}"
     )
     return 0
 
