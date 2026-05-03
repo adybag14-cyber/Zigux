@@ -65,6 +65,7 @@ This focused ledger records the current closure-evidence bundle for the active P
 - `PHASE10_LEDGER_EXACT_CHECK_7=make -C zigux phase10`
 - `PHASE10_LEDGER_NEXT_STEP=leave_parked_unless_phase10-virtio-input-registration-lifecycle_or_phase10-mmio-lifecycle-and-irq-paths_splits_smaller`
 - `PHASE10_LEDGER_BLOCKERS=phase10-virtio-input-registration-lifecycle,phase10-mmio-lifecycle-and-irq-paths`
+- `PHASE10_LEDGER_LANDED_CORE_HELPERS=phase10-config-generation-summary-helper,phase10-config-delivery-disposition-helper,phase10-config-driver-toggle-guard-helper`
 - `PHASE10_LEDGER_LANDED_MMIO_HELPERS=phase10-mmio-register-window-helper,phase10-mmio-queue-register-helper,phase10-mmio-queue-notify-helper,phase10-mmio-queue-address-helper,phase10-mmio-config-window-helper,phase10-mmio-config-write-helper,phase10-mmio-interrupt-ack-helper`
 
 This ledger stays intentionally narrow. It records the roadmap-backed closure packet and the current parked-next-step posture without claiming queue setup, reset, IRQ parity, DMA, probe or remove lifecycle, or input registration lifecycle parity.
@@ -74,6 +75,8 @@ The roadmap-facing scoreboard is mirrored here from the shared closure manifest 
 The ledger now also mirrors the exact supporting evidence lists for each roadmap-scoreboard row, so reviewers can confirm the current virtqueue, MMIO, lab-validation, and risky-transport claims directly from this tranche record instead of opening the JSON manifest just to recover those file families.
 
 The same manifest also carries the survey-provenance packet for the current closure bundle, so this ledger now publishes the exact lane ownership and inspected heads behind the live core, ring, input, and MMIO survey notes instead of leaving that tranche evidence implicit.
+
+The shared closure manifest now also keeps the landed core helper packet explicit: the core survey surface has advanced beyond the earlier config-summary pair and now includes the non-nestable `phase10-config-driver-toggle-guard-helper` beside `phase10-config-generation-summary-helper` and `phase10-config-delivery-disposition-helper`, so this ledger mirrors that three-rung core packet instead of leaving the newest core-local parity step visible only in the manifest-backed survey files.
 
 The same closure packet also stays reviewable through the dedicated core lab gate plus the dedicated core, ring, input, and MMIO survey gates, and now also the focused multitouch-preflight plus queue-isolation replays, so this ledger names the parked queue-handling and ready-state harness surface explicitly instead of letting those two replays live only inside the shared build wiring.
 
