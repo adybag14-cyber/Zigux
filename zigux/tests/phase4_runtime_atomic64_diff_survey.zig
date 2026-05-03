@@ -71,6 +71,34 @@ fn countLines(text: []const u8) usize {
     return if (text[text.len - 1] == '\n') lines else lines + 1;
 }
 
+fn lineContaining(text: []const u8, marker: []const u8) ?[]const u8 {
+    const start = std.mem.indexOf(u8, text, marker) orelse return null;
+    const line_start = std.mem.lastIndexOfScalar(u8, text[0..start], '\n');
+    const slice_start = if (line_start) |index| index + 1 else 0;
+    const line_end = std.mem.indexOfScalarPos(u8, text, start, '\n') orelse text.len;
+    return text[slice_start..line_end];
+}
+
+fn expectLineContains(line: []const u8, marker: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, line, marker) != null);
+}
+
+fn expectAtomic64MatrixGovernanceRow(phase4_validation_matrix: []const u8) !void {
+    const row = lineContaining(
+        phase4_validation_matrix,
+        "| `zigux/tests/atomic64_diff.zig` |",
+    ) orelse return error.MissingAtomic64MatrixGovernanceRow;
+
+    try expectLineContains(row, "| `ABI and Runtime Team` | `ABI and Runtime Team` |");
+    try expectLineContains(row, "`make -C zigux phase4-runtime-atomic64-diff`");
+    try expectLineContains(
+        row,
+        "`zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig`",
+    );
+    try expectLineContains(row, "`threshold_pending_until_runtime_atomic64_scope_widens`");
+    try expectLineContains(row, "`lib/atomic64_test.c` stays the source of truth");
+}
+
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
         std.mem.eql(u8, status, "ready_next") or
@@ -353,6 +381,7 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate, 
     };
 
     try std.testing.expectEqualDeep(live_summary, manifest.survey_summary);
+    try expectAtomic64MatrixGovernanceRow(phase4_validation_matrix);
     try std.testing.expect(
         std.mem.indexOf(
             u8,
