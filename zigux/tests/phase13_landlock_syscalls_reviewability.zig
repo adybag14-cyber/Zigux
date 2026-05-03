@@ -123,7 +123,8 @@ test "phase13 landlock syscalls reviewability ties helper, survey, manifest, and
     try expectContains(survey_note, "PHASE13_SLICE=landlock-syscalls-helper-pure-handoff-boundary");
     try expectContains(survey_note, "PHASE13_SURVEYED_COMMIT=9c17b0790799d8240ef9f964903f5ce2db64af89");
     try expectContains(survey_note, "`zigux/tests/phase13_landlock_syscalls_reviewability.zig`");
-    try expectContains(survey_note, "dedicated reviewability gate now ties the helper surface, manifest, survey note, and shared Phase 13 build wiring together");
+    try expectContains(survey_note, "`zigux/tests/phase13_landlock_ruleset_fops_sync.zig`");
+    try expectContains(survey_note, "dedicated reviewability gate now ties the helper surface, manifest, survey note, the same-family `phase13_landlock_ruleset_fops_sync.zig` evidence, and shared Phase 13 build wiring together");
     try expectContains(survey_note, "landed `phase13-landlock-syscalls-reviewability-gate`");
     try expectContains(survey_note, "manifest-backed reviewability gate");
 
@@ -135,7 +136,7 @@ test "phase13 landlock syscalls reviewability ties helper, survey, manifest, and
     );
     defer std.testing.allocator.free(traceability_note);
 
-    try expectContains(traceability_note, "future docs-root, release-note, or checklist updates should keep the dedicated `zigux/tests/phase13_landlock_syscalls_reviewability.zig` gate visible together with the roadmap-adjacent notifier packet, including `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, `include/zigux/notifier_abi.h`, and `zigux/helpers/notifier_chain_view.zig`, while continuing to describe Phase 13 closure through the four manifest-backed roadmap anchors only");
+    try expectContains(traceability_note, "future docs-root, release-note, or checklist updates should keep the dedicated `zigux/tests/phase13_landlock_syscalls_reviewability.zig` gate and the same-family `zigux/tests/phase13_landlock_ruleset_fops_sync.zig` guard visible together with the roadmap-adjacent notifier packet, including `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, `include/zigux/notifier_abi.h`, and `zigux/helpers/notifier_chain_view.zig`, while continuing to describe Phase 13 closure through the four manifest-backed roadmap anchors only");
 
     const build_file = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
@@ -149,4 +150,6 @@ test "phase13 landlock syscalls reviewability ties helper, survey, manifest, and
     try expectContains(build_file, "phase13-landlock-syscalls-reviewability-tests");
     try expectContains(build_file, "phase13_landlock_syscalls_reviewability_module.addImport(\"landlock_syscalls\", landlock_syscalls_module);");
     try expectContains(build_file, "test_step.dependOn(&run_phase13_landlock_syscalls_reviewability_tests.step);");
+    try expectContains(build_file, "phase13_landlock_ruleset_fops_sync.zig");
+    try expectContains(build_file, "phase13-landlock-ruleset-fops-sync-tests");
 }
