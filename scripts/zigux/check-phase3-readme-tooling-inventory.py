@@ -17,8 +17,9 @@ STATIC_REQUIRED_HELPER_ENTRIES = (
     "check-phase2-kconfig-selftest-alignment.py",
     "check-phase6-base64-catalog-evidence.py",
     "check-phase7-argv-split-parity.py",
-    "check-phase11-shared-replay-contract.py",
 )
+PHASE11_REQUIRED_HELPER_ENTRIES = ("check-phase11-shared-replay-contract.py",)
+PHASE11_VALIDATE_TARGET = "phase11-validate:"
 PHASE13_VALIDATE_TARGET = "phase13-validate:"
 REQUIRED_PHASE3_FLOW_SNIPPETS = (
     "`validate-phase3.py` is the validator-first entrypoint for the shared Phase 3 ABI and interop packet, and `make -C zigux phase3-validate` plus the bootstrap workflow replay that same route before the broader build-backed or survey-backed checks run.",
@@ -72,7 +73,7 @@ def _canonical_readme_entries(root: Path) -> tuple[list[str], list[str]]:
     return _ordered_unique(basenames), issues
 
 
-def _makefile_phase13_helper_entries(root: Path) -> tuple[list[str], list[str]]:
+def _makefile_target_helper_entries(root: Path, target_name: str) -> tuple[list[str], list[str]]:
     makefile_path = root / MAKEFILE_REL
     try:
         makefile = makefile_path.read_text(encoding="utf-8")
@@ -84,7 +85,7 @@ def _makefile_phase13_helper_entries(root: Path) -> tuple[list[str], list[str]]:
     for line in makefile.splitlines():
         stripped = line.strip()
         if not in_target:
-            if stripped == PHASE13_VALIDATE_TARGET:
+            if stripped == target_name:
                 in_target = True
             continue
         if stripped.endswith(":") and not line.startswith((" ", "\t")):
@@ -96,8 +97,24 @@ def _makefile_phase13_helper_entries(root: Path) -> tuple[list[str], list[str]]:
             entries.append(Path(rel).name)
 
     if not entries:
-        return [], [f"missing_makefile_target_entries:{PHASE13_VALIDATE_TARGET}"]
+        return [], [f"missing_makefile_target_entries:{target_name}"]
     return _ordered_unique(entries), []
+
+
+def _makefile_named_helper_entries(
+    root: Path,
+    target_name: str,
+    required_entries: tuple[str, ...],
+) -> tuple[list[str], list[str]]:
+    entries, issues = _makefile_target_helper_entries(root, target_name)
+    if issues:
+        return [], issues
+
+    filtered = [basename for basename in entries if basename in required_entries]
+    for basename in required_entries:
+        if basename not in filtered:
+            issues.append(f"missing_makefile_target_entry:{target_name}:{basename}")
+    return filtered, issues
 
 
 def _helper_section_entries(readme: str) -> tuple[list[str], list[str]]:
@@ -169,9 +186,20 @@ def validate(root: Path) -> list[str]:
         return [f"missing_readme:{README_REL}"]
 
     phase3_required_entries, issues = _canonical_readme_entries(root)
-    phase13_required_entries, phase13_issues = _makefile_phase13_helper_entries(root)
+    phase11_required_entries, phase11_issues = _makefile_named_helper_entries(
+        root,
+        PHASE11_VALIDATE_TARGET,
+        PHASE11_REQUIRED_HELPER_ENTRIES,
+    )
+    phase13_required_entries, phase13_issues = _makefile_target_helper_entries(
+        root,
+        PHASE13_VALIDATE_TARGET,
+    )
+    issues.extend(phase11_issues)
     issues.extend(phase13_issues)
-    required_entries = _ordered_unique(phase3_required_entries + phase13_required_entries)
+    required_entries = _ordered_unique(
+        phase3_required_entries + phase11_required_entries + phase13_required_entries
+    )
     readme_entries, section_issues = _helper_section_entries(readme)
     issues.extend(section_issues)
     _require_snippets(readme, REQUIRED_PHASE3_FLOW_SNIPPETS, "missing_phase3_flow_snippet", issues)
@@ -183,12 +211,10 @@ def validate(root: Path) -> list[str]:
         issues,
     )
 
-    required_set = set(required_entries)
     phase3_required_set = set(phase3_required_entries)
     phase13_required_set = set(phase13_required_entries)
     readme_set = set(readme_entries)
 
-    missing_entries: list[str] = []
     missing_phase3_entries: list[str] = []
     missing_phase13_entries: list[str] = []
 
@@ -197,7 +223,6 @@ def validate(root: Path) -> list[str]:
         if not (root / rel).exists():
             issues.append(f"missing_repo_file:{rel}")
         if basename not in readme_set:
-            missing_entries.append(basename)
             issues.append(f"missing_readme_entry:{basename}")
             if basename in phase3_required_set:
                 missing_phase3_entries.append(basename)
@@ -233,6 +258,29 @@ def _fixture_phase3_flow() -> str:
     )
 
 
+def _fixture_makefile() -> str:
+    return "\n".join(
+        (
+            "phase11-validate:",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py",
+            "",
+            "phase13-validate:",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-libfs-packet.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-libfs-packet.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-notifier-packet.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-notifier-packet.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py",
+            "",
+            "phase13-test:",
+            "\t@true",
+            "",
+        )
+    )
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_readme_tooling_inventory_") as tmp_dir:
         root = Path(tmp_dir) / "repo"
@@ -247,13 +295,16 @@ def run_self_test() -> int:
         static_helper_rels = tuple(
             f"scripts/zigux/{basename}" for basename in STATIC_REQUIRED_HELPER_ENTRIES
         )
+        phase11_helper_rels = ("scripts/zigux/check-phase11-shared-replay-contract.py",)
         phase13_helper_rels = (
             "scripts/zigux/check-phase13-libfs-packet.py",
             "scripts/zigux/check-phase13-devres-packet.py",
             "scripts/zigux/check-phase13-notifier-packet.py",
             "scripts/zigux/validate-phase13-release.py",
         )
-        required_rels = tooling_packet_rels + static_helper_rels + phase13_helper_rels
+        required_rels = (
+            tooling_packet_rels + static_helper_rels + phase11_helper_rels + phase13_helper_rels
+        )
 
         tooling_packet_script = "\n".join(
             (
@@ -268,25 +319,7 @@ def run_self_test() -> int:
             )
         )
         _write(root / TOOLING_PACKET_SCRIPT_REL, tooling_packet_script)
-        _write(
-            root / MAKEFILE_REL,
-            "\n".join(
-                (
-                    "phase13-validate:",
-                    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-libfs-packet.py --self-test",
-                    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-libfs-packet.py",
-                    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py --self-test",
-                    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py",
-                    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-notifier-packet.py --self-test",
-                    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-notifier-packet.py",
-                    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py",
-                    "",
-                    "phase13-test:",
-                    "\t@true",
-                    "",
-                )
-            ),
-        )
+        _write(root / MAKEFILE_REL, _fixture_makefile())
 
         for rel in required_rels:
             if rel == TOOLING_PACKET_SCRIPT_REL:
@@ -314,6 +347,26 @@ def run_self_test() -> int:
             raise SystemExit(
                 "phase3-readme-tooling-inventory-self-test:baseline_failed:" + ",".join(issues)
             )
+
+        _write(
+            root / MAKEFILE_REL,
+            "\n".join(
+                (
+                    "phase11-validate:",
+                    "\t@true",
+                    "",
+                    _fixture_makefile(),
+                )
+            ),
+        )
+        issues = validate(root)
+        expected = [f"missing_makefile_target_entries:{PHASE11_VALIDATE_TARGET}"]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-readme-tooling-inventory-self-test:missing_phase11_makefile_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+        _write(root / MAKEFILE_REL, _fixture_makefile())
 
         _write(
             root / README_REL,
@@ -397,6 +450,31 @@ def run_self_test() -> int:
                     "# scripts/zigux",
                     "",
                     "Current bootstrap helpers",
+                    *[
+                        f"- `{Path(rel).name}`"
+                        for rel in required_rels
+                        if rel != "scripts/zigux/check-phase2-kconfig-selftest-alignment.py"
+                    ],
+                    "",
+                    _fixture_phase3_flow(),
+                )
+            ),
+        )
+        issues = validate(root)
+        expected = ["missing_readme_entry:check-phase2-kconfig-selftest-alignment.py"]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-readme-tooling-inventory-self-test:missing_phase2_readme_entry_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+        _write(
+            root / README_REL,
+            "\n".join(
+                (
+                    "# scripts/zigux",
+                    "",
+                    "Current bootstrap helpers",
                     f"- `{Path(tooling_packet_rels[1]).name}`",
                     f"- `{Path(tooling_packet_rels[0]).name}`",
                     *[f"- `{Path(rel).name}`" for rel in required_rels[2:]],
@@ -421,7 +499,10 @@ def run_self_test() -> int:
         )
         reordered_helper_lines = "\n".join(
             f"- `{Path(rel).name}`"
-            for rel in tooling_packet_rels + static_helper_rels + reordered_phase13_helper_rels
+            for rel in tooling_packet_rels
+            + static_helper_rels
+            + phase11_helper_rels
+            + reordered_phase13_helper_rels
         )
         _write(
             root / README_REL,
@@ -566,7 +647,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
-    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=10")
+    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
@@ -590,7 +671,16 @@ def main() -> int:
 
     root = Path(args.root).resolve() if args.root else ROOT
     phase3_required_entries, entry_issues = _canonical_readme_entries(root)
-    phase13_required_entries, phase13_issues = _makefile_phase13_helper_entries(root)
+    phase11_required_entries, phase11_issues = _makefile_named_helper_entries(
+        root,
+        PHASE11_VALIDATE_TARGET,
+        PHASE11_REQUIRED_HELPER_ENTRIES,
+    )
+    phase13_required_entries, phase13_issues = _makefile_target_helper_entries(
+        root,
+        PHASE13_VALIDATE_TARGET,
+    )
+    entry_issues.extend(phase11_issues)
     entry_issues.extend(phase13_issues)
     if entry_issues:
         print("PHASE3_README_TOOLING_INVENTORY=fail")
@@ -601,7 +691,7 @@ def main() -> int:
     print("PHASE3_README_TOOLING_INVENTORY=pass")
     print(
         "PHASE3_README_TOOLING_INVENTORY_ENTRY_COUNT="
-        f"{len(_ordered_unique(phase3_required_entries + phase13_required_entries))}"
+        f"{len(_ordered_unique(phase3_required_entries + phase11_required_entries + phase13_required_entries))}"
     )
     return 0
 
