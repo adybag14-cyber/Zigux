@@ -226,7 +226,7 @@ test "phase11 shared header parity manifest records the bounded layout checkpoin
             try std.testing.expectEqualStrings("zigux/tests/phase11_uapi_header_parity_survey.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "layout_assert") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "size, alignment, and field offsets") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "size, alignment, exact field types, and field offsets") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-hvc-console-winsize-layout-assert")) {
@@ -234,7 +234,8 @@ test "phase11 shared header parity manifest records the bounded layout checkpoin
             try std.testing.expectEqualStrings("zigux/tests/phase11_uapi_header_parity_survey.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "struct winsize") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "ws_row/ws_col/ws_xpixel/ws_ypixel offsets") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "exact field types") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "ws_row") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-phase3-interop-followup")) {
@@ -362,6 +363,7 @@ test "phase11 shared header parity survey keeps the header boundary explicit" {
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "layout_assert") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "size 40") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "alignment 4") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "exact `u32`, `u32`, and `[32]u8` field types") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "offsets 0, 4, and 8") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "watchdog_device") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "watchdog_ops") != null);
@@ -369,6 +371,7 @@ test "phase11 shared header parity survey keeps the header boundary explicit" {
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "struct winsize") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "size 8") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "alignment 2") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "exact `u16` field types") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "offsets 0, 2, 4, and 6") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "struct hvc_struct") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Phase 3 interop substrate") != null);
@@ -552,6 +555,9 @@ test "phase11 shared header parity survey keeps a bounded watchdog_info layout p
     comptime {
         layout_assert.assertSize(WatchdogInfoLayout, 40);
         layout_assert.assertAlign(WatchdogInfoLayout, 4);
+        layout_assert.assertFieldType(WatchdogInfoLayout, "options", u32);
+        layout_assert.assertFieldType(WatchdogInfoLayout, "firmware_version", u32);
+        layout_assert.assertFieldType(WatchdogInfoLayout, "identity", [32]u8);
         layout_assert.assertOffset(WatchdogInfoLayout, "options", 0);
         layout_assert.assertOffset(WatchdogInfoLayout, "firmware_version", 4);
         layout_assert.assertOffset(WatchdogInfoLayout, "identity", 8);
@@ -562,6 +568,10 @@ test "phase11 shared header parity survey keeps a bounded winsize layout proof" 
     comptime {
         layout_assert.assertSize(WinsizeLayout, 8);
         layout_assert.assertAlign(WinsizeLayout, 2);
+        layout_assert.assertFieldType(WinsizeLayout, "ws_row", u16);
+        layout_assert.assertFieldType(WinsizeLayout, "ws_col", u16);
+        layout_assert.assertFieldType(WinsizeLayout, "ws_xpixel", u16);
+        layout_assert.assertFieldType(WinsizeLayout, "ws_ypixel", u16);
         layout_assert.assertOffset(WinsizeLayout, "ws_row", 0);
         layout_assert.assertOffset(WinsizeLayout, "ws_col", 2);
         layout_assert.assertOffset(WinsizeLayout, "ws_xpixel", 4);
