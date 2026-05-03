@@ -231,6 +231,7 @@ MARKER_GROUPS = {
             "PHASE1_CLOSURE_GATE=python3 scripts/zigux/validate-phase1-closure.py",
             "PHASE1_CLOSURE_SELF_TEST_GATE=python3 scripts/zigux/validate-phase1-closure.py --self-test",
             "PHASE1_PARITY_SELF_TEST_GATE=python3 scripts/zigux/check-phase1-parity.py --self-test",
+            "PHASE1_BITMAP_TAIL_MASK_UNIT_REVIEW=bitmap tail-masked reduction helpers ignore out-of-range differences while preserving the in-range window for andBits, andNotBits, equal, intersects, and subset",
             "PHASE1_BITMAP_ZERO_BIT_UNIT_REVIEW=bitmap zero-length helper calls stay side-effect free so zero fill copy copyClearTail orBits xorBits scans and formatting leave caller-owned buffers untouched when nbits is zero",
             "PHASE1_FIND_BIT_MASK_UNIT_REVIEW=find_bit mask and sizing helpers keep Linux-style whole-word, partial-word, and wrapped-start boundaries reviewable without relying only on indirect scan coverage",
             "PHASE1_FIND_BIT_BOUNDARY_UNIT_REVIEW=find_bit empty and out-of-range scans return nbits for zero-length bitmaps, start-at-nbits searches, and fully set zero-bit windows that must not report past the declared range",
@@ -293,6 +294,8 @@ PHASE1_CLOSURE_PREFIX_COUNTS = {
 
 MANIFEST_EXPECTATIONS = {
     "tools/lib/bitmap.zig": {
+        "tail_mask_unit_test_anchor": 'tools/lib/bitmap.zig:test "bitmap tail-masked helpers ignore out-of-range differences"',
+        "tail_mask_unit_test_contract": "Direct Zig unit coverage keeps andBits(), andNotBits(), equal(), intersects(), and subset() aligned by masking out-of-range tail differences while preserving the declared in-range window.",
         "zero_bit_unit_test_anchor": 'tools/lib/bitmap.zig:test "bitmap zero-bit helpers stay explicit no-ops"',
         "zero_bit_unit_test_contract": "Direct Zig unit coverage keeps zero-length helper calls explicit and side-effect free so zero(), fill(), copy(), copyClearTail(), orBits(), xorBits(), scans, and formatting all leave caller-owned buffers untouched when nbits is zero.",
     },
@@ -533,6 +536,21 @@ def self_test() -> int:
             return 1
         write(root / "Documentation/zigux/phase1-closure.md", "\n".join(MARKER_GROUPS["phase1_closure"][1]) + "\n" + "\n".join(PHASE1_CLOSURE_PREFIX_COUNTS.keys()) + "\n")
 
+        closure_text = closure_path.read_text(encoding="utf-8")
+        closure_path.write_text(
+            closure_text.replace(
+                "PHASE1_BITMAP_TAIL_MASK_UNIT_REVIEW=bitmap tail-masked reduction helpers ignore out-of-range differences while preserving the in-range window for andBits, andNotBits, equal, intersects, and subset\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        code = os.spawnve(os.P_WAIT, sys.executable, [sys.executable, __file__], env)
+        if code == 0:
+            print("PHASE1_VALIDATOR_SELF_TEST=fail")
+            return 1
+        write(root / "Documentation/zigux/phase1-closure.md", "\n".join(MARKER_GROUPS["phase1_closure"][1]) + "\n" + "\n".join(PHASE1_CLOSURE_PREFIX_COUNTS.keys()) + "\n")
+
         manifest["helper_review_notes"]["tools/lib/find_bit.zig"]["tail_word_boundary_unit_test_anchor"] = "old anchor"
         write(root / "zigux/tests/fixtures/phase1_helper_manifest.json", json.dumps(manifest, indent=2) + "\n")
         code = os.spawnve(os.P_WAIT, sys.executable, [sys.executable, __file__], env)
@@ -569,6 +587,24 @@ def self_test() -> int:
         manifest["helper_review_notes"]["tools/lib/bitmap.zig"]["zero_bit_unit_test_contract"] = MANIFEST_EXPECTATIONS["tools/lib/bitmap.zig"]["zero_bit_unit_test_contract"]
         write(root / "zigux/tests/fixtures/phase1_helper_manifest.json", json.dumps(manifest, indent=2) + "\n")
 
+        manifest["helper_review_notes"]["tools/lib/bitmap.zig"]["tail_mask_unit_test_anchor"] = "old anchor"
+        write(root / "zigux/tests/fixtures/phase1_helper_manifest.json", json.dumps(manifest, indent=2) + "\n")
+        code = os.spawnve(os.P_WAIT, sys.executable, [sys.executable, __file__], env)
+        if code == 0:
+            print("PHASE1_VALIDATOR_SELF_TEST=fail")
+            return 1
+        manifest["helper_review_notes"]["tools/lib/bitmap.zig"]["tail_mask_unit_test_anchor"] = MANIFEST_EXPECTATIONS["tools/lib/bitmap.zig"]["tail_mask_unit_test_anchor"]
+        write(root / "zigux/tests/fixtures/phase1_helper_manifest.json", json.dumps(manifest, indent=2) + "\n")
+
+        manifest["helper_review_notes"]["tools/lib/bitmap.zig"]["tail_mask_unit_test_contract"] = "old wording"
+        write(root / "zigux/tests/fixtures/phase1_helper_manifest.json", json.dumps(manifest, indent=2) + "\n")
+        code = os.spawnve(os.P_WAIT, sys.executable, [sys.executable, __file__], env)
+        if code == 0:
+            print("PHASE1_VALIDATOR_SELF_TEST=fail")
+            return 1
+        manifest["helper_review_notes"]["tools/lib/bitmap.zig"]["tail_mask_unit_test_contract"] = MANIFEST_EXPECTATIONS["tools/lib/bitmap.zig"]["tail_mask_unit_test_contract"]
+        write(root / "zigux/tests/fixtures/phase1_helper_manifest.json", json.dumps(manifest, indent=2) + "\n")
+
         manifest["helper_review_notes"]["tools/lib/string.zig"]["memparse_unit_test_contract"] = "old wording"
         write(root / "zigux/tests/fixtures/phase1_helper_manifest.json", json.dumps(manifest, indent=2) + "\n")
         code = os.spawnve(os.P_WAIT, sys.executable, [sys.executable, __file__], env)
@@ -595,7 +631,7 @@ def self_test() -> int:
             return 1
 
     print("PHASE1_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_VALIDATOR_SELF_TEST_CASE_COUNT=9")
+    print("PHASE1_VALIDATOR_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
