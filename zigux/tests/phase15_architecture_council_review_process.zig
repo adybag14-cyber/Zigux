@@ -127,12 +127,12 @@ test "phase 15 architecture council review-process manifest records current trig
     try std.testing.expectEqual(@as(usize, 8), manifest.approval_evidence_paths.len);
     try std.testing.expectEqual(@as(usize, 7), manifest.ownership_evidence_paths.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.trigger_conditions.len);
-    try std.testing.expectEqual(@as(usize, 21), manifest.required_review_packet_fields.len);
+    try std.testing.expectEqual(@as(usize, 22), manifest.required_review_packet_fields.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.reopen_trigger_catalog.len);
     try std.testing.expectEqualStrings("ownership_or_validation_changed", manifest.ownership_refresh_trigger);
     try std.testing.expectEqual(@as(usize, 2), manifest.ownership_refresh_fields.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.decision_buckets.len);
-    try std.testing.expectEqual(@as(usize, 21), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 22), manifest.gaps.len);
 
     try std.testing.expectEqualStrings("requested decision bucket", manifest.approval_evidence_fields[0]);
     try std.testing.expectEqualStrings("decision record ID", manifest.approval_evidence_fields[1]);
@@ -157,9 +157,10 @@ test "phase 15 architecture council review-process manifest records current trig
     try std.testing.expectEqualStrings("automatic return-to-blocked trigger", manifest.required_review_packet_fields[13]);
     try std.testing.expectEqualStrings("rollback threshold", manifest.required_review_packet_fields[14]);
     try std.testing.expectEqualStrings("indefinite-C policy link or applicability note", manifest.required_review_packet_fields[15]);
-    try std.testing.expectEqualStrings("trigger-specific refreshed evidence by path", manifest.required_review_packet_fields[17]);
-    try std.testing.expectEqualStrings("explicit non-goals", manifest.required_review_packet_fields[19]);
-    try std.testing.expectEqualStrings("written rationale", manifest.required_review_packet_fields[20]);
+    try std.testing.expectEqualStrings("explicit source-of-truth note", manifest.required_review_packet_fields[16]);
+    try std.testing.expectEqualStrings("trigger-specific refreshed evidence by path", manifest.required_review_packet_fields[18]);
+    try std.testing.expectEqualStrings("explicit non-goals", manifest.required_review_packet_fields[20]);
+    try std.testing.expectEqualStrings("written rationale", manifest.required_review_packet_fields[21]);
     try std.testing.expectEqualStrings("narrower_followup_answers_blocker", manifest.reopen_trigger_catalog[0]);
     try std.testing.expectEqualStrings("evidence_packet_stale_or_contradictory", manifest.reopen_trigger_catalog[1]);
     try std.testing.expectEqualStrings("ownership_or_validation_changed", manifest.reopen_trigger_catalog[2]);
@@ -219,6 +220,7 @@ test "phase 15 architecture council review-process manifest records current trig
 
     var landed_count: usize = 0;
     var saw_lane_identity_provenance_refresh = false;
+    var saw_source_of_truth_field_gate = false;
     var saw_indefinite_c_evidence_sync = false;
     var saw_ownership_evidence_rollback_threshold_sync = false;
     var saw_freeze_map_governance_handoff_sync = false;
@@ -236,6 +238,12 @@ test "phase 15 architecture council review-process manifest records current trig
             try std.testing.expectEqualStrings("ownership_gate", gap.kind);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "active-lane identities") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "active scheduled lane") != null);
+        }
+        if (std.mem.eql(u8, gap.id, "phase15-review-process-source-of-truth-field-gate")) {
+            saw_source_of_truth_field_gate = true;
+            try std.testing.expectEqualStrings("policy_gate", gap.kind);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "source-of-truth reminder") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "required request field") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase15-review-process-indefinite-c-evidence-path-sync")) {
             saw_indefinite_c_evidence_sync = true;
@@ -268,8 +276,9 @@ test "phase 15 architecture council review-process manifest records current trig
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 21), landed_count);
+    try std.testing.expectEqual(@as(usize, 22), landed_count);
     try std.testing.expect(saw_lane_identity_provenance_refresh);
+    try std.testing.expect(saw_source_of_truth_field_gate);
     try std.testing.expect(saw_indefinite_c_evidence_sync);
     try std.testing.expect(saw_ownership_evidence_rollback_threshold_sync);
     try std.testing.expect(saw_freeze_map_governance_handoff_sync);
@@ -355,7 +364,7 @@ test "phase 15 architecture council review-process note stays aligned with check
     try std.testing.expect(std.mem.indexOf(u8, review_process, "ownership_or_validation_changed") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "trigger-specific refreshed evidence by path") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "restate the current blocker disposition") != null);
-    try std.testing.expect(std.mem.indexOf(u8, review_process, "refreshes both the current lane owner and the rollback owner") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_process, "refresh both the current lane owner and the rollback owner") != null or std.mem.indexOf(u8, review_process, "refreshes both the current lane owner and the rollback owner") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "automatic return-to-blocked trigger") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "rollback threshold naming which decision-record, scorecard-evidence, benchmark-notes, replay-command, blocker-disposition, or rollback-owner drift forces the anchor back to blocked review posture") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "blocked review posture") != null);
@@ -363,6 +372,7 @@ test "phase 15 architecture council review-process note stays aligned with check
     try std.testing.expect(std.mem.indexOf(u8, review_process, "indefinite-C policy link or applicability note") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "docs(zigux): add documentation root, review checklist, and freeze map") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_process, "existing C implementation remains the product source of truth unless the Architecture Council approves the requested status change") != null);
     const expected_lane_line = try std.fmt.allocPrint(
         std.testing.allocator,
         "current bounded lane: `{s}`",
@@ -377,6 +387,7 @@ test "phase 15 architecture council review-process note stays aligned with check
     try std.testing.expect(std.mem.indexOf(u8, review_process, "phase15-review-process-ownership-evidence-rollback-threshold-sync") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "phase15-review-process-freeze-map-governance-handoff-sync") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "phase15-review-process-scripts-tests-root-handoff-sync") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_process, "phase15-review-process-source-of-truth-field-gate") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, checklist, "decision record ID, lane owner, rollback owner, validation gate summary, evidence archive path, latest blocker disposition, benchmark notes, and replay command explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "does the packet name the automatic return-to-blocked trigger") != null);
