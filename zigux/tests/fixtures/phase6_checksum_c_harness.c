@@ -256,6 +256,12 @@ int main(void)
 	print_u16_case("carry-discipline", "two-byte no-carry seed stays one step below overflow",
 		       csum_fold(partial_bytes(no_carry_pair, sizeof(no_carry_pair), 0xfffff7f7U)));
 
+	print_u16_case("add16", "wrap-plus-one", csum16_add(0xffff, 0x0001));
+	print_u16_case("add16", "zero-addend-preserves-saturated-sum", csum16_add(0xffff, 0x0000));
+	print_u16_case("add16", "double-saturated-addends-fold-carry", csum16_add(0xffff, 0xffff));
+	print_u16_case("sub16", "zero-minus-one-wraps", csum16_sub(0x0000, 0x0001));
+	print_u16_case("sub16", "inverse-of-add16-round-trip", csum16_sub(csum16_add(0x1234, 0xabcd), 0xabcd));
+
 	old_partial = partial_bytes(payload, sizeof(payload), 0);
 	old_word = ((uint32_t)payload[0] << 8) | payload[1];
 	payload[0] = 0x12;
