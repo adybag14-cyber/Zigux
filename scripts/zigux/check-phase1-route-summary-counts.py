@@ -37,7 +37,30 @@ REQUIRED_MARKERS = {
     ),
     "scripts_root_phase1_review_hooks_count": (
         "scripts/zigux/README.md",
-        "- `check-phase1-parity.py --self-test`, `check-phase1-parity.py`, `check-phase1-bench.py --self-test`, `check-phase1-bench.py`, `validate-phase1-closure.py --self-test`, and `validate-phase1-closure.py` are the bounded fail-closed review hooks around that same closed Phase 1 helper tranche.",
+        "- `check-phase1-bitmap-validator-anchors.py --self-test`, `check-phase1-bitmap-validator-anchors.py`, `check-phase1-find-bit-validator-anchors.py --self-test`, `check-phase1-find-bit-validator-anchors.py`, `check-phase1-route-summary-counts.py --self-test`, `check-phase1-route-summary-counts.py`, `check-phase1-parity.py --self-test`, `check-phase1-parity.py`, `check-phase1-bench.py --self-test`, `check-phase1-bench.py`, `validate-phase1-closure.py --self-test`, and `validate-phase1-closure.py` are the bounded fail-closed review hooks around that same closed Phase 1 helper tranche.",
+        1,
+    ),
+}
+
+REQUIRED_ROUTE_LINES = {
+    "makefile_phase1_route_summary_self_test_count": (
+        "zigux/Makefile",
+        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-route-summary-counts.py --self-test",
+        1,
+    ),
+    "makefile_phase1_route_summary_run_count": (
+        "zigux/Makefile",
+        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-route-summary-counts.py",
+        1,
+    ),
+    "workflow_phase1_route_summary_self_test_count": (
+        ".github/workflows/zigux-bootstrap.yml",
+        "run: python3 scripts/zigux/check-phase1-route-summary-counts.py --self-test",
+        1,
+    ),
+    "workflow_phase1_route_summary_run_count": (
+        ".github/workflows/zigux-bootstrap.yml",
+        "run: python3 scripts/zigux/check-phase1-route-summary-counts.py",
         1,
     ),
 }
@@ -56,13 +79,31 @@ def fail(items: list[str]) -> int:
     return 1
 
 
+def exact_count(lines: list[str], marker: str) -> int:
+    return sum(1 for line in lines if line.strip() == marker)
+
+
 def main() -> int:
     missing: list[str] = []
+    cached_lines: dict[str, list[str]] = {}
+
     for label, (rel, marker, expected_count) in REQUIRED_MARKERS.items():
-        if not (ROOT / rel).exists():
+        path = ROOT / rel
+        if not path.exists():
             missing.append(f"{label}:missing_file:{rel}")
             continue
-        actual_count = sum(1 for line in read_lines(rel) if line.strip() == marker)
+        lines = cached_lines.setdefault(rel, read_lines(rel))
+        actual_count = exact_count(lines, marker)
+        if actual_count != expected_count:
+            missing.append(f"{label}:expected={expected_count}:actual={actual_count}")
+
+    for label, (rel, marker, expected_count) in REQUIRED_ROUTE_LINES.items():
+        path = ROOT / rel
+        if not path.exists():
+            missing.append(f"{label}:missing_file:{rel}")
+            continue
+        lines = cached_lines.setdefault(rel, read_lines(rel))
+        actual_count = exact_count(lines, marker)
         if actual_count != expected_count:
             missing.append(f"{label}:expected={expected_count}:actual={actual_count}")
 
@@ -70,7 +111,10 @@ def main() -> int:
         return fail(missing)
 
     print("PHASE1_ROUTE_SUMMARY_COUNTS=pass")
-    print(f"PHASE1_ROUTE_SUMMARY_COUNT_TARGETS={len(REQUIRED_MARKERS)}")
+    print(
+        "PHASE1_ROUTE_SUMMARY_COUNT_TARGETS="
+        f"{len(REQUIRED_MARKERS) + len(REQUIRED_ROUTE_LINES)}"
+    )
     return 0
 
 
@@ -100,6 +144,14 @@ def self_test() -> int:
         REQUIRED_MARKERS["scripts_root_phase1_validator_first_count"][1],
         REQUIRED_MARKERS["scripts_root_phase1_review_hooks_count"][1],
     ]
+    makefile_markers = [
+        REQUIRED_ROUTE_LINES["makefile_phase1_route_summary_self_test_count"][1],
+        REQUIRED_ROUTE_LINES["makefile_phase1_route_summary_run_count"][1],
+    ]
+    workflow_markers = [
+        REQUIRED_ROUTE_LINES["workflow_phase1_route_summary_self_test_count"][1],
+        REQUIRED_ROUTE_LINES["workflow_phase1_route_summary_run_count"][1],
+    ]
 
     with tempfile.TemporaryDirectory(prefix="phase1-route-summary-") as tmp:
         root = Path(tmp)
@@ -107,6 +159,8 @@ def self_test() -> int:
         write(script, Path(__file__).read_text(encoding="utf-8"))
         write(root / "Documentation/zigux/README.md", fixture_text(docs_markers))
         write(root / "scripts/zigux/README.md", fixture_text(scripts_markers))
+        write(root / "zigux/Makefile", fixture_text(makefile_markers))
+        write(root / ".github/workflows/zigux-bootstrap.yml", fixture_text(workflow_markers))
 
         env = dict(os.environ)
         env["ZIGUX_PHASE1_ROOT"] = str(root)
@@ -151,9 +205,28 @@ def self_test() -> int:
             root,
             "scripts_root_phase1_review_hooks_count:expected=1:actual=2",
         )
+        write(root / "scripts/zigux/README.md", fixture_text(scripts_markers))
+
+        write(root / "zigux/Makefile", fixture_text([makefile_markers[1]]))
+        expect_failure(
+            script,
+            root,
+            "makefile_phase1_route_summary_self_test_count:expected=1:actual=0",
+        )
+        write(root / "zigux/Makefile", fixture_text(makefile_markers))
+
+        write(
+            root / ".github/workflows/zigux-bootstrap.yml",
+            fixture_text(workflow_markers + [workflow_markers[1]]),
+        )
+        expect_failure(
+            script,
+            root,
+            "workflow_phase1_route_summary_run_count:expected=1:actual=2",
+        )
 
     print("PHASE1_ROUTE_SUMMARY_COUNTS_SELF_TEST=pass")
-    print("PHASE1_ROUTE_SUMMARY_COUNTS_SELF_TEST_CASE_COUNT=5")
+    print("PHASE1_ROUTE_SUMMARY_COUNTS_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
