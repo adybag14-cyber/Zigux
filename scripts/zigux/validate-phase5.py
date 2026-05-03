@@ -175,6 +175,8 @@ TEXT_MARKERS = {
         'phase5-kretprobe-example-tests',
         'phase5-trace-events-sample-tests',
         'phase5-bytestream-fifo-survey-tests',
+        'phase5-kobject-example-survey-tests',
+        'phase5-kretprobe-example-survey-tests',
         'phase5-trace-events-sample-survey-tests',
     ],
     "samples/zigux/bytestream_fifo.zig": [
@@ -788,6 +790,36 @@ def run_self_test() -> int:
 
         tmp_root = Path(tmp)
         copy_tree(ROOT, tmp_root)
+        build_file = tmp_root / "zigux/tests/phase5_build.zig"
+        text = build_file.read_text(encoding="utf-8").replace(
+            '"phase5-kobject-example-survey-tests"',
+            '"phase5-kobject-example-survey-review"',
+            1,
+        )
+        build_file.write_text(text, encoding="utf-8")
+        missing = validate_phase5(tmp_root)
+        if missing["ok"] or "zigux/tests/phase5_build.zig:missing:phase5-kobject-example-survey-tests" not in missing["missing"]:
+            print("PHASE5_VALIDATOR_SELF_TEST=fail")
+            print("PHASE5_VALIDATOR_SELF_TEST_REASON=phase5-build-kobject-survey-gap")
+            return 1
+
+        tmp_root = Path(tmp)
+        copy_tree(ROOT, tmp_root)
+        build_file = tmp_root / "zigux/tests/phase5_build.zig"
+        text = build_file.read_text(encoding="utf-8").replace(
+            '"phase5-kretprobe-example-survey-tests"',
+            '"phase5-kretprobe-example-survey-review"',
+            1,
+        )
+        build_file.write_text(text, encoding="utf-8")
+        missing = validate_phase5(tmp_root)
+        if missing["ok"] or "zigux/tests/phase5_build.zig:missing:phase5-kretprobe-example-survey-tests" not in missing["missing"]:
+            print("PHASE5_VALIDATOR_SELF_TEST=fail")
+            print("PHASE5_VALIDATOR_SELF_TEST_REASON=phase5-build-kretprobe-survey-gap")
+            return 1
+
+        tmp_root = Path(tmp)
+        copy_tree(ROOT, tmp_root)
         sample = tmp_root / "samples/zigux/trace_events_sample.zig"
         text = sample.read_text(encoding="utf-8").replace(
             ".requires_runtime_substrate = false",
@@ -802,7 +834,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE5_VALIDATOR_SELF_TEST=pass")
-    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=24")
+    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=26")
     return 0
 
 
