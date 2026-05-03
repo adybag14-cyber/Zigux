@@ -74,7 +74,6 @@ REQUIRED_ROADMAP_GAP_MARKERS = (
 RBTREE_FREE_BOUNDARY_PATHS = (
     "include/zigux/abi.h",
     "zigux/bindings/abi.zig",
-    "zigux/tests/fixtures/phase3_abi_manifest.json",
 )
 
 
