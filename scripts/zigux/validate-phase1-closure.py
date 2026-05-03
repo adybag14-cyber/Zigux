@@ -118,6 +118,57 @@ REQUIRED_MAKEFILE_MARKERS = [
     "phase1: phase1-validate phase1-test phase1-bench",
 ]
 
+REQUIRED_EXACT_COUNT_MARKERS = [
+    (
+        "workflow_phase1_bench_self_test_count",
+        ".github/workflows/zigux-bootstrap.yml",
+        "run: python3 scripts/zigux/check-phase1-bench.py --self-test",
+        1,
+    ),
+    (
+        "workflow_phase1_bench_count",
+        ".github/workflows/zigux-bootstrap.yml",
+        "run: python3 scripts/zigux/check-phase1-bench.py",
+        1,
+    ),
+    (
+        "workflow_phase1_closure_self_test_count",
+        ".github/workflows/zigux-bootstrap.yml",
+        "run: python3 scripts/zigux/validate-phase1-closure.py --self-test",
+        1,
+    ),
+    (
+        "workflow_phase1_closure_count",
+        ".github/workflows/zigux-bootstrap.yml",
+        "run: python3 scripts/zigux/validate-phase1-closure.py",
+        1,
+    ),
+    (
+        "makefile_phase1_bench_self_test_count",
+        "zigux/Makefile",
+        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-bench.py --self-test",
+        1,
+    ),
+    (
+        "makefile_phase1_bench_count",
+        "zigux/Makefile",
+        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-bench.py",
+        1,
+    ),
+    (
+        "makefile_phase1_closure_self_test_count",
+        "zigux/Makefile",
+        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase1-closure.py --self-test",
+        1,
+    ),
+    (
+        "makefile_phase1_closure_count",
+        "zigux/Makefile",
+        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase1-closure.py",
+        1,
+    ),
+]
+
 REQUIRED_ITERATIONS = {
     "PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS": 20000,
     "PHASE1_BENCH_BITMAP_WINDOW_ITERATIONS": 20000,
@@ -199,6 +250,12 @@ def check_contains(label: str, rel: str, markers: list[str], missing: list[str])
             missing.append(f"{label}:{marker}")
 
 
+def check_exact_count(label: str, rel: str, marker: str, expected: int, missing: list[str]) -> None:
+    actual = read_text(rel).splitlines().count(marker)
+    if actual != expected:
+        missing.append(f"{label}:expected={expected}:actual={actual}")
+
+
 def validate_manifest(missing: list[str]) -> None:
     manifest = json.loads(read_text("zigux/tests/fixtures/phase1_helper_manifest.json"))
     if manifest.get("phase") != "Phase 1":
@@ -252,6 +309,8 @@ def main() -> int:
     check_contains("bench_checker", "scripts/zigux/check-phase1-bench.py", REQUIRED_BENCH_CHECKER_MARKERS, missing)
     check_contains("parity_checker", "scripts/zigux/check-phase1-parity.py", REQUIRED_PARITY_CHECKER_MARKERS, missing)
     check_contains("makefile", "zigux/Makefile", REQUIRED_MAKEFILE_MARKERS, missing)
+    for label, rel, marker, expected in REQUIRED_EXACT_COUNT_MARKERS:
+        check_exact_count(label, rel, marker, expected, missing)
     validate_manifest(missing)
     validate_expectations(missing)
     validate_rbtree_alias_gap(missing)
@@ -268,7 +327,7 @@ def main() -> int:
         REQUIRED_BENCH_CHECKER_MARKERS,
         REQUIRED_PARITY_CHECKER_MARKERS,
         REQUIRED_MAKEFILE_MARKERS,
-    ])
+    ]) + len(REQUIRED_EXACT_COUNT_MARKERS)
     print(f"PHASE1_CLOSURE_REQUIRED_MARKER_COUNT={marker_count}")
     return 0
 
@@ -351,6 +410,20 @@ def self_test() -> int:
         expect_failure(root, "makefile:PHONY += phase1-validate phase1-test phase1-bench phase1")
         write(root / "zigux/Makefile", "\n".join(REQUIRED_MAKEFILE_MARKERS) + "\n")
 
+        write(
+            root / "zigux/Makefile",
+            "\n".join(REQUIRED_MAKEFILE_MARKERS + ["cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase1-closure.py --self-test"]) + "\n",
+        )
+        expect_failure(root, "makefile_phase1_closure_self_test_count:expected=1:actual=2")
+        write(root / "zigux/Makefile", "\n".join(REQUIRED_MAKEFILE_MARKERS) + "\n")
+
+        write(
+            root / ".github/workflows/zigux-bootstrap.yml",
+            "\n".join(REQUIRED_WORKFLOW_MARKERS + ["run: python3 scripts/zigux/check-phase1-bench.py"]) + "\n",
+        )
+        expect_failure(root, "workflow_phase1_bench_count:expected=1:actual=2")
+        write(root / ".github/workflows/zigux-bootstrap.yml", "\n".join(REQUIRED_WORKFLOW_MARKERS) + "\n")
+
         manifest = fixture_manifest()
         manifest["helper_review_notes"]["tools/lib/string.zig"]["memparse_unit_test_contract"] = "drift"
         write(root / "zigux/tests/fixtures/phase1_helper_manifest.json", json.dumps(manifest, indent=2) + "\n")
@@ -391,7 +464,7 @@ def self_test() -> int:
         expect_failure(root, "rbtree_source:unexpected_alias:pub fn rb_first(")
 
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=11")
+    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
