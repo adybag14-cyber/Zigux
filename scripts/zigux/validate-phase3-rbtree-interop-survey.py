@@ -9,6 +9,7 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[2]
 SURVEY_REL = "Documentation/zigux/phase3-rbtree-interop-survey.md"
 ROADMAP_GAP_SURVEY_REL = "Documentation/zigux/phase3-roadmap-gap-survey.md"
+SLICE_REL = "Documentation/zigux/phase3-rbtree-slice.md"
 
 REQUIRED_SURVEY_MARKERS = (
     "PHASE3_RBTREE_ROADMAP_ANCHOR=lib/rbtree.c",
@@ -71,6 +72,24 @@ REQUIRED_ROADMAP_GAP_MARKERS = (
     "PHASE3_NEXT_BOUNDED_STEP=shared-abi-rbtree-root-view-before-more-chrdev-growth",
 )
 
+REQUIRED_SLICE_MARKERS = (
+    "PHASE3_RBTREE_DEDICATED_BOUNDARY_PARITY=zigux/tests/fixtures/phase3_rbtree/expected.json,zigux/tests/fixtures/phase3_rbtree/phase3_rbtree_c_harness.c",
+    "PHASE3_RBTREE_SHARED_BOUNDARY_GAP=shared-abi-root-view-lift-still-missing",
+    "PHASE3_RBTREE_SHARED_BOUNDARY_TARGET=include/zigux/abi.h,zigux/bindings/abi.zig,zigux/tests/fixtures/phase3_abi/",
+)
+
+REQUIRED_SLICE_SNIPPETS = (
+    "This slice already carries:",
+    "a dedicated `rbtree` root-view record in `include/zigux/rbtree.h` and `zigux/bindings/rbtree.zig`",
+    "a dedicated C-vs-Zig parity replay in `zigux/tests/fixtures/phase3_rbtree/expected.json` and `zigux/tests/fixtures/phase3_rbtree/phase3_rbtree_c_harness.c`",
+    "This slice does not yet claim:",
+    "a shared `rbtree` record in `include/zigux/abi.h`",
+    "a matching shared `zigux/bindings/abi.zig` layout type",
+    "a shared `zigux/tests/fixtures/phase3_abi/` parity replay for the `rbtree` root view",
+    "The remaining honest Phase 3 `rbtree` gap after this step is the shared ABI lift, not the absence of a dedicated boundary packet.",
+    "one curated shared Phase 3 `rbtree` root-view lift",
+)
+
 RBTREE_FREE_BOUNDARY_PATHS = (
     "include/zigux/abi.h",
     "zigux/bindings/abi.zig",
@@ -90,6 +109,7 @@ def validate(root: Path) -> list[str]:
     issues: list[str] = []
     survey = _read_text(root, SURVEY_REL, issues)
     roadmap_gap = _read_text(root, ROADMAP_GAP_SURVEY_REL, issues)
+    slice_text = _read_text(root, SLICE_REL, issues)
 
     if survey:
         for marker in REQUIRED_SURVEY_MARKERS:
@@ -107,6 +127,14 @@ def validate(root: Path) -> list[str]:
         for marker in REQUIRED_ROADMAP_GAP_MARKERS:
             if marker not in roadmap_gap:
                 issues.append(f"missing_roadmap_gap_marker:{marker}")
+
+    if slice_text:
+        for marker in REQUIRED_SLICE_MARKERS:
+            if marker not in slice_text:
+                issues.append(f"missing_slice_marker:{marker}")
+        for snippet in REQUIRED_SLICE_SNIPPETS:
+            if snippet not in slice_text:
+                issues.append(f"missing_slice_snippet:{snippet}")
 
     for rel in RBTREE_FREE_BOUNDARY_PATHS:
         text = _read_text(root, rel, issues)
@@ -136,6 +164,11 @@ def run_self_test() -> int:
         )
         roadmap_gap_path = root / ROADMAP_GAP_SURVEY_REL
         roadmap_gap_path.write_text("\n".join(REQUIRED_ROADMAP_GAP_MARKERS) + "\n", encoding="utf-8")
+        slice_path = root / SLICE_REL
+        slice_path.write_text(
+            "\n".join((*REQUIRED_SLICE_MARKERS, *REQUIRED_SLICE_SNIPPETS)) + "\n",
+            encoding="utf-8",
+        )
 
         for rel in REQUIRED_REPO_PATHS:
             path = root / rel
@@ -163,6 +196,15 @@ def run_self_test() -> int:
         issues = validate(root)
         assert any(issue.startswith("missing_roadmap_gap_marker:") for issue in issues)
         roadmap_gap_path.write_text("\n".join(REQUIRED_ROADMAP_GAP_MARKERS) + "\n", encoding="utf-8")
+
+        slice_path.write_text(REQUIRED_SLICE_MARKERS[0] + "\n", encoding="utf-8")
+        issues = validate(root)
+        assert any(issue.startswith("missing_slice_marker:") for issue in issues)
+        assert any(issue.startswith("missing_slice_snippet:") for issue in issues)
+        slice_path.write_text(
+            "\n".join((*REQUIRED_SLICE_MARKERS, *REQUIRED_SLICE_SNIPPETS)) + "\n",
+            encoding="utf-8",
+        )
 
         missing_repo_rel = REQUIRED_REPO_PATHS[-1]
         missing_repo_path = root / missing_repo_rel
