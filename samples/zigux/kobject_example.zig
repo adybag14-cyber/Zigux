@@ -63,6 +63,20 @@ pub const InitializedExitReplay = struct {
     exited: OwnershipSummary,
 };
 
+pub const SharedDispatchReplay = struct {
+    stage_before_replay: SampleStage,
+    stage_after_replay: SampleStage,
+    register_runs_after_replay: usize,
+    attributes_are_accessible_after_replay: bool,
+    baz_store_len: usize,
+    bar_store_len: usize,
+    baz_value: RenderedAttribute,
+    bar_value: RenderedAttribute,
+    invalid_integer_visible: bool,
+    unknown_store_visible: bool,
+    unknown_show_visible: bool,
+};
+
 pub const ReplaySummary = struct {
     anchor: []const u8,
     directory_name: []const u8,
@@ -309,6 +323,56 @@ pub const KobjectExampleSample = struct {
         };
     }
 
+    pub fn runSharedDispatchReplay(self: *Self) !SharedDispatchReplay {
+        if (self.stage() != .cold) return error.InvalidLifecycleTransition;
+
+        const stage_before_replay = self.stage();
+        try self.init();
+        try self.registerAttributes();
+        const baz_store_len = try self.storeValue("baz", "9\n");
+        const bar_store_len = try self.storeValue("bar", "10\n");
+        const baz_value = try self.showValue("baz");
+        const bar_value = try self.showValue("bar");
+
+        var invalid_integer_visible = false;
+        if (self.storeValue("foo", "abc\n")) |_| {
+            return error.ExpectedInvalidInteger;
+        } else |err| switch (err) {
+            error.InvalidInteger => invalid_integer_visible = true,
+            else => return err,
+        }
+
+        var unknown_store_visible = false;
+        if (self.storeValue("qux", "1\n")) |_| {
+            return error.ExpectedUnknownAttribute;
+        } else |err| switch (err) {
+            error.UnknownAttribute => unknown_store_visible = true,
+            else => return err,
+        }
+
+        var unknown_show_visible = false;
+        if (self.showValue("qux")) |_| {
+            return error.ExpectedUnknownAttribute;
+        } else |err| switch (err) {
+            error.UnknownAttribute => unknown_show_visible = true,
+            else => return err,
+        }
+
+        return .{
+            .stage_before_replay = stage_before_replay,
+            .stage_after_replay = self.stage(),
+            .register_runs_after_replay = self.register_runs,
+            .attributes_are_accessible_after_replay = self.attributesAreAccessible(),
+            .baz_store_len = baz_store_len,
+            .bar_store_len = bar_store_len,
+            .baz_value = baz_value,
+            .bar_value = bar_value,
+            .invalid_integer_visible = invalid_integer_visible,
+            .unknown_store_visible = unknown_store_visible,
+            .unknown_show_visible = unknown_show_visible,
+        };
+    }
+
     pub fn exit(self: *Self) !ExitSummary {
         const stage_before_exit = self.stage();
         const active_attr_count_before_exit = self.activeAttrCount();
@@ -393,22 +457,23 @@ test "kobject sample replay keeps the descriptor and anchor reviewable and non-r
     try std.testing.expectEqualSlices(SampleFocus, &expected_focus, replay.checked_focus);
 }
 
-test "kobject sample keeps shared dispatch and parse failures explicit" {
+test "kobject sample keeps shared dispatch and parse failures explicit through a sample-owned replay" {
     var sample = KobjectExampleSample{};
-    try sample.init();
-    try sample.registerAttributes();
+    const replay = try sample.runSharedDispatchReplay();
 
-    try std.testing.expectEqual(@as(usize, 2), try sample.storeValue("baz", "9\n"));
-    try std.testing.expectEqual(@as(usize, 3), try sample.storeValue("bar", "10\n"));
-    const baz_value = try sample.showValue("baz");
-    const bar_value = try sample.showValue("bar");
-    try std.testing.expectEqualStrings("baz", baz_value.attr_name);
-    try std.testing.expectEqualStrings("bar", bar_value.attr_name);
-    try std.testing.expectEqualStrings("9\n", baz_value.text[0..baz_value.len]);
-    try std.testing.expectEqualStrings("10\n", bar_value.text[0..bar_value.len]);
-    try std.testing.expectError(error.InvalidInteger, sample.storeValue("foo", "abc\n"));
-    try std.testing.expectError(error.UnknownAttribute, sample.storeValue("qux", "1\n"));
-    try std.testing.expectError(error.UnknownAttribute, sample.showValue("qux"));
+    try std.testing.expectEqual(SampleStage.cold, replay.stage_before_replay);
+    try std.testing.expectEqual(SampleStage.registered, replay.stage_after_replay);
+    try std.testing.expectEqual(@as(usize, 1), replay.register_runs_after_replay);
+    try std.testing.expect(replay.attributes_are_accessible_after_replay);
+    try std.testing.expectEqual(@as(usize, 2), replay.baz_store_len);
+    try std.testing.expectEqual(@as(usize, 3), replay.bar_store_len);
+    try std.testing.expectEqualStrings("baz", replay.baz_value.attr_name);
+    try std.testing.expectEqualStrings("bar", replay.bar_value.attr_name);
+    try std.testing.expectEqualStrings("9\n", replay.baz_value.text[0..replay.baz_value.len]);
+    try std.testing.expectEqualStrings("10\n", replay.bar_value.text[0..replay.bar_value.len]);
+    try std.testing.expect(replay.invalid_integer_visible);
+    try std.testing.expect(replay.unknown_store_visible);
+    try std.testing.expect(replay.unknown_show_visible);
 }
 
 test "kobject sample keeps the pre-registration ownership boundary explicit" {
