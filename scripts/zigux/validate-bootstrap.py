@@ -457,6 +457,76 @@ if phase2_pin_scope_makefile_count_issues:
     print('MISSING_PHASE2_PIN_SCOPE_BOOTSTRAP_MAKEFILE_COUNTS_END')
     sys.exit(1)
 
+phase2_shared_validation_workflow_exact_counts = {
+    'workflow:step:Validate Phase 2 fixdep files': 1,
+    'workflow:step:Validate Phase 2 closure': 1,
+    'workflow:run:python3 scripts/zigux/validate-phase2.py': 1,
+    'workflow:run:python3 scripts/zigux/validate-phase2-closure.py': 1,
+}
+phase2_shared_validation_workflow_observed_counts = {
+    'workflow:step:Validate Phase 2 fixdep files': workflow.count('Validate Phase 2 fixdep files'),
+    'workflow:step:Validate Phase 2 closure': workflow.count('Validate Phase 2 closure'),
+    'workflow:run:python3 scripts/zigux/validate-phase2.py': len(
+        re.findall(
+            r'^\s*run:\s+python3 scripts/zigux/validate-phase2\.py\s*$',
+            workflow,
+            flags=re.MULTILINE,
+        )
+    ),
+    'workflow:run:python3 scripts/zigux/validate-phase2-closure.py': len(
+        re.findall(
+            r'^\s*run:\s+python3 scripts/zigux/validate-phase2-closure\.py\s*$',
+            workflow,
+            flags=re.MULTILINE,
+        )
+    ),
+}
+phase2_shared_validation_workflow_count_issues = [
+    f'{key}={phase2_shared_validation_workflow_observed_counts[key]},expected={expected}'
+    for key, expected in phase2_shared_validation_workflow_exact_counts.items()
+    if phase2_shared_validation_workflow_observed_counts[key] != expected
+]
+if phase2_shared_validation_workflow_count_issues:
+    print('BOOTSTRAP_VALIDATION=fail')
+    print('MISSING_PHASE2_SHARED_VALIDATION_BOOTSTRAP_WORKFLOW_COUNTS_START')
+    for issue in phase2_shared_validation_workflow_count_issues:
+        print(issue)
+    print('MISSING_PHASE2_SHARED_VALIDATION_BOOTSTRAP_WORKFLOW_COUNTS_END')
+    sys.exit(1)
+
+phase2_shared_validation_makefile_exact_counts = {
+    'makefile:run:scripts/zigux/validate-phase2.py': 1,
+    'makefile:run:scripts/zigux/validate-phase2-closure.py': 1,
+}
+phase2_shared_validation_makefile_observed_counts = {
+    'makefile:run:scripts/zigux/validate-phase2.py': len(
+        re.findall(
+            r'^\s*cd \$\(ZIGUX_ROOT\) && \$\(PYTHON\) scripts/zigux/validate-phase2\.py\s*$',
+            makefile,
+            flags=re.MULTILINE,
+        )
+    ),
+    'makefile:run:scripts/zigux/validate-phase2-closure.py': len(
+        re.findall(
+            r'^\s*cd \$\(ZIGUX_ROOT\) && \$\(PYTHON\) scripts/zigux/validate-phase2-closure\.py\s*$',
+            makefile,
+            flags=re.MULTILINE,
+        )
+    ),
+}
+phase2_shared_validation_makefile_count_issues = [
+    f'{key}={phase2_shared_validation_makefile_observed_counts[key]},expected={expected}'
+    for key, expected in phase2_shared_validation_makefile_exact_counts.items()
+    if phase2_shared_validation_makefile_observed_counts[key] != expected
+]
+if phase2_shared_validation_makefile_count_issues:
+    print('BOOTSTRAP_VALIDATION=fail')
+    print('MISSING_PHASE2_SHARED_VALIDATION_BOOTSTRAP_MAKEFILE_COUNTS_START')
+    for issue in phase2_shared_validation_makefile_count_issues:
+        print(issue)
+    print('MISSING_PHASE2_SHARED_VALIDATION_BOOTSTRAP_MAKEFILE_COUNTS_END')
+    sys.exit(1)
+
 print('BOOTSTRAP_VALIDATION=pass')
 print(f'BOOTSTRAP_REQUIRED_FILE_COUNT={len(required_files)}')
 print(
