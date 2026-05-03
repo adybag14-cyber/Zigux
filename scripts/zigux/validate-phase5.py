@@ -74,6 +74,12 @@ TEXT_MARKERS = {
         "zigux/tests/phase5_kretprobe_example_manifest.json",
         "zigux/tests/phase5_trace_events_sample_manifest.json",
         "zig test samples/zigux/bytestream_fifo.zig",
+        "zig test samples/zigux/kobject_example.zig",
+        "zig test samples/zigux/kretprobe_example.zig",
+        "zig test samples/zigux/trace_events_sample.zig",
+        "zig test zigux/tests/phase5_bytestream_fifo_survey.zig",
+        "zig test zigux/tests/phase5_kobject_example_survey.zig",
+        "zig test zigux/tests/phase5_kretprobe_example_survey.zig",
         "zig test zigux/tests/phase5_trace_events_sample_survey.zig",
         "make -C zigux phase5-validate",
     ],
@@ -502,6 +508,36 @@ def run_self_test() -> int:
 
         tmp_root = Path(tmp)
         copy_tree(ROOT, tmp_root)
+        tests_readme = tmp_root / "zigux/tests/README.md"
+        text = tests_readme.read_text(encoding="utf-8").replace(
+            "zig test samples/zigux/kretprobe_example.zig",
+            "zig test samples/zigux/kretprobe_review.zig",
+            1,
+        )
+        tests_readme.write_text(text, encoding="utf-8")
+        missing = validate_phase5(tmp_root)
+        if missing["ok"] or "zigux/tests/README.md:missing:zig test samples/zigux/kretprobe_example.zig" not in missing["missing"]:
+            print("PHASE5_VALIDATOR_SELF_TEST=fail")
+            print("PHASE5_VALIDATOR_SELF_TEST_REASON=tests-readme-direct-replay-gap")
+            return 1
+
+        tmp_root = Path(tmp)
+        copy_tree(ROOT, tmp_root)
+        tests_readme = tmp_root / "zigux/tests/README.md"
+        text = tests_readme.read_text(encoding="utf-8").replace(
+            "zig test zigux/tests/phase5_kobject_example_survey.zig",
+            "zig test zigux/tests/phase5_kobject_survey.zig",
+            1,
+        )
+        tests_readme.write_text(text, encoding="utf-8")
+        missing = validate_phase5(tmp_root)
+        if missing["ok"] or "zigux/tests/README.md:missing:zig test zigux/tests/phase5_kobject_example_survey.zig" not in missing["missing"]:
+            print("PHASE5_VALIDATOR_SELF_TEST=fail")
+            print("PHASE5_VALIDATOR_SELF_TEST_REASON=tests-readme-survey-replay-gap")
+            return 1
+
+        tmp_root = Path(tmp)
+        copy_tree(ROOT, tmp_root)
         sample = tmp_root / "samples/zigux/trace_events_sample.zig"
         text = sample.read_text(encoding="utf-8").replace(
             ".requires_runtime_substrate = false",
@@ -516,7 +552,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE5_VALIDATOR_SELF_TEST=pass")
-    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=8")
+    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
