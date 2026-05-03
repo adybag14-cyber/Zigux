@@ -18,7 +18,9 @@ def repo_root() -> Path:
 ROOT = repo_root()
 
 REQUIRED_FILES = [
+    "Documentation/zigux/README.md",
     "Documentation/zigux/phase1-closure.md",
+    "scripts/zigux/README.md",
     "scripts/zigux/artifact_diff.py",
     "scripts/zigux/check-phase1-bench.py",
     "scripts/zigux/check-phase1-parity.py",
@@ -193,7 +195,25 @@ WORKFLOW_LINES = {
     "run: python3 scripts/zigux/check-phase1-parity.py --self-test": 1,
 }
 
+DOCS_ROOT_MARKERS = [
+    "- `Documentation/zigux/phase1-closure.md` remains the dedicated closure packet for the bounded host-side `tools/lib/*.zig` helper tranche, and `zigux/tests/fixtures/phase1_helper_manifest.json` plus `zigux/tests/phase1_helpers.zig` keep the closed helper inventory and parity-backed replay surface explicit from the docs root.",
+    "- `python3 scripts/zigux/validate-phase1.py`, `python3 scripts/zigux/validate-phase1-closure.py`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` are the current validator-first and replay entrypoints for that bounded host-side helper packet.",
+]
+
+SCRIPTS_ROOT_MARKERS = [
+    "- `validate-phase1.py` is the validator-first entrypoint for the closed host-helper packet around `tools/lib/bitmap.zig`, `tools/lib/find_bit.zig`, `tools/lib/string.zig`, and `tools/lib/rbtree.zig` plus the bounded supporting helpers and committed `zigux/tests/fixtures/phase1_helpers.json` corpus.",
+    "- `check-phase1-parity.py --self-test`, `check-phase1-parity.py`, `check-phase1-bench.py --self-test`, `check-phase1-bench.py`, `validate-phase1-closure.py --self-test`, and `validate-phase1-closure.py` are the bounded fail-closed review hooks around that same closed Phase 1 helper tranche.",
+]
+
 MARKER_GROUPS = {
+    "docs_root": (
+        "Documentation/zigux/README.md",
+        DOCS_ROOT_MARKERS,
+    ),
+    "scripts_root": (
+        "scripts/zigux/README.md",
+        SCRIPTS_ROOT_MARKERS,
+    ),
     "ledger": (
         "zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md",
         [
@@ -291,6 +311,29 @@ PHASE1_CLOSURE_PREFIX_COUNTS = {
     "- `tools/lib/find_bit.zig` closure includes committed C-backed parity coverage": 1,
     "- `tools/lib/rbtree.zig` closure includes committed C-backed parity coverage": 1,
     "- `tools/lib/string.zig` closure includes committed C-backed parity coverage": 1,
+}
+
+EXACT_COUNT_MARKERS = {
+    "docs_root_phase1_closure_packet_count": (
+        "Documentation/zigux/README.md",
+        DOCS_ROOT_MARKERS[0],
+        1,
+    ),
+    "docs_root_phase1_entrypoints_count": (
+        "Documentation/zigux/README.md",
+        DOCS_ROOT_MARKERS[1],
+        1,
+    ),
+    "scripts_root_phase1_validator_first_count": (
+        "scripts/zigux/README.md",
+        SCRIPTS_ROOT_MARKERS[0],
+        1,
+    ),
+    "scripts_root_phase1_review_hooks_count": (
+        "scripts/zigux/README.md",
+        SCRIPTS_ROOT_MARKERS[1],
+        1,
+    ),
 }
 
 MANIFEST_EXPECTATIONS = {
@@ -431,6 +474,13 @@ def validate_marker_groups() -> list[str]:
             issues.append(
                 f"closure_prefix:{prefix}:expected_count={expected_count}:actual_count={actual_count}"
             )
+
+    for label, (rel, marker, expected_count) in EXACT_COUNT_MARKERS.items():
+        actual_count = sum(1 for raw in read_text(rel).splitlines() if raw.strip() == marker)
+        if actual_count != expected_count:
+            issues.append(
+                f"{label}:expected_count={expected_count}:actual_count={actual_count}"
+            )
     return issues
 
 
@@ -453,7 +503,7 @@ def main() -> int:
 
     marker_count = sum(len(markers) for _, markers in MARKER_GROUPS.values()) + len(
         PHASE1_CLOSURE_PREFIX_COUNTS
-    )
+    ) + len(EXACT_COUNT_MARKERS)
     print("PHASE1_VALIDATION=pass")
     print(f"PHASE1_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(f"PHASE1_REQUIRED_MARKER_COUNT={marker_count}")
@@ -522,6 +572,50 @@ def self_test() -> int:
         if code != 0:
             print("PHASE1_VALIDATOR_SELF_TEST=fail")
             return 1
+
+        docs_root_path = root / "Documentation/zigux/README.md"
+        docs_root_text = docs_root_path.read_text(encoding="utf-8")
+        docs_root_path.write_text(
+            docs_root_text.replace(DOCS_ROOT_MARKERS[0] + "\n", "", 1),
+            encoding="utf-8",
+        )
+        code = os.spawnve(os.P_WAIT, sys.executable, [sys.executable, __file__], env)
+        if code == 0:
+            print("PHASE1_VALIDATOR_SELF_TEST=fail")
+            return 1
+        write(root / "Documentation/zigux/README.md", "\n".join(DOCS_ROOT_MARKERS) + "\n")
+
+        docs_root_path.write_text(
+            "\n".join(DOCS_ROOT_MARKERS + [DOCS_ROOT_MARKERS[1]]) + "\n",
+            encoding="utf-8",
+        )
+        code = os.spawnve(os.P_WAIT, sys.executable, [sys.executable, __file__], env)
+        if code == 0:
+            print("PHASE1_VALIDATOR_SELF_TEST=fail")
+            return 1
+        write(root / "Documentation/zigux/README.md", "\n".join(DOCS_ROOT_MARKERS) + "\n")
+
+        scripts_root_path = root / "scripts/zigux/README.md"
+        scripts_root_text = scripts_root_path.read_text(encoding="utf-8")
+        scripts_root_path.write_text(
+            scripts_root_text.replace(SCRIPTS_ROOT_MARKERS[0] + "\n", "", 1),
+            encoding="utf-8",
+        )
+        code = os.spawnve(os.P_WAIT, sys.executable, [sys.executable, __file__], env)
+        if code == 0:
+            print("PHASE1_VALIDATOR_SELF_TEST=fail")
+            return 1
+        write(root / "scripts/zigux/README.md", "\n".join(SCRIPTS_ROOT_MARKERS) + "\n")
+
+        scripts_root_path.write_text(
+            "\n".join(SCRIPTS_ROOT_MARKERS + [SCRIPTS_ROOT_MARKERS[1]]) + "\n",
+            encoding="utf-8",
+        )
+        code = os.spawnve(os.P_WAIT, sys.executable, [sys.executable, __file__], env)
+        if code == 0:
+            print("PHASE1_VALIDATOR_SELF_TEST=fail")
+            return 1
+        write(root / "scripts/zigux/README.md", "\n".join(SCRIPTS_ROOT_MARKERS) + "\n")
 
         closure_path = root / "Documentation/zigux/phase1-closure.md"
         closure_text = closure_path.read_text(encoding="utf-8")
@@ -667,7 +761,7 @@ def self_test() -> int:
             return 1
 
     print("PHASE1_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_VALIDATOR_SELF_TEST_CASE_COUNT=15")
+    print("PHASE1_VALIDATOR_SELF_TEST_CASE_COUNT=19")
     return 0
 
 
