@@ -266,6 +266,7 @@ REQUIRED_EXACT_CHECKSUMS = {
 
 REQUIRED_MANIFEST_FIELDS = {
     "tools/lib/bitmap.zig": {
+        "unit_test_contract": "Direct Zig unit coverage keeps bitmapAlloc(), bitmapZalloc(), and bitmapFree() honest by proving optional bitmap handles size through bitsToWords(), zero-filled allocation stays intact, and released optionals reset to null.",
         "allocator_alias_unit_test_contract": "Direct Zig unit coverage keeps bitmap_alloc(), bitmap_zalloc(), and bitmap_free() aligned with bitmapAlloc(), bitmapZalloc(), and bitmapFree() for partial-word sizing, zero-filled allocation, and optional-handle reset semantics.",
     },
     "tools/lib/find_bit.zig": {
@@ -559,6 +560,12 @@ def self_test() -> int:
         write(root / "Documentation/zigux/phase1-closure.md", "\n".join(REQUIRED_CLOSURE_MARKERS) + "\n")
 
         manifest = fixture_manifest()
+        manifest["helper_review_notes"]["tools/lib/bitmap.zig"]["unit_test_contract"] = "drift"
+        write(root / "zigux/tests/fixtures/phase1_helper_manifest.json", json.dumps(manifest, indent=2) + "\n")
+        expect_failure(root, "manifest:tools/lib/bitmap.zig:unit_test_contract")
+        write(root / "zigux/tests/fixtures/phase1_helper_manifest.json", json.dumps(fixture_manifest(), indent=2) + "\n")
+
+        manifest = fixture_manifest()
         manifest["helper_review_notes"]["tools/lib/string.zig"]["memparse_unit_test_contract"] = "drift"
         write(root / "zigux/tests/fixtures/phase1_helper_manifest.json", json.dumps(manifest, indent=2) + "\n")
         expect_failure(root, "manifest:tools/lib/string.zig:memparse_unit_test_contract")
@@ -616,7 +623,7 @@ def self_test() -> int:
         expect_failure(root, "rbtree_source:unexpected_alias:pub fn rb_first(")
 
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=22")
+    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=23")
     return 0
 
 
