@@ -70,20 +70,24 @@ This slice does not claim:
 
 ## Gates
 
-1. run the focused standalone libfs checks
+1. run the focused libfs packet checker
+- `python3 scripts/zigux/check-phase13-libfs-packet.py`
+
+2. run the focused standalone libfs checks
 - `zig test fs/libfs.zig`
 - `zig test --dep libfs -Mroot=zigux/tests/phase13_libfs.zig -Mlibfs=fs/libfs.zig`
 - `zig test --dep libfs -Mroot=zigux/tests/phase13_libfs_reviewability.zig -Mlibfs=fs/libfs.zig`
 
-2. run the dedicated Phase 13 build
+3. run the dedicated Phase 13 build
 - `zig build test --build-file zigux/tests/phase13_build.zig --summary all`
 
-3. run the convenience target
+4. run the convenience target
 - `make -C zigux phase13`
 
 ## Latest verification snapshot
 
 - inspected head: `949994db4046ec70abf044d1b2ea874fde9bc4a6`
+- `python3 scripts/zigux/check-phase13-libfs-packet.py`: passed
 - `zig test fs/libfs.zig`: passed (`0` embedded tests; parse and compile check only)
 - `zig test --dep libfs -Mroot=zigux/tests/phase13_libfs.zig -Mlibfs=fs/libfs.zig`: passed (`23/23` tests)
 - `zig test --dep libfs -Mroot=zigux/tests/phase13_libfs_reviewability.zig -Mlibfs=fs/libfs.zig`: passed (`1/1` tests)
