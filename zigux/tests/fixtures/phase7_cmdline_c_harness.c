@@ -60,18 +60,22 @@ static void run_get_option_section(void)
 {
     char range_input[] = "3-5";
     char plus_input[] = "+7,panic";
+    char plus_hex_input[] = "+0x10,panic";
     char wrapped_positive_input[] = "18446744073709551615,tail";
     char wrapped_negative_input[] = "-18446744073709551615,tail";
     char *range_rest = range_input;
     char *plus_rest = plus_input;
+    char *plus_hex_rest = plus_hex_input;
     char *wrapped_positive_rest = wrapped_positive_input;
     char *wrapped_negative_rest = wrapped_negative_input;
     int range_value = -1;
     int plus_value = -1;
+    int plus_hex_value = -1;
     int wrapped_positive_value = 0;
     int wrapped_negative_value = 0;
     int range_rc = get_option(&range_rest, &range_value);
     int plus_rc = get_option(&plus_rest, &plus_value);
+    int plus_hex_rc = get_option(&plus_hex_rest, &plus_hex_value);
     int wrapped_positive_rc = get_option(&wrapped_positive_rest, &wrapped_positive_value);
     int wrapped_negative_rc = get_option(&wrapped_negative_rest, &wrapped_negative_value);
 
@@ -87,6 +91,12 @@ static void run_get_option_section(void)
     printf("\"value\":%d,", plus_value);
     printf("\"rest\":");
     emit_json_string(plus_rest);
+    printf("},");
+    printf("\"leading_plus_hex\":{");
+    printf("\"rc\":%d,", plus_hex_rc);
+    printf("\"value\":%d,", plus_hex_value);
+    printf("\"rest\":");
+    emit_json_string(plus_hex_rest);
     printf("},");
     printf("\"wrapped_positive_low_word\":{");
     printf("\"rc\":%d,", wrapped_positive_rc);
