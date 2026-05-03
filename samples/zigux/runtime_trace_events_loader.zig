@@ -6,6 +6,7 @@ pub const LoaderStage = runtime_loader.LoaderStage;
 
 pub const RuntimeTraceEventsLoadPlan = struct {
     module_name: []const u8,
+    command_name: ?[]const u8,
     anchor: []const u8,
     entry_symbol: []const u8,
     exit_symbol: []const u8,
@@ -44,6 +45,7 @@ pub const RuntimeTraceEventsLoader = struct {
         const summary = module.summary();
         return .{
             .module_name = descriptor.name,
+            .command_name = null,
             .anchor = descriptor.anchor,
             .entry_symbol = "zigux_runtime_trace_events_init",
             .exit_symbol = "zigux_runtime_trace_events_exit",
@@ -58,13 +60,34 @@ pub const RuntimeTraceEventsLoader = struct {
         };
     }
 
+    pub fn withCommandName(
+        plan: RuntimeTraceEventsLoadPlan,
+        command_name: ?[]const u8,
+    ) !RuntimeTraceEventsLoadPlan {
+        if (command_name) |value| {
+            if (value.len == 0) return error.InvalidCommandName;
+        }
+
+        var updated = plan;
+        updated.command_name = command_name;
+        return updated;
+    }
+
     pub fn prepare(
         self: *Self,
         module: *const runtime_trace_events_sample.RuntimeTraceEventsSample,
     ) !RuntimeTraceEventsLoadPlan {
+        return self.prepareWithCommandName(module, null);
+    }
+
+    pub fn prepareWithCommandName(
+        self: *Self,
+        module: *const runtime_trace_events_sample.RuntimeTraceEventsSample,
+        command_name: ?[]const u8,
+    ) !RuntimeTraceEventsLoadPlan {
         if (self.stage_state != .idle) return error.LoaderAlreadyPrepared;
 
-        const plan = try planFor(module);
+        const plan = try withCommandName(try planFor(module), command_name);
         self.cached_plan = plan;
         self.stage_state = .prepared;
         return plan;
@@ -99,6 +122,7 @@ test "runtime trace-events loader prepares a bounded registration handoff plan" 
 
     try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
     try std.testing.expectEqualStrings("runtime_trace_events", plan.module_name);
+    try std.testing.expectEqual(@as(?[]const u8, null), plan.command_name);
     try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample.c", plan.anchor);
     try std.testing.expectEqualStrings("zigux_runtime_trace_events_init", plan.entry_symbol);
     try std.testing.expectEqualStrings("zigux_runtime_trace_events_exit", plan.exit_symbol);
@@ -199,6 +223,7 @@ test "runtime trace-events loader keeps the release-without-substrate fallback e
     const released_plan = try loader.releasePlanWithoutSubstrate();
     try std.testing.expectEqual(LoaderStage.released_without_substrate, loader.stage());
     try std.testing.expectEqualStrings("runtime_trace_events", released_plan.module_name);
+    try std.testing.expectEqual(@as(?[]const u8, null), released_plan.command_name);
     try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample.c", released_plan.anchor);
     try std.testing.expectEqualStrings("zigux_runtime_trace_events_init", released_plan.entry_symbol);
     try std.testing.expectEqualStrings("zigux_runtime_trace_events_exit", released_plan.exit_symbol);
@@ -221,4 +246,33 @@ test "runtime trace-events loader keeps the release-without-substrate fallback e
     try std.testing.expectEqualStrings("foo_bar_unreg", released_plan.summary.last_unregister_label orelse return error.ExpectedFunctionPayload);
     try std.testing.expectError(error.InvalidLoaderState, loader.requestRuntimeLoad());
     try std.testing.expectError(error.InvalidLoaderState, loader.releasePlanWithoutSubstrate());
+}
+
+test "runtime trace-events loader preserves an explicit review-only command name" {
+    var module = runtime_trace_events_sample.RuntimeTraceEventsSample{};
+    try module.init();
+    _ = try module.runSelftest();
+
+    var loader = RuntimeTraceEventsLoader{};
+    const plan = try loader.prepareWithCommandName(&module, "perf-runtime-trace-events");
+    try std.testing.expectEqualStrings("perf-runtime-trace-events", plan.command_name.?);
+
+    const pending_plan = try loader.requestRuntimeLoad();
+    try std.testing.expectEqualStrings("perf-runtime-trace-events", pending_plan.command_name.?);
+
+    const released_plan = try loader.releasePlanWithoutSubstrate();
+    try std.testing.expectEqualStrings("perf-runtime-trace-events", released_plan.command_name.?);
+    try std.testing.expectEqual(LoaderStage.released_without_substrate, loader.stage());
+}
+
+test "runtime trace-events loader rejects an empty explicit command name" {
+    var module = runtime_trace_events_sample.RuntimeTraceEventsSample{};
+    try module.init();
+
+    var loader = RuntimeTraceEventsLoader{};
+    try std.testing.expectError(
+        error.InvalidCommandName,
+        loader.prepareWithCommandName(&module, ""),
+    );
+    try std.testing.expectEqual(LoaderStage.idle, loader.stage());
 }
