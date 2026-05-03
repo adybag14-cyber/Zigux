@@ -233,6 +233,7 @@ test "atomic64 diff wrapper records the exact bounded runtime atomic64 checks" {
 
     try expectRuntimeMarker("add_unless leaves the counter untouched when it already matches the blocked value");
     try expectRuntimeMarker("add_unless applies the addend when the current value differs from the blocked value");
+    try expectRuntimeMarker("const blocked_add_unless = try module.addUnlessCounter(3, 0);");
     try expectRuntimeMarker("inc_not_zero increments a positive non-zero counter");
     try expectRuntimeMarker("inc_not_zero leaves zero unchanged");
     try expectRuntimeMarker("inc_not_zero still increments -1 back to zero");
