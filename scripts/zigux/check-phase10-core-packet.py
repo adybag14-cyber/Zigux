@@ -370,8 +370,28 @@ def run_self_test() -> int:
         )
         closure_path.write_text(original_closure, encoding="utf-8")
 
+        closure_manifest = json.loads(original_closure)
+        closure_manifest["survey_provenance"]["lane_keys"]["core"] = "P10-L03-drift"
+        closure_path.write_text(json.dumps(closure_manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "closure_manifest_core_lane_key",
+            tmp_root,
+            "closure_manifest:survey_provenance:core_lane_key",
+        )
+        closure_path.write_text(original_closure, encoding="utf-8")
+
+        closure_manifest = json.loads(original_closure)
+        closure_manifest["survey_provenance"]["surveyed_commits"]["core"] = "deadbeef"
+        closure_path.write_text(json.dumps(closure_manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "closure_manifest_core_surveyed_commit",
+            tmp_root,
+            "closure_manifest:survey_provenance:core_surveyed_commit",
+        )
+        closure_path.write_text(original_closure, encoding="utf-8")
+
     print("PHASE10_CORE_PACKET_SELF_TEST=pass")
-    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=6")
+    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
