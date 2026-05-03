@@ -230,6 +230,11 @@ fn decodeTailFromMap(dst: []u8, src: []const u8, map: *const [256]i8) DecodeErro
         return DecodeError.InvalidInput;
     }
 
+    const needed: usize = if (src.len == 2) 1 else 2;
+    if (dst.len < needed) {
+        return DecodeError.DestinationTooSmall;
+    }
+
     const a = try decodeValueFromMap(map, src[0]);
     const b = try decodeValueFromMap(map, src[1]);
     var value = (@as(u32, a) << 12) | (@as(u32, b) << 6);
@@ -549,6 +554,18 @@ test "decodeTail and validateTail preserve canonical tail semantics across varia
     try std.testing.expectError(DecodeError.InvalidInput, decodeTail(invalid_std_tail_buf[0..], "Z=", .std));
     try std.testing.expectError(DecodeError.InvalidInput, decodeTail(invalid_urlsafe_tail_buf[0..], "__B", .urlsafe));
     try std.testing.expectError(DecodeError.InvalidInput, decodeTail(invalid_imap_tail_buf[0..], ",,B", .imap));
+}
+
+test "decodeTail reports destination bounds for short tails across variants" {
+    var empty: [0]u8 = .{};
+    var one: [1]u8 = undefined;
+
+    try std.testing.expectError(DecodeError.DestinationTooSmall, decodeTail(empty[0..], "Zg", .std));
+    try std.testing.expectError(DecodeError.DestinationTooSmall, decodeTail(one[0..], "Zm8", .std));
+    try std.testing.expectError(DecodeError.DestinationTooSmall, decodeTail(empty[0..], "-w", .urlsafe));
+    try std.testing.expectError(DecodeError.DestinationTooSmall, decodeTail(one[0..], "__A", .urlsafe));
+    try std.testing.expectError(DecodeError.DestinationTooSmall, decodeTail(empty[0..], "+w", .imap));
+    try std.testing.expectError(DecodeError.DestinationTooSmall, decodeTail(one[0..], ",,A", .imap));
 }
 
 test "decode accepts exact-fit buffers and rejects one-byte-short buffers" {
