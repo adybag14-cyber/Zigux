@@ -219,6 +219,11 @@
       "name": "signed_numeric_kinds",
       "input": "signed_numeric_kinds.config",
       "expected": "signed_numeric_kinds_expected.json"
+    },
+    {
+      "name": "trailing_escaped_backslash",
+      "input": "trailing_escaped_backslash.config",
+      "expected": "trailing_escaped_backslash_expected.json"
     }
   ]
 }
