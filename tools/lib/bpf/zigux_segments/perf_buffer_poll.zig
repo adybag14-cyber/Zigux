@@ -221,6 +221,14 @@ pub fn summarizePoll(
     };
 }
 
+pub fn summarizePollFromWaitResult(
+    timeout_ms: i32,
+    wait_result: i32,
+    buffers: []const BufferObservation,
+) PollError!PollSummary {
+    return summarizePoll(timeout_ms, classifyObservedWaitResult(wait_result), buffers);
+}
+
 pub fn summarizePollExecution(
     timeout_ms: i32,
     observation: WaitObservation,
@@ -251,6 +259,20 @@ pub fn summarizePollExecution(
         .first_process_error_index = process.first_error_index,
         .first_process_error = process.first_error,
     };
+}
+
+pub fn summarizePollExecutionFromWaitResult(
+    timeout_ms: i32,
+    wait_result: i32,
+    buffers: []const BufferObservation,
+    process_observations: []const ProcessRecordObservation,
+) PollError!PollExecutionSummary {
+    return summarizePollExecution(
+        timeout_ms,
+        classifyObservedWaitResult(wait_result),
+        buffers,
+        process_observations,
+    );
 }
 
 test "classifyWaitClass keeps perf_buffer__poll timeout classes explicit" {
@@ -291,6 +313,22 @@ test "summarizePoll keeps bounded ready observations compact and reviewable" {
         .{ .ready = true },
     };
     const summary = try summarizePoll(10, .{ .ready_events = 3 }, &buffers);
+
+    try std.testing.expectEqual(WaitClass.bounded, summary.wait_class);
+    try std.testing.expectEqual(PollOutcome.ready, summary.outcome);
+    try std.testing.expectEqual(@as(usize, 3), summary.observed_ready_events);
+    try std.testing.expectEqual(@as(usize, 2), summary.ready_count);
+    try std.testing.expectEqual(@as(?usize, 0), summary.first_ready_index);
+    try std.testing.expectEqual(@as(?i32, -32), summary.first_error);
+}
+
+test "summarizePollFromWaitResult keeps raw wait-result normalization coupled to the bounded buffer summary" {
+    const buffers = [_]BufferObservation{
+        .{ .ready = true },
+        .{ .error_code = -32 },
+        .{ .ready = true },
+    };
+    const summary = try summarizePollFromWaitResult(10, 3, &buffers);
 
     try std.testing.expectEqual(WaitClass.bounded, summary.wait_class);
     try std.testing.expectEqual(PollOutcome.ready, summary.outcome);
@@ -353,6 +391,26 @@ test "summarizePollExecution keeps ready-buffer processing inside the observed e
         .{ .error_code = -32 },
     };
     const summary = try summarizePollExecution(12, .{ .ready_events = 3 }, &buffers, &.{
+        .{ .records_processed = 4 },
+        .{ .result = -11 },
+        .{ .records_processed = 9 },
+    });
+
+    try std.testing.expectEqual(PollOutcome.ready, summary.poll.outcome);
+    try std.testing.expectEqual(@as(usize, 2), summary.attempted_ready_buffer_count);
+    try std.testing.expectEqual(@as(usize, 1), summary.completed_ready_buffer_count);
+    try std.testing.expectEqual(@as(usize, 4), summary.processed_record_count);
+    try std.testing.expectEqual(@as(?usize, 1), summary.first_process_error_index);
+    try std.testing.expectEqual(@as(?i32, -11), summary.first_process_error);
+}
+
+test "summarizePollExecutionFromWaitResult keeps raw wait-result normalization coupled to execution bookkeeping" {
+    const buffers = [_]BufferObservation{
+        .{ .ready = true },
+        .{ .ready = true },
+        .{ .error_code = -32 },
+    };
+    const summary = try summarizePollExecutionFromWaitResult(12, 3, &buffers, &.{
         .{ .records_processed = 4 },
         .{ .result = -11 },
         .{ .records_processed = 9 },
