@@ -7,10 +7,17 @@ import runpy
 import tempfile
 
 
-ROOT = Path(__file__).resolve().parents[2]
+_SELF_PATH = Path(__file__).resolve()
+ROOT = _SELF_PATH.parents[2] if len(_SELF_PATH.parents) > 2 else Path.cwd().resolve()
 README_REL = "scripts/zigux/README.md"
 TOOLING_PACKET_SCRIPT_REL = "scripts/zigux/check-phase3-tooling-packet.py"
 README_HELPER_SECTION = "Current bootstrap helpers"
+ADDITIONAL_REQUIRED_HELPER_ENTRIES = (
+    "check-phase13-libfs-packet.py",
+    "check-phase13-devres-packet.py",
+    "check-phase13-notifier-packet.py",
+    "validate-phase13-release.py",
+)
 REQUIRED_PHASE3_FLOW_SNIPPETS = (
     "`validate-phase3.py` is the validator-first entrypoint for the shared Phase 3 ABI and interop packet, and `make -C zigux phase3-validate` plus the bootstrap workflow replay that same route before the broader build-backed or survey-backed checks run.",
     "`validate-phase3-roadmap-gap-survey.py`, `validate-phase3-rbtree-interop-survey.py`, `check-phase3-rbtree-shared-lift-contract.py`, `validate-phase3-export-uapi-survey.py`, `validate-phase3-low-level-wrapper-survey.py`, `validate-phase3-policy-unsafe-survey.py`, `check-phase3-policy-unsafe-mmio-consumer.py`, `check-phase3-abi-layout-packet.py`, `check-phase3-abi-binding-constants.py`, `check-phase3-tooling-packet.py`, `check-phase3-readme-tooling-inventory.py`, `check-phase3-validation-flow.py`, `check-phase3-build-roots.py`, and `check-phase3-canonical-survey-manifest.py` stay as supporting checks inside that validator-first route rather than standalone bootstrap or release entrypoints.",
@@ -55,6 +62,8 @@ def _canonical_readme_entries(root: Path) -> tuple[list[str], list[str]]:
         if not rel.startswith("scripts/zigux/"):
             continue
         basenames.append(Path(rel).name)
+
+    basenames.extend(ADDITIONAL_REQUIRED_HELPER_ENTRIES)
 
     if not basenames:
         issues.append("missing_tooling_packet_script_entries")
@@ -188,6 +197,10 @@ def run_self_test() -> int:
             "scripts/zigux/check-phase3-readme-tooling-inventory.py",
             "scripts/zigux/validate-phase3.py",
         )
+        additional_helper_rels = tuple(
+            f"scripts/zigux/{basename}" for basename in ADDITIONAL_REQUIRED_HELPER_ENTRIES
+        )
+        required_rels = tooling_packet_rels + additional_helper_rels
 
         tooling_packet_script = "\n".join(
             (
@@ -203,12 +216,12 @@ def run_self_test() -> int:
         )
         _write(root / TOOLING_PACKET_SCRIPT_REL, tooling_packet_script)
 
-        for rel in tooling_packet_rels:
+        for rel in required_rels:
             if rel == TOOLING_PACKET_SCRIPT_REL:
                 continue
             _write(root / rel, "# stub\n")
 
-        helper_lines = "\n".join(f"- `{Path(rel).name}`" for rel in tooling_packet_rels)
+        helper_lines = "\n".join(f"- `{Path(rel).name}`" for rel in required_rels)
         _write(
             root / README_REL,
             "\n".join(
@@ -239,7 +252,7 @@ def run_self_test() -> int:
                     "Current bootstrap helpers",
                     *[
                         f"- `{Path(rel).name}`"
-                        for rel in tooling_packet_rels
+                        for rel in required_rels
                         if rel != tooling_packet_rels[0]
                     ],
                     "",
@@ -262,9 +275,34 @@ def run_self_test() -> int:
                     "# scripts/zigux",
                     "",
                     "Current bootstrap helpers",
+                    *[
+                        f"- `{Path(rel).name}`"
+                        for rel in required_rels
+                        if rel != "scripts/zigux/check-phase13-devres-packet.py"
+                    ],
+                    "",
+                    _fixture_phase3_flow(),
+                )
+            ),
+        )
+        issues = validate(root)
+        expected = ["missing_readme_entry:check-phase13-devres-packet.py"]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-readme-tooling-inventory-self-test:missing_phase13_readme_entry_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+        _write(
+            root / README_REL,
+            "\n".join(
+                (
+                    "# scripts/zigux",
+                    "",
+                    "Current bootstrap helpers",
                     f"- `{Path(tooling_packet_rels[1]).name}`",
                     f"- `{Path(tooling_packet_rels[0]).name}`",
-                    *[f"- `{Path(rel).name}`" for rel in tooling_packet_rels[2:]],
+                    *[f"- `{Path(rel).name}`" for rel in required_rels[2:]],
                     "",
                     _fixture_phase3_flow(),
                 )
@@ -287,7 +325,7 @@ def run_self_test() -> int:
                     "Current bootstrap helpers",
                     f"- `{Path(tooling_packet_rels[0]).name}`",
                     f"- `{Path(tooling_packet_rels[0]).name}`",
-                    *[f"- `{Path(rel).name}`" for rel in tooling_packet_rels[1:]],
+                    *[f"- `{Path(rel).name}`" for rel in required_rels[1:]],
                     "",
                     _fixture_phase3_flow(),
                 )
@@ -399,7 +437,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
-    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=7")
+    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
