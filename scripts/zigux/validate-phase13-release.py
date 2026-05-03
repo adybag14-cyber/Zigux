@@ -160,6 +160,7 @@ SCRIPT_README_MARKERS = [
 SCRIPTS_README_EXACT_COUNT_MARKERS = {
     "`check-phase13-libfs-packet.py`, `check-phase13-notifier-packet.py`, and `validate-phase13-release.py` keep `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/Makefile`, and `zigux/tests/phase13_build.zig` aligned as one shared release-discipline packet, including the focused `libfs` packet, the adjacent `phase13-devres-dma-coherent-tests` helper evidence, the dedicated `phase13-landlock-syscalls-reviewability-tests` gate, and the adjacent notifier-list release evidence instead of leaving the Phase 13 review path split across isolated docs or build wiring.": 1,
     "`check-phase13-devres-packet.py` keeps the helper-first `devres` packet and its blocked DMA/scatterlist boundary visible in that same shared Phase 13 release flow instead of leaving the live devres guard implicit in the Makefile wiring and packet-local survey assets.": 1,
+    "`Documentation/zigux/phase13-devres-survey.md`, `zigux/tests/phase13_devres_manifest.json`, `zigux/tests/phase13_devres_dma_coherent.zig`, and `zigux/tests/phase13_devres_reviewability.zig` keep the helper-first `devres` packet explicit about adjacent coherent-DMA bookkeeping while live DMA-backed mappings and scatterlist ownership stay blocked rather than implied.": 1,
 }
 
 REVIEW_CHECKLIST_MARKERS = [
