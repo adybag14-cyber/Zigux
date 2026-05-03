@@ -61,6 +61,7 @@ This slice already carries:
 - a dedicated `rbtree` root-view record in `include/zigux/rbtree.h` and `zigux/bindings/rbtree.zig`
 - a dedicated C-vs-Zig parity replay in `zigux/tests/fixtures/phase3_rbtree/expected.json` and `zigux/tests/fixtures/phase3_rbtree/phase3_rbtree_c_harness.c`
 - a shared Phase 3 ABI parity replay that still reuses the dedicated `rbtree` header and Zig binding in `zigux/tests/phase3_abi.zig`, `zigux/tests/phase3_abi_dump.zig`, and `zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c`
+- the shared ABI manifest now catalogs both that dedicated packet and the shared ABI replay plus the lift guards, so the outstanding Phase 3 work is the shared root-view lift rather than packet inventory drift
 
 This slice does not yet claim:
 
