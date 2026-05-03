@@ -327,6 +327,21 @@ def run_self_test() -> int:
         )
         note_path.write_text(original_note, encoding="utf-8")
 
+        note_path.write_text(
+            original_note.replace(
+                "no standalone clockevent helper",
+                "no standalone clockevent boundary",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "note_clockevent_boundary",
+            tmp_root,
+            "Documentation/zigux/phase8-perf-buffer-poll-slice.md:no standalone clockevent helper",
+        )
+        note_path.write_text(original_note, encoding="utf-8")
+
         workflow_path = tmp_root / ".github/workflows/zigux-bootstrap.yml"
         original_workflow = workflow_path.read_text(encoding="utf-8")
         workflow_path.write_text(
@@ -615,7 +630,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST=pass")
-    print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST_CASE_COUNT=21")
+    print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST_CASE_COUNT=22")
     return 0
 
 
