@@ -16,7 +16,9 @@ Current bootstrap helpers
 - `validate-bootstrap.py`
 - `install-zig.py`
 - `validate-phase1.py`
+- `check-phase1-bitmap-validator-anchors.py`
 - `check-phase1-find-bit-validator-anchors.py`
+- `check-phase1-route-summary-counts.py`
 - `check-phase1-bench.py`
 - `validate-phase1-closure.py`
 - `validate-phase2.py`
@@ -107,8 +109,10 @@ Phase 1 flow
 - `validate-phase1.py` is the validator-first entrypoint for the closed host-helper packet around `tools/lib/bitmap.zig`, `tools/lib/find_bit.zig`, `tools/lib/string.zig`, and `tools/lib/rbtree.zig` plus the bounded supporting helpers and committed `zigux/tests/fixtures/phase1_helpers.json` corpus.
 - the same validator keeps `Documentation/zigux/phase1-closure.md`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, and the workflow hooks aligned, including the committed `PHASE1_FIND_BIT_TAIL_START_UNIT_REVIEW` and `PHASE1_FIND_BIT_ZERO_SIZED_UNIT_REVIEW` closure markers for the tail-start and zero-sized `find_bit` parity packet.
 - `Documentation/zigux/README.md`, `Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` stay aligned as the bounded Phase 1 helper inventory and validator-first replay packet.
+- `check-phase1-bitmap-validator-anchors.py --self-test` and `check-phase1-bitmap-validator-anchors.py` keep `validate-phase1.py` fail-closed around the shipped bitmap tail-mask, zero-bit, and empty-bitmap closure markers plus the matching `phase1_helper_manifest.json` anchor checks, so the primary Phase 1 validator cannot silently stop naming that closed evidence packet.
 - `check-phase1-find-bit-validator-anchors.py --self-test` and `check-phase1-find-bit-validator-anchors.py` keep `validate-phase1.py` fail-closed around those shipped `find_bit` tail-start and zero-sized closure markers plus the matching `phase1_helper_manifest.json` tail-start and zero-sized anchor checks, so the primary Phase 1 validator cannot silently stop naming that closed evidence packet.
-- `check-phase1-parity.py --self-test`, `check-phase1-parity.py`, `check-phase1-bench.py --self-test`, `check-phase1-bench.py`, `validate-phase1-closure.py --self-test`, and `validate-phase1-closure.py` are the bounded fail-closed review hooks around that same closed Phase 1 helper tranche.
+- `check-phase1-route-summary-counts.py --self-test` and `check-phase1-route-summary-counts.py` keep the two docs-root and two scripts-root Phase 1 route-summary lines fail-closed across `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`, so the shared host-helper packet cannot silently drift away from the published validator-first and review-hook wording.
+- `check-phase1-bitmap-validator-anchors.py --self-test`, `check-phase1-bitmap-validator-anchors.py`, `check-phase1-find-bit-validator-anchors.py --self-test`, `check-phase1-find-bit-validator-anchors.py`, `check-phase1-route-summary-counts.py --self-test`, `check-phase1-route-summary-counts.py`, `check-phase1-parity.py --self-test`, `check-phase1-parity.py`, `check-phase1-bench.py --self-test`, `check-phase1-bench.py`, `validate-phase1-closure.py --self-test`, and `validate-phase1-closure.py` are the bounded fail-closed review hooks around that same closed Phase 1 helper tranche.
 
 Phase 4 flow
 - `make -C zigux phase4-validate` is the validator-first entrypoint for the current rollback-readiness packet.
