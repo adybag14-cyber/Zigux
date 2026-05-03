@@ -39,6 +39,7 @@ Current bootstrap helpers
 - `check-phase4-kprobe-example-packet.py`
 - `validate-phase5.py`
 - `validate-phase6.py`
+- `check-phase6-base64-catalog-evidence.py`
 - `validate-phase7.py`
 - `check-phase7-build-inventory.py`
 - `check-phase7-make-wrapper.py`
@@ -64,6 +65,7 @@ Current bootstrap helpers
 - `check-phase11-layout-assert-surface.py`
 - `check-phase11-hvc-validation-flow.py`
 - `check-phase11-hvc-cleanup-alignment.py`
+- `check-phase11-shared-replay-contract.py`
 - `check-phase12-build-inventory.py`
 - `check-phase12-libbpf-snapshot.py`
 - `check-phase12-libbpf-packet.py`
@@ -91,6 +93,7 @@ Current bootstrap helpers
 - `check-fixdep-diff.py`
 - `check-genksyms-bridge.py`
 - `check-phase2-genksyms-bridge-selftest-alignment.py`
+- `check-phase2-kconfig-selftest-alignment.py`
 - `check-phase2-cross-selftest-alignment.py`
 - `check-genksyms-crc-diff.py`
 - `check-kconfig-bridge.py`
