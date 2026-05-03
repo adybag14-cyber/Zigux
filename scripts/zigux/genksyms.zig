@@ -10,11 +10,11 @@ pub const Request = struct {
     preserve: bool = false,
     reference_files: []const []const u8 = &.{},
     dump_types_file: ?[]const u8 = null,
-    show_version: bool = false,
+    version_count: usize = 0,
 };
 
 pub const HelpCommand = struct {
-    show_version: bool = false,
+    version_count: usize = 0,
 };
 
 pub const Command = union(enum) {
@@ -243,9 +243,9 @@ fn parseLongOption(allocator: std.mem.Allocator, args: []const []const u8, index
             }
 
             switch (spec.kind) {
-                .help => return .{ .command = .{ .help = .{ .show_version = request.show_version } } },
+                .help => return .{ .command = .{ .help = .{ .version_count = request.version_count } } },
                 .version => {
-                    request.show_version = true;
+                    request.version_count += 1;
                     return .none;
                 },
                 .debug => {
@@ -293,8 +293,8 @@ fn parseShortOptions(allocator: std.mem.Allocator, args: []const []const u8, ind
     var short_index: usize = 1;
     while (short_index < arg.len) : (short_index += 1) {
         switch (arg[short_index]) {
-            'h' => return .{ .command = .{ .help = .{ .show_version = request.show_version } } },
-            'V' => request.show_version = true,
+            'h' => return .{ .command = .{ .help = .{ .version_count = request.version_count } } },
+            'V' => request.version_count += 1,
             'd' => request.debug_level += 1,
             'w' => request.warnings = true,
             'q' => request.warnings = false,
@@ -383,6 +383,13 @@ pub fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParseO
     return .{ .command = .{ .request = request } };
 }
 
+fn writeVersionLines(writer: anytype, version_count: usize) !void {
+    var remaining = version_count;
+    while (remaining != 0) : (remaining -= 1) {
+        try writer.writeAll(version_text);
+    }
+}
+
 pub fn main(init: std.process.Init) !void {
     const arena = init.arena.allocator();
     const io = init.io;
@@ -417,17 +424,15 @@ pub fn main(init: std.process.Init) !void {
         .help => |help| {
             var stderr_buffer: [512]u8 = undefined;
             var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
-            if (help.show_version) {
-                try stderr_writer.interface.writeAll(version_text);
-            }
+            try writeVersionLines(&stderr_writer.interface, help.version_count);
             try stderr_writer.interface.writeAll(usage_text);
             try stderr_writer.interface.flush();
         },
         .request => |request| {
-            if (request.show_version) {
+            if (request.version_count != 0) {
                 var stderr_buffer: [128]u8 = undefined;
                 var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
-                try stderr_writer.interface.writeAll(version_text);
+                try writeVersionLines(&stderr_writer.interface, request.version_count);
                 try stderr_writer.interface.flush();
             }
             var stdout_buffer: [2048]u8 = undefined;
@@ -527,14 +532,14 @@ test "genksyms bridge accepts abbreviated unique long options" {
 }
 
 test "genksyms bridge accepts abbreviated unique action long options" {
-    const version_args = &.{"--ver"};
+    const version_args = &.{ "--ver", "--version" };
     const version_outcome = try parseArgs(std.testing.allocator, version_args);
     switch (version_outcome) {
         .command => |command| switch (command) {
             .request => |request| {
                 defer std.testing.allocator.free(request.reference_files);
                 defer std.testing.allocator.free(request.rendered_args);
-                try std.testing.expect(request.show_version);
+                try std.testing.expectEqual(@as(usize, 2), request.version_count);
                 try std.testing.expectEqualSlices([]const u8, version_args, request.raw_args);
                 try std.testing.expectEqualSlices([]const u8, version_args, request.rendered_args);
             },
@@ -546,7 +551,7 @@ test "genksyms bridge accepts abbreviated unique action long options" {
     const help_outcome = try parseArgs(std.testing.allocator, &.{"--hel"});
     switch (help_outcome) {
         .command => |command| switch (command) {
-            .help => |help| try std.testing.expect(!help.show_version),
+            .help => |help| try std.testing.expectEqual(@as(usize, 0), help.version_count),
             else => return error.UnexpectedCommand,
         },
         .failure => return error.UnexpectedFailure,
@@ -557,7 +562,7 @@ test "genksyms bridge preserves version side effect before help exit" {
     const short_outcome = try parseArgs(std.testing.allocator, &.{"-Vh"});
     switch (short_outcome) {
         .command => |command| switch (command) {
-            .help => |help| try std.testing.expect(help.show_version),
+            .help => |help| try std.testing.expectEqual(@as(usize, 1), help.version_count),
             else => return error.UnexpectedCommand,
         },
         .failure => return error.UnexpectedFailure,
@@ -566,7 +571,27 @@ test "genksyms bridge preserves version side effect before help exit" {
     const long_outcome = try parseArgs(std.testing.allocator, &.{ "--version", "--hel" });
     switch (long_outcome) {
         .command => |command| switch (command) {
-            .help => |help| try std.testing.expect(help.show_version),
+            .help => |help| try std.testing.expectEqual(@as(usize, 1), help.version_count),
+            else => return error.UnexpectedCommand,
+        },
+        .failure => return error.UnexpectedFailure,
+    }
+}
+
+test "genksyms bridge preserves repeated version requests before help exit" {
+    const short_outcome = try parseArgs(std.testing.allocator, &.{"-VVh"});
+    switch (short_outcome) {
+        .command => |command| switch (command) {
+            .help => |help| try std.testing.expectEqual(@as(usize, 2), help.version_count),
+            else => return error.UnexpectedCommand,
+        },
+        .failure => return error.UnexpectedFailure,
+    }
+
+    const long_outcome = try parseArgs(std.testing.allocator, &.{ "--version", "--ver", "--help" });
+    switch (long_outcome) {
+        .command => |command| switch (command) {
+            .help => |help| try std.testing.expectEqual(@as(usize, 2), help.version_count),
             else => return error.UnexpectedCommand,
         },
         .failure => return error.UnexpectedFailure,
