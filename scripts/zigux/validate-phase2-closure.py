@@ -60,6 +60,7 @@ EXACT_MAKEFILE_RUN_COUNTS = {
 EXACT_TOOLCHAIN_PIN_SCOPE_MAKEFILE_RUN_COUNTS = {
     'scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test': 1,
     'scripts/zigux/check-phase2-toolchain-pin-scope.py': 1,
+    'scripts/zigux/check-zig-toolchain.py': 1,
 }
 
 
