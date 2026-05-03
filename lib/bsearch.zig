@@ -427,6 +427,60 @@ test "search accepts runtime-selected comparator function pointers across hit an
     }
 }
 
+test "searchMutable accepts runtime-selected typed comparator function pointers across ascending and descending slices" {
+    const native_cases = [_]struct {
+        target: i32,
+        values: [7]i32,
+        compare: Comparator(i32, i32),
+        expected_index: ?usize,
+    }{
+        .{ .target = 23, .values = .{ 2, 4, 7, 11, 16, 23, 42 }, .compare = compareInt, .expected_index = 5 },
+        .{ .target = 7, .values = .{ 42, 23, 16, 11, 7, 4, 2 }, .compare = compareDescendingInt, .expected_index = 4 },
+        .{ .target = 20, .values = .{ 2, 4, 7, 11, 16, 23, 42 }, .compare = compareInt, .expected_index = null },
+        .{ .target = 20, .values = .{ 42, 23, 16, 11, 7, 4, 2 }, .compare = compareDescendingInt, .expected_index = null },
+    };
+
+    for (native_cases) |case| {
+        var values = case.values;
+        const found = searchMutable(i32, i32, &case.target, values[0..], case.compare);
+
+        if (case.expected_index) |expected_index| {
+            const typed_found = found orelse return error.TestUnexpectedResult;
+            try std.testing.expectEqual(@intFromPtr(&values[expected_index]), @intFromPtr(typed_found));
+            typed_found.* += 100;
+            try std.testing.expectEqual(case.target + 100, values[expected_index]);
+        } else {
+            try std.testing.expect(found == null);
+        }
+    }
+
+    const c_cases = [_]struct {
+        target: i32,
+        values: [7]i32,
+        compare: CComparator(i32, i32),
+        expected_index: ?usize,
+    }{
+        .{ .target = 16, .values = .{ 2, 4, 7, 11, 16, 23, 42 }, .compare = compareCInt, .expected_index = 4 },
+        .{ .target = 11, .values = .{ 42, 23, 16, 11, 7, 4, 2 }, .compare = compareCDescendingInt, .expected_index = 3 },
+        .{ .target = 20, .values = .{ 2, 4, 7, 11, 16, 23, 42 }, .compare = compareCInt, .expected_index = null },
+        .{ .target = 20, .values = .{ 42, 23, 16, 11, 7, 4, 2 }, .compare = compareCDescendingInt, .expected_index = null },
+    };
+
+    for (c_cases) |case| {
+        var values = case.values;
+        const found = searchMutable(i32, i32, &case.target, values[0..], case.compare);
+
+        if (case.expected_index) |expected_index| {
+            const typed_found = found orelse return error.TestUnexpectedResult;
+            try std.testing.expectEqual(@intFromPtr(&values[expected_index]), @intFromPtr(typed_found));
+            typed_found.* += 100;
+            try std.testing.expectEqual(case.target + 100, values[expected_index]);
+        } else {
+            try std.testing.expect(found == null);
+        }
+    }
+}
+
 test "searchIndex and search accept runtime-selected C ABI comparator function pointers across hit and miss cases" {
     const ascending = [_]i32{ 2, 4, 7, 11, 16, 23, 42 };
     const descending = [_]i32{ 42, 23, 16, 11, 7, 4, 2 };
