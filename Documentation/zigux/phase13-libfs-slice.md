@@ -19,4 +19,4 @@ The current helper stays intentionally narrow:
 
 This slice does not claim `d_add()` side effects, cursor-backed directory iteration, inode allocation, pseudo-fs mounting, simple-transaction state, or any other live VFS plumbing from the wider `fs/libfs.c` body.
 
-The next honest bounded step in this same lane is to leave the remaining cursor-backed helpers plus inode and pseudo-filesystem lifecycle work blocked on live VFS state unless a future run can isolate another equally small non-live boundary.
+The next honest bounded step in this same lane is a pure `generic_check_addressable()` addressability planner that stays inside block-size, byte-count overflow, and sector/page-cache addressability checks. After that, the remaining cursor-backed helpers plus inode and pseudo-filesystem lifecycle work stay blocked on live VFS state.
