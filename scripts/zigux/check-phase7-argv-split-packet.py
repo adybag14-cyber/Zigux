@@ -90,7 +90,7 @@ REQUIRED_HELPER_MARKERS = [
 EXPECTED_MANIFEST = {
     "lane_key": "P7-L12",
     "phase": "Phase 7",
-    "surveyed_commit": "ac615fab1a13cf24fc9a45abf09b1500fb1e2ac9",
+    "surveyed_commit": "d46fb91493e6e9126d5111bf0e5b21184e0ec1d1",
     "anchor": "lib/argv_split.c",
     "roadmap_destinations": ["lib/argv_split.zig"],
 }
@@ -112,7 +112,6 @@ EXPECTED_GAP_DESTINATIONS = {
     "phase7-argv-split-slice-note": "Documentation/zigux/phase7-argv-split-slice.md",
     "phase7-argv-split-survey-gate": "zigux/tests/phase7_argv_split_survey.zig",
 }
-
 
 def read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
