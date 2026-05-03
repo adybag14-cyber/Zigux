@@ -403,6 +403,24 @@ def run_self_test() -> int:
             validator_path,
             {
                 **EXPECTED_MAKE_EXPANSIONS,
+                "phase7-validate": [
+                    line
+                    for line in EXPECTED_MAKE_EXPANSIONS["phase7-validate"]
+                    if line != "python3 scripts/zigux/check-phase7-rbtree-parity.py"
+                ],
+            },
+        )
+        expect_failure(
+            "missing_validator_rbtree_live",
+            tmp_root,
+            fake_make_env,
+            "validator phase7-validate expansion missing: python3 scripts/zigux/check-phase7-rbtree-parity.py",
+        )
+
+        write_validator_fixture(
+            validator_path,
+            {
+                **EXPECTED_MAKE_EXPANSIONS,
                 "phase7-test": [
                     "zig build test --build-file zigux/tests/build.zig",
                     *EXPECTED_MAKE_EXPANSIONS["phase7-test"],
@@ -475,6 +493,24 @@ def run_self_test() -> int:
             validator_path,
             {
                 **EXPECTED_MAKE_EXPANSIONS,
+                "phase7": [
+                    line
+                    for line in EXPECTED_MAKE_EXPANSIONS["phase7"]
+                    if line != "python3 scripts/zigux/check-phase7-rbtree-parity.py"
+                ],
+            },
+        )
+        expect_failure(
+            "missing_validator_rbtree_live_in_bundle",
+            tmp_root,
+            fake_make_env,
+            "validator phase7 expansion missing: python3 scripts/zigux/check-phase7-rbtree-parity.py",
+        )
+
+        write_validator_fixture(
+            validator_path,
+            {
+                **EXPECTED_MAKE_EXPANSIONS,
                 "phase7-validate": [
                     "python3 scripts/zigux/validate-phase7.py --self-test",
                     "python3 scripts/zigux/validate-phase7.py",
@@ -541,6 +577,25 @@ def run_self_test() -> int:
             fake_make_path,
             {
                 **EXPECTED_MAKE_EXPANSIONS,
+                "phase7-validate": [
+                    line
+                    for line in EXPECTED_MAKE_EXPANSIONS["phase7-validate"]
+                    if line
+                    != "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test"
+                ],
+            },
+        )
+        expect_failure(
+            "missing_rbtree_selftest",
+            tmp_root,
+            fake_make_env,
+            "phase7-validate: missing expected wrapper expansion: python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test",
+        )
+
+        make_fake_make(
+            fake_make_path,
+            {
+                **EXPECTED_MAKE_EXPANSIONS,
                 "phase7": [
                     line
                     for line in EXPECTED_MAKE_EXPANSIONS["phase7"]
@@ -561,6 +616,25 @@ def run_self_test() -> int:
             {
                 **EXPECTED_MAKE_EXPANSIONS,
                 "phase7": [
+                    line
+                    for line in EXPECTED_MAKE_EXPANSIONS["phase7"]
+                    if line
+                    != "python3 scripts/zigux/check-phase7-rbtree-parity.py"
+                ],
+            },
+        )
+        expect_failure(
+            "missing_rbtree_live_in_bundle",
+            tmp_root,
+            fake_make_env,
+            "phase7: missing expected wrapper expansion: python3 scripts/zigux/check-phase7-rbtree-parity.py",
+        )
+
+        make_fake_make(
+            fake_make_path,
+            {
+                **EXPECTED_MAKE_EXPANSIONS,
+                "phase7": [
                     *EXPECTED_MAKE_EXPANSIONS["phase7"],
                     "zig build test --build-file zigux/tests/build.zig",
                 ],
@@ -574,7 +648,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE7_MAKE_WRAPPER_SELF_TEST=pass")
-    print("PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT=14")
+    print("PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT=18")
     return 0
 
 
