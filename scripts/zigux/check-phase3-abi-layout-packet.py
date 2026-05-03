@@ -82,6 +82,14 @@ SHARED_RBTREE_SAMPLE_RECORDS = {
     "rbtree_cached_leftmost_root": {
         "phase3_snippet": "const cached_root: rbtree.RootView = .{",
         "phase3_value_snippet": "try std.testing.expectEqual(@as(usize, 0x1800), cached_root.leftmost_addr);",
+        "phase3_presence_snippets": (
+            "try std.testing.expect(rbtree.isValid(cached_root));",
+            "try std.testing.expect(!rbtree.isEmpty(cached_root));",
+            "try std.testing.expect(rbtree.isCached(cached_root));",
+            "try std.testing.expect(rbtree.hasLeftmost(cached_root));",
+            "try std.testing.expect(rbtree.hasRoot(cached_root));",
+            "try std.testing.expect(rbtree.isCanonical(cached_root));",
+        ),
         "dump_snippet": '"rbtree_cached_leftmost_root"',
         "harness_snippet": '"rbtree_cached_leftmost_root"',
         "record": {
@@ -94,6 +102,14 @@ SHARED_RBTREE_SAMPLE_RECORDS = {
     "rbtree_uncached_root": {
         "phase3_snippet": "const uncached_root: rbtree.RootView = .{",
         "phase3_value_snippet": "try std.testing.expectEqual(@as(usize, 0x2400), uncached_root.root_addr);",
+        "phase3_presence_snippets": (
+            "try std.testing.expect(rbtree.isValid(uncached_root));",
+            "try std.testing.expect(!rbtree.isEmpty(uncached_root));",
+            "try std.testing.expect(!rbtree.isCached(uncached_root));",
+            "try std.testing.expect(!rbtree.hasLeftmost(uncached_root));",
+            "try std.testing.expect(rbtree.hasRoot(uncached_root));",
+            "try std.testing.expect(rbtree.isCanonical(uncached_root));",
+        ),
         "dump_snippet": '"rbtree_uncached_root"',
         "harness_snippet": '"rbtree_uncached_root"',
         "record": {
@@ -290,6 +306,9 @@ def validate(root: Path) -> list[str]:
                 issues.append(f"missing_phase3_abi_record:{record_name}")
             if record_contract["phase3_value_snippet"] not in phase3_abi_text:
                 issues.append(f"missing_phase3_abi_record_value:{record_name}")
+            for snippet in record_contract.get("phase3_presence_snippets", ()):
+                if snippet not in phase3_abi_text:
+                    issues.append(f"missing_phase3_abi_record_presence:{record_name}:{snippet}")
 
         if phase3_abi_dump_text and record_contract["dump_snippet"] not in phase3_abi_dump_text:
             issues.append(f"missing_phase3_abi_dump_record:{record_name}")
@@ -377,6 +396,12 @@ def run_self_test() -> int:
                     "    .reserved = 0,",
                     "};",
                     "try std.testing.expectEqual(@as(usize, 0x1800), cached_root.leftmost_addr);",
+                    "try std.testing.expect(rbtree.isValid(cached_root));",
+                    "try std.testing.expect(!rbtree.isEmpty(cached_root));",
+                    "try std.testing.expect(rbtree.isCached(cached_root));",
+                    "try std.testing.expect(rbtree.hasLeftmost(cached_root));",
+                    "try std.testing.expect(rbtree.hasRoot(cached_root));",
+                    "try std.testing.expect(rbtree.isCanonical(cached_root));",
                     "const uncached_root: rbtree.RootView = .{",
                     "    .root_addr = 0x2400,",
                     "    .leftmost_addr = 0,",
@@ -385,6 +410,12 @@ def run_self_test() -> int:
                     "};",
                     "try std.testing.expectEqual(@as(usize, 0x2400), uncached_root.root_addr);",
                     "try std.testing.expectEqual(@as(u32, 0), uncached_root.flags);",
+                    "try std.testing.expect(rbtree.isValid(uncached_root));",
+                    "try std.testing.expect(!rbtree.isEmpty(uncached_root));",
+                    "try std.testing.expect(!rbtree.isCached(uncached_root));",
+                    "try std.testing.expect(!rbtree.hasLeftmost(uncached_root));",
+                    "try std.testing.expect(rbtree.hasRoot(uncached_root));",
+                    "try std.testing.expect(rbtree.isCanonical(uncached_root));",
                 ]
             )
             + "\n",
@@ -512,6 +543,36 @@ def run_self_test() -> int:
         )
         issues = validate(root)
         assert "missing_phase3_abi_uncached_rbtree_sample_flags" in issues
+        phase3_abi_path.write_text(
+            phase3_abi_path.read_text(encoding="utf-8").replace(
+                "try std.testing.expect(rbtree.hasRoot(cached_root));\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate(root)
+        assert any(
+            issue.startswith(
+                "missing_phase3_abi_record_presence:rbtree_cached_leftmost_root:try std.testing.expect(rbtree.hasRoot(cached_root));"
+            )
+            for issue in issues
+        )
+        phase3_abi_path.write_text(
+            phase3_abi_path.read_text(encoding="utf-8").replace(
+                "try std.testing.expect(rbtree.hasRoot(uncached_root));\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate(root)
+        assert any(
+            issue.startswith(
+                "missing_phase3_abi_record_presence:rbtree_uncached_root:try std.testing.expect(rbtree.hasRoot(uncached_root));"
+            )
+            for issue in issues
+        )
 
         phase3_abi_dump_path = root / PHASE3_ABI_DUMP_REL
         phase3_abi_dump_path.write_text(
