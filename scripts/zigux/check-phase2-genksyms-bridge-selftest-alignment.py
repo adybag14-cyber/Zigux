@@ -65,9 +65,10 @@ CLOSURE_DOC_MARKERS = [
 ]
 
 VALIDATOR_MARKERS = [
-    "check-genksyms-bridge.py",
-    "check-phase2-genksyms-bridge-selftest-alignment.py",
-    "zigux-bootstrap.yml",
+    "PHASE2_GENKSYMS_BRIDGE_REQUIRED_SOURCE_MARKERS",
+    "PHASE2_GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=26",
+    '"python3 scripts/zigux/check-genksyms-bridge.py --self-test": 1,',
+    '"python3 scripts/zigux/check-genksyms-bridge.py": 1,',
 ]
 
 CLOSURE_VALIDATOR_MARKERS = [
@@ -372,7 +373,13 @@ def run_self_test() -> int:
         validator_path = root / REQUIRED_FILES["validator"]
         original = validator_path.read_text(encoding="utf-8")
         write(validator_path, original.replace(VALIDATOR_MARKERS[1] + "\n", "", 1))
-        expect_issue("validator_marker", root, f"validator:{VALIDATOR_MARKERS[1]}")
+        expect_issue("validator_case_count_marker", root, f"validator:{VALIDATOR_MARKERS[1]}")
+        write(validator_path, original)
+
+        validator_path = root / REQUIRED_FILES["validator"]
+        original = validator_path.read_text(encoding="utf-8")
+        write(validator_path, original.replace(VALIDATOR_MARKERS[2] + "\n", "", 1))
+        expect_issue("validator_workflow_self_test_marker", root, f"validator:{VALIDATOR_MARKERS[2]}")
         write(validator_path, original)
 
         closure_validator_path = root / REQUIRED_FILES["closure_validator"]
@@ -470,7 +477,7 @@ def run_self_test() -> int:
         expect_issue("version_expected_file", root, "cases:version:expected=version_expected.json")
 
     print("PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=12")
+    print("PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
