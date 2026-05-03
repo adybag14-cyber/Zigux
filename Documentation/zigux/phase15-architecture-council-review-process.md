@@ -8,7 +8,7 @@ This document records the bounded Phase 15 governance lane around the Architectu
 - `PHASE15_STATUS=review_process_slice_landed`
 - `PHASE15_SLICE=architecture-council-review-process-governance-evidence-verification`
 - scope: one review-process note, one dedicated manifest and Zig test, and one bounded governance, approval, and ownership evidence verification follow-up that keeps the explicit no-approval posture, anchor-template ownership packet, and current surveyed provenance aligned inside the same Architecture Council packet
-- survey provenance refreshed against verified `master` head `b5f64cf3306b706ea93cc9d3de769d545849b2d4`
+- survey provenance refreshed against verified `master` head `d918be7ded6383c13cbd5eea4ca4aa4f3cdafee4`
 - product boundary:
   - `Documentation/zigux/phase15-architecture-council-review-process.md`
   - `Documentation/zigux/phase15-handoff-next-steps-survey.md`
