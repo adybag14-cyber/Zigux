@@ -144,6 +144,7 @@ TESTS_README_MARKERS = [
 WORKFLOW_MARKERS = [
     "run: make -C zigux phase6-validate",
     "run: zig build test --build-file zigux/tests/phase6_build.zig --summary all",
+    "run: make -C zigux phase6-perf",
 ]
 
 PHASE6_BUILD_MARKERS = [
