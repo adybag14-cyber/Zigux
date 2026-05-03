@@ -230,6 +230,10 @@ int main(void)
 	printf("dump\tplain rowsize-16 group-1\t47\t%s\n", linebuf);
 	hex_dump_to_buffer(data_b, 16, 16, 1, linebuf, sizeof(linebuf), true);
 	printf("dump\tascii rowsize-16 group-1\t65\t%s\n", linebuf);
+	hex_dump_to_buffer(data_b, 16, 16, 2, linebuf, sizeof(linebuf), false);
+	printf("dump\tplain rowsize-16 group-2\t39\t%s\n", linebuf);
+	hex_dump_to_buffer(data_b, 16, 16, 2, linebuf, sizeof(linebuf), true);
+	printf("dump\tascii rowsize-16 group-2\t57\t%s\n", linebuf);
 	hex_dump_to_buffer(data_b, 16, 16, 4, linebuf, sizeof(linebuf), false);
 	printf("dump\tplain rowsize-16 group-4\t35\t%s\n", linebuf);
 	hex_dump_to_buffer(data_b, 16, 16, 4, linebuf, sizeof(linebuf), true);
