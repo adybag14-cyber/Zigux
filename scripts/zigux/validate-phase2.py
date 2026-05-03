@@ -93,6 +93,10 @@ PHASE2_KCONFIG_REQUIRED_MAKEFILE_COUNTS = {
     "scripts/zigux/check-kconfig-bridge.py --self-test": 1,
     "scripts/zigux/check-kconfig-bridge.py": 1,
 }
+PHASE2_CROSS_ALIGNMENT_REQUIRED_MAKEFILE_COUNTS = {
+    "scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test": 1,
+    "scripts/zigux/check-phase2-cross-selftest-alignment.py": 1,
+}
 
 
 def load_json(path: Path) -> object:
@@ -246,6 +250,13 @@ def main() -> int:
             MAKEFILE_FILE,
             label="phase2_kconfig_makefile",
             expected_counts=PHASE2_KCONFIG_REQUIRED_MAKEFILE_COUNTS,
+        )
+    )
+    issues.extend(
+        validate_exact_command_counts(
+            MAKEFILE_FILE,
+            label="phase2_cross_alignment_makefile",
+            expected_counts=PHASE2_CROSS_ALIGNMENT_REQUIRED_MAKEFILE_COUNTS,
         )
     )
 
