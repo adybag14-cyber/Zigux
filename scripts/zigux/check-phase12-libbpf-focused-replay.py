@@ -115,11 +115,20 @@ MANIFEST_MARKERS = [
     "check-phase12-libbpf-focused-replay.py",
     "phase12_libbpf_only_build.zig",
 ]
+SCRIPTS_README_BOUNDARY_MARKER = (
+    "make -C zigux phase12 keeps the current Phase 12 bundle reviewable through one shared tranche entrypoint "
+    "instead of ad hoc complex-driver commands, while the direct `zig build test --build-file "
+    "zigux/tests/phase12_libbpf_only_build.zig --summary all` replay intentionally stays outside that "
+    "shared wrapper as the dedicated focused libbpf-only shard."
+)
 SCRIPTS_README_MARKERS = [
     "check-phase12-libbpf-focused-replay.py",
     "phase12_libbpf_only_build.zig",
     "focused libbpf-only replay hook",
 ]
+SCRIPTS_README_EXACT_COUNTS = {
+    SCRIPTS_README_BOUNDARY_MARKER: 1,
+}
 DOCS_ROOT_README_MARKERS = [
     "the active Phase 12 heavy-helper survey packet now also keeps the bounded `tools/lib/bpf/zigux_segments/` helper foundations, the reproducibility snapshot, the focused libbpf-only replay shard rooted in `scripts/zigux/check-phase12-libbpf-focused-replay.py` plus `zigux/tests/phase12_libbpf_only_build.zig`, the still-deferred file-path-and-handle bridge and perf-buffer-online-cpu-routing boundaries, and the blocked object-model, loader, and relocation split visible from the top-level docs index.",
 ]
@@ -240,6 +249,13 @@ def collect_missing(
     missing.extend(collect_marker_misses(contract_note_text, CONTRACT_NOTE_MARKERS, "contract_note"))
     missing.extend(collect_marker_misses(manifest_text, MANIFEST_MARKERS, "manifest"))
     missing.extend(collect_marker_misses(scripts_readme_text, SCRIPTS_README_MARKERS, "scripts_readme"))
+    missing.extend(
+        collect_exact_count_misses(
+            scripts_readme_text,
+            SCRIPTS_README_EXACT_COUNTS,
+            "scripts_readme_count",
+        )
+    )
     missing.extend(collect_marker_misses(docs_root_readme_text, DOCS_ROOT_README_MARKERS, "docs_root_readme"))
     missing.extend(collect_marker_misses(tests_readme_text, TESTS_README_MARKERS, "tests_readme"))
     missing.extend(collect_marker_misses(review_checklist_text, REVIEW_CHECKLIST_MARKERS, "review_checklist"))
@@ -324,7 +340,7 @@ def run_self_test() -> int:
         "survey_note_text": "\n".join(SURVEY_NOTE_MARKERS) + "\n",
         "contract_note_text": "\n".join(CONTRACT_NOTE_MARKERS) + "\n",
         "manifest_text": "\n".join(MANIFEST_MARKERS) + "\n",
-        "scripts_readme_text": "\n".join(SCRIPTS_README_MARKERS) + "\n",
+        "scripts_readme_text": "\n".join([*SCRIPTS_README_MARKERS, SCRIPTS_README_BOUNDARY_MARKER]) + "\n",
         "docs_root_readme_text": "\n".join(DOCS_ROOT_README_MARKERS) + "\n",
         "tests_readme_text": "\n".join(TESTS_README_MARKERS) + "\n",
         "review_checklist_text": "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n",
@@ -575,6 +591,20 @@ def run_self_test() -> int:
     missing = collect_missing(
         **{
             **base_inputs,
+            "scripts_readme_text": base_inputs["scripts_readme_text"]
+            + SCRIPTS_README_BOUNDARY_MARKER
+            + "\n",
+        }
+    )
+    expect_contains(
+        "scripts_readme_exact_count_detection",
+        missing,
+        f"scripts_readme_count:{SCRIPTS_README_BOUNDARY_MARKER}:expected=1:actual=2",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
             "docs_root_readme_text": base_inputs["docs_root_readme_text"].replace(
                 DOCS_ROOT_README_MARKERS[0] + "\n",
                 "",
@@ -777,7 +807,7 @@ def run_self_test() -> int:
     )
 
     print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST=pass")
-    print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST_CASE_COUNT=30")
+    print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST_CASE_COUNT=31")
     return 0
 
 
