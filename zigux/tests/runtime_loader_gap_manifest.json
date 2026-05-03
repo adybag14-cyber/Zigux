@@ -154,6 +154,12 @@
       "role": "keeps the shared loader-stage vocabulary, the atomic64, bitmap, and kretprobe handoff alignment, the explicit first shared-request trio, and the freeze-map-adjacent trace-events sample-only boundary explicit beside the shared runtime request surface"
     },
     {
+      "id": "runtime-loader-substrate-plan-checker",
+      "kind": "validation",
+      "path": "scripts/zigux/check-phase9-loader-substrate-plan.py",
+      "role": "keeps the shared loader-stage vocabulary, the sample-side loader catalog, the trace-events scaffold boundary, and the shared runtime request surface fail-closed beside the same Phase 9 runtime-loader packet"
+    },
+    {
       "id": "runtime-loader-review-checklist",
       "kind": "governance",
       "path": "Documentation/zigux/review-checklist.md",
@@ -222,6 +228,10 @@
     {
       "surface": "Documentation/zigux/phase9-runtime-loader-substrate-plan.md",
       "owns": "shared loader-stage vocabulary plus the atomic64, bitmap, and kretprobe handoff-alignment note, the explicit first shared-request trio, and the freeze-map-adjacent trace-events sample-only boundary for the same runtime packet"
+    },
+    {
+      "surface": "scripts/zigux/check-phase9-loader-substrate-plan.py",
+      "owns": "fail-closed checker coverage for the shared loader-stage vocabulary, the sample-side loader catalog, the trace-events scaffold boundary, and the shared runtime request surface"
     },
     {
       "surface": "Documentation/zigux/review-checklist.md",
