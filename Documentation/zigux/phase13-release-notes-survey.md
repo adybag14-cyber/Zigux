@@ -99,7 +99,7 @@ The current manifest lane ownership carried by the release packet is:
 - `lib/devres.c` through `zigux/tests/phase13_devres_manifest.json` lane `P13-L10`
 - `security/landlock/ruleset.c` through `zigux/tests/phase13_landlock_ruleset_manifest.json` lane `P13-L12`
 - `security/landlock/syscalls.c` through `zigux/tests/phase13_landlock_syscalls_manifest.json` lane `P13-L16`
-- adjacent notifier-list reviewability evidence through `zigux/tests/phase13_notifier_list_manifest.json` lane `P13-L18`
+- adjacent notifier-list reviewability evidence through `zigux/tests/phase13_notifier_list_manifest.json` lane `P13-L19`
 
 The current shared replay inventory is:
 
