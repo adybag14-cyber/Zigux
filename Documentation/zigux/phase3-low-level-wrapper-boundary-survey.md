@@ -18,7 +18,7 @@ This note records the current atomic, barrier, and MMIO boundary for the bounded
 - `PHASE3_MMIO_STATUS=scoped-width-specific-mmio-and-policy-bridge-landed`
 - `PHASE3_MMIO_BLOB_SHA=222d6c496326448454c467487d02b363da4d800b`
 - `PHASE3_LOW_LEVEL_BUILD_PATH=zigux/tests/phase3_low_level_wrappers_build.zig`
-- `PHASE3_LOW_LEVEL_BUILD_BLOB_SHA=a5ab6035a905edb3143c0ad850fb6b0d7381384e`
+- `PHASE3_LOW_LEVEL_BUILD_BLOB_SHA=5ff32e1306830195e248c26b2125cb6f9b2418c9`
 - `PHASE3_LOW_LEVEL_TEST_PATH=zigux/tests/phase3_low_level_wrappers.zig`
 - `PHASE3_LOW_LEVEL_TEST_BLOB_SHA=0cc693a0da6891b61540ba9af573256054205037`
 - `PHASE3_ABI_SLICE_DOC_BLOB_SHA=896b72546a4f2d124453956db41ea95b0a48cd3d`
