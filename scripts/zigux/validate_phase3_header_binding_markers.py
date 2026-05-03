@@ -113,6 +113,10 @@ HEADER_BINDING_MARKERS = {
         "try std.testing.expectEqual(@as(usize, 8), @sizeOf(abi.ExportStatus));",
         'try std.testing.expectEqual(@as(usize, 4), @offsetOf(abi.BoundaryHeader, "abi_version"));',
         'try std.testing.expectEqual(@as(usize, 6), @offsetOf(abi.ExportStatus, "flags"));',
+        'try std.testing.expectEqual(@as(usize, 0), @offsetOf(abi.ExportStatus, "code"));',
+        'try std.testing.expectEqual(@as(usize, 4), @offsetOf(abi.ExportStatus, "facility"));',
+        "try std.testing.expectEqual(@sizeOf(abi.BoundaryHeader), @as(usize, header.size));",
+        "try std.testing.expectEqual(header, uapi_header);",
         "try std.testing.expect(export_shim.isCanonicalHeader(header));",
         "try std.testing.expect(uapi_version.isCanonical(uapi_header));",
     ),
@@ -278,7 +282,7 @@ def run_self_test() -> int:
         issues = validate_header_binding_markers(root)
         assert f"header-binding-marker: zigux/tests/phase3_export_uapi_layout_build.zig missing {export_uapi_layout_build_marker}" in issues
 
-        export_uapi_layout_marker = HEADER_BINDING_MARKERS["zigux/tests/phase3_export_uapi_layout.zig"][0]
+        export_uapi_layout_marker = HEADER_BINDING_MARKERS["zigux/tests/phase3_export_uapi_layout.zig"][7]
         export_uapi_layout = root / "zigux/tests/phase3_export_uapi_layout.zig"
         export_uapi_layout.write_text(
             export_uapi_layout.read_text(encoding="utf-8").replace(export_uapi_layout_marker + "\n", "", 1),
