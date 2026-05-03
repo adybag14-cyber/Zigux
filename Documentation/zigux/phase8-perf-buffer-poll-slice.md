@@ -27,6 +27,8 @@ The helper now keeps these bounded rules explicit:
 - normalized negative errno-or-ready-count wait results stay compact through explicit `timed_out`, `interrupted`, `ready_events`, and `failed(errno)` variants before buffer bookkeeping starts
 - ready-buffer bookkeeping counts ready buffers, remembers the first ready index, and surfaces the first buffer-local error without claiming record decoding
 - the ordered `perf_buffer__process_records()` pass can now be summarized separately as successful ready-buffer processing until the first failing ready buffer, plus the cumulative processed-record count returned before that failure, keeping libbpf's fail-fast loop explicit without claiming callback delivery or record decoding parity
+- ready-buffer processing attempts cannot exceed observed ready events, so the helper keeps `epoll_wait()`'s bounded ready-event budget visible before any wider routing work
+- non-ready wait observations cannot claim record processing, matching the live loop's timeout, interrupted, and already-failed early returns without widening into broader poll parity claims
 - observed wait outcomes stay compact instead of hiding error or ready-state intent inside broader loop behavior
 - inconsistent states such as more ready buffers than observed ready events still fail fast
 - timed-out, interrupted, and already-failed wait observations now reject impossible post-wait buffer state combinations because the live loop never processes records on those paths
