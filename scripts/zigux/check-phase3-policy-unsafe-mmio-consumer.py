@@ -53,6 +53,10 @@ REQUIRED_INTEROP_POLICY_SNIPPETS = (
 
 REQUIRED_POLICY_TEST_SNIPPETS = (
     'test "phase3 policy gate reaches a second boundary helper through decoded policy"',
+    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.writeScopedWithPolicy(u32, raw_pointer_policy, base32, 0, 1));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.readScopedWithPolicy(u32, raw_pointer_policy, base32, 0));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.writeScopedWithPolicy(u32, none_policy, base32, 0, 1));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.readScopedWithPolicy(u32, none_policy, base32, 0));",
     "try mmio.write8Policy(mmio_policy, base32, 0, 0x2a);",
     "try std.testing.expectEqual(@as(u8, 0x2a), try mmio.read8Policy(mmio_policy, base32, 0));",
     "try mmio.write16Policy(mmio_policy, base32, 2, 0x7bcd);",
@@ -63,12 +67,20 @@ REQUIRED_POLICY_TEST_SNIPPETS = (
     "try std.testing.expectEqual(@as(u64, 0x1111_2222_3333_4444), try mmio.read64Policy(mmio_policy, base64, @sizeOf(u64)));",
     "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write8Policy(raw_pointer_policy, base32, 0, 1));",
     "try std.testing.expectError(error.UnsafeScopeDenied, mmio.read8Policy(raw_pointer_policy, base32, 0));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write8Policy(none_policy, base32, 0, 1));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.read8Policy(none_policy, base32, 0));",
     "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write16Policy(raw_pointer_policy, base32, 0, 1));",
     "try std.testing.expectError(error.UnsafeScopeDenied, mmio.read16Policy(raw_pointer_policy, base32, 0));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write16Policy(none_policy, base32, 0, 1));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.read16Policy(none_policy, base32, 0));",
     "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write32Policy(raw_pointer_policy, base32, 0, 1));",
     "try std.testing.expectError(error.UnsafeScopeDenied, mmio.read32Policy(raw_pointer_policy, base32, 0));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write32Policy(none_policy, base32, 0, 1));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.read32Policy(none_policy, base32, 0));",
     "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write64Policy(raw_pointer_policy, base64, 0, 1));",
     "try std.testing.expectError(error.UnsafeScopeDenied, mmio.read64Policy(raw_pointer_policy, base64, 0));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write64Policy(none_policy, base64, 0, 1));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.read64Policy(none_policy, base64, 0));",
     'test "phase3 policy gate reaches raw-pointer bridge consumers through decoded policy"',
     "const words_slice = try raw_pointer_policy.constSliceAt(u32, base, words.len);",
     "const second_word = try raw_pointer_policy.constPointerAt(u32, base + @sizeOf(u32));",
@@ -171,6 +183,12 @@ def run_self_test() -> int:
         _write(root, POLICY_TEST_REL, "\n".join(snippet for snippet in REQUIRED_POLICY_TEST_SNIPPETS if "write64Policy" not in snippet) + "\n")
         issues = validate(root)
         assert "missing_policy_test_snippet:try mmio.write64Policy(mmio_policy, base64, @sizeOf(u64), 0x1111_2222_3333_4444);" in issues
+
+        _write(root, POLICY_TEST_REL, "\n".join(REQUIRED_POLICY_TEST_SNIPPETS) + "\n")
+        _write(root, POLICY_TEST_REL, "\n".join(snippet for snippet in REQUIRED_POLICY_TEST_SNIPPETS if "none_policy" not in snippet) + "\n")
+        issues = validate(root)
+        assert "missing_policy_test_snippet:try std.testing.expectError(error.UnsafeScopeDenied, mmio.writeScopedWithPolicy(u32, none_policy, base32, 0, 1));" in issues
+        assert "missing_policy_test_snippet:try std.testing.expectError(error.UnsafeScopeDenied, mmio.read64Policy(none_policy, base64, 0));" in issues
 
         _write(root, POLICY_TEST_REL, "\n".join(REQUIRED_POLICY_TEST_SNIPPETS) + "\n")
         _write(root, SURVEY_REL, "\n".join(
