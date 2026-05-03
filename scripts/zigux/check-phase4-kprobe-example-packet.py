@@ -93,6 +93,10 @@ SCRIPTS_README_MARKERS = [
     "phase4-kprobe-example-survey-tests",
 ]
 
+SCRIPTS_README_EXACT_ONCE_MARKERS = [
+    "`check-phase4-kprobe-example-packet.py --self-test` and `check-phase4-kprobe-example-packet.py` keep `zigux/tests/phase4_kprobe_example_manifest.json`, `zigux/tests/phase4_kprobe_example_survey.zig`, `zigux/tests/phase4_build.zig`, `Documentation/zigux/phase4-validation-matrix.md`, `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/README.md`, and the current `samples/kprobes` C anchor fail-closed around the published survey-only kprobe packet while the broader `validate-phase4.py` promotion stays open.",
+]
+
 TESTS_README_MARKERS = [
     "zigux/tests/phase4_kprobe_example_survey.zig",
     "zigux/tests/phase4_kprobe_example_manifest.json",
@@ -114,7 +118,9 @@ EXACT_ONCE_TEXT_MARKERS = {
     "matrix": ["| `zigux/tests/phase4_kprobe_example_survey.zig` | survey gate |"],
     "docs_root": [
         "direct `zig build phase4-kprobe-example-survey --build-file zigux/tests/phase4_build.zig`",
+        "still-absent `samples/zigux/kprobe_example.zig` sample explicitly survey-only",
     ],
+    "scripts_readme": SCRIPTS_README_EXACT_ONCE_MARKERS,
     "tests_readme": ["make -C zigux phase4-kprobe-example-survey"],
     "gate_evidence": [
         "PHASE4_KPROBE_EXAMPLE_MANIFEST_BLOB_SHA=",
@@ -244,6 +250,13 @@ def collect_missing(
     )
     missing.extend(
         collect_exact_once_misses(
+            scripts_readme_text,
+            EXACT_ONCE_TEXT_MARKERS["scripts_readme"],
+            "scripts_readme",
+        )
+    )
+    missing.extend(
+        collect_exact_once_misses(
             tests_readme_text, EXACT_ONCE_TEXT_MARKERS["tests_readme"], "tests_readme"
         )
     )
@@ -310,7 +323,9 @@ def run_self_test() -> int:
         "matrix_text": "\n".join(MATRIX_MARKERS)
         + "\n| `zigux/tests/phase4_kprobe_example_survey.zig` | survey gate |\n",
         "docs_root_text": "\n".join(DOCS_ROOT_MARKERS) + "\n",
-        "scripts_readme_text": "\n".join(SCRIPTS_README_MARKERS) + "\n",
+        "scripts_readme_text": "\n".join(
+            SCRIPTS_README_MARKERS + SCRIPTS_README_EXACT_ONCE_MARKERS
+        ) + "\n",
         "tests_readme_text": "\n".join(TESTS_README_MARKERS) + "\n",
         "gate_evidence_text": "\n".join(GATE_EVIDENCE_MARKERS) + "\n",
         "kprobe_makefile_text": ANCHOR_MARKERS[0][1] + "\n",
@@ -432,6 +447,19 @@ def run_self_test() -> int:
     missing = collect_missing(
         **{
             **base_inputs,
+            "docs_root_text": base_inputs["docs_root_text"]
+            + "still-absent `samples/zigux/kprobe_example.zig` sample explicitly survey-only\n",
+        }
+    )
+    expect_contains(
+        "docs_root_survey_only_exact_detection",
+        missing,
+        "docs_root_exact:still-absent `samples/zigux/kprobe_example.zig` sample explicitly survey-only:count=2",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
             "scripts_readme_text": base_inputs["scripts_readme_text"].replace(
                 "check-phase4-kprobe-example-packet.py --self-test\n",
                 "",
@@ -443,6 +471,20 @@ def run_self_test() -> int:
         "scripts_readme_marker_detection",
         missing,
         "scripts_readme:check-phase4-kprobe-example-packet.py --self-test",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "scripts_readme_text": base_inputs["scripts_readme_text"]
+            + SCRIPTS_README_EXACT_ONCE_MARKERS[0]
+            + "\n",
+        }
+    )
+    expect_contains(
+        "scripts_readme_exact_detection",
+        missing,
+        "scripts_readme_exact:`check-phase4-kprobe-example-packet.py --self-test` and `check-phase4-kprobe-example-packet.py` keep `zigux/tests/phase4_kprobe_example_manifest.json`, `zigux/tests/phase4_kprobe_example_survey.zig`, `zigux/tests/phase4_build.zig`, `Documentation/zigux/phase4-validation-matrix.md`, `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/README.md`, and the current `samples/kprobes` C anchor fail-closed around the published survey-only kprobe packet while the broader `validate-phase4.py` promotion stays open.:count=2",
     )
 
     missing = collect_missing(
@@ -545,7 +587,7 @@ def run_self_test() -> int:
     )
 
     print("PHASE4_KPROBE_EXAMPLE_PACKET_SELF_TEST=pass")
-    print("PHASE4_KPROBE_EXAMPLE_PACKET_SELF_TEST_CASE_COUNT=16")
+    print("PHASE4_KPROBE_EXAMPLE_PACKET_SELF_TEST_CASE_COUNT=18")
     return 0
 
 
