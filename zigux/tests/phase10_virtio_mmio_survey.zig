@@ -121,7 +121,7 @@ test "phase10 virtio mmio survey manifest records the landed interrupt-ack rung 
         try std.testing.expectEqualStrings(claim, manifest.forbidden_transport_claims[index]);
     }
     try std.testing.expect(manifest.survey_summary.virtio_mmio_c_lines >= 800);
-    try std.testing.expectEqual(@as(usize, 10), manifest.survey_summary.preexisting_phase10_test_files);
+    try std.testing.expectEqual(@as(usize, 11), manifest.survey_summary.preexisting_phase10_test_files);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_core_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_core_survey_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase10_build_present);
