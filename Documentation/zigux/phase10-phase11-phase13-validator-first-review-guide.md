@@ -72,6 +72,7 @@ Keep these evidence surfaces aligned in the same review:
 - `Documentation/zigux/phase11-shared-replay-contract.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 - `Documentation/zigux/phase11-uapi-header-parity-survey.md`
+- `Documentation/zigux/review-checklist.md`
 - `scripts/zigux/check-phase11-build-inventory.py`
 - `scripts/zigux/check-phase11-layout-assert-surface.py`
 - `scripts/zigux/check-phase11-hvc-validation-flow.py`
@@ -91,7 +92,7 @@ Keep these evidence surfaces aligned in the same review:
 
 Reviewer prompts:
 - Does the shared Phase 11 replay still stay separate from the dedicated archival `hvc_console` survey?
-- Do the pre-replay checkers still describe the same delivery contract that the shared build inventory, the shared header-boundary packet, and the Phase 11 manifests claim?
+- Do the pre-replay checkers still describe the same delivery contract that the shared build inventory, the shared header-boundary packet, the active review checklist prompt, and the Phase 11 manifests claim?
 
 ## Phase 13: Shared-helper release packet
 
