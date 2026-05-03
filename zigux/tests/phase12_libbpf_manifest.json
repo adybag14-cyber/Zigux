@@ -15,6 +15,8 @@
     "reversible_delivery_evidence": [
       "zigux/tests/phase12_libbpf_segments.zig",
       "zigux/tests/phase12_libbpf_reviewability.zig",
+      "zigux/tests/phase12_libbpf_only_build.zig",
+      "scripts/zigux/check-phase12-libbpf-focused-replay.py",
       "Documentation/zigux/phase12-libbpf-segment-survey.md"
     ],
     "rollback_drill": [
@@ -51,7 +53,9 @@
     "preexisting_phase12_docs_root_packet_present": true,
     "preexisting_phase12_reviewability_gate_present": true,
     "preexisting_phase12_snapshot_checker_present": true,
-    "preexisting_phase12_packet_checker_present": true
+    "preexisting_phase12_packet_checker_present": true,
+    "preexisting_phase12_focused_replay_checker_present": true,
+    "preexisting_phase12_focused_replay_build_present": true
   },
   "gaps": [
     {
