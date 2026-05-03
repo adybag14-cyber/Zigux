@@ -14,7 +14,7 @@ ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.p
 HEX40 = re.compile(r"^[0-9a-f]{40}$")
 SELF_TEST_HEAD = "0123456789abcdef0123456789abcdef01234567"
 SELF_TEST_MUTATED_HEAD = "fedcba9876543210fedcba9876543210fedcba98"
-SELF_TEST_CASE_COUNT = 38
+SELF_TEST_CASE_COUNT = 39
 
 EXPECTED_SHARED_GATES = [
     "zigux/tests/phase6_build.zig",
@@ -31,6 +31,7 @@ EXPECTED_SHARED_GATES = [
 
 REQUIRED_FILES = [
     *EXPECTED_SHARED_GATES,
+    "scripts/zigux/check-phase6-docs-root-external-parity.py",
     "scripts/zigux/check-phase6-base64-c-parity.py",
     "scripts/zigux/check-phase6-base64-catalog-evidence.py",
     "scripts/zigux/check-phase6-bsearch-c-parity.py",
@@ -84,7 +85,7 @@ CATALOG_MARKERS = [
     "max_slowdown_pct = 550",
     "max_slowdown_pct = 600",
     "avg_compare_calls <= std.math.log2_int_ceil(len) + 1",
-    "PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=38",
+    "PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=39",
 ]
 
 PERF_SURVEY_MARKERS = [
@@ -271,6 +272,8 @@ EXPECTED_MANIFEST = {
 EXPECTED_EXACT_CHECKS = [
     "python3 scripts/zigux/validate-phase6.py --self-test",
     "python3 scripts/zigux/validate-phase6.py",
+    "python3 scripts/zigux/check-phase6-docs-root-external-parity.py --self-test",
+    "python3 scripts/zigux/check-phase6-docs-root-external-parity.py",
     "make -C zigux phase6-validate",
     "make -C zigux phase6",
     "make -C zigux phase6-perf",
@@ -764,6 +767,12 @@ def run_self_test() -> int:
             missing_file = root / "zigux/tests/phase6_checksum_c_parity.zig"
             missing_file.unlink()
             expect_missing_file(validate_phase6(root), "zigux/tests/phase6_checksum_c_parity.zig")
+            count += 1
+
+            build_self_test_tree(root)
+            docs_root_checker = root / "scripts/zigux/check-phase6-docs-root-external-parity.py"
+            docs_root_checker.unlink()
+            expect_missing_file(validate_phase6(root), "scripts/zigux/check-phase6-docs-root-external-parity.py")
             count += 1
 
             build_self_test_tree(root)
