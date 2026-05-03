@@ -22,7 +22,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_INTEROP_POLICY_BLOB_SHA=c5216dd6737f83222f85f1c5e6f5fb3dd6b037e4`
 - `PHASE3_UNSAFE_PATH=zigux/unsafe/narrow.zig`
 - `PHASE3_UNSAFE_SCOPE=narrow-mmio-and-raw-pointer-bridge`
-- `PHASE3_UNSAFE_BLOB_SHA=543239eec61a02701f14622cacf39f6bf104621e`
+- `PHASE3_UNSAFE_BLOB_SHA=2d95a5bca00d9e8c2ebfcddf340b7777bdcc523a`
 - `PHASE3_MMIO_PATH=zigux/helpers/mmio.zig`
 - `PHASE3_MMIO_BLOB_SHA=222d6c496326448454c467487d02b363da4d800b`
 - `PHASE3_MMIO_TYPED_POLICY_CONSUMER=zigux/helpers/mmio.zig`
