@@ -93,6 +93,11 @@ EXPECTED_TEST_ROOT_MODULES = [
         "root_module": "phase12_libbpf_reviewability_module",
     },
 ]
+REVIEWABILITY_MARKERS = [
+    'const perf_buffer_poll = @import("../../tools/lib/bpf/zigux_segments/perf_buffer_poll.zig");',
+    "const perf_summary = try perf_buffer_poll.summarizePoll(",
+    "try std.testing.expectEqual(perf_buffer_poll.WaitClass.bounded, perf_summary.wait_class);",
+]
 SURVEY_NOTE_MARKERS = [
     "python3 scripts/zigux/check-phase12-libbpf-focused-replay.py --self-test",
     "python3 scripts/zigux/check-phase12-libbpf-focused-replay.py",
@@ -200,6 +205,7 @@ def collect_missing(
     *,
     present_files: set[str],
     build_text: str,
+    reviewability_text: str,
     survey_note_text: str,
     manifest_text: str,
     scripts_readme_text: str,
@@ -211,6 +217,7 @@ def collect_missing(
 ) -> list[str]:
     missing = [f"missing_file:{path}" for path in REQUIRED_FILES if path not in present_files]
     missing.extend(collect_build_misses(build_text))
+    missing.extend(collect_marker_misses(reviewability_text, REVIEWABILITY_MARKERS, "reviewability"))
     missing.extend(collect_marker_misses(survey_note_text, SURVEY_NOTE_MARKERS, "survey_note"))
     missing.extend(collect_marker_misses(manifest_text, MANIFEST_MARKERS, "manifest"))
     missing.extend(collect_marker_misses(scripts_readme_text, SCRIPTS_README_MARKERS, "scripts_readme"))
@@ -256,6 +263,7 @@ def build_live_inputs() -> dict[str, object]:
     return {
         "present_files": {path for path in REQUIRED_FILES if (ROOT / path).exists()},
         "build_text": read_text("zigux/tests/phase12_libbpf_only_build.zig"),
+        "reviewability_text": read_text("zigux/tests/phase12_libbpf_reviewability.zig"),
         "survey_note_text": read_text("Documentation/zigux/phase12-libbpf-segment-survey.md"),
         "manifest_text": read_text("zigux/tests/phase12_libbpf_manifest.json"),
         "scripts_readme_text": read_text("scripts/zigux/README.md"),
@@ -276,6 +284,7 @@ def run_self_test() -> int:
     base_inputs = {
         "present_files": set(REQUIRED_FILES),
         "build_text": build_synthetic_build_text(),
+        "reviewability_text": "\n".join(REVIEWABILITY_MARKERS) + "\n",
         "survey_note_text": "\n".join(SURVEY_NOTE_MARKERS) + "\n",
         "manifest_text": "\n".join(MANIFEST_MARKERS) + "\n",
         "scripts_readme_text": "\n".join(SCRIPTS_README_MARKERS) + "\n",
@@ -382,6 +391,38 @@ def run_self_test() -> int:
         }
     )
     expect_contains("test_root_module_detection", missing, "build:test_root_modules")
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "reviewability_text": base_inputs["reviewability_text"].replace(
+                REVIEWABILITY_MARKERS[0] + "\n",
+                "",
+                1,
+            ),
+        }
+    )
+    expect_contains(
+        "reviewability_import_detection",
+        missing,
+        f"reviewability:{REVIEWABILITY_MARKERS[0]}",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "reviewability_text": base_inputs["reviewability_text"].replace(
+                REVIEWABILITY_MARKERS[1] + "\n",
+                "",
+                1,
+            ),
+        }
+    )
+    expect_contains(
+        "reviewability_summary_detection",
+        missing,
+        f"reviewability:{REVIEWABILITY_MARKERS[1]}",
+    )
 
     missing = collect_missing(
         **{
@@ -565,7 +606,7 @@ def run_self_test() -> int:
     )
 
     print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST=pass")
-    print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST_CASE_COUNT=20")
+    print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST_CASE_COUNT=22")
     return 0
 
 
