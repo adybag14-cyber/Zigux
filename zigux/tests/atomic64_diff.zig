@@ -121,6 +121,10 @@ test "atomic64 diff wrapper keeps the bounded runtime replay body reachable" {
 
 test "atomic64 diff wrapper stays a thin phase4 entrypoint" {
     const runtime_sample_import = "const sample = @import(\"runtime_" ++ "atomic64_sample\");";
+    const runtime_sample_struct_name = "sample.RuntimeAtomic64" ++ "Sample";
+    const runtime_operation_family_marker = "sample.OperationFamily.arithmetic";
+    const runtime_stage_marker = "sample.ModuleStage.selftest_complete";
+    const runtime_exited_stage_marker = "sample.ModuleStage.exited";
     const runtime_struct_name = "RuntimeAtomic64" ++ "Sample";
     const runtime_selftest_replay =
         "const summary = try module.runSelf" ++ "test();";
@@ -134,6 +138,11 @@ test "atomic64 diff wrapper stays a thin phase4 entrypoint" {
         "const runtime_atomic64_diff_source = @embedFile(\"runtime_atomic64_diff.zig\");",
     );
 
+    try expectRuntimeMarker(runtime_sample_struct_name);
+    try expectRuntimeMarker(runtime_operation_family_marker);
+    try expectRuntimeMarker(runtime_stage_marker);
+    try expectRuntimeMarker(runtime_exited_stage_marker);
+    try expectSingleOccurrence(runtime_atomic64_diff_source, runtime_sample_import);
     try expectWrapperNoMarker(runtime_sample_import);
     try expectWrapperNoMarker(runtime_struct_name);
     try expectWrapperNoMarker(runtime_selftest_replay);
