@@ -34,7 +34,7 @@ The new aggregate `make -C zigux phase6-perf` path exists so the already-shipped
 
 ### bsearch
 
-- `zigux/tests/phase6_bsearch_perf.zig` replays deterministic hit and miss queries across `256`, `4096`, and `65536` entry slices.
+- `zigux/tests/phase6_bsearch_perf.zig` replays deterministic hit and miss queries across `256`, `4096`, and `65536` entry slices using the committed case table from `zigux/tests/fixtures/phase6_bsearch_vectors.zig`.
 - the current gate is structural rather than time-based: each lookup and the average lookup path must stay within `std.math.log2_int_ceil(len) + 1` comparator calls.
 - the harness still prints `ns_per_lookup`, but that value is review evidence only and is not currently a shipped threshold.
 
