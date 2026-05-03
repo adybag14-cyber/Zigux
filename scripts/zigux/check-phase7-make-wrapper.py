@@ -155,6 +155,12 @@ def check_validator_alignment(root: Path) -> list[str]:
                     f"validator {target_name} expansion missing: {line}"
                 )
 
+        for line in UNEXPECTED_MAKE_EXPANSIONS.get(target_name, []):
+            if line in actual_lines:
+                failures.append(
+                    f"validator {target_name} expansion unexpectedly includes: {line}"
+                )
+
         expected_positions = {
             line: actual_lines.index(line)
             for line in expected_lines
@@ -397,6 +403,23 @@ def run_self_test() -> int:
             validator_path,
             {
                 **EXPECTED_MAKE_EXPANSIONS,
+                "phase7-test": [
+                    "zig build test --build-file zigux/tests/build.zig",
+                    *EXPECTED_MAKE_EXPANSIONS["phase7-test"],
+                ],
+            },
+        )
+        expect_failure(
+            "validator_phase7_test_unexpected_stale_build",
+            tmp_root,
+            fake_make_env,
+            "validator phase7-test expansion unexpectedly includes: zig build test --build-file zigux/tests/build.zig",
+        )
+
+        write_validator_fixture(
+            validator_path,
+            {
+                **EXPECTED_MAKE_EXPANSIONS,
                 "phase7": [
                     line
                     for line in EXPECTED_MAKE_EXPANSIONS["phase7"]
@@ -551,7 +574,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE7_MAKE_WRAPPER_SELF_TEST=pass")
-    print("PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT=13")
+    print("PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
