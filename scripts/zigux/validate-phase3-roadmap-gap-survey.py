@@ -39,7 +39,7 @@ REQUIRED_SURVEY_SNIPPETS = (
     "the shared ABI replay already covers `zigux_rbtree_root_view` through `zigux/tests/phase3_abi.zig`, `zigux/tests/phase3_abi_dump.zig`, `zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c`, and `zigux/tests/fixtures/phase3_abi/expected.json`",
     "The shared ABI manifest now also catalogs that shared replay and its lift guards, so the Phase 3 gap is no longer tangled up with inventory drift.",
     "`zigux/tests/phase3_rbtree_shared_contract.zig` also keeps that planned shared packet contract machine-checked before the full shared header and binding lift lands.",
-    "The dedicated roadmap-gap survey is reviewed through the shared validator-first path rather than as a standalone bootstrap entrypoint.",
+    "The dedicated roadmap-gap survey is reviewed through the shared validator-first path rather than as a standalone bootstrap or release entrypoint.",
     "`python3 scripts/zigux/validate-phase3.py`",
     "`make -C zigux phase3-validate`",
     "the bootstrap workflow replays the same shared validator route before the broader Phase 3 ABI and interop tests run",
@@ -47,6 +47,14 @@ REQUIRED_SURVEY_SNIPPETS = (
     "one shared header-and-binding shape",
     "one shared ABI replay path that no longer depends on the dedicated `rbtree` include path",
     "one validator-backed note refresh",
+)
+
+EXACT_ONCE_SURVEY_SNIPPETS = (
+    "The dedicated roadmap-gap survey is reviewed through the shared validator-first path rather than as a standalone bootstrap or release entrypoint.",
+    "`python3 scripts/zigux/validate-phase3.py`",
+    "`make -C zigux phase3-validate`",
+    "the bootstrap workflow replays the same shared validator route before the broader Phase 3 ABI and interop tests run",
+    "`python3 scripts/zigux/validate-phase3-rbtree-interop-survey.py` also stays inside that same validator-first route so the dedicated `rbtree` survey, shared-lift contract, and remaining shared-ABI gap stay reviewable without becoming a standalone release path",
 )
 
 REQUIRED_SURVEY_PATHS = (
@@ -88,6 +96,11 @@ REQUIRED_DOCS_README_SNIPPETS = (
     "the note that the longer `chrdev_*` planning ladder should not be mistaken for roadmap closure",
 )
 
+EXACT_ONCE_DOCS_README_SNIPPETS = (
+    "`scripts/zigux/validate-phase3.py`, `make -C zigux phase3-validate`, and the bootstrap workflow are the validator-first route for the shared Phase 3 review packet",
+    "the dedicated survey scripts listed below stay supporting checks inside that shared gate rather than standalone release entrypoints",
+)
+
 
 def _read_text(root: Path, rel: str, issues: list[str]) -> str:
     path = root / rel
@@ -104,6 +117,19 @@ def _check_snippets(text: str, snippets: tuple[str, ...], prefix: str, issues: l
             issues.append(f"{prefix}:{snippet}")
 
 
+def _check_exact_count(
+    text: str,
+    snippets: tuple[str, ...],
+    prefix: str,
+    expected_count: int,
+    issues: list[str],
+) -> None:
+    for snippet in snippets:
+        actual_count = text.count(snippet)
+        if actual_count != expected_count:
+            issues.append(f"{prefix}:{actual_count}:{snippet}")
+
+
 def validate(root: Path) -> list[str]:
     issues: list[str] = []
     survey = _read_text(root, SURVEY_REL, issues)
@@ -112,9 +138,23 @@ def validate(root: Path) -> list[str]:
     if survey:
         _check_snippets(survey, REQUIRED_SURVEY_MARKERS, "missing_survey_marker", issues)
         _check_snippets(survey, REQUIRED_SURVEY_SNIPPETS, "missing_survey_snippet", issues)
+        _check_exact_count(
+            survey,
+            EXACT_ONCE_SURVEY_SNIPPETS,
+            "unexpected_survey_snippet_count",
+            1,
+            issues,
+        )
 
     if docs_readme:
         _check_snippets(docs_readme, REQUIRED_DOCS_README_SNIPPETS, "missing_docs_readme_snippet", issues)
+        _check_exact_count(
+            docs_readme,
+            EXACT_ONCE_DOCS_README_SNIPPETS,
+            "unexpected_docs_readme_snippet_count",
+            1,
+            issues,
+        )
 
     for rel in REQUIRED_SURVEY_PATHS:
         if not (root / rel).exists():
@@ -176,6 +216,45 @@ def run_self_test() -> int:
         issues = validate(root)
         assert (
             "missing_docs_readme_snippet:the note that the longer `chrdev_*` planning ladder should not be mistaken for roadmap closure"
+            in issues
+        )
+
+        _write(
+            root,
+            SURVEY_REL,
+            "\n".join(
+                [
+                    *REQUIRED_SURVEY_MARKERS,
+                    *REQUIRED_SURVEY_SNIPPETS,
+                    EXACT_ONCE_SURVEY_SNIPPETS[0],
+                ]
+            )
+            + "\n",
+        )
+        _write(root, DOCS_README_REL, "\n".join(REQUIRED_DOCS_README_SNIPPETS) + "\n")
+        issues = validate(root)
+        assert (
+            "unexpected_survey_snippet_count:2:"
+            + EXACT_ONCE_SURVEY_SNIPPETS[0]
+            in issues
+        )
+
+        _write(root, SURVEY_REL, "\n".join([*REQUIRED_SURVEY_MARKERS, *REQUIRED_SURVEY_SNIPPETS]) + "\n")
+        _write(
+            root,
+            DOCS_README_REL,
+            "\n".join(
+                [
+                    *REQUIRED_DOCS_README_SNIPPETS,
+                    EXACT_ONCE_DOCS_README_SNIPPETS[0],
+                ]
+            )
+            + "\n",
+        )
+        issues = validate(root)
+        assert (
+            "unexpected_docs_readme_snippet_count:2:"
+            + EXACT_ONCE_DOCS_README_SNIPPETS[0]
             in issues
         )
 
