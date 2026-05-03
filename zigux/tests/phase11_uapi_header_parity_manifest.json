@@ -74,6 +74,13 @@
       "why_now": "The shared header-parity gate now carries one bounded `layout_assert` checkpoint for `struct winsize` so the hvc resize surface keeps size, alignment, exact field types, and `ws_row` or `ws_col` or `ws_xpixel` or `ws_ypixel` offsets reviewable without claiming tty-core or `struct hvc_struct` ownership."
     },
     {
+      "id": "phase11-hvc-console-export-signature-assert",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase11_uapi_header_parity_survey.zig",
+      "why_now": "The shared header-parity gate now carries one bounded exported-helper signature checkpoint for `hvc_instantiate()`, `hvc_alloc()`, `hvc_remove()`, `hvc_poll()`, `hvc_kick()`, `__hvc_resize()`, and the default `notifier_*_irq()` helpers so the C calling convention and `struct winsize` resize handoff stay machine-checked without claiming tty-core, notifier execution, or host-backed I/O ownership."
+    },
+    {
       "id": "phase11-phase3-interop-followup",
       "status": "ready_next",
       "kind": "future_phase_boundary",
