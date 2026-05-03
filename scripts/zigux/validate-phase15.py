@@ -59,13 +59,17 @@ WORKFLOW_MARKERS = [
 README_MARKERS = [
     "Phase 15 notes",
     "only remaining blocked work is the deep-core status-change evidence",
+    "Documentation/zigux/phase15-freeze-map-governance.md",
     "Documentation/zigux/phase15-architecture-council-review-process.md",
     "Documentation/zigux/phase15-parity-scorecard.md",
     "Documentation/zigux/phase15-indefinite-c-policy.md",
+    "Documentation/zigux/phase15-readiness-gate-survey.md",
     "Documentation/zigux/phase15-handoff-next-steps-survey.md",
     "Documentation/zigux/phase15-evidence-archives/",
     "python3 scripts/zigux/validate-phase15.py",
     "make -C zigux phase15-validate",
+    "zigux/tests/phase15_build.zig",
+    "make -C zigux phase15",
 ]
 
 SCRIPTS_README_MARKERS = [
