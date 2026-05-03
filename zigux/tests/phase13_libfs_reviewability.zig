@@ -105,7 +105,7 @@ test "phase13 libfs manifest records the landed close-bookkeeping slice and the 
     try std.testing.expect(descriptor.provides_offset_seek_helpers);
     try std.testing.expect(descriptor.provides_directory_emit_planning);
     try std.testing.expect(descriptor.provides_directory_cursor_preconditions);
-    try std.testing.expect(descriptor.provides_DIRECTORY_CURSOR_REPOSITION_PLANNING);
+    try std.testing.expect(descriptor.provides_directory_cursor_reposition_planning);
     try std.testing.expect(descriptor.provides_directory_close_planning);
     try std.testing.expect(descriptor.provides_transaction_buffer_planning);
     try std.testing.expect(descriptor.provides_transaction_read_release_planning);
