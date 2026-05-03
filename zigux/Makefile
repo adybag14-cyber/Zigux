@@ -157,6 +157,7 @@ phase5-test:
 phase5: phase5-validate phase5-test
 
 phase6-validate:
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase6.py --self-test
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase6.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-docs-root-external-parity.py --self-test
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-docs-root-external-parity.py
