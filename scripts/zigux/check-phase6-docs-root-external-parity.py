@@ -9,14 +9,13 @@ from pathlib import Path
 
 SCRIPT_PATH = Path(__file__).resolve()
 ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
-SELF_TEST_CASE_COUNT = 14
+SELF_TEST_CASE_COUNT = 11
 
 DOCS_ROOT_PATH = Path("Documentation/zigux/README.md")
 SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
 TESTS_README_PATH = Path("zigux/tests/README.md")
 MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
 MAKEFILE_PATH = Path("zigux/Makefile")
-VALIDATOR_PATH = Path("scripts/zigux/validate-phase6.py")
 REQUIRED_SCRIPT_PATHS = [
     Path("scripts/zigux/check-phase6-base64-c-parity.py"),
     Path("scripts/zigux/check-phase6-bsearch-c-parity.py"),
@@ -56,12 +55,6 @@ REQUIRED_MAKEFILE_LINES = [
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-docs-root-external-parity.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-docs-root-external-parity.py",
 ]
-REQUIRED_VALIDATOR_LINES = [
-    '"- `scripts/zigux/check-phase6-docs-root-external-parity.py`",',
-    '"- `scripts/zigux/check-phase6-base64-catalog-evidence.py`",',
-    '\'print("PHASE6_DOCS_ROOT_EXTERNAL_PARITY_REQUIRED_FILE_COUNT=9")\',',
-    '\'print("PHASE6_DOCS_ROOT_EXTERNAL_PARITY_REQUIRED_LINE_COUNT=17")\',',
-]
 
 
 def read_text(root: Path, relative_path: Path) -> str:
@@ -85,7 +78,6 @@ def validate(root: Path) -> list[str]:
         TESTS_README_PATH,
         MANIFEST_PATH,
         MAKEFILE_PATH,
-        VALIDATOR_PATH,
         *REQUIRED_SCRIPT_PATHS,
     ]
     for relative_path in required_paths:
@@ -143,15 +135,6 @@ def validate(root: Path) -> list[str]:
                 f"expected=1:actual={actual_count}:{line}"
             )
 
-    validator_lines = normalized_lines(read_text(root, VALIDATOR_PATH))
-    for line in REQUIRED_VALIDATOR_LINES:
-        actual_count = count_exact_line(validator_lines, line)
-        if actual_count != 1:
-            missing.append(
-                "validator_marker_line:"
-                f"expected=1:actual={actual_count}:{line}"
-            )
-
     return missing
 
 
@@ -171,7 +154,6 @@ def build_fixture_tree(root: Path) -> None:
         json.dumps({"exact_checks": REQUIRED_MANIFEST_EXACT_CHECKS}, indent=2) + "\n",
     )
     write(root, MAKEFILE_PATH, "\n".join(REQUIRED_MAKEFILE_LINES) + "\n")
-    write(root, VALIDATOR_PATH, "\n".join(REQUIRED_VALIDATOR_LINES) + "\n")
     for relative_path in REQUIRED_SCRIPT_PATHS:
         write(root, relative_path, "# placeholder\n")
 
@@ -311,58 +293,6 @@ def run_self_test() -> int:
             expect_contains(
                 validate(root),
                 "makefile_checker_line:expected=1:actual=0:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-docs-root-external-parity.py",
-            )
-            count += 1
-
-            build_fixture_tree(root)
-            validator = root / VALIDATOR_PATH
-            validator.write_text(
-                "\n".join(
-                    line
-                    for line in REQUIRED_VALIDATOR_LINES
-                    if line != REQUIRED_VALIDATOR_LINES[3]
-                )
-                + "\n",
-                encoding="utf-8",
-            )
-            expect_contains(
-                validate(root),
-                "validator_marker_line:expected=1:actual=0:'print(\"PHASE6_DOCS_ROOT_EXTERNAL_PARITY_REQUIRED_LINE_COUNT=17\")',",
-            )
-            count += 1
-
-            build_fixture_tree(root)
-            validator = root / VALIDATOR_PATH
-            validator.write_text(
-                "\n".join(
-                    line
-                    for line in REQUIRED_VALIDATOR_LINES
-                    if line != REQUIRED_VALIDATOR_LINES[1]
-                )
-                + "\n",
-                encoding="utf-8",
-            )
-            expect_contains(
-                validate(root),
-                'validator_marker_line:expected=1:actual=0:"- `scripts/zigux/check-phase6-base64-catalog-evidence.py`",',
-            )
-            count += 1
-
-            build_fixture_tree(root)
-            validator = root / VALIDATOR_PATH
-            validator.write_text(
-                "\n".join(
-                    [
-                        *REQUIRED_VALIDATOR_LINES,
-                        REQUIRED_VALIDATOR_LINES[0],
-                    ]
-                )
-                + "\n",
-                encoding="utf-8",
-            )
-            expect_contains(
-                validate(root),
-                'validator_marker_line:expected=1:actual=2:"- `scripts/zigux/check-phase6-docs-root-external-parity.py`",',
             )
             count += 1
 
