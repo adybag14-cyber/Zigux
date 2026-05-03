@@ -84,7 +84,7 @@ REQUIRED_WORKFLOW_SNIPPETS = (
     "run: python3 scripts/zigux/check-phase3-validation-flow.py --self-test\n",
     "name: Self-test Phase 3 wrapper generator",
     "run: python3 scripts/zigux/generate-phase3-check-wrappers.py --self-test\n",
-    "name: Self-test Phase 3 runner",
+    "name: Validate Phase 3 wrapper templates\n",
     "run: python3 scripts/zigux/run-phase3-checks.py --self-test\n",
     "name: Validate Phase 3 README tooling inventory",
     "run: python3 scripts/zigux/check-phase3-readme-tooling-inventory.py\n",
@@ -108,6 +108,7 @@ EXACT_ONCE_WORKFLOW_TITLE_SNIPPETS = (
     "name: Self-test Phase 3 validator\n",
     "name: Self-test Phase 3 validation flow checker\n",
     "name: Self-test Phase 3 wrapper generator\n",
+    "name: Validate Phase 3 wrapper templates\n",
     "name: Self-test Phase 3 runner\n",
     "name: Validate Phase 3 README tooling inventory\n",
     "name: Self-test Phase 3 README tooling inventory checker\n",
@@ -516,6 +517,23 @@ def run_self_test() -> int:
             )
 
         _write(root, WORKFLOW_REL, _fixture_workflow())
+        duplicated_wrapper_templates_workflow_title = (
+            _fixture_workflow()
+            + "      - name: Validate Phase 3 wrapper templates\n"
+            + "        run: python3 scripts/zigux/phase3_catalog.py --audit-doc-sync\n"
+        )
+        _write(root, WORKFLOW_REL, duplicated_wrapper_templates_workflow_title)
+        issues = validate(root)
+        expected = [
+            "unexpected_workflow_snippet_count:2:name: Validate Phase 3 wrapper templates\n",
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-validation-flow-self-test:duplicate_wrapper_templates_workflow_title_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+        _write(root, WORKFLOW_REL, _fixture_workflow())
         duplicated_runner_workflow_title = (
             _fixture_workflow()
             + "      - name: Self-test Phase 3 runner\n"
@@ -607,7 +625,7 @@ def run_self_test() -> int:
             )
 
         print("PHASE3_VALIDATION_FLOW_SELF_TEST=pass")
-        print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=40")
+        print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=41")
         return 0
 
 
