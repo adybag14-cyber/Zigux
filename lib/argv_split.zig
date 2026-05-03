@@ -31,18 +31,18 @@ pub const ArgvSplitResult = struct {
     }
 };
 
+const ArgSpan = struct {
+    start: usize,
+    end: usize,
+};
+
 pub fn countArgc(text: []const u8) usize {
     const current = cStringPrefix(text);
     var count: usize = 0;
-    var was_space = true;
+    var cursor: usize = 0;
 
-    for (current) |ch| {
-        if (std.ascii.isWhitespace(ch)) {
-            was_space = true;
-        } else if (was_space) {
-            was_space = false;
-            count += 1;
-        }
+    while (nextArgSpan(current, &cursor)) |_| {
+        count += 1;
     }
 
     return count;
@@ -80,24 +80,14 @@ pub fn argvSplitWithArgc(
     errdefer allocator.free(argv_null_terminated);
 
     var arg_index: usize = 0;
-    var arg_start: ?usize = null;
+    var cursor: usize = 0;
 
-    for (storage, 0..) |*ch, index| {
-        if (std.ascii.isWhitespace(ch.*)) {
-            ch.* = 0;
-            if (arg_start) |start| {
-                argv[arg_index] = storage[start..index :0];
-                argv_null_terminated[arg_index] = argv[arg_index].ptr;
-                arg_index += 1;
-                arg_start = null;
-            }
-        } else if (arg_start == null) {
-            arg_start = index;
+    while (nextArgSpan(storage, &cursor)) |span| {
+        if (span.end < storage.len) {
+            storage[span.end] = 0;
+            cursor = span.end + 1;
         }
-    }
-
-    if (arg_start) |start| {
-        argv[arg_index] = storage[start..storage.len :0];
+        argv[arg_index] = storage[span.start..span.end :0];
         argv_null_terminated[arg_index] = argv[arg_index].ptr;
         arg_index += 1;
     }
@@ -129,6 +119,25 @@ fn hasAnyArg(text: []const u8) bool {
         }
     }
     return false;
+}
+
+fn nextArgSpan(text: []const u8, cursor: *usize) ?ArgSpan {
+    var index = cursor.*;
+
+    while (index < text.len and std.ascii.isWhitespace(text[index])) : (index += 1) {}
+    if (index == text.len) {
+        cursor.* = index;
+        return null;
+    }
+
+    const start = index;
+    while (index < text.len and !std.ascii.isWhitespace(text[index])) : (index += 1) {}
+
+    cursor.* = index;
+    return .{
+        .start = start,
+        .end = index,
+    };
 }
 
 fn allocArgvNullTerminated(
