@@ -346,6 +346,21 @@ def run_self_test() -> int:
         )
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
+        tests_readme_path.write_text(
+            original_tests_readme.replace(
+                "four lane survey manifests plus the shared `zigux/tests/phase10_closure_manifest.json`",
+                "three lane survey manifests plus the shared `zigux/tests/phase10_closure_manifest.json`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "tests_readme_manifest_summary",
+            root,
+            "tests_readme:four lane survey manifests plus the shared `zigux/tests/phase10_closure_manifest.json`",
+        )
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
+
         closure_note_path = root / "Documentation/zigux/phase10-closure-evidence.md"
         original_closure_note = closure_note_path.read_text(encoding="utf-8")
         closure_note_path.write_text(
@@ -414,7 +429,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=12")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
