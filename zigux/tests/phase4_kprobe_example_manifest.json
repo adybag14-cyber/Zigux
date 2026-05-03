@@ -16,7 +16,9 @@
     "kprobe_makefile_replay_present": true,
     "kprobe_anchor_symbol_present": true,
     "zig_sample_present": false,
-    "phase4_build_present": true
+    "phase4_build_present": true,
+    "phase4_validation_matrix_present": true,
+    "phase4_gate_evidence_present": true
   },
   "gaps": [
     {
@@ -41,11 +43,18 @@
       "why_now": "The live replay still stays on the C anchor through `make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m`, so the survey packet has to keep that exact command explicit while the Zig lab matrix remains C-anchor-only."
     },
     {
+      "id": "phase4-kprobe-example-local-wrapper-gap",
+      "status": "ready_next",
+      "kind": "local_replay_wrapper",
+      "zigux_destination": "zigux/Makefile",
+      "why_now": "The shared build already runs `phase4-kprobe-example-survey-tests`, but the survey packet still lacks a dedicated `make -C zigux phase4-kprobe-example-survey` wrapper and shared-validator promotion, so the next bounded same-lane step is to publish that local replay path before claiming parity with the neighboring survey gates."
+    },
+    {
       "id": "phase4-kprobe-example-zig-sample",
       "status": "ready_next",
       "kind": "sample_port",
       "zigux_destination": "samples/zigux/kprobe_example.zig",
-      "why_now": "The actual Zig sample is still absent on `master`, so the next bounded step is a starter under `samples/zigux/` that keeps the same owner, rollback owner, and `make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m` replay contract instead of widening into broader probe registration behavior."
+      "why_now": "The actual Zig sample is still absent on `master`, so the next bounded step after the survey wrapper work is a starter under `samples/zigux/` that keeps the same owner, rollback owner, and `make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m` replay contract instead of widening into broader probe registration behavior."
     }
   ]
 }
