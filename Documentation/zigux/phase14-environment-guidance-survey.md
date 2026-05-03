@@ -20,6 +20,7 @@ This survey closes one narrow gap: it makes the environment guidance explicit in
 
 - `make -C zigux phase14-validate PYTHON=python3 ZIG=<attached-zig-path>`
 - `make -C zigux phase14-smoke ZIG=<attached-zig-path>`
+- `make -C zigux phase14-test ZIG=<attached-zig-path>`
 - `make -C zigux phase14 ZIG=<attached-zig-path>`
 
 ## Dedicated Guidance Check
