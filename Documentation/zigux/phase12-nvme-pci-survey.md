@@ -31,6 +31,8 @@ This lane now also carries a tiny public-read fallback map in `Documentation/zig
 
 The dedicated survey gate now treats that pinned fallback map as part of this packet's reviewability surface, so public-read fallback coverage stays inside the NVMe lane instead of drifting back into cross-lane memory.
 
+The packet now also keeps its rollback owner explicit as `NVMe PCI Lane`, so survey-only refreshes do not collapse back into the neighboring `virtio_scsi` storage packet.
+
 ## Survey findings
 
 - `drivers/nvme/host/pci.c` is present on `master` and remains a high-risk complex-driver anchor whose live behavior stretches far beyond the current Zigux starter.
@@ -68,8 +70,8 @@ This keeps the lane concrete and reviewable without overstating progress: the qu
 
 ## Rollback And Reversible Delivery
 
-- owner: `Storage Driver Lane`
-- rollback owner: `Storage Driver Lane`
+- owner: `NVMe PCI Lane`
+- rollback owner: `NVMe PCI Lane`
 - fallback path: keep `drivers/nvme/host/pci.c` as the source of truth, keep the bounded `drivers/nvme/host/pci.zig` queue planner plus queue-count, doorbell-window, PRP buffer-shape, and pointer-selection helpers reviewable in isolation, and drop the direct `phase12-nvme-pci-tests` plus `phase12-nvme-pci-survey-tests` entries out of `zigux/tests/phase12_build.zig` if the shared packet regresses.
 - reversible delivery evidence: this Phase 12 packet only adds one bounded `drivers/nvme/host/pci.zig` starter, its paired `zigux/tests/phase12_nvme_pci.zig` and `zigux/tests/phase12_nvme_pci_survey.zig` review gates, the slice note, this survey note, and the pinned raw-read fallback map around the existing C anchor, so the lane can be narrowed again without inventing live PRP or SGL mapping, Host Memory Buffer policy, blk-mq request submission, live MMIO, IRQ routing, or PCI queue lifecycle parity.
 - rollback drill: run `make -C zigux phase12-validate`; if the nvme PCI packet is the only failing slice, repair `Documentation/zigux/phase12-nvme-pci-survey.md`, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, or `zigux/tests/phase12_nvme_pci_survey.zig` first when only the reviewability record drifted, otherwise remove the `phase12-nvme-pci-tests` and `phase12-nvme-pci-survey-tests` entries from `zigux/tests/phase12_build.zig`, keep `drivers/nvme/host/pci.c` plus the bounded Zig starter unchanged, then rerun `make -C zigux phase12-validate` followed by `zig build test --build-file zigux/tests/phase12_build.zig --summary all` so the shared Phase 12 tranche stays truthful while the survey packet is repaired.
