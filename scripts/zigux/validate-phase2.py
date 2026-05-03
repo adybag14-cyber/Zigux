@@ -9,6 +9,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[2]
 CLOSURE_VALIDATOR = ROOT / "scripts" / "zigux" / "validate-phase2-closure.py"
+CHECK_GENKSYMS_BRIDGE = ROOT / "scripts" / "zigux" / "check-genksyms-bridge.py"
 GENKSYMS_BRIDGE_ALIGNMENT_CHECKER = (
     ROOT / "scripts" / "zigux" / "check-phase2-genksyms-bridge-selftest-alignment.py"
 )
@@ -42,7 +43,7 @@ REQUIRED_PHASE2_FILES = [
     ROOT / "scripts" / "zigux" / "artifact_diff.py",
     ROOT / "scripts" / "zigux" / "check-artifact-diff-contract.py",
     CHECK_FIXDEP,
-    ROOT / "scripts" / "zigux" / "check-genksyms-bridge.py",
+    CHECK_GENKSYMS_BRIDGE,
     GENKSYMS_BRIDGE_ALIGNMENT_CHECKER,
     ROOT / "scripts" / "zigux" / "check-genksyms-crc-diff.py",
     CHECK_KCONFIG_BRIDGE,
@@ -62,6 +63,19 @@ REQUIRED_PHASE2_FILES = [
     PHASE2_TOOL_MANIFEST,
     PHASE2_CROSS_TARGETS,
     FIXDEP_CASES,
+]
+PHASE2_GENKSYMS_BRIDGE_REQUIRED_SOURCE_MARKERS = [
+    "PHASE2_GENKSYMS_BRIDGE_SELF_TEST=pass",
+    "PHASE2_GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=26",
+    "normalize_stderr:requires_process_json_mode",
+    "expected:missing_fixture:",
+    "cases.json:orphaned_expected:",
+    "expected:duplicate_reference:",
+    "run(diff_base + [str(c_actual), str(c_repeat)], cwd=str(ROOT))",
+    "run(diff_base + [str(zig_actual), str(zig_repeat)], cwd=str(ROOT))",
+    "run(text_diff_base + [str(c_actual_stderr), str(c_repeat_stderr)], cwd=str(ROOT))",
+    "run(text_diff_base + [str(zig_actual_stderr), str(zig_repeat_stderr)], cwd=str(ROOT))",
+    "print('GENKSYMS_BRIDGE_DETERMINISM=pass')",
 ]
 PHASE2_GENKSYMS_BRIDGE_ALIGNMENT_REQUIRED_SOURCE_MARKERS = [
     "PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=11",
@@ -389,6 +403,13 @@ def main() -> int:
         )
     )
     issues.extend(validate_expected_fixdep_cases(FIXDEP_CASES))
+    issues.extend(
+        validate_source_markers(
+            CHECK_GENKSYMS_BRIDGE,
+            label="phase2_genksyms_bridge_checker",
+            required_markers=PHASE2_GENKSYMS_BRIDGE_REQUIRED_SOURCE_MARKERS,
+        )
+    )
     issues.extend(
         validate_source_markers(
             GENKSYMS_BRIDGE_ALIGNMENT_CHECKER,
