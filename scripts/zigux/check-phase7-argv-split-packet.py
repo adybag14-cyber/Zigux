@@ -28,6 +28,9 @@ REQUIRED_FILES = [
 
 REQUIRED_DOC_MARKERS = [
     "lane state: helper, fixture, survey, and dedicated external parity slice landed; parked unless a new `argv_split.c` parity issue appears",
+    "`scripts/zigux/check-phase7-argv-split-packet.py`",
+    "`python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test`",
+    "`python3 scripts/zigux/check-phase7-argv-split-packet.py`",
     "`scripts/zigux/check-phase7-argv-split-parity.py`",
     "`python3 scripts/zigux/check-phase7-argv-split-parity.py --self-test`",
     "`python3 scripts/zigux/check-phase7-argv-split-parity.py`",
@@ -126,6 +129,9 @@ SELF_TEST_FILE_CONTENTS = {
     "Documentation/zigux/phase7-argv-split-slice.md": "\n".join(
         [
             "lane state: helper, fixture, survey, and dedicated external parity slice landed; parked unless a new `argv_split.c` parity issue appears",
+            "`scripts/zigux/check-phase7-argv-split-packet.py`",
+            "`python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test`",
+            "`python3 scripts/zigux/check-phase7-argv-split-packet.py`",
             "`scripts/zigux/check-phase7-argv-split-parity.py`",
             "`python3 scripts/zigux/check-phase7-argv-split-parity.py --self-test`",
             "`python3 scripts/zigux/check-phase7-argv-split-parity.py`",
@@ -243,6 +249,17 @@ def run_self_test() -> int:
         doc_path = tmp_root / "Documentation" / "zigux" / "phase7-argv-split-slice.md"
         original_doc = read(doc_path)
         doc_path.write_text(
+            original_doc.replace("`scripts/zigux/check-phase7-argv-split-packet.py`", "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "packet_doc_marker",
+            tmp_root,
+            "Documentation/zigux/phase7-argv-split-slice.md: `scripts/zigux/check-phase7-argv-split-packet.py`",
+        )
+        doc_path.write_text(original_doc, encoding="utf-8")
+
+        doc_path.write_text(
             original_doc.replace("`scripts/zigux/check-phase7-argv-split-parity.py`", "", 1),
             encoding="utf-8",
         )
@@ -311,7 +328,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
-    print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT=5")
+    print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
