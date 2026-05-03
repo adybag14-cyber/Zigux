@@ -68,6 +68,12 @@ SURVEY_VALIDATION_SCRIPTS = (
         "tooling-packet-gate",
         "missing_tooling_file:scripts/zigux/check-phase3-build-roots.py",
     ),
+    (
+        "check-phase3-readme-tooling-inventory.py",
+        "PHASE3_README_TOOLING_INVENTORY=fail",
+        "readme-tooling-inventory-gate",
+        "missing_readme_entry:check-phase3-tooling-packet.py",
+    ),
 )
 
 BUILD_ROOT_DRIFT_SCRIPT = (
