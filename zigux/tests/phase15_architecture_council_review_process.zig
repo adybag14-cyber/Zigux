@@ -71,7 +71,7 @@ const Manifest = struct {
 };
 
 const expected_lane_key = "P15-L07";
-const expected_surveyed_commit = "b5f64cf3306b706ea93cc9d3de769d545849b2d4";
+const expected_surveyed_commit = "d918be7ded6383c13cbd5eea4ca4aa4f3cdafee4";
 
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
