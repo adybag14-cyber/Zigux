@@ -348,6 +348,42 @@ def run_self_test() -> int:
             "invalid Phase 12 libbpf reviewability snapshot markers",
         )
 
+    with tempfile.TemporaryDirectory(prefix="zigux_phase12_libbpf_snapshot_reviewability_path_assertion_") as tmp_dir_str:
+        reviewability_root = Path(tmp_dir_str)
+        copy_required_tree(reviewability_root)
+        reviewability_test_path = reviewability_root / REVIEWABILITY_TEST_REL_PATH
+        reviewability_test_path.write_text(
+            reviewability_test_path.read_text(encoding="utf-8").replace(
+                "try std.testing.expectEqualStrings(expected_path, entry.path);\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_system_exit(
+            "invalid_reviewability_path_assertion_marker",
+            lambda: load_manifest_packet(reviewability_root),
+            "invalid Phase 12 libbpf reviewability snapshot markers",
+        )
+
+    with tempfile.TemporaryDirectory(prefix="zigux_phase12_libbpf_snapshot_reviewability_tracked_path_") as tmp_dir_str:
+        reviewability_root = Path(tmp_dir_str)
+        copy_required_tree(reviewability_root)
+        reviewability_test_path = reviewability_root / REVIEWABILITY_TEST_REL_PATH
+        reviewability_test_path.write_text(
+            reviewability_test_path.read_text(encoding="utf-8").replace(
+                "zigux/tests/phase12_libbpf_manifest.json\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_system_exit(
+            "invalid_reviewability_tracked_path_marker",
+            lambda: load_manifest_packet(reviewability_root),
+            "invalid Phase 12 libbpf reviewability snapshot markers",
+        )
+
     first = render_snapshot()
     second = render_snapshot()
     if first != second:
@@ -475,7 +511,7 @@ def run_self_test() -> int:
             raise SystemExit("phase12-libbpf-snapshot:self-test:missing_lines")
 
     print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST=pass")
-    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT=36")
+    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT=38")
     return 0
 
 
