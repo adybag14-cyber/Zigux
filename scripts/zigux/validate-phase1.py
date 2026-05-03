@@ -718,7 +718,8 @@ def self_test() -> int:
         checker_path.unlink()
         code = os.spawnve(os.P_WAIT, sys.executable, [sys.executable, __file__], env)
         if code == 0:
-            print("PHASE1_VALIDATOR_SELF_TEST=fail")n            return 1
+            print("PHASE1_VALIDATOR_SELF_TEST=fail")
+            return 1
         write(root / "scripts/zigux/check-phase1-route-summary-counts.py", "// marker fixture\n")
 
         route_inventory_checker_path = root / "scripts/zigux/check-phase1-validation-route-inventory.py"
