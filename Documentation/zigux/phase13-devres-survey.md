@@ -10,9 +10,12 @@ This lane stays inside the Phase 13 shared-helper tranche and records the curren
 - scope: the landed `lib/devres.zig` helper slice, its dedicated Phase 13 tests and manifest, the shared Phase 13 build wiring, and the lane notes that keep the active helper-first devres packet plus its explicit live-state blockers pinned to the current repo state
 - product boundary:
   - `lib/devres.zig`
+  - `lib/devres_dma_coherent.zig`
   - `zigux/tests/phase13_devres.zig`
+  - `zigux/tests/phase13_devres_dma_coherent.zig`
   - `zigux/tests/phase13_devres_reviewability.zig`
   - `zigux/tests/phase13_devres_iounmap_reviewability.zig`
+  - `zigux/tests/phase13_devres_iomap_reviewability.zig`
   - `zigux/tests/phase13_devres_manifest.json`
   - `zigux/tests/phase13_build.zig`
   - `Documentation/zigux/phase13-devres-slice.md`
@@ -26,9 +29,11 @@ Current repo state on `master`:
 - compared against that same earlier surveyed head, the dedicated `zigux/tests/phase13_devres.zig` replay remains hash-stable at `sha256 7dc45ab99f46d5424e3d757f720e58654aaea326b13db1af601be88c3cbff476` while still covering the direct non-posted wrapper path
 - the shipped `DevresHelperLab` descriptor now says explicitly that the helper-only surface still avoids live DMA-backed mappings and scatterlist ownership instead of leaving that boundary only in the manifest and prose packet
 - `zigux/tests/phase13_devres_iounmap_reviewability.zig` now source-scans `lib/devres.zig` for the explicit `provides_iounmap_call_planning` marker and replays exact-match plus release-miss `devm_iounmap()` planning so the pointer-exact detach surface stays reviewable inside the broader devres packet instead of living only in the helper lab or survey prose
+- `zigux/tests/phase13_devres_iomap_reviewability.zig` now source-scans `lib/devres.zig` for the explicit `provides_of_iomap_planning` marker and replays translated-size success, address-translation miss, and downstream remap-failure `devm_of_iomap()` planning so the translated-resource handoff stays reviewable inside the broader devres packet instead of living only in the helper lab or survey prose
 - a direct token scan of current `lib/devres.zig` finds only the `touches_live_dma` and `touches_live_scatterlist` descriptor markers and no `dmam_alloc_coherent`, `dmam_free_coherent`, `dma_map_resource`, `dma_unmap_resource`, `dma_map_sgtable`, `dma_unmap_sgtable`, `dma_map_sg_attrs`, `dma_unmap_sg_attrs`, `struct scatterlist`, `sg_table`, or `sg_` helper entrypoints
 - `zigux/tests/phase13_devres.zig` already exercises managed `__devm_ioremap()` lifetime planning, the direct `devm_ioremap()`, `devm_ioremap_uc()`, `devm_ioremap_wc()`, and `devm_ioremap_np()` acquire wrappers, `__devm_ioremap_resource()` planning, `devm_of_iomap()` translation handoff, `devm_ioport_map()` lifetime bookkeeping, `devm_arch_phys_wc_add()` token retention, and `devm_arch_io_reserve_memtype_wc()` range retention
 - `lib/devres_dma_coherent.zig` plus `zigux/tests/phase13_devres_dma_coherent.zig` now keep the helper-first coherent-DMA lifetime packet reviewable on current `master`, including `dmam_alloc_coherent()` / `dmam_free_coherent()`-style release-record retention, free-on-partial-failure cleanup, and exact `(cpu_address, dma_handle)` release matching without claiming live DMA-backed allocation, free, or scatterlist execution
+- `zigux/tests/phase13_build.zig` already runs both `phase13-devres-dma-coherent-tests` and `phase13-devres-iomap-reviewability-tests`, keeping the adjacent coherent-DMA lifetime packet and the dedicated `devm_of_iomap()` reviewability gate inside the shared Phase 13 replay inventory instead of leaving either surface implicit
 - helper-first iomap or resource planners plus explicit DMA/scatterlist blockers pinned to the current repo state are the exact current review surface for this packet
 - the current helper lab still exposes no `dma*`, `dmam_*`, `scatterlist`, `sg_table`, or `sg_*` ownership surface, so the Phase 13 packet remains outside DMA-backed and scatter-gather behavior rather than merely leaving that boundary implicit
 - `Documentation/zigux/phase13-devres-slice.md` already marks the helper boundary clearly, and this survey now names the exact DMA/scatterlist boundary evidence that the shared release packet expects on current `master`
@@ -51,6 +56,7 @@ What is landed today:
 - managed `__devm_ioremap_resource()` planning around memory-resource validation, overflow-safe inclusive size calculation, pretty-name construction, request-region gating, remap cleanup, and non-posted fallback when the resource flags demand it
 - the adjacent `devm_ioremap_resource_wc()` wrapper path without widening into live write-combined mappings
 - `devm_of_iomap()` planning around translated resource selection, optional size reporting, and delegation into the managed-resource planner without walking a live device tree
+- the dedicated `zigux/tests/phase13_devres_iomap_reviewability.zig` gate that source-scans the helper descriptor for `provides_of_iomap_planning` and replays translated-size success, translation-miss, and downstream remap-failure `devm_of_iomap()` planning so the bounded device-tree iomap planner stays machine-checkable inside the shared Phase 13 build
 - `devm_ioport_map()` and `devm_ioport_unmap()` lifetime bookkeeping without claiming live port-space side effects
 - token-style `devm_arch_phys_wc_add()` release planning and range-style `devm_arch_io_reserve_memtype_wc()` release planning without claiming live memtype mutation
 - the adjacent helper-first coherent-DMA lifetime planner in `lib/devres_dma_coherent.zig`, with `zigux/tests/phase13_devres_dma_coherent.zig` covering release-record allocation, success-path retention of the returned CPU address plus DMA handle, free-on-partial-failure cleanup when either half of the coherent mapping never materializes, and exact free-time `(cpu_address, dma_handle)` matching without widening into live DMA-backed execution or scatter-gather ownership
