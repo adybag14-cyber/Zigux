@@ -62,6 +62,11 @@ test "phase12 virtio scsi freeze blocks queue planning until restore clears layo
     try std.testing.expect(frozen.is_frozen);
     try std.testing.expect(!frozen.request_planning_available);
     try std.testing.expect(!frozen.event_recycling_enabled);
+    try std.testing.expect(!frozen.requires_queue_layout_replan);
+    try std.testing.expect(!frozen.cleared_probe_snapshot);
+    try std.testing.expect(!frozen.cleared_host_limit_summary);
+    try std.testing.expect(!frozen.cleared_queue_depth_summary);
+    try std.testing.expect(!frozen.cleared_io_queue_map_summary);
     try std.testing.expectEqual(@as(u16, 6), frozen.remembered_request_queues);
     try std.testing.expectEqual(@as(u16, 2), frozen.remembered_poll_queues);
     try std.testing.expectEqual(@as(u16, virtio_scsi.event_buffer_count), frozen.remembered_event_buffer_count);
@@ -76,6 +81,11 @@ test "phase12 virtio scsi freeze blocks queue planning until restore clears layo
     try std.testing.expect(!restored.is_frozen);
     try std.testing.expect(restored.request_planning_available);
     try std.testing.expect(restored.event_recycling_enabled);
+    try std.testing.expect(restored.requires_queue_layout_replan);
+    try std.testing.expect(restored.cleared_probe_snapshot);
+    try std.testing.expect(restored.cleared_host_limit_summary);
+    try std.testing.expect(restored.cleared_queue_depth_summary);
+    try std.testing.expect(restored.cleared_io_queue_map_summary);
     try std.testing.expectEqual(@as(u16, 6), restored.remembered_request_queues);
     try std.testing.expectEqual(@as(u16, 2), restored.remembered_poll_queues);
     try std.testing.expectEqual(@as(u16, virtio_scsi.event_buffer_count), restored.remembered_event_buffer_count);
