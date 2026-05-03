@@ -584,6 +584,8 @@ test "phase12 virtio net plans mergeable refill budgets from mtu and header stat
     try std.testing.expectEqual(@as(u32, 9_038), refill.packet_budget_bytes);
     try std.testing.expectEqual(@as(u32, 2_240), refill.min_buf_len_bytes);
     try std.testing.expectEqual(@as(u16, 20), refill.required_headroom_bytes);
+    try std.testing.expectEqual(@as(u32, 20), refill.recycled_room_bytes);
+    try std.testing.expectEqual(@as(u32, 2_220), refill.fresh_allocation_bytes);
     try std.testing.expectEqual(virtio_net.BigPacketReason.none, refill.big_packet_reason);
 }
 
@@ -618,7 +620,9 @@ test "phase12 virtio net restore clears stale refill planning state" {
         .max_queue_pairs = 1,
     });
 
-    _ = try lab.planMergeableReceiveRefill(4);
+    const refill = try lab.planMergeableReceiveRefill(4);
+    try std.testing.expectEqual(@as(u32, 0), refill.recycled_room_bytes);
+    try std.testing.expectEqual(@as(u32, 1_518), refill.fresh_allocation_bytes);
     _ = try lab.freezeForRecovery();
     _ = try lab.restoreAfterRecovery();
 
