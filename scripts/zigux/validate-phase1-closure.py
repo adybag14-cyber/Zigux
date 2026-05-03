@@ -388,20 +388,18 @@ EXPECTED_MANIFEST_FIELDS = {
         ),
         "unit_test_anchor": 'tools/lib/string.zig:test "memchrInv scans aligned and misaligned long buffers"',
         "unit_test_contract": (
-            "Direct Zig unit coverage keeps memchrInv honest for both aligned and misaligned long "
-            "buffers beyond the short C-backed fixture cases."
+            "Direct Zig unit coverage keeps memchrInv honest for both aligned and misaligned long buffers "
+            "beyond the short C-backed fixture cases."
         ),
         "cstring_unit_test_anchor": 'tools/lib/string.zig:test "strlcpy stops at the first embedded NUL in the source"',
         "cstring_unit_test_contract": (
-            "Direct Zig unit coverage keeps strlcpy aligned with C-string semantics by stopping at "
-            "the first embedded NUL, preserving truncation behavior, and leaving zero-sized "
-            "destinations untouched."
+            "Direct Zig unit coverage keeps strlcpy aligned with C-string semantics by stopping at the first "
+            "embedded NUL, preserving truncation behavior, and leaving zero-sized destinations untouched."
         ),
         "equality_unit_test_anchor": 'tools/lib/string.zig:test "streq matches C-string equality semantics"',
         "equality_unit_test_contract": (
-            "Direct Zig unit coverage keeps strEq() and streq() aligned with C-string equality "
-            "semantics for exact, empty, length-mismatched, case-sensitive, and embedded-NUL "
-            "comparisons."
+            "Direct Zig unit coverage keeps strEq() and streq() aligned with C-string equality semantics "
+            "for exact, empty, length-mismatched, case-sensitive, and embedded-NUL comparisons."
         ),
         "alias_unit_test_anchor": 'tools/lib/string.zig:test "trimSpaces and strim trim trailing whitespace before an embedded NUL"',
         "alias_unit_test_contract": (
@@ -429,13 +427,11 @@ EXPECTED_MANIFEST_FIELDS = {
         ),
         "memparse_unit_test_anchor": 'tools/lib/string.zig:test "memparse forwards the header-level string helper surface"',
         "memparse_unit_test_contract": (
-            "Direct Zig unit coverage keeps memparse aligned by forwarding decimal, hexadecimal, "
-            "suffix-bearing, and invalid inputs through the shared command-line parser without "
-            "changing the parsed value or rest pointer contract."
+            "Direct Zig unit coverage keeps memparse aligned by preserving decimal, hexadecimal, "
+            "suffix-bearing, and invalid inputs without changing the parsed value or rest pointer contract."
         ),
     },
 }
-
 
 def run_validator(root: Path) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
