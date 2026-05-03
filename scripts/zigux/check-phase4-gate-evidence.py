@@ -456,6 +456,18 @@ def run_self_test() -> int:
         workflow = root / ".github/workflows/zigux-bootstrap.yml"
         workflow.write_text(
             workflow.read_text(encoding="utf-8")
+            + "make -C zigux phase4-validate\n",
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert (
+            "workflow_exact_count:make -C zigux phase4-validate:2:1" in missing
+        ), missing
+
+        write_fixture_tree(root)
+        workflow = root / ".github/workflows/zigux-bootstrap.yml"
+        workflow.write_text(
+            workflow.read_text(encoding="utf-8")
             + "make -C zigux phase4-test\n",
             encoding="utf-8",
         )
