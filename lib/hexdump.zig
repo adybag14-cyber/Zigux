@@ -140,7 +140,7 @@ pub fn hexDumpToBuffer(
         return 0;
     }
 
-    if (linebuf.len > required and (ascii or groupsize != 1)) {
+    if (linebuf.len > required) {
         return hexDumpToFullBuffer(buf[0..len], rowsize, groupsize, linebuf, ascii);
     }
 
@@ -580,6 +580,7 @@ test "hexDumpToBuffer proves exact 8-byte grouped ascii output" {
 }
 
 test "hexDumpToBuffer exact-capacity full-buffer path stays aligned with fixture output" {
+    try assertExactCapacityFullBufferCase(16, 16, 1, false);
     try assertExactCapacityFullBufferCase(16, 16, 4, false);
     try assertExactCapacityFullBufferCase(16, 16, 4, true);
     try assertExactCapacityFullBufferCase(32, 32, 2, true);
