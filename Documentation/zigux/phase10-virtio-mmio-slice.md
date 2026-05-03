@@ -70,7 +70,12 @@ This slice does not yet claim:
 3. run the dedicated Phase 10 build
 - `zig build test --build-file zigux/tests/phase10_build.zig --summary all`
 
-4. run the convenience target
+4. run the Linux-style Phase 10 test entrypoint
+- `make -C zigux phase10-test`
+
+This keeps the MMIO slice note aligned with the shared closure packet's exact test route instead of implying the direct build replay and convenience target are the only executable review surfaces for the current MMIO packet.
+
+5. run the convenience target
 - `make -C zigux phase10`
 
 ## Next bounded step
