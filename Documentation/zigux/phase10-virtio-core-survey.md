@@ -6,7 +6,7 @@ This document tracks the bounded Phase 10 survey lane around `drivers/virtio/vir
 
 - `PHASE10_STATUS=active`
 - `PHASE10_SLICE=virtio-core-survey`
-- lane: `P10-L03`
+- lane: `P10-Y01`
 - surveyed inspected `master` head: `d30cbe483a2f019ae797b309a29556bd58fe00d0`
 - scope: survey manifest, dedicated survey gate, shared Phase 10 build wiring, and a lane-level note that compares the already-landed core starter against the remaining roadmap gap
 - product boundary:
