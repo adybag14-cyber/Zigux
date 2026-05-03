@@ -94,6 +94,12 @@ jobs:
       - name: Validate Phase 2 fixdep files
         run: python3 scripts/zigux/validate-phase2.py
 
+      - name: Self-test Phase 2 cross-target alignment checker
+        run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test
+
+      - name: Check Phase 2 cross-target alignment
+        run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py
+
       - name: Self-test Phase 2 genksyms bridge alignment checker
         run: python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test
 
