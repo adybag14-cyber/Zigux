@@ -15,6 +15,7 @@ FILES = [
     "zigux/tests/README.md",
     "zigux/Makefile",
     ".github/workflows/zigux-bootstrap.yml",
+    "Documentation/zigux/README.md",
     "Documentation/zigux/phase10-closure-evidence.md",
     "zigux/tests/phase10_build.zig",
     "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
@@ -43,6 +44,14 @@ TESTS_README_MARKERS = [
     "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
     "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
     "four lane survey manifests plus the shared `zigux/tests/phase10_closure_manifest.json`",
+]
+
+DOCS_README_MARKERS = [
+    "python3 scripts/zigux/check-phase10-harness-coverage.py",
+    "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
+    "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
+    "focused harness replays",
+    "queue-handling and ready-state gate",
 ]
 
 BUILD_MARKERS = [
@@ -96,6 +105,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         ("workflow", ".github/workflows/zigux-bootstrap.yml", WORKFLOW_MARKERS),
         ("scripts_readme", "scripts/zigux/README.md", SCRIPTS_README_MARKERS),
         ("tests_readme", "zigux/tests/README.md", TESTS_README_MARKERS),
+        ("docs_readme", "Documentation/zigux/README.md", DOCS_README_MARKERS),
         ("build", "zigux/tests/phase10_build.zig", BUILD_MARKERS),
         ("closure_note", "Documentation/zigux/phase10-closure-evidence.md", CLOSURE_NOTE_MARKERS),
         (
@@ -160,6 +170,7 @@ def write_fixture(root: Path) -> None:
         "zigux/tests/README.md": "\n".join(TESTS_README_MARKERS) + "\n",
         "zigux/Makefile": "\n".join(MAKE_MARKERS) + "\n",
         ".github/workflows/zigux-bootstrap.yml": "\n".join(WORKFLOW_MARKERS) + "\n",
+        "Documentation/zigux/README.md": "\n".join(DOCS_README_MARKERS) + "\n",
         "Documentation/zigux/phase10-closure-evidence.md": "\n".join(CLOSURE_NOTE_MARKERS) + "\n",
         "zigux/tests/phase10_build.zig": "\n".join(BUILD_MARKERS) + "\n",
         "zigux/tests/phase10_virtio_input_multitouch_preflight.zig": "\n".join(INPUT_PREFLIGHT_TEST_MARKERS) + "\n",
@@ -251,6 +262,38 @@ def run_self_test() -> int:
             "workflow:Self-test Phase 10 harness coverage checker",
         )
         workflow_path.write_text(original_workflow, encoding="utf-8")
+
+        docs_readme_path = root / "Documentation/zigux/README.md"
+        original_docs_readme = docs_readme_path.read_text(encoding="utf-8")
+        docs_readme_path.write_text(
+            original_docs_readme.replace(
+                "python3 scripts/zigux/check-phase10-harness-coverage.py",
+                "python3 scripts/zigux/check-phase10-harness-coverage-drift.py",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "docs_readme_harness_gate",
+            root,
+            "docs_readme:python3 scripts/zigux/check-phase10-harness-coverage.py",
+        )
+        docs_readme_path.write_text(original_docs_readme, encoding="utf-8")
+
+        docs_readme_path.write_text(
+            original_docs_readme.replace(
+                "focused harness replays",
+                "focused replay drift",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "docs_readme_harness_phrase",
+            root,
+            "docs_readme:focused harness replays",
+        )
+        docs_readme_path.write_text(original_docs_readme, encoding="utf-8")
 
         build_path = root / "zigux/tests/phase10_build.zig"
         original_build = build_path.read_text(encoding="utf-8")
@@ -371,7 +414,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=10")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
@@ -398,5 +441,5 @@ print("PHASE10_HARNESS_COVERAGE=pass")
 print(f"PHASE10_HARNESS_REQUIRED_FILE_COUNT={len(FILES)}")
 print(
     "PHASE10_HARNESS_REQUIRED_MARKER_COUNT="
-    f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_MARKERS) + len(BUILD_MARKERS) + len(CLOSURE_NOTE_MARKERS) + len(INPUT_PREFLIGHT_TEST_MARKERS) + len(MMIO_QUEUE_ISOLATION_TEST_MARKERS)}"
+    f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_MARKERS) + len(DOCS_README_MARKERS) + len(BUILD_MARKERS) + len(CLOSURE_NOTE_MARKERS) + len(INPUT_PREFLIGHT_TEST_MARKERS) + len(MMIO_QUEUE_ISOLATION_TEST_MARKERS)}"
 )
