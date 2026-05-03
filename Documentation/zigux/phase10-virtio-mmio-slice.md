@@ -6,10 +6,11 @@ This document tracks the bounded `drivers/virtio/virtio_mmio.c` lab helper under
 
 - `PHASE10_STATUS=active`
 - `PHASE10_SLICE=virtio-mmio-interrupt-ack-helper`
-- scope: bounded MMIO register offsets, transport-identity snapshots, device-feature page selection, driver-feature page writes, queue-select and queue-size planning, queue-ready bookkeeping, queue-notify snapshots, version-scoped queue-address planning, read-only config-window snapshots, in-memory config-write planning, bounded interrupt-state summaries, status and reset bookkeeping, config-generation tracking, interrupt-status acknowledge bookkeeping, dedicated Phase 10 MMIO tests, and a slice note only
+- scope: bounded MMIO register offsets, transport-identity snapshots, device-feature page selection, driver-feature page writes, queue-select and queue-size planning, queue-ready bookkeeping, queue-notify snapshots, version-scoped queue-address planning, read-only config-window snapshots, in-memory config-write planning, bounded interrupt-state summaries, status and reset bookkeeping, config-generation tracking, interrupt-status acknowledge bookkeeping, focused multi-queue state-isolation coverage, dedicated Phase 10 MMIO tests, and a slice note only
 - product boundary:
   - `drivers/virtio/virtio_mmio.zig`
   - `zigux/tests/phase10_virtio_mmio.zig`
+  - `zigux/tests/phase10_virtio_mmio_queue_isolation.zig`
   - `zigux/tests/phase10_build.zig`
   - `zigux/Makefile`
 
@@ -31,6 +32,7 @@ The live repo now has the virtio core, ring, and input lab footholds plus the ea
 - queue-ready writes that require a configured queue size first and stay in-memory only
 - queue-notify snapshots that require a configured ready queue, return the selected queue identity, and count in-memory notify events without claiming device-side side effects
 - version-scoped queue-address planning that records either legacy guest-page-size, queue-align, and queue-PFN values or modern DESC, AVAIL, and USED addresses while the queue is configured but not yet ready
+- focused queue-isolation coverage that switches between two queue slots and proves the first queue's legacy plan, the second queue's modern plan, and the shared notify counter stay isolated and reviewable across queue selection changes
 - read-only config-window snapshots that return a bounded byte, halfword, or word from a tiny in-memory config window together with the current config-generation
 - in-memory config-write planning that records previous and planned byte, halfword, and word values for bounded config-window updates without claiming device-side application
 - bounded interrupt-state summaries that record whether queue and config interrupt bits are pending, whether the line would still read asserted, and which bits remain after explicit acknowledgements
