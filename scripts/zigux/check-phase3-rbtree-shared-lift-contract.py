@@ -6,6 +6,8 @@ import json
 import tempfile
 from pathlib import Path
 
+from validate_phase3_core import PHASE3_SHARED_RBTREE_RECORD_MARKERS
+
 
 ROOT = Path(__file__).resolve().parents[2]
 SURVEY_REL = "Documentation/zigux/phase3-rbtree-interop-survey.md"
@@ -166,21 +168,10 @@ SHARED_ABI_FORBIDDEN = {
     ),
 }
 
-SHARED_CONTRACT_SELF_TEST_SNIPPETS = (
-    "try std.testing.expect(!rbtree.hasRoot(empty_root));",
-    "const cached_root: rbtree.RootView = .{",
-    "try std.testing.expect(rbtree.hasRoot(cached_root));",
-    "const uncached_root: rbtree.RootView = .{",
-    "try std.testing.expect(rbtree.hasRoot(uncached_root));",
-)
+SHARED_CONTRACT_SELF_TEST_SNIPPETS = PHASE3_SHARED_RBTREE_RECORD_MARKERS
 
 SHARED_PACKET_SELF_TEST_CASES = (
-    (SHARED_ABI_TEST_REL, "const empty_root = rbtree.empty();"),
-    (SHARED_ABI_TEST_REL, "try std.testing.expect(!rbtree.hasRoot(empty_root));"),
-    (SHARED_ABI_TEST_REL, "const cached_root: rbtree.RootView = .{"),
-    (SHARED_ABI_TEST_REL, "try std.testing.expect(rbtree.hasRoot(cached_root));"),
-    (SHARED_ABI_TEST_REL, "const uncached_root: rbtree.RootView = .{"),
-    (SHARED_ABI_TEST_REL, "try std.testing.expect(rbtree.hasRoot(uncached_root));"),
+    *((SHARED_ABI_TEST_REL, snippet) for snippet in PHASE3_SHARED_RBTREE_RECORD_MARKERS),
     (SHARED_ABI_DUMP_REL, SHARED_PACKET_SNIPPETS[SHARED_ABI_DUMP_REL][2]),
     (SHARED_ABI_DUMP_REL, SHARED_PACKET_SNIPPETS[SHARED_ABI_DUMP_REL][3]),
     (SHARED_ABI_DUMP_REL, SHARED_PACKET_SNIPPETS[SHARED_ABI_DUMP_REL][4]),
