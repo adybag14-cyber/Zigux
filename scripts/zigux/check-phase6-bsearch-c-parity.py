@@ -138,6 +138,13 @@ def validate_expected_surface(lines: list[str], label: str) -> None:
         )
 
 
+def validate_matching_surface(c_lines: list[str], zig_lines: list[str], label: str) -> None:
+    if c_lines != zig_lines:
+        raise SystemExit(
+            f"phase6-bsearch-c-parity:{label}:c_output_mismatch:expected={c_lines!r}:actual={zig_lines!r}"
+        )
+
+
 def run_self_test() -> int:
     assert_equal("require_tool_env", require_tool("zig", "PHASE6_SELFTEST_TOOL"), "/tmp/zig-self-test")
     expect_system_exit(
@@ -168,14 +175,16 @@ def run_self_test() -> int:
         "phase6-bsearch-c-parity:self-test-unexpected-case:unexpected_output:"
         f"expected={EXPECTED_SORTED_LINES!r}:actual={unexpected_lines!r}",
     )
-    missing_descending_lines = [
-        line for line in EXPECTED_SORTED_LINES if line != "descending-hit\t34\t2"
-    ]
     expect_system_exit(
-        "missing_descending_case",
-        lambda: validate_expected_surface(missing_descending_lines, "self-test-missing-descending-case"),
-        "phase6-bsearch-c-parity:self-test-missing-descending-case:unexpected_output:"
-        f"expected={EXPECTED_SORTED_LINES!r}:actual={missing_descending_lines!r}",
+        "mismatch_surface",
+        lambda: validate_matching_surface(
+            ["u32-hit\t3\t0", "runtime-typed-hit\t55\t5"],
+            ["u32-hit\t3\t0", "runtime-typed-hit\t55\t4"],
+            "self-test-mismatch",
+        ),
+        "phase6-bsearch-c-parity:self-test-mismatch:c_output_mismatch:"
+        "expected=['u32-hit\\t3\\t0', 'runtime-typed-hit\\t55\\t5']:"
+        "actual=['u32-hit\\t3\\t0', 'runtime-typed-hit\\t55\\t4']",
     )
     print("PHASE6_BSEARCH_C_PARITY_SELF_TEST=pass")
     print("PHASE6_BSEARCH_C_PARITY_SELF_TEST_CASE_COUNT=6")
@@ -226,8 +235,11 @@ def main() -> int:
     validate_expected_surface(c_lines, "c")
     validate_expected_surface(zig_lines, "zig")
 
-    if c_lines != zig_lines:
+    try:
+        validate_matching_surface(c_lines, zig_lines, "c-vs-zig")
+    except SystemExit as exc:
         print("PHASE6_BSEARCH_C_PARITY=fail")
+        print(str(exc))
         print("C_OUTPUT_START")
         print(c_run.stdout.rstrip())
         print("C_OUTPUT_END")
