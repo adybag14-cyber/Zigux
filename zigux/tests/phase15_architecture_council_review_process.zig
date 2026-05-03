@@ -48,6 +48,18 @@ fn expectTemplateEvidence(
     try std.testing.expect(std.mem.indexOf(u8, template_doc, "ownership_or_validation_changed") != null);
 }
 
+fn expectOccurrenceCount(haystack: []const u8, needle: []const u8, expected: usize) !void {
+    var count: usize = 0;
+    var start: usize = 0;
+
+    while (std.mem.indexOfPos(u8, haystack, start, needle)) |index| {
+        count += 1;
+        start = index + needle.len;
+    }
+
+    try std.testing.expectEqual(expected, count);
+}
+
 const Manifest = struct {
     lane_key: []const u8,
     phase: []const u8,
@@ -304,6 +316,16 @@ test "phase 15 architecture council review-process note stays aligned with check
     try std.testing.expect(std.mem.indexOf(u8, checklist, "trigger-specific refreshed evidence by path") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "retained discussion state, the indefinite-C policy link or explicit non-applicability note, and the reopen triggers explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "does the evidence archive cite one or more named reopen-trigger catalog items so the parked packet stays reviewable later?") != null);
+    try expectOccurrenceCount(
+        checklist,
+        "if the change touches the freeze-map governance packet, do `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-parity-scorecard.md`, and `Documentation/zigux/review-checklist.md` still keep the automatic return-to-blocked trigger, retained discussion state, reopen triggers, and the current maintenance-mode handoff aligned while the deep-core blocker posture stays explicit?",
+        1,
+    );
+    try expectOccurrenceCount(
+        checklist,
+        "if the change touches the shared Phase 15 maintenance-mode handoff packet, do `Documentation/zigux/README.md`, `Documentation/zigux/phase15-readiness-gate-survey.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `zigux/tests/phase15_docs_root_reviewability.zig`, and `scripts/zigux/validate-phase15.py` still keep the docs-root summary alignment, the dedicated docs-root reviewability guard, the named reopen triggers, and the unchanged `phase15-deep-core-status-change-blocker` explicit under the same `make -C zigux phase15` replay path?",
+        1,
+    );
 
     try std.testing.expect(std.mem.indexOf(u8, docs_root, "Phase 15 notes") != null);
     try std.testing.expect(std.mem.indexOf(u8, docs_root, "Documentation/zigux/freeze-map.md") != null);
