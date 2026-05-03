@@ -193,7 +193,7 @@ fn runPerfCase(case: fixtures.PerfCase, io: std.Io) !PerfResult {
                 max_compare_calls = @max(max_compare_calls, compare_calls);
 
                 try std.testing.expect(compare_calls <= max_compare_budget);
-                try expectFoundOrMiss(expected_hit, found, variant.label, query);
+                try expectFoundOrMiss(expected_hit, found, variant.values, query);
             }
 
             for (raw_variants) |variant| {
@@ -206,7 +206,7 @@ fn runPerfCase(case: fixtures.PerfCase, io: std.Io) !PerfResult {
                 max_compare_calls = @max(max_compare_calls, compare_calls);
 
                 try std.testing.expect(compare_calls <= max_compare_budget);
-                try expectFoundOrMiss(expected_hit, found, variant.label, query);
+                try expectFoundOrMiss(expected_hit, found, variant.values, query);
             }
         }
     }
@@ -225,11 +225,11 @@ fn runPerfCase(case: fixtures.PerfCase, io: std.Io) !PerfResult {
     };
 }
 
-fn expectFoundOrMiss(expected_hit: bool, found: ?usize, variant_label: []const u8, query: u32) !void {
-    _ = variant_label;
-    _ = query;
+fn expectFoundOrMiss(expected_hit: bool, found: ?usize, values: []const u32, query: u32) !void {
     if (expected_hit) {
-        try std.testing.expect(found != null);
+        const index = found orelse return error.TestUnexpectedResult;
+        try std.testing.expect(index < values.len);
+        try std.testing.expectEqual(query, values[index]);
     } else {
         try std.testing.expect(found == null);
     }
