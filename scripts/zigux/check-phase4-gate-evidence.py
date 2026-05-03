@@ -209,7 +209,13 @@ def validate_root(root: Path) -> list[str]:
         return [f"file:{gate_evidence_path}"]
 
     gate_evidence = read_text(root, gate_evidence_path)
-    workflow = read_text(root, ".github/workflows/zigux-bootstrap.yml")
+    workflow_path = ".github/workflows/zigux-bootstrap.yml"
+    workflow_target = root / workflow_path
+    workflow: str | None = None
+    if not workflow_target.exists():
+        missing.append(f"file:{workflow_path}")
+    else:
+        workflow = read_text(root, workflow_path)
     for marker in REQUIRED_MARKERS:
         if marker not in gate_evidence:
             missing.append(f"phase4_gate_evidence:{marker}")
@@ -220,7 +226,8 @@ def validate_root(root: Path) -> list[str]:
     for marker in REQUIRED_SELF_TEST_ROUTE_MARKERS:
         if marker not in gate_evidence:
             missing.append(f"phase4_gate_evidence:{marker}")
-    missing.extend(collect_exact_workflow_run_count_markers(workflow, gate_evidence))
+    if workflow is not None:
+        missing.extend(collect_exact_workflow_run_count_markers(workflow, gate_evidence))
     for marker in REQUIRED_RUNTIME_ATOMIC64_REVERSIBLE_DELIVERY_MARKERS:
         if marker not in gate_evidence:
             missing.append(
@@ -512,6 +519,12 @@ def run_self_test() -> int:
             "phase4_gate_evidence:exact_workflow_count:one `make -C zigux phase4-validate` run line"
             in missing
         ), missing
+
+        write_fixture_tree(root)
+        workflow = root / ".github/workflows/zigux-bootstrap.yml"
+        workflow.unlink()
+        missing = validate_root(root)
+        assert "file:.github/workflows/zigux-bootstrap.yml" in missing, missing
 
         write_fixture_tree(root)
         workflow = root / ".github/workflows/zigux-bootstrap.yml"
