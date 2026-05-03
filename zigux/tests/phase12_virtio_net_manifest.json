@@ -1,7 +1,7 @@
 {
   "lane_key": "P12-L04",
   "phase": "Phase 12",
-  "surveyed_commit": "f5a4d6990f701937b2a3bb9ae723bb6d0f27ba21",
+  "surveyed_commit": "bc2373f7deedf021c73beaae29555a9ac6b0536d",
   "anchor": "drivers/net/virtio_net.c",
   "roadmap_destinations": [
     "drivers/net/virtio_net.zig",
@@ -109,7 +109,7 @@
       "status": "starter_landed",
       "kind": "complex_driver_followup",
       "zigux_destination": "drivers/net/virtio_net.zig",
-      "why_now": "The landed mergeable-refill summary keeps one bounded refill-planning handoff from the probe snapshot by recording rx queue entry count, packet budget bytes, minimum buffer length, and required headroom before any live page-pool DMA, refill, or NAPI execution."
+      "why_now": "The landed mergeable-refill summary keeps one bounded refill-planning handoff from the probe snapshot by recording rx queue entry count, packet budget bytes, minimum buffer length, required headroom, recycled room reuse, and fresh allocation bytes before any live page-pool DMA, refill, or NAPI execution."
     },
     {
       "id": "phase12-virtio-net-runtime-data-path",
