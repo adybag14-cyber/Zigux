@@ -242,6 +242,12 @@
       "path": "zigux/tests/phase11_hvc_console_poll_retry_split.zig"
     }
   ],
+  "shared_adjunct_replays": [
+    {
+      "test": "phase11-dw-wdt-suspend-resume-tests",
+      "path": "zigux/tests/phase11_dw_wdt_suspend_resume.zig"
+    }
+  ],
   "shared_replay_markers": [
     {
       "path": "zigux/tests/phase11_dw_wdt_suspend_resume.zig",
