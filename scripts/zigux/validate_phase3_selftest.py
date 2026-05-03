@@ -34,24 +34,15 @@ from validate_phase3_core import (
 )
 
 
-def _shared_rbtree_phase3_abi_markers() -> tuple[str, ...]:
-    return tuple(
-        marker
-        for marker in ABI_REQUIRED_SOURCE_MARKERS["zigux/tests/phase3_abi.zig"]
-        if marker.startswith("// PHASE3_SHARED_RBTREE_SAMPLE_RECORDS=")
-        or "empty_root" in marker
+RBTREE_SHARED_MISSING_MARKER_CASES = tuple(
+    marker
+    for marker in ABI_REQUIRED_SOURCE_MARKERS["zigux/tests/phase3_abi.zig"]
+    if not marker.startswith("// PHASE3_SHARED_RBTREE_SAMPLE_RECORDS=")
+    and (
+        "empty_root" in marker
         or "cached_root" in marker
         or "uncached_root" in marker
     )
-
-
-RBTREE_SHARED_MISSING_MARKER_CASES = (
-    "const empty_root = rbtree.empty();",
-    "const cached_root: rbtree.RootView = .{",
-    "const uncached_root: rbtree.RootView = .{",
-    "try std.testing.expect(!rbtree.hasRoot(empty_root));",
-    "try std.testing.expect(rbtree.hasRoot(cached_root));",
-    "try std.testing.expect(rbtree.hasRoot(uncached_root));",
 )
 
 
@@ -320,29 +311,33 @@ def run_self_test() -> int:
         ) == ["source-marker: marker-fixture.zig missing pub fn policyByteMarker() void {}"]
 
         rbtree_shared_marker_fixture = root / "phase3-rbtree-shared-marker-fixture.zig"
-        rbtree_shared_markers = _shared_rbtree_phase3_abi_markers()
 
         def assert_missing_rbtree_shared_marker(missing_marker: str) -> None:
             rbtree_shared_marker_fixture.write_text(
-                "\n".join(marker for marker in rbtree_shared_markers if marker != missing_marker) + "\n",
+                "\n".join(
+                    marker
+                    for marker in RBTREE_SHARED_MISSING_MARKER_CASES
+                    if marker != missing_marker
+                )
+                + "\n",
                 encoding="utf-8",
                 newline="\n",
             )
             assert validate_source_markers(
                 root,
-                {"phase3-rbtree-shared-marker-fixture.zig": rbtree_shared_markers},
+                {"phase3-rbtree-shared-marker-fixture.zig": RBTREE_SHARED_MISSING_MARKER_CASES},
             ) == [
                 f"source-marker: phase3-rbtree-shared-marker-fixture.zig missing {missing_marker}"
             ]
 
         rbtree_shared_marker_fixture.write_text(
-            "\n".join(rbtree_shared_markers) + "\n",
+            "\n".join(RBTREE_SHARED_MISSING_MARKER_CASES) + "\n",
             encoding="utf-8",
             newline="\n",
         )
         assert validate_source_markers(
             root,
-            {"phase3-rbtree-shared-marker-fixture.zig": rbtree_shared_markers},
+            {"phase3-rbtree-shared-marker-fixture.zig": RBTREE_SHARED_MISSING_MARKER_CASES},
         ) == []
         for missing_marker in RBTREE_SHARED_MISSING_MARKER_CASES:
             assert_missing_rbtree_shared_marker(missing_marker)
