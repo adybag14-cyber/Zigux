@@ -14,6 +14,8 @@ MAKEFILE_PATH = ROOT / "zigux/Makefile"
 WORKFLOW_PATH = ROOT / ".github/workflows/zigux-bootstrap.yml"
 BUILD_PATH = ROOT / "zigux/tests/phase11_build.zig"
 FIXTURE_PATH = ROOT / "zigux/tests/fixtures/phase11_build_inventory.json"
+SHARED_REPLAY_NOTE_PATH = ROOT / "Documentation/zigux/phase11-shared-replay-contract.md"
+REVIEW_CHECKLIST_PATH = ROOT / "Documentation/zigux/review-checklist.md"
 
 README_MARKERS = [
     "Phase 11 flow",
@@ -59,6 +61,23 @@ BUILD_MARKERS = [
 ]
 FORBIDDEN_BUILD_MARKERS = [
     "test_step.dependOn(&run_phase11_hvc_console_survey_tests.step);",
+]
+SHARED_REPLAY_NOTE_MARKERS = [
+    "# Phase 11 Shared Replay Contract",
+    "python3 scripts/zigux/validate-phase11.py --self-test",
+    "make -C zigux phase11-validate",
+    "zig build test --build-file zigux/tests/phase11_build.zig --summary all",
+    "make -C zigux phase11-hvc-survey",
+    "Documentation/zigux/review-checklist.md",
+    "zigux/tests/phase11_build.zig",
+    "zigux/tests/fixtures/phase11_build_inventory.json",
+    "scripts/zigux/check-phase11-build-inventory.py",
+    "scripts/zigux/check-phase11-hvc-validation-flow.py",
+    "zigux/tests/phase11_hvc_console_survey.zig",
+]
+REVIEW_CHECKLIST_MARKERS = [
+    "- if the change is a Phase 11 simple-driver slice, do `scripts/zigux/validate-phase11.py`, `zigux/tests/phase11_build.zig`, the four driver-local Phase 11 manifests, and `zigux/tests/phase11_uapi_header_parity_manifest.json` still agree on the same bounded simple-driver scope, shared replay contract, and explicit ready-next versus blocked follow-up posture?",
+    "- if the change touches the shared Phase 11 tooling path, do `zigux/tests/phase11_build.zig`, `zigux/tests/fixtures/phase11_build_inventory.json`, and `zigux/tests/phase11_hvc_console_survey.zig` still agree on the exact shared build inventory and the dedicated-survey boundary instead of silently implying that every Phase 11 survey gate already runs in the shared path?",
 ]
 EXPECTED_SHARED_SPLIT_REPLAYS = [
     {
@@ -109,6 +128,8 @@ def validate_contract(root: Path) -> int:
         ("makefile", root / MAKEFILE_PATH, MAKEFILE_MARKERS),
         ("workflow", root / WORKFLOW_PATH, WORKFLOW_MARKERS),
         ("build", root / BUILD_PATH, BUILD_MARKERS),
+        ("shared_replay_note", root / SHARED_REPLAY_NOTE_PATH, SHARED_REPLAY_NOTE_MARKERS),
+        ("review_checklist", root / REVIEW_CHECKLIST_PATH, REVIEW_CHECKLIST_MARKERS),
     ]:
         source = text(path)
         for marker in markers:
@@ -137,6 +158,7 @@ def validate_contract(root: Path) -> int:
     print("PHASE11_SHARED_REPLAY_CONTRACT=pass")
     print(f"PHASE11_SHARED_REPLAY_MARKER_COUNT={len(EXPECTED_SHARED_REPLAY_MARKERS)}")
     print(f"PHASE11_SHARED_SPLIT_REPLAY_COUNT={len(EXPECTED_SHARED_SPLIT_REPLAYS)}")
+    print(f"PHASE11_SHARED_REPLAY_NOTE_MARKER_COUNT={len(SHARED_REPLAY_NOTE_MARKERS)}")
     return 0
 
 
@@ -185,6 +207,49 @@ def write_fixture_tree(root: Path) -> None:
             },
             indent=2,
         )
+        + "\n",
+    )
+    write_text(
+        root / "Documentation/zigux/phase11-shared-replay-contract.md",
+        "\n".join(
+            [
+                "# Phase 11 Shared Replay Contract",
+                "",
+                "## Pre-Replay Checker Stack",
+                "",
+                "- `python3 scripts/zigux/validate-phase11.py --self-test`",
+                "- `python3 scripts/zigux/validate-phase11.py`",
+                "",
+                "The published wrapper remains `make -C zigux phase11-validate`.",
+                "",
+                "## Shared Replay Surface",
+                "",
+                "- `zig build test --build-file zigux/tests/phase11_build.zig --summary all`",
+                "",
+                "## Dedicated Boundary",
+                "",
+                "- `make -C zigux phase11-hvc-survey`",
+                "- `zigux/tests/phase11_hvc_console_survey.zig`",
+                "",
+                "## Contributor Sync Points",
+                "",
+                "- `Documentation/zigux/review-checklist.md`",
+                "",
+                "## Review Use",
+                "",
+                "- `zigux/tests/phase11_build.zig`",
+                "- `zigux/tests/fixtures/phase11_build_inventory.json`",
+                "- `scripts/zigux/check-phase11-build-inventory.py`",
+                "- `scripts/zigux/check-phase11-hvc-validation-flow.py`",
+                "- `zigux/tests/phase11_hvc_console_survey.zig`",
+                "",
+            ]
+        ),
+    )
+    write_text(
+        root / "Documentation/zigux/review-checklist.md",
+        "# Zigux Review Checklist\n\n## ABI and Runtime\n"
+        + "\n".join(REVIEW_CHECKLIST_MARKERS)
         + "\n",
     )
     write_text(
@@ -251,9 +316,35 @@ def run_self_test() -> int:
             run_checker(tmp_root),
             "makefile:scripts/zigux/check-phase11-build-inventory.py --self-test",
         )
+        write_text(makefile_path, makefile_backup)
+
+        note_path = tmp_root / "Documentation/zigux/phase11-shared-replay-contract.md"
+        note_backup = text(note_path)
+        write_text(
+            note_path,
+            note_backup.replace("- `Documentation/zigux/review-checklist.md`\n", "", 1),
+        )
+        expect_missing(
+            "missing_note_checklist_sync_point",
+            run_checker(tmp_root),
+            "shared_replay_note:Documentation/zigux/review-checklist.md",
+        )
+        write_text(note_path, note_backup)
+
+        checklist_path = tmp_root / "Documentation/zigux/review-checklist.md"
+        checklist_backup = text(checklist_path)
+        write_text(
+            checklist_path,
+            checklist_backup.replace(REVIEW_CHECKLIST_MARKERS[1] + "\n", "", 1),
+        )
+        expect_missing(
+            "missing_phase11_checklist_tooling_question",
+            run_checker(tmp_root),
+            f"review_checklist:{REVIEW_CHECKLIST_MARKERS[1]}",
+        )
 
     print("PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST=pass")
-    print("PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT=4")
+    print("PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
