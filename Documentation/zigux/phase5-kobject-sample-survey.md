@@ -22,6 +22,8 @@ The landed sample remains an approved Phase 5 ownership-and-lifetime idiom. `own
 
 The note still points back to the direct `zig test samples/zigux/kobject_example.zig` replay, the focused `zigux/tests/phase5_kobject_example.zig` replay that is wired through the shared `zigux/tests/phase5_build.zig` entrypoint rather than exposed as a standalone direct command, the paired `zig test zigux/tests/phase5_kobject_example_survey.zig` replay, and the shared `phase5_build.zig` entrypoint.
 
+Fresh repo inspection also still shows that `samples/zigux/` carries the four approved Phase 5 reference samples plus the later Phase 9 follow-ons `runtime_atomic64.zig`, `runtime_atomic64_loader.zig`, `runtime_bitmap.zig`, `runtime_bitmap_loader.zig`, `runtime_bitmap_top_bit_contract.zig`, `runtime_bitmap_top_bit_build.zig`, `runtime_kretprobe.zig`, `runtime_kretprobe_loader.zig`, `runtime_trace_events.zig`, and `runtime_trace_events_loader.zig`. This kobject note keeps the landed ownership-and-lifetime idiom visibly separate from those later runtime starters so the shared sample-root catalog stays truthful about what belongs to the approved Phase 5 packet.
+
 Exact reviewability cues remain explicit:
 
 - `ownershipSummary()` keeps replay readiness plus the `cold`, `initialized`, `registered`, and `exited` stages directly reviewable
@@ -59,6 +61,7 @@ The current gap is no longer "Zigux has no kobject sample guidance." The more pr
 
 - the repo now has a reviewable Phase 5 `kobject_example` sample plus manifest-backed checks for directory naming, ordered attributes, shared `b` dispatch, parse failures, ownership summaries, initialized-only abandonment, and teardown
 - this sample must remain visibly separate from later runtime-facing work so contributors do not over-claim runtime substrate coverage
+- the shared sample-root catalog still carries the later Phase 9 runtime follow-ons beside the four approved Phase 5 anchors, so this note keeps the kobject slice visibly inside the approved non-runtime set instead of counting nearby runtime starters as part of the landed ownership-and-lifetime idiom
 - this approved ownership-and-lifetime idiom is pinned to `PHASE5_SURVEYED_COMMIT=affdebd460c9c33ce939c7535cdb929352648e93` so the survey note, manifest-backed checks, shared sample-root catalog, shared tests-root guide, shared review checklist, and focused shared-build replay all point at the same inspected `master` head
 - the Phase 5 roadmap's four named sample anchors are now all represented by bounded `samples/zigux/` reference readings, but that does not widen this slice into runtime sysfs or module-delivery claims
 
