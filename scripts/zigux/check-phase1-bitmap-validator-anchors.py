@@ -117,10 +117,10 @@ REQUIRED_MANIFEST_FIELDS = {
         "footprint."
     ),
     "xor_unit_test_anchor": (
-        'tools/lib/bitmap.zig:test "bitmap xor across a multiword tail still lets callers clamp the last word"'
+        'tools/lib/bitmap.zig:test "bitmap xor keeps caller-selected bit window"'
     ),
     "xor_unit_test_contract": (
-        "Direct Zig unit coverage keeps xorBits() aligned across a multiword tail by proving callers can clamp the last word back to the declared nbits window after the helper writes the combined word values."
+        "Direct Zig unit coverage keeps xorBits() aligned with the caller-selected bit window by proving partial-word and multiword-tail replays preserve only the in-range bits that callers intentionally clamp."
     ),
     "tail_mask_unit_test_anchor": (
         'tools/lib/bitmap.zig:test "bitmap tail-masked helpers ignore out-of-range differences"'
