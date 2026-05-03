@@ -61,15 +61,6 @@ README_MARKERS = [
     "x86_64-linux",
 ]
 
-TOOLCHAIN_NOTES_MARKERS = [
-    "check-phase2-toolchain-pin-scope.py --self-test",
-    "check-phase2-toolchain-pin-scope.py",
-    "zig-toolchain-policy.json",
-    "x86_64-linux",
-    "install-zig.py --dest .zig-toolchain",
-    "check-zig-toolchain.py",
-]
-
 CLOSURE_MARKERS = [
     "scripts/zigux/zig-toolchain-policy.json",
     "scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
@@ -77,6 +68,19 @@ CLOSURE_MARKERS = [
     "x86_64-linux",
     "PHASE2_TOOLCHAIN_PIN_SCOPE_POLICY=",
 ]
+
+
+def expected_toolchain_notes_markers(channel: str, minimum_version: str) -> list[str]:
+    return [
+        "check-phase2-toolchain-pin-scope.py --self-test",
+        "check-phase2-toolchain-pin-scope.py",
+        "zig-toolchain-policy.json",
+        "x86_64-linux",
+        "install-zig.py --dest .zig-toolchain",
+        "check-zig-toolchain.py",
+        f"current pinned Zig channel: `{channel}`",
+        f"current minimum Zig version: `{minimum_version}`",
+    ]
 
 
 def load_json_object(path: Path, *, label: str) -> dict[str, object]:
@@ -90,6 +94,14 @@ def validate_policy(payload: dict[str, object]) -> list[str]:
     issues: list[str] = []
     if payload.get("phase") != "Phase 2":
         issues.append(f"policy:phase={payload.get('phase')!r}:expected='Phase 2'")
+
+    channel = payload.get("channel")
+    if not isinstance(channel, str) or not channel:
+        issues.append("policy:channel:expected_non_empty_string")
+
+    minimum_version = payload.get("minimum_version")
+    if not isinstance(minimum_version, str) or not minimum_version:
+        issues.append("policy:minimum_version:expected_non_empty_string")
 
     archive_sha256 = payload.get("archive_sha256")
     if not isinstance(archive_sha256, dict):
@@ -141,6 +153,8 @@ def validate_exact_makefile_runs(text: str) -> list[str]:
 def run_self_test() -> int:
     valid_policy = {
         "phase": "Phase 2",
+        "channel": "0.17.0-dev.87+9b177a7d2",
+        "minimum_version": "0.17.0-dev.87+9b177a7d2",
         "archive_sha256": {
             "x86_64-linux": "313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77",
         },
@@ -154,8 +168,22 @@ def run_self_test() -> int:
     if "policy:phase='Phase 3':expected='Phase 2'" not in issues:
         raise SystemExit("phase2-toolchain-pin-scope:self-test:phase_mismatch")
 
+    bad_channel = dict(valid_policy)
+    bad_channel["channel"] = ""
+    issues = validate_policy(bad_channel)
+    if "policy:channel:expected_non_empty_string" not in issues:
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:channel_missing")
+
+    bad_minimum_version = dict(valid_policy)
+    bad_minimum_version["minimum_version"] = ""
+    issues = validate_policy(bad_minimum_version)
+    if "policy:minimum_version:expected_non_empty_string" not in issues:
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:minimum_version_missing")
+
     bad_keys = {
         "phase": "Phase 2",
+        "channel": "0.17.0-dev.87+9b177a7d2",
+        "minimum_version": "0.17.0-dev.87+9b177a7d2",
         "archive_sha256": {
             "x86_64-linux": "313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77",
             "aarch64-linux": "313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77",
@@ -167,6 +195,8 @@ def run_self_test() -> int:
 
     bad_digest = {
         "phase": "Phase 2",
+        "channel": "0.17.0-dev.87+9b177a7d2",
+        "minimum_version": "0.17.0-dev.87+9b177a7d2",
         "archive_sha256": {
             "x86_64-linux": "not-a-digest",
         },
@@ -329,13 +359,49 @@ def run_self_test() -> int:
     if validate_required_markers(readme_text, label="readme", markers=README_MARKERS):
         raise SystemExit("phase2-toolchain-pin-scope:self-test:readme_markers")
 
-    toolchain_notes_text = "\n".join(TOOLCHAIN_NOTES_MARKERS)
+    toolchain_notes_markers = expected_toolchain_notes_markers(
+        valid_policy["channel"],
+        valid_policy["minimum_version"],
+    )
+    toolchain_notes_text = "\n".join(toolchain_notes_markers)
     if validate_required_markers(
         toolchain_notes_text,
         label="toolchain_notes",
-        markers=TOOLCHAIN_NOTES_MARKERS,
+        markers=toolchain_notes_markers,
     ):
         raise SystemExit("phase2-toolchain-pin-scope:self-test:toolchain_notes_markers")
+
+    missing_toolchain_channel = "\n".join(
+        marker
+        for marker in toolchain_notes_markers
+        if marker != f"current pinned Zig channel: `{valid_policy['channel']}`"
+    )
+    marker_issues = validate_required_markers(
+        missing_toolchain_channel,
+        label="toolchain_notes",
+        markers=toolchain_notes_markers,
+    )
+    if (
+        f"toolchain_notes:missing_marker:current pinned Zig channel: `{valid_policy['channel']}`"
+        not in marker_issues
+    ):
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:toolchain_notes_channel_marker")
+
+    missing_toolchain_minimum = "\n".join(
+        marker
+        for marker in toolchain_notes_markers
+        if marker != f"current minimum Zig version: `{valid_policy['minimum_version']}`"
+    )
+    marker_issues = validate_required_markers(
+        missing_toolchain_minimum,
+        label="toolchain_notes",
+        markers=toolchain_notes_markers,
+    )
+    if (
+        f"toolchain_notes:missing_marker:current minimum Zig version: `{valid_policy['minimum_version']}`"
+        not in marker_issues
+    ):
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:toolchain_notes_minimum_marker")
 
     closure_text = "\n".join(CLOSURE_MARKERS)
     if validate_required_markers(closure_text, label="closure", markers=CLOSURE_MARKERS):
@@ -350,7 +416,7 @@ def run_self_test() -> int:
             raise SystemExit("phase2-toolchain-pin-scope:self-test:json_round_trip")
 
     print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass")
-    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=17")
+    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=21")
     return 0
 
 
@@ -382,8 +448,16 @@ def main() -> int:
         print("MISSING_PHASE2_TOOLCHAIN_PIN_SCOPE_FILES_END")
         return 1
 
+    policy = load_json_object(POLICY, label="policy")
     issues: list[str] = []
-    issues.extend(validate_policy(load_json_object(POLICY, label="policy")))
+    issues.extend(validate_policy(policy))
+    channel = policy.get("channel")
+    minimum_version = policy.get("minimum_version")
+    toolchain_notes_markers: list[str] = []
+    if isinstance(channel, str) and channel and isinstance(minimum_version, str) and minimum_version:
+        toolchain_notes_markers = expected_toolchain_notes_markers(channel, minimum_version)
+    else:
+        toolchain_notes_markers = expected_toolchain_notes_markers("<missing-channel>", "<missing-minimum-version>")
     issues.extend(
         validate_required_markers(
             PHASE2_VALIDATOR.read_text(encoding="utf-8"),
@@ -402,7 +476,7 @@ def main() -> int:
         validate_required_markers(
             TOOLCHAIN_NOTES.read_text(encoding="utf-8"),
             label="toolchain_notes",
-            markers=TOOLCHAIN_NOTES_MARKERS,
+            markers=toolchain_notes_markers,
         )
     )
     issues.extend(
