@@ -52,7 +52,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_gpio_wdt.zig",
-      "why_now": "Dedicated Phase 11 tests now keep the toggle and level state transitions, heartbeat validation, always-running stop behavior, teardown-facing nowayout outcomes, explicit disable-order teardown checks, registration handoff bookkeeping, and the first bounded register-device request honest around the landed simple-driver scaffold."
+      "why_now": "Dedicated Phase 11 tests now keep the toggle and level state transitions, heartbeat validation, direct watchdog metadata, starter-local nowayout policy bookkeeping, always-running stop behavior, teardown-facing nowayout outcomes, explicit disable-order teardown checks, registration handoff bookkeeping, and the first bounded register-device request honest around the landed simple-driver scaffold."
     },
     {
       "id": "phase11-gpio-wdt-slice-note",
@@ -66,7 +66,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase11-gpio-wdt-validation-matrix.md",
-      "why_now": "The first bounded hardware-validation matrix now names the shared Phase 11 replay path, the property and transition evidence, the teardown-facing stop evidence, the explicit teardown-summary evidence, and the first bounded register-device call surface that keep the gpio_wdt packet reviewable without claiming live GPIO or watchdog-core execution."
+      "why_now": "The first bounded hardware-validation matrix now names the shared Phase 11 replay path, the property and transition evidence, the teardown-facing stop evidence, the explicit teardown-summary evidence, the starter-local nowayout policy proof, and the first bounded register-device call surface that keep the gpio_wdt packet reviewable without claiming live GPIO or watchdog-core execution."
     },
     {
       "id": "phase11-gpio-wdt-watchdog-metadata-followup",
