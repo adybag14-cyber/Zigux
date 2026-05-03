@@ -230,16 +230,16 @@ test "phase14 skbuff bridge descriptor stays at boundary-map posture" {
     try std.testing.expectEqualStrings("boundary_map_only", descriptor.posture);
     try std.testing.expect(descriptor.provides_boundary_map);
     try std.testing.expect(descriptor.provides_lifetime_audit_outline);
-    try std.testing.expect(descriptor.provides_stay_in_c_decisions);
+    try std.testing.expect(descriptor.provides_stayInC_decisions);
     try std.testing.expect(!descriptor.touches_live_allocators);
     try std.testing.expect(!descriptor.touches_live_refcounts);
     try std.testing.expect(!descriptor.touches_live_destructors);
 
     try std.testing.expectEqual(@as(usize, 6), map.areas.len);
     try std.testing.expectEqual(@as(usize, 2), skbuff_bridge.SkbuffBridgeLab.stayInCDecisionCount());
-    try std.testing.expectEqual(@as(usize, 11), audit.checkpoints.len);
-    try std.testing.expectEqual(@as(usize, 11), audit.blocked_live_behaviors.len);
-    try std.testing.expectEqual(@as(usize, 11), skbuff_bridge.SkbuffBridgeLab.auditCheckpointCount());
+    try std.testing.expectEqual(@as(usize, 12), audit.checkpoints.len);
+    try std.testing.expectEqual(@as(usize, 12), audit.blocked_live_behaviors.len);
+    try std.testing.expectEqual(@as(usize, 12), skbuff_bridge.SkbuffBridgeLab.auditCheckpointCount());
     try std.testing.expect(std.mem.indexOf(u8, skbuff_bridge.SkbuffBridgeLab.nextAuditFocus(), "__dev_direct_xmit()") != null);
     try std.testing.expect(std.mem.indexOf(u8, skbuff_bridge.SkbuffBridgeLab.nextAuditFocus(), "skb != orig_skb") != null);
     try std.testing.expectEqualStrings("shared-info-refcount-ownership", map.areas[4].id);
@@ -254,6 +254,7 @@ test "phase14 skbuff bridge descriptor stays at boundary-map posture" {
     try std.testing.expect(audit.checkpoints[8].guard == .segmentation_tail_publication_contract);
     try std.testing.expect(audit.checkpoints[9].guard == .validate_xmit_list_consumer_reset_contract);
     try std.testing.expect(audit.checkpoints[10].guard == .validate_xmit_list_republish_contract);
+    try std.testing.expect(audit.checkpoints[11].guard == .direct_xmit_identity_drop_contract);
 }
 
 test "phase14 skbuff bridge notes record the direct-xmit governance boundary" {
