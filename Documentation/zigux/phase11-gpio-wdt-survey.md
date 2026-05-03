@@ -2,7 +2,7 @@
 
 This survey note now tracks the landed Phase 11 `gpio_wdt` starter anchored to `drivers/watchdog/gpio_wdt.c`.
 
-- reviewed against live `master` `949994db4046ec70abf044d1b2ea874fde9bc4a6`
+- reviewed against live `master` `d62742e7ff0747ed15f71f67d505f68ea15ec7ab`
 - active continuity owner for this review packet: `P11-Y01`
 - archived manifest lane key for this packet remains `P11-L04` for traceability, even though later scheduled continuity revisited the same landed review packet under `P11-L03` for teardown-facing verification and `P11-L05` for wording-only matrix cleanup without reopening descriptor-backed preflight or live registration work
 
