@@ -99,10 +99,12 @@ PHASE2_FIXDEP_REQUIRED_SOURCE_MARKERS = [
 PHASE2_FIXDEP_REQUIRED_WORKFLOW_COUNTS = {
     "python3 scripts/zigux/check-fixdep-diff.py --self-test": 1,
     "python3 scripts/zigux/check-fixdep-diff.py": 1,
+    "zig test scripts/zigux/fixdep.zig": 1,
 }
 PHASE2_FIXDEP_REQUIRED_MAKEFILE_COUNTS = {
     "scripts/zigux/check-fixdep-diff.py --self-test": 1,
     "scripts/zigux/check-fixdep-diff.py": 1,
+    "$(ZIG) test scripts/zigux/fixdep.zig": 1,
 }
 PHASE2_KCONFIG_REQUIRED_SOURCE_MARKERS = [
     "assert total_self_test_cases == 6",
