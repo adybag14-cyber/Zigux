@@ -9,7 +9,7 @@ This note records the bounded public-read fallback posture for the roadmap-backe
 - public boundary: read-only GitHub tree and raw-path inspection only
 - shared validator path: `python3 scripts/zigux/validate-phase12.py` and `make -C zigux phase12-validate`
 - release coordination note: `Documentation/zigux/phase12-release-readiness-survey.md`
-- last replayed public head for this exact coverage split: `a8daee106057a542aa03f2983662bec7c06584bb`
+- last replayed public head for this exact coverage split: `bc2373f7deedf021c73beaae29555a9ac6b0536d`
 
 ## Coverage Split
 
