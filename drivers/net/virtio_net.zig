@@ -607,9 +607,15 @@ pub const VirtioNetProbeLab = struct {
         guest_gso: bool,
     ) ReceiveBufferSummary {
         if (mergeable_rx_buffers) {
+            const big_packet_reason: BigPacketReason = if (mtu > ethernet_default_mtu)
+                .mtu_above_default
+            else if (guest_gso)
+                .guest_gso
+            else
+                .none;
             return .{
                 .mode = .mergeable,
-                .big_packet_reason = .none,
+                .big_packet_reason = big_packet_reason,
             };
         }
 
