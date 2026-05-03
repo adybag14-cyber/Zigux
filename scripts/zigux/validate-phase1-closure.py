@@ -22,10 +22,12 @@ REQUIRED_FILE_RELS = [
     "Documentation/zigux/phase1-closure.md",
     "scripts/zigux/artifact_diff.py",
     "scripts/zigux/check-phase1-bench.py",
+    "scripts/zigux/check-phase1-find-bit-validator-anchors.py",
     "scripts/zigux/check-phase1-parity.py",
     "scripts/zigux/install-zig.py",
     "scripts/zigux/validate-phase1-closure.py",
     "zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md",
+    "zigux/Makefile",
     "zigux/tests/build.zig",
     "zigux/tests/fixtures/phase1_bench_expectations.json",
     "zigux/tests/fixtures/phase1_helper_manifest.json",
@@ -89,6 +91,25 @@ REQUIRED_PARITY_CHECKER_MARKERS = [
     "print('bitmap.scnprintf_trunc')",
     "print('PHASE1_PARITY_SELF_TEST=pass')",
     "print('PHASE1_PARITY_SELF_TEST_CASE_COUNT=7')",
+]
+
+REQUIRED_MAKEFILE_MARKERS = [
+    "PHONY += phase1-validate phase1-test phase1-bench phase1",
+    "phase1-validate:",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-find-bit-validator-anchors.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-find-bit-validator-anchors.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase1.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-parity.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-parity.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-bench.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-bench.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase1-closure.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase1-closure.py",
+    "phase1-test:",
+    "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/build.zig",
+    "phase1-bench:",
+    "cd $(ZIGUX_ROOT) && $(ZIG) build bench --build-file zigux/tests/build.zig -Doptimize=ReleaseSafe",
+    "phase1: phase1-validate phase1-test phase1-bench",
 ]
 
 REQUIRED_ITERATIONS = {
@@ -223,6 +244,7 @@ def main() -> int:
     check_contains("ledger", "zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md", REQUIRED_LEDGER_MARKERS, missing)
     check_contains("bench_checker", "scripts/zigux/check-phase1-bench.py", REQUIRED_BENCH_CHECKER_MARKERS, missing)
     check_contains("parity_checker", "scripts/zigux/check-phase1-parity.py", REQUIRED_PARITY_CHECKER_MARKERS, missing)
+    check_contains("makefile", "zigux/Makefile", REQUIRED_MAKEFILE_MARKERS, missing)
     validate_manifest(missing)
     validate_expectations(missing)
     validate_rbtree_alias_gap(missing)
@@ -237,6 +259,7 @@ def main() -> int:
         REQUIRED_LEDGER_MARKERS,
         REQUIRED_BENCH_CHECKER_MARKERS,
         REQUIRED_PARITY_CHECKER_MARKERS,
+        REQUIRED_MAKEFILE_MARKERS,
     ])
     print(f"PHASE1_CLOSURE_REQUIRED_MARKER_COUNT={marker_count}")
     return 0
@@ -289,6 +312,8 @@ def self_test() -> int:
         write(root / "zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md", "\n".join(REQUIRED_LEDGER_MARKERS) + "\n")
         write(root / "scripts/zigux/check-phase1-bench.py", "\n".join(REQUIRED_BENCH_CHECKER_MARKERS) + "\n")
         write(root / "scripts/zigux/check-phase1-parity.py", "\n".join(REQUIRED_PARITY_CHECKER_MARKERS) + "\n")
+        write(root / "scripts/zigux/check-phase1-find-bit-validator-anchors.py", "# fixture\n")
+        write(root / "zigux/Makefile", "\n".join(REQUIRED_MAKEFILE_MARKERS) + "\n")
         write(root / "scripts/zigux/artifact_diff.py", "# fixture\n")
         write(root / "scripts/zigux/install-zig.py", "# fixture\n")
         write(root / "zigux/tests/phase1_bench.zig", "// fixture\n")
@@ -308,6 +333,10 @@ def self_test() -> int:
         write(root / "scripts/zigux/check-phase1-bench.py", "print('PHASE1_BENCH_SELF_TEST=pass')\n")
         expect_failure(root, "bench_checker:print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=18')")
         write(root / "scripts/zigux/check-phase1-bench.py", "\n".join(REQUIRED_BENCH_CHECKER_MARKERS) + "\n")
+
+        write(root / "zigux/Makefile", "phase1-validate:\n")
+        expect_failure(root, "makefile:PHONY += phase1-validate phase1-test phase1-bench phase1")
+        write(root / "zigux/Makefile", "\n".join(REQUIRED_MAKEFILE_MARKERS) + "\n")
 
         manifest = fixture_manifest()
         manifest["helper_review_notes"]["tools/lib/string.zig"]["memparse_unit_test_contract"] = "drift"
@@ -349,7 +378,7 @@ def self_test() -> int:
         expect_failure(root, "rbtree_source:unexpected_alias:pub fn rb_first(")
 
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=9")
+    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
