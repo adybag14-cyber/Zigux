@@ -76,7 +76,7 @@ CATALOG_MARKERS = [
     "PHASE6_CHECKSUM_C_PARITY_SELF_TEST_CASE_COUNT=10",
     "PHASE6_CHECKSUM_C_PARITY_CASES=22",
     "PHASE6_HEXDUMP_C_PARITY_SELF_TEST_CASE_COUNT=8",
-    "PHASE6_HEXDUMP_C_PARITY_CASES=27",
+    "PHASE6_HEXDUMP_C_PARITY_CASES=29",
     "max_encode_slowdown_pct = 190",
     "max_decode_slowdown_pct = 320",
     "max_slowdown_pct = 150",
@@ -339,7 +339,7 @@ EXPECTED_HEXDUMP_DETERMINISM = {
         "prepareExpectedLine",
     ],
     "c_parity_self_test_cases": 8,
-    "c_parity_cases": 27,
+    "c_parity_cases": 29,
 }
 
 EXPECTED_BASE64_HELPER = {
