@@ -69,6 +69,34 @@ const expected_segment_kinds = [_][]const u8{
     "verifier_facing",
 };
 
+const expected_segment_destinations = [_][]const u8{
+    "tools/lib/bpf/zigux_segments/logging.zig",
+    "tools/lib/bpf/zigux_segments/pin_path.zig",
+    "tools/lib/bpf/zigux_segments/cpu_mask.zig",
+    "tools/lib/bpf/zigux_segments/type_names.zig",
+    "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+    "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+    "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+    "tools/lib/bpf/zigux_segments/cpu_mask.zig",
+    "tools/lib/bpf/zigux_segments/skeleton.zig",
+    "tools/lib/bpf/zigux_segments/object_loader.zig",
+    "tools/lib/bpf/zigux_segments/relocation.zig",
+};
+
+const expected_segment_anchor_range_counts = [_]usize{
+    2,
+    2,
+    1,
+    1,
+    2,
+    1,
+    2,
+    2,
+    1,
+    2,
+    2,
+};
+
 const CompanionFile = struct {
     path: []const u8,
     lines: usize,
@@ -213,9 +241,9 @@ test "phase 8 libbpf segment manifest records the current bounded catalog" {
         try std.testing.expectEqualStrings(expected_segment_slugs[i], segment.slug);
         try std.testing.expectEqualStrings(expected_segment_statuses[i], segment.status);
         try std.testing.expectEqualStrings(expected_segment_kinds[i], segment.kind);
-        try std.testing.expect(segment.anchor_ranges.len > 0);
+        try std.testing.expectEqualStrings(expected_segment_destinations[i], segment.zigux_destination);
+        try std.testing.expectEqual(expected_segment_anchor_range_counts[i], segment.anchor_ranges.len);
         try std.testing.expect(segment.why_now.len > 0);
-        try std.testing.expect(std.mem.startsWith(u8, segment.zigux_destination, "tools/lib/bpf/zigux_segments/"));
 
         if (std.mem.eql(u8, segment.status, "starter_landed")) starter_landed_count += 1;
         if (std.mem.eql(u8, segment.status, "blocked_on_object_model")) blocked_on_object_model_count += 1;
