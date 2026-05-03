@@ -1,5 +1,8 @@
 const std = @import("std");
 const current_surveyed_commit = "3ba64cd4e41a4de1c8fd8dbaecb23702ad9701a3";
+const expected_phase4_required_file_count: usize = 23;
+const expected_phase4_required_marker_count: usize = 236;
+const expected_phase4_gate_evidence_target_count: usize = 15;
 
 const SurveySummary = struct {
     atomic64_test_c_lines: usize,
@@ -106,17 +109,16 @@ fn expectGateEvidenceBlob(
     try std.testing.expect(std.mem.indexOf(u8, gate_evidence, line) != null);
 }
 
-fn parseGateEvidenceCount(
+fn expectGateEvidenceCount(
     gate_evidence: []const u8,
     marker: []const u8,
-    minimum: usize,
-) !usize {
+    expected: usize,
+) !void {
     const start = std.mem.indexOf(u8, gate_evidence, marker) orelse return error.MissingGateEvidenceMarker;
     const value_start = start + marker.len;
     const value_end = std.mem.indexOfScalarPos(u8, gate_evidence, value_start, '`') orelse return error.UnterminatedGateEvidenceMarker;
     const value = try std.fmt.parseInt(usize, gate_evidence[value_start..value_end], 10);
-    try std.testing.expect(value >= minimum);
-    return value;
+    try std.testing.expectEqual(expected, value);
 }
 
 test "phase4 runtime atomic64 survey manifest records the shipped bounded gate, roadmap entrypoint, and remaining broader-surface gap" {
@@ -384,11 +386,23 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate, 
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA=") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "PHASE4_VALIDATOR_SELF_TEST=pass") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "PHASE4_VALIDATION=pass") != null);
-    _ = try parseGateEvidenceCount(phase4_gate_evidence, "PHASE4_REQUIRED_FILE_COUNT=", 10);
-    _ = try parseGateEvidenceCount(phase4_gate_evidence, "PHASE4_REQUIRED_MARKER_COUNT=", 100);
+    try expectGateEvidenceCount(
+        phase4_gate_evidence,
+        "PHASE4_REQUIRED_FILE_COUNT=",
+        expected_phase4_required_file_count,
+    );
+    try expectGateEvidenceCount(
+        phase4_gate_evidence,
+        "PHASE4_REQUIRED_MARKER_COUNT=",
+        expected_phase4_required_marker_count,
+    );
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "PHASE4_GATE_EVIDENCE_SELF_TEST=pass") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "PHASE4_GATE_EVIDENCE_CHECK=pass") != null);
-    _ = try parseGateEvidenceCount(phase4_gate_evidence, "PHASE4_GATE_EVIDENCE_TARGET_COUNT=", 5);
+    try expectGateEvidenceCount(
+        phase4_gate_evidence,
+        "PHASE4_GATE_EVIDENCE_TARGET_COUNT=",
+        expected_phase4_gate_evidence_target_count,
+    );
     try expectGateEvidenceBlob(phase4_gate_evidence, "PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA", manifest_json);
     try expectGateEvidenceBlob(phase4_gate_evidence, "PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA", runtime_atomic64_diff_survey);
     try expectGateEvidenceBlob(phase4_gate_evidence, "PHASE4_TEST_FSMOUNT_MANIFEST_BLOB_SHA", test_fsmount_manifest_json);
