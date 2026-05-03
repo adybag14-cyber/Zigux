@@ -36,6 +36,8 @@ REQUIRED_MAKEFILE_SNIPPETS = (
 )
 
 EXACT_ONCE_MAKEFILE_SNIPPETS = (
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/generate-phase3-check-wrappers.py --self-test\n",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/generate-phase3-check-wrappers.py --check\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-readme-tooling-inventory.py\n",
 )
@@ -82,6 +84,8 @@ REQUIRED_WORKFLOW_SNIPPETS = (
 )
 
 EXACT_ONCE_WORKFLOW_SNIPPETS = (
+    "run: python3 scripts/zigux/generate-phase3-check-wrappers.py --self-test\n",
+    "run: python3 scripts/zigux/generate-phase3-check-wrappers.py --check\n",
     "run: python3 scripts/zigux/check-phase3-readme-tooling-inventory.py\n",
     "run: python3 scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test\n",
 )
@@ -231,6 +235,8 @@ def _fixture_workflow() -> str:
         "        run: python3 scripts/zigux/check-phase3-validation-flow.py --self-test\n"
         "      - name: Self-test Phase 3 wrapper generator\n"
         "        run: python3 scripts/zigux/generate-phase3-check-wrappers.py --self-test\n"
+        "      - name: Validate Phase 3 wrapper templates\n"
+        "        run: python3 scripts/zigux/generate-phase3-check-wrappers.py --check\n"
         "      - name: Self-test Phase 3 README tooling inventory checker\n"
         "        run: python3 scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test\n"
         "      - name: Validate Phase 3 README tooling inventory\n"
@@ -309,6 +315,32 @@ def run_self_test() -> int:
         issues = validate(root)
         assert (
             "missing_makefile_snippet:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-readme-tooling-inventory.py\n"
+            in issues
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8", newline="\n")
+
+        makefile_path.write_text(
+            original_makefile
+            + "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/generate-phase3-check-wrappers.py --self-test\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate(root)
+        assert (
+            "unexpected_makefile_snippet_count:2:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/generate-phase3-check-wrappers.py --self-test\n"
+            in issues
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8", newline="\n")
+
+        makefile_path.write_text(
+            original_makefile
+            + "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/generate-phase3-check-wrappers.py --check\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate(root)
+        assert (
+            "unexpected_makefile_snippet_count:2:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/generate-phase3-check-wrappers.py --check\n"
             in issues
         )
         makefile_path.write_text(original_makefile, encoding="utf-8", newline="\n")
@@ -433,6 +465,34 @@ def run_self_test() -> int:
 
         workflow_path.write_text(
             original_workflow
+            + "      - name: Self-test Phase 3 wrapper generator again\n"
+            + "        run: python3 scripts/zigux/generate-phase3-check-wrappers.py --self-test\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate(root)
+        assert (
+            "unexpected_workflow_snippet_count:2:run: python3 scripts/zigux/generate-phase3-check-wrappers.py --self-test\n"
+            in issues
+        )
+        workflow_path.write_text(original_workflow, encoding="utf-8", newline="\n")
+
+        workflow_path.write_text(
+            original_workflow
+            + "      - name: Validate Phase 3 wrapper templates again\n"
+            + "        run: python3 scripts/zigux/generate-phase3-check-wrappers.py --check\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate(root)
+        assert (
+            "unexpected_workflow_snippet_count:2:run: python3 scripts/zigux/generate-phase3-check-wrappers.py --check\n"
+            in issues
+        )
+        workflow_path.write_text(original_workflow, encoding="utf-8", newline="\n")
+
+        workflow_path.write_text(
+            original_workflow
             + "      - name: Validate Phase 3 README tooling inventory again\n"
             + "        run: python3 scripts/zigux/check-phase3-readme-tooling-inventory.py\n",
             encoding="utf-8",
@@ -527,7 +587,7 @@ def run_self_test() -> int:
         docs_root_path.write_text(original_docs_root, encoding="utf-8", newline="\n")
 
     print("PHASE3_VALIDATION_FLOW_SELF_TEST=pass")
-    print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=18")
+    print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=22")
     return 0
 
 
