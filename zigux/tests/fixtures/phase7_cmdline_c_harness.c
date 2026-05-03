@@ -211,6 +211,10 @@ static void run_next_arg_section(void)
     printf("\"next_arg\":{");
     emit_next_arg_case("quoted_value", "root=\"/dev/sda 1\" ro");
     printf(",");
+    emit_next_arg_case("quoted_bare_token", "\"noparam value\" next");
+    printf(",");
+    emit_next_arg_case("first_equals_value_split", "key=alpha=beta tail");
+    printf(",");
     emit_next_arg_case("leading_equals", "=bad next");
     printf(",");
     emit_next_arg_case("trimmed_empty_rest", "mode=fast   ");
