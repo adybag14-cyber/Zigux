@@ -137,10 +137,12 @@ PHASE2_KCONFIG_REQUIRED_SOURCE_MARKERS = [
 PHASE2_KCONFIG_REQUIRED_WORKFLOW_COUNTS = {
     "python3 scripts/zigux/check-kconfig-bridge.py --self-test": 1,
     "python3 scripts/zigux/check-kconfig-bridge.py": 1,
+    "zig test scripts/zigux/kconfig/conf_bridge.zig": 1,
 }
 PHASE2_KCONFIG_REQUIRED_MAKEFILE_COUNTS = {
     "scripts/zigux/check-kconfig-bridge.py --self-test": 1,
     "scripts/zigux/check-kconfig-bridge.py": 1,
+    "$(ZIG) test scripts/zigux/kconfig/conf_bridge.zig": 1,
 }
 PHASE2_CROSS_ALIGNMENT_REQUIRED_MAKEFILE_COUNTS = {
     "scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test": 1,
