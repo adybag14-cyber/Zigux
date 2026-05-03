@@ -21,6 +21,9 @@ This note records the current Phase 9 runtime module-metadata surface and the st
   - `samples/zigux/runtime_bitmap.zig`
   - `samples/zigux/runtime_kretprobe.zig`
   - `samples/zigux/runtime_trace_events.zig`
+  - `samples/zigux/runtime_atomic64_loader.zig`
+  - `samples/zigux/runtime_bitmap_loader.zig`
+  - `samples/zigux/runtime_kretprobe_loader.zig`
   - `samples/zigux/runtime_trace_events_loader.zig`
 
 ## Why this slice exists
