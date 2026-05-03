@@ -71,6 +71,12 @@ test "phase 5 bytestream fifo sample replays exact queue behavior from the Linux
 }
 
 test "phase 5 bytestream fifo sample keeps bounded helper behavior explicit" {
+    const expected_preview_focus = [_]sample.SampleFocus{
+        .wraparound_requeue,
+        .non_destructive_snapshot,
+        .preview_truncation,
+    };
+
     var module = sample.BytestreamFifoSample{};
 
     try std.testing.expectEqual(@as(?u8, null), module.peekByte());
@@ -84,6 +90,24 @@ test "phase 5 bytestream fifo sample keeps bounded helper behavior explicit" {
     try std.testing.expect(!empty_preview.truncated);
     try std.testing.expectEqualSlices(u8, &.{ 0xaa, 0xaa, 0xaa, 0xaa }, preview[0..]);
 
+    try module.init();
+    const preview_replay = try module.runPreviewBoundaryReplay();
+    try std.testing.expectEqual(sample.SampleStage.initialized, preview_replay.stage_before_replay);
+    try std.testing.expectEqual(sample.SampleStage.initialized, preview_replay.stage_after_replay);
+    try std.testing.expectEqual(@as(usize, 4), preview_replay.snapshot_len);
+    try std.testing.expectEqualSlices(u8, &.{ 2, 3, 4, 5 }, preview_replay.snapshot_prefix[0..]);
+    try std.testing.expectEqual(@as(usize, 8), preview_replay.preview_len);
+    try std.testing.expectEqual(@as(usize, 10), preview_replay.preview_total_visible);
+    try std.testing.expect(preview_replay.preview_truncated);
+    try std.testing.expectEqualSlices(u8, &.{ 2, 3, 4, 5, 6, 7, 8, 9 }, preview_replay.preview_prefix[0..]);
+    try std.testing.expectEqual(@as(usize, 10), preview_replay.queue_len_after_preview);
+    try std.testing.expectEqual(expected_preview_focus.len, preview_replay.checked_focus.len);
+    for (expected_preview_focus, preview_replay.checked_focus) |expected, actual| {
+        try std.testing.expectEqual(expected, actual);
+    }
+    try std.testing.expectEqual(@as(usize, 10), module.count());
+
+    module.reset();
     var count: u8 = 0;
     while (count < sample.BytestreamFifoSample.capacity) : (count += 1) {
         try std.testing.expect(module.pushByte(count));
@@ -124,29 +148,6 @@ test "phase 5 bytestream fifo sample keeps bounded helper behavior explicit" {
     try std.testing.expectEqual(@as(usize, 0), module.drain(short_drain[0..]));
 
     module.reset();
-    try std.testing.expectEqual(@as(usize, 5), module.enqueueSlice("hello"));
-    var value: u8 = 0;
-    while (value < 10) : (value += 1) {
-        try std.testing.expect(module.pushByte(value));
-    }
-    var discard: [7]u8 = undefined;
-    try std.testing.expectEqual(@as(usize, discard.len), module.dequeueSlice(discard[0..]));
-    try std.testing.expectEqual(@as(usize, 2), module.enqueueSlice(&.{ 0, 1 }));
-
-    var truncated_snapshot: [4]u8 = undefined;
-    try std.testing.expectEqual(@as(usize, truncated_snapshot.len), module.snapshotInto(truncated_snapshot[0..]));
-    try std.testing.expectEqualSlices(u8, &.{ 2, 3, 4, 5 }, truncated_snapshot[0..]);
-    try std.testing.expectEqual(@as(usize, 10), module.count());
-
-    var wraparound_preview: [8]u8 = [_]u8{0} ** 8;
-    const wraparound_preview_result = module.previewInto(wraparound_preview[0..]);
-    try std.testing.expectEqual(@as(usize, wraparound_preview.len), wraparound_preview_result.copied);
-    try std.testing.expectEqual(@as(usize, 10), wraparound_preview_result.total_visible);
-    try std.testing.expect(wraparound_preview_result.truncated);
-    try std.testing.expectEqualSlices(u8, &.{ 2, 3, 4, 5, 6, 7, 8, 9 }, wraparound_preview[0..]);
-    try std.testing.expectEqual(@as(usize, 10), module.count());
-
-    module.reset();
     try std.testing.expectEqual(@as(usize, 0), module.count());
     try std.testing.expectEqual(@as(?u8, null), module.popByte());
 }
@@ -156,10 +157,14 @@ test "phase 5 bytestream fifo sample makes ownership and lifetime boundaries exp
 
     try std.testing.expectEqual(sample.SampleStage.cold, module.stage());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runAnchorReplay());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runPreviewBoundaryReplay());
 
     try module.init();
     try std.testing.expectEqual(sample.SampleStage.initialized, module.stage());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.init());
+
+    _ = try module.runPreviewBoundaryReplay();
+    try std.testing.expectEqual(sample.SampleStage.initialized, module.stage());
 
     _ = try module.runAnchorReplay();
     try std.testing.expectEqual(sample.SampleStage.replay_complete, module.stage());
@@ -169,6 +174,7 @@ test "phase 5 bytestream fifo sample makes ownership and lifetime boundaries exp
     try std.testing.expectEqual(@as(usize, 0), module.count());
     try std.testing.expectEqual(@as(usize, 1), module.init_runs);
     try std.testing.expectEqual(@as(usize, 1), module.exit_runs);
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runPreviewBoundaryReplay());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
 }
 
@@ -184,6 +190,12 @@ test "phase 5 bytestream fifo reset clears queue state without restarting lifecy
     try std.testing.expectEqual(@as(usize, 1), module.init_runs);
     try std.testing.expectEqual(@as(usize, 0), module.count());
     try std.testing.expectEqual(@as(?u8, null), module.peekByte());
+
+    _ = try module.runPreviewBoundaryReplay();
+    module.reset();
+    try std.testing.expectEqual(sample.SampleStage.initialized, module.stage());
+    try std.testing.expectEqual(@as(usize, 1), module.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), module.count());
 
     _ = try module.runAnchorReplay();
     try std.testing.expectEqual(sample.SampleStage.replay_complete, module.stage());
