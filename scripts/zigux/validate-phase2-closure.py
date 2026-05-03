@@ -46,6 +46,8 @@ EXACT_WORKFLOW_RUN_COUNTS = {
     'python3 scripts/zigux/check-kconfig-bridge.py': 1,
     'python3 scripts/zigux/check-phase2-cross.py --self-test': 2,
     'python3 scripts/zigux/check-phase2-cross.py --target ${{ matrix.zig_target }}': 1,
+    'python3 scripts/zigux/check-zig-toolchain.py': 2,
+    'python3 scripts/zigux/install-zig.py --dest .zig-toolchain': 2,
     'python3 scripts/zigux/check-mk-elfconfig-diff.py --self-test': 1,
     'python3 scripts/zigux/check-mk-elfconfig-diff.py': 1,
     'python3 scripts/zigux/validate-phase2.py': 1,
