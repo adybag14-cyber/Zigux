@@ -124,6 +124,7 @@ Traceability summary:
 Current repo evidence:
 - implementation anchor: `security/landlock/syscalls.zig`
 - dedicated tests: `zigux/tests/phase13_landlock_syscalls.zig`
+- reviewability gate: `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
 - manifest: `zigux/tests/phase13_landlock_syscalls_manifest.json`
 - manifest `surveyed_commit`: `9c17b0790799d8240ef9f964903f5ce2db64af89`
 - shared build entry: `zigux/tests/phase13_build.zig`
@@ -135,6 +136,7 @@ Current lane state recorded in the manifest:
 - landed `phase13-make-target`
 - landed `phase13-landlock-syscalls-starter`
 - landed `phase13-landlock-syscalls-test-gate`
+- landed `phase13-landlock-syscalls-reviewability-gate`
 - landed `phase13-landlock-syscalls-slice-note`
 - landed `phase13-landlock-syscalls-survey-note`
 - landed `phase13-landlock-initialization-gate-followup`
@@ -149,7 +151,7 @@ Current lane state recorded in the manifest:
 - landed `phase13-landlock-ruleset-fops-followup`
 
 Traceability summary:
-- this anchor stays roadmap-aligned and manifest-backed, and the helper packet now covers the shared build gate, make target, ABI sizing, the shared boot-disabled initialization gate, bounded user-struct copy discipline, create-ruleset validation, restrict-self logging translation, restrict-self credential handoff ordering, add-rule planning, ruleset-FD lookup, path-FD lookup, path-beneath handoff, net-port handoff, ruleset-FD creation handoff planning, and the dedicated ruleset file-operations contract while still refusing to claim live user-memory access, live FD ownership, anonymous inode internals, credential updates, domain merges, or syscall enforcement.
+- this anchor stays roadmap-aligned and manifest-backed, and the helper packet now covers the shared build gate, make target, the dedicated manifest-backed reviewability gate, ABI sizing, the shared boot-disabled initialization gate, bounded user-struct copy discipline, create-ruleset validation, restrict-self logging translation, restrict-self credential handoff ordering, add-rule planning, ruleset-FD lookup, path-FD lookup, path-beneath handoff, net-port handoff, ruleset-FD creation handoff planning, and the dedicated ruleset file-operations contract while still refusing to claim live user-memory access, live FD ownership, anonymous inode internals, credential updates, domain merges, or syscall enforcement.
 
 ## Roadmap-adjacent evidence that is not a fifth anchor
 
