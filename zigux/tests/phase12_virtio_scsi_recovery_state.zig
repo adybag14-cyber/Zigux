@@ -46,3 +46,40 @@ test "phase12 virtio scsi restore clears stale queue depth before a later freeze
 
     try std.testing.expectError(error.QueueDepthSummaryUnavailable, lab.recoveryQueueDepthSummary());
 }
+
+test "phase12 virtio scsi second freeze refreshes restore summary after replanning" {
+    var lab = virtio_scsi.VirtioScsiQueueLab.init();
+
+    _ = try lab.planQueueLayout(6, 2);
+    _ = try lab.freezeForTransportReset();
+    _ = try lab.restoreAfterTransportReset();
+
+    const replanned = try lab.planQueueLayout(3, 0);
+    try std.testing.expectEqual(@as(u16, 3), replanned.request_queues);
+    try std.testing.expectEqual(@as(u16, 3), replanned.default_queues);
+    try std.testing.expectEqual(@as(u16, 0), replanned.poll_queues);
+
+    const second_freeze = try lab.freezeForTransportReset();
+    try std.testing.expectEqual(@as(u16, 1), second_freeze.recovery_generation);
+    try std.testing.expectEqual(@as(u16, 3), second_freeze.remembered_request_queues);
+    try std.testing.expectEqual(@as(u16, 0), second_freeze.remembered_poll_queues);
+
+    const restore = try lab.recoveryRestoreSummary();
+    try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", restore.anchor);
+    try std.testing.expectEqual(@as(u16, 3), restore.request_queues);
+    try std.testing.expectEqual(@as(u16, 3), restore.default_queues);
+    try std.testing.expectEqual(@as(u16, 0), restore.read_queues);
+    try std.testing.expectEqual(@as(u16, 0), restore.poll_queues);
+    try std.testing.expectEqual(@as(u16, 5), restore.total_queues);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.control_queue_index), restore.control_queue_index);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.event_queue_index), restore.event_queue_index);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.request_queue_base), restore.first_request_queue_index);
+    try std.testing.expectEqual(@as(?u16, null), restore.first_poll_queue_index);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.event_buffer_count), restore.event_buffer_count);
+    try std.testing.expect(restore.requires_find_vqs);
+    try std.testing.expect(restore.requires_io_queue_map_restore);
+    try std.testing.expect(restore.requires_device_ready);
+    try std.testing.expect(restore.requires_event_rearm);
+    try std.testing.expect(restore.preserves_scsi_host_registration);
+    try std.testing.expect(!restore.reruns_host_scan);
+}
