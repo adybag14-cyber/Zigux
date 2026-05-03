@@ -23,6 +23,7 @@ Current closure records
 
 Phase 2 notes
 - `python3 scripts/zigux/artifact_diff.py --self-test` is now part of the published Phase 2 closure path through `Documentation/zigux/phase2-closure.md`, `Documentation/zigux/artifact-diff.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile`, so shared comparison drift fails before the bounded host-tool parity lanes run.
+- `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`, `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`, `scripts/zigux/zig-toolchain-policy.json`, `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, and the bootstrap workflow `install-zig.py --dest .zig-toolchain` plus `check-zig-toolchain.py` path now keep the bounded `x86_64-linux` archive pin visible from the docs root until another bootstrap runner target gains first-class workflow evidence.
 
 Phase 3 notes
 - `Documentation/zigux/phase3-roadmap-gap-survey.md` now maps the original Phase 3 roadmap anchors `rust/exports.c`, `lib/bitmap.c`, `lib/rbtree.c`, and `lib/cpumask.c` to the live ABI substrate, the current export shim and current `zigux/uapi/version.zig` boundary, and the current interop slices, so reviewers can see in one place which anchors are already covered, which adjacent helpers are real repo state, and which roadmap-backed gap is still open.
