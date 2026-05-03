@@ -109,6 +109,7 @@ EXPECTED_GAP_DESTINATIONS = {
     "phase7-argv-split-helper": "lib/argv_split.zig",
     "phase7-argv-split-dedicated-tests": "zigux/tests/phase7_argv_split.zig",
     "phase7-argv-split-shared-fixtures": "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
+    "phase7-argv-split-c-parity-fixture-layer": "zigux/tests/fixtures/phase7_argv_split.json",
     "phase7-argv-split-slice-note": "Documentation/zigux/phase7-argv-split-slice.md",
     "phase7-argv-split-survey-gate": "zigux/tests/phase7_argv_split_survey.zig",
 }
@@ -361,8 +362,24 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
 
+        manifest = json.loads(read(manifest_path))
+        for gap in manifest["gaps"]:
+            if gap["id"] == "phase7-argv-split-c-parity-fixture-layer":
+                gap["zigux_destination"] = "zigux/tests/fixtures/phase7_argv_split_c_harness.c"
+                break
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_failure(
+            "manifest_c_parity_gap_destination",
+            tmp_root,
+            "gaps:phase7-argv-split-c-parity-fixture-layer:zigux_destination",
+        )
+        manifest_path.write_text(
+            SELF_TEST_FILE_CONTENTS["zigux/tests/phase7_argv_split_manifest.json"],
+            encoding="utf-8",
+        )
+
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
-    print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT=8")
+    print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
