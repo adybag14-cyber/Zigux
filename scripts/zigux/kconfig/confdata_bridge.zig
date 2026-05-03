@@ -442,6 +442,19 @@ test "confdata bridge decodes escaped quoted strings" {
     try std.testing.expectEqualStrings("drivers\\zigux", summary.entries[1].value);
 }
 
+test "confdata bridge keeps trailing escaped backslashes in quoted strings" {
+    const allocator = std.testing.allocator;
+    var summary = try parseConfig(
+        allocator,
+        "CONFIG_PATH=\"drivers\\\\\"\n",
+    );
+    defer deinitSummary(allocator, &summary);
+
+    try std.testing.expectEqual(@as(usize, 1), summary.entries.len);
+    try std.testing.expectEqual(EntryKind.string, summary.entries[0].kind);
+    try std.testing.expectEqualStrings("drivers\\", summary.entries[0].value);
+}
+
 test "confdata bridge keeps escaped control letters literal in quoted strings" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(
