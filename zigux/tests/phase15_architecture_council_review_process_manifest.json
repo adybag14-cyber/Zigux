@@ -246,6 +246,13 @@
       "kind": "handoff_sync",
       "zigux_destination": "zigux/tests/phase15_architecture_council_review_process_manifest.json",
       "why_now": "The parked Architecture Council packet now keeps the dedicated freeze-map-governance companion explicit inside the same current-repo handoff bundle, so future maintenance does not undercount that neighboring governance note while the packet stays in maintenance mode."
+    },
+    {
+      "id": "phase15-review-process-scripts-tests-root-handoff-sync",
+      "status": "starter_landed",
+      "kind": "handoff_sync",
+      "zigux_destination": "zigux/tests/phase15_architecture_council_review_process_manifest.json",
+      "why_now": "The parked Architecture Council packet now keeps the scripts-root Phase 15 validator path and the tests-root guidance path explicit inside the same current-repo handoff bundle, so future maintenance does not lose the shared release-discipline route while the packet stays in maintenance mode."
     }
   ]
 }
