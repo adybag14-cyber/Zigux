@@ -155,7 +155,7 @@
         "prepareExpectedLine"
       ],
       "c_parity_self_test_cases": 8,
-      "c_parity_cases": 27
+      "c_parity_cases": 29
     },
     "generated_fixture_artifacts_committed": false
   },
