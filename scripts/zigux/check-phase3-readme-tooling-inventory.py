@@ -13,6 +13,10 @@ README_REL = "scripts/zigux/README.md"
 TOOLING_PACKET_SCRIPT_REL = "scripts/zigux/check-phase3-tooling-packet.py"
 README_HELPER_SECTION = "Current bootstrap helpers"
 ADDITIONAL_REQUIRED_HELPER_ENTRIES = (
+    "check-phase2-kconfig-selftest-alignment.py",
+    "check-phase6-base64-catalog-evidence.py",
+    "check-phase7-argv-split-parity.py",
+    "check-phase11-shared-replay-contract.py",
     "check-phase13-libfs-packet.py",
     "check-phase13-devres-packet.py",
     "check-phase13-notifier-packet.py",
@@ -300,6 +304,31 @@ def run_self_test() -> int:
                     "# scripts/zigux",
                     "",
                     "Current bootstrap helpers",
+                    *[
+                        f"- `{Path(rel).name}`"
+                        for rel in required_rels
+                        if rel != "scripts/zigux/check-phase11-shared-replay-contract.py"
+                    ],
+                    "",
+                    _fixture_phase3_flow(),
+                )
+            ),
+        )
+        issues = validate(root)
+        expected = ["missing_readme_entry:check-phase11-shared-replay-contract.py"]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-readme-tooling-inventory-self-test:missing_phase11_readme_entry_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+        _write(
+            root / README_REL,
+            "\n".join(
+                (
+                    "# scripts/zigux",
+                    "",
+                    "Current bootstrap helpers",
                     f"- `{Path(tooling_packet_rels[1]).name}`",
                     f"- `{Path(tooling_packet_rels[0]).name}`",
                     *[f"- `{Path(rel).name}`" for rel in required_rels[2:]],
@@ -437,7 +466,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
-    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=8")
+    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
