@@ -82,7 +82,7 @@ const Manifest = struct {
     gaps: []const Gap,
 };
 
-const expected_lane_key = "P15-L08";
+const expected_lane_key = "P15-Y05";
 
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
@@ -218,6 +218,7 @@ test "phase 15 architecture council review-process manifest records current trig
     }
 
     var landed_count: usize = 0;
+    var saw_active_lane_sync = false;
     var saw_indefinite_c_evidence_sync = false;
     var saw_ownership_evidence_rollback_threshold_sync = false;
     var saw_freeze_map_governance_handoff_sync = false;
@@ -230,6 +231,12 @@ test "phase 15 architecture council review-process manifest records current trig
         try std.testing.expect(gap.why_now.len > 0);
 
         if (std.mem.eql(u8, gap.status, "starter_landed")) landed_count += 1;
+        if (std.mem.eql(u8, gap.id, "phase15-review-process-active-lane-sync")) {
+            saw_active_lane_sync = true;
+            try std.testing.expectEqualStrings("ownership_gate", gap.kind);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "active-lane identities") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "active scheduled lane") != null);
+        }
         if (std.mem.eql(u8, gap.id, "phase15-review-process-indefinite-c-evidence-path-sync")) {
             saw_indefinite_c_evidence_sync = true;
             try std.testing.expectEqualStrings("governance_sync", gap.kind);
@@ -262,6 +269,7 @@ test "phase 15 architecture council review-process manifest records current trig
     }
 
     try std.testing.expectEqual(@as(usize, 21), landed_count);
+    try std.testing.expect(saw_active_lane_sync);
     try std.testing.expect(saw_indefinite_c_evidence_sync);
     try std.testing.expect(saw_ownership_evidence_rollback_threshold_sync);
     try std.testing.expect(saw_freeze_map_governance_handoff_sync);
@@ -317,7 +325,7 @@ test "phase 15 architecture council review-process note stays aligned with check
     defer std.testing.allocator.free(expected_provenance);
 
     try std.testing.expect(std.mem.indexOf(u8, review_process, expected_provenance) != null);
-    try std.testing.expect(std.mem.indexOf(u8, review_process, "PHASE15_LANE_KEY=P15-L08") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_process, "PHASE15_LANE_KEY=P15-Y05") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "## Trigger Conditions") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "## Required Review Packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "## Decision Buckets") != null);
@@ -364,7 +372,7 @@ test "phase 15 architecture council review-process note stays aligned with check
     try std.testing.expect(std.mem.indexOf(u8, review_process, expected_lane_line) != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "Documentation/zigux/phase15-handoff-next-steps-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "shared Phase 15 replay drift") != null);
-    try std.testing.expect(std.mem.indexOf(u8, review_process, "phase15-review-process-lane-identity-provenance-refresh") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_process, "phase15-review-process-active-lane-sync") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "phase15-review-process-indefinite-c-evidence-path-sync") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "phase15-review-process-ownership-evidence-rollback-threshold-sync") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "phase15-review-process-freeze-map-governance-handoff-sync") != null);
