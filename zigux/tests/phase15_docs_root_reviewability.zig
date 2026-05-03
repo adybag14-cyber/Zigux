@@ -36,10 +36,17 @@ test "phase15 docs-root reviewability keeps the current handoff alignment explic
     try expectContains(docs_readme, "only remaining blocked work is the deep-core status-change evidence");
     try std.testing.expect(std.mem.indexOf(u8, docs_readme, "remaining broader replay drift on current `master`") == null);
 
+    try expectContains(readiness_doc, "Documentation/zigux/phase15-architecture-council-review-process.md");
+    try expectContains(readiness_doc, "Documentation/zigux/phase15-parity-scorecard.md");
+    try expectContains(readiness_doc, "Documentation/zigux/phase15-indefinite-c-policy.md");
     try expectContains(readiness_doc, "docs-root Phase 15 summary now matches the dedicated readiness and handoff packet");
     try expectContains(readiness_doc, "phase15-docs-root-summary-alignment");
     try expectContains(readiness_doc, "phase15-deep-core-status-change-blocker");
 
+    try expectContains(handoff_doc, "Documentation/zigux/phase15-freeze-map-governance.md");
+    try expectContains(handoff_doc, "Documentation/zigux/phase15-architecture-council-review-process.md");
+    try expectContains(handoff_doc, "Documentation/zigux/phase15-parity-scorecard.md");
+    try expectContains(handoff_doc, "Documentation/zigux/phase15-indefinite-c-policy.md");
     try expectContains(handoff_doc, "docs-root release evidence now matches the dedicated maintenance packet");
     try expectContains(handoff_doc, "phase15-docs-root-summary-alignment");
     try expectContains(handoff_doc, "phase15-deep-core-status-change-blocker");
