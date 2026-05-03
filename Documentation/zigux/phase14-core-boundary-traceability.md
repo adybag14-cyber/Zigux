@@ -34,7 +34,7 @@ This note stays narrow on purpose. It does not add a bridge, reopen a freeze dec
 - surveyed commit: `6689715b1930c419e49a44b1c2dd317548a08c1d`
 - ready-next gap: none currently recorded
 - blocked gap: `phase14-skbuff-live-ownership-blocker`
-- retained-in-C boundary: live skb lifetime, destructor ordering, qdisc-owned publication, checksum-state ownership, segmentation behavior, and final drop pruning still remain in C even though the repo now carries a reviewable boundary map around `validate_xmit_skb_list()` and the follow-on `__dev_direct_xmit()` identity-versus-drop seam.
+- retained-in-C boundary: live skb lifetime, destructor ordering, qdisc-owned publication, checksum-state ownership, segmentation behavior, and final drop pruning still remain in C even though the repo now carries a review-only boundary map through `validate_xmit_skb_list()` republish plus the observational `__dev_direct_xmit()` identity-drop checkpoint, both of which keep qdisc publication, queue ownership, and skb lifetime ownership explicitly outside Zigux.
 
 ### RCU tree
 
@@ -42,6 +42,7 @@ This note stays narrow on purpose. It does not add a bridge, reopen a freeze dec
 - survey note: `Documentation/zigux/phase14-rcu-tree-survey.md`
 - lane key: `P14-Y04`
 - surveyed commit: `355b71d89807a217a6b7c405c996cbd623c48ca0`
+- ready-next gap: none currently recorded
 - blocked gap: `phase14-rcu-tree-bridge-blocker`
 - retained-in-C boundary: grace-period sequence publication, expedited funnel or stall behavior, NOCB wakeups, quiescent-state propagation, callback enqueue, and callback batch invocation still remain in C because they share the live `rcu_node` hierarchy, offload state, and memory-ordering guarantees.
 
