@@ -193,7 +193,7 @@ No additional helper should be called Phase 1 work unless this document and the 
 - `PHASE1_STRING_PREFIX_UNIT_REVIEW=string strStarts and strstarts keep kernel-style prefix checks aligned for exact, empty-prefix, shorter-input, and case-sensitive comparisons`
 - `PHASE1_STRING_PREFIX_LENGTH_UNIT_REVIEW=string strHasPrefix and str_has_prefix return the matched C-string prefix length for exact and embedded-NUL prefixes while rejecting mismatches and longer prefixes`
 - `PHASE1_STRING_SUFFIX_UNIT_REVIEW=string strEndsWith, str_ends_with, and strends keep kernel-style suffix semantics aligned for exact, empty-suffix, shorter-input, and case-sensitive comparisons`
-- `PHASE1_STRING_MEMPARSE_UNIT_REVIEW=string memparse preserves decimal, hexadecimal, suffix-bearing, and invalid inputs without changing the parsed value or rest pointer contract`
+- `PHASE1_STRING_MEMPARSE_UNIT_REVIEW=string memparse preserves decimal, hexadecimal, suffix-bearing, invalid, and binary-unit-tail inputs including optional trailing B forms without changing the parsed value or rest pointer contract`
 
 ## Closure Gates
 
