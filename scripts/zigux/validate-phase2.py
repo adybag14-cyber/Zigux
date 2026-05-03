@@ -66,8 +66,8 @@ PHASE2_GENKSYMS_BRIDGE_ALIGNMENT_REQUIRED_SOURCE_MARKERS = [
     '"python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py": 1',
 ]
 PHASE2_CROSS_ALIGNMENT_REQUIRED_SOURCE_MARKERS = [
-    "print('PHASE2_CROSS_ALIGNMENT_SELF_TEST=pass')",
-    "print('PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=8')",
+    "PHASE2_CROSS_ALIGNMENT_SELF_TEST=pass",
+    "PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=8",
 ]
 PHASE2_CROSS_REQUIRED_SOURCE_MARKERS = [
     "phase2-cross:tool_manifest_path_missing:",
