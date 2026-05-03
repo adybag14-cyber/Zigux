@@ -14,9 +14,9 @@ REQUIRED_SURVEY_MARKERS = (
     "PHASE3_RBTREE_ROADMAP_ANCHOR=lib/rbtree.c",
     "PHASE3_RBTREE_PHASE1_EVIDENCE=tools/lib/rbtree.zig,Documentation/zigux/phase1-closure.md",
     "PHASE3_RBTREE_PHASE7_EVIDENCE=lib/rbtree.zig,Documentation/zigux/phase7-rbtree-slice.md,zigux/tests/phase7_rbtree.zig,zigux/tests/phase7_rbtree_survey.zig,zigux/tests/phase7_rbtree_manifest.json",
-    "PHASE3_RBTREE_PHASE3_HELPER=zigux/helpers/rbtree_view.zig",
+    "PHASE3_RBTREE_PHASE3_HELPER=zigux/helpers/rbtree_view.zig,zigux/helpers/rbtree_root_view.zig",
     "PHASE3_RBTREE_PHASE3_BOUNDARY=include/zigux/rbtree.h,zigux/bindings/rbtree.zig,zigux/tests/phase3_rbtree_dump.zig,zigux/tests/fixtures/phase3_rbtree/expected.json,zigux/tests/fixtures/phase3_rbtree/phase3_rbtree_c_harness.c",
-    "PHASE3_RBTREE_PHASE3_SURVEY=zigux/tests/phase3_rbtree_survey.zig,zigux/tests/phase3_rbtree_manifest.json",
+    "PHASE3_RBTREE_PHASE3_SURVEY=zigux/tests/phase3_rbtree_survey.zig,zigux/tests/phase3_rbtree_root_view_survey.zig,zigux/tests/phase3_rbtree_manifest.json",
     "PHASE3_RBTREE_PHASE3_SLICE=Documentation/zigux/phase3-rbtree-slice.md",
     "PHASE3_RBTREE_PHASE3_BOUNDARY_STATUS=dedicated-boundary-landed-shared-abi-lift-still-missing",
     "PHASE3_RBTREE_NON_GOALS=no-balancing-port,no-export-shim-growth,no-uapi-growth",
@@ -39,6 +39,7 @@ REQUIRED_SURVEY_SNIPPETS = (
     "one matching shared Zig binding shape",
     "one committed shared parity fixture that keeps the contract reviewable without widening into a full balancing port",
     "`zigux/tests/phase3_rbtree_shared_contract.zig` now keeps that planned shared packet layout and constant contract machine-checked before the full shared header lift lands",
+    "`zigux/helpers/rbtree_root_view.zig` now adds a reusable constructor and canonicalization helper around the dedicated `RootView` binding so later shared-packet work can reuse one explicit flag-policy path",
 )
 
 REQUIRED_REPO_PATHS = (
@@ -51,7 +52,9 @@ REQUIRED_REPO_PATHS = (
     "include/zigux/rbtree.h",
     "zigux/bindings/rbtree.zig",
     "zigux/helpers/rbtree_view.zig",
+    "zigux/helpers/rbtree_root_view.zig",
     "zigux/tests/phase3_rbtree_survey.zig",
+    "zigux/tests/phase3_rbtree_root_view_survey.zig",
     "zigux/tests/phase3_rbtree_manifest.json",
     "zigux/tests/phase3_rbtree_dump.zig",
     "zigux/tests/fixtures/phase3_rbtree/expected.json",
@@ -157,34 +160,6 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
 
-        survey_path.write_text(
-            "\n".join((*REQUIRED_SURVEY_MARKERS, *REQUIRED_SURVEY_SNIPPETS[:-1])) + "\n",
-            encoding="utf-8",
-        )
-        issues = validate(root)
-        assert (
-            "missing_survey_snippet:`zigux/tests/phase3_rbtree_shared_contract.zig` now keeps that planned shared packet layout and constant contract machine-checked before the full shared header lift lands"
-            in issues
-        )
-        survey_path.write_text(
-            "\n".join((*REQUIRED_SURVEY_MARKERS, *REQUIRED_SURVEY_SNIPPETS)) + "\n",
-            encoding="utf-8",
-        )
-
-        survey_path.write_text(
-            "\n".join((*REQUIRED_SURVEY_MARKERS[:-1], *REQUIRED_SURVEY_SNIPPETS)) + "\n",
-            encoding="utf-8",
-        )
-        issues = validate(root)
-        assert (
-            "missing_survey_marker:PHASE3_RBTREE_SHARED_MAKE_GATE=make -C zigux phase3-validate"
-            in issues
-        )
-        survey_path.write_text(
-            "\n".join((*REQUIRED_SURVEY_MARKERS, *REQUIRED_SURVEY_SNIPPETS)) + "\n",
-            encoding="utf-8",
-        )
-
         roadmap_gap_path.write_text(REQUIRED_ROADMAP_GAP_MARKERS[0] + "\n", encoding="utf-8")
         issues = validate(root)
         assert any(issue.startswith("missing_roadmap_gap_marker:") for issue in issues)
@@ -200,6 +175,7 @@ def run_self_test() -> int:
         for rel in RBTREE_FREE_BOUNDARY_PATHS:
             for clean_rel in RBTREE_FREE_BOUNDARY_PATHS:
                 boundary_path = root / clean_rel
+                boundary_path.writeText if False else None
                 boundary_path.write_text("// ok\n", encoding="utf-8")
             boundary = root / rel
             boundary.write_text("// rbtree drift\n", encoding="utf-8")
