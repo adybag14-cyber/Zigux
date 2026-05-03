@@ -55,7 +55,7 @@ test "phase14 workqueue bridge manifest records the boundary-map foothold and re
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P14-L04", manifest.lane_key);
+    try std.testing.expectEqualStrings("P14-Y05", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
     try std.testing.expectEqualStrings("kernel/workqueue.c", manifest.anchor);
     try std.testing.expectEqualStrings("542acd7b12c52211ef9a8bd790fa2e2b3367cbf0", manifest.surveyed_commit);
@@ -80,6 +80,7 @@ test "phase14 workqueue bridge manifest records the boundary-map foothold and re
         .limited(32 * 1024),
     );
     defer std.testing.allocator.free(survey_note);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_LANE_KEY=P14-Y05") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_SURVEYED_COMMIT=542acd7b12c52211ef9a8bd790fa2e2b3367cbf0") != null);
 
     var starter_landed_count: usize = 0;
@@ -357,6 +358,7 @@ test "phase14 workqueue bridge survey status block keeps review packet aligned" 
     defer std.testing.allocator.free(survey_note);
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_SLICE=workqueue-delayed-timer-handoff-audit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_LANE_KEY=P14-Y05") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "landed `phase14-workqueue-delayed-timer-handoff-followup`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "delayed_work_timer_fn()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "__queue_work()") != null);
