@@ -51,6 +51,7 @@ PHASE2_VALIDATOR_MARKERS = [
 ]
 
 README_MARKERS = [
+    "- `check-phase2-cross-selftest-alignment.py`",
     "check-phase2-cross.py --self-test",
     "check-phase2-cross.py",
     "duplicate tool entries",
