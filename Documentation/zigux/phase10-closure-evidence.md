@@ -14,10 +14,17 @@ This document records the current closure evidence for the active bounded Phase 
   - `drivers/virtio/virtio_input.zig`
   - `drivers/virtio/virtio_mmio.zig`
   - `zigux/tests/phase10_build.zig`
+  - `zigux/tests/phase10_virtio_core.zig`
+  - `zigux/tests/phase10_virtio_core_survey.zig`
+  - `zigux/tests/phase10_virtio_ring.zig`
   - `zigux/tests/phase10_virtio_ring_reset_reuse.zig`
+  - `zigux/tests/phase10_virtio_ring_survey.zig`
+  - `zigux/tests/phase10_virtio_input.zig`
   - `zigux/tests/phase10_virtio_input_multitouch_preflight.zig`
+  - `zigux/tests/phase10_virtio_input_survey.zig`
   - `zigux/tests/phase10_virtio_mmio.zig`
   - `zigux/tests/phase10_virtio_mmio_queue_isolation.zig`
+  - `zigux/tests/phase10_virtio_mmio_survey.zig`
   - `zigux/tests/phase10_closure_manifest.json`
   - `scripts/zigux/check-phase10-harness-coverage.py`
   - `scripts/zigux/check-phase10-closure-inventory.py`
@@ -47,10 +54,17 @@ The current bounded Phase 10 evidence set is:
 - `zigux/tests/phase10_virtio_ring_manifest.json`
 - `zigux/tests/phase10_virtio_input_manifest.json`
 - `zigux/tests/phase10_virtio_mmio_manifest.json`
+- `zigux/tests/phase10_virtio_core.zig`
+- `zigux/tests/phase10_virtio_core_survey.zig`
+- `zigux/tests/phase10_virtio_ring.zig`
 - `zigux/tests/phase10_virtio_ring_reset_reuse.zig`
 - `zigux/tests/phase10_virtio_ring_survey.zig`
+- `zigux/tests/phase10_virtio_input.zig`
 - `zigux/tests/phase10_virtio_input_multitouch_preflight.zig`
+- `zigux/tests/phase10_virtio_input_survey.zig`
+- `zigux/tests/phase10_virtio_mmio.zig`
 - `zigux/tests/phase10_virtio_mmio_queue_isolation.zig`
+- `zigux/tests/phase10_virtio_mmio_survey.zig`
 
 - `PHASE10_DOC_COUNT=9`
 - `PHASE10_MANIFEST_COUNT=4`
