@@ -120,7 +120,7 @@
       "status": "starter_landed",
       "kind": "lifetime_audit",
       "zigux_destination": "net/core/skbuff_bridge.zig",
-      "why_now": "The bridge now records the smaller validate_xmit_skb_list() republish follow-up, limited to head = skb, tail->next = skb, and validate_xmit_skb() drop pruning so the lane can name how validated outputs are stitched back into one list without widening into live packet lifetime control."
+      "why_now": "The bridge now records the smaller validate_xmit_skb_list() republish follow-up, limited to head = skb, tail->next = skb, and validate_xmit_skb() drop pruning so the lane records how validated outputs are stitched back into one list before any wrapper claim approaches live packet lifetime behavior."
     },
     {
       "id": "phase14-skbuff-direct-xmit-governance-note",
@@ -131,10 +131,10 @@
     },
     {
       "id": "phase14-skbuff-direct-xmit-identity-drop-followup",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "lifetime_audit",
       "zigux_destination": "net/core/skbuff_bridge.zig",
-      "why_now": "The next honest skbuff-facing step is the narrower __dev_direct_xmit() identity-drop follow-up around skb = validate_xmit_skb_list(...), skb != orig_skb, and the drop path so the lane records where the republished output is either accepted as the original skb or rejected without weakening the stay-in-C posture."
+      "why_now": "The bridge now records the narrower __dev_direct_xmit() identity-drop follow-up around skb = validate_xmit_skb_list(...), skb != orig_skb, and the drop path so the lane captures where the republished output is either accepted as the original skb or rejected while still keeping qdisc publication, queue ownership, and skb lifetime ownership in C."
     },
     {
       "id": "phase14-skbuff-live-ownership-blocker",
