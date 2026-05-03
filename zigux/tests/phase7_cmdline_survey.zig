@@ -72,6 +72,14 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
     );
     defer std.testing.allocator.free(tests_readme);
 
+    const zigux_makefile = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/Makefile",
+        std.testing.allocator,
+        .limited(128 * 1024),
+    );
+    defer std.testing.allocator.free(zigux_makefile);
+
     const samples_readme = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "samples/zigux/README.md",
@@ -128,6 +136,14 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
     );
     defer std.testing.allocator.free(parity_fixture);
 
+    const build_inventory = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/fixtures/phase7_build_inventory.json",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(build_inventory);
+
     const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "zigux/tests/phase7_cmdline_manifest.json",
@@ -166,6 +182,42 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
     try expectContains(tests_readme, "cannot import fixtures outside the helper module path");
     try expectContains(tests_readme, "keep the `next_arg()` edge corpus reviewable in both places");
     try expectContains(samples_readme, "no `samples/zigux/*cmdline*` Phase 5 reference sample");
+
+    try expectContains(zigux_makefile, "phase7-validate:");
+    try expectContains(zigux_makefile, "python3 scripts/zigux/validate-phase7.py --self-test");
+    try expectContains(zigux_makefile, "python3 scripts/zigux/validate-phase7.py");
+    try expectContains(zigux_makefile, "python3 scripts/zigux/check-phase7-build-inventory.py --self-test");
+    try expectContains(zigux_makefile, "python3 scripts/zigux/check-phase7-build-inventory.py");
+    try expectContains(zigux_makefile, "python3 scripts/zigux/check-phase7-make-wrapper.py --self-test");
+    try expectContains(zigux_makefile, "python3 scripts/zigux/check-phase7-make-wrapper.py");
+    try expectContains(zigux_makefile, "python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test");
+    try expectContains(zigux_makefile, "python3 scripts/zigux/check-phase7-cmdline-parity.py");
+    try expectContains(zigux_makefile, "python3 scripts/zigux/check-phase7-argv-split-parity.py --self-test");
+    try expectContains(zigux_makefile, "python3 scripts/zigux/check-phase7-argv-split-parity.py");
+    try expectContains(zigux_makefile, "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test");
+    try expectContains(zigux_makefile, "python3 scripts/zigux/check-phase7-rbtree-parity.py");
+    try expectContains(zigux_makefile, "phase7-test:");
+    try expectContains(zigux_makefile, "zig build test --build-file zigux/tests/phase7_build.zig --summary all");
+    try expectContains(zigux_makefile, "phase7: phase7-validate phase7-test");
+
+    try expectContains(build_inventory, "\"repo_root_path\": \"../..\"");
+    try expectContains(build_inventory, "\"phase7_cmdline_survey.zig\"");
+    try expectContains(build_inventory, "\"phase7-cmdline-survey-tests\"");
+    try expectContains(build_inventory, "\"shared_validation_gates\": [");
+    try expectContains(build_inventory, "\"scripts/zigux/validate-phase7.py\"");
+    try expectContains(build_inventory, "\"scripts/zigux/check-phase7-build-inventory.py\"");
+    try expectContains(build_inventory, "\"scripts/zigux/check-phase7-make-wrapper.py\"");
+    try expectContains(build_inventory, "\"scripts/zigux/check-phase7-cmdline-parity.py\"");
+    try expectContains(build_inventory, "\"scripts/zigux/check-phase7-argv-split-parity.py\"");
+    try expectContains(build_inventory, "\"scripts/zigux/check-phase7-rbtree-parity.py\"");
+    try expectContains(build_inventory, "\"shared_validation_commands\": [");
+    try expectContains(build_inventory, "\"scripts/zigux/validate-phase7.py --self-test\"");
+    try expectContains(build_inventory, "\"scripts/zigux/check-phase7-build-inventory.py --self-test\"");
+    try expectContains(build_inventory, "\"scripts/zigux/check-phase7-make-wrapper.py --self-test\"");
+    try expectContains(build_inventory, "\"scripts/zigux/check-phase7-cmdline-parity.py --self-test\"");
+    try expectContains(build_inventory, "\"scripts/zigux/check-phase7-argv-split-parity.py --self-test\"");
+    try expectContains(build_inventory, "\"scripts/zigux/check-phase7-rbtree-parity.py --self-test\"");
+    try expectContains(build_inventory, "\"shared_test_command\": \"zig build test --build-file zigux/tests/phase7_build.zig --summary all\"");
 
     try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_tests, "phase 7 getOptions preserves descending-range and partial-parse stop behavior") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_tests, "phase 7 getOptions keeps array-capacity stop behavior explicit when a range is only partially stored") != null);
@@ -247,7 +299,7 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
 
     try std.testing.expectEqualStrings("P7-L05", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 7", manifest.phase);
-    try std.testing.expectEqualStrings("0e4b033d832d08252fc4741eef1a8b8911d95b03", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("d46fb91493e6e9126d5111bf0e5b21184e0ec1d1", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("lib/cmdline.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 1), manifest.roadmap_destinations.len);
     try std.testing.expectEqualStrings("lib/cmdline.zig", manifest.roadmap_destinations[0]);
