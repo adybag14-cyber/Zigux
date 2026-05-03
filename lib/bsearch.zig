@@ -198,6 +198,10 @@ fn compareName(key: *const []const u8, item: *const Entry) i32 {
     };
 }
 
+fn compareCName(key: *const []const u8, item: *const Entry) callconv(.c) i32 {
+    return compareName(key, item);
+}
+
 fn compareOpaqueInt(key: *const anyopaque, item: *const anyopaque) i32 {
     const typed_key: *const i32 = @ptrCast(@alignCast(key));
     const typed_item: *const i32 = @ptrCast(@alignCast(item));
@@ -222,6 +226,10 @@ fn compareOpaqueName(key: *const anyopaque, item: *const anyopaque) i32 {
     const typed_key: *const []const u8 = @ptrCast(@alignCast(key));
     const typed_item: *const Entry = @ptrCast(@alignCast(item));
     return compareName(typed_key, typed_item);
+}
+
+fn compareCOpaqueName(key: *const anyopaque, item: *const anyopaque) callconv(.c) i32 {
+    return compareOpaqueName(key, item);
 }
 
 test "searchIndex finds values at the beginning middle and end of a sorted slice" {
@@ -321,6 +329,188 @@ test "search supports heterogeneous keys through the comparator" {
     try std.testing.expect(search([]const u8, Entry, &@as([]const u8, "gamma"), entries[0..], compareName) == null);
 }
 
+test "search and searchMutable accept runtime-selected heterogeneous comparator function pointers" {
+    const read_only_cases = [_]struct {
+        target: []const u8,
+        items: []const Entry,
+        compare: Comparator([]const u8, Entry),
+        expected_index: ?usize,
+    }{
+        .{
+            .target = "beta",
+            .items = &[_]Entry{
+                .{ .name = "alpha", .value = 1 },
+                .{ .name = "beta", .value = 2 },
+                .{ .name = "delta", .value = 4 },
+                .{ .name = "omega", .value = 24 },
+            },
+            .compare = compareName,
+            .expected_index = 1,
+        },
+        .{
+            .target = "gamma",
+            .items = &[_]Entry{
+                .{ .name = "alpha", .value = 1 },
+                .{ .name = "beta", .value = 2 },
+                .{ .name = "delta", .value = 4 },
+                .{ .name = "omega", .value = 24 },
+            },
+            .compare = compareName,
+            .expected_index = null,
+        },
+    };
+
+    for (read_only_cases) |case| {
+        try std.testing.expectEqual(case.expected_index, searchIndex([]const u8, Entry, &case.target, case.items, case.compare));
+
+        if (case.expected_index) |expected_index| {
+            const found = search([]const u8, Entry, &case.target, case.items, case.compare) orelse return error.TestUnexpectedResult;
+            try std.testing.expectEqual(@intFromPtr(&case.items[expected_index]), @intFromPtr(found));
+            try std.testing.expectEqualStrings(case.target, found.name);
+        } else {
+            try std.testing.expect(search([]const u8, Entry, &case.target, case.items, case.compare) == null);
+        }
+    }
+
+    const mutable_cases = [_]struct {
+        target: []const u8,
+        entries: [4]Entry,
+        compare: Comparator([]const u8, Entry),
+        expected_index: ?usize,
+    }{
+        .{
+            .target = "delta",
+            .entries = .{
+                .{ .name = "alpha", .value = 1 },
+                .{ .name = "beta", .value = 2 },
+                .{ .name = "delta", .value = 4 },
+                .{ .name = "omega", .value = 24 },
+            },
+            .compare = compareName,
+            .expected_index = 2,
+        },
+        .{
+            .target = "gamma",
+            .entries = .{
+                .{ .name = "alpha", .value = 1 },
+                .{ .name = "beta", .value = 2 },
+                .{ .name = "delta", .value = 4 },
+                .{ .name = "omega", .value = 24 },
+            },
+            .compare = compareName,
+            .expected_index = null,
+        },
+    };
+
+    for (mutable_cases) |case| {
+        var entries = case.entries;
+        const found = searchMutable([]const u8, Entry, &case.target, entries[0..], case.compare);
+
+        if (case.expected_index) |expected_index| {
+            const typed_found = found orelse return error.TestUnexpectedResult;
+            try std.testing.expectEqual(@intFromPtr(&entries[expected_index]), @intFromPtr(typed_found));
+            typed_found.value += 100;
+            try std.testing.expectEqual(@as(u32, 104), entries[expected_index].value);
+        } else {
+            try std.testing.expect(found == null);
+        }
+    }
+}
+
+test "searchIndex and search accept runtime-selected C ABI heterogeneous comparator function pointers" {
+    const cases = [_]struct {
+        target: []const u8,
+        items: []const Entry,
+        compare: CComparator([]const u8, Entry),
+        expected_index: ?usize,
+    }{
+        .{
+            .target = "alpha",
+            .items = &[_]Entry{
+                .{ .name = "alpha", .value = 1 },
+                .{ .name = "beta", .value = 2 },
+                .{ .name = "delta", .value = 4 },
+                .{ .name = "omega", .value = 24 },
+            },
+            .compare = compareCName,
+            .expected_index = 0,
+        },
+        .{
+            .target = "gamma",
+            .items = &[_]Entry{
+                .{ .name = "alpha", .value = 1 },
+                .{ .name = "beta", .value = 2 },
+                .{ .name = "delta", .value = 4 },
+                .{ .name = "omega", .value = 24 },
+            },
+            .compare = compareCName,
+            .expected_index = null,
+        },
+    };
+
+    for (cases) |case| {
+        try std.testing.expectEqual(case.expected_index, searchIndex([]const u8, Entry, &case.target, case.items, case.compare));
+
+        if (case.expected_index) |expected_index| {
+            const found = search([]const u8, Entry, &case.target, case.items, case.compare) orelse return error.TestUnexpectedResult;
+            try std.testing.expectEqual(@intFromPtr(&case.items[expected_index]), @intFromPtr(found));
+            try std.testing.expectEqualStrings(case.target, found.name);
+        } else {
+            try std.testing.expect(search([]const u8, Entry, &case.target, case.items, case.compare) == null);
+        }
+    }
+}
+
+test "searchMutable accepts runtime-selected C ABI heterogeneous comparator function pointers" {
+    const cases = [_]struct {
+        target: []const u8,
+        entries: [4]Entry,
+        compare: CComparator([]const u8, Entry),
+        expected_index: ?usize,
+        expected_value: u32,
+    }{
+        .{
+            .target = "omega",
+            .entries = .{
+                .{ .name = "alpha", .value = 1 },
+                .{ .name = "beta", .value = 2 },
+                .{ .name = "delta", .value = 4 },
+                .{ .name = "omega", .value = 24 },
+            },
+            .compare = compareCName,
+            .expected_index = 3,
+            .expected_value = 24,
+        },
+        .{
+            .target = "gamma",
+            .entries = .{
+                .{ .name = "alpha", .value = 1 },
+                .{ .name = "beta", .value = 2 },
+                .{ .name = "delta", .value = 4 },
+                .{ .name = "omega", .value = 24 },
+            },
+            .compare = compareCName,
+            .expected_index = null,
+            .expected_value = 0,
+        },
+    };
+
+    for (cases) |case| {
+        var entries = case.entries;
+        const found = searchMutable([]const u8, Entry, &case.target, entries[0..], case.compare);
+
+        if (case.expected_index) |expected_index| {
+            const typed_found = found orelse return error.TestUnexpectedResult;
+            try std.testing.expectEqual(@intFromPtr(&entries[expected_index]), @intFromPtr(typed_found));
+            try std.testing.expectEqual(case.expected_value, typed_found.value);
+            typed_found.value += 100;
+            try std.testing.expectEqual(case.expected_value + 100, entries[expected_index].value);
+        } else {
+            try std.testing.expect(found == null);
+        }
+    }
+}
+
 test "bsearchIndex and bsearch expose the raw Linux-style helper contract" {
     const values = [_]i32{ 2, 4, 7, 11, 16, 23, 42 };
     const key = @as(i32, 16);
@@ -397,6 +587,101 @@ test "bsearch supports heterogeneous keys and mutable raw pointers" {
     const typed_found_mutable: *Entry = @ptrCast(@alignCast(found_mutable));
     typed_found_mutable.value = 5;
     try std.testing.expectEqual(@as(u32, 5), entries[2].value);
+}
+
+test "bsearch accepts runtime-selected raw heterogeneous comparator function pointers" {
+    const cases = [_]struct {
+        target: []const u8,
+        items: []const Entry,
+        compare: RawComparator,
+        expected_index: ?usize,
+    }{
+        .{
+            .target = "delta",
+            .items = &[_]Entry{
+                .{ .name = "alpha", .value = 1 },
+                .{ .name = "beta", .value = 2 },
+                .{ .name = "delta", .value = 4 },
+                .{ .name = "omega", .value = 24 },
+            },
+            .compare = compareOpaqueName,
+            .expected_index = 2,
+        },
+        .{
+            .target = "gamma",
+            .items = &[_]Entry{
+                .{ .name = "alpha", .value = 1 },
+                .{ .name = "beta", .value = 2 },
+                .{ .name = "delta", .value = 4 },
+                .{ .name = "omega", .value = 24 },
+            },
+            .compare = compareOpaqueName,
+            .expected_index = null,
+        },
+    };
+
+    for (cases) |case| {
+        try std.testing.expectEqual(case.expected_index, bsearchIndex(@ptrCast(&case.target), @ptrCast(case.items.ptr), case.items.len, @sizeOf(Entry), case.compare));
+
+        if (case.expected_index) |expected_index| {
+            const found = bsearch(@ptrCast(&case.target), @ptrCast(case.items.ptr), case.items.len, @sizeOf(Entry), case.compare) orelse return error.TestUnexpectedResult;
+            const typed_found: *const Entry = @ptrCast(@alignCast(found));
+            try std.testing.expectEqual(@intFromPtr(&case.items[expected_index]), @intFromPtr(typed_found));
+            try std.testing.expectEqualStrings(case.target, typed_found.name);
+        } else {
+            try std.testing.expect(bsearch(@ptrCast(&case.target), @ptrCast(case.items.ptr), case.items.len, @sizeOf(Entry), case.compare) == null);
+        }
+    }
+}
+
+test "bsearchMutable accepts runtime-selected raw heterogeneous comparator function pointers" {
+    const cases = [_]struct {
+        target: []const u8,
+        entries: [4]Entry,
+        compare: RawComparator,
+        expected_index: ?usize,
+        expected_value: u32,
+    }{
+        .{
+            .target = "beta",
+            .entries = .{
+                .{ .name = "alpha", .value = 1 },
+                .{ .name = "beta", .value = 2 },
+                .{ .name = "delta", .value = 4 },
+                .{ .name = "omega", .value = 24 },
+            },
+            .compare = compareOpaqueName,
+            .expected_index = 1,
+            .expected_value = 2,
+        },
+        .{
+            .target = "gamma",
+            .entries = .{
+                .{ .name = "alpha", .value = 1 },
+                .{ .name = "beta", .value = 2 },
+                .{ .name = "delta", .value = 4 },
+                .{ .name = "omega", .value = 24 },
+            },
+            .compare = compareOpaqueName,
+            .expected_index = null,
+            .expected_value = 0,
+        },
+    };
+
+    for (cases) |case| {
+        var entries = case.entries;
+        const found = bsearchMutable(@ptrCast(&case.target), @ptrCast(entries[0..].ptr), entries.len, @sizeOf(Entry), case.compare);
+
+        if (case.expected_index) |expected_index| {
+            const typed_found: *Entry = @ptrCast(@alignCast(found orelse return error.TestUnexpectedResult));
+            try std.testing.expectEqual(@intFromPtr(&entries[expected_index]), @intFromPtr(typed_found));
+            try std.testing.expectEqual(case.expected_value, typed_found.value);
+            typed_found.value += 100;
+            try std.testing.expectEqual(case.expected_value + 100, entries[expected_index].value);
+        } else {
+            try std.testing.expect(found == null);
+        }
+    }
 }
 
 test "search accepts runtime-selected comparator function pointers across hit and miss cases" {
@@ -572,6 +857,51 @@ test "bsearch accepts runtime-selected C ABI raw comparator function pointers fo
     }
 }
 
+test "bsearch accepts runtime-selected C ABI raw heterogeneous comparator function pointers" {
+    const cases = [_]struct {
+        target: []const u8,
+        items: []const Entry,
+        compare: CRawComparator,
+        expected_index: ?usize,
+    }{
+        .{
+            .target = "omega",
+            .items = &[_]Entry{
+                .{ .name = "alpha", .value = 1 },
+                .{ .name = "beta", .value = 2 },
+                .{ .name = "delta", .value = 4 },
+                .{ .name = "omega", .value = 24 },
+            },
+            .compare = compareCOpaqueName,
+            .expected_index = 3,
+        },
+        .{
+            .target = "gamma",
+            .items = &[_]Entry{
+                .{ .name = "alpha", .value = 1 },
+                .{ .name = "beta", .value = 2 },
+                .{ .name = "delta", .value = 4 },
+                .{ .name = "omega", .value = 24 },
+            },
+            .compare = compareCOpaqueName,
+            .expected_index = null,
+        },
+    };
+
+    for (cases) |case| {
+        try std.testing.expectEqual(case.expected_index, bsearchIndex(@ptrCast(&case.target), @ptrCast(case.items.ptr), case.items.len, @sizeOf(Entry), case.compare));
+
+        if (case.expected_index) |expected_index| {
+            const found = bsearch(@ptrCast(&case.target), @ptrCast(case.items.ptr), case.items.len, @sizeOf(Entry), case.compare) orelse return error.TestUnexpectedResult;
+            const typed_found: *const Entry = @ptrCast(@alignCast(found));
+            try std.testing.expectEqual(@intFromPtr(&case.items[expected_index]), @intFromPtr(typed_found));
+            try std.testing.expectEqualStrings(case.target, typed_found.name);
+        } else {
+            try std.testing.expect(bsearch(@ptrCast(&case.target), @ptrCast(case.items.ptr), case.items.len, @sizeOf(Entry), case.compare) == null);
+        }
+    }
+}
+
 test "bsearchIndex and bsearchMutable accept runtime-selected C ABI raw comparator function pointers across hit and miss cases" {
     const ascending = [_]i32{ 2, 4, 7, 11, 16, 23, 42 };
     const descending = [_]i32{ 42, 23, 16, 11, 7, 4, 2 };
@@ -599,6 +929,56 @@ test "bsearchIndex and bsearchMutable accept runtime-selected C ABI raw comparat
             try std.testing.expectEqual(@intFromPtr(&mutable_items[expected_index]), @intFromPtr(typed_found));
             typed_found.* += 100;
             try std.testing.expectEqual(case.target + 100, mutable_items[expected_index]);
+        } else {
+            try std.testing.expect(found == null);
+        }
+    }
+}
+
+test "bsearchMutable accepts runtime-selected C ABI raw heterogeneous comparator function pointers" {
+    const cases = [_]struct {
+        target: []const u8,
+        entries: [4]Entry,
+        compare: CRawComparator,
+        expected_index: ?usize,
+        expected_value: u32,
+    }{
+        .{
+            .target = "alpha",
+            .entries = .{
+                .{ .name = "alpha", .value = 1 },
+                .{ .name = "beta", .value = 2 },
+                .{ .name = "delta", .value = 4 },
+                .{ .name = "omega", .value = 24 },
+            },
+            .compare = compareCOpaqueName,
+            .expected_index = 0,
+            .expected_value = 1,
+        },
+        .{
+            .target = "gamma",
+            .entries = .{
+                .{ .name = "alpha", .value = 1 },
+                .{ .name = "beta", .value = 2 },
+                .{ .name = "delta", .value = 4 },
+                .{ .name = "omega", .value = 24 },
+            },
+            .compare = compareCOpaqueName,
+            .expected_index = null,
+            .expected_value = 0,
+        },
+    };
+
+    for (cases) |case| {
+        var entries = case.entries;
+        const found = bsearchMutable(@ptrCast(&case.target), @ptrCast(entries[0..].ptr), entries.len, @sizeOf(Entry), case.compare);
+
+        if (case.expected_index) |expected_index| {
+            const typed_found: *Entry = @ptrCast(@alignCast(found orelse return error.TestUnexpectedResult));
+            try std.testing.expectEqual(@intFromPtr(&entries[expected_index]), @intFromPtr(typed_found));
+            try std.testing.expectEqual(case.expected_value, typed_found.value);
+            typed_found.value += 100;
+            try std.testing.expectEqual(case.expected_value + 100, entries[expected_index].value);
         } else {
             try std.testing.expect(found == null);
         }
