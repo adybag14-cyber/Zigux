@@ -61,15 +61,16 @@ The honest bounded step therefore remains maintenance of the existing readiness 
 - `Documentation/zigux/phase15-parity-scorecard.md` is present and records the four freeze-in-C anchors, their lane owners, evidence thresholds, rollback owners, archive paths, and blocker dispositions
 - `Documentation/zigux/phase15-indefinite-c-policy.md` is present and records the source-of-truth, exception, reopen, and retained-closeout posture for long-term C ownership
 - `Documentation/zigux/phase15-handoff-next-steps-survey.md` is present and records the parked handoff contract, named reopen conditions, and maintenance-mode next step for the already-landed governance bundle
-- `python3 scripts/zigux/validate-phase15.py` plus `make -C zigux phase15-validate` stay explicit as the validator-first gate before the shared replay path is trusted
+- `scripts/zigux/validate-phase15.py` is present and stays the dedicated validator script for the Phase 15 governance packet
 - `zigux/tests/phase15_build.zig` is present and defines the shared Phase 15 replay surface for the current governance bundle
+- `zigux/Makefile` is present and exposes `make -C zigux phase15-validate`, so the validator-first target remains reviewable as a separate gate before the shared replay path is trusted
 - `zigux/Makefile` is present and exposes `make -C zigux phase15`, and the target remains aligned with the same shared replay path
 - `.github/workflows/zigux-bootstrap.yml` is present and runs `Run Phase 15 governance tests`, so the same shared replay surface remains the published Phase 15 gate on current `master`
 - `Documentation/zigux/README.md` exposes the Phase 15 governance notes, the direct handoff pointer, and the same maintenance-mode posture as the dedicated readiness and handoff packet
 - `zigux/tests/phase15_docs_root_reviewability.zig` is present and keeps the docs-root Phase 15 summary aligned with the dedicated readiness and handoff packet under that same shared replay surface
 - the dedicated readiness and handoff packets both record the shared Phase 15 replay as green on current `master`
 
-That means the roadmap-required governance bundle is landed on current `master`, the bootstrap ledger anchor has already been carried forward into a fuller Phase 15 review surface, the validator-first gate and shared replay surfaces are green, the dedicated docs-root reviewability guard is part of the same review path, and the docs-root Phase 15 summary is aligned with the dedicated maintenance packet. The remaining longer-lived blocker is still whether any deep-core anchor ever earns evidence strong enough to leave the freeze-in-C posture.
+That means the roadmap-required governance bundle is landed on current `master`, the bootstrap ledger anchor has already been carried forward into a fuller Phase 15 review surface, the dedicated validator script and validator-first target stay explicit as release evidence before the shared replay surface is trusted, the shared replay surfaces are green, the dedicated docs-root reviewability guard is part of the same review path, and the docs-root Phase 15 summary is aligned with the dedicated maintenance packet. The remaining longer-lived blocker is still whether any deep-core anchor ever earns evidence strong enough to leave the freeze-in-C posture.
 
 ## Remaining Readiness Gaps
 
@@ -90,7 +91,7 @@ The current readiness gate for trusting the Phase 15 tranche is:
 
 1. the roadmap-required governance bundle is present and internally aligned
 2. the bootstrap ledger anchor is still visible as the originating documentation root and freeze-map step
-3. the validator-first route through `python3 scripts/zigux/validate-phase15.py` and `make -C zigux phase15-validate` stays present before the shared replay and shared-bootstrap surfaces are trusted on current `master`
+3. the dedicated validator script and `make -C zigux phase15-validate` target stay present before the shared replay and shared-bootstrap surfaces are trusted on current `master`
 4. the parked handoff-and-next-step packet stays aligned with the same governance bundle
 5. the docs-root Phase 15 summary stays aligned with that current replay posture and maintenance-mode handoff
 6. the dedicated docs-root reviewability guard stays aligned with the same readiness and handoff packet instead of leaving that top-level release-evidence path implicit
@@ -111,7 +112,7 @@ The current lane state is:
 - landed `phase15-docs-root-summary-alignment`
 - blocked `phase15-deep-core-status-change-blocker`
 
-This keeps the lane tight. Zigux now has one reviewable readiness packet that says the roadmap bundle is landed, the ledger anchor is still visible, the validator-first gate stays explicit before the shared replay, the shared bootstrap workflow still points at the current Phase 15 gate, the parked handoff-and-next-step packet is present in the same governance family, the dedicated docs-root reviewability guard remains visible inside that same review path, the dedicated replay path is green on current `master`, the docs-root Phase 15 summary matches that same maintenance-mode packet, and the remaining honest gap is the unchanged deep-core status-change posture.
+This keeps the lane tight. Zigux now has one reviewable readiness packet that says the roadmap bundle is landed, the ledger anchor is still visible, the dedicated validator script and validator-first target remain explicit before the shared replay, the shared bootstrap workflow still points at the current Phase 15 gate, the parked handoff-and-next-step packet is present in the same governance family, the dedicated docs-root reviewability guard remains visible inside that same review path, the dedicated replay path is green on current `master`, the docs-root Phase 15 summary matches that same maintenance-mode packet, and the remaining honest gap is the unchanged deep-core status-change posture.
 
 ## Non-goals
 
