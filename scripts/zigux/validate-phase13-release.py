@@ -101,6 +101,7 @@ TRACEABILITY_MARKERS = [
     "`zigux/Makefile` via `make -C zigux phase13`",
     "`lib/devres.c` is represented by real helper code, real tests, a manifest-backed survey packet, and explicit blocked DMA/scatterlist boundary evidence",
     "the same shared packet also keeps `zigux/bindings/notifier_abi.zig`, `zigux/helpers/notifier_chain_view.zig`, `zigux/tests/phase13_notifier_list_reviewability.zig`, and `Documentation/zigux/phase13-notifier-list-survey.md` visible as roadmap-adjacent release-facing evidence without changing the roadmap's four-anchor count",
+    "reviewability gate: `zigux/tests/phase13_landlock_syscalls_reviewability.zig`",
 ]
 
 DOCS_ROOT_MARKERS = [
@@ -340,6 +341,13 @@ for manifest_path, lane_key, anchor in [
     if summary.get("preexisting_phase13_make_target_present") is not True:
         missing.append(f"{manifest_path}:make_present")
 
+syscalls_manifest = load_json("zigux/tests/phase13_landlock_syscalls_manifest.json")
+syscalls_summary = syscalls_manifest.get("survey_summary")
+if not isinstance(syscalls_summary, dict):
+    missing.append("zigux/tests/phase13_landlock_syscalls_manifest.json:survey_summary")
+else:
+    if syscalls_summary.get("preexisting_phase13_landlock_syscalls_reviewability_present") is not True:
+        missing.append("zigux/tests/phase13_landlock_syscalls_manifest.json:reviewability_present")
 
 devres_manifest = load_json("zigux/tests/phase13_devres_manifest.json")
 for blocked in ["blocked_on_dma_state", "blocked_on_scatterlist_state"]:
