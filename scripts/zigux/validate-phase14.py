@@ -138,7 +138,7 @@ BUILD_MARKERS = [
     "test_step.dependOn(&run_phase14_skbuff_bridge_tests.step);",
     "test_step.dependOn(&run_phase14_ring_buffer_survey_tests.step);",
     "test_step.dependOn(&run_phase14_rcu_tree_survey_tests.step);",
-    "test_step.dependOn(&run_phase14_end-to-end-smoke-tests.step);",
+    "test_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);",
 ]
 
 FREEZE_MAP_MARKERS = [
