@@ -611,6 +611,32 @@ test "phase12 virtio net treats either guest uso feature as guest gso pressure" 
     );
 }
 
+test "phase12 virtio net mergeable refill treats guest uso as big-packet pressure" {
+    var lab = try virtio_net.VirtioNetProbeLab.init(&.{
+        virtio_net.feature_mergeable_rx_buffers,
+        virtio_net.feature_guest_uso4,
+    });
+
+    const snapshot = try lab.captureProbeSnapshot(.{
+        .driver_feature_bits = &.{
+            virtio_net.feature_mergeable_rx_buffers,
+            virtio_net.feature_guest_uso4,
+        },
+        .requested_queue_pairs = 1,
+        .max_queue_pairs = 1,
+    });
+
+    try std.testing.expectEqual(virtio_net.ReceiveBufferMode.mergeable, snapshot.receive_buffer_mode);
+    try std.testing.expectEqual(virtio_net.BigPacketReason.guest_gso, snapshot.big_packet_reason);
+
+    const refill = try lab.planMergeableReceiveRefill(4);
+    try std.testing.expectEqual(@as(u16, 4), refill.rx_queue_entries);
+    try std.testing.expect(refill.uses_mergeable_buffers);
+    try std.testing.expectEqual(@as(u32, 65563), refill.packet_budget_bytes);
+    try std.testing.expectEqual(@as(u32, 16379), refill.min_buf_len_bytes);
+    try std.testing.expectEqual(virtio_net.BigPacketReason.guest_gso, refill.big_packet_reason);
+}
+
 test "phase12 virtio net plans mergeable refill budgets from mtu and header state" {
     var lab = try virtio_net.VirtioNetProbeLab.init(&.{
         virtio_net.feature_mergeable_rx_buffers,
@@ -638,7 +664,7 @@ test "phase12 virtio net plans mergeable refill budgets from mtu and header stat
     try std.testing.expectEqual(@as(u16, 20), refill.required_headroom_bytes);
     try std.testing.expectEqual(@as(u32, 20), refill.recycled_room_bytes);
     try std.testing.expectEqual(@as(u32, 2_220), refill.fresh_allocation_bytes);
-    try std.testing.expectEqual(virtio_net.BigPacketReason.none, refill.big_packet_reason);
+    try std.testing.expectEqual(virtio_net.BigPacketReason.mtu_above_default, refill.big_packet_reason);
 }
 
 test "phase12 virtio net rejects refill planning without queue entries" {
