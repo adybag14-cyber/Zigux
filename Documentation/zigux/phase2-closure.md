@@ -88,6 +88,7 @@ Phase 2 is only considered closed when all of the following are green:
 - `python3 scripts/zigux/check-kconfig-bridge.py`
 - the checker self-test must stay in the Linux-style `phase2-kconfig` path before live replay so manifest-ordering and failure-shape drift cannot hide behind the bounded bridge artifacts
 - the checker self-test must emit `KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=6` so the bounded synthetic four-conf-case plus two-confdata-case packet stays explicit before live replay
+- the conf bridge packet must keep required positional input rejection explicit: empty `Kconfig`, `.config`, and `ARCH` values must fail before bridge JSON emission
 - conf and confdata repeat-run JSON determinism is required before closure evidence stays green, and confdata replay must also stay stable across a second binary rebuild in the same check packet
 
 7. bounded phase2 cross-target compile gate
@@ -138,6 +139,7 @@ Phase 2 is only considered closed when all of the following are green:
 - `PHASE2_KCONFIG_BRIDGE_GATE=python3 scripts/zigux/check-kconfig-bridge.py`
 - `PHASE2_KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=6`
 - `PHASE2_KCONFIG_BRIDGE_DETERMINISM=check-kconfig-bridge.py replays conf and confdata outputs twice and compares a rebuilt confdata binary against the same JSON artifacts`
+- `PHASE2_KCONFIG_BRIDGE_REQUIRED_INPUT_POLICY=conf bridge rejects empty Kconfig, .config, and ARCH positional inputs before emitting bridge JSON`
 - `PHASE2_CROSS_SELF_TEST=python3 scripts/zigux/check-phase2-cross.py --self-test`
 - `PHASE2_CROSS_GATE=python3 scripts/zigux/check-phase2-cross.py`
 - `PHASE2_CROSS_ALIGNMENT_SELF_TEST=python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`
@@ -145,7 +147,7 @@ Phase 2 is only considered closed when all of the following are green:
 - `PHASE2_CROSS_MANIFEST_POLICY=check-phase2-cross.py rejects duplicate tool entries, duplicate requested targets, unexpected explicit targets, duplicate manifest targets, and manifest-count drift before live compile replay`
 - `PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`
 - `PHASE2_TOOLCHAIN_PIN_SCOPE_GATE=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`
-- `PHASE2_TOOLCHAIN_PIN_SCOPE_POLICY=scripts/zigux/zig-toolchain-policy.json keeps the bootstrap archive pin limited to x86_64-linux until a new runner target gains first-class workflow evidence`
+- `PHASE2_TOOLCHAIN_PIN_SCOPE_POLICY=scripts/zigux/zig-toolchain-policy.json keeps the bootstrap archive pin limited to x86_64-linux until a new bootstrap runner target gains first-class workflow evidence`
 - `PHASE2_SHARED_VALIDATOR=python3 scripts/zigux/validate-phase2.py`
 - `PHASE2_CLOSURE_GATE=python3 scripts/zigux/validate-phase2-closure.py`
 
@@ -208,6 +210,9 @@ The bounded `kconfig` bridge closure packet remains closed because the shared fi
   `conf bridge emits allconfig env for allconfig family modes`
   `conf bridge requires mode arg for defconfig modes`
   `conf bridge emits savedefconfig mode argument before kconfig`
+  `conf bridge rejects empty Kconfig path arguments`
+  `conf bridge rejects empty config path arguments`
+  `conf bridge rejects empty arch arguments`
   `conf bridge escapes low control bytes in argv and env values`
 - helper-local anchors in `scripts/zigux/kconfig/confdata_bridge.zig`:
   `confdata bridge decodes escaped control sequences in quoted strings`
@@ -228,7 +233,8 @@ The bounded `kconfig` bridge closure packet remains closed because the shared fi
 - `PHASE2_KCONFIG_BRIDGE_ARGUMENT_CASES=zigux/tests/fixtures/kconfig_bridge/defconfig_expected.json,zigux/tests/fixtures/kconfig_bridge/savedefconfig_expected.json`
 - `PHASE2_KCONFIG_BRIDGE_LOW_CONTROL_CASE=zigux/tests/fixtures/kconfig_bridge/escaped_low_control_bytes_expected.json`
 - `PHASE2_KCONFIG_BRIDGE_MANIFEST_POLICY=check-kconfig-bridge.py rejects uncovered modes, malformed manifests, duplicate fixture references, orphaned fixture files, and non-canonical confdata names before replay`
-- `PHASE2_KCONFIG_BRIDGE_EVIDENCE=artifact fixtures plus conf bridge mode coverage, allconfig env, mode-arg, manifest-determinism, confdata escaped-control decode, empty-string, empty-symbol, explicit-n, malformed-quote, signed-numeric, quoted-suffix, CRLF, empty-path rejection, and low-control JSON emission anchors are required for closure`
+- `PHASE2_KCONFIG_BRIDGE_REQUIRED_INPUT_POLICY=conf bridge rejects empty Kconfig, .config, and ARCH positional inputs before emitting bridge JSON`
+- `PHASE2_KCONFIG_BRIDGE_EVIDENCE=artifact fixtures plus conf bridge mode coverage, allconfig env, mode-arg, required-input rejection, manifest-determinism, confdata escaped-control decode, empty-string, empty-symbol, explicit-n, malformed-quote, signed-numeric, quoted-suffix, CRLF, empty-path rejection, and low-control JSON emission anchors are required for closure`
 
 ## Linux-Style Entry Point
 
