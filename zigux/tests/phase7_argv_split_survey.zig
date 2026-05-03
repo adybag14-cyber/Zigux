@@ -107,6 +107,22 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     );
     defer std.testing.allocator.free(build_inventory_fixture);
 
+    const scripts_readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "scripts/zigux/README.md",
+        std.testing.allocator,
+        .limited(128 * 1024),
+    );
+    defer std.testing.allocator.free(scripts_readme);
+
+    const tests_readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/README.md",
+        std.testing.allocator,
+        .limited(128 * 1024),
+    );
+    defer std.testing.allocator.free(tests_readme);
+
     const argv_split_parity_checker = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "scripts/zigux/check-phase7-argv-split-parity.py",
@@ -218,6 +234,15 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(makefile, "scripts/zigux/check-phase7-argv-split-parity.py");
     try expectContains(build_inventory_fixture, "\"scripts/zigux/check-phase7-argv-split-parity.py\"");
     try expectContains(build_inventory_fixture, "\"scripts/zigux/check-phase7-argv-split-parity.py --self-test\"");
+    try expectContains(scripts_readme, "`check-phase7-argv-split-parity.py`");
+    try expectContains(
+        tests_readme,
+        "`scripts/zigux/check-phase7-argv-split-parity.py --self-test`",
+    );
+    try expectContains(
+        tests_readme,
+        "`scripts/zigux/check-phase7-argv-split-parity.py`",
+    );
     try expectContains(argv_split_parity_checker, "SOURCE = ROOT / \"lib\" / \"argv_split.c\"");
     try expectContains(argv_split_parity_checker, "FIXTURE = ROOT / \"zigux\" / \"tests\" / \"fixtures\" / \"phase7_argv_split.json\"");
     try expectContains(argv_split_parity_checker, "HARNESS = ROOT / \"zigux\" / \"tests\" / \"fixtures\" / \"phase7_argv_split_c_harness.c\"");
