@@ -24,6 +24,7 @@ REQUIRED_FILES = [
     "scripts/zigux/artifact_diff.py",
     "scripts/zigux/check-phase1-bench.py",
     "scripts/zigux/check-phase1-parity.py",
+    "scripts/zigux/check-phase1-route-summary-counts.py",
     "scripts/zigux/install-zig.py",
     "scripts/zigux/validate-phase1-closure.py",
     "tools/lib/argv_split.zig",
@@ -189,6 +190,8 @@ WORKFLOW_LINES = {
     "run: python3 scripts/zigux/validate-phase1.py": 1,
     "run: python3 scripts/zigux/validate-phase1-closure.py": 1,
     "run: python3 scripts/zigux/validate-phase1-closure.py --self-test": 1,
+    "run: python3 scripts/zigux/check-phase1-route-summary-counts.py": 1,
+    "run: python3 scripts/zigux/check-phase1-route-summary-counts.py --self-test": 1,
     "run: python3 scripts/zigux/check-phase1-bench.py": 1,
     "run: python3 scripts/zigux/check-phase1-bench.py --self-test": 1,
     "run: python3 scripts/zigux/check-phase1-parity.py": 1,
@@ -617,6 +620,33 @@ def self_test() -> int:
             return 1
         write(root / "scripts/zigux/README.md", "\n".join(SCRIPTS_ROOT_MARKERS) + "\n")
 
+        workflow_path = root / ".github/workflows/zigux-bootstrap.yml"
+        workflow_text = workflow_path.read_text(encoding="utf-8")
+        workflow_path.write_text(
+            workflow_text.replace(
+                "run: python3 scripts/zigux/check-phase1-route-summary-counts.py --self-test\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        code = os.spawnve(os.P_WAIT, sys.executable, [sys.executable, __file__], env)
+        if code == 0:
+            print("PHASE1_VALIDATOR_SELF_TEST=fail")
+            return 1
+        write(
+            root / ".github/workflows/zigux-bootstrap.yml",
+            "\n".join(MARKER_GROUPS["workflow"][1]) + "\n" + "\n".join(WORKFLOW_LINES.keys()) + "\n",
+        )
+
+        checker_path = root / "scripts/zigux/check-phase1-route-summary-counts.py"
+        checker_path.unlink()
+        code = os.spawnve(os.P_WAIT, sys.executable, [sys.executable, __file__], env)
+        if code == 0:
+            print("PHASE1_VALIDATOR_SELF_TEST=fail")
+            return 1
+        write(root / "scripts/zigux/check-phase1-route-summary-counts.py", "// marker fixture\n")
+
         closure_path = root / "Documentation/zigux/phase1-closure.md"
         closure_text = closure_path.read_text(encoding="utf-8")
         closure_path.write_text(
@@ -770,7 +800,7 @@ def self_test() -> int:
             return 1
 
     print("PHASE1_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_VALIDATOR_SELF_TEST_CASE_COUNT=20")
+    print("PHASE1_VALIDATOR_SELF_TEST_CASE_COUNT=22")
     return 0
 
 
