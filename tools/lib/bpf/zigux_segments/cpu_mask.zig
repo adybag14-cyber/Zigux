@@ -240,11 +240,11 @@ test "parseCpuMaskString expands single CPUs and ranges into a dense bool mask" 
     try std.testing.expectEqual(@as(usize, 6), parsed.countSet());
 }
 
-test "parseCpuMaskString follows the C helper's delimiter loop and sscanf-style leading whitespace" {
-    const parsed = try parseCpuMaskString(std.testing.allocator, " \t0-1,,\r4\n6\n");
+test "parseCpuMaskString follows the C helper's delimiter loop and sscanf-style token-leading whitespace" {
+    const parsed = try parseCpuMaskString(std.testing.allocator, " \t0-1,,\x0b4\n\x0c6,\r8\n");
     defer parsed.deinit(std.testing.allocator);
 
-    try std.testing.expectEqual(@as(usize, 7), parsed.values.len);
+    try std.testing.expectEqual(@as(usize, 9), parsed.values.len);
     try std.testing.expect(parsed.values[0]);
     try std.testing.expect(parsed.values[1]);
     try std.testing.expect(!parsed.values[2]);
@@ -252,6 +252,8 @@ test "parseCpuMaskString follows the C helper's delimiter loop and sscanf-style 
     try std.testing.expect(parsed.values[4]);
     try std.testing.expect(!parsed.values[5]);
     try std.testing.expect(parsed.values[6]);
+    try std.testing.expect(!parsed.values[7]);
+    try std.testing.expect(parsed.values[8]);
 }
 
 test "parseCpuMaskString accepts the C helper's signed decimal token syntax when values stay non-negative" {
@@ -268,10 +270,10 @@ test "parseCpuMaskString accepts the C helper's signed decimal token syntax when
 }
 
 test "parseCpuMaskString keeps sscanf-style whitespace after range dashes in parity with the C helper" {
-    const parsed = try parseCpuMaskString(std.testing.allocator, "0- 3,+5-\t6,+8-\r9\n");
+    const parsed = try parseCpuMaskString(std.testing.allocator, "0- 3,+5-\t6,+8-\r9,+11-\x0c12\n");
     defer parsed.deinit(std.testing.allocator);
 
-    try std.testing.expectEqual(@as(usize, 10), parsed.values.len);
+    try std.testing.expectEqual(@as(usize, 13), parsed.values.len);
     try std.testing.expect(parsed.values[0]);
     try std.testing.expect(parsed.values[1]);
     try std.testing.expect(parsed.values[2]);
@@ -282,6 +284,9 @@ test "parseCpuMaskString keeps sscanf-style whitespace after range dashes in par
     try std.testing.expect(!parsed.values[7]);
     try std.testing.expect(parsed.values[8]);
     try std.testing.expect(parsed.values[9]);
+    try std.testing.expect(!parsed.values[10]);
+    try std.testing.expect(parsed.values[11]);
+    try std.testing.expect(parsed.values[12]);
 }
 
 test "parseCpuMaskString rejects empty and malformed ranges" {
