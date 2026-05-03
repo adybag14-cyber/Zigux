@@ -9,10 +9,12 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[2]
 MAKEFILE_REL = "zigux/Makefile"
 WORKFLOW_REL = ".github/workflows/zigux-bootstrap.yml"
+DOCS_ROOT_REL = "Documentation/zigux/README.md"
 
 REQUIRED_FILES = (
     MAKEFILE_REL,
     WORKFLOW_REL,
+    DOCS_ROOT_REL,
 )
 
 REQUIRED_MAKEFILE_SNIPPETS = (
@@ -97,6 +99,18 @@ FORBIDDEN_WORKFLOW_SNIPPETS = (
     "run: python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test\n",
 )
 
+REQUIRED_DOCS_ROOT_SNIPPETS = (
+    "`scripts/zigux/validate-phase3.py`, `make -C zigux phase3-validate`, and the bootstrap workflow are the validator-first route for the shared Phase 3 review packet; the dedicated survey scripts listed below stay supporting checks inside that shared gate rather than standalone release entrypoints.",
+    "`scripts/zigux/validate-phase3-roadmap-gap-survey.py` remains a supporting survey check inside that shared validator-first route",
+    "`scripts/zigux/validate-phase3-export-uapi-survey.py` remains a supporting survey check inside that shared validator-first route",
+    "`scripts/zigux/validate-phase3-low-level-wrapper-survey.py` now keeps that dedicated low-level wrapper survey packet explicit alongside the broader roadmap-gap, export/UAPI, and policy/unsafe Phase 3 notes",
+    "`scripts/zigux/validate-phase3-policy-unsafe-survey.py` remains a supporting survey check inside that shared validator-first route",
+)
+
+EXACT_ONCE_DOCS_ROOT_SNIPPETS = (
+    "`scripts/zigux/validate-phase3.py`, `make -C zigux phase3-validate`, and the bootstrap workflow are the validator-first route for the shared Phase 3 review packet; the dedicated survey scripts listed below stay supporting checks inside that shared gate rather than standalone release entrypoints.",
+)
+
 
 def _read_text(root: Path, rel: str, issues: list[str]) -> str:
     path = root / rel
@@ -153,6 +167,7 @@ def validate(root: Path) -> list[str]:
 
     makefile = _read_text(root, MAKEFILE_REL, issues)
     workflow = _read_text(root, WORKFLOW_REL, issues)
+    docs_root = _read_text(root, DOCS_ROOT_REL, issues)
     _require_snippets(makefile, REQUIRED_MAKEFILE_SNIPPETS, "missing_makefile_snippet", issues)
     _require_exact_count(makefile, EXACT_ONCE_MAKEFILE_SNIPPETS, "unexpected_makefile_snippet_count", 1, issues)
     _require_snippets(makefile, REQUIRED_PHASE3_ABI_MAKEFILE_SNIPPETS, "missing_makefile_snippet", issues)
@@ -160,6 +175,8 @@ def validate(root: Path) -> list[str]:
     _require_snippets(workflow, REQUIRED_WORKFLOW_SNIPPETS, "missing_workflow_snippet", issues)
     _require_exact_count(workflow, EXACT_ONCE_WORKFLOW_SNIPPETS, "unexpected_workflow_snippet_count", 1, issues)
     _reject_snippets(workflow, FORBIDDEN_WORKFLOW_SNIPPETS, "unexpected_workflow_snippet", issues)
+    _require_snippets(docs_root, REQUIRED_DOCS_ROOT_SNIPPETS, "missing_docs_root_snippet", issues)
+    _require_exact_count(docs_root, EXACT_ONCE_DOCS_ROOT_SNIPPETS, "unexpected_docs_root_snippet_count", 1, issues)
 
     return issues
 
@@ -221,11 +238,26 @@ def _fixture_workflow() -> str:
     )
 
 
+def _fixture_docs_root() -> str:
+    return (
+        "# Zigux Documentation\n"
+        "\n"
+        "Phase 3 notes\n"
+        f"- {REQUIRED_DOCS_ROOT_SNIPPETS[0]}\n"
+        f"- {REQUIRED_DOCS_ROOT_SNIPPETS[1]}, and `make -C zigux phase3-validate` plus the bootstrap workflow keep that survey note explicit.\n"
+        f"- `Documentation/zigux/phase3-rbtree-interop-survey.md` records the dedicated `rbtree` boundary packet, and `scripts/zigux/validate-phase3-rbtree-interop-survey.py` remains a supporting survey check inside that shared validator-first route.\n"
+        f"- {REQUIRED_DOCS_ROOT_SNIPPETS[2]}, and `make -C zigux phase3-validate` now keeps that dedicated export-shim and UAPI boundary survey packet explicit alongside the broader roadmap-gap note.\n"
+        f"- {REQUIRED_DOCS_ROOT_SNIPPETS[3]}, including the packet-local blob markers that make direct connector-era readback reviewable without a trustworthy branch-tip SHA.\n"
+        f"- {REQUIRED_DOCS_ROOT_SNIPPETS[4]}, and `make -C zigux phase3-validate` plus the bootstrap workflow now keep that dedicated policy-and-unsafe survey packet explicit alongside the broader ABI slice note.\n"
+    )
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_validation_flow_") as tmp_dir:
         root = Path(tmp_dir)
         _write(root, MAKEFILE_REL, _fixture_makefile())
         _write(root, WORKFLOW_REL, _fixture_workflow())
+        _write(root, DOCS_ROOT_REL, _fixture_docs_root())
 
         baseline = validate(root)
         if baseline:
@@ -455,8 +487,47 @@ def run_self_test() -> int:
         )
         workflow_path.write_text(original_workflow, encoding="utf-8", newline="\n")
 
+        docs_root_path = root / DOCS_ROOT_REL
+        original_docs_root = docs_root_path.read_text(encoding="utf-8")
+        docs_root_path.write_text(
+            original_docs_root.replace(REQUIRED_DOCS_ROOT_SNIPPETS[0], "", 1),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate(root)
+        assert (
+            "missing_docs_root_snippet:"
+            + REQUIRED_DOCS_ROOT_SNIPPETS[0]
+            in issues
+        )
+        docs_root_path.write_text(original_docs_root, encoding="utf-8", newline="\n")
+
+        docs_root_path.write_text(
+            original_docs_root + "\n- " + REQUIRED_DOCS_ROOT_SNIPPETS[0] + "\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate(root)
+        assert (
+            "unexpected_docs_root_snippet_count:2:" + REQUIRED_DOCS_ROOT_SNIPPETS[0]
+            in issues
+        )
+        docs_root_path.write_text(original_docs_root, encoding="utf-8", newline="\n")
+
+        docs_root_path.write_text(
+            original_docs_root.replace(REQUIRED_DOCS_ROOT_SNIPPETS[2], "", 1),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate(root)
+        assert (
+            "missing_docs_root_snippet:" + REQUIRED_DOCS_ROOT_SNIPPETS[2]
+            in issues
+        )
+        docs_root_path.write_text(original_docs_root, encoding="utf-8", newline="\n")
+
     print("PHASE3_VALIDATION_FLOW_SELF_TEST=pass")
-    print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=15")
+    print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=18")
     return 0
 
 
@@ -481,7 +552,7 @@ def main() -> int:
     print("PHASE3_VALIDATION_FLOW=pass")
     print(
         "PHASE3_VALIDATION_FLOW_MARKER_COUNT="
-        f"{len(REQUIRED_MAKEFILE_SNIPPETS) + len(REQUIRED_PHASE3_ABI_MAKEFILE_SNIPPETS) + len(REQUIRED_WORKFLOW_SNIPPETS)}"
+        f"{len(REQUIRED_MAKEFILE_SNIPPETS) + len(REQUIRED_PHASE3_ABI_MAKEFILE_SNIPPETS) + len(REQUIRED_WORKFLOW_SNIPPETS) + len(REQUIRED_DOCS_ROOT_SNIPPETS)}"
     )
     return 0
 
