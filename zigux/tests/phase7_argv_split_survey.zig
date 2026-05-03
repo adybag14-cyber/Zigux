@@ -210,8 +210,8 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try std.testing.expect(std.mem.indexOf(u8, argv_split_fixture, ".name = \"quote characters stay inside returned tokens\",") != null);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "zigux/tests/fixtures/phase7_argv_split_vectors.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "The dedicated Phase 7 review gate now imports a focused fixture module under `zigux/tests/fixtures/phase7_argv_split_vectors.zig`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "integration with validation substrate through `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-build-inventory.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `zigux/tests/phase7_argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, and `zigux/tests/phase7_build.zig`.") != null);
-    try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "prove the shared Phase 7 validator packet plus the build-inventory and make-wrapper gates still fail closed before the helper replay runs") != null);
+    try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "explicit shared integration through `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-build-inventory.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `zigux/tests/phase7_argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, and `zigux/tests/phase7_build.zig`.") != null);
+    try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "prove the shared Phase 7 validator packet plus the build-inventory, make-wrapper, and argv_split parity gates still fail closed before the helper replay runs") != null);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "`python3 scripts/zigux/validate-phase7.py --self-test`") != null);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "`python3 scripts/zigux/check-phase7-build-inventory.py`") != null);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "`python3 scripts/zigux/check-phase7-make-wrapper.py`") != null);
