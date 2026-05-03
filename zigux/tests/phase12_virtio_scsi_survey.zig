@@ -14,6 +14,8 @@ const SurveySummary = struct {
     preexisting_phase12_survey_note_present: bool,
     preexisting_virtio_scsi_zig_present: bool,
     preexisting_phase12_virtio_scsi_test_present: bool,
+    preexisting_phase12_virtio_scsi_syntax_lab_test_present: bool,
+    preexisting_phase12_virtio_scsi_recovery_state_test_present: bool,
     preexisting_phase12_virtio_scsi_slice_note_present: bool,
     preexisting_phase12_raw_github_fallback_catalog_present: bool,
     raw_github_tree_fallback_count: usize,
@@ -141,11 +143,13 @@ test "phase12 virtio_scsi survey manifest records the landed queue-depth summary
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_survey_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_scsi_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_scsi_test_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_scsi_syntax_lab_test_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_scsi_recovery_state_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_scsi_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_raw_github_fallback_catalog_present);
     try std.testing.expectEqual(@as(usize, 3), manifest.survey_summary.raw_github_tree_fallback_count);
     try std.testing.expectEqual(@as(usize, 10), manifest.survey_summary.raw_github_file_fallback_count);
-    try std.testing.expectEqual(@as(usize, 15), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 17), manifest.gaps.len);
 
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase12-test:") != null);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase12-validate:") != null);
@@ -160,6 +164,8 @@ test "phase12 virtio_scsi survey manifest records the landed queue-depth summary
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "now also blocks queue-depth capture until restore") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "repeated transport-reset cycle reuses only the newly replanned queue topology") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "keeps one bounded io-queue-map plus recovery-restore summary in memory") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "dedicated syntax-lab replay") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "dedicated recovery-state replay") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "live `map_queues` callback or CPU-affinity wiring") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`scsi_host_alloc()`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`scsi_add_host()`") != null);
@@ -248,9 +254,15 @@ test "phase12 virtio_scsi survey manifest records the landed queue-depth summary
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "so treat any `PHASE12_VALIDATION=fail` marker or unavailable-toolchain note below as scoped to the exact replay head named here") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12_virtio_scsi_module") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12_virtio_scsi_tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12_virtio_scsi_recovery_state_module") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12_virtio_scsi_recovery_state_tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12_virtio_scsi_syntax_lab_module") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12_virtio_scsi_syntax_lab_tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12_virtio_scsi_survey_module") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12_virtio_scsi_survey_tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase12_build, "run_phase12_virtio_scsi_tests.step") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "run_phase12_virtio_scsi_recovery_state_tests.step") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "run_phase12_virtio_scsi_syntax_lab_tests.step") != null);
     try std.testing.expect(std.mem.indexOf(u8, virtio_scsi_driver, "pub const VirtioScsiQueueLab = struct") != null);
     try std.testing.expect(std.mem.indexOf(u8, virtio_scsi_driver, "provides_probe_config_snapshot = true") != null);
     try std.testing.expect(std.mem.indexOf(u8, virtio_scsi_driver, "provides_host_limit_summary = true") != null);
@@ -272,6 +284,8 @@ test "phase12 virtio_scsi survey manifest records the landed queue-depth summary
     var saw_survey_note = false;
     var saw_driver_starter = false;
     var saw_driver_tests = false;
+    var saw_syntax_lab_tests = false;
+    var saw_recovery_state_tests = false;
     var saw_slice_note = false;
     var saw_raw_fallback_catalog = false;
     var saw_probe_snapshot = false;
@@ -353,6 +367,24 @@ test "phase12 virtio_scsi survey manifest records the landed queue-depth summary
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "host-limit summary helper") != null);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-syntax-lab-tests")) {
+            saw_syntax_lab_tests = true;
+            try std.testing.expectEqualStrings("zigux/tests/phase12_virtio_scsi_syntax_lab.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "bounded export surface") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue lab") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "live DMA") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-recovery-state-tests")) {
+            saw_recovery_state_tests = true;
+            try std.testing.expectEqualStrings("zigux/tests/phase12_virtio_scsi_recovery_state.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "restore clears stale queue-depth state") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "later freeze generations") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "DMA-backed request flow") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-slice-note")) {
             saw_slice_note = true;
             try std.testing.expectEqualStrings("Documentation/zigux/phase12-virtio-scsi-slice.md", gap.zigux_destination);
@@ -419,7 +451,7 @@ test "phase12 virtio_scsi survey manifest records the landed queue-depth summary
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 14), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 16), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_make_target);
@@ -429,6 +461,8 @@ test "phase12 virtio_scsi survey manifest records the landed queue-depth summary
     try std.testing.expect(saw_survey_note);
     try std.testing.expect(saw_driver_starter);
     try std.testing.expect(saw_driver_tests);
+    try std.testing.expect(saw_syntax_lab_tests);
+    try std.testing.expect(saw_recovery_state_tests);
     try std.testing.expect(saw_slice_note);
     try std.testing.expect(saw_raw_fallback_catalog);
     try std.testing.expect(saw_probe_snapshot);
