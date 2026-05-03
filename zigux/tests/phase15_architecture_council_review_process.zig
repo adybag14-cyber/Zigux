@@ -182,13 +182,19 @@ test "phase 15 architecture council review-process manifest records current trig
         manifest.handoff_evidence.bootstrap_ledger_anchor,
     );
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "Documentation/zigux/README.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "Documentation/zigux/review-checklist.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "Documentation/zigux/phase15-indefinite-c-policy.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "Documentation/zigux/phase15-handoff-next-steps-survey.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "scripts/zigux/README.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "scripts/zigux/validate-phase15.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "zigux/tests/README.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "zigux/tests/phase15_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "make -C zigux phase15") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_bounded_lane, expected_lane_key) != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_bounded_lane, "governance, approval, and ownership evidence verification") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_bounded_lane, "current parked maintenance-mode Phase 15 packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_bounded_lane, "scripts-root validator path") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_bounded_lane, "tests-root guidance path") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_bounded_lane, "neighboring governance slices") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.maintenance_mode_next_step, "named reopen triggers") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.maintenance_mode_next_step, "shared Phase 15 replay drift") != null);
