@@ -16,6 +16,7 @@
     "preexisting_virtio_input_zig_present": true,
     "preexisting_phase12_build_present": true,
     "preexisting_phase12_virtio_net_survey_present": true,
+    "preexisting_phase12_virtio_net_syntax_lab_present": true,
     "preexisting_phase12_survey_note_present": true,
     "preexisting_virtio_net_zig_present": true
   },
