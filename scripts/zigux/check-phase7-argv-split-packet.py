@@ -276,7 +276,6 @@ def run_self_test() -> int:
 
         makefile_path = tmp_root / "zigux" / "Makefile"
         original_makefile = read(makefile_path)
-        makefile_path.writeText = None
         makefile_path.write_text(
             original_makefile.replace(
                 "scripts/zigux/check-phase7-argv-split-parity.py --self-test", "", 1
