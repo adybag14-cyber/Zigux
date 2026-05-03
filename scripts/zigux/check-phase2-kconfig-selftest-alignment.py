@@ -10,6 +10,8 @@ import tempfile
 SCRIPT_PATH = Path(__file__).resolve()
 ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
 KCONFIG_CHECKER = ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py"
+PHASE2_VALIDATOR = ROOT / "scripts" / "zigux" / "validate-phase2.py"
+PHASE2_CLOSURE_VALIDATOR = ROOT / "scripts" / "zigux" / "validate-phase2-closure.py"
 WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 MAKEFILE = ROOT / "zigux" / "Makefile"
 CASES = ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "cases.json"
@@ -78,6 +80,19 @@ KCONFIG_CHECKER_MARKERS = [
     "INVALID_KCONFIG_MANIFEST_START",
     "orphaned_fixture:",
     "expected_canonical_name",
+]
+
+PHASE2_VALIDATOR_MARKERS = [
+    "KCONFIG_ALIGNMENT_CHECKER = (",
+    '"PHASE2_KCONFIG_ALIGNMENT_SELF_TEST=pass"',
+    '"PHASE2_KCONFIG_ALIGNMENT_SELF_TEST_CASE_COUNT=9"',
+    '"phase2_kconfig_alignment_checker"',
+]
+
+PHASE2_CLOSURE_VALIDATOR_MARKERS = [
+    "CHECK_PHASE2_KCONFIG_SELFTEST_ALIGNMENT = ROOT / 'scripts' / 'zigux' / 'check-phase2-kconfig-selftest-alignment.py'",
+    "'python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test': 1,",
+    "'python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py': 1,",
 ]
 
 
@@ -278,6 +293,22 @@ def run_self_test() -> int:
     ):
         raise SystemExit("phase2-kconfig-alignment:self-test:checker_markers")
 
+    validator_text = "\n".join(PHASE2_VALIDATOR_MARKERS) + "\n"
+    if validate_required_markers(
+        validator_text,
+        label="phase2_validator",
+        markers=PHASE2_VALIDATOR_MARKERS,
+    ):
+        raise SystemExit("phase2-kconfig-alignment:self-test:validator_markers")
+
+    closure_validator_text = "\n".join(PHASE2_CLOSURE_VALIDATOR_MARKERS) + "\n"
+    if validate_required_markers(
+        closure_validator_text,
+        label="phase2_closure_validator",
+        markers=PHASE2_CLOSURE_VALIDATOR_MARKERS,
+    ):
+        raise SystemExit("phase2-kconfig-alignment:self-test:closure_validator_markers")
+
     marker_issues = validate_required_markers(
         "alpha\nbeta\n",
         label="sample",
@@ -285,6 +316,26 @@ def run_self_test() -> int:
     )
     if marker_issues != ["sample:missing_marker:gamma"]:
         raise SystemExit("phase2-kconfig-alignment:self-test:marker_failure_shape")
+
+    validator_marker_issues = validate_required_markers(
+        validator_text.replace(PHASE2_VALIDATOR_MARKERS[0] + "\n", "", 1),
+        label="phase2_validator",
+        markers=PHASE2_VALIDATOR_MARKERS,
+    )
+    if validator_marker_issues != [
+        f"phase2_validator:missing_marker:{PHASE2_VALIDATOR_MARKERS[0]}"
+    ]:
+        raise SystemExit("phase2-kconfig-alignment:self-test:validator_marker_failure")
+
+    closure_validator_marker_issues = validate_required_markers(
+        closure_validator_text.replace(PHASE2_CLOSURE_VALIDATOR_MARKERS[0] + "\n", "", 1),
+        label="phase2_closure_validator",
+        markers=PHASE2_CLOSURE_VALIDATOR_MARKERS,
+    )
+    if closure_validator_marker_issues != [
+        f"phase2_closure_validator:missing_marker:{PHASE2_CLOSURE_VALIDATOR_MARKERS[0]}"
+    ]:
+        raise SystemExit("phase2-kconfig-alignment:self-test:closure_validator_marker_failure")
 
     valid_cases = json.loads(build_valid_cases_json())
     if validate_cases(valid_cases):
@@ -314,6 +365,11 @@ def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="phase2_kconfig_alignment_selftest_") as tmp_dir_str:
         tmp_root = Path(tmp_dir_str)
         write(tmp_root / "scripts" / "zigux" / "check-kconfig-bridge.py", valid_checker)
+        write(tmp_root / "scripts" / "zigux" / "validate-phase2.py", validator_text)
+        write(
+            tmp_root / "scripts" / "zigux" / "validate-phase2-closure.py",
+            closure_validator_text,
+        )
         write(tmp_root / ".github" / "workflows" / "zigux-bootstrap.yml", valid_workflow)
         write(tmp_root / "zigux" / "Makefile", valid_makefile)
         write(
@@ -335,7 +391,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Keep the Phase 2 kconfig checker, fixture manifest, workflow gate, and Linux-style make route aligned."
+        description="Keep the Phase 2 kconfig checker, shared validators, fixture manifest, workflow gate, and Linux-style make route aligned."
     )
     parser.add_argument("--self-test", action="store_true", help="Run built-in alignment checks")
     args = parser.parse_args()
@@ -343,7 +399,7 @@ def main() -> int:
     if args.self_test:
         return run_self_test()
 
-    required_files = [KCONFIG_CHECKER, WORKFLOW, MAKEFILE, CASES]
+    required_files = [KCONFIG_CHECKER, PHASE2_VALIDATOR, PHASE2_CLOSURE_VALIDATOR, WORKFLOW, MAKEFILE, CASES]
     missing = [str(path) for path in required_files if not path.exists()]
     if missing:
         print("PHASE2_KCONFIG_ALIGNMENT=fail")
@@ -359,6 +415,20 @@ def main() -> int:
             KCONFIG_CHECKER.read_text(encoding="utf-8"),
             label="kconfig_checker",
             markers=KCONFIG_CHECKER_MARKERS,
+        )
+    )
+    issues.extend(
+        validate_required_markers(
+            PHASE2_VALIDATOR.read_text(encoding="utf-8"),
+            label="phase2_validator",
+            markers=PHASE2_VALIDATOR_MARKERS,
+        )
+    )
+    issues.extend(
+        validate_required_markers(
+            PHASE2_CLOSURE_VALIDATOR.read_text(encoding="utf-8"),
+            label="phase2_closure_validator",
+            markers=PHASE2_CLOSURE_VALIDATOR_MARKERS,
         )
     )
     issues.extend(validate_exact_workflow_runs(WORKFLOW.read_text(encoding="utf-8")))
