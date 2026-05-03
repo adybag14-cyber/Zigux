@@ -40,6 +40,12 @@ SCRIPTS_README_MARKERS = [
     "phase10_virtio_mmio_queue_isolation.zig",
 ]
 
+SCRIPTS_README_EXACT_ONCE_MARKERS = [
+    "check-phase10-harness-coverage.py",
+    "phase10_virtio_input_multitouch_preflight.zig",
+    "phase10_virtio_mmio_queue_isolation.zig",
+]
+
 TESTS_README_MARKERS = [
     "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
     "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
@@ -146,6 +152,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         check_markers(missing, name, read_text(root, rel_path), markers)
 
     for name, rel_path, markers in [
+        ("scripts_readme", "scripts/zigux/README.md", SCRIPTS_README_EXACT_ONCE_MARKERS),
         ("tests_readme", "zigux/tests/README.md", TESTS_README_EXACT_ONCE_MARKERS),
         ("docs_readme", "Documentation/zigux/README.md", DOCS_README_EXACT_ONCE_MARKERS),
         (
@@ -401,6 +408,28 @@ def run_self_test() -> int:
         )
         scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
 
+        scripts_readme_path.write_text(
+            original_scripts_readme + "\ncheck-phase10-harness-coverage.py\n",
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "scripts_readme_harness_checker_duplicate",
+            root,
+            "scripts_readme:count:check-phase10-harness-coverage.py=2",
+        )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
+        scripts_readme_path.write_text(
+            original_scripts_readme + "\nphase10_virtio_input_multitouch_preflight.zig\n",
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "scripts_readme_multitouch_duplicate",
+            root,
+            "scripts_readme:count:phase10_virtio_input_multitouch_preflight.zig=2",
+        )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
         tests_readme_path = root / "zigux/tests/README.md"
         original_tests_readme = tests_readme_path.read_text(encoding="utf-8")
         tests_readme_path.write_text(
@@ -580,7 +609,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=21")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=23")
     return 0
 
 
@@ -607,5 +636,5 @@ print("PHASE10_HARNESS_COVERAGE=pass")
 print(f"PHASE10_HARNESS_REQUIRED_FILE_COUNT={len(FILES)}")
 print(
     "PHASE10_HARNESS_REQUIRED_MARKER_COUNT="
-    f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_MARKERS) + len(TESTS_README_EXACT_ONCE_MARKERS) + len(DOCS_README_MARKERS) + len(DOCS_README_EXACT_ONCE_MARKERS) + len(BUILD_MARKERS) + len(CLOSURE_NOTE_MARKERS) + len(CLOSURE_NOTE_EXACT_ONCE_MARKERS) + len(INPUT_PREFLIGHT_TEST_MARKERS) + len(MMIO_QUEUE_ISOLATION_TEST_MARKERS)}"
+    f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(SCRIPTS_README_MARKERS) + len(SCRIPTS_README_EXACT_ONCE_MARKERS) + len(TESTS_README_MARKERS) + len(TESTS_README_EXACT_ONCE_MARKERS) + len(DOCS_README_MARKERS) + len(DOCS_README_EXACT_ONCE_MARKERS) + len(BUILD_MARKERS) + len(CLOSURE_NOTE_MARKERS) + len(CLOSURE_NOTE_EXACT_ONCE_MARKERS) + len(INPUT_PREFLIGHT_TEST_MARKERS) + len(MMIO_QUEUE_ISOLATION_TEST_MARKERS)}"
 )
