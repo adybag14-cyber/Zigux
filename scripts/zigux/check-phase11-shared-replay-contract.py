@@ -45,6 +45,8 @@ MAKEFILE_MARKERS = [
     "scripts/zigux/check-phase11-hvc-validation-flow.py",
     "scripts/zigux/check-phase11-hvc-cleanup-alignment.py --self-test",
     "scripts/zigux/check-phase11-hvc-cleanup-alignment.py",
+    "scripts/zigux/check-phase11-shared-replay-contract.py --self-test",
+    "scripts/zigux/check-phase11-shared-replay-contract.py",
     "scripts/zigux/validate-phase11.py --self-test",
     "scripts/zigux/validate-phase11.py",
     "phase11-hvc-survey:",
@@ -56,6 +58,8 @@ WORKFLOW_MARKERS = [
     "Self-test Phase 11 hvc validation flow checker",
     "Self-test Phase 11 hvc cleanup alignment checker",
     "Self-test Phase 11 layout assert surface checker",
+    "Self-test Phase 11 shared replay contract checker",
+    "Validate Phase 11 shared replay contract",
     "Validate Phase 11 simple-driver bundle",
     "Run Phase 11 watchdog and console tests",
     "Run dedicated Phase 11 hvc survey replay",
@@ -89,6 +93,7 @@ SHARED_REPLAY_NOTE_MARKERS = [
 REVIEW_CHECKLIST_MARKERS = [
     "- if the change is a Phase 11 simple-driver slice, do `scripts/zigux/validate-phase11.py`, `zigux/tests/phase11_build.zig`, the four driver-local Phase 11 manifests, and `zigux/tests/phase11_uapi_header_parity_manifest.json` still agree on the same bounded simple-driver scope, shared replay contract, and explicit ready-next versus blocked follow-up posture?",
     "- if the change touches the shared Phase 11 tooling path, do `zigux/tests/phase11_build.zig`, `zigux/tests/fixtures/phase11_build_inventory.json`, and `zigux/tests/phase11_hvc_console_survey.zig` still agree on the exact shared build inventory and the dedicated-survey boundary instead of silently implying that every Phase 11 survey gate already runs in the shared path?",
+    "- if the change touches the shared Phase 11 replay contract packet, do `Documentation/zigux/phase11-shared-replay-contract.md`, `scripts/zigux/validate-phase11.py`, `zigux/tests/phase11_build.zig`, `zigux/tests/fixtures/phase11_build_inventory.json`, and `zigux/tests/phase11_hvc_console_survey.zig` still agree on the same shared-versus-dedicated replay boundary instead of leaving that packet split implicit?",
 ]
 EXPECTED_SHARED_SPLIT_REPLAYS = [
     {
@@ -172,6 +177,7 @@ def validate_contract(root: Path) -> int:
     print(f"PHASE11_SHARED_REPLAY_MARKER_COUNT={len(EXPECTED_SHARED_REPLAY_MARKERS)}")
     print(f"PHASE11_SHARED_SPLIT_REPLAY_COUNT={len(EXPECTED_SHARED_SPLIT_REPLAYS)}")
     print(f"PHASE11_SHARED_REPLAY_NOTE_MARKER_COUNT={len(SHARED_REPLAY_NOTE_MARKERS)}")
+    print(f"PHASE11_SHARED_REPLAY_CHECKLIST_MARKER_COUNT={len(REVIEW_CHECKLIST_MARKERS)}")
     return 0
 
 
@@ -347,17 +353,34 @@ def run_self_test() -> int:
         write_text(
             makefile_path,
             makefile_backup.replace(
-                "scripts/zigux/check-phase11-build-inventory.py --self-test\n",
+                "scripts/zigux/check-phase11-shared-replay-contract.py --self-test\n",
                 "",
                 1,
             ),
         )
         expect_missing(
-            "missing_makefile_self_test",
+            "missing_makefile_checker_self_test",
             run_checker(tmp_root),
-            "makefile:scripts/zigux/check-phase11-build-inventory.py --self-test",
+            "makefile:scripts/zigux/check-phase11-shared-replay-contract.py --self-test",
         )
         write_text(makefile_path, makefile_backup)
+
+        workflow_path = tmp_root / ".github/workflows/zigux-bootstrap.yml"
+        workflow_backup = text(workflow_path)
+        write_text(
+            workflow_path,
+            workflow_backup.replace(
+                "Self-test Phase 11 shared replay contract checker\n",
+                "",
+                1,
+            ),
+        )
+        expect_missing(
+            "missing_workflow_checker_step",
+            run_checker(tmp_root),
+            "workflow:Self-test Phase 11 shared replay contract checker",
+        )
+        write_text(workflow_path, workflow_backup)
 
         note_path = tmp_root / "Documentation/zigux/phase11-shared-replay-contract.md"
         note_backup = text(note_path)
@@ -383,9 +406,20 @@ def run_self_test() -> int:
             run_checker(tmp_root),
             f"review_checklist:{REVIEW_CHECKLIST_MARKERS[1]}",
         )
+        write_text(checklist_path, checklist_backup)
+
+        write_text(
+            checklist_path,
+            checklist_backup.replace(REVIEW_CHECKLIST_MARKERS[2] + "\n", "", 1),
+        )
+        expect_missing(
+            "missing_exact_replay_contract_question",
+            run_checker(tmp_root),
+            f"review_checklist:{REVIEW_CHECKLIST_MARKERS[2]}",
+        )
 
     print("PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST=pass")
-    print("PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT=8")
+    print("PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
