@@ -181,6 +181,11 @@
       "expected": "final_trailing_carriage_return_expected.json"
     },
     {
+      "name": "final_unterminated_unset_comment",
+      "input": "final_unterminated_unset_comment.config",
+      "expected": "final_unterminated_unset_comment_expected.json"
+    },
+    {
       "name": "ignore_non_config_lines",
       "input": "ignore_non_config_lines.config",
       "expected": "ignore_non_config_lines_expected.json"
