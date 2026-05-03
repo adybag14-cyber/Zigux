@@ -31,7 +31,6 @@ test "phase3 policy helpers stay ABI aligned" {
     try std.testing.expectEqual(abi.AllocatorMode.arena, allocator_policy.modeFromInteropPolicyByte(@intFromEnum(abi.AllocatorMode.arena)).?);
     try std.testing.expect(allocator_policy.recognizesInteropPolicyByte(@intFromEnum(abi.AllocatorMode.arena)));
     try std.testing.expect(!allocator_policy.recognizesInteropPolicyByte(9));
-    try std.testing.expect(allocator_policy.requiresExplicitCaller(.caller_provided));
     try std.testing.expect(allocator_policy.requiresExplicitCallerPolicyByte(@intFromEnum(abi.AllocatorMode.caller_provided)));
     try std.testing.expect(!allocator_policy.permitsGlobalFallback(.caller_provided));
     try std.testing.expect(allocator_policy.permitsGlobalFallback(.kernel_heap));
@@ -179,6 +178,14 @@ test "phase3 policy gate reaches a second boundary helper through decoded policy
         .unsafe_scope = @intFromEnum(abi.UnsafeScope.none),
         .reserved = 0,
     });
+
+    try mmio.writeScopedWithPolicy(u32, mmio_policy, base32, 0, 0x10213243);
+    try std.testing.expectEqual(@as(u32, 0x10213243), regs32[0]);
+    try std.testing.expectEqual(@as(u32, 0x10213243), try mmio.readScopedWithPolicy(u32, mmio_policy, base32, 0));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.writeScopedWithPolicy(u32, raw_pointer_policy, base32, 0, 1));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.readScopedWithPolicy(u32, raw_pointer_policy, base32, 0));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.writeScopedWithPolicy(u32, none_policy, base32, 0, 1));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.readScopedWithPolicy(u32, none_policy, base32, 0));
 
     try mmio.write8Policy(mmio_policy, base32, 0, 0x2a);
     try std.testing.expectEqual(@as(u8, 0x2a), try mmio.read8Policy(mmio_policy, base32, 0));
