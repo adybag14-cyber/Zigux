@@ -88,7 +88,7 @@ ABI_REQUIRED_DOC_MARKERS = (
     "PHASE3_LOW_LEVEL_GATE=zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
     "PHASE3_POLICY_UNSAFE_GATE=zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig",
     "PHASE3_ATOMIC_SCOPE=load-store-exchange-compare-exchange-compare-exchange-weak-fetch-add-fetch-sub-fetch-and-fetch-or-fetch-xor-fetch-min-fetch-max",
-    "PHASE3_BARRIER_SCOPE=acquire-release-full",
+    "PHASE3_BARRIER_SCOPE=acquire-release-acquire-release-combined-full",
     "PHASE3_MMIO_SCOPE=range-read8-read16-read32-read64-write8-write16-write32-write64-plus-scoped-read8-write8-read16-write16-read32-write32-read64-write64-plus-policy-read8-write8-read16-write16-read32-write32-read64-write64-and-generic-policy-bridges",
     "PHASE3_ROADMAP_ANCHORS=rust-exports-lib-bitmap-lib-rbtree-lib-cpumask",
     "PHASE3_CURRENT_INTEROP_FAMILIES=bitmap-cpumask-list-hlist-errptr-xarray-idr-ida-minor-alloc-dev-region-cdev-chrdev",
@@ -161,6 +161,7 @@ ABI_REQUIRED_SOURCE_MARKERS = {
     "zigux/helpers/barrier.zig": (
         "pub fn acquire() void {",
         "pub fn release() void {",
+        "pub fn acquireRelease() void {",
         "pub fn full() void {",
         'test "phase3 barrier wrappers stay local to each barrier probe"',
     ),
@@ -228,6 +229,7 @@ ABI_REQUIRED_SOURCE_MARKERS = {
         "atomic.fetchMin(u32, &value, 17, .seq_cst)",
         "atomic.compareExchange(u32, &value, 12, 21, .seq_cst, .seq_cst)",
         "const weak_mismatch = atomic.compareExchangeWeak(u32, &weak_value, 31, 55, .seq_cst, .seq_cst);",
+        "barrier.acquireRelease();",
         "barrier.full();",
         "const desc = mmio.range(base, 12, 4);",
         "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write16Scoped(.none, base, 0, 0x99));",
@@ -331,6 +333,7 @@ LOW_LEVEL_WRAPPER_EXPORTS = {
     "zigux/helpers/barrier.zig": (
         "acquire",
         "release",
+        "acquireRelease",
         "full",
     ),
     "zigux/helpers/mmio.zig": (
