@@ -80,7 +80,7 @@ CATALOG_MARKERS = [
     "max_slowdown_pct = 550",
     "max_slowdown_pct = 600",
     "avg_compare_calls <= std.math.log2_int_ceil(len) + 1",
-    "PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=29",
+    "PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=31",
 ]
 
 PERF_SURVEY_MARKERS = [
@@ -117,6 +117,8 @@ TESTS_README_MARKERS = [
     "- `zigux/tests/phase6_build.zig`",
     "- `zigux/tests/phase6_checksum_c_parity.zig`",
     "- `zigux/tests/fixtures/phase6_checksum_c_harness.c`",
+    "- `zigux/tests/phase6_hexdump_c_parity.zig`",
+    "- `zigux/tests/fixtures/phase6_hexdump_c_harness.c`",
     "- `zigux/tests/phase6_helper_parity_manifest.json`",
     "- `scripts/zigux/validate-phase6.py`",
     "refresh `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, and `zigux/tests/phase6_helper_parity_manifest.json` whenever the shipped Phase 6 helper inventory, perf entrypoints, fixtures, or shared slice notes change",
@@ -156,7 +158,7 @@ HEXDUMP_PERF_MARKERS = [
 ]
 
 CHECKSUM_FIXTURE_MARKERS = [
-    '.max_slowdown_pct = 150',
+    ".max_slowdown_pct = 150",
 ]
 
 HEXDUMP_FIXTURE_MARKERS = [
@@ -191,15 +193,15 @@ HEXDUMP_PARITY_SCRIPT_MARKERS = [
 ]
 
 HEXDUMP_PARITY_RUNNER_MARKERS = [
-    'try writer.print("bin2hex\\tappend-mixed\\t{s}\\n", .{append_text[0..8]});',
+    'const fixtures = @import("phase6_hexdump_vectors");',
     'try writer.print("dump\\t{s}\\t{}\\t{s}\\n", .{',
     'try writer.print("overflow\\t{s}\\t{}\\t{s}\\n", .{',
 ]
 
 HEXDUMP_PARITY_HARNESS_MARKERS = [
-    'printf("bin2hex\\tappend-mixed\\t%s\\n", textbuf);',
-    'printf("dump\\tascii rowsize-16 group-8\\t51\\t%s\\n", linebuf);',
-    'printf("overflow\\tzero-sized caller buffer reports required ascii length\\t%zu\\t\\n",',
+    'printf("hexToBin\\tg\\t%d\\n", hex_to_bin(\'g\'));',
+    'printf("dump\\tascii rowsize-16 group-4\\t53\\t%s\\n", linebuf);',
+    'printf("overflow\\tgrouped plain buffer truncates deterministically\\t39\\t%s\\n", linebuf);',
 ]
 
 EXPECTED_MANIFEST = {
@@ -510,7 +512,7 @@ def report_validation(result: dict[str, object]) -> int:
         return 1
     print("PHASE6_VALIDATION=pass")
     print(f"PHASE6_CATALOG_VERIFIED_HEAD={result['catalog_head']}")
-    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=29")
+    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=31")
     return 0
 
 
@@ -616,8 +618,8 @@ def run_self_test() -> int:
 
             build_self_test_tree(root)
             tests_readme = root / "zigux/tests/README.md"
-            tests_readme.write_text(tests_readme.read_text(encoding="utf-8").replace(TESTS_README_MARKERS[5], "", 1), encoding="utf-8")
-            if f"tests_readme:missing:{TESTS_README_MARKERS[5]}" not in validate_phase6(root)["missing"]:
+            tests_readme.write_text(tests_readme.read_text(encoding="utf-8").replace(TESTS_README_MARKERS[7], "", 1), encoding="utf-8")
+            if f"tests_readme:missing:{TESTS_README_MARKERS[7]}" not in validate_phase6(root)["missing"]:
                 raise AssertionError("missing tests README marker failure")
 
             build_self_test_tree(root)
@@ -645,12 +647,6 @@ def run_self_test() -> int:
                 raise AssertionError("missing catalog failure")
 
             build_self_test_tree(root)
-            hexdump_script = root / "scripts/zigux/check-phase6-hexdump-c-parity.py"
-            hexdump_script.write_text(hexdump_script.read_text(encoding="utf-8").replace(HEXDUMP_PARITY_SCRIPT_MARKERS[1], "", 1), encoding="utf-8")
-            if f"hexdump_parity_script:missing:{HEXDUMP_PARITY_SCRIPT_MARKERS[1]}" not in validate_phase6(root)["missing"]:
-                raise AssertionError("missing hexdump parity script failure")
-
-            build_self_test_tree(root)
             makefile = root / "zigux/Makefile"
             makefile.write_text(makefile.read_text(encoding="utf-8").replace("phase6-perf:", "", 1), encoding="utf-8")
             if "make:missing:phase6-perf:" not in validate_phase6(root)["missing"]:
@@ -665,7 +661,7 @@ def run_self_test() -> int:
             build_self_test_tree(root)
             hexdump_vectors = root / "zigux/tests/fixtures/phase6_hexdump_vectors.zig"
             hexdump_vectors.write_text("", encoding="utf-8")
-            if "hexdump_vectors:missing:.{ .label = \"16B-ascii-g8\", .len = 16, .rowsize = 16, .groupsize = 8, .ascii = true, .reps = 20_000, .max_slowdown_pct = 600 }," not in validate_phase6(root)["missing"]:
+            if 'hexdump_vectors:missing:.{ .label = "16B-ascii-g8", .len = 16, .rowsize = 16, .groupsize = 8, .ascii = true, .reps = 20_000, .max_slowdown_pct = 600 },' not in validate_phase6(root)["missing"]:
                 raise AssertionError("missing hexdump threshold failure")
 
             build_self_test_tree(root)
@@ -754,6 +750,24 @@ def run_self_test() -> int:
                 raise AssertionError("missing checksum determinism evidence failure")
 
             build_self_test_tree(root)
+            hexdump_parity_script = root / "scripts/zigux/check-phase6-hexdump-c-parity.py"
+            hexdump_parity_script.write_text("", encoding="utf-8")
+            if 'hexdump_parity_script:missing:print("PHASE6_HEXDUMP_C_PARITY_SELF_TEST=pass")' not in validate_phase6(root)["missing"]:
+                raise AssertionError("missing hexdump parity script failure")
+
+            build_self_test_tree(root)
+            hexdump_parity_runner = root / "zigux/tests/phase6_hexdump_c_parity.zig"
+            hexdump_parity_runner.write_text("", encoding="utf-8")
+            if 'hexdump_parity_runner:missing:const fixtures = @import("phase6_hexdump_vectors");' not in validate_phase6(root)["missing"]:
+                raise AssertionError("missing hexdump parity runner failure")
+
+            build_self_test_tree(root)
+            hexdump_parity_harness = root / "zigux/tests/fixtures/phase6_hexdump_c_harness.c"
+            hexdump_parity_harness.write_text("", encoding="utf-8")
+            if 'hexdump_parity_harness:missing:printf("hexToBin\\tg\\t%d\\n", hex_to_bin(\'g\'));' not in validate_phase6(root)["missing"]:
+                raise AssertionError("missing hexdump parity harness failure")
+
+            build_self_test_tree(root)
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
             manifest["determinism_evidence"]["hexdump"]["c_parity_cases"] = 26
             manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
@@ -765,7 +779,7 @@ def run_self_test() -> int:
         return 1
 
     print("PHASE6_VALIDATOR_SELF_TEST=pass")
-    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=29")
+    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=31")
     return 0
 
 
