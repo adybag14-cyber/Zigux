@@ -40,6 +40,7 @@ REQUIRED_CLOSURE_MARKERS = [
     "PHASE1_CLOSURE_GATE=python3 scripts/zigux/validate-phase1-closure.py",
     "PHASE1_CLOSURE_SELF_TEST_GATE=python3 scripts/zigux/validate-phase1-closure.py --self-test",
     "PHASE1_STRING_MEMPARSE_UNIT_REVIEW=string memparse preserves decimal, hexadecimal, suffix-bearing, and invalid inputs without changing the parsed value or rest pointer contract",
+    "PHASE1_RBTREE_POSTORDER_SAFE_REBALANCE_UNIT_REVIEW=rbtree iteratePostorderSafe stays aligned across erase-driven rebalancing so the walk still reaches each remaining node exactly once after the current node is removed",
     "PHASE1_RBTREE_BENCH_KEYS=PHASE1_BENCH_RBTREE_CHECKSUM,PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM,PHASE1_BENCH_RBTREE_CACHED_CHECKSUM,PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM,PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM",
 ]
 
@@ -135,6 +136,7 @@ REQUIRED_MANIFEST_FIELDS = {
     },
     "tools/lib/rbtree.zig": {
         "cached_find_add_unit_test_contract": "Direct Zig unit coverage keeps findAddCached() aligned so equal-key probes return the original resident node, distinct inserts still link into the cached tree, and RootCached continues to expose the same leftmost node as the underlying tree root.",
+        "postorder_safe_rebalance_unit_test_contract": "Direct Zig unit coverage keeps iteratePostorderSafe() aligned across erase-driven rebalancing so the walk still reaches each remaining node exactly once after the current node is removed.",
     },
     "tools/lib/string.zig": {
         "strscpy_unit_test_contract": "Direct Zig unit coverage keeps strscpy aligned with bounded kernel copy semantics for exact-fit, truncation, embedded-NUL, and zero-sized destination cases.",
@@ -309,6 +311,12 @@ def self_test() -> int:
         expect_failure(root, "manifest:tools/lib/string.zig:memparse_unit_test_contract")
         write(root / "zigux/tests/fixtures/phase1_helper_manifest.json", json.dumps(fixture_manifest(), indent=2) + "\n")
 
+        manifest = fixture_manifest()
+        manifest["helper_review_notes"]["tools/lib/rbtree.zig"]["postorder_safe_rebalance_unit_test_contract"] = "drift"
+        write(root / "zigux/tests/fixtures/phase1_helper_manifest.json", json.dumps(manifest, indent=2) + "\n")
+        expect_failure(root, "manifest:tools/lib/rbtree.zig:postorder_safe_rebalance_unit_test_contract")
+        write(root / "zigux/tests/fixtures/phase1_helper_manifest.json", json.dumps(fixture_manifest(), indent=2) + "\n")
+
         expectations = fixture_expectations()
         expectations["exact_checksums"]["PHASE1_BENCH_STRING_MEMPARSE_CHECKSUM"] = 1
         write(root / "zigux/tests/fixtures/phase1_bench_expectations.json", json.dumps(expectations, indent=2) + "\n")
@@ -319,7 +327,7 @@ def self_test() -> int:
         expect_failure(root, "rbtree_source:unexpected_alias:pub fn rb_first(")
 
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=5")
+    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
