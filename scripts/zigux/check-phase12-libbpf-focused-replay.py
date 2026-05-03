@@ -24,6 +24,7 @@ BUILD_TEST_ROOT_MODULE_RE = re.compile(
 REQUIRED_FILES = [
     "scripts/zigux/check-phase12-libbpf-focused-replay.py",
     "scripts/zigux/README.md",
+    "scripts/zigux/validate-phase12.py",
     ".github/workflows/zigux-bootstrap.yml",
     "zigux/Makefile",
     "zigux/tests/phase12_libbpf_only_build.zig",
@@ -104,6 +105,14 @@ SCRIPTS_README_MARKERS = [
     "phase12_libbpf_only_build.zig",
     "focused libbpf-only replay hook",
 ]
+VALIDATE_PHASE12_MARKERS = [
+    "check-phase12-libbpf-focused-replay.py --self-test",
+    "check-phase12-libbpf-focused-replay.py",
+    "phase12_libbpf_only_build.zig",
+    "Documentation/zigux/phase12-libbpf-segment-survey.md",
+    "zigux/Makefile",
+    ".github/workflows/zigux-bootstrap.yml",
+]
 MAKEFILE_MARKERS = [
     "scripts/zigux/check-phase12-libbpf-focused-replay.py --self-test",
     "scripts/zigux/check-phase12-libbpf-focused-replay.py",
@@ -168,6 +177,7 @@ def collect_missing(
     survey_note_text: str,
     manifest_text: str,
     scripts_readme_text: str,
+    validate_phase12_text: str,
     makefile_text: str,
     workflow_text: str,
 ) -> list[str]:
@@ -176,6 +186,7 @@ def collect_missing(
     missing.extend(collect_marker_misses(survey_note_text, SURVEY_NOTE_MARKERS, "survey_note"))
     missing.extend(collect_marker_misses(manifest_text, MANIFEST_MARKERS, "manifest"))
     missing.extend(collect_marker_misses(scripts_readme_text, SCRIPTS_README_MARKERS, "scripts_readme"))
+    missing.extend(collect_marker_misses(validate_phase12_text, VALIDATE_PHASE12_MARKERS, "validate_phase12"))
     missing.extend(collect_marker_misses(makefile_text, MAKEFILE_MARKERS, "makefile"))
     missing.extend(collect_marker_misses(workflow_text, WORKFLOW_MARKERS, "workflow"))
     return missing
@@ -216,6 +227,7 @@ def build_live_inputs() -> dict[str, object]:
         "survey_note_text": read_text("Documentation/zigux/phase12-libbpf-segment-survey.md"),
         "manifest_text": read_text("zigux/tests/phase12_libbpf_manifest.json"),
         "scripts_readme_text": read_text("scripts/zigux/README.md"),
+        "validate_phase12_text": read_text("scripts/zigux/validate-phase12.py"),
         "makefile_text": read_text("zigux/Makefile"),
         "workflow_text": read_text(".github/workflows/zigux-bootstrap.yml"),
     }
@@ -233,6 +245,7 @@ def run_self_test() -> int:
         "survey_note_text": "\n".join(SURVEY_NOTE_MARKERS) + "\n",
         "manifest_text": "\n".join(MANIFEST_MARKERS) + "\n",
         "scripts_readme_text": "\n".join(SCRIPTS_README_MARKERS) + "\n",
+        "validate_phase12_text": "\n".join(VALIDATE_PHASE12_MARKERS) + "\n",
         "makefile_text": "\n".join(MAKEFILE_MARKERS) + "\n",
         "workflow_text": "\n".join(WORKFLOW_MARKERS) + "\n",
     }
@@ -329,6 +342,22 @@ def run_self_test() -> int:
     missing = collect_missing(
         **{
             **base_inputs,
+            "validate_phase12_text": base_inputs["validate_phase12_text"].replace(
+                "zigux/Makefile\n",
+                "",
+                1,
+            ),
+        }
+    )
+    expect_contains(
+        "validate_phase12_marker_detection",
+        missing,
+        "validate_phase12:zigux/Makefile",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
             "makefile_text": base_inputs["makefile_text"].replace(
                 "scripts/zigux/check-phase12-libbpf-focused-replay.py",
                 "scripts/zigux/check-phase12-libbpf-focused-replay-drift.py",
@@ -358,7 +387,7 @@ def run_self_test() -> int:
     )
 
     print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST=pass")
-    print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST_CASE_COUNT=9")
+    print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
