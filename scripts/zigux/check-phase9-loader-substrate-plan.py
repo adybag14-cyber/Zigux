@@ -182,6 +182,13 @@ def validate_manifest_alignment(root: Path) -> list[str]:
             for entry in delivery_evidence
         ):
             missing_markers.append("manifest:runtime-loader-substrate-plan_delivery_evidence_missing")
+        if not any(
+            isinstance(entry, dict)
+            and entry.get("id") == "trace-events-loader-blocked-scaffold"
+            and entry.get("path") == TRACE_EVENTS_LOADER_PATH
+            for entry in delivery_evidence
+        ):
+            missing_markers.append("manifest:trace-events-loader-blocked-scaffold_delivery_evidence_missing")
 
     ownership_map = manifest.get("ownership_map")
     if not isinstance(ownership_map, list):
@@ -195,6 +202,15 @@ def validate_manifest_alignment(root: Path) -> list[str]:
             for entry in ownership_map
         ):
             missing_markers.append("manifest:runtime-loader-substrate-plan_ownership_missing")
+        if not any(
+            isinstance(entry, dict)
+            and entry.get("surface") == TRACE_EVENTS_LOADER_PATH
+            and isinstance(entry.get("owns"), str)
+            and "trace-events loader-plan scaffold" in entry["owns"]
+            and "without-substrate fallback" in entry["owns"]
+            for entry in ownership_map
+        ):
+            missing_markers.append("manifest:trace-events-loader-blocked-scaffold_ownership_missing")
 
     gaps = manifest.get("gaps")
     if not isinstance(gaps, list):
@@ -210,6 +226,16 @@ def validate_manifest_alignment(root: Path) -> list[str]:
             for entry in gaps
         ):
             missing_markers.append("manifest:runtime-loader-substrate-plan_gap_missing")
+        if not any(
+            isinstance(entry, dict)
+            and entry.get("id") == "runtime-loader-trace-events-sample-only-boundary"
+            and entry.get("zigux_destination") == TRACE_EVENTS_LOADER_PATH
+            and isinstance(entry.get("why_now"), str)
+            and "sample-only" in entry["why_now"]
+            and "kernel/trace/ring_buffer.c" in entry["why_now"]
+            for entry in gaps
+        ):
+            missing_markers.append("manifest:trace-events-loader-blocked-scaffold_gap_missing")
 
     control_surface_markers = manifest.get("phase8_control_surface_markers")
     if not isinstance(control_surface_markers, dict):
@@ -385,20 +411,33 @@ def write_fixture_tree(root: Path) -> None:
                     {
                         "id": "runtime-loader-substrate-plan",
                         "path": SUBSTRATE_PLAN_PATH,
-                    }
+                    },
+                    {
+                        "id": "trace-events-loader-blocked-scaffold",
+                        "path": TRACE_EVENTS_LOADER_PATH,
+                    },
                 ],
                 "ownership_map": [
                     {
                         "surface": SUBSTRATE_PLAN_PATH,
                         "owns": "shared loader-stage vocabulary plus the without-substrate fallback",
-                    }
+                    },
+                    {
+                        "surface": TRACE_EVENTS_LOADER_PATH,
+                        "owns": "trace-events loader-plan scaffold plus the without-substrate fallback under the sample-only blocked boundary",
+                    },
                 ],
                 "gaps": [
                     {
                         "id": "runtime-loader-substrate-plan",
                         "zigux_destination": SUBSTRATE_PLAN_PATH,
                         "why_now": "This keeps waiting_on_runtime_substrate and released_without_substrate explicit in one shared review surface.",
-                    }
+                    },
+                    {
+                        "id": "runtime-loader-trace-events-sample-only-boundary",
+                        "zigux_destination": TRACE_EVENTS_LOADER_PATH,
+                        "why_now": "This keeps the sample-only trace-events boundary explicit beside kernel/trace/ring_buffer.c while the runtime-substrate handoff stays blocked.",
+                    },
                 ],
                 "phase8_control_surface_markers": {
                     "shared_runtime_loader_field": "shared command_name field",
@@ -586,6 +625,16 @@ def run_self_test() -> int:
         )
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
+        manifest = json.loads(original_manifest)
+        manifest["delivery_evidence_catalog"][1]["id"] = "runtime-trace-events-loader"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "manifest_trace_events_delivery_evidence",
+            tmp_root,
+            "manifest:trace-events-loader-blocked-scaffold_delivery_evidence_missing",
+        )
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
         substrate_plan_path = tmp_root / SUBSTRATE_PLAN_PATH
         original_substrate_plan = substrate_plan_path.read_text(encoding="utf-8")
         substrate_plan_path.write_text(
@@ -644,7 +693,7 @@ def run_self_test() -> int:
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
     print("PHASE9_LOADER_SUBSTRATE_PLAN_SELF_TEST=pass")
-    print("PHASE9_LOADER_SUBSTRATE_PLAN_SELF_TEST_CASE_COUNT=12")
+    print("PHASE9_LOADER_SUBSTRATE_PLAN_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
@@ -687,7 +736,7 @@ def main() -> int:
     print("PHASE9_LOADER_SUBSTRATE_PLAN=pass")
     print(
         "PHASE9_LOADER_SUBSTRATE_PLAN_MARKER_COUNT="
-        f"{len(SURVEY_REQUIRED_MARKERS) + len(SUBSTRATE_PLAN_REQUIRED_MARKERS) + len(REVIEW_CHECKLIST_REQUIRED_MARKERS) + len(SAMPLES_README_REQUIRED_MARKERS) + len(MAKEFILE_REQUIRED_MARKERS) + 13}"
+        f"{len(SURVEY_REQUIRED_MARKERS) + len(SUBSTRATE_PLAN_REQUIRED_MARKERS) + len(REVIEW_CHECKLIST_REQUIRED_MARKERS) + len(SAMPLES_README_REQUIRED_MARKERS) + len(MAKEFILE_REQUIRED_MARKERS) + 16}"
     )
     return 0
 
