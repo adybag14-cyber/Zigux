@@ -48,6 +48,13 @@
       "why_now": "A dedicated Phase 13 test gate now checks both the helper behavior and the survey manifest so future runs can see the current ruleset helper lab and the still-missing deeper kernel state in one place."
     },
     {
+      "id": "phase13-landlock-ruleset-reviewability-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase13_landlock_ruleset_reviewability.zig",
+      "why_now": "A dedicated reviewability gate now ties the ruleset helper descriptor, manifest, and survey note together so this helper-only packet can drift-check its own lane-local evidence without widening into live tree or hierarchy state."
+    },
+    {
       "id": "phase13-landlock-ruleset-slice-note",
       "status": "starter_landed",
       "kind": "documentation",
