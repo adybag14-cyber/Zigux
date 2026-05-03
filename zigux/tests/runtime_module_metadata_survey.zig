@@ -392,6 +392,27 @@ test "runtime module metadata survey note keeps descriptor fields, shared loader
     });
 }
 
+test "runtime module metadata survey keeps the shared phase9 validator route explicit" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const validate_phase9 = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "scripts/zigux/validate-phase9.py",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(validate_phase9);
+
+    try expectContainsAll(validate_phase9, &.{
+        "Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md",
+        "zigux/tests/runtime_module_metadata_manifest.json",
+        "zigux/tests/runtime_module_metadata_survey.zig",
+        "scripts/zigux/check-phase9-module-metadata-packet.py",
+        "phase9-runtime-module-metadata-survey-tests",
+    });
+}
+
 test "runtime module metadata survey proves the landed loader-plan scaffolds stay explicit and the shared metadata boundary stays narrow" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
