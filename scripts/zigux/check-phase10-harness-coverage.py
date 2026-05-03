@@ -200,6 +200,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         missing.append("closure_manifest:tests")
     else:
         for path in [
+            "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
             "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
             "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
         ]:
@@ -220,6 +221,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             else:
                 for path in [
                     "zigux/tests/phase10_build.zig",
+                    "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
                     "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
                     "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
                     "scripts/zigux/check-phase10-harness-coverage.py",
@@ -250,6 +252,7 @@ def write_fixture(root: Path) -> None:
     manifest = {
         "test_count": 11,
         "tests": [
+            "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
             "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
             "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
         ],
@@ -257,6 +260,7 @@ def write_fixture(root: Path) -> None:
             "lab_only_driver_validation": {
                 "evidence": [
                     "zigux/tests/phase10_build.zig",
+                    "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
                     "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
                     "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
                     "scripts/zigux/check-phase10-harness-coverage.py",
@@ -605,12 +609,28 @@ def run_self_test() -> int:
         write_fixture(root)
 
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["tests"] = ["zigux/tests/phase10_virtio_input_multitouch_preflight.zig"]
+        manifest["tests"] = [
+            "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
+            "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
+        ]
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         expect_missing_marker(
             "closure_manifest_tests_inventory",
             root,
             "closure_manifest:tests:zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
+        )
+        write_fixture(root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["tests"] = [
+            "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
+            "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
+        ]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "closure_manifest_ring_reset_reuse_test_inventory",
+            root,
+            "closure_manifest:tests:zigux/tests/phase10_virtio_ring_reset_reuse.zig",
         )
         write_fixture(root)
 
@@ -637,6 +657,21 @@ def run_self_test() -> int:
             "closure_manifest_phase10_build_evidence",
             root,
             "closure_manifest:roadmap_parity_scoreboard:lab_only_driver_validation:evidence:zigux/tests/phase10_build.zig",
+        )
+        write_fixture(root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        evidence = manifest["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"]
+        manifest["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"] = [
+            path
+            for path in evidence
+            if path != "zigux/tests/phase10_virtio_ring_reset_reuse.zig"
+        ]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "closure_manifest_ring_reset_reuse_evidence",
+            root,
+            "closure_manifest:roadmap_parity_scoreboard:lab_only_driver_validation:evidence:zigux/tests/phase10_virtio_ring_reset_reuse.zig",
         )
         write_fixture(root)
 
@@ -690,7 +725,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=27")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=29")
     return 0
 
 
