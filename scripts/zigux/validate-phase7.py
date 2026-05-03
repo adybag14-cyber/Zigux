@@ -30,6 +30,7 @@ required_files = [
     ROOT / "zigux" / "tests" / "phase7_build.zig",
     ROOT / "zigux" / "tests" / "phase7_string_helpers.zig",
     ROOT / "zigux" / "tests" / "phase7_string_helpers_survey.zig",
+    ROOT / "zigux" / "tests" / "phase7_string_helpers_manifest.json",
     ROOT / "zigux" / "tests" / "phase7_cmdline.zig",
     ROOT / "zigux" / "tests" / "phase7_cmdline_survey.zig",
     ROOT / "zigux" / "tests" / "phase7_cmdline_manifest.json",
