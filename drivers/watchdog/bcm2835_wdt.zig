@@ -78,6 +78,19 @@ pub const RegistrationSummary = struct {
     poweroff_handler_conflict: bool,
 };
 
+pub const RegistrationOutcomeSummary = struct {
+    anchor: []const u8,
+    register_device_requested: bool,
+    register_device_succeeded: bool,
+    register_device_failed: bool,
+    system_power_controller: bool,
+    poweroff_handler_present: bool,
+    poweroff_handler_claimed: bool,
+    poweroff_handler_conflict: bool,
+    poweroff_handler_claim_blocked_by_registration_failure: bool,
+    probe_returns_error: bool,
+};
+
 pub const PlatformHandoffSummary = struct {
     anchor: []const u8,
     bootloader_running: bool,
@@ -231,6 +244,29 @@ pub const Bcm2835WatchdogLab = struct {
             .poweroff_handler_present = poweroff_handler_present,
             .poweroff_handler_claimed = system_power_controller and !poweroff_handler_present,
             .poweroff_handler_conflict = system_power_controller and poweroff_handler_present,
+        };
+    }
+
+    pub fn registrationOutcomeSummary(
+        self: *const Self,
+        system_power_controller: bool,
+        register_device_succeeded: bool,
+        poweroff_handler_present: bool,
+    ) RegistrationOutcomeSummary {
+        _ = self;
+        const register_device_requested = true;
+        const register_device_failed = register_device_requested and !register_device_succeeded;
+        return .{
+            .anchor = descriptor().anchor,
+            .register_device_requested = register_device_requested,
+            .register_device_succeeded = register_device_succeeded,
+            .register_device_failed = register_device_failed,
+            .system_power_controller = system_power_controller,
+            .poweroff_handler_present = poweroff_handler_present,
+            .poweroff_handler_claimed = register_device_succeeded and system_power_controller and !poweroff_handler_present,
+            .poweroff_handler_conflict = register_device_succeeded and system_power_controller and poweroff_handler_present,
+            .poweroff_handler_claim_blocked_by_registration_failure = register_device_failed and system_power_controller,
+            .probe_returns_error = register_device_failed,
         };
     }
 
