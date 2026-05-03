@@ -149,9 +149,51 @@ def run_self_test() -> int:
                 "phase3-canonical-survey-manifest-self-test:missing_repo_file_guard_failed:"
                 + (",".join(issues) if issues else "none")
             )
+        _write(root / canonical_rels[-1], "# stub\n")
+
+        _write(
+            root / VALIDATOR_REL,
+            "\n".join(
+                (
+                    "SURVEY_VALIDATION_SCRIPTS = (",
+                    '    ("validate-phase3-roadmap-gap-survey.py", "PHASE3_ROADMAP_GAP_SURVEY=fail", "roadmap-gap", "missing_roadmap_anchor"),',
+                    '    ("validate-phase3-rbtree-interop-survey.py", "PHASE3_RBTREE_INTEROP_SURVEY=fail", "rbtree-gap", "missing_rbtree_anchor"),',
+                    ")",
+                    "",
+                )
+            ),
+        )
+        issues = validate(root)
+        expected = "missing_validator_constant:BUILD_ROOT_DRIFT_SCRIPT"
+        if issues != [expected]:
+            raise SystemExit(
+                "phase3-canonical-survey-manifest-self-test:missing_build_root_constant_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+        _write(
+            root / VALIDATOR_REL,
+            "\n".join(
+                (
+                    "SURVEY_VALIDATION_SCRIPTS = (",
+                    '    ("validate-phase3-roadmap-gap-survey.py", "PHASE3_ROADMAP_GAP_SURVEY=fail", "roadmap-gap", "missing_roadmap_anchor"),',
+                    '    "broken-entry",',
+                    ")",
+                    'BUILD_ROOT_DRIFT_SCRIPT = ("check-phase3-build-roots.py", "PHASE3_BUILD_ROOTS=fail", "build-roots", "missing_root")',
+                    "",
+                )
+            ),
+        )
+        issues = validate(root)
+        expected = "invalid_survey_entry:'broken-entry'"
+        if issues != [expected]:
+            raise SystemExit(
+                "phase3-canonical-survey-manifest-self-test:invalid_survey_entry_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
 
     print("PHASE3_CANONICAL_SURVEY_MANIFEST_SELF_TEST=pass")
-    print("PHASE3_CANONICAL_SURVEY_MANIFEST_SELF_TEST_CASE_COUNT=2")
+    print("PHASE3_CANONICAL_SURVEY_MANIFEST_SELF_TEST_CASE_COUNT=4")
     return 0
 
 
