@@ -14,6 +14,7 @@ SURVEYED_COMMIT_RE = re.compile(r"[0-9a-f]{40}")
 
 FILES = [
     "scripts/zigux/validate-phase13-release.py",
+    "scripts/zigux/check-phase13-devres-packet.py",
     "scripts/zigux/README.md",
     "Documentation/zigux/phase13-release-notes-survey.md",
     "Documentation/zigux/phase13-roadmap-traceability.md",
@@ -101,6 +102,7 @@ RELEASE_MARKERS = [
     "PHASE13_RELEASE_CLOSED=no",
     "The current release packet also carries one active Phase 13 boundary reminder on `master`:",
     "`python3 scripts/zigux/validate-phase13-release.py`, `make -C zigux phase13-validate`, `zig build test --build-file zigux/tests/phase13_build.zig --summary all`, and `make -C zigux phase13` are the published validator-first and shared replay path for the current packet",
+    "the shared release packet also keeps the dedicated `scripts/zigux/check-phase13-devres-packet.py` guard visible as part of that published review path, so the stricter helper-first `devres` boundary contract is not left implicit in `zigux/Makefile` alone",
     "the earlier `expected statement, found 'EOF'` note for `zigux/tests/phase13_landlock_ruleset.zig` is now historical: the current checked-in ruleset test file is syntactically complete, its dedicated ruleset helper replay still passes against `security/landlock/ruleset.zig`, and the broader shared replay has already been rerun successfully on `master`",
     "the remaining live ruleset blocker is the same one already recorded by the manifest-backed survey packet: `rb_replace_node()`, live object ownership transfer, hierarchy lifetime, and workqueue-backed teardown are still outside the current helper-only lane",
     "The current manifest lane ownership carried by the release packet is:",
@@ -119,6 +121,7 @@ RELEASE_MARKERS = [
 
 RELEASE_EXACT_COUNT_MARKERS = {
     "`python3 scripts/zigux/validate-phase13-release.py`, `make -C zigux phase13-validate`, `zig build test --build-file zigux/tests/phase13_build.zig --summary all`, and `make -C zigux phase13` are the published validator-first and shared replay path for the current packet": 1,
+    "the shared release packet also keeps the dedicated `scripts/zigux/check-phase13-devres-packet.py` guard visible as part of that published review path, so the stricter helper-first `devres` boundary contract is not left implicit in `zigux/Makefile` alone": 1,
     "the earlier `expected statement, found 'EOF'` note for `zigux/tests/phase13_landlock_ruleset.zig` is now historical: the current checked-in ruleset test file is syntactically complete, its dedicated ruleset helper replay still passes against `security/landlock/ruleset.zig`, and the broader shared replay has already been rerun successfully on `master`": 1,
     "the remaining live ruleset blocker is the same one already recorded by the manifest-backed survey packet: `rb_replace_node()`, live object ownership transfer, hierarchy lifetime, and workqueue-backed teardown are still outside the current helper-only lane": 1,
     "the adjacent notifier-list packet now stays visible as roadmap-adjacent release evidence, and its shared replay surface includes the landed read-only generic notifier foothold through `zigux/bindings/notifier_abi.zig`, the dedicated exported C header `include/zigux/notifier_abi.h`, and `zigux/helpers/notifier_chain_view.zig`": 1,
@@ -218,6 +221,7 @@ BUILD_NAME_MARKERS = [
 
 RELEASE_EVIDENCE_CORE_PATHS = [
     "scripts/zigux/validate-phase13-release.py",
+    "scripts/zigux/check-phase13-devres-packet.py",
     "scripts/zigux/README.md",
     "Documentation/zigux/phase13-release-notes-survey.md",
     "Documentation/zigux/phase13-roadmap-traceability.md",
@@ -309,45 +313,35 @@ def main() -> int:
         require_exact_count(
             missing,
             "workflow",
-            source_by_name["workflow"],
-            marker,
-            expected_count,
+            source_by_name["workflow"], marker, expected_count,
         )
 
     for marker, expected_count in RELEASE_EXACT_COUNT_MARKERS.items():
         require_exact_count(
             missing,
             "release",
-            source_by_name["release"],
-            marker,
-            expected_count,
+            source_by_name["release"], marker, expected_count,
         )
 
     for marker, expected_count in DOCS_ROOT_EXACT_COUNT_MARKERS.items():
         require_exact_count(
             missing,
             "docs_root",
-            source_by_name["docs_root"],
-            marker,
-            expected_count,
+            source_by_name["docs_root"], marker, expected_count,
         )
 
     for marker, expected_count in SCRIPTS_README_EXACT_COUNT_MARKERS.items():
         require_exact_count(
             missing,
             "scripts_readme",
-            source_by_name["scripts_readme"],
-            marker,
-            expected_count,
+            source_by_name["scripts_readme"], marker, expected_count,
         )
 
     for marker, expected_count in REVIEW_CHECKLIST_EXACT_COUNT_MARKERS.items():
         require_exact_count(
             missing,
             "review_checklist",
-            source_by_name["review_checklist"],
-            marker,
-            expected_count,
+            source_by_name["review_checklist"], marker, expected_count,
         )
 
     release_text = source_by_name["release"]
@@ -357,6 +351,7 @@ def main() -> int:
     else:
         for rel in [
             "scripts/zigux/validate-phase13-release.py",
+            "scripts/zigux/check-phase13-devres-packet.py",
             "scripts/zigux/README.md",
             "Documentation/zigux/phase13-release-notes-survey.md",
             "Documentation/zigux/phase13-roadmap-traceability.md",
@@ -375,15 +370,15 @@ def main() -> int:
             "Documentation/zigux/phase13-landlock-syscalls-survey.md",
             "Documentation/zigux/phase13-notifier-list-survey.md",
             "zigux/tests/phase13_libfs_manifest.json",
-            "zigux/tests/phase13_libfs_reviewability.zig",
             "zigux/tests/phase13_devres_manifest.json",
-            "zigux/tests/phase13_devres.zig",
-            "zigux/tests/phase13_devres_dma_coherent.zig",
             "zigux/tests/phase13_landlock_ruleset_manifest.json",
             "zigux/tests/phase13_landlock_syscalls_manifest.json",
-            "zigux/tests/phase13_landlock_syscalls_reviewability.zig",
             "zigux/tests/phase13_notifier_list_manifest.json",
+            "zigux/tests/phase13_libfs_reviewability.zig",
+            "zigux/tests/phase13_devres.zig",
+            "zigux/tests/phase13_devres_dma_coherent.zig",
             "zigux/tests/phase13_devres_reviewability.zig",
+            "zigux/tests/phase13_landlock_syscalls_reviewability.zig",
             "zigux/tests/phase13_notifier_list_reviewability.zig",
             "zigux/bindings/notifier_abi.zig",
             "include/zigux/notifier_abi.h",
@@ -394,6 +389,7 @@ def main() -> int:
 
     for rel in [
         "scripts/zigux/validate-phase13-release.py",
+        "scripts/zigux/check-phase13-devres-packet.py",
         "scripts/zigux/README.md",
         "Documentation/zigux/phase13-release-notes-survey.md",
         "Documentation/zigux/phase13-roadmap-traceability.md",
