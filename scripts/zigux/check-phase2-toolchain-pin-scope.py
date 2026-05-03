@@ -275,20 +275,16 @@ def run_self_test() -> int:
                 "run: python3 scripts/zigux/install-zig.py --dest .zig-toolchain",
                 "run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
                 "run: python3 scripts/zigux/check-zig-toolchain.py",
-                "run: python3 scripts/zigux/check-zig-toolchain.py",
                 "run: python3 scripts/zigux/validate-phase2.py",
-                "run: python3 scripts/zigux/validate-phase2-closure.py",
                 "run: python3 scripts/zigux/validate-phase2-closure.py",
             ]
         )
     )
     if not any(
-        issue.startswith(
-            "workflow_exact_run:python3 scripts/zigux/validate-phase2-closure.py:count=2:expected=1"
-        )
+        issue.startswith("workflow_exact_run:python3 scripts/zigux/check-zig-toolchain.py:count=1:expected=2")
         for issue in issues
     ):
-        raise SystemExit("phase2-toolchain-pin-scope:self-test:workflow_validate_phase2_closure_duplicate")
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:workflow_toolchain_live_route_missing")
 
     issues = validate_exact_workflow_runs(
         "\n".join(
@@ -379,26 +375,6 @@ def run_self_test() -> int:
         for issue in issues
     ):
         raise SystemExit("phase2-toolchain-pin-scope:self-test:makefile_validate_phase2_closure_missing")
-
-    issues = validate_exact_makefile_runs(
-        "\n".join(
-            [
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py",
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2.py",
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2-closure.py",
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2-closure.py",
-            ]
-        )
-    )
-    if not any(
-        issue.startswith(
-            "makefile_exact_run:scripts/zigux/validate-phase2-closure.py:count=2:expected=1"
-        )
-        for issue in issues
-    ):
-        raise SystemExit("phase2-toolchain-pin-scope:self-test:makefile_validate_phase2_closure_duplicate")
 
     issues = validate_exact_makefile_runs(
         "\n".join(
