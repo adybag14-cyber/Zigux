@@ -123,12 +123,7 @@ REQUIRED_DOCS_ROOT_SNIPPETS = (
     "`scripts/zigux/validate-phase3-policy-unsafe-survey.py` remains a supporting survey check inside that shared validator-first route",
 )
 
-EXACT_ONCE_DOCS_ROOT_SNIPPETS = (
-    REQUIRED_DOCS_ROOT_SNIPPETS[0],
-    REQUIRED_DOCS_ROOT_SNIPPETS[1],
-    REQUIRED_DOCS_ROOT_SNIPPETS[2],
-    REQUIRED_DOCS_ROOT_SNIPPETS[3],
-)
+EXACT_ONCE_DOCS_ROOT_SNIPPETS = REQUIRED_DOCS_ROOT_SNIPPETS
 
 EXPECTED_PHASE3_README_FLOW_COUNT = 2
 
@@ -350,8 +345,32 @@ def run_self_test() -> int:
                 + (",".join(issues) if issues else "none")
             )
 
+        duplicated_low_level_docs_root = _fixture_docs_root() + f"- {REQUIRED_DOCS_ROOT_SNIPPETS[4]}\n"
+        _write(root, DOCS_ROOT_REL, duplicated_low_level_docs_root)
+        issues = validate(root)
+        expected = [
+            f"unexpected_docs_root_snippet_count:2:{REQUIRED_DOCS_ROOT_SNIPPETS[4]}",
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-validation-flow-self-test:duplicate_low_level_docs_root_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+        duplicated_policy_docs_root = _fixture_docs_root() + f"- {REQUIRED_DOCS_ROOT_SNIPPETS[5]}\n"
+        _write(root, DOCS_ROOT_REL, duplicated_policy_docs_root)
+        issues = validate(root)
+        expected = [
+            f"unexpected_docs_root_snippet_count:2:{REQUIRED_DOCS_ROOT_SNIPPETS[5]}",
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-validation-flow-self-test:duplicate_policy_docs_root_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
         print("PHASE3_VALIDATION_FLOW_SELF_TEST=pass")
-        print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=29")
+        print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=31")
         return 0
 
 
