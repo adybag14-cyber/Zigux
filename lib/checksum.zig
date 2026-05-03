@@ -37,6 +37,15 @@ pub fn unfold(sum: u16) u32 {
     return sum;
 }
 
+pub fn add16(sum: u16, addend: u16) u16 {
+    const result = sum +% addend;
+    return result +% @as(u16, @intFromBool(result < addend));
+}
+
+pub fn sub16(sum: u16, addend: u16) u16 {
+    return add16(sum, ~addend);
+}
+
 pub fn replaceByDiff(sum: u16, diff: u32) u16 {
     return fold(add(diff, ~unfold(sum)));
 }
@@ -104,15 +113,6 @@ fn normalize(sum: u32) u32 {
         value = (value & 0xffff) + (value >> 16);
     }
     return value;
-}
-
-fn add16(sum: u16, addend: u16) u16 {
-    const result = sum +% addend;
-    return result +% @as(u16, @intFromBool(result < addend));
-}
-
-fn sub16(sum: u16, addend: u16) u16 {
-    return add16(sum, ~addend);
 }
 
 fn referencePartial(bytes: []const u8, seed: u32) u32 {
@@ -242,7 +242,7 @@ test "add, sub, and offset shifting preserve checksum arithmetic" {
     try std.testing.expectEqual(sub(lhs, shift(rhs, 1)), blockSub(lhs, rhs, 1));
 }
 
-test "from32to16, fold, and unfold preserve normalized checksum identities" {
+test "from32to16, fold, unfold, and 16-bit carry helpers preserve checksum identities" {
     const cases = [_]struct {
         sum: u32,
         expected_from32to16: u16,
@@ -261,6 +261,12 @@ test "from32to16, fold, and unfold preserve normalized checksum identities" {
         try std.testing.expectEqual(~case.expected_from32to16, fold(case.sum));
         try std.testing.expectEqual(@as(u32, case.expected_from32to16), unfold(case.expected_from32to16));
     }
+
+    try std.testing.expectEqual(@as(u16, 0x0001), add16(0xffff, 0x0001));
+    try std.testing.expectEqual(@as(u16, 0xffff), add16(0xffff, 0x0000));
+    try std.testing.expectEqual(@as(u16, 0xffff), add16(0xffff, 0xffff));
+    try std.testing.expectEqual(@as(u16, 0xfffe), sub16(0x0000, 0x0001));
+    try std.testing.expectEqual(@as(u16, 0x1234), sub16(add16(0x1234, 0xabcd), 0xabcd));
 }
 
 test "incremental replacement helpers match recomputed payload and header checksums" {
