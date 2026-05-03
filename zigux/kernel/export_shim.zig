@@ -34,11 +34,7 @@ pub fn isCanonicalHeader(boundary_header: abi.BoundaryHeader) bool {
 
 pub fn normalize(status: abi.ExportStatus) abi.ExportStatus {
     var normalized = status;
-    if (normalized.code < 0) {
-        normalized.flags |= abi.STATUS_FLAG_ERROR;
-    } else {
-        normalized.flags &= ~abi.STATUS_FLAG_ERROR;
-    }
+    normalized.flags = if (normalized.code < 0) abi.STATUS_FLAG_ERROR else 0;
     return normalized;
 }
 
@@ -104,6 +100,22 @@ test "phase3 export shim normalizes explicit status decoding" {
     });
     try std.testing.expectEqual(@as(u16, 0), stray_error_flag.flags & abi.STATUS_FLAG_ERROR);
     try std.testing.expect(isOk(stray_error_flag));
+
+    const stray_unknown_ok = normalize(.{
+        .code = 9,
+        .facility = @intFromEnum(abi.Facility.drivers),
+        .flags = @as(u16, abi.STATUS_FLAG_ERROR | 0x80),
+    });
+    try std.testing.expectEqual(@as(u16, 0), stray_unknown_ok.flags);
+    try std.testing.expect(isOk(stray_unknown_ok));
+
+    const stray_unknown_err = normalize(.{
+        .code = -9,
+        .facility = @intFromEnum(abi.Facility.drivers),
+        .flags = 0x80,
+    });
+    try std.testing.expectEqual(@as(u16, abi.STATUS_FLAG_ERROR), stray_unknown_err.flags);
+    try std.testing.expect(!isOk(stray_unknown_err));
 }
 
 test "phase3 export shim separates canonical headers from broader compatibility" {
