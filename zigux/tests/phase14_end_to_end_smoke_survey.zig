@@ -35,6 +35,7 @@ const SurveySummary = struct {
     scripts_readme_records_return_to_blocked_triggers: bool,
     scripts_readme_records_boundary_map: bool,
     scripts_readme_records_concurrency_audit_scope: bool,
+    release_boundary_note_records_shared_smoke_packet: bool,
     freeze_map_lists_workqueue_c: bool,
     freeze_map_lists_skbuff_c: bool,
     freeze_map_lists_ring_buffer_c: bool,
@@ -194,6 +195,7 @@ test "phase14 shared smoke manifest records the current evidence bundle" {
     try std.testing.expect(manifest.survey_summary.scripts_readme_records_return_to_blocked_triggers);
     try std.testing.expect(manifest.survey_summary.scripts_readme_records_boundary_map);
     try std.testing.expect(manifest.survey_summary.scripts_readme_records_concurrency_audit_scope);
+    try std.testing.expect(manifest.survey_summary.release_boundary_note_records_shared_smoke_packet);
     try std.testing.expect(manifest.survey_summary.freeze_map_lists_workqueue_c);
     try std.testing.expect(manifest.survey_summary.freeze_map_lists_skbuff_c);
     try std.testing.expect(manifest.survey_summary.freeze_map_lists_ring_buffer_c);
@@ -387,6 +389,20 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     try std.testing.expect(std.mem.indexOf(u8, script_readme, "make -C zigux phase14-smoke ZIG=<attached-zig-path>") != null);
     try std.testing.expect(std.mem.indexOf(u8, script_readme, "make -C zigux phase14-test ZIG=<attached-zig-path>") != null);
     try std.testing.expect(std.mem.indexOf(u8, script_readme, "make -C zigux phase14 ZIG=<attached-zig-path>") != null);
+
+    const release_boundary = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase14-release-boundary-survey.md",
+        allocator,
+        .limited(16 * 1024),
+    );
+    defer allocator.free(release_boundary);
+    try std.testing.expect(smoke_manifest.value.survey_summary.release_boundary_note_records_shared_smoke_packet);
+    try std.testing.expect(std.mem.indexOf(u8, release_boundary, "PHASE14_SHARED_REPLAY_PRESENT=yes") != null);
+    try std.testing.expect(std.mem.indexOf(u8, release_boundary, "shared smoke packet: `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `scripts/zigux/validate-phase14.py`, `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, and `zig build test --build-file zigux/tests/phase14_build.zig --summary all` now keep the four-anchor boundary map, the focused smoke shard, and the shared full-bundle replay explicit from a study-only posture") != null);
+    try std.testing.expect(std.mem.indexOf(u8, release_boundary, "combined shared replay entrypoint: `make -C zigux phase14` remains the published convenience route for the validator-backed smoke packet, so release-facing review and local replay still name the same one-command path as the shared smoke note and manifest instead of leaving that wrapper path implicit in `zigux/Makefile`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, release_boundary, "PHASE14_SHARED_SMOKE_GATE_COUNT=1") != null);
+    try std.testing.expect(std.mem.indexOf(u8, release_boundary, "PHASE14_ACTIVE_DELIVERY_GATE_COUNT=0") != null);
 
     const freeze_map = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
