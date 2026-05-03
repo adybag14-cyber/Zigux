@@ -70,6 +70,12 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     phase10_virtio_mmio_module.addImport("virtio_mmio", virtio_mmio_module);
+    const phase10_virtio_mmio_queue_isolation_module = b.createModule(.{
+        .root_source_file = b.path("phase10_virtio_mmio_queue_isolation.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase10_virtio_mmio_queue_isolation_module.addImport("virtio_mmio", virtio_mmio_module);
     const phase10_virtio_input_survey_module = b.createModule(.{
         .root_source_file = b.path("phase10_virtio_input_survey.zig"),
         .target = target,
@@ -121,6 +127,11 @@ pub fn build(b: *std.Build) void {
         .root_module = phase10_virtio_mmio_module,
     });
     const run_phase10_virtio_mmio_tests = b.addRunArtifact(phase10_virtio_mmio_tests);
+    const phase10_virtio_mmio_queue_isolation_tests = b.addTest(.{
+        .name = "phase10-virtio-mmio-queue-isolation-tests",
+        .root_module = phase10_virtio_mmio_queue_isolation_module,
+    });
+    const run_phase10_virtio_mmio_queue_isolation_tests = b.addRunArtifact(phase10_virtio_mmio_queue_isolation_tests);
     const phase10_virtio_input_survey_tests = b.addTest(.{
         .name = "phase10-virtio-input-survey-tests",
         .root_module = phase10_virtio_input_survey_module,
@@ -132,7 +143,7 @@ pub fn build(b: *std.Build) void {
     });
     const run_phase10_virtio_mmio_survey_tests = b.addRunArtifact(phase10_virtio_mmio_survey_tests);
 
-    const test_step = b.step("test", "Run Phase 10 virtio core, virtio core survey, virtio ring, virtio ring reset reuse, virtio input, virtio input multitouch preflight, virtio mmio, virtio_input survey, virtio_ring survey, and virtio_mmio survey tests");
+    const test_step = b.step("test", "Run Phase 10 virtio core, virtio core survey, virtio ring, virtio ring reset reuse, virtio input, virtio input multitouch preflight, virtio mmio, virtio mmio queue isolation, virtio_input survey, virtio_ring survey, and virtio_mmio survey tests");
     test_step.dependOn(&run_phase10_virtio_core_tests.step);
     test_step.dependOn(&run_phase10_virtio_core_survey_tests.step);
     test_step.dependOn(&run_phase10_virtio_ring_tests.step);
@@ -140,6 +151,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_phase10_virtio_input_tests.step);
     test_step.dependOn(&run_phase10_virtio_input_multitouch_preflight_tests.step);
     test_step.dependOn(&run_phase10_virtio_mmio_tests.step);
+    test_step.dependOn(&run_phase10_virtio_mmio_queue_isolation_tests.step);
     test_step.dependOn(&run_phase10_virtio_input_survey_tests.step);
     test_step.dependOn(&run_phase10_virtio_ring_survey_tests.step);
     test_step.dependOn(&run_phase10_virtio_mmio_survey_tests.step);
