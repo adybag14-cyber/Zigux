@@ -323,8 +323,6 @@ pub const NvmePciQueueLab = struct {
         const shape = try self.shapePrpBuffer(dma_address, transfer_bytes);
         const command_data_prp_entries: u16 = if (shape.spanned_pages == 1)
             1
-        else if (shape.uses_prp_list)
-            1
         else
             2;
         const prp_list_covered_pages: u16 = if (shape.uses_prp_list) shape.prp_list_entries else 0;
