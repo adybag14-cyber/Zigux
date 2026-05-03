@@ -123,7 +123,7 @@ test "phase 14 rcu tree survey manifest records the freeze-boundary gap without 
     try std.testing.expectEqualStrings("Core-Adjacent Pod", manifest.rollback_threshold.owner);
     try std.testing.expectEqualStrings("Repo Tooling Pod", manifest.rollback_threshold.rollback_owner);
     try std.testing.expectEqual(@as(usize, 3), manifest.rollback_threshold.required_evidence.len);
-    try std.testing.expectEqual(@as(usize, 3), manifest.rollback_threshold.rollback_triggers.len);
+    try std.testing.expectEqual(@as(usize, 4), manifest.rollback_threshold.rollback_triggers.len);
     try std.testing.expectEqual(@as(usize, 6), manifest.decision_checklist.len);
     try std.testing.expectEqual(@as(usize, 16), manifest.gaps.len);
 
