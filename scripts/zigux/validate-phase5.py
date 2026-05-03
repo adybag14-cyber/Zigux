@@ -702,6 +702,36 @@ def run_self_test() -> int:
         copy_tree(ROOT, tmp_root)
         docs_readme = tmp_root / "Documentation/zigux/README.md"
         text = docs_readme.read_text(encoding="utf-8").replace(
+            "ships no `samples/zigux/*string*` reference sample",
+            "keeps string-helper evidence under the Phase 7 helper bundle",
+            1,
+        )
+        docs_readme.write_text(text, encoding="utf-8")
+        missing = validate_phase5(tmp_root)
+        if missing["ok"] or "Documentation/zigux/README.md:missing:ships no `samples/zigux/*string*` reference sample" not in missing["missing"]:
+            print("PHASE5_VALIDATOR_SELF_TEST=fail")
+            print("PHASE5_VALIDATOR_SELF_TEST_REASON=docs-readme-string-boundary-gap")
+            return 1
+
+        tmp_root = Path(tmp)
+        copy_tree(ROOT, tmp_root)
+        docs_readme = tmp_root / "Documentation/zigux/README.md"
+        text = docs_readme.read_text(encoding="utf-8").replace(
+            "no-`samples/zigux/*cmdline*` boundary explicit",
+            "cmdline helper evidence stays under the separate Phase 7 bundle",
+            1,
+        )
+        docs_readme.write_text(text, encoding="utf-8")
+        missing = validate_phase5(tmp_root)
+        if missing["ok"] or "Documentation/zigux/README.md:missing:no-`samples/zigux/*cmdline*` boundary explicit" not in missing["missing"]:
+            print("PHASE5_VALIDATOR_SELF_TEST=fail")
+            print("PHASE5_VALIDATOR_SELF_TEST_REASON=docs-readme-cmdline-boundary-gap")
+            return 1
+
+        tmp_root = Path(tmp)
+        copy_tree(ROOT, tmp_root)
+        docs_readme = tmp_root / "Documentation/zigux/README.md"
+        text = docs_readme.read_text(encoding="utf-8").replace(
             "zig test zigux/tests/phase5_bytestream_fifo.zig",
             "zig test zigux/tests/phase5_bytestream_fifo_review.zig",
             1,
@@ -759,7 +789,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE5_VALIDATOR_SELF_TEST=pass")
-    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=21")
+    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=23")
     return 0
 
 
