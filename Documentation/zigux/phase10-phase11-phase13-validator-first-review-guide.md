@@ -2,11 +2,13 @@
 
 Use this focused contributor guide when a change touches the active Phase 10 virtio lab packet, the active Phase 11 simple-driver packet, or the active Phase 13 shared-helper release packet.
 
+Pair this note with `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md` when the same review needs a compact tests-root checklist beside the docs-root and shared checklist prompts.
+
 ## Why this note exists
 
 The shared scripts index already names the current checker stack for these packets, but reviewers still need one compact place that says which pre-replay gates, shared replay entrypoints, and adjacent evidence files should move together.
 
-Keep `Documentation/zigux/review-checklist.md` and `zigux/tests/README.md` aligned with this note when they describe the same active contributor packets, so checklist prompts, tests-root workflow guidance, and packet-local evidence do not drift into separate stories.
+Keep `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md` aligned with this note when they describe the same active contributor packets, so checklist prompts, tests-root workflow guidance, and packet-local evidence do not drift into separate stories.
 
 ## Phase 10: Virtio lab packet
 
