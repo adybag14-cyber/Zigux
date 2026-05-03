@@ -348,6 +348,16 @@ def run_self_test() -> int:
         )
         write_text(fixture_path, fixture_backup)
 
+        fixture = json.loads(fixture_backup)
+        fixture["shared_split_replays"] = fixture["shared_split_replays"][:-1]
+        write_text(fixture_path, json.dumps(fixture, indent=2) + "\n")
+        expect_missing(
+            "shared_split_replay_fixture_drift",
+            run_checker(tmp_root),
+            "fixture:shared_split_replays",
+        )
+        write_text(fixture_path, fixture_backup)
+
         makefile_path = tmp_root / "zigux/Makefile"
         makefile_backup = text(makefile_path)
         write_text(
@@ -419,7 +429,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST=pass")
-    print("PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT=10")
+    print("PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
