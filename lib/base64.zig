@@ -368,6 +368,56 @@ fn expectExhaustiveTailCanonicality(variant: Variant) !void {
     }
 }
 
+fn expectExhaustivePaddedTailCanonicality(variant: Variant) !void {
+    const table = alphabet(variant);
+    var padded_two_char_tail: [4]u8 = undefined;
+    var padded_three_char_tail: [4]u8 = undefined;
+    var one_byte_out: [1]u8 = undefined;
+    var two_byte_out: [2]u8 = undefined;
+
+    for (0..64) |raw_a| {
+        const a: u8 = @intCast(raw_a);
+        for (0..64) |raw_b| {
+            const b: u8 = @intCast(raw_b);
+            padded_two_char_tail[0] = table[a];
+            padded_two_char_tail[1] = table[b];
+            padded_two_char_tail[2] = '=';
+            padded_two_char_tail[3] = '=';
+
+            if ((b & 0x0f) == 0) {
+                const expected = @as(u8, @intCast((@as(u16, a) << 2) | (@as(u16, b) >> 4)));
+                try std.testing.expectEqual(@as(usize, 1), try bytes(padded_two_char_tail[0..], true, variant));
+                try std.testing.expectEqual(@as(usize, 1), try decode(one_byte_out[0..], padded_two_char_tail[0..], true, variant));
+                try std.testing.expectEqual(expected, one_byte_out[0]);
+            } else {
+                try std.testing.expectError(DecodeError.InvalidInput, bytes(padded_two_char_tail[0..], true, variant));
+                try std.testing.expectError(DecodeError.InvalidInput, decode(one_byte_out[0..], padded_two_char_tail[0..], true, variant));
+            }
+
+            for (0..64) |raw_c| {
+                const c: u8 = @intCast(raw_c);
+                padded_three_char_tail[0] = table[a];
+                padded_three_char_tail[1] = table[b];
+                padded_three_char_tail[2] = table[c];
+                padded_three_char_tail[3] = '=';
+
+                if ((c & 0x03) == 0) {
+                    const expected = [_]u8{
+                        @as(u8, @intCast((@as(u16, a) << 2) | (@as(u16, b) >> 4))),
+                        @as(u8, @intCast(((@as(u16, b) & 0x0f) << 4) | (@as(u16, c) >> 2))),
+                    };
+                    try std.testing.expectEqual(@as(usize, 2), try bytes(padded_three_char_tail[0..], true, variant));
+                    try std.testing.expectEqual(@as(usize, 2), try decode(two_byte_out[0..], padded_three_char_tail[0..], true, variant));
+                    try std.testing.expectEqualSlices(u8, &expected, two_byte_out[0..]);
+                } else {
+                    try std.testing.expectError(DecodeError.InvalidInput, bytes(padded_three_char_tail[0..], true, variant));
+                    try std.testing.expectError(DecodeError.InvalidInput, decode(two_byte_out[0..], padded_three_char_tail[0..], true, variant));
+                }
+            }
+        }
+    }
+}
+
 test "chars matches padded and unpadded output sizes" {
     try std.testing.expectEqual(@as(usize, 0), chars(0, true));
     try std.testing.expectEqual(@as(usize, 4), chars(1, true));
@@ -548,6 +598,12 @@ test "decodeTail exhaustively accepts only canonical short tails across variants
     try expectExhaustiveTailCanonicality(.std);
     try expectExhaustiveTailCanonicality(.urlsafe);
     try expectExhaustiveTailCanonicality(.imap);
+}
+
+test "decode exhaustively accepts only canonical padded short tails across variants" {
+    try expectExhaustivePaddedTailCanonicality(.std);
+    try expectExhaustivePaddedTailCanonicality(.urlsafe);
+    try expectExhaustivePaddedTailCanonicality(.imap);
 }
 
 test "decode reverse maps classify every byte across all variants" {
