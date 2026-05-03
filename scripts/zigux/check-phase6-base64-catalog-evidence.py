@@ -17,11 +17,18 @@ PARITY_SCRIPT_PATH = Path("scripts/zigux/check-phase6-base64-c-parity.py")
 
 SELF_TEST_CASE_COUNT = 10
 PARITY_CASE_COUNT = 122
-CATALOG_EVIDENCE_SELF_TEST_CASE_COUNT = 6
+VARIANT_ENCODE_VECTORS = 30
+VARIANT_DECODE_VECTORS = 20
+CATALOG_EVIDENCE_SELF_TEST_CASE_COUNT = 8
 
 CATALOG_MARKERS = [
     f"PHASE6_BASE64_C_PARITY_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}",
     f"PHASE6_BASE64_C_PARITY_CASES={PARITY_CASE_COUNT}",
+]
+
+CATALOG_FIXTURE_MARKERS = [
+    f"{VARIANT_ENCODE_VECTORS} variant encode vectors",
+    f"{VARIANT_DECODE_VECTORS} variant decode vectors",
 ]
 
 CATALOG_REVIEW_MARKERS = [
@@ -58,6 +65,9 @@ def validate(root: Path) -> list[str]:
     for marker in CATALOG_MARKERS:
         if marker not in catalog:
             missing.append(f"catalog:missing:{marker}")
+    for marker in CATALOG_FIXTURE_MARKERS:
+        if marker not in catalog:
+            missing.append(f"catalog_fixture:missing:{marker}")
     for marker in CATALOG_REVIEW_MARKERS:
         if marker not in catalog:
             missing.append(f"catalog_review:missing:{marker}")
@@ -69,6 +79,10 @@ def validate(root: Path) -> list[str]:
 
     manifest = json.loads(read_text(root, MANIFEST_PATH))
     base64 = manifest.get("determinism_evidence", {}).get("base64", {})
+    if base64.get("variant_encode_vectors") != VARIANT_ENCODE_VECTORS:
+        missing.append("manifest:base64:variant_encode_vectors")
+    if base64.get("variant_decode_vectors") != VARIANT_DECODE_VECTORS:
+        missing.append("manifest:base64:variant_decode_vectors")
     if base64.get("c_parity_self_test_cases") != SELF_TEST_CASE_COUNT:
         missing.append("manifest:base64:c_parity_self_test_cases")
     if base64.get("c_parity_cases") != PARITY_CASE_COUNT:
@@ -92,7 +106,11 @@ def write(root: Path, relpath: Path, content: str) -> None:
 
 
 def build_self_test_tree(root: Path) -> None:
-    write(root, CATALOG_PATH, "\n".join(["# x", *CATALOG_MARKERS, *CATALOG_REVIEW_MARKERS]) + "\n")
+    write(
+        root,
+        CATALOG_PATH,
+        "\n".join(["# x", *CATALOG_MARKERS, *CATALOG_FIXTURE_MARKERS, *CATALOG_REVIEW_MARKERS]) + "\n",
+    )
     write(root, PARITY_SCRIPT_PATH, "\n".join(PARITY_SCRIPT_MARKERS) + "\n")
     write(
         root,
@@ -101,6 +119,8 @@ def build_self_test_tree(root: Path) -> None:
             {
                 "determinism_evidence": {
                     "base64": {
+                        "variant_encode_vectors": VARIANT_ENCODE_VECTORS,
+                        "variant_decode_vectors": VARIANT_DECODE_VECTORS,
                         "c_parity_self_test_cases": SELF_TEST_CASE_COUNT,
                         "c_parity_cases": PARITY_CASE_COUNT,
                     }
@@ -127,9 +147,21 @@ def run_self_test() -> int:
                 raise AssertionError("missing catalog self-test marker failure")
 
             build_self_test_tree(root)
-            write(root, CATALOG_PATH, "\n".join(["# x", *CATALOG_MARKERS]) + "\n")
+            write(root, CATALOG_PATH, "\n".join(["# x", *CATALOG_MARKERS, *CATALOG_FIXTURE_MARKERS]) + "\n")
             if f"catalog_review:missing:{CATALOG_REVIEW_MARKERS[0]}" not in validate(root):
                 raise AssertionError("missing catalog review marker failure")
+
+            build_self_test_tree(root)
+            write(root, CATALOG_PATH, "\n".join(["# x", *CATALOG_MARKERS, CATALOG_FIXTURE_MARKERS[1], *CATALOG_REVIEW_MARKERS]) + "\n")
+            if f"catalog_fixture:missing:{CATALOG_FIXTURE_MARKERS[0]}" not in validate(root):
+                raise AssertionError("missing catalog fixture marker failure")
+
+            build_self_test_tree(root)
+            manifest = json.loads(read_text(root, MANIFEST_PATH))
+            manifest["determinism_evidence"]["base64"]["variant_encode_vectors"] = 24
+            write(root, MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+            if "manifest:base64:variant_encode_vectors" not in validate(root):
+                raise AssertionError("missing manifest variant encode count failure")
 
             build_self_test_tree(root)
             manifest = json.loads(read_text(root, MANIFEST_PATH))
