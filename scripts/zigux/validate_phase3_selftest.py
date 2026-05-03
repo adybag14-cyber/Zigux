@@ -447,6 +447,54 @@ def run_self_test() -> int:
             "source-marker: phase3-policy-unsafe-marker-fixture.zig missing try std.testing.expectError(error.AddressOverflow, narrow.scopedConstSliceAt(u32, .raw_pointer_bridge, 4, max));"
         ]
 
+        rbtree_shared_marker_fixture = root / "phase3-rbtree-shared-marker-fixture.zig"
+        rbtree_shared_markers = (
+            "// PHASE3_SHARED_RBTREE_SAMPLE_RECORDS=empty-root,cached-leftmost-root,uncached-root",
+            "const empty_root = rbtree.empty();",
+            "try std.testing.expect(!rbtree.hasRoot(empty_root));",
+            "const cached_root: rbtree.RootView = .{",
+            "try std.testing.expect(rbtree.hasRoot(cached_root));",
+            "const uncached_root: rbtree.RootView = .{",
+            "try std.testing.expect(rbtree.hasRoot(uncached_root));",
+        )
+        rbtree_shared_marker_fixture.write_text(
+            "\n".join([
+                "// PHASE3_SHARED_RBTREE_SAMPLE_RECORDS=empty-root,cached-leftmost-root,uncached-root",
+                "const empty_root = rbtree.empty();",
+                "try std.testing.expect(!rbtree.hasRoot(empty_root));",
+                "const cached_root: rbtree.RootView = .{",
+                "try std.testing.expect(rbtree.hasRoot(cached_root));",
+                "const uncached_root: rbtree.RootView = .{",
+                "try std.testing.expect(rbtree.hasRoot(uncached_root));",
+                "",
+            ]),
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert validate_source_markers(
+            root,
+            {"phase3-rbtree-shared-marker-fixture.zig": rbtree_shared_markers},
+        ) == []
+        rbtree_shared_marker_fixture.write_text(
+            "\n".join([
+                "// PHASE3_SHARED_RBTREE_SAMPLE_RECORDS=empty-root,cached-leftmost-root,uncached-root",
+                "const empty_root = rbtree.empty();",
+                "try std.testing.expect(!rbtree.hasRoot(empty_root));",
+                "const cached_root: rbtree.RootView = .{",
+                "try std.testing.expect(rbtree.hasRoot(cached_root));",
+                "const uncached_root: rbtree.RootView = .{",
+                "",
+            ]),
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert validate_source_markers(
+            root,
+            {"phase3-rbtree-shared-marker-fixture.zig": rbtree_shared_markers},
+        ) == [
+            "source-marker: phase3-rbtree-shared-marker-fixture.zig missing try std.testing.expect(rbtree.hasRoot(uncached_root));"
+        ]
+
         low_level_export_fixture = root / "low-level-export-fixture.zig"
         low_level_export_fixture.write_text(
             "\n".join(
@@ -507,6 +555,14 @@ def run_self_test() -> int:
         assert any(
             "shared Phase 3 ABI substrate packet" in marker for marker in ABI_REVIEW_CHECKLIST_MARKERS
         )
+        abi_source_markers = ABI_REQUIRED_SOURCE_MARKERS["zigux/tests/phase3_abi.zig"]
+        assert "// PHASE3_SHARED_RBTREE_SAMPLE_RECORDS=empty-root,cached-leftmost-root,uncached-root" in abi_source_markers
+        assert "const empty_root = rbtree.empty();" in abi_source_markers
+        assert "try std.testing.expect(!rbtree.hasRoot(empty_root));" in abi_source_markers
+        assert "const cached_root: rbtree.RootView = .{" in abi_source_markers
+        assert "try std.testing.expect(rbtree.hasRoot(cached_root));" in abi_source_markers
+        assert "const uncached_root: rbtree.RootView = .{" in abi_source_markers
+        assert "try std.testing.expect(rbtree.hasRoot(uncached_root));" in abi_source_markers
         low_level_markers = ABI_REQUIRED_SOURCE_MARKERS["zigux/tests/phase3_low_level_wrappers.zig"]
         assert "atomic.fetchSub(u32, &value, 4, .seq_cst)" in low_level_markers
         assert "atomic.fetchOr(u32, &value, 0b1000, .seq_cst)" in low_level_markers
@@ -643,7 +699,7 @@ def run_self_test() -> int:
         ]
 
     print("PHASE3_VALIDATOR_SELF_TEST=pass")
-    print("PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT=12")
+    print("PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
