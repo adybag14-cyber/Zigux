@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import tempfile
 from pathlib import Path
 
@@ -40,6 +41,12 @@ SHARED_RBTREE_SAMPLE_RECORD = {
     "reserved": 0,
 }
 
+DUMP_CONSTANT_PACKET_START = 'try writer.writeAll(",\\\"constants\\\":{\\\"root_flag_empty\\\":");'
+DUMP_CONSTANT_PACKET_END = 'try writer.writeAll("},\\\"records\\\":{");'
+HARNESS_CONSTANT_PACKET_START = 'fputs(",\\\"constants\\\":{\\\"root_flag_empty\\\":", stdout);'
+HARNESS_CONSTANT_PACKET_END = 'fputs("},\\\"structs\\\":{", stdout);'
+CONSTANT_PACKET_KEY_RE = re.compile(r'\\\"([a-z0-9_]+)\\\":')
+
 
 def _read_text(root: Path, rel: str, issues: list[str]) -> str:
     path = root / rel
@@ -48,6 +55,58 @@ def _read_text(root: Path, rel: str, issues: list[str]) -> str:
     except FileNotFoundError:
         issues.append(f"missing_file:{rel}")
         return ""
+
+
+def _extract_constant_packet_keys(
+    text: str,
+    *,
+    start_marker: str,
+    end_marker: str,
+    rel: str,
+) -> tuple[list[str], list[str]]:
+    start = text.find(start_marker)
+    if start == -1:
+        return [], [f"missing_constant_packet_start:{rel}"]
+
+    end = text.find(end_marker, start)
+    if end == -1:
+        return [], [f"missing_constant_packet_end:{rel}"]
+
+    keys: list[str] = []
+    seen: set[str] = set()
+    for key in CONSTANT_PACKET_KEY_RE.findall(text[start:end]):
+        if key == "constants" or key in seen:
+            continue
+        seen.add(key)
+        keys.append(key)
+
+    if not keys:
+        return [], [f"missing_constant_packet_keys:{rel}"]
+    return keys, []
+
+
+def _append_constant_set_issues(
+    issues: list[str],
+    baseline_keys: list[str],
+    actual_keys: list[str],
+    *,
+    baseline_rel: str,
+    actual_rel: str,
+) -> None:
+    if len(actual_keys) != len(baseline_keys):
+        issues.append(
+            f"constant_count_mismatch:{actual_rel}:{len(actual_keys)}:{baseline_rel}:{len(baseline_keys)}"
+        )
+
+    missing = sorted(set(baseline_keys).difference(actual_keys))
+    unexpected = sorted(set(actual_keys).difference(baseline_keys))
+    if missing or unexpected:
+        issues.append(
+            "constant_set_mismatch:"
+            f"{actual_rel}:{baseline_rel}:"
+            f"missing={','.join(missing) if missing else '-'}:"
+            f"unexpected={','.join(unexpected) if unexpected else '-'}"
+        )
 
 
 def validate(root: Path) -> list[str]:
@@ -110,6 +169,46 @@ def validate(root: Path) -> list[str]:
             issues.append(f"missing_phase3_abi_dump_rbtree_constant:{zig_name}")
         if c_harness_text and c_name not in c_harness_text:
             issues.append(f"missing_phase3_abi_c_harness_rbtree_constant:{c_name}")
+
+    if expected_constants and phase3_abi_dump_text:
+        dump_constant_keys, dump_constant_issues = _extract_constant_packet_keys(
+            phase3_abi_dump_text,
+            start_marker=DUMP_CONSTANT_PACKET_START,
+            end_marker=DUMP_CONSTANT_PACKET_END,
+            rel=PHASE3_ABI_DUMP_REL,
+        )
+        issues.extend(dump_constant_issues)
+        if dump_constant_keys:
+            _append_constant_set_issues(
+                issues,
+                list(expected_constants.keys()),
+                dump_constant_keys,
+                baseline_rel=EXPECTED_REL,
+                actual_rel=PHASE3_ABI_DUMP_REL,
+            )
+            if c_harness_text:
+                harness_constant_keys, harness_constant_issues = _extract_constant_packet_keys(
+                    c_harness_text,
+                    start_marker=HARNESS_CONSTANT_PACKET_START,
+                    end_marker=HARNESS_CONSTANT_PACKET_END,
+                    rel=PHASE3_ABI_C_HARNESS_REL,
+                )
+                issues.extend(harness_constant_issues)
+                if harness_constant_keys:
+                    _append_constant_set_issues(
+                        issues,
+                        list(expected_constants.keys()),
+                        harness_constant_keys,
+                        baseline_rel=EXPECTED_REL,
+                        actual_rel=PHASE3_ABI_C_HARNESS_REL,
+                    )
+                    _append_constant_set_issues(
+                        issues,
+                        dump_constant_keys,
+                        harness_constant_keys,
+                        baseline_rel=PHASE3_ABI_DUMP_REL,
+                        actual_rel=PHASE3_ABI_C_HARNESS_REL,
+                    )
 
     if saw_expected_records and SHARED_RBTREE_SAMPLE_KEY not in expected_records:
         issues.append(f"missing_expected_record:{SHARED_RBTREE_SAMPLE_KEY}")
@@ -182,11 +281,17 @@ def run_self_test() -> int:
         )
         (root / PHASE3_ABI_DUMP_REL).write_text(
             "\n".join(
-                [*(f'writeStructLayout(writer, "{json_name}", {module_name}.{zig_name}, true);' for json_name, zig_name, _, module_name in CANONICAL_LAYOUTS)]
+                [
+                    'try writer.writeAll(",\\\"constants\\\":{\\\"root_flag_empty\\\":");',
+                    'try writer.writeAll(",\\\"root_flag_cached\\\":");',
+                    'try writer.writeAll(",\\\"root_flag_leftmost_valid\\\":");',
+                    'try writer.writeAll("},\\\"records\\\":{");',
+                ]
+                + [*(f'writeStructLayout(writer, "{json_name}", {module_name}.{zig_name}, true);' for json_name, zig_name, _, module_name in CANONICAL_LAYOUTS)]
                 + [*(f"const _ = rbtree.{zig_name};" for _, zig_name, _ in REQUIRED_CONSTANTS)]
                 + [
                     f'const _ = "{SHARED_RBTREE_SAMPLE_KEY}";',
-                    "try writer.print(\"{d}\", .{rbtree.ROOT_FLAG_CACHED | rbtree.ROOT_FLAG_LEFTMOST_VALID});",
+                    'try writer.print("{d}", .{rbtree.ROOT_FLAG_CACHED | rbtree.ROOT_FLAG_LEFTMOST_VALID});',
                 ]
             )
             + "\n",
@@ -194,7 +299,13 @@ def run_self_test() -> int:
         )
         (root / PHASE3_ABI_C_HARNESS_REL).write_text(
             "\n".join(
-                [*(f'{{"{json_name}", sizeof(struct {json_name}), _Alignof(struct {json_name}), 0, 0}},' for json_name, _, _, _ in CANONICAL_LAYOUTS)]
+                [
+                    'fputs(",\\\"constants\\\":{\\\"root_flag_empty\\\":", stdout);',
+                    'fputs(",\\\"root_flag_cached\\\":", stdout);',
+                    'fputs(",\\\"root_flag_leftmost_valid\\\":", stdout);',
+                    'fputs("},\\\"structs\\\":{", stdout);',
+                ]
+                + [*(f'{{"{json_name}", sizeof(struct {json_name}), _Alignof(struct {json_name}), 0, 0}},' for json_name, _, _, _ in CANONICAL_LAYOUTS)]
                 + [*(c_name for _, _, c_name in REQUIRED_CONSTANTS)]
                 + [
                     f'"{SHARED_RBTREE_SAMPLE_KEY}"',
@@ -225,6 +336,20 @@ def run_self_test() -> int:
         )
         issues = validate(root)
         assert f"missing_phase3_abi_dump_record:{SHARED_RBTREE_SAMPLE_KEY}" in issues
+
+        phase3_abi_dump_path.write_text(
+            phase3_abi_dump_path.read_text(encoding="utf-8").replace(
+                'try writer.writeAll(",\\\"root_flag_leftmost_valid\\\":");\n',
+                'try writer.writeAll(",\\\"root_flag_leftmost_invalid\\\":");\n',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate(root)
+        assert (
+            f"constant_set_mismatch:{PHASE3_ABI_DUMP_REL}:{EXPECTED_REL}:"
+            "missing=root_flag_leftmost_valid:unexpected=root_flag_leftmost_invalid"
+        ) in issues
 
     print("PHASE3_ABI_LAYOUT_PACKET_SELF_TEST=pass")
     return 0
