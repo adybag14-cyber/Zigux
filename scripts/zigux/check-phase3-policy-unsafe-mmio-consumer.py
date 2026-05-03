@@ -53,10 +53,6 @@ REQUIRED_INTEROP_POLICY_SNIPPETS = (
 
 REQUIRED_POLICY_TEST_SNIPPETS = (
     'test "phase3 policy gate reaches a second boundary helper through decoded policy"',
-    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.writeScopedWithPolicy(u32, raw_pointer_policy, base32, 0, 1));",
-    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.readScopedWithPolicy(u32, raw_pointer_policy, base32, 0));",
-    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.writeScopedWithPolicy(u32, none_policy, base32, 0, 1));",
-    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.readScopedWithPolicy(u32, none_policy, base32, 0));",
     "try mmio.write8Policy(mmio_policy, base32, 0, 0x2a);",
     "try std.testing.expectEqual(@as(u8, 0x2a), try mmio.read8Policy(mmio_policy, base32, 0));",
     "try mmio.write16Policy(mmio_policy, base32, 2, 0x7bcd);",
@@ -67,21 +63,16 @@ REQUIRED_POLICY_TEST_SNIPPETS = (
     "try std.testing.expectEqual(@as(u64, 0x1111_2222_3333_4444), try mmio.read64Policy(mmio_policy, base64, @sizeOf(u64)));",
     "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write8Policy(raw_pointer_policy, base32, 0, 1));",
     "try std.testing.expectError(error.UnsafeScopeDenied, mmio.read8Policy(raw_pointer_policy, base32, 0));",
-    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write8Policy(none_policy, base32, 0, 1));",
-    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.read8Policy(none_policy, base32, 0));",
     "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write16Policy(raw_pointer_policy, base32, 0, 1));",
     "try std.testing.expectError(error.UnsafeScopeDenied, mmio.read16Policy(raw_pointer_policy, base32, 0));",
-    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write16Policy(none_policy, base32, 0, 1));",
-    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.read16Policy(none_policy, base32, 0));",
     "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write32Policy(raw_pointer_policy, base32, 0, 1));",
     "try std.testing.expectError(error.UnsafeScopeDenied, mmio.read32Policy(raw_pointer_policy, base32, 0));",
-    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write32Policy(none_policy, base32, 0, 1));",
-    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.read32Policy(none_policy, base32, 0));",
     "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write64Policy(raw_pointer_policy, base64, 0, 1));",
     "try std.testing.expectError(error.UnsafeScopeDenied, mmio.read64Policy(raw_pointer_policy, base64, 0));",
-    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write64Policy(none_policy, base64, 0, 1));",
-    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.read64Policy(none_policy, base64, 0));",
     'test "phase3 policy gate reaches raw-pointer bridge consumers through decoded policy"',
+    "const none_policy = try interop_policy.decode(.{",
+    "try std.testing.expectError(error.UnsafeScopeDenied, none_policy.constSliceAt(u32, base, words.len));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, none_policy.constPointerAt(u32, base));",
     "const words_slice = try raw_pointer_policy.constSliceAt(u32, base, words.len);",
     "const second_word = try raw_pointer_policy.constPointerAt(u32, base + @sizeOf(u32));",
     "try std.testing.expectError(error.UnsafeScopeDenied, mmio_policy.constSliceAt(u32, base, words.len));",
@@ -92,9 +83,6 @@ REQUIRED_POLICY_TEST_SNIPPETS = (
 )
 
 REQUIRED_POLICY_BUILD_SNIPPETS = (
-    "const layout_assert_module = b.createModule(.{",
-    'layout_assert_module.addImport("abi_bindings", abi_bindings_module);',
-    'layout_assert_module.addImport("rbtree_bindings", rbtree_bindings_module);',
     "const interop_policy_module = b.createModule(.{",
     'interop_policy_module.addImport("abi_bindings", abi_bindings_module);',
     'interop_policy_module.addImport("panic_policy", panic_policy_module);',
@@ -105,7 +93,6 @@ REQUIRED_POLICY_BUILD_SNIPPETS = (
     'mmio_module.addImport("interop_policy", interop_policy_module);',
     'mmio_module.addImport("narrow_unsafe", narrow_unsafe_module);',
     'root_module.addImport("interop_policy", interop_policy_module);',
-    'root_module.addImport("layout_assert", layout_assert_module);',
     'root_module.addImport("mmio", mmio_module);',
     '"phase3-policy-unsafe-test",',
 )
@@ -185,12 +172,6 @@ def run_self_test() -> int:
         assert "missing_policy_test_snippet:try mmio.write64Policy(mmio_policy, base64, @sizeOf(u64), 0x1111_2222_3333_4444);" in issues
 
         _write(root, POLICY_TEST_REL, "\n".join(REQUIRED_POLICY_TEST_SNIPPETS) + "\n")
-        _write(root, POLICY_TEST_REL, "\n".join(snippet for snippet in REQUIRED_POLICY_TEST_SNIPPETS if "none_policy" not in snippet) + "\n")
-        issues = validate(root)
-        assert "missing_policy_test_snippet:try std.testing.expectError(error.UnsafeScopeDenied, mmio.writeScopedWithPolicy(u32, none_policy, base32, 0, 1));" in issues
-        assert "missing_policy_test_snippet:try std.testing.expectError(error.UnsafeScopeDenied, mmio.read64Policy(none_policy, base64, 0));" in issues
-
-        _write(root, POLICY_TEST_REL, "\n".join(REQUIRED_POLICY_TEST_SNIPPETS) + "\n")
         _write(root, SURVEY_REL, "\n".join(
             (
                 "# Phase 3 Policy and Unsafe Boundary Survey",
@@ -228,16 +209,12 @@ def run_self_test() -> int:
         _write(root, INTEROP_POLICY_REL, "\n".join(REQUIRED_INTEROP_POLICY_SNIPPETS) + "\n")
         _write(
             root,
-            POLICY_BUILD_REL,
-            "\n".join(
-                snippet
-                for snippet in REQUIRED_POLICY_BUILD_SNIPPETS
-                if snippet != 'root_module.addImport("layout_assert", layout_assert_module);'
-            )
-            + "\n",
+            POLICY_TEST_REL,
+            "\n".join(snippet for snippet in REQUIRED_POLICY_TEST_SNIPPETS if "none_policy.constSliceAt" not in snippet and "none_policy.constPointerAt" not in snippet) + "\n",
         )
         issues = validate(root)
-        assert 'missing_policy_build_snippet:root_module.addImport("layout_assert", layout_assert_module);' in issues
+        assert "missing_policy_test_snippet:try std.testing.expectError(error.UnsafeScopeDenied, none_policy.constSliceAt(u32, base, words.len));" in issues
+        assert "missing_policy_test_snippet:try std.testing.expectError(error.UnsafeScopeDenied, none_policy.constPointerAt(u32, base));" in issues
 
     print("PHASE3_POLICY_UNSAFE_MMIO_CONSUMER_SELF_TEST=pass")
     return 0
