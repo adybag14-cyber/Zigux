@@ -51,6 +51,13 @@
       "why_now": "A committed C-vs-Zig parity layer now keeps whitespace collapse, blank-input emptiness, first-NUL stop behavior, leading-NUL truncation, and the quote-literal non-goal locked to `lib/argv_split.c` through the paired host harness instead of leaving that review surface helper-local only."
     },
     {
+      "id": "phase7-argv-split-packet-checker",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "scripts/zigux/check-phase7-argv-split-packet.py",
+      "why_now": "The dedicated packet checker is already part of the landed argv_split review path, so the manifest-backed ownership record should name that fail-closed review hook explicitly instead of leaving it implied by the shared validator and slice note alone."
+    },
+    {
       "id": "phase7-argv-split-slice-note",
       "status": "starter_landed",
       "kind": "documentation",
