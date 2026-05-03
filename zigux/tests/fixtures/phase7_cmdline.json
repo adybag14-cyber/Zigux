@@ -64,8 +64,18 @@
     }
   },
   "next_arg": {
+    "first_equals_value_split": {
+      "param": "key",
+      "rest": "tail",
+      "value": "alpha=beta"
+    },
     "leading_equals": {
       "param": "=bad",
+      "rest": "next",
+      "value": null
+    },
+    "quoted_bare_token": {
+      "param": "noparam value",
       "rest": "next",
       "value": null
     },
