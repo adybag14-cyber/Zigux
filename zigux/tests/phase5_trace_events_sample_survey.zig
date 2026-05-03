@@ -36,7 +36,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P5-L24", manifest.lane_key);
+    try std.testing.expectEqualStrings("P5-L16", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 5", manifest.phase);
     try std.testing.expectEqual(@as(usize, 40), manifest.surveyed_commit.len);
     for (manifest.surveyed_commit) |byte| {
@@ -336,7 +336,7 @@ test "phase 5 trace-events contributor docs stay aligned with the shipped review
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_trace_events_sample_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_trace_events_sample_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_build.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_LANE_KEY=P5-L24") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_LANE_KEY=P5-L16") != null);
     {
         const surveyed_commit_line = try std.fmt.allocPrint(
             std.testing.allocator,
