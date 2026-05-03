@@ -317,6 +317,7 @@ MANIFEST_EXPECTATIONS = {
     "tools/lib/find_bit.zig": {
         "tail_start_unit_test_anchor": 'tools/lib/find_bit.zig:test "tail scans keep the last in-range bit reachable from an inclusive start"',
         "tail_start_unit_test_contract": "Direct Zig unit coverage keeps tail-clamped set, zero, and shared-bit scans aligned when the inclusive start lands on the last in-range bit, while later starts still return nbits instead of leaking the out-of-range tail.",
+        "tail_word_boundary_unit_test_anchor": 'tools/lib/find_bit.zig:test "tail scans honor an exact tail-word boundary start"',
         "tail_word_boundary_unit_test_contract": "Direct Zig unit coverage keeps set, zero, and shared-bit tail scans aligned when the search starts exactly at the first tail-word bit index, so the first in-range tail match remains reachable without rereading an earlier full-word result.",
         "zero_sized_unit_test_anchor": 'tools/lib/find_bit.zig:test "zero-sized scans ignore populated backing words"',
         "zero_sized_unit_test_contract": "Direct Zig unit coverage keeps zero-length set, zero, and shared-bit scans aligned by returning 0 even when backing words are populated, so declared nbits stays authoritative over caller storage.",
@@ -528,6 +529,15 @@ def self_test() -> int:
             return 1
         write(root / "Documentation/zigux/phase1-closure.md", "\n".join(MARKER_GROUPS["phase1_closure"][1]) + "\n" + "\n".join(PHASE1_CLOSURE_PREFIX_COUNTS.keys()) + "\n")
 
+        manifest["helper_review_notes"]["tools/lib/find_bit.zig"]["tail_word_boundary_unit_test_anchor"] = "old anchor"
+        write(root / "zigux/tests/fixtures/phase1_helper_manifest.json", json.dumps(manifest, indent=2) + "\n")
+        code = os.spawnve(os.P_WAIT, sys.executable, [sys.executable, __file__], env)
+        if code == 0:
+            print("PHASE1_VALIDATOR_SELF_TEST=fail")
+            return 1
+        manifest["helper_review_notes"]["tools/lib/find_bit.zig"]["tail_word_boundary_unit_test_anchor"] = MANIFEST_EXPECTATIONS["tools/lib/find_bit.zig"]["tail_word_boundary_unit_test_anchor"]
+        write(root / "zigux/tests/fixtures/phase1_helper_manifest.json", json.dumps(manifest, indent=2) + "\n")
+
         manifest["helper_review_notes"]["tools/lib/string.zig"]["memparse_unit_test_contract"] = "old wording"
         write(root / "zigux/tests/fixtures/phase1_helper_manifest.json", json.dumps(manifest, indent=2) + "\n")
         code = os.spawnve(os.P_WAIT, sys.executable, [sys.executable, __file__], env)
@@ -544,7 +554,7 @@ def self_test() -> int:
             return 1
 
     print("PHASE1_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_VALIDATOR_SELF_TEST_CASE_COUNT=4")
+    print("PHASE1_VALIDATOR_SELF_TEST_CASE_COUNT=5")
     return 0
 
 
