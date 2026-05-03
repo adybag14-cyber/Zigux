@@ -8,6 +8,8 @@ const RepoEvidence = struct {
     indefinite_c_policy_present: bool,
     handoff_next_steps_present: bool,
     phase15_build_present: bool,
+    phase15_validator_script_present: bool,
+    phase15_validate_target_present: bool,
     phase15_make_target_present: bool,
     shared_ci_phase15_present: bool,
     phase15_replay_green_on_current_master: bool,
@@ -105,6 +107,8 @@ test "phase 15 readiness manifest records the roadmap, ledger, and current repo 
     try std.testing.expect(manifest.repo_evidence.indefinite_c_policy_present);
     try std.testing.expect(manifest.repo_evidence.handoff_next_steps_present);
     try std.testing.expect(manifest.repo_evidence.phase15_build_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_validator_script_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_validate_target_present);
     try std.testing.expect(manifest.repo_evidence.phase15_make_target_present);
     try std.testing.expect(manifest.repo_evidence.shared_ci_phase15_present);
     try std.testing.expect(manifest.repo_evidence.phase15_replay_green_on_current_master);
@@ -163,7 +167,7 @@ test "phase 15 readiness note keeps the roadmap and ledger comparison explicit" 
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "dedicated replay surfaces are green on current `master`") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "phase15-docs-root-summary-alignment") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "phase15-deep-core-status-change-blocker") != null);
-    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "python3 scripts/zigux/validate-phase15.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "scripts/zigux/validate-phase15.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "make -C zigux phase15-validate") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "make -C zigux phase15") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "zig build test --build-file zigux/tests/phase15_build.zig") != null);
@@ -224,6 +228,7 @@ test "phase 15 readiness survey stays aligned with the landed governance bundle"
     try std.testing.expect(std.mem.indexOf(u8, review_process, "## Required Review Packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, parity_scorecard, "## Roadmap Handoff Evidence") != null);
     try std.testing.expect(std.mem.indexOf(u8, indefinite_c_policy, "## When the indefinite-C policy applies") != null);
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "phase15-validate") != null);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase15-test") != null);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase15: phase15-validate phase15-test") != null);
 }
