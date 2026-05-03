@@ -148,22 +148,22 @@ FIXTURE_TEXT = {
 - `make -C zigux phase8-validate`
 """,
     "scripts/zigux/check-phase8-perf-buffer-poll-gate.py": """#!/usr/bin/env python3
-print(\"fixture\")
+print("fixture")
 """,
     "scripts/zigux/validate-phase8.py": """REQUIRED_FILES = [
-    \"zigux/tests/phase8_perf_buffer_poll_only_build.zig\",
+    "zigux/tests/phase8_perf_buffer_poll_only_build.zig",
 ]
 
 required_make_markers = [
-    \"phase8-perf-buffer-poll-test:\",
+    "phase8-perf-buffer-poll-test:",
 ]
 
 required_workflow_markers = [
-    \"Run focused Phase 8 perf-buffer poll tests\",
+    "Run focused Phase 8 perf-buffer poll tests",
 ]
 
 required_phase8_perf_buffer_poll_markers = [
-    \"phase8-perf-buffer-poll-tests\",
+    "phase8-perf-buffer-poll-tests",
 ]
 """,
     "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig": """pub const WaitClass = enum {
@@ -172,7 +172,7 @@ required_phase8_perf_buffer_poll_markers = [
 
 pub fn summarizeProcessRecords() void {}
 
-test \"summarizeProcessRecords keeps perf_buffer__process_records fail-fast ordering and processed record totals explicit\" {}
+test "summarizeProcessRecords keeps perf_buffer__process_records fail-fast ordering and processed record totals explicit" {}
 """,
     "zigux/Makefile": """PHONY += phase8-validate phase8-exec-cmd-test phase8-help-test phase8-kallsyms-test phase8-libbpf-segments-test phase8-perf-buffer-poll-test phase8-test phase8
 
@@ -192,27 +192,27 @@ phase8: phase8-validate phase8-exec-cmd-test phase8-help-test phase8-kallsyms-te
 - `make -C zigux phase8-perf-buffer-poll-test`
 """,
     "zigux/tests/phase8_build.zig": """const perf_buffer_poll_module = b.createModule(.{
-    .root_source_file = b.path(\"../../tools/lib/bpf/zigux_segments/perf_buffer_poll.zig\"),
+    .root_source_file = b.path("../../tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"),
 });
 const perf_buffer_poll_root_module = b.createModule(.{
-    .root_source_file = b.path(\"phase8_perf_buffer_poll.zig\"),
+    .root_source_file = b.path("phase8_perf_buffer_poll.zig"),
 });
 const perf_buffer_poll_tests = b.addTest(.{
-    .name = \"phase8-perf-buffer-poll-tests\",
+    .name = "phase8-perf-buffer-poll-tests",
 });
 """,
-    "zigux/tests/phase8_perf_buffer_poll.zig": """test \"phase 8 perf-buffer poll helper stays wired into focused and shared Phase 8 builds\" {
-    _ = \"phase8_perf_buffer_poll_only_build.zig\";
-    _ = \"phase8-perf-buffer-poll-tests\";
+    "zigux/tests/phase8_perf_buffer_poll.zig": """test "phase 8 perf-buffer poll helper stays wired into focused and shared Phase 8 builds" {
+    _ = "phase8_perf_buffer_poll_only_build.zig";
+    _ = "phase8-perf-buffer-poll-tests";
 }
 """,
     "zigux/tests/phase8_perf_buffer_poll_only_build.zig": """const root_module = b.createModule(.{
-    .root_source_file = b.path(\"phase8_perf_buffer_poll.zig\"),
+    .root_source_file = b.path("phase8_perf_buffer_poll.zig"),
 });
 const perf_buffer_poll_tests = b.addTest(.{
-    .name = \"phase8-perf-buffer-poll-tests\",
+    .name = "phase8-perf-buffer-poll-tests",
 });
-const test_step = b.step(\"test\", \"Run focused Phase 8 perf-buffer poll tests\");
+const test_step = b.step("test", "Run focused Phase 8 perf-buffer poll tests");
 """,
 }
 
