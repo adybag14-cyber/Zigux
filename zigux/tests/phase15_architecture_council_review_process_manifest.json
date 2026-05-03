@@ -67,6 +67,7 @@
     "automatic return-to-blocked trigger",
     "rollback threshold",
     "indefinite-C policy link or applicability note",
+    "explicit source-of-truth note",
     "reopen triggers",
     "trigger-specific refreshed evidence by path",
     "parity scorecard link or blocker record",
@@ -218,6 +219,13 @@
       "kind": "policy_gate",
       "zigux_destination": "Documentation/zigux/phase15-architecture-council-review-process.md",
       "why_now": "The freeze-map reopen rule already says a reopened stay-in-C anchor must state the rollback threshold, so the dedicated Architecture Council packet now carries and proves that threshold as its own required request field instead of leaving it implied inside the automatic return-to-blocked trigger wording."
+    },
+    {
+      "id": "phase15-review-process-source-of-truth-field-gate",
+      "status": "starter_landed",
+      "kind": "policy_gate",
+      "zigux_destination": "Documentation/zigux/phase15-architecture-council-review-process.md",
+      "why_now": "The freeze map and the indefinite-C policy already require an explicit reminder that the existing C implementation remains the product source of truth until approval lands, so the dedicated review-process packet now carries that reminder as its own required request field instead of leaving it implied inside neighboring stay-in-C policy surfaces."
     },
     {
       "id": "phase15-review-process-lane-identity-provenance-refresh",
