@@ -298,6 +298,19 @@ test "phase 7 kasprintfStrarrayRaw keeps zero-count and first-NUL prefixes expli
     string_helpers.kfreeStrarrayRaw(std.testing.allocator, null, 0);
 }
 
+test "phase 7 kasprintfStrarrayRaw keeps zero-count ownership distinct across callers" {
+    const empty_a = try string_helpers.kasprintfStrarrayRaw(std.testing.allocator, "cpu", 0);
+    const empty_b = try string_helpers.kasprintfStrarrayRaw(std.testing.allocator, "cpu", 0);
+    defer string_helpers.kfreeStrarrayRaw(std.testing.allocator, empty_a, 0);
+    defer string_helpers.kfreeStrarrayRaw(std.testing.allocator, empty_b, 99);
+
+    try std.testing.expectEqual(@as(usize, 1), empty_a.len);
+    try std.testing.expectEqual(@as(?[*:0]u8, null), empty_a[0]);
+    try std.testing.expectEqual(@as(usize, 1), empty_b.len);
+    try std.testing.expectEqual(@as(?[*:0]u8, null), empty_b[0]);
+    try std.testing.expect(empty_a.ptr != empty_b.ptr);
+}
+
 test "phase 7 kfreeStrarrayRaw keeps counted partial teardown safe" {
     const raw = try std.testing.allocator.alloc(?[*:0]u8, 4);
     @memset(raw, null);
