@@ -30,7 +30,7 @@ This focused ledger records the current closure-evidence bundle for the active P
 - `PHASE10_LEDGER_MMIO_MANIFEST=zigux/tests/phase10_virtio_mmio_manifest.json`
 - `PHASE10_LEDGER_ROADMAP_SCOREBOARD_SOURCE=zigux/tests/phase10_closure_manifest.json`
 - `PHASE10_LEDGER_SURVEY_PROVENANCE_SOURCE=manifest_derived`
-- `PHASE10_LEDGER_SURVEY_CORE_LANE=P10-L03`
+- `PHASE10_LEDGER_SURVEY_CORE_LANE=P10-L01`
 - `PHASE10_LEDGER_SURVEY_RING_LANE=P10-L08`
 - `PHASE10_LEDGER_SURVEY_INPUT_LANE=P10-L13`
 - `PHASE10_LEDGER_SURVEY_MMIO_LANE=P10-L18`
