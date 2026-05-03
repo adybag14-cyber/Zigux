@@ -118,4 +118,4 @@ This survey does not claim:
 
 ## Next bounded step
 
-If this PMO lane reopens, the next honest follow-up is to surface this release-readiness note and the adjacent cross-compile plus raw-fallback notes from `Documentation/zigux/README.md` so the docs root reflects the full current Phase 12 release packet without broadening the underlying driver scope.
+If this PMO lane reopens, the next honest follow-up is to keep the docs-root Phase 12 summary honest about the mixed fallback split by naming that `virtio_net` and `libbpf` still rely on shared-tree-only public reads while `virtio_scsi` keeps the commit-pinned raw catalog and the archived `nvme_pci` packet keeps the raw fallback map, without broadening the underlying driver scope.
