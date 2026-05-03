@@ -15,6 +15,7 @@ SURVEY_PATH = "Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.m
 MANIFEST_PATH = "zigux/tests/runtime_module_metadata_manifest.json"
 SURVEY_TEST_PATH = "zigux/tests/runtime_module_metadata_survey.zig"
 CHECKER_PATH = "scripts/zigux/check-phase9-module-metadata-packet.py"
+VALIDATE_PHASE9_PATH = "scripts/zigux/validate-phase9.py"
 MAKEFILE_PATH = "zigux/Makefile"
 PHASE9_BUILD_PATH = "zigux/tests/phase9_build.zig"
 RUNTIME_LOADER_PATH = "zigux/kernel/runtime_loader.zig"
@@ -29,6 +30,7 @@ REQUIRED_FILES = [
     MANIFEST_PATH,
     SURVEY_TEST_PATH,
     CHECKER_PATH,
+    VALIDATE_PHASE9_PATH,
     MAKEFILE_PATH,
     PHASE9_BUILD_PATH,
     RUNTIME_LOADER_PATH,
@@ -78,6 +80,14 @@ MODULE_METADATA_SURVEY_EXACT_ONCE_MARKERS = [
     "- `python3 scripts/zigux/check-phase9-module-metadata-packet.py`\n",
 ]
 
+VALIDATE_PHASE9_REQUIRED_MARKERS = [
+    "Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md",
+    "zigux/tests/runtime_module_metadata_manifest.json",
+    "zigux/tests/runtime_module_metadata_survey.zig",
+    "scripts/zigux/check-phase9-module-metadata-packet.py",
+    "phase9-runtime-module-metadata-survey-tests",
+]
+
 MAKEFILE_REQUIRED_MARKERS = [
     "PHONY += phase9-validate phase9-test phase9-loader-gap-survey phase9-loader-commit-alignment-survey phase9-non-owner-boundary-survey phase9-module-metadata-survey phase9-kretprobe-survey phase9-trace-events-survey phase9",
     "phase9-module-metadata-survey:",
@@ -95,6 +105,7 @@ SURVEY_TEST_REQUIRED_MARKERS = [
     'test "runtime module metadata survey note keeps descriptor fields, shared loader metadata, and depmod gaps explicit" {',
     'test "runtime module metadata survey proves the landed loader-plan scaffolds stay explicit and the shared metadata boundary stays narrow" {',
     'test "runtime module metadata survey proves the live starter descriptors and shared loader metadata surface directly" {',
+    'test "runtime module metadata survey keeps the shared phase9 validator route explicit" {',
     '"Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md"',
     '"zigux/tests/runtime_module_metadata_manifest.json"',
     '"zigux/kernel/runtime_loader.zig"',
@@ -104,6 +115,7 @@ SURVEY_TEST_REQUIRED_MARKERS = [
     '"samples/zigux/runtime_trace_events_loader.zig"',
     '"samples/zigux/runtime_trace_events.zig"',
     '"scripts/zigux/check-phase9-module-metadata-packet.py"',
+    '"scripts/zigux/validate-phase9.py"',
     '"zigux/tests/phase9_build.zig"',
     '"zigux/tests/README.md"',
     '"MODULE_INFO()"',
@@ -111,6 +123,12 @@ SURVEY_TEST_REQUIRED_MARKERS = [
     '"scripts/depmod.sh"',
     '"RuntimeLoadRequest"',
     'std.testing.expect(std.mem.indexOf(u8, runtime_trace_events_loader, "RuntimeLoadRequest") == null);',
+    'try expectContainsAll(validate_phase9, &.{',
+    '"Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md"',
+    '"zigux/tests/runtime_module_metadata_manifest.json"',
+    '"zigux/tests/runtime_module_metadata_survey.zig"',
+    '"scripts/zigux/check-phase9-module-metadata-packet.py"',
+    '"phase9-runtime-module-metadata-survey-tests"',
     "waitingOnRuntimeSubstrate",
     "releasedWithoutSubstrate",
     "register_kretprobe",
@@ -348,6 +366,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
 
     survey_text = read_text(root, SURVEY_PATH)
     survey_test_text = read_text(root, SURVEY_TEST_PATH)
+    validate_phase9_text = read_text(root, VALIDATE_PHASE9_PATH)
     makefile_text = read_text(root, MAKEFILE_PATH)
     phase9_build_text = read_text(root, PHASE9_BUILD_PATH)
     runtime_loader_text = read_text(root, RUNTIME_LOADER_PATH)
@@ -365,6 +384,9 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     for marker in MODULE_METADATA_SURVEY_EXACT_ONCE_MARKERS:
         if count_exact_occurrence(survey_text, marker) != 1:
             failures.append(f"survey_exact:{marker}")
+    for marker in VALIDATE_PHASE9_REQUIRED_MARKERS:
+        if marker not in validate_phase9_text:
+            failures.append(f"validate_phase9:{marker}")
     for marker in MAKEFILE_REQUIRED_MARKERS:
         if marker not in makefile_text:
             failures.append(f"makefile:{marker}")
@@ -506,6 +528,7 @@ def write_fixture_tree(root: Path) -> None:
                 'test "runtime module metadata manifest keeps the dedicated descriptor and depmod-gap packet explicit" {',
                 'test "runtime module metadata docs stay aligned with the manifest-backed surveyed commit" {',
                 'test "runtime module metadata survey note keeps descriptor fields, shared loader metadata, and depmod gaps explicit" {',
+                'test "runtime module metadata survey keeps the shared phase9 validator route explicit" {',
                 'test "runtime module metadata survey proves the landed loader-plan scaffolds stay explicit and the shared metadata boundary stays narrow" {',
                 'test "runtime module metadata survey proves the live starter descriptors and shared loader metadata surface directly" {',
                 f'"{SURVEY_PATH}"',
@@ -517,6 +540,7 @@ def write_fixture_tree(root: Path) -> None:
                 f'"{TRACE_EVENTS_LOADER_PATH}"',
                 '"samples/zigux/runtime_trace_events.zig"',
                 f'"{CHECKER_PATH}"',
+                f'"{VALIDATE_PHASE9_PATH}"',
                 f'"{PHASE9_BUILD_PATH}"',
                 f'"{TESTS_README_PATH}"',
                 '"MODULE_INFO()"',
@@ -524,6 +548,12 @@ def write_fixture_tree(root: Path) -> None:
                 '"scripts/depmod.sh"',
                 '"RuntimeLoadRequest"',
                 'std.testing.expect(std.mem.indexOf(u8, runtime_trace_events_loader, "RuntimeLoadRequest") == null);',
+                'try expectContainsAll(validate_phase9, &.{',
+                '"Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md"',
+                '"zigux/tests/runtime_module_metadata_manifest.json"',
+                '"zigux/tests/runtime_module_metadata_survey.zig"',
+                '"scripts/zigux/check-phase9-module-metadata-packet.py"',
+                '"phase9-runtime-module-metadata-survey-tests"',
                 "waitingOnRuntimeSubstrate",
                 "releasedWithoutSubstrate",
                 "register_kretprobe",
@@ -536,6 +566,10 @@ def write_fixture_tree(root: Path) -> None:
     )
     (root / CHECKER_PATH).write_text(
         "self checker fixture marker\n",
+        encoding="utf-8",
+    )
+    (root / VALIDATE_PHASE9_PATH).write_text(
+        "\n".join(VALIDATE_PHASE9_REQUIRED_MARKERS) + "\n",
         encoding="utf-8",
     )
     (root / MAKEFILE_PATH).write_text(
@@ -746,6 +780,23 @@ def run_self_test() -> int:
         )
         trace_events_loader_path.write_text(original_trace_events_loader, encoding="utf-8")
 
+        validate_phase9_path = tmp_root / VALIDATE_PHASE9_PATH
+        original_validate_phase9 = validate_phase9_path.read_text(encoding="utf-8")
+        validate_phase9_path.write_text(
+            original_validate_phase9.replace(
+                "Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md",
+                "Documentation/zigux/phase9-module-metadata-survey.md",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "validate_phase9_module_metadata_survey_path",
+            tmp_root,
+            "validate_phase9:Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md",
+        )
+        validate_phase9_path.write_text(original_validate_phase9, encoding="utf-8")
+
         phase9_build_path = tmp_root / PHASE9_BUILD_PATH
         original_phase9_build = phase9_build_path.read_text(encoding="utf-8")
         phase9_build_path.write_text(
@@ -929,7 +980,7 @@ def run_self_test() -> int:
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
     print("PHASE9_MODULE_METADATA_PACKET_SELF_TEST=pass")
-    print("PHASE9_MODULE_METADATA_PACKET_SELF_TEST_CASE_COUNT=19")
+    print("PHASE9_MODULE_METADATA_PACKET_SELF_TEST_CASE_COUNT=20")
     return 0
 
 
@@ -971,6 +1022,8 @@ def main() -> int:
 
     required_marker_count = (
         len(SURVEY_REQUIRED_MARKERS)
+        + len(MODULE_METADATA_SURVEY_EXACT_ONCE_MARKERS)
+        + len(VALIDATE_PHASE9_REQUIRED_MARKERS)
         + len(MAKEFILE_REQUIRED_MARKERS)
         + len(PHASE9_BUILD_REQUIRED_MARKERS)
         + len(SURVEY_TEST_REQUIRED_MARKERS)
