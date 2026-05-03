@@ -140,21 +140,24 @@ def assert_contract_catalog_shape() -> None:
         )
 
 
+def helper_self_test_expected_lines() -> list[str]:
+    return [
+        'ARTIFACT_DIFF_SELF_TEST=pass',
+        'ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=18',
+        'ARTIFACT_DIFF_SELF_TEST_CASES=text_pass,text_mismatch,json_pass,json_mismatch,json_invalid_expected,json_invalid_actual,json_invalid_both,json_missing_expected,json_missing_actual,json_missing_both,sha256_pass,sha256_drift,text_missing_expected,text_missing_actual,text_missing_both,sha256_missing_expected,sha256_missing_actual,sha256_missing_both',
+    ]
+
+
 def main() -> int:
     assert_contract_catalog_shape()
     covered_cases: list[str] = []
 
-    # Replaying the helper's own self-test twice keeps the published case
-    # catalog and count deterministic, not just the leaf comparison modes.
+    # Replaying the helper's own self-test before the leaf-mode cases
+    # keeps the published self-test packet explicit and reviewable.
     run_contract_case(
         ['--self-test'],
         0,
-        [
-            'ARTIFACT_DIFF_SELF_TEST=pass',
-            'ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=18',
-            'ARTIFACT_DIFF_SELF_TEST_CASES=text_pass,text_mismatch,json_pass,json_mismatch,json_invalid_expected,json_invalid_actual,json_invalid_both,json_missing_expected,json_missing_actual,json_missing_both,sha256_pass,sha256_drift,text_missing_expected,text_missing_actual,text_missing_both,sha256_missing_expected,sha256_missing_actual,sha256_missing_both',
-        ],
-        repeat_count=2,
+        helper_self_test_expected_lines(),
     )
     covered_cases.append('helper_self_test')
     covered_cases.append('helper_self_test_repeat')
@@ -444,6 +447,15 @@ def main() -> int:
         )
         covered_cases.append('sha256_drift')
         covered_cases.append('sha256_drift_repeat')
+
+        # Replaying the helper self-test after the leaf-mode packet proves
+        # that the summary output stays deterministic after the full contract
+        # sweep, not only on a clean back-to-back invocation.
+        run_contract_case(
+            ['--self-test'],
+            0,
+            helper_self_test_expected_lines(),
+        )
 
     if covered_cases != EXPECTED_CONTRACT_CASES:
         raise AssertionError(
