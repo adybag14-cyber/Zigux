@@ -61,6 +61,8 @@ MAKE_EXACT_COUNT_MARKERS = {
     "phase13-validate:": 1,
     "scripts/zigux/check-phase13-libfs-packet.py --self-test": 1,
     "scripts/zigux/check-phase13-libfs-packet.py\n": 1,
+    "scripts/zigux/check-phase13-devres-packet.py --self-test": 1,
+    "scripts/zigux/check-phase13-devres-packet.py\n": 1,
     "scripts/zigux/check-phase13-notifier-packet.py --self-test": 1,
     "scripts/zigux/check-phase13-notifier-packet.py\n": 1,
     "scripts/zigux/validate-phase13-release.py": 1,
