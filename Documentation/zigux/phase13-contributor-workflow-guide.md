@@ -34,15 +34,21 @@ Keep the validator-first release path explicit and unchanged unless the packet i
 3. `zig build test --build-file zigux/tests/phase13_build.zig --summary all`
 4. `make -C zigux phase13`
 
-The shared replay currently covers these nine steps:
+The shared replay currently covers these fifteen steps:
 
 - `phase13-libfs-tests`
 - `phase13-devres-tests`
 - `phase13-devres-dma-coherent-tests`
+- `phase13-devres-iounmap-reviewability-tests`
+- `phase13-devres-iomap-reviewability-tests`
 - `phase13-landlock-ruleset-tests`
+- `phase13-landlock-ruleset-reviewability-tests`
 - `phase13-landlock-syscalls-tests`
+- `phase13-landlock-syscalls-reviewability-tests`
+- `phase13-landlock-ruleset-fops-sync-tests`
 - `phase13-libfs-reviewability-tests`
 - `phase13-devres-reviewability-tests`
+- `phase13-devres-wrapper-reviewability-tests`
 - `phase13-notifier-list-reviewability-tests`
 - `phase13-notifier-chain-view-tests`
 
