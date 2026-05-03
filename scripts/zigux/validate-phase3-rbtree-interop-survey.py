@@ -22,23 +22,27 @@ REQUIRED_SURVEY_MARKERS = (
     "PHASE3_RBTREE_PHASE3_BOUNDARY_STATUS=dedicated-boundary-landed-shared-abi-lift-still-missing",
     "PHASE3_RBTREE_NON_GOALS=no-balancing-port,no-export-shim-growth,no-uapi-growth",
     "PHASE3_RBTREE_NEXT_BOUNDED_STEP=one-shared-phase3-abi-rbtree-root-view",
+    "PHASE3_RBTREE_SHARED_REPLAY=zigux/tests/phase3_abi.zig,zigux/tests/phase3_abi_dump.zig,zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c,zigux/tests/fixtures/phase3_abi/expected.json",
+    "PHASE3_RBTREE_SHARED_LAYOUT_CONTRACT=zigux_rbtree_root_view-reused-unchanged-in-shared-phase3-abi-packet",
+    "PHASE3_RBTREE_SHARED_CONSTANT_CONTRACT=root_flag_empty,root_flag_cached,root_flag_leftmost_valid",
     "PHASE3_RBTREE_SHARED_CONTRACT=zigux/tests/phase3_rbtree_shared_contract.zig",
+    "PHASE3_RBTREE_SHARED_PACKET_CATALOG=phase3_abi_manifest-catalogs-dedicated-rbtree-boundary-packet",
     "PHASE3_RBTREE_SURVEY_GATE=python3 scripts/zigux/validate-phase3-rbtree-interop-survey.py",
     "PHASE3_RBTREE_SHARED_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi",
     "PHASE3_RBTREE_SHARED_MAKE_GATE=make -C zigux phase3-validate",
 )
 
 REQUIRED_SURVEY_SNIPPETS = (
-    "The remaining gap is that current `master` still has no shared `rbtree` record inside `include/zigux/abi.h`, `zigux/bindings/abi.zig`, and the shared `phase3_abi` fixture packet.",
+    "The remaining gap is that current `master` still has no shared `rbtree` record inside `include/zigux/abi.h` and `zigux/bindings/abi.zig`, and the shared `phase3_abi` replay still reaches `rbtree` through `include/zigux/rbtree.h` and `zigux/bindings/rbtree.zig` rather than through a curated shared record.",
     "`python3 scripts/zigux/validate-phase3-rbtree-interop-survey.py` keeps this dedicated survey note, the broader `Documentation/zigux/phase3-roadmap-gap-survey.md` note, and the repo-backed evidence paths aligned",
     "`python3 scripts/zigux/validate-phase3.py --slug abi` keeps that dedicated `rbtree` gap visible inside the shared Phase 3 ABI validation packet instead of leaving it as prose-only context",
     "`make -C zigux phase3-validate` remains the shared wrapper entrypoint for the broader bounded ABI packet, so this survey stays reviewable through the same published Phase 3 gate",
     "no curated `rbtree` record in `include/zigux/abi.h`",
     "no matching shared `zigux/bindings/abi.zig` layout type for a Phase 3 `rbtree` boundary packet",
-    "no shared C-vs-Zig parity fixture for that `rbtree` root view inside `zigux/tests/fixtures/phase3_abi/`",
+    "no shared Phase 3 ABI replay path for that `rbtree` root view that no longer depends on `include/zigux/rbtree.h` and `zigux/bindings/rbtree.zig`",
     "one curated read-mostly ABI record in the shared packet",
     "one matching shared Zig binding shape",
-    "one committed shared parity fixture that keeps the contract reviewable without widening into a full balancing port",
+    "one shared ABI replay path that no longer depends on the dedicated `rbtree` header and binding include path",
     "`zigux/tests/phase3_rbtree_shared_contract.zig` now keeps that planned shared packet layout and constant contract machine-checked before the full shared header lift lands",
     "`zigux/helpers/rbtree_root_view.zig` now adds a reusable constructor and canonicalization helper around the dedicated `RootView` binding so later shared-packet work can reuse one explicit flag-policy path",
 )
@@ -61,6 +65,10 @@ REQUIRED_REPO_PATHS = (
     "zigux/tests/fixtures/phase3_rbtree/expected.json",
     "zigux/tests/fixtures/phase3_rbtree/phase3_rbtree_c_harness.c",
     "zigux/tests/phase3_rbtree_shared_contract.zig",
+    "zigux/tests/phase3_abi.zig",
+    "zigux/tests/phase3_abi_dump.zig",
+    "zigux/tests/fixtures/phase3_abi/expected.json",
+    "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c",
     "zigux/tests/phase7_rbtree.zig",
     "zigux/tests/phase7_rbtree_survey.zig",
     "zigux/tests/phase7_rbtree_manifest.json",
@@ -68,24 +76,26 @@ REQUIRED_REPO_PATHS = (
 
 REQUIRED_ROADMAP_GAP_MARKERS = (
     "PHASE3_CURRENT_RBTREE_STATUS=phase3-dedicated-rbtree-boundary-exists-shared-abi-lift-still-missing",
+    "PHASE3_CURRENT_SHARED_RBTREE_REPLAY=zigux/tests/phase3_abi.zig,zigux/tests/phase3_abi_dump.zig,zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c,zigux/tests/fixtures/phase3_abi/expected.json",
     "PHASE3_INTEROP_GAP=shared-phase3-abi-rbtree-lift-still-missing",
     "PHASE3_NEXT_BOUNDED_STEP=shared-abi-rbtree-root-view-before-more-chrdev-growth",
 )
 
 REQUIRED_SLICE_MARKERS = (
     "PHASE3_RBTREE_DEDICATED_BOUNDARY_PARITY=zigux/tests/fixtures/phase3_rbtree/expected.json,zigux/tests/fixtures/phase3_rbtree/phase3_rbtree_c_harness.c",
+    "PHASE3_RBTREE_SHARED_BOUNDARY_STATUS=shared-parity-replay-present-shared-root-view-lift-still-missing",
     "PHASE3_RBTREE_SHARED_BOUNDARY_GAP=shared-abi-root-view-lift-still-missing",
-    "PHASE3_RBTREE_SHARED_BOUNDARY_TARGET=include/zigux/abi.h,zigux/bindings/abi.zig,zigux/tests/fixtures/phase3_abi/",
+    "PHASE3_RBTREE_SHARED_BOUNDARY_GUARDS=scripts/zigux/check-phase3-abi-layout-packet.py,scripts/zigux/check-phase3-rbtree-shared-lift-contract.py",
 )
 
 REQUIRED_SLICE_SNIPPETS = (
     "This slice already carries:",
     "a dedicated `rbtree` root-view record in `include/zigux/rbtree.h` and `zigux/bindings/rbtree.zig`",
     "a dedicated C-vs-Zig parity replay in `zigux/tests/fixtures/phase3_rbtree/expected.json` and `zigux/tests/fixtures/phase3_rbtree/phase3_rbtree_c_harness.c`",
+    "a shared Phase 3 ABI parity replay that still reuses the dedicated `rbtree` header and Zig binding in `zigux/tests/phase3_abi.zig`, `zigux/tests/phase3_abi_dump.zig`, and `zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c`",
     "This slice does not yet claim:",
-    "a shared `rbtree` record in `include/zigux/abi.h`",
-    "a matching shared `zigux/bindings/abi.zig` layout type",
-    "a shared `zigux/tests/fixtures/phase3_abi/` parity replay for the `rbtree` root view",
+    "a shared `rbtree` record in `include/zigux/abi.h` and `zigux/bindings/abi.zig`",
+    "a shared Phase 3 ABI root-view implementation that no longer depends on `include/zigux/rbtree.h` and `zigux/bindings/rbtree.zig`",
     "The remaining honest Phase 3 `rbtree` gap after this step is the shared ABI lift, not the absence of a dedicated boundary packet.",
     "one curated shared Phase 3 `rbtree` root-view lift",
 )
@@ -150,7 +160,7 @@ def run_self_test() -> int:
         (root / "Documentation" / "zigux").mkdir(parents=True, exist_ok=True)
         (root / "zigux" / "tests").mkdir(parents=True, exist_ok=True)
         (root / "zigux" / "tests" / "fixtures" / "phase3_rbtree").mkdir(parents=True, exist_ok=True)
-        (root / "zigux" / "tests" / "fixtures").mkdir(parents=True, exist_ok=True)
+        (root / "zigux" / "tests" / "fixtures" / "phase3_abi").mkdir(parents=True, exist_ok=True)
         (root / "zigux" / "bindings").mkdir(parents=True, exist_ok=True)
         (root / "zigux" / "helpers").mkdir(parents=True, exist_ok=True)
         (root / "include" / "zigux").mkdir(parents=True, exist_ok=True)
