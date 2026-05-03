@@ -6,6 +6,7 @@
 - `PHASE5_SURVEYED_COMMIT=affdebd460c9c33ce939c7535cdb929352648e93`
 - scope: roadmap-vs-repo sample reviewability, approved ownership-and-lifetime guidance, and exact bounded checks for the landed `samples/zigux/` kobject-style replay
 - product boundary:
+  - `Documentation/zigux/phase5-kobject-sample-survey.md`
   - `Documentation/zigux/README.md`
   - `Documentation/zigux/review-checklist.md`
   - `samples/zigux/README.md`
