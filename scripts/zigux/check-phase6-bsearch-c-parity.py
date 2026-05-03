@@ -184,6 +184,17 @@ def run_self_test() -> int:
         "phase6-bsearch-c-parity:self-test-missing-case:unexpected_output:"
         f"expected={EXPECTED_SORTED_LINES!r}:actual={missing_runtime_raw_descending!r}",
     )
+    expect_system_exit(
+        "mismatch_surface",
+        lambda: validate_matching_surface(
+            ["u32-hit\t3\t0", "runtime-raw-hit\t34\t2"],
+            ["u32-hit\t3\t0", "runtime-raw-hit\t34\tnull"],
+            "self-test-mismatch",
+        ),
+        "phase6-bsearch-c-parity:self-test-mismatch:c_output_mismatch:"
+        "expected=['u32-hit\\t3\\t0', 'runtime-raw-hit\\t34\\t2']:"
+        "actual=['u32-hit\\t3\\t0', 'runtime-raw-hit\\t34\\tnull']",
+    )
     print("PHASE6_BSEARCH_C_PARITY_SELF_TEST=pass")
     print("PHASE6_BSEARCH_C_PARITY_SELF_TEST_CASE_COUNT=6")
     return 0
