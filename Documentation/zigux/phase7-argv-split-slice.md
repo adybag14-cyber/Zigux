@@ -118,4 +118,4 @@ This slice still does not yet claim:
 
 ## Next bounded step
 
-Move the next Phase 7 schedule to another unfinished leaf helper family. Reopen this lane only if fresh repo inspection finds one more real `argv_split.c` parity gap inside the existing helper, fixture, survey, or dedicated-gate surface.
+Move the next Phase 7 schedule to another unfinished leaf helper family. Reopen this lane only if fresh repo inspection finds one more real `argv_split.c` parity gap or one shared review-surface drift inside the existing helper, fixture, survey, dedicated-gate, build-inventory, or make-wrapper packet.
