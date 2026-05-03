@@ -19,9 +19,12 @@ Keep the validator-first route explicit:
 - `python3 scripts/zigux/check-phase10-core-packet.py`
 - `python3 scripts/zigux/validate-phase10.py --self-test`
 - `python3 scripts/zigux/validate-phase10.py`
+- `python3 scripts/zigux/check-phase10-harness-coverage.py --self-test`
+- `python3 scripts/zigux/check-phase10-harness-coverage.py`
 - `python3 scripts/zigux/validate-phase10-closure.py --self-test`
 - `python3 scripts/zigux/validate-phase10-closure.py`
 - `make -C zigux phase10-validate`
+- `make -C zigux phase10-test`
 - `make -C zigux phase10`
 
 Keep these evidence surfaces aligned in the same review:
