@@ -18,6 +18,28 @@ pub const SampleFocus = enum {
     ownership_and_lifetime,
 };
 
+pub const sample_review_focus = [_]SampleFocus{
+    .symbol_selection,
+    .entry_timestamp,
+    .private_data_shape,
+    .return_duration,
+    .maxactive_budget,
+    .missed_summary,
+    .ownership_and_lifetime,
+};
+
+pub const sample_review_non_goals = [_][]const u8{
+    "register_kretprobe parity",
+    "unregister_kretprobe parity",
+    "pt_regs or regs_return_value parity",
+    "loadable module wiring",
+};
+
+pub const ReviewContract = struct {
+    focus: []const SampleFocus,
+    non_goals: []const []const u8,
+};
+
 pub const SampleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
@@ -108,6 +130,13 @@ pub const KretprobeExampleSample = struct {
             .anchor = "samples/kprobes/kretprobe_example.c",
             .requires_runtime_substrate = false,
             .provides_selfcheck = true,
+        };
+    }
+
+    pub fn reviewContract() ReviewContract {
+        return .{
+            .focus = &sample_review_focus,
+            .non_goals = &sample_review_non_goals,
         };
     }
 
@@ -210,15 +239,7 @@ pub const KretprobeExampleSample = struct {
             .duration_ns = result.duration_ns,
             .nmissed = self.nmissed,
             .maxactive = self.maxactiveBudget(),
-            .checked_focus = &.{
-                .symbol_selection,
-                .entry_timestamp,
-                .private_data_shape,
-                .return_duration,
-                .maxactive_budget,
-                .missed_summary,
-                .ownership_and_lifetime,
-            },
+            .checked_focus = reviewContract().focus,
         };
     }
 
@@ -349,19 +370,22 @@ pub const KretprobeExampleSample = struct {
 };
 
 test "kretprobe sample replay keeps the anchor reviewable and non-runtime" {
-    const expected_focus = [_]SampleFocus{
-        .symbol_selection,
-        .entry_timestamp,
-        .private_data_shape,
-        .return_duration,
-        .maxactive_budget,
-        .missed_summary,
-        .ownership_and_lifetime,
-    };
+    const expected_focus = sample_review_focus;
+    const expected_non_goals = sample_review_non_goals;
+    const contract = KretprobeExampleSample.reviewContract();
 
     var sample = KretprobeExampleSample{};
     try sample.init();
     const replay = try sample.runAnchorReplay();
+
+    try std.testing.expectEqual(@as(usize, expected_focus.len), contract.focus.len);
+    for (expected_focus, contract.focus) |expected, actual| {
+        try std.testing.expectEqual(expected, actual);
+    }
+    try std.testing.expectEqual(@as(usize, expected_non_goals.len), contract.non_goals.len);
+    for (expected_non_goals, contract.non_goals) |expected, actual| {
+        try std.testing.expectEqualStrings(expected, actual);
+    }
 
     try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", replay.anchor);
     try std.testing.expectEqualStrings("kernel_clone", replay.symbol_name);
