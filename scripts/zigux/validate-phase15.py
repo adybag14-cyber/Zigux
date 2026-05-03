@@ -209,6 +209,7 @@ REVIEW_PROCESS_APPROVAL_FIELDS = [
 
 REVIEW_PROCESS_APPROVAL_PATHS = [
     "Documentation/zigux/phase15-architecture-council-review-process.md",
+    "Documentation/zigux/phase15-freeze-map-governance.md",
     "Documentation/zigux/phase15-parity-scorecard.md",
     "Documentation/zigux/phase15-indefinite-c-policy.md",
     "Documentation/zigux/phase15-evidence-archives/kernel-sched-core.md",
@@ -234,6 +235,7 @@ REVIEW_PROCESS_OWNERSHIP_FIELDS = [
 ]
 
 REVIEW_PROCESS_OWNERSHIP_PATHS = [
+    "Documentation/zigux/phase15-freeze-map-governance.md",
     "Documentation/zigux/phase15-parity-scorecard.md",
     "Documentation/zigux/phase15-indefinite-c-policy.md",
     "Documentation/zigux/phase15-evidence-archives/kernel-sched-core.md",
