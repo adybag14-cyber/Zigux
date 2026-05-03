@@ -12,6 +12,7 @@ This template reserves the Architecture Council packet path named by the Phase 1
 ## Decision Record
 
 - decision record ID: `pending_no_architecture_council_request`
+- no Architecture Council approval claim: `true`
 - evidence archive path: `Documentation/zigux/phase15-evidence-archives/kernel-rcu-tree.md`
 - parity scorecard link or blocker record: `Documentation/zigux/phase15-parity-scorecard.md`
 
