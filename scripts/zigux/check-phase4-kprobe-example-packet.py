@@ -185,7 +185,7 @@ def collect_manifest_misses(manifest: dict[str, object]) -> list[str]:
                 missing.append(f"manifest:gap_duplicate:{gap_id}")
             else:
                 gap_index[gap_id] = gap
-+
+
     for gap_id, (expected_status, expected_destination) in MANIFEST_REQUIRED_GAPS.items():
         gap = gap_index.get(gap_id)
         if gap is None:
