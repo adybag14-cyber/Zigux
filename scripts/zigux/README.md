@@ -39,6 +39,7 @@ Current bootstrap helpers
 - `check-phase4-kprobe-example-packet.py`
 - `validate-phase5.py`
 - `validate-phase6.py`
+- `check-phase6-docs-root-external-parity.py`
 - `check-phase6-base64-catalog-evidence.py`
 - `validate-phase7.py`
 - `check-phase7-build-inventory.py`
