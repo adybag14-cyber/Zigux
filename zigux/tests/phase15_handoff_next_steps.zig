@@ -85,6 +85,8 @@ test "phase 15 handoff manifest records the parked governance contract" {
     try std.testing.expectEqual(@as(usize, 2), manifest.pending_next_steps.len);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[0], "shared Phase 15 replay drifts again") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[0], "named reopen trigger") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "python3 scripts/zigux/validate-phase15.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "make -C zigux phase15-validate") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "zig build test --build-file zigux/tests/phase15_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "make -C zigux phase15") != null);
 
@@ -133,6 +135,8 @@ test "phase 15 handoff note keeps the open gaps and parked next steps explicit" 
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "docs-root release evidence now matches the dedicated maintenance packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "phase15-docs-root-summary-alignment") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "phase15-deep-core-status-change-blocker") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "python3 scripts/zigux/validate-phase15.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "make -C zigux phase15-validate") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "make -C zigux phase15") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "zig build test --build-file zigux/tests/phase15_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "named reopen trigger") != null);
