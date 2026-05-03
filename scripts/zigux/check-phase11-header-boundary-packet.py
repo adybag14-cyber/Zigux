@@ -16,6 +16,7 @@ SURVEY_ZIG_PATH = Path("zigux/tests/phase11_uapi_header_parity_survey.zig")
 MANIFEST_PATH = Path("zigux/tests/phase11_uapi_header_parity_manifest.json")
 HVC_MATRIX_PATH = Path("Documentation/zigux/phase11-hvc-console-validation-matrix.md")
 MAKEFILE_PATH = Path("zigux/Makefile")
+WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 
 SURVEY_NOTE_MARKERS = [
     "# Phase 11 UAPI And Driver-Header Parity Survey",
@@ -46,6 +47,11 @@ MAKEFILE_MARKERS = [
     "scripts/zigux/check-phase11-header-boundary-packet.py",
 ]
 
+WORKFLOW_MARKERS = [
+    "Validate Phase 11 simple-driver bundle",
+    "make -C zigux phase11-validate",
+]
+
 
 def text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
@@ -59,6 +65,7 @@ def validate_packet(root: Path) -> int:
         ("survey_zig", root / SURVEY_ZIG_PATH, SURVEY_ZIG_MARKERS),
         ("hvc_matrix", root / HVC_MATRIX_PATH, HVC_MATRIX_MARKERS),
         ("makefile", root / MAKEFILE_PATH, MAKEFILE_MARKERS),
+        ("workflow", root / WORKFLOW_PATH, WORKFLOW_MARKERS),
     ]:
         source = text(path)
         for marker in markers:
@@ -107,6 +114,7 @@ def validate_packet(root: Path) -> int:
     print(f"PHASE11_HEADER_BOUNDARY_SURVEY_MARKER_COUNT={len(SURVEY_NOTE_MARKERS)}")
     print(f"PHASE11_HEADER_BOUNDARY_ZIG_MARKER_COUNT={len(SURVEY_ZIG_MARKERS)}")
     print(f"PHASE11_HEADER_BOUNDARY_MAKEFILE_MARKER_COUNT={len(MAKEFILE_MARKERS)}")
+    print(f"PHASE11_HEADER_BOUNDARY_WORKFLOW_MARKER_COUNT={len(WORKFLOW_MARKERS)}")
     return 0
 
 
@@ -142,6 +150,10 @@ def write_fixture_tree(root: Path) -> None:
     write_text(
         root / MAKEFILE_PATH,
         "\n".join(MAKEFILE_MARKERS) + "\n",
+    )
+    write_text(
+        root / WORKFLOW_PATH,
+        "\n".join(WORKFLOW_MARKERS) + "\n",
     )
     write_text(
         root / MANIFEST_PATH,
@@ -237,8 +249,25 @@ def run_self_test() -> int:
         )
         write_text(makefile_path, makefile_backup)
 
+        workflow_path = tmp_root / WORKFLOW_PATH
+        workflow_backup = text(workflow_path)
+        write_text(
+            workflow_path,
+            workflow_backup.replace(
+                "Validate Phase 11 simple-driver bundle\n",
+                "",
+                1,
+            ),
+        )
+        expect_missing(
+            "missing_workflow_phase11_validate_route",
+            run_checker(tmp_root),
+            "workflow:Validate Phase 11 simple-driver bundle",
+        )
+        write_text(workflow_path, workflow_backup)
+
     print("PHASE11_HEADER_BOUNDARY_PACKET_SELF_TEST=pass")
-    print("PHASE11_HEADER_BOUNDARY_PACKET_SELF_TEST_CASE_COUNT=4")
+    print("PHASE11_HEADER_BOUNDARY_PACKET_SELF_TEST_CASE_COUNT=5")
     return 0
 
 
