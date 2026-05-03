@@ -88,6 +88,7 @@ Current bootstrap helpers
 - `validate-phase3-rbtree-interop-survey.py`
 - `validate-phase3-export-uapi-survey.py`
 - `validate-phase3-low-level-wrapper-survey.py`
+- `validate-phase3-policy-unsafe-survey.py`
 - `validate_phase3_header_binding_markers.py`
 - `validate_phase3_selftest.py`
 - `generate-phase3-check-wrappers.py`
