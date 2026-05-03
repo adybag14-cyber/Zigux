@@ -2,7 +2,7 @@ const std = @import("std");
 const current_surveyed_commit = "3ba64cd4e41a4de1c8fd8dbaecb23702ad9701a3";
 const expected_phase4_required_file_count: usize = 23;
 const expected_phase4_required_marker_count: usize = 236;
-const expected_phase4_gate_evidence_target_count: usize = 15;
+const expected_phase4_gate_evidence_target_count: usize = 17;
 
 const SurveySummary = struct {
     atomic64_test_c_lines: usize,
