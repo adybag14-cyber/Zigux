@@ -89,6 +89,23 @@ pub const LifecycleSummary = struct {
     total_event_calls: usize,
 };
 
+pub const LifecycleBoundarySummary = struct {
+    stage_before_replay: SampleStage,
+    stage_after_init: SampleStage,
+    stage_after_callback_boundary: SampleStage,
+    stage_after_exit: SampleStage,
+    callback_boundary: CallbackBoundarySummary,
+    lifecycle_before_exit: LifecycleSummary,
+    lifecycle_after_exit: LifecycleSummary,
+    pre_init_anchor_rejected: bool,
+    pre_init_callback_boundary_rejected: bool,
+    pre_init_exit_rejected: bool,
+    replay_main_after_exit_rejected: bool,
+    register_after_exit_rejected: bool,
+    callback_after_exit_rejected: bool,
+    unregister_after_exit_rejected: bool,
+};
+
 pub const TraceEventsReferenceSample = struct {
     const Self = @This();
 
@@ -312,6 +329,85 @@ pub const TraceEventsReferenceSample = struct {
         };
     }
 
+    pub fn runLifecycleBoundaryReplay(self: *Self) !LifecycleBoundarySummary {
+        if (self.stage() != .cold) return error.InvalidLifecycleTransition;
+
+        var pre_init_anchor_rejected = false;
+        _ = self.runAnchorReplay() catch |err| switch (err) {
+            error.InvalidLifecycleTransition => pre_init_anchor_rejected = true,
+            else => return err,
+        };
+        if (!pre_init_anchor_rejected) return error.ExpectedPreInitAnchorRejection;
+
+        var pre_init_callback_boundary_rejected = false;
+        _ = self.runCallbackBoundaryRecoveryReplay() catch |err| switch (err) {
+            error.InvalidLifecycleTransition => pre_init_callback_boundary_rejected = true,
+            else => return err,
+        };
+        if (!pre_init_callback_boundary_rejected) return error.ExpectedPreInitCallbackBoundaryRejection;
+
+        var pre_init_exit_rejected = false;
+        self.exit() catch |err| switch (err) {
+            error.InvalidLifecycleTransition => pre_init_exit_rejected = true,
+            else => return err,
+        };
+        if (!pre_init_exit_rejected) return error.ExpectedPreInitExitRejection;
+
+        const stage_before_replay = self.stage();
+        try self.init();
+        const stage_after_init = self.stage();
+        const callback_boundary = try self.runCallbackBoundaryRecoveryReplay();
+        const stage_after_callback_boundary = self.stage();
+        const lifecycle_before_exit = self.lifecycleSummary();
+        try self.exit();
+        const lifecycle_after_exit = self.lifecycleSummary();
+
+        var replay_main_after_exit_rejected = false;
+        self.replayMainIteration(1) catch |err| switch (err) {
+            error.InvalidLifecycleTransition => replay_main_after_exit_rejected = true,
+            else => return err,
+        };
+        if (!replay_main_after_exit_rejected) return error.ExpectedPostExitReplayRejection;
+
+        var register_after_exit_rejected = false;
+        self.registerFunctionCallback() catch |err| switch (err) {
+            error.InvalidLifecycleTransition => register_after_exit_rejected = true,
+            else => return err,
+        };
+        if (!register_after_exit_rejected) return error.ExpectedPostExitRegisterRejection;
+
+        var callback_after_exit_rejected = false;
+        self.replayFunctionIteration(1) catch |err| switch (err) {
+            error.InvalidLifecycleTransition => callback_after_exit_rejected = true,
+            else => return err,
+        };
+        if (!callback_after_exit_rejected) return error.ExpectedPostExitCallbackRejection;
+
+        var unregister_after_exit_rejected = false;
+        self.unregisterFunctionCallback() catch |err| switch (err) {
+            error.InvalidLifecycleTransition => unregister_after_exit_rejected = true,
+            else => return err,
+        };
+        if (!unregister_after_exit_rejected) return error.ExpectedPostExitUnregisterRejection;
+
+        return .{
+            .stage_before_replay = stage_before_replay,
+            .stage_after_init = stage_after_init,
+            .stage_after_callback_boundary = stage_after_callback_boundary,
+            .stage_after_exit = self.stage(),
+            .callback_boundary = callback_boundary,
+            .lifecycle_before_exit = lifecycle_before_exit,
+            .lifecycle_after_exit = lifecycle_after_exit,
+            .pre_init_anchor_rejected = pre_init_anchor_rejected,
+            .pre_init_callback_boundary_rejected = pre_init_callback_boundary_rejected,
+            .pre_init_exit_rejected = pre_init_exit_rejected,
+            .replay_main_after_exit_rejected = replay_main_after_exit_rejected,
+            .register_after_exit_rejected = register_after_exit_rejected,
+            .callback_after_exit_rejected = callback_after_exit_rejected,
+            .unregister_after_exit_rejected = unregister_after_exit_rejected,
+        };
+    }
+
     pub fn runAnchorReplay(self: *Self) !ReplaySummary {
         if (self.stage() != .initialized) return error.InvalidLifecycleTransition;
 
@@ -488,18 +584,42 @@ test "trace-events sample exposes callback boundary recovery as one bounded repl
     try std.testing.expectEqual(@as(usize, 2), lifecycle.total_event_calls);
 }
 
-test "trace-events sample rejects every mutable entry point after exit" {
+test "trace-events sample replays lifecycle boundaries through one bounded helper" {
     var sample = TraceEventsReferenceSample{};
 
-    try sample.init();
-    _ = try sample.runAnchorReplay();
-    try sample.exit();
+    const replay = try sample.runLifecycleBoundaryReplay();
 
-    try std.testing.expectEqual(SampleStage.exited, sample.stage());
-    try std.testing.expectError(error.InvalidLifecycleTransition, sample.replayMainIteration(1));
-    try std.testing.expectError(error.InvalidLifecycleTransition, sample.registerFunctionCallback());
-    try std.testing.expectError(error.InvalidLifecycleTransition, sample.replayFunctionIteration(1));
-    try std.testing.expectError(error.InvalidLifecycleTransition, sample.unregisterFunctionCallback());
+    try std.testing.expectEqual(SampleStage.cold, replay.stage_before_replay);
+    try std.testing.expectEqual(SampleStage.initialized, replay.stage_after_init);
+    try std.testing.expectEqual(SampleStage.initialized, replay.stage_after_callback_boundary);
+    try std.testing.expectEqual(SampleStage.exited, replay.stage_after_exit);
+    try std.testing.expect(replay.pre_init_anchor_rejected);
+    try std.testing.expect(replay.pre_init_callback_boundary_rejected);
+    try std.testing.expect(replay.pre_init_exit_rejected);
+    try std.testing.expectEqual(@as(i32, 5), replay.callback_boundary.callback_iteration_count);
+    try std.testing.expect(replay.callback_boundary.missing_registration_rejected);
+    try std.testing.expect(replay.callback_boundary.underflow_before_registration_rejected);
+    try std.testing.expect(replay.callback_boundary.double_registration_rejected);
+    try std.testing.expect(replay.callback_boundary.invalid_callback_count_rejected);
+    try std.testing.expect(replay.callback_boundary.armed_exit_rejected);
+    try std.testing.expect(replay.callback_boundary.callback_path_checked);
+    try std.testing.expectEqual(@as(usize, 0), replay.callback_boundary.registration_depth_after_recovery);
+    try std.testing.expectEqual(SampleStage.initialized, replay.lifecycle_before_exit.stage);
+    try std.testing.expectEqual(@as(usize, 1), replay.lifecycle_before_exit.init_run_count);
+    try std.testing.expectEqual(@as(usize, 0), replay.lifecycle_before_exit.replay_run_count);
+    try std.testing.expectEqual(@as(usize, 0), replay.lifecycle_before_exit.exit_run_count);
+    try std.testing.expectEqual(@as(usize, 0), replay.lifecycle_before_exit.registration_depth);
+    try std.testing.expectEqual(@as(usize, 2), replay.lifecycle_before_exit.total_event_calls);
+    try std.testing.expectEqual(SampleStage.exited, replay.lifecycle_after_exit.stage);
+    try std.testing.expectEqual(@as(usize, 1), replay.lifecycle_after_exit.init_run_count);
+    try std.testing.expectEqual(@as(usize, 0), replay.lifecycle_after_exit.replay_run_count);
+    try std.testing.expectEqual(@as(usize, 1), replay.lifecycle_after_exit.exit_run_count);
+    try std.testing.expectEqual(@as(usize, 0), replay.lifecycle_after_exit.registration_depth);
+    try std.testing.expectEqual(@as(usize, 2), replay.lifecycle_after_exit.total_event_calls);
+    try std.testing.expect(replay.replay_main_after_exit_rejected);
+    try std.testing.expect(replay.register_after_exit_rejected);
+    try std.testing.expect(replay.callback_after_exit_rejected);
+    try std.testing.expect(replay.unregister_after_exit_rejected);
 }
 
 test "trace-events sample keeps callback registration single-live" {
