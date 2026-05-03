@@ -55,6 +55,10 @@ EXACT_MAKEFILE_RUN_COUNTS = {
     'scripts/zigux/validate-phase2.py': 1,
     'scripts/zigux/validate-phase2-closure.py': 1,
 }
+EXACT_TOOLCHAIN_PIN_SCOPE_MAKEFILE_RUN_COUNTS = {
+    'scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test': 1,
+    'scripts/zigux/check-phase2-toolchain-pin-scope.py': 1,
+}
 
 
 def case_files_from_groups(cases_path: Path, *group_specs: tuple[str, str]) -> list[Path]:
@@ -876,6 +880,7 @@ missing_markers.extend(validate_mk_elfconfig_checker_gate(ROOT / 'scripts' / 'zi
 missing_markers.extend(fixdep_case_issues)
 missing_markers.extend(validate_exact_workflow_runs(workflow, EXACT_WORKFLOW_RUN_COUNTS))
 missing_markers.extend(validate_exact_makefile_runs(makefile, EXACT_MAKEFILE_RUN_COUNTS))
+missing_markers.extend(validate_exact_makefile_runs(makefile, EXACT_TOOLCHAIN_PIN_SCOPE_MAKEFILE_RUN_COUNTS))
 
 if missing_markers:
     print('PHASE2_CLOSURE_VALIDATION=fail')
