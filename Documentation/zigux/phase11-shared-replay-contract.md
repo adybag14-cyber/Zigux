@@ -31,6 +31,8 @@ Run these in the published validator-first order before trusting the shared repl
 
 The published wrapper remains `make -C zigux phase11-validate`.
 
+The same contract is also exposed in bootstrap CI: `Validate Phase 11 header boundary packet` now runs before `Validate Phase 11 simple-driver bundle`, so the shared header-boundary packet must stay explicit before the broader Phase 11 delivery gate claims aligned evidence.
+
 The same contract is fail-closed by `python3 scripts/zigux/check-phase11-shared-replay-contract.py` before the broader validator runs.
 
 ## Shared Replay Surface
