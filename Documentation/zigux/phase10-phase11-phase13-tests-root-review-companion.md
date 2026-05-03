@@ -10,9 +10,11 @@ Keep the tests-root replay packet explicit:
 - `zigux/tests/phase10_build.zig`
 - `zigux/tests/phase10_closure_manifest.json`
 - `zigux/tests/phase10_virtio_core_manifest.json`
+- `zigux/tests/phase10_virtio_ring_reset_reuse.zig`
 - `zigux/tests/phase10_virtio_input_multitouch_preflight.zig`
 - `zigux/tests/phase10_virtio_mmio_queue_isolation.zig`
 - `zigux/tests/phase10_virtio_ring_manifest.json`
+- `zigux/tests/phase10_virtio_ring_survey.zig`
 - `zigux/tests/phase10_virtio_input_manifest.json`
 - `zigux/tests/phase10_virtio_mmio_manifest.json`
 - `scripts/zigux/check-phase10-harness-coverage.py`
@@ -20,7 +22,7 @@ Keep the tests-root replay packet explicit:
 - `scripts/zigux/validate-phase10-closure.py`
 
 Tests-root reviewer prompt:
-- Do the shared Phase 10 build, the shared closure manifest, all four lane survey manifests, the focused multitouch preflight replay, the focused MMIO queue-isolation replay, and the harness-coverage checker still describe the same validator-first lab bundle rather than a set of unrelated virtio starter files?
+- Do the shared Phase 10 build, the shared closure manifest, all four lane survey manifests, the focused ring drained-reset reuse replay, the focused multitouch preflight replay, the focused MMIO queue-isolation replay, and the harness-coverage checker still describe the same validator-first lab bundle rather than a set of unrelated virtio starter files?
 
 ## Phase 11 tests-root packet
 
@@ -61,7 +63,7 @@ Tests-root reviewer prompt:
 ## Checklist carryover prompts
 
 Keep these reviewer questions explicit when `zigux/tests/README.md` or other shared contributor-facing workflow notes are refreshed:
-- Phase 10: do `Documentation/zigux/phase10-closure-evidence.md`, `zigux/tests/phase10_closure_manifest.json`, `scripts/zigux/check-phase10-harness-coverage.py`, `zigux/tests/phase10_virtio_input_multitouch_preflight.zig`, and `zigux/tests/phase10_virtio_mmio_queue_isolation.zig` still describe the same validator-first lab bundle and focused harness evidence?
+- Phase 10: do `Documentation/zigux/phase10-closure-evidence.md`, `zigux/tests/phase10_closure_manifest.json`, `scripts/zigux/check-phase10-harness-coverage.py`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `zigux/tests/phase10_virtio_input_multitouch_preflight.zig`, and `zigux/tests/phase10_virtio_mmio_queue_isolation.zig` still describe the same validator-first lab bundle and focused harness evidence?
 - Phase 11: do `Documentation/zigux/phase11-shared-replay-contract.md`, `scripts/zigux/check-phase11-build-inventory.py`, `scripts/zigux/check-phase11-layout-assert-surface.py`, `scripts/zigux/check-phase11-hvc-validation-flow.py`, `scripts/zigux/check-phase11-hvc-cleanup-alignment.py`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `zigux/tests/phase11_build.zig`, and `zigux/tests/phase11_hvc_console_survey.zig` still keep the pre-replay stack and shared-versus-dedicated `hvc_console` split aligned?
 - Phase 13: do `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/README.md`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, and `zigux/helpers/notifier_chain_view.zig` still keep the validator-first release path, the dedicated Landlock syscall reviewability gate, and the adjacent notifier evidence aligned?
 
