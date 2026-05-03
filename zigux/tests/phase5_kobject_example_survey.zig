@@ -106,19 +106,22 @@ test "phase 5 kobject manifest records the exact bounded checks" {
         }
         if (std.mem.indexOf(u8, prompt, "unnamed attribute group shape") != null and
             std.mem.indexOf(u8, prompt, "pre-registration ownership boundary") != null and
+            std.mem.indexOf(u8, prompt, "runOwnershipReplay() helper") != null and
             std.mem.indexOf(u8, prompt, "ownershipSummary lifecycle snapshot") != null and
             std.mem.indexOf(u8, prompt, "post-exit init/register/show/store rejection boundaries") != null)
         {
             saw_group_boundary_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "replay-readiness") != null and
+            std.mem.indexOf(u8, prompt, "lifecycle replay") != null and
             std.mem.indexOf(u8, prompt, "infer it from code alone") != null)
         {
             saw_sync_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "initialized-but-not-registered stage explicit") != null and
             std.mem.indexOf(u8, prompt, "zero active attributes") != null and
-            std.mem.indexOf(u8, prompt, "ownershipSummary must expose replay readiness plus the cold, initialized, registered, and exited stage transitions directly") != null)
+            std.mem.indexOf(u8, prompt, "ownershipSummary must expose replay readiness plus the cold, initialized, registered, and exited stage transitions directly") != null and
+            std.mem.indexOf(u8, prompt, "runOwnershipReplay() helper") != null)
         {
             saw_ownership_prompt = true;
         }
@@ -172,10 +175,12 @@ test "phase 5 kobject manifest records the exact bounded checks" {
             try expectContains(check.expected, "runAnchorReplay reviewable");
             try expectContains(check.expected, "only in the initialized stage");
             try expectContains(check.expected, "after the sample has registered or exited");
+            try expectContains(check.expected, "runOwnershipReplay() helper replays the full cold-to-exited lifecycle explicitly");
         }
         if (std.mem.eql(u8, check.id, "ownership-summary")) {
             saw_ownership_summary = true;
             try expectContains(check.expected, "replay readiness plus the cold, initialized, registered, and exited stages");
+            try expectContains(check.expected, "runOwnershipReplay() helper");
             try expectContains(check.expected, "0, 0, 3, and 0");
             try expectContains(check.expected, "register-or-exit availability");
         }
