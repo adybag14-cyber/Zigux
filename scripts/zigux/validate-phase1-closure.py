@@ -53,6 +53,9 @@ REQUIRED_CLOSURE_MARKERS = [
     "PHASE1_CLOSURE_GATE=python3 scripts/zigux/validate-phase1-closure.py",
     "PHASE1_CLOSURE_SELF_TEST_GATE=python3 scripts/zigux/validate-phase1-closure.py --self-test",
     "PHASE1_STRING_MEMPARSE_UNIT_REVIEW=string memparse preserves decimal, hexadecimal, suffix-bearing, and invalid inputs without changing the parsed value or rest pointer contract",
+    "PHASE1_STRING_BENCH_REVIEW=string benchmark smoke pins deterministic bool-trim, memchr, compare, and memparse checksum surfaces plus the live loop count so string regressions cannot hide behind the broader string checksum alone",
+    "PHASE1_STRING_BENCH_KEYS=PHASE1_BENCH_STRING_CHECKSUM,PHASE1_BENCH_STRING_BOOL_TRIM_CHECKSUM,PHASE1_BENCH_STRING_MEMCHR_CHECKSUM,PHASE1_BENCH_STRING_COMPARE_CHECKSUM,PHASE1_BENCH_STRING_MEMPARSE_CHECKSUM",
+    "PHASE1_STRING_BENCH_ITERATIONS=PHASE1_BENCH_STRING_ITERATIONS",
     "PHASE1_RBTREE_BENCH_KEYS=PHASE1_BENCH_RBTREE_CHECKSUM,PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM,PHASE1_BENCH_RBTREE_CACHED_CHECKSUM,PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM,PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM",
 ]
 
