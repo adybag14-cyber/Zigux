@@ -72,18 +72,29 @@ This keeps the lane explicit without overstating progress: Zigux now has a real 
 - status bucket: `freeze_in_c`
 - validation gate: `zig build test --build-file zigux/tests/phase14_build.zig --summary all` plus `make -C zigux phase14`
 - rollback owner: `Repo Tooling Pod`
-- rollback threshold: keep this packet in `freeze_in_c` posture and return it to blocked skbuff-packet maintenance if the validation gate, rollback owner, stay-in-C wording, or the landed `__dev_direct_xmit()` identity-drop checkpoint stops being explicit.
+- rollback threshold: keep this packet in `freeze_in_c` posture and return it to blocked skbuff-packet maintenance if the validation gate, rollback owner, no-ready-next posture, or the stay-in-C wording around the republish and direct-xmit checkpoints stops being explicit.
 - fallback path: Keep `net/core/skbuff.c` as the source of truth, keep `net/core/skbuff_bridge.zig` boundary-map-only, and fall back to blocked skbuff-packet maintenance if the stay-in-C or rollback contract stops being explicit.
 - required evidence:
   - named owner, validation gate, and rollback owner recorded together in this survey note
-  - explicit stay-in-C wording for `head = skb`, `tail->next = skb`, `validate_xmit_skb()`, and the `__dev_direct_xmit()` identity-drop checkpoint
+  - explicit stay-in-C wording for `head = skb`, `tail->next = skb`, `validate_xmit_skb()`, `skb = validate_xmit_skb_list(...)`, `skb != orig_skb`, and the `__dev_direct_xmit()` identity-drop checkpoint
   - the landed direct-xmit identity-drop checkpoint and the blocked live-ownership gap kept explicit beside the same freeze-in-C posture
   - explicit wording that the identity-drop checkpoint is observational only and does not transfer qdisc publication, queue ownership, or skb lifetime ownership out of C
+  - the same no-ready-next posture for the republish and direct-xmit checkpoints kept explicit across this survey note and `Documentation/zigux/phase14-skbuff-bridge-slice.md`
 - automatic return-to-blocked triggers:
   - any edit that drops the named validation gate or rollback owner
   - missing freeze-in-C or stay-in-C wording for the republish or direct-xmit handoff in this survey packet
   - any manifest refresh that changes the landed direct-xmit checkpoint or blocked gap without refreshing this survey note
   - any edit that stops distinguishing the observational `__dev_direct_xmit()` identity-drop checkpoint from the still-blocked qdisc publication, queue ownership, or skb lifetime ownership
+  - any change that silently restores a ready-next claim or narrows the packet past observational-only wording without refreshing the bridge, manifest, and note set together
+
+## Rollback threshold for observational checkpoints
+
+This run tightens one narrower guardrail without reopening the bridge.
+
+- current packet posture for both the `validate_xmit_skb_list()` republish checkpoint and the `__dev_direct_xmit()` identity-drop checkpoint remains `freeze_in_c` even though the survey lane stays active for reviewability maintenance.
+- the smallest evidence packet that keeps those checkpoints honest is still the existing bridge, manifest-backed survey, slice note, and this survey note, all agreeing that `head = skb`, `tail->next = skb`, `validate_xmit_skb()`, `skb = validate_xmit_skb_list(...)`, `skb != orig_skb`, qdisc publication, queue ownership, and skb lifetime ownership stay explicitly in C.
+- if a future run wants to reopen a narrower follow-up, it must refresh that whole packet together. A note-only change that weakens the observational-only wording or silently reintroduces a new ready-next claim is not an acceptable bridge step.
+- if any of those cues drift, the lane should fall straight back to blocked skbuff-packet maintenance instead of claiming forward motion on transmit-list ownership.
 
 ## Non-goals
 
@@ -107,4 +118,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Keep this lane parked unless the skbuff survey packet drifts again or another narrower same-family audit becomes explicit without weakening the stay-in-C posture. The landed `__dev_direct_xmit()` identity-drop checkpoint stays observational only, and qdisc publication, queue ownership, and skb lifetime ownership remain explicitly in C.
+Keep this lane parked unless the skbuff survey packet drifts again or another narrower same-family audit becomes explicit without weakening the stay-in-C posture. The landed `__dev_direct_xmit()` identity-drop checkpoint stays observational only, qdisc publication, queue ownership, and skb lifetime ownership remain explicitly in C, and any future packet repair that loses the shared no-ready-next posture should be treated as rollback-to-maintenance work rather than as a new bridge opening.
