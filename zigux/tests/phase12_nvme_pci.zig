@@ -214,7 +214,7 @@ test "phase12 nvme pci prp metadata helper quantifies descriptor DMA footprint" 
     try std.testing.expectEqualStrings("drivers/nvme/host/pci.c", metadata.anchor);
     try std.testing.expectEqual(@as(u16, 3), metadata.spanned_pages);
     try std.testing.expect(metadata.uses_prp_list);
-    try std.testing.expectEqual(@as(u16, 1), metadata.command_data_prp_entries);
+    try std.testing.expectEqual(@as(u16, 2), metadata.command_data_prp_entries);
     try std.testing.expectEqual(@as(u16, 2), metadata.prp_list_covered_pages);
     try std.testing.expectEqual(@as(u16, 1), metadata.prp_list_pages);
     try std.testing.expectEqual(@as(u32, 4096), metadata.metadata_dma_bytes);
