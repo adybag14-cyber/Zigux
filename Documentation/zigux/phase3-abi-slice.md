@@ -23,7 +23,7 @@ This document starts the first bounded Phase 3 slice for Zigux.
 - `PHASE3_CURRENT_INTEROP_FAMILIES=bitmap-cpumask-rbtree-list-hlist-errptr-xarray-idr-ida-minor-alloc-dev-region-cdev-chrdev`
 - `PHASE3_CURRENT_INTEROP_FAMILIES_DETAIL=bitmap-cpumask-rbtree-dedicated-boundary-list-hlist-errptr-xarray-idr-ida-minor-alloc-dev-region-cdev-chrdev-notify-ack-window-delivery-guard`
 - `PHASE3_CURRENT_INTEROP_GAP=repo-now-carries-curated-phase3-parity-slices-beyond-the-original-roadmap-anchor-set`
-- `PHASE3_CURRENT_INTEROP_GAP_DETAIL=live-build-graph-now-carries-deep-chrdev-tail-packets-while-dedicated-rbtree-boundary-is-landed-but-curated-shared-abi-rbtree-root-view-is-still-missing`
+- `PHASE3_CURRENT_INTEROP_GAP_DETAIL=live-build-graph-now-carries-deep-chrdev-tail-packets-while-the-shared-phase3-abi-replay-already-covers-rbtree-root-view-through-dedicated-bindings-and-the-curated-shared-abi-h-plus-abi-zig-lift-is-still-missing`
 - scope: first permanent C/Zigux boundary only
 - product boundary:
   - `include/linux/zigux.h`
@@ -75,8 +75,8 @@ Current repo reality therefore includes the dedicated rbtree boundary packet plu
 That is real repo-backed interop progress, but it is also the current survey gap:
 
 - the roadmap wording is still narrower than the committed Phase 3 fixture catalog and build graph under `zigux/tests/build.zig`, which now carries chrdev tail dumps well past the original notify and ack starters
-- the repo already treats those extra curated parity slices as current interop reality through `zigux/bindings/abi.zig`, the committed Phase 3 fixture manifests, `Documentation/zigux/artifact-diff.md`, and `Documentation/zigux/phase3-roadmap-gap-survey.md`
-- future Phase 3 work should therefore prefer documenting and validating this larger current catalog honestly while closing the still-missing shared `rbtree` root-view lift inside `include/zigux/abi.h` and `zigux/bindings/abi.zig` before adding still more chrdev tail growth
+- the repo already treats those extra curated parity slices as current interop reality through `zigux/bindings/abi.zig`, the committed Phase 3 fixture manifests, `Documentation/zigux/artifact-diff.md`, and `Documentation/zigux/phase3-roadmap-gap-survey.md`; the shared ABI replay also already covers `zigux_rbtree_root_view` through `zigux/tests/phase3_abi.zig`, `zigux/tests/phase3_abi_dump.zig`, `zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c`, and `zigux/tests/fixtures/phase3_abi/expected.json`, but it still reaches that record through `include/zigux/rbtree.h` and `zigux/bindings/rbtree.zig` rather than a curated shared `include/zigux/abi.h` plus `zigux/bindings/abi.zig` lift
+- future Phase 3 work should therefore prefer documenting and validating this larger current catalog honestly while closing the still-missing curated shared `rbtree` root-view lift inside `include/zigux/abi.h` and `zigux/bindings/abi.zig` before adding still more chrdev tail growth
 
 ## Gates
 
