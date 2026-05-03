@@ -67,7 +67,7 @@ MAKE_MARKERS = [
 ]
 
 CATALOG_MARKERS = [
-    "PHASE6_BASE64_C_PARITY_CASES=112",
+    "PHASE6_BASE64_C_PARITY_CASES=122",
     "PHASE6_BSEARCH_C_PARITY_SELF_TEST_CASE_COUNT=6",
     "PHASE6_BSEARCH_C_PARITY_CASES=29",
     "PHASE6_CHECKSUM_C_PARITY_SELF_TEST_CASE_COUNT=10",
@@ -97,7 +97,7 @@ PERF_SURVEY_MARKERS = [
 BASE64_SLICE_MARKERS = [
     "variant alphabet parity for URL-safe and IMAP output with and without padding",
     "the same `zigux/tests/fixtures/phase6_base64_vectors.zig` module now owns both the deterministic 64-byte and 1-kibibyte perf payload corpus and the shipped ten-case padded and unpadded standard, URL-safe, and IMAP perf replay matrix that `zigux/tests/phase6_base64_perf.zig` consumes directly",
-    "a small external C-vs-Zig spot-check harness that now also carries a built-in `--self-test` path for its missing-path guards, generated build template, sorted-output normalization, and representative-output fail-closed drift checks before it regenerates the transient `zigux/tests/fixtures/phase6_base64_c_generated_cases.inc` include payload through `zigux/tests/phase6_base64_c_casegen.zig`",
+    "a small external C-vs-Zig spot-check harness that now also carries a built-in ten-case `--self-test` path for its missing-path guards, malformed fixture-byte-token parsing, generated build template, sorted-output normalization, representative-output fail-closed drift checks, and explicit C-versus-Zig `c_output_mismatch` handling",
 ]
 
 BSEARCH_SLICE_MARKERS = [
@@ -282,12 +282,12 @@ EXPECTED_BASE64_DETERMINISM = {
     "standard_encode_vectors": 22,
     "variant_encode_vectors": 24,
     "standard_decode_vectors": 22,
-    "variant_decode_vectors": 16,
+    "variant_decode_vectors": 20,
     "invalid_decode_vectors": 28,
     "perf_payload_cases": 2,
     "perf_replay_cases": 10,
     "c_parity_self_test_cases": 10,
-    "c_parity_cases": 112,
+    "c_parity_cases": 122,
 }
 
 EXPECTED_BSEARCH_DETERMINISM = {
