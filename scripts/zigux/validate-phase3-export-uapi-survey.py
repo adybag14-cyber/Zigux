@@ -23,6 +23,7 @@ EXPORT_UAPI_LAYOUT_BUILD_REL = "zigux/tests/phase3_export_uapi_layout_build.zig"
 EXPORT_UAPI_LAYOUT_TEST_REL = "zigux/tests/phase3_export_uapi_layout.zig"
 LINUX_HEADER_REL = "include/linux/zigux.h"
 ABI_HEADER_REL = "include/zigux/abi.h"
+VALIDATE_PHASE3_CORE_REL = "scripts/zigux/validate_phase3_core.py"
 HEX40 = re.compile(r"^[0-9a-f]{40}$")
 
 REQUIRED_SURVEY_MARKERS = (
@@ -75,7 +76,7 @@ REQUIRED_SURVEY_PATHS = (
     EXPORT_UAPI_LAYOUT_TEST_REL,
     "zigux/tests/fixtures/phase3_abi_manifest.json",
     "scripts/zigux/validate-phase3.py",
-    "scripts/zigux/validate_phase3_core.py",
+    VALIDATE_PHASE3_CORE_REL,
 )
 
 REQUIRED_DOCS_README_SNIPPETS = (
@@ -168,6 +169,14 @@ REQUIRED_EXPORT_UAPI_LAYOUT_TEST_SNIPPETS = (
     'try std.testing.expectEqual(header, uapi_header);',
     'try std.testing.expect(export_shim.isCanonicalHeader(header));',
     'try std.testing.expect(uapi_version.isCanonical(uapi_header));',
+)
+
+REQUIRED_VALIDATE_PHASE3_CORE_SNIPPETS = (
+    'ABI_EXPORT_UAPI_BUILD_FILE_REL,',
+    'ABI_EXPORT_UAPI_LAYOUT_BUILD_FILE_REL,',
+    'ABI_EXPORT_UAPI_LAYOUT_TEST_REL,',
+    '("phase3-export-uapi-test", ABI_EXPORT_UAPI_BUILD_FILE_REL),',
+    '("phase3-export-uapi-layout-test", ABI_EXPORT_UAPI_LAYOUT_BUILD_FILE_REL),',
 )
 
 REQUIRED_UAPI_FILES = (
@@ -397,6 +406,7 @@ def validate(root: Path) -> list[str]:
     export_uapi_test = _read_text(root, EXPORT_UAPI_TEST_REL, issues)
     export_uapi_layout_build = _read_text(root, EXPORT_UAPI_LAYOUT_BUILD_REL, issues)
     export_uapi_layout_test = _read_text(root, EXPORT_UAPI_LAYOUT_TEST_REL, issues)
+    validate_phase3_core = _read_text(root, VALIDATE_PHASE3_CORE_REL, issues)
 
     if survey:
         for marker in REQUIRED_SURVEY_MARKERS:
@@ -473,6 +483,11 @@ def validate(root: Path) -> list[str]:
         for snippet in REQUIRED_EXPORT_UAPI_LAYOUT_TEST_SNIPPETS:
             if snippet not in export_uapi_layout_test:
                 issues.append(f"missing_export_uapi_layout_test_snippet:{snippet}")
+
+    if validate_phase3_core:
+        for snippet in REQUIRED_VALIDATE_PHASE3_CORE_SNIPPETS:
+            if snippet not in validate_phase3_core:
+                issues.append(f"missing_validate_phase3_core_snippet:{snippet}")
 
     issues.extend(validate_c_header_relay(root))
 
@@ -552,6 +567,8 @@ def run_self_test() -> int:
                 path.write_text("\n".join(REQUIRED_EXPORT_UAPI_LAYOUT_BUILD_SNIPPETS) + "\n", encoding="utf-8")
             elif rel == EXPORT_UAPI_LAYOUT_TEST_REL:
                 path.write_text("\n".join(REQUIRED_EXPORT_UAPI_LAYOUT_TEST_SNIPPETS) + "\n", encoding="utf-8")
+            elif rel == VALIDATE_PHASE3_CORE_REL:
+                path.write_text("\n".join(REQUIRED_VALIDATE_PHASE3_CORE_SNIPPETS) + "\n", encoding="utf-8")
             else:
                 path.write_text("// ok\n", encoding="utf-8")
 
@@ -724,6 +741,36 @@ def run_self_test() -> int:
         _replace_blob_markers_with_head(root, survey_path)
         issues = validate(root)
         assert any(issue == f"missing_survey_snippet:{REQUIRED_SURVEY_SNIPPETS[-1]}" for issue in issues)
+
+        survey_path.write_text(
+            "\n".join(
+                (
+                    *REQUIRED_SURVEY_MARKERS,
+                    f"PHASE3_SURVEYED_COMMIT={head}",
+                    *_blob_marker_lines(),
+                    *REQUIRED_SURVEY_SNIPPETS,
+                )
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        _replace_blob_markers_with_head(root, survey_path)
+        validate_phase3_core_path = root / VALIDATE_PHASE3_CORE_REL
+        original_validate_phase3_core = validate_phase3_core_path.read_text(encoding="utf-8")
+        validate_phase3_core_path.write_text(
+            original_validate_phase3_core.replace(
+                '("phase3-export-uapi-layout-test", ABI_EXPORT_UAPI_LAYOUT_BUILD_FILE_REL),\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate(root)
+        assert (
+            'missing_validate_phase3_core_snippet:("phase3-export-uapi-layout-test", ABI_EXPORT_UAPI_LAYOUT_BUILD_FILE_REL),'
+            in issues
+        )
+        validate_phase3_core_path.write_text(original_validate_phase3_core, encoding="utf-8")
 
         survey_path.write_text(
             "\n".join(
