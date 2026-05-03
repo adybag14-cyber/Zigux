@@ -42,6 +42,32 @@ fn expectGateEvidenceCheckerMarker(marker: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, check_phase4_gate_evidence_source, marker) != null);
 }
 
+fn countOccurrences(haystack: []const u8, needle: []const u8) usize {
+    var count: usize = 0;
+    var start: usize = 0;
+
+    while (std.mem.indexOfPos(u8, haystack, start, needle)) |index| {
+        count += 1;
+        start = index + needle.len;
+    }
+
+    return count;
+}
+
+fn expectRuntimeCaseGroupCardinality(
+    group_header: []const u8,
+    loop_header: []const u8,
+    expected_case_count: usize,
+) !void {
+    const section_start = std.mem.indexOf(u8, runtime_atomic64_diff_source, group_header) orelse
+        return error.MissingRuntimeCaseGroupHeader;
+    const section_end = std.mem.indexOfPos(u8, runtime_atomic64_diff_source, section_start, loop_header) orelse
+        return error.MissingRuntimeCaseGroupLoop;
+    const section = runtime_atomic64_diff_source[section_start..section_end];
+
+    try std.testing.expectEqual(expected_case_count, countOccurrences(section, ".name = "));
+}
+
 fn expectWorkspaceMarker(path: []const u8, marker: []const u8, limit: usize) !void {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -239,4 +265,62 @@ test "atomic64 diff wrapper records the exact bounded runtime atomic64 checks" {
     try expectRuntimeMarker("error.InvalidLifecycleTransition, module.init(17)");
     try expectRuntimeMarker("error.InvalidLifecycleTransition, module.incNotZeroCounter()");
     try expectRuntimeMarker("error.InvalidLifecycleTransition, module.decIfPositiveCounter()");
+}
+
+test "atomic64 diff wrapper pins bounded runtime case-group counts" {
+    try expectRuntimeCaseGroupCardinality(
+        "const add_cases = [_]AddCase{",
+        "for (add_cases) |case| {",
+        2,
+    );
+    try expectRuntimeCaseGroupCardinality(
+        "const sub_cases = [_]SubCase{",
+        "for (sub_cases) |case| {",
+        2,
+    );
+    try expectRuntimeCaseGroupCardinality(
+        "const or_cases = [_]BitwiseCase{",
+        "for (or_cases) |case| {",
+        1,
+    );
+    try expectRuntimeCaseGroupCardinality(
+        "const and_cases = [_]BitwiseCase{",
+        "for (and_cases) |case| {",
+        1,
+    );
+    try expectRuntimeCaseGroupCardinality(
+        "const xor_cases = [_]BitwiseCase{",
+        "for (xor_cases) |case| {",
+        1,
+    );
+    try expectRuntimeCaseGroupCardinality(
+        "const andnot_cases = [_]BitwiseCase{",
+        "for (andnot_cases) |case| {",
+        1,
+    );
+    try expectRuntimeCaseGroupCardinality(
+        "const exchange_cases = [_]DiffCase{",
+        "for (exchange_cases) |case| {",
+        3,
+    );
+    try expectRuntimeCaseGroupCardinality(
+        "const compare_swap_cases = [_]CompareSwapCase{",
+        "for (compare_swap_cases) |case| {",
+        2,
+    );
+    try expectRuntimeCaseGroupCardinality(
+        "const add_unless_cases = [_]AddUnlessCase{",
+        "for (add_unless_cases) |case| {",
+        2,
+    );
+    try expectRuntimeCaseGroupCardinality(
+        "const inc_not_zero_cases = [_]IncNotZeroCase{",
+        "for (inc_not_zero_cases) |case| {",
+        4,
+    );
+    try expectRuntimeCaseGroupCardinality(
+        "const dec_if_positive_cases = [_]DecIfPositiveCase{",
+        "for (dec_if_positive_cases) |case| {",
+        3,
+    );
 }
