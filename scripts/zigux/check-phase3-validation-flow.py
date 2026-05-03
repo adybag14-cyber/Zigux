@@ -45,6 +45,7 @@ EXACT_ONCE_MAKEFILE_SNIPPETS = (
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/generate-phase3-check-wrappers.py --check\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-readme-tooling-inventory.py\n",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/run-phase3-checks.py --self-test\n",
 )
 
 REQUIRED_PHASE3_ABI_MAKEFILE_SNIPPETS = (
@@ -82,6 +83,8 @@ REQUIRED_WORKFLOW_SNIPPETS = (
     "run: python3 scripts/zigux/check-phase3-validation-flow.py --self-test\n",
     "name: Self-test Phase 3 wrapper generator",
     "run: python3 scripts/zigux/generate-phase3-check-wrappers.py --self-test\n",
+    "name: Self-test Phase 3 runner",
+    "run: python3 scripts/zigux/run-phase3-checks.py --self-test\n",
     "name: Validate Phase 3 README tooling inventory",
     "run: python3 scripts/zigux/check-phase3-readme-tooling-inventory.py\n",
     "name: Self-test Phase 3 README tooling inventory checker",
@@ -95,6 +98,7 @@ EXACT_ONCE_WORKFLOW_SNIPPETS = (
     "run: python3 scripts/zigux/generate-phase3-check-wrappers.py --check\n",
     "run: python3 scripts/zigux/check-phase3-readme-tooling-inventory.py\n",
     "run: python3 scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test\n",
+    "run: python3 scripts/zigux/run-phase3-checks.py --self-test\n",
 )
 
 FORBIDDEN_WORKFLOW_SNIPPETS = (
@@ -306,6 +310,8 @@ def _fixture_workflow() -> str:
         "        run: python3 scripts/zigux/check-phase3-validation-flow.py --self-test\n"
         "      - name: Self-test Phase 3 wrapper generator\n"
         "        run: python3 scripts/zigux/generate-phase3-check-wrappers.py --self-test\n"
+        "      - name: Self-test Phase 3 runner\n"
+        "        run: python3 scripts/zigux/run-phase3-checks.py --self-test\n"
         "      - name: Validate Phase 3 wrapper templates\n"
         "        run: python3 scripts/zigux/generate-phase3-check-wrappers.py --check\n"
         "      - name: Self-test Phase 3 README tooling inventory checker\n"
@@ -380,6 +386,21 @@ def run_self_test() -> int:
                 + (",".join(issues) if issues else "none")
             )
 
+        duplicated_runner_makefile = (
+            _fixture_makefile()
+            + "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/run-phase3-checks.py --self-test\n"
+        )
+        _write(root, MAKEFILE_REL, duplicated_runner_makefile)
+        issues = validate(root)
+        expected = [
+            "unexpected_makefile_snippet_count:2:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/run-phase3-checks.py --self-test\n",
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-validation-flow-self-test:duplicate_runner_makefile_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
         _write(root, MAKEFILE_REL, _fixture_makefile())
         duplicated_validation_flow_workflow = (
             _fixture_workflow()
@@ -394,6 +415,22 @@ def run_self_test() -> int:
         if issues != expected:
             raise SystemExit(
                 "phase3-validation-flow-self-test:duplicate_validation_flow_workflow_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+        duplicated_runner_workflow = (
+            _fixture_workflow()
+            + "      - name: Self-test Phase 3 runner again\n"
+            + "        run: python3 scripts/zigux/run-phase3-checks.py --self-test\n"
+        )
+        _write(root, WORKFLOW_REL, duplicated_runner_workflow)
+        issues = validate(root)
+        expected = [
+            "unexpected_workflow_snippet_count:2:run: python3 scripts/zigux/run-phase3-checks.py --self-test\n",
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-validation-flow-self-test:duplicate_runner_workflow_guard_failed:"
                 + (",".join(issues) if issues else "none")
             )
 
@@ -455,7 +492,7 @@ def run_self_test() -> int:
             )
 
         print("PHASE3_VALIDATION_FLOW_SELF_TEST=pass")
-        print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=34")
+        print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=36")
         return 0
 
 
