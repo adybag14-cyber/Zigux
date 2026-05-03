@@ -90,6 +90,10 @@
       "path": "../../drivers/tty/hvc/hvc_console.zig"
     },
     {
+      "module": "hvc_console_sysrq_module",
+      "path": "../../drivers/tty/hvc/hvc_console_sysrq.zig"
+    },
+    {
       "module": "phase11_hvc_console_module",
       "path": "phase11_hvc_console.zig"
     },
@@ -161,6 +165,11 @@
       "module": "phase11_hvc_console_poll_retry_split_module",
       "import_name": "hvc_console",
       "imported_module": "hvc_console_module"
+    },
+    {
+      "module": "phase11_hvc_console_poll_retry_split_module",
+      "import_name": "hvc_console_sysrq",
+      "imported_module": "hvc_console_sysrq_module"
     },
     {
       "module": "phase11_hvc_console_survey_module",
