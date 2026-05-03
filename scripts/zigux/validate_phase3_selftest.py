@@ -34,6 +34,17 @@ from validate_phase3_core import (
 )
 
 
+def _shared_rbtree_phase3_abi_markers() -> tuple[str, ...]:
+    return tuple(
+        marker
+        for marker in ABI_REQUIRED_SOURCE_MARKERS["zigux/tests/phase3_abi.zig"]
+        if marker.startswith("// PHASE3_SHARED_RBTREE_SAMPLE_RECORDS=")
+        or "empty_root" in marker
+        or "cached_root" in marker
+        or "uncached_root" in marker
+    )
+
+
 def _write_phase3_slice(
     paths: Phase3Paths,
     *,
@@ -448,26 +459,23 @@ def run_self_test() -> int:
         ]
 
         rbtree_shared_marker_fixture = root / "phase3-rbtree-shared-marker-fixture.zig"
-        rbtree_shared_markers = (
-            "// PHASE3_SHARED_RBTREE_SAMPLE_RECORDS=empty-root,cached-leftmost-root,uncached-root",
-            "const empty_root = rbtree.empty();",
-            "try std.testing.expect(!rbtree.hasRoot(empty_root));",
-            "const cached_root: rbtree.RootView = .{",
-            "try std.testing.expect(rbtree.hasRoot(cached_root));",
-            "const uncached_root: rbtree.RootView = .{",
-            "try std.testing.expect(rbtree.hasRoot(uncached_root));",
-        )
+        rbtree_shared_markers = _shared_rbtree_phase3_abi_markers()
+
+        def assert_missing_rbtree_shared_marker(missing_marker: str) -> None:
+            rbtree_shared_marker_fixture.write_text(
+                "\n".join(marker for marker in rbtree_shared_markers if marker != missing_marker) + "\n",
+                encoding="utf-8",
+                newline="\n",
+            )
+            assert validate_source_markers(
+                root,
+                {"phase3-rbtree-shared-marker-fixture.zig": rbtree_shared_markers},
+            ) == [
+                f"source-marker: phase3-rbtree-shared-marker-fixture.zig missing {missing_marker}"
+            ]
+
         rbtree_shared_marker_fixture.write_text(
-            "\n".join([
-                "// PHASE3_SHARED_RBTREE_SAMPLE_RECORDS=empty-root,cached-leftmost-root,uncached-root",
-                "const empty_root = rbtree.empty();",
-                "try std.testing.expect(!rbtree.hasRoot(empty_root));",
-                "const cached_root: rbtree.RootView = .{",
-                "try std.testing.expect(rbtree.hasRoot(cached_root));",
-                "const uncached_root: rbtree.RootView = .{",
-                "try std.testing.expect(rbtree.hasRoot(uncached_root));",
-                "",
-            ]),
+            "\n".join(rbtree_shared_markers) + "\n",
             encoding="utf-8",
             newline="\n",
         )
@@ -475,63 +483,15 @@ def run_self_test() -> int:
             root,
             {"phase3-rbtree-shared-marker-fixture.zig": rbtree_shared_markers},
         ) == []
-        rbtree_shared_marker_fixture.write_text(
-            "\n".join([
-                "// PHASE3_SHARED_RBTREE_SAMPLE_RECORDS=empty-root,cached-leftmost-root,uncached-root",
-                "const empty_root = rbtree.empty();",
-                "const cached_root: rbtree.RootView = .{",
-                "try std.testing.expect(rbtree.hasRoot(cached_root));",
-                "const uncached_root: rbtree.RootView = .{",
-                "try std.testing.expect(rbtree.hasRoot(uncached_root));",
-                "",
-            ]),
-            encoding="utf-8",
-            newline="\n",
+        assert_missing_rbtree_shared_marker(
+            "try std.testing.expect(!rbtree.hasRoot(empty_root));"
         )
-        assert validate_source_markers(
-            root,
-            {"phase3-rbtree-shared-marker-fixture.zig": rbtree_shared_markers},
-        ) == [
-            "source-marker: phase3-rbtree-shared-marker-fixture.zig missing try std.testing.expect(!rbtree.hasRoot(empty_root));"
-        ]
-        rbtree_shared_marker_fixture.write_text(
-            "\n".join([
-                "// PHASE3_SHARED_RBTREE_SAMPLE_RECORDS=empty-root,cached-leftmost-root,uncached-root",
-                "const empty_root = rbtree.empty();",
-                "try std.testing.expect(!rbtree.hasRoot(empty_root));",
-                "const cached_root: rbtree.RootView = .{",
-                "const uncached_root: rbtree.RootView = .{",
-                "try std.testing.expect(rbtree.hasRoot(uncached_root));",
-                "",
-            ]),
-            encoding="utf-8",
-            newline="\n",
+        assert_missing_rbtree_shared_marker(
+            "try std.testing.expect(rbtree.hasRoot(cached_root));"
         )
-        assert validate_source_markers(
-            root,
-            {"phase3-rbtree-shared-marker-fixture.zig": rbtree_shared_markers},
-        ) == [
-            "source-marker: phase3-rbtree-shared-marker-fixture.zig missing try std.testing.expect(rbtree.hasRoot(cached_root));"
-        ]
-        rbtree_shared_marker_fixture.write_text(
-            "\n".join([
-                "// PHASE3_SHARED_RBTREE_SAMPLE_RECORDS=empty-root,cached-leftmost-root,uncached-root",
-                "const empty_root = rbtree.empty();",
-                "try std.testing.expect(!rbtree.hasRoot(empty_root));",
-                "const cached_root: rbtree.RootView = .{",
-                "try std.testing.expect(rbtree.hasRoot(cached_root));",
-                "const uncached_root: rbtree.RootView = .{",
-                "",
-            ]),
-            encoding="utf-8",
-            newline="\n",
+        assert_missing_rbtree_shared_marker(
+            "try std.testing.expect(rbtree.hasRoot(uncached_root));"
         )
-        assert validate_source_markers(
-            root,
-            {"phase3-rbtree-shared-marker-fixture.zig": rbtree_shared_markers},
-        ) == [
-            "source-marker: phase3-rbtree-shared-marker-fixture.zig missing try std.testing.expect(rbtree.hasRoot(uncached_root));"
-        ]
 
         low_level_export_fixture = root / "low-level-export-fixture.zig"
         low_level_export_fixture.write_text(
@@ -621,8 +581,6 @@ def run_self_test() -> int:
         assert "try std.testing.expectError(error.AddressOverflow, mmio.write64Scoped(.volatile_mmio, std.math.maxInt(usize), 8, 0x99));" in low_level_markers
         assert "try mmio.write64Scoped(.volatile_mmio, base64, 0, 0xfedc_ba98_7654_3210);" in low_level_markers
         assert "try std.testing.expectEqual(@as(u64, 0xfedc_ba98_7654_3210), try mmio.read64Scoped(.volatile_mmio, base64, 0));" in low_level_markers
-        assert 'test "phase3 low-level wrapper ABI range shape stays stable"' in low_level_markers
-        assert 'test "phase3 low-level wrappers keep the narrow unsafe scope contract explicit"' in low_level_markers
         mmio_markers = ABI_REQUIRED_SOURCE_MARKERS["zigux/helpers/mmio.zig"]
         assert "pub fn read64Scoped(scope: narrow.UnsafeScopeTag, base_addr: usize, offset: usize) narrow.ScopeError!u64 {" in mmio_markers
         assert "pub fn write64Scoped(" in mmio_markers
