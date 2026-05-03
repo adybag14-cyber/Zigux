@@ -17,6 +17,7 @@ pub const ModuleDescriptor = struct {
     provides_rule_tree_link_planning: bool,
     provides_rule_lookup_planning: bool,
     provides_rule_materialization_planning: bool,
+    provides_rule_replacement_planning: bool,
     provides_rule_release_planning: bool,
     touches_live_object_trees: bool,
     touches_live_hierarchy: bool,
@@ -146,6 +147,18 @@ pub const RuleMaterializationPlan = struct {
     would_acquire_object_reference: bool,
 };
 
+pub const RuleReplacementPlan = struct {
+    anchor: []const u8,
+    root: TreeRoot,
+    key_type: KeyType,
+    matched_key_data: u64,
+    reuses_existing_rule_slot: bool,
+    performs_rb_replace_node: bool,
+    would_release_previous_rule: bool,
+    would_release_previous_object_reference: bool,
+    resulting_num_rules: u32,
+};
+
 pub const RuleReleasePlan = struct {
     anchor: []const u8,
     key_type: KeyType,
@@ -179,6 +192,7 @@ pub const RulesetHelperLab = struct {
             .provides_rule_tree_link_planning = true,
             .provides_rule_lookup_planning = true,
             .provides_rule_materialization_planning = true,
+            .provides_rule_replacement_planning = true,
             .provides_rule_release_planning = true,
             .touches_live_object_trees = false,
             .touches_live_hierarchy = false,
@@ -347,6 +361,39 @@ pub const RulesetHelperLab = struct {
             .resulting_rule = try makeRulePlan(base_layers, appended_layer),
             .initializes_rb_node = true,
             .would_acquire_object_reference = key_type == .inode,
+        };
+    }
+
+    pub fn planRuleReplacement(search_plan: RuleTreeSearchPlan, materialization_plan: RuleMaterializationPlan) !RuleReplacementPlan {
+        if (!search_plan.matched_existing_rule) {
+            return error.MissingMatchingRule;
+        }
+        if (search_plan.parent_key_data == null) {
+            return error.MissingMatchedRuleKey;
+        }
+        if (search_plan.insertion_site != null) {
+            return error.UnexpectedInsertionSite;
+        }
+        if (materialization_plan.mode != .append_layer) {
+            return error.InvalidReplacementMaterialization;
+        }
+        if (selectRoot(materialization_plan.key_type) != search_plan.root) {
+            return error.KeyTypeRootMismatch;
+        }
+        if (search_plan.resulting_num_rules == 0) {
+            return error.InvalidResultingCount;
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .root = search_plan.root,
+            .key_type = materialization_plan.key_type,
+            .matched_key_data = search_plan.parent_key_data.?,
+            .reuses_existing_rule_slot = true,
+            .performs_rb_replace_node = true,
+            .would_release_previous_rule = true,
+            .would_release_previous_object_reference = materialization_plan.key_type == .inode,
+            .resulting_num_rules = search_plan.resulting_num_rules,
         };
     }
 
