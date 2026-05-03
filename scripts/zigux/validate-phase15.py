@@ -85,6 +85,24 @@ FREEZE_MAP_NOTE_MARKERS = [
     "zig build test --build-file zigux/tests/phase15_build.zig",
 ]
 
+REVIEW_PROCESS_MARKERS = [
+    "## Trigger Conditions",
+    "## Required Review Packet",
+    "## Decision Buckets",
+    "## Reopen Trigger Catalog",
+    "## Reopen Evidence Matrix",
+    "## Current Approval Posture",
+    "## Roadmap Handoff Evidence",
+    "## Maintenance-Mode Handoff",
+    "no Architecture Council approval is currently recorded",
+    "current approval evidence is explicit negative evidence rather than silence",
+    "current ownership evidence is explicit in both the scorecard and the anchor templates",
+    "requested decision bucket: pending_no_request",
+    "decision record ID: pending_no_architecture_council_request",
+    "no Architecture Council approval claim",
+    "Documentation/zigux/phase15-indefinite-c-policy.md",
+]
+
 SURVEY_MARKERS = [
     "## Current Repo Readiness",
     "## Readiness Gate",
@@ -131,6 +149,91 @@ DOCS_ROOT_REVIEWABILITY_MARKERS = [
     "only remaining blocked work is the deep-core status-change evidence",
     "docs-root Phase 15 summary now matches the dedicated readiness and handoff packet",
     "phase15-docs-root-summary-alignment",
+]
+
+REVIEW_PROCESS_APPROVAL_FIELDS = [
+    "requested decision bucket",
+    "decision record ID",
+    "no Architecture Council approval claim",
+]
+
+REVIEW_PROCESS_APPROVAL_PATHS = [
+    "Documentation/zigux/phase15-architecture-council-review-process.md",
+    "Documentation/zigux/phase15-parity-scorecard.md",
+    "Documentation/zigux/phase15-indefinite-c-policy.md",
+    "Documentation/zigux/phase15-evidence-archives/kernel-sched-core.md",
+    "Documentation/zigux/phase15-evidence-archives/mm-page-alloc.md",
+    "Documentation/zigux/phase15-evidence-archives/kernel-rcu-tree.md",
+    "Documentation/zigux/phase15-evidence-archives/net-core-skbuff.md",
+]
+
+REVIEW_PROCESS_OWNERSHIP_FIELDS = [
+    "owner",
+    "rollback owner",
+    "validation gate summary",
+    "evidence archive path",
+    "latest blocker disposition",
+    "benchmark notes",
+    "replay command",
+    "retained discussion state",
+    "automatic return-to-blocked trigger",
+    "rollback threshold",
+    "indefinite-C policy link or applicability note",
+    "reopen triggers",
+    "parity scorecard link or blocker record",
+]
+
+REVIEW_PROCESS_OWNERSHIP_PATHS = [
+    "Documentation/zigux/phase15-parity-scorecard.md",
+    "Documentation/zigux/phase15-indefinite-c-policy.md",
+    "Documentation/zigux/phase15-evidence-archives/kernel-sched-core.md",
+    "Documentation/zigux/phase15-evidence-archives/mm-page-alloc.md",
+    "Documentation/zigux/phase15-evidence-archives/kernel-rcu-tree.md",
+    "Documentation/zigux/phase15-evidence-archives/net-core-skbuff.md",
+]
+
+REVIEW_PROCESS_TRIGGER_CONDITIONS = [
+    "freeze-map list change",
+    "freeze-map status-bucket change",
+    "bounded dual-implementation request for a deep-core study target",
+    "contradictory validation needing a written council decision",
+]
+
+REVIEW_PROCESS_REQUIRED_FIELDS = [
+    "linux anchor path",
+    "phase",
+    "current status bucket",
+    "requested decision bucket",
+    "decision record ID",
+    "owner",
+    "rollback owner",
+    "validation gate summary",
+    "evidence archive path",
+    "latest blocker disposition",
+    "benchmark notes",
+    "replay command",
+    "retained discussion state",
+    "automatic return-to-blocked trigger",
+    "rollback threshold",
+    "indefinite-C policy link or applicability note",
+    "reopen triggers",
+    "trigger-specific refreshed evidence by path",
+    "parity scorecard link or blocker record",
+    "explicit non-goals",
+    "written rationale",
+]
+
+REVIEW_PROCESS_REOPEN_TRIGGER_CATALOG = [
+    "narrower_followup_answers_blocker",
+    "evidence_packet_stale_or_contradictory",
+    "ownership_or_validation_changed",
+]
+
+REVIEW_PROCESS_DECISION_BUCKETS = [
+    "keep_in_c",
+    "study_only_followup",
+    "bounded_dual_implementation",
+    "defer_or_reject",
 ]
 
 
@@ -186,6 +289,11 @@ require_markers(
     "freeze_map_note",
     text("Documentation/zigux/phase15-freeze-map-governance.md"),
     FREEZE_MAP_NOTE_MARKERS,
+)
+require_markers(
+    "review_process_note",
+    text("Documentation/zigux/phase15-architecture-council-review-process.md"),
+    REVIEW_PROCESS_MARKERS,
 )
 require_markers("survey", text("Documentation/zigux/phase15-readiness-gate-survey.md"), SURVEY_MARKERS)
 require_markers("handoff", text("Documentation/zigux/phase15-handoff-next-steps-survey.md"), HANDOFF_MARKERS)
@@ -285,8 +393,151 @@ if isinstance(open_handoff_gaps, list) and len(open_handoff_gaps) == 1:
 
 review_process_manifest = load_json("zigux/tests/phase15_architecture_council_review_process_manifest.json")
 require(review_process_manifest.get("phase") == "Phase 15", "review_process_manifest:phase")
-require(isinstance(review_process_manifest.get("lane_key"), str) and review_process_manifest["lane_key"].startswith("P15-L"), "review_process_manifest:lane_key")
-require(isinstance(review_process_manifest.get("surveyed_commit"), str) and HEX40.fullmatch(review_process_manifest["surveyed_commit"]), "review_process_manifest:surveyed_commit")
+require(review_process_manifest.get("lane_key") == "P15-L07", "review_process_manifest:lane_key")
+require(
+    isinstance(review_process_manifest.get("surveyed_commit"), str)
+    and HEX40.fullmatch(review_process_manifest["surveyed_commit"]),
+    "review_process_manifest:surveyed_commit",
+)
+require(
+    review_process_manifest.get("roadmap_requirement") == "Architecture Council review process",
+    "review_process_manifest:roadmap_requirement",
+)
+require(
+    review_process_manifest.get("anchor") == "Documentation/zigux/phase15-architecture-council-review-process.md",
+    "review_process_manifest:anchor",
+)
+require(
+    review_process_manifest.get("current_approval_state") == "no_freeze_map_status_change_approved",
+    "review_process_manifest:current_approval_state",
+)
+require(
+    review_process_manifest.get("approval_evidence_fields") == REVIEW_PROCESS_APPROVAL_FIELDS,
+    "review_process_manifest:approval_evidence_fields",
+)
+require(
+    review_process_manifest.get("approval_evidence_paths") == REVIEW_PROCESS_APPROVAL_PATHS,
+    "review_process_manifest:approval_evidence_paths",
+)
+require(
+    review_process_manifest.get("ownership_evidence_fields") == REVIEW_PROCESS_OWNERSHIP_FIELDS,
+    "review_process_manifest:ownership_evidence_fields",
+)
+require(
+    review_process_manifest.get("ownership_evidence_paths") == REVIEW_PROCESS_OWNERSHIP_PATHS,
+    "review_process_manifest:ownership_evidence_paths",
+)
+require(
+    review_process_manifest.get("trigger_conditions") == REVIEW_PROCESS_TRIGGER_CONDITIONS,
+    "review_process_manifest:trigger_conditions",
+)
+require(
+    review_process_manifest.get("required_review_packet_fields") == REVIEW_PROCESS_REQUIRED_FIELDS,
+    "review_process_manifest:required_review_packet_fields",
+)
+require(
+    review_process_manifest.get("reopen_trigger_catalog") == REVIEW_PROCESS_REOPEN_TRIGGER_CATALOG,
+    "review_process_manifest:reopen_trigger_catalog",
+)
+require(
+    review_process_manifest.get("ownership_refresh_trigger") == "ownership_or_validation_changed",
+    "review_process_manifest:ownership_refresh_trigger",
+)
+require(
+    review_process_manifest.get("ownership_refresh_fields") == ["owner", "rollback owner"],
+    "review_process_manifest:ownership_refresh_fields",
+)
+require(
+    review_process_manifest.get("decision_buckets") == REVIEW_PROCESS_DECISION_BUCKETS,
+    "review_process_manifest:decision_buckets",
+)
+
+review_process_handoff_evidence = review_process_manifest.get("handoff_evidence", {})
+require(
+    review_process_handoff_evidence.get("roadmap_source")
+    == "zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md#phase-15-full-parity-blockers-and-long-term-governance",
+    "review_process_manifest:handoff_evidence:roadmap_source",
+)
+require(
+    "freeze map" in review_process_handoff_evidence.get("roadmap_handoff", "")
+    and "parity scorecard" in review_process_handoff_evidence.get("roadmap_handoff", "")
+    and "indefinite-C policy" in review_process_handoff_evidence.get("roadmap_handoff", ""),
+    "review_process_manifest:handoff_evidence:roadmap_handoff",
+)
+require(
+    review_process_handoff_evidence.get("bootstrap_ledger_anchor")
+    == "docs(zigux): add documentation root, review checklist, and freeze map",
+    "review_process_manifest:handoff_evidence:bootstrap_ledger_anchor",
+)
+require(
+    "Documentation/zigux/README.md" in review_process_handoff_evidence.get("current_repo_handoff", "")
+    and "Documentation/zigux/phase15-indefinite-c-policy.md" in review_process_handoff_evidence.get("current_repo_handoff", "")
+    and "Documentation/zigux/phase15-handoff-next-steps-survey.md" in review_process_handoff_evidence.get("current_repo_handoff", "")
+    and "zigux/tests/phase15_build.zig" in review_process_handoff_evidence.get("current_repo_handoff", "")
+    and "make -C zigux phase15" in review_process_handoff_evidence.get("current_repo_handoff", ""),
+    "review_process_manifest:handoff_evidence:current_repo_handoff",
+)
+require(
+    review_process_manifest["lane_key"] in review_process_handoff_evidence.get("current_bounded_lane", "")
+    and "governance, approval, and ownership evidence verification" in review_process_handoff_evidence.get("current_bounded_lane", "")
+    and "current parked maintenance-mode Phase 15 packet" in review_process_handoff_evidence.get("current_bounded_lane", "")
+    and "neighboring governance slices" in review_process_handoff_evidence.get("current_bounded_lane", ""),
+    "review_process_manifest:handoff_evidence:current_bounded_lane",
+)
+require(
+    "named reopen triggers" in review_process_handoff_evidence.get("maintenance_mode_next_step", "")
+    and "shared Phase 15 replay drift" in review_process_handoff_evidence.get("maintenance_mode_next_step", "")
+    and "deep-core blocker posture" in review_process_handoff_evidence.get("maintenance_mode_next_step", ""),
+    "review_process_manifest:handoff_evidence:maintenance_mode_next_step",
+)
+
+review_process_handoff = review_process_manifest.get("handoff", {})
+require(review_process_handoff.get("current_mode") == "maintenance_mode", "review_process_manifest:handoff:current_mode")
+require(
+    review_process_handoff.get("replay_commands") == [
+        "zig build test --build-file zigux/tests/phase15_build.zig",
+        "make -C zigux phase15",
+    ],
+    "review_process_manifest:handoff:replay_commands",
+)
+require(
+    review_process_handoff.get("blocker_posture_requirement") == "deep_core_blocker_posture_change",
+    "review_process_manifest:handoff:blocker_posture_requirement",
+)
+require(
+    "named reopen triggers" in review_process_handoff.get("next_step", "")
+    and "shared Phase 15 replay drift" in review_process_handoff.get("next_step", "")
+    and "deep-core blocker posture" in review_process_handoff.get("next_step", ""),
+    "review_process_manifest:handoff:next_step",
+)
+
+review_process_gaps = review_process_manifest.get("gaps")
+require(isinstance(review_process_gaps, list) and len(review_process_gaps) == 19, "review_process_manifest:gaps")
+if isinstance(review_process_gaps, list):
+    gap_ids = {gap.get("id") for gap in review_process_gaps}
+    require(
+        {
+            "phase15-review-process-lane-identity-provenance-refresh",
+            "phase15-review-process-indefinite-c-evidence-path-sync",
+            "phase15-review-process-ownership-evidence-rollback-threshold-sync",
+        }.issubset(gap_ids),
+        "review_process_manifest:required_gap_ids",
+    )
+
+review_process_note = text("Documentation/zigux/phase15-architecture-council-review-process.md")
+require(
+    f"PHASE15_LANE_KEY={review_process_manifest.get('lane_key')}" in review_process_note,
+    "review_process_note:lane_key",
+)
+require(
+    f"survey provenance refreshed against verified `master` head `{review_process_manifest.get('surveyed_commit')}`"
+    in review_process_note,
+    "review_process_note:surveyed_commit",
+)
+require(
+    f"current bounded lane: `{review_process_manifest.get('lane_key')}`" in review_process_note,
+    "review_process_note:current_bounded_lane",
+)
 
 scorecard_manifest = load_json("zigux/tests/phase15_parity_scorecard.json")
 require(scorecard_manifest.get("phase") == "Phase 15", "scorecard_manifest:phase")
@@ -310,6 +561,7 @@ print(
         + len(SCRIPTS_README_MARKERS)
         + len(TESTS_README_MARKERS)
         + len(FREEZE_MAP_NOTE_MARKERS)
+        + len(REVIEW_PROCESS_MARKERS)
         + len(SURVEY_MARKERS)
         + len(HANDOFF_MARKERS)
         + len(HANDOFF_TEST_MARKERS)
