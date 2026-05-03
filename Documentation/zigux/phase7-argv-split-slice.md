@@ -24,9 +24,9 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 
 Phase 7 explicitly calls out `lib/argv_split.c` as one of the first reusable in-kernel leaf libraries that should move into the Zigux product path.
 
-This current slice keeps the work bounded to runtime-safe leaf helpers with explicit integration with validation substrate through `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-build-inventory.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-argv-split-packet.py`, `zigux/tests/phase7_argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, and `zigux/tests/phase7_build.zig`.
+This current slice keeps the work bounded to runtime-safe leaf helpers with explicit shared integration through `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-build-inventory.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `zigux/tests/phase7_argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, and `zigux/tests/phase7_build.zig`.
 
-The committed C parity replay through `scripts/zigux/check-phase7-argv-split-parity.py` now stays inside that shared validation substrate so the helper-only slice remains externally reviewable without widening into new helper behavior or broader Phase 7 scope.
+The dedicated packet-alignment replay through `scripts/zigux/check-phase7-argv-split-packet.py` and the committed C parity replay through `scripts/zigux/check-phase7-argv-split-parity.py` stay adjacent to that shared validation substrate so the helper-only slice remains externally reviewable without widening into new helper behavior or broader Phase 7 scope.
 
 This current slice keeps the work bounded to the smallest runtime-safe ownership-preserving surface:
 
@@ -40,15 +40,13 @@ This current slice keeps the work bounded to the smallest runtime-safe ownership
 
 ## Gates
 
-1. prove the shared Phase 7 validator packet plus the build-inventory, make-wrapper, argv_split packet, and argv_split parity gates still fail closed before the helper replay runs
+1. prove the shared Phase 7 validator packet plus the build-inventory, make-wrapper, and argv_split parity gates still fail closed before the helper replay runs
 - `python3 scripts/zigux/validate-phase7.py --self-test`
 - `python3 scripts/zigux/validate-phase7.py`
 - `python3 scripts/zigux/check-phase7-build-inventory.py --self-test`
 - `python3 scripts/zigux/check-phase7-build-inventory.py`
 - `python3 scripts/zigux/check-phase7-make-wrapper.py --self-test`
 - `python3 scripts/zigux/check-phase7-make-wrapper.py`
-- `python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test`
-- `python3 scripts/zigux/check-phase7-argv-split-packet.py`
 - `python3 scripts/zigux/check-phase7-argv-split-parity.py --self-test`
 - `python3 scripts/zigux/check-phase7-argv-split-parity.py`
 - `make -C zigux phase7-validate`
@@ -106,7 +104,7 @@ The dedicated Phase 7 review gate now imports a focused fixture module under `zi
 
 The manifest-backed survey packet stays rooted at `repo_root` through `zigux/tests/phase7_build.zig` so `zigux/tests/phase7_argv_split_manifest.json` remains a reviewable ownership record instead of a helper-local detail.
 
-The shared Phase 7 validator packet plus the build-inventory, make-wrapper, argv_split packet, and argv_split parity replays stay in that same review packet, so the committed `zigux/tests/fixtures/phase7_build_inventory.json` snapshot, the published `make -C zigux phase7-validate` wrapper path, the dedicated packet-alignment checker, the focused C parity fixture lane, and the one-command `make -C zigux phase7` bundle remain explicit instead of living only in the broader shared Phase 7 notes.
+The shared Phase 7 validator packet plus the build-inventory, make-wrapper, and argv_split parity replays stay in that same review packet, while the dedicated packet-alignment checker remains a separate callable lane-local replay, so the committed `zigux/tests/fixtures/phase7_build_inventory.json` snapshot, the published `make -C zigux phase7-validate` wrapper path, the focused C parity fixture lane, the dedicated packet-alignment checker, and the one-command `make -C zigux phase7` bundle remain explicit instead of living only in the broader shared Phase 7 notes.
 
 ## Non-goals
 
