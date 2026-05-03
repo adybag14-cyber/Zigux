@@ -328,7 +328,7 @@ pub const WorkqueueBridgeLab = struct {
     }
 
     pub fn nextAuditFocus() []const u8 {
-        return "Leave the workqueue bridge in blocked maintenance unless the shared Phase 14 smoke packet or workqueue survey drifts, because live timer-base, CPU-affinity, and requeue ownership still stay in C.";
+        return "Audit mod_delayed_work_on() zero-delay rearm, its try_to_grab_pending() ownership checks, and the choice between __queue_work() versus __queue_delayed_work() before any wrapper claims timer-base, CPU-affinity, or live requeue parity.";
     }
 };
 
@@ -353,9 +353,9 @@ test "workqueue bridge boundary map records stay-in-c decisions" {
     try std.testing.expectEqualStrings("boundary_map_only", map.posture);
     try std.testing.expectEqual(@as(usize, 5), map.areas.len);
     try std.testing.expectEqual(@as(usize, 2), WorkqueueBridgeLab.stayInCDecisionCount());
-    try std.testing.expect(std.mem.indexOf(u8, WorkqueueBridgeLab.nextAuditFocus(), "blocked maintenance") != null);
-    try std.testing.expect(std.mem.indexOf(u8, WorkqueueBridgeLab.nextAuditFocus(), "timer-base") != null);
-    try std.testing.expect(std.mem.indexOf(u8, WorkqueueBridgeLab.nextAuditFocus(), "requeue ownership") != null);
+    try std.testing.expect(std.mem.indexOf(u8, WorkqueueBridgeLab.nextAuditFocus(), "mod_delayed_work_on()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, WorkqueueBridgeLab.nextAuditFocus(), "try_to_grab_pending()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, WorkqueueBridgeLab.nextAuditFocus(), "__queue_delayed_work()") != null);
 
     try std.testing.expectEqualStrings("submission-routing", map.areas[0].id);
     try std.testing.expect(map.areas[0].ownership == .boundary_map_only);
@@ -380,10 +380,10 @@ test "workqueue bridge concurrency audit stays review-only" {
     try std.testing.expectEqual(@as(usize, 18), audit.checkpoints.len);
     try std.testing.expectEqual(@as(usize, 5), audit.blocked_live_behaviors.len);
     try std.testing.expectEqual(@as(usize, 18), WorkqueueBridgeLab.auditCheckpointCount());
-    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "blocked maintenance") != null);
-    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "timer-base") != null);
-    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "CPU-affinity") != null);
-    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "requeue ownership") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "mod_delayed_work_on()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "try_to_grab_pending()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "__queue_work()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "__queue_delayed_work()") != null);
 
     try std.testing.expectEqualStrings("manager-role-serialization", audit.checkpoints[0].id);
     try std.testing.expect(audit.checkpoints[0].guard == .pool_lock_released_and_reacquired);
