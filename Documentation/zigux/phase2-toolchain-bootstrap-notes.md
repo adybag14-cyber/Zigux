@@ -9,3 +9,4 @@ This note records the bounded Phase 2 bootstrap archive-pin contract.
 - workflow verification path: `python3 scripts/zigux/check-zig-toolchain.py`
 - current pinned bootstrap archive target: `x86_64-linux`
 - the archive pin must stay limited to `x86_64-linux` until a new bootstrap runner target gains first-class workflow evidence
+- the three-target compile matrix in `zigux/tests/fixtures/phase2_cross_targets.json` stays separate from the `x86_64-linux` bootstrap archive pin
