@@ -123,6 +123,7 @@ SCRIPTS_README_MARKERS = [
 DOCS_ROOT_MARKERS = [
     "`Documentation/zigux/phase6-base64-slice.md`, `Documentation/zigux/phase6-bsearch-slice.md`, `Documentation/zigux/phase6-checksum-slice.md`, `Documentation/zigux/phase6-hexdump-slice.md`, and `Documentation/zigux/phase6-helper-parity-catalog.md` are the current shared notes for the bounded `lib/base64.zig`, `lib/bsearch.zig`, `lib/checksum.zig`, and `lib/hexdump.zig` leaf-helper packet.",
     "`python3 scripts/zigux/validate-phase6.py`, `make -C zigux phase6-validate`, and `make -C zigux phase6` are the published validator-first shared replay path for the current Phase 6 helper tranche.",
+    "`python3 scripts/zigux/check-phase6-base64-c-parity.py`, `python3 scripts/zigux/check-phase6-bsearch-c-parity.py`, `python3 scripts/zigux/check-phase6-checksum-c-parity.py`, and `python3 scripts/zigux/check-phase6-hexdump-c-parity.py` are the shipped external C-vs-Zig review hooks for the bounded base64, bsearch, checksum, and hexdump portability surfaces.",
 ]
 
 TESTS_README_MARKERS = [
@@ -628,8 +629,8 @@ def run_self_test() -> int:
 
             build_self_test_tree(root)
             docs_root = root / "Documentation/zigux/README.md"
-            docs_root.write_text(docs_root.read_text(encoding="utf-8").replace(DOCS_ROOT_MARKERS[0], "", 1), encoding="utf-8")
-            if f"docs_root:missing:{DOCS_ROOT_MARKERS[0]}" not in validate_phase6(root)["missing"]:
+            docs_root.write_text(docs_root.read_text(encoding="utf-8").replace(DOCS_ROOT_MARKERS[2], "", 1), encoding="utf-8")
+            if f"docs_root:missing:{DOCS_ROOT_MARKERS[2]}" not in validate_phase6(root)["missing"]:
                 raise AssertionError("missing docs root marker failure")
 
             build_self_test_tree(root)
