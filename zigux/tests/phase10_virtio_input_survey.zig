@@ -85,7 +85,7 @@ test "phase10 virtio input survey manifest records the live starter and remainin
         "input_registration_lifecycle",
         "probe_remove_lifecycle",
     };
-    try std.testing.expectEqualStrings("P10-Y04", manifest.lane_key);
+    try std.testing.expectEqualStrings("P10-Y05", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 10", manifest.phase);
     try std.testing.expectEqualStrings("drivers/virtio/virtio_input.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 40), manifest.surveyed_commit.len);
