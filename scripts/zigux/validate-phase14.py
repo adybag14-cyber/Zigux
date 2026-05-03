@@ -190,8 +190,12 @@ def text(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
 
 
-def load_json(path: str) -> dict[str, object]:
-    return json.loads(text(path))
+def load_json(path: str, missing: list[str]) -> dict[str, object] | None:
+    try:
+        return json.loads(text(path))
+    except json.JSONDecodeError as exc:
+        missing.append(f"json_decode_error:{path}:{exc.lineno}:{exc.colno}")
+        return None
 
 
 def find_gap(manifest: dict[str, object], gap_id: str) -> dict[str, object] | None:
@@ -250,7 +254,10 @@ freeze_map_text = text("Documentation/zigux/freeze-map.md")
 for marker in FREEZE_MAP_MARKERS:
     expect_marker("freeze_map", freeze_map_text, marker, missing)
 
-manifest = load_json("zigux/tests/phase14_end_to_end_smoke_manifest.json")
+manifest = load_json("zigux/tests/phase14_end_to_end_smoke_manifest.json", missing)
+if not isinstance(manifest, dict):
+    manifest = {}
+    missing.append("manifest:unreadable")
 if manifest.get("lane_key") != "P14-L01":
     missing.append(f'manifest:lane_key={manifest.get("lane_key")}')
 if manifest.get("phase") != "Phase 14":
@@ -516,7 +523,10 @@ for index, packet in enumerate(anchor_packets):
         continue
     if not HEX40.fullmatch(packet_commit):
         missing.append(f"manifest:anchor_packets:{lane_key}:surveyed_commit")
-    anchor_manifest = load_json(manifest_path)
+    anchor_manifest = load_json(manifest_path, missing)
+    if not isinstance(anchor_manifest, dict):
+        missing.append(f"{manifest_path}:unreadable")
+        anchor_manifest = {}
     if anchor_manifest.get("lane_key") != lane_key:
         missing.append(f"{manifest_path}:lane_key")
     if anchor_manifest.get("anchor") != anchor:
