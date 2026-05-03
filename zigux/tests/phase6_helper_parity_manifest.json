@@ -37,6 +37,7 @@
         "zigux/tests/phase6_bsearch_c_parity.zig"
       ],
       "fixtures": [
+        "zigux/tests/fixtures/phase6_bsearch_vectors.zig",
         "zigux/tests/fixtures/phase6_bsearch_c_harness.c"
       ],
       "slice_note": "Documentation/zigux/phase6-bsearch-slice.md",
