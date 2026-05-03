@@ -9,10 +9,11 @@ from pathlib import Path
 
 SCRIPT_PATH = Path(__file__).resolve()
 ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
-SELF_TEST_CASE_COUNT = 9
+SELF_TEST_CASE_COUNT = 11
 
 DOCS_ROOT_PATH = Path("Documentation/zigux/README.md")
 SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
+TESTS_README_PATH = Path("zigux/tests/README.md")
 MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
 MAKEFILE_PATH = Path("zigux/Makefile")
 REQUIRED_SCRIPT_PATHS = [
@@ -32,6 +33,13 @@ EXTERNAL_PARITY_LINE = (
 )
 REQUIRED_SCRIPTS_README_LINES = [
     "- `check-phase6-docs-root-external-parity.py`",
+]
+REQUIRED_TESTS_README_LINES = [
+    "- `zigux/tests/phase6_base64_c_parity.zig`",
+    "- `zigux/tests/phase6_base64_c_casegen.zig`",
+    "- `zigux/tests/fixtures/phase6_base64_c_harness.c`",
+    "- `zigux/tests/phase6_bsearch_c_parity.zig`",
+    "- `zigux/tests/fixtures/phase6_bsearch_c_harness.c`",
 ]
 REQUIRED_MANIFEST_EXACT_CHECKS = [
     "python3 scripts/zigux/check-phase6-docs-root-external-parity.py --self-test",
@@ -58,7 +66,14 @@ def count_exact_line(lines: list[str], expected: str) -> int:
 def validate(root: Path) -> list[str]:
     missing: list[str] = []
 
-    required_paths = [DOCS_ROOT_PATH, SCRIPTS_README_PATH, MANIFEST_PATH, MAKEFILE_PATH, *REQUIRED_SCRIPT_PATHS]
+    required_paths = [
+        DOCS_ROOT_PATH,
+        SCRIPTS_README_PATH,
+        TESTS_README_PATH,
+        MANIFEST_PATH,
+        MAKEFILE_PATH,
+        *REQUIRED_SCRIPT_PATHS,
+    ]
     for relative_path in required_paths:
         if not (root / relative_path).exists():
             missing.append(f"missing_file:{relative_path.as_posix()}")
@@ -80,6 +95,15 @@ def validate(root: Path) -> list[str]:
         if actual_count != 1:
             missing.append(
                 "scripts_readme_checker_line:"
+                f"expected=1:actual={actual_count}:{line}"
+            )
+
+    tests_readme_lines = normalized_lines(read_text(root, TESTS_README_PATH))
+    for line in REQUIRED_TESTS_README_LINES:
+        actual_count = count_exact_line(tests_readme_lines, line)
+        if actual_count != 1:
+            missing.append(
+                "tests_readme_external_portability_line:"
                 f"expected=1:actual={actual_count}:{line}"
             )
 
@@ -117,6 +141,7 @@ def write(root: Path, relative_path: Path, content: str) -> None:
 def build_fixture_tree(root: Path) -> None:
     write(root, DOCS_ROOT_PATH, f"{EXTERNAL_PARITY_LINE}\n")
     write(root, SCRIPTS_README_PATH, "\n".join(REQUIRED_SCRIPTS_README_LINES) + "\n")
+    write(root, TESTS_README_PATH, "\n".join(REQUIRED_TESTS_README_LINES) + "\n")
     write(
         root,
         MANIFEST_PATH,
@@ -182,6 +207,37 @@ def run_self_test() -> int:
             expect_contains(
                 validate(root),
                 "scripts_readme_checker_line:expected=1:actual=2:- `check-phase6-docs-root-external-parity.py`",
+            )
+            count += 1
+
+            build_fixture_tree(root)
+            tests_readme = root / TESTS_README_PATH
+            tests_readme.write_text(
+                "\n".join(REQUIRED_TESTS_README_LINES[1:]) + "\n",
+                encoding="utf-8",
+            )
+            expect_contains(
+                validate(root),
+                "tests_readme_external_portability_line:expected=1:actual=0:- `zigux/tests/phase6_base64_c_parity.zig`",
+            )
+            count += 1
+
+            build_fixture_tree(root)
+            tests_readme = root / TESTS_README_PATH
+            tests_readme.write_text(
+                "\n".join(
+                    [
+                        REQUIRED_TESTS_README_LINES[0],
+                        REQUIRED_TESTS_README_LINES[0],
+                        *REQUIRED_TESTS_README_LINES[1:],
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            expect_contains(
+                validate(root),
+                "tests_readme_external_portability_line:expected=1:actual=2:- `zigux/tests/phase6_base64_c_parity.zig`",
             )
             count += 1
 
@@ -268,8 +324,8 @@ def main() -> int:
         return 1
 
     print("PHASE6_DOCS_ROOT_EXTERNAL_PARITY=pass")
-    print("PHASE6_DOCS_ROOT_EXTERNAL_PARITY_REQUIRED_FILE_COUNT=8")
-    print("PHASE6_DOCS_ROOT_EXTERNAL_PARITY_REQUIRED_LINE_COUNT=6")
+    print("PHASE6_DOCS_ROOT_EXTERNAL_PARITY_REQUIRED_FILE_COUNT=9")
+    print("PHASE6_DOCS_ROOT_EXTERNAL_PARITY_REQUIRED_LINE_COUNT=11")
     return 0
 
 
