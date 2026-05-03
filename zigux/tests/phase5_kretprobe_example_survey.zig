@@ -257,8 +257,11 @@ test "phase 5 kretprobe contributor docs stay aligned with the shipped review su
     try expectContains(survey_note, "Documentation/zigux/README.md");
     try expectContains(survey_note, "Documentation/zigux/review-checklist.md");
     try expectContains(survey_note, "phase5_kretprobe_example_manifest.json");
+    try expectContains(survey_note, "phase5_kretprobe_example.zig");
     try expectContains(survey_note, "phase5_kretprobe_example_survey.zig");
     try expectContains(survey_note, "phase5_build.zig");
+    try expectContains(survey_note, "kretprobe_example_sample");
+    try expectContains(survey_note, "focused shared-build replay rather than a standalone `zig test` command");
     try expectContains(survey_note, "separate Phase 9 runtime starter");
     try expectContains(survey_note, "PHASE5_LANE_KEY=P5-L22");
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "/workspace/agent_files/") == null);
