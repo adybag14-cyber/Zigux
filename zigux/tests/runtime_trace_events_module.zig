@@ -92,8 +92,12 @@ test "runtime trace-events sample keeps replay-summary continuity explicit after
     try std.testing.expectEqualStrings("Frodo", replay.last_main_random_choice_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqual(@as(usize, 3), replay.last_main_vararg_array_length orelse return error.ExpectedMainPayload);
     try std.testing.expect(replay.last_main_vararg_array_terminator_zero orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("HELLO", replay.last_main_template_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqual(@as(?[]const u8, null), replay.last_main_conditional_message);
     try std.testing.expectEqual(@as(?[]const u8, null), replay.last_main_template_cond_message);
+    try std.testing.expectEqualStrings("I have to be different", replay.last_main_template_print_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("Hello __rel_loc", replay.last_main_relative_location_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("iter=%d", replay.last_format_template orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings("Look at me", replay.last_function_foo_bar_message orelse return error.ExpectedFunctionPayload);
     try std.testing.expectEqualStrings("Look at me too", replay.last_function_template_message orelse return error.ExpectedFunctionPayload);
 }
