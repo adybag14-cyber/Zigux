@@ -29,6 +29,7 @@ test "phase12 virtio net syntax lab keeps bounded probe exports reachable" {
     try std.testing.expect(!descriptor.touches_live_dma);
     try std.testing.expect(!descriptor.touches_napi_poll);
     try std.testing.expect(!descriptor.touches_netdev_lifecycle);
+    try std.testing.expect(descriptor.touches_transport_recovery);
 }
 
 test "phase12 virtio net syntax lab keeps review enums stable" {
@@ -72,5 +73,44 @@ test "phase12 virtio net syntax lab keeps review enums stable" {
     try std.testing.expectEqual(
         virtio_net.XdpConstraint.blocked_by_split_header,
         virtio_net.XdpConstraint.blocked_by_split_header,
+    );
+}
+
+test "phase12 virtio net syntax lab keeps alternate review variants reachable" {
+    try std.testing.expectEqual(
+        virtio_net.RecoveryState.reset_required,
+        virtio_net.RecoveryState.reset_required,
+    );
+    try std.testing.expectEqual(
+        virtio_net.QueueRecoveryAction.require_reset,
+        virtio_net.QueueRecoveryAction.require_reset,
+    );
+    try std.testing.expectEqual(
+        virtio_net.QueueResumeReadiness.requires_feature_renegotiation,
+        virtio_net.QueueResumeReadiness.requires_feature_renegotiation,
+    );
+    try std.testing.expectEqual(
+        virtio_net.QueueResumeScope.data_and_control_queue,
+        virtio_net.QueueResumeScope.data_and_control_queue,
+    );
+    try std.testing.expectEqual(
+        virtio_net.HeaderShape.mrg_rxbuf,
+        virtio_net.HeaderShape.mrg_rxbuf,
+    );
+    try std.testing.expectEqual(
+        virtio_net.ReceiveBufferMode.big_packets,
+        virtio_net.ReceiveBufferMode.big_packets,
+    );
+    try std.testing.expectEqual(
+        virtio_net.BigPacketReason.mtu_above_default,
+        virtio_net.BigPacketReason.mtu_above_default,
+    );
+    try std.testing.expectEqual(
+        virtio_net.HeaderScatterPolicy.combined_header_and_data,
+        virtio_net.HeaderScatterPolicy.combined_header_and_data,
+    );
+    try std.testing.expectEqual(
+        virtio_net.XdpConstraint.ready,
+        virtio_net.XdpConstraint.ready,
     );
 }
