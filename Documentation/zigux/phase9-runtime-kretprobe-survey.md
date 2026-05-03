@@ -101,7 +101,8 @@ The manifest-backed review prompts for this lane now also keep one rollback ques
 
 1. run the dedicated Phase 9 survey gate
 - `zig test zigux/tests/runtime_kretprobe_survey.zig`
-- this dedicated gate keeps the manifest-backed ownership packet and blocked shared-loader note reviewable without requiring the broader shared build
+- `make -C zigux phase9-kretprobe-survey`
+- the dedicated make target wraps the same standalone survey gate so the focused ownership packet stays reviewable without requiring the broader shared build
 
 2. run the shared runtime packet replay
 - `zig build test --build-file zigux/tests/phase9_build.zig --summary all`
