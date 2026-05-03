@@ -12,6 +12,7 @@ ARTIFACT_DIFF = ROOT / 'scripts' / 'zigux' / 'artifact_diff.py'
 EXPECTED_CONTRACT_CASES = [
     'helper_self_test',
     'helper_self_test_repeat',
+    'cli_missing_required_args',
     'text_pass',
     'text_pass_repeat',
     'text_mismatch',
@@ -74,6 +75,44 @@ def run_contract_case(
             raise AssertionError(f'attempt {attempt}: unexpected stderr: {completed.stderr!r}')
 
 
+def run_error_contract_case(
+    args: list[str],
+    expected_exit: int,
+    expected_stdout_lines: list[str],
+    *,
+    expected_stderr_markers: list[str],
+    expected_stderr_last_line: str,
+) -> None:
+    completed = subprocess.run(
+        [sys.executable, str(ARTIFACT_DIFF), *args],
+        check=False,
+        capture_output=True,
+        text=True,
+        cwd=ROOT,
+    )
+    stdout_lines = completed.stdout.splitlines()
+    stderr_lines = completed.stderr.splitlines()
+    stderr_text = completed.stderr
+    if completed.returncode != expected_exit:
+        raise AssertionError(
+            f'expected exit {expected_exit}, got {completed.returncode}: stdout={stdout_lines} stderr={stderr_lines}'
+        )
+    if stdout_lines != expected_stdout_lines:
+        raise AssertionError(f'unexpected stdout lines: {stdout_lines}')
+    if not stderr_lines:
+        raise AssertionError('expected parser stderr output, got none')
+    for marker in expected_stderr_markers:
+        if marker not in stderr_text:
+            raise AssertionError(
+                f'missing stderr marker {marker!r} in parser contract output: {stderr_lines}'
+            )
+    if stderr_lines[-1] != expected_stderr_last_line:
+        raise AssertionError(
+            'unexpected parser error line: '
+            f'expected {expected_stderr_last_line!r}, got {stderr_lines[-1]!r}'
+        )
+
+
 def assert_contract_catalog_shape() -> None:
     if len(set(EXPECTED_CONTRACT_CASES)) != len(EXPECTED_CONTRACT_CASES):
         raise AssertionError(
@@ -119,6 +158,19 @@ def main() -> int:
     )
     covered_cases.append('helper_self_test')
     covered_cases.append('helper_self_test_repeat')
+
+    run_error_contract_case(
+        [],
+        2,
+        [],
+        expected_stderr_markers=[
+            'usage: artifact_diff.py',
+            '--mode {text,json,sha256}',
+            'artifact_diff.py: error: --mode, expected, and actual are required unless --self-test is set',
+        ],
+        expected_stderr_last_line='artifact_diff.py: error: --mode, expected, and actual are required unless --self-test is set',
+    )
+    covered_cases.append('cli_missing_required_args')
 
     with tempfile.TemporaryDirectory(prefix='zigux_artifact_diff_contract_') as tmp_dir_str:
         tmp_dir = Path(tmp_dir_str)
