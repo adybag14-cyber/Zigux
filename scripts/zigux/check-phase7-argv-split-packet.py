@@ -318,6 +318,19 @@ def run_self_test() -> int:
         )
         survey_path.write_text(original_survey, encoding="utf-8")
 
+        helper_path = tmp_root / "lib" / "argv_split.zig"
+        original_helper = read(helper_path)
+        helper_path.write_text(
+            original_helper.replace("pub fn argvFree() void {}\n", "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "helper_ownership_marker",
+            tmp_root,
+            "lib/argv_split.zig: pub fn argvFree",
+        )
+        helper_path.write_text(original_helper, encoding="utf-8")
+
         manifest_path = tmp_root / "zigux" / "tests" / "phase7_argv_split_manifest.json"
         manifest = json.loads(read(manifest_path))
         manifest["lane_key"] = "wrong"
@@ -333,7 +346,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
-    print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT=6")
+    print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
