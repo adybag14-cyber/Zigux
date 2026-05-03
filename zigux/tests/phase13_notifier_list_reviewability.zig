@@ -17,6 +17,7 @@ const SurveySummary = struct {
     landed_generic_notifier_abi_present: bool,
     landed_generic_notifier_build_surface_present: bool,
     landed_generic_notifier_helper_present: bool,
+    landed_generic_notifier_c_header_surface_present: bool,
 };
 
 const Gap = struct {
@@ -63,6 +64,8 @@ test "phase13 notifier/list survey records the landed read-only generic notifier
     defer std.testing.allocator.free(abi_text);
     const notifier_abi_text = try readRepoFile(io_instance.io(), std.testing.allocator, "zigux/bindings/notifier_abi.zig");
     defer std.testing.allocator.free(notifier_abi_text);
+    const notifier_c_header_text = try readRepoFile(io_instance.io(), std.testing.allocator, "include/zigux/notifier_abi.h");
+    defer std.testing.allocator.free(notifier_c_header_text);
     const list_view_text = try readRepoFile(io_instance.io(), std.testing.allocator, "zigux/helpers/list_view.zig");
     defer std.testing.allocator.free(list_view_text);
     const hlist_view_text = try readRepoFile(io_instance.io(), std.testing.allocator, "zigux/helpers/hlist_view.zig");
@@ -90,7 +93,7 @@ test "phase13 notifier/list survey records the landed read-only generic notifier
     defer parsed.deinit();
     const manifest = parsed.value;
 
-    try std.testing.expectEqualStrings("P13-L18", manifest.lane_key);
+    try std.testing.expectEqualStrings("P13-L19", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("66b55d8a9a800345097f3c04b9f95130b1f8d0b8", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 5), manifest.anchors.len);
@@ -99,12 +102,13 @@ test "phase13 notifier/list survey records the landed read-only generic notifier
     try std.testing.expectEqualStrings("include/linux/acpi_amd_wbrf.h", manifest.anchors[2]);
     try std.testing.expectEqualStrings("include/net/dsa.h", manifest.anchors[3]);
     try std.testing.expectEqualStrings("include/linux/watchdog.h", manifest.anchors[4]);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_scope, "read-only notifier foothold") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_scope, "dedicated exported C header") != null);
     try std.testing.expect(manifest.survey_summary.landed_generic_notifier_abi_present);
     try std.testing.expect(manifest.survey_summary.landed_generic_notifier_build_surface_present);
     try std.testing.expect(manifest.survey_summary.landed_generic_notifier_helper_present);
+    try std.testing.expect(manifest.survey_summary.landed_generic_notifier_c_header_surface_present);
     try std.testing.expect(manifest.survey_summary.preexisting_list_helper_api_companion_present);
-    try std.testing.expectEqual(@as(usize, 15), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 16), manifest.gaps.len);
 
     try std.testing.expect(std.mem.indexOf(u8, phase13_build, "../bindings/notifier_abi.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase13_build, "../helpers/notifier_chain_view.zig") != null);
@@ -118,6 +122,15 @@ test "phase13 notifier/list survey records the landed read-only generic notifier
     try std.testing.expect(std.mem.indexOf(u8, notifier_abi_text, "pub const NotifierChainView = extern struct") != null);
     try std.testing.expect(std.mem.indexOf(u8, notifier_abi_text, "pub const NotifierChainSummary = extern struct") != null);
     try std.testing.expect(std.mem.indexOf(u8, notifier_abi_text, "pub const NOTIFIER_CHAIN_FLAG_PRIORITY_NONINCREASING: u32 = 16;") != null);
+    try std.testing.expect(std.mem.indexOf(u8, notifier_c_header_text, "struct zigux_notifier_block_ref") != null);
+    try std.testing.expect(std.mem.indexOf(u8, notifier_c_header_text, "struct zigux_raw_notifier_head_ref") != null);
+    try std.testing.expect(std.mem.indexOf(u8, notifier_c_header_text, "struct zigux_notifier_chain_view") != null);
+    try std.testing.expect(std.mem.indexOf(u8, notifier_c_header_text, "struct zigux_notifier_chain_summary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, notifier_c_header_text, "zigux_notifier_chain_view_from_head") != null);
+    try std.testing.expect(std.mem.indexOf(u8, notifier_c_header_text, "zigux_notifier_chain_empty") != null);
+    try std.testing.expect(std.mem.indexOf(u8, notifier_c_header_text, "zigux_notifier_chain_length_bounded") != null);
+    try std.testing.expect(std.mem.indexOf(u8, notifier_c_header_text, "zigux_notifier_chain_summarize") != null);
+    try std.testing.expect(std.mem.indexOf(u8, notifier_c_header_text, "ZIGUX_NOTIFIER_CHAIN_FLAG_PRIORITY_NONINCREASING") != null);
     try std.testing.expect(std.mem.indexOf(u8, notifier_helper_text, "pub fn viewFromHead") != null);
     try std.testing.expect(std.mem.indexOf(u8, notifier_helper_text, "pub fn isEmpty") != null);
     try std.testing.expect(std.mem.indexOf(u8, notifier_helper_text, "pub fn length") != null);
@@ -143,14 +156,14 @@ test "phase13 notifier/list survey records the landed read-only generic notifier
     try std.testing.expect(std.mem.indexOf(u8, acpi_wbrf_header_text, "amd_wbrf_register_notifier") != null);
     try std.testing.expect(std.mem.indexOf(u8, dsa_header_text, "struct raw_notifier_head\tnh;") != null);
     try std.testing.expect(std.mem.indexOf(u8, watchdog_header_text, "struct notifier_block reboot_nb;") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "lane key: `P13-L18`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "lane key: `P13-L19`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`include/net/dsa.h`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`include/linux/watchdog.h`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/bindings/notifier_abi.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "include/zigux/notifier_abi.h") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/helpers/notifier_chain_view.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`viewFromHead`, `isEmpty`, `length`, and `summarize`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "landed packet-local evidence instead of as inherited preexisting groundwork") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "share the same small companion API shape") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "keeps the dedicated exported C header small") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "registration, callback execution, SRCU, and blocking notifier semantics remain out of scope") != null);
 
     var starter_landed_count: usize = 0;
@@ -159,6 +172,7 @@ test "phase13 notifier/list survey records the landed read-only generic notifier
     var preexisting_phase11_count: usize = 0;
     var preexisting_header_count: usize = 0;
     var found_companion_gap = false;
+    var found_c_header_gap = false;
     for (manifest.gaps) |gap| {
         try std.testing.expect(isAllowedStatus(gap.status));
         if (std.mem.eql(u8, gap.status, "starter_landed")) starter_landed_count += 1;
@@ -170,9 +184,14 @@ test "phase13 notifier/list survey records the landed read-only generic notifier
             found_companion_gap = true;
             try std.testing.expectEqualStrings("zigux/helpers/list_view.zig", gap.zigux_destination);
         }
+        if (std.mem.eql(u8, gap.id, "phase13-generic-notifier-c-header-foothold")) {
+            found_c_header_gap = true;
+            try std.testing.expectEqualStrings("include/zigux/notifier_abi.h", gap.zigux_destination);
+        }
     }
     try std.testing.expect(found_companion_gap);
-    try std.testing.expectEqual(@as(usize, 5), starter_landed_count);
+    try std.testing.expect(found_c_header_gap);
+    try std.testing.expectEqual(@as(usize, 6), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 4), preexisting_phase3_count);
     try std.testing.expectEqual(@as(usize, 1), preexisting_chrdev_count);
     try std.testing.expectEqual(@as(usize, 1), preexisting_phase11_count);
