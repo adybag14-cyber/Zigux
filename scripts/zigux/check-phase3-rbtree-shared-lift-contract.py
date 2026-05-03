@@ -11,6 +11,8 @@ ROOT = Path(__file__).resolve().parents[2]
 SURVEY_REL = "Documentation/zigux/phase3-rbtree-interop-survey.md"
 ROADMAP_GAP_REL = "Documentation/zigux/phase3-roadmap-gap-survey.md"
 SLICE_REL = "Documentation/zigux/phase3-rbtree-slice.md"
+ABI_SLICE_REL = "Documentation/zigux/phase3-abi-slice.md"
+REVIEW_CHECKLIST_REL = "Documentation/zigux/review-checklist.md"
 DEDICATED_EXPECTED_REL = "zigux/tests/fixtures/phase3_rbtree/expected.json"
 DEDICATED_HEADER_REL = "include/zigux/rbtree.h"
 DEDICATED_BINDING_REL = "zigux/bindings/rbtree.zig"
@@ -61,6 +63,19 @@ SLICE_SNIPPETS = (
     "the shared ABI manifest now catalogs both that dedicated packet and the shared ABI replay plus the lift guards",
     "a shared `rbtree` record in `include/zigux/abi.h` and `zigux/bindings/abi.zig`",
     "a shared Phase 3 ABI root-view implementation that no longer depends on `include/zigux/rbtree.h` and `zigux/bindings/rbtree.zig`",
+)
+
+ABI_SLICE_SNIPPETS = (
+    "the shared ABI replay also already covers `zigux_rbtree_root_view` through `zigux/tests/phase3_abi.zig`, `zigux/tests/phase3_abi_dump.zig`, `zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c`, and `zigux/tests/fixtures/phase3_abi/expected.json`",
+    "it still reaches that record through `include/zigux/rbtree.h` and `zigux/bindings/rbtree.zig` rather than a curated shared `include/zigux/abi.h` plus `zigux/bindings/abi.zig` lift",
+    "closing the still-missing curated shared `rbtree` root-view lift inside `include/zigux/abi.h` and `zigux/bindings/abi.zig` before adding still more chrdev tail growth",
+)
+
+REVIEW_CHECKLIST_SNIPPETS = (
+    "`include/zigux/abi.h`",
+    "`zigux/bindings/abi.zig`",
+    "`zigux/tests/phase3_abi.zig`",
+    "`zigux/tests/fixtures/phase3_abi/expected.json`",
 )
 
 STALE_SLICE_SNIPPETS = (
@@ -130,6 +145,8 @@ MANIFEST_PATHS = (
     "zigux/tests/phase3_abi_dump.zig",
     "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c",
     "zigux/tests/fixtures/phase3_abi/expected.json",
+    "Documentation/zigux/phase3-abi-slice.md",
+    "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase3-rbtree-slice.md",
     "Documentation/zigux/phase3-rbtree-interop-survey.md",
     "scripts/zigux/check-phase3-rbtree-shared-lift-contract.py",
@@ -174,6 +191,8 @@ def validate(root: Path) -> list[str]:
     survey = read_text(root, SURVEY_REL, issues)
     roadmap = read_text(root, ROADMAP_GAP_REL, issues)
     slice_text = read_text(root, SLICE_REL, issues)
+    abi_slice = read_text(root, ABI_SLICE_REL, issues)
+    review_checklist = read_text(root, REVIEW_CHECKLIST_REL, issues)
     header = read_text(root, DEDICATED_HEADER_REL, issues)
     binding = read_text(root, DEDICATED_BINDING_REL, issues)
     shared_contract = read_text(root, SHARED_CONTRACT_REL, issues)
@@ -186,10 +205,24 @@ def validate(root: Path) -> list[str]:
     require_contains(roadmap, ROADMAP_GAP_REL, ROADMAP_SNIPPETS, "missing_snippet", issues)
     require_contains(slice_text, SLICE_REL, SLICE_MARKERS, "missing_marker", issues)
     require_contains(slice_text, SLICE_REL, SLICE_SNIPPETS, "missing_snippet", issues)
+    require_contains(abi_slice, ABI_SLICE_REL, ABI_SLICE_SNIPPETS, "missing_snippet", issues)
+    require_contains(
+        review_checklist,
+        REVIEW_CHECKLIST_REL,
+        REVIEW_CHECKLIST_SNIPPETS,
+        "missing_checklist_snippet",
+        issues,
+    )
     require_absent(slice_text, SLICE_REL, STALE_SLICE_SNIPPETS, "stale_snippet", issues)
     require_contains(header, DEDICATED_HEADER_REL, DEDICATED_HEADER_TOKENS, "missing_token", issues)
     require_contains(binding, DEDICATED_BINDING_REL, DEDICATED_BINDING_TOKENS, "missing_token", issues)
-    require_contains(shared_contract, SHARED_CONTRACT_REL, ("PHASE3_RBTREE_SHARED_LAYOUT_CONTRACT", "PHASE3_RBTREE_SHARED_CONSTANT_CONTRACT"), "missing_snippet", issues)
+    require_contains(
+        shared_contract,
+        SHARED_CONTRACT_REL,
+        ("PHASE3_RBTREE_SHARED_LAYOUT_CONTRACT", "PHASE3_RBTREE_SHARED_CONSTANT_CONTRACT"),
+        "missing_snippet",
+        issues,
+    )
 
     for rel, snippets in SHARED_PACKET_SNIPPETS.items():
         require_contains(read_text(root, rel, issues), rel, snippets, "missing_shared_packet", issues)
@@ -227,6 +260,8 @@ def run_self_test() -> int:
         write(root, SURVEY_REL, "\n".join((*SURVEY_MARKERS, *SURVEY_SNIPPETS)) + "\n")
         write(root, ROADMAP_GAP_REL, "\n".join((*ROADMAP_MARKERS, *ROADMAP_SNIPPETS)) + "\n")
         write(root, SLICE_REL, "\n".join((*SLICE_MARKERS, *SLICE_SNIPPETS)) + "\n")
+        write(root, ABI_SLICE_REL, "\n".join(ABI_SLICE_SNIPPETS) + "\n")
+        write(root, REVIEW_CHECKLIST_REL, "\n".join(REVIEW_CHECKLIST_SNIPPETS) + "\n")
         write(root, DEDICATED_HEADER_REL, "\n".join(DEDICATED_HEADER_TOKENS) + "\n")
         write(root, DEDICATED_BINDING_REL, "\n".join(DEDICATED_BINDING_TOKENS) + "\n")
         write(root, SHARED_CONTRACT_REL, "PHASE3_RBTREE_SHARED_LAYOUT_CONTRACT\nPHASE3_RBTREE_SHARED_CONSTANT_CONTRACT\n")
@@ -235,9 +270,23 @@ def run_self_test() -> int:
         for rel in SHARED_ABI_FORBIDDEN:
             write(root, rel, "// clean\n")
         write(root, MANIFEST_REL, json.dumps({"files": list(MANIFEST_PATHS)}))
-        write(root, DEDICATED_EXPECTED_REL, json.dumps({"constants": EXPECTED_CONSTANTS, "structs": {"zigux_rbtree_root_view": EXPECTED_LAYOUT}}))
+        write(
+            root,
+            DEDICATED_EXPECTED_REL,
+            json.dumps({"constants": EXPECTED_CONSTANTS, "structs": {"zigux_rbtree_root_view": EXPECTED_LAYOUT}}),
+        )
         assert validate(root) == []
 
+        write(root, ABI_SLICE_REL, ABI_SLICE_SNIPPETS[0] + "\n")
+        issues = validate(root)
+        assert any(issue.startswith(f"missing_snippet:{ABI_SLICE_REL}:") for issue in issues)
+
+        write(root, ABI_SLICE_REL, "\n".join(ABI_SLICE_SNIPPETS) + "\n")
+        write(root, REVIEW_CHECKLIST_REL, "`include/zigux/abi.h`\n")
+        issues = validate(root)
+        assert any(issue.startswith("missing_checklist_snippet:") for issue in issues)
+
+        write(root, REVIEW_CHECKLIST_REL, "\n".join(REVIEW_CHECKLIST_SNIPPETS) + "\n")
         write(root, SLICE_REL, STALE_SLICE_SNIPPETS[0] + "\n")
         issues = validate(root)
         assert any(issue.startswith("stale_snippet:") for issue in issues)
@@ -257,7 +306,9 @@ def run_self_test() -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Check that the planned shared Phase 3 rbtree lift contract stays aligned with the dedicated boundary packet.")
+    parser = argparse.ArgumentParser(
+        description="Check that the planned shared Phase 3 rbtree lift contract stays aligned with the dedicated boundary packet."
+    )
     parser.add_argument("--self-test", action="store_true", help="Run isolated checker tests without reading the full repo.")
     args = parser.parse_args()
     if args.self_test:
