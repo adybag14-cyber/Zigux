@@ -151,6 +151,30 @@ REQUIRED_MAKEFILE_MARKERS = [
 
 REQUIRED_EXACT_COUNT_MARKERS = [
     (
+        "docs_root_phase1_closure_packet_count",
+        "Documentation/zigux/README.md",
+        REQUIRED_DOCS_ROOT_MARKERS[0],
+        1,
+    ),
+    (
+        "docs_root_phase1_entrypoints_count",
+        "Documentation/zigux/README.md",
+        REQUIRED_DOCS_ROOT_MARKERS[1],
+        1,
+    ),
+    (
+        "scripts_root_phase1_validator_first_count",
+        "scripts/zigux/README.md",
+        REQUIRED_SCRIPTS_ROOT_MARKERS[0],
+        1,
+    ),
+    (
+        "scripts_root_phase1_review_hooks_count",
+        "scripts/zigux/README.md",
+        REQUIRED_SCRIPTS_ROOT_MARKERS[1],
+        1,
+    ),
+    (
         "workflow_phase1_bench_self_test_count",
         ".github/workflows/zigux-bootstrap.yml",
         "run: python3 scripts/zigux/check-phase1-bench.py --self-test",
@@ -442,8 +466,22 @@ def self_test() -> int:
         expect_failure(root, "docs_root:- `Documentation/zigux/phase1-closure.md` remains the dedicated closure packet for the bounded host-side `tools/lib/*.zig` helper tranche, and `zigux/tests/fixtures/phase1_helper_manifest.json` plus `zigux/tests/phase1_helpers.zig` keep the closed helper inventory and parity-backed replay surface explicit from the docs root.")
         write(root / "Documentation/zigux/README.md", "\n".join(REQUIRED_DOCS_ROOT_MARKERS) + "\n")
 
+        write(
+            root / "Documentation/zigux/README.md",
+            "\n".join(REQUIRED_DOCS_ROOT_MARKERS + [REQUIRED_DOCS_ROOT_MARKERS[0]]) + "\n",
+        )
+        expect_failure(root, "docs_root_phase1_closure_packet_count:expected=1:actual=2")
+        write(root / "Documentation/zigux/README.md", "\n".join(REQUIRED_DOCS_ROOT_MARKERS) + "\n")
+
         write(root / "scripts/zigux/README.md", "# scripts/zigux\n")
         expect_failure(root, "scripts_root:- `validate-phase1.py` is the validator-first entrypoint for the closed host-helper packet around `tools/lib/bitmap.zig`, `tools/lib/find_bit.zig`, `tools/lib/string.zig`, and `tools/lib/rbtree.zig` plus the bounded supporting helpers and committed `zigux/tests/fixtures/phase1_helpers.json` corpus.")
+        write(root / "scripts/zigux/README.md", "\n".join(REQUIRED_SCRIPTS_ROOT_MARKERS) + "\n")
+
+        write(
+            root / "scripts/zigux/README.md",
+            "\n".join(REQUIRED_SCRIPTS_ROOT_MARKERS + [REQUIRED_SCRIPTS_ROOT_MARKERS[1]]) + "\n",
+        )
+        expect_failure(root, "scripts_root_phase1_review_hooks_count:expected=1:actual=2")
         write(root / "scripts/zigux/README.md", "\n".join(REQUIRED_SCRIPTS_ROOT_MARKERS) + "\n")
 
         write(root / "scripts/zigux/check-phase1-bench.py", "print('PHASE1_BENCH_SELF_TEST=pass')\n")
@@ -518,7 +556,7 @@ def self_test() -> int:
         expect_failure(root, "rbtree_source:unexpected_alias:pub fn rb_first(")
 
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=16")
+    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=18")
     return 0
 
 
