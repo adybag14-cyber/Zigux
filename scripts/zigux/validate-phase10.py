@@ -82,6 +82,7 @@ SCRIPT_README_MARKERS = [
     "shared validation surface",
     "bounded MMIO interrupt-ack rung",
     "probe-preflight helper",
+    "eleven shared test entrypoints",
 ]
 
 FORBIDDEN_SCRIPT_README_MARKERS = [
@@ -504,9 +505,8 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             missing.append(f"manifest:ready_next_count={ready_count}")
         if blocked_count != 1:
             missing.append(f"manifest:blocked_count={blocked_count}")
-        if starter_count < 13:
+        if starter_count < 9:
             missing.append(f"manifest:starter_count={starter_count}")
-
         for gap_id, status in expected_statuses.items():
             gap = find_gap(manifest, gap_id)
             if gap is None:
@@ -515,11 +515,19 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             if gap.get("status") != status:
                 missing.append(f"manifest:gap_status:{gap_id}={gap.get('status')}")
 
-        landed_preflight_gap = find_gap(manifest, "phase10-virtio-input-registration-preflight-helper")
-        if landed_preflight_gap is not None:
-            why_now = str(landed_preflight_gap.get("why_now", ""))
-            if "multitouch slot-init intent" not in why_now:
-                missing.append("manifest:registration_preflight_gap:multitouch_slot_init_intent")
+        capability_gap = find_gap(manifest, "phase10-virtio-input-capability-setup-helper")
+        if capability_gap is not None:
+            why_now = str(capability_gap.get("why_now", ""))
+            if "bitmap" not in why_now:
+                missing.append("manifest:capability_gap:bitmap")
+            if "ABS metadata" not in why_now:
+                missing.append("manifest:capability_gap:ABS_metadata")
+
+        registration_preflight_gap = find_gap(manifest, "phase10-virtio-input-registration-preflight-helper")
+        if registration_preflight_gap is not None:
+            why_now = str(registration_preflight_gap.get("why_now", ""))
+            if "registration intent" not in why_now:
+                missing.append("manifest:registration_preflight_gap:registration_intent")
             if "input_register_device()" not in why_now:
                 missing.append("manifest:registration_preflight_gap:input_register_device()")
 
@@ -896,6 +904,21 @@ def run_self_test() -> int:
         )
         scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
 
+        scripts_readme_path.write_text(
+            original_scripts_readme.replace(
+                "the eleven shared test entrypoints",
+                "the nine shared test entrypoints",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "scripts_readme_phase10_test_count",
+            tmp_root,
+            "script_readme:eleven shared test entrypoints",
+        )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
         tests_readme_path = tmp_root / "zigux/tests/README.md"
         original_tests_readme = tests_readme_path.read_text(encoding="utf-8")
         tests_readme_path.write_text(
@@ -1004,7 +1027,7 @@ def run_self_test() -> int:
         doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
 
     print("PHASE10_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_VALIDATOR_SELF_TEST_CASE_COUNT=20")
+    print("PHASE10_VALIDATOR_SELF_TEST_CASE_COUNT=21")
     return 0
 
 
