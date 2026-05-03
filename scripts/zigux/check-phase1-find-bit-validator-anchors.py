@@ -46,7 +46,7 @@ REQUIRED_VALIDATOR_SNIPPETS = {
         '"tail_start_unit_test_contract": '
         '"Direct Zig unit coverage keeps tail-clamped set, zero, and shared-bit scans aligned '
         'when the inclusive start lands on the last in-range bit, while later starts still return '
-        '`nbits` instead of leaking the out-of-range tail.",'
+        'nbits instead of leaking the out-of-range tail.",'
     ),
     "manifest_zero_sized_anchor_marker": (
         '"zero_sized_unit_test_anchor": '
@@ -55,7 +55,7 @@ REQUIRED_VALIDATOR_SNIPPETS = {
     "manifest_zero_sized_contract_marker": (
         '"zero_sized_unit_test_contract": '
         '"Direct Zig unit coverage keeps zero-length set, zero, and shared-bit scans aligned by '
-        'returning `0` even when backing words are populated, so declared `nbits` stays '
+        'returning 0 even when backing words are populated, so declared nbits stays '
         'authoritative over caller storage.",'
     ),
 }
