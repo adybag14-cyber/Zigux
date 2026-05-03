@@ -51,7 +51,7 @@ def _ordered_unique(entries: list[str]) -> list[str]:
     return ordered
 
 
-def canonical_readme_tooling_files(root: Path) -> tuple[list[str], list[str]]:
+def _raw_readme_tooling_files(root: Path) -> tuple[list[str], list[str]]:
     validator_path = root / VALIDATOR_REL
     if not validator_path.exists():
         return [], [f"missing_validator:{VALIDATOR_REL}"]
@@ -78,7 +78,21 @@ def canonical_readme_tooling_files(root: Path) -> tuple[list[str], list[str]]:
         rels.append(f"scripts/zigux/{constant[0]}")
 
     rels.extend(README_PACKET_STATIC_FILES)
-    return _ordered_unique(rels), issues
+    return rels, issues
+
+
+def canonical_readme_tooling_files(root: Path) -> tuple[list[str], list[str]]:
+    raw_rels, issues = _raw_readme_tooling_files(root)
+    duplicate_rels: list[str] = []
+    seen: set[str] = set()
+    for rel in raw_rels:
+        if rel in seen and rel not in duplicate_rels:
+            duplicate_rels.append(rel)
+            continue
+        seen.add(rel)
+
+    issues.extend(f"duplicate_readme_tooling_file:{rel}" for rel in duplicate_rels)
+    return _ordered_unique(raw_rels), issues
 
 
 _default_readme_files, _default_readme_issues = canonical_readme_tooling_files(ROOT)
@@ -212,8 +226,34 @@ def run_self_test() -> int:
                 + (",".join(issues) if issues else "none")
             )
 
+        _write(root / readme_only_rel, "# stub\n")
+        _write(
+            root / VALIDATOR_REL,
+            "\n".join(
+                (
+                    "SURVEY_VALIDATION_SCRIPTS = (",
+                    '    ("validate-phase3-roadmap-gap-survey.py", "PHASE3_ROADMAP_GAP_SURVEY=fail", "roadmap-gap", "missing_roadmap_anchor"),',
+                    '    ("check-phase3-build-roots.py", "PHASE3_BUILD_ROOTS=fail", "build-roots", "missing_root"),',
+                    '    ("validate-phase3-rbtree-interop-survey.py", "PHASE3_RBTREE_INTEROP_SURVEY=fail", "rbtree-gap", "missing_rbtree_anchor"),',
+                    '    ("check-phase3-rbtree-shared-lift-contract.py", "PHASE3_RBTREE_SHARED_LIFT_CONTRACT=fail", "shared-lift", "missing_contract_anchor"),',
+                    '    ("check-phase3-abi-binding-constants.py", "PHASE3_ABI_BINDING_CONSTANTS=fail", "abi-binding-constants", "missing_binding_constant_anchor"),',
+                    ")",
+                    'BUILD_ROOT_DRIFT_SCRIPT = ("check-phase3-build-roots.py", "PHASE3_BUILD_ROOTS=fail", "build-roots", "missing_root")',
+                    'CANONICAL_SURVEY_MANIFEST_SCRIPT = ("check-phase3-canonical-survey-manifest.py", "PHASE3_CANONICAL_SURVEY_MANIFEST=fail", "canonical-manifest", "missing_manifest_anchor")',
+                    "",
+                )
+            ),
+        )
+        issues = validate(root)
+        expected = ["duplicate_readme_tooling_file:scripts/zigux/check-phase3-build-roots.py"]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-tooling-packet-self-test:duplicate_readme_tooling_file_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
     print("PHASE3_TOOLING_PACKET_SELF_TEST=pass")
-    print("PHASE3_TOOLING_PACKET_SELF_TEST_CASE_COUNT=3")
+    print("PHASE3_TOOLING_PACKET_SELF_TEST_CASE_COUNT=4")
     return 0
 
 
