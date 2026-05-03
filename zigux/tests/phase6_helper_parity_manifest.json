@@ -116,7 +116,7 @@
       "perf_payload_cases": 2,
       "perf_replay_cases": 10,
       "c_parity_self_test_cases": 10,
-      "c_parity_cases": 112
+      "c_parity_cases": 122
     },
     "bsearch": {
       "inline_corpus": "sorted integer and symbol tables",
