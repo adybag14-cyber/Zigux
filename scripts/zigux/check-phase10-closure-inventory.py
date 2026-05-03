@@ -294,6 +294,15 @@ DOCS_ROOT_MARKERS = [
     "queue-handling and ready-state gate",
 ]
 
+CLOSURE_NOTE_EXACT_ONCE_MARKERS = [
+    "PHASE10_HARNESS_COVERAGE_GATE=python3 scripts/zigux/check-phase10-harness-coverage.py",
+]
+
+DOCS_ROOT_EXACT_ONCE_MARKERS = [
+    "zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
+    "queue-handling and ready-state gate",
+]
+
 LEDGER_MARKERS = [
     "PHASE10_LEDGER_SURVEY_CORE_LANE=P10-L01",
     "PHASE10_LEDGER_SURVEY_RING_LANE=P10-L07",
@@ -302,6 +311,15 @@ LEDGER_MARKERS = [
     "PHASE10_LEDGER_ALLOWED_ROADMAP_DESTINATIONS=drivers/virtio/*.zig,zigux/kernel/,zigux/helpers/",
     "PHASE10_LEDGER_BLOCKERS=phase10-virtio-input-registration-lifecycle,phase10-mmio-lifecycle-and-irq-paths",
     "PHASE10_LEDGER_LANDED_CORE_HELPERS=phase10-config-generation-summary-helper,phase10-config-delivery-disposition-helper,phase10-config-driver-toggle-guard-helper",
+    "PHASE10_LEDGER_HARNESS_COVERAGE_VALIDATE=scripts/zigux/check-phase10-harness-coverage.py",
+    "PHASE10_LEDGER_INPUT_MULTITOUCH_PREFLIGHT_GATE=zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
+    "PHASE10_LEDGER_MMIO_QUEUE_ISOLATION_GATE=zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
+]
+
+LEDGER_EXACT_ONCE_MARKERS = [
+    "PHASE10_LEDGER_HARNESS_COVERAGE_VALIDATE=scripts/zigux/check-phase10-harness-coverage.py",
+    "PHASE10_LEDGER_INPUT_MULTITOUCH_PREFLIGHT_GATE=zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
+    "PHASE10_LEDGER_MMIO_QUEUE_ISOLATION_GATE=zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
 ]
 
 
@@ -319,15 +337,32 @@ def check_markers(missing: list[str], label: str, text: str, markers: list[str])
             missing.append(f"{label}:{marker}")
 
 
+def check_exact_count(
+    missing: list[str], label: str, text: str, marker: str, expected: int = 1
+) -> None:
+    actual = text.count(marker)
+    if actual != expected:
+        missing.append(f"{label}:count:{marker}={actual}")
+
+
 def validate(root: Path) -> tuple[list[str], list[str]]:
     missing_files = [path for path in REQUIRED_FILES if not (root / path).exists()]
     if missing_files:
         return missing_files, []
 
     missing: list[str] = []
-    check_markers(missing, "closure", read_text(root, CLOSURE_NOTE), CLOSURE_NOTE_MARKERS)
-    check_markers(missing, "docs_root", read_text(root, DOCS_ROOT), DOCS_ROOT_MARKERS)
-    check_markers(missing, "ledger", read_text(root, CLOSURE_LEDGER), LEDGER_MARKERS)
+    closure_text = read_text(root, CLOSURE_NOTE)
+    docs_root_text = read_text(root, DOCS_ROOT)
+    ledger_text = read_text(root, CLOSURE_LEDGER)
+    check_markers(missing, "closure", closure_text, CLOSURE_NOTE_MARKERS)
+    check_markers(missing, "docs_root", docs_root_text, DOCS_ROOT_MARKERS)
+    check_markers(missing, "ledger", ledger_text, LEDGER_MARKERS)
+    for marker in CLOSURE_NOTE_EXACT_ONCE_MARKERS:
+        check_exact_count(missing, "closure", closure_text, marker)
+    for marker in DOCS_ROOT_EXACT_ONCE_MARKERS:
+        check_exact_count(missing, "docs_root", docs_root_text, marker)
+    for marker in LEDGER_EXACT_ONCE_MARKERS:
+        check_exact_count(missing, "ledger", ledger_text, marker)
 
     manifest = load_json(root, CLOSURE_MANIFEST)
     if not isinstance(manifest, dict):
@@ -490,6 +525,30 @@ def run_self_test() -> int:
         )
         write_fixture(root)
 
+        note_path.write_text(
+            original_note + "\nPHASE10_HARNESS_COVERAGE_GATE=python3 scripts/zigux/check-phase10-harness-coverage.py\n",
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "closure_note_harness_gate_duplicate",
+            root,
+            "closure:count:PHASE10_HARNESS_COVERAGE_GATE=python3 scripts/zigux/check-phase10-harness-coverage.py=2",
+        )
+        write_fixture(root)
+
+        docs_root_path = root / DOCS_ROOT
+        original_docs_root = docs_root_path.read_text(encoding="utf-8")
+        docs_root_path.write_text(
+            original_docs_root + "\nqueue-handling and ready-state gate\n",
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "docs_root_ready_state_duplicate",
+            root,
+            "docs_root:count:queue-handling and ready-state gate=2",
+        )
+        write_fixture(root)
+
         ledger_path = root / CLOSURE_LEDGER
         original_ledger = ledger_path.read_text(encoding="utf-8")
         ledger_path.write_text(
@@ -507,6 +566,28 @@ def run_self_test() -> int:
         )
         write_fixture(root)
 
+        ledger_path.write_text(
+            original_ledger + "\nPHASE10_LEDGER_HARNESS_COVERAGE_VALIDATE=scripts/zigux/check-phase10-harness-coverage.py\n",
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "ledger_harness_validate_duplicate",
+            root,
+            "ledger:count:PHASE10_LEDGER_HARNESS_COVERAGE_VALIDATE=scripts/zigux/check-phase10-harness-coverage.py=2",
+        )
+        write_fixture(root)
+
+        ledger_path.write_text(
+            original_ledger + "\nPHASE10_LEDGER_MMIO_QUEUE_ISOLATION_GATE=zigux/tests/phase10_virtio_mmio_queue_isolation.zig\n",
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "ledger_mmio_gate_duplicate",
+            root,
+            "ledger:count:PHASE10_LEDGER_MMIO_QUEUE_ISOLATION_GATE=zigux/tests/phase10_virtio_mmio_queue_isolation.zig=2",
+        )
+        write_fixture(root)
+
         harness_checker_path = root / HARNESS_CHECKER
         harness_checker_path.unlink()
         missing_files, missing_markers = validate(root)
@@ -514,7 +595,7 @@ def run_self_test() -> int:
             raise SystemExit("required_file_guard_failed")
 
     print("PHASE10_CLOSURE_INVENTORY_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_INVENTORY_SELF_TEST_CASE_COUNT=8")
+    print("PHASE10_CLOSURE_INVENTORY_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
