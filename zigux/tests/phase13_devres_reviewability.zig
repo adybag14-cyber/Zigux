@@ -18,6 +18,7 @@ const SurveySummary = struct {
     preexisting_phase13_devres_dma_coherent_test_present: bool,
     preexisting_phase13_devres_slice_present: bool,
     preexisting_phase13_devres_reviewability_present: bool,
+    preexisting_phase13_devres_iounmap_reviewability_present: bool,
     preexisting_phase13_devres_survey_present: bool,
 };
 
@@ -93,8 +94,9 @@ test "phase13 devres manifest records the current helper boundary and explicit d
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_dma_coherent_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_slice_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_reviewability_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_iounmap_reviewability_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_survey_present);
-    try std.testing.expectEqual(@as(usize, 20), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 21), manifest.gaps.len);
 
     const descriptor = devres.DevresHelperLab.descriptor();
     try std.testing.expectEqualStrings("lib/devres.c", descriptor.anchor);
@@ -266,6 +268,7 @@ test "phase13 devres manifest records the current helper boundary and explicit d
     var saw_tests = false;
     var saw_slice_note = false;
     var saw_reviewability_gate = false;
+    var saw_iounmap_reviewability_gate = false;
     var saw_survey_note = false;
     var saw_ioremap_lifetime = false;
     var saw_ioremap_np = false;
@@ -332,6 +335,13 @@ test "phase13 devres manifest records the current helper boundary and explicit d
             saw_reviewability_gate = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/phase13_devres_reviewability.zig", gap.zigux_destination);
+        }
+        if (std.mem.eql(u8, gap.id, "phase13-devres-iounmap-reviewability-gate")) {
+            saw_iounmap_reviewability_gate = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("zigux/tests/phase13_devres_iounmap_reviewability.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "devm_iounmap()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "provides_iounmap_call_planning") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase13-devres-survey-note")) {
             saw_survey_note = true;
@@ -445,7 +455,7 @@ test "phase13 devres manifest records the current helper boundary and explicit d
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 15), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 16), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_live_mmio_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_dma_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_scatterlist_count);
@@ -457,6 +467,7 @@ test "phase13 devres manifest records the current helper boundary and explicit d
     try std.testing.expect(saw_tests);
     try std.testing.expect(saw_slice_note);
     try std.testing.expect(saw_reviewability_gate);
+    try std.testing.expect(saw_iounmap_reviewability_gate);
     try std.testing.expect(saw_survey_note);
     try std.testing.expect(saw_ioremap_lifetime);
     try std.testing.expect(saw_ioremap_np);
