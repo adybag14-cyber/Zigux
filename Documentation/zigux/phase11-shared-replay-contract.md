@@ -24,6 +24,8 @@ Run these in the published validator-first order before trusting the shared repl
 - `python3 scripts/zigux/check-phase11-hvc-cleanup-alignment.py`
 - `python3 scripts/zigux/check-phase11-shared-replay-contract.py --self-test`
 - `python3 scripts/zigux/check-phase11-shared-replay-contract.py`
+- `python3 scripts/zigux/check-phase11-header-boundary-packet.py --self-test`
+- `python3 scripts/zigux/check-phase11-header-boundary-packet.py`
 - `python3 scripts/zigux/validate-phase11.py --self-test`
 - `python3 scripts/zigux/validate-phase11.py`
 
@@ -56,6 +58,13 @@ The dedicated archival replay remains separate from the shared build packet:
 
 That boundary is intentional. The shared packet should keep the exact shared replay inventory explicit without silently implying that every `hvc_console` survey gate already runs inside `zigux/tests/phase11_build.zig`.
 
+The paired UAPI and driver-header parity boundary also stays explicit in the same pre-replay gate stack:
+
+- `python3 scripts/zigux/check-phase11-header-boundary-packet.py`
+- `zigux/tests/phase11_uapi_header_parity_survey.zig`
+
+That packet should remain reviewable as a shared header-boundary check before the broader Phase 11 bundle claims aligned evidence.
+
 ## Contributor Sync Points
 
 When the shared-versus-dedicated replay contract changes, keep these contributor-facing guidance surfaces aligned with this note:
@@ -78,7 +87,9 @@ The minimum agreement surface for that kind of change is:
 - `scripts/zigux/check-phase11-build-inventory.py`
 - `scripts/zigux/check-phase11-hvc-validation-flow.py`
 - `scripts/zigux/check-phase11-shared-replay-contract.py`
+- `scripts/zigux/check-phase11-header-boundary-packet.py`
 - `scripts/zigux/validate-phase11.py`
 - `zigux/tests/phase11_hvc_console_survey.zig`
+- `zigux/tests/phase11_uapi_header_parity_survey.zig`
 
 If those files drift apart, the Phase 11 delivery packet stops being reviewable even if individual Zig test files still look plausible in isolation.
