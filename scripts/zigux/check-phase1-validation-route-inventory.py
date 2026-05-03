@@ -32,6 +32,7 @@ REQUIRED_FILES = [
     "scripts/zigux/validate-phase1-closure.py",
     "zigux/Makefile",
     ".github/workflows/zigux-bootstrap.yml",
+    "zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md",
 ]
 
 DOCS_ROOT_LINES = {
@@ -325,6 +326,10 @@ def self_test() -> int:
         write(root / "scripts/zigux/README.md", fixture_text(scripts_entries))
         write(root / ".github/workflows/zigux-bootstrap.yml", fixture_text(workflow_entries))
         write(root / "zigux/Makefile", fixture_text(makefile_entries))
+        write(
+            root / "zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md",
+            fixture_text(["phase1 ledger fixture"]),
+        )
 
         env = dict(os.environ)
         env["ZIGUX_PHASE1_ROOT"] = str(root)
@@ -337,6 +342,10 @@ def self_test() -> int:
         for rel, baseline_entries, label, marker in target_cases:
             expect_missing_and_duplicate(script, root, rel, baseline_entries, label, marker)
             total_cases += 2
+
+        (root / "zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md").unlink()
+        expect_failure(script, root, "missing_file:zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md")
+        total_cases += 1
 
     print("PHASE1_VALIDATION_ROUTE_INVENTORY_SELF_TEST=pass")
     print(f"PHASE1_VALIDATION_ROUTE_INVENTORY_SELF_TEST_CASE_COUNT={total_cases}")
