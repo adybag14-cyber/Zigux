@@ -103,6 +103,14 @@ pub fn bitmap_copy(dst: []Word, src: []const Word, nbits: usize) void {
     copy(dst, src, nbits);
 }
 
+pub fn bitmap_copy_clear_tail(dst: []Word, src: []const Word, nbits: usize) void {
+    copyClearTail(dst, src, nbits);
+}
+
+pub fn bitmap_copy_and_extend(dst: []Word, src: []const Word, count: usize, size: usize) void {
+    copyAndExtend(dst, src, count, size);
+}
+
 pub fn bitmap_empty(src: []const Word, nbits: usize) bool {
     return empty(src, nbits);
 }
@@ -798,6 +806,25 @@ test "bitmap header-style aliases preserve zero fill copy and predicate semantic
     try std.testing.expectEqualSlices(Word, &[_]Word{ src[0], src[1], 0x55aa }, &copy_map);
     try std.testing.expect(!bitmap_empty(&copy_map, nbits));
     try std.testing.expect(bitmap_full(&copy_map, nbits));
+}
+
+test "bitmap copy aliases preserve tail clearing and extension semantics" {
+    const nbits = bits_per_long + 5;
+    const count = bits_per_long + 5;
+    const size = bits_per_long * 3;
+    const src = [_]Word{ ~@as(Word, 0), ~@as(Word, 0), ~@as(Word, 0) };
+    var cleared = [_]Word{ 0, 0, 0 };
+    var extended = [_]Word{ 0xaa55, 0xaa55, 0xaa55 };
+
+    bitmap_copy_clear_tail(&cleared, &src, nbits);
+    try std.testing.expectEqual(~@as(Word, 0), cleared[0]);
+    try std.testing.expectEqual(lastWordMask(nbits), cleared[1]);
+    try std.testing.expectEqual(@as(Word, 0), cleared[2]);
+
+    bitmap_copy_and_extend(&extended, &src, count, size);
+    try std.testing.expectEqual(~@as(Word, 0), extended[0]);
+    try std.testing.expectEqual(lastWordMask(count), extended[1]);
+    try std.testing.expectEqual(@as(Word, 0), extended[2]);
 }
 
 test "bitmap underscore aliases preserve bitmap helper semantics" {
