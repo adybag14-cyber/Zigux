@@ -56,6 +56,18 @@ pub const RetargetRecoverySummary = struct {
     stage_after_recovery: SampleStage,
 };
 
+pub const MaxactiveBudgetSummary = struct {
+    anchor: []const u8,
+    symbol_name: []const u8,
+    budget_before_init: usize,
+    budget_after_init: usize,
+    replay_budget: usize,
+    budget_after_replay: usize,
+    missed_instances: usize,
+    replay_runs: usize,
+    stage_after_replay: SampleStage,
+};
+
 pub const OwnershipBoundarySummary = struct {
     anchor: []const u8,
     symbol_name: []const u8,
@@ -241,6 +253,27 @@ pub const KretprobeExampleSample = struct {
         };
     }
 
+    pub fn runMaxactiveBudgetReplay(self: *Self) !MaxactiveBudgetSummary {
+        if (self.stage() != .cold) return error.InvalidLifecycleTransition;
+
+        const budget_before_init = self.maxactiveBudget();
+        try self.init();
+        const budget_after_init = self.maxactiveBudget();
+        const replay = try self.runAnchorReplay();
+
+        return .{
+            .anchor = descriptor().anchor,
+            .symbol_name = self.symbol_name,
+            .budget_before_init = budget_before_init,
+            .budget_after_init = budget_after_init,
+            .replay_budget = replay.maxactive,
+            .budget_after_replay = self.maxactiveBudget(),
+            .missed_instances = self.nmissed,
+            .replay_runs = self.replay_runs,
+            .stage_after_replay = self.stage(),
+        };
+    }
+
     pub fn runOwnershipBoundaryReplay(self: *Self) !OwnershipBoundarySummary {
         if (self.stage() != .cold) return error.InvalidLifecycleTransition;
 
@@ -366,6 +399,18 @@ test "kretprobe sample replay keeps the anchor reviewable and non-runtime" {
     try retargeted.recordMissedInstance();
     try std.testing.expectEqual(@as(usize, 1), retargeted.nmissed);
 
+    var budget = KretprobeExampleSample{};
+    const maxactive = try budget.runMaxactiveBudgetReplay();
+    try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", maxactive.anchor);
+    try std.testing.expectEqualStrings(KretprobeExampleSample.default_symbol_name, maxactive.symbol_name);
+    try std.testing.expectEqual(KretprobeExampleSample.default_maxactive, maxactive.budget_before_init);
+    try std.testing.expectEqual(KretprobeExampleSample.default_maxactive, maxactive.budget_after_init);
+    try std.testing.expectEqual(KretprobeExampleSample.default_maxactive, maxactive.replay_budget);
+    try std.testing.expectEqual(KretprobeExampleSample.default_maxactive, maxactive.budget_after_replay);
+    try std.testing.expectEqual(@as(usize, 1), maxactive.missed_instances);
+    try std.testing.expectEqual(@as(usize, 1), maxactive.replay_runs);
+    try std.testing.expectEqual(SampleStage.replay_complete, maxactive.stage_after_replay);
+
     var lifecycle = KretprobeExampleSample{};
     try std.testing.expectEqual(KretprobeExampleSample.default_maxactive, lifecycle.maxactiveBudget());
     try std.testing.expectEqual(SampleStage.cold, lifecycle.stage());
@@ -376,6 +421,7 @@ test "kretprobe sample replay keeps the anchor reviewable and non-runtime" {
     try std.testing.expectEqual(SampleStage.initialized, lifecycle.stage());
     try std.testing.expectError(error.InvalidLifecycleTransition, lifecycle.init());
     try std.testing.expectError(error.InvalidLifecycleTransition, lifecycle.runRetargetRecoveryReplay());
+    try std.testing.expectError(error.InvalidLifecycleTransition, lifecycle.runMaxactiveBudgetReplay());
     try std.testing.expect(try lifecycle.entryHandler(true, 200));
     try std.testing.expectError(error.OutstandingProbeInstance, lifecycle.exit());
     try std.testing.expectError(error.InvalidTimestampOrder, lifecycle.retHandler(9, 199));
