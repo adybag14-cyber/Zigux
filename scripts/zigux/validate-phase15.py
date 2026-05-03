@@ -519,7 +519,7 @@ require(
 
 review_process_manifest = load_json("zigux/tests/phase15_architecture_council_review_process_manifest.json")
 require(review_process_manifest.get("phase") == "Phase 15", "review_process_manifest:phase")
-require(review_process_manifest.get("lane_key") == "P15-Y05", "review_process_manifest:lane_key")
+require(review_process_manifest.get("lane_key") == "P15-L08", "review_process_manifest:lane_key")
 require(
     isinstance(review_process_manifest.get("surveyed_commit"), str)
     and HEX40.fullmatch(review_process_manifest["surveyed_commit"]),
