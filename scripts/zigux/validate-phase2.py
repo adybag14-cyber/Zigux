@@ -86,6 +86,10 @@ PHASE2_CROSS_ALIGNMENT_REQUIRED_SOURCE_MARKERS = [
     "PHASE2_CROSS_ALIGNMENT_SELF_TEST=pass",
     "PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=8",
 ]
+PHASE2_CROSS_ALIGNMENT_REQUIRED_WORKFLOW_COUNTS = {
+    "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test": 1,
+    "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py": 1,
+}
 PHASE2_CROSS_REQUIRED_SOURCE_MARKERS = [
     "phase2-cross:tool_manifest_path_missing:",
     "phase2-cross:self-test:explicit_target_failure:",
@@ -504,6 +508,14 @@ def main() -> int:
             MAKEFILE_FILE,
             label="phase2_kconfig_makefile",
             expected_counts=PHASE2_KCONFIG_REQUIRED_MAKEFILE_COUNTS,
+        )
+    )
+    issues.extend(
+        validate_exact_command_counts(
+            WORKFLOW_FILE,
+            label="phase2_cross_alignment_workflow",
+            expected_counts=PHASE2_CROSS_ALIGNMENT_REQUIRED_WORKFLOW_COUNTS,
+            workflow_mode=True,
         )
     )
     issues.extend(
