@@ -109,9 +109,9 @@
   "determinism_evidence": {
     "base64": {
       "standard_encode_vectors": 22,
-      "variant_encode_vectors": 24,
+      "variant_encode_vectors": 30,
       "standard_decode_vectors": 22,
-      "variant_decode_vectors": 16,
+      "variant_decode_vectors": 20,
       "invalid_decode_vectors": 28,
       "perf_payload_cases": 2,
       "perf_replay_cases": 10,
