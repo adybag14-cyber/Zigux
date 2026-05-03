@@ -30,6 +30,8 @@ FILES = [
     "zigux/tests/phase15_freeze_map_governance.zig",
     "zigux/tests/phase15_architecture_council_review_process_manifest.json",
     "zigux/tests/phase15_architecture_council_review_process.zig",
+    "zigux/tests/phase15_indefinite_c_policy.json",
+    "zigux/tests/phase15_indefinite_c_policy.zig",
     "zigux/tests/phase15_parity_scorecard.json",
     "zigux/tests/phase15_parity_scorecard.zig",
     "zigux/tests/phase15_readiness_gate_manifest.json",
@@ -103,6 +105,20 @@ REVIEW_PROCESS_MARKERS = [
     "Documentation/zigux/phase15-indefinite-c-policy.md",
 ]
 
+INDEFINITE_POLICY_NOTE_MARKERS = [
+    "PHASE15_LANE_KEY=P15-L16",
+    "## Current Policy Gap",
+    "## Exception request checklist",
+    "## Automatic Return-To-Blocked Rule",
+    "## Reopen Evidence Matrix",
+    "## Reopen Trigger Catalog",
+    "## Maintenance-Mode Handoff",
+    "The current roadmap-vs-repo policy gap inside this lane is no longer a missing local governance artifact.",
+    "That closes the current policy gap for the roadmap requirement `policy for code that remains in C indefinitely`.",
+    "phase15-deep-core-status-change-blocker",
+    "make -C zigux phase15",
+]
+
 SURVEY_MARKERS = [
     "## Current Repo Readiness",
     "## Readiness Gate",
@@ -141,6 +157,15 @@ HANDOFF_TEST_MARKERS = [
     "make -C zigux phase15",
     "zig build test --build-file zigux/tests/phase15_build.zig",
     "docs_root_phase15_summary_aligned",
+]
+
+INDEFINITE_POLICY_TEST_MARKERS = [
+    'try std.testing.expectEqualStrings("P15-L16", manifest.lane_key);',
+    'try std.testing.expectEqualStrings("policy for code that remains in C indefinitely", manifest.roadmap_requirement);',
+    'try expectContains(policy_note, "## Current Policy Gap");',
+    'try expectContains(policy_note, "## Maintenance-Mode Handoff");',
+    'try expectContains(policy_note, "phase15-deep-core-status-change-blocker");',
+    'try expectContains(policy_note, "That closes the current policy gap for the roadmap requirement `policy for code that remains in C indefinitely`.");',
 ]
 
 DOCS_ROOT_REVIEWABILITY_MARKERS = [
@@ -236,6 +261,19 @@ REVIEW_PROCESS_DECISION_BUCKETS = [
     "defer_or_reject",
 ]
 
+INDEFINITE_C_REQUIREMENT_IDS = {
+    "indefinite-c-source-of-truth",
+    "indefinite-c-recordkeeping",
+    "indefinite-c-allowed-work",
+    "indefinite-c-exception-path",
+    "indefinite-c-exception-request-checklist",
+    "indefinite-c-automatic-return-to-blocked",
+    "indefinite-c-reopen-gate",
+    "indefinite-c-reopen-evidence-matrix",
+    "indefinite-c-reopen-trigger-catalog",
+    "indefinite-c-current-gap-survey",
+}
+
 
 def text(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
@@ -295,9 +333,19 @@ require_markers(
     text("Documentation/zigux/phase15-architecture-council-review-process.md"),
     REVIEW_PROCESS_MARKERS,
 )
+require_markers(
+    "indefinite_policy_note",
+    text("Documentation/zigux/phase15-indefinite-c-policy.md"),
+    INDEFINITE_POLICY_NOTE_MARKERS,
+)
 require_markers("survey", text("Documentation/zigux/phase15-readiness-gate-survey.md"), SURVEY_MARKERS)
 require_markers("handoff", text("Documentation/zigux/phase15-handoff-next-steps-survey.md"), HANDOFF_MARKERS)
 require_markers("handoff_test", text("zigux/tests/phase15_handoff_next_steps.zig"), HANDOFF_TEST_MARKERS)
+require_markers(
+    "indefinite_policy_test",
+    text("zigux/tests/phase15_indefinite_c_policy.zig"),
+    INDEFINITE_POLICY_TEST_MARKERS,
+)
 require_markers("docs_root_reviewability", text("zigux/tests/phase15_docs_root_reviewability.zig"), DOCS_ROOT_REVIEWABILITY_MARKERS)
 require_markers("build", text("zigux/tests/phase15_build.zig"), BUILD_MARKERS)
 
@@ -539,6 +587,106 @@ require(
     "review_process_note:current_bounded_lane",
 )
 
+indefinite_c_manifest = load_json("zigux/tests/phase15_indefinite_c_policy.json")
+require(indefinite_c_manifest.get("phase") == "Phase 15", "indefinite_c_manifest:phase")
+require(indefinite_c_manifest.get("lane_key") == "P15-L16", "indefinite_c_manifest:lane_key")
+require(
+    isinstance(indefinite_c_manifest.get("surveyed_commit"), str)
+    and HEX40.fullmatch(indefinite_c_manifest["surveyed_commit"]),
+    "indefinite_c_manifest:surveyed_commit",
+)
+require(
+    indefinite_c_manifest.get("roadmap_requirement") == "policy for code that remains in C indefinitely",
+    "indefinite_c_manifest:roadmap_requirement",
+)
+require(
+    indefinite_c_manifest.get("anchors") == [
+        "kernel/sched/core.c",
+        "mm/page_alloc.c",
+        "kernel/rcu/tree.c",
+        "net/core/skbuff.c",
+    ],
+    "indefinite_c_manifest:anchors",
+)
+require(
+    indefinite_c_manifest.get("supporting_artifacts") == [
+        "Documentation/zigux/freeze-map.md",
+        "Documentation/zigux/review-checklist.md",
+        "Documentation/zigux/phase15-architecture-council-review-process.md",
+        "Documentation/zigux/phase15-parity-scorecard.md",
+        "Documentation/zigux/phase15-evidence-archives/",
+        "Documentation/zigux/README.md",
+        "zigux/tests/phase15_build.zig",
+        "zigux/Makefile",
+    ],
+    "indefinite_c_manifest:supporting_artifacts",
+)
+indefinite_c_requirements = indefinite_c_manifest.get("indefinite_c_requirements")
+require(
+    isinstance(indefinite_c_requirements, list) and len(indefinite_c_requirements) == 10,
+    "indefinite_c_manifest:indefinite_c_requirements",
+)
+if isinstance(indefinite_c_requirements, list):
+    require(
+        {item.get("id") for item in indefinite_c_requirements} == INDEFINITE_C_REQUIREMENT_IDS,
+        "indefinite_c_manifest:indefinite_c_requirement_ids",
+    )
+indefinite_c_handoff = indefinite_c_manifest.get("handoff", {})
+require(indefinite_c_handoff.get("current_mode") == "maintenance_mode", "indefinite_c_manifest:handoff:current_mode")
+require(
+    indefinite_c_handoff.get("replay_commands") == [
+        "zig build test --build-file zigux/tests/phase15_build.zig",
+        "make -C zigux phase15",
+    ],
+    "indefinite_c_manifest:handoff:replay_commands",
+)
+require(
+    indefinite_c_handoff.get("blocker_posture_requirement") == "deep_core_blocker_posture_change",
+    "indefinite_c_manifest:handoff:blocker_posture_requirement",
+)
+require(
+    indefinite_c_handoff.get("next_step")
+    == "wait for one of the named reopen triggers or the deep-core blocker posture to change before opening another Phase 15 slice",
+    "indefinite_c_manifest:handoff:next_step",
+)
+indefinite_c_gaps = indefinite_c_manifest.get("gaps")
+require(isinstance(indefinite_c_gaps, list) and len(indefinite_c_gaps) == 12, "indefinite_c_manifest:gaps")
+if isinstance(indefinite_c_gaps, list):
+    gap_ids = {gap.get("id") for gap in indefinite_c_gaps}
+    require(
+        {
+            "phase15-indefinite-c-maintenance-handoff",
+            "phase15-indefinite-c-current-gap-survey",
+            "phase15-indefinite-c-automatic-return-to-blocked-gate",
+            "phase15-indefinite-c-reopen-evidence-matrix",
+            "phase15-indefinite-c-reopen-trigger-catalog",
+            "phase15-deep-core-status-change-blocker",
+        }.issubset(gap_ids),
+        "indefinite_c_manifest:required_gap_ids",
+    )
+    blocked_gaps = [gap for gap in indefinite_c_gaps if gap.get("status") == "blocked_on_stay_in_c_evidence"]
+    require(len(blocked_gaps) == 1, "indefinite_c_manifest:blocked_gap_count")
+    if len(blocked_gaps) == 1:
+        require(
+            blocked_gaps[0].get("id") == "phase15-deep-core-status-change-blocker",
+            "indefinite_c_manifest:blocked_gap_id",
+        )
+        require(
+            blocked_gaps[0].get("zigux_destination") == "Documentation/zigux/phase15-parity-scorecard.md",
+            "indefinite_c_manifest:blocked_gap_destination",
+        )
+
+indefinite_c_note = text("Documentation/zigux/phase15-indefinite-c-policy.md")
+require(
+    f"PHASE15_LANE_KEY={indefinite_c_manifest.get('lane_key')}" in indefinite_c_note,
+    "indefinite_c_note:lane_key",
+)
+require(
+    f"survey provenance refreshed against verified `master` head `{indefinite_c_manifest.get('surveyed_commit')}`"
+    in indefinite_c_note,
+    "indefinite_c_note:surveyed_commit",
+)
+
 scorecard_manifest = load_json("zigux/tests/phase15_parity_scorecard.json")
 require(scorecard_manifest.get("phase") == "Phase 15", "scorecard_manifest:phase")
 require(scorecard_manifest.get("lane_key") == "P15-L12", "scorecard_manifest:lane_key")
@@ -562,9 +710,11 @@ print(
         + len(TESTS_README_MARKERS)
         + len(FREEZE_MAP_NOTE_MARKERS)
         + len(REVIEW_PROCESS_MARKERS)
+        + len(INDEFINITE_POLICY_NOTE_MARKERS)
         + len(SURVEY_MARKERS)
         + len(HANDOFF_MARKERS)
         + len(HANDOFF_TEST_MARKERS)
+        + len(INDEFINITE_POLICY_TEST_MARKERS)
         + len(DOCS_ROOT_REVIEWABILITY_MARKERS)
         + len(BUILD_MARKERS)
     )
