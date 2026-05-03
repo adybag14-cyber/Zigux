@@ -23,13 +23,25 @@ pub const Command = union(enum) {
 };
 
 pub const ParseFailure = union(enum) {
-    invalid_option: []const u8,
-    missing_option_argument: []const u8,
-    unexpected_option_argument: []const u8,
-    too_many_reference_files,
+    invalid_option: struct {
+        option: []const u8,
+        version_count: usize,
+    },
+    missing_option_argument: struct {
+        option: []const u8,
+        version_count: usize,
+    },
+    unexpected_option_argument: struct {
+        option: []const u8,
+        version_count: usize,
+    },
+    too_many_reference_files: struct {
+        version_count: usize,
+    },
     ambiguous_option: struct {
         option: []const u8,
         possibilities: []const []const u8,
+        version_count: usize,
     },
 };
 
@@ -122,9 +134,9 @@ fn writeAmbiguousOptionError(writer: anytype, option: []const u8, possibilities:
     try writer.writeByte('\n');
 }
 
-fn appendReferenceFile(allocator: std.mem.Allocator, references: *std.ArrayList([]const u8), value: []const u8) !ParseAction {
+fn appendReferenceFile(allocator: std.mem.Allocator, references: *std.ArrayList([]const u8), value: []const u8, version_count: usize) !ParseAction {
     if (references.items.len >= max_reference_files) {
-        return .{ .failure = .too_many_reference_files };
+        return .{ .failure = .{ .too_many_reference_files = .{ .version_count = version_count } } };
     }
     try references.append(allocator, value);
     return .none;
@@ -230,16 +242,20 @@ fn parseLongOption(allocator: std.mem.Allocator, args: []const []const u8, index
     const inline_value = if (separator < option.len) option[separator + 1 ..] else null;
 
     switch (try resolveLongOption(option_name, allocator)) {
-        .invalid => return .{ .failure = .{ .invalid_option = arg } },
+        .invalid => return .{ .failure = .{ .invalid_option = .{ .option = arg, .version_count = request.version_count } } },
         .ambiguous => |possibilities| {
             return .{ .failure = .{ .ambiguous_option = .{
                 .option = arg,
                 .possibilities = possibilities,
+                .version_count = request.version_count,
             } } };
         },
         .matched => |spec| {
             if (!spec.requires_argument and inline_value != null) {
-                return .{ .failure = .{ .unexpected_option_argument = spec.name } };
+                return .{ .failure = .{ .unexpected_option_argument = .{
+                    .option = spec.name,
+                    .version_count = request.version_count,
+                } } };
             }
 
             switch (spec.kind) {
@@ -271,13 +287,16 @@ fn parseLongOption(allocator: std.mem.Allocator, args: []const []const u8, index
                 .reference, .dump_types => {
                     const value = inline_value orelse blk: {
                         if (index.* + 1 >= args.len) {
-                            return .{ .failure = .{ .missing_option_argument = spec.name } };
+                            return .{ .failure = .{ .missing_option_argument = .{
+                                .option = spec.name,
+                                .version_count = request.version_count,
+                            } } };
                         }
                         index.* += 1;
                         break :blk args[index.*];
                     };
                     if (spec.kind == .reference) {
-                        return try appendReferenceFile(allocator, references, value);
+                        return try appendReferenceFile(allocator, references, value, request.version_count);
                     } else {
                         request.dump_types_file = value;
                     }
@@ -305,19 +324,25 @@ fn parseShortOptions(allocator: std.mem.Allocator, args: []const []const u8, ind
                 const inline_value = arg[short_index + 1 ..];
                 const value = if (inline_value.len != 0) inline_value else blk: {
                     if (index.* + 1 >= args.len) {
-                        return .{ .failure = .{ .missing_option_argument = arg[short_index .. short_index + 1] } };
+                        return .{ .failure = .{ .missing_option_argument = .{
+                            .option = arg[short_index .. short_index + 1],
+                            .version_count = request.version_count,
+                        } } };
                     }
                     index.* += 1;
                     break :blk args[index.*];
                 };
                 if (option == 'r') {
-                    return try appendReferenceFile(allocator, references, value);
+                    return try appendReferenceFile(allocator, references, value, request.version_count);
                 } else {
                     request.dump_types_file = value;
                 }
                 return .none;
             },
-            else => return .{ .failure = .{ .invalid_option = arg[short_index .. short_index + 1] } },
+            else => return .{ .failure = .{ .invalid_option = .{
+                .option = arg[short_index .. short_index + 1],
+                .version_count = request.version_count,
+            } } },
         }
     }
     return .none;
@@ -408,10 +433,18 @@ pub fn main(init: std.process.Init) !void {
         .failure => |failure| {
             var stderr_buffer: [512]u8 = undefined;
             var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
+            const version_count = switch (failure) {
+                .invalid_option => |details| details.version_count,
+                .missing_option_argument => |details| details.version_count,
+                .unexpected_option_argument => |details| details.version_count,
+                .too_many_reference_files => |details| details.version_count,
+                .ambiguous_option => |details| details.version_count,
+            };
+            try writeVersionLines(&stderr_writer.interface, version_count);
             switch (failure) {
-                .invalid_option => |option| try writeInvalidOptionError(&stderr_writer.interface, option),
-                .missing_option_argument => |option| try writeMissingOptionArgumentError(&stderr_writer.interface, option),
-                .unexpected_option_argument => |option| try writeUnexpectedOptionArgumentError(&stderr_writer.interface, option),
+                .invalid_option => |details| try writeInvalidOptionError(&stderr_writer.interface, details.option),
+                .missing_option_argument => |details| try writeMissingOptionArgumentError(&stderr_writer.interface, details.option),
+                .unexpected_option_argument => |details| try writeUnexpectedOptionArgumentError(&stderr_writer.interface, details.option),
                 .too_many_reference_files => try stderr_writer.interface.writeAll("too many reference files\n"),
                 .ambiguous_option => |details| try writeAmbiguousOptionError(&stderr_writer.interface, details.option, details.possibilities),
             }
@@ -605,6 +638,7 @@ test "genksyms bridge rejects ambiguous abbreviated long options" {
             .ambiguous_option => |details| {
                 defer std.testing.allocator.free(details.possibilities);
                 try std.testing.expectEqualStrings("--dum", details.option);
+                try std.testing.expectEqual(@as(usize, 0), details.version_count);
                 try std.testing.expectEqual(@as(usize, 2), details.possibilities.len);
                 try std.testing.expectEqualStrings("dump", details.possibilities[0]);
                 try std.testing.expectEqualStrings("dump-types", details.possibilities[1]);
@@ -622,6 +656,7 @@ test "genksyms bridge treats an empty long option name as ambiguous" {
             .ambiguous_option => |details| {
                 defer std.testing.allocator.free(details.possibilities);
                 try std.testing.expectEqualStrings("--=value", details.option);
+                try std.testing.expectEqual(@as(usize, 0), details.version_count);
                 try std.testing.expectEqual(@as(usize, 9), details.possibilities.len);
                 try std.testing.expectEqualStrings("debug", details.possibilities[0]);
                 try std.testing.expectEqualStrings("warnings", details.possibilities[1]);
@@ -662,7 +697,10 @@ test "genksyms bridge reports invalid short option in getopt style" {
     const outcome = try parseArgs(std.testing.allocator, &.{"-x"});
     switch (outcome) {
         .failure => |failure| switch (failure) {
-            .invalid_option => |option| try std.testing.expectEqualStrings("x", option),
+            .invalid_option => |details| {
+                try std.testing.expectEqualStrings("x", details.option);
+                try std.testing.expectEqual(@as(usize, 0), details.version_count);
+            },
             else => return error.UnexpectedFailure,
         },
         .command => return error.UnexpectedCommand,
@@ -673,7 +711,10 @@ test "genksyms bridge reports missing short option argument in getopt style" {
     const outcome = try parseArgs(std.testing.allocator, &.{"-r"});
     switch (outcome) {
         .failure => |failure| switch (failure) {
-            .missing_option_argument => |option| try std.testing.expectEqualStrings("r", option),
+            .missing_option_argument => |details| {
+                try std.testing.expectEqualStrings("r", details.option);
+                try std.testing.expectEqual(@as(usize, 0), details.version_count);
+            },
             else => return error.UnexpectedFailure,
         },
         .command => return error.UnexpectedCommand,
@@ -684,7 +725,10 @@ test "genksyms bridge reports missing short dump-types argument in getopt style"
     const outcome = try parseArgs(std.testing.allocator, &.{"-T"});
     switch (outcome) {
         .failure => |failure| switch (failure) {
-            .missing_option_argument => |option| try std.testing.expectEqualStrings("T", option),
+            .missing_option_argument => |details| {
+                try std.testing.expectEqualStrings("T", details.option);
+                try std.testing.expectEqual(@as(usize, 0), details.version_count);
+            },
             else => return error.UnexpectedFailure,
         },
         .command => return error.UnexpectedCommand,
@@ -695,7 +739,10 @@ test "genksyms bridge rejects unexpected long option arguments in getopt style" 
     const outcome = try parseArgs(std.testing.allocator, &.{"--debug=extra"});
     switch (outcome) {
         .failure => |failure| switch (failure) {
-            .unexpected_option_argument => |option| try std.testing.expectEqualStrings("debug", option),
+            .unexpected_option_argument => |details| {
+                try std.testing.expectEqualStrings("debug", details.option);
+                try std.testing.expectEqual(@as(usize, 0), details.version_count);
+            },
             else => return error.UnexpectedFailure,
         },
         .command => return error.UnexpectedCommand,
@@ -706,7 +753,10 @@ test "genksyms bridge canonicalizes abbreviated long option missing-argument err
     const outcome = try parseArgs(std.testing.allocator, &.{"--ref"});
     switch (outcome) {
         .failure => |failure| switch (failure) {
-            .missing_option_argument => |option| try std.testing.expectEqualStrings("reference", option),
+            .missing_option_argument => |details| {
+                try std.testing.expectEqualStrings("reference", details.option);
+                try std.testing.expectEqual(@as(usize, 0), details.version_count);
+            },
             else => return error.UnexpectedFailure,
         },
         .command => return error.UnexpectedCommand,
@@ -717,7 +767,10 @@ test "genksyms bridge canonicalizes abbreviated dump-types missing-argument erro
     const outcome = try parseArgs(std.testing.allocator, &.{"--dump-t"});
     switch (outcome) {
         .failure => |failure| switch (failure) {
-            .missing_option_argument => |option| try std.testing.expectEqualStrings("dump-types", option),
+            .missing_option_argument => |details| {
+                try std.testing.expectEqualStrings("dump-types", details.option);
+                try std.testing.expectEqual(@as(usize, 0), details.version_count);
+            },
             else => return error.UnexpectedFailure,
         },
         .command => return error.UnexpectedCommand,
@@ -728,7 +781,10 @@ test "genksyms bridge canonicalizes abbreviated long option unexpected-argument 
     const outcome = try parseArgs(std.testing.allocator, &.{"--deb=extra"});
     switch (outcome) {
         .failure => |failure| switch (failure) {
-            .unexpected_option_argument => |option| try std.testing.expectEqualStrings("debug", option),
+            .unexpected_option_argument => |details| {
+                try std.testing.expectEqualStrings("debug", details.option);
+                try std.testing.expectEqual(@as(usize, 0), details.version_count);
+            },
             else => return error.UnexpectedFailure,
         },
         .command => return error.UnexpectedCommand,
@@ -757,7 +813,47 @@ test "genksyms bridge rejects reference lists beyond the bounded C harness limit
     });
     switch (outcome) {
         .failure => |failure| switch (failure) {
-            .too_many_reference_files => {},
+            .too_many_reference_files => |details| try std.testing.expectEqual(@as(usize, 0), details.version_count),
+            else => return error.UnexpectedFailure,
+        },
+        .command => return error.UnexpectedCommand,
+    }
+}
+
+test "genksyms bridge preserves version side effect before invalid option failure" {
+    const short_outcome = try parseArgs(std.testing.allocator, &.{"-Vx"});
+    switch (short_outcome) {
+        .failure => |failure| switch (failure) {
+            .invalid_option => |details| {
+                try std.testing.expectEqualStrings("x", details.option);
+                try std.testing.expectEqual(@as(usize, 1), details.version_count);
+            },
+            else => return error.UnexpectedFailure,
+        },
+        .command => return error.UnexpectedCommand,
+    }
+
+    const long_outcome = try parseArgs(std.testing.allocator, &.{ "--version", "--bogus" });
+    switch (long_outcome) {
+        .failure => |failure| switch (failure) {
+            .invalid_option => |details| {
+                try std.testing.expectEqualStrings("--bogus", details.option);
+                try std.testing.expectEqual(@as(usize, 1), details.version_count);
+            },
+            else => return error.UnexpectedFailure,
+        },
+        .command => return error.UnexpectedCommand,
+    }
+}
+
+test "genksyms bridge preserves repeated version side effects before argument failure" {
+    const outcome = try parseArgs(std.testing.allocator, &.{ "--version", "--ver", "--dump-types" });
+    switch (outcome) {
+        .failure => |failure| switch (failure) {
+            .missing_option_argument => |details| {
+                try std.testing.expectEqualStrings("dump-types", details.option);
+                try std.testing.expectEqual(@as(usize, 2), details.version_count);
+            },
             else => return error.UnexpectedFailure,
         },
         .command => return error.UnexpectedCommand,
