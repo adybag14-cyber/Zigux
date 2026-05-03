@@ -72,7 +72,7 @@ The current bridge packet now matches the roadmap shape, but it still leaves a b
 
 ## Review gate
 
-The shared review path now follows the same validator-first Phase 8 sequence that current `master` publishes through `zigux/Makefile`: the broader validator self-test still runs first, the dedicated tests-readme alignment checker and the dedicated perf-buffer poll gate checker each keep their self-test and live pass inside the same fail-closed packet, and only then do the focused survey, focused perf-buffer poll shard, and shared build replays run, so this cross-slice boundary note stays tied to the same docs-root, tests-root, Makefile, workflow, and segmented libbpf packet that current `master` already ships.
+The shared review path still follows the same validator-first Phase 8 sequence that current `master` publishes through `zigux/Makefile`: the broader validator self-test still runs first, the dedicated tests-readme alignment checker and the dedicated perf-buffer poll gate checker each keep their self-test and live pass inside the same fail-closed packet, and only then do the focused survey, focused perf-buffer poll shard, and shared build replays run, so this cross-slice boundary note stays tied to the same docs-root, tests-root, Makefile, workflow, and segmented libbpf packet that current `master` already ships.
 
 1. `python3 scripts/zigux/validate-phase8.py --self-test`
 2. `python3 scripts/zigux/check-phase8-tests-readme-alignment.py --self-test`
@@ -86,6 +86,11 @@ The shared review path now follows the same validator-first Phase 8 sequence tha
 10. `make -C zigux phase8-perf-buffer-poll-test`
 11. `zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all`
 12. `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
+
+The newer dedicated validator-route audit now sits beside that published wrapper path rather than inside it. `scripts/zigux/check-phase8-validator-flow.py` keeps the scripts-root inventory, tests-root packet, Makefile wrapper, and this bridge-boundary note aligned around the already-published validator-first route without pretending that `make -C zigux phase8-validate` runs it yet.
+
+- `python3 scripts/zigux/check-phase8-validator-flow.py --self-test`
+- `python3 scripts/zigux/check-phase8-validator-flow.py`
 
 ## Non-goals
 
