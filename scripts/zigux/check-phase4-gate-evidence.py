@@ -56,7 +56,7 @@ REQUIRED_SELF_TEST_ROUTE_MARKERS = [
 REQUIRED_KPROBE_SURVEY_STATUS_MARKERS = [
     "make -C zigux phase4-kprobe-example-survey",
     "phase4-kprobe-example-survey-tests",
-    "shared validator still does not fail closed on the kprobe survey packet itself",
+    "shared validator now fails closed on the kprobe survey packet itself",
 ]
 
 EXACT_WORKFLOW_RUN_COUNT_MARKERS = [
@@ -86,8 +86,8 @@ REQUIRED_PERF_BASELINE_PENDING_THRESHOLD_PLAN_MARKERS = [
 EXACT_VALIDATOR_STATUS_LINES = [
     "PHASE4_VALIDATOR_SELF_TEST=pass",
     "PHASE4_VALIDATION=pass",
-    "PHASE4_REQUIRED_FILE_COUNT=23",
-    "PHASE4_REQUIRED_MARKER_COUNT=236",
+    "PHASE4_REQUIRED_FILE_COUNT=27",
+    "PHASE4_REQUIRED_MARKER_COUNT=44",
 ]
 
 PHASE4_GATE_EVIDENCE_BLOB_TARGETS = {
@@ -332,8 +332,8 @@ def write_fixture_tree(root: Path) -> None:
         "- `PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions`",
         "- `PHASE4_VALIDATOR_SELF_TEST=pass`",
         "- `PHASE4_VALIDATION=pass`",
-        "- `PHASE4_REQUIRED_FILE_COUNT=23`",
-        "- `PHASE4_REQUIRED_MARKER_COUNT=236`",
+        "- `PHASE4_REQUIRED_FILE_COUNT=27`",
+        "- `PHASE4_REQUIRED_MARKER_COUNT=44`",
         "- `PHASE4_GATE_EVIDENCE_SELF_TEST=pass`",
         "- `PHASE4_GATE_EVIDENCE_CHECK=pass`",
         f"- `PHASE4_GATE_EVIDENCE_TARGET_COUNT={len(PHASE4_GATE_EVIDENCE_BLOB_TARGETS)}`",
@@ -345,7 +345,7 @@ def write_fixture_tree(root: Path) -> None:
         "- on the synthetic workflow, there is one `make -C zigux phase4-validate` run line and one `make -C zigux phase4-test` run line under the Phase 4 steps, and the checker keeps those exact counts fail-closed beside the broader route markers.",
         "- synthetic fixture keeps the runtime atomic64 reversible-delivery packet explicit: `lib/atomic64_test.c` stays the source of truth, removing `atomic64_diff.zig` from the shared `phase4_build.zig` entrypoint is the documented rollback move, `runtime_atomic64_diff.zig` remains the single replay body, and the existing Phase 9 runtime atomic64 starter remains the forward path.",
         "- synthetic fixture keeps one pending threshold-plan record per shipped rollback gate explicit, pinning `make -C zigux phase4-runtime-atomic64-diff` and `make -C zigux phase4-bitmap-diff` beside the still-unapproved benchmark-command and acceptable-limit placeholders.",
-        "- synthetic fixture keeps the kprobe survey packet explicit through `make -C zigux phase4-kprobe-example-survey`, `phase4-kprobe-example-survey-tests`, and the still-open note that the shared validator still does not fail closed on the kprobe survey packet itself.",
+        "- synthetic fixture keeps the kprobe survey packet explicit through `make -C zigux phase4-kprobe-example-survey`, `phase4-kprobe-example-survey-tests`, and the now-landed note that the shared validator now fails closed on the kprobe survey packet itself.",
         "",
         "## Current Conclusion",
         "",
@@ -398,27 +398,27 @@ def run_self_test() -> int:
         gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
         gate_evidence.write_text(
             gate_evidence.read_text(encoding="utf-8").replace(
-                "PHASE4_REQUIRED_FILE_COUNT=23",
+                "PHASE4_REQUIRED_FILE_COUNT=27",
                 "PHASE4_REQUIRED_FILE_COUNT=21",
                 1,
             ),
             encoding="utf-8",
         )
         missing = validate_root(root)
-        assert "phase4_gate_evidence:PHASE4_REQUIRED_FILE_COUNT=23" in missing, missing
+        assert "phase4_gate_evidence:PHASE4_REQUIRED_FILE_COUNT=27" in missing, missing
 
         write_fixture_tree(root)
         gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
         gate_evidence.write_text(
             gate_evidence.read_text(encoding="utf-8").replace(
-                "PHASE4_REQUIRED_MARKER_COUNT=236",
-                "PHASE4_REQUIRED_MARKER_COUNT=231",
+                "PHASE4_REQUIRED_MARKER_COUNT=44",
+                "PHASE4_REQUIRED_MARKER_COUNT=41",
                 1,
             ),
             encoding="utf-8",
         )
         missing = validate_root(root)
-        assert "phase4_gate_evidence:PHASE4_REQUIRED_MARKER_COUNT=236" in missing, missing
+        assert "phase4_gate_evidence:PHASE4_REQUIRED_MARKER_COUNT=44" in missing, missing
 
         write_fixture_tree(root)
         gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
@@ -491,6 +491,7 @@ def run_self_test() -> int:
 
         write_fixture_tree(root)
         test_fsmount_manifest = root / "zigux/tests/phase4_test_fsmount_manifest.json"
+        test_fsmount_manifest.writeText = None
         test_fsmount_manifest.write_text("{}\n", encoding="utf-8")
         missing = validate_root(root)
         assert (
@@ -626,15 +627,15 @@ def run_self_test() -> int:
         gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
         gate_evidence.write_text(
             gate_evidence.read_text(encoding="utf-8").replace(
-                "shared validator still does not fail closed on the kprobe survey packet itself",
                 "shared validator now fails closed on the kprobe survey packet itself",
+                "shared validator promotion note missing on the kprobe survey packet",
                 1,
             ),
             encoding="utf-8",
         )
         missing = validate_root(root)
         assert (
-            "phase4_gate_evidence:kprobe_survey_status:shared validator still does not fail closed on the kprobe survey packet itself"
+            "phase4_gate_evidence:kprobe_survey_status:shared validator now fails closed on the kprobe survey packet itself"
             in missing
         ), missing
 
