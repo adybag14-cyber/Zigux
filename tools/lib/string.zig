@@ -163,6 +163,25 @@ pub fn strlcpy(dest: []u8, src: []const u8) usize {
     return ret;
 }
 
+const strscpy_e2big: isize = -7;
+
+pub fn strscpy(dest: []u8, src: []const u8) isize {
+    if (dest.len == 0) {
+        return strscpy_e2big;
+    }
+
+    const src_len = cStringLen(src);
+    const copy_len = @min(src_len, dest.len - 1);
+    @memcpy(dest[0..copy_len], src[0..copy_len]);
+    dest[copy_len] = 0;
+
+    if (copy_len != src_len) {
+        return strscpy_e2big;
+    }
+
+    return @as(isize, @intCast(copy_len));
+}
+
 pub fn skipSpaces(str: []const u8) []const u8 {
     var idx: usize = 0;
     while (idx < str.len and std.ascii.isWhitespace(str[idx])) : (idx += 1) {}
@@ -407,6 +426,25 @@ test "strlcpy copies and returns the source length" {
     var untouched = [_]u8{0xaa};
     try std.testing.expectEqual(@as(usize, 5), strlcpy(untouched[0..0], "hello"));
     try std.testing.expectEqual(@as(u8, 0xaa), untouched[0]);
+}
+
+test "strscpy mirrors bounded kernel copy semantics" {
+    var dst = [_]u8{ 0xaa, 0xaa, 0xaa, 0xaa };
+    try std.testing.expectEqual(@as(isize, 3), strscpy(&dst, "cat"));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'c', 'a', 't', 0 }, &dst);
+
+    var truncated = [_]u8{ 0xaa, 0xaa, 0xaa, 0xaa };
+    try std.testing.expectEqual(strscpy_e2big, strscpy(&truncated, "hello"));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'h', 'e', 'l', 0 }, &truncated);
+
+    const embedded = [_]u8{ 'o', 'k', 0, 'x' };
+    var embedded_dst = [_]u8{ 0xaa, 0xaa, 0xaa, 0xaa };
+    try std.testing.expectEqual(@as(isize, 2), strscpy(&embedded_dst, &embedded));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'o', 'k', 0, 0xaa }, &embedded_dst);
+
+    var zero_sized = [_]u8{0xaa};
+    try std.testing.expectEqual(strscpy_e2big, strscpy(zero_sized[0..0], "x"));
+    try std.testing.expectEqual(@as(u8, 0xaa), zero_sized[0]);
 }
 
 test "strlcpy stops at the first embedded NUL in the source" {
