@@ -63,8 +63,8 @@ This slice does not yet claim:
 - `python3 scripts/zigux/check-phase10-closure-inventory.py`
 
 2. run the dedicated validation guards
-- `python3 scripts/zigux/validate-phase10.py`
 - `python3 scripts/zigux/validate-phase10-closure.py`
+- `python3 scripts/zigux/check-phase10-harness-coverage.py`
 - `make -C zigux phase10-validate`
 
 3. run the dedicated Phase 10 build
