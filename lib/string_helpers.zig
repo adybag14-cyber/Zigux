@@ -66,7 +66,8 @@ pub fn kasprintfStrarrayRaw(
         return try allocator.dupe(?[*:0]u8, empty_kasprintf_strarray_raw);
     }
 
-    var names = try allocator.alloc(?[*:0]u8, n + 1);
+    const slot_count = try std.math.add(usize, n, 1);
+    var names = try allocator.alloc(?[*:0]u8, slot_count);
     errdefer allocator.free(names);
     @memset(names, null);
 
@@ -312,13 +313,14 @@ pub fn kasprintfStrarray(
         };
     }
 
+    const slot_count = try std.math.add(usize, n, 1);
     var names = try allocator.alloc([:0]u8, n);
     errdefer allocator.free(names);
 
     const raw = try kasprintfStrarrayRaw(allocator, prefix, n);
     defer kfreeStrarrayRaw(allocator, raw, n);
 
-    var names_null_terminated = try allocator.alloc(?[*:0]const u8, n + 1);
+    var names_null_terminated = try allocator.alloc(?[*:0]const u8, slot_count);
     errdefer allocator.free(names_null_terminated);
 
     for (raw[0..n], 0..) |item, index| {
@@ -910,6 +912,10 @@ test "kfreeStrarray keeps first-NUL prefixes, zero-count reuse, and repeated tea
     kfreeStrarray(std.testing.allocator, &empty);
 }
 
+test "kasprintfStrarray rejects usize overflow before wrapper allocation" {
+    try std.testing.expectError(error.Overflow, kasprintfStrarray(std.testing.allocator, "cpu", std.math.maxInt(usize)));
+}
+
 test "kasprintfStrarrayRaw keeps zero-count ownership and teardown semantics explicit" {
     const empty_a = try kasprintfStrarrayRaw(std.testing.allocator, "cpu", 0);
     const empty_b = try kasprintfStrarrayRaw(std.testing.allocator, "cpu", 0);
@@ -927,6 +933,10 @@ test "kasprintfStrarrayRaw keeps zero-count ownership and teardown semantics exp
     kfreeStrarrayRaw(std.testing.allocator, partial, 99);
 
     kfreeStrarrayRaw(std.testing.allocator, null, 7);
+}
+
+test "kasprintfStrarrayRaw rejects usize overflow before allocation" {
+    try std.testing.expectError(error.Overflow, kasprintfStrarrayRaw(std.testing.allocator, "cpu", std.math.maxInt(usize)));
 }
 
 test "escape flag masks stay aligned with the Linux public helper surface" {
