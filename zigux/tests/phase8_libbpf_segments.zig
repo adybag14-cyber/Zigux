@@ -383,10 +383,10 @@ test "phase 8 docs keep the deferred irq routing and timer boundary explicit" {
     try expectContains(bridge_note, "no standalone timer helper");
     try expectContains(bridge_note, "no standalone clockevent helper");
     try expectContains(bridge_note, "does not close the broader routing boundary");
-    try expectContains(cpu_mask_note, "bounded perf-buffer auto-CPU sizing only");
+    try expectContains(cpu_mask_note, "a bounded auto-CPU count clamp that mirrors libbpf's perf-buffer map-budget sizing");
     try expectContains(cpu_mask_note, "`+N` and `+N-+M` signed-decimal token forms");
     try expectContains(cpu_mask_note, "a bounded auto-CPU count clamp that mirrors libbpf's perf-buffer map-budget sizing");
-    try expectContains(cpu_mask_note, "the bounded auto-CPU count clamp keeps possible-CPU sizing inside the map entry budget while still treating zero as the uncapped case");
+    try expectContains(cpu_mask_note, "a pure online-CPU eligibility predicate that mirrors libbpf's automatic-budget offline skip rule");
     try expectContains(cpu_mask_note, "`libbpf_num_possible_cpus()` caching");
     try expectContains(cpu_mask_note, "`perf_buffer__new()` online CPU selection");
     try expectContains(cpu_mask_note, "perf-buffer-online-cpu-routing");
