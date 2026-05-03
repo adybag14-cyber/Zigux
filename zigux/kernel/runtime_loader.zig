@@ -94,7 +94,7 @@ pub const RuntimeLoadRequest = struct {
     }
 
     pub fn isReleasedWithoutSubstrate(self: RuntimeLoadRequest) bool {
-        return self.handoff_stage == .released_without_substrate;
+        return self.requires_runtime_substrate and self.handoff_stage == .released_without_substrate;
     }
 
     pub fn waitingOnRuntimeSubstrate(self: RuntimeLoadRequest) RuntimeLoadRequest {
@@ -108,7 +108,10 @@ pub const RuntimeLoadRequest = struct {
 
     pub fn releasedWithoutSubstrate(self: RuntimeLoadRequest) RuntimeLoadRequest {
         var released = self;
-        released.handoff_stage = .released_without_substrate;
+        released.handoff_stage = if (released.requires_runtime_substrate)
+            .released_without_substrate
+        else
+            .prepared;
         return released;
     }
 
@@ -794,8 +797,19 @@ test "runtime loader request rejects implicit init-exit and live lifecycle hando
         },
     }).waitingOnRuntimeSubstrate();
     try std.testing.expect(!no_substrate.isWaitingOnRuntimeSubstrate());
+    try std.testing.expect(!no_substrate.isReleasedWithoutSubstrate());
     try std.testing.expectEqual(LoaderStage.prepared, no_substrate.handoff_stage);
     try std.testing.expect(no_substrate.keepsSelftestHookConsistent());
     try std.testing.expect(no_substrate.keepsPreExecutionLifecycleBoundaryExplicit());
     try std.testing.expect(no_substrate.keepsStageConsistentWithRuntimeSubstrate());
+    try std.testing.expect(no_substrate.keepsSharedHandoffContractExplicit());
+
+    const no_substrate_released = no_substrate.releasedWithoutSubstrate();
+    try std.testing.expect(!no_substrate_released.isWaitingOnRuntimeSubstrate());
+    try std.testing.expect(!no_substrate_released.isReleasedWithoutSubstrate());
+    try std.testing.expectEqual(LoaderStage.prepared, no_substrate_released.handoff_stage);
+    try std.testing.expect(no_substrate_released.keepsSelftestHookConsistent());
+    try std.testing.expect(no_substrate_released.keepsPreExecutionLifecycleBoundaryExplicit());
+    try std.testing.expect(no_substrate_released.keepsStageConsistentWithRuntimeSubstrate());
+    try std.testing.expect(no_substrate_released.keepsSharedHandoffContractExplicit());
 }
