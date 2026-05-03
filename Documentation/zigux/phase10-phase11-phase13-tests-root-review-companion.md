@@ -10,8 +10,9 @@ Keep the tests-root replay packet explicit:
 - `zigux/tests/phase10_build.zig`
 - `zigux/tests/phase10_closure_manifest.json`
 - `zigux/tests/phase10_virtio_core_manifest.json`
-- `zigux/tests/phase10_virtio_core_survey.zig`
 - `zigux/tests/phase10_virtio_core.zig`
+- `zigux/tests/phase10_virtio_core_survey.zig`
+- `zigux/tests/phase10_virtio_ring_manifest.json`
 - `zigux/tests/phase10_virtio_ring_reset_reuse.zig`
 - `zigux/tests/phase10_virtio_ring_survey.zig`
 - `zigux/tests/phase10_virtio_input_multitouch_preflight.zig`
