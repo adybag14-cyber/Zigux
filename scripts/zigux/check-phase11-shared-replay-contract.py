@@ -189,6 +189,18 @@ def validate_contract(root: Path) -> int:
         missing.append("fixture:shared_split_replays")
     if fixture.get("shared_replay_markers") != EXPECTED_SHARED_REPLAY_MARKERS:
         missing.append("fixture:shared_replay_markers")
+    for replay in EXPECTED_SHARED_SPLIT_REPLAYS:
+        replay_path = root / str(replay["path"])
+        if not replay_path.exists():
+            missing.append(f"shared_split_replay_file:{replay['path']}")
+    for replay in EXPECTED_SHARED_REPLAY_MARKERS:
+        replay_path = root / str(replay["path"])
+        if not replay_path.exists():
+            missing.append(f"shared_replay_file:{replay['path']}")
+            continue
+        replay_text = text(replay_path)
+        if str(replay["marker"]) not in replay_text:
+            missing.append(f"shared_replay_marker:{replay['path']}:{replay['marker']}")
 
     if missing:
         print("PHASE11_SHARED_REPLAY_CONTRACT=fail")
@@ -320,6 +332,8 @@ def write_fixture_tree(root: Path) -> None:
         root / "scripts/zigux/check-phase11-shared-replay-contract.py",
         Path(__file__).read_text(encoding="utf-8"),
     )
+    for replay in EXPECTED_SHARED_REPLAY_MARKERS:
+        write_text(root / str(replay["path"]), str(replay["marker"]) + "\n")
 
 
 def run_self_test() -> int:
@@ -411,6 +425,30 @@ def run_self_test() -> int:
             "fixture:shared_split_replays",
         )
         write_text(fixture_path, fixture_backup)
+
+        shared_replay_path = tmp_root / EXPECTED_SHARED_REPLAY_MARKERS[0]["path"]
+        shared_replay_backup = text(shared_replay_path)
+        write_text(shared_replay_path, "")
+        expect_missing(
+            "missing_shared_replay_marker",
+            run_checker(tmp_root),
+            (
+                "shared_replay_marker:"
+                f"{EXPECTED_SHARED_REPLAY_MARKERS[0]['path']}:"
+                f"{EXPECTED_SHARED_REPLAY_MARKERS[0]['marker']}"
+            ),
+        )
+        write_text(shared_replay_path, shared_replay_backup)
+
+        split_replay_path = tmp_root / EXPECTED_SHARED_SPLIT_REPLAYS[0]["path"]
+        split_replay_backup = text(split_replay_path)
+        split_replay_path.unlink()
+        expect_missing(
+            "missing_shared_split_replay_file",
+            run_checker(tmp_root),
+            f"shared_split_replay_file:{EXPECTED_SHARED_SPLIT_REPLAYS[0]['path']}",
+        )
+        write_text(split_replay_path, split_replay_backup)
 
         makefile_path = tmp_root / "zigux/Makefile"
         makefile_backup = text(makefile_path)
@@ -572,7 +610,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST=pass")
-    print("PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT=19")
+    print("PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT=21")
     return 0
 
 
