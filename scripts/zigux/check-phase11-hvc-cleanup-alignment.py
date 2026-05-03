@@ -20,6 +20,7 @@ REQUIRED_FILES = {
     "slice": "Documentation/zigux/phase11-hvc-console-slice.md",
     "matrix": "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
     "poll_retry_split": "zigux/tests/phase11_hvc_console_poll_retry_split.zig",
+    "sysrq_helper": "zigux/tests/phase11_hvc_console_sysrq_helper.zig",
     "hvc_test": "zigux/tests/phase11_hvc_console.zig",
 }
 
@@ -54,6 +55,16 @@ POLL_RETRY_SPLIT_MARKERS = [
     "    try std.testing.expect(enter_sysrq.toggles_sysrq_mode);",
     'test "phase11 hvc console keeps pending sysrq dispatch separate from ordinary poll bytes" {',
     "    try std.testing.expect(dispatch.invokes_sysrq_handler);",
+]
+
+SYSRQ_HELPER_MARKERS = [
+    "pub const SysrqHandoffRequest = struct {",
+    "pub const SysrqHandoffSnapshot = struct {",
+    "pub fn summarizeSysrqHandoff(",
+    "    const is_toggle = request.is_kernel_console and request.input_char == 0x0f;",
+    "    const invokes_sysrq_handler = request.is_kernel_console and request.sysrq_pressed_before and !is_toggle;",
+    "        .invokes_sysrq_handler = invokes_sysrq_handler,",
+    "        .keeps_live_sysrq_execution_out_of_scope = true,",
 ]
 
 HVC_TEST_MARKERS = [
@@ -115,6 +126,7 @@ def validate(root: Path) -> list[str]:
     slice_note = read_text(root, REQUIRED_FILES["slice"])
     matrix = read_text(root, REQUIRED_FILES["matrix"])
     poll_retry_split = read_text(root, REQUIRED_FILES["poll_retry_split"])
+    sysrq_helper = read_text(root, REQUIRED_FILES["sysrq_helper"])
     hvc_test = read_text(root, REQUIRED_FILES["hvc_test"])
 
     for marker in SURVEY_MARKERS:
@@ -135,6 +147,10 @@ def validate(root: Path) -> list[str]:
     for marker in POLL_RETRY_SPLIT_MARKERS:
         if marker not in poll_retry_split:
             missing.append(f"poll_retry_split:{marker}")
+
+    for marker in SYSRQ_HELPER_MARKERS:
+        if marker not in sysrq_helper:
+            missing.append(f"sysrq_helper:{marker}")
 
     for marker in HVC_TEST_MARKERS:
         if marker not in hvc_test:
@@ -239,6 +255,78 @@ def clone_fixture_root(destination_root: Path) -> None:
                 "",
                 'test "phase11 hvc console keeps pending sysrq dispatch separate from ordinary poll bytes" {',
                 "    try std.testing.expect(dispatch.invokes_sysrq_handler);",
+                "}",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    (destination_root / REQUIRED_FILES["sysrq_helper"]).parent.mkdir(parents=True, exist_ok=True)
+    (destination_root / REQUIRED_FILES["sysrq_helper"]).write_text(
+        "\n".join(
+            [
+                "const hvc_console = @import(\"hvc_console\");",
+                "",
+                "pub const SysrqHandoffRequest = struct {",
+                "    is_kernel_console: bool = false,",
+                "    sysrq_pressed_before: bool = false,",
+                "    input_char: u8 = 0,",
+                "};",
+                "",
+                "pub const SysrqHandoffSnapshot = struct {",
+                "    anchor: []const u8,",
+                "    slot_index: usize,",
+                "    vtermno: u32,",
+                "    adapter_present: bool,",
+                "    is_kernel_console: bool,",
+                "    sysrq_pressed_before: bool,",
+                "    input_char: u8,",
+                "    toggles_sysrq_mode: bool,",
+                "    sysrq_pressed_after: bool,",
+                "    invokes_sysrq_handler: bool,",
+                "    clears_sysrq_after_handler: bool,",
+                "    emits_literal_char: bool,",
+                "    consumes_input_without_flip: bool,",
+                "    keeps_tty_registration_out_of_scope: bool,",
+                "    keeps_live_hypervisor_io_out_of_scope: bool,",
+                "    keeps_live_sysrq_execution_out_of_scope: bool,",
+                "};",
+                "",
+                "pub fn summarizeSysrqHandoff(",
+                "    console: *const hvc_console.HvcConsoleLab,",
+                "    request: SysrqHandoffRequest,",
+                ") !SysrqHandoffSnapshot {",
+                "    const slot = console.slotSnapshot();",
+                "    if (!slot.usable_for_console) return error.ConsoleUnavailable;",
+                "",
+                "    const is_toggle = request.is_kernel_console and request.input_char == 0x0f;",
+                "    const invokes_sysrq_handler = request.is_kernel_console and request.sysrq_pressed_before and !is_toggle;",
+                "    const clears_sysrq_after_handler = invokes_sysrq_handler;",
+                "    const sysrq_pressed_after = if (is_toggle)",
+                "        !request.sysrq_pressed_before",
+                "    else if (invokes_sysrq_handler)",
+                "        false",
+                "    else",
+                "        request.sysrq_pressed_before;",
+                "",
+                "    return .{",
+                "        .anchor = hvc_console.HvcConsoleLab.descriptor().anchor,",
+                "        .slot_index = slot.slot_index,",
+                "        .vtermno = slot.vtermno,",
+                "        .adapter_present = slot.adapter_present,",
+                "        .is_kernel_console = request.is_kernel_console,",
+                "        .sysrq_pressed_before = request.sysrq_pressed_before,",
+                "        .input_char = request.input_char,",
+                "        .toggles_sysrq_mode = is_toggle,",
+                "        .sysrq_pressed_after = sysrq_pressed_after,",
+                "        .invokes_sysrq_handler = invokes_sysrq_handler,",
+                "        .clears_sysrq_after_handler = clears_sysrq_after_handler,",
+                "        .emits_literal_char = !request.is_kernel_console,",
+                "        .consumes_input_without_flip = true,",
+                "        .keeps_tty_registration_out_of_scope = true,",
+                "        .keeps_live_hypervisor_io_out_of_scope = true,",
+                "        .keeps_live_sysrq_execution_out_of_scope = true,",
+                "    };",
                 "}",
                 "",
             ]
@@ -424,6 +512,23 @@ def run_self_test() -> int:
         )
         poll_retry_split_path.write_text(original_poll_retry_split, encoding="utf-8")
 
+        sysrq_helper_path = tmp_root / REQUIRED_FILES["sysrq_helper"]
+        original_sysrq_helper = sysrq_helper_path.read_text(encoding="utf-8")
+        sysrq_helper_path.write_text(
+            original_sysrq_helper.replace(
+                "        .keeps_live_sysrq_execution_out_of_scope = true,\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "sysrq_helper_scope_marker",
+            tmp_root,
+            "sysrq_helper:        .keeps_live_sysrq_execution_out_of_scope = true,",
+        )
+        sysrq_helper_path.write_text(original_sysrq_helper, encoding="utf-8")
+
         hvc_test_path = tmp_root / REQUIRED_FILES["hvc_test"]
         original_hvc_test = hvc_test_path.read_text(encoding="utf-8")
         hvc_test_path.write_text(
@@ -471,9 +576,18 @@ def run_self_test() -> int:
             tmp_root,
             f"missing:poll_retry_split:{REQUIRED_FILES['poll_retry_split']}",
         )
+        clone_fixture_root(tmp_root)
+
+        sysrq_helper_path = tmp_root / REQUIRED_FILES["sysrq_helper"]
+        sysrq_helper_path.unlink()
+        expect_missing(
+            "sysrq_helper_file_presence",
+            tmp_root,
+            f"missing:sysrq_helper:{REQUIRED_FILES['sysrq_helper']}",
+        )
 
     print("PHASE11_HVC_CLEANUP_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE11_HVC_CLEANUP_ALIGNMENT_SELF_TEST_CASE_COUNT=13")
+    print("PHASE11_HVC_CLEANUP_ALIGNMENT_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
