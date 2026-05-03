@@ -7,7 +7,8 @@ import sys
 import tempfile
 
 
-ROOT = Path(__file__).resolve().parents[2]
+_SELF_PATH = Path(__file__).resolve()
+ROOT = _SELF_PATH.parents[2] if len(_SELF_PATH.parents) > 2 else _SELF_PATH.parent
 
 MAKEFILE_PATH = "zigux/Makefile"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
@@ -72,6 +73,8 @@ MAKEFILE_MARKERS = [
 ]
 
 MAKEFILE_EXACT_ONCE_MARKERS = [
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test\n",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py\n",
     "phase9-loader-gap-survey:\n",
     "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_loader_gap_survey.zig\n",
     "phase9-module-metadata-survey:\n",
@@ -107,6 +110,8 @@ SURVEY_MARKERS = [
 ]
 
 SURVEY_EXACT_ONCE_MARKERS = [
+    "- `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test`\n",
+    "- `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py`\n",
     "- `make -C zigux phase9-loader-gap-survey`\n",
 ]
 
@@ -500,6 +505,66 @@ def run_self_test() -> int:
         makefile_path.write_text(original_makefile, encoding="utf-8")
 
         makefile_path.write_text(
+            original_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "commit_alignment_self_test_hook",
+            tmp_root,
+            "makefile:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test\n",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        makefile_path.write_text(
+            original_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test\n",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test\n\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "commit_alignment_duplicate_self_test_hook",
+            tmp_root,
+            "makefile_exact:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test\n",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        makefile_path.write_text(
+            original_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "commit_alignment_live_hook",
+            tmp_root,
+            "makefile:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py\n",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        makefile_path.write_text(
+            original_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py\n",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py\n\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "commit_alignment_duplicate_live_hook",
+            tmp_root,
+            "makefile_exact:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py\n",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        makefile_path.write_text(
             original_makefile.replace("phase9-module-metadata-survey:\n", "", 1),
             encoding="utf-8",
         )
@@ -594,6 +659,66 @@ def run_self_test() -> int:
 
         survey_path = tmp_root / SURVEY_PATH
         original_survey = survey_path.read_text(encoding="utf-8")
+        survey_path.write_text(
+            original_survey.replace(
+                "- `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "loader_gap_commit_alignment_self_test_gate",
+            tmp_root,
+            "survey:- `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test`\n",
+        )
+        survey_path.write_text(original_survey, encoding="utf-8")
+
+        survey_path.write_text(
+            original_survey.replace(
+                "- `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test`\n",
+                "- `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test`\n- `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test`\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "loader_gap_duplicate_commit_alignment_self_test_gate",
+            tmp_root,
+            "survey_exact:- `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test`\n",
+        )
+        survey_path.write_text(original_survey, encoding="utf-8")
+
+        survey_path.write_text(
+            original_survey.replace(
+                "- `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "loader_gap_commit_alignment_live_gate",
+            tmp_root,
+            "survey:- `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py`\n",
+        )
+        survey_path.write_text(original_survey, encoding="utf-8")
+
+        survey_path.write_text(
+            original_survey.replace(
+                "- `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py`\n",
+                "- `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py`\n- `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py`\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "loader_gap_duplicate_commit_alignment_live_gate",
+            tmp_root,
+            "survey_exact:- `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py`\n",
+        )
+        survey_path.write_text(original_survey, encoding="utf-8")
+
         survey_path.write_text(
             original_survey.replace("- `make -C zigux phase9-loader-gap-survey`\n", "", 1),
             encoding="utf-8",
@@ -815,7 +940,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE9_VALIDATION_FLOW_SELF_TEST=pass")
-    print("PHASE9_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=27")
+    print("PHASE9_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=31")
     return 0
 
 
