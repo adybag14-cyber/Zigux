@@ -322,3 +322,39 @@ test "phase11 hvc console keeps pending sysrq dispatch separate from ordinary po
     try std.testing.expect(ordinary.emits_literal_char);
     try std.testing.expect(!ordinary.consumes_input_without_flip);
 }
+
+test "phase11 hvc console keeps non-kernel ^O as a literal byte without toggling sysrq state" {
+    var console = try hvc_console.HvcConsoleLab.init(7);
+    _ = console.instantiate(0x77);
+
+    const non_kernel_toggle = try hvc_console_sysrq.summarizeSysrqHandoff(&console, .{
+        .is_kernel_console = false,
+        .sysrq_pressed_before = false,
+        .input_char = 0x0f,
+    });
+    try std.testing.expect(!non_kernel_toggle.is_kernel_console);
+    try std.testing.expect(!non_kernel_toggle.sysrq_pressed_before);
+    try std.testing.expectEqual(@as(u8, 0x0f), non_kernel_toggle.input_char);
+    try std.testing.expect(!non_kernel_toggle.toggles_sysrq_mode);
+    try std.testing.expect(!non_kernel_toggle.sysrq_pressed_after);
+    try std.testing.expect(!non_kernel_toggle.invokes_sysrq_handler);
+    try std.testing.expect(!non_kernel_toggle.clears_sysrq_after_handler);
+    try std.testing.expect(non_kernel_toggle.emits_literal_char);
+    try std.testing.expect(!non_kernel_toggle.consumes_input_without_flip);
+}
+
+test "phase11 hvc console keeps sysrq handoff unavailable after teardown" {
+    var console = try hvc_console.HvcConsoleLab.init(8);
+    _ = console.instantiate(0x88);
+
+    const teardown = console.teardown();
+    try std.testing.expectEqual(hvc_console.removed_vtermno, teardown.vtermno);
+    try std.testing.expect(!teardown.adapter_present);
+    try std.testing.expect(!teardown.usable_for_console);
+
+    try std.testing.expectError(error.ConsoleUnavailable, hvc_console_sysrq.summarizeSysrqHandoff(&console, .{
+        .is_kernel_console = true,
+        .sysrq_pressed_before = false,
+        .input_char = 0x0f,
+    }));
+}
