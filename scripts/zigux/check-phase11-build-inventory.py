@@ -488,7 +488,6 @@ def run_self_test() -> int:
 
         build_path = tmp_root / "zigux/tests/phase11_build.zig"
         build_backup = build_path.read_text(encoding="utf-8")
-        build_path.writeText = None
         build_path.write_text(
             build_backup.replace(
                 "    test_step.dependOn(&run_phase11_hvc_console_poll_retry_split_tests.step);\n",
