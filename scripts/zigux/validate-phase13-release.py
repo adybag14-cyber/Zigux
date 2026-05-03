@@ -115,7 +115,7 @@ DOCS_ROOT_MARKERS = [
 
 SCRIPT_README_MARKERS = [
     "Phase 13 flow",
-    "`validate-phase13-release.py` keeps `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/Makefile`, and `zigux/tests/phase13_build.zig` aligned as one shared release-discipline packet instead of leaving the Phase 13 review path split across isolated docs or build wiring.",
+    "`validate-phase13-release.py` keeps `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/Makefile`, and `zigux/tests/phase13_build.zig` aligned as one shared release-discipline packet, including the focused `libfs` packet, the adjacent `phase13-devres-dma-coherent-tests` helper evidence, the dedicated `phase13-landlock-syscalls-reviewability-tests` gate, and the adjacent notifier-list release evidence instead of leaving the Phase 13 review path split across isolated docs or build wiring.",
     "`make -C zigux phase13-validate` runs that dedicated release validator before the broader shared replay.",
     "`make -C zigux phase13` routes through the validator before the shared replay, so the local convenience path matches the release-facing review contract.",
     "`Documentation/zigux/phase13-devres-survey.md`, `zigux/tests/phase13_devres_manifest.json`, `zigux/tests/phase13_devres_dma_coherent.zig`, and `zigux/tests/phase13_devres_reviewability.zig` keep the helper-first `devres` packet explicit about adjacent coherent-DMA bookkeeping while live DMA-backed mappings and scatterlist ownership stay blocked rather than implied.",
