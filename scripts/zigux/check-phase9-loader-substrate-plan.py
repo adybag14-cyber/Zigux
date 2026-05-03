@@ -9,7 +9,8 @@ import sys
 import tempfile
 
 
-ROOT = Path(__file__).resolve().parents[2]
+_SELF_PATH = Path(__file__).resolve()
+ROOT = _SELF_PATH.parents[2] if len(_SELF_PATH.parents) > 2 else _SELF_PATH.parent
 
 SURVEY_PATH = "Documentation/zigux/phase9-runtime-loader-gap-survey.md"
 SUBSTRATE_PLAN_PATH = "Documentation/zigux/phase9-runtime-loader-substrate-plan.md"
@@ -82,6 +83,24 @@ SAMPLES_README_REQUIRED_MARKERS = [
 MAKEFILE_REQUIRED_MARKERS = [
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-loader-substrate-plan.py --self-test\n",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-loader-substrate-plan.py\n",
+]
+
+TRACE_EVENTS_LOADER_REQUIRED_MARKERS = [
+    "pub const RuntimeTraceEventsLoadPlan = struct",
+    "command_name: ?[]const u8",
+    "pub fn withCommandName",
+    "pub fn prepareWithCommandName",
+    "pub fn requestRuntimeLoad",
+    "pub fn releasePlanWithoutSubstrate",
+    "\"foo_bar_reg\"",
+    "\"foo_bar_unreg\"",
+]
+
+TRACE_EVENTS_LOADER_FORBIDDEN_MARKERS = [
+    "requestSharedRuntimeLoad",
+    "releaseSharedRuntimeLoadWithoutSubstrate",
+    "RuntimeLoadRequest",
+    "toSharedRequest(",
 ]
 
 EXPECTED_LIFECYCLE_BOUNDARY_SUMMARY = {
@@ -300,6 +319,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     review_checklist_text = read_text(root, REVIEW_CHECKLIST_PATH)
     samples_readme_text = read_text(root, SAMPLES_README_PATH)
     makefile_text = read_text(root, MAKEFILE_PATH)
+    trace_events_loader_text = read_text(root, TRACE_EVENTS_LOADER_PATH)
 
     missing_markers: list[str] = []
 
@@ -318,6 +338,12 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     for marker in MAKEFILE_REQUIRED_MARKERS:
         if marker not in makefile_text:
             missing_markers.append(f"makefile:{marker}")
+    for marker in TRACE_EVENTS_LOADER_REQUIRED_MARKERS:
+        if marker not in trace_events_loader_text:
+            missing_markers.append(f"trace_events_loader:{marker}")
+    for marker in TRACE_EVENTS_LOADER_FORBIDDEN_MARKERS:
+        if marker in trace_events_loader_text:
+            missing_markers.append(f"trace_events_loader_forbidden:{marker}")
 
     missing_markers.extend(validate_manifest_alignment(root))
     return [], missing_markers
@@ -483,7 +509,20 @@ def write_fixture_tree(root: Path) -> None:
         encoding="utf-8",
     )
     (root / TRACE_EVENTS_LOADER_PATH).write_text(
-        "pub const runtime_trace_events_loader_placeholder = true;\n",
+        "\n".join(
+            [
+                "pub const RuntimeTraceEventsLoadPlan = struct {",
+                "    command_name: ?[]const u8,",
+                "};",
+                "pub fn withCommandName() void {}",
+                "pub fn prepareWithCommandName() void {}",
+                "pub fn requestRuntimeLoad() void {}",
+                "pub fn releasePlanWithoutSubstrate() void {}",
+                'const register_api = "foo_bar_reg";',
+                'const unregister_api = "foo_bar_unreg";',
+                "",
+            ]
+        ),
         encoding="utf-8",
     )
 
@@ -692,8 +731,34 @@ def run_self_test() -> int:
         )
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
+        trace_events_loader_path.write_text(
+            original_trace_events_loader.replace(
+                "pub fn withCommandName() void {}",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "trace_events_loader_required_marker",
+            tmp_root,
+            "trace_events_loader:pub fn withCommandName",
+        )
+        trace_events_loader_path.write_text(original_trace_events_loader, encoding="utf-8")
+
+        trace_events_loader_path.write_text(
+            original_trace_events_loader + "\npub fn requestSharedRuntimeLoad() void {}\n",
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "trace_events_loader_forbidden_shared_request",
+            tmp_root,
+            "trace_events_loader_forbidden:requestSharedRuntimeLoad",
+        )
+        trace_events_loader_path.write_text(original_trace_events_loader, encoding="utf-8")
+
     print("PHASE9_LOADER_SUBSTRATE_PLAN_SELF_TEST=pass")
-    print("PHASE9_LOADER_SUBSTRATE_PLAN_SELF_TEST_CASE_COUNT=13")
+    print("PHASE9_LOADER_SUBSTRATE_PLAN_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
@@ -736,7 +801,7 @@ def main() -> int:
     print("PHASE9_LOADER_SUBSTRATE_PLAN=pass")
     print(
         "PHASE9_LOADER_SUBSTRATE_PLAN_MARKER_COUNT="
-        f"{len(SURVEY_REQUIRED_MARKERS) + len(SUBSTRATE_PLAN_REQUIRED_MARKERS) + len(REVIEW_CHECKLIST_REQUIRED_MARKERS) + len(SAMPLES_README_REQUIRED_MARKERS) + len(MAKEFILE_REQUIRED_MARKERS) + 16}"
+        f"{len(SURVEY_REQUIRED_MARKERS) + len(SUBSTRATE_PLAN_REQUIRED_MARKERS) + len(REVIEW_CHECKLIST_REQUIRED_MARKERS) + len(SAMPLES_README_REQUIRED_MARKERS) + len(MAKEFILE_REQUIRED_MARKERS) + len(TRACE_EVENTS_LOADER_REQUIRED_MARKERS) + len(TRACE_EVENTS_LOADER_FORBIDDEN_MARKERS) + 16}"
     )
     return 0
 
