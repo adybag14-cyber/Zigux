@@ -19,7 +19,7 @@ The starter stays intentionally narrow:
 - adds a tiny `__hvc_poll()` drain-order summary that keeps write-drain-before-read ordering, read-poll rearm boundaries, and tty wakeup versus flip-push sequencing reviewable without claiming host-backed polling execution
 - adds a tiny `hvc_hangup()` disconnect summary that keeps resize-cancel ordering, the stale-count guard, tty detach, outbuf clearing, and notifier-hangup boundaries reviewable without claiming notifier callback execution
 - adds a tiny `hvc_remove()` handoff summary that keeps console-lock slot clearing, the paired `vtermnos[]` and `cons_ops[]` release, `tty_port_put()` ordering, `tty_vhangup()` follow-through, and the keep-IRQ-until-hangup teardown boundary reviewable without claiming live console locking or IRQ teardown
-- adds a tiny `hvc_cleanup()` tty-port release handoff summary that keeps `tty_port_put()` ownership, port-reference drop timing, and the deferred final release boundary reviewable without claiming live tty destruction or host-backed teardown
+- adds a tiny `hvc_cleanup()` tty-port release handoff summary that keeps `tty_port_put()` ownership, port-reference drop timing, final-close versus close-skipped cleanup posture, and the deferred final release boundary reviewable without claiming live tty destruction or host-backed teardown
 - mirrors the slot teardown that clears the early-console binding
 
 This slice does not claim tty-driver registration, khvcd polling or execution, live sysrq execution, notifier callback execution, hotplug discovery, or live hypervisor-backed reads and writes yet.
