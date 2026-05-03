@@ -118,6 +118,8 @@ def expected_toolchain_notes_markers(
         f"current pinned bootstrap archive sha256 (`{pin_target}`): `{pin_digest}`",
         "the archive pin must stay limited to `x86_64-linux` until a new bootstrap runner target gains first-class workflow evidence",
         f"the three-target compile matrix in `zigux/tests/fixtures/phase2_cross_targets.json` stays separate from the `{pin_target}` bootstrap archive pin",
+        "the shared and closure validators above, together with `Documentation/zigux/review-checklist.md`, are the fail-closed route that keeps this note in the bounded Phase 2 toolchain tranche instead of leaving it as stand-alone reference text",
+        "the Linux-style `make -C zigux phase2-validate` and `make -C zigux phase2` routes keep the dedicated note tied to the same kbuild-facing replay surface named by the shared validators, the closure note, and the shared review checklist",
     ]
 
 
@@ -595,6 +597,44 @@ def run_self_test() -> int:
     ):
         raise SystemExit("phase2-toolchain-pin-scope:self-test:toolchain_notes_matrix_marker")
 
+    missing_fail_closed_route = "\n".join(
+        marker
+        for marker in toolchain_notes_markers
+        if marker
+        != "the shared and closure validators above, together with `Documentation/zigux/review-checklist.md`, are the fail-closed route that keeps this note in the bounded Phase 2 toolchain tranche instead of leaving it as stand-alone reference text"
+    )
+    marker_issues = validate_required_markers(
+        missing_fail_closed_route,
+        label="toolchain_notes",
+        markers=toolchain_notes_markers,
+    )
+    if (
+        "toolchain_notes:missing_marker:the shared and closure validators above, together with "
+        "`Documentation/zigux/review-checklist.md`, are the fail-closed route that keeps this note in "
+        "the bounded Phase 2 toolchain tranche instead of leaving it as stand-alone reference text"
+        not in marker_issues
+    ):
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:toolchain_notes_fail_closed_route_marker")
+
+    missing_make_route = "\n".join(
+        marker
+        for marker in toolchain_notes_markers
+        if marker
+        != "the Linux-style `make -C zigux phase2-validate` and `make -C zigux phase2` routes keep the dedicated note tied to the same kbuild-facing replay surface named by the shared validators, the closure note, and the shared review checklist"
+    )
+    marker_issues = validate_required_markers(
+        missing_make_route,
+        label="toolchain_notes",
+        markers=toolchain_notes_markers,
+    )
+    if (
+        "toolchain_notes:missing_marker:the Linux-style `make -C zigux phase2-validate` and `make -C zigux "
+        "phase2` routes keep the dedicated note tied to the same kbuild-facing replay surface named by the "
+        "shared validators, the closure note, and the shared review checklist"
+        not in marker_issues
+    ):
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:toolchain_notes_make_route_marker")
+
     closure_text = "\n".join(CLOSURE_MARKERS)
     if validate_required_markers(closure_text, label="closure", markers=CLOSURE_MARKERS):
         raise SystemExit("phase2-toolchain-pin-scope:self-test:closure_markers")
@@ -627,7 +667,7 @@ def run_self_test() -> int:
             raise SystemExit("phase2-toolchain-pin-scope:self-test:json_round_trip")
 
     print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass")
-    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=32")
+    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=34")
     return 0
 
 
