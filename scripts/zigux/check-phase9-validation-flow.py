@@ -563,6 +563,21 @@ def run_self_test() -> int:
         )
         module_metadata_survey_path.write_text(original_module_metadata_survey, encoding="utf-8")
 
+        module_metadata_survey_path.write_text(
+            original_module_metadata_survey.replace(
+                "- `make -C zigux phase9-module-metadata-survey`\n",
+                "- `make -C zigux phase9-module-metadata-survey`\n- `make -C zigux phase9-module-metadata-survey`\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "module_metadata_survey_duplicate_make_gate",
+            tmp_root,
+            "module_metadata_survey_exact:- `make -C zigux phase9-module-metadata-survey`\n",
+        )
+        module_metadata_survey_path.write_text(original_module_metadata_survey, encoding="utf-8")
+
         workflow_path = tmp_root / WORKFLOW_PATH
         original_workflow = workflow_path.read_text(encoding="utf-8")
         workflow_path.write_text(
@@ -784,7 +799,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE9_VALIDATION_FLOW_SELF_TEST=pass")
-    print("PHASE9_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=25")
+    print("PHASE9_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=26")
     return 0
 
 
