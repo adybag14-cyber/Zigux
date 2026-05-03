@@ -14,4 +14,6 @@ The current bridge stays intentionally narrow:
 
 This slice still does not claim live allocation, refcount transitions, header-write eligibility, destructor callbacks, frag-list teardown, checksum completion, segmentation behavior, qdisc publication ownership, queue ownership, skb lifetime ownership, or a direct `net/core/skbuff.c` rewrite.
 
+The bridge packet also now records a dedicated direct-xmit governance note: the future `__dev_direct_xmit()` identity-drop follow-up is limited to `skb = validate_xmit_skb_list(...)`, `skb != orig_skb`, and the drop path, and that note is observational only while qdisc publication, queue ownership, and skb lifetime ownership remain explicitly in C.
+
 The next honest bounded step in this same lane is the narrower `__dev_direct_xmit()` identity-drop follow-up, limited to `skb = validate_xmit_skb_list(...)`, `skb != orig_skb`, and the drop path. That checkpoint stays observational only and keeps qdisc publication, queue ownership, and skb lifetime ownership explicitly in C, which preserves the review-local boundary-first posture instead of drifting into a deeper wrapper or ownership claim.
