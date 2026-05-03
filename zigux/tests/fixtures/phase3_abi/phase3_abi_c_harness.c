@@ -183,7 +183,11 @@ int main(void)
     fprintf(stdout, "%u", ZIGUX_MINOR_ALLOC_FLAG_FOUND);
     fputs(",\"minor_alloc_flag_exhausted\":", stdout);
     fprintf(stdout, "%u", ZIGUX_MINOR_ALLOC_FLAG_EXHAUSTED);
-    fputs("},\"records\":{\"rbtree_cached_leftmost_root\":{\"root_addr\":", stdout);
+    fputs("},\"records\":{\"rbtree_empty_root\":{\"root_addr\":", stdout);
+    fprintf(stdout, "%lu", 0UL);
+    fputs(",\"leftmost_addr\":0,\"flags\":", stdout);
+    fprintf(stdout, "%u", ZIGUX_RBTREE_ROOT_FLAG_EMPTY);
+    fputs(",\"reserved\":0},\"rbtree_cached_leftmost_root\":{\"root_addr\":", stdout);
     fprintf(stdout, "%lu", 0x2000UL);
     fputs(",\"leftmost_addr\":", stdout);
     fprintf(stdout, "%lu", 0x1800UL);
