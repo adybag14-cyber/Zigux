@@ -13,7 +13,7 @@ This note records the current Phase 3 ABI and interop gap between the roadmap co
 - `PHASE3_CURRENT_BITMAP_CPUMASK=zigux/helpers/bitmap_view.zig,zigux/helpers/cpumask_view.zig`
 - `PHASE3_CURRENT_LIST_HLIST=zigux/helpers/list_view.zig,zigux/helpers/hlist_view.zig`
 - `PHASE3_CURRENT_RBTREE_STATUS=phase3-dedicated-rbtree-boundary-exists-shared-abi-lift-still-missing`
-- `PHASE3_CURRENT_RBTREE_EVIDENCE=tools/lib/rbtree.zig,lib/rbtree.zig,include/zigux/rbtree.h,zigux/bindings/rbtree.zig,zigux/helpers/rbtree_view.zig,Documentation/zigux/phase1-closure.md,Documentation/zigux/phase3-rbtree-slice.md,Documentation/zigux/phase3-rbtree-interop-survey.md,Documentation/zigux/phase7-rbtree-slice.md,zigux/tests/phase3_rbtree_survey.zig,zigux/tests/phase3_rbtree_manifest.json,zigux/tests/phase3_rbtree_dump.zig,zigux/tests/fixtures/phase3_rbtree/expected.json,zigux/tests/fixtures/phase3_rbtree/phase3_rbtree_c_harness.c,zigux/tests/phase7_rbtree.zig,zigux/tests/phase7_rbtree_survey.zig,zigux/tests/phase7_rbtree_manifest.json`
+- `PHASE3_CURRENT_RBTREE_EVIDENCE=tools/lib/rbtree.zig,lib/rbtree.zig,include/zigux/rbtree.h,zigux/bindings/rbtree.zig,zigux/helpers/rbtree_view.zig,Documentation/zigux/phase1-closure.md,Documentation/zigux/phase3-rbtree-slice.md,Documentation/zigux/phase3-rbtree-interop-survey.md,Documentation/zigux/phase7-rbtree-slice.md,zigux/tests/phase3_rbtree_survey.zig,zigux/tests/phase3_rbtree_manifest.json,zigux/tests/phase3_rbtree_dump.zig,zigux/tests/fixtures/phase3_rbtree/expected.json,zigux/tests/fixtures/phase3_rbtree/phase3_rbtree_c_harness.c,zigux/tests/phase3_rbtree_shared_contract.zig,zigux/tests/phase7_rbtree.zig,zigux/tests/phase7_rbtree_survey.zig,zigux/tests/phase7_rbtree_manifest.json`
 - `PHASE3_CURRENT_RBTREE_SHARED_LAYOUT_CONTRACT=shared-root-view-should-reuse-dedicated-phase3-rbtree-layout`
 - `PHASE3_REPO_REALITY=chrdev-plan-growth-exceeds-roadmap-anchors`
 - `PHASE3_INTEROP_GAP=shared-phase3-abi-rbtree-lift-still-missing`
@@ -35,6 +35,7 @@ That packet now exists through:
 - `Documentation/zigux/phase3-rbtree-interop-survey.md`
 - `zigux/tests/phase3_rbtree_survey.zig`
 - `zigux/tests/phase3_rbtree_manifest.json`
+- `zigux/tests/phase3_rbtree_shared_contract.zig`
 
 The remaining honest gap is narrower:
 
@@ -42,7 +43,7 @@ The remaining honest gap is narrower:
 - there is still no matching shared `zigux/bindings/abi.zig` layout type for a Phase 3 `rbtree` boundary packet
 - there is still no shared C-vs-Zig parity fixture for a Phase 3 `rbtree` root view inside `zigux/tests/fixtures/phase3_abi/`
 
-That is a better state than before, because the repo now has a real dedicated Phase 3 `rbtree` boundary packet, but the shared ABI lift is still pending. When that lift lands, it should reuse the dedicated `zigux_rbtree_root_view` layout and `root_flag_empty`, `root_flag_cached`, and `root_flag_leftmost_valid` constants unchanged inside the shared packet.
+That is a better state than before, because the repo now has a real dedicated Phase 3 `rbtree` boundary packet, and `zigux/tests/phase3_rbtree_shared_contract.zig` now keeps that planned shared packet contract machine-checked before the full shared header and binding lift lands. When that lift lands, it should reuse the dedicated `zigux_rbtree_root_view` layout and `root_flag_empty`, `root_flag_cached`, and `root_flag_leftmost_valid` constants unchanged inside the shared packet.
 
 ## Next Bounded Step
 
