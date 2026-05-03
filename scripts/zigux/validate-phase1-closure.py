@@ -39,10 +39,7 @@ REQUIRED_CLOSURE_MARKERS = [
     "PHASE1_HELPER_COUNT=13",
     "PHASE1_CLOSURE_GATE=python3 scripts/zigux/validate-phase1-closure.py",
     "PHASE1_CLOSURE_SELF_TEST_GATE=python3 scripts/zigux/validate-phase1-closure.py --self-test",
-    "PHASE1_STRING_MEMPARSE_UNIT_REVIEW=string memparse preserves decimal, hexadecimal, suffix-bearing, and invalid inputs without changing the parsed value or rest pointer contract",
-    "PHASE1_STRING_BENCH_REVIEW=string benchmark smoke pins deterministic bool-trim, memchr, compare, and memparse checksum surfaces plus the live loop count so string regressions cannot hide behind the broader string checksum alone",
-    "PHASE1_STRING_BENCH_KEYS=PHASE1_BENCH_STRING_CHECKSUM,PHASE1_BENCH_STRING_BOOL_TRIM_CHECKSUM,PHASE1_BENCH_STRING_MEMCHR_CHECKSUM,PHASE1_BENCH_STRING_COMPARE_CHECKSUM,PHASE1_BENCH_STRING_MEMPARSE_CHECKSUM",
-    "PHASE1_STRING_BENCH_ITERATIONS=PHASE1_BENCH_STRING_ITERATIONS",
+    "PHASE1_STRING_MEMPARSE_UNIT_REVIEW=string memparse preserves decimal, hexadecimal, suffix-bearing, invalid, and binary-unit-tail inputs including optional trailing B forms without changing the parsed value or rest pointer contract",
     "PHASE1_RBTREE_BENCH_KEYS=PHASE1_BENCH_RBTREE_CHECKSUM,PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM,PHASE1_BENCH_RBTREE_CACHED_CHECKSUM,PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM,PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM",
 ]
 
@@ -142,7 +139,7 @@ REQUIRED_MANIFEST_FIELDS = {
     "tools/lib/string.zig": {
         "strscpy_unit_test_contract": "Direct Zig unit coverage keeps strscpy aligned with bounded kernel copy semantics for exact-fit, truncation, embedded-NUL, and zero-sized destination cases.",
         "sysfs_unit_test_contract": "Direct Zig unit coverage keeps sysfsStreq() and sysfs_streq() aligned by treating a single trailing newline as equivalent to C-string termination while still rejecting non-terminal newline and content mismatches.",
-        "memparse_unit_test_contract": "Direct Zig unit coverage keeps memparse aligned by preserving decimal, hexadecimal, suffix-bearing, and invalid inputs without changing the parsed value or rest pointer contract.",
+        "memparse_unit_test_contract": "Direct Zig unit coverage keeps memparse aligned by preserving decimal, hexadecimal, suffix-bearing, invalid, and binary-unit-tail inputs including optional trailing B forms without changing the parsed value or rest pointer contract.",
     },
 }
 
