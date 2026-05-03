@@ -413,11 +413,13 @@ pub const VirtioCoreLabDevice = struct {
 
     pub fn disableConfigDriver(self: *Self) !void {
         if (!self.hasStatus(DeviceStatus.driver)) return error.DriverNotAttached;
+        if (self.config_driver_disabled) return error.ConfigDriverAlreadyDisabled;
         self.config_driver_disabled = true;
     }
 
     pub fn enableConfigDriver(self: *Self) !void {
         if (!self.hasStatus(DeviceStatus.driver)) return error.DriverNotAttached;
+        if (!self.config_driver_disabled) return error.ConfigDriverAlreadyEnabled;
         self.config_driver_disabled = false;
         self.flushPendingConfigChange();
     }
