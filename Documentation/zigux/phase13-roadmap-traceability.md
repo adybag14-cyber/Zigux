@@ -35,7 +35,7 @@ Current repo evidence:
 - dedicated tests: `zigux/tests/phase13_libfs.zig`
 - reviewability gate: `zigux/tests/phase13_libfs_reviewability.zig`
 - manifest: `zigux/tests/phase13_libfs_manifest.json`
-- manifest `surveyed_commit`: `949994db4046ec70abf044d1b2ea874fde9bc4a6`
+- manifest `surveyed_commit`: `d62742e7ff0747ed15f71f67d505f68ea15ec7ab`
 - shared build entry: `zigux/tests/phase13_build.zig`
 - slice notes: `Documentation/zigux/phase13-libfs-slice.md`
 - survey note: `Documentation/zigux/phase13-libfs-survey.md`
