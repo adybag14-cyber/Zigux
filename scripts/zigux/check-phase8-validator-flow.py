@@ -1,0 +1,357 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+from pathlib import Path
+import sys
+import tempfile
+
+
+ROOT = Path(__file__).resolve().parents[2]
+
+REQUIRED_FILES = [
+    "scripts/zigux/validate-phase8.py",
+    "scripts/zigux/check-phase8-tests-readme-alignment.py",
+    "scripts/zigux/check-phase8-perf-buffer-poll-gate.py",
+    "scripts/zigux/README.md",
+    "zigux/Makefile",
+    "zigux/tests/README.md",
+    "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
+]
+
+REQUIRED_MARKERS = {
+    "scripts/zigux/validate-phase8.py": [
+        "scripts/zigux/check-phase8-tests-readme-alignment.py",
+        "scripts/zigux/check-phase8-perf-buffer-poll-gate.py",
+        "zigux/tests/phase8_perf_buffer_poll_only_build.zig",
+        "phase8-perf-buffer-poll-test:",
+        "Run focused Phase 8 perf-buffer poll tests",
+        "phase8-perf-buffer-poll-tests",
+    ],
+    "scripts/zigux/check-phase8-tests-readme-alignment.py": [
+        '    "scripts/zigux/check-phase8-tests-readme-alignment.py",',
+        '    "scripts/zigux/check-phase8-perf-buffer-poll-gate.py",',
+        '"tests_readme:scripts/zigux/check-phase8-tests-readme-alignment.py",',
+        '"tests_readme:scripts/zigux/check-phase8-perf-buffer-poll-gate.py",',
+        "PHASE8_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=",
+    ],
+    "scripts/zigux/check-phase8-perf-buffer-poll-gate.py": [
+        '"Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md": [',
+        '"ready-buffer counts",',
+        '"no standalone timer helper",',
+        '"no standalone clockevent helper",',
+        "PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST_CASE_COUNT=",
+    ],
+    "scripts/zigux/README.md": [
+        "`check-phase8-tests-readme-alignment.py`",
+        "`check-phase8-perf-buffer-poll-gate.py`",
+        "`make -C zigux phase8-validate`",
+    ],
+    "zigux/Makefile": [
+        "scripts/zigux/check-phase8-tests-readme-alignment.py --self-test",
+        "scripts/zigux/check-phase8-perf-buffer-poll-gate.py --self-test",
+        "scripts/zigux/check-phase8-tests-readme-alignment.py",
+        "scripts/zigux/check-phase8-perf-buffer-poll-gate.py",
+        "phase8-perf-buffer-poll-test:",
+    ],
+    "zigux/tests/README.md": [
+        "`scripts/zigux/check-phase8-tests-readme-alignment.py`",
+        "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`",
+        "`zigux/tests/phase8_perf_buffer_poll_only_build.zig`",
+        "`make -C zigux phase8-perf-buffer-poll-test`",
+    ],
+    "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md": [
+        "`python3 scripts/zigux/check-phase8-tests-readme-alignment.py --self-test`",
+        "`python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py --self-test`",
+        "`python3 scripts/zigux/check-phase8-tests-readme-alignment.py`",
+        "`python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py`",
+        "`make -C zigux phase8-perf-buffer-poll-test`",
+    ],
+}
+
+FIXTURE_TEXT = {
+    "scripts/zigux/validate-phase8.py": "\n".join(
+        [
+            'REQUIRED_FILES = [',
+            '    "zigux/tests/phase8_perf_buffer_poll_only_build.zig",',
+            "]",
+            "",
+            "required_make_markers = [",
+            '    "phase8-perf-buffer-poll-test:",',
+            "]",
+            "",
+            "required_workflow_markers = [",
+            '    "Run focused Phase 8 perf-buffer poll tests",',
+            "]",
+            "",
+            "required_phase8_perf_buffer_poll_markers = [",
+            '    "phase8-perf-buffer-poll-tests",',
+            "]",
+            "",
+            '    "scripts/zigux/check-phase8-tests-readme-alignment.py",',
+            '    "scripts/zigux/check-phase8-perf-buffer-poll-gate.py",',
+            "",
+        ]
+    )
+    + "\n",
+    "scripts/zigux/check-phase8-tests-readme-alignment.py": "\n".join(
+        [
+            "TESTS_README_MARKERS = [",
+            '    "scripts/zigux/validate-phase8.py",',
+            '    "scripts/zigux/check-phase8-tests-readme-alignment.py",',
+            '    "scripts/zigux/check-phase8-perf-buffer-poll-gate.py",',
+            "]",
+            "",
+            '            "- scripts/zigux/check-phase8-tests-readme-alignment.py\\n",',
+            '            "- scripts/zigux/check-phase8-perf-buffer-poll-gate.py\\n",',
+            "",
+            '        "tests_readme:scripts/zigux/check-phase8-tests-readme-alignment.py",',
+            '        "tests_readme:scripts/zigux/check-phase8-perf-buffer-poll-gate.py",',
+            "",
+            'print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=38")',
+            "",
+        ]
+    )
+    + "\n",
+    "scripts/zigux/check-phase8-perf-buffer-poll-gate.py": "\n".join(
+        [
+            "REQUIRED_MARKERS = {",
+            '    "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md": [',
+            '        "ready-buffer counts",',
+            '        "no standalone timer helper",',
+            '        "no standalone clockevent helper",',
+            "    ],",
+            "}",
+            "",
+            'print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST_CASE_COUNT=21")',
+            "",
+        ]
+    )
+    + "\n",
+    "scripts/zigux/README.md": "\n".join(
+        [
+            "# scripts/zigux",
+            "",
+            "- `check-phase8-tests-readme-alignment.py`",
+            "- `check-phase8-perf-buffer-poll-gate.py`",
+            "- `make -C zigux phase8-validate`",
+            "",
+        ]
+    )
+    + "\n",
+    "zigux/Makefile": "\n".join(
+        [
+            "phase8-validate:",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-tests-readme-alignment.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-perf-buffer-poll-gate.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-tests-readme-alignment.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-perf-buffer-poll-gate.py",
+            "phase8-perf-buffer-poll-test:",
+            "",
+        ]
+    )
+    + "\n",
+    "zigux/tests/README.md": "\n".join(
+        [
+            "# zigux/tests",
+            "",
+            "- `scripts/zigux/check-phase8-tests-readme-alignment.py`",
+            "- `scripts/zigux/check-phase8-perf-buffer-poll-gate.py`",
+            "- `zigux/tests/phase8_perf_buffer_poll_only_build.zig`",
+            "- `make -C zigux phase8-perf-buffer-poll-test`",
+            "",
+        ]
+    )
+    + "\n",
+    "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md": "\n".join(
+        [
+            "# Phase 8 Bridge Boundary Survey",
+            "",
+            "- `python3 scripts/zigux/check-phase8-tests-readme-alignment.py --self-test`",
+            "- `python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py --self-test`",
+            "- `python3 scripts/zigux/check-phase8-tests-readme-alignment.py`",
+            "- `python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py`",
+            "- `make -C zigux phase8-perf-buffer-poll-test`",
+            "",
+        ]
+    )
+    + "\n",
+}
+
+
+def read_text(root: Path, rel_path: str) -> str:
+    return (root / rel_path).read_text(encoding="utf-8")
+
+
+def collect_missing_files(root: Path) -> list[str]:
+    return [rel_path for rel_path in REQUIRED_FILES if not (root / rel_path).exists()]
+
+
+def required_marker_count() -> int:
+    return sum(len(markers) for markers in REQUIRED_MARKERS.values())
+
+
+def validate(root: Path) -> tuple[list[str], list[str]]:
+    missing_files = collect_missing_files(root)
+    if missing_files:
+        return missing_files, []
+
+    missing_markers: list[str] = []
+    for rel_path, markers in REQUIRED_MARKERS.items():
+        text = read_text(root, rel_path)
+        for marker in markers:
+            if marker not in text:
+                missing_markers.append(f"{rel_path}:{marker}")
+    return [], missing_markers
+
+
+def clone_fixture_root(destination_root: Path) -> None:
+    for rel_path, text in FIXTURE_TEXT.items():
+        target = destination_root / rel_path
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(text, encoding="utf-8")
+
+
+def expect_missing_marker(label: str, root: Path, expected_marker: str) -> None:
+    missing_files, missing_markers = validate(root)
+    if missing_files:
+        raise SystemExit(
+            f"phase8-validator-flow-self-test:{label}:unexpected_missing_files:{','.join(missing_files)}"
+        )
+    if expected_marker not in missing_markers:
+        actual = ",".join(missing_markers) if missing_markers else "none"
+        raise SystemExit(
+            f"phase8-validator-flow-self-test:{label}:expected_missing_marker:{expected_marker}:actual:{actual}"
+        )
+
+
+def run_self_test() -> int:
+    with tempfile.TemporaryDirectory(prefix="zigux_phase8_validator_flow_") as tmp_dir:
+        tmp_root = Path(tmp_dir)
+        clone_fixture_root(tmp_root)
+
+        missing_files, missing_markers = validate(tmp_root)
+        if missing_files or missing_markers:
+            raise SystemExit(
+                "phase8-validator-flow-self-test:baseline_failed:"
+                f"files={','.join(missing_files) if missing_files else 'none'}:"
+                f"markers={','.join(missing_markers) if missing_markers else 'none'}"
+            )
+
+        validator_path = tmp_root / "scripts/zigux/validate-phase8.py"
+        original_validator = validator_path.read_text(encoding="utf-8")
+        validator_path.write_text(
+            original_validator.replace(
+                '    "scripts/zigux/check-phase8-perf-buffer-poll-gate.py",\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "validator_perf_gate_hook",
+            tmp_root,
+            "scripts/zigux/validate-phase8.py:scripts/zigux/check-phase8-perf-buffer-poll-gate.py",
+        )
+        validator_path.write_text(original_validator, encoding="utf-8")
+
+        tests_checker_path = tmp_root / "scripts/zigux/check-phase8-tests-readme-alignment.py"
+        original_tests_checker = tests_checker_path.read_text(encoding="utf-8")
+        tests_checker_path.write_text(
+            original_tests_checker.replace(
+                '    "scripts/zigux/check-phase8-tests-readme-alignment.py",\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "tests_checker_marker",
+            tmp_root,
+            "scripts/zigux/check-phase8-tests-readme-alignment.py:    \"scripts/zigux/check-phase8-tests-readme-alignment.py\",",
+        )
+        tests_checker_path.write_text(original_tests_checker, encoding="utf-8")
+
+        tests_readme_path = tmp_root / "zigux/tests/README.md"
+        original_tests_readme = tests_readme_path.read_text(encoding="utf-8")
+        tests_readme_path.write_text(
+            original_tests_readme.replace(
+                "- `scripts/zigux/check-phase8-perf-buffer-poll-gate.py`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "tests_readme_perf_gate_entry",
+            tmp_root,
+            "zigux/tests/README.md:`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`",
+        )
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
+
+        bridge_path = tmp_root / "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md"
+        original_bridge = bridge_path.read_text(encoding="utf-8")
+        bridge_path.write_text(
+            original_bridge.replace(
+                "- `python3 scripts/zigux/check-phase8-tests-readme-alignment.py`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "bridge_live_checker_step",
+            tmp_root,
+            "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md:`python3 scripts/zigux/check-phase8-tests-readme-alignment.py`",
+        )
+
+    print("PHASE8_VALIDATOR_FLOW_SELF_TEST=pass")
+    print("PHASE8_VALIDATOR_FLOW_SELF_TEST_CASE_COUNT=4")
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="Validate the published Phase 8 validator-first checker route."
+    )
+    parser.add_argument(
+        "--root",
+        type=Path,
+        default=ROOT,
+        help="Repository root to validate.",
+    )
+    parser.add_argument(
+        "--self-test",
+        action="store_true",
+        help="Run built-in drift checks against a compact synthetic Phase 8 fixture tree.",
+    )
+    args = parser.parse_args()
+
+    if args.self_test:
+        return run_self_test()
+
+    root = args.root.resolve()
+    missing_files, missing_markers = validate(root)
+    if missing_files:
+        print("PHASE8_VALIDATOR_FLOW=fail")
+        print("MISSING_PHASE8_VALIDATOR_FLOW_FILES_START")
+        for item in missing_files:
+            print(item)
+        print("MISSING_PHASE8_VALIDATOR_FLOW_FILES_END")
+        return 1
+    if missing_markers:
+        print("PHASE8_VALIDATOR_FLOW=fail")
+        print("MISSING_PHASE8_VALIDATOR_FLOW_MARKERS_START")
+        for marker in missing_markers:
+            print(marker)
+        print("MISSING_PHASE8_VALIDATOR_FLOW_MARKERS_END")
+        return 1
+
+    print("PHASE8_VALIDATOR_FLOW=pass")
+    print(f"PHASE8_VALIDATOR_FLOW_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
+    print(f"PHASE8_VALIDATOR_FLOW_REQUIRED_MARKER_COUNT={required_marker_count()}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
