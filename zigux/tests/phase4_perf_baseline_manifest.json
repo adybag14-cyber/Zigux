@@ -37,7 +37,7 @@
       "benchmark_command": "unapproved_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
       "acceptable_limit": "unapproved_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
       "status": "pending_bounded_benchmark",
-      "why_not_approved_yet": "The live bitmap gate still carries a bounded correctness-first rollback packet, including the explicit rounded-fill survey gap, so Phase 4 keeps correctness-only coverage until one isolated bitmap benchmark command and acceptable limit are reviewed."
+      "why_not_approved_yet": "The live bitmap gate still carries a bounded correctness-first rollback packet, so Phase 4 keeps correctness-only coverage until one isolated bitmap benchmark command and acceptable limit are reviewed."
     }
   ],
   "survey_summary": {
