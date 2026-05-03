@@ -4,11 +4,11 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 
 ## Status
 
-- `PHASE3_SURVEYED_COMMIT=524d3a92b5a8b468149c2c20bf4c7a23ae96705a`
+- `PHASE3_SURVEYED_COMMIT=088d421b9f9722a8d113f24f6a26a6bb3e7bd71a`
 - `PHASE3_LAYOUT_ASSERT_PATH=zigux/helpers/layout_assert.zig`
 - `PHASE3_LAYOUT_ASSERT_SCOPE=canonical-bindings`
 - `PHASE3_LAYOUT_ASSERT_STATUS=canonical-layout-assertions-landed`
-- `PHASE3_LAYOUT_ASSERT_BLOB_SHA=4d76ef3341cb7ec08ce707082abb0f935cfcb9dc`
+- `PHASE3_LAYOUT_ASSERT_BLOB_SHA=5c2996a464bed45f1b9b8944ac0eca4fd2c48f63`
 - `PHASE3_PANIC_POLICY_PATH=zigux/helpers/panic_policy.zig`
 - `PHASE3_PANIC_POLICY=explicit-modes-only`
 - `PHASE3_PANIC_POLICY_STATUS=interop-byte-decode-landed`
@@ -50,7 +50,7 @@ It does require the current tree to say clearly which policy rules are already l
 
 ## Live Repo Reality
 
-This survey is pinned to verified `master` head `524d3a92b5a8b468149c2c20bf4c7a23ae96705a` for the directly coupled policy-and-unsafe packet, and it now also records packet-local blob IDs for the curated helper, build, test, manifest, and slice-note files so shallow history alone does not turn a reviewable packet into a false validation failure.
+This survey is pinned to verified `master` head `088d421b9f9722a8d113f24f6a26a6bb3e7bd71a` for the directly coupled policy-and-unsafe packet, and it now also records packet-local blob IDs for the curated helper, build, test, manifest, and slice-note files so shallow history alone does not turn a reviewable packet into a false validation failure.
 
 The current tree already carries a real bounded policy-and-unsafe substrate:
 
