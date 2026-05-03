@@ -682,6 +682,15 @@ def run_self_test() -> int:
         build_self_test_tree(root)
         manifest_path = root / TRACKED_PATHS[0]
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["survey_summary"]["preexisting_phase12_focused_replay_build_present"] = False
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        missing = check_packet(root)
+        if "manifest:survey_summary:preexisting_phase12_focused_replay_build_present" not in missing:
+            raise SystemExit("phase12-libbpf-packet:self-test:survey_summary_focused_replay_build_detection")
+
+        build_self_test_tree(root)
+        manifest_path = root / TRACKED_PATHS[0]
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["rollback_contract"]["reversible_delivery_evidence"] = [
             item
             for item in manifest["rollback_contract"]["reversible_delivery_evidence"]
@@ -955,7 +964,7 @@ def run_self_test() -> int:
             raise SystemExit("phase12-libbpf-packet:self-test:reviewability_marker_detection")
 
         print("PHASE12_LIBBPF_PACKET_SELF_TEST=pass")
-        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=55")
+        print("PHASE12_LIBBPF_PACKET_SELF_TEST_CASE_COUNT=56")
     return 0
 
 
