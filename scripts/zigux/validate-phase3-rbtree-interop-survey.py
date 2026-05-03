@@ -21,6 +21,7 @@ REQUIRED_SURVEY_MARKERS = (
     "PHASE3_RBTREE_PHASE3_BOUNDARY_STATUS=dedicated-boundary-landed-shared-abi-lift-still-missing",
     "PHASE3_RBTREE_NON_GOALS=no-balancing-port,no-export-shim-growth,no-uapi-growth",
     "PHASE3_RBTREE_NEXT_BOUNDED_STEP=one-shared-phase3-abi-rbtree-root-view",
+    "PHASE3_RBTREE_SHARED_CONTRACT=zigux/tests/phase3_rbtree_shared_contract.zig",
     "PHASE3_RBTREE_SURVEY_GATE=python3 scripts/zigux/validate-phase3-rbtree-interop-survey.py",
     "PHASE3_RBTREE_SHARED_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi",
     "PHASE3_RBTREE_SHARED_MAKE_GATE=make -C zigux phase3-validate",
@@ -37,6 +38,7 @@ REQUIRED_SURVEY_SNIPPETS = (
     "one curated read-mostly ABI record in the shared packet",
     "one matching shared Zig binding shape",
     "one committed shared parity fixture that keeps the contract reviewable without widening into a full balancing port",
+    "`zigux/tests/phase3_rbtree_shared_contract.zig` now keeps that planned shared packet layout and constant contract machine-checked before the full shared header lift lands",
 )
 
 REQUIRED_REPO_PATHS = (
@@ -54,6 +56,7 @@ REQUIRED_REPO_PATHS = (
     "zigux/tests/phase3_rbtree_dump.zig",
     "zigux/tests/fixtures/phase3_rbtree/expected.json",
     "zigux/tests/fixtures/phase3_rbtree/phase3_rbtree_c_harness.c",
+    "zigux/tests/phase3_rbtree_shared_contract.zig",
     "zigux/tests/phase7_rbtree.zig",
     "zigux/tests/phase7_rbtree_survey.zig",
     "zigux/tests/phase7_rbtree_manifest.json",
@@ -160,7 +163,7 @@ def run_self_test() -> int:
         )
         issues = validate(root)
         assert (
-            "missing_survey_snippet:one committed shared parity fixture that keeps the contract reviewable without widening into a full balancing port"
+            "missing_survey_snippet:`zigux/tests/phase3_rbtree_shared_contract.zig` now keeps that planned shared packet layout and constant contract machine-checked before the full shared header lift lands"
             in issues
         )
         survey_path.write_text(
