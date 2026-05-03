@@ -302,37 +302,6 @@ if missing_phase2_pin_scope_checker_markers:
     print('MISSING_PHASE2_PIN_SCOPE_CHECKER_MARKERS_END')
     sys.exit(1)
 
-workflow_pin_scope_install_command_count = len(
-    re.findall(
-        r'^\s*run:\s+python3 scripts/zigux/install-zig\.py --dest \.zig-toolchain\s*$',
-        workflow,
-        flags=re.MULTILINE,
-    )
-)
-workflow_pin_scope_toolchain_policy_command_count = len(
-    re.findall(
-        r'^\s*run:\s+python3 scripts/zigux/check-zig-toolchain\.py\s*$',
-        workflow,
-        flags=re.MULTILINE,
-    )
-)
-if (
-    workflow_pin_scope_install_command_count != 2
-    or workflow_pin_scope_toolchain_policy_command_count != 2
-):
-    print('BOOTSTRAP_VALIDATION=fail')
-    print('MISSING_PHASE2_PIN_SCOPE_WORKFLOW_ROUTE_WIRING_START')
-    print(
-        'workflow:phase2_pin_scope_install_command_count='
-        f'{workflow_pin_scope_install_command_count},expected=2'
-    )
-    print(
-        'workflow:phase2_pin_scope_toolchain_policy_command_count='
-        f'{workflow_pin_scope_toolchain_policy_command_count},expected=2'
-    )
-    print('MISSING_PHASE2_PIN_SCOPE_WORKFLOW_ROUTE_WIRING_END')
-    sys.exit(1)
-
 scripts_readme = (ROOT / 'scripts' / 'zigux' / 'README.md').read_text(encoding='utf-8')
 required_scripts_readme_pin_scope_markers = [
     'check-phase2-toolchain-pin-scope.py --self-test',
@@ -362,9 +331,7 @@ required_phase2_toolchain_notes_markers = [
     'install-zig.py --dest .zig-toolchain',
     'check-zig-toolchain.py',
 ]
-missing_phase2_toolchain_notes_markers = [
-    marker for marker in required_phase2_toolchain_notes_markers if marker not in phase2_toolchain_notes
-]
+missing_phase2_toolchain_notes_markers = [marker for marker in required_phase2_toolchain_notes_markers if marker not in phase2_toolchain_notes]
 if missing_phase2_toolchain_notes_markers:
     print('BOOTSTRAP_VALIDATION=fail')
     print('MISSING_PHASE2_TOOLCHAIN_NOTES_MARKERS_START')
@@ -416,29 +383,78 @@ if missing_make_markers:
     print('MISSING_MAKE_MARKERS_END')
     sys.exit(1)
 
-makefile_pin_scope_self_test_command_count = len(
-    re.findall(
-        r'^\s*cd \$\(ZIGUX_ROOT\) && \$\(PYTHON\) scripts/zigux/check-phase2-toolchain-pin-scope\.py --self-test\s*$',
-        makefile,
-        flags=re.MULTILINE,
-    )
-)
-makefile_pin_scope_command_count = len(
-    re.findall(
-        r'^\s*cd \$\(ZIGUX_ROOT\) && \$\(PYTHON\) scripts/zigux/check-phase2-toolchain-pin-scope\.py\s*$',
-        makefile,
-        flags=re.MULTILINE,
-    )
-)
-if makefile_pin_scope_self_test_command_count != 1 or makefile_pin_scope_command_count != 1:
+phase2_pin_scope_workflow_exact_counts = {
+    'workflow:step:Install Zig': 2,
+    'workflow:step:Check Zig toolchain policy': 2,
+    'workflow:run:python3 scripts/zigux/install-zig.py --dest .zig-toolchain': 2,
+    'workflow:run:python3 scripts/zigux/check-zig-toolchain.py': 2,
+}
+phase2_pin_scope_workflow_observed_counts = {
+    'workflow:step:Install Zig': workflow.count('Install Zig'),
+    'workflow:step:Check Zig toolchain policy': workflow.count('Check Zig toolchain policy'),
+    'workflow:run:python3 scripts/zigux/install-zig.py --dest .zig-toolchain': len(
+        re.findall(
+            r'^\s*run:\s+python3 scripts/zigux/install-zig\.py --dest \.zig-toolchain\s*$',
+            workflow,
+            flags=re.MULTILINE,
+        )
+    ),
+    'workflow:run:python3 scripts/zigux/check-zig-toolchain.py': len(
+        re.findall(
+            r'^\s*run:\s+python3 scripts/zigux/check-zig-toolchain\.py\s*$',
+            workflow,
+            flags=re.MULTILINE,
+        )
+    ),
+}
+phase2_pin_scope_workflow_count_issues = [
+    f'{key}={phase2_pin_scope_workflow_observed_counts[key]},expected={expected}'
+    for key, expected in phase2_pin_scope_workflow_exact_counts.items()
+    if phase2_pin_scope_workflow_observed_counts[key] != expected
+]
+if phase2_pin_scope_workflow_count_issues:
     print('BOOTSTRAP_VALIDATION=fail')
-    print('MISSING_PHASE2_PIN_SCOPE_MAKEFILE_ROUTE_WIRING_START')
-    print(
-        'makefile:phase2_pin_scope_self_test_command_count='
-        f'{makefile_pin_scope_self_test_command_count},expected=1'
-    )
-    print(f'makefile:phase2_pin_scope_command_count={makefile_pin_scope_command_count},expected=1')
-    print('MISSING_PHASE2_PIN_SCOPE_MAKEFILE_ROUTE_WIRING_END')
+    print('MISSING_PHASE2_PIN_SCOPE_BOOTSTRAP_WORKFLOW_COUNTS_START')
+    for issue in phase2_pin_scope_workflow_count_issues:
+        print(issue)
+    print('MISSING_PHASE2_PIN_SCOPE_BOOTSTRAP_WORKFLOW_COUNTS_END')
+    sys.exit(1)
+
+phase2_pin_scope_makefile_exact_counts = {
+    'makefile:target:phase2-validate': 1,
+    'makefile:run:scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test': 1,
+    'makefile:run:scripts/zigux/check-phase2-toolchain-pin-scope.py': 1,
+}
+phase2_pin_scope_makefile_observed_counts = {
+    'makefile:target:phase2-validate': len(
+        re.findall(r'^phase2-validate:\s*$', makefile, flags=re.MULTILINE)
+    ),
+    'makefile:run:scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test': len(
+        re.findall(
+            r'^\s*cd \$\(ZIGUX_ROOT\) && \$\(PYTHON\) scripts/zigux/check-phase2-toolchain-pin-scope\.py --self-test\s*$',
+            makefile,
+            flags=re.MULTILINE,
+        )
+    ),
+    'makefile:run:scripts/zigux/check-phase2-toolchain-pin-scope.py': len(
+        re.findall(
+            r'^\s*cd \$\(ZIGUX_ROOT\) && \$\(PYTHON\) scripts/zigux/check-phase2-toolchain-pin-scope\.py\s*$',
+            makefile,
+            flags=re.MULTILINE,
+        )
+    ),
+}
+phase2_pin_scope_makefile_count_issues = [
+    f'{key}={phase2_pin_scope_makefile_observed_counts[key]},expected={expected}'
+    for key, expected in phase2_pin_scope_makefile_exact_counts.items()
+    if phase2_pin_scope_makefile_observed_counts[key] != expected
+]
+if phase2_pin_scope_makefile_count_issues:
+    print('BOOTSTRAP_VALIDATION=fail')
+    print('MISSING_PHASE2_PIN_SCOPE_BOOTSTRAP_MAKEFILE_COUNTS_START')
+    for issue in phase2_pin_scope_makefile_count_issues:
+        print(issue)
+    print('MISSING_PHASE2_PIN_SCOPE_BOOTSTRAP_MAKEFILE_COUNTS_END')
     sys.exit(1)
 
 print('BOOTSTRAP_VALIDATION=pass')
