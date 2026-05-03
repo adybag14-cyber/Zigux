@@ -44,6 +44,12 @@ pub fn main(init: std.process.Init) !void {
         try writer.print("carry-discipline\t{s}\t0x{x:0>4}\n", .{ case.name, checksum.fold(partial) });
     }
 
+    try writer.print("add16\twrap-plus-one\t0x{x:0>4}\n", .{checksum.add16(0xffff, 0x0001)});
+    try writer.print("add16\tzero-addend-preserves-saturated-sum\t0x{x:0>4}\n", .{checksum.add16(0xffff, 0x0000)});
+    try writer.print("add16\tdouble-saturated-addends-fold-carry\t0x{x:0>4}\n", .{checksum.add16(0xffff, 0xffff)});
+    try writer.print("sub16\tzero-minus-one-wraps\t0x{x:0>4}\n", .{checksum.sub16(0x0000, 0x0001)});
+    try writer.print("sub16\tinverse-of-add16-round-trip\t0x{x:0>4}\n", .{checksum.sub16(checksum.add16(0x1234, 0xabcd), 0xabcd)});
+
     var payload = [_]u8{ 0x70, 0x68, 0x61, 0x73, 0x65, 0x36 };
     const old_partial = checksum.partial(&payload, 0);
     const old_word = (@as(u32, payload[0]) << 8) | payload[1];
