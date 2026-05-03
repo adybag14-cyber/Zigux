@@ -53,6 +53,14 @@ REQUIRED_INTEROP_POLICY_SNIPPETS = (
 
 REQUIRED_POLICY_TEST_SNIPPETS = (
     'test "phase3 policy gate reaches a second boundary helper through decoded policy"',
+    "const none_policy = try interop_policy.decode(.{",
+    "try mmio.writeScopedWithPolicy(u32, mmio_policy, base32, 0, 0x10213243);",
+    "try std.testing.expectEqual(@as(u32, 0x10213243), regs32[0]);",
+    "try std.testing.expectEqual(@as(u32, 0x10213243), try mmio.readScopedWithPolicy(u32, mmio_policy, base32, 0));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.writeScopedWithPolicy(u32, raw_pointer_policy, base32, 0, 1));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.readScopedWithPolicy(u32, raw_pointer_policy, base32, 0));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.writeScopedWithPolicy(u32, none_policy, base32, 0, 1));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.readScopedWithPolicy(u32, none_policy, base32, 0));",
     "try mmio.write8Policy(mmio_policy, base32, 0, 0x2a);",
     "try std.testing.expectEqual(@as(u8, 0x2a), try mmio.read8Policy(mmio_policy, base32, 0));",
     "try mmio.write16Policy(mmio_policy, base32, 2, 0x7bcd);",
@@ -230,6 +238,23 @@ def run_self_test() -> int:
         )
 
         _write(root, MMIO_REL, "\n".join(REQUIRED_MMIO_SNIPPETS) + "\n")
+        _write(
+            root,
+            POLICY_TEST_REL,
+            "\n".join(
+                snippet
+                for snippet in REQUIRED_POLICY_TEST_SNIPPETS
+                if snippet
+                != "try std.testing.expectError(error.UnsafeScopeDenied, mmio.writeScopedWithPolicy(u32, none_policy, base32, 0, 1));"
+            ) + "\n",
+        )
+        issues = validate(root)
+        assert (
+            "missing_policy_test_snippet:try std.testing.expectError(error.UnsafeScopeDenied, mmio.writeScopedWithPolicy(u32, none_policy, base32, 0, 1));"
+            in issues
+        )
+
+        _write(root, POLICY_TEST_REL, "\n".join(REQUIRED_POLICY_TEST_SNIPPETS) + "\n")
         _write(
             root,
             POLICY_TEST_REL,
