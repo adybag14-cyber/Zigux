@@ -7,6 +7,8 @@ This note records the bounded public-read fallback posture for the roadmap-backe
 - lane: `P12-L07`
 - phase: `Phase 12`
 - public boundary: read-only GitHub tree and raw-path inspection only
+- shared validator path: `python3 scripts/zigux/validate-phase12.py` and `make -C zigux phase12-validate`
+- release coordination note: `Documentation/zigux/phase12-release-readiness-survey.md`
 - last replayed public head for this exact coverage split: `a8daee106057a542aa03f2983662bec7c06584bb`
 
 ## Coverage Split
@@ -26,6 +28,11 @@ Current public-read coverage stays intentionally mixed:
 
 That split is the real current public boundary for this lane. It keeps the surviving `virtio_scsi` packet reviewable when connector-backed reads are flaky, preserves the archived `nvme_pci` raw-path packet, and does not overstate equivalent live-head replay coverage for the other two Phase 12 anchors.
 
+- `PHASE12_ROADMAP_ANCHOR_COUNT=4`
+- `PHASE12_COMMIT_PINNED_RAW_FALLBACK_COUNT=2`
+- `PHASE12_SHARED_TREE_ONLY_FALLBACK_COUNT=2`
+- `PHASE12_RELEASE_COORDINATION_SURVEY=Documentation/zigux/phase12-release-readiness-survey.md`
+
 ## Roadmap Comparison
 
 - `virtio_net` is still visible through `Documentation/zigux/phase12-virtio-net-survey.md`, but it does not yet ship a commit-pinned raw fallback artifact parallel to the `virtio_scsi` or `nvme_pci` packets.
@@ -41,3 +48,5 @@ The surviving pinned fallback artifacts this survey compares against remain:
 
 - `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`
 - `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`
+
+The shared release-coordination reading for this same split now lives in `Documentation/zigux/phase12-release-readiness-survey.md`, so PMO review and degraded public-read review name the same two commit-pinned artifacts, the same two shared-tree-only anchors, and the same validator-first rollback path.
