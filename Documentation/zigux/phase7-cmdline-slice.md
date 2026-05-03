@@ -92,6 +92,7 @@ The current tests check:
 - committed C-vs-Zig parity for `parse_option_str()` now keeps that stop-at-NUL scan behavior in the checked JSON fixture instead of leaving it helper-local only
 - `parse_option_str()` empty-needle parity now mirrors the live C helper: empty option names only match empty segments at the start of the scan or between commas, while an empty source string or a purely trailing comma still return false
 - serialized `next_arg()` edge cases covering quoted values, quoted bare tokens, empty quoted values, unquoted punctuation-rich values, first-equals splitting, leading-equals sentinel handling, trailing-space trimming after `key=value`, and empty-rest termination
+- the dedicated C parity fixture now also keeps quoted bare-token ownership and first-equals value splitting externally reviewable instead of leaving those edges only in the helper-local and shared Zig packets
 - a machine-checked manifest that records the `lib/cmdline.c` anchor and the landed Phase 7 review surfaces
 
 Review note:
