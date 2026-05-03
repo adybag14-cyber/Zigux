@@ -117,7 +117,7 @@ test "phase10 virtio ring survey manifest records the live queue-discipline pack
     defer closure.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P10-L08", manifest.lane_key);
+    try std.testing.expectEqualStrings("P10-L07", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 10", manifest.phase);
     try std.testing.expectEqual(@as(usize, 40), manifest.surveyed_commit.len);
     for (manifest.surveyed_commit) |ch| {
