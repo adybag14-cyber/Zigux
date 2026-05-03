@@ -15,6 +15,7 @@ SURVEY_NOTE_PATH = Path("Documentation/zigux/phase11-uapi-header-parity-survey.m
 SURVEY_ZIG_PATH = Path("zigux/tests/phase11_uapi_header_parity_survey.zig")
 MANIFEST_PATH = Path("zigux/tests/phase11_uapi_header_parity_manifest.json")
 HVC_MATRIX_PATH = Path("Documentation/zigux/phase11-hvc-console-validation-matrix.md")
+MAKEFILE_PATH = Path("zigux/Makefile")
 
 SURVEY_NOTE_MARKERS = [
     "# Phase 11 UAPI And Driver-Header Parity Survey",
@@ -40,6 +41,11 @@ HVC_MATRIX_MARKERS = [
     "shared-versus-dedicated replay",
 ]
 
+MAKEFILE_MARKERS = [
+    "scripts/zigux/check-phase11-header-boundary-packet.py --self-test",
+    "scripts/zigux/check-phase11-header-boundary-packet.py",
+]
+
 
 def text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
@@ -52,6 +58,7 @@ def validate_packet(root: Path) -> int:
         ("survey_note", root / SURVEY_NOTE_PATH, SURVEY_NOTE_MARKERS),
         ("survey_zig", root / SURVEY_ZIG_PATH, SURVEY_ZIG_MARKERS),
         ("hvc_matrix", root / HVC_MATRIX_PATH, HVC_MATRIX_MARKERS),
+        ("makefile", root / MAKEFILE_PATH, MAKEFILE_MARKERS),
     ]:
         source = text(path)
         for marker in markers:
@@ -99,6 +106,7 @@ def validate_packet(root: Path) -> int:
     print("PHASE11_HEADER_BOUNDARY_PACKET=pass")
     print(f"PHASE11_HEADER_BOUNDARY_SURVEY_MARKER_COUNT={len(SURVEY_NOTE_MARKERS)}")
     print(f"PHASE11_HEADER_BOUNDARY_ZIG_MARKER_COUNT={len(SURVEY_ZIG_MARKERS)}")
+    print(f"PHASE11_HEADER_BOUNDARY_MAKEFILE_MARKER_COUNT={len(MAKEFILE_MARKERS)}")
     return 0
 
 
@@ -131,6 +139,10 @@ def write_fixture_tree(root: Path) -> None:
     write_text(root / SURVEY_NOTE_PATH, "\n".join(SURVEY_NOTE_MARKERS) + "\n")
     write_text(root / SURVEY_ZIG_PATH, "\n".join(SURVEY_ZIG_MARKERS) + "\n")
     write_text(root / HVC_MATRIX_PATH, "\n".join(HVC_MATRIX_MARKERS) + "\n")
+    write_text(
+        root / MAKEFILE_PATH,
+        "\n".join(MAKEFILE_MARKERS) + "\n",
+    )
     write_text(
         root / MANIFEST_PATH,
         json.dumps(
@@ -208,8 +220,25 @@ def run_self_test() -> int:
         )
         write_text(manifest_path, json.dumps(manifest_backup, indent=2) + "\n")
 
+        makefile_path = tmp_root / MAKEFILE_PATH
+        makefile_backup = text(makefile_path)
+        write_text(
+            makefile_path,
+            makefile_backup.replace(
+                "scripts/zigux/check-phase11-header-boundary-packet.py --self-test\n",
+                "",
+                1,
+            ),
+        )
+        expect_missing(
+            "missing_makefile_self_test_marker",
+            run_checker(tmp_root),
+            "makefile:scripts/zigux/check-phase11-header-boundary-packet.py --self-test",
+        )
+        write_text(makefile_path, makefile_backup)
+
     print("PHASE11_HEADER_BOUNDARY_PACKET_SELF_TEST=pass")
-    print("PHASE11_HEADER_BOUNDARY_PACKET_SELF_TEST_CASE_COUNT=3")
+    print("PHASE11_HEADER_BOUNDARY_PACKET_SELF_TEST_CASE_COUNT=4")
     return 0
 
 
