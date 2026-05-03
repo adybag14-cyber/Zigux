@@ -356,6 +356,7 @@
     "anchors_with_phase14_survey_evidence": 2,
     "reserved_evidence_archive_templates": 4,
     "anchors_with_explicit_blocker_dispositions": 4,
+    "anchors_with_explicit_owner_and_rollback_owner": 4,
     "required_review_process_record_fields": 15,
     "reopen_trigger_catalog_entries": 3,
     "repo_evidence_checks_green": 15,
