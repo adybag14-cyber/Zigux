@@ -17,10 +17,15 @@ PARITY_SCRIPT_PATH = Path("scripts/zigux/check-phase6-base64-c-parity.py")
 
 SELF_TEST_CASE_COUNT = 10
 PARITY_CASE_COUNT = 112
+CATALOG_EVIDENCE_SELF_TEST_CASE_COUNT = 6
 
 CATALOG_MARKERS = [
     f"PHASE6_BASE64_C_PARITY_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}",
     f"PHASE6_BASE64_C_PARITY_CASES={PARITY_CASE_COUNT}",
+]
+
+CATALOG_REVIEW_MARKERS = [
+    "`python3 scripts/zigux/check-phase6-base64-catalog-evidence.py --self-test` and `python3 scripts/zigux/check-phase6-base64-catalog-evidence.py` now keep the shared base64 review packet fail-closed",
 ]
 
 PARITY_SCRIPT_MARKERS = [
@@ -53,6 +58,9 @@ def validate(root: Path) -> list[str]:
     for marker in CATALOG_MARKERS:
         if marker not in catalog:
             missing.append(f"catalog:missing:{marker}")
+    for marker in CATALOG_REVIEW_MARKERS:
+        if marker not in catalog:
+            missing.append(f"catalog_review:missing:{marker}")
 
     parity_script = read_text(root, PARITY_SCRIPT_PATH)
     for marker in PARITY_SCRIPT_MARKERS:
@@ -84,7 +92,7 @@ def write(root: Path, relpath: Path, content: str) -> None:
 
 
 def build_self_test_tree(root: Path) -> None:
-    write(root, CATALOG_PATH, "\n".join(["# x", *CATALOG_MARKERS]) + "\n")
+    write(root, CATALOG_PATH, "\n".join(["# x", *CATALOG_MARKERS, *CATALOG_REVIEW_MARKERS]) + "\n")
     write(root, PARITY_SCRIPT_PATH, "\n".join(PARITY_SCRIPT_MARKERS) + "\n")
     write(
         root,
@@ -119,6 +127,11 @@ def run_self_test() -> int:
                 raise AssertionError("missing catalog self-test marker failure")
 
             build_self_test_tree(root)
+            write(root, CATALOG_PATH, "\n".join(["# x", *CATALOG_MARKERS]) + "\n")
+            if f"catalog_review:missing:{CATALOG_REVIEW_MARKERS[0]}" not in validate(root):
+                raise AssertionError("missing catalog review marker failure")
+
+            build_self_test_tree(root)
             manifest = json.loads(read_text(root, MANIFEST_PATH))
             manifest["determinism_evidence"]["base64"]["c_parity_self_test_cases"] = 9
             write(root, MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
@@ -147,7 +160,7 @@ def run_self_test() -> int:
         return 1
 
     print("PHASE6_BASE64_CATALOG_EVIDENCE_SELF_TEST=pass")
-    print("PHASE6_BASE64_CATALOG_EVIDENCE_SELF_TEST_CASE_COUNT=5")
+    print(f"PHASE6_BASE64_CATALOG_EVIDENCE_SELF_TEST_CASE_COUNT={CATALOG_EVIDENCE_SELF_TEST_CASE_COUNT}")
     return 0
 
 
