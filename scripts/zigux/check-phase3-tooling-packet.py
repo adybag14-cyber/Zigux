@@ -4,11 +4,13 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+import runpy
 import tempfile
 
 
 ROOT = Path(__file__).resolve().parents[2]
 MANIFEST_REL = "zigux/tests/fixtures/phase3_abi_manifest.json"
+VALIDATOR_REL = "scripts/zigux/validate-phase3.py"
 REQUIRED_TOOLING_FILES = (
     "scripts/zigux/check-phase3-build-roots.py",
     "scripts/zigux/check-phase3-canonical-survey-manifest.py",
@@ -23,12 +25,7 @@ REQUIRED_TOOLING_FILES = (
     "scripts/zigux/validate_phase3_core.py",
     "scripts/zigux/validate_phase3_selftest.py",
 )
-REQUIRED_README_TOOLING_FILES = (
-    "scripts/zigux/check-phase3-abi-layout-packet.py",
-    "scripts/zigux/check-phase3-build-roots.py",
-    "scripts/zigux/check-phase3-canonical-survey-manifest.py",
-    "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py",
-    "scripts/zigux/check-phase3-rbtree-shared-lift-contract.py",
+README_PACKET_STATIC_FILES = (
     "scripts/zigux/check-phase3-readme-tooling-inventory.py",
     "scripts/zigux/check-phase3-tooling-packet.py",
     "scripts/zigux/check-phase3-validation-flow.py",
@@ -37,13 +34,54 @@ REQUIRED_README_TOOLING_FILES = (
     "scripts/zigux/phase3_check_lib.py",
     "scripts/zigux/run-phase3-checks.py",
     "scripts/zigux/validate-phase3.py",
-    "scripts/zigux/validate-phase3-export-uapi-survey.py",
-    "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
-    "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
-    "scripts/zigux/validate-phase3-rbtree-interop-survey.py",
-    "scripts/zigux/validate-phase3-roadmap-gap-survey.py",
     "scripts/zigux/validate_phase3_selftest.py",
 )
+
+
+def _ordered_unique(entries: list[str]) -> list[str]:
+    ordered: list[str] = []
+    seen: set[str] = set()
+    for entry in entries:
+        if entry in seen:
+            continue
+        seen.add(entry)
+        ordered.append(entry)
+    return ordered
+
+
+def canonical_readme_tooling_files(root: Path) -> tuple[list[str], list[str]]:
+    validator_path = root / VALIDATOR_REL
+    if not validator_path.exists():
+        return [], [f"missing_validator:{VALIDATOR_REL}"]
+
+    namespace = runpy.run_path(str(validator_path))
+    issues: list[str] = []
+    rels: list[str] = []
+
+    survey_scripts = namespace.get("SURVEY_VALIDATION_SCRIPTS")
+    if not isinstance(survey_scripts, tuple):
+        issues.append("missing_validator_constant:SURVEY_VALIDATION_SCRIPTS")
+    else:
+        for entry in survey_scripts:
+            if not (isinstance(entry, tuple) and entry and isinstance(entry[0], str)):
+                issues.append(f"invalid_survey_entry:{entry!r}")
+                continue
+            rels.append(f"scripts/zigux/{entry[0]}")
+
+    for constant_name in ("BUILD_ROOT_DRIFT_SCRIPT", "CANONICAL_SURVEY_MANIFEST_SCRIPT"):
+        constant = namespace.get(constant_name)
+        if not (isinstance(constant, tuple) and constant and isinstance(constant[0], str)):
+            issues.append(f"missing_validator_constant:{constant_name}")
+            continue
+        rels.append(f"scripts/zigux/{constant[0]}")
+
+    rels.extend(README_PACKET_STATIC_FILES)
+    return _ordered_unique(rels), issues
+
+
+_default_readme_files, _default_readme_issues = canonical_readme_tooling_files(ROOT)
+REQUIRED_README_TOOLING_FILES = tuple(_default_readme_files)
+REQUIRED_README_TOOLING_FILE_ISSUES = tuple(_default_readme_issues)
 
 
 def validate(root: Path) -> list[str]:
@@ -67,7 +105,10 @@ def validate(root: Path) -> list[str]:
     for rel in REQUIRED_TOOLING_FILES:
         if rel in listed and not (root / rel).exists():
             issues.append(f"missing_repo_file:{rel}")
-    for rel in REQUIRED_README_TOOLING_FILES:
+
+    readme_files, readme_issues = canonical_readme_tooling_files(root)
+    issues.extend(readme_issues)
+    for rel in readme_files:
         if not (root / rel).exists():
             issues.append(f"missing_readme_tooling_file:{rel}")
     return issues
@@ -83,9 +124,36 @@ def run_self_test() -> int:
         root = Path(tmp_dir) / "repo"
         manifest_path = root / MANIFEST_REL
 
+        _write(
+            root / VALIDATOR_REL,
+            "\n".join(
+                (
+                    "SURVEY_VALIDATION_SCRIPTS = (",
+                    '    ("validate-phase3-roadmap-gap-survey.py", "PHASE3_ROADMAP_GAP_SURVEY=fail", "roadmap-gap", "missing_roadmap_anchor"),',
+                    '    ("validate-phase3-rbtree-interop-survey.py", "PHASE3_RBTREE_INTEROP_SURVEY=fail", "rbtree-gap", "missing_rbtree_anchor"),',
+                    '    ("check-phase3-rbtree-shared-lift-contract.py", "PHASE3_RBTREE_SHARED_LIFT_CONTRACT=fail", "shared-lift", "missing_contract_anchor"),',
+                    ")",
+                    'BUILD_ROOT_DRIFT_SCRIPT = ("check-phase3-build-roots.py", "PHASE3_BUILD_ROOTS=fail", "build-roots", "missing_root")',
+                    'CANONICAL_SURVEY_MANIFEST_SCRIPT = ("check-phase3-canonical-survey-manifest.py", "PHASE3_CANONICAL_SURVEY_MANIFEST=fail", "canonical-manifest", "missing_manifest_anchor")',
+                    "",
+                )
+            ),
+        )
+
         for rel in REQUIRED_TOOLING_FILES:
+            if rel == VALIDATOR_REL:
+                continue
             _write(root / rel, "# stub\n")
-        for rel in REQUIRED_README_TOOLING_FILES:
+
+        readme_files, readme_issues = canonical_readme_tooling_files(root)
+        if readme_issues:
+            raise SystemExit(
+                "phase3-tooling-packet-self-test:canonical_readme_derivation_failed:"
+                + ",".join(readme_issues)
+            )
+        for rel in readme_files:
+            if rel == VALIDATOR_REL:
+                continue
             _write(root / rel, "# stub\n")
 
         _write(
@@ -164,9 +232,10 @@ def main() -> int:
             print(issue)
         return 1
 
+    readme_files, _ = canonical_readme_tooling_files(Path(args.root).resolve() if args.root else ROOT)
     print("PHASE3_TOOLING_PACKET=pass")
     print(f"PHASE3_TOOLING_PACKET_FILE_COUNT={len(REQUIRED_TOOLING_FILES)}")
-    print(f"PHASE3_TOOLING_PACKET_README_FILE_COUNT={len(REQUIRED_README_TOOLING_FILES)}")
+    print(f"PHASE3_TOOLING_PACKET_README_FILE_COUNT={len(readme_files)}")
     return 0
 
 
