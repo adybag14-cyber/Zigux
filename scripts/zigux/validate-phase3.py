@@ -80,6 +80,12 @@ SURVEY_VALIDATION_SCRIPTS = (
         "readme-tooling-inventory-gate",
         "missing_readme_entry:check-phase3-tooling-packet.py",
     ),
+    (
+        "check-phase3-validation-flow.py",
+        "PHASE3_VALIDATION_FLOW=fail",
+        "validation-flow-gate",
+        "missing_makefile_snippet:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-validation-flow.py",
+    ),
 )
 
 BUILD_ROOT_DRIFT_SCRIPT = (
