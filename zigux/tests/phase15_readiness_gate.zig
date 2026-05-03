@@ -94,6 +94,8 @@ test "phase 15 readiness manifest records the roadmap, ledger, and current repo 
     try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "freeze-in-C posture") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "shared Phase 15 replay drifts") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "deep-core blocker posture changes") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "python3 scripts/zigux/validate-phase15.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "make -C zigux phase15-validate") != null);
 }
 
 test "phase 15 readiness note keeps the roadmap and ledger comparison explicit" {
@@ -134,6 +136,8 @@ test "phase 15 readiness note keeps the roadmap and ledger comparison explicit" 
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "dedicated replay surfaces are green on current `master`") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "phase15-docs-root-summary-alignment") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "phase15-deep-core-status-change-blocker") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "python3 scripts/zigux/validate-phase15.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "make -C zigux phase15-validate") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "make -C zigux phase15") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "zig build test --build-file zigux/tests/phase15_build.zig") != null);
 
