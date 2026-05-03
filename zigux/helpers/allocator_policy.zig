@@ -91,6 +91,7 @@ test "phase3 allocator policy stays explicit" {
     try std.testing.expect(!recognizesInteropPolicyByte(9));
     try std.testing.expect(requiresExplicitCallerPolicyByte(@intFromEnum(abi.AllocatorMode.caller_provided)));
     try std.testing.expect(!requiresExplicitCallerPolicyByte(@intFromEnum(abi.AllocatorMode.kernel_heap)));
+    try std.testing.expect(!requiresExplicitCallerPolicyByte(9));
     try std.testing.expect(permitsGlobalFallbackPolicyByte(@intFromEnum(abi.AllocatorMode.kernel_heap)));
     try std.testing.expect(initializesOwnedStatePolicyByte(@intFromEnum(abi.AllocatorMode.kernel_heap)));
     try std.testing.expect(requiresResetOnInitPolicyByte(@intFromEnum(abi.AllocatorMode.arena)));
