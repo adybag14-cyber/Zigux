@@ -10,6 +10,7 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[2]
 README_REL = "scripts/zigux/README.md"
 TOOLING_PACKET_SCRIPT_REL = "scripts/zigux/check-phase3-tooling-packet.py"
+README_HELPER_SECTION = "Current bootstrap helpers"
 
 
 def _ordered_unique(entries: list[str]) -> list[str]:
@@ -55,6 +56,43 @@ def _canonical_readme_entries(root: Path) -> tuple[list[str], list[str]]:
     return _ordered_unique(basenames), issues
 
 
+def _helper_section_entries(readme: str) -> tuple[list[str], list[str]]:
+    issues: list[str] = []
+    entries: list[str] = []
+    found_heading = False
+    collecting = False
+    seen: set[str] = set()
+
+    for line in readme.splitlines():
+        stripped = line.strip()
+        if not found_heading:
+            if stripped == README_HELPER_SECTION:
+                found_heading = True
+                collecting = True
+            continue
+
+        if not collecting:
+            break
+        if stripped.startswith("- `") and stripped.endswith("`"):
+            basename = stripped[len("- `") : -1]
+            if basename in seen:
+                issues.append(f"duplicate_readme_entry:{basename}")
+                continue
+            seen.add(basename)
+            entries.append(basename)
+            continue
+        if not stripped:
+            continue
+        if entries:
+            break
+
+    if not found_heading:
+        issues.append(f"missing_readme_section:{README_HELPER_SECTION}")
+    elif not entries:
+        issues.append("missing_readme_section_entries:current_bootstrap_helpers")
+    return entries, issues
+
+
 def validate(root: Path) -> list[str]:
     readme_path = root / README_REL
     try:
@@ -63,12 +101,26 @@ def validate(root: Path) -> list[str]:
         return [f"missing_readme:{README_REL}"]
 
     required_entries, issues = _canonical_readme_entries(root)
+    readme_entries, section_issues = _helper_section_entries(readme)
+    issues.extend(section_issues)
+
+    required_set = set(required_entries)
+    readme_set = set(readme_entries)
+
+    missing_entries: list[str] = []
+
     for basename in required_entries:
         rel = f"scripts/zigux/{basename}"
         if not (root / rel).exists():
             issues.append(f"missing_repo_file:{rel}")
-        if f"- `{basename}`" not in readme:
+        if basename not in readme_set:
+            missing_entries.append(basename)
             issues.append(f"missing_readme_entry:{basename}")
+
+    filtered_entries = [basename for basename in readme_entries if basename in required_set]
+    if not missing_entries and filtered_entries != required_entries:
+        issues.append("readme_entry_order_drift:current_bootstrap_helpers")
+
     return issues
 
 
@@ -82,11 +134,11 @@ def run_self_test() -> int:
         root = Path(tmp_dir) / "repo"
 
         tooling_packet_rels = (
+            "scripts/zigux/validate-phase3-roadmap-gap-survey.py",
             "scripts/zigux/check-phase3-build-roots.py",
-            "scripts/zigux/check-phase3-canonical-survey-manifest.py",
-            "scripts/zigux/check-phase3-readme-tooling-inventory.py",
             "scripts/zigux/check-phase3-tooling-packet.py",
-            "scripts/zigux/check-phase3-validation-flow.py",
+            "scripts/zigux/check-phase3-readme-tooling-inventory.py",
+            "scripts/zigux/validate-phase3.py",
         )
 
         tooling_packet_script = "\n".join(
@@ -111,7 +163,16 @@ def run_self_test() -> int:
         helper_lines = "\n".join(f"- `{Path(rel).name}`" for rel in tooling_packet_rels)
         _write(
             root / README_REL,
-            "# scripts/zigux\n\nCurrent bootstrap helpers\n" + helper_lines + "\n",
+            "\n".join(
+                (
+                    "# scripts/zigux",
+                    "",
+                    "Current bootstrap helpers",
+                    "- `artifact_diff.py`",
+                    helper_lines,
+                    "",
+                )
+            ),
         )
 
         issues = validate(root)
@@ -122,13 +183,19 @@ def run_self_test() -> int:
 
         _write(
             root / README_REL,
-            "# scripts/zigux\n\nCurrent bootstrap helpers\n"
-            + "\n".join(
-                f"- `{Path(rel).name}`"
-                for rel in tooling_packet_rels
-                if rel != tooling_packet_rels[0]
-            )
-            + "\n",
+            "\n".join(
+                (
+                    "# scripts/zigux",
+                    "",
+                    "Current bootstrap helpers",
+                    *[
+                        f"- `{Path(rel).name}`"
+                        for rel in tooling_packet_rels
+                        if rel != tooling_packet_rels[0]
+                    ],
+                    "",
+                )
+            ),
         )
         issues = validate(root)
         expected = f"missing_readme_entry:{Path(tooling_packet_rels[0]).name}"
@@ -140,7 +207,38 @@ def run_self_test() -> int:
 
         _write(
             root / README_REL,
-            "# scripts/zigux\n\nCurrent bootstrap helpers\n" + helper_lines + "\n",
+            "\n".join(
+                (
+                    "# scripts/zigux",
+                    "",
+                    "Current bootstrap helpers",
+                    f"- `{Path(tooling_packet_rels[1]).name}`",
+                    f"- `{Path(tooling_packet_rels[0]).name}`",
+                    *[f"- `{Path(rel).name}`" for rel in tooling_packet_rels[2:]],
+                    "",
+                )
+            ),
+        )
+        issues = validate(root)
+        expected = ["readme_entry_order_drift:current_bootstrap_helpers"]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-readme-tooling-inventory-self-test:order_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+        _write(
+            root / README_REL,
+            "\n".join(
+                (
+                    "# scripts/zigux",
+                    "",
+                    "Current bootstrap helpers",
+                    "- `artifact_diff.py`",
+                    helper_lines,
+                    "",
+                )
+            ),
         )
         (root / tooling_packet_rels[-1]).unlink()
         issues = validate(root)
@@ -152,7 +250,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
-    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=2")
+    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=3")
     return 0
 
 
