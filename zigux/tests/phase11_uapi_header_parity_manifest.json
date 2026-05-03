@@ -64,14 +64,14 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_uapi_header_parity_survey.zig",
-      "why_now": "The shared header-parity gate now carries one bounded `layout_assert` checkpoint for `struct watchdog_info` so size, alignment, and field offsets stay reviewable without turning this simple-driver slice into a wider watchdog-core ownership claim."
+      "why_now": "The shared header-parity gate now carries one bounded `layout_assert` checkpoint for `struct watchdog_info` so size, alignment, exact field types, and field offsets stay reviewable without turning this simple-driver slice into a wider watchdog-core ownership claim."
     },
     {
       "id": "phase11-hvc-console-winsize-layout-assert",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_uapi_header_parity_survey.zig",
-      "why_now": "The shared header-parity gate now carries one bounded `layout_assert` checkpoint for `struct winsize` so the hvc resize surface keeps size, alignment, and `ws_row` or `ws_col` or `ws_xpixel` or `ws_ypixel` offsets reviewable without claiming tty-core or `struct hvc_struct` ownership."
+      "why_now": "The shared header-parity gate now carries one bounded `layout_assert` checkpoint for `struct winsize` so the hvc resize surface keeps size, alignment, exact field types, and `ws_row` or `ws_col` or `ws_xpixel` or `ws_ypixel` offsets reviewable without claiming tty-core or `struct hvc_struct` ownership."
     },
     {
       "id": "phase11-phase3-interop-followup",
