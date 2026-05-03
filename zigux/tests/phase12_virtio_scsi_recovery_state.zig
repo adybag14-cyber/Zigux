@@ -21,7 +21,12 @@ test "phase12 virtio scsi restore clears stale queue depth before a later freeze
     try std.testing.expectEqual(@as(u32, 7), captured.clamped_queue_depth);
 
     _ = try lab.freezeForTransportReset();
-    _ = try lab.restoreAfterTransportReset();
+    const restored = try lab.restoreAfterTransportReset();
+    try std.testing.expect(restored.requires_queue_layout_replan);
+    try std.testing.expect(restored.cleared_probe_snapshot);
+    try std.testing.expect(restored.cleared_host_limit_summary);
+    try std.testing.expect(restored.cleared_queue_depth_summary);
+    try std.testing.expect(restored.cleared_io_queue_map_summary);
 
     const relaid = try lab.planQueueLayout(3, 0);
     try std.testing.expectEqual(@as(u16, 3), relaid.request_queues);
