@@ -4,7 +4,7 @@ This document records a bounded Phase 6 leaf-helper validation slice for Zigux.
 
 ## Status
 
-- `PHASE6_STATUS=active`
+- `PHASE6_STATUS=parked`
 - `PHASE6_SLICE=base64-leaf-helper`
 - scope: first low-risk base64 helper coverage only
 - lane posture: parked after the current parity surface cleared the bounded helper goal
