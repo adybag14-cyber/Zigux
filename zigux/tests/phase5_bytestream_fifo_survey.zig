@@ -490,4 +490,5 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "lib/cmdline.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "phase7_cmdline.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "phase7_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "zig test zigux/tests/phase5_bytestream_fifo.zig") == null);
 }
