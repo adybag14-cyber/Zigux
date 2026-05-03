@@ -60,7 +60,7 @@ test "phase13 landlock syscalls reviewability ties helper, survey, manifest, and
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_reviewability_present);
-    try std.testing.expectEqual(@as(usize, 16), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 17), manifest.gaps.len);
 
     const descriptor = syscalls.SyscallsHelperLab.descriptor();
     try std.testing.expectEqualStrings("landlock_syscalls_helper_lab", descriptor.name);
