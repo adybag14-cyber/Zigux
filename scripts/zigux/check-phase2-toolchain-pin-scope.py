@@ -70,6 +70,11 @@ README_MARKERS = [
     "check-phase2-toolchain-pin-scope.py",
     "zig-toolchain-policy.json",
     "x86_64-linux",
+    "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
+    "Documentation/zigux/review-checklist.md",
+    "make -C zigux phase2-validate",
+    "make -C zigux phase2",
+    "kbuild-facing review path",
 ]
 
 CLOSURE_MARKERS = [
@@ -461,6 +466,14 @@ def run_self_test() -> int:
     if validate_required_markers(readme_text, label="readme", markers=README_MARKERS):
         raise SystemExit("phase2-toolchain-pin-scope:self-test:readme_markers")
 
+    marker_issues = validate_required_markers(
+        "\n".join(marker for marker in README_MARKERS if marker != "kbuild-facing review path"),
+        label="readme",
+        markers=README_MARKERS,
+    )
+    if "readme:missing_marker:kbuild-facing review path" not in marker_issues:
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:readme_reviewability_marker")
+
     toolchain_notes_markers = expected_toolchain_notes_markers(
         valid_policy["channel"],
         valid_policy["minimum_version"],
@@ -537,7 +550,7 @@ def run_self_test() -> int:
             raise SystemExit("phase2-toolchain-pin-scope:self-test:json_round_trip")
 
     print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass")
-    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=28")
+    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=29")
     return 0
 
 
