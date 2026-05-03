@@ -7,7 +7,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `lib
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-atomic64-survey`
 - `PHASE9_SURVEYED_COMMIT=f5a4d6990f701937b2a3bb9ae723bb6d0f27ba21`
-- scope: survey manifest, manifest-backed delivery catalog and ownership map, dedicated runtime survey gate, direct `phase9-runtime-atomic64-sample-tests` and `phase9-runtime-atomic64-loader-tests` shared-build legs, landed sample-backed module starter, landed module gate, landed diff gate, landed loader scaffold, landed shared loader-request binding, and the lane-level review note that keeps the remaining roadmap blocker explicit without claiming loadable-module parity
+- scope: survey manifest, manifest-backed delivery catalog and ownership map, dedicated runtime survey gate, direct `phase9-runtime-atomic64-sample-tests` and `phase9-runtime-atomic64-loader-tests` shared-build legs, landed sample-backed module starter, landed module gate, landed diff gate, landed loader scaffold with prepared counter-summary snapshot replay, landed shared loader-request binding, and the lane-level review note that keeps the remaining roadmap blocker explicit without claiming loadable-module parity
 - product boundary:
   - `samples/zigux/runtime_atomic64.zig`
   - `samples/zigux/runtime_atomic64_loader.zig`
@@ -50,11 +50,11 @@ Against the Phase 9 roadmap requirements, the current runtime atomic64 lane now 
 - a landed sample-backed runtime starter with selftest-hook metadata under `samples/zigux/runtime_atomic64.zig`
 - a landed direct `phase9-runtime-atomic64-sample-tests` shared-build leg in `zigux/tests/phase9_build.zig` so the sample file's own lifecycle and summary replay now runs as first-class shared build evidence
 - a landed direct `phase9-runtime-atomic64-loader-tests` shared-build leg in `zigux/tests/phase9_build.zig` so the loader scaffold's request-shape replay stays equally first-class instead of being implied through the broader shared loader checks
-- a landed sample-side loader scaffold in `samples/zigux/runtime_atomic64_loader.zig`
+- a landed sample-side loader scaffold in `samples/zigux/runtime_atomic64_loader.zig` that snapshots the prepared four-field counter summary before later sample mutation
 - the atomic64 loader scaffold now keeps a synthetic non-null shared `command_name` reviewable through both `toSharedRequest()` and `releasedWithoutSubstrate()` so field preservation is explicit even while the broader shared runtime command surface remains blocked
 - a landed dedicated module gate in `zigux/tests/runtime_atomic64_module.zig`
 - a landed dedicated differential gate in `zigux/tests/runtime_atomic64_diff.zig`
-- a landed shared runtime-loader request binding under `zigux/kernel/runtime_loader.zig` that can consume the atomic64 loader handoff shape, staged entry and exit symbols, allocator posture, and the four-field atomic64 payload summary
+- a landed shared runtime-loader request binding under `zigux/kernel/runtime_loader.zig` that can consume the atomic64 loader handoff shape, staged entry and exit symbols, allocator posture, and the four-field atomic64 payload summary while preserving that prepared snapshot through both `waiting_on_runtime_substrate` and `released_without_substrate` review paths
 - the differential gate now includes the bounded arithmetic, bitwise, swap, compare-swap, and guard-return families from `lib/atomic64_test.c`, including `or`, `and`, `xor`, `andnot`, `add_unless`, `inc_not_zero`, and `dec_if_positive`
 - a remaining blocked shared runtime control surface under `zigux/kernel/runtime_loader.zig`, because command-name, argv-policy, and environment-derived activation handling still have no shared owner and true runtime execution or lifecycle parity remains out of scope
 - the same shared runtime-loader blocker also stays under the freeze-map study boundary for `kernel/workqueue.c`, so the atomic64 packet keeps workqueue parity and any scheduler-facing status change out of scope unless the Architecture Council explicitly reopens that anchor
@@ -66,15 +66,15 @@ This keeps the survey honest about the difference between the shipped in-memory 
 The manifest-backed ownership packet for this slice now keeps the current delivery surfaces explicit:
 
 - `Documentation/zigux/phase9-runtime-atomic64-survey.md` owns the roadmap anchor note, shipped starter scope, ownership packet summary, and remaining shared-loader blocker wording
-- `Documentation/zigux/phase9-runtime-atomic64-module-slice.md` owns the bounded starter surface, loader handoff wording, and shared-build-leg explanation for the shipped packet
+- `Documentation/zigux/phase9-runtime-atomic64-module-slice.md` owns the bounded starter surface, loader handoff wording, prepared counter-summary snapshot replay, and shared-build-leg explanation for the shipped packet
 - `zigux/tests/runtime_atomic64_manifest.json` owns the exact checks plus the delivery catalog and ownership map for the current runtime atomic64 packet
 - `zigux/tests/runtime_atomic64_survey.zig` owns the machine-checkable replay of that ownership packet and the adjacent blocked shared-loader note
 - `zigux/tests/runtime_atomic64_module.zig` owns the bounded starter lifecycle, selftest, and guard-path replay surface
 - `zigux/tests/runtime_atomic64_diff.zig` owns the bounded differential replay for arithmetic, bitwise, swap, compare-swap, and guard-return expectations
 - `zigux/tests/phase9_build.zig` owns the shared Phase 9 replay entrypoint for the direct atomic64 sample and loader legs plus the survey, module, diff, loader, and shared runtime-loader checks
 - `samples/zigux/runtime_atomic64.zig` owns the bounded in-memory atomic64 starter contract, lifecycle staging, and selftest-hook metadata
-- `samples/zigux/runtime_atomic64_loader.zig` owns the sample-side loader projection, explicit shared `command_name` preservation, `waiting_on_runtime_substrate` handoff, `released_without_substrate` fallback, and atomic64 payload summary
-- `zigux/kernel/runtime_loader.zig` owns the shared runtime-loader request contract that consumes the atomic64 loader handoff, allocator posture, and staged entry and exit symbols
+- `samples/zigux/runtime_atomic64_loader.zig` owns the sample-side loader projection, explicit shared `command_name` preservation, prepared counter-summary snapshot replay, `waiting_on_runtime_substrate` handoff, `released_without_substrate` fallback, and atomic64 payload summary
+- `zigux/kernel/runtime_loader.zig` owns the shared runtime-loader request contract that consumes the atomic64 loader handoff, allocator posture, staged entry and exit symbols, and prepared counter-summary snapshot replay
 - `Documentation/zigux/phase9-runtime-loader-gap-survey.md` owns the still-blocked shared command-name, argv-policy, and environment-derived activation-control posture that keeps this atomic64 packet pre-execution
 
 ## Recorded gaps
@@ -90,7 +90,7 @@ The manifest now records both the ownership packet and the current gap posture:
 - the landed `runtime-atomic64-live-loader-binding`
 - the still-blocked `runtime-atomic64-shared-loader-controls`
 
-This keeps the survey useful after the first starter, direct sample-test leg, direct loader-test leg, module gate, diff gate, loader scaffold, and shared loader-request binding landed without pretending that Zigux already has a loadable runtime module or the full shared runtime control surface needed for real execution. It also keeps ownership for the shipped evidence packet explicit so the survey note, module-slice note, manifest, survey gate, module gate, diff gate, sample-side loader, shared loader contract, and shared Phase 9 replay entrypoint cannot drift independently by eye.
+This keeps the survey useful after the first starter, direct sample-test leg, direct loader-test leg, module gate, diff gate, loader scaffold, and shared loader-request binding landed without pretending that Zigux already has a loadable runtime module or the full shared runtime control surface needed for real execution. It also keeps ownership for the shipped evidence packet explicit so the survey note, module-slice note, manifest, survey gate, module gate, diff gate, sample-side loader, prepared counter-summary snapshot replay, shared loader contract, and shared Phase 9 replay entrypoint cannot drift independently by eye.
 
 ## Gates
 
