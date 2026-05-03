@@ -280,7 +280,7 @@ def write_fixture_tree(root: Path) -> None:
 
 
 def run_self_test() -> int:
-    with tempfile.TemporaryDirectory(prefix="zigux_phase11_shared_replay_contract_\") as tmp_dir:
+    with tempfile.TemporaryDirectory(prefix="zigux_phase11_shared_replay_contract_") as tmp_dir:
         tmp_root = Path(tmp_dir)
         write_fixture_tree(tmp_root)
 
