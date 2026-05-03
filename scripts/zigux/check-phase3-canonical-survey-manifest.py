@@ -49,6 +49,16 @@ def _canonical_survey_script_rels(root: Path) -> tuple[list[str], list[str]]:
     else:
         rels.append(f"scripts/zigux/{build_root_script[0]}")
 
+    canonical_manifest_script = namespace.get("CANONICAL_SURVEY_MANIFEST_SCRIPT")
+    if not (
+        isinstance(canonical_manifest_script, tuple)
+        and canonical_manifest_script
+        and isinstance(canonical_manifest_script[0], str)
+    ):
+        issues.append("missing_validator_constant:CANONICAL_SURVEY_MANIFEST_SCRIPT")
+    else:
+        rels.append(f"scripts/zigux/{canonical_manifest_script[0]}")
+
     return _ordered_unique(rels), issues
 
 
@@ -93,6 +103,7 @@ def run_self_test() -> int:
                     '    ("validate-phase3-rbtree-interop-survey.py", "PHASE3_RBTREE_INTEROP_SURVEY=fail", "rbtree-gap", "missing_rbtree_anchor"),',
                     ")",
                     'BUILD_ROOT_DRIFT_SCRIPT = ("check-phase3-build-roots.py", "PHASE3_BUILD_ROOTS=fail", "build-roots", "missing_root")',
+                    'CANONICAL_SURVEY_MANIFEST_SCRIPT = ("check-phase3-canonical-survey-manifest.py", "PHASE3_CANONICAL_SURVEY_MANIFEST=fail", "canonical-manifest", "missing_manifest_anchor")',
                     "",
                 )
             ),
@@ -102,6 +113,7 @@ def run_self_test() -> int:
             "scripts/zigux/validate-phase3-roadmap-gap-survey.py",
             "scripts/zigux/validate-phase3-rbtree-interop-survey.py",
             "scripts/zigux/check-phase3-build-roots.py",
+            "scripts/zigux/check-phase3-canonical-survey-manifest.py",
         )
         for rel in canonical_rels:
             _write(root / rel, "# stub\n")
@@ -159,6 +171,7 @@ def run_self_test() -> int:
                     '    ("validate-phase3-roadmap-gap-survey.py", "PHASE3_ROADMAP_GAP_SURVEY=fail", "roadmap-gap", "missing_roadmap_anchor"),',
                     '    ("validate-phase3-rbtree-interop-survey.py", "PHASE3_RBTREE_INTEROP_SURVEY=fail", "rbtree-gap", "missing_rbtree_anchor"),',
                     ")",
+                    'CANONICAL_SURVEY_MANIFEST_SCRIPT = ("check-phase3-canonical-survey-manifest.py", "PHASE3_CANONICAL_SURVEY_MANIFEST=fail", "canonical-manifest", "missing_manifest_anchor")',
                     "",
                 )
             ),
@@ -177,9 +190,31 @@ def run_self_test() -> int:
                 (
                     "SURVEY_VALIDATION_SCRIPTS = (",
                     '    ("validate-phase3-roadmap-gap-survey.py", "PHASE3_ROADMAP_GAP_SURVEY=fail", "roadmap-gap", "missing_roadmap_anchor"),',
+                    '    ("validate-phase3-rbtree-interop-survey.py", "PHASE3_RBTREE_INTEROP_SURVEY=fail", "rbtree-gap", "missing_rbtree_anchor"),',
+                    ")",
+                    'BUILD_ROOT_DRIFT_SCRIPT = ("check-phase3-build-roots.py", "PHASE3_BUILD_ROOTS=fail", "build-roots", "missing_root")',
+                    "",
+                )
+            ),
+        )
+        issues = validate(root)
+        expected = "missing_validator_constant:CANONICAL_SURVEY_MANIFEST_SCRIPT"
+        if issues != [expected]:
+            raise SystemExit(
+                "phase3-canonical-survey-manifest-self-test:missing_canonical_manifest_constant_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+        _write(
+            root / VALIDATOR_REL,
+            "\n".join(
+                (
+                    "SURVEY_VALIDATION_SCRIPTS = (",
+                    '    ("validate-phase3-roadmap-gap-survey.py", "PHASE3_ROADMAP_GAP_SURVEY=fail", "roadmap-gap", "missing_roadmap_anchor"),',
                     '    "broken-entry",',
                     ")",
                     'BUILD_ROOT_DRIFT_SCRIPT = ("check-phase3-build-roots.py", "PHASE3_BUILD_ROOTS=fail", "build-roots", "missing_root")',
+                    'CANONICAL_SURVEY_MANIFEST_SCRIPT = ("check-phase3-canonical-survey-manifest.py", "PHASE3_CANONICAL_SURVEY_MANIFEST=fail", "canonical-manifest", "missing_manifest_anchor")',
                     "",
                 )
             ),
@@ -193,7 +228,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE3_CANONICAL_SURVEY_MANIFEST_SELF_TEST=pass")
-    print("PHASE3_CANONICAL_SURVEY_MANIFEST_SELF_TEST_CASE_COUNT=4")
+    print("PHASE3_CANONICAL_SURVEY_MANIFEST_SELF_TEST_CASE_COUNT=5")
     return 0
 
 
