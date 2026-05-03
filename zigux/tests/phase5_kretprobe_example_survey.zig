@@ -59,6 +59,7 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     var saw_private_data_prompt = false;
     var saw_maxactive_prompt = false;
     var saw_exact_contract_prompt = false;
+    var saw_helper_contract_prompt = false;
     var saw_symbol_prompt = false;
     var saw_non_goal_prompt = false;
     var saw_private_data_check = false;
@@ -105,6 +106,12 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
         {
             saw_exact_contract_prompt = true;
         }
+        if (std.mem.indexOf(u8, prompt, "runRetargetRecoveryReplay()") != null and
+            std.mem.indexOf(u8, prompt, "runMaxactiveBudgetReplay()") != null and
+            std.mem.indexOf(u8, prompt, "runOwnershipBoundaryReplay()") != null)
+        {
+            saw_helper_contract_prompt = true;
+        }
         if (std.mem.indexOf(u8, prompt, "pre-init") != null and
             std.mem.indexOf(u8, prompt, "module_param") != null)
         {
@@ -150,6 +157,7 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
         }
         if (std.mem.eql(u8, check.id, "maxactive-budget")) {
             saw_maxactive_check = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "runMaxactiveBudgetReplay()") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "maxactive budget") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "maxactiveBudget()") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "20 concurrent instances") != null);
@@ -173,6 +181,7 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     try std.testing.expect(saw_private_data_prompt);
     try std.testing.expect(saw_maxactive_prompt);
     try std.testing.expect(saw_exact_contract_prompt);
+    try std.testing.expect(saw_helper_contract_prompt);
     try std.testing.expect(saw_symbol_prompt);
     try std.testing.expect(saw_non_goal_prompt);
     try std.testing.expect(saw_private_data_check);
@@ -314,6 +323,8 @@ test "phase 5 kretprobe contributor docs stay aligned with the shipped review su
     try expectContains(sample_root_readme, "approved Phase 5 non-runtime probe-lifecycle idiom");
     try expectContains(sample_root_readme, "maxactive = 20");
     try expectContains(sample_root_readme, "Phase 9 starter claim");
+
+    try expectContains(survey_note, "runMaxactiveBudgetReplay()");
 
     try expectContains(review_checklist, "manifest-backed survey");
     try expectContains(review_checklist, "sample-backed survey note");
