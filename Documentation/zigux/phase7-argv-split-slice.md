@@ -40,13 +40,15 @@ This current slice keeps the work bounded to the smallest runtime-safe ownership
 
 ## Gates
 
-1. prove the shared Phase 7 validator packet plus the build-inventory, make-wrapper, and argv_split parity gates still fail closed before the helper replay runs
+1. prove the shared Phase 7 validator packet plus the build-inventory, make-wrapper, argv_split packet-alignment, and argv_split parity gates still fail closed before the helper replay runs
 - `python3 scripts/zigux/validate-phase7.py --self-test`
 - `python3 scripts/zigux/validate-phase7.py`
 - `python3 scripts/zigux/check-phase7-build-inventory.py --self-test`
 - `python3 scripts/zigux/check-phase7-build-inventory.py`
 - `python3 scripts/zigux/check-phase7-make-wrapper.py --self-test`
 - `python3 scripts/zigux/check-phase7-make-wrapper.py`
+- `python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test`
+- `python3 scripts/zigux/check-phase7-argv-split-packet.py`
 - `python3 scripts/zigux/check-phase7-argv-split-parity.py --self-test`
 - `python3 scripts/zigux/check-phase7-argv-split-parity.py`
 - `make -C zigux phase7-validate`
