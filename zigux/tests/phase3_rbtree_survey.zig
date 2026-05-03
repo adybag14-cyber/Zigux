@@ -19,6 +19,7 @@ test "phase3 rbtree survey records the landed dedicated boundary packet and narr
     const allocator = std.testing.allocator;
     const manifest_json = @embedFile("phase3_rbtree_manifest.json");
     const slice_note = @embedFile("../../Documentation/zigux/phase3-rbtree-slice.md");
+    const interop_survey = @embedFile("../../Documentation/zigux/phase3-rbtree-interop-survey.md");
     const helper = @embedFile("../helpers/rbtree_view.zig");
     const root_view_helper = @embedFile("../helpers/rbtree_root_view.zig");
     const roadmap_gap = @embedFile("../../Documentation/zigux/phase3-roadmap-gap-survey.md");
@@ -64,6 +65,13 @@ test "phase3 rbtree survey records the landed dedicated boundary packet and narr
     try expectContains(slice_note, "PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug rbtree");
     try expectContains(slice_note, "dedicated `rbtree` boundary packet");
     try expectContains(slice_note, "reusable root-view helper around the dedicated Phase 3 binding packet");
+
+    try expectContains(interop_survey, "the shared Phase 3 ABI manifest now explicitly catalogs the dedicated `rbtree` boundary header, binding, dump, survey, and parity fixture files");
+    try expectContains(interop_survey, "include/zigux/rbtree.h");
+    try expectContains(interop_survey, "zigux/bindings/rbtree.zig");
+    try expectContains(interop_survey, "zigux/tests/phase3_rbtree_dump.zig");
+    try expectContains(interop_survey, "zigux/tests/phase3_rbtree_shared_contract.zig");
+    try expectContains(interop_survey, "zigux/tests/phase3_rbtree_manifest.json");
 
     try expectContains(roadmap_gap, "PHASE3_CURRENT_RBTREE_STATUS=phase3-dedicated-rbtree-boundary-exists-shared-abi-lift-still-missing");
     try expectContains(roadmap_gap, "PHASE3_INTEROP_GAP=shared-phase3-abi-rbtree-lift-still-missing");
