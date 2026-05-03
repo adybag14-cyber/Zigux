@@ -234,7 +234,7 @@ The bounded `kconfig` bridge closure packet remains closed because the shared fi
 - `PHASE2_KCONFIG_BRIDGE_LOW_CONTROL_CASE=zigux/tests/fixtures/kconfig_bridge/escaped_low_control_bytes_expected.json`
 - `PHASE2_KCONFIG_BRIDGE_MANIFEST_POLICY=check-kconfig-bridge.py rejects uncovered modes, malformed manifests, duplicate fixture references, orphaned fixture files, and non-canonical confdata names before replay`
 - `PHASE2_KCONFIG_BRIDGE_REQUIRED_INPUT_POLICY=conf bridge rejects empty Kconfig, .config, and ARCH positional inputs before emitting bridge JSON`
-- `PHASE2_KCONFIG_BRIDGE_EVIDENCE=artifact fixtures plus conf bridge mode coverage, allconfig env, mode-arg, required-input rejection, manifest-determinism, confdata escaped-control decode, empty-string, empty-symbol, explicit-n, malformed-quote, signed-numeric, quoted-suffix, CRLF, empty-path rejection, and low-control JSON emission anchors are required for closure`
+- `PHASE2_KCONFIG_BRIDGE_EVIDENCE=artifact fixtures plus conf bridge mode coverage, allconfig env, mode-arg, manifest-determinism, confdata escaped-control decode, empty-string, empty-symbol, explicit-n, malformed-quote, signed-numeric, quoted-suffix, CRLF, empty-path rejection, and low-control JSON emission anchors are required for closure`
 
 ## Linux-Style Entry Point
 
