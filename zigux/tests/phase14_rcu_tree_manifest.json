@@ -63,6 +63,7 @@
     ],
     "rollback_triggers": [
       "any `kernel/rcu/tree_bridge.zig` claim or status review that lacks the Architecture Council reopen record",
+      "any placeholder, empty, or metadata-only `kernel/rcu/tree_bridge.zig` wrapper that appears without the same reopen record and evidence packet",
       "missing parity scorecard evidence, benchmark notes, or replay command in the active review packet",
       "freeze-map, survey note, or manifest drift that drops the blocked bridge disposition or rollback owner"
     ]
