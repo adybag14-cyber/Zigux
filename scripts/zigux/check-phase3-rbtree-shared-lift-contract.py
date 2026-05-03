@@ -127,6 +127,11 @@ SHARED_PACKET_SNIPPETS = {
         "const cached_root: rbtree.RootView = .{",
         "try std.testing.expect(rbtree.hasRoot(cached_root));",
         "const uncached_root: rbtree.RootView = .{",
+        "try std.testing.expectEqual(@as(usize, 0x2400), uncached_root.root_addr);",
+        "try std.testing.expectEqual(@as(usize, 0), uncached_root.leftmost_addr);",
+        "try std.testing.expectEqual(@as(u32, 0), uncached_root.flags);",
+        "try std.testing.expectEqual(@as(u32, 0), uncached_root.reserved);",
+        "try std.testing.expect(rbtree.hasRoot(uncached_root));",
     ),
     SHARED_ABI_DUMP_REL: (
         'const rbtree = @import("rbtree_bindings");',
@@ -341,6 +346,24 @@ def run_self_test() -> int:
         assert any(
             issue.startswith(
                 f"missing_shared_packet:{SHARED_ABI_TEST_REL}:try std.testing.expect(rbtree.hasRoot(cached_root));"
+            )
+            for issue in issues
+        )
+
+        write(root, SHARED_ABI_TEST_REL, "\n".join(snippet for snippet in SHARED_PACKET_SNIPPETS[SHARED_ABI_TEST_REL] if snippet != "try std.testing.expectEqual(@as(usize, 0x2400), uncached_root.root_addr);") + "\n")
+        issues = validate(root)
+        assert any(
+            issue.startswith(
+                f"missing_shared_packet:{SHARED_ABI_TEST_REL}:try std.testing.expectEqual(@as(usize, 0x2400), uncached_root.root_addr);"
+            )
+            for issue in issues
+        )
+
+        write(root, SHARED_ABI_TEST_REL, "\n".join(snippet for snippet in SHARED_PACKET_SNIPPETS[SHARED_ABI_TEST_REL] if snippet != "try std.testing.expect(rbtree.hasRoot(uncached_root));") + "\n")
+        issues = validate(root)
+        assert any(
+            issue.startswith(
+                f"missing_shared_packet:{SHARED_ABI_TEST_REL}:try std.testing.expect(rbtree.hasRoot(uncached_root));"
             )
             for issue in issues
         )
