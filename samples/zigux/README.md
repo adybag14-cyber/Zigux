@@ -22,8 +22,8 @@ Kobject review packet
 
 Kretprobe review packet
 - keep `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, `zigux/tests/phase5_kretprobe_example_survey.zig`, and `Documentation/zigux/phase5-kretprobe-sample-survey.md` aligned through the shared `zigux/tests/phase5_build.zig` entrypoint
-- keep the landed replay contract explicit: default symbol selection, pre-init retargeting, kernel-thread skip behavior, the single private entry timestamp, return-duration replay, the fixed `maxactive = 20` ceiling, and the bounded `nmissed` summary
-- keep the ownership-and-lifetime review surface explicit outside the main replay path: timestamp-order rejection and recovery, armed-exit rejection, and post-exit handler rejection remain part of the shipped contract
+- keep the landed replay contract explicit through the sample-owned `reviewContract()`: default symbol selection, pre-init retargeting, kernel-thread skip behavior, the single private entry timestamp, return-duration replay, the fixed `maxactive = 20` ceiling, and the bounded `nmissed` summary
+- keep the ownership-and-lifetime review surface explicit outside the main replay path, and keep the same `reviewContract().non_goals` packet visible for reviewers: timestamp-order rejection and recovery, armed-exit rejection, and post-exit handler rejection remain part of the shipped contract
 - keep `register_kretprobe()`, `unregister_kretprobe()`, `pt_regs` return extraction, and runtime module wiring out of scope so this sample stays an approved Phase 5 non-runtime probe-lifecycle idiom rather than a Phase 9 starter claim
 
 Trace-events review packet
