@@ -17,7 +17,7 @@
     "preexisting_runtime_kretprobe_doc_present": true
   },
   "review_prompts": [
-    "the review packet still keeps the Linux anchor, the bounded pre-init configureMaxactive() starter contract, bounded lifecycle-summary surface, the failed-exit rollback proof, and the current released_without_substrate rollback path explicit instead of implying a real register or unregister handoff",
+    "the review packet still keeps the Linux anchor, the bounded pre-init configureMaxactive() starter contract, bounded lifecycle-summary surface, public runFailedExitRecoveryReplay() failed-exit rollback proof, and the current released_without_substrate rollback path explicit instead of implying a real register or unregister handoff",
     "the loader scaffold may keep a synthetic non-null shared command_name reviewable as field-preservation evidence, but docs and tests must still leave broader argv-policy and environment-derived activation control inside the blocked shared runtime-loader packet",
     "the manifest-backed delivery_evidence_catalog and ownership_map still keep the survey note, module-slice note, sample starter, survey gate, module gate, diff gate, loader scaffold, shared loader binding, shared loader-gap note, and shared Phase 9 build entrypoint in one reviewable packet",
     "the shared Phase 9 build entrypoint still names the dedicated phase9-runtime-kretprobe-sample-tests, phase9-runtime-kretprobe-module-tests, phase9-runtime-kretprobe-diff-tests, phase9-runtime-kretprobe-loader-tests, and phase9-runtime-kretprobe-survey-tests legs instead of leaving the shipped replay surface implicit",
@@ -29,7 +29,7 @@
     {
       "id": "lifecycle-summary-surface",
       "kind": "summary_contract",
-      "expected": "the bounded starter exposes RuntimeKretprobeSummary with lifecycle stage, init or selftest or exit counters, active-instance state, and the latest bounded probe results so selftest and post-exit review never depend on internal field reads"
+      "expected": "the bounded starter exposes RuntimeKretprobeSummary with lifecycle stage, init or selftest or exit counters, active-instance state, the latest bounded probe results, and a public runFailedExitRecoveryReplay() path so selftest and post-exit review never depend on internal field reads"
     },
     {
       "id": "maxactive-preinit-surface",
@@ -54,7 +54,7 @@
     {
       "id": "delivery-ownership-packet",
       "kind": "review_surface",
-      "expected": "the manifest-backed delivery catalog and ownership map keep the survey note, module-slice note, sample starter, survey gate, module gate, diff gate, loader scaffold, shared loader binding, loader-gap note, and shared build entrypoint in one reviewable packet"
+      "expected": "the manifest-backed delivery catalog and ownership map keep the survey note, module-slice note, sample starter, public runFailedExitRecoveryReplay() ownership, survey gate, module gate, diff gate, loader scaffold, shared loader binding, loader-gap note, and shared build entrypoint in one reviewable packet"
     },
     {
       "id": "shared-loader-controls-blocker",
@@ -114,7 +114,7 @@
       "id": "runtime-kretprobe-sample",
       "kind": "sample_starter",
       "path": "samples/zigux/runtime_kretprobe.zig",
-      "role": "owns the bounded in-memory kretprobe starter contract, lifecycle staging, per-instance timestamp bookkeeping, and selftest-hook metadata"
+      "role": "owns the bounded in-memory kretprobe starter contract, lifecycle staging, per-instance timestamp bookkeeping, public runFailedExitRecoveryReplay(), and selftest-hook metadata"
     },
     {
       "id": "runtime-kretprobe-loader-scaffold",
@@ -166,7 +166,7 @@
     },
     {
       "surface": "samples/zigux/runtime_kretprobe.zig",
-      "owns": "the bounded in-memory kretprobe starter contract, lifecycle staging, per-instance timestamp bookkeeping, and selftest-hook metadata"
+      "owns": "the bounded in-memory kretprobe starter contract, lifecycle staging, per-instance timestamp bookkeeping, public runFailedExitRecoveryReplay(), and selftest-hook metadata"
     },
     {
       "surface": "samples/zigux/runtime_kretprobe_loader.zig",
@@ -201,7 +201,7 @@
       "status": "starter_landed",
       "kind": "sample_starter",
       "zigux_destination": "samples/zigux/runtime_kretprobe.zig",
-      "why_now": "A sample-backed lifecycle starter is the first honest runtime-facing kretprobe step that can model entry timestamps, return values, duration, and missed-instance bookkeeping without claiming loadable-module parity."
+      "why_now": "A sample-backed lifecycle starter is the first honest runtime-facing kretprobe step that can model entry timestamps, return values, duration, missed-instance bookkeeping, and a reusable failed-exit recovery replay without claiming loadable-module parity."
     },
     {
       "id": "runtime-kretprobe-module-tests",
