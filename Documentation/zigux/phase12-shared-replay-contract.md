@@ -70,6 +70,8 @@ The bounded libbpf-only replay remains separate from the shared build packet:
 - `python3 scripts/zigux/check-phase12-libbpf-focused-replay.py`
 - `zig build test --build-file zigux/tests/phase12_libbpf_only_build.zig --summary all`
 
+That direct `zig build test --build-file zigux/tests/phase12_libbpf_only_build.zig --summary all` replay stays intentionally outside `make -C zigux phase12`, so the focused libbpf shard remains a dedicated heavy-helper check instead of looking like an implicit extra step inside the broader shared build inventory run.
+
 That boundary is intentional. The focused shard keeps the heavy-helper lane reviewable without silently implying that every libbpf-facing replay already runs inside `zigux/tests/phase12_build.zig`, and it gives the repo one smaller replay surface for the landed `tools/lib/bpf/zigux_segments/` footing while the larger shared validator still carries the cross-anchor Phase 12 packet.
 
 ## Shared Validator Contract
