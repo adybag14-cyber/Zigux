@@ -40,6 +40,17 @@ def _ordered_unique(entries: list[str]) -> list[str]:
     return ordered
 
 
+def _find_duplicate_entries(entries: list[str]) -> list[str]:
+    duplicates: list[str] = []
+    seen: set[str] = set()
+    for entry in entries:
+        if entry in seen and entry not in duplicates:
+            duplicates.append(entry)
+            continue
+        seen.add(entry)
+    return duplicates
+
+
 def _canonical_readme_entries(root: Path) -> tuple[list[str], list[str]]:
     tooling_packet_path = root / TOOLING_PACKET_SCRIPT_REL
     if not tooling_packet_path.exists():
@@ -67,6 +78,8 @@ def _canonical_readme_entries(root: Path) -> tuple[list[str], list[str]]:
             continue
         basenames.append(Path(rel).name)
 
+    for basename in _find_duplicate_entries(basenames):
+        issues.append(f"duplicate_canonical_readme_entry:{basename}")
 
     if not basenames:
         issues.append("missing_tooling_packet_script_entries")
@@ -428,6 +441,31 @@ def run_self_test() -> int:
             )
 
         _write(
+            root / TOOLING_PACKET_SCRIPT_REL,
+            "\n".join(
+                (
+                    "def canonical_readme_tooling_files(root):",
+                    "    return (",
+                    "        [",
+                    *[f"            {rel!r}," for rel in tooling_packet_rels],
+                    f"            {tooling_packet_rels[0]!r},",
+                    "        ],",
+                    "        [],",
+                    "    )",
+                    "",
+                )
+            ),
+        )
+        issues = validate(root)
+        expected = [f"duplicate_canonical_readme_entry:{Path(tooling_packet_rels[0]).name}"]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-readme-tooling-inventory-self-test:duplicate_canonical_entry_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+        _write(root / TOOLING_PACKET_SCRIPT_REL, tooling_packet_script)
+
+        _write(
             root / MAKEFILE_REL,
             "\n".join(
                 (
@@ -787,7 +825,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
-    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=14")
+    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
