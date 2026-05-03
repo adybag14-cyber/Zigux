@@ -97,6 +97,10 @@ REQUIRED_WORKFLOW_SNIPPETS = (
 EXACT_ONCE_WORKFLOW_SNIPPETS = (
     "run: python3 scripts/zigux/check-phase3-validation-flow.py\n",
     "run: python3 scripts/zigux/check-phase3-validation-flow.py --self-test\n",
+    "run: python3 scripts/zigux/phase3_catalog.py --self-test\n",
+    "run: python3 scripts/zigux/phase3_catalog.py --audit-doc-sync\n",
+    "run: python3 scripts/zigux/phase3_catalog.py --check-slug-sanity\n",
+    "run: python3 scripts/zigux/phase3_check_lib.py --self-test\n",
     "run: python3 scripts/zigux/generate-phase3-check-wrappers.py --self-test\n",
     "run: python3 scripts/zigux/generate-phase3-check-wrappers.py --check\n",
     "run: python3 scripts/zigux/check-phase3-readme-tooling-inventory.py\n",
@@ -522,6 +526,71 @@ def run_self_test() -> int:
                 + (",".join(issues) if issues else "none")
             )
 
+        duplicated_catalog_self_test_workflow = (
+            _fixture_workflow()
+            + "      - name: Self-test Phase 3 catalog again\n"
+            + "        run: python3 scripts/zigux/phase3_catalog.py --self-test\n"
+        )
+        _write(root, WORKFLOW_REL, duplicated_catalog_self_test_workflow)
+        issues = validate(root)
+        expected = [
+            "unexpected_workflow_snippet_count:2:run: python3 scripts/zigux/phase3_catalog.py --self-test\n",
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-validation-flow-self-test:duplicate_catalog_self_test_workflow_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+        duplicated_catalog_audit_workflow = (
+            _fixture_workflow()
+            + "      - name: Audit Phase 3 documentation sync again\n"
+            + "        run: python3 scripts/zigux/phase3_catalog.py --audit-doc-sync\n"
+        )
+        _write(root, WORKFLOW_REL, duplicated_catalog_audit_workflow)
+        issues = validate(root)
+        expected = [
+            "unexpected_workflow_snippet_count:2:run: python3 scripts/zigux/phase3_catalog.py --audit-doc-sync\n",
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-validation-flow-self-test:duplicate_catalog_audit_workflow_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+        duplicated_catalog_slug_workflow = (
+            _fixture_workflow()
+            + "      - name: Check Phase 3 slug sanity again\n"
+            + "        run: python3 scripts/zigux/phase3_catalog.py --check-slug-sanity\n"
+        )
+        _write(root, WORKFLOW_REL, duplicated_catalog_slug_workflow)
+        issues = validate(root)
+        expected = [
+            "unexpected_workflow_snippet_count:2:run: python3 scripts/zigux/phase3_catalog.py --check-slug-sanity\n",
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-validation-flow-self-test:duplicate_catalog_slug_workflow_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+        duplicated_shared_helper_workflow = (
+            _fixture_workflow()
+            + "      - name: Self-test Phase 3 shared helper again\n"
+            + "        run: python3 scripts/zigux/phase3_check_lib.py --self-test\n"
+        )
+        _write(root, WORKFLOW_REL, duplicated_shared_helper_workflow)
+        issues = validate(root)
+        expected = [
+            "unexpected_workflow_snippet_count:2:run: python3 scripts/zigux/phase3_check_lib.py --self-test\n",
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-validation-flow-self-test:duplicate_shared_helper_workflow_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+        _write(root, MAKEFILE_REL, _fixture_makefile())
         _write(root, WORKFLOW_REL, _fixture_workflow())
         duplicated_validate_phase3_slices_workflow_title = (
             _fixture_workflow()
@@ -768,7 +837,7 @@ def run_self_test() -> int:
             )
 
         print("PHASE3_VALIDATION_FLOW_SELF_TEST=pass")
-        print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=49")
+        print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=53")
         return 0
 
 
