@@ -77,6 +77,7 @@ Current bootstrap helpers
 - `check-fixdep-diff.py`
 - `check-genksyms-bridge.py`
 - `check-phase2-genksyms-bridge-selftest-alignment.py`
+- `check-phase2-cross-selftest-alignment.py`
 - `check-genksyms-crc-diff.py`
 - `check-kconfig-bridge.py`
 - `check-phase2-cross.py`
