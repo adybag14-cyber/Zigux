@@ -9,8 +9,10 @@ This document records the first bounded Phase 3 helper packet around the roadmap
 - scope: first bounded `zigux/helpers/rbtree_*` helper packet only
 - product boundary:
   - `zigux/helpers/rbtree_view.zig`
+  - `zigux/helpers/rbtree_root_view.zig`
   - `Documentation/zigux/phase3-rbtree-slice.md`
   - `zigux/tests/phase3_rbtree_survey.zig`
+  - `zigux/tests/phase3_rbtree_root_view_survey.zig`
   - `zigux/tests/phase3_rbtree_manifest.json`
 
 ## Why this slice exists
@@ -20,6 +22,7 @@ The roadmap gap note has been pointing at the missing Phase 3 `rbtree` helper fa
 This slice keeps the next move deliberately small:
 
 - one helper-local summary view over the existing runtime `rbtree` packet
+- one reusable root-view helper around the dedicated Phase 3 binding packet
 - bounded node counting with a truncation signal
 - explicit first-node and last-node address reporting
 - one machine-checked survey packet that records the narrowed remaining gap
@@ -30,9 +33,11 @@ That gives Phase 3 a real `zigux/helpers/rbtree_*` foothold without pretending t
 
 1. run the helper-local Zig tests
 - `zig test zigux/helpers/rbtree_view.zig`
+- `zig test zigux/helpers/rbtree_root_view.zig`
 
 2. keep the survey packet machine-checked
 - `zig test zigux/tests/phase3_rbtree_survey.zig`
+- `zig test zigux/tests/phase3_rbtree_root_view_survey.zig`
 
 3. keep the shared Phase 3 slice contract aligned
 - `python3 scripts/zigux/validate-phase3.py`
