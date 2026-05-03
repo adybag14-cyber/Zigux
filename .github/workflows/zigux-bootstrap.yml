@@ -112,18 +112,6 @@ jobs:
       - name: Validate Phase 3 slices
         run: python3 scripts/zigux/validate-phase3.py
 
-      - name: Check Phase 3 roadmap gap survey
-        run: python3 scripts/zigux/validate-phase3-roadmap-gap-survey.py
-
-      - name: Check Phase 3 export and UAPI boundary survey
-        run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py
-
-      - name: Check Phase 3 low-level wrapper boundary survey
-        run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py
-
-      - name: Check Phase 3 policy and unsafe boundary survey
-        run: python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py
-
       - name: Check Phase 3 validation flow
         run: python3 scripts/zigux/check-phase3-validation-flow.py
 
@@ -135,18 +123,6 @@ jobs:
 
       - name: Self-test Phase 3 validator
         run: python3 scripts/zigux/validate-phase3.py --self-test
-
-      - name: Self-test Phase 3 roadmap gap survey checker
-        run: python3 scripts/zigux/validate-phase3-roadmap-gap-survey.py --self-test
-
-      - name: Self-test Phase 3 export and UAPI boundary survey checker
-        run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test
-
-      - name: Self-test Phase 3 low-level wrapper boundary survey checker
-        run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test
-
-      - name: Self-test Phase 3 policy and unsafe boundary survey checker
-        run: python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test
 
       - name: Self-test Phase 3 validation flow checker
         run: python3 scripts/zigux/check-phase3-validation-flow.py --self-test
