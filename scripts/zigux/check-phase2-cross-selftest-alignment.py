@@ -187,6 +187,30 @@ def run_self_test() -> int:
     if validate_exact_makefile_runs(makefile_text):
         raise SystemExit("phase2-cross-alignment:self-test:makefile_counts")
 
+    bad_makefile_missing_route = "\n".join(
+        [
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py --self-test",
+        ]
+    )
+    expect_exact_issue(
+        "makefile_gate_missing_failure",
+        validate_exact_makefile_runs(bad_makefile_missing_route),
+        "makefile_exact_run:scripts/zigux/check-phase2-cross.py:count=0:expected=1",
+    )
+
+    bad_makefile_duplicate_route = "\n".join(
+        [
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py",
+        ]
+    )
+    expect_exact_issue(
+        "makefile_gate_duplicate_failure",
+        validate_exact_makefile_runs(bad_makefile_duplicate_route),
+        "makefile_exact_run:scripts/zigux/check-phase2-cross.py:count=2:expected=1",
+    )
+
     checker_text = "\n".join(PHASE2_CROSS_CHECKER_MARKERS)
     if validate_required_markers(
         checker_text,
@@ -257,7 +281,7 @@ def run_self_test() -> int:
             raise SystemExit("phase2-cross-alignment:self-test:json_round_trip")
 
     print("PHASE2_CROSS_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=13")
+    print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
