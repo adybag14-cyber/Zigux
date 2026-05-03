@@ -430,7 +430,7 @@ def run_self_test() -> int:
     survey_dependency_steps = survey_dependency_drift["shared_test_depend_steps"]
     if "run_string_helpers_survey_tests" in survey_dependency_steps:
         raise SystemExit("phase7-build-inventory:self-test:survey_dependency_drift_shape")
-    if len(survey_dependency_steps) != len(first["shared_test_depend_steps"]) - 1:
+    if len(survey_dependency_steps) != len(first["shared_test_dependSteps"]) - 1:
         raise SystemExit("phase7-build-inventory:self-test:survey_dependency_drift_count")
 
     validation_gate_drift_text, replacements = re.subn(
@@ -614,7 +614,7 @@ def main(argv: list[str] | None = None) -> int:
     if generated.get("unexpected_build_markers") != UNEXPECTED_BUILD_MARKERS:
         build_inventory_errors.append("unexpected_build_markers")
     if len(generated.get("run_labels", [])) != 8:
-        build_inventoryErrors.append("run_labels")
+        build_inventory_errors.append("run_labels")
     if len(generated.get("shared_test_depend_steps", [])) != 8:
         build_inventory_errors.append("shared_test_depend_steps")
     for run_label in EXPECTED_REPO_ROOT_RUN_CWDS:
