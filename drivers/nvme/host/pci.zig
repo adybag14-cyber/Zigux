@@ -36,6 +36,7 @@ pub const ModuleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
     provides_lab_queue_planner: bool,
+    provides_queue_count_helper: bool,
     provides_prp_shape_helper: bool,
     provides_prp_metadata_helper: bool,
     provides_pointer_selection_helper: bool,
@@ -59,6 +60,21 @@ pub const QueuePairPlanSummary = struct {
     sq_doorbell_offset: u32,
     cq_doorbell_offset: u32,
     uses_cmb: bool,
+    reset_generation: u32,
+};
+
+pub const IoQueueCountPlanSummary = struct {
+    anchor: []const u8,
+    requested_io_queues: usize,
+    controller_io_queue_limit: usize,
+    planner_remaining_io_slots: usize,
+    selected_io_queues: usize,
+    first_queue_id: u16,
+    last_queue_id: u16,
+    queue_pairs_after_plan: usize,
+    controller_limited: bool,
+    planner_limited: bool,
+    queues_frozen: bool,
     reset_generation: u32,
 };
 
@@ -154,6 +170,7 @@ pub const NvmePciQueueLab = struct {
             .name = "nvme_pci_queue_lab",
             .anchor = "drivers/nvme/host/pci.c",
             .provides_lab_queue_planner = true,
+            .provides_queue_count_helper = true,
             .provides_prp_shape_helper = true,
             .provides_prp_metadata_helper = true,
             .provides_pointer_selection_helper = true,
@@ -202,6 +219,39 @@ pub const NvmePciQueueLab = struct {
         self.next_io_queue_id += 1;
         self.planned_io_queues += 1;
         return summary;
+    }
+
+    pub fn planIoQueueCount(
+        self: *const Self,
+        requested_io_queues: usize,
+        controller_io_queue_limit: usize,
+    ) !IoQueueCountPlanSummary {
+        if (self.recovery_state != .running) return error.QueuePlanningBlockedByReset;
+        if (requested_io_queues == 0) return error.InvalidRequestedIoQueues;
+        if (controller_io_queue_limit == 0) return error.InvalidControllerQueueCount;
+
+        const planner_remaining_io_slots = max_planned_io_queues - self.planned_io_queues;
+        if (planner_remaining_io_slots == 0) return error.NoQueueIdsAvailable;
+
+        const selected_io_queues = @min(requested_io_queues, @min(controller_io_queue_limit, planner_remaining_io_slots));
+        const last_queue_delta = try checkedCastU16(selected_io_queues - 1);
+        const last_queue_id = try checkedAddU16(self.next_io_queue_id, last_queue_delta);
+        const queue_pairs_after_plan = try checkedAddUsize(self.planned_io_queues, selected_io_queues);
+
+        return .{
+            .anchor = descriptor().anchor,
+            .requested_io_queues = requested_io_queues,
+            .controller_io_queue_limit = controller_io_queue_limit,
+            .planner_remaining_io_slots = planner_remaining_io_slots,
+            .selected_io_queues = selected_io_queues,
+            .first_queue_id = self.next_io_queue_id,
+            .last_queue_id = last_queue_id,
+            .queue_pairs_after_plan = try checkedAddUsize(queue_pairs_after_plan, 1),
+            .controller_limited = controller_io_queue_limit < requested_io_queues,
+            .planner_limited = planner_remaining_io_slots < requested_io_queues,
+            .queues_frozen = false,
+            .reset_generation = self.reset_generation,
+        };
     }
 
     pub fn beginReset(self: *Self) RecoverySummary {
@@ -436,6 +486,14 @@ pub const NvmePciQueueLab = struct {
             return error.InvalidSqEntryBytes;
         }
         return sq_entry_bytes;
+    }
+
+    fn checkedCastU16(value: usize) !u16 {
+        return std.math.cast(u16, value) orelse error.QueueBytesOverflow;
+    }
+
+    fn checkedAddU16(lhs: u16, rhs: u16) !u16 {
+        return std.math.add(u16, lhs, rhs) catch error.QueueBytesOverflow;
     }
 
     fn checkedMulU16ByU16(lhs: u16, rhs: u16) !u32 {
