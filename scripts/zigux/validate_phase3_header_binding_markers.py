@@ -130,6 +130,9 @@ HEADER_BINDING_MARKERS = {
         '"check-phase3-abi-layout-packet.py",',
         '"PHASE3_ABI_LAYOUT_PACKET=fail",',
         '"abi-layout-packet-gate",',
+        '"check-phase3-validation-flow.py",',
+        '"PHASE3_VALIDATION_FLOW=fail",',
+        '"validation-flow-gate",',
     ),
     "scripts/zigux/check-phase3-abi-layout-packet.py": (
         'EXPECTED_REL = "zigux/tests/fixtures/phase3_abi/expected.json"',
@@ -314,6 +317,15 @@ def run_self_test() -> int:
         )
         issues = validate_header_binding_markers(root)
         assert f"header-binding-marker: scripts/zigux/validate-phase3.py missing {shared_validator_marker}" in issues
+
+        validation_flow_marker = HEADER_BINDING_MARKERS["scripts/zigux/validate-phase3.py"][3]
+        shared_validator.write_text(
+            shared_validator.read_text(encoding="utf-8").replace(validation_flow_marker + "\n", "", 1),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate_header_binding_markers(root)
+        assert f"header-binding-marker: scripts/zigux/validate-phase3.py missing {validation_flow_marker}" in issues
 
     print("PHASE3_HEADER_BINDING_MARKER_SELF_TEST=pass")
     return 0
