@@ -24,6 +24,7 @@ BUILD_TEST_ROOT_MODULE_RE = re.compile(
 REQUIRED_FILES = [
     "scripts/zigux/check-phase12-libbpf-focused-replay.py",
     "scripts/zigux/README.md",
+    "Documentation/zigux/README.md",
     "scripts/zigux/validate-phase12.py",
     ".github/workflows/zigux-bootstrap.yml",
     "zigux/Makefile",
@@ -106,6 +107,9 @@ SCRIPTS_README_MARKERS = [
     "phase12_libbpf_only_build.zig",
     "focused libbpf-only replay hook",
 ]
+DOCS_ROOT_README_MARKERS = [
+    "the active Phase 12 heavy-helper survey packet now also keeps the bounded `tools/lib/bpf/zigux_segments/` helper foundations, the reproducibility snapshot, the focused libbpf-only replay shard rooted in `scripts/zigux/check-phase12-libbpf-focused-replay.py` plus `zigux/tests/phase12_libbpf_only_build.zig`, the still-deferred file-path-and-handle bridge and perf-buffer-online-cpu-routing boundaries, and the blocked object-model, loader, and relocation split visible from the top-level docs index.",
+]
 REVIEW_CHECKLIST_MARKERS = [
     "if the change touches the focused Phase 12 libbpf-only replay packet, do `python3 scripts/zigux/check-phase12-libbpf-focused-replay.py --self-test`, `scripts/zigux/check-phase12-libbpf-focused-replay.py`, `scripts/zigux/validate-phase12.py`, `zigux/tests/phase12_libbpf_only_build.zig`, `zigux/tests/phase12_libbpf_manifest.json`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` still agree on the same dedicated replay shard, review-note hook, and validator-first rollback path instead of leaving that narrower libbpf gate implied behind the broader packet checks?",
 ]
@@ -181,6 +185,7 @@ def collect_missing(
     survey_note_text: str,
     manifest_text: str,
     scripts_readme_text: str,
+    docs_root_readme_text: str,
     review_checklist_text: str,
     validate_phase12_text: str,
     makefile_text: str,
@@ -191,6 +196,7 @@ def collect_missing(
     missing.extend(collect_marker_misses(survey_note_text, SURVEY_NOTE_MARKERS, "survey_note"))
     missing.extend(collect_marker_misses(manifest_text, MANIFEST_MARKERS, "manifest"))
     missing.extend(collect_marker_misses(scripts_readme_text, SCRIPTS_README_MARKERS, "scripts_readme"))
+    missing.extend(collect_marker_misses(docs_root_readme_text, DOCS_ROOT_README_MARKERS, "docs_root_readme"))
     missing.extend(collect_marker_misses(review_checklist_text, REVIEW_CHECKLIST_MARKERS, "review_checklist"))
     missing.extend(collect_marker_misses(validate_phase12_text, VALIDATE_PHASE12_MARKERS, "validate_phase12"))
     missing.extend(collect_marker_misses(makefile_text, MAKEFILE_MARKERS, "makefile"))
@@ -233,6 +239,7 @@ def build_live_inputs() -> dict[str, object]:
         "survey_note_text": read_text("Documentation/zigux/phase12-libbpf-segment-survey.md"),
         "manifest_text": read_text("zigux/tests/phase12_libbpf_manifest.json"),
         "scripts_readme_text": read_text("scripts/zigux/README.md"),
+        "docs_root_readme_text": read_text("Documentation/zigux/README.md"),
         "review_checklist_text": read_text("Documentation/zigux/review-checklist.md"),
         "validate_phase12_text": read_text("scripts/zigux/validate-phase12.py"),
         "makefile_text": read_text("zigux/Makefile"),
@@ -252,6 +259,7 @@ def run_self_test() -> int:
         "survey_note_text": "\n".join(SURVEY_NOTE_MARKERS) + "\n",
         "manifest_text": "\n".join(MANIFEST_MARKERS) + "\n",
         "scripts_readme_text": "\n".join(SCRIPTS_README_MARKERS) + "\n",
+        "docs_root_readme_text": "\n".join(DOCS_ROOT_README_MARKERS) + "\n",
         "review_checklist_text": "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n",
         "validate_phase12_text": "\n".join(VALIDATE_PHASE12_MARKERS) + "\n",
         "makefile_text": "\n".join(MAKEFILE_MARKERS) + "\n",
@@ -374,6 +382,22 @@ def run_self_test() -> int:
     missing = collect_missing(
         **{
             **base_inputs,
+            "docs_root_readme_text": base_inputs["docs_root_readme_text"].replace(
+                DOCS_ROOT_README_MARKERS[0] + "\n",
+                "",
+                1,
+            ),
+        }
+    )
+    expect_contains(
+        "docs_root_readme_marker_detection",
+        missing,
+        f"docs_root_readme:{DOCS_ROOT_README_MARKERS[0]}",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
             "review_checklist_text": base_inputs["review_checklist_text"].replace(
                 REVIEW_CHECKLIST_MARKERS[0] + "\n",
                 "",
@@ -435,7 +459,7 @@ def run_self_test() -> int:
     )
 
     print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST=pass")
-    print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST_CASE_COUNT=13")
+    print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
