@@ -224,7 +224,7 @@ pub fn strHasPrefix(str: []const u8, prefix: []const u8) usize {
     const prefix_len = cStringLen(prefix);
     const str_len = cStringLen(str);
     if (str_len < prefix_len) {
-        return 0;
+        return false;
     }
 
     return if (std.mem.eql(u8, str[0..prefix_len], prefix[0..prefix_len])) prefix_len else 0;
@@ -637,7 +637,7 @@ test "memchrInv keeps the short and long cutoff paths aligned" {
     try std.testing.expectEqual(@as(?usize, null), memchrInv(&all_equal, 'a'));
 }
 
-test "memparse forwards the header-level string helper surface" {
+test "memparse preserves the header-level string helper contract" {
     const decimal = memparse("64K rest");
     try std.testing.expectEqual(@as(u64, 64 << 10), decimal.value);
     try std.testing.expectEqualStrings(" rest", decimal.rest);
