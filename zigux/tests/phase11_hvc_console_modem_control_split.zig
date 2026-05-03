@@ -99,3 +99,21 @@ test "phase11 hvc console keeps tiocmset masks live when tiocmget falls back" {
     try std.testing.expect(summary.set_mask_passthrough);
     try std.testing.expect(summary.clear_mask_passthrough);
 }
+
+test "phase11 hvc console keeps modem-control teardown fallout unavailable after slot removal" {
+    var console = try hvc_console.HvcConsoleLab.init(10);
+    _ = console.instantiate(0xaa);
+
+    const teardown = console.teardown();
+    try std.testing.expectEqual(hvc_console.removed_vtermno, teardown.vtermno);
+    try std.testing.expect(!teardown.adapter_present);
+    try std.testing.expect(!teardown.usable_for_console);
+    try std.testing.expectError(error.ConsoleUnavailable, console.summarizeModemControl(.{
+        .tiocmget_present = true,
+        .tiocmget_result = 1,
+        .tiocmset_present = true,
+        .tiocmset_result = 0,
+        .set_mask = 0x01,
+        .clear_mask = 0x02,
+    }));
+}
