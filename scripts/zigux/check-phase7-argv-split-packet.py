@@ -90,7 +90,7 @@ REQUIRED_HELPER_MARKERS = [
 EXPECTED_MANIFEST = {
     "lane_key": "P7-L12",
     "phase": "Phase 7",
-    "surveyed_commit": "d46fb91493e6e9126d5111bf0e5b21184e0ec1d1",
+    "surveyed_commit": "f58528cf01dfc567dbf261bc0de09980e21306ab",
     "anchor": "lib/argv_split.c",
     "roadmap_destinations": ["lib/argv_split.zig"],
 }
