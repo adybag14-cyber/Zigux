@@ -163,7 +163,7 @@ test "phase4 kprobe_example survey manifest records the landed survey packet and
 
     const live_summary = SurveySummary{
         .kprobe_makefile_replay_present = std.mem.indexOf(u8, kprobes_makefile, "obj-$(CONFIG_SAMPLE_KPROBES) += kprobe_example.o") != null,
-        .kprobe_anchor_symbol_present = std.mem.indexOf(u8, anchor, "static char symbol[KSYM_NAME_LEN] = \"kernel_clone\";") != null,
+        .kprobe_anchor_symbol_present = std.mem.indexOf(u8, anchor, "static char symbol[KSYM_NAME_LEN] = \\\"kernel_clone\\\";") != null,
         .zig_sample_present = zig_sample_present,
         .phase4_build_present = std.mem.indexOf(u8, phase4_build, "phase4_kprobe_example_survey.zig") != null and
             std.mem.indexOf(u8, phase4_build, manifest.shared_build_replay) != null and
@@ -178,13 +178,13 @@ test "phase4 kprobe_example survey manifest records the landed survey packet and
         .phase4_gate_evidence_present = std.mem.indexOf(u8, phase4_gate_evidence, "phase4-kprobe-example-survey-tests") != null and
             std.mem.indexOf(u8, phase4_gate_evidence, "zigux/tests/phase4_kprobe_example_survey.zig") != null and
             std.mem.indexOf(u8, phase4_gate_evidence, "zigux/tests/phase4_kprobe_example_manifest.json") != null and
-            std.mem.indexOf(u8, phase4_gate_evidence, "missing dedicated local wrapper and shared-validator promotion") != null,
+            std.mem.indexOf(u8, phase4_gate_evidence, "shared validator still does not fail closed on the kprobe survey packet itself") != null,
     };
     try std.testing.expectEqualDeep(live_summary, manifest.survey_summary);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
-    var saw_wrapper_gap = false;
+    var saw_validator_promotion_gap = false;
     var saw_sample_gap = false;
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -198,12 +198,12 @@ test "phase4 kprobe_example survey manifest records the landed survey packet and
             ready_next_count += 1;
         }
 
-        if (std.mem.eql(u8, gap.id, "phase4-kprobe-example-local-wrapper-gap")) {
-            saw_wrapper_gap = true;
+        if (std.mem.eql(u8, gap.id, "phase4-kprobe-example-shared-validator-promotion")) {
+            saw_validator_promotion_gap = true;
             try std.testing.expectEqualStrings("ready_next", gap.status);
-            try std.testing.expectEqualStrings("zigux/Makefile", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "phase4-kprobe-example-survey") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shared-validator promotion") != null);
+            try std.testing.expectEqualStrings("scripts/zigux/validate-phase4.py", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "make -C zigux phase4-kprobe-example-survey") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "validate-phase4.py") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase4-kprobe-example-zig-sample")) {
@@ -219,11 +219,11 @@ test "phase4 kprobe_example survey manifest records the landed survey packet and
 
     try std.testing.expectEqual(@as(usize, 3), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 2), ready_next_count);
-    try std.testing.expect(saw_wrapper_gap);
+    try std.testing.expect(saw_validator_promotion_gap);
     try std.testing.expect(saw_sample_gap);
     try std.testing.expect(std.mem.indexOf(u8, anchor, "kernel_clone") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_build, "phase4-kprobe-example-survey-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_build, "phase4-kprobe-example-survey") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, "shared `phase4-kprobe-example-survey-tests` replay") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "current shared build already carries the separate `phase4-kprobe-example-survey-tests` packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "shared validator still does not fail closed on the kprobe survey packet itself") != null);
 }
