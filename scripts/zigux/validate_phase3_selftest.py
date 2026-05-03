@@ -14,13 +14,13 @@ from validate_phase3_core import (
     ABI_REQUIRED_DOC_MARKERS,
     ABI_REQUIRED_EXPECTED_CONSTANTS,
     ABI_REQUIRED_MANIFEST_FILES,
-    ABI_REQUIRED_SOURCE_MARKERS,
     ABI_EXPORT_UAPI_BUILD_FILE_REL,
     ABI_EXPORT_UAPI_LAYOUT_BUILD_FILE_REL,
     ABI_LOW_LEVEL_BUILD_FILE_REL,
     ABI_LOW_LEVEL_SURVEY_CHECK_REL,
     ABI_POLICY_UNSAFE_BUILD_FILE_REL,
     BUILD_FILE_REL,
+    PHASE3_SHARED_RBTREE_RECORD_MARKERS,
     _validate_build_smoke,
     build_smoke_commands,
     select_slices,
@@ -34,16 +34,7 @@ from validate_phase3_core import (
 )
 
 
-RBTREE_SHARED_MISSING_MARKER_CASES = tuple(
-    marker
-    for marker in ABI_REQUIRED_SOURCE_MARKERS["zigux/tests/phase3_abi.zig"]
-    if not marker.startswith("// PHASE3_SHARED_RBTREE_SAMPLE_RECORDS=")
-    and (
-        "empty_root" in marker
-        or "cached_root" in marker
-        or "uncached_root" in marker
-    )
-)
+RBTREE_SHARED_MISSING_MARKER_CASES = PHASE3_SHARED_RBTREE_RECORD_MARKERS
 
 
 def _write_phase3_slice(
