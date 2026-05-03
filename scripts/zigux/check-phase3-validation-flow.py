@@ -33,6 +33,11 @@ REQUIRED_MAKEFILE_SNIPPETS = (
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/run-phase3-checks.py --self-test\n",
 )
 
+EXACT_ONCE_MAKEFILE_SNIPPETS = (
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test\n",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-readme-tooling-inventory.py\n",
+)
+
 REQUIRED_PHASE3_ABI_MAKEFILE_SNIPPETS = (
     "phase3-abi:",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-abi.py\n",
@@ -74,6 +79,11 @@ REQUIRED_WORKFLOW_SNIPPETS = (
     "run: python3 scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test\n",
 )
 
+EXACT_ONCE_WORKFLOW_SNIPPETS = (
+    "run: python3 scripts/zigux/check-phase3-readme-tooling-inventory.py\n",
+    "run: python3 scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test\n",
+)
+
 FORBIDDEN_WORKFLOW_SNIPPETS = (
     "run: python3 scripts/zigux/validate-phase3-roadmap-gap-survey.py\n",
     "run: python3 scripts/zigux/validate-phase3-rbtree-interop-survey.py\n",
@@ -108,6 +118,19 @@ def _require_snippets(
             issues.append(f"{prefix}:{snippet}")
 
 
+def _require_exact_count(
+    text: str,
+    snippets: tuple[str, ...],
+    prefix: str,
+    expected_count: int,
+    issues: list[str],
+) -> None:
+    for snippet in snippets:
+        actual_count = text.count(snippet)
+        if actual_count != expected_count:
+            issues.append(f"{prefix}:{actual_count}:{snippet}")
+
+
 def _reject_snippets(
     text: str,
     snippets: tuple[str, ...],
@@ -131,9 +154,11 @@ def validate(root: Path) -> list[str]:
     makefile = _read_text(root, MAKEFILE_REL, issues)
     workflow = _read_text(root, WORKFLOW_REL, issues)
     _require_snippets(makefile, REQUIRED_MAKEFILE_SNIPPETS, "missing_makefile_snippet", issues)
+    _require_exact_count(makefile, EXACT_ONCE_MAKEFILE_SNIPPETS, "unexpected_makefile_snippet_count", 1, issues)
     _require_snippets(makefile, REQUIRED_PHASE3_ABI_MAKEFILE_SNIPPETS, "missing_makefile_snippet", issues)
     _reject_snippets(makefile, FORBIDDEN_MAKEFILE_SNIPPETS, "unexpected_makefile_snippet", issues)
     _require_snippets(workflow, REQUIRED_WORKFLOW_SNIPPETS, "missing_workflow_snippet", issues)
+    _require_exact_count(workflow, EXACT_ONCE_WORKFLOW_SNIPPETS, "unexpected_workflow_snippet_count", 1, issues)
     _reject_snippets(workflow, FORBIDDEN_WORKFLOW_SNIPPETS, "unexpected_workflow_snippet", issues)
 
     return issues
@@ -257,6 +282,32 @@ def run_self_test() -> int:
         makefile_path.write_text(original_makefile, encoding="utf-8", newline="\n")
 
         makefile_path.write_text(
+            original_makefile
+            + "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-readme-tooling-inventory.py\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate(root)
+        assert (
+            "unexpected_makefile_snippet_count:2:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-readme-tooling-inventory.py\n"
+            in issues
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8", newline="\n")
+
+        makefile_path.write_text(
+            original_makefile
+            + "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate(root)
+        assert (
+            "unexpected_makefile_snippet_count:2:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test\n"
+            in issues
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8", newline="\n")
+
+        makefile_path.write_text(
             original_makefile.replace(
                 "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-dump --build-file zigux/tests/build.zig\n",
                 "",
@@ -350,6 +401,34 @@ def run_self_test() -> int:
 
         workflow_path.write_text(
             original_workflow
+            + "      - name: Validate Phase 3 README tooling inventory again\n"
+            + "        run: python3 scripts/zigux/check-phase3-readme-tooling-inventory.py\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate(root)
+        assert (
+            "unexpected_workflow_snippet_count:2:run: python3 scripts/zigux/check-phase3-readme-tooling-inventory.py\n"
+            in issues
+        )
+        workflow_path.write_text(original_workflow, encoding="utf-8", newline="\n")
+
+        workflow_path.write_text(
+            original_workflow
+            + "      - name: Self-test Phase 3 README tooling inventory checker again\n"
+            + "        run: python3 scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate(root)
+        assert (
+            "unexpected_workflow_snippet_count:2:run: python3 scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test\n"
+            in issues
+        )
+        workflow_path.write_text(original_workflow, encoding="utf-8", newline="\n")
+
+        workflow_path.write_text(
+            original_workflow
             + "      - name: Check Phase 3 roadmap gap survey\n"
             + "        run: python3 scripts/zigux/validate-phase3-roadmap-gap-survey.py\n",
             encoding="utf-8",
@@ -377,7 +456,7 @@ def run_self_test() -> int:
         workflow_path.write_text(original_workflow, encoding="utf-8", newline="\n")
 
     print("PHASE3_VALIDATION_FLOW_SELF_TEST=pass")
-    print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=11")
+    print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
