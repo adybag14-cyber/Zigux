@@ -89,13 +89,14 @@ test "phase10 virtio core survey manifest records the live core validation bundl
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_ring_survey_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_input_survey_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_mmio_survey_present);
-    try std.testing.expect(manifest.gaps.len >= 13);
+    try std.testing.expect(manifest.gaps.len >= 14);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, manifest.surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-config-change-bookkeeping-helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-driver-binding-bookkeeping-helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-driver-remove-bookkeeping-helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-config-generation-summary-helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-config-delivery-disposition-helper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-config-driver-toggle-guard-helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-core-probe-remove-lifecycle") != null);
     try std.testing.expect(closure_manifest == .object);
 
@@ -119,6 +120,7 @@ test "phase10 virtio core survey manifest records the live core validation bundl
     const expected_landed_core_helpers = [_][]const u8{
         "phase10-config-generation-summary-helper",
         "phase10-config-delivery-disposition-helper",
+        "phase10-config-driver-toggle-guard-helper",
     };
     try std.testing.expectEqual(expected_landed_core_helpers.len, core_helper_evidence.array.items.len);
     for (expected_landed_core_helpers, 0..) |helper_id, index| {
@@ -144,6 +146,7 @@ test "phase10 virtio core survey manifest records the live core validation bundl
     var saw_driver_remove_helper = false;
     var saw_config_generation_helper = false;
     var saw_delivery_disposition_helper = false;
+    var saw_driver_toggle_guard_helper = false;
     var saw_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -218,6 +221,14 @@ test "phase10 virtio core survey manifest records the live core validation bundl
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "no handler was bound") != null);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase10-config-driver-toggle-guard-helper")) {
+            saw_driver_toggle_guard_helper = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("drivers/virtio/virtio.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "virtio_config_driver_disable()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "virtio_config_driver_enable()") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase10-core-probe-remove-lifecycle")) {
             saw_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_risky_transport", gap.status);
@@ -231,7 +242,7 @@ test "phase10 virtio core survey manifest records the live core validation bundl
         }
     }
 
-    try std.testing.expect(starter_landed_count >= 12);
+    try std.testing.expect(starter_landed_count >= 13);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_core_helper);
     try std.testing.expect(saw_core_gate);
@@ -241,5 +252,6 @@ test "phase10 virtio core survey manifest records the live core validation bundl
     try std.testing.expect(saw_driver_remove_helper);
     try std.testing.expect(saw_config_generation_helper);
     try std.testing.expect(saw_delivery_disposition_helper);
+    try std.testing.expect(saw_driver_toggle_guard_helper);
     try std.testing.expect(saw_blocker);
 }
