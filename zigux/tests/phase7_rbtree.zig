@@ -331,6 +331,55 @@ test "phase 7 rbtree detached nodes stay non-empty until callers clear them" {
     try std.testing.expectEqual(@as(?*rbtree.Node, null), rbtree.prev(&replace_entries[1].node));
 }
 
+test "phase 7 rbtree replaceNode keeps root victims non-empty until callers clear them" {
+    const less = struct {
+        fn compare(lhs: *const rbtree.Node, rhs: *const rbtree.Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 10 },
+        .{ .key = 20 },
+        .{ .key = 5 },
+        .{ .key = 15 },
+    };
+    var replacement = Entry{ .key = 10 };
+    var root = rbtree.Root.init();
+    for (&entries) |*entry| {
+        rbtree.add(&entry.node, &root, less);
+    }
+
+    rbtree.replaceNode(&entries[0].node, &replacement.node, &root);
+
+    try std.testing.expectEqual(@as(?*rbtree.Node, &replacement.node), root.node);
+    try std.testing.expectEqual(@as(?*rbtree.Node, &entries[2].node), replacement.node.left);
+    try std.testing.expectEqual(@as(?*rbtree.Node, &replacement.node), entries[2].node.parent);
+    try std.testing.expectEqual(@as(?*rbtree.Node, &entries[1].node), replacement.node.right);
+    try std.testing.expectEqual(@as(?*rbtree.Node, &replacement.node), entries[1].node.parent);
+    try std.testing.expect(!rbtree.emptyNode(&entries[0].node));
+
+    const expected = [_]i32{ 5, 10, 15, 20 };
+    var actual: [expected.len]i32 = undefined;
+    var count: usize = 0;
+    var current = rbtree.first(&root);
+    while (current) |node| : (current = rbtree.next(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        actual[count] = entry.key;
+        count += 1;
+    }
+
+    try std.testing.expectEqual(expected.len, count);
+    try std.testing.expectEqualSlices(i32, &expected, actual[0..count]);
+
+    rbtree.clearNode(&entries[0].node);
+    try std.testing.expect(rbtree.emptyNode(&entries[0].node));
+    try std.testing.expectEqual(@as(?*rbtree.Node, null), rbtree.next(&entries[0].node));
+    try std.testing.expectEqual(@as(?*rbtree.Node, null), rbtree.prev(&entries[0].node));
+}
+
 test "phase 7 rbtree clearNode marks detached nodes as empty" {
     var node = rbtree.Node.init();
 
