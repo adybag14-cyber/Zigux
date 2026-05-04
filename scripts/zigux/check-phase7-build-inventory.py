@@ -423,6 +423,27 @@ def run_self_test() -> int:
     ):
         raise SystemExit("phase7-build-inventory:self-test:string_helpers_helper_path_drift")
 
+    cmdline_helper_path_drift_text, replacements = re.subn(
+        r'("phase7_cmdline\.zig",\s*"cmdline",\s*")\.\./\.\./lib/cmdline\.zig("\s*,)',
+        r'\1../../lib/rbtree.zig\2',
+        build_text,
+        count=1,
+        flags=re.S,
+    )
+    if replacements != 1:
+        raise SystemExit("phase7-build-inventory:self-test:cmdline_helper_path_drift_rewrite")
+
+    cmdline_helper_path_drift = render_inventory_from_text(
+        cmdline_helper_path_drift_text,
+        makefile_text,
+    )
+    if cmdline_helper_path_drift == fixture:
+        raise SystemExit("phase7-build-inventory:self-test:cmdline_helper_path_drift_detection")
+    if first["imported_helpers"][1]["helper_path"] != "../../lib/cmdline.zig":
+        raise SystemExit("phase7-build-inventory:self-test:cmdline_helper_path_baseline")
+    if cmdline_helper_path_drift["imported_helpers"][1]["helper_path"] != "../../lib/rbtree.zig":
+        raise SystemExit("phase7-build-inventory:self-test:cmdline_helper_path_drift")
+
     helper_path_drift_text, replacements = re.subn(
         r'("phase7_argv_split\.zig",\s*"argv_split",\s*")\.\./\.\./lib/argv_split\.zig("\s*,)',
         r'\1../../lib/cmdline.zig\2',
@@ -438,6 +459,27 @@ def run_self_test() -> int:
         raise SystemExit("phase7-build-inventory:self-test:helper_path_drift_detection")
     if helper_path_drift["imported_helpers"][2]["helper_path"] != "../../lib/cmdline.zig":
         raise SystemExit("phase7-build-inventory:self-test:helper_path_drift_shape")
+
+    rbtree_helper_path_drift_text, replacements = re.subn(
+        r'("phase7_rbtree\.zig",\s*"rbtree",\s*")\.\./\.\./lib/rbtree\.zig("\s*,)',
+        r'\1../../lib/string_helpers.zig\2',
+        build_text,
+        count=1,
+        flags=re.S,
+    )
+    if replacements != 1:
+        raise SystemExit("phase7-build-inventory:self-test:rbtree_helper_path_drift_rewrite")
+
+    rbtree_helper_path_drift = render_inventory_from_text(
+        rbtree_helper_path_drift_text,
+        makefile_text,
+    )
+    if rbtree_helper_path_drift == fixture:
+        raise SystemExit("phase7-build-inventory:self-test:rbtree_helper_path_drift_detection")
+    if first["imported_helpers"][3]["helper_path"] != "../../lib/rbtree.zig":
+        raise SystemExit("phase7-build-inventory:self-test:rbtree_helper_path_baseline")
+    if rbtree_helper_path_drift["imported_helpers"][3]["helper_path"] != "../../lib/string_helpers.zig":
+        raise SystemExit("phase7-build-inventory:self-test:rbtree_helper_path_drift")
 
     dependency_drift_text = build_text.replace(
         "    test_step.dependOn(&run_rbtree_tests.step);\n",
@@ -607,7 +649,7 @@ def run_self_test() -> int:
         raise SystemExit("phase7-build-inventory:self-test:shared_test_command_drift_shape")
 
     print("PHASE7_BUILD_INVENTORY_SELF_TEST=pass")
-    print("PHASE7_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=24")
+    print("PHASE7_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=26")
     return 0
 
 
