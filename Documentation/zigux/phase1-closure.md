@@ -168,6 +168,7 @@ No additional helper should be called Phase 1 work unless this document and the 
 - `tools/lib/string.zig` direct Zig unit coverage also keeps `sysfsStreq()` and `sysfs_streq()` aligned by treating a single trailing newline as equivalent to C-string termination while still rejecting non-terminal newline and content mismatches.
 - `tools/lib/string.zig` direct Zig unit coverage keeps `memchrInv` honest for both aligned and misaligned long buffers beyond the short C-backed fixture cases.
 - `tools/lib/string.zig` direct Zig unit coverage also keeps `trimSpaces` and `strim` aligned with C-string semantics by trimming trailing whitespace that appears before the first embedded NUL while preserving bytes beyond that terminator.
+- `tools/lib/string.zig` direct Zig unit coverage also keeps `strstrip` aligned with `strim` by preserving the same C-string trimming semantics, including trailing-whitespace removal before the first embedded NUL and empty-whitespace handling without touching bytes beyond that terminator.
 - `tools/lib/string.zig` direct Zig unit coverage also keeps `strStarts` and `strstarts` aligned with kernel-style prefix semantics for exact, empty-prefix, shorter-input, and case-sensitive comparisons.
 - `tools/lib/string.zig` direct Zig unit coverage also keeps `strHasPrefix` and `str_has_prefix` aligned by returning the matched C-string prefix length for exact and embedded-NUL prefixes while rejecting mismatches and longer prefixes.
 - `tools/lib/string.zig` direct Zig unit coverage also keeps `strEndsWith`, `str_ends_with`, and `strends` aligned with kernel-style suffix semantics for exact, empty-suffix, shorter-input, and case-sensitive comparisons.
@@ -181,6 +182,7 @@ No additional helper should be called Phase 1 work unless this document and the 
 - string sysfs unit-test anchor: `tools/lib/string.zig:test "sysfsStreq treats a trailing newline as equivalent to C-string termination"`
 - string direct unit-test anchor: `tools/lib/string.zig:test "memchrInv scans aligned and misaligned long buffers"`
 - string alias unit-test anchor: `tools/lib/string.zig:test "trimSpaces and strim trim trailing whitespace before an embedded NUL"`
+- string strstrip unit-test anchor: `tools/lib/string.zig:test "strstrip aliases strim with the same C-string trimming semantics"`
 - string prefix unit-test anchor: `tools/lib/string.zig:test "strstarts matches kernel prefix semantics"`
 - string prefix-length unit-test anchor: `tools/lib/string.zig:test "strHasPrefix returns the matched prefix length with C-string semantics"`
 - string suffix unit-test anchor: `tools/lib/string.zig:test "str_ends_with matches kernel suffix semantics"`
@@ -194,6 +196,7 @@ No additional helper should be called Phase 1 work unless this document and the 
 - `PHASE1_STRING_SYSFS_UNIT_REVIEW=string sysfsStreq and sysfs_streq treat a single trailing newline as equivalent to C-string termination while still rejecting non-terminal newline and content mismatches`
 - `PHASE1_STRING_UNIT_REVIEW=string memchrInv aligned and misaligned long-buffer scans stay consistent beyond the short C-backed fixture cases`
 - `PHASE1_STRING_ALIAS_UNIT_REVIEW=string trimSpaces and strim trim trailing whitespace before the first embedded NUL while preserving bytes beyond that terminator`
+- `PHASE1_STRING_STRSTRIP_UNIT_REVIEW=string strstrip stays aligned with strim by preserving the same C-string trimming semantics, including trailing-whitespace removal before the first embedded NUL and empty-whitespace handling without touching bytes beyond that terminator`
 - `PHASE1_STRING_PREFIX_UNIT_REVIEW=string strStarts and strstarts keep kernel-style prefix checks aligned for exact, empty-prefix, shorter-input, and case-sensitive comparisons`
 - `PHASE1_STRING_PREFIX_LENGTH_UNIT_REVIEW=string strHasPrefix and str_has_prefix return the matched C-string prefix length for exact and embedded-NUL prefixes while rejecting mismatches and longer prefixes`
 - `PHASE1_STRING_SUFFIX_UNIT_REVIEW=string strEndsWith, str_ends_with, and strends keep kernel-style suffix semantics aligned for exact, empty-suffix, shorter-input, and case-sensitive comparisons`
