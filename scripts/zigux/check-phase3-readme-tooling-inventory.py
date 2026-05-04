@@ -28,6 +28,7 @@ REQUIRED_PHASE3_FLOW_SNIPPETS = (
 )
 REQUIRED_CROSS_PHASE_FLOW_SNIPPETS = (
     "`validate-phase6.py` keeps the shipped Phase 6 leaf-helper packet aligned across `scripts/zigux/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/phase6-helper-parity-catalog.md`, `zigux/tests/phase6_helper_parity_manifest.json`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, the bootstrap workflow, and the four helper-local slice notes before any shared replay claims stay green.",
+    "`validate-phase9.py` is the validator-first entrypoint for the shared runtime-pilot packet across `scripts/zigux/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md`, `zigux/tests/README.md`, `zigux/tests/phase9_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`.",
 )
 EXACT_ONCE_PHASE3_FLOW_SNIPPETS = REQUIRED_PHASE3_FLOW_SNIPPETS
 EXACT_ONCE_CROSS_PHASE_FLOW_SNIPPETS = REQUIRED_CROSS_PHASE_FLOW_SNIPPETS
@@ -365,6 +366,8 @@ def _fixture_cross_phase_flow() -> str:
         (
             "Phase 6 flow",
             f"- {REQUIRED_CROSS_PHASE_FLOW_SNIPPETS[0]}",
+            "Phase 9 flow",
+            f"- {REQUIRED_CROSS_PHASE_FLOW_SNIPPETS[1]}",
             "",
         )
     )
@@ -983,7 +986,9 @@ def run_self_test() -> int:
             f"unexpected_phase3_flow_snippet_count:0:{REQUIRED_PHASE3_FLOW_SNIPPETS[0]}",
             f"unexpected_phase3_flow_snippet_count:0:{REQUIRED_PHASE3_FLOW_SNIPPETS[1]}",
             f"missing_cross_phase_flow_snippet:{REQUIRED_CROSS_PHASE_FLOW_SNIPPETS[0]}",
+            f"missing_cross_phase_flow_snippet:{REQUIRED_CROSS_PHASE_FLOW_SNIPPETS[1]}",
             f"unexpected_cross_phase_flow_snippet_count:0:{REQUIRED_CROSS_PHASE_FLOW_SNIPPETS[0]}",
+            f"unexpected_cross_phase_flow_snippet_count:0:{REQUIRED_CROSS_PHASE_FLOW_SNIPPETS[1]}",
         ]
         if issues != expected:
             raise SystemExit(
@@ -1077,6 +1082,31 @@ def run_self_test() -> int:
                     helper_lines,
                     "",
                     _fixture_phase3_flow(),
+                    _fixture_cross_phase_flow() + f"- {REQUIRED_CROSS_PHASE_FLOW_SNIPPETS[1]}",
+                )
+            ),
+        )
+        issues = validate(root)
+        expected = [
+            f"unexpected_cross_phase_flow_snippet_count:2:{REQUIRED_CROSS_PHASE_FLOW_SNIPPETS[1]}"
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-readme-tooling-inventory-self-test:duplicate_phase9_flow_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+        _write(
+            root / README_REL,
+            "\n".join(
+                (
+                    "# scripts/zigux",
+                    "",
+                    "Current bootstrap helpers",
+                    "- `artifact_diff.py`",
+                    helper_lines,
+                    "",
+                    _fixture_phase3_flow(),
                     _fixture_cross_phase_flow(),
                 )
             ),
@@ -1091,7 +1121,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
-    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=25")
+    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=26")
     return 0
 
 
