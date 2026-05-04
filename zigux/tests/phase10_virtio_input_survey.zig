@@ -135,7 +135,7 @@ test "phase10 virtio input survey manifest records the live starter and remainin
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "kernel/workqueue_bridge.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "kernel/trace/ring_buffer.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "python3 scripts/zigux/check-phase10-harness-coverage.py") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "python3 scripts/zigux/validate-phase10.py") == null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "python3 scripts/zigux/validate-phase10.py") != null);
     try std.testing.expect(closure_manifest == .object);
 
     const survey_provenance = closure_manifest.object.get("survey_provenance") orelse return error.TestUnexpectedResult;
@@ -165,7 +165,7 @@ test "phase10 virtio input survey manifest records the live starter and remainin
         }
     }
     try std.testing.expect(saw_harness_coverage_check);
-    try std.testing.expect(!saw_validate_phase10_check);
+    try std.testing.expect(saw_validate_phase10_check);
 
     const landed_input_helper_evidence = closure_manifest.object.get("landed_input_helper_evidence") orelse return error.TestUnexpectedResult;
     try std.testing.expect(landed_input_helper_evidence == .object);
