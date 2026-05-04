@@ -113,7 +113,7 @@ PHASE2_VALIDATOR_MARKERS = [
     '"compare_text_artifacts(default_actual, default_rebuild)",',
     '"input_path=trailing_cr_input",',
     '"input_path=final_unset_input",',
-    '"print(\'KCONFIG_BRIDGE_DETERMINISM=pass\')",',
+    "\"print('KCONFIG_BRIDGE_DETERMINISM=pass')\",",
 ]
 
 PHASE2_CLOSURE_VALIDATOR_MARKERS = [
@@ -403,22 +403,22 @@ def run_self_test() -> int:
         raise SystemExit("phase2-kconfig-alignment:self-test:marker_failure_shape")
 
     validator_marker_issues = validate_required_markers(
-        validator_text.replace(PHASE2_VALIDATOR_MARKERS[0] + "\n", "", 1),
+        validator_text.replace(PHASE2_VALIDATOR_MARKERS[1] + "\n", "", 1),
         label="phase2_validator",
         markers=PHASE2_VALIDATOR_MARKERS,
     )
     if validator_marker_issues != [
-        f"phase2_validator:missing_marker:{PHASE2_VALIDATOR_MARKERS[0]}"
+        f"phase2_validator:missing_marker:{PHASE2_VALIDATOR_MARKERS[1]}"
     ]:
         raise SystemExit("phase2-kconfig-alignment:self-test:validator_marker_failure")
 
     closure_validator_marker_issues = validate_required_markers(
-        closure_validator_text.replace(PHASE2_CLOSURE_VALIDATOR_MARKERS[0] + "\n", "", 1),
+        closure_validator_text.replace(PHASE2_CLOSURE_VALIDATOR_MARKERS[1] + "\n", "", 1),
         label="phase2_closure_validator",
         markers=PHASE2_CLOSURE_VALIDATOR_MARKERS,
     )
     if closure_validator_marker_issues != [
-        f"phase2_closure_validator:missing_marker:{PHASE2_CLOSURE_VALIDATOR_MARKERS[0]}"
+        f"phase2_closure_validator:missing_marker:{PHASE2_CLOSURE_VALIDATOR_MARKERS[1]}"
     ]:
         raise SystemExit("phase2-kconfig-alignment:self-test:closure_validator_marker_failure")
 
