@@ -9,6 +9,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
+BITMAP_BENCH_ROUTE = "zig build phase4-bitmap-bench --build-file zigux/tests/phase4_build.zig"
 
 REQUIRED_FILES = [
     "scripts/zigux/artifact_diff.py",
@@ -78,6 +79,7 @@ MATRIX_MARKERS = [
     "perf_thresholds_unapproved_until_bounded_phase4_benchmarks_land",
     "threshold_pending_until_runtime_atomic64_scope_widens",
     "threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
+    BITMAP_BENCH_ROUTE,
     "benchmark command is still unapproved for both landed gates",
     "acceptable limit is still unapproved for both landed gates",
 ]
@@ -151,6 +153,7 @@ ATOMIC64_GATE_EVIDENCE_MARKERS = [
 
 BITMAP_GATE_EVIDENCE_MARKERS = [
     "the refreshed bitmap row still treats the 115-bit fill as resolved parity rather than an open survey-only mismatch",
+    BITMAP_BENCH_ROUTE,
 ]
 
 ARTIFACT_DIFF_NOTE_MARKERS = [
@@ -219,6 +222,7 @@ PERF_BASELINE_PENDING_PLAN_EXPECTATIONS = {
         "next_threshold_step": "isolated bitmap benchmark route",
         "status": "pending_bounded_benchmark",
         "why_not_approved_yet": "deterministic threshold replay batch ready",
+        "benchmark_route": BITMAP_BENCH_ROUTE,
     },
 }
 
@@ -318,6 +322,14 @@ def validate_perf_baseline_manifest(manifest: object) -> list[str]:
                 value = plan.get(field)
                 if not isinstance(value, str) or expected[field] not in value:
                     missing.append(f"perf_manifest:pending_plan:{surface}:{field}")
+            benchmark_route = expected.get("benchmark_route")
+            if isinstance(benchmark_route, str):
+                for field in ("next_threshold_step", "why_not_approved_yet"):
+                    value = plan.get(field)
+                    if not isinstance(value, str) or benchmark_route not in value:
+                        missing.append(
+                            f"perf_manifest:pending_plan:{surface}:{field}:benchmark_route"
+                        )
 
     return missing
 
@@ -538,9 +550,9 @@ def write_fixture_tree(root: Path) -> None:
                         "threshold_ready_surface": "zigux/tests/bitmap_diff.zig exposes runThresholdReplay() as the deterministic bitmap threshold batch for future perf-baseline work",
                         "benchmark_command": "unapproved_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
                         "acceptable_limit": "unapproved_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
-                        "next_threshold_step": "Shared Subsystems Pod needs to promote the current deterministic bitmap threshold batch into one isolated bitmap benchmark route before approving one benchmark command and one acceptable limit.",
+                        "next_threshold_step": "Shared Subsystems Pod now has one isolated bitmap benchmark route at `zig build phase4-bitmap-bench --build-file zigux/tests/phase4_build.zig`, and next needs to approve one benchmark command and one acceptable limit for that isolated bitmap benchmark route.",
                         "status": "pending_bounded_benchmark",
-                        "why_not_approved_yet": "The live bitmap gate still carries a bounded correctness-first rollback packet, and zigux/tests/bitmap_diff.zig now keeps one deterministic threshold replay batch ready.",
+                        "why_not_approved_yet": "The live bitmap gate still carries a bounded correctness-first rollback packet, and zigux/tests/bitmap_diff.zig now keeps one deterministic threshold replay batch ready for the new isolated `zig build phase4-bitmap-bench --build-file zigux/tests/phase4_build.zig` route, but no benchmark command or acceptable limit is approved for that route yet.",
                     },
                 ],
             }
@@ -686,6 +698,21 @@ def run_self_test() -> int:
         assert (
             "gate_evidence_bitmap:the refreshed bitmap row still treats the 115-bit fill as resolved parity rather than an open survey-only mismatch"
             in missing
+        ), missing
+
+        write_fixture_tree(root)
+        gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
+        gate_evidence.write_text(
+            gate_evidence.read_text(encoding="utf-8").replace(
+                f"{BITMAP_BENCH_ROUTE}\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert (
+            f"gate_evidence_bitmap:{BITMAP_BENCH_ROUTE}" in missing
         ), missing
 
         write_fixture_tree(root)
@@ -852,15 +879,31 @@ def run_self_test() -> int:
         perf_manifest = root / "zigux/tests/phase4_perf_baseline_manifest.json"
         perf_manifest.write_text(
             perf_manifest.read_text(encoding="utf-8").replace(
-                "isolated bitmap benchmark route",
-                "future benchmark work",
+                BITMAP_BENCH_ROUTE,
+                "zig build phase4-bitmap-bench --build-file zigux/tests/phase4_placeholder.zig",
                 1,
             ),
             encoding="utf-8",
         )
         missing = validate_root(root)
         assert (
-            "perf_manifest:pending_plan:zigux/tests/bitmap_diff.zig:next_threshold_step"
+            "perf_manifest:pending_plan:zigux/tests/bitmap_diff.zig:next_threshold_step:benchmark_route"
+            in missing
+        ), missing
+
+        write_fixture_tree(root)
+        perf_manifest = root / "zigux/tests/phase4_perf_baseline_manifest.json"
+        perf_manifest.write_text(
+            perf_manifest.read_text(encoding="utf-8").replace(
+                BITMAP_BENCH_ROUTE,
+                "zig build phase4-bitmap-bench --build-file zigux/tests/phase4_placeholder.zig",
+                2,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert (
+            "perf_manifest:pending_plan:zigux/tests/bitmap_diff.zig:why_not_approved_yet:benchmark_route"
             in missing
         ), missing
 
