@@ -135,6 +135,7 @@ test "phase13 notifier/list survey records the landed read-only generic notifier
     try std.testing.expect(std.mem.indexOf(u8, notifier_c_header_text, "zigux_notifier_chain_empty") != null);
     try std.testing.expect(std.mem.indexOf(u8, notifier_c_header_text, "zigux_notifier_chain_length_bounded") != null);
     try std.testing.expect(std.mem.indexOf(u8, notifier_c_header_text, "zigux_notifier_chain_summarize") != null);
+    try std.testing.expect(std.mem.indexOf(u8, notifier_c_header_text, "zigux_notifier_chain_has_nonincreasing_priority_order") != null);
     try std.testing.expect(std.mem.indexOf(u8, notifier_c_header_text, "ZIGUX_NOTIFIER_CHAIN_FLAG_PRIORITY_NONINCREASING") != null);
     try std.testing.expect(std.mem.indexOf(u8, linux_zigux_header_text, "struct zigux_notifier_chain_view") == null);
     try std.testing.expect(std.mem.indexOf(u8, linux_zigux_header_text, "struct zigux_notifier_chain_summary") == null);
@@ -159,6 +160,7 @@ test "phase13 notifier/list survey records the landed read-only generic notifier
     try std.testing.expect(std.mem.indexOf(u8, notifier_helper_text, "pub fn isEmpty") != null);
     try std.testing.expect(std.mem.indexOf(u8, notifier_helper_text, "pub fn length") != null);
     try std.testing.expect(std.mem.indexOf(u8, notifier_helper_text, "pub fn summarize") != null);
+    try std.testing.expect(std.mem.indexOf(u8, notifier_helper_text, "pub fn hasNonincreasingPriorityOrder") != null);
     try std.testing.expect(std.mem.indexOf(u8, notifier_helper_text, "priority_nonincreasing") != null);
     try std.testing.expect(std.mem.indexOf(u8, notifier_helper_text, "NOTIFIER_CHAIN_FLAG_PRIORITY_NONINCREASING") != null);
     try std.testing.expect(std.mem.indexOf(u8, notifier_helper_text, "clears the priority-order flag when priorities rise") != null);
@@ -188,7 +190,9 @@ test "phase13 notifier/list survey records the landed read-only generic notifier
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`zigux_notifier_chain_view_valid()`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "reserved or zero-bounded views") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/helpers/notifier_chain_view.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`viewFromHead`, `isEmpty`, `length`, and `summarize`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`hasNonincreasingPriorityOrder`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`zigux_notifier_chain_has_nonincreasing_priority_order()`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "keeps the direct priority-order convenience reviewable") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "keeps the dedicated exported C header small") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "registration, callback execution, SRCU, and blocking notifier semantics remain out of scope") != null);
 
@@ -202,7 +206,7 @@ test "phase13 notifier/list survey records the landed read-only generic notifier
     for (manifest.gaps) |gap| {
         try std.testing.expect(isAllowedStatus(gap.status));
         if (std.mem.eql(u8, gap.status, "starter_landed")) starter_landed_count += 1;
-        if (std.mem.eql(u8, gap.status, "preexisting_phase3_surface")) preexisting_phase3_count += 1;
+        if (std.mem.eql(u8, gap.status, "preexisting_phase3_surface") != null) preexisting_phase3_count += 1;
         if (std.mem.eql(u8, gap.status, "preexisting_chrdev_surface")) preexisting_chrdev_count += 1;
         if (std.mem.eql(u8, gap.status, "preexisting_phase11_surface")) preexisting_phase11_count += 1;
         if (std.mem.eql(u8, gap.status, "preexisting_header_surface")) preexisting_header_count += 1;
