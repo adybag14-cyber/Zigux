@@ -61,7 +61,7 @@ CORE_TEST_MARKERS = [
 
 CORE_SURVEY_TEST_MARKERS = [
     'test "phase10 virtio core survey manifest records the live core validation bundle" {',
-    'try std.testing.expectEqualStrings("P10-Y01", manifest.lane_key);',
+    'try std.testing.expectEqualStrings("P10-L01", manifest.lane_key);',
     'const expected_landed_core_helpers = [_][]const u8{',
     'if (std.mem.eql(u8, gap.id, "phase10-config-driver-toggle-guard-helper")) {',
     'if (std.mem.eql(u8, gap.id, "phase10-core-probe-remove-lifecycle")) {',
@@ -114,8 +114,8 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
                 missing.append(f"{name}:{marker}")
 
     manifest = load_manifest(root, "zigux/tests/phase10_virtio_core_manifest.json")
-    if manifest.get("lane_key") != "P10-Y01":
-        missing.append("manifest:lane_key=P10-Y01")
+    if manifest.get("lane_key") != "P10-L01":
+        missing.append("manifest:lane_key=P10-L01")
     if manifest.get("phase") != "Phase 10":
         missing.append("manifest:phase=Phase 10")
     if manifest.get("anchor") != "drivers/virtio/virtio.c":
@@ -246,7 +246,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     else:
         lane_keys = survey_provenance.get("lane_keys")
         surveyed_commits = survey_provenance.get("surveyed_commits")
-        if not isinstance(lane_keys, dict) or lane_keys.get("core") != "P10-Y01":
+        if not isinstance(lane_keys, dict) or lane_keys.get("core") != "P10-L01":
             missing.append("closure_manifest:survey_provenance:core_lane_key")
         if not isinstance(surveyed_commits, dict) or not HEX40.fullmatch(str(surveyed_commits.get("core", ""))):
             missing.append("closure_manifest:survey_provenance:core_surveyed_commit")
@@ -389,7 +389,7 @@ def run_self_test() -> int:
         closure_path.write_text(original_closure, encoding="utf-8")
 
         closure_manifest = json.loads(original_closure)
-        closure_manifest["survey_provenance"]["lane_keys"]["core"] = "P10-Y01-drift"
+        closure_manifest["survey_provenance"]["lane_keys"]["core"] = "P10-L01-drift"
         closure_path.write_text(json.dumps(closure_manifest, indent=2) + "\n", encoding="utf-8")
         expect_missing_marker(
             "closure_manifest_core_lane_key",
