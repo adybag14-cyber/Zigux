@@ -4,7 +4,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 
 ## Status
 
-- `PHASE3_SURVEYED_COMMIT=42b9a2a3c115be0484936a8712f59973a5096eb4`
+- `PHASE3_SURVEYED_COMMIT=02264a3240cd30ce45c9a932047a0204b7ab5029`
 - `PHASE3_LAYOUT_ASSERT_PATH=zigux/helpers/layout_assert.zig`
 - `PHASE3_LAYOUT_ASSERT_SCOPE=canonical-bindings`
 - `PHASE3_LAYOUT_ASSERT_STATUS=canonical-layout-assertions-landed`
@@ -31,7 +31,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_ABI_SLICE_DOC_BLOB_SHA=230bd0dcb1662291d19983d2b434bfc0feda2cef`
 - `PHASE3_POLICY_UNSAFE_BUILD_BLOB_SHA=a340103ec960b997da4f310647b36f3dcbf9a3c6`
 - `PHASE3_POLICY_UNSAFE_TEST_BLOB_SHA=5d52a8c54503093881fbad850298a72e9117e0d0`
-- `PHASE3_ABI_MANIFEST_BLOB_SHA=c339c6d6791ffd3646f6cba96b686de963995f7f`
+- `PHASE3_ABI_MANIFEST_BLOB_SHA=c219e434e7aa99da94a6cbd06abcfe42a62c83fd`
 - `PHASE3_POLICY_UNSAFE_GATE=zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig`
 - `PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig`
 - `PHASE3_BOUNDARY_GAP=typed-policy-mmio-consumer-landed-no-third-boundary-helper-beyond-focused-replay`
@@ -53,7 +53,7 @@ It does require the current tree to say clearly which policy rules are already l
 
 ## Live Repo Reality
 
-This survey now treats `PHASE3_SURVEYED_COMMIT=42b9a2a3c115be0484936a8712f59973a5096eb4` as the verified `master` head for the directly coupled policy-and-unsafe packet resurveyed in Slot 207, and the refreshed packet-local blob IDs above are the authoritative evidence for those helper, build, test, manifest, dump, and slice-note paths at that head.
+This survey now treats `PHASE3_SURVEYED_COMMIT=02264a3240cd30ce45c9a932047a0204b7ab5029` as the verified `master` head for the directly coupled policy-and-unsafe packet resurveyed in Slot 255, and the refreshed packet-local blob IDs above are the authoritative evidence for those helper, build, test, manifest, dump, and slice-note paths at that head.
 
 The current tree already carries a real bounded policy-and-unsafe substrate:
 
