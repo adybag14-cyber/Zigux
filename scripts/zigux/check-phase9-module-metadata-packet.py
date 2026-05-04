@@ -706,6 +706,18 @@ def expect_missing_marker(label: str, root: Path, expected_marker: str) -> None:
         )
 
 
+def expect_missing_file(label: str, root: Path, expected_file: str) -> None:
+    missing_files, missing_markers = validate(root)
+    if expected_file not in missing_files:
+        actual_files = ",".join(missing_files) if missing_files else "none"
+        actual_markers = ",".join(missing_markers) if missing_markers else "none"
+        raise SystemExit(
+            "phase9-module-metadata-selftest:"
+            f"{label}:expected_missing_file:{expected_file}:"
+            f"actual_files:{actual_files}:actual_markers:{actual_markers}"
+        )
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase9_module_metadata_") as tmp_dir:
         tmp_root = Path(tmp_dir)
@@ -718,6 +730,16 @@ def run_self_test() -> int:
                 f"files={','.join(missing_files) if missing_files else 'none'}:"
                 f"markers={','.join(missing_markers) if missing_markers else 'none'}"
             )
+
+        trace_events_loader_path = tmp_root / TRACE_EVENTS_LOADER_PATH
+        original_trace_events_loader = trace_events_loader_path.read_text(encoding="utf-8")
+        trace_events_loader_path.unlink()
+        expect_missing_file(
+            "trace_events_loader_required_file",
+            tmp_root,
+            TRACE_EVENTS_LOADER_PATH,
+        )
+        trace_events_loader_path.write_text(original_trace_events_loader, encoding="utf-8")
 
         survey_path = tmp_root / SURVEY_PATH
         original_survey = survey_path.read_text(encoding="utf-8")
@@ -767,8 +789,6 @@ def run_self_test() -> int:
         )
         survey_test_path.write_text(original_survey_test, encoding="utf-8")
 
-        trace_events_loader_path = tmp_root / TRACE_EVENTS_LOADER_PATH
-        original_trace_events_loader = trace_events_loader_path.read_text(encoding="utf-8")
         trace_events_loader_path.write_text(
             original_trace_events_loader.replace('"foo_bar_reg"', "", 1),
             encoding="utf-8",
@@ -980,7 +1000,7 @@ def run_self_test() -> int:
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
     print("PHASE9_MODULE_METADATA_PACKET_SELF_TEST=pass")
-    print("PHASE9_MODULE_METADATA_PACKET_SELF_TEST_CASE_COUNT=20")
+    print("PHASE9_MODULE_METADATA_PACKET_SELF_TEST_CASE_COUNT=21")
     return 0
 
 
