@@ -447,9 +447,14 @@ def run_self_test() -> int:
     ):
         raise SystemExit("phase2-toolchain-pin-scope:self-test:workflow_pin_scope_live_missing")
 
-    issues = validate_exact_workflow_runs("run: python3 scripts/zigux/check-zig-toolchain.py --arch x86_64")
-    if not any(issue.startswith("workflow_forbidden_fragment:") for issue in issues):
-        raise SystemExit("phase2-toolchain-pin-scope:self-test:workflow_forbidden_fragment")
+    for forbidden_fragment in WORKFLOW_FORBIDDEN_FRAGMENTS:
+        issues = validate_exact_workflow_runs(f"run: {forbidden_fragment}")
+        expected_issue = f"workflow_forbidden_fragment:{forbidden_fragment}"
+        if expected_issue not in issues:
+            raise SystemExit(
+                "phase2-toolchain-pin-scope:self-test:workflow_forbidden_fragment:"
+                + forbidden_fragment
+            )
 
     makefile_text = "\n".join(
         [
@@ -863,7 +868,7 @@ def run_self_test() -> int:
             raise SystemExit("phase2-toolchain-pin-scope:self-test:json_round_trip")
 
     print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass")
-    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=45")
+    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=48")
     return 0
 
 
@@ -993,4 +998,4 @@ if __name__ == "__main__":
     raise SystemExit(main())
 
 # Bootstrap validator compatibility marker: def expected_toolchain_notes_markers(channel: str, minimum_version: str) -> list[str]:
-# Shared Phase 2 validator compatibility marker: PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=45
+# Shared Phase 2 validator compatibility marker: PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=48
