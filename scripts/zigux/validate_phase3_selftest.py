@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import subprocess
 import tempfile
 from dataclasses import replace
 from pathlib import Path
@@ -39,6 +40,7 @@ from validate_phase3_core import (
 RBTREE_SHARED_MISSING_MARKER_CASES = PHASE3_SHARED_RBTREE_RECORD_MARKERS
 RBTREE_SHARED_CONTRACT_TEST_REL = "zigux/tests/phase3_rbtree_shared_contract.zig"
 RBTREE_SHARED_CHECKER_REL = "scripts/zigux/check-phase3-rbtree-shared-lift-contract.py"
+README_TOOLING_INVENTORY_SCRIPT = "check-phase3-readme-tooling-inventory.py"
 
 
 def _write_phase3_slice(
@@ -150,6 +152,23 @@ def _run_export_uapi_build_marker_self_test() -> int:
         )
         assert validate_source_markers(root, {rel: export_uapi_markers}) == []
 
+    return 0
+
+
+def _run_readme_tooling_inventory_self_test() -> int:
+    script_path = Path(__file__).resolve().with_name(README_TOOLING_INVENTORY_SCRIPT)
+    result = subprocess.run(
+        ["python3", str(script_path), "--self-test"],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert result.returncode == 0, (
+        result.stdout if not result.stderr else result.stdout + "\n" + result.stderr
+    )
+    stdout_lines = result.stdout.splitlines()
+    assert "PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass" in stdout_lines
+    assert "PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=23" in stdout_lines
     return 0
 
 
@@ -396,6 +415,7 @@ def run_self_test() -> int:
         ) == ["source-marker: marker-fixture.zig missing pub fn policyByteMarker() void {}"]
 
         assert _run_export_uapi_build_marker_self_test() == 0
+        assert _run_readme_tooling_inventory_self_test() == 0
 
         rbtree_shared_marker_fixture = root / "phase3-rbtree-shared-marker-fixture.zig"
 
@@ -430,7 +450,7 @@ def run_self_test() -> int:
             assert_missing_rbtree_shared_marker(missing_marker)
 
     print("PHASE3_VALIDATOR_SELF_TEST=pass")
-    print("PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT=24")
+    print("PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT=25")
     return 0
 
 
