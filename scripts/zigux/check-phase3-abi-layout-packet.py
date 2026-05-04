@@ -458,6 +458,24 @@ def run_self_test() -> int:
         issues = validate(root)
         assert any(issue.startswith("missing_phase3_abi_record_check:rbtree_cached_leftmost_root:") for issue in issues)
 
+        phase3_abi_path.write_text("\n".join(phase3_lines) + "\n", encoding="utf-8")
+        phase3_abi_dump_path = root / PHASE3_ABI_DUMP_REL
+        phase3_abi_dump_path.write_text(
+            "\n".join(
+                line
+                for line in phase3_abi_dump_path.read_text(encoding="utf-8").splitlines()
+                if not (line.startswith('try writer.writeAll(') and "facility_helpers" in line)
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        issues = validate(root)
+        assert any(issue.startswith(f"constant_count_mismatch:{PHASE3_ABI_DUMP_REL}:") for issue in issues)
+        assert any(
+            issue.startswith(f"constant_set_mismatch:{PHASE3_ABI_DUMP_REL}:{EXPECTED_REL}:")
+            for issue in issues
+        )
+
     print("PHASE3_ABI_LAYOUT_PACKET_SELF_TEST=pass")
     return 0
 
