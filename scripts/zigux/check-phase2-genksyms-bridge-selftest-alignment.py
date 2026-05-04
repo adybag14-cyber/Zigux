@@ -71,8 +71,8 @@ VALIDATOR_MARKERS = [
     "PHASE2_GENKSYMS_BRIDGE_REQUIRED_SOURCE_MARKERS",
     "PHASE2_GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=26",
     "print('GENKSYMS_BRIDGE_DETERMINISM=pass')",
-    '"python3 scripts/zigux/check-genksyms-bridge.py --self-test": 1,',
-    '"python3 scripts/zigux/check-genksyms-bridge.py": 1,',
+    "\"python3 scripts/zigux/check-genksyms-bridge.py --self-test\": 1,",
+    "\"python3 scripts/zigux/check-genksyms-bridge.py\": 1,",
 ]
 
 CLOSURE_VALIDATOR_MARKERS = [
@@ -432,6 +432,17 @@ def run_self_test() -> int:
         expect_issue("workflow_order", root, "workflow_order:run: python3 scripts/zigux/validate-phase2.py:before:run: python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test")
         clone_fixture_root(root)
 
+        makefile_path = root / REQUIRED_FILES["makefile"]
+        lines = makefile_path.read_text(encoding="utf-8").splitlines()
+        lines[1], lines[2] = lines[2], lines[1]
+        write(makefile_path, "\n".join(lines) + "\n")
+        expect_issue(
+            "makefile_validate_order",
+            root,
+            "makefile_validate_order:scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test:before:scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py",
+        )
+        clone_fixture_root(root)
+
         workflow_path = root / REQUIRED_FILES["workflow"]
         original = workflow_path.read_text(encoding="utf-8")
         write(
@@ -514,7 +525,7 @@ def run_self_test() -> int:
         expect_issue("version_expected_file", root, "cases:version:expected=version_expected.json")
 
     print("PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=20")
+    print("PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=21")
     return 0
 
 
