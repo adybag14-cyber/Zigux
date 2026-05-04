@@ -320,8 +320,12 @@ pub const SkbuffBridgeLab = struct {
         return audit_checkpoints.len;
     }
 
+    pub fn hasReadyNextStep() bool {
+        return false;
+    }
+
     pub fn nextAuditFocus() []const u8 {
-        return "Keep the __dev_direct_xmit() identity-drop follow-up and its surrounding drop path in C, limited to skb = validate_xmit_skb_list(...), skb != orig_skb, and the final return-or-drop ownership decision, until stronger transmit-list evidence justifies deeper study.";
+        return "Park the landed __dev_direct_xmit() identity-drop checkpoint as an observational-only stay-in-C boundary: keep skb = validate_xmit_skb_list(...), skb != orig_skb, the final return-or-drop ownership decision, qdisc publication, queue ownership, and skb lifetime ownership in C unless a future review packet refreshes the whole bridge set together.";
     }
 };
 
@@ -346,8 +350,11 @@ test "skbuff bridge boundary map records stay-in-c lifetime decisions" {
     try std.testing.expectEqualStrings("boundary_map_only", map.posture);
     try std.testing.expectEqual(@as(usize, 6), map.areas.len);
     try std.testing.expectEqual(@as(usize, 2), SkbuffBridgeLab.stayInCDecisionCount());
+    try std.testing.expect(!SkbuffBridgeLab.hasReadyNextStep());
     try std.testing.expect(std.mem.indexOf(u8, SkbuffBridgeLab.nextAuditFocus(), "__dev_direct_xmit()") != null);
     try std.testing.expect(std.mem.indexOf(u8, SkbuffBridgeLab.nextAuditFocus(), "skb != orig_skb") != null);
+    try std.testing.expect(std.mem.indexOf(u8, SkbuffBridgeLab.nextAuditFocus(), "qdisc publication") != null);
+    try std.testing.expect(std.mem.indexOf(u8, SkbuffBridgeLab.nextAuditFocus(), "queue ownership") != null);
     try std.testing.expect(std.mem.indexOf(u8, SkbuffBridgeLab.nextAuditFocus(), "return-or-drop ownership decision") != null);
 
     try std.testing.expectEqualStrings("allocation-entrypoints", map.areas[0].id);
@@ -372,8 +379,11 @@ test "skbuff bridge lifetime audit stays review-only" {
     try std.testing.expectEqual(@as(usize, 12), audit.checkpoints.len);
     try std.testing.expectEqual(@as(usize, 12), audit.blocked_live_behaviors.len);
     try std.testing.expectEqual(@as(usize, 12), SkbuffBridgeLab.auditCheckpointCount());
+    try std.testing.expect(!SkbuffBridgeLab.hasReadyNextStep());
     try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "__dev_direct_xmit()") != null);
     try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "skb != orig_skb") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "qdisc publication") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "queue ownership") != null);
     try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "return-or-drop ownership decision") != null);
 
     try std.testing.expectEqualStrings("dataref-header-write-split", audit.checkpoints[0].id);
