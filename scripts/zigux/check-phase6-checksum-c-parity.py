@@ -10,8 +10,10 @@ import textwrap
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[2]
+SCRIPT_PATH = Path(__file__).resolve()
+ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
 C_HARNESS = ROOT / "zigux" / "tests" / "fixtures" / "phase6_checksum_c_harness.c"
+HELPER_SOURCE = ROOT / "lib" / "checksum.zig"
 FIXTURE_SOURCE = ROOT / "zigux" / "tests" / "fixtures" / "phase6_checksum_vectors.zig"
 ZIG_RUNNER = ROOT / "zigux" / "tests" / "phase6_checksum_c_parity.zig"
 EXPECTED_SORTED_LINES = sorted(
@@ -83,7 +85,7 @@ def build_zig_build_text() -> str:
             const optimize = b.standardOptimizeOption(.{{}});
 
             const checksum_module = b.createModule(.{{
-                .root_source_file = .{{ .cwd_relative = \"{ROOT / 'lib' / 'checksum.zig'}\" }},
+                .root_source_file = .{{ .cwd_relative = \"{HELPER_SOURCE}\" }},
                 .target = target,
                 .optimize = optimize,
             }});
@@ -158,6 +160,11 @@ def run_self_test() -> int:
         "missing harness: /tmp/phase6-missing-harness.c",
     )
     expect_system_exit(
+        "missing_helper_source",
+        lambda: validate_required_path(Path("/tmp/phase6-missing-helper.zig"), "helper source"),
+        "missing helper source: /tmp/phase6-missing-helper.zig",
+    )
+    expect_system_exit(
         "missing_runner",
         lambda: validate_required_path(Path("/tmp/phase6-missing-runner.zig"), "runner"),
         "missing runner: /tmp/phase6-missing-runner.zig",
@@ -172,6 +179,7 @@ def run_self_test() -> int:
         "build_text_imports_and_paths",
         'root_module.addImport("checksum", checksum_module);' in build_text
         and 'root_module.addImport("phase6_checksum_vectors", fixtures_module);' in build_text
+        and str(HELPER_SOURCE) in build_text
         and str(FIXTURE_SOURCE) in build_text
         and str(ZIG_RUNNER) in build_text,
         True,
@@ -212,7 +220,7 @@ def run_self_test() -> int:
     )
 
     print("PHASE6_CHECKSUM_C_PARITY_SELF_TEST=pass")
-    print("PHASE6_CHECKSUM_C_PARITY_SELF_TEST_CASE_COUNT=11")
+    print("PHASE6_CHECKSUM_C_PARITY_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
@@ -229,6 +237,7 @@ def main() -> int:
     cc = require_tool("cc", "CC")
 
     validate_required_path(C_HARNESS, "harness")
+    validate_required_path(HELPER_SOURCE, "helper source")
     validate_required_path(FIXTURE_SOURCE, "fixture source")
     validate_required_path(ZIG_RUNNER, "runner")
 
