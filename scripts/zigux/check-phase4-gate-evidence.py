@@ -87,7 +87,7 @@ EXACT_VALIDATOR_STATUS_LINES = [
     "PHASE4_VALIDATOR_SELF_TEST=pass",
     "PHASE4_VALIDATION=pass",
     "PHASE4_REQUIRED_FILE_COUNT=27",
-    "PHASE4_REQUIRED_MARKER_COUNT=48",
+    "PHASE4_REQUIRED_MARKER_COUNT=54",
 ]
 
 PHASE4_GATE_EVIDENCE_BLOB_TARGETS = {
@@ -333,7 +333,7 @@ def write_fixture_tree(root: Path) -> None:
         "- `PHASE4_VALIDATOR_SELF_TEST=pass`",
         "- `PHASE4_VALIDATION=pass`",
         "- `PHASE4_REQUIRED_FILE_COUNT=27`",
-        "- `PHASE4_REQUIRED_MARKER_COUNT=48`",
+        "- `PHASE4_REQUIRED_MARKER_COUNT=54`",
         "- `PHASE4_GATE_EVIDENCE_SELF_TEST=pass`",
         "- `PHASE4_GATE_EVIDENCE_CHECK=pass`",
         f"- `PHASE4_GATE_EVIDENCE_TARGET_COUNT={len(PHASE4_GATE_EVIDENCE_BLOB_TARGETS)}`",
@@ -411,14 +411,14 @@ def run_self_test() -> int:
         gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
         gate_evidence.write_text(
             gate_evidence.read_text(encoding="utf-8").replace(
-                "PHASE4_REQUIRED_MARKER_COUNT=48",
+                "PHASE4_REQUIRED_MARKER_COUNT=54",
                 "PHASE4_REQUIRED_MARKER_COUNT=45",
                 1,
             ),
             encoding="utf-8",
         )
         missing = validate_root(root)
-        assert "phase4_gate_evidence:PHASE4_REQUIRED_MARKER_COUNT=48" in missing, missing
+        assert "phase4_gate_evidence:PHASE4_REQUIRED_MARKER_COUNT=54" in missing, missing
 
         print("PHASE4_GATE_EVIDENCE_SELF_TEST=pass")
         return 0
