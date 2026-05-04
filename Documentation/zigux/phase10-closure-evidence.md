@@ -136,27 +136,35 @@ The current Phase 10 tranche is only considered evidence-verified when all of th
 1. closure packet inventory validation
 - `python3 scripts/zigux/check-phase10-closure-inventory.py`
 
-2. closure evidence validation
+2. bounded core packet validation
+- `python3 scripts/zigux/check-phase10-core-packet.py`
+
+3. shared Phase 10 validation
+- `python3 scripts/zigux/validate-phase10.py`
+
+4. closure evidence validation
 - `python3 scripts/zigux/validate-phase10-closure.py`
 
-3. focused harness coverage validation
+5. focused harness coverage validation
 - `python3 scripts/zigux/check-phase10-harness-coverage.py`
 
-4. shared Phase 10 test build
+6. shared Phase 10 test build
 - `zig build test --build-file zigux/tests/phase10_build.zig --summary all`
 
-5. Linux-style Phase 10 validate entrypoint
+7. Linux-style Phase 10 validate entrypoint
 - `make -C zigux phase10-validate`
 
-6. Linux-style Phase 10 test entrypoint
+8. Linux-style Phase 10 test entrypoint
 - `make -C zigux phase10-test`
 
-7. Linux-style combined Phase 10 entrypoint
+9. Linux-style combined Phase 10 entrypoint
 - `make -C zigux phase10`
 
-These checks now fail closed on the direct closure-inventory packet, the shared closure packet, the dedicated harness-coverage replay, the wider shared `scripts/zigux/validate-phase10.py` gate reached by the published validate wrapper, the input multitouch-ready preflight replay, the MMIO queue-isolation replay, and the current MMIO ladder through bounded interrupt acknowledgement, so `zigux/tests/phase10_closure_manifest.json`, `zigux-alpha/PHASE10_CLOSURE_LEDGER.md`, `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-virtio-mmio-survey.md`, and `zigux/tests/phase10_virtio_mmio_manifest.json` stay machine-checked together at the same interrupt-ack rung.
+These checks now fail closed on the direct closure-inventory packet, the bounded core packet, the wider shared `scripts/zigux/validate-phase10.py` gate, the shared closure packet reached through `scripts/zigux/validate-phase10-closure.py`, the dedicated harness-coverage replay, the input multitouch-ready preflight replay, the MMIO queue-isolation replay, and the current MMIO ladder through bounded interrupt acknowledgement, so `zigux/tests/phase10_closure_manifest.json`, `zigux-alpha/PHASE10_CLOSURE_LEDGER.md`, `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-virtio-mmio-survey.md`, and `zigux/tests/phase10_virtio_mmio_manifest.json` stay machine-checked together at the same interrupt-ack rung.
 
 - `PHASE10_CLOSURE_INVENTORY_GATE=python3 scripts/zigux/check-phase10-closure-inventory.py`
+- `PHASE10_CORE_PACKET_GATE=python3 scripts/zigux/check-phase10-core-packet.py`
+- `PHASE10_SHARED_VALIDATE_GATE=python3 scripts/zigux/validate-phase10.py`
 - `PHASE10_CLOSURE_GATE=python3 scripts/zigux/validate-phase10-closure.py`
 - `PHASE10_HARNESS_COVERAGE_GATE=python3 scripts/zigux/check-phase10-harness-coverage.py`
 - `PHASE10_BUILD_GATE=zig build test --build-file zigux/tests/phase10_build.zig --summary all`
