@@ -27,6 +27,7 @@ const RollbackThreshold = struct {
     review_blocker_status: []const u8,
     owner: []const u8,
     rollback_owner: []const u8,
+    fallback_path: []const u8,
     required_evidence: []const []const u8,
     rollback_triggers: []const []const u8,
 };
@@ -98,6 +99,12 @@ test "phase 14 rcu tree manifest stays aligned with lane P14-L16 and the memory-
     try std.testing.expectEqualStrings("smp_store_release", memory_ordering.anchor_symbols[2]);
     try std.testing.expect(std.mem.indexOf(u8, memory_ordering.rationale, "memory-ordering") != null);
 
+    try std.testing.expectEqualStrings("freeze_in_c", manifest.rollback_threshold.status_bucket);
+    try std.testing.expectEqualStrings("blocked_on_stay_in_c_evidence", manifest.rollback_threshold.review_blocker_status);
+    try std.testing.expectEqualStrings("Core-Adjacent Pod", manifest.rollback_threshold.owner);
+    try std.testing.expectEqualStrings("Repo Tooling Pod", manifest.rollback_threshold.rollback_owner);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.rollback_threshold.fallback_path, "product source of truth") != null);
+
     const memory_ordering_gap = findGap(manifest.gaps, "phase14-rcu-tree-memory-ordering-followup") orelse return error.MissingGap;
     try std.testing.expectEqualStrings("starter_landed", memory_ordering_gap.status);
     try std.testing.expectEqualStrings("Documentation/zigux/phase14-rcu-tree-survey.md", memory_ordering_gap.zigux_destination);
@@ -118,6 +125,8 @@ test "phase 14 rcu tree manifest stays aligned with lane P14-L16 and the memory-
 
 test "phase 14 rcu tree note, review checklist, and freeze map keep the blocked bridge packet explicit" {
     const allocator = std.testing.allocator;
+    const manifest_json = try readFileAlloc(allocator, "zigux/tests/phase14_rcu_tree_manifest.json", 32 * 1024);
+    defer allocator.free(manifest_json);
     const survey_note = try readFileAlloc(allocator, "Documentation/zigux/phase14-rcu-tree-survey.md", 24 * 1024);
     defer allocator.free(survey_note);
     const review_checklist = try readFileAlloc(allocator, "Documentation/zigux/review-checklist.md", 32 * 1024);
@@ -125,11 +134,15 @@ test "phase 14 rcu tree note, review checklist, and freeze map keep the blocked 
     const freeze_map = try readFileAlloc(allocator, "Documentation/zigux/freeze-map.md", 16 * 1024);
     defer allocator.free(freeze_map);
 
+    const parsed = try std.json.parseFromSlice(Manifest, allocator, manifest_json, .{});
+    defer parsed.deinit();
+
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "bounded Phase 14 survey lane `P14-L16` around `kernel/rcu/tree.c`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_LANE_KEY=P14-L16") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`kernel/rcu/tree_bridge.zig`: `blocked_on_stay_in_c_evidence`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "placeholder wrapper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "rollback owner: `Repo Tooling Pod`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, parsed.value.rollback_threshold.fallback_path) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "memory-ordering network") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "Phase 14 RCU tree survey packet") != null);
