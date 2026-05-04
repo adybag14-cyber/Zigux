@@ -28,6 +28,8 @@ This current slice keeps the work bounded to runtime-safe leaf helpers with expl
 
 The dedicated packet-alignment replay through `scripts/zigux/check-phase7-argv-split-packet.py` and the committed C parity replay through `scripts/zigux/check-phase7-argv-split-parity.py` stay adjacent to that shared validation substrate so the helper-only slice remains externally reviewable without widening into new helper behavior or broader Phase 7 scope.
 
+That dedicated packet checker now also fails closed on the landed docs-root, scripts-root, and tests-root review markers, so the shared reviewer guides around `zigux/tests/README.md` stay part of the same bounded argv_split ownership packet instead of drifting behind the helper and fixture evidence.
+
 This current slice keeps the work bounded to the smallest runtime-safe ownership-preserving surface:
 
 - whitespace-only argv tokenization
