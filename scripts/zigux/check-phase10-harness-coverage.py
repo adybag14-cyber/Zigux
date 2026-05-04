@@ -352,6 +352,19 @@ def expect_missing_marker(label: str, root: Path, expected_marker: str) -> None:
         )
 
 
+def expect_missing_file(label: str, root: Path, rel_path: str) -> None:
+    missing_files, missing_markers = validate(root)
+    if missing_markers:
+        raise SystemExit(
+            f"phase10-harness-self-test:{label}:unexpected_missing_markers:{','.join(missing_markers)}"
+        )
+    if rel_path not in missing_files:
+        actual = ",".join(missing_files) if missing_files else "none"
+        raise SystemExit(
+            f"phase10-harness-self-test:{label}:expected_missing_file:{rel_path}:actual:{actual}"
+        )
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase10_harness_") as tmp_dir:
         root = Path(tmp_dir)
@@ -467,6 +480,16 @@ def run_self_test() -> int:
         )
         checklist_path.write_text(original_checklist, encoding="utf-8")
 
+        write_fixture(root)
+        blocker_build_path = root / "zigux/tests/phase10_virtio_input_registration_blocker_build.zig"
+        blocker_build_path.unlink()
+        expect_missing_file(
+            "blocker_build_file",
+            root,
+            "zigux/tests/phase10_virtio_input_registration_blocker_build.zig",
+        )
+        write_fixture(root)
+
         blocker_build_path = root / "zigux/tests/phase10_virtio_input_registration_blocker_build.zig"
         original_blocker_build = blocker_build_path.read_text(encoding="utf-8")
         blocker_build_path.write_text(
@@ -567,7 +590,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=15")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
