@@ -415,7 +415,11 @@ test "phase 8 docs keep the deferred irq routing and timer boundary explicit" {
     );
     try expectContains(
         survey_note,
-        "active scheduled ownership and cleanup lane for this packet is `P8-L13`",
+        "That `P8-L15` marker is the founding repo anchor for this survey packet rather than a promise that every later cleanup run reuses the same lane key",
+    );
+    try expectContains(
+        survey_note,
+        "live scheduled ownership for follow-up maintenance now lives in lane-state memory",
     );
     try expectContains(survey_note, "perf-buffer-online-cpu-routing");
     try expectContains(survey_note, "per-CPU `perf_event_open()` setup");
