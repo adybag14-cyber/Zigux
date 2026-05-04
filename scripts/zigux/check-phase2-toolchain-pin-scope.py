@@ -96,6 +96,10 @@ CLOSURE_MARKERS = [
     "scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "x86_64-linux",
     "PHASE2_TOOLCHAIN_PIN_SCOPE_POLICY=",
+    "PHASE2_SHARED_VALIDATOR=python3 scripts/zigux/validate-phase2.py",
+    "PHASE2_CLOSURE_GATE=python3 scripts/zigux/validate-phase2-closure.py",
+    "make -C zigux phase2-validate",
+    "make -C zigux phase2",
 ]
 
 
