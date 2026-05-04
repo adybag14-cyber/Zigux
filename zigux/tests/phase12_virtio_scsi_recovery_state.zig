@@ -80,6 +80,8 @@ test "phase12 virtio scsi second freeze refreshes restore summary after replanni
     try std.testing.expect(restore.requires_io_queue_map_restore);
     try std.testing.expect(restore.requires_device_ready);
     try std.testing.expect(restore.requires_event_rearm);
+    try std.testing.expect(restore.find_vqs_before_device_ready);
+    try std.testing.expect(restore.device_ready_before_event_rearm);
     try std.testing.expect(restore.preserves_scsi_host_registration);
     try std.testing.expect(!restore.reruns_host_scan);
 }
