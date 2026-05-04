@@ -271,6 +271,30 @@ def run_self_test() -> int:
         )
         write_text(manifest_path, json.dumps(manifest_backup, indent=2) + "\n")
 
+        broken = json.loads(text(manifest_path))
+        for gap in broken["gaps"]:
+            if gap["id"] == "phase11-shared-header-parity-note":
+                gap["status"] = "ready_next"
+        write_text(manifest_path, json.dumps(broken, indent=2) + "\n")
+        expect_missing(
+            "wrong_note_gap_status",
+            run_checker(tmp_root),
+            "manifest:phase11-shared-header-parity-note",
+        )
+        write_text(manifest_path, json.dumps(manifest_backup, indent=2) + "\n")
+
+        broken = json.loads(text(manifest_path))
+        for gap in broken["gaps"]:
+            if gap["id"] == "phase11-shared-header-parity-gate":
+                gap["status"] = "ready_next"
+        write_text(manifest_path, json.dumps(broken, indent=2) + "\n")
+        expect_missing(
+            "wrong_gate_gap_status",
+            run_checker(tmp_root),
+            "manifest:phase11-shared-header-parity-gate",
+        )
+        write_text(manifest_path, json.dumps(manifest_backup, indent=2) + "\n")
+
         makefile_path = tmp_root / MAKEFILE_PATH
         makefile_backup = text(makefile_path)
         write_text(
@@ -358,7 +382,7 @@ def run_self_test() -> int:
         write_text(tests_companion_path, tests_companion_backup)
 
     print("PHASE11_HEADER_BOUNDARY_PACKET_SELF_TEST=pass")
-    print("PHASE11_HEADER_BOUNDARY_PACKET_SELF_TEST_CASE_COUNT=9")
+    print("PHASE11_HEADER_BOUNDARY_PACKET_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
