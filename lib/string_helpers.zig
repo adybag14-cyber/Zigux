@@ -68,7 +68,6 @@ pub fn kasprintfStrarrayRaw(
 
     const slot_count = try std.math.add(usize, n, 1);
     var names = try allocator.alloc(?[*:0]u8, slot_count);
-    errdefer allocator.free(names);
     @memset(names, null);
 
     var allocated: usize = 0;
@@ -323,11 +322,19 @@ pub fn kasprintfStrarray(
     var names_null_terminated = try allocator.alloc(?[*:0]const u8, slot_count);
     errdefer allocator.free(names_null_terminated);
 
+    var duplicated: usize = 0;
+    errdefer {
+        for (names[0..duplicated]) |name| {
+            allocator.free(name);
+        }
+    }
+
     for (raw[0..n], 0..) |item, index| {
         const ptr = item orelse unreachable;
         const name = std.mem.span(ptr);
         names[index] = try allocator.dupeZ(u8, name);
         names_null_terminated[index] = names[index].ptr;
+        duplicated += 1;
     }
     names_null_terminated[n] = null;
 
@@ -894,6 +901,15 @@ test "kasprintfStrarray returns sequential owned strings with a trailing null po
     try std.testing.expectEqualStrings("cpu-2", names.names[2]);
     try std.testing.expectEqualStrings("cpu-0", std.mem.span(names.cArray()[0].?));
     try std.testing.expectEqual(@as(?[*:0]const u8, null), names.cArray()[3]);
+}
+
+fn expectKasprintfStrarrayAllocFailure(allocator: std.mem.Allocator) !void {
+    var names = try kasprintfStrarray(allocator, "cpu", 3);
+    defer names.deinit(allocator);
+}
+
+test "kasprintfStrarray frees partially duplicated names on allocation failure" {
+    try std.testing.checkAllAllocationFailures(std.testing.allocator, expectKasprintfStrarrayAllocFailure, .{});
 }
 
 test "kfreeStrarray keeps first-NUL prefixes, zero-count reuse, and repeated teardown safe" {
