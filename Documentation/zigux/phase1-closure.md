@@ -39,6 +39,7 @@ No additional helper should be called Phase 1 work unless this document and the 
 - `tools/lib/bitmap.zig` direct Zig unit coverage keeps `bitmapAlloc()`, `bitmapZalloc()`, and `bitmapFree()` honest by proving optional bitmap handles size through `bitsToWords()`, zero-filled allocation stays intact, and released optionals reset to `null`.
 - `tools/lib/bitmap.zig` direct Zig unit coverage also keeps `bitmap_zero()`, `bitmap_fill()`, `bitmap_copy()`, `bitmap_empty()`, and `bitmap_full()` aligned with `zero()`, `fill()`, `copy()`, `empty()`, and `full()` for active-word clearing, partial-tail fill masking, copied-tail preservation, and predicate results across the same declared bit window.
 - `tools/lib/bitmap.zig` direct Zig unit coverage also keeps `bitmap_alloc()`, `bitmap_zalloc()`, and `bitmap_free()` aligned with `bitmapAlloc()`, `bitmapZalloc()`, and `bitmapFree()` for partial-word sizing, zero-filled allocation, and optional-handle reset semantics.
+- `tools/lib/bitmap.zig` direct Zig unit coverage also keeps `bitmap_copy_clear_tail()` and `bitmap_copy_and_extend()` aligned with `copyClearTail()` and `copyAndExtend()` by preserving tail masking in the final copied word and zero-filled extension across the remaining word window.
 - `tools/lib/bitmap.zig` direct Zig unit coverage also keeps tail-masked reduction helpers aligned so `andBits()`, `andNotBits()`, `equal()`, `intersects()`, and `subset()` ignore out-of-range tail differences while preserving the in-range window.
 - `tools/lib/bitmap.zig` direct Zig unit coverage also keeps `xorBits()` aligned across a multiword tail by proving callers can clamp the last word back to the in-range bits without leaking the out-of-range tail.
 - `tools/lib/bitmap.zig` direct Zig unit coverage also keeps zero-length helper calls explicit and side-effect free so `zero()`, `fill()`, `copy()`, `copyClearTail()`, `orBits()`, `xorBits()`, scans, and formatting all leave caller-owned buffers untouched when `nbits` is zero.
@@ -47,6 +48,7 @@ No additional helper should be called Phase 1 work unless this document and the 
 - `tools/lib/bitmap.zig` direct Zig unit coverage also keeps `bitmapSize()` and `bitmap_size()` aligned by rounding zero-length, partial-word, and multiword bit counts up to the same full-word byte footprint.
 - bitmap range unit-test anchor: `tools/lib/bitmap.zig:test "bitmap range helpers preserve edges across whole-word spans"`
 - bitmap copy unit-test anchor: `tools/lib/bitmap.zig:test "bitmap copyClearTail clears out-of-range bits in the last copied word"`
+- bitmap copy alias unit-test anchor: `tools/lib/bitmap.zig:test "bitmap copy aliases preserve tail clearing and extension semantics"`
 - bitmap bitwise unit-test anchor: `tools/lib/bitmap.zig:test "bitmap and andnot equal intersects subset"`
 - bitmap fixture authority: `zigux/tests/fixtures/phase1_helpers.json`
 - bitmap manifest review anchor: `zigux/tests/fixtures/phase1_helper_manifest.json`
@@ -69,6 +71,7 @@ No additional helper should be called Phase 1 work unless this document and the 
 - `PHASE1_BITMAP_HEADER_ALIAS_UNIT_REVIEW=bitmap bitmap_zero bitmap_fill bitmap_copy bitmap_empty and bitmap_full stay aligned with zero fill copy empty and full for active-word clearing partial-tail fill masking copied-tail preservation and predicate results across the same declared bit window`
 - `PHASE1_BITMAP_ALIAS_UNIT_REVIEW=bitmap underscore alias entry points preserve the same caller-selected window semantics as the camelCase helpers for weight bitwise range and formatting operations`
 - `PHASE1_BITMAP_ALLOCATOR_ALIAS_UNIT_REVIEW=bitmap bitmap_alloc bitmap_zalloc and bitmap_free stay aligned with bitmapAlloc bitmapZalloc and bitmapFree for partial-word sizing zero-filled allocation and optional-handle reset semantics`
+- `PHASE1_BITMAP_COPY_ALIAS_UNIT_REVIEW=bitmap bitmap_copy_clear_tail and bitmap_copy_and_extend stay aligned with copyClearTail and copyAndExtend for tail masking in the final copied word and zero-filled extension across the remaining word window`
 - `PHASE1_BITMAP_XOR_UNIT_REVIEW=bitmap xorBits multiword-tail coverage proves callers can clamp the last word back to the in-range bits without leaking the out-of-range tail`
 - `PHASE1_BITMAP_TAIL_MASK_UNIT_REVIEW=bitmap tail-masked reduction helpers ignore out-of-range differences while preserving the in-range window for andBits, andNotBits, equal, intersects, and subset`
 - `PHASE1_BITMAP_ZERO_BIT_UNIT_REVIEW=bitmap zero-length helper calls stay side-effect free so zero fill copy copyClearTail orBits xorBits scans and formatting leave caller-owned buffers untouched when nbits is zero`
