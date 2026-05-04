@@ -1,6 +1,5 @@
 const std = @import("std");
 const abi = @import("abi_bindings");
-const rbtree = @import("rbtree_bindings");
 
 pub fn assertSize(comptime T: type, comptime expected: usize) void {
     if (@sizeOf(T) != expected) {
@@ -196,16 +195,16 @@ pub fn assertHListSummaryLayout() void {
 }
 
 pub fn assertRbtreeRootViewLayout() void {
-    assertSize(rbtree.RootView, @sizeOf(usize) * 2 + 8);
-    assertAlign(rbtree.RootView, @alignOf(usize));
-    assertFieldType(rbtree.RootView, "root_addr", usize);
-    assertFieldType(rbtree.RootView, "leftmost_addr", usize);
-    assertFieldType(rbtree.RootView, "flags", u32);
-    assertFieldType(rbtree.RootView, "reserved", u32);
-    assertOffset(rbtree.RootView, "root_addr", 0);
-    assertOffset(rbtree.RootView, "leftmost_addr", @sizeOf(usize));
-    assertOffset(rbtree.RootView, "flags", @sizeOf(usize) * 2);
-    assertOffset(rbtree.RootView, "reserved", @sizeOf(usize) * 2 + 4);
+    assertSize(abi.RbtreeRootView, @sizeOf(usize) * 2 + 8);
+    assertAlign(abi.RbtreeRootView, @alignOf(usize));
+    assertFieldType(abi.RbtreeRootView, "root_addr", usize);
+    assertFieldType(abi.RbtreeRootView, "leftmost_addr", usize);
+    assertFieldType(abi.RbtreeRootView, "flags", u32);
+    assertFieldType(abi.RbtreeRootView, "reserved", u32);
+    assertOffset(abi.RbtreeRootView, "root_addr", 0);
+    assertOffset(abi.RbtreeRootView, "leftmost_addr", @sizeOf(usize));
+    assertOffset(abi.RbtreeRootView, "flags", @sizeOf(usize) * 2);
+    assertOffset(abi.RbtreeRootView, "reserved", @sizeOf(usize) * 2 + 4);
 }
 
 test "phase3 layout assertions cover canonical bindings" {
