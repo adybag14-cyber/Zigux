@@ -21,3 +21,9 @@ Phase 6 flow
 - `check-phase6-docs-root-external-parity.py`
 - `check-phase6-base64-catalog-evidence.py`
 - `validate-phase6.py --self-test` exercises the shared Phase 6 marker walk in a compact synthetic tree and fails if catalog-head provenance, script-README wording, perf-survey markers, shared-gates inventory, manifest `surveyed_commit`, or helper-local determinism evidence drifts.
+
+Phase 10 flow
+- `validate-phase10.py`, `validate-phase10-closure.py`, and `make -C zigux phase10-validate` keep the Phase 10 ring-plus-input-plus-MMIO lab packet aligned before the shared replay claims closure evidence.
+- that shared validation surface spans `zigux/tests/phase10_build.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_input_manifest.json`, `zigux/tests/phase10_virtio_mmio_manifest.json`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, and `Documentation/zigux/phase10-virtio-input-survey.md`, alongside the closure-inventory and harness-coverage checkers.
+- the ring manifest-backed packet keeps the ring reset-reuse replay explicit through `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, while the input packet still names the blocked registration-lifecycle contract even after the landed probe-preflight helper and the MMIO packet stays parked at the bounded MMIO interrupt-ack rung.
+- the current reviewer-facing Phase 10 packet counts eleven shared test entrypoints across the core, ring, input, and MMIO bundle, so focused harness shards stay visible without being mistaken for separate closure claims.
