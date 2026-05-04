@@ -404,6 +404,16 @@ pub const Bcm2835WatchdogLab = struct {
         return self.runtimeSnapshot();
     }
 
+    pub fn ping(self: *Self) RuntimeSnapshot {
+        return self.start();
+    }
+
+    pub fn setTimeout(self: *Self, timeout_sec: u32) !RuntimeSnapshot {
+        try validateTimeout(timeout_sec);
+        self.timeout_sec = timeout_sec;
+        return self.ping();
+    }
+
     pub fn stop(self: *Self) RuntimeSnapshot {
         self.registers.rstc = pm_password | pm_rstc_reset;
         return self.runtimeSnapshot();
