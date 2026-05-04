@@ -176,7 +176,7 @@ MODULE_SLICE_MARKERS = [
 ]
 
 MMIO_SLICE_MARKERS = [
-    "PHASE10_SLICE=virtio-mmio-interrupt-ack-helper",
+    "PHASE10_SLICE=virtio-mmio-probe-preflight-helper",
     "in-memory config-write planning",
     "phase10-mmio-lifecycle-and-irq-paths",
 ]
@@ -291,7 +291,7 @@ MMIO_TEST_MARKERS = [
 ]
 
 MMIO_SURVEY_TEST_MARKERS = [
-    'test "phase10 virtio mmio survey manifest records the landed interrupt-ack rung and remaining transport gap" {',
+    'test "phase10 virtio mmio survey manifest records the landed probe-preflight rung and remaining transport gap" {',
     'try std.testing.expectEqualStrings("P10-L18", manifest.lane_key);',
     'try std.testing.expectEqual(@as(usize, 0), ready_next_count);',
     'if (std.mem.eql(u8, gap.id, "phase10-mmio-config-write-helper")) {',
@@ -385,6 +385,7 @@ MMIO_EXPECTED_STATUSES = {
     "phase10-mmio-config-window-helper": "starter_landed",
     "phase10-mmio-config-write-helper": "starter_landed",
     "phase10-mmio-interrupt-ack-helper": "starter_landed",
+    "phase10-mmio-probe-preflight-helper": "starter_landed",
     "phase10-mmio-lifecycle-and-irq-paths": "blocked_on_risky_transport",
 }
 
@@ -537,8 +538,8 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         ("ring_slice_doc", "Documentation/zigux/phase10-virtio-ring-slice.md", RING_SLICE_MARKERS),
         ("ring_survey_doc", "Documentation/zigux/phase10-virtio-ring-survey.md", RING_SURVEY_MARKERS),
         ("slice_doc", "Documentation/zigux/phase10-virtio-input-slice.md", SLICE_MARKERS),
+        ("module_slice_doc", "Documentation/zigux/phase10-virtio-input-module-slice.md", MODULE_SLICE_MARKERS),
         ("survey_doc", "Documentation/zigux/phase10-virtio-input-survey.md", SURVEY_MARKERS),
-        ("module_slice", "Documentation/zigux/phase10-virtio-input-module-slice.md", MODULE_SLICE_MARKERS),
         ("mmio_slice_doc", "Documentation/zigux/phase10-virtio-mmio-slice.md", MMIO_SLICE_MARKERS),
         ("mmio_survey_doc", "Documentation/zigux/phase10-virtio-mmio-survey.md", MMIO_SURVEY_MARKERS),
         ("ring_helper", "drivers/virtio/virtio_ring.zig", RING_HELPER_MARKERS),
