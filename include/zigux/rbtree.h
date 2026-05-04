@@ -83,9 +83,13 @@ static inline int zigux_rbtree_root_view_is_valid(const struct zigux_rbtree_root
         return 0;
     if (zigux_rbtree_root_view_is_empty(view) && view->root_addr != 0)
         return 0;
-    if (!zigux_rbtree_root_view_is_cached(view) && view->leftmost_addr != 0)
+    if (!zigux_rbtree_root_view_is_empty(view) && view->root_addr == 0)
         return 0;
-    if (!zigux_rbtree_root_view_has_leftmost(view) && view->leftmost_addr != 0)
+    if (zigux_rbtree_root_view_has_leftmost(view) != zigux_rbtree_root_view_is_cached(view))
+        return 0;
+    if (zigux_rbtree_root_view_is_cached(view) && view->leftmost_addr == 0)
+        return 0;
+    if (!zigux_rbtree_root_view_is_cached(view) && view->leftmost_addr != 0)
         return 0;
     return 1;
 }
