@@ -22,6 +22,7 @@ PHASE13_VALIDATE_TARGET = "phase13-validate:"
 
 PHASE2_REQUIRED = (
     "check-phase2-kconfig-selftest-alignment.py",
+    "check-phase2-toolchain-pin-scope.py",
     "check-phase2-tests-readme-alignment.py",
 )
 PHASE6_REQUIRED = ("check-phase6-base64-catalog-evidence.py",)
@@ -278,6 +279,8 @@ def _fixture_makefile() -> str:
         "phase2-validate:",
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py",
         "",
@@ -333,6 +336,7 @@ def _baseline_required_rels() -> tuple[tuple[str, ...], tuple[str, ...]]:
     )
     required_rels = tooling_packet_rels + (
         "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+        "scripts/zigux/check-phase2-toolchain-pin-scope.py",
         "scripts/zigux/check-phase2-tests-readme-alignment.py",
         "scripts/zigux/check-phase6-base64-catalog-evidence.py",
         "scripts/zigux/check-phase7-argv-split-parity.py",
@@ -373,6 +377,7 @@ def run_self_test() -> int:
     )
     baseline_makefile = _fixture_makefile()
     baseline_readme = _baseline_readme(required_rels)
+    case_count = 0
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_readme_tooling_inventory_") as tmp_dir:
         root = Path(tmp_dir) / "repo"
@@ -384,11 +389,13 @@ def run_self_test() -> int:
         _write(root / README_REL, baseline_readme)
         if validate(root):
             raise SystemExit("phase3-readme-tooling-inventory-self-test:baseline_failed")
+        case_count += 1
 
         _write(root / README_REL, "\n".join(("# scripts/zigux", "", _fixture_phase3_flow(), _fixture_cross_phase_flow())))
         if validate(root):
             raise SystemExit("phase3-readme-tooling-inventory-self-test:flow_first_readme_guard_failed")
         _write(root / README_REL, baseline_readme)
+        case_count += 1
 
         _write(
             root / TOOLING_PACKET_REL,
@@ -396,14 +403,18 @@ def run_self_test() -> int:
         )
         _assert_only(validate(root), [f"duplicate_canonical_readme_entry:{Path(tooling_packet_rels[0]).name}"], "duplicate_canonical_entry_guard_failed")
         _write(root / TOOLING_PACKET_REL, tooling_packet_script)
+        case_count += 1
 
         _write(root / MAKEFILE_REL, "\n".join(("phase2-validate:", "\t@true", "", baseline_makefile)))
         _assert_only(validate(root), [f"missing_makefile_target_entries:{PHASE2_VALIDATE_TARGET}"], "missing_phase2_makefile_guard_failed")
         _write(root / MAKEFILE_REL, baseline_makefile)
+        case_count += 1
 
         makefile_cases = (
             ("duplicate_phase2_self_test_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test\n", "unexpected_makefile_self_test_route_count:phase2-validate::2:check-phase2-kconfig-selftest-alignment.py"),
             ("duplicate_phase2_makefile_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py\n", "unexpected_makefile_live_route_count:phase2-validate::2:check-phase2-kconfig-selftest-alignment.py"),
+            ("duplicate_phase2_toolchain_pin_scope_self_test_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test\n", "unexpected_makefile_self_test_route_count:phase2-validate::2:check-phase2-toolchain-pin-scope.py"),
+            ("duplicate_phase2_toolchain_pin_scope_makefile_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py\n", "unexpected_makefile_live_route_count:phase2-validate::2:check-phase2-toolchain-pin-scope.py"),
             ("duplicate_phase2_tests_readme_self_test_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py --self-test\n", "unexpected_makefile_self_test_route_count:phase2-validate::2:check-phase2-tests-readme-alignment.py"),
             ("duplicate_phase2_tests_readme_makefile_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py\n", "unexpected_makefile_live_route_count:phase2-validate::2:check-phase2-tests-readme-alignment.py"),
             ("duplicate_phase6_self_test_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-base64-catalog-evidence.py --self-test\n", "unexpected_makefile_self_test_route_count:phase6-validate::2:check-phase6-base64-catalog-evidence.py"),
@@ -426,6 +437,7 @@ def run_self_test() -> int:
             _write(root / MAKEFILE_REL, baseline_makefile.replace(line, line + line, 1))
             _assert_only(validate(root), [expected], label)
             _write(root / MAKEFILE_REL, baseline_makefile)
+            case_count += 1
 
         extra_self_test = baseline_makefile.replace(
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py\n",
@@ -435,10 +447,12 @@ def run_self_test() -> int:
         _write(root / MAKEFILE_REL, extra_self_test)
         _assert_only(validate(root), ["unexpected_makefile_self_test_route_count:phase13-validate::1:validate-phase13-release.py"], "unexpected_phase13_release_validator_self_test_route_guard_failed")
         _write(root / MAKEFILE_REL, baseline_makefile)
+        case_count += 1
 
         _write(root / MAKEFILE_REL, "\n".join(("phase11-validate:", "\t@true", "", baseline_makefile)))
         _assert_only(validate(root), [f"missing_makefile_target_entries:{PHASE11_VALIDATE_TARGET}"], "missing_phase11_makefile_guard_failed")
         _write(root / MAKEFILE_REL, baseline_makefile)
+        case_count += 1
 
         readme_cases = (
             ("missing_readme_entry_guard_failed", "scripts/zigux/validate-phase3-roadmap-gap-survey.py", f"missing_readme_entry:{Path(tooling_packet_rels[0]).name}"),
@@ -446,6 +460,7 @@ def run_self_test() -> int:
             ("missing_phase13_devres_inventory_readme_entry_guard_failed", "scripts/zigux/check-phase13-devres-inventory-contract.py", "missing_readme_entry:check-phase13-devres-inventory-contract.py"),
             ("missing_phase11_readme_entry_guard_failed", "scripts/zigux/check-phase11-shared-replay-contract.py", "missing_readme_entry:check-phase11-shared-replay-contract.py"),
             ("missing_phase2_readme_entry_guard_failed", "scripts/zigux/check-phase2-kconfig-selftest-alignment.py", "missing_readme_entry:check-phase2-kconfig-selftest-alignment.py"),
+            ("missing_phase2_toolchain_pin_scope_readme_entry_guard_failed", "scripts/zigux/check-phase2-toolchain-pin-scope.py", "missing_readme_entry:check-phase2-toolchain-pin-scope.py"),
             ("missing_phase2_tests_readme_entry_guard_failed", "scripts/zigux/check-phase2-tests-readme-alignment.py", "missing_readme_entry:check-phase2-tests-readme-alignment.py"),
         )
         for label, rel, expected in readme_cases:
@@ -453,10 +468,12 @@ def run_self_test() -> int:
             variant = "\n".join(("# scripts/zigux", "", "Current bootstrap helpers", *entries, "", _fixture_phase3_flow(), _fixture_cross_phase_flow()))
             _write(root / README_REL, variant)
             _assert_only(validate(root), [expected], label)
+            case_count += 1
 
         phase3_order = "\n".join(("# scripts/zigux", "", "Current bootstrap helpers", f"- `{Path(tooling_packet_rels[1]).name}`", f"- `{Path(tooling_packet_rels[0]).name}`", *[f"- `{Path(rel).name}`" for rel in required_rels[2:]], "", _fixture_phase3_flow(), _fixture_cross_phase_flow()))
         _write(root / README_REL, phase3_order)
         _assert_only(validate(root), ["readme_entry_order_drift:phase3_packet"], "order_guard_failed")
+        case_count += 1
 
         phase13_reordered = (
             "scripts/zigux/check-phase13-devres-packet.py",
@@ -467,15 +484,17 @@ def run_self_test() -> int:
         )
         reordered = "\n".join(
             ("# scripts/zigux", "", "Current bootstrap helpers", "- `artifact_diff.py`",
-             *[f"- `{Path(rel).name}`" for rel in tooling_packet_rels + ("scripts/zigux/check-phase2-kconfig-selftest-alignment.py", "scripts/zigux/check-phase2-tests-readme-alignment.py", "scripts/zigux/check-phase6-base64-catalog-evidence.py", "scripts/zigux/check-phase7-argv-split-parity.py", "scripts/zigux/check-phase11-shared-replay-contract.py") + phase13_reordered],
+             *[f"- `{Path(rel).name}`" for rel in tooling_packet_rels + ("scripts/zigux/check-phase2-kconfig-selftest-alignment.py", "scripts/zigux/check-phase2-toolchain-pin-scope.py", "scripts/zigux/check-phase2-tests-readme-alignment.py", "scripts/zigux/check-phase6-base64-catalog-evidence.py", "scripts/zigux/check-phase7-argv-split-parity.py", "scripts/zigux/check-phase11-shared-replay-contract.py") + phase13_reordered],
              "", _fixture_phase3_flow(), _fixture_cross_phase_flow())
         )
         _write(root / README_REL, reordered)
         _assert_only(validate(root), ["readme_entry_order_drift:phase13_validate"], "phase13_order_guard_failed")
+        case_count += 1
 
         duplicate_readme = "\n".join(("# scripts/zigux", "", "Current bootstrap helpers", f"- `{Path(tooling_packet_rels[0]).name}`", f"- `{Path(tooling_packet_rels[0]).name}`", *[f"- `{Path(rel).name}`" for rel in required_rels[1:]], "", _fixture_phase3_flow(), _fixture_cross_phase_flow()))
         _write(root / README_REL, duplicate_readme)
         _assert_only(validate(root), [f"duplicate_readme_entry:{Path(tooling_packet_rels[0]).name}"], "duplicate_readme_entry_guard_failed")
+        case_count += 1
 
         missing_flow = "\n".join(("# scripts/zigux", "", "Current bootstrap helpers", "- `artifact_diff.py`", *[f"- `{Path(rel).name}`" for rel in required_rels], ""))
         _write(root / README_REL, missing_flow)
@@ -495,6 +514,7 @@ def run_self_test() -> int:
             ],
             "missing_phase3_flow_guard_failed",
         )
+        case_count += 1
 
         for label, snippet, prefix in (
             ("duplicate_phase3_flow_guard_failed", REQUIRED_PHASE3_FLOW_SNIPPETS[0], "unexpected_phase3_flow_snippet_count"),
@@ -506,13 +526,19 @@ def run_self_test() -> int:
             variant = baseline_readme + f"\n- {snippet}\n"
             _write(root / README_REL, variant)
             _assert_only(validate(root), [f"{prefix}:2:{snippet}"], label)
+            case_count += 1
 
         _write(root / README_REL, baseline_readme)
         (root / tooling_packet_rels[-1]).unlink()
         _assert_only(validate(root), [f"missing_repo_file:{tooling_packet_rels[-1]}"], "missing_repo_file_guard_failed")
+        case_count += 1
 
+    if case_count != 44:
+        raise SystemExit(
+            f"phase3-readme-tooling-inventory-self-test:unexpected_case_count:{case_count}"
+        )
     print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
-    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=35")
+    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=44")
     return 0
 
 
