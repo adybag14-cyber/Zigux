@@ -125,6 +125,17 @@ def write_host_shims(root: Path) -> None:
     )
 
 
+def validate_required_path(path: Path, label: str) -> None:
+    if not path.exists():
+        raise FileNotFoundError(f"missing {label}: {path}")
+
+
+def validate_required_paths(*, fixture: Path = FIXTURE, harness: Path = HARNESS, source: Path = SOURCE) -> None:
+    validate_required_path(fixture, "fixture")
+    validate_required_path(harness, "harness")
+    validate_required_path(source, "source")
+
+
 def compile_and_run(
     exe: Path,
     actual: Path,
@@ -195,7 +206,7 @@ def run_self_test() -> int:
             "leading_nul_stays_empty": {"argc": 0, "argv": []},
             "quote_characters_stay_literal": {
                 "argc": 3,
-                "argv": ['root="/dev/sda', '1"', "single"],
+                "argv": ['root=\"/dev/sda', '1\"', "single"],
             },
             "whitespace_collapse": {
                 "argc": 3,
@@ -209,6 +220,8 @@ def run_self_test() -> int:
 
         shim_dir = tmp_dir / "shim"
         write_host_shims(shim_dir)
+
+        validate_required_paths(fixture=fixture, harness=harness, source=source)
 
         env = os.environ.copy()
         env[SELF_TEST_PAYLOAD_ENV] = render_json(payload)
@@ -234,7 +247,7 @@ def run_self_test() -> int:
                 **payload,
                 "quote_characters_stay_literal": {
                     "argc": 2,
-                    "argv": ['root="/dev/sda 1"', "single"],
+                    "argv": ['root=\"/dev/sda 1\"', "single"],
                 },
             }
         )
@@ -272,8 +285,19 @@ def run_self_test() -> int:
         if load_json(nul_drift_actual) == load_json(fixture):
             raise SystemExit("phase7-argv-split-parity-self-test:nul_drift_not_detected")
 
+        fixture.unlink()
+        try:
+            validate_required_paths(fixture=fixture, harness=harness, source=source)
+        except FileNotFoundError as exc:
+            if str(exc) != f"missing fixture: {fixture}":
+                raise SystemExit(
+                    "phase7-argv-split-parity-self-test:missing_fixture_guard_shape"
+                ) from exc
+        else:
+            raise SystemExit("phase7-argv-split-parity-self-test:missing_fixture_guard_not_detected")
+
     print("PHASE7_ARGV_SPLIT_PARITY_SELF_TEST=pass")
-    print("PHASE7_ARGV_SPLIT_PARITY_SELF_TEST_CASE_COUNT=3")
+    print("PHASE7_ARGV_SPLIT_PARITY_SELF_TEST_CASE_COUNT=4")
     return 0
 
 
@@ -296,6 +320,13 @@ def main() -> int:
 
     if args.self_test:
         return run_self_test()
+
+    try:
+        validate_required_paths()
+    except FileNotFoundError as exc:
+        print("PHASE7_ARGV_SPLIT_PARITY=fail")
+        print(str(exc))
+        return 1
 
     compiler = find_compiler(args.cc)
 
