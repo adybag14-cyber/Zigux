@@ -81,6 +81,9 @@ PHASE2_VALIDATOR_MARKERS = [
     "PHASE2_CROSS_ALIGNMENT_REQUIRED_SOURCE_MARKERS",
     "PHASE2_TESTS_README_REQUIRED_SOURCE_MARKERS",
     "phase2_tests_readme",
+    "PHASE2_TESTS_README_ALIGNMENT_CHECKER = (",
+    'ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"',
+    '[sys.executable, str(PHASE2_TESTS_README_ALIGNMENT_CHECKER)],',
 ]
 
 PHASE2_CLOSURE_VALIDATOR_MARKERS = [
