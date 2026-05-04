@@ -7,7 +7,7 @@ This document records the bounded Phase 12 survey lane around `tools/lib/bpf/lib
 - `PHASE12_STATUS=active`
 - `PHASE12_SLICE=libbpf-segment-survey`
 - `PHASE12_LANE_KEY=P12-L16`
-- scope: Phase 12 survey manifest, dedicated survey gate, shared build wiring, focused libbpf-only replay evidence, and a lane note that compares the current `zigux_segments/` footing against the roadmap's heavy-helper consumer plan
+- scope: Phase 12 survey manifest, dedicated snapshot/packet/focused-replay gates, shared validator wiring, focused libbpf-only replay evidence, and a lane note that compares the current `zigux_segments/` footing against the roadmap's heavy-helper consumer plan
 - product boundary:
   - `zigux/tests/phase12_libbpf_manifest.json`
   - `zigux/tests/phase12_libbpf_segments.zig`
@@ -17,6 +17,11 @@ This document records the bounded Phase 12 survey lane around `tools/lib/bpf/lib
   - `tools/lib/bpf/zigux_segments/manifest.json`
   - `zigux/tests/phase12_build.zig`
   - `Documentation/zigux/phase12-libbpf-segment-survey.md`
+  - `scripts/zigux/check-phase12-libbpf-snapshot.py`
+  - `scripts/zigux/check-phase12-libbpf-packet.py`
+  - `scripts/zigux/check-phase12-libbpf-focused-replay.py`
+  - `scripts/zigux/validate-phase12.py`
+  - `zigux/Makefile`
 
 ## Why this slice exists
 
@@ -24,7 +29,7 @@ The roadmap now places `tools/lib/bpf/libbpf.c` in Phase 12, alongside the other
 
 That matters because the live repo already has real helper-first progress under `tools/lib/bpf/zigux_segments/`: a segment catalog, dense type-name tables, a CPU-mask helper with the deferred chunk-reader path for sysfs-style buffered input, a bounded logging helper, bounded bpffs pin-path helpers, a bounded proc-fdinfo, map-info, and map-reuse compatibility helper packet, and a bounded perf-buffer poll helper for wait-result and ready-buffer bookkeeping. Those are useful footholds, but they still need a current Phase 12 survey checkpoint that explains how the earlier helper work fits the modern roadmap instead of leaving libbpf stranded in older Phase 8 wording or stale Phase 12 reviewability assumptions.
 
-The highest-value honest step in this lane is therefore a survey checkpoint that records the existing segmented footing, keeps the Phase 12 build gate aware of it, verifies that the landed helper files still match the segment plan, and keeps the blocked-risk split current instead of drifting behind the live tree.
+The highest-value honest step in this lane is therefore a survey checkpoint that records the existing segmented footing, keeps the Phase 12 build gate aware of it, verifies that the landed helper files still match the segment plan, and keeps the blocked-risk split current instead of drifting behind the live tree. The note also needs to name the live snapshot, packet-alignment, focused-replay, shared-validator, and Makefile routes directly so reviewers do not have to infer the active infrastructure packet only from later gate prose.
 
 This checkpoint was last re-verified against packet-local head `d62742e7ff0747ed15f71f67d505f68ea15ec7ab`, with the landed helper set widened to include the bounded map-reuse compatibility slice, the cpu-mask helper now also carrying the same automatic perf-buffer CPU-budget clamp that libbpf applies before it opens per-CPU buffers, and with the deferred risk split still holding between the skeleton blocker, the deferred file-path and perf-buffer boundaries that share helper files, the deferred object-loader bucket, and the deferred relocation or verifier-facing bucket. This note now keeps that recorded verification head explicit instead of calling it the current `master` tip, while also recording that the live helper set has since gained the bounded `perf_buffer__poll()` wait-result and ready-buffer bookkeeping helper without collapsing the broader perf-buffer routing boundary into claimed runtime parity.
 
