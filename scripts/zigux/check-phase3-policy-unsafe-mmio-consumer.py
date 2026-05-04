@@ -13,9 +13,12 @@ MMIO_REL = "zigux/helpers/mmio.zig"
 INTEROP_POLICY_REL = "zigux/helpers/interop_policy.zig"
 POLICY_TEST_REL = "zigux/tests/phase3_policy_unsafe.zig"
 POLICY_BUILD_REL = "zigux/tests/phase3_policy_unsafe_build.zig"
+ABI_DUMP_REL = "zigux/tests/phase3_abi_dump.zig"
 
 REQUIRED_SURVEY_MARKERS = (
     "PHASE3_MMIO_TYPED_POLICY_CONSUMER=zigux/helpers/mmio.zig",
+    "PHASE3_ABI_DUMP_PATH=zigux/tests/phase3_abi_dump.zig",
+    "PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig",
     "PHASE3_BOUNDARY_GAP=typed-policy-mmio-consumer-landed-no-third-boundary-helper-beyond-focused-replay",
     "PHASE3_NEXT_BOUNDED_STEP=keep-the-policy-and-unsafe-surface-narrow-until-one-roadmap-backed-helper-beyond-mmio-needs-a-typed-interop-policy-consumer",
 )
@@ -26,6 +29,8 @@ REQUIRED_SURVEY_SNIPPETS = (
     "the current tree does not yet ship a third Phase 3 boundary helper that consumes `DecodedInteropPolicy` directly beyond the focused replay and the scoped MMIO helper",
     "and it now also exposes direct raw-pointer bridge readers through `constSliceAt()` and `constPointerAt()` without widening the packet into a broader runtime caller surface",
     "- `zigux/helpers/interop_policy.zig` now proves typed decoding through the focused replay, keeps direct raw-pointer bridge reads reviewable through `constSliceAt()` and `constPointerAt()`, and still stays inside the same bounded policy record rather than widening into a broader runtime surface",
+    "the shared `zigux/tests/phase3_abi_dump.zig` replay now also keeps `unsafe_scope_none`, `unsafe_scope_volatile_mmio`, `unsafe_scope_raw_pointer_bridge`, and `zigux_rbtree_root_view` explicit on the canonical ABI dump path, so this packet's enum-byte and root-view evidence is no longer compile-only",
+    "the shared `zigux/tests/phase3_abi_dump.zig` replay keeps the same unsafe-scope constants plus `zigux_rbtree_root_view` visible on the canonical dump path",
 )
 
 REQUIRED_MMIO_SNIPPETS = (
@@ -111,6 +116,14 @@ REQUIRED_POLICY_BUILD_SNIPPETS = (
     '"phase3-policy-unsafe-test",',
 )
 
+REQUIRED_ABI_DUMP_SNIPPETS = (
+    'try writer.writeAll(",\\"unsafe_scope_none\\":");',
+    'try writer.writeAll(",\\"unsafe_scope_volatile_mmio\\":");',
+    'try writer.writeAll(",\\"unsafe_scope_raw_pointer_bridge\\":");',
+    'try writer.writeAll("},\\"records\\":{\\"rbtree_empty_root\\":{\\"root_addr\\":");',
+    'try writeStructLayout(writer, "zigux_rbtree_root_view", abi.RbtreeRootView, false);',
+)
+
 
 def _read_text(root: Path, rel: str, issues: list[str]) -> str:
     path = root / rel
@@ -134,6 +147,7 @@ def validate(root: Path) -> list[str]:
     interop_policy = _read_text(root, INTEROP_POLICY_REL, issues)
     policy_test = _read_text(root, POLICY_TEST_REL, issues)
     policy_build = _read_text(root, POLICY_BUILD_REL, issues)
+    abi_dump = _read_text(root, ABI_DUMP_REL, issues)
 
     if survey:
         _check_snippets(survey, REQUIRED_SURVEY_MARKERS, "missing_survey_marker", issues)
@@ -146,6 +160,8 @@ def validate(root: Path) -> list[str]:
         _check_snippets(policy_test, REQUIRED_POLICY_TEST_SNIPPETS, "missing_policy_test_snippet", issues)
     if policy_build:
         _check_snippets(policy_build, REQUIRED_POLICY_BUILD_SNIPPETS, "missing_policy_build_snippet", issues)
+    if abi_dump:
+        _check_snippets(abi_dump, REQUIRED_ABI_DUMP_SNIPPETS, "missing_abi_dump_snippet", issues)
 
     return issues
 
@@ -167,6 +183,8 @@ def run_self_test() -> int:
                     "# Phase 3 Policy and Unsafe Boundary Survey",
                     "",
                     "- `PHASE3_MMIO_TYPED_POLICY_CONSUMER=zigux/helpers/mmio.zig`",
+                    "- `PHASE3_ABI_DUMP_PATH=zigux/tests/phase3_abi_dump.zig`",
+                    "- `PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig`",
                     "- `PHASE3_BOUNDARY_GAP=typed-policy-mmio-consumer-landed-no-third-boundary-helper-beyond-focused-replay`",
                     "- `PHASE3_NEXT_BOUNDED_STEP=keep-the-policy-and-unsafe-surface-narrow-until-one-roadmap-backed-helper-beyond-mmio-needs-a-typed-interop-policy-consumer`",
                     "",
@@ -179,6 +197,7 @@ def run_self_test() -> int:
         _write(root, INTEROP_POLICY_REL, "\n".join(REQUIRED_INTEROP_POLICY_SNIPPETS) + "\n")
         _write(root, POLICY_TEST_REL, "\n".join(REQUIRED_POLICY_TEST_SNIPPETS) + "\n")
         _write(root, POLICY_BUILD_REL, "\n".join(REQUIRED_POLICY_BUILD_SNIPPETS) + "\n")
+        _write(root, ABI_DUMP_REL, "\n".join(REQUIRED_ABI_DUMP_SNIPPETS) + "\n")
         assert validate(root) == []
 
         _write(root, POLICY_TEST_REL, "\n".join(snippet for snippet in REQUIRED_POLICY_TEST_SNIPPETS if "write64Policy" not in snippet) + "\n")
@@ -191,24 +210,30 @@ def run_self_test() -> int:
                 "# Phase 3 Policy and Unsafe Boundary Survey",
                 "",
                 "- `PHASE3_MMIO_TYPED_POLICY_CONSUMER=zigux/helpers/mmio.zig`",
+                "- `PHASE3_ABI_DUMP_PATH=zigux/tests/phase3_abi_dump.zig`",
+                "- `PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig`",
                 "- `PHASE3_BOUNDARY_GAP=typed-policy-mmio-consumer-landed-no-third-boundary-helper-beyond-focused-replay`",
                 "- `PHASE3_NEXT_BOUNDED_STEP=keep-the-policy-and-unsafe-surface-narrow-until-one-roadmap-backed-helper-beyond-mmio-needs-a-typed-interop-policy-consumer`",
                 "",
                 REQUIRED_SURVEY_SNIPPETS[0],
                 REQUIRED_SURVEY_SNIPPETS[2],
                 REQUIRED_SURVEY_SNIPPETS[3],
+                REQUIRED_SURVEY_SNIPPETS[5],
                 "",
             )
         ) + "\n")
         issues = validate(root)
         assert f"missing_survey_snippet:{REQUIRED_SURVEY_SNIPPETS[1]}" in issues
         assert f"missing_survey_snippet:{REQUIRED_SURVEY_SNIPPETS[4]}" in issues
+        assert f"missing_survey_snippet:{REQUIRED_SURVEY_SNIPPETS[6]}" in issues
 
         _write(root, SURVEY_REL, "\n".join(
             (
                 "# Phase 3 Policy and Unsafe Boundary Survey",
                 "",
                 "- `PHASE3_MMIO_TYPED_POLICY_CONSUMER=zigux/helpers/mmio.zig`",
+                "- `PHASE3_ABI_DUMP_PATH=zigux/tests/phase3_abi_dump.zig`",
+                "- `PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig`",
                 "- `PHASE3_BOUNDARY_GAP=typed-policy-mmio-consumer-landed-no-third-boundary-helper-beyond-focused-replay`",
                 "- `PHASE3_NEXT_BOUNDED_STEP=keep-the-policy-and-unsafe-surface-narrow-until-one-roadmap-backed-helper-beyond-mmio-needs-a-typed-interop-policy-consumer`",
                 "",
@@ -286,6 +311,8 @@ def run_self_test() -> int:
             (
                 "# Phase 3 Policy and Unsafe Boundary Survey",
                 "",
+                "- `PHASE3_ABI_DUMP_PATH=zigux/tests/phase3_abi_dump.zig`",
+                "- `PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig`",
                 "- `PHASE3_BOUNDARY_GAP=typed-policy-mmio-consumer-landed-no-third-boundary-helper-beyond-focused-replay`",
                 "- `PHASE3_NEXT_BOUNDED_STEP=keep-the-policy-and-unsafe-surface-narrow-until-one-roadmap-backed-helper-beyond-mmio-needs-a-typed-interop-policy-consumer`",
                 "",
@@ -304,6 +331,8 @@ def run_self_test() -> int:
                 "# Phase 3 Policy and Unsafe Boundary Survey",
                 "",
                 "- `PHASE3_MMIO_TYPED_POLICY_CONSUMER=zigux/helpers/mmio.zig`",
+                "- `PHASE3_ABI_DUMP_PATH=zigux/tests/phase3_abi_dump.zig`",
+                "- `PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig`",
                 "- `PHASE3_BOUNDARY_GAP=typed-policy-mmio-consumer-landed-no-third-boundary-helper-beyond-focused-replay`",
                 "- `PHASE3_NEXT_BOUNDED_STEP=keep-the-policy-and-unsafe-surface-narrow-until-one-roadmap-backed-helper-beyond-mmio-needs-a-typed-interop-policy-consumer`",
                 "",
@@ -338,13 +367,29 @@ def run_self_test() -> int:
         issues = validate(root)
         assert 'missing_policy_build_snippet:root_module.addImport("layout_assert", layout_assert_module);' in issues
 
+        _write(root, POLICY_BUILD_REL, "\n".join(REQUIRED_POLICY_BUILD_SNIPPETS) + "\n")
+        _write(
+            root,
+            ABI_DUMP_REL,
+            "\n".join(
+                snippet
+                for snippet in REQUIRED_ABI_DUMP_SNIPPETS
+                if snippet != 'try writeStructLayout(writer, "zigux_rbtree_root_view", abi.RbtreeRootView, false);'
+            ) + "\n",
+        )
+        issues = validate(root)
+        assert (
+            'missing_abi_dump_snippet:try writeStructLayout(writer, "zigux_rbtree_root_view", abi.RbtreeRootView, false);'
+            in issues
+        )
+
     print("PHASE3_POLICY_UNSAFE_MMIO_CONSUMER_SELF_TEST=pass")
     return 0
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Validate that the Phase 3 policy/unsafe packet still records and tests the full typed-policy MMIO consumer surface plus the direct raw-pointer bridge readers."
+        description="Validate that the Phase 3 policy/unsafe packet still records and tests the full typed-policy MMIO consumer surface, direct raw-pointer bridge readers, and shared ABI dump anchors."
     )
     parser.add_argument("--self-test", action="store_true", help="Run isolated validator coverage.")
     parser.add_argument("root", nargs="?", help="Optional repo root override.")
