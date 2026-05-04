@@ -139,6 +139,7 @@ Keep these evidence surfaces aligned in the same review:
 - `zigux/tests/phase13_devres_manifest.json`
 - `zigux/tests/phase13_landlock_ruleset_manifest.json`
 - `zigux/tests/phase13_landlock_syscalls_manifest.json`
+- `zigux/tests/phase13_notifier_list_manifest.json`
 - `zigux/tests/phase13_libfs.zig`
 - `zigux/tests/phase13_libfs_reviewability.zig`
 - `zigux/tests/phase13_devres.zig`
@@ -152,7 +153,6 @@ Keep these evidence surfaces aligned in the same review:
 - `zigux/tests/phase13_landlock_syscalls.zig`
 - `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
 - `zigux/tests/phase13_landlock_ruleset_fops_sync.zig`
-- `zigux/tests/phase13_notifier_list_manifest.json`
 - `zigux/tests/phase13_notifier_list_reviewability.zig`
 - `zigux/bindings/notifier_abi.zig`
 - `include/zigux/notifier_abi.h`
