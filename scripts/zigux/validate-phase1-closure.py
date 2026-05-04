@@ -13,24 +13,31 @@ def repo_root() -> Path:
     override = os.environ.get("ZIGUX_PHASE1_ROOT")
     if override:
         return Path(override)
-    return Path(__file__).resolve().parents[2]
+    resolved = Path(__file__).resolve()
+    return resolved.parents[2] if len(resolved.parents) >= 3 else resolved.parent
 
 
 ROOT = repo_root()
 REQUIRED_FILE_RELS = [
     ".github/workflows/zigux-bootstrap.yml",
     "Documentation/zigux/README.md",
+    "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase1-closure.md",
     "scripts/zigux/artifact_diff.py",
     "scripts/zigux/check-phase1-bench.py",
+    "scripts/zigux/check-phase1-bitmap-validator-anchors.py",
     "scripts/zigux/check-phase1-find-bit-validator-anchors.py",
     "scripts/zigux/check-phase1-parity.py",
+    "scripts/zigux/check-phase1-route-summary-counts.py",
+    "scripts/zigux/check-phase1-validation-route-inventory.py",
     "scripts/zigux/install-zig.py",
     "scripts/zigux/README.md",
+    "scripts/zigux/validate-phase1.py",
     "scripts/zigux/validate-phase1-closure.py",
     "zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md",
     "zigux/Makefile",
     "zigux/tests/build.zig",
+    "zigux/tests/README.md",
     "zigux/tests/fixtures/phase1_bench_expectations.json",
     "zigux/tests/fixtures/phase1_helper_manifest.json",
     "zigux/tests/fixtures/phase1_helpers.json",
@@ -92,6 +99,14 @@ REQUIRED_WORKFLOW_MARKERS = [
     "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true",
     "uses: actions/checkout@v6.0.2",
     "uses: actions/setup-python@v6.2.0",
+    "run: python3 scripts/zigux/validate-phase1.py --self-test",
+    "run: python3 scripts/zigux/validate-phase1.py",
+    "run: python3 scripts/zigux/check-phase1-bitmap-validator-anchors.py --self-test",
+    "run: python3 scripts/zigux/check-phase1-bitmap-validator-anchors.py",
+    "run: python3 scripts/zigux/check-phase1-route-summary-counts.py --self-test",
+    "run: python3 scripts/zigux/check-phase1-route-summary-counts.py",
+    "run: python3 scripts/zigux/check-phase1-validation-route-inventory.py --self-test",
+    "run: python3 scripts/zigux/check-phase1-validation-route-inventory.py",
     "run: python3 scripts/zigux/validate-phase1-closure.py",
     "run: python3 scripts/zigux/validate-phase1-closure.py --self-test",
     "run: python3 scripts/zigux/check-phase1-parity.py",
@@ -144,8 +159,15 @@ REQUIRED_PARITY_CHECKER_MARKERS = [
 REQUIRED_MAKEFILE_MARKERS = [
     "PHONY += phase1-validate phase1-test phase1-bench phase1",
     "phase1-validate:",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-bitmap-validator-anchors.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-bitmap-validator-anchors.py",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-find-bit-validator-anchors.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-find-bit-validator-anchors.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-route-summary-counts.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-route-summary-counts.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-validation-route-inventory.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-validation-route-inventory.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase1.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase1.py",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-parity.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-parity.py",
@@ -186,6 +208,54 @@ REQUIRED_EXACT_COUNT_MARKERS = [
         1,
     ),
     (
+        "workflow_phase1_validate_self_test_count",
+        ".github/workflows/zigux-bootstrap.yml",
+        "run: python3 scripts/zigux/validate-phase1.py --self-test",
+        1,
+    ),
+    (
+        "workflow_phase1_validate_count",
+        ".github/workflows/zigux-bootstrap.yml",
+        "run: python3 scripts/zigux/validate-phase1.py",
+        1,
+    ),
+    (
+        "workflow_phase1_bitmap_self_test_count",
+        ".github/workflows/zigux-bootstrap.yml",
+        "run: python3 scripts/zigux/check-phase1-bitmap-validator-anchors.py --self-test",
+        1,
+    ),
+    (
+        "workflow_phase1_bitmap_count",
+        ".github/workflows/zigux-bootstrap.yml",
+        "run: python3 scripts/zigux/check-phase1-bitmap-validator-anchors.py",
+        1,
+    ),
+    (
+        "workflow_phase1_route_summary_self_test_count",
+        ".github/workflows/zigux-bootstrap.yml",
+        "run: python3 scripts/zigux/check-phase1-route-summary-counts.py --self-test",
+        1,
+    ),
+    (
+        "workflow_phase1_route_summary_count",
+        ".github/workflows/zigux-bootstrap.yml",
+        "run: python3 scripts/zigux/check-phase1-route-summary-counts.py",
+        1,
+    ),
+    (
+        "workflow_phase1_route_inventory_self_test_count",
+        ".github/workflows/zigux-bootstrap.yml",
+        "run: python3 scripts/zigux/check-phase1-validation-route-inventory.py --self-test",
+        1,
+    ),
+    (
+        "workflow_phase1_route_inventory_count",
+        ".github/workflows/zigux-bootstrap.yml",
+        "run: python3 scripts/zigux/check-phase1-validation-route-inventory.py",
+        1,
+    ),
+    (
         "workflow_phase1_bench_self_test_count",
         ".github/workflows/zigux-bootstrap.yml",
         "run: python3 scripts/zigux/check-phase1-bench.py --self-test",
@@ -207,6 +277,12 @@ REQUIRED_EXACT_COUNT_MARKERS = [
         "workflow_phase1_closure_count",
         ".github/workflows/zigux-bootstrap.yml",
         "run: python3 scripts/zigux/validate-phase1-closure.py",
+        1,
+    ),
+    (
+        "makefile_phase1_validate_self_test_count",
+        "zigux/Makefile",
+        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase1.py --self-test",
         1,
     ),
     (
@@ -496,11 +572,16 @@ def self_test() -> int:
         write(root / "zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md", "\n".join(REQUIRED_LEDGER_MARKERS) + "\n")
         write(root / "scripts/zigux/check-phase1-bench.py", "\n".join(REQUIRED_BENCH_CHECKER_MARKERS) + "\n")
         write(root / "scripts/zigux/check-phase1-parity.py", "\n".join(REQUIRED_PARITY_CHECKER_MARKERS) + "\n")
+        write(root / "scripts/zigux/check-phase1-bitmap-validator-anchors.py", "# fixture\n")
         write(root / "scripts/zigux/check-phase1-find-bit-validator-anchors.py", "# fixture\n")
+        write(root / "scripts/zigux/check-phase1-route-summary-counts.py", "# fixture\n")
+        write(root / "scripts/zigux/check-phase1-validation-route-inventory.py", "# fixture\n")
+        write(root / "scripts/zigux/validate-phase1.py", "# fixture\n")
         write(root / "zigux/Makefile", render_fixture_lines(REQUIRED_MAKEFILE_MARKERS, MAKEFILE_EXACT_COUNT_PREFIXES))
         write(root / "scripts/zigux/artifact_diff.py", "# fixture\n")
         write(root / "scripts/zigux/install-zig.py", "# fixture\n")
         write(root / "zigux/tests/phase1_bench.zig", "// fixture\n")
+        write(root / "zigux/tests/README.md", "# fixture\n")
         write(root / "zigux/tests/fixtures/phase1_helpers.json", "{}\n")
         write(root / "zigux/tests/fixtures/phase1_helpers_c_harness.c", "/* fixture */\n")
         write(root / "zigux/tests/fixtures/phase1_helper_manifest.json", json.dumps(fixture_manifest(), indent=2) + "\n")
@@ -543,6 +624,20 @@ def self_test() -> int:
         write(root / "zigux/Makefile", "phase1-validate:\n")
         expect_failure(root, "makefile:PHONY += phase1-validate phase1-test phase1-bench phase1")
         write(root / "zigux/Makefile", render_fixture_lines(REQUIRED_MAKEFILE_MARKERS, MAKEFILE_EXACT_COUNT_PREFIXES))
+
+        (root / "scripts/zigux/check-phase1-bitmap-validator-anchors.py").unlink()
+        expect_failure(root, "file:scripts/zigux/check-phase1-bitmap-validator-anchors.py")
+        write(root / "scripts/zigux/check-phase1-bitmap-validator-anchors.py", "# fixture\n")
+
+        write(
+            root / ".github/workflows/zigux-bootstrap.yml",
+            render_fixture_lines(
+                REQUIRED_WORKFLOW_MARKERS + ["run: python3 scripts/zigux/validate-phase1.py"],
+                WORKFLOW_EXACT_COUNT_PREFIXES,
+            ),
+        )
+        expect_failure(root, "workflow_phase1_validate_count:expected=1:actual=2")
+        write(root / ".github/workflows/zigux-bootstrap.yml", render_fixture_lines(REQUIRED_WORKFLOW_MARKERS, WORKFLOW_EXACT_COUNT_PREFIXES))
 
         write(root / "zigux/tests/phase1_helpers.zig", "// fixture\n")
         expect_failure(root, 'helper_tests:const argv_split = @import("argv_split");')
@@ -691,7 +786,7 @@ def self_test() -> int:
         expect_failure(root, "rbtree_source:unexpected_alias:pub fn rb_first(")
 
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=30")
+    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=32")
     return 0
 
 
