@@ -24,6 +24,17 @@ def _ordered_unique(entries: list[str]) -> list[str]:
     return ordered
 
 
+def _duplicates(entries: list[str]) -> list[str]:
+    duplicates: list[str] = []
+    seen: set[str] = set()
+    for entry in entries:
+        if entry in seen and entry not in duplicates:
+            duplicates.append(entry)
+            continue
+        seen.add(entry)
+    return duplicates
+
+
 def _canonical_survey_script_rels(root: Path) -> tuple[list[str], list[str]]:
     validator_path = root / VALIDATOR_REL
     if not validator_path.exists():
@@ -63,6 +74,9 @@ def _canonical_survey_script_rels(root: Path) -> tuple[list[str], list[str]]:
         issues.append("missing_validator_constant:CANONICAL_SURVEY_MANIFEST_SCRIPT")
     else:
         rels.append(f"scripts/zigux/{canonical_manifest_script[0]}")
+
+    for rel in _duplicates(rels):
+        issues.append(f"duplicate_canonical_survey_script:{rel}")
 
     return _ordered_unique(rels), issues
 
@@ -274,6 +288,56 @@ def run_self_test() -> int:
             root / VALIDATOR_REL,
             "\n".join(
                 (
+                    "SURVEY_VALIDATION_SCRIPTS = (",
+                    '    ("validate-phase3-roadmap-gap-survey.py", "PHASE3_ROADMAP_GAP_SURVEY=fail", "roadmap-gap", "missing_roadmap_anchor"),',
+                    '    ("validate-phase3-roadmap-gap-survey.py", "PHASE3_ROADMAP_GAP_SURVEY=fail", "roadmap-gap-dup", "missing_roadmap_anchor_dup"),',
+                    '    ("validate-phase3-rbtree-interop-survey.py", "PHASE3_RBTREE_INTEROP_SURVEY=fail", "rbtree-gap", "missing_rbtree_anchor"),',
+                    ")",
+                    'BUILD_ROOT_DRIFT_SCRIPT = ("check-phase3-build-roots.py", "PHASE3_BUILD_ROOTS=fail", "build-roots", "missing_root")',
+                    'CANONICAL_SURVEY_MANIFEST_SCRIPT = ("check-phase3-canonical-survey-manifest.py", "PHASE3_CANONICAL_SURVEY_MANIFEST=fail", "canonical-manifest", "missing_manifest_anchor")',
+                    "",
+                )
+            ),
+        )
+        issues = validate(root)
+        expected = [
+            "duplicate_canonical_survey_script:scripts/zigux/validate-phase3-roadmap-gap-survey.py"
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-canonical-survey-manifest-self-test:duplicate_survey_script_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+        _write(
+            root / VALIDATOR_REL,
+            "\n".join(
+                (
+                    "SURVEY_VALIDATION_SCRIPTS = (",
+                    '    ("validate-phase3-roadmap-gap-survey.py", "PHASE3_ROADMAP_GAP_SURVEY=fail", "roadmap-gap", "missing_roadmap_anchor"),',
+                    '    ("check-phase3-build-roots.py", "PHASE3_BUILD_ROOTS=fail", "build-roots-dup", "missing_root_dup"),',
+                    '    ("validate-phase3-rbtree-interop-survey.py", "PHASE3_RBTREE_INTEROP_SURVEY=fail", "rbtree-gap", "missing_rbtree_anchor"),',
+                    ")",
+                    'BUILD_ROOT_DRIFT_SCRIPT = ("check-phase3-build-roots.py", "PHASE3_BUILD_ROOTS=fail", "build-roots", "missing_root")',
+                    'CANONICAL_SURVEY_MANIFEST_SCRIPT = ("check-phase3-canonical-survey-manifest.py", "PHASE3_CANONICAL_SURVEY_MANIFEST=fail", "canonical-manifest", "missing_manifest_anchor")',
+                    "",
+                )
+            ),
+        )
+        issues = validate(root)
+        expected = [
+            "duplicate_canonical_survey_script:scripts/zigux/check-phase3-build-roots.py"
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-canonical-survey-manifest-self-test:duplicate_build_root_script_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+        _write(
+            root / VALIDATOR_REL,
+            "\n".join(
+                (
                     'raise RuntimeError("synthetic validator load failure")',
                     "",
                 )
@@ -299,7 +363,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE3_CANONICAL_SURVEY_MANIFEST_SELF_TEST=pass")
-    print("PHASE3_CANONICAL_SURVEY_MANIFEST_SELF_TEST_CASE_COUNT=9")
+    print("PHASE3_CANONICAL_SURVEY_MANIFEST_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
