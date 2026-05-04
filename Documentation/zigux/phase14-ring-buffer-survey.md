@@ -10,7 +10,7 @@ This document records the bounded Phase 14 survey lane around `kernel/trace/ring
 - `PHASE14_SURVEYED_COMMIT=f9a7a6e93c8e6a1b6550fd7b2aa5571729aab05b`
 - scope: the dedicated Phase 14 ring-buffer survey gate, its manifest, the shared Phase 14 build wiring, and this lane note that keeps the roadmap gap explicit without shipping a Zig bridge
 - survey provenance refreshed against verified `master` head `f9a7a6e93c8e6a1b6550fd7b2aa5571729aab05b`
-- live follow-up: current repo inspection added one more bounded page-count resize workqueue audit around `ring_buffer_resize()`, per-CPU `update_pages_work`, `update_done` completion waits, and tracefs-facing resize coordination without widening this packet into a resize bridge claim or wrapper-first implementation
+- live follow-up: current repo inspection added one more bounded tracefs reader-serialization audit around `trace_access_lock()`, `trace_access_unlock()`, and the shared consumed-page lifetime rule for read or splice consumers without widening this packet into a reader wrapper claim
 - product boundary:
   - `zigux/tests/phase14_ring_buffer_survey.zig`
   - `zigux/tests/phase14_ring_buffer_manifest.json`
@@ -150,6 +150,13 @@ The honest Phase 14 move here is therefore not to start a `ring_buffer.zig` file
 - The prepare path also keeps sizing and publication coupled in C. It reuses the common page count only when all existing CPU buffers agree, falls back to a two-page minimum when sizes differ, and only advertises the new CPU in `buffer->cpumask` after `on_each_cpu(rb_cpu_sync, NULL, 1)` plus the matching write barrier, so reader visibility and CPU-online enrollment still share one ordered transition.
 - `tracer_alloc_buffers()` wires that same path into `cpuhp_setup_state_multi(CPUHP_TRACE_RB_PREPARE, "trace/RB:prepare", trace_rb_cpu_prepare, NULL)`, which keeps hotplug allocation, publication ordering, and later instance teardown inside one tracing-core control surface rather than a wrapper-safe helper seam.
 - Because offline CPUs keep their old buffers and later online transitions reuse the same contract, the honest Phase 14 posture is still stay-in-C evidence only: a future Zig bridge should not imply independent ownership of per-CPU hotplug churn, retained unread data, or cross-CPU publication ordering.
+
+## Tracefs reader-serialization audit
+
+- `trace_access_lock()` and `trace_access_unlock()` are not disposable wrapper helpers. On SMP they coordinate the all-CPU `all_cpu_access_lock` with the per-CPU `cpu_access_lock`, and on non-SMP they still collapse to one shared mutex, so tracefs readers keep one C-owned rule for whole-buffer versus per-CPU consumption instead of splitting that ownership across bridge seams.
+- The reason stays concrete in the surrounding `trace.c` comment: ring-buffer internals serialize low-level reader movement, but they do not keep previously returned events valid once another consumer turns a page back into normal ring-buffer use or hands it to `splice_read()`. That means the lifetime of consumed events is still governed above the raw buffer helpers, not by `ring_buffer_consume()` or `ring_buffer_read_page()` alone.
+- `tracing_buffers_read()` and the splice path rely on that same top-level contract. The read side takes `trace_access_lock(iter->cpu_file)` before consuming pages, and the shared comment explains that the pages behind those events may otherwise be rewritten by producers or returned to the system after splice, so cross-reader exclusion remains part of one tracefs-facing lifetime rule.
+- The net result stays study-only: reader serialization, consumed-event lifetime, and whole-buffer versus per-CPU exclusion remain explicitly in C, not as a new opening for `kernel/trace/ring_buffer.zig`.
 
 ## Reset and clear-path governance audit
 
