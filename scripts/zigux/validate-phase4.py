@@ -78,6 +78,8 @@ MATRIX_MARKERS = [
     "perf_thresholds_unapproved_until_bounded_phase4_benchmarks_land",
     "threshold_pending_until_runtime_atomic64_scope_widens",
     "threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
+    "benchmark command is still unapproved for both landed gates",
+    "acceptable limit is still unapproved for both landed gates",
 ]
 
 BITMAP_MATRIX_MARKERS = [
