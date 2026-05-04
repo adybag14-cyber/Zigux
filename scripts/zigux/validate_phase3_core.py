@@ -100,10 +100,10 @@ ABI_REQUIRED_DOC_MARKERS = (
     "PHASE3_MMIO_SCOPE=range-read8-read16-read32-read64-write8-write16-write32-write64-plus-scoped-read8-write8-read16-write16-read32-write32-read64-write64-plus-policy-read8-write8-read16-write16-read32-write32-read64-write64-and-generic-policy-bridges",
     "PHASE3_ROADMAP_ANCHORS=rust-exports-lib-bitmap-lib-rbtree-lib-cpumask",
     "PHASE3_CURRENT_INTEROP_FAMILIES=bitmap-cpumask-rbtree-list-hlist-errptr-xarray-idr-ida-minor-alloc-dev-region-cdev-chrdev",
-    "PHASE3_CURRENT_INTEROP_FAMILIES_DETAIL=bitmap-cpumask-rbtree-dedicated-boundary-list-hlist-errptr-xarray-idr-ida-minor-alloc-dev-region-cdev-chrdev-notify-ack-window-delivery-guard",
+    "PHASE3_CURRENT_INTEROP_FAMILIES_DETAIL=bitmap-cpumask-rbtree-dedicated-boundary-plus-shared-root-view-list-hlist-errptr-xarray-idr-ida-minor-alloc-dev-region-cdev-chrdev-notify-ack-window-delivery-guard",
     "PHASE3_CURRENT_INTEROP_GAP=repo-now-carries-curated-phase3-parity-slices-beyond-the-original-roadmap-anchor-set",
-    "PHASE3_CURRENT_INTEROP_GAP_DETAIL=live-build-graph-now-carries-deep-chrdev-tail-packets-while-the-shared-phase3-abi-replay-already-covers-rbtree-root-view-through-dedicated-bindings-and-the-curated-shared-abi-h-plus-abi-zig-lift-is-still-missing",
-    "PHASE3_NEXT_SAFE_STEP=shared-rbtree-root-view-lift-only-before-any-more-shared-abi-growth",
+    "PHASE3_CURRENT_INTEROP_GAP_DETAIL=live-build-graph-now-carries-deep-chrdev-tail-packets-while-the-curated-shared-include-zigux-abi-h-plus-zigux-bindings-abi-zig-rbtree-root-view-lift-is-landed-and-the-honest-remaining-gap-is-survey-and-validator-wording-that-still-describes-that-shared-lift-as-missing",
+    "PHASE3_NEXT_SAFE_STEP=align-shared-rbtree-survey-and-validator-wording-before-any-more-shared-abi-growth",
 )
 
 ABI_REVIEW_CHECKLIST_MARKERS = (
