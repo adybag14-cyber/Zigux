@@ -6,10 +6,12 @@ This document tracks the first bounded `drivers/virtio/virtio_input.c` lab helpe
 
 - `PHASE10_STATUS=active`
 - `PHASE10_SLICE=virtio-input-lab-helper`
-- scope: config identity snapshots, bounded property and event config bitmap summaries, bounded ABS metadata summaries, bounded capability-setup staging, bounded multitouch slot planning, a bounded registration-preflight summary, a bounded queue-callback preflight summary, a bounded probe-preflight summary, event and status queue planning, static event-buffer fill behavior, ready-state gating, multitouch timestamp suppression, a reset-local teardown observation summary, dedicated Phase 10 input tests, and a slice note only
+- scope: config identity snapshots, bounded property and event config bitmap summaries, bounded ABS metadata summaries, bounded capability-setup staging, bounded multitouch slot planning, a bounded registration-preflight summary, a bounded queue-callback preflight summary, a bounded probe-preflight summary, a bounded registration-blocker summary, event and status queue planning, static event-buffer fill behavior, ready-state gating, multitouch timestamp suppression, a reset-local teardown observation summary, dedicated Phase 10 input tests, and a slice note only
 - product boundary:
   - `drivers/virtio/virtio_input.zig`
+  - `drivers/virtio/virtio_input_registration_blocker.zig`
   - `zigux/tests/phase10_virtio_input.zig`
+  - `zigux/tests/phase10_virtio_input_registration_blocker.zig`
   - `zigux/tests/phase10_build.zig`
   - `zigux/Makefile`
 
@@ -30,14 +32,15 @@ The live repo now has a bounded `drivers/virtio/virtio_input.zig` helper plus de
 - a bounded registration-preflight summary that records when identity, capability, and multitouch slot-init intent are all staged before any `input_register_device()` or transport-backed queue work
 - a bounded queue-callback preflight helper summary that records when registration intent is staged, event buffers are filled, the status queue is configured, and the device is ready before any transport-backed callback claim
 - a bounded probe-preflight summary that records when identity, capability setup, registration intent, queue provisioning, and ready-state gating have all converged before any transport-backed probe handoff claim
+- a bounded registration-blocker summary in `drivers/virtio/virtio_input_registration_blocker.zig` that keeps `input_register_device()` lifecycle, transport-backed queue callbacks, freeze or restore handling, and probe or remove work explicitly parked as `blocked_on_risky_transport` even after the preflight summaries converge in memory
 - event and status queue descriptor-count validation with power-of-two bounds
 - static event-buffer fill accounting capped to the helper's in-memory event-buffer capacity
 - ready-state gating so status sends stay blocked until both queues are configured
 - multitouch `EV_MSC` and `MSC_TIMESTAMP` suppression bookkeeping that mirrors the loop-prevention branch in `virtio_input.c`
 - a reset-local teardown observation summary that reports queue, status, config, and ABS staging state together with explicit reset cleanup intent while preserving the identity strings already copied at init time
-- dedicated Phase 10 tests and build wiring for the helper
+- dedicated Phase 10 helper tests, the dedicated registration-blocker replay, and shared build wiring for the landed input packet
 
-The same parked input packet also participates in the shared closure evidence bundle through `Documentation/zigux/phase10-closure-evidence.md`, `zigux/tests/phase10_closure_manifest.json`, and `zigux-alpha/PHASE10_CLOSURE_LEDGER.md`, so the current review path is broader than the dedicated input test alone even though the landed helper surface remains input-local.
+The same parked input packet also participates in the shared closure evidence bundle through `Documentation/zigux/phase10-closure-evidence.md`, `zigux/tests/phase10_closure_manifest.json`, `zigux-alpha/PHASE10_CLOSURE_LEDGER.md`, and `zigux/tests/phase10_virtio_input_registration_blocker.zig`, so the current review path is broader than the dedicated input test alone even though the landed helper surface remains input-local.
 
 ## Non-goals
 
@@ -63,6 +66,9 @@ This slice does not yet claim:
 
 4. run the convenience target
 - `make -C zigux phase10`
+
+5. run the dedicated registration blocker replay
+- `zig test zigux/tests/phase10_virtio_input_registration_blocker.zig`
 
 ## Next bounded step
 
