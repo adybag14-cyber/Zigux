@@ -14,32 +14,32 @@ REQUIRED_FILES = [
     "scripts/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase13-devres-survey.md",
+    "Documentation/zigux/phase13-devres-scatterlist-slice.md",
     "zigux/Makefile",
     "zigux/tests/phase13_devres_manifest.json",
     "zigux/tests/phase13_devres_dma_coherent.zig",
+    "zigux/tests/phase13_devres_scatterlist.zig",
     "zigux/tests/phase13_devres_reviewability.zig",
 ]
 
 SCRIPTS_README_MARKER = (
-    "`Documentation/zigux/phase13-devres-survey.md`, "
-    "`zigux/tests/phase13_devres_manifest.json`, "
-    "`zigux/tests/phase13_devres_dma_coherent.zig`, and "
-    "`zigux/tests/phase13_devres_reviewability.zig` keep the helper-first "
-    "`devres` packet explicit about adjacent coherent-DMA bookkeeping while live "
-    "DMA-backed mappings and scatterlist ownership stay blocked rather than "
-    "implied."
+    "that shared Phase 13 release packet keeps `Documentation/zigux/phase13-notifier-list-survey.md`, "
+    "`Documentation/zigux/phase13-devres-scatterlist-slice.md`, the four roadmap-anchor manifests plus "
+    "`zigux/tests/phase13_notifier_list_manifest.json`, the direct libfs, devres, coherent-DMA, "
+    "scatterlist, Landlock ruleset, and Landlock syscalls helper replays, the `iounmap`, `iomap`, "
+    "wrapper, ruleset-fops-sync, and syscall reviewability gates, `zigux/tests/phase13_notifier_list_reviewability.zig`, "
+    "`zigux/bindings/notifier_abi.zig`, `include/zigux/notifier_abi.h`, and `zigux/helpers/notifier_chain_view.zig` visible "
+    "from the scripts root so the contributor packet names the same validator-first evidence bundle as the tests-root and docs-root guides."
 )
 
 REVIEW_CHECKLIST_MARKER = (
     "if the change touches the shared Phase 13 release-discipline packet, do "
     "`scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, "
-    "`Documentation/zigux/phase13-devres-survey.md`, "
-    "`zigux/tests/phase13_devres_manifest.json`, "
-    "`zigux/tests/phase13_devres_dma_coherent.zig`, and "
-    "`zigux/tests/phase13_devres_reviewability.zig` still keep the scripts-root "
-    "devres inventory sentence and its adjacent coherent-DMA plus reviewability "
-    "evidence explicit so reviewer guidance does not drift behind the stricter "
-    "shared validator contract?"
+    "`Documentation/zigux/phase13-devres-survey.md`, `Documentation/zigux/phase13-devres-scatterlist-slice.md`, "
+    "`zigux/tests/phase13_devres_manifest.json`, `zigux/tests/phase13_devres_dma_coherent.zig`, "
+    "`zigux/tests/phase13_devres_scatterlist.zig`, and `zigux/tests/phase13_devres_reviewability.zig` still keep the scripts-root "
+    "devres inventory sentence and its adjacent coherent-DMA, scatterlist, plus reviewability evidence explicit so reviewer guidance "
+    "does not drift behind the stricter shared validator contract?"
 )
 
 MAKEFILE_MARKERS = [
@@ -154,6 +154,10 @@ def _run_self_test() -> int:
             + "\n",
             encoding="utf-8",
         )
+        (root / "Documentation/zigux/phase13-devres-scatterlist-slice.md").write_text(
+            "# Phase 13 devres scatterlist helper slice\n",
+            encoding="utf-8",
+        )
         (root / "zigux/Makefile").write_text(
             "phase13-validate:\n"
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-inventory-contract.py --self-test\n"
@@ -165,6 +169,10 @@ def _run_self_test() -> int:
         )
         (root / "zigux/tests/phase13_devres_dma_coherent.zig").write_text(
             'test "phase13 devres coherent dma placeholder" {}\n',
+            encoding="utf-8",
+        )
+        (root / "zigux/tests/phase13_devres_scatterlist.zig").write_text(
+            'test "phase13 devres scatterlist placeholder" {}\n',
             encoding="utf-8",
         )
         (root / "zigux/tests/phase13_devres_manifest.json").write_text(
