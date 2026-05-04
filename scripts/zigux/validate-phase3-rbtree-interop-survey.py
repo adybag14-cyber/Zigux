@@ -102,20 +102,20 @@ EXACT_ONCE_ROADMAP_GAP_MARKERS = REQUIRED_ROADMAP_GAP_MARKERS
 REQUIRED_SLICE_MARKERS = (
     "PHASE3_RBTREE_DEDICATED_BOUNDARY_PARITY=zigux/tests/fixtures/phase3_rbtree/expected.json,zigux/tests/fixtures/phase3_rbtree/phase3_rbtree_c_harness.c",
     "PHASE3_RBTREE_SHARED_BOUNDARY_STATUS=shared-root-view-lift-landed-shared-replay-present",
-    "PHASE3_RBTREE_SHARED_BOUNDARY_GAP=shared-phase3-abi-validator-packet-still-needs-rbtree-shared-lift-alignment",
+    "PHASE3_RBTREE_SHARED_BOUNDARY_GAP=shared-phase3-abi-survey-and-validator-packet-still-needs-rbtree-shared-lift-alignment",
     "PHASE3_RBTREE_SHARED_BOUNDARY_GUARDS=scripts/zigux/check-phase3-abi-layout-packet.py,scripts/zigux/check-phase3-rbtree-shared-lift-contract.py",
 )
 
 EXACT_ONCE_SLICE_MARKERS = (
     "PHASE3_RBTREE_SHARED_BOUNDARY_STATUS=shared-root-view-lift-landed-shared-replay-present",
-    "PHASE3_RBTREE_SHARED_BOUNDARY_GAP=shared-phase3-abi-validator-packet-still-needs-rbtree-shared-lift-alignment",
+    "PHASE3_RBTREE_SHARED_BOUNDARY_GAP=shared-phase3-abi-survey-and-validator-packet-still-needs-rbtree-shared-lift-alignment",
 )
 
 REQUIRED_SLICE_SNIPPETS = (
     "This slice now carries both the dedicated `rbtree` boundary packet and the landed shared Phase 3 ABI root-view lift.",
     "a shared `rbtree` root-view record in `include/zigux/abi.h` and `zigux/bindings/abi.zig`",
     "a shared Phase 3 ABI replay in `zigux/tests/phase3_abi.zig`, `zigux/tests/phase3_abi_dump.zig`, and `zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c` that now uses the curated shared header and binding path",
-    "the outstanding same-family work is the broader shared ABI validator-packet alignment rather than missing shared code",
+    "the shared ABI manifest now catalogs both that dedicated packet and the shared ABI replay plus the shared-lift guards, so the outstanding same-family work is the broader shared ABI survey-and-validator packet alignment rather than missing shared code",
     "The next honest follow-up is one bounded shared-validator alignment pass",
 )
 
@@ -290,6 +290,7 @@ def run_self_test() -> int:
         issues = validate(root)
         assert f"unexpected_survey_marker_count:2:{duplicated_survey_marker}" in issues
 
+        (root / SURVEY_REL).writeText = None
         (root / SURVEY_REL).write_text("\n".join((*REQUIRED_SURVEY_MARKERS, *REQUIRED_SURVEY_SNIPPETS)) + "\n", encoding="utf-8")
         duplicated_survey_snippet = EXACT_ONCE_SURVEY_SNIPPETS[0]
         (root / SURVEY_REL).write_text(
