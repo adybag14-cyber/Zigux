@@ -6,7 +6,7 @@ This document tracks the first bounded Phase 9 runtime kretprobe starter under `
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-kretprobe-module-starter`
-- `PHASE9_LANE_KEY=P9-L16`
+- `PHASE9_LANE_KEY=P9-L13`
 - `PHASE9_SURVEYED_COMMIT=fe8a43ea2e186da0da152198b571dff57ea3c38c`
 - scope: lifecycle starter, bounded return-probe bookkeeping, direct embedded sample replay, the bounded pre-init `configureMaxactive()` starter contract, explicit `phase9-runtime-kretprobe-{sample,module,diff,loader,survey}-tests` shared-build legs, a manifest-backed survey packet, a loader-handoff scaffold, explicit shared `command_name` preservation, a landed shared loader-request binding, and survey-manifest closure only
 - product boundary:
