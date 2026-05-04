@@ -22,7 +22,7 @@ REQUIRED_SURVEY_MARKERS = (
     "PHASE3_RBTREE_PHASE3_SLICE=Documentation/zigux/phase3-rbtree-slice.md",
     "PHASE3_RBTREE_PHASE3_BOUNDARY_STATUS=dedicated-boundary-and-shared-abi-root-view-lift-landed",
     "PHASE3_RBTREE_NON_GOALS=no-balancing-port,no-export-shim-growth,no-uapi-growth",
-    "PHASE3_RBTREE_NEXT_BOUNDED_STEP=align-phase3-docs-root-summary-with-landed-shared-rbtree-lift",
+    "PHASE3_RBTREE_NEXT_BOUNDED_STEP=align-remaining-phase3-rbtree-survey-wording-with-landed-shared-rbtree-lift",
     "PHASE3_RBTREE_SHARED_REPLAY=zigux/tests/phase3_abi.zig,zigux/tests/phase3_abi_dump.zig,zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c,zigux/tests/fixtures/phase3_abi/expected.json",
     "PHASE3_RBTREE_SHARED_LAYOUT_CONTRACT=zigux_rbtree_root_view-reused-unchanged-in-shared-phase3-abi-packet",
     "PHASE3_RBTREE_SHARED_CONSTANT_CONTRACT=root_flag_empty,root_flag_cached,root_flag_leftmost_valid",
@@ -37,9 +37,9 @@ REQUIRED_SURVEY_MARKERS = (
 REQUIRED_SURVEY_SNIPPETS = (
     "include/zigux/abi.h` and `zigux/bindings/abi.zig` now also carry the shared `zigux_rbtree_root_view` lift inside the canonical Phase 3 ABI packet",
     "the shared Phase 3 ABI replay explicit, including the canonical empty-root, cached-leftmost-root, and uncached-root samples",
-    "The remaining same-family gap is therefore review-facing rather than implementation-facing",
+    "The remaining same-family gap is therefore review-facing rather than implementation-facing: this dedicated survey wording now needs to stay aligned with this already-landed shared `rbtree` lift now that the docs-root Phase 3 summary is already in sync.",
     "keeps this dedicated survey note, the broader `Documentation/zigux/phase3-roadmap-gap-survey.md` note, the helper slice note, and the repo-backed evidence paths aligned",
-    "The next honest same-lane follow-on is one bounded docs-root and survey-summary alignment pass",
+    "The next honest same-lane follow-on is one bounded survey-summary alignment pass",
 )
 
 REQUIRED_REPO_PATHS = (
