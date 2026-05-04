@@ -200,3 +200,47 @@ test "runtime atomic64 sample keeps post-selftest mutation replay explicit at th
     try std.testing.expectError(error.InvalidLifecycleTransition, module.incNotZeroCounter());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.decIfPositiveCounter());
 }
+
+test "runtime atomic64 sample keeps zero and negative guard-return replay explicit after selftest at the module boundary" {
+    var zero_guard = sample.RuntimeAtomic64Sample{};
+    try zero_guard.init(0);
+    _ = try zero_guard.runSelftest();
+
+    const zero_inc_not_zero = try zero_guard.incNotZeroCounter();
+    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, zero_guard.stage());
+    try std.testing.expect(!zero_inc_not_zero.changed);
+    try std.testing.expectEqual(@as(i64, 0), zero_inc_not_zero.previous);
+    try std.testing.expectEqual(@as(i64, 0), zero_guard.snapshotCounter());
+
+    const zero_dec_if_positive = try zero_guard.decIfPositiveCounter();
+    try std.testing.expect(!zero_dec_if_positive.changed);
+    try std.testing.expectEqual(@as(i64, -1), zero_dec_if_positive.result);
+    try std.testing.expectEqual(@as(i64, 0), zero_guard.snapshotCounter());
+
+    const zero_summary = zero_guard.summary();
+    try std.testing.expectEqual(@as(i64, 0), zero_summary.counter_snapshot);
+    try std.testing.expectEqual(@as(usize, 1), zero_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), zero_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), zero_summary.exit_runs);
+
+    var negative_guard = sample.RuntimeAtomic64Sample{};
+    try negative_guard.init(-1);
+    _ = try negative_guard.runSelftest();
+
+    const negative_dec_if_positive = try negative_guard.decIfPositiveCounter();
+    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, negative_guard.stage());
+    try std.testing.expect(!negative_dec_if_positive.changed);
+    try std.testing.expectEqual(@as(i64, -2), negative_dec_if_positive.result);
+    try std.testing.expectEqual(@as(i64, -1), negative_guard.snapshotCounter());
+
+    const negative_inc_not_zero = try negative_guard.incNotZeroCounter();
+    try std.testing.expect(negative_inc_not_zero.changed);
+    try std.testing.expectEqual(@as(i64, -1), negative_inc_not_zero.previous);
+    try std.testing.expectEqual(@as(i64, 0), negative_guard.snapshotCounter());
+
+    const negative_summary = negative_guard.summary();
+    try std.testing.expectEqual(@as(i64, 0), negative_summary.counter_snapshot);
+    try std.testing.expectEqual(@as(usize, 1), negative_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), negative_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), negative_summary.exit_runs);
+}
