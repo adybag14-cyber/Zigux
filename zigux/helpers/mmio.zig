@@ -32,15 +32,36 @@ fn ensureApprovedPolicyWidth(comptime T: type) void {
     }
 }
 
+fn readScopedBridge(
+    comptime T: type,
+    scope: narrow.UnsafeScopeTag,
+    base_addr: usize,
+    offset: usize,
+) narrow.ScopeError!T {
+    ensureApprovedPolicyWidth(T);
+    const ptr = try narrow.scopedPointerAt(T, scope, base_addr, offset);
+    return ptr.*;
+}
+
+fn writeScopedBridge(
+    comptime T: type,
+    scope: narrow.UnsafeScopeTag,
+    base_addr: usize,
+    offset: usize,
+    value: T,
+) narrow.ScopeError!void {
+    ensureApprovedPolicyWidth(T);
+    const ptr = try narrow.scopedPointerAt(T, scope, base_addr, offset);
+    ptr.* = value;
+}
+
 pub fn readScopedWithPolicy(
     comptime T: type,
     policy: interop_policy.DecodedInteropPolicy,
     base_addr: usize,
     offset: usize,
 ) narrow.ScopeError!T {
-    ensureApprovedPolicyWidth(T);
-    const ptr = try narrow.scopedPointerAt(T, try scopeFromPolicy(policy), base_addr, offset);
-    return ptr.*;
+    return readScopedBridge(T, try scopeFromPolicy(policy), base_addr, offset);
 }
 
 pub fn writeScopedWithPolicy(
@@ -50,14 +71,11 @@ pub fn writeScopedWithPolicy(
     offset: usize,
     value: T,
 ) narrow.ScopeError!void {
-    ensureApprovedPolicyWidth(T);
-    const ptr = try narrow.scopedPointerAt(T, try scopeFromPolicy(policy), base_addr, offset);
-    ptr.* = value;
+    try writeScopedBridge(T, try scopeFromPolicy(policy), base_addr, offset, value);
 }
 
 pub fn read8Scoped(scope: narrow.UnsafeScopeTag, base_addr: usize, offset: usize) narrow.ScopeError!u8 {
-    const ptr = try narrow.scopedPointerAt(u8, scope, base_addr, offset);
-    return ptr.*;
+    return readScopedBridge(u8, scope, base_addr, offset);
 }
 
 pub fn write8Scoped(
@@ -66,13 +84,11 @@ pub fn write8Scoped(
     offset: usize,
     value: u8,
 ) narrow.ScopeError!void {
-    const ptr = try narrow.scopedPointerAt(u8, scope, base_addr, offset);
-    ptr.* = value;
+    try writeScopedBridge(u8, scope, base_addr, offset, value);
 }
 
 pub fn read16Scoped(scope: narrow.UnsafeScopeTag, base_addr: usize, offset: usize) narrow.ScopeError!u16 {
-    const ptr = try narrow.scopedPointerAt(u16, scope, base_addr, offset);
-    return ptr.*;
+    return readScopedBridge(u16, scope, base_addr, offset);
 }
 
 pub fn write16Scoped(
@@ -81,13 +97,11 @@ pub fn write16Scoped(
     offset: usize,
     value: u16,
 ) narrow.ScopeError!void {
-    const ptr = try narrow.scopedPointerAt(u16, scope, base_addr, offset);
-    ptr.* = value;
+    try writeScopedBridge(u16, scope, base_addr, offset, value);
 }
 
 pub fn read32Scoped(scope: narrow.UnsafeScopeTag, base_addr: usize, offset: usize) narrow.ScopeError!u32 {
-    const ptr = try narrow.scopedPointerAt(u32, scope, base_addr, offset);
-    return ptr.*;
+    return readScopedBridge(u32, scope, base_addr, offset);
 }
 
 pub fn write32Scoped(
@@ -96,13 +110,11 @@ pub fn write32Scoped(
     offset: usize,
     value: u32,
 ) narrow.ScopeError!void {
-    const ptr = try narrow.scopedPointerAt(u32, scope, base_addr, offset);
-    ptr.* = value;
+    try writeScopedBridge(u32, scope, base_addr, offset, value);
 }
 
 pub fn read64Scoped(scope: narrow.UnsafeScopeTag, base_addr: usize, offset: usize) narrow.ScopeError!u64 {
-    const ptr = try narrow.scopedPointerAt(u64, scope, base_addr, offset);
-    return ptr.*;
+    return readScopedBridge(u64, scope, base_addr, offset);
 }
 
 pub fn write64Scoped(
@@ -111,8 +123,7 @@ pub fn write64Scoped(
     offset: usize,
     value: u64,
 ) narrow.ScopeError!void {
-    const ptr = try narrow.scopedPointerAt(u64, scope, base_addr, offset);
-    ptr.* = value;
+    try writeScopedBridge(u64, scope, base_addr, offset, value);
 }
 
 pub fn read8Policy(policy: interop_policy.DecodedInteropPolicy, base_addr: usize, offset: usize) narrow.ScopeError!u8 {
@@ -306,6 +317,30 @@ test "phase3 mmio wrapper keeps declared scope explicit across widths" {
     try write64Scoped(.volatile_mmio, base64, @sizeOf(u64), 0x0123_4567_89ab_cdef);
     try std.testing.expectEqual(@as(u64, 0x0123_4567_89ab_cdef), regs64[1]);
     try std.testing.expectEqual(@as(u64, 0x0123_4567_89ab_cdef), try read64Scoped(.volatile_mmio, base64, @sizeOf(u64)));
+}
+
+test "phase3 mmio wrapper shares one bounded scoped bridge" {
+    var regs32 = [_]u32{ 0, 0, 0 };
+    const base32 = narrow.addressOf(&regs32[0]);
+    try std.testing.expectError(error.UnsafeScopeDenied, writeScopedBridge(u8, .none, base32, 0, 0xab));
+    try std.testing.expectError(error.UnsafeScopeDenied, readScopedBridge(u8, .raw_pointer_bridge, base32, 0));
+
+    try writeScopedBridge(u16, .volatile_mmio, base32, 0, 0xabcd);
+    try std.testing.expectEqual(@as(u16, 0xabcd), try readScopedBridge(u16, .volatile_mmio, base32, 0));
+    try writeScopedBridge(u32, .volatile_mmio, base32, @sizeOf(u32), 0xaabbccdd);
+    try std.testing.expectEqual(@as(u32, 0xaabbccdd), regs32[1]);
+    try std.testing.expectEqual(@as(u32, 0xaabbccdd), try readScopedBridge(u32, .volatile_mmio, base32, @sizeOf(u32)));
+
+    var regs64 = [_]u64{ 0, 0 };
+    const base64 = narrow.addressOf(&regs64[0]);
+    try writeScopedBridge(u64, .volatile_mmio, base64, @sizeOf(u64), 0x0123_4567_89ab_cdef);
+    try std.testing.expectEqual(@as(u64, 0x0123_4567_89ab_cdef), regs64[1]);
+    try std.testing.expectEqual(@as(u64, 0x0123_4567_89ab_cdef), try readScopedBridge(u64, .volatile_mmio, base64, @sizeOf(u64)));
+
+    try std.testing.expectError(error.MisalignedAccess, writeScopedBridge(u16, .volatile_mmio, base32, 1, 0xabcd));
+    try std.testing.expectError(error.MisalignedAccess, readScopedBridge(u32, .volatile_mmio, base32, 2));
+    try std.testing.expectError(error.AddressOverflow, writeScopedBridge(u64, .volatile_mmio, std.math.maxInt(usize), 8, 1));
+    try std.testing.expectError(error.AddressOverflow, readScopedBridge(u8, .volatile_mmio, std.math.maxInt(usize), 1));
 }
 
 test "phase3 mmio wrapper rejects misaligned scoped accesses" {
