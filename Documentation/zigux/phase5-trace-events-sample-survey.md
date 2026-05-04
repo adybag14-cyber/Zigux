@@ -82,7 +82,7 @@ The exact checks currently recorded in `zigux/tests/phase5_trace_events_sample_m
     - `1/5 trace_events_sample.test.trace-events sample replay keeps the anchor reviewable and non-runtime...OK`
     - `2/5 trace_events_sample.test.trace-events sample replays every modulo-selected string and formatted message through one bounded replay...OK`
     - `3/5 trace_events_sample.test.trace-events sample exposes callback boundary recovery as one bounded replay...OK`
-    - `4/5 trace_events_sample.test.trace-events sample rejects every mutable entry point after exit...OK`
+    - `4/5 trace_events_sample.test.trace-events sample replays lifecycle boundaries through one bounded helper...OK`
     - `5/5 trace_events_sample.test.trace-events sample keeps callback registration single-live...OK`
     - `All 5 tests passed.`
   - `zig test zigux/tests/phase5_trace_events_sample_survey.zig`
