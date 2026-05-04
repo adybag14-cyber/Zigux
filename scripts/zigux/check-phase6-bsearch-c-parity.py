@@ -251,14 +251,21 @@ def main() -> int:
 
     c_lines = sorted_lines(c_run.stdout)
     zig_lines = sorted_lines(zig_run.stdout)
-    validate_expected_surface(c_lines, "c")
-    validate_expected_surface(zig_lines, "zig")
-
+    failures: list[str] = []
+    for label, lines in (("c", c_lines), ("zig", zig_lines)):
+        try:
+            validate_expected_surface(lines, label)
+        except SystemExit as exc:
+            failures.append(str(exc))
     try:
         validate_matching_surface(c_lines, zig_lines, "c-vs-zig")
     except SystemExit as exc:
+        failures.append(str(exc))
+
+    if failures:
         print("PHASE6_BSEARCH_C_PARITY=fail")
-        print(str(exc))
+        for failure in failures:
+            print(failure)
         print("C_OUTPUT_START")
         print(c_run.stdout.rstrip())
         print("C_OUTPUT_END")
