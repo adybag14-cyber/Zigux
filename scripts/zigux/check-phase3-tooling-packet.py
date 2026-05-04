@@ -15,6 +15,7 @@ VALIDATOR_REL = "scripts/zigux/validate-phase3.py"
 
 REQUIRED_TOOLING_FILES = (
     "scripts/zigux/check-phase3-abi.py",
+    "scripts/zigux/check-phase3-abi-duplicate-declarations.py",
     "scripts/zigux/check-phase3-abi-layout-packet.py",
     "scripts/zigux/check-phase3-abi-binding-constants.py",
     "scripts/zigux/check-phase3-build-roots.py",
@@ -40,6 +41,7 @@ REQUIRED_TOOLING_FILES = (
 )
 
 README_PACKET_STATIC_FILES = (
+    "scripts/zigux/check-phase3-abi-duplicate-declarations.py",
     "scripts/zigux/check-phase3-readme-tooling-inventory.py",
     "scripts/zigux/check-phase3-tooling-packet.py",
     "scripts/zigux/check-phase3-validation-flow.py",
