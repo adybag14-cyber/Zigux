@@ -87,6 +87,14 @@ KCONFIG_CHECKER_MARKERS = [
     "INVALID_KCONFIG_MANIFEST_START",
     "orphaned_fixture:",
     "expected_canonical_name",
+    "compare_text_artifacts(actual, repeat)",
+    "compare_text_artifacts(actual, rebuild)",
+    "compare_text_artifacts(default_actual, default_repeat)",
+    "compare_text_artifacts(default_actual, default_rebuild)",
+    "input_path=trailing_cr_input",
+    "input_path=final_unset_input",
+    "env['KCONFIG_SEED'] = case['seed']",
+    "env['KCONFIG_PROBABILITY'] = case['probability']",
 ]
 
 PHASE2_VALIDATOR_MARKERS = [
@@ -94,12 +102,21 @@ PHASE2_VALIDATOR_MARKERS = [
     '"PHASE2_KCONFIG_ALIGNMENT_SELF_TEST=pass"',
     '"PHASE2_KCONFIG_ALIGNMENT_SELF_TEST_CASE_COUNT=13"',
     '"phase2_kconfig_alignment_checker"',
+    "PHASE2_KCONFIG_REQUIRED_SOURCE_MARKERS = [",
+    '"assert total_self_test_cases == 6",',
+    '"compare_text_artifacts(default_actual, default_rebuild)",',
+    '"input_path=trailing_cr_input",',
+    '"input_path=final_unset_input",',
+    '"print(\'KCONFIG_BRIDGE_DETERMINISM=pass\')",',
 ]
 
 PHASE2_CLOSURE_VALIDATOR_MARKERS = [
     "CHECK_PHASE2_KCONFIG_SELFTEST_ALIGNMENT = ROOT / 'scripts' / 'zigux' / 'check-phase2-kconfig-selftest-alignment.py'",
     "'python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test': 1,",
     "'python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py': 1,",
+    "PHASE2_KCONFIG_BRIDGE_DETERMINISM=check-kconfig-bridge.py replays conf and confdata outputs twice and compares a rebuilt confdata binary against the same JSON artifacts",
+    "PHASE2_KCONFIG_BRIDGE_LOW_CONTROL_CASE=zigux/tests/fixtures/kconfig_bridge/escaped_low_control_bytes_expected.json",
+    "PHASE2_KCONFIG_BRIDGE_MANIFEST_POLICY=check-kconfig-bridge.py rejects uncovered modes, malformed manifests, duplicate fixture references, orphaned fixture files, and non-canonical confdata names before replay",
 ]
 
 
