@@ -146,6 +146,8 @@ test "phase10 virtio mmio survey manifest records the landed interrupt-ack rung 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-virtio-mmio-slice-note") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-mmio-lifecycle-and-irq-paths") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase10_virtio_mmio_queue_isolation.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "bounded transport-identity and register-window helper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "transport-identity snapshots for the magic value, transport version, device-id presence, and vendor-id bookkeeping") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_FREEZE_MAP=Documentation/zigux/freeze-map.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_FREEZE_BOUNDARY_STATUS=aligned") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=yes") != null);
@@ -161,6 +163,7 @@ test "phase10 virtio mmio survey manifest records the landed interrupt-ack rung 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/*.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/kernel/") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/helpers/") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "transport-identity snapshots") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "bounded interrupt-state summaries") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "interrupt acknowledge") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "PHASE10_SLICE=virtio-mmio-interrupt-ack-helper") != null);
@@ -292,7 +295,8 @@ test "phase10 virtio mmio survey manifest records the landed interrupt-ack rung 
             saw_mmio_landed_helper = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "register-window helper") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "transport-identity and register-window helper") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "magic-value, transport-version, device-id, and vendor-id bookkeeping") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "delayed-callback pacing") != null);
         }
 
