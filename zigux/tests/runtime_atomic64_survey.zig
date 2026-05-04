@@ -139,6 +139,7 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
     var saw_loader_gap_ownership = false;
     var saw_atomic64_diff_ownership = false;
     var saw_atomic64_sample_ownership = false;
+    var saw_atomic64_loader_scaffold_ownership = false;
     var saw_module_slice_ownership = false;
     var saw_freeze_map_prompt = false;
 
@@ -189,6 +190,7 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
         if (std.mem.eql(u8, entry.id, "runtime-atomic64-loader-scaffold")) {
             saw_atomic64_loader_scaffold_catalog = true;
             try std.testing.expectEqualStrings("samples/zigux/runtime_atomic64_loader.zig", entry.path);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "prepared loader-summary snapshot replay") != null);
             try std.testing.expect(std.mem.indexOf(u8, entry.role, "released_without_substrate") != null);
         }
 
@@ -217,6 +219,11 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
         if (std.mem.eql(u8, entry.surface, "samples/zigux/runtime_atomic64.zig")) {
             saw_atomic64_sample_ownership = true;
             try std.testing.expect(std.mem.indexOf(u8, entry.owns, "selftest-hook metadata") != null);
+        }
+        if (std.mem.eql(u8, entry.surface, "samples/zigux/runtime_atomic64_loader.zig")) {
+            saw_atomic64_loader_scaffold_ownership = true;
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "prepared loader-summary snapshot replay") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "command_name preservation") != null);
         }
 
         for (manifest.ownership_map[i + 1 ..]) |other| {
@@ -280,8 +287,11 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
             saw_loader_request_surface = true;
             try std.testing.expectEqualStrings("runtime_loader_contract", check.kind);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "zigux_runtime_atomic64_init") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "prepared") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "waiting_on_runtime_substrate") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "released_without_substrate") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "kernel_heap") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "before later sample mutation") != null);
         }
         if (std.mem.eql(u8, check.id, "loader-command-name-preservation")) {
             saw_loader_command_name_preservation = true;
@@ -433,6 +443,7 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
     try std.testing.expect(saw_loader_gap_ownership);
     try std.testing.expect(saw_atomic64_diff_ownership);
     try std.testing.expect(saw_atomic64_sample_ownership);
+    try std.testing.expect(saw_atomic64_loader_scaffold_ownership);
     try std.testing.expect(saw_module_slice_ownership);
     try std.testing.expect(saw_freeze_map_prompt);
     try std.testing.expect(saw_freeze_map_boundary_check);
@@ -479,6 +490,7 @@ test "phase 9 runtime atomic64 docs stay aligned with the manifest-backed survey
         "the bounded guard-return trio from `lib/atomic64_test.c`: `add_unless`, `inc_not_zero`, and `dec_if_positive`",
         "a narrow differential gate under `zigux/tests/runtime_atomic64_diff.zig` for bounded add, sub, bitwise, swap, compare-swap, and guard-return expectations drawn from `lib/atomic64_test.c`",
         "a landed sample-side loader scaffold under `samples/zigux/runtime_atomic64_loader.zig` plus a shared runtime-loader request binding under `zigux/kernel/runtime_loader.zig`",
+        "a prepared loader-summary snapshot replay that freezes the four-field `RuntimeAtomic64Summary` handoff before later sample mutation and keeps that same snapshot explicit through both `waiting_on_runtime_substrate` and `released_without_substrate` review paths",
         "a bounded shared `command_name` preservation check in `samples/zigux/runtime_atomic64_loader.zig` that keeps a synthetic non-null loader request reviewable through both `waiting_on_runtime_substrate` and `released_without_substrate` without claiming live argv policy or runtime execution",
         "this shared build includes the direct `phase9-runtime-atomic64-sample-tests` and `phase9-runtime-atomic64-loader-tests` legs alongside the atomic64 module, diff, survey, loader, and shared runtime-loader checks",
         "any freeze-map status change for the scheduler-facing workqueue boundary without an Architecture Council decision",
