@@ -26,6 +26,7 @@
     "phase7_cmdline_survey.zig",
     "phase7_argv_split_survey.zig",
     "phase7_string_helpers_survey.zig",
+    "phase7_string_helpers_sample_boundary.zig",
     "phase7_rbtree_survey.zig"
   ],
   "expected_build_paths": [
@@ -41,6 +42,7 @@
     "phase7_rbtree.zig",
     "phase7_rbtree_survey.zig",
     "phase7_string_helpers.zig",
+    "phase7_string_helpers_sample_boundary.zig",
     "phase7_string_helpers_survey.zig"
   ],
   "run_labels": [
@@ -50,6 +52,7 @@
     "phase7-argv-split-tests",
     "phase7-argv-split-survey-tests",
     "phase7-string-helpers-survey-tests",
+    "phase7-string-helpers-sample-boundary-tests",
     "phase7-rbtree-tests",
     "phase7-rbtree-survey-tests"
   ],
@@ -60,6 +63,7 @@
     "phase7-argv-split-tests": null,
     "phase7-argv-split-survey-tests": "repo_root",
     "phase7-string-helpers-survey-tests": "repo_root",
+    "phase7-string-helpers-sample-boundary-tests": "repo_root",
     "phase7-rbtree-tests": null,
     "phase7-rbtree-survey-tests": "repo_root"
   },
@@ -70,6 +74,7 @@
     "run_argv_split_tests",
     "run_argv_split_survey_tests",
     "run_string_helpers_survey_tests",
+    "run_string_helpers_sample_boundary_tests",
     "run_rbtree_tests",
     "run_rbtree_survey_tests"
   ],
