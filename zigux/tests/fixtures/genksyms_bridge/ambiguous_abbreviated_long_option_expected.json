@@ -1,5 +1,5 @@
 {
   "stdout": "",
-  "stderr": "option '--dum' is ambiguous; possibilities: '--dump' '--dump-types'\n",
+  "stderr": "genksyms version 2.5.60\noption '--dum' is ambiguous; possibilities: '--dump' '--dump-types'\n",
   "exit_code": 1
 }
