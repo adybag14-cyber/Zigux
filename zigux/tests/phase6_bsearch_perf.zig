@@ -16,6 +16,20 @@ const RawVariant = struct {
     compare_c: ?bsearch.CRawComparator = null,
 };
 
+const typed_variant_labels = [_][]const u8{
+    "typed-native-ascending",
+    "typed-native-descending",
+    "typed-c-ascending",
+    "typed-c-descending",
+};
+
+const raw_variant_labels = [_][]const u8{
+    "raw-native-ascending",
+    "raw-native-descending",
+    "raw-c-ascending",
+    "raw-c-descending",
+};
+
 var compare_calls: usize = 0;
 
 pub fn main(init: std.process.Init) !void {
@@ -125,6 +139,24 @@ fn compareOpaqueDescendingCounted(key: *const anyopaque, item: *const anyopaque)
     };
 }
 
+fn typedVariants(values: []const u32, descending_values: []const u32) [typed_variant_labels.len]TypedVariant {
+    return .{
+        .{ .label = typed_variant_labels[0], .values = values, .compare_native = compareNativeCounted },
+        .{ .label = typed_variant_labels[1], .values = descending_values, .compare_native = compareNativeDescendingCounted },
+        .{ .label = typed_variant_labels[2], .values = values, .compare_c = compareCounted },
+        .{ .label = typed_variant_labels[3], .values = descending_values, .compare_c = compareDescendingCounted },
+    };
+}
+
+fn rawVariants(values: []const u32, descending_values: []const u32) [raw_variant_labels.len]RawVariant {
+    return .{
+        .{ .label = raw_variant_labels[0], .values = values, .compare_native = compareOpaqueNativeCounted },
+        .{ .label = raw_variant_labels[1], .values = descending_values, .compare_native = compareOpaqueNativeDescendingCounted },
+        .{ .label = raw_variant_labels[2], .values = values, .compare_c = compareOpaqueCounted },
+        .{ .label = raw_variant_labels[3], .values = descending_values, .compare_c = compareOpaqueDescendingCounted },
+    };
+}
+
 fn benchTime(io: std.Io) i96 {
     return std.Io.Clock.awake.now(io).nanoseconds;
 }
@@ -147,18 +179,8 @@ fn runPerfCase(case: fixtures.PerfCase, io: std.Io) !PerfResult {
     var expected_hits: [fixtures.query_count]bool = undefined;
     fixtures.seedPerfQueries(case.len, values, &queries, &expected_hits);
 
-    const typed_variants = [_]TypedVariant{
-        .{ .label = "typed-native-ascending", .values = values, .compare_native = compareNativeCounted },
-        .{ .label = "typed-native-descending", .values = descending_values, .compare_native = compareNativeDescendingCounted },
-        .{ .label = "typed-c-ascending", .values = values, .compare_c = compareCounted },
-        .{ .label = "typed-c-descending", .values = descending_values, .compare_c = compareDescendingCounted },
-    };
-    const raw_variants = [_]RawVariant{
-        .{ .label = "raw-native-ascending", .values = values, .compare_native = compareOpaqueNativeCounted },
-        .{ .label = "raw-native-descending", .values = descending_values, .compare_native = compareOpaqueNativeDescendingCounted },
-        .{ .label = "raw-c-ascending", .values = values, .compare_c = compareOpaqueCounted },
-        .{ .label = "raw-c-descending", .values = descending_values, .compare_c = compareOpaqueDescendingCounted },
-    };
+    const typed_variants = typedVariants(values, descending_values);
+    const raw_variants = rawVariants(values, descending_values);
 
     var total_compare_calls: usize = 0;
     var max_compare_calls: usize = 0;
@@ -269,5 +291,44 @@ fn expectRawIndexAndPointerParity(
     } else {
         try std.testing.expect(found_index == null);
         try std.testing.expect(found_ptr == null);
+    }
+}
+
+test "phase 6 bsearch perf harness keeps the widened comparator-shape matrix" {
+    const ascending = [_]u32{ 0, 2, 4, 6 };
+    const descending = [_]u32{ 6, 4, 2, 0 };
+    const typed_variants = typedVariants(ascending[0..], descending[0..]);
+    const raw_variants = rawVariants(ascending[0..], descending[0..]);
+
+    try std.testing.expectEqual(@as(usize, 4), typed_variants.len);
+    try std.testing.expectEqual(@as(usize, 4), raw_variants.len);
+    try std.testing.expectEqual(@as(usize, 16), 2 * (typed_variants.len + raw_variants.len));
+
+    for (typed_variants, typed_variant_labels, 0..) |variant, label, idx| {
+        try std.testing.expectEqualStrings(label, variant.label);
+        const expects_descending = idx == 1 or idx == 3;
+        const expected_values = if (expects_descending) descending[0..] else ascending[0..];
+        try std.testing.expectEqual(@intFromPtr(expected_values.ptr), @intFromPtr(variant.values.ptr));
+        if (idx < 2) {
+            try std.testing.expect(variant.compare_native != null);
+            try std.testing.expect(variant.compare_c == null);
+        } else {
+            try std.testing.expect(variant.compare_native == null);
+            try std.testing.expect(variant.compare_c != null);
+        }
+    }
+
+    for (raw_variants, raw_variant_labels, 0..) |variant, label, idx| {
+        try std.testing.expectEqualStrings(label, variant.label);
+        const expects_descending = idx == 1 or idx == 3;
+        const expected_values = if (expects_descending) descending[0..] else ascending[0..];
+        try std.testing.expectEqual(@intFromPtr(expected_values.ptr), @intFromPtr(variant.values.ptr));
+        if (idx < 2) {
+            try std.testing.expect(variant.compare_native != null);
+            try std.testing.expect(variant.compare_c == null);
+        } else {
+            try std.testing.expect(variant.compare_native == null);
+            try std.testing.expect(variant.compare_c != null);
+        }
     }
 }
