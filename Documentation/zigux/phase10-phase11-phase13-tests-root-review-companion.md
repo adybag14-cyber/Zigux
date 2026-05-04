@@ -72,6 +72,8 @@ Keep the shared release replay packet explicit:
 - `zigux/tests/phase13_landlock_syscalls_manifest.json`
 - `zigux/tests/phase13_notifier_list_manifest.json`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
+- `Documentation/zigux/phase13-notifier-list-survey.md`
+- `Documentation/zigux/phase13-devres-scatterlist-slice.md`
 - `zigux/tests/phase13_libfs.zig`
 - `zigux/tests/phase13_libfs_reviewability.zig`
 - `zigux/tests/phase13_devres.zig`
@@ -98,7 +100,7 @@ Keep the shared release replay packet explicit:
 - `scripts/zigux/validate-phase13-release.py`
 
 Tests-root reviewer prompt:
-- Do the shared Phase 13 build, the four roadmap-anchor manifests plus the adjacent notifier-list manifest, `Documentation/zigux/phase13-roadmap-traceability.md`, the shared release validator, the dedicated libfs, devres, devres-inventory-contract, and notifier packet guards, the shared replay-count guard, the direct libfs helper plus libfs reviewability replay, the direct devres, landlock-ruleset, and landlock-syscalls helper replays, the devres coherent-DMA plus scatterlist plus plain-helper, `iounmap`, `iomap`, and wrapper reviewability replays, the Landlock ruleset plus ruleset-fops-sync plus syscall reviewability replays, the adjacent notifier reviewability packet, and the direct notifier-chain-view replay through `zigux/helpers/notifier_chain_view.zig` still name the same validator-first release path and evidence bundle instead of drifting into separate stories?
+- Do the shared Phase 13 build, the four roadmap-anchor manifests plus the adjacent notifier-list manifest, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/phase13-notifier-list-survey.md`, `Documentation/zigux/phase13-devres-scatterlist-slice.md`, the shared release validator, the dedicated libfs, devres, devres-inventory-contract, and notifier packet guards, the shared replay-count guard, the direct libfs helper plus libfs reviewability replay, the direct devres, landlock-ruleset, and landlock-syscalls helper replays, the devres coherent-DMA plus scatterlist plus plain-helper, `iounmap`, `iomap`, and wrapper reviewability replays, the Landlock ruleset plus ruleset-fops-sync plus syscall reviewability replays, the adjacent notifier reviewability packet, and the direct notifier-chain-view replay through `zigux/helpers/notifier_chain_view.zig` still name the same validator-first release path and evidence bundle instead of drifting into separate stories?
 
 ## Checklist carryover prompts
 
