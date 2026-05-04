@@ -13,7 +13,9 @@ PHASE2_VALIDATOR = ROOT / "scripts" / "zigux" / "validate-phase2.py"
 PHASE2_CLOSURE_VALIDATOR = ROOT / "scripts" / "zigux" / "validate-phase2-closure.py"
 WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 MAKEFILE = ROOT / "zigux" / "Makefile"
-README = ROOT / "scripts" / "zigux" / "README.md"
+SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
+DOCS_ROOT_README = ROOT / "Documentation" / "zigux" / "README.md"
+REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux" / "review-checklist.md"
 CLOSURE_DOC = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
 TOOLCHAIN_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
 TARGETS_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json"
@@ -58,13 +60,33 @@ PHASE2_CLOSURE_VALIDATOR_MARKERS = [
     "'PHASE2_CROSS_ALIGNMENT_GATE=python3 scripts/zigux/check-phase2-cross-selftest-alignment.py'",
 ]
 
-README_MARKERS = [
+SCRIPTS_README_MARKERS = [
     "- `check-phase2-cross-selftest-alignment.py`",
     "check-phase2-cross.py --self-test",
     "check-phase2-cross.py",
     "duplicate tool entries",
     "duplicate manifest targets",
     "unexpected explicit targets",
+]
+
+DOCS_ROOT_README_MARKERS = [
+    "zigux/tests/fixtures/phase2_cross_targets.json",
+    "python3 scripts/zigux/check-phase2-cross.py --self-test",
+    "python3 scripts/zigux/check-phase2-cross.py",
+    "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
+    "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
+    "shared and closure validators fail-closing on the same dedicated toolchain-note sentence",
+]
+
+REVIEW_CHECKLIST_MARKERS = [
+    "`Documentation/zigux/phase2-toolchain-bootstrap-notes.md`",
+    "`zigux/tests/fixtures/phase2_cross_targets.json`",
+    "`scripts/zigux/check-phase2-cross.py`",
+    "`scripts/zigux/check-phase2-cross-selftest-alignment.py`",
+    "`scripts/zigux/validate-phase2.py`",
+    "`scripts/zigux/validate-phase2-closure.py`",
+    "the Linux-style `make -C zigux phase2-validate` plus `make -C zigux phase2` entrypoints aligned",
+    "same dedicated toolchain-note sentence",
 ]
 
 TOOLCHAIN_NOTES_MARKERS = [
@@ -257,15 +279,37 @@ def run_self_test() -> int:
         f"phase2_closure_validator:missing_marker:{PHASE2_CLOSURE_VALIDATOR_MARKERS[0]}",
     )
 
-    readme_text = "\n".join(README_MARKERS)
+    scripts_readme_text = "\n".join(SCRIPTS_README_MARKERS)
     expect_exact_issue(
-        "readme_marker_failure",
+        "scripts_readme_marker_failure",
         validate_required_markers(
-            readme_text.replace(README_MARKERS[0], "", 1),
+            scripts_readme_text.replace(SCRIPTS_README_MARKERS[0], "", 1),
             label="scripts_readme",
-            markers=README_MARKERS,
+            markers=SCRIPTS_README_MARKERS,
         ),
-        f"scripts_readme:missing_marker:{README_MARKERS[0]}",
+        f"scripts_readme:missing_marker:{SCRIPTS_README_MARKERS[0]}",
+    )
+
+    docs_root_readme_text = "\n".join(DOCS_ROOT_README_MARKERS)
+    expect_exact_issue(
+        "docs_root_readme_marker_failure",
+        validate_required_markers(
+            docs_root_readme_text.replace(DOCS_ROOT_README_MARKERS[0], "", 1),
+            label="docs_root_readme",
+            markers=DOCS_ROOT_README_MARKERS,
+        ),
+        f"docs_root_readme:missing_marker:{DOCS_ROOT_README_MARKERS[0]}",
+    )
+
+    review_checklist_text = "\n".join(REVIEW_CHECKLIST_MARKERS)
+    expect_exact_issue(
+        "review_checklist_marker_failure",
+        validate_required_markers(
+            review_checklist_text.replace(REVIEW_CHECKLIST_MARKERS[0], "", 1),
+            label="review_checklist",
+            markers=REVIEW_CHECKLIST_MARKERS,
+        ),
+        f"review_checklist:missing_marker:{REVIEW_CHECKLIST_MARKERS[0]}",
     )
 
     closure_text = "\n".join(CLOSURE_MARKERS)
@@ -299,7 +343,7 @@ def run_self_test() -> int:
             raise SystemExit("phase2-cross-alignment:self-test:json_round_trip")
 
     print("PHASE2_CROSS_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=16")
+    print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=18")
     return 0
 
 
@@ -319,7 +363,9 @@ def main() -> int:
         PHASE2_CLOSURE_VALIDATOR,
         WORKFLOW,
         MAKEFILE,
-        README,
+        SCRIPTS_README,
+        DOCS_ROOT_README,
+        REVIEW_CHECKLIST,
         CLOSURE_DOC,
         TOOLCHAIN_NOTES,
         TARGETS_MANIFEST,
@@ -360,9 +406,23 @@ def main() -> int:
     )
     issues.extend(
         validate_required_markers(
-            README.read_text(encoding="utf-8"),
+            SCRIPTS_README.read_text(encoding="utf-8"),
             label="scripts_readme",
-            markers=README_MARKERS,
+            markers=SCRIPTS_README_MARKERS,
+        )
+    )
+    issues.extend(
+        validate_required_markers(
+            DOCS_ROOT_README.read_text(encoding="utf-8"),
+            label="docs_root_readme",
+            markers=DOCS_ROOT_README_MARKERS,
+        )
+    )
+    issues.extend(
+        validate_required_markers(
+            REVIEW_CHECKLIST.read_text(encoding="utf-8"),
+            label="review_checklist",
+            markers=REVIEW_CHECKLIST_MARKERS,
         )
     )
     issues.extend(
