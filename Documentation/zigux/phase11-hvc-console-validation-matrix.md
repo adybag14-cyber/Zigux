@@ -71,6 +71,13 @@ Without this matrix, the slice preserves the parked boundary but does not keep t
 ## Replay Posture
 
 - the shared Phase 11 gate for this lane remains `zigux/tests/phase11_build.zig`
+- exact shared command:
+  - `zig build test --build-file zigux/tests/phase11_build.zig --summary all`
+- published validator-first wrappers:
+  - `make -C zigux phase11-validate`
+  - `make -C zigux phase11`
+- validator-first posture:
+  - run `make -C zigux phase11-validate` before trusting `make -C zigux phase11` or the raw `zig build test --build-file zigux/tests/phase11_build.zig --summary all` replay for this HVC packet
 - the shared Phase 11 gate now keeps both `zigux/tests/phase11_hvc_console_modem_control_split.zig` and `zigux/tests/phase11_hvc_console_poll_retry_split.zig` inside the same replay packet so callback-fallback, sysrq-state, and poll-retry failure modes stay explicit without widening the dedicated survey gate
 - the dedicated archival survey gate remains `zigux/tests/phase11_hvc_console_survey.zig`
 - the dedicated survey replay still passes separately from the shared Phase 11 replay and remains the archival checkpoint for this lane: `make -C zigux phase11-hvc-survey` routes through the dedicated `hvc-console-survey` step in `zigux/tests/phase11_build.zig`, and `make -C zigux phase11` keeps that archival replay in the published validator-first path after `phase11-validate` and the shared `test` step complete
