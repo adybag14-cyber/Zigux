@@ -4,7 +4,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `sam
 
 ## Status
 
-- `PHASE9_STATUS=active`
+- `PHASE9_STATUS=parked`
 - `PHASE9_SLICE=runtime-trace-events-survey`
 - `PHASE9_LANE_KEY=P9-L12`
 - `PHASE9_SURVEYED_COMMIT=d46fb91493e6e9126d5111bf0e5b21184e0ec1d1`
@@ -39,7 +39,7 @@ No parity scorecard entry or Architecture Council status-change request is attac
 - `samples/trace_events/trace-events-sample.c` is present on `master` at 153 lines.
 - the current survey packet is pinned to `master` commit `d46fb91493e6e9126d5111bf0e5b21184e0ec1d1`.
 - `samples/trace_events/trace-events-sample.h` is present on `master` at 640 lines.
-- the manifest-backed review packet now keeps `samples/trace_events/trace-events-sample.h` explicit as a header-side macro boundary with a 640-line surveyed boundary, so the active trace-events lane can point at the real header surface without turning it into a generated tracepoint macro parity claim.
+- the manifest-backed review packet now keeps `samples/trace_events/trace-events-sample.h` explicit as a header-side macro boundary with a 640-line surveyed boundary, so the parked trace-events lane can point at the real header surface without turning it into a generated tracepoint macro parity claim.
 - the Linux ftrace selftests already reference `trace-events-sample` as a modprobe and event-enabling target in at least two places.
 - the repo had zero `zigux/tests/runtime_trace_events*` files before this survey landed.
 - the repo now carries `samples/zigux/runtime_trace_events.zig`, `samples/zigux/runtime_trace_events_loader.zig`, `zigux/tests/runtime_trace_events_module.zig`, `zigux/tests/runtime_trace_events_diff.zig`, the survey manifest and gate, and shared `zigux/tests/phase9_build.zig` coverage for the trace-events starter lane.
@@ -124,4 +124,4 @@ This survey slice still does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 9 runtime trace-events lane and keep broader work blocked until there is a small honest substrate handoff for module entry, shared runtime-loader binding, runtime task ownership, polling and event-loop substrate, thread creation, and tracepoint-registration lifecycle wiring, while keeping the separate `kernel/trace/ring_buffer.c` freeze-map boundary in study-only status unless the Architecture Council explicitly reopens it.
+Keep the shipped Phase 9 runtime trace-events starter parked. Reopen this lane only for a later small runtime-substrate handoff around module entry, shared runtime-loader binding, runtime task ownership, polling and event-loop substrate, thread creation, or tracepoint-registration lifecycle wiring, while keeping the separate `kernel/trace/ring_buffer.c` freeze-map boundary in study-only status unless the Architecture Council explicitly reopens it.
