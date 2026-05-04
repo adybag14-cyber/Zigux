@@ -68,6 +68,8 @@ expected_make_expansions = {
         "python3 scripts/zigux/check-phase7-make-wrapper.py",
         "python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test",
         "python3 scripts/zigux/check-phase7-cmdline-parity.py",
+        "python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test",
+        "python3 scripts/zigux/check-phase7-argv-split-packet.py",
         "python3 scripts/zigux/check-phase7-argv-split-parity.py --self-test",
         "python3 scripts/zigux/check-phase7-argv-split-parity.py",
         "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test",
@@ -85,6 +87,8 @@ expected_make_expansions = {
         "python3 scripts/zigux/check-phase7-make-wrapper.py",
         "python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test",
         "python3 scripts/zigux/check-phase7-cmdline-parity.py",
+        "python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test",
+        "python3 scripts/zigux/check-phase7-argv-split-packet.py",
         "python3 scripts/zigux/check-phase7-argv-split-parity.py --self-test",
         "python3 scripts/zigux/check-phase7-argv-split-parity.py",
         "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test",
@@ -107,6 +111,8 @@ unexpected_make_expansions = {
         "python3 scripts/zigux/check-phase7-make-wrapper.py",
         "python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test",
         "python3 scripts/zigux/check-phase7-cmdline-parity.py",
+        "python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test",
+        "python3 scripts/zigux/check-phase7-argv-split-packet.py",
         "python3 scripts/zigux/check-phase7-argv-split-parity.py --self-test",
         "python3 scripts/zigux/check-phase7-argv-split-parity.py",
         "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test",
@@ -195,6 +201,7 @@ expected_shared_validation_gates = [
     "scripts/zigux/check-phase7-build-inventory.py",
     "scripts/zigux/check-phase7-make-wrapper.py",
     "scripts/zigux/check-phase7-cmdline-parity.py",
+    "scripts/zigux/check-phase7-argv-split-packet.py",
     "scripts/zigux/check-phase7-argv-split-parity.py",
     "scripts/zigux/check-phase7-rbtree-parity.py",
 ]
@@ -204,7 +211,7 @@ expected_argv_split_fixture = {
     "leading_nul_stays_empty": {"argc": 0, "argv": []},
     "quote_characters_stay_literal": {
         "argc": 3,
-        "argv": ['root="/dev/sda', '1"', "single"],
+        "argv": ['root=\"/dev/sda', '1\"', "single"],
     },
     "whitespace_collapse": {
         "argc": 3,
