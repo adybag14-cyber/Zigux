@@ -21,7 +21,7 @@
     "preexisting_runtime_trace_events_summary_surface_present": true
   },
   "review_prompts": [
-    "the review packet still keeps the Linux anchor, shipped selftest hook, bounded diagnostics-summary surface, and loader-free blocker explicit by treating `samples/zigux/runtime_trace_events_loader.zig` as a blocked scaffold with no `phase9-runtime-trace-events-loader-tests` target instead of implying a live trace-events loader or ring-buffer parity",
+    "the review packet still keeps the Linux anchor, shipped selftest hook, bounded diagnostics-summary surface, and blocked loader boundary explicit by treating `samples/zigux/runtime_trace_events_loader.zig` as a bounded blocked scaffold whose `phase9-runtime-trace-events-loader-tests` replay is now present in the shared Phase 9 build packet while any shared runtime-loader binding, live trace-events loader, or ring-buffer parity still stay absent",
     "the manifest, survey gate, module gate, diff gate, and survey note still agree on lifecycle stage, registration balance, explicit foo_bar_reg and foo_bar_unreg labels, explicit main-thread and function-thread event totals, latest main-thread and function-thread emitted-event counts, replay run counters, count-gated conditional replay, payload-summary visibility, both initialized-stage and selftest-ready failed-exit rollback, and the frozen runtime-substrate boundary",
     "the manifest-backed delivery catalog and ownership map still keep the sample, loader scaffold, module gate, diff gate, survey gate, shared build entrypoint, survey note, module-slice note, and freeze-map boundary in one reviewable packet",
     "the packet keeps `samples/trace_events/trace-events-sample.h` visible as a header-side macro boundary, records its current surveyed size, and does not turn that survey evidence into a generated tracepoint macro parity claim",
@@ -57,7 +57,7 @@
       "id": "runtime-trace-events-survey-gate",
       "kind": "validation",
       "path": "zigux/tests/runtime_trace_events_survey.zig",
-      "role": "owns the machine-checkable replay of the manifest, review prompts, exact checks, loader-free blocker, and freeze-map boundary"
+      "role": "owns the machine-checkable replay of the manifest, review prompts, blocked loader boundary, and freeze-map boundary"
     },
     {
       "id": "runtime-trace-events-manifest",
@@ -69,7 +69,7 @@
       "id": "phase9-trace-events-build-gate",
       "kind": "validation",
       "path": "zigux/tests/phase9_build.zig",
-      "role": "owns the shared Phase 9 runtime bundle entrypoint that keeps the trace-events starter replayable with the other runtime pilot slices while the trace-events loader target stays absent"
+      "role": "owns the shared Phase 9 runtime bundle entrypoint that keeps the trace-events starter and loader scaffold replayable with the other runtime pilot slices while shared runtime-loader binding still stays absent"
     },
     {
       "id": "runtime-trace-events-survey-note",
@@ -109,7 +109,7 @@
     },
     {
       "surface": "zigux/tests/runtime_trace_events_survey.zig",
-      "owns": "machine-checkable replay of the manifest, review prompts, exact checks, loader-free blocker, and freeze-map boundary"
+      "owns": "machine-checkable replay of the manifest, review prompts, blocked loader boundary, and freeze-map boundary"
     },
     {
       "surface": "zigux/tests/runtime_trace_events_manifest.json",
@@ -117,7 +117,7 @@
     },
     {
       "surface": "zigux/tests/phase9_build.zig",
-      "owns": "shared Phase 9 runtime bundle entrypoint for the trace-events starter while the trace-events loader target stays absent"
+      "owns": "shared Phase 9 runtime bundle entrypoint for the trace-events starter and loader scaffold while shared runtime-loader binding still stays absent"
     },
     {
       "surface": "Documentation/zigux/phase9-runtime-trace-events-survey.md",
@@ -181,7 +181,7 @@
     {
       "id": "loader-free-blocker",
       "kind": "runtime_substrate_boundary",
-      "expected": "samples/zigux/runtime_trace_events_loader.zig is present as a bounded blocked scaffold whose review-only perf-runtime-trace-events command-name override, empty-name rejection, and releasePlanWithoutSubstrate() to released_without_substrate fallback stay explicit, but phase9-runtime-trace-events-loader-tests and any shared runtime-loader binding still stay absent while runtime task ownership, polling and event-loop substrate, thread creation, and tracepoint-registration lifecycle wiring remain blocked"
+      "expected": "samples/zigux/runtime_trace_events_loader.zig is present as a bounded blocked scaffold whose review-only perf-runtime-trace-events command-name override, empty-name rejection, and releasePlanWithoutSubstrate() to released_without_substrate fallback stay explicit, and phase9-runtime-trace-events-loader-tests is now present in the shared Phase 9 build packet, but any shared runtime-loader binding still stays absent while runtime task ownership, polling and event-loop substrate, thread creation, and tracepoint-registration lifecycle wiring remain blocked"
     }
   ],
   "gaps": [
@@ -190,14 +190,14 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase9_build.zig",
-      "why_now": "The existing Phase 9 build step is the smallest honest place to widen runtime pilot coverage from atomic64 and bitmap into the trace-events sample lane while still keeping the trace-events loader target out of the shared bundle."
+      "why_now": "The existing Phase 9 build step is the smallest honest place to replay the trace-events starter and its bounded loader scaffold together with the other runtime pilot slices while still keeping shared runtime-loader binding out of scope."
     },
     {
       "id": "runtime-trace-events-survey-gate",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/runtime_trace_events_survey.zig",
-      "why_now": "A trace-events survey gate keeps the Linux sample anchor, starter status, loader-free blocker, and remaining runtime-substrate blocker explicit while the pilot surface stays small."
+      "why_now": "A trace-events survey gate keeps the Linux sample anchor, starter status, blocked loader boundary, and remaining runtime-substrate blocker explicit while the pilot surface stays small."
     },
     {
       "id": "runtime-trace-events-sample-module",
@@ -211,7 +211,7 @@
       "status": "starter_landed",
       "kind": "runtime_loader_scaffold",
       "zigux_destination": "samples/zigux/runtime_trace_events_loader.zig",
-      "why_now": "A bounded loader scaffold now keeps the pre-execution entry and exit labels, review-only foo_bar_reg and foo_bar_unreg registration labels, and explicit release-without-substrate fallback visible without claiming shared runtime-loader binding, loadable-module parity, or scheduler-backed runtime ownership."
+      "why_now": "A bounded loader scaffold now keeps the pre-execution entry and exit labels, review-only foo_bar_reg and foo_bar_unreg registration labels, explicit release-without-substrate fallback, and shared-build replay visible without claiming shared runtime-loader binding, loadable-module parity, or scheduler-backed runtime ownership."
     },
     {
       "id": "runtime-trace-events-module-tests",
@@ -239,7 +239,7 @@
       "status": "blocked_on_runtime_substrate",
       "kind": "runtime_substrate",
       "zigux_destination": "samples/zigux/runtime_trace_events_loader.zig",
-      "why_now": "A bounded loader scaffold now exists, but a loadable module entry point, shared runtime-loader binding, runtime task ownership, polling and event-loop substrate, thread creation, and tracepoint registration parity still depend on runtime substrate pieces that the repo has not started yet."
+      "why_now": "A bounded loader scaffold now exists and its dedicated loader tests now replay inside the shared Phase 9 build packet, but a loadable module entry point, shared runtime-loader binding, runtime task ownership, polling and event-loop substrate, thread creation, and tracepoint registration parity still depend on runtime substrate pieces that the repo has not started yet."
     }
   ],
   "non_goals": [
