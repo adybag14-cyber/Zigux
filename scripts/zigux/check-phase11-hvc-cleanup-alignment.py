@@ -221,7 +221,6 @@ def clone_fixture_root(destination_root: Path) -> None:
         encoding="utf-8",
     )
     (destination_root / REQUIRED_FILES["slice"]).parent.mkdir(parents=True, exist_ok=True)
-    (destination_root / REQUIRED_FILES["slice"]).writeText if False else None
     (destination_root / REQUIRED_FILES["slice"]).write_text(
         "\n".join(
             [
