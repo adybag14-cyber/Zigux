@@ -293,6 +293,8 @@ def _fixture_makefile() -> str:
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-libfs-packet.py",
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py --self-test",
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py",
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-inventory-contract.py --self-test",
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-inventory-contract.py",
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-notifier-packet.py --self-test",
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-notifier-packet.py",
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py",
@@ -320,6 +322,7 @@ def _baseline_required_rels() -> tuple[tuple[str, ...], tuple[str, ...]]:
     phase13_helper_rels = (
         "scripts/zigux/check-phase13-libfs-packet.py",
         "scripts/zigux/check-phase13-devres-packet.py",
+        "scripts/zigux/check-phase13-devres-inventory-contract.py",
         "scripts/zigux/check-phase13-notifier-packet.py",
         "scripts/zigux/validate-phase13-release.py",
     )
@@ -405,6 +408,8 @@ def run_self_test() -> int:
             ("duplicate_phase13_libfs_makefile_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-libfs-packet.py\n", "unexpected_makefile_live_route_count:phase13-validate::2:check-phase13-libfs-packet.py"),
             ("duplicate_phase13_devres_self_test_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py --self-test\n", "unexpected_makefile_self_test_route_count:phase13-validate::2:check-phase13-devres-packet.py"),
             ("duplicate_phase13_makefile_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py\n", "unexpected_makefile_live_route_count:phase13-validate::2:check-phase13-devres-packet.py"),
+            ("duplicate_phase13_devres_inventory_self_test_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-inventory-contract.py --self-test\n", "unexpected_makefile_self_test_route_count:phase13-validate::2:check-phase13-devres-inventory-contract.py"),
+            ("duplicate_phase13_devres_inventory_makefile_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-inventory-contract.py\n", "unexpected_makefile_live_route_count:phase13-validate::2:check-phase13-devres-inventory-contract.py"),
             ("duplicate_phase13_notifier_self_test_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-notifier-packet.py --self-test\n", "unexpected_makefile_self_test_route_count:phase13-validate::2:check-phase13-notifier-packet.py"),
             ("duplicate_phase13_notifier_makefile_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-notifier-packet.py\n", "unexpected_makefile_live_route_count:phase13-validate::2:check-phase13-notifier-packet.py"),
             ("duplicate_phase13_release_validator_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py\n", "unexpected_makefile_live_route_count:phase13-validate::2:validate-phase13-release.py"),
@@ -430,6 +435,7 @@ def run_self_test() -> int:
         readme_cases = (
             ("missing_readme_entry_guard_failed", "scripts/zigux/validate-phase3-roadmap-gap-survey.py", f"missing_readme_entry:{Path(tooling_packet_rels[0]).name}"),
             ("missing_phase13_readme_entry_guard_failed", "scripts/zigux/check-phase13-devres-packet.py", "missing_readme_entry:check-phase13-devres-packet.py"),
+            ("missing_phase13_devres_inventory_readme_entry_guard_failed", "scripts/zigux/check-phase13-devres-inventory-contract.py", "missing_readme_entry:check-phase13-devres-inventory-contract.py"),
             ("missing_phase11_readme_entry_guard_failed", "scripts/zigux/check-phase11-shared-replay-contract.py", "missing_readme_entry:check-phase11-shared-replay-contract.py"),
             ("missing_phase2_readme_entry_guard_failed", "scripts/zigux/check-phase2-kconfig-selftest-alignment.py", "missing_readme_entry:check-phase2-kconfig-selftest-alignment.py"),
         )
@@ -446,6 +452,7 @@ def run_self_test() -> int:
         phase13_reordered = (
             "scripts/zigux/check-phase13-devres-packet.py",
             "scripts/zigux/check-phase13-libfs-packet.py",
+            "scripts/zigux/check-phase13-devres-inventory-contract.py",
             "scripts/zigux/check-phase13-notifier-packet.py",
             "scripts/zigux/validate-phase13-release.py",
         )
@@ -496,7 +503,7 @@ def run_self_test() -> int:
         _assert_only(validate(root), [f"missing_repo_file:{tooling_packet_rels[-1]}"], "missing_repo_file_guard_failed")
 
     print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
-    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=29")
+    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=32")
     return 0
 
 
