@@ -1,5 +1,5 @@
 const std = @import("std");
-const registration_blocker = @import("../../drivers/virtio/virtio_input_registration_blocker.zig");
+const registration_blocker = @import("virtio_input_registration_blocker");
 
 test "phase10 virtio input registration blocker keeps risky lifecycle claims parked after probe readiness converges" {
     var summary = registration_blocker.summarize(.{
