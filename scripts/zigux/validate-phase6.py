@@ -259,7 +259,7 @@ HEXDUMP_PARITY_HARNESS_MARKERS = [
 
 EXPECTED_MANIFEST = {
     "phase": "Phase 6",
-    "status": "active",
+    "status": "parked",
     "tranche": "leaf-helper-parity",
     "roadmap_anchors": [
         "lib/base64.c",
@@ -301,7 +301,8 @@ EXPECTED_EXACT_CHECKS = [
     "python3 scripts/zigux/check-phase6-checksum-c-parity.py",
     "python3 scripts/zigux/check-phase6-hexdump-c-parity.py --self-test",
     "python3 scripts/zigux/check-phase6-hexdump-c-parity.py",
-]
+  ]
+}
 
 EXPECTED_BASE64_DETERMINISM = {
     "standard_encode_vectors": 22,
@@ -502,71 +503,114 @@ def validate_manifest(missing: list[str], manifest: dict[str, object], catalog_h
 
 
 def validate_phase6(root: Path) -> dict[str, object]:
-    missing_files = [path for path in REQUIRED_FILES if not (root / path).exists()]
+    missing_files = [path for path in REQUIRED_FILES if not (root / path).is_file()]
     if missing_files:
         return {
             "ok": False,
             "missing_files": missing_files,
             "missing": [],
-            "catalog_head": "",
-            "catalog_head_status": "missing_files",
+            "catalog_head": None,
+            "catalog_head_status": "missing",
         }
 
     missing: list[str] = []
+
     catalog_content = text(root, "Documentation/zigux/phase6-helper-parity-catalog.md")
+    require_markers(missing, "catalog", catalog_content, CATALOG_MARKERS)
     catalog_head, catalog_head_status = parse_catalog_head(catalog_content)
-    if catalog_head_status != "ok" or catalog_head is None:
+    if catalog_head_status != "ok":
         return {
             "ok": False,
             "missing_files": [],
-            "missing": [],
-            "catalog_head": catalog_head or "",
+            "missing": missing,
+            "catalog_head": catalog_head,
             "catalog_head_status": catalog_head_status,
         }
 
-    require_markers(missing, "catalog", catalog_content, CATALOG_MARKERS)
-    require_markers(missing, "perf_survey", text(root, "Documentation/zigux/phase6-perf-gate-survey.md"), PERF_SURVEY_MARKERS)
-    require_markers(missing, "base64_slice", text(root, "Documentation/zigux/phase6-base64-slice.md"), BASE64_SLICE_MARKERS)
-    require_markers(missing, "bsearch_slice", text(root, "Documentation/zigux/phase6-bsearch-slice.md"), BSEARCH_SLICE_MARKERS)
-    require_markers(missing, "checksum_slice", text(root, "Documentation/zigux/phase6-checksum-slice.md"), CHECKSUM_SLICE_MARKERS)
-    require_markers(missing, "hexdump_slice", text(root, "Documentation/zigux/phase6-hexdump-slice.md"), HEXDUMP_SLICE_MARKERS)
+    perf_survey_content = text(root, "Documentation/zigux/phase6-perf-gate-survey.md")
+    require_markers(missing, "perf_survey", perf_survey_content, PERF_SURVEY_MARKERS)
 
-    scripts_readme = text(root, "scripts/zigux/README.md")
-    require_markers(
-        missing,
-        "scripts_readme",
-        scripts_readme,
-        [SCRIPTS_README_MARKERS[0], SCRIPTS_README_MARKERS[3]],
-    )
-    require_exact_line_counts(
-        missing,
-        "scripts_readme_line",
-        scripts_readme,
-        SCRIPTS_README_MARKERS[1:3],
-    )
+    base64_slice_content = text(root, "Documentation/zigux/phase6-base64-slice.md")
+    require_markers(missing, "base64_slice", base64_slice_content, BASE64_SLICE_MARKERS)
 
-    require_markers(missing, "docs_root", text(root, "Documentation/zigux/README.md"), DOCS_ROOT_MARKERS)
-    require_markers(missing, "tests_readme", text(root, "zigux/tests/README.md"), TESTS_README_MARKERS)
-    require_markers(missing, "workflow", text(root, ".github/workflows/zigux-bootstrap.yml"), WORKFLOW_MARKERS)
-    require_markers(missing, "phase6_build", text(root, "zigux/tests/phase6_build.zig"), PHASE6_BUILD_MARKERS)
-    require_markers(missing, "base64_perf", text(root, "zigux/tests/phase6_base64_perf.zig"), BASE64_PERF_MARKERS)
-    require_markers(missing, "bsearch_perf", text(root, "zigux/tests/phase6_bsearch_perf.zig"), BSEARCH_PERF_MARKERS)
-    require_markers(missing, "checksum_perf", text(root, "zigux/tests/phase6_checksum_perf.zig"), CHECKSUM_PERF_MARKERS)
-    require_markers(missing, "hexdump_perf", text(root, "zigux/tests/phase6_hexdump_perf.zig"), HEXDUMP_PERF_MARKERS)
-    require_markers(missing, "checksum_vectors", text(root, "zigux/tests/fixtures/phase6_checksum_vectors.zig"), CHECKSUM_FIXTURE_MARKERS)
-    require_markers(missing, "hexdump_vectors", text(root, "zigux/tests/fixtures/phase6_hexdump_vectors.zig"), HEXDUMP_FIXTURE_MARKERS)
-    require_markers(missing, "base64_catalog_evidence_script", text(root, "scripts/zigux/check-phase6-base64-catalog-evidence.py"), BASE64_CATALOG_EVIDENCE_MARKERS)
-    require_markers(missing, "docs_root_external_parity_script", text(root, "scripts/zigux/check-phase6-docs-root-external-parity.py"), DOCS_ROOT_EXTERNAL_PARITY_SCRIPT_MARKERS)
-    require_markers(missing, "bsearch_parity_script", text(root, "scripts/zigux/check-phase6-bsearch-c-parity.py"), BSEARCH_PARITY_SCRIPT_MARKERS)
-    require_markers(missing, "bsearch_parity_runner", text(root, "zigux/tests/phase6_bsearch_c_parity.zig"), BSEARCH_PARITY_RUNNER_MARKERS)
-    require_markers(missing, "bsearch_parity_harness", text(root, "zigux/tests/fixtures/phase6_bsearch_c_harness.c"), BSEARCH_PARITY_HARNESS_MARKERS)
-    require_markers(missing, "checksum_parity_script", text(root, "scripts/zigux/check-phase6-checksum-c-parity.py"), CHECKSUM_PARITY_SCRIPT_MARKERS)
-    require_markers(missing, "checksum_parity_runner", text(root, "zigux/tests/phase6_checksum_c_parity.zig"), CHECKSUM_PARITY_RUNNER_MARKERS)
-    require_markers(missing, "checksum_parity_harness", text(root, "zigux/tests/fixtures/phase6_checksum_c_harness.c"), CHECKSUM_PARITY_HARNESS_MARKERS)
-    require_markers(missing, "hexdump_parity_script", text(root, "scripts/zigux/check-phase6-hexdump-c-parity.py"), HEXDUMP_PARITY_SCRIPT_MARKERS)
-    require_markers(missing, "hexdump_parity_runner", text(root, "zigux/tests/phase6_hexdump_c_parity.zig"), HEXDUMP_PARITY_RUNNER_MARKERS)
-    require_markers(missing, "hexdump_parity_harness", text(root, "zigux/tests/fixtures/phase6_hexdump_c_harness.c"), HEXDUMP_PARITY_HARNESS_MARKERS)
-    require_markers(missing, "make", text(root, "zigux/Makefile"), MAKE_MARKERS)
+    bsearch_slice_content = text(root, "Documentation/zigux/phase6-bsearch-slice.md")
+    require_markers(missing, "bsearch_slice", bsearch_slice_content, BSEARCH_SLICE_MARKERS)
+
+    checksum_slice_content = text(root, "Documentation/zigux/phase6-checksum-slice.md")
+    require_markers(missing, "checksum_slice", checksum_slice_content, CHECKSUM_SLICE_MARKERS)
+
+    hexdump_slice_content = text(root, "Documentation/zigux/phase6-hexdump-slice.md")
+    require_markers(missing, "hexdump_slice", hexdump_slice_content, HEXDUMP_SLICE_MARKERS)
+
+    scripts_readme_content = text(root, "scripts/zigux/README.md")
+    require_markers(missing, "scripts_readme", scripts_readme_content, [SCRIPTS_README_MARKERS[0], SCRIPTS_README_MARKERS[3]])
+    require_exact_line_counts(missing, "scripts_readme_line", scripts_readme_content, SCRIPTS_README_MARKERS[1:3])
+
+    docs_root_content = text(root, "Documentation/zigux/README.md")
+    require_markers(missing, "docs_root", docs_root_content, DOCS_ROOT_MARKERS)
+
+    tests_readme_content = text(root, "zigux/tests/README.md")
+    require_markers(missing, "tests_readme", tests_readme_content, TESTS_README_MARKERS)
+
+    workflow_content = text(root, ".github/workflows/zigux-bootstrap.yml")
+    require_markers(missing, "workflow", workflow_content, WORKFLOW_MARKERS)
+
+    make_content = text(root, "zigux/Makefile")
+    require_markers(missing, "make", make_content, MAKE_MARKERS)
+
+    phase6_build_content = text(root, "zigux/tests/phase6_build.zig")
+    require_markers(missing, "phase6_build", phase6_build_content, PHASE6_BUILD_MARKERS)
+
+    base64_perf_content = text(root, "zigux/tests/phase6_base64_perf.zig")
+    require_markers(missing, "base64_perf", base64_perf_content, BASE64_PERF_MARKERS)
+
+    bsearch_perf_content = text(root, "zigux/tests/phase6_bsearch_perf.zig")
+    require_markers(missing, "bsearch_perf", bsearch_perf_content, BSEARCH_PERF_MARKERS)
+
+    checksum_perf_content = text(root, "zigux/tests/phase6_checksum_perf.zig")
+    require_markers(missing, "checksum_perf", checksum_perf_content, CHECKSUM_PERF_MARKERS)
+
+    hexdump_perf_content = text(root, "zigux/tests/phase6_hexdump_perf.zig")
+    require_markers(missing, "hexdump_perf", hexdump_perf_content, HEXDUMP_PERF_MARKERS)
+
+    checksum_vectors_content = text(root, "zigux/tests/fixtures/phase6_checksum_vectors.zig")
+    require_markers(missing, "checksum_vectors", checksum_vectors_content, CHECKSUM_FIXTURE_MARKERS)
+
+    hexdump_vectors_content = text(root, "zigux/tests/fixtures/phase6_hexdump_vectors.zig")
+    require_markers(missing, "hexdump_vectors", hexdump_vectors_content, HEXDUMP_FIXTURE_MARKERS)
+
+    base64_catalog_evidence_content = text(root, "scripts/zigux/check-phase6-base64-catalog-evidence.py")
+    require_markers(missing, "base64_catalog_evidence_script", base64_catalog_evidence_content, BASE64_CATALOG_EVIDENCE_MARKERS)
+
+    docs_root_external_parity_content = text(root, "scripts/zigux/check-phase6-docs-root-external-parity.py")
+    require_markers(missing, "docs_root_external_parity_script", docs_root_external_parity_content, DOCS_ROOT_EXTERNAL_PARITY_SCRIPT_MARKERS)
+
+    bsearch_parity_script_content = text(root, "scripts/zigux/check-phase6-bsearch-c-parity.py")
+    require_markers(missing, "bsearch_parity_script", bsearch_parity_script_content, BSEARCH_PARITY_SCRIPT_MARKERS)
+
+    bsearch_parity_runner_content = text(root, "zigux/tests/phase6_bsearch_c_parity.zig")
+    require_markers(missing, "bsearch_parity_runner", bsearch_parity_runner_content, BSEARCH_PARITY_RUNNER_MARKERS)
+
+    bsearch_parity_harness_content = text(root, "zigux/tests/fixtures/phase6_bsearch_c_harness.c")
+    require_markers(missing, "bsearch_parity_harness", bsearch_parity_harness_content, BSEARCH_PARITY_HARNESS_MARKERS)
+
+    checksum_parity_script_content = text(root, "scripts/zigux/check-phase6-checksum-c-parity.py")
+    require_markers(missing, "checksum_parity_script", checksum_parity_script_content, CHECKSUM_PARITY_SCRIPT_MARKERS)
+
+    checksum_parity_runner_content = text(root, "zigux/tests/phase6_checksum_c_parity.zig")
+    require_markers(missing, "checksum_parity_runner", checksum_parity_runner_content, CHECKSUM_PARITY_RUNNER_MARKERS)
+
+    checksum_parity_harness_content = text(root, "zigux/tests/fixtures/phase6_checksum_c_harness.c")
+    require_markers(missing, "checksum_parity_harness", checksum_parity_harness_content, CHECKSUM_PARITY_HARNESS_MARKERS)
+
+    hexdump_parity_script_content = text(root, "scripts/zigux/check-phase6-hexdump-c-parity.py")
+    require_markers(missing, "hexdump_parity_script", hexdump_parity_script_content, HEXDUMP_PARITY_SCRIPT_MARKERS)
+
+    hexdump_parity_runner_content = text(root, "zigux/tests/phase6_hexdump_c_parity.zig")
+    require_markers(missing, "hexdump_parity_runner", hexdump_parity_runner_content, HEXDUMP_PARITY_RUNNER_MARKERS)
+
+    hexdump_parity_harness_content = text(root, "zigux/tests/fixtures/phase6_hexdump_c_harness.c")
+    require_markers(missing, "hexdump_parity_harness", hexdump_parity_harness_content, HEXDUMP_PARITY_HARNESS_MARKERS)
 
     manifest = json.loads(text(root, "zigux/tests/phase6_helper_parity_manifest.json"))
     if not isinstance(manifest, dict):
