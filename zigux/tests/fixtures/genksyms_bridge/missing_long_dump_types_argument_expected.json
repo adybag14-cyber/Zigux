@@ -1,5 +1,5 @@
 {
   "stdout": "",
-  "stderr": "option '--dump-types' requires an argument\n",
+  "stderr": "genksyms version 2.5.60\ngenksyms version 2.5.60\noption '--dump-types' requires an argument\n",
   "exit_code": 1
 }
