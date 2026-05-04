@@ -118,27 +118,35 @@ The current bounded release-evidence set is:
 
 ## Gates
 
-1. validate the shared Phase 12 survey packet
-- `python3 scripts/zigux/validate-phase12.py`
+1. run the raw-GitHub coverage checker
+- `python3 scripts/zigux/check-phase12-raw-github-coverage.py --self-test`
+- `python3 scripts/zigux/check-phase12-raw-github-coverage.py`
 
 2. run the dedicated release-readiness packet checker
 - `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`
 - `python3 scripts/zigux/check-phase12-release-readiness-packet.py`
 
-3. run the make-level validation entrypoint
+3. run the shared replay-contract checker
+- `python3 scripts/zigux/check-phase12-shared-replay-contract.py --self-test`
+- `python3 scripts/zigux/check-phase12-shared-replay-contract.py`
+
+4. validate the shared Phase 12 survey packet
+- `python3 scripts/zigux/validate-phase12.py`
+
+5. run the make-level validation entrypoint
 - `make -C zigux phase12-validate`
 
-4. replay the bounded cross-compile smoke packet
+6. replay the bounded cross-compile smoke packet
 - `python3 scripts/zigux/check-phase12-cross.py --zig <zig-path>`
 
-5. run the focused libbpf-only replay shard
+7. run the focused libbpf-only replay shard
 - `python3 scripts/zigux/check-phase12-libbpf-focused-replay.py`
 - `zig build test --build-file zigux/tests/phase12_libbpf_only_build.zig --summary all`
 
-6. run the shared Phase 12 build replay
+8. run the shared Phase 12 build replay
 - `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
 
-7. run the Linux-style combined Phase 12 entrypoint
+9. run the Linux-style combined Phase 12 entrypoint
 - `make -C zigux phase12`
 
 ## Non-goals
