@@ -2,7 +2,6 @@
 #include <stdio.h>
 
 #include <linux/zigux.h>
-#include <zigux/rbtree.h>
 
 struct layout_field {
     const char *name;
