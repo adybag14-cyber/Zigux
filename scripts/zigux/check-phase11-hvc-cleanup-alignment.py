@@ -19,6 +19,7 @@ REQUIRED_FILES = {
     "survey": "Documentation/zigux/phase11-hvc-console-survey.md",
     "slice": "Documentation/zigux/phase11-hvc-console-slice.md",
     "matrix": "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
+    "modem_control_split": "zigux/tests/phase11_hvc_console_modem_control_split.zig",
     "poll_retry_split": "zigux/tests/phase11_hvc_console_poll_retry_split.zig",
     "sysrq_helper": "drivers/tty/hvc/hvc_console_sysrq.zig",
     "hvc_test": "zigux/tests/phase11_hvc_console.zig",
@@ -26,6 +27,7 @@ REQUIRED_FILES = {
 
 SURVEY_MARKERS = [
     "reviewed against live `master` `{commit}`",
+    "`zigux/tests/phase11_hvc_console_modem_control_split.zig` now keeps the already-landed `tiocmget()` and `tiocmset()` callback-presence split, fallback-versus-direct routing, and set-versus-clear mask passthrough explicit inside the shared Phase 11 gate so modem-control failure modes do not stay implicit in the older single-file HVC replay",
     "`zigux/tests/phase11_hvc_console_poll_retry_split.zig` now keeps the already-landed `__hvc_poll()` IRQ-backed may-sleep drained-read split, the may-sleep IRQ-free retry-rearm split, the partial-write-versus-stalled-write split, and the bounded sysrq toggle-versus-dispatch split plus the later non-kernel `^O` literal fallback and teardown-time `error.ConsoleUnavailable` rejection explicit inside the shared Phase 11 gate so those read-versus-write retry details and primary-console sysrq teardown edges do not stay implicit in the older single-file HVC replay",
     "The next honest bounded step inside the same Phase 11 lane is to leave the starter parked unless fresh repo inspection finds another comparably small host-free sysrq or khvcd handoff that is not already covered by the notifier-add open handoff, the bounded sysrq helper, the `struct winsize` layout proof, the `struct hv_ops` layout proof, the `hv_ops` callback-signature proof, and the exported hvc helper signature proof; otherwise avoid widening straight into live tty teardown, notifier execution, sysrq handling, live khvcd worker behavior, `struct hvc_struct`, or host-backed teardown.",
 ]
@@ -39,6 +41,18 @@ MATRIX_MARKERS = [
     "PHASE11_HVC_CONSOLE_STATUS=cleanup_handoff_landed",
     "the dedicated archival survey gate remains `zigux/tests/phase11_hvc_console_survey.zig`",
     "host-free khvcd, notifier, remove, or cleanup handoff",
+]
+
+MODEM_CONTROL_SPLIT_MARKERS = [
+    'test "phase11 hvc console keeps tiocmget and tiocmset fallback on missing hv_ops callbacks" {',
+    "    try std.testing.expect(summary.tiocmget_returns_einval_fallback);",
+    "    try std.testing.expect(summary.tiocmset_returns_einval_fallback);",
+    'test "phase11 hvc console keeps tiocmset masks live when tiocmget falls back" {',
+    "    try std.testing.expectEqual(@as(c_int, -7), summary.tiocmset_result);",
+    "    try std.testing.expect(summary.set_mask_passthrough);",
+    "    try std.testing.expect(summary.clear_mask_passthrough);",
+    'test "phase11 hvc console keeps modem-control teardown fallout unavailable after slot removal" {',
+    "    try std.testing.expectError(error.ConsoleUnavailable, console.summarizeModemControl(.{",
 ]
 
 POLL_RETRY_SPLIT_MARKERS = [
@@ -125,6 +139,7 @@ def validate(root: Path) -> list[str]:
     survey = read_text(root, REQUIRED_FILES["survey"])
     slice_note = read_text(root, REQUIRED_FILES["slice"])
     matrix = read_text(root, REQUIRED_FILES["matrix"])
+    modem_control_split = read_text(root, REQUIRED_FILES["modem_control_split"])
     poll_retry_split = read_text(root, REQUIRED_FILES["poll_retry_split"])
     sysrq_helper = read_text(root, REQUIRED_FILES["sysrq_helper"])
     hvc_test = read_text(root, REQUIRED_FILES["hvc_test"])
@@ -143,6 +158,10 @@ def validate(root: Path) -> list[str]:
     for marker in MATRIX_MARKERS:
         if marker not in matrix:
             missing.append(f"matrix:{marker}")
+
+    for marker in MODEM_CONTROL_SPLIT_MARKERS:
+        if marker not in modem_control_split:
+            missing.append(f"modem_control_split:{marker}")
 
     for marker in POLL_RETRY_SPLIT_MARKERS:
         if marker not in poll_retry_split:
@@ -193,6 +212,7 @@ def clone_fixture_root(destination_root: Path) -> None:
                 "# Phase 11 HVC Console Survey",
                 f"- reviewed against live `master` `{FIXTURE_COMMIT}`",
                 "- `hvc_cleanup()` remains bounded",
+                "- `zigux/tests/phase11_hvc_console_modem_control_split.zig` now keeps the already-landed `tiocmget()` and `tiocmset()` callback-presence split, fallback-versus-direct routing, and set-versus-clear mask passthrough explicit inside the shared Phase 11 gate so modem-control failure modes do not stay implicit in the older single-file HVC replay",
                 "- `zigux/tests/phase11_hvc_console_poll_retry_split.zig` now keeps the already-landed `__hvc_poll()` IRQ-backed may-sleep drained-read split, the may-sleep IRQ-free retry-rearm split, the partial-write-versus-stalled-write split, and the bounded sysrq toggle-versus-dispatch split plus the later non-kernel `^O` literal fallback and teardown-time `error.ConsoleUnavailable` rejection explicit inside the shared Phase 11 gate so those read-versus-write retry details and primary-console sysrq teardown edges do not stay implicit in the older single-file HVC replay",
                 "- The next honest bounded step inside the same Phase 11 lane is to leave the starter parked unless fresh repo inspection finds another comparably small host-free sysrq or khvcd handoff that is not already covered by the notifier-add open handoff, the bounded sysrq helper, the `struct winsize` layout proof, the `struct hv_ops` layout proof, the `hv_ops` callback-signature proof, and the exported hvc helper signature proof; otherwise avoid widening straight into live tty teardown, notifier execution, sysrq handling, live khvcd worker behavior, `struct hvc_struct`, or host-backed teardown.",
                 "",
@@ -201,6 +221,7 @@ def clone_fixture_root(destination_root: Path) -> None:
         encoding="utf-8",
     )
     (destination_root / REQUIRED_FILES["slice"]).parent.mkdir(parents=True, exist_ok=True)
+    (destination_root / REQUIRED_FILES["slice"]).writeText if False else None
     (destination_root / REQUIRED_FILES["slice"]).write_text(
         "\n".join(
             [
@@ -222,6 +243,32 @@ def clone_fixture_root(destination_root: Path) -> None:
                 f"- reviewed against live `master` `{FIXTURE_COMMIT}`",
                 "- the dedicated archival survey gate remains `zigux/tests/phase11_hvc_console_survey.zig`",
                 "- host-free khvcd, notifier, remove, or cleanup handoff",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    (destination_root / REQUIRED_FILES["modem_control_split"]).parent.mkdir(parents=True, exist_ok=True)
+    (destination_root / REQUIRED_FILES["modem_control_split"]).write_text(
+        "\n".join(
+            [
+                "const std = @import(\"std\");",
+                "const hvc_console = @import(\"hvc_console\");",
+                "",
+                'test "phase11 hvc console keeps tiocmget and tiocmset fallback on missing hv_ops callbacks" {',
+                "    try std.testing.expect(summary.tiocmget_returns_einval_fallback);",
+                "    try std.testing.expect(summary.tiocmset_returns_einval_fallback);",
+                "}",
+                "",
+                'test "phase11 hvc console keeps tiocmset masks live when tiocmget falls back" {',
+                "    try std.testing.expectEqual(@as(c_int, -7), summary.tiocmset_result);",
+                "    try std.testing.expect(summary.set_mask_passthrough);",
+                "    try std.testing.expect(summary.clear_mask_passthrough);",
+                "}",
+                "",
+                'test "phase11 hvc console keeps modem-control teardown fallout unavailable after slot removal" {',
+                "    try std.testing.expectError(error.ConsoleUnavailable, console.summarizeModemControl(.{",
+                "}",
                 "",
             ]
         ),
@@ -424,6 +471,21 @@ def run_self_test() -> int:
         original_survey = survey_path.read_text(encoding="utf-8")
         survey_path.write_text(
             original_survey.replace(
+                "`zigux/tests/phase11_hvc_console_modem_control_split.zig` now keeps the already-landed `tiocmget()` and `tiocmset()` callback-presence split, fallback-versus-direct routing, and set-versus-clear mask passthrough explicit inside the shared Phase 11 gate so modem-control failure modes do not stay implicit in the older single-file HVC replay",
+                "`zigux/tests/phase11_hvc_console_modem_control_split.zig` now keeps modem-control callback coverage explicit inside the shared Phase 11 gate",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "survey_modem_control_split_marker",
+            tmp_root,
+            "survey:`zigux/tests/phase11_hvc_console_modem_control_split.zig` now keeps the already-landed `tiocmget()` and `tiocmset()` callback-presence split, fallback-versus-direct routing, and set-versus-clear mask passthrough explicit inside the shared Phase 11 gate so modem-control failure modes do not stay implicit in the older single-file HVC replay",
+        )
+        survey_path.write_text(original_survey, encoding="utf-8")
+
+        survey_path.write_text(
+            original_survey.replace(
                 "partial-write-versus-stalled-write split, and the bounded sysrq toggle-versus-dispatch split plus the later non-kernel `^O` literal fallback and teardown-time `error.ConsoleUnavailable` rejection explicit inside the shared Phase 11 gate",
                 "partial-write-versus-stalled-write split explicit inside the shared Phase 11 gate",
                 1,
@@ -479,6 +541,38 @@ def run_self_test() -> int:
             "slice:`hvc_cleanup()` tty-port release handoff summary",
         )
         slice_path.write_text(original_slice, encoding="utf-8")
+
+        modem_control_split_path = tmp_root / REQUIRED_FILES["modem_control_split"]
+        original_modem_control_split = modem_control_split_path.read_text(encoding="utf-8")
+        modem_control_split_path.write_text(
+            original_modem_control_split.replace(
+                "    try std.testing.expect(summary.tiocmset_returns_einval_fallback);\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "modem_control_split_fallback_marker",
+            tmp_root,
+            "modem_control_split:    try std.testing.expect(summary.tiocmset_returns_einval_fallback);",
+        )
+        modem_control_split_path.write_text(original_modem_control_split, encoding="utf-8")
+
+        modem_control_split_path.write_text(
+            original_modem_control_split.replace(
+                "    try std.testing.expectEqual(@as(c_int, -7), summary.tiocmset_result);\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "modem_control_split_tiocmset_result_marker",
+            tmp_root,
+            "modem_control_split:    try std.testing.expectEqual(@as(c_int, -7), summary.tiocmset_result);",
+        )
+        modem_control_split_path.write_text(original_modem_control_split, encoding="utf-8")
 
         poll_retry_split_path = tmp_root / REQUIRED_FILES["poll_retry_split"]
         original_poll_retry_split = poll_retry_split_path.read_text(encoding="utf-8")
@@ -584,6 +678,15 @@ def run_self_test() -> int:
         )
         clone_fixture_root(tmp_root)
 
+        modem_control_split_path = tmp_root / REQUIRED_FILES["modem_control_split"]
+        modem_control_split_path.unlink()
+        expect_missing(
+            "modem_control_split_file_presence",
+            tmp_root,
+            f"missing:modem_control_split:{REQUIRED_FILES['modem_control_split']}",
+        )
+        clone_fixture_root(tmp_root)
+
         poll_retry_split_path = tmp_root / REQUIRED_FILES["poll_retry_split"]
         poll_retry_split_path.unlink()
         expect_missing(
@@ -602,7 +705,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE11_HVC_CLEANUP_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE11_HVC_CLEANUP_ALIGNMENT_SELF_TEST_CASE_COUNT=16")
+    print("PHASE11_HVC_CLEANUP_ALIGNMENT_SELF_TEST_CASE_COUNT=19")
     return 0
 
 
