@@ -155,7 +155,7 @@ test "phase14 shared smoke manifest records the current evidence bundle" {
     try std.testing.expect(std.mem.indexOf(u8, manifest.rollback_threshold.fallback_path, "source of truth") != null);
     try std.testing.expectEqual(@as(usize, 3), manifest.rollback_threshold.required_evidence.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.rollback_threshold.rollback_triggers.len);
-    try std.testing.expectEqual(@as(usize, 14), manifest.shared_smoke_surfaces.len);
+    try std.testing.expectEqual(@as(usize, 15), manifest.shared_smoke_surfaces.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.anchor_packets.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.smoke_commands.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.smoke_shard_commands.len);
