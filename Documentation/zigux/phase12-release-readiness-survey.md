@@ -29,6 +29,7 @@ This document records the current release-discipline reading for the active boun
   - `scripts/zigux/check-phase12-raw-github-coverage.py`
   - `scripts/zigux/check-phase12-libbpf-focused-replay.py`
   - `scripts/zigux/check-phase12-release-readiness-packet.py`
+  - `scripts/zigux/check-phase12-shared-replay-contract.py`
   - `scripts/zigux/validate-phase12.py`
   - `zigux/tests/phase12_cross_build.zig`
   - `zigux/tests/phase12_raw_github_coverage_manifest.json`
@@ -102,6 +103,7 @@ The current bounded release-evidence set is:
 - `scripts/zigux/check-phase12-libbpf-packet.py`
 - `scripts/zigux/check-phase12-libbpf-snapshot.py`
 - `scripts/zigux/check-phase12-release-readiness-packet.py`
+- `scripts/zigux/check-phase12-shared-replay-contract.py`
 - `scripts/zigux/validate-phase12.py`
 - `zigux/tests/phase12_cross_build.zig`
 - `zigux/tests/phase12_build.zig`
