@@ -498,30 +498,27 @@ def run_self_test() -> int:
         _write(root / TOOLING_PACKET_REL, tooling_packet_script)
         case_count += 1
 
-        _write(root / MAKEFILE_REL, "\n".join(("phase2-validate:", "\t@true", "", baseline_makefile)))
-        _assert_only(validate(root), [f"missing_makefile_target_entries:{PHASE2_VALIDATE_TARGET}"], "missing_phase2_makefile_guard_failed")
-        _write(root / MAKEFILE_REL, baseline_makefile)
+        _write(root / TOOLING_PACKET_REL, "REQUIRED_README_TOOLING_FILES = 17\n")
+        _assert_only(validate(root), ["missing_tooling_packet_constant:REQUIRED_README_TOOLING_FILES"], "invalid_tooling_packet_constant_guard_failed")
+        _write(root / TOOLING_PACKET_REL, tooling_packet_script)
         case_count += 1
 
-        _write(root / MAKEFILE_REL, "\n".join(("phase2-tools:", "\t@true", "", baseline_makefile)))
-        _assert_only(validate(root), [f"missing_makefile_target_entries:{PHASE2_TOOLS_TARGET}"], "missing_phase2_tools_makefile_guard_failed")
-        _write(root / MAKEFILE_REL, baseline_makefile)
+        missing_tooling_packet = root / TOOLING_PACKET_REL
+        missing_tooling_packet.unlink()
+        _assert_only(validate(root), [f"missing_tooling_packet_script:{TOOLING_PACKET_REL}"], "missing_tooling_packet_guard_failed")
+        _write(root / TOOLING_PACKET_REL, tooling_packet_script)
         case_count += 1
 
-        _write(root / MAKEFILE_REL, "\n".join(("phase2-kconfig:", "\t@true", "", baseline_makefile)))
-        _assert_only(validate(root), [f"missing_makefile_target_entries:{PHASE2_KCONFIG_TARGET}"], "missing_phase2_kconfig_makefile_guard_failed")
-        _write(root / MAKEFILE_REL, baseline_makefile)
-        case_count += 1
-
-        _write(root / MAKEFILE_REL, "\n".join(("phase2-cross:", "\t@true", "", baseline_makefile)))
-        _assert_only(validate(root), [f"missing_makefile_target_entries:{PHASE2_CROSS_TARGET}"], "missing_phase2_cross_makefile_guard_failed")
+        missing_makefile = root / MAKEFILE_REL
+        missing_makefile.unlink()
+        _assert_only(validate(root), [f"missing_makefile:{MAKEFILE_REL}"], "missing_makefile_guard_failed")
         _write(root / MAKEFILE_REL, baseline_makefile)
         case_count += 1
 
         makefile_cases = (
             ("duplicate_phase2_genksyms_bridge_self_test_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test\n", "unexpected_makefile_self_test_route_count:phase2-validate::2:check-phase2-genksyms-bridge-selftest-alignment.py"),
             ("duplicate_phase2_genksyms_bridge_makefile_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py\n", "unexpected_makefile_live_route_count:phase2-validate::2:check-phase2-genksyms-bridge-selftest-alignment.py"),
-            ("duplicate_phase2_self_test_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test\n", "unexpected_makefile_self_test_route_count:phase2-validate::2:check-phase2-kconfig-selftest-alignment.py"),
+            ("duplicate_phase2_kconfig_self_test_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test\n", "unexpected_makefile_self_test_route_count:phase2-validate::2:check-phase2-kconfig-selftest-alignment.py"),
             ("duplicate_phase2_makefile_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py\n", "unexpected_makefile_live_route_count:phase2-validate::2:check-phase2-kconfig-selftest-alignment.py"),
             ("duplicate_phase2_toolchain_pin_scope_self_test_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test\n", "unexpected_makefile_self_test_route_count:phase2-validate::2:check-phase2-toolchain-pin-scope.py"),
             ("duplicate_phase2_toolchain_pin_scope_makefile_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py\n", "unexpected_makefile_live_route_count:phase2-validate::2:check-phase2-toolchain-pin-scope.py"),
