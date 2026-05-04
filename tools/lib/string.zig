@@ -1,115 +1,15 @@
 const std = @import("std");
+const cmdline = @import("cmdline.zig");
 
 pub const ParseBoolError = error{Invalid};
-pub const MemparseResult = struct {
-    value: u64,
-    rest: []const u8,
-};
+pub const MemparseResult = cmdline.MemparseResult;
 
 pub fn memdup(allocator: std.mem.Allocator, src: []const u8) ![]u8 {
     return allocator.dupe(u8, src);
 }
 
-fn digitValue(ch: u8, base: u8) ?u8 {
-    const value = std.fmt.charToDigit(ch, base) catch return null;
-    return @intCast(value);
-}
-
-fn parseSignedPrefix(text: []const u8) struct {
-    negative: bool,
-    start: usize,
-} {
-    if (text.len == 0) {
-        return .{ .negative = false, .start = 0 };
-    }
-
-    return switch (text[0]) {
-        '-' => .{ .negative = true, .start = 1 },
-        '+' => .{ .negative = false, .start = 1 },
-        else => .{ .negative = false, .start = 0 },
-    };
-}
-
-fn parseBase(text: []const u8, start: usize) struct {
-    base: u8,
-    digits_start: usize,
-} {
-    if (start + 1 < text.len and text[start] == '0') {
-        const next = text[start + 1];
-        if ((next == 'x' or next == 'X') and start + 2 < text.len and digitValue(text[start + 2], 16) != null) {
-            return .{ .base = 16, .digits_start = start + 2 };
-        }
-        return .{ .base = 8, .digits_start = start };
-    }
-
-    return .{ .base = 10, .digits_start = start };
-}
-
-fn applySuffix(value: u64, suffix: u8) u64 {
-    return switch (suffix) {
-        'E', 'e' => value << 60,
-        'P', 'p' => value << 50,
-        'T', 't' => value << 40,
-        'G', 'g' => value << 30,
-        'M', 'm' => value << 20,
-        'K', 'k' => value << 10,
-        else => value,
-    };
-}
-
-fn consumeOptionalUnitTail(text: []const u8, idx: *usize) void {
-    if (idx.* >= text.len) {
-        return;
-    }
-
-    if ((text[idx.*] == 'i' or text[idx.*] == 'I') and idx.* + 1 < text.len and
-        (text[idx.* + 1] == 'B' or text[idx.* + 1] == 'b'))
-    {
-        idx.* += 2;
-        return;
-    }
-
-    if (text[idx.*] == 'B' or text[idx.*] == 'b') {
-        idx.* += 1;
-    }
-}
-
 pub fn memparse(text: []const u8) MemparseResult {
-    const prefix = parseSignedPrefix(text);
-    const base_info = parseBase(text, prefix.start);
-
-    var idx = base_info.digits_start;
-    var parsed_any = false;
-    var magnitude: u64 = 0;
-
-    while (idx < text.len) : (idx += 1) {
-        const digit = digitValue(text[idx], base_info.base) orelse break;
-        parsed_any = true;
-        magnitude = magnitude * base_info.base + digit;
-    }
-
-    if (!parsed_any) {
-        return .{ .value = 0, .rest = text };
-    }
-
-    var signed_value: i64 = @bitCast(magnitude);
-    if (prefix.negative) {
-        signed_value = -signed_value;
-    }
-
-    var result: u64 = @bitCast(signed_value);
-    if (idx < text.len) {
-        switch (text[idx]) {
-            'E', 'e', 'P', 'p', 'T', 't', 'G', 'g', 'M', 'm', 'K', 'k' => {
-                result = applySuffix(result, text[idx]);
-                idx += 1;
-                consumeOptionalUnitTail(text, &idx);
-            },
-            else => {},
-        }
-    }
-
-    return .{ .value = result, .rest = text[idx..] };
+    return cmdline.memparse(text);
 }
 
 pub fn strtobool(s: ?[]const u8) ParseBoolError!bool {
@@ -361,11 +261,6 @@ fn repeatedByteWord(value: u8) u64 {
     return repeated;
 }
 
-fn firstMismatchingWordByte(word: u64, repeated: u64) usize {
-    const diff = word ^ repeated;
-    return @as(usize, @intCast(@ctz(diff) >> 3));
-}
-
 fn checkBytes8(buf: []const u8, value: u8) ?usize {
     for (buf, 0..) |ch, idx| {
         if (ch != value) {
@@ -395,7 +290,8 @@ pub fn memchrInv(buf: []const u8, value: u8) ?usize {
     while (word_start + 8 <= buf.len) : (word_start += 8) {
         const word = std.mem.readInt(u64, buf[word_start .. word_start + 8][0..8], .little);
         if (word != repeated) {
-            return word_start + firstMismatchingWordByte(word, repeated);
+            const diff = word ^ repeated;
+            return word_start + @as(usize, @intCast(@ctz(diff) >> 3));
         }
     }
 
@@ -668,6 +564,14 @@ test "memparse preserves the header-level string helper contract" {
     try std.testing.expectEqual(@as(u64, 32), positive.value);
     try std.testing.expectEqualStrings("", positive.rest);
 
+    const negative = memparse("-4K tail");
+    try std.testing.expectEqual(@as(u64, @bitCast(@as(i64, -4096))), negative.value);
+    try std.testing.expectEqualStrings(" tail", negative.rest);
+
+    const explicit_hex = memparse("+0X10M done");
+    try std.testing.expectEqual(@as(u64, 0x10 << 20), explicit_hex.value);
+    try std.testing.expectEqualStrings(" done", explicit_hex.rest);
+
     const kib = memparse("64KiB rest");
     try std.testing.expectEqual(@as(u64, 64 << 10), kib.value);
     try std.testing.expectEqualStrings(" rest", kib.rest);
@@ -696,9 +600,29 @@ test "memparse preserves the header-level string helper contract" {
     try std.testing.expectEqual(@as(u64, 0), invalid_hex_digit.value);
     try std.testing.expectEqualStrings("xG", invalid_hex_digit.rest);
 
+    const sign_only_invalid = memparse("-xyz");
+    try std.testing.expectEqual(@as(u64, 0), sign_only_invalid.value);
+    try std.testing.expectEqualStrings("-xyz", sign_only_invalid.rest);
+
+    const plus_invalid = memparse("+nope");
+    try std.testing.expectEqual(@as(u64, 0), plus_invalid.value);
+    try std.testing.expectEqualStrings("+nope", plus_invalid.rest);
+
     const invalid = memparse("xyz");
     try std.testing.expectEqual(@as(u64, 0), invalid.value);
     try std.testing.expectEqualStrings("xyz", invalid.rest);
+
+    const positive_overflow = memparse("9223372036854775808");
+    try std.testing.expectEqual(@as(u64, std.math.maxInt(i64)), positive_overflow.value);
+    try std.testing.expectEqualStrings("", positive_overflow.rest);
+
+    const negative_overflow = memparse("-9223372036854775809");
+    try std.testing.expectEqual(@as(u64, @bitCast(@as(i64, std.math.minInt(i64)))), negative_overflow.value);
+    try std.testing.expectEqualStrings("", negative_overflow.rest);
+
+    const saturated_suffix = memparse("18446744073709551615K");
+    try std.testing.expectEqual(@as(u64, 18446744073709550592), saturated_suffix.value);
+    try std.testing.expectEqualStrings("", saturated_suffix.rest);
 }
 
 test "memchrInv scans aligned and misaligned long buffers" {
