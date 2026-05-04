@@ -12,10 +12,21 @@ pub const CpuMask = struct {
     }
 };
 
+pub const PerfBufferExplicitTarget = struct {
+    cpu: usize,
+    map_key: usize,
+};
+
 pub const ParseCpuMaskError = error{
     EmptyCpuRange,
     InvalidCpuRange,
     InputTooLarge,
+};
+
+pub const PlanPerfBufferExplicitTargetError = error{
+    CpuCountMismatch,
+    InvalidCpuIndex,
+    InvalidMapKey,
 };
 
 pub const cpu_mask_file_read_limit: usize = 127;
@@ -186,6 +197,45 @@ pub fn planPerfBufferAutoCpuIndices(
         if (planned.items.len == budget) {
             break;
         }
+    }
+
+    return planned.toOwnedSlice(allocator);
+}
+
+fn parseExplicitPerfBufferCpu(value: i32) PlanPerfBufferExplicitTargetError!usize {
+    if (value < 0) {
+        return error.InvalidCpuIndex;
+    }
+
+    return @intCast(value);
+}
+
+fn parseExplicitPerfBufferMapKey(value: i32) PlanPerfBufferExplicitTargetError!usize {
+    if (value < 0) {
+        return error.InvalidMapKey;
+    }
+
+    return @intCast(value);
+}
+
+pub fn planPerfBufferExplicitTargets(
+    allocator: std.mem.Allocator,
+    cpus: []const i32,
+    map_keys: []const i32,
+) PlanPerfBufferExplicitTargetError![]PerfBufferExplicitTarget {
+    if (cpus.len != map_keys.len) {
+        return error.CpuCountMismatch;
+    }
+
+    var planned = std.ArrayList(PerfBufferExplicitTarget).empty;
+    errdefer planned.deinit(allocator);
+
+    try planned.ensureTotalCapacity(allocator, cpus.len);
+    for (cpus, map_keys) |cpu, map_key| {
+        planned.appendAssumeCapacity(.{
+            .cpu = try parseExplicitPerfBufferCpu(cpu),
+            .map_key = try parseExplicitPerfBufferMapKey(map_key),
+        });
     }
 
     return planned.toOwnedSlice(allocator);
@@ -436,6 +486,34 @@ test "planPerfBufferAutoCpuIndices skips offline or truncated online candidates 
     defer std.testing.allocator.free(planned);
 
     try std.testing.expectEqualSlices(usize, &.{0}, planned);
+}
+
+test "planPerfBufferExplicitTargets keeps caller-supplied CPUs and map keys aligned without widening into perf FD routing" {
+    const planned = try planPerfBufferExplicitTargets(std.testing.allocator, &.{ 4, 1, 7 }, &.{ 0, 2, 5 });
+    defer std.testing.allocator.free(planned);
+
+    try std.testing.expectEqual(@as(usize, 3), planned.len);
+    try std.testing.expectEqual(@as(usize, 4), planned[0].cpu);
+    try std.testing.expectEqual(@as(usize, 0), planned[0].map_key);
+    try std.testing.expectEqual(@as(usize, 1), planned[1].cpu);
+    try std.testing.expectEqual(@as(usize, 2), planned[1].map_key);
+    try std.testing.expectEqual(@as(usize, 7), planned[2].cpu);
+    try std.testing.expectEqual(@as(usize, 5), planned[2].map_key);
+}
+
+test "planPerfBufferExplicitTargets keeps mismatched and negative caller-supplied targets explicit" {
+    try std.testing.expectError(
+        error.CpuCountMismatch,
+        planPerfBufferExplicitTargets(std.testing.allocator, &.{ 0, 1 }, &.{0}),
+    );
+    try std.testing.expectError(
+        error.InvalidCpuIndex,
+        planPerfBufferExplicitTargets(std.testing.allocator, &.{-1}, &.{0}),
+    );
+    try std.testing.expectError(
+        error.InvalidMapKey,
+        planPerfBufferExplicitTargets(std.testing.allocator, &.{0}, &.{-3}),
+    );
 }
 
 test "planPerfBufferCpuIndices keeps caller-pinned positive CPU counts sequential without widening into routing parity" {
