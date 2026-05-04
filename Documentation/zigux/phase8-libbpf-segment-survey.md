@@ -7,7 +7,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling survey for Z
 - `PHASE8_STATUS=parked`
 - `PHASE8_SLICE=libbpf-segment-survey`
 - scope: segment manifest plus six landed helper-first starter slices, the separate bounded perf-buffer poll bookkeeping adjunct, one deferred resource boundary, one deferred interrupt-routing boundary, one blocked object-model follow-on, and two deferred loader-facing follow-ons
-- survey checkpoint: refreshed against inspected `master` head `897cdd2f62c4428d2a050275a187950e161b66eb`
+- survey checkpoint: refreshed against inspected `master` head `0bd402fd6ca83ba2ace6b21e9e57459401b631cd`
 - product boundary:
   - `tools/lib/bpf/zigux_segments/manifest.json`
   - `tools/lib/bpf/zigux_segments/cpu_mask.zig`
@@ -147,7 +147,7 @@ The shared review path now fail-closes through the shared Phase 8 validator, the
 
 ## Latest committed gate snapshot
 
-- provenance and anchor alignment rechecked against inspected `master` head `897cdd2f62c4428d2a050275a187950e161b66eb`
+- provenance and anchor alignment rechecked against inspected `master` head `0bd402fd6ca83ba2ace6b21e9e57459401b631cd`
 - the committed `phase8-validate` bundle in `zigux/Makefile` now routes through `validate-phase8.py`, `check-phase8-validator-flow.py`, `check-phase8-tests-readme-alignment.py`, and `check-phase8-perf-buffer-poll-gate.py` in both self-test and live modes before the focused wrapper targets and shared replay steps
 - `zigux/Makefile` currently publishes dedicated `phase8-libbpf-segments-test` and `phase8-perf-buffer-poll-test` wrappers before the shared `phase8-test` replay, so the libbpf survey packet and the perf-buffer poll adjunct stay reviewable as focused tooling gates instead of reading like they jump straight from validation into the aggregate build
 - `scripts/zigux/check-phase8-validator-flow.py` currently publishes `PHASE8_VALIDATOR_FLOW_SELF_TEST_CASE_COUNT=17`
