@@ -152,7 +152,7 @@ The shared review path now fail-closes through the shared Phase 8 validator, the
 - `zigux/Makefile` currently publishes dedicated `phase8-libbpf-segments-test` and `phase8-perf-buffer-poll-test` wrappers before the shared `phase8-test` replay, so the libbpf survey packet and the perf-buffer poll adjunct stay reviewable as focused tooling gates instead of reading like they jump straight from validation into the aggregate build
 - `scripts/zigux/check-phase8-validator-flow.py` currently publishes `PHASE8_VALIDATOR_FLOW_SELF_TEST_CASE_COUNT=17`
 - `scripts/zigux/check-phase8-tests-readme-alignment.py` currently publishes `PHASE8_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=45`
-- `scripts/zigux/check-phase8-perf-buffer-poll-gate.py` currently publishes `PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST_CASE_COUNT=8`
+- `scripts/zigux/check-phase8-perf-buffer-poll-gate.py` currently publishes `PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST_CASE_COUNT=10`
 - `.github/workflows/zigux-bootstrap.yml` currently keeps a dedicated `Run focused Phase 8 perf-buffer poll tests` step wired to `zigux/tests/phase8_perf_buffer_poll_only_build.zig`
 - `Documentation/zigux/phase8-perf-buffer-poll-slice.md` and `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md` both keep the dedicated checker plus the focused perf-buffer poll shard explicit inside the same shared Phase 8 tooling packet
 
