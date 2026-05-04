@@ -50,6 +50,13 @@ pub const next_arg_cases = [_]NextArgCase{
         .expected_rest = "",
     },
     .{
+        .name = "unterminated quoted value consumes the token tail",
+        .input = "mode=\"fast boot",
+        .expected_param = "mode",
+        .expected_value = "fast boot",
+        .expected_rest = "",
+    },
+    .{
         .name = "leading equals sign stays in the parameter token",
         .input = "=bad next",
         .expected_param = "=bad",
