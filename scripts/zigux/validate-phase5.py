@@ -278,7 +278,7 @@ MANIFEST_EXPECTATIONS = {
         "survey_note": "Documentation/zigux/phase5-kobject-sample-survey.md",
         "survey_summary": "The shared `zigux/tests/phase5_build.zig` entrypoint remains the umbrella review gate recorded in the manifest and contributor prompts, but this bounded verification pass did not rerun the whole Phase 5 sample bundle.",
         "sample_test": "zig test samples/zigux/kobject_example.zig",
-        "sample_result": "All 5 tests passed.",
+        "sample_result": "All 6 tests passed.",
         "survey_test": "zig test zigux/tests/phase5_kobject_example_survey.zig",
         "survey_result": "All 2 tests passed.",
     },
