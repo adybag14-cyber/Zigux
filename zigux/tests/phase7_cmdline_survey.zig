@@ -178,6 +178,7 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
     try expectContains(tests_readme, "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig");
     try expectContains(tests_readme, "zigux/tests/fixtures/phase7_cmdline_c_harness.c");
     try expectContains(tests_readme, "scripts/zigux/check-phase7-cmdline-parity.py");
+    try expectContains(tests_readme, "scripts/zigux/check-phase7-argv-split-packet.py");
     try expectContains(tests_readme, "helper roots in `zigux/tests/phase7_build.zig` receive `string_helpers`, `cmdline`, `argv_split`, and `rbtree` through `addImport(...)`");
     try expectContains(tests_readme, "cannot import fixtures outside the helper module path");
     try expectContains(tests_readme, "keep the `next_arg()` edge corpus reviewable in both places");
@@ -192,6 +193,8 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
     try expectContains(zigux_makefile, "python3 scripts/zigux/check-phase7-make-wrapper.py");
     try expectContains(zigux_makefile, "python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test");
     try expectContains(zigux_makefile, "python3 scripts/zigux/check-phase7-cmdline-parity.py");
+    try expectContains(zigux_makefile, "python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test");
+    try expectContains(zigux_makefile, "python3 scripts/zigux/check-phase7-argv-split-packet.py");
     try expectContains(zigux_makefile, "python3 scripts/zigux/check-phase7-argv-split-parity.py --self-test");
     try expectContains(zigux_makefile, "python3 scripts/zigux/check-phase7-argv-split-parity.py");
     try expectContains(zigux_makefile, "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test");
@@ -208,6 +211,7 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
     try expectContains(build_inventory, "\"scripts/zigux/check-phase7-build-inventory.py\"");
     try expectContains(build_inventory, "\"scripts/zigux/check-phase7-make-wrapper.py\"");
     try expectContains(build_inventory, "\"scripts/zigux/check-phase7-cmdline-parity.py\"");
+    try expectContains(build_inventory, "\"scripts/zigux/check-phase7-argv-split-packet.py\"");
     try expectContains(build_inventory, "\"scripts/zigux/check-phase7-argv-split-parity.py\"");
     try expectContains(build_inventory, "\"scripts/zigux/check-phase7-rbtree-parity.py\"");
     try expectContains(build_inventory, "\"shared_validation_commands\": [");
@@ -215,8 +219,12 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
     try expectContains(build_inventory, "\"scripts/zigux/check-phase7-build-inventory.py --self-test\"");
     try expectContains(build_inventory, "\"scripts/zigux/check-phase7-make-wrapper.py --self-test\"");
     try expectContains(build_inventory, "\"scripts/zigux/check-phase7-cmdline-parity.py --self-test\"");
+    try expectContains(build_inventory, "\"scripts/zigux/check-phase7-argv-split-packet.py --self-test\"");
+    try expectContains(build_inventory, "\"scripts/zigux/check-phase7-argv-split-packet.py\"");
     try expectContains(build_inventory, "\"scripts/zigux/check-phase7-argv-split-parity.py --self-test\"");
+    try expectContains(build_inventory, "\"scripts/zigux/check-phase7-argv-split-parity.py\"");
     try expectContains(build_inventory, "\"scripts/zigux/check-phase7-rbtree-parity.py --self-test\"");
+    try expectContains(build_inventory, "\"scripts/zigux/check-phase7-rbtree-parity.py\"");
     try expectContains(build_inventory, "\"shared_test_command\": \"zig build test --build-file zigux/tests/phase7_build.zig --summary all\"");
 
     try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_tests, "phase 7 getOptions preserves descending-range and partial-parse stop behavior") != null);
