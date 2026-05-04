@@ -12,6 +12,7 @@ This document records the current release-discipline reading for the active Phas
 - product boundary:
   - `scripts/zigux/validate-phase13-release.py`
   - `scripts/zigux/check-phase13-devres-packet.py`
+  - `scripts/zigux/check-phase13-release-replay-exact-counts.py`
   - `scripts/zigux/README.md`
   - `Documentation/zigux/phase13-release-notes-survey.md`
   - `Documentation/zigux/phase13-roadmap-traceability.md`
@@ -66,6 +67,7 @@ What this record needs to say, in one place, is how to read that bundle today:
 - the current tranche is reviewable through `python3 scripts/zigux/validate-phase13-release.py`, `make -C zigux phase13-validate`, `zig build test --build-file zigux/tests/phase13_build.zig --summary all`, and `make -C zigux phase13`
 - the shared bootstrap workflow mirrors that same validator-first release path through `Validate Phase 13 release-discipline packet` and `Run Phase 13 shared helper tests`, so release-facing reviewability is not hidden only in local commands
 - the validator helper itself is part of the published evidence packet through `scripts/zigux/README.md`, so the fast-check contract is documented alongside the release note instead of living only in the script and workflow wiring
+- the shared release packet also keeps the dedicated `scripts/zigux/check-phase13-release-replay-exact-counts.py` guard visible as part of that published review path, so the fifteen-step shared replay inventory and its `PHASE13_SHARED_REPLAY_STEP_COUNT=15` marker are not left implicit in `zigux/tests/phase13_build.zig`, `zigux/Makefile`, and the workflow alone
 - the shared release packet also keeps the dedicated `scripts/zigux/check-phase13-devres-packet.py` guard visible as part of that published review path, so the stricter helper-first `devres` boundary contract is not left implicit in `zigux/Makefile` alone
 - the shared release packet now also needs to say plainly that the dedicated `phase13-devres-iounmap-reviewability-tests` and `phase13-devres-iomap-reviewability-tests` steps are part of the same shared replay packet instead of floating only in `zigux/tests/phase13_build.zig`
 - the shared release packet now also needs to say plainly that the dedicated `phase13-devres-wrapper-reviewability-tests` step is part of the same shared replay packet instead of floating only in `zigux/tests/phase13_build.zig` and `Documentation/zigux/phase13-devres-survey.md`
@@ -87,6 +89,7 @@ The current Phase 13 release-facing reading is:
 - `security/landlock/ruleset.c`: helper slice landed, dedicated tests present, dedicated reviewability gate present, roadmap traceability present, manifest-backed survey present
 - `security/landlock/syscalls.c`: helper slice landed, dedicated tests present, dedicated reviewability gate present, roadmap traceability present, manifest-backed survey present
 - the shared bootstrap workflow replays the same validator-plus-build contract through `Validate Phase 13 release-discipline packet` and `Run Phase 13 shared helper tests`
+- the shared replay inventory now also keeps the dedicated `scripts/zigux/check-phase13-release-replay-exact-counts.py` guard visible, so the published fifteen-step replay list and `PHASE13_SHARED_REPLAY_STEP_COUNT=15` marker do not drift behind the validator-first route
 - the shared replay now also keeps the adjacent helper-first coherent DMA alloc/free bookkeeping replay visible through `phase13-devres-dma-coherent-tests` without turning the blocked devres DMA/scatterlist boundary into a live DMA-backed mapping claim
 - the shared replay now also keeps the dedicated `phase13-devres-iounmap-reviewability-tests` gate visible through `zigux/tests/phase13_devres_iounmap_reviewability.zig` so the helper-advertised `devm_iounmap()` planning surface does not look smaller than the actual shared replay on current `master`
 - the shared replay now also keeps the dedicated `phase13-devres-iomap-reviewability-tests` gate visible through `zigux/tests/phase13_devres_iomap_reviewability.zig` so the helper-advertised `devm_of_iomap()` planning surface does not look smaller than the actual shared replay on current `master`
@@ -109,6 +112,7 @@ The current Phase 13 release-facing reading is:
 The current release packet also carries one active Phase 13 boundary reminder on `master`:
 
 - `python3 scripts/zigux/validate-phase13-release.py`, `make -C zigux phase13-validate`, `zig build test --build-file zigux/tests/phase13_build.zig --summary all`, and `make -C zigux phase13` are the published validator-first and shared replay path for the current packet
+- the shared release packet now also keeps the dedicated `scripts/zigux/check-phase13-release-replay-exact-counts.py` guard visible, so the published fifteen-step replay inventory and `PHASE13_SHARED_REPLAY_STEP_COUNT=15` marker stay reviewable instead of hiding only in `zigux/tests/phase13_build.zig`, `zigux/Makefile`, and workflow wiring
 - the shared release packet also keeps the dedicated `scripts/zigux/check-phase13-devres-packet.py` guard visible as part of that published review path, so the stricter helper-first `devres` boundary contract is not left implicit in `zigux/Makefile` alone
 - the shared release packet now also keeps the dedicated `phase13-devres-iounmap-reviewability-tests` gate visible through `zigux/tests/phase13_devres_iounmap_reviewability.zig` so the helper-advertised `devm_iounmap()` planning surface does not look smaller than the actual shared replay on current `master`
 - the shared release packet now also keeps the dedicated `phase13-devres-iomap-reviewability-tests` gate visible through `zigux/tests/phase13_devres_iomap_reviewability.zig` so the helper-advertised `devm_of_iomap()` planning surface does not look smaller than the actual shared replay on current `master`
@@ -167,6 +171,7 @@ The current bounded release-evidence set is:
 
 - `scripts/zigux/validate-phase13-release.py`
 - `scripts/zigux/check-phase13-devres-packet.py`
+- `scripts/zigux/check-phase13-release-replay-exact-counts.py`
 - `scripts/zigux/README.md`
 - `Documentation/zigux/phase13-release-notes-survey.md`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
