@@ -51,6 +51,7 @@ SCRIPTS_README_MARKERS = [
 TESTS_README_MARKERS = [
     "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
     "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
+    "zigux/tests/phase10_virtio_input_registration_blocker_build.zig",
     "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
     "scripts/zigux/check-phase10-closure-inventory.py",
     "scripts/zigux/check-phase10-core-packet.py",
@@ -162,6 +163,7 @@ EXACT_ONCE = [
     ("scripts_readme", "scripts/zigux/README.md", "phase10_virtio_mmio_queue_isolation.zig"),
     ("tests_readme", "zigux/tests/README.md", "zigux/tests/phase10_virtio_ring_reset_reuse.zig"),
     ("tests_readme", "zigux/tests/README.md", "zigux/tests/phase10_virtio_input_multitouch_preflight.zig"),
+    ("tests_readme", "zigux/tests/README.md", "zigux/tests/phase10_virtio_input_registration_blocker_build.zig"),
     ("tests_readme", "zigux/tests/README.md", "zigux/tests/phase10_virtio_mmio_queue_isolation.zig"),
     ("docs_readme", "Documentation/zigux/README.md", "zigux/tests/phase10_virtio_ring_reset_reuse.zig"),
     ("docs_readme", "Documentation/zigux/README.md", "zigux/tests/phase10_virtio_input_multitouch_preflight.zig"),
@@ -396,6 +398,21 @@ def run_self_test() -> int:
 
         tests_readme_path.write_text(
             original_tests_readme.replace(
+                "zigux/tests/phase10_virtio_input_registration_blocker_build.zig",
+                "zigux/tests/phase10_input_blocker_drift.zig",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "tests_readme_blocker_build_entry",
+            root,
+            "tests_readme:zigux/tests/phase10_virtio_input_registration_blocker_build.zig",
+        )
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
+
+        tests_readme_path.write_text(
+            original_tests_readme.replace(
                 "zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
                 "zigux-alpha/PHASE10_LEDGER_DRIFT.md",
                 1,
@@ -550,7 +567,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=14")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
