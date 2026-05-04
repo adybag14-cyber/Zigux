@@ -124,6 +124,7 @@ DOC_README_MARKERS = [
     "python3 scripts/zigux/check-phase10-harness-coverage.py",
     "make -C zigux phase10-validate",
     "phase10-closure-evidence.md",
+    "zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
     "same nine published Phase 10 docs named by the shared closure packet",
     "phase10-virtio-core-survey.md",
     "phase10-virtio-ring-slice.md",
@@ -743,7 +744,7 @@ def run_self_test() -> int:
 
         ring_manifest = json.loads(ring_manifest_path.read_text(encoding="utf-8"))
         ring_manifest["freeze_boundary_status"] = "drifted"
-        ring_manifest_path.write_text(json.dumps(ring_manifest, indent=2) + "\n", encoding="utf-8")
+        ring_manifest_path.writeText(json.dumps(ring_manifest, indent=2) + "\n", encoding="utf-8")
         expect_missing_marker(
             "ring_freeze_boundary_status_guard",
             tmp_root,
