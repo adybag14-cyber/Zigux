@@ -133,6 +133,16 @@ WORKFLOW_MARKERS = [
     "python3 scripts/zigux/check-phase2-cross.py --target ${{ matrix.zig_target }}",
 ]
 
+WORKFLOW_EXACT_RUN_COUNTS = {
+    "python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test": 1,
+    "python3 scripts/zigux/check-phase2-tests-readme-alignment.py": 1,
+}
+
+MAKEFILE_EXACT_RUN_COUNTS = {
+    "scripts/zigux/check-phase2-tests-readme-alignment.py --self-test": 1,
+    "scripts/zigux/check-phase2-tests-readme-alignment.py": 1,
+}
+
 
 def repo_root_from_script(script_path: Path) -> Path:
     return script_path.resolve().parents[2]
@@ -167,6 +177,26 @@ def validate_exact_marker_counts(
         actual_count = text.count(marker)
         if actual_count != expected_count:
             issues.append(f"{label}:{marker}:count={actual_count}:expected={expected_count}")
+    return issues
+
+
+def validate_exact_workflow_runs(text: str) -> list[str]:
+    issues: list[str] = []
+    for command, expected_count in WORKFLOW_EXACT_RUN_COUNTS.items():
+        expected_line = f"run: {command}"
+        count = sum(1 for line in text.splitlines() if line.strip() == expected_line)
+        if count != expected_count:
+            issues.append(f"workflow_exact_run:{command}:count={count}:expected={expected_count}")
+    return issues
+
+
+def validate_exact_makefile_runs(text: str) -> list[str]:
+    issues: list[str] = []
+    stripped_lines = [line.strip() for line in text.splitlines()]
+    for command, expected_count in MAKEFILE_EXACT_RUN_COUNTS.items():
+        count = sum(1 for line in stripped_lines if line.endswith(command))
+        if count != expected_count:
+            issues.append(f"makefile_exact_run:{command}:count={count}:expected={expected_count}")
     return issues
 
 
@@ -215,9 +245,11 @@ def validate(root: Path) -> list[str]:
     for marker in MAKEFILE_MARKERS:
         if marker not in makefile:
             missing.append(f"makefile:{marker}")
+    missing.extend(validate_exact_makefile_runs(makefile))
     for marker in WORKFLOW_MARKERS:
         if marker not in workflow:
             missing.append(f"workflow:{marker}")
+    missing.extend(validate_exact_workflow_runs(workflow))
 
     return missing
 
@@ -669,6 +701,38 @@ def run_self_test() -> int:
         makefile_path.write_text(original_makefile, encoding="utf-8")
 
         makefile_path.write_text(
+            original_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py --self-test\n",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py --self-test\n"
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py --self-test\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "makefile_tests_readme_self_test_duplicate",
+            tmp_root,
+            "makefile_exact_run:scripts/zigux/check-phase2-tests-readme-alignment.py --self-test:count=2:expected=1",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        makefile_path.write_text(
+            original_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py\n",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py\n"
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "makefile_tests_readme_gate_duplicate",
+            tmp_root,
+            "makefile_exact_run:scripts/zigux/check-phase2-tests-readme-alignment.py:count=2:expected=1",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        makefile_path.write_text(
             original_makefile.replace("phase2-cross:\n", "", 1),
             encoding="utf-8",
         )
@@ -711,6 +775,44 @@ def run_self_test() -> int:
 
         workflow_path.write_text(
             original_workflow.replace(
+                "      - name: Self-test Phase 2 tests README alignment checker\n"
+                "        run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test\n",
+                "      - name: Self-test Phase 2 tests README alignment checker\n"
+                "        run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test\n"
+                "      - name: Self-test Phase 2 tests README alignment checker\n"
+                "        run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "workflow_tests_readme_self_test_duplicate",
+            tmp_root,
+            "workflow_exact_run:python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test:count=2:expected=1",
+        )
+        workflow_path.write_text(original_workflow, encoding="utf-8")
+
+        workflow_path.write_text(
+            original_workflow.replace(
+                "      - name: Check Phase 2 tests README alignment\n"
+                "        run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py\n",
+                "      - name: Check Phase 2 tests README alignment\n"
+                "        run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py\n"
+                "      - name: Check Phase 2 tests README alignment\n"
+                "        run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "workflow_tests_readme_gate_duplicate",
+            tmp_root,
+            "workflow_exact_run:python3 scripts/zigux/check-phase2-tests-readme-alignment.py:count=2:expected=1",
+        )
+        workflow_path.write_text(original_workflow, encoding="utf-8")
+
+        workflow_path.write_text(
+            original_workflow.replace(
                 "      - name: Check Phase 2 cross-target alignment\n"
                 "        run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py\n",
                 "",
@@ -725,7 +827,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=19")
+    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=23")
     return 0
 
 
