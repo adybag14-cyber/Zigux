@@ -10,6 +10,9 @@ This bounded Phase 10 slice adds the first Zigux `virtio_input` lab driver start
 - product boundary:
   - `drivers/virtio/virtio_input.zig`
   - `zigux/tests/phase10_virtio_input.zig`
+  - `zigux/tests/phase10_virtio_input_multitouch_preflight.zig`
+  - `scripts/zigux/validate-phase10.py`
+  - `scripts/zigux/check-phase10-harness-coverage.py`
   - `zigux/tests/phase10_build.zig`
   - `zigux/Makefile`
 
@@ -33,7 +36,7 @@ This module note exists to keep the landed helper surface readable on its own wh
 - keeps status sending in-memory only and suppresses `EV_MSC` plus `MSC_TIMESTAMP` loops when multitouch forwarding is enabled
 - exposes a reset-local teardown observation summary so queue, status, config, and ABS staging cleanup stays reviewable while init-time identity strings remain intact
 
-The same parked input-module packet also participates in the shared Phase 10 closure bundle through `Documentation/zigux/phase10-closure-evidence.md`, `zigux/tests/phase10_closure_manifest.json`, and `zigux-alpha/PHASE10_CLOSURE_LEDGER.md`, so this note is part of the broader lab-validation surface rather than a standalone helper stub.
+The same parked input-module packet also participates in the shared Phase 10 closure bundle through `Documentation/zigux/phase10-closure-evidence.md`, `zigux/tests/phase10_closure_manifest.json`, `zigux-alpha/PHASE10_CLOSURE_LEDGER.md`, the focused multitouch-ready replay in `zigux/tests/phase10_virtio_input_multitouch_preflight.zig`, the shared validator route in `scripts/zigux/validate-phase10.py`, and the focused harness-coverage gate in `scripts/zigux/check-phase10-harness-coverage.py`, so this note is part of the broader lab-validation surface rather than a standalone helper stub.
 
 ## Non-goals
 
@@ -51,6 +54,8 @@ This slice does not yet claim:
 - `python3 scripts/zigux/check-phase10-closure-inventory.py`
 
 2. run the shared validation path
+- `python3 scripts/zigux/validate-phase10.py`
+- `python3 scripts/zigux/check-phase10-harness-coverage.py`
 - `python3 scripts/zigux/validate-phase10-closure.py`
 - `make -C zigux phase10-validate`
 
