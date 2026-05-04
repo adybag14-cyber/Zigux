@@ -682,3 +682,51 @@ test "bitmap diff gate keeps a deterministic threshold replay batch ready for fu
     try std.testing.expect(repeated.checksum != single.checksum);
     try std.testing.expectEqualDeep(repeated, runThresholdReplay(4));
 }
+
+test "bitmap diff gate keeps bitmap_set and bitmap_clear aliases aligned with the mem-optimisation boundary windows" {
+    const cases = [_]struct {
+        start: usize,
+        len: usize,
+    }{
+        .{ .start = 0, .len = 9 },
+        .{ .start = bits_per_long - 3, .len = 10 },
+        .{ .start = bits_per_long + 15, .len = bits_per_long + 4 },
+    };
+
+    for (cases) |case| {
+        const end = case.start + case.len;
+        var direct = [_]Word{0} ** word_count;
+        var alias = [_]Word{0} ** word_count;
+
+        bitmap.zero(&direct, bitmap_nbits);
+        bitmap.zero(&alias, bitmap_nbits);
+        bitmap.bitmap_set(&direct, case.start, case.len);
+        bitmap.__bitmap_set(&alias, case.start, case.len);
+        try std.testing.expectEqualSlices(Word, &direct, &alias);
+        try std.testing.expectEqual(case.len, weight(&alias, bitmap_nbits));
+        try std.testing.expectEqual(case.start, firstSet(&alias, bitmap_nbits));
+        try expectSet(&alias, case.start);
+        try expectSet(&alias, end - 1);
+        if (case.start > 0) {
+            try expectClear(&alias, case.start - 1);
+        }
+        if (end < bitmap_nbits) {
+            try expectClear(&alias, end);
+        }
+
+        bitmap.fill(&direct, bitmap_nbits);
+        bitmap.fill(&alias, bitmap_nbits);
+        bitmap.bitmap_clear(&direct, case.start, case.len);
+        bitmap.__bitmap_clear(&alias, case.start, case.len);
+        try std.testing.expectEqualSlices(Word, &direct, &alias);
+        try std.testing.expectEqual(bitmap_nbits - case.len, weight(&alias, bitmap_nbits));
+        try expectClear(&alias, case.start);
+        try expectClear(&alias, end - 1);
+        if (case.start > 0) {
+            try expectSet(&alias, case.start - 1);
+        }
+        if (end < bitmap_nbits) {
+            try expectSet(&alias, end);
+        }
+    }
+}
