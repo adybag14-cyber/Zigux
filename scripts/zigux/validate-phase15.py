@@ -129,6 +129,9 @@ REVIEW_PROCESS_MARKERS = [
     "no Architecture Council approval claim",
     "Documentation/zigux/phase15-indefinite-c-policy.md",
     "phase15-review-process-freeze-map-governance-handoff-sync",
+    "phase15-review-process-scripts-tests-root-handoff-sync",
+    "scripts-root validator path",
+    "tests-root guidance path",
 ]
 
 INDEFINITE_POLICY_NOTE_MARKERS = [
@@ -295,6 +298,7 @@ REVIEW_PROCESS_REQUIRED_FIELDS = [
     "automatic return-to-blocked trigger",
     "rollback threshold",
     "indefinite-C policy link or applicability note",
+    "explicit source-of-truth note",
     "reopen triggers",
     "trigger-specific refreshed evidence by path",
     "parity scorecard link or blocker record",
@@ -600,13 +604,18 @@ require(
     and "Documentation/zigux/phase15-indefinite-c-policy.md" in review_process_handoff_evidence.get("current_repo_handoff", "")
     and "Documentation/zigux/phase15-handoff-next-steps-survey.md" in review_process_handoff_evidence.get("current_repo_handoff", "")
     and "zigux/tests/phase15_build.zig" in review_process_handoff_evidence.get("current_repo_handoff", "")
-    and "make -C zigux phase15" in review_process_handoff_evidence.get("current_repo_handoff", ""),
+    and "make -C zigux phase15" in review_process_handoff_evidence.get("current_repo_handoff", "")
+    and "scripts/zigux/README.md" in review_process_handoff_evidence.get("current_repo_handoff", "")
+    and "scripts/zigux/validate-phase15.py" in review_process_handoff_evidence.get("current_repo_handoff", "")
+    and "zigux/tests/README.md" in review_process_handoff_evidence.get("current_repo_handoff", ""),
     "review_process_manifest:handoff_evidence:current_repo_handoff",
 )
 require(
     review_process_manifest["lane_key"] in review_process_handoff_evidence.get("current_bounded_lane", "")
     and "governance, approval, and ownership evidence verification" in review_process_handoff_evidence.get("current_bounded_lane", "")
     and "current parked maintenance-mode Phase 15 packet" in review_process_handoff_evidence.get("current_bounded_lane", "")
+    and "scripts-root validator path" in review_process_handoff_evidence.get("current_bounded_lane", "")
+    and "tests-root guidance path" in review_process_handoff_evidence.get("current_bounded_lane", "")
     and "neighboring governance slices" in review_process_handoff_evidence.get("current_bounded_lane", ""),
     "review_process_manifest:handoff_evidence:current_bounded_lane",
 )
@@ -638,7 +647,7 @@ require(
 )
 
 review_process_gaps = review_process_manifest.get("gaps")
-require(isinstance(review_process_gaps, list) and len(review_process_gaps) == 21, "review_process_manifest:gaps")
+require(isinstance(review_process_gaps, list) and len(review_process_gaps) == 22, "review_process_manifest:gaps")
 if isinstance(review_process_gaps, list):
     gap_ids = {gap.get("id") for gap in review_process_gaps}
     require(
@@ -647,6 +656,7 @@ if isinstance(review_process_gaps, list):
             "phase15-review-process-indefinite-c-evidence-path-sync",
             "phase15-review-process-ownership-evidence-rollback-threshold-sync",
             "phase15-review-process-freeze-map-governance-handoff-sync",
+            "phase15-review-process-scripts-tests-root-handoff-sync",
         }.issubset(gap_ids),
         "review_process_manifest:required_gap_ids",
     )
