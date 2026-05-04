@@ -36,6 +36,7 @@ REQUIRED_MARKERS = [
     "PHASE4_REQUIRED_MARKER_COUNT=",
     "PHASE4_GATE_EVIDENCE_SELF_TEST=pass",
     "PHASE4_GATE_EVIDENCE_CHECK=pass",
+    "PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=",
     "PHASE4_GATE_EVIDENCE_TARGET_COUNT=",
     "## Exact Readback Evidence",
     "## Current Conclusion",
@@ -127,6 +128,7 @@ PHASE4_GATE_EVIDENCE_BLOB_TARGETS = {
     "PHASE4_VALIDATION_MATRIX_BLOB_SHA": "Documentation/zigux/phase4-validation-matrix.md",
     "PHASE4_VALIDATOR_BLOB_SHA": "scripts/zigux/validate-phase4.py",
     "PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA": "scripts/zigux/check-phase4-gate-evidence.py",
+    "PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA": "scripts/zigux/check-phase4-workflow-route-counts.py",
     "PHASE4_BUILD_BLOB_SHA": "zigux/tests/phase4_build.zig",
     "PHASE4_MAKEFILE_BLOB_SHA": "zigux/Makefile",
     "PHASE4_WORKFLOW_BLOB_SHA": ".github/workflows/zigux-bootstrap.yml",
@@ -316,6 +318,7 @@ def write_fixture_tree(root: Path) -> None:
         "Documentation/zigux/phase4-validation-matrix.md": "phase4 matrix fixture\n",
         "scripts/zigux/validate-phase4.py": "phase4 validator fixture\n",
         "scripts/zigux/check-phase4-gate-evidence.py": "phase4 gate evidence checker fixture\n",
+        "scripts/zigux/check-phase4-workflow-route-counts.py": "phase4 workflow route checker fixture\n",
         "zigux/tests/phase4_build.zig": "phase4 build fixture\n",
         "zigux/Makefile": "phase4 validate fixture\n",
         ".github/workflows/zigux-bootstrap.yml": "\n".join(["Validate Phase 4 diff gates","Run Phase 4 diff tests","make -C zigux phase4-validate","make -C zigux phase4-test"]) + "\n",
@@ -414,6 +417,16 @@ def run_self_test() -> int:
         )
         missing = validate_root(root)
         expected = "phase4_gate_evidence:PHASE4_VALIDATOR_BLOB_SHA:" + git_blob_sha1(read_bytes(root, "scripts/zigux/validate-phase4.py"))
+        assert expected in missing, missing
+        write_fixture_tree(root)
+        gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
+        old = "PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=" + git_blob_sha1(read_bytes(root, "scripts/zigux/check-phase4-workflow-route-counts.py"))
+        gate_evidence.write_text(
+            gate_evidence.read_text(encoding="utf-8").replace(old, "PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=deadbeef", 1),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        expected = "phase4_gate_evidence:PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA:" + git_blob_sha1(read_bytes(root, "scripts/zigux/check-phase4-workflow-route-counts.py"))
         assert expected in missing, missing
         write_fixture_tree(root)
         gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
