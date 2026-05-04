@@ -102,12 +102,13 @@ This survey slice does not yet claim:
 
 1. run the closure-backed validation guards
 - `python3 scripts/zigux/check-phase10-closure-inventory.py`
+- `python3 scripts/zigux/check-phase10-core-packet.py`
 - `python3 scripts/zigux/validate-phase10.py`
-- `python3 scripts/zigux/validate-phase10-closure.py`
 - `python3 scripts/zigux/check-phase10-harness-coverage.py`
+- `python3 scripts/zigux/validate-phase10-closure.py`
 - `make -C zigux phase10-validate`
 
-The direct closure-inventory guard and the direct harness-coverage replay now appear here explicitly because the manifest-backed ring packet depends on that published closure path to keep the landed broken-queue recovery rung, the focused multitouch-ready and queue-isolation harness replays, and the parked MMIO lifecycle blocker fail-closed together.
+The direct closure-inventory guard, the direct bounded core-packet replay, and the direct harness-coverage replay now appear here explicitly because the manifest-backed ring packet depends on that published closure path to keep the landed broken-queue recovery rung, the focused multitouch-ready and queue-isolation harness replays, and the parked MMIO lifecycle blocker fail-closed together.
 
 2. run the dedicated Phase 10 build
 - `zig build test --build-file zigux/tests/phase10_build.zig --summary all`
