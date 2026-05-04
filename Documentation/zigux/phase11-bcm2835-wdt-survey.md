@@ -5,6 +5,7 @@ This survey note now serves as the archival checkpoint for the original Phase 11
 The live repo state is now:
 
 - reviewed against live `master` `f5a4d6990f701937b2a3bb9ae723bb6d0f27ba21`
+- that pinned commit is archived packet-local evidence for this bcm2835 review note, not a claim that the current live `master` tip still points at `f5a4d6990f701937b2a3bb9ae723bb6d0f27ba21`
 - `drivers/watchdog/gpio_wdt.zig` already provides one bounded Phase 11 watchdog starter, so the tranche has a real foothold
 - `drivers/watchdog/bcm2835_wdt.zig` already ships the bounded bcm2835 starter for watchdog metadata, timeout tick encoding, running-bit detection, bounded start and stop register transitions, restart intent, halt-partition bookkeeping, a tiny probe-time summary, a small registration-facing handoff or poweroff ownership summary, a tiny registration-outcome summary, a tiny platform-registration or PM-base handoff summary, a small poweroff-path summary, and a tiny remove-time teardown summary that only clears the shared callback when `pm_power_off` still matches `bcm2835_power_off`
 - `zigux/tests/phase11_bcm2835_wdt.zig` and `Documentation/zigux/phase11-bcm2835-wdt-slice.md` keep that starter reviewable without claiming platform registration or hardware-backed execution, and the focused driver replay now also keeps register-device success-versus-failure and poweroff-claim blocking evidence explicit without claiming a live probe path
