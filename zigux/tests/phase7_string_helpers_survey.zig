@@ -370,11 +370,11 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
 
     try expectContains(
         tests_readme,
-        "keep the current Phase 7 helper packet reviewable through `zigux/tests/phase7_build.zig`, `zigux/tests/fixtures/phase7_build_inventory.json`, `make -C zigux phase7-test`, `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-build-inventory.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-cmdline-parity.py`, and `scripts/zigux/check-phase7-rbtree-parity.py` instead of widening into ad hoc helper-local bootstrap rules",
+        "keep the current Phase 7 helper packet reviewable through `zigux/tests/phase7_build.zig`, `zigux/tests/fixtures/phase7_build_inventory.json`, `make -C zigux phase7-test`, `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-build-inventory.py`, `scripts/zigux/check-phase7-make-wrapper.py --self-test`, and `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-cmdline-parity.py --self-test`, and `scripts/zigux/check-phase7-cmdline-parity.py`, `scripts/zigux/check-phase7-argv-split-packet.py --self-test`, and `scripts/zigux/check-phase7-argv-split-packet.py`, `scripts/zigux/check-phase7-argv-split-parity.py --self-test`, and `scripts/zigux/check-phase7-argv-split-parity.py`, `scripts/zigux/check-phase7-rbtree-parity.py --self-test`, and `scripts/zigux/check-phase7-rbtree-parity.py` instead of widening into ad hoc helper-local bootstrap rules",
     );
     try expectContains(
         tests_readme,
-        "keep `scripts/zigux/validate-phase7.py --self-test`, `scripts/zigux/check-phase7-build-inventory.py --self-test`, and `scripts/zigux/check-phase7-make-wrapper.py --self-test` in the same packet",
+        "keep `scripts/zigux/validate-phase7.py --self-test`, `scripts/zigux/check-phase7-build-inventory.py --self-test`, and `scripts/zigux/check-phase7-build-inventory.py`, `scripts/zigux/check-phase7-make-wrapper.py --self-test`, and `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-cmdline-parity.py --self-test`, and `scripts/zigux/check-phase7-cmdline-parity.py`, `scripts/zigux/check-phase7-argv-split-packet.py --self-test`, and `scripts/zigux/check-phase7-argv-split-packet.py`, `scripts/zigux/check-phase7-argv-split-parity.py --self-test`, and `scripts/zigux/check-phase7-argv-split-parity.py`, `scripts/zigux/check-phase7-rbtree-parity.py --self-test`, and `scripts/zigux/check-phase7-rbtree-parity.py` in the same packet",
     );
 
     try expectContains(string_helpers_slice, "This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.");
