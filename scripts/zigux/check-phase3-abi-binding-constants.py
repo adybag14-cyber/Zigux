@@ -7,7 +7,8 @@ import tempfile
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[2]
+_HERE = Path(__file__).resolve()
+ROOT = _HERE.parents[2] if len(_HERE.parents) > 2 else _HERE.parent
 FAIL_BANNER = "PHASE3_ABI_BINDING_CONSTANTS=fail"
 PASS_BANNER = "PHASE3_ABI_BINDING_CONSTANTS=pass"
 SELF_TEST_BANNER = "PHASE3_ABI_BINDING_CONSTANTS_SELF_TEST=pass"
@@ -29,6 +30,9 @@ HEADER_CONSTANTS = {
     "unsafe_scope_none": "ZIGUX_UNSAFE_NONE",
     "unsafe_scope_volatile_mmio": "ZIGUX_UNSAFE_VOLATILE_MMIO",
     "unsafe_scope_raw_pointer_bridge": "ZIGUX_UNSAFE_RAW_POINTER_BRIDGE",
+    "chrdev_notify_ack_window_policy_budget_window_delivery_window_status_skipped": "ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_SKIPPED",
+    "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_flag_budget_applied": "ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_BUDGET_APPLIED",
+    "chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_status_held": "ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_HELD",
 }
 
 EXPECTED_VALUES = {
@@ -46,11 +50,17 @@ EXPECTED_VALUES = {
     "unsafe_scope_none": 0,
     "unsafe_scope_volatile_mmio": 1,
     "unsafe_scope_raw_pointer_bridge": 2,
+    "chrdev_notify_ack_window_policy_budget_window_delivery_window_status_skipped": 6,
+    "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_flag_budget_applied": 1,
+    "chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_status_held": 7,
 }
 
 BINDING_CONST_NAMES = {
     "abi_version": "ABI_VERSION",
     "status_flag_error": "STATUS_FLAG_ERROR",
+    "chrdev_notify_ack_window_policy_budget_window_delivery_window_status_skipped": "CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_SKIPPED",
+    "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_flag_budget_applied": "CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_BUDGET_APPLIED",
+    "chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_status_held": "CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_HELD",
 }
 
 BINDING_ENUM_MEMBERS = {
@@ -182,6 +192,9 @@ def run_self_test() -> int:
                     "#define ZIGUX_UNSAFE_NONE 0U",
                     "#define ZIGUX_UNSAFE_VOLATILE_MMIO 1U",
                     "#define ZIGUX_UNSAFE_RAW_POINTER_BRIDGE 2U",
+                    "#define ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_SKIPPED 6U",
+                    "#define ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_BUDGET_APPLIED 1U",
+                    "#define ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_HELD 7U",
                     "",
                 )
             ),
@@ -194,6 +207,9 @@ def run_self_test() -> int:
                 (
                     "pub const ABI_VERSION: u16 = 1;",
                     "pub const STATUS_FLAG_ERROR: u16 = 1;",
+                    "pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_SKIPPED: u32 = 6;",
+                    "pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_BUDGET_APPLIED: u32 = 1;",
+                    "pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_HELD: u32 = 7;",
                     "pub const Facility = enum(u16) {",
                     "    kernel = 1,",
                     "    helpers = 2,",
@@ -241,6 +257,21 @@ def run_self_test() -> int:
         )
         issues = validate_constants(root)
         assert "abi-binding-constants: binding status_flag_error=9 expected 1" in issues
+
+        bindings_path.write_text(
+            bindings_path.read_text(encoding="utf-8").replace(
+                "pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_BUDGET_APPLIED: u32 = 1;\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate_constants(root)
+        assert (
+            "abi-binding-constants: binding missing "
+            "CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_BUDGET_APPLIED"
+        ) in issues
 
     print(SELF_TEST_BANNER)
     return 0
