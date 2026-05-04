@@ -35,6 +35,24 @@ SURVEY_EXACT_LINE_COUNTS = {
     "- `make -C zigux phase14 ZIG=<attached-zig-path>`": 1,
 }
 
+SURVEY_SHARED_SMOKE_BOUNDARY_BLOCK = [
+    "- shared smoke boundary:",
+    "- `scripts/zigux/validate-phase14.py`",
+    "- `scripts/zigux/check-phase14-docs-root-smoke-summary.py`",
+    "- `scripts/zigux/check-phase14-release-boundary-exact-counts.py`",
+    "- `scripts/zigux/README.md`",
+    "- `Documentation/zigux/README.md`",
+    "- `Documentation/zigux/phase14-release-boundary-survey.md`",
+    "- `zigux/tests/phase14_end_to_end_smoke_manifest.json`",
+    "- `zigux/tests/phase14_end_to_end_smoke_survey.zig`",
+    "- `zigux/tests/phase14_build.zig`",
+    "- `zigux/Makefile`",
+    "- `.github/workflows/zigux-bootstrap.yml`",
+    "- `Documentation/zigux/phase14-end-to-end-smoke-survey.md`",
+    "- `Documentation/zigux/review-checklist.md`",
+    "- `Documentation/zigux/freeze-map.md`",
+]
+
 SCRIPTS_README_EXACT_LINE_COUNTS = {
     "- `check-phase14-docs-root-smoke-summary.py --self-test` and `check-phase14-docs-root-smoke-summary.py` keep the docs-root Phase 14 smoke summary and the shared smoke survey fail-closed around the same validator-backed `phase14-validate`, focused `phase14-smoke`, and study-only reviewability wording before the broader shared validator runs.": 1,
     "- `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`, `zig build test --build-file zigux/tests/phase14_build.zig --summary all`, and `make -C zigux phase14` are the validator-first, focused wrapper, direct focused shard, shared full-bundle, and convenience entrypoints for the current study-only four-anchor packet, while the anchor-local manifests and survey notes keep the ready-next versus blocked posture explicit without widening into new bridge or deep-core claims.": 1,
@@ -95,6 +113,36 @@ def require_exact_lines(label: str, text: str, counts: dict[str, int]) -> list[s
     return issues
 
 
+def extract_exact_block(text: str, heading: str) -> list[str] | None:
+    lines = text.splitlines()
+    for index, raw_line in enumerate(lines):
+        if raw_line.strip() != heading:
+            continue
+        block = [raw_line.strip()]
+        cursor = index + 1
+        while cursor < len(lines):
+            candidate = lines[cursor]
+            stripped = candidate.strip()
+            if not stripped:
+                break
+            if not candidate.startswith("  - "):
+                break
+            block.append(stripped)
+            cursor += 1
+        return block
+    return None
+
+
+def require_exact_block(label: str, text: str, expected_lines: list[str]) -> list[str]:
+    issues: list[str] = []
+    actual_block = extract_exact_block(text, expected_lines[0])
+    if actual_block is None:
+        issues.append(f"{label}:missing_block:{expected_lines[0]}")
+    elif actual_block != expected_lines:
+        issues.append(f"{label}:block_mismatch:{expected_lines[0]}")
+    return issues
+
+
 def validate_phase14_summary_surfaces(
     docs_root_text: str,
     tests_root_text: str,
@@ -107,6 +155,7 @@ def validate_phase14_summary_surfaces(
     issues.extend(require_exact_lines("tests_root", tests_root_text, TESTS_ROOT_EXACT_LINE_COUNTS))
     issues.extend(require_exact_lines("scripts_readme", scripts_readme_text, SCRIPTS_README_EXACT_LINE_COUNTS))
     issues.extend(require_exact_lines("survey", survey_text, SURVEY_EXACT_LINE_COUNTS))
+    issues.extend(require_exact_block("survey", survey_text, SURVEY_SHARED_SMOKE_BOUNDARY_BLOCK))
     issues.extend(require_exact_count("release_boundary", release_boundary_text, RELEASE_BOUNDARY_LINES))
     issues.extend(require_exact_lines("makefile", makefile_text, MAKEFILE_EXACT_LINE_COUNTS))
     if survey_text.count(HEX40_NOTE) != 1:
@@ -140,9 +189,23 @@ Phase 14 flow
 - `PHASE14_SHARED_LANE=P14-L01`
 - `PHASE14_VALIDATE_ENTRYPOINT=make -C zigux phase14-validate`
 - survey provenance captured against verified `master` head `aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`
+- shared smoke boundary:
+  - `scripts/zigux/validate-phase14.py`
+  - `scripts/zigux/check-phase14-docs-root-smoke-summary.py`
+  - `scripts/zigux/check-phase14-release-boundary-exact-counts.py`
+  - `scripts/zigux/README.md`
+  - `Documentation/zigux/README.md`
+  - `Documentation/zigux/phase14-release-boundary-survey.md`
+  - `zigux/tests/phase14_end_to_end_smoke_manifest.json`
+  - `zigux/tests/phase14_end_to_end_smoke_survey.zig`
+  - `zigux/tests/phase14_build.zig`
+  - `zigux/Makefile`
+  - `.github/workflows/zigux-bootstrap.yml`
+  - `Documentation/zigux/phase14-end-to-end-smoke-survey.md`
+  - `Documentation/zigux/review-checklist.md`
+  - `Documentation/zigux/freeze-map.md`
 - `make -C zigux phase14-smoke`
 - `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`
-- `zigux/tests/phase14_build.zig`
 - `reviewability lane rather than a closure or active subsystem delivery claim`
 - `make -C zigux phase14-smoke`
 - `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`
@@ -232,18 +295,31 @@ phase14: phase14-validate phase14-test
         release_boundary_text,
         makefile_text,
     )
+    stray_boundary_entry = validate_phase14_summary_surfaces(
+        docs_root_text,
+        tests_root_text,
+        scripts_readme_text,
+        survey_text.replace(
+            "  - `zigux/tests/phase14_build.zig`\n",
+            "  - `zigux/tests/phase14_build.zig`\n  - `zigux/tests/phase14_rcu_tree_survey.zig`\n",
+            1,
+        ),
+        release_boundary_text,
+        makefile_text,
+    )
     if (
         good
         or not missing_entrypoint
         or not missing_tests_packet
         or not duplicate_attached_toolchain
         or not duplicate_tests_packet
+        or not stray_boundary_entry
     ):
         print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST=fail")
         return 1
 
     print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST=pass")
-    print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=5")
+    print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
@@ -296,6 +372,7 @@ def main(argv: list[str]) -> int:
     print(f"PHASE14_TESTS_ROOT_MARKER_COUNT={len(TESTS_ROOT_EXACT_LINE_COUNTS)}")
     print(f"PHASE14_SCRIPTS_README_MARKER_COUNT={len(SCRIPTS_README_EXACT_LINE_COUNTS)}")
     print(f"PHASE14_SURVEY_MARKER_COUNT={len(SURVEY_EXACT_LINE_COUNTS) + 1}")
+    print(f"PHASE14_SURVEY_SHARED_SMOKE_BOUNDARY_ENTRY_COUNT={len(SURVEY_SHARED_SMOKE_BOUNDARY_BLOCK) - 1}")
     print(f"PHASE14_RELEASE_BOUNDARY_MARKER_COUNT={len(RELEASE_BOUNDARY_LINES)}")
     print(f"PHASE14_MAKEFILE_MARKER_COUNT={len(MAKEFILE_EXACT_LINE_COUNTS)}")
     return 0
