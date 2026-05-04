@@ -6,6 +6,7 @@ This document tracks the bounded Phase 10 survey lane around `drivers/virtio/vir
 
 - `PHASE10_STATUS=active`
 - `PHASE10_SLICE=virtio-ring-survey`
+- lane: `P10-L07`
 - surveyed inspected `master` head: `fe8a43ea2e186da0da152198b571dff57ea3c38c`
 - scope: survey manifest, dedicated survey gate, shared Phase 10 build wiring, and a lane-level note that records what has now landed plus the remaining blocked MMIO lifecycle-and-IRQ boundary against the roadmap
 - product boundary:
