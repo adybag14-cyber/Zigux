@@ -87,6 +87,9 @@ REVIEW_CHECKLIST_MARKERS = [
     "scripts/zigux/validate-phase2.py",
     "scripts/zigux/validate-phase2-closure.py",
     ".github/workflows/zigux-bootstrap.yml",
+    "bounded archive pin",
+    "fail-closed validator path",
+    "workflow bootstrap install and verification route",
     "zigux/Makefile",
     "make -C zigux phase2-validate",
     "make -C zigux phase2",
@@ -773,6 +776,44 @@ def run_self_test() -> int:
     ):
         raise SystemExit("phase2-toolchain-pin-scope:self-test:review_checklist_marker_missing")
 
+    missing_review_bounded_archive_pin = "\n".join(
+        marker for marker in REVIEW_CHECKLIST_MARKERS if marker != "bounded archive pin"
+    )
+    marker_issues = validate_required_markers(
+        missing_review_bounded_archive_pin,
+        label="review_checklist",
+        markers=REVIEW_CHECKLIST_MARKERS,
+    )
+    if "review_checklist:missing_marker:bounded archive pin" not in marker_issues:
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:review_checklist_bounded_archive_pin_marker")
+
+    missing_review_fail_closed_path = "\n".join(
+        marker for marker in REVIEW_CHECKLIST_MARKERS if marker != "fail-closed validator path"
+    )
+    marker_issues = validate_required_markers(
+        missing_review_fail_closed_path,
+        label="review_checklist",
+        markers=REVIEW_CHECKLIST_MARKERS,
+    )
+    if "review_checklist:missing_marker:fail-closed validator path" not in marker_issues:
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:review_checklist_fail_closed_path_marker")
+
+    missing_review_workflow_route = "\n".join(
+        marker
+        for marker in REVIEW_CHECKLIST_MARKERS
+        if marker != "workflow bootstrap install and verification route"
+    )
+    marker_issues = validate_required_markers(
+        missing_review_workflow_route,
+        label="review_checklist",
+        markers=REVIEW_CHECKLIST_MARKERS,
+    )
+    if (
+        "review_checklist:missing_marker:workflow bootstrap install and verification route"
+        not in marker_issues
+    ):
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:review_checklist_workflow_route_marker")
+
     with tempfile.TemporaryDirectory(prefix="phase2_toolchain_pin_scope_") as tmp_dir_str:
         tmp_root = Path(tmp_dir_str)
         manifest_path = tmp_root / "toolchain.json"
@@ -782,7 +823,7 @@ def run_self_test() -> int:
             raise SystemExit("phase2-toolchain-pin-scope:self-test:json_round_trip")
 
     print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass")
-    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=40")
+    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=43")
     return 0
 
 
@@ -904,4 +945,4 @@ if __name__ == "__main__":
     raise SystemExit(main())
 
 # Bootstrap validator compatibility marker: def expected_toolchain_notes_markers(channel: str, minimum_version: str) -> list[str]:
-# Shared Phase 2 validator compatibility marker: PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=40
+# Shared Phase 2 validator compatibility marker: PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=43
