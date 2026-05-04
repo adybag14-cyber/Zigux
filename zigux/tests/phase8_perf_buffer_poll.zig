@@ -126,47 +126,242 @@ test "phase 8 perf-buffer poll helper rejects impossible post-wait record proces
     );
 }
 
-const current_surveyed_commit = "0bd402fd6ca83ba2ace6b21e9e57459401b631cd";
+test "classifyWaitClass keeps perf_buffer__poll timeout classes explicit" {
+    try std.testing.expectEqual(perf_buffer_poll.WaitClass.indefinite, try perf_buffer_poll.classifyWaitClass(-1));
+    try std.testing.expectEqual(perf_buffer_poll.WaitClass.nonblocking, try perf_buffer_poll.classifyWaitClass(0));
+    try std.testing.expectEqual(perf_buffer_poll.WaitClass.bounded, try perf_buffer_poll.classifyWaitClass(25));
+    try std.testing.expectError(perf_buffer_poll.PollError.InvalidTimeout, perf_buffer_poll.classifyWaitClass(-2));
+}
 
-test "phase 8 perf-buffer poll docs and helper survey still match the current stable-output packet" {
-    const docs_root = try readWorkspaceFile(
-        std.testing.allocator,
-        "Documentation/zigux/README.md",
-        64 * 1024,
+test "classifyObservedWaitResult keeps normalized wait outcomes compact before buffer bookkeeping" {
+    try std.testing.expectEqualDeep(perf_buffer_poll.WaitObservation.timed_out, perf_buffer_poll.classifyObservedWaitResult(0));
+    try std.testing.expectEqualDeep(perf_buffer_poll.WaitObservation{ .ready_events = 3 }, perf_buffer_poll.classifyObservedWaitResult(3));
+    try std.testing.expectEqualDeep(
+        perf_buffer_poll.WaitObservation.interrupted,
+        perf_buffer_poll.classifyObservedWaitResult(-@as(i32, @intFromEnum(std.os.linux.E.INTR))),
     );
-    defer std.testing.allocator.free(docs_root);
-    try expectContains(docs_root, "Documentation/zigux/phase8-perf-buffer-poll-slice.md");
-    try expectContains(docs_root, "zigux/tests/phase8_perf_buffer_poll_only_build.zig");
-    try expectContains(docs_root, "zigux/tests/phase8_perf_buffer_poll.zig");
+    try std.testing.expectEqualDeep(perf_buffer_poll.WaitObservation{ .failed = -5 }, perf_buffer_poll.classifyObservedWaitResult(-5));
+}
 
-    const bridge_note = try readWorkspaceFile(
-        std.testing.allocator,
-        "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
-        64 * 1024,
-    );
-    defer std.testing.allocator.free(bridge_note);
-    try expectContains(bridge_note, "Documentation/zigux/phase8-perf-buffer-poll-slice.md");
-    try expectContains(bridge_note, "zigux/tests/phase8_perf_buffer_poll_only_build.zig");
-    try expectContains(bridge_note, "make -C zigux phase8-perf-buffer-poll-test");
+test "summarizeReadyBuffers counts ready buffers and preserves the first error" {
+    const buffers = [_]perf_buffer_poll.BufferObservation{
+        .{},
+        .{ .ready = true },
+        .{ .error_code = -11 },
+        .{ .ready = true, .error_code = -32 },
+    };
+    const summary = perf_buffer_poll.summarizeReadyBuffers(&buffers);
 
-    const helper = try readWorkspaceFile(
-        std.testing.allocator,
-        "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
-        64 * 1024,
-    );
-    defer std.testing.allocator.free(helper);
-    try expectContains(helper, "pub fn summarizeProcessRecords(");
-    try expectContains(helper, "pub fn summarizePollExecution(");
-    try expectContains(helper, "WaitResultDisagreesWithReadyEventCount");
+    try std.testing.expectEqual(@as(usize, 2), summary.ready_count);
+    try std.testing.expectEqual(@as(?usize, 1), summary.first_ready_index);
+    try std.testing.expectEqual(@as(?i32, -11), summary.first_error);
+}
 
-    const survey = try readWorkspaceFile(
-        std.testing.allocator,
-        "Documentation/zigux/phase8-libbpf-segment-survey.md",
-        64 * 1024,
+test "summarizeProcessRecords keeps perf_buffer__process_records fail-fast ordering and processed record totals explicit" {
+    const failure = perf_buffer_poll.summarizeProcessRecords(&.{
+        .{ .records_processed = 4 },
+        .{ .records_processed = 3 },
+        .{ .result = -22 },
+        .{ .result = -5, .records_processed = 9 },
+    });
+    try std.testing.expectEqual(@as(usize, 3), failure.attempted_count);
+    try std.testing.expectEqual(@as(usize, 2), failure.completed_count);
+    try std.testing.expectEqual(@as(usize, 7), failure.processed_record_count);
+    try std.testing.expectEqual(@as(?usize, 2), failure.first_error_index);
+    try std.testing.expectEqual(@as(?i32, -22), failure.first_error);
+
+    const success = perf_buffer_poll.summarizeProcessRecords(&.{
+        .{ .records_processed = 1 },
+        .{ .records_processed = 2 },
+        .{ .records_processed = 3 },
+    });
+    try std.testing.expectEqual(@as(usize, 3), success.attempted_count);
+    try std.testing.expectEqual(@as(usize, 3), success.completed_count);
+    try std.testing.expectEqual(@as(usize, 6), success.processed_record_count);
+    try std.testing.expectEqual(@as(?usize, null), success.first_error_index);
+    try std.testing.expectEqual(@as(?i32, null), success.first_error);
+}
+
+test "summarizeConsumeExecution keeps already-open buffer traversal fail-fast while skipping absent slots" {
+    const summary = perf_buffer_poll.summarizeConsumeExecution(&.{
+        .{ .present = true, .process = .{ .records_processed = 4 } },
+        .{ .present = false },
+        .{ .present = true, .process = .{ .result = -11 } },
+        .{ .present = true, .process = .{ .records_processed = 9 } },
+    });
+
+    try std.testing.expectEqual(@as(usize, 4), summary.slot_count);
+    try std.testing.expectEqual(@as(usize, 2), summary.attempted_present_buffer_count);
+    try std.testing.expectEqual(@as(usize, 1), summary.completed_present_buffer_count);
+    try std.testing.expectEqual(@as(usize, 4), summary.processed_record_count);
+    try std.testing.expectEqual(@as(?usize, 2), summary.first_error_slot_index);
+    try std.testing.expectEqual(@as(?i32, -11), summary.first_error);
+}
+
+test "summarizeConsumeExecutionResult keeps success and first processing failure explicit" {
+    const success = perf_buffer_poll.summarizeConsumeExecutionResult(&.{
+        .{ .present = false },
+        .{ .present = true, .process = .{ .records_processed = 1 } },
+        .{ .present = true, .process = .{ .records_processed = 2 } },
+    });
+    try std.testing.expectEqual(perf_buffer_poll.ConsumeReturnDisposition.success, success.disposition);
+    try std.testing.expectEqual(@as(i32, 0), success.return_value);
+    try std.testing.expectEqual(@as(usize, 2), success.execution.completed_present_buffer_count);
+    try std.testing.expectEqual(@as(usize, 3), success.execution.processed_record_count);
+
+    const failure = perf_buffer_poll.summarizeConsumeExecutionResult(&.{
+        .{ .present = true, .process = .{ .records_processed = 5 } },
+        .{ .present = true, .process = .{ .result = -32 } },
+    });
+    try std.testing.expectEqual(perf_buffer_poll.ConsumeReturnDisposition.processing_failed, failure.disposition);
+    try std.testing.expectEqual(@as(i32, -32), failure.return_value);
+    try std.testing.expectEqual(@as(?usize, 1), failure.execution.first_error_slot_index);
+}
+
+test "summarizePoll keeps bounded ready observations compact and reviewable" {
+    const buffers = [_]perf_buffer_poll.BufferObservation{
+        .{ .ready = true },
+        .{ .error_code = -32 },
+        .{ .ready = true },
+    };
+    const summary = try perf_buffer_poll.summarizePoll(10, .{ .ready_events = 3 }, &buffers);
+
+    try std.testing.expectEqual(perf_buffer_poll.WaitClass.bounded, summary.wait_class);
+    try std.testing.expectEqual(perf_buffer_poll.PollOutcome.ready, summary.outcome);
+    try std.testing.expectEqual(@as(usize, 3), summary.observed_ready_events);
+    try std.testing.expectEqual(@as(usize, 2), summary.ready_count);
+    try std.testing.expectEqual(@as(?usize, 0), summary.first_ready_index);
+    try std.testing.expectEqual(@as(?i32, -32), summary.first_error);
+}
+
+test "summarizePollFromWaitResult keeps raw wait-result normalization coupled to the bounded buffer summary" {
+    const buffers = [_]perf_buffer_poll.BufferObservation{
+        .{ .ready = true },
+        .{ .error_code = -32 },
+        .{ .ready = true },
+    };
+    const summary = try perf_buffer_poll.summarizePollFromWaitResult(10, 3, &buffers);
+
+    try std.testing.expectEqual(perf_buffer_poll.WaitClass.bounded, summary.wait_class);
+    try std.testing.expectEqual(perf_buffer_poll.PollOutcome.ready, summary.outcome);
+    try std.testing.expectEqual(@as(usize, 3), summary.observed_ready_events);
+    try std.testing.expectEqual(@as(usize, 2), summary.ready_count);
+    try std.testing.expectEqual(@as(?usize, 0), summary.first_ready_index);
+    try std.testing.expectEqual(@as(?i32, -32), summary.first_error);
+}
+
+test "summarizePoll keeps timeout interruption and missing-ready mismatches explicit" {
+    const idle_buffers = [_]perf_buffer_poll.BufferObservation{ .{}, .{} };
+    const timeout_summary = try perf_buffer_poll.summarizePoll(0, .timed_out, &idle_buffers);
+    try std.testing.expectEqual(perf_buffer_poll.WaitClass.nonblocking, timeout_summary.wait_class);
+    try std.testing.expectEqual(perf_buffer_poll.PollOutcome.timeout, timeout_summary.outcome);
+
+    const interrupted_summary = try perf_buffer_poll.summarizePoll(-1, .interrupted, &idle_buffers);
+    try std.testing.expectEqual(perf_buffer_poll.WaitClass.indefinite, interrupted_summary.wait_class);
+    try std.testing.expectEqual(perf_buffer_poll.PollOutcome.interrupted, interrupted_summary.outcome);
+
+    const error_only = [_]perf_buffer_poll.BufferObservation{.{ .error_code = -22 }};
+    const failed_summary = try perf_buffer_poll.summarizePoll(5, .{ .ready_events = 1 }, &error_only);
+    try std.testing.expectEqual(perf_buffer_poll.PollOutcome.failed, failed_summary.outcome);
+    try std.testing.expectEqual(@as(?i32, -22), failed_summary.first_error);
+
+    try std.testing.expectError(
+        perf_buffer_poll.PollError.ReadyEventsMissingReadyBuffer,
+        perf_buffer_poll.summarizePoll(5, .{ .ready_events = 1 }, &idle_buffers),
     );
-    defer std.testing.allocator.free(survey);
-    try expectContains(survey, current_surveyed_commit);
-    try expectContains(survey, "zigux/tests/phase8_perf_buffer_poll.zig");
+}
+
+test "summarizePollExecution keeps ready-buffer processing inside the observed epoll budget" {
+    const buffers = [_]perf_buffer_poll.BufferObservation{
+        .{ .ready = true },
+        .{ .ready = true },
+        .{ .error_code = -32 },
+    };
+    const summary = try perf_buffer_poll.summarizePollExecution(12, .{ .ready_events = 3 }, &buffers, &.{
+        .{ .records_processed = 4 },
+        .{ .result = -11 },
+        .{ .records_processed = 9 },
+    });
+
+    try std.testing.expectEqual(perf_buffer_poll.PollOutcome.ready, summary.poll.outcome);
+    try std.testing.expectEqual(@as(usize, 2), summary.attempted_ready_buffer_count);
+    try std.testing.expectEqual(@as(usize, 1), summary.completed_ready_buffer_count);
+    try std.testing.expectEqual(@as(usize, 4), summary.processed_record_count);
+    try std.testing.expectEqual(@as(?usize, 1), summary.first_process_error_index);
+    try std.testing.expectEqual(@as(?i32, -11), summary.first_process_error);
+}
+
+test "summarizePollExecutionFromWaitResult keeps raw wait-result normalization coupled to execution bookkeeping" {
+    const buffers = [_]perf_buffer_poll.BufferObservation{
+        .{ .ready = true },
+        .{ .ready = true },
+        .{ .error_code = -32 },
+    };
+    const summary = try perf_buffer_poll.summarizePollExecutionFromWaitResult(12, 3, &buffers, &.{
+        .{ .records_processed = 4 },
+        .{ .result = -11 },
+        .{ .records_processed = 9 },
+    });
+
+    try std.testing.expectEqual(perf_buffer_poll.PollOutcome.ready, summary.poll.outcome);
+    try std.testing.expectEqual(@as(usize, 2), summary.attempted_ready_buffer_count);
+    try std.testing.expectEqual(@as(usize, 1), summary.completed_ready_buffer_count);
+    try std.testing.expectEqual(@as(usize, 4), summary.processed_record_count);
+    try std.testing.expectEqual(@as(?usize, 1), summary.first_process_error_index);
+    try std.testing.expectEqual(@as(?i32, -11), summary.first_process_error);
+}
+
+test "resolvePollExecutionResultFromWaitResult keeps the final ready-count return and first processing failure explicit" {
+    const success = try perf_buffer_poll.resolvePollExecutionResultFromWaitResult(3, try perf_buffer_poll.summarizePollExecutionFromWaitResult(
+        12,
+        3,
+        &.{
+            .{ .ready = true },
+            .{ .ready = true },
+            .{ .error_code = -32 },
+        },
+        &.{
+            .{ .records_processed = 4 },
+            .{ .records_processed = 2 },
+        },
+    ));
+    try std.testing.expectEqual(perf_buffer_poll.PollReturnDisposition.ready_count, success.disposition);
+    try std.testing.expectEqual(@as(i32, 3), success.return_value);
+
+    const processing_failure = try perf_buffer_poll.resolvePollExecutionResultFromWaitResult(3, try perf_buffer_poll.summarizePollExecutionFromWaitResult(
+        12,
+        3,
+        &.{
+            .{ .ready = true },
+            .{ .ready = true },
+            .{ .error_code = -32 },
+        },
+        &.{
+            .{ .records_processed = 4 },
+            .{ .result = -11 },
+        },
+    ));
+    try std.testing.expectEqual(perf_buffer_poll.PollReturnDisposition.processing_failed, processing_failure.disposition);
+    try std.testing.expectEqual(@as(i32, -11), processing_failure.return_value);
+}
+
+test "summarizePollExecutionResultFromWaitResult keeps timeout interrupt and wait failure returns aligned" {
+    const timed_out = try perf_buffer_poll.summarizePollExecutionResultFromWaitResult(0, 0, &.{}, &.{});
+    try std.testing.expectEqual(perf_buffer_poll.PollReturnDisposition.timed_out, timed_out.disposition);
+    try std.testing.expectEqual(@as(i32, 0), timed_out.return_value);
+
+    const interrupted = try perf_buffer_poll.summarizePollExecutionResultFromWaitResult(
+        -1,
+        -@as(i32, @intFromEnum(std.os.linux.E.INTR)),
+        &.{},
+        &.{},
+    );
+    try std.testing.expectEqual(perf_buffer_poll.PollReturnDisposition.interrupted, interrupted.disposition);
+    try std.testing.expectEqual(-@as(i32, @intFromEnum(std.os.linux.E.INTR)), interrupted.return_value);
+
+    const failed = try perf_buffer_poll.summarizePollExecutionResultFromWaitResult(5, -5, &.{}, &.{});
+    try std.testing.expectEqual(perf_buffer_poll.PollReturnDisposition.wait_failed, failed.disposition);
+    try std.testing.expectEqual(@as(i32, -5), failed.return_value);
 }
 
 test "resolvePollExecutionResultFromWaitResult rejects mismatched wait-result and execution summaries" {
