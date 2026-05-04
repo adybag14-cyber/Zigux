@@ -15,6 +15,7 @@ EXPECTED_CONTRACT_CASES = [
     'helper_self_test_repeat',
     'cli_missing_required_args',
     'cli_missing_actual_operand',
+    'cli_invalid_mode_choice',
     'text_pass',
     'text_pass_repeat',
     'text_mismatch',
@@ -437,6 +438,15 @@ def main() -> int:
             repeat_count=2,
         )
         covered_cases.append('cli_missing_actual_operand')
+
+        run_error_contract_case(
+            ['--mode', 'yaml', str(expected), str(actual)],
+            2,
+            [],
+            expected_stderr_normalized="usage: artifact_diff.py [-h] [--mode {text,json,sha256}] [--self-test] [expected] [actual] artifact_diff.py: error: argument --mode: invalid choice: 'yaml' (choose from text, json, sha256)",
+            repeat_count=2,
+        )
+        covered_cases.append('cli_invalid_mode_choice')
 
         run_contract_case(
             ['--mode', 'text', str(expected), str(actual)],
