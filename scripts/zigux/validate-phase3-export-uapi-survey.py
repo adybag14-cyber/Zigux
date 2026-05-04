@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 from pathlib import Path
 import re
@@ -18,6 +19,7 @@ EXPORT_SHIM_REL = "zigux/kernel/export_shim.zig"
 UAPI_VERSION_REL = "zigux/uapi/version.zig"
 UAPI_ROOT_REL = "zigux/uapi"
 ABI_SLICE_REL = "Documentation/zigux/phase3-abi-slice.md"
+ABI_MANIFEST_REL = "zigux/tests/fixtures/phase3_abi_manifest.json"
 EXPORT_UAPI_TEST_REL = "zigux/tests/phase3_export_uapi.zig"
 EXPORT_UAPI_LAYOUT_BUILD_REL = "zigux/tests/phase3_export_uapi_layout_build.zig"
 EXPORT_UAPI_LAYOUT_TEST_REL = "zigux/tests/phase3_export_uapi_layout.zig"
@@ -48,10 +50,10 @@ REQUIRED_SURVEY_MARKERS = (
 
 REQUIRED_SURVEY_SNIPPETS = (
     "zigux/tests/phase3_export_uapi_build.zig",
-    EXPORT_UAPI_TEST_REL,
+    "zigux/tests/phase3_export_uapi.zig",
     "zigux/tests/phase3_export_uapi_layout_build.zig",
-    EXPORT_UAPI_LAYOUT_TEST_REL,
-    "zigux/tests/fixtures/phase3_abi/phase3_abi_manifest.json",
+    "zigux/tests/phase3_export_uapi_layout.zig",
+    "zigux/tests/fixtures/phase3_abi_manifest.json",
     "python3 scripts/zigux/validate-phase3.py --slug abi --check-build-smoke",
     "phase3-dump`, `phase3-low-level-wrappers-test`, `phase3-export-uapi-test`, `phase3-export-uapi-layout-test`, and `phase3-policy-unsafe-test`",
     "part of the shared ABI build-smoke proof rather than only a boundary-local survey gate",
@@ -76,7 +78,7 @@ REQUIRED_SURVEY_PATHS = (
     EXPORT_UAPI_TEST_REL,
     EXPORT_UAPI_LAYOUT_BUILD_REL,
     EXPORT_UAPI_LAYOUT_TEST_REL,
-    "zigux/tests/fixtures/phase3_abi/phase3_abi_manifest.json",
+    ABI_MANIFEST_REL,
     "scripts/zigux/validate-phase3.py",
     VALIDATE_PHASE3_CORE_REL,
 )
@@ -174,15 +176,26 @@ REQUIRED_EXPORT_UAPI_LAYOUT_TEST_SNIPPETS = (
 )
 
 REQUIRED_VALIDATE_PHASE3_CORE_SNIPPETS = (
-    'ABI_EXPORT_UAPI_BUILD_FILE_REL,',
-    'ABI_EXPORT_UAPI_LAYOUT_BUILD_FILE_REL,',
-    'ABI_EXPORT_UAPI_LAYOUT_TEST_REL,',
+    "ABI_EXPORT_UAPI_BUILD_FILE_REL,",
+    "ABI_EXPORT_UAPI_LAYOUT_BUILD_FILE_REL,",
+    "ABI_EXPORT_UAPI_LAYOUT_TEST_REL,",
     '("phase3-export-uapi-test", ABI_EXPORT_UAPI_BUILD_FILE_REL),',
     '("phase3-export-uapi-layout-test", ABI_EXPORT_UAPI_LAYOUT_BUILD_FILE_REL),',
 )
 
 REQUIRED_UAPI_FILES = (
     UAPI_VERSION_REL,
+)
+
+REQUIRED_EXPORT_UAPI_MANIFEST_FILES = (
+    EXPORT_SHIM_REL,
+    UAPI_VERSION_REL,
+    "zigux/tests/phase3_export_uapi_build.zig",
+    EXPORT_UAPI_TEST_REL,
+    EXPORT_UAPI_LAYOUT_BUILD_REL,
+    EXPORT_UAPI_LAYOUT_TEST_REL,
+    SURVEY_REL,
+    "scripts/zigux/validate-phase3-export-uapi-survey.py",
 )
 
 SURVEYED_PACKET_PATHS = (
@@ -195,7 +208,7 @@ SURVEYED_PACKET_PATHS = (
     EXPORT_UAPI_TEST_REL,
     EXPORT_UAPI_LAYOUT_BUILD_REL,
     EXPORT_UAPI_LAYOUT_TEST_REL,
-    "zigux/tests/fixtures/phase3_abi/phase3_abi_manifest.json",
+    ABI_MANIFEST_REL,
 )
 SURVEYED_PACKET_BLOB_MARKERS = {
     "PHASE3_EXPORT_SHIM_BLOB_SHA": EXPORT_SHIM_REL,
@@ -207,7 +220,7 @@ SURVEYED_PACKET_BLOB_MARKERS = {
     "PHASE3_EXPORT_UAPI_TEST_BLOB_SHA": EXPORT_UAPI_TEST_REL,
     "PHASE3_EXPORT_UAPI_LAYOUT_BUILD_BLOB_SHA": EXPORT_UAPI_LAYOUT_BUILD_REL,
     "PHASE3_EXPORT_UAPI_LAYOUT_TEST_BLOB_SHA": EXPORT_UAPI_LAYOUT_TEST_REL,
-    "PHASE3_ABI_MANIFEST_BLOB_SHA": "zigux/tests/fixtures/phase3_abi/phase3_abi_manifest.json",
+    "PHASE3_ABI_MANIFEST_BLOB_SHA": ABI_MANIFEST_REL,
 }
 REQUIRED_SURVEY_BLOB_MARKERS = tuple(SURVEYED_PACKET_BLOB_MARKERS)
 PLACEHOLDER_SHA = "0123456789abcdef0123456789abcdef01234567"
@@ -332,6 +345,38 @@ def _replace_blob_markers_with_head(root: Path, survey_path: Path) -> None:
         ).stdout.strip()
         survey_text = survey_text.replace(f"{marker}={PLACEHOLDER_SHA}", f"{marker}={blob_sha}")
     survey_path.write_text(survey_text, encoding="utf-8")
+
+
+def _validate_export_uapi_manifest(root: Path) -> list[str]:
+    manifest_path = root / ABI_MANIFEST_REL
+    if not manifest_path.exists():
+        return []
+
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        return [f"export-uapi-manifest-json:{exc}"]
+
+    issues: list[str] = []
+    if manifest.get("phase") != "Phase 3":
+        issues.append(f"export-uapi-manifest-phase:{manifest.get('phase')!r}")
+    if manifest.get("slice") != "abi-substrate-skeleton":
+        issues.append(f"export-uapi-manifest-slice:{manifest.get('slice')!r}")
+
+    files = manifest.get("files")
+    if not isinstance(files, list):
+        return [*issues, "export-uapi-manifest-files-missing"]
+
+    file_set = set(files)
+    for rel in REQUIRED_EXPORT_UAPI_MANIFEST_FILES:
+        if rel not in file_set:
+            issues.append(f"export-uapi-manifest-missing:{rel}")
+
+    file_count = manifest.get("file_count")
+    if file_count != len(files):
+        issues.append(f"export-uapi-manifest-file-count:{file_count!r}!={len(files)}")
+
+    return issues
 
 
 def validate_c_header_relay(root: Path) -> list[str]:
@@ -491,6 +536,7 @@ def validate(root: Path) -> list[str]:
             if snippet not in validate_phase3_core:
                 issues.append(f"missing_validate_phase3_core_snippet:{snippet}")
 
+    issues.extend(_validate_export_uapi_manifest(root))
     issues.extend(validate_c_header_relay(root))
 
     uapi_files = _collect_relative_files(root, UAPI_ROOT_REL)
@@ -571,6 +617,24 @@ def run_self_test() -> int:
                 path.write_text("\n".join(REQUIRED_EXPORT_UAPI_LAYOUT_TEST_SNIPPETS) + "\n", encoding="utf-8")
             elif rel == VALIDATE_PHASE3_CORE_REL:
                 path.write_text("\n".join(REQUIRED_VALIDATE_PHASE3_CORE_SNIPPETS) + "\n", encoding="utf-8")
+            elif rel == ABI_MANIFEST_REL:
+                manifest_files = [
+                    *REQUIRED_EXPORT_UAPI_MANIFEST_FILES,
+                    ABI_MANIFEST_REL,
+                ]
+                path.write_text(
+                    json.dumps(
+                        {
+                            "phase": "Phase 3",
+                            "status": "active",
+                            "slice": "abi-substrate-skeleton",
+                            "files": manifest_files,
+                            "file_count": len(manifest_files),
+                        }
+                    )
+                    + "\n",
+                    encoding="utf-8",
+                )
             else:
                 path.write_text("// ok\n", encoding="utf-8")
 
@@ -728,13 +792,14 @@ def run_self_test() -> int:
         assert f"unexpected_uapi_file:{UAPI_ROOT_REL}/extra.zig" in issues
 
         extra_uapi.unlink()
+        missing_snippet = "canonical boundary-header and export-status size and field-offset contract on its own focused layout replay"
         survey_path.write_text(
             "\n".join(
                 (
                     *REQUIRED_SURVEY_MARKERS,
                     f"PHASE3_SURVEYED_COMMIT={head}",
                     *_blob_marker_lines(),
-                    *REQUIRED_SURVEY_SNIPPETS[:-1],
+                    *(snippet for snippet in REQUIRED_SURVEY_SNIPPETS if snippet != missing_snippet),
                 )
             )
             + "\n",
@@ -742,7 +807,7 @@ def run_self_test() -> int:
         )
         _replace_blob_markers_with_head(root, survey_path)
         issues = validate(root)
-        assert any(issue == f"missing_survey_snippet:{REQUIRED_SURVEY_SNIPPETS[-1]}" for issue in issues)
+        assert any(issue == f"missing_survey_snippet:{missing_snippet}" for issue in issues)
 
         survey_path.write_text(
             "\n".join(
@@ -794,6 +859,18 @@ def run_self_test() -> int:
         )
         issues = validate(root)
         assert any(issue.startswith("c-header-relay-compile:") for issue in issues)
+        linux_header_path.write_text(
+            linux_header_path.read_text(encoding="utf-8").replace("zigux_status_missing", "zigux_status_err", 1),
+            encoding="utf-8",
+        )
+
+        manifest_path = root / ABI_MANIFEST_REL
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["files"].remove(EXPORT_UAPI_LAYOUT_TEST_REL)
+        manifest["file_count"] = len(manifest["files"])
+        manifest_path.write_text(json.dumps(manifest) + "\n", encoding="utf-8")
+        issues = validate(root)
+        assert f"export-uapi-manifest-missing:{EXPORT_UAPI_LAYOUT_TEST_REL}" in issues
 
     print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")
     return 0
