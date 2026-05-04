@@ -7,6 +7,7 @@ import sys
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
+INPUT_BLOCKER_BUILD = "zigux/tests/phase10_virtio_input_registration_blocker_build.zig"
 
 DOCS = [
     "Documentation/zigux/phase10-closure-evidence.md",
@@ -100,6 +101,7 @@ EXPECTED_READY_TRANSPORT_FOLLOWUPS = {
 REQUIRED_LAB_VALIDATION_EVIDENCE = [
     "zigux/tests/phase10_build.zig",
     "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
+    "zigux/tests/phase10_virtio_input_registration_blocker_build.zig",
     "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
     "scripts/zigux/check-phase10-harness-coverage.py",
     "scripts/zigux/check-phase10-closure-inventory.py",
@@ -122,6 +124,7 @@ REQUIRED_FILES = [
     "zigux/Makefile",
     ".github/workflows/zigux-bootstrap.yml",
     "zigux/tests/phase10_build.zig",
+    INPUT_BLOCKER_BUILD,
     "zigux/tests/phase10_closure_manifest.json",
     *DOCS,
     *MANIFESTS,
@@ -140,6 +143,7 @@ TEXT_MARKERS = {
         "phase10-mmio-probe-preflight-helper",
         "phase10-mmio-lifecycle-and-irq-paths",
         "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
+        "zigux/tests/phase10_virtio_input_registration_blocker_build.zig",
         "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
         "PHASE10_HARNESS_COVERAGE_GATE=python3 scripts/zigux/check-phase10-harness-coverage.py",
     ],
@@ -163,6 +167,7 @@ TEXT_MARKERS = {
         "PHASE10_LEDGER_HARNESS_COVERAGE_VALIDATE=scripts/zigux/check-phase10-harness-coverage.py",
         "PHASE10_LEDGER_SURVEY_INPUT_LANE=P10-L13",
         "PHASE10_LEDGER_INPUT_MULTITOUCH_PREFLIGHT_GATE=zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
+        "PHASE10_LEDGER_INPUT_REGISTRATION_BLOCKER_BUILD=zigux/tests/phase10_virtio_input_registration_blocker_build.zig",
         "PHASE10_LEDGER_MMIO_QUEUE_ISOLATION_GATE=zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
         "PHASE10_LEDGER_LANDED_MMIO_HELPERS=phase10-mmio-register-window-helper,phase10-mmio-queue-register-helper,phase10-mmio-queue-notify-helper,phase10-mmio-queue-address-helper,phase10-mmio-config-window-helper,phase10-mmio-config-write-helper,phase10-mmio-interrupt-ack-helper,phase10-mmio-probe-preflight-helper",
     ],
@@ -501,13 +506,19 @@ def run_self_test() -> int:
         expect_marker("ring_reuse_guard", root, "ring_manifest:broken-queue-recovery-helper:reuse")
         write_fixture(root)
 
+        (root / INPUT_BLOCKER_BUILD).unlink()
+        files, markers = validate(root)
+        if INPUT_BLOCKER_BUILD not in files or markers:
+            raise SystemExit(f"phase10-closure-self-test:blocker-build-file-guard:actual_files={files}:markers={markers}")
+        write_fixture(root)
+
         (root / "scripts/zigux/check-phase10-harness-coverage.py").unlink()
         files, markers = validate(root)
         if "scripts/zigux/check-phase10-harness-coverage.py" not in files:
             raise SystemExit(f"phase10-closure-self-test:file_guard:actual_files={files}:markers={markers}")
 
     print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=12")
+    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
