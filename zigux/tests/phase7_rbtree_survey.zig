@@ -192,13 +192,17 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     try std.testing.expect(manifest.survey_summary.preexisting_phase7_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase7_doc_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase7_helper_present);
-    try std.testing.expect(manifest.gaps.len >= 6);
+    try std.testing.expectEqual(@as(usize, 7), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
+    var saw_build_gate = false;
     var saw_helper = false;
+    var saw_dedicated_tests = false;
+    var saw_slice_note = false;
     var saw_survey_gate = false;
     var saw_parity_follow_up = false;
+    var saw_parity_checker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -212,28 +216,67 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
             ready_next_count += 1;
         }
 
+        if (std.mem.eql(u8, gap.id, "phase7-build-gate")) {
+            saw_build_gate = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("validation", gap.kind);
+            try std.testing.expectEqualStrings("zigux/tests/phase7_build.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shared Phase 7 build step") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase7-rbtree-helper")) {
             saw_helper = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("runtime_leaf_helper", gap.kind);
             try std.testing.expectEqualStrings("lib/rbtree.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "eraseInit ownership reset") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "duplicate-range iterator access") != null);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase7-rbtree-dedicated-tests")) {
+            saw_dedicated_tests = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("validation", gap.kind);
+            try std.testing.expectEqualStrings("zigux/tests/phase7_rbtree.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "traversal order") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "detached-node handling") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase7-rbtree-slice-note")) {
+            saw_slice_note = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("documentation", gap.kind);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase7-rbtree-slice.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "bounded product surface") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "actual leaf-helper lane") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase7-rbtree-survey-gate")) {
             saw_survey_gate = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("validation", gap.kind);
             try std.testing.expectEqualStrings("zigux/tests/phase7_rbtree_survey.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "machine-checked survey gate") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase7-rbtree-parity-fixture-layer")) {
             saw_parity_follow_up = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("differential_validation", gap.kind);
             try std.testing.expectEqualStrings("zigux/tests/fixtures/phase7_rbtree.json", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "eraseInit ownership reset") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "duplicate-key lookup ranges") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "reverse traversal") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "postorder behavior") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase7-rbtree-parity-checker")) {
+            saw_parity_checker = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("validation", gap.kind);
+            try std.testing.expectEqualStrings("scripts/zigux/check-phase7-rbtree-parity.py", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dedicated parity checker") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "fail-closed review hook") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -242,11 +285,15 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
         }
     }
 
-    try std.testing.expect(starter_landed_count >= 6);
+    try std.testing.expectEqual(@as(usize, 7), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
+    try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_helper);
+    try std.testing.expect(saw_dedicated_tests);
+    try std.testing.expect(saw_slice_note);
     try std.testing.expect(saw_survey_gate);
     try std.testing.expect(saw_parity_follow_up);
+    try std.testing.expect(saw_parity_checker);
     try std.testing.expect(std.mem.indexOf(u8, rbtree_helper, "pub fn iterateMatches") != null);
     try std.testing.expect(std.mem.indexOf(u8, rbtree_helper, "pub fn iterateMatchesReverse") != null);
     try std.testing.expect(std.mem.indexOf(u8, rbtree_helper, "pub fn findLast") != null);
