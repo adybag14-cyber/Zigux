@@ -30,6 +30,7 @@ This note records the current cross-slice boundary for Phase 8 userspace-adjacen
   - `zigux/tests/phase8_pin_path.zig`
   - `zigux/tests/phase8_file_path_handle_bridge.zig`
   - `zigux/tests/phase8_bpf_type_names.zig`
+  - `zigux/tests/phase8_help_kallsyms_only_build.zig`
   - `zigux/tests/phase8_kallsyms.zig`
   - `zigux/tests/phase8_bridge_boundary_survey.zig`
   - `zigux/tests/phase8_libbpf_segments.zig`
@@ -68,11 +69,11 @@ The current bridge packet now matches the roadmap shape, but it still leaves a b
 - `tools/lib/subcmd/*.zig`: the repo now has the helper-first foothold through `exec-cmd.zig` and `help.zig`, but the remaining roadmap gap is still direct process-launch and command-discovery side effects such as `execvp()`, environment reads or writes, `opendir()`, `readdir()`, and raw `ioctl()` terminal probing
 - `tools/lib/symbol/*.zig`: the repo now has the parser-first foothold through `kallsyms.zig`, but the remaining roadmap gap is still broader `api/io.h` parity and downstream ELF-emission behavior
 - `tools/lib/bpf/zigux_segments/`: the repo now meets the segmented-plan requirement through helper-first starter slices plus the bounded perf-buffer poll adjunct, but the remaining roadmap gap is still direct `/proc/.../fdinfo` reads, `open()` or `close()` ownership, `bpf_obj_get()` reopen flows, `bpf_token_create()` handle lifecycle parity, `perf_event_open()` setup, `mmap()` ring ownership, `ioctl(PERF_EVENT_IOC_ENABLE)` enablement, `perf-buffer-online-cpu-routing`, and the blocked object-model or ELF-loader follow-ons
-- `output-stable tooling behavior`: the repo currently proves this only for helper-local command formatting and reviewable wait-result summaries, so it still does not claim live command execution, full directory-backed command discovery, or broader libbpf runtime output behavior
+- `output-stable tooling behavior`: the repo currently proves this only for helper-local command formatting, the focused shared `help` plus `kallsyms` replay shard, and reviewable wait-result summaries, so it still does not claim live command execution, full directory-backed command discovery, or broader libbpf runtime output behavior
 
 ## Tooling lane sequencing
 
-- `exec-cmd`, `help`, and `kallsyms` remain packet-local tooling lanes. Their next follow-up should stay inside the owning helper, focused Phase 8 test, slice note, and directly coupled checklist wording instead of reopening the shared bridge packet to repeat helper-local evidence.
+- `exec-cmd`, `help`, and `kallsyms` remain packet-local tooling lanes. Their next follow-up should stay inside the owning helper, focused Phase 8 test, shared `phase8_help_kallsyms_only_build.zig` shard where the landed packet already couples those two stable-output helpers, slice note, and directly coupled checklist wording instead of reopening the shared bridge packet to repeat helper-local evidence.
 - `Documentation/zigux/phase8-libbpf-segment-survey.md` plus `tools/lib/bpf/zigux_segments/manifest.json` remain the owning packet for the eleven-segment libbpf catalog and the six landed helper-first starter slices. This bridge note may reference that catalog, but it should not retag segment ownership, restate catalog counts as new progress, or absorb helper-local gate details that belong to the survey packet.
 - `Documentation/zigux/phase8-perf-buffer-poll-slice.md`, `scripts/zigux/check-phase8-perf-buffer-poll-gate.py`, `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`, `zigux/tests/phase8_perf_buffer_poll.zig`, and `zigux/tests/phase8_perf_buffer_poll_only_build.zig` own the bounded wait-result and ready-buffer bookkeeping adjunct. This shared bridge packet only names that helper as a neighboring boundary and must not treat it as closure for the broader `perf-buffer-online-cpu-routing` segment.
 - `scripts/zigux/check-phase8-validator-flow.py` is the shared sequencing guard for this packet. It should enforce the packet-local lane wording and the neighboring perf-buffer poll route, but it must not pin the exact `surveyed_commit`, manifest lane key, or other focused libbpf gate metadata that belong to `Documentation/zigux/phase8-libbpf-segment-survey.md`, `tools/lib/bpf/zigux_segments/manifest.json`, or `zigux/tests/phase8_libbpf_segments.zig`.
@@ -80,7 +81,7 @@ The current bridge packet now matches the roadmap shape, but it still leaves a b
 
 ## Review gate
 
-The shared review path still follows the same validator-first Phase 8 sequence that current `master` publishes through `zigux/Makefile`: the broader validator self-test runs first, the dedicated validator-route audit plus the dedicated tests-readme alignment checker and the dedicated perf-buffer poll gate checker each keep their self-test and live pass inside the same fail-closed packet, and only then do the focused survey, focused perf-buffer poll shard, shared build replays, and the aggregate `make -C zigux phase8` wrapper run, so this cross-slice boundary note stays tied to the same docs-root, tests-root, Makefile, workflow, and segmented libbpf packet that current `master` already ships.
+The shared review path still follows the same validator-first Phase 8 sequence that current `master` publishes through `zigux/Makefile`: the broader validator self-test runs first, the dedicated validator-route audit plus the dedicated tests-readme alignment checker and the dedicated perf-buffer poll gate checker each keep their self-test and live pass inside the same fail-closed packet, and only then do the focused shared `help` plus `kallsyms` shard, the focused libbpf survey, the focused perf-buffer poll shard, the shared build replay, and the aggregate `make -C zigux phase8` wrapper run, so this cross-slice boundary note stays tied to the same docs-root, tests-root, Makefile, workflow, and segmented libbpf packet that current `master` already ships.
 
 1. `python3 scripts/zigux/validate-phase8.py --self-test`
 2. `python3 scripts/zigux/check-phase8-validator-flow.py --self-test`
@@ -91,12 +92,13 @@ The shared review path still follows the same validator-first Phase 8 sequence t
 7. `python3 scripts/zigux/check-phase8-tests-readme-alignment.py`
 8. `python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py`
 9. `make -C zigux phase8-validate`
-10. `zig test zigux/tests/phase8_libbpf_segments.zig`
-11. `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all`
-12. `make -C zigux phase8-perf-buffer-poll-test`
-13. `zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all`
-14. `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
-15. `make -C zigux phase8`
+10. `zig build test --build-file zigux/tests/phase8_help_kallsyms_only_build.zig --summary all`
+11. `zig test zigux/tests/phase8_libbpf_segments.zig`
+12. `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all`
+13. `make -C zigux phase8-perf-buffer-poll-test`
+14. `zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all`
+15. `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
+16. `make -C zigux phase8`
 
 `scripts/zigux/check-phase8-validator-flow.py` now stays inside that same published wrapper path instead of sitting beside it, and it currently publishes `PHASE8_VALIDATOR_FLOW_SELF_TEST_CASE_COUNT=17`.
 
