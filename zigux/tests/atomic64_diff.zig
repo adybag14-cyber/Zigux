@@ -150,7 +150,7 @@ test "atomic64 diff wrapper stays a thin phase4 entrypoint" {
 }
 
 test "atomic64 diff wrapper keeps roadmap entrypoint and rollback evidence aligned" {
-    try expectManifestMarker("\"lane_key\": \"P4-L01\"");
+    try expectManifestMarker("\"lane_key\": \"P4-L04\"");
     try expectManifestMarker("\"zigux/tests/atomic64_diff.zig\"");
     try expectManifestMarker("\"roadmap_atomic64_wrapper_targets_runtime_diff\": true");
     try expectManifestMarker("\"phase4_build_uses_atomic64_wrapper\": true");
