@@ -36,6 +36,11 @@ REQUIRED_MARKERS = {
         "- `validate-phase1.py` is the validator-first entrypoint for the closed host-helper packet around `tools/lib/bitmap.zig`, `tools/lib/find_bit.zig`, `tools/lib/string.zig`, and `tools/lib/rbtree.zig` plus the bounded supporting helpers and committed `zigux/tests/fixtures/phase1_helpers.json` corpus.",
         1,
     ),
+    "scripts_root_phase1_packet_alignment_count": (
+        "scripts/zigux/README.md",
+        "- `Documentation/zigux/README.md`, `Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` stay aligned as the bounded Phase 1 helper inventory and validator-first replay packet.",
+        1,
+    ),
     "scripts_root_phase1_review_hooks_count": (
         "scripts/zigux/README.md",
         "- `check-phase1-bitmap-validator-anchors.py --self-test`, `check-phase1-bitmap-validator-anchors.py`, `check-phase1-find-bit-validator-anchors.py --self-test`, `check-phase1-find-bit-validator-anchors.py`, `check-phase1-route-summary-counts.py --self-test`, `check-phase1-route-summary-counts.py`, `check-phase1-validation-route-inventory.py --self-test`, `check-phase1-validation-route-inventory.py`, `check-phase1-parity.py --self-test`, `check-phase1-parity.py`, `check-phase1-bench.py --self-test`, `check-phase1-bench.py`, `validate-phase1-closure.py --self-test`, and `validate-phase1-closure.py` are the bounded fail-closed review hooks around that same closed Phase 1 helper tranche.",
@@ -179,6 +184,7 @@ def self_test() -> int:
     ]
     scripts_markers = [
         REQUIRED_MARKERS["scripts_root_phase1_validator_first_count"][1],
+        REQUIRED_MARKERS["scripts_root_phase1_packet_alignment_count"][1],
         REQUIRED_MARKERS["scripts_root_phase1_review_hooks_count"][1],
     ]
     makefile_markers = [
@@ -212,8 +218,14 @@ def self_test() -> int:
         (
             "scripts/zigux/README.md",
             scripts_markers,
-            "scripts_root_phase1_review_hooks_count",
+            "scripts_root_phase1_packet_alignment_count",
             scripts_markers[1],
+        ),
+        (
+            "scripts/zigux/README.md",
+            scripts_markers,
+            "scripts_root_phase1_review_hooks_count",
+            scripts_markers[2],
         ),
         (
             "zigux/Makefile",
