@@ -661,9 +661,22 @@ def run_self_test() -> int:
             tmp_root,
             "tests_readme:stale_marker:three manifest-backed survey records",
         )
+        write_fixture_tree(tmp_root)
+
+        script_readme_path = tmp_root / "scripts/zigux/README.md"
+        script_readme_path.write_text(
+            read_text(tmp_root, "scripts/zigux/README.md")
+            + "\nABS_MT_SLOT remains the single ready-next helper step\n",
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "script_readme_stale_marker_guard",
+            tmp_root,
+            "script_readme:stale_marker:ABS_MT_SLOT remains the single ready-next helper step",
+        )
 
     print("PHASE10_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_VALIDATOR_SELF_TEST_CASE_COUNT=6")
+    print("PHASE10_VALIDATOR_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
