@@ -170,6 +170,7 @@ RELEASE_BOUNDARY_MARKERS = [
     "PHASE14_RELEASE_CLOSED=no",
     "shared smoke packet: `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `scripts/zigux/check-phase14-docs-root-smoke-summary.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, `scripts/zigux/validate-phase14.py`, `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`, and `zig build test --build-file zigux/tests/phase14_build.zig --summary all` now keep the four-anchor boundary map, the focused smoke shard, and the shared full-bundle replay explicit from a study-only posture",
     "compile-shard matrix: one focused `phase14-smoke` shard still covers only `phase14-end-to-end-smoke-tests`, while `phase14-workqueue-bridge-tests`, `phase14-skbuff-bridge-tests`, `phase14-ring-buffer-survey-tests`, and `phase14-rcu-tree-survey-tests` remain `full_bundle_only` under `zig build test --build-file zigux/tests/phase14_build.zig --summary all`",
+    "bounded-internal sequencing guard: only `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain eligible for same-phase bounded follow-up inside the current Phase 14 study packet, while `net/core/skbuff.c` and `kernel/rcu/tree.c` stay governed by the Phase 15 freeze-in-C packet and are not bounded-internal next-step lanes",
     "combined shared replay entrypoint: `make -C zigux phase14` remains the published convenience route for the validator-backed smoke packet, so release-facing review and local replay still name the same one-command path as the shared smoke note and manifest instead of leaving that wrapper path implicit in `zigux/Makefile`",
     "wrapper-backed full-bundle replay: `make -C zigux phase14-test` remains the smallest make-surface route for the shared full-bundle compile matrix, so release-facing review can name the same wrapper-backed internal-bridge replay that `zigux/Makefile` and `Documentation/zigux/phase14-end-to-end-smoke-survey.md` already publish instead of relying only on the raw `zig build test --build-file zigux/tests/phase14_build.zig --summary all` command",
     "PHASE14_SHARED_SMOKE_GATE_COUNT=1",
@@ -183,6 +184,7 @@ CHECKLIST_MARKERS = [
     "is there a stated rollback owner and fallback path?",
     "if the change touches the shared Phase 14 smoke packet, do `scripts/zigux/validate-phase14.py`, `scripts/zigux/check-phase14-docs-root-smoke-summary.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, `scripts/zigux/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `zigux/tests/phase14_end_to_end_smoke_survey.zig`, `zigux/tests/phase14_build.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/freeze-map.md`, and the four Phase 14 anchor-local manifests plus survey notes still agree on the same exact validator-backed smoke commands, the same focused `phase14-smoke` shard commands, ready-next versus blocked posture, stay-in-C boundary, named owner, validation gate, rollback owner, rollback threshold, automatic return-to-blocked trigger catalog, roadmap risk bundle (`hidden runtime behavior`, `memory-ordering mistakes`, `overpromising full parity`, `deep-core scope creep`), and explicit ZAR-to-product transfer rationale?",
     "if the change touches the shared Phase 14 smoke packet, do the same shared smoke note, scripts index, and manifest-backed survey summary still keep the current four-anchor boundary map and bounded concurrency-audit scope explicit instead of leaving that roadmap evidence implicit behind the anchor list?",
+    "if the change touches the shared Phase 14 smoke packet, do the same shared smoke manifest, release-boundary note, and survey packet still keep the sequencing split explicit so only `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` are treated as bounded-internal same-phase follow-up lanes while `net/core/skbuff.c` and `kernel/rcu/tree.c` stay governance-blocked under the Phase 15 freeze packet?",
 ]
 
 BUILD_MARKERS = [
@@ -435,6 +437,7 @@ required_summary_keys = [
     "review_checklist_has_return_to_blocked_trigger_prompt",
     "review_checklist_has_boundary_map_prompt",
     "review_checklist_has_concurrency_audit_prompt",
+    "review_checklist_has_phase14_bounded_internal_sequencing_prompt",
     "smoke_note_records_owner_and_rollback",
     "smoke_note_records_risk_bundle",
     "smoke_note_records_review_blocker_status",
@@ -444,12 +447,14 @@ required_summary_keys = [
     "smoke_note_records_transfer_rationale",
     "smoke_note_records_boundary_map",
     "smoke_note_records_concurrency_audit_scope",
+    "smoke_note_records_bounded_internal_sequencing_split",
     "scripts_readme_records_rollback_threshold",
     "scripts_readme_records_fallback_path",
     "scripts_readme_records_return_to_blocked_triggers",
     "scripts_readme_records_boundary_map",
     "scripts_readme_records_concurrency_audit_scope",
     "release_boundary_note_records_shared_smoke_packet",
+    "release_boundary_note_records_bounded_internal_sequencing_split",
     "freeze_map_lists_workqueue_c",
     "freeze_map_lists_skbuff_c",
     "freeze_map_lists_ring_buffer_c",
