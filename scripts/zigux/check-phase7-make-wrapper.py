@@ -80,6 +80,7 @@ UNEXPECTED_MAKE_EXPANSIONS = {
 
 REQUIRED_VALIDATOR_TEXT_MARKERS = [
     'ROOT / "scripts" / "zigux" / "check-phase7-build-inventory.py"',
+    'ROOT / "scripts" / "zigux" / "check-phase7-make-wrapper.py"',
     'ROOT / "zigux" / "tests" / "fixtures" / "phase7_build_inventory.json"',
 ]
 
@@ -267,6 +268,7 @@ def write_validator_fixture(
     if include_required_text_markers:
         text_markers = [
             '    ROOT / "scripts" / "zigux" / "check-phase7-build-inventory.py",',
+            '    ROOT / "scripts" / "zigux" / "check-phase7-make-wrapper.py",',
             '    ROOT / "zigux" / "tests" / "fixtures" / "phase7_build_inventory.json",',
         ]
     tests_markers = tests_markers or REQUIRED_VALIDATOR_LIST_MARKERS["required_tests_readme_markers"]
@@ -324,6 +326,23 @@ def run_self_test() -> int:
             tmp_root,
             env,
             'validator source missing marker: ROOT / "scripts" / "zigux" / "check-phase7-build-inventory.py"',
+        )
+
+        write_validator_fixture(validator_path, EXPECTED_MAKE_EXPANSIONS)
+        validator_text = validator_path.read_text(encoding="utf-8")
+        validator_path.write_text(
+            validator_text.replace(
+                '    ROOT / "scripts" / "zigux" / "check-phase7-make-wrapper.py",\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "missing_make_wrapper_required_marker",
+            tmp_root,
+            env,
+            'validator source missing marker: ROOT / "scripts" / "zigux" / "check-phase7-make-wrapper.py"',
         )
 
         validator_path.write_text("#!/usr/bin/env python3\nexpected_make_expansions = {\n", encoding="utf-8")
@@ -487,7 +506,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE7_MAKE_WRAPPER_SELF_TEST=pass")
-    print("PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT=11")
+    print("PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
