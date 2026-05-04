@@ -9,6 +9,7 @@ from phase3_catalog import Phase3Paths, Phase3Slice, discover_phase3_slices
 from phase3_check_lib import render_wrapper_stub, shared_runner_gate_for_slug
 from validate_phase3_core import (
     ABI_REVIEW_CHECKLIST_MARKERS,
+    ABI_EXPORT_UAPI_SURVEY_CHECK_REL,
     ABI_POLICY_UNSAFE_MMIO_CONSUMER_REL,
     ABI_POLICY_UNSAFE_SURVEY_CHECK_REL,
     ABI_REQUIRED_DOC_MARKERS,
@@ -246,6 +247,45 @@ def run_self_test() -> int:
             f"build phase3-policy-unsafe-test --build-file {root / 'zigux/tests/phase3_policy_unsafe_build.zig'}",
         ]
 
+        export_uapi_survey_check = root / ABI_EXPORT_UAPI_SURVEY_CHECK_REL
+        assert validate_export_uapi_boundary(root) == [
+            f"export-uapi-gate: missing {ABI_EXPORT_UAPI_SURVEY_CHECK_REL}"
+        ]
+        export_uapi_survey_check.parent.mkdir(parents=True, exist_ok=True)
+        export_uapi_survey_check.write_text(
+            "\n".join(
+                [
+                    "#!/usr/bin/env python3",
+                    "import sys",
+                    'print("PHASE3_EXPORT_UAPI_SURVEY=fail")',
+                    'print("missing_export_uapi_layout_gate")',
+                    'print("packet-local drift")',
+                    'print("survey gate stderr", file=sys.stderr)',
+                    "raise SystemExit(1)",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert validate_export_uapi_boundary(root) == [
+            "export-uapi-gate: missing_export_uapi_layout_gate",
+            "export-uapi-gate: packet-local drift",
+            "export-uapi-gate: stderr: survey gate stderr",
+        ]
+        export_uapi_survey_check.write_text(
+            "\n".join(
+                [
+                    "#!/usr/bin/env python3",
+                    'print("PHASE3_EXPORT_UAPI_SURVEY=pass")',
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert validate_export_uapi_boundary(root) == []
+
         _write_phase3_abi_fixture(paths)
         abi_entries = discover_phase3_slices(paths)
         abi_manifest_entry = next(entry for entry in abi_entries if entry.slug == "abi")
@@ -373,7 +413,7 @@ def run_self_test() -> int:
             assert_missing_rbtree_shared_marker(missing_marker)
 
     print("PHASE3_VALIDATOR_SELF_TEST=pass")
-    print("PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT=19")
+    print("PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT=22")
     return 0
 
 
