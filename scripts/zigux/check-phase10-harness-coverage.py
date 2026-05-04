@@ -128,9 +128,14 @@ INPUT_PREFLIGHT_TEST_MARKERS = [
 
 MMIO_QUEUE_ISOLATION_TEST_MARKERS = [
     'test "phase10 virtio mmio keeps queue state isolated across queue selection changes" {',
+    'test "phase10 virtio mmio reset clears legacy and modern queue address plans after queue selection changes" {',
     "selectQueue(0)",
     "selectQueue(1)",
     "QueueReadyBlocksAddressRewrite",
+    "const reset = window.reset();",
+    "queueAddressSummary(.legacy)",
+    "queueAddressSummary(.modern)",
+    "QueueAddressRequiresConfiguredSize",
 ]
 
 
@@ -365,11 +370,7 @@ def run_self_test() -> int:
         workflow_path = root / ".github/workflows/zigux-bootstrap.yml"
         original_workflow = workflow_path.read_text(encoding="utf-8")
         workflow_path.write_text(
-            original_workflow.replace(
-                "Self-test Phase 10 harness coverage checker\n",
-                "",
-                1,
-            ),
+            original_workflow.replace("Self-test Phase 10 harness coverage checker\n", "", 1),
             encoding="utf-8",
         )
         expect_missing_marker(
@@ -397,11 +398,7 @@ def run_self_test() -> int:
         docs_readme_path.write_text(original_docs_readme, encoding="utf-8")
 
         docs_readme_path.write_text(
-            original_docs_readme.replace(
-                "focused harness replays",
-                "focused replay drift",
-                1,
-            ),
+            original_docs_readme.replace("focused harness replays", "focused replay drift", 1),
             encoding="utf-8",
         )
         expect_missing_marker(
@@ -685,7 +682,8 @@ def run_self_test() -> int:
 
         companion_path.write_text(
             original_companion + "\nzigux-alpha/PHASE10_CLOSURE_LEDGER.md\n",
-            encoding="utf-8")
+            encoding="utf-8",
+        )
         expect_missing_marker(
             "companion_closure_ledger_duplicate",
             root,
@@ -770,9 +768,7 @@ def run_self_test() -> int:
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         evidence = manifest["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"]
         manifest["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"] = [
-            path
-            for path in evidence
-            if path != "zigux/tests/phase10_virtio_ring_reset_reuse.zig"
+            path for path in evidence if path != "zigux/tests/phase10_virtio_ring_reset_reuse.zig"
         ]
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         expect_missing_marker(
@@ -793,12 +789,9 @@ def run_self_test() -> int:
         input_preflight_path.write_text(original_input_preflight, encoding="utf-8")
 
         input_preflight_path.write_text(
-            original_input_preflight.replace(
-                "probePreflightSummary()",
-                "probePreflightSummaryDrift()",
-                1,
-            ),
-            encoding="utf-8")
+            original_input_preflight.replace("probePreflightSummary()", "probePreflightSummaryDrift()", 1),
+            encoding="utf-8",
+        )
         expect_missing_marker(
             "input_preflight_probe_summary_marker",
             root,
@@ -817,17 +810,39 @@ def run_self_test() -> int:
         queue_isolation_path.write_text(original_queue_isolation, encoding="utf-8")
 
         queue_isolation_path.write_text(
-            original_queue_isolation.replace(
-                "QueueReadyBlocksAddressRewrite",
-                "QueueReadyBlocksRewriteDrift",
-                1,
-            ),
+            original_queue_isolation.replace("QueueReadyBlocksAddressRewrite", "QueueReadyBlocksRewriteDrift", 1),
             encoding="utf-8",
         )
         expect_missing_marker(
             "queue_isolation_test_guard",
             root,
             "mmio_queue_isolation_test:QueueReadyBlocksAddressRewrite",
+        )
+        queue_isolation_path.write_text(original_queue_isolation, encoding="utf-8")
+
+        queue_isolation_path.write_text(
+            original_queue_isolation.replace(
+                'test "phase10 virtio mmio reset clears legacy and modern queue address plans after queue selection changes" {',
+                'test "phase10 virtio mmio reset drift" {',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "queue_isolation_reset_test_title",
+            root,
+            'mmio_queue_isolation_test:test "phase10 virtio mmio reset clears legacy and modern queue address plans after queue selection changes" {',
+        )
+        queue_isolation_path.write_text(original_queue_isolation, encoding="utf-8")
+
+        queue_isolation_path.write_text(
+            original_queue_isolation.replace("const reset = window.reset();", "const reset_drift = window.reset();", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "queue_isolation_reset_marker",
+            root,
+            "mmio_queue_isolation_test:const reset = window.reset();",
         )
         queue_isolation_path.write_text(original_queue_isolation, encoding="utf-8")
 
@@ -840,7 +855,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=38")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=39")
     return 0
 
 
