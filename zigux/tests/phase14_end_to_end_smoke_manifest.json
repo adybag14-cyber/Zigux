@@ -33,6 +33,31 @@
       "loss of the dedicated docs-root smoke checker, the docs-root summary, the focused `phase14-smoke` replay contract, or the validator-backed `make -C zigux phase14-validate` entrypoint from the shared packet"
     ]
   },
+  "bounded_internal_lanes": [
+    {
+      "lane_key": "P14-Y05",
+      "anchor": "kernel/workqueue.c",
+      "status_bucket": "study_only"
+    },
+    {
+      "lane_key": "P14-L08",
+      "anchor": "kernel/trace/ring_buffer.c",
+      "status_bucket": "study_only"
+    }
+  ],
+  "governance_blocked_lanes": [
+    {
+      "lane_key": "P14-L12",
+      "anchor": "net/core/skbuff.c",
+      "status_bucket": "freeze_in_c_governed"
+    },
+    {
+      "lane_key": "P14-Y04",
+      "anchor": "kernel/rcu/tree.c",
+      "status_bucket": "freeze_in_c_governed"
+    }
+  ],
+  "sequencing_rule": "Only the bounded-internal workqueue and ring-buffer anchors may take same-phase bounded follow-up steps; skbuff and RCU tree remain governance-blocked under the Phase 15 freeze packet until their status changes.",
   "shared_smoke_surfaces": [
     "scripts/zigux/validate-phase14.py",
     "scripts/zigux/check-phase14-docs-root-smoke-summary.py",
@@ -165,6 +190,7 @@
     "review_checklist_has_return_to_blocked_trigger_prompt": true,
     "review_checklist_has_boundary_map_prompt": true,
     "review_checklist_has_concurrency_audit_prompt": true,
+    "review_checklist_has_phase14_bounded_internal_sequencing_prompt": true,
     "smoke_note_records_owner_and_rollback": true,
     "smoke_note_records_risk_bundle": true,
     "smoke_note_records_review_blocker_status": true,
@@ -174,12 +200,14 @@
     "smoke_note_records_transfer_rationale": true,
     "smoke_note_records_boundary_map": true,
     "smoke_note_records_concurrency_audit_scope": true,
+    "smoke_note_records_bounded_internal_sequencing_split": true,
     "scripts_readme_records_rollback_threshold": true,
     "scripts_readme_records_fallback_path": true,
     "scripts_readme_records_return_to_blocked_triggers": true,
     "scripts_readme_records_boundary_map": true,
     "scripts_readme_records_concurrency_audit_scope": true,
     "release_boundary_note_records_shared_smoke_packet": true,
+    "release_boundary_note_records_bounded_internal_sequencing_split": true,
     "freeze_map_lists_workqueue_c": true,
     "freeze_map_lists_skbuff_c": true,
     "freeze_map_lists_ring_buffer_c": true,
