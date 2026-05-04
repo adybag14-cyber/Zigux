@@ -13,6 +13,13 @@ The active Phase 9 packet should continue to agree across these shared review su
 - `Documentation/zigux/freeze-map.md`
 - `Documentation/zigux/phase9-tests-root-review-companion.md`
 - `scripts/zigux/README.md`
+- `scripts/zigux/validate-phase9.py`
+- `scripts/zigux/check-phase9-validation-flow.py`
+- `scripts/zigux/check-phase9-loader-substrate-plan.py`
+- `scripts/zigux/check-phase9-module-metadata-packet.py`
+- `scripts/zigux/check-phase9-runtime-loader-commit-alignment.py`
+- `scripts/zigux/check-phase9-loader-non-owner-boundary.py`
+- `samples/zigux/README.md`
 - `zigux/tests/README.md`
 - `zigux/tests/phase9_build.zig`
 - `zigux/Makefile`
@@ -45,7 +52,7 @@ From the tests root, the bounded Phase 9 packet is carried by:
 - `zigux/tests/runtime_trace_events_module.zig`
 - `zigux/tests/runtime_trace_events_diff.zig`
 
-Those files should keep the manifest-backed catalog, shared replay entrypoint, module-metadata packet, non-owner boundary, the trace-events freeze-map boundary, and the current runtime starter surveys aligned with the docs-root, tests-root index, review-checklist, and scripts-root packet.
+Those files should keep the manifest-backed catalog, shared replay entrypoint, module-metadata packet, non-owner boundary, the trace-events freeze-map boundary, and the current runtime starter surveys aligned with the docs-root, tests-root index, review-checklist, validator-first checker stack, sample-root catalog, and scripts-root packet.
 
 ## Shared request boundary
 
