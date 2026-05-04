@@ -23,8 +23,8 @@ This survey exists so the lane can compare that live starter against the roadmap
 ## Survey findings
 
 - `drivers/virtio/virtio_input.c` is present on `master` at 421 lines and mixes config-space selection, bitmap and ABS metadata reads, event-queue refill, status-queue sends, multitouch timestamp suppression, input-device registration, freeze or restore hooks, and teardown paths.
-- the live repo already ships `drivers/virtio/virtio_input.zig`, `zigux/tests/phase10_virtio_input.zig`, `Documentation/zigux/phase10-virtio-input-slice.md`, and `Documentation/zigux/phase10-virtio-input-module-slice.md`.
-- the landed Zigux starter now covers identity snapshots, property and event config bitmap summaries, ABS metadata summaries, capability-setup staging, bounded multitouch slot planning from `ABS_MT_SLOT`, a bounded registration-preflight summary, a bounded queue-callback preflight summary, a bounded probe-preflight summary, fixed event and status queue planning, capped event-buffer fill accounting, ready-state gating, reset clearing, a reset-local teardown observation summary, and multitouch `EV_MSC` plus `MSC_TIMESTAMP` suppression in memory only.
+- the live repo already ships `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_registration_blocker.zig`, `zigux/tests/phase10_virtio_input.zig`, `zigux/tests/phase10_virtio_input_registration_blocker.zig`, `Documentation/zigux/phase10-virtio-input-slice.md`, and `Documentation/zigux/phase10-virtio-input-module-slice.md`.
+- the landed Zigux starter now covers identity snapshots, property and event config bitmap summaries, ABS metadata summaries, capability-setup staging, bounded multitouch slot planning from `ABS_MT_SLOT`, a bounded registration-preflight summary, a bounded queue-callback preflight summary, a bounded probe-preflight summary, a bounded registration blocker summary that keeps lifecycle claims parked, fixed event and status queue planning, capped event-buffer fill accounting, ready-state gating, reset clearing, a reset-local teardown observation summary, and multitouch `EV_MSC` plus `MSC_TIMESTAMP` suppression in memory only.
 - the live repo still does not model real event delivery, `input_register_device()` registration parity, freeze or restore parity, or transport-backed queue callbacks.
 - this means the probe-preflight boundary is now landed, and the remaining virtio_input lifecycle work stays intentionally blocked rather than widening into probe, remove, MMIO, or input core lifecycle claims.
 
@@ -46,9 +46,10 @@ The survey manifest now records:
 - the landed `phase10-virtio-input-registration-preflight-helper`
 - the landed `phase10-virtio-input-queue-callback-preflight-helper`
 - the landed `phase10-virtio-input-probe-preflight-helper`
+- the landed `phase10-virtio-input-registration-blocker-helper`
 - the still-blocked `phase10-virtio-input-registration-lifecycle`
 
-This keeps the lane concrete and reviewable without overstating progress: the starter helper is real, but most of the config and registration surface from `virtio_input.c` remains intentionally out of scope.
+This keeps the lane concrete and reviewable without overstating progress: the starter helper is real, and the new blocker helper makes the remaining lifecycle fence explicit instead of letting probe-readiness look like input-core parity, but most of the config and registration surface from `virtio_input.c` remains intentionally out of scope.
 
 ## Freeze Boundary
 
@@ -104,6 +105,9 @@ The direct shared validator now appears here explicitly because the manifest-bac
 
 4. run the convenience target
 - `make -C zigux phase10`
+
+5. run the dedicated registration blocker replay
+- `zig test zigux/tests/phase10_virtio_input_registration_blocker.zig`
 
 This keeps the input survey note aligned with the shared closure packet's exact test route instead of implying the direct build replay and combined convenience target are the only executable review surfaces for the current input packet.
 
