@@ -986,25 +986,25 @@ def run_self_test() -> int:
             expect_contains(validate_phase6(root), "manifest:determinism_evidence:checksum")
             count += 1
 
-            build_self_testTree(root)
+            build_self_test_tree(root)
             hexdump_parity_script = root / "scripts/zigux/check-phase6-hexdump-c-parity.py"
             hexdump_parity_script.write_text("", encoding="utf-8")
             expect_contains(validate_phase6(root), 'hexdump_parity_script:missing:print("PHASE6_HEXDUMP_C_PARITY_SELF_TEST=pass")')
             count += 1
 
-            build_self_testTree(root)
+            build_self_test_tree(root)
             hexdump_parity_runner = root / "zigux/tests/phase6_hexdump_c_parity.zig"
             hexdump_parity_runner.write_text("", encoding="utf-8")
             expect_contains(validate_phase6(root), 'hexdump_parity_runner:missing:const fixtures = @import("phase6_hexdump_vectors");')
             count += 1
 
-            build_self_testTree(root)
+            build_self_test_tree(root)
             hexdump_parity_harness = root / "zigux/tests/fixtures/phase6_hexdump_c_harness.c"
             hexdump_parity_harness.write_text("", encoding="utf-8")
             expect_contains(validate_phase6(root), f"hexdump_parity_harness:missing:{HEXDUMP_PARITY_HARNESS_MARKERS[0]}")
             count += 1
 
-            build_self_testTree(root)
+            build_self_test_tree(root)
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
             manifest["determinism_evidence"]["hexdump"]["c_parity_cases"] = 26
             manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
