@@ -60,6 +60,42 @@ test "phase 8 exec-cmd focused replay keeps inherited relative PERF_EXEC_PATH ra
     try std.testing.expectEqual(@as(?[]const u8, null), execv_plan.call.argv[3]);
 }
 
+test "phase 8 exec-cmd focused replay keeps root cwd relative PATH entries single-slashed" {
+    const config = exec_cmd.Config{
+        .exec_name = "perf",
+        .prefix = "/usr/libexec/perf-core",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var env = exec_cmd.EnvMap.init(std.testing.allocator);
+    defer env.deinit();
+
+    var state = exec_cmd.ExecCmdState{};
+    defer state.deinit(std.testing.allocator);
+
+    try exec_cmd.execCmdInit(&env, config);
+    try exec_cmd.setArgvExecPath(std.testing.allocator, &env, &state, config, "tools/bin");
+    try exec_cmd.setArgv0Path(std.testing.allocator, &state, "scripts");
+    try env.set("PATH", "/usr/bin");
+
+    var execv_plan = try exec_cmd.planDeferredExecvCall(
+        std.testing.allocator,
+        &env,
+        state,
+        config,
+        "/",
+        &[_][]const u8{"record"},
+    );
+    defer execv_plan.deinit(std.testing.allocator);
+
+    try std.testing.expectEqualStrings(
+        "/tools/bin:/scripts:/usr/bin",
+        execv_plan.path,
+    );
+    try std.testing.expectEqualStrings(execv_plan.path, env.get("PATH").?);
+}
+
 test "phase 8 exec-cmd docs keep the deferred execution boundary explicit" {
     const slice_note = try readWorkspaceFile(std.testing.allocator, "Documentation/zigux/phase8-exec-cmd-slice.md", 32 * 1024);
     defer std.testing.allocator.free(slice_note);
