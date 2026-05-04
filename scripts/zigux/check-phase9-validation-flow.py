@@ -23,6 +23,7 @@ PHASE9_BUILD_PATH = "zigux/tests/phase9_build.zig"
 LOADER_SUBSTRATE_PLAN_PATH = (
     "Documentation/zigux/phase9-runtime-loader-substrate-plan.md"
 )
+SAMPLES_README_PATH = "samples/zigux/README.md"
 NON_OWNER_BOUNDARY_SURVEY_PATH = "zigux/tests/runtime_loader_non_owner_boundary_survey.zig"
 MODULE_METADATA_SURVEY_TEST_PATH = "zigux/tests/runtime_module_metadata_survey.zig"
 LOADER_ALLOCATOR_INIT_FLOW_TEST_PATH = (
@@ -45,6 +46,7 @@ REQUIRED_FILES = [
     KRETPROBE_SURVEY_PATH,
     PHASE9_BUILD_PATH,
     LOADER_SUBSTRATE_PLAN_PATH,
+    SAMPLES_README_PATH,
     NON_OWNER_BOUNDARY_SURVEY_PATH,
     MODULE_METADATA_SURVEY_TEST_PATH,
     LOADER_ALLOCATOR_INIT_FLOW_TEST_PATH,
@@ -209,6 +211,14 @@ LOADER_SUBSTRATE_PLAN_MARKERS = [
     "make -C zigux phase9-validate",
 ]
 
+SAMPLES_README_MARKERS = [
+    "- the current Phase 9 loader-side packet now depends on the shared `zigux/kernel/runtime_loader.zig` `RuntimeLoadRequest` boundary for `samples/zigux/runtime_atomic64_loader.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and `samples/zigux/runtime_kretprobe_loader.zig`; keep `samples/zigux/runtime_trace_events_loader.zig` explicit as an adjacent scaffold until the trace-events blocker can truthfully adopt that same shared request path\n",
+]
+
+SAMPLES_README_EXACT_ONCE_MARKERS = [
+    "- the current Phase 9 loader-side packet now depends on the shared `zigux/kernel/runtime_loader.zig` `RuntimeLoadRequest` boundary for `samples/zigux/runtime_atomic64_loader.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and `samples/zigux/runtime_kretprobe_loader.zig`; keep `samples/zigux/runtime_trace_events_loader.zig` explicit as an adjacent scaffold until the trace-events blocker can truthfully adopt that same shared request path\n",
+]
+
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
@@ -251,6 +261,7 @@ def validate(root: Path) -> list[str]:
         "kretprobe_survey": read_text(root, KRETPROBE_SURVEY_PATH),
         "phase9_build": read_text(root, PHASE9_BUILD_PATH),
         "loader_substrate_plan": read_text(root, LOADER_SUBSTRATE_PLAN_PATH),
+        "samples_readme": read_text(root, SAMPLES_README_PATH),
     }
 
     require_markers(
@@ -316,6 +327,13 @@ def validate(root: Path) -> list[str]:
         LOADER_SUBSTRATE_PLAN_MARKERS,
         [],
     )
+    require_markers(
+        failures,
+        "samples_readme",
+        texts["samples_readme"],
+        SAMPLES_README_MARKERS,
+        SAMPLES_README_EXACT_ONCE_MARKERS,
+    )
 
     return failures
 
@@ -326,6 +344,7 @@ def write_fixture_tree(root: Path) -> None:
     (root / ".github/workflows").mkdir(parents=True, exist_ok=True)
     (root / "Documentation/zigux").mkdir(parents=True, exist_ok=True)
     (root / "scripts/zigux").mkdir(parents=True, exist_ok=True)
+    (root / "samples/zigux").mkdir(parents=True, exist_ok=True)
 
     (root / README_PATH).write_text(
         "\n".join(
@@ -519,6 +538,18 @@ def write_fixture_tree(root: Path) -> None:
                 "- `samples/zigux/runtime_trace_events_loader.zig`",
                 "allocator_handoff",
                 "make -C zigux phase9-validate",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    (root / SAMPLES_README_PATH).write_text(
+        "\n".join(
+            [
+                "# Zigux Samples",
+                "",
+                "Later runtime starters, loader-side follow-ons, and blocked pilots",
+                SAMPLES_README_MARKERS[0].rstrip("\n"),
                 "",
             ]
         ),
@@ -742,6 +773,20 @@ def run_self_test() -> int:
                 "allocator boundary",
                 "loader_substrate_plan:allocator_handoff",
             ),
+            (
+                SAMPLES_README_PATH,
+                "samples_readme_runtime_load_request_missing",
+                SAMPLES_README_MARKERS[0],
+                "",
+                f"samples_readme:{SAMPLES_README_MARKERS[0]}",
+            ),
+            (
+                SAMPLES_README_PATH,
+                "samples_readme_runtime_load_request_duplicate",
+                SAMPLES_README_MARKERS[0],
+                SAMPLES_README_MARKERS[0] + SAMPLES_README_MARKERS[0],
+                f"samples_readme_exact:{SAMPLES_README_MARKERS[0]}",
+            ),
         ]
 
         for rel_path, label, old, new, expected_failure in cases:
@@ -805,6 +850,8 @@ def main() -> int:
         + len(KRETPROBE_SURVEY_EXACT_ONCE_MARKERS)
         + len(PHASE9_BUILD_MARKERS)
         + len(LOADER_SUBSTRATE_PLAN_MARKERS)
+        + len(SAMPLES_README_MARKERS)
+        + len(SAMPLES_README_EXACT_ONCE_MARKERS)
     )
 
     print("PHASE9_VALIDATION_FLOW=pass")
