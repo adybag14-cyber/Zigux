@@ -401,9 +401,10 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "procfs, user-copy, locking, and runtime registration remain out of scope") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "exactly seven review-focus areas") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`preview_truncation`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "1/4 bytestream_fifo.test.bytestream fifo sample replays the Linux anchor result sequence...OK") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "4/4 bytestream_fifo.test.bytestream fifo sample reset clears queue state without rewinding lifecycle bookkeeping...OK") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "All 4 tests passed.") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "1/5 bytestream_fifo.test.bytestream fifo sample replays the Linux anchor result sequence...OK") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "3/5 bytestream_fifo.test.bytestream fifo sample exposes wraparound state explicitly...OK") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "5/5 bytestream_fifo.test.bytestream fifo sample reset clears queue state without rewinding lifecycle bookkeeping...OK") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "All 5 tests passed.") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "The shared `zigux/tests/phase5_build.zig` entrypoint remains the umbrella review gate recorded in the manifest and contributor prompts, but this bounded verification pass did not rerun the whole Phase 5 sample bundle, so this note no longer republishes the older pre-expansion shared test count.") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig test zigux/tests/phase5_bytestream_fifo_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "All 2 tests passed.") != null);
