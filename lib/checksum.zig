@@ -9,6 +9,10 @@ pub fn sub(sum: u32, addend: u32) u32 {
     return add(sum, ~addend);
 }
 
+pub fn negate(sum: u32) u32 {
+    return 0 -% sum;
+}
+
 pub fn shift(sum: u32, offset: usize) u32 {
     // Rotate the partial sum when the offset lands on an odd byte.
     if ((offset & 1) != 0) {
@@ -230,9 +234,10 @@ test "tcpUdpV6Nofold preserves upper length bits" {
     try std.testing.expect(actual != truncated);
 }
 
-test "add, sub, and offset shifting preserve checksum arithmetic" {
+test "add, sub, negate, and offset shifting preserve checksum arithmetic" {
     const lhs: u32 = 0x12_34;
     const rhs: u32 = 0xab_cd;
+    const value: u32 = 0x1234_5678;
 
     try std.testing.expectEqual(lhs, sub(add(lhs, rhs), rhs));
     try std.testing.expectEqual(rhs, shift(rhs, 2));
@@ -240,6 +245,11 @@ test "add, sub, and offset shifting preserve checksum arithmetic" {
     try std.testing.expectEqual(shift(rhs, 1), shift(rhs, 3));
     try std.testing.expectEqual(add(lhs, shift(rhs, 1)), blockAdd(lhs, rhs, 1));
     try std.testing.expectEqual(sub(lhs, shift(rhs, 1)), blockSub(lhs, rhs, 1));
+    try std.testing.expectEqual(@as(u32, 0), negate(0));
+    try std.testing.expectEqual(@as(u32, 0xffff_ffff), negate(1));
+    try std.testing.expectEqual(@as(u32, 0xedcb_a988), negate(value));
+    try std.testing.expectEqual(value, negate(negate(value)));
+    try std.testing.expectEqual(@as(u32, 1), add(value, negate(value)));
 }
 
 test "from32to16, fold, unfold, and 16-bit carry helpers preserve checksum identities" {
