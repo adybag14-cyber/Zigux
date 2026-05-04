@@ -299,6 +299,12 @@ def clone_fixture_root(destination_root: Path) -> None:
                 "PHASE2_CROSS_ALIGNMENT_REQUIRED_SOURCE_MARKERS = []",
                 "PHASE2_TESTS_README_REQUIRED_SOURCE_MARKERS = []",
                 "phase2_tests_readme = True",
+                "PHASE2_TESTS_README_ALIGNMENT_CHECKER = (",
+                '    ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"',
+                ")",
+                "subprocess.run(",
+                "    [sys.executable, str(PHASE2_TESTS_README_ALIGNMENT_CHECKER)],",
+                ")",
                 "",
             ]
         ),
@@ -470,6 +476,23 @@ def run_self_test() -> int:
         )
         scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
 
+        phase2_validator_path = tmp_root / REQUIRED_FILES["phase2_validator"]
+        original_phase2_validator = phase2_validator_path.read_text(encoding="utf-8")
+        phase2_validator_path.write_text(
+            original_phase2_validator.replace(
+                "    [sys.executable, str(PHASE2_TESTS_README_ALIGNMENT_CHECKER)],\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "phase2_validator_checker_run",
+            tmp_root,
+            "phase2_validator:[sys.executable, str(PHASE2_TESTS_README_ALIGNMENT_CHECKER)],",
+        )
+        phase2_validator_path.write_text(original_phase2_validator, encoding="utf-8")
+
         makefile_path = tmp_root / REQUIRED_FILES["makefile"]
         original_makefile = makefile_path.read_text(encoding="utf-8")
         makefile_path.write_text(
@@ -497,7 +520,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=8")
+    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
