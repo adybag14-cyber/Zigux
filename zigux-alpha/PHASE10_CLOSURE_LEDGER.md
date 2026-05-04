@@ -8,6 +8,7 @@ This focused ledger records the current closure-evidence bundle for the active P
 - `PHASE10_LEDGER_ROADMAP_ANCHORS=drivers/virtio/virtio.c,drivers/virtio/virtio_ring.c,drivers/virtio/virtio_input.c,drivers/virtio/virtio_mmio.c`
 - `PHASE10_LEDGER_EVIDENCE=Documentation/zigux/phase10-closure-evidence.md`
 - `PHASE10_LEDGER_INVENTORY_VALIDATE=scripts/zigux/check-phase10-closure-inventory.py`
+- `PHASE10_LEDGER_CORE_PACKET_VALIDATE=scripts/zigux/check-phase10-core-packet.py`
 - `PHASE10_LEDGER_VALIDATE=scripts/zigux/validate-phase10-closure.py`
 - `PHASE10_LEDGER_HARNESS_COVERAGE_VALIDATE=scripts/zigux/check-phase10-harness-coverage.py`
 - `PHASE10_LEDGER_SHARED_VALIDATE=scripts/zigux/validate-phase10.py`
@@ -58,12 +59,14 @@ This focused ledger records the current closure-evidence bundle for the active P
 - `PHASE10_LEDGER_WORKFLOW=.github/workflows/zigux-bootstrap.yml`
 - `PHASE10_LEDGER_ENTRYPOINTS=make -C zigux phase10-validate,make -C zigux phase10-test,make -C zigux phase10`
 - `PHASE10_LEDGER_EXACT_CHECK_1=python3 scripts/zigux/check-phase10-closure-inventory.py`
-- `PHASE10_LEDGER_EXACT_CHECK_2=python3 scripts/zigux/validate-phase10-closure.py`
-- `PHASE10_LEDGER_EXACT_CHECK_3=python3 scripts/zigux/check-phase10-harness-coverage.py`
-- `PHASE10_LEDGER_EXACT_CHECK_4=zig build test --build-file zigux/tests/phase10_build.zig --summary all`
-- `PHASE10_LEDGER_EXACT_CHECK_5=make -C zigux phase10-validate`
-- `PHASE10_LEDGER_EXACT_CHECK_6=make -C zigux phase10-test`
-- `PHASE10_LEDGER_EXACT_CHECK_7=make -C zigux phase10`
+- `PHASE10_LEDGER_EXACT_CHECK_2=python3 scripts/zigux/check-phase10-core-packet.py`
+- `PHASE10_LEDGER_EXACT_CHECK_3=python3 scripts/zigux/validate-phase10.py`
+- `PHASE10_LEDGER_EXACT_CHECK_4=python3 scripts/zigux/validate-phase10-closure.py`
+- `PHASE10_LEDGER_EXACT_CHECK_5=python3 scripts/zigux/check-phase10-harness-coverage.py`
+- `PHASE10_LEDGER_EXACT_CHECK_6=zig build test --build-file zigux/tests/phase10_build.zig --summary all`
+- `PHASE10_LEDGER_EXACT_CHECK_7=make -C zigux phase10-validate`
+- `PHASE10_LEDGER_EXACT_CHECK_8=make -C zigux phase10-test`
+- `PHASE10_LEDGER_EXACT_CHECK_9=make -C zigux phase10`
 - `PHASE10_LEDGER_NEXT_STEP=leave_parked_unless_phase10-virtio-input-registration-lifecycle_or_phase10-mmio-lifecycle-and-irq-paths_splits_smaller`
 - `PHASE10_LEDGER_BLOCKERS=phase10-virtio-input-registration-lifecycle,phase10-mmio-lifecycle-and-irq-paths`
 - `PHASE10_LEDGER_LANDED_CORE_HELPERS=phase10-config-generation-summary-helper,phase10-config-delivery-disposition-helper,phase10-config-driver-toggle-guard-helper`
@@ -92,9 +95,11 @@ The shared closure manifest, the dedicated MMIO survey gate, the dedicated harne
 The exact replay packet for the current closure bundle is:
 
 1. `python3 scripts/zigux/check-phase10-closure-inventory.py`
-2. `python3 scripts/zigux/validate-phase10-closure.py`
-3. `python3 scripts/zigux/check-phase10-harness-coverage.py`
-4. `zig build test --build-file zigux/tests/phase10_build.zig --summary all`
-5. `make -C zigux phase10-validate`
-6. `make -C zigux phase10-test`
-7. `make -C zigux phase10`
+2. `python3 scripts/zigux/check-phase10-core-packet.py`
+3. `python3 scripts/zigux/validate-phase10.py`
+4. `python3 scripts/zigux/validate-phase10-closure.py`
+5. `python3 scripts/zigux/check-phase10-harness-coverage.py`
+6. `zig build test --build-file zigux/tests/phase10_build.zig --summary all`
+7. `make -C zigux phase10-validate`
+8. `make -C zigux phase10-test`
+9. `make -C zigux phase10`
