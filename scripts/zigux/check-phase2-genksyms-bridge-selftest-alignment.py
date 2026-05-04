@@ -62,6 +62,7 @@ CLOSURE_DOC_MARKERS = [
     "- `python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test`",
     "- `python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py`",
     "- `PHASE2_GENKSYMS_BRIDGE_CASE_COUNT=26`",
+    "- `PHASE2_GENKSYMS_BRIDGE_DETERMINISM=check-genksyms-bridge.py replays C and Zig bridge outputs twice before comparing artifacts`",
     "- `PHASE2_GENKSYMS_BRIDGE_STDERR_POLICY=success-path stderr silence plus repeat-run stderr determinism are required for closure`",
     "- `PHASE2_GENKSYMS_IMPLEMENTATION_BOUNDARY=scripts/genksyms/genksyms.c remains authoritative for parser-heavy symbol parsing and export semantics while scripts/zigux/genksyms.zig stays a bounded wrapper-first getopt bridge`",
 ]
@@ -69,6 +70,7 @@ CLOSURE_DOC_MARKERS = [
 VALIDATOR_MARKERS = [
     "PHASE2_GENKSYMS_BRIDGE_REQUIRED_SOURCE_MARKERS",
     "PHASE2_GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=26",
+    "print('GENKSYMS_BRIDGE_DETERMINISM=pass')",
     '"python3 scripts/zigux/check-genksyms-bridge.py --self-test": 1,',
     '"python3 scripts/zigux/check-genksyms-bridge.py": 1,',
 ]
@@ -79,11 +81,13 @@ CLOSURE_VALIDATOR_MARKERS = [
     "'python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test': 1,",
     "'python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py': 1,",
     "PHASE2_GENKSYMS_BRIDGE_CASE_COUNT=26",
+    "PHASE2_GENKSYMS_BRIDGE_DETERMINISM=check-genksyms-bridge.py replays C and Zig bridge outputs twice before comparing artifacts",
 ]
 
 BRIDGE_CHECKER_MARKERS = [
     "print('PHASE2_GENKSYMS_BRIDGE_SELF_TEST=pass')",
     "print('PHASE2_GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=26')",
+    "print('GENKSYMS_BRIDGE_DETERMINISM=pass')",
 ]
 
 WORKFLOW_COUNTS = {
@@ -372,14 +376,24 @@ def run_self_test() -> int:
         write(closure_doc_path, original)
 
         original = closure_doc_path.read_text(encoding="utf-8")
-        write(closure_doc_path, original.replace(CLOSURE_DOC_MARKERS[5] + "\n", "", 1))
-        expect_issue("closure_doc_boundary_marker", root, f"closure_doc:{CLOSURE_DOC_MARKERS[5]}")
+        write(closure_doc_path, original.replace(CLOSURE_DOC_MARKERS[4] + "\n", "", 1))
+        expect_issue("closure_doc_determinism_marker", root, f"closure_doc:{CLOSURE_DOC_MARKERS[4]}")
+        write(closure_doc_path, original)
+
+        original = closure_doc_path.read_text(encoding="utf-8")
+        write(closure_doc_path, original.replace(CLOSURE_DOC_MARKERS[6] + "\n", "", 1))
+        expect_issue("closure_doc_boundary_marker", root, f"closure_doc:{CLOSURE_DOC_MARKERS[6]}")
         write(closure_doc_path, original)
 
         bridge_checker_path = root / REQUIRED_FILES["bridge_checker"]
         original = bridge_checker_path.read_text(encoding="utf-8")
         write(bridge_checker_path, original.replace(BRIDGE_CHECKER_MARKERS[1] + "\n", "", 1))
         expect_issue("bridge_checker_marker", root, f"bridge_checker:{BRIDGE_CHECKER_MARKERS[1]}")
+        write(bridge_checker_path, original)
+
+        original = bridge_checker_path.read_text(encoding="utf-8")
+        write(bridge_checker_path, original.replace(BRIDGE_CHECKER_MARKERS[2] + "\n", "", 1))
+        expect_issue("bridge_checker_determinism_marker", root, f"bridge_checker:{BRIDGE_CHECKER_MARKERS[2]}")
         write(bridge_checker_path, original)
 
         validator_path = root / REQUIRED_FILES["validator"]
@@ -391,13 +405,24 @@ def run_self_test() -> int:
         validator_path = root / REQUIRED_FILES["validator"]
         original = validator_path.read_text(encoding="utf-8")
         write(validator_path, original.replace(VALIDATOR_MARKERS[2] + "\n", "", 1))
-        expect_issue("validator_workflow_self_test_marker", root, f"validator:{VALIDATOR_MARKERS[2]}")
+        expect_issue("validator_determinism_marker", root, f"validator:{VALIDATOR_MARKERS[2]}")
+        write(validator_path, original)
+
+        validator_path = root / REQUIRED_FILES["validator"]
+        original = validator_path.read_text(encoding="utf-8")
+        write(validator_path, original.replace(VALIDATOR_MARKERS[3] + "\n", "", 1))
+        expect_issue("validator_workflow_self_test_marker", root, f"validator:{VALIDATOR_MARKERS[3]}")
         write(validator_path, original)
 
         closure_validator_path = root / REQUIRED_FILES["closure_validator"]
         original = closure_validator_path.read_text(encoding="utf-8")
         write(closure_validator_path, original.replace(CLOSURE_VALIDATOR_MARKERS[0] + "\n", "", 1))
         expect_issue("closure_validator_marker", root, f"closure_validator:{CLOSURE_VALIDATOR_MARKERS[0]}")
+        write(closure_validator_path, original)
+
+        original = closure_validator_path.read_text(encoding="utf-8")
+        write(closure_validator_path, original.replace(CLOSURE_VALIDATOR_MARKERS[5] + "\n", "", 1))
+        expect_issue("closure_validator_determinism_marker", root, f"closure_validator:{CLOSURE_VALIDATOR_MARKERS[5]}")
         write(closure_validator_path, original)
 
         workflow_path = root / REQUIRED_FILES["workflow"]
@@ -489,7 +514,7 @@ def run_self_test() -> int:
         expect_issue("version_expected_file", root, "cases:version:expected=version_expected.json")
 
     print("PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=16")
+    print("PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=20")
     return 0
 
 
