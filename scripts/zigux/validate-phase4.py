@@ -41,12 +41,16 @@ REQUIRED_FILES = [
 ]
 
 MAKE_LINES = [
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/artifact_diff.py --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-kprobe-example-packet.py --self-test",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-kprobe-example-packet.py",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-workflow-route-counts.py --self-test",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-workflow-route-counts.py",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase4.py",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase4.py --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-gate-evidence.py --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-gate-evidence.py",
 ]
 
 BUILD_MARKERS = [
@@ -259,6 +263,38 @@ def run_self_test() -> int:
         survey.write_text(survey.read_text(encoding="utf-8").replace("phase4-kprobe-example-survey-tests\n", ""), encoding="utf-8")
         missing = validate_root(root)
         assert "kprobe_survey:phase4-kprobe-example-survey-tests" in missing, missing
+
+        write_fixture_tree(root)
+        makefile = root / "zigux/Makefile"
+        makefile.write_text(
+            makefile.read_text(encoding="utf-8").replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/artifact_diff.py --self-test\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert (
+            "make:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/artifact_diff.py --self-test"
+            in missing
+        ), missing
+
+        write_fixture_tree(root)
+        makefile = root / "zigux/Makefile"
+        makefile.write_text(
+            makefile.read_text(encoding="utf-8").replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-gate-evidence.py\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert (
+            "make:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-gate-evidence.py"
+            in missing
+        ), missing
 
         write_fixture_tree(root)
         gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
