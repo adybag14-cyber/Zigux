@@ -42,4 +42,27 @@ test "phase13 devres direct ioremap wrapper family stays explicit and individual
     try expectContains(devres_tests, "planManagedIoremapAcquireUc(");
     try expectContains(devres_tests, "planManagedIoremapAcquireWc(");
     try expectContains(devres_tests, "planManagedIoremapAcquireNp(");
+
+    const phase13_build = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase13_build.zig",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(phase13_build);
+
+    try expectContains(phase13_build, "phase13_devres_wrapper_reviewability.zig");
+    try expectContains(phase13_build, "phase13-devres-wrapper-reviewability-tests");
+
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase13-devres-survey.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    try expectContains(survey_note, "- `zigux/tests/phase13_devres_wrapper_reviewability.zig`");
+    try expectContains(survey_note, "`zigux/tests/phase13_devres_wrapper_reviewability.zig` now source-scans `lib/devres.zig` for the direct plain, UC, WC, and NP managed ioremap wrapper entrypoints");
+    try expectContains(survey_note, "the direct plain, UC, WC, and NP managed ioremap wrapper family plus its dedicated survey-visible reviewability gate");
 }
