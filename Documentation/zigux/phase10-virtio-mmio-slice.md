@@ -44,6 +44,21 @@ The live repo now has the virtio core, ring, and input lab footholds plus the ea
 
 The same parked MMIO packet also participates in the shared closure evidence bundle through `Documentation/zigux/phase10-closure-evidence.md`, `zigux/tests/phase10_closure_manifest.json`, and `zigux-alpha/PHASE10_CLOSURE_LEDGER.md`, so the current review path is broader than the dedicated MMIO test alone even though the landed helper surface remains transport-local.
 
+## Ownership handoff
+
+This slice note owns only the driver-local review surface that is already landed in `drivers/virtio/virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_queue_isolation.zig`, `zigux/tests/phase10_build.zig`, and `zigux/Makefile`.
+
+The still-blocked `phase10-mmio-lifecycle-and-irq-paths` follow-up remains owned by the adjacent survey and shared closure packet until a future run can split another transport-safe observation helper out of that broader transport mix:
+
+- `Documentation/zigux/phase10-virtio-mmio-survey.md`
+- `zigux/tests/phase10_virtio_mmio_manifest.json`
+- `zigux/tests/phase10_virtio_mmio_survey.zig`
+- `Documentation/zigux/phase10-closure-evidence.md`
+- `zigux/tests/phase10_closure_manifest.json`
+- `zigux-alpha/PHASE10_CLOSURE_LEDGER.md`
+
+This keeps the driver-local slice note from implying ownership of shared IRQ delivery, queue setup, probe, remove, or DMA-facing transport claims just because the bounded interrupt-state and interrupt-ack rungs are now landed.
+
 ## Non-goals
 
 This slice does not yet claim:
