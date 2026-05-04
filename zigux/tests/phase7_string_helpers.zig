@@ -311,6 +311,17 @@ test "phase 7 kasprintfStrarrayRaw keeps zero-count ownership distinct across ca
     try std.testing.expect(empty_a.ptr != empty_b.ptr);
 }
 
+test "phase 7 string-array helpers reject usize overflow before allocation" {
+    try std.testing.expectError(
+        error.Overflow,
+        string_helpers.kasprintfStrarrayRaw(std.testing.allocator, "cpu", std.math.maxInt(usize)),
+    );
+    try std.testing.expectError(
+        error.Overflow,
+        string_helpers.kasprintfStrarray(std.testing.allocator, "cpu", std.math.maxInt(usize)),
+    );
+}
+
 test "phase 7 kfreeStrarrayRaw keeps counted partial teardown safe" {
     const raw = try std.testing.allocator.alloc(?[*:0]u8, 4);
     @memset(raw, null);
