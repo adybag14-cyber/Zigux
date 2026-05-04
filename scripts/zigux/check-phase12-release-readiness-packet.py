@@ -161,6 +161,7 @@ RAW_COVERAGE_MARKERS = [
     "`PHASE12_COMMIT_PINNED_RAW_FALLBACK_COUNT=2`",
     "`PHASE12_SHARED_TREE_ONLY_FALLBACK_COUNT=2`",
     "`PHASE12_SHARED_TREE_READBACK_ROOT_COUNT=4`",
+    "`PHASE12_SHARED_TREE_BRANCH_RAW_PATH_COUNT=2`",
 ]
 
 RAW_COVERAGE_EXACT_COUNT_MARKERS = {
@@ -170,6 +171,7 @@ RAW_COVERAGE_EXACT_COUNT_MARKERS = {
     "`PHASE12_COMMIT_PINNED_RAW_FALLBACK_COUNT=2`": 1,
     "`PHASE12_SHARED_TREE_ONLY_FALLBACK_COUNT=2`": 1,
     "`PHASE12_SHARED_TREE_READBACK_ROOT_COUNT=4`": 1,
+    "`PHASE12_SHARED_TREE_BRANCH_RAW_PATH_COUNT=2`": 1,
 }
 
 RAW_COVERAGE_EXPECTED_ROOTS = [
@@ -177,6 +179,11 @@ RAW_COVERAGE_EXPECTED_ROOTS = [
     "https://github.com/adybag14-cyber/Zigux/tree/master/tools/lib/bpf",
     "https://github.com/adybag14-cyber/Zigux/tree/master/Documentation/zigux",
     "https://github.com/adybag14-cyber/Zigux/tree/master/zigux/tests",
+]
+
+RAW_COVERAGE_EXPECTED_BRANCH_RAW_PATHS = [
+    "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/drivers/net/virtio_net.c",
+    "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/tools/lib/bpf/libbpf.c",
 ]
 
 RAW_COVERAGE_EXPECTED_ANCHORS = {
@@ -187,6 +194,7 @@ RAW_COVERAGE_EXPECTED_ANCHORS = {
         "public_read_status": "shared_tree_only",
         "raw_fallback_catalog_path": "",
         "raw_fallback_map_path": "",
+        "shared_tree_branch_raw_path": "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/drivers/net/virtio_net.c",
     },
     "nvme_pci": {
         "anchor": "drivers/nvme/host/pci.c",
@@ -195,6 +203,7 @@ RAW_COVERAGE_EXPECTED_ANCHORS = {
         "public_read_status": "commit_pinned_raw_map",
         "raw_fallback_catalog_path": "",
         "raw_fallback_map_path": "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md",
+        "shared_tree_branch_raw_path": "",
     },
     "virtio_scsi": {
         "anchor": "drivers/scsi/virtio_scsi.c",
@@ -203,6 +212,7 @@ RAW_COVERAGE_EXPECTED_ANCHORS = {
         "public_read_status": "commit_pinned_raw_catalog",
         "raw_fallback_catalog_path": "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md",
         "raw_fallback_map_path": "",
+        "shared_tree_branch_raw_path": "",
     },
     "libbpf": {
         "anchor": "tools/lib/bpf/libbpf.c",
@@ -211,6 +221,7 @@ RAW_COVERAGE_EXPECTED_ANCHORS = {
         "public_read_status": "shared_tree_only",
         "raw_fallback_catalog_path": "",
         "raw_fallback_map_path": "",
+        "shared_tree_branch_raw_path": "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/tools/lib/bpf/libbpf.c",
     },
 }
 
@@ -218,21 +229,27 @@ RAW_COVERAGE_SURVEY_ZIG_MARKERS = [
     'test "phase12 raw GitHub coverage survey keeps the roadmap-wide public-read split explicit" {',
     'try std.testing.expectEqualStrings("P12-L07", manifest.lane_key);',
     'try std.testing.expectEqualStrings("Phase 12", manifest.phase);',
-    'try std.testing.expectEqualStrings("bc2373f7deedf021c73beaae29555a9ac6b0536d", manifest.last_replayed_public_head);',
+    'try std.testing.expectEqualStrings("0bd402fd6ca83ba2ace6b21e9e57459401b631cd", manifest.last_replayed_public_head);',
     'try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_anchor_count);',
     'try std.testing.expectEqual(@as(usize, 1), manifest.commit_pinned_raw_fallback_catalog_count);',
     'try std.testing.expectEqual(@as(usize, 1), manifest.commit_pinned_raw_fallback_map_count);',
     'try std.testing.expectEqual(@as(usize, 2), manifest.shared_tree_only_anchor_count);',
     'try std.testing.expectEqual(@as(usize, 4), manifest.shared_tree_readback_root_count);',
+    'try std.testing.expectEqual(@as(usize, 2), manifest.shared_tree_branch_raw_path_count);',
     'try std.testing.expectEqual(@as(usize, 4), manifest.shared_tree_readback_roots.len);',
+    'try std.testing.expectEqual(@as(usize, 2), manifest.shared_tree_branch_raw_paths.len);',
     'try std.testing.expectEqual(@as(usize, 4), manifest.anchors.len);',
     'try std.testing.expectEqual(@as(usize, 2), shared_tree_only_count);',
     'try std.testing.expectEqual(@as(usize, 1), commit_pinned_catalog_count);',
     'try std.testing.expectEqual(@as(usize, 1), commit_pinned_map_count);',
+    'try std.testing.expectEqual(@as(usize, 2), shared_tree_branch_raw_path_count);',
     '"one anchor keeps a commit-pinned raw fallback catalog"',
     '"one anchor keeps a commit-pinned raw fallback map"',
     '"two anchors remain shared-tree-only fallback reads"',
+    '"https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/drivers/net/virtio_net.c"',
+    '"https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/tools/lib/bpf/libbpf.c"',
     '"PHASE12_SHARED_TREE_READBACK_ROOT_COUNT=4"',
+    '"PHASE12_SHARED_TREE_BRANCH_RAW_PATH_COUNT=2"',
 ]
 
 RAW_COVERAGE_SURVEY_ZIG_EXACT_COUNT_MARKERS = {
@@ -242,12 +259,17 @@ RAW_COVERAGE_SURVEY_ZIG_EXACT_COUNT_MARKERS = {
     'try std.testing.expectEqual(@as(usize, 1), manifest.commit_pinned_raw_fallback_map_count);': 1,
     'try std.testing.expectEqual(@as(usize, 2), manifest.shared_tree_only_anchor_count);': 1,
     'try std.testing.expectEqual(@as(usize, 4), manifest.shared_tree_readback_root_count);': 1,
+    'try std.testing.expectEqual(@as(usize, 2), manifest.shared_tree_branch_raw_path_count);': 1,
     'try std.testing.expectEqual(@as(usize, 2), shared_tree_only_count);': 1,
     'try std.testing.expectEqual(@as(usize, 1), commit_pinned_catalog_count);': 1,
     'try std.testing.expectEqual(@as(usize, 1), commit_pinned_map_count);': 1,
+    'try std.testing.expectEqual(@as(usize, 2), shared_tree_branch_raw_path_count);': 1,
     '"one anchor keeps a commit-pinned raw fallback catalog"': 1,
     '"one anchor keeps a commit-pinned raw fallback map"': 1,
     '"two anchors remain shared-tree-only fallback reads"': 1,
+    '"https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/drivers/net/virtio_net.c"': 1,
+    '"https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/tools/lib/bpf/libbpf.c"': 1,
+    '"PHASE12_SHARED_TREE_BRANCH_RAW_PATH_COUNT=2"': 1,
 }
 
 
@@ -280,24 +302,29 @@ def collect_raw_coverage_manifest_misses(manifest_text: str, prefix: str) -> lis
         "phase": "Phase 12",
         "scope": "raw GitHub fallback catalog survey public-read coverage gaps vs roadmap",
         "public_read_boundary": "read_only_public_github_tree_and_raw_paths_only",
-        "last_replayed_public_head": "bc2373f7deedf021c73beaae29555a9ac6b0536d",
+        "last_replayed_public_head": "0bd402fd6ca83ba2ace6b21e9e57459401b631cd",
         "roadmap_anchor_count": 4,
         "commit_pinned_raw_fallback_catalog_count": 1,
         "commit_pinned_raw_fallback_map_count": 1,
         "shared_tree_only_anchor_count": 2,
         "shared_tree_readback_root_count": 4,
+        "shared_tree_branch_raw_path_count": 2,
     }
     for key, expected_value in expected_scalars.items():
         actual_value = manifest.get(key)
         if actual_value != expected_value:
-            missing.append(
-                f"{prefix}:{key}:expected={expected_value}:actual={actual_value}"
-            )
+            missing.append(f"{prefix}:{key}:expected={expected_value}:actual={actual_value}")
 
     roots = manifest.get("shared_tree_readback_roots")
     if roots != RAW_COVERAGE_EXPECTED_ROOTS:
         missing.append(
             f"{prefix}:shared_tree_readback_roots:expected={RAW_COVERAGE_EXPECTED_ROOTS}:actual={roots}"
+        )
+
+    branch_raw_paths = manifest.get("shared_tree_branch_raw_paths")
+    if branch_raw_paths != RAW_COVERAGE_EXPECTED_BRANCH_RAW_PATHS:
+        missing.append(
+            f"{prefix}:shared_tree_branch_raw_paths:expected={RAW_COVERAGE_EXPECTED_BRANCH_RAW_PATHS}:actual={branch_raw_paths}"
         )
 
     anchors = manifest.get("anchors")
@@ -410,18 +437,8 @@ def collect_missing(
             "raw_coverage_count",
         )
     )
-    missing.extend(
-        collect_raw_coverage_manifest_misses(
-            raw_coverage_manifest_text,
-            "raw_coverage_manifest",
-        )
-    )
-    missing.extend(
-        collect_raw_coverage_survey_zig_misses(
-            raw_coverage_survey_zig_text,
-            "raw_coverage_survey_zig",
-        )
-    )
+    missing.extend(collect_raw_coverage_manifest_misses(raw_coverage_manifest_text, "raw_coverage_manifest"))
+    missing.extend(collect_raw_coverage_survey_zig_misses(raw_coverage_survey_zig_text, "raw_coverage_survey_zig"))
     return missing
 
 
@@ -438,41 +455,54 @@ def build_live_inputs() -> dict[str, object]:
         "review_checklist_text": read_text("Documentation/zigux/review-checklist.md"),
         "scripts_readme_text": read_text("scripts/zigux/README.md"),
         "validator_text": read_text("scripts/zigux/validate-phase12.py"),
+        "makefile_text": read_text("zigux/Makefile"),
         "cross_smoke_text": read_text("Documentation/zigux/phase12-cross-compile-smoke.md"),
         "raw_coverage_text": read_text("Documentation/zigux/phase12-raw-github-coverage-survey.md"),
         "raw_coverage_manifest_text": read_text("zigux/tests/phase12_raw_github_coverage_manifest.json"),
         "raw_coverage_survey_zig_text": read_text("zigux/tests/phase12_raw_github_coverage_survey.zig"),
-        "makefile_text": read_text("zigux/Makefile"),
     }
 
 
-def expect_contains(label: str, missing: list[str], expected_item: str) -> None:
-    if expected_item not in missing:
-        actual = ",".join(missing) if missing else "none"
-        raise SystemExit(
-            f"phase12-release-readiness-self-test:{label}:expected_missing_item:{expected_item}:actual:{actual}"
-        )
+def expect_contains(case: str, haystack: list[str], needle: str) -> None:
+    if needle not in haystack:
+        raise SystemExit(f"phase12-release-readiness-self-test:{case}:missing={needle}:actual={haystack}")
 
 
-def run_self_test() -> int:
+def build_base_inputs() -> dict[str, object]:
     base_manifest = {
         "lane_key": "P12-L07",
         "phase": "Phase 12",
         "scope": "raw GitHub fallback catalog survey public-read coverage gaps vs roadmap",
         "public_read_boundary": "read_only_public_github_tree_and_raw_paths_only",
-        "last_replayed_public_head": "bc2373f7deedf021c73beaae29555a9ac6b0536d",
+        "last_replayed_public_head": "0bd402fd6ca83ba2ace6b21e9e57459401b631cd",
         "roadmap_anchor_count": 4,
         "commit_pinned_raw_fallback_catalog_count": 1,
         "commit_pinned_raw_fallback_map_count": 1,
         "shared_tree_only_anchor_count": 2,
         "shared_tree_readback_root_count": 4,
+        "shared_tree_branch_raw_path_count": 2,
         "shared_tree_readback_roots": RAW_COVERAGE_EXPECTED_ROOTS,
+        "shared_tree_branch_raw_paths": RAW_COVERAGE_EXPECTED_BRANCH_RAW_PATHS,
         "anchors": [
-            {"id": anchor_id, **anchor_spec}
-            for anchor_id, anchor_spec in RAW_COVERAGE_EXPECTED_ANCHORS.items()
+            {
+                "id": "virtio_net",
+                **RAW_COVERAGE_EXPECTED_ANCHORS["virtio_net"],
+            },
+            {
+                "id": "nvme_pci",
+                **RAW_COVERAGE_EXPECTED_ANCHORS["nvme_pci"],
+            },
+            {
+                "id": "virtio_scsi",
+                **RAW_COVERAGE_EXPECTED_ANCHORS["virtio_scsi"],
+            },
+            {
+                "id": "libbpf",
+                **RAW_COVERAGE_EXPECTED_ANCHORS["libbpf"],
+            },
         ],
     }
-    base_inputs = {
+    return {
         "present_files": set(REQUIRED_FILES),
         "survey_text": "\n".join(
             SURVEY_MARKERS
@@ -484,202 +514,121 @@ def run_self_test() -> int:
             ]
         )
         + "\n",
-        "contract_note_text": "\n".join(
-            CONTRACT_NOTE_MARKERS + list(CONTRACT_NOTE_EXACT_COUNT_MARKERS)
-        )
-        + "\n",
+        "contract_note_text": "\n".join(CONTRACT_NOTE_MARKERS + list(CONTRACT_NOTE_EXACT_COUNT_MARKERS)) + "\n",
         "docs_root_text": "\n".join(DOCS_ROOT_MARKERS) + "\n",
         "review_checklist_text": "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n",
         "scripts_readme_text": "\n".join(SCRIPTS_README_MARKERS) + "\n",
-        "validator_text": "\n".join(VALIDATOR_MARKERS) + "\n",
+        "validator_text": "\n".join(
+            [
+                "scripts/zigux/check-phase12-release-readiness-packet.py --self-test",
+                "scripts/zigux/check-phase12-release-readiness-packet.py",
+                "Documentation/zigux/phase12-release-readiness-survey.md",
+            ]
+        )
+        + "\n",
+        "makefile_text": "\n".join([MAKEFILE_SELF_TEST_MARKER, MAKEFILE_RUN_MARKER, "scripts/zigux/validate-phase12.py"]) + "\n",
         "cross_smoke_text": "\n".join(CROSS_SMOKE_MARKERS) + "\n",
         "raw_coverage_text": "\n".join(RAW_COVERAGE_MARKERS) + "\n",
         "raw_coverage_manifest_text": json.dumps(base_manifest, indent=2),
         "raw_coverage_survey_zig_text": "\n".join(RAW_COVERAGE_SURVEY_ZIG_MARKERS) + "\n",
-        "makefile_text": "\n".join([MAKEFILE_SELF_TEST_MARKER, MAKEFILE_RUN_MARKER, "scripts/zigux/validate-phase12.py"]) + "\n",
     }
+
+
+def run_self_test() -> int:
+    base_inputs = build_base_inputs()
+    base_manifest = json.loads(base_inputs["raw_coverage_manifest_text"])
 
     missing = collect_missing(**base_inputs)
     if missing:
-        raise SystemExit(
-            "phase12-release-readiness-self-test:unexpected_failures:" + ",".join(missing)
-        )
+        raise SystemExit("phase12-release-readiness-self-test:unexpected_failures:" + ",".join(missing))
 
     missing = collect_missing(**{**base_inputs, "present_files": set(REQUIRED_FILES[1:])})
-    expect_contains(
-        "missing_file_detection",
-        missing,
-        "missing_file:Documentation/zigux/phase12-release-readiness-survey.md",
-    )
+    expect_contains("missing_file_detection", missing, "missing_file:Documentation/zigux/phase12-release-readiness-survey.md")
 
     missing = collect_missing(
         **{
             **base_inputs,
-            "present_files": {
-                path
-                for path in REQUIRED_FILES
-                if path != "Documentation/zigux/phase12-shared-replay-contract.md"
-            },
+            "present_files": {path for path in REQUIRED_FILES if path != "Documentation/zigux/phase12-shared-replay-contract.md"},
         }
     )
-    expect_contains(
-        "contract_note_file_detection",
-        missing,
-        "missing_file:Documentation/zigux/phase12-shared-replay-contract.md",
-    )
+    expect_contains("contract_note_file_detection", missing, "missing_file:Documentation/zigux/phase12-shared-replay-contract.md")
 
     missing = collect_missing(
         **{
             **base_inputs,
-            "present_files": {
-                path
-                for path in REQUIRED_FILES
-                if path != "Documentation/zigux/phase12-libbpf-segment-survey.md"
-            },
+            "present_files": {path for path in REQUIRED_FILES if path != "Documentation/zigux/phase12-libbpf-segment-survey.md"},
         }
     )
-    expect_contains(
-        "libbpf_survey_file_detection",
-        missing,
-        "missing_file:Documentation/zigux/phase12-libbpf-segment-survey.md",
-    )
+    expect_contains("libbpf_survey_file_detection", missing, "missing_file:Documentation/zigux/phase12-libbpf-segment-survey.md")
 
     missing = collect_missing(
         **{
             **base_inputs,
-            "present_files": {
-                path
-                for path in REQUIRED_FILES
-                if path != "scripts/zigux/check-phase12-cross.py"
-            },
+            "present_files": {path for path in REQUIRED_FILES if path != "scripts/zigux/check-phase12-cross.py"},
         }
     )
-    expect_contains(
-        "cross_checker_file_detection",
-        missing,
-        "missing_file:scripts/zigux/check-phase12-cross.py",
-    )
+    expect_contains("cross_checker_file_detection", missing, "missing_file:scripts/zigux/check-phase12-cross.py")
 
     missing = collect_missing(
         **{
             **base_inputs,
-            "present_files": {
-                path
-                for path in REQUIRED_FILES
-                if path != "scripts/zigux/check-phase12-libbpf-focused-replay.py"
-            },
+            "present_files": {path for path in REQUIRED_FILES if path != "scripts/zigux/check-phase12-libbpf-focused-replay.py"},
         }
     )
-    expect_contains(
-        "focused_replay_checker_file_detection",
-        missing,
-        "missing_file:scripts/zigux/check-phase12-libbpf-focused-replay.py",
-    )
+    expect_contains("focused_replay_checker_file_detection", missing, "missing_file:scripts/zigux/check-phase12-libbpf-focused-replay.py")
 
     missing = collect_missing(
         **{
             **base_inputs,
-            "present_files": {
-                path
-                for path in REQUIRED_FILES
-                if path != "scripts/zigux/check-phase12-libbpf-snapshot.py"
-            },
+            "present_files": {path for path in REQUIRED_FILES if path != "scripts/zigux/check-phase12-libbpf-snapshot.py"},
         }
     )
-    expect_contains(
-        "libbpf_snapshot_checker_file_detection",
-        missing,
-        "missing_file:scripts/zigux/check-phase12-libbpf-snapshot.py",
-    )
+    expect_contains("libbpf_snapshot_checker_file_detection", missing, "missing_file:scripts/zigux/check-phase12-libbpf-snapshot.py")
 
     missing = collect_missing(
         **{
             **base_inputs,
-            "present_files": {
-                path
-                for path in REQUIRED_FILES
-                if path != "scripts/zigux/check-phase12-libbpf-packet.py"
-            },
+            "present_files": {path for path in REQUIRED_FILES if path != "scripts/zigux/check-phase12-libbpf-packet.py"},
         }
     )
-    expect_contains(
-        "libbpf_packet_checker_file_detection",
-        missing,
-        "missing_file:scripts/zigux/check-phase12-libbpf-packet.py",
-    )
+    expect_contains("libbpf_packet_checker_file_detection", missing, "missing_file:scripts/zigux/check-phase12-libbpf-packet.py")
 
     missing = collect_missing(
         **{
             **base_inputs,
-            "present_files": {
-                path
-                for path in REQUIRED_FILES
-                if path != "zigux/tests/phase12_libbpf_only_build.zig"
-            },
+            "present_files": {path for path in REQUIRED_FILES if path != "zigux/tests/phase12_libbpf_only_build.zig"},
         }
     )
-    expect_contains(
-        "focused_replay_build_file_detection",
-        missing,
-        "missing_file:zigux/tests/phase12_libbpf_only_build.zig",
-    )
+    expect_contains("focused_replay_build_file_detection", missing, "missing_file:zigux/tests/phase12_libbpf_only_build.zig")
 
     missing = collect_missing(
         **{
             **base_inputs,
-            "present_files": {
-                path
-                for path in REQUIRED_FILES
-                if path != "scripts/zigux/check-phase12-raw-github-coverage.py"
-            },
+            "present_files": {path for path in REQUIRED_FILES if path != "scripts/zigux/check-phase12-raw-github-coverage.py"},
         }
     )
-    expect_contains(
-        "raw_coverage_checker_file_detection",
-        missing,
-        "missing_file:scripts/zigux/check-phase12-raw-github-coverage.py",
-    )
+    expect_contains("raw_coverage_checker_file_detection", missing, "missing_file:scripts/zigux/check-phase12-raw-github-coverage.py")
 
     missing = collect_missing(
         **{
             **base_inputs,
-            "present_files": {
-                path
-                for path in REQUIRED_FILES
-                if path != "zigux/tests/phase12_raw_github_coverage_manifest.json"
-            },
+            "present_files": {path for path in REQUIRED_FILES if path != "zigux/tests/phase12_raw_github_coverage_manifest.json"},
         }
     )
-    expect_contains(
-        "raw_coverage_manifest_file_detection",
-        missing,
-        "missing_file:zigux/tests/phase12_raw_github_coverage_manifest.json",
-    )
+    expect_contains("raw_coverage_manifest_file_detection", missing, "missing_file:zigux/tests/phase12_raw_github_coverage_manifest.json")
 
     missing = collect_missing(
         **{
             **base_inputs,
-            "present_files": {
-                path
-                for path in REQUIRED_FILES
-                if path != "zigux/tests/phase12_raw_github_coverage_survey.zig"
-            },
+            "present_files": {path for path in REQUIRED_FILES if path != "zigux/tests/phase12_raw_github_coverage_survey.zig"},
         }
     )
-    expect_contains(
-        "raw_coverage_survey_file_detection",
-        missing,
-        "missing_file:zigux/tests/phase12_raw_github_coverage_survey.zig",
-    )
+    expect_contains("raw_coverage_survey_file_detection", missing, "missing_file:zigux/tests/phase12_raw_github_coverage_survey.zig")
 
     missing = collect_missing(
         **{
             **base_inputs,
-            "survey_text": base_inputs["survey_text"].replace(
-                "PHASE12_RELEASE_CLOSED=no\n",
-                "",
-                1,
-            ),
+            "survey_text": base_inputs["survey_text"].replace("PHASE12_RELEASE_CLOSED=no\n", "", 1),
         }
     )
     expect_contains("survey_marker_detection", missing, "survey:PHASE12_RELEASE_CLOSED=no")
@@ -690,11 +639,7 @@ def run_self_test() -> int:
             "survey_text": base_inputs["survey_text"] + "PHASE12_RELEASE_CLOSED=no\n",
         }
     )
-    expect_contains(
-        "survey_exact_count_detection",
-        missing,
-        "survey_count:PHASE12_RELEASE_CLOSED=no:expected=1:actual=2",
-    )
+    expect_contains("survey_exact_count_detection", missing, "survey_count:PHASE12_RELEASE_CLOSED=no:expected=1:actual=2")
 
     release_guard_marker = (
         "the release-facing note now also names `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test` plus "
@@ -720,11 +665,7 @@ def run_self_test() -> int:
             "survey_text": base_inputs["survey_text"].replace(raw_coverage_packet_marker + "\n", "", 1),
         }
     )
-    expect_contains(
-        "survey_raw_coverage_packet_detection",
-        missing,
-        f"survey:{raw_coverage_packet_marker}",
-    )
+    expect_contains("survey_raw_coverage_packet_detection", missing, f"survey:{raw_coverage_packet_marker}")
 
     missing = collect_missing(
         **{
@@ -752,11 +693,7 @@ def run_self_test() -> int:
             "survey_text": base_inputs["survey_text"] + "scripts/zigux/check-phase12-cross.py\n",
         }
     )
-    expect_contains(
-        "survey_cross_checker_exact_count_detection",
-        missing,
-        "survey_count:scripts/zigux/check-phase12-cross.py:expected=2:actual=3",
-    )
+    expect_contains("survey_cross_checker_exact_count_detection", missing, "survey_count:scripts/zigux/check-phase12-cross.py:expected=2:actual=3")
 
     missing = collect_missing(
         **{
@@ -764,11 +701,7 @@ def run_self_test() -> int:
             "survey_text": base_inputs["survey_text"].replace("scripts/zigux/check-phase12-libbpf-snapshot.py\n", "", 1),
         }
     )
-    expect_contains(
-        "survey_libbpf_snapshot_checker_detection",
-        missing,
-        "survey:scripts/zigux/check-phase12-libbpf-snapshot.py",
-    )
+    expect_contains("survey_libbpf_snapshot_checker_detection", missing, "survey:scripts/zigux/check-phase12-libbpf-snapshot.py")
 
     missing = collect_missing(
         **{
@@ -776,11 +709,7 @@ def run_self_test() -> int:
             "survey_text": base_inputs["survey_text"].replace("scripts/zigux/check-phase12-libbpf-packet.py\n", "", 1),
         }
     )
-    expect_contains(
-        "survey_libbpf_packet_checker_detection",
-        missing,
-        "survey:scripts/zigux/check-phase12-libbpf-packet.py",
-    )
+    expect_contains("survey_libbpf_packet_checker_detection", missing, "survey:scripts/zigux/check-phase12-libbpf-packet.py")
 
     missing = collect_missing(
         **{
@@ -788,20 +717,12 @@ def run_self_test() -> int:
             "survey_text": base_inputs["survey_text"].replace("scripts/zigux/check-phase12-raw-github-coverage.py\n", "", 1),
         }
     )
-    expect_contains(
-        "survey_raw_coverage_checker_detection",
-        missing,
-        "survey_count:scripts/zigux/check-phase12-raw-github-coverage.py:expected=3:actual=2",
-    )
+    expect_contains("survey_raw_coverage_checker_detection", missing, "survey_count:scripts/zigux/check-phase12-raw-github-coverage.py:expected=3:actual=2")
 
     missing = collect_missing(
         **{
             **base_inputs,
-            "survey_text": base_inputs["survey_text"].replace(
-                "zigux/tests/phase12_raw_github_coverage_survey.zig\n",
-                "",
-                1,
-            ),
+            "survey_text": base_inputs["survey_text"].replace("zigux/tests/phase12_raw_github_coverage_survey.zig\n", "", 1),
         }
     )
     expect_contains(
@@ -813,34 +734,18 @@ def run_self_test() -> int:
     missing = collect_missing(
         **{
             **base_inputs,
-            "raw_coverage_text": base_inputs["raw_coverage_text"].replace(
-                "zigux/tests/phase12_raw_github_coverage_manifest.json\n",
-                "",
-                1,
-            ),
+            "raw_coverage_text": base_inputs["raw_coverage_text"].replace("zigux/tests/phase12_raw_github_coverage_manifest.json\n", "", 1),
         }
     )
-    expect_contains(
-        "raw_coverage_manifest_marker_detection",
-        missing,
-        "raw_coverage:zigux/tests/phase12_raw_github_coverage_manifest.json",
-    )
+    expect_contains("raw_coverage_manifest_marker_detection", missing, "raw_coverage:zigux/tests/phase12_raw_github_coverage_manifest.json")
 
     missing = collect_missing(
         **{
             **base_inputs,
-            "raw_coverage_text": base_inputs["raw_coverage_text"].replace(
-                "zigux/tests/phase12_raw_github_coverage_survey.zig\n",
-                "",
-                1,
-            ),
+            "raw_coverage_text": base_inputs["raw_coverage_text"].replace("zigux/tests/phase12_raw_github_coverage_survey.zig\n", "", 1),
         }
     )
-    expect_contains(
-        "raw_coverage_survey_marker_detection",
-        missing,
-        "raw_coverage:zigux/tests/phase12_raw_github_coverage_survey.zig",
-    )
+    expect_contains("raw_coverage_survey_marker_detection", missing, "raw_coverage:zigux/tests/phase12_raw_github_coverage_survey.zig")
 
     missing = collect_missing(
         **{
@@ -874,11 +779,7 @@ def run_self_test() -> int:
     missing = collect_missing(
         **{
             **base_inputs,
-            "raw_coverage_text": base_inputs["raw_coverage_text"].replace(
-                "`PHASE12_SHARED_TREE_READBACK_ROOT_COUNT=4`\n",
-                "",
-                1,
-            ),
+            "raw_coverage_text": base_inputs["raw_coverage_text"].replace("`PHASE12_SHARED_TREE_READBACK_ROOT_COUNT=4`\n", "", 1),
         }
     )
     expect_contains(
@@ -890,8 +791,7 @@ def run_self_test() -> int:
     missing = collect_missing(
         **{
             **base_inputs,
-            "raw_coverage_text": base_inputs["raw_coverage_text"]
-            + "two anchors remain shared-tree-only fallback reads: `virtio_net` and `libbpf`\n",
+            "raw_coverage_text": base_inputs["raw_coverage_text"] + "two anchors remain shared-tree-only fallback reads: `virtio_net` and `libbpf`\n",
         }
     )
     expect_contains(
@@ -903,28 +803,28 @@ def run_self_test() -> int:
     missing = collect_missing(
         **{
             **base_inputs,
-            "contract_note_text": base_inputs["contract_note_text"].replace(
-                CONTRACT_NOTE_MARKERS[0] + "\n",
-                "",
-                1,
-            ),
+            "raw_coverage_text": base_inputs["raw_coverage_text"].replace("`PHASE12_SHARED_TREE_BRANCH_RAW_PATH_COUNT=2`\n", "", 1),
         }
     )
     expect_contains(
-        "contract_note_marker_detection",
+        "raw_coverage_branch_raw_path_count_detection",
         missing,
-        f"contract_note:{CONTRACT_NOTE_MARKERS[0]}",
+        "raw_coverage_count:`PHASE12_SHARED_TREE_BRANCH_RAW_PATH_COUNT=2`:expected=1:actual=0",
     )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "contract_note_text": base_inputs["contract_note_text"].replace(CONTRACT_NOTE_MARKERS[0] + "\n", "", 1),
+        }
+    )
+    expect_contains("contract_note_marker_detection", missing, f"contract_note:{CONTRACT_NOTE_MARKERS[0]}")
 
     contract_note_raw_coverage_sentence = next(iter(CONTRACT_NOTE_EXACT_COUNT_MARKERS))
     missing = collect_missing(
         **{
             **base_inputs,
-            "contract_note_text": base_inputs["contract_note_text"].replace(
-                contract_note_raw_coverage_sentence + "\n",
-                "",
-                1,
-            ),
+            "contract_note_text": base_inputs["contract_note_text"].replace(contract_note_raw_coverage_sentence + "\n", "", 1),
         }
     )
     expect_contains(
@@ -933,13 +833,10 @@ def run_self_test() -> int:
         f"contract_note_count:{contract_note_raw_coverage_sentence}:expected=1:actual=0",
     )
 
-    manifest_review_use_marker = "- `zigux/tests/phase12_raw_github_coverage_manifest.json`"
     missing = collect_missing(
         **{
             **base_inputs,
-            "contract_note_text": base_inputs["contract_note_text"]
-            + manifest_review_use_marker
-            + "\n",
+            "contract_note_text": base_inputs["contract_note_text"] + "- `zigux/tests/phase12_raw_github_coverage_manifest.json`\n",
         }
     )
     expect_contains(
@@ -948,13 +845,10 @@ def run_self_test() -> int:
         "contract_note_count:- `zigux/tests/phase12_raw_github_coverage_manifest.json`:expected=1:actual=2",
     )
 
-    survey_review_use_marker = "- `zigux/tests/phase12_raw_github_coverage_survey.zig`"
     missing = collect_missing(
         **{
             **base_inputs,
-            "contract_note_text": base_inputs["contract_note_text"]
-            + survey_review_use_marker
-            + "\n",
+            "contract_note_text": base_inputs["contract_note_text"] + "- `zigux/tests/phase12_raw_github_coverage_survey.zig`\n",
         }
     )
     expect_contains(
@@ -966,11 +860,7 @@ def run_self_test() -> int:
     missing = collect_missing(
         **{
             **base_inputs,
-            "docs_root_text": base_inputs["docs_root_text"].replace(
-                DOCS_ROOT_MARKERS[5] + "\n",
-                "",
-                1,
-            ),
+            "docs_root_text": base_inputs["docs_root_text"].replace(DOCS_ROOT_MARKERS[5] + "\n", "", 1),
         }
     )
     expect_contains("docs_root_marker_detection", missing, f"docs_root:{DOCS_ROOT_MARKERS[5]}")
@@ -990,25 +880,15 @@ def run_self_test() -> int:
     missing = collect_missing(
         **{
             **base_inputs,
-            "review_checklist_text": base_inputs["review_checklist_text"].replace(
-                REVIEW_CHECKLIST_MARKERS[0] + "\n",
-                "",
-                1,
-            ),
+            "review_checklist_text": base_inputs["review_checklist_text"].replace(REVIEW_CHECKLIST_MARKERS[0] + "\n", "", 1),
         }
     )
-    expect_contains(
-        "review_checklist_marker_detection",
-        missing,
-        f"review_checklist:{REVIEW_CHECKLIST_MARKERS[0]}",
-    )
+    expect_contains("review_checklist_marker_detection", missing, f"review_checklist:{REVIEW_CHECKLIST_MARKERS[0]}")
 
     missing = collect_missing(
         **{
             **base_inputs,
-            "review_checklist_text": base_inputs["review_checklist_text"]
-            + REVIEW_CHECKLIST_MARKERS[0]
-            + "\n",
+            "review_checklist_text": base_inputs["review_checklist_text"] + REVIEW_CHECKLIST_MARKERS[0] + "\n",
         }
     )
     expect_contains(
@@ -1023,17 +903,12 @@ def run_self_test() -> int:
             "scripts_readme_text": "",
         }
     )
-    expect_contains(
-        "scripts_readme_marker_detection",
-        missing,
-        "scripts_readme:check-phase12-release-readiness-packet.py",
-    )
+    expect_contains("scripts_readme_marker_detection", missing, "scripts_readme:check-phase12-release-readiness-packet.py")
 
     missing = collect_missing(
         **{
             **base_inputs,
-            "scripts_readme_text": base_inputs["scripts_readme_text"]
-            + "check-phase12-release-readiness-packet.py\n",
+            "scripts_readme_text": base_inputs["scripts_readme_text"] + "check-phase12-release-readiness-packet.py\n",
         }
     )
     expect_contains(
@@ -1045,24 +920,15 @@ def run_self_test() -> int:
     missing = collect_missing(
         **{
             **base_inputs,
-            "validator_text": base_inputs["validator_text"].replace(
-                "Documentation/zigux/phase12-release-readiness-survey.md\n",
-                "",
-                1,
-            ),
+            "validator_text": base_inputs["validator_text"].replace("Documentation/zigux/phase12-release-readiness-survey.md\n", "", 1),
         }
     )
-    expect_contains(
-        "validator_marker_detection",
-        missing,
-        "validator:Documentation/zigux/phase12-release-readiness-survey.md",
-    )
+    expect_contains("validator_marker_detection", missing, "validator:Documentation/zigux/phase12-release-readiness-survey.md")
 
     missing = collect_missing(
         **{
             **base_inputs,
-            "validator_text": base_inputs["validator_text"]
-            + "scripts/zigux/check-phase12-release-readiness-packet.py\n",
+            "validator_text": base_inputs["validator_text"] + "scripts/zigux/check-phase12-release-readiness-packet.py\n",
         }
     )
     expect_contains(
@@ -1080,11 +946,7 @@ def run_self_test() -> int:
     missing = collect_missing(
         **{
             **base_inputs,
-            "cross_smoke_text": base_inputs["cross_smoke_text"].replace(
-                "riscv64-linux-musl\n",
-                "",
-                1,
-            ),
+            "cross_smoke_text": base_inputs["cross_smoke_text"].replace("riscv64-linux-musl\n", "", 1),
         }
     )
     expect_contains("cross_smoke_marker_detection", missing, "cross_smoke:riscv64-linux-musl")
@@ -1127,6 +989,62 @@ def run_self_test() -> int:
         "raw_coverage_manifest:shared_tree_only_anchor_count:expected=2:actual=3",
     )
 
+    drifted_manifest = dict(base_manifest)
+    drifted_manifest["last_replayed_public_head"] = "bc2373f7deedf021c73beaae29555a9ac6b0536d"
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "raw_coverage_manifest_text": json.dumps(drifted_manifest, indent=2),
+        }
+    )
+    expect_contains(
+        "raw_coverage_manifest_head_detection",
+        missing,
+        "raw_coverage_manifest:last_replayed_public_head:expected=0bd402fd6ca83ba2ace6b21e9e57459401b631cd:actual=bc2373f7deedf021c73beaae29555a9ac6b0536d",
+    )
+
+    drifted_manifest = dict(base_manifest)
+    drifted_manifest["shared_tree_branch_raw_path_count"] = 1
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "raw_coverage_manifest_text": json.dumps(drifted_manifest, indent=2),
+        }
+    )
+    expect_contains(
+        "raw_coverage_manifest_branch_raw_path_count_detection",
+        missing,
+        "raw_coverage_manifest:shared_tree_branch_raw_path_count:expected=2:actual=1",
+    )
+
+    drifted_manifest = json.loads(json.dumps(base_manifest))
+    drifted_manifest["shared_tree_branch_raw_paths"] = RAW_COVERAGE_EXPECTED_BRANCH_RAW_PATHS[:1]
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "raw_coverage_manifest_text": json.dumps(drifted_manifest, indent=2),
+        }
+    )
+    expect_contains(
+        "raw_coverage_manifest_branch_raw_paths_detection",
+        missing,
+        f"raw_coverage_manifest:shared_tree_branch_raw_paths:expected={RAW_COVERAGE_EXPECTED_BRANCH_RAW_PATHS}:actual={RAW_COVERAGE_EXPECTED_BRANCH_RAW_PATHS[:1]}",
+    )
+
+    drifted_manifest = json.loads(json.dumps(base_manifest))
+    drifted_manifest["anchors"][0]["shared_tree_branch_raw_path"] = ""
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "raw_coverage_manifest_text": json.dumps(drifted_manifest, indent=2),
+        }
+    )
+    expect_contains(
+        "raw_coverage_manifest_anchor_branch_raw_path_detection",
+        missing,
+        "raw_coverage_manifest:anchor:virtio_net:shared_tree_branch_raw_path:expected=https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/drivers/net/virtio_net.c:actual=",
+    )
+
     drifted_manifest = json.loads(json.dumps(base_manifest))
     drifted_manifest["anchors"][3]["public_read_status"] = "commit_pinned_raw_catalog"
     missing = collect_missing(
@@ -1160,6 +1078,51 @@ def run_self_test() -> int:
     missing = collect_missing(
         **{
             **base_inputs,
+            "raw_coverage_survey_zig_text": base_inputs["raw_coverage_survey_zig_text"].replace(
+                'try std.testing.expectEqual(@as(usize, 2), manifest.shared_tree_branch_raw_path_count);\n',
+                "",
+                1,
+            ),
+        }
+    )
+    expect_contains(
+        "raw_coverage_survey_zig_branch_raw_path_count_marker_detection",
+        missing,
+        "raw_coverage_survey_zig:try std.testing.expectEqual(@as(usize, 2), manifest.shared_tree_branch_raw_path_count);",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "raw_coverage_survey_zig_text": base_inputs["raw_coverage_survey_zig_text"].replace(
+                '"PHASE12_SHARED_TREE_BRANCH_RAW_PATH_COUNT=2"\n',
+                "",
+                1,
+            ),
+        }
+    )
+    expect_contains(
+        "raw_coverage_survey_zig_branch_raw_path_banner_detection",
+        missing,
+        'raw_coverage_survey_zig:"PHASE12_SHARED_TREE_BRANCH_RAW_PATH_COUNT=2"',
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "raw_coverage_survey_zig_text": base_inputs["raw_coverage_survey_zig_text"]
+            + '"PHASE12_SHARED_TREE_BRANCH_RAW_PATH_COUNT=2"\n',
+        }
+    )
+    expect_contains(
+        "raw_coverage_survey_zig_branch_raw_path_banner_exact_count_detection",
+        missing,
+        'raw_coverage_survey_zig_count:"PHASE12_SHARED_TREE_BRANCH_RAW_PATH_COUNT=2":expected=1:actual=2',
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
             "raw_coverage_survey_zig_text": base_inputs["raw_coverage_survey_zig_text"]
             + '"two anchors remain shared-tree-only fallback reads"\n',
         }
@@ -1171,7 +1134,7 @@ def run_self_test() -> int:
     )
 
     print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST=pass")
-    print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT=49")
+    print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT=54")
     return 0
 
 
