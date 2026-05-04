@@ -101,7 +101,7 @@ EXACT_VALIDATOR_STATUS_LINES = [
     "PHASE4_VALIDATOR_SELF_TEST=pass",
     "PHASE4_VALIDATION=pass",
     "PHASE4_REQUIRED_FILE_COUNT=27",
-    "PHASE4_REQUIRED_MARKER_COUNT=55",
+    "PHASE4_REQUIRED_MARKER_COUNT=59",
 ]
 
 PHASE4_GATE_EVIDENCE_BLOB_TARGETS = {
@@ -124,23 +124,18 @@ PHASE4_GATE_EVIDENCE_BLOB_TARGETS = {
     "PHASE4_TESTS_README_BLOB_SHA": "zigux/tests/README.md",
 }
 
-
 def git_blob_sha1(payload: bytes) -> str:
     header = f"blob {len(payload)}\0".encode("utf-8")
     return hashlib.sha1(header + payload).hexdigest()
 
-
 def read_bytes(root: Path, relative_path: str) -> bytes:
     return (root / relative_path).read_bytes()
-
 
 def read_text(root: Path, relative_path: str) -> str:
     return (root / relative_path).read_text(encoding="utf-8")
 
-
 def read_json(root: Path, relative_path: str) -> dict[str, object]:
     return json.loads(read_text(root, relative_path))
-
 
 def is_hex_sha(value: object) -> bool:
     return (
@@ -149,11 +144,9 @@ def is_hex_sha(value: object) -> bool:
         and all(ch in "0123456789abcdef" for ch in value)
     )
 
-
 def collect_shared_surveyed_commit_markers(root: Path, gate_evidence: str) -> list[str]:
     missing: list[str] = []
     shared_commit: str | None = None
-
     for relative_path in SURVEYED_COMMIT_MANIFESTS:
         target = root / relative_path
         if not target.exists():
@@ -171,7 +164,6 @@ def collect_shared_surveyed_commit_markers(root: Path, gate_evidence: str) -> li
                 "phase4_gate_evidence:shared_surveyed_commit_mismatch:"
                 f"{relative_path}:{surveyed_commit}:{shared_commit}"
             )
-
     if shared_commit is not None:
         expected_survey_marker = f'const current_surveyed_commit = "{shared_commit}"'
         survey_prefix = 'const current_surveyed_commit = "'
@@ -200,39 +192,26 @@ def collect_shared_surveyed_commit_markers(root: Path, gate_evidence: str) -> li
                 "phase4_gate_evidence:shared_surveyed_commit_mismatch:"
                 f"{relative_path}:{surveyed_commit}:{shared_commit}"
             )
-
     if shared_commit is not None and shared_commit not in gate_evidence:
         missing.append(f"phase4_gate_evidence:{shared_commit}")
-
     return missing
 
-
-def collect_exact_workflow_run_count_markers(
-    workflow: str, gate_evidence: str
-) -> list[str]:
+def collect_exact_workflow_run_count_markers(workflow: str, gate_evidence: str) -> list[str]:
     missing: list[str] = []
-
     for marker in EXACT_WORKFLOW_RUN_COUNT_MARKERS:
         if marker not in gate_evidence:
             missing.append(f"phase4_gate_evidence:exact_workflow_count:{marker}")
-
     for command, expected_count in EXACT_WORKFLOW_RUN_COUNT_EXPECTATIONS.items():
         actual_count = workflow.count(command)
         if actual_count != expected_count:
-            missing.append(
-                f"workflow_exact_count:{command}:{actual_count}:{expected_count}"
-            )
-
+            missing.append(f"workflow_exact_count:{command}:{actual_count}:{expected_count}")
     return missing
-
 
 def validate_root(root: Path) -> list[str]:
     missing: list[str] = []
-
     gate_evidence_path = "Documentation/zigux/phase4-gate-evidence.md"
     if not (root / gate_evidence_path).exists():
         return [f"file:{gate_evidence_path}"]
-
     gate_evidence = read_text(root, gate_evidence_path)
     workflow_path = ".github/workflows/zigux-bootstrap.yml"
     workflow_target = root / workflow_path
@@ -261,23 +240,16 @@ def validate_root(root: Path) -> list[str]:
         missing.extend(collect_exact_workflow_run_count_markers(workflow, gate_evidence))
     for marker in REQUIRED_RUNTIME_ATOMIC64_REVERSIBLE_DELIVERY_MARKERS:
         if marker not in gate_evidence:
-            missing.append(
-                f"phase4_gate_evidence:runtime_atomic64_reversible_delivery:{marker}"
-            )
+            missing.append(f"phase4_gate_evidence:runtime_atomic64_reversible_delivery:{marker}")
     for marker in REQUIRED_PERF_BASELINE_PENDING_THRESHOLD_PLAN_MARKERS:
         if marker not in gate_evidence:
-            missing.append(
-                f"phase4_gate_evidence:perf_baseline_pending_threshold_plan:{marker}"
-            )
+            missing.append(f"phase4_gate_evidence:perf_baseline_pending_threshold_plan:{marker}")
     for marker in REQUIRED_SCRIPTS_ROOT_RUNTIME_ATOMIC64_MARKERS:
         if marker not in gate_evidence:
-            missing.append(
-                f"phase4_gate_evidence:scripts_root_runtime_atomic64:{marker}"
-            )
+            missing.append(f"phase4_gate_evidence:scripts_root_runtime_atomic64:{marker}")
     for line in EXACT_VALIDATOR_STATUS_LINES:
         if f"`{line}`" not in gate_evidence:
             missing.append(f"phase4_gate_evidence:{line}")
-
     for marker, relative_path in PHASE4_GATE_EVIDENCE_BLOB_TARGETS.items():
         target = root / relative_path
         if not target.exists():
@@ -287,15 +259,10 @@ def validate_root(root: Path) -> list[str]:
         evidence_line = f"`{marker}={digest}`"
         if evidence_line not in gate_evidence:
             missing.append(f"phase4_gate_evidence:{marker}:{digest}")
-
-    expected_target_count_line = (
-        f"PHASE4_GATE_EVIDENCE_TARGET_COUNT={len(PHASE4_GATE_EVIDENCE_BLOB_TARGETS)}"
-    )
+    expected_target_count_line = f"PHASE4_GATE_EVIDENCE_TARGET_COUNT={len(PHASE4_GATE_EVIDENCE_BLOB_TARGETS)}"
     if expected_target_count_line not in gate_evidence:
         missing.append(f"phase4_gate_evidence:{expected_target_count_line}")
-
     return missing
-
 
 def write_fixture_tree(root: Path) -> None:
     minimal_manifest = json.dumps({"surveyed_commit": SHARED_SURVEYED_COMMIT}) + "\n"
@@ -305,45 +272,23 @@ def write_fixture_tree(root: Path) -> None:
         "scripts/zigux/check-phase4-gate-evidence.py": "phase4 gate evidence checker fixture\n",
         "zigux/tests/phase4_build.zig": "phase4 build fixture\n",
         "zigux/Makefile": "phase4 validate fixture\n",
-        ".github/workflows/zigux-bootstrap.yml": "\n".join(
-            [
-                "Validate Phase 4 diff gates",
-                "Run Phase 4 diff tests",
-                "make -C zigux phase4-validate",
-                "make -C zigux phase4-test",
-            ]
-        )
-        + "\n",
+        ".github/workflows/zigux-bootstrap.yml": "\n".join(["Validate Phase 4 diff gates","Run Phase 4 diff tests","make -C zigux phase4-validate","make -C zigux phase4-test"]) + "\n",
         "zigux/tests/phase4_kprobe_example_manifest.json": minimal_manifest,
-        "zigux/tests/phase4_kprobe_example_survey.zig": (
-            f'const current_surveyed_commit = "{SHARED_SURVEYED_COMMIT}";\n'
-            "phase4 kprobe example survey fixture\n"
-        ),
+        "zigux/tests/phase4_kprobe_example_survey.zig": f'const current_surveyed_commit = "{SHARED_SURVEYED_COMMIT}";\nphase4 kprobe example survey fixture\n',
         "zigux/tests/phase4_test_fsmount_manifest.json": minimal_manifest,
-        "zigux/tests/phase4_test_fsmount_survey.zig": (
-            f'const current_surveyed_commit = "{SHARED_SURVEYED_COMMIT}";\n'
-            "phase4 test_fsmount survey fixture\n"
-        ),
+        "zigux/tests/phase4_test_fsmount_survey.zig": f'const current_surveyed_commit = "{SHARED_SURVEYED_COMMIT}";\nphase4 test_fsmount survey fixture\n',
         "zigux/tests/phase4_perf_baseline_manifest.json": minimal_manifest,
-        "zigux/tests/phase4_perf_baseline_survey.zig": (
-            f'const current_surveyed_commit = "{SHARED_SURVEYED_COMMIT}";\n'
-            "phase4 perf baseline survey fixture\n"
-        ),
+        "zigux/tests/phase4_perf_baseline_survey.zig": f'const current_surveyed_commit = "{SHARED_SURVEYED_COMMIT}";\nphase4 perf baseline survey fixture\n',
         "zigux/tests/phase4_runtime_atomic64_diff_manifest.json": minimal_manifest,
-        "zigux/tests/phase4_runtime_atomic64_diff_survey.zig": (
-            f'const current_surveyed_commit = "{SHARED_SURVEYED_COMMIT}";\n'
-            "phase4 runtime atomic64 survey fixture\n"
-        ),
+        "zigux/tests/phase4_runtime_atomic64_diff_survey.zig": f'const current_surveyed_commit = "{SHARED_SURVEYED_COMMIT}";\nphase4 runtime atomic64 survey fixture\n',
         "Documentation/zigux/README.md": "phase4 doc readme fixture\n",
         "scripts/zigux/README.md": "phase4 script readme fixture\n",
         "zigux/tests/README.md": "phase4 tests readme fixture\n",
     }
-
     for relative_path, content_value in file_contents.items():
         target = root / relative_path
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(content_value, encoding="utf-8")
-
     gate_evidence_lines = [
         "# Phase 4 Gate Evidence",
         "",
@@ -357,7 +302,7 @@ def write_fixture_tree(root: Path) -> None:
         "- `PHASE4_VALIDATOR_SELF_TEST=pass`",
         "- `PHASE4_VALIDATION=pass`",
         "- `PHASE4_REQUIRED_FILE_COUNT=27`",
-        "- `PHASE4_REQUIRED_MARKER_COUNT=55`",
+        "- `PHASE4_REQUIRED_MARKER_COUNT=59`",
         "- `PHASE4_GATE_EVIDENCE_SELF_TEST=pass`",
         "- `PHASE4_GATE_EVIDENCE_CHECK=pass`",
         f"- `PHASE4_GATE_EVIDENCE_TARGET_COUNT={len(PHASE4_GATE_EVIDENCE_BLOB_TARGETS)}`",
@@ -383,148 +328,63 @@ def write_fixture_tree(root: Path) -> None:
     for marker, relative_path in PHASE4_GATE_EVIDENCE_BLOB_TARGETS.items():
         digest = git_blob_sha1(read_bytes(root, relative_path))
         gate_evidence_lines.insert(20, f"- `{marker}={digest}`")
-
-    (root / "Documentation/zigux/phase4-gate-evidence.md").write_text(
-        "\n".join(gate_evidence_lines) + "\n",
-        encoding="utf-8",
-    )
-
+    (root / "Documentation/zigux/phase4-gate-evidence.md").write_text("\n".join(gate_evidence_lines) + "\n", encoding="utf-8")
 
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase4_gate_evidence_") as tmp_dir:
         root = Path(tmp_dir)
         write_fixture_tree(root)
-
         missing = validate_root(root)
         assert not missing, missing
-
+        write_fixture_tree(root)
         gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
-        gate_evidence.write_text(
-            gate_evidence.read_text(encoding="utf-8").replace(
-                "## Current Conclusion\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
+        gate_evidence.write_text(gate_evidence.read_text(encoding="utf-8").replace("## Current Conclusion\n", "", 1), encoding="utf-8")
         missing = validate_root(root)
         assert "phase4_gate_evidence:## Current Conclusion" in missing, missing
-
         write_fixture_tree(root)
         gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
-        gate_evidence.write_text(
-            gate_evidence.read_text(encoding="utf-8").replace(
-                "PHASE4_VALIDATION=pass",
-                "PHASE4_VALIDATION=fail",
-                1,
-            ),
-            encoding="utf-8",
-        )
+        gate_evidence.write_text(gate_evidence.read_text(encoding="utf-8").replace("PHASE4_VALIDATION=pass", "PHASE4_VALIDATION=fail", 1), encoding="utf-8")
         missing = validate_root(root)
         assert "phase4_gate_evidence:PHASE4_VALIDATION=pass" in missing, missing
-
         write_fixture_tree(root)
         gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
-        gate_evidence.write_text(
-            gate_evidence.read_text(encoding="utf-8").replace(
-                "PHASE4_EXACT_READBACK_HEAD=",
-                "PHASE4_EXACT_READBACK_HEAD_MISSING=",
-                1,
-            ),
-            encoding="utf-8",
-        )
+        gate_evidence.write_text(gate_evidence.read_text(encoding="utf-8").replace("PHASE4_EXACT_READBACK_HEAD=", "PHASE4_EXACT_READBACK_HEAD_MISSING=", 1), encoding="utf-8")
         missing = validate_root(root)
         assert "phase4_gate_evidence:PHASE4_EXACT_READBACK_HEAD=" in missing, missing
-
         write_fixture_tree(root)
         gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
-        gate_evidence.write_text(
-            gate_evidence.read_text(encoding="utf-8").replace(
-                "PHASE4_REQUIRED_FILE_COUNT=27",
-                "PHASE4_REQUIRED_FILE_COUNT=21",
-                1,
-            ),
-            encoding="utf-8",
-        )
+        gate_evidence.write_text(gate_evidence.read_text(encoding="utf-8").replace("PHASE4_REQUIRED_FILE_COUNT=27", "PHASE4_REQUIRED_FILE_COUNT=21", 1), encoding="utf-8")
         missing = validate_root(root)
         assert "phase4_gate_evidence:PHASE4_REQUIRED_FILE_COUNT=27" in missing, missing
-
         write_fixture_tree(root)
         gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
-        gate_evidence.write_text(
-            gate_evidence.read_text(encoding="utf-8").replace(
-                "PHASE4_REQUIRED_MARKER_COUNT=55",
-                "PHASE4_REQUIRED_MARKER_COUNT=45",
-                1,
-            ),
-            encoding="utf-8",
-        )
+        gate_evidence.write_text(gate_evidence.read_text(encoding="utf-8").replace("PHASE4_REQUIRED_MARKER_COUNT=59", "PHASE4_REQUIRED_MARKER_COUNT=45", 1), encoding="utf-8")
         missing = validate_root(root)
-        assert "phase4_gate_evidence:PHASE4_REQUIRED_MARKER_COUNT=55" in missing, missing
-
+        assert "phase4_gate_evidence:PHASE4_REQUIRED_MARKER_COUNT=59" in missing, missing
         write_fixture_tree(root)
         gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
-        gate_evidence.write_text(
-            gate_evidence.read_text(encoding="utf-8").replace(
-                "one `make -C zigux phase4-validate` run line",
-                "missing `make -C zigux phase4-validate` run line",
-                1,
-            ),
-            encoding="utf-8",
-        )
+        gate_evidence.write_text(gate_evidence.read_text(encoding="utf-8").replace("one `make -C zigux phase4-validate` run line", "missing `make -C zigux phase4-validate` run line", 1), encoding="utf-8")
         missing = validate_root(root)
-        assert (
-            "phase4_gate_evidence:exact_workflow_count:one `make -C zigux phase4-validate` run line"
-            in missing
-        ), missing
-
+        assert "phase4_gate_evidence:exact_workflow_count:one `make -C zigux phase4-validate` run line" in missing, missing
         write_fixture_tree(root)
         gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
-        gate_evidence.write_text(
-            gate_evidence.read_text(encoding="utf-8").replace(
-                "PHASE4_WORKFLOW_ROUTE_COUNTS=pass",
-                "PHASE4_WORKFLOW_ROUTE_COUNTS=fail",
-                1,
-            ),
-            encoding="utf-8",
-        )
+        gate_evidence.write_text(gate_evidence.read_text(encoding="utf-8").replace("PHASE4_WORKFLOW_ROUTE_COUNTS=pass", "PHASE4_WORKFLOW_ROUTE_COUNTS=fail", 1), encoding="utf-8")
         missing = validate_root(root)
         assert "phase4_gate_evidence:PHASE4_WORKFLOW_ROUTE_COUNTS=pass" in missing, missing
-
         write_fixture_tree(root)
         gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
-        gate_evidence.write_text(
-            gate_evidence.read_text(encoding="utf-8").replace(
-                "`phase4-runtime-atomic64-diff-tests`",
-                "`phase4-runtime-atomic64-diff-missing`",
-                1,
-            ),
-            encoding="utf-8",
-        )
+        gate_evidence.write_text(gate_evidence.read_text(encoding="utf-8").replace("`phase4-runtime-atomic64-diff-tests`", "`phase4-runtime-atomic64-diff-missing`", 1), encoding="utf-8")
         missing = validate_root(root)
-        assert (
-            "phase4_gate_evidence:scripts_root_runtime_atomic64:`phase4-runtime-atomic64-diff-tests`"
-            in missing
-        ), missing
-
+        assert "phase4_gate_evidence:scripts_root_runtime_atomic64:`phase4-runtime-atomic64-diff-tests`" in missing, missing
         print("PHASE4_GATE_EVIDENCE_SELF_TEST=pass")
         return 0
 
-
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Validate the Phase 4 gate-evidence blob packet."
-    )
-    parser.add_argument(
-        "--self-test",
-        action="store_true",
-        help="Run the built-in synthetic gate-evidence coverage check.",
-    )
+    parser = argparse.ArgumentParser(description="Validate the Phase 4 gate-evidence blob packet.")
+    parser.add_argument("--self-test", action="store_true", help="Run the built-in synthetic gate-evidence coverage check.")
     args = parser.parse_args()
-
     if args.self_test:
         return run_self_test()
-
     missing = validate_root(ROOT)
     if missing:
         print("PHASE4_GATE_EVIDENCE_CHECK=fail")
@@ -533,11 +393,8 @@ def main() -> int:
             print(marker)
         print("MISSING_PHASE4_GATE_EVIDENCE_MARKERS_END")
         return 1
-
     print("PHASE4_GATE_EVIDENCE_CHECK=pass")
     print(f"PHASE4_GATE_EVIDENCE_TARGET_COUNT={len(PHASE4_GATE_EVIDENCE_BLOB_TARGETS)}")
     return 0
-
-
 if __name__ == "__main__":
     raise SystemExit(main())
