@@ -37,6 +37,8 @@ EXPECTED_CONF_CASE_ORDER = [
 
 EXPECTED_CONFDATA_CASE_ORDER = [
     "duplicate_assignments",
+    "embedded_nul_preserved_carriage_return",
+    "embedded_nul_suffix_bytes",
     "empty_string",
     "empty_symbol_names",
     "escaped_control_sequences",
@@ -121,11 +123,15 @@ PHASE2_CLOSURE_VALIDATOR_MARKERS = [
     "'python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test': 1,",
     "'python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py': 1,",
     "PHASE2_KCONFIG_BRIDGE_DETERMINISM=check-kconfig-bridge.py replays conf and confdata outputs twice and compares a rebuilt confdata binary against the same JSON artifacts",
+    "PHASE2_KCONFIG_BRIDGE_CONFDATA_CASE_COUNT=20",
     "PHASE2_KCONFIG_BRIDGE_LOW_CONTROL_CASE=zigux/tests/fixtures/kconfig_bridge/escaped_low_control_bytes_expected.json",
+    "PHASE2_KCONFIG_BRIDGE_EMBEDDED_NUL_CASES=zigux/tests/fixtures/kconfig_bridge/embedded_nul_preserved_carriage_return_expected.json,zigux/tests/fixtures/kconfig_bridge/embedded_nul_suffix_bytes_expected.json",
+    "{'name': 'embedded_nul_preserved_carriage_return', 'input': 'embedded_nul_preserved_carriage_return.config', 'expected': 'embedded_nul_preserved_carriage_return_expected.json'},",
+    "{'name': 'embedded_nul_suffix_bytes', 'input': 'embedded_nul_suffix_bytes.config', 'expected': 'embedded_nul_suffix_bytes_expected.json'},",
     "PHASE2_KCONFIG_BRIDGE_MANIFEST_POLICY=check-kconfig-bridge.py rejects uncovered modes, malformed manifests, duplicate fixture references, orphaned fixture files, and non-canonical confdata names before replay",
     "confdata bridge ignores suffix bytes after an embedded NUL",
     "confdata bridge preserves carriage return before an embedded NUL on newline-terminated lines",
-    "PHASE2_KCONFIG_BRIDGE_EVIDENCE=artifact fixtures plus conf bridge mode coverage, allconfig env, mode-arg, manifest-determinism, confdata escaped-control decode, empty-string, empty-symbol, explicit-n, malformed-quote, signed-numeric, trailing-unset-comment, quoted-suffix, CRLF, embedded-NUL truncation, embedded-NUL carriage-return preservation, trailing-escaped-backslash, empty-path rejection, and low-control JSON emission anchors are required for closure",
+    "PHASE2_KCONFIG_BRIDGE_EVIDENCE=artifact fixtures plus conf bridge mode coverage, allconfig env, mode-arg, manifest-determinism, confdata escaped-control decode, empty-string, empty-symbol, explicit-n, malformed-quote, signed-numeric, trailing-unset-comment, quoted-suffix, CRLF, embedded-NUL suffix-byte truncation, embedded-NUL preserved-carriage-return, trailing-escaped-backslash, empty-path rejection, and low-control JSON emission anchors are required for closure",
 ]
 
 
@@ -187,8 +193,8 @@ def validate_cases(payload: dict[str, object]) -> list[str]:
 
     if len(conf_cases) != 16:
         issues.append(f"cases:conf_case_count={len(conf_cases)}:expected=16")
-    if len(confdata_cases) != 18:
-        issues.append(f"cases:confdata_case_count={len(confdata_cases)}:expected=18")
+    if len(confdata_cases) != 20:
+        issues.append(f"cases:confdata_case_count={len(confdata_cases)}:expected=20")
 
     by_name = {
         case.get("name"): case
@@ -219,6 +225,24 @@ def validate_cases(payload: dict[str, object]) -> list[str]:
         issues.append("cases:randconfig:seed=0xC0FFEE")
     if randconfig.get("probability") != "10:20:30":
         issues.append("cases:randconfig:probability=10:20:30")
+
+    embedded_nul_preserved_carriage_return = by_name.get("embedded_nul_preserved_carriage_return", {})
+    if embedded_nul_preserved_carriage_return.get("input") != "embedded_nul_preserved_carriage_return.config":
+        issues.append(
+            "cases:embedded_nul_preserved_carriage_return:input=embedded_nul_preserved_carriage_return.config"
+        )
+    if embedded_nul_preserved_carriage_return.get("expected") != "embedded_nul_preserved_carriage_return_expected.json":
+        issues.append(
+            "cases:embedded_nul_preserved_carriage_return:expected=embedded_nul_preserved_carriage_return_expected.json"
+        )
+
+    embedded_nul_suffix_bytes = by_name.get("embedded_nul_suffix_bytes", {})
+    if embedded_nul_suffix_bytes.get("input") != "embedded_nul_suffix_bytes.config":
+        issues.append("cases:embedded_nul_suffix_bytes:input=embedded_nul_suffix_bytes.config")
+    if embedded_nul_suffix_bytes.get("expected") != "embedded_nul_suffix_bytes_expected.json":
+        issues.append(
+            "cases:embedded_nul_suffix_bytes:expected=embedded_nul_suffix_bytes_expected.json"
+        )
 
     trailing_comment = by_name.get("final_unterminated_unset_comment", {})
     if trailing_comment.get("input") != "final_unterminated_unset_comment.config":
@@ -272,6 +296,16 @@ def build_valid_cases_json() -> str:
         ],
         "confdata_cases": [
             {"name": "duplicate_assignments"},
+            {
+                "name": "embedded_nul_preserved_carriage_return",
+                "input": "embedded_nul_preserved_carriage_return.config",
+                "expected": "embedded_nul_preserved_carriage_return_expected.json",
+            },
+            {
+                "name": "embedded_nul_suffix_bytes",
+                "input": "embedded_nul_suffix_bytes.config",
+                "expected": "embedded_nul_suffix_bytes_expected.json",
+            },
             {"name": "empty_string"},
             {"name": "empty_symbol_names"},
             {"name": "escaped_control_sequences"},
@@ -450,7 +484,7 @@ def run_self_test() -> int:
     invalid_cases = json.loads(build_valid_cases_json())
     invalid_cases["confdata_cases"] = invalid_cases["confdata_cases"][:-1]
     issues = validate_cases(invalid_cases)
-    if "cases:confdata_case_count=17:expected=18" not in issues:
+    if "cases:confdata_case_count=19:expected=20" not in issues:
         raise SystemExit("phase2-kconfig-alignment:self-test:confdata_count_failure")
 
     with tempfile.TemporaryDirectory(prefix="phase2_kconfig_alignment_selftest_") as tmp_dir_str:
