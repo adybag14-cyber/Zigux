@@ -424,6 +424,14 @@ test "phase11 hvc console survey keeps the shared replay separate but exposes an
     );
     defer std.testing.allocator.free(build_zig);
 
+    const build_inventory = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/fixtures/phase11_build_inventory.json",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(build_inventory);
+
     const sysrq_helper = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "drivers/tty/hvc/hvc_console_sysrq.zig",
@@ -476,6 +484,15 @@ test "phase11 hvc console survey keeps the shared replay separate but exposes an
     try std.testing.expect(std.mem.indexOf(u8, build_zig, "\"hvc-console-survey\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_zig, "hvc_console_survey_step.dependOn(&run_phase11_hvc_console_survey_tests.step);") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_zig, "test_step.dependOn(&run_phase11_hvc_console_survey_tests.step);") == null);
+    try std.testing.expect(std.mem.indexOf(u8, build_inventory, "\"shared_split_replays\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_inventory, "\"phase11-hvc-console-modem-control-split-tests\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_inventory, "\"zigux/tests/phase11_hvc_console_modem_control_split.zig\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_inventory, "\"phase11-hvc-console-poll-retry-split-tests\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_inventory, "\"zigux/tests/phase11_hvc_console_poll_retry_split.zig\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_inventory, "\"shared_replay_markers\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_inventory, "try std.testing.expect(dispatch.invokes_sysrq_handler);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_inventory, "\"dedicated_survey_replays\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_inventory, "\"zigux/tests/phase11_hvc_console_survey.zig\"") != null);
 }
 
 test "phase11 hvc console survey keeps the survey note, slice note, and validation matrix aligned with the parked starter" {
