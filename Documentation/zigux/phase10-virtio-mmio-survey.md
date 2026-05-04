@@ -6,7 +6,7 @@ This document tracks the bounded Phase 10 survey lane around `drivers/virtio/vir
 
 - `PHASE10_STATUS=active`
 - `PHASE10_SLICE=virtio-mmio-survey`
-- scope: survey manifest, dedicated survey gate, shared Phase 10 build wiring, and a lane-level note that records what is present in the live repo plus the remaining MMIO transport gap against the roadmap, including the bounded transport-identity snapshots, register-window, queue-register, queue-notify, queue-address, config-window, config-write, and interrupt-ack helpers
+- scope: survey manifest, dedicated survey gate, shared Phase 10 build wiring, and a lane-level note that records what is present in the live repo plus the remaining MMIO transport gap against the roadmap, including the bounded transport-identity snapshots, register-window, queue-register, queue-notify, queue-address, config-window, config-write, interrupt-ack, and probe-preflight helpers
 - product boundary:
   - `zigux/tests/phase10_virtio_mmio_manifest.json`
   - `zigux/tests/phase10_virtio_mmio_survey.zig`
@@ -17,16 +17,16 @@ This document tracks the bounded Phase 10 survey lane around `drivers/virtio/vir
 
 The Phase 10 roadmap names `drivers/virtio/virtio_mmio.c` as a primary anchor, but it also says to prove virtqueue wrappers before widening into MMIO or other risky transport work.
 
-The live repo already has a bounded `drivers/virtio/virtio.zig` core starter, a dedicated `zigux/tests/phase10_virtio_core_survey.zig` gate with its paired note, a dedicated `zigux/tests/phase10_virtio_ring_survey.zig` gate, a `drivers/virtio/virtio_ring.zig` lab helper that now reaches used-buffer polling, callback re-enable, delayed-callback pacing, and queue reset discipline, and the newer `virtio_input` starter plus survey paths. The repo now also ships a `drivers/virtio/virtio_mmio.zig` bounded transport-identity and register-window helper, a bounded queue-register helper, a queue-notify helper, a queue-address helper, a config-window helper, a config-write planning helper, and a bounded interrupt-ack helper, so this survey can keep moving from "MMIO is still absent" toward an honest record of what tiny MMIO surface has landed and what larger transport work remains blocked.
+The live repo already has a bounded `drivers/virtio/virtio.zig` core starter, a dedicated `zigux/tests/phase10_virtio_core_survey.zig` gate with its paired note, a dedicated `zigux/tests/phase10_virtio_ring_survey.zig` gate, a `drivers/virtio/virtio_ring.zig` lab helper that now reaches used-buffer polling, callback re-enable, delayed-callback pacing, and queue reset discipline, and the newer `virtio_input` starter plus survey paths. The repo now also ships a `drivers/virtio/virtio_mmio.zig` bounded transport-identity and register-window helper, a bounded queue-register helper, a queue-notify helper, a queue-address helper, a config-window helper, a config-write planning helper, a bounded interrupt-ack helper, and a probe-preflight helper, so this survey can keep moving from "MMIO is still absent" toward an honest record of what tiny MMIO surface has landed and what larger transport work remains blocked.
 
 ## Survey findings
 
-- this survey packet now records the inspected `master` head `0945df1cf664a3582d7241f859183a13f3f04adb`, which keeps the directly coupled MMIO survey artifacts aligned with the current bounded helper state after the latest live `master` review.
+- this survey packet still records the inspected `master` head `0945df1cf664a3582d7241f859183a13f3f04adb`, and the directly coupled MMIO survey artifacts remain aligned with the current bounded helper state after the probe-preflight rung landed in this same packet.
 - `drivers/virtio/virtio_mmio.c` is present on `master` at 829 lines and mixes feature negotiation, config-space reads and writes, status handling, generation checks, interrupt acknowledgement, queue selection, queue sizing, ready-state toggles, queue notify side effects, queue-address programming, virtqueue discovery, reset paths, and probe or remove lifecycle work.
 - the live repo already ships `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_mmio.zig`, eleven dedicated Phase 10 virtio test or survey files under `zigux/tests/` (`phase10_virtio_core.zig`, `phase10_virtio_core_survey.zig`, `phase10_virtio_ring.zig`, `phase10_virtio_ring_reset_reuse.zig`, `phase10_virtio_ring_survey.zig`, `phase10_virtio_input.zig`, `phase10_virtio_input_multitouch_preflight.zig`, `phase10_virtio_input_survey.zig`, `phase10_virtio_mmio.zig`, `phase10_virtio_mmio_queue_isolation.zig`, and `phase10_virtio_mmio_survey.zig`), `zigux/tests/phase10_build.zig`, `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-core-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, `Documentation/zigux/phase10-virtio-input-survey.md`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, and `Documentation/zigux/phase10-virtio-mmio-survey.md`.
-- the landed MMIO helper stays intentionally narrow: it now models transport-identity snapshots for the magic value, transport version, device-id presence, and vendor-id bookkeeping, MMIO register offsets, bounded feature-page selection, queue-select and queue-size planning, queue-ready bookkeeping, queue-notify snapshots, version-scoped queue-address planning, status and reset bookkeeping, config-generation tracking, interrupt-ack bookkeeping, read-only config-window snapshots, and in-memory config-write planning for byte, halfword, and word windows only.
+- the landed MMIO helper stays intentionally narrow: it now models transport-identity snapshots for the magic value, transport version support, device-id presence, vendor-id bookkeeping, and bounded probe-preflight summaries around the earliest probe gate, plus MMIO register offsets, bounded feature-page selection, queue-select and queue-size planning, queue-ready bookkeeping, queue-notify snapshots, version-scoped queue-address planning, status and reset bookkeeping, config-generation tracking, interrupt-ack bookkeeping, read-only config-window snapshots, and in-memory config-write planning for byte, halfword, and word windows only.
 - the focused `zigux/tests/phase10_virtio_mmio_queue_isolation.zig` replay now keeps queue-address planning and notify bookkeeping explicit across queue-selection changes instead of leaving that multi-queue lab boundary visible only from the shared closure packet and build graph.
-- this means the roadmap's "virtqueue wrappers first, MMIO wrappers later" rule now holds for a small but real MMIO foothold through the interrupt-ack rung, while the broader lifecycle and IRQ paths remain intentionally blocked.
+- this means the roadmap's "virtqueue wrappers first, MMIO wrappers later" rule now holds for a small but real MMIO foothold through the probe-preflight rung, while the broader lifecycle and IRQ paths remain intentionally blocked.
 
 ## Recorded gaps
 
@@ -50,9 +50,10 @@ The survey manifest now records:
 - the landed `phase10-mmio-config-window-helper`
 - the landed `phase10-mmio-config-write-helper`
 - the landed `phase10-mmio-interrupt-ack-helper`
+- the landed `phase10-mmio-probe-preflight-helper`
 - the still-blocked `phase10-mmio-lifecycle-and-irq-paths`
 
-This keeps the lane concrete and reviewable without overstating MMIO progress: the queue-facing footholds are real, the bounded transport-identity and register-window, queue-register, queue-notify, queue-address, config-window, config-write, and interrupt-ack steps are now landed, the focused queue-isolation replay is named directly in the survey packet, and the broader transport-facing lifecycle and IRQ work is still intentionally blocked.
+This keeps the lane concrete and reviewable without overstating MMIO progress: the queue-facing footholds are real, the bounded transport-identity and register-window, queue-register, queue-notify, queue-address, config-window, config-write, interrupt-ack, and probe-preflight steps are now landed, the focused queue-isolation replay is named directly in the survey packet, and the broader transport-facing lifecycle and IRQ work is still intentionally blocked.
 
 ## Freeze Boundary
 
@@ -89,7 +90,7 @@ This survey slice does not yet claim:
 - interrupt-handler parity from `vm_interrupt()`
 - probe, remove, or command-line device creation parity
 - DMA-facing queue plumbing
-- any reopen of the Phase 14 study-only anchors `kernel/workqueue.c` or `kernel/trace/ring_buffer.c`; this lane stays inside `drivers/virtio/*.zig` and does not use the landed interrupt-ack rung as a pretext for broader transport claims
+- any reopen of the Phase 14 study-only anchors `kernel/workqueue.c` or `kernel/trace/ring_buffer.c`; this lane stays inside `drivers/virtio/*.zig` and does not use the landed interrupt-ack or probe-preflight rungs as a pretext for broader transport claims
 
 ## Gates
 
@@ -100,7 +101,7 @@ This survey slice does not yet claim:
 - `python3 scripts/zigux/check-phase10-harness-coverage.py`
 - `make -C zigux phase10-validate`
 
-The direct shared validator now appears here explicitly because the manifest-backed MMIO packet depends on `scripts/zigux/validate-phase10.py` plus the published closure path to keep the landed interrupt-ack rung and the parked lifecycle-and-IRQ blocker fail-closed together.
+The direct shared validator now appears here explicitly because the manifest-backed MMIO packet depends on `scripts/zigux/validate-phase10.py` plus the published closure path to keep the landed interrupt-ack rung, the landed probe-preflight rung, and the parked lifecycle-and-IRQ blocker fail-closed together.
 
 2. run the dedicated Phase 10 build
 - `zig build test --build-file zigux/tests/phase10_build.zig --summary all`
