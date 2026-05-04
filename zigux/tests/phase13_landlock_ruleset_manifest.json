@@ -118,11 +118,18 @@
       "why_now": "The ruleset helper now includes one bounded `free_rule()` release planner around the unconditional `might_sleep()` boundary, the null-rule early return, `landlock_put_object()` only for inode-backed keys, and `kfree()` intent only when a rule is present, while still avoiding live refcount mutation or deferred workqueue ownership."
     },
     {
+      "id": "phase13-landlock-rule-merge-tree-replay-followup",
+      "status": "starter_landed",
+      "kind": "security_helper_pilot",
+      "zigux_destination": "security/landlock/ruleset.zig",
+      "why_now": "The ruleset helper now includes one bounded `merge_tree()` replay planner that validates source single-layer rules, translates them to `dst->num_layers`, and records the pure `insert_rule()` handoff so this packet can review merge handoff data without claiming locked tree traversal, destination access-mask upgrades, or hierarchy ownership."
+    },
+    {
       "id": "phase13-landlock-live-tree-state-blocker",
       "status": "blocked_on_live_lsm_state",
       "kind": "security_helper_pilot",
       "zigux_destination": "security/landlock/ruleset.zig",
-      "why_now": "The next remaining ruleset gap now starts after helper-only replacement and release planning and crosses into actual rb-tree mutation, live object ownership transfer, hierarchy lifetime, workqueue-backed teardown, and other ruleset state that would overstate this helper lab if it were modeled as a pure in-memory followup."
+      "why_now": "The next remaining ruleset gap now starts after helper-only replacement, release, and merge-tree replay planning and crosses into actual rb-tree mutation, live object ownership transfer, hierarchy lifetime, workqueue-backed teardown, and other ruleset state that would overstate this helper lab if it were modeled as a pure in-memory followup."
     }
   ]
 }
