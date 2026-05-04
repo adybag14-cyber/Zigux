@@ -140,6 +140,9 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
     try std.testing.expect(std.mem.indexOf(u8, syntax_lab_file, "virtio_net.ProbeSnapshot") != null);
     try std.testing.expect(std.mem.indexOf(u8, syntax_lab_file, "virtio_net.QueueRecoverySummary") != null);
     try std.testing.expect(std.mem.indexOf(u8, syntax_lab_file, "virtio_net.QueueResumeSummary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, syntax_lab_file, "virtio_net.ReceiveQueueRefillPath") != null);
+    try std.testing.expect(std.mem.indexOf(u8, syntax_lab_file, "ReceiveQueueRefillPath.recycled_room_reuse") != null);
+    try std.testing.expect(std.mem.indexOf(u8, syntax_lab_file, "ReceiveQueueRefillPath.fresh_allocation") != null);
     try std.testing.expect(std.mem.indexOf(u8, syntax_lab_file, "VirtioNetProbeLab.descriptor()") != null);
     try std.testing.expect(std.mem.indexOf(u8, syntax_lab_file, "QueueResumeScope.data_control_and_rss") != null);
     try std.testing.expect(std.mem.indexOf(u8, syntax_lab_file, "HeaderShape.hash_report_tunnel") != null);
@@ -147,6 +150,12 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
     try std.testing.expect(std.mem.indexOf(u8, direct_test_file, "test \"phase12 virtio net restore clears stale refill planning state\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, direct_test_file, "planMergeableReceiveRefill(4)") != null);
     try std.testing.expect(std.mem.indexOf(u8, direct_test_file, "error.ProbeSnapshotUnavailable") != null);
+    try std.testing.expect(std.mem.indexOf(u8, direct_test_file, "ReceiveQueueRefillPath.recycled_room_reuse") != null);
+    try std.testing.expect(std.mem.indexOf(u8, direct_test_file, "ReceiveQueueRefillPath.fresh_allocation") != null);
+    try std.testing.expect(std.mem.indexOf(u8, direct_test_file, "recycled_room_bytes") != null);
+    try std.testing.expect(std.mem.indexOf(u8, direct_test_file, "fresh_allocation_bytes") != null);
+    try std.testing.expect(std.mem.indexOf(u8, direct_test_file, "packet_budget_bytes") != null);
+    try std.testing.expect(std.mem.indexOf(u8, direct_test_file, "min_buf_len_bytes") != null);
 
     var starter_landed_count: usize = 0;
     var blocked_count: usize = 0;
