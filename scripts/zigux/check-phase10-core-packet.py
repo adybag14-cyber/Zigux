@@ -324,7 +324,6 @@ def run_self_test() -> int:
         )
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
-        manifest_path.writeText = None
         manifest_path.write_text(
             original_manifest.replace(
                 '"phase10-driver-id-match-helper"',
