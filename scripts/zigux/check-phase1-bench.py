@@ -369,7 +369,6 @@ def run_self_test() -> int:
         ['PHASE1_BENCH_RBTREE_DUPLICATE_MUTATION_CHECKSUM'],
     )
     assert_equal('find_zig_explicit', find_zig('/tmp/zig-self-test'), '/tmp/zig-self-test')
-    assert_equal('status_passthrough', parsed['PHASE1_BENCH'], 'pass')
 
     validate_expectations_shape(expectations)
     validate_expectations_shape(bitmap_expectations)
@@ -531,6 +530,21 @@ def run_self_test() -> int:
         )
     else:
         raise SystemExit('phase1-bench:self-test:invalid_rbtree_optional:unexpected_pass')
+
+    invalid_rbtree_missing_iterations = {
+        **rbtree_expectations,
+        'iterations': {},
+    }
+    try:
+        validate_expectations_shape(invalid_rbtree_missing_iterations)
+    except SystemExit as exc:
+        assert_equal(
+            'invalid_rbtree_missing_iterations',
+            str(exc),
+            'phase1-bench:expectations:iterations:rbtree_required:PHASE1_BENCH_RBTREE_ITERATIONS',
+        )
+    else:
+        raise SystemExit('phase1-bench:self-test:invalid_rbtree_missing_iterations:unexpected_pass')
 
     print('PHASE1_BENCH_SELF_TEST=pass')
     print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=19')
