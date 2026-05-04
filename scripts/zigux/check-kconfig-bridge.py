@@ -255,8 +255,8 @@ def ensure_manifest_is_deterministic(cases: object, fixture_dir: Path = FIXTURE_
                 if mode in CONF_ALLCONFIG_MODES:
                     if allconfig is not None and (not isinstance(allconfig, str) or not allconfig):
                         issues.append(f'{case_prefix}:allconfig:expected_nonempty_string')
-                    if allconfig_env is not None and (not isinstance(allconfig_env, str) or not allconfig_env):
-                        issues.append(f'{case_prefix}:allconfig_env:expected_nonempty_string')
+                    if allconfig_env is not None and not isinstance(allconfig_env, str):
+                        issues.append(f'{case_prefix}:allconfig_env:expected_string')
                     if allconfig is not None and allconfig_env is not None:
                         issues.append(f'{case_prefix}:allconfig:multiple_sources')
                 else:
