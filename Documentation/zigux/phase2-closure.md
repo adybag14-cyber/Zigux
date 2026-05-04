@@ -229,6 +229,7 @@ The bounded `kconfig` bridge closure packet remains closed because the shared fi
   `confdata bridge distinguishes integer, hex, and fallback scalar values`
   `confdata bridge keeps quoted payloads before trailing suffix bytes`
   `confdata bridge accepts CRLF config lines`
+  `confdata bridge normalizes a trailing carriage return on the final unterminated line`
   `confdata bridge rejects empty config path arguments`
   `confdata bridge escapes low control bytes in emitted json`
 
