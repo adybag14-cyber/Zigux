@@ -4,7 +4,7 @@ This document tracks the first bounded Phase 9 runtime trace-events starter unde
 
 ## Status
 
-- `PHASE9_STATUS=active`
+- `PHASE9_STATUS=parked`
 - `PHASE9_SLICE=runtime-trace-events-module-starter`
 - `PHASE9_LANE_KEY=P9-L12`
 - `PHASE9_SURVEYED_COMMIT=d46fb91493e6e9126d5111bf0e5b21184e0ec1d1`
@@ -32,7 +32,7 @@ This bounded starter also stays underneath the trace-core freeze-map boundary. `
 
 The same governance packet also treats `Documentation/zigux/review-checklist.md` as the review-side owner for the trace-core freeze-boundary prompt, so the `Study / Boundary Only` posture stays explicit during review beside the module-slice note, the manifest-backed survey packet, and the freeze map instead of living in only one document.
 
-No parity scorecard entry or Architecture Council status-change request is attached to this Phase 9 lane. This module slice only records the active study boundary and does not reopen the trace-core freeze posture.
+No parity scorecard entry or Architecture Council status-change request is attached to this Phase 9 lane. This module slice now records a parked study boundary and does not reopen the trace-core freeze posture.
 
 ## Landed starter surface
 
@@ -82,4 +82,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Stay in the Phase 9 runtime trace-events lane and keep broader work blocked until there is a small honest substrate handoff for module entry, shared runtime-loader binding, runtime task ownership, polling and event-loop substrate, thread creation, and tracepoint-registration lifecycle wiring, while keeping the separate `kernel/trace/ring_buffer.c` freeze-map boundary in study-only status unless the Architecture Council explicitly reopens it.
+Keep the shipped Phase 9 runtime trace-events starter parked. Reopen this lane only for a later small runtime-substrate handoff around module entry, shared runtime-loader binding, runtime task ownership, polling and event-loop substrate, thread creation, or tracepoint-registration lifecycle wiring, while keeping the separate `kernel/trace/ring_buffer.c` freeze-map boundary in study-only status unless the Architecture Council explicitly reopens it.
