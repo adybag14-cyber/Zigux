@@ -31,12 +31,13 @@ from validate_phase3_core import (
     validate_low_level_wrapper_exports,
     validate_policy_unsafe_boundary,
     validate_manifest,
-    validate_slices,
     validate_source_markers,
 )
 
 
 RBTREE_SHARED_MISSING_MARKER_CASES = PHASE3_SHARED_RBTREE_RECORD_MARKERS
+RBTREE_SHARED_CONTRACT_TEST_REL = "zigux/tests/phase3_rbtree_shared_contract.zig"
+RBTREE_SHARED_CHECKER_REL = "scripts/zigux/check-phase3-rbtree-shared-lift-contract.py"
 
 
 def _write_phase3_slice(
@@ -297,6 +298,21 @@ def run_self_test() -> int:
         assert validate_manifest(abi_manifest_entry, ABI_REQUIRED_MANIFEST_FILES) == []
 
         abi_manifest = json.loads(abi_manifest_path.read_text(encoding="utf-8"))
+        abi_manifest["files"].remove(RBTREE_SHARED_CONTRACT_TEST_REL)
+        abi_manifest["file_count"] = len(abi_manifest["files"])
+        abi_manifest_path.write_text(json.dumps(abi_manifest, indent=2) + "\n", encoding="utf-8", newline="\n")
+        assert validate_manifest(abi_manifest_entry, ABI_REQUIRED_MANIFEST_FILES) == [
+            f"abi: manifest missing {RBTREE_SHARED_CONTRACT_TEST_REL}"
+        ]
+
+        _write_phase3_abi_fixture(paths)
+        (root / RBTREE_SHARED_CHECKER_REL).unlink()
+        assert validate_manifest(abi_manifest_entry, ABI_REQUIRED_MANIFEST_FILES) == [
+            f"abi: manifest references missing file {RBTREE_SHARED_CHECKER_REL}"
+        ]
+        _write_phase3_abi_fixture(paths)
+
+        abi_manifest = json.loads(abi_manifest_path.read_text(encoding="utf-8"))
         abi_manifest["files"].remove(roadmap_gap_doc)
         abi_manifest["file_count"] = len(abi_manifest["files"])
         abi_manifest_path.write_text(json.dumps(abi_manifest, indent=2) + "\n", encoding="utf-8", newline="\n")
@@ -413,7 +429,7 @@ def run_self_test() -> int:
             assert_missing_rbtree_shared_marker(missing_marker)
 
     print("PHASE3_VALIDATOR_SELF_TEST=pass")
-    print("PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT=22")
+    print("PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT=24")
     return 0
 
 
