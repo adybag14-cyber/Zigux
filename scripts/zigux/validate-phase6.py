@@ -14,7 +14,7 @@ ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.p
 HEX40 = re.compile(r"^[0-9a-f]{40}$")
 SELF_TEST_HEAD = "0123456789abcdef0123456789abcdef01234567"
 SELF_TEST_MUTATED_HEAD = "fedcba9876543210fedcba9876543210fedcba98"
-SELF_TEST_CASE_COUNT = 41
+SELF_TEST_CASE_COUNT = 43
 
 EXPECTED_SHARED_GATES = [
     "zigux/tests/phase6_build.zig",
@@ -85,7 +85,7 @@ CATALOG_MARKERS = [
     "max_slowdown_pct = 550",
     "max_slowdown_pct = 600",
     "avg_compare_calls <= std.math.log2_int_ceil(len) + 1",
-    "PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=41",
+    "PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=43",
 ]
 
 PERF_SURVEY_MARKERS = [
@@ -433,6 +433,20 @@ def require_markers(missing: list[str], label: str, content: str, markers: list[
             missing.append(f"{label}:missing:{marker}")
 
 
+def normalized_lines(content: str) -> list[str]:
+    return [line.strip() for line in content.splitlines()]
+
+
+def require_exact_line_counts(
+    missing: list[str], label: str, content: str, expected_lines: list[str]
+) -> None:
+    lines = normalized_lines(content)
+    for expected in expected_lines:
+        actual_count = sum(1 for line in lines if line == expected)
+        if actual_count != 1:
+            missing.append(f"{label}:expected=1:actual={actual_count}:{expected}")
+
+
 def parse_catalog_head(content: str) -> tuple[str | None, str]:
     match = re.search(r"- verified head: `([0-9a-f]{40}|[^`]+)`", content)
     if match is None:
@@ -498,19 +512,39 @@ def validate_phase6(root: Path) -> dict[str, object]:
             "catalog_head_status": "missing_files",
         }
 
-    catalog = text(root, "Documentation/zigux/phase6-helper-parity-catalog.md")
-    catalog_head, catalog_head_status = parse_catalog_head(catalog)
-    if catalog_head is None:
-        catalog_head = ""
-
     missing: list[str] = []
-    require_markers(missing, "catalog", catalog, CATALOG_MARKERS)
+    catalog_content = text(root, "Documentation/zigux/phase6-helper-parity-catalog.md")
+    catalog_head, catalog_head_status = parse_catalog_head(catalog_content)
+    if catalog_head_status != "ok" or catalog_head is None:
+        return {
+            "ok": False,
+            "missing_files": [],
+            "missing": [],
+            "catalog_head": catalog_head or "",
+            "catalog_head_status": catalog_head_status,
+        }
+
+    require_markers(missing, "catalog", catalog_content, CATALOG_MARKERS)
     require_markers(missing, "perf_survey", text(root, "Documentation/zigux/phase6-perf-gate-survey.md"), PERF_SURVEY_MARKERS)
     require_markers(missing, "base64_slice", text(root, "Documentation/zigux/phase6-base64-slice.md"), BASE64_SLICE_MARKERS)
     require_markers(missing, "bsearch_slice", text(root, "Documentation/zigux/phase6-bsearch-slice.md"), BSEARCH_SLICE_MARKERS)
     require_markers(missing, "checksum_slice", text(root, "Documentation/zigux/phase6-checksum-slice.md"), CHECKSUM_SLICE_MARKERS)
     require_markers(missing, "hexdump_slice", text(root, "Documentation/zigux/phase6-hexdump-slice.md"), HEXDUMP_SLICE_MARKERS)
-    require_markers(missing, "scripts_readme", text(root, "scripts/zigux/README.md"), SCRIPTS_README_MARKERS)
+
+    scripts_readme = text(root, "scripts/zigux/README.md")
+    require_markers(
+        missing,
+        "scripts_readme",
+        scripts_readme,
+        [SCRIPTS_README_MARKERS[0], SCRIPTS_README_MARKERS[3]],
+    )
+    require_exact_line_counts(
+        missing,
+        "scripts_readme_line",
+        scripts_readme,
+        SCRIPTS_README_MARKERS[1:3],
+    )
+
     require_markers(missing, "docs_root", text(root, "Documentation/zigux/README.md"), DOCS_ROOT_MARKERS)
     require_markers(missing, "tests_readme", text(root, "zigux/tests/README.md"), TESTS_README_MARKERS)
     require_markers(missing, "workflow", text(root, ".github/workflows/zigux-bootstrap.yml"), WORKFLOW_MARKERS)
@@ -690,13 +724,39 @@ def run_self_test() -> int:
             build_self_test_tree(root)
             scripts_readme = root / "scripts/zigux/README.md"
             scripts_readme.write_text(scripts_readme.read_text(encoding="utf-8").replace(SCRIPTS_README_MARKERS[1], "", 1), encoding="utf-8")
-            expect_contains(validate_phase6(root), f"scripts_readme:missing:{SCRIPTS_README_MARKERS[1]}")
+            expect_contains(validate_phase6(root), f"scripts_readme_line:expected=1:actual=0:{SCRIPTS_README_MARKERS[1]}")
+            count += 1
+
+            build_self_test_tree(root)
+            scripts_readme = root / "scripts/zigux/README.md"
+            scripts_readme.write_text(
+                scripts_readme.read_text(encoding="utf-8").replace(
+                    SCRIPTS_README_MARKERS[1],
+                    f"{SCRIPTS_README_MARKERS[1]}\n{SCRIPTS_README_MARKERS[1]}",
+                    1,
+                ),
+                encoding="utf-8",
+            )
+            expect_contains(validate_phase6(root), f"scripts_readme_line:expected=1:actual=2:{SCRIPTS_README_MARKERS[1]}")
             count += 1
 
             build_self_test_tree(root)
             scripts_readme = root / "scripts/zigux/README.md"
             scripts_readme.write_text(scripts_readme.read_text(encoding="utf-8").replace(SCRIPTS_README_MARKERS[2], "", 1), encoding="utf-8")
-            expect_contains(validate_phase6(root), f"scripts_readme:missing:{SCRIPTS_README_MARKERS[2]}")
+            expect_contains(validate_phase6(root), f"scripts_readme_line:expected=1:actual=0:{SCRIPTS_README_MARKERS[2]}")
+            count += 1
+
+            build_self_test_tree(root)
+            scripts_readme = root / "scripts/zigux/README.md"
+            scripts_readme.write_text(
+                scripts_readme.read_text(encoding="utf-8").replace(
+                    SCRIPTS_README_MARKERS[2],
+                    f"{SCRIPTS_README_MARKERS[2]}\n{SCRIPTS_README_MARKERS[2]}",
+                    1,
+                ),
+                encoding="utf-8",
+            )
+            expect_contains(validate_phase6(root), f"scripts_readme_line:expected=1:actual=2:{SCRIPTS_README_MARKERS[2]}")
             count += 1
 
             build_self_test_tree(root)
