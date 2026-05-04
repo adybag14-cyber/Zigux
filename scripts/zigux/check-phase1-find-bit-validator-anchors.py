@@ -112,6 +112,20 @@ REQUIRED_CLOSURE_DOC_SNIPPETS = {
         "inclusive starts and tail-clamped set, shared-bit, and zero-bit scan behavior across the same "
         "caller-selected bit windows as the public helpers"
     ),
+    "find_bit_tail_start_review_marker": (
+        "PHASE1_FIND_BIT_TAIL_START_UNIT_REVIEW=find_bit tail-clamped set zero and shared-bit scans keep the "
+        "last in-range bit reachable from an inclusive start while later starts still return nbits instead of "
+        "leaking the out-of-range tail"
+    ),
+    "find_bit_tail_word_boundary_review_marker": (
+        "PHASE1_FIND_BIT_TAIL_WORD_BOUNDARY_UNIT_REVIEW=find_bit tail-clamped set zero and shared-bit scans keep "
+        "the first in-range tail-word match reachable when the search starts exactly at the tail-word boundary "
+        "instead of rereading an earlier full-word result"
+    ),
+    "find_bit_zero_sized_review_marker": (
+        "PHASE1_FIND_BIT_ZERO_SIZED_UNIT_REVIEW=find_bit zero-length set zero and shared-bit scans return 0 even "
+        "when backing words are populated so declared nbits stays authoritative over caller storage"
+    ),
 }
 
 REQUIRED_BENCH_CHECKER_SNIPPETS = {
