@@ -53,7 +53,7 @@
     {
       "lane_key": "P14-Y01",
       "anchor": "kernel/workqueue.c",
-      "surveyed_commit": "542acd7b12c52211ef9a8bd790fa2e2b3367cbf0",
+      "surveyed_commit": "02264a3240cd30ce45c9a932047a0204b7ab5029",
       "manifest_path": "zigux/tests/phase14_workqueue_bridge_manifest.json",
       "survey_note_path": "Documentation/zigux/phase14-workqueue-bridge-survey.md",
       "ready_next_gap": "",
