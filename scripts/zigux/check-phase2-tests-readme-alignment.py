@@ -543,6 +543,21 @@ def run_self_test() -> int:
         expect_missing("toolchain_notes_pin", tmp_root, "toolchain_notes:x86_64-linux")
         toolchain_notes_path.write_text(original_toolchain_notes, encoding="utf-8")
 
+        toolchain_notes_path.write_text(
+            original_toolchain_notes.replace(
+                "- same kbuild-facing replay surface named by the shared validators, the closure note, and the shared review checklist\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "toolchain_notes_replay_surface",
+            tmp_root,
+            "toolchain_notes:same kbuild-facing replay surface named by the shared validators, the closure note, and the shared review checklist",
+        )
+        toolchain_notes_path.write_text(original_toolchain_notes, encoding="utf-8")
+
         review_checklist_path = tmp_root / REQUIRED_FILES["review_checklist"]
         original_review_checklist = review_checklist_path.read_text(encoding="utf-8")
         review_checklist_path.write_text(
@@ -827,7 +842,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=23")
+    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=24")
     return 0
 
 
