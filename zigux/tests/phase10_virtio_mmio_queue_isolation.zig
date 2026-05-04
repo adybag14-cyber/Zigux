@@ -55,3 +55,49 @@ test "phase10 virtio mmio keeps queue state isolated across queue selection chan
     try std.testing.expectEqual(@as(u32, 1), second_notify.notified_queue);
     try std.testing.expectEqual(@as(usize, 2), second_notify.notification_count);
 }
+
+test "phase10 virtio mmio reset clears legacy and modern queue address plans after queue selection changes" {
+    var window = virtio_mmio.VirtioMmioRegisterWindowLab.initWithQueueMaximums(
+        .{ 0, 0 },
+        0,
+        .{ 8, 16 },
+    );
+
+    _ = try window.selectQueue(0);
+    _ = try window.writeSelectedQueueSize(8);
+    _ = try window.planLegacyQueueAddress(4096, 4096, 0x80);
+    _ = try window.writeSelectedQueueReady(true);
+
+    _ = try window.selectQueue(1);
+    _ = try window.writeSelectedQueueSize(12);
+    _ = try window.planModernQueueAddress(0x1000, 0x2000, 0x3000);
+    _ = try window.writeSelectedQueueReady(true);
+
+    const reset = window.reset();
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", reset.anchor);
+    try std.testing.expectEqual(@as(usize, 1), reset.reset_count);
+
+    var queue = try window.queueRegisterSummary();
+    try std.testing.expectEqual(@as(u32, 0), queue.selected_queue);
+    try std.testing.expectEqual(@as(u16, 8), queue.selected_queue_size_max);
+    try std.testing.expectEqual(@as(u16, 0), queue.selected_queue_size);
+    try std.testing.expect(!queue.selected_queue_ready);
+
+    const cleared_legacy = try window.queueAddressSummary(.legacy);
+    try std.testing.expectEqual(@as(?u32, 0), cleared_legacy.legacy_guest_page_size);
+    try std.testing.expectEqual(@as(?u32, 0), cleared_legacy.legacy_queue_align);
+    try std.testing.expectEqual(@as(?u32, 0), cleared_legacy.legacy_queue_pfn);
+    try std.testing.expectEqual(@as(?u64, null), cleared_legacy.modern_desc);
+
+    queue = try window.selectQueue(1);
+    try std.testing.expectEqual(@as(u16, 16), queue.selected_queue_size_max);
+    try std.testing.expectEqual(@as(u16, 0), queue.selected_queue_size);
+    try std.testing.expect(!queue.selected_queue_ready);
+
+    const cleared_modern = try window.queueAddressSummary(.modern);
+    try std.testing.expectEqual(@as(?u32, null), cleared_modern.legacy_guest_page_size);
+    try std.testing.expectEqual(@as(?u64, 0), cleared_modern.modern_desc);
+    try std.testing.expectEqual(@as(?u64, 0), cleared_modern.modern_avail);
+    try std.testing.expectEqual(@as(?u64, 0), cleared_modern.modern_used);
+    try std.testing.expectError(error.QueueAddressRequiresConfiguredSize, window.planModernQueueAddress(0x1110, 0x2220, 0x3330));
+}
