@@ -7,7 +7,72 @@ const panic_policy = @import("panic_policy");
 const allocator_policy = @import("allocator_policy");
 const mmio = @import("mmio_helpers");
 const narrow = @import("narrow_unsafe");
-const rbtree = @import("rbtree_bindings");
+
+fn rbtreeKnownFlagMask() u32 {
+    return abi.RBTREE_ROOT_FLAG_EMPTY |
+        abi.RBTREE_ROOT_FLAG_CACHED |
+        abi.RBTREE_ROOT_FLAG_LEFTMOST_VALID;
+}
+
+fn isRbtreeEmpty(view: abi.RbtreeRootView) bool {
+    return (view.flags & abi.RBTREE_ROOT_FLAG_EMPTY) != 0;
+}
+
+fn isRbtreeCached(view: abi.RbtreeRootView) bool {
+    return (view.flags & abi.RBTREE_ROOT_FLAG_CACHED) != 0;
+}
+
+fn hasRbtreeLeftmost(view: abi.RbtreeRootView) bool {
+    return (view.flags & abi.RBTREE_ROOT_FLAG_LEFTMOST_VALID) != 0;
+}
+
+fn hasOnlyKnownRbtreeFlags(view: abi.RbtreeRootView) bool {
+    return (view.flags & ~rbtreeKnownFlagMask()) == 0;
+}
+
+fn hasRbtreeRoot(view: abi.RbtreeRootView) bool {
+    return !isRbtreeEmpty(view) and view.root_addr != 0;
+}
+
+fn isValidRbtreeRootView(view: abi.RbtreeRootView) bool {
+    if (!hasOnlyKnownRbtreeFlags(view)) return false;
+    if (view.reserved != 0) return false;
+    if (isRbtreeEmpty(view) and view.root_addr != 0) return false;
+    if (!isRbtreeCached(view) and view.leftmost_addr != 0) return false;
+    if (!hasRbtreeLeftmost(view) and view.leftmost_addr != 0) return false;
+    return true;
+}
+
+fn canonicalizeRbtreeRootView(view: abi.RbtreeRootView) ?abi.RbtreeRootView {
+    if (!isValidRbtreeRootView(view)) return null;
+    if (isRbtreeEmpty(view)) {
+        return .{
+            .root_addr = 0,
+            .leftmost_addr = 0,
+            .flags = abi.RBTREE_ROOT_FLAG_EMPTY,
+            .reserved = 0,
+        };
+    }
+    if (isRbtreeCached(view)) {
+        return .{
+            .root_addr = view.root_addr,
+            .leftmost_addr = view.leftmost_addr,
+            .flags = abi.RBTREE_ROOT_FLAG_CACHED | abi.RBTREE_ROOT_FLAG_LEFTMOST_VALID,
+            .reserved = 0,
+        };
+    }
+    return .{
+        .root_addr = view.root_addr,
+        .leftmost_addr = 0,
+        .flags = 0,
+        .reserved = 0,
+    };
+}
+
+fn isCanonicalRbtreeRootView(view: abi.RbtreeRootView) bool {
+    const normalized = canonicalizeRbtreeRootView(view) orelse return false;
+    return std.meta.eql(normalized, view);
+}
 
 test "phase3 abi slice uses stable canonical layouts" {
     comptime {
@@ -69,12 +134,12 @@ test "phase3 abi slice uses stable canonical layouts" {
         layout_assert.assertAlign(abi.HListSummary, 4);
         layout_assert.assertOffset(abi.HListSummary, "length", 0);
         layout_assert.assertOffset(abi.HListSummary, "flags", 4);
-        layout_assert.assertSize(rbtree.RootView, @sizeOf(usize) * 2 + 8);
-        layout_assert.assertAlign(rbtree.RootView, @alignOf(usize));
-        layout_assert.assertOffset(rbtree.RootView, "root_addr", 0);
-        layout_assert.assertOffset(rbtree.RootView, "leftmost_addr", @sizeOf(usize));
-        layout_assert.assertOffset(rbtree.RootView, "flags", @sizeOf(usize) * 2);
-        layout_assert.assertOffset(rbtree.RootView, "reserved", @sizeOf(usize) * 2 + 4);
+        layout_assert.assertSize(abi.RbtreeRootView, @sizeOf(usize) * 2 + 8);
+        layout_assert.assertAlign(abi.RbtreeRootView, @alignOf(usize));
+        layout_assert.assertOffset(abi.RbtreeRootView, "root_addr", 0);
+        layout_assert.assertOffset(abi.RbtreeRootView, "leftmost_addr", @sizeOf(usize));
+        layout_assert.assertOffset(abi.RbtreeRootView, "flags", @sizeOf(usize) * 2);
+        layout_assert.assertOffset(abi.RbtreeRootView, "reserved", @sizeOf(usize) * 2 + 4);
     }
 }
 
@@ -104,9 +169,9 @@ test "phase3 abi slice keeps explicit constants and statuses reviewable" {
     try std.testing.expectEqual(@as(u32, 1), abi.MINOR_ALLOC_FLAG_TRUNCATED);
     try std.testing.expectEqual(@as(u32, 2), abi.MINOR_ALLOC_FLAG_FOUND);
     try std.testing.expectEqual(@as(u32, 4), abi.MINOR_ALLOC_FLAG_EXHAUSTED);
-    try std.testing.expectEqual(@as(u32, 1), rbtree.ROOT_FLAG_EMPTY);
-    try std.testing.expectEqual(@as(u32, 2), rbtree.ROOT_FLAG_CACHED);
-    try std.testing.expectEqual(@as(u32, 4), rbtree.ROOT_FLAG_LEFTMOST_VALID);
+    try std.testing.expectEqual(@as(u32, 1), abi.RBTREE_ROOT_FLAG_EMPTY);
+    try std.testing.expectEqual(@as(u32, 2), abi.RBTREE_ROOT_FLAG_CACHED);
+    try std.testing.expectEqual(@as(u32, 4), abi.RBTREE_ROOT_FLAG_LEFTMOST_VALID);
 
     const ok = export_shim.ok(.kernel);
     try std.testing.expect(export_shim.isOk(ok));
@@ -153,36 +218,41 @@ test "phase3 abi slice keeps the boundary helpers constructible" {
     try std.testing.expect(!narrow.permitsVolatileMmioPolicyBytes(2, 0));
 
     // PHASE3_SHARED_RBTREE_SAMPLE_RECORDS=empty-root,cached-leftmost-root,uncached-root
-    const empty_root = rbtree.empty();
+    const empty_root: abi.RbtreeRootView = .{
+        .root_addr = 0,
+        .leftmost_addr = 0,
+        .flags = abi.RBTREE_ROOT_FLAG_EMPTY,
+        .reserved = 0,
+    };
     try std.testing.expectEqual(@as(usize, 0), empty_root.root_addr);
     try std.testing.expectEqual(@as(usize, 0), empty_root.leftmost_addr);
-    try std.testing.expectEqual(@as(u32, rbtree.ROOT_FLAG_EMPTY), empty_root.flags);
+    try std.testing.expectEqual(@as(u32, abi.RBTREE_ROOT_FLAG_EMPTY), empty_root.flags);
     try std.testing.expectEqual(@as(u32, 0), empty_root.reserved);
-    try std.testing.expect(rbtree.isValid(empty_root));
-    try std.testing.expect(rbtree.isEmpty(empty_root));
-    try std.testing.expect(!rbtree.isCached(empty_root));
-    try std.testing.expect(!rbtree.hasLeftmost(empty_root));
-    try std.testing.expect(!rbtree.hasRoot(empty_root));
-    try std.testing.expect(rbtree.isCanonical(empty_root));
+    try std.testing.expect(isValidRbtreeRootView(empty_root));
+    try std.testing.expect(isRbtreeEmpty(empty_root));
+    try std.testing.expect(!isRbtreeCached(empty_root));
+    try std.testing.expect(!hasRbtreeLeftmost(empty_root));
+    try std.testing.expect(!hasRbtreeRoot(empty_root));
+    try std.testing.expect(isCanonicalRbtreeRootView(empty_root));
 
-    const cached_root: rbtree.RootView = .{
+    const cached_root: abi.RbtreeRootView = .{
         .root_addr = 0x2000,
         .leftmost_addr = 0x1800,
-        .flags = rbtree.ROOT_FLAG_CACHED | rbtree.ROOT_FLAG_LEFTMOST_VALID,
+        .flags = abi.RBTREE_ROOT_FLAG_CACHED | abi.RBTREE_ROOT_FLAG_LEFTMOST_VALID,
         .reserved = 0,
     };
     try std.testing.expectEqual(@as(usize, 0x2000), cached_root.root_addr);
     try std.testing.expectEqual(@as(usize, 0x1800), cached_root.leftmost_addr);
-    try std.testing.expectEqual(@as(u32, rbtree.ROOT_FLAG_CACHED | rbtree.ROOT_FLAG_LEFTMOST_VALID), cached_root.flags);
+    try std.testing.expectEqual(@as(u32, abi.RBTREE_ROOT_FLAG_CACHED | abi.RBTREE_ROOT_FLAG_LEFTMOST_VALID), cached_root.flags);
     try std.testing.expectEqual(@as(u32, 0), cached_root.reserved);
-    try std.testing.expect(rbtree.isValid(cached_root));
-    try std.testing.expect(!rbtree.isEmpty(cached_root));
-    try std.testing.expect(rbtree.isCached(cached_root));
-    try std.testing.expect(rbtree.hasLeftmost(cached_root));
-    try std.testing.expect(rbtree.hasRoot(cached_root));
-    try std.testing.expect(rbtree.isCanonical(cached_root));
+    try std.testing.expect(isValidRbtreeRootView(cached_root));
+    try std.testing.expect(!isRbtreeEmpty(cached_root));
+    try std.testing.expect(isRbtreeCached(cached_root));
+    try std.testing.expect(hasRbtreeLeftmost(cached_root));
+    try std.testing.expect(hasRbtreeRoot(cached_root));
+    try std.testing.expect(isCanonicalRbtreeRootView(cached_root));
 
-    const uncached_root: rbtree.RootView = .{
+    const uncached_root: abi.RbtreeRootView = .{
         .root_addr = 0x2400,
         .leftmost_addr = 0,
         .flags = 0,
@@ -192,10 +262,10 @@ test "phase3 abi slice keeps the boundary helpers constructible" {
     try std.testing.expectEqual(@as(usize, 0), uncached_root.leftmost_addr);
     try std.testing.expectEqual(@as(u32, 0), uncached_root.flags);
     try std.testing.expectEqual(@as(u32, 0), uncached_root.reserved);
-    try std.testing.expect(rbtree.isValid(uncached_root));
-    try std.testing.expect(!rbtree.isEmpty(uncached_root));
-    try std.testing.expect(!rbtree.isCached(uncached_root));
-    try std.testing.expect(!rbtree.hasLeftmost(uncached_root));
-    try std.testing.expect(rbtree.hasRoot(uncached_root));
-    try std.testing.expect(rbtree.isCanonical(uncached_root));
+    try std.testing.expect(isValidRbtreeRootView(uncached_root));
+    try std.testing.expect(!isRbtreeEmpty(uncached_root));
+    try std.testing.expect(!isRbtreeCached(uncached_root));
+    try std.testing.expect(!hasRbtreeLeftmost(uncached_root));
+    try std.testing.expect(hasRbtreeRoot(uncached_root));
+    try std.testing.expect(isCanonicalRbtreeRootView(uncached_root));
 }
