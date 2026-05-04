@@ -502,13 +502,11 @@ def validate_genksyms_crc_checker_gate(checker_script: Path) -> list[str]:
     required_markers = {
         'self_test_arg': "parser.add_argument('--self-test'",
         'self_test_pass_marker': "print('GENKSYMS_CRC_SELF_TEST=pass')",
-        'self_test_case_count_marker': "print('GENKSYMS_CRC_SELF_TEST_CASE_COUNT=11')",
-        'missing_expected_fixture_guard': 'missing_expected_fixture:',
-        'missing_input_fixture_guard': 'missing_input_fixture:',
-        'orphaned_expected_guard': 'orphaned_expected:',
-        'orphaned_input_guard': 'orphaned_input:',
-        'repeat_c_compare': "run(diff + [str(c_actual), str(c_repeat)], cwd=str(ROOT))",
-        'repeat_zig_compare': "run(diff + [str(zig_actual), str(zig_repeat)], cwd=str(ROOT))",
+        'self_test_case_count_marker': "print('GENKSYMS_CRC_SELF_TEST_CASE_COUNT=7')",
+        'duplicate_name_guard': ':duplicate_name:',
+        'duplicate_expected_guard': ':duplicate_expected:',
+        'repeat_c_compare': "run(diff_base + [str(c_actual), str(c_repeat)], cwd=str(ROOT))",
+        'repeat_zig_compare': "run(diff_base + [str(zig_actual), str(zig_repeat)], cwd=str(ROOT))",
         'determinism_marker': "print('GENKSYMS_CRC_DETERMINISM=pass')",
     }
 
@@ -525,11 +523,13 @@ def validate_fixdep_checker_gate(checker_script: Path) -> list[str]:
         'self_test_arg': "parser.add_argument('--self-test'",
         'self_test_pass_marker': "print('FIXDEP_SELF_TEST=pass')",
         'self_test_case_count_marker': "print(f'FIXDEP_SELF_TEST_CASE_COUNT={checks_run}')",
-        'sample_escaped_colon_case': 'sample_escaped_colon_expected.txt',
-        'sample_concatenated_case': 'sample_concatenated_expected.txt',
-        'sample_output_write_case': 'sample_output_write_expected.stderr.txt',
-        'expected_stderr_fallback': "expected_stderr_path = expected_stderr or implicit_expected_stderr",
-        'quiet_success_stderr_gate': "implicit_expected_stderr.write_text('', encoding='utf-8')",
+        'source_validation': 'validate_tool_sources(C_FIXDEP, ZIG_FIXDEP)',
+        'stderr_fixture_support': 'expected_stderr_path = expected_stderr or implicit_expected_stderr',
+        'repeat_c_compare': 'diff_text(c_actual, c_repeat)',
+        'repeat_zig_compare': 'diff_text(zig_actual, zig_repeat)',
+        'stderr_compare': 'diff_text(c_actual_stderr, zig_actual_stderr)',
+        'repeat_c_stderr_compare': 'diff_text(c_actual_stderr, c_repeat_stderr)',
+        'repeat_zig_stderr_compare': 'diff_text(zig_actual_stderr, zig_repeat_stderr)',
         'determinism_marker': "print('FIXDEP_DETERMINISM=pass')",
     }
 
@@ -861,6 +861,7 @@ required_toolchain_notes_markers = [
     'make -C zigux phase2-validate',
     'make -C zigux phase2',
     'x86_64-linux',
+    'same kbuild-facing replay surface named by the shared validators, the closure note, and the shared review checklist',
 ]
 
 missing_markers = []
