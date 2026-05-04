@@ -58,6 +58,13 @@ SHARED_REPLAY_MARKERS = [
         "marker": "    try std.testing.expect(dispatch.invokes_sysrq_handler);",
     },
 ]
+HVC_SYSRQ_MARKERS = [
+    "pub fn summarizeSysrqHandoff(",
+    "if (!slot.usable_for_console) return error.ConsoleUnavailable;",
+    "const is_toggle = request.is_kernel_console and request.input_char == 0x0f;",
+    ".consumes_input_without_flip = !emits_literal_char,",
+    ".keeps_live_sysrq_execution_out_of_scope = true,",
+]
 REQUIRED_BUILD_STEPS = [
     ("test_step", "test", "Run Phase 11 starter and survey tests"),
     (
@@ -173,6 +180,18 @@ def validate_shared_replay_markers() -> list[str]:
     return missing
 
 
+def validate_hvc_sysrq_surface() -> list[str]:
+    missing = []
+    sysrq_path = ROOT / "drivers/tty/hvc/hvc_console_sysrq.zig"
+    if not sysrq_path.exists():
+        return ["drivers/tty/hvc/hvc_console_sysrq.zig:missing"]
+    sysrq_text = sysrq_path.read_text(encoding="utf-8")
+    for marker in HVC_SYSRQ_MARKERS:
+        if marker not in sysrq_text:
+            missing.append(f"drivers/tty/hvc/hvc_console_sysrq.zig:{marker}")
+    return missing
+
+
 def validate_build_steps(build_text: str) -> list[str]:
     missing = []
     build_steps = {
@@ -208,6 +227,15 @@ def validate_fixture_match() -> int:
         for item in missing_replay_markers:
             print(item)
         print("PHASE11_BUILD_INVENTORY_MISSING_REPLAY_MARKERS_END")
+        return 1
+
+    missing_hvc_sysrq_markers = validate_hvc_sysrq_surface()
+    if missing_hvc_sysrq_markers:
+        print("PHASE11_BUILD_INVENTORY=fail")
+        print("PHASE11_BUILD_INVENTORY_MISSING_HVC_SYSRQ_MARKERS_START")
+        for item in missing_hvc_sysrq_markers:
+            print(item)
+        print("PHASE11_BUILD_INVENTORY_MISSING_HVC_SYSRQ_MARKERS_END")
         return 1
 
     build_text = BUILD_PATH.read_text(encoding="utf-8")
@@ -413,7 +441,7 @@ pub fn build(b: *std.Build) void {
     for rel_path, content in {
         "drivers/watchdog/dw_wdt.zig": "// self-test placeholder\n",
         "drivers/tty/hvc/hvc_console.zig": "// self-test placeholder\n",
-        "drivers/tty/hvc/hvc_console_sysrq.zig": "// self-test placeholder\n",
+        "drivers/tty/hvc/hvc_console_sysrq.zig": "\n".join(HVC_SYSRQ_MARKERS) + "\n",
         "zigux/tests/phase11_dw_wdt_suspend_resume.zig": "    try std.testing.expect(summary.resume_preserves_timeout_programming);\n",
         "zigux/tests/phase11_dw_wdt_remove_idle_split.zig": "    try std.testing.expect(reset_available_summary.remove_clears_interrupt_status);\n",
         "zigux/tests/phase11_hvc_console_modem_control_split.zig": "    try std.testing.expectEqual(@as(c_int, -7), summary.tiocmset_result);\n",
@@ -483,6 +511,14 @@ def run_self_test() -> int:
             "missing_hvc_sysrq_module_root",
             run_checker(tmp_root),
             "hvc_console_sysrq_module:../../drivers/tty/hvc/hvc_console_sysrq.zig",
+        )
+        write_text(hvc_sysrq, hvc_sysrq_backup)
+
+        hvc_sysrq.write_text("// marker removed\n", encoding="utf-8")
+        expect_stdout(
+            "missing_hvc_sysrq_surface_marker",
+            run_checker(tmp_root),
+            "drivers/tty/hvc/hvc_console_sysrq.zig:pub fn summarizeSysrqHandoff(",
         )
         write_text(hvc_sysrq, hvc_sysrq_backup)
 
@@ -567,7 +603,7 @@ def run_self_test() -> int:
         fixture_path.write_text(fixture_backup, encoding="utf-8")
 
     print("PHASE11_BUILD_INVENTORY_SELF_TEST=pass")
-    print("PHASE11_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=11")
+    print("PHASE11_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
