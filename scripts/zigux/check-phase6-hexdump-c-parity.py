@@ -214,8 +214,8 @@ def run_self_test() -> int:
             "self-test-mismatch",
         ),
         "phase6-hexdump-c-parity:self-test-mismatch:c_output_mismatch:"
-        "expected=['hexToBin\\tA\\t10', 'length\\tplain\\t33']:"
-        "actual=['hexToBin\\tA\\t10', 'length\\tplain\\t34']",
+        "expected=['hexToBin\tA\t10', 'length\tplain\t33']:"
+        "actual=['hexToBin\tA\t10', 'length\tplain\t34']",
     )
 
     print("PHASE6_HEXDUMP_C_PARITY_SELF_TEST=pass")
