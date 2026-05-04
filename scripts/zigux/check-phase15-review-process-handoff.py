@@ -27,6 +27,7 @@ HANDOFF_INVENTORY_MARKERS = [
     "Documentation/zigux/phase15-indefinite-c-policy.md",
     "Documentation/zigux/phase15-handoff-next-steps-survey.md",
     "scripts/zigux/README.md",
+    "scripts/zigux/check-phase15-review-process-handoff.py",
     "scripts/zigux/validate-phase15.py",
     "zigux/tests/README.md",
     "zigux/tests/phase15_build.zig",
@@ -36,6 +37,7 @@ HANDOFF_INVENTORY_MARKERS = [
 MANIFEST_ROUTE_MARKERS = [
     "scripts-root validator path",
     "tests-root guidance path",
+    "dedicated handoff-checker route",
     "current parked maintenance-mode Phase 15 packet",
 ]
 
@@ -106,14 +108,14 @@ def write_fixture_tree(root: Path) -> None:
 
 ## Roadmap Handoff Evidence
 
-- current repo handoff: the original documentation-root and freeze-map landing is now carried forward by `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, this review-process note, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `scripts/zigux/README.md`, `scripts/zigux/validate-phase15.py`, `zigux/tests/README.md`, `zigux/tests/phase15_build.zig`, and `make -C zigux phase15`
+- current repo handoff: the original documentation-root and freeze-map landing is now carried forward by `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, this review-process note, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, `scripts/zigux/validate-phase15.py`, `zigux/tests/README.md`, `zigux/tests/phase15_build.zig`, and `make -C zigux phase15`
 """
     (root / NOTE_PATH).write_text(note, encoding="utf-8")
 
     manifest = {
         "handoff_evidence": {
-            "current_repo_handoff": "The original documentation-root and freeze-map landing is now carried forward by Documentation/zigux/README.md, Documentation/zigux/review-checklist.md, Documentation/zigux/phase15-freeze-map-governance.md, the review-process note, Documentation/zigux/phase15-parity-scorecard.md, Documentation/zigux/phase15-indefinite-c-policy.md, Documentation/zigux/phase15-handoff-next-steps-survey.md, scripts/zigux/README.md, scripts/zigux/validate-phase15.py, zigux/tests/README.md, zigux/tests/phase15_build.zig, and make -C zigux phase15.",
-            "current_bounded_lane": "P15-L08 keeps the review-process packet narrowed to one same-packet governance refresh so the Architecture Council handoff stays aligned with the current parked maintenance-mode Phase 15 packet, its scripts-root validator path, and its tests-root guidance path.",
+            "current_repo_handoff": "The original documentation-root and freeze-map landing is now carried forward by Documentation/zigux/README.md, Documentation/zigux/review-checklist.md, Documentation/zigux/phase15-freeze-map-governance.md, the review-process note, Documentation/zigux/phase15-parity-scorecard.md, Documentation/zigux/phase15-indefinite-c-policy.md, Documentation/zigux/phase15-handoff-next-steps-survey.md, scripts/zigux/README.md, scripts/zigux/check-phase15-review-process-handoff.py, scripts/zigux/validate-phase15.py, zigux/tests/README.md, zigux/tests/phase15_build.zig, and make -C zigux phase15.",
+            "current_bounded_lane": "P15-L08 keeps the review-process packet narrowed to one same-packet governance refresh so the Architecture Council handoff stays aligned with the current parked maintenance-mode Phase 15 packet, its scripts-root validator path, its dedicated handoff-checker route, and its tests-root guidance path.",
         }
     }
     (root / MANIFEST_PATH).write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
