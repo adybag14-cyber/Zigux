@@ -9,7 +9,7 @@ from pathlib import Path
 
 SCRIPT_PATH = Path(__file__).resolve()
 ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
-SELF_TEST_CASE_COUNT = 14
+SELF_TEST_CASE_COUNT = 18
 
 DOCS_ROOT_PATH = Path("Documentation/zigux/README.md")
 SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
@@ -55,10 +55,14 @@ REQUIRED_TESTS_README_LINES = [
 REQUIRED_MANIFEST_EXACT_CHECKS = [
     "python3 scripts/zigux/check-phase6-docs-root-external-parity.py --self-test",
     "python3 scripts/zigux/check-phase6-docs-root-external-parity.py",
+    "python3 scripts/zigux/check-phase6-base64-catalog-evidence.py --self-test",
+    "python3 scripts/zigux/check-phase6-base64-catalog-evidence.py",
 ]
 REQUIRED_MAKEFILE_LINES = [
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-docs-root-external-parity.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-docs-root-external-parity.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-base64-catalog-evidence.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-base64-catalog-evidence.py",
 ]
 REQUIRED_FILE_COUNT = (
     5 + len(REQUIRED_REVIEW_HELPER_PATHS) + len(REQUIRED_SCRIPT_PATHS)
@@ -331,6 +335,38 @@ def run_self_test() -> int:
             count += 1
 
             build_fixture_tree(root)
+            manifest_path = root / MANIFEST_PATH
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            kept_checks = [
+                item
+                for item in manifest["exact_checks"]
+                if item != "python3 scripts/zigux/check-phase6-base64-catalog-evidence.py --self-test"
+            ]
+            manifest["exact_checks"] = kept_checks
+            manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+            expect_contains(
+                validate(root),
+                "manifest_exact_checks:expected=1:actual=0:python3 scripts/zigux/check-phase6-base64-catalog-evidence.py --self-test",
+            )
+            count += 1
+
+            build_fixture_tree(root)
+            manifest_path = root / MANIFEST_PATH
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            kept_checks = [
+                item
+                for item in manifest["exact_checks"]
+                if item != "python3 scripts/zigux/check-phase6-base64-catalog-evidence.py"
+            ]
+            manifest["exact_checks"] = kept_checks
+            manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+            expect_contains(
+                validate(root),
+                "manifest_exact_checks:expected=1:actual=0:python3 scripts/zigux/check-phase6-base64-catalog-evidence.py",
+            )
+            count += 1
+
+            build_fixture_tree(root)
             makefile = root / MAKEFILE_PATH
             kept_lines = [
                 line
@@ -341,6 +377,34 @@ def run_self_test() -> int:
             expect_contains(
                 validate(root),
                 "makefile_checker_line:expected=1:actual=0:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-docs-root-external-parity.py",
+            )
+            count += 1
+
+            build_fixture_tree(root)
+            makefile = root / MAKEFILE_PATH
+            kept_lines = [
+                line
+                for line in makefile.read_text(encoding="utf-8").splitlines()
+                if line != REQUIRED_MAKEFILE_LINES[2]
+            ]
+            makefile.write_text("\n".join(kept_lines) + "\n", encoding="utf-8")
+            expect_contains(
+                validate(root),
+                "makefile_checker_line:expected=1:actual=0:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-base64-catalog-evidence.py --self-test",
+            )
+            count += 1
+
+            build_fixture_tree(root)
+            makefile = root / MAKEFILE_PATH
+            kept_lines = [
+                line
+                for line in makefile.read_text(encoding="utf-8").splitlines()
+                if line != REQUIRED_MAKEFILE_LINES[3]
+            ]
+            makefile.write_text("\n".join(kept_lines) + "\n", encoding="utf-8")
+            expect_contains(
+                validate(root),
+                "makefile_checker_line:expected=1:actual=0:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-base64-catalog-evidence.py",
             )
             count += 1
 
