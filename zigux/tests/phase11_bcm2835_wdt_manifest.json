@@ -112,7 +112,7 @@
       "status": "starter_landed",
       "kind": "simple_driver_starter",
       "zigux_destination": "drivers/watchdog/bcm2835_wdt.zig",
-      "why_now": "The lane now records a tiny remove-time teardown summary showing that watchdog teardown stays devm-managed while the explicit remove callback clears the shared poweroff handler only when the bcm2835 driver currently owns it, leaving conflicting or unrelated ownership untouched before any actual platform remove or poweroff plumbing."
+      "why_now": "The lane now records a tiny remove-time teardown summary showing that watchdog teardown stays devm-managed while the explicit remove callback clears the shared poweroff callback only when `pm_power_off` still matches `bcm2835_power_off`, leaving conflicting or unrelated callback ownership untouched before any actual platform remove or poweroff plumbing."
     },
     {
       "id": "phase11-bcm2835-wdt-live-platform-registration",
