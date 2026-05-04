@@ -36,7 +36,7 @@
     {
       "id": "phase13-libfs-starter",
       "status": "starter_landed",
-      "kind": "filesystem_helper_wrapper",
+      "kind": "filesystem_helper_surface",
       "zigux_destination": "fs/libfs.zig",
       "why_now": "The landed starter already mirrors the pure helper-facing shape of simple_statfs(), always_delete_dentry(), and simple_lookup() without claiming live dcache mutation, inode locking, or VFS registration."
     },
@@ -71,77 +71,77 @@
     {
       "id": "phase13-libfs-offset-seek-helper",
       "status": "starter_landed",
-      "kind": "filesystem_helper_wrapper",
+      "kind": "filesystem_helper_surface",
       "zigux_destination": "fs/libfs.zig",
       "why_now": "The libfs helper lab now models the early seek-policy surface from dcache_dir_lseek() and offset_dir_llseek() in pure planning form, including SEEK_SET and SEEK_CUR handling, negative-offset rejection, max-position bounds, and whether a positive-entry scan would become necessary."
     },
     {
       "id": "phase13-libfs-directory-emit-helper",
       "status": "starter_landed",
-      "kind": "filesystem_helper_wrapper",
+      "kind": "filesystem_helper_surface",
       "zigux_destination": "fs/libfs.zig",
       "why_now": "The libfs helper lab now adds one tiny dcache_readdir()-adjacent emit planner that models the dir_emit_dots() handoff, the transition into positive entry scanning, emitted-entry position accounting, and the early stop case before any live cursor dentries or inode-backed state are touched."
     },
     {
       "id": "phase13-libfs-transaction-buffer-helper",
       "status": "starter_landed",
-      "kind": "filesystem_helper_wrapper",
+      "kind": "filesystem_helper_surface",
       "zigux_destination": "fs/libfs.zig",
       "why_now": "The libfs helper lab now models a bounded simple_transaction_get()/simple_transaction_set() staging-buffer planner around request-size bounds, one-write-per-open reservation, copy-fault retention, and publish-size bookkeeping without claiming live file-private storage or pseudo-filesystem plumbing."
     },
     {
       "id": "phase13-libfs-transaction-read-release-followup",
       "status": "starter_landed",
-      "kind": "filesystem_helper_wrapper",
+      "kind": "filesystem_helper_surface",
       "zigux_destination": "fs/libfs.zig",
       "why_now": "The libfs helper lab now adds one tiny simple_transaction_read()/simple_transaction_release() follow-up that keeps the work in pure private-data presence checks, read delegation intent, and release bookkeeping without claiming live dentries, inode state, or pseudo-filesystem plumbing."
     },
     {
       "id": "phase13-libfs-dcache-cursor-preconditions",
       "status": "starter_landed",
-      "kind": "filesystem_helper_wrapper",
+      "kind": "filesystem_helper_surface",
       "zigux_destination": "fs/libfs.zig",
       "why_now": "The libfs helper lab now models the smallest non-live dcache_dir_open() / dcache_readdir() cursor preconditions in planning form around cursor allocation failure, dir_emit_dots() gating, first-child-versus-cursor resume selection, and missing private-data blocking before any cursor dentries, sibling traversal, or lock ordering behavior is claimed."
     },
     {
       "id": "phase13-libfs-dcache-cursor-reposition-bookkeeping",
       "status": "starter_landed",
-      "kind": "filesystem_helper_wrapper",
+      "kind": "filesystem_helper_surface",
       "zigux_destination": "fs/libfs.zig",
       "why_now": "The landed libfs helper lab now models the post-scan cursor reposition bookkeeping around hlist_del_init() plus hlist_add_before() / hlist_add_behind() in pure planning form, and the exported descriptor now reports that cursor-reposition planning explicitly so the review packet no longer hides an already-landed helper surface behind older starter scaffolding."
     },
     {
       "id": "phase13-libfs-dcache-dir-close-release-bookkeeping",
       "status": "starter_landed",
-      "kind": "filesystem_helper_wrapper",
+      "kind": "filesystem_helper_surface",
       "zigux_destination": "fs/libfs.zig",
       "why_now": "The libfs helper lab now models the tiny dcache_dir_close() release bookkeeping around dput(file->private_data) and the zero-error close outcome without claiming live refcount mutation, inode ownership, or directory teardown."
     },
     {
       "id": "phase13-libfs-simple-open-private-data-planning",
       "status": "starter_landed",
-      "kind": "filesystem_helper_wrapper",
+      "kind": "filesystem_helper_surface",
       "zigux_destination": "fs/libfs.zig",
       "why_now": "The libfs helper lab now models the tiny simple_open() private-data handoff in pure planning form so Zigux can keep the inode->i_private to file->private_data borrow explicit without claiming live inode mutation, open-time allocation, or broader file lifecycle ownership."
     },
     {
       "id": "phase13-libfs-addressability-helper",
       "status": "starter_landed",
-      "kind": "filesystem_helper_wrapper",
+      "kind": "filesystem_helper_surface",
       "zigux_destination": "fs/libfs.zig",
       "why_now": "The libfs helper lab now models generic_check_addressable() in pure planning form around block-size validation, last-block accounting, sector-index overflow, page-index overflow, and empty-filesystem handling without claiming live superblock, page-cache, or inode ownership."
     },
     {
       "id": "phase13-libfs-dcache-cursor-helpers",
       "status": "blocked_on_vfs_state",
-      "kind": "filesystem_helper_wrapper",
+      "kind": "filesystem_helper_surface",
       "zigux_destination": "fs/libfs.zig",
       "why_now": "The remaining cursor-backed helpers still depend on live sibling traversal, reschedule-aware scans, lock ordering, and shared VFS object ownership that this helper lab should not claim yet."
     },
     {
       "id": "phase13-libfs-inode-and-pseudofs-lifecycle",
       "status": "blocked_on_vfs_state",
-      "kind": "filesystem_helper_wrapper",
+      "kind": "filesystem_helper_surface",
       "zigux_destination": "fs/libfs.zig",
       "why_now": "Pseudo-filesystem setup, inode lifecycle helpers, rename-state behavior, and broader teardown paths still depend on live VFS state and ownership that stay outside this bounded Phase 13 helper slice."
     }
