@@ -9,12 +9,14 @@ import tempfile
 
 SCRIPT_PATH = Path(__file__).resolve()
 ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
-SELF_TEST_CASE_COUNT = 17
+SELF_TEST_CASE_COUNT = 21
 
 CHECKSUM_PERF_PATH = "zigux/tests/phase6_checksum_perf.zig"
 HEXDUMP_PERF_PATH = "zigux/tests/phase6_hexdump_perf.zig"
 PERF_SURVEY_PATH = "Documentation/zigux/phase6-perf-gate-survey.md"
 CATALOG_PATH = "Documentation/zigux/phase6-helper-parity-catalog.md"
+SCRIPTS_README_PATH = "scripts/zigux/README.md"
+TESTS_README_PATH = "zigux/tests/README.md"
 MAKEFILE_PATH = "zigux/Makefile"
 MANIFEST_PATH = "zigux/tests/phase6_helper_parity_manifest.json"
 
@@ -38,6 +40,14 @@ PERF_SURVEY_MARKERS = [
 
 CATALOG_MARKERS = [
     "`python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py --self-test` and `python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py` keep the shipped checksum and hexdump perf-marker packet fail-closed around the per-call, per-byte, slowdown, folded-checksum, required-length, and reference-path reporting markers before broader Phase 6 replay claims stay green.",
+]
+
+SCRIPTS_README_MARKERS = [
+    "- `check-phase6-docs-root-external-parity.py --self-test`, `check-phase6-docs-root-external-parity.py`, `check-phase6-base64-catalog-evidence.py --self-test`, `check-phase6-base64-catalog-evidence.py`, `check-phase6-checksum-hexdump-perf-markers.py --self-test`, and `check-phase6-checksum-hexdump-perf-markers.py` are the dedicated fail-closed checker commands for the docs-root external portability inventory, the parked base64 catalog evidence packet, and the checksum plus hexdump perf-marker packet inside that same bounded Phase 6 helper tranche.",
+]
+
+TESTS_README_MARKERS = [
+    "- keep the shared Phase 6 checker-command route explicit too: `python3 scripts/zigux/check-phase6-docs-root-external-parity.py --self-test`, `python3 scripts/zigux/check-phase6-docs-root-external-parity.py`, `python3 scripts/zigux/check-phase6-base64-catalog-evidence.py --self-test`, `python3 scripts/zigux/check-phase6-base64-catalog-evidence.py`, `python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py --self-test`, `python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py`, `python3 scripts/zigux/validate-phase6.py`, `make -C zigux phase6-validate`, and `make -C zigux phase6` should stay visible beside the four external portability replays so the tests root matches the docs root, scripts root, helper catalog, manifest, and Makefile instead of collapsing that parked packet back to file-name-only hints",
 ]
 
 MAKEFILE_MARKERS = [
@@ -102,6 +112,8 @@ def validate(root: Path) -> dict[str, object]:
     hexdump_path = root / HEXDUMP_PERF_PATH
     perf_survey_path = root / PERF_SURVEY_PATH
     catalog_path = root / CATALOG_PATH
+    scripts_readme_path = root / SCRIPTS_README_PATH
+    tests_readme_path = root / TESTS_README_PATH
     makefile_path = root / MAKEFILE_PATH
     manifest_path = root / MANIFEST_PATH
 
@@ -128,6 +140,18 @@ def validate(root: Path) -> dict[str, object]:
     else:
         for marker in missing_markers(text(root, CATALOG_PATH), CATALOG_MARKERS):
             missing.append(f"catalog:missing:{marker}")
+
+    if not scripts_readme_path.exists():
+        missing_files.append(SCRIPTS_README_PATH)
+    else:
+        for marker in missing_exact_lines(text(root, SCRIPTS_README_PATH), SCRIPTS_README_MARKERS):
+            missing.append(f"scripts_readme:missing:{marker}")
+
+    if not tests_readme_path.exists():
+        missing_files.append(TESTS_README_PATH)
+    else:
+        for marker in missing_exact_lines(text(root, TESTS_README_PATH), TESTS_README_MARKERS):
+            missing.append(f"tests_readme:missing:{marker}")
 
     if not makefile_path.exists():
         missing_files.append(MAKEFILE_PATH)
@@ -179,6 +203,8 @@ def build_self_test_tree(root: Path) -> None:
     write(root, HEXDUMP_PERF_PATH, "\n".join(HEXDUMP_PERF_MARKERS) + "\n")
     write(root, PERF_SURVEY_PATH, "\n".join(PERF_SURVEY_MARKERS) + "\n")
     write(root, CATALOG_PATH, "\n".join(CATALOG_MARKERS) + "\n")
+    write(root, SCRIPTS_README_PATH, "\n".join(SCRIPTS_README_MARKERS) + "\n")
+    write(root, TESTS_README_PATH, "\n".join(TESTS_README_MARKERS) + "\n")
     write(root, MAKEFILE_PATH, "\n".join(MAKEFILE_MARKERS) + "\n")
     write(root, MANIFEST_PATH, "\n".join(MANIFEST_MARKERS) + "\n")
 
@@ -268,6 +294,42 @@ def run_self_test() -> int:
                 encoding="utf-8",
             )
             expect_contains(validate(root), f"catalog:missing:{CATALOG_MARKERS[0]}")
+            count += 1
+
+            build_self_test_tree(root)
+            scripts_readme_path = root / SCRIPTS_README_PATH
+            scripts_readme_path.write_text(
+                drop_exact_line(scripts_readme_path.read_text(encoding="utf-8"), SCRIPTS_README_MARKERS[0]),
+                encoding="utf-8",
+            )
+            expect_contains(validate(root), f"scripts_readme:missing:{SCRIPTS_README_MARKERS[0]}")
+            count += 1
+
+            build_self_test_tree(root)
+            tests_readme_path = root / TESTS_README_PATH
+            tests_readme_path.write_text(
+                drop_exact_line(tests_readme_path.read_text(encoding="utf-8"), TESTS_README_MARKERS[0]),
+                encoding="utf-8",
+            )
+            expect_contains(validate(root), f"tests_readme:missing:{TESTS_README_MARKERS[0]}")
+            count += 1
+
+            build_self_test_tree(root)
+            scripts_readme_path = root / SCRIPTS_README_PATH
+            scripts_readme_path.write_text(
+                duplicate_exact_line(scripts_readme_path.read_text(encoding="utf-8"), SCRIPTS_README_MARKERS[0]),
+                encoding="utf-8",
+            )
+            expect_contains(validate(root), f"scripts_readme:missing:{SCRIPTS_README_MARKERS[0]}")
+            count += 1
+
+            build_self_test_tree(root)
+            tests_readme_path = root / TESTS_README_PATH
+            tests_readme_path.write_text(
+                duplicate_exact_line(tests_readme_path.read_text(encoding="utf-8"), TESTS_README_MARKERS[0]),
+                encoding="utf-8",
+            )
+            expect_contains(validate(root), f"tests_readme:missing:{TESTS_README_MARKERS[0]}")
             count += 1
 
             build_self_test_tree(root)
