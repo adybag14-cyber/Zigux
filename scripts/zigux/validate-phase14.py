@@ -54,9 +54,9 @@ MAKE_MARKERS = [
 
 MAKE_EXACT_COUNT_MARKERS = [
     "phase14-validate:",
-    "scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test",
-    "scripts/zigux/check-phase14-release-boundary-exact-counts.py",
-    "scripts/zigux/validate-phase14.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase14.py",
 ]
 
 WORKFLOW_MARKERS = [
