@@ -41,6 +41,15 @@ REQUIRED_MARKERS = [
     "## Current Conclusion",
 ]
 
+REQUIRED_ARTIFACT_DIFF_CONTRACT_STATUS_MARKERS = [
+    "ARTIFACT_DIFF_CONTRACT_SELF_TEST=pass",
+    "ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASE_COUNT=9",
+    "ARTIFACT_DIFF_CONTRACT=pass",
+    "ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=23",
+    "ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT=4",
+    "ARTIFACT_DIFF_CONTRACT_CASE_COUNT=27",
+]
+
 REQUIRED_SURVEY_ALIGNMENT_MARKERS = [
     "phase4_kprobe_example_survey.zig",
     "phase4_test_fsmount_survey.zig",
@@ -223,6 +232,9 @@ def validate_root(root: Path) -> list[str]:
     for marker in REQUIRED_MARKERS:
         if marker not in gate_evidence:
             missing.append(f"phase4_gate_evidence:{marker}")
+    for marker in REQUIRED_ARTIFACT_DIFF_CONTRACT_STATUS_MARKERS:
+        if f"- `{marker}`" not in gate_evidence:
+            missing.append(f"phase4_gate_evidence:artifact_diff_contract:{marker}")
     for marker in REQUIRED_SURVEY_ALIGNMENT_MARKERS:
         if marker not in gate_evidence:
             missing.append(f"phase4_gate_evidence:{marker}")
@@ -310,12 +322,19 @@ def write_fixture_tree(root: Path) -> None:
         "- `PHASE4_WORKFLOW_ROUTE_COUNTS=pass`",
         "- `PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_FILE_COUNT=5`",
         "- `PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_CHECK_COUNT=34`",
+        "- `ARTIFACT_DIFF_CONTRACT_SELF_TEST=pass`",
+        "- `ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASE_COUNT=9`",
+        "- `ARTIFACT_DIFF_CONTRACT=pass`",
+        "- `ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=23`",
+        "- `ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT=4`",
+        "- `ARTIFACT_DIFF_CONTRACT_CASE_COUNT=27`",
         "",
         "## Exact Readback Evidence",
         "",
         f"- synthetic fixture keeps shared surveyed snapshot `{SHARED_SURVEYED_COMMIT}` explicit through `phase4_runtime_atomic64_diff_survey.zig`, `phase4_kprobe_example_survey.zig`, `phase4_test_fsmount_survey.zig`, and `phase4_perf_baseline_survey.zig`.",
         "- synthetic fixture keeps `Self-test Phase 4 validator` plus `python3 scripts/zigux/validate-phase4.py --self-test` explicit beside `Validate Phase 4 diff gates` and `Run Phase 4 diff tests`.",
         "- on the synthetic workflow, there is one `make -C zigux phase4-validate` run line and one `make -C zigux phase4-test` run line under the Phase 4 steps, and the checker keeps those exact counts fail-closed beside the broader route markers.",
+        "- synthetic fixture keeps the current artifact-diff contract evidence explicit too: `ARTIFACT_DIFF_CONTRACT_SELF_TEST=pass`, `ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASE_COUNT=9`, `ARTIFACT_DIFF_CONTRACT=pass`, `ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=23`, `ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT=4`, and `ARTIFACT_DIFF_CONTRACT_CASE_COUNT=27` remain visible in the exact-readback packet instead of being left implicit behind the external checker row.",
         "- synthetic fixture keeps the runtime atomic64 reversible-delivery packet explicit: `lib/atomic64_test.c` stays the source of truth, removing `atomic64_diff.zig` from the shared `phase4_build.zig` entrypoint is the documented rollback move, `runtime_atomic64_diff.zig` remains the single replay body, and the existing Phase 9 runtime atomic64 starter remains the forward path.",
         "- synthetic fixture keeps one pending threshold-plan record per shipped rollback gate explicit, pinning `make -C zigux phase4-runtime-atomic64-diff` and `make -C zigux phase4-bitmap-diff` beside the still-unapproved benchmark-command and acceptable-limit placeholders.",
         "- synthetic fixture keeps the scripts-root runtime atomic64 packet explicit through `make -C zigux phase4-runtime-atomic64-diff` and `phase4-runtime-atomic64-diff-tests` instead of leaving that scripts-root wording implied behind the broader shared-build list.",
@@ -327,7 +346,7 @@ def write_fixture_tree(root: Path) -> None:
     ]
     for marker, relative_path in PHASE4_GATE_EVIDENCE_BLOB_TARGETS.items():
         digest = git_blob_sha1(read_bytes(root, relative_path))
-        gate_evidence_lines.insert(20, f"- `{marker}={digest}`")
+        gate_evidence_lines.insert(26, f"- `{marker}={digest}`")
     (root / "Documentation/zigux/phase4-gate-evidence.md").write_text("\n".join(gate_evidence_lines) + "\n", encoding="utf-8")
 
 def run_self_test() -> int:
@@ -371,6 +390,11 @@ def run_self_test() -> int:
         gate_evidence.write_text(gate_evidence.read_text(encoding="utf-8").replace("PHASE4_WORKFLOW_ROUTE_COUNTS=pass", "PHASE4_WORKFLOW_ROUTE_COUNTS=fail", 1), encoding="utf-8")
         missing = validate_root(root)
         assert "phase4_gate_evidence:PHASE4_WORKFLOW_ROUTE_COUNTS=pass" in missing, missing
+        write_fixture_tree(root)
+        gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
+        gate_evidence.write_text(gate_evidence.read_text(encoding="utf-8").replace("- `ARTIFACT_DIFF_CONTRACT_CASE_COUNT=27`", "- `ARTIFACT_DIFF_CONTRACT_CASE_COUNT=26`", 1), encoding="utf-8")
+        missing = validate_root(root)
+        assert "phase4_gate_evidence:artifact_diff_contract:ARTIFACT_DIFF_CONTRACT_CASE_COUNT=27" in missing, missing
         write_fixture_tree(root)
         gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
         gate_evidence.write_text(gate_evidence.read_text(encoding="utf-8").replace("`phase4-runtime-atomic64-diff-tests`", "`phase4-runtime-atomic64-diff-missing`", 1), encoding="utf-8")
