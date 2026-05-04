@@ -18,6 +18,7 @@ FILES = [
     "scripts/zigux/check-phase14-docs-root-smoke-summary.py",
     "scripts/zigux/check-phase14-release-boundary-exact-counts.py",
     "scripts/zigux/README.md",
+    "zigux/tests/README.md",
     "Documentation/zigux/README.md",
     "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
     "Documentation/zigux/phase14-release-boundary-survey.md",
@@ -123,6 +124,11 @@ SCRIPT_README_EXACT_LINE_MARKERS = [
     "- attached-toolchain fallback commands stay explicit in the scripts index too: `make -C zigux phase14-validate PYTHON=python3 ZIG=<attached-zig-path>`, `make -C zigux phase14-smoke ZIG=<attached-zig-path>`, `make -C zigux phase14-test ZIG=<attached-zig-path>`, and `make -C zigux phase14 ZIG=<attached-zig-path>`.",
 ]
 
+TESTS_ROOT_EXACT_LINE_MARKERS = [
+    "- keep the current Phase 14 smoke packet reviewable through `zigux/tests/phase14_build.zig`, `scripts/zigux/check-phase14-docs-root-smoke-summary.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, `scripts/zigux/validate-phase14.py`, `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`, `make -C zigux phase14`, and `zig build test --build-file zigux/tests/phase14_build.zig --summary all` so the shared study-only boundary packet stays aligned across the dedicated docs-root and release-boundary smoke helpers, the focused smoke shard, the full replay, the named rollback owner, `Documentation/zigux/phase14-release-boundary-survey.md`, and the docs-root summary instead of widening into ad hoc bridge or deep-core claims",
+    "- keep the Phase 14 shared smoke packet explicit in the tests root: `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/freeze-map.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, and `zigux/tests/phase14_end_to_end_smoke_survey.zig` should continue to keep the exact rollback threshold, automatic return-to-blocked trigger list, shared-surface accounting, and ZAR-to-product transfer rationale visible from the tests root rather than relying on run memory",
+]
+
 RELEASE_MARKERS = [
     "PHASE14_STATUS=active",
     "PHASE14_SLICE=end-to-end-smoke-verification",
@@ -137,9 +143,6 @@ RELEASE_MARKERS = [
     "PHASE14_FOCUSED_SHARD_COUNT=1",
     "PHASE14_ANCHOR_LOCAL_STEP_COUNT=0",
     "PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=4",
-    "PHASE14_FULL_BUNDLE_DEPENDENCY_COUNT=5",
-    "PHASE14_FOCUSED_SHARD_DEPENDENCY_COUNT=1",
-    "PHASE14_FOCUSED_SHARD_ONLY_ARTIFACT=phase14-end-to-end-smoke-tests",
     "PHASE14_STAY_IN_C_BOUNDARY=explicit",
     "PHASE14_REVIEW_BLOCKER_STATUS=blocked_on_stay_in_c_evidence",
     "PHASE14_STATUS_CHANGE_CLAIM=no",
@@ -295,6 +298,7 @@ if missing_files:
 
 missing: list[str] = []
 docs_root_text = text("Documentation/zigux/README.md")
+tests_root_text = text("zigux/tests/README.md")
 scripts_readme_text = text("scripts/zigux/README.md")
 survey_note = text("Documentation/zigux/phase14-end-to-end-smoke-survey.md")
 release_boundary_text = text("Documentation/zigux/phase14-release-boundary-survey.md")
@@ -313,6 +317,9 @@ for name, source, markers in [
 
 for marker in DOCS_ROOT_EXACT_LINE_MARKERS:
     expect_exact_line_count("docs_root", docs_root_text, marker, 1, missing)
+
+for marker in TESTS_ROOT_EXACT_LINE_MARKERS:
+    expect_exact_line_count("tests_root", tests_root_text, marker, 1, missing)
 
 for marker in SCRIPT_README_EXACT_LINE_MARKERS:
     expect_exact_line_count("scripts_readme", scripts_readme_text, marker, 1, missing)
@@ -684,5 +691,6 @@ print(f"PHASE14_FOCUSED_SHARD_COUNT={focused_shard_count}")
 print(f"PHASE14_ANCHOR_LOCAL_STEP_COUNT={anchor_local_step_count}")
 print(f"PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT={full_bundle_only_count}")
 print(f"PHASE14_DOCS_ROOT_EXACT_LINE_MARKER_COUNT={len(DOCS_ROOT_EXACT_LINE_MARKERS)}")
+print(f"PHASE14_TESTS_ROOT_EXACT_LINE_MARKER_COUNT={len(TESTS_ROOT_EXACT_LINE_MARKERS)}")
 print(f"PHASE14_SCRIPTS_README_EXACT_LINE_MARKER_COUNT={len(SCRIPT_README_EXACT_LINE_MARKERS)}")
 print(f"PHASE14_MAKE_EXACT_COUNT_MARKER_COUNT={len(MAKE_EXACT_COUNT_MARKERS)}")
