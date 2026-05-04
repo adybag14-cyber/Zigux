@@ -8,7 +8,7 @@ This document records the bounded Phase 15 governance lane around `Documentation
 - `PHASE15_STATUS=governance_slice_landed`
 - `PHASE15_SLICE=freeze-map-governance-blocker-ownership-sync`
 - scope: the live freeze map, the existing dedicated Phase 15 manifest and test gate, and one bounded maintenance follow-up that keeps the root freeze-map note aligned with the already-landed parity-scorecard, review-process, indefinite-C policy, retained stay-in-C closeout, current blocker posture, explicit per-anchor blocker ownership, and the real current enforcement state on `master`
-- survey provenance last refreshed against reviewed `master` head `d918be7ded6383c13cbd5eea4ca4aa4f3cdafee4`; later repo movement touching this freeze-map governance surface now requires a fresh bounded provenance refresh before this note should make a new current-`master` claim
+- survey provenance last refreshed against reviewed `master` head `5bf6598fadf90e6ab59b1d402fa5decc1c1c6b05`; later repo movement touching this freeze-map governance surface now requires a fresh bounded provenance refresh before this note should make a new current-`master` claim
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/phase15-freeze-map-governance.md`
@@ -120,7 +120,7 @@ This slice does not claim:
 
 ## Current enforcement evidence
 
-- last reviewed remote `master` head for this packet: `d918be7ded6383c13cbd5eea4ca4aa4f3cdafee4`; later repo movement now requires a fresh bounded provenance refresh before any new current-`master` enforcement claim
+- last reviewed remote `master` head for this packet: `5bf6598fadf90e6ab59b1d402fa5decc1c1c6b05`; later repo movement now requires a fresh bounded provenance refresh before any new current-`master` enforcement claim
 - the root policy was present and explicit at that reviewed head in `Documentation/zigux/freeze-map.md`, including the freeze-in-C list, study-only list, Architecture Council requirement, parity-scorecard requirement, explicit rollback-threshold language, retained stay-in-C closeout state, reopen-trigger language, the explicit source-of-truth reminder for reopened packets, and the no-silent-exception rule
 - the review hook was present there in `Documentation/zigux/review-checklist.md`, which now asks whether freeze-map anchors carry parity-scorecard evidence or blocker state, decision-record links, retained-discussion state, reopen triggers, rollback-threshold language, and an explicit current lane owner for blocked evidence packets
 - the shared review checklist now carried a dedicated freeze-map governance-packet drift gate, so edits to `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, or `Documentation/zigux/phase15-parity-scorecard.md` had to keep the rollback threshold, automatic return-to-blocked trigger, retained discussion state, reopen triggers, and the current maintenance-mode handoff aligned
@@ -130,10 +130,10 @@ This slice does not claim:
 - the reviewed roadmap-versus-repo comparison remained stable: the freeze and study-only lists in `Documentation/zigux/freeze-map.md` still matched the roadmap, and the scorecard plus the existing Phase 14 RCU or skbuff survey packets still backed the same four deep-core blockers
 - the dedicated local replay surface was present in `zigux/tests/phase15_build.zig` and `zigux/Makefile`, so a focused maintainer run could still use `zig build test --build-file zigux/tests/phase15_build.zig` or `make -C zigux phase15`
 - the shared bootstrap workflow now invoked the Phase 15 gate through `Run Phase 15 governance tests`, so the current freeze-map governance bundle was no longer maintainer-run only at that reviewed head
-- focused replay at reviewed `master` head `d918be7ded6383c13cbd5eea4ca4aa4f3cdafee4` showed the narrower freeze-map governance packet was runnable:
+- focused replay at reviewed `master` head `5bf6598fadf90e6ab59b1d402fa5decc1c1c6b05` showed the narrower freeze-map governance packet was runnable:
   - `zigux/tests/phase15_freeze_map_governance.zig` compiled and its `4/4` tests passed
   - `make -C zigux phase15` remained the same bounded shared replay path exposed through `zigux/Makefile`
-- observed behavior at reviewed `master` head `d918be7ded6383c13cbd5eea4ca4aa4f3cdafee4`: the repo carried real freeze-map policy, manifests, scorecard, dedicated replay entrypoints, shared bootstrap workflow coverage for the current Phase 15 gate, one explicit checklist gate that kept the governance packet aligned during maintenance edits, and one explicit owner inventory that kept the blocker posture reviewable while the deep-core blocker posture remained unchanged
+- observed behavior at reviewed `master` head `5bf6598fadf90e6ab59b1d402fa5decc1c1c6b05`: the repo carried real freeze-map policy, manifests, scorecard, dedicated replay entrypoints, shared bootstrap workflow coverage for the current Phase 15 gate, one explicit checklist gate that kept the governance packet aligned during maintenance edits, and one explicit owner inventory that kept the blocker posture reviewable while the deep-core blocker posture remained unchanged
 
 ## Exact blocker record
 
