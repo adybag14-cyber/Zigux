@@ -120,9 +120,9 @@ The exact checks currently recorded in `zigux/tests/phase5_bytestream_fifo_manif
 
 ## Latest verification snapshot
 
-The latest direct Zig replay recorded for this packet remains the 2026-05-01 run against `master` commit `f5f4aa86602580b500f4d0ab8640ec6029e82e46` with the attached Zig toolchain.
+The latest direct bytestream-local Zig replay recorded for this packet is the 2026-05-03 focused rerun that followed the May 3 helper-review updates `22c053d` and `3f99ac8`, using the attached Zig toolchain.
 
-The exact focused verification commands and observed results for the bytestream-local packet were:
+The exact focused verification commands and observed results for that latest bytestream-local rerun were:
 
 - `zig test samples/zigux/bytestream_fifo.zig`
   - observed result: `1/5 bytestream_fifo.test.bytestream fifo sample replays the Linux anchor result sequence...OK`
@@ -145,7 +145,7 @@ The exact focused verification commands and observed results for the bytestream-
 
 The shared `zigux/tests/phase5_build.zig` entrypoint remains the umbrella review gate recorded in the manifest and contributor prompts, but this bounded verification pass did not rerun the whole Phase 5 sample bundle, so this note no longer republishes the older pre-expansion shared test count.
 
-This note's 2026-05-02 refresh was provenance-only: it repins the inspected-head marker to `PHASE5_SURVEYED_COMMIT=a15760c3e46103fd41ae0da852b61f612e9116c6` after readback confirmed that the bytestream sample, the paired survey gate, and the shared `phase5_build.zig` entrypoint still keep the same bounded bytestream review surface on current `master` without claiming a newer direct Zig replay or republishing that older whole-bundle total.
+This note's 2026-05-04 refresh is documentation-only: it stops presenting the older 2026-05-01 rerun as the latest direct replay and instead records the newer 2026-05-03 focused rerun without claiming a fresh whole-bundle Phase 5 replay beyond the bytestream-local commands listed above.
 
 Those recorded runs confirmed that the shipped bytestream FIFO sample still matches the exact bounded checks above: the embedded 32-byte queue reaches length `15` after the initial replay setup, drains `"hello"` first, drains and requeues `0` and `1`, skips `2`, peeks `3`, preserves the truncated replay preview prefix `[3,4,5,6,7,8,9,0]`, preserves the exact 32-byte snapshot and final drain sequence `[3,4,5,6,7,8,9,0,1,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42]`, and keeps the helper-only preview visibility counts explicit (`0` empty, `10` wrapped, `32` full-capacity) plus the preview truncation, reset, and lifecycle guards green under the shared Phase 5 build entrypoint.
 
