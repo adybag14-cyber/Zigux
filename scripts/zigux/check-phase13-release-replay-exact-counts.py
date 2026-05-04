@@ -12,6 +12,7 @@ BUILD_DEPEND_STEP_RE = re.compile(r"test_step\.dependOn\(&([A-Za-z0-9_]+)\.step\
 RELEASE_SURVEY_PATH = Path("Documentation/zigux/phase13-release-notes-survey.md")
 BUILD_PATH = Path("zigux/tests/phase13_build.zig")
 MAKEFILE_PATH = Path("zigux/Makefile")
+WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 
 SHARED_REPLAY_STEPS = [
     "phase13-libfs-tests",
@@ -41,6 +42,11 @@ MAKEFILE_ROUTE_MARKERS = [
     "scripts/zigux/check-phase13-release-replay-exact-counts.py\n",
 ]
 
+WORKFLOW_ROUTE_MARKERS = [
+    "- name: Validate Phase 13 release-discipline packet",
+    "run: make -C zigux phase13-validate",
+]
+
 
 def read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
@@ -52,7 +58,12 @@ def require_exact_count(label: str, text: str, snippet: str, expected_count: int
         issues.append(f"{label}:exact_count:{actual}!={expected_count}:{snippet}")
 
 
-def validate(release_survey_text: str, build_text: str, makefile_text: str) -> list[str]:
+def validate(
+    release_survey_text: str,
+    build_text: str,
+    makefile_text: str,
+    workflow_text: str,
+) -> list[str]:
     issues: list[str] = []
     for marker in RELEASE_SURVEY_COUNT_MARKERS:
         require_exact_count("release_survey", release_survey_text, marker, 1, issues)
@@ -69,6 +80,8 @@ def validate(release_survey_text: str, build_text: str, makefile_text: str) -> l
 
     for marker in MAKEFILE_ROUTE_MARKERS:
         require_exact_count("makefile", makefile_text, marker, 1, issues)
+    for marker in WORKFLOW_ROUTE_MARKERS:
+        require_exact_count("workflow", workflow_text, marker, 1, issues)
 
     return issues
 
@@ -92,14 +105,19 @@ def run_self_test() -> int:
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-release-replay-exact-counts.py --self-test",
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-release-replay-exact-counts.py",
     ]) + "\n"
+    workflow_text = "\n".join([
+        "      - name: Validate Phase 13 release-discipline packet",
+        "        run: make -C zigux phase13-validate",
+    ]) + "\n"
 
     cases = [
-        ("happy_path", release_survey_text, build_text, makefile_text, False),
+        ("happy_path", release_survey_text, build_text, makefile_text, workflow_text, False),
         (
             "duplicate_release_step",
             release_survey_text + f"\n- `{SHARED_REPLAY_STEPS[0]}`\n",
             build_text,
             makefile_text,
+            workflow_text,
             True,
         ),
         (
@@ -107,6 +125,7 @@ def run_self_test() -> int:
             release_survey_text.replace("- `PHASE13_SHARED_REPLAY_STEP_COUNT=15`\n", "", 1),
             build_text,
             makefile_text,
+            workflow_text,
             True,
         ),
         (
@@ -114,6 +133,7 @@ def run_self_test() -> int:
             release_survey_text,
             build_text.replace(f'    .name = "{SHARED_REPLAY_STEPS[-1]}"\n', "", 1),
             makefile_text,
+            workflow_text,
             True,
         ),
         (
@@ -121,12 +141,21 @@ def run_self_test() -> int:
             release_survey_text,
             build_text,
             makefile_text.replace("scripts/zigux/check-phase13-release-replay-exact-counts.py --self-test", "", 1),
+            workflow_text,
+            True,
+        ),
+        (
+            "missing_workflow_route",
+            release_survey_text,
+            build_text,
+            makefile_text,
+            workflow_text.replace("run: make -C zigux phase13-validate", "", 1),
             True,
         ),
     ]
 
-    for name, survey_value, build_value, makefile_value, should_fail in cases:
-        issues = validate(survey_value, build_value, makefile_value)
+    for name, survey_value, build_value, makefile_value, workflow_value, should_fail in cases:
+        issues = validate(survey_value, build_value, makefile_value, workflow_value)
         failed = bool(issues)
         if failed != should_fail:
             print(f"PHASE13_RELEASE_REPLAY_EXACT_COUNTS_SELF_TEST={name}:fail")
@@ -149,7 +178,8 @@ def main(argv: list[str]) -> int:
     release_survey_path = ROOT / RELEASE_SURVEY_PATH
     build_path = ROOT / BUILD_PATH
     makefile_path = ROOT / MAKEFILE_PATH
-    required_paths = [release_survey_path, build_path, makefile_path]
+    workflow_path = ROOT / WORKFLOW_PATH
+    required_paths = [release_survey_path, build_path, makefile_path, workflow_path]
     missing_paths = [str(path) for path in required_paths if not path.exists()]
     if missing_paths:
         print("PHASE13_RELEASE_REPLAY_EXACT_COUNTS=fail")
@@ -159,7 +189,12 @@ def main(argv: list[str]) -> int:
         print("MISSING_FILES_END")
         return 1
 
-    issues = validate(read(release_survey_path), read(build_path), read(makefile_path))
+    issues = validate(
+        read(release_survey_path),
+        read(build_path),
+        read(makefile_path),
+        read(workflow_path),
+    )
     if issues:
         print("PHASE13_RELEASE_REPLAY_EXACT_COUNTS=fail")
         print("ISSUES_START")
@@ -171,6 +206,7 @@ def main(argv: list[str]) -> int:
     print("PHASE13_RELEASE_REPLAY_EXACT_COUNTS=pass")
     print(f"PHASE13_RELEASE_REPLAY_STEP_COUNT={len(SHARED_REPLAY_STEPS)}")
     print(f"PHASE13_MAKEFILE_ROUTE_MARKER_COUNT={len(MAKEFILE_ROUTE_MARKERS)}")
+    print(f"PHASE13_WORKFLOW_ROUTE_MARKER_COUNT={len(WORKFLOW_ROUTE_MARKERS)}")
     return 0
 
 
