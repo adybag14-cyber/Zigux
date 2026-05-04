@@ -39,6 +39,7 @@ from validate_phase3_core import (
 
 RBTREE_INTEROP_SURVEY_SCRIPT = "validate-phase3-rbtree-interop-survey.py"
 ROADMAP_GAP_SURVEY_SCRIPT = "validate-phase3-roadmap-gap-survey.py"
+TESTS_ROOT_COMPANION_SCRIPT = "check-phase3-tests-root-companion.py"
 HEADER_BINDING_MARKERS_SCRIPT = "validate_phase3_header_binding_markers.py"
 RBTREE_SHARED_MISSING_MARKER_CASES = PHASE3_SHARED_RBTREE_RECORD_MARKERS
 RBTREE_SHARED_CONTRACT_TEST_REL = "zigux/tests/phase3_rbtree_shared_contract.zig"
@@ -309,6 +310,22 @@ def _run_roadmap_gap_survey_self_test() -> int:
     )
     stdout_lines = result.stdout.splitlines()
     assert "PHASE3_ROADMAP_GAP_SURVEY_SELF_TEST=pass" in stdout_lines
+    return 0
+
+
+def _run_tests_root_companion_self_test() -> int:
+    script_path = Path(__file__).resolve().with_name(TESTS_ROOT_COMPANION_SCRIPT)
+    result = subprocess.run(
+        ["python3", str(script_path), "--self-test"],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert result.returncode == 0, (
+        result.stdout if not result.stderr else result.stdout + "\n" + result.stderr
+    )
+    stdout_lines = result.stdout.splitlines()
+    assert "PHASE3_TESTS_ROOT_COMPANION_SELF_TEST=pass" in stdout_lines
     return 0
 
 
@@ -649,6 +666,7 @@ def run_self_test() -> int:
         assert _run_abi_policy_unsafe_mmio_consumer_self_test() == 0
         assert _run_rbtree_interop_survey_self_test() == 0
         assert _run_roadmap_gap_survey_self_test() == 0
+        assert _run_tests_root_companion_self_test() == 0
         assert _run_rbtree_shared_lift_self_test() == 0
 
         rbtree_shared_marker_fixture = root / "phase3-rbtree-shared-marker-fixture.zig"
@@ -684,7 +702,7 @@ def run_self_test() -> int:
             assert_missing_rbtree_shared_marker(missing_marker)
 
     print("PHASE3_VALIDATOR_SELF_TEST=pass")
-    print("PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT=38")
+    print("PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT=39")
     return 0
 
 
