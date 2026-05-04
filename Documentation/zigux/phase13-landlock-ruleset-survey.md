@@ -29,10 +29,10 @@ The highest-value honest step in this lane is therefore not to pretend Zigux own
 
 - `security/landlock/ruleset.c` is present on `master` and is broad enough to cross several security and lifetime boundaries at once: handled-access masks, per-layer request matrices, rb-tree keyed rules, hierarchy ownership, and domain merge semantics.
 - the live repo already had the shared Phase 13 build gate and `make -C zigux phase13` target, which made it practical to add a lane-local ruleset helper without widening into kernel build integration.
-- the current `security/landlock/ruleset.zig` helper lab stays intentionally narrow around `landlock_create_ruleset()` planning, handled-access unioning, per-layer mask initialization, `landlock_unmask_layers()` bit clearing, the small `build_check_rule()`, `build_check_layer()`, and `build_check_ruleset()` storage-capacity invariants, the matching-rule branch of `insert_rule()`, the tree-search outcome planning for `get_root()`, `walker_node`, and no-match insertion-count changes, the explicit root or left or right tree-link mode for the `rb_link_node()` and `rb_insert_color()` branch, one bounded `landlock_find_rule()` lookup planner around root selection, `root->rb_node` descent, and match-versus-null outcomes as data only, one bounded `create_rule()` materialization planner that records copied layers, optional merged-layer append behavior, `RB_CLEAR_NODE()` setup, and key-type-owned object-reference intent as data only, and one paired `free_rule()` release planner that records the unconditional sleep boundary, null-rule early return, inode-only object release intent, and present-rule free intent as data only.
+- the current `security/landlock/ruleset.zig` helper lab stays intentionally narrow around `landlock_create_ruleset()` planning, handled-access unioning, per-layer mask initialization, `landlock_unmask_layers()` bit clearing, the small `build_check_rule()`, `build_check_layer()`, and `build_check_ruleset()` storage-capacity invariants, the matching-rule branch of `insert_rule()`, the tree-search outcome planning for `get_root()`, `walker_node`, and no-match insertion-count changes, the explicit root or left or right tree-link mode for the `rb_link_node()` and `rb_insert_color()` branch, one bounded `landlock_find_rule()` lookup planner around root selection, `root->rb_node` descent, and match-versus-null outcomes as data only, one bounded `create_rule()` materialization planner that records copied layers, optional merged-layer append behavior, `RB_CLEAR_NODE()` setup, and key-type-owned object-reference intent as data only, one bounded helper-only replacement planning step that records `rb_replace_node()`, previous-rule release intent, and inode-only previous-object release intent as data only, and one paired `free_rule()` release planner that records the unconditional sleep boundary, null-rule early return, inode-only object release intent, and present-rule free intent as data only.
 - the dedicated reviewability gate now ties the helper descriptor, manifest, and survey note together so future runs can detect packet drift before widening into live tree state.
 - the helper lab does not claim object references, locking, rb-tree storage, hierarchy allocation, workqueue-backed deferred frees, or interaction with `security/landlock/syscalls.c`.
-- the remaining ruleset gap now starts where pure in-memory planning stops being honest: `rb_replace_node()`, live object ownership transfer, hierarchy lifetime, workqueue-backed teardown, and other live ruleset state are still outside this helper lab.
+- the remaining ruleset gap now starts where pure in-memory planning stops being honest: actual `rb_replace_node()` mutation, live object ownership transfer, hierarchy lifetime, workqueue-backed teardown, and other live ruleset state are still outside this helper lab.
 
 ## Recorded gaps
 
@@ -50,10 +50,11 @@ The current lane state is:
 - landed `phase13-landlock-tree-link-followup`
 - landed `phase13-landlock-rule-lookup-followup`
 - landed `phase13-landlock-rule-materialization-followup`
+- landed `phase13-landlock-rule-replacement-followup`
 - landed `phase13-landlock-rule-release-followup`
 - blocked `phase13-landlock-live-tree-state-blocker`
 
-This keeps the lane explicit without overstating progress: Zigux now has a real `ruleset.zig` helper foothold for access-mask accounting, build-check-style capacity reviewability, matching-rule insertion planning, tree-search outcome planning, no-match tree-link planning, helper-only `landlock_find_rule()` lookup planning, helper-only `create_rule()` materialization planning, helper-only `free_rule()` release planning, and a dedicated reviewability gate, but it still does not claim live rule storage, hierarchy ownership, or full Landlock policy enforcement.
+This keeps the lane explicit without overstating progress: Zigux now has a real `ruleset.zig` helper foothold for access-mask accounting, build-check-style capacity reviewability, matching-rule insertion planning, tree-search outcome planning, no-match tree-link planning, helper-only `landlock_find_rule()` lookup planning, helper-only `create_rule()` materialization planning, helper-only replacement planning, helper-only `free_rule()` release planning, and a dedicated reviewability gate, but it still does not claim live rule storage, hierarchy ownership, or full Landlock policy enforcement.
 
 ## Non-goals
 
@@ -76,4 +77,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 13 landlock ruleset lane only if there is a narrowly reviewable way to study `rb_replace_node()`, live object ownership transfer, hierarchy lifetime, or workqueue-backed teardown without overstating live Landlock behavior; otherwise keep this slice in its current helper-only state.
+Stay in the Phase 13 landlock ruleset lane only if there is a narrowly reviewable way to study actual `rb_replace_node()` mutation, live object ownership transfer, hierarchy lifetime, or workqueue-backed teardown without overstating live Landlock behavior; otherwise keep this slice in its current helper-only state.
