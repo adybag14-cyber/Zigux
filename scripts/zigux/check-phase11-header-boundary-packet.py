@@ -75,6 +75,8 @@ MAKEFILE_MARKERS = [
 ]
 
 WORKFLOW_MARKERS = [
+    "Validate Phase 11 header boundary packet",
+    "python3 scripts/zigux/check-phase11-header-boundary-packet.py",
     "Validate Phase 11 simple-driver bundle",
     "make -C zigux phase11-validate",
 ]
@@ -86,6 +88,7 @@ def text(path: Path) -> str:
 
 def validate_packet(root: Path) -> int:
     missing: list[str] = []
+    workflow_text = text(root / WORKFLOW_PATH)
 
     for label, path, markers in [
         ("survey_note", root / SURVEY_NOTE_PATH, SURVEY_NOTE_MARKERS),
@@ -98,10 +101,19 @@ def validate_packet(root: Path) -> int:
         ("makefile", root / MAKEFILE_PATH, MAKEFILE_MARKERS),
         ("workflow", root / WORKFLOW_PATH, WORKFLOW_MARKERS),
     ]:
-        source = text(path)
+        source = workflow_text if label == "workflow" else text(path)
         for marker in markers:
             if marker not in source:
                 missing.append(f"{label}:{marker}")
+
+    header_boundary_index = workflow_text.find("Validate Phase 11 header boundary packet")
+    bundle_index = workflow_text.find("Validate Phase 11 simple-driver bundle")
+    if (
+        header_boundary_index != -1
+        and bundle_index != -1
+        and header_boundary_index > bundle_index
+    ):
+        missing.append("workflow_order:header_boundary_before_simple_driver_bundle")
 
     manifest = json.loads(text(root / MANIFEST_PATH))
     if manifest.get("lane_key") != "P11-L17":
@@ -329,6 +341,25 @@ def run_self_test() -> int:
         )
         write_text(workflow_path, workflow_backup)
 
+        write_text(
+            workflow_path,
+            "\n".join(
+                [
+                    "Validate Phase 11 simple-driver bundle",
+                    "make -C zigux phase11-validate",
+                    "Validate Phase 11 header boundary packet",
+                    "python3 scripts/zigux/check-phase11-header-boundary-packet.py",
+                ]
+            )
+            + "\n",
+        )
+        expect_missing(
+            "workflow_order_drift",
+            run_checker(tmp_root),
+            "workflow_order:header_boundary_before_simple_driver_bundle",
+        )
+        write_text(workflow_path, workflow_backup)
+
         shared_replay_note_path = tmp_root / SHARED_REPLAY_NOTE_PATH
         shared_replay_note_backup = text(shared_replay_note_path)
         write_text(
@@ -382,7 +413,7 @@ def run_self_test() -> int:
         write_text(tests_companion_path, tests_companion_backup)
 
     print("PHASE11_HEADER_BOUNDARY_PACKET_SELF_TEST=pass")
-    print("PHASE11_HEADER_BOUNDARY_PACKET_SELF_TEST_CASE_COUNT=11")
+    print("PHASE11_HEADER_BOUNDARY_PACKET_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
