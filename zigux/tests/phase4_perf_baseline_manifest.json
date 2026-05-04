@@ -29,7 +29,7 @@
       "benchmark_command": "unapproved_until_runtime_atomic64_scope_widens",
       "acceptable_limit": "unapproved_until_runtime_atomic64_scope_widens",
       "status": "pending_scope_widening",
-      "why_not_approved_yet": "The live atomic64 gate is still a bounded rollback-readiness slice, and `zigux/tests/runtime_atomic64_diff.zig` now keeps the post-selftest replay explicit, so Phase 4 keeps correctness-only coverage until a broader atomic64 benchmark entrypoint is explicitly added and reviewed."
+      "why_not_approved_yet": "The live atomic64 gate is still a bounded rollback-readiness slice, and `zigux/tests/runtime_atomic64_diff.zig` now keeps the post-selftest replay explicit, so Phase 4 keeps correctness-only coverage until ABI and Runtime Team lands one broader atomic64 benchmark entrypoint beyond the current isolated replay and then approves one benchmark command plus one acceptable limit for that route."
     },
     {
       "surface": "zigux/tests/bitmap_diff.zig",
@@ -41,7 +41,7 @@
       "benchmark_command": "unapproved_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
       "acceptable_limit": "unapproved_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
       "status": "pending_bounded_benchmark",
-      "why_not_approved_yet": "The live bitmap gate still carries a bounded correctness-first rollback packet, and `zigux/tests/bitmap_diff.zig` now keeps one deterministic threshold replay batch ready for a future perf-baseline lane, so Phase 4 still holds benchmark-command and acceptable-limit approval until one isolated bitmap benchmark route is reviewed."
+      "why_not_approved_yet": "The live bitmap gate still carries a bounded correctness-first rollback packet, and `zigux/tests/bitmap_diff.zig` now keeps one deterministic threshold replay batch ready for a future perf-baseline lane, so Shared Subsystems Pod still needs to turn that batch into one isolated bitmap benchmark route before approving a benchmark command and acceptable limit for that route."
     }
   ],
   "survey_summary": {
@@ -71,14 +71,14 @@
       "status": "ready_next",
       "kind": "perf_command",
       "zigux_destination": "zigux/tests/atomic64_diff.zig",
-      "why_now": "The atomic64 rollback gate is still correctness-only, so the next bounded same-lane step is one benchmark command plus one acceptable limit for the existing atomic64 replay before Phase 4 claims perf coverage."
+      "why_now": "The atomic64 rollback gate is still correctness-only, so the ABI and Runtime Team next needs one broader atomic64 benchmark entrypoint and then one benchmark command plus one acceptable limit for the existing atomic64 replay family before Phase 4 claims perf coverage."
     },
     {
       "id": "phase4-perf-baseline-bitmap-command",
       "status": "ready_next",
       "kind": "perf_command",
       "zigux_destination": "zigux/tests/bitmap_diff.zig",
-      "why_now": "The bitmap rollback gate is still correctness-only, but it now carries a deterministic threshold replay batch that pins the current benchmark-ready loop to the shipped replay surface, so the next bounded same-lane step is still one isolated bitmap benchmark command plus one acceptable limit before Phase 4 claims perf coverage."
+      "why_now": "The bitmap rollback gate is still correctness-only, but it now carries a deterministic threshold replay batch that pins the current benchmark-ready loop to the shipped replay surface, so Shared Subsystems Pod next needs to promote that batch into one isolated bitmap benchmark route and then one benchmark command plus one acceptable limit before Phase 4 claims perf coverage."
     }
   ]
 }
