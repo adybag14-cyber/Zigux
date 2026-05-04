@@ -12,8 +12,9 @@ const RepoEvidence = struct {
     phase15_validate_target_present: bool,
     phase15_make_target_present: bool,
     shared_ci_phase15_present: bool,
-    phase15_replay_green_on_current_master: bool,
-    docs_root_phase15_summary_aligned: bool,
+    phase15_replay_green_at_reviewed_head: bool,
+    docs_root_phase15_summary_aligned_at_reviewed_head: bool,
+    current_master_provenance_refresh_required: bool,
     deep_core_status_change_ready: bool,
 };
 
@@ -52,7 +53,7 @@ fn isLowerHex40(value: []const u8) bool {
     return true;
 }
 
-test "phase 15 readiness manifest records the roadmap, ledger, and current repo posture" {
+test "phase 15 readiness manifest records the roadmap, ledger, and reviewed-head repo posture" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -93,7 +94,7 @@ test "phase 15 readiness manifest records the roadmap, ledger, and current repo 
 
     const readiness_provenance = try std.fmt.allocPrint(
         std.testing.allocator,
-        "survey provenance refreshed against verified `master` head `{s}`",
+        "survey provenance last refreshed against reviewed `master` head `{s}`",
         .{manifest.surveyed_commit},
     );
     defer std.testing.allocator.free(readiness_provenance);
@@ -111,8 +112,9 @@ test "phase 15 readiness manifest records the roadmap, ledger, and current repo 
     try std.testing.expect(manifest.repo_evidence.phase15_validate_target_present);
     try std.testing.expect(manifest.repo_evidence.phase15_make_target_present);
     try std.testing.expect(manifest.repo_evidence.shared_ci_phase15_present);
-    try std.testing.expect(manifest.repo_evidence.phase15_replay_green_on_current_master);
-    try std.testing.expect(manifest.repo_evidence.docs_root_phase15_summary_aligned);
+    try std.testing.expect(manifest.repo_evidence.phase15_replay_green_at_reviewed_head);
+    try std.testing.expect(manifest.repo_evidence.docs_root_phase15_summary_aligned_at_reviewed_head);
+    try std.testing.expect(manifest.repo_evidence.current_master_provenance_refresh_required);
     try std.testing.expect(!manifest.repo_evidence.deep_core_status_change_ready);
 
     try std.testing.expectEqual(@as(usize, 1), manifest.remaining_gaps.len);
@@ -124,6 +126,7 @@ test "phase 15 readiness manifest records the roadmap, ledger, and current repo 
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-parity-scorecard.md", gap.zigux_destination);
     try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "freeze-in-C posture") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "shared Phase 15 replay drifts") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "reviewed-provenance head for this packet needs refresh") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "deep-core blocker posture changes") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "python3 scripts/zigux/validate-phase15.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "make -C zigux phase15-validate") != null);
@@ -158,13 +161,14 @@ test "phase 15 readiness note keeps the roadmap and ledger comparison explicit" 
     defer std.testing.allocator.free(workflow);
 
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "## Roadmap Versus Ledger") != null);
-    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "## Current Repo Readiness") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "## Readiness at Reviewed Head") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "## Remaining Readiness Gaps") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "## Readiness Gate") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "Full-Parity Blockers and Long-Term Governance") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "docs(zigux): add documentation root, review checklist, and freeze map") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "docs-root Phase 15 summary now matches the dedicated readiness and handoff packet") != null);
-    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "dedicated replay surfaces are green on current `master`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "The dedicated replay surfaces were green at reviewed `master` head") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "Later repo movement still requires a fresh bounded provenance refresh") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "phase15-docs-root-summary-alignment") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "phase15-deep-core-status-change-blocker") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "scripts/zigux/validate-phase15.py") != null);
