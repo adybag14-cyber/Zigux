@@ -24,7 +24,8 @@
     "docs and tests still keep real runtime execution, shared loader controls, and full lib/test_bitmap.c parity out of scope for this bounded runtime starter",
     "the bitmap packet still treats Documentation/zigux/phase9-runtime-loader-gap-survey.md as the owner of blocked shared command-name, argv-policy, and environment-derived activation control rather than implying that the bitmap starter itself has crossed into real runtime execution",
     "the bitmap packet still treats Documentation/zigux/freeze-map.md as authoritative for the study-only kernel/workqueue.c boundary and carries no parity scorecard entry or Architecture Council status-change request for that scheduler-facing anchor",
-    "if the loader scaffold changes, the manifest-backed exact-check packet still keeps the prepared-summary snapshot explicit so later sample mutation cannot silently rewrite the waiting_on_runtime_substrate or released_without_substrate replay"
+    "if the loader scaffold changes, the manifest-backed exact-check packet still keeps the prepared-summary snapshot explicit so later sample mutation cannot silently rewrite the waiting_on_runtime_substrate or released_without_substrate replay",
+    "the focused top-bit companion replay still keeps bit 127 explicit through samples/zigux/runtime_bitmap_top_bit_contract.zig plus samples/zigux/runtime_bitmap_top_bit_build.zig without widening this runtime starter into a fifth approved Phase 5 sample"
   ],
   "exact_checks": [
     {
@@ -90,7 +91,7 @@
     {
       "id": "loader-build-leg",
       "kind": "shared_build_contract",
-      "expected": "the shared Phase 9 build keeps the dedicated phase9-runtime-bitmap-sample-tests, phase9-runtime-bitmap-module-tests, phase9-runtime-bitmap-diff-tests, and phase9-runtime-bitmap-loader-tests legs together so the sample, module, diff, and loader review evidence stays explicit inside one shared build entrypoint"
+      "expected": "the shared Phase 9 build keeps the dedicated phase9-runtime-bitmap-sample-tests, phase9-runtime-bitmap-module-tests, phase9-runtime-bitmap-diff-tests, and phase9-runtime-bitmap-loader-tests legs together so the sample, module, diff, and loader review evidence stays explicit inside one shared build entrypoint, while the focused top-bit companion replay stays separately runnable through zig build test --build-file samples/zigux/runtime_bitmap_top_bit_build.zig --summary all so the highest valid bit remains reviewable without widening the shared Phase 9 build"
     },
     {
       "id": "shared-loader-freeze-map-boundary",
@@ -118,13 +119,13 @@
       "id": "runtime-bitmap-survey-note",
       "kind": "documentation",
       "path": "Documentation/zigux/phase9-runtime-bitmap-survey.md",
-      "role": "records the roadmap anchor, shipped starter scope, explicit ownership packet, and remaining shared-loader blocker without implying loadable-module parity"
+      "role": "records the roadmap anchor, shipped starter scope, focused top-bit companion replay, and remaining shared-loader blocker without implying loadable-module parity"
     },
     {
       "id": "runtime-bitmap-module-slice",
       "kind": "documentation",
       "path": "Documentation/zigux/phase9-runtime-bitmap-module-slice.md",
-      "role": "records the bounded starter surface, loader handoff wording, prepared-summary snapshot replay, and shared-build-leg explanation for the shipped runtime bitmap packet"
+      "role": "records the bounded starter surface, focused top-bit companion replay boundary, loader handoff wording, prepared-summary snapshot replay, and shared-build-leg explanation for the shipped runtime bitmap packet"
     },
     {
       "id": "runtime-bitmap-manifest",
@@ -154,13 +155,13 @@
       "id": "phase9-bitmap-build-gate",
       "kind": "validation",
       "path": "zigux/tests/phase9_build.zig",
-      "role": "keeps the direct phase9-runtime-bitmap-sample-tests, phase9-runtime-bitmap-module-tests, phase9-runtime-bitmap-diff-tests, and phase9-runtime-bitmap-loader-tests legs plus the surrounding bitmap survey, module, diff, loader, and shared-loader checks replayable as one shared Phase 9 entrypoint"
+      "role": "keeps the direct phase9-runtime-bitmap-sample-tests, phase9-runtime-bitmap-module-tests, phase9-runtime-bitmap-diff-tests, and phase9-runtime-bitmap-loader-tests legs plus the surrounding bitmap survey, module, diff, loader, and shared-loader checks replayable as one shared Phase 9 entrypoint, while the focused top-bit companion replay stays separately runnable through samples/zigux/runtime_bitmap_top_bit_build.zig"
     },
     {
       "id": "runtime-bitmap-sample",
       "kind": "sample_starter",
       "path": "samples/zigux/runtime_bitmap.zig",
-      "role": "owns the bounded two-word in-memory bitmap starter contract, lifecycle staging, sparse iteration, summary, and selftest-hook metadata"
+      "role": "owns the bounded two-word in-memory bitmap starter contract, lifecycle staging, sparse iteration, summary, and selftest-hook metadata that the focused top-bit companion replay continues to stress at the highest valid bit"
     },
     {
       "id": "runtime-bitmap-loader-scaffold",
@@ -190,11 +191,11 @@
   "ownership_map": [
     {
       "surface": "Documentation/zigux/phase9-runtime-bitmap-survey.md",
-      "owns": "the roadmap anchor note, shipped starter scope, ownership packet summary, and remaining shared-loader blocker wording"
+      "owns": "the roadmap anchor note, shipped starter scope, focused top-bit companion replay, and remaining shared-loader blocker wording"
     },
     {
       "surface": "Documentation/zigux/phase9-runtime-bitmap-module-slice.md",
-      "owns": "the bounded starter surface, loader handoff wording, prepared-summary snapshot replay, and shared-build-leg explanation for the shipped bitmap packet"
+      "owns": "the bounded starter surface, focused top-bit companion replay boundary, loader handoff wording, prepared-summary snapshot replay, and shared-build-leg explanation for the shipped bitmap packet"
     },
     {
       "surface": "zigux/tests/runtime_bitmap_manifest.json",
@@ -214,11 +215,11 @@
     },
     {
       "surface": "zigux/tests/phase9_build.zig",
-      "owns": "the shared Phase 9 runtime entrypoint that replays the direct bitmap sample, module, diff, and loader legs plus the survey and shared runtime-loader checks"
+      "owns": "the shared Phase 9 runtime entrypoint that replays the direct bitmap sample, module, diff, and loader legs plus the survey and shared runtime-loader checks, while the focused top-bit companion replay stays intentionally separate"
     },
     {
       "surface": "samples/zigux/runtime_bitmap.zig",
-      "owns": "the bounded two-word in-memory bitmap starter contract, lifecycle staging, sparse iteration, summary, and selftest-hook metadata"
+      "owns": "the bounded two-word in-memory bitmap starter contract, lifecycle staging, sparse iteration, summary, and selftest-hook metadata that the focused top-bit companion replay keeps stress-testing at the highest valid bit"
     },
     {
       "surface": "samples/zigux/runtime_bitmap_loader.zig",
