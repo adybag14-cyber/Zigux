@@ -82,11 +82,7 @@ pub fn argvSplitWithArgc(
     var arg_index: usize = 0;
     var cursor: usize = 0;
 
-    while (nextArgSpan(storage, &cursor)) |span| {
-        if (span.end < storage.len) {
-            storage[span.end] = 0;
-            cursor = span.end + 1;
-        }
+    while (nextSplitArgSpan(storage, &cursor)) |span| {
         argv[arg_index] = storage[span.start..span.end :0];
         argv_null_terminated[arg_index] = argv[arg_index].ptr;
         arg_index += 1;
@@ -137,6 +133,32 @@ fn nextArgSpan(text: []const u8, cursor: *usize) ?ArgSpan {
     return .{
         .start = start,
         .end = index,
+    };
+}
+
+fn nextSplitArgSpan(text: []u8, cursor: *usize) ?ArgSpan {
+    var index = cursor.*;
+
+    while (index < text.len and std.ascii.isWhitespace(text[index])) : (index += 1) {
+        text[index] = 0;
+    }
+    if (index == text.len) {
+        cursor.* = index;
+        return null;
+    }
+
+    const start = index;
+    while (index < text.len and !std.ascii.isWhitespace(text[index])) : (index += 1) {}
+    const end = index;
+
+    while (index < text.len and std.ascii.isWhitespace(text[index])) : (index += 1) {
+        text[index] = 0;
+    }
+
+    cursor.* = index;
+    return .{
+        .start = start,
+        .end = end,
     };
 }
 
@@ -231,6 +253,20 @@ test "argvSplit duplicates the input before tokenizing" {
 
     try std.testing.expectEqualStrings("one", split.argv[0]);
     try std.testing.expectEqualStrings("two", split.argv[1]);
+}
+
+test "argvSplit zeroes copied whitespace separators across the tokenized buffer" {
+    var split = try argvSplit(std.testing.allocator, " alpha  beta\tgamma\n");
+    defer split.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(u8, 0), split.storage[0]);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[6]);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[7]);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[12]);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[18]);
+    try std.testing.expectEqualStrings("alpha", split.argv[0]);
+    try std.testing.expectEqualStrings("beta", split.argv[1]);
+    try std.testing.expectEqualStrings("gamma", split.argv[2]);
 }
 
 test "argvSplit tokens stay inside the owned storage copy" {
