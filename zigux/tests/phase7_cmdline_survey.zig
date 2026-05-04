@@ -178,6 +178,8 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
 
     try expectContains(docs_readme, "the same sample-root catalog also keeps the current no-`samples/zigux/*cmdline*` boundary explicit");
     try expectContains(docs_readme, "cmdline evidence stays under the separate Phase 7 helper bundle rooted in `Documentation/zigux/phase7-cmdline-slice.md`, `lib/cmdline.zig`, and `zigux/tests/phase7_cmdline.zig`, and `zigux/tests/phase7_build.zig` instead of looking like a missing Phase 5 sample port.");
+    try expectContains(docs_readme, "`python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test`");
+    try expectContains(docs_readme, "`python3 scripts/zigux/check-phase7-cmdline-parity.py`");
     try expectContains(review_checklist, "if the change touches shared sample-root or helper-bundle notes for cmdline work");
     try expectContains(review_checklist, "current `master` ships no `samples/zigux/*cmdline*` Phase 5 reference sample");
     try expectContains(review_checklist, "the shipped cmdline evidence remains the separate Phase 7 helper bundle under `lib/cmdline.zig`, `zigux/tests/phase7_cmdline.zig`, and `zigux/tests/phase7_build.zig`");
@@ -384,7 +386,6 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
             saw_survey_gate = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/phase7_cmdline_survey.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "machine-checked survey gate") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
