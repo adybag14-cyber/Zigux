@@ -345,12 +345,14 @@ LEDGER_MARKERS = [
     "PHASE10_LEDGER_BLOCKERS=phase10-virtio-input-registration-lifecycle,phase10-mmio-lifecycle-and-irq-paths",
     "PHASE10_LEDGER_LANDED_CORE_HELPERS=phase10-config-generation-summary-helper,phase10-config-delivery-disposition-helper,phase10-config-driver-toggle-guard-helper",
     "PHASE10_LEDGER_HARNESS_COVERAGE_VALIDATE=scripts/zigux/check-phase10-harness-coverage.py",
+    "PHASE10_LEDGER_RING_RESET_REUSE_GATE=zigux/tests/phase10_virtio_ring_reset_reuse.zig",
     "PHASE10_LEDGER_INPUT_MULTITOUCH_PREFLIGHT_GATE=zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
     "PHASE10_LEDGER_MMIO_QUEUE_ISOLATION_GATE=zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
 ]
 
 LEDGER_EXACT_ONCE_MARKERS = [
     "PHASE10_LEDGER_HARNESS_COVERAGE_VALIDATE=scripts/zigux/check-phase10-harness-coverage.py",
+    "PHASE10_LEDGER_RING_RESET_REUSE_GATE=zigux/tests/phase10_virtio_ring_reset_reuse.zig",
     "PHASE10_LEDGER_INPUT_MULTITOUCH_PREFLIGHT_GATE=zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
     "PHASE10_LEDGER_MMIO_QUEUE_ISOLATION_GATE=zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
 ]
@@ -642,6 +644,21 @@ def run_self_test() -> int:
         write_fixture(root)
 
         ledger_path.write_text(
+            original_ledger.replace(
+                "PHASE10_LEDGER_RING_RESET_REUSE_GATE=zigux/tests/phase10_virtio_ring_reset_reuse.zig",
+                "PHASE10_LEDGER_RING_RESET_REUSE_GATE=drift",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "ledger_ring_gate_guard",
+            root,
+            "ledger:PHASE10_LEDGER_RING_RESET_REUSE_GATE=zigux/tests/phase10_virtio_ring_reset_reuse.zig",
+        )
+        write_fixture(root)
+
+        ledger_path.write_text(
             original_ledger + "\nPHASE10_LEDGER_HARNESS_COVERAGE_VALIDATE=scripts/zigux/check-phase10-harness-coverage.py\n",
             encoding="utf-8",
         )
@@ -649,6 +666,17 @@ def run_self_test() -> int:
             "ledger_harness_validate_duplicate",
             root,
             "ledger:count:PHASE10_LEDGER_HARNESS_COVERAGE_VALIDATE=scripts/zigux/check-phase10-harness-coverage.py=2",
+        )
+        write_fixture(root)
+
+        ledger_path.write_text(
+            original_ledger + "\nPHASE10_LEDGER_RING_RESET_REUSE_GATE=zigux/tests/phase10_virtio_ring_reset_reuse.zig\n",
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "ledger_ring_gate_duplicate",
+            root,
+            "ledger:count:PHASE10_LEDGER_RING_RESET_REUSE_GATE=zigux/tests/phase10_virtio_ring_reset_reuse.zig=2",
         )
         write_fixture(root)
 
@@ -670,7 +698,7 @@ def run_self_test() -> int:
             raise SystemExit("required_file_guard_failed")
 
     print("PHASE10_CLOSURE_INVENTORY_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_INVENTORY_SELF_TEST_CASE_COUNT=15")
+    print("PHASE10_CLOSURE_INVENTORY_SELF_TEST_CASE_COUNT=17")
     return 0
 
 
