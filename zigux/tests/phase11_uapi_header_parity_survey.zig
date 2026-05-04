@@ -44,6 +44,7 @@ const BuildInventory = struct {
     forbidden_markers: []const []const u8,
     dedicated_survey_replays: []const []const u8,
     shared_split_replays: []const SharedSplitReplay,
+    shared_adjunct_replays: []const SharedAdjunctReplay,
     shared_replay_markers: []const SharedReplayMarker,
 };
 
@@ -64,6 +65,11 @@ const TestRootModule = struct {
 };
 
 const SharedSplitReplay = struct {
+    @"test": []const u8,
+    path: []const u8,
+};
+
+const SharedAdjunctReplay = struct {
     @"test": []const u8,
     path: []const u8,
 };
@@ -189,7 +195,7 @@ test "phase11 shared header parity manifest records the bounded layout checkpoin
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P11-L17", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
-    try std.testing.expectEqualStrings("b244e4000e4e0db717e76190df37aca797b58020", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("1851d34766b4bc833344b3be89e4f079234212fa", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("include/uapi/linux/watchdog.h and include/uapi/asm-generic/termios.h", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_build_present);
@@ -518,8 +524,8 @@ test "phase11 shared header parity survey keeps the header boundary explicit" {
     try std.testing.expect(std.mem.indexOf(u8, hvc_survey, "assertExactType(@FieldType(HvcExportSurface, \"notifier_hangup_irq\"), HvcNotifierHangupIrqFn);") != null);
     try std.testing.expectEqual(@as(usize, 13), inventory.build_test_names.len);
     try std.testing.expectEqual(@as(usize, 12), inventory.shared_test_depend_steps.len);
-    try std.testing.expectEqual(@as(usize, 19), inventory.module_root_source_files.len);
-    try std.testing.expectEqual(@as(usize, 12), inventory.module_imports.len);
+    try std.testing.expectEqual(@as(usize, 20), inventory.module_root_source_files.len);
+    try std.testing.expectEqual(@as(usize, 13), inventory.module_imports.len);
     try std.testing.expectEqual(@as(usize, 13), inventory.test_root_modules.len);
     try std.testing.expectEqual(@as(usize, 1), inventory.forbidden_markers.len);
     try std.testing.expectEqual(@as(usize, 1), inventory.dedicated_survey_replays.len);
@@ -538,10 +544,10 @@ test "phase11 shared header parity survey keeps the header boundary explicit" {
     try std.testing.expectEqualStrings("phase11_uapi_header_parity_survey.zig", inventory.module_root_source_files[13].path);
     try std.testing.expectEqualStrings("hvc_console_module", inventory.module_root_source_files[14].module);
     try std.testing.expectEqualStrings("../../drivers/tty/hvc/hvc_console.zig", inventory.module_root_source_files[14].path);
-    try std.testing.expectEqualStrings("phase11_hvc_console_modem_control_split_module", inventory.module_root_source_files[16].module);
-    try std.testing.expectEqualStrings("phase11_hvc_console_modem_control_split.zig", inventory.module_root_source_files[16].path);
-    try std.testing.expectEqualStrings("phase11_hvc_console_poll_retry_split_module", inventory.module_root_source_files[17].module);
-    try std.testing.expectEqualStrings("phase11_hvc_console_poll_retry_split.zig", inventory.module_root_source_files[17].path);
+    try std.testing.expectEqualStrings("phase11_hvc_console_modem_control_split_module", inventory.module_root_source_files[17].module);
+    try std.testing.expectEqualStrings("phase11_hvc_console_modem_control_split.zig", inventory.module_root_source_files[17].path);
+    try std.testing.expectEqualStrings("phase11_hvc_console_poll_retry_split_module", inventory.module_root_source_files[18].module);
+    try std.testing.expectEqualStrings("phase11_hvc_console_poll_retry_split.zig", inventory.module_root_source_files[18].path);
     try std.testing.expectEqualStrings("phase11_uapi_header_parity_survey_module", inventory.module_imports[6].module);
     try std.testing.expectEqualStrings("layout_assert", inventory.module_imports[6].import_name);
     try std.testing.expectEqualStrings("layout_assert_module", inventory.module_imports[6].imported_module);
@@ -554,6 +560,9 @@ test "phase11 shared header parity survey keeps the header boundary explicit" {
     try std.testing.expectEqualStrings("phase11_hvc_console_poll_retry_split_module", inventory.module_imports[10].module);
     try std.testing.expectEqualStrings("hvc_console", inventory.module_imports[10].import_name);
     try std.testing.expectEqualStrings("hvc_console_module", inventory.module_imports[10].imported_module);
+    try std.testing.expectEqualStrings("phase11_hvc_console_poll_retry_split_module", inventory.module_imports[11].module);
+    try std.testing.expectEqualStrings("hvc_console_sysrq", inventory.module_imports[11].import_name);
+    try std.testing.expectEqualStrings("hvc_console_sysrq_module", inventory.module_imports[11].imported_module);
     try std.testing.expectEqualStrings("phase11-uapi-header-parity-survey-tests", inventory.test_root_modules[8].@"test");
     try std.testing.expectEqualStrings("phase11_uapi_header_parity_survey_module", inventory.test_root_modules[8].root_module);
     try std.testing.expectEqualStrings("phase11-hvc-console-tests", inventory.test_root_modules[9].@"test");
@@ -573,6 +582,9 @@ test "phase11 shared header parity survey keeps the header boundary explicit" {
     try std.testing.expectEqualStrings("zigux/tests/phase11_hvc_console_modem_control_split.zig", inventory.shared_split_replays[1].path);
     try std.testing.expectEqualStrings("phase11-hvc-console-poll-retry-split-tests", inventory.shared_split_replays[2].@"test");
     try std.testing.expectEqualStrings("zigux/tests/phase11_hvc_console_poll_retry_split.zig", inventory.shared_split_replays[2].path);
+    try std.testing.expectEqual(@as(usize, 1), inventory.shared_adjunct_replays.len);
+    try std.testing.expectEqualStrings("phase11-dw-wdt-suspend-resume-tests", inventory.shared_adjunct_replays[0].@"test");
+    try std.testing.expectEqualStrings("zigux/tests/phase11_dw_wdt_suspend_resume.zig", inventory.shared_adjunct_replays[0].path);
     try std.testing.expectEqual(@as(usize, 4), inventory.shared_replay_markers.len);
     try std.testing.expectEqualStrings("zigux/tests/phase11_dw_wdt_suspend_resume.zig", inventory.shared_replay_markers[0].path);
     try std.testing.expectEqualStrings("    try std.testing.expect(summary.resume_preserves_timeout_programming);", inventory.shared_replay_markers[0].marker);
