@@ -31,7 +31,7 @@ TESTS_README_MARKERS = [
     "python3 scripts/zigux/validate-phase2.py",
     "python3 scripts/zigux/validate-phase2-closure.py",
     "make -C zigux phase2-validate",
-    "`make -C zigux phase2` so the tests root names the same three-target compile matrix",
+    "make -C zigux phase2",
     "same three-target compile matrix, direct cross gate, alignment guard, and kbuild-facing replay surface",
 ]
 
@@ -476,7 +476,7 @@ def run_self_test() -> int:
         expect_missing(
             "tests_readme_phase2_make",
             tmp_root,
-            "tests_readme:`make -C zigux phase2`",
+            "tests_readme:make -C zigux phase2",
         )
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
