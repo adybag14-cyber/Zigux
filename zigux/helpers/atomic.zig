@@ -14,6 +14,13 @@ fn ensureStoreOrder(comptime order: std.builtin.AtomicOrder) void {
     }
 }
 
+fn ensureReadModifyWriteOrder(comptime order: std.builtin.AtomicOrder) void {
+    switch (order) {
+        .monotonic, .acquire, .release, .acq_rel, .seq_cst => {},
+        .unordered => @compileError("atomic read-modify-write helpers require monotonic, acquire, release, acq_rel, or seq_cst ordering"),
+    }
+}
+
 fn ensureCompareExchangeSuccessOrder(comptime order: std.builtin.AtomicOrder) void {
     switch (order) {
         .monotonic, .acquire, .release, .acq_rel, .seq_cst => {},
@@ -39,34 +46,42 @@ pub fn store(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.At
 }
 
 pub fn exchange(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {
+    ensureReadModifyWriteOrder(order);
     return @atomicRmw(T, ptr, .Xchg, value, order);
 }
 
 pub fn fetchAdd(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {
+    ensureReadModifyWriteOrder(order);
     return @atomicRmw(T, ptr, .Add, value, order);
 }
 
 pub fn fetchSub(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {
+    ensureReadModifyWriteOrder(order);
     return @atomicRmw(T, ptr, .Sub, value, order);
 }
 
 pub fn fetchAnd(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {
+    ensureReadModifyWriteOrder(order);
     return @atomicRmw(T, ptr, .And, value, order);
 }
 
 pub fn fetchOr(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {
+    ensureReadModifyWriteOrder(order);
     return @atomicRmw(T, ptr, .Or, value, order);
 }
 
 pub fn fetchXor(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {
+    ensureReadModifyWriteOrder(order);
     return @atomicRmw(T, ptr, .Xor, value, order);
 }
 
 pub fn fetchMin(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {
+    ensureReadModifyWriteOrder(order);
     return @atomicRmw(T, ptr, .Min, value, order);
 }
 
 pub fn fetchMax(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {
+    ensureReadModifyWriteOrder(order);
     return @atomicRmw(T, ptr, .Max, value, order);
 }
 
@@ -142,6 +157,12 @@ test "phase3 atomic wrappers accept valid non-seq-cst orderings" {
     var value: u32 = 0;
     store(u32, &value, 9, .release);
     try std.testing.expectEqual(@as(u32, 9), load(u32, &value, .acquire));
+    try std.testing.expectEqual(@as(u32, 9), exchange(u32, &value, 12, .acq_rel));
+    try std.testing.expectEqual(@as(u32, 12), value);
+    try std.testing.expectEqual(@as(u32, 12), fetchAdd(u32, &value, 5, .acq_rel));
+    try std.testing.expectEqual(@as(u32, 17), value);
+    try std.testing.expectEqual(@as(u32, 17), fetchMax(u32, &value, 21, .monotonic));
+    try std.testing.expectEqual(@as(u32, 21), value);
 
     var cmp: u32 = 3;
     try std.testing.expectEqual(@as(?u32, null), compareExchange(u32, &cmp, 3, 5, .acq_rel, .acquire));
