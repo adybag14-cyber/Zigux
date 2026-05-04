@@ -290,7 +290,7 @@ MMIO_TEST_MARKERS = [
 ]
 
 MMIO_SURVEY_TEST_MARKERS = [
-    'test "phase10 virtio mmio survey manifest records the landed config-write rung and remaining transport gap" {',
+    'test "phase10 virtio mmio survey manifest records the landed interrupt-ack rung and remaining transport gap" {',
     'try std.testing.expectEqualStrings("P10-L18", manifest.lane_key);',
     'try std.testing.expectEqual(@as(usize, 0), ready_next_count);',
     'if (std.mem.eql(u8, gap.id, "phase10-mmio-config-write-helper")) {',
