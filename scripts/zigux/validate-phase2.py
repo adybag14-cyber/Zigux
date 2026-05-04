@@ -96,7 +96,7 @@ PHASE2_GENKSYMS_REQUIRED_README_MARKERS = [
 ]
 PHASE2_KCONFIG_ALIGNMENT_REQUIRED_SOURCE_MARKERS = [
     "PHASE2_KCONFIG_ALIGNMENT_SELF_TEST=pass",
-    "PHASE2_KCONFIG_ALIGNMENT_SELF_TEST_CASE_COUNT=9",
+    "PHASE2_KCONFIG_ALIGNMENT_SELF_TEST_CASE_COUNT=13",
     '"python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test": 1',
     '"python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py": 1',
 ]
