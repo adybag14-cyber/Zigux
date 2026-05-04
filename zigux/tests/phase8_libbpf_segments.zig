@@ -1,6 +1,6 @@
 const std = @import("std");
 
-const current_surveyed_commit = "897cdd2f62c4428d2a050275a187950e161b66eb";
+const current_surveyed_commit = "0bd402fd6ca83ba2ace6b21e9e57459401b631cd";
 
 const expected_companion_files = [_]CompanionFile{
     .{ .path = "tools/lib/bpf/bpf.c", .lines = 1419 },
