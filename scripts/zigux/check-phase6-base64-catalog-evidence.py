@@ -15,11 +15,11 @@ CATALOG_PATH = Path("Documentation/zigux/phase6-helper-parity-catalog.md")
 MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
 PARITY_SCRIPT_PATH = Path("scripts/zigux/check-phase6-base64-c-parity.py")
 
-SELF_TEST_CASE_COUNT = 11
+SELF_TEST_CASE_COUNT = 10
 PARITY_CASE_COUNT = 122
 VARIANT_ENCODE_VECTORS = 30
 VARIANT_DECODE_VECTORS = 20
-CATALOG_EVIDENCE_SELF_TEST_CASE_COUNT = 9
+CATALOG_EVIDENCE_SELF_TEST_CASE_COUNT = 11
 
 CATALOG_MARKERS = [
     "shared packet posture: parked after the current helper-local parity and perf surface cleared the bounded Phase 6 goal",
@@ -141,29 +141,35 @@ def run_self_test() -> int:
     try:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
+            count = 0
             build_self_test_tree(root)
             if validate(root):
                 raise AssertionError("pass tree should validate")
+            count += 1
 
             build_self_test_tree(root)
             write(root, CATALOG_PATH, "# x\nPHASE6_BASE64_C_PARITY_CASES=122\n")
             if f"catalog:missing:{CATALOG_MARKERS[0]}" not in validate(root):
                 raise AssertionError("missing parked posture marker failure")
+            count += 1
 
             build_self_test_tree(root)
             write(root, CATALOG_PATH, "# x\nPHASE6_BASE64_C_PARITY_CASES=122\n")
             if f"catalog:missing:PHASE6_BASE64_C_PARITY_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}" not in validate(root):
                 raise AssertionError("missing catalog self-test marker failure")
+            count += 1
 
             build_self_test_tree(root)
             write(root, CATALOG_PATH, "\n".join(["# x", *CATALOG_MARKERS, *CATALOG_FIXTURE_MARKERS]) + "\n")
             if f"catalog_review:missing:{CATALOG_REVIEW_MARKERS[0]}" not in validate(root):
                 raise AssertionError("missing catalog review marker failure")
+            count += 1
 
             build_self_test_tree(root)
             write(root, CATALOG_PATH, "\n".join(["# x", *CATALOG_MARKERS, CATALOG_FIXTURE_MARKERS[1], *CATALOG_REVIEW_MARKERS]) + "\n")
             if f"catalog_fixture:missing:{CATALOG_FIXTURE_MARKERS[0]}" not in validate(root):
                 raise AssertionError("missing catalog fixture marker failure")
+            count += 1
 
             build_self_test_tree(root)
             manifest = json.loads(read_text(root, MANIFEST_PATH))
@@ -171,6 +177,7 @@ def run_self_test() -> int:
             write(root, MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
             if "manifest:base64:variant_encode_vectors" not in validate(root):
                 raise AssertionError("missing manifest variant encode count failure")
+            count += 1
 
             build_self_test_tree(root)
             manifest = json.loads(read_text(root, MANIFEST_PATH))
@@ -178,6 +185,7 @@ def run_self_test() -> int:
             write(root, MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
             if "manifest:base64:c_parity_self_test_cases" not in validate(root):
                 raise AssertionError("missing manifest self-test count failure")
+            count += 1
 
             build_self_test_tree(root)
             manifest = json.loads(read_text(root, MANIFEST_PATH))
@@ -188,6 +196,7 @@ def run_self_test() -> int:
                 not in validate(root)
             ):
                 raise AssertionError("missing manifest exact-check failure")
+            count += 1
 
             build_self_test_tree(root)
             manifest = json.loads(read_text(root, MANIFEST_PATH))
@@ -202,16 +211,24 @@ def run_self_test() -> int:
                 not in validate(root)
             ):
                 raise AssertionError("missing manifest duplicate exact-check failure")
+            count += 1
 
             build_self_test_tree(root)
             write(root, PARITY_SCRIPT_PATH, 'print("PHASE6_BASE64_C_PARITY_SELF_TEST=pass")\n')
             if 'parity_script:missing:print("PHASE6_BASE64_C_PARITY=pass")' not in validate(root):
                 raise AssertionError("missing parity script marker failure")
+            count += 1
 
             build_self_test_tree(root)
             (root / MANIFEST_PATH).unlink()
             if f"missing_file:{MANIFEST_PATH.as_posix()}" not in validate(root):
                 raise AssertionError("missing manifest file failure")
+            count += 1
+
+            if count != CATALOG_EVIDENCE_SELF_TEST_CASE_COUNT:
+                raise AssertionError(
+                    f"expected {CATALOG_EVIDENCE_SELF_TEST_CASE_COUNT} self-test cases, got {count}"
+                )
     except AssertionError as exc:
         print("PHASE6_BASE64_CATALOG_EVIDENCE_SELF_TEST=fail")
         print(f"PHASE6_BASE64_CATALOG_EVIDENCE_SELF_TEST_REASON={exc}")
