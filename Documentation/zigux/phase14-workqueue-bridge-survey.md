@@ -6,7 +6,7 @@ This document records the bounded Phase 14 survey lane around `kernel/workqueue.
 
 - `PHASE14_STATUS=active`
 - `PHASE14_SLICE=workqueue-blocked-maintenance`
-- `PHASE14_LANE_KEY=P14-L02`
+- `PHASE14_LANE_KEY=P14-Y01`
 - `PHASE14_SURVEYED_COMMIT=542acd7b12c52211ef9a8bd790fa2e2b3367cbf0`
 - `PHASE14_STATUS_BUCKET=study_only`
 - `PHASE14_ROLLBACK_OWNER=Repo Tooling Pod`
