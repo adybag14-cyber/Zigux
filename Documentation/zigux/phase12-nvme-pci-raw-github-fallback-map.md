@@ -47,6 +47,12 @@ The dedicated `zigux/tests/phase12_nvme_pci_survey.zig` gate reads this note bac
 - Use the raw pinned URLs when the exact archived Phase 12 NVMe PCI packet text matters more than the moving `master` tip.
 - Leave current-head replay evidence to the owner lanes for the shared validator, the shared build, or a dedicated driver-local current-replay catalog.
 
+## Ownership And Rollback
+
+- owner: `NVMe PCI Lane`
+- rollback owner: `NVMe PCI Lane`
+- fallback path: keep `drivers/nvme/host/pci.c` as the source of truth, keep the bounded `drivers/nvme/host/pci.zig` queue planner plus queue-count, doorbell-window, queue-recovery replay, PRP buffer-shape, PRP metadata helper, and pointer-selection helpers reviewable in isolation, and leave shared-build entrypoint changes to the shared Phase 12 packet rather than this archival fallback map.
+
 ## Latest Live Recheck
 
 - rechecked public host-path history on `master` through the GitHub connector rather than a local clone, because direct public clone and raw-fetch paths remain blocked in this runtime.
