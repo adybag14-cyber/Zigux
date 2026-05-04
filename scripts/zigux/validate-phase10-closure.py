@@ -136,6 +136,7 @@ EXPECTED_FOCUSED_HARNESS_REPLAYS = {
 TESTS_README_MARKERS = [
     "zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
     "scripts/zigux/check-phase10-core-packet.py",
+    "four lane survey manifests plus the shared `zigux/tests/phase10_closure_manifest.json`",
 ]
 
 REQUIRED_FILES = [
@@ -800,6 +801,23 @@ def run_self_test() -> int:
         )
         write_fixture(root)
 
+        tests_readme_path = root / "zigux/tests/README.md"
+        original_tests_readme = tests_readme_path.read_text(encoding="utf-8")
+        tests_readme_path.write_text(
+            original_tests_readme.replace(
+                "four lane survey manifests plus the shared `zigux/tests/phase10_closure_manifest.json`",
+                "three survey manifests plus the shared `zigux/tests/phase10_closure_manifest.json`",
+                1,
+            ),
+            encoding="utf-8"
+        )
+        expect_missing_marker(
+            "tests_readme_survey_manifest_guard",
+            root,
+            "tests_readme:four lane survey manifests plus the shared `zigux/tests/phase10_closure_manifest.json`",
+        )
+        write_fixture(root)
+
         ledger_path = root / "zigux-alpha/PHASE10_CLOSURE_LEDGER.md"
         original_ledger = ledger_path.read_text(encoding="utf-8")
         ledger_path.write_text(
@@ -882,7 +900,7 @@ def run_self_test() -> int:
         expect_missing_file("queue_isolation_file_guard", root, "zigux/tests/phase10_virtio_mmio_queue_isolation.zig")
 
     print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=25")
+    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=26")
     return 0
 
 
