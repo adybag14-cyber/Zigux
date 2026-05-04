@@ -43,7 +43,7 @@ The bounded Phase 2 bootstrap archive pin remains intentionally limited to the c
 - companion note: `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`
 - guard: `scripts/zigux/check-phase2-toolchain-pin-scope.py`
 - the archive pin must not broaden beyond `x86_64-linux` until a new bootstrap runner target gains first-class workflow evidence
-- the Linux-style `make -C zigux phase2-validate` and `make -C zigux phase2` routes keep this bounded pin-scope packet tied to the same shared validator and closure-validator surface
+- the Linux-style validator and tranche routes keep this bounded pin-scope packet tied to the same shared validator and closure-validator surface
 - both `python3 scripts/zigux/validate-phase2.py` and `python3 scripts/zigux/validate-phase2-closure.py` now fail closed unless `Documentation/zigux/phase2-toolchain-bootstrap-notes.md` keeps the dedicated toolchain-note sentence tying those validator and tranche routes to that same kbuild-facing replay surface
 - both validators now also rely on `python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test` and `python3 scripts/zigux/check-phase2-tests-readme-alignment.py` to keep `zigux/tests/README.md`, this closure note, the shared toolchain note, the review checklist, the scripts index, the bootstrap workflow route, and the shared Linux-style Phase 2 replay surface aligned around the same three-target compile matrix and kbuild-facing packet
 - `PHASE2_TOOLCHAIN_PIN_SCOPE_POLICY=scripts/zigux/zig-toolchain-policy.json keeps the bootstrap archive pin limited to x86_64-linux until a new runner target gains first-class workflow evidence`
