@@ -21,6 +21,7 @@ ROOT = repo_root()
 REQUIRED_FILES = [
     "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
+    "Documentation/zigux/phase1-closure.md",
     "Documentation/zigux/phase1-tests-root-review-companion.md",
     "scripts/zigux/README.md",
     "scripts/zigux/validate-phase1.py",
@@ -364,6 +365,7 @@ def self_test() -> int:
     baseline_by_file = {
         "Documentation/zigux/README.md": docs_entries,
         "Documentation/zigux/review-checklist.md": checklist_entries,
+        "Documentation/zigux/phase1-closure.md": ["phase1 closure fixture\n".rstrip("\n")],
         "Documentation/zigux/phase1-tests-root-review-companion.md": companion_entries,
         "scripts/zigux/README.md": scripts_entries,
         "zigux/tests/README.md": tests_entries,
@@ -394,8 +396,9 @@ def self_test() -> int:
 
         missing_file_cases = {
             "Documentation/zigux/README.md": fixture_text(docs_entries),
-            "Documentation/zigux/phase1-tests-root-review-companion.md": fixture_text(companion_entries),
             "Documentation/zigux/review-checklist.md": fixture_text(checklist_entries),
+            "Documentation/zigux/phase1-closure.md": fixture_text(baseline_by_file["Documentation/zigux/phase1-closure.md"]),
+            "Documentation/zigux/phase1-tests-root-review-companion.md": fixture_text(companion_entries),
             "scripts/zigux/README.md": fixture_text(scripts_entries),
             "scripts/zigux/validate-phase1.py": "// fixture\n",
             "scripts/zigux/check-phase1-bitmap-validator-anchors.py": "// fixture\n",
