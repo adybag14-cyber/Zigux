@@ -82,7 +82,7 @@ When the shared-versus-dedicated replay contract changes, keep these contributor
 
 Those surfaces are where contributors usually discover the Phase 11 route before they open the deeper packet notes, so any replay-contract change should stay explicit there as well.
 
-In particular, the `zigux/tests/README.md` Phase 11 guidance now repeats the four shared split and adjunct replays and `scripts/zigux/check-phase11-header-boundary-packet.py` explicitly, so the tests-root carryover prompt matches the shared contract note, the validator-first guide, and the tests-root review companion.
+In particular, the `zigux/tests/README.md` Phase 11 guidance now repeats the four shared split and adjunct replays, the four driver-local manifests, and `scripts/zigux/check-phase11-header-boundary-packet.py` explicitly, so the tests-root carryover prompt matches the shared contract note, the validator-first guide, and the tests-root review companion.
 
 ## Review Use
 
@@ -96,6 +96,10 @@ The minimum agreement surface for that kind of change is:
 - `zigux/tests/phase11_hvc_console_modem_control_split.zig`
 - `zigux/tests/phase11_hvc_console_poll_retry_split.zig`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
+- `zigux/tests/phase11_gpio_wdt_manifest.json`
+- `zigux/tests/phase11_bcm2835_wdt_manifest.json`
+- `zigux/tests/phase11_dw_wdt_manifest.json`
+- `zigux/tests/phase11_hvc_console_manifest.json`
 - `scripts/zigux/check-phase11-build-inventory.py`
 - `scripts/zigux/check-phase11-layout-assert-surface.py`
 - `scripts/zigux/check-phase11-hvc-validation-flow.py`
