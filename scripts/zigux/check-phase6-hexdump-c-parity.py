@@ -13,6 +13,7 @@ from pathlib import Path
 SCRIPT_PATH = Path(__file__).resolve()
 ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
 C_HARNESS = ROOT / "zigux" / "tests" / "fixtures" / "phase6_hexdump_c_harness.c"
+HELPER_SOURCE = ROOT / "lib" / "hexdump.zig"
 FIXTURE_SOURCE = ROOT / "zigux" / "tests" / "fixtures" / "phase6_hexdump_vectors.zig"
 ZIG_RUNNER = ROOT / "zigux" / "tests" / "phase6_hexdump_c_parity.zig"
 EXPECTED_SORTED_LINES = sorted(
@@ -86,7 +87,7 @@ def build_zig_build_text() -> str:
             const optimize = b.standardOptimizeOption(.{{}});
 
             const hexdump_module = b.createModule(.{{
-                .root_source_file = .{{ .cwd_relative = \"{ROOT / 'lib' / 'hexdump.zig'}\" }},
+                .root_source_file = .{{ .cwd_relative = \"{HELPER_SOURCE}\" }},
                 .target = target,
                 .optimize = optimize,
             }});
@@ -154,11 +155,15 @@ def validate_matching_surface(c_lines: list[str], zig_lines: list[str], label: s
 
 
 def run_self_test() -> int:
-    assert_equal("require_tool_env", require_tool("zig", "PHASE6_SELFTEST_TOOL"), "/tmp/zig-self-test")
     expect_system_exit(
         "missing_harness",
         lambda: validate_required_path(Path("/tmp/phase6-missing-harness.c"), "harness"),
         "missing harness: /tmp/phase6-missing-harness.c",
+    )
+    expect_system_exit(
+        "missing_helper_source",
+        lambda: validate_required_path(Path("/tmp/phase6-missing-helper.zig"), "helper source"),
+        "missing helper source: /tmp/phase6-missing-helper.zig",
     )
     expect_system_exit(
         "missing_runner",
@@ -172,9 +177,11 @@ def run_self_test() -> int:
     )
     build_text = build_zig_build_text()
     assert_equal(
-        "build_text_runner_fixture_paths_and_normalization",
-        'root_module.addImport("hexdump", hexdump_module);' in build_text
+        "tool_env_build_text_runner_helper_fixture_paths_and_normalization",
+        require_tool("zig", "PHASE6_SELFTEST_TOOL") == "/tmp/zig-self-test"
+        and 'root_module.addImport("hexdump", hexdump_module);' in build_text
         and 'root_module.addImport("phase6_hexdump_vectors", fixtures_module);' in build_text
+        and str(HELPER_SOURCE) in build_text
         and str(FIXTURE_SOURCE) in build_text
         and str(ZIG_RUNNER) in build_text
         and len(EXPECTED_SORTED_LINES) == 29
@@ -229,6 +236,7 @@ def main() -> int:
     cc = require_tool("cc", "CC")
 
     validate_required_path(C_HARNESS, "harness")
+    validate_required_path(HELPER_SOURCE, "helper source")
     validate_required_path(FIXTURE_SOURCE, "fixture source")
     validate_required_path(ZIG_RUNNER, "runner")
 
