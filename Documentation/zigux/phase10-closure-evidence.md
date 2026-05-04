@@ -74,7 +74,7 @@ The current bounded Phase 10 evidence set is:
 
 The shared closure manifest now carries explicit landed-helper evidence for the core config summaries plus the non-nestable driver-side config-toggle guard, the ring queue-discipline ladder through broken-queue recovery, the input capability-setup, multitouch-slot, teardown-observation, and preflight ladder through probe preflight, and the MMIO helper ladder through bounded interrupt acknowledgement. The shared closure guards therefore keep the current ring, input, and MMIO helper ladders explicit instead of letting the shared packet stop one rung earlier than the live survey manifests.
 
-The same closure packet now also keeps the already-landed focused harness coverage explicit: the ring drained-reset reuse replay, the multitouch-ready input preflight replay, and the MMIO multi-queue isolation replay are part of the Phase 10 evidence set rather than being left visible only from `zigux/tests/phase10_build.zig`, and the dedicated `scripts/zigux/check-phase10-harness-coverage.py` replay is now part of the exact closure contract instead of only indirect supporting evidence.
+The same closure packet now also keeps the already-landed focused harness coverage explicit: the ring drained-reset reuse replay, the multitouch-ready input preflight replay, and the MMIO multi-queue isolation replay, including the reset-clears-legacy-and-modern queue-address-plan pass after queue selection changes, are part of the Phase 10 evidence set rather than being left visible only from `zigux/tests/phase10_build.zig`, and the dedicated `scripts/zigux/check-phase10-harness-coverage.py` replay is now part of the exact closure contract instead of only indirect supporting evidence.
 
 ## Survey Provenance
 
