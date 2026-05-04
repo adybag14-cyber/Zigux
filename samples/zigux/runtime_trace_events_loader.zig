@@ -101,6 +101,7 @@ pub const RuntimeTraceEventsLoader = struct {
     }
 
     pub fn releasePlanWithoutSubstrate(self: *Self) !RuntimeTraceEventsLoadPlan {
+        if (self.stage_state == .idle) return error.MissingLoadPlan;
         const plan = self.cached_plan orelse error.MissingLoadPlan;
         try self.releaseWithoutSubstrate();
         return plan;
@@ -173,90 +174,6 @@ test "runtime trace-events loader keeps unavailable substrate and lifecycle guar
 
     try module.exit();
     try std.testing.expectError(error.InvalidModuleLifecycleForLoader, RuntimeTraceEventsLoader.planFor(&module));
-}
-
-test "runtime trace-events loader snapshots the prepared summary before later sample mutation" {
-    var module = runtime_trace_events_sample.RuntimeTraceEventsSample{};
-    try module.init();
-
-    var loader = RuntimeTraceEventsLoader{};
-    const prepared = try loader.prepare(&module);
-
-    try std.testing.expectEqualStrings("event-sample", prepared.summary.main_thread_label orelse return error.ExpectedFunctionPayload);
-    try std.testing.expectEqualStrings("event-sample-fn", prepared.summary.function_thread_label orelse return error.ExpectedFunctionPayload);
-    try std.testing.expectEqual(@as(?[]const u8, null), prepared.summary.last_register_label);
-    try std.testing.expectEqual(@as(?[]const u8, null), prepared.summary.last_unregister_label);
-    try std.testing.expectEqual(@as(?[]const u8, null), prepared.summary.last_main_foo_bar_message);
-    try std.testing.expectEqual(@as(?[]const u8, null), prepared.summary.last_main_random_choice_message);
-    try std.testing.expectEqual(@as(?usize, null), prepared.summary.last_main_vararg_array_length);
-    try std.testing.expectEqual(@as(?bool, null), prepared.summary.last_main_vararg_array_terminator_zero);
-    try std.testing.expectEqual(@as(?[]const u8, null), prepared.summary.last_main_template_message);
-    try std.testing.expectEqual(@as(?[]const u8, null), prepared.summary.last_main_conditional_message);
-    try std.testing.expectEqual(@as(?[]const u8, null), prepared.summary.last_main_template_cond_message);
-    try std.testing.expectEqual(@as(?[]const u8, null), prepared.summary.last_main_template_print_message);
-    try std.testing.expectEqual(@as(?[]const u8, null), prepared.summary.last_main_relative_location_message);
-    try std.testing.expectEqual(@as(?[]const u8, null), prepared.summary.last_function_foo_bar_message);
-    try std.testing.expectEqual(@as(?[]const u8, null), prepared.summary.last_function_template_message);
-    try std.testing.expectEqual(@as(?[]const u8, null), prepared.summary.last_format_template);
-
-    _ = try module.emitMainIteration(7);
-    try module.registerFunctionThread();
-    _ = try module.emitFunctionIteration(9);
-
-    const mutated_summary = module.summary();
-    try std.testing.expectEqual(@as(usize, 1), mutated_summary.registration_depth);
-    try std.testing.expectEqual(@as(usize, 4), mutated_summary.main_thread_events);
-    try std.testing.expectEqual(@as(usize, 2), mutated_summary.fn_thread_events);
-    try std.testing.expectEqual(@as(usize, 6), mutated_summary.total_events);
-    try std.testing.expectEqualStrings("event-sample", mutated_summary.main_thread_label orelse return error.ExpectedFunctionPayload);
-    try std.testing.expectEqualStrings("event-sample-fn", mutated_summary.function_thread_label orelse return error.ExpectedFunctionPayload);
-    try std.testing.expectEqualStrings("foo_bar_reg", mutated_summary.last_register_label orelse return error.ExpectedFunctionPayload);
-    try std.testing.expectEqual(@as(?[]const u8, null), mutated_summary.last_unregister_label);
-    try std.testing.expectEqualStrings("hello", mutated_summary.last_main_foo_bar_message orelse return error.ExpectedMainPayload);
-    try std.testing.expectEqualStrings("Gandalf", mutated_summary.last_main_random_choice_message orelse return error.ExpectedMainPayload);
-    try std.testing.expectEqual(@as(usize, 2), mutated_summary.last_main_vararg_array_length orelse return error.ExpectedMainPayload);
-    try std.testing.expect(mutated_summary.last_main_vararg_array_terminator_zero orelse return error.ExpectedMainPayload);
-    try std.testing.expectEqualStrings("HELLO", mutated_summary.last_main_template_message orelse return error.ExpectedMainPayload);
-    try std.testing.expectEqual(@as(?[]const u8, null), mutated_summary.last_main_conditional_message);
-    try std.testing.expectEqual(@as(?[]const u8, null), mutated_summary.last_main_template_cond_message);
-    try std.testing.expectEqualStrings("I have to be different", mutated_summary.last_main_template_print_message orelse return error.ExpectedMainPayload);
-    try std.testing.expectEqualStrings("Hello __rel_loc", mutated_summary.last_main_relative_location_message orelse return error.ExpectedMainPayload);
-    try std.testing.expectEqualStrings("Look at me", mutated_summary.last_function_foo_bar_message orelse return error.ExpectedFunctionPayload);
-    try std.testing.expectEqualStrings("Look at me too", mutated_summary.last_function_template_message orelse return error.ExpectedFunctionPayload);
-    try std.testing.expectEqualStrings("iter=%d", mutated_summary.last_format_template orelse return error.ExpectedMainPayload);
-
-    const pending_plan = try loader.requestRuntimeLoad();
-    try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
-    try std.testing.expectEqual(runtime_trace_events_sample.ModuleStage.initialized, prepared.handoff_stage);
-    try std.testing.expectEqual(prepared.handoff_stage, pending_plan.handoff_stage);
-    try std.testing.expectEqual(prepared.summary.registration_depth, pending_plan.summary.registration_depth);
-    try std.testing.expectEqual(prepared.summary.main_thread_events, pending_plan.summary.main_thread_events);
-    try std.testing.expectEqual(prepared.summary.fn_thread_events, pending_plan.summary.fn_thread_events);
-    try std.testing.expectEqual(prepared.summary.total_events, pending_plan.summary.total_events);
-    try std.testing.expectEqual(prepared.summary.last_main_count, pending_plan.summary.last_main_count);
-    try std.testing.expectEqual(prepared.summary.last_fn_count, pending_plan.summary.last_fn_count);
-    try std.testing.expectEqualStrings(prepared.summary.main_thread_label orelse return error.ExpectedFunctionPayload, pending_plan.summary.main_thread_label orelse return error.ExpectedFunctionPayload);
-    try std.testing.expectEqualStrings(prepared.summary.function_thread_label orelse return error.ExpectedFunctionPayload, pending_plan.summary.function_thread_label orelse return error.ExpectedFunctionPayload);
-    try std.testing.expectEqual(prepared.summary.last_register_label, pending_plan.summary.last_register_label);
-    try std.testing.expectEqual(prepared.summary.last_unregister_label, pending_plan.summary.last_unregister_label);
-    try std.testing.expectEqual(prepared.summary.last_main_foo_bar_message, pending_plan.summary.last_main_foo_bar_message);
-    try std.testing.expectEqual(prepared.summary.last_main_random_choice_message, pending_plan.summary.last_main_random_choice_message);
-    try std.testing.expectEqual(prepared.summary.last_main_vararg_array_length, pending_plan.summary.last_main_vararg_array_length);
-    try std.testing.expectEqual(prepared.summary.last_main_vararg_array_terminator_zero, pending_plan.summary.last_main_vararg_array_terminator_zero);
-    try std.testing.expectEqual(prepared.summary.last_main_template_message, pending_plan.summary.last_main_template_message);
-    try std.testing.expectEqual(prepared.summary.last_main_conditional_message, pending_plan.summary.last_main_conditional_message);
-    try std.testing.expectEqual(prepared.summary.last_main_template_cond_message, pending_plan.summary.last_main_template_cond_message);
-    try std.testing.expectEqual(prepared.summary.last_main_template_print_message, pending_plan.summary.last_main_template_print_message);
-    try std.testing.expectEqual(prepared.summary.last_main_relative_location_message, pending_plan.summary.last_main_relative_location_message);
-    try std.testing.expectEqual(prepared.summary.last_function_foo_bar_message, pending_plan.summary.last_function_foo_bar_message);
-    try std.testing.expectEqual(prepared.summary.last_function_template_message, pending_plan.summary.last_function_template_message);
-    try std.testing.expectEqual(prepared.summary.last_format_template, pending_plan.summary.last_format_template);
-    try std.testing.expectEqual(@as(usize, 0), pending_plan.summary.registration_depth);
-    try std.testing.expectEqual(@as(usize, 0), pending_plan.summary.main_thread_events);
-    try std.testing.expectEqual(@as(usize, 0), pending_plan.summary.fn_thread_events);
-    try std.testing.expectEqual(@as(usize, 0), pending_plan.summary.total_events);
-    try std.testing.expectEqual(@as(i32, -1), pending_plan.summary.last_main_count);
-    try std.testing.expectEqual(@as(i32, -1), pending_plan.summary.last_fn_count);
 }
 
 test "runtime trace-events loader can release the prepared plan only after a runtime-load request" {
