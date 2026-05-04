@@ -422,6 +422,9 @@ def run_self_test() -> int:
             ("Documentation/zigux/phase5-kfifo-sample-survey.md", MANIFEST_EXPECTATIONS["zigux/tests/phase5_bytestream_fifo_manifest.json"]["survey_summary"], "Build Summary: 17/17 steps succeeded; 99/99 tests passed", "zigux/tests/phase5_bytestream_fifo_manifest.json:survey_note:Build Summary: 17/17 steps succeeded; 99/99 tests passed", "survey-summary-gap"),
             ("samples/zigux/README.md", "current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample", "current `master` keeps cmdline helper work separate", "samples/zigux/README.md:missing:current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample", "sample-root-cmdline-boundary-gap"),
             ("samples/zigux/README.md", "current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sample", "current `master` keeps rbtree helper work separate", "samples/zigux/README.md:missing:current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sample", "sample-root-rbtree-boundary-gap"),
+            ("Documentation/zigux/README.md", "no-`samples/zigux/*rbtree*` boundary explicit", "rbtree helper boundary tracked elsewhere", "Documentation/zigux/README.md:missing:no-`samples/zigux/*rbtree*` boundary explicit", "docs-readme-rbtree-boundary-gap"),
+            ("Documentation/zigux/review-checklist.md", "ships no `samples/zigux/*rbtree*` Phase 5 reference sample", "treat rbtree as a separate helper packet", "Documentation/zigux/review-checklist.md:missing:ships no `samples/zigux/*rbtree*` Phase 5 reference sample", "review-checklist-rbtree-boundary-gap"),
+            ("zigux/tests/README.md", "verify no Phase 5 rbtree sample has appeared under this sample root:", "phase5 rbtree sample boundary is recorded elsewhere", "zigux/tests/README.md:missing:verify no Phase 5 rbtree sample has appeared under this sample root:", "tests-readme-rbtree-boundary-gap"),
             ("Documentation/zigux/review-checklist.md", "runtime-substrate handoff still blocked", "runtime-substrate handoff now cleared", "Documentation/zigux/review-checklist.md:missing:runtime-substrate handoff still blocked", "review-checklist-runtime-handoff-gap"),
             ("Documentation/zigux/README.md", "zig test zigux/tests/phase5_trace_events_sample_survey.zig", "zig test zigux/tests/phase5_trace_events_review.zig", "Documentation/zigux/README.md:missing:zig test zigux/tests/phase5_trace_events_sample_survey.zig", "docs-readme-survey-replay-gap"),
             ("scripts/zigux/README.md", "zig test samples/zigux/kobject_example.zig", "zig test samples/zigux/kobject_review.zig", "scripts/zigux/README.md:missing:zig test samples/zigux/kobject_example.zig", "scripts-readme-direct-replay-gap"),
@@ -440,7 +443,7 @@ def run_self_test() -> int:
                 return 1
 
     print("PHASE5_VALIDATOR_SELF_TEST=pass")
-    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=13")
+    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
