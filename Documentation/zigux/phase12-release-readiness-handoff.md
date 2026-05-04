@@ -25,11 +25,21 @@ Those live surfaces are:
 - `scripts/zigux/check-phase12-release-readiness-packet.py`
 - `scripts/zigux/README.md`
 
-## Remaining shared-validator gap
+## Remaining tests-root and shared-validator gaps
 
-The shared validator still does not fail closed on the full release-readiness packet.
+The tests root and the shared validator still leave part of the release-readiness packet easier to drift than the surrounding PMO notes.
 
-The next validator promotion must make `scripts/zigux/validate-phase12.py` require all of the following release-facing markers together instead of leaving them easier to drift than the surrounding driver and fallback packet:
+The next release-facing follow-through must make `zigux/tests/README.md` explicitly name all of the following packet surfaces together instead of leaving the compact owner-split and fallback view split between docs-root and tests-root summaries:
+
+- `Documentation/zigux/phase12-release-coordination-matrix.md`
+- `Documentation/zigux/phase12-release-sequencing.md`
+- `Documentation/zigux/phase12-release-readiness-handoff.md`
+- `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`
+- `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`
+- the existing `zigux/tests/phase12_raw_github_coverage_manifest.json` and `zigux/tests/phase12_raw_github_coverage_survey.zig` pair
+- the existing `make -C zigux phase12-validate` release gate
+
+After that tests-root release-packet follow-through lands, the next shared-validator promotion must still make `scripts/zigux/validate-phase12.py` require all of the following release-facing markers together instead of leaving them easier to drift than the surrounding driver and fallback packet:
 
 - `scripts/zigux/check-phase12-release-readiness-packet.py`
 - `Documentation/zigux/phase12-release-readiness-survey.md`
@@ -39,27 +49,29 @@ The next validator promotion must make `scripts/zigux/validate-phase12.py` requi
 
 ## Release sequencing rule
 
-Until that shared-validator promotion lands, treat the current Phase 12 PMO packet as active release coordination evidence, not tranche closure.
+Until those tests-root and shared-validator follow-through steps land, treat the current Phase 12 PMO packet as active release coordination evidence, not tranche closure.
 
 Use this order when reopening the packet:
 
-1. materialize the exact current `scripts/zigux/validate-phase12.py` blob in a writable local staging path
-2. run the saved Phase 12 release-readiness bridge against that exact blob only
-3. rerun `python3 scripts/zigux/validate-phase12.py --self-test`
-4. rerun `python3 scripts/zigux/validate-phase12.py`
-5. rerun `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`
-6. rerun `python3 scripts/zigux/check-phase12-release-readiness-packet.py`
-7. rerun `make -C zigux phase12-validate`
-8. confirm readback shows each release-readiness insertion exactly once
+1. materialize the exact current `zigux/tests/README.md` and `scripts/zigux/validate-phase12.py` blobs in a writable local staging path
+2. land the bounded tests-root PMO guidance update first so the compact release matrix and fallback packet become explicit from the tests root too
+3. run the saved Phase 12 release-readiness bridge against the exact current `scripts/zigux/validate-phase12.py` blob only
+4. rerun `python3 scripts/zigux/validate-phase12.py --self-test`
+5. rerun `python3 scripts/zigux/validate-phase12.py`
+6. rerun `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`
+7. rerun `python3 scripts/zigux/check-phase12-release-readiness-packet.py`
+8. rerun `make -C zigux phase12-validate`
+9. confirm readback shows each tests-root and release-readiness insertion exactly once
 
 ## Closure guard
 
 Do not call Phase 12 release-ready or release-closed while any of the following remain true:
 
+- the tests root does not yet name the compact coordination matrix, sequencing note, handoff note, and paired commit-pinned fallback artifacts together
 - the shared validator does not require the release-readiness survey and checker together
 - the active-not-closed posture is only documented in PMO notes and not enforced by the shared validator
 - the current two commit-pinned versus two shared-tree-only fallback split could drift without failing `scripts/zigux/validate-phase12.py`
 
 ## Next bounded step
 
-The next honest PMO step is still the shared-validator promotion for `scripts/zigux/validate-phase12.py`, using the current live blob `d9a1f229ff22545a3b10bc86eb4c97b2d53764d8` and the saved release-readiness bridge bundle, then confirming the release-facing markers each land exactly once on readback.
+The next honest PMO step is the tests-root Phase 12 release-packet follow-through in `zigux/tests/README.md`, explicitly naming the coordination matrix, sequencing note, handoff note, and paired fallback artifacts alongside the existing raw-coverage manifest pair and validate-before-replay route. After that lands, return to the shared-validator promotion for the current live `scripts/zigux/validate-phase12.py` blob `d9a1f229ff22545a3b10bc86eb4c97b2d53764d8` and confirm the release-facing markers each land exactly once on readback.
