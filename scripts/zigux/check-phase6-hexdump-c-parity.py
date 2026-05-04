@@ -181,13 +181,23 @@ def run_self_test() -> int:
         and sorted_lines("hexToBin\tA\t10\ndump\tplain\t3\tabc\n") == ["dump\tplain\t3\tabc", "hexToBin\tA\t10"],
         True,
     )
-    validate_expected_surface(EXPECTED_SORTED_LINES, "self-test-positive")
     unexpected_lines = EXPECTED_SORTED_LINES + ["unexpected-extra\tbogus\t0\t"]
     expect_system_exit(
         "unexpected_case",
         lambda: validate_expected_surface(unexpected_lines, "self-test-unexpected-case"),
         "phase6-hexdump-c-parity:self-test-unexpected-case:unexpected_output:"
         f"expected={EXPECTED_SORTED_LINES!r}:actual={unexpected_lines!r}",
+    )
+    missing_plain_dump_case = [
+        line
+        for line in EXPECTED_SORTED_LINES
+        if line != "dump\tplain rowsize-16 group-8\t33\tb293180a7bdb32be 9b34837d24c4ba70"
+    ]
+    expect_system_exit(
+        "missing_case",
+        lambda: validate_expected_surface(missing_plain_dump_case, "self-test-missing-case"),
+        "phase6-hexdump-c-parity:self-test-missing-case:unexpected_output:"
+        f"expected={EXPECTED_SORTED_LINES!r}:actual={missing_plain_dump_case!r}",
     )
     expect_system_exit(
         "mismatch_surface",
