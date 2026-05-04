@@ -117,8 +117,12 @@ The minimum agreement surface for that kind of change is:
 - `scripts/zigux/check-phase12-release-readiness-packet.py`
 - `zigux/tests/phase12_build.zig`
 - `zigux/tests/phase12_libbpf_only_build.zig`
-- `zigux/tests/fixtures/phase12_build_inventory.json`
 - `zigux/tests/phase12_libbpf_manifest.json`
+- `zigux/tests/phase12_libbpf_segments.zig`
+- `zigux/tests/phase12_libbpf_reviewability.zig`
+- `zigux/tests/fixtures/phase12_build_inventory.json`
+- `zigux/tests/fixtures/phase12_libbpf_snapshot.json`
+- `tools/lib/bpf/zigux_segments/manifest.json`
 - `Documentation/zigux/phase12-release-readiness-survey.md`
 - `Documentation/zigux/phase12-cross-compile-smoke.md`
 - `Documentation/zigux/phase12-raw-github-coverage-survey.md`
