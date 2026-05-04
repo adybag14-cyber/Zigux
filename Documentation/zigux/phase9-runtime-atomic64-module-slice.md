@@ -60,4 +60,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Stay in the Phase 9 runtime atomic64 lane and keep future work narrowly aimed at the remaining runtime substrate handoff or lifecycle-parity blocker, rather than reopening already-landed starter, loader-request, prepared-summary, or differential scaffolds.
+Stay in the Phase 9 runtime atomic64 lane and keep future work narrowly aimed at the remaining runtime substrate handoff or broader shared loader-control blocker, rather than reopening already-landed starter, loader-request, or differential scaffolds.
