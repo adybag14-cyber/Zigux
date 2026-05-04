@@ -13,6 +13,7 @@ This bounded Phase 10 slice adds the first Zigux `virtio_input` lab driver start
   - `zigux/tests/phase10_virtio_input.zig`
   - `zigux/tests/phase10_virtio_input_multitouch_preflight.zig`
   - `zigux/tests/phase10_virtio_input_registration_blocker.zig`
+  - `zigux/tests/phase10_virtio_input_registration_blocker_build.zig`
   - `scripts/zigux/validate-phase10.py`
   - `scripts/zigux/check-phase10-harness-coverage.py`
   - `zigux/tests/phase10_build.zig`
@@ -69,7 +70,7 @@ This slice does not yet claim:
 - `make -C zigux phase10`
 
 5. run the dedicated registration blocker replay
-- `zig test zigux/tests/phase10_virtio_input_registration_blocker.zig`
+- `zig build test --build-file zigux/tests/phase10_virtio_input_registration_blocker_build.zig --summary all`
 
 ## Next bounded step
 
