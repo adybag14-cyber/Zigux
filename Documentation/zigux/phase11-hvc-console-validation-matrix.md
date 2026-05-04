@@ -5,7 +5,7 @@ This document records the bounded kernel-integration validation matrix for the Z
 ## Status
 
 - `PHASE11_HVC_CONSOLE_STATUS=cleanup_handoff_landed`
-- surveyed packet provenance on `master` before this synchronization pass: `0bd402fd6ca83ba2ace6b21e9e57459401b631cd`
+- surveyed packet provenance on `master` before this synchronization pass: `02264a3240cd30ce45c9a932047a0204b7ab5029`
 - this reviewed-head refresh is provenance-only: the bounded teardown ownership, khvcd handoff, sysrq, and replay surfaces listed below are unchanged on current `master`, so the lane remains parked after syncing the recorded head
 - scope: keep the current `hvc_console` starter honest about what is already validated, name the next kernel-facing checkpoints, and avoid overclaiming tty or hypervisor integration before those behaviors exist in Zigux
 - current repo reality:
