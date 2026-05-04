@@ -518,7 +518,7 @@ def write_fixture_tree(root: Path) -> None:
         "pub const runtime_loader_placeholder = true;\n",
         encoding="utf-8",
     )
-    (root / ALLOCATOR_POLICY_PATH).writeText(
+    (root / ALLOCATOR_POLICY_PATH).write_text(
         "pub const allocator_policy_placeholder = true;\n",
         encoding="utf-8",
     )
