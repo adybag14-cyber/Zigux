@@ -93,6 +93,10 @@ EXPECTED_FOCUSED_HARNESS = {
         "phase10 mmio reset clears legacy and modern queue address plans after queue selection changes",
     ],
 }
+EXPECTED_READY_TRANSPORT_FOLLOWUPS = {
+    "zigux/tests/phase10_virtio_input_manifest.json": "phase10-virtio-input-registration-lifecycle",
+    "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-lifecycle-and-irq-paths",
+}
 REQUIRED_LAB_VALIDATION_EVIDENCE = [
     "zigux/tests/phase10_build.zig",
     "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
@@ -310,6 +314,8 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         missing.append("closure_manifest:landed_mmio_helper_evidence")
     if closure.get("focused_harness_replays") != EXPECTED_FOCUSED_HARNESS:
         missing.append("closure_manifest:focused_harness_replays")
+    if closure.get("ready_transport_followups") != EXPECTED_READY_TRANSPORT_FOLLOWUPS:
+        missing.append("closure_manifest:ready_transport_followups")
 
     blocked = closure.get("blocked_transport_gaps")
     if not isinstance(blocked, dict) or blocked.get("zigux/tests/phase10_virtio_mmio_manifest.json") != "phase10-mmio-lifecycle-and-irq-paths":
@@ -380,6 +386,7 @@ def write_fixture(root: Path) -> None:
                 "evidence": REQUIRED_LAB_VALIDATION_EVIDENCE,
             }
         },
+        "ready_transport_followups": EXPECTED_READY_TRANSPORT_FOLLOWUPS,
         "landed_input_helper_evidence": {"zigux/tests/phase10_virtio_input_manifest.json": EXPECTED_LANDED_INPUT_HELPERS},
         "landed_mmio_helper_evidence": {"zigux/tests/phase10_virtio_mmio_manifest.json": EXPECTED_LANDED_MMIO_HELPERS},
         "focused_harness_replays": EXPECTED_FOCUSED_HARNESS,
@@ -428,6 +435,20 @@ def run_self_test() -> int:
             root,
             "closure_manifest:roadmap_parity_scoreboard:lab_only_driver_validation:evidence:zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
         )
+        write_fixture(root)
+
+        manifest = json.loads(closure_manifest_path.read_text(encoding="utf-8"))
+        manifest["ready_transport_followups"] = {
+            "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-lifecycle-and-irq-paths"
+        }
+        closure_manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_marker("ready_followups_missing_input_guard", root, "closure_manifest:ready_transport_followups")
+        write_fixture(root)
+
+        manifest = json.loads(closure_manifest_path.read_text(encoding="utf-8"))
+        manifest["ready_transport_followups"]["zigux/tests/phase10_virtio_mmio_manifest.json"] = "phase10-mmio-config-write-helper"
+        closure_manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_marker("ready_followups_mmio_drift_guard", root, "closure_manifest:ready_transport_followups")
         write_fixture(root)
 
         manifest = json.loads(closure_manifest_path.read_text(encoding="utf-8"))
@@ -486,7 +507,7 @@ def run_self_test() -> int:
             raise SystemExit(f"phase10-closure-self-test:file_guard:actual_files={files}:markers={markers}")
 
     print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=10")
+    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
