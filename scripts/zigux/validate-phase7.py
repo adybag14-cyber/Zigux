@@ -174,10 +174,14 @@ required_doc_readme_markers = [
     "`python3 scripts/zigux/check-phase7-build-inventory.py`",
     "`python3 scripts/zigux/check-phase7-make-wrapper.py --self-test`",
     "`python3 scripts/zigux/check-phase7-make-wrapper.py`",
+    "`python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test`",
+    "`python3 scripts/zigux/check-phase7-cmdline-parity.py`",
     "`python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test`",
     "`python3 scripts/zigux/check-phase7-argv-split-packet.py`",
     "`python3 scripts/zigux/check-phase7-argv-split-parity.py --self-test`",
     "`python3 scripts/zigux/check-phase7-argv-split-parity.py`",
+    "`python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test`",
+    "`python3 scripts/zigux/check-phase7-rbtree-parity.py`",
     "`make -C zigux phase7-validate`",
     "`make -C zigux phase7-test`",
     "`make -C zigux phase7`",
@@ -489,6 +493,67 @@ def run_self_test() -> int:
 
         doc_readme_path.write_text(
             original_doc_readme.replace(
+                "`python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test`",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "cmdline_parity_doc_readme_self_test_marker",
+            tmp_root,
+            "Documentation/zigux/README.md: `python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test`",
+        )
+        doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
+
+        doc_readme_path.write_text(
+            original_doc_readme.replace(
+                "`python3 scripts/zigux/check-phase7-cmdline-parity.py`",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "cmdline_parity_doc_readme_marker",
+            tmp_root,
+            "Documentation/zigux/README.md: `python3 scripts/zigux/check-phase7-cmdline-parity.py`",
+        )
+        doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
+
+        doc_readme_path.write_text(
+            original_doc_readme.replace(
+                "`python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test`",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "rbtree_parity_doc_readme_self_test_marker",
+            tmp_root,
+            "Documentation/zigux/README.md: `python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test`",
+        )
+        doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
+
+        doc_readme_path.write_text(
+            original_doc_readme.replace(
+                "`python3 scripts/zigux/check-phase7-rbtree-parity.py`",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "rbtree_parity_doc_readme_marker",
+            tmp_root,
+            "Documentation/zigux/README.md: `python3 scripts/zigux/check-phase7-rbtree-parity.py`",
+        )
+        doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
+
+        doc_readme_path.writeText if False else None
+        doc_readme_path.write_text(
+            original_doc_readme.replace(
                 "`python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test`",
                 "`python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test`, `python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test`",
                 1,
@@ -744,7 +809,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=29")
+    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=33")
     return 0
 
 def main() -> int:
