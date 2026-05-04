@@ -86,7 +86,7 @@
     {
       "id": "preview-truncation",
       "kind": "helper_contract",
-      "expected": "after the wraparound replay setup, snapshotInto() truncates to the destination length and previewInto() surfaces that same bounded preview, so a length-8 preview yields exactly [2,3,4,5,6,7,8,9] while leaving the queue length at 10"
+      "expected": "after the wraparound replay setup, snapshotInto() truncates to the destination length and previewInto() surfaces that same bounded preview, reports total_visible as 10 for the wrapped queue and 32 for a full-capacity queue while an empty preview reports 0, so a length-8 preview yields exactly [2,3,4,5,6,7,8,9] while leaving the queue length at 10"
     },
     {
       "id": "queue-only-reset",
