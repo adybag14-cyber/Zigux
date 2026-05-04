@@ -105,30 +105,64 @@ SHARED_CONTRACT_PREFIX_SNIPPETS = (
     "PHASE3_RBTREE_SHARED_SAMPLE_RECORDS=empty-root,cached-leftmost-root,uncached-root",
 )
 
-SHARED_CONTRACT_CACHED_DETAIL_SNIPPETS = (
+SHARED_RECORD_EMPTY_DETAIL_SNIPPETS = (
+    "try std.testing.expectEqual(@as(usize, 0), empty_root.root_addr);",
+    "try std.testing.expectEqual(@as(usize, 0), empty_root.leftmost_addr);",
+    "try std.testing.expectEqual(@as(u32, rbtree.ROOT_FLAG_EMPTY), empty_root.flags);",
+    "try std.testing.expectEqual(@as(u32, 0), empty_root.reserved);",
+)
+
+SHARED_RECORD_EMPTY_PRESENCE_SNIPPETS = (
+    "try std.testing.expect(rbtree.isValid(empty_root));",
+    "try std.testing.expect(rbtree.isEmpty(empty_root));",
+    "try std.testing.expect(!rbtree.isCached(empty_root));",
+    "try std.testing.expect(!rbtree.hasLeftmost(empty_root));",
+    "try std.testing.expect(rbtree.isCanonical(empty_root));",
+)
+
+SHARED_RECORD_CACHED_DETAIL_SNIPPETS = (
     "try std.testing.expectEqual(@as(usize, 0x2000), cached_root.root_addr);",
     "try std.testing.expectEqual(@as(usize, 0x1800), cached_root.leftmost_addr);",
     "try std.testing.expectEqual(@as(u32, rbtree.ROOT_FLAG_CACHED | rbtree.ROOT_FLAG_LEFTMOST_VALID), cached_root.flags);",
     "try std.testing.expectEqual(@as(u32, 0), cached_root.reserved);",
 )
 
-SHARED_CONTRACT_UNCACHED_DETAIL_SNIPPETS = (
+SHARED_RECORD_CACHED_PRESENCE_SNIPPETS = (
+    "try std.testing.expect(rbtree.isValid(cached_root));",
+    "try std.testing.expect(!rbtree.isEmpty(cached_root));",
+    "try std.testing.expect(rbtree.isCached(cached_root));",
+    "try std.testing.expect(rbtree.hasLeftmost(cached_root));",
+    "try std.testing.expect(rbtree.isCanonical(cached_root));",
+)
+
+SHARED_RECORD_UNCACHED_DETAIL_SNIPPETS = (
     "try std.testing.expectEqual(@as(usize, 0x2400), uncached_root.root_addr);",
     "try std.testing.expectEqual(@as(usize, 0), uncached_root.leftmost_addr);",
     "try std.testing.expectEqual(@as(u32, 0), uncached_root.flags);",
     "try std.testing.expectEqual(@as(u32, 0), uncached_root.reserved);",
 )
 
+SHARED_RECORD_UNCACHED_PRESENCE_SNIPPETS = (
+    "try std.testing.expect(rbtree.isValid(uncached_root));",
+    "try std.testing.expect(!rbtree.isEmpty(uncached_root));",
+    "try std.testing.expect(!rbtree.isCached(uncached_root));",
+    "try std.testing.expect(!rbtree.hasLeftmost(uncached_root));",
+    "try std.testing.expect(rbtree.isCanonical(uncached_root));",
+)
+
 SHARED_CONTRACT_SNIPPETS = (
     *SHARED_CONTRACT_PREFIX_SNIPPETS,
     PHASE3_SHARED_RBTREE_RECORD_MARKERS[0],
-    "try std.testing.expect(rbtree.isEmpty(empty_root));",
+    *SHARED_RECORD_EMPTY_DETAIL_SNIPPETS,
+    *SHARED_RECORD_EMPTY_PRESENCE_SNIPPETS,
     PHASE3_SHARED_RBTREE_RECORD_MARKERS[1],
     PHASE3_SHARED_RBTREE_RECORD_MARKERS[2],
-    *SHARED_CONTRACT_CACHED_DETAIL_SNIPPETS,
+    *SHARED_RECORD_CACHED_DETAIL_SNIPPETS,
+    *SHARED_RECORD_CACHED_PRESENCE_SNIPPETS,
     PHASE3_SHARED_RBTREE_RECORD_MARKERS[3],
     PHASE3_SHARED_RBTREE_RECORD_MARKERS[4],
-    *SHARED_CONTRACT_UNCACHED_DETAIL_SNIPPETS,
+    *SHARED_RECORD_UNCACHED_DETAIL_SNIPPETS,
+    *SHARED_RECORD_UNCACHED_PRESENCE_SNIPPETS,
     PHASE3_SHARED_RBTREE_RECORD_MARKERS[5],
 )
 
@@ -137,13 +171,10 @@ SHARED_ABI_TEST_PREFIX_SNIPPETS = (
     "layout_assert.assertRbtreeRootViewLayout();",
 )
 
-SHARED_ABI_TEST_CACHED_DETAIL_SNIPPETS = (
-    "try std.testing.expectEqual(@as(usize, 0x2000), cached_root.root_addr);",
-    "try std.testing.expectEqual(@as(usize, 0x1800), cached_root.leftmost_addr);",
-    "try std.testing.expectEqual(@as(u32, rbtree.ROOT_FLAG_CACHED | rbtree.ROOT_FLAG_LEFTMOST_VALID), cached_root.flags);",
-    "try std.testing.expectEqual(@as(u32, 0), cached_root.reserved);",
-)
-
+SHARED_ABI_TEST_EMPTY_DETAIL_SNIPPETS = SHARED_RECORD_EMPTY_DETAIL_SNIPPETS
+SHARED_ABI_TEST_EMPTY_PRESENCE_SNIPPETS = SHARED_RECORD_EMPTY_PRESENCE_SNIPPETS
+SHARED_ABI_TEST_CACHED_DETAIL_SNIPPETS = SHARED_RECORD_CACHED_DETAIL_SNIPPETS
+SHARED_ABI_TEST_CACHED_PRESENCE_SNIPPETS = SHARED_RECORD_CACHED_PRESENCE_SNIPPETS
 SHARED_ABI_TEST_UNCACHED_DETAIL_SNIPPETS = (
     "try std.testing.expectEqual(@as(usize, 0x2400), uncached_root.root_addr);",
     "try std.testing.expectEqual(@as(usize, 0), uncached_root.leftmost_addr);",
@@ -151,15 +182,21 @@ SHARED_ABI_TEST_UNCACHED_DETAIL_SNIPPETS = (
     "try std.testing.expectEqual(@as(u32, 0), uncached_root.reserved);",
 )
 
+SHARED_ABI_TEST_UNCACHED_PRESENCE_SNIPPETS = SHARED_RECORD_UNCACHED_PRESENCE_SNIPPETS
+
 SHARED_ABI_TEST_SNIPPETS = (
     *SHARED_ABI_TEST_PREFIX_SNIPPETS,
     PHASE3_SHARED_RBTREE_RECORD_MARKERS[0],
+    *SHARED_ABI_TEST_EMPTY_DETAIL_SNIPPETS,
+    *SHARED_ABI_TEST_EMPTY_PRESENCE_SNIPPETS,
     PHASE3_SHARED_RBTREE_RECORD_MARKERS[1],
     PHASE3_SHARED_RBTREE_RECORD_MARKERS[2],
     *SHARED_ABI_TEST_CACHED_DETAIL_SNIPPETS,
+    *SHARED_ABI_TEST_CACHED_PRESENCE_SNIPPETS,
     PHASE3_SHARED_RBTREE_RECORD_MARKERS[3],
     PHASE3_SHARED_RBTREE_RECORD_MARKERS[4],
     *SHARED_ABI_TEST_UNCACHED_DETAIL_SNIPPETS,
+    *SHARED_ABI_TEST_UNCACHED_PRESENCE_SNIPPETS,
     PHASE3_SHARED_RBTREE_RECORD_MARKERS[5],
 )
 
@@ -198,10 +235,26 @@ SHARED_ABI_FORBIDDEN = {
     ),
 }
 
-SHARED_CONTRACT_SELF_TEST_SNIPPETS = PHASE3_SHARED_RBTREE_RECORD_MARKERS
+SHARED_CONTRACT_SELF_TEST_SNIPPETS = (
+    *PHASE3_SHARED_RBTREE_RECORD_MARKERS,
+    *SHARED_RECORD_EMPTY_DETAIL_SNIPPETS,
+    *SHARED_RECORD_EMPTY_PRESENCE_SNIPPETS,
+    *SHARED_RECORD_CACHED_DETAIL_SNIPPETS,
+    *SHARED_RECORD_CACHED_PRESENCE_SNIPPETS,
+    *SHARED_RECORD_UNCACHED_DETAIL_SNIPPETS,
+    *SHARED_RECORD_UNCACHED_PRESENCE_SNIPPETS,
+)
 
 SHARED_PACKET_SELF_TEST_CASES = (
-    *((SHARED_ABI_TEST_REL, snippet) for snippet in PHASE3_SHARED_RBTREE_RECORD_MARKERS),
+    *((SHARED_ABI_TEST_REL, snippet) for snippet in (
+        *PHASE3_SHARED_RBTREE_RECORD_MARKERS,
+        *SHARED_ABI_TEST_EMPTY_DETAIL_SNIPPETS,
+        *SHARED_ABI_TEST_EMPTY_PRESENCE_SNIPPETS,
+        *SHARED_ABI_TEST_CACHED_DETAIL_SNIPPETS,
+        *SHARED_ABI_TEST_CACHED_PRESENCE_SNIPPETS,
+        *SHARED_ABI_TEST_UNCACHED_DETAIL_SNIPPETS,
+        *SHARED_ABI_TEST_UNCACHED_PRESENCE_SNIPPETS,
+    )),
     (SHARED_ABI_DUMP_REL, SHARED_PACKET_SNIPPETS[SHARED_ABI_DUMP_REL][2]),
     (SHARED_ABI_DUMP_REL, SHARED_PACKET_SNIPPETS[SHARED_ABI_DUMP_REL][3]),
     (SHARED_ABI_DUMP_REL, SHARED_PACKET_SNIPPETS[SHARED_ABI_DUMP_REL][4]),
@@ -409,8 +462,9 @@ def run_self_test() -> int:
         issues = validate(root)
         assert f"missing_manifest_entry:{SHARED_CONTRACT_CHECK_REL}" in issues
 
+    self_test_case_count = 1 + len(SHARED_CONTRACT_SELF_TEST_SNIPPETS) + len(SHARED_PACKET_SELF_TEST_CASES) + 5
     print("PHASE3_RBTREE_SHARED_LIFT_CONTRACT_SELF_TEST=pass")
-    print("PHASE3_RBTREE_SHARED_LIFT_CONTRACT_SELF_TEST_CASE_COUNT=22")
+    print(f"PHASE3_RBTREE_SHARED_LIFT_CONTRACT_SELF_TEST_CASE_COUNT={self_test_case_count}")
     return 0
 
 
