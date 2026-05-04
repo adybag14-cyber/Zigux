@@ -15,6 +15,7 @@ test "phase12 virtio net syntax lab keeps bounded probe exports reachable" {
     _ = virtio_net.HeaderShape;
     _ = virtio_net.ReceiveBufferMode;
     _ = virtio_net.BigPacketReason;
+    _ = virtio_net.ReceiveQueueRefillPath;
     _ = virtio_net.HeaderScatterPolicy;
     _ = virtio_net.XdpConstraint;
     _ = virtio_net.ProbeRequest;
@@ -67,6 +68,10 @@ test "phase12 virtio net syntax lab keeps review enums stable" {
         virtio_net.BigPacketReason.guest_gso,
     );
     try std.testing.expectEqual(
+        virtio_net.ReceiveQueueRefillPath.recycled_room_reuse,
+        virtio_net.ReceiveQueueRefillPath.recycled_room_reuse,
+    );
+    try std.testing.expectEqual(
         virtio_net.HeaderScatterPolicy.separate_header_sg,
         virtio_net.HeaderScatterPolicy.separate_header_sg,
     );
@@ -104,6 +109,10 @@ test "phase12 virtio net syntax lab keeps alternate review variants reachable" {
     try std.testing.expectEqual(
         virtio_net.BigPacketReason.mtu_above_default,
         virtio_net.BigPacketReason.mtu_above_default,
+    );
+    try std.testing.expectEqual(
+        virtio_net.ReceiveQueueRefillPath.fresh_allocation,
+        virtio_net.ReceiveQueueRefillPath.fresh_allocation,
     );
     try std.testing.expectEqual(
         virtio_net.HeaderScatterPolicy.combined_header_and_data,
