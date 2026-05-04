@@ -245,8 +245,10 @@ MANIFEST_EXPECTATIONS = {
     },
 }
 
+
 def read_text(rel: str) -> str:
     return (ROOT / rel).read_text(encoding="utf-8")
+
 
 def fail(label: str, items: list[str]) -> int:
     print("PHASE1_VALIDATION=fail")
@@ -255,6 +257,7 @@ def fail(label: str, items: list[str]) -> int:
         print(item)
     print(f"{label}_END")
     return 1
+
 
 def validate_fixture_shape() -> list[str]:
     issues: list[str] = []
@@ -268,6 +271,7 @@ def validate_fixture_shape() -> list[str]:
         for key in missing:
             issues.append(f"fixture:{section}:{key}:missing")
     return issues
+
 
 def validate_manifest_shape() -> list[str]:
     issues: list[str] = []
@@ -292,6 +296,7 @@ def validate_manifest_shape() -> list[str]:
             if note.get(field) != expected:
                 issues.append(f"manifest:{helper}:{field}:mismatch")
     return issues
+
 
 def validate_markers() -> list[str]:
     issues: list[str] = []
@@ -331,6 +336,7 @@ def validate_markers() -> list[str]:
             issues.append(f"makefile_exact:{line}:expected_count={expected_count}:actual_count={actual_count}")
     return issues
 
+
 def main() -> int:
     missing_files = [rel for rel in REQUIRED_FILES if not (ROOT / rel).exists()]
     if missing_files:
@@ -346,12 +352,14 @@ def main() -> int:
         return fail("MISSING_PHASE1_MARKERS", marker_issues)
     print("PHASE1_VALIDATION=pass")
     print(f"PHASE1_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
-    print(f"PHASE1_REQUIRED_MARKER_COUNT={len(DOCS_ROOT_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(SCRIPTS_ROOT_MARKERS) + len(TESTS_ROOT_MARKERS) + len(PHASE1_CLOSURE_MARKERS) + len(WORKFLOW_LINES)}")
+    print(f"PHASE1_REQUIRED_MARKER_COUNT={len(DOCS_ROOT_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(SCRIPTS_ROOT_MARKERS) + len(TESTS_ROOT_MARKERS) + len(PHASE1_CLOSURE_MARKERS) + len(WORKFLOW_LINES) + len(MAKEFILE_LINES)}")
     return 0
+
 
 def write(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
+
 
 def expect_failure(root: Path, expected: str) -> None:
     env = dict(os.environ)
@@ -362,6 +370,7 @@ def expect_failure(root: Path, expected: str) -> None:
         raise SystemExit(f"phase1-self-test:expected_failure:{expected}")
     if expected not in output:
         raise SystemExit(f"phase1-self-test:missing_expected_output:expected={expected!r}:actual={output!r}")
+
 
 def self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="phase1-validator-") as tmp:
