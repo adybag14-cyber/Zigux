@@ -82,7 +82,7 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_ring_buffer_survey_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_ring_buffer_survey_note_present);
     try std.testing.expectEqual(@as(usize, 6), manifest.decision_checklist.len);
-    try std.testing.expectEqual(@as(usize, 20), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 21), manifest.gaps.len);
 
     var landed_count: usize = 0;
     var blocked_count: usize = 0;
@@ -100,6 +100,7 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
     var saw_tracing_disabled_recovery_followup = false;
     var saw_map_dup_unmap_lifetime_followup = false;
     var saw_cpu_hotplug_lifetime_followup = false;
+    var saw_reset_governance_followup = false;
     var saw_port_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -224,6 +225,17 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "CPUHP_TRACE_RB_PREPARE") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "buffer->cpumask") != null);
         }
+        if (std.mem.eql(u8, gap.id, "phase14-ring-buffer-reset-governance-followup")) {
+            saw_reset_governance_followup = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase14-ring-buffer-survey.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "ring_buffer_reset_cpu()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "ring_buffer_reset_online_cpus()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "ring_buffer_reset()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "trace_access_lock()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "current_tracer") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "trace") != null);
+        }
         if (std.mem.eql(u8, gap.id, "phase14-ring-buffer-zig-port-blocker")) {
             saw_port_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_stay_in_c_evidence", gap.status);
@@ -235,7 +247,7 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 19), landed_count);
+    try std.testing.expectEqual(@as(usize, 20), landed_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_boundary_checklist);
     try std.testing.expect(saw_remote_reader_metadata_followup);
@@ -251,6 +263,7 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
     try std.testing.expect(saw_tracing_disabled_recovery_followup);
     try std.testing.expect(saw_map_dup_unmap_lifetime_followup);
     try std.testing.expect(saw_cpu_hotplug_lifetime_followup);
+    try std.testing.expect(saw_reset_governance_followup);
     try std.testing.expect(saw_port_blocker);
 }
 
@@ -312,7 +325,7 @@ test "phase 14 ring-buffer survey exposes the landed stay-in-c checklist" {
     try std.testing.expect(std.mem.indexOf(u8, checklist[5].rationale, "resize_disabled") != null);
 }
 
-test "phase 14 ring-buffer survey note records the landed remote-reader, resize, recovery, and hotplug audits" {
+test "phase 14 ring-buffer survey note records the landed remote-reader, reset, recovery, and hotplug audits" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -355,6 +368,16 @@ test "phase 14 ring-buffer survey note records the landed remote-reader, resize,
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "cpuhp_setup_state_multi(CPUHP_TRACE_RB_PREPARE") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "buffer->cpumask") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "never freed when the CPU goes down") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Reset and clear-path governance audit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "ring_buffer_reset_cpu()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "ring_buffer_reset_online_cpus()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "ring_buffer_reset()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "struct ring_buffer_remote") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "trace_access_lock()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "O_TRUNC") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "current_tracer") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "buffer_subbuf_size_kb") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase14-ring-buffer-reset-governance-followup") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase14-ring-buffer-remote-reader-metadata-followup") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase14-ring-buffer-cpu-hotplug-lifetime-followup") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Attached toolchain fallback guidance") != null);
