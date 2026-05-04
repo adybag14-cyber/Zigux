@@ -93,12 +93,20 @@ fn rawConstPointerAt(comptime T: type, addr: usize) *const T {
     return @ptrFromInt(addr);
 }
 
+fn rawConstValueAt(comptime T: type, addr: usize) T {
+    return rawConstPointerAt(T, addr).*;
+}
+
 pub fn constSliceAt(comptime T: type, scope: UnsafeScopeTag, base: usize, len: usize) ScopeError![]const T {
     return scopedConstSliceAt(T, scope, base, len);
 }
 
 pub fn constPointerAt(comptime T: type, scope: UnsafeScopeTag, addr: usize) ScopeError!*const T {
     return scopedConstPointerAt(T, scope, addr);
+}
+
+pub fn constValueAt(comptime T: type, scope: UnsafeScopeTag, addr: usize) ScopeError!T {
+    return scopedConstValueAt(T, scope, addr);
 }
 
 pub fn scopedPointerAt(comptime T: type, scope: UnsafeScopeTag, base: usize, offset: usize) ScopeError!*volatile T {
@@ -121,6 +129,12 @@ pub fn scopedConstPointerAt(comptime T: type, scope: UnsafeScopeTag, addr: usize
     return rawConstPointerAt(T, addr);
 }
 
+pub fn scopedConstValueAt(comptime T: type, scope: UnsafeScopeTag, addr: usize) ScopeError!T {
+    if (!permitsRawPointerBridge(scope)) return error.UnsafeScopeDenied;
+    try ensureAddressAlignedFor(T, addr);
+    return rawConstValueAt(T, addr);
+}
+
 test "phase3 narrow unsafe wrappers stay bounded" {
     var value: u32 = 0;
     const base = addressOf(&value);
@@ -134,6 +148,7 @@ test "phase3 narrow unsafe wrappers stay bounded" {
 
     const const_ptr = try constPointerAt(u32, .raw_pointer_bridge, base);
     try std.testing.expectEqual(@as(u32, 11), const_ptr.*);
+    try std.testing.expectEqual(@as(u32, 11), try constValueAt(u32, .raw_pointer_bridge, base));
 }
 
 test "phase3 narrow unsafe scope stays explicit" {
@@ -161,6 +176,7 @@ test "phase3 narrow unsafe scoped helpers reject misaligned addresses" {
     try std.testing.expectError(error.MisalignedAccess, scopedPointerAt(u32, .volatile_mmio, base, 1));
     try std.testing.expectError(error.MisalignedAccess, scopedConstSliceAt(u32, .raw_pointer_bridge, base + 1, 1));
     try std.testing.expectError(error.MisalignedAccess, scopedConstPointerAt(u32, .raw_pointer_bridge, base + 1));
+    try std.testing.expectError(error.MisalignedAccess, scopedConstValueAt(u32, .raw_pointer_bridge, base + 1));
 }
 
 test "phase3 narrow unsafe scoped helpers reject overflowed address math" {
@@ -212,4 +228,11 @@ test "phase3 scoped unsafe helpers require the declared scope" {
     try std.testing.expectError(error.UnsafeScopeDenied, scopedConstPointerAt(u32, .volatile_mmio, base));
     const raw_ptr = try constPointerAt(u32, .raw_pointer_bridge, base);
     try std.testing.expectEqual(@as(u32, 17), raw_ptr.*);
+    try std.testing.expectError(error.UnsafeScopeDenied, constValueAt(u32, .volatile_mmio, base));
+    try std.testing.expectEqual(@as(u32, 17), try constValueAt(u32, .raw_pointer_bridge, base));
+
+    try std.testing.expectError(error.MisalignedAccess, scopedPointerAt(u32, .volatile_mmio, base, 1));
+    try std.testing.expectError(error.MisalignedAccess, scopedConstSliceAt(u32, .raw_pointer_bridge, base + 1, 1));
+    try std.testing.expectError(error.MisalignedAccess, scopedConstPointerAt(u32, .raw_pointer_bridge, base + 1));
+    try std.testing.expectError(error.MisalignedAccess, scopedConstValueAt(u32, .raw_pointer_bridge, base + 1));
 }
