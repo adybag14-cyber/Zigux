@@ -71,6 +71,7 @@
       "status": "blocked_on_risky_transport",
       "evidence": [
         "Documentation/zigux/phase10-closure-evidence.md",
+        "zigux/tests/phase10_virtio_core_manifest.json",
         "zigux/tests/phase10_virtio_ring_manifest.json",
         "zigux/tests/phase10_virtio_input_manifest.json",
         "zigux/tests/phase10_virtio_mmio_manifest.json"
@@ -179,6 +180,7 @@
     ]
   },
   "blocked_transport_gaps": {
+    "zigux/tests/phase10_virtio_core_manifest.json": "phase10-core-probe-remove-lifecycle",
     "zigux/tests/phase10_virtio_input_manifest.json": "phase10-virtio-input-registration-lifecycle",
     "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-lifecycle-and-irq-paths"
   },
