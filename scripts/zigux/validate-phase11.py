@@ -283,7 +283,7 @@ def run_self_test() -> int:
             tmp_root,
             "make:scripts/zigux/validate-phase11.py --self-test",
         )
-        makefile_path.writeText(original_makefile, encoding="utf-8")
+        makefile_path.write_text(original_makefile, encoding="utf-8")
 
         workflow_path = tmp_root / ".github/workflows/zigux-bootstrap.yml"
         original_workflow = workflow_path.read_text(encoding="utf-8")
