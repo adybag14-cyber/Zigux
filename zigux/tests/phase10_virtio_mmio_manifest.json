@@ -120,7 +120,7 @@
       "status": "starter_landed",
       "kind": "transport_wrapper",
       "zigux_destination": "drivers/virtio/virtio_mmio.zig",
-      "why_now": "The roadmap requires virtqueue wrappers ahead of MMIO work, and that prerequisite is now satisfied by the landed virtio_ring delayed-callback pacing step, so the first honest MMIO follow-up is this bounded register-window helper rather than more queue-local work."
+      "why_now": "The roadmap requires virtqueue wrappers ahead of MMIO work, and that prerequisite is now satisfied by the landed virtio_ring delayed-callback pacing step, so the first honest MMIO follow-up is this bounded transport-identity and register-window helper, keeping magic-value, transport-version, device-id, and vendor-id bookkeeping reviewable before broader queue or lifecycle claims."
     },
     {
       "id": "phase10-mmio-queue-register-helper",
