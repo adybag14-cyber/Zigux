@@ -582,6 +582,7 @@ test "hexDumpToBuffer proves exact 8-byte grouped ascii output" {
 test "hexDumpToBuffer exact-capacity full-buffer path stays aligned with fixture output" {
     try assertExactCapacityFullBufferCase(16, 16, 1, false);
     try assertExactCapacityFullBufferCase(16, 16, 2, false);
+    try assertExactCapacityFullBufferCase(16, 16, 2, true);
     try assertExactCapacityFullBufferCase(16, 16, 4, false);
     try assertExactCapacityFullBufferCase(16, 16, 4, true);
     try assertExactCapacityFullBufferCase(32, 32, 2, true);
