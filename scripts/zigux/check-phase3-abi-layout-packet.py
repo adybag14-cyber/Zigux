@@ -476,6 +476,28 @@ def run_self_test() -> int:
             for issue in issues
         )
 
+        phase3_abi_dump_path.write_text("\n".join(dump_lines) + "\n", encoding="utf-8")
+        phase3_abi_c_harness_path = root / PHASE3_ABI_C_HARNESS_REL
+        phase3_abi_c_harness_path.write_text(
+            "\n".join(
+                line
+                for line in phase3_abi_c_harness_path.read_text(encoding="utf-8").splitlines()
+                if not (line.startswith('fputs(') and "facility_helpers" in line)
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        issues = validate(root)
+        assert any(issue.startswith(f"constant_count_mismatch:{PHASE3_ABI_C_HARNESS_REL}:") for issue in issues)
+        assert any(
+            issue.startswith(f"constant_set_mismatch:{PHASE3_ABI_C_HARNESS_REL}:{EXPECTED_REL}:")
+            for issue in issues
+        )
+        assert any(
+            issue.startswith(f"constant_set_mismatch:{PHASE3_ABI_C_HARNESS_REL}:{PHASE3_ABI_DUMP_REL}:")
+            for issue in issues
+        )
+
     print("PHASE3_ABI_LAYOUT_PACKET_SELF_TEST=pass")
     return 0
 
