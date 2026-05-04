@@ -17,6 +17,7 @@ FILES = [
     ".github/workflows/zigux-bootstrap.yml",
     "Documentation/zigux/README.md",
     "Documentation/zigux/phase10-closure-evidence.md",
+    "Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md",
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
     "zigux/tests/phase10_build.zig",
     "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
@@ -93,6 +94,18 @@ CLOSURE_NOTE_EXACT_ONCE_MARKERS = [
     "PHASE10_TEST_COUNT=11",
 ]
 
+GUIDE_MARKERS = [
+    "focused ring drained-reset reuse replay",
+]
+
+GUIDE_EXACT_ONCE_MARKERS = [
+    "- `python3 scripts/zigux/check-phase10-harness-coverage.py --self-test`",
+    "- `python3 scripts/zigux/check-phase10-harness-coverage.py`",
+    "- `zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
+    "- `zigux/tests/phase10_virtio_input_multitouch_preflight.zig`",
+    "- `zigux/tests/phase10_virtio_mmio_queue_isolation.zig`",
+]
+
 COMPANION_MARKERS = [
     "zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
     "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
@@ -158,6 +171,11 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         ("build", "zigux/tests/phase10_build.zig", BUILD_MARKERS),
         ("closure_note", "Documentation/zigux/phase10-closure-evidence.md", CLOSURE_NOTE_MARKERS),
         (
+            "guide",
+            "Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md",
+            GUIDE_MARKERS,
+        ),
+        (
             "companion",
             "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
             COMPANION_MARKERS,
@@ -183,6 +201,11 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             "closure_note",
             "Documentation/zigux/phase10-closure-evidence.md",
             CLOSURE_NOTE_EXACT_ONCE_MARKERS,
+        ),
+        (
+            "guide",
+            "Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md",
+            GUIDE_EXACT_ONCE_MARKERS,
         ),
         (
             "companion",
@@ -247,6 +270,7 @@ def write_fixture(root: Path) -> None:
         ".github/workflows/zigux-bootstrap.yml": "\n".join(WORKFLOW_MARKERS) + "\n",
         "Documentation/zigux/README.md": "\n".join(DOCS_README_MARKERS) + "\n",
         "Documentation/zigux/phase10-closure-evidence.md": "\n".join(CLOSURE_NOTE_MARKERS) + "\n",
+        "Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md": "\n".join(GUIDE_MARKERS + GUIDE_EXACT_ONCE_MARKERS) + "\n",
         "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": "\n".join(COMPANION_MARKERS) + "\n",
         "zigux/tests/phase10_build.zig": "\n".join(BUILD_MARKERS) + "\n",
         "zigux/tests/phase10_virtio_input_multitouch_preflight.zig": "\n".join(INPUT_PREFLIGHT_TEST_MARKERS) + "\n",
@@ -408,6 +432,60 @@ def run_self_test() -> int:
             "docs_readme:count:queue-handling and ready-state gate=2",
         )
         docs_readme_path.write_text(original_docs_readme, encoding="utf-8")
+
+        guide_path = root / "Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md"
+        original_guide = guide_path.read_text(encoding="utf-8")
+        guide_path.write_text(
+            original_guide.replace(
+                "- `zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
+                "- `zigux/tests/phase10_virtio_ring_reset_reuse_drift.zig`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "guide_ring_reset_reuse_entry",
+            root,
+            "guide:count:- `zigux/tests/phase10_virtio_ring_reset_reuse.zig`=0",
+        )
+        guide_path.write_text(original_guide, encoding="utf-8")
+
+        guide_path.write_text(
+            original_guide.replace(
+                "focused ring drained-reset reuse replay",
+                "focused ring replay drift",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "guide_ring_reset_reuse_phrase",
+            root,
+            "guide:focused ring drained-reset reuse replay",
+        )
+        guide_path.write_text(original_guide, encoding="utf-8")
+
+        guide_path.write_text(
+            original_guide + "\n- `zigux/tests/phase10_virtio_mmio_queue_isolation.zig`\n",
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "guide_mmio_queue_isolation_duplicate",
+            root,
+            "guide:count:- `zigux/tests/phase10_virtio_mmio_queue_isolation.zig`=2",
+        )
+        guide_path.write_text(original_guide, encoding="utf-8")
+
+        guide_path.write_text(
+            original_guide + "\n- `python3 scripts/zigux/check-phase10-harness-coverage.py`\n",
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "guide_harness_gate_duplicate",
+            root,
+            "guide:count:- `python3 scripts/zigux/check-phase10-harness-coverage.py`=2",
+        )
+        guide_path.write_text(original_guide, encoding="utf-8")
 
         build_path = root / "zigux/tests/phase10_build.zig"
         original_build = build_path.read_text(encoding="utf-8")
@@ -607,8 +685,7 @@ def run_self_test() -> int:
 
         companion_path.write_text(
             original_companion + "\nzigux-alpha/PHASE10_CLOSURE_LEDGER.md\n",
-            encoding="utf-8",
-        )
+            encoding="utf-8")
         expect_missing_marker(
             "companion_closure_ledger_duplicate",
             root,
@@ -721,8 +798,7 @@ def run_self_test() -> int:
                 "probePreflightSummaryDrift()",
                 1,
             ),
-            encoding="utf-8",
-        )
+            encoding="utf-8")
         expect_missing_marker(
             "input_preflight_probe_summary_marker",
             root,
@@ -764,7 +840,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=34")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=38")
     return 0
 
 
@@ -791,5 +867,5 @@ print("PHASE10_HARNESS_COVERAGE=pass")
 print(f"PHASE10_HARNESS_REQUIRED_FILE_COUNT={len(FILES)}")
 print(
     "PHASE10_HARNESS_REQUIRED_MARKER_COUNT="
-    f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(SCRIPTS_README_MARKERS) + len(SCRIPTS_README_EXACT_ONCE_MARKERS) + len(TESTS_README_MARKERS) + len(TESTS_README_EXACT_ONCE_MARKERS) + len(DOCS_README_MARKERS) + len(DOCS_README_EXACT_ONCE_MARKERS) + len(BUILD_MARKERS) + len(CLOSURE_NOTE_MARKERS) + len(CLOSURE_NOTE_EXACT_ONCE_MARKERS) + len(COMPANION_MARKERS) + len(COMPANION_EXACT_ONCE_MARKERS) + len(INPUT_PREFLIGHT_TEST_MARKERS) + len(MMIO_QUEUE_ISOLATION_TEST_MARKERS)}"
+    f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(SCRIPTS_README_MARKERS) + len(SCRIPTS_README_EXACT_ONCE_MARKERS) + len(TESTS_README_MARKERS) + len(TESTS_README_EXACT_ONCE_MARKERS) + len(DOCS_README_MARKERS) + len(DOCS_README_EXACT_ONCE_MARKERS) + len(BUILD_MARKERS) + len(CLOSURE_NOTE_MARKERS) + len(CLOSURE_NOTE_EXACT_ONCE_MARKERS) + len(GUIDE_MARKERS) + len(GUIDE_EXACT_ONCE_MARKERS) + len(COMPANION_MARKERS) + len(COMPANION_EXACT_ONCE_MARKERS) + len(INPUT_PREFLIGHT_TEST_MARKERS) + len(MMIO_QUEUE_ISOLATION_TEST_MARKERS)}"
 )
