@@ -98,6 +98,7 @@ TESTS_README_MARKERS = [
     "zigux/tests/phase10_virtio_input_manifest.json",
     "zigux/tests/phase10_virtio_input_survey.zig",
     "zigux/tests/phase10_virtio_mmio.zig",
+    "zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
     "registration-preflight helper",
     "queue-callback preflight helper",
     "registration-lifecycle blocker",
@@ -661,8 +662,23 @@ def run_self_test() -> int:
             tmp_root,
             "tests_readme:stale_marker:three manifest-backed survey records",
         )
-        write_fixture_tree(tmp_root)
 
+        write_fixture_tree(tmp_root)
+        tests_readme_path.write_text(
+            read_text(tmp_root, "zigux/tests/README.md").replace(
+                "zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
+                "zigux-alpha/PHASE10_LEDGER_DRIFT.md",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "tests_readme_closure_ledger_guard",
+            tmp_root,
+            "tests_readme:zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
+        )
+
+        write_fixture_tree(tmp_root)
         script_readme_path = tmp_root / "scripts/zigux/README.md"
         script_readme_path.write_text(
             read_text(tmp_root, "scripts/zigux/README.md")
@@ -676,7 +692,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_VALIDATOR_SELF_TEST_CASE_COUNT=7")
+    print("PHASE10_VALIDATOR_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
