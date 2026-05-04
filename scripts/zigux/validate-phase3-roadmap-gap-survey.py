@@ -37,44 +37,41 @@ REQUIRED_SURVEY_MARKERS = (
     "PHASE3_CURRENT_UAPI_SCOPE=version-and-boundary-header",
     "PHASE3_CURRENT_BITMAP_CPUMASK=zigux/helpers/bitmap_view.zig,zigux/helpers/cpumask_view.zig",
     "PHASE3_CURRENT_LIST_HLIST=zigux/helpers/list_view.zig,zigux/helpers/hlist_view.zig",
-    "PHASE3_CURRENT_RBTREE_STATUS=phase3-dedicated-rbtree-boundary-exists-shared-abi-lift-still-missing",
-    "PHASE3_CURRENT_RBTREE_EVIDENCE=tools/lib/rbtree.zig,lib/rbtree.zig,include/zigux/rbtree.h,zigux/bindings/rbtree.zig,zigux/helpers/rbtree_view.zig,zigux/helpers/rbtree_root_view.zig,Documentation/zigux/phase1-closure.md,Documentation/zigux/phase3-rbtree-slice.md,Documentation/zigux/phase3-rbtree-interop-survey.md,Documentation/zigux/phase7-rbtree-slice.md,zigux/tests/phase3_rbtree_survey.zig,zigux/tests/phase3_rbtree_root_view_survey.zig,zigux/tests/phase3_rbtree_manifest.json,zigux/tests/phase3_rbtree_shared_contract.zig,zigux/tests/phase3_rbtree_dump.zig,zigux/tests/fixtures/phase3_rbtree/expected.json,zigux/tests/fixtures/phase3_rbtree/phase3_rbtree_c_harness.c,scripts/zigux/check-phase3-rbtree-shared-lift-contract.py,zigux/tests/phase7_rbtree.zig,zigux/tests/phase7_rbtree_survey.zig,zigux/tests/phase7_rbtree_manifest.json",
+    "PHASE3_CURRENT_RBTREE_STATUS=phase3-dedicated-rbtree-boundary-and-shared-abi-root-view-lift-landed",
+    "PHASE3_CURRENT_RBTREE_EVIDENCE=tools/lib/rbtree.zig,lib/rbtree.zig,include/zigux/rbtree.h,zigux/bindings/rbtree.zig,include/zigux/abi.h,zigux/bindings/abi.zig,zigux/helpers/rbtree_view.zig,zigux/helpers/rbtree_root_view.zig,Documentation/zigux/phase1-closure.md,Documentation/zigux/phase3-rbtree-slice.md,Documentation/zigux/phase3-rbtree-interop-survey.md,Documentation/zigux/phase7-rbtree-slice.md,zigux/tests/phase3_rbtree_survey.zig,zigux/tests/phase3_rbtree_root_view_survey.zig,zigux/tests/phase3_rbtree_manifest.json,zigux/tests/phase3_rbtree_shared_contract.zig,zigux/tests/phase3_rbtree_dump.zig,zigux/tests/fixtures/phase3_rbtree/expected.json,zigux/tests/fixtures/phase3_rbtree/phase3_rbtree_c_harness.c,zigux/tests/phase3_abi.zig,zigux/tests/phase3_abi_dump.zig,zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c,zigux/tests/fixtures/phase3_abi/expected.json,scripts/zigux/check-phase3-rbtree-shared-lift-contract.py,zigux/tests/phase7_rbtree.zig,zigux/tests/phase7_rbtree_survey.zig,zigux/tests/phase7_rbtree_manifest.json",
     "PHASE3_CURRENT_SHARED_RBTREE_REPLAY=zigux/tests/phase3_abi.zig,zigux/tests/phase3_abi_dump.zig,zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c,zigux/tests/fixtures/phase3_abi/expected.json",
     "PHASE3_CURRENT_RBTREE_SHARED_CONTRACT=zigux/tests/phase3_rbtree_shared_contract.zig",
-    "PHASE3_CURRENT_RBTREE_SHARED_LAYOUT_CONTRACT=shared-phase3-abi-replay-already-reuses-dedicated-rbtree-layout-shared-header-lift-still-missing",
-    "PHASE3_CURRENT_RBTREE_SHARED_CATALOG=phase3-abi-manifest-catalogs-shared-rbtree-replay-and-lift-guards",
+    "PHASE3_CURRENT_RBTREE_SHARED_LAYOUT_CONTRACT=shared-phase3-abi-packet-now-carries-rbtree-root-view-through-curated-shared-header-and-binding",
+    "PHASE3_CURRENT_RBTREE_SHARED_CATALOG=phase3-abi-manifest-catalogs-dedicated-rbtree-boundary-shared-replay-and-the-still-open-survey-wording-gap",
     "PHASE3_REPO_REALITY=chrdev-plan-growth-exceeds-roadmap-anchors",
-    "PHASE3_INTEROP_GAP=shared-phase3-abi-rbtree-lift-still-missing",
-    "PHASE3_NEXT_BOUNDED_STEP=shared-abi-rbtree-root-view-before-more-chrdev-growth",
+    "PHASE3_INTEROP_GAP=survey-and-validator-wording-still-lag-the-landed-shared-rbtree-lift-while-chrdev-tail-growth-keeps-expanding",
+    "PHASE3_NEXT_BOUNDED_STEP=align-shared-phase3-survey-and-validator-wording-before-more-chrdev-growth",
     "PHASE3_VALIDATION_ROUTE=scripts/zigux/validate-phase3.py,make -C zigux phase3-validate,.github/workflows/zigux-bootstrap.yml",
 )
 
 REQUIRED_SURVEY_SNIPPETS = (
-    "The largest roadmap-backed interop gap is no longer the total absence of a Phase 3 `rbtree` helper or boundary packet.",
-    "there is still no curated `rbtree` record in `include/zigux/abi.h`",
-    "there is still no matching shared `zigux/bindings/abi.zig` layout type for a Phase 3 `rbtree` boundary packet",
-    "the shared `phase3_abi` replay still reaches `rbtree` through `include/zigux/rbtree.h` and `zigux/bindings/rbtree.zig` rather than through a curated shared `abi.h` plus `abi.zig` record",
+    "The largest roadmap-backed interop gap is no longer the total absence of a Phase 3 `rbtree` helper or boundary packet, and it is no longer the absence of the first shared Phase 3 `rbtree` root-view lift either.",
+    "the roadmap wording and some survey-owned wording still lag the landed shared `rbtree` lift in `include/zigux/abi.h` and `zigux/bindings/abi.zig`",
     "the shared ABI replay already covers `zigux_rbtree_root_view` through `zigux/tests/phase3_abi.zig`, `zigux/tests/phase3_abi_dump.zig`, `zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c`, and `zigux/tests/fixtures/phase3_abi/expected.json`",
-    "The shared ABI manifest now also catalogs that shared replay and its lift guards, so the Phase 3 gap is no longer tangled up with inventory drift.",
-    "`zigux/helpers/rbtree_root_view.zig`, `zigux/tests/phase3_rbtree_root_view_survey.zig`, `zigux/tests/phase3_rbtree_shared_contract.zig`, and `scripts/zigux/check-phase3-rbtree-shared-lift-contract.py` now also keep the reusable root-view helper plus the planned shared-lift contract explicit before the canonical shared header and binding grow.",
-    "The dedicated roadmap-gap survey is reviewed through the shared validator-first path rather than as a standalone bootstrap or release entrypoint.",
+    "The shared ABI manifest already catalogs that shared replay alongside the dedicated packet and the review guards, so the remaining Phase 3 gap is not missing shared code. It is the smaller survey and validator wording drift around already-landed shared ABI reality.",
+    "The dedicated roadmap-gap survey is still meant to be reviewed through the shared validator-first path rather than as a standalone bootstrap or release entrypoint.",
     "`python3 scripts/zigux/validate-phase3.py`",
     "`make -C zigux phase3-validate`",
     "the bootstrap workflow replays the same shared validator route before the broader Phase 3 ABI and interop tests run",
     FULL_SUPPORTING_CHECKS_SNIPPET,
-    "`python3 scripts/zigux/validate-phase3-rbtree-interop-survey.py` also stays inside that same validator-first route so the dedicated `rbtree` survey, shared-lift contract, and remaining shared-ABI gap stay reviewable without becoming a standalone release path",
-    "one shared header-and-binding shape",
-    "one shared ABI replay path that no longer depends on the dedicated `rbtree` include path",
-    "one validator-backed note refresh",
+    "`python3 scripts/zigux/validate-phase3-rbtree-interop-survey.py` should now be treated as the next bounded follow-on surface for wording alignment around the already-landed shared lift rather than as proof that the shared lift itself is still missing",
+    "align the remaining shared Phase 3 survey wording with the landed shared `zigux_rbtree_root_view` lift in `include/zigux/abi.h` and `zigux/bindings/abi.zig`",
+    "keep the shared ABI replay, manifest catalog, and dedicated `rbtree` packet explicit in that wording",
+    "stop there; do not widen this lane into more `chrdev_*` tail growth or unrelated Phase 3 packet churn",
 )
 
 EXACT_ONCE_SURVEY_SNIPPETS = (
-    "The dedicated roadmap-gap survey is reviewed through the shared validator-first path rather than as a standalone bootstrap or release entrypoint.",
+    "The dedicated roadmap-gap survey is still meant to be reviewed through the shared validator-first path rather than as a standalone bootstrap or release entrypoint.",
     "`python3 scripts/zigux/validate-phase3.py`",
     "`make -C zigux phase3-validate`",
     "the bootstrap workflow replays the same shared validator route before the broader Phase 3 ABI and interop tests run",
     FULL_SUPPORTING_CHECKS_SNIPPET,
-    "`python3 scripts/zigux/validate-phase3-rbtree-interop-survey.py` also stays inside that same validator-first route so the dedicated `rbtree` survey, shared-lift contract, and remaining shared-ABI gap stay reviewable without becoming a standalone release path",
+    "`python3 scripts/zigux/validate-phase3-rbtree-interop-survey.py` should now be treated as the next bounded follow-on surface for wording alignment around the already-landed shared lift rather than as proof that the shared lift itself is still missing",
 )
 
 REQUIRED_SURVEY_PATHS = (
@@ -230,7 +227,7 @@ def run_self_test() -> int:
         )
         issues = validate(root)
         assert (
-            "missing_survey_snippet:one validator-backed note refresh"
+            "missing_survey_snippet:stop there; do not widen this lane into more `chrdev_*` tail growth or unrelated Phase 3 packet churn"
             in issues
         )
 
