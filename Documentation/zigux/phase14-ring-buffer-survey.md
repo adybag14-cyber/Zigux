@@ -10,7 +10,7 @@ This document records the bounded Phase 14 survey lane around `kernel/trace/ring
 - `PHASE14_SURVEYED_COMMIT=f9a7a6e93c8e6a1b6550fd7b2aa5571729aab05b`
 - scope: the dedicated Phase 14 ring-buffer survey gate, its manifest, the shared Phase 14 build wiring, and this lane note that keeps the roadmap gap explicit without shipping a Zig bridge
 - survey provenance refreshed against verified `master` head `f9a7a6e93c8e6a1b6550fd7b2aa5571729aab05b`
-- live follow-up: current repo inspection added one more bounded reset and clear-path governance audit around `ring_buffer_reset_cpu()`, `ring_buffer_reset_online_cpus()`, `ring_buffer_reset()`, and tracefs-owned clear semantics without widening this packet into a reset bridge claim or wrapper-first implementation
+- live follow-up: current repo inspection added one more bounded page-count resize workqueue audit around `ring_buffer_resize()`, per-CPU `update_pages_work`, `update_done` completion waits, and tracefs-facing resize coordination without widening this packet into a resize bridge claim or wrapper-first implementation
 - product boundary:
   - `zigux/tests/phase14_ring_buffer_survey.zig`
   - `zigux/tests/phase14_ring_buffer_manifest.json`
@@ -115,6 +115,13 @@ The honest Phase 14 move here is therefore not to start a `ring_buffer.zig` file
 - The tracefs control path keeps that same contract intact instead of introducing a friendlier outer API. `buffer_subbuf_size_write()` stops tracing, converts the requested kilobyte size into an order, updates the main buffer through `ring_buffer_subbuf_order_set()`, and then attempts the same change on the snapshot buffer when one exists; if the snapshot resize fails it tries to roll the main buffer back to `old_order`, and if that rollback also fails it disables tracing outright rather than claiming a partially resized state is safe.
 - `tracing_buffers_read()` closes the loop on open file descriptors. It re-reads the current `ring_buffer_subbuf_size_get()` result for each read, frees any cached spare page when `page_size != info->spare_size`, and only then allocates a new read page and refreshes `spare_cpu` or `spare_size`, which confirms that resize-time reader-page invalidation is shared between the core buffer transaction and the tracefs caller contract instead of being an isolated helper concern.
 
+## Page-count resize workqueue audit
+
+- `ring_buffer_resize()` is not a local size-field update. It raises `buffer->resizing`, blocks shared mutation under `buffer->mutex`, and either runs `rb_update_pages()` on the current CPU or schedules `update_pages_work` onto the target CPU before waiting for `update_done`, so page-count resizing already spans global buffer state, per-CPU worker context, and a synchronous caller-visible completion boundary.
+- The per-CPU resize fan-out remains coupled across the whole trace buffer. For all-CPU requests the function stores each shard's delta in `nr_pages_to_update`, sends remote work through `schedule_work_on(cpu, &cpu_buffer->update_pages_work)` when needed, and then waits for every outstanding `update_done` before clearing the pending deltas, which means the visible resize result only exists after the full shard set reaches the same completion barrier.
+- Reader and writer safety stay inside that same C-owned transaction. `ring_buffer_resize()` refuses to proceed when `resize_disabled` is held because an active reader still expects stable page topology, and the worker path mutates the same per-CPU page lists, counters, and reader-visible topology that normal reserve, consume, and read-page flows already share, so deferred page-count updates are still not a wrapper-safe helper seam.
+- The broader tracefs resize path in `trace.c` keeps that coordination shared above the ring buffer core. Snapshot-aware callers still pair the live and snapshot resize decisions and the existing rollback logic may disable tracing if the two sides cannot be restored to a consistent state, so page-count updates and tracefs-facing resize policy remain one safety contract instead of a helper-first Zig candidate.
+
 ## Snapshot rollback failure-path audit
 
 - `buffer_subbuf_size_write()` does not treat snapshot rollback failure as a local tracefs annoyance. It stops tracing before the resize starts, updates the main buffer first, then tries to apply the same sub-buffer order to the snapshot buffer, which means a failure already leaves the live and snapshot halves of the trace array on different layouts unless the rollback succeeds.
@@ -177,6 +184,7 @@ The current lane state is:
 - landed `phase14-ring-buffer-read-page-extraction-followup`
 - landed `phase14-ring-buffer-read-page-allocation-contract-followup`
 - landed `phase14-ring-buffer-subbuf-order-reconfig-followup`
+- landed `phase14-ring-buffer-page-count-resize-workqueue-followup`
 - landed `phase14-ring-buffer-snapshot-rollback-failure-followup`
 - landed `phase14-ring-buffer-tracing-disabled-recovery-followup`
 - landed `phase14-ring-buffer-map-dup-unmap-lifetime-followup`
