@@ -13,11 +13,13 @@ This note keeps the active Phase 12 PMO follow-up explicit without claiming that
 
 ## What is already live on master
 
-The current repo already carries the release-facing survey note, the dedicated PMO packet checker, the docs-root release summary, the scripts-root helper listing, and the review-checklist prompt for the active Phase 12 release packet.
+The current repo already carries the release-facing survey note, the compact coordination matrix, the ordered release-sequencing note, the dedicated PMO packet checker, the docs-root release summary, the scripts-root helper listing, and the review-checklist prompt for the active Phase 12 release packet.
 
 Those live surfaces are:
 
 - `Documentation/zigux/phase12-release-readiness-survey.md`
+- `Documentation/zigux/phase12-release-coordination-matrix.md`
+- `Documentation/zigux/phase12-release-sequencing.md`
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
 - `scripts/zigux/check-phase12-release-readiness-packet.py`
