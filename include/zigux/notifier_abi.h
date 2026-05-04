@@ -150,4 +150,11 @@ zigux_notifier_chain_length_bounded(const struct zigux_notifier_chain_view *view
 	return zigux_notifier_chain_summarize(view).length;
 }
 
+static inline bool
+zigux_notifier_chain_has_nonincreasing_priority_order(const struct zigux_notifier_chain_view *view)
+{
+	return (zigux_notifier_chain_summarize(view).flags &
+		ZIGUX_NOTIFIER_CHAIN_FLAG_PRIORITY_NONINCREASING) != 0;
+}
+
 #endif
