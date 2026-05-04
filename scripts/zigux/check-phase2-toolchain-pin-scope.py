@@ -105,7 +105,7 @@ REVIEW_CHECKLIST_MARKERS = [
     "scripts/zigux/validate-phase2-closure.py",
     ".github/workflows/zigux-bootstrap.yml",
     "bounded archive pin",
-    "fail-closed validator path",
+    "both validators fail closed on the same kbuild-facing replay surface",
     "workflow bootstrap install and verification route",
     "zigux/Makefile",
     "make -C zigux phase2-validate",
@@ -493,6 +493,7 @@ def run_self_test() -> int:
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2.py",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2-closure.py",
             ]
         )
     )
@@ -833,14 +834,19 @@ def run_self_test() -> int:
         raise SystemExit("phase2-toolchain-pin-scope:self-test:review_checklist_bounded_archive_pin_marker")
 
     missing_review_fail_closed_path = "\n".join(
-        marker for marker in REVIEW_CHECKLIST_MARKERS if marker != "fail-closed validator path"
+        marker
+        for marker in REVIEW_CHECKLIST_MARKERS
+        if marker != "both validators fail closed on the same kbuild-facing replay surface"
     )
     marker_issues = validate_required_markers(
         missing_review_fail_closed_path,
         label="review_checklist",
         markers=REVIEW_CHECKLIST_MARKERS,
     )
-    if "review_checklist:missing_marker:fail-closed validator path" not in marker_issues:
+    if (
+        "review_checklist:missing_marker:both validators fail closed on the same kbuild-facing replay surface"
+        not in marker_issues
+    ):
         raise SystemExit("phase2-toolchain-pin-scope:self-test:review_checklist_fail_closed_path_marker")
 
     missing_review_workflow_route = "\n".join(
