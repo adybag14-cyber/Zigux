@@ -95,7 +95,9 @@ REQUIRED_WORKFLOW_SNIPPETS = (
 )
 
 EXACT_ONCE_WORKFLOW_SNIPPETS = (
+    "run: python3 scripts/zigux/validate-phase3.py\n",
     "run: python3 scripts/zigux/check-phase3-validation-flow.py\n",
+    "run: python3 scripts/zigux/validate-phase3.py --self-test\n",
     "run: python3 scripts/zigux/check-phase3-validation-flow.py --self-test\n",
     "run: python3 scripts/zigux/phase3_catalog.py --self-test\n",
     "run: python3 scripts/zigux/phase3_catalog.py --audit-doc-sync\n",
@@ -510,6 +512,22 @@ def run_self_test() -> int:
                 + (",".join(issues) if issues else "none")
             )
 
+        duplicated_validate_phase3_workflow = (
+            _fixture_workflow()
+            + "      - name: Validate Phase 3 slices again\n"
+            + "        run: python3 scripts/zigux/validate-phase3.py\n"
+        )
+        _write(root, WORKFLOW_REL, duplicated_validate_phase3_workflow)
+        issues = validate(root)
+        expected = [
+            "unexpected_workflow_snippet_count:2:run: python3 scripts/zigux/validate-phase3.py\n",
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-validation-flow-self-test:duplicate_validate_phase3_workflow_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
         duplicated_runner_workflow = (
             _fixture_workflow()
             + "      - name: Self-test Phase 3 runner again\n"
@@ -523,6 +541,22 @@ def run_self_test() -> int:
         if issues != expected:
             raise SystemExit(
                 "phase3-validation-flow-self-test:duplicate_runner_workflow_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+        duplicated_validate_phase3_self_test_workflow = (
+            _fixture_workflow()
+            + "      - name: Self-test Phase 3 validator again\n"
+            + "        run: python3 scripts/zigux/validate-phase3.py --self-test\n"
+        )
+        _write(root, WORKFLOW_REL, duplicated_validate_phase3_self_test_workflow)
+        issues = validate(root)
+        expected = [
+            "unexpected_workflow_snippet_count:2:run: python3 scripts/zigux/validate-phase3.py --self-test\n",
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-validation-flow-self-test:duplicate_validate_phase3_self_test_workflow_guard_failed:"
                 + (",".join(issues) if issues else "none")
             )
 
@@ -870,7 +904,7 @@ def run_self_test() -> int:
             )
 
         print("PHASE3_VALIDATION_FLOW_SELF_TEST=pass")
-        print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=56")
+        print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=58")
         return 0
 
 
