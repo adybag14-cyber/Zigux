@@ -40,6 +40,7 @@ C_HEADER_MARKERS = [
     "zigux_notifier_chain_empty",
     "zigux_notifier_chain_length_bounded",
     "zigux_notifier_chain_summarize",
+    "zigux_notifier_chain_has_nonincreasing_priority_order",
     "ZIGUX_NOTIFIER_CHAIN_FLAG_PRIORITY_NONINCREASING",
 ]
 
@@ -48,6 +49,7 @@ HELPER_MARKERS = [
     "pub fn isEmpty",
     "pub fn length",
     "pub fn summarize",
+    "pub fn hasNonincreasingPriorityOrder",
     "NOTIFIER_CHAIN_FLAG_PRIORITY_NONINCREASING",
     "clears the priority-order flag when priorities rise",
 ]
@@ -57,8 +59,10 @@ REVIEWABILITY_MARKERS = [
     'try std.testing.expectEqualStrings("P13-L19", manifest.lane_key);',
     'try std.testing.expect(std.mem.indexOf(u8, notifier_c_header_text, "zigux_notifier_chain_view_valid") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, notifier_c_header_text, "zigux_notifier_chain_summarize") != null);',
-    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "include/zigux/notifier_abi.h") != null);',
-    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "`zigux_notifier_chain_view_valid()`") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, notifier_c_header_text, "zigux_notifier_chain_has_nonincreasing_priority_order") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, notifier_helper_text, "pub fn hasNonincreasingPriorityOrder") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "`zigux_notifier_chain_has_nonincreasing_priority_order()`") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "`hasNonincreasingPriorityOrder`") != null);',
     'try std.testing.expect(found_c_header_gap);',
 ]
 
@@ -82,7 +86,9 @@ SURVEY_MARKERS = [
     "`zigux_notifier_chain_view_valid()`",
     "reserved or zero-bounded views",
     "zigux/helpers/notifier_chain_view.zig",
-    "`viewFromHead`, `isEmpty`, `length`, and `summarize`",
+    "`hasNonincreasingPriorityOrder`",
+    "`zigux_notifier_chain_has_nonincreasing_priority_order()`",
+    "keeps the direct priority-order convenience reviewable",
     "keeps the dedicated exported C header small",
     "registration, callback execution, SRCU, and blocking notifier semantics remain out of scope",
 ]
