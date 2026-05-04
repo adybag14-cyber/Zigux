@@ -500,7 +500,7 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "PHASE4_GATE_EVIDENCE_SELF_TEST=pass") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "PHASE4_GATE_EVIDENCE_CHECK=pass") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "PHASE4_GATE_EVIDENCE_TARGET_COUNT=17") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "PHASE4_GATE_EVIDENCE_TARGET_COUNT=18") != null);
     try expectGateEvidenceBlob(phase4_gate_evidence, "PHASE4_PERF_BASELINE_MANIFEST_BLOB_SHA", manifest_json);
     try expectGateEvidenceBlob(phase4_gate_evidence, "PHASE4_PERF_BASELINE_SURVEY_BLOB_SHA", phase4_perf_baseline_survey);
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, current_surveyed_commit) != null);
