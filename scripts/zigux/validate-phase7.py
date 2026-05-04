@@ -184,6 +184,15 @@ required_doc_readme_exact_count_markers = {
     "`python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test`": 1,
     "`python3 scripts/zigux/check-phase7-argv-split-packet.py`": 1,
 }
+required_phase7_string_helpers_doc_markers = [
+    "`zigux/tests/phase7_string_helpers_sample_boundary.zig`",
+    "`zig test zigux/tests/phase7_string_helpers_sample_boundary.zig`",
+]
+required_samples_readme_markers = [
+    "current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample",
+    "treat any new `samples/zigux/*string*.zig` file as review-blocking",
+    "`zigux/tests/phase7_build.zig`",
+]
 required_phase7_build_markers = [
     "fn createImportedTestRoot(",
     "fn createStandaloneTestRoot(",
@@ -632,6 +641,47 @@ def run_self_test() -> int:
         )
         build_path.write_text(original_build, encoding="utf-8")
 
+        phase7_string_helpers_doc_path = (
+            tmp_root / "Documentation" / "zigux" / "phase7-string-helpers-slice.md"
+        )
+        original_phase7_string_helpers_doc = phase7_string_helpers_doc_path.read_text(
+            encoding="utf-8"
+        )
+        phase7_string_helpers_doc_path.write_text(
+            original_phase7_string_helpers_doc.replace(
+                "`zigux/tests/phase7_string_helpers_sample_boundary.zig`",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "phase7_string_helpers_doc_sample_boundary_marker",
+            tmp_root,
+            "Documentation/zigux/phase7-string-helpers-slice.md: `zigux/tests/phase7_string_helpers_sample_boundary.zig`",
+        )
+        phase7_string_helpers_doc_path.write_text(
+            original_phase7_string_helpers_doc,
+            encoding="utf-8",
+        )
+
+        samples_readme_path = tmp_root / "samples" / "zigux" / "README.md"
+        original_samples_readme = samples_readme_path.read_text(encoding="utf-8")
+        samples_readme_path.write_text(
+            original_samples_readme.replace(
+                "treat any new `samples/zigux/*string*.zig` file as review-blocking",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "samples_readme_string_boundary_marker",
+            tmp_root,
+            "samples/zigux/README.md: treat any new `samples/zigux/*string*.zig` file as review-blocking",
+        )
+        samples_readme_path.write_text(original_samples_readme, encoding="utf-8")
+
         build_inventory_path = tmp_root / "zigux" / "tests" / "fixtures" / "phase7_build_inventory.json"
         original_build_inventory = json.loads(build_inventory_path.read_text(encoding="utf-8"))
         drifted_build_inventory = dict(original_build_inventory)
@@ -677,7 +727,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=26")
+    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=28")
     return 0
 
 def main() -> int:
@@ -699,6 +749,10 @@ def main() -> int:
     tests_readme = (ROOT / "zigux" / "tests" / "README.md").read_text(encoding="utf-8")
     doc_readme = (ROOT / "Documentation" / "zigux" / "README.md").read_text(encoding="utf-8")
     phase7_build = (ROOT / "zigux" / "tests" / "phase7_build.zig").read_text(encoding="utf-8")
+    phase7_string_helpers_doc = (
+        ROOT / "Documentation" / "zigux" / "phase7-string-helpers-slice.md"
+    ).read_text(encoding="utf-8")
+    samples_readme = (ROOT / "samples" / "zigux" / "README.md").read_text(encoding="utf-8")
 
     missing_markers: list[tuple[str, str]] = []
     missing_markers.extend(collect_missing_markers("zigux/Makefile", makefile, required_make_markers))
@@ -718,6 +772,20 @@ def main() -> int:
             "Documentation/zigux/README.md",
             doc_readme,
             required_doc_readme_exact_count_markers,
+        )
+    )
+    missing_markers.extend(
+        collect_missing_markers(
+            "Documentation/zigux/phase7-string-helpers-slice.md",
+            phase7_string_helpers_doc,
+            required_phase7_string_helpers_doc_markers,
+        )
+    )
+    missing_markers.extend(
+        collect_missing_markers(
+            "samples/zigux/README.md",
+            samples_readme,
+            required_samples_readme_markers,
         )
     )
     missing_markers.extend(collect_missing_markers("zigux/tests/phase7_build.zig", phase7_build, required_phase7_build_markers))
@@ -853,7 +921,7 @@ def main() -> int:
     print(f"PHASE7_REQUIRED_FILE_COUNT={len(required_files)}")
     print(
         "PHASE7_REQUIRED_MARKER_COUNT="
-        f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_script_readme_exact_count_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_doc_readme_exact_count_markers) + len(required_phase7_build_markers)}"
+        f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_script_readme_exact_count_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_doc_readme_exact_count_markers) + len(required_phase7_string_helpers_doc_markers) + len(required_samples_readme_markers) + len(required_phase7_build_markers)}"
     )
     return 0
 
