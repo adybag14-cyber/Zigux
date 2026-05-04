@@ -224,7 +224,7 @@ pub fn strHasPrefix(str: []const u8, prefix: []const u8) usize {
     const prefix_len = cStringLen(prefix);
     const str_len = cStringLen(str);
     if (str_len < prefix_len) {
-        return false;
+        return 0;
     }
 
     return if (std.mem.eql(u8, str[0..prefix_len], prefix[0..prefix_len])) prefix_len else 0;
