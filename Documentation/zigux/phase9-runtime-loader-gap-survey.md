@@ -15,6 +15,8 @@ This document records the shared boot/runtime loader gap that still separates th
   - `Documentation/zigux/freeze-map.md`
   - `zigux/tests/runtime_loader_gap_manifest.json`
   - `zigux/tests/runtime_loader_gap_survey.zig`
+  - `zigux/tests/runtime_loader_allocator_init_flow.zig`
+  - `zigux/tests/runtime_loader_non_owner_boundary_survey.zig`
   - `zigux/tests/runtime_trace_events_manifest.json`
   - `zigux/tests/phase9_build.zig`
   - `zigux/kernel/runtime_loader.zig`
@@ -70,7 +72,9 @@ The manifest-backed catalog for this slice now names which file owns each part o
 - `Documentation/zigux/freeze-map.md` owns the study-only `kernel/workqueue.c` boundary and the Architecture Council reopen rule for any status change tied to scheduler-facing runtime substrate work
 - `zigux/tests/runtime_loader_gap_manifest.json` owns the manifest-backed catalog and ownership map for the current delivery packet
 - `zigux/tests/runtime_loader_gap_survey.zig` owns the machine-checkable replay of the manifest, note, shared request surface, and without-substrate rollback posture
-- `zigux/tests/phase9_build.zig` owns the shared Phase 9 runtime bundle replay entrypoint
+- `zigux/tests/runtime_loader_allocator_init_flow.zig` owns the machine-checkable allocator-handoff and init-flow replay for the shared request surface so caller-provided, arena, and kernel-heap paths cannot silently drift
+- `zigux/tests/runtime_loader_non_owner_boundary_survey.zig` owns the machine-checkable non-owner boundary replay that keeps the Phase 2 config bridges and Phase 3 export-boundary references explicit inside this shared runtime-loader packet
+- `zigux/tests/phase9_build.zig` owns the shared Phase 9 runtime bundle replay entrypoint, including the allocator-init-flow and non-owner-boundary survey legs beside the broader loader-gap, module-metadata, trace-events, and pilot-module checks
 - `zigux/kernel/runtime_loader.zig` owns the shared request contract plus allocator, selftest-hook, command-name, and init or exit handoff fields
 - `scripts/zigux/check-phase9-runtime-loader-commit-alignment.py` owns the focused surveyed-commit alignment guard for this survey note, the paired substrate-plan note, and the manifest-backed catalog before the broader runtime bundle reruns
 - `scripts/zigux/check-phase9-loader-non-owner-boundary.py` owns the focused non-owner boundary guard that keeps the Phase 2 config bridges and Phase 3 export-boundary references explicit instead of counting them as direct Phase 9 runtime evidence
@@ -143,7 +147,7 @@ That same roadmap split also keeps earlier config and export ownership explicit.
 That same boundary discipline also keeps module metadata and depmod publication explicit. `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, and `scripts/depmod.sh` remain blocked boundary references in `zigux/tests/runtime_loader_gap_manifest.json` until a real depmod bridge exists, so this Phase 9 packet does not claim alias publication or module catalog output.
 
 This slice therefore stays deliberately pre-execution. It does not claim runtime scheduling, polling, or event-loop implementation and it does not move runtime allocator or init-flow ownership into Phase 6.
-It also stays underneath the freeze-map study boundary for `kernel/workqueue.c`, so the shared loader packet must keep workqueue parity and any scheduler-core status change blocked until the Architecture Council explicitly reopens that anchor with fresh evidence.
+It also stays underneath the freeze-map study boundary for `kernel/workqueue.c`, so the shared loader packet must keep workqueue parity and any scheduler-core status change blocked until the Architecture Council explicitly reopens that boundary with fresh evidence.
 
 The same release-discipline packet now also keeps the dedicated surveyed-commit replay explicit: `make -C zigux phase9-loader-commit-alignment-survey` reruns the focused alignment guard for `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `Documentation/zigux/phase9-runtime-loader-substrate-plan.md`, and `zigux/tests/runtime_loader_gap_manifest.json` before the broader runtime bundle claims reviewable progress.
 
@@ -168,6 +172,7 @@ The same release-discipline packet now also keeps the dedicated surveyed-commit 
 
 4. run the shared Phase 9 runtime survey bundle
 - `zig build test --build-file zigux/tests/phase9_build.zig --summary all`
+- that shared bundle now also keeps the allocator-init-flow and non-owner-boundary review surfaces explicit through `zigux/tests/runtime_loader_allocator_init_flow.zig` and `zigux/tests/runtime_loader_non_owner_boundary_survey.zig`
 
 5. run the focused loader-gap replay
 - `make -C zigux phase9-loader-gap-survey`
